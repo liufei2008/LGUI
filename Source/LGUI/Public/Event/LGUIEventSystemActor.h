@@ -1,0 +1,240 @@
+﻿// Copyright 2019 LexLiu. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "LGUIDelegateDeclaration.h"
+#include "Raycaster/LGUIBaseRaycaster.h"
+#include "LGUIDelegateHandleWrapper.h"
+#include "LGUIEventSystemActor.generated.h"
+
+struct FLGUIPointerEventData;
+
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FLGUIHitDynamicDelegate, bool, isHit, const FHitResult&, hitResult);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, const FLGUIPointerEventData&, pointerEvent);
+/*
+ InputTrigger and InputScroll need mannually setup
+ about the event bubble: if all interface of target component or actor return true, then event will bubble up
+ */
+UCLASS(Abstract, HideCategories = (Rendering, Actor))
+class LGUI_API ALGUIEventSystemActor : public AActor
+{
+	GENERATED_BODY()
+	
+public:	
+	ALGUIEventSystemActor();
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI|EventSystem", meta = (DisplayName = "Get Event System Instance"))
+		static ALGUIEventSystemActor* GetInstance();
+protected:
+	static ALGUIEventSystemActor* Instance;//a level should only have one LGUIEventSystemActpr
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+protected:
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool outputLog = false;
+#endif
+	UPROPERTY(VisibleAnywhere, Category = LGUI)
+		bool bRayEventEnable = true;
+	bool nowIsTriggerPressed = false;
+	EMouseButtonType mouseButtonType = EMouseButtonType::Left;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)
+		FLGUIPointerEventData eventData;
+public:
+	//TriggerInput, need mannually setup
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
+		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left);
+	//ScrollInput, need mannually setup
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputScroll(const float& inAxisValue);
+
+	//clear event. eg when mouse is hovering a UI and highlight, and then event is disabled, we can use this to clear the hover event
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void ClearEvent();
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		UPrimitiveComponent* GetCurrentHitComponent();
+	//SetRaycast enable or disable
+	//@param	clearEvent		call ClearEvent after disable Raycast
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetRaycastEnable(bool enable, bool clearEvent = false);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	void SetSelectComponent(UPrimitiveComponent* InSelectComp);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UPrimitiveComponent* GetCurrentSelectedComponent() { return selectedComponent; }
+protected:
+	//call back for hit event
+	FLGUIMulticastHitDelegate hitEvent;
+	//call back for all event
+	FLGUIMulticastPointerEventDelegate globalListenerPointerEvent;
+public:
+	void RegisterHitEvent(const FLGUIHitDelegate& InEvent);
+	void UnregisterHitEvent(const FLGUIHitDelegate& InEvent);
+	void RegisterGlobalListener(const FLGUIPointerEventDelegate& InEvent);
+	void UnregisterGlobalListener(const FLGUIPointerEventDelegate& InEvent);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FLGUIDelegateHandleWrapper RegisterHitEvent(const FLGUIHitDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void UnregisterHitEvent(const FLGUIDelegateHandleWrapper& InHandle);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FLGUIDelegateHandleWrapper RegisterGlobalListener(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void UnregisterGlobalListener(const FLGUIDelegateHandleWrapper& InHandle);
+protected:
+	bool prevIsTriggerPressed = false;
+	EMouseButtonType prevPressTriggerType = EMouseButtonType::Left;
+	UPROPERTY(Transient)UPrimitiveComponent* enterComponent = nullptr;
+	UPROPERTY(Transient)UPrimitiveComponent* selectedComponent = nullptr;
+	UPROPERTY(Transient)UPrimitiveComponent* dragEnterComponent = nullptr;
+	bool enterComponentEventFireOnAllOrOnlyTarget = false;
+	bool dragComponentEventFireOnAllOrOnlyTarget = false;
+	bool selectedComponentEventFireOnAllOrOnlyTarget = false;
+	bool dragEnterComponentEventFireOnAllOrOnlyTarget = false;
+
+	bool pressHitSomething = false;//is hit something when trigger press?
+	bool startToDrag = false;//is start to drag?
+
+	FVector prevHitPoint = FVector(0, 0, 0);//prev frame hit point
+
+	struct FHitResultContainerStruct
+	{
+		FHitResult hitResult;
+		bool eventFireOnAll = false;
+
+		FVector rayOrigin = FVector(0, 0, 0), rayDirection = FVector(1, 0, 0), rayEnd = FVector(1, 0, 0);
+
+		ULGUIBaseRaycaster* raycaster = nullptr;
+	};
+	TArray<FHitResultContainerStruct> multiHitResult;//temp array for hit result
+
+	bool isUpFiredAtCurrentFrame = false;//is PointerUp event in current frame is called?
+	bool isExitFiredAtCurrentFrame = false;//is PointerExit event in current frame is called?
+	bool isEndDragFiredAtCurrentFrame = false;//is EndDrag event in current frame is called?
+	bool isDragExitFiredAtCurrentFrame = false;//is EndDrag event in current frame is called?
+protected:
+	bool LineTraceAndEvent();
+	bool LineTrace(FHitResultContainerStruct& hitResult);
+	
+	void CallOnPointerEnter(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerExit(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDown(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerUp(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerClick(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerBeginDrag(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDrag(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerEndDrag(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+
+	void CallOnPointerScroll(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+
+	void CallOnPointerDragEnter(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDragExit(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDragDrop(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+
+	void CallOnPointerSelect(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDeselect(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+
+	void LogEventData(FLGUIPointerEventData& eventData, bool eventFireOnAll);
+
+
+	void BubbleOnPointerEnter(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerExit(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerDown(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerUp(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerClick(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerBeginDrag(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerDrag(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerEndDrag(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerScroll(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerDragEnter(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerDragExit(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerDragDrop(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerSelect(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerDeselect(AActor* actor, FLGUIPointerEventData& eventData);
+};
+
+#define CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, interface, function)\
+{\
+	inEventData.eventType = EPointerEventType::##function##;\
+	inEventData.hitComponent = component;\
+	LogEventData(inEventData, eventFireOnAll);\
+	bool eventAllowBubble = true;\
+	if (eventFireOnAll)\
+	{\
+		auto ownerActor = component->GetOwner();\
+		if (ownerActor->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+		{\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(ownerActor, inEventData) == false)\
+			{\
+				eventAllowBubble = false;\
+			}\
+		}\
+		auto components = ownerActor->GetComponents();\
+		for (auto item : components)\
+		{\
+			if (item->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+			{\
+				if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(item, inEventData) == false)\
+				{\
+					eventAllowBubble = false;\
+				}\
+			}\
+		}\
+	}\
+	else\
+	{\
+		if (component->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+		{\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(component, inEventData) == false)\
+			{\
+				eventAllowBubble = false;\
+			}\
+		}\
+	}\
+	if (eventAllowBubble)\
+	{\
+		if (auto parentActor = component->GetOwner()->GetAttachParentActor())\
+		{\
+			BubbleOnPointer##function##(parentActor, inEventData);\
+		}\
+	}\
+	if (globalListenerPointerEvent.IsBound())\
+	{\
+		globalListenerPointerEvent.Broadcast(inEventData);\
+	}\
+}
+
+#define BUBBLE_LGUIINTERFACE(actor, inEventData, interface, function)\
+{\
+	bool eventAllowBubble = true;\
+	if (actor->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+	{\
+		if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(actor, inEventData) == false)\
+		{\
+			eventAllowBubble = false;\
+		}\
+	}\
+	auto components = actor->GetComponents();\
+	for (auto item : components)\
+	{\
+		if (item->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+		{\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(item, inEventData) == false)\
+			{\
+				eventAllowBubble = false;\
+			}\
+		}\
+	}\
+	if (eventAllowBubble)\
+	{\
+		if (auto parentActor = actor->GetAttachParentActor())\
+		{\
+			BubbleOnPointer##function##(parentActor, inEventData);\
+		}\
+	}\
+}

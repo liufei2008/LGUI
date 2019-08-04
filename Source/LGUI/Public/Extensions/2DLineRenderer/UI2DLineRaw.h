@@ -1,0 +1,49 @@
+﻿// Copyright 2019 LexLiu. All Rights Reserved.
+
+#pragma once
+
+#include "Core/Actor/UIBaseActor.h"
+#include "UI2DLineRendererBase.h"
+#include "UI2DLineRaw.generated.h"
+
+
+UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
+class LGUI_API UUI2DLineRaw : public UUI2DLineRendererBase
+{
+	GENERATED_BODY()
+
+public:	
+	UUI2DLineRaw();
+
+protected:
+	virtual void BeginPlay()override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+#endif
+
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		TArray<FVector2D> PointArray;
+
+	virtual void OnCreateGeometry()override;
+	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+public:
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		virtual void SetPoints(const TArray<FVector2D>& InPoints)override;
+};
+
+
+UCLASS()
+class LGUI_API AUI2DLineActor : public AUIBaseActor
+{
+	GENERATED_BODY()
+
+public:
+	AUI2DLineActor();
+
+	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIElement; }
+	FORCEINLINE UUI2DLineRaw* Get2DLineRaw()const { return UIElement; }
+private:
+	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
+		class UUI2DLineRaw* UIElement;
+
+};

@@ -1,0 +1,22 @@
+﻿// Copyright 2019 LexLiu. All Rights Reserved.
+
+#pragma once
+
+#include "Engine/Engine.h"
+#include "CoreMinimal.h"
+#include "Event/LGUIPointerEventData.h"
+
+DECLARE_DELEGATE_OneParam(FLGUIBoolDelegate, bool);
+DECLARE_DELEGATE_OneParam(FLGUIFloatDelegate, float);
+DECLARE_DELEGATE_OneParam(FLGUIVector2Delegate, FVector2D);
+DECLARE_DELEGATE_OneParam(FLGUIStringDelegate, const FString&);
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastBoolDelegate, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastFloatDelegate, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastVector2Delegate, FVector2D);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastStringDelegate, const FString&);
+
+DECLARE_DELEGATE_TwoParams(FLGUIHitDelegate, bool, const FHitResult&);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIMulticastHitDelegate, bool, const FHitResult&);
+DECLARE_DELEGATE_OneParam(FLGUIPointerEventDelegate, const FLGUIPointerEventData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastPointerEventDelegate, const FLGUIPointerEventData&);

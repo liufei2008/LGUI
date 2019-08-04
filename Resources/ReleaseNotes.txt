@@ -1,0 +1,59 @@
+1.0:
+    First submit
+1.2:
+    Thanks to <jeff@lockerman.org>, I modified some class names from 2DLineXXX to UI2DLineXXX, because digits as first char of class name is not good.
+    If you already use some of these classes, follow these steps:
+        a.Find config file in your (UE4Project)/Config/DefaultEngine.ini
+        b.Find or add line [/Script/Engine.Engine]
+        c.Add these lines under [/Script/Engine.Engine]:
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineChildrenAsPoints",NewClassName="/Script/LGUI.UI2DLineChildrenAsPoints")
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineChildrenAsPointsActor",NewClassName="/Script/LGUI.UI2DLineChildrenAsPointsActor")
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineRaw",NewClassName="/Script/LGUI.UI2DLineRaw")
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineActor",NewClassName="/Script/LGUI.UI2DLineActor")
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineRendererBase",NewClassName="/Script/LGUI.UI2DLineRendererBase")
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineRing",NewClassName="/Script/LGUI.UI2DLineRing")
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineRingActor",NewClassName="/Script/LGUI.UI2DLineRingActor")
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineRingFrame",NewClassName="/Script/LGUI.UI2DLineRingFrame")
+            +ActiveClassRedirects=(OldClassName="/Script/LGUI.2DLineRingFrameActor",NewClassName="/Script/LGUI.UI2DLineRingFrameActor")
+    After these steps, the engine should should recognize these new classes.
+1.3:
+    Change some editor icon.
+    Add new editor enter on toolbar, with LGUI icon button.
+    Add new editor helper function "Change Trace Channel", this can quickly change UI element's trace channel with hierarchy.
+    Add new function "SetTraceChannel" and "GetTraceChannel" to UIItem.
+1.4:
+    Fix some bugs
+    Replace editor update with FTickableObject.
+1.5:
+    Expose more interface to blueprint(most is layout component).
+    Add UVRect property to UITexture, so UITexture can choose a rect area to show texture. If any prefab contains the UITexture component, then you should recreate that prefab.
+    Modify UIRoot for editor simulation mode. When you use overlay UI by SceneCapture2D, you can eject player and hide UI.
+    Show drawcall count on UIPanel's details panel.
+    Fix edit mode update issue.
+    Fix a crash caused by UISprite tiled mode.
+1.6:
+    Fix a bug that cause an error and stop cook process.
+    Add more alignment options for layout control.
+1.7:
+    Fix some bugs.
+    Improve performance of UITexture's tiled mode and UISprite's tiled mode.
+1.8:
+    Fix LTween crash issure.
+    ActorSerializer(PrefabSystem) and ActorCopier now support instanced object property.
+    LGUIComponentReference add blueprint support.
+1.9:
+    Fix a crash caused by ActorSerializer.
+    Add UENUM support for LGUIDrawableEvent.
+    UI2DLine add "grow" feature, can grow line from start to end.
+    Change LGUIEditor's rule of duplicate object's name.
+1.10:
+    Fix some bugs.
+    Modify layout and editor.
+1.11:
+    Fix some bugs.
+    Fix bug: crash caused by UITextInputComponent, when select text content.
+    Fix LTween's InOutBack ease type error.
+    Add preset interaction components, LGUIScreenSpaceInteraction/LGUIWorldSpaceInteraction, for quick setup.
+    Add "Screen Space UI" and "World Space UI" preset setup at editor "LGUI Tools/Basic Setup".
+    Add "Replace UI Elements" at editor "LGUI Tools/Replace UI Elements".
+    
