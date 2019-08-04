@@ -1807,10 +1807,7 @@ void UUITextInputComponent::FVirtualKeyboardEntry::SetTextFromVirtualKeyboard(co
 {
 	InputComp->SetText(InNewText.ToString());
 }
-void UUITextInputComponent::FVirtualKeyboardEntry::SetSelectionFromVirtualKeyboard(int InSelStart, int SelEnd)
-{
-	//todo
-}
+
 FText UUITextInputComponent::FVirtualKeyboardEntry::GetText() const
 {
 	return FText::FromString(InputComp->GetText());
