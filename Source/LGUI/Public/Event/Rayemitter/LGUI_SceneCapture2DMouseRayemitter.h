@@ -27,7 +27,7 @@ protected:
 	//	FVector4 ViewportMappingRect = FVector4(0, 0, 1, 1);
 
 public:
-	DEPRECATED(4.20, TEXT("Use GetSceneCapture2DComponent instead"))
+	UE_DEPRECATED(4.20, TEXT("Use GetSceneCapture2DComponent instead"))
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		class ASceneCapture2D* GetSceneCapture2DActor() { return SceneCaptureActor; }
 	//return value could be null, so check is before you use

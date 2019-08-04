@@ -32,10 +32,11 @@ namespace rbp {
 	}
 
 	MaxRectsBinPack::MaxRectsBinPack()
-		:binWidth(0),
-		binHeight(0),
+		:
 		binX(0),
-		binY(0)
+		binY(0),
+		binWidth(0),
+		binHeight(0)
 	{
 	}
 

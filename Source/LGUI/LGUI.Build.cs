@@ -15,7 +15,7 @@ public class LGUI : ModuleRules
                 "Engine",
                 "Slate",
                 "SlateCore",
-                "RHI","RenderCore","ShaderCore",
+                "RHI","RenderCore",
                 "LTween",
                 "InputCore",//UITextInput
                 "FreeType2",

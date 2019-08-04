@@ -187,6 +187,8 @@ private:
 		static TSharedRef<FVirtualKeyboardEntry> Create(UUITextInputComponent* Input);
 
 		virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override;
+		virtual void SetSelectionFromVirtualKeyboard(int InSelStart, int SelEnd)override;
+
 		virtual FText GetText() const override;
 		virtual FText GetHintText() const override;
 		virtual EKeyboardType GetVirtualKeyboardType() const override;

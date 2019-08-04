@@ -227,7 +227,7 @@ public:
 		if (bWireframe)
 		{
 			WireframeMaterialInstance = new FColoredMaterialRenderProxy(
-				GEngine->WireframeMaterial ? GEngine->WireframeMaterial->GetRenderProxy(IsSelected()) : NULL,
+				GEngine->WireframeMaterial ? GEngine->WireframeMaterial->GetRenderProxy() : NULL,
 				FLinearColor(0, 0.5f, 1.f)
 			);
 
@@ -236,7 +236,7 @@ public:
 
 		if (Section != nullptr && Section->bSectionVisible)
 		{
-			FMaterialRenderProxy* MaterialProxy = bWireframe ? WireframeMaterialInstance : Section->Material->GetRenderProxy(IsSelected());
+			FMaterialRenderProxy* MaterialProxy = bWireframe ? WireframeMaterialInstance : Section->Material->GetRenderProxy();
 
 			// For each view..
 			for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
@@ -251,7 +251,16 @@ public:
 					Mesh.bWireframe = bWireframe;
 					Mesh.VertexFactory = &Section->VertexFactory;
 					Mesh.MaterialRenderProxy = MaterialProxy;
-					BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), true, UseEditorDepthTest());
+
+					bool bHasPrecomputedVolumetricLightmap;
+					FMatrix PreviousLocalToWorld;
+					int32 SingleCaptureIndex;
+					GetScene().GetPrimitiveUniformShaderParameters_RenderThread(GetPrimitiveSceneInfo(), bHasPrecomputedVolumetricLightmap, PreviousLocalToWorld, SingleCaptureIndex);
+
+					FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+					DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, UseEditorDepthTest());
+					BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
+
 					BatchElement.FirstIndex = 0;
 					BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
 					BatchElement.MinVertexIndex = 0;
@@ -364,17 +373,12 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged)
 		uint32* IndexBufferData = new uint32[NumTriangles];
 		int32 IndexDataLength = NumTriangles * sizeof(int32);
 		FMemory::Memcpy(IndexBufferData, triangles.GetData(), IndexDataLength);
-		ENQUEUE_UNIQUE_RENDER_COMMAND_FIVEPARAMETER(
-			FLGUIMeshUpdate,
-			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
-			FDynamicMeshVertex*, VertexBufferData, VertexBufferData,
-			int32, NumVerts, NumVerts,
-			uint32*, IndexBufferData, IndexBufferData,
-			int32, IndexDataLength, IndexDataLength,
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		ENQUEUE_RENDER_COMMAND(FLGUIMeshUpdate)(
+			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength](FRHICommandListImmediate& RHICmdList)
 			{
 				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength);
-			}
-		)
+			});
 	}
 }
 
@@ -395,14 +399,12 @@ void ULGUIMeshComponent::SetMeshVisible(bool bNewVisibility)
 	if (SceneProxy)
 	{
 		// Enqueue command to modify render thread info
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-			FLGUIMeshVisibilityUpdate,
-			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
-			bool, bNewVisibility, bNewVisibility,
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		ENQUEUE_RENDER_COMMAND(FLGUIMeshVisibilityUpdate)(
+			[LGUIMeshSceneProxy, bNewVisibility](FRHICommandListImmediate& RHICmdList)
 			{
 				LGUIMeshSceneProxy->SetSectionVisibility_RenderThread(bNewVisibility);
-			}
-		);
+			});
 	}
 }
 

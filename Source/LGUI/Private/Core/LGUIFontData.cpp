@@ -324,10 +324,8 @@ void ULGUIFontData::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, ui
 		RegionData->SrcPitch = SrcPitch;
 		RegionData->SrcBpp = SrcBpp;
 		RegionData->SrcData = SrcData;
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-			FLGUIFontUpdateFontTextureRegionsData,
-			FUpdateTextureRegionsData*, RegionData, RegionData,
-			bool, bFreeData, bFreeData,
+		ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateFontTextureRegionsData)(
+			[RegionData, bFreeData](FRHICommandListImmediate& RHICmdList)
 			{
 				for (uint32 RegionIndex = 0; RegionIndex < RegionData->NumRegions; ++RegionIndex)
 				{
@@ -345,12 +343,12 @@ void ULGUIFontData::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, ui
 						);
 					}
 				}
-		if (bFreeData)
-		{
-			FMemory::Free(RegionData->SrcData);
-			FMemory::Free(RegionData->Regions);
-		}
-		delete RegionData;
+				if (bFreeData)
+				{
+					FMemory::Free(RegionData->SrcData);
+					FMemory::Free(RegionData->Regions);
+				}
+				delete RegionData;
 			});
 	}
 }
@@ -374,9 +372,8 @@ void ULGUIFontData::UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureR
 		RegionData->SrcPitch = SrcPitch;
 		RegionData->SrcBpp = SrcBpp;
 		RegionData->SrcData = SrcData;
-		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-			FLGUIFontUpdateFontTextureRegionData,
-			FUpdateTextureRegionsData*, RegionData, RegionData,
+		ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateFontTextureRegionData)(
+			[RegionData](FRHICommandListImmediate& RHICmdList)
 			{
 				RHIUpdateTexture2D(
 					RegionData->Texture2DResource->GetTexture2DRHI(),
@@ -387,10 +384,10 @@ void ULGUIFontData::UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureR
 					+ RegionData->Region->SrcY * RegionData->SrcPitch
 					+ RegionData->Region->SrcX * RegionData->SrcBpp
 				);
-			FMemory::Free(RegionData->SrcData);
-			FMemory::Free(RegionData->Region);
-			delete RegionData;
-		});
+				FMemory::Free(RegionData->SrcData);
+				FMemory::Free(RegionData->Region);
+				delete RegionData;
+			});
 	}
 }
 void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
@@ -429,40 +426,37 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 		RegionData->SrcPitch = newTextureSize * 4;
 		RegionData->SrcBpp = 4;
 		RegionData->SrcData = (uint8*)transparentColor;
-		ENQUEUE_UNIQUE_RENDER_COMMAND_FOURPARAMETER(
-			FLGUIFontUpdateAndCopyFontTexture,
-			FUpdateTextureRegionsData*, RegionData, RegionData,
-			UTexture2D*, oldTexture, oldTexture,
-			UTexture2D*, texture, texture,
-			int32, oldTextureSize, oldTextureSize,
+		auto newTexture = texture;
+		ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateAndCopyFontTexture)(
+			[RegionData, oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
 			{
-			//fill with transparent pixels
-			RHIUpdateTexture2D(
-				RegionData->Texture2DResource->GetTexture2DRHI(),
-				0,
-				*RegionData->Region,
-				RegionData->SrcPitch,
-				RegionData->SrcData
-				+ RegionData->Region->SrcY * RegionData->SrcPitch
-				+ RegionData->Region->SrcX * RegionData->SrcBpp
-			);
-			FMemory::Free(RegionData->SrcData);
-			FMemory::Free(RegionData->Region);
-			delete RegionData;
-
-			//copy old texture pixels
-			if (oldTextureSize != 0 && oldTexture != nullptr)
-			{
-				FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
-				RHICmdList.CopySubTextureRegion(
-					((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
-					((FTexture2DResource*)texture->Resource)->GetTexture2DRHI(),
-					regionBox,
-					regionBox
+				//fill with transparent pixels
+				RHIUpdateTexture2D(
+					RegionData->Texture2DResource->GetTexture2DRHI(),
+					0,
+					*RegionData->Region,
+					RegionData->SrcPitch,
+					RegionData->SrcData
+					+ RegionData->Region->SrcY * RegionData->SrcPitch
+					+ RegionData->Region->SrcX * RegionData->SrcBpp
 				);
-				oldTexture->RemoveFromRoot();//ready for gc
-			}
-		});
+				FMemory::Free(RegionData->SrcData);
+				FMemory::Free(RegionData->Region);
+				delete RegionData;
+
+				//copy old texture pixels
+				if (oldTextureSize != 0 && oldTexture != nullptr)
+				{
+					FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
+					RHICmdList.CopySubTextureRegion(
+						((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
+						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
+						regionBox,
+						regionBox
+					);
+					oldTexture->RemoveFromRoot();//ready for gc
+				}
+			});
 	}
 }
 

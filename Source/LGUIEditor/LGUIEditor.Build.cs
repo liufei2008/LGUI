@@ -18,7 +18,6 @@ public class LGUIEditor : ModuleRules
                 "UnrealEd",
                 "PropertyEditor",
                 "RenderCore",
-                "ShaderCore",
                 "RHI",
                 "LGUI",
                 "LevelEditor",
