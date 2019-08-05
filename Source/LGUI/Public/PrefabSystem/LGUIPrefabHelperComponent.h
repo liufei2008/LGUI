@@ -39,6 +39,15 @@ public:
 	{
 		return PrefabAsset;
 	}
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		AActor* GetLoadedRootActor()
+	{
+		return LoadedRootActor;
+	}
+
+#if WITH_EDITOR
+	UPROPERTY(Transient)AActor* ParentActorForEditor;
+#endif
 private:
 	friend class FLGUIPrefabHelperComponentCustomization;
 	//Donot change this unless you know what you doing

@@ -17,7 +17,7 @@ class LGUI_API ULGUIWorldSpaceInteractionForNoneUI : public ULGUI_WorldRaycaster
 public:	
 	ULGUIWorldSpaceInteractionForNoneUI();
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		ELGUIWorldSpaceInteractionSource interactionSource = ELGUIWorldSpaceInteractionSource::Mouse;
 	void CheckRayemitter();
 public:

@@ -3,6 +3,7 @@
 #include "DataFactory/LGUIPrefabActorFactory.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabActor.h"
+#include "Window/LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabActorFactory"
 
@@ -48,6 +49,10 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 
 	PrefabComponent->SetPrefabAsset(Prefab);
 	//PrefabComponent->SetRelativeRotation(FQuat::MakeFromEuler(FVector(-90, 0, 90)));
+	if (auto selectedActor = ULGUIEditorToolsAgentObject::GetFirstSelectedActor())
+	{
+		PrefabComponent->ParentActorForEditor = selectedActor;
+	}
 }
 
 void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
