@@ -29,17 +29,16 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 	if (!LoadedRootActor)
 	{
 #if WITH_EDITOR
-		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(PrefabAsset, this->GetOwner()->GetRootComponent());
+		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(PrefabAsset
+			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() 
+			: this->GetOwner()->GetRootComponent());
+		GEditor->SelectActor(LoadedRootActor, true, false);
 #else
-		LoadedRootActor = ActorSerializer::LoadPrefab(PrefabAsset, this->GetOwner()->GetRootComponent());
+		LoadedRootActor = ActorSerializer::LoadPrefab(PrefabAsset
+			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent()
+			: this->GetOwner()->GetRootComponent());
 #endif
-		if (LoadedRootActor)
-		{
-			if (auto uiItem = LoadedRootActor->FindComponentByClass<UUIItem>())
-			{
-				LoadedRootActor->SetActorRelativeRotation(FQuat::MakeFromEuler(FVector(-90, 0, 90)));//UI object's default rotation
-			}
-		}
+		ParentActorForEditor = nullptr;
 	}
 }
 
