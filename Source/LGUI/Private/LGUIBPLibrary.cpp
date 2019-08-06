@@ -11,17 +11,20 @@ void ULGUIBPLibrary::DeleteActor(AActor* Target, bool WithHierarchy)
 {
 	LGUIUtils::DeleteActor(Target, WithHierarchy);
 }
-AActor* ULGUIBPLibrary::LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
+AActor* ULGUIBPLibrary::LoadPrefab(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
-	return ActorSerializer::LoadPrefab(InPrefab, InParent, SetRelativeTransformToIdentity);
+	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	return ActorSerializer::LoadPrefab(world, InPrefab, InParent, SetRelativeTransformToIdentity);
 }
-AActor* ULGUIBPLibrary::LoadPrefabWithTransform(ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale)
+AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale)
 {
-	return ActorSerializer::LoadPrefab(InPrefab, InParent, Location, Rotation.Quaternion(), Scale);
+	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	return ActorSerializer::LoadPrefab(world, InPrefab, InParent, Location, Rotation.Quaternion(), Scale);
 }
-AActor* ULGUIBPLibrary::LoadPrefabWithTransform(ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale)
+AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale)
 {
-	return ActorSerializer::LoadPrefab(InPrefab, InParent, Location, Rotation, Scale);
+	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	return ActorSerializer::LoadPrefab(world, InPrefab, InParent, Location, Rotation, Scale);
 }
 AActor* ULGUIBPLibrary::DuplicateActor(AActor* Target, USceneComponent* Parent)
 {

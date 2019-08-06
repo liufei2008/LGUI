@@ -110,6 +110,12 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 		.SetPressed(BOX_BRUSH(TEXT("WhiteFramePress_1x"), FVector2D(16, 16), 4.0f / 16.0f));
 	Style->Set("AnchorButton", AnchorButton);
 
+	FButtonStyle EmptyButton = FButtonStyle()
+		.SetNormal(FSlateColorBrush(FColor(0, 39, 131, 0)))
+		.SetHovered(FSlateColorBrush(FColor(0, 39, 131, 64)))
+		.SetPressed(FSlateColorBrush(FColor(0, 39, 131, 128)));
+	Style->Set("EmptyButton", EmptyButton);
+
 	return Style;
 }
 

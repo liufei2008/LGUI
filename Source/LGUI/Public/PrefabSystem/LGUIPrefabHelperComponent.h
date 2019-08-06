@@ -18,7 +18,7 @@ public:
 
 	ULGUIPrefabHelperComponent();
 	virtual void BeginPlay() override;
-	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
+	virtual void OnRegister()override;
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void LoadPrefab();
@@ -48,13 +48,13 @@ public:
 #if WITH_EDITOR
 	UPROPERTY(Transient)AActor* ParentActorForEditor;
 #endif
-private:
-	friend class FLGUIPrefabHelperComponentCustomization;
+public:
 	//Donot change this unless you know what you doing
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset;
 	//Donot change this unless you know what you doing
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		AActor* LoadedRootActor;
-
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<AActor*> AllLoadedActorArray;
 };

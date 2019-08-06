@@ -50,7 +50,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 {
 	if (CurrentPrefab.IsValid())
 	{
-		if (auto rootActor = ActorSerializer::LoadPrefabForEdit(CurrentPrefab.Get(), nullptr, GetWorld()))
+		if (auto rootActor = ActorSerializer::LoadPrefabForEdit(GetWorld(), CurrentPrefab.Get(), nullptr))
 		{
 			if (auto rootPanel = Cast<UUIPanel>(rootActor->GetRootComponent()))
 			{

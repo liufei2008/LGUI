@@ -18,6 +18,9 @@
 #include "PrefabSystem/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/ActorReplaceTool.h"
+#include "DesktopPlatformModule.h"
+#include "AssetRegistryModule.h"
+#include "Toolkits/AssetEditorManager.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -93,19 +96,13 @@ public:
 	static FString GetCopiedActorLabel(AActor* srcActor)
 	{
 		TArray<AActor*> sameLevelActorList;
-		for (TObjectIterator<AActor> ActorItr; ActorItr; ++ActorItr)
+		for (TActorIterator<AActor> ActorItr(srcActor->GetWorld()); ActorItr; ++ActorItr)
 		{
 			if (AActor* itemActor = *ActorItr)
 			{
 				if (IsValid(itemActor))
 				{
-					if (auto itemActorWorld = itemActor->GetWorld())
-					{
-						if (itemActorWorld == GWorld)
-						{
-							sameLevelActorList.Add(itemActor);
-						}
-					}
+					sameLevelActorList.Add(itemActor);
 				}
 			}
 		}
@@ -214,12 +211,20 @@ void ULGUIEditorToolsAgentObject::PostEditChangeProperty(struct FPropertyChanged
 	GEditor->RedrawAllViewports();
 }
 
+UWorld* ULGUIEditorToolsAgentObject::GetWorldFromSelection()
+{
+	if (auto selectedActor = GetFirstSelectedActor())
+	{
+		return selectedActor->GetWorld();
+	}
+	return GWorld;
+}
 void ULGUIEditorToolsAgentObject::CreateUIItemActor(UClass* ActorClass)
 {
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
 	auto selectedActor = GetFirstSelectedActor();
 	AActor* newActor = nullptr;
-	newActor = GWorld->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
+	newActor = GetWorldFromSelection()->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
 	if (selectedActor != nullptr)
 	{
 		newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
@@ -252,7 +257,8 @@ void ULGUIEditorToolsAgentObject::CreateUIControls(FString InPrefabPath)
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *InPrefabPath);
 	if (prefab)
 	{
-		auto actor = ULGUIBPLibrary::LoadPrefab(prefab, selectedActor == nullptr ? nullptr : selectedActor->GetRootComponent(), true);
+		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab
+			, selectedActor == nullptr ? nullptr : selectedActor->GetRootComponent(), true);
 		GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
 	}
@@ -349,7 +355,7 @@ void ULGUIEditorToolsAgentObject::PasteSelectedActors_Impl()
 	{
 		if (IsValid(prefab))
 		{
-			auto copiedActor = ActorSerializer::LoadPrefabForEdit(prefab, parentComp);
+			auto copiedActor = ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, parentComp);
 			auto copiedActorLabel = EditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
 			copiedActor->SetActorLabel(copiedActorLabel);
 			GEditor->SelectActor(copiedActor, true, true);
@@ -464,7 +470,7 @@ void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = ULGUIBPLibrary::LoadPrefab(prefab, nullptr, true);
+		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab, nullptr, true);
 		GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
 	}
@@ -482,7 +488,7 @@ void ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = ULGUIBPLibrary::LoadPrefab(prefab, nullptr, true);
+		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
 		GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
@@ -518,6 +524,51 @@ ULGUIEditorToolsAgentObject* ULGUIEditorToolsAgentObject::GetInstance()
 		EditorToolsAgentObject->AddToRoot();
 	}
 	return EditorToolsAgentObject;
+}
+void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
+{
+	auto selectedActor = GetFirstSelectedActor();
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (DesktopPlatform)
+	{
+		TArray<FString> OutFileNames;
+		DesktopPlatform->SaveFileDialog(
+			FSlateApplication::Get().FindBestParentWindowHandleForDialogs(FSlateApplication::Get().GetGameViewport()),
+			TEXT("Choose a path to save prefab asset, must inside Content folder"),
+			FPaths::ProjectContentDir(),
+			selectedActor->GetActorLabel() + TEXT("_Prefab"),
+			TEXT("*.*"),
+			EFileDialogFlags::None,
+			OutFileNames
+		);
+		if (OutFileNames.Num() > 0)
+		{
+			auto selectedFilePath = OutFileNames[0];
+			if (selectedFilePath.StartsWith(FPaths::ProjectContentDir()))
+			{
+				selectedFilePath.RemoveFromStart(FPaths::ProjectContentDir(), ESearchCase::CaseSensitive);
+				FString packageName = TEXT("/Game/") + selectedFilePath;
+				UPackage* package = CreatePackage(NULL, *packageName);
+				FString fileName = FPaths::GetBaseFilename(selectedFilePath);
+				auto OutPrefab = NewObject<ULGUIPrefab>((UObject*)package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
+				FAssetRegistryModule::AssetCreated((UObject*)OutPrefab);
+				FString packageSavePath = FString::Printf(TEXT("/Game/%s%s"), *selectedFilePath, *FPackageName::GetAssetPackageExtension());
+				UPackage::SavePackage(package, OutPrefab, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *packageSavePath);
+
+				auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabActor>(ALGUIPrefabActor::StaticClass(), FTransform::Identity);
+				prefabActor->SetActorLabel(fileName);
+				auto prefabComp = prefabActor->GetPrefabComponent();
+				prefabComp->PrefabAsset = OutPrefab;
+				prefabComp->LoadedRootActor = selectedActor;
+				LGUIUtils::CollectChildrenActors(selectedActor, prefabComp->AllLoadedActorArray);
+				prefabActor->FinishSpawning(FTransform::Identity, true);
+			}
+			else
+			{
+				UE_LOG(LGUIEditor, Error, TEXT("Prefab is a uasset, should only save inside Content folder!"));
+			}
+		}
+	}
 }
 #endif
 

@@ -60,7 +60,7 @@ void UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameA
 		UE_LOG(LGUI, Error, TEXT("[UIFlyoutMenu/CreateFromArray]Input array count is 0!"));
 		return;
 	}
-	auto loadedActor = ULGUIBPLibrary::LoadPrefab(prefab, InParentActor->GetRootComponent());
+	auto loadedActor = ULGUIBPLibrary::LoadPrefab(InParentActor, prefab, InParentActor->GetRootComponent());
 	auto script = loadedActor->FindComponentByClass<UUIFlyoutMenu>();
 	auto rootUIPanel = script->_RootUIActor->GetUIPanel();
 	rootUIPanel->SetUIPanelDepthToHighestOfHierarchy(true);

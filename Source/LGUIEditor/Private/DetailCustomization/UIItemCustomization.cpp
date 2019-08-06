@@ -1165,9 +1165,9 @@ void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScri
 		else if (uiType == UIItemType::UIPanel)
 		{
 			int depthCount = 0;
-			if (LGUIManager::IsManagerValid(GWorld))
+			if (LGUIManager::IsManagerValid(TargetScript->GetWorld()))
 			{
-				auto& panelList = LGUIManager::GetAllUIPanel(GWorld);
+				auto& panelList = LGUIManager::GetAllUIPanel(TargetScript->GetWorld());
 				for (auto item : panelList)
 				{
 					if (item->widget.depth == TargetScript->widget.depth)
