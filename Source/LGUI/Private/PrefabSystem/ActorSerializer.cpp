@@ -10,42 +10,25 @@
 #include "UObject/TextProperty.h"
 
 
-ActorSerializer::ActorSerializer()
-{
-	TargetWorld = TWeakObjectPtr<UWorld>(GWorld.GetReference());
-}
 ActorSerializer::ActorSerializer(UWorld* InTargetWorld)
 {
 	TargetWorld = TWeakObjectPtr<UWorld>(InTargetWorld);
 }
 #if WITH_EDITOR
-AActor* ActorSerializer::LoadPrefabForEdit(ULGUIPrefab* InPrefab, USceneComponent* Parent)
+AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& AllLoadedActorArray)
 {
-	ActorSerializer serializer(GWorld);
-	return serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector, true);
+	ActorSerializer serializer(InWorld);
+	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector, true);
+	AllLoadedActorArray = serializer.CreatedActors;
+	return rootActor;
 }
-AActor* ActorSerializer::LoadPrefabForEdit(ULGUIPrefab* InPrefab, USceneComponent* Parent, UWorld* InWorld)
+AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent)
 {
 	ActorSerializer serializer(InWorld);
 	return serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector, true);
 }
 #endif
-AActor* ActorSerializer::LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
-{
-	ActorSerializer serializer(GWorld);
-	AActor* result;
-	if (SetRelativeTransformToIdentity)
-	{
-		result = serializer.DeserializeActor(Parent, InPrefab, true);
-	}
-	else
-	{
-		result = serializer.DeserializeActor(Parent, InPrefab);
-	}
-
-	return result;
-}
-AActor* ActorSerializer::LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Parent, UWorld* InWorld, bool SetRelativeTransformToIdentity)
+AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
 {
 	ActorSerializer serializer(InWorld);
 	AActor* result = nullptr;
@@ -59,12 +42,7 @@ AActor* ActorSerializer::LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Pare
 	}
 	return result;
 }
-AActor* ActorSerializer::LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale)
-{
-	ActorSerializer serializer(GWorld);
-	return serializer.DeserializeActor(Parent, InPrefab, true, RelativeLocation, RelativeRotation, RelativeScale);
-}
-AActor* ActorSerializer::LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Parent, UWorld* InWorld, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale)
+AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale)
 {
 	ActorSerializer serializer(InWorld);
 	return serializer.DeserializeActor(Parent, InPrefab, true, RelativeLocation, RelativeRotation, RelativeScale);
@@ -1441,16 +1419,21 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 }
 void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab)
 {
-	ActorSerializer serializer;
-	serializer.SerializeActor(RootActor, InPrefab);
-}
-void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
-{
 	if (!RootActor || !InPrefab)
 	{
 		UE_LOG(LGUI, Error, TEXT("[ActorSerializer::SerializeActor]RootActor Or InPrefab is null!"));
 		return;
 	}
+	if (!RootActor->GetWorld())
+	{
+		UE_LOG(LGUI, Error, TEXT("[ActorSerializer::SerializeActor]Cannot get World from RootActor!"));
+		return;
+	}
+	ActorSerializer serializer(RootActor->GetWorld());
+	serializer.SerializeActor(RootActor, InPrefab);
+}
+void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
+{
 	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
 	//clear old reference data
 	Prefab->ReferenceAssetList.Empty();

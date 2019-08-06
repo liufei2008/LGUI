@@ -28,16 +28,17 @@ public:
 	static const FName LGUIEventFunctionSelectorName;
 	static const FName LGUIAtlasViewerName;
 
+	static FLGUIEditorModule* Instance;
+
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	
+	TSharedRef<SWidget> MakeEditorToolsMenu(bool IsSceneOutlineMenu);
+	TSharedPtr<class FUICommandList> PluginCommands;
 private:
 
-	TSharedRef<SWidget> MakeEditorToolsMenu();
-
 	void CreateUIElementSubMenu(FMenuBuilder& MenuBuilder);
-	void CreateUIControlSubMenu(FMenuBuilder& MenuBuilder);
 	void CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder);
 	void BasicSetupSubMenu(FMenuBuilder& MenuBuilder);
 	void ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder);
@@ -50,7 +51,6 @@ private:
 	void EditorToolButtonClicked();
 
 private:
-	TSharedPtr<class FUICommandList> PluginCommands;
 	TSharedRef<SDockTab> HandleSpawnEventComponentSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnEventFunctionSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);

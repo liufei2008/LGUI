@@ -77,6 +77,8 @@ public:
 	static void ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery);
 	static void CreateScreenSpaceUIBasicSetup();
 	static void CreateWorldSpaceUIBasicSetup();
+	static UWorld* GetWorldFromSelection();
+	static void CreatePrefabAsset();
 
 	UPROPERTY(Transient) TArray<class ULGUIPrefab*> copiedActorPrefabList;
 	UPROPERTY(Transient) UActorComponent* copiedComponent;

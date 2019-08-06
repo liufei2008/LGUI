@@ -302,7 +302,7 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 	auto ActorExcludeProperties = GetActorExcludeProperties();	
 	auto SceneComponentExcludeProperties = GetComponentExcludeProperties();
 
-	auto CopiedActor = OriginActor->GetWorld()->SpawnActorDeferred<AActor>(OriginActor->GetClass(), FTransform::Identity);
+	auto CopiedActor = TargetWorld->SpawnActorDeferred<AActor>(OriginActor->GetClass(), FTransform::Identity);
 	CopyPropertyForActor(OriginActor, CopiedActor, ActorExcludeProperties);
 	const auto& OriginComponents = OriginActor->GetComponents();
 
@@ -395,11 +395,7 @@ AActor* ActorCopier::CopyActorRecursive(AActor* Actor, USceneComponent* Parent, 
 }
 AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Parent)
 {
-	if (!IsValid(RootActor))
-	{
-		UE_LOG(LGUI, Error, TEXT("CopyActor, RootActor is not valid!"));
-		return nullptr;
-	}
+	TargetWorld = RootActor->GetWorld();
 	
 	int32 originActorId = 0, copiedActorId = 0;
 	GenerateActorIDRecursive(RootActor, originActorId);
@@ -434,6 +430,16 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 }
 AActor* ActorCopier::DuplicateActor(AActor* RootActor, USceneComponent* Parent)
 {
+	if (!IsValid(RootActor))
+	{
+		UE_LOG(LGUI, Error, TEXT("[ActorCopier::CopyActorInternal]RootActor is not valid!"));
+		return nullptr;
+	}
+	if (!RootActor->GetWorld())
+	{
+		UE_LOG(LGUI, Error, TEXT("[ActorCopier::CopyActorInternal]RootActor is not valid!"));
+		return nullptr;
+	}
 	ActorCopier copier;
 	return copier.CopyActorInternal(RootActor, Parent);
 }

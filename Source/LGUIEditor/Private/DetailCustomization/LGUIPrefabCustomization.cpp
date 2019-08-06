@@ -117,8 +117,8 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 {
 	if (auto script = TargetScriptPtr.Get())
 	{
-		ActorSerializer serializer;
-		auto loadedActor = ActorSerializer::LoadPrefabForEdit(script, nullptr);
+		ActorSerializer serializer(GWorld);
+		auto loadedActor = ActorSerializer::LoadPrefabForEdit(GWorld, script, nullptr);
 		serializer.SerializeActor(loadedActor, script);
 		LGUIUtils::DeleteActor(loadedActor, true);
 	}
@@ -130,8 +130,8 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 	{
 		for (TObjectIterator<ULGUIPrefab> PrefabItr; PrefabItr; ++PrefabItr)
 		{
-			ActorSerializer serializer;
-			auto loadedActor = ActorSerializer::LoadPrefabForEdit(*PrefabItr, nullptr);
+			ActorSerializer serializer(GWorld);
+			auto loadedActor = ActorSerializer::LoadPrefabForEdit(GWorld, *PrefabItr, nullptr);
 			serializer.SerializeActor(loadedActor, *PrefabItr);
 			LGUIUtils::DeleteActor(loadedActor, true);
 		}

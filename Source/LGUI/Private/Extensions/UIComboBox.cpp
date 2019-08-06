@@ -76,7 +76,7 @@ void UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemNameArray
 		UE_LOG(LGUI, Error, TEXT("[UIComboBox/CreateFromArray]Input array count is 0!"));
 		return;
 	}
-	auto loadedActor = ULGUIBPLibrary::LoadPrefab(prefab, InParentActor->GetRootComponent());
+	auto loadedActor = ULGUIBPLibrary::LoadPrefab(InParentActor, prefab, InParentActor->GetRootComponent());
 	auto script = loadedActor->FindComponentByClass<UUIComboBox>();
 	auto rootUIPanel = script->_RootUIActor->GetUIPanel();
 	rootUIPanel->SetUIPanelDepthToHighestOfHierarchy(true);
