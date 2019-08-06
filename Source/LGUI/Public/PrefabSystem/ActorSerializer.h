@@ -328,20 +328,17 @@ for Blueprint Actor: after finish spawn, all properties will be override by Blue
 class LGUI_API ActorSerializer
 {
 public:	
-	ActorSerializer();
 	ActorSerializer(UWorld* InTargetWorld);
-	static AActor* LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
-	static AActor* LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Parent, UWorld* InWorld, bool SetRelativeTransformToIdentity = true);
-	static AActor* LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale);
-	static AActor* LoadPrefab(ULGUIPrefab* InPrefab, USceneComponent* Parent, UWorld* InWorld, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale);
+	static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
+	static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale);
 	static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab);
 	//serialize actor
 	void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);
 	//deserialize actor
 	AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector, bool ForceUseEditorData = false);
 #if WITH_EDITOR
-	static AActor* LoadPrefabForEdit(ULGUIPrefab* InPrefab, USceneComponent* Parent);
-	static AActor* LoadPrefabForEdit(ULGUIPrefab* InPrefab, USceneComponent* Parent, UWorld* InWorld);
+	static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& AllLoadedActorArray);
+	static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent);
 #endif
 #if WITH_EDITOR
 	static FLGUIActorSaveData CreateActorSaveData(ULGUIPrefab* InPrefab);

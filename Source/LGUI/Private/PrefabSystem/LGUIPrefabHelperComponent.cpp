@@ -19,9 +19,9 @@ void ULGUIPrefabHelperComponent::BeginPlay()
 {
 	Super::BeginPlay();
 }
-void ULGUIPrefabHelperComponent::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
+void ULGUIPrefabHelperComponent::OnRegister()
 {
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
+	Super::OnRegister();
 }
 
 void ULGUIPrefabHelperComponent::LoadPrefab()
@@ -29,12 +29,12 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 	if (!LoadedRootActor)
 	{
 #if WITH_EDITOR
-		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(PrefabAsset
+		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
 			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() 
-			: this->GetOwner()->GetRootComponent());
+			: this->GetOwner()->GetRootComponent(), AllLoadedActorArray);
 		GEditor->SelectActor(LoadedRootActor, true, false);
 #else
-		LoadedRootActor = ActorSerializer::LoadPrefab(PrefabAsset
+		LoadedRootActor = ActorSerializer::LoadPrefab(this->GetWorld(), PrefabAsset
 			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent()
 			: this->GetOwner()->GetRootComponent());
 #endif
@@ -55,7 +55,7 @@ void ULGUIPrefabHelperComponent::SavePrefab()
 		{
 			Target = GetOwner();
 		}
-		ActorSerializer serializer;
+		ActorSerializer serializer(this->GetWorld());
 		serializer.SerializeActor(Target, PrefabAsset);
 	}
 	else

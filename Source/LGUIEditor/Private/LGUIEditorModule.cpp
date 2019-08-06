@@ -19,11 +19,16 @@
 #include "ISettingsSection.h"
 
 #include "Window/LGUIEditorTools.h"
+#include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
+#include "SceneOutlinerModule.h"
+#include "SceneOutlinerPublicTypes.h"
 
 const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIEventComponentSelectorName(TEXT("LGUIEventComponentSelector"));
 const FName FLGUIEditorModule::LGUIEventFunctionSelectorName(TEXT("LGUIEventFunctionSelector"));
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
+
+FLGUIEditorModule* FLGUIEditorModule::Instance = nullptr;
 
 #define LOCTEXT_NAMESPACE "FLGUIEditorModule"
 DEFINE_LOG_CATEGORY(LGUIEditor);
@@ -102,6 +107,12 @@ void FLGUIEditorModule::StartupModule()
 		TSharedPtr<FExtender> toolbarExtender = MakeShareable(new FExtender);
 		toolbarExtender->AddToolBarExtension("Game", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FLGUIEditorModule::AddEditorToolsToToolbarExtension));
 		LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(toolbarExtender);
+	}
+	//register SceneOutliner ColumnInfo
+	{
+		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
+		SceneOutliner::FColumnInfo ColumnInfo(SceneOutliner::EColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
+		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(SceneOutliner::FDefaultColumnInfo(ColumnInfo));
 	}
 	//register window
 	{
@@ -194,10 +205,13 @@ void FLGUIEditorModule::StartupModule()
 				GetMutableDefault<ULGUISettings>());
 		}
 	}
+
+	Instance = this;
 }
 
 void FLGUIEditorModule::ShutdownModule()
 {
+	Instance = nullptr;
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
 	FLGUIEditorStyle::Shutdown();
@@ -208,6 +222,9 @@ void FLGUIEditorModule::ShutdownModule()
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEventComponentSelectorName);
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEventFunctionSelectorName);
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIAtlasViewerName);
+
+	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
+	SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
 
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.UnregisterCustomClassLayout(UUIItem::StaticClass()->GetFName());
@@ -290,28 +307,32 @@ void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builde
 {
 	Builder.AddComboButton(
 		FUIAction(),
-		FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu),
+		FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, false),
 		LOCTEXT("LGUITools", "LGUI Tools"),
 		LOCTEXT("LGUIEditorTools", "LGUI Editor Tools"),
 		FSlateIcon(FLGUIEditorStyle::GetStyleSetName(), "LGUIEditor.EditorTools")
 	);
 }
 
-TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu()
+TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMenu)
 {
-	auto commandList = FLGUIEditorCommands::Get();
 	FMenuBuilder MenuBuilder(true, PluginCommands);
-	MenuBuilder.BeginSection("Create", LOCTEXT("CreateUIElement", "CreateUIElement"));
+	auto commandList = FLGUIEditorCommands::Get();
+
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("CreatePrefab", "CreatePrefab"),
+		LOCTEXT("Create_Tooltip", "Use this actor to create a new prefab"),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreatePrefabAsset)
+			, FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; }))
+	);
+
+	MenuBuilder.BeginSection("Create", LOCTEXT("Create UI", "Create UI"));
 	{
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("CreateUIElementSubMenu", "Create UI Element"),
 			LOCTEXT("CreateUIElementSubMenu_Tooltip", "Create UI Element"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIElementSubMenu)
-		);
-		MenuBuilder.AddSubMenu(
-			LOCTEXT("CreateUIControlSubMenu", "Create UI Control"),
-			LOCTEXT("CreateUIControlSubMenu_Tooltip", "Create UI Control"),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIControlSubMenu)
 		);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("CreateUIExtensionSubMenu", "Create UI Extension Element"),
@@ -322,6 +343,14 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu()
 			LOCTEXT("BasicSetup", "Basic Setup"),
 			LOCTEXT("BasicSetup", "Basic Setup"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::BasicSetupSubMenu)
+		);
+		MenuBuilder.AddSubMenu(
+			LOCTEXT("ReplaceUIElement", "Replace this by..."),
+			LOCTEXT("ReplaceUIElement_Tooltip", "Replace UI Element with..."),
+			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::ReplaceUIElementSubMenu),
+			FUIAction(FExecuteAction(), FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })),
+			NAME_None,
+			EUserInterfaceActionType::Button
 		);
 	}
 	MenuBuilder.EndSection();
@@ -343,34 +372,29 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu()
 	}
 	MenuBuilder.EndSection();
 
-	MenuBuilder.BeginSection("ComponentAction", LOCTEXT("ComponentAction", "Edit Component"));
+	if (!IsSceneOutlineMenu)
 	{
-		MenuBuilder.AddMenuEntry(commandList.CopyComponentValues);
-		MenuBuilder.AddMenuEntry(commandList.PasteComponentValues);
-		MenuBuilder.AddSubMenu(
-			LOCTEXT("ReplaceUIElement", "Replace UI Element"),
-			LOCTEXT("ReplaceUIElement_Tooltip", "Replace UI Element with..."),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::ReplaceUIElementSubMenu),
-			FUIAction(FExecuteAction(), FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })),
-			NAME_None,
-			EUserInterfaceActionType::Button
-		);
-	}
-	MenuBuilder.EndSection();
+		MenuBuilder.BeginSection("ComponentAction", LOCTEXT("ComponentAction", "Edit Component"));
+		{
+			MenuBuilder.AddMenuEntry(commandList.CopyComponentValues);
+			MenuBuilder.AddMenuEntry(commandList.PasteComponentValues);
+		}
+		MenuBuilder.EndSection();
 
-	MenuBuilder.BeginSection("SelectionFrame", LOCTEXT("SelectionFrame", "Selection Frame"));
-	{
-		MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().ShowSelectionFrameInEditMode);
-		MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().ShowSelectionFrameInPlayMode);
-	}
-	MenuBuilder.EndSection();
+		MenuBuilder.BeginSection("SelectionFrame", LOCTEXT("SelectionFrame", "Selection Frame"));
+		{
+			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().ShowSelectionFrameInEditMode);
+			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().ShowSelectionFrameInPlayMode);
+		}
+		MenuBuilder.EndSection();
 
-	MenuBuilder.BeginSection("OpenWindow", LOCTEXT("OpenWindow", "Open Window"));
-	{
-		MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenEditorToolsWindow);
-		MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenAtlasViewer);
+		MenuBuilder.BeginSection("OpenWindow", LOCTEXT("OpenWindow", "Open Window"));
+		{
+			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenEditorToolsWindow);
+			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenAtlasViewer);
+		}
+		MenuBuilder.EndSection();
 	}
-	MenuBuilder.EndSection();
 	return MenuBuilder.MakeWidget();
 }
 
@@ -381,30 +405,15 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		static void CreateUIBaseElementMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
 		{
 			auto UIItemName = InClass->GetName();
+			auto ShotName = UIItemName;
+			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
-				FText::FromString(UIItemName),
-				FText::FromString(FString::Printf(TEXT("Create %s"), *UIItemName)),
+				FText::FromString(ShotName),
+				FText::FromString(FString::Printf(TEXT("Create %s"), *(UIItemName))),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateUIItemActor, InClass))
 			);
 		}
-	};
-
-	MenuBuilder.BeginSection("UIBaseElement");
-	{
-		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIPanelActor::StaticClass());
-		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIContainerActor::StaticClass());
-		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUISpriteActor::StaticClass());
-		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextActor::StaticClass());
-		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextureActor::StaticClass());
-	}
-	MenuBuilder.EndSection();
-}
-
-void FLGUIEditorModule::CreateUIControlSubMenu(FMenuBuilder& MenuBuilder)
-{
-	struct FunctionContainer
-	{
 		static void CreateUIControlMenuEntry(FMenuBuilder& InBuilder, const FString& InControlName, const FString& InPrefabPath)
 		{
 			InBuilder.AddMenuEntry(
@@ -416,8 +425,14 @@ void FLGUIEditorModule::CreateUIControlSubMenu(FMenuBuilder& MenuBuilder)
 		}
 	};
 
-	MenuBuilder.BeginSection("UIControl");
+	MenuBuilder.BeginSection("UIElement");
 	{
+		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIPanelActor::StaticClass());
+		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIContainerActor::StaticClass());
+		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUISpriteActor::StaticClass());
+		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextActor::StaticClass());
+		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextureActor::StaticClass());
+
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Button"), "/LGUI/Prefabs/DefaultButton");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Toggle"), "/LGUI/Prefabs/DefaultToggle");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("HorizontalSlider"), "/LGUI/Prefabs/DefaultHorizontalSlider");
@@ -527,8 +542,10 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		static void ReplaceUIElement(FMenuBuilder& InBuilder, UClass* InClass)
 		{
 			auto UIItemName = InClass->GetName();
+			auto ShotName = UIItemName;
+			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
-				FText::FromString(UIItemName),
+				FText::FromString(ShotName),
 				FText::FromString(FString::Printf(TEXT("ReplaceWith:%s"), *UIItemName)),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::ReplaceUIElementWith, InClass))

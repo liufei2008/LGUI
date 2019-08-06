@@ -30,6 +30,7 @@ public class LGUIEditor : ModuleRules
                 "AssetTools",//Asset editor
                 "KismetWidgets",
                 "ContentBrowser",//LGUI editor
+                "SceneOutliner",//LGUIPrefab editor, extend SceneOutliner
                 //"AssetRegistry",
                 //"LShapePlugin",
                 //"InputCore",

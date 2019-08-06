@@ -115,8 +115,8 @@ public:
 	//nodify some informations in editor
 	static void EditorNotification(FText NofityText);
 #endif
-private:
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
+private:
 	static class UUIDrawcall* GetAvalibleDrawcall(TArray<class UUIDrawcall*>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
 	template<class T>
 	static void CollectComponentsInChildrenRecursive(AActor* InActor, TArray<T*>& InOutArray)
