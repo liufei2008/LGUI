@@ -67,12 +67,4 @@ private:
 
 	TArray<FName> GetActorExcludeProperties();
 	TArray<FName> GetComponentExcludeProperties();
-
-
-public:
-	//todo: copy actor referece
-	static AActor* ReplaceActorClass(AActor* TargetActor, TSubclassOf<AActor> NewActorClass);
-private:
-	AActor* ReplaceActorClassInternal(AActor* TargetActor, TSubclassOf<AActor> NewActorClass);
-	AActor* CopySingleActorAndReplaceClass(AActor* Actor, TSubclassOf<AActor> NewActorClass);
 };
