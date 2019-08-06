@@ -59,3 +59,4 @@
 1.12:
     Fix screen space UI alpha blend problem.
     Upgrade prefab: when select a actor, drag to create prefab will attach to that actor.
+	Upgrade editor: ReplaceUIElement now can keep and replace object reference.

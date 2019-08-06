@@ -17,6 +17,7 @@
 #include "PropertyCustomizationHelpers.h"
 #include "PrefabSystem/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefab.h"
+#include "PrefabSystem/ActorReplaceTool.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -276,16 +277,7 @@ void ULGUIEditorToolsAgentObject::ReplaceUIElementWith(UClass* ActorClass)
 	GEditor->SelectNone(true, true);
 	for (auto item : rootActorList)
 	{
-		TArray<AActor*> childrenList;
-		item->GetAttachedActors(childrenList);
-		auto itemParent = item->GetRootComponent()->GetAttachParent();
-		auto newActor = ActorCopier::ReplaceActorClass(item, ActorClass);
-		for (auto child : childrenList)
-		{
-			child->AttachToActor(newActor, FAttachmentTransformRules::KeepRelativeTransform);
-		}
-		newActor->AttachToComponent(itemParent, FAttachmentTransformRules::KeepRelativeTransform);
-		ULGUIBPLibrary::DeleteActor(item);
+		auto newActor = ActorReplaceTool::ReplaceActorClass(item, ActorClass);
 		GEditor->SelectActor(newActor, true, true);
 	}
 	GEditor->EndTransaction();
