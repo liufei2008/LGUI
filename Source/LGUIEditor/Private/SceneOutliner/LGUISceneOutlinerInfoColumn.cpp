@@ -1,6 +1,6 @@
 ﻿// Copyright 2019 LexLiu. All Rights Reserved.
 
-#include "LGUISceneOutlinerInfoColumn.h"
+#include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
 #include "LGUIEditorModule.h"
 #include "SceneOutlinerVisitorTypes.h"
 #include "ActorTreeItem.h"
@@ -10,7 +10,7 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Utils/LGUIUtils.h"
 #include "LGUIEditorStyle.h"
-#include "LGUISceneOutlinerButton.h"
+#include "SceneOutliner/LGUISceneOutlinerButton.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
