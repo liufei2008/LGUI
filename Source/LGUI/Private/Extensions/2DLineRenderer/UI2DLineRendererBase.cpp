@@ -165,10 +165,10 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	//fill end point
 	auto endPoint1 = vertices[i2];
 	auto endPoint2 = vertices[i2 + 1];
-	for (int i = pointCount * 2, count = (pointCount + InEndPointRepeatCount) * 2; i < count; i+=2)
+	for (int j = pointCount * 2, count = (pointCount + InEndPointRepeatCount) * 2; j < count; j += 2)
 	{
-		vertices[i] = endPoint1;
-		vertices[i + 1] = endPoint2;
+		vertices[j] = endPoint1;
+		vertices[j + 1] = endPoint2;
 	}
 }
 void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPointArray)

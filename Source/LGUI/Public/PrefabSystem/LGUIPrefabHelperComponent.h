@@ -20,6 +20,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnRegister()override;
 
+#if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void LoadPrefab();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -44,11 +45,9 @@ public:
 	{
 		return LoadedRootActor;
 	}
-
-#if WITH_EDITOR
-	UPROPERTY(Transient)AActor* ParentActorForEditor;
 #endif
-public:
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(Transient)AActor* ParentActorForEditor;
 	//Donot change this unless you know what you doing
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset;
@@ -57,4 +56,5 @@ public:
 		AActor* LoadedRootActor;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllLoadedActorArray;
+#endif
 };

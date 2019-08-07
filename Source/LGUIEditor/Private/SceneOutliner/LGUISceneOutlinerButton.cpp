@@ -1,6 +1,6 @@
 ﻿// Copyright 2019 LexLiu. All Rights Reserved.
 
-#include "LGUISceneOutlinerButton.h"
+#include "SceneOutliner/LGUISceneOutlinerButton.h"
 #include "LGUIEditorModule.h"
 #include "Widgets/Input/SComboButton.h"
 
