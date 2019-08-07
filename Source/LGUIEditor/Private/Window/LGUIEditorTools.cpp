@@ -471,8 +471,26 @@ void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
 	if (prefab)
 	{
 		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab, nullptr, true);
-		GEditor->SelectActor(selectedActor, false, true);
+		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
+
+		bool haveEventSystem = false;
+		for (TActorIterator<ALGUIEventSystemActor> eventSysActorItr(GetWorldFromSelection()); eventSysActorItr; ++eventSysActorItr)
+		{
+			haveEventSystem = true;
+			break;
+		}
+		if (!haveEventSystem)
+		{
+			if (auto presetEventSystemActorClass = LoadObject<UClass>(NULL, TEXT("/LGUI/Blueprints/PresetEventSystemActor.PresetEventSystemActor_C")))
+			{
+				GetWorldFromSelection()->SpawnActor<AActor>(presetEventSystemActorClass);
+			}
+			else
+			{
+				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+			}
+		}
 	}
 	else
 	{
@@ -490,8 +508,26 @@ void ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup()
 	{
 		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
-		GEditor->SelectActor(selectedActor, false, true);
+		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
+		
+		bool haveEventSystem = false;
+		for (TActorIterator<ALGUIEventSystemActor> eventSysActorItr(GetWorldFromSelection()); eventSysActorItr; ++eventSysActorItr)
+		{
+			haveEventSystem = true;
+			break;
+		}
+		if (!haveEventSystem)
+		{
+			if (auto presetEventSystemActorClass = LoadObject<UClass>(NULL, TEXT("/LGUI/Blueprints/PresetEventSystemActor.PresetEventSystemActor_C")))
+			{
+				GetWorldFromSelection()->SpawnActor<AActor>(presetEventSystemActorClass);
+			}
+			else
+			{
+				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+			}
+		}
 	}
 	else
 	{
