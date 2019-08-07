@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/SceneComponent.h"
 #include "CollisionQueryParams.h"
 #include "LGUIBaseRaycaster.generated.h"
 

@@ -24,20 +24,15 @@ void ULGUIPrefabHelperComponent::OnRegister()
 	Super::OnRegister();
 }
 
+#if WITH_EDITOR
 void ULGUIPrefabHelperComponent::LoadPrefab()
 {
 	if (!LoadedRootActor)
 	{
-#if WITH_EDITOR
 		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
 			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() 
 			: this->GetOwner()->GetRootComponent(), AllLoadedActorArray);
 		GEditor->SelectActor(LoadedRootActor, true, false);
-#else
-		LoadedRootActor = ActorSerializer::LoadPrefab(this->GetWorld(), PrefabAsset
-			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent()
-			: this->GetOwner()->GetRootComponent());
-#endif
 		ParentActorForEditor = nullptr;
 	}
 }
@@ -111,3 +106,4 @@ void ULGUIPrefabHelperComponent::DeleteThisInstance()
 		UE_LOG(LGUI, Error, TEXT("This actor is not a prefab, ignore this action"));
 	}
 }
+#endif
