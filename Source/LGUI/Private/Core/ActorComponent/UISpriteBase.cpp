@@ -2,7 +2,8 @@
 
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "LGUI.h"
-
+#include "Core/UIGeometry.h"
+#include "Core/ActorComponent/UIPanel.h"
 
 
 UUISpriteBase::UUISpriteBase()
@@ -148,9 +149,12 @@ void UUISpriteBase::OnPostChangeSpriteProperty()
 }
 #endif
 
+DECLARE_CYCLE_STAT(TEXT("UISprite UpdateGeometry"), STAT_UISpriteUpdateGeometry, STATGROUP_LGUI);
+
 
 void UUISpriteBase::UpdateGeometry(const bool& parentTransformChanged)
 {
+	SCOPE_CYCLE_COUNTER(STAT_UISpriteUpdateGeometry);
 	if (IsUIActiveInHierarchy() == false)return;
 	if (sprite == nullptr)
 	{
