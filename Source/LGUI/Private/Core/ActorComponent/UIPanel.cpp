@@ -14,7 +14,6 @@
 #include "Core/Actor/LGUIManagerActor.h"
 
 DECLARE_CYCLE_STAT(TEXT("UIPanel UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("UIPanel UpdateLayoutAndGeometry"), STAT_UpdateLayoutAndGeometry, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("UIPanel UpdateMaterial"), STAT_UpdateMaterial, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("UIPanel TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
 
@@ -411,7 +410,6 @@ void UUIPanel::UpdatePanelGeometry()
 	
 	//update geometry
 	{
-		SCOPE_CYCLE_COUNTER(STAT_UpdateLayoutAndGeometry);
 		int updateCountOfThisFrame = 0;
 	UPDATE_GEOMETRY:
 		updateCountOfThisFrame++;

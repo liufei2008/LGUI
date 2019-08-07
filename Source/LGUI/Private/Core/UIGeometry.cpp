@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIText.h"
+#include "Core/ActorComponent/UIPanel.h"
 
 
 #pragma region UISprite_UITexture_Simple
@@ -1306,8 +1307,11 @@ FORCEINLINE float RoundToFloat(float value)
 {
 	return value > 0.0 ? FMath::FloorToFloat(value + 0.5f) : FMath::CeilToFloat(value - 0.5f);
 }
+
+DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformVertices"), STAT_TransformVertices, STATGROUP_LGUI);
 void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo, bool requireNormal, bool requireTangent)
 {
+	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
 	auto inversePanelTf = panel->GetComponentTransform().Inverse();
 	const auto& itemTf = item->GetComponentTransform();
 	auto& vertices = uiGeo->vertices;
@@ -1324,14 +1328,14 @@ void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TShared
 	}
 	
 	bool shouldSnapPixel = item->ShouldSnapPixel();
-	auto firstPanel = panel->GetUIRootPanel();
+	auto uiRootPanel = panel->GetUIRootPanel();
 
 	FTransform itemToPanelTf;
 	FTransform::Multiply(&itemToPanelTf, &itemTf, &inversePanelTf);
 	FVector tempV3;
-	if (shouldSnapPixel && firstPanel != nullptr)
+	if (shouldSnapPixel && uiRootPanel != nullptr)
 	{
-		if (panel == firstPanel)
+		if (panel == uiRootPanel)
 		{
 			auto panelLeftBottom = FVector2D(-panel->GetWidth() * panel->GetPivot().X, -panel->GetHeight() * panel->GetPivot().Y);
 			for (int i = 0; i < vertexCount; i++)
@@ -1349,7 +1353,7 @@ void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TShared
 		}
 		else
 		{
-			auto firstPanelToWorld = firstPanel->GetComponentTransform();
+			auto firstPanelToWorld = uiRootPanel->GetComponentTransform();
 			auto inverseFirstPanelTf = firstPanelToWorld.Inverse();
 			FTransform vertToUIRootPanel;
 			FTransform::Multiply(&vertToUIRootPanel, &itemTf, &inverseFirstPanelTf);
@@ -1357,7 +1361,7 @@ void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TShared
 			FTransform vertToPanel;
 			FTransform::Multiply(&vertToPanel, &firstPanelToWorld, &inversePanelTf);
 
-			auto panelLeftBottom = FVector2D(-firstPanel->GetWidth() * firstPanel->GetPivot().X, -firstPanel->GetHeight() * firstPanel->GetPivot().Y);
+			auto panelLeftBottom = FVector2D(-uiRootPanel->GetWidth() * uiRootPanel->GetPivot().X, -uiRootPanel->GetHeight() * uiRootPanel->GetPivot().Y);
 			for (int i = 0; i < vertexCount; i++)
 			{
 				tempV3 = vertToUIRootPanel.TransformPosition(vertices[i]);

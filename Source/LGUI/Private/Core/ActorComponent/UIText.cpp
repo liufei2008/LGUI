@@ -147,8 +147,11 @@ void UUIText::UpdateBasePrevData()
 	Super::UpdateBasePrevData();
 }
 
+DECLARE_CYCLE_STAT(TEXT("UIText UpdateGeometry"), STAT_UITextUpdateGeometry, STATGROUP_LGUI);
+
 void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 {
+	SCOPE_CYCLE_COUNTER(STAT_UITextUpdateGeometry);
 	if (IsUIActiveInHierarchy() == false)return;
 	if (font == nullptr)
 	{

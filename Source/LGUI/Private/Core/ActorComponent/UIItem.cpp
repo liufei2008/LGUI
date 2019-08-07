@@ -15,6 +15,8 @@ bool UUIItem::ShowHelperFrame = true;
 bool UUIItem::ShowHelperFrameInPlayMode = true;
 #endif
 
+DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
+
 UUIItem::UUIItem()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -587,6 +589,7 @@ bool UUIItem::CheckRenderUIPanel()
 
 void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool& parentTransformChanged)
 {
+	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayoutAndGeometry);
 	if (IsUIActiveInHierarchy() == false)return;
 	UpdateCachedData();
 	UpdateBasePrevData();
