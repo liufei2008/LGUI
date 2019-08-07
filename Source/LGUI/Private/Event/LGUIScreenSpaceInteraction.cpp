@@ -22,6 +22,10 @@ void ULGUIScreenSpaceInteraction::CheckRayemitter()
 				rayEmitter = emitter;
 				sceneCaptureActor->FinishAndRegisterComponent(emitter);
 			}
+			else
+			{
+				UE_LOG(LGUI, Error, TEXT("[ULGUIScreenSpaceInteraction::CheckRayemitter]This component(LGUIScreenSpaceInteraction) should be attached to a SceneCapture2D actor!"));
+			}
 		}
 	}
 }
