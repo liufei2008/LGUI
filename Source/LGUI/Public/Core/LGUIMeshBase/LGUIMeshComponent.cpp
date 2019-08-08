@@ -6,6 +6,7 @@
 #include "Containers/ResourceArray.h"
 #include "StaticMeshResources.h"
 #include "Materials/Material.h"
+#include "LGUI.h"
 
 /** Resource array to pass  */
 class FLGUIMeshVertexResourceArray : public FResourceArrayInterface
@@ -327,9 +328,10 @@ void ULGUIMeshComponent::CreateMeshSection()
 	MarkRenderStateDirty(); // New section requires recreating scene proxy
 }
 
+DECLARE_CYCLE_STAT(TEXT("LGUIUpdateMeshSection"), STAT_LGUIUpdateMeshSection, STATGROUP_LGUI);
 void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged)
 {
-	//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_UpdateSectionGT);
+	SCOPE_CYCLE_COUNTER(STAT_LGUIUpdateMeshSection);
 	if (InVertexPositionChanged)
 	{
 		MeshSection.SectionLocalBox.Init();

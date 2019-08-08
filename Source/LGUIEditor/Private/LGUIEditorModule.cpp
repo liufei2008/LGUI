@@ -22,6 +22,7 @@
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
 #include "SceneOutlinerModule.h"
 #include "SceneOutlinerPublicTypes.h"
+#include "SceneOutliner/LGUINativeSceneOutlinerExtension.h"
 
 const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIEventComponentSelectorName(TEXT("LGUIEventComponentSelector"));
@@ -113,6 +114,10 @@ void FLGUIEditorModule::StartupModule()
 		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
 		SceneOutliner::FColumnInfo ColumnInfo(SceneOutliner::EColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
 		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(SceneOutliner::FDefaultColumnInfo(ColumnInfo));
+		//SceneOutliner extension
+		auto sceneOutlinerExtensionObject = GetMutableDefault<ULGUINativeSceneOutlinerExtension>();
+		sceneOutlinerExtensionObject->AddToRoot();
+		sceneOutlinerExtensionObject->Init();
 	}
 	//register window
 	{
