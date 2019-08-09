@@ -256,7 +256,7 @@ void UUIPanel::MarkRebuildSpecificDrawcall(int drawcallIndex)
 	auto& uiDrawcall = UIDrawcallList[drawcallIndex];
 	uiDrawcall->needToBeRebuild = true;
 }
-void UUIPanel::SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture)
+void UUIPanel::SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture, bool isFontTexture)
 {
 	if (drawcallIndex == -1)return;//-1 means not add to render yet
 	if (drawcallIndex >= UIDrawcallList.Num())
@@ -267,9 +267,11 @@ void UUIPanel::SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture)
 	}
 	auto& uiDrawcall = UIDrawcallList[drawcallIndex];
 	uiDrawcall->texture = drawcallTexture;
+	uiDrawcall->isFontTexture = isFontTexture;
 	//material
 	auto& uiMat = UIMaterialList[drawcallIndex];
 	uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture);
+	uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);
 }
 void UUIPanel::MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged)
 {
@@ -692,9 +694,9 @@ void UUIPanel::UpdateAndApplyMaterial()
 			}
 			auto uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this->GetOwner());
 			uiMat->SetFlags(RF_Transient);
-			UIMaterialList[i] = uiMat;
 			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture);
 			uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);
+			UIMaterialList[i] = uiMat;
 			uiDrawcall->materialInstanceDynamic = uiMat;
 		}
 	}

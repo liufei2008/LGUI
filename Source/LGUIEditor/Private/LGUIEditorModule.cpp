@@ -326,7 +326,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("CreatePrefab", "CreatePrefab"),
-		LOCTEXT("Create_Tooltip", "Use this actor to create a new prefab"),
+		LOCTEXT("Create_Tooltip", "Use selected actor to create a new prefab"),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreatePrefabAsset)
 			, FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; }))
