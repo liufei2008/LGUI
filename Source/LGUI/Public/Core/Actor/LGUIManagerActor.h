@@ -40,7 +40,8 @@ protected:
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
 private:
 	static bool InitCheck(UWorld* InWorld);
-
+	bool IsSelected(UActorComponent* InObject);
+	TArray<AActor*> SelectionActorArray;
 public:
 	FORCEINLINE static void AddUIItem(UUIItem* InItem);
 	FORCEINLINE static void RemoveUIItem(UUIItem* InItem);

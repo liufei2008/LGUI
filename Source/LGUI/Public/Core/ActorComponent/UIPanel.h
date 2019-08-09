@@ -129,6 +129,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool inheritRectClip = true;
 
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool bOwnerNoSee = false;
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool bOnlyOwnerSee = false;
+
 	//The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
 	//But!!! Do not set this value too large if you already have large font size of UIText, because that will result in extreamly large texture! 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")

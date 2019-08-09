@@ -46,7 +46,7 @@ struct FLGUIPointerEventData
 
 	//current event target component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI")
-		UPrimitiveComponent* hitComponent = nullptr;
+		USceneComponent* hitComponent = nullptr;
 	//world space hit point
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldPoint = FVector(0, 0, 0);
@@ -61,7 +61,7 @@ struct FLGUIPointerEventData
 		FVector cumulativeMoveDelta = FVector(0, 0, 0);
 	//current dragging component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI")
-		UPrimitiveComponent* dragComponent = nullptr;
+		USceneComponent* dragComponent = nullptr;
 	//drag event ray emitter's ray origin
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector dragRayOrigin;
@@ -91,7 +91,7 @@ struct FLGUIPointerEventData
 
 	//hit component when press
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI")
-		UPrimitiveComponent* pressComponent = nullptr;
+		USceneComponent* pressComponent = nullptr;
 	//world space hit point when press and hit something
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pressWorldPoint = FVector(0, 0, 0);

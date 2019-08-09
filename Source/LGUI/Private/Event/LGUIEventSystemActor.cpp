@@ -136,7 +136,7 @@ void ALGUIEventSystemActor::ClearEvent()
 	}
 }
 
-UPrimitiveComponent* ALGUIEventSystemActor::GetCurrentHitComponent()
+USceneComponent* ALGUIEventSystemActor::GetCurrentHitComponent()
 {
 	return enterComponent;
 }
@@ -217,7 +217,7 @@ bool ALGUIEventSystemActor::LineTraceAndEvent()
 			{
 				if (lineTraceHitSomething)//hit something during drag
 				{
-					auto nowHitComponent = hitResult.Component.Get();
+					auto nowHitComponent = (USceneComponent*)hitResult.Component.Get();
 					//fire event
 					eventData.worldPoint = hitResult.Location;
 					eventData.worldNormal = hitResult.Normal;
@@ -298,7 +298,7 @@ bool ALGUIEventSystemActor::LineTraceAndEvent()
 	{
 		if (lineTraceHitSomething)
 		{
-			auto nowHitComponent = hitResult.Component.Get();
+			auto nowHitComponent = (USceneComponent*)hitResult.Component.Get();
 			//fire event
 			eventData.worldPoint = hitResult.Location;
 			eventData.worldNormal = hitResult.Normal;
@@ -332,7 +332,7 @@ bool ALGUIEventSystemActor::LineTraceAndEvent()
 			if (lineTraceHitSomething)
 			{
 				hitResultContainer.raycaster->rayEmitter->MarkPress(eventData);
-				auto nowHitComponent = hitResult.Component.Get();
+				auto nowHitComponent = (USceneComponent*)hitResult.Component.Get();
 				eventData.worldPoint = hitResult.Location;
 				eventData.worldNormal = hitResult.Normal;
 				eventData.pressDistance = hitResult.Distance;
@@ -376,7 +376,7 @@ bool ALGUIEventSystemActor::LineTraceAndEvent()
 		{
 			if (pressHitSomething)
 			{
-				auto nowHitComponent = hitResult.Component.Get();
+				auto nowHitComponent = (USceneComponent*)hitResult.Component.Get();
 
 				if (startToDrag)//is dragging
 				{
@@ -463,7 +463,9 @@ bool ALGUIEventSystemActor::LineTraceAndEvent()
 	prevIsTriggerPressed = nowIsTriggerPressed;
 	if (hitEvent.IsBound() && bRayEventEnable)
 	{
-		hitEvent.Broadcast(isHitSomething, hitResult);
+		auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+		hitResult.Component = nullptr;
+		hitEvent.Broadcast(isHitSomething, hitResult, tempHitComp);
 	}
 
 	return isHitSomething;
@@ -490,8 +492,8 @@ void ALGUIEventSystemActor::UnregisterGlobalListener(const FLGUIPointerEventDele
 
 FLGUIDelegateHandleWrapper ALGUIEventSystemActor::RegisterHitEvent(const FLGUIHitDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = hitEvent.AddLambda([InDelegate](bool isHit, const FHitResult& hitResult) {
-		InDelegate.ExecuteIfBound(isHit, hitResult);
+	auto delegateHandle = hitEvent.AddLambda([InDelegate](bool isHit, const FHitResult& hitResult, USceneComponent* hitComp) {
+		InDelegate.ExecuteIfBound(isHit, hitResult, hitComp);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
@@ -539,7 +541,7 @@ void ALGUIEventSystemActor::InputTrigger(bool inTriggerPress, EMouseButtonType i
 	eventData.mouseButtonType = inMouseButtonType;
 }
 
-void ALGUIEventSystemActor::SetSelectComponent(UPrimitiveComponent* InSelectComp)
+void ALGUIEventSystemActor::SetSelectComponent(USceneComponent* InSelectComp)
 {
 	if (selectedComponent != InSelectComp)//select new object
 	{
@@ -633,11 +635,11 @@ void ALGUIEventSystemActor::BubbleOnPointerDeselect(AActor* actor, FLGUIPointerE
 #pragma endregion
 
 #pragma region CallEvent
-void ALGUIEventSystemActor::CallOnPointerEnter(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerEnter(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, EnterExit, Enter);
 }
-void ALGUIEventSystemActor::CallOnPointerExit(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerExit(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	if (!isExitFiredAtCurrentFrame)
 	{
@@ -645,12 +647,12 @@ void ALGUIEventSystemActor::CallOnPointerExit(UPrimitiveComponent* component, FL
 		CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, EnterExit, Exit);
 	}
 }
-void ALGUIEventSystemActor::CallOnPointerDown(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerDown(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	SetSelectComponent(component);
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DownUp, Down);
 }
-void ALGUIEventSystemActor::CallOnPointerUp(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerUp(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	if (!isUpFiredAtCurrentFrame)
 	{
@@ -658,19 +660,19 @@ void ALGUIEventSystemActor::CallOnPointerUp(UPrimitiveComponent* component, FLGU
 		CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DownUp, Up);
 	}
 }
-void ALGUIEventSystemActor::CallOnPointerClick(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerClick(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, Click, Click);
 }
-void ALGUIEventSystemActor::CallOnPointerBeginDrag(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerBeginDrag(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, Drag, BeginDrag);
 }
-void ALGUIEventSystemActor::CallOnPointerDrag(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerDrag(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, Drag, Drag);
 }
-void ALGUIEventSystemActor::CallOnPointerEndDrag(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerEndDrag(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	if (!isEndDragFiredAtCurrentFrame)
 	{
@@ -679,16 +681,16 @@ void ALGUIEventSystemActor::CallOnPointerEndDrag(UPrimitiveComponent* component,
 	}
 }
 
-void ALGUIEventSystemActor::CallOnPointerScroll(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerScroll(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, Scroll, Scroll);
 }
 
-void ALGUIEventSystemActor::CallOnPointerDragEnter(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerDragEnter(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DragEnterExit, DragEnter);
 }
-void ALGUIEventSystemActor::CallOnPointerDragExit(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerDragExit(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	if (!isDragExitFiredAtCurrentFrame)
 	{
@@ -696,16 +698,16 @@ void ALGUIEventSystemActor::CallOnPointerDragExit(UPrimitiveComponent* component
 		CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DragEnterExit, DragExit);
 	}
 }
-void ALGUIEventSystemActor::CallOnPointerDragDrop(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerDragDrop(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DragDrop, DragDrop);
 }
 
-void ALGUIEventSystemActor::CallOnPointerSelect(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerSelect(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, SelectDeselect, Select);
 }
-void ALGUIEventSystemActor::CallOnPointerDeselect(UPrimitiveComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ALGUIEventSystemActor::CallOnPointerDeselect(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, SelectDeselect, Deselect);
 }

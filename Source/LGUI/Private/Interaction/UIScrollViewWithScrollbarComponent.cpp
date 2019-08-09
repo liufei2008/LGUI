@@ -127,7 +127,7 @@ bool UUIScrollViewWithScrollbarComponent::CheckScrollbarParameter()
 	}
 	return true;
 }
-bool UUIScrollViewWithScrollbarComponent::CheckValidHit(UPrimitiveComponent* InHitComp)
+bool UUIScrollViewWithScrollbarComponent::CheckValidHit(USceneComponent* InHitComp)
 {
 	bool hitHorizontalScrollbar = HorizontalScrollbar != nullptr && (InHitComp->IsAttachedTo(HorizontalScrollbar->GetUIItem()) || InHitComp == HorizontalScrollbar->GetUIItem());
 	bool hitVerticalScrollbar = VerticalScrollbar != nullptr && (InHitComp->IsAttachedTo(VerticalScrollbar->GetUIItem()) || InHitComp == VerticalScrollbar->GetUIItem());
