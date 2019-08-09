@@ -21,14 +21,8 @@ UUIItem::UUIItem()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	itemType = UIItemType::UIItem;
-	//Begin PrimitiveComponent
-	bCastStaticShadow = false;
-	bAffectDynamicIndirectLighting = false;
-	bReceivesDecals = false;
-	bApplyImpulseOnDamage = false;
-	bSelectable = true;
+
 	bWantsOnUpdateTransform = true;
-	//End PrimitiveComponent
 	
 	bVertexPositionChanged = true;
 	bColorChanged = true;
@@ -36,19 +30,16 @@ UUIItem::UUIItem()
 	bTransformChanged = true;
 
 	traceChannel = GetDefault<ULGUISettings>()->defaultTraceChannel;
-	ApplyCollisionProperty();
 }
 
 void UUIItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UpdateBodySetup();
 	if (auto parent = GetAttachParent())
 	{
 		cacheParentUIItem = Cast<UUIItem>(parent);
 	}
-	ApplyCollisionProperty();
 
 	bVertexPositionChanged = true;
 	bColorChanged = true;
@@ -330,8 +321,6 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 			prevAnchorVAlign = newAlign;
 		}
 
-		ApplyCollisionProperty();
-
 		EditorForceUpdateImmediately();
 		UpdateBounds();
 	}
@@ -433,6 +422,17 @@ void UUIItem::OnRegister()
 {
 	Super::OnRegister();
 	LGUIManager::AddUIItem(this);
+#if WITH_EDITORONLY_DATA
+	if (!this->GetWorld()->IsGameWorld())
+	{
+		if (!IsValid(HelperComp))
+		{
+			HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
+			HelperComp->Parent = this;
+			HelperComp->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
+#endif
 }
 void UUIItem::OnUnregister()
 {
@@ -1240,16 +1240,6 @@ void UUIItem::MarkPanelUpdate()
 	if (CheckRenderUIPanel()) RenderUIPanel->MarkNeedUpdate();
 }
 
-void UUIItem::ApplyCollisionProperty()
-{
-	this->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	this->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
-	this->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	this->SetCollisionResponseToChannel(UEngineTypes::ConvertToCollisionChannel(traceChannel), ECollisionResponse::ECR_Overlap);
-	this->SetGenerateOverlapEvents(false);
-	this->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-}
-
 void UUIItem::SetRaycastTarget(bool NewBool)
 {
 	if (bRaycastTarget != NewBool)
@@ -1285,7 +1275,7 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 			OutHit.TraceStart = Start;
 			OutHit.TraceEnd = End;
 			OutHit.Actor = GetOwner();
-			OutHit.Component = this;
+			OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
 			OutHit.Location = GetComponentTransform().TransformPosition(result);
 			OutHit.Normal = GetComponentTransform().TransformVector(FVector(0, 0, 1));
 			OutHit.Normal.Normalize();
@@ -1307,216 +1297,6 @@ FColor UUIItem::GetFinalColor()const
 uint8 UUIItem::GetFinalAlpha()const
 {
 	return inheritAlpha ? (uint8)(widget.color.A * calculatedParentAlpha) : widget.color.A;
-}
-
-#if WITH_EDITOR
-FPrimitiveSceneProxy* UUIItem::CreateSceneProxy()
-{
-	class FUIItemSceneProxy : public FPrimitiveSceneProxy
-	{
-	public:
-		SIZE_T GetTypeHash() const override
-		{
-			static size_t UniquePointer;
-			return reinterpret_cast<size_t>(&UniquePointer);
-		}
-
-		FUIItemSceneProxy(UUIItem* InComponent)
-			: FPrimitiveSceneProxy(InComponent)
-		{
-			bWillEverBeLit = false;
-			Component = InComponent;
-		}
-
-		virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
-		{
-			const auto& widget = Component->widget;
-			auto worldTransform = Component->GetComponentTransform();
-			FVector relativeOffset(0, 0, 0);
-			relativeOffset.X = (0.5f - widget.pivot.X) * widget.width;
-			relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
-			auto worldLocation = worldTransform.TransformPosition(relativeOffset);
-			//calculate world location
-			if(Component->cacheParentUIItem != nullptr)
-			{
-				FVector relativeLocation = Component->RelativeLocation;
-				const auto& parentWidget = Component->cacheParentUIItem->widget;
-				switch (widget.anchorHAlign)
-				{
-				case UIAnchorHorizontalAlign::Left:
-				{
-					relativeLocation.X = parentWidget.width * (-parentWidget.pivot.X);
-					relativeLocation.X += widget.anchorOffsetX;
-				}
-				break;
-				case UIAnchorHorizontalAlign::Center:
-				{
-					relativeLocation.X = parentWidget.width * (0.5f - parentWidget.pivot.X);
-					relativeLocation.X += widget.anchorOffsetX;
-				}
-				break;
-				case UIAnchorHorizontalAlign::Right:
-				{
-					relativeLocation.X = parentWidget.width * (1 - parentWidget.pivot.X);
-					relativeLocation.X += widget.anchorOffsetX;
-				}
-				break;
-				case UIAnchorHorizontalAlign::Stretch:
-				{
-					relativeLocation.X = -parentWidget.pivot.X * parentWidget.width;
-					relativeLocation.X += widget.stretchLeft;
-					relativeLocation.X += widget.pivot.X * widget.width;
-				}
-				break;
-				}
-				switch (widget.anchorVAlign)
-				{
-				case UIAnchorVerticalAlign::Top:
-				{
-					relativeLocation.Y = parentWidget.height * (1 - parentWidget.pivot.Y);
-					relativeLocation.Y += widget.anchorOffsetY;
-				}
-				break;
-				case UIAnchorVerticalAlign::Middle:
-				{
-					relativeLocation.Y = parentWidget.height * (0.5f - parentWidget.pivot.Y);
-					relativeLocation.Y += widget.anchorOffsetY;
-				}
-				break;
-				case UIAnchorVerticalAlign::Bottom:
-				{
-					relativeLocation.Y = parentWidget.height * (-parentWidget.pivot.Y);
-					relativeLocation.Y += widget.anchorOffsetY;
-				}
-				break;
-				case UIAnchorVerticalAlign::Stretch:
-				{
-					relativeLocation.Y = -parentWidget.pivot.Y * parentWidget.height;
-					relativeLocation.Y += widget.stretchBottom;
-					relativeLocation.Y += widget.pivot.Y * widget.height;
-				}
-				break;
-				}
-				auto relativeTf = Component->GetRelativeTransform();
-				relativeTf.SetLocation(relativeLocation);
-				FTransform calculatedWorldTf;
-				FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(Component->cacheParentUIItem->GetComponentTransform()));
-				worldLocation = calculatedWorldTf.TransformPosition(relativeOffset);
-			}
-
-			auto extends = FVector(widget.width, widget.height, 0) * 0.5f;
-			for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
-			{
-				auto& View = Views[ViewIndex];
-				if (VisibilityMap & (1 << ViewIndex))
-				{
-					bool canDraw = false;
-					FLinearColor DrawColor = FColor(128, 128, 128);//gray means normal object
-					if (IsSelected())//select self
-					{
-						DrawColor = FColor(0, 255, 0);//green means selected object
-						extends += FVector(0, 0, 1);
-						canDraw = true;
-					}
-					else
-					{
-						//parent selected
-						if (Component->cacheParentUIItem != nullptr)
-						{
-							if (Component->cacheParentUIItem->sceneProxySelected)
-							{
-								canDraw = true;
-							}
-						}
-						//child selected
-						const auto childrenCompArray = Component->GetAttachChildren();
-						for (auto childComp : childrenCompArray)
-						{
-							if (auto uiComp = Cast<UUIItem>(childComp))
-							{
-								if (uiComp->sceneProxySelected)
-								{
-									canDraw = true;
-									break;
-								}
-							}
-						}
-						//other object of same hierarchy is selected
-						if (Component->cacheParentUIItem != nullptr)
-						{
-							const auto& sameLevelCompArray = Component->cacheParentUIItem->GetAttachChildren();
-							for (auto childComp : sameLevelCompArray)
-							{
-								if (auto uiComp = Cast<UUIItem>(childComp))
-								{
-									if (uiComp->sceneProxySelected)
-									{
-										canDraw = true;
-										break;
-									}
-								}
-							}
-						}
-					}
-
-					if (canDraw)
-					{
-						FPrimitiveDrawInterface* PDI = Collector.GetPDI(ViewIndex);
-						DrawOrientedWireBox(PDI, worldLocation, worldTransform.GetScaledAxis(EAxis::X), worldTransform.GetScaledAxis(EAxis::Y), worldTransform.GetScaledAxis(EAxis::Z), extends, DrawColor, SDPG_World);
-					}
-				}
-			}
-		}
-
-		virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
-		{
-			FPrimitiveViewRelevance Result;
-			bool needToShow = IsShown(View) 
-				&& Component->IsUIActiveInHierarchy() 
-				&& Component->GetWorld() != nullptr
-				&& (Component->GetWorld()->IsGameWorld() 
-					? UUIItem::ShowHelperFrameInPlayMode
-					: UUIItem::ShowHelperFrame);
-			Component->sceneProxySelected = IsSelected();
-			Result.bDrawRelevance = needToShow;
-			Result.bDynamicRelevance = true;
-			Result.bShadowRelevance = IsShadowCast(View);
-			Result.bEditorPrimitiveRelevance = UseEditorCompositing(View);
-			return Result;
-		}
-		virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
-		uint32 GetAllocatedSize(void) const { return(FPrimitiveSceneProxy::GetAllocatedSize()); }
-	private:
-		UUIItem* Component;
-	};
-
-	return new FUIItemSceneProxy(this);
-}
-#endif
-UBodySetup* UUIItem::GetBodySetup()
-{
-	UpdateBodySetup();
-	return BodySetup;
-}
-void UUIItem::UpdateBodySetup()
-{
-	if (BodySetup == nullptr)
-	{
-		BodySetup = NewObject<UBodySetup>(this);
-		BodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;
-		FKBoxElem Box = FKBoxElem();
-		Box.SetTransform(FTransform::Identity);
-		BodySetup->AggGeom.BoxElems.Add(Box);
-	}
-	FKBoxElem* BoxElem = BodySetup->AggGeom.BoxElems.GetData();
-
-	auto origin = FVector(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y), 0);
-
-	BoxElem->X = widget.width;
-	BoxElem->Y = widget.height;
-	BoxElem->Z = 0.0f;
-
-	BoxElem->Center = origin;
 }
 
 #pragma region InteractionGroup
@@ -1718,3 +1498,187 @@ float UUIItem::Color255To1_Table[256] =
 	,0.8901961,0.8941177,0.8980392,0.9019608,0.9058824,0.9098039,0.9137255,0.9176471,0.9215686,0.9254902,0.9294118,0.9333333,0.9372549,0.9411765,0.945098,0.9490196,0.9529412,0.9568627,0.9607843,0.9647059
 	,0.9686275,0.972549,0.9764706,0.9803922,0.9843137,0.9882353,0.9921569,0.9960784,1
 };
+
+
+
+
+UUIItemEditorHelperComp::UUIItemEditorHelperComp()
+{
+	bSelectable = true;
+}
+#if WITH_EDITOR
+FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
+{
+	return nullptr;
+	class FUIItemSceneProxy : public FPrimitiveSceneProxy
+	{
+	public:
+		SIZE_T GetTypeHash() const override
+		{
+			static size_t UniquePointer;
+			return reinterpret_cast<size_t>(&UniquePointer);
+		}
+
+		FUIItemSceneProxy(UUIItem* InComponent, UPrimitiveComponent* InPrimitive)
+			: FPrimitiveSceneProxy(InPrimitive)
+		{
+			bWillEverBeLit = false;
+			Component = InComponent;
+		}
+
+		virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
+		{
+			const auto& widget = Component->GetWidget();
+			auto worldTransform = Component->GetComponentTransform();
+			FVector relativeOffset(0, 0, 0);
+			relativeOffset.X = (0.5f - widget.pivot.X) * widget.width;
+			relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
+			auto worldLocation = worldTransform.TransformPosition(relativeOffset);
+			//calculate world location
+			auto parentUIItem = Component->GetParentAsUIItem();
+			if (parentUIItem != nullptr)
+			{
+				FVector relativeLocation = Component->RelativeLocation;
+				const auto& parentWidget = parentUIItem->GetWidget();
+				switch (widget.anchorHAlign)
+				{
+				case UIAnchorHorizontalAlign::Left:
+				{
+					relativeLocation.X = parentWidget.width * (-parentWidget.pivot.X);
+					relativeLocation.X += widget.anchorOffsetX;
+				}
+				break;
+				case UIAnchorHorizontalAlign::Center:
+				{
+					relativeLocation.X = parentWidget.width * (0.5f - parentWidget.pivot.X);
+					relativeLocation.X += widget.anchorOffsetX;
+				}
+				break;
+				case UIAnchorHorizontalAlign::Right:
+				{
+					relativeLocation.X = parentWidget.width * (1 - parentWidget.pivot.X);
+					relativeLocation.X += widget.anchorOffsetX;
+				}
+				break;
+				case UIAnchorHorizontalAlign::Stretch:
+				{
+					relativeLocation.X = -parentWidget.pivot.X * parentWidget.width;
+					relativeLocation.X += widget.stretchLeft;
+					relativeLocation.X += widget.pivot.X * widget.width;
+				}
+				break;
+				}
+				switch (widget.anchorVAlign)
+				{
+				case UIAnchorVerticalAlign::Top:
+				{
+					relativeLocation.Y = parentWidget.height * (1 - parentWidget.pivot.Y);
+					relativeLocation.Y += widget.anchorOffsetY;
+				}
+				break;
+				case UIAnchorVerticalAlign::Middle:
+				{
+					relativeLocation.Y = parentWidget.height * (0.5f - parentWidget.pivot.Y);
+					relativeLocation.Y += widget.anchorOffsetY;
+				}
+				break;
+				case UIAnchorVerticalAlign::Bottom:
+				{
+					relativeLocation.Y = parentWidget.height * (-parentWidget.pivot.Y);
+					relativeLocation.Y += widget.anchorOffsetY;
+				}
+				break;
+				case UIAnchorVerticalAlign::Stretch:
+				{
+					relativeLocation.Y = -parentWidget.pivot.Y * parentWidget.height;
+					relativeLocation.Y += widget.stretchBottom;
+					relativeLocation.Y += widget.pivot.Y * widget.height;
+				}
+				break;
+				}
+				auto relativeTf = Component->GetRelativeTransform();
+				relativeTf.SetLocation(relativeLocation);
+				FTransform calculatedWorldTf;
+				FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(parentUIItem->GetComponentTransform()));
+				worldLocation = calculatedWorldTf.TransformPosition(relativeOffset);
+			}
+
+			auto extends = FVector(widget.width, widget.height, 0) * 0.5f;
+			for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
+			{
+				auto& View = Views[ViewIndex];
+				if (VisibilityMap & (1 << ViewIndex))
+				{
+					FColor DrawColor = FColor(128, 128, 128);//gray means normal object
+					//if (IsSelected())//select self
+					{
+						DrawColor = FColor(0, 255, 0);//green means selected object
+						extends += FVector(0, 0, 1);
+
+						FPrimitiveDrawInterface* PDI = Collector.GetPDI(ViewIndex);
+						//DrawOrientedWireBox(PDI, worldLocation, worldTransform.GetScaledAxis(EAxis::X), worldTransform.GetScaledAxis(EAxis::Y), worldTransform.GetScaledAxis(EAxis::Z), extends, DrawColor, SDPG_World);
+						DrawDebugSolidBox(Component->GetWorld(), worldLocation, extends, worldTransform.GetRotation(), DrawColor);
+						//DrawBox(PDI, worldTransform.ToMatrixWithScale(), extends, GEngine->ConstraintLimitMaterialPrismatic->GetRenderProxy(false), SDPG_Foreground);
+					}
+				}
+			}
+		}
+
+		virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
+		{
+			FPrimitiveViewRelevance Result;
+			bool needToShow = IsShown(View)
+				&& Component->IsUIActiveInHierarchy()
+				&& Component->GetWorld() != nullptr
+				&& (Component->GetWorld()->IsGameWorld()
+					? UUIItem::ShowHelperFrameInPlayMode
+					: UUIItem::ShowHelperFrame);
+			//Component->sceneProxySelected = IsSelected();
+			Result.bDrawRelevance = needToShow;
+			Result.bDynamicRelevance = true;
+			Result.bShadowRelevance = IsShadowCast(View);
+			Result.bEditorPrimitiveRelevance = UseEditorCompositing(View);
+			return Result;
+		}
+		virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
+		uint32 GetAllocatedSize(void) const { return(FPrimitiveSceneProxy::GetAllocatedSize()); }
+	private:
+		UUIItem* Component;
+	};
+
+	return new FUIItemSceneProxy(this->Parent, this);
+}
+#endif
+UBodySetup* UUIItemEditorHelperComp::GetBodySetup()
+{
+	UpdateBodySetup();
+	return BodySetup;
+}
+void UUIItemEditorHelperComp::UpdateBodySetup()
+{
+	if (!IsValid(Parent))return;
+	if (BodySetup == nullptr)
+	{
+		BodySetup = NewObject<UBodySetup>(this);
+		BodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;
+		FKBoxElem Box = FKBoxElem();
+		Box.SetTransform(FTransform::Identity);
+		BodySetup->AggGeom.BoxElems.Add(Box);
+	}
+	FKBoxElem* BoxElem = BodySetup->AggGeom.BoxElems.GetData();
+
+	auto widget = Parent->GetWidget();
+	auto origin = FVector(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y), 0);
+
+	BoxElem->X = widget.width;
+	BoxElem->Y = widget.height;
+	BoxElem->Z = 0.0f;
+
+	BoxElem->Center = origin;
+}
+FBoxSphereBounds UUIItemEditorHelperComp::CalcBounds(const FTransform& LocalToWorld) const
+{
+	auto widget = Parent->GetWidget();
+	auto origin = FVector(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y), 0);
+	return FBoxSphereBounds(origin, FVector(widget.width * 0.5f, widget.height * 0.5f, 1), (widget.width > widget.height ? widget.width : widget.height) * 0.5f).TransformBy(LocalToWorld);
+}

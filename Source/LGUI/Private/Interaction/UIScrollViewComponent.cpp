@@ -119,7 +119,7 @@ bool UUIScrollViewComponent::CheckParameters()
 	return false;
 }
 
-bool UUIScrollViewComponent::CheckValidHit(UPrimitiveComponent* InHitComp)
+bool UUIScrollViewComponent::CheckValidHit(USceneComponent* InHitComp)
 {
 	return (InHitComp->IsAttachedTo(RootUIComp) || InHitComp == RootUIComp);//make sure hit component is child of this or is this
 }

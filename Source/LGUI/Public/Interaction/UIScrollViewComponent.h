@@ -67,7 +67,7 @@ protected:
 	virtual void CalculateHorizontalRange();
 	virtual void CalculateVerticalRange();
 	bool CheckParameters();
-	virtual bool CheckValidHit(UPrimitiveComponent* InHitComp);
+	virtual bool CheckValidHit(USceneComponent* InHitComp);
 	UPROPERTY(Transient)UUIItem* ContentUIItem = nullptr;//drag or scroll Content
 	UPROPERTY(Transient)UUIItem* ContentParentUIItem = nullptr;//Content's parent
 	FVector2D Progress = FVector2D(0, 0);//progress, 0--1, x for horizontal, y for vertical

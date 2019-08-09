@@ -4,7 +4,10 @@
 
 #include "LGUI.h"
 #include "Core/UIWidget.h"
+#include "Components/SceneComponent.h"
+#if WITH_EDITOR
 #include "Components/PrimitiveComponent.h"
+#endif
 #include "UIItem.generated.h"
 
 class UUIPanel;
@@ -20,7 +23,7 @@ enum class UIItemType :uint8
 };
 
 UCLASS(HideCategories = ( LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIItem : public UPrimitiveComponent
+class LGUI_API UUIItem : public USceneComponent
 {
 	GENERATED_BODY()
 
@@ -39,7 +42,6 @@ public:
 #if WITH_EDITORONLY_DATA
 	//prev frame location
 	FVector prevRelativeLocation;
-	bool sceneProxySelected = false;
 	//prev frame anchor horizontal alignment
 	UIAnchorHorizontalAlign prevAnchorHAlign;
 	//prev frame anchor vertical alignemnt
@@ -118,18 +120,6 @@ public:
 	bool CalculateLayoutRelatedParameters();
 	//update render geometry
 	virtual void UpdateGeometry(const bool& parentTransformChanged);
-
-	
-	//Begin UPrimitiveComponent interface
-#if WITH_EDITOR
-	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
-#endif
-	virtual UBodySetup* GetBodySetup() override;
-	//End UPrimitiveComponent interface
-
-	UPROPERTY(Transient, DuplicateTransient)
-		class UBodySetup* BodySetup;
-	virtual void UpdateBodySetup();
 
 protected:
 	//widget contains rect transform and color
@@ -304,7 +294,6 @@ protected:
 	//traceChannel for line trace of EventSystem interaction
 	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
 		TEnumAsByte<ETraceTypeQuery> traceChannel = TraceTypeQuery3;
-	void ApplyCollisionProperty();
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool IsRaycastTarget() const { return bRaycastTarget; }
@@ -351,4 +340,26 @@ public:
 	//get final color, calculate alpha
 	FORCEINLINE FColor GetFinalColor()const;
 	static float Color255To1_Table[256];
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(Transient)class UUIItemEditorHelperComp* HelperComp = nullptr;
+#endif
+};
+
+
+//Editor only
+//This component is only a helper component for UIItem! Don't use this!
+UCLASS(HideCategories = (LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), NotBlueprintable, NotBlueprintType, Transient)
+class LGUI_API UUIItemEditorHelperComp : public UPrimitiveComponent
+{
+	GENERATED_BODY()
+public:
+	UUIItemEditorHelperComp();
+	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
+	virtual FPrimitiveSceneProxy* CreateSceneProxy()override;
+	UPROPERTY(Transient)UUIItem* Parent = nullptr;
+	virtual UBodySetup* GetBodySetup()override;
+	UPROPERTY(Transient, DuplicateTransient)
+		class UBodySetup* BodySetup;
+	void UpdateBodySetup();
 };

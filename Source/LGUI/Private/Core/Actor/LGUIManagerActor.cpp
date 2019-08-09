@@ -9,6 +9,8 @@
 #include "Engine/World.h"
 #if WITH_EDITOR
 #include "Editor.h"
+#include "DrawDebugHelpers.h"
+#include "Engine/Selection.h"
 #endif
 
 
@@ -109,10 +111,167 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		EditorTick.Broadcast(DeltaTime);
 	}
+	//draw selection
+	for (auto item : allUIItem)
+	{
+		if (!IsValid(item))continue;
+		const auto& widget = item->GetWidget();
+		auto worldTransform = item->GetComponentTransform();
+		FVector relativeOffset(0, 0, 0);
+		relativeOffset.X = (0.5f - widget.pivot.X) * widget.width;
+		relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
+		auto worldLocation = worldTransform.TransformPosition(relativeOffset);
+		//calculate world location
+		if (item->GetParentAsUIItem() != nullptr)
+		{
+			FVector relativeLocation = item->RelativeLocation;
+			const auto& parentWidget = item->GetParentAsUIItem()->GetWidget();
+			switch (widget.anchorHAlign)
+			{
+			case UIAnchorHorizontalAlign::Left:
+			{
+				relativeLocation.X = parentWidget.width * (-parentWidget.pivot.X);
+				relativeLocation.X += widget.anchorOffsetX;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Center:
+			{
+				relativeLocation.X = parentWidget.width * (0.5f - parentWidget.pivot.X);
+				relativeLocation.X += widget.anchorOffsetX;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Right:
+			{
+				relativeLocation.X = parentWidget.width * (1 - parentWidget.pivot.X);
+				relativeLocation.X += widget.anchorOffsetX;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Stretch:
+			{
+				relativeLocation.X = -parentWidget.pivot.X * parentWidget.width;
+				relativeLocation.X += widget.stretchLeft;
+				relativeLocation.X += widget.pivot.X * widget.width;
+			}
+			break;
+			}
+			switch (widget.anchorVAlign)
+			{
+			case UIAnchorVerticalAlign::Top:
+			{
+				relativeLocation.Y = parentWidget.height * (1 - parentWidget.pivot.Y);
+				relativeLocation.Y += widget.anchorOffsetY;
+			}
+			break;
+			case UIAnchorVerticalAlign::Middle:
+			{
+				relativeLocation.Y = parentWidget.height * (0.5f - parentWidget.pivot.Y);
+				relativeLocation.Y += widget.anchorOffsetY;
+			}
+			break;
+			case UIAnchorVerticalAlign::Bottom:
+			{
+				relativeLocation.Y = parentWidget.height * (-parentWidget.pivot.Y);
+				relativeLocation.Y += widget.anchorOffsetY;
+			}
+			break;
+			case UIAnchorVerticalAlign::Stretch:
+			{
+				relativeLocation.Y = -parentWidget.pivot.Y * parentWidget.height;
+				relativeLocation.Y += widget.stretchBottom;
+				relativeLocation.Y += widget.pivot.Y * widget.height;
+			}
+			break;
+			}
+			auto relativeTf = item->GetRelativeTransform();
+			relativeTf.SetLocation(relativeLocation);
+			FTransform calculatedWorldTf;
+			FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(item->GetParentAsUIItem()->GetComponentTransform()));
+			worldLocation = calculatedWorldTf.TransformPosition(relativeOffset);
+		}
+
+		auto extends = FVector(widget.width, widget.height, 0) * 0.5f;
+		auto scale3D = item->GetComponentScale();
+		extends.X *= scale3D.X;
+		extends.Y *= scale3D.Y;
+		extends.Z *= scale3D.Z;
+
+		bool canDraw = false;
+		FColor DrawColor = FColor(128, 128, 128);//gray means normal object
+		if (IsSelected(item))//select self
+		{
+			DrawColor = FColor(0, 255, 0);//green means selected object
+			extends += FVector(0, 0, 1);
+			canDraw = true;
+		}
+		else
+		{
+			//parent selected
+			if (item->GetParentAsUIItem() != nullptr)
+			{
+				if (IsSelected(item->GetParentAsUIItem()))
+				{
+					canDraw = true;
+				}
+			}
+			//child selected
+			const auto childrenCompArray = item->GetAttachChildren();
+			for (auto childComp : childrenCompArray)
+			{
+				if (auto uiComp = Cast<UUIItem>(childComp))
+				{
+					if (IsSelected(uiComp))
+					{
+						canDraw = true;
+						break;
+					}
+				}
+			}
+			//other object of same hierarchy is selected
+			if (item->GetParentAsUIItem() != nullptr)
+			{
+				const auto& sameLevelCompArray = item->GetParentAsUIItem()->GetAttachChildren();
+				for (auto childComp : sameLevelCompArray)
+				{
+					if (auto uiComp = Cast<UUIItem>(childComp))
+					{
+						if (IsSelected(uiComp))
+						{
+							canDraw = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (canDraw)
+		{
+			DrawDebugBox(item->GetWorld(), worldLocation, extends, item->GetComponentQuat(), DrawColor);
+		}
+
+		SelectionActorArray.Reset();
+	}
 }
 TStatId ULGUIEditorManagerObject::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
+}
+bool ULGUIEditorManagerObject::IsSelected(UActorComponent* InObject)
+{
+	if (SelectionActorArray.Num() == 0)
+	{
+		auto selection = GEditor->GetSelectedActors();
+		auto count = selection->Num();
+		for (int i = 0; i < count; i++)
+		{
+			auto obj = (AActor*)(selection->GetSelectedObject(i));
+			if (obj != nullptr)
+			{
+				SelectionActorArray.Add(obj);
+			}
+		}
+	}
+	return SelectionActorArray.Contains(InObject->GetOwner());
 }
 
 
