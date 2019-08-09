@@ -52,7 +52,6 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 		//UI element need to check if hit visible
 		multiUIHitResult.Reset();
 		OutRayEnd = OutRayDirection * rayLength + OutRayOrigin;
-		auto collisionChannel = UEngineTypes::ConvertToCollisionChannel(traceChannel);
 		if (traceOnlyActorArray.Num() == 0)//trace all
 		{
 			if (ALGUIManagerActor::Instance != nullptr)
@@ -71,7 +70,7 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 					}
 					FHitResult thisHit;
 					if (uiItem->IsRegistered()
-						&& (uiItem->GetCollisionResponseToChannel(collisionChannel) != ECollisionResponse::ECR_Ignore)
+						&& uiItem->GetTraceChannel() == traceChannel
 						&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
 						)
 					{
@@ -87,7 +86,7 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 		else//trace only specific actors
 		{
 			//todo:need to get root object, because this function will go through hierarchy to check all children. find root object can avoid repetition
-			LineTraceUIHierarchy(multiUIHitResult, false, traceOnlyActorArray, OutRayOrigin, OutRayEnd, collisionChannel);
+			LineTraceUIHierarchy(multiUIHitResult, false, traceOnlyActorArray, OutRayOrigin, OutRayEnd, traceChannel);
 		}
 		int hitCount = multiUIHitResult.Num();
 		if (hitCount > 0)
@@ -100,8 +99,8 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 					|| FMath::Abs(A.Distance - B.Distance) < threshold//if distance less than threshold, then sort on depth too
 					)
 				{
-					auto AUIItem = Cast<UUIItem>(A.Component.Get());
-					auto BUIItem = Cast<UUIItem>(B.Component.Get());
+					auto AUIItem = (UUIItem*)(A.Component.Get());
+					auto BUIItem = (UUIItem*)(B.Component.Get());
 					if (AUIItem != nullptr && BUIItem != nullptr)
 					{
 						if (AUIItem->GetRenderUIPanel() == nullptr && BUIItem->GetRenderUIPanel() != nullptr) return false;//if A not render yet
@@ -133,11 +132,12 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 				}
 				return true;
 			});
+
 			//consider UI may not visible or InteractionGroup not allow interaction, so we cannot take first one as result, we need to check from start
 			for (int i = 0; i < hitCount; i++)
 			{
 				auto hit = multiUIHitResult[i];
-				if (auto hitUIItem = Cast<UUIItem>(hit.Component.Get()))
+				if (auto hitUIItem = (UUIItem*)(hit.Component.Get()))
 				{
 					if (IsHitVisibleUI(hitUIItem, hit.Location) && IsUIInteractionGroupAllowHit(hitUIItem))
 					{
@@ -156,14 +156,14 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 	return false;
 }
 
-void ULGUI_UIRaycaster::LineTraceUIHierarchy(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ECollisionChannel InTraceChannel, const struct FCollisionQueryParams& InParams)
+void ULGUI_UIRaycaster::LineTraceUIHierarchy(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ETraceTypeQuery InTraceChannel)
 {
 	for (int actorIndex = 0, actorCount = InActorArray.Num(); actorIndex < actorCount; actorIndex++)
 	{
 		auto actor = InActorArray[actorIndex];
 		if (IsValid(actor))
 		{
-			LineTraceUIHierarchyRecursive(OutHitArray, actor->GetRootComponent(), InRayOrign, InRayEnd, InTraceChannel, InParams);
+			LineTraceUIHierarchyRecursive(OutHitArray, actor->GetRootComponent(), InRayOrign, InRayEnd, InTraceChannel);
 		}
 	}
 	if (InSortResult)
@@ -174,9 +174,8 @@ void ULGUI_UIRaycaster::LineTraceUIHierarchy(TArray<FHitResult>& OutHitArray, bo
 		});
 	}
 }
-void ULGUI_UIRaycaster::LineTraceUIHierarchyRecursive(TArray<FHitResult>& OutHitArray, USceneComponent* InSceneComp, const FVector& InRayOrign, const FVector& InRayEnd, ECollisionChannel InTraceChannel, const struct FCollisionQueryParams& InParams)
+void ULGUI_UIRaycaster::LineTraceUIHierarchyRecursive(TArray<FHitResult>& OutHitArray, USceneComponent* InSceneComp, const FVector& InRayOrign, const FVector& InRayEnd, ETraceTypeQuery InTraceChannel)
 {
-	auto collisionChannel = UEngineTypes::ConvertToCollisionChannel(traceChannel);
 	const auto& childrenComp = InSceneComp->GetAttachChildren();
 	for (int compIndex = 0, compCount = childrenComp.Num(); compIndex < compCount; compIndex++)
 	{
@@ -187,14 +186,14 @@ void ULGUI_UIRaycaster::LineTraceUIHierarchyRecursive(TArray<FHitResult>& OutHit
 			{
 				FHitResult thisHit;
 				if (uiItem->IsRegistered()
-					&& (uiItem->GetCollisionResponseToChannel(collisionChannel) != ECollisionResponse::ECR_Ignore)
+					&& uiItem->GetTraceChannel() == InTraceChannel
 					&& uiItem->LineTraceUI(thisHit, InRayOrign, InRayEnd)
 					)
 				{
 					OutHitArray.Add(thisHit);
 				}
 			}
-			LineTraceUIHierarchyRecursive(OutHitArray, childSceneComp, InRayOrign, InRayEnd, InTraceChannel, InParams);
+			LineTraceUIHierarchyRecursive(OutHitArray, childSceneComp, InRayOrign, InRayEnd, InTraceChannel);
 		}
 	}
 }

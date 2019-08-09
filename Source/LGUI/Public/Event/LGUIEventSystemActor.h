@@ -11,7 +11,7 @@
 
 struct FLGUIPointerEventData;
 
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FLGUIHitDynamicDelegate, bool, isHit, const FHitResult&, hitResult);
+DECLARE_DYNAMIC_DELEGATE_ThreeParams(FLGUIHitDynamicDelegate, bool, isHit, const FHitResult&, hitResult, USceneComponent*, hitComponent);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, const FLGUIPointerEventData&, pointerEvent);
 /*
  InputTrigger and InputScroll need mannually setup
@@ -57,16 +57,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void ClearEvent();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		UPrimitiveComponent* GetCurrentHitComponent();
+		USceneComponent* GetCurrentHitComponent();
 	//SetRaycast enable or disable
 	//@param	clearEvent		call ClearEvent after disable Raycast
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRaycastEnable(bool enable, bool clearEvent = false);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-	void SetSelectComponent(UPrimitiveComponent* InSelectComp);
+	void SetSelectComponent(USceneComponent* InSelectComp);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-	UPrimitiveComponent* GetCurrentSelectedComponent() { return selectedComponent; }
+	USceneComponent* GetCurrentSelectedComponent() { return selectedComponent; }
 protected:
 	//call back for hit event
 	FLGUIMulticastHitDelegate hitEvent;
@@ -89,9 +89,9 @@ public:
 protected:
 	bool prevIsTriggerPressed = false;
 	EMouseButtonType prevPressTriggerType = EMouseButtonType::Left;
-	UPROPERTY(Transient)UPrimitiveComponent* enterComponent = nullptr;
-	UPROPERTY(Transient)UPrimitiveComponent* selectedComponent = nullptr;
-	UPROPERTY(Transient)UPrimitiveComponent* dragEnterComponent = nullptr;
+	UPROPERTY(Transient)USceneComponent* enterComponent = nullptr;
+	UPROPERTY(Transient)USceneComponent* selectedComponent = nullptr;
+	UPROPERTY(Transient)USceneComponent* dragEnterComponent = nullptr;
 	bool enterComponentEventFireOnAllOrOnlyTarget = false;
 	bool dragComponentEventFireOnAllOrOnlyTarget = false;
 	bool selectedComponentEventFireOnAllOrOnlyTarget = false;
@@ -121,23 +121,23 @@ protected:
 	bool LineTraceAndEvent();
 	bool LineTrace(FHitResultContainerStruct& hitResult);
 	
-	void CallOnPointerEnter(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerExit(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDown(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerUp(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerClick(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerBeginDrag(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDrag(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerEndDrag(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerEnter(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerExit(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDown(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerUp(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerClick(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerBeginDrag(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDrag(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerEndDrag(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
 
-	void CallOnPointerScroll(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerScroll(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
 
-	void CallOnPointerDragEnter(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDragExit(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDragDrop(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDragEnter(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDragExit(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDragDrop(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
 
-	void CallOnPointerSelect(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDeselect(UPrimitiveComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerSelect(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDeselect(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
 
 	void LogEventData(FLGUIPointerEventData& eventData, bool eventFireOnAll);
 

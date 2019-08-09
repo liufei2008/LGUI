@@ -29,8 +29,8 @@ protected:
 	bool IsHitVisibleUI(class UUIItem* HitUI, const FVector& HitPoint);
 	bool IsUIInteractionGroupAllowHit(class UUIItem* HitUI);
 
-	void LineTraceUIHierarchy(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ECollisionChannel InTraceChannel, const struct FCollisionQueryParams& InParams = FCollisionQueryParams::DefaultQueryParam);
-	void LineTraceUIHierarchyRecursive(TArray<FHitResult>& OutHitArray, USceneComponent* InSceneComp, const FVector& InRayOrign, const FVector& InRayEnd, ECollisionChannel InTraceChannel, const struct FCollisionQueryParams& InParams = FCollisionQueryParams::DefaultQueryParam);
+	void LineTraceUIHierarchy(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ETraceTypeQuery InTraceChannel);
+	void LineTraceUIHierarchyRecursive(TArray<FHitResult>& OutHitArray, USceneComponent* InSceneComp, const FVector& InRayOrign, const FVector& InRayEnd, ETraceTypeQuery InTraceChannel);
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		EUIRaycastSortType uiSortType = EUIRaycastSortType::DependOnUIDepth;

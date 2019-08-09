@@ -16,7 +16,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastFloatDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastVector2Delegate, FVector2D);
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastStringDelegate, const FString&);
 
-DECLARE_DELEGATE_TwoParams(FLGUIHitDelegate, bool, const FHitResult&);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FLGUIMulticastHitDelegate, bool, const FHitResult&);
+DECLARE_DELEGATE_ThreeParams(FLGUIHitDelegate, bool, const FHitResult&, USceneComponent*);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FLGUIMulticastHitDelegate, bool, const FHitResult&, USceneComponent*);
 DECLARE_DELEGATE_OneParam(FLGUIPointerEventDelegate, const FLGUIPointerEventData&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastPointerEventDelegate, const FLGUIPointerEventData&);
