@@ -66,3 +66,8 @@
         Avoid using GWorld, so LoadPrefab must provide a object to get world.
     New feature:
         A new column on SceneOutliner, provide ability to create/modify UI direct in SceneOutliner.
+1.13:
+    Fix:
+        material's IsFontTexture property not set correctly.
+    New feature:
+        save scene outliner's hierarchy state(actor's folder) before play, and restore it after end play.
