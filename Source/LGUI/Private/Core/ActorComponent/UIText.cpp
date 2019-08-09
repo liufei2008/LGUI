@@ -46,7 +46,7 @@ void UUIText::ApplyFontTextureScaleUp()
 	geometry->texture = font->texture;
 	if (CheckRenderUIPanel())
 	{
-		RenderUIPanel->SetDrawcallTexture(geometry->drawcallIndex, font->texture);
+		RenderUIPanel->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
 	}
 }
 
@@ -61,7 +61,7 @@ void UUIText::ApplyFontTextureChange()
 		geometry->texture = font->texture;
 		if (CheckRenderUIPanel())
 		{
-			RenderUIPanel->SetDrawcallTexture(geometry->drawcallIndex, font->texture);
+			RenderUIPanel->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
 		}
 	}
 }
@@ -180,6 +180,7 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 			font->InitFreeType();
 			geometry->texture = font->texture;
 			geometry->material = CustomUIMaterial;
+			geometry->isFontTexture = true;
 			geometry->depth = widget.depth;
 		}
 	}

@@ -22,11 +22,14 @@ void ULGUINativeSceneOutlinerExtension::Tick(float DeltaTime)
 {
 	if (needToRestore)
 	{
-		if (frameCount >= 1)
+		if (frameCount <= 1)
+		{
+			RestoreSceneOutlinerTreeFolder();
+		}
+		else
 		{
 			frameCount = 0;
 			needToRestore = false;
-			RestoreSceneOutlinerTreeFolder();
 		}
 		frameCount++;
 	}

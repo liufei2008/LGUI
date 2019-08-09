@@ -63,7 +63,7 @@ public:
 	//mark specific drawcall need to rebuild
 	void MarkRebuildSpecificDrawcall(int drawcallIndex);
 	//set specific drawcall's texture. eg when UIText's texture expend, just need to change the texture
-	void SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture);
+	void SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture, bool isFontTexture);
 	//mark update specific drawcall vertex, when vertex position/uv/color etc change
 	void MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged = true);
 	//insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall.
