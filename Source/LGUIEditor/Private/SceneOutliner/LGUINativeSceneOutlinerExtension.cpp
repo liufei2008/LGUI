@@ -10,6 +10,8 @@
 #include "ITreeItem.h"
 #include "ActorTreeItem.h"
 
+bool ULGUINativeSceneOutlinerExtension::active = true;
+
 void ULGUINativeSceneOutlinerExtension::Init()
 {
 	FEditorDelegates::PreSaveWorld.AddUObject(this, &ULGUINativeSceneOutlinerExtension::OnPreSaveWorld);
@@ -75,6 +77,7 @@ struct FToggleExpansionVisitor : SceneOutliner::IMutableTreeItemVisitor
 
 void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerTreeFolder()
 {
+	if (!active)return;
 	FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
 	TSharedPtr<FTabManager> LevelEditorTabManager = LevelEditorModule.GetLevelEditorTabManager();
 	TArray<AActor*> ExpandedActorTreeItemArray;
@@ -120,6 +123,7 @@ void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerTreeFolder()
 
 void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerTreeFolder()
 {
+	if (!active)return;
 	FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
 	TSharedPtr<FTabManager> LevelEditorTabManager = LevelEditorModule.GetLevelEditorTabManager();
 	if (LevelEditorTabManager.IsValid())

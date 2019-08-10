@@ -90,15 +90,10 @@ void FLGUIEditorModule::StartupModule()
 		);
 
 		PluginCommands->MapAction(
-			editorCommand.ShowSelectionFrameInEditMode,
-			FExecuteAction::CreateLambda([]{UUIItem::ShowHelperFrame = !UUIItem::ShowHelperFrame; GEditor->RedrawAllViewports(); }),
+			editorCommand.PreserveSceneoutlinerHierarchy,
+			FExecuteAction::CreateLambda([]{ULGUINativeSceneOutlinerExtension::active = !ULGUINativeSceneOutlinerExtension::active; GEditor->RedrawAllViewports(); }),
 			FCanExecuteAction(),
-			FIsActionChecked::CreateLambda([] {return UUIItem::ShowHelperFrame; }));
-		PluginCommands->MapAction(
-			editorCommand.ShowSelectionFrameInPlayMode,
-			FExecuteAction::CreateLambda([] {UUIItem::ShowHelperFrameInPlayMode = !UUIItem::ShowHelperFrameInPlayMode; GEditor->RedrawAllViewports(); }),
-			FCanExecuteAction(),
-			FIsActionChecked::CreateLambda([] {return UUIItem::ShowHelperFrameInPlayMode; }));
+			FIsActionChecked::CreateLambda([] {return ULGUINativeSceneOutlinerExtension::active; }));
 		
 		PluginCommands->MapAction(
 			editorCommand.OpenAtlasViewer,
@@ -386,10 +381,9 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 		}
 		MenuBuilder.EndSection();
 
-		MenuBuilder.BeginSection("SelectionFrame", LOCTEXT("SelectionFrame", "Selection Frame"));
+		MenuBuilder.BeginSection("Toggles", LOCTEXT("Toggles", "Toggles"));
 		{
-			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().ShowSelectionFrameInEditMode);
-			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().ShowSelectionFrameInPlayMode);
+			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().PreserveSceneoutlinerHierarchy);
 		}
 		MenuBuilder.EndSection();
 
