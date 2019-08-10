@@ -27,11 +27,6 @@ class LGUI_API UUIItem : public USceneComponent
 {
 	GENERATED_BODY()
 
-#if WITH_EDITORONLY_DATA
-public:
-	static bool ShowHelperFrame;
-	static bool ShowHelperFrameInPlayMode;
-#endif
 public:	
 	UUIItem();
 

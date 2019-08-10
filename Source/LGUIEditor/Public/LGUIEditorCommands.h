@@ -28,8 +28,7 @@ public:
 	TSharedPtr<FUICommandInfo> CopyComponentValues;
 	TSharedPtr<FUICommandInfo> PasteComponentValues;
 
-	TSharedPtr<FUICommandInfo> ShowSelectionFrameInEditMode;
-	TSharedPtr<FUICommandInfo> ShowSelectionFrameInPlayMode;
+	TSharedPtr<FUICommandInfo> PreserveSceneoutlinerHierarchy;
 
 	TSharedPtr<FUICommandInfo> OpenAtlasViewer;
 };
