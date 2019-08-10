@@ -200,7 +200,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		if (IsSelected(item))//select self
 		{
 			DrawColor = FColor(0, 255, 0);//green means selected object
-			extends += FVector(0, 0, 1);
+			extends += FVector(0, 0, 1 * scale3D.Z);
 			canDraw = true;
 		}
 		else
