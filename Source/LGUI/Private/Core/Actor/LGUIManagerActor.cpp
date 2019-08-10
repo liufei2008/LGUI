@@ -111,6 +111,17 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		EditorTick.Broadcast(DeltaTime);
 	}
+#if WITH_EDITOR
+	DrawSelectionFrame();
+#endif
+}
+TStatId ULGUIEditorManagerObject::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
+}
+#if WITH_EDITOR
+void ULGUIEditorManagerObject::DrawSelectionFrame()
+{
 	//draw selection
 	for (auto item : allUIItem)
 	{
@@ -252,10 +263,6 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		SelectionActorArray.Reset();
 	}
 }
-TStatId ULGUIEditorManagerObject::GetStatId() const
-{
-	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
-}
 bool ULGUIEditorManagerObject::IsSelected(UActorComponent* InObject)
 {
 	if (SelectionActorArray.Num() == 0)
@@ -273,6 +280,7 @@ bool ULGUIEditorManagerObject::IsSelected(UActorComponent* InObject)
 	}
 	return SelectionActorArray.Contains(InObject->GetOwner());
 }
+#endif
 
 
 

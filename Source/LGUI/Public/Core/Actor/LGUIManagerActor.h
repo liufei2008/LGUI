@@ -13,7 +13,7 @@ class ULGUIBaseRaycaster;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
-UCLASS(NotBlueprintable, NotBlueprintType)
+UCLASS(NotBlueprintable, NotBlueprintType, Transient)
 class LGUI_API ULGUIEditorManagerObject :public UObject, public FTickableGameObject
 {
 	GENERATED_BODY()
@@ -40,8 +40,13 @@ protected:
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
 private:
 	static bool InitCheck(UWorld* InWorld);
+#if WITH_EDITOR
 	bool IsSelected(UActorComponent* InObject);
+	void DrawSelectionFrame();
+#endif
+#if WITH_EDITORONLY_DATA
 	TArray<AActor*> SelectionActorArray;
+#endif
 public:
 	FORCEINLINE static void AddUIItem(UUIItem* InItem);
 	FORCEINLINE static void RemoveUIItem(UUIItem* InItem);

@@ -1641,6 +1641,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 	return new FUIItemSceneProxy(this->Parent, this);
 }
 #endif
+
 UBodySetup* UUIItemEditorHelperComp::GetBodySetup()
 {
 	UpdateBodySetup();

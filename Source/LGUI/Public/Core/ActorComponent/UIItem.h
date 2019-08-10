@@ -5,9 +5,7 @@
 #include "LGUI.h"
 #include "Core/UIWidget.h"
 #include "Components/SceneComponent.h"
-#if WITH_EDITOR
 #include "Components/PrimitiveComponent.h"
-#endif
 #include "UIItem.generated.h"
 
 class UUIPanel;
@@ -351,7 +349,9 @@ class LGUI_API UUIItemEditorHelperComp : public UPrimitiveComponent
 public:
 	UUIItemEditorHelperComp();
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
+#if WITH_EDITOR
 	virtual FPrimitiveSceneProxy* CreateSceneProxy()override;
+#endif
 	UPROPERTY(Transient)UUIItem* Parent = nullptr;
 	virtual UBodySetup* GetBodySetup()override;
 	UPROPERTY(Transient, DuplicateTransient)
