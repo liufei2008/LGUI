@@ -41,9 +41,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Component Action")FLGUIEditHelperButton CopyComponentValues;
 	UPROPERTY(EditAnywhere, Category = "Component Action")FLGUIEditHelperButton PasteComponentValues;
 
-	UPROPERTY(EditAnywhere, Category = "ShowSelectionFrame")bool Edit = true;
-	UPROPERTY(EditAnywhere, Category = "ShowSelectionFrame")bool Play = true;
-
 	UPROPERTY(EditAnywhere, Category = "UI Atlas Viewer")FLGUIEditHelperButton AtlasViewer;
 
 public:
