@@ -10,11 +10,6 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PhysicsEngine/BodySetup.h"
 
-#if WITH_EDITORONLY_DATA
-bool UUIItem::ShowHelperFrame = true;
-bool UUIItem::ShowHelperFrameInPlayMode = true;
-#endif
-
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
 
 UUIItem::UUIItem()
@@ -1630,10 +1625,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 			bool needToShow = IsShown(View)
 				&& Component->IsUIActiveInHierarchy()
 				&& Component->GetWorld() != nullptr
-				&& (Component->GetWorld()->IsGameWorld()
-					? UUIItem::ShowHelperFrameInPlayMode
-					: UUIItem::ShowHelperFrame);
-			//Component->sceneProxySelected = IsSelected();
+				&& Component->GetWorld()->IsGameWorld();
 			Result.bDrawRelevance = needToShow;
 			Result.bDynamicRelevance = true;
 			Result.bShadowRelevance = IsShadowCast(View);

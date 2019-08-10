@@ -71,3 +71,9 @@
         material's IsFontTexture property not set correctly.
     New feature:
         save scene outliner's hierarchy state(actor's folder) before play, and restore it after end play.
+1.14:
+    Fix:
+        button "Create Prefab" not create content.
+    Update:
+        change UIItem's base class UPrimitiveComponent to USceneComponent, this can save a lot of disk space and memory.
+            But!!!!! You Need To Recreate Your Prefab Which Contains LGUI Elemnt.

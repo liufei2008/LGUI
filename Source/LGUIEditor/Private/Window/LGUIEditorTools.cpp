@@ -195,19 +195,6 @@ void ULGUIEditorToolsAgentObject::PostEditChangeProperty(struct FPropertyChanged
 
 	if (AtlasViewer.IsClicked())OpenAtlasViewer_Impl();
 
-	if (auto Property = PropertyChangedEvent.Property)
-	{
-		auto PropertyName = Property->GetFName();
-		if (PropertyName == TEXT("Edit"))
-		{
-			UUIItem::ShowHelperFrame = Edit;
-		}
-		else if (PropertyName == TEXT("Play"))
-		{
-			UUIItem::ShowHelperFrameInPlayMode = Play;
-		}
-	}
-
 	GEditor->RedrawAllViewports();
 }
 
@@ -598,6 +585,7 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 				prefabComp->LoadedRootActor = selectedActor;
 				LGUIUtils::CollectChildrenActors(selectedActor, prefabComp->AllLoadedActorArray);
 				prefabActor->FinishSpawning(FTransform::Identity, true);
+				prefabComp->SavePrefab();
 			}
 			else
 			{

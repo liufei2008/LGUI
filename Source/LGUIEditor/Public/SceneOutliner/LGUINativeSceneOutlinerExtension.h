@@ -18,6 +18,7 @@ public:
 	virtual bool IsTickableInEditor()const { return true; }
 	virtual TStatId GetStatId() const override;
 	//end TickableEditorObject interface
+	static bool active;
 private:
 	void OnPreSaveWorld(uint32 SaveFlags, class UWorld* World);
 	void OnMapOpened(const FString& FileName, bool AsTemplate);
