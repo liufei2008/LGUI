@@ -50,10 +50,10 @@ void FLGUIEditorModule::StartupModule()
 	//Editor tools
 	{
 		auto editorCommand = FLGUIEditorCommands::Get();
-		PluginCommands->MapAction(
-			editorCommand.OpenEditorToolsWindow,
-			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::EditorToolButtonClicked),
-			FCanExecuteAction());
+		//PluginCommands->MapAction(
+		//	editorCommand.OpenEditorToolsWindow,
+		//	FExecuteAction::CreateRaw(this, &FLGUIEditorModule::EditorToolButtonClicked),
+		//	FCanExecuteAction());
 
 		//actor action
 		PluginCommands->MapAction(
@@ -117,10 +117,10 @@ void FLGUIEditorModule::StartupModule()
 	//register window
 	{
 		//Editor tools
-		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIEditorToolsTabName, FOnSpawnTab::CreateRaw(this,
-			&FLGUIEditorModule::HandleSpawnEditorToolsTab))
-			.SetDisplayName(LOCTEXT("LGUIEditorToolsTitle", "LGUI Editor Tools"))
-			.SetMenuType(ETabSpawnerMenuType::Hidden);
+		//FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIEditorToolsTabName, FOnSpawnTab::CreateRaw(this,
+		//	&FLGUIEditorModule::HandleSpawnEditorToolsTab))
+		//	.SetDisplayName(LOCTEXT("LGUIEditorToolsTitle", "LGUI Editor Tools"))
+		//	.SetMenuType(ETabSpawnerMenuType::Hidden);
 		//event component selector
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIEventComponentSelectorName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnEventComponentSelectorTab))
 			.SetDisplayName(LOCTEXT("LGUIEventComponentSelector", "LGUIEventComponentSelector"))
@@ -218,7 +218,7 @@ void FLGUIEditorModule::ShutdownModule()
 
 	FLGUIEditorCommands::Unregister();
 
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEditorToolsTabName);
+	//FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEditorToolsTabName);
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEventComponentSelectorName);
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEventFunctionSelectorName);
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIAtlasViewerName);
@@ -389,7 +389,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 
 		MenuBuilder.BeginSection("OpenWindow", LOCTEXT("OpenWindow", "Open Window"));
 		{
-			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenEditorToolsWindow);
+			//MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenEditorToolsWindow);
 			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenAtlasViewer);
 		}
 		MenuBuilder.EndSection();
