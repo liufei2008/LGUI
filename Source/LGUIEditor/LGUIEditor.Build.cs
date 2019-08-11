@@ -27,10 +27,12 @@ public class LGUIEditor : ModuleRules
                 "ImageWrapper",//texture load
                 "InputCore",//STableRow
                 "Json",//json
+                "JsonUtilities",//json
                 "AssetTools",//Asset editor
                 "KismetWidgets",
                 "ContentBrowser",//LGUI editor
                 "SceneOutliner",//LGUIPrefab editor, extend SceneOutliner
+                "ApplicationCore",//ClipboardCopy
                 //"AssetRegistry",
                 //"LShapePlugin",
                 //"InputCore",

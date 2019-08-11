@@ -713,8 +713,8 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	}
 	if (IsVectorNotEqual(this->RelativeLocation, resultLocation))
 	{
-		this->SetRelativeLocation(resultLocation);
 		RelativeLocation = resultLocation;
+		UpdateComponentToWorld();
 	}
 #if WITH_EDITORONLY_DATA
 	prevAnchorHAlign = widget.anchorHAlign;
@@ -874,8 +874,8 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 	if (IsVectorNotEqual(RelativeLocation, newLocation))
 	{
 		MarkVertexPositionDirty();
-		this->SetRelativeLocation(newLocation);
 		RelativeLocation = newLocation;
+		UpdateComponentToWorld();
 
 		if (cacheParentUIItem)
 		{
