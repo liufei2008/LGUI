@@ -27,7 +27,7 @@ protected:
 #endif
 	friend class UUIItem;
 	//This owner's RootComponent cast to UIItem
-	UUIItem* RootUIComp;
+	UPROPERTY(Transient) UUIItem* RootUIComp = nullptr;
 	//Check and get RootUIItem
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool CheckRootUIComponent();

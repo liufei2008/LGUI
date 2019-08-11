@@ -1671,6 +1671,7 @@ void UUIItemEditorHelperComp::UpdateBodySetup()
 }
 FBoxSphereBounds UUIItemEditorHelperComp::CalcBounds(const FTransform& LocalToWorld) const
 {
+	if (!IsValid(Parent))return FBoxSphereBounds(EForceInit::ForceInit);
 	auto widget = Parent->GetWidget();
 	auto origin = FVector(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y), 0);
 	return FBoxSphereBounds(origin, FVector(widget.width * 0.5f, widget.height * 0.5f, 1), (widget.width > widget.height ? widget.width : widget.height) * 0.5f).TransformBy(LocalToWorld);

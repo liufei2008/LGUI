@@ -21,13 +21,13 @@ void UUIGeometryModifierBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 UUIRenderable*& UUIGeometryModifierBase::GetRenderableUIItem()
 {
-#if WITH_EDITOR
-	if (CheckRootUIComponent())
+	if(!IsValid(renderableUIItem))
 	{
-		renderableUIItem = Cast<UUIRenderable>(RootUIComp);
-		return renderableUIItem;
+		if (auto actor = GetOwner())
+		{
+			renderableUIItem = GetOwner()->FindComponentByClass<UUIRenderable>();
+		}
 	}
-#endif
 	return renderableUIItem;
 }
 #if WITH_EDITOR
@@ -50,26 +50,19 @@ void UUIGeometryModifierBase::PostEditChangeProperty(FPropertyChangedEvent& Prop
 void UUIGeometryModifierBase::OnRegister()
 {
 	Super::OnRegister();
-	if (CheckRootUIComponent())
+	if (IsValid(GetRenderableUIItem()))
 	{
-		renderableUIItem = Cast<UUIRenderable>(RootUIComp);
-		if (renderableUIItem)
-		{
-			renderableUIItem->AddGeometryModifier(this);
-			renderableUIItem->MarkTriangleDirty();
-		}
+		renderableUIItem->AddGeometryModifier(this);
+		renderableUIItem->MarkTriangleDirty();
 	}
 }
 void UUIGeometryModifierBase::OnUnregister()
 {
 	Super::OnUnregister();
-	if (CheckRootUIComponent())
+	if (IsValid(GetRenderableUIItem()))
 	{
-		if (renderableUIItem)
-		{
-			renderableUIItem->RemoveGeometryModifier(this);
-			renderableUIItem->MarkTriangleDirty();
-		}
+		renderableUIItem->RemoveGeometryModifier(this);
+		renderableUIItem->MarkTriangleDirty();
 	}
 }
 

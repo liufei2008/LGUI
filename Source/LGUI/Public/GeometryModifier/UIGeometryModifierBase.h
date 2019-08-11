@@ -4,13 +4,13 @@
 
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/UIRenderable.h"
-#include "Core/UIComponentBase.h"
+#include "Components/ActorComponent.h"
 #include "UIGeometryModifierBase.generated.h"
 
 
 //For modify ui geometry, act like a filter
 UCLASS(Abstract)
-class LGUI_API UUIGeometryModifierBase : public UUIComponentBase
+class LGUI_API UUIGeometryModifierBase : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,7 @@ protected:
 
 	FORCEINLINE class UUIRenderable*& GetRenderableUIItem();
 private:
-	class UUIRenderable* renderableUIItem = nullptr;
+	UPROPERTY(Transient) class UUIRenderable* renderableUIItem = nullptr;
 	
 public:
 	FORCEINLINE int GetExecuteOrder()const { return executeOrder; }
