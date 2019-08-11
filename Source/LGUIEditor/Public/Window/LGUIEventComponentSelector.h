@@ -33,7 +33,7 @@ public:
 	static int32 TargetItemIndex;
 	static IPropertyHandleArray* EventListHandle;
 private:
-	TSharedPtr<SDockTab> OwnerTab;
+	TWeakPtr<SDockTab> OwnerTab;
 	void CloseTabCallback(TSharedRef<SDockTab> TabClosed);
 	
 	FReply OnClickSelfButton();
