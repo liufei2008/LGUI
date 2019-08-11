@@ -10,7 +10,6 @@
 
 void SLGUIAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> InOwnerTab)
 {
-	OwnerTab = InOwnerTab;
 	InOwnerTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateSP(this, &SLGUIAtlasViewer::CloseTabCallback));
 	if (ULGUIAtlasManager::Instance != nullptr)
 	{
@@ -48,51 +47,8 @@ void SLGUIAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> In
 	}
 }
 
-TSharedRef<ITableRow> SLGUIAtlasViewer::CreateContentIconTitle(TSharedPtr<FLGUIPackedAtlasTextureViewerItem> ContentSource, const TSharedRef<STableViewBase>& OwnerTable)
-{
-	auto SpriteSlateBrush = TSharedPtr<FSlateBrush>(new FSlateBrush);
-	SpriteSlateBrush->SetResourceObject(ContentSource->Texture);
-	SpriteSlateBrushArray.Add(SpriteSlateBrush);
-	return SNew(STableRow<TSharedPtr<FString>>, OwnerTable)
-		[
-			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.FillHeight(ThumbnailSize)
-			.Padding(3)
-			[
-				SNew(SOverlay)
-				+SOverlay::Slot()
-				[
-					SNew(SImage)
-					.Image(FEditorStyle::GetBrush("Checkerboard"))
-					.ColorAndOpacity(FSlateColor(FLinearColor(0.15f, 0.15f, 0.15f)))
-				]
-				+SOverlay::Slot()
-				[
-					SNew(SImage)
-					.Image(SpriteSlateBrush.Get())
-				]
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(FMargin(3))
-			[
-				SNew(SBox)
-				.HeightOverride(20)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(FString::Printf(TEXT("PackingTag:%s"), *(ContentSource->PackingTag.ToString()))))
-				]
-			]
-		];
-}
 void SLGUIAtlasViewer::CloseTabCallback(TSharedRef<SDockTab> TabClosed)
 {
-	OwnerTab = nullptr;//need to clear pointer reference, otherwise the window cannot be opened. posiblly bacause ue think the window is still open
 	SpriteSlateBrushArray.Empty();
-}
-void SLGUIAtlasViewer::OnMouseButtonDoubleClicked(TSharedPtr<FLGUIPackedAtlasTextureViewerItem> Item)
-{
-	FAssetEditorManager::Get().OpenEditorForAsset(Item->Texture, EToolkitMode::Standalone);
 }
 #undef LOCTEXT_NAMESPACE
