@@ -81,7 +81,7 @@ void SLGUIEventFunctionSelector::Construct(const FArguments& Args, TSharedPtr<SD
 }
 void SLGUIEventFunctionSelector::CloseTabCallback(TSharedRef<SDockTab> TabClosed)
 {
-	OwnerTab = nullptr;
+	
 }
 
 
@@ -113,6 +113,6 @@ TSharedRef<ITableRow> SLGUIEventFunctionSelector::OnGenerateTemplateTile(TShared
 void SLGUIEventFunctionSelector::OnTemplateSelectionChanged(TSharedPtr<FLGUIFunctionListItem> InItem, ESelectInfo::Type SelectInfo)
 {
 	TargetCustomization->OnSelectFunction(EventListHandle, InItem->FunctionName, TargetItemIndex, InItem->ParamType, InItem->UseNativeParameter);
-	OwnerTab->RequestCloseTab();
+	OwnerTab.Pin()->RequestCloseTab();
 }
 #undef LOCTEXT_NAMESPACE

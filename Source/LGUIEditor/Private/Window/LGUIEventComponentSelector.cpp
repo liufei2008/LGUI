@@ -58,12 +58,12 @@ void SLGUIEventComponentSelector::Construct(const FArguments& Args, TSharedPtr<S
 }
 void SLGUIEventComponentSelector::CloseTabCallback(TSharedRef<SDockTab> TabClosed)
 {
-	OwnerTab = nullptr;
+	
 }
 FReply SLGUIEventComponentSelector::OnClickSelfButton()
 {
 	TargetCustomization->OnSelectActorSelf(EventListHandle, TargetItemIndex);
-	OwnerTab->RequestCloseTab();
+	OwnerTab.Pin()->RequestCloseTab();
 	return FReply::Handled();
 }
 TSharedRef<ITableRow> SLGUIEventComponentSelector::OnGenerateTemplateTile(TSharedPtr<FLGUIComponentListItem> InItem, const TSharedRef<STableViewBase>& OwnerTable)
@@ -101,6 +101,6 @@ void SLGUIEventComponentSelector::OnTemplateSelectionChanged(TSharedPtr<FLGUICom
 	{
 		TargetCustomization->OnSelectComponent(EventListHandle, InItem->ComponentName, TargetItemIndex);
 	}
-	OwnerTab->RequestCloseTab();
+	OwnerTab.Pin()->RequestCloseTab();
 }
 #undef LOCTEXT_NAMESPACE

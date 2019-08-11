@@ -37,7 +37,7 @@ public:
 	static TArray<LGUIDrawableEventParameterType> NativeSupportParameter;//event native supported parameter
 	static IPropertyHandleArray* EventListHandle;
 private:
-	TSharedPtr<SDockTab> OwnerTab;
+	TWeakPtr<SDockTab> OwnerTab;
 	void CloseTabCallback(TSharedRef<SDockTab> TabClosed);
 
 	TSharedRef<ITableRow> OnGenerateTemplateTile(TSharedPtr<FLGUIFunctionListItem> InItem, const TSharedRef<STableViewBase>& OwnerTable);
