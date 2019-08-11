@@ -19,7 +19,7 @@ enum class UIToggleTransitionType :uint8
 	Fade				UMETA(DisplayName = "Fade"),
 	ColorTint			UMETA(DisplayName = "ColorTint"),
 	//You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to toggle actor
-	TransitionComponent			UMETA(DisplayName = "PlayTween"),
+	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
 };
 
 UCLASS(ClassGroup = LGUI, Blueprintable, meta = (BlueprintSpawnableComponent))

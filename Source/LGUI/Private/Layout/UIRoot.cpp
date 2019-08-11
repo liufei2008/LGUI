@@ -254,8 +254,8 @@ void UUIRoot::OnViewportParameterChanged(FIntPoint viewportSize, float fov, bool
 					{
 						if (auto renderTarget = SceneCapture->GetCaptureComponent2D()->TextureTarget)
 						{
-							renderTarget->SizeX = viewportSize.X;
-							renderTarget->SizeY = viewportSize.Y;
+							renderTarget->SizeX = viewportSize.X * RenderTargetSizeMultiply;
+							renderTarget->SizeY = viewportSize.Y * RenderTargetSizeMultiply;
 							renderTarget->UpdateResource();
 						}
 					}

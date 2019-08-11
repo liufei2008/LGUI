@@ -59,6 +59,10 @@ protected:
 	//Automatic change SceneCapture's RenderTarget size to viewport size
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool SnapRenderTargetToViewportSize = true;
+	//Increase this value can do a SuperSampling thing.
+	//But!!!! Don't set it too high, or performance will be extremely poor
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		float RenderTargetSizeMultiply = 1.0f;
 	//This can avoid half-pixel render. Usually use for overlay UI.
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool SnapPixel = false;

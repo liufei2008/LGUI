@@ -36,6 +36,7 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, DistanceToCamera));
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SceneCapture));
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SnapRenderTargetToViewportSize));
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, RenderTargetSizeMultiply));
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SnapPixel));
 	}
 	else if (snapMode == (uint8)(LGUISnapMode::SnapToViewTargetCamera) || snapMode == (uint8)(LGUISnapMode::SnapToSceneCapture))
@@ -65,6 +66,7 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		if (snapMode != (uint8)(LGUISnapMode::SnapToSceneCapture))
 		{
 			needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SnapRenderTargetToViewportSize));
+			needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, RenderTargetSizeMultiply));
 		}
 	}
 
@@ -84,6 +86,15 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	if (useFirstPawnAsUIOwner)
 	{
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, UIOwner));
+	}
+
+	auto snapRenderTargetToViewportSizeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIRoot, SnapRenderTargetToViewportSize));
+	snapRenderTargetToViewportSizeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&] {DetailBuilder.ForceRefreshDetails(); }));
+	bool snapRenderTargetToViewportSize;
+	snapRenderTargetToViewportSizeHandle->GetValue(snapRenderTargetToViewportSize);
+	if (!snapRenderTargetToViewportSize)
+	{
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, RenderTargetSizeMultiply));
 	}
 
 	for (auto item : needToHidePropertyNameArray)
