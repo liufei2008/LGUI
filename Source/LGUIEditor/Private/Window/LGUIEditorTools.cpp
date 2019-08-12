@@ -416,7 +416,7 @@ void ULGUIEditorToolsAgentObject::OpenAtlasViewer_Impl()
 }
 void ULGUIEditorToolsAgentObject::OpenScreenSpaceUIViewer_Impl()
 {
-	FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIScreenSpaceUIViewName);
+	FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIScreenSpaceUIViewerName);
 }
 void ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 {

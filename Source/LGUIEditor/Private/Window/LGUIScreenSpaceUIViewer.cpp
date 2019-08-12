@@ -31,7 +31,7 @@ void SLGUIScreenSpaceUIViewer::Construct(const FArguments& Args, TSharedPtr<SDoc
 	}
 
 	FString matPath = TEXT("/LGUI/OverlayBySceneCaptureMaterial");
-	auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
+	auto mat = LoadObject<UMaterialInterface>(CurrentUIRoot.Get(), *matPath);
 	if (mat == nullptr)
 	{
 		ChildSlot
@@ -44,13 +44,13 @@ void SLGUIScreenSpaceUIViewer::Construct(const FArguments& Args, TSharedPtr<SDoc
 		return;
 	}
 
-	MaterialBrush = MakeShareable(new FSlateMaterialBrush(*mat, FVector2D(1920, 1080)));
+	auto MaterialBrush = new FSlateMaterialBrush(*mat, FVector2D(1920, 1080));
 	UObject* Resource = MaterialBrush->GetResourceObject();
-	UMaterialInstanceDynamic* DynamicMaterial = nullptr;
+
 	DynamicMaterial = Cast<UMaterialInstanceDynamic>(Resource);
 	if (DynamicMaterial == nullptr)
 	{
-		DynamicMaterial = UMaterialInstanceDynamic::Create(mat, nullptr);
+		DynamicMaterial = UMaterialInstanceDynamic::Create(mat, CurrentUIRoot.Get());
 		MaterialBrush->SetResourceObject(DynamicMaterial);
 	}
 	DynamicMaterial->SetTextureParameterValue("MainTexture", CurrentScreenSpaceUIRenderTarget.Get());
@@ -86,7 +86,7 @@ void SLGUIScreenSpaceUIViewer::Construct(const FArguments& Args, TSharedPtr<SDoc
 						.HeightOverride(this, &SLGUIScreenSpaceUIViewer::GetImageHeight)
 						[
 							SNew(SImage)
-							.Image(MaterialBrush.Get())
+							.Image(MaterialBrush)
 						]
 					]
 				]
@@ -116,7 +116,7 @@ FOptionalSize SLGUIScreenSpaceUIViewer::GetMinDesiredHeight()const
 FOptionalSize SLGUIScreenSpaceUIViewer::GetImageWidth()const
 {
 	if (!CurrentScreenSpaceUIRenderTarget.IsValid())return 0;
-	float imageAspect = (float)(CurrentScreenSpaceUIRenderTarget->GetSurfaceWidth()) / CurrentScreenSpaceUIRenderTarget->GetSurfaceHeight();
+	float imageAspect = (float)(CurrentScreenSpaceUIRenderTarget->SizeX) / CurrentScreenSpaceUIRenderTarget->SizeY;
 	auto imageBoxSize = RootImageBox->GetCachedGeometry().GetLocalSize();
 	float imageBoxAspect = (float)(imageBoxSize.X / imageBoxSize.Y);
 	if (imageAspect > imageBoxAspect)
@@ -131,7 +131,7 @@ FOptionalSize SLGUIScreenSpaceUIViewer::GetImageWidth()const
 FOptionalSize SLGUIScreenSpaceUIViewer::GetImageHeight()const
 {
 	if (!CurrentScreenSpaceUIRenderTarget.IsValid())return 0;
-	float imageAspect = (float)(CurrentScreenSpaceUIRenderTarget->GetSurfaceWidth()) / CurrentScreenSpaceUIRenderTarget->GetSurfaceHeight();
+	float imageAspect = (float)(CurrentScreenSpaceUIRenderTarget->SizeX) / CurrentScreenSpaceUIRenderTarget->SizeY;
 	auto imageBoxSize = RootImageBox->GetCachedGeometry().GetLocalSize();
 	float imageBoxAspect = (float)(imageBoxSize.X / imageBoxSize.Y);
 	if (imageAspect > imageBoxAspect)
