@@ -74,7 +74,10 @@
 1.14:
     Fix:
         button "Create Prefab" not create content.
+        some crash fixed.
     Update:
         change UIItem's base class UPrimitiveComponent to USceneComponent, this can save a lot of disk space and memory.
             But!!!!! You Need To Recreate Your Prefab Which Contains LGUI Elemnt.
-        add RenderTargetSizeMultiply for UIRoot, increase this value can perform a supersampleing thing
+        add RenderTargetSizeMultiply for UIRoot, increase this value can perform a supersampleing thing.
+    New feature:
+        Add a button to UIRoot component named "Open Screen Space UI Viewer", which can open a window to preview Screen Space UI.

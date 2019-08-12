@@ -28,7 +28,7 @@ public:
 
 	void Construct(const FArguments& InArgs, TSharedPtr<SDockTab> InOwnerTab);
 
-	static class AActor* TargetActor;
+	static TWeakObjectPtr<class AActor> TargetActor;
 	static class ILGUIDrawableEventCustomizationInterface* TargetCustomization;
 	static int32 TargetItemIndex;
 	static IPropertyHandleArray* EventListHandle;
