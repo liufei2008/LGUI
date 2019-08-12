@@ -29,7 +29,7 @@ const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIEventComponentSelectorName(TEXT("LGUIEventComponentSelector"));
 const FName FLGUIEditorModule::LGUIEventFunctionSelectorName(TEXT("LGUIEventFunctionSelector"));
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
-const FName FLGUIEditorModule::LGUIScreenSpaceUIViewName(TEXT("LGUIScreenSpaceUIViewName"));
+const FName FLGUIEditorModule::LGUIScreenSpaceUIViewerName(TEXT("LGUIScreenSpaceUIViewerName"));
 
 FLGUIEditorModule* FLGUIEditorModule::Instance = nullptr;
 
@@ -130,19 +130,19 @@ void FLGUIEditorModule::StartupModule()
 		//	.SetMenuType(ETabSpawnerMenuType::Hidden);
 		//event component selector
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIEventComponentSelectorName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnEventComponentSelectorTab))
-			.SetDisplayName(LOCTEXT("LGUIEventComponentSelector", "LGUIEventComponentSelector"))
+			.SetDisplayName(LOCTEXT("LGUIEventComponentSelector", "LGUI Event Component Selector"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
 		//event function selector
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIEventFunctionSelectorName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnEventFunctionSelectorTab))
-			.SetDisplayName(LOCTEXT("LGUIEventFuntionSelector", "LGUIEventFuntionSelector"))
+			.SetDisplayName(LOCTEXT("LGUIEventFuntionSelector", "LGUI Event Funtion Selector"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
 		//atlas texture viewer
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIAtlasViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnAtlasViewerTab))
-			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUIAtlasTextureViewer"))
+			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUI Atlas Texture Viewer"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
 		//screen space ui viewer
-		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIScreenSpaceUIViewName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnScreenSpaceUIViewerTab))
-			.SetDisplayName(LOCTEXT("LGUIScreenSpaceUIViewName", "LGUIScreenSpaceUIView"))
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIScreenSpaceUIViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnScreenSpaceUIViewerTab))
+			.SetDisplayName(LOCTEXT("LGUIScreenSpaceUIViewerName", "LGUI Screen Space UI Viewer"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
 	}
 	//register component editor
