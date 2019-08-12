@@ -20,11 +20,11 @@ public:
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)override;
 private:
 	TWeakPtr<SDockTab> OwnerTab;
-	TSharedPtr<struct FSlateMaterialBrush> MaterialBrush;
 
 	void CloseTabCallback(TSharedRef<SDockTab> TabClosed);
 
 	TSharedPtr<SBox> RootImageBox;
+	UMaterialInstanceDynamic* DynamicMaterial = nullptr;
 	FOptionalSize GetMinDesiredHeight()const;
 	FOptionalSize GetImageWidth()const;
 	FOptionalSize GetImageHeight()const;

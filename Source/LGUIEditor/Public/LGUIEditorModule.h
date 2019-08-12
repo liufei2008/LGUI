@@ -27,7 +27,7 @@ public:
 	static const FName LGUIEventComponentSelectorName;
 	static const FName LGUIEventFunctionSelectorName;
 	static const FName LGUIAtlasViewerName;
-	static const FName LGUIScreenSpaceUIViewName;
+	static const FName LGUIScreenSpaceUIViewerName;
 
 	static FLGUIEditorModule* Instance;
 

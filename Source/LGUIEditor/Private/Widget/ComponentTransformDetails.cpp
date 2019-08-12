@@ -756,7 +756,7 @@ FReply FComponentTransformDetails::OnLocationResetClicked()
 	const FText TransactionName = LOCTEXT("ResetLocation", "Reset Location");
 	FScopedTransaction Transaction(TransactionName);
 
-	const USceneComponent* Archetype = SelectedObjects[0].Get();
+	UUIItem* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return FReply::Handled();
 	FVector targetLocation = FVector::ZeroVector;
 	if (!IsLocationXEnable())
@@ -771,7 +771,9 @@ FReply FComponentTransformDetails::OnLocationResetClicked()
 	{
 		targetLocation.Z = Archetype->RelativeLocation.Z;
 	}
-	OnSetTransform(ETransformField::Location, EAxisList::All, targetLocation, false, true);
+	Archetype->SetUIRelativeLocation(targetLocation);
+	CachedLocation.Set(targetLocation);
+	//OnSetTransform(ETransformField::Location, EAxisList::All, targetLocation, false, true);
 
 	return FReply::Handled();
 }
@@ -788,9 +790,12 @@ FReply FComponentTransformDetails::OnRotationResetClicked()
 	const FText TransactionName = LOCTEXT("ResetRotation", "Reset Rotation");
 	FScopedTransaction Transaction(TransactionName);
 
-	const USceneComponent* Archetype = SelectedObjects[0].Get();
+	USceneComponent* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return FReply::Handled();
-	OnSetTransform(ETransformField::Rotation, EAxisList::All, FVector::ZeroVector, false, true);
+	Archetype->RelativeRotation = FRotator::ZeroRotator;
+	Archetype->UpdateComponentToWorld();
+	CachedRotation.Set(FRotator::ZeroRotator);
+	//OnSetTransform(ETransformField::Rotation, EAxisList::All, FVector::ZeroVector, false, true);
 
 	return FReply::Handled();
 }
@@ -807,9 +812,12 @@ FReply FComponentTransformDetails::OnScaleResetClicked()
 	const FText TransactionName = LOCTEXT("ResetScale", "Reset Scale");
 	FScopedTransaction Transaction(TransactionName);
 
-	const USceneComponent* Archetype = SelectedObjects[0].Get();
+	USceneComponent* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return FReply::Handled();
-	OnSetTransform(ETransformField::Scale, EAxisList::All, FVector(1.0f), false, true);
+	Archetype->RelativeScale3D = FVector::OneVector;
+	Archetype->UpdateComponentToWorld();
+	CachedScale.Set(FVector::OneVector);
+	//OnSetTransform(ETransformField::Scale, EAxisList::All, FVector(1.0f), false, true);
 
 	return FReply::Handled();
 }
@@ -1037,7 +1045,8 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 				}
 				else
 				{
-					NewComponentValue = GetAxisFilteredVector(Axis, NewValue, OldComponentValue);
+					//NewComponentValue = GetAxisFilteredVector(Axis, NewValue, OldComponentValue);
+					NewComponentValue = NewValue;
 				}
 
 				// If we're committing during a rotation edit then we need to force it
@@ -1082,7 +1091,7 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 
 					if (NotifyHook)
 					{
-						NotifyHook->NotifyPreChange(ValueProperty);
+						//NotifyHook->NotifyPreChange(ValueProperty);
 					}
 
 					switch (TransformField)
@@ -1253,7 +1262,7 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 
 		if (NotifyHook)
 		{
-			NotifyHook->NotifyPostChange(PropertyChangedEvent, ValueProperty);
+			//NotifyHook->NotifyPostChange(PropertyChangedEvent, ValueProperty);
 		}
 	}
 
