@@ -31,7 +31,7 @@ public:
 
 	void Construct(const FArguments& InArgs, TSharedPtr<SDockTab> InOwnerTab);
 
-	static class UObject* TargetObject;//Actor or ActorComponent
+	static TWeakObjectPtr<class UObject> TargetObject;//Actor or ActorComponent
 	static class ILGUIDrawableEventCustomizationInterface* TargetCustomization;
 	static int32 TargetItemIndex;
 	static TArray<LGUIDrawableEventParameterType> NativeSupportParameter;//event native supported parameter

@@ -50,6 +50,11 @@ public:
 	{
 		ParameterCount = InParameterCount;
 	}
+	~FLGUIDrawableEventCustomization()
+	{
+		SLGUIEventComponentSelector::TargetCustomization = nullptr;
+		SLGUIEventFunctionSelector::TargetCustomization = nullptr;
+	}
 	/** IDetailCustomization interface */
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override {};
 

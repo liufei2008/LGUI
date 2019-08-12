@@ -71,6 +71,7 @@ public:
 	static void CopyComponentValues_Impl();
 	static void PasteComponentValues_Impl();
 	static void OpenAtlasViewer_Impl();
+	static void OpenScreenSpaceUIViewer_Impl();
 	static void ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery);
 	static void CreateScreenSpaceUIBasicSetup();
 	static void CreateWorldSpaceUIBasicSetup();

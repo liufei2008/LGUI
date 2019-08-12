@@ -46,6 +46,7 @@ protected:
 	void EditorApplyValue();
 	void OnRegister();
 	void OnUnregister();
+	class UTextureRenderTarget2D* GetPreviewRenderTarget();
 #endif
 	void RuntimeCheckAndApplyValue();
 

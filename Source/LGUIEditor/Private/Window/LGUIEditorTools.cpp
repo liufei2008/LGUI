@@ -414,6 +414,10 @@ void ULGUIEditorToolsAgentObject::OpenAtlasViewer_Impl()
 {
 	FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIAtlasViewerName);
 }
+void ULGUIEditorToolsAgentObject::OpenScreenSpaceUIViewer_Impl()
+{
+	FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIScreenSpaceUIViewName);
+}
 void ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 {
 	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());

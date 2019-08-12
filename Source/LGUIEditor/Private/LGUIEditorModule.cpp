@@ -12,6 +12,7 @@
 #include "ContentBrowserExtensions/LGUIContentBrowserExtensions.h"
 #include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
 #include "Window/LGUIAtlasViewer.h"
+#include "Window/LGUIScreenSpaceUIViewer.h"
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
 
 #include "Core/LGUISettings.h"
@@ -28,6 +29,7 @@ const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIEventComponentSelectorName(TEXT("LGUIEventComponentSelector"));
 const FName FLGUIEditorModule::LGUIEventFunctionSelectorName(TEXT("LGUIEventFunctionSelector"));
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
+const FName FLGUIEditorModule::LGUIScreenSpaceUIViewName(TEXT("LGUIScreenSpaceUIViewName"));
 
 FLGUIEditorModule* FLGUIEditorModule::Instance = nullptr;
 
@@ -100,6 +102,11 @@ void FLGUIEditorModule::StartupModule()
 			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::OpenAtlasViewer_Impl),
 			FCanExecuteAction());
 
+		PluginCommands->MapAction(
+			editorCommand.OpenScreenSpaceUIViewer,
+			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::OpenScreenSpaceUIViewer_Impl),
+			FCanExecuteAction());
+
 		TSharedPtr<FExtender> toolbarExtender = MakeShareable(new FExtender);
 		toolbarExtender->AddToolBarExtension("Game", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FLGUIEditorModule::AddEditorToolsToToolbarExtension));
 		LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(toolbarExtender);
@@ -131,7 +138,11 @@ void FLGUIEditorModule::StartupModule()
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
 		//atlas texture viewer
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIAtlasViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnAtlasViewerTab))
-			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUIAtlasTextureViewerName"))
+			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUIAtlasTextureViewer"))
+			.SetMenuType(ETabSpawnerMenuType::Hidden);
+		//screen space ui viewer
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIScreenSpaceUIViewName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnScreenSpaceUIViewerTab))
+			.SetDisplayName(LOCTEXT("LGUIScreenSpaceUIViewName", "LGUIScreenSpaceUIView"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
 	}
 	//register component editor
@@ -268,12 +279,9 @@ void FLGUIEditorModule::ShutdownModule()
 
 TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnEditorToolsTab(const FSpawnTabArgs& SpawnTabArgs)
 {
-	TSharedRef<SDockTab> ResultTab = SNew(SDockTab)
-		.TabRole(ETabRole::NomadTab);
-
-	TSharedRef<SWidget> TabContentWidget = SNew(SLGUIEditorTools, ResultTab);
+	TSharedRef<SDockTab> ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
+	auto TabContentWidget = SNew(SLGUIEditorTools, ResultTab);
 	ResultTab->SetContent(TabContentWidget);
-
 	return ResultTab;
 }
 TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnEventComponentSelectorTab(const FSpawnTabArgs& SpawnTabArgs)
@@ -294,6 +302,13 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTa
 {
 	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
 	auto TabContentWidget = SNew(SLGUIAtlasViewer, ResultTab);
+	ResultTab->SetContent(TabContentWidget);
+	return ResultTab;
+}
+TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnScreenSpaceUIViewerTab(const FSpawnTabArgs& SpawnTabArgs)
+{
+	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
+	auto TabContentWidget = SNew(SLGUIScreenSpaceUIViewer, ResultTab);
 	ResultTab->SetContent(TabContentWidget);
 	return ResultTab;
 }
@@ -389,8 +404,8 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 
 		MenuBuilder.BeginSection("OpenWindow", LOCTEXT("OpenWindow", "Open Window"));
 		{
-			//MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenEditorToolsWindow);
 			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenAtlasViewer);
+			//MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenScreenSpaceUIViewer);
 		}
 		MenuBuilder.EndSection();
 	}

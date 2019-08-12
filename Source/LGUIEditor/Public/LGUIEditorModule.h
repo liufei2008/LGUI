@@ -27,6 +27,7 @@ public:
 	static const FName LGUIEventComponentSelectorName;
 	static const FName LGUIEventFunctionSelectorName;
 	static const FName LGUIAtlasViewerName;
+	static const FName LGUIScreenSpaceUIViewName;
 
 	static FLGUIEditorModule* Instance;
 
@@ -54,4 +55,5 @@ private:
 	TSharedRef<SDockTab> HandleSpawnEventComponentSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnEventFunctionSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
+	TSharedRef<SDockTab> HandleSpawnScreenSpaceUIViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 };
