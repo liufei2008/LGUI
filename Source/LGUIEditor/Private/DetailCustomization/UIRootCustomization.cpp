@@ -1,6 +1,8 @@
 // Copyright 2019 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UIRootCustomization.h"
+#include "Window/LGUIEditorTools.h"
+#include "Window/LGUIScreenSpaceUIViewer.h"
 #include "LGUIEditorUtils.h"
 
 #define LOCTEXT_NAMESPACE "UIRootCustomization"
@@ -100,6 +102,25 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	for (auto item : needToHidePropertyNameArray)
 	{
 		DetailBuilder.HideProperty(item);
+	}
+
+	if (snapMode == (uint8)(LGUISnapMode::SnapToSceneCapture))
+	{
+		IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
+		lguiCategory.AddCustomRow(LOCTEXT("OpenScreenSpaceUIViewer", "Open Screen Space UI Viewer"))
+		.WholeRowContent()
+		[
+			SNew(SButton)
+			.Text(LOCTEXT("OpenScreenSpaceUIViewer", "Open Screen Space UI Viewer"))
+			.OnClicked_Lambda([=] {
+			auto renderTargetTexture = TargetScriptPtr->GetPreviewRenderTarget();
+			SLGUIScreenSpaceUIViewer::CurrentScreenSpaceUIRenderTarget = renderTargetTexture;
+			SLGUIScreenSpaceUIViewer::CurrentUIRoot = TargetScriptPtr.Get();
+			ULGUIEditorToolsAgentObject::OpenScreenSpaceUIViewer_Impl();
+			return FReply::Handled();
+			})
+		]
+		;
 	}
 }
 #undef LOCTEXT_NAMESPACE

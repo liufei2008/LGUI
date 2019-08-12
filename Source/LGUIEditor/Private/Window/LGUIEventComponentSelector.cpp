@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "LGUIEventComponentSelector"
 
-AActor* SLGUIEventComponentSelector::TargetActor = nullptr;
+TWeakObjectPtr<AActor> SLGUIEventComponentSelector::TargetActor = nullptr;
 ILGUIDrawableEventCustomizationInterface* SLGUIEventComponentSelector::TargetCustomization = nullptr;
 int32 SLGUIEventComponentSelector::TargetItemIndex = 0;
 IPropertyHandleArray* SLGUIEventComponentSelector::EventListHandle = nullptr;
@@ -15,7 +15,7 @@ void SLGUIEventComponentSelector::Construct(const FArguments& Args, TSharedPtr<S
 	OwnerTab = InOwnerTab;
 	InOwnerTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateSP(this, &SLGUIEventComponentSelector::CloseTabCallback));
 	TSharedPtr<SWidget> ContentWidget;
-	if (TargetActor == nullptr)
+	if (!TargetActor.IsValid())
 	{
 		ContentWidget = SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
@@ -93,13 +93,16 @@ TSharedRef<ITableRow> SLGUIEventComponentSelector::OnGenerateTemplateTile(TShare
 }
 void SLGUIEventComponentSelector::OnTemplateSelectionChanged(TSharedPtr<FLGUIComponentListItem> InItem, ESelectInfo::Type SelectInfo)
 {
-	if (InItem->ComponentName == LGUIEventActorSelfName && InItem->ComponentDiscription == TargetActor->GetClass()->GetName())//actor self selected
+	if (TargetActor.IsValid() && TargetCustomization != nullptr)
 	{
-		TargetCustomization->OnSelectActorSelf(EventListHandle, TargetItemIndex);
-	}
-	else
-	{
-		TargetCustomization->OnSelectComponent(EventListHandle, InItem->ComponentName, TargetItemIndex);
+		if (InItem->ComponentName == LGUIEventActorSelfName && InItem->ComponentDiscription == TargetActor->GetClass()->GetName())//actor self selected
+		{
+			TargetCustomization->OnSelectActorSelf(EventListHandle, TargetItemIndex);
+		}
+		else
+		{
+			TargetCustomization->OnSelectComponent(EventListHandle, InItem->ComponentName, TargetItemIndex);
+		}
 	}
 	OwnerTab.Pin()->RequestCloseTab();
 }

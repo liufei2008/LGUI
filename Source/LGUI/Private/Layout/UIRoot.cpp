@@ -13,6 +13,7 @@
 #include "Editor.h"
 #include "EditorViewportClient.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #endif
 
 
@@ -149,6 +150,14 @@ void UUIRoot::EditorApplyValue()
 {
 	if (UISnapMode == LGUISnapMode::SnapToSceneCapture && SceneCapture != nullptr)
 	{
+		auto& showOnlyActors = SceneCapture->GetCaptureComponent2D()->ShowOnlyActors;
+		for (auto panel : PanelsBelongToThisUIRoot)
+		{
+			if (!showOnlyActors.Contains(panel->GetOwner()))
+			{
+				showOnlyActors.Add(panel->GetOwner());
+			}
+		}
 		FIntPoint viewportSize = FIntPoint(2, 2); float fov = 90; bool isOrthographic = false; float orthographicWidth = 100;
 		if (FViewport* viewport = GEditor->GetActiveViewport())
 		{
@@ -208,6 +217,26 @@ void UUIRoot::OnUnregister()
 			ULGUIEditorManagerObject::Instance->EditorTick.Remove(EditorTickDelegateHandle);
 		}
 	}
+}
+UTextureRenderTarget2D* UUIRoot::GetPreviewRenderTarget()
+{
+	if (UISnapMode == LGUISnapMode::SnapToSceneCapture)
+	{
+		if (IsValid(SceneCapture))
+		{
+			if (!IsValid(SceneCapture->GetCaptureComponent2D()->TextureTarget))
+			{
+				FIntPoint viewportSize = FIntPoint(2, 2);
+				if (FViewport* viewport = GEditor->GetActiveViewport())
+				{
+					viewportSize = viewport->GetSizeXY();
+					SceneCapture->GetCaptureComponent2D()->TextureTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, viewportSize.X, viewportSize.Y);
+				}
+			}
+			return SceneCapture->GetCaptureComponent2D()->TextureTarget;
+		}
+	}
+	return nullptr;
 }
 #endif
 

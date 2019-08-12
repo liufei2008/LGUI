@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "LGUIEventFunctionSelector"
 
-UObject* SLGUIEventFunctionSelector::TargetObject = nullptr;
+TWeakObjectPtr<UObject> SLGUIEventFunctionSelector::TargetObject = nullptr;
 ILGUIDrawableEventCustomizationInterface* SLGUIEventFunctionSelector::TargetCustomization = nullptr;
 int32 SLGUIEventFunctionSelector::TargetItemIndex = 0;
 TArray<LGUIDrawableEventParameterType> SLGUIEventFunctionSelector::NativeSupportParameter;
@@ -16,7 +16,7 @@ void SLGUIEventFunctionSelector::Construct(const FArguments& Args, TSharedPtr<SD
 	OwnerTab = InOwnerTab;
 	InOwnerTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateSP(this, &SLGUIEventFunctionSelector::CloseTabCallback));
 	TSharedPtr<SWidget> ContentWidget;
-	if (TargetObject == nullptr)
+	if (!TargetObject.IsValid())
 	{
 		ContentWidget = SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
@@ -112,7 +112,10 @@ TSharedRef<ITableRow> SLGUIEventFunctionSelector::OnGenerateTemplateTile(TShared
 }
 void SLGUIEventFunctionSelector::OnTemplateSelectionChanged(TSharedPtr<FLGUIFunctionListItem> InItem, ESelectInfo::Type SelectInfo)
 {
-	TargetCustomization->OnSelectFunction(EventListHandle, InItem->FunctionName, TargetItemIndex, InItem->ParamType, InItem->UseNativeParameter);
+	if (TargetCustomization != nullptr)
+	{
+		TargetCustomization->OnSelectFunction(EventListHandle, InItem->FunctionName, TargetItemIndex, InItem->ParamType, InItem->UseNativeParameter);
+	}
 	OwnerTab.Pin()->RequestCloseTab();
 }
 #undef LOCTEXT_NAMESPACE
