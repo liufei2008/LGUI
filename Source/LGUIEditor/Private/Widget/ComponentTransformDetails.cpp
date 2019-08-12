@@ -301,6 +301,10 @@ FUIAction FComponentTransformDetails::CreatePasteAction( ETransformField::Type T
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& ChildrenBuilder )
 {
+	if (SelectedObjects.Num() <= 0)return;
+	const USceneComponent* Archetype = SelectedObjects[0].Get();
+	if (!IsValid(Archetype))return;
+
 	UClass* SceneComponentClass = USceneComponent::StaticClass();
 		
 	FSlateFontInfo FontInfo = IDetailLayoutBuilder::GetDetailFont();
@@ -730,6 +734,7 @@ bool FComponentTransformDetails::IsAbsoluteTransformChecked(ETransformField::Typ
 EVisibility FComponentTransformDetails::GetLocationResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
+	if (!IsValid(Archetype))return EVisibility::Hidden;
 	FVector targetLocation = FVector::ZeroVector;
 	if (!IsLocationXEnable())
 	{
@@ -752,6 +757,7 @@ FReply FComponentTransformDetails::OnLocationResetClicked()
 	FScopedTransaction Transaction(TransactionName);
 
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
+	if (!IsValid(Archetype))return FReply::Handled();
 	FVector targetLocation = FVector::ZeroVector;
 	if (!IsLocationXEnable())
 	{
@@ -773,6 +779,7 @@ FReply FComponentTransformDetails::OnLocationResetClicked()
 EVisibility FComponentTransformDetails::GetRotationResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
+	if (!IsValid(Archetype))return EVisibility::Hidden;
 	return Archetype->RelativeRotation.Euler() != FVector::ZeroVector ? EVisibility::Visible : EVisibility::Hidden;
 }
 
@@ -782,7 +789,7 @@ FReply FComponentTransformDetails::OnRotationResetClicked()
 	FScopedTransaction Transaction(TransactionName);
 
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
-
+	if (!IsValid(Archetype))return FReply::Handled();
 	OnSetTransform(ETransformField::Rotation, EAxisList::All, FVector::ZeroVector, false, true);
 
 	return FReply::Handled();
@@ -791,6 +798,7 @@ FReply FComponentTransformDetails::OnRotationResetClicked()
 EVisibility FComponentTransformDetails::GetScaleResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
+	if (!IsValid(Archetype))return EVisibility::Hidden;
 	return Archetype->RelativeScale3D != FVector::OneVector ? EVisibility::Visible : EVisibility::Hidden;
 }
 
@@ -800,7 +808,7 @@ FReply FComponentTransformDetails::OnScaleResetClicked()
 	FScopedTransaction Transaction(TransactionName);
 
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
-
+	if (!IsValid(Archetype))return FReply::Handled();
 	OnSetTransform(ETransformField::Scale, EAxisList::All, FVector(1.0f), false, true);
 
 	return FReply::Handled();
