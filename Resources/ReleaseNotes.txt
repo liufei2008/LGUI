@@ -80,4 +80,5 @@
             But!!!!! You Need To Recreate Your Prefab Which Contains LGUI Elemnt.
         add RenderTargetSizeMultiply for UIRoot, increase this value can perform a supersampleing thing.
     New feature:
-        Add a button to UIRoot component named "Open Screen Space UI Viewer", which can open a window to preview Screen Space UI.
+        (still under develop)Add a button to UIRoot component named "Open Screen Space UI Viewer", which can open a window to preview Screen Space UI.
+        Save scene outliner's hierarchy state now support save and open map.
