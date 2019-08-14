@@ -15,7 +15,7 @@ TWeakObjectPtr<class UUIRoot> SLGUIScreenSpaceUIViewer::CurrentUIRoot = nullptr;
 
 void SLGUIScreenSpaceUIViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> InOwnerTab)
 {
-	this->SetCanTick(true);
+	this->bCanTick = true;
 	OwnerTab = InOwnerTab;
 	InOwnerTab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateSP(this, &SLGUIScreenSpaceUIViewer::CloseTabCallback));
 	if (!CurrentScreenSpaceUIRenderTarget.IsValid())
@@ -101,7 +101,7 @@ void SLGUIScreenSpaceUIViewer::Tick(const FGeometry& AllottedGeometry, const dou
 	if (!CurrentScreenSpaceUIRenderTarget.IsValid() || !CurrentUIRoot.IsValid())
 	{
 		OwnerTab.Pin()->RequestCloseTab();
-		this->SetCanTick(false);
+		this->bCanTick = false;
 	}
 }
 
