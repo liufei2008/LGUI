@@ -73,11 +73,13 @@ void FUIPanelCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder
 		[
 			SNew(STextBlock)
 			.Text(FText::FromString(TEXT("DrawcallCount")))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		.ValueContent()
 		[
 			SNew(STextBlock)
 			.Text(this, &FUIPanelCustomization::GetDrawcallInfo)
+			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		;
 }

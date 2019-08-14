@@ -355,7 +355,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 				.OnZCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Location, EAxisList::Z, true )
 				.Font( FontInfo )
 				.TypeInterface( TypeInterface )
-				.AllowSpin(true)
+				.AllowSpin(false)
 			]
 			+SHorizontalBox::Slot()
 			.AutoWidth()
