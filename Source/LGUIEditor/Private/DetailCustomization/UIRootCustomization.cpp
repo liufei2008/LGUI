@@ -107,7 +107,7 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	if (snapMode == (uint8)(LGUISnapMode::SnapToSceneCapture))
 	{
 		IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
-		lguiCategory.AddCustomRow(LOCTEXT("OpenScreenSpaceUIViewer", "Open Screen Space UI Viewer"))
+		lguiCategory.AddCustomRow(LOCTEXT("OpenScreenSpaceUIViewer", "Open Screen Space UI Viewer"), true)
 		.WholeRowContent()
 		[
 			SNew(SButton)

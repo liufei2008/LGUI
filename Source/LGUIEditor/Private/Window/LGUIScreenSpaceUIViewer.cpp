@@ -43,6 +43,7 @@ void SLGUIScreenSpaceUIViewer::Construct(const FArguments& Args, TSharedPtr<SDoc
 		;
 		return;
 	}
+	FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("RiskWarning", "This feature is currently under development, use it at your own risk"));
 
 	auto MaterialBrush = new FSlateMaterialBrush(*mat, FVector2D(1920, 1080));
 	UObject* Resource = MaterialBrush->GetResourceObject();

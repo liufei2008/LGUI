@@ -235,26 +235,14 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 		//depth info
 		{
-			if (uiType == UIItemType::UIRenderable || uiType == UIItemType::UIItem)
-			{
-				lguiCategory.AddCustomRow(LOCTEXT("DepthInfo", "DepthInfo"))
-					.ValueContent()
-					.MinDesiredWidth(500)
-					[
-						SAssignNew(DepthInfoTextBlock, STextBlock)
-						.Text(FText::FromString("0"))
-					];
-			}
-			else if (uiType == UIItemType::UIPanel)
-			{
-				lguiCategory.AddCustomRow(LOCTEXT("DepthInfo", "DepthInfo"))
-					.ValueContent()
-					.MinDesiredWidth(500)
-					[
-						SAssignNew(DepthInfoTextBlock, STextBlock)
-						.Text(FText::FromString("0"))
-					];
-			}
+			lguiCategory.AddCustomRow(LOCTEXT("DepthInfo", "DepthInfo"))
+				.ValueContent()
+				.MinDesiredWidth(500)
+				[
+					SAssignNew(DepthInfoTextBlock, STextBlock)
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+					.Text(FText::FromString("0"))
+				];
 			SetDepthInfo(TargetScriptArray[0]);
 		}
 	}
