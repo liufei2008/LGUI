@@ -790,7 +790,7 @@ FReply FComponentTransformDetails::OnRotationResetClicked()
 	const FText TransactionName = LOCTEXT("ResetRotation", "Reset Rotation");
 	FScopedTransaction Transaction(TransactionName);
 
-	USceneComponent* Archetype = SelectedObjects[0].Get();
+	UUIItem* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return FReply::Handled();
 	Archetype->RelativeRotation = FRotator::ZeroRotator;
 	Archetype->UpdateComponentToWorld();
@@ -812,7 +812,7 @@ FReply FComponentTransformDetails::OnScaleResetClicked()
 	const FText TransactionName = LOCTEXT("ResetScale", "Reset Scale");
 	FScopedTransaction Transaction(TransactionName);
 
-	USceneComponent* Archetype = SelectedObjects[0].Get();
+	UUIItem* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return FReply::Handled();
 	Archetype->RelativeScale3D = FVector::OneVector;
 	Archetype->UpdateComponentToWorld();
@@ -1280,8 +1280,35 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 
 void FComponentTransformDetails::OnSetTransformAxis(float NewValue, ETextCommit::Type CommitInfo, ETransformField::Type TransformField, EAxisList::Type Axis, bool bCommitted)
 {
-	FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), FVector::ZeroVector);
-	OnSetTransform(TransformField, Axis, NewVector, false, bCommitted);
+	if (SelectedObjects.Num() <= 0)return;
+	UUIItem* Archetype = SelectedObjects[0].Get();
+	if (!IsValid(Archetype))return;
+	switch (TransformField)
+	{
+	case ETransformField::Location:
+	{
+		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->RelativeLocation);
+		Archetype->SetUIRelativeLocation(NewVector);
+		CachedLocation.Set(NewVector);
+	}
+		break;
+	case ETransformField::Rotation:
+	{
+		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->RelativeRotation.Euler());
+		FRotator NewRotation = FRotator::MakeFromEuler(NewVector);
+		Archetype->RelativeRotation = NewRotation;
+		CachedRotation.Set(NewRotation);
+	}
+		break;
+	case ETransformField::Scale:
+	{
+		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->RelativeScale3D);
+		Archetype->RelativeScale3D = NewVector;
+		Archetype->UpdateComponentToWorld();
+		CachedScale.Set(NewVector);
+	}
+		break;
+	}
 }
 
 void FComponentTransformDetails::OnBeginRotatonSlider()
