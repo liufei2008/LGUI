@@ -26,7 +26,7 @@ void UUIRenderable::BeginPlay()
 	bTriangleChanged = true;
 	bTextureChanged = true;
 	bMaterialChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkNeedUpdate();
+	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
 }
 
 void UUIRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -67,22 +67,22 @@ void UUIRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 void UUIRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkNeedUpdate();
+	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
 }
 void UUIRenderable::MarkTriangleDirty()
 {
 	bTriangleChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkNeedUpdate();
+	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
 }
 void UUIRenderable::MarkTextureDirty()
 {
 	bTextureChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkNeedUpdate();
+	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
 }
 void UUIRenderable::MarkMaterialDirty()
 {
 	bMaterialChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkNeedUpdate();
+	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
 }
 
 void UUIRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)

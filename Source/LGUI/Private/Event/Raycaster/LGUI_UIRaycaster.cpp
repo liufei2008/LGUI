@@ -59,6 +59,7 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 				auto allUIItemArray = ALGUIManagerActor::Instance->GetAllUIItem();
 				for (auto uiItem : allUIItemArray)
 				{
+					if (ShouldSkipUIItem(uiItem))continue;
 					if (traceIgnoreActorArray.Num() > 0)
 					{
 						int index;

@@ -7,6 +7,14 @@ public class LGUI : ModuleRules
 	public LGUI(ReadOnlyTargetRules Target) : base(Target)
 	{
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+
+        string EnginSourceFolder = EngineDirectory + "/Source/";
+        PrivateIncludePaths.AddRange(
+                new string[] {
+                    EnginSourceFolder + "/Runtime/Renderer/Private",
+                    EnginSourceFolder + "/Runtime/RHI/Private",
+                });
+
         PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -15,11 +23,13 @@ public class LGUI : ModuleRules
                 "Engine",
                 "Slate",
                 "SlateCore",
-                "RHI","RenderCore",
+                "RHI","RenderCore","ShaderCore","Renderer",
                 "LTween",
                 "InputCore",//UITextInput
                 "FreeType2",
                 "ApplicationCore",//UITextInput/RequiresVirtualKeyboard, debug
+                "UtilityShaders",
+                "Projects",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

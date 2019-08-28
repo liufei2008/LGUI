@@ -3,7 +3,9 @@
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIPanel.h"
+#include "Core/UIDrawcall.h"
 #include "Sound/SoundBase.h"
+#include "Core/ActorComponent/UIRenderable.h"
 
 void LGUIUtils::DeleteActor(AActor* Target, bool WithHierarchy)
 {
@@ -81,10 +83,10 @@ void LGUIUtils::SortUIItemDepth(TArray<TSharedPtr<UIGeometry>>& shapeList)
 	});
 }
 
-void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<UUIDrawcall*>& drawcallList)
+void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
 {
 	UTexture* prevTex = nullptr;
-	UUIDrawcall* prevUIDrawcall = nullptr;
+	TSharedPtr<UUIDrawcall> prevUIDrawcall = nullptr;
 	auto shapeCount = sortedList.Num();
 	int drawcallCount = 0;
 	int prevDrawcallListCount = drawcallList.Num();
@@ -113,7 +115,7 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<UU
 			}
 			else//same texture means same drawcall
 			{
-				if (prevUIDrawcall == nullptr)//if first is null
+				if (!prevUIDrawcall.IsValid())//if first is null
 				{
 					prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 					prevUIDrawcall->texture = itemTex;
@@ -131,8 +133,6 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<UU
 	}
 	while (prevDrawcallListCount > drawcallCount)//delete needless drawcall
 	{
-		auto last = drawcallList[prevDrawcallListCount - 1];
-		delete last;
 		drawcallList.RemoveAt(prevDrawcallListCount - 1);
 		prevDrawcallListCount--;
 	}
@@ -229,20 +229,20 @@ void LGUIUtils::EditorNotification(FText NofityText)
 	GEditor->PlayEditorSound(CompileFailSound);
 }
 #endif
-UUIDrawcall* LGUIUtils::GetAvalibleDrawcall(TArray<UUIDrawcall*>& drawcallList, int& prevDrawcallListCount, int& drawcallCount)
+TSharedPtr<UUIDrawcall> LGUIUtils::GetAvalibleDrawcall(TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount)
 {
-	UUIDrawcall* result;
+	TSharedPtr<UUIDrawcall> result;
 	drawcallCount++;
 	if (drawcallCount > prevDrawcallListCount)
 	{
-		result = new UUIDrawcall();
+		result = TSharedPtr<UUIDrawcall>(new UUIDrawcall());
 		drawcallList.Add(result);
 		prevDrawcallListCount++;
 	}
 	else
 	{
 		result = drawcallList[drawcallCount - 1];
-		if (result != nullptr)
+		if (result.IsValid())
 			result->Clear();
 	}
 	return result;

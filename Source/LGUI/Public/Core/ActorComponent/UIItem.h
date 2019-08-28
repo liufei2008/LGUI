@@ -300,6 +300,7 @@ public:
 #pragma endregion
 
 	FORCEINLINE UUIPanel* GetRenderUIPanel() const { return RenderUIPanel; }
+	FORCEINLINE virtual bool IsScreenSpaceOverlayUI();
 
 	//get UI element type
 	UFUNCTION(BlueprintCallable, Category = LGUI)

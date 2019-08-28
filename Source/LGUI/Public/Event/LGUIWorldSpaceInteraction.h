@@ -35,6 +35,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		ELGUIWorldSpaceInteractionSource interactionSource = ELGUIWorldSpaceInteractionSource::Mouse;
 	void CheckRayemitter();
+	virtual bool ShouldSkipUIItem(class UUIItem* UIItem)override;
 public:
 	virtual bool Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)override;
 };

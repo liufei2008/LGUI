@@ -24,7 +24,7 @@ public:
 		, TArray<FVector>& tangents
 		, TArray<FVector2D>& uvs1
 		, TArray<FVector2D>& uvs2
-		, TArray<FVector2D>& uvs3)
+		, TArray<FVector2D>& uvs3)const
 	{
 		int count = geometryList.Num();
 		int prevVertexCount = 0;

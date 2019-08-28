@@ -386,7 +386,7 @@ void UUIText::SetFont(ULGUIFontData* newFont) {
 void UUIText::SetText(const FString& newText) {
 	if (text != newText)
 	{
-		if (CheckRenderUIPanel()) RenderUIPanel->MarkNeedUpdate();
+		if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
 		text = newText;
 		cachedTextPropertyList.Empty();
 		cachedTextGeometryList.Empty();

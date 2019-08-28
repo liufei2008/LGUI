@@ -2,6 +2,10 @@
 
 #include "Extensions/UIComboBoxItem.h"
 #include "Extensions/UIComboBox.h"
+#include "Core/Actor/UITextActor.h"
+#include "Core/ActorComponent/UIText.h"
+#include "Core/Actor/UISpriteActor.h"
+#include "Core/ActorComponent/UISprite.h"
 
 UUIComboBoxItem::UUIComboBoxItem()
 {

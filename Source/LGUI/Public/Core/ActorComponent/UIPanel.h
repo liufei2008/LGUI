@@ -3,11 +3,7 @@
 #pragma once
 
 #include "UIItem.h"
-#include "UIMesh.h"
-#include "Core/UIDrawcall.h"
-#include "UIRenderable.h"
 #include "Layout/Margin.h"
-#include "Materials/MaterialInstanceDynamic.h"
 #include "UIPanel.generated.h"
 
 UENUM(BlueprintType)
@@ -31,6 +27,8 @@ enum class UIPanelAdditionalChannelType :uint8
 	UV3,
 };
 ENUM_CLASS_FLAGS(UIPanelAdditionalChannelType)
+
+class UUIRenderable;
 
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIPanel : public UUIItem
@@ -57,6 +55,7 @@ public:
 	void UpdatePanelGeometry();
 	//mark need update this UIPanel. UIPanel dont need to update every frame, only when need to
 	FORCEINLINE void MarkNeedUpdate();
+	FORCEINLINE virtual void MarkPanelUpdate()override;
 
 	//mark need to rebuild all drawcall
 	void MarkRebuildAllDrawcall();
@@ -91,6 +90,7 @@ public:
 	FORCEINLINE bool ShouldSnapPixel();
 	//up hierarchy to find panel which have UIRoot
 	FORCEINLINE UUIPanel* GetUIRootPanel();
+	FORCEINLINE virtual bool IsScreenSpaceOverlayUI()override;
 protected:
 	//top most UIPanel on hierarchy. UIPanel's update start from the FirstUIPanel, and goes all down to every UI elements under it
 	UPROPERTY(Transient) UUIPanel* FirstUIPanel = nullptr;
@@ -103,7 +103,7 @@ protected:
 	//sort drawcall
 	void SortDrawcallRenderPriority();
 	//@param	return	drawcall count
-	int32 SortDrawcall(int32 InOutStartRenderPriority);
+	int32 SortDrawcall(int32 InStartRenderPriority);
 	
 	//default materials, for render default UI elements
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -148,8 +148,6 @@ protected:
 	FORCEINLINE FLinearColor GetRectClipOffsetAndSize();
 	FORCEINLINE FLinearColor GetRectClipFeather();
 	FORCEINLINE FLinearColor GetTextureClipOffsetAndSize();
-
-	FORCEINLINE virtual void MarkPanelUpdate()override;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(UIPanelClipType newClipType);
@@ -211,8 +209,8 @@ private:
 	uint32 prevFrameNumber = 0;
 
 	TArray<UUIRenderable*> UIRenderableItemList;//all renderable UI element collection
-	TArray<UUIMesh*> UIMeshList;//UIMesh collection of this UIPanel
-	TArray<UUIDrawcall*> UIDrawcallList;//Drawcall collection of this UIPanel
+	UPROPERTY(Transient)TArray<class UUIMesh*> UIMeshList;//UIMesh collection of this UIPanel
+	TArray<TSharedPtr<class UUIDrawcall>> UIDrawcallList;//Drawcall collection of this UIPanel
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIMesh
 
 	bool bCanTickUpdate = false;//if UIPanel can update from tick

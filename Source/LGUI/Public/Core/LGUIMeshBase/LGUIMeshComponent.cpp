@@ -6,29 +6,11 @@
 #include "Containers/ResourceArray.h"
 #include "StaticMeshResources.h"
 #include "Materials/Material.h"
+#include "Core/Render/ILGUIHudPrimitive.h"
+#include "Core/Render/LGUIRenderer.h"
+#include "Engine.h"
 #include "LGUI.h"
 
-/** Resource array to pass  */
-class FLGUIMeshVertexResourceArray : public FResourceArrayInterface
-{
-public:
-	FLGUIMeshVertexResourceArray(void* InData, uint32 InSize)
-		: Data(InData)
-		, Size(InSize)
-	{
-	}
-
-	virtual const void* GetResourceData() const override { return Data; }
-	virtual uint32 GetResourceDataSize() const override { return Size; }
-	virtual void Discard() override { }
-	virtual bool IsStatic() const override { return false; }
-	virtual bool GetAllowCPUAccess() const override { return false; }
-	virtual void SetAllowCPUAccess(bool bInNeedsCPUAccess) override { }
-
-private:
-	void* Data;
-	uint32 Size;
-};
 
 /** Class representing a single section of the LGUI mesh */
 class FLGUIMeshProxySection
@@ -52,8 +34,9 @@ public:
 	{}
 };
 
+DECLARE_CYCLE_STAT(TEXT("LGUIUpdateMeshSection_RenderThread"), STAT_LGUIMesh_UpdateSectionRT, STATGROUP_LGUI);
 /** LGUI mesh scene proxy */
-class FLGUIMeshSceneProxy : public FPrimitiveSceneProxy
+class FLGUIMeshSceneProxy : public FPrimitiveSceneProxy, public ILGUIHudPrimitive
 {
 public:
 	SIZE_T GetTypeHash() const override
@@ -61,13 +44,13 @@ public:
 		static size_t UniquePointer;
 		return reinterpret_cast<size_t>(&UniquePointer);
 	}
-	FLGUIMeshSceneProxy(ULGUIMeshComponent* Component)
-		: FPrimitiveSceneProxy(Component)
-		, BodySetup(Component->GetBodySetup())
-		, MaterialRelevance(Component->GetMaterialRelevance(GetScene().GetFeatureLevel()))
+	FLGUIMeshSceneProxy(ULGUIMeshComponent* InComponent)
+		: FPrimitiveSceneProxy(InComponent)
+		, BodySetup(InComponent->GetBodySetup())
+		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
+		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
-
-		FLGUIMeshSection& SrcSection = Component->MeshSection;
+		FLGUIMeshSection& SrcSection = InComponent->MeshSection;
 		if (SrcSection.vertices.Num() > 0)
 		{
 			FLGUIMeshProxySection* NewSection = new FLGUIMeshProxySection(GetScene().GetFeatureLevel());
@@ -114,7 +97,7 @@ public:
 			BeginInitResource(&NewSection->VertexFactory);
 
 			// Grab material
-			NewSection->Material = Component->GetMaterial(0);
+			NewSection->Material = InComponent->GetMaterial(0);
 			if (NewSection->Material == NULL)
 			{
 				NewSection->Material = UMaterial::GetDefaultMaterial(MD_Surface);
@@ -125,6 +108,16 @@ public:
 
 			// Save ref to new section
 			Section = NewSection;
+		}
+		LGUIHudRenderer = InComponent->LGUIHudRenderer;
+		if (LGUIHudRenderer.IsValid())
+		{
+			LGUIHudRenderer.Pin()->AddHudPrimitive(this);
+			IsHudOrWorldSpace = true;
+		}
+		else
+		{
+			IsHudOrWorldSpace = false;
 		}
 	}
 
@@ -139,12 +132,16 @@ public:
 			Section->VertexFactory.ReleaseResource();
 			delete Section;
 		}
+		if (LGUIHudRenderer.IsValid())
+		{
+			LGUIHudRenderer.Pin()->RemoveHudPrimitive(this);
+		}
 	}
 
 	/** Called on render thread to assign new dynamic data */
 	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint32* MeshIndexData, int32 IndexDataLength)
 	{
-		//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_UpdateSectionRT);
+		SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_UpdateSectionRT);
 
 		check(IsInRenderingThread());
 
@@ -216,11 +213,23 @@ public:
 			Section->bSectionVisible = bNewVisibility;
 		}
 	}
+	void SetToHud_RenderThread()
+	{
+		IsHudOrWorldSpace = true;
+	}
+	void SetToWorld_RenderThread()
+	{
+		IsHudOrWorldSpace = false;
+	}
+	void SetRenderPriority_RenderThread(int32 NewPriority)
+	{
+		RenderPriority = NewPriority;
+	}
 
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_GetMeshElements);
-
+		if (IsHudOrWorldSpace)return;
 		// Set up wireframe material (if needed)
 		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
 
@@ -276,6 +285,44 @@ public:
 		}
 	}
 
+	//begin ILGUIHudPrimitive interface
+	virtual FMeshBatch GetMeshElement() override
+	{
+		//if (Section != nullptr && Section->bSectionVisible)//check CanRender before call GetMeshElement, so this line is not necessary
+		if (IsHudOrWorldSpace)
+		{
+			FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy(false);
+
+			// Draw the mesh.
+			FMeshBatch Mesh;
+			FMeshBatchElement& BatchElement = Mesh.Elements[0];
+			BatchElement.IndexBuffer = &Section->IndexBuffer;
+			Mesh.bWireframe = false;
+			Mesh.VertexFactory = &Section->VertexFactory;
+			Mesh.MaterialRenderProxy = MaterialProxy;
+			BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), true, UseEditorDepthTest());
+			BatchElement.FirstIndex = 0;
+			BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
+			BatchElement.MinVertexIndex = 0;
+			BatchElement.MaxVertexIndex = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices() - 1;
+			Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
+			Mesh.Type = PT_TriangleList;
+			Mesh.DepthPriorityGroup = SDPG_World;
+			Mesh.bCanApplyViewModeOverrides = false;
+			return Mesh;
+		}
+		return FMeshBatch();
+	}
+	virtual int GetRenderPriority()const override
+	{
+		return RenderPriority;
+	}
+	virtual bool CanRender()const override
+	{
+		return Section != nullptr && Section->bSectionVisible;
+	}
+	//end ILGUIHudPrimitive interface
+
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const
 	{
 		FPrimitiveViewRelevance Result;
@@ -309,6 +356,9 @@ private:
 	UBodySetup* BodySetup;
 
 	FMaterialRelevance MaterialRelevance;
+	int32 RenderPriority = 0;
+	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
+	bool IsHudOrWorldSpace = false;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -415,6 +465,22 @@ bool ULGUIMeshComponent::IsMeshVisible() const
 	return MeshSection.bSectionVisible;
 }
 
+void ULGUIMeshComponent::SetUITranslucentSortPriority(int32 NewTranslucentSortPriority)
+{
+	UPrimitiveComponent::SetTranslucentSortPriority(NewTranslucentSortPriority);
+	if (SceneProxy)
+	{
+		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+			FLGUIMesh_SetUITranslucentSortPriority,
+			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
+			int32, NewRenderPriority, NewTranslucentSortPriority,
+			{
+				LGUIMeshSceneProxy->SetRenderPriority_RenderThread(NewRenderPriority);
+			}
+		)
+	}
+}
+
 void ULGUIMeshComponent::UpdateLocalBounds()
 {
 	UpdateBounds();// Update global bounds
@@ -431,7 +497,38 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	{
 		Proxy = new FLGUIMeshSceneProxy(this);
 	}
+	HudPrimitive = (ILGUIHudPrimitive*)Proxy;
 	return Proxy;
+}
+
+void ULGUIMeshComponent::SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer)
+{
+	LGUIHudRenderer = HudRenderer;
+	if (SceneProxy)
+	{
+		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
+			LGUIMeshComponent_SetToLGUIHud,
+			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
+			{
+				LGUIMeshSceneProxy->SetToHud_RenderThread();
+			}
+		);
+	}
+}
+
+void ULGUIMeshComponent::SetToLGUIWorld()
+{
+	LGUIHudRenderer.Reset();
+	if (SceneProxy)
+	{
+		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
+			LGUIMeshComponent_SetToLGUIWorld,
+			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
+			{
+				LGUIMeshSceneProxy->SetToWorld_RenderThread();
+			}
+		);
+	}
 }
 
 int32 ULGUIMeshComponent::GetNumMaterials() const

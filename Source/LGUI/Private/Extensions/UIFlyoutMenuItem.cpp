@@ -2,6 +2,10 @@
 
 #include "Extensions/UIFlyoutMenuItem.h"
 #include "Extensions/UIFlyoutMenu.h"
+#include "Core/Actor/UITextActor.h"
+#include "Core/ActorComponent/UIText.h"
+#include "Core/Actor/UISpriteActor.h"
+#include "Core/ActorComponent/UISprite.h"
 
 UUIFlyoutMenuItem::UUIFlyoutMenuItem()
 {
