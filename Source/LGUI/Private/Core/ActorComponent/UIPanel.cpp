@@ -13,7 +13,7 @@
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/Render/LGUIRenderer.h"
-#include "UIMesh.h"
+#include "Core/LGUIMesh/UIDrawcallMesh.h"
 #include "Core/UIDrawcall.h"
 #include "UIRenderable.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -548,7 +548,7 @@ void UUIPanel::UpdatePanelGeometry()
 				for (int i = meshCount; i < drawcallCount; i++)
 				{
 					auto meshName = FString::Printf(TEXT("Drawcall_%d"), i);
-					auto uiMesh = NewObject<UUIMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
+					auto uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
 					if (IsScreenSpaceOverlayUI())
 					{
 						uiMesh->SetToLGUIHud(uiRootComp->GetViewExtension());

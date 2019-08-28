@@ -2,18 +2,18 @@
 
 #pragma once
 
-#include "Core/LGUIMeshBase/LGUIMeshComponent.h"
-#include "UIMesh.generated.h"
+#include "Core/LGUIMesh/LGUIMeshComponent.h"
+#include "UIDrawcallMesh.generated.h"
 
 //render and show UI geometry
-UCLASS(ClassGroup = (LGUI), Transient)
-class LGUI_API UUIMesh : public ULGUIMeshComponent
+UCLASS(ClassGroup = (LGUI), Transient, NotBlueprintable, NotBlueprintType)
+class LGUI_API UUIDrawcallMesh : public ULGUIMeshComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UUIMesh();
+	UUIDrawcallMesh();
 
 	// Called when the game starts
 	virtual void BeginPlay() override;

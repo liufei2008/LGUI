@@ -8,16 +8,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "RenderResource.h"
 #include "StaticMeshVertexData.h"
-#include "Core/LGUIMeshBase/LGUIMeshComponent.h"
 
-struct FLGUIPanelRenderMesh
-{
-	TWeakObjectPtr<UUIPanel> Panel = nullptr;
-	TArray<ILGUIHudPrimitive*> RenderSectionArray;
-};
-
-
-class UUIPanel;
 class ILGUIHudPrimitive;
 class UUIRoot;
 

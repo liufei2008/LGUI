@@ -1,7 +1,7 @@
 ﻿// Copyright 2019 LexLiu. All Rights Reserved.
 
-#include "Render/LGUIRenderer.h"
-#include "Render/LGUIShaders.h"
+#include "Core/Render/LGUIRenderer.h"
+#include "Core/Render/LGUIShaders.h"
 #include "Modules/ModuleManager.h"
 #include "LGUI.h"
 #include "SceneView.h"
@@ -11,12 +11,9 @@
 #include "StaticMeshVertexData.h"
 #include "PipelineStateCache.h"
 #include "SceneRendering.h"
-#include "Core/UIDrawcall.h"
-#include "Core/ActorComponent/UIPanel.h"
 #include "Core/Render/ILGUIHudPrimitive.h"
 #include "Core/UIRoot.h"
 #include "DrawingPolicy.h"
-#include "LGUIShaders.h"
 #if WITH_EDITOR
 #include "Engine.h"
 #include "Editor/EditorEngine.h"
