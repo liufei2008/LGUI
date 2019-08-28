@@ -9,8 +9,8 @@
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "LGUIEditHelper.h"
 #include "LGUIBPLibrary.generated.h"
-
 
 UCLASS()
 class LGUI_API ULGUIBPLibrary : public UBlueprintFunctionLibrary

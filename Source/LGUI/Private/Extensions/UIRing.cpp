@@ -2,6 +2,8 @@
 
 #include "Extensions/UIRing.h"
 #include "LGUI.h"
+#include "Core/UIGeometry.h"
+#include "Core/ActorComponent/UIPanel.h"
 
 UUIRing::UUIRing()
 {

@@ -2,6 +2,9 @@
 
 #include "LGUI.h"
 #include "Modules/ModuleManager.h"
+#include "Interfaces/IPluginManager.h"
+#include "Misc/Paths.h"
+#include "ShaderCore.h"
 
 #define LOCTEXT_NAMESPACE "FLGUIModule"
 DEFINE_LOG_CATEGORY(LGUI);
@@ -9,6 +12,8 @@ DEFINE_LOG_CATEGORY(LGUI);
 void FLGUIModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("LGUI"))->GetBaseDir(), TEXT("Shaders"));
+	AddShaderSourceDirectoryMapping(TEXT("/Plugin/LGUI"), PluginShaderDir);
 }
 
 void FLGUIModule::ShutdownModule()

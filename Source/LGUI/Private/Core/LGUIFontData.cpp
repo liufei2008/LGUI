@@ -8,8 +8,6 @@
 #include "Core/ActorComponent/UIText.h"
 #include FT_OUTLINE_H
 
-DECLARE_CYCLE_STAT(TEXT("UIFontData PushCharIntoFont"), STAT_PushCharIntoFont, STATGROUP_LGUI);
-
 ULGUIFontData::ULGUIFontData()
 {
 	
@@ -164,9 +162,6 @@ FT_Matrix ULGUIFontData::GetItalicMatrix()
 }
 FLGUICharData* ULGUIFontData::PushCharIntoFont(const uint16& charIndex, const uint16& charSize, const bool& bold, const bool& italic)
 {
-	SCOPE_CYCLE_COUNTER(STAT_PushCharIntoFont);
-	//float prevTime = GWorld->GetRealTimeSeconds();
-
 	if (alreadyInitialized == false)
 	{
 		InitFreeType();

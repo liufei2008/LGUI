@@ -44,6 +44,9 @@ struct FLGUIMeshSection
 	}
 };
 
+class FLGUIViewExtension;
+class ILGUIHudPrimitive;
+
 //Generate dynamic mesh
 UCLASS(NotBlueprintable, NotBlueprintType, Abstract)
 class LGUI_API ULGUIMeshComponent : public UMeshComponent
@@ -60,6 +63,11 @@ public:
 	bool IsMeshVisible() const;
 	void SetColor(FColor InColor);
 	FColor GetColor()const;
+
+	void SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer);
+	void SetToLGUIWorld();
+
+	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 
 	//~ Begin UPrimitiveComponent Interface.
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
@@ -81,6 +89,8 @@ private:
 
 protected:
 	FLGUIMeshSection MeshSection;
+	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
+	ILGUIHudPrimitive* HudPrimitive = nullptr;
 };
 
 

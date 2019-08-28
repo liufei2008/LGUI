@@ -447,23 +447,23 @@ void UUIItem::UIHierarchyChanged()
 			if (oldRenderUIPanel != nullptr)
 			{
 				oldRenderUIPanel->RemoveFromDrawcall((UUIRenderable*)this);
-				oldRenderUIPanel->MarkNeedUpdate();
+				oldRenderUIPanel->MarkPanelUpdate();
 			}
 			if (RenderUIPanel != nullptr)
 			{
 				RenderUIPanel->InsertIntoDrawcall((UUIRenderable*)this);
-				RenderUIPanel->MarkNeedUpdate();
+				RenderUIPanel->MarkPanelUpdate();
 			}
 		}
 		else
 		{
 			if (oldRenderUIPanel != nullptr)
 			{
-				oldRenderUIPanel->MarkNeedUpdate();
+				oldRenderUIPanel->MarkPanelUpdate();
 			}
 			if (RenderUIPanel != nullptr)
 			{
-				RenderUIPanel->MarkNeedUpdate();
+				RenderUIPanel->MarkPanelUpdate();
 			}
 		}
 	}
@@ -1232,7 +1232,7 @@ void UUIItem::MarkColorDirty()
 }
 void UUIItem::MarkPanelUpdate()
 {
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkNeedUpdate();
+	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
 }
 
 void UUIItem::SetRaycastTarget(bool NewBool)
@@ -1283,6 +1283,11 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 	return false;
 }
 
+bool UUIItem::IsScreenSpaceOverlayUI()
+{
+	if (RenderUIPanel == nullptr)return false;
+	return RenderUIPanel->IsScreenSpaceOverlayUI();
+}
 
 FColor UUIItem::GetFinalColor()const
 {

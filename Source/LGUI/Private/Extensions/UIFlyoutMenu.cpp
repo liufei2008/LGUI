@@ -2,6 +2,13 @@
 
 #include "Extensions/UIFlyoutMenu.h"
 #include "Extensions/UIFlyoutMenuItem.h"
+#include "Core/Actor/UITextActor.h"
+#include "Core/ActorComponent/UIText.h"
+#include "Core/Actor/UISpriteActor.h"
+#include "Core/ActorComponent/UISprite.h"
+#include "Core/Actor/UIPanelActor.h"
+#include "Event/LGUIEventSystemActor.h"
+#include "LGUIBPLibrary.h"
 
 UUIFlyoutMenu::UUIFlyoutMenu()
 {

@@ -18,7 +18,7 @@
     {
       "Name": "LGUI",
       "Type": "Runtime",
-      "LoadingPhase": "Default",
+      "LoadingPhase": "PostConfigInit",
       "WhitelistPlatforms": [
         "Win64",
         "Win32"

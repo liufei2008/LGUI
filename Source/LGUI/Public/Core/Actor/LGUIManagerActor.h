@@ -41,7 +41,9 @@ protected:
 private:
 	static bool InitCheck(UWorld* InWorld);
 #if WITH_EDITOR
-	bool IsSelected(UActorComponent* InObject);
+public:
+	static bool IsSelected(UActorComponent* InObject);
+private:
 	void DrawSelectionFrame();
 #endif
 #if WITH_EDITORONLY_DATA
@@ -107,4 +109,7 @@ public:
 	FORCEINLINE static void SortUIPanelOnDepth(UWorld* InWorld);
 	FORCEINLINE static void RemoveUIPanel(UUIPanel* InPanel);
 	static const TArray<UUIPanel*>& GetAllUIPanel(UWorld* InWorld);
+#if WITH_EDITOR
+	static bool IsSelected_Editor(UActorComponent* InItem);
+#endif
 };

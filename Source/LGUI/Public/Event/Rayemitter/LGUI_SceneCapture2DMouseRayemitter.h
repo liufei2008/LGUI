@@ -6,7 +6,6 @@
 #include "LGUIBaseRayemitter.h"
 #include "LGUI_SceneCapture2DMouseRayEmitter.generated.h"
 
-//If use SceneCapture2D to render ui on top of main viewport, this is what you need for mouse input
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_SceneCapture2DMouseRayEmitter : public ULGUIBaseRayEmitter
 {

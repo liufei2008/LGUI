@@ -1,9 +1,7 @@
 ﻿// Copyright 2019 LexLiu. All Rights Reserved.
 
 #include "Event/LGUIScreenSpaceInteractionForNoneUI.h"
-#include "Event/Rayemitter/LGUI_SceneCapture2DMouseRayemitter.h"
-#include "Components/SceneCaptureComponent2D.h"
-#include "Engine/SceneCapture2D.h"
+#include "Event/Rayemitter/LGUI_ScreenSpaceUIMouseRayemitter.h"
 
 ULGUIScreenSpaceInteractionForNoneUI::ULGUIScreenSpaceInteractionForNoneUI()
 {
@@ -11,17 +9,12 @@ ULGUIScreenSpaceInteractionForNoneUI::ULGUIScreenSpaceInteractionForNoneUI()
 }
 void ULGUIScreenSpaceInteractionForNoneUI::CheckRayemitter()
 {
-	if (rayEmitter == nullptr)
+	if (!IsValid(rayEmitter))
 	{
 		if (auto actor = GetOwner())
 		{
-			if (auto sceneCaptureActor = Cast<ASceneCapture2D>(actor))
-			{
-				auto emitter = NewObject<ULGUI_SceneCapture2DMouseRayEmitter>(sceneCaptureActor);
-				emitter->SetSceneCapture2DComponent(sceneCaptureActor->GetCaptureComponent2D());
-				rayEmitter = emitter;
-				sceneCaptureActor->FinishAndRegisterComponent(emitter);
-			}
+			auto emitter = NewObject<ULGUI_ScreenSpaceUIMouseRayemitter>(actor);
+			rayEmitter = emitter;
 		}
 	}
 }

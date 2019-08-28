@@ -25,28 +25,24 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 	}
 	
-	auto snapModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIRoot, UISnapMode));
+	auto snapModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIRoot, RenderMode));
 	snapModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&] { DetailBuilder.ForceRefreshDetails(); }));
 	uint8 snapMode;
 	snapModeHandle->GetValue(snapMode);
 	TArray<FName> needToHidePropertyNameArray;
-	if (snapMode == (uint8)(LGUISnapMode::WorldSpace))
+	if (snapMode == (uint8)(ELGUIRenderMode::WorldSpace))
 	{
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, UIScaleMode));
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, ProjectionType));
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, FOVAngle));
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, OrthoWidth));
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, PreferredHeight));
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, PreferredWidth));
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, DistanceToCamera));
-		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SceneCapture));
-		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SnapRenderTargetToViewportSize));
-		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, RenderTargetSizeMultiply));
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SnapPixel));
 	}
-	else if (snapMode == (uint8)(LGUISnapMode::SnapToViewTargetCamera) || snapMode == (uint8)(LGUISnapMode::SnapToSceneCapture))
+	else if (snapMode == (uint8)(ELGUIRenderMode::ScreenSpaceOverlay))
 	{
-		if (snapMode == (uint8)(LGUISnapMode::SnapToViewTargetCamera))
-		{
-			needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SceneCapture));
-		}
 		auto scaleModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIRoot, UIScaleMode));
 		scaleModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&] { DetailBuilder.ForceRefreshDetails(); }));
 		uint8 scaleMode;
@@ -65,10 +61,22 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, PreferredWidth));
 		}
 
-		if (snapMode != (uint8)(LGUISnapMode::SnapToSceneCapture))
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, UIOnlyOwnerSee));
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, UIOwnerNoSee));
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, UseFirstPawnAsUIOwner));
+		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, UIOwner));
+
+		auto projectionTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIRoot, ProjectionType));
+		projectionTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&] {DetailBuilder.ForceRefreshDetails(); }));
+		uint8 projectionType;
+		projectionTypeHandle->GetValue(projectionType);
+		if (projectionType == (uint8)(ECameraProjectionMode::Orthographic))
 		{
-			needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, SnapRenderTargetToViewportSize));
-			needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, RenderTargetSizeMultiply));
+			needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, FOVAngle));
+		}
+		else if (projectionType == (uint8)(ECameraProjectionMode::Perspective))
+		{
+			needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, OrthoWidth));
 		}
 	}
 
@@ -90,21 +98,12 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, UIOwner));
 	}
 
-	auto snapRenderTargetToViewportSizeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIRoot, SnapRenderTargetToViewportSize));
-	snapRenderTargetToViewportSizeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&] {DetailBuilder.ForceRefreshDetails(); }));
-	bool snapRenderTargetToViewportSize;
-	snapRenderTargetToViewportSizeHandle->GetValue(snapRenderTargetToViewportSize);
-	if (!snapRenderTargetToViewportSize)
-	{
-		needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(UUIRoot, RenderTargetSizeMultiply));
-	}
-
 	for (auto item : needToHidePropertyNameArray)
 	{
 		DetailBuilder.HideProperty(item);
 	}
 
-	if (snapMode == (uint8)(LGUISnapMode::SnapToSceneCapture))
+	/*if (snapMode == (uint8)(ELGUIRenderMode::ScreenSpaceOverlay))
 	{
 		IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
 		lguiCategory.AddCustomRow(LOCTEXT("OpenScreenSpaceUIViewer", "Open Screen Space UI Viewer"), true)
@@ -121,6 +120,6 @@ void FUIRootCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			})
 		]
 		;
-	}
+	}*/
 }
 #undef LOCTEXT_NAMESPACE
