@@ -209,9 +209,9 @@ private:
 	uint32 prevFrameNumber = 0;
 
 	TArray<UUIRenderable*> UIRenderableItemList;//all renderable UI element collection
-	UPROPERTY(Transient)TArray<class UUIMesh*> UIMeshList;//UIMesh collection of this UIPanel
+	UPROPERTY(Transient)TArray<class UUIDrawcallMesh*> UIMeshList;//UIDrawcallMesh collection of this UIPanel
 	TArray<TSharedPtr<class UUIDrawcall>> UIDrawcallList;//Drawcall collection of this UIPanel
-	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIMesh
+	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
 
 	bool bCanTickUpdate = false;//if UIPanel can update from tick
 	bool bShouldRebuildAllDrawcall = false;//if UIPanel need to rebuild all drawcall

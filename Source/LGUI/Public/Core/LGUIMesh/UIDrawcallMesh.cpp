@@ -1,10 +1,10 @@
 ﻿// Copyright 2019 LexLiu. All Rights Reserved.
 
-#include "Core/ActorComponent/UIMesh.h"
+#include "UIDrawcallMesh.h"
 #include "LGUI.h"
 
 
-UUIMesh::UUIMesh()
+UUIDrawcallMesh::UUIDrawcallMesh()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	bSelectable = false;
@@ -14,12 +14,12 @@ UUIMesh::UUIMesh()
 	bApplyImpulseOnDamage = false;
 }
 
-void UUIMesh::BeginPlay()
+void UUIDrawcallMesh::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void UUIMesh::GenerateOrUpdateMesh(bool vertexPositionChanged)
+void UUIDrawcallMesh::GenerateOrUpdateMesh(bool vertexPositionChanged)
 {
 	int vertexCount = MeshSection.vertices.Num();
 	int indexCount = MeshSection.triangles.Num();
@@ -38,7 +38,7 @@ void UUIMesh::GenerateOrUpdateMesh(bool vertexPositionChanged)
 }
 
 #if WITH_EDITOR
-void UUIMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UUIDrawcallMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
