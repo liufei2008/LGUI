@@ -4,16 +4,22 @@
 #include "Event/Rayemitter/LGUI_MainViewportMouseRayemitter.h"
 #include "Event/Rayemitter/LGUI_SceneComponentRayemitter.h"
 #include "Event/Rayemitter/LGUI_CenterScreenRayemitter.h"
-#include "Components/SceneCaptureComponent2D.h"
-#include "Engine/SceneCapture2D.h"
 
 ULGUIWorldSpaceInteraction::ULGUIWorldSpaceInteraction()
 {
 	
 }
+bool ULGUIWorldSpaceInteraction::ShouldSkipUIItem(class UUIItem* UIItem)
+{
+	if (UIItem != nullptr)
+	{
+		return UIItem->IsScreenSpaceOverlayUI();
+	}
+	return true;
+}
 void ULGUIWorldSpaceInteraction::CheckRayemitter()
 {
-	if (rayEmitter == nullptr)
+	if (!IsValid(rayEmitter))
 	{
 		if (auto actor = GetOwner())
 		{

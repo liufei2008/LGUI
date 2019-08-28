@@ -11,11 +11,12 @@
 #include "UIRoot.generated.h"
 
 UENUM(BlueprintType)
-enum class LGUISnapMode :uint8
+enum class ELGUIRenderMode :uint8
 {
-	SnapToViewTargetCamera,
-	SnapToSceneCapture,
-	//snap to nothing
+	//render in screen space. 
+	//Note that in this render mode, custom material is not supported
+	ScreenSpaceOverlay,
+	//render in world space, so post process effect will affect ui
 	WorldSpace,
 };
 UENUM(BlueprintType)
@@ -47,34 +48,30 @@ protected:
 	void OnRegister();
 	void OnUnregister();
 	class UTextureRenderTarget2D* GetPreviewRenderTarget();
+	void DrawVirtualCamera();
 #endif
 	void RuntimeCheckAndApplyValue();
 
 	friend class FUIRootCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUISnapMode UISnapMode = LGUISnapMode::WorldSpace;
+		ELGUIRenderMode RenderMode = ELGUIRenderMode::WorldSpace;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		LGUIScaleMode UIScaleMode = LGUIScaleMode::ScaleWithScreenHeight;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		ASceneCapture2D* SceneCapture;
-	//Automatic change SceneCapture's RenderTarget size to viewport size
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool SnapRenderTargetToViewportSize = true;
-	//Increase this value can do a SuperSampling thing.
-	//But!!!! Don't set it too high, or performance will be extremely poor
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float RenderTargetSizeMultiply = 1.0f;
-	//This can avoid half-pixel render. Usually use for overlay UI.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (DisplayName = "Projection Type"))
+		TEnumAsByte<ECameraProjectionMode::Type> ProjectionType;
+	//Camera field of view (in degrees). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (DisplayName = "Field of View", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
+		float FOVAngle = 90;
+	/** The desired width (in world units) of the orthographic view (ignored in Perspective mode) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		float OrthoWidth = 100;
+	//This can avoid half-pixel render
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool SnapPixel = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float PreferredHeight = 1080;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float PreferredWidth = 1920;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float DistanceToCamera = 30.0f;
-
-protected:
 	//This will override all children panel's render material with OverrideMaterials when begin play
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool UseOverrideMaterials = false;
@@ -90,38 +87,52 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		AActor* UIOwner;
 private:
-	void OnViewportParameterChanged(FIntPoint viewportSize, float fov, bool isOrthographic, float orthographicWidth);
+	void OnViewportParameterChanged();
 
-	UPROPERTY(Transient) APlayerCameraManager* CameraManager = nullptr;
+	TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ViewExtension;
+	virtual void BeginDestroy();
+
 	FIntPoint PrevViewportSize = FIntPoint(0,0);//prev frame viewport size
-	bool PrevIsOrthographic = false;
-	float PrevOrthographicWidth = 100;
-	float PrevFov = 45;
-	bool NeedUpdate = false;
+	float DistanceToCamera = 30.0f;
+	int DrawcallSubmittedPanelCount = 0;//how many panels have submit drawcall
+	bool NeedToRebuildAllDrawcall = true;
 
 	bool CheckUIPanel();
 	UPROPERTY(Transient) UUIPanel* RootUIPanel = nullptr;
 
 	UPROPERTY(Transient)TArray<UUIPanel*> PanelsBelongToThisUIRoot;
 	void ApplyToPanelDefaultMaterials();
+	void BuildProjectionMatrix(FIntPoint ViewportSize, ECameraProjectionMode::Type ProjectionType, float FOV, float InOrthoWidth, FMatrix& ProjectionMatrix);
 public:
 	FORCEINLINE UUIPanel* GetRootUIPanel() { return RootUIPanel; }
 
 	void AddPanel(UUIPanel* InPanel);
 	void RemovePanel(UUIPanel* InPanel);
+	FORCEINLINE TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> GetViewExtension();
+
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		LGUISnapMode GetUISnapMode() { return UISnapMode; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ASceneCapture2D* GetSceneCapture() { return SceneCapture; }
+		ELGUIRenderMode GetRenderMode() { return RenderMode; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetPreferredWidth() { return PreferredWidth; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetPreferredHeight() { return PreferredHeight; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		TEnumAsByte<ECameraProjectionMode::Type> GetProjectionType() { return ProjectionType; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetFieldOfView() { return FOVAngle; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetOrthoWith() { return OrthoWidth; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetPreferredWidth(float InValue);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetPreferredHeight(float InValue);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetProjectionType(TEnumAsByte<ECameraProjectionMode::Type> InValue);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetFieldOfView(float InValue);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetOrthoWidth(float InValue);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetUIOnlyOwnerSee(bool InValue);
@@ -141,17 +152,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetUseOverrideMaterials() { return UseOverrideMaterials; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		TArray<UUIPanel*> GetPanelsBelongToThis() { return PanelsBelongToThisUIRoot; }
+		TArray<UUIPanel*>& GetPanelsBelongToThis() { return PanelsBelongToThisUIRoot; }
 
-	FORCEINLINE bool ShouldSnapPixel() { return UISnapMode != LGUISnapMode::WorldSpace && SnapPixel; }
+	FORCEINLINE bool ShouldSnapPixel() { return RenderMode == ELGUIRenderMode::ScreenSpaceOverlay && SnapPixel; }
 
 	//called when a UIPanel attach to this UIPanel as a child
 	UFUNCTION(BlueprintImplementableEvent, Category = LGUI)void OnUIPanelAttached(UUIPanel* InPanel);
 	UFUNCTION(BlueprintImplementableEvent, Category = LGUI)void OnUIPanelDetached(UUIPanel* InPanel);
 
-	//helper callback function for editor simulation
-	UFUNCTION(BlueprintImplementableEvent, Category = LGUI)void EditorSwitchSimulation(bool InIsSimulation);
-#if WITH_EDITOR
-	FDelegateHandle EditorSwitchSimulationDelegateHandle;
-#endif
+	//sort panel by depth, so after collect drawcall, UI will render with right order
+	FORCEINLINE void SortUIPanelOnDepth();
+
+	FORCEINLINE FMatrix GetViewProjectionMatrix();
+	FORCEINLINE FMatrix GetProjectionMatrix();
+	FORCEINLINE FVector GetViewLocation();
+	FORCEINLINE FMatrix GetViewRotationMatrix();
+	FORCEINLINE FRotator GetViewRotator();
+	FORCEINLINE FIntPoint GetViewportSize();
 };

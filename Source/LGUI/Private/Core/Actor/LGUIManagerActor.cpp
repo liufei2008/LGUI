@@ -265,20 +265,24 @@ void ULGUIEditorManagerObject::DrawSelectionFrame()
 }
 bool ULGUIEditorManagerObject::IsSelected(UActorComponent* InObject)
 {
-	if (SelectionActorArray.Num() == 0)
+	if (Instance != nullptr)
 	{
-		auto selection = GEditor->GetSelectedActors();
-		auto count = selection->Num();
-		for (int i = 0; i < count; i++)
+		if (Instance->SelectionActorArray.Num() == 0)
 		{
-			auto obj = (AActor*)(selection->GetSelectedObject(i));
-			if (obj != nullptr)
+			auto selection = GEditor->GetSelectedActors();
+			auto count = selection->Num();
+			for (int i = 0; i < count; i++)
 			{
-				SelectionActorArray.Add(obj);
+				auto obj = (AActor*)(selection->GetSelectedObject(i));
+				if (obj != nullptr)
+				{
+					Instance->SelectionActorArray.Add(obj);
+				}
 			}
 		}
+		return Instance->SelectionActorArray.Contains(InObject->GetOwner());
 	}
-	return SelectionActorArray.Contains(InObject->GetOwner());
+	return false;
 }
 #endif
 
@@ -594,4 +598,9 @@ const TArray<UUIPanel*>& LGUIManager::GetAllUIPanel(UWorld* InWorld)
 	}
 	return ALGUIManagerActor::Instance->GetAllUIPanel();
 }
-
+#if WITH_EDITOR
+bool LGUIManager::IsSelected_Editor(UActorComponent* InItem)
+{
+	return ULGUIEditorManagerObject::IsSelected(InItem);
+}
+#endif

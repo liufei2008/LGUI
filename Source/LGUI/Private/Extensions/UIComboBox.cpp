@@ -2,6 +2,10 @@
 
 #include "Extensions/UIComboBox.h"
 #include "Extensions/UIComboBoxItem.h"
+#include "Event/LGUIEventSystemActor.h"
+#include "Core/Actor/UIPanelActor.h"
+#include "LGUIBPLibrary.h"
+#include "PrefabSystem/LGUIPrefab.h"
 
 UUIComboBox::UUIComboBox()
 {

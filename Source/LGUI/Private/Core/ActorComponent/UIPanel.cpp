@@ -8,13 +8,17 @@
 #if WITH_EDITOR
 #include "Editor.h"
 #endif
-#include "Layout/UIRoot.h"
+#include "Core/UIRoot.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Core/Render/LGUIRenderer.h"
+#include "UIMesh.h"
+#include "Core/UIDrawcall.h"
+#include "UIRenderable.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 DECLARE_CYCLE_STAT(TEXT("UIPanel UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("UIPanel UpdateMaterial"), STAT_UpdateMaterial, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("UIPanel TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
 
 UUIPanel::UUIPanel()
@@ -37,7 +41,7 @@ void UUIPanel::BeginPlay()
 	ParentUIPanel = nullptr;
 	CheckParentUIPanel();
 	CheckUIRoot();
-	MarkNeedUpdate();
+	MarkPanelUpdate();
 	CheckMaterials();
 
 	bClipTypeChanged = true;
@@ -52,6 +56,10 @@ void UUIPanel::BeginPlay()
 	else
 	{
 		LGUIManager::SortUIPanelOnDepth(this->GetWorld());
+		if (IsValid(uiRootComp))
+		{
+			uiRootComp->SortUIPanelOnDepth();
+		}
 	}
 }
 void UUIPanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -160,13 +168,41 @@ void UUIPanel::CheckUIRoot()
 		{
 			uiRootComp->AddPanel(this);
 		}
+
+		if (IsScreenSpaceOverlayUI())
+		{
+			for (auto uiMesh : UIMeshList)
+			{
+				uiMesh->SetToLGUIHud(uiRootComp->GetViewExtension());
+			}
+		}
+		else
+		{
+			for (auto uiMesh : UIMeshList)
+			{
+				uiMesh->SetToLGUIWorld();
+			}
+		}
 	}
 }
-
-void UUIPanel::MarkNeedUpdate()
+bool UUIPanel::IsScreenSpaceOverlayUI()
 {
-	bCanTickUpdate = true;
+	if (IsValid(uiRootComp))
+	{
+#if WITH_EDITOR
+		if (auto world = GetWorld())
+		{
+			if (!world->IsGameWorld())
+			{
+				return false;
+			}
+		}
+#endif
+		return uiRootComp->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay;
+	}
+	return false;
 }
+
 void UUIPanel::MarkPanelUpdate()
 {
 	//Super::MarkPanelUpdate();
@@ -196,8 +232,12 @@ void UUIPanel::EditorForceUpdateImmediately()
 	ParentUIPanel = nullptr;
 	CheckParentUIPanel();
 	LGUIManager::SortUIPanelOnDepth(this->GetWorld());
+	if (IsValid(uiRootComp))
+	{
+		uiRootComp->SortUIPanelOnDepth();
+	}
 	SortDrawcallRenderPriority();
-	MarkNeedUpdate();
+	MarkPanelUpdate();
 	MarkRebuildAllDrawcall();
 	Super::EditorForceUpdateImmediately();
 	UpdatePanelGeometry();
@@ -382,7 +422,7 @@ void UUIPanel::UpdateChildRecursive(UUIItem* target, bool parentTransformChanged
 			if (childItemType == UIItemType::UIRenderable)
 			{
 				auto uiChildRenderable = (UUIRenderable*)uiChild;
-				if (uiChildRenderable->GetGeometry().Get() != nullptr && uiChildRenderable->IsVisible())
+				if (uiChildRenderable->GetGeometry().IsValid() && uiChildRenderable->GetGeometry()->vertices.Num() > 0)
 				{
 					UIRenderableItemList.Add(uiChildRenderable);
 				}
@@ -446,7 +486,7 @@ void UUIPanel::UpdatePanelGeometry()
 				if (childItemType == UIItemType::UIRenderable)//only UIRenderable have geometry
 				{
 					auto uiChildRenderable = (UUIRenderable*)uiChild;
-					if (uiChildRenderable->GetGeometry().Get() != nullptr && uiChildRenderable->IsVisible())
+					if (uiChildRenderable->GetGeometry().IsValid() && uiChildRenderable->GetGeometry()->vertices.Num() > 0)
 					{
 						UIRenderableItemList.Add(uiChildRenderable);
 					}
@@ -486,9 +526,9 @@ void UUIPanel::UpdatePanelGeometry()
 			}
 		}
 	}
-	
-	//draw triangle
+
 	{
+		//draw triangle
 		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
 		if (bShouldRebuildAllDrawcall)
 		{
@@ -509,6 +549,10 @@ void UUIPanel::UpdatePanelGeometry()
 				{
 					auto meshName = FString::Printf(TEXT("Drawcall_%d"), i);
 					auto uiMesh = NewObject<UUIMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
+					if (IsScreenSpaceOverlayUI())
+					{
+						uiMesh->SetToLGUIHud(uiRootComp->GetViewExtension());
+					}
 					uiMesh->RegisterComponent();
 					uiMesh->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
 					uiMesh->SetRelativeTransform(FTransform::Identity);
@@ -534,7 +578,7 @@ void UUIPanel::UpdatePanelGeometry()
 				auto& uiMesh = UIMeshList[i];
 				if (uiMesh == nullptr)continue;
 				auto& uiDrawcall = UIDrawcallList[i];
-				if (uiDrawcall == nullptr)continue;
+				if (!uiDrawcall.IsValid())continue;
 				uiMesh->SetMeshVisible(true);//some UIMesh may set to invisible on prev frame, set to visible
 				auto name = uiMesh->GetName();
 				if (name.EndsWith("_NoUse"))
@@ -554,12 +598,14 @@ void UUIPanel::UpdatePanelGeometry()
 				uiMesh->SetOwnerNoSee(bOwnerNoSee);
 				uiMesh->SetOnlyOwnerSee(bOnlyOwnerSee);
 			}
+
 			//after geometry created, need to sort UIMesh render order
 			SortDrawcallRenderPriority();
 		}
 		else//no need to rebuild all drawcall
 		{
 			int drawcallCount = UIDrawcallList.Num();
+			bool needToSortRenderPriority = false;
 			for (int i = drawcallCount - 1; i >= 0; i--)
 			{
 				auto uiMesh = UIMeshList[i];
@@ -579,8 +625,9 @@ void UUIPanel::UpdatePanelGeometry()
 					uiMesh->GenerateOrUpdateMesh();
 					uiDrawcall->needToBeRebuild = false;
 					uiDrawcall->needToUpdateVertex = false;
+					needToSortRenderPriority = true;
 				}
-				else if(uiDrawcall->needToUpdateVertex)
+				else if (uiDrawcall->needToUpdateVertex)
 				{
 					auto& meshSection = uiMesh->MeshSection;
 					uiDrawcall->UpdateData(meshSection.vertices, meshSection.uvs, meshSection.colors, meshSection.triangles
@@ -594,15 +641,21 @@ void UUIPanel::UpdatePanelGeometry()
 					uiDrawcall->vertexPositionChanged = false;
 				}
 			}
-			if (cacheForThisUpdate_DepthChanged)
+			if (!IsScreenSpaceOverlayUI())
+			{
+				needToSortRenderPriority = false;
+			}
+			if (cacheForThisUpdate_DepthChanged || needToSortRenderPriority)
 			{
 				//after geometry created, need to sort UIMesh render order
 				SortDrawcallRenderPriority();
 			}
 		}
+		//create or update material
+		UpdateAndApplyMaterial();
 	}
-	//create or update material
-	UpdateAndApplyMaterial();
+
+
 	//this frame is complete
 	bClipTypeChanged = false;
 	bRectClipParameterChanged = false;
@@ -642,19 +695,25 @@ void UUIPanel::SortDrawcallRenderPriority()
 			prevPanelDrawcallCount = panelItemDrawcallCount;
 		}
 	}
+	if (IsScreenSpaceOverlayUI())
+	{
+		uiRootComp->GetViewExtension()->SortRenderPriority();
+	}
 }
-int32 UUIPanel::SortDrawcall(int32 InOutStartRenderPriority)
+int32 UUIPanel::SortDrawcall(int32 InStartRenderPriority)
 {
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
-		UIMeshList[i]->SetTranslucentSortPriority(InOutStartRenderPriority++);
+		if (i < UIMeshList.Num())
+		{
+			UIMeshList[i]->SetUITranslucentSortPriority(InStartRenderPriority++);
+		}
 	}
 	return UIDrawcallList.Num();
 }
 
 void UUIPanel::UpdateAndApplyMaterial()
 {
-	SCOPE_CYCLE_COUNTER(STAT_UpdateMaterial);
 	int drawcallCount = UIDrawcallList.Num();
 	//if clip type change, or need to rebuild all drawcall, then recreate material
 	if (bClipTypeChanged || bShouldRebuildAllDrawcall)
@@ -722,7 +781,7 @@ void UUIPanel::UpdateAndApplyMaterial()
 	{
 		if (bClipTypeChanged || bRectClipParameterChanged)
 		{
-			SetParameterForRectClip(drawcallCount);			
+			SetParameterForRectClip(drawcallCount);
 		}
 	}
 	else if (clipType == UIPanelClipType::Texture)
@@ -851,7 +910,7 @@ void UUIPanel::SetClipType(UIPanelClipType newClipType)
 	{
 		bClipTypeChanged = true;
 		clipType = newClipType;
-		MarkNeedUpdate();
+		MarkPanelUpdate();
 	}
 }
 void UUIPanel::SetRectClipFeather(FVector2D newFeather) 
@@ -860,7 +919,7 @@ void UUIPanel::SetRectClipFeather(FVector2D newFeather)
 	{
 		bRectClipParameterChanged = true;
 		clipFeather = newFeather;
-		MarkNeedUpdate();
+		MarkPanelUpdate();
 	}
 }
 void UUIPanel::SetClipTexture(UTexture* newTexture) 
@@ -869,7 +928,7 @@ void UUIPanel::SetClipTexture(UTexture* newTexture)
 	{
 		bTextureClipParameterChanged = true;
 		clipTexture = newTexture;
-		MarkNeedUpdate();
+		MarkPanelUpdate();
 	}
 }
 void UUIPanel::SetInheriRectClip(bool newBool)
@@ -878,7 +937,7 @@ void UUIPanel::SetInheriRectClip(bool newBool)
 	{
 		inheritRectClip = newBool;
 		bRectRangeCalculated = false;
-		MarkNeedUpdate();
+		MarkPanelUpdate();
 	}
 }
 void UUIPanel::SetUIPanelDepth(int32 newDepth, bool propagateToChildrenPanel)
@@ -891,7 +950,7 @@ void UUIPanel::SetUIPanelDepth(int32 newDepth, bool propagateToChildrenPanel)
 		{
 			if (LGUIManager::IsManagerValid(this->GetWorld()))
 			{
-				auto& allPanelArray = LGUIManager::GetAllUIPanel(this->GetWorld());
+				auto& allPanelArray = IsScreenSpaceOverlayUI() ? uiRootComp->GetPanelsBelongToThis() : LGUIManager::GetAllUIPanel(this->GetWorld());
 				for (UUIPanel* itemPanel : allPanelArray)
 				{
 					if (IsValid(itemPanel))
@@ -904,8 +963,19 @@ void UUIPanel::SetUIPanelDepth(int32 newDepth, bool propagateToChildrenPanel)
 				}
 			}
 		}
-		LGUIManager::SortUIPanelOnDepth(this->GetWorld());
-		SortDrawcallRenderPriority();
+		if (IsScreenSpaceOverlayUI())
+		{
+			uiRootComp->SortUIPanelOnDepth();
+		}
+		else
+		{
+			LGUIManager::SortUIPanelOnDepth(this->GetWorld());
+			if (IsValid(uiRootComp))
+			{
+				uiRootComp->SortUIPanelOnDepth();
+			}
+			SortDrawcallRenderPriority();
+		}
 	}
 }
 void UUIPanel::SetUIPanelDepthToHighestOfHierarchy(bool propagateToChildrenPanel)
@@ -913,7 +983,7 @@ void UUIPanel::SetUIPanelDepthToHighestOfHierarchy(bool propagateToChildrenPanel
 	if (CheckFirstUIPanel())
 	{
 		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allPanelArray = LGUIManager::GetAllUIPanel(this->GetWorld());
+		auto& allPanelArray = IsScreenSpaceOverlayUI() ? uiRootComp->GetPanelsBelongToThis() : LGUIManager::GetAllUIPanel(this->GetWorld());
 
 		int32 maxDepth = 0;
 		for (UUIPanel* itemPanel : allPanelArray)
@@ -938,7 +1008,7 @@ void UUIPanel::SetUIPanelDepthToLowestOfHierarchy(bool propagateToChildrenPanel)
 	if (CheckFirstUIPanel())
 	{
 		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allPanelArray = LGUIManager::GetAllUIPanel(this->GetWorld());
+		auto& allPanelArray = IsScreenSpaceOverlayUI() ? uiRootComp->GetPanelsBelongToThis() : LGUIManager::GetAllUIPanel(this->GetWorld());
 
 		int32 minDepth = 0;
 		for (UUIPanel* itemPanel : allPanelArray)
@@ -963,7 +1033,7 @@ void UUIPanel::SetUIPanelDepthToHighestOfAll(bool propagateToChildrenPanel)
 	if (CheckFirstUIPanel())
 	{
 		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allPanelArray = LGUIManager::GetAllUIPanel(this->GetWorld());
+		auto& allPanelArray = IsScreenSpaceOverlayUI() ? uiRootComp->GetPanelsBelongToThis() : LGUIManager::GetAllUIPanel(this->GetWorld());
 
 		int32 maxDepth = 0;
 		for (UUIPanel* itemPanel : allPanelArray)
@@ -988,7 +1058,7 @@ void UUIPanel::SetUIPanelDepthToLowestOfAll(bool propagateToChildrenPanel)
 	if (CheckFirstUIPanel())
 	{
 		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allPanelArray = LGUIManager::GetAllUIPanel(this->GetWorld());
+		auto& allPanelArray = IsScreenSpaceOverlayUI() ? uiRootComp->GetPanelsBelongToThis() : LGUIManager::GetAllUIPanel(this->GetWorld());
 
 		int32 minDepth = 0;
 		for (UUIPanel* itemPanel : allPanelArray)

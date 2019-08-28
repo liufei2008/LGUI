@@ -13,6 +13,7 @@
 #include "Core/ActorComponent/UIPanel.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UIInteractionGroup.h"
+#include "Core/UIRoot.h"
 
 #include "Core/UIComponentBase.h"
 
@@ -37,7 +38,6 @@
 #include "Layout/UILayoutElement.h"
 #include "Layout/UISizeControlByAspectRatio.h"
 #include "Layout/UISizeControlByOther.h"
-#include "Layout/UIRoot.h"
 
 #include "Interaction/UIButtonComponent.h"
 #include "Interaction/UIEventBlockerComponent.h"

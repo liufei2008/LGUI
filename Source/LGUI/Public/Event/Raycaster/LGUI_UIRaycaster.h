@@ -31,6 +31,8 @@ protected:
 
 	void LineTraceUIHierarchy(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ETraceTypeQuery InTraceChannel);
 	void LineTraceUIHierarchyRecursive(TArray<FHitResult>& OutHitArray, USceneComponent* InSceneComp, const FVector& InRayOrign, const FVector& InRayEnd, ETraceTypeQuery InTraceChannel);
+
+	virtual bool ShouldSkipUIItem(class UUIItem* UIItem) { return false; }
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		EUIRaycastSortType uiSortType = EUIRaycastSortType::DependOnUIDepth;

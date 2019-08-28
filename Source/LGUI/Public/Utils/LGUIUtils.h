@@ -102,7 +102,7 @@ public:
 	static void SortUIItemDepth(TArray<class UUIRenderable*>& shapeList);
 	static void SortUIItemDepth(TArray<TSharedPtr<class UIGeometry>>& shapeList);
 	//create drawcall
-	static void CreateDrawcallFast(TArray<class UUIRenderable*>& sortedList, TArray<class UUIDrawcall*>& drawcallList);
+	static void CreateDrawcallFast(TArray<class UUIRenderable*>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
 	//find first UIPanel
 	static void FindFirstUIPanel(UUIItem* uiItem, UUIPanel*& resultUIPanel);
 	//find render UIPanel
@@ -117,7 +117,7 @@ public:
 #endif
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
 private:
-	static class UUIDrawcall* GetAvalibleDrawcall(TArray<class UUIDrawcall*>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
+	static TSharedPtr<class UUIDrawcall> GetAvalibleDrawcall(TArray<TSharedPtr<class UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
 	template<class T>
 	static void CollectComponentsInChildrenRecursive(AActor* InActor, TArray<T*>& InOutArray)
 	{
