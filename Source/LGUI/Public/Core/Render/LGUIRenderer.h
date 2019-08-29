@@ -41,4 +41,8 @@ private:
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<UUIRoot> UIRoot;
 
+	FVector ViewLocation;
+	FRotator ViewRotation;
+	FMatrix ViewRotationMatrix;
+	FMatrix ProjectionMatrix;
 };
