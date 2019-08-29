@@ -135,7 +135,11 @@ FLGUIViewExtension::~FLGUIViewExtension()
 }
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	
+	if (!UIRoot.IsValid())return;
+	ViewLocation = UIRoot->GetViewLocation();
+	ViewRotation = UIRoot->GetViewRotator();
+	ViewRotationMatrix = UIRoot->GetViewRotationMatrix();
+	ProjectionMatrix = UIRoot->GetProjectionMatrix();
 }
 void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
@@ -152,7 +156,6 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 {
 	SCOPE_CYCLE_COUNTER(STAT_LGUIRHIRender);
 	check(IsInRenderingThread());
-	if (!UIRoot.IsValid())return;
 	if (!InView.bIsGameView)return;
 #if WITH_EDITOR
 	if (GEngine == nullptr)return;
@@ -173,13 +176,9 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	FTexture2DRHIRef RenderTarget = InView.Family->RenderTarget->GetRenderTargetTexture();
 	SetRenderTarget(RHICmdList, RenderTarget, FTextureRHIRef());
 
-	InView.ViewLocation = UIRoot->GetViewLocation();
-	InView.ViewRotation = UIRoot->GetViewRotator();
-	InView.SceneViewInitOptions.ViewOrigin = UIRoot->GetViewLocation();
-	InView.SceneViewInitOptions.ViewRotationMatrix = UIRoot->GetViewRotationMatrix();
-	InView.SceneViewInitOptions.ProjectionMatrix = UIRoot->GetProjectionMatrix();
-	InView.UpdateViewMatrix();
-	InView.UpdateProjectionMatrix(UIRoot->GetProjectionMatrix());
+	InView.SceneViewInitOptions.ViewOrigin = ViewLocation;
+	InView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
+	InView.UpdateProjectionMatrix(ProjectionMatrix);
 
 	FViewUniformShaderParameters viewUniformShaderParameters;
 	InView.SetupCommonViewUniformBufferParameters(
