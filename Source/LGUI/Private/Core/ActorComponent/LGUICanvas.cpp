@@ -616,7 +616,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					, meshSection.uvs1
 					, meshSection.uvs2
 					, meshSection.uvs3);
-				uiMesh->GenerateOrUpdateMesh();
+				uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
 			}
 
 			//after geometry created, need to sort UIMesh render order
@@ -642,7 +642,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						, meshSection.uvs1
 						, meshSection.uvs2
 						, meshSection.uvs3);
-					uiMesh->GenerateOrUpdateMesh();
+					uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
 					uiDrawcall->needToBeRebuild = false;
 					uiDrawcall->needToUpdateVertex = false;
 					needToSortRenderPriority = true;
@@ -656,7 +656,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						, meshSection.uvs1
 						, meshSection.uvs2
 						, meshSection.uvs3);
-					uiMesh->GenerateOrUpdateMesh(uiDrawcall->vertexPositionChanged);
+					uiMesh->GenerateOrUpdateMesh(uiDrawcall->vertexPositionChanged, additionalShaderChannels);
 					uiDrawcall->needToUpdateVertex = false;
 					uiDrawcall->vertexPositionChanged = false;
 				}

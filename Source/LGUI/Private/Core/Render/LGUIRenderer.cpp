@@ -150,11 +150,11 @@ void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InO
 	
 }
 
-DECLARE_CYCLE_STAT(TEXT("LGUI RHIRender"), STAT_LGUIRHIRender, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
 
 void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
-	SCOPE_CYCLE_COUNTER(STAT_LGUIRHIRender);
+	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
 	if (!InView.bIsGameView)return;
 #if WITH_EDITOR

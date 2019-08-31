@@ -19,7 +19,7 @@ public:
 	virtual void BeginPlay() override;
 
 public:
-	void GenerateOrUpdateMesh(bool vertexPositionChanged = true);
+	void GenerateOrUpdateMesh(bool vertexPositionChanged = true, int8 AddiotnalShaderChannelFlags = 0);
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
