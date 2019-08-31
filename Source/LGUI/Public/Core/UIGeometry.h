@@ -19,7 +19,7 @@ public:
 	int32 originTriangleCount = 0;//origin triangle indices count
 
 	TArray<FVector> vertices;//vertex position
-	TArray<uint32> triangles;//triangle indices
+	TArray<uint16> triangles;//triangle indices
 	TArray<FVector2D> uvs;//vertex texcoordinate 0
 	TArray<FVector2D> uvs1;//vertex texcoordinate 1
 	TArray<FVector2D> uvs2;//vertex texcoordinate 1

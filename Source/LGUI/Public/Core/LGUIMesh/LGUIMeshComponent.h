@@ -8,7 +8,7 @@
 struct FLGUIMeshSection
 {
 	TArray<FVector> vertices;
-	TArray<uint32> triangles;
+	TArray<uint16> triangles;
 	TArray<FVector2D> uvs;
 	TArray<FVector2D> uvs1;
 	TArray<FVector2D> uvs2;
