@@ -19,7 +19,7 @@ public:
 	bool vertexPositionChanged = false;//if vertex position changed? use for update bounds
 	bool isFontTexture = false;//the texture of this drawcall is font texture or not
 public:
-	void GetCombined(TArray<FVector>& vertices, TArray<FVector2D>& uvs, TArray<FColor>& colors, TArray<uint32>& triangles
+	void GetCombined(TArray<FVector>& vertices, TArray<FVector2D>& uvs, TArray<FColor>& colors, TArray<uint16>& triangles
 		, TArray<FVector>& normals
 		, TArray<FVector>& tangents
 		, TArray<FVector2D>& uvs1
@@ -53,7 +53,7 @@ public:
 			prevVertexCount += geometry->GetTransformedVertices().Num();
 		}
 	}
-	void UpdateData(TArray<FVector>& vertices, TArray<FVector2D>& uvs, TArray<FColor>& colors, TArray<uint32>& triangles
+	void UpdateData(TArray<FVector>& vertices, TArray<FVector2D>& uvs, TArray<FColor>& colors, TArray<uint16>& triangles
 		, TArray<FVector>& normals
 		, TArray<FVector>& tangents
 		, TArray<FVector2D>& uvs1

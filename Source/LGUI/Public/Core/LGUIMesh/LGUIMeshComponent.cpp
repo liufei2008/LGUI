@@ -21,7 +21,7 @@ public:
 	/** Vertex buffer for this section */
 	FStaticMeshVertexBuffers VertexBuffers;
 	/** Index buffer for this section */
-	FDynamicMeshIndexBuffer32 IndexBuffer;
+	FDynamicMeshIndexBuffer16 IndexBuffer;
 	/** Vertex factory for this section */
 	FLocalVertexFactory VertexFactory;
 	/** Whether this section is currently visible */
@@ -139,7 +139,7 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint32* MeshIndexData, int32 IndexDataLength)
+	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint16* MeshIndexData, uint32 IndexDataLength)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_UpdateSectionRT);
 
@@ -413,16 +413,16 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged)
 		//index data
 		auto& triangles = MeshSection.triangles;
 		const int32 NumTriangles = triangles.Num();
-		uint32* IndexBufferData = new uint32[NumTriangles];
-		int32 IndexDataLength = NumTriangles * sizeof(int32);
+		uint16* IndexBufferData = new uint16[NumTriangles];
+		uint32 IndexDataLength = NumTriangles * sizeof(uint16);
 		FMemory::Memcpy(IndexBufferData, triangles.GetData(), IndexDataLength);
 		ENQUEUE_UNIQUE_RENDER_COMMAND_FIVEPARAMETER(
 			FLGUIMeshUpdate,
 			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
 			FDynamicMeshVertex*, VertexBufferData, VertexBufferData,
 			int32, NumVerts, NumVerts,
-			uint32*, IndexBufferData, IndexBufferData,
-			int32, IndexDataLength, IndexDataLength,
+			uint16*, IndexBufferData, IndexBufferData,
+			uint32, IndexDataLength, IndexDataLength,
 			{
 				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength);
 			}
