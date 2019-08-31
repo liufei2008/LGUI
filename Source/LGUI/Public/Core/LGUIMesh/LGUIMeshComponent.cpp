@@ -21,7 +21,7 @@ public:
 	/** Vertex buffer for this section */
 	FStaticMeshVertexBuffers VertexBuffers;
 	/** Index buffer for this section */
-	FDynamicMeshIndexBuffer32 IndexBuffer;
+	FDynamicMeshIndexBuffer16 IndexBuffer;
 	/** Vertex factory for this section */
 	FLocalVertexFactory VertexFactory;
 	/** Whether this section is currently visible */
@@ -139,7 +139,7 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint32* MeshIndexData, int32 IndexDataLength)
+	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint16* MeshIndexData, uint32 IndexDataLength)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_UpdateSectionRT);
 
