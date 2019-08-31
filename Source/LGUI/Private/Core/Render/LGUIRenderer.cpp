@@ -12,7 +12,7 @@
 #include "PipelineStateCache.h"
 #include "SceneRendering.h"
 #include "Core/Render/ILGUIHudPrimitive.h"
-#include "Core/UIRoot.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "DrawingPolicy.h"
 #if WITH_EDITOR
 #include "Engine.h"
@@ -124,10 +124,10 @@ private:
 
 
 
-FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, UUIRoot* InUIRoot)
+FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas)
 	:FSceneViewExtensionBase(AutoRegister)
 {
-	UIRoot = InUIRoot;
+	UICanvas = InLGUICanvas;
 }
 FLGUIViewExtension::~FLGUIViewExtension()
 {
@@ -135,11 +135,11 @@ FLGUIViewExtension::~FLGUIViewExtension()
 }
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	if (!UIRoot.IsValid())return;
-	ViewLocation = UIRoot->GetViewLocation();
-	ViewRotation = UIRoot->GetViewRotator();
-	ViewRotationMatrix = UIRoot->GetViewRotationMatrix();
-	ProjectionMatrix = UIRoot->GetProjectionMatrix();
+	if (!UICanvas.IsValid())return;
+	ViewLocation = UICanvas->GetViewLocation();
+	ViewRotation = UICanvas->GetViewRotator();
+	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
+	ProjectionMatrix = UICanvas->GetProjectionMatrix();
 }
 void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {

@@ -10,16 +10,13 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/UITextureBase.h"
 #include "Core/ActorComponent/UITexture.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UIInteractionGroup.h"
-#include "Core/UIRoot.h"
-
 #include "Core/UIComponentBase.h"
 
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"
-#include "Core/Actor/UIPanelActor.h"
 #include "Core/Actor/UISpriteActor.h"
 #include "Core/Actor/UITextActor.h"
 #include "Core/Actor/UITextureActor.h"
@@ -38,6 +35,7 @@
 #include "Layout/UILayoutElement.h"
 #include "Layout/UISizeControlByAspectRatio.h"
 #include "Layout/UISizeControlByOther.h"
+#include "Layout/LGUICanvasScaler.h"
 
 #include "Interaction/UIButtonComponent.h"
 #include "Interaction/UIEventBlockerComponent.h"

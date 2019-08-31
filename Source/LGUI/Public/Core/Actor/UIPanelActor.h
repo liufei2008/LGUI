@@ -6,6 +6,7 @@
 #include "Core/ActorComponent/UIPanel.h"
 #include "UIPanelActor.generated.h"
 
+//this class is only for old version property holder. please replace this with UIContainerActor and add a LGUICanvas component to that actor
 UCLASS(ShowCategories(Rendering))
 class LGUI_API AUIPanelActor : public AUIBaseActor
 {

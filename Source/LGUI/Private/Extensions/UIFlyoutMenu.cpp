@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIText.h"
 #include "Core/Actor/UISpriteActor.h"
 #include "Core/ActorComponent/UISprite.h"
-#include "Core/Actor/UIPanelActor.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Event/LGUIEventSystemActor.h"
 #include "LGUIBPLibrary.h"
 
@@ -69,8 +69,9 @@ void UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameA
 	}
 	auto loadedActor = ULGUIBPLibrary::LoadPrefab(InParentActor, prefab, InParentActor->GetRootComponent());
 	auto script = loadedActor->FindComponentByClass<UUIFlyoutMenu>();
-	auto rootUIPanel = script->_RootUIActor->GetUIPanel();
-	rootUIPanel->SetUIPanelDepthToHighestOfHierarchy(true);
+	auto rootCanvas = script->_RootUIActor->FindComponentByClass<ULGUICanvas>();
+	rootCanvas->SetSortOrderToHighestOfHierarchy(true);
+	auto rootUIItem = script->_RootUIActor->GetUIItem();
 	FVector2D pivot(0.5f, 0);
 	float anchorOffsetY = 0;
 	switch (InVerticalPosition)
@@ -78,12 +79,12 @@ void UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameA
 	case EFlyoutMenuVerticalPosition::Top:
 	{
 		pivot.Y = 0.0f;
-		rootUIPanel->SetAnchorVAlign(UIAnchorVerticalAlign::Top, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top, false);
 	}break;
 	case EFlyoutMenuVerticalPosition::Bottom:
 	{
 		pivot.Y = 1.0f;
-		rootUIPanel->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom, false);
 	}break;
 	}
 	switch (InHorizontalAlign)
@@ -91,21 +92,21 @@ void UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameA
 	case EFlyoutMenuHorizontalAlignment::Left:
 	{
 		pivot.X = 0.0f;
-		rootUIPanel->SetAnchorHAlign(UIAnchorHorizontalAlign::Left, false);
+		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left, false);
 	}break;
 	case EFlyoutMenuHorizontalAlignment::Center:
 	{
 		pivot.X = 0.5f;
-		rootUIPanel->SetAnchorHAlign(UIAnchorHorizontalAlign::Center, false);
+		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center, false);
 	}break;
 	case EFlyoutMenuHorizontalAlignment::Right:
 	{
 		pivot.X = 1.0f;
-		rootUIPanel->SetAnchorHAlign(UIAnchorHorizontalAlign::Right, false);
+		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right, false);
 	}break;
 	}
-	rootUIPanel->SetPivot(pivot);
-	rootUIPanel->SetWidth(InWidth);
+	rootUIItem->SetPivot(pivot);
+	rootUIItem->SetWidth(InWidth);
 	script->CreateFromArray_Internal(InItemNameArray, InCallback);
 }
 void UUIFlyoutMenu::OnClickItem(const int32& InItemIndex, const FString& InItemName)

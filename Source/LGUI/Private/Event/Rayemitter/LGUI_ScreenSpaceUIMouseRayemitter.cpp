@@ -1,7 +1,7 @@
 ﻿// Copyright 2019 LexLiu. All Rights Reserved.
 
 #include "Event/Rayemitter/LGUI_ScreenSpaceUIMouseRayemitter.h"
-#include "Core/UIRoot.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 ULGUI_ScreenSpaceUIMouseRayemitter::ULGUI_ScreenSpaceUIMouseRayemitter()
 {
@@ -10,21 +10,21 @@ ULGUI_ScreenSpaceUIMouseRayemitter::ULGUI_ScreenSpaceUIMouseRayemitter()
 
 bool ULGUI_ScreenSpaceUIMouseRayemitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
-	if (!IsValid(UIRootComp))
+	if (!IsValid(RenderCanvas))
 	{
 		if (!IsValid(GetOwner()))
 			return false;
-		UIRootComp = GetOwner()->FindComponentByClass<UUIRoot>();
-		if (!IsValid(UIRootComp))
+		RenderCanvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
+		if (!IsValid(RenderCanvas))
 			return false;
-		if (UIRootComp->GetRenderMode() == ELGUIRenderMode::WorldSpace)
+		if (RenderCanvas->GetRenderMode() == ELGUIRenderMode::WorldSpace)
 			return false;
 	}
-	auto ViewProjectionMatrix = UIRootComp->GetViewProjectionMatrix();
+	auto ViewProjectionMatrix = RenderCanvas->GetViewProjectionMatrix();
 	//Get mouse position, convert to range 0-1, project to SceneCapture2D
 	FVector2D mousePos;
 	this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos);
-	FVector2D viewportSize = UIRootComp->GetViewportSize();
+	FVector2D viewportSize = RenderCanvas->GetViewportSize();
 	FVector2D mousePos01 = mousePos / viewportSize;
 	mousePos01.Y = 1.0f - mousePos01.Y;
 

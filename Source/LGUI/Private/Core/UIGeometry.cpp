@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIText.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 
 #pragma region UISprite_UITexture_Simple
@@ -1309,10 +1309,11 @@ FORCEINLINE float RoundToFloat(float value)
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformVertices"), STAT_TransformVertices, STATGROUP_LGUI);
-void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo, bool requireNormal, bool requireTangent)
+void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo, bool requireNormal, bool requireTangent)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
-	auto inversePanelTf = panel->GetComponentTransform().Inverse();
+	auto canvasUIItem = canvas->CheckAndGetUIItem();
+	auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
 	const auto& itemTf = item->GetComponentTransform();
 	auto& vertices = uiGeo->vertices;
 	auto& transformedVertices = uiGeo->transformedVertices;
@@ -1327,52 +1328,52 @@ void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TShared
 		transformedVertices.AddDefaulted(vertexCount - transformedVertexCount);
 	}
 	
-	bool shouldSnapPixel = item->ShouldSnapPixel();
-	auto uiRootPanel = panel->GetUIRootPanel();
+	bool shouldSnapPixel = item->ShouldRenderPixelPerfect();
+	auto rootCanvasUIItem = canvas->GetRootCanvas()->CheckAndGetUIItem();
 
-	FTransform itemToPanelTf;
-	FTransform::Multiply(&itemToPanelTf, &itemTf, &inversePanelTf);
+	FTransform itemToCanvasTf;
+	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
 	FVector tempV3;
-	if (shouldSnapPixel && uiRootPanel != nullptr)
+	if (shouldSnapPixel && rootCanvasUIItem != nullptr)
 	{
-		if (panel == uiRootPanel)
+		if (canvasUIItem == rootCanvasUIItem)
 		{
-			auto panelLeftBottom = FVector2D(-panel->GetWidth() * panel->GetPivot().X, -panel->GetHeight() * panel->GetPivot().Y);
+			auto canvasLeftBottom = FVector2D(-canvasUIItem->GetWidth() * canvasUIItem->GetPivot().X, -canvasUIItem->GetHeight() * canvasUIItem->GetPivot().Y);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				tempV3 = itemToPanelTf.TransformPosition(vertices[i]);
-				tempV3.X -= panelLeftBottom.X;
-				tempV3.Y -= panelLeftBottom.Y;
+				tempV3 = itemToCanvasTf.TransformPosition(vertices[i]);
+				tempV3.X -= canvasLeftBottom.X;
+				tempV3.Y -= canvasLeftBottom.Y;
 				tempV3.X = RoundToFloat(tempV3.X);
 				tempV3.Y = RoundToFloat(tempV3.Y);
-				tempV3.X += panelLeftBottom.X;
-				tempV3.Y += panelLeftBottom.Y;
+				tempV3.X += canvasLeftBottom.X;
+				tempV3.Y += canvasLeftBottom.Y;
 
 				transformedVertices[i] = tempV3;
 			}
 		}
 		else
 		{
-			auto firstPanelToWorld = uiRootPanel->GetComponentTransform();
-			auto inverseFirstPanelTf = firstPanelToWorld.Inverse();
-			FTransform vertToUIRootPanel;
-			FTransform::Multiply(&vertToUIRootPanel, &itemTf, &inverseFirstPanelTf);
+			auto rootCanvasToWorld = rootCanvasUIItem->GetComponentTransform();
+			auto inverseRootCanvasTf = rootCanvasToWorld.Inverse();
+			FTransform vertToRootCanvasTf;
+			FTransform::Multiply(&vertToRootCanvasTf, &itemTf, &inverseRootCanvasTf);
 
-			FTransform vertToPanel;
-			FTransform::Multiply(&vertToPanel, &firstPanelToWorld, &inversePanelTf);
+			FTransform vertToCanvas;
+			FTransform::Multiply(&vertToCanvas, &rootCanvasToWorld, &inverseCanvasTf);
 
-			auto panelLeftBottom = FVector2D(-uiRootPanel->GetWidth() * uiRootPanel->GetPivot().X, -uiRootPanel->GetHeight() * uiRootPanel->GetPivot().Y);
+			auto canvasLeftBottom = FVector2D(-rootCanvasUIItem->GetWidth() * rootCanvasUIItem->GetPivot().X, -rootCanvasUIItem->GetHeight() * rootCanvasUIItem->GetPivot().Y);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				tempV3 = vertToUIRootPanel.TransformPosition(vertices[i]);
-				tempV3.X -= panelLeftBottom.X;
-				tempV3.Y -= panelLeftBottom.Y;
+				tempV3 = vertToRootCanvasTf.TransformPosition(vertices[i]);
+				tempV3.X -= canvasLeftBottom.X;
+				tempV3.Y -= canvasLeftBottom.Y;
 				tempV3.X = RoundToFloat(tempV3.X);
 				tempV3.Y = RoundToFloat(tempV3.Y);
-				tempV3.X += panelLeftBottom.X;
-				tempV3.Y += panelLeftBottom.Y;
+				tempV3.X += canvasLeftBottom.X;
+				tempV3.Y += canvasLeftBottom.Y;
 
-				tempV3 = vertToPanel.TransformPosition(tempV3);
+				tempV3 = vertToCanvas.TransformPosition(tempV3);
 
 				transformedVertices[i] = tempV3;
 			}
@@ -1382,7 +1383,7 @@ void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TShared
 	{
 		for (int i = 0; i < vertexCount; i++)
 		{
-			tempV3 = itemToPanelTf.TransformPosition(vertices[i]);
+			tempV3 = itemToCanvasTf.TransformPosition(vertices[i]);
 			transformedVertices[i] = tempV3;
 		}
 	}
@@ -1403,7 +1404,7 @@ void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TShared
 
 		for (int i = 0; i < vertexCount; i++)
 		{
-			transformedNormals[i] = itemToPanelTf.TransformVector(normals[i]);
+			transformedNormals[i] = itemToCanvasTf.TransformVector(normals[i]);
 		}
 	}
 	else
@@ -1426,7 +1427,7 @@ void UIGeometry::TransformVertices(UUIPanel* panel, UUIRenderable* item, TShared
 
 		for (int i = 0; i < vertexCount; i++)
 		{
-			transformedTangents[i] = itemToPanelTf.TransformVector(tangents[i]);
+			transformedTangents[i] = itemToCanvasTf.TransformVector(tangents[i]);
 		}
 	}
 	else

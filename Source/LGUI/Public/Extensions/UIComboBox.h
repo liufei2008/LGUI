@@ -33,7 +33,7 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		class AUIPanelActor* _RootUIActor;
+		class AUIBaseActor* _RootUIActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		class AUIBaseActor* _SrcItemActor;
 	TArray<class UUIComboBoxItem*> _CreatedItemArray;

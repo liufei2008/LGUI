@@ -3,12 +3,15 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIInteractionGroup.h"
 #include "Core/LGUISettings.h"
 #include "Core/UIComponentBase.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PhysicsEngine/BodySetup.h"
+#if WITH_EDITOR
+#include "DrawDebugHelpers.h"
+#endif
 
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
 
@@ -40,7 +43,7 @@ void UUIItem::BeginPlay()
 	bColorChanged = true;
 	bDepthChanged = true;
 	bTransformChanged = true;
-	MarkPanelUpdate();
+	MarkCanvasUpdate();
 }
 
 void UUIItem::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -348,17 +351,16 @@ void UUIItem::EditorForceUpdateImmediately()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
-	if (CheckRenderUIPanel())
+	if (CheckRenderCanvas())
 	{
-		if (RenderUIPanel->GetFirstUIPanel())
+		RenderCanvas->MarkRebuildAllDrawcall();
+		if (RenderCanvas->GetRootCanvas())
 		{
-			RenderUIPanel->GetFirstUIPanel()->MarkAllDirtyRecursive();
-			RenderUIPanel->GetFirstUIPanel()->UpdatePanelGeometry();
+			RenderCanvas->GetRootCanvas()->MarkCanvasUpdate();
 		}
 		else
 		{
-			RenderUIPanel->MarkAllDirtyRecursive();
-			RenderUIPanel->UpdatePanelGeometry();
+			RenderCanvas->MarkCanvasUpdate();
 		}
 	}
 }
@@ -378,7 +380,7 @@ void UUIItem::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETel
 {
 	Super::OnUpdateTransform(UpdateTransformFlags, Teleport);
 	bTransformChanged = true;
-	MarkPanelUpdate();
+	MarkCanvasUpdate();
 }
 void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 {
@@ -398,7 +400,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 
 		CallUIComponentsChildAttachmentChanged(childUIItem, true);
 	}
-	MarkPanelUpdate();
+	MarkCanvasUpdate();
 }
 void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 {
@@ -411,7 +413,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 
 		CallUIComponentsChildAttachmentChanged(childUIItem, false);
 	}
-	MarkPanelUpdate();
+	MarkCanvasUpdate();
 }
 void UUIItem::OnRegister()
 {
@@ -437,33 +439,35 @@ void UUIItem::OnUnregister()
 
 void UUIItem::UIHierarchyChanged()
 {
-	auto oldRenderUIPanel = RenderUIPanel;
-	RenderUIPanel = nullptr;//force find new
-	CheckRenderUIPanel();
-	if (oldRenderUIPanel != RenderUIPanel)//if attach to new UIPanel, need to remove from old and add to new
+	if (isCanvasUIItem)RenderCanvas->OnUIHierarchyChanged();
+
+	auto oldRenderCanvas = RenderCanvas;
+	RenderCanvas = nullptr;//force find new
+	CheckRenderCanvas();
+	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
 	{
 		if (itemType == UIItemType::UIRenderable)
 		{
-			if (oldRenderUIPanel != nullptr)
+			if (oldRenderCanvas != nullptr)
 			{
-				oldRenderUIPanel->RemoveFromDrawcall((UUIRenderable*)this);
-				oldRenderUIPanel->MarkPanelUpdate();
+				oldRenderCanvas->RemoveFromDrawcall((UUIRenderable*)this);
+				oldRenderCanvas->MarkCanvasUpdate();
 			}
-			if (RenderUIPanel != nullptr)
+			if (RenderCanvas != nullptr)
 			{
-				RenderUIPanel->InsertIntoDrawcall((UUIRenderable*)this);
-				RenderUIPanel->MarkPanelUpdate();
+				RenderCanvas->InsertIntoDrawcall((UUIRenderable*)this);
+				RenderCanvas->MarkCanvasUpdate();
 			}
 		}
 		else
 		{
-			if (oldRenderUIPanel != nullptr)
+			if (oldRenderCanvas != nullptr)
 			{
-				oldRenderUIPanel->MarkPanelUpdate();
+				oldRenderCanvas->MarkCanvasUpdate();
 			}
-			if (RenderUIPanel != nullptr)
+			if (RenderCanvas != nullptr)
 			{
-				RenderUIPanel->MarkPanelUpdate();
+				RenderCanvas->MarkCanvasUpdate();
 			}
 		}
 	}
@@ -473,7 +477,10 @@ void UUIItem::UIHierarchyChanged()
 	for (auto item : children)
 	{
 		auto uiItem = Cast<UUIItem>(item);
-		if(uiItem) uiItem->UIHierarchyChanged();
+		if (uiItem)
+		{
+			uiItem->UIHierarchyChanged();
+		}
 	}
 
 	if (auto parent = GetAttachParent())
@@ -542,6 +549,7 @@ bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 		widget.width = width;
 		WidthChanged();
 		sizeChanged = true;
+		if (isCanvasUIItem)RenderCanvas->OnWidthChanged();
 	}
 
 	widget.anchorOffsetX = widget.stretchLeft - (parentWidget.width - widget.width) * 0.5f;
@@ -557,6 +565,7 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 		widget.height = height;
 		HeightChanged();
 		sizeChanged = true;
+		if (isCanvasUIItem)RenderCanvas->OnHeightChanged();
 	}
 
 	widget.anchorOffsetY = widget.stretchBottom - (parentWidget.height - widget.height) * 0.5f;
@@ -574,11 +583,16 @@ void UUIItem::UnregisterVertexPositionChange(const FSimpleDelegate& InDelegate)
 }
 #pragma endregion VertexPositionChangeCallback
 
-bool UUIItem::CheckRenderUIPanel()
+bool UUIItem::CheckRenderCanvas()
 {
-	if (RenderUIPanel != nullptr)return true;
-	LGUIUtils::FindRenderUIPanel(this, RenderUIPanel);
-	if (RenderUIPanel != nullptr)return true;
+	if (RenderCanvas != nullptr)return true;
+	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner());
+	if (RenderCanvas != nullptr)
+	{
+		isCanvasUIItem = (this->GetOwner() == RenderCanvas->GetOwner());
+		return true;
+	}
+	isCanvasUIItem = false;
 	return false;
 }
 
@@ -666,6 +680,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 			WidthChanged();
 			MarkVertexPositionDirty();
 			sizeChanged = true;
+			if (isCanvasUIItem)RenderCanvas->OnWidthChanged();
 		}
 
 		resultLocation.X = -parentWidget.pivot.X * parentWidget.width;
@@ -703,6 +718,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 			HeightChanged();
 			MarkVertexPositionDirty();
 			sizeChanged = true;
+			if (isCanvasUIItem)RenderCanvas->OnHeightChanged();
 		}
 
 		resultLocation.Y = -parentWidget.pivot.Y * parentWidget.height;
@@ -749,7 +765,7 @@ void UUIItem::SetDepth(int32 depth) {
 	if (widget.depth != depth)
 	{
 		bDepthChanged = true;
-		MarkPanelUpdate();
+		MarkCanvasUpdate();
 		widget.depth = depth;
 	}
 }
@@ -777,6 +793,7 @@ void UUIItem::SetWidth(float newWidth)
 		MarkVertexPositionDirty();
 		widget.width = newWidth;
 		WidthChanged();
+		if (isCanvasUIItem)RenderCanvas->OnWidthChanged();
 		if (cacheParentUIItem)
 		{
 			CalculateHorizontalStretchFromAnchorAndSize();
@@ -791,6 +808,7 @@ void UUIItem::SetHeight(float newHeight)
 		MarkVertexPositionDirty();
 		widget.height = newHeight;
 		HeightChanged();
+		if (isCanvasUIItem)RenderCanvas->OnHeightChanged();
 		if (cacheParentUIItem)
 		{
 			CalculateVerticalStretchFromAnchorAndSize();
@@ -1223,16 +1241,16 @@ UUIItem* UUIItem::GetParentAsUIItem()const
 void UUIItem::MarkVertexPositionDirty() 
 { 
 	bVertexPositionChanged = true; 
-	MarkPanelUpdate();
+	MarkCanvasUpdate();
 }
 void UUIItem::MarkColorDirty() 
 { 
 	bColorChanged = true;
-	MarkPanelUpdate();
+	MarkCanvasUpdate();
 }
-void UUIItem::MarkPanelUpdate()
+void UUIItem::MarkCanvasUpdate()
 {
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 
 void UUIItem::SetRaycastTarget(bool NewBool)
@@ -1255,7 +1273,7 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 {
 	if (!bRaycastTarget)return false;
 	if (!IsUIActiveInHierarchy())return false;
-	if (RenderUIPanel == nullptr)return false;
+	if (RenderCanvas == nullptr)return false;
 	auto inverseTf = GetComponentTransform().Inverse();
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
@@ -1285,8 +1303,8 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 
 bool UUIItem::IsScreenSpaceOverlayUI()
 {
-	if (RenderUIPanel == nullptr)return false;
-	return RenderUIPanel->IsScreenSpaceOverlayUI();
+	if (RenderCanvas == nullptr)return false;
+	return RenderCanvas->IsScreenSpaceOverlayUI();
 }
 
 FColor UUIItem::GetFinalColor()const
@@ -1450,12 +1468,13 @@ void UUIItem::ApplyUIActiveState()
 		}
 	}
 #endif
+	if (isCanvasUIItem)RenderCanvas->OnUIActiveStateChange(IsUIActiveInHierarchy());
 	bVertexPositionChanged = true;
 	bColorChanged = true;
 	bDepthChanged = true;
 	bTransformChanged = true;
-	//panel update
-	MarkPanelUpdate();
+	//canvas update
+	MarkCanvasUpdate();
 	//callback
 	CallUIComponentsActiveInHierarchyStateChanged();
 }
@@ -1509,7 +1528,6 @@ UUIItemEditorHelperComp::UUIItemEditorHelperComp()
 #if WITH_EDITOR
 FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 {
-	return nullptr;
 	class FUIItemSceneProxy : public FPrimitiveSceneProxy
 	{
 	public:
@@ -1535,11 +1553,10 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 			relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
 			auto worldLocation = worldTransform.TransformPosition(relativeOffset);
 			//calculate world location
-			auto parentUIItem = Component->GetParentAsUIItem();
-			if (parentUIItem != nullptr)
+			if (Component->GetParentAsUIItem() != nullptr)
 			{
 				FVector relativeLocation = Component->RelativeLocation;
-				const auto& parentWidget = parentUIItem->GetWidget();
+				const auto& parentWidget = Component->GetParentAsUIItem()->GetWidget();
 				switch (widget.anchorHAlign)
 				{
 				case UIAnchorHorizontalAlign::Left:
@@ -1599,7 +1616,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 				auto relativeTf = Component->GetRelativeTransform();
 				relativeTf.SetLocation(relativeLocation);
 				FTransform calculatedWorldTf;
-				FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(parentUIItem->GetComponentTransform()));
+				FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(Component->GetParentAsUIItem()->GetComponentTransform()));
 				worldLocation = calculatedWorldTf.TransformPosition(relativeOffset);
 			}
 
@@ -1609,16 +1626,59 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 				auto& View = Views[ViewIndex];
 				if (VisibilityMap & (1 << ViewIndex))
 				{
-					FColor DrawColor = FColor(128, 128, 128);//gray means normal object
-					//if (IsSelected())//select self
+					bool canDraw = false;
+					FLinearColor DrawColor = FColor(128, 128, 128);//gray means normal object
+					if (LGUIManager::IsSelected_Editor(Component->GetOwner()))//select self
 					{
 						DrawColor = FColor(0, 255, 0);//green means selected object
 						extends += FVector(0, 0, 1);
+						canDraw = true;
+					}
+					else
+					{
+						//parent selected
+						if (Component->GetParentAsUIItem() != nullptr)
+						{
+							if (LGUIManager::IsSelected_Editor(Component->GetParentAsUIItem()->GetOwner()))
+							{
+								canDraw = true;
+							}
+						}
+						//child selected
+						const auto childrenCompArray = Component->GetAttachChildren();
+						for (auto childComp : childrenCompArray)
+						{
+							if (auto uiComp = Cast<UUIItem>(childComp))
+							{
+								if (LGUIManager::IsSelected_Editor(uiComp->GetOwner()))
+								{
+									canDraw = true;
+									break;
+								}
+							}
+						}
+						//other object of same hierarchy is selected
+						if (Component->GetParentAsUIItem() != nullptr)
+						{
+							const auto& sameLevelCompArray = Component->GetParentAsUIItem()->GetAttachChildren();
+							for (auto childComp : sameLevelCompArray)
+							{
+								if (auto uiComp = Cast<UUIItem>(childComp))
+								{
+									if (LGUIManager::IsSelected_Editor(uiComp->GetOwner()))
+									{
+										canDraw = true;
+										break;
+									}
+								}
+							}
+						}
+					}
 
+					if (canDraw)
+					{
 						FPrimitiveDrawInterface* PDI = Collector.GetPDI(ViewIndex);
-						//DrawOrientedWireBox(PDI, worldLocation, worldTransform.GetScaledAxis(EAxis::X), worldTransform.GetScaledAxis(EAxis::Y), worldTransform.GetScaledAxis(EAxis::Z), extends, DrawColor, SDPG_World);
-						DrawDebugSolidBox(Component->GetWorld(), worldLocation, extends, worldTransform.GetRotation(), DrawColor);
-						//DrawBox(PDI, worldTransform.ToMatrixWithScale(), extends, GEngine->ConstraintLimitMaterialPrismatic->GetRenderProxy(false), SDPG_Foreground);
+						DrawOrientedWireBox(PDI, worldLocation, worldTransform.GetScaledAxis(EAxis::X), worldTransform.GetScaledAxis(EAxis::Y), worldTransform.GetScaledAxis(EAxis::Z), extends, DrawColor, SDPG_Foreground);
 					}
 				}
 			}
@@ -1627,11 +1687,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 		virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
 		{
 			FPrimitiveViewRelevance Result;
-			bool needToShow = IsShown(View)
-				&& Component->IsUIActiveInHierarchy()
-				&& Component->GetWorld() != nullptr
-				&& Component->GetWorld()->IsGameWorld();
-			Result.bDrawRelevance = needToShow;
+			Result.bDrawRelevance = true;
 			Result.bDynamicRelevance = true;
 			Result.bShadowRelevance = IsShadowCast(View);
 			Result.bEditorPrimitiveRelevance = UseEditorCompositing(View);

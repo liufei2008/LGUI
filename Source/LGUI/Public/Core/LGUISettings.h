@@ -55,10 +55,10 @@ public:
 	//new created uiitem will use this trace channel;
 	UPROPERTY(EditAnywhere, config, Category = UIItem)
 		TEnumAsByte<ETraceTypeQuery> defaultTraceChannel = TraceTypeQuery3;
-	//if UIPanel update times is greater than this in single frame, than a warning will show in Ouput Log, that means something not good.
+	//if LGUICanvas update times is greater than this in single frame, than a warning will show in Ouput Log, that means something not good.
 	//do not change this unless you know what you doing.
-	UPROPERTY(EditAnywhere, config, Category = UIPanel)
-		int32 maxPanelUpdateTimeInOneFrame = 10;
+	UPROPERTY(EditAnywhere, config, Category = LGUICanvas)
+		int32 maxCanvasUpdateTimeInOneFrame = 10;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;

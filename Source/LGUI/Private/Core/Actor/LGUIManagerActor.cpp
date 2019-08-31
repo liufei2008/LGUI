@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIItem.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Engine/World.h"
 #if WITH_EDITOR
@@ -62,45 +62,45 @@ const TArray<UUIItem*>& ULGUIEditorManagerObject::GetAllUIItem()
 	return allUIItem;
 }
 
-void ULGUIEditorManagerObject::AddUIPanel(UUIPanel* InPanel, bool InSortDepth)
+void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
 {
-	if (InitCheck(InPanel->GetWorld()))
+	if (InitCheck(InCanvas->GetWorld()))
 	{
-		auto& uiPanelArray = Instance->allUIPanel;
-		uiPanelArray.AddUnique(InPanel);
-		//sort on depth
-		uiPanelArray.Sort([](const UUIPanel& A, const UUIPanel& B)
+		auto& canvasArray = Instance->allCanvas;
+		canvasArray.AddUnique(InCanvas);
+		//sort on order
+		canvasArray.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
 		{
-			return A.GetDepth() < B.GetDepth();
+			return A.GetSortOrder() < B.GetSortOrder();
 		});
 	}
 }
-void ULGUIEditorManagerObject::SortUIPanelOnDepth()
+void ULGUIEditorManagerObject::SortCanvasOnOrder()
 {
 	if (Instance != nullptr)
 	{
-		//sort on depth
-		Instance->allUIPanel.Sort([](const UUIPanel& A, const UUIPanel& B)
+		//sort on order
+		Instance->allCanvas.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
 		{
-			return A.GetDepth() < B.GetDepth();
+			return A.GetSortOrder() < B.GetSortOrder();
 		});
 	}
 }
-void ULGUIEditorManagerObject::RemoveUIPanel(UUIPanel* InPanel)
+void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 {
 	if (Instance != nullptr)
 	{
-		Instance->allUIPanel.Remove(InPanel);
+		Instance->allCanvas.Remove(InCanvas);
 	}
 }
-const TArray<UUIPanel*>& ULGUIEditorManagerObject::GetAllUIPanel()
+const TArray<ULGUICanvas*>& ULGUIEditorManagerObject::GetAllCanvas()
 {
-	return allUIPanel;
+	return allCanvas;
 }
 
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
-	for (auto item : allUIPanel)
+	for (auto item : allCanvas)
 	{
 		if (IsValid(item))
 		{
@@ -111,176 +111,22 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		EditorTick.Broadcast(DeltaTime);
 	}
-#if WITH_EDITOR
-	DrawSelectionFrame();
-#endif
 }
 TStatId ULGUIEditorManagerObject::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
 }
 #if WITH_EDITOR
-void ULGUIEditorManagerObject::DrawSelectionFrame()
+bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
 {
-	//draw selection
-	for (auto item : allUIItem)
+	TArray<UObject*> selection;
+	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator());itr;++itr)
 	{
-		if (!IsValid(item))continue;
-		const auto& widget = item->GetWidget();
-		auto worldTransform = item->GetComponentTransform();
-		FVector relativeOffset(0, 0, 0);
-		relativeOffset.X = (0.5f - widget.pivot.X) * widget.width;
-		relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
-		auto worldLocation = worldTransform.TransformPosition(relativeOffset);
-		//calculate world location
-		if (item->GetParentAsUIItem() != nullptr)
+		auto itrActor = Cast<AActor>(*itr);
+		if (itrActor == InObject)
 		{
-			FVector relativeLocation = item->RelativeLocation;
-			const auto& parentWidget = item->GetParentAsUIItem()->GetWidget();
-			switch (widget.anchorHAlign)
-			{
-			case UIAnchorHorizontalAlign::Left:
-			{
-				relativeLocation.X = parentWidget.width * (-parentWidget.pivot.X);
-				relativeLocation.X += widget.anchorOffsetX;
-			}
-			break;
-			case UIAnchorHorizontalAlign::Center:
-			{
-				relativeLocation.X = parentWidget.width * (0.5f - parentWidget.pivot.X);
-				relativeLocation.X += widget.anchorOffsetX;
-			}
-			break;
-			case UIAnchorHorizontalAlign::Right:
-			{
-				relativeLocation.X = parentWidget.width * (1 - parentWidget.pivot.X);
-				relativeLocation.X += widget.anchorOffsetX;
-			}
-			break;
-			case UIAnchorHorizontalAlign::Stretch:
-			{
-				relativeLocation.X = -parentWidget.pivot.X * parentWidget.width;
-				relativeLocation.X += widget.stretchLeft;
-				relativeLocation.X += widget.pivot.X * widget.width;
-			}
-			break;
-			}
-			switch (widget.anchorVAlign)
-			{
-			case UIAnchorVerticalAlign::Top:
-			{
-				relativeLocation.Y = parentWidget.height * (1 - parentWidget.pivot.Y);
-				relativeLocation.Y += widget.anchorOffsetY;
-			}
-			break;
-			case UIAnchorVerticalAlign::Middle:
-			{
-				relativeLocation.Y = parentWidget.height * (0.5f - parentWidget.pivot.Y);
-				relativeLocation.Y += widget.anchorOffsetY;
-			}
-			break;
-			case UIAnchorVerticalAlign::Bottom:
-			{
-				relativeLocation.Y = parentWidget.height * (-parentWidget.pivot.Y);
-				relativeLocation.Y += widget.anchorOffsetY;
-			}
-			break;
-			case UIAnchorVerticalAlign::Stretch:
-			{
-				relativeLocation.Y = -parentWidget.pivot.Y * parentWidget.height;
-				relativeLocation.Y += widget.stretchBottom;
-				relativeLocation.Y += widget.pivot.Y * widget.height;
-			}
-			break;
-			}
-			auto relativeTf = item->GetRelativeTransform();
-			relativeTf.SetLocation(relativeLocation);
-			FTransform calculatedWorldTf;
-			FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(item->GetParentAsUIItem()->GetComponentTransform()));
-			worldLocation = calculatedWorldTf.TransformPosition(relativeOffset);
+			return true;
 		}
-
-		auto extends = FVector(widget.width, widget.height, 0) * 0.5f;
-		auto scale3D = item->GetComponentScale();
-		extends.X *= scale3D.X;
-		extends.Y *= scale3D.Y;
-		extends.Z *= scale3D.Z;
-
-		bool canDraw = false;
-		FColor DrawColor = FColor(128, 128, 128);//gray means normal object
-		if (IsSelected(item))//select self
-		{
-			DrawColor = FColor(0, 255, 0);//green means selected object
-			extends += FVector(0, 0, 1 * scale3D.Z);
-			canDraw = true;
-		}
-		else
-		{
-			//parent selected
-			if (item->GetParentAsUIItem() != nullptr)
-			{
-				if (IsSelected(item->GetParentAsUIItem()))
-				{
-					canDraw = true;
-				}
-			}
-			//child selected
-			const auto childrenCompArray = item->GetAttachChildren();
-			for (auto childComp : childrenCompArray)
-			{
-				if (auto uiComp = Cast<UUIItem>(childComp))
-				{
-					if (IsSelected(uiComp))
-					{
-						canDraw = true;
-						break;
-					}
-				}
-			}
-			//other object of same hierarchy is selected
-			if (item->GetParentAsUIItem() != nullptr)
-			{
-				const auto& sameLevelCompArray = item->GetParentAsUIItem()->GetAttachChildren();
-				for (auto childComp : sameLevelCompArray)
-				{
-					if (auto uiComp = Cast<UUIItem>(childComp))
-					{
-						if (IsSelected(uiComp))
-						{
-							canDraw = true;
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		if (canDraw)
-		{
-			DrawDebugBox(item->GetWorld(), worldLocation, extends, item->GetComponentQuat(), DrawColor);
-		}
-
-		SelectionActorArray.Reset();
-	}
-}
-bool ULGUIEditorManagerObject::IsSelected(UActorComponent* InObject)
-{
-	if (Instance != nullptr)
-	{
-		if (Instance->SelectionActorArray.Num() == 0)
-		{
-			auto selection = GEditor->GetSelectedActors();
-			auto count = selection->Num();
-			for (int i = 0; i < count; i++)
-			{
-				auto obj = (AActor*)(selection->GetSelectedObject(i));
-				if (obj != nullptr)
-				{
-					Instance->SelectionActorArray.Add(obj);
-				}
-			}
-		}
-		return Instance->SelectionActorArray.Contains(InObject->GetOwner());
 	}
 	return false;
 }
@@ -335,7 +181,7 @@ DECLARE_CYCLE_STAT(TEXT("LGUIManagerTick"), STAT_LGUIManagerTick, STATGROUP_LGUI
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
-	for (auto item : allUIPanel)
+	for (auto item : allCanvas)
 	{
 		if (IsValid(item))
 		{
@@ -364,40 +210,40 @@ const TArray<UUIItem*>& ALGUIManagerActor::GetAllUIItem()
 	return allUIItem;
 }
 
-void ALGUIManagerActor::AddUIPanel(UUIPanel* InPanel, bool InSortDepth)
+void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 {
-	if (InitCheck(InPanel->GetWorld()))
+	if (InitCheck(InCanvas->GetWorld()))
 	{
-		auto& uiPanelArray = Instance->allUIPanel;
-		uiPanelArray.AddUnique(InPanel);
+		auto& canvasArray = Instance->allCanvas;
+		canvasArray.AddUnique(InCanvas);
 		//sort on depth
-		uiPanelArray.Sort([](const UUIPanel& A, const UUIPanel& B)
+		canvasArray.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
 		{
-			return A.GetDepth() < B.GetDepth();
+			return A.GetSortOrder() < B.GetSortOrder();
 		});
 	}
 }
-void ALGUIManagerActor::SortUIPanelOnDepth()
+void ALGUIManagerActor::SortCanvasOnOrder()
 {
 	if (Instance != nullptr)
 	{
 		//sort on depth
-		Instance->allUIPanel.Sort([](const UUIPanel& A, const UUIPanel& B)
+		Instance->allCanvas.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
 		{
-			return A.GetDepth() < B.GetDepth();
+			return A.GetSortOrder() < B.GetSortOrder();
 		});
 	}
 }
-void ALGUIManagerActor::RemoveUIPanel(UUIPanel* InPanel)
+void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
 {
 	if (Instance != nullptr)
 	{
-		Instance->allUIPanel.Remove(InPanel);
+		Instance->allCanvas.Remove(InCanvas);
 	}
 }
-const TArray<UUIPanel*>& ALGUIManagerActor::GetAllUIPanel()
+const TArray<ULGUICanvas*>& ALGUIManagerActor::GetAllCanvas()
 {
-	return allUIPanel;
+	return allCanvas;
 }
 
 const TArray<ULGUIBaseRaycaster*>& ALGUIManagerActor::GetRaycasters()
@@ -516,61 +362,61 @@ const TArray<UUIItem*>& LGUIManager::GetAllUIItem(UWorld* InWorld)
 	return ALGUIManagerActor::Instance->GetAllUIItem();
 }
 
-void LGUIManager::AddUIPanel(UUIPanel* InPanel, bool InSortDepth)
+void LGUIManager::AddCanvas(ULGUICanvas* InCanvas)
 {
-	if (IsValid(InPanel->GetWorld()))
+	if (IsValid(InCanvas->GetWorld()))
 	{
 #if WITH_EDITOR
-		if (InPanel->GetWorld()->IsGameWorld())
+		if (InCanvas->GetWorld()->IsGameWorld())
 		{
-			ALGUIManagerActor::AddUIPanel(InPanel);
+			ALGUIManagerActor::AddCanvas(InCanvas);
 		}
-		else if (InPanel->GetWorld()->IsEditorWorld())
+		else if (InCanvas->GetWorld()->IsEditorWorld())
 		{
-			ULGUIEditorManagerObject::AddUIPanel(InPanel);
+			ULGUIEditorManagerObject::AddCanvas(InCanvas);
 		}
 #else
-		ALGUIManagerActor::AddUIPanel(InPanel);
+		ALGUIManagerActor::AddCanvas(InCanvas);
 #endif
 	}
 }
-void LGUIManager::SortUIPanelOnDepth(UWorld* InWorld)
+void LGUIManager::SortCanvasOnOrder(UWorld* InWorld)
 {
 	if (IsValid(InWorld))
 	{
 #if WITH_EDITOR
 		if (InWorld->IsGameWorld())
 		{
-			ALGUIManagerActor::SortUIPanelOnDepth();
+			ALGUIManagerActor::SortCanvasOnOrder();
 		}
 		else if (InWorld->IsEditorWorld())
 		{
-			ULGUIEditorManagerObject::SortUIPanelOnDepth();
+			ULGUIEditorManagerObject::SortCanvasOnOrder();
 		}
 #else
-		ALGUIManagerActor::SortUIPanelOnDepth();
+		ALGUIManagerActor::SortCanvasOnOrder();
 #endif
 	}
 }
-void LGUIManager::RemoveUIPanel(UUIPanel* InPanel)
+void LGUIManager::RemoveCanvas(ULGUICanvas* InCanvas)
 {
-	if (IsValid(InPanel->GetWorld()))
+	if (IsValid(InCanvas->GetWorld()))
 	{
 #if WITH_EDITOR
-		if (InPanel->GetWorld()->IsGameWorld())
+		if (InCanvas->GetWorld()->IsGameWorld())
 		{
-			ALGUIManagerActor::RemoveUIPanel(InPanel);
+			ALGUIManagerActor::RemoveCanvas(InCanvas);
 		}
-		else if (InPanel->GetWorld()->IsEditorWorld())
+		else if (InCanvas->GetWorld()->IsEditorWorld())
 		{
-			ULGUIEditorManagerObject::RemoveUIPanel(InPanel);
+			ULGUIEditorManagerObject::RemoveCanvas(InCanvas);
 		}
 #else
-		ALGUIManagerActor::RemoveUIPanel(InPanel);
+		ALGUIManagerActor::RemoveCanvas(InCanvas);
 #endif
 	}
 }
-const TArray<UUIPanel*>& LGUIManager::GetAllUIPanel(UWorld* InWorld)
+const TArray<ULGUICanvas*>& LGUIManager::GetAllCanvas(UWorld* InWorld)
 {
 	if (IsValid(InWorld))
 	{
@@ -579,27 +425,27 @@ const TArray<UUIPanel*>& LGUIManager::GetAllUIPanel(UWorld* InWorld)
 		{
 			if (ALGUIManagerActor::Instance != nullptr)
 			{
-				return ALGUIManagerActor::Instance->GetAllUIPanel();
+				return ALGUIManagerActor::Instance->GetAllCanvas();
 			}
 		}
 		else if (InWorld->IsEditorWorld())
 		{
 			if (ULGUIEditorManagerObject::Instance != nullptr)
 			{
-				return ULGUIEditorManagerObject::Instance->GetAllUIPanel();
+				return ULGUIEditorManagerObject::Instance->GetAllCanvas();
 			}
 		}
 #else
 		if (ALGUIManagerActor::Instance != nullptr)
 		{
-			return ALGUIManagerActor::Instance->GetAllUIPanel();
+			return ALGUIManagerActor::Instance->GetAllCanvas();
 		}
 #endif
 	}
-	return ALGUIManagerActor::Instance->GetAllUIPanel();
+	return ALGUIManagerActor::Instance->GetAllCanvas();
 }
 #if WITH_EDITOR
-bool LGUIManager::IsSelected_Editor(UActorComponent* InItem)
+bool LGUIManager::IsSelected_Editor(AActor* InItem)
 {
 	return ULGUIEditorManagerObject::IsSelected(InItem);
 }

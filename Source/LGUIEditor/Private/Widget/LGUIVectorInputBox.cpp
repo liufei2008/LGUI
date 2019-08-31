@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 2019 LexLiu. All Rights Reserved.
 
 #include "LGUIVectorInputBox.h"
 #include "Widgets/SBoxPanel.h"

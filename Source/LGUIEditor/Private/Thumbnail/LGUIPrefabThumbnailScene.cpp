@@ -4,7 +4,7 @@
 #include "PrefabSystem/ActorSerializer.h"
 #include "Components/PrimitiveComponent.h"
 #include "ThumbnailRendering/SceneThumbnailInfo.h"
-#include "Core/Actor/UIPanelActor.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "PrefabSystem/ActorCopier.h"
 #include "LGUIEditorModule.h"
 
@@ -52,16 +52,20 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 	{
 		if (auto rootActor = ActorSerializer::LoadPrefabForEdit(GetWorld(), CurrentPrefab.Get(), nullptr))
 		{
-			if (auto rootPanel = Cast<UUIPanel>(rootActor->GetRootComponent()))
+			if (auto rootCanvas = rootActor->FindComponentByClass<ULGUICanvas>())
 			{
-				rootPanel->EditorForceUpdateImmediately();
+				rootCanvas->MarkRebuildAllDrawcall();
+				rootCanvas->MarkCanvasUpdate();
+				rootCanvas->CustomTick(0);
 				IsLGUIPrefab = true;
 			}
 			else if (auto rootUIItem = Cast<UUIItem>(rootActor->GetRootComponent()))
 			{
-				rootPanel = GetWorld()->SpawnActor<AUIPanelActor>()->GetUIPanel();
-				rootUIItem->AttachToComponent(rootPanel, FAttachmentTransformRules::KeepRelativeTransform);
-				rootPanel->EditorForceUpdateImmediately();
+				rootCanvas = NewObject<ULGUICanvas>(rootActor);
+				rootActor->FinishAndRegisterComponent(rootCanvas);
+				rootCanvas->MarkRebuildAllDrawcall();
+				rootCanvas->MarkCanvasUpdate();
+				rootCanvas->CustomTick(0);
 				IsLGUIPrefab = true;
 			}
 			else

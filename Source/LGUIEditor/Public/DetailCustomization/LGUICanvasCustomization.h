@@ -5,13 +5,17 @@
 /**
  * 
  */
-class FUIPanelCustomization : public IDetailCustomization
+class FLGUICanvasCustomization : public IDetailCustomization
 {
 public:
+	FLGUICanvasCustomization();
+	~FLGUICanvasCustomization();
 
 	static TSharedRef<IDetailCustomization> MakeInstance();
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
-	TWeakObjectPtr<class UUIPanel> TargetScriptPtr;
+	TArray<class ULGUICanvas*> TargetScriptArray;
+	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
+	FText GetDrawcallInfo()const;
 };

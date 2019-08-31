@@ -11,7 +11,7 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 	if (auto Property = PropertyChangedEvent.Property)
 	{
 		if (Property->GetFName() != TEXT("defaultTraceChannel")
-			&& Property->GetFName() != TEXT("maxPanelUpdateTimeInOneFrame"))
+			&& Property->GetFName() != TEXT("maxCanvasUpdateTimeInOneFrame"))
 		{
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
 		}

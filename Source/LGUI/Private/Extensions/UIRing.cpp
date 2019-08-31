@@ -3,7 +3,7 @@
 #include "Extensions/UIRing.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 UUIRing::UUIRing()
 {
@@ -12,7 +12,7 @@ UUIRing::UUIRing()
 
 void UUIRing::OnCreateGeometry()
 {
-	UIGeometry::FromUIRing(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), ringWidth, geometry, sprite->GetSpriteInfo(), RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent(), RenderUIPanel->GetRequireUV1());
+	UIGeometry::FromUIRing(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), ringWidth, geometry, sprite->GetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 }
 void UUIRing::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {

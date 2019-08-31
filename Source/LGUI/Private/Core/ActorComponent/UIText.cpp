@@ -3,7 +3,7 @@
 #include "Core/ActorComponent/UIText.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 
 #if WITH_EDITORONLY_DATA
@@ -44,9 +44,9 @@ void UUIText::ApplyFontTextureScaleUp()
 		textGeo.uv3 *= 0.5f;
 	}
 	geometry->texture = font->texture;
-	if (CheckRenderUIPanel())
+	if (CheckRenderCanvas())
 	{
-		RenderUIPanel->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
+		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
 	}
 }
 
@@ -59,9 +59,9 @@ void UUIText::ApplyFontTextureChange()
 		MarkTriangleDirty();
 		MarkTextureDirty();
 		geometry->texture = font->texture;
-		if (CheckRenderUIPanel())
+		if (CheckRenderCanvas())
 		{
-			RenderUIPanel->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
+			RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
 		}
 	}
 }
@@ -157,7 +157,7 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 	{
 		font = ULGUIFontData::GetDefaultFont();
 	}
-	if (!CheckRenderUIPanel())return;
+	if (!CheckRenderCanvas())return;
 	if (visibleCharCount == -1)
 	{
 		visibleCharCount = VisibleCharCountInString(text);
@@ -172,7 +172,7 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 		if (visibleCharCount > 0)//only valid if have visible char
 		{
 			CreateGeometry();
-			RenderUIPanel->MarkRebuildAllDrawcall();
+			RenderCanvas->MarkRebuildAllDrawcall();
 		}
 		else//if not have visible char, just set geometry's properties
 		{
@@ -191,11 +191,11 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 			if (font == nullptr)//font is cleared
 			{
 				geometry->Clear();
-				RenderUIPanel->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 				goto COMPLETE;
 			}
 			CreateGeometry();
-			RenderUIPanel->MarkRebuildAllDrawcall();
+			RenderCanvas->MarkRebuildAllDrawcall();
 			goto COMPLETE;
 		}
 		if (cacheForThisUpdate_DepthChanged)
@@ -203,18 +203,18 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 			if (CustomUIMaterial != nullptr)
 			{
 				CreateGeometry();
-				RenderUIPanel->MarkRebuildAllDrawcall();
+				RenderCanvas->MarkRebuildAllDrawcall();
 			}
 			else
 			{
 				geometry->depth = widget.depth;
-				RenderUIPanel->DepthChangeForDrawcall(this);
+				RenderCanvas->OnUIElementDepthChange(this);
 			}
 		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{
 			CreateGeometry();
-			RenderUIPanel->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -229,7 +229,7 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 			{
 				float width = widget.width;
 				float height = widget.height;
-				UIGeometry::UpdateUITextVertexOrUV(text, width, height, widget.pivot, space, geometry, size, (uint8)hAlign, (uint8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderUIPanel->GetDynamicPixelsPerUnit(), true, cacheForThisUpdate_UVChanged, cachedTextPropertyList, cachedTextGeometryList);
+				UIGeometry::UpdateUITextVertexOrUV(text, width, height, widget.pivot, space, geometry, size, (uint8)hAlign, (uint8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderCanvas->GetDynamicPixelsPerUnit(), true, cacheForThisUpdate_UVChanged, cachedTextPropertyList, cachedTextGeometryList);
 				SetWidth(width);
 				SetHeight(height);
 				vertexChanged = true;
@@ -245,15 +245,15 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 				if (ApplyGeometryModifier())
 				{
 					UIGeometry::CheckAndApplyAdditionalChannel(geometry);
-					RenderUIPanel->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 				}
 				else
 				{
-					RenderUIPanel->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_VertexPositionChanged);
+					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_VertexPositionChanged);
 				}
 				if (cacheForThisUpdate_VertexPositionChanged)
 				{
-					UIGeometry::TransformVertices(RenderUIPanel, this, geometry, RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent());
+					UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
 				}
 			}
 		}
@@ -276,12 +276,12 @@ void UUIText::CreateGeometry()
 	geometry->isFontTexture = true;
 	float width = widget.width;
 	float height = widget.height;
-	UIGeometry::FromUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, (int8)hAlign, (int8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderUIPanel->GetDynamicPixelsPerUnit(), cachedTextPropertyList, cachedTextGeometryList, RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent(), RenderUIPanel->GetRequireUV1());
+	UIGeometry::FromUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, (int8)hAlign, (int8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderCanvas->GetDynamicPixelsPerUnit(), cachedTextPropertyList, cachedTextGeometryList, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 	SetWidth(width);
 	SetHeight(height);
 	ApplyGeometryModifier();
 	UIGeometry::CheckAndApplyAdditionalChannel(geometry);
-	UIGeometry::TransformVertices(RenderUIPanel, this, geometry, RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent());
+	UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
 }
 
 
@@ -350,7 +350,7 @@ FVector2D UUIText::GetRealSize()
 		{
 			float width = widget.width;
 			float height = widget.height;
-			UIGeometry::UpdateUITextVertexOrUV(text, width, height, widget.pivot, space, geometry, size, (uint8)hAlign, (uint8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderUIPanel->GetDynamicPixelsPerUnit(), false, false, cachedTextPropertyList, cachedTextGeometryList);
+			UIGeometry::UpdateUITextVertexOrUV(text, width, height, widget.pivot, space, geometry, size, (uint8)hAlign, (uint8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderCanvas->GetDynamicPixelsPerUnit(), false, false, cachedTextPropertyList, cachedTextGeometryList);
 			SetWidth(width);
 			SetHeight(height);
 		}
@@ -386,7 +386,7 @@ void UUIText::SetFont(ULGUIFontData* newFont) {
 void UUIText::SetText(const FString& newText) {
 	if (text != newText)
 	{
-		if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
+		if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 		text = newText;
 		cachedTextPropertyList.Empty();
 		cachedTextGeometryList.Empty();
@@ -492,7 +492,7 @@ void UUIText::CacheTextGeometry()
 {
 	if (cachedTextGeometryList.Num() != 0)return;//have cache data
 	float charFixOffset = size * (font->fixedVerticalOffset - 0.25f);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
-	bool dynamicPixelsPerUnitIsNot1 = RenderUIPanel->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
+	bool dynamicPixelsPerUnitIsNot1 = RenderCanvas->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text);
@@ -516,7 +516,7 @@ void UUIText::CacheTextGeometry()
 		auto overrideCharData = charData;
 		if (dynamicPixelsPerUnitIsNot1)
 		{
-			auto calcFontSize = size * RenderUIPanel->GetDynamicPixelsPerUnit();
+			auto calcFontSize = size * RenderCanvas->GetDynamicPixelsPerUnit();
 			calcFontSize = calcFontSize > 200 ? 200 : calcFontSize;//limit font size to 200. too large font size will result in large texture
 			overrideCharData = font->GetCharData((uint16)charCode, (uint16)calcFontSize, bold, italic);
 		}
@@ -571,7 +571,7 @@ void UUIText::CheckCachedTextPropertyList()
 		CacheTextGeometry();
 		float width = widget.width;
 		float height = widget.height;
-		UIGeometry::UpdateUITextVertexOrUV(text, width, height, widget.pivot, space, geometry, size, (uint8)hAlign, (uint8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderUIPanel->GetDynamicPixelsPerUnit(), false, false, cachedTextPropertyList, cachedTextGeometryList);
+		UIGeometry::UpdateUITextVertexOrUV(text, width, height, widget.pivot, space, geometry, size, (uint8)hAlign, (uint8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderCanvas->GetDynamicPixelsPerUnit(), false, false, cachedTextPropertyList, cachedTextGeometryList);
 		SetWidth(width);
 		SetHeight(height);
 	}

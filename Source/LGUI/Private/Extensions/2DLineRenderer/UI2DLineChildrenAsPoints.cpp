@@ -3,7 +3,7 @@
 #include "Extensions/2DLineRenderer/UI2DLineChildrenAsPoints.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 UUI2DLineChildrenAsPoints::UUI2DLineChildrenAsPoints()
 {
@@ -59,7 +59,7 @@ void UUI2DLineChildrenAsPoints::OnUIChildHierarchyIndexChanged(UUIItem* child)
 		return false;
 	});
 
-	MarkPanelUpdate();
+	MarkCanvasUpdate();
 }
 
 void UUI2DLineChildrenAsPoints::OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)
@@ -132,5 +132,5 @@ void UUI2DLineChildrenAsPoints::CalculatePoints()
 
 void UUI2DLineChildrenAsPoints::OnChildPositionChanged()
 {
-	MarkPanelUpdate();
+	MarkCanvasUpdate();
 }

@@ -3,7 +3,7 @@
 #include "Extensions/2DLineRenderer/UI2DLineRendererBase.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 DECLARE_CYCLE_STAT(TEXT("UI2DLine Update"), STAT_2DLineUpdate, STATGROUP_LGUI);
 
@@ -285,7 +285,7 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 	//not set anything for uv1
 	int vertexCount = geometry->vertices.Num();
 	//normals
-	if (RenderUIPanel->GetRequireNormal())
+	if (RenderCanvas->GetRequireNormal())
 	{
 		auto& normals = geometry->normals;
 		if (normals.Num() == 0)
@@ -294,7 +294,7 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 		}
 	}
 	//tangents
-	if (RenderUIPanel->GetRequireTangent())
+	if (RenderCanvas->GetRequireTangent())
 	{
 		auto& tangents = geometry->tangents;
 		if (tangents.Num() == 0)
@@ -303,7 +303,7 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 		}
 	}
 	//uvs1
-	if (RenderUIPanel->GetRequireUV1())
+	if (RenderCanvas->GetRequireUV1())
 	{
 		auto& uvs1 = geometry->uvs1;
 		if (uvs1.Num() == 0)
@@ -312,7 +312,7 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 		}
 	}
 	//uvs2
-	if (RenderUIPanel->GetRequireUV2())
+	if (RenderCanvas->GetRequireUV2())
 	{
 		auto& uvs2 = geometry->uvs2;
 		if (uvs2.Num() == 0)
@@ -321,7 +321,7 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 		}
 	}
 	//uvs3
-	if (RenderUIPanel->GetRequireUV3())
+	if (RenderCanvas->GetRequireUV3())
 	{
 		auto& uvs3 = geometry->uvs3;
 		if (uvs3.Num() == 0)

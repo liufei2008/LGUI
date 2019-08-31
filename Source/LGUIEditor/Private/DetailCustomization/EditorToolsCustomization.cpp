@@ -6,7 +6,6 @@
 #include "LGUIEditorUtils.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"
-#include "Core/Actor/UIPanelActor.h"
 #include "Core/Actor/UISpriteActor.h"
 #include "Core/Actor/UITextActor.h"
 #include "Core/Actor/UITextureActor.h"
@@ -32,7 +31,6 @@ void FEditorToolsCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 	}
 	
 	IDetailCategoryBuilder& createBaseCategory = DetailBuilder.EditCategory("UI Create Base Element");
-	createBaseCategory.AddProperty("UIPanel");
 	createBaseCategory.AddProperty("UIContainer");
 	createBaseCategory.AddProperty("UISprite");
 	createBaseCategory.AddProperty("UIText");
@@ -45,7 +43,6 @@ void FEditorToolsCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 		if (ClassItr->IsChildOf(AUIBaseActor::StaticClass()))
 		{
 			if (*ClassItr != AUIContainerActor::StaticClass()
-				&& *ClassItr != AUIPanelActor::StaticClass()
 				&& *ClassItr != AUISpriteActor::StaticClass()
 				&& *ClassItr != AUITextActor::StaticClass()
 				&& *ClassItr != AUITextureActor::StaticClass()

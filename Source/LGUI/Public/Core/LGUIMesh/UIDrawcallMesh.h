@@ -24,7 +24,7 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 private:
-	friend class UUIPanel;
+	friend class ULGUICanvas;
 	//prev vertex and triangle index count, for us to tell which data should we update
 	int prevVertexCount = 0;
 	int prevIndexCount = 0;

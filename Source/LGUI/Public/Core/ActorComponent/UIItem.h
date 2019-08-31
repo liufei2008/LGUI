@@ -8,16 +8,14 @@
 #include "Components/PrimitiveComponent.h"
 #include "UIItem.generated.h"
 
-class UUIPanel;
-class UUIItem;
+class ULGUICanvas;
 
 UENUM(BlueprintType)
 enum class UIItemType :uint8
 {
-	None 				UMETA(DisplayName = "UIDefaultNone"),
-	UIItem 				UMETA(DisplayName = "UIItem"),
-	UIRenderable		UMETA(DisplayName = "UIRenderable"),
-	UIPanel  			UMETA(DisplayName = "UIPanel"),
+	None,
+	UIItem,
+	UIRenderable,
 };
 
 UCLASS(HideCategories = ( LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
@@ -225,7 +223,7 @@ public:
 
 	FORCEINLINE void MarkVertexPositionDirty();
 	FORCEINLINE void MarkColorDirty();
-	FORCEINLINE virtual void MarkPanelUpdate();
+	FORCEINLINE virtual void MarkCanvasUpdate();
 
 	//mark all dirty for UI element to update, include all children
 	virtual void MarkAllDirtyRecursive();
@@ -299,17 +297,21 @@ public:
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End);
 #pragma endregion
 
-	FORCEINLINE UUIPanel* GetRenderUIPanel() const { return RenderUIPanel; }
+	FORCEINLINE ULGUICanvas* GetRenderCanvas() const { return RenderCanvas; }
 	FORCEINLINE virtual bool IsScreenSpaceOverlayUI();
 
 	//get UI element type
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UIItemType GetUIItemType()const { return itemType; }
+	FORCEINLINE bool IsCanvasUIItem() { return isCanvasUIItem; }
 protected:
 	friend class FUIItemCustomization;
+	friend class ULGUICanvas;
 	UIItemType itemType = UIItemType::None;
-	//UIPanel which render this UI element
-	UPROPERTY(Transient) UUIPanel* RenderUIPanel = nullptr;
+	//LGUICanvas which render this UI element
+	UPROPERTY(Transient) ULGUICanvas* RenderCanvas = nullptr;
+	//is this UIItem's actor have LGUICanvas component
+	bool isCanvasUIItem = false;
 
 	bool bDepthChanged = true;//depth changed
 	bool bVertexPositionChanged = true;//vertex position changed
@@ -318,13 +320,13 @@ protected:
 	//update prev frame's data
 	virtual void UpdateBasePrevData();
 
-	//use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell UIPanel to update again 
+	//use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again 
 	bool cacheForThisUpdate_DepthChanged, cacheForThisUpdate_VertexPositionChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_TransformChanged;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 
-	//find UIPanel which render this UI element
-	FORCEINLINE bool CheckRenderUIPanel();
+	//find LGUICanvas which render this UI element
+	FORCEINLINE bool CheckRenderCanvas();
 
 	FORCEINLINE bool IsFloatNotEqual(float a, float b);
 	FORCEINLINE bool IsVectorNotEqual(FVector a, FVector b);

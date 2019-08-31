@@ -12,7 +12,7 @@
 #endif
 
 class UUIItem;
-class UUIPanel;
+class ULGUICanvas;
 
 class LGUI_API LGUIUtils
 {
@@ -103,12 +103,10 @@ public:
 	static void SortUIItemDepth(TArray<TSharedPtr<class UIGeometry>>& shapeList);
 	//create drawcall
 	static void CreateDrawcallFast(TArray<class UUIRenderable*>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
-	//find first UIPanel
-	static void FindFirstUIPanel(UUIItem* uiItem, UUIPanel*& resultUIPanel);
-	//find render UIPanel
-	static void FindRenderUIPanel(UUIItem* uiItem, UUIPanel*& resultUIPanel);
-	//find parent UIPanel
-	static void FindParentUIPanel(UUIItem* uiItem, UUIPanel*& resultUIPanel);
+	//find root LGUICanvas
+	static void FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
+	//find LGUICanvas component in parent, not include self
+	static void FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
 	static float INV_255;
 	static FColor MultiplyColor(FColor A, FColor B);
 #if WITH_EDITOR

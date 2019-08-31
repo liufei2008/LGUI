@@ -3,7 +3,7 @@
 #include "Extensions/2DLineRenderer/UI2DLineRaw.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 UUI2DLineRaw::UUI2DLineRaw()
 {
