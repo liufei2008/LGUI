@@ -34,7 +34,7 @@ public:
 	{}
 };
 
-DECLARE_CYCLE_STAT(TEXT("LGUIUpdateMeshSection_RenderThread"), STAT_LGUIMesh_UpdateSectionRT, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UpdateMeshSection_RenderThread"), STAT_UpdateMeshSectionRT, STATGROUP_LGUI);
 /** LGUI mesh scene proxy */
 class FLGUIMeshSceneProxy : public FPrimitiveSceneProxy, public ILGUIHudPrimitive
 {
@@ -139,30 +139,50 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint16* MeshIndexData, uint32 IndexDataLength)
+	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint16* MeshIndexData, uint32 IndexDataLength, int8 AdditionalChannelFlags)
 	{
-		SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_UpdateSectionRT);
+		SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionRT);
 
 		check(IsInRenderingThread());
 
 		// Check it references a valid section
 		if (Section != nullptr)
 		{
-			for (int i = 0; i < NumVerts; i++)
 			{
-				const FDynamicMeshVertex& LGUIVert = MeshVertexData[i];
-				FDynamicMeshVertex Vertex = LGUIVert;
-
-				Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = Vertex.Position;
-				Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexTangents(i
-					, Vertex.TangentX.ToFVector()
-					, Vertex.GetTangentY()
-					, Vertex.TangentZ.ToFVector());
-				Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 0, Vertex.TextureCoordinate[0]);
-				Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 1, Vertex.TextureCoordinate[1]);
-				Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 2, Vertex.TextureCoordinate[2]);
-				Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 3, Vertex.TextureCoordinate[3]);
-				Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = Vertex.Color;
+				if (AdditionalChannelFlags == 0)
+				{
+					for (int i = 0; i < NumVerts; i++)
+					{
+						const FDynamicMeshVertex& LGUIVert = MeshVertexData[i];
+						Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = LGUIVert.Position;
+						Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 0, LGUIVert.TextureCoordinate[0]);
+						Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = LGUIVert.Color;
+					}
+				}
+				else
+				{
+					bool requireNormal = (AdditionalChannelFlags & (1 << 0)) != 0;
+					bool requireTangent = (AdditionalChannelFlags & (1 << 1)) != 0;
+					bool requireNormalOrTangent = requireNormal || requireTangent;
+					bool requireUV1 = (AdditionalChannelFlags & (1 << 2)) != 0;
+					bool requireUV2 = (AdditionalChannelFlags & (1 << 3)) != 0;
+					bool requireUV3 = (AdditionalChannelFlags & (1 << 4)) != 0;
+					for (int i = 0; i < NumVerts; i++)
+					{
+						const FDynamicMeshVertex& LGUIVert = MeshVertexData[i];
+						Section->VertexBuffers.PositionVertexBuffer.VertexPosition(i) = LGUIVert.Position;
+						Section->VertexBuffers.ColorVertexBuffer.VertexColor(i) = LGUIVert.Color;
+						if (requireNormalOrTangent)
+							Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexTangents(i, LGUIVert.TangentX.ToFVector(), LGUIVert.GetTangentY(), LGUIVert.TangentZ.ToFVector());
+						Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 0, LGUIVert.TextureCoordinate[0]);
+						if (requireUV1)
+							Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 1, LGUIVert.TextureCoordinate[1]);
+						if (requireUV2)
+							Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 2, LGUIVert.TextureCoordinate[2]);
+						if (requireUV3)
+							Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 3, LGUIVert.TextureCoordinate[3]);
+					}
+				}
 			}
 
 			{
@@ -369,10 +389,10 @@ void ULGUIMeshComponent::CreateMeshSection()
 	MarkRenderStateDirty(); // New section requires recreating scene proxy
 }
 
-DECLARE_CYCLE_STAT(TEXT("LGUIUpdateMeshSection"), STAT_LGUIUpdateMeshSection, STATGROUP_LGUI);
-void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged)
+DECLARE_CYCLE_STAT(TEXT("UpdateMeshSection"), STAT_UpdateMeshSection, STATGROUP_LGUI);
+void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 AddiotnalShaderChannelFlags)
 {
-	SCOPE_CYCLE_COUNTER(STAT_LGUIUpdateMeshSection);
+	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSection);
 	if (InVertexPositionChanged)
 	{
 		MeshSection.SectionLocalBox.Init();
@@ -396,19 +416,31 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged)
 		const auto& tangents = MeshSection.tangents;
 		const int32 NumVerts = vertices.Num();
 		FDynamicMeshVertex* VertexBufferData = new FDynamicMeshVertex[NumVerts];
-		// Iterate through vertex data, copying in new info
-		for (int32 VertIdx = 0; VertIdx < NumVerts; VertIdx++)
+		if (AddiotnalShaderChannelFlags == 0)
 		{
-			FDynamicMeshVertex& Vert = VertexBufferData[VertIdx];
-			Vert.Position = vertices[VertIdx];
-			Vert.Color = colors[VertIdx];
-			Vert.TextureCoordinate[0] = uvs[VertIdx];
-			Vert.TextureCoordinate[1] = uvs1[VertIdx];
-			Vert.TextureCoordinate[2] = uvs2[VertIdx];
-			Vert.TextureCoordinate[3] = uvs3[VertIdx];
-			Vert.TangentZ = normals[VertIdx];
-			Vert.TangentZ.Vector.W = -127;
-			Vert.TangentX = tangents[VertIdx];
+			for (int32 VertIdx = 0; VertIdx < NumVerts; VertIdx++)
+			{
+				FDynamicMeshVertex& Vert = VertexBufferData[VertIdx];
+				Vert.Position = vertices[VertIdx];
+				Vert.Color = colors[VertIdx];
+				Vert.TextureCoordinate[0] = uvs[VertIdx];
+			}
+		}
+		else
+		{
+			for (int32 VertIdx = 0; VertIdx < NumVerts; VertIdx++)
+			{
+				FDynamicMeshVertex& Vert = VertexBufferData[VertIdx];
+				Vert.Position = vertices[VertIdx];
+				Vert.Color = colors[VertIdx];
+				Vert.TextureCoordinate[0] = uvs[VertIdx];
+				Vert.TextureCoordinate[1] = uvs1[VertIdx];
+				Vert.TextureCoordinate[2] = uvs2[VertIdx];
+				Vert.TextureCoordinate[3] = uvs3[VertIdx];
+				Vert.TangentZ = normals[VertIdx];
+				Vert.TangentZ.Vector.W = -127;
+				Vert.TangentX = tangents[VertIdx];
+			}
 		}
 		//index data
 		auto& triangles = MeshSection.triangles;
@@ -416,15 +448,16 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged)
 		uint16* IndexBufferData = new uint16[NumTriangles];
 		uint32 IndexDataLength = NumTriangles * sizeof(uint16);
 		FMemory::Memcpy(IndexBufferData, triangles.GetData(), IndexDataLength);
-		ENQUEUE_UNIQUE_RENDER_COMMAND_FIVEPARAMETER(
+		ENQUEUE_UNIQUE_RENDER_COMMAND_SIXPARAMETER(
 			FLGUIMeshUpdate,
 			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
 			FDynamicMeshVertex*, VertexBufferData, VertexBufferData,
 			int32, NumVerts, NumVerts,
 			uint16*, IndexBufferData, IndexBufferData,
 			uint32, IndexDataLength, IndexDataLength,
+			int8, AddiotnalShaderChannelFlags, AddiotnalShaderChannelFlags,
 			{
-				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength);
+				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AddiotnalShaderChannelFlags);
 			}
 		)
 	}
