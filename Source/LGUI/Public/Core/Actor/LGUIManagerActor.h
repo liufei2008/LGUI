@@ -8,7 +8,7 @@
 #include "LGUIManagerActor.generated.h"
 
 class UUIItem;
-class UUIPanel;
+class ULGUICanvas;
 class ULGUIBaseRaycaster;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
@@ -35,29 +35,24 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUIPanel*> allUIPanel;
+		TArray<ULGUICanvas*> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
 private:
 	static bool InitCheck(UWorld* InWorld);
 #if WITH_EDITOR
 public:
-	static bool IsSelected(UActorComponent* InObject);
-private:
-	void DrawSelectionFrame();
-#endif
-#if WITH_EDITORONLY_DATA
-	TArray<AActor*> SelectionActorArray;
+	static bool IsSelected(AActor* InObject);
 #endif
 public:
 	FORCEINLINE static void AddUIItem(UUIItem* InItem);
 	FORCEINLINE static void RemoveUIItem(UUIItem* InItem);
 	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem();
 
-	FORCEINLINE static void AddUIPanel(UUIPanel* InPanel, bool InSortDepth = true);
-	FORCEINLINE static void SortUIPanelOnDepth();
-	FORCEINLINE static void RemoveUIPanel(UUIPanel* InPanel);
-	FORCEINLINE const TArray<UUIPanel*>& GetAllUIPanel();
+	FORCEINLINE static void AddCanvas(ULGUICanvas* InCanvas);
+	FORCEINLINE static void SortCanvasOnOrder();
+	FORCEINLINE static void RemoveCanvas(ULGUICanvas* InCanvas);
+	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas();
 };
 
 UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
@@ -75,7 +70,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUIPanel*> allUIPanel;
+		TArray<ULGUICanvas*> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
 private:
@@ -86,10 +81,10 @@ public:
 	FORCEINLINE static void RemoveUIItem(UUIItem* InItem);
 	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem();
 
-	FORCEINLINE static void AddUIPanel(UUIPanel* InPanel, bool InSortDepth = true);
-	FORCEINLINE static void SortUIPanelOnDepth();
-	FORCEINLINE static void RemoveUIPanel(UUIPanel* InPanel);
-	FORCEINLINE const TArray<UUIPanel*>& GetAllUIPanel();
+	FORCEINLINE static void AddCanvas(ULGUICanvas* InCanvas);
+	FORCEINLINE static void SortCanvasOnOrder();
+	FORCEINLINE static void RemoveCanvas(ULGUICanvas* InCanvas);
+	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas();
 
 	FORCEINLINE const TArray<ULGUIBaseRaycaster*>& GetRaycasters();
 	FORCEINLINE static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
@@ -105,11 +100,11 @@ public:
 	FORCEINLINE static void RemoveUIItem(UUIItem* InItem);
 	FORCEINLINE static const TArray<UUIItem*>& GetAllUIItem(UWorld* InWorld);
 
-	FORCEINLINE static void AddUIPanel(UUIPanel* InPanel, bool InSortDepth = true);
-	FORCEINLINE static void SortUIPanelOnDepth(UWorld* InWorld);
-	FORCEINLINE static void RemoveUIPanel(UUIPanel* InPanel);
-	static const TArray<UUIPanel*>& GetAllUIPanel(UWorld* InWorld);
+	FORCEINLINE static void AddCanvas(ULGUICanvas* InCanvas);
+	FORCEINLINE static void SortCanvasOnOrder(UWorld* InWorld);
+	FORCEINLINE static void RemoveCanvas(ULGUICanvas* InCanvas);
+	static const TArray<ULGUICanvas*>& GetAllCanvas(UWorld* InWorld);
 #if WITH_EDITOR
-	static bool IsSelected_Editor(UActorComponent* InItem);
+	static bool IsSelected_Editor(AActor* InItem);
 #endif
 };

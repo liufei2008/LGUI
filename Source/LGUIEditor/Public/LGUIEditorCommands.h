@@ -31,5 +31,4 @@ public:
 	TSharedPtr<FUICommandInfo> PreserveSceneoutlinerHierarchy;
 
 	TSharedPtr<FUICommandInfo> OpenAtlasViewer;
-	TSharedPtr<FUICommandInfo> OpenScreenSpaceUIViewer;
 };

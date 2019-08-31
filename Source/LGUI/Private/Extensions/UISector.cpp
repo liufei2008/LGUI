@@ -11,7 +11,7 @@ UUISector::UUISector()
 
 void UUISector::OnCreateGeometry()
 {
-	UIGeometry::FromUISector(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), geometry, sprite->GetSpriteInfo(), RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent(), RenderUIPanel->GetRequireUV1());
+	UIGeometry::FromUISector(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), geometry, sprite->GetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 }
 void UUISector::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {

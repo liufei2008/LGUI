@@ -1,15 +1,11 @@
 // Copyright 2019 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UIPanelCustomization.h"
+#include "Window/LGUIEditorTools.h"
+#include "Core/ActorComponent/UIPanel.h"
+#include "LGUIEditorUtils.h"
 
-#define LOCTEXT_NAMESPACE "UIPanelComponentDetails"
-FUIPanelCustomization::FUIPanelCustomization()
-{
-}
-
-FUIPanelCustomization::~FUIPanelCustomization()
-{
-}
+#define LOCTEXT_NAMESPACE "UIPanelCustomization"
 
 TSharedRef<IDetailCustomization> FUIPanelCustomization::MakeInstance()
 {
@@ -19,84 +15,30 @@ void FUIPanelCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder
 {
 	TArray<TWeakObjectPtr<UObject>> targetObjects;
 	DetailBuilder.GetObjectsBeingCustomized(targetObjects);
-	TargetScriptArray.Empty();
-	for (auto item : targetObjects)
+	TargetScriptPtr = Cast<UUIPanel>(targetObjects[0].Get());
+	if (TargetScriptPtr != nullptr)
 	{
-		if (auto validItem = Cast<UUIPanel>(item.Get()))
-		{
-			TargetScriptArray.Add(validItem);
-			if (validItem->GetWorld() != nullptr && validItem->GetWorld()->WorldType == EWorldType::Editor)
-			{
-				validItem->EditorForceUpdateImmediately();
-			}
-		}
-	}
-	if (TargetScriptArray.Num() == 0)
-	{
-		UE_LOG(LGUIEditor, Log, TEXT("[UIPanelCustomization]Get TargetScript is null"));
-		return;
-	}
-	
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
-	const FText widgetText = LOCTEXT("UIWidget", "UIWidget properties");
 
-	auto clipTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIPanel, clipType));
-	clipTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUIPanelCustomization::ForceRefresh, &DetailBuilder));
-	uint8 clipType;
-	clipTypeHandle->GetValue(clipType);
-	TArray<FName> needToHidePropertyNameForClipType;
-	if (clipType == (uint8)(UIPanelClipType::None))
-	{
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(UUIPanel, clipFeather));
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(UUIPanel, clipTexture));
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(UUIPanel, clipRectOffset));
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(UUIPanel, inheritRectClip));
 	}
-	else if (clipType == (uint8)UIPanelClipType::Rect)
+	else
 	{
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(UUIPanel, clipTexture));
-	}
-	else if (clipType == (uint8)UIPanelClipType::Texture)
-	{
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(UUIPanel, clipFeather));
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(UUIPanel, clipRectOffset));
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(UUIPanel, inheritRectClip));
+		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 	}
 
-	for (auto item : needToHidePropertyNameForClipType)
-	{
-		DetailBuilder.HideProperty(item);
-	}
-
-	category.AddCustomRow(LOCTEXT("DrawcallInfo", "DrawcallInfo"))
-		.NameContent()
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(TEXT("DrawcallCount")))
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-		]
-		.ValueContent()
-		[
-			SNew(STextBlock)
-			.Text(this, &FUIPanelCustomization::GetDrawcallInfo)
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-		]
-		;
-}
-void FUIPanelCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
-{
-	if (DetailBuilder)
-	{
-		DetailBuilder->ForceRefreshDetails();
-	}
-}
-FText FUIPanelCustomization::GetDrawcallInfo()const
-{
-	int drawcallCount = 0;
-	if (TargetScriptArray[0] != nullptr)
-	{
-		drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
-	}
-	return FText::FromString(FString::Printf(TEXT("%d"), drawcallCount));
+	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("DeprecatedInfo", FText::GetEmpty(), ECategoryPriority::Variable);
+	lguiCategory.AddCustomRow(LOCTEXT("Tips", "Tips"))
+	.WholeRowContent()
+	[
+		SNew(STextBlock)
+		.Text(FText::FromString(FString(TEXT("This UIPanel component is deprecated, will be removed in future release. Follow these steps to update:\
+			\n1. Add a LGUICanvas component to the actor\
+			\n2. Select UIPanel component, click button from menu \"LGUI Tools/Copy Component Values\"\
+			\n3. Select LGUICanvas component you just added, click button from menu \"LGUI Tools/Paste Component Values\"\
+			\n4. Set LGUICanvas's SortOrder value with UIPanel's Depth value\
+			\n5. Select the actor, click button from menu \"LGUI Tools/Replace this by.../UIContainer\""))))
+		.ColorAndOpacity(FLinearColor(FColor::Red))
+		.AutoWrapText(true)
+	]
+	;
 }
 #undef LOCTEXT_NAMESPACE

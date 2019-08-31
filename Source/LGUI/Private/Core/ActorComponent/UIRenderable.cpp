@@ -2,7 +2,7 @@
 
 #include "Core/ActorComponent/UIRenderable.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Utils/LGUIUtils.h"
 #include "GeometryModifier/UIGeometryModifierBase.h"
 
@@ -18,15 +18,15 @@ UUIRenderable::UUIRenderable()
 void UUIRenderable::BeginPlay()
 {
 	Super::BeginPlay();
-	if (CheckRenderUIPanel())
+	if (CheckRenderCanvas())
 	{
-		RenderUIPanel->MarkRebuildAllDrawcall();
+		RenderCanvas->MarkRebuildAllDrawcall();
+		RenderCanvas->MarkCanvasUpdate();
 	}
 	bUVChanged = true;
 	bTriangleChanged = true;
 	bTextureChanged = true;
 	bMaterialChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
 }
 
 void UUIRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -45,9 +45,9 @@ void UUIRenderable::ApplyUIActiveState()
 		if (geometry->vertices.Num() != 0)
 		{
 			geometry->Clear();
-			if (CheckRenderUIPanel())
+			if (CheckRenderCanvas())
 			{
-				RenderUIPanel->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			}
 		}
 	}
@@ -67,22 +67,22 @@ void UUIRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 void UUIRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 void UUIRenderable::MarkTriangleDirty()
 {
 	bTriangleChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 void UUIRenderable::MarkTextureDirty()
 {
 	bTextureChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 void UUIRenderable::MarkMaterialDirty()
 {
 	bMaterialChanged = true;
-	if (CheckRenderUIPanel()) RenderUIPanel->MarkPanelUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 
 void UUIRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)
@@ -141,15 +141,15 @@ void UUIRenderable::MarkAllDirtyRecursive()
 	bMaterialChanged = true;
 	Super::MarkAllDirtyRecursive();
 }
-bool UUIRenderable::ShouldSnapPixel()
+bool UUIRenderable::ShouldRenderPixelPerfect()
 {
-	if (CheckRenderUIPanel())
+	if (CheckRenderCanvas())
 	{
-		return RenderUIPanel->ShouldSnapPixel();
+		return RenderCanvas->GetPixelPerfect();
 	}
 	return false;
 }
-void UUIRenderable::SetCustomUIMaterial(UMaterial* inMat)
+void UUIRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 {
 	if (CustomUIMaterial != inMat)
 	{
@@ -159,8 +159,8 @@ void UUIRenderable::SetCustomUIMaterial(UMaterial* inMat)
 }
 UMaterialInstanceDynamic* UUIRenderable::GetMaterialInstanceDynamic()
 {
-	if (!CheckRenderUIPanel())return nullptr;
-	return RenderUIPanel->GetMaterialInstanceDynamicForDrawcall(geometry->drawcallIndex);
+	if (!CheckRenderCanvas())return nullptr;
+	return RenderCanvas->GetMaterialInstanceDynamicForDrawcall(geometry->drawcallIndex);
 }
 bool UUIRenderable::HaveGeometryModifier()
 {
@@ -215,7 +215,7 @@ bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const 
 	{
 		if (!bRaycastTarget)return false;
 		if (!IsUIActiveInHierarchy())return false;
-		if (RenderUIPanel == nullptr)return false;
+		if (RenderCanvas == nullptr)return false;
 		auto inverseTf = GetComponentTransform().Inverse();
 		auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 		auto localSpaceRayEnd = inverseTf.TransformPosition(End);

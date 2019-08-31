@@ -6,8 +6,7 @@
 #include "UIRenderable.generated.h"
 
 class UIGeometry;
-class ULGUIMeshCollider;
-//UI element which have render geometry, and can be renderred by UIPanel
+//UI element which have render geometry, and can be renderred by LGUICanvas
 UCLASS(Abstract)
 class LGUI_API UUIRenderable : public UUIItem
 {
@@ -38,7 +37,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInterface* GetCustomUIMaterial()const { return CustomUIMaterial; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetCustomUIMaterial(UMaterial* inMat);
+		void SetCustomUIMaterial(UMaterialInterface* inMat);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetRaycastComplex() { return bRaycastComplex; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -51,7 +50,7 @@ public:
 	FORCEINLINE void MarkTriangleDirty();
 	FORCEINLINE void MarkTextureDirty();
 	FORCEINLINE void MarkMaterialDirty();
-	FORCEINLINE virtual bool ShouldSnapPixel();
+	FORCEINLINE virtual bool ShouldRenderPixelPerfect();
 
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);

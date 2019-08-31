@@ -3,7 +3,8 @@
 #include "Extensions/UIComboBox.h"
 #include "Extensions/UIComboBoxItem.h"
 #include "Event/LGUIEventSystemActor.h"
-#include "Core/Actor/UIPanelActor.h"
+#include "Core/Actor/UIBaseActor.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUIBPLibrary.h"
 #include "PrefabSystem/LGUIPrefab.h"
 
@@ -82,8 +83,9 @@ void UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemNameArray
 	}
 	auto loadedActor = ULGUIBPLibrary::LoadPrefab(InParentActor, prefab, InParentActor->GetRootComponent());
 	auto script = loadedActor->FindComponentByClass<UUIComboBox>();
-	auto rootUIPanel = script->_RootUIActor->GetUIPanel();
-	rootUIPanel->SetUIPanelDepthToHighestOfHierarchy(true);
+	auto rootCanvas = script->_RootUIActor->FindComponentByClass<ULGUICanvas>();
+	rootCanvas->SetSortOrderToHighestOfHierarchy(true);
+	auto rootUIItem = script->_RootUIActor->GetUIItem();
 	FVector2D pivot(0.5f, 0);
 	float anchorOffsetY = 0;
 	switch (InPosition)
@@ -91,20 +93,20 @@ void UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemNameArray
 	case EComboBoxPosition::Top:
 	{
 		pivot.Y = 0.0f;
-		rootUIPanel->SetAnchorVAlign(UIAnchorVerticalAlign::Top, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top, false);
 	}break;
 	case EComboBoxPosition::Middle:
 	{
 		pivot.Y = 0.5f;
-		rootUIPanel->SetAnchorVAlign(UIAnchorVerticalAlign::Middle, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle, false);
 	}break;
 	case EComboBoxPosition::Bottom:
 	{
 		pivot.Y = 1.0f;
-		rootUIPanel->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom, false);
 	}break;
 	}
-	rootUIPanel->SetPivot(pivot);
+	rootUIItem->SetPivot(pivot);
 	script->CreateFromArray_Internal(InItemNameArray, InSelectedItemIndex, InCallback);
 }
 void UUIComboBox::OnClickItem(const int32& InItemIndex, const FString& InItemName)

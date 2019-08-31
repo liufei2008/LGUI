@@ -3,7 +3,7 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 
 UUISprite::UUISprite()
@@ -36,12 +36,12 @@ void UUISprite::OnCreateGeometry()
 	switch (type)
 	{
 	case UISpriteType::Normal:
-		UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, sprite->GetSpriteInfo(), RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent(), RenderUIPanel->GetRequireUV1());
+		UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, sprite->GetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 		break;
 	case UISpriteType::Sliced:
 	case UISpriteType::SlicedFrame:
 	{
-		UIGeometry::FromUIRectBorder(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, sprite->GetSpriteInfo(), type == UISpriteType::Sliced, RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent(), RenderUIPanel->GetRequireUV1());
+		UIGeometry::FromUIRectBorder(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, sprite->GetSpriteInfo(), type == UISpriteType::Sliced, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 	}
 	break;
 	case UISpriteType::Tiled:
@@ -50,13 +50,13 @@ void UUISprite::OnCreateGeometry()
 		{
 			WidthChanged();
 			HeightChanged();
-			UIGeometry::FromUIRectTiled(widget.width, widget.height, widget.pivot, GetFinalColor(), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize, geometry, sprite->GetSpriteInfo(), RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent(), RenderUIPanel->GetRequireUV1());
+			UIGeometry::FromUIRectTiled(widget.width, widget.height, widget.pivot, GetFinalColor(), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize, geometry, sprite->GetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 		}
 		else
 		{
 			FLGUISpriteInfo tempSpriteInfo;
 			tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / sprite->GetSpriteTexture()->GetSurfaceWidth(), 1.0f / sprite->GetSpriteTexture()->GetSurfaceHeight());
-			UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, &tempSpriteInfo, RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent(), RenderUIPanel->GetRequireUV1());
+			UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, &tempSpriteInfo, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 		}
 	}
 		break;

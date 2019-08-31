@@ -1,6 +1,7 @@
 ﻿// Copyright 2019 LexLiu. All Rights Reserved.
 
 #include "GeometryModifier/UIEffectPositionAsUV.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
 
 
@@ -13,7 +14,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 {
 	auto uiRenderable = GetRenderableUIItem();
 	if (!uiRenderable)return;
-	auto uiPanel = uiRenderable->GetRenderUIPanel();
+	auto renderCanvas = uiRenderable->GetRenderCanvas();
 	auto& vertices = InGeometry->vertices;
 	switch (uvChannel)
 	{
@@ -30,10 +31,10 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 	break;
 	case 1:
 	{
-		if (!uiPanel)return;
-		if (!uiPanel->GetRequireUV1())
+		if (!renderCanvas)return;
+		if (!renderCanvas->GetRequireUV1())
 		{
-			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]UIPanel/AdditionalShaderChannel/UV1 should be checked!"));
+			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV1 should be checked!"));
 			return;
 		}
 		auto& uvs1 = InGeometry->uvs1;
@@ -47,10 +48,10 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 	break;
 	case 2:
 	{
-		if (!uiPanel)return;
-		if (!uiPanel->GetRequireUV2())
+		if (!renderCanvas)return;
+		if (!renderCanvas->GetRequireUV2())
 		{
-			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]UIPanel/AdditionalShaderChannel/UV2 should be checked!"));
+			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV2 should be checked!"));
 			return;
 		}
 		auto& uvs2 = InGeometry->uvs2;
@@ -64,10 +65,10 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 	break;
 	case 3:
 	{
-		if (!uiPanel)return;
-		if (!uiPanel->GetRequireUV3())
+		if (!renderCanvas)return;
+		if (!renderCanvas->GetRequireUV3())
 		{
-			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]UIPanel/AdditionalShaderChannel/UV3 should be checked!"));
+			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV3 should be checked!"));
 			return;
 		}
 		auto& uvs3 = InGeometry->uvs3;

@@ -711,10 +711,10 @@ void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScri
 		auto uiType = TargetScript->GetUIItemType();
 		if (uiType == UIItemType::UIRenderable || uiType == UIItemType::UIItem)
 		{
-			auto renderUIPanel = (UUIPanel*)((UUIRenderable*)TargetScript.Get())->GetRenderUIPanel();
-			if (renderUIPanel != nullptr)
+			auto renderCanvas = TargetScript.Get()->GetRenderCanvas();
+			if (renderCanvas != nullptr)
 			{
-				auto itemList = renderUIPanel->UIRenderableItemList;
+				auto itemList = renderCanvas->UIRenderableItemList;
 				int depthCount = 0;
 				for (auto item : itemList)
 				{
@@ -727,20 +727,6 @@ void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScri
 			{
 				DepthInfoTextBlock->SetText(FString::Printf(TEXT("(MustAttachToUIPanel)")));
 			}
-		}
-		else if (uiType == UIItemType::UIPanel)
-		{
-			int depthCount = 0;
-			if (LGUIManager::IsManagerValid(TargetScript->GetWorld()))
-			{
-				auto& panelList = LGUIManager::GetAllUIPanel(TargetScript->GetWorld());
-				for (auto item : panelList)
-				{
-					if (item->widget.depth == TargetScript->widget.depth)
-						depthCount++;
-				}
-			}
-			DepthInfoTextBlock->SetText(FString::Printf(TEXT("PanelSharedDepthCount:%d"), depthCount));
 		}
 	}
 }

@@ -10,12 +10,12 @@
 #include "StaticMeshVertexData.h"
 
 class ILGUIHudPrimitive;
-class UUIRoot;
+class ULGUICanvas;
 
 class LGUI_API FLGUIViewExtension : public FSceneViewExtensionBase
 {
 public:
-	FLGUIViewExtension(const FAutoRegister&, UUIRoot* InUIRoot);
+	FLGUIViewExtension(const FAutoRegister&, ULGUICanvas* InLGUICanvas);
 	virtual ~FLGUIViewExtension();
 
 	//begin ISceneViewExtension interfaces
@@ -39,7 +39,7 @@ private:
 	void MarkSortRenderPriority_RenderThread();
 	bool NeedToSortPrimitive = true;
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
-	TWeakObjectPtr<UUIRoot> UIRoot;
+	TWeakObjectPtr<ULGUICanvas> UICanvas;
 
 	FVector ViewLocation;
 	FRotator ViewRotation;
