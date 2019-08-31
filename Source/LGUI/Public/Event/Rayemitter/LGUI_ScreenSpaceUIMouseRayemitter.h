@@ -20,5 +20,5 @@ public:
 	static void DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection);
 private:
 	FVector2D pressMountPos;
-	UPROPERTY(Transient)class UUIRoot* UIRootComp = nullptr;
+	UPROPERTY(Transient)class ULGUICanvas* RenderCanvas = nullptr;
 };

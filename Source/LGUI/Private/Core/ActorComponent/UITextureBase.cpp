@@ -50,17 +50,17 @@ void UUITextureBase::UpdateGeometry(const bool& parentTransformChanged)
 			if (geometry->vertices.Num() != 0)//have geometry data, clear it
 			{
 				geometry->Clear();
-				RenderUIPanel->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			}
 		}
 		return;
 	}
-	if (!CheckRenderUIPanel())return;
+	if (!CheckRenderCanvas())return;
 
 	if (geometry->vertices.Num() == 0)//if geometry not created yet
 	{
 		CreateGeometry();
-		RenderUIPanel->MarkRebuildAllDrawcall();
+		RenderCanvas->MarkRebuildAllDrawcall();
 	}
 	else//if geometry is created, update data
 	{
@@ -69,11 +69,11 @@ void UUITextureBase::UpdateGeometry(const bool& parentTransformChanged)
 			if (texture == nullptr)//texture is cleared
 			{
 				geometry->Clear();
-				RenderUIPanel->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 				goto COMPLETE;
 			}
 			CreateGeometry();
-			RenderUIPanel->MarkRebuildAllDrawcall();
+			RenderCanvas->MarkRebuildAllDrawcall();
 			goto COMPLETE;
 		}
 		if (cacheForThisUpdate_DepthChanged)
@@ -81,18 +81,18 @@ void UUITextureBase::UpdateGeometry(const bool& parentTransformChanged)
 			if (CustomUIMaterial != nullptr)
 			{
 				CreateGeometry();
-				RenderUIPanel->MarkRebuildAllDrawcall();
+				RenderCanvas->MarkRebuildAllDrawcall();
 			}
 			else
 			{
 				geometry->depth = widget.depth;
-				RenderUIPanel->DepthChangeForDrawcall(this);
+				RenderCanvas->OnUIElementDepthChange(this);
 			}
 		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{
 			CreateGeometry();
-			RenderUIPanel->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -103,20 +103,20 @@ void UUITextureBase::UpdateGeometry(const bool& parentTransformChanged)
 			{
 				cacheForThisUpdate_VertexPositionChanged = true;
 			}
-			if (cacheForThisUpdate_UVChanged || cacheForThisUpdate_ColorChanged || cacheForThisUpdate_VertexPositionChanged)//vertex data change, need panel to update geometry's vertex
+			if (cacheForThisUpdate_UVChanged || cacheForThisUpdate_ColorChanged || cacheForThisUpdate_VertexPositionChanged)//vertex data change, need to update geometry's vertex
 			{
 				if (ApplyGeometryModifier())
 				{
 					UIGeometry::CheckAndApplyAdditionalChannel(geometry);
-					RenderUIPanel->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 				}
 				else
 				{
-					RenderUIPanel->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_VertexPositionChanged);
+					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_VertexPositionChanged);
 				}
 				if (cacheForThisUpdate_VertexPositionChanged)
 				{
-					UIGeometry::TransformVertices(RenderUIPanel, this, geometry, RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent());
+					UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
 				}
 			}
 		}
@@ -138,7 +138,7 @@ void UUITextureBase::CreateGeometry()
 	OnCreateGeometry();
 	ApplyGeometryModifier();
 	UIGeometry::CheckAndApplyAdditionalChannel(geometry);
-	UIGeometry::TransformVertices(RenderUIPanel, this, geometry, RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent());
+	UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
 }
 
 void UUITextureBase::OnCreateGeometry()

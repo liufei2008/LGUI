@@ -36,6 +36,7 @@
 #include "HAL/PlatformApplicationMisc.h"
 
 #include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 #define LOCTEXT_NAMESPACE "LGUIComponentTransformDetails"
 
@@ -895,6 +896,13 @@ bool FComponentTransformDetails::IsLocationXEnable()const
 		TWeakObjectPtr<UUIItem> uiItem = SelectedObjects[0];
 		if (uiItem.IsValid())
 		{
+			if (uiItem->GetRenderCanvas() != nullptr)
+			{
+				if (uiItem->GetRenderCanvas()->IsRootCanvas() && uiItem->IsCanvasUIItem())
+				{
+					return true;
+				}
+			}
 			return uiItem->GetAnchorHAlign() == UIAnchorHorizontalAlign::None;
 		}
 	}
@@ -907,6 +915,13 @@ bool FComponentTransformDetails::IsLocationYEnable()const
 		TWeakObjectPtr<UUIItem> uiItem = SelectedObjects[0];
 		if (uiItem.IsValid())
 		{
+			if (uiItem->GetRenderCanvas() != nullptr)
+			{
+				if (uiItem->GetRenderCanvas()->IsRootCanvas() && uiItem->IsCanvasUIItem())
+				{
+					return true;
+				}
+			}
 			return uiItem->GetAnchorVAlign() == UIAnchorVerticalAlign::None;
 		}
 	}

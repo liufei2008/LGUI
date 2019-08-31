@@ -9,7 +9,6 @@
 #include "Core/Actor/UISpriteActor.h"
 #include "Core/Actor/UITextActor.h"
 #include "Core/Actor/UITextureActor.h"
-#include "Core/Actor/UIPanelActor.h"
 #include "Extensions/UISector.h"
 #include "Extensions/UIRing.h"
 #include "LGUIEditorStyle.h"
@@ -168,7 +167,6 @@ ULGUIEditorToolsAgentObject* ULGUIEditorToolsAgentObject::EditorToolsAgentObject
 void ULGUIEditorToolsAgentObject::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (UIPanel.IsClicked())CreateUIItemActor<AUIPanelActor>();
 	if (UIContainer.IsClicked())CreateUIItemActor<AUIContainerActor>();
 	if (UISprite.IsClicked())CreateUIItemActor<AUISpriteActor>();
 	if (UIText.IsClicked())CreateUIItemActor<AUITextActor>();
@@ -413,10 +411,6 @@ void ULGUIEditorToolsAgentObject::PasteComponentValues_Impl()
 void ULGUIEditorToolsAgentObject::OpenAtlasViewer_Impl()
 {
 	FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIAtlasViewerName);
-}
-void ULGUIEditorToolsAgentObject::OpenScreenSpaceUIViewer_Impl()
-{
-	FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIScreenSpaceUIViewerName);
 }
 void ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 {

@@ -5,7 +5,7 @@
 /**
  * 
  */
-class FUIRootCustomization : public IDetailCustomization
+class FUICanvasScalerCustomization : public IDetailCustomization
 {
 public:
 
@@ -13,5 +13,5 @@ public:
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
-	TWeakObjectPtr<class UUIRoot> TargetScriptPtr;
+	TWeakObjectPtr<class ULGUICanvasScaler> TargetScriptPtr;
 };

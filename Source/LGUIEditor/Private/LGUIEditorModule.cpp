@@ -12,7 +12,6 @@
 #include "ContentBrowserExtensions/LGUIContentBrowserExtensions.h"
 #include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
 #include "Window/LGUIAtlasViewer.h"
-#include "Window/LGUIScreenSpaceUIViewer.h"
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
 
 #include "Core/LGUISettings.h"
@@ -24,12 +23,12 @@
 #include "SceneOutlinerModule.h"
 #include "SceneOutlinerPublicTypes.h"
 #include "SceneOutliner/LGUINativeSceneOutlinerExtension.h"
+#include "AssetToolsModule.h"
 
 const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIEventComponentSelectorName(TEXT("LGUIEventComponentSelector"));
 const FName FLGUIEditorModule::LGUIEventFunctionSelectorName(TEXT("LGUIEventFunctionSelector"));
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
-const FName FLGUIEditorModule::LGUIScreenSpaceUIViewerName(TEXT("LGUIScreenSpaceUIViewerName"));
 
 FLGUIEditorModule* FLGUIEditorModule::Instance = nullptr;
 
@@ -102,11 +101,6 @@ void FLGUIEditorModule::StartupModule()
 			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::OpenAtlasViewer_Impl),
 			FCanExecuteAction());
 
-		PluginCommands->MapAction(
-			editorCommand.OpenScreenSpaceUIViewer,
-			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::OpenScreenSpaceUIViewer_Impl),
-			FCanExecuteAction());
-
 		TSharedPtr<FExtender> toolbarExtender = MakeShareable(new FExtender);
 		toolbarExtender->AddToolBarExtension("Game", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FLGUIEditorModule::AddEditorToolsToToolbarExtension));
 		LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(toolbarExtender);
@@ -140,10 +134,6 @@ void FLGUIEditorModule::StartupModule()
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIAtlasViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnAtlasViewerTab))
 			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUI Atlas Texture Viewer"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
-		//screen space ui viewer
-		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIScreenSpaceUIViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnScreenSpaceUIViewerTab))
-			.SetDisplayName(LOCTEXT("LGUIScreenSpaceUIViewerName", "LGUI Screen Space UI Viewer"))
-			.SetMenuType(ETabSpawnerMenuType::Hidden);
 	}
 	//register component editor
 	{
@@ -151,9 +141,10 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUIItem::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIItemCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUISpriteBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISpriteBaseCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUISprite::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISpriteCustomization::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout(UUIPanel::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUICanvasCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIText::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextureBaseCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIPanel::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUISpriteDataCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIFontDataCustomization::MakeInstance));
@@ -167,7 +158,7 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUIHorizontalLayout::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIHorizontalLayoutCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIGridLayout::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIGridLayoutCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUILayoutElement::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUILayoutElementCustomization::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout(UUIRoot::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIRootCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(ULGUICanvasScaler::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUICanvasScalerCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULGUIPrefabHelperComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabHelperComponentCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabCustomization::MakeInstance));
@@ -241,9 +232,10 @@ void FLGUIEditorModule::ShutdownModule()
 	PropertyModule.UnregisterCustomClassLayout(UUIItem::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUISpriteBase::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUISprite::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIPanel::StaticClass()->GetFName());
+	PropertyModule.UnregisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUIText::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName());
+	PropertyModule.UnregisterCustomClassLayout(UUIPanel::StaticClass()->GetFName());
 
 	PropertyModule.UnregisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName());
@@ -257,7 +249,6 @@ void FLGUIEditorModule::ShutdownModule()
 	PropertyModule.UnregisterCustomClassLayout(UUIHorizontalLayout::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUIGridLayout::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUILayoutElement::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIRoot::StaticClass()->GetFName());
 
 	PropertyModule.UnregisterCustomClassLayout(ULGUIPrefabHelperComponent::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName());
@@ -302,13 +293,6 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTa
 {
 	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
 	auto TabContentWidget = SNew(SLGUIAtlasViewer, ResultTab);
-	ResultTab->SetContent(TabContentWidget);
-	return ResultTab;
-}
-TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnScreenSpaceUIViewerTab(const FSpawnTabArgs& SpawnTabArgs)
-{
-	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
-	auto TabContentWidget = SNew(SLGUIScreenSpaceUIViewer, ResultTab);
 	ResultTab->SetContent(TabContentWidget);
 	return ResultTab;
 }
@@ -441,7 +425,6 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 
 	MenuBuilder.BeginSection("UIElement");
 	{
-		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIPanelActor::StaticClass());
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIContainerActor::StaticClass());
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUISpriteActor::StaticClass());
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextActor::StaticClass());
@@ -484,7 +467,6 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 			if (ClassItr->IsChildOf(AUIBaseActor::StaticClass()))
 			{
 				if (*ClassItr != AUIContainerActor::StaticClass()
-					&& *ClassItr != AUIPanelActor::StaticClass()
 					&& *ClassItr != AUISpriteActor::StaticClass()
 					&& *ClassItr != AUITextActor::StaticClass()
 					&& *ClassItr != AUITextureActor::StaticClass()
@@ -569,7 +551,6 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 
 	MenuBuilder.BeginSection("Replace");
 	{
-		FunctionContainer::ReplaceUIElement(MenuBuilder, AUIPanelActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUIContainerActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUISpriteActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUITextActor::StaticClass());

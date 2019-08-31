@@ -2,7 +2,7 @@
 
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIItem.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/UIDrawcall.h"
 #include "Sound/SoundBase.h"
 #include "Core/ActorComponent/UIRenderable.h"
@@ -138,61 +138,33 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 	}
 }
 
-//find first UIPanel in hierarchy
-void LGUIUtils::FindFirstUIPanel(UUIItem* uiItem, UUIPanel*& resultUIPanel)
+//find first Canvas in hierarchy
+void LGUIUtils::FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 {
-	auto itemType = uiItem->GetUIItemType();
-	if (itemType == UIItemType::UIPanel)
+	auto tempComp = GetComponentInParent<ULGUICanvas>(actor);
+	if (tempComp != nullptr)
 	{
-		resultUIPanel = (UUIPanel*)uiItem;
+		resultCanvas = tempComp;
 	}
 
-	auto parent = uiItem->GetAttachParent();
-	if (parent != nullptr)
+	auto parentActor = actor->GetAttachParentActor();
+	if (parentActor != nullptr)
 	{
-		UUIItem* parentItem = Cast<UUIItem>(parent);
-		if (parentItem != nullptr)
-		{
-			FindFirstUIPanel(parentItem, resultUIPanel);
-		}
+		FindTopMostCanvas(parentActor, resultCanvas);
 	}
 }
-//find UIPanel which response for render the UIItem
-void LGUIUtils::FindRenderUIPanel(UUIItem* uiItem, UUIPanel*& resultUIPanel)
+
+void LGUIUtils::FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 {
-	auto itemType = uiItem->GetUIItemType();
-	if (itemType == UIItemType::UIPanel)
+	auto parentActor = actor->GetAttachParentActor();
+	if (parentActor != nullptr)
 	{
-		resultUIPanel = (UUIPanel*)uiItem;
+		auto tempComp = GetComponentInParent<ULGUICanvas>(parentActor);
+		if (tempComp != nullptr)
+		{
+			resultCanvas = tempComp;
+		}
 		return;
-	}
-
-	auto parent = uiItem->GetAttachParent();
-	if (parent != nullptr)
-	{
-		UUIItem* parentItem = Cast<UUIItem>(parent);
-		if (parentItem != nullptr)
-		{
-			FindRenderUIPanel(parentItem, resultUIPanel);
-		}
-	}
-}
-void LGUIUtils::FindParentUIPanel(UUIItem* uiItem, UUIPanel*& resultUIPanel)
-{
-	auto parent = uiItem->GetAttachParent();
-	if (parent != nullptr)
-	{
-		if (auto parentUIItem = Cast<UUIItem>(parent))
-		{
-			if (parentUIItem->GetUIItemType() == UIItemType::UIPanel)
-			{
-				resultUIPanel = (UUIPanel*)parentUIItem;
-			}
-			else
-			{
-				FindParentUIPanel(parentUIItem, resultUIPanel);
-			}
-		}
 	}
 }
 

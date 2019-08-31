@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
-#include "Core/ActorComponent/UIPanel.h"
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
@@ -59,20 +58,6 @@ public:
 		if (auto uiItem = Cast<UUIItem>(Target->GetRootComponent()))
 		{
 			uiItem->SetHierarchyIndex(index);
-		}
-	}
-	//Set UIPanel's depth to highest if root component is a UIPanel component
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void SetUIPanelDepthToHighest(AActor* Target)
-	{
-		if (!IsValid(Target))
-		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::SetUIPanelDepthToHighest]Target is not valid!"));
-			return;
-		}
-		if (auto uiPanel = Cast<UUIPanel>(Target->GetRootComponent()))
-		{
-			uiPanel->SetUIPanelDepthToHighestOfHierarchy();
 		}
 	}
 #pragma endregion

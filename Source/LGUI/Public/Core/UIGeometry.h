@@ -10,9 +10,9 @@
 class UIGeometry
 {
 private:	
-	TArray<FVector> transformedVertices;//vertex position transformed in Panel space
-	TArray<FVector> transformedNormals;//vertex normal transformed in Panel space
-	TArray<FVector> transformedTangents;//vertex tangent transformed in Panel space
+	TArray<FVector> transformedVertices;//vertex position transformed in Canvas space
+	TArray<FVector> transformedNormals;//vertex normal transformed in Canvas space
+	TArray<FVector> transformedTangents;//vertex tangent transformed in Canvas space
 public:
 	//these two parameters below for store vertex and triangle count of origin data. after GeometryModifier if add new vertex or triangles, we can find origin vertex and triangle by using these two parameters
 	int32 originVerticesCount = 0;//origin vertices count
@@ -136,7 +136,7 @@ public:
 
 public:
 	static void UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, FColor color);
-	static void TransformVertices(class UUIPanel* panel, class UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo, bool requireNormal, bool requireTangent);
+	static void TransformVertices(class ULGUICanvas* canvas, class UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo, bool requireNormal, bool requireTangent);
 	static void CheckAndApplyAdditionalChannel(TSharedPtr<UIGeometry> uiGeo);
 	static void CalculatePivotOffset(const float& width, const float& height, const FVector2D& pivot, float& pivotOffsetX, float& pivotOffsetY, float& halfW, float& halfH);
 private:

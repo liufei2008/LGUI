@@ -233,9 +233,7 @@ void ActorCopier::CopyPropertyChecked(UObject* Origin, UObject* Target, TArray<F
 			if (srcProperty->StaticClass() == targetProperty->StaticClass())
 			{
 				srcPropertyMap.Remove(propertyName);
-				//these two methods can do the same result, but logically the first method is the right one
-				//CopyCommonPropertyForChecked(targetProperty, srcProperty->ContainerPtrToValuePtr<uint8>(Origin), targetProperty->ContainerPtrToValuePtr<uint8>(Target));
-				CopyCommonProperty(targetProperty, (uint8*)Origin, (uint8*)Target);//because we have compared the property's name, so this is correct too
+				CopyCommonPropertyForChecked(targetProperty, srcProperty->ContainerPtrToValuePtr<uint8>(Origin), targetProperty->ContainerPtrToValuePtr<uint8>(Target));
 			}
 		}
 	}
@@ -451,6 +449,7 @@ void ActorCopier::CopyComponentValue(UActorComponent* SrcComp, UActorComponent* 
 void ActorCopier::CopyComponentValueInternal(UActorComponent* SrcComp, UActorComponent* TargetComp)
 {
 	auto SceneComponentExcludeProperties = GetComponentExcludeProperties();
+	SceneComponentExcludeProperties.Add(TEXT("CreationMethod"));
 	if (SrcComp->GetClass() == TargetComp->GetClass())//copy for same type
 	{
 		CopyProperty(SrcComp, TargetComp, SceneComponentExcludeProperties);

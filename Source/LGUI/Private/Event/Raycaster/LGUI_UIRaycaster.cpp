@@ -2,7 +2,7 @@
 
 #include "Event/Raycaster/LGUI_UIRaycaster.h"
 #include "Core/ActorComponent/UIItem.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
 ULGUI_UIRaycaster::ULGUI_UIRaycaster()
@@ -15,10 +15,10 @@ bool ULGUI_UIRaycaster::IsHitVisibleUI(UUIItem* HitUI, const FVector& HitPoint)
 {
 	if (HitUI->IsUIActiveInHierarchy())
 	{
-		auto uiPanel = HitUI->GetRenderUIPanel();
-		if (uiPanel)
+		auto renderCanvas = HitUI->GetRenderCanvas();
+		if (renderCanvas)
 		{
-			if (uiPanel->IsPointVisible(HitPoint))//visible point
+			if (renderCanvas->IsPointVisible(HitPoint))//visible point
 			{
 				return true;
 			}
@@ -27,7 +27,7 @@ bool ULGUI_UIRaycaster::IsHitVisibleUI(UUIItem* HitUI, const FVector& HitPoint)
 				return false;
 			}
 		}
-		else//no RenderUIPanel means not render yet
+		else//no RenderCanvas means not render yet
 		{
 			return false;
 		}
@@ -104,11 +104,11 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 					auto BUIItem = (UUIItem*)(B.Component.Get());
 					if (AUIItem != nullptr && BUIItem != nullptr)
 					{
-						if (AUIItem->GetRenderUIPanel() == nullptr && BUIItem->GetRenderUIPanel() != nullptr) return false;//if A not render yet
-						if (AUIItem->GetRenderUIPanel() != nullptr && BUIItem->GetRenderUIPanel() == nullptr) return true;//if B not render yet
-						if (AUIItem->GetRenderUIPanel() == nullptr && BUIItem->GetRenderUIPanel() == nullptr) return true;//if A and B not renderred, doesnt matter which one
+						if (AUIItem->GetRenderCanvas() == nullptr && BUIItem->GetRenderCanvas() != nullptr) return false;//if A not render yet
+						if (AUIItem->GetRenderCanvas() != nullptr && BUIItem->GetRenderCanvas() == nullptr) return true;//if B not render yet
+						if (AUIItem->GetRenderCanvas() == nullptr && BUIItem->GetRenderCanvas() == nullptr) return true;//if A and B not renderred, doesnt matter which one
 
-						if (AUIItem->GetRenderUIPanel() == BUIItem->GetRenderUIPanel())//if Panel's depth is equal then sort on item's depth
+						if (AUIItem->GetRenderCanvas() == BUIItem->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
 						{
 							if (AUIItem->GetDepth() == BUIItem->GetDepth())//if item's depth is equal then sort on distance
 							{
@@ -117,9 +117,9 @@ bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection,
 							else
 								return AUIItem->GetDepth() > BUIItem->GetDepth();
 						}
-						else//if panel's depth not equal then sort on panel's depth
+						else//if Canvas's depth not equal then sort on Canvas's SortOrder
 						{
-							return AUIItem->GetRenderUIPanel()->GetDepth() > BUIItem->GetRenderUIPanel()->GetDepth();
+							return AUIItem->GetRenderCanvas()->GetSortOrder() > BUIItem->GetRenderCanvas()->GetSortOrder();
 						}
 					}
 					else//if not a ui element, sort on depth

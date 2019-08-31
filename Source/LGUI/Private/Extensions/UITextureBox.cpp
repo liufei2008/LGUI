@@ -3,7 +3,7 @@
 #include "Extensions/UITextureBox.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIPanel.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 UUITextureBox::UUITextureBox()
 {
@@ -284,7 +284,7 @@ void FromUITextureBox(float& width, float& height, float& thickness, const FVect
 
 void UUITextureBox::OnCreateGeometry()
 {
-	FromUITextureBox(widget.width, widget.height, thickness, widget.pivot, GetFinalColor(), seperateFrontColor, frontFaceColor, geometry, RenderUIPanel->GetRequireNormal(), RenderUIPanel->GetRequireTangent(), RenderUIPanel->GetRequireUV1());
+	FromUITextureBox(widget.width, widget.height, thickness, widget.pivot, GetFinalColor(), seperateFrontColor, frontFaceColor, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 }
 void UUITextureBox::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
