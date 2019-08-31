@@ -55,7 +55,7 @@ class LGUI_API ULGUIMeshComponent : public UMeshComponent
 
 public:
 	virtual void CreateMeshSection();
-	virtual void UpdateMeshSection(bool InVertexPositionChanged = true);
+	virtual void UpdateMeshSection(bool InVertexPositionChanged = true, int8 AddiotnalShaderChannelFlags = 0);
 
 	void ClearMesh();
 
