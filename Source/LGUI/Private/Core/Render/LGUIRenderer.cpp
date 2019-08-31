@@ -208,7 +208,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 				drawingPolicy.SetupPipelineState(drawRenderState, InView);
 				CommitGraphicsPipelineState(RHICmdList, drawingPolicy
 					, drawRenderState, drawingPolicy.GetBoundShaderStateInput(InView.GetFeatureLevel())
-					, drawingPolicy.GetMaterialRenderProxy());
+					);
 				drawingPolicy.SetSharedState(RHICmdList, drawRenderState, &InView, FLGUIHudRenderPolicy::ContextDataType());
 
 				drawingPolicy.SetMeshRenderState(RHICmdList, InView, Mesh, 0, drawRenderState, FMeshDrawingPolicy::ElementDataType(), FLGUIHudRenderPolicy::ContextDataType());
