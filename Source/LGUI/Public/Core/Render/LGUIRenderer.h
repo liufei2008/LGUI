@@ -42,7 +42,6 @@ private:
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
 
 	FVector ViewLocation;
-	FRotator ViewRotation;
 	FMatrix ViewRotationMatrix;
 	FMatrix ProjectionMatrix;
 };

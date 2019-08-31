@@ -137,7 +137,6 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 {
 	if (!UICanvas.IsValid())return;
 	ViewLocation = UICanvas->GetViewLocation();
-	ViewRotation = UICanvas->GetViewRotator();
 	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
 }
