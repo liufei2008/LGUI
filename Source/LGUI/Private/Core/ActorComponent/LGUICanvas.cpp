@@ -122,7 +122,6 @@ void ULGUICanvas::OnUIActiveStateChange(bool active)
 bool ULGUICanvas::CheckTopMostCanvas()
 {
 	if (TopMostCanvas != nullptr)return true;
-	auto oldCanvas = TopMostCanvas;
 	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
 	if (TopMostCanvas != nullptr)return true;
 	return false;

@@ -5,7 +5,6 @@
 #include "Modules/ModuleManager.h"
 #include "LGUI.h"
 #include "SceneView.h"
-#include "Framework/Application/SlateApplication.h"
 #include "Widgets/SWindow.h"
 #include "StaticMeshVertexData.h"
 #include "PipelineStateCache.h"
