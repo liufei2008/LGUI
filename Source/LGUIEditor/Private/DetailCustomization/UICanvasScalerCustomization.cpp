@@ -24,6 +24,9 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	{
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 	}
+	LGUIEditorUtils::ShowError_RequireComponent(&DetailBuilder, TargetScriptPtr.Get(), ULGUICanvas::StaticClass());
+	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptPtr.Get());
+
 	TargetScriptPtr->OnViewportParameterChanged();
 
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
@@ -36,18 +39,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FOVAngle));
 	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, OrthoWidth));
 
-	if (!TargetScriptPtr->CheckCanvas())
-	{
-		lguiCategory.AddCustomRow(LOCTEXT("ErrorInfo", "ErrorInfo"))
-		.WholeRowContent()
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(FString(TEXT("This component should only attach to a actor which have LGUICanvas component"))))
-			.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-			.AutoWrapText(true)
-		];
-	}
-	else
+	if (TargetScriptPtr->CheckCanvas())
 	{
 		auto canvas = TargetScriptPtr->Canvas;
 		if (!canvas->IsRootCanvas())

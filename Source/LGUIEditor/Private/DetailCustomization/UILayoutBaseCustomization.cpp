@@ -25,21 +25,6 @@ void FUILayoutBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	{
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 	}
-	if (AActor* owner = TargetScriptPtr->GetOwner())
-	{
-		auto layoutClassArray = owner->GetComponentsByClass(UUILayoutBase::StaticClass());
-		if (layoutClassArray.Num() > 1)
-		{
-			IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
-			category.AddCustomRow(FText::FromString(TEXT("Warning")))
-				.WholeRowContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(FString::Printf(TEXT("Multiple UILayout component on same actor, this may cause some problem!"))))
-					.AutoWrapText(true)
-					.ColorAndOpacity(FSlateColor(FLinearColor(FColor(255,0,0,255))))
-				];
-		}
-	}
+	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptPtr.Get(), TEXT("Multiple UILayout component in one actor is not allowed!"));
 }
 #undef LOCTEXT_NAMESPACE

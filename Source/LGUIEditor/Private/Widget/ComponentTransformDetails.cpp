@@ -1312,6 +1312,7 @@ void FComponentTransformDetails::OnSetTransformAxis(float NewValue, ETextCommit:
 		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->RelativeRotation.Euler());
 		FRotator NewRotation = FRotator::MakeFromEuler(NewVector);
 		Archetype->RelativeRotation = NewRotation;
+		Archetype->UpdateComponentToWorld();
 		CachedRotation.Set(NewRotation);
 	}
 		break;
