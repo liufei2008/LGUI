@@ -33,6 +33,8 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		UE_LOG(LGUIEditor, Log, TEXT("[FLGUICanvasCustomization]Get TargetScript is null"));
 		return;
 	}
+	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0]);
+
 	if (TargetScriptArray[0]->GetWorld())
 	{
 		if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
@@ -41,6 +43,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			TargetScriptArray[0]->MarkRebuildAllDrawcall();
 		}
 	}
+	TargetScriptArray[0]->TopMostCanvas = nullptr;
 	TargetScriptArray[0]->CheckTopMostCanvas();
 	
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");

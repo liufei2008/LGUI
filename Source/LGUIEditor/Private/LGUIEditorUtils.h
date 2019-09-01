@@ -8,7 +8,56 @@
 DECLARE_DELEGATE_RetVal(FText, FLGUIArrowButtonDelegate);
 class LGUIEditorUtils
 {
+private:
+	static FName ErrorInfoCategory;
 public:
+	template<class T>
+	static void ShowError_MultiComponentNotAllowed(IDetailLayoutBuilder* DetailBuilder, T* Component, const FString& ErrorMessage = "")
+	{
+		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to ShowWarning_MultiComponentNotAllowed must be derived from UActorComponent");
+		if (Component->GetOwner()->GetComponentsByClass(T::StaticClass()).Num() > 1)
+		{
+			IDetailCategoryBuilder& lguiCategory = DetailBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
+			lguiCategory.AddCustomRow(FText::FromString(FString(TEXT("MultiComponentNotAllowed_Tips"))))
+			.WholeRowContent()
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(ErrorMessage.Len() == 0 ? FString::Printf(TEXT("Multiple %s component in one actor is not allowed!"), *(T::StaticClass()->GetName())) : ErrorMessage))
+				.ColorAndOpacity(FLinearColor(FColor::Red))
+				.AutoWrapText(true)
+			]
+			;
+		}
+	}
+	static void ShowError_RequireComponent(IDetailLayoutBuilder* DetailBuilder, UActorComponent* Component, TSubclassOf<UActorComponent> RequireComponentType)
+	{
+		if (Component->GetOwner()->GetComponentsByClass(RequireComponentType).Num() == 0)
+		{
+			IDetailCategoryBuilder& lguiCategory = DetailBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
+			lguiCategory.AddCustomRow(FText::FromString(FString(TEXT("RequireComponent_Tips"))))
+			.WholeRowContent()
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(FString::Printf(TEXT("This component require %s component on the same actor!"), *(RequireComponentType->GetName()))))
+				.ColorAndOpacity(FLinearColor(FColor::Red))
+				.AutoWrapText(true)
+			]
+			;
+		}
+	}
+	static void ShowError(IDetailLayoutBuilder* DetailBuilder, const FString& ErrorMessage)
+	{
+		IDetailCategoryBuilder& lguiCategory = DetailBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
+		lguiCategory.AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
+		.WholeRowContent()
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(ErrorMessage))
+			.ColorAndOpacity(FLinearColor(FColor::Red))
+			.AutoWrapText(true)
+		]
+		;
+	}
 	static IDetailPropertyRow& CreateSubDetail(IDetailCategoryBuilder* category, IDetailLayoutBuilder* DetailBuilder, TSharedRef<IPropertyHandle> handle)
 	{
 		DetailBuilder->HideProperty(handle);
@@ -73,3 +122,5 @@ public:
 			];
 	}
 };
+
+FName LGUIEditorUtils::ErrorInfoCategory = TEXT("Error");
