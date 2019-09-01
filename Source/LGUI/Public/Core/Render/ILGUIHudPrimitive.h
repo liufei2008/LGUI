@@ -11,7 +11,7 @@ class ILGUIHudPrimitive
 {
 public:
 	virtual ~ILGUIHudPrimitive() {}
-	virtual FMeshBatch GetMeshElement() = 0;
+	virtual FMeshBatch GetMeshElement(class FMeshElementCollector* Collector) = 0;
 	virtual int GetRenderPriority() const = 0;
 	virtual bool CanRender() const = 0;
 };

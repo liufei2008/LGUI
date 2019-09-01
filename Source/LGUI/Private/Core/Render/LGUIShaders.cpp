@@ -5,6 +5,7 @@
 #include "StaticMeshVertexData.h"
 #include "PipelineStateCache.h"
 #include "SceneRendering.h"
+#include "ScenePrivate.h"
 
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderVS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainVS"), SF_Vertex);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderPS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainPS"), SF_Pixel);
@@ -13,36 +14,43 @@ IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderPS, TEXT("/Plugin/LGUI/Private/LG
 FLGUIHudRenderVS::FLGUIHudRenderVS(const FMeshMaterialShaderType::CompiledShaderInitializerType& Initializer) 
 	: FMeshMaterialShader(Initializer)
 {
-	PassUniformBuffer.Bind(Initializer.ParameterMap, FSceneTexturesUniformParameters::StaticStruct.GetShaderVariableName());
+	PassUniformBuffer.Bind(Initializer.ParameterMap, FSceneTexturesUniformParameters::StaticStructMetadata.GetShaderVariableName());
 }
 bool FLGUIHudRenderVS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material, const FVertexFactoryType* VertexFactoryType)
 {
 	return true;
 }
-void FLGUIHudRenderVS::SetParameters(FRHICommandList& RHICmdList, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial& Material, const FSceneView& View, const TUniformBufferRef<FViewUniformShaderParameters>& ViewUniformBuffer)
+void FLGUIHudRenderVS::GetShaderBindings(
+	const FScene* Scene,
+	ERHIFeatureLevel::Type FeatureLevel,
+	const FPrimitiveSceneProxy* PrimitiveSceneProxy,
+	const FMaterialRenderProxy& MaterialRenderProxy,
+	const FMaterial& Material,
+	const FMeshPassProcessorRenderState& DrawRenderState,
+	const FMeshMaterialShaderElementData& ShaderElementData,
+	FMeshDrawSingleShaderBindings& ShaderBindings) const
 {
-	FMeshMaterialShader::SetParameters(RHICmdList, GetVertexShader(), MaterialRenderProxy, Material, View, ViewUniformBuffer, nullptr);
+	FMeshMaterialShader::GetShaderBindings(Scene, FeatureLevel, PrimitiveSceneProxy, MaterialRenderProxy, Material, DrawRenderState, ShaderElementData, ShaderBindings);
 }
-void FLGUIHudRenderVS::SetMesh(FRHICommandList& RHICmdList, const FVertexFactory* VertexFactory, const FSceneView& View, const FMeshBatchElement& BatchElement, const FDrawingPolicyRenderState& DrawRenderState, uint32 DataFlags)
-{
-	FMeshMaterialShader::SetMesh(RHICmdList, GetVertexShader(), VertexFactory, View, nullptr, BatchElement, DrawRenderState, DataFlags);
-}
-
 
 FLGUIHudRenderPS::FLGUIHudRenderPS(const FMeshMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	:FMeshMaterialShader(Initializer)
 {
-	PassUniformBuffer.Bind(Initializer.ParameterMap, FSceneTexturesUniformParameters::StaticStruct.GetShaderVariableName());
+	PassUniformBuffer.Bind(Initializer.ParameterMap, FSceneTexturesUniformParameters::StaticStructMetadata.GetShaderVariableName());
 }
 bool FLGUIHudRenderPS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material, const FVertexFactoryType* VertexFactoryType)
 {
 	return true;
 }
-void FLGUIHudRenderPS::SetParameters(FRHICommandList& RHICmdList, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial& Material, const FSceneView& View, const TUniformBufferRef<FViewUniformShaderParameters>& ViewUniformBuffer)
+void FLGUIHudRenderPS::GetShaderBindings(
+	const FScene* Scene,
+	ERHIFeatureLevel::Type FeatureLevel,
+	const FPrimitiveSceneProxy* PrimitiveSceneProxy,
+	const FMaterialRenderProxy& MaterialRenderProxy,
+	const FMaterial& Material,
+	const FMeshPassProcessorRenderState& DrawRenderState,
+	const FMeshMaterialShaderElementData& ShaderElementData,
+	FMeshDrawSingleShaderBindings& ShaderBindings) const
 {
-	FMeshMaterialShader::SetParameters(RHICmdList, GetPixelShader(), MaterialRenderProxy, Material, View, ViewUniformBuffer, nullptr);
-}
-void FLGUIHudRenderPS::SetMesh(FRHICommandList& RHICmdList, const FVertexFactory* VertexFactory, const FSceneView& View, const FMeshBatchElement& BatchElement, const FDrawingPolicyRenderState& DrawRenderState, uint32 DataFlags)
-{
-	FMeshMaterialShader::SetMesh(RHICmdList, GetPixelShader(), VertexFactory, View, nullptr, BatchElement, DrawRenderState, DataFlags);
+	FMeshMaterialShader::GetShaderBindings(Scene, FeatureLevel, PrimitiveSceneProxy, MaterialRenderProxy, Material, DrawRenderState, ShaderElementData, ShaderBindings);
 }

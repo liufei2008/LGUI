@@ -249,7 +249,12 @@ public:
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_GetMeshElements);
-		if (IsHudOrWorldSpace)return;
+		if (IsHudOrWorldSpace)
+		{
+			HudDynamicPrimitiveUniformBuffer = &Collector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+			HudDynamicPrimitiveUniformBuffer->Set(GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), true, false, UseEditorDepthTest());
+			return;
+		}
 		// Set up wireframe material (if needed)
 		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
 
@@ -306,21 +311,24 @@ public:
 	}
 
 	//begin ILGUIHudPrimitive interface
-	virtual FMeshBatch GetMeshElement() override
+	virtual FMeshBatch GetMeshElement(FMeshElementCollector* Collector) override
 	{
 		//if (Section != nullptr && Section->bSectionVisible)//check CanRender before call GetMeshElement, so this line is not necessary
-		if (IsHudOrWorldSpace)
+		if (IsHudOrWorldSpace && HudDynamicPrimitiveUniformBuffer!=nullptr)
 		{
-			FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy(false);
+			FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy();
 
 			// Draw the mesh.
 			FMeshBatch Mesh;
 			FMeshBatchElement& BatchElement = Mesh.Elements[0];
 			BatchElement.IndexBuffer = &Section->IndexBuffer;
+			BatchElement.PrimitiveIdMode = PrimID_DynamicPrimitiveShaderData;
 			Mesh.bWireframe = false;
 			Mesh.VertexFactory = &Section->VertexFactory;
 			Mesh.MaterialRenderProxy = MaterialProxy;
-			BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), true, UseEditorDepthTest());
+
+			BatchElement.PrimitiveUniformBufferResource = &HudDynamicPrimitiveUniformBuffer->UniformBuffer;
+
 			BatchElement.FirstIndex = 0;
 			BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
 			BatchElement.MinVertexIndex = 0;
@@ -374,7 +382,7 @@ public:
 private:
 	FLGUIMeshProxySection* Section;
 	UBodySetup* BodySetup;
-
+	mutable FDynamicPrimitiveUniformBuffer* HudDynamicPrimitiveUniformBuffer;
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
@@ -454,14 +462,14 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 		//index data
 		auto& triangles = MeshSection.triangles;
 		const int32 NumTriangles = triangles.Num();
-		uint32* IndexBufferData = new uint32[NumTriangles];
-		int32 IndexDataLength = NumTriangles * sizeof(int32);
+		uint16* IndexBufferData = new uint16[NumTriangles];
+		int32 IndexDataLength = NumTriangles * sizeof(uint16);
 		FMemory::Memcpy(IndexBufferData, triangles.GetData(), IndexDataLength);
 		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		ENQUEUE_RENDER_COMMAND(FLGUIMeshUpdate)(
-			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength](FRHICommandListImmediate& RHICmdList)
+			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AddiotnalShaderChannelFlags](FRHICommandListImmediate& RHICmdList)
 			{
-				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength);
+				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AddiotnalShaderChannelFlags);
 			});
 	}
 }
@@ -502,14 +510,13 @@ void ULGUIMeshComponent::SetUITranslucentSortPriority(int32 NewTranslucentSortPr
 	UPrimitiveComponent::SetTranslucentSortPriority(NewTranslucentSortPriority);
 	if (SceneProxy)
 	{
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-			FLGUIMesh_SetUITranslucentSortPriority,
-			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
-			int32, NewRenderPriority, NewTranslucentSortPriority,
-			{
-				LGUIMeshSceneProxy->SetRenderPriority_RenderThread(NewRenderPriority);
-			}
-		)
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		ENQUEUE_RENDER_COMMAND(FLGUIMesh_SetUITranslucentSortPriority)(
+			[LGUIMeshSceneProxy, NewTranslucentSortPriority](FRHICommandListImmediate& RHICmdList)
+		{
+			LGUIMeshSceneProxy->SetRenderPriority_RenderThread(NewTranslucentSortPriority);
+		}
+		);
 	}
 }
 
@@ -538,12 +545,12 @@ void ULGUIMeshComponent::SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::Thre
 	LGUIHudRenderer = HudRenderer;
 	if (SceneProxy)
 	{
-		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-			LGUIMeshComponent_SetToLGUIHud,
-			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
-			{
-				LGUIMeshSceneProxy->SetToHud_RenderThread();
-			}
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		ENQUEUE_RENDER_COMMAND(LGUIMeshComponent_SetToLGUIHud)(
+			[LGUIMeshSceneProxy](FRHICommandListImmediate& RHICmdList)
+		{
+			LGUIMeshSceneProxy->SetToHud_RenderThread();
+		}
 		);
 	}
 }
@@ -553,12 +560,12 @@ void ULGUIMeshComponent::SetToLGUIWorld()
 	LGUIHudRenderer.Reset();
 	if (SceneProxy)
 	{
-		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-			LGUIMeshComponent_SetToLGUIWorld,
-			FLGUIMeshSceneProxy*, LGUIMeshSceneProxy, (FLGUIMeshSceneProxy*)SceneProxy,
-			{
-				LGUIMeshSceneProxy->SetToWorld_RenderThread();
-			}
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		ENQUEUE_RENDER_COMMAND(LGUIMeshComponent_SetToLGUIWorld)(
+			[LGUIMeshSceneProxy](FRHICommandListImmediate& RHICmdList)
+		{
+			LGUIMeshSceneProxy->SetToWorld_RenderThread();
+		}
 		);
 	}
 }

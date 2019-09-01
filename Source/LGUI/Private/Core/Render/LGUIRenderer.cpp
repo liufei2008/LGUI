@@ -7,43 +7,45 @@
 #include "SceneView.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SWindow.h"
-#include "ClearQuad.h"
 #include "StaticMeshVertexData.h"
 #include "PipelineStateCache.h"
 #include "SceneRendering.h"
 #include "Core/Render/ILGUIHudPrimitive.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "DrawingPolicy.h"
+#include "MeshPassProcessor.inl"
 #if WITH_EDITOR
 #include "Engine.h"
 #include "Editor/EditorEngine.h"
 #endif
 
 
-class FLGUIHudRenderPolicy : public FMeshDrawingPolicy
+class FLGUIHudMeshProcessor : public FMeshPassProcessor
 {
 public:
-	FLGUIHudRenderPolicy(
-		const FVertexFactory* InVertexFactory,
-		const FMaterialRenderProxy* InMaterialRenderProxy,
-		const FMaterial& InMaterialResource,
-		const FMeshDrawingPolicyOverrideSettings& InOverrideSettings
-	)
-		:FMeshDrawingPolicy(InVertexFactory, InMaterialRenderProxy, InMaterialResource, InOverrideSettings)
+	FLGUIHudMeshProcessor(
+		const FScene* InScene,
+		ERHIFeatureLevel::Type InFeatureLevel,
+		const FSceneView* InViewIfDynamicMeshCommand,
+		const FMeshPassProcessorRenderState& InDrawRenderState,
+		FMeshPassDrawListContext* InDrawListContext
+	) : FMeshPassProcessor(InScene, InFeatureLevel, InViewIfDynamicMeshCommand, InDrawListContext)
+		, PassDrawRenderState(InDrawRenderState)
 	{
-		PixelShader = InMaterialResource.GetShader<FLGUIHudRenderPS>(InVertexFactory->GetType());
-		VertexShader = InMaterialResource.GetShader<FLGUIHudRenderVS>(InVertexFactory->GetType());
-		BaseVertexShader = VertexShader;
+
 	}
-	FDrawingPolicyMatchResult Matches(const FLGUIHudRenderPolicy& Other, bool bForReals = false)
+	virtual void AddMeshBatch(const FMeshBatch& RESTRICT MeshBatch, uint64 BatchElementMask, const FPrimitiveSceneProxy* RESTRICT PrimitiveSceneProxy, int32 StaticMeshId = -1) override
 	{
-		DRAWING_POLICY_MATCH_BEGIN
-			DRAWING_POLICY_MATCH(FMeshDrawingPolicy::Matches(Other, bForReals)) &&
-			DRAWING_POLICY_MATCH(VertexShader == Other.VertexShader) &&
-			DRAWING_POLICY_MATCH(PixelShader == Other.PixelShader);
-		DRAWING_POLICY_MATCH_END
+		if (!MeshBatch.bUseForMaterial)
+		{
+			return;
+		}
+
+		Process(MeshBatch, BatchElementMask, PrimitiveSceneProxy, *MeshBatch.MaterialRenderProxy, *MeshBatch.MaterialRenderProxy->GetMaterial(FeatureLevel));
 	}
-	void SetupPipelineState(FDrawingPolicyRenderState& DrawRenderState, const FSceneView& View)const
+
+	FMeshPassProcessorRenderState PassDrawRenderState;
+
+	void SetupPipelineState(FMeshPassProcessorRenderState& DrawRenderState, const FMaterial* MaterialResource)const
 	{
 		auto BlendMode = MaterialResource->GetBlendMode();
 		switch (BlendMode)
@@ -76,50 +78,61 @@ public:
 			break;
 		};
 	}
-	void SetSharedState(FRHICommandList& RHICmdList, const FDrawingPolicyRenderState& DrawRenderState, const FSceneView* View, const FMeshDrawingPolicy::ContextDataType PolicyContext)const
-	{
-		VertexShader->SetParameters(RHICmdList, MaterialRenderProxy, *MaterialResource, *View, DrawRenderState.GetViewUniformBuffer());
-		PixelShader->SetParameters(RHICmdList, MaterialRenderProxy, *MaterialResource, *View, DrawRenderState.GetViewUniformBuffer());
-		FMeshDrawingPolicy::SetSharedState(RHICmdList, DrawRenderState, View, PolicyContext);
-	}
-	FBoundShaderStateInput GetBoundShaderStateInput(ERHIFeatureLevel::Type InFeatureLevel)const
-	{
-		return FBoundShaderStateInput(
-			FMeshDrawingPolicy::GetVertexDeclaration(),
-			VertexShader->GetVertexShader(),
-			NULL,
-			NULL,
-			PixelShader->GetPixelShader(),
-			NULL);
-	}
-	void SetMeshRenderState(
-		FRHICommandList& RHICmdList,
-		const FSceneView& View,
-		const FMeshBatch& Mesh, int32 BatchElementIndex,
-		const FDrawingPolicyRenderState& DrawRenderState,
-		const ElementDataType& ElementData,
-		const ContextDataType PolicyContext
-	)const
-	{
-		const FMeshBatchElement& BatchElement = Mesh.Elements[BatchElementIndex];
-		VertexShader->SetMesh(RHICmdList, VertexFactory, View, BatchElement, DrawRenderState);
-		PixelShader->SetMesh(RHICmdList, VertexFactory, View, BatchElement, DrawRenderState);
-	}
-	friend int32 CompareDrawingPolicy(const FLGUIHudRenderPolicy& A, const FLGUIHudRenderPolicy& B)
-	{
-		COMPAREDRAWINGPOLICYMEMBERS(VertexShader);
-		COMPAREDRAWINGPOLICYMEMBERS(PixelShader);
-		COMPAREDRAWINGPOLICYMEMBERS(VertexFactory);
-		COMPAREDRAWINGPOLICYMEMBERS(MaterialRenderProxy);
-		return 0;
-	}
-	bool IsInitialized()
-	{
-		return VertexFactory != nullptr && VertexFactory->IsInitialized();
-	}
 private:
-	FLGUIHudRenderVS* VertexShader;
-	FLGUIHudRenderPS* PixelShader;
+	void Process(
+		const FMeshBatch& MeshBatch,
+		uint64 BatchElementMask,
+		const FPrimitiveSceneProxy* RESTRICT PrimitiveSceneProxy,
+		const FMaterialRenderProxy& RESTRICT MaterialRenderProxy,
+		const FMaterial& RESTRICT MaterialResource
+		)
+	{
+		const FVertexFactory* VertexFactory = MeshBatch.VertexFactory;
+
+		TMeshProcessorShaders<
+			FLGUIHudRenderVS,
+			FMeshMaterialShader,
+			FMeshMaterialShader,
+			FLGUIHudRenderPS> PassShaders;
+
+		PassShaders.VertexShader = MaterialResource.GetShader<FLGUIHudRenderVS>(VertexFactory->GetType());
+		PassShaders.PixelShader = MaterialResource.GetShader<FLGUIHudRenderPS>(VertexFactory->GetType());
+
+		FMeshPassProcessorRenderState DrawRenderState(PassDrawRenderState);
+		SetupPipelineState(DrawRenderState, &MaterialResource);
+
+		FMeshMaterialShaderElementData ShaderElementData;
+		ShaderElementData.InitializeMeshMaterialData(ViewIfDynamicMeshCommand, PrimitiveSceneProxy, MeshBatch, -1, false);
+
+		const FMeshDrawCommandSortKey SortKey = CalculateMeshStaticSortKey(PassShaders.VertexShader, PassShaders.PixelShader);
+
+		ERasterizerFillMode MeshFillMode = ERasterizerFillMode::FM_Solid;
+		ERasterizerCullMode MeshCullMode = ERasterizerCullMode::CM_None;
+
+		BuildMeshDrawCommands(
+			MeshBatch,
+			BatchElementMask,
+			PrimitiveSceneProxy,
+			MaterialRenderProxy,
+			MaterialResource,
+			DrawRenderState,
+			PassShaders,
+			MeshFillMode,
+			MeshCullMode,
+			SortKey,
+			EMeshPassFeatures::Default,
+			ShaderElementData);
+	}
+};
+
+
+class FLGUIMeshElementCollector : FMeshElementCollector
+{
+public:
+	FLGUIMeshElementCollector(ERHIFeatureLevel::Type InFeatureLevel) :FMeshElementCollector(InFeatureLevel)
+	{
+
+	}
 };
 
 
@@ -131,7 +144,7 @@ FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUIC
 }
 FLGUIViewExtension::~FLGUIViewExtension()
 {
-
+	
 }
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
@@ -173,7 +186,14 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	}
 
 	FTexture2DRHIRef RenderTarget = InView.Family->RenderTarget->GetRenderTargetTexture();
-	SetRenderTarget(RHICmdList, RenderTarget, FTextureRHIRef());
+	FRHIRenderPassInfo RPInfo(RenderTarget, ERenderTargetActions::DontLoad_Store);
+	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
+	const FSceneViewFamily* ViewFamily = InView.Family;
+	const FScene* Scene = nullptr;
+	if (ViewFamily->Scene)
+	{
+		Scene = ViewFamily->Scene->GetRenderScene();
+	}
 
 	InView.SceneViewInitOptions.ViewOrigin = ViewLocation;
 	InView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
@@ -190,31 +210,35 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	);
 	InView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
 
-	FDrawingPolicyRenderState drawRenderState(InView);
+	FMeshPassProcessorRenderState drawRenderState(InView);
 	drawRenderState.SetDepthStencilState(TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI());
 	drawRenderState.SetViewUniformBuffer(InView.ViewUniformBuffer);
+	FLGUIMeshElementCollector meshCollector(InView.GetFeatureLevel());
 	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
 	{
 		auto hudPrimitive = HudPrimitiveArray[i];
 		if (hudPrimitive != nullptr && hudPrimitive->CanRender())
 		{
-			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement();
-			FLGUIHudRenderPolicy drawingPolicy(Mesh.VertexFactory, Mesh.MaterialRenderProxy
-				, *Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel())
-				, ComputeMeshOverrideSettings(Mesh));
-			if (drawingPolicy.IsInitialized())
+			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
+			if (Mesh.VertexFactory != nullptr && Mesh.VertexFactory->IsInitialized())
 			{
-				drawingPolicy.SetupPipelineState(drawRenderState, InView);
-				CommitGraphicsPipelineState(RHICmdList, drawingPolicy
-					, drawRenderState, drawingPolicy.GetBoundShaderStateInput(InView.GetFeatureLevel())
-					, drawingPolicy.GetMaterialRenderProxy());
-				drawingPolicy.SetSharedState(RHICmdList, drawRenderState, &InView, FLGUIHudRenderPolicy::ContextDataType());
-
-				drawingPolicy.SetMeshRenderState(RHICmdList, InView, Mesh, 0, drawRenderState, FMeshDrawingPolicy::ElementDataType(), FLGUIHudRenderPolicy::ContextDataType());
-				drawingPolicy.DrawMesh(RHICmdList, InView, Mesh, 0);
+				DrawDynamicMeshPass(InView, RHICmdList,
+					[Scene, &InView, &drawRenderState, &Mesh](FMeshPassDrawListContext* InDrawListContext)
+				{
+					FLGUIHudMeshProcessor meshProcessor(
+						Scene,
+						InView.GetFeatureLevel(),
+						&InView,
+						drawRenderState,
+						InDrawListContext
+					);
+					const uint64 DefaultBatchElementMask = ~0ull;
+					meshProcessor.AddMeshBatch(Mesh, DefaultBatchElementMask, nullptr);
+				});
 			}
 		}
 	}
+	RHICmdList.EndRenderPass();
 }
 void FLGUIViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
@@ -244,11 +268,11 @@ void FLGUIViewExtension::MarkSortRenderPriority_RenderThread()
 }
 void FLGUIViewExtension::SortRenderPriority()
 {
-	ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-		FLGUIRender_SortRenderPriority,
-		FLGUIViewExtension*, viewExtension, this,
-		{
-			viewExtension->MarkSortRenderPriority_RenderThread();
-		}
-	)	
+	FLGUIViewExtension* viewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
+		[viewExtension](FRHICommandListImmediate& RHICmdList)
+	{
+		viewExtension->MarkSortRenderPriority_RenderThread();
+	}
+	);
 }
