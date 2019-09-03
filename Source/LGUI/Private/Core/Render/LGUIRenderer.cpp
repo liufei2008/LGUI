@@ -12,6 +12,7 @@
 #include "Core/Render/ILGUIHudPrimitive.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "MeshPassProcessor.inl"
+#include "ScenePrivate.h"
 #if WITH_EDITOR
 #include "Engine.h"
 #include "Editor/EditorEngine.h"
@@ -106,7 +107,8 @@ private:
 		const FMeshDrawCommandSortKey SortKey = CalculateMeshStaticSortKey(PassShaders.VertexShader, PassShaders.PixelShader);
 
 		ERasterizerFillMode MeshFillMode = ERasterizerFillMode::FM_Solid;
-		ERasterizerCullMode MeshCullMode = ERasterizerCullMode::CM_None;
+		ERasterizerCullMode MeshCullMode = CM_None;
+			//ComputeMeshCullMode(MeshBatch, MaterialResource);
 
 		BuildMeshDrawCommands(
 			MeshBatch,
@@ -147,14 +149,14 @@ FLGUIViewExtension::~FLGUIViewExtension()
 }
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
+	
+}
+void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
+{
 	if (!UICanvas.IsValid())return;
 	ViewLocation = UICanvas->GetViewLocation();
 	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
-}
-void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
-{
-	
 }
 void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InOutProjectionData)
 {
@@ -185,7 +187,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	}
 
 	FTexture2DRHIRef RenderTarget = InView.Family->RenderTarget->GetRenderTargetTexture();
-	FRHIRenderPassInfo RPInfo(RenderTarget, ERenderTargetActions::DontLoad_Store);
+	FRHIRenderPassInfo RPInfo(RenderTarget, ERenderTargetActions::Load_Store);
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 	const FSceneViewFamily* ViewFamily = InView.Family;
 	const FScene* Scene = nullptr;
@@ -207,6 +209,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		InView.ViewMatrices,
 		FViewMatrices()
 	);
+
 	InView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
 
 	FMeshPassProcessorRenderState drawRenderState(InView);
@@ -221,8 +224,9 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
 			if (Mesh.VertexFactory != nullptr && Mesh.VertexFactory->IsInitialized())
 			{
+				
 				DrawDynamicMeshPass(InView, RHICmdList,
-					[Scene, &InView, &drawRenderState, &Mesh](FMeshPassDrawListContext* InDrawListContext)
+					[Scene, &InView, &drawRenderState, &Mesh, hudPrimitive](FMeshPassDrawListContext* InDrawListContext)
 				{
 					FLGUIHudMeshProcessor meshProcessor(
 						Scene,
@@ -232,7 +236,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 						InDrawListContext
 					);
 					const uint64 DefaultBatchElementMask = ~0ull;
-					meshProcessor.AddMeshBatch(Mesh, DefaultBatchElementMask, nullptr);
+					meshProcessor.AddMeshBatch(Mesh, DefaultBatchElementMask, (const FPrimitiveSceneProxy*)hudPrimitive);
 				});
 			}
 		}

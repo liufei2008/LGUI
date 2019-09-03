@@ -585,7 +585,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
 					}
 					uiMesh->RegisterComponent();
-					uiMesh->AttachToComponent(UIItem, FAttachmentTransformRules::KeepRelativeTransform);
+					uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 					uiMesh->SetRelativeTransform(FTransform::Identity);
 					UIMeshList[i] = uiMesh;
 				}

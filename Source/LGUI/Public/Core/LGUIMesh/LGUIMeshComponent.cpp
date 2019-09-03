@@ -249,12 +249,7 @@ public:
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_GetMeshElements);
-		if (IsHudOrWorldSpace)
-		{
-			HudDynamicPrimitiveUniformBuffer = &Collector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
-			HudDynamicPrimitiveUniformBuffer->Set(GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), true, false, UseEditorDepthTest());
-			return;
-		}
+		if (IsHudOrWorldSpace) return;
 		// Set up wireframe material (if needed)
 		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
 
@@ -314,7 +309,7 @@ public:
 	virtual FMeshBatch GetMeshElement(FMeshElementCollector* Collector) override
 	{
 		//if (Section != nullptr && Section->bSectionVisible)//check CanRender before call GetMeshElement, so this line is not necessary
-		if (IsHudOrWorldSpace && HudDynamicPrimitiveUniformBuffer!=nullptr)
+		if (IsHudOrWorldSpace)
 		{
 			FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy();
 
@@ -322,12 +317,12 @@ public:
 			FMeshBatch Mesh;
 			FMeshBatchElement& BatchElement = Mesh.Elements[0];
 			BatchElement.IndexBuffer = &Section->IndexBuffer;
-			BatchElement.PrimitiveIdMode = PrimID_DynamicPrimitiveShaderData;
+			BatchElement.PrimitiveIdMode = PrimID_ForceZero;
 			Mesh.bWireframe = false;
 			Mesh.VertexFactory = &Section->VertexFactory;
 			Mesh.MaterialRenderProxy = MaterialProxy;
 
-			BatchElement.PrimitiveUniformBufferResource = &HudDynamicPrimitiveUniformBuffer->UniformBuffer;
+			BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, UseEditorDepthTest());
 
 			BatchElement.FirstIndex = 0;
 			BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
@@ -382,7 +377,7 @@ public:
 private:
 	FLGUIMeshProxySection* Section;
 	UBodySetup* BodySetup;
-	mutable FDynamicPrimitiveUniformBuffer* HudDynamicPrimitiveUniformBuffer;
+
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
