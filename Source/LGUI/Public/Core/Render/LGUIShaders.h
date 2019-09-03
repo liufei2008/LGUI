@@ -30,18 +30,6 @@ public:
 		const FMeshPassProcessorRenderState& DrawRenderState,
 		const FMeshMaterialShaderElementData& ShaderElementData,
 		FMeshDrawSingleShaderBindings& ShaderBindings) const;
-	void GetElementShaderBindings(
-		const FScene* Scene,
-		const FSceneView* ViewIfDynamicMeshCommand,
-		const FVertexFactory* VertexFactory,
-		bool bShaderRequiresPositionOnlyStream,
-		ERHIFeatureLevel::Type FeatureLevel,
-		const FPrimitiveSceneProxy* PrimitiveSceneProxy,
-		const FMeshBatch& MeshBatch,
-		const FMeshBatchElement& BatchElement,
-		const FMeshMaterialShaderElementData& ShaderElementData,
-		FMeshDrawSingleShaderBindings& ShaderBindings,
-		FVertexInputStreamArray& VertexStreams) const;
 };
 class FLGUIHudRenderPS : public FMeshMaterialShader
 {
@@ -59,16 +47,4 @@ public:
 		const FMeshPassProcessorRenderState& DrawRenderState,
 		const FMeshMaterialShaderElementData& ShaderElementData,
 		FMeshDrawSingleShaderBindings& ShaderBindings) const;
-	void GetElementShaderBindings(
-		const FScene* Scene,
-		const FSceneView* ViewIfDynamicMeshCommand,
-		const FVertexFactory* VertexFactory,
-		bool bShaderRequiresPositionOnlyStream,
-		ERHIFeatureLevel::Type FeatureLevel,
-		const FPrimitiveSceneProxy* PrimitiveSceneProxy,
-		const FMeshBatch& MeshBatch,
-		const FMeshBatchElement& BatchElement,
-		const FMeshMaterialShaderElementData& ShaderElementData,
-		FMeshDrawSingleShaderBindings& ShaderBindings,
-		FVertexInputStreamArray& VertexStreams) const;
 };

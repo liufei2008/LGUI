@@ -322,7 +322,10 @@ public:
 			Mesh.VertexFactory = &Section->VertexFactory;
 			Mesh.MaterialRenderProxy = MaterialProxy;
 
-			BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, UseEditorDepthTest());
+			FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector->AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+			DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, false, UseEditorDepthTest());
+			BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
+			//BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, UseEditorDepthTest());
 
 			BatchElement.FirstIndex = 0;
 			BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
@@ -343,6 +346,10 @@ public:
 	virtual bool CanRender()const override
 	{
 		return Section != nullptr && Section->bSectionVisible;
+	}
+	virtual FPrimitiveSceneProxy* GetPrimitiveSceneProxy() override
+	{
+		return this;
 	}
 	//end ILGUIHudPrimitive interface
 

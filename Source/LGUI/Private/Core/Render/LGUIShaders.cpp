@@ -32,33 +32,6 @@ void FLGUIHudRenderVS::GetShaderBindings(
 {
 	FMeshMaterialShader::GetShaderBindings(Scene, FeatureLevel, PrimitiveSceneProxy, MaterialRenderProxy, Material, DrawRenderState, ShaderElementData, ShaderBindings);
 }
-void FLGUIHudRenderVS::GetElementShaderBindings(
-	const FScene* Scene,
-	const FSceneView* ViewIfDynamicMeshCommand,
-	const FVertexFactory* VertexFactory,
-	bool bShaderRequiresPositionOnlyStream,
-	ERHIFeatureLevel::Type FeatureLevel,
-	const FPrimitiveSceneProxy* PrimitiveSceneProxy,
-	const FMeshBatch& MeshBatch,
-	const FMeshBatchElement& BatchElement,
-	const FMeshMaterialShaderElementData& ShaderElementData,
-	FMeshDrawSingleShaderBindings& ShaderBindings,
-	FVertexInputStreamArray& VertexStreams) const
-{
-	checkSlow(ShaderBindings.Frequency == GetType()->GetFrequency());
-
-	GetVertexFactoryParameterRef()->GetElementShaderBindings(Scene, ViewIfDynamicMeshCommand, this, bShaderRequiresPositionOnlyStream, FeatureLevel, VertexFactory, BatchElement, ShaderBindings, VertexStreams);
-
-	if (BatchElement.PrimitiveUniformBuffer)
-	{
-		ShaderBindings.Add(GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), BatchElement.PrimitiveUniformBuffer);
-	}
-	else
-	{
-		checkf(BatchElement.PrimitiveUniformBufferResource, TEXT("%s expected a primitive uniform buffer but none was set on BatchElement.PrimitiveUniformBuffer or BatchElement.PrimitiveUniformBufferResource"), GetType()->GetName());
-		ShaderBindings.Add(GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), BatchElement.PrimitiveUniformBufferResource->GetUniformBufferRHI());
-	}
-}
 
 FLGUIHudRenderPS::FLGUIHudRenderPS(const FMeshMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	:FMeshMaterialShader(Initializer)
@@ -80,31 +53,4 @@ void FLGUIHudRenderPS::GetShaderBindings(
 	FMeshDrawSingleShaderBindings& ShaderBindings) const
 {
 	FMeshMaterialShader::GetShaderBindings(Scene, FeatureLevel, PrimitiveSceneProxy, MaterialRenderProxy, Material, DrawRenderState, ShaderElementData, ShaderBindings);
-}
-void FLGUIHudRenderPS::GetElementShaderBindings(
-	const FScene* Scene,
-	const FSceneView* ViewIfDynamicMeshCommand,
-	const FVertexFactory* VertexFactory,
-	bool bShaderRequiresPositionOnlyStream,
-	ERHIFeatureLevel::Type FeatureLevel,
-	const FPrimitiveSceneProxy* PrimitiveSceneProxy,
-	const FMeshBatch& MeshBatch,
-	const FMeshBatchElement& BatchElement,
-	const FMeshMaterialShaderElementData& ShaderElementData,
-	FMeshDrawSingleShaderBindings& ShaderBindings,
-	FVertexInputStreamArray& VertexStreams) const
-{
-	checkSlow(ShaderBindings.Frequency == GetType()->GetFrequency());
-
-	GetVertexFactoryParameterRef()->GetElementShaderBindings(Scene, ViewIfDynamicMeshCommand, this, bShaderRequiresPositionOnlyStream, FeatureLevel, VertexFactory, BatchElement, ShaderBindings, VertexStreams);
-
-	if (BatchElement.PrimitiveUniformBuffer)
-	{
-		ShaderBindings.Add(GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), BatchElement.PrimitiveUniformBuffer);
-	}
-	else
-	{
-		checkf(BatchElement.PrimitiveUniformBufferResource, TEXT("%s expected a primitive uniform buffer but none was set on BatchElement.PrimitiveUniformBuffer or BatchElement.PrimitiveUniformBufferResource"), GetType()->GetName());
-		ShaderBindings.Add(GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), BatchElement.PrimitiveUniformBufferResource->GetUniformBufferRHI());
-	}
 }

@@ -14,4 +14,5 @@ public:
 	virtual FMeshBatch GetMeshElement(class FMeshElementCollector* Collector) = 0;
 	virtual int GetRenderPriority() const = 0;
 	virtual bool CanRender() const = 0;
+	virtual class FPrimitiveSceneProxy* GetPrimitiveSceneProxy() = 0;
 };

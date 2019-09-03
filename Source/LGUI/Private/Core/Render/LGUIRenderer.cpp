@@ -224,9 +224,9 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
 			if (Mesh.VertexFactory != nullptr && Mesh.VertexFactory->IsInitialized())
 			{
-				
+				auto primitiveSceneProxy = hudPrimitive->GetPrimitiveSceneProxy();
 				DrawDynamicMeshPass(InView, RHICmdList,
-					[Scene, &InView, &drawRenderState, &Mesh, hudPrimitive](FMeshPassDrawListContext* InDrawListContext)
+					[Scene, &InView, &drawRenderState, &Mesh, primitiveSceneProxy](FMeshPassDrawListContext* InDrawListContext)
 				{
 					FLGUIHudMeshProcessor meshProcessor(
 						Scene,
@@ -236,7 +236,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 						InDrawListContext
 					);
 					const uint64 DefaultBatchElementMask = ~0ull;
-					meshProcessor.AddMeshBatch(Mesh, DefaultBatchElementMask, (const FPrimitiveSceneProxy*)hudPrimitive);
+					meshProcessor.AddMeshBatch(Mesh, DefaultBatchElementMask, primitiveSceneProxy);
 				});
 			}
 		}
