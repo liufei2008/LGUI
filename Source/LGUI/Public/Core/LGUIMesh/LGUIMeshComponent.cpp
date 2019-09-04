@@ -409,7 +409,7 @@ void ULGUIMeshComponent::CreateMeshSection()
 }
 
 DECLARE_CYCLE_STAT(TEXT("UpdateMeshSection"), STAT_UpdateMeshSection, STATGROUP_LGUI);
-void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 AddiotnalShaderChannelFlags)
+void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSection);
 	if (InVertexPositionChanged)
@@ -435,7 +435,7 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 		const auto& tangents = MeshSection.tangents;
 		const int32 NumVerts = vertices.Num();
 		FDynamicMeshVertex* VertexBufferData = new FDynamicMeshVertex[NumVerts];
-		if (AddiotnalShaderChannelFlags == 0)
+		if (AdditionalShaderChannelFlags == 0)
 		{
 			for (int32 VertIdx = 0; VertIdx < NumVerts; VertIdx++)
 			{
@@ -469,9 +469,9 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 		FMemory::Memcpy(IndexBufferData, triangles.GetData(), IndexDataLength);
 		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		ENQUEUE_RENDER_COMMAND(FLGUIMeshUpdate)(
-			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AddiotnalShaderChannelFlags](FRHICommandListImmediate& RHICmdList)
+			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags](FRHICommandListImmediate& RHICmdList)
 			{
-				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AddiotnalShaderChannelFlags);
+				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags);
 			});
 	}
 }

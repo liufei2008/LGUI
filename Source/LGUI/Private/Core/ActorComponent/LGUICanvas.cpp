@@ -1206,7 +1206,7 @@ bool ULGUICanvas::GetRequireNormal()const
 			}
 		}
 	}
-	return (tempAddionalShaderChannels & (1 << 0)) != 0;
+	return tempAddionalShaderChannels & (1 << 0);
 }
 bool ULGUICanvas::GetRequireTangent()const 
 { 
@@ -1229,7 +1229,7 @@ bool ULGUICanvas::GetRequireTangent()const
 			}
 		}
 	}
-	return (tempAddionalShaderChannels & (1 << 1)) != 0;
+	return tempAddionalShaderChannels & (1 << 1);
 }
 bool ULGUICanvas::GetRequireUV1()const 
 { 
@@ -1252,7 +1252,7 @@ bool ULGUICanvas::GetRequireUV1()const
 			}
 		}
 	}
-	return (tempAddionalShaderChannels & (1 << 2)) != 0;
+	return tempAddionalShaderChannels & (1 << 2);
 }
 bool ULGUICanvas::GetRequireUV2()const 
 {
@@ -1275,7 +1275,7 @@ bool ULGUICanvas::GetRequireUV2()const
 			}
 		}
 	}
-	return (tempAddionalShaderChannels & (1 << 3)) != 0;
+	return tempAddionalShaderChannels & (1 << 3);
 }
 bool ULGUICanvas::GetRequireUV3()const 
 { 
@@ -1298,7 +1298,7 @@ bool ULGUICanvas::GetRequireUV3()const
 			}
 		}
 	}
-	return (tempAddionalShaderChannels & (1 << 4)) != 0;
+	return tempAddionalShaderChannels & (1 << 4);
 }
 
 

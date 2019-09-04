@@ -19,14 +19,14 @@ void UUIDrawcallMesh::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UUIDrawcallMesh::GenerateOrUpdateMesh(bool vertexPositionChanged, int8 AddiotnalShaderChannelFlags)
+void UUIDrawcallMesh::GenerateOrUpdateMesh(bool vertexPositionChanged, int8 AdditionalShaderChannelFlags)
 {
 	int vertexCount = MeshSection.vertices.Num();
 	int indexCount = MeshSection.triangles.Num();
 
 	if (prevIndexCount == indexCount && prevVertexCount == vertexCount)//if vertex count and triangle count not change, just update
 	{
-		UpdateMeshSection(vertexPositionChanged, AddiotnalShaderChannelFlags);
+		UpdateMeshSection(vertexPositionChanged, AdditionalShaderChannelFlags);
 	}
 	else
 	{
