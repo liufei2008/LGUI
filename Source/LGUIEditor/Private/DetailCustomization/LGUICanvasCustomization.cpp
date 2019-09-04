@@ -47,7 +47,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	TargetScriptArray[0]->CheckTopMostCanvas();
 	
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
-	TArray<FName> needToHidePropertyNameForClipType;
+	TArray<FName> needToHidePropertyNames;
 	if (TargetScriptArray[0]->IsRootCanvas())
 	{
 		auto renderModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
@@ -60,60 +60,59 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		}
 		else if (renderMode == (uint8)ELGUIRenderMode::WorldSpace)
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 		}
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, overrideParameters));
 
 		auto clipTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType));
 		clipTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
 		auto clipType = TargetScriptArray[0]->GetClipType();
 		if (clipType == ELGUICanvasClipType::None)
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
 		}
 		else if (clipType == ELGUICanvasClipType::Rect)
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
 		}
 		else if (clipType == ELGUICanvasClipType::Texture)
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
 		}
 	}
 	else
 	{
-		needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
+		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
 		if (TargetScriptArray[0]->GetRootCanvas()->renderMode == ELGUIRenderMode::WorldSpace)
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 		}
 
 		auto overrideParametersHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, overrideParameters));
 		overrideParametersHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
 		if (!TargetScriptArray[0]->GetOverrideDefaultMaterials())
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, DefaultMaterials));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, DefaultMaterials));
 		}
 		if (!TargetScriptArray[0]->GetOverridePixelPerfect())
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 		}
 		if (!TargetScriptArray[0]->GetOverrideDynamicPixelsPerUnit())
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, dynamicPixelsPerUnit));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, dynamicPixelsPerUnit));
 		}
 		if (!TargetScriptArray[0]->GetOverrideClipType())
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType));
 		}
 		if (!TargetScriptArray[0]->GetOverrideAddionalShaderChannel())
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, additionalShaderChannels));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, additionalShaderChannels));
 		}
 
 		if (TargetScriptArray[0]->GetOverrideClipType())
@@ -123,32 +122,32 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			auto clipType = TargetScriptArray[0]->GetClipType();
 			if (clipType == ELGUICanvasClipType::None)
 			{
-				needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
-				needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
-				needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
-				needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
 			}
 			else if (clipType == ELGUICanvasClipType::Rect)
 			{
-				needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
 			}
 			else if (clipType == ELGUICanvasClipType::Texture)
 			{
-				needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
-				needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
-				needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
 			}
 		}
 		else
 		{
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
-			needToHidePropertyNameForClipType.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipFeather));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipTexture));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
 		}
 	}
 
-	for (auto item : needToHidePropertyNameForClipType)
+	for (auto item : needToHidePropertyNames)
 	{
 		DetailBuilder.HideProperty(item);
 	}

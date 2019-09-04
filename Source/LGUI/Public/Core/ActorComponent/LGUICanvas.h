@@ -189,7 +189,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		UMaterialInterface* DefaultMaterials[3];
 
-	//for not root canvas, inherit or override parent canvas parameter
+	//for not root canvas, inherit or override parent canvas parameters
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
 
@@ -197,11 +197,11 @@ protected:
 	FORCEINLINE FLinearColor GetRectClipFeather();
 	FORCEINLINE FLinearColor GetTextureClipOffsetAndSize();
 
-	FORCEINLINE bool GetOverrideDefaultMaterials()const				{ return (overrideParameters & (1 << 0)) != 0; }
-	FORCEINLINE bool GetOverridePixelPerfect()const					{ return (overrideParameters & (1 << 1)) != 0; }
-	FORCEINLINE bool GetOverrideDynamicPixelsPerUnit()const			{ return (overrideParameters & (1 << 2)) != 0; }
-	FORCEINLINE bool GetOverrideClipType()const						{ return (overrideParameters & (1 << 3)) != 0; }
-	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return (overrideParameters & (1 << 4)) != 0; }
+	FORCEINLINE bool GetOverrideDefaultMaterials()const				{ return overrideParameters & (1 << 0); }
+	FORCEINLINE bool GetOverridePixelPerfect()const					{ return overrideParameters & (1 << 1); }
+	FORCEINLINE bool GetOverrideDynamicPixelsPerUnit()const			{ return overrideParameters & (1 << 2); }
+	FORCEINLINE bool GetOverrideClipType()const						{ return overrideParameters & (1 << 3); }
+	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << 4); }
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderMode(ELGUIRenderMode value);
