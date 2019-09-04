@@ -390,7 +390,7 @@ void ULGUIMeshComponent::CreateMeshSection()
 }
 
 DECLARE_CYCLE_STAT(TEXT("UpdateMeshSection"), STAT_UpdateMeshSection, STATGROUP_LGUI);
-void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 AddiotnalShaderChannelFlags)
+void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSection);
 	if (InVertexPositionChanged)
@@ -416,7 +416,7 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 		const auto& tangents = MeshSection.tangents;
 		const int32 NumVerts = vertices.Num();
 		FDynamicMeshVertex* VertexBufferData = new FDynamicMeshVertex[NumVerts];
-		if (AddiotnalShaderChannelFlags == 0)
+		if (AdditionalShaderChannelFlags == 0)
 		{
 			for (int32 VertIdx = 0; VertIdx < NumVerts; VertIdx++)
 			{
@@ -455,9 +455,9 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 			int32, NumVerts, NumVerts,
 			uint16*, IndexBufferData, IndexBufferData,
 			uint32, IndexDataLength, IndexDataLength,
-			int8, AddiotnalShaderChannelFlags, AddiotnalShaderChannelFlags,
+			int8, AdditionalShaderChannelFlags, AdditionalShaderChannelFlags,
 			{
-				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AddiotnalShaderChannelFlags);
+				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags);
 			}
 		)
 	}
