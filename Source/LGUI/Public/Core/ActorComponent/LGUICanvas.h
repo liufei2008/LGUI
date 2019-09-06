@@ -268,6 +268,8 @@ public:
 		void SetDynamicPixelsPerUnit(float newValue);
 
 private:
+	int8 GetAdditionalShaderChannelFlags()const;
+private:
 	bool bClipTypeChanged = true;
 	bool bRectClipParameterChanged = true;
 	bool bTextureClipParameterChanged = true;
