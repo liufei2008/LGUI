@@ -273,7 +273,7 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 		{
 			if (IsValid(ParentCanvas))
 			{
-				return &ParentCanvas->DefaultMaterials[0];
+				return ParentCanvas->GetMaterials();
 			}
 		}
 	}
@@ -1156,7 +1156,7 @@ float ULGUICanvas::GetDynamicPixelsPerUnit()const
 		{
 			if (IsValid(ParentCanvas))
 			{
-				return ParentCanvas->dynamicPixelsPerUnit;
+				return ParentCanvas->GetDynamicPixelsPerUnit();
 			}
 		}
 	}
@@ -1178,127 +1178,54 @@ ELGUICanvasClipType ULGUICanvas::GetClipType()const
 		{
 			if (IsValid(ParentCanvas))
 			{
-				return ParentCanvas->clipType;
+				return ParentCanvas->GetClipType();
 			}
 		}
 	}
 	return clipType;
 }
 
-bool ULGUICanvas::GetRequireNormal()const 
+int8 ULGUICanvas::GetAdditionalShaderChannelFlags()const
 {
-	int8 tempAddionalShaderChannels = 0;
 	if (IsRootCanvas())
 	{
-		tempAddionalShaderChannels = additionalShaderChannels;
+		return additionalShaderChannels;
 	}
 	else
 	{
 		if (GetOverrideAddionalShaderChannel())
 		{
-			tempAddionalShaderChannels = additionalShaderChannels;
+			return additionalShaderChannels;
 		}
 		else
 		{
 			if (IsValid(ParentCanvas))
 			{
-				tempAddionalShaderChannels = ParentCanvas->additionalShaderChannels;
+				return ParentCanvas->GetAdditionalShaderChannelFlags();
 			}
 		}
 	}
-	return tempAddionalShaderChannels & (1 << 0);
+	return additionalShaderChannels;
+}
+bool ULGUICanvas::GetRequireNormal()const 
+{
+	return GetAdditionalShaderChannelFlags() & (1 << 0);
 }
 bool ULGUICanvas::GetRequireTangent()const 
 { 
-	int8 tempAddionalShaderChannels = 0;
-	if (IsRootCanvas())
-	{
-		tempAddionalShaderChannels = additionalShaderChannels;
-	}
-	else
-	{
-		if (GetOverrideAddionalShaderChannel())
-		{
-			tempAddionalShaderChannels = additionalShaderChannels;
-		}
-		else
-		{
-			if (IsValid(ParentCanvas))
-			{
-				tempAddionalShaderChannels = ParentCanvas->additionalShaderChannels;
-			}
-		}
-	}
-	return tempAddionalShaderChannels & (1 << 1);
+	return GetAdditionalShaderChannelFlags() & (1 << 1);
 }
 bool ULGUICanvas::GetRequireUV1()const 
 { 
-	int8 tempAddionalShaderChannels = 0;
-	if (IsRootCanvas())
-	{
-		tempAddionalShaderChannels = additionalShaderChannels;
-	}
-	else
-	{
-		if (GetOverrideAddionalShaderChannel())
-		{
-			tempAddionalShaderChannels = additionalShaderChannels;
-		}
-		else
-		{
-			if (IsValid(ParentCanvas))
-			{
-				tempAddionalShaderChannels = ParentCanvas->additionalShaderChannels;
-			}
-		}
-	}
-	return tempAddionalShaderChannels & (1 << 2);
+	return GetAdditionalShaderChannelFlags() & (1 << 2);
 }
 bool ULGUICanvas::GetRequireUV2()const 
 {
-	int8 tempAddionalShaderChannels = 0;
-	if (IsRootCanvas())
-	{
-		tempAddionalShaderChannels = additionalShaderChannels;
-	}
-	else
-	{
-		if (GetOverrideAddionalShaderChannel())
-		{
-			tempAddionalShaderChannels = additionalShaderChannels;
-		}
-		else
-		{
-			if (IsValid(ParentCanvas))
-			{
-				tempAddionalShaderChannels = ParentCanvas->additionalShaderChannels;
-			}
-		}
-	}
-	return tempAddionalShaderChannels & (1 << 3);
+	return GetAdditionalShaderChannelFlags() & (1 << 3);
 }
 bool ULGUICanvas::GetRequireUV3()const 
 { 
-	int8 tempAddionalShaderChannels = 0;
-	if (IsRootCanvas())
-	{
-		tempAddionalShaderChannels = additionalShaderChannels;
-	}
-	else
-	{
-		if (GetOverrideAddionalShaderChannel())
-		{
-			tempAddionalShaderChannels = additionalShaderChannels;
-		}
-		else
-		{
-			if (IsValid(ParentCanvas))
-			{
-				tempAddionalShaderChannels = ParentCanvas->additionalShaderChannels;
-			}
-		}
-	}
-	return tempAddionalShaderChannels & (1 << 4);
+	return GetAdditionalShaderChannelFlags() & (1 << 4);
 }
 
 
@@ -1474,7 +1401,7 @@ bool ULGUICanvas::GetPixelPerfect()const
 			{
 				if (IsValid(ParentCanvas))
 				{
-					return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay && ParentCanvas->pixelPerfect;
+					return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay && ParentCanvas->GetPixelPerfect();
 				}
 			}
 		}
