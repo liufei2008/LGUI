@@ -1,21 +1,27 @@
 #include "/Engine/Private/Common.ush"
 #include "/Engine/Generated/Material.ush"
 #include "/Engine/Generated/VertexFactory.ush"
-#include "/Engine/Private/MobileBasePassCommon.ush"
 
-struct FMobileShadingBasePassVSToPS
+
+struct FLGUIBasePassInterpolants
+{
+	float4 PixelPosition	: TEXCOORD8; // xyz = world position, w = clip z
+
+#if USE_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS
+	float3 PixelPositionExcludingWPO	: TEXCOORD9;
+#endif
+};
+
+struct FLGUIBasePassVSToPS
 {
 	FVertexFactoryInterpolantsVSToPS FactoryInterpolants;
-	FMobileBasePassInterpolantsVSToPS BasePassInterpolants;
+	FLGUIBasePassInterpolants BasePassInterpolants;
 	float4 Position : SV_POSITION;
 };
 
-#define FMobileShadingBasePassVSOutput FMobileShadingBasePassVSToPS
-#define VertexFactoryGetInterpolants VertexFactoryGetInterpolantsVSToPS
-
 void MainVS(
     FVertexFactoryInput Input
-	, out FMobileShadingBasePassVSOutput Output
+	, out FLGUIBasePassVSToPS Output
 )
 {
 	ResolvedView = ResolveView();
@@ -39,13 +45,9 @@ void MainVS(
 	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPositionExcludingWPO.xyz;
 #endif
 
-	Output.FactoryInterpolants = VertexFactoryGetInterpolants(Input, VFIntermediates, VertexParameters);
+	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(Input, VFIntermediates, VertexParameters);
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
-
-#if PACK_INTERPOLANTS
-	VertexFactoryPackInterpolants(Output.FactoryInterpolants, PackedInterps);
-#endif // PACK_INTERPOLANTS
 
 #if OUTPUT_GAMMA_SPACE && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
 	Output.Position.y *= -1;
@@ -54,7 +56,7 @@ void MainVS(
 
 void MainPS(
 	FVertexFactoryInterpolantsVSToPS Interpolants
-	, FMobileBasePassInterpolantsVSToPS BasePassInterpolants
+	, FLGUIBasePassInterpolants BasePassInterpolants
 	, in float4 SvPosition : SV_Position
 	OPTIONAL_IsFrontFace
 	, out half4 OutColor	: SV_Target0
@@ -77,13 +79,7 @@ void MainPS(
 			WorldPositionExcludingWPO = BasePassInterpolants.PixelPositionExcludingWPO;
 		#endif
 		CalcMaterialParametersEx(MaterialParameters, PixelMaterialInputs, SvPosition, ScreenPosition, bIsFrontFace, WorldPosition, WorldPositionExcludingWPO);
-
-#if FORCE_VERTEX_NORMAL
-		// Quality level override of material's normal calculation, can be used to avoid normal map reads etc.
-		MaterialParameters.WorldNormal = MaterialParameters.TangentToWorld[2];
-		MaterialParameters.ReflectionVector = ReflectionAboutCustomWorldNormal(MaterialParameters, MaterialParameters.WorldNormal, false);
-#endif
 	}
-	OutColor = half4(GetMaterialEmissive(PixelMaterialInputs).rgb + GetMaterialBaseColor(PixelMaterialInputs).rgb, GetMaterialOpacity(PixelMaterialInputs));
+	OutColor = half4(GetMaterialEmissive(PixelMaterialInputs).rgb, GetMaterialOpacity(PixelMaterialInputs));
 	OutColor.rgb = pow(OutColor.rgb, 0.454545);
 }
