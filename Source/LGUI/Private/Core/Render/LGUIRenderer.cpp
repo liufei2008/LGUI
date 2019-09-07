@@ -268,6 +268,10 @@ void FLGUIViewExtension::RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 void FLGUIViewExtension::MarkSortRenderPriority_RenderThread()
 {
 	NeedToSortPrimitive = true;
+	HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
+	{
+		return A.GetRenderPriority() < B.GetRenderPriority();
+	});
 }
 void FLGUIViewExtension::SortRenderPriority()
 {
