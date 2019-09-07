@@ -50,7 +50,6 @@ public:
 	FORCEINLINE void MarkTriangleDirty();
 	FORCEINLINE void MarkTextureDirty();
 	FORCEINLINE void MarkMaterialDirty();
-	FORCEINLINE virtual bool ShouldRenderPixelPerfect();
 
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);

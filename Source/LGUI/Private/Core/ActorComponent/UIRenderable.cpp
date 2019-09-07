@@ -141,14 +141,6 @@ void UUIRenderable::MarkAllDirtyRecursive()
 	bMaterialChanged = true;
 	Super::MarkAllDirtyRecursive();
 }
-bool UUIRenderable::ShouldRenderPixelPerfect()
-{
-	if (CheckRenderCanvas())
-	{
-		return RenderCanvas->GetPixelPerfect();
-	}
-	return false;
-}
 void UUIRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 {
 	if (CustomUIMaterial != inMat)
