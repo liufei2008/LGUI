@@ -1,6 +1,6 @@
 #include "/Engine/Private/Common.ush"
 #include "/Engine/Generated/Material.ush"
-#include "/Engine/Generated/VertexFactory.ush"
+#include "/Engine/Private/LocalVertexFactoryCommon.ush"
 
 
 struct FLGUIBasePassInterpolants
@@ -19,39 +19,89 @@ struct FLGUIBasePassVSToPS
 	float4 Position : SV_POSITION;
 };
 
+FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 VertexColor)
+{
+	FVertexFactoryInterpolantsVSToPS Interpolants;
+
+	// Initialize the whole struct to 0
+	// Really only the last two components of the packed UVs have the opportunity to be uninitialized
+	Interpolants = (FVertexFactoryInterpolantsVSToPS)0;
+
+
+	float2 CustomizedUVs[4];
+	//GetMaterialCustomizedUVs(VertexParameters, CustomizedUVs);
+	//GetCustomInterpolators(VertexParameters, CustomizedUVs);
+	
+	//UNROLL
+	//for (int CoordinateIndex = 0; CoordinateIndex < NUM_TEX_COORD_INTERPOLATORS; CoordinateIndex++)
+	//{
+	//	SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
+	//}
+
+	//SetTangents(Interpolants, Intermediates.TangentToWorld[0], Intermediates.TangentToWorld[2], Intermediates.TangentToWorldSign);
+	SetColor(Interpolants, VertexColor);
+
+	//Interpolants.Color = VertexColor;
+
+	return Interpolants;
+}
+
+
+uniform float4x4 ViewProjection;
+uniform float4x4 Object2World;
+
 void MainVS(
-    FVertexFactoryInput Input
+    in float3 Position : ATTRIBUTE0,
+    in half4 Color : ATTRIBUTE1,
+    in float2 TextureCoord0 : ATTRIBUTE2
 	, out FLGUIBasePassVSToPS Output
 )
 {
-	ResolvedView = ResolveView();
-
-	FVertexFactoryIntermediates VFIntermediates = GetVertexFactoryIntermediates(Input);
-	float4 WorldPositionExcludingWPO = VertexFactoryGetWorldPosition(Input, VFIntermediates);
-	float4 WorldPosition = WorldPositionExcludingWPO;
-
-	half3x3 TangentToLocal = VertexFactoryGetTangentToLocal(Input, VFIntermediates);	
-	FMaterialVertexParameters VertexParameters = GetMaterialVertexParameters(Input, VFIntermediates, WorldPosition.xyz, TangentToLocal);
-
-	half3 WorldPositionOffset = GetMaterialWorldPositionOffset(VertexParameters);
-	
-	WorldPosition.xyz += WorldPositionOffset;
-
-	float4 RasterizedWorldPosition = VertexFactoryGetRasterizedWorldPosition(Input, VFIntermediates, WorldPosition);
-	Output.Position = mul(RasterizedWorldPosition, ResolvedView.TranslatedWorldToClip);
+	float4 WorldPosition = mul(float4(Position, 1.0), Object2World);
+	Output.Position = mul(WorldPosition, ViewProjection);
 	Output.BasePassInterpolants.PixelPosition = WorldPosition;
 
 #if USE_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS
-	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPositionExcludingWPO.xyz;
+	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPosition.xyz;
 #endif
 
-	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(Input, VFIntermediates, VertexParameters);
+	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(Color);
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
 
 #if OUTPUT_GAMMA_SPACE && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
 	Output.Position.y *= -1;
 #endif
+}
+
+
+
+FMaterialPixelParameters GetMaterialPixelParameters(FVertexFactoryInterpolantsVSToPS Interpolants, float4 SvPosition)
+{
+	// GetMaterialPixelParameters is responsible for fully initializing the result
+	FMaterialPixelParameters Result = MakeInitializedMaterialPixelParameters();
+
+#if NUM_TEX_COORD_INTERPOLATORS
+	UNROLL
+	for( int CoordinateIndex = 0; CoordinateIndex < NUM_TEX_COORD_INTERPOLATORS; CoordinateIndex++ )
+	{
+		Result.TexCoords[CoordinateIndex] = GetUV(Interpolants, CoordinateIndex);
+	}
+#endif
+	half3 TangentToWorld0 = GetTangentToWorld0(Interpolants).xyz;
+	half4 TangentToWorld2 = GetTangentToWorld2(Interpolants);
+	Result.UnMirrored = TangentToWorld2.w;
+
+	Result.VertexColor = GetColor(Interpolants);
+#if USE_INSTANCING
+	Result.PerInstanceParams = Interpolants.PerInstanceParams;
+#endif
+
+	Result.TangentToWorld = AssembleTangentToWorld( TangentToWorld0, TangentToWorld2 );
+#if USE_WORLDVERTEXNORMAL_CENTER_INTERPOLATION
+	Result.WorldVertexNormal_Center = Interpolants.TangentToWorld2_Center.xyz;
+#endif
+	return Result;
 }
 
 void MainPS(

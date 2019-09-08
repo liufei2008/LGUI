@@ -44,4 +44,5 @@ private:
 	FVector ViewLocation;
 	FMatrix ViewRotationMatrix;
 	FMatrix ProjectionMatrix;
+	FMatrix ViewProjectionMatrix;
 };

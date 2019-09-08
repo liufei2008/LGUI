@@ -10,6 +10,41 @@
 #include "Core/Render/LGUIRenderer.h"
 #include "Engine.h"
 #include "LGUI.h"
+#include "Core/Render/LGUIHudVertex.h"
+
+
+class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
+{
+public:
+	FLGUIHudMeshVertexResourceArray(void* InData, uint32 InSize)
+		:Data(InData)
+		,Size(InSize)
+	{
+
+	}
+	virtual const void* GetResourceData() const override { return Data; }
+	virtual uint32 GetResourceDataSize() const override { return Size; }
+	virtual void Discard() override { }
+	virtual bool IsStatic() const override { return false; }
+	virtual bool GetAllowCPUAccess() const override { return false; }
+	virtual void SetAllowCPUAccess(bool bInNeedsCPUAccess) override { }
+private: 
+	void* Data;
+	uint32 Size;
+};
+class FLGUIHudVertexBuffer : public FVertexBuffer
+{
+public:
+	TArray<FLGUIHudVertex> Vertices;
+	virtual void InitRHI()override
+	{
+		const uint32 SizeInBytes = Vertices.Num() * sizeof(FLGUIHudVertex);
+
+		FLGUIHudMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
+		FRHIResourceCreateInfo CreateInfo(&ResourceArray);
+		VertexBufferRHI = RHICreateVertexBuffer(SizeInBytes, BUF_Static, CreateInfo);
+	}
+};
 
 
 /** Class representing a single section of the LGUI mesh */
@@ -20,6 +55,7 @@ public:
 	UMaterialInterface* Material;
 	/** Vertex buffer for this section */
 	FStaticMeshVertexBuffers VertexBuffers;
+	FLGUIHudVertexBuffer HudVertexBuffers;
 	/** Index buffer for this section */
 	FDynamicMeshIndexBuffer16 IndexBuffer;
 	/** Vertex factory for this section */
@@ -50,6 +86,17 @@ public:
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
+		LGUIHudRenderer = InComponent->LGUIHudRenderer;
+		if (LGUIHudRenderer.IsValid())
+		{
+			LGUIHudRenderer.Pin()->AddHudPrimitive(this);
+			IsHudOrWorldSpace = true;
+		}
+		else
+		{
+			IsHudOrWorldSpace = false;
+		}
+
 		FLGUIMeshSection& SrcSection = InComponent->MeshSection;
 		if (SrcSection.vertices.Num() > 0)
 		{
@@ -61,6 +108,8 @@ public:
 			// Allocate verts
 			TArray<FDynamicMeshVertex> Vertices;
 			Vertices.SetNumUninitialized(NumVerts);
+			auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
+			HudVertices.SetNumUninitialized(NumVerts);
 			// Copy verts
 			const auto& vertices = SrcSection.vertices;
 			const auto& uvs = SrcSection.uvs;
@@ -82,6 +131,14 @@ public:
 				Vert.TangentZ = normals[VertIdx];
 				Vert.TangentZ.Vector.W = -127;
 				Vert.TangentX = tangents[VertIdx];
+
+				FLGUIHudVertex& HudVert = HudVertices[VertIdx];
+				HudVert.Position = Vert.Position;
+				HudVert.Color = Vert.Color;
+				HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
+				HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
+				HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
+				HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
 			}
 
 			// Copy index buffer
@@ -95,6 +152,7 @@ public:
 			BeginInitResource(&NewSection->VertexBuffers.ColorVertexBuffer);
 			BeginInitResource(&NewSection->IndexBuffer);
 			BeginInitResource(&NewSection->VertexFactory);
+			BeginInitResource(&NewSection->HudVertexBuffers);
 
 			// Grab material
 			NewSection->Material = InComponent->GetMaterial(0);
@@ -109,16 +167,6 @@ public:
 			// Save ref to new section
 			Section = NewSection;
 		}
-		LGUIHudRenderer = InComponent->LGUIHudRenderer;
-		if (LGUIHudRenderer.IsValid())
-		{
-			LGUIHudRenderer.Pin()->AddHudPrimitive(this);
-			IsHudOrWorldSpace = true;
-		}
-		else
-		{
-			IsHudOrWorldSpace = false;
-		}
 	}
 
 	virtual ~FLGUIMeshSceneProxy()
@@ -130,6 +178,7 @@ public:
 			Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
 			Section->IndexBuffer.ReleaseResource();
 			Section->VertexFactory.ReleaseResource();
+			Section->HudVertexBuffers.ReleaseResource();
 			delete Section;
 		}
 		if (LGUIHudRenderer.IsValid())
@@ -139,7 +188,7 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint16* MeshIndexData, uint32 IndexDataLength, int8 AdditionalChannelFlags)
+	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, FLGUIHudVertex* HudMeshVertexData, int32 NumVerts, uint16* MeshIndexData, uint32 IndexDataLength, int8 AdditionalChannelFlags)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionRT);
 
@@ -219,9 +268,18 @@ public:
 			auto IndexBufferData = RHILockIndexBuffer(Section->IndexBuffer.IndexBufferRHI, 0, IndexDataLength, RLM_WriteOnly);
 			FMemory::Memcpy(IndexBufferData, (void*)MeshIndexData, IndexDataLength);
 			RHIUnlockIndexBuffer(Section->IndexBuffer.IndexBufferRHI);
+
+			//hud vertex buffer
+			{
+				uint32 vertexDataLength = NumVerts * sizeof(FLGUIHudVertex);
+				void* VertexBufferData = RHILockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, vertexDataLength, RLM_WriteOnly);
+				FMemory::Memcpy(VertexBufferData, HudMeshVertexData, vertexDataLength);
+				RHIUnlockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI);
+			}
 		}
 		delete[]MeshVertexData;
 		delete[]MeshIndexData;
+		delete[]HudMeshVertexData;
 	}
 
 	void SetSectionVisibility_RenderThread(bool bNewVisibility)
@@ -351,6 +409,18 @@ public:
 	{
 		return this;
 	}
+	virtual FVertexBufferRHIParamRef GetVertexBufferRHI()override
+	{
+		return Section->HudVertexBuffers.VertexBufferRHI;
+	}
+	virtual uint32 GetNumVerts()override
+	{
+		return Section->HudVertexBuffers.Vertices.Num();
+	}
+	virtual FMatrix GetObject2WorldMatrix()override
+	{
+		return GetLocalToWorld();
+	}
 	//end ILGUIHudPrimitive interface
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const
@@ -435,6 +505,7 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 		const auto& tangents = MeshSection.tangents;
 		const int32 NumVerts = vertices.Num();
 		FDynamicMeshVertex* VertexBufferData = new FDynamicMeshVertex[NumVerts];
+		FLGUIHudVertex* HudVertexBufferData = new FLGUIHudVertex[NumVerts];
 		if (AdditionalShaderChannelFlags == 0)
 		{
 			for (int32 VertIdx = 0; VertIdx < NumVerts; VertIdx++)
@@ -443,6 +514,11 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 				Vert.Position = vertices[VertIdx];
 				Vert.Color = colors[VertIdx];
 				Vert.TextureCoordinate[0] = uvs[VertIdx];
+
+				FLGUIHudVertex& HudVert = HudVertexBufferData[VertIdx];
+				HudVert.Position = Vert.Position;
+				HudVert.Color = Vert.Color;
+				HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
 			}
 		}
 		else
@@ -459,6 +535,14 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 				Vert.TangentZ = normals[VertIdx];
 				Vert.TangentZ.Vector.W = -127;
 				Vert.TangentX = tangents[VertIdx];
+
+				FLGUIHudVertex& HudVert = HudVertexBufferData[VertIdx];
+				HudVert.Position = Vert.Position;
+				HudVert.Color = Vert.Color;
+				HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
+				HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
+				HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
+				HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
 			}
 		}
 		//index data
@@ -469,9 +553,9 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 		FMemory::Memcpy(IndexBufferData, triangles.GetData(), IndexDataLength);
 		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		ENQUEUE_RENDER_COMMAND(FLGUIMeshUpdate)(
-			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags](FRHICommandListImmediate& RHICmdList)
+			[LGUIMeshSceneProxy, VertexBufferData, HudVertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags](FRHICommandListImmediate& RHICmdList)
 			{
-				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags);
+				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, HudVertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags);
 			});
 	}
 }

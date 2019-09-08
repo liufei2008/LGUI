@@ -19,114 +19,6 @@
 #endif
 
 
-class FLGUIHudMeshProcessor : public FMeshPassProcessor
-{
-public:
-	FLGUIHudMeshProcessor(
-		const FScene* InScene,
-		ERHIFeatureLevel::Type InFeatureLevel,
-		const FSceneView* InViewIfDynamicMeshCommand,
-		const FMeshPassProcessorRenderState& InDrawRenderState,
-		FMeshPassDrawListContext* InDrawListContext
-	) : FMeshPassProcessor(InScene, InFeatureLevel, InViewIfDynamicMeshCommand, InDrawListContext)
-		, PassDrawRenderState(InDrawRenderState)
-	{
-
-	}
-	virtual void AddMeshBatch(const FMeshBatch& RESTRICT MeshBatch, uint64 BatchElementMask, const FPrimitiveSceneProxy* RESTRICT PrimitiveSceneProxy, int32 StaticMeshId = -1) override
-	{
-		if (!MeshBatch.bUseForMaterial)
-		{
-			return;
-		}
-
-		Process(MeshBatch, BatchElementMask, PrimitiveSceneProxy, *MeshBatch.MaterialRenderProxy, *MeshBatch.MaterialRenderProxy->GetMaterial(FeatureLevel));
-	}
-
-	FMeshPassProcessorRenderState PassDrawRenderState;
-
-	void SetupPipelineState(FMeshPassProcessorRenderState& DrawRenderState, const FMaterial* MaterialResource)const
-	{
-		auto BlendMode = MaterialResource->GetBlendMode();
-		switch (BlendMode)
-		{
-		default:
-		case BLEND_Opaque:
-			DrawRenderState.SetBlendState(TStaticBlendState<>::GetRHI());
-			break;
-		case BLEND_Masked:
-			DrawRenderState.SetBlendState(TStaticBlendState<>::GetRHI());
-			break;
-		case BLEND_Translucent:
-			// Note: alpha channel used by separate translucency, storing how much of the background should be added when doing the final composite
-			// The Alpha channel is also used by non-separate translucency when rendering to scene captures, which store the final opacity
-			DrawRenderState.SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI());
-			break;
-		case BLEND_Additive:
-			// Add to the existing scene color
-			// Note: alpha channel used by separate translucency, storing how much of the background should be added when doing the final composite
-			// The Alpha channel is also used by non-separate translucency when rendering to scene captures, which store the final opacity
-			DrawRenderState.SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_One, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI());
-			break;
-		case BLEND_Modulate:
-			// Modulate with the existing scene color, preserve destination alpha.
-			DrawRenderState.SetBlendState(TStaticBlendState<CW_RGB, BO_Add, BF_DestColor, BF_Zero>::GetRHI());
-			break;
-		case BLEND_AlphaComposite:
-			// Blend with existing scene color. New color is already pre-multiplied by alpha.
-			DrawRenderState.SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI());
-			break;
-		};
-	}
-private:
-	void Process(
-		const FMeshBatch& MeshBatch,
-		uint64 BatchElementMask,
-		const FPrimitiveSceneProxy* RESTRICT PrimitiveSceneProxy,
-		const FMaterialRenderProxy& RESTRICT MaterialRenderProxy,
-		const FMaterial& RESTRICT MaterialResource
-		)
-	{
-		const FVertexFactory* VertexFactory = MeshBatch.VertexFactory;
-
-		TMeshProcessorShaders<
-			FLGUIHudRenderVS,
-			FMeshMaterialShader,
-			FMeshMaterialShader,
-			FLGUIHudRenderPS> PassShaders;
-
-		PassShaders.VertexShader = MaterialResource.GetShader<FLGUIHudRenderVS>(VertexFactory->GetType());
-		PassShaders.PixelShader = MaterialResource.GetShader<FLGUIHudRenderPS>(VertexFactory->GetType());
-
-		FMeshPassProcessorRenderState DrawRenderState(PassDrawRenderState);
-		SetupPipelineState(DrawRenderState, &MaterialResource);
-
-		FMeshMaterialShaderElementData ShaderElementData;
-		ShaderElementData.InitializeMeshMaterialData(ViewIfDynamicMeshCommand, PrimitiveSceneProxy, MeshBatch, -1, false);
-
-		const FMeshDrawCommandSortKey SortKey = CalculateMeshStaticSortKey(PassShaders.VertexShader, PassShaders.PixelShader);
-
-		ERasterizerFillMode MeshFillMode = ERasterizerFillMode::FM_Solid;
-		ERasterizerCullMode MeshCullMode = CM_None;
-			//ComputeMeshCullMode(MeshBatch, MaterialResource);
-
-		BuildMeshDrawCommands(
-			MeshBatch,
-			BatchElementMask,
-			PrimitiveSceneProxy,
-			MaterialRenderProxy,
-			MaterialResource,
-			DrawRenderState,
-			PassShaders,
-			MeshFillMode,
-			MeshCullMode,
-			SortKey,
-			EMeshPassFeatures::Default,
-			ShaderElementData);
-	}
-};
-
-
 class FLGUIMeshElementCollector : FMeshElementCollector
 {
 public:
@@ -157,6 +49,7 @@ void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewI
 	ViewLocation = UICanvas->GetViewLocation();
 	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
+	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
 }
 void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InOutProjectionData)
 {
@@ -212,7 +105,40 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 
 	InView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
 
-	FMeshPassProcessorRenderState drawRenderState(InView);
+
+	FLGUIMeshElementCollector meshCollector(InView.GetFeatureLevel());
+	FGraphicsPipelineStateInitializer GraphicsPSOInit;
+	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
+	{
+		auto hudPrimitive = HudPrimitiveArray[i];
+		if (hudPrimitive != nullptr && hudPrimitive->CanRender())
+		{
+			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
+			if (Mesh.VertexFactory != nullptr && Mesh.VertexFactory->IsInitialized())
+			{
+				auto Material = Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel());
+				const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+				FLGUIHudRenderVS* VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>(0);
+				FLGUIHudRenderPS* PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>(0);
+				VertexShader->SetMatrix(RHICmdList, ViewProjectionMatrix, hudPrimitive->GetObject2WorldMatrix());
+				VertexShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material);
+				PixelShader->SetBlendState(GraphicsPSOInit, Material);
+				PixelShader->SetParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material);
+				GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GLGUIVertexDeclaration.VertexDeclarationRHI;
+				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
+				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
+				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+
+				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+				RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+				RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+			}
+		}
+	}
+	/*FMeshPassProcessorRenderState drawRenderState(InView);
 	drawRenderState.SetDepthStencilState(TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI());
 	drawRenderState.SetViewUniformBuffer(InView.ViewUniformBuffer);
 	FLGUIMeshElementCollector meshCollector(InView.GetFeatureLevel());
@@ -240,7 +166,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 				});
 			}
 		}
-	}
+	}*/
 	RHICmdList.EndRenderPass();
 }
 void FLGUIViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
