@@ -68,7 +68,7 @@ void UUITexture::OnCreateGeometry()
 	case UITextureType::Tiled:
 	{
 		FLGUISpriteInfo tempSpriteInfo;
-		tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight());
+		tempSpriteInfo.ApplyUV(uvRect.X * spriteData.width, uvRect.Y * spriteData.height, uvRect.Z * widget.width, uvRect.W * widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight());
 		UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, &tempSpriteInfo, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 	}
 		break;
@@ -116,7 +116,7 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 		case UITextureType::Tiled:
 		{
 			FLGUISpriteInfo tempSpriteInfo;
-			tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight());
+			tempSpriteInfo.ApplyUV(uvRect.X * spriteData.width, uvRect.Y * spriteData.height, uvRect.Z * widget.width, uvRect.W * widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight());
 			UIGeometry::UpdateUIRectSimpleUV(geometry, &tempSpriteInfo);
 		}
 			break;
