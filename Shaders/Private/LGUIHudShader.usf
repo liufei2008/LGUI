@@ -19,7 +19,7 @@ struct FLGUIBasePassVSToPS
 	float4 Position : SV_POSITION;
 };
 
-FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 VertexColor)
+FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 VertexColor, float2 UV0, float2 UV1, float2 UV2, float2 UV3)
 {
 	FVertexFactoryInterpolantsVSToPS Interpolants;
 
@@ -27,45 +27,53 @@ FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 Vertex
 	// Really only the last two components of the packed UVs have the opportunity to be uninitialized
 	Interpolants = (FVertexFactoryInterpolantsVSToPS)0;
 
-
+#if NUM_TEX_COORD_INTERPOLATORS
 	float2 CustomizedUVs[4];
-	//GetMaterialCustomizedUVs(VertexParameters, CustomizedUVs);
-	//GetCustomInterpolators(VertexParameters, CustomizedUVs);
-	
-	//UNROLL
-	//for (int CoordinateIndex = 0; CoordinateIndex < NUM_TEX_COORD_INTERPOLATORS; CoordinateIndex++)
-	//{
-	//	SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
-	//}
+	CustomizedUVs[0] = UV0;
+	CustomizedUVs[1] = UV1;
+	CustomizedUVs[2] = UV2;
+	CustomizedUVs[3] = UV3;
+	UNROLL
+	for (int CoordinateIndex = 0; CoordinateIndex < NUM_TEX_COORD_INTERPOLATORS; CoordinateIndex++)
+	{
+		SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
+	}
+#endif
 
 	//SetTangents(Interpolants, Intermediates.TangentToWorld[0], Intermediates.TangentToWorld[2], Intermediates.TangentToWorldSign);
 	SetColor(Interpolants, VertexColor);
 
-	//Interpolants.Color = VertexColor;
-
 	return Interpolants;
 }
 
-
-uniform float4x4 ViewProjection;
-uniform float4x4 Object2World;
+float4 TransformLocalToTranslatedWorld(float3 LocalPosition)
+{
+	float3 RotatedPosition = Primitive.LocalToWorld[0].xyz * LocalPosition.xxx + Primitive.LocalToWorld[1].xyz * LocalPosition.yyy + Primitive.LocalToWorld[2].xyz * LocalPosition.zzz;
+	return float4(RotatedPosition + (Primitive.LocalToWorld[3].xyz + ResolvedView.PreViewTranslation.xyz),1);
+}
 
 void MainVS(
     in float3 Position : ATTRIBUTE0,
     in half4 Color : ATTRIBUTE1,
-    in float2 TextureCoord0 : ATTRIBUTE2
-	, out FLGUIBasePassVSToPS Output
+    in float2 TextureCoord0 : ATTRIBUTE2,
+    in float2 TextureCoord1 : ATTRIBUTE3,
+    in float2 TextureCoord2 : ATTRIBUTE4,
+    in float2 TextureCoord3 : ATTRIBUTE5,
+	out FLGUIBasePassVSToPS Output
 )
 {
-	float4 WorldPosition = mul(float4(Position, 1.0), Object2World);
-	Output.Position = mul(WorldPosition, ViewProjection);
+	ResolvedView = ResolveView();
+
+	//float4 WorldPosition = mul(float4(Position, 1.0), GetPrimitiveData(Parameters.PrimitiveId).LocalToWorld);
+	float4 WorldPosition = TransformLocalToTranslatedWorld(Position);
+	Output.Position = mul(WorldPosition, ResolvedView.TranslatedWorldToClip);
 	Output.BasePassInterpolants.PixelPosition = WorldPosition;
 
 #if USE_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS
 	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPosition.xyz;
 #endif
 
-	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(Color);
+	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(Color, TextureCoord0, TextureCoord1, TextureCoord2, TextureCoord3);
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
 
@@ -88,19 +96,7 @@ FMaterialPixelParameters GetMaterialPixelParameters(FVertexFactoryInterpolantsVS
 		Result.TexCoords[CoordinateIndex] = GetUV(Interpolants, CoordinateIndex);
 	}
 #endif
-	half3 TangentToWorld0 = GetTangentToWorld0(Interpolants).xyz;
-	half4 TangentToWorld2 = GetTangentToWorld2(Interpolants);
-	Result.UnMirrored = TangentToWorld2.w;
-
 	Result.VertexColor = GetColor(Interpolants);
-#if USE_INSTANCING
-	Result.PerInstanceParams = Interpolants.PerInstanceParams;
-#endif
-
-	Result.TangentToWorld = AssembleTangentToWorld( TangentToWorld0, TangentToWorld2 );
-#if USE_WORLDVERTEXNORMAL_CENTER_INTERPOLATION
-	Result.WorldVertexNormal_Center = Interpolants.TangentToWorld2_Center.xyz;
-#endif
 	return Result;
 }
 

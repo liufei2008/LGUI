@@ -6,6 +6,8 @@
 #include "Materials/Material.h"
 #include "ShaderParameterUtils.h"
 #include "Core/Render/LGUIHudVertex.h"
+#include "PrimitiveUniformShaderParameters.h"
+#include "MeshBatch.h"
 
 
 TGlobalResource<FLGUIVertexDeclaration> GLGUIVertexDeclaration;
@@ -34,8 +36,7 @@ IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderPS, TEXT("/Plugin/LGUI/Private/LG
 FLGUIHudRenderVS::FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
 	: FMaterialShader(Initializer)
 {
-	ViewProjection.Bind(Initializer.ParameterMap, TEXT("ViewProjection"));
-	Object2World.Bind(Initializer.ParameterMap, TEXT("Object2World"));
+	
 }
 bool FLGUIHudRenderVS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material)
 {
@@ -43,23 +44,20 @@ bool FLGUIHudRenderVS::ShouldCompilePermutation(EShaderPlatform Platform, const 
 }
 void FLGUIHudRenderVS::ModifyCompilationEnvironment(EShaderPlatform Platform, const FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment)
 {
-	OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
 	FMaterialShader::ModifyCompilationEnvironment(Platform, Material, OutEnvironment);
+	OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
+	OutEnvironment.SetDefine(TEXT("HAS_PRIMITIVE_UNIFORM_BUFFER"), true);
+	OutEnvironment.SetDefine(TEXT("VF_SUPPORTS_PRIMITIVE_SCENE_DATA"), false);
+	OutEnvironment.SetDefine(TEXT("NEEDS_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS"), true);
 }
-void FLGUIHudRenderVS::SetMatrix(FRHICommandList& RHICmdList, const FMatrix& InViewProjection, const FMatrix& InObject2World)
+void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
 {
-	SetShaderValue(RHICmdList, GetVertexShader(), ViewProjection, InViewProjection);
-	SetShaderValue(RHICmdList, GetVertexShader(), Object2World, InObject2World);
-}
-void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material)
-{
+	SetUniformBufferParameter(RHICmdList, GetVertexShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
 	FMaterialShader::SetParameters<FVertexShaderRHIParamRef>(RHICmdList, GetVertexShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, ESceneTextureSetupMode::None);
 }
 bool FLGUIHudRenderVS::Serialize(FArchive& Ar)
 {
 	bool bShaderHasOutdatedParameters = FMaterialShader::Serialize(Ar);
-	Ar << ViewProjection;
-	Ar << Object2World;
 	return bShaderHasOutdatedParameters;
 }
 
@@ -76,8 +74,11 @@ bool FLGUIHudRenderPS::ShouldCompilePermutation(EShaderPlatform Platform, const 
 }
 void FLGUIHudRenderPS::ModifyCompilationEnvironment(EShaderPlatform Platform, const FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment)
 {
-	OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
 	FMaterialShader::ModifyCompilationEnvironment(Platform, Material, OutEnvironment);
+	OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
+	OutEnvironment.SetDefine(TEXT("HAS_PRIMITIVE_UNIFORM_BUFFER"), true);
+	OutEnvironment.SetDefine(TEXT("VF_SUPPORTS_PRIMITIVE_SCENE_DATA"), false);
+	OutEnvironment.SetDefine(TEXT("NEEDS_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS"), true);
 }
 void FLGUIHudRenderPS::SetBlendState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material)
 {
@@ -109,8 +110,9 @@ void FLGUIHudRenderPS::SetBlendState(FGraphicsPipelineStateInitializer& Graphics
 		break;
 	};
 }
-void FLGUIHudRenderPS::SetParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material)
+void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
 {
+	SetUniformBufferParameter(RHICmdList, GetPixelShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
 	const ESceneTextureSetupMode SceneTextures = ESceneTextureSetupMode::SceneDepth | ESceneTextureSetupMode::SSAO | ESceneTextureSetupMode::CustomDepth;
 	FMaterialShader::SetParameters<FPixelShaderRHIParamRef>(RHICmdList, GetPixelShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, SceneTextures);
 }

@@ -117,56 +117,28 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		if (hudPrimitive != nullptr && hudPrimitive->CanRender())
 		{
 			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-			if (Mesh.VertexFactory != nullptr && Mesh.VertexFactory->IsInitialized())
+			auto Material = Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel());
+			const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+			FLGUIHudRenderVS* VertexShader = (FLGUIHudRenderVS*)MaterialShaderMap->GetShader(&FLGUIHudRenderVS::StaticType);
+			FLGUIHudRenderPS* PixelShader = (FLGUIHudRenderPS*)MaterialShaderMap->GetShader(&FLGUIHudRenderPS::StaticType);
+			if (VertexShader && PixelShader)
 			{
-				auto Material = Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel());
-				const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-				FLGUIHudRenderVS* VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>(0);
-				FLGUIHudRenderPS* PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>(0);
-				VertexShader->SetMatrix(RHICmdList, ViewProjectionMatrix, hudPrimitive->GetObject2WorldMatrix());
-				VertexShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material);
 				PixelShader->SetBlendState(GraphicsPSOInit, Material);
-				PixelShader->SetParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material);
+
 				GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GLGUIVertexDeclaration.VertexDeclarationRHI;
 				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
 				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+
+				VertexShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material, Mesh);
+				PixelShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material, Mesh);
+
 				RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
 				RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
 			}
 		}
 	}
-	/*FMeshPassProcessorRenderState drawRenderState(InView);
-	drawRenderState.SetDepthStencilState(TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI());
-	drawRenderState.SetViewUniformBuffer(InView.ViewUniformBuffer);
-	FLGUIMeshElementCollector meshCollector(InView.GetFeatureLevel());
-	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
-	{
-		auto hudPrimitive = HudPrimitiveArray[i];
-		if (hudPrimitive != nullptr && hudPrimitive->CanRender())
-		{
-			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-			if (Mesh.VertexFactory != nullptr && Mesh.VertexFactory->IsInitialized())
-			{
-				auto primitiveSceneProxy = hudPrimitive->GetPrimitiveSceneProxy();
-				DrawDynamicMeshPass(InView, RHICmdList,
-					[Scene, &InView, &drawRenderState, &Mesh, primitiveSceneProxy](FMeshPassDrawListContext* InDrawListContext)
-				{
-					FLGUIHudMeshProcessor meshProcessor(
-						Scene,
-						InView.GetFeatureLevel(),
-						&InView,
-						drawRenderState,
-						InDrawListContext
-					);
-					const uint64 DefaultBatchElementMask = ~0ull;
-					meshProcessor.AddMeshBatch(Mesh, DefaultBatchElementMask, primitiveSceneProxy);
-				});
-			}
-		}
-	}*/
 	RHICmdList.EndRenderPass();
 }
 void FLGUIViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
