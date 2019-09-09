@@ -40,7 +40,7 @@ FLGUIHudRenderVS::FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInit
 }
 bool FLGUIHudRenderVS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material)
 {
-	return Material->GetShadingModel() == EMaterialShadingModel::MSM_Unlit;
+	return true;
 }
 void FLGUIHudRenderVS::ModifyCompilationEnvironment(EShaderPlatform Platform, const FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment)
 {
@@ -70,7 +70,7 @@ FLGUIHudRenderPS::FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInit
 }
 bool FLGUIHudRenderPS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material)
 {
-	return Material->GetShadingModel() == EMaterialShadingModel::MSM_Unlit;
+	return true;
 }
 void FLGUIHudRenderPS::ModifyCompilationEnvironment(EShaderPlatform Platform, const FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment)
 {
