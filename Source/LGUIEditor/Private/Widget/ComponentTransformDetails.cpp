@@ -896,12 +896,9 @@ bool FComponentTransformDetails::IsLocationXEnable()const
 		TWeakObjectPtr<UUIItem> uiItem = SelectedObjects[0];
 		if (uiItem.IsValid())
 		{
-			if (uiItem->GetRenderCanvas() != nullptr)
+			if (uiItem->GetParentAsUIItem() == nullptr)
 			{
-				if (uiItem->GetRenderCanvas()->IsRootCanvas() && uiItem->IsCanvasUIItem())
-				{
-					return true;
-				}
+				return true;
 			}
 			return uiItem->GetAnchorHAlign() == UIAnchorHorizontalAlign::None;
 		}
@@ -915,12 +912,9 @@ bool FComponentTransformDetails::IsLocationYEnable()const
 		TWeakObjectPtr<UUIItem> uiItem = SelectedObjects[0];
 		if (uiItem.IsValid())
 		{
-			if (uiItem->GetRenderCanvas() != nullptr)
+			if (uiItem->GetParentAsUIItem() == nullptr)
 			{
-				if (uiItem->GetRenderCanvas()->IsRootCanvas() && uiItem->IsCanvasUIItem())
-				{
-					return true;
-				}
+				return true;
 			}
 			return uiItem->GetAnchorVAlign() == UIAnchorVerticalAlign::None;
 		}
