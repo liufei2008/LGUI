@@ -31,11 +31,12 @@ void FUIPanelCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder
 	[
 		SNew(STextBlock)
 		.Text(FText::FromString(FString(TEXT("This UIPanel component is deprecated, will be removed in future release. Follow these steps to update:\
-			\n1. Add a LGUICanvas component to the actor\
-			\n2. Select UIPanel component, click button from menu \"LGUI Tools/Copy Component Values\"\
-			\n3. Select LGUICanvas component you just added, click button from menu \"LGUI Tools/Paste Component Values\"\
-			\n4. Set LGUICanvas's SortOrder value with UIPanel's Depth value\
-			\n5. Select the actor, click button from menu \"LGUI Tools/Replace this by.../UIContainer\""))))
+			\n1. Backup your work!!!\
+			\n2. Add a LGUICanvas component to the actor\
+			\n3. Select UIPanel component, click button from menu \"LGUI Tools/Copy Component Values\"\
+			\n4. Select LGUICanvas component you just added, click button from menu \"LGUI Tools/Paste Component Values\"\
+			\n5. Set LGUICanvas's SortOrder value with UIPanel's Depth value\
+			\n6. Select the actor, click button from menu \"LGUI Tools/Replace this by.../UIContainer\""))))
 		.ColorAndOpacity(FLinearColor(FColor::Red))
 		.AutoWrapText(true)
 	]
