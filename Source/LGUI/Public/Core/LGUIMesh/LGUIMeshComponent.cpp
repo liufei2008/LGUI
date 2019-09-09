@@ -408,7 +408,7 @@ public:
 	{
 		return this;
 	}
-	virtual FVertexBufferRHIParamRef GetVertexBufferRHI()override
+	virtual FRHIVertexBuffer* GetVertexBufferRHI()override
 	{
 		return Section->HudVertexBuffers.VertexBufferRHI;
 	}

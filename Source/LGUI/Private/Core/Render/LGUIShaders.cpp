@@ -40,12 +40,12 @@ FLGUIHudRenderVS::FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInit
 }
 bool FLGUIHudRenderVS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material)
 {
-	return Material->GetShadingModel() == EMaterialShadingModel::MSM_Unlit;
+	return Material->GetShadingModels().HasOnlyShadingModel(EMaterialShadingModel::MSM_Unlit);
 }
-void FLGUIHudRenderVS::ModifyCompilationEnvironment(EShaderPlatform Platform, const FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment)
+void FLGUIHudRenderVS::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
 {
-	FMaterialShader::ModifyCompilationEnvironment(Platform, Material, OutEnvironment);
-	OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
+	FMaterialShader::ModifyCompilationEnvironment(Platform, OutEnvironment);
+	//OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
 	OutEnvironment.SetDefine(TEXT("HAS_PRIMITIVE_UNIFORM_BUFFER"), true);
 	OutEnvironment.SetDefine(TEXT("VF_SUPPORTS_PRIMITIVE_SCENE_DATA"), false);
 	OutEnvironment.SetDefine(TEXT("NEEDS_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS"), true);
@@ -53,7 +53,7 @@ void FLGUIHudRenderVS::ModifyCompilationEnvironment(EShaderPlatform Platform, co
 void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
 {
 	SetUniformBufferParameter(RHICmdList, GetVertexShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
-	FMaterialShader::SetParameters<FVertexShaderRHIParamRef>(RHICmdList, GetVertexShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, ESceneTextureSetupMode::None);
+	FMaterialShader::SetParameters(RHICmdList, GetVertexShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, ESceneTextureSetupMode::None);
 }
 bool FLGUIHudRenderVS::Serialize(FArchive& Ar)
 {
@@ -70,12 +70,12 @@ FLGUIHudRenderPS::FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInit
 }
 bool FLGUIHudRenderPS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material)
 {
-	return Material->GetShadingModel() == EMaterialShadingModel::MSM_Unlit;
+	return Material->GetShadingModels().HasOnlyShadingModel(EMaterialShadingModel::MSM_Unlit);
 }
-void FLGUIHudRenderPS::ModifyCompilationEnvironment(EShaderPlatform Platform, const FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment)
+void FLGUIHudRenderPS::ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment)
 {
-	FMaterialShader::ModifyCompilationEnvironment(Platform, Material, OutEnvironment);
-	OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
+	FMaterialShader::ModifyCompilationEnvironment(Platform, OutEnvironment);
+	//OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
 	OutEnvironment.SetDefine(TEXT("HAS_PRIMITIVE_UNIFORM_BUFFER"), true);
 	OutEnvironment.SetDefine(TEXT("VF_SUPPORTS_PRIMITIVE_SCENE_DATA"), false);
 	OutEnvironment.SetDefine(TEXT("NEEDS_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS"), true);
@@ -114,7 +114,7 @@ void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, 
 {
 	SetUniformBufferParameter(RHICmdList, GetPixelShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
 	const ESceneTextureSetupMode SceneTextures = ESceneTextureSetupMode::SceneDepth | ESceneTextureSetupMode::SSAO | ESceneTextureSetupMode::CustomDepth;
-	FMaterialShader::SetParameters<FPixelShaderRHIParamRef>(RHICmdList, GetPixelShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, SceneTextures);
+	FMaterialShader::SetParameters(RHICmdList, GetPixelShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, SceneTextures);
 }
 bool FLGUIHudRenderPS::Serialize(FArchive& Ar)
 {

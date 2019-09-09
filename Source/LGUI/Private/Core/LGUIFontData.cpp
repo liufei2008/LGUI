@@ -442,13 +442,21 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 				//copy old texture pixels
 				if (oldTextureSize != 0 && oldTexture != nullptr)
 				{
-					FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
-					RHICmdList.CopySubTextureRegion(
+					FRHICopyTextureInfo CopyInfo;
+					CopyInfo.SourceMipIndex = 0;
+					CopyInfo.SourcePosition = FIntVector(0, 0, 0);
+					CopyInfo.SourceSliceIndex = 0;
+					CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
+					CopyInfo.DestMipIndex = 0;
+					CopyInfo.DestPosition = FIntVector(0, 0, 0);
+					CopyInfo.DestSliceIndex = 0;
+					CopyInfo.NumMips = 1;
+					CopyInfo.NumSlices = 1;
+					RHICmdList.CopyTexture(
 						((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
 						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
-						regionBox,
-						regionBox
-					);
+						CopyInfo
+						);
 					oldTexture->RemoveFromRoot();//ready for gc
 				}
 			});
