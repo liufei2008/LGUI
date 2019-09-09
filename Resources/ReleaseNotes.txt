@@ -82,3 +82,7 @@
     New feature:
         (still under develop)Add a button to UIRoot component named "Open Screen Space UI Viewer", which can open a window to preview Screen Space UI.
         Save scene outliner's hierarchy state now support save and open map.
+2.0:
+    Screen space UI (Or HUD) not get a huge performance update. The 1.x version use SceneCapture2D, which is vary bad on performance. But now the new 2.x version of LGUI's HUD, is render direct on screen, no additional performance cost!
+    Remove UIPanel, use LGUICanvas to render all UI elements.
+    Remove UIRoot, LGUICanvas and LGUICanvasScaler will do the job.
