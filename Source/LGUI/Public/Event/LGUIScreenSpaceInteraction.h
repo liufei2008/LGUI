@@ -17,6 +17,9 @@ class LGUI_API ULGUIScreenSpaceInteraction : public ULGUI_UIRaycaster
 public:	
 	ULGUIScreenSpaceInteraction();
 protected:
+	//click/drag threshold, calculated in target's local space
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
+		float clickThreshold = 5;
 	void CheckRayemitter();
 	virtual bool ShouldSkipUIItem(class UUIItem* UIItem)override;
 public:

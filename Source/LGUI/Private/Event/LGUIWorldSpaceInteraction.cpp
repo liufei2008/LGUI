@@ -4,6 +4,7 @@
 #include "Event/Rayemitter/LGUI_MainViewportMouseRayemitter.h"
 #include "Event/Rayemitter/LGUI_SceneComponentRayemitter.h"
 #include "Event/Rayemitter/LGUI_CenterScreenRayemitter.h"
+#include "Core/ActorComponent/UIItem.h"
 
 ULGUIWorldSpaceInteraction::ULGUIWorldSpaceInteraction()
 {
@@ -44,7 +45,8 @@ void ULGUIWorldSpaceInteraction::CheckRayemitter()
 			}
 				break;
 			}
-			actor->FinishAndRegisterComponent(rayEmitter);
+			rayEmitter->SetClickThreshold(clickThreshold);
+			rayEmitter->RegisterComponent();
 		}
 	}
 }

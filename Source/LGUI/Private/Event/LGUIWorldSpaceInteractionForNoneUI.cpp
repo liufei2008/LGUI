@@ -36,7 +36,8 @@ void ULGUIWorldSpaceInteractionForNoneUI::CheckRayemitter()
 			}
 				break;
 			}
-			actor->FinishAndRegisterComponent(rayEmitter);
+			rayEmitter->SetClickThreshold(clickThreshold);
+			rayEmitter->RegisterComponent();
 		}
 	}
 }
