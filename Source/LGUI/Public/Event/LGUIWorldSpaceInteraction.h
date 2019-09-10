@@ -32,6 +32,9 @@ class LGUI_API ULGUIWorldSpaceInteraction : public ULGUI_UIRaycaster
 public:	
 	ULGUIWorldSpaceInteraction();
 protected:
+	//click/drag threshold, calculated in target's local space
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
+		float clickThreshold = 5;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		ELGUIWorldSpaceInteractionSource interactionSource = ELGUIWorldSpaceInteractionSource::Mouse;
 	void CheckRayemitter();
