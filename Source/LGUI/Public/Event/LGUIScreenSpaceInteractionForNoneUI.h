@@ -17,6 +17,9 @@ class LGUI_API ULGUIScreenSpaceInteractionForNoneUI : public ULGUI_WorldRaycaste
 public:	
 	ULGUIScreenSpaceInteractionForNoneUI();
 protected:
+	//click/drag threshold, calculated in target's local space
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
+		float clickThreshold = 5;
 	void CheckRayemitter();
 public:
 	virtual bool Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)override;
