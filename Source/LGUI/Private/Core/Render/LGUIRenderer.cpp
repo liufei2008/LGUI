@@ -70,14 +70,10 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		if (editor->bIsSimulatingInEditor)return;
 	}
 #endif
-	if (NeedToSortPrimitive)
-	{
-		HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
-		{
-			return A.GetRenderPriority() < B.GetRenderPriority();
-		});
-		NeedToSortPrimitive = false;
-	}
+	TArray<ILGUIHudPrimitive*> primitiveArray;
+	Mutex.Lock();
+	primitiveArray = HudPrimitiveArray;
+	Mutex.Unlock();
 
 	FTexture2DRHIRef RenderTarget = InView.Family->RenderTarget->GetRenderTargetTexture();
 	FRHIRenderPassInfo RPInfo(RenderTarget, ERenderTargetActions::Load_Store);
@@ -111,9 +107,10 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
-	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
+	
+	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
-		auto hudPrimitive = HudPrimitiveArray[i];
+		auto hudPrimitive = primitiveArray[i];
 		if (hudPrimitive != nullptr && hudPrimitive->CanRender())
 		{
 			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
@@ -153,19 +150,26 @@ void FLGUIViewExtension::AddHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 		UE_LOG(LGUI, Error, TEXT("[FLGUIViewExtension::AddHudPrimitive]Add nullptr as ILGUIHudPrimitive!"));
 		return;
 	}
+	Mutex.Lock();
 	HudPrimitiveArray.Add(InPrimitive);
+	HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
+	{
+		return A.GetRenderPriority() < B.GetRenderPriority();
+	});
+	Mutex.Unlock();
 }
 void FLGUIViewExtension::RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
+		Mutex.Lock();
 		HudPrimitiveArray.Remove(InPrimitive);
+		Mutex.Unlock();
 	}
 }
 
 void FLGUIViewExtension::MarkSortRenderPriority_RenderThread()
 {
-	NeedToSortPrimitive = true;
 	HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
 	{
 		return A.GetRenderPriority() < B.GetRenderPriority();

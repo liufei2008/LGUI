@@ -37,7 +37,6 @@ public:
 	void RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive);
 private:
 	void MarkSortRenderPriority_RenderThread();
-	bool NeedToSortPrimitive = true;
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
 
@@ -45,4 +44,5 @@ private:
 	FMatrix ViewRotationMatrix;
 	FMatrix ProjectionMatrix;
 	FMatrix ViewProjectionMatrix;
+	FCriticalSection Mutex;//for lock HudPrimitiveArray, incase gamethread and renderthread
 };
