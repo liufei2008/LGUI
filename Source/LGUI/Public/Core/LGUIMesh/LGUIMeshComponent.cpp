@@ -617,7 +617,6 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	{
 		Proxy = new FLGUIMeshSceneProxy(this);
 	}
-	HudPrimitive = (ILGUIHudPrimitive*)Proxy;
 	return Proxy;
 }
 

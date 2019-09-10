@@ -90,7 +90,6 @@ private:
 protected:
 	FLGUIMeshSection MeshSection;
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
-	ILGUIHudPrimitive* HudPrimitive = nullptr;
 };
 
 
