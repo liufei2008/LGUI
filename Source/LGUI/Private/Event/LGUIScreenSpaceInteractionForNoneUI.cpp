@@ -14,6 +14,8 @@ void ULGUIScreenSpaceInteractionForNoneUI::CheckRayemitter()
 		if (auto actor = GetOwner())
 		{
 			auto emitter = NewObject<ULGUI_ScreenSpaceUIMouseRayemitter>(actor);
+			emitter->SetClickThreshold(clickThreshold);
+			emitter->RegisterComponent();
 			rayEmitter = emitter;
 		}
 	}

@@ -20,11 +20,15 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 
 	//click/drag threshold, calculated in target's local space
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = LGUI)
 		float clickThreshold = 5;
 
 	FVector currentRayOrigin, currentRayDirection;
 public:
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	void SetClickThreshold(float value) { clickThreshold = value; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	float GetClickThreshold() { return clickThreshold; }
 	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors);
 	virtual bool ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData);
 	virtual void MarkPress(const FLGUIPointerEventData& InPointerEventData) {};
