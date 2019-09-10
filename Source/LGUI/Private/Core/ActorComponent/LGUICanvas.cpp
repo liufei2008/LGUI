@@ -1229,35 +1229,16 @@ bool ULGUICanvas::GetRequireUV3()const
 }
 
 
-void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, float InOrthoWidth, FMatrix& OutProjectionMatrix)
+void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix)
 {
-	float XAxisMultiplier;
-	float YAxisMultiplier;
-
-	if (InViewportSize.X > InViewportSize.Y)
-	{
-		// if the viewport is wider than it is tall
-		XAxisMultiplier = 1.0f;
-		YAxisMultiplier = InViewportSize.X / (float)InViewportSize.Y;
-	}
-	else
-	{
-		// if the viewport is taller than it is wide
-		XAxisMultiplier = InViewportSize.Y / (float)InViewportSize.X;
-		YAxisMultiplier = 1.0f;
-	}
-
 	if (InProjectionType == ECameraProjectionMode::Orthographic)
 	{
 		check((int32)ERHIZBuffer::IsInverted);
 		const float tempOrthoWidth = InOrthoWidth / 2.0f;
-		const float tempOrthoHeight = InOrthoWidth / 2.0f * YAxisMultiplier;
+		const float tempOrthoHeight = InOrthoHeight / 2.0f;
 
-		const float NearPlane = 0;
-		const float FarPlane = WORLD_MAX / 8.0f;
-
-		const float ZScale = 1.0f / (FarPlane - NearPlane);
-		const float ZOffset = -NearPlane;
+		const float ZScale = 1.0f / (FarClipPlane - NearClipPlane);
+		const float ZOffset = -NearClipPlane;
 
 		OutProjectionMatrix = FReversedZOrthoMatrix(
 			tempOrthoWidth,
@@ -1268,6 +1249,22 @@ void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProject
 	}
 	else
 	{
+		float XAxisMultiplier;
+		float YAxisMultiplier;
+
+		if (InViewportSize.X > InViewportSize.Y)
+		{
+			// if the viewport is wider than it is tall
+			XAxisMultiplier = 1.0f;
+			YAxisMultiplier = InViewportSize.X / (float)InViewportSize.Y;
+		}
+		else
+		{
+			// if the viewport is taller than it is wide
+			XAxisMultiplier = InViewportSize.Y / (float)InViewportSize.X;
+			YAxisMultiplier = 1.0f;
+		}
+
 		if ((int32)ERHIZBuffer::IsInverted)
 		{
 			OutProjectionMatrix = FReversedZPerspectiveMatrix(
@@ -1275,8 +1272,8 @@ void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProject
 				InFOV,
 				XAxisMultiplier,
 				YAxisMultiplier,
-				GNearClippingPlane,
-				GNearClippingPlane
+				NearClipPlane,
+				FarClipPlane
 			);
 		}
 		else
@@ -1286,10 +1283,21 @@ void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProject
 				InFOV,
 				XAxisMultiplier,
 				YAxisMultiplier,
-				GNearClippingPlane,
-				GNearClippingPlane
+				NearClipPlane,
+				FarClipPlane
 			);
 		}
+	}
+}
+float ULGUICanvas::CalculateDistanceToCamera()
+{
+	if (ProjectionType == ECameraProjectionMode::Orthographic)
+	{
+		return 1000;
+	}
+	else
+	{
+		return UIItem->GetWidth() * 0.5f / FMath::Tan(FMath::DegreesToRadians(FOVAngle * 0.5f));
 	}
 }
 FMatrix ULGUICanvas::GetViewProjectionMatrix()
@@ -1300,7 +1308,8 @@ FMatrix ULGUICanvas::GetViewProjectionMatrix()
 		UE_LOG(LGUI, Error, TEXT("[LGUICanvas::GetViewProjectionMatrix]UIItem not valid!"));
 		return ViewProjectionMatrix;
 	}
-	FVector ViewLocation = UIItem->GetComponentLocation() - UIItem->GetUpVector() * DistanceToCamera;
+
+	FVector ViewLocation = UIItem->GetComponentLocation() - UIItem->GetUpVector() * CalculateDistanceToCamera();
 	auto Transform = UIItem->GetComponentToWorld();
 	Transform.SetTranslation(FVector::ZeroVector);
 	Transform.SetScale3D(FVector::OneVector);
@@ -1309,7 +1318,7 @@ FMatrix ULGUICanvas::GetViewProjectionMatrix()
 	const float FOV = FOVAngle * (float)PI / 360.0f;
 
 	FMatrix ProjectionMatrix;
-	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, OrthoWidth, ProjectionMatrix);
+	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, UIItem->GetWidth(), UIItem->GetHeight(), ProjectionMatrix);
 	ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
 	return ViewProjectionMatrix;
 }
@@ -1317,12 +1326,12 @@ FMatrix ULGUICanvas::GetProjectionMatrix()
 {
 	FMatrix ProjectionMatrix = FMatrix::Identity;
 	const float FOV = FOVAngle * (float)PI / 360.0f;
-	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, OrthoWidth, ProjectionMatrix);
+	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, UIItem->GetWidth(), UIItem->GetHeight(), ProjectionMatrix);
 	return ProjectionMatrix;
 }
 FVector ULGUICanvas::GetViewLocation()
 {
-	return UIItem->GetComponentLocation() - UIItem->GetUpVector() * DistanceToCamera;
+	return UIItem->GetComponentLocation() - UIItem->GetUpVector() * CalculateDistanceToCamera();
 }
 FMatrix ULGUICanvas::GetViewRotationMatrix()
 {
@@ -1338,6 +1347,7 @@ FRotator ULGUICanvas::GetViewRotator()
 FIntPoint ULGUICanvas::GetViewportSize()
 {
 	FIntPoint viewportSize = FIntPoint(2, 2);
+#if WITH_EDITOR
 	if (!GetWorld()->IsGameWorld())
 	{
 		if (CheckUIItem())
@@ -1347,6 +1357,7 @@ FIntPoint ULGUICanvas::GetViewportSize()
 		}
 	}
 	else
+#endif
 	{
 		if (auto world = this->GetWorld())
 		{
@@ -1380,7 +1391,16 @@ void ULGUICanvas::SetPixelPerfect(bool value)
 	if (pixelPerfect != value)
 	{
 		pixelPerfect = value;
+		MarkCanvasUpdate();
 	}
+}
+
+void ULGUICanvas::SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane)
+{
+	ProjectionType = InProjectionType;
+	FOVAngle = InFovAngle;
+	NearClipPlane = InNearClipPlane;
+	FarClipPlane = InFarClipPlane;
 }
 
 bool ULGUICanvas::GetPixelPerfect()const
