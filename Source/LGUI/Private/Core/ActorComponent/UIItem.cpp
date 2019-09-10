@@ -319,6 +319,7 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 			prevAnchorVAlign = newAlign;
 		}
 
+		MarkAllDirtyRecursive();
 		EditorForceUpdateImmediately();
 		UpdateBounds();
 	}
