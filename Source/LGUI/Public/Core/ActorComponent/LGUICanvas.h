@@ -99,15 +99,13 @@ public:
 	//is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value
 	bool IsPointVisible(FVector worldPoint);
 
-	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float InOrthoWidth, FMatrix& OutProjectionMatrix);
+	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix);
 	FMatrix GetViewProjectionMatrix();
 	FMatrix GetProjectionMatrix();
 	FORCEINLINE FVector GetViewLocation();
 	FORCEINLINE FMatrix GetViewRotationMatrix();
 	FORCEINLINE FRotator GetViewRotator();
 	FORCEINLINE FIntPoint GetViewportSize();
-private:
-	float DistanceToCamera = 100.0f;
 public:
 	//get top most LGUICanvas on hierarchy
 	FORCEINLINE ULGUICanvas* GetRootCanvas();
@@ -149,11 +147,13 @@ protected:
 protected:
 	friend class FLGUICanvasCustomization;
 	friend class FUIItemCustomization;
-	friend class ULGUICanvasScaler;
 
 	ECameraProjectionMode::Type ProjectionType = ECameraProjectionMode::Perspective;
 	float FOVAngle = 90;
-	float OrthoWidth = 100;
+	float NearClipPlane = GNearClippingPlane;
+	float FarClipPlane = GNearClippingPlane;
+
+	float CalculateDistanceToCamera();
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIRenderMode renderMode = ELGUIRenderMode::WorldSpace;
@@ -207,6 +207,8 @@ public:
 		void SetRenderMode(ELGUIRenderMode value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetPixelPerfect(bool value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);

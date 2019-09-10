@@ -18,9 +18,7 @@ void ULGUICanvasScaler::BeginPlay()
 {
 	Super::BeginPlay();
 	CheckCanvas();
-	Canvas->ProjectionType = ProjectionType;
-	Canvas->FOVAngle = FOVAngle;
-	Canvas->OrthoWidth = OrthoWidth;
+	SetCanvasProperties();
 	PrevViewportSize = FIntPoint(2, 2);//force apply
 	CheckAndApplyViewportParameter();
 }
@@ -63,39 +61,19 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 	{
 		if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 		{
-			auto halfFov = Canvas->FOVAngle * 0.5f;//ue4 us horizontal fov
+			auto halfFov = FOVAngle * 0.5f;//ue4 us horizontal fov
 			Canvas->CheckAndGetUIItem()->SetRelativeRotation(FQuat::MakeFromEuler(FVector(-90, 0, 90)));
 			Canvas->CheckAndGetUIItem()->SetRelativeScale3D(FVector::OneVector);
 
-			//adjust size and scale
-			if (Canvas->ProjectionType == ECameraProjectionMode::Orthographic)
+			//adjust size
+#if WITH_EDITOR
+			if (!GetWorld()->IsGameWorld())
 			{
-				switch (UIScaleMode)
-				{
-				case LGUIScaleMode::ScaleWithScreenWidth:
-				{
-					Canvas->CheckAndGetUIItem()->SetWidth(PreferredWidth);
-					Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * PrevViewportSize.Y / PrevViewportSize.X);
-				}
-				break;
-				case LGUIScaleMode::ScaleWithScreenHeight:
-				{
-					Canvas->CheckAndGetUIItem()->SetHeight(PreferredHeight);
-					auto tempPreferredWidth = PreferredHeight * PrevViewportSize.X / PrevViewportSize.Y;
-					Canvas->CheckAndGetUIItem()->SetWidth(tempPreferredWidth);
-				}
-				break;
-				case LGUIScaleMode::ConstantPixelSize:
-				{
-					Canvas->CheckAndGetUIItem()->SetWidth(PrevViewportSize.X);
-					Canvas->CheckAndGetUIItem()->SetHeight(PrevViewportSize.Y);
-				}
-				break;
-				default:
-					break;
-				}
+				Canvas->MarkRebuildAllDrawcall();
+				Canvas->MarkCanvasUpdate();
 			}
 			else
+#endif
 			{
 				switch (UIScaleMode)
 				{
@@ -103,7 +81,6 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 				{
 					Canvas->CheckAndGetUIItem()->SetWidth(PreferredWidth);
 					Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * PrevViewportSize.Y / PrevViewportSize.X);
-					Canvas->DistanceToCamera = PreferredWidth * 0.5f / FMath::Tan(FMath::DegreesToRadians(halfFov));
 				}
 				break;
 				case LGUIScaleMode::ScaleWithScreenHeight:
@@ -111,23 +88,19 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 					Canvas->CheckAndGetUIItem()->SetHeight(PreferredHeight);
 					auto tempPreferredWidth = PreferredHeight * PrevViewportSize.X / PrevViewportSize.Y;
 					Canvas->CheckAndGetUIItem()->SetWidth(tempPreferredWidth);
-					Canvas->DistanceToCamera = tempPreferredWidth * 0.5f / FMath::Tan(FMath::DegreesToRadians(halfFov));
 				}
 				break;
 				case LGUIScaleMode::ConstantPixelSize:
 				{
 					Canvas->CheckAndGetUIItem()->SetWidth(PrevViewportSize.X);
 					Canvas->CheckAndGetUIItem()->SetHeight(PrevViewportSize.Y);
-					Canvas->DistanceToCamera = PrevViewportSize.X * 0.5f / FMath::Tan(FMath::DegreesToRadians(halfFov));
 				}
 				break;
 				default:
 					break;
 				}
+				Canvas->MarkCanvasUpdate();
 			}
-
-			Canvas->MarkRebuildAllDrawcall();
-			Canvas->MarkCanvasUpdate();
 		}
 	}
 }
@@ -136,7 +109,7 @@ void ULGUICanvasScaler::SetProjectionType(TEnumAsByte<ECameraProjectionMode::Typ
 {
 	if (ProjectionType != value)
 	{
-		Canvas->ProjectionType = ProjectionType = value;
+		ProjectionType = ProjectionType = value;
 		OnViewportParameterChanged();
 	}
 }
@@ -144,15 +117,23 @@ void ULGUICanvasScaler::SetFovAngle(float value)
 {
 	if (FOVAngle != value)
 	{
-		Canvas->FOVAngle = FOVAngle = value;
+		FOVAngle = FOVAngle = value;
 		OnViewportParameterChanged();
 	}
 }
-void ULGUICanvasScaler::SetOrthoWidth(float value)
+void ULGUICanvasScaler::SetNearClipPlane(float value)
 {
-	if (Canvas->OrthoWidth != value)
+	if (NearClipPlane != value)
 	{
-		Canvas->OrthoWidth = OrthoWidth = value;
+		NearClipPlane = value;
+		OnViewportParameterChanged();
+	}
+}
+void ULGUICanvasScaler::SetFarClipPlane(float value)
+{
+	if (FarClipPlane != value)
+	{
+		FarClipPlane = value;
 		OnViewportParameterChanged();
 	}
 }
@@ -164,9 +145,35 @@ void ULGUICanvasScaler::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto property = PropertyChangedEvent.Property)
 	{
-		Canvas->ProjectionType = ProjectionType;
-		Canvas->FOVAngle = FOVAngle;
-		Canvas->OrthoWidth = OrthoWidth;
+		auto propertyName = property->GetName();
+		if (propertyName == TEXT("PreferredHeight") || propertyName == TEXT("PreferredWidth"))
+		{
+			switch (UIScaleMode)
+			{
+			case LGUIScaleMode::ScaleWithScreenWidth:
+			{
+				Canvas->CheckAndGetUIItem()->SetWidth(PreferredWidth);
+				Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * PrevViewportSize.Y / PrevViewportSize.X);
+			}
+			break;
+			case LGUIScaleMode::ScaleWithScreenHeight:
+			{
+				Canvas->CheckAndGetUIItem()->SetHeight(PreferredHeight);
+				auto tempPreferredWidth = PreferredHeight * PrevViewportSize.X / PrevViewportSize.Y;
+				Canvas->CheckAndGetUIItem()->SetWidth(tempPreferredWidth);
+			}
+			break;
+			case LGUIScaleMode::ConstantPixelSize:
+			{
+				Canvas->CheckAndGetUIItem()->SetWidth(PrevViewportSize.X);
+				Canvas->CheckAndGetUIItem()->SetHeight(PrevViewportSize.Y);
+			}
+			break;
+			default:
+				break;
+			}
+		}
+		SetCanvasProperties();
 		OnViewportParameterChanged();
 	}
 }
@@ -198,7 +205,7 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 	{
 		if (Canvas->IsRootCanvas())
 		{
-			if (Canvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
 				CheckAndApplyViewportParameter();
 				DrawVirtualCamera();
@@ -216,7 +223,7 @@ void DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVec
 	// The start of the raytrace is defined to be at mousex,mousey,1 in projection space (z=1 is near, z=0 is far - this gives us better precision)
 	// To get the direction of the raytrace we need to use any z between the near and the far plane, so let's use (mousex, mousey, 0.5)
 	const FVector4 RayStartProjectionSpace = FVector4(ScreenSpaceX, ScreenSpaceY, 1.0f, 1.0f);
-	const FVector4 RayEndProjectionSpace = FVector4(ScreenSpaceX, ScreenSpaceY, 0.00000001f, 1.0f);
+	const FVector4 RayEndProjectionSpace = FVector4(ScreenSpaceX, ScreenSpaceY, 0, 1.0f);
 
 	// Projection (changing the W coordinate) is not handled by the FMatrix transforms that work with vectors, so multiplications
 	// by the projection matrix should use homogeneous coordinates (i.e. FPlane).
@@ -243,22 +250,28 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 	{
 		if (!LGUIManager::IsSelected_Editor(this->GetOwner()))return;
 		auto ViewProjectionMatrix = Canvas->GetViewProjectionMatrix();
-		FVector leftBottom, rightBottom, leftTop, rightTop, rayEnd;
+		FVector leftBottom, rightBottom, leftTop, rightTop;
+		FVector leftBottomEnd, rightBottomEnd, leftTopEnd, rightTopEnd;
 		auto lineColor = FColor::White;
 		//draw view frustum
-		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(0, 0), leftBottom, rayEnd);
-		DrawDebugLine(this->GetWorld(), leftBottom, rayEnd, lineColor);
-		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(1, 0), rightBottom, rayEnd);
-		DrawDebugLine(this->GetWorld(), rightBottom, rayEnd, lineColor);
-		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(0, 1), leftTop, rayEnd);
-		DrawDebugLine(this->GetWorld(), leftTop, rayEnd, lineColor);
-		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(1, 1), rightTop, rayEnd);
-		DrawDebugLine(this->GetWorld(), rightTop, rayEnd, lineColor);
-
+		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(0, 0), leftBottom, leftBottomEnd);
+		DrawDebugLine(this->GetWorld(), leftBottom, leftBottomEnd, lineColor);
+		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(1, 0), rightBottom, rightBottomEnd);
+		DrawDebugLine(this->GetWorld(), rightBottom, rightBottomEnd, lineColor);
+		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(0, 1), leftTop, leftTopEnd);
+		DrawDebugLine(this->GetWorld(), leftTop, leftTopEnd, lineColor);
+		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(1, 1), rightTop, rightTopEnd);
+		DrawDebugLine(this->GetWorld(), rightTop, rightTopEnd, lineColor);
+		//draw near clip plane
 		DrawDebugLine(this->GetWorld(), leftBottom, rightBottom, lineColor);
 		DrawDebugLine(this->GetWorld(), leftBottom, leftTop, lineColor);
 		DrawDebugLine(this->GetWorld(), rightTop, rightBottom, lineColor);
 		DrawDebugLine(this->GetWorld(), rightTop, leftTop, lineColor);
+		//draw far clip plane
+		DrawDebugLine(this->GetWorld(), leftBottomEnd, rightBottomEnd, lineColor);
+		DrawDebugLine(this->GetWorld(), leftBottomEnd, leftTopEnd, lineColor);
+		DrawDebugLine(this->GetWorld(), rightTopEnd, rightBottomEnd, lineColor);
+		DrawDebugLine(this->GetWorld(), rightTopEnd, leftTopEnd, lineColor);
 
 		auto viewRotationMatrix = Canvas->GetViewRotationMatrix();
 		viewRotationMatrix = viewRotationMatrix * FMatrix(
@@ -266,7 +279,7 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 			FPlane(1, 0, 0, 0),
 			FPlane(0, 1, 0, 0),
 			FPlane(0, 0, 0, 1)).Inverse();
-		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), viewRotationMatrix.Rotator(), Canvas->FOVAngle);
+		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), viewRotationMatrix.Rotator(), FOVAngle);
 	}
 }
 #endif
@@ -276,6 +289,7 @@ void ULGUICanvasScaler::SetPreferredWidth(float InValue)
 	if (PreferredWidth != InValue)
 	{
 		PreferredWidth = InValue;
+		OnViewportParameterChanged();
 	}
 }
 void ULGUICanvasScaler::SetPreferredHeight(float InValue)
@@ -283,6 +297,7 @@ void ULGUICanvasScaler::SetPreferredHeight(float InValue)
 	if (PreferredHeight != InValue)
 	{
 		PreferredHeight = InValue;
+		OnViewportParameterChanged();
 	}
 }
 
@@ -297,6 +312,11 @@ bool ULGUICanvasScaler::CheckCanvas()
 	}
 	else
 	{
+		SetCanvasProperties();
 		return true;
 	}
+}
+void ULGUICanvasScaler::SetCanvasProperties()
+{
+	Canvas->SetProjectionParameters(ProjectionType, FOVAngle, NearClipPlane, FarClipPlane);
 }

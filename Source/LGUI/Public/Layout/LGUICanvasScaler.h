@@ -43,14 +43,15 @@ protected:
 	friend class FUICanvasScalerCustomization;
 
 	//Virtual Camera Projection Type
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (DisplayName = "Projection Type"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", meta = (DisplayName = "Projection Type"))
 		TEnumAsByte<ECameraProjectionMode::Type> ProjectionType;
 	//Virtual Camera field of view (in degrees). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (DisplayName = "Field of View", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", meta = (DisplayName = "Field of View", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
 		float FOVAngle = 90;
-	//The desired width (in world units) of the orthographic view (ignored in Perspective mode)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		float OrthoWidth = 100;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		float NearClipPlane = 1;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		float FarClipPlane = 10000;
 	
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		LGUIScaleMode UIScaleMode = LGUIScaleMode::ScaleWithScreenHeight;
@@ -61,6 +62,7 @@ protected:
 
 	bool CheckCanvas();
 	UPROPERTY(Transient) class ULGUICanvas* Canvas = nullptr;
+	void SetCanvasProperties();
 
 	FIntPoint PrevViewportSize = FIntPoint(0, 0);//prev frame viewport size
 public:
@@ -75,7 +77,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetFovAngle()const { return FOVAngle; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetOrthoWidth()const { return OrthoWidth; }
+		float GetNearClipPlane()const { return NearClipPlane; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetFarClipPlane()const { return FarClipPlane; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetPreferredWidth(float InValue);
@@ -87,5 +91,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetFovAngle(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetOrthoWidth(float value);
+		void SetNearClipPlane(float value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetFarClipPlane(float value);
 };
