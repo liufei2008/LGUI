@@ -6,7 +6,7 @@
 #include "Curves/CurveFloat.h"
 #include "LTweener.generated.h"
 
-DECLARE_DELEGATE_RetVal_FourParams(float, TweenFunction, float, float, float, float);
+DECLARE_DELEGATE_RetVal_FourParams(float, FLTweenFunction, float, float, float, float);
 
 // @param	Progress of this tween, from 0 to 1.
 DECLARE_DELEGATE_OneParam(LTweenUpdateDelegate, float);
@@ -128,7 +128,7 @@ protected:
 	//if animation start play
 	bool startToTween = false;
 	//tween function
-	TweenFunction tweenFunc;
+	FLTweenFunction tweenFunc;
 	//
 	bool isMarkedToKill = false;
 	//
@@ -428,16 +428,6 @@ private:
 		else return OutBounce(t * 2 - d, 0, c, d) * .5f + c*.5f + b;
 	}
 	//Tween use CurveFloat, in range of 0-1. if curveFloat is null, fallback to Linear
-	float CurveFloat(float c, float b, float t, float d)
-	{
-		if (IsValid(curveFloat))
-		{
-			return curveFloat->GetFloatValue(c * t / d);
-		}
-		else
-		{
-			return Linear(c, b, t, d);
-		}
-	}
+	float CurveFloat(float c, float b, float t, float d);
 #pragma endregion
 };
