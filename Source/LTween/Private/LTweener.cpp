@@ -216,3 +216,16 @@ void ULTweener::ForceComplete()
 	if (onCompleteCpp.IsBound()) 
 		onCompleteCpp.Execute();
 }
+
+
+float ULTweener::CurveFloat(float c, float b, float t, float d)
+{
+	if (curveFloat != nullptr)
+	{
+		return curveFloat->GetFloatValue(t / d) * c + b;
+	}
+	else
+	{
+		return Linear(c, b, t, d);
+	}
+}
