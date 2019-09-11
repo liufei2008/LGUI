@@ -434,12 +434,9 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 	{
 		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
 		{
-			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Target))//todo: object could be null, then we can't tell what type it is
+			if (objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
 			{
-				if (object->GetClass()->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
-				{
-					continue;
-				}
+				continue;
 			}
 		}
 		auto propertyName = propertyItem->GetFName();
@@ -481,12 +478,9 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 	{
 		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
 		{
-			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Target))
+			if (objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
 			{
-				if (object->GetClass()->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
-				{
-					continue;
-				}
+				continue;
 			}
 		}
 		auto propertyName = propertyItem->GetFName();
@@ -1317,12 +1311,9 @@ void ActorSerializer::SaveProperty(UObject* Target, TArray<FLGUIPropertyData>& P
 	{
 		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
 		{
-			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Target))
+			if (objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
 			{
-				if (object->GetClass()->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
-				{
-					continue;
-				}
+				continue;
 			}
 		}
 		auto propertyName = propertyItem->GetFName();
