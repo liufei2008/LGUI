@@ -5,6 +5,7 @@
 #include "Core/LGUISettings.h"
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/LGUIAtlasData.h"
+#include "UObjectIterator.h"
 
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
@@ -247,7 +248,10 @@ PACK_AND_INSERT:
 		//tell UISprite to scale down uv
 		for (auto itemSprite : atlasData->renderSpriteArray)
 		{
-			itemSprite->ApplyAtlasTextureScaleUp();
+			if (itemSprite.IsValid())
+			{
+				itemSprite->ApplyAtlasTextureScaleUp();
+			}
 		}
 
 		goto PACK_AND_INSERT;

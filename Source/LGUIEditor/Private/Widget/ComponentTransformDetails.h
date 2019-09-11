@@ -48,11 +48,6 @@ public:
 	virtual void Tick( float DeltaTime ) override;
 	virtual void SetOnRebuildChildren( FSimpleDelegate OnRebuildChildren ) override{}
 
-	void HideTransformField(const ETransformField::Type InTransformField)
-	{
-		HiddenFieldMask |= (1 << InTransformField);
-	}
-
 private:
 	/** @return Whether the transform details panel should be enabled (editable) or not (read-only / greyed out) */
 	bool GetIsEnabled() const;
@@ -66,10 +61,9 @@ private:
 	 * @param TransformField	The field (location/rotation/scale) to modify
 	 * @param Axis				Bitfield of which axis to set, can be multiple
 	 * @param NewValue			The new vector values, it only uses the ones with specified axis
-	 * @param bMirror			If true, set the value to it's inverse instead of using NewValue
 	 * @param bCommittted		True if the value was committed, false is the value comes from the slider
 	 */
-	void OnSetTransform(ETransformField::Type TransformField, EAxisList::Type Axis, FVector NewValue, bool bMirror, bool bCommitted);
+	void OnSetTransform(ETransformField::Type TransformField, EAxisList::Type Axis, FVector NewValue, bool bCommitted);
 
 	/**
 	 * Sets a single axis value, called from UI
@@ -110,39 +104,6 @@ private:
 	 * @return The label widget
 	 */
 	TSharedRef<SWidget> BuildTransformFieldLabel( ETransformField::Type TransformField );
-
-	/**
-	 * Gets display text for a transform field
-	 *
-	 * @param TransformField	The field to get the text for
-	 * @return The text label for TransformField
-	 */
-	FText GetTransformFieldText( ETransformField::Type TransformField ) const;
-
-	/**
-	 * @return the text to display for translation                   
-	 */
-	FText GetLocationText() const;
-
-	/**
-	 * @return the text to display for rotation                   
-	 */
-	FText GetRotationText() const;
-
-	/**
-	 * @return the text to display for scale                   
-	 */
-	FText GetScaleText() const;
-
-	/**
-	 * Sets relative transform on the specified field
-	 *
-	 * @param The field that should be set to relative
-	 */
-	void OnSetAbsoluteTransform( ETransformField::Type TransformField, bool bAbsoluteEnabled);
-
-	/** @return true if Absolute flag of transform type matches passed in bCheckAbsolute*/
-	bool IsAbsoluteTransformChecked( ETransformField::Type TransformField, bool bAbsoluteEnabled=true) const;
 
 	/** @return true of copy is enabled for the specified field */
 	bool OnCanCopy( ETransformField::Type TransformField ) const;
@@ -257,18 +218,10 @@ private:
 	FOptionalVector CachedScale;
 	/** Notify hook to use */
 	FNotifyHook* NotifyHook;
-	/** Whether or not we are in absolute translation mode */
-	bool bAbsoluteLocation;
-	/** Whether or not we are in absolute rotation mode */
-	bool bAbsoluteRotation;
-	/** Whether or not we are in absolute scale mode */
-	bool bAbsoluteScale;
 	/** Whether or not to preserve scale ratios */
 	bool bPreserveScaleRatio;
 	/** Mapping from object to relative rotation values which are not affected by Quat->Rotator conversions during transform calculations */
 	TMap< UObject*, FRotator > ObjectToRelativeRotationMap;
 	/** Flag to indicate we are currently editing the rotation in the UI, so we should rely on the cached value in objectToRelativeRotationMap, not the value from the object */
 	bool bEditingRotationInUI;
-	/** Bitmask to indicate which fields should be hidden (if any) */
-	uint8 HiddenFieldMask;
 };

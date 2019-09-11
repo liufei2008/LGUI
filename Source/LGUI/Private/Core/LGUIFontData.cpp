@@ -235,7 +235,10 @@ PACK_AND_INSERT:
 		//tell UIText to scale down uv
 		for (auto textItem : renderTextArray)
 		{
-			textItem->ApplyFontTextureScaleUp();
+			if (textItem.IsValid())
+			{
+				textItem->ApplyFontTextureScaleUp();
+			}
 		}
 
 		goto PACK_AND_INSERT;
@@ -481,7 +484,10 @@ void ULGUIFontData::ReloadFont()
 	InitFreeType();
 	for (auto textItem : renderTextArray)
 	{
-		textItem->ApplyFontTextureChange();
+		if (textItem.IsValid())
+		{
+			textItem->ApplyFontTextureChange();
+		}
 	}
 }
 void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -498,7 +504,10 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		{
 			for (auto textItem : renderTextArray)
 			{
-				textItem->ApplyRecreateText();
+				if (textItem.IsValid())
+				{
+					textItem->ApplyRecreateText();
+				}
 			}
 		}
 	}
