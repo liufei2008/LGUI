@@ -322,6 +322,7 @@ not yet supported property type:
 UDelegateProperty(DynamicDelegate)
 UMulticastDelegateProperty(DynamicMulticastDelegate)
 UInterfaceProperty(TScriptInterface<T>)
+ActorComponent as reference property
 
 for Blueprint Actor: after finish spawn, all properties will be override by Blueprint, so try not serialize blueprint actor
 */
