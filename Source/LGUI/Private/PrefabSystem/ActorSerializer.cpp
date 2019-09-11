@@ -434,7 +434,7 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 	{
 		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
 		{
-			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Target))
+			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Target))//todo: object could be null, then we can't tell what type it is
 			{
 				if (object->GetClass()->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
 				{
@@ -758,7 +758,9 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				{
 					if (Property->GetSize() != ItemPropertyData.Data.Num())
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer/LoadCommonProperty]Copy value of Property:%s, but size not match, PropertySize:%d, dataSize:%d"), *(Property->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer/LoadCommonProperty]Load value of Property:%s, but size not match, PropertySize:%d, dataSize:%d.\
+ Try rebuild this prefab, and if this problem still exist, please contact the plugin author.")
+							, *(Property->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
 					}
 					else
 					{
@@ -1015,7 +1017,9 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				else
 				{
-					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("[ActorSerializer/LoadCommonProperty]Copy value of Property:%s, but size not match, PropertySize:%d, dataSize:%d"), *(Property->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
+					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("[ActorSerializer/LoadCommonProperty]Load value of Property:%s, but size not match, PropertySize:%d, dataSize:%d.\
+ Try rebuild this prefab, and if this problem still exist, please contact the plugin author.")
+						, *(Property->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
 					Property->CopyCompleteValue(Property->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex), ItemPropertyData.Data.GetData());
 				}
 				return true;

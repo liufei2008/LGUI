@@ -18,18 +18,24 @@ void UUISliderComponent::BeginPlay()
 bool UUISliderComponent::CheckFill()
 {
 	if (Fill != nullptr && FillArea != nullptr)return true;
-	if (FillActor == nullptr)return false;
+	if (!IsValid(FillActor))return false;
 	Fill = FillActor->GetUIItem();
-	FillArea = FillActor->GetAttachParentActor()->FindComponentByClass<UUIItem>();
+	if (IsValid(FillActor->GetAttachParentActor()))
+	{
+		FillArea = FillActor->GetAttachParentActor()->FindComponentByClass<UUIItem>();
+	}
 	if (Fill != nullptr && FillArea != nullptr)return true;
 	return false;
 }
 bool UUISliderComponent::CheckHandle()
 {
 	if (Handle != nullptr && HandleArea != nullptr)return true;
-	if (HandleActor == nullptr)return false;
+	if (!IsValid(HandleActor))return false;
 	Handle = HandleActor->GetUIItem();
-	HandleArea = HandleActor->GetAttachParentActor()->FindComponentByClass<UUIItem>();
+	if (IsValid(HandleActor->GetAttachParentActor()))
+	{
+		HandleArea = HandleActor->GetAttachParentActor()->FindComponentByClass<UUIItem>();
+	}
 	if (Handle != nullptr && HandleArea != nullptr)return true;
 	return false;
 }

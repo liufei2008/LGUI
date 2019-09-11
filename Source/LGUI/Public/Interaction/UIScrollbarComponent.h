@@ -48,10 +48,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
 		UIScrollbarDirectionType DirectionType;
 
-	UPROPERTY(BlueprintReadWrite, Category = "LGUI-Scrollbar")
-		UUIItem* Handle;
-	UPROPERTY(BlueprintReadWrite, Category = "LGUI-Scrollbar")
-		UUIItem* HandleArea;
+	UPROPERTY(Transient)UUIItem* Handle;
+	UPROPERTY(Transient)UUIItem* HandleArea;
 
 	FLGUIMulticastFloatDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
