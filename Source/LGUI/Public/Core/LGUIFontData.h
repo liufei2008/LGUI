@@ -124,7 +124,7 @@ public:
 private:
 	//Collection of UIText which use this font to render.
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-		TArray<UUIText*> renderTextArray;
+		TArray<TWeakObjectPtr<UUIText>> renderTextArray;
 
 	friend class FLGUIFontDataCustomization;
 	UPROPERTY()

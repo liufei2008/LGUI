@@ -19,7 +19,7 @@ struct FLGUIAtlasData
 	GENERATED_BODY()
 	//collection of all UISprite whitch use this atlas to render
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-	TArray<UUISpriteBase*> renderSpriteArray;
+	TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
 	//atlasTexture is the real texture for render
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	UTexture2D* atlasTexture;
