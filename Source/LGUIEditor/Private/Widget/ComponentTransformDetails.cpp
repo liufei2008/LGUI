@@ -79,7 +79,6 @@ FComponentTransformDetails::FComponentTransformDetails( const TArray< TWeakObjec
 	, NotifyHook( DetailBuilder.GetPropertyUtilities()->GetNotifyHook() )
 	, bPreserveScaleRatio( false )
 	, bEditingRotationInUI( false )
-	, HiddenFieldMask( 0 )
 {
 	GConfig->GetBool(TEXT("SelectionDetails"), TEXT("PreserveScaleRatio"), bPreserveScaleRatio, GEditorPerProjectIni);
 
@@ -102,96 +101,10 @@ TSharedRef<SWidget> FComponentTransformDetails::BuildTransformFieldLabel( ETrans
 		break;
 	}
 
-	bool canSwitchToWorldSpace = false;
-	
-	if (!canSwitchToWorldSpace)
-	{
-		return SNew(STextBlock)
-			.Text(Label)
-			.Font(IDetailLayoutBuilder::GetDetailFont());
-	}
-
-	FMenuBuilder MenuBuilder( true, NULL, NULL );
-
-	FUIAction SetRelativeLocationAction
-	(
-		FExecuteAction::CreateSP( this, &FComponentTransformDetails::OnSetAbsoluteTransform, TransformField, false ),
-		FCanExecuteAction(),
-		FIsActionChecked::CreateSP( this, &FComponentTransformDetails::IsAbsoluteTransformChecked, TransformField, false )
-	);
-
-	FUIAction SetWorldLocationAction
-	(
-		FExecuteAction::CreateSP( this, &FComponentTransformDetails::OnSetAbsoluteTransform, TransformField, true ),
-		FCanExecuteAction(),
-		FIsActionChecked::CreateSP( this, &FComponentTransformDetails::IsAbsoluteTransformChecked, TransformField, true )
-	);
-
-	MenuBuilder.BeginSection( TEXT("TransformType"), FText::Format( LOCTEXT("TransformType", "{0} Type"), Label ) );
-
-	MenuBuilder.AddMenuEntry
-	(
-		FText::Format( LOCTEXT( "RelativeLabel", "Relative"), Label ),
-		FText::Format( LOCTEXT( "RelativeLabel_ToolTip", "{0} is relative to its parent"), Label ),
-		FSlateIcon(),
-		SetRelativeLocationAction,
-		NAME_None, 
-		EUserInterfaceActionType::RadioButton
-	);
-
-	MenuBuilder.AddMenuEntry
-	(
-		FText::Format( LOCTEXT( "WorldLabel", "World"), Label ),
-		FText::Format( LOCTEXT( "WorldLabel_ToolTip", "{0} is relative to the world"), Label ),
-		FSlateIcon(),
-		SetWorldLocationAction,
-		NAME_None,
-		EUserInterfaceActionType::RadioButton
-	);
-
-	MenuBuilder.EndSection();
-
-
-	return 
-		SNew(SComboButton)
-		.ContentPadding( 0 )
-		.ButtonStyle( FEditorStyle::Get(), "NoBorder" )
-		.ForegroundColor( FSlateColor::UseForeground() )
-		.MenuContent()
-		[
-			MenuBuilder.MakeWidget()
-		]
-		.ButtonContent()
-		[
-			SNew( SBox )
-			.Padding( FMargin( 0.0f, 0.0f, 2.0f, 0.0f ) )
-			[
-				SNew(STextBlock)
-				.Text(this, &FComponentTransformDetails::GetTransformFieldText, TransformField)
-				.Font(IDetailLayoutBuilder::GetDetailFont())
-			]
-		];
+	return SNew(STextBlock)
+		.Text(Label)
+		.Font(IDetailLayoutBuilder::GetDetailFont());
 }
-
-FText FComponentTransformDetails::GetTransformFieldText( ETransformField::Type TransformField ) const
-{
-	switch (TransformField)
-	{
-	case ETransformField::Location:
-		return GetLocationText();
-		break;
-	case ETransformField::Rotation:
-		return GetRotationText();
-		break;
-	case ETransformField::Scale:
-		return GetScaleText();
-		break;
-	default:
-		return FText::GetEmpty();
-		break;
-	}
-}
-
 bool FComponentTransformDetails::OnCanCopy( ETransformField::Type TransformField ) const
 {
 	// We can only copy values if the whole field is set.  If multiple values are defined we do not copy since we are unable to determine the value
@@ -251,7 +164,7 @@ void FComponentTransformDetails::OnPaste( ETransformField::Type TransformField )
 			if (Location.InitFromString(PastedText))
 			{
 				FScopedTransaction Transaction(LOCTEXT("PasteLocation", "Paste Location"));
-				OnSetTransform(ETransformField::Location, EAxisList::All, Location, false, true);
+				OnSetTransform(ETransformField::Location, EAxisList::All, Location, false);
 			}
 		}
 		break;
@@ -264,7 +177,7 @@ void FComponentTransformDetails::OnPaste( ETransformField::Type TransformField )
 			if (Rotation.InitFromString(PastedText))
 			{
 				FScopedTransaction Transaction(LOCTEXT("PasteRotation", "Paste Rotation"));
-				OnSetTransform(ETransformField::Rotation, EAxisList::All, Rotation.Euler(), false, true);
+				OnSetTransform(ETransformField::Rotation, EAxisList::All, Rotation.Euler(), false);
 			}
 		}
 		break;
@@ -274,7 +187,7 @@ void FComponentTransformDetails::OnPaste( ETransformField::Type TransformField )
 			if (Scale.InitFromString(PastedText))
 			{
 				FScopedTransaction Transaction(LOCTEXT("PasteScale", "Paste Scale"));
-				OnSetTransform(ETransformField::Scale, EAxisList::All, Scale, false, true);
+				OnSetTransform(ETransformField::Scale, EAxisList::All, Scale, false);
 			}
 		}
 		break;
@@ -310,12 +223,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		
 	FSlateFontInfo FontInfo = IDetailLayoutBuilder::GetDetailFont();
 
-	const bool bHideLocationField = ( HiddenFieldMask & ( 1 << ETransformField::Location ) ) != 0;
-	const bool bHideRotationField = ( HiddenFieldMask & ( 1 << ETransformField::Rotation ) ) != 0;
-	const bool bHideScaleField = ( HiddenFieldMask & ( 1 << ETransformField::Scale ) ) != 0;
-
 	// Location
-	if(!bHideLocationField)
 	{
 		TSharedPtr<INumericTypeInterface<float>> TypeInterface;
 		if( FUnitConversion::Settings().ShouldDisplayUnits() )
@@ -385,7 +293,6 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 	}
 	
 	// Rotation
-	if(!bHideRotationField)
 	{
 		TSharedPtr<INumericTypeInterface<float>> TypeInterface;
 		if( FUnitConversion::Settings().ShouldDisplayUnits() )
@@ -457,7 +364,6 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 	}
 	
 	// Scale
-	if(!bHideScaleField)
 	{
 		ChildrenBuilder.AddCustomRow( LOCTEXT("ScaleFilter", "Scale") )
 		.CopyAction( CreateCopyAction(ETransformField::Scale) )
@@ -531,10 +437,10 @@ END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void FComponentTransformDetails::Tick( float DeltaTime ) 
 {
 	CacheTransform();
-	if (!FixedDisplayUnits.IsSet())
+	/*if (!FixedDisplayUnits.IsSet())
 	{
 		CacheCommonLocationUnits();
-	}
+	}*/
 }
 
 void FComponentTransformDetails::CacheCommonLocationUnits()
@@ -577,161 +483,6 @@ void FComponentTransformDetails::OnPreserveScaleRatioToggled( ECheckBoxState New
 	GConfig->SetBool(TEXT("SelectionDetails"), TEXT("PreserveScaleRatio"), bPreserveScaleRatio, GEditorPerProjectIni);
 }
 
-FText FComponentTransformDetails::GetLocationText() const
-{
-	return bAbsoluteLocation ? LOCTEXT( "AbsoluteLocation", "Absolute Location" ) : LOCTEXT( "Location", "Location" );
-}
-
-FText FComponentTransformDetails::GetRotationText() const
-{
-	return bAbsoluteRotation ? LOCTEXT( "AbsoluteRotation", "Absolute Rotation" ) : LOCTEXT( "Rotation", "Rotation" );
-}
-
-FText FComponentTransformDetails::GetScaleText() const
-{
-	return bAbsoluteScale ? LOCTEXT( "AbsoluteScale", "Absolute Scale" ) : LOCTEXT( "Scale", "Scale" );
-}
-
-void FComponentTransformDetails::OnSetAbsoluteTransform(ETransformField::Type TransformField, bool bAbsoluteEnabled)
-{
-	UBoolProperty* AbsoluteProperty = nullptr;
-	FText TransactionText;
-
-	switch (TransformField)
-	{
-	case ETransformField::Location:
-		AbsoluteProperty = FindField<UBoolProperty>(USceneComponent::StaticClass(), GET_MEMBER_NAME_CHECKED(USceneComponent, bAbsoluteLocation));
-		TransactionText = LOCTEXT("ToggleAbsoluteLocation", "Toggle Absolute Location");
-		break;
-	case ETransformField::Rotation:
-		AbsoluteProperty = FindField<UBoolProperty>(USceneComponent::StaticClass(), GET_MEMBER_NAME_CHECKED(USceneComponent, bAbsoluteRotation));
-		TransactionText = LOCTEXT("ToggleAbsoluteRotation", "Toggle Absolute Rotation");
-		break;
-	case ETransformField::Scale:
-		AbsoluteProperty = FindField<UBoolProperty>(USceneComponent::StaticClass(), GET_MEMBER_NAME_CHECKED(USceneComponent, bAbsoluteScale));
-		TransactionText = LOCTEXT("ToggleAbsoluteScale", "Toggle Absolute Scale");
-		break;
-	default:
-		return;
-	}
-
-	bool bBeganTransaction = false;
-	TArray<UUIItem*> ModifiedObjects;
-	for (int32 ObjectIndex = 0; ObjectIndex < SelectedObjects.Num(); ++ObjectIndex)
-	{
-		TWeakObjectPtr<UUIItem> ObjectPtr = SelectedObjects[ObjectIndex];
-		if (ObjectPtr.IsValid())
-		{
-			UUIItem* SceneComponent = ObjectPtr.Get();
-			if (SceneComponent)
-			{
-				if (!bBeganTransaction)
-				{
-					// NOTE: One transaction per change, not per actor
-					GEditor->BeginTransaction(TransactionText);
-					bBeganTransaction = true;
-				}
-
-				FScopedSwitchWorldForObject WorldSwitcher(SceneComponent);
-
-				if (SceneComponent->HasAnyFlags(RF_DefaultSubObject))
-				{
-					// Default subobjects must be included in any undo/redo operations
-					SceneComponent->SetFlags(RF_Transactional);
-				}
-
-				SceneComponent->PreEditChange(AbsoluteProperty);
-
-				if (NotifyHook)
-				{
-					NotifyHook->NotifyPreChange(AbsoluteProperty);
-				}
-
-				switch (TransformField)
-				{
-				case ETransformField::Location:
-					SceneComponent->bAbsoluteLocation = bAbsoluteEnabled;
-
-					// Update RelativeLocation to maintain/stabilize position when switching between relative and world.
-					if (SceneComponent->GetAttachParent())
-					{
-						if (SceneComponent->bAbsoluteLocation)
-						{
-							SceneComponent->RelativeLocation = SceneComponent->GetComponentTransform().GetTranslation();
-						}
-						else
-						{
-							FTransform ParentToWorld = SceneComponent->GetAttachParent()->GetSocketTransform(SceneComponent->GetAttachSocketName());
-							FTransform RelativeTM = SceneComponent->GetComponentTransform().GetRelativeTransform(ParentToWorld);
-							SceneComponent->RelativeLocation = RelativeTM.GetTranslation();
-						}
-					}
-					break;
-				case ETransformField::Rotation:
-					SceneComponent->bAbsoluteRotation = bAbsoluteEnabled;
-					break;
-				case ETransformField::Scale:
-					SceneComponent->bAbsoluteScale = bAbsoluteEnabled;
-					break;
-				}
-
-				ModifiedObjects.Add(SceneComponent);
-			}
-		}
-	}
-
-	if (bBeganTransaction)
-	{
-		FPropertyChangedEvent PropertyChangedEvent(AbsoluteProperty, EPropertyChangeType::ValueSet, (const TArray<const UObject*>*)&ModifiedObjects);
-
-		for (UUIItem* Object : ModifiedObjects)
-		{
-			USceneComponent* SceneComponent = Object;
-			if (SceneComponent)
-			{
-				SceneComponent->PostEditChangeProperty(PropertyChangedEvent);
-
-				// If it's a template, propagate the change out to any current instances of the object
-				if (SceneComponent->IsTemplate())
-				{
-					bool NewValue = bAbsoluteEnabled;
-					bool OldValue = !NewValue;
-					TSet<USceneComponent*> UpdatedInstances;
-					FComponentEditorUtils::PropagateDefaultValueChange(SceneComponent, AbsoluteProperty, OldValue, NewValue, UpdatedInstances);
-				}
-			}
-		}
-
-		if (NotifyHook)
-		{
-			NotifyHook->NotifyPostChange(PropertyChangedEvent, AbsoluteProperty);
-		}
-
-		GEditor->EndTransaction();
-
-		GUnrealEd->RedrawLevelEditingViewports();
-	}
-}
-
-bool FComponentTransformDetails::IsAbsoluteTransformChecked(ETransformField::Type TransformField, bool bAbsoluteEnabled) const
-{
-	switch (TransformField)
-	{
-	case ETransformField::Location:
-		return bAbsoluteLocation == bAbsoluteEnabled;
-		break;
-	case ETransformField::Rotation:
-		return bAbsoluteRotation == bAbsoluteEnabled;
-		break;
-	case ETransformField::Scale:
-		return bAbsoluteScale == bAbsoluteEnabled;
-		break;
-	default:
-		return false;
-		break;
-	}
-}
-
 EVisibility FComponentTransformDetails::GetLocationResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
@@ -772,9 +523,8 @@ FReply FComponentTransformDetails::OnLocationResetClicked()
 	{
 		targetLocation.Z = Archetype->RelativeLocation.Z;
 	}
-	Archetype->SetUIRelativeLocation(targetLocation);
-	CachedLocation.Set(targetLocation);
-	//OnSetTransform(ETransformField::Location, EAxisList::All, targetLocation, false, true);
+
+	OnSetTransform(ETransformField::Location, EAxisList::All, targetLocation, false);
 
 	return FReply::Handled();
 }
@@ -793,10 +543,8 @@ FReply FComponentTransformDetails::OnRotationResetClicked()
 
 	UUIItem* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return FReply::Handled();
-	Archetype->RelativeRotation = FRotator::ZeroRotator;
-	Archetype->UpdateComponentToWorld();
-	CachedRotation.Set(FRotator::ZeroRotator);
-	//OnSetTransform(ETransformField::Rotation, EAxisList::All, FVector::ZeroVector, false, true);
+
+	OnSetTransform(ETransformField::Rotation, EAxisList::All, FVector::ZeroVector, false);
 
 	return FReply::Handled();
 }
@@ -815,10 +563,8 @@ FReply FComponentTransformDetails::OnScaleResetClicked()
 
 	UUIItem* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return FReply::Handled();
-	Archetype->RelativeScale3D = FVector::OneVector;
-	Archetype->UpdateComponentToWorld();
-	CachedScale.Set(FVector::OneVector);
-	//OnSetTransform(ETransformField::Scale, EAxisList::All, FVector(1.0f), false, true);
+
+	OnSetTransform(ETransformField::Scale, EAxisList::All, FVector(1.0f), false);
 
 	return FReply::Handled();
 }
@@ -857,10 +603,6 @@ void FComponentTransformDetails::CacheTransform()
 					CachedLocation.Set( Loc );
 					CachedRotation.Set( Rot );
 					CachedScale.Set( Scale );
-
-					bAbsoluteLocation = SceneComponent->bAbsoluteLocation;
-					bAbsoluteScale = SceneComponent->bAbsoluteScale;
-					bAbsoluteRotation = SceneComponent->bAbsoluteRotation;
 				}
 				else if( CurLoc != Loc || CurRot != Rot || CurScale != Scale )
 				{
@@ -929,7 +671,7 @@ FVector FComponentTransformDetails::GetAxisFilteredVector(EAxisList::Type Axis, 
 		(Axis & EAxisList::Z) ? NewValue.Z : OldValue.Z);
 }
 
-void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformField, EAxisList::Type Axis, FVector NewValue, bool bMirror, bool bCommitted)
+void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformField, EAxisList::Type Axis, FVector NewValue, bool bCommitted)
 {
 	if (!bCommitted && SelectedObjects.Num() > 1)
 	{
@@ -1047,16 +789,8 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 					break;
 				}
 
-				// Set the incoming value
-				if (bMirror)
-				{
-					NewComponentValue = -OldComponentValue;
-				}
-				else
-				{
-					//NewComponentValue = GetAxisFilteredVector(Axis, NewValue, OldComponentValue);
-					NewComponentValue = NewValue;
-				}
+				//NewComponentValue = GetAxisFilteredVector(Axis, NewValue, OldComponentValue);
+				NewComponentValue = NewValue;
 
 				// If we're committing during a rotation edit then we need to force it
 				if (OldComponentValue != NewComponentValue || (bCommitted && bEditingRotationInUI))

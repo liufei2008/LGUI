@@ -161,10 +161,6 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 	if (visibleCharCount == -1)
 	{
 		visibleCharCount = VisibleCharCountInString(text);
-#if WITH_EDITOR
-		if(this->GetWorld()->IsGameWorld())
-#endif
-		font->AddUIText(this);
 	}
 	CacheTextGeometry();
 	if (geometry->vertices.Num() == 0)//if geometry not created yet
@@ -290,17 +286,6 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	visibleCharCount = VisibleCharCountInString(text);
-	if (auto Property = PropertyChangedEvent.Property)
-	{
-		auto PropertyName = Property->GetName();
-		if (PropertyName == TEXT("font"))
-		{
-			if (font != nullptr)
-			{
-				font->AddUIText(this);
-			}
-		}
-	}
 }
 void UUIText::EditorForceUpdateImmediately()
 {

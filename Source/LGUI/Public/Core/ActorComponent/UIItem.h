@@ -31,6 +31,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 #if WITH_EDITORONLY_DATA
+	bool isPreEditChange = false;
 	//prev frame location
 	FVector prevRelativeLocation;
 	//prev frame anchor horizontal alignment
@@ -39,6 +40,7 @@ public:
 	UIAnchorVerticalAlign prevAnchorVAlign;
 #endif
 #if WITH_EDITOR
+	virtual void PreEditChange(UProperty* PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditComponentMove(bool bFinished) override;
 	//USceneComponent Interface.Only needed for show rect range in editor
