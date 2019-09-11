@@ -152,8 +152,8 @@ private:
 	void HideSelectionMask();
 	//return true if have selection
 	bool DeleteIfSelection(int& OutCaretOffset);
-	class UUISprite* CaretObject;
-	TArray<class UUISprite*> SelectionMaskObjectArray;//selection mask
+	UPROPERTY(Transient)class UUISprite* CaretObject;
+	UPROPERTY(Transient)TArray<class UUISprite*> SelectionMaskObjectArray;//selection mask
 	TArray<FUITextSelectionProperty> SelectionPropertyArray;//range selection
 	int VisibleCharStartIndex;//in single line mode, will clamp text if out of range. this is left start index of visible char
 	int VisibleCharStartLineIndex;//in multi line mode, will clamp text line if out of range. this is top start line index of visible char
