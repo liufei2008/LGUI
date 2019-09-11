@@ -18,6 +18,7 @@ DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayo
 UUIItem::UUIItem()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	Mobility = EComponentMobility::Movable;
 	itemType = UIItemType::UIItem;
 
 	bWantsOnUpdateTransform = true;
@@ -237,6 +238,16 @@ void UUIItem::MarkAllDirtyRecursive()
 }
 
 #if WITH_EDITOR
+void UUIItem::PreEditChange(UProperty* PropertyAboutToChange)
+{
+	if (!isPreEditChange)
+	{
+		isPreEditChange = true;
+		prevRelativeLocation = RelativeLocation;
+	}
+	Super::PreEditChange(PropertyAboutToChange);
+	
+}
 void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -651,6 +662,16 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	if (cacheParentUIItem == nullptr)return false;
 	bool sizeChanged = false;
 	const auto& parentWidget = cacheParentUIItem->widget;
+#if WITH_EDITOR
+	if (isPreEditChange)
+	{
+		if (!GetWorld()->IsGameWorld())
+		{
+			this->RelativeLocation = prevRelativeLocation;
+		}
+		isPreEditChange = false;
+	}
+#endif
 	FVector resultLocation = this->RelativeLocation;
 	switch (widget.anchorHAlign)
 	{
