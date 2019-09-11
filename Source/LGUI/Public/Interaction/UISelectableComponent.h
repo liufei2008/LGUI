@@ -80,7 +80,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
 		ULGUISpriteData* DisabledSprite;
 
-	EUISelectableSelectionState CurrentSelectionState;
+	EUISelectableSelectionState CurrentSelectionState = EUISelectableSelectionState::Normal;
 	void ApplySelectionState();
 	bool IsPointerInsideThis = false;
 	UPROPERTY(Transient) class UUISelectableTransitionComponent* TransitionComp = nullptr;
