@@ -56,14 +56,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
 		UISliderDirectionType DirectionType;
 
-	UPROPERTY(BlueprintReadWrite, Category = "LGUI-Slider")
-		UUIItem* Fill;
-	UPROPERTY(BlueprintReadWrite, Category = "LGUI-Slider")
-		UUIItem* FillArea;
-	UPROPERTY(BlueprintReadWrite, Category = "LGUI-Slider")
-		UUIItem* Handle;
-	UPROPERTY(BlueprintReadWrite, Category = "LGUI-Slider")
-		UUIItem* HandleArea;
+	UPROPERTY(Transient)UUIItem* Fill;
+	UPROPERTY(Transient)UUIItem* FillArea;
+	UPROPERTY(Transient)UUIItem* Handle;
+	UPROPERTY(Transient)UUIItem* HandleArea;
 
 	FLGUIMulticastFloatDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
