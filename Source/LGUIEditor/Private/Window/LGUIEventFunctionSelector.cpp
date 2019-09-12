@@ -81,7 +81,7 @@ void SLGUIEventFunctionSelector::Construct(const FArguments& Args, TSharedPtr<SD
 }
 void SLGUIEventFunctionSelector::CloseTabCallback(TSharedRef<SDockTab> TabClosed)
 {
-	
+	SLGUIEventFunctionSelector::TargetCustomization = nullptr;
 }
 
 
