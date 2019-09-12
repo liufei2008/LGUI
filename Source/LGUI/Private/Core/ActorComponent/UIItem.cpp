@@ -19,10 +19,12 @@ UUIItem::UUIItem()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	Mobility = EComponentMobility::Movable;
-	itemType = UIItemType::UIItem;
-
+	bAbsoluteLocation = bAbsoluteRotation = bAbsoluteScale = false;
+	bVisible = false;
 	bWantsOnUpdateTransform = true;
 	
+	itemType = UIItemType::UIItem;
+
 	bVertexPositionChanged = true;
 	bColorChanged = true;
 	bDepthChanged = true;
@@ -922,7 +924,6 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 			const auto& parentWidget = cacheParentUIItem->widget;
 			if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
 			{
-				FVector resultLocation = this->RelativeLocation;
 				switch (widget.anchorHAlign)
 				{
 				case UIAnchorHorizontalAlign::Left:
