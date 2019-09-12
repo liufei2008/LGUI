@@ -141,6 +141,12 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	{
 		if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destroyed by other actor when BeginPlay
 		{
+#if WITH_EDITOR
+			if (TargetWorld->IsGameWorld())
+			{
+				Actor->bIsEditorPreviewActor = false;//make this to false, or BeginPlay won't be called
+			}
+#endif
 			Actor->FinishSpawning(FTransform::Identity, true);//BeginPlay is called at this point
 		}
 	}
