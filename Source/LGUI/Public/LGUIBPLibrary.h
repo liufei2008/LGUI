@@ -4,12 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIItem.h"
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "LGUIEditHelper.h"
+#include "LTweener.h"
 #include "LGUIBPLibrary.generated.h"
+
+class ULTweener;
+class UUIItem;
+class UUISector;
 
 UCLASS()
 class LGUI_API ULGUIBPLibrary : public UBlueprintFunctionLibrary
@@ -20,46 +24,13 @@ public:
 #pragma region QuickEntry
 	//Set alpha if root component is a UIItem component
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void SetUIAlpha(AActor* Target, float InAlpha)
-	{
-		if (!IsValid(Target))
-		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::SetAlpha]Target is not valid!"));
-			return;
-		}
-		if (auto uiItem = Cast<UUIItem>(Target->GetRootComponent()))
-		{
-			uiItem->SetAlpha(InAlpha);
-		}
-	}
+		static void SetUIAlpha(AActor* Target, float InAlpha);
 	//Set UIActive if root component is a UIItem component
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void SetUIActive(AActor* Target, bool Acitve)
-	{
-		if (!IsValid(Target))
-		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::SetUIActive]Target is not valid!"));
-			return;
-		}
-		if (auto uiItem = Cast<UUIItem>(Target->GetRootComponent()))
-		{
-			uiItem->SetUIActive(Acitve);
-		}
-	}
+		static void SetUIActive(AActor* Target, bool Acitve);
 	//Set HierarchyIndex if root component is a UIItem component
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void SetUIHierarchyIndex(AActor* Target, int32 index)
-	{
-		if (!IsValid(Target))
-		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::SetHierarchyIndex]Target is not valid!"));
-			return;
-		}
-		if (auto uiItem = Cast<UUIItem>(Target->GetRootComponent()))
-		{
-			uiItem->SetHierarchyIndex(index);
-		}
-	}
+		static void SetUIHierarchyIndex(AActor* Target, int32 index);
 #pragma endregion
 	//Delete actor and all it's children actors
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "WithHierarchy", UnsafeDuringActorConstruction = "true"), Category = LGUI)
@@ -128,4 +99,48 @@ public:
 		static TSubclassOf<UActorComponent> LGUICompRef_GetComponentClass(const FLGUIComponentReference& InLGUIComponentReference);
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "GetActor", CompactNodeTitle = "Actor", BlueprintAutocast))
 		static AActor* LGUICompRef_GetActor(const FLGUIComponentReference& InLGUIComponentReference);
+
+#pragma region LTween
+
+#pragma region UIItem
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* WidthTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* HeightTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* ColorTo(UUIItem* target, FColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* ColorFrom(UUIItem* target, FColor startValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* AlphaTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* AlphaFrom(UUIItem* target, float startValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* AnchorOffsetXTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* AnchorOffsetYTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* PivotTo(UUIItem* target, FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* StretchLeftTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* StretchRightTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* StretchTopTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* StretchBottomTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+#pragma endregion
+
+#pragma region UISector
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* StartAngleTo(UUISector* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
+		static ULTweener* EndAngleTo(UUISector* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+#pragma endregion
+
+#pragma endregion
+
 };

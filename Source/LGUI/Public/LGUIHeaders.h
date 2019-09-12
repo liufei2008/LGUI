@@ -66,8 +66,6 @@
 #include "Event/LGUIWorldSpaceInteraction.h"
 #include "Event/LGUIWorldSpaceInteractionForNoneUI.h"
 
-#include "LTweenUIExtension/LGUITweenBPLibrary.h"
-
 #include "Extensions/UIComboBox.h"
 #include "Extensions/UIFlyoutMenu.h"
 #include "Extensions/ViewportUITexture.h"
