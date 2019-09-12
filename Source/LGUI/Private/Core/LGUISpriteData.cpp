@@ -5,7 +5,7 @@
 #include "Core/LGUISettings.h"
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/LGUIAtlasData.h"
-#include "UObjectIterator.h"
+#include "UObject/UObjectIterator.h"
 
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
