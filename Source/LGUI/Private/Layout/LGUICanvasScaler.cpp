@@ -62,7 +62,6 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 		if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 		{
 			auto halfFov = FOVAngle * 0.5f;//ue4 us horizontal fov
-			Canvas->CheckAndGetUIItem()->SetRelativeRotation(FQuat::MakeFromEuler(FVector(-90, 0, 90)));
 			Canvas->CheckAndGetUIItem()->SetRelativeScale3D(FVector::OneVector);
 
 			//adjust size
