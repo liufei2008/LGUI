@@ -365,6 +365,7 @@ void UUIItem::EditorForceUpdateImmediately()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
+	RenderCanvas = nullptr;//force check
 	if (CheckRenderCanvas())
 	{
 		RenderCanvas->MarkRebuildAllDrawcall();
@@ -751,7 +752,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	}
 	break;
 	}
-	if (IsVectorNotEqual(this->RelativeLocation, resultLocation))
+	if (!(this->RelativeLocation.Equals(resultLocation)))
 	{
 		RelativeLocation = resultLocation;
 		UpdateComponentToWorld();
@@ -913,7 +914,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 }
 void UUIItem::SetUIRelativeLocation(FVector newLocation)
 {
-	if (IsVectorNotEqual(RelativeLocation, newLocation))
+	if (!(RelativeLocation.Equals(newLocation)))
 	{
 		MarkVertexPositionDirty();
 		RelativeLocation = newLocation;
@@ -998,6 +999,26 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 				break;
 				}
 			}
+		}
+	}
+}
+void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const FQuat& newRotation)
+{
+	bool rotationChange = false;
+	if (!newRotation.Equals(GetRelativeRotationCache().GetCachedQuat()))
+	{
+		RelativeRotation = GetRelativeRotationCache().QuatToRotator(newRotation);
+		rotationChange = true;
+	}
+	if (!RelativeLocation.Equals(newLocation))
+	{
+		SetUIRelativeLocation(newLocation);
+	}
+	else
+	{
+		if (rotationChange)
+		{
+			UpdateComponentToWorld();
 		}
 	}
 }
@@ -1107,7 +1128,7 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 }
 
 void UUIItem::SetPivot(FVector2D pivot) {
-	if (IsVector2NotEqual(widget.pivot, pivot))
+	if (!(widget.pivot.Equals(pivot)))
 	{
 		MarkVertexPositionDirty();
 		widget.pivot = pivot;
@@ -1507,19 +1528,6 @@ void UUIItem::ApplyUIActiveState()
 bool UUIItem::IsFloatNotEqual(float a, float b)
 {
 	return FMath::Abs(a - b) > KINDA_SMALL_NUMBER;
-}
-bool UUIItem::IsVectorNotEqual(FVector a, FVector b)
-{
-	return FMath::Abs(a.X - b.X) > KINDA_SMALL_NUMBER
-		|| FMath::Abs(a.Y - b.Y) > KINDA_SMALL_NUMBER
-		|| FMath::Abs(a.Z - b.Z) > KINDA_SMALL_NUMBER
-		;
-}
-bool UUIItem::IsVector2NotEqual(FVector2D a, FVector2D b)
-{
-	return FMath::Abs(a.X - b.X) > KINDA_SMALL_NUMBER
-		|| FMath::Abs(a.Y - b.Y) > KINDA_SMALL_NUMBER
-		;
 }
 
 float UUIItem::Color255To1_Table[256] =

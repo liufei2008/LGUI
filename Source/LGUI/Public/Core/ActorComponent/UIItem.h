@@ -208,6 +208,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetUIRelativeLocation(FVector newLocation);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+		void SetUIRelativeLocationAndRotation(const FVector& newLocation, const FQuat& newRotation);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetLocalSpaceLeftBottomPoint()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetLocalSpaceRightTopPoint()const;
@@ -331,8 +333,6 @@ protected:
 	FORCEINLINE bool CheckRenderCanvas();
 
 	FORCEINLINE bool IsFloatNotEqual(float a, float b);
-	FORCEINLINE bool IsVectorNotEqual(FVector a, FVector b);
-	FORCEINLINE bool IsVector2NotEqual(FVector2D a, FVector2D b);
 public:
 	FORCEINLINE uint8 GetFinalAlpha()const;
 	//get final color, calculate alpha
