@@ -65,9 +65,6 @@ public:
 
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)override
 	{
-		SLGUIEventComponentSelector::TargetCustomization = this;
-		SLGUIEventFunctionSelector::TargetCustomization = this;
-
 		PropertyUtilites = CustomizationUtils.GetPropertyUtilities();
 
 		EventParameterTypeArray = GetNativeParameterTypeArray(PropertyHandle);
@@ -481,6 +478,7 @@ protected:
 	}
 	FReply OnClickComponentNameButton(AActor* TargetActor, int32 itemIndex)
 	{
+		SLGUIEventComponentSelector::TargetCustomization = this;
 		SLGUIEventComponentSelector::TargetActor = TargetActor;
 		SLGUIEventComponentSelector::TargetItemIndex = itemIndex;
 		SLGUIEventComponentSelector::EventListHandle = EventListHandle.Get();
@@ -532,6 +530,7 @@ protected:
 		}
 		if (GetObject)
 		{
+			SLGUIEventFunctionSelector::TargetCustomization = this;
 			SLGUIEventFunctionSelector::NativeSupportParameter = EventParameterTypeArray;
 			SLGUIEventFunctionSelector::TargetItemIndex = itemIndex;
 			SLGUIEventFunctionSelector::EventListHandle = EventListHandle.Get();
