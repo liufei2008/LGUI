@@ -58,7 +58,7 @@ void SLGUIEventComponentSelector::Construct(const FArguments& Args, TSharedPtr<S
 }
 void SLGUIEventComponentSelector::CloseTabCallback(TSharedRef<SDockTab> TabClosed)
 {
-	
+	SLGUIEventComponentSelector::TargetCustomization = nullptr;
 }
 FReply SLGUIEventComponentSelector::OnClickSelfButton()
 {
