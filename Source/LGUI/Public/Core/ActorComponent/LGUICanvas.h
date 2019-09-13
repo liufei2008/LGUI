@@ -122,6 +122,7 @@ public:
 	FORCEINLINE TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> GetViewExtension();
 
 	FORCEINLINE UUIItem* CheckAndGetUIItem() { CheckUIItem(); return UIItem; }
+	FORCEINLINE float GetUIScale();
 protected:
 	//top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it
 	UPROPERTY(Transient) ULGUICanvas* TopMostCanvas = nullptr;
@@ -137,6 +138,8 @@ protected:
 	void SortDrawcallRenderPriority();
 	//@param	return	drawcall count
 	int32 SortDrawcall(int32 InStartRenderPriority);
+	//UI may render with scale due to LGUICanvasScaler's UIScaleMode
+	float uiScale = 1.0f;
 	
 	UMaterialInterface** GetMaterials();
 
@@ -209,6 +212,7 @@ public:
 		void SetPixelPerfect(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
+	FORCEINLINE void SetViewportParameterChange();
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);

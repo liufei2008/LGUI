@@ -431,6 +431,15 @@ TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewEx
 	return ViewExtension;
 }
 
+float ULGUICanvas::GetUIScale()
+{
+	if (CheckTopMostCanvas())
+	{
+		return TopMostCanvas->uiScale;
+	}
+	return uiScale;
+}
+
 void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChanged, bool parentLayoutChanged)
 {
 	const auto& childrenList = target->GetAttachChildren();
@@ -1401,6 +1410,11 @@ void ULGUICanvas::SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Typ
 	FOVAngle = InFovAngle;
 	NearClipPlane = InNearClipPlane;
 	FarClipPlane = InFarClipPlane;
+}
+
+void ULGUICanvas::SetViewportParameterChange()
+{
+	uiScale = (float)GetViewportSize().Y / UIItem->GetHeight();
 }
 
 bool ULGUICanvas::GetPixelPerfect()const
