@@ -83,110 +83,98 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 			{
 				auto spriteTextureRHIRef = copyData->SpriteTextureResource->GetTexture2DRHI();
 				auto atlasTextureRHIRef = copyData->AtlasTextureResource->GetTexture2DRHI();
-				auto srcRegionBox = copyData->SrcRegionBox;
-				auto dstRegionBox = copyData->DstRegionBox;
+				auto srcRegionPosition = copyData->SrcRegionBox.Min;
+				auto srcRegionSize = copyData->SrcRegionBox.GetSize();
+				auto dstRegionPosition = copyData->DstRegionBox.Min;
 				auto packedRect = copyData->PackedRect;
 				auto spaceBetweenSprites = copyData->SpaceBetweenSprites;
 				//origin image
-				RHICmdList.CopySubTextureRegion(
+				FRHICopyTextureInfo CopyInfo;
+				CopyInfo.SourcePosition = FIntVector(srcRegionPosition.X, srcRegionPosition.Y, 0);
+				CopyInfo.Size = FIntVector(srcRegionSize.X, srcRegionSize.Y, 0);
+				CopyInfo.DestPosition = FIntVector(dstRegionPosition.X, dstRegionPosition.Y, 0);
+				RHICmdList.CopyTexture(
 					spriteTextureRHIRef,
 					atlasTextureRHIRef,
-					srcRegionBox,
-					dstRegionBox
+					CopyInfo
 				);
 				//pixel padding
 				for (int paddingIndex = 0; paddingIndex < spaceBetweenSprites; paddingIndex++)
 				{
 					//Left
-					srcRegionBox.Min = FVector2D(0, 0);
-					srcRegionBox.Max = FVector2D(1, packedRect.height);
-					dstRegionBox.Min = FVector2D(packedRect.x - paddingIndex - 1, packedRect.y);
-					dstRegionBox.Max = dstRegionBox.Min + FVector2D(1, packedRect.height);
-					RHICmdList.CopySubTextureRegion(
+					CopyInfo.SourcePosition = FIntVector(0, 0, 0);
+					CopyInfo.Size = FIntVector(1, packedRect.height, 0);
+					CopyInfo.DestPosition = FIntVector(packedRect.x - paddingIndex - 1, packedRect.y, 0);
+					RHICmdList.CopyTexture(
 						spriteTextureRHIRef,
 						atlasTextureRHIRef,
-						srcRegionBox,
-						dstRegionBox
+						CopyInfo
 					);
 					//Right
-					srcRegionBox.Min = FVector2D(packedRect.width - 1, 0);
-					srcRegionBox.Max = FVector2D(packedRect.width, packedRect.height);
-					dstRegionBox.Min = FVector2D(packedRect.x + packedRect.width + paddingIndex, packedRect.y);
-					dstRegionBox.Max = dstRegionBox.Min + FVector2D(1, packedRect.height);
-					RHICmdList.CopySubTextureRegion(
+					CopyInfo.SourcePosition = FIntVector(packedRect.width - 1, 0, 0);
+					CopyInfo.Size = FIntVector(1, packedRect.height, 0);
+					CopyInfo.DestPosition = FIntVector(packedRect.x + packedRect.width + paddingIndex, packedRect.y, 0);
+					RHICmdList.CopyTexture(
 						spriteTextureRHIRef,
 						atlasTextureRHIRef,
-						srcRegionBox,
-						dstRegionBox
+						CopyInfo
 					);
 					//Top
-					srcRegionBox.Min = FVector2D(0, packedRect.height - 1);
-					srcRegionBox.Max = FVector2D(packedRect.width, packedRect.height);
-					dstRegionBox.Min = FVector2D(packedRect.x, packedRect.y + packedRect.height + paddingIndex);
-					dstRegionBox.Max = dstRegionBox.Min + FVector2D(packedRect.width, 1);
-					RHICmdList.CopySubTextureRegion(
+					CopyInfo.SourcePosition = FIntVector(0, packedRect.height - 1, 0);
+					CopyInfo.Size = FIntVector(packedRect.width, 1, 0);
+					CopyInfo.DestPosition = FIntVector(packedRect.x, packedRect.y + packedRect.height + paddingIndex, 0);
+					RHICmdList.CopyTexture(
 						spriteTextureRHIRef,
 						atlasTextureRHIRef,
-						srcRegionBox,
-						dstRegionBox
+						CopyInfo
 					);
 					//Bottom
-					srcRegionBox.Min = FVector2D(0, 0);
-					srcRegionBox.Max = FVector2D(packedRect.width, 1);
-					dstRegionBox.Min = FVector2D(packedRect.x, packedRect.y - paddingIndex - 1);
-					dstRegionBox.Max = dstRegionBox.Min + FVector2D(packedRect.width, 1);
-					RHICmdList.CopySubTextureRegion(
+					CopyInfo.SourcePosition = FIntVector(0, 0, 0);
+					CopyInfo.Size = FIntVector(packedRect.width, 1, 0);
+					CopyInfo.DestPosition = FIntVector(packedRect.x, packedRect.y - paddingIndex - 1, 0);
+					RHICmdList.CopyTexture(
 						spriteTextureRHIRef,
 						atlasTextureRHIRef,
-						srcRegionBox,
-						dstRegionBox
+						CopyInfo
 					);
 				}
 				for (int paddingIndex = 0; paddingIndex < spaceBetweenSprites; paddingIndex++)
 				{
 					//LeftTop
-					srcRegionBox.Min = FVector2D(packedRect.x - spaceBetweenSprites, packedRect.y + packedRect.height - 1);
-					srcRegionBox.Max = FVector2D(packedRect.x, packedRect.y + packedRect.height);
-					dstRegionBox.Min = FVector2D(packedRect.x - spaceBetweenSprites, packedRect.y + packedRect.height + paddingIndex);
-					dstRegionBox.Max = dstRegionBox.Min + FVector2D(spaceBetweenSprites, 1);
-					RHICmdList.CopySubTextureRegion(
+					CopyInfo.SourcePosition = FIntVector(packedRect.x - spaceBetweenSprites, packedRect.y + packedRect.height - 1, 0);
+					CopyInfo.Size = FIntVector(spaceBetweenSprites, 1, 0);
+					CopyInfo.DestPosition = FIntVector(packedRect.x - spaceBetweenSprites, packedRect.y + packedRect.height + paddingIndex, 0);
+					RHICmdList.CopyTexture(
 						atlasTextureRHIRef,
 						atlasTextureRHIRef,
-						srcRegionBox,
-						dstRegionBox
+						CopyInfo
 					);
 					//RightTop
-					srcRegionBox.Min = FVector2D(packedRect.x + packedRect.width, packedRect.y + packedRect.height - 1);
-					srcRegionBox.Max = FVector2D(packedRect.x + packedRect.width + spaceBetweenSprites, packedRect.y + packedRect.height);
-					dstRegionBox.Min = FVector2D(packedRect.x + packedRect.width, packedRect.y + packedRect.height + paddingIndex);
-					dstRegionBox.Max = dstRegionBox.Min + FVector2D(spaceBetweenSprites, 1);
-					RHICmdList.CopySubTextureRegion(
+					CopyInfo.SourcePosition = FIntVector(packedRect.x + packedRect.width, packedRect.y + packedRect.height - 1, 0);
+					CopyInfo.Size = FIntVector(spaceBetweenSprites, 1, 0);
+					CopyInfo.DestPosition = FIntVector(packedRect.x + packedRect.width, packedRect.y + packedRect.height + paddingIndex, 0);
+					RHICmdList.CopyTexture(
 						atlasTextureRHIRef,
 						atlasTextureRHIRef,
-						srcRegionBox,
-						dstRegionBox
+						CopyInfo
 					);
 					//LeftBottom
-					srcRegionBox.Min = FVector2D(packedRect.x - spaceBetweenSprites, packedRect.y);
-					srcRegionBox.Max = FVector2D(packedRect.x, packedRect.y + 1);
-					dstRegionBox.Min = FVector2D(packedRect.x - spaceBetweenSprites, packedRect.y - 1 - paddingIndex);
-					dstRegionBox.Max = dstRegionBox.Min + FVector2D(spaceBetweenSprites, 1);
-					RHICmdList.CopySubTextureRegion(
+					CopyInfo.SourcePosition = FIntVector(packedRect.x - spaceBetweenSprites, packedRect.y, 0);
+					CopyInfo.Size = FIntVector(spaceBetweenSprites, 1, 0);
+					CopyInfo.DestPosition = FIntVector(packedRect.x - spaceBetweenSprites, packedRect.y - 1 - paddingIndex, 0);
+					RHICmdList.CopyTexture(
 						atlasTextureRHIRef,
 						atlasTextureRHIRef,
-						srcRegionBox,
-						dstRegionBox
+						CopyInfo
 					);
 					//RightBottom
-					srcRegionBox.Min = FVector2D(packedRect.x + packedRect.width, packedRect.y);
-					srcRegionBox.Max = FVector2D(packedRect.x + packedRect.width + spaceBetweenSprites, packedRect.y + 1);
-					dstRegionBox.Min = FVector2D(packedRect.x + packedRect.width, packedRect.y - 1 - paddingIndex);
-					dstRegionBox.Max = dstRegionBox.Min + FVector2D(spaceBetweenSprites, 1);
-					RHICmdList.CopySubTextureRegion(
+					CopyInfo.SourcePosition = FIntVector(packedRect.x + packedRect.width, packedRect.y, 0);
+					CopyInfo.Size = FIntVector(spaceBetweenSprites, 1, 0);
+					CopyInfo.DestPosition = FIntVector(packedRect.x + packedRect.width, packedRect.y - 1 - paddingIndex, 0);
+					RHICmdList.CopyTexture(
 						atlasTextureRHIRef,
 						atlasTextureRHIRef,
-						srcRegionBox,
-						dstRegionBox
+						CopyInfo
 					);
 				}
 				delete copyData;
@@ -279,12 +267,14 @@ void ULGUISpriteData::CreateAtlasTexture(int oldTextureSize, int newTextureSize,
 		ENQUEUE_RENDER_COMMAND(FLGUISpriteCopyAtlasTexture)(
 			[oldTexture, texture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
 			{
-				FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
-				RHICmdList.CopySubTextureRegion(
+				FRHICopyTextureInfo CopyInfo;
+				CopyInfo.SourcePosition = FIntVector(0, 0, 0);
+				CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
+				CopyInfo.DestPosition = FIntVector(0, 0, 0);
+				RHICmdList.CopyTexture(
 					((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
 					((FTexture2DResource*)texture->Resource)->GetTexture2DRHI(),
-					regionBox,
-					regionBox
+					CopyInfo
 				);
 				oldTexture->RemoveFromRoot();//ready for gc
 			});

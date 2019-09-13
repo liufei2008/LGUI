@@ -30,8 +30,8 @@ public:
 	FLGUIHudRenderVS() {}
 	FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
 
-	static void ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment);
-	static bool ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material);
+	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
+	static bool ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters);
 	
 	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);
 	virtual bool Serialize(FArchive& Ar)override;
@@ -43,8 +43,8 @@ public:
 
 	FLGUIHudRenderPS() {}
 	FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
-	static bool ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material);
-	static void ModifyCompilationEnvironment(EShaderPlatform Platform, FShaderCompilerEnvironment& OutEnvironment);
+	static bool ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters);
+	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
 
 	void SetBlendState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material);
 	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);

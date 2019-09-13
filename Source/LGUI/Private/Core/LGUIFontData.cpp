@@ -446,15 +446,9 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 				if (oldTextureSize != 0 && oldTexture != nullptr)
 				{
 					FRHICopyTextureInfo CopyInfo;
-					CopyInfo.SourceMipIndex = 0;
 					CopyInfo.SourcePosition = FIntVector(0, 0, 0);
-					CopyInfo.SourceSliceIndex = 0;
 					CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
-					CopyInfo.DestMipIndex = 0;
 					CopyInfo.DestPosition = FIntVector(0, 0, 0);
-					CopyInfo.DestSliceIndex = 0;
-					CopyInfo.NumMips = 1;
-					CopyInfo.NumSlices = 1;
 					RHICmdList.CopyTexture(
 						((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
 						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
