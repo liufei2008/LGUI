@@ -138,44 +138,47 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 						CopyInfo
 					);
 				}
-				for (int paddingIndex = 0; paddingIndex < spaceBetweenSprites; paddingIndex++)
+				for (int paddingIndexY = 0; paddingIndexY < spaceBetweenSprites; paddingIndexY++)
 				{
-					//LeftTop
-					CopyInfo.SourcePosition = FIntVector(packedRect.x - spaceBetweenSprites, packedRect.y + packedRect.height - 1, 0);
-					CopyInfo.Size = FIntVector(spaceBetweenSprites, 1, 0);
-					CopyInfo.DestPosition = FIntVector(packedRect.x - spaceBetweenSprites, packedRect.y + packedRect.height + paddingIndex, 0);
-					RHICmdList.CopyTexture(
-						atlasTextureRHIRef,
-						atlasTextureRHIRef,
-						CopyInfo
-					);
-					//RightTop
-					CopyInfo.SourcePosition = FIntVector(packedRect.x + packedRect.width, packedRect.y + packedRect.height - 1, 0);
-					CopyInfo.Size = FIntVector(spaceBetweenSprites, 1, 0);
-					CopyInfo.DestPosition = FIntVector(packedRect.x + packedRect.width, packedRect.y + packedRect.height + paddingIndex, 0);
-					RHICmdList.CopyTexture(
-						atlasTextureRHIRef,
-						atlasTextureRHIRef,
-						CopyInfo
-					);
-					//LeftBottom
-					CopyInfo.SourcePosition = FIntVector(packedRect.x - spaceBetweenSprites, packedRect.y, 0);
-					CopyInfo.Size = FIntVector(spaceBetweenSprites, 1, 0);
-					CopyInfo.DestPosition = FIntVector(packedRect.x - spaceBetweenSprites, packedRect.y - 1 - paddingIndex, 0);
-					RHICmdList.CopyTexture(
-						atlasTextureRHIRef,
-						atlasTextureRHIRef,
-						CopyInfo
-					);
-					//RightBottom
-					CopyInfo.SourcePosition = FIntVector(packedRect.x + packedRect.width, packedRect.y, 0);
-					CopyInfo.Size = FIntVector(spaceBetweenSprites, 1, 0);
-					CopyInfo.DestPosition = FIntVector(packedRect.x + packedRect.width, packedRect.y - 1 - paddingIndex, 0);
-					RHICmdList.CopyTexture(
-						atlasTextureRHIRef,
-						atlasTextureRHIRef,
-						CopyInfo
-					);
+					for (int paddingIndexX = 0; paddingIndexX < spaceBetweenSprites; paddingIndexX++)
+					{
+						//LeftTop
+						CopyInfo.SourcePosition = FIntVector(0, packedRect.height - 1, 0);
+						CopyInfo.Size = FIntVector(1, 1, 0);
+						CopyInfo.DestPosition = FIntVector(packedRect.x - spaceBetweenSprites + paddingIndexX, packedRect.y + packedRect.height + paddingIndexY, 0);
+						RHICmdList.CopyTexture(
+							spriteTextureRHIRef,
+							atlasTextureRHIRef,
+							CopyInfo
+						);
+						//RightTop
+						CopyInfo.SourcePosition = FIntVector(packedRect.width - 1, packedRect.height - 1, 0);
+						CopyInfo.Size = FIntVector(1, 1, 0);
+						CopyInfo.DestPosition = FIntVector(packedRect.x + packedRect.width + paddingIndexX, packedRect.y + packedRect.height + paddingIndexY, 0);
+						RHICmdList.CopyTexture(
+							spriteTextureRHIRef,
+							atlasTextureRHIRef,
+							CopyInfo
+						);
+						//LeftBottom
+						CopyInfo.SourcePosition = FIntVector(0, 0, 0);
+						CopyInfo.Size = FIntVector(1, 1, 0);
+						CopyInfo.DestPosition = FIntVector(packedRect.x - spaceBetweenSprites + paddingIndexX, packedRect.y - 1 - paddingIndexY, 0);
+						RHICmdList.CopyTexture(
+							spriteTextureRHIRef,
+							atlasTextureRHIRef,
+							CopyInfo
+						);
+						//RightBottom
+						CopyInfo.SourcePosition = FIntVector(packedRect.width - 1, 0, 0);
+						CopyInfo.Size = FIntVector(1, 1, 0);
+						CopyInfo.DestPosition = FIntVector(packedRect.x + packedRect.width + paddingIndexX, packedRect.y - 1 - paddingIndexY, 0);
+						RHICmdList.CopyTexture(
+							spriteTextureRHIRef,
+							atlasTextureRHIRef,
+							CopyInfo
+						);
+					}
 				}
 				delete copyData;
 			});
