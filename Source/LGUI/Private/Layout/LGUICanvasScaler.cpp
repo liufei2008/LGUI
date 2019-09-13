@@ -68,6 +68,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 #if WITH_EDITOR
 			if (!GetWorld()->IsGameWorld())
 			{
+				Canvas->SetViewportParameterChange();
 				Canvas->MarkRebuildAllDrawcall();
 				Canvas->MarkCanvasUpdate();
 			}
@@ -98,6 +99,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 				default:
 					break;
 				}
+				Canvas->SetViewportParameterChange();
 				Canvas->MarkCanvasUpdate();
 			}
 		}
