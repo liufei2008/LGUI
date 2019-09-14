@@ -80,7 +80,9 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassIcon.UITextureBase", new IMAGE_BRUSH(TEXT("UITexture_16x"), Icon16x16));
 
 	Style->Set("ClassThumbnail.LGUIEventSystemActor", new IMAGE_BRUSH(TEXT("EventSystem_40x"), Icon40x40));
+	Style->Set("ClassThumbnail.LGUIEventSystem", new IMAGE_BRUSH(TEXT("EventSystem_40x"), Icon40x40));
 	Style->Set("ClassIcon.LGUIEventSystemActor", new IMAGE_BRUSH(TEXT("EventSystem_16x"), Icon16x16));
+	Style->Set("ClassIcon.LGUIEventSystem", new IMAGE_BRUSH(TEXT("EventSystem_16x"), Icon16x16));
 
 	Style->Set("ClassThumbnail.LGUIPrefab", new IMAGE_BRUSH(TEXT("Prefab_40x"), Icon40x40));
 	Style->Set("ClassIcon.LGUIPrefab", new IMAGE_BRUSH(TEXT("Prefab_16x"), Icon16x16));

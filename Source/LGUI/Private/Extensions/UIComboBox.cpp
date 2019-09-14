@@ -2,7 +2,7 @@
 
 #include "Extensions/UIComboBox.h"
 #include "Extensions/UIComboBoxItem.h"
-#include "Event/LGUIEventSystemActor.h"
+#include "Event/LGUIEventSystem.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUIBPLibrary.h"
@@ -25,9 +25,9 @@ void UUIComboBox::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 
 void UUIComboBox::CreateFromArray_Internal(const TArray<FString>& InItemNameArray, const int32& InSelectedItemIndex, const FUIComboBoxSelectDelegate& InCallback)
 {
-	if (ALGUIEventSystemActor::GetInstance() != nullptr)
+	if (ULGUIEventSystem::GetLGUIEventSystemInstance() != nullptr)
 	{
-		ALGUIEventSystemActor::GetInstance()->SetSelectComponent(_RootUIActor->GetUIItem());
+		ULGUIEventSystem::GetLGUIEventSystemInstance()->SetSelectComponent(_RootUIActor->GetUIItem());
 	}
 	auto parentActor = _SrcItemActor->GetAttachParentActor();
 	{
@@ -121,7 +121,7 @@ bool UUIComboBox::OnPointerSelect_Implementation(const FLGUIPointerEventData& ev
 }
 bool UUIComboBox::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
 {
-	auto selectedComp = ALGUIEventSystemActor::GetInstance()->GetCurrentSelectedComponent();
+	auto selectedComp = ULGUIEventSystem::GetLGUIEventSystemInstance()->GetCurrentSelectedComponent();
 	if (selectedComp == nullptr || !selectedComp->IsAttachedTo(_RootUIActor->GetUIItem()) && selectedComp != _RootUIActor->GetUIItem())
 	{
 		ULGUIBPLibrary::DeleteActor(GetOwner());
