@@ -2,7 +2,7 @@
 
 #include "Core/ActorComponent/UIInteractionGroup.h"
 #include "LGUI.h"
-#include "Event/LGUIEventSystemActor.h"
+#include "Event/LGUIEventSystem.h"
 
 UUIInteractionGroup::UUIInteractionGroup()
 {
@@ -72,9 +72,9 @@ void UUIInteractionGroup::SetInteractable(const bool& InBool)
 
 		if (!bInteractable)//if not interactable, need to check current ray hit object, if the object is interacting
 		{
-			if (ALGUIEventSystemActor::GetInstance() != nullptr)
+			if (ULGUIEventSystem::GetLGUIEventSystemInstance() != nullptr)
 			{
-				if (auto hitComp = ALGUIEventSystemActor::GetInstance()->GetCurrentHitComponent())
+				if (auto hitComp = ULGUIEventSystem::GetLGUIEventSystemInstance()->GetCurrentHitComponent())
 				{
 					if (hitComp->IsAttachedTo(GetOwner()->GetRootComponent()))//target is child of this
 					{
@@ -86,7 +86,7 @@ void UUIInteractionGroup::SetInteractable(const bool& InBool)
 							{
 								if (GroupComp == this)
 								{
-									ALGUIEventSystemActor::GetInstance()->ClearEvent();
+									ULGUIEventSystem::GetLGUIEventSystemInstance()->ClearEvent();
 									break;
 								}
 								else

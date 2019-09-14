@@ -14,7 +14,7 @@
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
-#include "Event/LGUIEventSystemActor.h"
+#include "Event/LGUIEventSystem.h"
 #include "Components/ActorComponent.h"
 #include "UIEventTriggerComponent.generated.h"
 

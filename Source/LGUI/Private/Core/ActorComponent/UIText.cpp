@@ -493,10 +493,6 @@ void UUIText::CacheTextGeometry()
 		charGeometry.xadvance = charData->xadvance;
 		charGeometry.xoffset = charData->xoffset;
 		charGeometry.yoffset = charData->yoffset + charFixOffset;
-		charGeometry.vert0 = FVector2D(0, charData->height);
-		charGeometry.vert1 = FVector2D(charData->width, charData->height);
-		charGeometry.vert2 = FVector2D(0, 0);
-		charGeometry.vert3 = FVector2D(charData->width, 0);
 
 		auto overrideCharData = charData;
 		if (dynamicPixelsPerUnitIsNot1)
