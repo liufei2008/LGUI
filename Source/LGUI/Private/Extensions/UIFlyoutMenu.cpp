@@ -7,7 +7,7 @@
 #include "Core/Actor/UISpriteActor.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "Event/LGUIEventSystemActor.h"
+#include "Event/LGUIEventSystem.h"
 #include "LGUIBPLibrary.h"
 
 UUIFlyoutMenu::UUIFlyoutMenu()
@@ -27,9 +27,9 @@ void UUIFlyoutMenu::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 
 void UUIFlyoutMenu::CreateFromArray_Internal(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDelegate& InCallback)
 {
-	if (ALGUIEventSystemActor::GetInstance() != nullptr)
+	if (ULGUIEventSystem::GetLGUIEventSystemInstance() != nullptr)
 	{
-		ALGUIEventSystemActor::GetInstance()->SetSelectComponent(_RootUIActor->GetUIItem());
+		ULGUIEventSystem::GetLGUIEventSystemInstance()->SetSelectComponent(_RootUIActor->GetUIItem());
 	}
 	auto parentActor = _SrcItemActor->GetAttachParentActor();
 	{
@@ -121,7 +121,7 @@ bool UUIFlyoutMenu::OnPointerSelect_Implementation(const FLGUIPointerEventData& 
 }
 bool UUIFlyoutMenu::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
 {
-	auto selectedComp = ALGUIEventSystemActor::GetInstance()->GetCurrentSelectedComponent();
+	auto selectedComp = ULGUIEventSystem::GetLGUIEventSystemInstance()->GetCurrentSelectedComponent();
 	if (selectedComp == nullptr || !selectedComp->IsAttachedTo(_RootUIActor->GetUIItem()) && selectedComp != _RootUIActor->GetUIItem())
 	{
 		ULGUIBPLibrary::DeleteActor(GetOwner());

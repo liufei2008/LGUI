@@ -7,7 +7,7 @@
 #include "Core/Actor/UISpriteActor.h"
 #include "InputCoreTypes.h"
 #include "Utils/LGUIUtils.h"
-#include "Event/LGUIEventSystemActor.h"
+#include "Event/LGUIEventSystem.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "GameFramework/PlayerInput.h"
 #include "GameFramework/PlayerController.h"
@@ -1410,11 +1410,11 @@ void UUITextInputComponent::ActivateInput()
 	BindKeys();
 	UpdatePlaceHolderComponent();
 	//set is selected
-	if (ALGUIEventSystemActor::GetInstance() != nullptr)
+	if (ULGUIEventSystem::GetLGUIEventSystemInstance() != nullptr)
 	{
 		if (CheckRootUIComponent())
 		{
-			ALGUIEventSystemActor::GetInstance()->SetSelectComponent(RootUIComp);
+			ULGUIEventSystem::GetLGUIEventSystemInstance()->SetSelectComponent(RootUIComp);
 		}
 	}
 	//fire event

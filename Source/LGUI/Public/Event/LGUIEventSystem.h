@@ -4,33 +4,46 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/ActorComponent.h"
 #include "LGUIDelegateDeclaration.h"
 #include "Raycaster/LGUIBaseRaycaster.h"
 #include "LGUIDelegateHandleWrapper.h"
-#include "LGUIEventSystemActor.generated.h"
+#include "LGUIEventSystem.generated.h"
 
 struct FLGUIPointerEventData;
 
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FLGUIHitDynamicDelegate, bool, isHit, const FHitResult&, hitResult, USceneComponent*, hitComponent);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, const FLGUIPointerEventData&, pointerEvent);
+
 /*
- InputTrigger and InputScroll need mannually setup
- about the event bubble: if all interface of target component or actor return true, then event will bubble up
+ This is a preset actor that contans a LGUIEventSystem component
  */
-UCLASS(Abstract, HideCategories = (Rendering, Actor))
+UCLASS()
 class LGUI_API ALGUIEventSystemActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	ALGUIEventSystemActor();
-
-	UFUNCTION(BlueprintCallable, Category = "LGUI|EventSystem", meta = (DisplayName = "Get Event System Instance"))
-		static ALGUIEventSystemActor* GetInstance();
 protected:
-	static ALGUIEventSystemActor* Instance;//a level should only have one LGUIEventSystemActpr
+	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
+		class ULGUIEventSystem* EventSystem;
+};
+
+UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
+class LGUI_API ULGUIEventSystem : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	ULGUIEventSystem();
+
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Get LGUI Event System Instance"))
+		static ULGUIEventSystem* GetLGUIEventSystemInstance();
+protected:
+	static ULGUIEventSystem* Instance;//a level should only have one LGUIEventSystemActpr
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
@@ -64,9 +77,9 @@ public:
 		void SetRaycastEnable(bool enable, bool clearEvent = false);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-	void SetSelectComponent(USceneComponent* InSelectComp);
+		void SetSelectComponent(USceneComponent* InSelectComp);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-	USceneComponent* GetCurrentSelectedComponent() { return selectedComponent; }
+		USceneComponent* GetCurrentSelectedComponent() { return selectedComponent; }
 protected:
 	//call back for hit event
 	FLGUIMulticastHitDelegate hitEvent;
@@ -120,7 +133,7 @@ protected:
 protected:
 	bool LineTraceAndEvent();
 	bool LineTrace(FHitResultContainerStruct& hitResult);
-	
+
 	void CallOnPointerEnter(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
 	void CallOnPointerExit(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
 	void CallOnPointerDown(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
