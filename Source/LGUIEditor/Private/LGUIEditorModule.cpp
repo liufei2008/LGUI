@@ -255,9 +255,9 @@ void FLGUIEditorModule::ShutdownModule()
 
 	PropertyModule.UnregisterCustomClassLayout(ULGUIEditorToolsAgentObject::StaticClass()->GetFName());
 
-	PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent::StaticStruct()->GetFName());
-	PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIEditHelperButton::StaticStruct()->GetFName());
-	PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName());
+	PropertyModule.UnregisterCustomPropertyTypeLayout("LGUIDrawableEvent");
+	PropertyModule.UnregisterCustomPropertyTypeLayout("LGUIEditHelperButton");
+	PropertyModule.UnregisterCustomPropertyTypeLayout("LGUIComponentReference");
 
 	FLGUIContentBrowserExtensions::RemoveHooks();
 	FLGUILevelEditorExtensions::RemoveHooks();

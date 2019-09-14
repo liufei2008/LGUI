@@ -14,10 +14,9 @@
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "LGUIFontData.generated.h"
 
-USTRUCT(BlueprintType)
+
 struct FLGUIFontKeyData
 {
-	GENERATED_BODY()
 public:
 	FLGUIFontKeyData() {}
 	FLGUIFontKeyData(const uint16& inCharIndex, const uint16& inCharSize, const bool& inBorder, const bool& inItalic)
@@ -41,30 +40,18 @@ public:
 	}
 };
 
-USTRUCT(BlueprintType)
 struct FLGUICharData
 {
-	GENERATED_BODY()
-		FLGUICharData(){}
 public:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		uint16 width = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		uint16 height = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		int16 xoffset = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		int16 yoffset = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		uint16 xadvance;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float uv0X;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float uv0Y;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float uv3X;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float uv3Y;
+	uint16 width = 0;
+	uint16 height = 0;
+	int16 xoffset = 0;
+	int16 yoffset = 0;
+	uint16 xadvance;
+	float uv0X;
+	float uv0Y;
+	float uv3X;
+	float uv3Y;
 
 	FVector2D GetUV0()
 	{
@@ -131,8 +118,7 @@ private:
 		TArray<uint8> fontBinaryArray;
 	UPROPERTY(Transient)
 		TArray<uint8> tempFontBinaryArray;//temp array for storing data, because freetype need to load font to memory and keep alive
-	UPROPERTY(Transient)
-		TMap<FLGUIFontKeyData, FLGUICharData> charDataMap;
+	TMap<FLGUIFontKeyData, FLGUICharData> charDataMap;
 
 	rbp::MaxRectsBinPack binPack;//for rect packing
 	int32 textureSize;//current texture size
