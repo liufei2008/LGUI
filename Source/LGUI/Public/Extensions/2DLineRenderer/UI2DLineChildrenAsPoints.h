@@ -21,6 +21,7 @@ protected:
 	virtual void OnRegister()override;
 
 	UPROPERTY(EditAnywhere, Category = LGUI)bool UseWidthOrHeightAsRadius = true;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
 
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
@@ -31,6 +32,11 @@ protected:
 	UPROPERTY(Transient)TArray<UUIItem*> SortedItemArray;
 	void CalculatePoints();
 	void RebuildChildrenList();
+
+	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
+	{
+		return CurrentPointArray;
+	}
 public:
 	void OnChildPositionChanged();
 };

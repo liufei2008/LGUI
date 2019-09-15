@@ -12,13 +12,12 @@ UUI2DLineRaw::UUI2DLineRaw()
 
 void UUI2DLineRaw::BeginPlay()
 {
-	CurrentPointArray = PointArray;
 	Super::BeginPlay();
 }
+
 #if WITH_EDITOR
 void UUI2DLineRaw::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	CurrentPointArray = PointArray;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -31,29 +30,16 @@ AUI2DLineActor::AUI2DLineActor()
 	RootComponent = UIElement;
 }
 
-
-void UUI2DLineRaw::OnCreateGeometry()
-{
-	CurrentPointArray = PointArray;
-	Super::OnCreateGeometry();
-}
-void UUI2DLineRaw::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	Super::OnUpdateGeometry(InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
-}
-
 void UUI2DLineRaw::SetPoints(const TArray<FVector2D>& InPoints)
 {
 	if (InPoints.Num() != PointArray.Num())
 	{
 		PointArray = InPoints;
-		CurrentPointArray = PointArray;
 		MarkTriangleDirty();
 	}
 	else
 	{
 		PointArray = InPoints;
-		CurrentPointArray = PointArray;
 		MarkVertexPositionDirty();
 	}
 }
