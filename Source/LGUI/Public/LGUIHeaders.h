@@ -69,5 +69,12 @@
 #include "Extensions/UIComboBox.h"
 #include "Extensions/UIFlyoutMenu.h"
 #include "Extensions/ViewportUITexture.h"
+#include "Extensions/UIRing.h"
+#include "Extensions/UISector.h"
+#include "Extensions/2DLineRenderer/UI2DLineChildrenAsPoints.h"
+#include "Extensions/2DLineRenderer/UI2DLineRaw.h"
+#include "Extensions/2DLineRenderer/UI2DLineRendererBase.h"
+#include "Extensions/2DLineRenderer/UI2dLineRing.h"
+#include "Extensions/2DLineRenderer/UI2dLineRingFrame.h"
 
 #include "LGUIEditHelper.h"

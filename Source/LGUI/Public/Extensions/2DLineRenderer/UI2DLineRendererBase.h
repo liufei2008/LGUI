@@ -26,15 +26,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)float LineWidth = 10.0f;
 	UPROPERTY(EditAnywhere, Category = LGUI)bool ConnectStartEndPoint = false;
 	UPROPERTY(EditAnywhere, Category = LGUI)LineWidthSideType LineWidthSide = LineWidthSideType::Middle;
+	//use grow value or not
+	UPROPERTY(EditAnywhere, Category = LGUI)bool UseGrowValue = true;
 	//grow the line from start to end
-	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.0", ClampMax = "1.0"))float GrowValue = 1.0f;
-	UPROPERTY(EditAnywhere, Category = LGUI)bool ReverseGrow = false;
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0.0", ClampMax = "1.0", EditCondition = "UseGrowValue"))float GrowValue = 1.0f;
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (EditCondition = "UseGrowValue"))bool ReverseGrow = false;
 	//distance from current point to start point
-	UPROPERTY(VisibleAnywhere, Category = LGUI)TArray<float> PointDistanceArray;
-	UPROPERTY(VisibleAnywhere, Category = LGUI)float TotalLength;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<float> PointDistanceArray;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)float TotalLength;
 
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> PointArrayWithGrowValue;
+	virtual const TArray<FVector2D>& GetCalcaultedPointArray();
 
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
@@ -44,7 +46,6 @@ protected:
 	void Update2DLineRendererBaseUV(const TArray<FVector2D>& InPointArray, int InEndPointRepeatCount);
 	void Update2DLineRendererBaseVertex(const TArray<FVector2D>& InPointArray, int InEndPointRepeatCount);
 	int FindGrowPointIndex(float distance, const TArray<float>& distanceArray, float& interplateValue);
-	virtual void SetPoints(const TArray<FVector2D>& newPoints);
 	FORCEINLINE bool CanConnectStartEndPoint(int InPointCount) { return ConnectStartEndPoint && InPointCount >= 3; }
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
