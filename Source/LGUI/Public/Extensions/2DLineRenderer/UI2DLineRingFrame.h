@@ -27,10 +27,17 @@ protected:
 	//line segment
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (ClampMin = "0", ClampMax = "200"))int Segment = 12;
 
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
+
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
 	void CalculatePoints();
+
+	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
+	{
+		return CurrentPointArray;
+	}
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)float GetAngleBegin() { return AngleBegin; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)float GetAngleEnd() { return AngleEnd; }

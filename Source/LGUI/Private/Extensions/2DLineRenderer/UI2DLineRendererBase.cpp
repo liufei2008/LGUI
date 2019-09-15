@@ -17,6 +17,12 @@ void UUI2DLineRendererBase::BeginPlay()
 	Super::BeginPlay();
 }
 
+const TArray<FVector2D>& UUI2DLineRendererBase::GetCalcaultedPointArray()
+{
+	checkf(0, TEXT("[UUI2DLineRendererBase::GetCalcaultedPointArray]This function must be override!"));
+	return PointArrayWithGrowValue;//must return anything
+}
+
 void UUI2DLineRendererBase::Update2DLineRendererBaseUV(const TArray<FVector2D>& InPointArray, int InEndPointRepeatCount)
 {
 	auto& uvs = geometry->uvs;
@@ -226,59 +232,69 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 		}
 	}
 
-	//calculate grow value
-	PointDistanceArray.Reset(pointCount);
-	TotalLength = 0.0f;
-	PointDistanceArray.Add(0);
-	if (ReverseGrow)
+	if (UseGrowValue)
 	{
-		FVector2D prevPoint = InPointArray[pointCount - 1];
-		for (int i = pointCount - 2; i >= 0; i--)
+		//calculate grow value
+		PointDistanceArray.Reset(pointCount);
+		TotalLength = 0.0f;
+		PointDistanceArray.Add(0);
+		if (ReverseGrow)
 		{
-			auto distance = FVector2D::Distance(prevPoint, InPointArray[i]);
-			TotalLength += distance;
-			PointDistanceArray.Add(TotalLength);
-			prevPoint = InPointArray[i];
+			FVector2D prevPoint = InPointArray[pointCount - 1];
+			for (int i = pointCount - 2; i >= 0; i--)
+			{
+				auto distance = FVector2D::Distance(prevPoint, InPointArray[i]);
+				TotalLength += distance;
+				PointDistanceArray.Add(TotalLength);
+				prevPoint = InPointArray[i];
+			}
 		}
-	}
-	else
-	{
-		FVector2D prevPoint = InPointArray[0];
-		for (int i = 1; i < pointCount; i++)
+		else
 		{
-			auto distance = FVector2D::Distance(prevPoint, InPointArray[i]);
-			TotalLength += distance;
-			PointDistanceArray.Add(TotalLength);
-			prevPoint = InPointArray[i];
+			FVector2D prevPoint = InPointArray[0];
+			for (int i = 1; i < pointCount; i++)
+			{
+				auto distance = FVector2D::Distance(prevPoint, InPointArray[i]);
+				TotalLength += distance;
+				PointDistanceArray.Add(TotalLength);
+				prevPoint = InPointArray[i];
+			}
 		}
-	}
 
-	auto distance = TotalLength * GrowValue;
-	auto interplateValue = 0.0f;
-	auto pointIndex = FindGrowPointIndex(distance, PointDistanceArray, interplateValue);
-	PointArrayWithGrowValue.Reset(InPointArray.Num());
-	FVector2D endPoint;
-	if (ReverseGrow)
-	{
-		for (int i = 0; i <= pointIndex; i++)
+		auto distance = TotalLength * GrowValue;
+		auto interplateValue = 0.0f;
+		auto pointIndex = FindGrowPointIndex(distance, PointDistanceArray, interplateValue);
+		PointArrayWithGrowValue.Reset(InPointArray.Num());
+		FVector2D endPoint;
+		if (ReverseGrow)
 		{
-			PointArrayWithGrowValue.Add(InPointArray[pointCount - 1 - i]);
+			for (int i = 0; i <= pointIndex; i++)
+			{
+				PointArrayWithGrowValue.Add(InPointArray[pointCount - 1 - i]);
+			}
+			endPoint = FMath::Lerp(InPointArray[pointCount - 1 - pointIndex], InPointArray[pointCount - 1 - (pointIndex + 1)], interplateValue);
 		}
-		endPoint = FMath::Lerp(InPointArray[pointCount - 1 - pointIndex], InPointArray[pointCount - 1 - (pointIndex + 1)], interplateValue);
+		else
+		{
+			for (int i = 0; i <= pointIndex; i++)
+			{
+				PointArrayWithGrowValue.Add(InPointArray[i]);
+			}
+			endPoint = FMath::Lerp(InPointArray[pointIndex], InPointArray[pointIndex + 1], interplateValue);
+		}
+		PointArrayWithGrowValue.Add(endPoint);
+		//vertices
+		Update2DLineRendererBaseVertex(PointArrayWithGrowValue, pointCount - pointIndex - 1);
+		//uvs
+		Update2DLineRendererBaseUV(PointArrayWithGrowValue, pointCount - pointIndex - 1);
 	}
 	else
 	{
-		for (int i = 0; i <= pointIndex; i++)
-		{
-			PointArrayWithGrowValue.Add(InPointArray[i]);
-		}
-		endPoint = FMath::Lerp(InPointArray[pointIndex], InPointArray[pointIndex + 1], interplateValue);
+		//vertices
+		Update2DLineRendererBaseVertex(PointArrayWithGrowValue, 0);
+		//uvs
+		Update2DLineRendererBaseUV(PointArrayWithGrowValue, 0);
 	}
-	PointArrayWithGrowValue.Add(endPoint);
-	//vertices
-	Update2DLineRendererBaseVertex(PointArrayWithGrowValue, pointCount - pointIndex - 1);
-	//uvs
-	Update2DLineRendererBaseUV(PointArrayWithGrowValue, pointCount - pointIndex - 1);
 	//colors
 	UIGeometry::UpdateUIColor(geometry, GetFinalColor());
 
@@ -433,61 +449,66 @@ int UUI2DLineRendererBase::FindGrowPointIndex(float distance, const TArray<float
 void UUI2DLineRendererBase::OnCreateGeometry()
 {
 	SCOPE_CYCLE_COUNTER(STAT_2DLineUpdate);
-	Generate2DLineGeometry(CurrentPointArray);
+	Generate2DLineGeometry(GetCalcaultedPointArray());
 }
 void UUI2DLineRendererBase::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_2DLineUpdate);
+	auto& CurrentPointArray = GetCalcaultedPointArray();
 	int pointCount = CurrentPointArray.Num();
-	//calculate grow value
-	auto distance = TotalLength * GrowValue;
-	auto interplateValue = 0.0f;
-	auto pointIndex = FindGrowPointIndex(distance, PointDistanceArray, interplateValue);
-	PointArrayWithGrowValue.Reset(CurrentPointArray.Num());
-	FVector2D endPoint;
-	if (ReverseGrow)
+	if (UseGrowValue)
 	{
-		for (int i = 0; i <= pointIndex; i++)
+		//calculate grow value
+		auto distance = TotalLength * GrowValue;
+		auto interplateValue = 0.0f;
+		auto pointIndex = FindGrowPointIndex(distance, PointDistanceArray, interplateValue);
+		PointArrayWithGrowValue.Reset(CurrentPointArray.Num());
+		FVector2D endPoint;
+		if (ReverseGrow)
 		{
-			PointArrayWithGrowValue.Add(CurrentPointArray[pointCount - 1 - i]);
+			for (int i = 0; i <= pointIndex; i++)
+			{
+				PointArrayWithGrowValue.Add(CurrentPointArray[pointCount - 1 - i]);
+			}
+			endPoint = FMath::Lerp(CurrentPointArray[pointCount - 1 - pointIndex], CurrentPointArray[pointCount - 1 - (pointIndex + 1)], interplateValue);
 		}
-		endPoint = FMath::Lerp(CurrentPointArray[pointCount - 1 - pointIndex], CurrentPointArray[pointCount - 1 - (pointIndex + 1)], interplateValue);
+		else
+		{
+			for (int i = 0; i <= pointIndex; i++)
+			{
+				PointArrayWithGrowValue.Add(CurrentPointArray[i]);
+			}
+			endPoint = FMath::Lerp(CurrentPointArray[pointIndex], CurrentPointArray[pointIndex + 1], interplateValue);
+		}
+		PointArrayWithGrowValue.Add(endPoint);
+
+		if (InVertexPositionChanged)
+		{
+			Update2DLineRendererBaseVertex(PointArrayWithGrowValue, pointCount - pointIndex - 1);
+		}
+		if (InVertexColorChanged)
+		{
+			UIGeometry::UpdateUIColor(geometry, GetFinalColor());
+		}
+		if (InVertexUVChanged)
+		{
+			Update2DLineRendererBaseUV(PointArrayWithGrowValue, pointCount - pointIndex - 1);
+		}
 	}
 	else
 	{
-		for (int i = 0; i <= pointIndex; i++)
+		if (InVertexPositionChanged)
 		{
-			PointArrayWithGrowValue.Add(CurrentPointArray[i]);
+			Update2DLineRendererBaseVertex(CurrentPointArray, 0);
 		}
-		endPoint = FMath::Lerp(CurrentPointArray[pointIndex], CurrentPointArray[pointIndex + 1], interplateValue);
-	}
-	PointArrayWithGrowValue.Add(endPoint);
-
-	if (InVertexPositionChanged)
-	{
-		Update2DLineRendererBaseVertex(PointArrayWithGrowValue, pointCount - pointIndex - 1);
-	}
-	if (InVertexColorChanged)
-	{
-		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-	}
-	if (InVertexUVChanged)
-	{
-		Update2DLineRendererBaseUV(PointArrayWithGrowValue, pointCount - pointIndex - 1);
-	}
-}
-
-void UUI2DLineRendererBase::SetPoints(const TArray<FVector2D>& newPoints)
-{
-	if (newPoints.Num() != CurrentPointArray.Num())
-	{
-		CurrentPointArray = newPoints;
-		MarkTriangleDirty();
-	}
-	else
-	{
-		CurrentPointArray = newPoints;
-		MarkVertexPositionDirty();
+		if (InVertexColorChanged)
+		{
+			UIGeometry::UpdateUIColor(geometry, GetFinalColor());
+		}
+		if (InVertexUVChanged)
+		{
+			Update2DLineRendererBaseUV(CurrentPointArray, 0);
+		}
 	}
 }
 
