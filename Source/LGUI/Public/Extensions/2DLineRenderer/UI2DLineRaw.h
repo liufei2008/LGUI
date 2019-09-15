@@ -24,11 +24,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		TArray<FVector2D> PointArray;
 
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
+	{
+		return PointArray;
+	}
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		virtual void SetPoints(const TArray<FVector2D>& InPoints)override;
+		void SetPoints(const TArray<FVector2D>& InPoints);
 };
 
 
