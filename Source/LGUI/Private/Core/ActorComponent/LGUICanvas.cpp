@@ -102,6 +102,8 @@ void ULGUICanvas::OnRegister()
 		LGUIManager::AddCanvas(this);
 	}
 #endif
+	TopMostCanvas = nullptr;
+	OnUIHierarchyChanged();
 	CheckTopMostCanvas();
 	CheckParentCanvas();
 }
@@ -587,7 +589,11 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				UIMeshList.AddUninitialized(additionalMeshCount);
 				for (int i = meshCount; i < drawcallCount; i++)
 				{
+#if WITH_EDITOR
+					auto meshName = FString::Printf(TEXT("%s_Drawcall_%d"), *GetOwner()->GetActorLabel(), i);
+#else
 					auto meshName = FString::Printf(TEXT("Drawcall_%d"), i);
+#endif
 					auto uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
 					if (IsScreenSpaceOverlayUI())
 					{
@@ -1013,10 +1019,7 @@ void ULGUICanvas::SetSortOrder(int32 newDepth, bool propagateToChildrenCanvas)
 				}
 			}
 		}
-		if (!IsScreenSpaceOverlayUI())
-		{
-			LGUIManager::SortCanvasOnOrder(this->GetWorld());
-		}
+		LGUIManager::SortCanvasOnOrder(this->GetWorld());
 		SortDrawcallRenderPriority();
 	}
 }
