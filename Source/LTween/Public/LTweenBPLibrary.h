@@ -136,6 +136,10 @@ public:
 	{
 		return ALTweenActor::VirtualTo(duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
 	}
+	static ULTweener* VirtualCall(float duration, float delay, const TFunction<void()>& start, const TFunction<void(float)>& update, const TFunction<void()>& complete)
+	{
+		return ALTweenActor::VirtualTo(duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
+	}
 
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call"), Category = LTween)
 		static ULTweener* DelayCall(float delayTime, const FTweenerSimpleDynamicDelegate& delayComplete)

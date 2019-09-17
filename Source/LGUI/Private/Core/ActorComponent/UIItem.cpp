@@ -41,7 +41,7 @@ void UUIItem::BeginPlay()
 	{
 		cacheParentUIItem = Cast<UUIItem>(parent);
 	}
-
+	CheckRenderCanvas();
 	bVertexPositionChanged = true;
 	bColorChanged = true;
 	bDepthChanged = true;
@@ -454,11 +454,10 @@ void UUIItem::OnUnregister()
 
 void UUIItem::UIHierarchyChanged()
 {
-	if (isCanvasUIItem)RenderCanvas->OnUIHierarchyChanged();
-
 	auto oldRenderCanvas = RenderCanvas;
 	RenderCanvas = nullptr;//force find new
 	CheckRenderCanvas();
+	if (isCanvasUIItem)RenderCanvas->OnUIHierarchyChanged();
 	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
 	{
 		if (itemType == UIItemType::UIRenderable)
