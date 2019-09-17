@@ -675,10 +675,6 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					uiDrawcall->vertexPositionChanged = false;
 				}
 			}
-			if (!IsScreenSpaceOverlayUI())
-			{
-				needToSortRenderPriority = false;
-			}
 			if (UIItem->cacheForThisUpdate_DepthChanged || needToSortRenderPriority)
 			{
 				//after geometry created, need to sort UIMesh render order
@@ -993,17 +989,6 @@ void ULGUICanvas::SetSortOrder(int32 newDepth, bool propagateToChildrenCanvas)
 		MarkCanvasUpdate();
 		if (propagateToChildrenCanvas)
 		{
-			if (IsScreenSpaceOverlayUI())
-			{
-				for (ULGUICanvas* itemCanvas : AllCanvasBelongToThis)
-				{
-					if (IsValid(itemCanvas))
-					{
-						itemCanvas->sortOrder += diff;
-						MarkCanvasUpdate();
-					}
-				}
-			}
 			if (LGUIManager::IsManagerValid(this->GetWorld()))
 			{
 				auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
@@ -1029,7 +1014,7 @@ void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanva
 	{
 		int32 maxSortOrder = 0;
 		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allCanvasArray = IsScreenSpaceOverlayUI() ? TopMostCanvas->AllCanvasBelongToThis : LGUIManager::GetAllCanvas(this->GetWorld());
+		auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
 			if (IsValid(itemCanvas))
@@ -1052,7 +1037,7 @@ void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas
 	if (CheckTopMostCanvas())
 	{
 		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allCanvasArray = IsScreenSpaceOverlayUI() ? TopMostCanvas->AllCanvasBelongToThis : LGUIManager::GetAllCanvas(this->GetWorld());
+		auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
 
 		int32 minSortOrder = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
@@ -1077,7 +1062,7 @@ void ULGUICanvas::SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas)
 	if (CheckTopMostCanvas())
 	{
 		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allCanvasArray = IsScreenSpaceOverlayUI() ? TopMostCanvas->AllCanvasBelongToThis : LGUIManager::GetAllCanvas(this->GetWorld());
+		auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
 
 		int32 maxSortOrder = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
@@ -1102,7 +1087,7 @@ void ULGUICanvas::SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas)
 	if (CheckTopMostCanvas())
 	{
 		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allCanvasArray = IsScreenSpaceOverlayUI() ? TopMostCanvas->AllCanvasBelongToThis : LGUIManager::GetAllCanvas(this->GetWorld());
+		auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
 
 		int32 minDepth = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
