@@ -562,9 +562,10 @@ MANUAL_NEWLINE://new line
 			currentLineOffset.X = 0;
 			goto NEW_LINE;
 		}
-		if (charCode == 32)
+		if (charCode == 32)//space
 		{
-			charGeo.geoWidth = charGeo.xadvance = charGeo.xoffset = halfFontSize;
+			charGeo.geoWidth = charGeo.xadvance = halfFontSize;
+			charGeo.xoffset = 0;
 		}
 		else
 		{
