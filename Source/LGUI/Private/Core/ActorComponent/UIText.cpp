@@ -698,7 +698,7 @@ void UUIText::FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPosition
 	inOutCaretPosition = lineItem.charPropertyList[nearestIndex].caretPosition;
 }
 //find caret by position, caret is on left side of char
-void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
+void UUIText::FindCaretByPosition(FVector inLocalPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
 {
 	if (text.Len() == 0)//no text
 	{
@@ -709,8 +709,7 @@ void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPo
 	{
 		CheckCachedTextPropertyList();
 
-		auto localPosition = this->GetComponentTransform().InverseTransformPosition(inWorldPosition);
-		auto localPosition2D = FVector2D(localPosition);
+		auto localPosition2D = FVector2D(inLocalPosition);
 
 		float nearestDistance = MAX_FLT;
 		int lineCount = cachedTextPropertyList.Num();
