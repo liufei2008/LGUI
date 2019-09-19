@@ -86,3 +86,13 @@
     Screen space UI (Or HUD) not get a huge performance update. The 1.x version use SceneCapture2D, which is vary bad on performance. But now the new 2.x version of LGUI's HUD, is render direct on screen, no additional performance cost!
     Remove UIPanel, use LGUICanvas to render all UI elements.
     Remove UIRoot, LGUICanvas and LGUICanvasScaler will do the job.
+2.1:
+    Fix:
+        Screen space UI sort order problem.
+        UITextInputComponent more stable.
+    Update:
+        Change default rotate from (-90, 0, 90) to (-90, 0, 0).
+        Replace LGUIEventSystemActor with LGUIEventSystem component.
+        Modify for 2DLineRendererBase, remove CurrentPointArray property, add UseGrowValue to determin whether or not use grow value.
+    New feature:
+        Add uiScale property to LGUICanvas, maybe useful in future.
