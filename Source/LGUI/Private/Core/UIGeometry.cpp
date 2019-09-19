@@ -525,15 +525,14 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& h
 	FVector2D caretPosition(0, 0);
 	float charGeoWidth = 0, charGeoHeight = 0, halfFontSize = fontSize * 0.5f;
 	bool haveMultipleSentence = false;
-	FUITextCharGeometry charGeo;
+	FUITextCharGeometry charGeo = FUITextCharGeometry();
 
 	for (int charIndex = 0; charIndex < contentLength; charIndex++)
 	{
-		int charCode = content[charIndex];
-		if (charCode == 13)continue;//13 -- \r
+		auto charCode = content[charIndex];
 		FVector2D charOffset(0, 0);//single char offset
 
-		if (charCode == 10)//10 -- \n
+		if (charCode == '\n' || charCode == '\r')//10 -- \n, 13 -- \r
 		{
 MANUAL_NEWLINE://new line
 			currentLineWidth -= fontSpace.X;//last char of a line don't need space
@@ -562,14 +561,9 @@ MANUAL_NEWLINE://new line
 			currentLineOffset.X = 0;
 			goto NEW_LINE;
 		}
-		if (charCode == 32)
-		{
-			charGeo.geoWidth = charGeo.xadvance = charGeo.xoffset = halfFontSize;
-		}
-		else
-		{
-			charGeo = cacheTextGeometryList[visibleCharIndex];
-		}
+		
+		charGeo = cacheTextGeometryList[visibleCharIndex];
+
 		charGeoWidth = charGeo.geoWidth;
 		charGeoHeight = charGeo.geoHeight;
 		charOffset = FVector2D(charGeo.xoffset, charGeo.yoffset);
@@ -585,35 +579,7 @@ MANUAL_NEWLINE://new line
 			caretPosition.X += fontSpace.X + charGeoWidth;//next caret position x
 		}
 		
-		if (charCode == 32)//char is space
-		{
-			if (overflowType == 1)//char is space and UIText can have multi line, then we need to calculate if the followed word can fit the rest space, if not means new line
-			{
-				float spaceNeeded = halfFontSize;//space
-				spaceNeeded += fontSpace.X;
-				for (int j = charIndex + 1, forwardCharGoeIndex = visibleCharIndex; j < contentLength, forwardCharGoeIndex < cacheTextGeometryList.Num(); j++)
-				{
-					auto charCodeOfJ = content[j];
-					if (charCodeOfJ == 32)//space
-					{
-						break;
-					}
-					if (charCodeOfJ == 10)//\n
-					{
-						break;
-					}
-					spaceNeeded += cacheTextGeometryList[forwardCharGoeIndex].xadvance;
-					spaceNeeded += fontSpace.X;
-					forwardCharGoeIndex++;
-				}
 
-				if (currentLineOffset.X + spaceNeeded > width)
-				{
-					goto MANUAL_NEWLINE;
-				}
-			}
-		}
-		else
 		{
 			//char geometry
 			if (updateVertex)
@@ -646,6 +612,35 @@ MANUAL_NEWLINE://new line
 				uvs[index + 3] = charGeo.uv3;
 			}
 			visibleCharIndex++;
+		}
+
+		if (charCode == ' ')//char is space
+		{
+			if (overflowType == 1)//char is space and UIText can have multi line, then we need to calculate if the followed word can fit the rest space, if not means new line
+			{
+				float spaceNeeded = halfFontSize;//space
+				spaceNeeded += fontSpace.X;
+				for (int j = charIndex + 1, forwardCharGoeIndex = visibleCharIndex; j < contentLength && forwardCharGoeIndex < cacheTextGeometryList.Num(); j++)
+				{
+					auto charCodeOfJ = content[j];
+					if (charCodeOfJ == ' ')//space
+					{
+						break;
+					}
+					if (charCodeOfJ == '\n' || charCodeOfJ == '\r' || charCodeOfJ == '\t')//\n\r\t
+					{
+						break;
+					}
+					spaceNeeded += cacheTextGeometryList[forwardCharGoeIndex].xadvance;
+					spaceNeeded += fontSpace.X;
+					forwardCharGoeIndex++;
+				}
+
+				if (currentLineOffset.X + spaceNeeded > width)
+				{
+					goto MANUAL_NEWLINE;
+				}
+			}
 		}
 		
 
@@ -699,7 +694,7 @@ MANUAL_NEWLINE://new line
 					cacheTextPropertyList.Add(sentenceProperty);
 					sentenceProperty = FUITextLineProperty();
 
-					if (content[charIndex + 1] == 32)//if next char is space at this line's end, then remove that space
+					if (content[charIndex + 1] == ' ')//if next char is space at this line's end, then remove that space
 					{
 						currentLineOffset.X = -halfFontSize - fontSpace.X;
 					}

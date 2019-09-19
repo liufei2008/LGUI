@@ -19,17 +19,17 @@ struct FLGUIFontKeyData
 {
 public:
 	FLGUIFontKeyData() {}
-	FLGUIFontKeyData(const uint16& inCharIndex, const uint16& inCharSize, const bool& inBorder, const bool& inItalic)
+	FLGUIFontKeyData(const TCHAR& inCharIndex, const uint16& inCharSize, const bool& inBorder, const bool& inItalic)
 	{
 		this->charIndex = inCharIndex;
 		this->charSize = inCharSize;
 		this->border = inBorder;
 		this->italic = inItalic;
 	}
-	uint16 charIndex;
-	uint16 charSize;
-	bool border;
-	bool italic;
+	TCHAR charIndex = 0;
+	uint16 charSize = 0;
+	bool border = false;
+	bool italic = false;
 	bool operator==(const FLGUIFontKeyData& other)const
 	{
 		return this->charIndex == other.charIndex && this->charSize == other.charSize && this->border == other.border && this->italic == other.italic;
@@ -47,11 +47,11 @@ public:
 	uint16 height = 0;
 	int16 xoffset = 0;
 	int16 yoffset = 0;
-	uint16 xadvance;
-	float uv0X;
-	float uv0Y;
-	float uv3X;
-	float uv3Y;
+	uint16 xadvance = 0;
+	float uv0X = 0;
+	float uv0Y = 0;
+	float uv3X = 0;
+	float uv3Y = 0;
 
 	FVector2D GetUV0()
 	{
@@ -130,7 +130,7 @@ private:
 	FT_Library library = nullptr;
 	FT_Face face = nullptr;
 	bool alreadyInitialized = false;
-	FLGUICharData* PushCharIntoFont(const uint16& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
+	FLGUICharData* PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
 	FT_Matrix GetItalicMatrix();
 	/*Insert rect into area, assign pixel if succeed
 	 return: if can fit in rect area return true, else false
@@ -141,7 +141,7 @@ private:
 
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
 public:
-	FLGUICharData* GetCharData(const uint16& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
+	FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
 #if WITH_EDITOR
 	void ReloadFont();
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

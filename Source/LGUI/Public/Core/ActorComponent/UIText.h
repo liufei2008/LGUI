@@ -151,7 +151,8 @@ public:
 	FVector2D GetCharSize(TCHAR character);
 	FORCEINLINE static bool IsVisibleChar(TCHAR character)
 	{
-		return (character != 10 && character != 13 && character != 32);// 10 - /n, 13 - /r, 32 - space blank
+		return (character != '\n' && character != '\r');
+		//return (character != '\n' && character != '\r' && character != ' ' && character != '\t');// 10 - /n, 13 - /r, 32 - space blank, \t - tab
 	}
 	//count visible char count of the string
 	static int VisibleCharCountInString(const FString& srcStr);
@@ -200,7 +201,7 @@ public:
 	//find down of current caret position
 	void FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
 	//find caret index by position
-	void FindCaretByPosition(FVector inLocalPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex);
+	void FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex);
 
 	//range selection
 	void GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSelectionEndCaretIndex, TArray<FUITextSelectionProperty>& OutSelectionProeprtyArray);

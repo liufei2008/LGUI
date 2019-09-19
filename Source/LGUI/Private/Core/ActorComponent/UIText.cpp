@@ -373,6 +373,7 @@ void UUIText::SetText(const FString& newText) {
 	{
 		if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 		text = newText;
+		text.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
 		cachedTextPropertyList.Empty();
 		cachedTextGeometryList.Empty();
 
@@ -477,6 +478,7 @@ void UUIText::CacheTextGeometry()
 {
 	if (cachedTextGeometryList.Num() != 0)return;//have cache data
 	float charFixOffset = size * (font->fixedVerticalOffset - 0.25f);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
+	float halfFontSize = size * 0.5f;
 	bool dynamicPixelsPerUnitIsNot1 = RenderCanvas->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
@@ -484,37 +486,58 @@ void UUIText::CacheTextGeometry()
 	cachedTextGeometryList.Reset(visibleCharCount);
 	for (int i = 0, count = text.Len(); i < count; i++)
 	{
-		int charCode = text[i];
+		TCHAR charCode = text[i];
 		if (!IsVisibleChar(charCode))continue;//skip invisible chars
-		auto charData = font->GetCharData((uint16)charCode, size, bold, italic);
 		FUITextCharGeometry charGeometry;
-		charGeometry.geoWidth = charData->width;
-		charGeometry.geoHeight = charData->height;
-		charGeometry.xadvance = charData->xadvance;
-		charGeometry.xoffset = charData->xoffset;
-		charGeometry.yoffset = charData->yoffset + charFixOffset;
-
-		auto overrideCharData = charData;
-		if (dynamicPixelsPerUnitIsNot1)
+		if (charCode == ' ')
 		{
-			auto calcFontSize = size * RenderCanvas->GetDynamicPixelsPerUnit();
-			calcFontSize = calcFontSize > 200 ? 200 : calcFontSize;//limit font size to 200. too large font size will result in large texture
-			overrideCharData = font->GetCharData((uint16)charCode, (uint16)calcFontSize, bold, italic);
+			charGeometry.geoWidth = charGeometry.xadvance = halfFontSize;
+			charGeometry.geoHeight = size;
+			charGeometry.xoffset = charGeometry.yoffset = 0;
+			charGeometry.uv0 = charGeometry.uv1 = charGeometry.uv2 = charGeometry.uv3 = FVector2D(1, 1);
 		}
+		else if (charCode == '\t')
+		{
+			charGeometry.geoWidth = charGeometry.xadvance = size + size;
+			charGeometry.geoHeight = size;
+			charGeometry.xoffset = charGeometry.yoffset = 0;
+			charGeometry.uv0 = charGeometry.uv1 = charGeometry.uv2 = charGeometry.uv3 = FVector2D(1, 1);
+		}
+		else
+		{
+			auto charData = font->GetCharData(charCode, size, bold, italic);
+			charGeometry.geoWidth = charData->width;
+			charGeometry.geoHeight = charData->height;
+			charGeometry.xadvance = charData->xadvance;
+			charGeometry.xoffset = charData->xoffset;
+			charGeometry.yoffset = charData->yoffset + charFixOffset;
 
-		charGeometry.uv0 = overrideCharData->GetUV0();
-		charGeometry.uv1 = overrideCharData->GetUV1();
-		charGeometry.uv2 = overrideCharData->GetUV2();
-		charGeometry.uv3 = overrideCharData->GetUV3();
+			auto overrideCharData = charData;
+			if (dynamicPixelsPerUnitIsNot1)
+			{
+				auto calcFontSize = size * RenderCanvas->GetDynamicPixelsPerUnit();
+				calcFontSize = calcFontSize > 200 ? 200 : calcFontSize;//limit font size to 200. too large font size will result in large texture
+				overrideCharData = font->GetCharData(charCode, (uint16)calcFontSize, bold, italic);
+			}
+
+			charGeometry.uv0 = overrideCharData->GetUV0();
+			charGeometry.uv1 = overrideCharData->GetUV1();
+			charGeometry.uv2 = overrideCharData->GetUV2();
+			charGeometry.uv3 = overrideCharData->GetUV3();
+		}
 		cachedTextGeometryList.Add(charGeometry);
 	}
 }
 FVector2D UUIText::GetCharSize(TCHAR character)
 {
-	if (character == 10 || character == 13)return FVector2D::ZeroVector;
-	if (character == 32)
+	if (character == '\n' || character == '\r')return FVector2D::ZeroVector;
+	if (character == ' ')
 	{
 		return FVector2D(size * 0.5f, size);
+	}
+	else if (character == '\t')
+	{
+		return FVector2D(size + size, size);
 	}
 	else
 	{
@@ -531,8 +554,8 @@ int UUIText::VisibleCharCountInString(const FString& srcStr)
 	int result = 0;
 	for (int i = 0; i < count; i++)
 	{
-		uint16 charIndexItem = srcStr[i];
-		if (IsVisibleChar(charIndexItem) == false)// 10 - /n, 13 - /r, 32 - space
+		auto charIndexItem = srcStr[i];
+		if (IsVisibleChar(charIndexItem) == false)// 10 - /n, 13 - /r, 32 - space, /t - tab
 		{
 			continue;
 		}
@@ -698,7 +721,7 @@ void UUIText::FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPosition
 	inOutCaretPosition = lineItem.charPropertyList[nearestIndex].caretPosition;
 }
 //find caret by position, caret is on left side of char
-void UUIText::FindCaretByPosition(FVector inLocalPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
+void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex)
 {
 	if (text.Len() == 0)//no text
 	{
@@ -709,7 +732,8 @@ void UUIText::FindCaretByPosition(FVector inLocalPosition, FVector2D& outCaretPo
 	{
 		CheckCachedTextPropertyList();
 
-		auto localPosition2D = FVector2D(inLocalPosition);
+		auto localPosition = this->GetComponentTransform().InverseTransformPosition(inWorldPosition);
+		auto localPosition2D = FVector2D(localPosition);
 
 		float nearestDistance = MAX_FLT;
 		int lineCount = cachedTextPropertyList.Num();
