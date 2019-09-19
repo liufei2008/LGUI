@@ -151,7 +151,8 @@ public:
 	FVector2D GetCharSize(TCHAR character);
 	FORCEINLINE static bool IsVisibleChar(TCHAR character)
 	{
-		return (character != 10 && character != 13 && character != 32);// 10 - /n, 13 - /r, 32 - space blank
+		return (character != '\n' && character != '\r');
+		//return (character != '\n' && character != '\r' && character != ' ' && character != '\t');// 10 - /n, 13 - /r, 32 - space blank, \t - tab
 	}
 	//count visible char count of the string
 	static int VisibleCharCountInString(const FString& srcStr);

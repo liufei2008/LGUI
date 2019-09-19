@@ -160,7 +160,7 @@ FT_Matrix ULGUIFontData::GetItalicMatrix()
 	italicMatrix.yy = 1 << 16;
 	return italicMatrix;
 }
-FLGUICharData* ULGUIFontData::PushCharIntoFont(const uint16& charIndex, const uint16& charSize, const bool& bold, const bool& italic)
+FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic)
 {
 	if (alreadyInitialized == false)
 	{
@@ -458,7 +458,7 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	}
 }
 
-FLGUICharData* ULGUIFontData::GetCharData(const uint16& charIndex, const uint16& charSize, const bool& bold, const bool& italic)
+FLGUICharData* ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic)
 {
 	cacheFontKey = FLGUIFontKeyData(charIndex, charSize, bold, italic);
 	if (auto charData = charDataMap.Find(cacheFontKey))
