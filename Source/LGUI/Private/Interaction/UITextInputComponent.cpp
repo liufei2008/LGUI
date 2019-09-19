@@ -630,11 +630,12 @@ void UUITextInputComponent::Paste()
 	FString pasteString;
 	FPlatformApplicationMisc::ClipboardPaste(pasteString);
 	if (pasteString.Len() <= 0)return;
+	pasteString.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
 	if (!bAllowMultiLine)
 	{
 		for (int i = 0; i < pasteString.Len(); i++)
 		{
-			if (pasteString[i] == '\n')
+			if (pasteString[i] == '\n' || pasteString[i] == '\r')
 			{
 				pasteString[i] = ' ';
 			}
