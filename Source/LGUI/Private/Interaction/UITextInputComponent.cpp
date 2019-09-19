@@ -1281,7 +1281,7 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(const FLGUIPointerEvent
 			FVector2D caretPosition;
 			UpdateUITextComponent();
 			int displayTextLength = TextActor->GetUIText()->GetText().Len();//visible text length
-			TextActor->GetUIText()->FindCaretByPosition(eventData.GetLocalPointInPlane(), caretPosition, CaretPositionLineIndex, CaretPositionIndex);
+			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), caretPosition, CaretPositionLineIndex, CaretPositionIndex);
 			if (CaretPositionIndex == 0)//caret position at left most
 			{
 				CaretPositionIndex = VisibleCharStartIndex - 1;//-1 means we need to move caret 1 char left, because we drag to left
@@ -1341,7 +1341,7 @@ bool UUITextInputComponent::OnPointerDown_Implementation(const FLGUIPointerEvent
 		if (TextActor != nullptr)
 		{
 			UpdateUITextComponent();
-			TextActor->GetUIText()->FindCaretByPosition(eventData.GetLocalPointInPlane(), PressCaretPosition, PressCaretPositionLineIndex, PressCaretPositionIndex);
+			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), PressCaretPosition, PressCaretPositionLineIndex, PressCaretPositionIndex);
 			PressCaretPositionIndex = PressCaretPositionIndex + VisibleCharStartIndex;
 			CaretPositionIndex = PressCaretPositionIndex;
 			CaretPositionLineIndex = PressCaretPositionLineIndex;
@@ -1409,8 +1409,8 @@ void UUITextInputComponent::ActivateInput()
 	{
 		//update selection
 		TextActor->GetUIText()->GetSelectionProperty(0, TextActor->GetUIText()->GetText().Len(), SelectionPropertyArray);
-		CaretPositionIndex = Text.Len() - TextActor->GetUIText()->GetText().Len();
-		PressCaretPositionIndex = CaretPositionIndex;
+		CaretPositionIndex = Text.Len();
+		PressCaretPositionIndex = 0;
 		UpdateUITextComponent();
 		UpdateCaretPosition(false);
 		UpdateSelection();
