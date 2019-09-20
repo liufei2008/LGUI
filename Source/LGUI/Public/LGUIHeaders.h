@@ -49,7 +49,7 @@
 #include "Interaction/UIToggleComponent.h"
 #include "Interaction/UIToggleGroupComponent.h"
 
-#include "Event/LGUIEventSystemActor.h"
+#include "Event/LGUIEventSystem.h"
 #include "Event/LGUIPointerClickInterface.h"
 #include "Event/LGUIPointerDownUpInterface.h"
 #include "Event/LGUIPointerEnterExitInterface.h"
