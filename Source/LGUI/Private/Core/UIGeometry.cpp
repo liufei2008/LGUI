@@ -525,6 +525,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& h
 	FVector2D caretPosition(0, 0);
 	float charGeoWidth = 0, charGeoHeight = 0, halfFontSize = fontSize * 0.5f;
 	bool haveMultipleSentence = false;
+	bool isNewLineFirstChar = false;
 	FUITextCharGeometry charGeo = FUITextCharGeometry();
 
 	for (int charIndex = 0; charIndex < contentLength; charIndex++)
@@ -536,13 +537,14 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& h
 		{
 MANUAL_NEWLINE://new line
 			currentLineWidth -= fontSpace.X;//last char of a line don't need space
-			UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
-			currentLineUIGeoVertexList.Empty();
-
 			FUITextCharProperty charProperty;
 			charProperty.caretPosition = caretPosition;
 			charProperty.charIndex = charIndex;
 			sentenceProperty.charPropertyList.Add(charProperty);
+
+			UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
+			currentLineUIGeoVertexList.Empty();
+
 			cacheTextPropertyList.Add(sentenceProperty);
 
 			sentenceProperty = FUITextLineProperty();
@@ -569,7 +571,14 @@ MANUAL_NEWLINE://new line
 		charOffset = FVector2D(charGeo.xoffset, charGeo.yoffset);
 		//caret property
 		{
-			caretPosition.X = currentLineOffset.X + charOffset.X - fontSpace.X;
+			if (isNewLineFirstChar)
+			{
+				caretPosition.X = currentLineOffset.X;
+			}
+			else
+			{
+				caretPosition.X = currentLineOffset.X + charOffset.X - fontSpace.X;
+			}
 			caretPosition.Y = currentLineOffset.Y;
 			FUITextCharProperty charProperty;
 			charProperty.caretPosition = caretPosition;
@@ -579,9 +588,8 @@ MANUAL_NEWLINE://new line
 			caretPosition.X += fontSpace.X + charGeoWidth;//next caret position x
 		}
 		
-
+		//char geometry
 		{
-			//char geometry
 			if (updateVertex)
 			{
 				FVector2D offset = currentLineOffset + charOffset;
@@ -612,6 +620,15 @@ MANUAL_NEWLINE://new line
 				uvs[index + 3] = charGeo.uv3;
 			}
 			visibleCharIndex++;
+		}
+
+		if (isNewLineFirstChar)
+		{
+			isNewLineFirstChar = false;
+			if (charCode == ' ')//if is new line, and first char is space, then skip that space
+			{
+				continue;
+			}
 		}
 
 		if (charCode == ' ')//char is space
@@ -682,27 +699,28 @@ MANUAL_NEWLINE://new line
 				}
 				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 				{
-					//add end caret position
-					FUITextCharProperty charProperty;
-					charProperty.caretPosition = caretPosition;
-					charProperty.charIndex = charIndex + 1;
-					sentenceProperty.charPropertyList.Add(charProperty);
-
-					currentLineWidth -= fontSpace.X;//last char don't need space
-					UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
-					currentLineUIGeoVertexList.Empty();
-					cacheTextPropertyList.Add(sentenceProperty);
-					sentenceProperty = FUITextLineProperty();
-
-					if (content[charIndex + 1] == ' ')//if next char is space at this line's end, then remove that space
+					auto nextChar = content[charIndex + 1];
+					if (nextChar == '\r' || nextChar == '\n')
 					{
-						currentLineOffset.X = -halfFontSize - fontSpace.X;
+						//next char is new line, no need to add new line
 					}
 					else
 					{
+						//add end caret position
+						FUITextCharProperty charProperty;
+						charProperty.caretPosition = caretPosition;
+						charProperty.charIndex = charIndex + 1;
+						sentenceProperty.charPropertyList.Add(charProperty);
+
+						currentLineWidth -= fontSpace.X;//last char don't need space
+						UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
+						currentLineUIGeoVertexList.Empty();
+						cacheTextPropertyList.Add(sentenceProperty);
+						sentenceProperty = FUITextLineProperty();
+
 						currentLineOffset.X = 0;
+						goto NEW_LINE;
 					}
-					goto NEW_LINE;
 				}
 			}
 			break;
@@ -742,6 +760,7 @@ MANUAL_NEWLINE://new line
 		currentLineOffset.Y -= fontSize + fontSpace.Y;
 		paragraphHeight += fontSize + fontSpace.Y;
 		haveMultipleSentence = true;
+		isNewLineFirstChar = true;
 	}
 
 

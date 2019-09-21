@@ -29,14 +29,17 @@ void UUITextInputComponent::BeginPlay()
 void UUITextInputComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	//blink caret
-	if (CaretObject != nullptr)
+	if (bInputActive)
 	{
-		ElapseTime += DeltaTime;
-		if (NextCaretBlinkTime < ElapseTime)
+		//blink caret
+		if (CaretObject != nullptr)
 		{
-			CaretObject->SetAlpha(1.0f - CaretObject->GetAlpha());
-			NextCaretBlinkTime = ElapseTime + CaretBlinkRate;
+			ElapseTime += DeltaTime;
+			if (NextCaretBlinkTime < ElapseTime)
+			{
+				CaretObject->SetAlpha(1.0f - CaretObject->GetAlpha());
+				NextCaretBlinkTime = ElapseTime + CaretBlinkRate;
+			}
 		}
 	}
 }
@@ -702,6 +705,7 @@ void UUITextInputComponent::MoveRight()
 	{
 		CaretPositionIndex++;
 		NextCaretBlinkTime = 0;//force display
+		UpdateCaretPositionLineIndex();
 		UpdateUITextComponent();
 		UpdateCaretPosition();
 		UpdateInputComposition();
@@ -864,7 +868,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 		
 		if (bAllowMultiLine)//multi line, handle out of range chars
 		{
-			int maxLineCount = 1 + (int)((uiText->GetHeight() - uiText->GetSize()) / (uiText->GetSize() + uiText->GetFontSpace().Y));
+			int maxLineCount = (int)((uiText->GetHeight() - uiText->GetSize()) / (uiText->GetSize() + uiText->GetFontSpace().Y));
 
 			if (CaretPositionIndex - VisibleCharStartIndex < 0)//caret position move left and out of current range, then do move up
 			{
@@ -877,121 +881,17 @@ void UUITextInputComponent::UpdateUITextComponent()
 				CaretPositionLineIndex++;
 			}
 
-			int VisibleCharEndLineIndex = CaretPositionLineIndex;
 			if (VisibleCharStartLineIndex > CaretPositionLineIndex)
 			{
 				VisibleCharStartLineIndex = CaretPositionLineIndex;
 			}
-			if (VisibleCharStartLineIndex + (maxLineCount - 1) < CaretPositionLineIndex)
+			if (VisibleCharStartLineIndex + maxLineCount < CaretPositionLineIndex)
 			{
-				VisibleCharStartLineIndex = CaretPositionLineIndex - (maxLineCount - 1);
+				VisibleCharStartLineIndex = CaretPositionLineIndex - maxLineCount;
 			}
-			VisibleCharStartIndex = 0;
-			int VisibleCharEndIndex = replaceText.Len();
-
-			float maxWidth = uiText->GetWidth();
-			float currentLineWidth = 0;
-			float halfFontSize = uiText->GetSize() * 0.5f;
-			int currentLineIndex = 0;
-			bool getStartCharIndex = false;
-			bool getEndCharIndex = false;
-			int currentLineStartCharIndex = 0;
-			for (int charIndex = 0, visibleCharIndex = 0, charCount = replaceText.Len(); charIndex < charCount; charIndex++)
-			{
-				int charCode = replaceText[charIndex];
-				if (charCode == 13)continue;
-				if (charCode == 10)//new line
-				{
-					goto NEW_LINE;
-				}
-
-				if (charCode == 32)//char is space, then we need to calculate if the followed word can fit the rest space, if not means new line
-				{
-					float spaceNeeded = halfFontSize;//space
-					spaceNeeded += uiText->GetFontSpace().X;
-					for (int j = charIndex + 1, forwardCharGoeIndex = visibleCharIndex; j < charCount; j++)
-					{
-						auto charCodeOfJ = replaceText[j];
-						if (charCodeOfJ == 32)//space
-						{
-							break;
-						}
-						if (charCodeOfJ == 10)//\n
-						{
-							break;
-						}
-						spaceNeeded += uiText->GetCharSize(charCodeOfJ).X;
-						spaceNeeded += uiText->GetFontSpace().X;
-						forwardCharGoeIndex++;
-					}
-
-					if (currentLineWidth + spaceNeeded > maxWidth)
-					{
-						goto NEW_LINE;
-					}
-				}
-				currentLineWidth += uiText->GetCharSize(charCode).X + uiText->GetFontSpace().X;
-				visibleCharIndex++;
-
-				if (charIndex + 1 != charCount)//not last char
-				{
-					int nextCharXAdv = 0;
-					if (UUIText::IsVisibleChar(replaceText[charIndex + 1]))//next char is visible
-					{
-						nextCharXAdv = uiText->GetCharSize(replaceText[visibleCharIndex]).X;
-					}
-					else if(replaceText[visibleCharIndex] == 32)//next char is space
-					{
-						nextCharXAdv = halfFontSize;
-					}
-					if (currentLineWidth + nextCharXAdv > maxWidth)//if next char cannot fit this line, then add new line
-					{
-						goto NEW_LINE;
-					}
-				}
-				continue;//skip NEW_LINE
-			NEW_LINE:
-				//check range
-				if (!getStartCharIndex)
-				{
-					if (currentLineIndex >= VisibleCharStartLineIndex)
-					{
-						VisibleCharStartIndex = currentLineStartCharIndex;
-						getStartCharIndex = true;
-						if (currentLineIndex > VisibleCharStartLineIndex)
-						{
-							VisibleCharStartLineIndex = currentLineIndex;
-							//UE_LOG(LGUI, Error, TEXT("1110, maxLineCount:%d, currentLineIndex:%d"), maxLineCount, currentLineIndex);
-						}
-						VisibleCharEndLineIndex = VisibleCharStartLineIndex + maxLineCount;
-					}
-				}
-				if (getStartCharIndex)//find start first, then check end
-				{
-					if (!getEndCharIndex)
-					{
-						if (currentLineIndex + 1 == VisibleCharEndLineIndex)
-						{
-							VisibleCharEndIndex = charIndex + 1;
-							getEndCharIndex = true;
-							break;//end loop
-						}
-					}
-				}
-
-				//new line property
-				currentLineIndex++;
-				currentLineWidth = 0;
-				currentLineStartCharIndex = charIndex + 1;
-			}
-			if (currentLineIndex > 0 &&(getStartCharIndex || getEndCharIndex))//have multi line and out-of-range
-			{
-				replaceText = replaceText.Mid(VisibleCharStartIndex, VisibleCharEndIndex - VisibleCharStartIndex);
-			}
-			else
-			{
-				replaceText = replaceText;
-			}
+			int VisibleCharEndIndex = 0;
+			int VisibleCharEndLineIndex = VisibleCharStartLineIndex + maxLineCount;
+			replaceText = uiText->GetSubStringByLine(replaceText, VisibleCharStartLineIndex, VisibleCharEndLineIndex, VisibleCharStartIndex, VisibleCharEndIndex);
 		}
 		else//single line, handle out of range chars
 		{
@@ -1277,32 +1177,39 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(const FLGUIPointerEvent
 	{
 		if (TextActor != nullptr)
 		{
-			auto worldPoint = eventData.worldPoint;
-			FVector2D caretPosition;
 			UpdateUITextComponent();
+			FVector2D caretPosition;
+			int tempCaretPositionLineIndex;
+			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), caretPosition, tempCaretPositionLineIndex, CaretPositionIndex);
 			int displayTextLength = TextActor->GetUIText()->GetText().Len();//visible text length
-			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), caretPosition, CaretPositionLineIndex, CaretPositionIndex);
-			if (CaretPositionIndex == 0)//caret position at left most
+			if (bAllowMultiLine)
 			{
-				CaretPositionIndex = VisibleCharStartIndex - 1;//-1 means we need to move caret 1 char left, because we drag to left
-				if (CaretPositionIndex < 0)
-				{
-					CaretPositionIndex = 0;
-				}
-				VisibleCharStartIndex = CaretPositionIndex;
+				//todo: multi line drag
 			}
-			else if (CaretPositionIndex == displayTextLength)//caret position at right most
+			
 			{
-				CaretPositionIndex = CaretPositionIndex + VisibleCharStartIndex + 1;//+1 means we need to move caret 1 char right, because we drag to right
-				if (CaretPositionIndex > Text.Len())
+				if (CaretPositionIndex == 0)//caret position at left most
 				{
-					CaretPositionIndex = Text.Len();
+					CaretPositionIndex = VisibleCharStartIndex - 1;//move caret to left, depend's on delta time
+					if (CaretPositionIndex < 0)
+					{
+						CaretPositionIndex = 0;
+					}
+					VisibleCharStartIndex = CaretPositionIndex;
 				}
-				VisibleCharStartIndex = CaretPositionIndex - displayTextLength;
-			}
-			else//not drag out-of-range
-			{
-				CaretPositionIndex += VisibleCharStartIndex;
+				else if (CaretPositionIndex == displayTextLength)//caret position at right most
+				{
+					CaretPositionIndex = CaretPositionIndex + VisibleCharStartIndex + 1;//move caret to right, depend's on delta time
+					if (CaretPositionIndex > Text.Len())
+					{
+						CaretPositionIndex = Text.Len();
+					}
+					VisibleCharStartIndex = CaretPositionIndex - displayTextLength;
+				}
+				else//not drag out-of-range
+				{
+					CaretPositionIndex += VisibleCharStartIndex;
+				}
 			}
 			
 			//selectionStartCaretIndex may out of range, need clamp.
@@ -1344,6 +1251,7 @@ bool UUITextInputComponent::OnPointerDown_Implementation(const FLGUIPointerEvent
 			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), PressCaretPosition, PressCaretPositionLineIndex, PressCaretPositionIndex);
 			PressCaretPositionIndex = PressCaretPositionIndex + VisibleCharStartIndex;
 			CaretPositionIndex = PressCaretPositionIndex;
+			PressCaretPositionLineIndex = PressCaretPositionLineIndex + VisibleCharStartLineIndex;
 			CaretPositionLineIndex = PressCaretPositionLineIndex;
 			UpdateCaretPosition(PressCaretPosition);
 			UpdateInputComposition();
