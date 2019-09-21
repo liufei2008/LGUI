@@ -580,6 +580,34 @@ void UUIText::CheckCachedTextPropertyList()
 		SetHeight(height);
 	}
 }
+FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineStartIndex, int32& inOutLineEndIndex, int32& inOutCharStartIndex, int32& inOutCharEndIndex)
+{
+	if (inString.Len() == 0)//no text
+		return inString;
+	SetText(inString);
+	CheckCachedTextPropertyList();
+	int lineCount = inOutLineEndIndex - inOutLineStartIndex;
+	if (inOutLineEndIndex + 1 >= cachedTextPropertyList.Num())
+	{
+		inOutLineEndIndex = cachedTextPropertyList.Num() - 1;
+		if (lineCount < cachedTextPropertyList.Num())
+		{
+			inOutLineStartIndex = inOutLineEndIndex - lineCount;
+		}
+	}
+	if (inOutLineStartIndex < 0)
+	{
+		inOutLineStartIndex = 0;
+		if (lineCount < cachedTextPropertyList.Num())
+		{
+			inOutLineEndIndex = inOutLineStartIndex + lineCount;
+		}
+	}
+	inOutCharStartIndex = cachedTextPropertyList[inOutLineStartIndex].charPropertyList[0].charIndex;
+	auto& endLine = cachedTextPropertyList[inOutLineEndIndex];
+	inOutCharEndIndex = endLine.charPropertyList[endLine.charPropertyList.Num() - 1].charIndex;
+	return inString.Mid(inOutCharStartIndex, inOutCharEndIndex - inOutCharStartIndex);
+}
 //caret is at left side of char
 void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex)
 {
@@ -683,7 +711,7 @@ void UUIText::FindCaretUp(FVector2D& inOutCaretPosition, int32 inCaretPositionLi
 	{
 		auto& charItem = lineItem.charPropertyList[charIndex];
 		float distance = FMath::Abs(charItem.caretPosition.X - inOutCaretPosition.X);
-		if (distance < nearestDistance)
+		if (distance <= nearestDistance)
 		{
 			nearestDistance = distance;
 			nearestIndex = charIndex;
@@ -711,7 +739,7 @@ void UUIText::FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPosition
 	{
 		auto& charItem = lineItem.charPropertyList[charPropertyIndex];
 		float distance = FMath::Abs(charItem.caretPosition.X - inOutCaretPosition.X);
-		if (distance < nearestDistance)
+		if (distance <= nearestDistance)
 		{
 			nearestDistance = distance;
 			nearestIndex = charPropertyIndex;
@@ -742,7 +770,7 @@ void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPo
 		{
 			auto& lineItem = cachedTextPropertyList[lineIndex];
 			float distance = FMath::Abs(lineItem.charPropertyList[0].caretPosition.Y - localPosition2D.Y);
-			if (distance < nearestDistance)
+			if (distance <= nearestDistance)
 			{
 				nearestDistance = distance;
 				outCaretPositionLineIndex = lineIndex;
@@ -756,15 +784,11 @@ void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPo
 		{
 			auto& charItem = nearestLine.charPropertyList[charIndex];
 			float distance = FMath::Abs(charItem.caretPosition.X - localPosition2D.X);
-			if (distance < nearestDistance)
+			if (distance <= nearestDistance)
 			{
 				nearestDistance = distance;
 				outCaretPositionIndex = charItem.charIndex;
 				outCaretPosition = charItem.caretPosition;
-			}
-			else
-			{
-				break;
 			}
 		}
 	}
