@@ -6,7 +6,6 @@
 #include "Components/InputComponent.h"
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateDeclaration.h"
-#include "Event/LGUIPointerSelectDeselectInterface.h"
 #include "Event/LGUIPointerClickInterface.h"
 #include "Event/LGUIPointerDragInterface.h"
 #include "Widgets/Input/IVirtualKeyboardEntry.h"
@@ -29,7 +28,7 @@ enum class ELGUIInputType:uint8
 	Password,
 };
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUITextInputComponent : public UUISelectableComponent, public ILGUIPointerSelectDeselectInterface, public ILGUIPointerClickInterface, public ILGUIPointerDragInterface
+class LGUI_API UUITextInputComponent : public UUISelectableComponent, public ILGUIPointerClickInterface, public ILGUIPointerDragInterface
 {
 	GENERATED_BODY()
 	
@@ -67,6 +66,9 @@ protected:
 		FColor SelectionColor = FColor(168, 206, 255, 128);
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FVirtualKeyboardOptions VirtualKeyboradOptions;
+	//Ignore these keys input. eg, if use tab and arrow keys for navigation then you should put tab and arrow keys in this array
+	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
+		TArray<FKey> IgnoreKeys;
 
 	FLGUIMulticastStringDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")

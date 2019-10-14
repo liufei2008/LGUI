@@ -15,7 +15,7 @@ TSharedRef<IPropertyTypeCustomization> FLGUIComponentRefereceCustomization::Make
 }
 void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	TSharedPtr<IPropertyUtilities> PropertyUtilites = CustomizationUtils.GetPropertyUtilities();
+	PropertyUtilites = CustomizationUtils.GetPropertyUtilities();
 	bool isInWorld = false;
 	FCommentNodeSet nodeSet;
 	PropertyHandle->GetOuterObjects(nodeSet);
@@ -25,6 +25,7 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 		break;
 	}
 
+	ComponentNameProperty = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, targetComonentName));
 	TSharedPtr<IPropertyHandle> targetActorHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, targetActor));
 	targetActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
 		PropertyUtilites->ForceRefresh();
@@ -44,6 +45,8 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 	{
 		targetCompClass = (UClass*)targetCompClassObj;
 	}
+	FName componentName = NAME_None;
+	ComponentNameProperty->GetValue(componentName);
 	TSharedPtr<SWidget> contentWidget;
 	if (isInWorld)
 	{
@@ -62,26 +65,50 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 			}
 			else
 			{
-				if (auto comp = targetActor->FindComponentByClass(targetCompClass))
+				auto components = targetActor->GetComponentsByClass(targetCompClass);
+				if (components.Num() == 0)
+				{
+					contentWidget = SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						targetActorHandle->CreatePropertyValueWidget()
+					]
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(STextBlock)
+						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+						.AutoWrapText(true)
+						.Text(LOCTEXT("ComponentNotFoundTip", "Component not found on target actor!"))
+					];
+				}
+				else if (components.Num() == 1 && componentName.IsNone())
 				{
 					contentWidget = targetActorHandle->CreatePropertyValueWidget();
 				}
 				else
 				{
 					contentWidget = SNew(SVerticalBox)
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						[
-							targetActorHandle->CreatePropertyValueWidget()
-						]
-					+ SVerticalBox::Slot()
-						.AutoHeight()
+					+SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						targetActorHandle->CreatePropertyValueWidget()
+					]
+					+SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SComboButton)
+						.ToolTipText(FText::FromString(FString::Printf(TEXT("Target actor have multiple components of type:%s, you can select one from target actor"), *targetCompClass->GetName())))
+						.OnGetMenuContent(this, &FLGUIComponentRefereceCustomization::OnGetMenu, components)
+						.ContentPadding(FMargin(0))
+						.ButtonContent()
 						[
 							SNew(STextBlock)
-							.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-						.AutoWrapText(true)
-						.Text(LOCTEXT("ComponentNotFoundTip", "Component not found on target actor!"))
-						];
+							.Text(this, &FLGUIComponentRefereceCustomization::GetButtonText)
+						]
+					]
+					;
 				}
 			}
 		}
@@ -101,5 +128,40 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 	[
 		contentWidget.ToSharedRef()
 	];
+}
+TSharedRef<SWidget> FLGUIComponentRefereceCustomization::OnGetMenu(TArray<UActorComponent*> Components)
+{
+	FMenuBuilder MenuBuilder(true, nullptr);
+	//MenuBuilder.BeginSection(FName(), LOCTEXT("Components", "Components"));
+	{
+		MenuBuilder.AddMenuEntry(
+			FText::FromName(FName(NAME_None)),
+			FText(LOCTEXT("Tip", "Clear component selection, will use first one.")),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateRaw(this, &FLGUIComponentRefereceCustomization::OnSelectComponent, FName(NAME_None)))
+		);
+		for (auto comp : Components)
+		{
+			MenuBuilder.AddMenuEntry(
+				FText::FromString(comp->GetName()),
+				FText(),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIComponentRefereceCustomization::OnSelectComponent, comp->GetFName()))
+			);
+		}
+	}
+	//MenuBuilder.EndSection();
+	return MenuBuilder.MakeWidget();
+}
+void FLGUIComponentRefereceCustomization::OnSelectComponent(FName CompName)
+{
+	ComponentNameProperty->SetValue(CompName);
+	PropertyUtilites->ForceRefresh();
+}
+FText FLGUIComponentRefereceCustomization::GetButtonText()const
+{
+	FName ComponentName;
+	ComponentNameProperty->GetValue(ComponentName);
+	return FText::FromName(ComponentName);
 }
 #undef LOCTEXT_NAMESPACE
