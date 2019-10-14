@@ -7,6 +7,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Engine/World.h"
+#include "Interaction/UISelectableComponent.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -272,6 +273,31 @@ void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 		if (Instance->raycasterArray.Find(InRaycaster, index))
 		{
 			Instance->raycasterArray.RemoveAt(index);
+		}
+	}
+}
+
+const TArray<UUISelectableComponent*>& ALGUIManagerActor::GetSelectables()
+{
+	return allSelectableArray;
+}
+void ALGUIManagerActor::AddSelectable(UUISelectableComponent* InSelectable)
+{
+	if (InitCheck(InSelectable->GetWorld()))
+	{
+		auto& allSelectableArray = Instance->allSelectableArray;
+		if (allSelectableArray.Contains(InSelectable))return;
+		allSelectableArray.Add(InSelectable);
+	}
+}
+void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
+{
+	if (Instance != nullptr)
+	{
+		int32 index;
+		if (Instance->allSelectableArray.Find(InSelectable, index))
+		{
+			Instance->allSelectableArray.RemoveAt(index);
 		}
 	}
 }

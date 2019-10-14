@@ -7,7 +7,7 @@
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "LGUIEditHelper.h"
+#include "LGUIComponentReference.h"
 #include "LTweener.h"
 #include "LGUIBPLibrary.generated.h"
 

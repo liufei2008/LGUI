@@ -1,6 +1,8 @@
 ﻿// Copyright 2019 LexLiu. All Rights Reserved.
 
 #include "Extensions/UISector.h"
+#include "Core/UIGeometry.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
 
 

@@ -94,6 +94,8 @@ public:
 	//component class. if an actor have multiple component of same class, not supported
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UClass* componentClass;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FName componentName;
 	//target function name
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName functionName;

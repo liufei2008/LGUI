@@ -4,9 +4,11 @@
 
 #include "Event/LGUIPointerEnterExitInterface.h"
 #include "Event/LGUIPointerDownUpInterface.h"
+#include "Event/LGUIPointerSelectDeselectInterface.h"
 #include "Components/ActorComponent.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/UIComponentBase.h"
+#include "LGUIComponentReference.h"
 #include "UISelectableComponent.generated.h"
 
 UENUM(BlueprintType)
@@ -26,9 +28,16 @@ enum class EUISelectableSelectionState :uint8
 	Pressed,
 	Disabled,
 };
+UENUM(BlueprintType)
+enum class EUISelectableNavigationMode:uint8
+{
+	None,
+	Auto,
+	Explicit,
+};
 
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUISelectableComponent : public UUIComponentBase, public ILGUIPointerEnterExitInterface, public ILGUIPointerDownUpInterface
+class LGUI_API UUISelectableComponent : public UUIComponentBase, public ILGUIPointerEnterExitInterface, public ILGUIPointerDownUpInterface, public ILGUIPointerSelectDeselectInterface
 {
 	GENERATED_BODY()
 	
@@ -56,28 +65,28 @@ protected:
 	bool CheckTarget();
 	
 #pragma region Transition
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		UISelectableTransitionType Transition;
 
 	UPROPERTY(Transient)class ULTweener* TransitionTweener = nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		FColor NormalColor = FColor(255, 255, 255, 255);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		FColor HighlightedColor = FColor(200, 200, 200, 255);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		FColor PressedColor = FColor(150, 150, 150, 255);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		FColor DisabledColor = FColor(150, 150, 150, 128);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable", meta = (ClampMin = "0.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (ClampMin = "0.0"))
 		float FadeDuration = 0.2f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		ULGUISpriteData* NormalSprite;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		ULGUISpriteData* HighlightedSprite;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		ULGUISpriteData* PressedSprite;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		ULGUISpriteData* DisabledSprite;
 
 	EUISelectableSelectionState CurrentSelectionState = EUISelectableSelectionState::Normal;
@@ -85,6 +94,32 @@ protected:
 	bool IsPointerInsideThis = false;
 	UPROPERTY(Transient) class UUISelectableTransitionComponent* TransitionComp = nullptr;
 #pragma endregion
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode NavigationLeft = EUISelectableNavigationMode::Auto;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		FLGUIComponentReference NavigationLeftSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode NavigationRight = EUISelectableNavigationMode::Auto;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		FLGUIComponentReference NavigationRightSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
+
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode NavigationUp = EUISelectableNavigationMode::Auto;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		FLGUIComponentReference NavigationUpSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode NavigationDown = EUISelectableNavigationMode::Auto;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		FLGUIComponentReference NavigationDownSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
+	
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode NavigationNext = EUISelectableNavigationMode::Auto;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		FLGUIComponentReference NavigationNextSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode NavigationPrev = EUISelectableNavigationMode::Auto;
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
+		FLGUIComponentReference NavigationPrevSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		class AUIBaseActor* GetTransitionTarget();
@@ -111,10 +146,23 @@ public:
 		void SetPressedColor(FColor NewColor);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		void SetSelectionState(EUISelectableSelectionState NewState);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
+		bool IsInteractable();
+
+	UUISelectableComponent* FindSelectable(FVector InDirection);
+	UUISelectableComponent* FindSelectable(FVector InDirection, USceneComponent* InParent);
+	virtual UUISelectableComponent* FindSelectableOnLeft();
+	virtual UUISelectableComponent* FindSelectableOnRight();
+	virtual UUISelectableComponent* FindSelectableOnUp();
+	virtual UUISelectableComponent* FindSelectableOnDown();
+	virtual UUISelectableComponent* FindSelectableOnNext();
+	virtual UUISelectableComponent* FindSelectableOnPrev();
 public:
 	virtual bool OnPointerEnter_Implementation(const FLGUIPointerEventData& eventData)override;
 	virtual bool OnPointerExit_Implementation(const FLGUIPointerEventData& eventData)override;
 	virtual bool OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)override;
 	virtual bool OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)override;
-
+	virtual bool OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)override;
 };

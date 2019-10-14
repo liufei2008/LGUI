@@ -10,6 +10,7 @@
 class UUIItem;
 class ULGUICanvas;
 class ULGUIBaseRaycaster;
+class UUISelectableComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
@@ -36,8 +37,6 @@ protected:
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUICanvas*> allCanvas;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBaseRaycaster*> raycasterArray;
 private:
 	static bool InitCheck(UWorld* InWorld);
 #if WITH_EDITOR
@@ -73,6 +72,8 @@ protected:
 		TArray<ULGUICanvas*> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<UUISelectableComponent*> allSelectableArray;
 private:
 	static bool InitCheck(UWorld* InWorld);
 	
@@ -89,6 +90,10 @@ public:
 	FORCEINLINE const TArray<ULGUIBaseRaycaster*>& GetRaycasters();
 	FORCEINLINE static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
 	FORCEINLINE static void RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster);
+
+	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables();
+	static void AddSelectable(UUISelectableComponent* InSelectable);
+	static void RemoveSelectable(UUISelectableComponent* InSelectable);
 };
 
 class LGUI_API LGUIManager
