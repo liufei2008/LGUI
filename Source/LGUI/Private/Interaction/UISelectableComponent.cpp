@@ -3,8 +3,10 @@
 #include "Interaction/UISelectableComponent.h"
 #include "LGUI.h"
 #include "Core/Actor/UIBaseActor.h"
+#include "Core/Actor/LGUIManagerActor.h"
 #include "LTweenActor.h"
 #include "Interaction/UISelectableTransitionComponent.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 UUISelectableComponent::UUISelectableComponent()
 {
@@ -15,11 +17,13 @@ void UUISelectableComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	CheckTarget();
+	ALGUIManagerActor::AddSelectable(this);
 }
 
 void UUISelectableComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+	ALGUIManagerActor::RemoveSelectable(this);
 }
 
 #if WITH_EDITOR
@@ -315,6 +319,20 @@ bool UUISelectableComponent::OnPointerUp_Implementation(const FLGUIPointerEventD
 	ApplySelectionState();
 	return AllowEventBubbleUp;
 }
+bool UUISelectableComponent::OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)
+{
+	IsPointerInsideThis = true;
+	CurrentSelectionState = EUISelectableSelectionState::Highlighted;
+	ApplySelectionState();
+	return AllowEventBubbleUp;
+}
+bool UUISelectableComponent::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
+{
+	IsPointerInsideThis = false;
+	CurrentSelectionState = EUISelectableSelectionState::Normal;
+	ApplySelectionState();
+	return AllowEventBubbleUp;
+}
 
 void UUISelectableComponent::SetNormalSprite(ULGUISpriteData* NewSprite)
 {
@@ -393,4 +411,143 @@ void UUISelectableComponent::SetSelectionState(EUISelectableSelectionState NewSt
 AUIBaseActor* UUISelectableComponent::GetTransitionTarget()
 { 
 	return TransitionActor; 
+}
+bool UUISelectableComponent::IsInteractable()
+{
+	if (CheckRootUIComponent())
+	{
+		return RootUIComp->IsGroupAllowInteraction();
+	}
+	return true;
+}
+
+UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection)
+{
+	InDirection.Normalize();
+	if (CheckRootUIComponent())
+	{
+		if (RootUIComp->GetRenderCanvas() == nullptr || RootUIComp->GetRenderCanvas()->GetRootCanvas() == nullptr)
+		{
+			return nullptr;//not active render
+		}
+		bool isScreenSpaceUI = RootUIComp->IsScreenSpaceOverlayUI();
+		if (isScreenSpaceUI)
+		{
+			auto rootCanvasTf = RootUIComp->GetRenderCanvas()->GetRootCanvas()->CheckAndGetUIItem();
+			return FindSelectable(InDirection, rootCanvasTf);
+		}
+		else
+		{
+			return FindSelectable(InDirection, nullptr);
+		}
+	}
+	else
+	{
+		return FindSelectable(InDirection, nullptr);
+	}
+	return nullptr;
+}
+
+UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection, USceneComponent* InParent)
+{
+	const auto& uiSelectables = ALGUIManagerActor::Instance->GetSelectables();
+	FVector pos = CheckRootUIComponent() ? FVector(RootUIComp->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
+	pos = GetOwner()->GetRootComponent()->GetComponentTransform().TransformPosition(pos);
+	float maxScore = MIN_flt;
+	UUISelectableComponent* bestPick = this;
+	for (int i = 0; i < uiSelectables.Num(); ++i)
+	{
+		auto sel = uiSelectables[i];
+
+		if (sel == this || sel == nullptr)
+			continue;
+
+		if (InParent != nullptr && !sel->GetOwner()->GetRootComponent()->IsAttachedTo(InParent))
+			continue;
+
+		if (!sel->IsInteractable())
+			continue;
+
+		UUIItem* selRect = Cast<UUIItem>(sel->GetOwner()->GetRootComponent());
+		FVector selCenter = selRect != nullptr ? FVector(selRect->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
+		FVector myVector = sel->GetOwner()->GetRootComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
+
+		float dot = FVector::DotProduct(InDirection, myVector);
+		if (dot <= 0)
+			continue;
+
+		float score = dot / myVector.SizeSquared();
+		if (score > maxScore)
+		{
+			maxScore = score;
+			bestPick = sel;
+		}
+	}
+	return bestPick;
+}
+UUISelectableComponent* UUISelectableComponent::FindSelectableOnLeft()
+{
+	if (NavigationLeft == EUISelectableNavigationMode::Explicit)
+	{
+		return NavigationLeftSpecific.GetComponent<UUISelectableComponent>();
+	}
+	if (NavigationLeft == EUISelectableNavigationMode::Auto)
+	{
+		return FindSelectable(-GetOwner()->GetRootComponent()->GetForwardVector());
+	}
+	return nullptr;
+}
+UUISelectableComponent* UUISelectableComponent::FindSelectableOnRight()
+{
+	if (NavigationRight == EUISelectableNavigationMode::Explicit)
+	{
+		return NavigationRightSpecific.GetComponent<UUISelectableComponent>();
+	}
+	if (NavigationRight == EUISelectableNavigationMode::Auto)
+	{
+		return FindSelectable(GetOwner()->GetRootComponent()->GetForwardVector());//forward as right
+	}
+	return nullptr;
+}
+UUISelectableComponent* UUISelectableComponent::FindSelectableOnUp()
+{
+	if (NavigationUp == EUISelectableNavigationMode::Explicit)
+	{
+		return NavigationUpSpecific.GetComponent<UUISelectableComponent>();
+	}
+	if (NavigationUp == EUISelectableNavigationMode::Auto)
+	{
+		return FindSelectable(GetOwner()->GetRootComponent()->GetRightVector());//right as up 
+	}
+	return nullptr;
+}
+UUISelectableComponent* UUISelectableComponent::FindSelectableOnDown()
+{
+	if (NavigationDown == EUISelectableNavigationMode::Explicit)
+	{
+		return NavigationDownSpecific.GetComponent<UUISelectableComponent>();
+	}
+	if (NavigationDown == EUISelectableNavigationMode::Auto)
+	{
+		return FindSelectable(-GetOwner()->GetRootComponent()->GetRightVector());
+	}
+	return nullptr;
+}
+UUISelectableComponent* UUISelectableComponent::FindSelectableOnNext()
+{
+	auto rightComp = FindSelectableOnRight();
+	if (rightComp != this)
+	{
+		return rightComp;
+	}
+	return FindSelectableOnDown();
+}
+UUISelectableComponent* UUISelectableComponent::FindSelectableOnPrev()
+{
+	auto leftComp = FindSelectableOnLeft();
+	if (leftComp != this)
+	{
+		return leftComp;
+	}
+	return FindSelectableOnUp();
 }

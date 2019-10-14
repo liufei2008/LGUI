@@ -16,5 +16,10 @@ public:
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override {};
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
-	
+private:
+	TSharedPtr<IPropertyUtilities> PropertyUtilites;
+	TSharedPtr<IPropertyHandle> ComponentNameProperty;
+	TSharedRef<SWidget> OnGetMenu(TArray<UActorComponent*> Components);
+	void OnSelectComponent(FName CompName);
+	FText GetButtonText()const;
 };

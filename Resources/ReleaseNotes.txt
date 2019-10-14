@@ -96,3 +96,10 @@
         Modify for 2DLineRendererBase, remove CurrentPointArray property, add UseGrowValue to determin whether or not use grow value.
     New feature:
         Add uiScale property to LGUICanvas, maybe useful in future.
+2.2：
+    Fix:
+        Fix a bug of UITextInputComponent multi line edit.
+    New feature:
+        Navigation support, eg: use tab key to navigate to next UISelectableComponent. Call NavigationXXX function in LGUIEventSystem.
+        UITextInputComponent support ignore keys, canbe useful for navigation. 
+        LGUIComponentReference now support multiple component of same type on same actor, all we need to do is just click and select a component.

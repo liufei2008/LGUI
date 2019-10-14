@@ -11,6 +11,7 @@
 #include "LGUIEventSystem.generated.h"
 
 struct FLGUIPointerEventData;
+class UUISelectableComponent;
 
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FLGUIHitDynamicDelegate, bool, isHit, const FHitResult&, hitResult, USceneComponent*, hitComponent);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, const FLGUIPointerEventData&, pointerEvent);
@@ -30,6 +31,8 @@ protected:
 		class ULGUIEventSystem* EventSystem;
 };
 
+//InputTrigger and InputScroll need mannually setup
+//about the event bubble: if all interface of target component and actor return true, then event will bubble up. if no interface found on target, then event will bubble up
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API ULGUIEventSystem : public UActorComponent
 {
@@ -58,6 +61,9 @@ protected:
 	EMouseButtonType mouseButtonType = EMouseButtonType::Left;
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)
 		FLGUIPointerEventData eventData;
+
+	bool isNavigationActive = false;
+	void BeginNavigation();
 public:
 	//TriggerInput, need mannually setup
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
@@ -65,6 +71,34 @@ public:
 	//ScrollInput, need mannually setup
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputScroll(const float& inAxisValue);
+
+	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputNavigationLeft();
+	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputNavigationRight();
+	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputNavigationUp();
+	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputNavigationDown();
+	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputNavigationNext();
+	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputNavigationPrev();
+	//Activate navigation
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputNavigationBegin();
+	//Cancel navigation
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputNavigationEnd();
+	//is navigation mode acivated
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool IsNavigationActive()const { return isNavigationActive; }
 
 	//clear event. eg when mouse is hovering a UI and highlight, and then event is disabled, we can use this to clear the hover event
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -114,6 +148,8 @@ protected:
 	bool startToDrag = false;//is start to drag?
 
 	FVector prevHitPoint = FVector(0, 0, 0);//prev frame hit point
+
+	UPROPERTY(Transient)UUISelectableComponent* selectableComponent = nullptr;//current navigation selectable component
 
 	struct FHitResultContainerStruct
 	{

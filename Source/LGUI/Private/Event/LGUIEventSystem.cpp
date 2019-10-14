@@ -13,6 +13,7 @@
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Event/Rayemitter/LGUIBaseRayemitter.h"
 #include "Event/LGUIPointerEventData.h"
+#include "Interaction/UISelectableComponent.h"
 #include "LGUIBPLibrary.h"
 
 ALGUIEventSystemActor::ALGUIEventSystemActor()
@@ -63,6 +64,175 @@ void ULGUIEventSystem::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		LineTraceAndEvent();
 	}
 }
+
+#pragma region Navigation
+void ULGUIEventSystem::InputNavigationLeft()
+{
+	if (isNavigationActive)
+	{
+		if (!IsValid(selectableComponent))
+		{
+			BeginNavigation();
+		}
+		else
+		{
+			auto newSelectable = selectableComponent->FindSelectableOnLeft();
+			if (selectableComponent != newSelectable)
+			{
+				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent());
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIEventSystem::InputNavigationLeft]Navigation not activated, call InputNavigationBegin before this"));
+	}
+}
+void ULGUIEventSystem::InputNavigationRight()
+{
+	if (isNavigationActive)
+	{
+		if (!IsValid(selectableComponent))
+		{
+			BeginNavigation();
+		}
+		else
+		{
+			auto newSelectable = selectableComponent->FindSelectableOnRight();
+			if (selectableComponent != newSelectable)
+			{
+				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent());
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIEventSystem::InputNavigationRight]Navigation not activated, call InputNavigationBegin before this"));
+	}
+}
+void ULGUIEventSystem::InputNavigationUp()
+{
+	if (isNavigationActive)
+	{
+		if (!IsValid(selectableComponent))
+		{
+			BeginNavigation();
+		}
+		else
+		{
+			auto newSelectable = selectableComponent->FindSelectableOnUp();
+			if (selectableComponent != newSelectable)
+			{
+				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent());
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIEventSystem::InputNavigationUp]Navigation not activated, call InputNavigationBegin before this"));
+	}
+}
+void ULGUIEventSystem::InputNavigationDown()
+{
+	if (isNavigationActive)
+	{
+		if (!IsValid(selectableComponent))
+		{
+			BeginNavigation();
+		}
+		else
+		{
+			auto newSelectable = selectableComponent->FindSelectableOnDown();
+			if (selectableComponent != newSelectable)
+			{
+				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent());
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIEventSystem::InputNavigationDown]Navigation not activated, call InputNavigationBegin before this"));
+	}
+}
+void ULGUIEventSystem::InputNavigationNext()
+{
+	if (isNavigationActive)
+	{
+		if (!IsValid(selectableComponent))
+		{
+			BeginNavigation();
+		}
+		else
+		{
+			auto newSelectable = selectableComponent->FindSelectableOnNext();
+			if (selectableComponent != newSelectable)
+			{
+				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent());
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIEventSystem::InputNavigationDown]Navigation not activated, call InputNavigationBegin before this"));
+	}
+}
+void ULGUIEventSystem::InputNavigationPrev()
+{
+	if (isNavigationActive)
+	{
+		if (!IsValid(selectableComponent))
+		{
+			BeginNavigation();
+		}
+		else
+		{
+			auto newSelectable = selectableComponent->FindSelectableOnPrev();
+			if (selectableComponent != newSelectable)
+			{
+				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent());
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIEventSystem::InputNavigationDown]Navigation not activated, call InputNavigationBegin before this"));
+	}
+}
+void ULGUIEventSystem::InputNavigationBegin()
+{
+	if (!isNavigationActive)
+	{
+		isNavigationActive = true;
+		if (!IsValid(selectableComponent))
+		{
+			BeginNavigation();
+		}
+	}
+}
+void ULGUIEventSystem::BeginNavigation()
+{
+	if (ALGUIManagerActor::Instance != nullptr)
+	{
+		auto& selectables = ALGUIManagerActor::Instance->GetSelectables();
+		if (selectables.Num() > 0)
+		{
+			int index = 0;
+			do
+			{
+				selectableComponent = selectables[index];
+			} while (!IsValid(selectableComponent));
+			SetSelectComponent(selectableComponent->GetOwner()->GetRootComponent());
+		}
+	}
+}
+void ULGUIEventSystem::InputNavigationEnd()
+{
+	if (isNavigationActive)
+	{
+		isNavigationActive = false;
+	}
+}
+#pragma endregion
 
 void ULGUIEventSystem::SetRaycastEnable(bool enable, bool clearEvent)
 {
@@ -570,6 +740,10 @@ void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp)
 		}
 		if (InSelectComp != nullptr)
 		{
+			if (auto tempComp = InSelectComp->GetOwner()->FindComponentByClass<UUISelectableComponent>())
+			{
+				selectableComponent = tempComp;
+			}
 			CallOnPointerSelect(InSelectComp, eventData, enterComponentEventFireOnAllOrOnlyTarget);
 		}
 		selectedComponentEventFireOnAllOrOnlyTarget = enterComponentEventFireOnAllOrOnlyTarget;
