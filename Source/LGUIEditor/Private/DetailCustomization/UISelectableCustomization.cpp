@@ -30,6 +30,8 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 	}
 
+	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptPtr.Get(), TEXT("Multiple UISelectable component in one actor is not allowed!"));
+
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-Selectable");
 	auto transitionHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, Transition));
 	transitionHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
@@ -142,6 +144,59 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, PressedSprite));
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, DisabledSprite));
 	}
+
+	auto navigationLeftHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationLeft));
+	auto navigationRightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationRight));
+	auto navigationUpHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationUp));
+	auto navigationDownHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationDown));
+	auto navigationPrevHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationPrev));
+	auto navigationNextHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationNext));
+	
+	uint8 tempEnumValue;
+	navigationLeftHandle->GetValue(tempEnumValue);
+	navigationLeftHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
+	auto navigationLeftValue = (EUISelectableNavigationMode)tempEnumValue;
+	navigationRightHandle->GetValue(tempEnumValue);
+	navigationRightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
+	auto navigationRightValue = (EUISelectableNavigationMode)tempEnumValue;
+	navigationUpHandle->GetValue(tempEnumValue);
+	navigationUpHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
+	auto navigationUpValue = (EUISelectableNavigationMode)tempEnumValue;
+	navigationDownHandle->GetValue(tempEnumValue);
+	navigationDownHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
+	auto navigationDownValue = (EUISelectableNavigationMode)tempEnumValue;
+	navigationNextHandle->GetValue(tempEnumValue);
+	navigationNextHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
+	auto navigationNextValue = (EUISelectableNavigationMode)tempEnumValue;
+	navigationPrevHandle->GetValue(tempEnumValue);
+	navigationPrevHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISelectableCustomization::ForceRefresh, &DetailBuilder));
+	auto navigationPrevValue = (EUISelectableNavigationMode)tempEnumValue;
+	
+	if (navigationLeftValue != EUISelectableNavigationMode::Explicit)
+	{
+		needToHidePropertyNameForTransition.Add((GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationLeftSpecific)));
+	}
+	if (navigationRightValue != EUISelectableNavigationMode::Explicit)
+	{
+		needToHidePropertyNameForTransition.Add((GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationRightSpecific)));
+	}
+	if (navigationUpValue != EUISelectableNavigationMode::Explicit)
+	{
+		needToHidePropertyNameForTransition.Add((GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationUpSpecific)));
+	}
+	if (navigationDownValue != EUISelectableNavigationMode::Explicit)
+	{
+		needToHidePropertyNameForTransition.Add((GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationDownSpecific)));
+	}
+	if (navigationNextValue != EUISelectableNavigationMode::Explicit)
+	{
+		needToHidePropertyNameForTransition.Add((GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationNextSpecific)));
+	}
+	if (navigationPrevValue != EUISelectableNavigationMode::Explicit)
+	{
+		needToHidePropertyNameForTransition.Add((GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NavigationPrevSpecific)));
+	}
+	
 	for (auto item : needToHidePropertyNameForTransition)
 	{
 		DetailBuilder.HideProperty(item);

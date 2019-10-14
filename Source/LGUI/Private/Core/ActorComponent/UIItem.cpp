@@ -1252,6 +1252,10 @@ FVector2D UUIItem::GetLocalSpaceRightTopPoint()const
 	rightTopPoint.Y = widget.height * (1.0f - widget.pivot.Y);
 	return rightTopPoint;
 }
+FVector2D UUIItem::GetLocalSpaceCenter()const
+{
+	return FVector2D(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y));
+}
 
 float UUIItem::GetLocalSpaceLeft()const
 {

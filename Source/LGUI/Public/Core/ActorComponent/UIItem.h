@@ -214,6 +214,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetLocalSpaceRightTopPoint()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+		FVector2D GetLocalSpaceCenter()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetLocalSpaceLeft()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetLocalSpaceRight()const;

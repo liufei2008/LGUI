@@ -78,3 +78,4 @@
 #include "Extensions/2DLineRenderer/UI2dLineRingFrame.h"
 
 #include "LGUIEditHelper.h"
+#include "LGUIComponentReference.h"

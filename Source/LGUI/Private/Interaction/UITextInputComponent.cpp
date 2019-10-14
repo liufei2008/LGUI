@@ -1144,11 +1144,13 @@ bool UUITextInputComponent::OnPointerExit_Implementation(const FLGUIPointerEvent
 }
 bool UUITextInputComponent::OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)
 {
+	Super::OnPointerSelect_Implementation(eventData);
 	//ActivateInput();//handled at PointerClick
 	return AllowEventBubbleUp;
 }
 bool UUITextInputComponent::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
 {
+	Super::OnPointerDeselect_Implementation(eventData);
 	DeactivateInput();
 	return AllowEventBubbleUp;
 }
@@ -1340,6 +1342,14 @@ void UUITextInputComponent::ActivateInput()
 	if (OnInputActivateCPP.IsBound())OnInputActivateCPP.Broadcast(bInputActive);
 	OnInputActivate.FireEvent(bInputActive);
 }
+
+#define BINDKEY_IF_NOT_IGNORE(key)\
+if(!IgnoreKeys.Contains(##key##))\
+{\
+	inputComp->BindKey(##key##, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed); \
+	inputComp->BindKey(##key##, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);\
+}//register pressed and repeat
+
 void UUITextInputComponent::BindKeys()
 {
 	if (GetOwner()->InputComponent == nullptr)
@@ -1348,225 +1358,114 @@ void UUITextInputComponent::BindKeys()
 		GetOwner()->PreInitializeComponents();
 	}
 	auto inputComp = GetOwner()->InputComponent;
-#pragma region Key_Repeat
-	inputComp->BindKey(EKeys::BackSpace, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Tab, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Enter, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Pause, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
 
-	inputComp->BindKey(EKeys::CapsLock, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Escape, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::SpaceBar, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::PageUp, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::PageDown, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::End, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Home, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::BackSpace);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Tab);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Enter);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Pause);
 
-	inputComp->BindKey(EKeys::Left, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Up, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Right, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Down, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::CapsLock);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Escape);
+	BINDKEY_IF_NOT_IGNORE(EKeys::SpaceBar);
+	BINDKEY_IF_NOT_IGNORE(EKeys::PageUp);
+	BINDKEY_IF_NOT_IGNORE(EKeys::PageDown);
+	BINDKEY_IF_NOT_IGNORE(EKeys::End);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Home);
 
-	inputComp->BindKey(EKeys::Insert, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Delete, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Left);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Up);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Right);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Down);
 
-	inputComp->BindKey(EKeys::Zero, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::One, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Two, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Three, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Four, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Five, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Six, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Seven, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Eight, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Nine, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Insert);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Delete);
 
-	inputComp->BindKey(EKeys::A, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::B, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::C, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::D, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::E, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::F, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::G, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::H, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::I, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::J, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::K, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::L, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::M, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::N, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::O, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::P, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Q, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::R, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::S, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::T, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::U, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::V, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::W, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::X, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Y, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Z, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Zero);
+	BINDKEY_IF_NOT_IGNORE(EKeys::One);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Two);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Three);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Four);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Five);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Six);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Seven);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Eight);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Nine);
 
-	inputComp->BindKey(EKeys::NumPadZero, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadOne, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadTwo, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadThree, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadFour, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadFive, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadSix, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadSeven, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadEight, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadNine, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::A);
+	BINDKEY_IF_NOT_IGNORE(EKeys::B);
+	BINDKEY_IF_NOT_IGNORE(EKeys::C);
+	BINDKEY_IF_NOT_IGNORE(EKeys::D);
+	BINDKEY_IF_NOT_IGNORE(EKeys::E);
+	BINDKEY_IF_NOT_IGNORE(EKeys::F);
+	BINDKEY_IF_NOT_IGNORE(EKeys::G);
+	BINDKEY_IF_NOT_IGNORE(EKeys::H);
+	BINDKEY_IF_NOT_IGNORE(EKeys::I);
+	BINDKEY_IF_NOT_IGNORE(EKeys::J);
+	BINDKEY_IF_NOT_IGNORE(EKeys::K);
+	BINDKEY_IF_NOT_IGNORE(EKeys::L);
+	BINDKEY_IF_NOT_IGNORE(EKeys::M);
+	BINDKEY_IF_NOT_IGNORE(EKeys::N);
+	BINDKEY_IF_NOT_IGNORE(EKeys::O);
+	BINDKEY_IF_NOT_IGNORE(EKeys::P);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Q);
+	BINDKEY_IF_NOT_IGNORE(EKeys::R);
+	BINDKEY_IF_NOT_IGNORE(EKeys::S);
+	BINDKEY_IF_NOT_IGNORE(EKeys::T);
+	BINDKEY_IF_NOT_IGNORE(EKeys::U);
+	BINDKEY_IF_NOT_IGNORE(EKeys::V);
+	BINDKEY_IF_NOT_IGNORE(EKeys::W);
+	BINDKEY_IF_NOT_IGNORE(EKeys::X);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Y);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Z);
 
-	inputComp->BindKey(EKeys::Multiply, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Add, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Subtract, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Decimal, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Divide, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadZero);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadOne);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadTwo);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadThree);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadFour);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadFive);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadSix);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadSeven);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadEight);
+	BINDKEY_IF_NOT_IGNORE(EKeys::NumPadNine);
 
-	inputComp->BindKey(EKeys::LeftShift, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightShift, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftControl, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightControl, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftAlt, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightAlt, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftCommand, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightCommand, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Multiply);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Add);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Subtract);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Decimal);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Divide);
 
-	inputComp->BindKey(EKeys::Semicolon, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Equals, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Comma, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Underscore, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Hyphen, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Period, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Slash, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Tilde, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftBracket, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Backslash, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightBracket, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Apostrophe, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
+	BINDKEY_IF_NOT_IGNORE(EKeys::LeftShift);
+	BINDKEY_IF_NOT_IGNORE(EKeys::RightShift);
+	BINDKEY_IF_NOT_IGNORE(EKeys::LeftControl);
+	BINDKEY_IF_NOT_IGNORE(EKeys::RightControl);
+	BINDKEY_IF_NOT_IGNORE(EKeys::LeftAlt);
+	BINDKEY_IF_NOT_IGNORE(EKeys::RightAlt);
+	BINDKEY_IF_NOT_IGNORE(EKeys::LeftCommand);
+	BINDKEY_IF_NOT_IGNORE(EKeys::RightCommand);
 
-	inputComp->BindKey(EKeys::Ampersand, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Asterix, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Caret, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Colon, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Dollar, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Exclamation, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftParantheses, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightParantheses, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Quote, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed);
-#pragma endregion
+	BINDKEY_IF_NOT_IGNORE(EKeys::Semicolon);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Equals);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Comma);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Underscore);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Hyphen);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Period);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Slash);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Tilde);
+	BINDKEY_IF_NOT_IGNORE(EKeys::LeftBracket);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Backslash);
+	BINDKEY_IF_NOT_IGNORE(EKeys::RightBracket);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Apostrophe);
 
-#pragma region Key_Pressed
-	inputComp->BindKey(EKeys::BackSpace, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Tab, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Enter, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Pause, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::CapsLock, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Escape, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::SpaceBar, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::PageUp, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::PageDown, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::End, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Home, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::Left, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Up, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Right, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Down, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::Insert, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Delete, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::Zero, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::One, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Two, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Three, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Four, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Five, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Six, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Seven, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Eight, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Nine, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::A, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::B, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::C, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::D, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::E, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::F, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::G, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::H, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::I, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::J, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::K, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::L, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::M, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::N, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::O, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::P, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Q, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::R, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::S, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::T, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::U, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::V, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::W, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::X, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Y, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Z, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::NumPadZero, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadOne, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadTwo, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadThree, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadFour, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadFive, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadSix, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadSeven, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadEight, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::NumPadNine, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::Multiply, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Add, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Subtract, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Decimal, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Divide, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::LeftShift, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightShift, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftControl, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightControl, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftAlt, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightAlt, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftCommand, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightCommand, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::Semicolon, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Equals, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Comma, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Underscore, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Hyphen, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Period, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Slash, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Tilde, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftBracket, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Backslash, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightBracket, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Apostrophe, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-
-	inputComp->BindKey(EKeys::Ampersand, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Asterix, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Caret, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Colon, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Dollar, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Exclamation, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::LeftParantheses, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::RightParantheses, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-	inputComp->BindKey(EKeys::Quote, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);
-#pragma endregion
+	BINDKEY_IF_NOT_IGNORE(EKeys::Ampersand);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Asterix);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Caret);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Colon);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Dollar);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Exclamation);
+	BINDKEY_IF_NOT_IGNORE(EKeys::LeftParantheses);
+	BINDKEY_IF_NOT_IGNORE(EKeys::RightParantheses);
+	BINDKEY_IF_NOT_IGNORE(EKeys::Quote);
 }
 void UUITextInputComponent::UnbindKeys()
 {
