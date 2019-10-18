@@ -512,6 +512,11 @@ void UUI2DLineRendererBase::OnUpdateGeometry(bool InVertexPositionChanged, bool 
 	}
 }
 
+bool UUI2DLineRendererBase::HaveDataToCreateGeometry()
+{
+	return GetCalcaultedPointArray().Num() > 0;
+}
+
 void UUI2DLineRendererBase::SetConnectStartEndPoint(bool newValue)
 {
 	if (ConnectStartEndPoint != newValue)

@@ -186,8 +186,18 @@ void UUISpriteBase::UpdateGeometry(const bool& parentTransformChanged)
 
 	if (geometry->vertices.Num() == 0)//if geometry not created yet
 	{
-		CreateGeometry();
-		RenderCanvas->MarkRebuildAllDrawcall();
+		if (HaveDataToCreateGeometry())
+		{
+			CreateGeometry();
+			RenderCanvas->MarkRebuildAllDrawcall();
+		}
+		else
+		{
+			if (geometry->vertices.Num() > 0)
+			{
+				geometry->Clear();
+			}
+		}
 	}
 	else//if geometry is created, update data
 	{

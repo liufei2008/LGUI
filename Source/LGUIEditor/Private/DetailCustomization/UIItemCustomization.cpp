@@ -61,6 +61,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		return;
 	}
 
+	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0].Get());
+
 	if (TargetScriptArray[0]->GetWorld()->WorldType == EWorldType::Editor)
 	{
 		//something weird may happen if not realtime edit
