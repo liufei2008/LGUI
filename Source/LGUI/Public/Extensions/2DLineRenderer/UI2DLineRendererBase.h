@@ -40,6 +40,7 @@ protected:
 
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual bool HaveDataToCreateGeometry()override;
 
 	void GenerateLinePoint(const FVector2D& InCurrentPoint, const FVector2D& InPrevPoint, const FVector2D& InNextPoint, float InHalfWidth, FVector2D& OutPosA, FVector2D& OutPosB);
 	void Generate2DLineGeometry(const TArray<FVector2D>& InPointArray);

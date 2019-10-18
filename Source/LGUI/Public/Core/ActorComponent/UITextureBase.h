@@ -28,7 +28,7 @@ protected:
 	virtual void OnCreateGeometry();
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 private:
-	virtual void CreateGeometry();
+	void CreateGeometry();
 	virtual void UpdateGeometry(const bool& parentTransformChanged) override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture* GetTexture()const { return texture; }

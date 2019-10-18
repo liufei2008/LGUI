@@ -38,7 +38,7 @@
     Fix some bugs.
     Improve performance of UITexture's tiled mode and UISprite's tiled mode.
 1.8:
-    Fix LTween crash issure.
+    Fix LTween crash issue.
     ActorSerializer(PrefabSystem) and ActorCopier now support instanced object property.
     LGUIComponentReference add blueprint support.
 1.9:
@@ -99,6 +99,7 @@
 2.2：
     Fix:
         Fix a bug of UITextInputComponent multi line edit.
+        Screen space UI render issue.
     New feature:
         Navigation support, eg: use tab key to navigate to next UISelectableComponent. Call NavigationXXX function in LGUIEventSystem.
         UITextInputComponent support ignore keys, canbe useful for navigation. 
