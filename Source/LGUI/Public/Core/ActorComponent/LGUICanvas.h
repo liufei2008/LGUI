@@ -65,7 +65,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
-	virtual void BeginDestroy()override;
 #if WITH_EDITOR
 public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -73,6 +72,7 @@ public:
 #endif
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 public:
 	//update Canvas's geometry
 	void UpdateCanvasGeometry();
@@ -282,7 +282,7 @@ private:
 	//prev frame number, we can tell if we enter to a new render frame
 	uint32 prevFrameNumber = 0;
 
-	TArray<UUIRenderable*> UIRenderableItemList;//all renderable UI element collection
+	UPROPERTY(Transient)TArray<UUIRenderable*> UIRenderableItemList;//all renderable UI element collection
 	UPROPERTY(Transient)TArray<class UUIDrawcallMesh*> UIMeshList;//UIDrawcallMesh collection of this Canvas
 	TArray<TSharedPtr<class UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh

@@ -71,9 +71,10 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	}
 #endif
 	TArray<ILGUIHudPrimitive*> primitiveArray;
-	Mutex.Lock();
-	primitiveArray = HudPrimitiveArray;
-	Mutex.Unlock();
+	{
+		FScopeLock scopeLock(&Mutex);
+		primitiveArray = HudPrimitiveArray;
+	}
 
 	FTexture2DRHIRef RenderTarget = InView.Family->RenderTarget->GetRenderTargetTexture();
 	FRHIRenderPassInfo RPInfo(RenderTarget, ERenderTargetActions::Load_Store);
@@ -111,28 +112,31 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
 		auto hudPrimitive = primitiveArray[i];
-		if (hudPrimitive != nullptr && hudPrimitive->CanRender())
+		if (hudPrimitive != nullptr)
 		{
-			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-			auto Material = Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel());
-			const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-			FLGUIHudRenderVS* VertexShader = (FLGUIHudRenderVS*)MaterialShaderMap->GetShader(&FLGUIHudRenderVS::StaticType);
-			FLGUIHudRenderPS* PixelShader = (FLGUIHudRenderPS*)MaterialShaderMap->GetShader(&FLGUIHudRenderPS::StaticType);
-			if (VertexShader && PixelShader)
+			if (hudPrimitive->CanRender())
 			{
-				PixelShader->SetBlendState(GraphicsPSOInit, Material);
+				const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
+				auto Material = Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel());
+				const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+				FLGUIHudRenderVS* VertexShader = (FLGUIHudRenderVS*)MaterialShaderMap->GetShader(&FLGUIHudRenderVS::StaticType);
+				FLGUIHudRenderPS* PixelShader = (FLGUIHudRenderPS*)MaterialShaderMap->GetShader(&FLGUIHudRenderPS::StaticType);
+				if (VertexShader && PixelShader)
+				{
+					PixelShader->SetBlendState(GraphicsPSOInit, Material);
 
-				GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GLGUIVertexDeclaration.VertexDeclarationRHI;
-				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
-				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
-				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+					GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GLGUIVertexDeclaration.VertexDeclarationRHI;
+					GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
+					GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
+					GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+					SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-				VertexShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material, Mesh);
-				PixelShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material, Mesh);
+					VertexShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material, Mesh);
+					PixelShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material, Mesh);
 
-				RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-				RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+					RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+					RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+				}
 			}
 		}
 	}
@@ -145,26 +149,39 @@ void FLGUIViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RH
 
 void FLGUIViewExtension::AddHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 {
-	if (InPrimitive == nullptr)
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_AddHudPrimitive)(
+		[this, InPrimitive](FRHICommandListImmediate& RHICmdList)
+		{
+			this->AddHudPrimitive_RenderThread(InPrimitive);
+		}
+	);
+}
+void FLGUIViewExtension::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
+{
+	if (InPrimitive != nullptr)
 	{
-		UE_LOG(LGUI, Error, TEXT("[FLGUIViewExtension::AddHudPrimitive]Add nullptr as ILGUIHudPrimitive!"));
-		return;
+		FScopeLock scopeLock(&Mutex);
+		HudPrimitiveArray.AddUnique(InPrimitive);
+		HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
+		{
+			return A.GetRenderPriority() < B.GetRenderPriority();
+		});
 	}
-	Mutex.Lock();
-	HudPrimitiveArray.Add(InPrimitive);
-	HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
+	else
 	{
-		return A.GetRenderPriority() < B.GetRenderPriority();
-	});
-	Mutex.Unlock();
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::AddHudPrimitive]Add nullptr as ILGUIHudPrimitive!"));
+	}
 }
 void FLGUIViewExtension::RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
-		Mutex.Lock();
+		FScopeLock scopeLock(&Mutex);
 		HudPrimitiveArray.Remove(InPrimitive);
-		Mutex.Unlock();
+	}
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::RemoveHudPrimitive]Remove nullptr as ILGUIHudPrimitive!"));
 	}
 }
 
@@ -180,8 +197,8 @@ void FLGUIViewExtension::SortRenderPriority()
 	FLGUIViewExtension* viewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
 		[viewExtension](FRHICommandListImmediate& RHICmdList)
-	{
-		viewExtension->MarkSortRenderPriority_RenderThread();
-	}
+		{
+			viewExtension->MarkSortRenderPriority_RenderThread();
+		}
 	);
 }

@@ -36,6 +36,7 @@ public:
 	void AddHudPrimitive(ILGUIHudPrimitive* InPrimitive);
 	void RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive);
 private:
+	void AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void MarkSortRenderPriority_RenderThread();
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
