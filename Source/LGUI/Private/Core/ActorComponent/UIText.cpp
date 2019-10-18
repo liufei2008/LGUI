@@ -170,14 +170,12 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 			CreateGeometry();
 			RenderCanvas->MarkRebuildAllDrawcall();
 		}
-		else//if not have visible char, just set geometry's properties
+		else//if not have visible char, just clear geometry
 		{
-			geometry->Clear();
-			font->InitFreeType();
-			geometry->texture = font->texture;
-			geometry->material = CustomUIMaterial;
-			geometry->isFontTexture = true;
-			geometry->depth = widget.depth;
+			if (geometry->vertices.Num() > 0)
+			{
+				geometry->Clear();
+			}
 		}
 	}
 	else//if geometry is created, update data
@@ -479,7 +477,21 @@ void UUIText::CacheTextGeometry()
 	if (cachedTextGeometryList.Num() != 0)return;//have cache data
 	float charFixOffset = size * (font->fixedVerticalOffset - 0.25f);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
 	float halfFontSize = size * 0.5f;
+
+	bool pixelPerfect = RenderCanvas->GetPixelPerfect();
 	bool dynamicPixelsPerUnitIsNot1 = RenderCanvas->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
+	float calcFontSize = size;
+	if (pixelPerfect)
+	{
+		calcFontSize = calcFontSize * RenderCanvas->GetRootCanvas()->GetUIScale();
+		calcFontSize = calcFontSize > 200.0f ? 200.0f : calcFontSize;//limit font size to 200. too large font size will result in large texture
+	}
+	else if(dynamicPixelsPerUnitIsNot1)
+	{
+		calcFontSize = calcFontSize * RenderCanvas->GetDynamicPixelsPerUnit();
+		calcFontSize = calcFontSize > 200.0f ? 200.0f : calcFontSize;//limit font size to 200. too large font size will result in large texture
+	}
+
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text);
@@ -513,10 +525,8 @@ void UUIText::CacheTextGeometry()
 			charGeometry.yoffset = charData->yoffset + charFixOffset;
 
 			auto overrideCharData = charData;
-			if (dynamicPixelsPerUnitIsNot1)
+			if (pixelPerfect || dynamicPixelsPerUnitIsNot1)
 			{
-				auto calcFontSize = size * RenderCanvas->GetDynamicPixelsPerUnit();
-				calcFontSize = calcFontSize > 200 ? 200 : calcFontSize;//limit font size to 200. too large font size will result in large texture
 				overrideCharData = font->GetCharData(charCode, (uint16)calcFontSize, bold, italic);
 			}
 

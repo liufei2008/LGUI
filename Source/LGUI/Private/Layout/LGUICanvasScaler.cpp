@@ -253,7 +253,7 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 		auto ViewProjectionMatrix = Canvas->GetViewProjectionMatrix();
 		FVector leftBottom, rightBottom, leftTop, rightTop;
 		FVector leftBottomEnd, rightBottomEnd, leftTopEnd, rightTopEnd;
-		auto lineColor = FColor::White;
+		auto lineColor = FColor::Green;
 		//draw view frustum
 		DeprojectViewPointToWorld(ViewProjectionMatrix, FVector2D(0, 0), leftBottom, leftBottomEnd);
 		DrawDebugLine(this->GetWorld(), leftBottom, leftBottomEnd, lineColor);
@@ -280,7 +280,7 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 			FPlane(1, 0, 0, 0),
 			FPlane(0, 1, 0, 0),
 			FPlane(0, 0, 0, 1)).Inverse();
-		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), viewRotationMatrix.Rotator(), FOVAngle);
+		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), viewRotationMatrix.Rotator(), FOVAngle, 1.0f, FColor::Green);
 	}
 }
 #endif

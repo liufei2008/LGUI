@@ -47,6 +47,7 @@ void ULGUICanvas::BeginPlay()
 	CheckUIItem();
 	MarkCanvasUpdate();
 
+	bShouldRebuildAllDrawcall = true;
 	bClipTypeChanged = true;
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
@@ -64,15 +65,6 @@ void ULGUICanvas::BeginPlay()
 void ULGUICanvas::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-}
-
-void ULGUICanvas::BeginDestroy()
-{
-	Super::BeginDestroy();
-	if (ViewExtension.IsValid())
-	{
-		ViewExtension.Reset();
-	}
 }
 
 void ULGUICanvas::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -111,6 +103,21 @@ void ULGUICanvas::OnUnregister()
 {
 	Super::OnUnregister();
 	LGUIManager::RemoveCanvas(this);
+}
+void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	if (ViewExtension.IsValid())
+	{
+		ViewExtension.Reset();
+	}
+	if (UIMeshList.Num() > 0)
+	{
+		for (UUIDrawcallMesh* item : UIMeshList)
+		{
+			item->DestroyComponent();
+		}
+	}
 }
 
 void ULGUICanvas::OnUIActiveStateChange(bool active)
@@ -157,11 +164,11 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
 	if (oldCanvas != TopMostCanvas)
 	{
-		if (IsValid(oldCanvas))//remove from old uiroot
+		if (IsValid(oldCanvas))//remove from old root canvas
 		{
 			oldCanvas->AllCanvasBelongToThis.Remove(this);
 		}
-		if (IsValid(TopMostCanvas))//add to new uiroot
+		if (IsValid(TopMostCanvas))//add to new root canvas
 		{
 			TopMostCanvas->AllCanvasBelongToThis.Add(this);
 		}
@@ -574,7 +581,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
 		if (bShouldRebuildAllDrawcall)
 		{
-			LGUIUtils::SortUIItemDepth(UIRenderableItemList);//sort on depty
+			LGUIUtils::SortUIItemDepth(UIRenderableItemList);//sort on depth
 			LGUIUtils::CreateDrawcallFast(UIRenderableItemList, UIDrawcallList);//create drawcall
 			for (auto item : UIDrawcallList)
 			{

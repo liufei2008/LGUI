@@ -37,11 +37,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ULGUISpriteData* sprite;
 
-	virtual void CreateGeometry();
-	virtual void UpdateGeometry(const bool& parentTransformChanged)override;	
-
 	virtual void OnCreateGeometry();
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+
+	virtual bool HaveDataToCreateGeometry() { return true; }
+private:
+	void CreateGeometry();
+	virtual void UpdateGeometry(const bool& parentTransformChanged)override;
 public:
 	void ApplyAtlasTextureScaleUp();
 

@@ -162,9 +162,10 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	}
 #endif
 	TArray<ILGUIHudPrimitive*> primitiveArray;
-	Mutex.Lock();
-	primitiveArray = HudPrimitiveArray;
-	Mutex.Unlock();
+	{
+		FScopeLock scopeLock(&Mutex);
+		primitiveArray = HudPrimitiveArray;
+	}
 
 	FTexture2DRHIRef RenderTarget = InView.Family->RenderTarget->GetRenderTargetTexture();
 	SetRenderTarget(RHICmdList, RenderTarget, FTextureRHIRef());
@@ -187,26 +188,29 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	FDrawingPolicyRenderState drawRenderState(InView);
 	drawRenderState.SetDepthStencilState(TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI());
 	drawRenderState.SetViewUniformBuffer(InView.ViewUniformBuffer);
-	
+
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
 		auto hudPrimitive = primitiveArray[i];
-		if (hudPrimitive != nullptr && hudPrimitive->CanRender())
+		if (hudPrimitive != nullptr)
 		{
-			const FMeshBatch& Mesh = hudPrimitive->GetMeshElement();
-			FLGUIHudRenderPolicy drawingPolicy(Mesh.VertexFactory, Mesh.MaterialRenderProxy
-				, *Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel())
-				, ComputeMeshOverrideSettings(Mesh));
-			if (drawingPolicy.IsInitialized())
+			if (hudPrimitive->CanRender())
 			{
-				drawingPolicy.SetupPipelineState(drawRenderState, InView);
-				CommitGraphicsPipelineState(RHICmdList, drawingPolicy
-					, drawRenderState, drawingPolicy.GetBoundShaderStateInput(InView.GetFeatureLevel())
-					);
-				drawingPolicy.SetSharedState(RHICmdList, drawRenderState, &InView, FLGUIHudRenderPolicy::ContextDataType());
+				const FMeshBatch& Mesh = hudPrimitive->GetMeshElement();
+				FLGUIHudRenderPolicy drawingPolicy(Mesh.VertexFactory, Mesh.MaterialRenderProxy
+					, *Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel())
+					, ComputeMeshOverrideSettings(Mesh));
+				if (drawingPolicy.IsInitialized())
+				{
+					drawingPolicy.SetupPipelineState(drawRenderState, InView);
+					CommitGraphicsPipelineState(RHICmdList, drawingPolicy
+						, drawRenderState, drawingPolicy.GetBoundShaderStateInput(InView.GetFeatureLevel())
+						, drawingPolicy.GetMaterialRenderProxy());
+					drawingPolicy.SetSharedState(RHICmdList, drawRenderState, &InView, FLGUIHudRenderPolicy::ContextDataType());
 
-				drawingPolicy.SetMeshRenderState(RHICmdList, InView, Mesh, 0, drawRenderState, FMeshDrawingPolicy::ElementDataType(), FLGUIHudRenderPolicy::ContextDataType());
-				drawingPolicy.DrawMesh(RHICmdList, InView, Mesh, 0);
+					drawingPolicy.SetMeshRenderState(RHICmdList, InView, Mesh, 0, drawRenderState, FMeshDrawingPolicy::ElementDataType(), FLGUIHudRenderPolicy::ContextDataType());
+					drawingPolicy.DrawMesh(RHICmdList, InView, Mesh, 0);
+				}
 			}
 		}
 	}
@@ -218,26 +222,41 @@ void FLGUIViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RH
 
 void FLGUIViewExtension::AddHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 {
-	if (InPrimitive == nullptr)
+	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+		FLGUIRender_AddHudPrimitive,
+		FLGUIViewExtension*, viewExtension, this,
+		ILGUIHudPrimitive*, primitive, InPrimitive,
+		{
+			viewExtension->AddHudPrimitive_RenderThread(primitive);
+		}
+	)
+}
+void FLGUIViewExtension::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
+{
+	if (InPrimitive != nullptr)
 	{
-		UE_LOG(LGUI, Error, TEXT("[FLGUIViewExtension::AddHudPrimitive]Add nullptr as ILGUIHudPrimitive!"));
-		return;
+		FScopeLock scopeLock(&Mutex);
+		HudPrimitiveArray.AddUnique(InPrimitive);
+		HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
+		{
+			return A.GetRenderPriority() < B.GetRenderPriority();
+		});
 	}
-	Mutex.Lock();
-	HudPrimitiveArray.Add(InPrimitive);
-	HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
+	else
 	{
-		return A.GetRenderPriority() < B.GetRenderPriority();
-	});
-	Mutex.Unlock();
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::AddHudPrimitive]Add nullptr as ILGUIHudPrimitive!"));
+	}
 }
 void FLGUIViewExtension::RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
-		Mutex.Lock();
+		FScopeLock scopeLock(&Mutex);
 		HudPrimitiveArray.Remove(InPrimitive);
-		Mutex.Unlock();
+	}
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::RemoveHudPrimitive]Remove nullptr as ILGUIHudPrimitive!"));
 	}
 }
 
