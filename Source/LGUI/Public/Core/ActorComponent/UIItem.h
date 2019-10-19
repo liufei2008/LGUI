@@ -229,11 +229,11 @@ public:
 
 	FORCEINLINE void MarkVertexPositionDirty();
 	FORCEINLINE void MarkColorDirty();
-	FORCEINLINE virtual void MarkCanvasUpdate();
 
 	//mark all dirty for UI element to update, include all children
 	virtual void MarkAllDirtyRecursive();
 protected:
+	virtual void MarkCanvasUpdate();
 	virtual void WidthChanged();
 	virtual void HeightChanged();	
 

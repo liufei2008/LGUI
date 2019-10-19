@@ -18,4 +18,5 @@ private:
 	TArray<class ULGUICanvas*> TargetScriptArray;
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
 	FText GetDrawcallInfo()const;
+	FText GetDrawcallInfoTooltip()const;
 };
