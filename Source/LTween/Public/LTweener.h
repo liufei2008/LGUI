@@ -13,41 +13,41 @@ DECLARE_DELEGATE_OneParam(LTweenUpdateDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(LTweenUpdateMulticastDelegate, float);
 
 
-DECLARE_DELEGATE_RetVal(float, FloatGetterFunction);
-DECLARE_DELEGATE_OneParam(FloatSetterFunction, float);
+DECLARE_DELEGATE_RetVal(float, FLTweenFloatGetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenFloatSetterFunction, float);
 
-DECLARE_DELEGATE_RetVal(int, IntGetterFunction);
+DECLARE_DELEGATE_RetVal(int, FLTweenIntGetterFunction);
 DECLARE_DELEGATE_OneParam(IntSetterFunction, int);
 
-DECLARE_DELEGATE_RetVal(FVector, VectorGetterFunction);
-DECLARE_DELEGATE_OneParam(VectorSetterFunction, FVector);
+DECLARE_DELEGATE_RetVal(FVector, FLTweenVectorGetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenVectorSetterFunction, FVector);
 
-DECLARE_DELEGATE_RetVal(FColor, ColorGetterFunction);
-DECLARE_DELEGATE_OneParam(ColorSetterFunction, FColor);
+DECLARE_DELEGATE_RetVal(FColor, FLTweenColorGetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenColorSetterFunction, FColor);
 
-DECLARE_DELEGATE_RetVal(FLinearColor, LinearColorGetterFunction);
-DECLARE_DELEGATE_OneParam(LinearColorSetterFunction, FLinearColor);
+DECLARE_DELEGATE_RetVal(FLinearColor, FLTweenLinearColorGetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenLinearColorSetterFunction, FLinearColor);
 
-DECLARE_DELEGATE_RetVal(FVector2D, Vector2DGetterFunction);
-DECLARE_DELEGATE_OneParam(Vector2DSetterFunction, FVector2D);
+DECLARE_DELEGATE_RetVal(FVector2D, FLTweenVector2DGetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenVector2DSetterFunction, FVector2D);
 
-DECLARE_DELEGATE_RetVal(FQuat, QuaternionGetterFunction);
-DECLARE_DELEGATE_OneParam(QuaternionSetterFunction, FQuat);
+DECLARE_DELEGATE_RetVal(FQuat, FLTweenQuaternionGetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenQuaternionSetterFunction, FQuat);
 
-DECLARE_DELEGATE_RetVal(FRotator, RotatorGetterFunction);
-DECLARE_DELEGATE_OneParam(RotatorSetterFunction, FRotator);
+DECLARE_DELEGATE_RetVal(FRotator, FLTweenRotatorGetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenRotatorSetterFunction, FRotator);
 
-DECLARE_DELEGATE_RetVal(FVector, PositionGetterFunction);
-DECLARE_DELEGATE_FourParams(PositionSetterFunction, FVector, bool, FHitResult*, ETeleportType);
+DECLARE_DELEGATE_RetVal(FVector, FLTweenPositionGetterFunction);
+DECLARE_DELEGATE_FourParams(FLTweenPositionSetterFunction, FVector, bool, FHitResult*, ETeleportType);
 
-DECLARE_DELEGATE_RetVal(FQuat, RotationQuatGetterFunction);
-DECLARE_DELEGATE_FourParams(RotationQuatSetterFunction, const FQuat&, bool, FHitResult*, ETeleportType);
+DECLARE_DELEGATE_RetVal(FQuat, FLTweenRotationQuatGetterFunction);
+DECLARE_DELEGATE_FourParams(FLTweenRotationQuatSetterFunction, const FQuat&, bool, FHitResult*, ETeleportType);
 
-DECLARE_DELEGATE_RetVal_OneParam(bool, MaterialScalarGetterFunction, float&);
-DECLARE_DELEGATE_RetVal_TwoParams(bool, MaterialScalarSetterFunction, int32, float);
+DECLARE_DELEGATE_RetVal_OneParam(bool, FLTweenMaterialScalarGetterFunction, float&);
+DECLARE_DELEGATE_RetVal_TwoParams(bool, FLTweenMaterialScalarSetterFunction, int32, float);
 
-DECLARE_DELEGATE_RetVal_OneParam(bool, MaterialVectorGetterFunction, FLinearColor&);
-DECLARE_DELEGATE_RetVal_TwoParams(bool, MaterialVectorSetterFunction, int32, const FLinearColor&);
+DECLARE_DELEGATE_RetVal_OneParam(bool, FLTweenMaterialVectorGetterFunction, FLinearColor&);
+DECLARE_DELEGATE_RetVal_TwoParams(bool, FLTweenMaterialVectorSetterFunction, int32, const FLinearColor&);
 
 //for blueprint callback
 

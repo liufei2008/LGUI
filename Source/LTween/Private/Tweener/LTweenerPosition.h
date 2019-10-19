@@ -18,10 +18,10 @@ public:
 	FHitResult* sweepHitResult = nullptr;
 	ETeleportType teleportType = ETeleportType::None;
 
-	PositionGetterFunction getter;
-	PositionSetterFunction setter;
+	FLTweenPositionGetterFunction getter;
+	FLTweenPositionSetterFunction setter;
 
-	void SetInitialValue(const PositionGetterFunction& newGetter, const PositionSetterFunction& newSetter, FVector newEndValue, float newDuration, bool newSweep = false, FHitResult* newSweepHitResult = nullptr, ETeleportType newTeleportType = ETeleportType::None)
+	void SetInitialValue(const FLTweenPositionGetterFunction& newGetter, const FLTweenPositionSetterFunction& newSetter, FVector newEndValue, float newDuration, bool newSweep = false, FHitResult* newSweepHitResult = nullptr, ETeleportType newTeleportType = ETeleportType::None)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
@@ -36,13 +36,11 @@ public:
 		this->teleportType = newTeleportType;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 	}
-
-public:
 	virtual void TweenAndApplyValue() override
 	{
 		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);

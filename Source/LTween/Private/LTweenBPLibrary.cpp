@@ -12,13 +12,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionXTo(USceneComponent* target, float end
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->RelativeLocation.X;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->RelativeLocation;
@@ -35,13 +35,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionYTo(USceneComponent* target, float end
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->RelativeLocation.Y;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->RelativeLocation;
@@ -58,13 +58,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo(USceneComponent* target, float end
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->RelativeLocation.Z;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->RelativeLocation;
@@ -81,13 +81,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionXTo_Sweep(USceneComponent* target, flo
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->RelativeLocation.X;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->RelativeLocation;
@@ -104,13 +104,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionYTo_Sweep(USceneComponent* target, flo
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->RelativeLocation.Y;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->RelativeLocation;
@@ -127,13 +127,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo_Sweep(USceneComponent* target, flo
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->RelativeLocation.Z;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->RelativeLocation;
@@ -153,13 +153,13 @@ ULTweener* ULTweenBPLibrary::WorldPositionXTo(USceneComponent* target, float end
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->GetComponentLocation().X;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->GetComponentLocation();
@@ -176,13 +176,13 @@ ULTweener* ULTweenBPLibrary::WorldPositionYTo(USceneComponent* target, float end
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->GetComponentLocation().Y;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->GetComponentLocation();
@@ -199,13 +199,13 @@ ULTweener* ULTweenBPLibrary::WorldPositionZTo(USceneComponent* target, float end
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->GetComponentLocation().Z;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->GetComponentLocation();
@@ -222,13 +222,13 @@ ULTweener* ULTweenBPLibrary::WorldPositionXTo_Sweep(USceneComponent* target, flo
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->GetComponentLocation().X;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->GetComponentLocation();
@@ -245,13 +245,13 @@ ULTweener* ULTweenBPLibrary::WorldPositionYTo_Sweep(USceneComponent* target, flo
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->GetComponentLocation().Y;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->GetComponentLocation();
@@ -268,13 +268,13 @@ ULTweener* ULTweenBPLibrary::WorldPositionZTo_Sweep(USceneComponent* target, flo
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(FloatGetterFunction::CreateLambda([targetWeakPtr] {
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([targetWeakPtr] {
 		if (targetWeakPtr.IsValid())
 		{
 			return targetWeakPtr->GetComponentLocation().Z;
 		}
 		return 0.0f;
-	}), FloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
+	}), FLTweenFloatSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](float value) {
 		if (targetWeakPtr.IsValid())
 		{
 			auto location = targetWeakPtr->GetComponentLocation();
@@ -296,7 +296,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo(USceneComponent* target, FVector en
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(PositionGetterFunction::CreateLambda([target] 
+	return ALTweenActor::To(FLTweenPositionGetterFunction::CreateLambda([target] 
 	{
 		if (!target->IsValidLowLevel() || target->IsPendingKill())
 		{
@@ -304,7 +304,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo(USceneComponent* target, FVector en
 			return FVector();
 		}
 		return target->RelativeLocation; 
-	}), PositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration)
+	}), FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionTo(USceneComponent* target, FVector endValue, float duration, float delay, LTweenEase ease)
@@ -314,8 +314,8 @@ ULTweener* ULTweenBPLibrary::WorldPositionTo(USceneComponent* target, FVector en
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(PositionGetterFunction::CreateUObject(target, &USceneComponent::GetComponentLocation), 
-		PositionSetterFunction::CreateUObject(target, &USceneComponent::SetWorldLocation), endValue, duration)
+	return ALTweenActor::To(FLTweenPositionGetterFunction::CreateUObject(target, &USceneComponent::GetComponentLocation), 
+		FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetWorldLocation), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalPositionTo_Sweep(USceneComponent* target, FVector endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
@@ -325,7 +325,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo_Sweep(USceneComponent* target, FVec
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(PositionGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(FLTweenPositionGetterFunction::CreateLambda([target]
 	{
 		if (!target->IsValidLowLevel() || target->IsPendingKill())
 		{
@@ -334,7 +334,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo_Sweep(USceneComponent* target, FVec
 		}
 		return target->RelativeLocation;
 	}),
-		PositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
+		FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionTo_Sweep(USceneComponent* target, FVector endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
@@ -344,8 +344,8 @@ ULTweener* ULTweenBPLibrary::WorldPositionTo_Sweep(USceneComponent* target, FVec
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(PositionGetterFunction::CreateUObject(target, &USceneComponent::GetComponentLocation),
-		PositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
+	return ALTweenActor::To(FLTweenPositionGetterFunction::CreateUObject(target, &USceneComponent::GetComponentLocation),
+		FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
 }
 #pragma endregion Position
@@ -359,7 +359,7 @@ ULTweener* ULTweenBPLibrary::LocalScaleTo(USceneComponent* target, FVector endVa
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalScaleTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(VectorGetterFunction::CreateLambda([target] 
+	return ALTweenActor::To(FLTweenVectorGetterFunction::CreateLambda([target] 
 	{
 		if (!target->IsValidLowLevel() || target->IsPendingKill())
 		{
@@ -367,7 +367,7 @@ ULTweener* ULTweenBPLibrary::LocalScaleTo(USceneComponent* target, FVector endVa
 			return FVector();
 		}
 		return target->RelativeScale3D; 
-	}), VectorSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeScale3D), endValue, duration)
+	}), FLTweenVectorSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeScale3D), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 
@@ -381,13 +381,13 @@ ULTweener* ULTweenBPLibrary::LocalRotateEulerAngleTo(USceneComponent* target, FV
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(RotationQuatGetterFunction::CreateLambda([targetWeakPtr]
+	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([targetWeakPtr]
 	{ 
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetRelativeRotationCache().GetCachedQuat();
 		else
 			return FQuat();
-	}), RotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeRotation), eulerAngle, duration)
+	}), FLTweenRotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeRotation), eulerAngle, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalRotationQuaternionTo(USceneComponent* target, FQuat endValue, float duration, float delay, LTweenEase ease)
@@ -398,13 +398,13 @@ ULTweener* ULTweenBPLibrary::LocalRotationQuaternionTo(USceneComponent* target, 
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(RotationQuatGetterFunction::CreateLambda([targetWeakPtr]
+	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([targetWeakPtr]
 	{
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetRelativeRotationCache().GetCachedQuat();
 		else
 			return FQuat();
-	}), RotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeRotation), endValue, duration)
+	}), FLTweenRotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeRotation), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalRotateEulerAngleTo_Sweep(USceneComponent* target, FVector eulerAngle, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
@@ -415,13 +415,13 @@ ULTweener* ULTweenBPLibrary::LocalRotateEulerAngleTo_Sweep(USceneComponent* targ
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(RotationQuatGetterFunction::CreateLambda([targetWeakPtr]
+	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([targetWeakPtr]
 	{ 
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetRelativeRotationCache().GetCachedQuat();
 		else
 			return FQuat();
-	}), RotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeRotation), eulerAngle, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
+	}), FLTweenRotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeRotation), eulerAngle, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalRotationQuaternionTo_Sweep(USceneComponent* target, FQuat endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
@@ -432,13 +432,13 @@ ULTweener* ULTweenBPLibrary::LocalRotationQuaternionTo_Sweep(USceneComponent* ta
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(RotationQuatGetterFunction::CreateLambda([targetWeakPtr]
+	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([targetWeakPtr]
 	{
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetRelativeRotationCache().GetCachedQuat();
 		else
 			return FQuat();
-	}), RotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeRotation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
+	}), FLTweenRotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeRotation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalRotatorTo(USceneComponent* target, FRotator endValue, bool shortestPath, float duration, float delay, LTweenEase ease)
@@ -455,13 +455,13 @@ ULTweener* ULTweenBPLibrary::LocalRotatorTo(USceneComponent* target, FRotator en
 	else
 	{
 		auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-		return ALTweenActor::To(RotatorGetterFunction::CreateLambda([targetWeakPtr]
+		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([targetWeakPtr]
 		{
 			if (targetWeakPtr.IsValid())
 				return targetWeakPtr->RelativeRotation;
 			else
 				return FRotator();
-		}), RotatorSetterFunction::CreateLambda([targetWeakPtr] (FRotator value)
+		}), FLTweenRotatorSetterFunction::CreateLambda([targetWeakPtr] (FRotator value)
 		{
 			if (targetWeakPtr.IsValid())
 				targetWeakPtr->SetRelativeRotation(value);
@@ -482,13 +482,13 @@ ULTweener* ULTweenBPLibrary::LocalRotatorTo_Sweep(USceneComponent* target, FRota
 	else
 	{
 		auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-		return ALTweenActor::To(RotatorGetterFunction::CreateLambda([targetWeakPtr]
+		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([targetWeakPtr]
 		{
 			if (targetWeakPtr.IsValid())
 				return targetWeakPtr->RelativeRotation;
 			else
 				return FRotator();
-		}), RotatorSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](FRotator value)
+		}), FLTweenRotatorSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](FRotator value)
 		{
 			if(targetWeakPtr.IsValid())
 				targetWeakPtr->SetRelativeRotation(value, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
@@ -506,13 +506,13 @@ ULTweener* ULTweenBPLibrary::WorldRotateEulerAngleTo(USceneComponent* target, FV
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(RotationQuatGetterFunction::CreateLambda([targetWeakPtr]
+	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([targetWeakPtr]
 	{
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetComponentRotation().Quaternion();
 		else
 			return FQuat();
-	}), RotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetWorldRotation), eulerAngle, duration)
+	}), FLTweenRotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetWorldRotation), eulerAngle, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldRotationQuaternionTo(USceneComponent* target, FQuat endValue, float duration, float delay, LTweenEase ease)
@@ -523,13 +523,13 @@ ULTweener* ULTweenBPLibrary::WorldRotationQuaternionTo(USceneComponent* target, 
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(RotationQuatGetterFunction::CreateLambda([targetWeakPtr]
+	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([targetWeakPtr]
 	{
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetComponentRotation().Quaternion();
 		else
 			return FQuat();
-	}), RotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetWorldRotation), endValue, duration)
+	}), FLTweenRotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetWorldRotation), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldRotateEulerAngleTo_Sweep(USceneComponent* target, FVector eulerAngle, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
@@ -540,13 +540,13 @@ ULTweener* ULTweenBPLibrary::WorldRotateEulerAngleTo_Sweep(USceneComponent* targ
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(RotationQuatGetterFunction::CreateLambda([targetWeakPtr]
+	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([targetWeakPtr]
 	{
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetComponentRotation().Quaternion();
 		else
 			return FQuat();
-	}), RotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetWorldRotation), eulerAngle, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
+	}), FLTweenRotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetWorldRotation), eulerAngle, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldRotationQuaternionTo_Sweep(USceneComponent* target, FQuat endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
@@ -557,13 +557,13 @@ ULTweener* ULTweenBPLibrary::WorldRotationQuaternionTo_Sweep(USceneComponent* ta
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-	return ALTweenActor::To(RotationQuatGetterFunction::CreateLambda([targetWeakPtr]
+	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([targetWeakPtr]
 	{
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetComponentRotation().Quaternion();
 		else
 			return FQuat();
-	}), RotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetWorldRotation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
+	}), FLTweenRotationQuatSetterFunction::CreateUObject(target, &USceneComponent::SetWorldRotation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldRotatorTo(USceneComponent* target, FRotator endValue, bool shortestPath, float duration, float delay, LTweenEase ease)
@@ -580,13 +580,13 @@ ULTweener* ULTweenBPLibrary::WorldRotatorTo(USceneComponent* target, FRotator en
 	else
 	{
 		auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-		return ALTweenActor::To(RotatorGetterFunction::CreateLambda([targetWeakPtr]
+		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([targetWeakPtr]
 		{
 			if (targetWeakPtr.IsValid())
 				return targetWeakPtr->GetComponentRotation();
 			else
 				return FRotator();
-		}), RotatorSetterFunction::CreateLambda([targetWeakPtr](FRotator value)
+		}), FLTweenRotatorSetterFunction::CreateLambda([targetWeakPtr](FRotator value)
 		{
 			if (targetWeakPtr.IsValid())
 				targetWeakPtr->SetWorldRotation(value);
@@ -607,13 +607,13 @@ ULTweener* ULTweenBPLibrary::WorldRotatorTo_Sweep(USceneComponent* target, FRota
 	else
 	{
 		auto targetWeakPtr = TWeakObjectPtr<USceneComponent>(target);
-		return ALTweenActor::To(RotatorGetterFunction::CreateLambda([targetWeakPtr]
+		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([targetWeakPtr]
 		{
 			if (targetWeakPtr.IsValid())
 				return targetWeakPtr->GetComponentRotation();
 			else
 				return FRotator();
-		}), RotatorSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](FRotator value)
+		}), FLTweenRotatorSetterFunction::CreateLambda([targetWeakPtr, &sweepHitResult, sweep, teleport](FRotator value)
 		{
 			if (targetWeakPtr.IsValid())
 				targetWeakPtr->SetWorldRotation(value, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
@@ -643,13 +643,13 @@ ULTweener* ULTweenBPLibrary::MaterialScalarParameterTo(UMaterialInstanceDynamic*
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<UMaterialInstanceDynamic>(target);
-	return ALTweenActor::To(MaterialScalarGetterFunction::CreateLambda([targetWeakPtr, parameterName](float& result)
+	return ALTweenActor::To(FLTweenMaterialScalarGetterFunction::CreateLambda([targetWeakPtr, parameterName](float& result)
 	{
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetScalarParameterValue(parameterName, result);
 		else
 			return false;
-	}), MaterialScalarSetterFunction::CreateUObject(target, &UMaterialInstanceDynamic::SetScalarParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
+	}), FLTweenMaterialScalarSetterFunction::CreateUObject(target, &UMaterialInstanceDynamic::SetScalarParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::MaterialVectorParameterTo(UMaterialInstanceDynamic* target, FName parameterName, FLinearColor endValue, float duration, float delay, LTweenEase ease)
 {
@@ -670,11 +670,11 @@ ULTweener* ULTweenBPLibrary::MaterialVectorParameterTo(UMaterialInstanceDynamic*
 		return nullptr;
 	}
 	auto targetWeakPtr = TWeakObjectPtr<UMaterialInstanceDynamic>(target);
-	return ALTweenActor::To(MaterialVectorGetterFunction::CreateLambda([targetWeakPtr, parameterName](FLinearColor& result)
+	return ALTweenActor::To(FLTweenMaterialVectorGetterFunction::CreateLambda([targetWeakPtr, parameterName](FLinearColor& result)
 	{
 		if (targetWeakPtr.IsValid())
 			return targetWeakPtr->GetVectorParameterValue(parameterName, result);
 		else
 			return false;
-	}), MaterialVectorSetterFunction::CreateUObject(target, &UMaterialInstanceDynamic::SetVectorParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
+	}), FLTweenMaterialVectorSetterFunction::CreateUObject(target, &UMaterialInstanceDynamic::SetVectorParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
 }

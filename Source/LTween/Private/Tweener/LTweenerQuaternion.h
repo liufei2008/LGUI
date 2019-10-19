@@ -14,10 +14,10 @@ public:
 	FQuat startValue;
 	FQuat endValue;
 
-	QuaternionGetterFunction getter;
-	QuaternionSetterFunction setter;
+	FLTweenQuaternionGetterFunction getter;
+	FLTweenQuaternionSetterFunction setter;
 
-	void SetInitialValue(const QuaternionGetterFunction& newGetter, const QuaternionSetterFunction& newSetter, FQuat newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenQuaternionGetterFunction& newGetter, const FLTweenQuaternionSetterFunction& newSetter, FQuat newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
@@ -28,13 +28,11 @@ public:
 		this->changeFloat = 1.0f;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 	}
-
-public:
 	virtual void TweenAndApplyValue() override
 	{
 		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
