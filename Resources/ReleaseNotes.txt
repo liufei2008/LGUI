@@ -104,3 +104,8 @@
         Navigation support, eg: use tab key to navigate to next UISelectableComponent. Call NavigationXXX function in LGUIEventSystem.
         UITextInputComponent support ignore keys, canbe useful for navigation. 
         LGUIComponentReference now support multiple component of same type on same actor, all we need to do is just click and select a component.
+2.3:
+    Modify:
+        Rename LTween's XXXGetterFunction to LTweenXXXGetterFunction, and same change to XXXSettterFunction.
+    New feature:
+        LGUIFont now can pack font texture into UISprite's atlas texture! This can be very helpful to reduce drawcall. All we need to do is to change LGUIFont's packingTag property to a UISprite's packingTag.

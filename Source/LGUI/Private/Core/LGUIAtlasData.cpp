@@ -5,6 +5,94 @@
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/ActorComponent/UISpriteBase.h"
+#include "Core/LGUISpriteData.h"
+
+
+void FLGUIAtlasData::EnsureAtlasTexture(const FName& packingTag)
+{
+#if WITH_EDITOR
+	int32 defaultAtlasTextureSize = ULGUISettings::GetAtlasTextureInitialSize(packingTag);
+#else
+	static int32 defaultAtlasTextureSize = ULGUISettings::GetAtlasTextureInitialSize(packingTag);
+#endif
+	if (!IsValid(atlasTexture))
+	{
+		atlasBinPack.Init(defaultAtlasTextureSize, defaultAtlasTextureSize, 0, 0);
+		CreateAtlasTexture(packingTag, 0, defaultAtlasTextureSize);
+	}
+}
+void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize)
+{
+#if WITH_EDITOR
+	bool atlasSRGB = ULGUISettings::GetAtlasTextureSRGB(packingTag);
+	auto filter = ULGUISettings::GetAtlasTextureFilter(packingTag);
+#else
+	static bool atlasSRGB = ULGUISettings::GetAtlasTextureSRGB(packingTag);
+	static auto filter = ULGUISettings::GetAtlasTextureFilter(packingTag);
+#endif
+	auto texture = UTexture2D::CreateTransient(newTextureSize, newTextureSize, PF_B8G8R8A8);
+	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
+	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
+	texture->SRGB = atlasSRGB;
+	texture->Filter = filter;
+	texture->UpdateResource();
+	texture->AddToRoot();
+	auto oldTexture = this->atlasTexture;
+	this->atlasTexture = texture;
+
+	//copy texture
+	if (oldTextureSize != 0 && oldTexture != nullptr)
+	{
+		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER
+		(
+			FLGUISpriteCopyAtlasTexture,
+			UTexture2D*, oldTexture, oldTexture,
+			UTexture2D*, texture, texture,
+			int32, oldTextureSize, oldTextureSize,
+			{
+				FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
+				RHICmdList.CopySubTextureRegion(
+					((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
+					((FTexture2DResource*)texture->Resource)->GetTexture2DRHI(),
+					regionBox,
+					regionBox
+				);
+				oldTexture->RemoveFromRoot();//ready for gc
+			}
+		);
+	}
+}
+int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
+{
+	int32 oldTextureSize = this->atlasBinPack.GetBinWidth();
+	int32 newTextureSize = oldTextureSize * 2;
+
+	this->atlasBinPack.ExpendSize(newTextureSize, newTextureSize);
+	//create new texture
+	this->CreateAtlasTexture(packingTag, oldTextureSize, newTextureSize);
+	//scale down sprite uv
+	for (ULGUISpriteData* spriteItem : this->spriteDataArray)
+	{
+		spriteItem->atlasTexture = this->atlasTexture;
+		spriteItem->spriteInfo.ScaleUV(0.5f);
+	}
+	//tell UISprite to scale down uv
+	for (auto itemSprite : this->renderSpriteArray)
+	{
+		if (itemSprite.IsValid())
+		{
+			itemSprite->ApplyAtlasTextureScaleUp();
+		}
+	}
+	//callback function
+	if (expendTextureSizeCallback.IsBound())
+	{
+		expendTextureSizeCallback.Broadcast(this->atlasTexture);
+	}
+
+	return newTextureSize;
+}
+
 
 ULGUIAtlasManager* ULGUIAtlasManager::Instance = nullptr;
 bool ULGUIAtlasManager::InitCheck()
