@@ -14,7 +14,7 @@ class UUISpriteBase;
 
 //atlas data container
 USTRUCT()
-struct FLGUIAtlasData
+struct LGUI_API FLGUIAtlasData
 {
 	GENERATED_BODY()
 	//collection of all UISprite whitch use this atlas to render
@@ -28,6 +28,17 @@ struct FLGUIAtlasData
 	//sprites belong to this atlas
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	TArray<ULGUISpriteData*> spriteDataArray;
+
+	void EnsureAtlasTexture(const FName& packingTag);
+	void CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize);
+	//create a new texture with size * 2
+	int32 ExpendTextureSize(const FName& packingTag);
+
+	class FLGUIAtlasTextureExpendEvent : public TBaseMulticastDelegate<void, UTexture2D*>
+	{
+		friend struct FLGUIAtlasData;
+	};
+	FLGUIAtlasTextureExpendEvent expendTextureSizeCallback;
 };
 
 UCLASS(NotBlueprintable, NotBlueprintType)

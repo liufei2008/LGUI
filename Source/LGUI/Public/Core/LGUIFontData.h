@@ -92,6 +92,10 @@ public:
 	//Some font text may not renderred at vertical center, use this to offset
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float fixedVerticalOffset = 0.0f;
+	//Packing tag of this font. If packingTag is not none, then LGUI will search UISprite's atlas packingTag, and pack font texture into sprite atlas's texture.
+	//This can be very useful to reduce drawcall.
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FName packingTag;
 	//Texture of this font
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		UTexture2D* texture;
@@ -119,6 +123,8 @@ private:
 	UPROPERTY(Transient)
 		TArray<uint8> tempFontBinaryArray;//temp array for storing data, because freetype need to load font to memory and keep alive
 	TMap<FLGUIFontKeyData, FLGUICharData> charDataMap;
+	struct FLGUIAtlasData* packingAtlasData = nullptr;
+	FDelegateHandle packingAtlasTextureExpendDelegateHandle;
 
 	rbp::MaxRectsBinPack binPack;//for rect packing
 	int32 textureSize;//current texture size
@@ -130,16 +136,18 @@ private:
 	FT_Library library = nullptr;
 	FT_Face face = nullptr;
 	bool alreadyInitialized = false;
+	bool usePackingTag = false;
 	FLGUICharData* PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
 	FT_Matrix GetItalicMatrix();
 	/*Insert rect into area, assign pixel if succeed
 	 return: if can fit in rect area return true, else false
 	*/
-	bool PackRectAndInsertChar(const int32 InBoldOffset, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot);
+	bool PackRectAndInsertChar(int32 InExtraSpace, const int32 InBoldOffset, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
 	void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
 
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
+	void ApplyPackingAtlasTextureExpend(UTexture2D* newTexture);
 public:
 	FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
 #if WITH_EDITOR

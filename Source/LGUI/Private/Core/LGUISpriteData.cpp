@@ -43,8 +43,7 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 	int insertRectWidth = spriteTexture->GetSurfaceWidth() + spaceBetweenSprites + spaceBetweenSprites;
 	int insertRectHeight = spriteTexture->GetSurfaceHeight() + spaceBetweenSprites + spaceBetweenSprites;
 
-	auto& areaItem = InAtlasData->atlasBinPack;
-	auto packedRect = areaItem.Insert(insertRectWidth, insertRectHeight, method);
+	auto packedRect = InAtlasData->atlasBinPack.Insert(insertRectWidth, insertRectHeight, method);
 	if (packedRect.height <= 0)//means this area cannot fit the texture
 	{
 		return false;
@@ -202,24 +201,14 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 
 void ULGUISpriteData::PackageSprite()
 {
-#if WITH_EDITOR
-	int32 defaultAtlasTextureSize = ULGUISettings::GetAtlasTextureInitialSize(packingTag);
-#else
-	static int32 defaultAtlasTextureSize = ULGUISettings::GetAtlasTextureInitialSize(packingTag);
-#endif
-
 	if (spriteTexture->CompressionSettings != TextureCompressionSettings::TC_EditorIcon)
 	{
 		ApplySpriteTextureSetting(spriteTexture);
 	}
 
 	auto atlasData = ULGUIAtlasManager::FindOrAdd(packingTag);
-	
-	if (atlasData->atlasTexture == nullptr)//means first time of this tag
-	{
-		atlasData->atlasBinPack.Init(defaultAtlasTextureSize, defaultAtlasTextureSize, 0, 0);
-		CreateAtlasTexture(0, defaultAtlasTextureSize, atlasData);
-	}
+	atlasData->EnsureAtlasTexture(packingTag);
+	atlasTexture = atlasData->atlasTexture;
 PACK_AND_INSERT:
 	if (InsertTexture(atlasData))
 	{
@@ -227,69 +216,16 @@ PACK_AND_INSERT:
 	}
 	else//all area cannot fit the texture, then expend texture size
 	{
-		int32 oldTextureSize = atlasData->atlasBinPack.GetBinWidth();
-		int32 newTextureSize = oldTextureSize * 2;
+		int32 newTextureSize = atlasData->ExpendTextureSize(packingTag);
 		UE_LOG(LGUI, Log, TEXT("[PackageSprite]Insert texture:%s expend size to %d"), *(spriteTexture->GetPathName()), newTextureSize);
 		if (newTextureSize > WARNING_ATLAS_SIZE)
 		{
 			UE_LOG(LGUI, Warning, TEXT("[PackageSprite]Trying to insert texture:%s, result to expend size to:%d larger than the preferred maximun texture size:%d! Try reduce some sprite texture size, or use UITexture to render some large texture, or use different packingTag to splite your atlasTexture."), *(spriteTexture->GetPathName()), newTextureSize, WARNING_ATLAS_SIZE);
 		}
-		atlasData->atlasBinPack.ExpendSize(newTextureSize, newTextureSize);
-		//create new texture
-		CreateAtlasTexture(oldTextureSize, newTextureSize, atlasData);
-		//scale down sprite uv
-		for (ULGUISpriteData* spriteItem : atlasData->spriteDataArray)
-		{
-			spriteItem->atlasTexture = atlasData->atlasTexture;
-			spriteItem->spriteInfo.ScaleUV(0.5f);
-		}
-		//tell UISprite to scale down uv
-		for (auto itemSprite : atlasData->renderSpriteArray)
-		{
-			if (itemSprite.IsValid())
-			{
-				itemSprite->ApplyAtlasTextureScaleUp();
-			}
-		}
-
 		goto PACK_AND_INSERT;
 	}
 }
-void ULGUISpriteData::CreateAtlasTexture(int oldTextureSize, int newTextureSize, FLGUIAtlasData* InAtlasData)
-{
-#if WITH_EDITOR
-	bool atlasSRGB = ULGUISettings::GetAtlasTextureSRGB(packingTag);
-	auto filter = ULGUISettings::GetAtlasTextureFilter(packingTag);
-#else
-	static bool atlasSRGB = ULGUISettings::GetAtlasTextureSRGB(packingTag);
-	static auto filter = ULGUISettings::GetAtlasTextureFilter(packingTag);
-#endif
-	auto texture = UTexture2D::CreateTransient(newTextureSize, newTextureSize, PF_B8G8R8A8);
-	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
-	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
-	texture->SRGB = atlasSRGB;
-	texture->UpdateResource();
-	texture->AddToRoot();
-	auto oldTexture = InAtlasData->atlasTexture;
-	InAtlasData->atlasTexture = texture;
 
-	//copy texture
-	if (oldTextureSize != 0 && oldTexture != nullptr)
-	{
-		ENQUEUE_RENDER_COMMAND(FLGUISpriteCopyAtlasTexture)(
-			[oldTexture, texture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
-			{
-				FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
-				RHICmdList.CopySubTextureRegion(
-					((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
-					((FTexture2DResource*)texture->Resource)->GetTexture2DRHI(),
-					regionBox,
-					regionBox
-				);
-				oldTexture->RemoveFromRoot();//ready for gc
-			});
-	}
-}
 void ULGUISpriteData::CheckSpriteTexture()
 {
 	if (spriteTexture == nullptr)

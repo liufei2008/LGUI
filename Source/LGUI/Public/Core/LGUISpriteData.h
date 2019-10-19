@@ -102,6 +102,7 @@ class LGUI_API ULGUISpriteData :public UObject
 private:
 	friend class FLGUISpriteDataCustomization;
 	friend class ULGUISpriteFactory;
+	friend struct FLGUIAtlasData;
 	/*
 	Texture of this sprite. Sprite is acturally renderred from atlas texture, so spriteTexture is not needed if atlasdata is packed; But! since atlas texture is packed at runtime, we must include spriteTexture inside final package.
 	Donot modify spriteTexture's setting unless you know what you doing
@@ -119,7 +120,6 @@ private:
 	UPROPERTY(Transient)UTexture2D * atlasTexture = nullptr;
 	void PackageSprite();
 	bool InsertTexture(FLGUIAtlasData* InAtlasData);
-	void CreateAtlasTexture(int oldTextureSize, int newTextureSize, FLGUIAtlasData* InAtlasData);
 	void CheckSpriteTexture();
 
 public:
