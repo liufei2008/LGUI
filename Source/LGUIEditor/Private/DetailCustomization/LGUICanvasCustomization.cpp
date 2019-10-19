@@ -2,6 +2,7 @@
 
 #include "DetailCustomization/LGUICanvasCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUICanvasCustomization"
 FLGUICanvasCustomization::FLGUICanvasCustomization()
@@ -164,6 +165,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		[
 			SNew(STextBlock)
 			.Text(this, &FLGUICanvasCustomization::GetDrawcallInfo)
+			.ToolTipText(this, &FLGUICanvasCustomization::GetDrawcallInfoTooltip)
 			.Font(IDetailLayoutBuilder::GetDetailFont())
 			.ColorAndOpacity(FLinearColor(FColor::Green))
 		]
@@ -178,11 +180,31 @@ void FLGUICanvasCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 }
 FText FLGUICanvasCustomization::GetDrawcallInfo()const
 {
-	int drawcallCount = 0;
-	if (TargetScriptArray[0] != nullptr)
+	int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
+	auto& allCanvas = LGUIManager::GetAllCanvas(TargetScriptArray[0]->GetWorld());
+	int allDrawcallCount = 0;
+	for (ULGUICanvas* canvasItem : allCanvas)
 	{
-		drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
+		if (TargetScriptArray[0]->IsScreenSpaceOverlayUI() == canvasItem->IsScreenSpaceOverlayUI())
+		{
+			allDrawcallCount += canvasItem->UIDrawcallList.Num();
+		}
 	}
-	return FText::FromString(FString::Printf(TEXT("%d"), drawcallCount));
+	return FText::FromString(FString::Printf(TEXT("%d/%d"), drawcallCount, allDrawcallCount));
+}
+FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
+{
+	int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
+	auto& allCanvas = LGUIManager::GetAllCanvas(TargetScriptArray[0]->GetWorld());
+	int allDrawcallCount = 0;
+	for (ULGUICanvas* canvasItem : allCanvas)
+	{
+		if (TargetScriptArray[0]->IsScreenSpaceOverlayUI() == canvasItem->IsScreenSpaceOverlayUI())
+		{
+			allDrawcallCount += canvasItem->UIDrawcallList.Num();
+		}
+	}
+	FString tooltipStr = FString::Printf(TEXT("This canvas's drawcall count:%d, all canvas of %s drawcall count:%d"), drawcallCount, (TargetScriptArray[0]->IsScreenSpaceOverlayUI() ? TEXT("screen space") : TEXT("world space")), allDrawcallCount);
+	return FText::FromString(tooltipStr);
 }
 #undef LOCTEXT_NAMESPACE
