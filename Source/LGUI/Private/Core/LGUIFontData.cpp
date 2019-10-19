@@ -135,7 +135,7 @@ void ULGUIFontData::DeinitFreeType()
 		auto error = FT_Done_FreeType(library);
 		if (error)
 		{
-			UE_LOG(LGUI, Error, TEXT("[DeintFreeType]font:%s, error:%s"), *(this->GetName()), GetErrorMessage(error));
+			UE_LOG(LGUI, Error, TEXT("[DeintFreeType]font:%s, error:%s"), *(this->GetName()), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		}
 		else
 		{
@@ -174,28 +174,35 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 	}
 
 	cacheFontKey = FLGUIFontKeyData(charIndex, charSize, bold, italic);
-	if (FT_Set_Pixel_Sizes(face, 0, charSize))
+	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
+	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("FT_Set_Pixel_Sizes error"));
+		UE_LOG(LGUI, Error, TEXT("FT_Set_Pixel_Sizes error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 	}
 	FT_GlyphSlot slot = face->glyph;
-	if (FT_Load_Glyph(face, FT_Get_Char_Index(face, charIndex), FT_LOAD_DEFAULT))
+	error = FT_Load_Glyph(face, FT_Get_Char_Index(face, charIndex), FT_LOAD_DEFAULT);
+	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("FT_Load_Glyph error"));
+		UE_LOG(LGUI, Error, TEXT("FT_Load_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return &cacheCharData;
 	}
 	if (bold)
 	{
-		FT_Outline_Embolden(&face->glyph->outline, charSize * 2);
+		error = FT_Outline_Embolden(&face->glyph->outline, charSize * 2);
+		if (error)
+		{
+			UE_LOG(LGUI, Error, TEXT("FT_Outline_Embolden error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
+		}
 	}
 	if (italic)
 	{
 		static FT_Matrix italicMatrix = GetItalicMatrix();
 		FT_Outline_Transform(&face->glyph->outline, &italicMatrix);
 	}
-	if (FT_Render_Glyph(face->glyph, FT_Render_Mode::FT_RENDER_MODE_NORMAL))
+	error = FT_Render_Glyph(face->glyph, FT_Render_Mode::FT_RENDER_MODE_NORMAL);
+	if (error)
 	{
-		UE_LOG(LGUI, Error, TEXT("FT_Render_Glyph error"));
+		UE_LOG(LGUI, Error, TEXT("FT_Render_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return &cacheCharData;
 	}
 	FT_Bitmap bitmap = slot->bitmap;
@@ -216,7 +223,7 @@ PACK_AND_INSERT:
 		int32 newTextureSize = textureSize + textureSize;
 		UE_LOG(LGUI, Log, TEXT("[PushCharIntoFont]Expend font texture size to:%d"), newTextureSize);
 		//expend by multiply 2
-		binPack.ExpendSizeForText(newTextureSize, newTextureSize);
+		binPack.ExpendSize(newTextureSize, newTextureSize);
 
 		CreateFontTexture(textureSize, newTextureSize);
 		textureSize = newTextureSize;
