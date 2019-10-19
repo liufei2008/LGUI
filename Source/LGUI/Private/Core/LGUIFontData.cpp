@@ -6,6 +6,8 @@
 #include "Misc/Paths.h"
 #include "HAL/PlatformFilemanager.h"
 #include "Core/ActorComponent/UIText.h"
+#include "Core/LGUIAtlasData.h"
+#include "Core/LGUISettings.h"
 #include FT_OUTLINE_H
 
 ULGUIFontData::ULGUIFontData()
@@ -116,19 +118,42 @@ void ULGUIFontData::InitFreeType()
 	}
 	else
 	{
-		UE_LOG(LGUI, Log, TEXT("[InitFreeType]succeed, font:%s"), *(this->GetName()));
+		UE_LOG(LGUI, Log, TEXT("[InitFreeType]success, font:%s"), *(this->GetName()));
 		alreadyInitialized = true;
-		texture = nullptr;
-		textureSize = 256;//default font texture size is 256
-		fullTextureSizeReciprocal = 1.0f / textureSize;
-		CreateFontTexture(0, textureSize);
-		charDataMap.Empty();
-		binPack = rbp::MaxRectsBinPack(textureSize, textureSize, 0, 0);
+		usePackingTag = !packingTag.IsNone();
+		if (usePackingTag)
+		{
+			if (packingAtlasData == nullptr)
+			{
+				packingAtlasData = ULGUIAtlasManager::FindOrAdd(packingTag);
+				packingAtlasTextureExpendDelegateHandle = packingAtlasData->expendTextureSizeCallback.AddUObject(this, &ULGUIFontData::ApplyPackingAtlasTextureExpend);
+				packingAtlasData->EnsureAtlasTexture(packingTag);
+				texture = packingAtlasData->atlasTexture;
+				textureSize = texture->GetSurfaceWidth();
+				fullTextureSizeReciprocal = 1.0f / textureSize;
+				charDataMap.Empty();
+			}
+		}
+		else
+		{
+			texture = nullptr;
+			textureSize = 256;//default font texture size is 256
+			fullTextureSizeReciprocal = 1.0f / textureSize;
+			CreateFontTexture(0, textureSize);
+			charDataMap.Empty();
+			binPack = rbp::MaxRectsBinPack(textureSize, textureSize, 0, 0);
+		}
 	}
 }
 void ULGUIFontData::DeinitFreeType()
 {
 	alreadyInitialized = false;
+	usePackingTag = false;
+	if (packingAtlasData != nullptr)
+	{
+		packingAtlasData->expendTextureSizeCallback.Remove(packingAtlasTextureExpendDelegateHandle);
+		packingAtlasData = nullptr;
+	}
 	if (face != nullptr)
 	{
 		face = nullptr;
@@ -139,7 +164,7 @@ void ULGUIFontData::DeinitFreeType()
 		}
 		else
 		{
-			UE_LOG(LGUI, Log, TEXT("[DeintFreeType]succeed, font:%s"), *(this->GetName()));
+			UE_LOG(LGUI, Log, TEXT("[DeintFreeType]success, font:%s"), *(this->GetName()));
 		}
 	}
 }
@@ -160,6 +185,7 @@ FT_Matrix ULGUIFontData::GetItalicMatrix()
 	italicMatrix.yy = 1 << 16;
 	return italicMatrix;
 }
+
 FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic)
 {
 	if (alreadyInitialized == false)
@@ -207,44 +233,56 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 	}
 	FT_Bitmap bitmap = slot->bitmap;
 
-	bool firstTimeExpend = true;
-	if (!IsValid(texture))
-	{
-		CreateFontTexture(0, textureSize);
-	}
+	auto& calcBinpack = usePackingTag ? packingAtlasData->atlasBinPack : this->binPack;
+	auto& calcTexture = usePackingTag ? packingAtlasData->atlasTexture : this->texture;
+#if WITH_EDITOR
+	int32 spaceBetweenSprites = ULGUISettings::GetAtlasTexturePadding(packingTag);
+#else
+	static int32 spaceBetweenSprites = ULGUISettings::GetAtlasTexturePadding(packingTag);
+#endif
+	int32 extraSpace = usePackingTag ? spaceBetweenSprites : 0;
 PACK_AND_INSERT:
-	if (PackRectAndInsertChar(bold ? charSize * 0.05f : 0, bitmap, slot))
+	if (PackRectAndInsertChar(extraSpace, bold ? charSize * 0.05f : 0, bitmap, slot, calcBinpack, calcTexture))
 	{
-		
+
 	}
-	else//if all rect area cannot fit in this char, then expend texture
+	else
 	{
-		checkf(firstTimeExpend, TEXT("[PushCharIntoFont]Expend texture size second time on one character! Is the font size too large?"));//can only expend once for every char
-		int32 newTextureSize = textureSize + textureSize;
-		UE_LOG(LGUI, Log, TEXT("[PushCharIntoFont]Expend font texture size to:%d"), newTextureSize);
-		//expend by multiply 2
-		binPack.ExpendSize(newTextureSize, newTextureSize);
-
-		CreateFontTexture(textureSize, newTextureSize);
-		textureSize = newTextureSize;
-		fullTextureSizeReciprocal = 1.0f / textureSize;
-		firstTimeExpend = false;
-
-		//scale down uv of prev chars
-		for (auto& charDataItem : charDataMap)
+		int32 newTextureSize = 0;
+		if (usePackingTag)
 		{
-			auto& mapValue = charDataItem.Value;
-			mapValue.uv0X *= 0.5f;
-			mapValue.uv0Y *= 0.5f;
-			mapValue.uv3X *= 0.5f;
-			mapValue.uv3Y *= 0.5f;
+			newTextureSize = packingAtlasData->ExpendTextureSize(packingTag);
+			UE_LOG(LGUI, Log, TEXT("[PushCharIntoFont]Expend font texture size to:%d"), newTextureSize);
+			texture = packingAtlasData->atlasTexture;
+			textureSize = newTextureSize;
+			fullTextureSizeReciprocal = 1.0f / textureSize;
 		}
-		//tell UIText to scale down uv
-		for (auto textItem : renderTextArray)
+		else
 		{
-			if (textItem.IsValid())
+			newTextureSize = textureSize + textureSize;
+			UE_LOG(LGUI, Log, TEXT("[PushCharIntoFont]Expend font texture size to:%d"), newTextureSize);
+			//expend by multiply 2
+			calcBinpack.ExpendSize(newTextureSize, newTextureSize);
+			CreateFontTexture(textureSize, newTextureSize);
+			textureSize = newTextureSize;
+			fullTextureSizeReciprocal = 1.0f / textureSize;
+
+			//scale down uv of prev chars
+			for (auto& charDataItem : charDataMap)
 			{
-				textItem->ApplyFontTextureScaleUp();
+				auto& mapValue = charDataItem.Value;
+				mapValue.uv0X *= 0.5f;
+				mapValue.uv0Y *= 0.5f;
+				mapValue.uv3X *= 0.5f;
+				mapValue.uv3Y *= 0.5f;
+			}
+			//tell UIText to scale down uv
+			for (auto textItem : renderTextArray)
+			{
+				if (textItem.IsValid())
+				{
+					textItem->ApplyFontTextureScaleUp();
+				}
 			}
 		}
 
@@ -256,13 +294,13 @@ PACK_AND_INSERT:
 	//UE_LOG(LGUI, Error, TEXT("InsertCharTakeTime:%f"), GWorld->GetRealTimeSeconds() - prevTime);
 	return &cacheCharData;
 }
-bool ULGUIFontData::PackRectAndInsertChar(const int32 InBoldOffset, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot)
+bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const int32 InBoldOffset, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
 {
-	int charRectWidth = InCharBitmap.width + SPACE_BETWEEN_GLYPHx2;
-	int charRectHeight = InCharBitmap.rows + SPACE_BETWEEN_GLYPHx2;
+	int charRectWidth = InCharBitmap.width + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
+	int charRectHeight = InCharBitmap.rows + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
 	auto method = rbp::MaxRectsBinPack::RectBestAreaFit;
 
-	auto packedRect = binPack.Insert(charRectWidth, charRectHeight, method);
+	auto packedRect = InOutBinpack.Insert(charRectWidth, charRectHeight, method);
 	if (packedRect.height <= 0)//means this area cannot fit the char
 	{
 		return false;
@@ -270,10 +308,10 @@ bool ULGUIFontData::PackRectAndInsertChar(const int32 InBoldOffset, const FT_Bit
 	else//this area can fit the char, so copy pixel color into texture
 	{
 		//remove space
-		packedRect.x += SPACE_BETWEEN_GLYPH;
-		packedRect.y += SPACE_BETWEEN_GLYPH;
-		packedRect.width -= SPACE_BETWEEN_GLYPHx2;
-		packedRect.height -= SPACE_BETWEEN_GLYPHx2;
+		packedRect.x += SPACE_BETWEEN_GLYPH + InExtraSpace;
+		packedRect.y += SPACE_BETWEEN_GLYPH + InExtraSpace;
+		packedRect.width -= SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
+		packedRect.height -= SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
 
 		//pixel color
 		int32 sourceTexturePixelIndexY = packedRect.y;
@@ -288,7 +326,7 @@ bool ULGUIFontData::PackRectAndInsertChar(const int32 InBoldOffset, const FT_Bit
 			pixelColor.R = pixelColor.G = pixelColor.B = 255;
 			pixelColor.A = InCharBitmap.buffer[i];
 		}
-		UpdateFontTextureRegion(texture, region, packedRect.width * 4, 4, (uint8*)regionColor);
+		UpdateFontTextureRegion(InTexture, region, packedRect.width * 4, 4, (uint8*)regionColor);
 
 		cacheCharData.width = InCharBitmap.width + SPACE_NEED_EXPENDx2;
 		cacheCharData.height = InCharBitmap.rows + SPACE_NEED_EXPENDx2;
@@ -303,6 +341,27 @@ bool ULGUIFontData::PackRectAndInsertChar(const int32 InBoldOffset, const FT_Bit
 		return true;
 	}
 	return false;
+}
+void ULGUIFontData::ApplyPackingAtlasTextureExpend(UTexture2D* newTexture)
+{
+	this->texture = newTexture;
+	//scale down uv of prev chars
+	for (auto& charDataItem : charDataMap)
+	{
+		auto& mapValue = charDataItem.Value;
+		mapValue.uv0X *= 0.5f;
+		mapValue.uv0Y *= 0.5f;
+		mapValue.uv3X *= 0.5f;
+		mapValue.uv3Y *= 0.5f;
+	}
+	//tell UIText to scale down uv
+	for (auto textItem : renderTextArray)
+	{
+		if (textItem.IsValid())
+		{
+			textItem->ApplyFontTextureScaleUp();
+		}
+	}
 }
 
 void ULGUIFontData::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData)
