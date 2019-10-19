@@ -173,18 +173,30 @@ void ULGUICanvas::OnUIHierarchyChanged()
 			TopMostCanvas->AllCanvasBelongToThis.Add(this);
 		}
 
-		if (IsScreenSpaceOverlayUI())
-		{
-			for (auto uiMesh : UIMeshList)
-			{
-				uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
-			}
-		}
-		else
+#if WITH_EDITOR
+		if (!GetWorld()->IsGameWorld())
 		{
 			for (auto uiMesh : UIMeshList)
 			{
 				uiMesh->SetToLGUIWorld();
+			}
+		}
+		else
+#endif
+		{
+			if (IsScreenSpaceOverlayUI())
+			{
+				for (auto uiMesh : UIMeshList)
+				{
+					uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
+				}
+			}
+			else
+			{
+				for (auto uiMesh : UIMeshList)
+				{
+					uiMesh->SetToLGUIWorld();
+				}
 			}
 		}
 	}
@@ -196,18 +208,9 @@ void ULGUICanvas::OnUIHierarchyChanged()
 }
 bool ULGUICanvas::IsScreenSpaceOverlayUI()
 {
-#if WITH_EDITOR
-	if (!GetWorld()->IsGameWorld())
+	if (IsValid(TopMostCanvas))
 	{
-		return false;
-	}
-	else
-#endif
-	{
-		if (IsValid(TopMostCanvas))
-		{
-			return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay;
-		}
+		return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay;
 	}
 	return false;
 }
@@ -602,6 +605,13 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					auto meshName = FString::Printf(TEXT("Drawcall_%d"), i);
 #endif
 					auto uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
+#if WITH_EDITOR
+					if (!GetWorld()->IsGameWorld())//editor world, do nothing
+					{
+
+					}
+					else
+#endif
 					if (IsScreenSpaceOverlayUI())
 					{
 						uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
@@ -732,6 +742,13 @@ void ULGUICanvas::SortDrawcallRenderPriority()
 			prevCanvasDrawcallCount = canvasItemDrawcallCount;
 		}
 	}
+#if WITH_EDITOR
+	if (!GetWorld()->IsGameWorld())//editor world, do nothing
+	{
+
+	}
+	else
+#endif
 	if (IsScreenSpaceOverlayUI())
 	{
 		TopMostCanvas->GetViewExtension()->SortRenderPriority();
