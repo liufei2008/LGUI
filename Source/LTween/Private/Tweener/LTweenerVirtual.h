@@ -15,12 +15,10 @@ public:
 		this->duration = newDuration;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		
 	}
-
-public:
 	virtual void TweenAndApplyValue() override
 	{
 		

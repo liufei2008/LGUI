@@ -13,10 +13,10 @@ public:
 	float changeValue = 0.0f;//c
 	int32 parameterIndex;
 	float endValue = 0.0f;
-	MaterialScalarGetterFunction getter;
-	MaterialScalarSetterFunction setter;
+	FLTweenMaterialScalarGetterFunction getter;
+	FLTweenMaterialScalarSetterFunction setter;
 
-	void SetInitialValue(const MaterialScalarGetterFunction& newGetter, const MaterialScalarSetterFunction& newSetter, float newEndValue, float newDuration, int32 newParameterIndex)
+	void SetInitialValue(const FLTweenMaterialScalarGetterFunction& newGetter, const FLTweenMaterialScalarSetterFunction& newSetter, float newEndValue, float newDuration, int32 newParameterIndex)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
@@ -25,7 +25,7 @@ public:
 		this->parameterIndex = newParameterIndex;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		if (getter.IsBound())
 		{
@@ -39,8 +39,6 @@ protected:
 			}
 		}
 	}
-
-public:
 	virtual void TweenAndApplyValue() override
 	{
 		auto value = tweenFunc.Execute(changeValue, startValue, elapseTime, duration);

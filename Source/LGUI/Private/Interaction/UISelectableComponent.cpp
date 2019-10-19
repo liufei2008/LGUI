@@ -102,7 +102,7 @@ void UUISelectableComponent::ApplySelectionState()
 			else
 			{
 				if (ALTweenActor::IsTweening(TransitionTweener))TransitionTweener->Kill();
-				TransitionTweener = ALTweenActor::To(ColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), ColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), NormalColor, FadeDuration);
+				TransitionTweener = ALTweenActor::To(FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), NormalColor, FadeDuration);
 			}
 		}
 		break;
@@ -151,7 +151,7 @@ void UUISelectableComponent::ApplySelectionState()
 			else
 			{
 				if (ALTweenActor::IsTweening(TransitionTweener))TransitionTweener->Kill();
-				TransitionTweener = ALTweenActor::To(ColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), ColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), HighlightedColor, FadeDuration);
+				TransitionTweener = ALTweenActor::To(FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), HighlightedColor, FadeDuration);
 			}
 		}
 		break;
@@ -203,7 +203,7 @@ void UUISelectableComponent::ApplySelectionState()
 			else
 			{
 				if (ALTweenActor::IsTweening(TransitionTweener))TransitionTweener->Kill();
-				TransitionTweener = ALTweenActor::To(ColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), ColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), PressedColor, FadeDuration);
+				TransitionTweener = ALTweenActor::To(FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), PressedColor, FadeDuration);
 			}
 		}
 		break;
@@ -255,7 +255,7 @@ void UUISelectableComponent::ApplySelectionState()
 			else
 			{
 				if (ALTweenActor::IsTweening(TransitionTweener))TransitionTweener->Kill();
-				TransitionTweener = ALTweenActor::To(ColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), ColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), DisabledColor, FadeDuration);
+				TransitionTweener = ALTweenActor::To(FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), DisabledColor, FadeDuration);
 			}
 		}
 		break;
