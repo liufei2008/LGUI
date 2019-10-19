@@ -113,16 +113,16 @@ void UUI2DLineRingFrame::SetSegment(float newValue)
 
 ULTweener* UUI2DLineRingFrame::AngleBeginTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(FloatGetterFunction::CreateUObject(this, &UUI2DLineRingFrame::GetAngleBegin), FloatSetterFunction::CreateUObject(this, &UUI2DLineRingFrame::SetAngleBegin), endValue, duration)
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRingFrame::GetAngleBegin), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRingFrame::SetAngleBegin), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }
 ULTweener* UUI2DLineRingFrame::AngleEndTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(FloatGetterFunction::CreateUObject(this, &UUI2DLineRingFrame::GetAngleEnd), FloatSetterFunction::CreateUObject(this, &UUI2DLineRingFrame::SetAngleEnd), endValue, duration)
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRingFrame::GetAngleEnd), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRingFrame::SetAngleEnd), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }
 ULTweener* UUI2DLineRingFrame::FrameWidthTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(FloatGetterFunction::CreateUObject(this, &UUI2DLineRingFrame::GetFrameWidth), FloatSetterFunction::CreateUObject(this, &UUI2DLineRingFrame::SetFrameWidth), endValue, duration)
+	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRingFrame::GetFrameWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRingFrame::SetFrameWidth), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }

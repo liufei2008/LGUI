@@ -14,10 +14,10 @@ public:
 	FVector startValue;
 	FVector endValue;
 
-	VectorGetterFunction getter;
-	VectorSetterFunction setter;
+	FLTweenVectorGetterFunction getter;
+	FLTweenVectorSetterFunction setter;
 
-	void SetInitialValue(const VectorGetterFunction& newGetter, const VectorSetterFunction& newSetter, FVector newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenVectorGetterFunction& newGetter, const FLTweenVectorSetterFunction& newSetter, FVector newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
@@ -28,13 +28,11 @@ public:
 		this->changeFloat = 1.0f;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 	}
-
-public:
 	virtual void TweenAndApplyValue() override
 	{
 		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
