@@ -13,10 +13,10 @@ public:
 	float changeValue = 0.0f;//c
 
 	float endValue = 0.0f;
-	FloatGetterFunction getter;
-	FloatSetterFunction setter;
+	FLTweenFloatGetterFunction getter;
+	FLTweenFloatSetterFunction setter;
 
-	void SetInitialValue(const FloatGetterFunction& newGetter, const FloatSetterFunction& newSetter, float newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenFloatGetterFunction& newGetter, const FLTweenFloatSetterFunction& newSetter, float newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->endValue = newEndValue;
@@ -24,14 +24,12 @@ public:
 		this->setter = newSetter;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 		this->changeValue = endValue - startValue;
 	}
-
-public:
 	virtual void TweenAndApplyValue() override
 	{
 		auto value = tweenFunc.Execute(changeValue, startValue, elapseTime, duration);

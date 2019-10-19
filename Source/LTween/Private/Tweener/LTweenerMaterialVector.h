@@ -15,10 +15,10 @@ public:
 	FLinearColor endValue;
 	int32 parameterIndex;
 
-	MaterialVectorGetterFunction getter;
-	MaterialVectorSetterFunction setter;
+	FLTweenMaterialVectorGetterFunction getter;
+	FLTweenMaterialVectorSetterFunction setter;
 
-	void SetInitialValue(const MaterialVectorGetterFunction& newGetter, const MaterialVectorSetterFunction& newSetter, FLinearColor newEndValue, float newDuration, int32 newParameterIndex)
+	void SetInitialValue(const FLTweenMaterialVectorGetterFunction& newGetter, const FLTweenMaterialVectorSetterFunction& newSetter, FLinearColor newEndValue, float newDuration, int32 newParameterIndex)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
@@ -30,7 +30,7 @@ public:
 		this->changeFloat = 1.0f;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		if (getter.IsBound())
 		{
@@ -40,8 +40,6 @@ protected:
 			}
 		}
 	}
-
-public:
 	virtual void TweenAndApplyValue() override
 	{
 		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);

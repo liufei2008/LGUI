@@ -18,13 +18,11 @@ public:
 		this->endFrameNumber = GFrameNumber + newEndValue;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		
 	}
-
-public:
-	virtual bool ToNext(float deltaTime)
+	virtual bool ToNext(float deltaTime) override
 	{
 		if (isMarkedToKill)return false;
 		if (isMarkedPause)return true;//no need to tick time if pause

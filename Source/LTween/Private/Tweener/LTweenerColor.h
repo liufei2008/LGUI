@@ -14,10 +14,10 @@ public:
 	FColor startValue;
 	FColor endValue;
 
-	ColorGetterFunction getter;
-	ColorSetterFunction setter;
+	FLTweenColorGetterFunction getter;
+	FLTweenColorSetterFunction setter;
 
-	void SetInitialValue(const ColorGetterFunction& newGetter, const ColorSetterFunction& newSetter, FColor newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenColorGetterFunction& newGetter, const FLTweenColorSetterFunction& newSetter, FColor newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
@@ -28,13 +28,11 @@ public:
 		this->changeFloat = 1.0f;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 	}
-
-public:
 	virtual void TweenAndApplyValue() override
 	{
 		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);

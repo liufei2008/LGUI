@@ -14,10 +14,10 @@ public:
 	FRotator startValue;
 	FRotator endValue;
 
-	RotatorGetterFunction getter;
-	RotatorSetterFunction setter;
+	FLTweenRotatorGetterFunction getter;
+	FLTweenRotatorSetterFunction setter;
 
-	void SetInitialValue(const RotatorGetterFunction& newGetter, const RotatorSetterFunction& newSetter, FRotator newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenRotatorGetterFunction& newGetter, const FLTweenRotatorSetterFunction& newSetter, FRotator newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
@@ -28,14 +28,11 @@ public:
 		this->changeFloat = 1.0f;
 	}
 protected:
-	virtual void OnStartGetValue()
+	virtual void OnStartGetValue() override
 	{
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
 	}
-
-public:
-
 	virtual void TweenAndApplyValue() override
 	{
 		float lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
