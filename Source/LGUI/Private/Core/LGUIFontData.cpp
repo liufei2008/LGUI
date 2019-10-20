@@ -8,6 +8,7 @@
 #include "Core/ActorComponent/UIText.h"
 #include "Core/LGUIAtlasData.h"
 #include "Core/LGUISettings.h"
+#include "Utils/LGUIUtils.h"
 #include FT_OUTLINE_H
 
 ULGUIFontData::ULGUIFontData()
@@ -462,61 +463,24 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	//store old texutre pointer
 	auto oldTexture = texture;
 	//create new texture
-	texture = UTexture2D::CreateTransient(newTextureSize, newTextureSize, PF_B8G8R8A8);
+	texture = LGUIUtils::CreateTransientBlackTransparentTexture(newTextureSize);
 	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
+	texture->SRGB = true;
+	texture->Filter = TextureFilter::TF_Trilinear;
 	texture->UpdateResource();
-	FColor defaultColor = FColor(255, 255, 255, 0);
-	int pixelCount = newTextureSize * newTextureSize;
-	FColor* transparentColor = new FColor[pixelCount];
-	for (int i = 0; i < pixelCount; i++)
+	texture->AddToRoot();
+
+	//copy old texture to new one
+	if (IsValid(oldTexture) && oldTextureSize > 0)
 	{
-		transparentColor[i] = defaultColor;
-	}
-	if (oldTexture != nullptr)
-	{
-		oldTexture->AddToRoot();
-	}
-	//fill and copy font texture
-	{
-		struct FUpdateTextureRegionsData
-		{
-			FTexture2DResource* Texture2DResource;
-			FUpdateTextureRegion2D* Region;
-			uint32 SrcPitch;
-			uint32 SrcBpp;
-			uint8* SrcData;
-		};
-		FUpdateTextureRegionsData* RegionData = new FUpdateTextureRegionsData;
-		RegionData->Texture2DResource = (FTexture2DResource*)texture->Resource;
-		RegionData->Region = new FUpdateTextureRegion2D(0, 0, 0, 0, newTextureSize, newTextureSize);
-		RegionData->SrcPitch = newTextureSize * 4;
-		RegionData->SrcBpp = 4;
-		RegionData->SrcData = (uint8*)transparentColor;
-		ENQUEUE_UNIQUE_RENDER_COMMAND_FOURPARAMETER(
+		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
 			FLGUIFontUpdateAndCopyFontTexture,
-			FUpdateTextureRegionsData*, RegionData, RegionData,
 			UTexture2D*, oldTexture, oldTexture,
 			UTexture2D*, texture, texture,
 			int32, oldTextureSize, oldTextureSize,
 			{
-			//fill with transparent pixels
-			RHIUpdateTexture2D(
-				RegionData->Texture2DResource->GetTexture2DRHI(),
-				0,
-				*RegionData->Region,
-				RegionData->SrcPitch,
-				RegionData->SrcData
-				+ RegionData->Region->SrcY * RegionData->SrcPitch
-				+ RegionData->Region->SrcX * RegionData->SrcBpp
-			);
-			FMemory::Free(RegionData->SrcData);
-			FMemory::Free(RegionData->Region);
-			delete RegionData;
-
-			//copy old texture pixels
-			if (oldTextureSize != 0 && oldTexture != nullptr)
-			{
+				//copy old texture pixels
 				FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
 				RHICmdList.CopySubTextureRegion(
 					((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
@@ -525,8 +489,7 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 					regionBox
 				);
 				oldTexture->RemoveFromRoot();//ready for gc
-			}
-		});
+			});
 	}
 }
 
