@@ -7,7 +7,7 @@
 #include "Core/LGUIFontData.h"
 #include "LGUI.h"
 
-class UIGeometry
+class LGUI_API UIGeometry
 {
 private:	
 	TArray<FVector> transformedVertices;//vertex position transformed in Canvas space
