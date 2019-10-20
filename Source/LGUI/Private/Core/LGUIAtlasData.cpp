@@ -6,6 +6,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/LGUISpriteData.h"
+#include "Utils/LGUIUtils.h"
 
 
 void FLGUIAtlasData::EnsureAtlasTexture(const FName& packingTag)
@@ -30,7 +31,8 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 	static bool atlasSRGB = ULGUISettings::GetAtlasTextureSRGB(packingTag);
 	static auto filter = ULGUISettings::GetAtlasTextureFilter(packingTag);
 #endif
-	auto texture = UTexture2D::CreateTransient(newTextureSize, newTextureSize, PF_B8G8R8A8);
+	auto texture = LGUIUtils::CreateTransientBlackTransparentTexture(newTextureSize);
+
 	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
 	texture->SRGB = atlasSRGB;
@@ -40,8 +42,8 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 	auto oldTexture = this->atlasTexture;
 	this->atlasTexture = texture;
 
-	//copy texture
-	if (oldTextureSize != 0 && oldTexture != nullptr)
+	//copy old texture to new one
+	if (IsValid(oldTexture) && oldTextureSize > 0)
 	{
 		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER
 		(

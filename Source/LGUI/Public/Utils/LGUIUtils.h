@@ -114,6 +114,8 @@ public:
 	static void EditorNotification(FText NofityText);
 #endif
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
+
+	static UTexture2D* CreateTransientBlackTransparentTexture(int32 InSize);
 private:
 	static TSharedPtr<class UUIDrawcall> GetAvalibleDrawcall(TArray<TSharedPtr<class UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
 	template<class T>
