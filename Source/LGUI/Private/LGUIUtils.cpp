@@ -66,6 +66,30 @@ void LGUIUtils::CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildr
 		CollectChildrenActors(item, AllChildrenActors);
 	}
 }
+UTexture2D* LGUIUtils::CreateTransientBlackTransparentTexture(int32 InSize)
+{
+	auto texture = NewObject<UTexture2D>(
+		GetTransientPackage(),
+		NAME_None,
+		RF_Transient
+		);
+	texture->PlatformData = new FTexturePlatformData();
+	texture->PlatformData->SizeX = InSize;
+	texture->PlatformData->SizeY = InSize;
+	texture->PlatformData->PixelFormat = PF_B8G8R8A8;
+	// Allocate first mipmap.
+	int32 NumBlocksX = InSize / GPixelFormats[PF_B8G8R8A8].BlockSizeX;
+	int32 NumBlocksY = InSize / GPixelFormats[PF_B8G8R8A8].BlockSizeY;
+	FTexture2DMipMap* Mip = new FTexture2DMipMap();
+	texture->PlatformData->Mips.Add(Mip);
+	Mip->SizeX = InSize;
+	Mip->SizeY = InSize;
+	Mip->BulkData.Lock(LOCK_READ_WRITE);
+	void* dataPtr = Mip->BulkData.Realloc(NumBlocksX * NumBlocksY * GPixelFormats[PF_B8G8R8A8].BlockBytes);
+	FMemory::Memset(dataPtr, 0, Mip->BulkData.GetBulkDataSize());
+	Mip->BulkData.Unlock();
+	return texture;
+}
 
 
 void LGUIUtils::SortUIItemDepth(TArray<UUIRenderable*>& shapeList)
