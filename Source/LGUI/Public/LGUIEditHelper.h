@@ -8,7 +8,7 @@
 
 //for create a button in editor
 USTRUCT(BlueprintType)
-struct FLGUIEditHelperButton
+struct LGUI_API FLGUIEditHelperButton
 {
 	GENERATED_BODY()
 private:

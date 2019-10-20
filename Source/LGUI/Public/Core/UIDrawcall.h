@@ -5,7 +5,7 @@
 #include "UIGeometry.h"
 //#include "UIDrawcall.generated.h"
 
-class UUIDrawcall
+class LGUI_API UUIDrawcall
 {
 public:
 	TArray<TSharedPtr<UIGeometry>> geometryList;//UI geometries that construct this drawcall
