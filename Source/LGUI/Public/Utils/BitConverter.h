@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 
-class BitConverter
+class LGUI_API BitConverter
 {
 public:
 	static bool ToBoolean(const TArray<uint8>& bytes)

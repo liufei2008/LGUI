@@ -28,7 +28,7 @@ enum class UIAnchorVerticalAlign :uint8
 
 // UI's base data, rect transform, color
 USTRUCT(BlueprintType)
-struct FUIWidget
+struct LGUI_API FUIWidget
 {
 	GENERATED_BODY()
 
