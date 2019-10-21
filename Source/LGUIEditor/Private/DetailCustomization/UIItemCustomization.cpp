@@ -101,6 +101,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		hierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
 			SetHierarchyIndexInfo(TargetScriptArray[0]);
 			ForceUpdateUI();
+			FLGUIEditorModule::Instance->RefreshSceneOutliner();
 		}));
 		auto hierarchyIndexWidget =
 			SNew(SHorizontalBox)
@@ -125,6 +126,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					SetHierarchyIndexInfo(item);
 					ForceUpdateUI();
 				}
+				FLGUIEditorModule::Instance->RefreshSceneOutliner();
 				return FReply::Handled(); 
 				})
 			]
@@ -143,6 +145,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					SetHierarchyIndexInfo(item);
 					ForceUpdateUI();
 				}
+				FLGUIEditorModule::Instance->RefreshSceneOutliner();
 				return FReply::Handled();
 				})
 			];
