@@ -61,6 +61,7 @@ public:
 		GEditor->EndTransaction();
 	}
 	static void CreateUIItemActor(UClass* ActorClass);
+	static void CreateEmptyActor();
 	static void CreateUIControls(FString InPrefabPath);
 	static void ReplaceUIElementWith(UClass* ActorClass);
 	static void DuplicateSelectedActors_Impl();
@@ -75,6 +76,10 @@ public:
 	static void CreateWorldSpaceUIBasicSetup();
 	static UWorld* GetWorldFromSelection();
 	static void CreatePrefabAsset();
+	static void ApplyPrefab();
+	static void RevertPrefab();
+	static void DeletePrefab();
+	static class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 
 	UPROPERTY(Transient) TArray<class ULGUIPrefab*> copiedActorPrefabList;
 	UPROPERTY(Transient) UActorComponent* copiedComponent;

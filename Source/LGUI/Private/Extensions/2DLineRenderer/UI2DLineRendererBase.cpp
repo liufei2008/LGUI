@@ -76,7 +76,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		FVector2D dir; float magnitude;
 		v0to1.ToDirectionAndLength(dir, magnitude);
 		float v0to1LengthReciprocal = magnitude == 0 ? 0 : 1.0f / magnitude;
-		auto normal0 = FVector2D(v0to1.Y * v0to1LengthReciprocal, -v0to1.X * v0to1LengthReciprocal);//equal to rotate 90 degree
+		auto normal0 = FVector2D(v0to1.Y, -v0to1.X);//equal to rotate 90 degree
+		normal0 *= v0to1LengthReciprocal;
 
 		switch (LineWidthSide)
 		{
@@ -138,7 +139,6 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 			FVector2D v1to2 = vEnd1 - vEnd2;
 			FVector2D dir; float magnitude;
 			v1to2.ToDirectionAndLength(dir, magnitude);
-			float v1to2LengthReciprocal = magnitude == 0 ? 0 : 1.0f / magnitude;
 			auto normal0 = FVector2D(dir.Y, -dir.X);//equal to rotate 90 degree
 
 			switch (LineWidthSide)
