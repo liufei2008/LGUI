@@ -218,6 +218,31 @@ void ULGUIEditorToolsAgentObject::CreateUIItemActor(UClass* ActorClass)
 	GEditor->SelectActor(newActor, true, true);
 	GEditor->EndTransaction();
 }
+void ULGUIEditorToolsAgentObject::CreateEmptyActor()
+{
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
+	auto selectedActor = GetFirstSelectedActor();
+	AActor* newActor = nullptr;
+	newActor = GetWorldFromSelection()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
+	//create SceneComponent
+	{
+		USceneComponent* RootComponent = NewObject<USceneComponent>(newActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
+		RootComponent->Mobility = EComponentMobility::Movable;
+		RootComponent->bVisualizeComponent = false;
+
+		newActor->SetRootComponent(RootComponent);
+		newActor->AddInstanceComponent(RootComponent);
+
+		RootComponent->RegisterComponent();
+	}
+	if (selectedActor != nullptr)
+	{
+		newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
+		GEditor->SelectActor(selectedActor, false, true);
+	}
+	GEditor->SelectActor(newActor, true, true);
+	GEditor->EndTransaction();
+}
 
 AActor* ULGUIEditorToolsAgentObject::GetFirstSelectedActor()
 {
@@ -549,6 +574,11 @@ ULGUIEditorToolsAgentObject* ULGUIEditorToolsAgentObject::GetInstance()
 void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 {
 	auto selectedActor = GetFirstSelectedActor();
+	if (Cast<ALGUIPrefabActor>(selectedActor) != nullptr)
+	{
+		UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreatePrefabAsset]Cannot create prefab on a PrefabActor!"));
+		return;
+	}
 	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
 	if (DesktopPlatform)
 	{
@@ -591,6 +621,51 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 			}
 		}
 	}
+}
+void ULGUIEditorToolsAgentObject::ApplyPrefab()
+{
+	auto selectedActor = GetFirstSelectedActor();
+	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
+	if (prefabActor != nullptr)
+	{
+		prefabActor->GetPrefabComponent()->SavePrefab();
+	}
+}
+void ULGUIEditorToolsAgentObject::RevertPrefab()
+{
+	auto selectedActor = GetFirstSelectedActor();
+	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
+	if (prefabActor != nullptr)
+	{
+		prefabActor->GetPrefabComponent()->RevertPrefab();
+	}
+}
+void ULGUIEditorToolsAgentObject::DeletePrefab()
+{
+	auto selectedActor = GetFirstSelectedActor();
+	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
+	if (prefabActor != nullptr)
+	{
+		prefabActor->GetPrefabComponent()->DeleteThisInstance();
+	}
+}
+ALGUIPrefabActor* ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(AActor* InActor)
+{
+	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
+	{
+		auto prefabActor = *ActorItr;
+		if (prefabActor->GetPrefabComponent()->AllLoadedActorArray.Contains(InActor))
+		{
+			if (auto loadedRootActor = prefabActor->GetPrefabComponent()->LoadedRootActor)
+			{
+				if (InActor->IsAttachedTo(loadedRootActor) || InActor == loadedRootActor)
+				{
+					return prefabActor;
+				}
+			}
+		}
+	}
+	return nullptr;
 }
 #endif
 

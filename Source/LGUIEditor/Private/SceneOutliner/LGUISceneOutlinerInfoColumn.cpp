@@ -11,6 +11,7 @@
 #include "Utils/LGUIUtils.h"
 #include "LGUIEditorStyle.h"
 #include "SceneOutliner/LGUISceneOutlinerButton.h"
+#include "Window/LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
@@ -53,7 +54,7 @@ namespace LGUISceneOutliner
 	FLGUISceneOutlinerInfoColumn::FLGUISceneOutlinerInfoColumn(ISceneOutliner& InSceneOutliner)
 		: WeakSceneOutliner(StaticCastSharedRef<ISceneOutliner>(InSceneOutliner.AsShared()))
 	{
-
+		
 	}
 
 	FLGUISceneOutlinerInfoColumn::~FLGUISceneOutlinerInfoColumn()
@@ -94,15 +95,39 @@ namespace LGUISceneOutliner
 		TSharedRef<SLGUISceneOutlinerButton> result = SNew(SLGUISceneOutlinerButton)
 			.ButtonStyle(FLGUIEditorStyle::Get(), "EmptyButton")
 			.ContentPadding(FMargin(0))
-			//.HasDownArrow(false)
+			.HasDownArrow(false)
 			.ButtonContent()
 			[
-				SNew(SBox)
-				.WidthOverride(16)
-				.HeightOverride(16)
-				.Padding(FMargin(0))
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.VAlign(EVerticalAlignment::VAlign_Center)
+				SNew(SOverlay)
+				+SOverlay::Slot()//down arrow
+				[
+					SNew(SBox)
+					.WidthOverride(8)
+					.HeightOverride(8)
+					.Padding(FMargin(0))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					[
+						SNew(SImage)
+						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility, actor)
+						.Image(FEditorStyle::GetBrush("ComboButton.Arrow"))
+						.ColorAndOpacity(FSlateColor::UseForeground())
+					]
+				]
+				+SOverlay::Slot()//prefab
+				[
+					SNew(SBox)
+					.WidthOverride(16)
+					.HeightOverride(16)
+					.Padding(FMargin(0))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					[
+						SNew(SImage)
+						.Image(FLGUIEditorStyle::Get().GetBrush("PrefabMark"))
+						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility, actor)
+					]
+				]
 			]
 			.MenuContent()
 			[
@@ -121,9 +146,47 @@ namespace LGUISceneOutliner
 
 	void FLGUISceneOutlinerInfoColumn::SortItems(TArray<SceneOutliner::FTreeItemPtr>& OutItems, const EColumnSortMode::Type SortMode) const
 	{
-		SceneOutliner::FSortHelper<FString>()
-			.Primary(FGetInfo(*this), SortMode)
-			.Sort(OutItems);
+		//SceneOutliner::FSortHelper<FString>()
+		//	.Primary(FGetInfo(*this), SortMode)
+		//	.Sort(OutItems);
+		if (SortMode == EColumnSortMode::None)return;
+
+		OutItems.Sort([this, SortMode](const SceneOutliner::FTreeItemPtr& A, const SceneOutliner::FTreeItemPtr& B)
+		{
+			bool result = true;
+			AActor* ActorA = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(A));
+			AActor* ActorB = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(B));
+			if (ActorA != nullptr && ActorB != nullptr)
+			{
+				USceneComponent* RootCompA = ActorA->GetRootComponent();
+				USceneComponent* RootCompB = ActorB->GetRootComponent();
+				if (RootCompA != nullptr && RootCompB != nullptr)
+				{
+					UUIItem* UIItemA = Cast<UUIItem>(RootCompA);
+					UUIItem* UIItemB = Cast<UUIItem>(RootCompB);
+					if (UIItemA != nullptr && UIItemB != nullptr)
+					{
+						if (UIItemA->GetHierarchyIndex() == UIItemB->GetHierarchyIndex())
+						{
+							result = ActorA->GetActorLabel().Compare(ActorB->GetActorLabel()) > 0;
+						}
+						else
+						{
+							result = UIItemA->GetHierarchyIndex() > UIItemB->GetHierarchyIndex();
+						}
+					}
+					else
+					{
+						result = ActorA->GetActorLabel().Compare(ActorB->GetActorLabel()) > 0;
+					}
+				}
+				else
+				{
+					result = ActorA->GetActorLabel().Compare(ActorB->GetActorLabel()) > 0;
+				}
+			}
+			return SortMode == EColumnSortMode::Ascending ? !result : result;
+		});
 	}
 
 	FString FLGUISceneOutlinerInfoColumn::GetTextForActor(AActor* InActor) const
@@ -139,6 +202,15 @@ namespace LGUISceneOutliner
 	{
 		auto Item = TreeItem.Pin();
 		return Item.IsValid() ? FText::FromString(Item->Get(FGetInfo(*this))) : FText::GetEmpty();
+	}
+	EVisibility FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility(AActor* InActor)const
+	{
+		return ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(InActor) != nullptr ? EVisibility::Visible : EVisibility::Hidden;
+	}
+	EVisibility FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility(AActor* InActor)const
+	{
+		bool isPrefab = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(InActor) != nullptr;
+		return isPrefab ? EVisibility::Hidden : EVisibility::Visible;
 	}
 
 	bool FLGUISceneOutlinerInfoColumn::CanShowPrefabIcon(AActor* InActor) const
@@ -163,46 +235,6 @@ namespace LGUISceneOutliner
 			}
 		}
 		return nullptr;
-	}
-
-	ALGUIPrefabActor* FLGUISceneOutlinerInfoColumn::GetPrefabActor_WhichManageThisActor(AActor* InActor)const
-	{
-		for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
-		{
-			auto prefabActor = *ActorItr;
-			if (prefabActor->GetPrefabComponent()->AllLoadedActorArray.Contains(InActor))
-			{
-				if (InActor->IsAttachedTo(prefabActor))
-				{
-					return prefabActor;
-				}
-			}
-		}
-		return nullptr;
-	}
-
-	bool FLGUISceneOutlinerInfoColumn::IsInsidePrefabActor(AActor* InActor)const
-	{
-		return GetPrefabActor_WhichManageThisActor(InActor) != nullptr;
-	}
-
-	void FLGUISceneOutlinerInfoColumn::GotoPrefabActor(AActor* InActor)
-	{
-		ALGUIPrefabActor* PrefabActor = nullptr;
-		for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
-		{
-			auto itemActor = *ActorItr;
-			if (itemActor->GetPrefabComponent()->AllLoadedActorArray.Contains(InActor))
-			{
-				PrefabActor = itemActor;
-				break;
-			}
-		}
-		if (PrefabActor != nullptr)
-		{
-			GEditor->SelectNone(true, false);
-			GEditor->SelectActor(PrefabActor, true, true);
-		}
 	}
 }
 
