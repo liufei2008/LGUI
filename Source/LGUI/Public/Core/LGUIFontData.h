@@ -124,7 +124,7 @@ private:
 		TArray<uint8> tempFontBinaryArray;//temp array for storing data, because freetype need to load font to memory and keep alive
 	TMap<FLGUIFontKeyData, FLGUICharData> charDataMap;
 	struct FLGUIAtlasData* packingAtlasData = nullptr;
-	FDelegateHandle packingAtlasTextureExpendDelegateHandle;
+	FDelegateHandle packingAtlasTextureExpandDelegateHandle;
 
 	rbp::MaxRectsBinPack binPack;//for rect packing
 	int32 textureSize;//current texture size
@@ -147,7 +147,7 @@ private:
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
 
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
-	void ApplyPackingAtlasTextureExpend(UTexture2D* newTexture);
+	void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize);
 public:
 	FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
 #if WITH_EDITOR
