@@ -37,11 +37,11 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 #else
 	static int32 spaceBetweenSprites = ULGUISettings::GetAtlasTexturePadding(packingTag);
 #endif
-	float atlasTextureSizeInv = 1.0f / InAtlasData->atlasBinPack.GetBinWidth();
+	float atlasTextureSizeInv = 1.0f / InAtlasData->atlasTexture->GetSizeX();
 
 	auto method = rbp::MaxRectsBinPack::RectBestAreaFit;
-	int insertRectWidth = spriteTexture->GetSurfaceWidth() + spaceBetweenSprites + spaceBetweenSprites;
-	int insertRectHeight = spriteTexture->GetSurfaceHeight() + spaceBetweenSprites + spaceBetweenSprites;
+	int insertRectWidth = spriteTexture->GetSizeX() + spaceBetweenSprites + spaceBetweenSprites;
+	int insertRectHeight = spriteTexture->GetSizeY() + spaceBetweenSprites + spaceBetweenSprites;
 
 	auto packedRect = InAtlasData->atlasBinPack.Insert(insertRectWidth, insertRectHeight, method);
 	if (packedRect.height <= 0)//means this area cannot fit the texture
@@ -193,6 +193,7 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 		}
 		);
 		//add to sprite
+		atlasTexture = InAtlasData->atlasTexture;
 		spriteInfo.ApplyUV(packedRect.x, packedRect.y, packedRect.width, packedRect.height, atlasTextureSizeInv, atlasTextureSizeInv);
 		spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
 		InAtlasData->spriteDataArray.Add(this);
@@ -250,8 +251,8 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 				{
 					ApplySpriteTextureSetting(spriteTexture);
 				}
-				spriteInfo.width = spriteTexture->GetSurfaceWidth();
-				spriteInfo.height = spriteTexture->GetSurfaceHeight();
+				spriteInfo.width = spriteTexture->GetSizeX();
+				spriteInfo.height = spriteTexture->GetSizeY();
 			}
 		}
 		//sprite data, apply border
@@ -259,11 +260,11 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 		{
 			if (isInitialized)
 			{
-				float atlasTextureSizeInv = 1.0f / GetAtlasTexture()->GetSurfaceWidth();
+				float atlasTextureSizeInv = 1.0f / GetAtlasTexture()->GetSizeX();
 				spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
 			}
-			spriteInfo.width = spriteTexture->GetSurfaceWidth();
-			spriteInfo.height = spriteTexture->GetSurfaceHeight();
+			spriteInfo.width = spriteTexture->GetSizeX();
+			spriteInfo.height = spriteTexture->GetSizeY();
 		}
 	}
 }
