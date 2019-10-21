@@ -268,6 +268,11 @@ void FLGUIEditorModule::ShutdownModule()
 	}
 }
 
+void FLGUIEditorModule::RefreshSceneOutliner()
+{
+	GEngine->BroadcastLevelActorListChanged();
+}
+
 TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnEditorToolsTab(const FSpawnTabArgs& SpawnTabArgs)
 {
 	TSharedRef<SDockTab> ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
@@ -301,6 +306,10 @@ void FLGUIEditorModule::EditorToolButtonClicked()
 {
 	FGlobalTabmanager::Get()->InvokeTab(LGUIEditorToolsTabName);
 }
+bool FLGUIEditorModule::CanEditActorForPrefab()
+{
+	return GEditor->GetSelectedActorCount() == 1 && ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(ULGUIEditorToolsAgentObject::GetFirstSelectedActor()) != nullptr;
+}
 
 void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder)
 {
@@ -318,16 +327,53 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 	FMenuBuilder MenuBuilder(true, PluginCommands);
 	auto commandList = FLGUIEditorCommands::Get();
 
-	MenuBuilder.AddMenuEntry(
-		LOCTEXT("CreatePrefab", "CreatePrefab"),
-		LOCTEXT("Create_Tooltip", "Use selected actor to create a new prefab"),
-		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreatePrefabAsset)
-			, FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; }))
-	);
-
-	MenuBuilder.BeginSection("Create", LOCTEXT("Create UI", "Create UI"));
+	MenuBuilder.BeginSection("Prefab", LOCTEXT("Prefab", "Prefab"));
 	{
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("CreatePrefab", "Create Prefab"),
+			LOCTEXT("Create_Tooltip", "Use selected actor to create a new prefab"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreatePrefabAsset)
+				, FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; }))
+		);
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ApplyPrefab", "Apply Prefab"),
+			LOCTEXT("Apply_Tooltip", "Apply change and save prefab to asset"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::ApplyPrefab)
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
+		);
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("RevertPrefab", "Revert Prefab"),
+			LOCTEXT("Revert_Tooltip", "Revert any changes"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::RevertPrefab)
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
+		);
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("DeletePrefab", "Delete Prefab"),
+			LOCTEXT("Delete_Tooltip", "Delete this prefab actor with hierarchy"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::DeletePrefab)
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
+		);
+	}
+	MenuBuilder.EndSection();
+
+	MenuBuilder.BeginSection("Create", LOCTEXT("Create", "Create"));
+	{
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("EmptyActor", "Empty Actor"),
+			LOCTEXT("EmptyActor_Tooltip", "Create an empty actor"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateEmptyActor))
+		);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("CreateUIElementSubMenu", "Create UI Element"),
 			LOCTEXT("CreateUIElementSubMenu_Tooltip", "Create UI Element"),

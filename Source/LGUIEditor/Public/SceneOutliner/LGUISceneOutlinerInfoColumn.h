@@ -8,7 +8,7 @@
 
 namespace LGUISceneOutliner
 {
-	class FLGUISceneOutlinerInfoColumn : public ISceneOutlinerColumn
+	class LGUIEDITOR_API FLGUISceneOutlinerInfoColumn : public ISceneOutlinerColumn
 	{
 	public:
 		static TSharedRef<ISceneOutlinerColumn> MakeInstance(ISceneOutliner& SceneOutliner);
@@ -34,17 +34,14 @@ namespace LGUISceneOutliner
 		// End ISceneOutlinerColumn Implementation
 
 		FString GetTextForActor(AActor* InActor) const;
+		EVisibility GetPrefabIconVisibility(AActor* InActor)const;
+		EVisibility GetDownArrowVisibility(AActor* InActor)const;
 
 	private:
 
 		FText GetTextForItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
 		bool CanShowPrefabIcon(AActor* InActor) const;
 		AActor* GetActorFromTreeItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
-		bool IsInsidePrefabActor(AActor* InActor)const;
-
-		class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor)const;
-
-		void GotoPrefabActor(AActor* InActor);
 
 		/** Weak reference to the outliner widget that owns our list */
 		TWeakPtr< ISceneOutliner > WeakSceneOutliner;

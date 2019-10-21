@@ -36,6 +36,7 @@ public:
 	
 	TSharedRef<SWidget> MakeEditorToolsMenu(bool IsSceneOutlineMenu);
 	TSharedPtr<class FUICommandList> PluginCommands;
+	void RefreshSceneOutliner();
 private:
 
 	void CreateUIElementSubMenu(FMenuBuilder& MenuBuilder);
@@ -49,7 +50,7 @@ private:
 	TSharedRef<SDockTab> HandleSpawnEditorToolsTab(const FSpawnTabArgs& SpawnTabArgs);
 
 	void EditorToolButtonClicked();
-
+	bool CanEditActorForPrefab();
 private:
 	TSharedRef<SDockTab> HandleSpawnEventComponentSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnEventFunctionSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
