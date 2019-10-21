@@ -83,9 +83,9 @@ int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
 		}
 	}
 	//callback function
-	if (expendTextureSizeCallback.IsBound())
+	if (expandTextureSizeCallback.IsBound())
 	{
-		expendTextureSizeCallback.Broadcast(this->atlasTexture);
+		expandTextureSizeCallback.Broadcast(this->atlasTexture, newTextureSize);
 	}
 
 	return newTextureSize;

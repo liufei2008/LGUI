@@ -127,13 +127,13 @@ void ULGUIFontData::InitFreeType()
 			if (packingAtlasData == nullptr)
 			{
 				packingAtlasData = ULGUIAtlasManager::FindOrAdd(packingTag);
-				packingAtlasTextureExpendDelegateHandle = packingAtlasData->expendTextureSizeCallback.AddUObject(this, &ULGUIFontData::ApplyPackingAtlasTextureExpend);
-				packingAtlasData->EnsureAtlasTexture(packingTag);
-				texture = packingAtlasData->atlasTexture;
-				textureSize = texture->GetSurfaceWidth();
-				fullTextureSizeReciprocal = 1.0f / textureSize;
-				charDataMap.Empty();
+				packingAtlasTextureExpandDelegateHandle = packingAtlasData->expandTextureSizeCallback.AddUObject(this, &ULGUIFontData::ApplyPackingAtlasTextureExpand);
 			}
+			packingAtlasData->EnsureAtlasTexture(packingTag);
+			texture = packingAtlasData->atlasTexture;
+			textureSize = texture->GetSizeX();
+			fullTextureSizeReciprocal = 1.0f / textureSize;
+			charDataMap.Empty();
 		}
 		else
 		{
@@ -152,7 +152,7 @@ void ULGUIFontData::DeinitFreeType()
 	usePackingTag = false;
 	if (packingAtlasData != nullptr)
 	{
-		packingAtlasData->expendTextureSizeCallback.Remove(packingAtlasTextureExpendDelegateHandle);
+		packingAtlasData->expandTextureSizeCallback.Remove(packingAtlasTextureExpandDelegateHandle);
 		packingAtlasData = nullptr;
 	}
 	if (face != nullptr)
@@ -343,9 +343,11 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const int32 InBold
 	}
 	return false;
 }
-void ULGUIFontData::ApplyPackingAtlasTextureExpend(UTexture2D* newTexture)
+void ULGUIFontData::ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize)
 {
 	this->texture = newTexture;
+	textureSize = newTextureSize;
+	fullTextureSizeReciprocal = 1.0f / textureSize;
 	//scale down uv of prev chars
 	for (auto& charDataItem : charDataMap)
 	{
