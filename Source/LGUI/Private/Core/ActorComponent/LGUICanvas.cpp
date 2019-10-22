@@ -130,6 +130,7 @@ void ULGUICanvas::OnUIActiveStateChange(bool active)
 
 bool ULGUICanvas::CheckTopMostCanvas()
 {
+	if (this->GetWorld() == nullptr)return false;
 	if (TopMostCanvas != nullptr)return true;
 	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
 	if (TopMostCanvas != nullptr)return true;
@@ -137,6 +138,7 @@ bool ULGUICanvas::CheckTopMostCanvas()
 }
 bool ULGUICanvas::CheckParentCanvas()
 {
+	if (this->GetWorld() == nullptr)return false;
 	if (ParentCanvas != nullptr)return true;
 	LGUIUtils::FindParentCanvas(this->GetOwner(), ParentCanvas);
 	if (ParentCanvas != nullptr)return true;
@@ -144,6 +146,7 @@ bool ULGUICanvas::CheckParentCanvas()
 }
 bool ULGUICanvas::CheckUIItem()
 {
+	if (this->GetWorld() == nullptr)return false;
 	if (UIItem != nullptr)return true;
 	UIItem = Cast<UUIItem>(GetOwner()->GetRootComponent());
 	if (UIItem == nullptr)
@@ -807,7 +810,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 					return;
 				}
 			}
-			auto uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this->GetOwner());
+			auto uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 			uiMat->SetFlags(RF_Transient);
 			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture);
 			uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);

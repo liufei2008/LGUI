@@ -599,6 +599,7 @@ void UUIItem::UnregisterVertexPositionChange(const FSimpleDelegate& InDelegate)
 
 bool UUIItem::CheckRenderCanvas()
 {
+	if (this->GetWorld() == nullptr)return false;
 	if (RenderCanvas != nullptr)return true;
 	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner());
 	if (RenderCanvas != nullptr)

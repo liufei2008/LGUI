@@ -165,6 +165,7 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 //find first Canvas in hierarchy
 void LGUIUtils::FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 {
+	if (!IsValid(actor))return;
 	auto tempComp = GetComponentInParent<ULGUICanvas>(actor);
 	if (tempComp != nullptr)
 	{
@@ -180,6 +181,7 @@ void LGUIUtils::FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 
 void LGUIUtils::FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 {
+	if (!IsValid(actor))return;
 	auto parentActor = actor->GetAttachParentActor();
 	if (parentActor != nullptr)
 	{
