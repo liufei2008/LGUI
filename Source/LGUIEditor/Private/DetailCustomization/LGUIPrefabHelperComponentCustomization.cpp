@@ -14,13 +14,14 @@ void FLGUIPrefabHelperComponentCustomization::CustomizeDetails(IDetailLayoutBuil
 	TArray<TWeakObjectPtr<UObject>> targetObjects;
 	DetailBuilder.GetObjectsBeingCustomized(targetObjects);
 	TargetScriptPtr = Cast<ULGUIPrefabHelperComponent>(targetObjects[0].Get());
-	if (TargetScriptPtr != nullptr)
+	if (TargetScriptPtr.IsValid())
 	{
 		
 	}
 	else
 	{
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
+		return;
 	}
 	TargetScriptPtr->LoadPrefab();
 

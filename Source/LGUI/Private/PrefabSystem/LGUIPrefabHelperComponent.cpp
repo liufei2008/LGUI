@@ -8,8 +8,11 @@
 #include "Core/ActorComponent/UIItem.h"
 #if WITH_EDITOR
 #include "Editor.h"
+#include "EditorActorFolders.h"
 #endif
 
+
+FName ULGUIPrefabHelperComponent::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
 
 ULGUIPrefabHelperComponent::ULGUIPrefabHelperComponent()
 {
@@ -33,11 +36,13 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
 			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() 
 			: nullptr, AllLoadedActorArray);
-		GEditor->SelectActor(LoadedRootActor, true, false);
 		ParentActorForEditor = nullptr;
+
+		FActorFolders::Get().CreateFolder(*this->GetWorld(), PrefabFolderName);
+		this->GetOwner()->SetFolderPath(PrefabFolderName);
+		GEditor->SelectActor(LoadedRootActor, true, false);
 	}
 }
-
 void ULGUIPrefabHelperComponent::SavePrefab()
 {
 	if (PrefabAsset)
