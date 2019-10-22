@@ -355,8 +355,8 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
 		);
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("DeletePrefab", "Delete Prefab"),
-			LOCTEXT("Delete_Tooltip", "Delete this prefab actor with hierarchy"),
+			LOCTEXT("DeletePrefab", "Delete this Prefab instance"),
+			LOCTEXT("Delete_Tooltip", "Delete actors created by this prefab with hierarchy"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::DeletePrefab)
 				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)

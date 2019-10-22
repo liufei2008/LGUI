@@ -105,6 +105,8 @@
         UITextInputComponent support ignore keys, canbe useful for navigation. 
         LGUIComponentReference now support multiple component of same type on same actor, all we need to do is just click and select a component.
 2.3:
+    Fix:
+        Fix crash when add LGUICanvas in blueprint actor. But blueprint actor for LGUI is still not recommended.
     Modify:
         Rename LTween's XXXGetterFunction to LTweenXXXGetterFunction, and same change to XXXSettterFunction.
     New feature:
