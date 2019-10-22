@@ -14,6 +14,7 @@
 ULGUIPrefabHelperComponent::ULGUIPrefabHelperComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	IdentityColor = FColor::MakeRandomColor();
 }
 void ULGUIPrefabHelperComponent::BeginPlay()
 {
@@ -31,7 +32,7 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 	{
 		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
 			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() 
-			: this->GetOwner()->GetRootComponent(), AllLoadedActorArray);
+			: nullptr, AllLoadedActorArray);
 		GEditor->SelectActor(LoadedRootActor, true, false);
 		ParentActorForEditor = nullptr;
 	}

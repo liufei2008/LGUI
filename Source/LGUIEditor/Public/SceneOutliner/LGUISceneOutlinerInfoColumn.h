@@ -34,14 +34,15 @@ namespace LGUISceneOutliner
 		// End ISceneOutlinerColumn Implementation
 
 		FString GetTextForActor(AActor* InActor) const;
-		EVisibility GetPrefabIconVisibility(AActor* InActor)const;
-		EVisibility GetDownArrowVisibility(AActor* InActor)const;
-
 	private:
 
 		FText GetTextForItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
 		bool CanShowPrefabIcon(AActor* InActor) const;
 		AActor* GetActorFromTreeItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
+
+		EVisibility GetPrefabIconVisibility(AActor* InActor)const;
+		EVisibility GetDownArrowVisibility(AActor* InActor)const;
+		FSlateColor GetPrefabIconColor(AActor* InActor)const;
 
 		/** Weak reference to the outliner widget that owns our list */
 		TWeakPtr< ISceneOutliner > WeakSceneOutliner;

@@ -46,6 +46,7 @@ void UUIComponentBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 
 bool UUIComponentBase::CheckRootUIComponent()
 {
+	if (this->GetWorld() == nullptr)return false;
 	if (RootUIComp != nullptr)return true;
 	if (auto owner = GetOwner())
 	{

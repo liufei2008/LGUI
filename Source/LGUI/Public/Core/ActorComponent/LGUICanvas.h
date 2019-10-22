@@ -53,7 +53,7 @@ ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
 class UUIItem;
 class UUIRenderable;
 
-UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent))
+UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API ULGUICanvas : public UActorComponent
 {
 	GENERATED_BODY()

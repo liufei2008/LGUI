@@ -15,7 +15,7 @@ public:
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
-	TArray<class ULGUICanvas*> TargetScriptArray;
+	TArray<TWeakObjectPtr<class ULGUICanvas>> TargetScriptArray;
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
 	FText GetDrawcallInfo()const;
 	FText GetDrawcallInfoTooltip()const;
