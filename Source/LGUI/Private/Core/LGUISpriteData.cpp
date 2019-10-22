@@ -290,6 +290,12 @@ void ULGUISpriteData::InitSpriteData()
 			UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData]SpriteData:%s spriteTexture is null!"), *(this->GetPathName()));
 			return;
 		}
+#if WITH_EDITOR
+		if (GIsCookerLoadingPackage)
+		{
+			return;
+		}
+#endif
 		if (packingTag.IsNone())
 		{
 			atlasTexture = spriteTexture;
