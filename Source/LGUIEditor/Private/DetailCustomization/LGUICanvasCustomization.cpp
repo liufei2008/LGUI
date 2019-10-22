@@ -34,7 +34,8 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		UE_LOG(LGUIEditor, Log, TEXT("[FLGUICanvasCustomization]Get TargetScript is null"));
 		return;
 	}
-	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0]);
+
+	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0].Get());
 
 	if (TargetScriptArray[0]->GetWorld())
 	{
@@ -88,9 +89,12 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	else
 	{
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
-		if (TargetScriptArray[0]->GetRootCanvas()->renderMode == ELGUIRenderMode::WorldSpace)
+		if (TargetScriptArray[0]->GetRootCanvas() != nullptr)
 		{
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
+			if (TargetScriptArray[0]->GetRootCanvas()->renderMode == ELGUIRenderMode::WorldSpace)
+			{
+				needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
+			}
 		}
 
 		auto overrideParametersHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, overrideParameters));
@@ -153,7 +157,9 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		DetailBuilder.HideProperty(item);
 	}
 
-	category.AddCustomRow(LOCTEXT("DrawcallInfo", "DrawcallInfo"))
+	if (TargetScriptArray[0]->GetWorld() != nullptr)
+	{
+		category.AddCustomRow(LOCTEXT("DrawcallInfo", "DrawcallInfo"))
 		.NameContent()
 		[
 			SNew(STextBlock)
@@ -170,6 +176,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			.ColorAndOpacity(FLinearColor(FColor::Green))
 		]
 		;
+	}
 }
 void FLGUICanvasCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {

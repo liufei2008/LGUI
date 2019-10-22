@@ -124,7 +124,8 @@ namespace LGUISceneOutliner
 					.VAlign(EVerticalAlignment::VAlign_Center)
 					[
 						SNew(SImage)
-						.Image(FLGUIEditorStyle::Get().GetBrush("PrefabMark"))
+						.Image(FLGUIEditorStyle::Get().GetBrush("PrefabMarkWhite"))
+						.ColorAndOpacity(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconColor, actor)
 						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility, actor)
 					]
 				]
@@ -211,6 +212,16 @@ namespace LGUISceneOutliner
 	{
 		bool isPrefab = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(InActor) != nullptr;
 		return isPrefab ? EVisibility::Hidden : EVisibility::Visible;
+	}
+	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(AActor* InActor)const
+	{
+		FColor resultColor = FColor::White;
+		auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(InActor);
+		if (prefabActor != nullptr)
+		{
+			 resultColor = prefabActor->GetPrefabComponent()->IdentityColor;
+		}
+		return FSlateColor(resultColor);
 	}
 
 	bool FLGUISceneOutlinerInfoColumn::CanShowPrefabIcon(AActor* InActor) const
