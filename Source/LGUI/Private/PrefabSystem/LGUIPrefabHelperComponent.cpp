@@ -11,13 +11,16 @@
 #include "EditorActorFolders.h"
 #endif
 
-
+#if WITH_EDITORONLY_DATA
 FName ULGUIPrefabHelperComponent::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
+#endif
 
 ULGUIPrefabHelperComponent::ULGUIPrefabHelperComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+#if WITH_EDITORONLY_DATA
 	IdentityColor = FColor::MakeRandomColor();
+#endif
 }
 void ULGUIPrefabHelperComponent::BeginPlay()
 {
