@@ -111,3 +111,4 @@
         Rename LTween's XXXGetterFunction to LTweenXXXGetterFunction, and same change to XXXSettterFunction.
     New feature:
         LGUIFont now can pack font texture into UISprite's atlas texture! This can be very helpful to reduce drawcall. All we need to do is to change LGUIFont's packingTag property to a UISprite's packingTag.
+        Create folder for LGUIPrefab actor in SceneOutliner.

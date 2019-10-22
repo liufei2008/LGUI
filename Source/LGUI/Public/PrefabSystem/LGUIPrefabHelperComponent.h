@@ -56,7 +56,7 @@ public:
 		AActor* LoadedRootActor;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllLoadedActorArray;
-	UPROPERTY(Transient)
-		FColor IdentityColor;
+	FColor IdentityColor;
+	static FName PrefabFolderName;
 #endif
 };
