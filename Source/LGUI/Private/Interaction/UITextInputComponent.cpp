@@ -875,7 +875,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 				VisibleCharStartLineIndex--;
 				CaretPositionLineIndex--;
 			}
-			if (CaretPositionIndex - VisibleCharStartIndex > uiText->GetText().Len())//caret position move right and out of current range, then do move down
+			if (CaretPositionIndex - VisibleCharStartIndex > replaceText.Len())//caret position move right and out of current range, then do move down
 			{
 				VisibleCharStartLineIndex++;
 				CaretPositionLineIndex++;
