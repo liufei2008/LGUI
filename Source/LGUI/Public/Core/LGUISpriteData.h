@@ -121,6 +121,7 @@ private:
 	void PackageSprite();
 	bool InsertTexture(FLGUIAtlasData* InAtlasData);
 	void CheckSpriteTexture();
+	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);
 
 public:
 	void InitSpriteData();
