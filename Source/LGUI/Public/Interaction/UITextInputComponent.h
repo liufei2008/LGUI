@@ -157,14 +157,14 @@ private:
 	UPROPERTY(Transient)class UUISprite* CaretObject;
 	UPROPERTY(Transient)TArray<class UUISprite*> SelectionMaskObjectArray;//selection mask
 	TArray<FUITextSelectionProperty> SelectionPropertyArray;//range selection
-	int VisibleCharStartIndex;//in single line mode, will clamp text if out of range. this is left start index of visible char
-	int VisibleCharStartLineIndex;//in multi line mode, will clamp text line if out of range. this is top start line index of visible char
+	int VisibleCharStartIndex = 0;//in single line mode, will clamp text if out of range. this is left start index of visible char
+	int VisibleCharStartLineIndex = 0;//in multi line mode, will clamp text line if out of range. this is top start line index of visible char
 	int LineCount = 0;//actural line count, not just UIText's display line count
 	//update caret line index when text change
 	void UpdateCaretPositionLineIndex();
 
-	FVector PressMousePosition;//mouse position when press, world space
-	FVector2D PressCaretPosition;//caret position when press, UIText space
+	FVector PressMousePosition = FVector(0, 0, 0);//mouse position when press, world space
+	FVector2D PressCaretPosition = FVector2D(0, 0);//caret position when press, UIText space
 	int PressCaretPositionIndex = 0, PressCaretPositionLineIndex = 0;
 protected:
 	virtual void OnUIActiveInHierachy(bool ativeOrInactive)override;
