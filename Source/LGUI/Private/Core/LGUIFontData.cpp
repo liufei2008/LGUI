@@ -493,7 +493,6 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 						regionBox,
 						regionBox
 						);
-						RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
 						oldTexture->RemoveFromRoot();//ready for gc
 				});
 		}
