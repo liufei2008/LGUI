@@ -58,10 +58,6 @@ void ULGUIEditorManagerObject::RemoveUIItem(UUIItem* InItem)
 		Instance->allUIItem.Remove(InItem);
 	}
 }
-const TArray<UUIItem*>& ULGUIEditorManagerObject::GetAllUIItem()
-{
-	return allUIItem;
-}
 
 void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
 {
@@ -93,10 +89,6 @@ void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 	{
 		Instance->allCanvas.Remove(InCanvas);
 	}
-}
-const TArray<ULGUICanvas*>& ULGUIEditorManagerObject::GetAllCanvas()
-{
-	return allCanvas;
 }
 
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
@@ -206,10 +198,6 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 		Instance->allUIItem.Remove(InItem);
 	}
 }
-const TArray<UUIItem*>& ALGUIManagerActor::GetAllUIItem()
-{
-	return allUIItem;
-}
 
 void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 {
@@ -242,15 +230,7 @@ void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
 		Instance->allCanvas.Remove(InCanvas);
 	}
 }
-const TArray<ULGUICanvas*>& ALGUIManagerActor::GetAllCanvas()
-{
-	return allCanvas;
-}
 
-const TArray<ULGUIBaseRaycaster*>& ALGUIManagerActor::GetRaycasters()
-{
-	return raycasterArray;
-}
 void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 {
 	if (InitCheck(InRaycaster->GetWorld()))
@@ -277,10 +257,6 @@ void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 	}
 }
 
-const TArray<UUISelectableComponent*>& ALGUIManagerActor::GetSelectables()
-{
-	return allSelectableArray;
-}
 void ALGUIManagerActor::AddSelectable(UUISelectableComponent* InSelectable)
 {
 	if (InitCheck(InSelectable->GetWorld()))
