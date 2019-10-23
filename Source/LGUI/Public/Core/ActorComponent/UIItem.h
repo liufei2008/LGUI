@@ -227,8 +227,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		UUIItem* GetParentAsUIItem()const;
 
-	FORCEINLINE void MarkVertexPositionDirty();
-	FORCEINLINE void MarkColorDirty();
+	void MarkVertexPositionDirty();
+	void MarkColorDirty();
 
 	//mark all dirty for UI element to update, include all children
 	virtual void MarkAllDirtyRecursive();
@@ -303,13 +303,13 @@ public:
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End);
 #pragma endregion
 
-	FORCEINLINE ULGUICanvas* GetRenderCanvas() const { return RenderCanvas; }
+	ULGUICanvas* GetRenderCanvas() const { return RenderCanvas; }
 	FORCEINLINE virtual bool IsScreenSpaceOverlayUI();
 
 	//get UI element type
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UIItemType GetUIItemType()const { return itemType; }
-	FORCEINLINE bool IsCanvasUIItem() { return isCanvasUIItem; }
+	bool IsCanvasUIItem() { return isCanvasUIItem; }
 protected:
 	friend class FUIItemCustomization;
 	friend class ULGUICanvas;
@@ -336,9 +336,9 @@ protected:
 
 	FORCEINLINE bool IsFloatNotEqual(float a, float b);
 public:
-	FORCEINLINE uint8 GetFinalAlpha()const;
+	uint8 GetFinalAlpha()const;
 	//get final color, calculate alpha
-	FORCEINLINE FColor GetFinalColor()const;
+	FColor GetFinalColor()const;
 	static float Color255To1_Table[256];
 
 #if WITH_EDITORONLY_DATA
