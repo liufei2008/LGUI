@@ -102,14 +102,14 @@ public:
 	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix);
 	FMatrix GetViewProjectionMatrix();
 	FMatrix GetProjectionMatrix();
-	FORCEINLINE FVector GetViewLocation();
-	FORCEINLINE FMatrix GetViewRotationMatrix();
-	FORCEINLINE FRotator GetViewRotator();
-	FORCEINLINE FIntPoint GetViewportSize();
+	FVector GetViewLocation();
+	FMatrix GetViewRotationMatrix();
+	FRotator GetViewRotator();
+	FIntPoint GetViewportSize();
 public:
 	//get top most LGUICanvas on hierarchy
-	FORCEINLINE ULGUICanvas* GetRootCanvas();
-	FORCEINLINE bool IsRootCanvas()const;
+	ULGUICanvas* GetRootCanvas();
+	bool IsRootCanvas()const;
 	//hierarchy changed
 	void OnUIHierarchyChanged();
 	void OnWidthChanged();
@@ -144,7 +144,7 @@ protected:
 	UMaterialInterface** GetMaterials();
 
 	UPROPERTY(Transient)UUIItem* UIItem = nullptr;
-	FORCEINLINE bool CheckUIItem();
+	bool CheckUIItem();
 
 	TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ViewExtension;
 protected:
@@ -212,7 +212,7 @@ public:
 		void SetPixelPerfect(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
-	FORCEINLINE void SetViewportParameterChange();
+	void SetViewportParameterChange();
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);
@@ -296,7 +296,7 @@ private:
 	//rect clip's max position
 	FVector2D rectMax = FVector2D(0, 0);
 	//calculate rect range
-	FORCEINLINE void CalculateRectRange();
+	void CalculateRectRange();
 private:
 	void UpdateChildRecursive(UUIItem* target, bool parentTransformChanged, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();

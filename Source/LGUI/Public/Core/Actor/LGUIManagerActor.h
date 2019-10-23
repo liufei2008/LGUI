@@ -44,14 +44,14 @@ public:
 	static bool IsSelected(AActor* InObject);
 #endif
 public:
-	FORCEINLINE static void AddUIItem(UUIItem* InItem);
-	FORCEINLINE static void RemoveUIItem(UUIItem* InItem);
-	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem();
+	static void AddUIItem(UUIItem* InItem);
+	static void RemoveUIItem(UUIItem* InItem);
+	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
 
-	FORCEINLINE static void AddCanvas(ULGUICanvas* InCanvas);
-	FORCEINLINE static void SortCanvasOnOrder();
-	FORCEINLINE static void RemoveCanvas(ULGUICanvas* InCanvas);
-	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas();
+	static void AddCanvas(ULGUICanvas* InCanvas);
+	static void SortCanvasOnOrder();
+	static void RemoveCanvas(ULGUICanvas* InCanvas);
+	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
 };
 
 UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
@@ -78,20 +78,20 @@ private:
 	static bool InitCheck(UWorld* InWorld);
 	
 public:
-	FORCEINLINE static void AddUIItem(UUIItem* InItem);
-	FORCEINLINE static void RemoveUIItem(UUIItem* InItem);
-	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem();
+	static void AddUIItem(UUIItem* InItem);
+	static void RemoveUIItem(UUIItem* InItem);
+	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
 
-	FORCEINLINE static void AddCanvas(ULGUICanvas* InCanvas);
-	FORCEINLINE static void SortCanvasOnOrder();
-	FORCEINLINE static void RemoveCanvas(ULGUICanvas* InCanvas);
-	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas();
+	static void AddCanvas(ULGUICanvas* InCanvas);
+	static void SortCanvasOnOrder();
+	static void RemoveCanvas(ULGUICanvas* InCanvas);
+	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
 
-	FORCEINLINE const TArray<ULGUIBaseRaycaster*>& GetRaycasters();
+	FORCEINLINE const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
 	FORCEINLINE static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
 	FORCEINLINE static void RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster);
 
-	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables();
+	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);
 	static void RemoveSelectable(UUISelectableComponent* InSelectable);
 };
