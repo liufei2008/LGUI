@@ -1255,6 +1255,10 @@ bool ULGUICanvas::GetRequireUV3()const
 
 void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix)
 {
+	if (InViewportSize.X == 0 || InViewportSize.Y == 0)//in DebugCamera mode(toggle in editor by press ';'), viewport size is 0
+	{
+		InViewportSize.X = InViewportSize.Y = 1;
+	}
 	if (InProjectionType == ECameraProjectionMode::Orthographic)
 	{
 		check((int32)ERHIZBuffer::IsInverted);
