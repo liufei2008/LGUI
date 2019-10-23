@@ -1342,13 +1342,12 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 		transformedVertices.AddDefaulted(vertexCount - transformedVertexCount);
 	}
 	
-	bool shouldSnapPixel = item->ShouldRenderPixelPerfect();
 	auto rootCanvasUIItem = canvas->GetRootCanvas()->CheckAndGetUIItem();
 
 	FTransform itemToCanvasTf;
 	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
 	FVector tempV3;
-	if (shouldSnapPixel && rootCanvasUIItem != nullptr)
+	if (canvas->GetPixelPerfect() && rootCanvasUIItem != nullptr)
 	{
 		if (canvasUIItem == rootCanvasUIItem)
 		{

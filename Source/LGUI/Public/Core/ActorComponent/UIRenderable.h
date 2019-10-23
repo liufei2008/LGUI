@@ -50,7 +50,6 @@ public:
 	void MarkTriangleDirty();
 	void MarkTextureDirty();
 	void MarkMaterialDirty();
-	virtual bool ShouldRenderPixelPerfect();
 
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);
