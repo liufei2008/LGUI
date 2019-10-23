@@ -45,19 +45,23 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 	//copy old texture to new one
 	if (IsValid(oldTexture) && oldTextureSize > 0)
 	{
-		ENQUEUE_RENDER_COMMAND(FLGUISpriteCopyAtlasTexture)(
-			[oldTexture, texture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
-			{
-				FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
-				RHICmdList.CopySubTextureRegion(
-					((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
-					((FTexture2DResource*)texture->Resource)->GetTexture2DRHI(),
-					regionBox,
-					regionBox
-				);
-				oldTexture->RemoveFromRoot();//ready for gc
-			}
-		);
+		auto newTexture = texture;
+		if (oldTexture->Resource != nullptr && newTexture->Resource != nullptr)
+		{
+			ENQUEUE_RENDER_COMMAND(FLGUISpriteCopyAtlasTexture)(
+				[oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
+				{
+					FBox2D regionBox(FVector2D(0, 0), FVector2D(oldTextureSize, oldTextureSize));
+					RHICmdList.CopySubTextureRegion(
+						((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
+						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
+						regionBox,
+						regionBox
+					);
+					oldTexture->RemoveFromRoot();//ready for gc
+				}
+			);
+		}
 	}
 }
 int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
