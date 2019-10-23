@@ -503,15 +503,15 @@ void UUIText::CacheTextGeometry()
 		FUITextCharGeometry charGeometry;
 		if (charCode == ' ')
 		{
-			charGeometry.geoWidth = charGeometry.xadvance = halfFontSize;
-			charGeometry.geoHeight = size;
+			charGeometry.xadvance = halfFontSize;
+			charGeometry.geoWidth = charGeometry.geoHeight = 0;
 			charGeometry.xoffset = charGeometry.yoffset = 0;
 			charGeometry.uv0 = charGeometry.uv1 = charGeometry.uv2 = charGeometry.uv3 = FVector2D(1, 1);
 		}
 		else if (charCode == '\t')
 		{
-			charGeometry.geoWidth = charGeometry.xadvance = size + size;
-			charGeometry.geoHeight = size;
+			charGeometry.xadvance = size + size;
+			charGeometry.geoWidth = charGeometry.geoHeight = 0;
 			charGeometry.xoffset = charGeometry.yoffset = 0;
 			charGeometry.uv0 = charGeometry.uv1 = charGeometry.uv2 = charGeometry.uv3 = FVector2D(1, 1);
 		}
