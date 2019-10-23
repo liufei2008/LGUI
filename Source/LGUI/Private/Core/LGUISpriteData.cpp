@@ -50,15 +50,27 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 	}
 	else//this area can fit the texture, copy pixels
 	{
+		atlasTexture = InAtlasData->atlasTexture;
 		//remove space
 		packedRect.x += spaceBetweenSprites;
 		packedRect.y += spaceBetweenSprites;
 		packedRect.width -= spaceBetweenSprites + spaceBetweenSprites;
 		packedRect.height -= spaceBetweenSprites + spaceBetweenSprites;
 		//pixels
-		auto tempAtlasTexture = InAtlasData->atlasTexture;
-		FBox2D srcRegionBox(FVector2D(0, 0), FVector2D(packedRect.width, packedRect.height));
-		FBox2D dstRegionBox(FVector2D(packedRect.x, packedRect.y), FVector2D(packedRect.x + packedRect.width, packedRect.y + packedRect.height));
+		CopySpriteTextureToAtlas(packedRect, spaceBetweenSprites);
+		//add to sprite
+		spriteInfo.ApplyUV(packedRect.x, packedRect.y, packedRect.width, packedRect.height, atlasTextureSizeInv, atlasTextureSizeInv);
+		spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
+		InAtlasData->spriteDataArray.Add(this);
+		return true;
+	}
+}
+void ULGUISpriteData::CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding)
+{
+	if (spriteTexture->Resource != nullptr && atlasTexture->Resource != nullptr)
+	{
+		FBox2D srcRegionBox(FVector2D(0, 0), FVector2D(InPackedRect.width, InPackedRect.height));
+		FBox2D dstRegionBox(FVector2D(InPackedRect.x, InPackedRect.y), FVector2D(InPackedRect.x + InPackedRect.width, InPackedRect.y + InPackedRect.height));
 
 		struct FUpdateTextureRegionsData
 		{
@@ -71,11 +83,11 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 		};
 		FUpdateTextureRegionsData* copyData = new FUpdateTextureRegionsData;
 		copyData->SpriteTextureResource = (FTexture2DResource*)spriteTexture->Resource;
-		copyData->AtlasTextureResource = (FTexture2DResource*)tempAtlasTexture->Resource;
+		copyData->AtlasTextureResource = (FTexture2DResource*)atlasTexture->Resource;
 		copyData->SrcRegionBox = srcRegionBox;
 		copyData->DstRegionBox = dstRegionBox;
-		copyData->SpaceBetweenSprites = spaceBetweenSprites;
-		copyData->PackedRect = packedRect;
+		copyData->SpaceBetweenSprites = InAtlasTexturePadding;
+		copyData->PackedRect = InPackedRect;
 
 		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
 			FLGUISpriteCopyTextureData,
@@ -190,14 +202,7 @@ bool ULGUISpriteData::InsertTexture(FLGUIAtlasData* InAtlasData)
 			);
 		}
 		delete copyData;
-		}
-		);
-		//add to sprite
-		atlasTexture = InAtlasData->atlasTexture;
-		spriteInfo.ApplyUV(packedRect.x, packedRect.y, packedRect.width, packedRect.height, atlasTextureSizeInv, atlasTextureSizeInv);
-		spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
-		InAtlasData->spriteDataArray.Add(this);
-		return true;
+		});
 	}
 }
 
@@ -301,12 +306,6 @@ void ULGUISpriteData::InitSpriteData()
 			UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData]SpriteData:%s spriteTexture is null!"), *(this->GetPathName()));
 			return;
 		}
-#if WITH_EDITOR
-		if (GIsCookerLoadingPackage)
-		{
-			return;
-		}
-#endif
 		if (packingTag.IsNone())
 		{
 			atlasTexture = spriteTexture;
