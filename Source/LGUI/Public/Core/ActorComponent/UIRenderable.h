@@ -46,11 +46,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic();
 
-	FORCEINLINE void MarkUVDirty();
-	FORCEINLINE void MarkTriangleDirty();
-	FORCEINLINE void MarkTextureDirty();
-	FORCEINLINE void MarkMaterialDirty();
-	FORCEINLINE virtual bool ShouldRenderPixelPerfect();
+	void MarkUVDirty();
+	void MarkTriangleDirty();
+	void MarkTextureDirty();
+	void MarkMaterialDirty();
+	virtual bool ShouldRenderPixelPerfect();
 
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);

@@ -24,7 +24,7 @@ private:
 	static ALTweenActor* Instance;
 	static bool InitCheck();
 	virtual void Tick(float DeltaSeconds) override;
-	FORCEINLINE void OnTick(float DeltaTime);
+	void OnTick(float DeltaTime);
 	LTweenUpdateMulticastDelegate updateEvent;
 	bool TickPaused = false;
 public:
