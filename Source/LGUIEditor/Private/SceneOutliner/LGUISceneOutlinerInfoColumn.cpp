@@ -91,7 +91,6 @@ namespace LGUISceneOutliner
 		{
 			return SNew(SBox);
 		}
-		CurrentWorld = actor->GetWorld();
 
 		TSharedRef<SLGUISceneOutlinerButton> result = SNew(SLGUISceneOutlinerButton)
 			.ButtonStyle(FLGUIEditorStyle::Get(), "EmptyButton")
