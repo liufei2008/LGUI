@@ -61,6 +61,9 @@ void ULGUIPrefabHelperComponent::SavePrefab()
 		}
 		ActorSerializer serializer(this->GetWorld());
 		serializer.SerializeActor(Target, PrefabAsset);
+
+		AllLoadedActorArray.Empty();
+		LGUIUtils::CollectChildrenActors(Target, AllLoadedActorArray);
 	}
 	else
 	{
