@@ -37,12 +37,12 @@ namespace LGUISceneOutliner
 	private:
 
 		FText GetTextForItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
-		bool CanShowPrefabIcon(AActor* InActor) const;
+		bool CanShowPrefabIcon(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
 		AActor* GetActorFromTreeItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
 
-		EVisibility GetPrefabIconVisibility(AActor* InActor)const;
-		EVisibility GetDownArrowVisibility(AActor* InActor)const;
-		FSlateColor GetPrefabIconColor(AActor* InActor)const;
+		EVisibility GetPrefabIconVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
+		EVisibility GetDownArrowVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
+		FSlateColor GetPrefabIconColor(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
 
 		/** Weak reference to the outliner widget that owns our list */
 		TWeakPtr< ISceneOutliner > WeakSceneOutliner;

@@ -85,7 +85,8 @@ namespace LGUISceneOutliner
 		auto SceneOutliner = WeakSceneOutliner.Pin();
 		check(SceneOutliner.IsValid());
 
-		AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem));
+		auto weakTreeItem = TWeakPtr<SceneOutliner::ITreeItem>(TreeItem);
+		AActor* actor = GetActorFromTreeItem(weakTreeItem);
 		if (actor == nullptr)
 		{
 			return SNew(SBox);
@@ -109,7 +110,7 @@ namespace LGUISceneOutliner
 					.VAlign(EVerticalAlignment::VAlign_Center)
 					[
 						SNew(SImage)
-						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility, actor)
+						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility, weakTreeItem)
 						.Image(FEditorStyle::GetBrush("ComboButton.Arrow"))
 						.ColorAndOpacity(FSlateColor::UseForeground())
 					]
@@ -125,8 +126,8 @@ namespace LGUISceneOutliner
 					[
 						SNew(SImage)
 						.Image(FLGUIEditorStyle::Get().GetBrush("PrefabMarkWhite"))
-						.ColorAndOpacity(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconColor, actor)
-						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility, actor)
+						.ColorAndOpacity(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconColor, weakTreeItem)
+						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility, weakTreeItem)
 					]
 				]
 			]
@@ -204,30 +205,54 @@ namespace LGUISceneOutliner
 		auto Item = TreeItem.Pin();
 		return Item.IsValid() ? FText::FromString(Item->Get(FGetInfo(*this))) : FText::GetEmpty();
 	}
-	EVisibility FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility(AActor* InActor)const
+	EVisibility FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
 	{
-		return ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(InActor) != nullptr ? EVisibility::Visible : EVisibility::Hidden;
+		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
+		{
+			return ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(actor) != nullptr ? EVisibility::Visible : EVisibility::Hidden;
+		}
+		else
+		{
+			return EVisibility::Hidden;
+		}
 	}
-	EVisibility FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility(AActor* InActor)const
+	EVisibility FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
 	{
-		bool isPrefab = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(InActor) != nullptr;
-		return isPrefab ? EVisibility::Hidden : EVisibility::Visible;
+		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
+		{
+			bool isPrefab = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(actor) != nullptr;
+			return isPrefab ? EVisibility::Hidden : EVisibility::Visible;
+		}
+		else
+		{
+			return EVisibility::Hidden;
+		}
 	}
-	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(AActor* InActor)const
+	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
 	{
 		FColor resultColor = FColor::White;
-		auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(InActor);
-		if (prefabActor != nullptr)
+		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			 resultColor = prefabActor->GetPrefabComponent()->IdentityColor;
+			auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(actor);
+			if (prefabActor != nullptr)
+			{
+				resultColor = prefabActor->GetPrefabComponent()->IdentityColor;
+			}
 		}
 		return FSlateColor(resultColor);
 	}
 
-	bool FLGUISceneOutlinerInfoColumn::CanShowPrefabIcon(AActor* InActor) const
+	bool FLGUISceneOutlinerInfoColumn::CanShowPrefabIcon(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const
 	{
-		auto prefabComp = InActor->FindComponentByClass<ULGUIPrefabHelperComponent>();
-		return IsValid(prefabComp);
+		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
+		{
+			auto prefabComp = actor->FindComponentByClass<ULGUIPrefabHelperComponent>();
+			return IsValid(prefabComp);
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	AActor* FLGUISceneOutlinerInfoColumn::GetActorFromTreeItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
