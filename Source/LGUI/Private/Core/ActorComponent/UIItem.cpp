@@ -215,7 +215,7 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 	if (InInt != hierarchyIndex)
 	{
 		hierarchyIndex = InInt;
-		if (cacheParentUIItem != nullptr)
+		if (IsValid(cacheParentUIItem))
 		{
 			cacheParentUIItem->OnChildHierarchyIndexChanged(this);
 		}
@@ -462,12 +462,12 @@ void UUIItem::UIHierarchyChanged()
 	{
 		if (itemType == UIItemType::UIRenderable)
 		{
-			if (oldRenderCanvas != nullptr)
+			if (IsValid(oldRenderCanvas))
 			{
 				oldRenderCanvas->RemoveFromDrawcall((UUIRenderable*)this);
 				oldRenderCanvas->MarkCanvasUpdate();
 			}
-			if (RenderCanvas != nullptr)
+			if (IsValid(RenderCanvas))
 			{
 				RenderCanvas->InsertIntoDrawcall((UUIRenderable*)this);
 				RenderCanvas->MarkCanvasUpdate();
@@ -475,11 +475,11 @@ void UUIItem::UIHierarchyChanged()
 		}
 		else
 		{
-			if (oldRenderCanvas != nullptr)
+			if (IsValid(oldRenderCanvas))
 			{
 				oldRenderCanvas->MarkCanvasUpdate();
 			}
-			if (RenderCanvas != nullptr)
+			if (IsValid(RenderCanvas))
 			{
 				RenderCanvas->MarkCanvasUpdate();
 			}
@@ -500,7 +500,7 @@ void UUIItem::UIHierarchyChanged()
 	if (auto parent = GetAttachParent())
 	{
 		cacheParentUIItem = Cast<UUIItem>(parent);
-		if (cacheParentUIItem != nullptr)
+		if (IsValid(cacheParentUIItem))
 		{
 			//calculate dimensions
 			switch (widget.anchorHAlign)
@@ -600,9 +600,9 @@ void UUIItem::UnregisterVertexPositionChange(const FSimpleDelegate& InDelegate)
 bool UUIItem::CheckRenderCanvas()
 {
 	if (this->GetWorld() == nullptr)return false;
-	if (RenderCanvas != nullptr)return true;
+	if (IsValid(RenderCanvas))return true;
 	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner());
-	if (RenderCanvas != nullptr)
+	if (IsValid(RenderCanvas))
 	{
 		isCanvasUIItem = (this->GetOwner() == RenderCanvas->GetOwner());
 		return true;
@@ -636,7 +636,7 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool& parentTra
 	}
 	if (this->inheritAlpha)
 	{
-		if (cacheParentUIItem != nullptr)
+		if (IsValid(cacheParentUIItem))
 		{
 			auto tempAlpha = cacheParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[cacheParentUIItem->widget.color.A]);
 			this->SetCalculatedParentAlpha(tempAlpha);
@@ -662,7 +662,7 @@ void UUIItem::UpdateGeometry(const bool& parentTransformChanged)
 
 bool UUIItem::CalculateLayoutRelatedParameters()
 {
-	if (cacheParentUIItem == nullptr)return false;
+	if (!IsValid(cacheParentUIItem))return false;
 	bool sizeChanged = false;
 	const auto& parentWidget = cacheParentUIItem->widget;
 #if WITH_EDITOR
@@ -1276,7 +1276,7 @@ float UUIItem::GetLocalSpaceTop()const
 }
 UUIItem* UUIItem::GetParentAsUIItem()const
 {
-	if (cacheParentUIItem == nullptr)
+	if (!IsValid(cacheParentUIItem))
 	{
 		if (auto parent = GetAttachParent())
 		{
@@ -1321,7 +1321,7 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 {
 	if (!bRaycastTarget)return false;
 	if (!IsUIActiveInHierarchy())return false;
-	if (RenderCanvas == nullptr)return false;
+	if (!IsValid(RenderCanvas))return false;
 	auto inverseTf = GetComponentTransform().Inverse();
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
@@ -1351,7 +1351,7 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 
 bool UUIItem::IsScreenSpaceOverlayUI()
 {
-	if (RenderCanvas == nullptr)return false;
+	if (!IsValid(RenderCanvas))return false;
 	return RenderCanvas->IsScreenSpaceOverlayUI();
 }
 
@@ -1487,7 +1487,7 @@ void UUIItem::SetUIActive(bool active)
 			//affect children
 			SetChildUIActiveRecursive(bIsUIActive);
 			//callback for parent
-			if (cacheParentUIItem != nullptr)cacheParentUIItem->OnChildActiveStateChanged(this);
+			if (IsValid(cacheParentUIItem))cacheParentUIItem->OnChildActiveStateChanged(this);
 		}
 		else
 		{
@@ -1588,7 +1588,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 			relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
 			auto worldLocation = worldTransform.TransformPosition(relativeOffset);
 			//calculate world location
-			if (Component->GetParentAsUIItem() != nullptr)
+			if (IsValid(Component->GetParentAsUIItem()))
 			{
 				FVector relativeLocation = Component->RelativeLocation;
 				const auto& parentWidget = Component->GetParentAsUIItem()->GetWidget();
@@ -1672,7 +1672,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 					else
 					{
 						//parent selected
-						if (Component->GetParentAsUIItem() != nullptr)
+						if (IsValid(Component->GetParentAsUIItem()))
 						{
 							if (LGUIManager::IsSelected_Editor(Component->GetParentAsUIItem()->GetOwner()))
 							{
@@ -1693,7 +1693,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 							}
 						}
 						//other object of same hierarchy is selected
-						if (Component->GetParentAsUIItem() != nullptr)
+						if (IsValid(Component->GetParentAsUIItem()))
 						{
 							const auto& sameLevelCompArray = Component->GetParentAsUIItem()->GetAttachChildren();
 							for (auto childComp : sameLevelCompArray)
@@ -1746,7 +1746,7 @@ UBodySetup* UUIItemEditorHelperComp::GetBodySetup()
 void UUIItemEditorHelperComp::UpdateBodySetup()
 {
 	if (!IsValid(Parent))return;
-	if (BodySetup == nullptr)
+	if (!IsValid(BodySetup))
 	{
 		BodySetup = NewObject<UBodySetup>(this);
 		BodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;

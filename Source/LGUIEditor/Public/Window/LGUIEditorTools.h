@@ -79,6 +79,7 @@ public:
 	static void ApplyPrefab();
 	static void RevertPrefab();
 	static void DeletePrefab();
+	static void SelectPrefabAsset();
 	static class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 
 	UPROPERTY(Transient) TArray<class ULGUIPrefab*> copiedActorPrefabList;

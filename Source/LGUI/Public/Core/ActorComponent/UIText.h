@@ -100,7 +100,7 @@ protected:
 #endif
 #if WITH_EDITORONLY_DATA
 	//current using font. the default font when creating new UIText
-	static ULGUIFontData* CurrentUsingFontData;
+	static TWeakObjectPtr<ULGUIFontData> CurrentUsingFontData;
 #endif
 
 protected:
