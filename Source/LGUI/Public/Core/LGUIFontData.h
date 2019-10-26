@@ -2,8 +2,7 @@
 
 #pragma once
 
-#pragma warning(disable:4668)
-#pragma warning(disable:4005)
+#pragma warning(disable:4668)//error C4668: '__SUNPRO_C' is not defined as a preprocessor macro, replacing with '0' for '#if/#elif'
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"

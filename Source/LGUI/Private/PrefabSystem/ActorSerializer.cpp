@@ -854,6 +854,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 					mapStruct.id = index;
 					mapStruct.Dest = Dest;
 					mapStruct.ObjProperty = objProperty;
+					mapStruct.cppArrayIndex = cppArrayIndex;
 					ObjectMapStructList.Add(mapStruct);
 					return true;
 				}
