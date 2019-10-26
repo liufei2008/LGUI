@@ -37,7 +37,7 @@ void UUITexture::EditorForceUpdateImmediately()
 
 void UUITexture::CheckSpriteData()
 {
-	if (texture != nullptr)
+	if (IsValid(texture))
 	{
 		spriteData.width = texture->GetSurfaceWidth();
 		spriteData.height = texture->GetSurfaceHeight();
@@ -130,7 +130,7 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 
 void UUITexture::WidthChanged()
 {
-	if (texture == nullptr)return;
+	if (!IsValid(texture))return;
 	if (type != UITextureType::Tiled)return;
 	spriteData.ApplyUV(0, 0, widget.width, widget.height, 1.0f / spriteData.width, 1.0f / spriteData.height);
 	MarkVertexPositionDirty();
@@ -138,7 +138,7 @@ void UUITexture::WidthChanged()
 }
 void UUITexture::HeightChanged()
 {
-	if (texture == nullptr)return;
+	if (!IsValid(texture))return;
 	if (type != UITextureType::Tiled)return;
 	spriteData.ApplyUV(0, 0, widget.width, widget.height, 1.0f / spriteData.width, 1.0f / spriteData.height);
 	MarkVertexPositionDirty();

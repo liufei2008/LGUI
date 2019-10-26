@@ -2,6 +2,9 @@
 
 #include "Core/ActorComponent/UITextureBase.h"
 #include "LGUI.h"
+#include "Core/UIGeometry.h"
+#include "Core/ActorComponent/LGUICanvas.h"
+#include "Materials/MaterialInterface.h"
 
 
 UUITextureBase::UUITextureBase()
@@ -24,7 +27,7 @@ void UUITextureBase::EditorForceUpdateImmediately()
 }
 void UUITextureBase::CheckTexture()
 {
-	if (texture == nullptr)
+	if (!IsValid(texture))
 	{
 		static auto defaultWhiteSolid = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/LGUIPreset_WhiteSolid"));
 		if (defaultWhiteSolid != nullptr)
@@ -42,7 +45,7 @@ void UUITextureBase::CheckTexture()
 void UUITextureBase::UpdateGeometry(const bool& parentTransformChanged)
 {
 	if (IsUIActiveInHierarchy() == false)return;
-	if (texture == nullptr)
+	if (!IsValid(texture))
 	{
 		//UE_LOG(LGUI, Log, TEXT("texture is null"));
 		if (cacheForThisUpdate_TextureChanged)
@@ -66,7 +69,7 @@ void UUITextureBase::UpdateGeometry(const bool& parentTransformChanged)
 	{
 		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
 		{
-			if (texture == nullptr)//texture is cleared
+			if (!IsValid(texture))//texture is cleared
 			{
 				geometry->Clear();
 				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
@@ -78,7 +81,7 @@ void UUITextureBase::UpdateGeometry(const bool& parentTransformChanged)
 		}
 		if (cacheForThisUpdate_DepthChanged)
 		{
-			if (CustomUIMaterial != nullptr)
+			if (IsValid(CustomUIMaterial))
 			{
 				CreateGeometry();
 				RenderCanvas->MarkRebuildAllDrawcall();
@@ -160,7 +163,7 @@ void UUITextureBase::SetTexture(UTexture* newTexture)
 }
 void UUITextureBase::SetSizeFromTexture()
 {
-	if (texture != nullptr)
+	if (IsValid(texture))
 	{
 		SetWidth(texture->GetSurfaceWidth());
 		SetHeight(texture->GetSurfaceHeight());

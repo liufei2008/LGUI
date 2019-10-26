@@ -363,6 +363,15 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 				, FGetActionCheckState()
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
 		);
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("SelectPrefabAsset", "Browse to Prefab asset"),
+			LOCTEXT("SelectPrefabAsset_Tooltip", "Browse to Prefab asset in Content Browser"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::SelectPrefabAsset)
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
+		);
 	}
 	MenuBuilder.EndSection();
 

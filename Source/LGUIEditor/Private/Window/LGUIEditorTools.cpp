@@ -624,30 +624,53 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 }
 void ULGUIEditorToolsAgentObject::ApplyPrefab()
 {
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
 	auto selectedActor = GetFirstSelectedActor();
 	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
 		prefabActor->GetPrefabComponent()->SavePrefab();
 	}
+	GEditor->EndTransaction();
 }
 void ULGUIEditorToolsAgentObject::RevertPrefab()
 {
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI RevertPrefab")));
 	auto selectedActor = GetFirstSelectedActor();
 	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
 		prefabActor->GetPrefabComponent()->RevertPrefab();
 	}
+	GEditor->EndTransaction();
 }
 void ULGUIEditorToolsAgentObject::DeletePrefab()
 {
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI DeletePrefab")));
 	auto selectedActor = GetFirstSelectedActor();
 	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
 		prefabActor->GetPrefabComponent()->DeleteThisInstance();
 	}
+	GEditor->EndTransaction();
+}
+void ULGUIEditorToolsAgentObject::SelectPrefabAsset()
+{
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI SelectPrefabAsset")));
+	auto selectedActor = GetFirstSelectedActor();
+	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
+	if (prefabActor != nullptr)
+	{
+		auto prefabAsset = prefabActor->GetPrefabComponent()->PrefabAsset;
+		if (IsValid(prefabAsset))
+		{
+			TArray<UObject*> objectsToSync;
+			objectsToSync.Add(prefabAsset);
+			GEditor->SyncBrowserToObjects(objectsToSync);
+		}
+	}
+	GEditor->EndTransaction();
 }
 ALGUIPrefabActor* ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(AActor* InActor)
 {

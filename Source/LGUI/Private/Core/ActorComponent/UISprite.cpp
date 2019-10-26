@@ -128,7 +128,7 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 
 void UUISprite::WidthChanged()
 {
-	if (sprite == nullptr)return;
+	if (!IsValid(sprite))return;
 	if (type != UISpriteType::Tiled)return;
 	if (sprite->HavePackingTag())
 	{
@@ -167,7 +167,7 @@ void UUISprite::WidthChanged()
 }
 void UUISprite::HeightChanged()
 {
-	if (sprite == nullptr)return;
+	if (!IsValid(sprite))return;
 	if (type != UISpriteType::Tiled)return;
 	if (sprite->HavePackingTag())
 	{

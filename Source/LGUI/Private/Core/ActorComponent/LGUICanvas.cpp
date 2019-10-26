@@ -131,25 +131,25 @@ void ULGUICanvas::OnUIActiveStateChange(bool active)
 bool ULGUICanvas::CheckTopMostCanvas()
 {
 	if (this->GetWorld() == nullptr)return false;
-	if (TopMostCanvas != nullptr)return true;
+	if (IsValid(TopMostCanvas))return true;
 	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
-	if (TopMostCanvas != nullptr)return true;
+	if (IsValid(TopMostCanvas))return true;
 	return false;
 }
 bool ULGUICanvas::CheckParentCanvas()
 {
 	if (this->GetWorld() == nullptr)return false;
-	if (ParentCanvas != nullptr)return true;
+	if (IsValid(ParentCanvas))return true;
 	LGUIUtils::FindParentCanvas(this->GetOwner(), ParentCanvas);
-	if (ParentCanvas != nullptr)return true;
+	if (IsValid(ParentCanvas))return true;
 	return false;
 }
 bool ULGUICanvas::CheckUIItem()
 {
 	if (this->GetWorld() == nullptr)return false;
-	if (UIItem != nullptr)return true;
+	if (IsValid(UIItem))return true;
 	UIItem = Cast<UUIItem>(GetOwner()->GetRootComponent());
-	if (UIItem == nullptr)
+	if (!IsValid(UIItem))
 	{
 		UE_LOG(LGUI, Error, TEXT("LGUICanvas component should only attach to a actor which have UIItem as RootComponent!"));
 		return false;
@@ -336,7 +336,7 @@ void ULGUICanvas::SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTextur
 	uiDrawcall->isFontTexture = isFontTexture;
 	//material
 	auto& uiMat = UIMaterialList[drawcallIndex];
-	uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture);
+	uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
 	uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);
 }
 void ULGUICanvas::MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged)
@@ -428,7 +428,7 @@ void ULGUICanvas::OnUIElementDepthChange(UUIRenderable* item)
 UMaterialInstanceDynamic* ULGUICanvas::GetMaterialInstanceDynamicForDrawcall(int drawcallIndex)
 {
 	if (drawcallIndex == -1 || drawcallIndex >= UIDrawcallList.Num())return nullptr;
-	return UIDrawcallList[drawcallIndex]->materialInstanceDynamic;
+	return UIDrawcallList[drawcallIndex]->materialInstanceDynamic.Get();
 }
 
 TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewExtension()
@@ -461,7 +461,7 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChan
 	for (auto child : childrenList)
 	{
 		auto uiChild = Cast<UUIItem>(child);
-		if (uiChild != nullptr)
+		if (IsValid(uiChild))
 		{
 			if (uiChild->IsUIActiveInHierarchy() == false)continue;
 
@@ -533,14 +533,14 @@ void ULGUICanvas::UpdateCanvasGeometry()
 		for (auto child : childrenList)
 		{
 			auto uiChild = Cast<UUIItem>(child);
-			if (uiChild != nullptr)
+			if (IsValid(uiChild))
 			{
 				if(uiChild->IsUIActiveInHierarchy() == false)continue;
 
 				bool layoutChanged = UIItem->cacheForThisUpdate_VertexPositionChanged;
 				bool transformChanged = false;
 				uiChild->UpdateLayoutAndGeometry(layoutChanged, transformChanged);
-				if (uiChild->isCanvasUIItem)
+				if (uiChild->isCanvasUIItem && IsValid(uiChild->GetRenderCanvas()))
 				{
 					uiChild->GetRenderCanvas()->bCanTickUpdate = false;
 					uiChild->GetRenderCanvas()->UpdateCanvasGeometry();
@@ -631,14 +631,14 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				for (int i = drawcallCount; i < meshCount; i++)
 				{
 					auto& meshItem = UIMeshList[i];
-					if (meshItem == nullptr)continue;
+					if (!IsValid(meshItem))continue;
 					meshItem->SetMeshVisible(false);
 				}
 			}
 			for (int i = 0; i < drawcallCount; i++)//set data for all valid UIMesh
 			{
 				auto& uiMesh = UIMeshList[i];
-				if (uiMesh == nullptr)continue;
+				if (!IsValid(uiMesh))continue;
 				auto& uiDrawcall = UIDrawcallList[i];
 				if (!uiDrawcall.IsValid())continue;
 				uiMesh->SetMeshVisible(true);//some UIMesh may set to invisible on prev frame, set to visible
@@ -796,9 +796,9 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 		{
 			auto uiDrawcall = UIDrawcallList[i];
 			UMaterialInterface* SrcMaterial = nullptr;
-			if (uiDrawcall->material != nullptr)//custom material
+			if (uiDrawcall->material.IsValid())//custom material
 			{
-				SrcMaterial = uiDrawcall->material;
+				SrcMaterial = uiDrawcall->material.Get();
 			}
 			else
 			{
@@ -812,7 +812,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 			}
 			auto uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 			uiMat->SetFlags(RF_Transient);
-			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture);
+			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
 			uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);
 			UIMaterialList[i] = uiMat;
 			uiDrawcall->materialInstanceDynamic = uiMat;
@@ -824,10 +824,10 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 		{
 			auto uiDrawcall = UIDrawcallList[i];
 			auto uiMat = UIMaterialList[i];
-			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture);
+			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
 			uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);
 			auto& uiMesh = UIMeshList[i];
-			if (uiMesh == nullptr)continue;
+			if (!IsValid(uiMesh))continue;
 			uiMesh->SetMaterial(0, uiMat);
 		}
 	}
@@ -923,7 +923,7 @@ void ULGUICanvas::CalculateRectRange()
 		rectMax.X = (1.0f - widget.pivot.X) * widget.width;
 		rectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
 		//calculate parent rect range
-		if (inheritRectClip && ParentCanvas != nullptr && ParentCanvas->GetClipType() == ELGUICanvasClipType::Rect)
+		if (inheritRectClip && IsValid(ParentCanvas) && ParentCanvas->GetClipType() == ELGUICanvasClipType::Rect)
 		{
 			ParentCanvas->CalculateRectRange();
 			auto parentRectMin = FVector(ParentCanvas->rectMin, 0);
