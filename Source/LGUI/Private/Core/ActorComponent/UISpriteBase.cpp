@@ -18,7 +18,7 @@ UUISpriteBase::~UUISpriteBase()
 void UUISpriteBase::BeginPlay()
 {
 	Super::BeginPlay();
-	if (sprite != nullptr)
+	if (IsValid(sprite))
 	{
 		sprite->AddUISprite(this);
 	}
@@ -27,7 +27,7 @@ void UUISpriteBase::BeginPlay()
 void UUISpriteBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	if (sprite != nullptr)
+	if (IsValid(sprite))
 	{
 		sprite->RemoveUISprite(this);
 	}

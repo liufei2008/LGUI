@@ -4,18 +4,19 @@
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Materials/MaterialInterface.h"
 
 
 #if WITH_EDITORONLY_DATA
-ULGUIFontData* UUIText::CurrentUsingFontData = nullptr;
+TWeakObjectPtr<ULGUIFontData> UUIText::CurrentUsingFontData = nullptr;
 #endif
 UUIText::UUIText()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 #if WITH_EDITORONLY_DATA
-	if (UUIText::CurrentUsingFontData != nullptr)
+	if (UUIText::CurrentUsingFontData.IsValid())
 	{
-		font = CurrentUsingFontData;
+		font = CurrentUsingFontData.Get();
 	}
 #endif
 }
@@ -52,7 +53,7 @@ void UUIText::ApplyFontTextureScaleUp()
 
 void UUIText::ApplyFontTextureChange()
 {
-	if (font != nullptr)
+	if (IsValid(font))
 	{
 		cachedTextPropertyList.Empty();
 		cachedTextGeometryList.Empty();
@@ -68,7 +69,7 @@ void UUIText::ApplyFontTextureChange()
 
 void UUIText::ApplyRecreateText()
 {
-	if (font != nullptr)
+	if (IsValid(font))
 	{
 		cachedTextPropertyList.Empty();
 		cachedTextGeometryList.Empty();
@@ -79,7 +80,7 @@ void UUIText::ApplyRecreateText()
 void UUIText::BeginPlay()
 {
 	Super::BeginPlay();
-	if (font != nullptr)
+	if (IsValid(font))
 	{
 		font->InitFreeType();
 		font->AddUIText(this);
@@ -95,7 +96,7 @@ void UUIText::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompone
 void UUIText::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	if (font != nullptr)
+	if (IsValid(font))
 	{
 		font->RemoveUIText(this);
 	}
@@ -107,7 +108,7 @@ void UUIText::OnRegister()
 #if WITH_EDITOR
 	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
-		if (font != nullptr)
+		if (IsValid(font))
 		{
 			font->AddUIText(this);
 		}
@@ -120,7 +121,7 @@ void UUIText::OnUnregister()
 #if WITH_EDITOR
 	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
-		if (font != nullptr)
+		if (IsValid(font))
 		{
 			font->RemoveUIText(this);
 		}
@@ -153,7 +154,7 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UITextUpdateGeometry);
 	if (IsUIActiveInHierarchy() == false)return;
-	if (font == nullptr)
+	if (!IsValid(font))
 	{
 		font = ULGUIFontData::GetDefaultFont();
 	}
@@ -182,7 +183,7 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 	{
 		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
 		{
-			if (font == nullptr)//font is cleared
+			if (!IsValid(font))//font is cleared
 			{
 				geometry->Clear();
 				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
@@ -194,7 +195,7 @@ void UUIText::UpdateGeometry(const bool& parentTransformChanged)
 		}
 		if (cacheForThisUpdate_DepthChanged)
 		{
-			if (CustomUIMaterial != nullptr)
+			if (IsValid(CustomUIMaterial))
 			{
 				CreateGeometry();
 				RenderCanvas->MarkRebuildAllDrawcall();
@@ -292,10 +293,10 @@ void UUIText::EditorForceUpdateImmediately()
 	UUIText::CurrentUsingFontData = font;
 #endif
 	visibleCharCount = VisibleCharCountInString(text);
-	if (font == nullptr)
+	if (!IsValid(font))
 	{
 		font = ULGUIFontData::GetDefaultFont();
-		if (font != nullptr)
+		if (IsValid(font))
 		{
 			font->AddUIText(this);
 		}
@@ -304,14 +305,14 @@ void UUIText::EditorForceUpdateImmediately()
 }
 void UUIText::OnPreChangeFontProperty()
 {
-	if (font != nullptr)
+	if (IsValid(font))
 	{
 		font->RemoveUIText(this);
 	}
 }
 void UUIText::OnPostChangeFontProperty()
 {
-	if (font != nullptr)
+	if (IsValid(font))
 	{
 		font->AddUIText(this);
 	}
@@ -351,7 +352,7 @@ void UUIText::SetFont(ULGUIFontData* newFont) {
 	if (font != newFont)
 	{
 		//remove from old
-		if (font != nullptr)
+		if (IsValid(font))
 		{
 			font->RemoveUIText(this);
 		}
@@ -360,7 +361,7 @@ void UUIText::SetFont(ULGUIFontData* newFont) {
 		cachedTextGeometryList.Empty();
 		MarkTextureDirty();
 		//add to new
-		if (font != nullptr)
+		if (IsValid(font))
 		{
 			font->AddUIText(this);
 		}

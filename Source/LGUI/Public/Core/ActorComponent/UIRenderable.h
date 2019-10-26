@@ -6,6 +6,7 @@
 #include "UIRenderable.generated.h"
 
 class UIGeometry;
+class UMaterialInterface;
 //UI element which have render geometry, and can be renderred by LGUICanvas
 UCLASS(Abstract)
 class LGUI_API UUIRenderable : public UUIItem

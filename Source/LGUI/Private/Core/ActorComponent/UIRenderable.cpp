@@ -207,7 +207,7 @@ bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const 
 	{
 		if (!bRaycastTarget)return false;
 		if (!IsUIActiveInHierarchy())return false;
-		if (RenderCanvas == nullptr)return false;
+		if (!IsValid(RenderCanvas))return false;
 		auto inverseTf = GetComponentTransform().Inverse();
 		auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 		auto localSpaceRayEnd = inverseTf.TransformPosition(End);

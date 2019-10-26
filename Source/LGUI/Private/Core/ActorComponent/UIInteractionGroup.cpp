@@ -51,11 +51,11 @@ void UUIInteractionGroup::PostEditChangeProperty(FPropertyChangedEvent& Property
 
 bool UUIInteractionGroup::CheckUIItem()
 {
-	if (CacheUIItem != nullptr)
+	if (IsValid(CacheUIItem))
 		return true;
 	else
 		CacheUIItem = Cast<UUIItem>(GetOwner()->GetRootComponent());
-	if (CacheUIItem != nullptr)
+	if (IsValid(CacheUIItem))
 		return true;
 	return false;
 }
@@ -80,7 +80,7 @@ void UUIInteractionGroup::SetInteractable(const bool& InBool)
 					{
 						//walk up hierarchy and clear any interaction event
 						auto LoopActor = hitComp->GetOwner();
-						while (LoopActor != nullptr)
+						while (IsValid(LoopActor))
 						{
 							if (auto GroupComp = LoopActor->FindComponentByClass<UUIInteractionGroup>())
 							{
