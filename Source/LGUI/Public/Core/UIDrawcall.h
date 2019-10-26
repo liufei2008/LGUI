@@ -9,9 +9,9 @@ class LGUI_API UUIDrawcall
 {
 public:
 	TArray<TSharedPtr<UIGeometry>> geometryList;//UI geometries that construct this drawcall
-	UTexture* texture = nullptr;//drawcall used this texture to render
-	UMaterialInterface* material = nullptr;//drawcall use this material to render, can be null to use default material
-	UMaterialInstanceDynamic* materialInstanceDynamic = nullptr;//created MaterialInstanceDynamic that render this drawcall
+	TWeakObjectPtr<UTexture> texture = nullptr;//drawcall used this texture to render
+	TWeakObjectPtr<UMaterialInterface> material = nullptr;//drawcall use this material to render, can be null to use default material
+	TWeakObjectPtr<UMaterialInstanceDynamic> materialInstanceDynamic = nullptr;//created MaterialInstanceDynamic that render this drawcall
 	int depthMin = 0;//min depth of all geometries
 	int depthMax = 0;//max depth of all geometries
 	bool needToBeRebuild = false;//rebuild only if need to
