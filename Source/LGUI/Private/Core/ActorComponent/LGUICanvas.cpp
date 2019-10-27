@@ -254,7 +254,7 @@ void ULGUICanvas::PostLoad()
 
 UMaterialInterface** ULGUICanvas::GetMaterials()
 {
-	if(IsRootCanvas())
+	auto CheckDefaultMaterialsFunction = [this] 
 	{
 		for (int i = 0; i < 3; i++)
 		{
@@ -277,18 +277,26 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 				DefaultMaterials[i] = mat;
 			}
 		}
+	};
+	if(IsRootCanvas())
+	{
+		CheckDefaultMaterialsFunction();
 	}
 	else
 	{
 		if (GetOverrideDefaultMaterials())
 		{
-			return &DefaultMaterials[0];
+			CheckDefaultMaterialsFunction();
 		}
 		else
 		{
 			if (IsValid(ParentCanvas))
 			{
 				return ParentCanvas->GetMaterials();
+			}
+			else
+			{
+				CheckDefaultMaterialsFunction();
 			}
 		}
 	}
@@ -468,7 +476,7 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChan
 			auto layoutChanged = parentLayoutChanged;
 			auto transformChanged = parentTransformChanged;
 			uiChild->UpdateLayoutAndGeometry(layoutChanged, transformChanged);
-			if (uiChild->IsCanvasUIItem())
+			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()))
 			{
 				uiChild->GetRenderCanvas()->bCanTickUpdate = false;
 				uiChild->GetRenderCanvas()->UpdateCanvasGeometry();
