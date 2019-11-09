@@ -191,6 +191,13 @@ public:
 	{
 		ALTweenActor::RegisterUpdateEvent(update);
 	}
+	static FLTweenDelegateHandleWrapper RegisterUpdateEvent(const TFunction<void(float)>& update)
+	{
+		LTweenUpdateDelegate updateDelegate = LTweenUpdateDelegate::CreateLambda(update);
+		FLTweenDelegateHandleWrapper delegateHandle(updateDelegate.GetHandle());
+		ALTweenActor::RegisterUpdateEvent(updateDelegate);
+		return delegateHandle;
+	}
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Registerred update function will be called every frame from mainthread."), Category = LTween)
 		static FLTweenDelegateHandleWrapper RegisterUpdateEvent(const FTweenerFloatDynamicDelegate& update)
 	{
