@@ -2,6 +2,7 @@
 
 #include "DataFactory/LGUISpriteDataTypeAction.h"
 #include "ContentBrowserModule.h"
+#include "Core/LGUISpriteData.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteDataTypeAction"
 
