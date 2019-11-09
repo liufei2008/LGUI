@@ -56,6 +56,7 @@ UObject* ULGUISpriteFactory::FactoryCreateNew(UClass* Class, UObject* InParent, 
 		SpriteTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
 		SpriteTexture->SRGB = true;
 		SpriteTexture->UpdateResource();
+		SpriteTexture->MarkPackageDirty();
 	}
 
 	ULGUISpriteData* NewAsset = NewObject<ULGUISpriteData>(InParent, Class, Name, Flags | RF_Transactional);
