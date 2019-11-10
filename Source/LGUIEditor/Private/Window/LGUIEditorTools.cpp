@@ -481,6 +481,7 @@ void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
 	if (prefab)
 	{
 		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab, nullptr, true);
+		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
 		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
 
