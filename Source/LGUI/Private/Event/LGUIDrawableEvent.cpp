@@ -7,7 +7,7 @@
 
 bool ULGUIDrawableEventParameterHelper::IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIDrawableEventParameterType>& OutParameterTypeArray)
 {
-	if (InFunction->GetReturnProperty() != nullptr)return false;//if have return value
+	if (InFunction->GetReturnProperty() != nullptr)return false;//not support return value for ProcessEvent
 	TFieldIterator<UProperty> IteratorA(InFunction);
 	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
 	{
@@ -466,11 +466,19 @@ void FLGUIDrawableEventData::FindAndExecute(UObject* Target, FName FunctionName)
 	CacheFunction = Target->FindFunction(functionName);
 	if (CacheFunction)
 	{
-		ExecuteTargetFunction(Target, CacheFunction);
+		if (!ULGUIDrawableEventParameterHelper::IsStillSupported(CacheFunction, { ParamType }))
+		{
+			UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 0, Target function:%s not supported!"), *(FunctionName.ToString()));
+			CacheFunction = nullptr;
+		}
+		else
+		{
+			ExecuteTargetFunction(Target, CacheFunction);
+		}
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 0, Target function:%s not found!"), *(componentClass->GetPathName()));
+		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 1, Target function:%s not found!"), *(FunctionName.ToString()));
 	}
 }
 void FLGUIDrawableEventData::FindAndExecute(UObject* Target, FName FunctionName, void* ParamData)
@@ -479,11 +487,19 @@ void FLGUIDrawableEventData::FindAndExecute(UObject* Target, FName FunctionName,
 	CacheFunction = Target->FindFunction(functionName);
 	if (CacheFunction)
 	{
-		ExecuteTargetFunction(Target, CacheFunction, ParamData);
+		if (!ULGUIDrawableEventParameterHelper::IsStillSupported(CacheFunction, { ParamType }))
+		{
+			UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 2, Target function:%s not supported!"), *(FunctionName.ToString()));
+			CacheFunction = nullptr;
+		}
+		else
+		{
+			ExecuteTargetFunction(Target, CacheFunction, ParamData);
+		}
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 1, Target function:%s not found!"), *(componentClass->GetPathName()));
+		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 3, Target function:%s not found!"), *(FunctionName.ToString()));
 	}
 }
 void FLGUIDrawableEventData::ExecuteTargetFunction(UObject* Target, UFunction* Func)
