@@ -251,7 +251,7 @@ public:
 			.MinDesiredWidth(500)
 			[
 				SNew(SButton)
-				.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickComponentNameButton, actor, i)
+				.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickComponentNameButton, i)
 				[
 					LGUIEditorUtils::GenerateArrowButtonContent(FText::FromString(componentDisplayName))
 				]
@@ -268,7 +268,7 @@ public:
 			.MinDesiredWidth(500)
 			[
 				SNew(SButton)
-				.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickFunctionNameButton, actor, i)
+				.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickFunctionNameButton, i)
 				[
 					LGUIEditorUtils::GenerateArrowButtonContent(FText::FromString(functionName))
 				]
@@ -476,17 +476,27 @@ protected:
 		PropertyUtilites->ForceRefresh();
 		return FReply::Handled();
 	}
-	FReply OnClickComponentNameButton(AActor* TargetActor, int32 itemIndex)
+	FReply OnClickComponentNameButton(int32 itemIndex)
 	{
+		auto itemHandle = EventListHandle->GetElement(itemIndex);
+		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
+		UObject* actorObject = nullptr;
+		actorHandle->GetValue(actorObject);
+		if (actorObject == nullptr)
+		{
+			UE_LOG(LGUIEditor, Error, TEXT("Target actor is null!"));
+			return FReply::Handled();
+		}
+
 		SLGUIEventComponentSelector::TargetCustomization = this;
-		SLGUIEventComponentSelector::TargetActor = TargetActor;
+		SLGUIEventComponentSelector::TargetActor = (AActor*)actorObject;
 		SLGUIEventComponentSelector::TargetItemIndex = itemIndex;
 		SLGUIEventComponentSelector::EventListHandle = EventListHandle.Get();
 		FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIEventComponentSelectorName);
 		return FReply::Handled();
 	}
 
-	FReply OnClickFunctionNameButton(AActor* TargetActor, int32 itemIndex)
+	FReply OnClickFunctionNameButton(int32 itemIndex)
 	{
 		auto itemHandle = EventListHandle->GetElement(itemIndex);
 		auto compClassHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentClass));
@@ -512,12 +522,13 @@ protected:
 		bool GetObject = false;
 		if (actorObject->GetClass() == componentClass)//actor self
 		{
-			SLGUIEventFunctionSelector::TargetObject = TargetActor;
+			SLGUIEventFunctionSelector::TargetObject = actorObject;
 			GetObject = true;
 		}
 		else
 		{
-			auto& Components = TargetActor->GetComponents();
+			AActor* actor = (AActor*)actorObject;
+			auto& Components = actor->GetComponents();
 			for (auto Comp : Components)//fint component by class Component
 			{
 				if (Comp->GetClass() == componentClass)
