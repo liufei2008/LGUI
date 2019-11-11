@@ -117,3 +117,11 @@
 		Fix crash when redo from Prefab instance.
 	New feature:
 		Add "Browser to Prefab asset" to prefab edit.
+2.3.2
+    Fix:
+        Recreate default plugin's prefab assets.
+        Fix a bug for LGUIDrawableEvent when recompile blueprint.
+        Add more check to LGUIDrawableEvent to prevent crash.
+    New feature:
+        Add lambda function to LTween's RegisterUpdateEvent, it's just a quick entry and not for blueprint.
+        
