@@ -183,8 +183,7 @@ void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerTreeFolder()
 					ActorTreeItem->Visit(ExpansionVisitor);
 				}
 			}
-			SceneOutlinerWidget->Refresh();
-			GEditor->RedrawLevelEditingViewports();
+			GEngine->BroadcastLevelActorListChanged();
 		}
 	}
 }
