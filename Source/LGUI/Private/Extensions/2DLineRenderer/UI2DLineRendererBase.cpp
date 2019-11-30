@@ -347,11 +347,6 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 	}
 }
 
-bool AngleLargeThanPi(const FVector2D& A, const FVector2D& B)
-{
-	float temp = A.X * B.Y - B.X * A.Y;
-	return temp < 0;
-}
 void UUI2DLineRendererBase::GenerateLinePoint(const FVector2D& InCurrentPoint, const FVector2D& InPrevPoint, const FVector2D& InNextPoint, float InHalfWidth, FVector2D& OutPosA, FVector2D& OutPosB)
 {
 	if (InCurrentPoint == InPrevPoint || InCurrentPoint == InNextPoint)
@@ -399,7 +394,7 @@ void UUI2DLineRendererBase::GenerateLinePoint(const FVector2D& InCurrentPoint, c
 		float prevDotN = FVector2D::DotProduct(normalizedV1, itemNormal);
 		float angle = FMath::Acos(prevDotN);
 		float sin = FMath::Sin(angle);
-		itemNormal = AngleLargeThanPi(normalizedV1, normalizedV2) ? -itemNormal : itemNormal;
+		itemNormal = AngleLargerThanPi(normalizedV1, normalizedV2) ? -itemNormal : itemNormal;
 		switch (LineWidthSide)
 		{
 		case LineWidthSideType::Left:
