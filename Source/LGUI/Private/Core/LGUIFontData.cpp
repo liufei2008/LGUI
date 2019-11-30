@@ -150,6 +150,7 @@ void ULGUIFontData::DeinitFreeType()
 {
 	alreadyInitialized = false;
 	usePackingTag = false;
+	packingAtlasData = ULGUIAtlasManager::Find(packingTag);
 	if (packingAtlasData != nullptr)
 	{
 		packingAtlasData->expandTextureSizeCallback.Remove(packingAtlasTextureExpandDelegateHandle);
