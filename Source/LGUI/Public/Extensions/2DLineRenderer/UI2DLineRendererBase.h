@@ -42,6 +42,11 @@ protected:
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual bool HaveDataToCreateGeometry()override;
 
+	bool AngleLargerThanPi(const FVector2D& A, const FVector2D& B)
+	{
+		float temp = A.X * B.Y - B.X * A.Y;
+		return temp < 0;
+	}
 	void GenerateLinePoint(const FVector2D& InCurrentPoint, const FVector2D& InPrevPoint, const FVector2D& InNextPoint, float InHalfWidth, FVector2D& OutPosA, FVector2D& OutPosB);
 	void Generate2DLineGeometry(const TArray<FVector2D>& InPointArray);
 	void Update2DLineRendererBaseUV(const TArray<FVector2D>& InPointArray, int InEndPointRepeatCount);

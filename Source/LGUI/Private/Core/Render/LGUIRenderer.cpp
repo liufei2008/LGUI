@@ -167,27 +167,28 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		primitiveArray = HudPrimitiveArray;
 	}
 
-	FTexture2DRHIRef RenderTarget = InView.Family->RenderTarget->GetRenderTargetTexture();
+	FSceneView RenderView(InView);//use a copied view
+	FTexture2DRHIRef RenderTarget = RenderView.Family->RenderTarget->GetRenderTargetTexture();
 	SetRenderTarget(RHICmdList, RenderTarget, FTextureRHIRef());
 
-	InView.SceneViewInitOptions.ViewOrigin = ViewLocation;
-	InView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
-	InView.UpdateProjectionMatrix(ProjectionMatrix);
+	RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
+	RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
+	RenderView.UpdateProjectionMatrix(ProjectionMatrix);
 
 	FViewUniformShaderParameters viewUniformShaderParameters;
-	InView.SetupCommonViewUniformBufferParameters(
+	RenderView.SetupCommonViewUniformBufferParameters(
 		viewUniformShaderParameters,
-		InView.UnscaledViewRect.Size(),
+		RenderView.UnscaledViewRect.Size(),
 		1,
-		InView.UnscaledViewRect,
-		InView.ViewMatrices,
+		RenderView.UnscaledViewRect,
+		RenderView.ViewMatrices,
 		FViewMatrices()
 	);
-	InView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
+	RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
 
-	FDrawingPolicyRenderState drawRenderState(InView);
+	FDrawingPolicyRenderState drawRenderState(RenderView);
 	drawRenderState.SetDepthStencilState(TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI());
-	drawRenderState.SetViewUniformBuffer(InView.ViewUniformBuffer);
+	drawRenderState.SetViewUniformBuffer(RenderView.ViewUniformBuffer);
 
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
@@ -198,18 +199,18 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 			{
 				const FMeshBatch& Mesh = hudPrimitive->GetMeshElement();
 				FLGUIHudRenderPolicy drawingPolicy(Mesh.VertexFactory, Mesh.MaterialRenderProxy
-					, *Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel())
+					, *Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel())
 					, ComputeMeshOverrideSettings(Mesh));
 				if (drawingPolicy.IsInitialized())
 				{
-					drawingPolicy.SetupPipelineState(drawRenderState, InView);
+					drawingPolicy.SetupPipelineState(drawRenderState, RenderView);
 					CommitGraphicsPipelineState(RHICmdList, drawingPolicy
-						, drawRenderState, drawingPolicy.GetBoundShaderStateInput(InView.GetFeatureLevel())
+						, drawRenderState, drawingPolicy.GetBoundShaderStateInput(RenderView.GetFeatureLevel())
 						, drawingPolicy.GetMaterialRenderProxy());
-					drawingPolicy.SetSharedState(RHICmdList, drawRenderState, &InView, FLGUIHudRenderPolicy::ContextDataType());
+					drawingPolicy.SetSharedState(RHICmdList, drawRenderState, &RenderView, FLGUIHudRenderPolicy::ContextDataType());
 
-					drawingPolicy.SetMeshRenderState(RHICmdList, InView, Mesh, 0, drawRenderState, FMeshDrawingPolicy::ElementDataType(), FLGUIHudRenderPolicy::ContextDataType());
-					drawingPolicy.DrawMesh(RHICmdList, InView, Mesh, 0);
+					drawingPolicy.SetMeshRenderState(RHICmdList, RenderView, Mesh, 0, drawRenderState, FMeshDrawingPolicy::ElementDataType(), FLGUIHudRenderPolicy::ContextDataType());
+					drawingPolicy.DrawMesh(RHICmdList, RenderView, Mesh, 0);
 				}
 			}
 		}
