@@ -124,4 +124,8 @@
         Add more check to LGUIDrawableEvent to prevent crash.
     New feature:
         Add lambda function to LTween's RegisterUpdateEvent, it's just a quick entry and not for blueprint.
+2.3.3
+    Fix:
+        Fix a fatal error after shutdown, caused by LGUIFontData.
+        Fix a pontential link error caused by UI2DLineRendererBase.
         

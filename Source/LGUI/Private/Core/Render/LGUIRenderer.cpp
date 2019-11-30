@@ -86,24 +86,25 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		Scene = ViewFamily->Scene->GetRenderScene();
 	}
 
-	InView.SceneViewInitOptions.ViewOrigin = ViewLocation;
-	InView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
-	InView.UpdateProjectionMatrix(ProjectionMatrix);
+	FSceneView RenderView(InView);
+	RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
+	RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
+	RenderView.UpdateProjectionMatrix(ProjectionMatrix);
 
 	FViewUniformShaderParameters viewUniformShaderParameters;
-	InView.SetupCommonViewUniformBufferParameters(
+	RenderView.SetupCommonViewUniformBufferParameters(
 		viewUniformShaderParameters,
-		InView.UnscaledViewRect.Size(),
+		RenderView.UnscaledViewRect.Size(),
 		1,
-		InView.UnscaledViewRect,
-		InView.ViewMatrices,
+		RenderView.UnscaledViewRect,
+		RenderView.ViewMatrices,
 		FViewMatrices()
 	);
 
-	InView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
+	RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
 
 
-	FLGUIMeshElementCollector meshCollector(InView.GetFeatureLevel());
+	FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
 	FGraphicsPipelineStateInitializer GraphicsPSOInit;
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
@@ -117,7 +118,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 			if (hudPrimitive->CanRender())
 			{
 				const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-				auto Material = Mesh.MaterialRenderProxy->GetMaterial(InView.GetFeatureLevel());
+				auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
 				const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 				FLGUIHudRenderVS* VertexShader = (FLGUIHudRenderVS*)MaterialShaderMap->GetShader(&FLGUIHudRenderVS::StaticType);
 				FLGUIHudRenderPS* PixelShader = (FLGUIHudRenderPS*)MaterialShaderMap->GetShader(&FLGUIHudRenderPS::StaticType);
@@ -131,8 +132,8 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 					GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 					SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-					VertexShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material, Mesh);
-					PixelShader->SetMaterialShaderParameters(RHICmdList, InView, Mesh.MaterialRenderProxy, Material, Mesh);
+					VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+					PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 
 					RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
 					RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
