@@ -17,7 +17,9 @@ public:
 		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to ShowWarning_MultiComponentNotAllowed must be derived from UActorComponent");
 		if (auto actor = Component->GetOwner())
 		{
-			if (actor->GetComponentsByClass(T::StaticClass()).Num() > 1)
+			TArray<UActorComponent*> components;
+			actor->GetComponents(T::StaticClass(), components);
+			if (components.Num() > 1)
 			{
 				IDetailCategoryBuilder& lguiCategory = DetailBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
 				lguiCategory.AddCustomRow(FText::FromString(FString(TEXT("MultiComponentNotAllowed_Tips"))))
@@ -36,7 +38,9 @@ public:
 	{
 		if (auto actor = Component->GetOwner())
 		{
-			if (actor->GetComponentsByClass(RequireComponentType).Num() == 0)
+			TArray<UActorComponent*> Components;
+			actor->GetComponents(RequireComponentType, Components);
+			if (Components.Num() == 0)
 			{
 				IDetailCategoryBuilder& lguiCategory = DetailBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
 				lguiCategory.AddCustomRow(FText::FromString(FString(TEXT("RequireComponent_Tips"))))

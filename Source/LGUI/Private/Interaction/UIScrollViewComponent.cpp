@@ -74,7 +74,7 @@ void UUIScrollViewComponent::RecalculateRange()
 			this->CalculateVerticalRange();
 			AllowVerticalScroll = true;
 		}
-		Position = ContentUIItem->RelativeLocation;
+		Position = ContentUIItem->GetRelativeLocation();
 		if (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y
 			|| Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)
 		{
@@ -163,7 +163,7 @@ bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(const FLGUIPointe
 				AllowVerticalScroll = true;
 			}
 		}
-		Position = ContentUIItem->RelativeLocation;
+		Position = ContentUIItem->GetRelativeLocation();
 		CanUpdateAfterDrag = false;
 		OnPointerDrag_Implementation(eventData);
 	}
@@ -177,7 +177,7 @@ bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(const FLGUIPointe
 bool UUIScrollViewComponent::OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)
 {
 	if (ContentUIItem == nullptr)return AllowEventBubbleUp;
-	auto position = ContentUIItem->RelativeLocation;
+	auto position = ContentUIItem->GetRelativeLocation();
 	auto worldPoint = eventData.GetWorldPointInPlane();
 	auto localMoveDelta = eventData.pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
 	localMoveDelta.Z = 0;
@@ -223,13 +223,13 @@ bool UUIScrollViewComponent::OnPointerEndDrag_Implementation(const FLGUIPointerE
 	if (AllowHorizontalScroll)
 	{
 		CanUpdateAfterDrag = true;
-		Position = ContentUIItem->RelativeLocation;
+		Position = ContentUIItem->GetRelativeLocation();
 		DragSpeed.X = localMoveDelta.X;
 	}
 	if (AllowVerticalScroll)
 	{
 		CanUpdateAfterDrag = true;
-		Position = ContentUIItem->RelativeLocation;
+		Position = ContentUIItem->GetRelativeLocation();
 		DragSpeed.Y = localMoveDelta.Y;
 	}
 	return AllowEventBubbleUp;
@@ -425,7 +425,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 void UUIScrollViewComponent::UpdateProgress(bool InFireEvent)
 {
 	if (ContentUIItem == nullptr)return;
-	auto& relativeLocation = ContentUIItem->RelativeLocation;
+	auto relativeLocation = ContentUIItem->GetRelativeLocation();
 	if (AllowHorizontalScroll)
 	{
 		Progress.X = (relativeLocation.X - HorizontalRange.X) / (HorizontalRange.Y - HorizontalRange.X);
@@ -447,7 +447,7 @@ void UUIScrollViewComponent::CalculateHorizontalRange()
 	auto& thisWidget = ContentUIItem->GetWidget();
 	if (parentWidget.width > thisWidget.width)
 	{
-		HorizontalRange.X = HorizontalRange.Y = ContentUIItem->RelativeLocation.X;
+		HorizontalRange.X = HorizontalRange.Y = ContentUIItem->GetRelativeLocation().X;
 		//parent
 		HorizontalRange.X = -parentWidget.pivot.X * parentWidget.width;
 		HorizontalRange.Y = (1.0f - parentWidget.pivot.X) * parentWidget.width;

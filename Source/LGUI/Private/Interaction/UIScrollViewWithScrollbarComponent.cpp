@@ -56,7 +56,7 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 	{
 		auto& parentWidget = ContentParentUIItem->GetWidget();
 		auto& contentWidget = ContentUIItem->GetWidget();
-		auto& contentLocation = ContentUIItem->RelativeLocation;
+		auto contentLocation = ContentUIItem->GetRelativeLocation();
 		if (AllowHorizontalScroll && !ValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->IsUIActiveInHierarchy())
 		{
 			if (Progress.X > 1.0f)
@@ -217,7 +217,7 @@ void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollVa
 	ValueIsSetFromHorizontalScrollbar = true;
 	AllowHorizontalScroll = true;
 
-	auto position = ContentUIItem->RelativeLocation;
+	auto position = ContentUIItem->GetRelativeLocation();
 	position.X = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, InScrollValue);
 	ContentUIItem->SetUIRelativeLocation(position);
 	UpdateProgress();
@@ -229,7 +229,7 @@ void UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar(float InScrollValu
 	ValueIsSetFromVerticalScrollbar = true;
 	AllowVerticalScroll = true;
 
-	auto position = ContentUIItem->RelativeLocation;
+	auto position = ContentUIItem->GetRelativeLocation();
 	position.Y = FMath::Lerp(VerticalRange.X, VerticalRange.Y, InScrollValue);
 	ContentUIItem->SetUIRelativeLocation(position);
 	UpdateProgress();

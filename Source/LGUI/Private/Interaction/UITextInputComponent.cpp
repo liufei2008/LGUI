@@ -721,7 +721,7 @@ void UUITextInputComponent::MoveUp()
 		CaretPositionLineIndex--;
 
 		UpdateUITextComponent();
-		FVector2D caretPosition(CaretObject->RelativeLocation);
+		FVector2D caretPosition(CaretObject->GetRelativeLocation());
 		TextActor->GetUIText()->FindCaretUp(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
 		UpdateCaretPosition();
@@ -737,7 +737,7 @@ void UUITextInputComponent::MoveDown()
 		CaretPositionLineIndex++;
 
 		UpdateUITextComponent();
-		FVector2D caretPosition(CaretObject->RelativeLocation);
+		FVector2D caretPosition(CaretObject->GetRelativeLocation());
 		TextActor->GetUIText()->FindCaretDown(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
 		UpdateCaretPosition();
@@ -791,7 +791,7 @@ void UUITextInputComponent::SelectionMoveUp()
 		CaretPositionLineIndex--;
 		
 		UpdateUITextComponent();
-		FVector2D caretPosition(CaretObject->RelativeLocation);
+		FVector2D caretPosition(CaretObject->GetRelativeLocation());
 		TextActor->GetUIText()->FindCaretUp(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
 
@@ -814,7 +814,7 @@ void UUITextInputComponent::SelectionMoveDown()
 		CaretPositionLineIndex++;
 
 		UpdateUITextComponent();
-		FVector2D caretPosition(CaretObject->RelativeLocation);
+		FVector2D caretPosition(CaretObject->GetRelativeLocation());
 		TextActor->GetUIText()->FindCaretDown(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
 

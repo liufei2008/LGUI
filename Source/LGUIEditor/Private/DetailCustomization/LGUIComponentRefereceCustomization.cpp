@@ -65,7 +65,8 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 			}
 			else
 			{
-				auto components = targetActor->GetComponentsByClass(targetCompClass);
+				TArray<UActorComponent*> components;
+				targetActor->GetComponents(targetCompClass, components);
 				if (components.Num() == 0)
 				{
 					contentWidget = SNew(SVerticalBox)

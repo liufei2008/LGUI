@@ -18,9 +18,11 @@ DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayo
 UUIItem::UUIItem()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	Mobility = EComponentMobility::Movable;
-	bAbsoluteLocation = bAbsoluteRotation = bAbsoluteScale = false;
-	bVisible = false;
+	SetMobility(EComponentMobility::Movable);
+	SetUsingAbsoluteLocation(false);
+	SetUsingAbsoluteRotation(false);
+	SetUsingAbsoluteScale(false);
+	SetVisibility(false);
 	bWantsOnUpdateTransform = true;
 	
 	itemType = UIItemType::UIItem;
@@ -245,7 +247,7 @@ void UUIItem::PreEditChange(UProperty* PropertyAboutToChange)
 	if (!isPreEditChange)
 	{
 		isPreEditChange = true;
-		prevRelativeLocation = RelativeLocation;
+		prevRelativeLocation = GetRelativeLocation();
 	}
 	Super::PreEditChange(PropertyAboutToChange);
 	
@@ -343,12 +345,12 @@ void UUIItem::PostEditComponentMove(bool bFinished)
 	//modify AnchorOffset for drag in editor
 	if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
 	{
-		float anchorOffsetX = this->RelativeLocation.X - prevRelativeLocation.X + widget.anchorOffsetX;
+		float anchorOffsetX = this->GetRelativeLocation().X - prevRelativeLocation.X + widget.anchorOffsetX;
 		SetAnchorOffsetX(anchorOffsetX);
 	}
 	if (widget.anchorVAlign != UIAnchorVerticalAlign::None)
 	{
-		float anchorOffsetY = this->RelativeLocation.Y - prevRelativeLocation.Y + widget.anchorOffsetY;
+		float anchorOffsetY = this->GetRelativeLocation().Y - prevRelativeLocation.Y + widget.anchorOffsetY;
 		SetAnchorOffsetY(anchorOffsetY);
 	}
 #endif
@@ -670,12 +672,12 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	{
 		if (!GetWorld()->IsGameWorld())
 		{
-			this->RelativeLocation = prevRelativeLocation;
+			this->GetRelativeLocation() = prevRelativeLocation;
 		}
 		isPreEditChange = false;
 	}
 #endif
-	FVector resultLocation = this->RelativeLocation;
+	FVector resultLocation = this->GetRelativeLocation();
 	switch (widget.anchorHAlign)
 	{
 	case UIAnchorHorizontalAlign::Left:
@@ -752,15 +754,14 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	}
 	break;
 	}
-	if (!(this->RelativeLocation.Equals(resultLocation)))
+	if (!(this->GetRelativeLocation().Equals(resultLocation)))
 	{
-		RelativeLocation = resultLocation;
-		UpdateComponentToWorld();
+		SetRelativeLocation(resultLocation);
 	}
 #if WITH_EDITORONLY_DATA
 	prevAnchorHAlign = widget.anchorHAlign;
 	prevAnchorVAlign = widget.anchorVAlign;
-	prevRelativeLocation = RelativeLocation;
+	prevRelativeLocation = GetRelativeLocation();
 #endif 
 	return sizeChanged;
 }
@@ -914,11 +915,10 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 }
 void UUIItem::SetUIRelativeLocation(FVector newLocation)
 {
-	if (!(RelativeLocation.Equals(newLocation)))
+	if (!(GetRelativeLocation().Equals(newLocation)))
 	{
 		MarkVertexPositionDirty();
-		RelativeLocation = newLocation;
-		UpdateComponentToWorld();
+		SetRelativeLocation(newLocation);
 
 		if (cacheParentUIItem)
 		{
@@ -929,19 +929,19 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 				{
 				case UIAnchorHorizontalAlign::Left:
 				{
-					float anchorOffsetX = this->RelativeLocation.X + parentWidget.width * parentWidget.pivot.X;
+					float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * parentWidget.pivot.X;
 					SetAnchorOffsetX(anchorOffsetX);
 				}
 				break;
 				case UIAnchorHorizontalAlign::Center:
 				{
-					float anchorOffsetX = this->RelativeLocation.X + parentWidget.width * (parentWidget.pivot.X - 0.5f);
+					float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * (parentWidget.pivot.X - 0.5f);
 					SetAnchorOffsetX(anchorOffsetX);
 				}
 				break;
 				case UIAnchorHorizontalAlign::Right:
 				{
-					float anchorOffsetX = this->RelativeLocation.X + parentWidget.width * (parentWidget.pivot.X - 1.0f);
+					float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * (parentWidget.pivot.X - 1.0f);
 					SetAnchorOffsetX(anchorOffsetX);
 				}
 				break;
@@ -967,19 +967,19 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 				{
 				case UIAnchorVerticalAlign::Top:
 				{
-					float anchorOffsetY = this->RelativeLocation.Y + parentWidget.height * (parentWidget.pivot.Y - 1.0f);
+					float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * (parentWidget.pivot.Y - 1.0f);
 					SetAnchorOffsetY(anchorOffsetY);
 				}
 				break;
 				case UIAnchorVerticalAlign::Middle:
 				{
-					float anchorOffsetY = this->RelativeLocation.Y + parentWidget.height * (parentWidget.pivot.Y - 0.5f);
+					float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * (parentWidget.pivot.Y - 0.5f);
 					SetAnchorOffsetY(anchorOffsetY);
 				}
 				break;
 				case UIAnchorVerticalAlign::Bottom:
 				{
-					float anchorOffsetY = this->RelativeLocation.Y + parentWidget.height * parentWidget.pivot.Y;
+					float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * parentWidget.pivot.Y;
 					SetAnchorOffsetY(anchorOffsetY);
 				}
 				break;
@@ -1007,10 +1007,10 @@ void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const
 	bool rotationChange = false;
 	if (!newRotation.Equals(GetRelativeRotationCache().GetCachedQuat()))
 	{
-		RelativeRotation = GetRelativeRotationCache().QuatToRotator(newRotation);
+		SetRelativeRotation_Direct(GetRelativeRotationCache().QuatToRotator(newRotation));
 		rotationChange = true;
 	}
-	if (!RelativeLocation.Equals(newLocation))
+	if (!GetRelativeLocation().Equals(newLocation))
 	{
 		SetUIRelativeLocation(newLocation);
 	}
@@ -1590,7 +1590,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 			//calculate world location
 			if (IsValid(Component->GetParentAsUIItem()))
 			{
-				FVector relativeLocation = Component->RelativeLocation;
+				FVector relativeLocation = Component->GetRelativeLocation();
 				const auto& parentWidget = Component->GetParentAsUIItem()->GetWidget();
 				switch (widget.anchorHAlign)
 				{

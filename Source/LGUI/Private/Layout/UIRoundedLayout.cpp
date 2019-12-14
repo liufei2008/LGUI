@@ -30,7 +30,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 		cos = FMath::Cos(angle);
 		x = cos * Radius;
 		y = sin * Radius;
-		auto pos = uiItem->RelativeLocation;
+		auto pos = uiItem->GetRelativeLocation();
 		pos.X = x;
 		pos.Y = y;
 		if (bSetChildAngle)

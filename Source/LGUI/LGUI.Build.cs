@@ -28,7 +28,6 @@ public class LGUI : ModuleRules
                 "InputCore",//UITextInput
                 "FreeType2",
                 "ApplicationCore",//UITextInput/RequiresVirtualKeyboard, debug
-                "UtilityShaders",
                 "Projects",
 				// ... add other public dependencies that you statically link with here ...
 			}

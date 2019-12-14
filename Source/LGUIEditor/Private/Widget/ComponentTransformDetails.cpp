@@ -490,17 +490,17 @@ EVisibility FComponentTransformDetails::GetLocationResetVisibility() const
 	FVector targetLocation = FVector::ZeroVector;
 	if (!IsLocationXEnable())
 	{
-		targetLocation.X = Archetype->RelativeLocation.X;
+		targetLocation.X = Archetype->GetRelativeLocation().X;
 	}
 	if (!IsLocationYEnable())
 	{
-		targetLocation.Y = Archetype->RelativeLocation.Y;
+		targetLocation.Y = Archetype->GetRelativeLocation().Y;
 	}
 	if (!IsLocationZEnable())
 	{
-		targetLocation.Z = Archetype->RelativeLocation.Z;
+		targetLocation.Z = Archetype->GetRelativeLocation().Z;
 	}
-	return Archetype->RelativeLocation != targetLocation ? EVisibility::Visible : EVisibility::Hidden;
+	return Archetype->GetRelativeLocation() != targetLocation ? EVisibility::Visible : EVisibility::Hidden;
 }
 
 FReply FComponentTransformDetails::OnLocationResetClicked()
@@ -513,15 +513,15 @@ FReply FComponentTransformDetails::OnLocationResetClicked()
 	FVector targetLocation = FVector::ZeroVector;
 	if (!IsLocationXEnable())
 	{
-		targetLocation.X = Archetype->RelativeLocation.X;
+		targetLocation.X = Archetype->GetRelativeLocation().X;
 	}
 	if (!IsLocationYEnable())
 	{
-		targetLocation.Y = Archetype->RelativeLocation.Y;
+		targetLocation.Y = Archetype->GetRelativeLocation().Y;
 	}
 	if (!IsLocationZEnable())
 	{
-		targetLocation.Z = Archetype->RelativeLocation.Z;
+		targetLocation.Z = Archetype->GetRelativeLocation().Z;
 	}
 
 	OnSetTransform(ETransformField::Location, EAxisList::All, targetLocation, false);
@@ -533,7 +533,7 @@ EVisibility FComponentTransformDetails::GetRotationResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return EVisibility::Hidden;
-	return Archetype->RelativeRotation.Euler() != FVector::ZeroVector ? EVisibility::Visible : EVisibility::Hidden;
+	return Archetype->GetRelativeRotation().Euler() != FVector::ZeroVector ? EVisibility::Visible : EVisibility::Hidden;
 }
 
 FReply FComponentTransformDetails::OnRotationResetClicked()
@@ -553,7 +553,7 @@ EVisibility FComponentTransformDetails::GetScaleResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
 	if (!IsValid(Archetype))return EVisibility::Hidden;
-	return Archetype->RelativeScale3D != FVector::OneVector ? EVisibility::Visible : EVisibility::Hidden;
+	return Archetype->GetRelativeScale3D() != FVector::OneVector ? EVisibility::Visible : EVisibility::Hidden;
 }
 
 FReply FComponentTransformDetails::OnScaleResetClicked()
@@ -588,10 +588,10 @@ void FComponentTransformDetails::CacheTransform()
 			FVector Scale;
 			if( SceneComponent )
 			{
-				Loc = SceneComponent->RelativeLocation;
+				Loc = SceneComponent->GetRelativeLocation();
 				FRotator* FoundRotator = ObjectToRelativeRotationMap.Find(SceneComponent);
-				Rot = (bEditingRotationInUI && !Object->IsTemplate() && FoundRotator) ? *FoundRotator : SceneComponent->RelativeRotation;
-				Scale = SceneComponent->RelativeScale3D;
+				Rot = (bEditingRotationInUI && !Object->IsTemplate() && FoundRotator) ? *FoundRotator : SceneComponent->GetRelativeRotation();
+				Scale = SceneComponent->GetRelativeScale3D();
 
 				if( ObjectIndex == 0 )
 				{
@@ -774,18 +774,18 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 				switch (TransformField)
 				{
 				case ETransformField::Location:
-					OldComponentValue = SceneComponent->RelativeLocation;
+					OldComponentValue = SceneComponent->GetRelativeLocation();
 					break;
 				case ETransformField::Rotation:
 					// Pull from the actual component or from the cache
-					OldComponentValue = SceneComponent->RelativeRotation.Euler();
+					OldComponentValue = SceneComponent->GetRelativeRotation().Euler();
 					if (bEditingRotationInUI && !bIsEditingTemplateObject && ObjectToRelativeRotationMap.Find(SceneComponent))
 					{
 						OldComponentValue = ObjectToRelativeRotationMap.Find(SceneComponent)->Euler();
 					}
 					break;
 				case ETransformField::Scale:
-					OldComponentValue = SceneComponent->RelativeScale3D;
+					OldComponentValue = SceneComponent->GetRelativeScale3D();
 					break;
 				}
 
@@ -844,13 +844,13 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 							if (!bIsEditingTemplateObject)
 							{
 								// Update local cache for restoring later
-								ObjectToRelativeRotationMap.FindOrAdd(SceneComponent) = SceneComponent->RelativeRotation;
+								ObjectToRelativeRotationMap.FindOrAdd(SceneComponent) = SceneComponent->GetRelativeRotation();
 							}
 
 							SceneComponent->SetUIRelativeLocation(NewComponentValue);
 
 							// Also forcibly set it as the cache may have changed it slightly
-							SceneComponent->RelativeLocation = NewComponentValue;
+							SceneComponent->GetRelativeLocation() = NewComponentValue;
 							CachedLocation.Set(NewComponentValue);
 
 							// If it's a template, propagate the change out to any current instances of the object
@@ -980,12 +980,12 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 						if (FoundRotator)
 						{
 							FQuat OldQuat = FoundRotator->GetDenormalized().Quaternion();
-							FQuat NewQuat = SceneComponent->RelativeRotation.GetDenormalized().Quaternion();
+							FQuat NewQuat = SceneComponent->GetRelativeRotation().GetDenormalized().Quaternion();
 
 							if (OldQuat.Equals(NewQuat))
 							{
 								// Need to restore the manually set rotation as it was modified by quat conversion
-								SceneComponent->RelativeRotation = *FoundRotator;
+								SceneComponent->SetRelativeRotation(*FoundRotator);
 							}
 						}
 					}
@@ -1030,24 +1030,24 @@ void FComponentTransformDetails::OnSetTransformAxis(float NewValue, ETextCommit:
 	{
 	case ETransformField::Location:
 	{
-		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->RelativeLocation);
+		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->GetRelativeLocation());
 		Archetype->SetUIRelativeLocation(NewVector);
 		CachedLocation.Set(NewVector);
 	}
 		break;
 	case ETransformField::Rotation:
 	{
-		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->RelativeRotation.Euler());
+		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->GetRelativeRotation().Euler());
 		FRotator NewRotation = FRotator::MakeFromEuler(NewVector);
-		Archetype->RelativeRotation = NewRotation;
+		Archetype->SetRelativeRotation(NewRotation);
 		Archetype->UpdateComponentToWorld();
 		CachedRotation.Set(NewRotation);
 	}
 		break;
 	case ETransformField::Scale:
 	{
-		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->RelativeScale3D);
-		Archetype->RelativeScale3D = NewVector;
+		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->GetRelativeScale3D());
+		Archetype->SetRelativeScale3D(NewVector);
 		Archetype->UpdateComponentToWorld();
 		CachedScale.Set(NewVector);
 	}
@@ -1099,7 +1099,7 @@ void FComponentTransformDetails::OnBeginRotatonSlider()
 				SceneComponent->Modify();
 
 				// Add/update cached rotation value prior to slider interaction
-				ObjectToRelativeRotationMap.FindOrAdd(SceneComponent) = SceneComponent->RelativeRotation;
+				ObjectToRelativeRotationMap.FindOrAdd(SceneComponent) = SceneComponent->GetRelativeRotation();
 			}
 		}
 	}
