@@ -27,6 +27,8 @@ public class LGUI : ModuleRules
                 "LTween",
                 "InputCore",//UITextInput
                 "FreeType2",
+                "UElibPNG",
+                "zlib",
                 "ApplicationCore",//UITextInput/RequiresVirtualKeyboard, debug
                 "Projects",
 				// ... add other public dependencies that you statically link with here ...
