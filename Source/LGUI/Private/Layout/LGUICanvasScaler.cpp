@@ -234,7 +234,12 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 		{
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
-				CheckAndApplyViewportParameter();
+				auto newViewportSize = Canvas->GetViewportSize();
+				if (newViewportSize != CurrentViewportSize)
+				{
+					CurrentViewportSize = newViewportSize;
+					OnViewportParameterChanged();
+				}
 				DrawVirtualCamera();
 			}
 		}
