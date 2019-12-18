@@ -11,7 +11,7 @@
 
 ULGUICanvasScaler::ULGUICanvasScaler()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void ULGUICanvasScaler::BeginPlay()
@@ -19,8 +19,27 @@ void ULGUICanvasScaler::BeginPlay()
 	Super::BeginPlay();
 	CheckCanvas();
 	SetCanvasProperties();
-	PrevViewportSize = FIntPoint(2, 2);//force apply
-	CheckAndApplyViewportParameter();
+	if (CheckCanvas())
+	{
+		if (Canvas->IsRootCanvas())
+		{
+			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+			{
+				CheckAndApplyViewportParameter();
+
+				if (auto world = GetWorld())
+				{
+					if (auto gameViewport = world->GetGameViewport())
+					{
+						if (auto viewport = gameViewport->Viewport)
+						{
+							_ViewportResizeDelegateHandle = viewport->ViewportResizedEvent.AddUObject(this, &ULGUICanvasScaler::OnViewportResized);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 
@@ -28,16 +47,38 @@ void ULGUICanvasScaler::BeginPlay()
 void ULGUICanvasScaler::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	CheckAndApplyViewportParameter();
 }
 
 void ULGUICanvasScaler::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+	if (_ViewportResizeDelegateHandle.IsValid())
+	{
+		if (auto world = GetWorld())
+		{
+			if (auto gameViewport = world->GetGameViewport())
+			{
+				if (auto viewport = gameViewport->Viewport)
+				{
+					viewport->ViewportResizedEvent.Remove(_ViewportResizeDelegateHandle);
+				}
+			}
+		}
+	}
 }
 
 
 void ULGUICanvasScaler::CheckAndApplyViewportParameter()
+{
+	CurrentViewportSize = Canvas->GetViewportSize();
+	OnViewportParameterChanged();
+}
+void ULGUICanvasScaler::OnViewportResized(FViewport* viewport, uint32)
+{
+	CurrentViewportSize = Canvas->GetViewportSize();//why not just get the viewport size from "viewport" parameter? because assets editor's viewport(ie. material, texture editor viewport) can fire the same event, and size is assets editor's viewport size
+	OnViewportParameterChanged();
+}
+void ULGUICanvasScaler::OnViewportParameterChanged()
 {
 	if (CheckCanvas())
 	{
@@ -45,62 +86,47 @@ void ULGUICanvasScaler::CheckAndApplyViewportParameter()
 		{
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
-				FIntPoint nowViewportSize = Canvas->GetViewportSize();
-				if (nowViewportSize != PrevViewportSize)
-				{
-					PrevViewportSize = nowViewportSize;
-					OnViewportParameterChanged();
-				}
-			}
-		}
-	}
-}
-void ULGUICanvasScaler::OnViewportParameterChanged()
-{
-	if (CheckCanvas())
-	{
-		if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
-		{
-			auto halfFov = FOVAngle * 0.5f;//ue4 us horizontal fov
-			Canvas->CheckAndGetUIItem()->SetRelativeScale3D(FVector::OneVector);
+				auto halfFov = FOVAngle * 0.5f;//ue4 us horizontal fov
+				Canvas->CheckAndGetUIItem()->SetRelativeScale3D(FVector::OneVector);
 
-			//adjust size
+				//adjust size
 #if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())
-			{
-				Canvas->SetViewportParameterChange();
-				Canvas->MarkRebuildAllDrawcall();
-				Canvas->MarkCanvasUpdate();
-			}
-			else
+				if (!GetWorld()->IsGameWorld())
+				{
+					Canvas->SetViewportParameterChange();
+					Canvas->MarkRebuildAllDrawcall();
+					Canvas->MarkCanvasUpdate();
+				}
+				else
 #endif
-			{
-				switch (UIScaleMode)
 				{
-				case LGUIScaleMode::ScaleWithScreenWidth:
-				{
-					Canvas->CheckAndGetUIItem()->SetWidth(PreferredWidth);
-					Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * PrevViewportSize.Y / PrevViewportSize.X);
-				}
-				break;
-				case LGUIScaleMode::ScaleWithScreenHeight:
-				{
-					Canvas->CheckAndGetUIItem()->SetHeight(PreferredHeight);
-					auto tempPreferredWidth = PreferredHeight * PrevViewportSize.X / PrevViewportSize.Y;
-					Canvas->CheckAndGetUIItem()->SetWidth(tempPreferredWidth);
-				}
-				break;
-				case LGUIScaleMode::ConstantPixelSize:
-				{
-					Canvas->CheckAndGetUIItem()->SetWidth(PrevViewportSize.X);
-					Canvas->CheckAndGetUIItem()->SetHeight(PrevViewportSize.Y);
-				}
-				break;
-				default:
+					switch (UIScaleMode)
+					{
+					case LGUIScaleMode::ScaleWithScreenWidth:
+					{
+						Canvas->CheckAndGetUIItem()->SetWidth(PreferredWidth);
+						Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * CurrentViewportSize.Y / CurrentViewportSize.X);
+					}
 					break;
+					case LGUIScaleMode::ScaleWithScreenHeight:
+					{
+						Canvas->CheckAndGetUIItem()->SetHeight(PreferredHeight);
+						auto tempPreferredWidth = PreferredHeight * CurrentViewportSize.X / CurrentViewportSize.Y;
+						Canvas->CheckAndGetUIItem()->SetWidth(tempPreferredWidth);
+					}
+					break;
+					case LGUIScaleMode::ConstantPixelSize:
+					{
+						Canvas->CheckAndGetUIItem()->SetWidth(CurrentViewportSize.X);
+						Canvas->CheckAndGetUIItem()->SetHeight(CurrentViewportSize.Y);
+					}
+					break;
+					default:
+						break;
+					}
+					Canvas->SetViewportParameterChange();
+					Canvas->MarkCanvasUpdate();
 				}
-				Canvas->SetViewportParameterChange();
-				Canvas->MarkCanvasUpdate();
 			}
 		}
 	}
@@ -154,20 +180,20 @@ void ULGUICanvasScaler::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 			case LGUIScaleMode::ScaleWithScreenWidth:
 			{
 				Canvas->CheckAndGetUIItem()->SetWidth(PreferredWidth);
-				Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * PrevViewportSize.Y / PrevViewportSize.X);
+				Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * CurrentViewportSize.Y / CurrentViewportSize.X);
 			}
 			break;
 			case LGUIScaleMode::ScaleWithScreenHeight:
 			{
 				Canvas->CheckAndGetUIItem()->SetHeight(PreferredHeight);
-				auto tempPreferredWidth = PreferredHeight * PrevViewportSize.X / PrevViewportSize.Y;
+				auto tempPreferredWidth = PreferredHeight * CurrentViewportSize.X / CurrentViewportSize.Y;
 				Canvas->CheckAndGetUIItem()->SetWidth(tempPreferredWidth);
 			}
 			break;
 			case LGUIScaleMode::ConstantPixelSize:
 			{
-				Canvas->CheckAndGetUIItem()->SetWidth(PrevViewportSize.X);
-				Canvas->CheckAndGetUIItem()->SetHeight(PrevViewportSize.Y);
+				Canvas->CheckAndGetUIItem()->SetWidth(CurrentViewportSize.X);
+				Canvas->CheckAndGetUIItem()->SetHeight(CurrentViewportSize.Y);
 			}
 			break;
 			default:
