@@ -17,13 +17,10 @@ struct FLGUIMeshSection
 	TArray<FVector> normals;
 	TArray<FVector> tangents;
 
-	FBox SectionLocalBox;
-
 	bool bSectionVisible;
 
 	FLGUIMeshSection()
-		: SectionLocalBox(ForceInit)
-		, bSectionVisible(true)
+		: bSectionVisible(true)
 	{}
 
 	/** Reset this section, clear all mesh info. */
@@ -39,7 +36,6 @@ struct FLGUIMeshSection
 		normals.Empty();
 		tangents.Empty();
 
-		SectionLocalBox.Init();
 		bSectionVisible = true;
 	}
 };

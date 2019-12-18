@@ -461,15 +461,6 @@ private:
 
 void ULGUIMeshComponent::CreateMeshSection()
 {
-	//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_CreateMeshSection);
-	MeshSection.SectionLocalBox.Init();
-	const auto& vertices = MeshSection.vertices;
-	int vertexCount = vertices.Num();
-	for (int i = 0; i < vertexCount; i++)
-	{
-		MeshSection.SectionLocalBox += vertices[i];
-	}
-
 	UpdateLocalBounds(); // Update overall bounds
 	MarkRenderStateDirty(); // New section requires recreating scene proxy
 }
@@ -480,13 +471,6 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSection);
 	if (InVertexPositionChanged)
 	{
-		MeshSection.SectionLocalBox.Init();
-		const auto& vertices = MeshSection.vertices;
-		int vertexCount = vertices.Num();
-		for (int i = 0; i < vertexCount; i++)
-		{
-			MeshSection.SectionLocalBox += vertices[i];
-		}
 		UpdateLocalBounds();
 	}
 	if (SceneProxy)
