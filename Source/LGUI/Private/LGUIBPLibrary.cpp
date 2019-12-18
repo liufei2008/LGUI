@@ -9,8 +9,6 @@
 #include "Core/ActorComponent/UIText.h"
 #include "Extensions/UISector.h"
 
-DECLARE_CYCLE_STAT(TEXT("CopyActorHierarchy"), STAT_CopyActor, STATGROUP_LGUI);
-
 #pragma region QuickEntry
 void ULGUIBPLibrary::SetUIAlpha(AActor* Target, float InAlpha)
 {

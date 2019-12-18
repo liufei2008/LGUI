@@ -71,6 +71,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		bool bRaycastComplex = false;
 
+	//do we have valid data to create geometry?
+	virtual bool HaveDataToCreateGeometry() { return true; }
+	//do we need texture create geometry?
+	virtual bool NeedTextureToCreateGeometry() { return false; }
+	//if NeedTextureToCreateGeometry() is true, then we should provide this texture
+	virtual UTexture* GetTextureToCreateGeometry() { return nullptr; }
+
+	//do anything before acturally create or update geometry
+	virtual void OnBeforeCreateOrUpdateGeometry();
+	//create ui geometry
+	virtual void OnCreateGeometry();
+	//update ui geometry
+	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+
+	void CreateGeometry();
+	virtual void UpdateGeometry(const bool& parentTransformChanged)override final;
+private:
 	bool bUVChanged = true;//vertex's uv change
 	bool bTriangleChanged = true;//triangle index change
 	bool bTextureChanged = true;//texture change

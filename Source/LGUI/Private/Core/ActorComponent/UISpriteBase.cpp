@@ -57,17 +57,17 @@ void UUISpriteBase::SetSprite(ULGUISpriteData* newSprite, bool setSize)
 {
 	if (sprite != newSprite)
 	{
-		if((sprite == nullptr || newSprite == nullptr)
+		if((!IsValid(sprite) || !IsValid(newSprite))
 			|| (sprite->GetAtlasTexture() != newSprite->GetAtlasTexture()))
 		{
 			MarkTextureDirty();
 			//remove from old
-			if (sprite != nullptr)
+			if (IsValid(sprite))
 			{
 				sprite->RemoveUISprite(this);
 			}
 			//add to new
-			if (newSprite != nullptr)
+			if (IsValid(newSprite))
 			{
 				newSprite->AddUISprite(this);
 			}
@@ -79,7 +79,7 @@ void UUISpriteBase::SetSprite(ULGUISpriteData* newSprite, bool setSize)
 }
 void UUISpriteBase::SetSizeFromSpriteData()
 {
-	if (sprite != nullptr)
+	if (IsValid(sprite))
 	{
 		SetWidth(sprite->GetSpriteInfo()->width);
 		SetHeight(sprite->GetSpriteInfo()->height);
@@ -96,7 +96,7 @@ void UUISpriteBase::OnRegister()
 #if WITH_EDITOR
 	if (this->GetWorld() && this->GetWorld()->WorldType == EWorldType::Editor)
 	{
-		if (sprite != nullptr)
+		if (IsValid(sprite))
 		{
 			sprite->AddUISprite(this);
 		}
@@ -109,7 +109,7 @@ void UUISpriteBase::OnUnregister()
 #if WITH_EDITOR
 	if (this->GetWorld() && this->GetWorld()->WorldType == EWorldType::Editor)
 	{
-		if (sprite != nullptr)
+		if (IsValid(sprite))
 		{
 			sprite->RemoveUISprite(this);
 		}
@@ -123,7 +123,7 @@ void UUISpriteBase::EditorForceUpdateImmediately()
 }
 void UUISpriteBase::CheckSpriteData()
 {
-	if (sprite == nullptr)
+	if (!IsValid(sprite))
 	{
 		sprite = ULGUISpriteData::GetDefaultWhiteSolid();
 		sprite->AddUISprite(this);
@@ -135,154 +135,29 @@ void UUISpriteBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 }
 void UUISpriteBase::OnPreChangeSpriteProperty()
 {
-	if (sprite != nullptr)
+	if (IsValid(sprite))
 	{
 		sprite->RemoveUISprite(this);
 	}
 }
 void UUISpriteBase::OnPostChangeSpriteProperty()
 {
-	if (sprite != nullptr)
+	if (IsValid(sprite))
 	{
 		sprite->AddUISprite(this);
 	}
 }
 #endif
 
-DECLARE_CYCLE_STAT(TEXT("UISprite UpdateGeometry"), STAT_UISpriteUpdateGeometry, STATGROUP_LGUI);
-
-
-void UUISpriteBase::UpdateGeometry(const bool& parentTransformChanged)
+UTexture* UUISpriteBase::GetTextureToCreateGeometry()
 {
-	SCOPE_CYCLE_COUNTER(STAT_UISpriteUpdateGeometry);
-	if (IsUIActiveInHierarchy() == false)return;
-	if (sprite == nullptr)
+	if (!IsValid(sprite))
 	{
-		//UE_LOG(LGUI, Log, TEXT("[UISpriteBase::UpdateGeometry]UISpriteBase:%s sprite is null"), *(this->GetFullName()));
-		if (cacheForThisUpdate_TextureChanged)
-		{
-			if (geometry->vertices.Num() != 0)//have geometry data, clear it
-			{
-				geometry->Clear();
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-			}
-		}
-		return;
+		sprite = ULGUISpriteData::GetDefaultWhiteSolid();
 	}
-	if (sprite->GetAtlasTexture() == nullptr)
+	if (IsValid(sprite) && IsValid(sprite->GetAtlasTexture()))
 	{
-		//UE_LOG(LGUI, Error, TEXT("[UISpriteBase::UpdateGeometry]UISpriteBase:%s atlasTexture is null"), *(this->GetFullName()));
-		if (cacheForThisUpdate_TextureChanged)
-		{
-			if (geometry->vertices.Num() != 0)//have geometry data, clear it
-			{
-				geometry->Clear();
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-			}
-		}
-		return;
+		return sprite->GetAtlasTexture();
 	}
-	if (!CheckRenderCanvas())return;
-
-	if (geometry->vertices.Num() == 0)//if geometry not created yet
-	{
-		if (HaveDataToCreateGeometry())
-		{
-			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();
-		}
-		else
-		{
-			if (geometry->vertices.Num() > 0)
-			{
-				geometry->Clear();
-			}
-		}
-	}
-	else//if geometry is created, update data
-	{
-		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
-		{
-			if (sprite == nullptr)//sprite is cleared
-			{
-				geometry->Clear();
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-				goto COMPLETE;
-			}
-			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();
-			goto COMPLETE;
-		}
-		if (cacheForThisUpdate_DepthChanged)
-		{
-			if (CustomUIMaterial != nullptr)
-			{
-				CreateGeometry();
-				RenderCanvas->MarkRebuildAllDrawcall();
-			}
-			else
-			{
-				geometry->depth = widget.depth;
-				RenderCanvas->OnUIElementDepthChange(this);
-			}
-		}
-		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
-		{
-			CreateGeometry();
-			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-			goto COMPLETE;
-		}
-		else//update geometry
-		{
-			OnUpdateGeometry(cacheForThisUpdate_VertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
-
-			if (parentTransformChanged)
-			{
-				cacheForThisUpdate_VertexPositionChanged = true;
-			}
-			if (cacheForThisUpdate_UVChanged || cacheForThisUpdate_ColorChanged || cacheForThisUpdate_VertexPositionChanged)//vertex data change, need to update geometry's vertex
-			{
-				if (ApplyGeometryModifier())
-				{
-					UIGeometry::CheckAndApplyAdditionalChannel(geometry);
-					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-				}
-				else
-				{
-					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_VertexPositionChanged);
-				}
-				if (cacheForThisUpdate_VertexPositionChanged)
-				{
-					UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
-				}
-			}
-		}
-	}
-COMPLETE:
-	;
-	if (!geometry->CheckDataValid())
-	{
-		UE_LOG(LGUI, Error, TEXT("[UISpriteBase::UpdateGeometry]UISpriteBase:%s geometry is not valid!"), *(this->GetFullName()));
-	}
-}
-
-void UUISpriteBase::CreateGeometry()
-{
-	geometry->Clear();
-	geometry->texture = sprite->GetAtlasTexture();
-	geometry->material = CustomUIMaterial;
-	geometry->depth = widget.depth;
-	OnCreateGeometry();
-	ApplyGeometryModifier();
-	
-	UIGeometry::CheckAndApplyAdditionalChannel(geometry);
-	UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
-}
-void UUISpriteBase::OnCreateGeometry()
-{
-	UE_LOG(LGUI, Error, TEXT("[UUISpriteBase::OnCreateGeometry]This function must be override!"));
-}
-void UUISpriteBase::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	UE_LOG(LGUI, Error, TEXT("[UUISpriteBase::OnUpdateGeometry]This function must be override!"));
+	return nullptr;
 }

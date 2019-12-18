@@ -148,135 +148,51 @@ void UUIText::UpdateBasePrevData()
 	Super::UpdateBasePrevData();
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIText UpdateGeometry"), STAT_UITextUpdateGeometry, STATGROUP_LGUI);
-
-void UUIText::UpdateGeometry(const bool& parentTransformChanged)
+UTexture* UUIText::GetTextureToCreateGeometry()
 {
-	SCOPE_CYCLE_COUNTER(STAT_UITextUpdateGeometry);
-	if (IsUIActiveInHierarchy() == false)return;
 	if (!IsValid(font))
 	{
 		font = ULGUIFontData::GetDefaultFont();
 	}
-	if (!CheckRenderCanvas())return;
+	font->InitFreeType();
+	return font->texture;
+}
+bool UUIText::HaveDataToCreateGeometry()
+{
+	return visibleCharCount > 0;
+}
+
+void UUIText::OnBeforeCreateOrUpdateGeometry()
+{
 	if (visibleCharCount == -1)
 	{
 		visibleCharCount = VisibleCharCountInString(text);
 	}
 	CacheTextGeometry();
-	if (geometry->vertices.Num() == 0)//if geometry not created yet
-	{
-		if (visibleCharCount > 0)//only valid if have visible char
-		{
-			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();
-		}
-		else//if not have visible char, just clear geometry
-		{
-			if (geometry->vertices.Num() > 0)
-			{
-				geometry->Clear();
-			}
-		}
-	}
-	else//if geometry is created, update data
-	{
-		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
-		{
-			if (!IsValid(font))//font is cleared
-			{
-				geometry->Clear();
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-				goto COMPLETE;
-			}
-			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();
-			goto COMPLETE;
-		}
-		if (cacheForThisUpdate_DepthChanged)
-		{
-			if (IsValid(CustomUIMaterial))
-			{
-				CreateGeometry();
-				RenderCanvas->MarkRebuildAllDrawcall();
-			}
-			else
-			{
-				geometry->depth = widget.depth;
-				RenderCanvas->OnUIElementDepthChange(this);
-			}
-		}
-		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
-		{
-			CreateGeometry();
-			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-			goto COMPLETE;
-		}
-		else//update geometry
-		{
-			bool vertexChanged = false;//vertex data change
-			if (cacheForThisUpdate_ColorChanged)
-			{
-				UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-				vertexChanged = true;
-			}
-			if (cacheForThisUpdate_VertexPositionChanged || cacheForThisUpdate_UVChanged)
-			{
-				float width = widget.width;
-				float height = widget.height;
-				UIGeometry::UpdateUITextVertexOrUV(text, width, height, widget.pivot, space, geometry, size, (uint8)hAlign, (uint8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderCanvas->GetDynamicPixelsPerUnit(), true, cacheForThisUpdate_UVChanged, cachedTextPropertyList, cachedTextGeometryList);
-				SetWidth(width);
-				SetHeight(height);
-				vertexChanged = true;
-			}
-			else if (parentTransformChanged)
-			{
-				vertexChanged = true;
-				cacheForThisUpdate_VertexPositionChanged = true;
-			}
-			
-			if (vertexChanged)
-			{
-				if (ApplyGeometryModifier())
-				{
-					UIGeometry::CheckAndApplyAdditionalChannel(geometry);
-					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-				}
-				else
-				{
-					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_VertexPositionChanged);
-				}
-				if (cacheForThisUpdate_VertexPositionChanged)
-				{
-					UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
-				}
-			}
-		}
-	}
-COMPLETE:
-	;
-	if (!geometry->CheckDataValid())
-	{
-		UE_LOG(LGUI, Error, TEXT("[UUIText::UpdateGeometry]UIText:%s geometry is not valid!"), *(this->GetFullName()));
-	}
 }
-
-void UUIText::CreateGeometry()
+void UUIText::OnCreateGeometry()
 {
-	geometry->Clear();
-	font->InitFreeType();
-	geometry->texture = font->texture;
-	geometry->material = CustomUIMaterial;
-	geometry->depth = widget.depth;
 	geometry->isFontTexture = true;
 	float width = widget.width;
 	float height = widget.height;
 	UIGeometry::FromUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, (int8)hAlign, (int8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderCanvas->GetDynamicPixelsPerUnit(), cachedTextPropertyList, cachedTextGeometryList, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 	SetWidth(width);
 	SetHeight(height);
-	ApplyGeometryModifier();
-	UIGeometry::CheckAndApplyAdditionalChannel(geometry);
-	UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
+}
+void UUIText::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+{
+	if (InVertexColorChanged)
+	{
+		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
+	}
+	if (InVertexPositionChanged || InVertexUVChanged)
+	{
+		float width = widget.width;
+		float height = widget.height;
+		UIGeometry::UpdateUITextVertexOrUV(text, width, height, widget.pivot, space, geometry, size, (uint8)hAlign, (uint8)vAlign, (uint8)overflowType, adjustWidth, adjustHeight, (uint8)fontStyle, textRealSize, RenderCanvas->GetDynamicPixelsPerUnit(), true, InVertexUVChanged, cachedTextPropertyList, cachedTextGeometryList);
+		SetWidth(width);
+		SetHeight(height);
+	}
 }
 
 
