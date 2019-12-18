@@ -15,17 +15,17 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 	auto uiRenderable = GetRenderableUIItem();
 	if (!uiRenderable)return;
 	auto renderCanvas = uiRenderable->GetRenderCanvas();
-	auto& vertices = InGeometry->vertices;
+	auto& originPositions = InGeometry->originPositions;
 	switch (uvChannel)
 	{
 	case 0:
 	{
-		auto& uvs0 = InGeometry->uvs;
-		auto vertexCount = uvs0.Num();
+		auto& vertices = InGeometry->vertices;
+		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
-			auto& vert = vertices[i];
-			uvs0[i] = FVector2D(vert.X, vert.Y);
+			auto& vert = originPositions[i];
+			vertices[i].TextureCoordinate[0] = FVector2D(vert.X, vert.Y);
 		}
 	}
 	break;
@@ -37,12 +37,12 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV1 should be checked!"));
 			return;
 		}
-		auto& uvs1 = InGeometry->uvs1;
-		auto vertexCount = uvs1.Num();
+		auto& vertices = InGeometry->vertices;
+		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
-			auto& vert = vertices[i];
-			uvs1[i] = FVector2D(vert.X, vert.Y);
+			auto& vert = originPositions[i];
+			vertices[i].TextureCoordinate[1] = FVector2D(vert.X, vert.Y);
 		}
 	}
 	break;
@@ -54,12 +54,12 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV2 should be checked!"));
 			return;
 		}
-		auto& uvs2 = InGeometry->uvs2;
-		auto vertexCount = uvs2.Num();
+		auto& vertices = InGeometry->vertices;
+		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
-			auto& vert = vertices[i];
-			uvs2[i] = FVector2D(vert.X, vert.Y);
+			auto& vert = originPositions[i];
+			vertices[i].TextureCoordinate[2] = FVector2D(vert.X, vert.Y);
 		}
 	}
 	break;
@@ -71,12 +71,12 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 			UE_LOG(LGUI, Error, TEXT("[UUIEffectPositionAsUV::ModifyUIGeometry]LGUICanvas/AdditionalShaderChannel/UV3 should be checked!"));
 			return;
 		}
-		auto& uvs3 = InGeometry->uvs3;
-		auto vertexCount = uvs3.Num();
+		auto& vertices = InGeometry->vertices;
+		auto vertexCount = vertices.Num();
 		for (int i = 0; i < vertexCount; i++)
 		{
-			auto& vert = vertices[i];
-			uvs3[i] = FVector2D(vert.X, vert.Y);
+			auto& vert = originPositions[i];
+			vertices[i].TextureCoordinate[3] = FVector2D(vert.X, vert.Y);
 		}
 	}
 	break;

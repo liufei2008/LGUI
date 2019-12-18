@@ -35,14 +35,14 @@ void UUISpriteBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UUISpriteBase::ApplyAtlasTextureScaleUp()
 {
-	auto& uvs = geometry->uvs;
-	if (uvs.Num() != 0)
+	auto& vertices = geometry->vertices;
+	if (vertices.Num() != 0)
 	{
-		for (int i = 0; i < uvs.Num(); i++)
+		for (int i = 0; i < vertices.Num(); i++)
 		{
-			auto& uv = uvs[i];
-			uv.X *= 0.5f;
-			uv.Y *= 0.5f;
+			auto& uv = vertices[i];
+			uv.TextureCoordinate[0].X *= 0.5f;
+			uv.TextureCoordinate[0].Y *= 0.5f;
 		}
 		MarkUVDirty();
 	}

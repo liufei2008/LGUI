@@ -9,87 +9,39 @@
 
 class LGUI_API UIGeometry
 {
-private:	
-	TArray<FVector> transformedVertices;//vertex position transformed in Canvas space
-	TArray<FVector> transformedNormals;//vertex normal transformed in Canvas space
-	TArray<FVector> transformedTangents;//vertex tangent transformed in Canvas space
 public:
 	//these two parameters below for store vertex and triangle count of origin data. after GeometryModifier if add new vertex or triangles, we can find origin vertex and triangle by using these two parameters
 	int32 originVerticesCount = 0;//origin vertices count
 	int32 originTriangleCount = 0;//origin triangle indices count
 
-	TArray<FVector> vertices;//vertex position
-	TArray<uint16> triangles;//triangle indices
-	TArray<FVector2D> uvs;//vertex texcoordinate 0
-	TArray<FVector2D> uvs1;//vertex texcoordinate 1
-	TArray<FVector2D> uvs2;//vertex texcoordinate 1
-	TArray<FVector2D> uvs3;//vertex texcoordinate 1
-	TArray<FVector> normals;//vertex normal
-	TArray<FVector> tangents;//vertex tangent
-	TArray<FColor> colors;//vertex color
+	//local space vertex position
+	TArray<FVector> originPositions;
+	//local space vertex normal
+	TArray<FVector> originNormals;
+	//local space vertex tangent
+	TArray<FVector> originTangents;
+	//vertex buffer, position/normal/tangent is stored as transformed space(Canvas space), origin position/normal/tangent is stored in originPositions/originNormals/originTangents
+	TArray<FDynamicMeshVertex> vertices;
+	//triangle indices
+	TArray<uint16> triangles;
+
 	UTexture* texture = nullptr;
 	UMaterialInterface* material = nullptr;
 	int depth;//depth of this UIRenderable
 	int drawcallIndex = -1;//index of drawcall(which collect this geometry for render) in drawcall list, -1 means not add to drawcall yet
 	bool isFontTexture = false;//the texture of this geometry is font texture or not
 
-	const TArray<FVector>& GetTransformedVertices() { return transformedVertices; }
-	const TArray<FVector>& GetTransformedNormals() { return transformedNormals; }
-	const TArray<FVector>& GetTransformedTangents() { return transformedTangents; }
-
 	void Clear()
 	{
 		vertices.Empty();
 		triangles.Empty();
-		uvs.Empty();
-		uvs1.Empty();
-		uvs2.Empty();
-		uvs3.Empty();
-		normals.Empty();
-		tangents.Empty();
-		colors.Empty();
-		transformedVertices.Empty();
-		transformedNormals.Empty();
-		transformedTangents.Empty();
+		originPositions.Empty();
+		originNormals.Empty();
+		originTangents.Empty();
 	}
 
 	bool CheckDataValid()
 	{
-		if (vertices.Num() != uvs.Num())
-		{
-			UE_LOG(LGUI, Error, TEXT("[UIGeometry::CheckDataValid]VertexPosition:%d not equal VertexUVCount:%d!"), vertices.Num(), uvs.Num());
-			return false;
-		}
-		if (vertices.Num() != colors.Num())
-		{
-			UE_LOG(LGUI, Error, TEXT("[UIGeometry::CheckDataValid]VertexPosition:%d not equal VertexColorCount:%d!"), vertices.Num(), colors.Num());
-			return false;
-		}
-		if (vertices.Num() != uvs1.Num() && uvs1.Num() != 0)
-		{
-			UE_LOG(LGUI, Error, TEXT("[UIGeometry::CheckDataValid]VertexPosition:%d not equal VertexUV1Count:%d!"), vertices.Num(), uvs1.Num());
-			return false;
-		}
-		if (vertices.Num() != uvs2.Num() && uvs2.Num() != 0)
-		{
-			UE_LOG(LGUI, Error, TEXT("[UIGeometry::CheckDataValid]VertexPosition:%d not equal VertexUV2Count:%d!"), vertices.Num(), uvs2.Num());
-			return false;
-		}
-		if (vertices.Num() != uvs3.Num() && uvs3.Num() != 0)
-		{
-			UE_LOG(LGUI, Error, TEXT("[UIGeometry::CheckDataValid]VertexPosition:%d not equal VertexUV3Count:%d!"), vertices.Num(), uvs3.Num());
-			return false;
-		}
-		if (vertices.Num() != normals.Num() && normals.Num() != 0)
-		{
-			UE_LOG(LGUI, Error, TEXT("[UIGeometry::CheckDataValid]VertexPosition:%d not equal VertexNormalCount:%d!"), vertices.Num(), normals.Num());
-			return false;
-		}
-		if (vertices.Num() != tangents.Num() && tangents.Num() != 0)
-		{
-			UE_LOG(LGUI, Error, TEXT("[UIGeometry::CheckDataValid]VertexPosition:%d not equal VertexTangentCount:%d!"), vertices.Num(), tangents.Num());
-			return false;
-		}
 		return true;
 	}
 
@@ -137,7 +89,6 @@ public:
 public:
 	static void UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, FColor color);
 	static void TransformVertices(class ULGUICanvas* canvas, class UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo, bool requireNormal, bool requireTangent);
-	static void CheckAndApplyAdditionalChannel(TSharedPtr<UIGeometry> uiGeo);
 	static void CalculatePivotOffset(const float& width, const float& height, const FVector2D& pivot, float& pivotOffsetX, float& pivotOffsetY, float& halfW, float& halfH);
 private:
 	static void OffsetVertices(TArray<FVector>& vertices, float offsetX, float offsetY);
