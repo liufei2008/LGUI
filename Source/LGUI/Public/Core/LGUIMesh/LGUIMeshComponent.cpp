@@ -54,40 +54,10 @@ public:
 		if (SrcSection.vertices.Num() > 0)
 		{
 			FLGUIMeshProxySection* NewSection = new FLGUIMeshProxySection(GetScene().GetFeatureLevel());
-
-			// Copy data from vertex buffer
-			const int32 NumVerts = SrcSection.vertices.Num();
-
-			// Allocate verts
-			TArray<FDynamicMeshVertex> Vertices;
-			Vertices.SetNumUninitialized(NumVerts);
-			// Copy verts
-			const auto& vertices = SrcSection.vertices;
-			const auto& uvs = SrcSection.uvs;
-			const auto& uvs1 = SrcSection.uvs1;
-			const auto& uvs2 = SrcSection.uvs2;
-			const auto& uvs3 = SrcSection.uvs3;
-			const auto& colors = SrcSection.colors;
-			const auto& normals = SrcSection.normals;
-			const auto& tangents = SrcSection.tangents;
-			for (int VertIdx = 0; VertIdx < NumVerts; VertIdx++)
-			{
-				FDynamicMeshVertex& Vert = Vertices[VertIdx];
-				Vert.Position = vertices[VertIdx];
-				Vert.Color = colors[VertIdx];
-				Vert.TextureCoordinate[0] = uvs[VertIdx];
-				Vert.TextureCoordinate[1] = uvs1[VertIdx];
-				Vert.TextureCoordinate[2] = uvs2[VertIdx];
-				Vert.TextureCoordinate[3] = uvs3[VertIdx];
-				Vert.TangentZ = normals[VertIdx];
-				Vert.TangentZ.Vector.W = -127;
-				Vert.TangentX = tangents[VertIdx];
-			}
-
-			// Copy index buffer
+			// vertex and index buffer
 			NewSection->IndexBuffer.Indices = SrcSection.triangles;
 
-			NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, Vertices, 4);
+			NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection.vertices, 4);
 
 			// Enqueue initialization of render resource
 			BeginInitResource(&NewSection->VertexBuffers.PositionVertexBuffer);
@@ -390,42 +360,9 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 	}
 	if (SceneProxy)
 	{
-		const auto& vertices = MeshSection.vertices;
-		const auto& uvs = MeshSection.uvs;
-		const auto& uvs1 = MeshSection.uvs1;
-		const auto& uvs2 = MeshSection.uvs2;
-		const auto& uvs3 = MeshSection.uvs3;
-		const auto& colors = MeshSection.colors;
-		const auto& normals = MeshSection.normals;
-		const auto& tangents = MeshSection.tangents;
-		const int32 NumVerts = vertices.Num();
+		const int32 NumVerts = MeshSection.vertices.Num();
 		FDynamicMeshVertex* VertexBufferData = new FDynamicMeshVertex[NumVerts];
-		if (AdditionalShaderChannelFlags == 0)
-		{
-			for (int32 VertIdx = 0; VertIdx < NumVerts; VertIdx++)
-			{
-				FDynamicMeshVertex& Vert = VertexBufferData[VertIdx];
-				Vert.Position = vertices[VertIdx];
-				Vert.Color = colors[VertIdx];
-				Vert.TextureCoordinate[0] = uvs[VertIdx];
-			}
-		}
-		else
-		{
-			for (int32 VertIdx = 0; VertIdx < NumVerts; VertIdx++)
-			{
-				FDynamicMeshVertex& Vert = VertexBufferData[VertIdx];
-				Vert.Position = vertices[VertIdx];
-				Vert.Color = colors[VertIdx];
-				Vert.TextureCoordinate[0] = uvs[VertIdx];
-				Vert.TextureCoordinate[1] = uvs1[VertIdx];
-				Vert.TextureCoordinate[2] = uvs2[VertIdx];
-				Vert.TextureCoordinate[3] = uvs3[VertIdx];
-				Vert.TangentZ = normals[VertIdx];
-				Vert.TangentZ.Vector.W = -127;
-				Vert.TangentX = tangents[VertIdx];
-			}
-		}
+		FMemory::Memcpy(VertexBufferData, MeshSection.vertices.GetData(), NumVerts * sizeof(FDynamicMeshVertex));
 		//index data
 		auto& triangles = MeshSection.triangles;
 		const int32 NumTriangles = triangles.Num();
@@ -556,13 +493,13 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 	int vertCount = vertices.Num();
 	if (vertCount < 2)return Super::CalcBounds(LocalToWorld);
 
-	FVector vecMin = vertices[0];
-	FVector vecMax = vertices[0];
+	FVector vecMin = vertices[0].Position;
+	FVector vecMax = vecMin;
 
 	// Get maximum and minimum X, Y and Z positions of vectors
 	for (int32 i = 1; i < vertCount; i++)
 	{
-		auto vertPos = vertices[i];
+		auto vertPos = vertices[i].Position;
 		vecMin.X = (vecMin.X > vertPos.X) ? vertPos.X : vecMin.X;
 		vecMin.Y = (vecMin.Y > vertPos.Y) ? vertPos.Y : vecMin.Y;
 		vecMin.Z = (vecMin.Z > vertPos.Z) ? vertPos.Z : vecMin.Z;
@@ -580,19 +517,19 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 
 void ULGUIMeshComponent::SetColor(FColor InColor)
 {
-	auto& colors = MeshSection.colors;
-	int count = colors.Num();
+	auto& vertices = MeshSection.vertices;
+	int count = vertices.Num();
 	for (int i = 0; i < count; i++)
 	{
-		colors[i] = InColor;
+		vertices[i].Color = InColor;
 	}
 	UpdateMeshSection(false);
 }
 FColor ULGUIMeshComponent::GetColor()const
 {
-	if (MeshSection.colors.Num() > 0)
+	if (MeshSection.vertices.Num() > 0)
 	{
-		return MeshSection.colors[0];
+		return MeshSection.vertices[0].Color;
 	}
 	else
 	{

@@ -25,20 +25,20 @@ const TArray<FVector2D>& UUI2DLineRendererBase::GetCalcaultedPointArray()
 
 void UUI2DLineRendererBase::Update2DLineRendererBaseUV(const TArray<FVector2D>& InPointArray, int InEndPointRepeatCount)
 {
-	auto& uvs = geometry->uvs;
+	auto& vertices = geometry->vertices;
 	int pointCount = InPointArray.Num();
 	int vertexCount = geometry->originVerticesCount;
-	if (uvs.Num() == 0)
+	if (vertices.Num() == 0)
 	{
-		uvs.AddDefaulted(vertexCount);
+		vertices.AddDefaulted(vertexCount);
 	}
 	auto spriteInfo = sprite->GetSpriteInfo();
 	float uvXInterval = (spriteInfo->uv3X - spriteInfo->uv0X) / (pointCount - 1);
 	float uvX = spriteInfo->uv0X;
 	for (int i = 0; i < vertexCount; i += 2)
 	{
-		auto& uvi = uvs[i];
-		auto& uvi1 = uvs[i + 1];
+		auto& uvi = vertices[i].TextureCoordinate[0];
+		auto& uvi1 = vertices[i + 1].TextureCoordinate[1];
 		uvi.X = uvX;
 		uvi.Y = spriteInfo->uv0Y;
 		uvi1.X = uvX;
@@ -54,7 +54,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	UIGeometry::CalculatePivotOffset(widget.width, widget.height, widget.pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
-	auto& vertices = geometry->vertices;
+	auto& vertices = geometry->originPositions;
 	if (vertices.Num() == 0)
 	{
 		int vertexCount = (pointCount + InEndPointRepeatCount) * 2;
@@ -303,7 +303,7 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 	//normals
 	if (RenderCanvas->GetRequireNormal())
 	{
-		auto& normals = geometry->normals;
+		auto& normals = geometry->originNormals;
 		if (normals.Num() == 0)
 		{
 			normals.AddDefaulted(vertexCount);
@@ -312,37 +312,10 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 	//tangents
 	if (RenderCanvas->GetRequireTangent())
 	{
-		auto& tangents = geometry->tangents;
+		auto& tangents = geometry->originTangents;
 		if (tangents.Num() == 0)
 		{
 			tangents.AddDefaulted(vertexCount);
-		}
-	}
-	//uvs1
-	if (RenderCanvas->GetRequireUV1())
-	{
-		auto& uvs1 = geometry->uvs1;
-		if (uvs1.Num() == 0)
-		{
-			uvs1.AddDefaulted(vertexCount);
-		}
-	}
-	//uvs2
-	if (RenderCanvas->GetRequireUV2())
-	{
-		auto& uvs2 = geometry->uvs2;
-		if (uvs2.Num() == 0)
-		{
-			uvs2.AddDefaulted(vertexCount);
-		}
-	}
-	//uvs3
-	if (RenderCanvas->GetRequireUV3())
-	{
-		auto& uvs3 = geometry->uvs3;
-		if (uvs3.Num() == 0)
-		{
-			uvs3.AddDefaulted(vertexCount);
 		}
 	}
 }
