@@ -39,6 +39,8 @@ protected:
 #endif
 	void OnViewportParameterChanged();
 	void CheckAndApplyViewportParameter();
+	void OnViewportResized(FViewport*, uint32);
+	FDelegateHandle _ViewportResizeDelegateHandle;
 
 	friend class FUICanvasScalerCustomization;
 
@@ -64,7 +66,7 @@ protected:
 	UPROPERTY(Transient) class ULGUICanvas* Canvas = nullptr;
 	void SetCanvasProperties();
 
-	FIntPoint PrevViewportSize = FIntPoint(0, 0);//prev frame viewport size
+	FIntPoint CurrentViewportSize = FIntPoint(0, 0);//prev frame viewport size
 public:
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
