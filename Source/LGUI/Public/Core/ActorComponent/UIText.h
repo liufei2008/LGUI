@@ -90,7 +90,6 @@ protected:
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 public:
-	virtual void UpdateGeometry(const bool& parentTransformChanged) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
 	virtual void EditorForceUpdateImmediately() override;
@@ -132,7 +131,6 @@ private:
 	int visibleCharCount = -1;
 	//real size of this UIText, not the widget's width and height
 	FVector2D textRealSize;
-	void CreateGeometry();
 	//cached texture property
 	TArray<FUITextLineProperty> cachedTextPropertyList;
 	
@@ -143,6 +141,14 @@ private:
 	//calculate text geometry
 	void CacheTextGeometry();
 
+protected:
+	virtual bool HaveDataToCreateGeometry()override;
+	virtual UTexture* GetTextureToCreateGeometry()override;
+	virtual bool NeedTextureToCreateGeometry()override { return true; }
+
+	virtual void OnBeforeCreateOrUpdateGeometry()override;
+	virtual void OnCreateGeometry()override;
+	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 public:
 	void ApplyFontTextureScaleUp();
 	void ApplyFontTextureChange();
