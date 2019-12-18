@@ -517,6 +517,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& h
 	int contentLength = content.Len();
 	FVector2D currentLineOffset(0, 0);
 	float currentLineWidth = 0, paragraphHeight = 0;//single line width, all line height
+	float maxLineWidth = 0;//if have multiple line
 	TArray<FVector*> currentLineUIGeoVertexList;//single line's vertex collection
 	int visibleCharIndex = 0;//visible char index, skip invisible char(\n,\t)
 	auto& vertices = uiGeo->vertices;
@@ -537,6 +538,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& h
 		{
 MANUAL_NEWLINE://new line
 			currentLineWidth -= fontSpace.X;//last char of a line don't need space
+			maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
 			FUITextCharProperty charProperty;
 			charProperty.caretPosition = caretPosition;
 			charProperty.charIndex = charIndex;
@@ -668,6 +670,7 @@ MANUAL_NEWLINE://new line
 		if (charIndex + 1 == contentLength)//if is last char
 		{
 			currentLineWidth -= fontSpace.X;//last char don't need space
+			maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
 			FUITextCharProperty charProperty;
 			charProperty.caretPosition = caretPosition;
 			charProperty.charIndex = charIndex + 1;
@@ -713,6 +716,7 @@ MANUAL_NEWLINE://new line
 						sentenceProperty.charPropertyList.Add(charProperty);
 
 						currentLineWidth -= fontSpace.X;//last char don't need space
+						maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
 						UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
 						currentLineUIGeoVertexList.Empty();
 						cacheTextPropertyList.Add(sentenceProperty);
@@ -738,6 +742,7 @@ MANUAL_NEWLINE://new line
 				if (currentLineOffset.X + nextCharXAdv > width)//discard out-of-range chars
 				{
 					currentLineWidth -= fontSpace.X;//last char don't need space
+					maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
 					UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
 					paragraphHeight += fontSize;
 					cacheTextPropertyList.Add(sentenceProperty);
@@ -768,7 +773,7 @@ MANUAL_NEWLINE://new line
 	{
 	case 0://horizontal overflow
 	{
-		textRealSize.X = currentLineWidth;
+		textRealSize.X = maxLineWidth;
 		textRealSize.Y = paragraphHeight;
 		if (adjustWidth)
 		{
@@ -781,7 +786,7 @@ MANUAL_NEWLINE://new line
 		if (haveMultipleSentence)
 			textRealSize.X = width;
 		else
-			textRealSize.X = currentLineWidth;
+			textRealSize.X = maxLineWidth;
 		textRealSize.Y = paragraphHeight;
 		if (adjustHeight)
 		{
@@ -791,7 +796,7 @@ MANUAL_NEWLINE://new line
 	break;
 	case 2://clamp content
 	{
-		textRealSize.X = currentLineWidth;
+		textRealSize.X = maxLineWidth;
 		textRealSize.Y = paragraphHeight;
 	}
 	break;
