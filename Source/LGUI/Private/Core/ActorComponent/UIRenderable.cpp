@@ -269,7 +269,6 @@ void UUIRenderable::UpdateGeometry(const bool& parentTransformChanged)
 			{
 				if (ApplyGeometryModifier())
 				{
-					UIGeometry::CheckAndApplyAdditionalChannel(geometry);
 					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 				}
 				else
@@ -307,7 +306,6 @@ void UUIRenderable::CreateGeometry()
 	OnCreateGeometry();
 	ApplyGeometryModifier();
 
-	UIGeometry::CheckAndApplyAdditionalChannel(geometry);
 	UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
 }
 
@@ -351,9 +349,9 @@ bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const 
 				int index = 0;
 				for (int i = 0; i < triangleCount; i++)
 				{
-					auto point0 = (vertices[triangleIndices[index++]]);
-					auto point1 = (vertices[triangleIndices[index++]]);
-					auto point2 = (vertices[triangleIndices[index++]]);
+					auto point0 = (vertices[triangleIndices[index++]].Position);
+					auto point1 = (vertices[triangleIndices[index++]].Position);
+					auto point2 = (vertices[triangleIndices[index++]].Position);
 					FVector hitPoint, hitNormal;
 					if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
 					{

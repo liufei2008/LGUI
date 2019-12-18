@@ -23,9 +23,6 @@
 #include "SceneViewExtension.h"
 #include "Engine.h"
 
-DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
-
 ULGUICanvas::ULGUICanvas()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -497,6 +494,10 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChan
 		}
 	}
 }
+
+DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
+
 void ULGUICanvas::UpdateCanvasGeometry()
 {
 	SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
@@ -652,12 +653,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				uiMesh->SetMeshVisible(true);//some UIMesh may set to invisible on prev frame, set to visible
 				auto& meshSection = uiMesh->MeshSection;
 				meshSection.Reset();
-				uiDrawcall->GetCombined(meshSection.vertices, meshSection.uvs, meshSection.colors, meshSection.triangles
-					, meshSection.normals
-					, meshSection.tangents
-					, meshSection.uvs1
-					, meshSection.uvs2
-					, meshSection.uvs3);
+				uiDrawcall->GetCombined(meshSection.vertices, meshSection.triangles);
 				uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
 			}
 
@@ -668,39 +664,31 @@ void ULGUICanvas::UpdateCanvasGeometry()
 		{
 			int drawcallCount = UIDrawcallList.Num();
 			bool needToSortRenderPriority = false;
-			for (int i = drawcallCount - 1; i >= 0; i--)
 			{
-				auto uiMesh = UIMeshList[i];
-				auto uiDrawcall = UIDrawcallList[i];
-				if (uiDrawcall->needToBeRebuild)
+				for (int i = drawcallCount - 1; i >= 0; i--)
 				{
-					LGUIUtils::SortUIItemDepth(uiDrawcall->geometryList);//sort needed for new add item
-					uiDrawcall->UpdateDepthRange();
-					auto& meshSection = uiMesh->MeshSection;
-					meshSection.Reset();
-					uiDrawcall->GetCombined(meshSection.vertices, meshSection.uvs, meshSection.colors, meshSection.triangles
-						, meshSection.normals
-						, meshSection.tangents
-						, meshSection.uvs1
-						, meshSection.uvs2
-						, meshSection.uvs3);
-					uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
-					uiDrawcall->needToBeRebuild = false;
-					uiDrawcall->needToUpdateVertex = false;
-					needToSortRenderPriority = true;
-				}
-				else if (uiDrawcall->needToUpdateVertex)
-				{
-					auto& meshSection = uiMesh->MeshSection;
-					uiDrawcall->UpdateData(meshSection.vertices, meshSection.uvs, meshSection.colors, meshSection.triangles
-						, meshSection.normals
-						, meshSection.tangents
-						, meshSection.uvs1
-						, meshSection.uvs2
-						, meshSection.uvs3);
-					uiMesh->GenerateOrUpdateMesh(uiDrawcall->vertexPositionChanged, additionalShaderChannels);
-					uiDrawcall->needToUpdateVertex = false;
-					uiDrawcall->vertexPositionChanged = false;
+					auto uiMesh = UIMeshList[i];
+					auto uiDrawcall = UIDrawcallList[i];
+					if (uiDrawcall->needToBeRebuild)
+					{
+						LGUIUtils::SortUIItemDepth(uiDrawcall->geometryList);//sort needed for new add item
+						uiDrawcall->UpdateDepthRange();
+						auto& meshSection = uiMesh->MeshSection;
+						meshSection.Reset();
+						uiDrawcall->GetCombined(meshSection.vertices, meshSection.triangles);
+						uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
+						uiDrawcall->needToBeRebuild = false;
+						uiDrawcall->needToUpdateVertex = false;
+						needToSortRenderPriority = true;
+					}
+					else if (uiDrawcall->needToUpdateVertex)
+					{
+						auto& meshSection = uiMesh->MeshSection;
+						uiDrawcall->UpdateData(meshSection.vertices, meshSection.triangles);
+						uiMesh->GenerateOrUpdateMesh(uiDrawcall->vertexPositionChanged, additionalShaderChannels);
+						uiDrawcall->needToUpdateVertex = false;
+						uiDrawcall->vertexPositionChanged = false;
+					}
 				}
 			}
 			if (UIItem->cacheForThisUpdate_DepthChanged || needToSortRenderPriority)
