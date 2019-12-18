@@ -26,12 +26,12 @@ UUIText::~UUIText()
 }
 void UUIText::ApplyFontTextureScaleUp()
 {
-	auto& uvs = geometry->uvs;
-	if (uvs.Num() != 0)
+	auto& vertices = geometry->vertices;
+	if (vertices.Num() != 0)
 	{
-		for (int i = 0; i < uvs.Num(); i++)
+		for (int i = 0; i < vertices.Num(); i++)
 		{
-			auto& uv = uvs[i];
+			auto& uv = vertices[i].TextureCoordinate[0];
 			uv *= 0.5f;
 		}
 		MarkUVDirty();

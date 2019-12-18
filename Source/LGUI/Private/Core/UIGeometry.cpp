@@ -15,7 +15,7 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 	if (triangles.Num() == 0)
 	{
 		uiGeo->originTriangleCount = 6;
-		triangles.AddUninitialized(6);
+		triangles.SetNumUninitialized(6);
 		triangles[0] = 0;
 		triangles[1] = 3;
 		triangles[2] = 2;
@@ -24,6 +24,18 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 		triangles[5] = 3;
 	}
 	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		uiGeo->originVerticesCount = 4;
+		vertices.SetNumUninitialized(4);
+	}
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
 	UpdateUIRectSimpleVertex(uiGeo, width, height, pivot);
 	//uvs
 	UpdateUIRectSimpleUV(uiGeo, spriteInfo);
@@ -33,7 +45,7 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 	//normals
 	if (requireNormal)
 	{
-		auto& normals = uiGeo->normals;
+		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(4);
@@ -46,7 +58,7 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 	//tangents
 	if (requireTangent)
 	{
-		auto& tangents = uiGeo->tangents;
+		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(4);
@@ -59,38 +71,30 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 	//uvs1
 	if (requireUV1)
 	{
-		auto& uvs1 = uiGeo->uvs1;
-		if (uvs1.Num() == 0)
-		{
-			uvs1.Reserve(4);
-			uvs1.Add(FVector2D(0, 1));
-			uvs1.Add(FVector2D(1, 1));
-			uvs1.Add(FVector2D(0, 0));
-			uvs1.Add(FVector2D(1, 0));
-		}
+		auto& vertices = uiGeo->vertices;
+		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
+		vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
+		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
+		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
 	}
 }
 
 void UIGeometry::UpdateUIRectSimpleUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo)
 {
-	auto& uvs = uiGeo->uvs;
-	if (uvs.Num() == 0)
-	{
-		uvs.AddUninitialized(4);
-	}
+	auto& vertices = uiGeo->vertices;
 	if (spriteInfo == nullptr)
 	{
-		uvs[0] = FVector2D(0, 1);
-		uvs[1] = FVector2D(1, 1);
-		uvs[2] = FVector2D(0, 0);
-		uvs[3] = FVector2D(1, 0);
+		vertices[0].TextureCoordinate[0] = FVector2D(0, 1);
+		vertices[1].TextureCoordinate[0] = FVector2D(1, 1);
+		vertices[2].TextureCoordinate[0] = FVector2D(0, 0);
+		vertices[3].TextureCoordinate[0] = FVector2D(1, 0);
 	}
 	else
 	{
-		uvs[0] = spriteInfo->GetUV0();
-		uvs[1] = spriteInfo->GetUV1();
-		uvs[2] = spriteInfo->GetUV2();
-		uvs[3] = spriteInfo->GetUV3();
+		vertices[0].TextureCoordinate[0] = spriteInfo->GetUV0();
+		vertices[1].TextureCoordinate[0] = spriteInfo->GetUV1();
+		vertices[2].TextureCoordinate[0] = spriteInfo->GetUV2();
+		vertices[3].TextureCoordinate[0] = spriteInfo->GetUV3();
 	}
 }
 void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot)
@@ -98,13 +102,8 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
-	//vertices
-	auto& vertices = uiGeo->vertices;
-	if (vertices.Num() == 0)
-	{
-		uiGeo->originVerticesCount = 4;
-		vertices.AddUninitialized(4);
-	}
+	//positions
+	auto& vertices = uiGeo->originPositions;
 	float x, y;
 	x = (-halfW + pivotOffsetX);
 	y = (-halfH + pivotOffsetY);
@@ -135,27 +134,39 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 			uiGeo->originTriangleCount = 48;
 			triangles.Reserve(48);
 		}
-	}
-	int wSeg = 3, hSeg = 3;
-	int vStartIndex = 0;
-	for (int h = 0; h < hSeg; h++)
-	{
-		for (int w = 0; w < wSeg; w++)
+		int wSeg = 3, hSeg = 3;
+		int vStartIndex = 0;
+		for (int h = 0; h < hSeg; h++)
 		{
-			if (!fillCenter)
-				if (h == 1 && w == 1)continue;
-			int vIndex = vStartIndex + w;
-			triangles.Add(vIndex);
-			triangles.Add(vIndex + wSeg + 2);
-			triangles.Add(vIndex + wSeg + 1);
+			for (int w = 0; w < wSeg; w++)
+			{
+				if (!fillCenter)
+					if (h == 1 && w == 1)continue;
+				int vIndex = vStartIndex + w;
+				triangles.Add(vIndex);
+				triangles.Add(vIndex + wSeg + 2);
+				triangles.Add(vIndex + wSeg + 1);
 
-			triangles.Add(vIndex);
-			triangles.Add(vIndex + 1);
-			triangles.Add(vIndex + wSeg + 2);
+				triangles.Add(vIndex);
+				triangles.Add(vIndex + 1);
+				triangles.Add(vIndex + wSeg + 2);
+			}
+			vStartIndex += wSeg + 1;
 		}
-		vStartIndex += wSeg + 1;
 	}
-	//vertices;
+	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		uiGeo->originVerticesCount = 16;
+		vertices.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
 	UpdateUIRectBorderVertex(uiGeo, width, height, pivot, spriteInfo);
 	//uvs
 	UpdateUIRectBorderUV(uiGeo, spriteInfo);
@@ -165,7 +176,7 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 	//normals
 	if (requireNormal)
 	{
-		auto& normals = uiGeo->normals;
+		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(16);
@@ -178,7 +189,7 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 	//tangents
 	if (requireTangent)
 	{
-		auto& tangents = uiGeo->tangents;
+		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(16);
@@ -191,74 +202,65 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 	//uvs1
 	if (requireUV1)
 	{
-		auto& uvs1 = uiGeo->uvs1;
-		if (uvs1.Num() == 0)
-		{
-			uvs1.AddUninitialized(16);
-			float widthReciprocal = 1.0f / spriteInfo->width;
-			float heightReciprocal = 1.0f / spriteInfo->height;
-			float buv0X = spriteInfo->borderLeft * widthReciprocal;
-			float buv3X = 1.0f - spriteInfo->borderRight * widthReciprocal;
-			float buv0Y = 1.0f - spriteInfo->borderBottom * heightReciprocal;
-			float buv3Y = spriteInfo->borderTop * heightReciprocal;
+		auto& vertices = uiGeo->vertices;
+		float widthReciprocal = 1.0f / spriteInfo->width;
+		float heightReciprocal = 1.0f / spriteInfo->height;
+		float buv0X = spriteInfo->borderLeft * widthReciprocal;
+		float buv3X = 1.0f - spriteInfo->borderRight * widthReciprocal;
+		float buv0Y = 1.0f - spriteInfo->borderBottom * heightReciprocal;
+		float buv3Y = spriteInfo->borderTop * heightReciprocal;
 
-			uvs1[0] = FVector2D(0, 1);
-			uvs1[1] = FVector2D(buv0X, 1);
-			uvs1[2] = FVector2D(buv3X, 1);
-			uvs1[3] = FVector2D(1, 1);
+		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
+		vertices[1].TextureCoordinate[1] = FVector2D(buv0X, 1);
+		vertices[2].TextureCoordinate[1] = FVector2D(buv3X, 1);
+		vertices[3].TextureCoordinate[1] = FVector2D(1, 1);
 
-			uvs1[4] = FVector2D(0, buv0Y);
-			uvs1[5] = FVector2D(buv0X, buv0Y);
-			uvs1[6] = FVector2D(buv3X, buv0Y);
-			uvs1[7] = FVector2D(1, buv0Y);
+		vertices[4].TextureCoordinate[1] = FVector2D(0, buv0Y);
+		vertices[5].TextureCoordinate[1] = FVector2D(buv0X, buv0Y);
+		vertices[6].TextureCoordinate[1] = FVector2D(buv3X, buv0Y);
+		vertices[7].TextureCoordinate[1] = FVector2D(1, buv0Y);
 
-			uvs1[8] = FVector2D(0, buv3Y);
-			uvs1[9] = FVector2D(buv0X, buv3Y);
-			uvs1[10] = FVector2D(buv3X, buv3Y);
-			uvs1[11] = FVector2D(1, buv3Y);
+		vertices[8].TextureCoordinate[1] = FVector2D(0, buv3Y);
+		vertices[9].TextureCoordinate[1] = FVector2D(buv0X, buv3Y);
+		vertices[10].TextureCoordinate[1] = FVector2D(buv3X, buv3Y);
+		vertices[11].TextureCoordinate[1] = FVector2D(1, buv3Y);
 
-			uvs1[12] = FVector2D(0, 0);
-			uvs1[13] = FVector2D(buv0X, 0);
-			uvs1[14] = FVector2D(buv3X, 0);
-			uvs1[15] = FVector2D(1, 0);
-		}
+		vertices[12].TextureCoordinate[1] = FVector2D(0, 0);
+		vertices[13].TextureCoordinate[1] = FVector2D(buv0X, 0);
+		vertices[14].TextureCoordinate[1] = FVector2D(buv3X, 0);
+		vertices[15].TextureCoordinate[1] = FVector2D(1, 0);
 	}
 }
 
 void UIGeometry::UpdateUIRectBorderUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo)
 {
-	auto& uvs = uiGeo->uvs;
-	if (uvs.Num() == 0)
-	{
-		uvs.AddUninitialized(16);
-	}
+	auto& vertices = uiGeo->vertices;
+	vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, spriteInfo->uv0Y);
+	vertices[1].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->uv0Y);
+	vertices[2].TextureCoordinate[0] = FVector2D(spriteInfo->buv3X, spriteInfo->uv0Y);
+	vertices[3].TextureCoordinate[0] = FVector2D(spriteInfo->uv3X, spriteInfo->uv0Y);
 
-	uvs[0] = FVector2D(spriteInfo->uv0X, spriteInfo->uv0Y);
-	uvs[1] = FVector2D(spriteInfo->buv0X, spriteInfo->uv0Y);
-	uvs[2] = FVector2D(spriteInfo->buv3X, spriteInfo->uv0Y);
-	uvs[3] = FVector2D(spriteInfo->uv3X, spriteInfo->uv0Y);
+	vertices[4].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, spriteInfo->buv0Y);
+	vertices[5].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->buv0Y);
+	vertices[6].TextureCoordinate[0] = FVector2D(spriteInfo->buv3X, spriteInfo->buv0Y);
+	vertices[7].TextureCoordinate[0] = FVector2D(spriteInfo->uv3X, spriteInfo->buv0Y);
 
-	uvs[4] = FVector2D(spriteInfo->uv0X, spriteInfo->buv0Y);
-	uvs[5] = FVector2D(spriteInfo->buv0X, spriteInfo->buv0Y);
-	uvs[6] = FVector2D(spriteInfo->buv3X, spriteInfo->buv0Y);
-	uvs[7] = FVector2D(spriteInfo->uv3X, spriteInfo->buv0Y);
+	vertices[8].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, spriteInfo->buv3Y);
+	vertices[9].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->buv3Y);
+	vertices[10].TextureCoordinate[0] = FVector2D(spriteInfo->buv3X, spriteInfo->buv3Y);
+	vertices[11].TextureCoordinate[0] = FVector2D(spriteInfo->uv3X, spriteInfo->buv3Y);
 
-	uvs[8] = FVector2D(spriteInfo->uv0X, spriteInfo->buv3Y);
-	uvs[9] = FVector2D(spriteInfo->buv0X, spriteInfo->buv3Y);
-	uvs[10] = FVector2D(spriteInfo->buv3X, spriteInfo->buv3Y);
-	uvs[11] = FVector2D(spriteInfo->uv3X, spriteInfo->buv3Y);
-
-	uvs[12] = FVector2D(spriteInfo->uv0X, spriteInfo->uv3Y);
-	uvs[13] = FVector2D(spriteInfo->buv0X, spriteInfo->uv3Y);
-	uvs[14] = FVector2D(spriteInfo->buv3X, spriteInfo->uv3Y);
-	uvs[15] = FVector2D(spriteInfo->uv3X, spriteInfo->uv3Y);
+	vertices[12].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, spriteInfo->uv3Y);
+	vertices[13].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->uv3Y);
+	vertices[14].TextureCoordinate[0] = FVector2D(spriteInfo->buv3X, spriteInfo->uv3Y);
+	vertices[15].TextureCoordinate[0] = FVector2D(spriteInfo->uv3X, spriteInfo->uv3Y);
 }
 void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, const FLGUISpriteInfo* spriteInfo)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
-	//vertices;
+	//vertices
 	float x0, x1, x2, x3, y0, y1, y2, y3;
 	int widthBorder = spriteInfo->borderLeft + spriteInfo->borderRight;
 	int heightBorder = spriteInfo->borderTop + spriteInfo->borderBottom;
@@ -273,16 +275,7 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	y3 = (halfH + pivotOffsetY);
 	y2 = (y3 - spriteInfo->borderTop * heightScale);
 
-	auto& vertices = uiGeo->vertices;
-	if (vertices.Num() == 0)
-	{
-		uiGeo->originVerticesCount = 16;
-		vertices.Reserve(16);
-		for (int i = 0; i < 16; i++)
-		{
-			vertices.Add(FVector());
-		}
-	}
+	auto& vertices = uiGeo->originPositions;
 	vertices[0] = FVector(x0, y0, 0);
 	vertices[1] = FVector(x1, y0, 0);
 	vertices[2] = FVector(x2, y0, 0);
@@ -326,6 +319,18 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 		}
 	}
 	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		uiGeo->originVerticesCount = 4 * rectangleCount;
+		vertices.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
 	UpdateUIRectTiledVertex(uiGeo, spriteInfo, width, height, pivot, widthRectCount, heightRectCount, widthRemainedRectSize, heightRemainedRectSize);
 	//uvs
 	UpdateUIRectTiledUV(uiGeo, spriteInfo, widthRectCount, heightRectCount, widthRemainedRectSize, heightRemainedRectSize);
@@ -335,7 +340,7 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 	//normals
 	if (requireNormal)
 	{
-		auto& normals = uiGeo->normals;
+		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(uiGeo->originVerticesCount);
@@ -348,7 +353,7 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 	//tangents
 	if (requireTangent)
 	{
-		auto& tangents = uiGeo->tangents;
+		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(uiGeo->originVerticesCount);
@@ -361,27 +366,19 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 	//uvs1
 	if (requireUV1)
 	{
-		auto& uvs1 = uiGeo->uvs1;
-		if (uvs1.Num() == 0)
+		auto& vertices = uiGeo->vertices;
+		for (int i = 0; i < uiGeo->originVerticesCount; i += 4)
 		{
-			uvs1.Reserve(uiGeo->originVerticesCount);
-			for (int i = 0; i < uiGeo->originVerticesCount; i+=4)
-			{
-				uvs1.Add(FVector2D(0, 0));
-				uvs1.Add(FVector2D(1, 0));
-				uvs1.Add(FVector2D(0, 1));
-				uvs1.Add(FVector2D(1, 1));
-			}
+			vertices[i].TextureCoordinate[1] = FVector2D(0, 0);
+			vertices[i].TextureCoordinate[1] = FVector2D(1, 0);
+			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
+			vertices[i].TextureCoordinate[1] = FVector2D(1, 1);
 		}
 	}
 }
 void UIGeometry::UpdateUIRectTiledUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize)
 {
-	auto& uvs = uiGeo->uvs;
-	if (uvs.Num() == 0)
-	{
-		uvs.AddUninitialized(uiGeo->originVerticesCount);
-	}
+	auto& vertices = uiGeo->vertices;
 
 	int vertIndex = 0;
 	float remainedUV3X = spriteInfo->buv0X + (spriteInfo->buv3X - spriteInfo->buv0X) * widthRemainedRectSize / spriteInfo->width;
@@ -392,10 +389,10 @@ void UIGeometry::UpdateUIRectTiledUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISp
 		for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
 		{
 			float realUV3X = widthRectIndex == widthRectCount ? remainedUV3X : spriteInfo->buv3X;
-			uvs[vertIndex++] = FVector2D(spriteInfo->buv0X, spriteInfo->buv0Y);
-			uvs[vertIndex++] = FVector2D(realUV3X, spriteInfo->buv0Y);
-			uvs[vertIndex++] = FVector2D(spriteInfo->buv0X, realUV3Y);
-			uvs[vertIndex++] = FVector2D(realUV3X, realUV3Y);
+			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->buv0Y);
+			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(realUV3X, spriteInfo->buv0Y);
+			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, realUV3Y);
+			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(realUV3X, realUV3Y);
 		}
 	}
 }
@@ -406,13 +403,7 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
 	int rectangleCount = widthRectCount * heightRectCount;
-	auto& vertices = uiGeo->vertices;
-	if (vertices.Num() == 0)
-	{
-		uiGeo->originVerticesCount = 4 * rectangleCount;
-		vertices.AddUninitialized(uiGeo->originVerticesCount);
-	}
-	//
+	auto& vertices = uiGeo->originPositions;
 	int vertIndex = 0;
 	float startX = (-halfW + pivotOffsetX);
 	float startY = (-halfH + pivotOffsetY);
@@ -443,12 +434,10 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	int vertexCount = visibleCharCount * 4;
 	int triangleCount = visibleCharCount * 6;
 	auto& vertices = uiGeo->vertices;
-	auto& uvs = uiGeo->uvs;
 	auto& triangles = uiGeo->triangles;
 	uiGeo->originVerticesCount = vertexCount;
-	vertices.AddUninitialized(vertexCount);
-	uvs.AddUninitialized(vertexCount);
-	
+	vertices.SetNumUninitialized(vertexCount);
+
 	uiGeo->originTriangleCount = triangleCount;
 	triangles.Reserve(triangleCount);
 	int vertIndex = 0;
@@ -463,6 +452,12 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 		vertIndex += 4;
 	}
 
+	//position and uv
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
 	UpdateUITextVertexOrUV(content, width, height, pivot, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, dynamicPixelsPerUnit, true, true, cacheTextPropertyList, cacheTextGeometryList);
 	//colors
 	UpdateUIColor(uiGeo, color);
@@ -470,7 +465,7 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	//normals
 	if (requireNormal)
 	{
-		auto& normals = uiGeo->normals;
+		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(vertexCount);
@@ -483,7 +478,7 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	//tangents
 	if (requireTangent)
 	{
-		auto& tangents = uiGeo->tangents;
+		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(vertexCount);
@@ -496,17 +491,13 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	//uv1
 	if (requireUV1)
 	{
-		auto& uvs1 = uiGeo->uvs1;
-		if (uvs1.Num() == 0)
+		auto& vertices = uiGeo->vertices;
+		for (int i = 0; i < visibleCharCount; i++)
 		{
-			uvs1.Reserve(vertexCount);
-			for (int i = 0; i < visibleCharCount; i++)
-			{
-				uvs1.Add(FVector2D(0, 1));
-				uvs1.Add(FVector2D(1, 1));
-				uvs1.Add(FVector2D(0, 0));
-				uvs1.Add(FVector2D(1, 0));
-			}
+			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
+			vertices[i].TextureCoordinate[1] = FVector2D(1, 1);
+			vertices[i].TextureCoordinate[1] = FVector2D(0, 0);
+			vertices[i].TextureCoordinate[1] = FVector2D(1, 0);
 		}
 	}
 }
@@ -520,8 +511,8 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& h
 	float maxLineWidth = 0;//if have multiple line
 	TArray<FVector*> currentLineUIGeoVertexList;//single line's vertex collection
 	int visibleCharIndex = 0;//visible char index, skip invisible char(\n,\t)
-	auto& vertices = uiGeo->vertices;
-	auto& uvs = uiGeo->uvs;
+	auto& vertices = uiGeo->originPositions;
+	auto& uvs = uiGeo->vertices;
 	FUITextLineProperty sentenceProperty;
 	FVector2D caretPosition(0, 0);
 	float charGeoWidth = 0, charGeoHeight = 0, halfFontSize = fontSize * 0.5f;
@@ -616,10 +607,10 @@ MANUAL_NEWLINE://new line
 			if (updateUV)
 			{
 				int index = visibleCharIndex * 4;
-				uvs[index] = charGeo.uv0;
-				uvs[index + 1] = charGeo.uv1;
-				uvs[index + 2] = charGeo.uv2;
-				uvs[index + 3] = charGeo.uv3;
+				uvs[index].TextureCoordinate[0] = charGeo.uv0;
+				uvs[index + 1].TextureCoordinate[0] = charGeo.uv1;
+				uvs[index + 2].TextureCoordinate[0] = charGeo.uv2;
+				uvs[index + 3].TextureCoordinate[0] = charGeo.uv3;
 			}
 			visibleCharIndex++;
 		}
@@ -843,7 +834,7 @@ MANUAL_NEWLINE://new line
 	}
 	if (updateVertex)
 	{
-		UIGeometry::OffsetVertices(uiGeo->vertices, xOffset, yOffset);
+		UIGeometry::OffsetVertices(vertices, xOffset, yOffset);
 	}
 }
 
@@ -888,6 +879,19 @@ void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivo
 		}
 	}
 	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		int vertexCount = 2 + segment + 1;
+		uiGeo->originVerticesCount = vertexCount;
+		vertices.SetNumUninitialized(vertexCount);
+	}
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
 	UpdateUISectorVertex(uiGeo, width, height, pivot, startAngle, endAngle, segment);
 	//uvs
 	UpdateUISectorUV(uiGeo, uvType, startAngle, endAngle, segment, spriteInfo);
@@ -898,7 +902,7 @@ void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivo
 	//normals
 	if (requireNormal)
 	{
-		auto& normals = uiGeo->normals;
+		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(vertexCount);
@@ -911,7 +915,7 @@ void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivo
 	//tangents
 	if (requireTangent)
 	{
-		auto& tangents = uiGeo->tangents;
+		auto& tangents = uiGeo->originNormals;
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(vertexCount);
@@ -924,25 +928,17 @@ void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivo
 	//uv1
 	if (requireUV1)
 	{
-		auto& uvs1 = uiGeo->uvs1;
-		if (uvs1.Num() == 0)
+		auto& vertices = uiGeo->vertices;
+		for (int i = 0; i < vertexCount; i++)
 		{
-			uvs1.Reserve(vertexCount);
-			for (int i = 0; i < vertexCount; i++)
-			{
-				uvs1.Add(FVector2D(0, 1));
-			}
+			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
 		}
 	}
 }
 void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, const FLGUISpriteInfo* spriteInfo)
 {
-	auto& uvs = uiGeo->uvs;
+	auto& vertices = uiGeo->vertices;
 	int vertexCount = uiGeo->originVerticesCount;
-	if (uvs.Num() == 0)
-	{
-		uvs.AddUninitialized(vertexCount);
-	}
 	if(uvType == 0)
 	{
 		float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / (segment + 1));
@@ -958,7 +954,7 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 
 		float x = centerUVX;
 		float y = centerUVY;
-		uvs[0] = FVector2D(x, y);
+		vertices[0].TextureCoordinate[0] = FVector2D(x, y);
 
 		for (int i = 0; i < segment + 2; i++)
 		{
@@ -966,47 +962,47 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 			cos = FMath::Cos(angle);
 			x = cos * halfUVWidth + centerUVX;
 			y = sin * halfUVHeight + centerUVY;
-			uvs[i + 1] = FVector2D(x, y);
+			vertices[i + 1].TextureCoordinate[0] = FVector2D(x, y);
 			angle += singleAngle;
 		}
 	}
 	else if(uvType == 1)
 	{
-		uvs[0] = FVector2D(spriteInfo->uv0X, (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f);
+		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f);
 		FVector2D otherUV(spriteInfo->uv3X, (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f);
 		for (int i = 1; i < vertexCount; i++)
 		{
-			uvs[i] = otherUV;
+			vertices[i].TextureCoordinate[0] = otherUV;
 		}
 	}
 	else if (uvType == 2)
 	{
-		uvs[0] = FVector2D((spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f, spriteInfo->uv0Y);
+		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f, spriteInfo->uv0Y);
 		FVector2D otherUV((spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f, spriteInfo->uv3Y);
 		for (int i = 1; i < vertexCount; i++)
 		{
-			uvs[i] = otherUV;
+			vertices[i].TextureCoordinate[0] = otherUV;
 		}
 	}
 	else if (uvType == 3)
 	{
-		uvs[0] = FVector2D(spriteInfo->uv0X, (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f);
+		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f);
 		float uvYInterval = (spriteInfo->uv3Y - spriteInfo->uv0Y) / (vertexCount - 1);
 		FVector2D otherUV(spriteInfo->uv3X, spriteInfo->uv0Y);
 		for (int i = 1; i < vertexCount; i++)
 		{
-			uvs[i] = otherUV;
+			vertices[i].TextureCoordinate[0] = otherUV;
 			otherUV.Y += uvYInterval;
 		}
 	}
 	else if (uvType == 4)
 	{
-		uvs[0] = FVector2D((spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f, spriteInfo->uv0Y);
+		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f, spriteInfo->uv0Y);
 		float uvXInterval = (spriteInfo->uv3X - spriteInfo->uv0X) / (vertexCount - 1);
 		FVector2D otherUV(spriteInfo->uv0X, spriteInfo->uv3Y);
 		for (int i = 1; i < vertexCount; i++)
 		{
-			uvs[i] = otherUV;
+			vertices[i].TextureCoordinate[0] = otherUV;
 			otherUV.X += uvXInterval;
 		}
 	}
@@ -1017,7 +1013,7 @@ void UIGeometry::UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
-	auto& vertices = uiGeo->vertices;
+	auto& vertices = uiGeo->originPositions;
 	if (vertices.Num() == 0)
 	{
 		int vertexCount = 2 + segment + 1;
@@ -1073,6 +1069,19 @@ void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot,
 		}
 	}
 	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		int vertexCount = 2 + (segment + 1) * 2;
+		uiGeo->originVerticesCount = vertexCount;
+		vertices.AddUninitialized(vertexCount);
+	}
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
 	UpdateUIRingVertex(uiGeo, width, height, pivot, startAngle, endAngle, segment, ringWidth);
 	//uvs
 	UpdateUIRingUV(uiGeo, uvType, startAngle, endAngle, segment, ringWidth, width, height, spriteInfo);
@@ -1083,7 +1092,7 @@ void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot,
 	//normals
 	if (requireNormal)
 	{
-		auto& normals = uiGeo->normals;
+		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(vertexCount);
@@ -1096,7 +1105,7 @@ void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot,
 	//tangents
 	if (requireTangent)
 	{
-		auto& tangents = uiGeo->tangents;
+		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(vertexCount);
@@ -1109,25 +1118,21 @@ void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot,
 	//uv1
 	if (requireUV1)
 	{
-		auto& uvs1 = uiGeo->uvs1;
-		if (uvs1.Num() == 0)
+		auto& vertices = uiGeo->vertices;
+		if (vertices.Num() == 0)
 		{
-			uvs1.Reserve(vertexCount);
+			vertices.Reserve(vertexCount);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				uvs1.Add(FVector2D(0, 1));
+				vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
 			}
 		}
 	}
 }
 void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, float ringWidth, float& width, float& height, const FLGUISpriteInfo* spriteInfo)
 {
-	auto& uvs = uiGeo->uvs;
+	auto& vertices = uiGeo->vertices;
 	int vertexCount = uiGeo->originVerticesCount;
-	if (uvs.Num() == 0)
-	{
-		uvs.AddUninitialized(vertexCount);
-	}
 	if (uvType == 0)
 	{
 		float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / (segment + 1));
@@ -1147,10 +1152,10 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 		float minHalfHRatio = (halfH - ringWidth) / halfH;
 		float x = cos * halfUVWidth * minHalfWRatio + centerUVX;
 		float y = sin * halfUVHeight * minHalfHRatio + centerUVY;
-		uvs[0] = FVector2D(x, y);
+		vertices[0].TextureCoordinate[0] = FVector2D(x, y);
 		x = cos * halfUVWidth + centerUVX;
 		y = sin * halfUVHeight + centerUVY;
-		uvs[1] = FVector2D(x, y);
+		vertices[1].TextureCoordinate[0] = FVector2D(x, y);
 
 		for (int i = 0; i < segment + 1; i++)
 		{
@@ -1159,10 +1164,10 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 			cos = FMath::Cos(angle);
 			x = cos * halfUVWidth * minHalfWRatio + centerUVX;
 			y = sin * halfUVHeight * minHalfHRatio + centerUVY;
-			uvs[i * 2 + 2] = FVector2D(x, y);
+			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(x, y);
 			x = cos * halfUVWidth + centerUVX;
 			y = sin * halfUVHeight + centerUVY;
-			uvs[i * 2 + 3] = FVector2D(x, y);
+			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(x, y);
 		}
 	}
 	else if (uvType == 1)
@@ -1171,13 +1176,13 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 
 		float uvYInterval = (spriteInfo->uv3Y - spriteInfo->uv0Y) / (segment + 1);
 		float uvY = spriteInfo->uv0Y;
-		uvs[0] = FVector2D(centerUVX, uvY);
-		uvs[1] = FVector2D(centerUVX, uvY);
+		vertices[0].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
+		vertices[1].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
 		for (int i = 0; i < segment + 1; i++)
 		{
 			uvY += uvYInterval;
-			uvs[i * 2 + 2] = FVector2D(centerUVX, uvY);
-			uvs[i * 2 + 3] = FVector2D(centerUVX, uvY);
+			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
+			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
 		}
 	}
 	else if (uvType == 2)
@@ -1186,13 +1191,13 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 
 		float uvXInterval = (spriteInfo->uv3X - spriteInfo->uv0X) / (segment + 1);
 		float uvX = spriteInfo->uv0X;
-		uvs[0] = FVector2D(uvX, centerUVY);
-		uvs[1] = FVector2D(uvX, centerUVY);
+		vertices[0].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
+		vertices[1].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
 		for (int i = 0; i < segment + 1; i++)
 		{
 			uvX += uvXInterval;
-			uvs[i * 2 + 2] = FVector2D(uvX, centerUVY);
-			uvs[i * 2 + 3] = FVector2D(uvX, centerUVY);
+			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
+			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
 		}
 	}
 	else if (uvType == 3)
@@ -1203,13 +1208,13 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 		float uvYInterval = (spriteInfo->uv3Y - spriteInfo->uv0Y) / (segment + 1);
 		float uvY = spriteInfo->uv0Y;
 
-		uvs[0] = FVector2D(innerUVX, uvY);
-		uvs[1] = FVector2D(outerUVX, uvY);
+		vertices[0].TextureCoordinate[0] = FVector2D(innerUVX, uvY);
+		vertices[1].TextureCoordinate[0] = FVector2D(outerUVX, uvY);
 		for (int i = 0; i < segment + 1; i++)
 		{
 			uvY += uvYInterval;
-			uvs[i * 2 + 2] = FVector2D(innerUVX, uvY);
-			uvs[i * 2 + 3] = FVector2D(outerUVX, uvY);
+			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(innerUVX, uvY);
+			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(outerUVX, uvY);
 		}
 	}
 	else if (uvType == 4)
@@ -1220,13 +1225,13 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 		float uvXInterval = (spriteInfo->uv3X - spriteInfo->uv0X) / (segment + 1);
 		float uvX = spriteInfo->uv0X;
 
-		uvs[0] = FVector2D(uvX, innerUVY);
-		uvs[1] = FVector2D(uvX, outerUVY);
+		vertices[0].TextureCoordinate[0] = FVector2D(uvX, innerUVY);
+		vertices[1].TextureCoordinate[0] = FVector2D(uvX, outerUVY);
 		for (int i = 0; i < segment + 1; i++)
 		{
 			uvX += uvXInterval;
-			uvs[i * 2 + 2] = FVector2D(uvX, innerUVY);
-			uvs[i * 2 + 3] = FVector2D(uvX, outerUVY);
+			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(uvX, innerUVY);
+			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(uvX, outerUVY);
 		}
 	}
 }
@@ -1236,7 +1241,7 @@ void UIGeometry::UpdateUIRingVertex(TSharedPtr<UIGeometry> uiGeo, float& width, 
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
-	auto& vertices = uiGeo->vertices;
+	auto& vertices = uiGeo->originPositions;
 	if (vertices.Num() == 0)
 	{
 		int vertexCount = 2 + (segment + 1) * 2;
@@ -1296,21 +1301,10 @@ void UIGeometry::OffsetVertices(TArray<FVector*>& vertices, float offsetX, float
 }
 void UIGeometry::UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, FColor color)
 {
-	auto& colors = uiGeo->colors;
-	auto count = colors.Num();
-	if (count == 0)
+	auto& vertices = uiGeo->vertices;
+	for (int i = 0; i < uiGeo->originVerticesCount; i++)
 	{
-		for (int i = 0; i < uiGeo->originVerticesCount; i++)
-		{
-			colors.Add(color);
-		}
-	}
-	else
-	{
-		for (int i = 0; i < uiGeo->originVerticesCount; i++)
-		{
-			colors[i] = color;
-		}
+		vertices[i].Color = color;
 	}
 }
 
@@ -1335,16 +1329,16 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 	auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
 	const auto& itemTf = item->GetComponentTransform();
 	auto& vertices = uiGeo->vertices;
-	auto& transformedVertices = uiGeo->transformedVertices;
+	auto& originPositions = uiGeo->originPositions;
 	auto vertexCount = vertices.Num();
-	auto transformedVertexCount = transformedVertices.Num();
-	if (transformedVertexCount > vertexCount)
+	auto originVertexCount = originPositions.Num();
+	if (originVertexCount > vertexCount)
 	{
-		transformedVertices.RemoveAt(vertexCount, transformedVertexCount - vertexCount);
+		originPositions.RemoveAt(vertexCount, originVertexCount - vertexCount);
 	}
-	else if (transformedVertexCount < vertexCount)
+	else if (originVertexCount < vertexCount)
 	{
-		transformedVertices.AddDefaulted(vertexCount - transformedVertexCount);
+		originPositions.AddDefaulted(vertexCount - originVertexCount);
 	}
 	
 	auto rootCanvasUIItem = canvas->GetRootCanvas()->CheckAndGetUIItem();
@@ -1359,7 +1353,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 			auto canvasLeftBottom = FVector2D(-canvasUIItem->GetWidth() * canvasUIItem->GetPivot().X, -canvasUIItem->GetHeight() * canvasUIItem->GetPivot().Y);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				tempV3 = itemToCanvasTf.TransformPosition(vertices[i]);
+				tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
 				tempV3.X -= canvasLeftBottom.X;
 				tempV3.Y -= canvasLeftBottom.Y;
 				tempV3.X = RoundToFloat(tempV3.X);
@@ -1367,7 +1361,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 				tempV3.X += canvasLeftBottom.X;
 				tempV3.Y += canvasLeftBottom.Y;
 
-				transformedVertices[i] = tempV3;
+				vertices[i].Position = tempV3;
 			}
 		}
 		else
@@ -1383,7 +1377,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 			auto canvasLeftBottom = FVector2D(-rootCanvasUIItem->GetWidth() * rootCanvasUIItem->GetPivot().X, -rootCanvasUIItem->GetHeight() * rootCanvasUIItem->GetPivot().Y);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				tempV3 = vertToRootCanvasTf.TransformPosition(vertices[i]);
+				tempV3 = vertToRootCanvasTf.TransformPosition(originPositions[i]);
 				tempV3.X -= canvasLeftBottom.X;
 				tempV3.Y -= canvasLeftBottom.Y;
 				tempV3.X = RoundToFloat(tempV3.X);
@@ -1393,7 +1387,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 
 				tempV3 = vertToCanvas.TransformPosition(tempV3);
 
-				transformedVertices[i] = tempV3;
+				vertices[i].Position = tempV3;
 			}
 		}
 	}
@@ -1401,135 +1395,48 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 	{
 		for (int i = 0; i < vertexCount; i++)
 		{
-			tempV3 = itemToCanvasTf.TransformPosition(vertices[i]);
-			transformedVertices[i] = tempV3;
+			tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
+			vertices[i].Position = tempV3;
 		}
 	}
 
 	if (requireNormal)
 	{
-		auto& normals = uiGeo->normals;
-		auto& transformedNormals = uiGeo->transformedNormals;
-		auto transformedNormalCount = transformedNormals.Num();
-		if (transformedNormalCount < vertexCount)
+		auto& vertices = uiGeo->vertices;
+		auto& originNormals = uiGeo->originNormals;
+		auto originNormalCount = originNormals.Num();
+		if (originNormalCount < vertexCount)
 		{
-			transformedNormals.AddDefaulted(vertexCount - transformedNormalCount);
+			originNormals.AddDefaulted(vertexCount - originNormalCount);
 		}
-		else if (transformedNormalCount > vertexCount)
+		else if (originNormalCount > vertexCount)
 		{
-			transformedNormals.RemoveAt(vertexCount, transformedNormalCount - vertexCount);
+			originNormals.RemoveAt(vertexCount, originNormalCount - vertexCount);
 		}
 
 		for (int i = 0; i < vertexCount; i++)
 		{
-			transformedNormals[i] = itemToCanvasTf.TransformVector(normals[i]);
+			vertices[i].TangentZ = itemToCanvasTf.TransformVector(originNormals[i]);
+			vertices[i].TangentZ.Vector.W = 127;
 		}
-	}
-	else
-	{
-		uiGeo->transformedNormals = uiGeo->normals;
 	}
 	if (requireTangent)
 	{
-		auto& tangents = uiGeo->tangents;
-		auto& transformedTangents = uiGeo->transformedTangents;
-		auto transformedTangentCount = transformedTangents.Num();;
-		if (transformedTangentCount < vertexCount)
+		auto& vertices = uiGeo->vertices;
+		auto& originTangents = uiGeo->originTangents;
+		auto originTangentCount = originTangents.Num();;
+		if (originTangentCount < vertexCount)
 		{
-			transformedTangents.AddDefaulted(vertexCount - transformedTangentCount);
+			originTangents.AddDefaulted(vertexCount - originTangentCount);
 		}
-		else if (transformedTangentCount > vertexCount)
+		else if (originTangentCount > vertexCount)
 		{
-			transformedTangents.RemoveAt(vertexCount, transformedTangentCount - vertexCount);
+			originTangents.RemoveAt(vertexCount, originTangentCount - vertexCount);
 		}
 
 		for (int i = 0; i < vertexCount; i++)
 		{
-			transformedTangents[i] = itemToCanvasTf.TransformVector(tangents[i]);
+			vertices[i].TangentX = itemToCanvasTf.TransformVector(originTangents[i]);
 		}
-	}
-	else
-	{
-		uiGeo->transformedTangents = uiGeo->tangents;
-	}
-}
-
-void UIGeometry::CheckAndApplyAdditionalChannel(TSharedPtr<UIGeometry> uiGeo)
-{
-	auto vertCount = uiGeo->vertices.Num();
-
-	auto& normals = uiGeo->normals;
-	auto normalCount = normals.Num();
-	if (normalCount < vertCount)
-	{
-		while (normalCount < vertCount)
-		{
-			normals.Add(FVector(0, 0, 0));
-			normalCount++;
-		}
-	}
-	else if (normalCount > vertCount)
-	{
-		normals.RemoveAt(vertCount, normalCount - vertCount);
-	}
-
-	auto& tangents = uiGeo->tangents;
-	auto tangentCount = tangents.Num();
-	if (tangentCount < vertCount)
-	{
-		while (tangentCount < vertCount)
-		{
-			tangents.Add(FVector(0, 0, 0));
-			tangentCount++;
-		}
-	}
-	else if (tangentCount > vertCount)
-	{
-		tangents.RemoveAt(vertCount, tangentCount - vertCount);
-	}
-
-	auto& uvs1 = uiGeo->uvs1;
-	auto uv1Count = uvs1.Num();
-	if (uv1Count < vertCount)
-	{
-		while (uv1Count < vertCount)
-		{
-			uvs1.Add(FVector2D(0, 0));
-			uv1Count++;
-		}
-	}
-	else if (uv1Count > vertCount)
-	{
-		uvs1.RemoveAt(vertCount, uv1Count - vertCount);
-	}
-
-	auto& uvs2 = uiGeo->uvs2;
-	auto uv2Count = uvs2.Num();
-	if (uv2Count < vertCount)
-	{
-		while (uv2Count < vertCount)
-		{
-			uvs2.Add(FVector2D(0, 0));
-			uv2Count++;
-		}
-	}
-	else if (uv2Count > vertCount)
-	{
-		uvs2.RemoveAt(vertCount, uv2Count - vertCount);
-	}
-
-	auto& uvs3 = uiGeo->uvs3;
-	auto uv3Count = uvs3.Num();
-	if (uv3Count < vertCount)
-	{
-		while (uv3Count < vertCount)
-		{
-			uvs3.Add(FVector2D(0, 0));
-			uv3Count++;
-		}
-	}
-	else if (uv3Count > vertCount)
-	{
-		uvs3.RemoveAt(vertCount, uv3Count - vertCount);
 	}
 }

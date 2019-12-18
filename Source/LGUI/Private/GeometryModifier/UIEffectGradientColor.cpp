@@ -13,8 +13,6 @@ void UUIEffectGradientColor::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry
 {
 	auto& triangles = InGeometry->triangles;
 	auto& vertices = InGeometry->vertices;
-	auto& colors = InGeometry->colors;
-	auto& uvs = InGeometry->uvs;
 
 	auto vertexCount = vertices.Num();
 	int32 triangleCount = triangles.Num();
@@ -39,10 +37,10 @@ void UUIEffectGradientColor::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry
 	{
 		for (int i = 0; i < vertexCount;)
 		{
-			colors[i++] = tintColor1;
-			colors[i++] = tintColor1;
-			colors[i++] = tintColor2;
-			colors[i++] = tintColor2;
+			vertices[i++].Color = tintColor1;
+			vertices[i++].Color = tintColor1;
+			vertices[i++].Color = tintColor2;
+			vertices[i++].Color = tintColor2;
 		}
 	}
 	break;
@@ -50,10 +48,10 @@ void UUIEffectGradientColor::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry
 	{
 		for (int i = 0; i < vertexCount;)
 		{
-			colors[i++] = tintColor2;
-			colors[i++] = tintColor2;
-			colors[i++] = tintColor1;
-			colors[i++] = tintColor1;
+			vertices[i++].Color = tintColor2;
+			vertices[i++].Color = tintColor2;
+			vertices[i++].Color = tintColor1;
+			vertices[i++].Color = tintColor1;
 		}
 	}
 	break;
@@ -61,10 +59,10 @@ void UUIEffectGradientColor::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry
 	{
 		for (int i = 0; i < vertexCount;)
 		{
-			colors[i++] = tintColor1;
-			colors[i++] = tintColor2;
-			colors[i++] = tintColor1;
-			colors[i++] = tintColor2;
+			vertices[i++].Color = tintColor1;
+			vertices[i++].Color = tintColor2;
+			vertices[i++].Color = tintColor1;
+			vertices[i++].Color = tintColor2;
 		}
 	}
 	break;
@@ -72,10 +70,10 @@ void UUIEffectGradientColor::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry
 	{
 		for (int i = 0; i < vertexCount;)
 		{
-			colors[i++] = tintColor2;
-			colors[i++] = tintColor1;
-			colors[i++] = tintColor2;
-			colors[i++] = tintColor1;
+			vertices[i++].Color = tintColor2;
+			vertices[i++].Color = tintColor1;
+			vertices[i++].Color = tintColor2;
+			vertices[i++].Color = tintColor1;
 		}
 	}
 	break;
@@ -96,10 +94,10 @@ void UUIEffectGradientColor::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry
 		
 		for (int i = 0; i < vertexCount;)
 		{
-			colors[i++] = tintColor1;
-			colors[i++] = tintColor2;
-			colors[i++] = tintColor3;
-			colors[i++] = tintColor4;
+			vertices[i++].Color = tintColor1;
+			vertices[i++].Color = tintColor2;
+			vertices[i++].Color = tintColor3;
+			vertices[i++].Color = tintColor4;
 		}
 	}
 	break;
