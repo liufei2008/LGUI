@@ -12,11 +12,10 @@ UUIEffectLongShadow::UUIEffectLongShadow()
 void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
 {
 	auto& triangles = InGeometry->triangles;
+	auto& originPositions = InGeometry->originPositions;
 	auto& vertices = InGeometry->vertices;
-	auto& colors = InGeometry->colors;
-	auto& uvs = InGeometry->uvs;
 
-	auto vertexCount = vertices.Num();
+	auto vertexCount = originPositions.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 
@@ -53,14 +52,12 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 	if (singleChannelVerticesCount == vertexCount)
 	{
 		vertexCount = singleChannelVerticesCount * (shadowSegment + 2);
+		originPositions.Reserve(vertexCount);
 		vertices.Reserve(vertexCount);
-		uvs.Reserve(vertexCount);
-		colors.Reserve(vertexCount);
 		for (int i = singleChannelVerticesCount; i < vertexCount; i++)
 		{
+			originPositions.Add(FVector());
 			vertices.Add(FVector());
-			uvs.Add(FVector2D());
-			colors.Add(FColor());
 		}
 	}
 	InOutOriginVerticesCount = singleChannelVerticesCount * (shadowSegment + 2);
@@ -70,13 +67,13 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 	float alphaMultiply = multiplySourceAlpha ? (GetRenderableUIItem()->GetFinalAlpha() * 0.003921568627f/* 1 / 255 */) : 1.0f;
 	for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 	{
-		auto originVert = vertices[channelOriginVertIndex];
-		auto originUV = uvs[channelOriginVertIndex];
+		auto originVert = originPositions[channelOriginVertIndex];
+		auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
 		for (int channelIndex = 0; channelIndex < shadowChannelCount; channelIndex++)
 		{
 			int channelVertIndex = (channelIndex + 1) * singleChannelVerticesCount + channelOriginVertIndex;
-			uvs[channelVertIndex] = originUV;
-			auto& vert = vertices[channelVertIndex];
+			vertices[channelVertIndex].TextureCoordinate[0] = originUV;
+			auto& vert = originPositions[channelVertIndex];
 			vert = originVert;
 			vert.X += shadowSizeInterval.X * (shadowChannelCount - channelIndex);
 			vert.Y += shadowSizeInterval.Y * (shadowChannelCount - channelIndex);
@@ -95,7 +92,7 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 			{
 				color.A = (uint8)(alphaMultiply * color.A);
 			}
-			colors[channelVertIndex] = color;
+			vertices[channelVertIndex].Color = color;
 		}
 	}
 }

@@ -19,98 +19,58 @@ public:
 	bool vertexPositionChanged = false;//if vertex position changed? use for update bounds
 	bool isFontTexture = false;//the texture of this drawcall is font texture or not
 public:
-	void GetCombined(TArray<FVector>& vertices, TArray<FVector2D>& uvs, TArray<FColor>& colors, TArray<uint16>& triangles
-		, TArray<FVector>& normals
-		, TArray<FVector>& tangents
-		, TArray<FVector2D>& uvs1
-		, TArray<FVector2D>& uvs2
-		, TArray<FVector2D>& uvs3)const
+	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)const
 	{
 		int count = geometryList.Num();
-		int prevVertexCount = 0;
-		int triangleIndicesIndex = 0;
+		int totalVertCount = 0;
+		int totalTriangleIndicesCount = 0;
 		for (int i = 0; i < count; i++)
 		{
-			auto& geometry = geometryList[i];
+			totalVertCount += geometryList[i]->vertices.Num();
+			totalTriangleIndicesCount += geometryList[i]->triangles.Num();
+		}
+		int prevVertexCount = 0;
+		int triangleIndicesIndex = 0;
+		vertices.Reserve(totalVertCount);
+		triangles.SetNumUninitialized(totalTriangleIndicesCount);
+		for (int geoIndex = 0; geoIndex < count; geoIndex++)
+		{
+			auto& geometry = geometryList[geoIndex];
 			auto& geomTriangles = geometry->triangles;
 			int triangleCount = geomTriangles.Num();
 			if (triangleCount <= 0)continue;
-			vertices.Append(geometry->GetTransformedVertices());
-			uvs.Append(geometry->uvs);
-			colors.Append(geometry->colors);
-			normals.Append(geometry->GetTransformedNormals());
-			tangents.Append(geometry->GetTransformedTangents());
-			uvs1.Append(geometry->uvs1);
-			uvs2.Append(geometry->uvs2);
-			uvs3.Append(geometry->uvs3);
-			
-			triangles.AddUninitialized(triangleCount);
+			vertices.Append(geometry->vertices);
 			for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
 			{
 				triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
 			}
 
-			prevVertexCount += geometry->GetTransformedVertices().Num();
+			prevVertexCount += geometry->vertices.Num();
 		}
 	}
-	void UpdateData(TArray<FVector>& vertices, TArray<FVector2D>& uvs, TArray<FColor>& colors, TArray<uint16>& triangles
-		, TArray<FVector>& normals
-		, TArray<FVector>& tangents
-		, TArray<FVector2D>& uvs1
-		, TArray<FVector2D>& uvs2
-		, TArray<FVector2D>& uvs3)
+	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)
 	{
 		int count = geometryList.Num();
 		int prevVertexCount = 0;
 		int triangleIndicesIndex = 0;
-		int vertPosMemOffset = 0, vertUVMemOffset = 0, vertColorMemOffset = 0, vertNormalMemOffset = 0, vertTangentMemOffset = 0, vertUV1MemOffset = 0, vertUV2MemOffset = 0, vertUV3MemOffset = 0;
-		for (int i = 0; i < count; i++)
+		int vertBufferOffset = 0;
+		for (int geoIndex = 0; geoIndex < count; geoIndex++)
 		{
-			auto& geometry = geometryList[i];
+			auto& geometry = geometryList[geoIndex];
 			auto& geomTriangles = geometry->triangles;
 			int triangleCount = geomTriangles.Num();
 			if (triangleCount <= 0)continue;
-
 			int vertCount = geometry->vertices.Num();
-
-			int vertPosDataCount = vertCount * sizeof(FVector);
-			FMemory::Memcpy((uint8*)vertices.GetData() + vertPosMemOffset, (uint8*)geometry->GetTransformedVertices().GetData(), vertPosDataCount);
-			vertPosMemOffset += vertPosDataCount;
-
-			int vertUVDataCount = vertCount * sizeof(FVector2D);
-			FMemory::Memcpy((uint8*)uvs.GetData() + vertUVMemOffset, (uint8*)geometry->uvs.GetData(), vertUVDataCount);
-			vertUVMemOffset += vertUVDataCount;
-
-			int vertColorDataCount = vertCount * sizeof(FColor);
-			FMemory::Memcpy((uint8*)colors.GetData() + vertColorMemOffset, (uint8*)geometry->colors.GetData(), vertColorDataCount);
-			vertColorMemOffset += vertColorDataCount;
-
-			int vertNormalDataCount = vertCount * sizeof(FVector);
-			FMemory::Memcpy((uint8*)normals.GetData() + vertNormalMemOffset, (uint8*)geometry->GetTransformedNormals().GetData(), vertNormalDataCount);
-			vertNormalMemOffset += vertNormalDataCount;
-
-			int vertTangentDataCount = vertCount * sizeof(FVector);
-			FMemory::Memcpy((uint8*)tangents.GetData() + vertTangentMemOffset, (uint8*)geometry->GetTransformedTangents().GetData(), vertTangentDataCount);
-			vertTangentMemOffset += vertTangentDataCount;
-
-			int vertUV1DataCount = vertCount * sizeof(FVector2D);
-			FMemory::Memcpy((uint8*)uvs1.GetData() + vertUV1MemOffset, (uint8*)geometry->uvs1.GetData(), vertUV1DataCount);
-			vertUV1MemOffset += vertUV1DataCount;
-
-			int vertUV2DataCount = vertCount * sizeof(FVector2D);
-			FMemory::Memcpy((uint8*)uvs2.GetData() + vertUV2MemOffset, (uint8*)geometry->uvs2.GetData(), vertUV2DataCount);
-			vertUV2MemOffset += vertUV2DataCount;
-
-			int vertUV3DataCount = vertCount * sizeof(FVector2D);
-			FMemory::Memcpy((uint8*)uvs3.GetData() + vertUV3MemOffset, (uint8*)geometry->uvs3.GetData(), vertUV3DataCount);
-			vertUV3MemOffset += vertUV3DataCount;
+			int bufferSize = vertCount * sizeof(FDynamicMeshVertex);
+			FMemory::Memcpy((uint8*)vertices.GetData() + vertBufferOffset, (uint8*)geometry->vertices.GetData(), bufferSize);
+			vertBufferOffset += bufferSize;
 
 			for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
 			{
 				triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
 			}
 
-			prevVertexCount += geometry->GetTransformedVertices().Num();
+			prevVertexCount += vertCount;
 		}
 	}
 	//update the max and min depth

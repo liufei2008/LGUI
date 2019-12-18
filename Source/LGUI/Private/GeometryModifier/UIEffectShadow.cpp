@@ -12,11 +12,10 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 {
 	if (!GetRenderableUIItem())return;
 	auto& triangles = InGeometry->triangles;
+	auto& originPositions = InGeometry->originPositions;
 	auto& vertices = InGeometry->vertices;
-	auto& colors = InGeometry->colors;
-	auto& uvs = InGeometry->uvs;
 
-	auto vertexCount = vertices.Num();
+	auto vertexCount = originPositions.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 	
@@ -40,14 +39,12 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 	if (singleChannelVerticesCount == vertexCount)
 	{
 		vertexCount = singleChannelVerticesCount + singleChannelVerticesCount;
+		originPositions.Reserve(vertexCount);
 		vertices.Reserve(vertexCount);
-		uvs.Reserve(vertexCount);
-		colors.Reserve(vertexCount);
 		for (int i = singleChannelVerticesCount; i < vertexCount; i++)
 		{
+			originPositions.Add(FVector());
 			vertices.Add(FVector());
-			uvs.Add(FVector2D());
-			colors.Add(FColor());
 		}
 	}
 	InOutOriginVerticesCount = singleChannelVerticesCount + singleChannelVerticesCount;
@@ -58,14 +55,14 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 	}
 	for (int channelIndex1 = singleChannelVerticesCount, channelIndexOrigin = 0; channelIndex1 < vertexCount; channelIndex1++, channelIndexOrigin++)
 	{
-		auto originVertPos = vertices[channelIndexOrigin];
+		auto originVertPos = originPositions[channelIndexOrigin];
 		originVertPos.X += shadowOffset.X;
 		originVertPos.Y += shadowOffset.Y;
-		vertices[channelIndex1] = originVertPos;
+		originPositions[channelIndex1] = originVertPos;
 
-		colors[channelIndex1] = finalColor;
+		vertices[channelIndex1].Color = finalColor;
 
-		uvs[channelIndex1] = uvs[channelIndexOrigin];
+		vertices[channelIndex1].TextureCoordinate[0] = vertices[channelIndexOrigin].TextureCoordinate[0];
 	}
 }
 

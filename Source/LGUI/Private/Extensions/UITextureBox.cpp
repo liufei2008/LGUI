@@ -40,22 +40,18 @@ AUITextureBoxActor::AUITextureBoxActor()
 
 void UpdateUITextureBoxUV(TSharedPtr<UIGeometry> uiGeo)
 {
-	auto& uvs = uiGeo->uvs;
-	if (uvs.Num() == 0)
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
 	{
-		uvs.Reserve(24);
-		for (int i = 0; i < 24; i++)
-		{
-			uvs.Add(FVector2D());
-		}
+		vertices.SetNumUninitialized(24);
 	}
 	int vertIndex = 0;
 	for (int i = 0; i < 6; i++)
 	{
-		(uvs[vertIndex++]) = FVector2D(0, 0);
-		(uvs[vertIndex++]) = FVector2D(1, 0);
-		(uvs[vertIndex++]) = FVector2D(0, 1);
-		(uvs[vertIndex++]) = FVector2D(1, 1);
+		(vertices[vertIndex++].TextureCoordinate[0]) = FVector2D(0, 0);
+		(vertices[vertIndex++].TextureCoordinate[0]) = FVector2D(1, 0);
+		(vertices[vertIndex++].TextureCoordinate[0]) = FVector2D(0, 1);
+		(vertices[vertIndex++].TextureCoordinate[0]) = FVector2D(1, 1);
 	}
 }
 void UpdateUITextureBoxVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, float& thickness, const FVector2D& pivot)
@@ -64,7 +60,7 @@ void UpdateUITextureBoxVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float&
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	UIGeometry::CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
-	auto& vertices = uiGeo->vertices;
+	auto& vertices = uiGeo->originPositions;
 	if (vertices.Num() == 0)
 	{
 		uiGeo->originVerticesCount = 24;
@@ -162,19 +158,19 @@ void FromUITextureBox(float& width, float& height, float& thickness, const FVect
 	//colors
 	if (seperateFrontColor)
 	{
-		auto& colors = uiGeo->colors;
-		auto count = colors.Num();
+		auto& vertices = uiGeo->vertices;
+		auto count = vertices.Num();
 		if (count == 0)
 		{
-			colors.AddDefaulted(24);
+			vertices.SetNumUninitialized(24);
 		}
 		for (int i = 0; i < 4; i++)
 		{
-			colors[i] = frontFaceColor;
+			vertices[i].Color = frontFaceColor;
 		}
 		for (int i = 4; i < 24; i++)
 		{
-			colors[i] = color;
+			vertices[i].Color = color;
 		}
 	}
 	else
@@ -185,7 +181,7 @@ void FromUITextureBox(float& width, float& height, float& thickness, const FVect
 	//normals
 	if (requireNormal)
 	{
-		auto& normals = uiGeo->normals;
+		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
 		{
 			normals.AddUninitialized(24);
@@ -224,7 +220,7 @@ void FromUITextureBox(float& width, float& height, float& thickness, const FVect
 	//tangents
 	if (requireTangent)
 	{
-		auto& tangents = uiGeo->tangents;
+		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
 		{
 			tangents.AddUninitialized(24);
@@ -263,18 +259,14 @@ void FromUITextureBox(float& width, float& height, float& thickness, const FVect
 	//uvs1
 	if (requireUV1)
 	{
-		auto& uvs1 = uiGeo->uvs1;
-		if (uvs1.Num() == 0)
+		auto& vertices = uiGeo->vertices;
+		int vertIndex = 0;
+		for (int i = 0; i < 6; i++)
 		{
-			uvs1.AddUninitialized(24);
-			int vertIndex = 0;
-			for (int i = 0; i < 6; i++)
-			{
-				(uvs1[vertIndex++]) = FVector2D(0, 0);
-				(uvs1[vertIndex++]) = FVector2D(1, 0);
-				(uvs1[vertIndex++]) = FVector2D(0, 1);
-				(uvs1[vertIndex++]) = FVector2D(1, 1);
-			}
+			(vertices[vertIndex++].TextureCoordinate[1]) = FVector2D(0, 0);
+			(vertices[vertIndex++].TextureCoordinate[1]) = FVector2D(1, 0);
+			(vertices[vertIndex++].TextureCoordinate[1]) = FVector2D(0, 1);
+			(vertices[vertIndex++].TextureCoordinate[1]) = FVector2D(1, 1);
 		}
 	}
 }

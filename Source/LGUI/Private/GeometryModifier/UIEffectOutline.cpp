@@ -12,11 +12,10 @@ UUIEffectOutline::UUIEffectOutline()
 void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
 {
 	auto& triangles = InGeometry->triangles;
+	auto& originPositions = InGeometry->originPositions;
 	auto& vertices = InGeometry->vertices;
-	auto& colors = InGeometry->colors;
-	auto& uvs = InGeometry->uvs;
 
-	auto vertexCount = vertices.Num();
+	auto vertexCount = originPositions.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 
@@ -60,14 +59,12 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 	if (singleChannelVerticesCount == vertexCount)
 	{
 		vertexCount = singleChannelVerticesCount * 5;
+		originPositions.Reserve(vertexCount);
 		vertices.Reserve(vertexCount);
-		uvs.Reserve(vertexCount);
-		colors.Reserve(vertexCount);
 		for (int i = singleChannelVerticesCount; i < vertexCount; i++)
 		{
+			originPositions.Add(FVector());
 			vertices.Add(FVector());
-			uvs.Add(FVector2D());
-			colors.Add(FColor());
 		}
 	}
 	InOutOriginVerticesCount = singleChannelVerticesCount * 5;
@@ -82,31 +79,31 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 	}
 	for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 	{
-		auto originUV = uvs[channelOriginVertIndex];
-		uvs[channelVertIndex1] = originUV;
-		uvs[channelVertIndex2] = originUV;
-		uvs[channelVertIndex3] = originUV;
-		uvs[channelVertIndex4] = originUV;
+		auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
+		vertices[channelVertIndex1].TextureCoordinate[0] = originUV;
+		vertices[channelVertIndex2].TextureCoordinate[0] = originUV;
+		vertices[channelVertIndex3].TextureCoordinate[0] = originUV;
+		vertices[channelVertIndex4].TextureCoordinate[0] = originUV;
 
-		colors[channelVertIndex1] = color;
-		colors[channelVertIndex2] = color;
-		colors[channelVertIndex3] = color;
-		colors[channelVertIndex4] = color;
+		vertices[channelVertIndex1].Color = color;
+		vertices[channelVertIndex2].Color = color;
+		vertices[channelVertIndex3].Color = color;
+		vertices[channelVertIndex4].Color = color;
 
-		auto originVert = vertices[channelOriginVertIndex];
-		auto& channel1Vert = vertices[channelVertIndex1];
+		auto originVert = originPositions[channelOriginVertIndex];
+		auto& channel1Vert = originPositions[channelVertIndex1];
 		channel1Vert = originVert;
 		channel1Vert.X += outlineSize.X;
 		channel1Vert.Y += outlineSize.Y;
-		auto& channel2Vert = vertices[channelVertIndex2];
+		auto& channel2Vert = originPositions[channelVertIndex2];
 		channel2Vert = originVert;
 		channel2Vert.X -= outlineSize.X;
 		channel2Vert.Y += outlineSize.Y;
-		auto& channel3Vert = vertices[channelVertIndex3];
+		auto& channel3Vert = originPositions[channelVertIndex3];
 		channel3Vert = originVert;
 		channel3Vert.X += outlineSize.X;
 		channel3Vert.Y -= outlineSize.Y;
-		auto& channel4Vert = vertices[channelVertIndex4];
+		auto& channel4Vert = originPositions[channelVertIndex4];
 		channel4Vert = originVert;
 		channel4Vert.X -= outlineSize.X;
 		channel4Vert.Y -= outlineSize.Y;
