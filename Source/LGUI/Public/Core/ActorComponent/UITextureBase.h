@@ -25,11 +25,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UTexture* texture = nullptr;
 
-	virtual void OnCreateGeometry();
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
-private:
-	void CreateGeometry();
-	virtual void UpdateGeometry(const bool& parentTransformChanged) override;
+	virtual void OnBeforeCreateOrUpdateGeometry()override {}
+	virtual UTexture* GetTextureToCreateGeometry()override;
+	virtual bool NeedTextureToCreateGeometry()override { return true; }
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture* GetTexture()const { return texture; }
 

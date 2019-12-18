@@ -170,10 +170,10 @@ bool ALGUIManagerActor::InitCheck(UWorld* InWorld)
 }
 
 
-DECLARE_CYCLE_STAT(TEXT("LGUIManagerTick"), STAT_LGUIManagerTick, STATGROUP_LGUI);
+//DECLARE_CYCLE_STAT(TEXT("LGUIManagerTick"), STAT_LGUIManagerTick, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
-	SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
+	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
 	for (auto item : allCanvas)
 	{
 		if (IsValid(item))
