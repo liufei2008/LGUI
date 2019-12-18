@@ -201,6 +201,130 @@ bool UUIRenderable::ApplyGeometryModifier()
 	return false;
 }
 
+DECLARE_CYCLE_STAT(TEXT("UIRenderable UpdateGeometry"), STAT_UIRenderableUpdateGeometry, STATGROUP_LGUI);
+void UUIRenderable::UpdateGeometry(const bool& parentTransformChanged)
+{
+	SCOPE_CYCLE_COUNTER(STAT_UIRenderableUpdateGeometry);
+	if (IsUIActiveInHierarchy() == false)return;
+	if (!CheckRenderCanvas())return;
+
+	OnBeforeCreateOrUpdateGeometry();
+	if (geometry->vertices.Num() == 0)//if geometry not created yet
+	{
+		if (HaveDataToCreateGeometry())
+		{
+			CreateGeometry();
+			RenderCanvas->MarkRebuildAllDrawcall();
+		}
+		else
+		{
+			if (geometry->vertices.Num() > 0)
+			{
+				geometry->Clear();
+			}
+		}
+	}
+	else//if geometry is created, update data
+	{
+		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
+		{
+			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
+			{
+				geometry->Clear();
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				goto COMPLETE;
+			}
+			CreateGeometry();
+			RenderCanvas->MarkRebuildAllDrawcall();
+			goto COMPLETE;
+		}
+		if (cacheForThisUpdate_DepthChanged)
+		{
+			if (IsValid(CustomUIMaterial))
+			{
+				CreateGeometry();
+				RenderCanvas->MarkRebuildAllDrawcall();
+			}
+			else
+			{
+				geometry->depth = widget.depth;
+				RenderCanvas->OnUIElementDepthChange(this);
+			}
+		}
+		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
+		{
+			CreateGeometry();
+			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+			goto COMPLETE;
+		}
+		else//update geometry
+		{
+			OnUpdateGeometry(cacheForThisUpdate_VertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+
+			if (parentTransformChanged)
+			{
+				cacheForThisUpdate_VertexPositionChanged = true;
+			}
+			if (cacheForThisUpdate_UVChanged || cacheForThisUpdate_ColorChanged || cacheForThisUpdate_VertexPositionChanged)//vertex data change, need to update geometry's vertex
+			{
+				if (ApplyGeometryModifier())
+				{
+					UIGeometry::CheckAndApplyAdditionalChannel(geometry);
+					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				}
+				else
+				{
+					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_VertexPositionChanged);
+				}
+				if (cacheForThisUpdate_VertexPositionChanged)
+				{
+					UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
+				}
+			}
+		}
+	}
+COMPLETE:
+	;
+	if (!geometry->CheckDataValid())
+	{
+		UE_LOG(LGUI, Error, TEXT("[UIRenderable::UpdateGeometry]UIRenderable:%s geometry is not valid!"), *(this->GetFullName()));
+	}
+}
+
+void UUIRenderable::CreateGeometry()
+{
+	geometry->Clear();
+	if (NeedTextureToCreateGeometry())
+	{
+		geometry->texture = GetTextureToCreateGeometry();
+		if (!IsValid(geometry->texture))
+		{
+			UE_LOG(LGUI, Error, TEXT("[UUIRenderable::CreateGeometry]Need texture to create geometry, but provided texture is no valid!"));
+		}
+	}
+	geometry->material = CustomUIMaterial;
+	geometry->depth = widget.depth;
+	OnCreateGeometry();
+	ApplyGeometryModifier();
+
+	UIGeometry::CheckAndApplyAdditionalChannel(geometry);
+	UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
+}
+
+void UUIRenderable::OnBeforeCreateOrUpdateGeometry()
+{
+	UE_LOG(LGUI, Error, TEXT("[UUIRenderable::OnBeforeCreateOrUpdateGeometry]This function must be override!"));
+}
+void UUIRenderable::OnCreateGeometry()
+{
+	UE_LOG(LGUI, Error, TEXT("[UUIRenderable::OnCreateGeometry]This function must be override!"));
+}
+void UUIRenderable::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+{
+	UE_LOG(LGUI, Error, TEXT("[UUIRenderable::OnUpdateGeometry]This function must be override!"));
+}
+
+
 bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	if (bRaycastComplex)
