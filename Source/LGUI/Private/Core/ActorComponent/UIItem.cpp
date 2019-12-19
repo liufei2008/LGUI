@@ -756,7 +756,8 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	}
 	if (!(this->GetRelativeLocation().Equals(resultLocation)))
 	{
-		SetRelativeLocation(resultLocation);
+		GetRelativeLocation_DirectMutable() = resultLocation;
+		UpdateComponentToWorld();
 	}
 #if WITH_EDITORONLY_DATA
 	prevAnchorHAlign = widget.anchorHAlign;
@@ -918,7 +919,8 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 	if (!(GetRelativeLocation().Equals(newLocation)))
 	{
 		MarkVertexPositionDirty();
-		SetRelativeLocation(newLocation);
+		GetRelativeLocation_DirectMutable() = newLocation;
+		UpdateComponentToWorld();
 
 		if (cacheParentUIItem)
 		{
@@ -1007,7 +1009,7 @@ void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const
 	bool rotationChange = false;
 	if (!newRotation.Equals(GetRelativeRotationCache().GetCachedQuat()))
 	{
-		SetRelativeRotation_Direct(GetRelativeRotationCache().QuatToRotator(newRotation));
+		GetRelativeRotation_DirectMutable() = GetRelativeRotationCache().QuatToRotator(newRotation);
 		rotationChange = true;
 	}
 	if (!GetRelativeLocation().Equals(newLocation))
