@@ -71,7 +71,6 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 	//uvs1
 	if (requireUV1)
 	{
-		auto& vertices = uiGeo->vertices;
 		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
 		vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
 		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
@@ -103,18 +102,18 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//positions
-	auto& vertices = uiGeo->originPositions;
+	auto& originPositions = uiGeo->originPositions;
 	float x, y;
 	x = (-halfW + pivotOffsetX);
 	y = (-halfH + pivotOffsetY);
-	vertices[0] = FVector(x, y, 0);
+	originPositions[0] = FVector(x, y, 0);
 	x = (halfW + pivotOffsetX);
-	vertices[1] = FVector(x, y, 0);
+	originPositions[1] = FVector(x, y, 0);
 	x = (-halfW + pivotOffsetX);
 	y = (halfH + pivotOffsetY);
-	vertices[2] = FVector(x, y, 0);
+	originPositions[2] = FVector(x, y, 0);
 	x = (halfW + pivotOffsetX);
-	vertices[3] = FVector(x, y, 0);
+	originPositions[3] = FVector(x, y, 0);
 }
 #pragma endregion
 #pragma region UISprite_UITexture_Border
@@ -202,7 +201,6 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 	//uvs1
 	if (requireUV1)
 	{
-		auto& vertices = uiGeo->vertices;
 		float widthReciprocal = 1.0f / spriteInfo->width;
 		float heightReciprocal = 1.0f / spriteInfo->height;
 		float buv0X = spriteInfo->borderLeft * widthReciprocal;
@@ -275,26 +273,26 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	y3 = (halfH + pivotOffsetY);
 	y2 = (y3 - spriteInfo->borderTop * heightScale);
 
-	auto& vertices = uiGeo->originPositions;
-	vertices[0] = FVector(x0, y0, 0);
-	vertices[1] = FVector(x1, y0, 0);
-	vertices[2] = FVector(x2, y0, 0);
-	vertices[3] = FVector(x3, y0, 0);
+	auto& originPositions = uiGeo->originPositions;
+	originPositions[0] = FVector(x0, y0, 0);
+	originPositions[1] = FVector(x1, y0, 0);
+	originPositions[2] = FVector(x2, y0, 0);
+	originPositions[3] = FVector(x3, y0, 0);
 
-	vertices[4] = FVector(x0, y1, 0);
-	vertices[5] = FVector(x1, y1, 0);
-	vertices[6] = FVector(x2, y1, 0);
-	vertices[7] = FVector(x3, y1, 0);
+	originPositions[4] = FVector(x0, y1, 0);
+	originPositions[5] = FVector(x1, y1, 0);
+	originPositions[6] = FVector(x2, y1, 0);
+	originPositions[7] = FVector(x3, y1, 0);
 
-	vertices[8] = FVector(x0, y2, 0);
-	vertices[9] = FVector(x1, y2, 0);
-	vertices[10] = FVector(x2, y2, 0);
-	vertices[11] = FVector(x3, y2, 0);
+	originPositions[8] = FVector(x0, y2, 0);
+	originPositions[9] = FVector(x1, y2, 0);
+	originPositions[10] = FVector(x2, y2, 0);
+	originPositions[11] = FVector(x3, y2, 0);
 
-	vertices[12] = FVector(x0, y3, 0);
-	vertices[13] = FVector(x1, y3, 0);
-	vertices[14] = FVector(x2, y3, 0);
-	vertices[15] = FVector(x3, y3, 0);
+	originPositions[12] = FVector(x0, y3, 0);
+	originPositions[13] = FVector(x1, y3, 0);
+	originPositions[14] = FVector(x2, y3, 0);
+	originPositions[15] = FVector(x3, y3, 0);
 }
 #pragma endregion
 
@@ -366,13 +364,12 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 	//uvs1
 	if (requireUV1)
 	{
-		auto& vertices = uiGeo->vertices;
 		for (int i = 0; i < uiGeo->originVerticesCount; i += 4)
 		{
 			vertices[i].TextureCoordinate[1] = FVector2D(0, 0);
-			vertices[i].TextureCoordinate[1] = FVector2D(1, 0);
-			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
-			vertices[i].TextureCoordinate[1] = FVector2D(1, 1);
+			vertices[i + 1].TextureCoordinate[1] = FVector2D(1, 0);
+			vertices[i + 2].TextureCoordinate[1] = FVector2D(0, 1);
+			vertices[i + 3].TextureCoordinate[1] = FVector2D(1, 1);
 		}
 	}
 }
@@ -403,7 +400,7 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
 	int rectangleCount = widthRectCount * heightRectCount;
-	auto& vertices = uiGeo->originPositions;
+	auto& originPositions = uiGeo->originPositions;
 	int vertIndex = 0;
 	float startX = (-halfW + pivotOffsetX);
 	float startY = (-halfH + pivotOffsetY);
@@ -414,10 +411,10 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 		for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
 		{
 			float realWidth = widthRectIndex == widthRectCount ? (widthRemainedRectSize) : spriteInfo->width;
-			vertices[vertIndex++] = FVector(x, y, 0);
-			vertices[vertIndex++] = FVector(x + realWidth, y, 0);
-			vertices[vertIndex++] = FVector(x, y + realHeight, 0);
-			vertices[vertIndex++] = FVector(x + realWidth, y + realHeight, 0);
+			originPositions[vertIndex++] = FVector(x, y, 0);
+			originPositions[vertIndex++] = FVector(x + realWidth, y, 0);
+			originPositions[vertIndex++] = FVector(x, y + realHeight, 0);
+			originPositions[vertIndex++] = FVector(x + realWidth, y + realHeight, 0);
 			
 			x += spriteInfo->width;
 		}
@@ -491,13 +488,12 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	//uv1
 	if (requireUV1)
 	{
-		auto& vertices = uiGeo->vertices;
-		for (int i = 0; i < visibleCharCount; i++)
+		for (int i = 0; i < uiGeo->originVerticesCount; i+=4)
 		{
 			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
-			vertices[i].TextureCoordinate[1] = FVector2D(1, 1);
-			vertices[i].TextureCoordinate[1] = FVector2D(0, 0);
-			vertices[i].TextureCoordinate[1] = FVector2D(1, 0);
+			vertices[i + 1].TextureCoordinate[1] = FVector2D(1, 1);
+			vertices[i + 2].TextureCoordinate[1] = FVector2D(0, 0);
+			vertices[i + 3].TextureCoordinate[1] = FVector2D(1, 0);
 		}
 	}
 }
@@ -511,7 +507,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& h
 	float maxLineWidth = 0;//if have multiple line
 	TArray<FVector*> currentLineUIGeoVertexList;//single line's vertex collection
 	int visibleCharIndex = 0;//visible char index, skip invisible char(\n,\t)
-	auto& vertices = uiGeo->originPositions;
+	auto& originPositions = uiGeo->originPositions;
 	auto& uvs = uiGeo->vertices;
 	FUITextLineProperty sentenceProperty;
 	FVector2D caretPosition(0, 0);
@@ -590,19 +586,19 @@ MANUAL_NEWLINE://new line
 				x = (offset.X);
 				y = (offset.Y - charGeoHeight);
 				int index = visibleCharIndex * 4;
-				vertices[index] = FVector(x, y, 0);
+				originPositions[index] = FVector(x, y, 0);
 				x = (charGeoWidth + offset.X);
-				vertices[index + 1] = FVector(x, y, 0);
+				originPositions[index + 1] = FVector(x, y, 0);
 				x = (offset.X);
 				y = (offset.Y);
-				vertices[index + 2] = FVector(x, y, 0);
+				originPositions[index + 2] = FVector(x, y, 0);
 				x = (charGeoWidth + offset.X);
-				vertices[index + 3] = FVector(x, y, 0);
+				originPositions[index + 3] = FVector(x, y, 0);
 
-				currentLineUIGeoVertexList.Add(&vertices[index]);
-				currentLineUIGeoVertexList.Add(&vertices[index + 1]);
-				currentLineUIGeoVertexList.Add(&vertices[index + 2]);
-				currentLineUIGeoVertexList.Add(&vertices[index + 3]);
+				currentLineUIGeoVertexList.Add(&originPositions[index]);
+				currentLineUIGeoVertexList.Add(&originPositions[index + 1]);
+				currentLineUIGeoVertexList.Add(&originPositions[index + 2]);
+				currentLineUIGeoVertexList.Add(&originPositions[index + 3]);
 			}
 			if (updateUV)
 			{
@@ -738,10 +734,10 @@ MANUAL_NEWLINE://new line
 					paragraphHeight += fontSize;
 					cacheTextPropertyList.Add(sentenceProperty);
 					//set rest char's position to invisible
-					int verticesCount = vertices.Num();
+					int verticesCount = originPositions.Num();
 					for (int vertIndex = visibleCharIndex * 4; vertIndex < verticesCount; vertIndex++)
 					{
-						vertices[vertIndex] = FVector::ZeroVector;
+						originPositions[vertIndex] = FVector::ZeroVector;
 					}
 
 					charIndex = contentLength;//break the main loop
@@ -834,7 +830,7 @@ MANUAL_NEWLINE://new line
 	}
 	if (updateVertex)
 	{
-		UIGeometry::OffsetVertices(vertices, xOffset, yOffset);
+		UIGeometry::OffsetVertices(originPositions, xOffset, yOffset);
 	}
 }
 
@@ -928,7 +924,6 @@ void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivo
 	//uv1
 	if (requireUV1)
 	{
-		auto& vertices = uiGeo->vertices;
 		for (int i = 0; i < vertexCount; i++)
 		{
 			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
@@ -1013,12 +1008,12 @@ void UIGeometry::UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
-	auto& vertices = uiGeo->originPositions;
-	if (vertices.Num() == 0)
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
 	{
 		int vertexCount = 2 + segment + 1;
 		uiGeo->originVerticesCount = vertexCount;
-		vertices.AddUninitialized(vertexCount);
+		originPositions.AddUninitialized(vertexCount);
 	}
 
 	float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / (segment + 1));
@@ -1029,10 +1024,10 @@ void UIGeometry::UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width
 
 	float x = pivotOffsetX;
 	float y = pivotOffsetY;
-	vertices[0] = FVector(x, y, 0);
+	originPositions[0] = FVector(x, y, 0);
 	x = cos * halfW + pivotOffsetX;
 	y = sin * halfH + pivotOffsetY;
-	vertices[1] = FVector(x, y, 0);
+	originPositions[1] = FVector(x, y, 0);
 
 	for (int i = 0; i < segment + 1; i++)
 	{
@@ -1041,7 +1036,7 @@ void UIGeometry::UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width
 		cos = FMath::Cos(angle);
 		x = cos * halfW + pivotOffsetX;
 		y = sin * halfH + pivotOffsetY;
-		vertices[i + 2] = FVector(x, y, 0);
+		originPositions[i + 2] = FVector(x, y, 0);
 	}
 }
 #pragma endregion
@@ -1118,14 +1113,9 @@ void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot,
 	//uv1
 	if (requireUV1)
 	{
-		auto& vertices = uiGeo->vertices;
-		if (vertices.Num() == 0)
+		for (int i = 0; i < vertexCount; i++)
 		{
-			vertices.Reserve(vertexCount);
-			for (int i = 0; i < vertexCount; i++)
-			{
-				vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
-			}
+			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
 		}
 	}
 }
@@ -1241,12 +1231,12 @@ void UIGeometry::UpdateUIRingVertex(TSharedPtr<UIGeometry> uiGeo, float& width, 
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
-	auto& vertices = uiGeo->originPositions;
-	if (vertices.Num() == 0)
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
 	{
 		int vertexCount = 2 + (segment + 1) * 2;
 		uiGeo->originVerticesCount = vertexCount;
-		vertices.AddUninitialized(vertexCount);
+		originPositions.AddUninitialized(vertexCount);
 	}
 
 	float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / (segment + 1));
@@ -1259,10 +1249,10 @@ void UIGeometry::UpdateUIRingVertex(TSharedPtr<UIGeometry> uiGeo, float& width, 
 
 	float x = cos * minHalfW + pivotOffsetX;
 	float y = sin * minHalfH + pivotOffsetY;
-	vertices[0] = FVector(x, y, 0);
+	originPositions[0] = FVector(x, y, 0);
 	x = cos * halfW + pivotOffsetX;
 	y = sin * halfH + pivotOffsetY;
-	vertices[1] = FVector(x, y, 0);
+	originPositions[1] = FVector(x, y, 0);
 
 	for (int i = 0; i < (segment + 1); i++)
 	{
@@ -1271,10 +1261,10 @@ void UIGeometry::UpdateUIRingVertex(TSharedPtr<UIGeometry> uiGeo, float& width, 
 		cos = FMath::Cos(angle);
 		x = cos * minHalfW + pivotOffsetX;
 		y = sin * minHalfH + pivotOffsetY;
-		vertices[i * 2 + 2] = FVector(x, y, 0);
+		originPositions[i * 2 + 2] = FVector(x, y, 0);
 		x = cos * halfW + pivotOffsetX;
 		y = sin * halfH + pivotOffsetY;
-		vertices[i * 2 + 3] = FVector(x, y, 0);
+		originPositions[i * 2 + 3] = FVector(x, y, 0);
 	}
 }
 #pragma endregion
