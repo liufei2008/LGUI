@@ -33,16 +33,11 @@ public:
 
 	void Clear()
 	{
-		vertices.Empty();
-		triangles.Empty();
-		originPositions.Empty();
-		originNormals.Empty();
-		originTangents.Empty();
-	}
-
-	bool CheckDataValid()
-	{
-		return true;
+		vertices.Reset();
+		triangles.Reset();
+		originPositions.Reset();
+		originNormals.Reset();
+		originTangents.Reset();
 	}
 
 #pragma region UISprite_UITexture_Simple
