@@ -51,10 +51,10 @@ class LGUI_API ULGUIUpdateGeometryHelper : public UObject
 public:
 	TSharedPtr<UIGeometry> uiGeometry = nullptr;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void BeginUpdateVertices(TArray< FLGUIGeometryVertex>& vertices);
+		void BeginUpdateVertices(TArray<FLGUIGeometryVertex>& outVertices);
 	//do not midify this vertices array's size!!!
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void EndUpdateVertices(UPARAM(ref) TArray< FLGUIGeometryVertex>& vertices);
+		void EndUpdateVertices(UPARAM(ref) TArray< FLGUIGeometryVertex>& inVertices);
 };
 
 //a wrapper class, blueprint can use this to create custom UI type
@@ -88,10 +88,14 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
 		void OnUpdateGeometry_BP(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 public:
+	//if vertex data change and vertex count not change.
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkVertexChanged"))
 		void MarkVertexChanged_BP();
+	//if vertex count change or triangle count change, call this
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkRebuildGeometry"))
+		void MarkRebuildGeometry_BP();
 private:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;
 	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper;
-
+	//UPROPERTY(Transient)TArray<FLGUIGeometryVertex> tempVertexForUpdateGeometry;
 };
