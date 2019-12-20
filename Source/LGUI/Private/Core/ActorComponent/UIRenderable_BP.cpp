@@ -42,13 +42,58 @@ void ULGUICreateGeometryHelper::AddTriangle(int index0, int index1, int index2)
 	triangles.Add(index2);
 }
 
-void ULGUIUpdateGeometryHelper::BeginUpdateVertices(TArray<FLGUIGeometryVertex>& vertices)
+void ULGUIUpdateGeometryHelper::BeginUpdateVertices(TArray<FLGUIGeometryVertex>& outVertices)
 {
+	const auto& vertices = uiGeometry->vertices;
+	const auto& originPositions = uiGeometry->originPositions;
+	const auto& originNormals = uiGeometry->originNormals;
+	const auto& originTangents = uiGeometry->originTangents;
 
+	int count = vertices.Num();
+	outVertices.SetNumUninitialized(count);
+	for (int i = 0; i < count; i++)
+	{
+		auto& vert = outVertices[i];
+		const auto& originVert = vertices[i];
+		vert.position = originPositions[i];
+		vert.color = originVert.Color;
+		vert.uv0 = originVert.TextureCoordinate[0];
+		vert.uv1 = originVert.TextureCoordinate[1];
+		vert.uv2 = originVert.TextureCoordinate[2];
+		vert.uv3 = originVert.TextureCoordinate[3];
+		vert.normal = originNormals[i];
+		vert.tagent = originTangents[i];
+		vert.uv0 = vertices[i].TextureCoordinate[0];
+	}
 }
-void ULGUIUpdateGeometryHelper::EndUpdateVertices(UPARAM(ref) TArray<FLGUIGeometryVertex>& vertices)
+void ULGUIUpdateGeometryHelper::EndUpdateVertices(UPARAM(ref) TArray<FLGUIGeometryVertex>& inVertices)
 {
+	auto& vertices = uiGeometry->vertices;
+	int count = vertices.Num();
+	if (count != inVertices.Num())
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndUpdateVertices]Don't change vertices count here! if you really need that, call MarkRebuildGeometry(), then OnCreateGeometry() will be called automatically."));
+		return;
+	}
 
+	auto& originPositions = uiGeometry->originPositions;
+	auto& originNormals = uiGeometry->originNormals;
+	auto& originTangents = uiGeometry->originTangents;
+
+	for (int i = 0; i < count; i++)
+	{
+		const auto& vert = inVertices[i];
+		auto& originVert = vertices[i];
+		originPositions[i] = vert.position;
+		originVert.Color = vert.color;
+		originVert.TextureCoordinate[0] = vert.uv0;
+		originVert.TextureCoordinate[1] = vert.uv1;
+		originVert.TextureCoordinate[2] = vert.uv2;
+		originVert.TextureCoordinate[3] = vert.uv3;
+		originNormals[i] = vert.normal;
+		originTangents[i] = vert.tagent;
+		vertices[i].TextureCoordinate[0] = vert.uv0;
+	}
 }
 
 
@@ -108,5 +153,11 @@ void UUIRenderable_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVer
 }
 void UUIRenderable_BP::MarkVertexChanged_BP()
 {
-	
+	MarkVertexPositionDirty();
+	MarkColorDirty();
+	MarkUVDirty();
+}
+void UUIRenderable_BP::MarkRebuildGeometry_BP()
+{
+	MarkTriangleDirty();
 }
