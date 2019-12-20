@@ -284,10 +284,6 @@ void UUIRenderable::UpdateGeometry(const bool& parentTransformChanged)
 	}
 COMPLETE:
 	;
-	if (!geometry->CheckDataValid())
-	{
-		UE_LOG(LGUI, Error, TEXT("[UIRenderable::UpdateGeometry]UIRenderable:%s geometry is not valid!"), *(this->GetFullName()));
-	}
 }
 
 void UUIRenderable::CreateGeometry()

@@ -1407,7 +1407,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 		for (int i = 0; i < vertexCount; i++)
 		{
 			vertices[i].TangentZ = itemToCanvasTf.TransformVector(originNormals[i]);
-			vertices[i].TangentZ.Vector.W = 127;
+			vertices[i].TangentZ.Vector.W = -127;
 		}
 	}
 	if (requireTangent)
