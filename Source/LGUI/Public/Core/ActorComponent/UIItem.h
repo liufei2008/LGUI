@@ -344,6 +344,18 @@ public:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Transient)class UUIItemEditorHelperComp* HelperComp = nullptr;
 #endif
+
+#pragma region LGUIUpdateComponentToWorld
+protected:
+	void LGUIUpdateComponentToWorld();
+	void LGUIPropagateTransformUpdate(bool bTransformChanged);
+	void LGUIUpdateChildTransforms();
+
+	static class UBoolProperty* bComponentToWorldUpdated_PropertyRef;
+	static bool LGUIGetComponentToWorldUpdated(USceneComponent* Target);
+	static void LGUISetComponentToWorldUpdated(USceneComponent* Target, bool value);
+	static void LGUICheckComponentToWorldUpdatedProperty();
+#pragma endregion
 };
 
 

@@ -245,3 +245,15 @@ TSharedPtr<UUIDrawcall> LGUIUtils::GetAvalibleDrawcall(TArray<TSharedPtr<UUIDraw
 	}
 	return result;
 }
+UProperty* LGUIUtils::GetPropertyByNameFromClass(UClass* Target, FName PropertyName)
+{
+	auto propertyField = TFieldRange<UProperty>(Target);
+	for (const auto propertyItem : propertyField)
+	{
+		if (propertyItem->GetFName() == PropertyName)
+		{
+			return propertyItem;
+		}
+	}
+	return nullptr;
+}
