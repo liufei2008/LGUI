@@ -348,7 +348,7 @@ public:
 #pragma region LGUIUpdateComponentToWorld
 protected:
 	void LGUIUpdateComponentToWorld();
-	void LGUIPropagateTransformUpdate(bool bTransformChanged);
+	void LGUIPropagateTransformUpdate(bool inTransformChanged);
 	void LGUIUpdateChildTransforms();
 
 	static class UBoolProperty* bComponentToWorldUpdated_PropertyRef;

@@ -1845,11 +1845,11 @@ void UUIItem::LGUIUpdateComponentToWorld()
 		LGUIPropagateTransformUpdate(false);
 	}
 }
-void UUIItem::LGUIPropagateTransformUpdate(bool bTransformChanged)
+void UUIItem::LGUIPropagateTransformUpdate(bool inTransformChanged)
 {
 	const TArray<USceneComponent*>& AttachedChildren = GetAttachChildren();
 	FPlatformMisc::Prefetch(AttachedChildren.GetData());
-	if (bTransformChanged)
+	if (inTransformChanged)
 	{
 		// If registered, tell subsystems about the change in transform
 		if (bRegistered)

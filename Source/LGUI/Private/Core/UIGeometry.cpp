@@ -1443,7 +1443,6 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 
 	if (requireNormal)
 	{
-		auto& vertices = uiGeo->vertices;
 		auto& originNormals = uiGeo->originNormals;
 		auto originNormalCount = originNormals.Num();
 		if (originNormalCount < vertexCount)
@@ -1463,7 +1462,6 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 	}
 	if (requireTangent)
 	{
-		auto& vertices = uiGeo->vertices;
 		auto& originTangents = uiGeo->originTangents;
 		auto originTangentCount = originTangents.Num();;
 		if (originTangentCount < vertexCount)
