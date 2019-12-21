@@ -125,6 +125,8 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 						break;
 					}
 					Canvas->SetViewportParameterChange();
+					Canvas->MarkRebuildAllDrawcall();
+					Canvas->CheckAndGetUIItem()->MarkAllDirtyRecursive();
 					Canvas->MarkCanvasUpdate();
 				}
 			}
