@@ -14,6 +14,7 @@
 #endif
 
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
+UBoolProperty* UUIItem::bComponentToWorldUpdated_PropertyRef = nullptr;
 
 UUIItem::UUIItem()
 {
@@ -755,7 +756,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	if (!(this->RelativeLocation.Equals(resultLocation)))
 	{
 		RelativeLocation = resultLocation;
-		UpdateComponentToWorld();
+		LGUIUpdateComponentToWorld();
 	}
 #if WITH_EDITORONLY_DATA
 	prevAnchorHAlign = widget.anchorHAlign;
@@ -918,7 +919,7 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 	{
 		MarkVertexPositionDirty();
 		RelativeLocation = newLocation;
-		UpdateComponentToWorld();
+		LGUIUpdateComponentToWorld();
 
 		if (cacheParentUIItem)
 		{
@@ -1018,7 +1019,7 @@ void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const
 	{
 		if (rotationChange)
 		{
-			UpdateComponentToWorld();
+			LGUIUpdateComponentToWorld();
 		}
 	}
 }
@@ -1772,3 +1773,196 @@ FBoxSphereBounds UUIItemEditorHelperComp::CalcBounds(const FTransform& LocalToWo
 	auto origin = FVector(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y), 0);
 	return FBoxSphereBounds(origin, FVector(widget.width * 0.5f, widget.height * 0.5f, 1), (widget.width > widget.height ? widget.width : widget.height) * 0.5f).TransformBy(LocalToWorld);
 }
+
+
+#pragma region LGUIUpdateComponentToWorld
+//use this function can slightly increase performance. remove unnecessary code for LGUI
+void UUIItem::LGUIUpdateComponentToWorld()
+{
+#if ENABLE_NAN_DIAGNOSTIC
+	if (RelativeRotationQuat.ContainsNaN())
+	{
+		logOrEnsureNanError(TEXT("UUIItem::LGUIUpdateComponentToWorld found NaN in parameter RelativeRotationQuat: %s"), *RelativeRotationQuat.ToString());
+	}
+#endif
+
+	// If our parent hasn't been updated before, we'll need walk up our parent attach hierarchy
+	auto Parent = this->GetAttachParent();
+	if (Parent && !LGUIGetComponentToWorldUpdated(Parent))
+	{
+		//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_UpdateComponentToWorldWithParent_Parent);
+		Parent->UpdateComponentToWorld();
+
+		// Updating the parent may (depending on if we were already attached to parent) result in our being updated, so just return
+		if (LGUIGetComponentToWorldUpdated(this))
+		{
+			return;
+		}
+	}
+
+	LGUISetComponentToWorldUpdated(this, true);
+
+	FTransform NewTransform(NoInit);
+
+	{
+		//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_UpdateComponentToWorldWithParent_XForm);
+		// Calculate the new ComponentToWorld transform
+		const FTransform RelativeTransform(GetRelativeRotationCache().GetCachedQuat(), RelativeLocation, RelativeScale3D);
+#if ENABLE_NAN_DIAGNOSTIC
+		if (!RelativeTransform.IsValid())
+		{
+			logOrEnsureNanError(TEXT("UUIItem::LGUIUpdateComponentToWorld found NaN/INF in new RelativeTransform: %s"), *RelativeTransform.ToString());
+		}
+#endif
+		NewTransform = CalcNewComponentToWorld(RelativeTransform, Parent);
+	}
+
+#if DO_CHECK
+	ensure(NewTransform.IsValid());
+#endif
+
+	// If transform has changed..
+	bool bHasChanged;
+	{
+		//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_UpdateComponentToWorldWithParent_HasChanged);
+		bHasChanged = !GetComponentTransform().Equals(NewTransform, SMALL_NUMBER);
+	}
+
+	// We propagate here based on more than just the transform changing, as other components may depend on the teleport flag
+	// to detect transforms out of the component direct hierarchy (such as the actor transform)
+	if (bHasChanged)
+	{
+		//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_UpdateComponentToWorldWithParent_Changed);
+		// Update transform
+		SetComponentToWorld(NewTransform);
+		LGUIPropagateTransformUpdate(true);
+	}
+	else
+	{
+		//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_UpdateComponentToWorldWithParent_NotChanged);
+		LGUIPropagateTransformUpdate(false);
+	}
+}
+void UUIItem::LGUIPropagateTransformUpdate(bool bTransformChanged)
+{
+	const TArray<USceneComponent*>& AttachedChildren = GetAttachChildren();
+	FPlatformMisc::Prefetch(AttachedChildren.GetData());
+	if (bTransformChanged)
+	{
+		// If registered, tell subsystems about the change in transform
+		if (bRegistered)
+		{
+			// Call OnUpdateTransform if this components wants it
+			if (bWantsOnUpdateTransform)
+			{
+				//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_PropagateTransformUpdate_OnUpdateTransform);
+				OnUpdateTransform(EUpdateTransformFlags::None);
+			}
+			TransformUpdated.Broadcast(this, EUpdateTransformFlags::None, ETeleportType::None);
+		}
+
+		{
+			//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_PropagateTransformUpdate_UpdateChildTransforms);
+			// Now go and update children
+			//Do not pass skip physics to children. This is only used when physics updates us, but in that case we really do need to update the attached children since they are kinematic
+			if (AttachedChildren.Num() > 0)
+			{
+				LGUIUpdateChildTransforms();
+			}
+		}
+
+#if WITH_EDITOR
+		// Notify the editor of transformation update
+		if (!IsTemplate())
+		{
+			GEngine->BroadcastOnComponentTransformChanged(this, ETeleportType::None);
+		}
+#endif // WITH_EDITOR
+	}
+	else
+	{
+		{
+			//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_PropagateTransformUpdate_UpdateChildTransforms);
+			// Now go and update children
+			if (AttachedChildren.Num() > 0)
+			{
+				LGUIUpdateChildTransforms();
+			}
+		}
+	}
+}
+void UUIItem::LGUIUpdateChildTransforms()
+{
+#if ENABLE_NAN_DIAGNOSTIC
+	if (!GetComponentTransform().IsValid())
+	{
+		logOrEnsureNanError(TEXT("UUIItem::LGUIUpdateChildTransforms found NaN/INF in ComponentToWorld: %s"), *GetComponentTransform().ToString());
+	}
+#endif
+
+	auto& AttachChildren = GetAttachChildren();
+	if (AttachChildren.Num() > 0)
+	{
+		auto UpdateTransformFlags = EUpdateTransformFlags::None;
+		const bool bOnlyUpdateIfUsingSocket = !!(UpdateTransformFlags & EUpdateTransformFlags::OnlyUpdateIfUsingSocket);
+
+		const EUpdateTransformFlags UpdateTransformNoSocketSkip = ~EUpdateTransformFlags::OnlyUpdateIfUsingSocket & UpdateTransformFlags;
+		const EUpdateTransformFlags UpdateTransformFlagsFromParent = UpdateTransformNoSocketSkip | EUpdateTransformFlags::PropagateFromParent;
+
+		for (USceneComponent* ChildComp : AttachChildren)
+		{
+			if (ChildComp != nullptr)
+			{
+				if (auto ChildUIItem = Cast<UUIItem>(ChildComp))
+				{
+					// Update Child if it's never been updated.
+					if (!LGUIGetComponentToWorldUpdated(ChildUIItem))
+					{
+						ChildUIItem->LGUIUpdateComponentToWorld();
+					}
+					else
+					{
+						ChildUIItem->LGUIUpdateComponentToWorld();
+					}
+				}
+				else
+				{
+					// Update Child if it's never been updated.
+					if (!LGUIGetComponentToWorldUpdated(ChildComp))
+					{
+						ChildComp->UpdateComponentToWorld(UpdateTransformFlagsFromParent);
+					}
+					else
+					{
+						// Don't update the child if it uses a completely absolute (world-relative) scheme.
+						if (ChildComp->bAbsoluteLocation && ChildComp->bAbsoluteRotation && ChildComp->bAbsoluteScale)
+						{
+							continue;
+						}
+
+						ChildComp->UpdateComponentToWorld(UpdateTransformFlagsFromParent);
+					}
+				}
+			}
+		}
+	}
+}
+bool UUIItem::LGUIGetComponentToWorldUpdated(USceneComponent* Target)
+{
+	LGUICheckComponentToWorldUpdatedProperty();
+	return bComponentToWorldUpdated_PropertyRef->GetPropertyValue_InContainer(Target);
+}
+void UUIItem::LGUISetComponentToWorldUpdated(USceneComponent* Target, bool value)
+{
+	LGUICheckComponentToWorldUpdatedProperty();
+	bComponentToWorldUpdated_PropertyRef->SetPropertyValue_InContainer(Target, value);
+}
+void UUIItem::LGUICheckComponentToWorldUpdatedProperty()
+{
+	if (bComponentToWorldUpdated_PropertyRef == nullptr)
+	{
+		bComponentToWorldUpdated_PropertyRef = Cast<UBoolProperty>(LGUIUtils::GetPropertyByNameFromClass(USceneComponent::StaticClass(), TEXT("bComponentToWorldUpdated")));
+		checkf(bComponentToWorldUpdated_PropertyRef != nullptr, TEXT("[UUIItem::LGUICheckComponentToWorldUpdatedProperty]This should not happed, must be something wrong"));
+	}
+}
+#pragma endregion
