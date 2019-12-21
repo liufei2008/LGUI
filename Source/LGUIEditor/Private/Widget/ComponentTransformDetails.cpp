@@ -687,7 +687,7 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 	{
 	case ETransformField::Location:
 		TransactionText = LOCTEXT("OnSetLocation", "Set Location");
-		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), GET_MEMBER_NAME_CHECKED(USceneComponent, RelativeLocation));
+		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), TEXT("RelativeLocation"));
 		
 		// Only set axis property for single axis set
 		if (Axis == EAxisList::X)
@@ -705,7 +705,7 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 		break;
 	case ETransformField::Rotation:
 		TransactionText = LOCTEXT("OnSetRotation", "Set Rotation");
-		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), GET_MEMBER_NAME_CHECKED(USceneComponent, RelativeRotation));
+		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), TEXT("RelativeRotation"));
 		
 		// Only set axis property for single axis set
 		if (Axis == EAxisList::X)
@@ -723,7 +723,7 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 		break;
 	case ETransformField::Scale:
 		TransactionText = LOCTEXT("OnSetScale", "Set Scale");
-		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), GET_MEMBER_NAME_CHECKED(USceneComponent, RelativeScale3D));
+		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), TEXT("RelativeScale3D"));
 
 		// If keep scale is set, don't set axis property
 		if (!bPreserveScaleRatio && Axis == EAxisList::X)
