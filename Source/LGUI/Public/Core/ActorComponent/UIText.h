@@ -140,7 +140,8 @@ private:
 	TArray<FUITextCharGeometry> cachedTextGeometryList;
 	//calculate text geometry
 	void CacheTextGeometry();
-
+public:
+	virtual void MarkAllDirtyRecursive()override;
 protected:
 	virtual bool HaveDataToCreateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
