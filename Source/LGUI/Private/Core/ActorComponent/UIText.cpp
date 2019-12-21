@@ -55,8 +55,8 @@ void UUIText::ApplyFontTextureChange()
 {
 	if (IsValid(font))
 	{
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 		MarkTriangleDirty();
 		MarkTextureDirty();
 		geometry->texture = font->texture;
@@ -71,8 +71,8 @@ void UUIText::ApplyRecreateText()
 {
 	if (IsValid(font))
 	{
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 		MarkVertexPositionDirty();
 	}
 }
@@ -217,7 +217,7 @@ void UUIText::EditorForceUpdateImmediately()
 			font->AddUIText(this);
 		}
 	}
-	cachedTextGeometryList.Empty();
+	cachedTextGeometryList.Reset();
 }
 void UUIText::OnPreChangeFontProperty()
 {
@@ -273,8 +273,8 @@ void UUIText::SetFont(ULGUIFontData* newFont) {
 			font->RemoveUIText(this);
 		}
 		font = newFont;
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 		MarkTextureDirty();
 		//add to new
 		if (IsValid(font))
@@ -289,8 +289,8 @@ void UUIText::SetText(const FString& newText) {
 		if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 		text = newText;
 		text.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 
 		int newVisibleCharCount = VisibleCharCountInString(text);
 		if (newVisibleCharCount != visibleCharCount)//visible char count change
@@ -311,8 +311,8 @@ void UUIText::SetFontSize(float newSize) {
 	{
 		MarkVertexPositionDirty();
 		size = newSize;
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 	}
 }
 void UUIText::SetFontSpace(FVector2D newSpace) {
@@ -320,8 +320,8 @@ void UUIText::SetFontSpace(FVector2D newSpace) {
 	{
 		MarkVertexPositionDirty();
 		space = newSpace;
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 	}
 }
 void UUIText::SetParagraphHorizontalAlignment(UITextParagraphHorizontalAlign newHAlign) {
@@ -329,8 +329,8 @@ void UUIText::SetParagraphHorizontalAlignment(UITextParagraphHorizontalAlign new
 	{
 		MarkVertexPositionDirty();
 		hAlign = newHAlign;
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 	}
 }
 void UUIText::SetParagraphVerticalAlignment(UITextParagraphVerticalAlign newVAlign) {
@@ -338,8 +338,8 @@ void UUIText::SetParagraphVerticalAlignment(UITextParagraphVerticalAlign newVAli
 	{
 		MarkVertexPositionDirty();
 		vAlign = newVAlign;
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 	}
 }
 void UUIText::SetOverflowType(UITextOverflowType newOverflowType) {
@@ -350,8 +350,8 @@ void UUIText::SetOverflowType(UITextOverflowType newOverflowType) {
 		else
 			MarkVertexPositionDirty();
 		overflowType = newOverflowType;
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 	}
 }
 void UUIText::SetAdjustWidth(bool newAdjustWidth) {
@@ -359,8 +359,8 @@ void UUIText::SetAdjustWidth(bool newAdjustWidth) {
 	{
 		adjustWidth = newAdjustWidth;
 		MarkVertexPositionDirty();
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 	}
 }
 void UUIText::SetAdjustHeight(bool newAdjustHeight) {
@@ -368,8 +368,8 @@ void UUIText::SetAdjustHeight(bool newAdjustHeight) {
 	{
 		adjustHeight = newAdjustHeight;
 		MarkVertexPositionDirty();
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 	}
 }
 void UUIText::SetFontStyle(UITextFontStyle newFontStyle) {
@@ -385,8 +385,8 @@ void UUIText::SetFontStyle(UITextFontStyle newFontStyle) {
 			MarkTriangleDirty();
 		}
 		fontStyle = newFontStyle;
-		cachedTextPropertyList.Empty();
-		cachedTextGeometryList.Empty();
+		cachedTextPropertyList.Reset();
+		cachedTextGeometryList.Reset();
 	}
 }
 void UUIText::CacheTextGeometry()
@@ -400,7 +400,7 @@ void UUIText::CacheTextGeometry()
 	float calcFontSize = size;
 	if (pixelPerfect)
 	{
-		calcFontSize = calcFontSize * RenderCanvas->GetRootCanvas()->GetUIScale();
+		calcFontSize = calcFontSize / RenderCanvas->GetRootCanvas()->GetViewportUIScale();
 		calcFontSize = calcFontSize > 200.0f ? 200.0f : calcFontSize;//limit font size to 200. too large font size will result in large texture
 	}
 	else if(dynamicPixelsPerUnitIsNot1)
@@ -454,6 +454,11 @@ void UUIText::CacheTextGeometry()
 		}
 		cachedTextGeometryList.Add(charGeometry);
 	}
+}
+void UUIText::MarkAllDirtyRecursive()
+{
+	cachedTextGeometryList.Reset();
+	Super::MarkAllDirtyRecursive();
 }
 FVector2D UUIText::GetCharSize(TCHAR character)
 {
@@ -723,7 +728,7 @@ void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPo
 
 void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSelectionEndCaretIndex, TArray<FUITextSelectionProperty>& OutSelectionProeprtyArray)
 {
-	OutSelectionProeprtyArray.Empty();
+	OutSelectionProeprtyArray.Reset();
 	if (text.Len() == 0)return;
 	CheckCachedTextPropertyList();
 	//start

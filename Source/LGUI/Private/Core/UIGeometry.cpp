@@ -1338,20 +1338,45 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 	FVector tempV3;
 	if (canvas->GetPixelPerfect() && rootCanvasUIItem != nullptr)
 	{
+		auto rootCanvas = canvas->GetRootCanvas();
 		if (canvasUIItem == rootCanvasUIItem)
 		{
 			auto canvasLeftBottom = FVector2D(-canvasUIItem->GetWidth() * canvasUIItem->GetPivot().X, -canvasUIItem->GetHeight() * canvasUIItem->GetPivot().Y);
-			for (int i = 0; i < vertexCount; i++)
+			float viewportScale = rootCanvas->GetViewportUIScale();
+			if (viewportScale == 1.0f)
 			{
-				tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
-				tempV3.X -= canvasLeftBottom.X;
-				tempV3.Y -= canvasLeftBottom.Y;
-				tempV3.X = RoundToFloat(tempV3.X);
-				tempV3.Y = RoundToFloat(tempV3.Y);
-				tempV3.X += canvasLeftBottom.X;
-				tempV3.Y += canvasLeftBottom.Y;
+				for (int i = 0; i < vertexCount; i++)
+				{
+					tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
+					tempV3.X -= canvasLeftBottom.X;
+					tempV3.Y -= canvasLeftBottom.Y;
+					tempV3.X = RoundToFloat(tempV3.X);
+					tempV3.Y = RoundToFloat(tempV3.Y);
+					tempV3.X += canvasLeftBottom.X;
+					tempV3.Y += canvasLeftBottom.Y;
 
-				vertices[i].Position = tempV3;
+					vertices[i].Position = tempV3;
+				}
+			}
+			else
+			{
+				float oneDivideViewportScale = 1.0f / viewportScale;
+				for (int i = 0; i < vertexCount; i++)
+				{
+					tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
+					tempV3.X -= canvasLeftBottom.X;
+					tempV3.Y -= canvasLeftBottom.Y;
+					tempV3.X *= viewportScale;
+					tempV3.Y *= viewportScale;
+					tempV3.X = RoundToFloat(tempV3.X);
+					tempV3.Y = RoundToFloat(tempV3.Y);
+					tempV3.X *= oneDivideViewportScale;
+					tempV3.Y *= oneDivideViewportScale;
+					tempV3.X += canvasLeftBottom.X;
+					tempV3.Y += canvasLeftBottom.Y;
+
+					vertices[i].Position = tempV3;
+				}
 			}
 		}
 		else
@@ -1365,19 +1390,45 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 			FTransform::Multiply(&vertToCanvas, &rootCanvasToWorld, &inverseCanvasTf);
 
 			auto canvasLeftBottom = FVector2D(-rootCanvasUIItem->GetWidth() * rootCanvasUIItem->GetPivot().X, -rootCanvasUIItem->GetHeight() * rootCanvasUIItem->GetPivot().Y);
-			for (int i = 0; i < vertexCount; i++)
+			float viewportScale = rootCanvas->GetViewportUIScale();
+			if (viewportScale == 1.0f)
 			{
-				tempV3 = vertToRootCanvasTf.TransformPosition(originPositions[i]);
-				tempV3.X -= canvasLeftBottom.X;
-				tempV3.Y -= canvasLeftBottom.Y;
-				tempV3.X = RoundToFloat(tempV3.X);
-				tempV3.Y = RoundToFloat(tempV3.Y);
-				tempV3.X += canvasLeftBottom.X;
-				tempV3.Y += canvasLeftBottom.Y;
+				for (int i = 0; i < vertexCount; i++)
+				{
+					tempV3 = vertToRootCanvasTf.TransformPosition(originPositions[i]);
+					tempV3.X -= canvasLeftBottom.X;
+					tempV3.Y -= canvasLeftBottom.Y;
+					tempV3.X = RoundToFloat(tempV3.X);
+					tempV3.Y = RoundToFloat(tempV3.Y);
+					tempV3.X += canvasLeftBottom.X;
+					tempV3.Y += canvasLeftBottom.Y;
 
-				tempV3 = vertToCanvas.TransformPosition(tempV3);
+					tempV3 = vertToCanvas.TransformPosition(tempV3);
 
-				vertices[i].Position = tempV3;
+					vertices[i].Position = tempV3;
+				}
+			}
+			else
+			{
+				float oneDivideViewportScale = 1.0f / viewportScale;
+				for (int i = 0; i < vertexCount; i++)
+				{
+					tempV3 = vertToRootCanvasTf.TransformPosition(originPositions[i]);
+					tempV3.X -= canvasLeftBottom.X;
+					tempV3.Y -= canvasLeftBottom.Y;
+					tempV3.X *= viewportScale;
+					tempV3.Y *= viewportScale;
+					tempV3.X = RoundToFloat(tempV3.X);
+					tempV3.Y = RoundToFloat(tempV3.Y);
+					tempV3.X *= oneDivideViewportScale;
+					tempV3.Y *= oneDivideViewportScale;
+					tempV3.X += canvasLeftBottom.X;
+					tempV3.Y += canvasLeftBottom.Y;
+
+					tempV3 = vertToCanvas.TransformPosition(tempV3);
+
+					vertices[i].Position = tempV3;
+				}
 			}
 		}
 	}
