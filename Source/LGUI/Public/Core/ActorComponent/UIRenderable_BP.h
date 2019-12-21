@@ -37,9 +37,9 @@ class LGUI_API ULGUICreateGeometryHelper : public UObject
 public:
 	TSharedPtr<UIGeometry> uiGeometry = nullptr;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void AddVertSimple(FVector position, FColor color, FVector2D uv0);
+		void AddVertexSimple(FVector position, FColor color, FVector2D uv0);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void AddVertFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent);
+		void AddVertexFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void AddTriangle(int index0, int index1, int index2);
 };

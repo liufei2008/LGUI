@@ -5,7 +5,7 @@
 #include "Core/UIGeometry.h"
 
 
-void ULGUICreateGeometryHelper::AddVertSimple(FVector position, FColor color, FVector2D uv0)
+void ULGUICreateGeometryHelper::AddVertexSimple(FVector position, FColor color, FVector2D uv0)
 {
 	uiGeometry->originVerticesCount += 1;
 	auto& originPositions = uiGeometry->originPositions;
@@ -16,7 +16,7 @@ void ULGUICreateGeometryHelper::AddVertSimple(FVector position, FColor color, FV
 	vert.TextureCoordinate[0] = uv0;
 	vertices.Add(vert);
 }
-void ULGUICreateGeometryHelper::AddVertFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent)
+void ULGUICreateGeometryHelper::AddVertexFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent)
 {
 	uiGeometry->originVerticesCount += 1;
 	auto& originPositions = uiGeometry->originPositions;
