@@ -70,7 +70,7 @@ public:
 	{}
 };
 
-DECLARE_CYCLE_STAT(TEXT("UpdateMeshSection_RenderThread"), STAT_UpdateMeshSectionRT, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("LGUIMesh UpdateMeshSection_RT"), STAT_UpdateMeshSectionRT, STATGROUP_LGUI);
 /** LGUI mesh scene proxy */
 class FLGUIMeshSceneProxy : public FPrimitiveSceneProxy, public ILGUIHudPrimitive
 {
@@ -163,7 +163,7 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, uint16* MeshIndexData, uint32 IndexDataLength, int8 AdditionalChannelFlags)
+	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, int8 AdditionalChannelFlags)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionRT);
 
@@ -272,14 +272,9 @@ public:
 					RHIUnlockVertexBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
 				}
 			}
-
-			//index buffer
-			auto IndexBufferData = RHILockIndexBuffer(Section->IndexBuffer.IndexBufferRHI, 0, IndexDataLength, RLM_WriteOnly);
-			FMemory::Memcpy(IndexBufferData, (void*)MeshIndexData, IndexDataLength);
-			RHIUnlockIndexBuffer(Section->IndexBuffer.IndexBufferRHI);
+			// Lock index buffer
 		}
 		delete[]MeshVertexData;
-		delete[]MeshIndexData;
 	}
 
 	void SetSectionVisibility_RenderThread(bool bNewVisibility)
@@ -465,10 +460,10 @@ void ULGUIMeshComponent::CreateMeshSection()
 	MarkRenderStateDirty(); // New section requires recreating scene proxy
 }
 
-DECLARE_CYCLE_STAT(TEXT("UpdateMeshSection"), STAT_UpdateMeshSection, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("LGUIMesh UpdateMeshSection_GT"), STAT_UpdateMeshSectionGT, STATGROUP_LGUI);
 void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags)
 {
-	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSection);
+	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionGT);
 	if (InVertexPositionChanged)
 	{
 		UpdateLocalBounds();
@@ -478,17 +473,11 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 		const int32 NumVerts = MeshSection.vertices.Num();
 		FDynamicMeshVertex* VertexBufferData = new FDynamicMeshVertex[NumVerts];
 		FMemory::Memcpy(VertexBufferData, MeshSection.vertices.GetData(), NumVerts * sizeof(FDynamicMeshVertex));
-		//index data
-		auto& triangles = MeshSection.triangles;
-		const int32 NumTriangles = triangles.Num();
-		uint16* IndexBufferData = new uint16[NumTriangles];
-		int32 IndexDataLength = NumTriangles * sizeof(uint16);
-		FMemory::Memcpy(IndexBufferData, triangles.GetData(), IndexDataLength);
 		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		ENQUEUE_RENDER_COMMAND(FLGUIMeshUpdate)(
-			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags](FRHICommandListImmediate& RHICmdList)
+			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, AdditionalShaderChannelFlags](FRHICommandListImmediate& RHICmdList)
 			{
-				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags);
+				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, AdditionalShaderChannelFlags);
 			});
 	}
 }
