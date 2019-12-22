@@ -7,7 +7,7 @@
 
 DECLARE_CYCLE_STAT(TEXT("UI2DLine Update"), STAT_2DLineUpdate, STATGROUP_LGUI);
 
-UUI2DLineRendererBase::UUI2DLineRendererBase()
+UUI2DLineRendererBase::UUI2DLineRendererBase(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }

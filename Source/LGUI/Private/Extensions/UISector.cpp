@@ -6,7 +6,7 @@
 #include "LGUI.h"
 
 
-UUISector::UUISector()
+UUISector::UUISector(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }

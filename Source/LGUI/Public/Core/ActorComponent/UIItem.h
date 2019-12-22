@@ -24,7 +24,7 @@ class LGUI_API UUIItem : public USceneComponent
 	GENERATED_BODY()
 
 public:	
-	UUIItem();
+	UUIItem(const FObjectInitializer& ObjectInitializer);
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
