@@ -8,7 +8,7 @@
 
 DECLARE_CYCLE_STAT(TEXT("UIRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
-UUIRenderable::UUIRenderable()
+UUIRenderable::UUIRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	itemType = UIItemType::UIRenderable;

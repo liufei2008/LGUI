@@ -37,7 +37,7 @@ class LGUI_API UUIPanel : public UUIItem
 	GENERATED_BODY()
 
 public:	
-	UUIPanel();
+	UUIPanel(const FObjectInitializer& ObjectInitializer);
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;

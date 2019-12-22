@@ -10,7 +10,7 @@
 #if WITH_EDITORONLY_DATA
 TWeakObjectPtr<ULGUIFontData> UUIText::CurrentUsingFontData = nullptr;
 #endif
-UUIText::UUIText()
+UUIText::UUIText(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 #if WITH_EDITORONLY_DATA
@@ -19,10 +19,6 @@ UUIText::UUIText()
 		font = CurrentUsingFontData.Get();
 	}
 #endif
-}
-UUIText::~UUIText()
-{
-	
 }
 void UUIText::ApplyFontTextureScaleUp()
 {

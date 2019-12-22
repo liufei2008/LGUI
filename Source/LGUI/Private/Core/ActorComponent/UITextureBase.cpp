@@ -7,7 +7,7 @@
 #include "Materials/MaterialInterface.h"
 
 
-UUITextureBase::UUITextureBase()
+UUITextureBase::UUITextureBase(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }

@@ -80,8 +80,7 @@ class LGUI_API UUIText : public UUIRenderable
 	GENERATED_BODY()
 
 public:	
-	UUIText();
-	~UUIText();
+	UUIText(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;
