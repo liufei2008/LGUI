@@ -5,7 +5,7 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-UUIRing::UUIRing()
+UUIRing::UUIRing(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }

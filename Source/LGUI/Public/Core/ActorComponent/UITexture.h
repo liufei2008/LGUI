@@ -20,7 +20,7 @@ class LGUI_API UUITexture : public UUITextureBase
 	GENERATED_BODY()
 
 public:	
-	UUITexture();
+	UUITexture(const FObjectInitializer& ObjectInitializer);
 
 #if WITH_EDITOR
 	virtual void EditorForceUpdateImmediately() override;

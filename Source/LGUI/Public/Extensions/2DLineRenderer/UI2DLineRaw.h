@@ -13,7 +13,7 @@ class LGUI_API UUI2DLineRaw : public UUI2DLineRendererBase
 	GENERATED_BODY()
 
 public:	
-	UUI2DLineRaw();
+	UUI2DLineRaw(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay()override;

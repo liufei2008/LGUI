@@ -14,7 +14,7 @@ class LGUI_API UUIRenderable : public UUIItem
 	GENERATED_BODY()
 
 public:	
-	UUIRenderable();
+	UUIRenderable(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;

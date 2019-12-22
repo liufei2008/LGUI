@@ -4,7 +4,7 @@
 #include "Event/Rayemitter/LGUI_SceneCapture2DMouseRayemitter.h"
 #include "Engine/TextureRenderTarget2D.h"
 
-UViewportUITexture::UViewportUITexture()
+UViewportUITexture::UViewportUITexture(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }

@@ -5,7 +5,7 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-UUI2DLineRing::UUI2DLineRing()
+UUI2DLineRing::UUI2DLineRing(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
