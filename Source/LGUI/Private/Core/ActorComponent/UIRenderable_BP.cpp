@@ -99,7 +99,7 @@ void ULGUIUpdateGeometryHelper::EndUpdateVertices(UPARAM(ref) TArray<FLGUIGeomet
 
 
 
-UUIRenderable_BP::UUIRenderable_BP()
+UUIRenderable_BP::UUIRenderable_BP(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
