@@ -64,7 +64,7 @@ class LGUI_API UUIRenderable_BP : public UUIRenderable
 	GENERATED_BODY()
 
 public:	
-	UUIRenderable_BP();
+	UUIRenderable_BP(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;

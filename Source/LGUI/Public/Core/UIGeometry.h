@@ -33,6 +33,8 @@ public:
 
 	void Clear()
 	{
+		originVerticesCount = 0;
+		originTriangleCount = 0;
 		vertices.Reset();
 		triangles.Reset();
 		originPositions.Reset();
