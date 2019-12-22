@@ -14,7 +14,7 @@ class LGUI_API UUI2DLineRingFrame : public UUI2DLineRendererBase
 	GENERATED_BODY()
 
 public:	
-	UUI2DLineRingFrame();
+	UUI2DLineRingFrame(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay()override;

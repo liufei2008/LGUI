@@ -13,8 +13,7 @@ class LGUI_API UUISpriteBase : public UUIRenderable
 	GENERATED_BODY()
 
 public:	
-	UUISpriteBase();
-	~UUISpriteBase();
+	UUISpriteBase(const FObjectInitializer& ObjectInitializer);
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

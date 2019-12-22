@@ -7,6 +7,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUIBPLibrary.h"
 #include "PrefabSystem/LGUIPrefab.h"
+#include "Core/ActorComponent/UIItem.h"
 
 UUIComboBox::UUIComboBox()
 {

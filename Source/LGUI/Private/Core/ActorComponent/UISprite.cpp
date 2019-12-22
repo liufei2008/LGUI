@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 
 
-UUISprite::UUISprite()
+UUISprite::UUISprite(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
