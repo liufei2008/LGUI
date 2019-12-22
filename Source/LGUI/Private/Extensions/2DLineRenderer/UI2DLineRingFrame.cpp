@@ -5,7 +5,7 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-UUI2DLineRingFrame::UUI2DLineRingFrame()
+UUI2DLineRingFrame::UUI2DLineRingFrame(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	ConnectStartEndPoint = true;

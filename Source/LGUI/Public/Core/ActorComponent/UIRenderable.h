@@ -8,13 +8,13 @@
 class UIGeometry;
 class UMaterialInterface;
 //UI element which have render geometry, and can be renderred by LGUICanvas
-UCLASS(Abstract)
+UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIRenderable : public UUIItem
 {
 	GENERATED_BODY()
 
 public:	
-	UUIRenderable();
+	UUIRenderable(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;

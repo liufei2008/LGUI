@@ -13,7 +13,7 @@ class LGUI_API UUITextureBox : public UUITextureBase
 	GENERATED_BODY()
 
 public:	
-	UUITextureBox();
+	UUITextureBox(const FObjectInitializer& ObjectInitializer);
 
 #if WITH_EDITOR
 	virtual void EditorForceUpdateImmediately() override;

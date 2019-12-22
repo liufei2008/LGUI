@@ -16,7 +16,7 @@ class LGUI_API UViewportUITexture : public UUITexture
 	GENERATED_BODY()
 
 public:	
-	UViewportUITexture();
+	UViewportUITexture(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;

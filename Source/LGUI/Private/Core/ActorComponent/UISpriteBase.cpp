@@ -6,13 +6,9 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 
 
-UUISpriteBase::UUISpriteBase()
+UUISpriteBase::UUISpriteBase(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
-}
-UUISpriteBase::~UUISpriteBase()
-{
-	
 }
 
 void UUISpriteBase::BeginPlay()

@@ -23,7 +23,7 @@ class LGUI_API UUIRing : public UUISpriteBase
 	GENERATED_BODY()
 
 public:	
-	UUIRing();
+	UUIRing(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")

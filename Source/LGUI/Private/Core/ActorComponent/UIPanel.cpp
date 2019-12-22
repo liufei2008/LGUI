@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "CoreGlobals.h"
 
-UUIPanel::UUIPanel()
+UUIPanel::UUIPanel(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
