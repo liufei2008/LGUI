@@ -19,7 +19,7 @@ class LGUI_API UUISprite : public UUISpriteBase
 	GENERATED_BODY()
 
 public:	
-	UUISprite();
+	UUISprite(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;

@@ -14,7 +14,7 @@ class LGUI_API UUI2DLineChildrenAsPoints : public UUI2DLineRendererBase
 	GENERATED_BODY()
 
 public:	
-	UUI2DLineChildrenAsPoints();
+	UUI2DLineChildrenAsPoints(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay()override;

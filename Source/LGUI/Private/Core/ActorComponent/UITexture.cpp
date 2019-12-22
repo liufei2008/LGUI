@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 
 
-UUITexture::UUITexture()
+UUITexture::UUITexture(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }

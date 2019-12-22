@@ -14,7 +14,7 @@ class LGUI_API UUI2DLineRing : public UUI2DLineRendererBase
 	GENERATED_BODY()
 
 public:	
-	UUI2DLineRing();
+	UUI2DLineRing(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay()override;

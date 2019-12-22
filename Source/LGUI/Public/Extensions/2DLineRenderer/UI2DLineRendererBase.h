@@ -18,7 +18,7 @@ class LGUI_API UUI2DLineRendererBase : public UUISpriteBase
 	GENERATED_BODY()
 
 public:	
-	UUI2DLineRendererBase();
+	UUI2DLineRendererBase(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay()override;

@@ -16,7 +16,7 @@
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
 UBoolProperty* UUIItem::bComponentToWorldUpdated_PropertyRef = nullptr;
 
-UUIItem::UUIItem()
+UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetMobility(EComponentMobility::Movable);
@@ -34,6 +34,23 @@ UUIItem::UUIItem()
 	bTransformChanged = true;
 
 	traceChannel = GetDefault<ULGUISettings>()->defaultTraceChannel;
+
+#if WITH_EDITORONLY_DATA
+	if (GIsEditor)
+	{
+		if (!IsValid(HelperComp))
+		{
+			if (GetOwner())
+			{
+				HelperComp = (UUIItemEditorHelperComp*)ObjectInitializer.CreateEditorOnlyDefaultSubobject(GetOwner(), TEXT("Visualizer"), UUIItemEditorHelperComp::StaticClass());
+				//HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
+				HelperComp->Parent = this;
+				//HelperComp->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
+				HelperComp->SetupAttachment(this);
+			}
+		}
+	}
+#endif
 }
 
 void UUIItem::BeginPlay()
@@ -437,17 +454,6 @@ void UUIItem::OnRegister()
 {
 	Super::OnRegister();
 	LGUIManager::AddUIItem(this);
-#if WITH_EDITORONLY_DATA
-	if (!this->GetWorld()->IsGameWorld())
-	{
-		if (!IsValid(HelperComp))
-		{
-			HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
-			HelperComp->Parent = this;
-			HelperComp->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-		}
-	}
-#endif
 }
 void UUIItem::OnUnregister()
 {
