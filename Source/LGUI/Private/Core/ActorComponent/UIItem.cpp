@@ -36,15 +36,17 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 #if WITH_EDITORONLY_DATA
 	if (GIsEditor)
 	{
-		if (!IsValid(HelperComp))
+		if (GetOwner())
 		{
-			if (GetOwner())
+			if (!IsValid(HelperComp))
 			{
-				HelperComp = (UUIItemEditorHelperComp*)ObjectInitializer.CreateEditorOnlyDefaultSubobject(GetOwner(), TEXT("Visualizer"), UUIItemEditorHelperComp::StaticClass());
-				//HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
+				HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
 				HelperComp->Parent = this;
-				//HelperComp->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
 				HelperComp->SetupAttachment(this);
+				if (GetOwner()->GetWorld())
+				{
+					HelperComp->RegisterComponent();
+				}
 			}
 		}
 	}
@@ -1588,6 +1590,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 
 		virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 		{
+			if (!Component.IsValid())return;
 			const auto& widget = Component->GetWidget();
 			auto worldTransform = Component->GetComponentTransform();
 			FVector relativeOffset(0, 0, 0);
@@ -1738,7 +1741,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 		virtual uint32 GetMemoryFootprint(void) const override { return(sizeof(*this) + GetAllocatedSize()); }
 		uint32 GetAllocatedSize(void) const { return(FPrimitiveSceneProxy::GetAllocatedSize()); }
 	private:
-		UUIItem* Component;
+		TWeakObjectPtr<UUIItem> Component;
 	};
 
 	return new FUIItemSceneProxy(this->Parent, this);
