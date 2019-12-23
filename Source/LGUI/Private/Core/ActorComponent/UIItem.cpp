@@ -1969,7 +1969,7 @@ void UUIItem::LGUICheckComponentToWorldUpdatedProperty()
 {
 	if (bComponentToWorldUpdated_PropertyRef == nullptr)
 	{
-		bComponentToWorldUpdated_PropertyRef = Cast<UBoolProperty>(LGUIUtils::GetPropertyByNameFromClass(USceneComponent::StaticClass(), TEXT("bComponentToWorldUpdated")));
+		bComponentToWorldUpdated_PropertyRef = FindField<UBoolProperty>(USceneComponent::StaticClass(), TEXT("bComponentToWorldUpdated"));
 		checkf(bComponentToWorldUpdated_PropertyRef != nullptr, TEXT("[UUIItem::LGUICheckComponentToWorldUpdatedProperty]This should not happed, must be something wrong"));
 	}
 }
