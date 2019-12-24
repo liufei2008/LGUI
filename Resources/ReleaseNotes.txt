@@ -128,4 +128,9 @@
     Fix:
         Fix a fatal error after shutdown, caused by LGUIFontData.
         Fix a pontential link error caused by UI2DLineRendererBase.
+2.3.4
+    Modify:
+        Increase performance.
+    New feature:
+        Add UIRenderable_BP for blueprint can extend custom UI element.
         
