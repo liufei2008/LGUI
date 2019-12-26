@@ -43,7 +43,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 	{
 		if (TargetScriptPtr->sprite != nullptr)
 		{
-			if (TargetScriptPtr->sprite->GetSpriteInfo()->HasBorder() == false)
+			if (TargetScriptPtr->sprite->GetSpriteInfo().HasBorder() == false)
 			{
 				category.AddCustomRow(LOCTEXT("AdditionalButton", "AdditionalButton"))
 					.WholeRowContent()

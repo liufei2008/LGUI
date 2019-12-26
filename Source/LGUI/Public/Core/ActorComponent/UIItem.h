@@ -18,7 +18,7 @@ enum class UIItemType :uint8
 	UIRenderable,
 };
 
-UCLASS(HideCategories = ( LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
+UCLASS(HideCategories = ( LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIItem : public USceneComponent
 {
 	GENERATED_BODY()

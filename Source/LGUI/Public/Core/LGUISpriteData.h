@@ -125,15 +125,21 @@ private:
 
 public:
 	void InitSpriteData();
-	UTexture2D * GetAtlasTexture();
-	const FLGUISpriteInfo* GetSpriteInfo();
-	bool HavePackingTag()const;
-	const FName& GetPackingTag()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D * GetAtlasTexture();
+	UFUNCTION(BlueprintCallable, Category = "LGUI") const FLGUISpriteInfo& GetSpriteInfo();
+	UFUNCTION(BlueprintCallable, Category = "LGUI") bool HavePackingTag()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI") const FName& GetPackingTag()const;
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteSize(int32& width, int32& height);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderSize(int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteUV(float& UV0X, float& UV0Y, float& UV3X, float& UV3Y);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y);
+
 	void AddUISprite(UUISpriteBase* InUISprite);
 	void RemoveUISprite(UUISpriteBase* InUISprite);
 	//if texture is changed, use this to reload texture
 	void ReloadTexture();
-	UTexture2D* GetSpriteTexture() { return spriteTexture; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D* GetSpriteTexture()const { return spriteTexture; }
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
 	static void MarkAllSpritesNeedToReinitialize();
