@@ -55,8 +55,8 @@ void UUISprite::OnCreateGeometry()
 		else
 		{
 			FLGUISpriteInfo tempSpriteInfo;
-			tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / sprite->GetSpriteTexture()->GetSurfaceWidth(), 1.0f / sprite->GetSpriteTexture()->GetSurfaceHeight());
-			UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, &tempSpriteInfo, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
+			tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / sprite->GetSpriteInfo().width, 1.0f / sprite->GetSpriteInfo().height);
+			UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, tempSpriteInfo, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 		}
 	}
 		break;
@@ -113,8 +113,8 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 			else
 			{
 				FLGUISpriteInfo tempSpriteInfo;
-				tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / sprite->GetSpriteTexture()->GetSurfaceWidth(), 1.0f / sprite->GetSpriteTexture()->GetSurfaceHeight());
-				UIGeometry::UpdateUIRectSimpleUV(geometry, &tempSpriteInfo);
+				tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / sprite->GetSpriteInfo().width, 1.0f / sprite->GetSpriteInfo().height);
+				UIGeometry::UpdateUIRectSimpleUV(geometry, tempSpriteInfo);
 			}
 		}
 			break;
@@ -144,14 +144,14 @@ void UUISprite::WidthChanged()
 			}
 			return;
 		}
-		float widthCountFloat = widget.width / sprite->GetSpriteInfo()->width;
+		float widthCountFloat = widget.width / sprite->GetSpriteInfo().width;
 		int widthCount = (int)widthCountFloat + 1;//rect count of width-direction, +1 means not-full-size rect
 		if (widthCount != Tiled_WidthRectCount)
 		{
 			Tiled_WidthRectCount = widthCount;
 			MarkTriangleDirty();
 		}
-		float remainedWidth = (widthCountFloat - (widthCount - 1)) * sprite->GetSpriteInfo()->width;//not-full-size rect's width
+		float remainedWidth = (widthCountFloat - (widthCount - 1)) * sprite->GetSpriteInfo().width;//not-full-size rect's width
 		if (remainedWidth != Tiled_WidthRemainedRectSize)
 		{
 			Tiled_WidthRemainedRectSize = remainedWidth;
@@ -183,14 +183,14 @@ void UUISprite::HeightChanged()
 			}
 			return;
 		}
-		float heightCountFloat = widget.height / sprite->GetSpriteInfo()->height;
+		float heightCountFloat = widget.height / sprite->GetSpriteInfo().height;
 		int heightCount = (int)heightCountFloat + 1;//rect count of height-direction, +1 means not-full-size rect
 		if (heightCount != Tiled_HeightRectCount)
 		{
 			Tiled_HeightRectCount = heightCount;
 			MarkTriangleDirty();
 		}
-		float remainedHeight = (heightCountFloat - (heightCount - 1)) * sprite->GetSpriteInfo()->height;//not-full-size rect's height
+		float remainedHeight = (heightCountFloat - (heightCount - 1)) * sprite->GetSpriteInfo().height;//not-full-size rect's height
 		if (remainedHeight != Tiled_HeightRemainedRectSize)
 		{
 			Tiled_HeightRemainedRectSize = remainedHeight;

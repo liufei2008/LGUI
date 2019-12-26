@@ -15,6 +15,8 @@ void ULGUICreateGeometryHelper::AddVertexSimple(FVector position, FColor color, 
 	vert.Color = color;
 	vert.TextureCoordinate[0] = uv0;
 	vertices.Add(vert);
+	uiGeometry->originNormals.Add(FVector(0, 0, -1));
+	uiGeometry->originTangents.Add(FVector(1, 0, 0));
 }
 void ULGUICreateGeometryHelper::AddVertexFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent)
 {
@@ -104,16 +106,6 @@ UUIRenderable_BP::UUIRenderable_BP(const FObjectInitializer& ObjectInitializer):
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUIRenderable_BP::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void UUIRenderable_BP::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
-{
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
-}
-
 void UUIRenderable_BP::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (IsValid(createGeometryHelper))
@@ -140,7 +132,6 @@ void UUIRenderable_BP::OnCreateGeometry()
 		createGeometryHelper->uiGeometry = geometry;
 	}
 	OnCreateGeometry_BP(createGeometryHelper);
-
 }
 void UUIRenderable_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {

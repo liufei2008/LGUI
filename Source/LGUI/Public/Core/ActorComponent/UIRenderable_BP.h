@@ -58,7 +58,7 @@ public:
 };
 
 //a wrapper class, blueprint can use this to create custom UI type
-UCLASS(Abstract, Blueprintable)
+UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable)
 class LGUI_API UUIRenderable_BP : public UUIRenderable
 {
 	GENERATED_BODY()
@@ -67,8 +67,6 @@ public:
 	UUIRenderable_BP(const FObjectInitializer& ObjectInitializer);
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 protected:
 	virtual bool HaveDataToCreateGeometry()override { return true; }
@@ -97,5 +95,4 @@ public:
 private:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;
 	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper;
-	//UPROPERTY(Transient)TArray<FLGUIGeometryVertex> tempVertexForUpdateGeometry;
 };

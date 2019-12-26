@@ -32,25 +32,6 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bTransformChanged = true;
 
 	traceChannel = GetDefault<ULGUISettings>()->defaultTraceChannel;
-
-#if WITH_EDITORONLY_DATA
-	if (GIsEditor)
-	{
-		if (GetOwner())
-		{
-			if (!IsValid(HelperComp))
-			{
-				HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
-				HelperComp->Parent = this;
-				HelperComp->SetupAttachment(this);
-				if (GetOwner()->GetWorld())
-				{
-					HelperComp->RegisterComponent();
-				}
-			}
-		}
-	}
-#endif
 }
 
 void UUIItem::BeginPlay()
@@ -376,6 +357,7 @@ void UUIItem::PostEditComponentMove(bool bFinished)
 	Super::PostEditComponentMove(bFinished);
 	EditorForceUpdateImmediately();
 }
+
 FBoxSphereBounds UUIItem::CalcBounds(const FTransform& LocalToWorld) const
 {
 	auto origin = FVector(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y), 0);
@@ -454,11 +436,31 @@ void UUIItem::OnRegister()
 {
 	Super::OnRegister();
 	LGUIManager::AddUIItem(this);
+#if WITH_EDITORONLY_DATA
+	if (GetWorld())
+	{
+		if (!GetWorld()->IsGameWorld())
+		{
+			if (!IsValid(HelperComp))
+			{
+				HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
+				HelperComp->Parent = this;
+				HelperComp->SetupAttachment(this);
+			}
+		}
+	}
+#endif
 }
 void UUIItem::OnUnregister()
 {
 	Super::OnUnregister();
 	LGUIManager::RemoveUIItem(this);
+#if WITH_EDITORONLY_DATA
+	if (IsValid(HelperComp))
+	{
+		HelperComp->ConditionalBeginDestroy();
+	}
+#endif
 }
 
 void UUIItem::UIHierarchyChanged()
