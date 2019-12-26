@@ -33,16 +33,16 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseUV(const TArray<FVector2D>& 
 		vertices.AddDefaulted(vertexCount);
 	}
 	auto spriteInfo = sprite->GetSpriteInfo();
-	float uvXInterval = (spriteInfo->uv3X - spriteInfo->uv0X) / (pointCount - 1);
-	float uvX = spriteInfo->uv0X;
+	float uvXInterval = (spriteInfo.uv3X - spriteInfo.uv0X) / (pointCount - 1);
+	float uvX = spriteInfo.uv0X;
 	for (int i = 0; i < vertexCount; i += 2)
 	{
 		auto& uvi = vertices[i].TextureCoordinate[0];
 		auto& uvi1 = vertices[i + 1].TextureCoordinate[1];
 		uvi.X = uvX;
-		uvi.Y = spriteInfo->uv0Y;
+		uvi.Y = spriteInfo.uv0Y;
 		uvi1.X = uvX;
-		uvi1.Y = spriteInfo->uv3Y;
+		uvi1.Y = spriteInfo.uv3Y;
 
 		uvX += uvXInterval;
 	}

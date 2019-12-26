@@ -54,22 +54,22 @@ void UUITexture::OnCreateGeometry()
 	switch (type)
 	{
 	case UITextureType::Normal:
-		UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, &spriteData, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
+		UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, spriteData, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 		break;
 	case UITextureType::Sliced:
 	case UITextureType::SlicedFrame:
 	{
 		if (spriteData.HasBorder())
-			UIGeometry::FromUIRectBorder(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, &spriteData, type == UITextureType::Sliced, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
+			UIGeometry::FromUIRectBorder(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, spriteData, type == UITextureType::Sliced, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 		else
-			UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, &spriteData, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
+			UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, spriteData, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 	}
 	break;
 	case UITextureType::Tiled:
 	{
 		FLGUISpriteInfo tempSpriteInfo;
 		tempSpriteInfo.ApplyUV(uvRect.X * spriteData.width, uvRect.Y * spriteData.height, uvRect.Z * widget.width, uvRect.W * widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight());
-		UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, &tempSpriteInfo, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
+		UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, tempSpriteInfo, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 	}
 		break;
 	}
@@ -87,7 +87,7 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 		case UITextureType::SlicedFrame:
 		{
 			if (spriteData.HasBorder())
-				UIGeometry::UpdateUIRectBorderVertex(geometry, widget.width, widget.height, widget.pivot, &spriteData);
+				UIGeometry::UpdateUIRectBorderVertex(geometry, widget.width, widget.height, widget.pivot, spriteData);
 			else
 				UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot);
 		}
@@ -102,22 +102,22 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 		switch (type)
 		{
 		case UITextureType::Normal:
-			UIGeometry::UpdateUIRectSimpleUV(geometry, &spriteData);
+			UIGeometry::UpdateUIRectSimpleUV(geometry, spriteData);
 			break;
 		case UITextureType::Sliced:
 		case UITextureType::SlicedFrame:
 		{
 			if (spriteData.HasBorder())
-				UIGeometry::UpdateUIRectBorderUV(geometry, &spriteData);
+				UIGeometry::UpdateUIRectBorderUV(geometry, spriteData);
 			else
-				UIGeometry::UpdateUIRectSimpleUV(geometry, &spriteData);
+				UIGeometry::UpdateUIRectSimpleUV(geometry, spriteData);
 		}
 		break;
 		case UITextureType::Tiled:
 		{
 			FLGUISpriteInfo tempSpriteInfo;
 			tempSpriteInfo.ApplyUV(uvRect.X * spriteData.width, uvRect.Y * spriteData.height, uvRect.Z * widget.width, uvRect.W * widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight());
-			UIGeometry::UpdateUIRectSimpleUV(geometry, &tempSpriteInfo);
+			UIGeometry::UpdateUIRectSimpleUV(geometry, tempSpriteInfo);
 		}
 			break;
 		}
