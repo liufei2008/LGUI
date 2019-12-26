@@ -322,10 +322,10 @@ UTexture2D* ULGUISpriteData::GetAtlasTexture()
 	InitSpriteData();
 	return atlasTexture;
 }
-const FLGUISpriteInfo* ULGUISpriteData::GetSpriteInfo()
+const FLGUISpriteInfo& ULGUISpriteData::GetSpriteInfo()
 {
 	InitSpriteData();
-	return &spriteInfo;
+	return spriteInfo;
 }
 bool ULGUISpriteData::HavePackingTag()const
 {
@@ -334,6 +334,37 @@ bool ULGUISpriteData::HavePackingTag()const
 const FName& ULGUISpriteData::GetPackingTag()const
 {
 	return packingTag;
+}
+
+void ULGUISpriteData::GetSpriteSize(int32& width, int32& height)
+{
+	InitSpriteData();
+	width = spriteInfo.width;
+	height = spriteInfo.height;
+}
+void ULGUISpriteData::GetSpriteBorderSize(int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom)
+{
+	InitSpriteData();
+	borderLeft = spriteInfo.borderLeft;
+	borderRight = spriteInfo.borderRight;
+	borderTop = spriteInfo.borderTop;
+	borderBottom = spriteInfo.borderBottom;
+}
+void ULGUISpriteData::GetSpriteUV(float& UV0X, float& UV0Y, float& UV3X, float& UV3Y)
+{
+	InitSpriteData();
+	UV0X = spriteInfo.uv0X;
+	UV0Y = spriteInfo.uv0Y;
+	UV3X = spriteInfo.uv3X;
+	UV3Y = spriteInfo.uv3Y;
+}
+void ULGUISpriteData::GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y)
+{
+	InitSpriteData();
+	borderUV0X = spriteInfo.buv0X;
+	borderUV0Y = spriteInfo.buv0Y;
+	borderUV3X = spriteInfo.buv3X;
+	borderUV3Y = spriteInfo.buv3Y;
 }
 
 void ULGUISpriteData::AddUISprite(UUISpriteBase* InUISprite)

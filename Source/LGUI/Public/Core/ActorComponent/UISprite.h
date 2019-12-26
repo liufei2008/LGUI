@@ -13,7 +13,7 @@ enum class UISpriteType :uint8
 	SlicedFrame			UMETA(DisplayName = "SlicedFrame"),
 	Tiled				UMETA(DisplayName = "Tiled"),
 };
-UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUISprite : public UUISpriteBase
 {
 	GENERATED_BODY()
