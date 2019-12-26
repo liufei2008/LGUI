@@ -8,7 +8,7 @@
 
 
 #pragma region UISprite_UITexture_Simple
-void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
@@ -78,23 +78,13 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 	}
 }
 
-void UIGeometry::UpdateUIRectSimpleUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo)
+void UIGeometry::UpdateUIRectSimpleUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo)
 {
 	auto& vertices = uiGeo->vertices;
-	if (spriteInfo == nullptr)
-	{
-		vertices[0].TextureCoordinate[0] = FVector2D(0, 1);
-		vertices[1].TextureCoordinate[0] = FVector2D(1, 1);
-		vertices[2].TextureCoordinate[0] = FVector2D(0, 0);
-		vertices[3].TextureCoordinate[0] = FVector2D(1, 0);
-	}
-	else
-	{
-		vertices[0].TextureCoordinate[0] = spriteInfo->GetUV0();
-		vertices[1].TextureCoordinate[0] = spriteInfo->GetUV1();
-		vertices[2].TextureCoordinate[0] = spriteInfo->GetUV2();
-		vertices[3].TextureCoordinate[0] = spriteInfo->GetUV3();
-	}
+	vertices[0].TextureCoordinate[0] = spriteInfo.GetUV0();
+	vertices[1].TextureCoordinate[0] = spriteInfo.GetUV1();
+	vertices[2].TextureCoordinate[0] = spriteInfo.GetUV2();
+	vertices[3].TextureCoordinate[0] = spriteInfo.GetUV3();
 }
 void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot)
 {
@@ -117,7 +107,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 }
 #pragma endregion
 #pragma region UISprite_UITexture_Border
-void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo, bool fillCenter, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool fillCenter, bool requireNormal, bool requireTangent, bool requireUV1)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
@@ -201,12 +191,12 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 	//uvs1
 	if (requireUV1)
 	{
-		float widthReciprocal = 1.0f / spriteInfo->width;
-		float heightReciprocal = 1.0f / spriteInfo->height;
-		float buv0X = spriteInfo->borderLeft * widthReciprocal;
-		float buv3X = 1.0f - spriteInfo->borderRight * widthReciprocal;
-		float buv0Y = 1.0f - spriteInfo->borderBottom * heightReciprocal;
-		float buv3Y = spriteInfo->borderTop * heightReciprocal;
+		float widthReciprocal = 1.0f / spriteInfo.width;
+		float heightReciprocal = 1.0f / spriteInfo.height;
+		float buv0X = spriteInfo.borderLeft * widthReciprocal;
+		float buv3X = 1.0f - spriteInfo.borderRight * widthReciprocal;
+		float buv0Y = 1.0f - spriteInfo.borderBottom * heightReciprocal;
+		float buv3Y = spriteInfo.borderTop * heightReciprocal;
 
 		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
 		vertices[1].TextureCoordinate[1] = FVector2D(buv0X, 1);
@@ -230,48 +220,48 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 	}
 }
 
-void UIGeometry::UpdateUIRectBorderUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo)
+void UIGeometry::UpdateUIRectBorderUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo)
 {
 	auto& vertices = uiGeo->vertices;
-	vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, spriteInfo->uv0Y);
-	vertices[1].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->uv0Y);
-	vertices[2].TextureCoordinate[0] = FVector2D(spriteInfo->buv3X, spriteInfo->uv0Y);
-	vertices[3].TextureCoordinate[0] = FVector2D(spriteInfo->uv3X, spriteInfo->uv0Y);
+	vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, spriteInfo.uv0Y);
+	vertices[1].TextureCoordinate[0] = FVector2D(spriteInfo.buv0X, spriteInfo.uv0Y);
+	vertices[2].TextureCoordinate[0] = FVector2D(spriteInfo.buv3X, spriteInfo.uv0Y);
+	vertices[3].TextureCoordinate[0] = FVector2D(spriteInfo.uv3X, spriteInfo.uv0Y);
 
-	vertices[4].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, spriteInfo->buv0Y);
-	vertices[5].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->buv0Y);
-	vertices[6].TextureCoordinate[0] = FVector2D(spriteInfo->buv3X, spriteInfo->buv0Y);
-	vertices[7].TextureCoordinate[0] = FVector2D(spriteInfo->uv3X, spriteInfo->buv0Y);
+	vertices[4].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, spriteInfo.buv0Y);
+	vertices[5].TextureCoordinate[0] = FVector2D(spriteInfo.buv0X, spriteInfo.buv0Y);
+	vertices[6].TextureCoordinate[0] = FVector2D(spriteInfo.buv3X, spriteInfo.buv0Y);
+	vertices[7].TextureCoordinate[0] = FVector2D(spriteInfo.uv3X, spriteInfo.buv0Y);
 
-	vertices[8].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, spriteInfo->buv3Y);
-	vertices[9].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->buv3Y);
-	vertices[10].TextureCoordinate[0] = FVector2D(spriteInfo->buv3X, spriteInfo->buv3Y);
-	vertices[11].TextureCoordinate[0] = FVector2D(spriteInfo->uv3X, spriteInfo->buv3Y);
+	vertices[8].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, spriteInfo.buv3Y);
+	vertices[9].TextureCoordinate[0] = FVector2D(spriteInfo.buv0X, spriteInfo.buv3Y);
+	vertices[10].TextureCoordinate[0] = FVector2D(spriteInfo.buv3X, spriteInfo.buv3Y);
+	vertices[11].TextureCoordinate[0] = FVector2D(spriteInfo.uv3X, spriteInfo.buv3Y);
 
-	vertices[12].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, spriteInfo->uv3Y);
-	vertices[13].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->uv3Y);
-	vertices[14].TextureCoordinate[0] = FVector2D(spriteInfo->buv3X, spriteInfo->uv3Y);
-	vertices[15].TextureCoordinate[0] = FVector2D(spriteInfo->uv3X, spriteInfo->uv3Y);
+	vertices[12].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, spriteInfo.uv3Y);
+	vertices[13].TextureCoordinate[0] = FVector2D(spriteInfo.buv0X, spriteInfo.uv3Y);
+	vertices[14].TextureCoordinate[0] = FVector2D(spriteInfo.buv3X, spriteInfo.uv3Y);
+	vertices[15].TextureCoordinate[0] = FVector2D(spriteInfo.uv3X, spriteInfo.uv3Y);
 }
-void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, const FLGUISpriteInfo* spriteInfo)
+void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
 	float x0, x1, x2, x3, y0, y1, y2, y3;
-	int widthBorder = spriteInfo->borderLeft + spriteInfo->borderRight;
-	int heightBorder = spriteInfo->borderTop + spriteInfo->borderBottom;
+	int widthBorder = spriteInfo.borderLeft + spriteInfo.borderRight;
+	int heightBorder = spriteInfo.borderTop + spriteInfo.borderBottom;
 	float widthScale = width < widthBorder ? width / widthBorder : 1.0f;
 	float heightScale = height < heightBorder ? height / heightBorder : 1.0f;
 	x0 = (-halfW + pivotOffsetX);
-	x1 = (x0 + spriteInfo->borderLeft * widthScale);
+	x1 = (x0 + spriteInfo.borderLeft * widthScale);
 	x3 = (halfW + pivotOffsetX);
-	x2 = (x3 - spriteInfo->borderRight * widthScale);
+	x2 = (x3 - spriteInfo.borderRight * widthScale);
 	y0 = (-halfH + pivotOffsetY);
-	y1 = (y0 + spriteInfo->borderBottom * heightScale);
+	y1 = (y0 + spriteInfo.borderBottom * heightScale);
 	y3 = (halfH + pivotOffsetY);
-	y2 = (y3 - spriteInfo->borderTop * heightScale);
+	y2 = (y3 - spriteInfo.borderTop * heightScale);
 
 	auto& originPositions = uiGeo->originPositions;
 	originPositions[0] = FVector(x0, y0, 0);
@@ -297,7 +287,7 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 #pragma endregion
 
 #pragma region UISprite_Tiled
-void UIGeometry::FromUIRectTiled(const float& width, const float& height, const FVector2D& pivot, const FColor& color, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIRectTiled(const float& width, const float& height, const FVector2D& pivot, const FColor& color, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
 {
 	int rectangleCount = widthRectCount * heightRectCount;
 	//triangles
@@ -373,27 +363,27 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 		}
 	}
 }
-void UIGeometry::UpdateUIRectTiledUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize)
+void UIGeometry::UpdateUIRectTiledUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize)
 {
 	auto& vertices = uiGeo->vertices;
 
 	int vertIndex = 0;
-	float remainedUV3X = spriteInfo->buv0X + (spriteInfo->buv3X - spriteInfo->buv0X) * widthRemainedRectSize / spriteInfo->width;
-	float remainedUV3Y = spriteInfo->buv0Y + (spriteInfo->buv3Y - spriteInfo->buv0Y) * heightRemainedRectSize / spriteInfo->height;
+	float remainedUV3X = spriteInfo.buv0X + (spriteInfo.buv3X - spriteInfo.buv0X) * widthRemainedRectSize / spriteInfo.width;
+	float remainedUV3Y = spriteInfo.buv0Y + (spriteInfo.buv3Y - spriteInfo.buv0Y) * heightRemainedRectSize / spriteInfo.height;
 	for (int heightRectIndex = 1; heightRectIndex <= heightRectCount; heightRectIndex++)
 	{
-		float realUV3Y = heightRectIndex == heightRectCount ? remainedUV3Y : spriteInfo->buv3Y;
+		float realUV3Y = heightRectIndex == heightRectCount ? remainedUV3Y : spriteInfo.buv3Y;
 		for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
 		{
-			float realUV3X = widthRectIndex == widthRectCount ? remainedUV3X : spriteInfo->buv3X;
-			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, spriteInfo->buv0Y);
-			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(realUV3X, spriteInfo->buv0Y);
-			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(spriteInfo->buv0X, realUV3Y);
+			float realUV3X = widthRectIndex == widthRectCount ? remainedUV3X : spriteInfo.buv3X;
+			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(spriteInfo.buv0X, spriteInfo.buv0Y);
+			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(realUV3X, spriteInfo.buv0Y);
+			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(spriteInfo.buv0X, realUV3Y);
 			vertices[vertIndex++].TextureCoordinate[0] = FVector2D(realUV3X, realUV3Y);
 		}
 	}
 }
-void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo, const float& width, const float& height, const FVector2D& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize)
+void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, const float& width, const float& height, const FVector2D& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
@@ -407,19 +397,19 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 	float x = startX, y = startY;
 	for (int heightRectIndex = 1; heightRectIndex <= heightRectCount; heightRectIndex++)
 	{
-		float realHeight = heightRectIndex == heightRectCount ? heightRemainedRectSize : spriteInfo->height;
+		float realHeight = heightRectIndex == heightRectCount ? heightRemainedRectSize : spriteInfo.height;
 		for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
 		{
-			float realWidth = widthRectIndex == widthRectCount ? (widthRemainedRectSize) : spriteInfo->width;
+			float realWidth = widthRectIndex == widthRectCount ? (widthRemainedRectSize) : spriteInfo.width;
 			originPositions[vertIndex++] = FVector(x, y, 0);
 			originPositions[vertIndex++] = FVector(x + realWidth, y, 0);
 			originPositions[vertIndex++] = FVector(x, y + realHeight, 0);
 			originPositions[vertIndex++] = FVector(x + realWidth, y + realHeight, 0);
 			
-			x += spriteInfo->width;
+			x += spriteInfo.width;
 		}
 		x = startX;
-		y += spriteInfo->height;
+		y += spriteInfo.height;
 	}
 }
 #pragma endregion
@@ -858,7 +848,7 @@ void UIGeometry::UpdateUITextLineVertex(int pivotHAlign, float sentenceWidth, TA
 #pragma endregion
 
 #pragma region UISector
-void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, uint8 uvType, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, uint8 uvType, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
@@ -930,7 +920,7 @@ void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivo
 		}
 	}
 }
-void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, const FLGUISpriteInfo* spriteInfo)
+void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, const FLGUISpriteInfo& spriteInfo)
 {
 	auto& vertices = uiGeo->vertices;
 	int vertexCount = uiGeo->originVerticesCount;
@@ -942,10 +932,10 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 		float sin = FMath::Sin(angle);
 		float cos = FMath::Cos(angle);
 
-		float halfUVWidth = (spriteInfo->uv3X - spriteInfo->uv0X) * 0.5f;
-		float halfUVHeight = (spriteInfo->uv3Y - spriteInfo->uv0Y) * 0.5f;
-		float centerUVX = (spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f;
-		float centerUVY = (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f;
+		float halfUVWidth = (spriteInfo.uv3X - spriteInfo.uv0X) * 0.5f;
+		float halfUVHeight = (spriteInfo.uv3Y - spriteInfo.uv0Y) * 0.5f;
+		float centerUVX = (spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f;
+		float centerUVY = (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f;
 
 		float x = centerUVX;
 		float y = centerUVY;
@@ -963,8 +953,8 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 	}
 	else if(uvType == 1)
 	{
-		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f);
-		FVector2D otherUV(spriteInfo->uv3X, (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f);
+		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+		FVector2D otherUV(spriteInfo.uv3X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
 		for (int i = 1; i < vertexCount; i++)
 		{
 			vertices[i].TextureCoordinate[0] = otherUV;
@@ -972,8 +962,8 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 	}
 	else if (uvType == 2)
 	{
-		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f, spriteInfo->uv0Y);
-		FVector2D otherUV((spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f, spriteInfo->uv3Y);
+		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv0Y);
+		FVector2D otherUV((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv3Y);
 		for (int i = 1; i < vertexCount; i++)
 		{
 			vertices[i].TextureCoordinate[0] = otherUV;
@@ -981,9 +971,9 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 	}
 	else if (uvType == 3)
 	{
-		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo->uv0X, (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f);
-		float uvYInterval = (spriteInfo->uv3Y - spriteInfo->uv0Y) / (vertexCount - 1);
-		FVector2D otherUV(spriteInfo->uv3X, spriteInfo->uv0Y);
+		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+		float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (vertexCount - 1);
+		FVector2D otherUV(spriteInfo.uv3X, spriteInfo.uv0Y);
 		for (int i = 1; i < vertexCount; i++)
 		{
 			vertices[i].TextureCoordinate[0] = otherUV;
@@ -992,9 +982,9 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 	}
 	else if (uvType == 4)
 	{
-		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f, spriteInfo->uv0Y);
-		float uvXInterval = (spriteInfo->uv3X - spriteInfo->uv0X) / (vertexCount - 1);
-		FVector2D otherUV(spriteInfo->uv0X, spriteInfo->uv3Y);
+		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv0Y);
+		float uvXInterval = (spriteInfo.uv3X - spriteInfo.uv0X) / (vertexCount - 1);
+		FVector2D otherUV(spriteInfo.uv0X, spriteInfo.uv3Y);
 		for (int i = 1; i < vertexCount; i++)
 		{
 			vertices[i].TextureCoordinate[0] = otherUV;
@@ -1042,7 +1032,7 @@ void UIGeometry::UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width
 #pragma endregion
 
 #pragma region UIRing
-void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, uint8 uvType, FColor color, float ringWidth, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo* spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, uint8 uvType, FColor color, float ringWidth, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
@@ -1119,7 +1109,7 @@ void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot,
 		}
 	}
 }
-void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, float ringWidth, float& width, float& height, const FLGUISpriteInfo* spriteInfo)
+void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, float ringWidth, float& width, float& height, const FLGUISpriteInfo& spriteInfo)
 {
 	auto& vertices = uiGeo->vertices;
 	int vertexCount = uiGeo->originVerticesCount;
@@ -1131,10 +1121,10 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 		float sin = FMath::Sin(angle);
 		float cos = FMath::Cos(angle);
 
-		float halfUVWidth = (spriteInfo->uv3X - spriteInfo->uv0X) * 0.5f;
-		float halfUVHeight = (spriteInfo->uv3Y - spriteInfo->uv0Y) * 0.5f;
-		float centerUVX = (spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f;
-		float centerUVY = (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f;
+		float halfUVWidth = (spriteInfo.uv3X - spriteInfo.uv0X) * 0.5f;
+		float halfUVHeight = (spriteInfo.uv3Y - spriteInfo.uv0Y) * 0.5f;
+		float centerUVX = (spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f;
+		float centerUVY = (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f;
 
 		float halfW = width * 0.5f;
 		float halfH = height * 0.5f;
@@ -1162,10 +1152,10 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 	}
 	else if (uvType == 1)
 	{
-		float centerUVX = (spriteInfo->uv0X + spriteInfo->uv3X) * 0.5f;
+		float centerUVX = (spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f;
 
-		float uvYInterval = (spriteInfo->uv3Y - spriteInfo->uv0Y) / (segment + 1);
-		float uvY = spriteInfo->uv0Y;
+		float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (segment + 1);
+		float uvY = spriteInfo.uv0Y;
 		vertices[0].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
 		vertices[1].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
 		for (int i = 0; i < segment + 1; i++)
@@ -1177,10 +1167,10 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 	}
 	else if (uvType == 2)
 	{
-		float centerUVY = (spriteInfo->uv0Y + spriteInfo->uv3Y) * 0.5f;
+		float centerUVY = (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f;
 
-		float uvXInterval = (spriteInfo->uv3X - spriteInfo->uv0X) / (segment + 1);
-		float uvX = spriteInfo->uv0X;
+		float uvXInterval = (spriteInfo.uv3X - spriteInfo.uv0X) / (segment + 1);
+		float uvX = spriteInfo.uv0X;
 		vertices[0].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
 		vertices[1].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
 		for (int i = 0; i < segment + 1; i++)
@@ -1192,11 +1182,11 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 	}
 	else if (uvType == 3)
 	{
-		float innerUVX = spriteInfo->uv0X;
-		float outerUVX = spriteInfo->uv3X;
+		float innerUVX = spriteInfo.uv0X;
+		float outerUVX = spriteInfo.uv3X;
 
-		float uvYInterval = (spriteInfo->uv3Y - spriteInfo->uv0Y) / (segment + 1);
-		float uvY = spriteInfo->uv0Y;
+		float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (segment + 1);
+		float uvY = spriteInfo.uv0Y;
 
 		vertices[0].TextureCoordinate[0] = FVector2D(innerUVX, uvY);
 		vertices[1].TextureCoordinate[0] = FVector2D(outerUVX, uvY);
@@ -1209,11 +1199,11 @@ void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, floa
 	}
 	else if (uvType == 4)
 	{
-		float innerUVY = spriteInfo->uv0Y;
-		float outerUVY = spriteInfo->uv3Y;
+		float innerUVY = spriteInfo.uv0Y;
+		float outerUVY = spriteInfo.uv3Y;
 
-		float uvXInterval = (spriteInfo->uv3X - spriteInfo->uv0X) / (segment + 1);
-		float uvX = spriteInfo->uv0X;
+		float uvXInterval = (spriteInfo.uv3X - spriteInfo.uv0X) / (segment + 1);
+		float uvX = spriteInfo.uv0X;
 
 		vertices[0].TextureCoordinate[0] = FVector2D(uvX, innerUVY);
 		vertices[1].TextureCoordinate[0] = FVector2D(uvX, outerUVY);
