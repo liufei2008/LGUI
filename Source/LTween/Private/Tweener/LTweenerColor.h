@@ -17,7 +17,7 @@ public:
 	FLTweenColorGetterFunction getter;
 	FLTweenColorSetterFunction setter;
 
-	void SetInitialValue(const FLTweenColorGetterFunction& newGetter, const FLTweenColorSetterFunction& newSetter, FColor newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenColorGetterFunction& newGetter, const FLTweenColorSetterFunction& newSetter, const FColor& newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
