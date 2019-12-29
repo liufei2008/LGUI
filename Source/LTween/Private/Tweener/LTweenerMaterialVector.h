@@ -18,7 +18,7 @@ public:
 	FLTweenMaterialVectorGetterFunction getter;
 	FLTweenMaterialVectorSetterFunction setter;
 
-	void SetInitialValue(const FLTweenMaterialVectorGetterFunction& newGetter, const FLTweenMaterialVectorSetterFunction& newSetter, FLinearColor newEndValue, float newDuration, int32 newParameterIndex)
+	void SetInitialValue(const FLTweenMaterialVectorGetterFunction& newGetter, const FLTweenMaterialVectorSetterFunction& newSetter, const FLinearColor& newEndValue, float newDuration, int32 newParameterIndex)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;

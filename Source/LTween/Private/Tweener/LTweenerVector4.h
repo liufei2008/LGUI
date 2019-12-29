@@ -2,22 +2,22 @@
 
 #pragma once
 #include "LTweener.h"
-#include "LTweenerScale.generated.h"
+#include "LTweenerVector4.generated.h"
 
 UCLASS(NotBlueprintType)
-class LTWEEN_API ULTweenerScale :public ULTweener
+class LTWEEN_API ULTweenerVector4 :public ULTweener
 {
 	GENERATED_BODY()
 public:
 	float startFloat = 0.0f;//b
 	float changeFloat = 1.0f;//c
-	FVector startValue;
-	FVector endValue;
+	FVector4 startValue;
+	FVector4 endValue;
 
-	FLTweenVectorGetterFunction getter;
-	FLTweenVectorSetterFunction setter;
+	FLTweenVector4GetterFunction getter;
+	FLTweenVector4SetterFunction setter;
 
-	void SetInitialValue(const FLTweenVectorGetterFunction& newGetter, const FLTweenVectorSetterFunction& newSetter, const FVector& newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenVector4GetterFunction& newGetter, const FLTweenVector4SetterFunction& newSetter, const FVector4& newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;

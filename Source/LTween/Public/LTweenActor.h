@@ -38,18 +38,19 @@ public:
 	static void KillIfIsTweening(ULTweener* item, bool callComplete);
 
 	static ULTweener* To(const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration);
-	static ULTweener* To(const FLTweenIntGetterFunction& getter, const IntSetterFunction& setter, int endValue, float duration);
-	static ULTweener* To(const FLTweenPositionGetterFunction& getter, const FLTweenPositionSetterFunction& setter, FVector endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
-	static ULTweener* To(const FLTweenVectorGetterFunction& getter, const FLTweenVectorSetterFunction& setter, FVector endValue, float duration);
-	static ULTweener* To(const FLTweenColorGetterFunction& getter, const FLTweenColorSetterFunction& setter, FColor endValue, float duration);
-	static ULTweener* To(const FLTweenLinearColorGetterFunction& getter, const FLTweenLinearColorSetterFunction& setter, FLinearColor endValue, float duration);
-	static ULTweener* To(const FLTweenVector2DGetterFunction& getter, const FLTweenVector2DSetterFunction& setter, FVector2D endValue, float duration);
-	static ULTweener* To(const FLTweenQuaternionGetterFunction& getter, const FLTweenQuaternionSetterFunction& setter, FQuat endValue, float duration);
-	static ULTweener* To(const FLTweenRotatorGetterFunction& getter, const FLTweenRotatorSetterFunction& setter, FRotator endValue, float duration);
-	static ULTweener* To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, FVector eulerAngle, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
-	static ULTweener* To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, FQuat endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
+	static ULTweener* To(const FLTweenIntGetterFunction& getter, const FLTweenIntSetterFunction& setter, int endValue, float duration);
+	static ULTweener* To(const FLTweenPositionGetterFunction& getter, const FLTweenPositionSetterFunction& setter, const FVector& endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
+	static ULTweener* To(const FLTweenVectorGetterFunction& getter, const FLTweenVectorSetterFunction& setter, const FVector& endValue, float duration);
+	static ULTweener* To(const FLTweenColorGetterFunction& getter, const FLTweenColorSetterFunction& setter, const FColor& endValue, float duration);
+	static ULTweener* To(const FLTweenLinearColorGetterFunction& getter, const FLTweenLinearColorSetterFunction& setter, const FLinearColor& endValue, float duration);
+	static ULTweener* To(const FLTweenVector2DGetterFunction& getter, const FLTweenVector2DSetterFunction& setter, const FVector2D& endValue, float duration);
+	static ULTweener* To(const FLTweenVector4GetterFunction& getter, const FLTweenVector4SetterFunction& setter, const FVector4& endValue, float duration);
+	static ULTweener* To(const FLTweenQuaternionGetterFunction& getter, const FLTweenQuaternionSetterFunction& setter, const FQuat& endValue, float duration);
+	static ULTweener* To(const FLTweenRotatorGetterFunction& getter, const FLTweenRotatorSetterFunction& setter, const FRotator& endValue, float duration);
+	static ULTweener* To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FVector& eulerAngle, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
+	static ULTweener* To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FQuat& endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
 	static ULTweener* To(const FLTweenMaterialScalarGetterFunction& getter, const FLTweenMaterialScalarSetterFunction& setter, float endValue, float duration, int32 parameterIndex);
-	static ULTweener* To(const FLTweenMaterialVectorGetterFunction& getter, const FLTweenMaterialVectorSetterFunction& setter, FLinearColor endValue, float duration, int32 parameterIndex);
+	static ULTweener* To(const FLTweenMaterialVectorGetterFunction& getter, const FLTweenMaterialVectorSetterFunction& setter, const FLinearColor& endValue, float duration, int32 parameterIndex);
 
 	static ULTweener* VirtualTo(float duration);
 
