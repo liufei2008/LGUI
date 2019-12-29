@@ -17,7 +17,7 @@ public:
 	FLTweenQuaternionGetterFunction getter;
 	FLTweenQuaternionSetterFunction setter;
 
-	void SetInitialValue(const FLTweenQuaternionGetterFunction& newGetter, const FLTweenQuaternionSetterFunction& newSetter, FQuat newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenQuaternionGetterFunction& newGetter, const FLTweenQuaternionSetterFunction& newSetter, const FQuat& newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;

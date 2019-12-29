@@ -17,7 +17,7 @@ public:
 	FLTweenVector2DGetterFunction getter;
 	FLTweenVector2DSetterFunction setter;
 
-	void SetInitialValue(const FLTweenVector2DGetterFunction& newGetter, const FLTweenVector2DSetterFunction& newSetter, FVector2D newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenVector2DGetterFunction& newGetter, const FLTweenVector2DSetterFunction& newSetter, const FVector2D& newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
