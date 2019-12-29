@@ -14,9 +14,9 @@ public:
 
 	int endValue;
 	FLTweenIntGetterFunction getter;
-	IntSetterFunction setter;
+	FLTweenIntSetterFunction setter;
 
-	void SetInitialValue(const FLTweenIntGetterFunction& newGetter, const IntSetterFunction& newSetter, int newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenIntGetterFunction& newGetter, const FLTweenIntSetterFunction& newSetter, int newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;

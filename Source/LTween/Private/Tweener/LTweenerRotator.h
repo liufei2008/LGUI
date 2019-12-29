@@ -17,7 +17,7 @@ public:
 	FLTweenRotatorGetterFunction getter;
 	FLTweenRotatorSetterFunction setter;
 
-	void SetInitialValue(const FLTweenRotatorGetterFunction& newGetter, const FLTweenRotatorSetterFunction& newSetter, FRotator newEndValue, float newDuration)
+	void SetInitialValue(const FLTweenRotatorGetterFunction& newGetter, const FLTweenRotatorSetterFunction& newSetter, const FRotator& newEndValue, float newDuration)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;

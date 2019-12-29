@@ -21,7 +21,7 @@ public:
 	FLTweenPositionGetterFunction getter;
 	FLTweenPositionSetterFunction setter;
 
-	void SetInitialValue(const FLTweenPositionGetterFunction& newGetter, const FLTweenPositionSetterFunction& newSetter, FVector newEndValue, float newDuration, bool newSweep = false, FHitResult* newSweepHitResult = nullptr, ETeleportType newTeleportType = ETeleportType::None)
+	void SetInitialValue(const FLTweenPositionGetterFunction& newGetter, const FLTweenPositionSetterFunction& newSetter, const FVector& newEndValue, float newDuration, bool newSweep = false, FHitResult* newSweepHitResult = nullptr, ETeleportType newTeleportType = ETeleportType::None)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;
