@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include "UIRenderable.h"
+#include "UITextureBase.h"
 #include "UIRenderable_BP.h"
 #include "UITextureBase_BP.generated.h"
 
 //This is base class for create custom mesh based on UITexture. Just override OnCreateGeometry() and OnUpdateGeometry(...) to create or update your own geometry
 UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable)
-class LGUI_API UUITextureBase_BP : public UUIRenderable
+class LGUI_API UUITextureBase_BP : public UUITextureBase
 {
 	GENERATED_BODY()
 
