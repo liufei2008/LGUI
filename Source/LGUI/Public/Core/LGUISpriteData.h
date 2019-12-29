@@ -124,16 +124,26 @@ private:
 	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);
 
 public:
-	void InitSpriteData();
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D * GetAtlasTexture();
-	UFUNCTION(BlueprintCallable, Category = "LGUI") const FLGUISpriteInfo& GetSpriteInfo();
+	//initialize sprite data, only need to call once
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void InitSpriteData();
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D * InitAndGetAtlasTexture();
+	UFUNCTION(BlueprintCallable, Category = "LGUI") const FLGUISpriteInfo& InitAndGetSpriteInfo();
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool HavePackingTag()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI") const FName& GetPackingTag()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteSize(int32& width, int32& height);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderSize(int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteUV(float& UV0X, float& UV0Y, float& UV3X, float& UV3Y);
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y);
+	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D * GetAtlasTexture()const;
+	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	UFUNCTION(BlueprintCallable, Category = "LGUI") const FLGUISpriteInfo& GetSpriteInfo()const;
+	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteSize(int32& width, int32& height)const;
+	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderSize(int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom)const;
+	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteUV(float& UV0X, float& UV0Y, float& UV3X, float& UV3Y)const;
+	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y)const;
 
 	void AddUISprite(UUISpriteBase* InUISprite);
 	void RemoveUISprite(UUISpriteBase* InUISprite);

@@ -13,13 +13,13 @@ UUISector::UUISector(const FObjectInitializer& ObjectInitializer):Super(ObjectIn
 
 void UUISector::OnCreateGeometry()
 {
-	UIGeometry::FromUISector(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), geometry, sprite->GetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
+	UIGeometry::FromUISector(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), geometry, sprite->InitAndGetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 }
 void UUISector::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (InVertexUVChanged)
 	{
-		UIGeometry::UpdateUISectorUV(geometry, (uint8)uvType, startAngle, endAngle, segment, sprite->GetSpriteInfo());
+		UIGeometry::UpdateUISectorUV(geometry, (uint8)uvType, startAngle, endAngle, segment, sprite->InitAndGetSpriteInfo());
 	}
 	if (InVertexColorChanged)
 	{

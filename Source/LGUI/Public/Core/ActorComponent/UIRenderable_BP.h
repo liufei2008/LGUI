@@ -41,6 +41,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void AddVertexFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void AddVertexStruct(FLGUIGeometryVertex vertex);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void AddTriangle(int index0, int index1, int index2);
 };
 //a helper class for update LGUI geometry

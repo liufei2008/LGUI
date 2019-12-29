@@ -265,7 +265,7 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 		{
 			if (isInitialized)
 			{
-				float atlasTextureSizeInv = 1.0f / GetAtlasTexture()->GetSizeX();
+				float atlasTextureSizeInv = 1.0f / InitAndGetAtlasTexture()->GetSizeX();
 				spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
 			}
 			spriteInfo.width = spriteTexture->GetSizeX();
@@ -318,12 +318,12 @@ void ULGUISpriteData::InitSpriteData()
 	}
 }
 
-UTexture2D* ULGUISpriteData::GetAtlasTexture()
+UTexture2D* ULGUISpriteData::InitAndGetAtlasTexture()
 {
 	InitSpriteData();
 	return atlasTexture;
 }
-const FLGUISpriteInfo& ULGUISpriteData::GetSpriteInfo()
+const FLGUISpriteInfo& ULGUISpriteData::InitAndGetSpriteInfo()
 {
 	InitSpriteData();
 	return spriteInfo;
@@ -337,31 +337,59 @@ const FName& ULGUISpriteData::GetPackingTag()const
 	return packingTag;
 }
 
-void ULGUISpriteData::GetSpriteSize(int32& width, int32& height)
+UTexture2D* ULGUISpriteData::GetAtlasTexture()const
 {
-	InitSpriteData();
+	if (!isInitialized)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::GetAtlasTexture]always remember to call InitSpriteData() before this function to initialize this SpriteData"));
+	}
+	return atlasTexture;
+}
+const FLGUISpriteInfo& ULGUISpriteData::GetSpriteInfo()const
+{
+	if (!isInitialized)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::GetSpriteInfo]always remember to call InitSpriteData() before this function to initialize this SpriteData"));
+	}
+	return spriteInfo;
+}
+void ULGUISpriteData::GetSpriteSize(int32& width, int32& height)const
+{
+	if (!isInitialized)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::GetSpriteSize]always remember to call InitSpriteData() before this function to initialize this SpriteData"));
+	}
 	width = spriteInfo.width;
 	height = spriteInfo.height;
 }
-void ULGUISpriteData::GetSpriteBorderSize(int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom)
+void ULGUISpriteData::GetSpriteBorderSize(int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom)const
 {
-	InitSpriteData();
+	if (!isInitialized)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::GetSpriteBorderSize]always remember to call InitSpriteData() before this function to initialize this SpriteData"));
+	}
 	borderLeft = spriteInfo.borderLeft;
 	borderRight = spriteInfo.borderRight;
 	borderTop = spriteInfo.borderTop;
 	borderBottom = spriteInfo.borderBottom;
 }
-void ULGUISpriteData::GetSpriteUV(float& UV0X, float& UV0Y, float& UV3X, float& UV3Y)
+void ULGUISpriteData::GetSpriteUV(float& UV0X, float& UV0Y, float& UV3X, float& UV3Y)const
 {
-	InitSpriteData();
+	if (!isInitialized)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::GetSpriteUV]always remember to call InitSpriteData() before this function to initialize this SpriteData"));
+	}
 	UV0X = spriteInfo.uv0X;
 	UV0Y = spriteInfo.uv0Y;
 	UV3X = spriteInfo.uv3X;
 	UV3Y = spriteInfo.uv3Y;
 }
-void ULGUISpriteData::GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y)
+void ULGUISpriteData::GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y)const
 {
-	InitSpriteData();
+	if (!isInitialized)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::GetSpriteBorderUV]always remember to call InitSpriteData() before this function to initialize this SpriteData"));
+	}
 	borderUV0X = spriteInfo.buv0X;
 	borderUV0Y = spriteInfo.buv0Y;
 	borderUV3X = spriteInfo.buv3X;
