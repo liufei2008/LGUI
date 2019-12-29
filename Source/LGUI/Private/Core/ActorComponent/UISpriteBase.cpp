@@ -42,10 +42,10 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 		}
 		MarkUVDirty();
 	}
-	geometry->texture = sprite->GetAtlasTexture();
+	geometry->texture = sprite->InitAndGetAtlasTexture();
 	if (CheckRenderCanvas())
 	{
-		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, sprite->GetAtlasTexture(), false);
+		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, sprite->InitAndGetAtlasTexture(), false);
 	}
 }
 
@@ -54,7 +54,7 @@ void UUISpriteBase::SetSprite(ULGUISpriteData* newSprite, bool setSize)
 	if (sprite != newSprite)
 	{
 		if((!IsValid(sprite) || !IsValid(newSprite))
-			|| (sprite->GetAtlasTexture() != newSprite->GetAtlasTexture()))
+			|| (sprite->InitAndGetAtlasTexture() != newSprite->InitAndGetAtlasTexture()))
 		{
 			MarkTextureDirty();
 			//remove from old
@@ -77,8 +77,8 @@ void UUISpriteBase::SetSizeFromSpriteData()
 {
 	if (IsValid(sprite))
 	{
-		SetWidth(sprite->GetSpriteInfo().width);
-		SetHeight(sprite->GetSpriteInfo().height);
+		SetWidth(sprite->InitAndGetSpriteInfo().width);
+		SetHeight(sprite->InitAndGetSpriteInfo().height);
 	}
 	else
 	{
@@ -151,9 +151,9 @@ UTexture* UUISpriteBase::GetTextureToCreateGeometry()
 	{
 		sprite = ULGUISpriteData::GetDefaultWhiteSolid();
 	}
-	if (IsValid(sprite) && IsValid(sprite->GetAtlasTexture()))
+	if (IsValid(sprite) && IsValid(sprite->InitAndGetAtlasTexture()))
 	{
-		return sprite->GetAtlasTexture();
+		return sprite->InitAndGetAtlasTexture();
 	}
 	return nullptr;
 }
