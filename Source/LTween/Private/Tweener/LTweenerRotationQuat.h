@@ -21,7 +21,7 @@ public:
 	FLTweenRotationQuatGetterFunction getter;
 	FLTweenRotationQuatSetterFunction setter;
 
-	void SetInitialValue(const FLTweenRotationQuatGetterFunction& newGetter, const FLTweenRotationQuatSetterFunction& newSetter, FQuat newEndValue, float newDuration, bool newSweep = false, FHitResult* newSweepHitResult = nullptr, ETeleportType newTeleportType = ETeleportType::None)
+	void SetInitialValue(const FLTweenRotationQuatGetterFunction& newGetter, const FLTweenRotationQuatSetterFunction& newSetter, const FQuat& newEndValue, float newDuration, bool newSweep = false, FHitResult* newSweepHitResult = nullptr, ETeleportType newTeleportType = ETeleportType::None)
 	{
 		this->duration = newDuration;
 		this->getter = newGetter;

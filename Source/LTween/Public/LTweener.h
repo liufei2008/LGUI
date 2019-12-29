@@ -17,7 +17,7 @@ DECLARE_DELEGATE_RetVal(float, FLTweenFloatGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenFloatSetterFunction, float);
 
 DECLARE_DELEGATE_RetVal(int, FLTweenIntGetterFunction);
-DECLARE_DELEGATE_OneParam(IntSetterFunction, int);
+DECLARE_DELEGATE_OneParam(FLTweenIntSetterFunction, int);
 
 DECLARE_DELEGATE_RetVal(FVector, FLTweenVectorGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenVectorSetterFunction, FVector);
@@ -31,8 +31,11 @@ DECLARE_DELEGATE_OneParam(FLTweenLinearColorSetterFunction, FLinearColor);
 DECLARE_DELEGATE_RetVal(FVector2D, FLTweenVector2DGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenVector2DSetterFunction, FVector2D);
 
+DECLARE_DELEGATE_RetVal(FVector, FLTweenVector4GetterFunction);
+DECLARE_DELEGATE_OneParam(FLTweenVector4SetterFunction, FVector);
+
 DECLARE_DELEGATE_RetVal(FQuat, FLTweenQuaternionGetterFunction);
-DECLARE_DELEGATE_OneParam(FLTweenQuaternionSetterFunction, FQuat);
+DECLARE_DELEGATE_OneParam(FLTweenQuaternionSetterFunction, const FQuat&);
 
 DECLARE_DELEGATE_RetVal(FRotator, FLTweenRotatorGetterFunction);
 DECLARE_DELEGATE_OneParam(FLTweenRotatorSetterFunction, FRotator);

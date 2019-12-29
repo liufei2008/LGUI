@@ -7,6 +7,7 @@
 #include "Tweener/LTweenerColor.h"
 #include "Tweener/LTweenerLinearColor.h"
 #include "Tweener/LTweenerVector2D.h"
+#include "Tweener/LTweenerVector4.h"
 #include "Tweener/LTweenerPosition.h"
 #include "Tweener/LTweenerQuaternion.h"
 #include "Tweener/LTweenerRotator.h"
@@ -136,7 +137,7 @@ ULTweener* ALTweenActor::To(const FLTweenFloatGetterFunction& getter, const FLTw
 	return tweener;
 }
 //interger
-ULTweener* ALTweenActor::To(const FLTweenIntGetterFunction& getter, const IntSetterFunction& setter, int endValue, float duration)
+ULTweener* ALTweenActor::To(const FLTweenIntGetterFunction& getter, const FLTweenIntSetterFunction& setter, int endValue, float duration)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerInteger>(Instance);
@@ -145,7 +146,7 @@ ULTweener* ALTweenActor::To(const FLTweenIntGetterFunction& getter, const IntSet
 	return tweener;
 }
 //position
-ULTweener* ALTweenActor::To(const FLTweenPositionGetterFunction& getter, const FLTweenPositionSetterFunction& setter, FVector endValue, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
+ULTweener* ALTweenActor::To(const FLTweenPositionGetterFunction& getter, const FLTweenPositionSetterFunction& setter, const FVector& endValue, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerPosition>(Instance);
@@ -154,7 +155,7 @@ ULTweener* ALTweenActor::To(const FLTweenPositionGetterFunction& getter, const F
 	return tweener;
 }
 //vector
-ULTweener* ALTweenActor::To(const FLTweenVectorGetterFunction& getter, const FLTweenVectorSetterFunction& setter, FVector endValue, float duration)
+ULTweener* ALTweenActor::To(const FLTweenVectorGetterFunction& getter, const FLTweenVectorSetterFunction& setter, const FVector& endValue, float duration)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerVector>(Instance);
@@ -163,7 +164,7 @@ ULTweener* ALTweenActor::To(const FLTweenVectorGetterFunction& getter, const FLT
 	return tweener;
 }
 //color
-ULTweener* ALTweenActor::To(const FLTweenColorGetterFunction& getter, const FLTweenColorSetterFunction& setter, FColor endValue, float duration)
+ULTweener* ALTweenActor::To(const FLTweenColorGetterFunction& getter, const FLTweenColorSetterFunction& setter, const FColor& endValue, float duration)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerColor>(Instance);
@@ -172,7 +173,7 @@ ULTweener* ALTweenActor::To(const FLTweenColorGetterFunction& getter, const FLTw
 	return tweener;
 }
 //linearcolor
-ULTweener* ALTweenActor::To(const FLTweenLinearColorGetterFunction& getter, const FLTweenLinearColorSetterFunction& setter, FLinearColor endValue, float duration)
+ULTweener* ALTweenActor::To(const FLTweenLinearColorGetterFunction& getter, const FLTweenLinearColorSetterFunction& setter, const FLinearColor& endValue, float duration)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerLinearColor>(Instance);
@@ -181,7 +182,7 @@ ULTweener* ALTweenActor::To(const FLTweenLinearColorGetterFunction& getter, cons
 	return tweener;
 }
 //vector2d
-ULTweener* ALTweenActor::To(const FLTweenVector2DGetterFunction& getter, const FLTweenVector2DSetterFunction& setter, FVector2D endValue, float duration)
+ULTweener* ALTweenActor::To(const FLTweenVector2DGetterFunction& getter, const FLTweenVector2DSetterFunction& setter, const FVector2D& endValue, float duration)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerVector2D>(Instance);
@@ -189,8 +190,17 @@ ULTweener* ALTweenActor::To(const FLTweenVector2DGetterFunction& getter, const F
 	Instance->tweenerList.Add(tweener);
 	return tweener;
 }
+//vector4
+ULTweener* ALTweenActor::To(const FLTweenVector4GetterFunction& getter, const FLTweenVector4SetterFunction& setter, const FVector4& endValue, float duration)
+{
+	if (!InitCheck())return nullptr;
+	auto tweener = NewObject<ULTweenerVector4>(Instance);
+	tweener->SetInitialValue(getter, setter, endValue, duration);
+	Instance->tweenerList.Add(tweener);
+	return tweener;
+}
 //quaternion
-ULTweener* ALTweenActor::To(const FLTweenQuaternionGetterFunction& getter, const FLTweenQuaternionSetterFunction& setter, FQuat endValue, float duration)
+ULTweener* ALTweenActor::To(const FLTweenQuaternionGetterFunction& getter, const FLTweenQuaternionSetterFunction& setter, const FQuat& endValue, float duration)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerQuaternion>(Instance);
@@ -199,7 +209,7 @@ ULTweener* ALTweenActor::To(const FLTweenQuaternionGetterFunction& getter, const
 	return tweener;
 }
 //rotator
-ULTweener* ALTweenActor::To(const FLTweenRotatorGetterFunction& getter, const FLTweenRotatorSetterFunction& setter, FRotator endValue, float duration)
+ULTweener* ALTweenActor::To(const FLTweenRotatorGetterFunction& getter, const FLTweenRotatorSetterFunction& setter, const FRotator& endValue, float duration)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerRotator>(Instance);
@@ -208,7 +218,7 @@ ULTweener* ALTweenActor::To(const FLTweenRotatorGetterFunction& getter, const FL
 	return tweener;
 }
 //rotation euler
-ULTweener* ALTweenActor::To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, FVector eulerAngle, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
+ULTweener* ALTweenActor::To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FVector& eulerAngle, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerRotationEuler>(Instance);
@@ -217,7 +227,7 @@ ULTweener* ALTweenActor::To(const FLTweenRotationQuatGetterFunction& getter, con
 	return tweener;
 }
 //rotation quat
-ULTweener* ALTweenActor::To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, FQuat endValue, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
+ULTweener* ALTweenActor::To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FQuat& endValue, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerRotationQuat>(Instance);
@@ -235,7 +245,7 @@ ULTweener* ALTweenActor::To(const FLTweenMaterialScalarGetterFunction& getter, c
 	return tweener;
 }
 //material vector
-ULTweener* ALTweenActor::To(const FLTweenMaterialVectorGetterFunction& getter, const FLTweenMaterialVectorSetterFunction& setter, FLinearColor endValue, float duration, int32 parameterIndex)
+ULTweener* ALTweenActor::To(const FLTweenMaterialVectorGetterFunction& getter, const FLTweenMaterialVectorSetterFunction& setter, const FLinearColor& endValue, float duration, int32 parameterIndex)
 {
 	if (!InitCheck())return nullptr;
 	auto tweener = NewObject<ULTweenerMaterialVector>(Instance);
