@@ -12,13 +12,13 @@ UUIRing::UUIRing(const FObjectInitializer& ObjectInitializer):Super(ObjectInitia
 
 void UUIRing::OnCreateGeometry()
 {
-	UIGeometry::FromUIRing(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), ringWidth, geometry, sprite->GetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
+	UIGeometry::FromUIRing(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), ringWidth, geometry, sprite->InitAndGetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 }
 void UUIRing::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (InVertexUVChanged)
 	{
-		UIGeometry::UpdateUIRingUV(geometry, (uint8)uvType, startAngle, endAngle, segment, ringWidth, widget.width, widget.height, sprite->GetSpriteInfo());
+		UIGeometry::UpdateUIRingUV(geometry, (uint8)uvType, startAngle, endAngle, segment, ringWidth, widget.width, widget.height, sprite->InitAndGetSpriteInfo());
 	}
 	if (InVertexColorChanged)
 	{

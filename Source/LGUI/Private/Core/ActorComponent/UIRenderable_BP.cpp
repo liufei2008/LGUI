@@ -34,8 +34,32 @@ void ULGUICreateGeometryHelper::AddVertexFull(FVector position, FColor color, FV
 	uiGeometry->originTangents.Add(tangent);
 	vertices.Add(vert);
 }
+void ULGUICreateGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
+{
+	uiGeometry->originVerticesCount += 1;
+	auto& originPositions = uiGeometry->originPositions;
+	originPositions.Add(vertex.position);
+	auto& vertices = uiGeometry->vertices;
+	FDynamicMeshVertex vert;
+	vert.Color = vertex.color;
+	vert.TextureCoordinate[0] = vertex.uv0;
+	vert.TextureCoordinate[1] = vertex.uv1;
+	vert.TextureCoordinate[2] = vertex.uv2;
+	vert.TextureCoordinate[3] = vertex.uv3;
+	vertices.Add(vert);
+	uiGeometry->originNormals.Add(vertex.normal);
+	uiGeometry->originTangents.Add(vertex.tagent);
+}
 void ULGUICreateGeometryHelper::AddTriangle(int index0, int index1, int index2)
 {
+#if WITH_EDITOR
+	int vertCount = uiGeometry->originVerticesCount;
+	if (index0 >= vertCount || index1 >= vertCount || index2 >= vertCount)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddTriangle]Triangle index reference out of range vertex."));
+		return;
+	}
+#endif
 	uiGeometry->originTriangleCount += 3;
 	auto& triangles = uiGeometry->triangles;
 	triangles.Reserve(triangles.Num() + 3);
