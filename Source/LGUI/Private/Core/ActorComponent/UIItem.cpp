@@ -461,6 +461,7 @@ void UUIItem::OnUnregister()
 	if (IsValid(HelperComp))
 	{
 		HelperComp->ConditionalBeginDestroy();
+		HelperComp = nullptr;
 	}
 #endif
 }
