@@ -52,11 +52,14 @@ class LGUI_API ULGUIUpdateGeometryHelper : public UObject
 	GENERATED_BODY()
 public:
 	TSharedPtr<UIGeometry> uiGeometry = nullptr;
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void BeginUpdateVertices(TArray<FLGUIGeometryVertex>& outVertices);
+	//do not midify this vertices array's size!!!
+	UPROPERTY(Transient, BlueprintReadOnly)
+		TArray<FLGUIGeometryVertex> cacheVertices;
 	//do not midify this vertices array's size!!!
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void EndUpdateVertices(UPARAM(ref) TArray< FLGUIGeometryVertex>& inVertices);
+		void BeginUpdateVertices();
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void EndUpdateVertices();
 };
 
 //a wrapper class, blueprint can use this to create custom UI type

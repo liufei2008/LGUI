@@ -68,7 +68,7 @@ void ULGUICreateGeometryHelper::AddTriangle(int index0, int index1, int index2)
 	triangles.Add(index2);
 }
 
-void ULGUIUpdateGeometryHelper::BeginUpdateVertices(TArray<FLGUIGeometryVertex>& outVertices)
+void ULGUIUpdateGeometryHelper::BeginUpdateVertices()
 {
 	const auto& vertices = uiGeometry->vertices;
 	const auto& originPositions = uiGeometry->originPositions;
@@ -76,10 +76,10 @@ void ULGUIUpdateGeometryHelper::BeginUpdateVertices(TArray<FLGUIGeometryVertex>&
 	const auto& originTangents = uiGeometry->originTangents;
 
 	int count = vertices.Num();
-	outVertices.SetNumUninitialized(count);
+	cacheVertices.SetNumUninitialized(count);
 	for (int i = 0; i < count; i++)
 	{
-		auto& vert = outVertices[i];
+		auto& vert = cacheVertices[i];
 		const auto& originVert = vertices[i];
 		vert.position = originPositions[i];
 		vert.color = originVert.Color;
@@ -92,13 +92,13 @@ void ULGUIUpdateGeometryHelper::BeginUpdateVertices(TArray<FLGUIGeometryVertex>&
 		vert.uv0 = vertices[i].TextureCoordinate[0];
 	}
 }
-void ULGUIUpdateGeometryHelper::EndUpdateVertices(UPARAM(ref) TArray<FLGUIGeometryVertex>& inVertices)
+void ULGUIUpdateGeometryHelper::EndUpdateVertices()
 {
 	auto& vertices = uiGeometry->vertices;
 	int count = vertices.Num();
-	if (count != inVertices.Num())
+	if (count != cacheVertices.Num())
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndUpdateVertices]Don't change vertices count here! if you really need that, call MarkRebuildGeometry(), then OnCreateGeometry() will be called automatically."));
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndUpdateVertices]Don't change vertices size here! if you really need that, call MarkRebuildGeometry(), then OnCreateGeometry() will be called automatically."));
 		return;
 	}
 
@@ -108,7 +108,7 @@ void ULGUIUpdateGeometryHelper::EndUpdateVertices(UPARAM(ref) TArray<FLGUIGeomet
 
 	for (int i = 0; i < count; i++)
 	{
-		const auto& vert = inVertices[i];
+		const auto& vert = cacheVertices[i];
 		auto& originVert = vertices[i];
 		originPositions[i] = vert.position;
 		originVert.Color = vert.color;
