@@ -32,15 +32,15 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseUV(const TArray<FVector2D>& 
 	{
 		vertices.AddDefaulted(vertexCount);
 	}
-	auto spriteInfo = sprite->InitAndGetSpriteInfo();
+	const auto& spriteInfo = sprite->InitAndGetSpriteInfo();
 	float uvXInterval = (spriteInfo.uv3X - spriteInfo.uv0X) / (pointCount - 1);
 	float uvX = spriteInfo.uv0X;
 	for (int i = 0; i < vertexCount; i += 2)
 	{
-		auto& uvi = vertices[i].TextureCoordinate[0];
-		auto& uvi1 = vertices[i + 1].TextureCoordinate[1];
-		uvi.X = uvX;
-		uvi.Y = spriteInfo.uv0Y;
+		auto& uvi0 = vertices[i].TextureCoordinate[0];
+		auto& uvi1 = vertices[i + 1].TextureCoordinate[0];
+		uvi0.X = uvX;
+		uvi0.Y = spriteInfo.uv0Y;
 		uvi1.X = uvX;
 		uvi1.Y = spriteInfo.uv3Y;
 
@@ -53,13 +53,13 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
 	UIGeometry::CalculatePivotOffset(widget.width, widget.height, widget.pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
-	//vertices
-	auto& vertices = geometry->originPositions;
-	if (vertices.Num() == 0)
+	//positions
+	auto& originPositions = geometry->originPositions;
+	if (originPositions.Num() == 0)
 	{
 		int vertexCount = (pointCount + InEndPointRepeatCount) * 2;
 		geometry->originVerticesCount = vertexCount;
-		vertices.AddUninitialized(vertexCount);
+		originPositions.AddUninitialized(vertexCount);
 	}
 
 	int vertIndex = 0;
@@ -102,8 +102,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		}
 	}
 
-	vertices[0] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
-	vertices[1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
+	originPositions[0] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
+	originPositions[1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
 
 	int i = 1;
 	if (pointCount >= 3)
@@ -112,8 +112,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		{
 			FVector2D posA, posB;
 			GenerateLinePoint(InPointArray[i], InPointArray[i - 1], InPointArray[i + 1], halfLineWidth, posA, posB);
-			vertices[i + i] = FVector(posA.X + pivotOffsetX, posA.Y + pivotOffsetY, 0);
-			vertices[i + i + 1] = FVector(posB.X + pivotOffsetX, posB.Y + pivotOffsetY, 0);
+			originPositions[i + i] = FVector(posA.X + pivotOffsetX, posA.Y + pivotOffsetY, 0);
+			originPositions[i + i + 1] = FVector(posB.X + pivotOffsetX, posB.Y + pivotOffsetY, 0);
 		}
 	}
 
@@ -122,8 +122,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	{
 		FVector2D posA, posB;
 		GenerateLinePoint(InPointArray[pointCount - 1], InPointArray[pointCount - 2], InPointArray[0], halfLineWidth, posA, posB);
-		vertices[i2] = FVector(posA.X + pivotOffsetX, posA.Y + pivotOffsetY, 0);
-		vertices[i2 + 1] = FVector(posB.X + pivotOffsetX, posB.Y + pivotOffsetY, 0);
+		originPositions[i2] = FVector(posA.X + pivotOffsetX, posA.Y + pivotOffsetY, 0);
+		originPositions[i2 + 1] = FVector(posB.X + pivotOffsetX, posB.Y + pivotOffsetY, 0);
 	}
 	else
 	{
@@ -131,8 +131,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		FVector2D vEnd1 = InPointArray[pointCount - 1];
 		if (vEnd2 == vEnd1)
 		{
-			vertices[i2] = vertices[i2 - 2];
-			vertices[i2 + 1] = vertices[i2 - 1];
+			originPositions[i2] = originPositions[i2 - 2];
+			originPositions[i2 + 1] = originPositions[i2 - 1];
 		}
 		else
 		{
@@ -163,18 +163,18 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 			break;
 			}
 
-			vertices[i2] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
-			vertices[i2 + 1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
+			originPositions[i2] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
+			originPositions[i2 + 1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
 		}
 	}
 
 	//fill end point
-	auto endPoint1 = vertices[i2];
-	auto endPoint2 = vertices[i2 + 1];
+	auto endPoint1 = originPositions[i2];
+	auto endPoint2 = originPositions[i2 + 1];
 	for (int j = pointCount * 2, count = (pointCount + InEndPointRepeatCount) * 2; j < count; j += 2)
 	{
-		vertices[j] = endPoint1;
-		vertices[j + 1] = endPoint2;
+		originPositions[j] = endPoint1;
+		originPositions[j + 1] = endPoint2;
 	}
 }
 void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPointArray)
@@ -283,14 +283,14 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 			endPoint = FMath::Lerp(InPointArray[pointIndex], InPointArray[pointIndex + 1], interplateValue);
 		}
 		PointArrayWithGrowValue.Add(endPoint);
-		//vertices
+		//positions
 		Update2DLineRendererBaseVertex(PointArrayWithGrowValue, pointCount - pointIndex - 1);
 		//uvs
 		Update2DLineRendererBaseUV(PointArrayWithGrowValue, pointCount - pointIndex - 1);
 	}
 	else
 	{
-		//vertices
+		//positions
 		Update2DLineRendererBaseVertex(PointArrayWithGrowValue, 0);
 		//uvs
 		Update2DLineRendererBaseUV(PointArrayWithGrowValue, 0);
