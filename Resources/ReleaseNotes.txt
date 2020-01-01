@@ -133,4 +133,11 @@
         Increase performance.
     New feature:
         Add UIRenderable_BP for blueprint can extend custom UI element.
+2.4
+    Fix:
+        Fix a crash when compile blueprint that inherit from UIItem.
+        Fix a compile warning in UIItem.
+    New feature:
+        Add UISpriteBase_BP and UITextureBase_BP for blueprint extend custom UI element.
+        LTween add blueprint tween for some basic types, eg. FloatTo/IntTo/Vector2To/Vector3To...
         
