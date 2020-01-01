@@ -1914,8 +1914,8 @@ void UUIItem::LGUIUpdateChildTransforms()
 	}
 #endif
 
-	auto& AttachChildren = GetAttachChildren();
-	if (AttachChildren.Num() > 0)
+	auto& TempAttachChildren = GetAttachChildren();
+	if (TempAttachChildren.Num() > 0)
 	{
 		auto UpdateTransformFlags = EUpdateTransformFlags::None;
 		const bool bOnlyUpdateIfUsingSocket = !!(UpdateTransformFlags & EUpdateTransformFlags::OnlyUpdateIfUsingSocket);
@@ -1923,7 +1923,7 @@ void UUIItem::LGUIUpdateChildTransforms()
 		const EUpdateTransformFlags UpdateTransformNoSocketSkip = ~EUpdateTransformFlags::OnlyUpdateIfUsingSocket & UpdateTransformFlags;
 		const EUpdateTransformFlags UpdateTransformFlagsFromParent = UpdateTransformNoSocketSkip | EUpdateTransformFlags::PropagateFromParent;
 
-		for (USceneComponent* ChildComp : AttachChildren)
+		for (USceneComponent* ChildComp : TempAttachChildren)
 		{
 			if (ChildComp != nullptr)
 			{
