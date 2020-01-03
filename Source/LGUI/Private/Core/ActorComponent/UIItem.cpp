@@ -1821,7 +1821,7 @@ void UUIItem::LGUIUpdateComponentToWorld()
 	{
 		//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_UpdateComponentToWorldWithParent_XForm);
 		// Calculate the new ComponentToWorld transform
-		const FTransform RelativeTransform(GetRelativeRotationCache().GetCachedQuat(), RelativeLocation, RelativeScale3D);
+		const FTransform RelativeTransform(GetRelativeRotationCache().GetCachedQuat(), GetRelativeLocation(), GetRelativeScale3D());
 #if ENABLE_NAN_DIAGNOSTIC
 		if (!RelativeTransform.IsValid())
 		{
@@ -1949,7 +1949,7 @@ void UUIItem::LGUIUpdateChildTransforms()
 					else
 					{
 						// Don't update the child if it uses a completely absolute (world-relative) scheme.
-						if (ChildComp->bAbsoluteLocation && ChildComp->bAbsoluteRotation && ChildComp->bAbsoluteScale)
+						if (ChildComp->IsUsingAbsoluteLocation() && ChildComp->IsUsingAbsoluteRotation() && ChildComp->IsUsingAbsoluteScale())
 						{
 							continue;
 						}

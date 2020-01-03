@@ -141,13 +141,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionXTo(USceneComponent* target, float end
 	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
-			return target->RelativeLocation.X;
+			return target->GetRelativeLocation().X;
 		}
 		return 0.0f;
 	}), FLTweenFloatSetterFunction::CreateLambda([target](float value) {
 		if (IsValid(target))
 		{
-			auto location = target->RelativeLocation;
+			auto location = target->GetRelativeLocation();
 			location.X = value;
 			target->SetRelativeLocation(location);
 		}
@@ -163,13 +163,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionYTo(USceneComponent* target, float end
 	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
-			return target->RelativeLocation.Y;
+			return target->GetRelativeLocation().Y;
 		}
 		return 0.0f;
 	}), FLTweenFloatSetterFunction::CreateLambda([target](float value) {
 		if (IsValid(target))
 		{
-			auto location = target->RelativeLocation;
+			auto location = target->GetRelativeLocation();
 			location.Y = value;
 			target->SetRelativeLocation(location);
 		}
@@ -185,13 +185,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo(USceneComponent* target, float end
 	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
-			return target->RelativeLocation.Z;
+			return target->GetRelativeLocation().Z;
 		}
 		return 0.0f;
 	}), FLTweenFloatSetterFunction::CreateLambda([target](float value) {
 		if (IsValid(target))
 		{
-			auto location = target->RelativeLocation;
+			auto location = target->GetRelativeLocation();
 			location.Z = value;
 			target->SetRelativeLocation(location);
 		}
@@ -207,13 +207,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionXTo_Sweep(USceneComponent* target, flo
 	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
-			return target->RelativeLocation.X;
+			return target->GetRelativeLocation().X;
 		}
 		return 0.0f;
 	}), FLTweenFloatSetterFunction::CreateLambda([target, &sweepHitResult, sweep, teleport](float value) {
 		if (IsValid(target))
 		{
-			auto location = target->RelativeLocation;
+			auto location = target->GetRelativeLocation();
 			location.X = value;
 			target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
@@ -229,13 +229,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionYTo_Sweep(USceneComponent* target, flo
 	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
-			return target->RelativeLocation.Y;
+			return target->GetRelativeLocation().Y;
 		}
 		return 0.0f;
 	}), FLTweenFloatSetterFunction::CreateLambda([target, &sweepHitResult, sweep, teleport](float value) {
 		if (IsValid(target))
 		{
-			auto location = target->RelativeLocation;
+			auto location = target->GetRelativeLocation();
 			location.Y = value;
 			target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
@@ -251,13 +251,13 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo_Sweep(USceneComponent* target, flo
 	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
-			return target->RelativeLocation.Z;
+			return target->GetRelativeLocation().Z;
 		}
 		return 0.0f;
 	}), FLTweenFloatSetterFunction::CreateLambda([target, &sweepHitResult, sweep, teleport](float value) {
 		if (IsValid(target))
 		{
-			auto location = target->RelativeLocation;
+			auto location = target->GetRelativeLocation();
 			location.Z = value;
 			target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
@@ -418,7 +418,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo(USceneComponent* target, FVector en
 			UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::LocalPositionZTo_Sweep]PositionGetterFunction target is not valid:%s"), *(target->GetPathName()));
 			return FVector();
 		}
-		return target->RelativeLocation; 
+		return target->GetRelativeLocation();
 	}), FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
@@ -447,7 +447,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo_Sweep(USceneComponent* target, FVec
 			UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::LocalPositionTo_Sweep]PositionGetterFunction target is not valid:%s"), *(target->GetPathName()));
 			return FVector();
 		}
-		return target->RelativeLocation;
+		return target->GetRelativeLocation();
 	}),
 		FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
@@ -481,7 +481,7 @@ ULTweener* ULTweenBPLibrary::LocalScaleTo(USceneComponent* target, FVector endVa
 			UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::LocalScaleTo]VectorGetterFunction target is not valid:%s"), *(target->GetPathName()));
 			return FVector();
 		}
-		return target->RelativeScale3D; 
+		return target->GetRelativeScale3D(); 
 	}), FLTweenVectorSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeScale3D), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
@@ -568,7 +568,7 @@ ULTweener* ULTweenBPLibrary::LocalRotatorTo(USceneComponent* target, FRotator en
 		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([target]
 		{
 			if (IsValid(target))
-				return target->RelativeRotation;
+				return target->GetRelativeRotation();
 			else
 				return FRotator();
 		}), FLTweenRotatorSetterFunction::CreateLambda([target] (FRotator value)
@@ -594,7 +594,7 @@ ULTweener* ULTweenBPLibrary::LocalRotatorTo_Sweep(USceneComponent* target, FRota
 		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([target]
 		{
 			if (IsValid(target))
-				return target->RelativeRotation;
+				return target->GetRelativeRotation();
 			else
 				return FRotator();
 		}), FLTweenRotatorSetterFunction::CreateLambda([target, &sweepHitResult, sweep, teleport](FRotator value)
