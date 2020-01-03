@@ -53,7 +53,7 @@ class LGUI_API ULGUIUpdateGeometryHelper : public UObject
 public:
 	TSharedPtr<UIGeometry> uiGeometry = nullptr;
 	//do not midify this vertices array's size!!!
-	UPROPERTY(Transient, BlueprintReadOnly)
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "LGUI")
 		TArray<FLGUIGeometryVertex> cacheVertices;
 	//do not midify this vertices array's size!!!
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
