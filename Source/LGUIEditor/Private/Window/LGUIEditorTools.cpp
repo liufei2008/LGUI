@@ -390,7 +390,26 @@ void ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl()
 	GEditor->BeginTransaction(LOCTEXT("DeleteActor", "LGUI Delete Actor"));
 	for (auto item : rootActorList)
 	{
+		bool shouldDeletePrefab = false;
+		auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(item);
+		if (prefabActor != nullptr)
+		{
+			if (auto prefabComp = prefabActor->GetPrefabComponent())
+			{
+				if (auto prefabActor = prefabComp->LoadedRootActor)
+				{
+					if (prefabActor == item)
+					{
+						shouldDeletePrefab = true;
+					}
+				}
+			}
+		}
 		ULGUIBPLibrary::DeleteActor(item);
+		if (shouldDeletePrefab)
+		{
+			ULGUIBPLibrary::DeleteActor(prefabActor, false);
+		}
 	}
 	GEditor->EndTransaction();
 }
