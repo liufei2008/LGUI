@@ -155,7 +155,7 @@ UTexture* UUIText::GetTextureToCreateGeometry()
 }
 bool UUIText::HaveDataToCreateGeometry()
 {
-	return visibleCharCount > 0;
+	return visibleCharCount > 0 && IsValid(font);
 }
 
 void UUIText::OnBeforeCreateOrUpdateGeometry()
@@ -387,6 +387,8 @@ void UUIText::SetFontStyle(UITextFontStyle newFontStyle) {
 }
 void UUIText::CacheTextGeometry()
 {
+	if (!IsValid(RenderCanvas))return;//render canvas not valid
+	if (!IsValid(font))return;//font not valid
 	if (cachedTextGeometryList.Num() != 0)return;//have cache data
 	float charFixOffset = size * (font->fixedVerticalOffset - 0.25f);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
 	float halfFontSize = size * 0.5f;
