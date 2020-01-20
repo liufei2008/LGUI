@@ -1,4 +1,4 @@
-﻿// Copyright 2019 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #include "Extensions/2DLineRenderer/UI2DLineChildrenAsPoints.h"
 #include "LGUI.h"
