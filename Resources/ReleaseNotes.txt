@@ -140,4 +140,9 @@
     New feature:
         Add UISpriteBase_BP and UITextureBase_BP for blueprint extend custom UI element.
         LTween add blueprint tween for some basic types, eg. FloatTo/IntTo/Vector2To/Vector3To...
-        
+2.4.1
+	Modify:
+		Delete actor will also check delete prefab.
+		Add engine version to prefab, so prefab made by different engine version will show a warning.
+	Fix:
+		Fix a crash when use UIText in blueprint actor editor, although work in blueprint actor is not recommaded for LGUI.
