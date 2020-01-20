@@ -13,18 +13,19 @@ class LGUI_API ULGUIPrefab : public UObject
 	GENERATED_BODY()
 
 public:
-	//put actural reference object in this list, and serialize object index in the list
+	//put actural UObject in this array, and store index in prefab
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UObject*> ReferenceAssetList;
-	//put actural string in this list, and serialize string index in the list
+	//put actural FString in this array, and store index in prefab
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FString> ReferenceStringList;
-	//put actural fname in this list, and serialize fname index in the list
+	//put actural FName in this array, and store index in prefab
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FName> ReferenceNameList;
-	//put actural text in this list, and serialize text index in the list
+	//put actural FText in this array, and store index in prefab
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<FText> ReferenceTextList;
+	//put actural UClass in this array, and store index in prefab
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UClass*> ReferenceClassList;
 
