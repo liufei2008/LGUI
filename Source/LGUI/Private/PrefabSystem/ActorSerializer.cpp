@@ -8,6 +8,7 @@
 #include "Serialization/BufferArchive.h"
 #include "Components/PrimitiveComponent.h"
 #include "UObject/TextProperty.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 
 ActorSerializer::ActorSerializer(UWorld* InTargetWorld)
@@ -54,6 +55,20 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	{
 		UE_LOG(LGUI, Error, TEXT("Load Prefab, InPrefab is null!"));
 		return nullptr;
+	}
+	if (InPrefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || InPrefab->EngineMinorVersion != ENGINE_MINOR_VERSION)
+	{
+		UE_LOG(LGUI, Warning, TEXT("This prefab is made by a different engine version, this may cause crash, please rebuild the prefab.\n\
+	You can double click on the prefab asset and click \"RecreateThis\" button.\n\
+	Prefab:%s.\n\
+	Prefab engine version:%d.%d, current engine version:%d.%d")
+			, *InPrefab->GetPathName(), InPrefab->EngineMajorVersion, InPrefab->EngineMinorVersion, ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION);
+#if WITH_EDITORONLY_DATA
+		if (InPrefab->UseBuildData && !ForceUseEditorData)
+		{
+			return nullptr;
+		}
+#endif
 	}
 	auto StartTime = FDateTime::Now();
 	FLGUIActorSaveDataForBuild SaveDataForBuild;
@@ -1473,6 +1488,8 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 
 	Prefab->DataCount = Prefab->BinaryData.Num();
 #endif
+	Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
+	Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 
 	ConvertForBuildData(ActorSaveData, InPrefab);
 

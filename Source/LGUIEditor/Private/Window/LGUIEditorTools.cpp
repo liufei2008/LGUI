@@ -396,9 +396,9 @@ void ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl()
 		{
 			if (auto prefabComp = prefabActor->GetPrefabComponent())
 			{
-				if (auto prefabActor = prefabComp->LoadedRootActor)
+				if (auto loadedRootActor = prefabComp->LoadedRootActor)
 				{
-					if (prefabActor == item)
+					if (loadedRootActor == item)
 					{
 						shouldDeletePrefab = true;
 					}
