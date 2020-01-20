@@ -1,4 +1,4 @@
-﻿// Copyright 2019 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #include "Core/Render/LGUIShaders.h"
 #include "LGUI.h"

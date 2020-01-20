@@ -1,4 +1,4 @@
-﻿// Copyright 2019 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #include "Core/LGUISettings.h"
 #include "LGUI.h"
