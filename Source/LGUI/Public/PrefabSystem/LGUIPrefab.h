@@ -19,10 +19,10 @@ public:
 	//put actural string in this list, and serialize string index in the list
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FString> ReferenceStringList;
-	//same
+	//put actural fname in this list, and serialize fname index in the list
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FName> ReferenceNameList;
-	//same
+	//put actural text in this list, and serialize text index in the list
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<FText> ReferenceTextList;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
@@ -44,6 +44,12 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		uint64 DataCount;
 #endif
+	//Engine's major version when creating this prefab
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		uint16 EngineMajorVersion;
+	//Engine's minor version when creating this prefab
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		uint16 EngineMinorVersion;
 	//serialized data for publish, not contain property name and editor only property. much more faster than BinaryData when deserialize
 	UPROPERTY()
 		TArray<uint8> BinaryDataForBuild;

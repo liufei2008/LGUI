@@ -24,6 +24,25 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	}
 
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
+
+	//show prefab version
+	DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, EngineMajorVersion))->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
+	DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, EngineMinorVersion))->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
+	category.AddCustomRow(LOCTEXT("PrefabVersion", "PrefabVersion"))
+		.NameContent()
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("PrefabEngineVersion", "PrefabEngineVersion"))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+		]
+		.ValueContent()
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(FString::Printf(TEXT("%d.%d"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion)))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+		]
+		;
+
 	auto useBuildDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, UseBuildData));
 	useBuildDataHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
 	DetailBuilder.HideProperty(useBuildDataHandle);
