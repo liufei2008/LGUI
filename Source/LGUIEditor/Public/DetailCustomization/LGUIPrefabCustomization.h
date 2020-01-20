@@ -18,4 +18,6 @@ private:
 	FReply OnClickUseBuildDataButton(bool AllUseBuildData);
 	FReply OnClickRecreteButton();
 	FReply OnClickRecreteAllButton();
+	FText GetPrefabVersionText()const;
+	FSlateColor GetPrefabVersionTextColorAndOpacity()const;
 };

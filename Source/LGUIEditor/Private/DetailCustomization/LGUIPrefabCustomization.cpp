@@ -36,10 +36,13 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		.ValueContent()
+		.MinDesiredWidth(500)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(FString::Printf(TEXT("%d.%d"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion)))
+			.Text(this, &FLGUIPrefabCustomization::GetPrefabVersionText)
 			.Font(IDetailLayoutBuilder::GetDetailFont())
+			.ColorAndOpacity(this, &FLGUIPrefabCustomization::GetPrefabVersionTextColorAndOpacity)
+			.AutoWrapText(true)
 		]
 		;
 
@@ -156,5 +159,41 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 		}
 	}
 	return FReply::Handled();
+}
+FText FLGUIPrefabCustomization::GetPrefabVersionText()const
+{
+	if (TargetScriptPtr.IsValid())
+	{
+		if (TargetScriptPtr->EngineMajorVersion == ENGINE_MAJOR_VERSION && TargetScriptPtr->EngineMinorVersion == ENGINE_MINOR_VERSION)
+		{
+			return FText::FromString(FString::Printf(TEXT("%d.%d"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion));
+		}
+		else
+		{
+			return FText::FromString(FString::Printf(TEXT("%d.%d (This prefab is made by a different engine version, this may cause crash, rebuild the prefab can fix it.)"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion));
+		}
+	}
+	else
+	{
+		return LOCTEXT("Error", "Error");
+	}
+}
+FSlateColor FLGUIPrefabCustomization::GetPrefabVersionTextColorAndOpacity()const
+{
+	if (TargetScriptPtr.IsValid())
+	{
+		if (TargetScriptPtr->EngineMajorVersion == ENGINE_MAJOR_VERSION && TargetScriptPtr->EngineMinorVersion == ENGINE_MINOR_VERSION)
+		{
+			return FSlateColor::UseForeground();
+		}
+		else
+		{
+			return FLinearColor::Red;
+		}
+	}
+	else
+	{
+		return FSlateColor::UseForeground();
+	}
 }
 #undef LOCTEXT_NAMESPACE
