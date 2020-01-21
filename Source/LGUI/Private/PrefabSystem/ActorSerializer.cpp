@@ -19,14 +19,23 @@ ActorSerializer::ActorSerializer(UWorld* InTargetWorld)
 AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& AllLoadedActorArray)
 {
 	ActorSerializer serializer(InWorld);
+	serializer.IsLoadForEdit = true;
 	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector, true);
 	AllLoadedActorArray = serializer.CreatedActors;
 	return rootActor;
 }
-AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent)
+AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
 {
 	ActorSerializer serializer(InWorld);
-	return serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector, true);
+	serializer.IsLoadForEdit = true;
+	if (SetRelativeTransformToIdentity)
+	{
+		return serializer.DeserializeActor(Parent, InPrefab, true, FVector::ZeroVector, FQuat::Identity, FVector::OneVector, true);
+	}
+	else
+	{
+		return serializer.DeserializeActor(Parent, InPrefab);
+	}
 }
 #endif
 AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
@@ -56,21 +65,26 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		UE_LOG(LGUI, Error, TEXT("Load Prefab, InPrefab is null!"));
 		return nullptr;
 	}
-	if (InPrefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || InPrefab->EngineMinorVersion != ENGINE_MINOR_VERSION)
+#if WITH_EDITORONLY_DATA
+	if (!IsLoadForEdit)
+#endif
 	{
-		UE_LOG(LGUI, Warning, TEXT("This prefab is made by a different engine version, this may cause crash, please rebuild the prefab.\n\
+		if (InPrefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || InPrefab->EngineMinorVersion != ENGINE_MINOR_VERSION)
+		{
+			UE_LOG(LGUI, Warning, TEXT("This prefab is made by a different engine version, this may cause crash, please rebuild the prefab.\n\
 	You can double click on the prefab asset and click \"RecreateThis\" button.\n\
 	Prefab:%s.\n\
 	Prefab engine version:%d.%d, current engine version:%d.%d")
-			, *InPrefab->GetPathName(), InPrefab->EngineMajorVersion, InPrefab->EngineMinorVersion, ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION);
+				, *InPrefab->GetPathName(), InPrefab->EngineMajorVersion, InPrefab->EngineMinorVersion, ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION);
 #if WITH_EDITORONLY_DATA
-		if (InPrefab->UseBuildData && !ForceUseEditorData)
-		{
-			return nullptr;
-		}
+			if (InPrefab->UseBuildData && !ForceUseEditorData)
+			{
+				return nullptr;
+			}
 #endif
+		}
 	}
-	auto StartTime = FDateTime::Now();
+	//auto StartTime = FDateTime::Now();
 	FLGUIActorSaveDataForBuild SaveDataForBuild;
 #if WITH_EDITORONLY_DATA
 	FLGUIPrefabSaveData SaveData;

@@ -267,8 +267,8 @@ void ULGUIEditorToolsAgentObject::CreateUIControls(FString InPrefabPath)
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *InPrefabPath);
 	if (prefab)
 	{
-		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab
-			, selectedActor == nullptr ? nullptr : selectedActor->GetRootComponent(), true);
+		auto actor = ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab
+			, selectedActor == nullptr ? nullptr : selectedActor->GetRootComponent());
 		GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
 	}
@@ -499,7 +499,7 @@ void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab, nullptr, true);
+		auto actor = ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
 		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
@@ -536,7 +536,7 @@ void ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = ULGUIBPLibrary::LoadPrefab(GetWorldFromSelection(), prefab, nullptr, true);
+		auto actor = ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
 		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
