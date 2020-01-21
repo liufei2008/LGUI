@@ -339,7 +339,8 @@ public:
 	AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector, bool ForceUseEditorData = false);
 #if WITH_EDITOR
 	static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& AllLoadedActorArray);
-	static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent);
+	static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
+	//static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 #endif
 #if WITH_EDITOR
 	static FLGUIActorSaveData CreateActorSaveData(ULGUIPrefab* InPrefab);
@@ -349,7 +350,11 @@ private:
 	
 	TWeakObjectPtr<UWorld> TargetWorld = nullptr;
 
-	TWeakObjectPtr<ULGUIPrefab> Prefab;
+	TWeakObjectPtr<ULGUIPrefab> Prefab = nullptr;
+
+#if WITH_EDITORONLY_DATA
+	bool IsLoadForEdit = false;
+#endif
 
 	TMap<AActor*, int32> MapActorToID;
 	void GenerateActorIDRecursive(AActor* Actor, int32& id);
