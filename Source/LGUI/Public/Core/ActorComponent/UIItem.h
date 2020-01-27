@@ -304,7 +304,7 @@ public:
 #pragma endregion
 
 	ULGUICanvas* GetRenderCanvas() const { return RenderCanvas; }
-	FORCEINLINE virtual bool IsScreenSpaceOverlayUI();
+	virtual bool IsScreenSpaceOverlayUI();
 
 	//get UI element type
 	UFUNCTION(BlueprintCallable, Category = LGUI)

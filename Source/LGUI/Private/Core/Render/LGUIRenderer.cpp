@@ -156,7 +156,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	if (!InView.bIsGameView)return;
 #if WITH_EDITOR
 	if (GEngine == nullptr)return;
-	if (UEditorEngine* editor = CastChecked<UEditorEngine>(GEngine))
+	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
 	{
 		if (editor->bIsSimulatingInEditor)return;
 	}

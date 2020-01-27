@@ -505,6 +505,13 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& h
 	bool haveMultipleSentence = false;
 	bool isNewLineFirstChar = false;
 	FUITextCharGeometry charGeo = FUITextCharGeometry();
+	int nextCharXAdv = 0;
+	float x, y;
+	int index;
+	float spaceNeeded;
+	TCHAR charCodeOfJ;
+	float charWidth;
+	int j, forwardCharGoeIndex;
 
 	for (int charIndex = 0; charIndex < contentLength; charIndex++)
 	{
@@ -572,10 +579,9 @@ MANUAL_NEWLINE://new line
 			if (updateVertex)
 			{
 				FVector2D offset = currentLineOffset + charOffset;
-				float x, y;
 				x = (offset.X);
 				y = (offset.Y - charGeoHeight);
-				int index = visibleCharIndex * 4;
+				index = visibleCharIndex * 4;
 				originPositions[index] = FVector(x, y, 0);
 				x = (charGeoWidth + offset.X);
 				originPositions[index + 1] = FVector(x, y, 0);
@@ -592,7 +598,7 @@ MANUAL_NEWLINE://new line
 			}
 			if (updateUV)
 			{
-				int index = visibleCharIndex * 4;
+				index = visibleCharIndex * 4;
 				uvs[index].TextureCoordinate[0] = charGeo.uv0;
 				uvs[index + 1].TextureCoordinate[0] = charGeo.uv1;
 				uvs[index + 2].TextureCoordinate[0] = charGeo.uv2;
@@ -614,11 +620,11 @@ MANUAL_NEWLINE://new line
 		{
 			if (overflowType == 1)//char is space and UIText can have multi line, then we need to calculate if the followed word can fit the rest space, if not means new line
 			{
-				float spaceNeeded = halfFontSize;//space
+				spaceNeeded = halfFontSize;//space
 				spaceNeeded += fontSpace.X;
-				for (int j = charIndex + 1, forwardCharGoeIndex = visibleCharIndex; j < contentLength && forwardCharGoeIndex < cacheTextGeometryList.Num(); j++)
+				for (j = charIndex + 1, forwardCharGoeIndex = visibleCharIndex; j < contentLength && forwardCharGoeIndex < cacheTextGeometryList.Num(); j++)
 				{
-					auto charCodeOfJ = content[j];
+					charCodeOfJ = content[j];
 					if (charCodeOfJ == ' ')//space
 					{
 						break;
@@ -640,7 +646,7 @@ MANUAL_NEWLINE://new line
 		}
 		
 
-		float charWidth = charGeo.xadvance + fontSpace.X;
+		charWidth = charGeo.xadvance + fontSpace.X;
 		currentLineOffset.X += charWidth;
 		currentLineWidth += charWidth;
 
@@ -668,7 +674,6 @@ MANUAL_NEWLINE://new line
 			break;
 			case 1://vertical overflow
 			{
-				int nextCharXAdv = 0;
 				if (UUIText::IsVisibleChar(content[charIndex + 1]))//next char is visible
 				{
 					nextCharXAdv = cacheTextGeometryList[visibleCharIndex].xadvance;
@@ -707,7 +712,6 @@ MANUAL_NEWLINE://new line
 			break;
 			case 2://clamp content
 			{
-				int nextCharXAdv = 0;
 				if (UUIText::IsVisibleChar(content[charIndex + 1]))//next char is visible
 				{
 					nextCharXAdv = cacheTextGeometryList[visibleCharIndex].xadvance;
