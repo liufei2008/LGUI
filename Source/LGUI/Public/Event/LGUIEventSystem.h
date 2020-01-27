@@ -209,7 +209,7 @@ protected:
 
 #define CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, interface, function)\
 {\
-	inEventData.eventType = EPointerEventType::##function##;\
+	inEventData.eventType = EPointerEventType::function;\
 	inEventData.hitComponent = component;\
 	LogEventData(inEventData, eventFireOnAll);\
 	bool eventAllowBubble = true;\
@@ -218,7 +218,7 @@ protected:
 		auto ownerActor = component->GetOwner();\
 		if (ownerActor->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
 		{\
-			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(ownerActor, inEventData) == false)\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(ownerActor, inEventData) == false)\
 			{\
 				eventAllowBubble = false;\
 			}\
@@ -228,7 +228,7 @@ protected:
 		{\
 			if (item->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
 			{\
-				if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(item, inEventData) == false)\
+				if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(item, inEventData) == false)\
 				{\
 					eventAllowBubble = false;\
 				}\
@@ -239,7 +239,7 @@ protected:
 	{\
 		if (component->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
 		{\
-			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(component, inEventData) == false)\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(component, inEventData) == false)\
 			{\
 				eventAllowBubble = false;\
 			}\
@@ -249,7 +249,7 @@ protected:
 	{\
 		if (auto parentActor = component->GetOwner()->GetAttachParentActor())\
 		{\
-			BubbleOnPointer##function##(parentActor, inEventData);\
+			BubbleOnPointer##function(parentActor, inEventData);\
 		}\
 	}\
 	if (globalListenerPointerEvent.IsBound())\
@@ -258,12 +258,14 @@ protected:
 	}\
 }
 
+#define LGUI_XXXX(x) x
+
 #define BUBBLE_LGUIINTERFACE(actor, inEventData, interface, function)\
 {\
 	bool eventAllowBubble = true;\
 	if (actor->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
 	{\
-		if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(actor, inEventData) == false)\
+		if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(actor, inEventData) == false)\
 		{\
 			eventAllowBubble = false;\
 		}\
@@ -273,7 +275,7 @@ protected:
 	{\
 		if (item->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
 		{\
-			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function##(item, inEventData) == false)\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(item, inEventData) == false)\
 			{\
 				eventAllowBubble = false;\
 			}\
@@ -283,7 +285,7 @@ protected:
 	{\
 		if (auto parentActor = actor->GetAttachParentActor())\
 		{\
-			BubbleOnPointer##function##(parentActor, inEventData);\
+			BubbleOnPointer##function(parentActor, inEventData);\
 		}\
 	}\
 }
