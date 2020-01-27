@@ -1344,10 +1344,10 @@ void UUITextInputComponent::ActivateInput()
 }
 
 #define BINDKEY_IF_NOT_IGNORE(key)\
-if(!IgnoreKeys.Contains(##key##))\
+if(!IgnoreKeys.Contains(key))\
 {\
-	inputComp->BindKey(##key##, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed); \
-	inputComp->BindKey(##key##, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);\
+	inputComp->BindKey(key, EInputEvent::IE_Repeat, this, &UUITextInputComponent::AnyKeyPressed); \
+	inputComp->BindKey(key, EInputEvent::IE_Pressed, this, &UUITextInputComponent::AnyKeyPressed);\
 }//register pressed and repeat
 
 void UUITextInputComponent::BindKeys()
