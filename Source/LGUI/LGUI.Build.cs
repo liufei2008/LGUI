@@ -7,6 +7,7 @@ public class LGUI : ModuleRules
 	public LGUI(ReadOnlyTargetRules Target) : base(Target)
 	{
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        bEnableUndefinedIdentifierWarnings = false;
 
         string EnginSourceFolder = EngineDirectory + "/Source/";
         PrivateIncludePaths.AddRange(
