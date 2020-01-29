@@ -46,10 +46,10 @@ public:
 		uint64 DataCount;
 #endif
 	//Engine's major version when creating this prefab
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY()
 		uint16 EngineMajorVersion;
 	//Engine's minor version when creating this prefab
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY()
 		uint16 EngineMinorVersion;
 	//serialized data for publish, not contain property name and editor only property. much more faster than BinaryData when deserialize
 	UPROPERTY()
