@@ -75,17 +75,24 @@ void ULGUIPrefabHelperComponent::RevertPrefab()
 {
 	if (PrefabAsset)
 	{
-		auto OldParentActor = LoadedRootActor->GetAttachParentActor();
-		bool haveRootTransform = LoadedRootActor->GetRootComponent() != nullptr;
+		AActor* OldParentActor = nullptr;
+		bool haveRootTransform = true;
 		FTransform OldTransform;
-		if (haveRootTransform)
+		//delete loaded actor
+		if (IsValid(LoadedRootActor))
 		{
-			OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
+			OldParentActor = LoadedRootActor->GetAttachParentActor();
+			haveRootTransform = LoadedRootActor->GetRootComponent() != nullptr;
+			if (haveRootTransform)
+			{
+				OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
+			}
+			LGUIUtils::DeleteActor(LoadedRootActor, true);
+			LoadedRootActor = nullptr;
 		}
-		LGUIUtils::DeleteActor(LoadedRootActor, true);
-		LoadedRootActor = nullptr;
+		//create new actor
 		LoadPrefab();
-		if (LoadedRootActor)
+		if (IsValid(LoadedRootActor))
 		{
 			LoadedRootActor->AttachToActor(OldParentActor, FAttachmentTransformRules::KeepRelativeTransform);
 			if (haveRootTransform)
