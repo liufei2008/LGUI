@@ -278,6 +278,7 @@ TArray<FName> ActorReplaceTool::GetComponentExcludeProperties()
 
 
 
+
 AActor* ActorReplaceTool::ReplaceActorClass(AActor* TargetActor, TSubclassOf<AActor> NewActorClass)
 {
 	ActorReplaceTool copier;
@@ -311,6 +312,11 @@ AActor* ActorReplaceTool::ReplaceActorClassInternal(AActor* TargetActor, TSubcla
 	{
 		auto itemActor = *ActorItr;
 		CheckPropertyForActor(itemActor);
+		const auto& OriginComponents = itemActor->GetComponents();
+		for (auto OriginComp : OriginComponents)
+		{
+			CheckProperty(OriginComp);
+		}
 	}
 
 	return Result;
