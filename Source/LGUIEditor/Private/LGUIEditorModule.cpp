@@ -313,13 +313,17 @@ bool FLGUIEditorModule::CanEditActorForPrefab()
 
 void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder)
 {
-	Builder.AddComboButton(
-		FUIAction(),
-		FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, false),
-		LOCTEXT("LGUITools", "LGUI Tools"),
-		LOCTEXT("LGUIEditorTools", "LGUI Editor Tools"),
-		FSlateIcon(FLGUIEditorStyle::GetStyleSetName(), "LGUIEditor.EditorTools")
-	);
+	Builder.BeginSection("LGUI");
+	{
+		Builder.AddComboButton(
+			FUIAction(),
+			FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, false),
+			LOCTEXT("LGUITools", "LGUI Tools"),
+			LOCTEXT("LGUIEditorTools", "LGUI Editor Tools"),
+			FSlateIcon(FLGUIEditorStyle::GetStyleSetName(), "LGUIEditor.EditorTools")
+		);
+	}
+	Builder.EndSection();
 }
 
 TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMenu)
