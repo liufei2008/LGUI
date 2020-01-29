@@ -458,7 +458,7 @@ void UUIItem::OnUnregister()
 #if WITH_EDITORONLY_DATA
 	if (IsValid(HelperComp))
 	{
-		HelperComp->ConditionalBeginDestroy();
+		HelperComp->DestroyComponent();
 		HelperComp = nullptr;
 	}
 #endif
