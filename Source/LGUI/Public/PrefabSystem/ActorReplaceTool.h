@@ -25,12 +25,6 @@ private:
 		USceneComponent* Comp = nullptr;
 		FName ParentName;
 	};
-	//for blueprint actor to reattach parent after all actor finish spawn
-	struct ActorAndParentStruct
-	{
-		AActor* Actor = nullptr;
-		USceneComponent* Parent = nullptr;
-	};
 	//for create instanced object, use this as outer
 	TArray<UObject*> OutterArray;
 	UObject* Outter = nullptr;
