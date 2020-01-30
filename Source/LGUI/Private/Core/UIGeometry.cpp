@@ -5,6 +5,8 @@
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUISpriteData.h"
+#include "Core/LGUIFontData.h"
 
 
 #pragma region UISprite_UITexture_Simple
@@ -528,7 +530,7 @@ MANUAL_NEWLINE://new line
 			charProperty.charIndex = charIndex;
 			sentenceProperty.charPropertyList.Add(charProperty);
 
-			UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
+			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
 			currentLineUIGeoVertexList.Empty();
 
 			cacheTextPropertyList.Add(sentenceProperty);
@@ -658,7 +660,7 @@ MANUAL_NEWLINE://new line
 			charProperty.caretPosition = caretPosition;
 			charProperty.charIndex = charIndex + 1;
 			sentenceProperty.charPropertyList.Add(charProperty);
-			UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
+			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
 			paragraphHeight += fontSize;
 			cacheTextPropertyList.Add(sentenceProperty);
 			break;//end loop
@@ -699,7 +701,7 @@ MANUAL_NEWLINE://new line
 
 						currentLineWidth -= fontSpace.X;//last char don't need space
 						maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
-						UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
+						AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
 						currentLineUIGeoVertexList.Empty();
 						cacheTextPropertyList.Add(sentenceProperty);
 						sentenceProperty = FUITextLineProperty();
@@ -724,7 +726,7 @@ MANUAL_NEWLINE://new line
 				{
 					currentLineWidth -= fontSpace.X;//last char don't need space
 					maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
-					UpdateUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
+					AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
 					paragraphHeight += fontSize;
 					cacheTextPropertyList.Add(sentenceProperty);
 					//set rest char's position to invisible
@@ -828,7 +830,7 @@ MANUAL_NEWLINE://new line
 	}
 }
 
-void UIGeometry::UpdateUITextLineVertex(int pivotHAlign, float sentenceWidth, TArray<FVector*>& sentenceUIGeoVertexList, FUITextLineProperty& sentenceProperty)
+void UIGeometry::AlignUITextLineVertex(int pivotHAlign, float sentenceWidth, TArray<FVector*>& sentenceUIGeoVertexList, FUITextLineProperty& sentenceProperty)
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
