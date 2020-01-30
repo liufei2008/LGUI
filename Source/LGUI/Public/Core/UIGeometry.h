@@ -1,11 +1,10 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #pragma once
+#include "CoreMinimal.h"
 
-#include "LGUI.h"
-#include "Core/LGUISpriteData.h"
-#include "Core/LGUIFontData.h"
-#include "LGUI.h"
+struct FLGUISpriteInfo;
+struct FUITextLineProperty;
 
 class LGUI_API UIGeometry
 {
@@ -63,10 +62,10 @@ public:
 
 #pragma region UIText
 public:
-	static void FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, int fontSize, uint8 paragraphHAlign, uint8 paragraphVAlign, uint8 overflowType, bool adjustWidth, bool adjustHeight, uint8 fontStyle, FVector2D& textRealSize, float dynamicPixelsPerUnit, TArray<struct FUITextLineProperty>& cacheTextPropertyList, const TArray<struct FUITextCharGeometry>& cacheTextGeometryList, bool requireNormal, bool requireTangent, bool requireUV1);
-	static void UpdateUITextVertexOrUV(FString& content, float& width, float& height, const FVector2D& pivot, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, int fontSize, uint8 paragraphHAlign, uint8 paragraphVAlign, uint8 overflowType, bool adjustWidth, bool adjustHeight, uint8 fontStyle, FVector2D& textRealSize, float dynamicPixelsPerUnit, bool updateVertex, bool updateUV, TArray<struct FUITextLineProperty>& cacheTextPropertyList, const TArray<struct FUITextCharGeometry>& cacheTextGeometryList);
+	static void FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, int fontSize, uint8 paragraphHAlign, uint8 paragraphVAlign, uint8 overflowType, bool adjustWidth, bool adjustHeight, uint8 fontStyle, FVector2D& textRealSize, float dynamicPixelsPerUnit, TArray<FUITextLineProperty>& cacheTextPropertyList, const TArray<struct FUITextCharGeometry>& cacheTextGeometryList, bool requireNormal, bool requireTangent, bool requireUV1);
+	static void UpdateUITextVertexOrUV(FString& content, float& width, float& height, const FVector2D& pivot, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, int fontSize, uint8 paragraphHAlign, uint8 paragraphVAlign, uint8 overflowType, bool adjustWidth, bool adjustHeight, uint8 fontStyle, FVector2D& textRealSize, float dynamicPixelsPerUnit, bool updateVertex, bool updateUV, TArray<FUITextLineProperty>& cacheTextPropertyList, const TArray<struct FUITextCharGeometry>& cacheTextGeometryList);
 private:
-	static void UpdateUITextLineVertex(int pivotHAlign, float sentenceWidth, TArray<FVector*>& sentenceUIGeoVertexList, struct FUITextLineProperty& sentenceProperty);
+	static void AlignUITextLineVertex(int pivotHAlign, float sentenceWidth, TArray<FVector*>& sentenceUIGeoVertexList, FUITextLineProperty& sentenceProperty);
 #pragma endregion
 
 #pragma region UISector
