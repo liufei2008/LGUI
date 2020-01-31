@@ -471,53 +471,29 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	}
 }
 
-FUITextCharGeometry GetCharGeo(TCHAR charCode, float halfFontSize, float fontSize, ULGUIFontData* font, bool bold, bool italic, float charFixOffset
-	, bool pixelPerfect, bool dynamicPixelsPerUnitIsNot1, float calcFontSize)
-{
-	FUITextCharGeometry charGeo;
-	if (charCode == ' ')
-	{
-		charGeo.xadvance = halfFontSize;
-		charGeo.geoWidth = charGeo.geoHeight = 0;
-		charGeo.xoffset = charGeo.yoffset = 0;
-		charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
-	}
-	else if (charCode == '\t')
-	{
-		charGeo.xadvance = fontSize + fontSize;
-		charGeo.geoWidth = charGeo.geoHeight = 0;
-		charGeo.xoffset = charGeo.yoffset = 0;
-		charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
-	}
-	else
-	{
-		auto charData = font->GetCharData(charCode, (uint16)fontSize, bold, italic);
-		charGeo.geoWidth = charData->width;
-		charGeo.geoHeight = charData->height;
-		charGeo.xadvance = charData->xadvance;
-		charGeo.xoffset = charData->xoffset;
-		charGeo.yoffset = charData->yoffset + charFixOffset;
-
-		auto overrideCharData = charData;
-		if (pixelPerfect || dynamicPixelsPerUnitIsNot1)
-		{
-			overrideCharData = font->GetCharData(charCode, (uint16)calcFontSize, bold, italic);
-		}
-
-		charGeo.uv0 = overrideCharData->GetUV0();
-		charGeo.uv1 = overrideCharData->GetUV1();
-		charGeo.uv2 = overrideCharData->GetUV2();
-		charGeo.uv3 = overrideCharData->GetUV3();
-	}
-	return charGeo;
-}
-
 void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot, FVector2D fontSpace
 	, TSharedPtr<UIGeometry> uiGeo, float fontSize, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas
 	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font)
 {
+	bool pixelPerfect = renderCanvas->GetPixelPerfect();
+	bool dynamicPixelsPerUnitIsNot1 = renderCanvas->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
+	if (pixelPerfect)
+	{
+		fontSize = fontSize / renderCanvas->GetViewportUIScale();
+		fontSize = FMath::Min(fontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
+	}
+	else if (dynamicPixelsPerUnitIsNot1)
+	{
+		fontSize = fontSize * renderCanvas->GetDynamicPixelsPerUnit();
+		fontSize = FMath::Min(fontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
+	}
+	float charFixOffset = fontSize * (font->fixedVerticalOffset - 0.25f);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
+
+	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
+	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
+
 	cacheTextPropertyList.Reset();
 	int contentLength = content.Len();
 	FVector2D currentLineOffset(0, 0);
@@ -567,24 +543,6 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 		Overflow,//this new line come from overflow
 	};
 	NewLineMode newLineMode = NewLineMode::None;
-
-	float charFixOffset = fontSize * (font->fixedVerticalOffset - 0.25f);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
-	bool pixelPerfect = renderCanvas->GetPixelPerfect();
-	bool dynamicPixelsPerUnitIsNot1 = renderCanvas->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
-	float calcFontSize = fontSize;
-	if (pixelPerfect)
-	{
-		calcFontSize = calcFontSize / renderCanvas->GetViewportUIScale();
-		calcFontSize = calcFontSize > 200.0f ? 200.0f : calcFontSize;//limit font size to 200. too large font size will result in large texture
-	}
-	else if (dynamicPixelsPerUnitIsNot1)
-	{
-		calcFontSize = calcFontSize * renderCanvas->GetDynamicPixelsPerUnit();
-		calcFontSize = calcFontSize > 200.0f ? 200.0f : calcFontSize;//limit font size to 200. too large font size will result in large texture
-	}
-
-	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
-	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
 
 	auto NewLine = [&](int32 charIndex)
 	{
@@ -642,7 +600,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 			auto overrideCharData = charData;
 			if (pixelPerfect || dynamicPixelsPerUnitIsNot1)
 			{
-				overrideCharData = font->GetCharData(charCode, (uint16)calcFontSize, bold, italic);
+				overrideCharData = font->GetCharData(charCode, (uint16)fontSize, bold, italic);
 			}
 
 			charGeo.uv0 = overrideCharData->GetUV0();
