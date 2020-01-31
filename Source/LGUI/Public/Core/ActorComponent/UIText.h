@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "Core/LGUIFontData.h"
 #include "UIRenderable.h"
 #include "UIText.generated.h"
 
@@ -73,6 +72,7 @@ struct FUITextCharGeometry
 	FVector2D uv3 = FVector2D(0, 0);
 };
 
+class ULGUIFontData;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIText : public UUIRenderable
@@ -135,8 +135,6 @@ private:
 	
 	void CheckCachedTextPropertyList();
 
-	//cached text geometry list
-	TArray<FUITextCharGeometry> cachedTextGeometryList;
 	//calculate text geometry
 	void CacheTextGeometry();
 public:
@@ -157,8 +155,7 @@ public:
 	FVector2D GetCharSize(TCHAR character);
 	FORCEINLINE static bool IsVisibleChar(TCHAR character)
 	{
-		return (character != '\n' && character != '\r');
-		//return (character != '\n' && character != '\r' && character != ' ' && character != '\t');// 10 - /n, 13 - /r, 32 - space blank, \t - tab
+		return (character != '\n' && character != '\r' && character != ' ' && character != '\t');
 	}
 	//count visible char count of the string
 	static int VisibleCharCountInString(const FString& srcStr);

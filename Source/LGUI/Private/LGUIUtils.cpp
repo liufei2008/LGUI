@@ -66,11 +66,11 @@ void LGUIUtils::CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildr
 		CollectChildrenActors(item, AllChildrenActors);
 	}
 }
-UTexture2D* LGUIUtils::CreateTransientBlackTransparentTexture(int32 InSize)
+UTexture2D* LGUIUtils::CreateTransientBlackTransparentTexture(int32 InSize, FName InDefaultName)
 {
 	auto texture = NewObject<UTexture2D>(
 		GetTransientPackage(),
-		NAME_None,
+		InDefaultName,
 		RF_Transient
 		);
 	texture->PlatformData = new FTexturePlatformData();
