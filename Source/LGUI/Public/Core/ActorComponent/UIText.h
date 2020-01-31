@@ -9,24 +9,24 @@
 UENUM(BlueprintType)
 enum class UITextParagraphHorizontalAlign : uint8
 {
-	Left			UMETA(DisplayName = "Left"),
-	Center			UMETA(DisplayName = "Center"),
-	Right			UMETA(DisplayName = "Right"),
+	Left,
+	Center,
+	Right,
 };
 UENUM(BlueprintType)
 enum class UITextParagraphVerticalAlign : uint8
 {
-	Top				UMETA(DisplayName = "Top"),
-	Middle			UMETA(DisplayName = "Middle"),
-	Bottom			UMETA(DisplayName = "Bottom"),
+	Top,
+	Middle,
+	Bottom,
 };
 UENUM(BlueprintType)
 enum class UITextFontStyle :uint8
 {
-	None			UMETA(DisplayName = "None"),
-	Bold			UMETA(DisplayName = "Bold"),
-	Italic			UMETA(DisplayName = "Italic"),
-	BoldAndItalic	UMETA(DisplayName = "BoldAndItalic"),
+	None,
+	Bold,
+	Italic,
+	BoldAndItalic,
 };
 
 UENUM(BlueprintType)
@@ -34,7 +34,10 @@ enum class UITextOverflowType :uint8
 {
 	HorizontalOverflow,
 	VerticalOverflow,
-	ClampContent,
+	//remove chars left if out of range
+	ClampContentLeft,
+	//remove chars right if out of range
+	ClampContentRight,
 };
 
 //single char property
