@@ -798,8 +798,14 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 				}
 			}
 			break;
-			case UITextOverflowType::ClampContent://clamp content
+			case UITextOverflowType::ClampContentLeft://clamp content left
 			{
+				//@todo
+			}
+			break;
+			case UITextOverflowType::ClampContentRight://clamp content right
+			{
+				//@todo
 				//if (charIndex + 1 == contentLength)continue;//last char
 				//int nextCharXAdv = nextCharXAdv = GetCharGeo(content[charIndex + 1]).xadvance;
 				//if (currentLineOffset.X + nextCharXAdv > width)//discard out-of-range chars
@@ -852,7 +858,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 		}
 	}
 	break;
-	case UITextOverflowType::ClampContent://clamp content
+	case UITextOverflowType::ClampContentLeft://clamp content
 	{
 		textRealSize.X = maxLineWidth;
 		textRealSize.Y = paragraphHeight;
