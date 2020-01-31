@@ -319,10 +319,6 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const int32 InBold
 		int32 sourceTexturePixelIndexY = packedRect.y;
 		int32 sourceTextureCharStartPixelXWithSpace = packedRect.x + SPACE_BETWEEN_GLYPH;
 		auto region = new FUpdateTextureRegion2D(sourceTextureCharStartPixelXWithSpace, sourceTexturePixelIndexY, 0, 0, packedRect.width, packedRect.height);
-		if (FMath::Abs((int32)region->DestY) > 10000)
-		{
-			UE_LOG(LogTemp, Error, TEXT("charRectWidth:%d, charRectHeight:%d, packedRect.y:%d"), charRectWidth, charRectHeight, packedRect.y);
-		}
 
 		int pixelCount = packedRect.width * packedRect.height;
 		FColor* regionColor = new FColor[pixelCount];
