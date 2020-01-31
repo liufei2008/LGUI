@@ -417,42 +417,22 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 #pragma endregion
 
 #pragma region UIText
-void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, int fontSize, uint8 paragraphHAlign, uint8 paragraphVAlign, uint8 overflowType, bool adjustWidth, bool adjustHeight, uint8 fontStyle, FVector2D& textRealSize, float dynamicPixelsPerUnit, TArray<FUITextLineProperty>& cacheTextPropertyList, const TArray<FUITextCharGeometry>& cacheTextGeometryList, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
+	, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
+	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
+	, ULGUICanvas* renderCanvas
+	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font)
 {
-	//generate vertex/triangle/uv
-	int vertexCount = visibleCharCount * 4;
-	int triangleCount = visibleCharCount * 6;
-	auto& vertices = uiGeo->vertices;
-	auto& triangles = uiGeo->triangles;
-	uiGeo->originVerticesCount = vertexCount;
-	vertices.SetNumUninitialized(vertexCount);
-
-	uiGeo->originTriangleCount = triangleCount;
-	triangles.Reserve(triangleCount);
-	int vertIndex = 0;
-	for (int i = 0; i < visibleCharCount; i++)
-	{
-		triangles.Add(vertIndex);
-		triangles.Add(vertIndex + 3);
-		triangles.Add(vertIndex + 2);
-		triangles.Add(vertIndex);
-		triangles.Add(vertIndex + 1);
-		triangles.Add(vertIndex + 3);
-		vertIndex += 4;
-	}
-
-	//position and uv
-	auto& originPositions = uiGeo->originPositions;
-	if (originPositions.Num() == 0)
-	{
-		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
-	}
-	UpdateUITextVertexOrUV(content, width, height, pivot, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, dynamicPixelsPerUnit, true, true, cacheTextPropertyList, cacheTextGeometryList);
+	//vertex and triangle
+	UpdateUITextVertexOrUV(content, visibleCharCount, width, height, pivot, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, cacheTextPropertyList, font);
+	uiGeo->originVerticesCount = uiGeo->vertices.Num();
+	uiGeo->originTriangleCount = uiGeo->triangles.Num();
 	//colors
 	UpdateUIColor(uiGeo, color);
 
+	int32 vertexCount = uiGeo->originVerticesCount;
 	//normals
-	if (requireNormal)
+	if (renderCanvas->GetRequireNormal())
 	{
 		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
@@ -465,7 +445,7 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 		}
 	}
 	//tangents
-	if (requireTangent)
+	if (renderCanvas->GetRequireTangent())
 	{
 		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
@@ -478,9 +458,10 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 		}
 	}
 	//uv1
-	if (requireUV1)
+	if (renderCanvas->GetRequireUV1())
 	{
-		for (int i = 0; i < uiGeo->originVerticesCount; i+=4)
+		auto& vertices = uiGeo->vertices;
+		for (int i = 0; i < vertexCount; i+=4)
 		{
 			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
 			vertices[i + 1].TextureCoordinate[1] = FVector2D(1, 1);
@@ -490,200 +471,317 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	}
 }
 
-void UIGeometry::UpdateUITextVertexOrUV(FString& content, float& width, float& height, const FVector2D& pivot, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, int fontSize, uint8 paragraphHAlign, uint8 paragraphVAlign, uint8 overflowType, bool adjustWidth, bool adjustHeight, uint8 fontStyle, FVector2D& textRealSize, float dynamicPixelsPerUnit, bool updateVertex, bool updateUV, TArray<FUITextLineProperty>& cacheTextPropertyList, const TArray<FUITextCharGeometry>& cacheTextGeometryList)
+FUITextCharGeometry GetCharGeo(TCHAR charCode, float halfFontSize, float fontSize, ULGUIFontData* font, bool bold, bool italic, float charFixOffset
+	, bool pixelPerfect, bool dynamicPixelsPerUnitIsNot1, float calcFontSize)
+{
+	FUITextCharGeometry charGeo;
+	if (charCode == ' ')
+	{
+		charGeo.xadvance = halfFontSize;
+		charGeo.geoWidth = charGeo.geoHeight = 0;
+		charGeo.xoffset = charGeo.yoffset = 0;
+		charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
+	}
+	else if (charCode == '\t')
+	{
+		charGeo.xadvance = fontSize + fontSize;
+		charGeo.geoWidth = charGeo.geoHeight = 0;
+		charGeo.xoffset = charGeo.yoffset = 0;
+		charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
+	}
+	else
+	{
+		auto charData = font->GetCharData(charCode, (uint16)fontSize, bold, italic);
+		charGeo.geoWidth = charData->width;
+		charGeo.geoHeight = charData->height;
+		charGeo.xadvance = charData->xadvance;
+		charGeo.xoffset = charData->xoffset;
+		charGeo.yoffset = charData->yoffset + charFixOffset;
+
+		auto overrideCharData = charData;
+		if (pixelPerfect || dynamicPixelsPerUnitIsNot1)
+		{
+			overrideCharData = font->GetCharData(charCode, (uint16)calcFontSize, bold, italic);
+		}
+
+		charGeo.uv0 = overrideCharData->GetUV0();
+		charGeo.uv1 = overrideCharData->GetUV1();
+		charGeo.uv2 = overrideCharData->GetUV2();
+		charGeo.uv3 = overrideCharData->GetUV3();
+	}
+	return charGeo;
+}
+
+void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot, FVector2D fontSpace
+	, TSharedPtr<UIGeometry> uiGeo, float fontSize, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
+	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
+	, ULGUICanvas* renderCanvas
+	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font)
 {
 	cacheTextPropertyList.Reset();
 	int contentLength = content.Len();
 	FVector2D currentLineOffset(0, 0);
 	float currentLineWidth = 0, paragraphHeight = 0;//single line width, all line height
 	float maxLineWidth = 0;//if have multiple line
-	TArray<FVector*> currentLineUIGeoVertexList;//single line's vertex collection
+	int lineUIGeoVertStart = 0;//vertex index in originPositions of current line
 	int visibleCharIndex = 0;//visible char index, skip invisible char(\n,\t)
-	auto& originPositions = uiGeo->originPositions;
-	auto& uvs = uiGeo->vertices;
 	FUITextLineProperty sentenceProperty;
 	FVector2D caretPosition(0, 0);
-	float charGeoWidth = 0, charGeoHeight = 0, halfFontSize = fontSize * 0.5f;
-	bool haveMultipleSentence = false;
-	bool isNewLineFirstChar = false;
-	FUITextCharGeometry charGeo = FUITextCharGeometry();
-	int nextCharXAdv = 0;
-	float x, y;
-	int index;
-	float spaceNeeded;
-	TCHAR charCodeOfJ;
-	float charWidth;
-	int j, forwardCharGoeIndex;
+	float halfFontSize = fontSize * 0.5f;
+	float halfFontSpaceX = fontSpace.X * 0.5f;
+	bool haveMultipleLine = false;
+
+	int verticesCount = 0;
+	auto& originPositions = uiGeo->originPositions;
+	auto& vertices = uiGeo->vertices;
+	int indicesCount = 0;
+	auto& triangles = uiGeo->triangles;
+
+	auto CheckVertices = [&](int additionalVerticesCount)
+	{
+		int32 newCount = verticesCount + additionalVerticesCount;
+		if (originPositions.Num() < newCount)
+		{
+			originPositions.AddUninitialized(newCount - originPositions.Num());
+		}
+		if (vertices.Num() < newCount)
+		{
+			vertices.AddUninitialized(newCount - vertices.Num());
+		}
+	};
+
+	auto CheckIndices = [&](int additionalIndicesCount)
+	{
+		int32 newCount = indicesCount + additionalIndicesCount;
+		if (triangles.Num() < newCount)
+		{
+			triangles.AddUninitialized(newCount - triangles.Num());
+		}
+	};
+
+	enum class NewLineMode
+	{
+		None,//not new line
+		LineBreak,//this new line come from line break
+		Space,//this new line come from space char
+		Overflow,//this new line come from overflow
+	};
+	NewLineMode newLineMode = NewLineMode::None;
+
+	float charFixOffset = fontSize * (font->fixedVerticalOffset - 0.25f);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
+	bool pixelPerfect = renderCanvas->GetPixelPerfect();
+	bool dynamicPixelsPerUnitIsNot1 = renderCanvas->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
+	float calcFontSize = fontSize;
+	if (pixelPerfect)
+	{
+		calcFontSize = calcFontSize / renderCanvas->GetViewportUIScale();
+		calcFontSize = calcFontSize > 200.0f ? 200.0f : calcFontSize;//limit font size to 200. too large font size will result in large texture
+	}
+	else if (dynamicPixelsPerUnitIsNot1)
+	{
+		calcFontSize = calcFontSize * renderCanvas->GetDynamicPixelsPerUnit();
+		calcFontSize = calcFontSize > 200.0f ? 200.0f : calcFontSize;//limit font size to 200. too large font size will result in large texture
+	}
+
+	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
+	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
+
+	auto NewLine = [&](int32 charIndex)
+	{
+		//add end caret position
+		currentLineWidth -= fontSpace.X;//last char of a line don't need space
+		maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
+		FUITextCharProperty charProperty;
+		charProperty.caretPosition = caretPosition;
+		charProperty.charIndex = charIndex;
+		sentenceProperty.charPropertyList.Add(charProperty);
+
+		AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions, sentenceProperty);
+		lineUIGeoVertStart = verticesCount;
+		cacheTextPropertyList.Add(sentenceProperty);
+
+		sentenceProperty = FUITextLineProperty();
+
+		currentLineWidth = 0;
+		currentLineOffset.X = 0;
+		currentLineOffset.Y -= fontSize + fontSpace.Y;
+		paragraphHeight += fontSize + fontSpace.Y;
+		haveMultipleLine = true;
+
+		//set caret position for empty newline
+		caretPosition.X = currentLineOffset.X - halfFontSpaceX;
+		caretPosition.Y = currentLineOffset.Y;
+	};
+
+	auto GetCharGeo = [&](TCHAR charCode)
+	{
+		FUITextCharGeometry charGeo;
+		if (charCode == ' ')
+		{
+			charGeo.xadvance = halfFontSize;
+			charGeo.geoWidth = charGeo.geoHeight = 0;
+			charGeo.xoffset = charGeo.yoffset = 0;
+			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
+		}
+		else if (charCode == '\t')
+		{
+			charGeo.xadvance = fontSize + fontSize;
+			charGeo.geoWidth = charGeo.geoHeight = 0;
+			charGeo.xoffset = charGeo.yoffset = 0;
+			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
+		}
+		else
+		{
+			auto charData = font->GetCharData(charCode, (uint16)fontSize, bold, italic);
+			charGeo.geoWidth = charData->width;
+			charGeo.geoHeight = charData->height;
+			charGeo.xadvance = charData->xadvance;
+			charGeo.xoffset = charData->xoffset;
+			charGeo.yoffset = charData->yoffset + charFixOffset;
+
+			auto overrideCharData = charData;
+			if (pixelPerfect || dynamicPixelsPerUnitIsNot1)
+			{
+				overrideCharData = font->GetCharData(charCode, (uint16)calcFontSize, bold, italic);
+			}
+
+			charGeo.uv0 = overrideCharData->GetUV0();
+			charGeo.uv1 = overrideCharData->GetUV1();
+			charGeo.uv2 = overrideCharData->GetUV2();
+			charGeo.uv3 = overrideCharData->GetUV3();
+		}
+		return charGeo;
+	};
 
 	for (int charIndex = 0; charIndex < contentLength; charIndex++)
 	{
 		auto charCode = content[charIndex];
-		FVector2D charOffset(0, 0);//single char offset
-
 		if (charCode == '\n' || charCode == '\r')//10 -- \n, 13 -- \r
 		{
-MANUAL_NEWLINE://new line
-			currentLineWidth -= fontSpace.X;//last char of a line don't need space
-			maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
-			FUITextCharProperty charProperty;
-			charProperty.caretPosition = caretPosition;
-			charProperty.charIndex = charIndex;
-			sentenceProperty.charPropertyList.Add(charProperty);
-
-			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
-			currentLineUIGeoVertexList.Empty();
-
-			cacheTextPropertyList.Add(sentenceProperty);
-
-			sentenceProperty = FUITextLineProperty();
-			if (charIndex + 1 == contentLength)//if \n is also last char, then we need to add a caret position to the next line
-			{
-				currentLineOffset.X = 0;
-				currentLineOffset.Y -= fontSize + fontSpace.Y;
-				caretPosition.X = currentLineOffset.X - fontSpace.X;
-				caretPosition.Y = currentLineOffset.Y;
-				FUITextCharProperty nextLineCharProperty;
-				nextLineCharProperty.caretPosition = caretPosition;
-				nextLineCharProperty.charIndex = charIndex + 1;
-				sentenceProperty.charPropertyList.Add(nextLineCharProperty);
-				cacheTextPropertyList.Add(sentenceProperty);
-			}
-			currentLineOffset.X = 0;
-			goto NEW_LINE;
+			NewLine(charIndex);
+			newLineMode = NewLineMode::LineBreak;
+			continue;
 		}
-		
-		charGeo = cacheTextGeometryList[visibleCharIndex];
 
-		charGeoWidth = charGeo.geoWidth;
-		charGeoHeight = charGeo.geoHeight;
-		charOffset = FVector2D(charGeo.xoffset, charGeo.yoffset);
-		//caret property
+		if (newLineMode == NewLineMode::Space || newLineMode == NewLineMode::Overflow)
 		{
-			if (isNewLineFirstChar)
+			if (charCode == ' ')
 			{
-				caretPosition.X = currentLineOffset.X;
+				if (newLineMode == NewLineMode::Overflow)
+				{
+					newLineMode = NewLineMode::None;
+				}
+				continue;
 			}
 			else
 			{
-				caretPosition.X = currentLineOffset.X + charOffset.X - fontSpace.X;
+				newLineMode = NewLineMode::None;
 			}
+		}
+
+
+		auto charGeo = GetCharGeo(charCode);
+		//caret property
+		{
+			caretPosition.X = currentLineOffset.X - halfFontSpaceX;
 			caretPosition.Y = currentLineOffset.Y;
 			FUITextCharProperty charProperty;
 			charProperty.caretPosition = caretPosition;
 			charProperty.charIndex = charIndex;
 			sentenceProperty.charPropertyList.Add(charProperty);
 
-			caretPosition.X += fontSpace.X + charGeoWidth;//next caret position x
-		}
-		
-		//char geometry
-		{
-			if (updateVertex)
-			{
-				FVector2D offset = currentLineOffset + charOffset;
-				x = (offset.X);
-				y = (offset.Y - charGeoHeight);
-				index = visibleCharIndex * 4;
-				originPositions[index] = FVector(x, y, 0);
-				x = (charGeoWidth + offset.X);
-				originPositions[index + 1] = FVector(x, y, 0);
-				x = (offset.X);
-				y = (offset.Y);
-				originPositions[index + 2] = FVector(x, y, 0);
-				x = (charGeoWidth + offset.X);
-				originPositions[index + 3] = FVector(x, y, 0);
-
-				currentLineUIGeoVertexList.Add(&originPositions[index]);
-				currentLineUIGeoVertexList.Add(&originPositions[index + 1]);
-				currentLineUIGeoVertexList.Add(&originPositions[index + 2]);
-				currentLineUIGeoVertexList.Add(&originPositions[index + 3]);
-			}
-			if (updateUV)
-			{
-				index = visibleCharIndex * 4;
-				uvs[index].TextureCoordinate[0] = charGeo.uv0;
-				uvs[index + 1].TextureCoordinate[0] = charGeo.uv1;
-				uvs[index + 2].TextureCoordinate[0] = charGeo.uv2;
-				uvs[index + 3].TextureCoordinate[0] = charGeo.uv3;
-			}
-			visibleCharIndex++;
-		}
-
-		if (isNewLineFirstChar)
-		{
-			isNewLineFirstChar = false;
-			if (charCode == ' ')//if is new line, and first char is space, then skip that space
-			{
-				continue;
-			}
+			caretPosition.X += fontSpace.X + charGeo.xadvance;//for line's last char's caret position
 		}
 
 		if (charCode == ' ')//char is space
 		{
-			if (overflowType == 1)//char is space and UIText can have multi line, then we need to calculate if the followed word can fit the rest space, if not means new line
+			if (overflowType == UITextOverflowType::VerticalOverflow)//char is space and UIText can have multi line, then we need to calculate if the followed word can fit the rest space, if not means new line
 			{
-				spaceNeeded = halfFontSize;//space
+				float spaceNeeded = halfFontSize;//space
 				spaceNeeded += fontSpace.X;
-				for (j = charIndex + 1, forwardCharGoeIndex = visibleCharIndex; j < contentLength && forwardCharGoeIndex < cacheTextGeometryList.Num(); j++)
+				for (int forwardCharIndex = charIndex + 1, forwardVisibleCharIndex = visibleCharIndex + 1; forwardCharIndex < contentLength && forwardVisibleCharIndex < visibleCharCount; forwardCharIndex++)
 				{
-					charCodeOfJ = content[j];
-					if (charCodeOfJ == ' ')//space
+					auto charCodeOfForwardChar = content[forwardCharIndex];
+					if (charCodeOfForwardChar == ' ')//space
 					{
 						break;
 					}
-					if (charCodeOfJ == '\n' || charCodeOfJ == '\r' || charCodeOfJ == '\t')//\n\r\t
+					if (charCodeOfForwardChar == '\n' || charCodeOfForwardChar == '\r' || charCodeOfForwardChar == '\t')//\n\r\t
 					{
 						break;
 					}
-					spaceNeeded += cacheTextGeometryList[forwardCharGoeIndex].xadvance;
+					spaceNeeded += GetCharGeo(charCodeOfForwardChar).xadvance;
 					spaceNeeded += fontSpace.X;
-					forwardCharGoeIndex++;
+					forwardVisibleCharIndex++;
 				}
 
 				if (currentLineOffset.X + spaceNeeded > width)
 				{
-					goto MANUAL_NEWLINE;
+					NewLine(charIndex);
+					newLineMode = NewLineMode::Space;
+					continue;
 				}
 			}
 		}
-		
 
-		charWidth = charGeo.xadvance + fontSpace.X;
+		if (charCode != ' ' && charCode != '\t')//char geometry
+		{
+			CheckVertices(4);
+			CheckIndices(6);
+
+			//position
+			{
+				FVector2D offset = currentLineOffset + FVector2D(charGeo.xoffset, charGeo.yoffset);
+				float x = offset.X;
+				float y = offset.Y - charGeo.geoHeight;
+				originPositions[verticesCount] = FVector(x, y, 0);
+				x = charGeo.geoWidth + offset.X;
+				originPositions[verticesCount + 1] = FVector(x, y, 0);
+				x = offset.X;
+				y = offset.Y;
+				originPositions[verticesCount + 2] = FVector(x, y, 0);
+				x = charGeo.geoWidth + offset.X;
+				originPositions[verticesCount + 3] = FVector(x, y, 0);
+			}
+			//uv
+			{
+				vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
+				vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
+				vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
+				vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+			}
+			//triangle
+			{
+				triangles[indicesCount] = verticesCount;
+				triangles[indicesCount + 1] = verticesCount + 3;
+				triangles[indicesCount + 2] = verticesCount + 2;
+				triangles[indicesCount + 3] = verticesCount;
+				triangles[indicesCount + 4] = verticesCount + 1;
+				triangles[indicesCount + 5] = verticesCount + 3;
+			}
+			verticesCount += 4;
+			indicesCount += 6;
+			visibleCharIndex++;
+		}
+
+
+		float charWidth = charGeo.xadvance + fontSpace.X;
 		currentLineOffset.X += charWidth;
 		currentLineWidth += charWidth;
 
-		if (charIndex + 1 == contentLength)//if is last char
-		{
-			currentLineWidth -= fontSpace.X;//last char don't need space
-			maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
-			FUITextCharProperty charProperty;
-			charProperty.caretPosition = caretPosition;
-			charProperty.charIndex = charIndex + 1;
-			sentenceProperty.charPropertyList.Add(charProperty);
-			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
-			paragraphHeight += fontSize;
-			cacheTextPropertyList.Add(sentenceProperty);
-			break;//end loop
-		}
-		else//not last char
+		//overflow
 		{
 			switch (overflowType)
 			{
-			case 0://horizontal overflow
+			case UITextOverflowType::HorizontalOverflow://horizontal overflow
 			{
 				//no need to do anything
 			}
 			break;
-			case 1://vertical overflow
+			case UITextOverflowType::VerticalOverflow://vertical overflow
 			{
-				if (UUIText::IsVisibleChar(content[charIndex + 1]))//next char is visible
-				{
-					nextCharXAdv = cacheTextGeometryList[visibleCharIndex].xadvance;
-				}
-				else
-				{
-					nextCharXAdv = halfFontSize;
-				}
+				if (charIndex + 1 == contentLength)continue;//last char
+				int nextCharXAdv = nextCharXAdv = GetCharGeo(content[charIndex + 1]).xadvance;
 				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 				{
 					auto nextChar = content[charIndex + 1];
@@ -693,68 +791,45 @@ MANUAL_NEWLINE://new line
 					}
 					else
 					{
-						//add end caret position
-						FUITextCharProperty charProperty;
-						charProperty.caretPosition = caretPosition;
-						charProperty.charIndex = charIndex + 1;
-						sentenceProperty.charPropertyList.Add(charProperty);
-
-						currentLineWidth -= fontSpace.X;//last char don't need space
-						maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
-						AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
-						currentLineUIGeoVertexList.Empty();
-						cacheTextPropertyList.Add(sentenceProperty);
-						sentenceProperty = FUITextLineProperty();
-
-						currentLineOffset.X = 0;
-						goto NEW_LINE;
+						NewLine(charIndex + 1);
+						newLineMode = NewLineMode::Overflow;
+						continue;
 					}
 				}
 			}
 			break;
-			case 2://clamp content
+			case UITextOverflowType::ClampContent://clamp content
 			{
-				if (UUIText::IsVisibleChar(content[charIndex + 1]))//next char is visible
-				{
-					nextCharXAdv = cacheTextGeometryList[visibleCharIndex].xadvance;
-				}
-				else
-				{
-					nextCharXAdv = halfFontSize;
-				}
-				if (currentLineOffset.X + nextCharXAdv > width)//discard out-of-range chars
-				{
-					currentLineWidth -= fontSpace.X;//last char don't need space
-					maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
-					AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
-					paragraphHeight += fontSize;
-					cacheTextPropertyList.Add(sentenceProperty);
-					//set rest char's position to invisible
-					int verticesCount = originPositions.Num();
-					for (int vertIndex = visibleCharIndex * 4; vertIndex < verticesCount; vertIndex++)
-					{
-						originPositions[vertIndex] = FVector::ZeroVector;
-					}
+				//if (charIndex + 1 == contentLength)continue;//last char
+				//int nextCharXAdv = nextCharXAdv = GetCharGeo(content[charIndex + 1]).xadvance;
+				//if (currentLineOffset.X + nextCharXAdv > width)//discard out-of-range chars
+				//{
+				//	currentLineWidth -= fontSpace.X;//last char don't need space
+				//	maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
+				//	AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
+				//	paragraphHeight += fontSize;
+				//	cacheTextPropertyList.Add(sentenceProperty);
+				//	//set rest char's position to invisible
+				//	int verticesCount = originPositions.Num();
+				//	for (int vertIndex = visibleCharIndex * 4; vertIndex < verticesCount; vertIndex++)
+				//	{
+				//		originPositions[vertIndex] = FVector::ZeroVector;
+				//	}
 
-					charIndex = contentLength;//break the main loop
-				}
+				//	charIndex = contentLength;//break the main loop
+				//}
 			}
 			break;
 			}
 		}
-		continue;//skip NEW_LINE
-	NEW_LINE://jump from auto-new-line or \n
-		currentLineWidth = 0;
-		currentLineOffset.Y -= fontSize + fontSpace.Y;
-		paragraphHeight += fontSize + fontSpace.Y;
-		haveMultipleSentence = true;
-		isNewLineFirstChar = true;
 	}
 
-
+	//last line
+	NewLine(contentLength);
+	
 	switch (overflowType)
 	{
-	case 0://horizontal overflow
+	case UITextOverflowType::HorizontalOverflow://horizontal overflow
 	{
 		textRealSize.X = maxLineWidth;
 		textRealSize.Y = paragraphHeight;
@@ -764,9 +839,9 @@ MANUAL_NEWLINE://new line
 		}
 	}
 	break;
-	case 1://vertical overflow
+	case UITextOverflowType::VerticalOverflow://vertical overflow
 	{
-		if (haveMultipleSentence)
+		if (haveMultipleLine)
 			textRealSize.X = width;
 		else
 			textRealSize.X = maxLineWidth;
@@ -777,7 +852,7 @@ MANUAL_NEWLINE://new line
 		}
 	}
 	break;
-	case 2://clamp content
+	case UITextOverflowType::ClampContent://clamp content
 	{
 		textRealSize.X = maxLineWidth;
 		textRealSize.Y = paragraphHeight;
@@ -786,32 +861,31 @@ MANUAL_NEWLINE://new line
 	}
 
 
-
 	float pivotOffsetX = width * (0.5f - pivot.X);
 	float pivotOffsetY = height * (0.5f - pivot.Y);
 	float xOffset = pivotOffsetX;
 	float yOffset = pivotOffsetY - halfFontSize;
 	switch (paragraphHAlign)
 	{
-	case 0:
+	case UITextParagraphHorizontalAlign::Left:
 		xOffset += -width * 0.5f;
 		break;
-	case 1:
+	case UITextParagraphHorizontalAlign::Center:
 
 		break;
-	case 2:
+	case UITextParagraphHorizontalAlign::Right:
 		xOffset += width * 0.5f;
 		break;
 	}
 	switch (paragraphVAlign)
 	{
-	case 0:
+	case UITextParagraphVerticalAlign::Top:
 		yOffset += height * 0.5f;
 		break;
-	case 1:
+	case UITextParagraphVerticalAlign::Middle:
 		yOffset += paragraphHeight * 0.5f;
 		break;
-	case 2:
+	case UITextParagraphVerticalAlign::Bottom:
 		yOffset += paragraphHeight - height * 0.5f;
 		break;
 	}
@@ -824,25 +898,27 @@ MANUAL_NEWLINE://new line
 			charItem.caretPosition.Y += yOffset;
 		}
 	}
-	if (updateVertex)
-	{
-		UIGeometry::OffsetVertices(originPositions, xOffset, yOffset);
-	}
+	UIGeometry::OffsetVertices(originPositions, xOffset, yOffset);
 }
 
-void UIGeometry::AlignUITextLineVertex(int pivotHAlign, float sentenceWidth, TArray<FVector*>& sentenceUIGeoVertexList, FUITextLineProperty& sentenceProperty)
+void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float sentenceWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty)
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
 	{
-	case 1:
+	case UITextParagraphHorizontalAlign::Center:
 		xOffset = -sentenceWidth * 0.5f;
 		break;
-	case 2:
+	case UITextParagraphHorizontalAlign::Right:
 		xOffset = -sentenceWidth;
 		break;
 	}
-	UIGeometry::OffsetVertices(sentenceUIGeoVertexList, xOffset, 0);
+
+	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
+	{
+		auto& vertex = vertices[i];
+		vertex.X += xOffset;
+	}
 	
 	auto& charList = sentenceProperty.charPropertyList;
 	for (auto& item : charList)
