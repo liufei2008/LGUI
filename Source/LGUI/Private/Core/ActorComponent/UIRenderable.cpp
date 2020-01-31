@@ -209,7 +209,9 @@ void UUIRenderable::UpdateGeometry(const bool& parentTransformChanged)
 	if (!CheckRenderCanvas())return;
 
 	OnBeforeCreateOrUpdateGeometry();
-	if (geometry->vertices.Num() == 0)//if geometry not created yet
+	if (geometry->vertices.Num() == 0//if geometry not created yet
+		|| geometry->drawcallIndex == -1//if geometry not rendered yet
+		)
 	{
 		if (HaveDataToCreateGeometry())
 		{
