@@ -64,18 +64,21 @@ public:
 
 #pragma region UIText
 public:
-	static void FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot, FColor color, FVector2D fontSpace
-		, TSharedPtr<UIGeometry> uiGeo, float fontSize, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
+	static void FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
+		, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
+		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 		, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
 		, ULGUICanvas* renderCanvas
-		, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font);
-	static void UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot, FVector2D fontSpace
-		, TSharedPtr<UIGeometry> uiGeo, float fontSize, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
+		, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText);
+	static void UpdateUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
+		, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
+		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 		, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
 		, ULGUICanvas* renderCanvas
-		, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font);
+		, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText);
 private:
-	static void AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float sentenceWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty);
+	static void AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty);
+	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices);
 #pragma endregion
 
 #pragma region UISector
