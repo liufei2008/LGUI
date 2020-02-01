@@ -162,23 +162,34 @@ void UUIText::OnCreateGeometry()
 	geometry->isFontTexture = true;
 	float width = widget.width;
 	float height = widget.height;
-	UIGeometry::FromUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font);
+	UIGeometry::FromUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font, richText);
 	SetWidth(width);
 	SetHeight(height);
 }
 void UUIText::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	if (InVertexColorChanged)
-	{
-		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-	}
-	if (InVertexPositionChanged || InVertexUVChanged)
+	if (richText)
 	{
 		float width = widget.width;
 		float height = widget.height;
-		UIGeometry::UpdateUITextVertexOrUV(text, visibleCharCount, width, height, widget.pivot, space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font);
+		UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font, richText);
 		SetWidth(width);
 		SetHeight(height);
+	}
+	else
+	{
+		if (InVertexColorChanged && !InVertexPositionChanged && !InVertexUVChanged)
+		{
+			UIGeometry::UpdateUIColor(geometry, GetFinalColor());
+		}
+		else if (InVertexPositionChanged || InVertexUVChanged)
+		{
+			float width = widget.width;
+			float height = widget.height;
+			UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font, richText);
+			SetWidth(width);
+			SetHeight(height);
+		}
 	}
 }
 
@@ -237,7 +248,7 @@ FVector2D UUIText::GetRealSize()
 		{
 			float width = widget.width;
 			float height = widget.height;
-			UIGeometry::UpdateUITextVertexOrUV(text, visibleCharCount, width, height, widget.pivot, space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font);
+			UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font, richText);
 			SetWidth(width);
 			SetHeight(height);
 		}
@@ -370,6 +381,15 @@ void UUIText::SetFontStyle(UITextFontStyle newFontStyle) {
 		cachedTextPropertyList.Reset();
 	}
 }
+void UUIText::SetRichText(bool newRichText)
+{
+	if (richText != newRichText)
+	{
+		MarkTriangleDirty();
+		richText = newRichText;
+		cachedTextPropertyList.Reset();
+	}
+}
 void UUIText::CacheTextGeometry()
 {
 	if (visibleCharCount == -1)visibleCharCount = VisibleCharCountInString(text);
@@ -426,7 +446,7 @@ void UUIText::CheckCachedTextPropertyList()
 		CacheTextGeometry();
 		float width = widget.width;
 		float height = widget.height;
-		UIGeometry::UpdateUITextVertexOrUV(text, visibleCharCount, width, height, widget.pivot, space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font);
+		UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, cachedTextPropertyList, font, richText);
 		SetWidth(width);
 		SetHeight(height);
 	}
