@@ -128,6 +128,22 @@ protected:
 		bool adjustHeight = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UITextFontStyle fontStyle = UITextFontStyle::None;
+	/*
+	rich text support, eg:
+	<b>Bold</b>
+	<i>Italic</i>
+	<u>Underline</u>
+	<s>Strikethrough</s>
+	<size=48>Point size 48</size>
+	<size=+18>Point size increased by 18</size>
+	<size=-18>Point size decreased by 18</size>
+	<color=yellow>Yellow text</color> support color name: black, blue, green, orange, purple, red, white, and yellow
+	<color=#00ff00>Green text</color>
+	<sup>Superscript</sup>
+	<sub>Superscript</sub>
+	*/
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool richText = false;
 private:
 	//visible/renderable char count of current text. -1 means not set yet
 	int visibleCharCount = -1;
@@ -171,6 +187,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustWidth()const { return adjustWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustHeight()const { return adjustHeight; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetRealSize();
 
@@ -194,6 +211,8 @@ public:
 		void SetAdjustHeight(bool newAdjustHeight);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFontStyle(UITextFontStyle newFontStyle);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetRichText(bool newRichText);
 
 	virtual void UpdateBasePrevData()override;
 	virtual void UpdateCachedData()override;
