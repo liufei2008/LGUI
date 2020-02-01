@@ -313,7 +313,7 @@ private:
 	}
 	float OutCubic(float c, float b, float t, float d)
 	{
-		t = t / d - 1;
+		t = t / d - 1.0f;
 		return c*(t*t*t + 1) + b;
 	}
 	float InOutCubic(float c, float b, float t, float d)
@@ -336,7 +336,7 @@ private:
 	}
 	float OutQuart(float c, float b, float t, float d)
 	{
-		t = t / d - 1;
+		t = t / d - 1.0f;
 		return -c * (t*t*t*t - 1) + b;
 	}
 	float InOutQuart(float c, float b, float t, float d)
@@ -393,8 +393,8 @@ private:
 	}
 	float OutCirc(float c, float b, float t, float d)
 	{
-		t /= d;
-		return c * FMath::Sqrt(1.0f - (t - 1.0f)*t) + b;
+		t = t / d - 1.0f;
+		return c * FMath::Sqrt(1.0f - t*t) + b;
 	}
 	float InOutCirc(float c, float b, float t, float d)
 	{
