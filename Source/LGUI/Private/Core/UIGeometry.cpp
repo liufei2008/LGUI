@@ -7,6 +7,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUIFontData.h"
+#include "RichTextParser.h"
 
 
 #pragma region UISprite_UITexture_Simple
@@ -418,17 +419,16 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 
 #pragma region UIText
 void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
-	, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
+	, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
+	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas
-	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font)
+	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText)
 {
 	//vertex and triangle
-	UpdateUITextVertexOrUV(content, visibleCharCount, width, height, pivot, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, cacheTextPropertyList, font);
+	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, cacheTextPropertyList, font, richText);
 	uiGeo->originVerticesCount = uiGeo->vertices.Num();
 	uiGeo->originTriangleCount = uiGeo->triangles.Num();
-	//colors
-	UpdateUIColor(uiGeo, color);
 
 	int32 vertexCount = uiGeo->originVerticesCount;
 	//normals
@@ -471,33 +471,56 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	}
 }
 
-void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot, FVector2D fontSpace
-	, TSharedPtr<UIGeometry> uiGeo, float fontSize, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
+void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
+	, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
+	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas
-	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font)
+	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText)
 {
 	bool pixelPerfect = renderCanvas->GetPixelPerfect();
 	bool dynamicPixelsPerUnitIsNot1 = renderCanvas->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
-	if (pixelPerfect)
+
+	auto GetAdjustedFontSize = [&](float inFontSize)
 	{
-		fontSize = fontSize / renderCanvas->GetViewportUIScale();
-		fontSize = FMath::Min(fontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
-	}
-	else if (dynamicPixelsPerUnitIsNot1)
-	{
-		fontSize = fontSize * renderCanvas->GetDynamicPixelsPerUnit();
-		fontSize = FMath::Min(fontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
-	}
-	float charFixOffset = fontSize * (font->fixedVerticalOffset - 0.25f);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
+		float adjustedFontSize = inFontSize;
+		if (pixelPerfect)
+		{
+			adjustedFontSize = adjustedFontSize / renderCanvas->GetViewportUIScale();
+			adjustedFontSize = FMath::Min(adjustedFontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
+		}
+		else if (dynamicPixelsPerUnitIsNot1)
+		{
+			adjustedFontSize = adjustedFontSize * renderCanvas->GetDynamicPixelsPerUnit();
+			adjustedFontSize = FMath::Min(adjustedFontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
+		}
+		return adjustedFontSize;
+	};
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
 
+	//rich text
+	using namespace LGUIRichTextParser;
+	static RichTextParser richTextParser;
+	RichTextParseResult richTextParseResult;
+	if (richText)
+	{
+		richTextParser.Clear();
+		richTextParser.Prepare(fontSize, color, bold, italic, richTextParseResult);
+	}
+
+	auto GetCharFixedOffset = [font](float fontSize)
+	{
+		return fontSize * (font->fixedVerticalOffset - 0.25f);
+	};
+	float charFixedOffset = GetCharFixedOffset(fontSize);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
+
 	cacheTextPropertyList.Reset();
 	int contentLength = content.Len();
 	FVector2D currentLineOffset(0, 0);
-	float currentLineWidth = 0, paragraphHeight = 0;//single line width, all line height
+	float currentLineWidth = 0, currentLineHeight = fontSize, paragraphHeight = 0;//single line width, height, all line height
+	float firstLineHeight = fontSize;//first line height
 	float maxLineWidth = 0;//if have multiple line
 	int lineUIGeoVertStart = 0;//vertex index in originPositions of current line
 	int visibleCharIndex = 0;//visible char index, skip invisible char(\n,\t)
@@ -505,7 +528,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 	FVector2D caretPosition(0, 0);
 	float halfFontSize = fontSize * 0.5f;
 	float halfFontSpaceX = fontSpace.X * 0.5f;
-	bool haveMultipleLine = false;
+	int linesCount = 0;//how many lines, default is 1
 
 	int verticesCount = 0;
 	auto& originPositions = uiGeo->originPositions;
@@ -548,59 +571,73 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 	{
 		//add end caret position
 		currentLineWidth -= fontSpace.X;//last char of a line don't need space
-		maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
-		FUITextCharProperty charProperty;
-		charProperty.caretPosition = caretPosition;
-		charProperty.charIndex = charIndex;
-		sentenceProperty.charPropertyList.Add(charProperty);
+		maxLineWidth = FMath::Max(maxLineWidth, currentLineWidth);
 
-		AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions, sentenceProperty);
+		if (richText)
+		{
+			AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions);
+		}
+		else
+		{
+			FUITextCharProperty charProperty;
+			charProperty.caretPosition = caretPosition;
+			charProperty.charIndex = charIndex;
+			sentenceProperty.charPropertyList.Add(charProperty);
+
+			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions, sentenceProperty);
+
+			cacheTextPropertyList.Add(sentenceProperty);
+			sentenceProperty = FUITextLineProperty();
+		}
 		lineUIGeoVertStart = verticesCount;
-		cacheTextPropertyList.Add(sentenceProperty);
-
-		sentenceProperty = FUITextLineProperty();
 
 		currentLineWidth = 0;
 		currentLineOffset.X = 0;
-		currentLineOffset.Y -= fontSize + fontSpace.Y;
-		paragraphHeight += fontSize + fontSpace.Y;
-		haveMultipleLine = true;
+		currentLineOffset.Y -= (richText ? currentLineHeight : fontSize) + fontSpace.Y;
+		paragraphHeight += (richText ? currentLineHeight : fontSize) + fontSpace.Y;
+		linesCount++;
 
 		//set caret position for empty newline
-		caretPosition.X = currentLineOffset.X - halfFontSpaceX;
-		caretPosition.Y = currentLineOffset.Y;
+		if (!richText)
+		{
+			caretPosition.X = currentLineOffset.X - halfFontSpaceX;
+			caretPosition.Y = currentLineOffset.Y;
+		}
+		//set line height to origin
+		firstLineHeight = richText ? currentLineHeight : fontSize;
+		currentLineHeight = fontSize;
 	};
 
-	auto GetCharGeo = [&](TCHAR charCode)
+	auto GetCharGeo = [&](TCHAR charCode, int overrideFontSize, bool overrideBold, bool overrideItalic)
 	{
 		FUITextCharGeometry charGeo;
 		if (charCode == ' ')
 		{
-			charGeo.xadvance = halfFontSize;
+			charGeo.xadvance = overrideFontSize * 0.5f;
 			charGeo.geoWidth = charGeo.geoHeight = 0;
 			charGeo.xoffset = charGeo.yoffset = 0;
 			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
 		}
 		else if (charCode == '\t')
 		{
-			charGeo.xadvance = fontSize + fontSize;
+			charGeo.xadvance = overrideFontSize + overrideFontSize;
 			charGeo.geoWidth = charGeo.geoHeight = 0;
 			charGeo.xoffset = charGeo.yoffset = 0;
 			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
 		}
 		else
 		{
-			auto charData = font->GetCharData(charCode, (uint16)fontSize, bold, italic);
+			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, overrideBold, overrideItalic);
 			charGeo.geoWidth = charData->width;
 			charGeo.geoHeight = charData->height;
 			charGeo.xadvance = charData->xadvance;
 			charGeo.xoffset = charData->xoffset;
-			charGeo.yoffset = charData->yoffset + charFixOffset;
+			charGeo.yoffset = charData->yoffset + (richText ? GetCharFixedOffset(overrideFontSize) : charFixedOffset);
 
 			auto overrideCharData = charData;
 			if (pixelPerfect || dynamicPixelsPerUnitIsNot1)
 			{
-				overrideCharData = font->GetCharData(charCode, (uint16)fontSize, bold, italic);
+				overrideCharData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize), overrideBold, overrideItalic);
 			}
 
 			charGeo.uv0 = overrideCharData->GetUV0();
@@ -610,10 +647,58 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 		}
 		return charGeo;
 	};
+	auto GetCharGeoXAdv = [&](TCHAR charCode, int overrideFontSize, bool overrideBold, bool overrideItalic)
+	{
+		if (charCode == ' ')
+		{
+			return (uint16)(overrideFontSize * 0.5f);
+		}
+		else if (charCode == '\t')
+		{
+			return (uint16)(overrideFontSize + overrideFontSize);
+		}
+		else
+		{
+			auto charData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize), overrideBold, overrideItalic);
+			return charData->xadvance;
+		}
+	};
+	auto GetUnderlineOrStrikethroughCharGeo = [&](TCHAR charCode, int overrideFontSize)
+	{
+		FUITextCharGeometry charGeo;
+		{
+			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, false, false);
+			charGeo.geoHeight = charData->height;
+			charGeo.xoffset = charData->xoffset;
+			charGeo.yoffset = charData->yoffset + GetCharFixedOffset(overrideFontSize);
+
+			float uvX = (charData->uv3X - charData->uv0X) * 0.5f + charData->uv0X;
+			charGeo.uv0 = charGeo.uv1 = FVector2D(uvX, charData->uv0Y);
+			charGeo.uv2 = charGeo.uv3 = FVector2D(uvX, charData->uv3Y);
+		}
+		return charGeo;
+	};
 
 	for (int charIndex = 0; charIndex < contentLength; charIndex++)
 	{
 		auto charCode = content[charIndex];
+		//rich text
+		if (richText)
+		{
+			while (richTextParser.Parse(content, contentLength, charIndex, richTextParseResult))
+			{
+				if (charIndex < contentLength)
+				{
+					charCode = content[charIndex];
+				}
+				else
+				{
+					break;
+				}
+			}
+			if (charIndex >= contentLength)break;
+		}
+
 		if (charCode == '\n' || charCode == '\r')//10 -- \n, 13 -- \r
 		{
 			NewLine(charIndex);
@@ -636,10 +721,12 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 				newLineMode = NewLineMode::None;
 			}
 		}
-
-
-		auto charGeo = GetCharGeo(charCode);
+		
+		auto charGeo = richText 
+			? GetCharGeo(charCode, richTextParseResult.size, richTextParseResult.bold, richTextParseResult.italic)
+			: GetCharGeo(charCode, fontSize, bold, italic);
 		//caret property
+		if (!richText)
 		{
 			caretPosition.X = currentLineOffset.X - halfFontSpaceX;
 			caretPosition.Y = currentLineOffset.Y;
@@ -655,7 +742,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 		{
 			if (overflowType == UITextOverflowType::VerticalOverflow)//char is space and UIText can have multi line, then we need to calculate if the followed word can fit the rest space, if not means new line
 			{
-				float spaceNeeded = halfFontSize;//space
+				float spaceNeeded = richText ? richTextParseResult.size * 0.5f : halfFontSize;//space
 				spaceNeeded += fontSpace.X;
 				for (int forwardCharIndex = charIndex + 1, forwardVisibleCharIndex = visibleCharIndex + 1; forwardCharIndex < contentLength && forwardVisibleCharIndex < visibleCharCount; forwardCharIndex++)
 				{
@@ -668,7 +755,9 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 					{
 						break;
 					}
-					spaceNeeded += GetCharGeo(charCodeOfForwardChar).xadvance;
+					spaceNeeded += richText
+						? GetCharGeoXAdv(charCodeOfForwardChar, richTextParseResult.size, richTextParseResult.bold, richTextParseResult.italic)
+						: GetCharGeoXAdv(charCodeOfForwardChar, fontSize, bold, italic);
 					spaceNeeded += fontSpace.X;
 					forwardVisibleCharIndex++;
 				}
@@ -682,48 +771,186 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 			}
 		}
 
-		if (charCode != ' ' && charCode != '\t')//char geometry
+		float charWidth = charGeo.xadvance + fontSpace.X;
+		//char geometry
+		if (charCode != ' ' && charCode != '\t')
 		{
-			CheckVertices(4);
-			CheckIndices(6);
+			if (richText)
+			{
+				currentLineHeight = FMath::Max(currentLineHeight, richTextParseResult.size);
 
-			//position
-			{
-				FVector2D offset = currentLineOffset + FVector2D(charGeo.xoffset, charGeo.yoffset);
-				float x = offset.X;
-				float y = offset.Y - charGeo.geoHeight;
-				originPositions[verticesCount] = FVector(x, y, 0);
-				x = charGeo.geoWidth + offset.X;
-				originPositions[verticesCount + 1] = FVector(x, y, 0);
-				x = offset.X;
-				y = offset.Y;
-				originPositions[verticesCount + 2] = FVector(x, y, 0);
-				x = charGeo.geoWidth + offset.X;
-				originPositions[verticesCount + 3] = FVector(x, y, 0);
+				int additionalVerticesCount = 4;
+				int additionalIndicesCount = 6;
+				FUITextCharGeometry underlineOrStrikethroughCharGeo;
+				if (richTextParseResult.underline)
+				{
+					additionalVerticesCount = 8;
+					additionalIndicesCount = 12;
+					underlineOrStrikethroughCharGeo = GetUnderlineOrStrikethroughCharGeo('_', richTextParseResult.size);
+				}
+				if (richTextParseResult.strikethrough)
+				{
+					additionalVerticesCount = 8;
+					additionalIndicesCount = 12;
+					underlineOrStrikethroughCharGeo = GetUnderlineOrStrikethroughCharGeo('-', richTextParseResult.size);
+				}
+				CheckVertices(additionalVerticesCount);
+				CheckIndices(additionalIndicesCount);
+
+				//position
+				{
+					auto lineOffset = currentLineOffset;
+					if (richTextParseResult.supOrSubMode == LGUIRichTextParser::SupOrSubMode::Sup)
+					{
+						lineOffset.Y += richTextParseResult.size * 0.5f;
+					}
+					else if (richTextParseResult.supOrSubMode == LGUIRichTextParser::SupOrSubMode::Sub)
+					{
+						lineOffset.Y -= richTextParseResult.size * 0.5f;
+					}
+					float offsetX = lineOffset.X + charGeo.xoffset;
+					float offsetY = lineOffset.Y + charGeo.yoffset;
+					float x = offsetX;
+					float y = offsetY - charGeo.geoHeight;
+					originPositions[verticesCount] = FVector(x, y, 0);
+					x = charGeo.geoWidth + offsetX;
+					originPositions[verticesCount + 1] = FVector(x, y, 0);
+					x = offsetX;
+					y = offsetY;
+					originPositions[verticesCount + 2] = FVector(x, y, 0);
+					x = charGeo.geoWidth + offsetX;
+					originPositions[verticesCount + 3] = FVector(x, y, 0);
+
+					if (richTextParseResult.underline)
+					{
+						offsetX = lineOffset.X;
+						offsetY = lineOffset.Y + underlineOrStrikethroughCharGeo.yoffset;
+						x = offsetX;
+						y = offsetY - underlineOrStrikethroughCharGeo.geoHeight;
+						originPositions[verticesCount + 4] = FVector(x, y, 0);
+						x = charWidth + offsetX;
+						originPositions[verticesCount + 5] = FVector(x, y, 0);
+						x = offsetX;
+						y = offsetY;
+						originPositions[verticesCount + 6] = FVector(x, y, 0);
+						x = charWidth + offsetX;
+						originPositions[verticesCount + 7] = FVector(x, y, 0);
+					}
+					if (richTextParseResult.strikethrough)
+					{
+						offsetX = lineOffset.X;
+						offsetY = lineOffset.Y + underlineOrStrikethroughCharGeo.yoffset;
+						x = offsetX;
+						y = offsetY - underlineOrStrikethroughCharGeo.geoHeight;
+						originPositions[verticesCount + 4] = FVector(x, y, 0);
+						x = charWidth + offsetX;
+						originPositions[verticesCount + 5] = FVector(x, y, 0);
+						x = offsetX;
+						y = offsetY;
+						originPositions[verticesCount + 6] = FVector(x, y, 0);
+						x = charWidth + offsetX;
+						originPositions[verticesCount + 7] = FVector(x, y, 0);
+					}
+				}
+				//uv
+				{
+					vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
+					vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
+					vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
+					vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+					if (richTextParseResult.underline || richTextParseResult.strikethrough)
+					{
+						vertices[verticesCount + 4].TextureCoordinate[0] = underlineOrStrikethroughCharGeo.uv0;
+						vertices[verticesCount + 5].TextureCoordinate[0] = underlineOrStrikethroughCharGeo.uv1;
+						vertices[verticesCount + 6].TextureCoordinate[0] = underlineOrStrikethroughCharGeo.uv2;
+						vertices[verticesCount + 7].TextureCoordinate[0] = underlineOrStrikethroughCharGeo.uv3;
+					}
+				}
+				//color
+				{
+					vertices[verticesCount].Color = richTextParseResult.color;
+					vertices[verticesCount + 1].Color = richTextParseResult.color;
+					vertices[verticesCount + 2].Color = richTextParseResult.color;
+					vertices[verticesCount + 3].Color = richTextParseResult.color;
+					if (richTextParseResult.underline || richTextParseResult.strikethrough)
+					{
+						vertices[verticesCount + 4].Color = richTextParseResult.color;
+						vertices[verticesCount + 5].Color = richTextParseResult.color;
+						vertices[verticesCount + 6].Color = richTextParseResult.color;
+						vertices[verticesCount + 7].Color = richTextParseResult.color;
+					}
+				}
+				//triangle
+				{
+					triangles[indicesCount] = verticesCount;
+					triangles[indicesCount + 1] = verticesCount + 3;
+					triangles[indicesCount + 2] = verticesCount + 2;
+					triangles[indicesCount + 3] = verticesCount;
+					triangles[indicesCount + 4] = verticesCount + 1;
+					triangles[indicesCount + 5] = verticesCount + 3;
+					if (richTextParseResult.underline || richTextParseResult.strikethrough)
+					{
+						triangles[indicesCount + 6] = verticesCount + 4;
+						triangles[indicesCount + 7] = verticesCount + 7;
+						triangles[indicesCount + 8] = verticesCount + 6;
+						triangles[indicesCount + 9] = verticesCount + 4;
+						triangles[indicesCount + 10] = verticesCount + 5;
+						triangles[indicesCount + 11] = verticesCount + 7;
+					}
+				}
+
+				verticesCount += additionalVerticesCount;
+				indicesCount += additionalIndicesCount;
 			}
-			//uv
+			else
 			{
-				vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
-				vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
-				vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
-				vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+				CheckVertices(4);
+				CheckIndices(6);
+
+				//position
+				{
+					float offsetX = currentLineOffset.X + charGeo.xoffset;
+					float offsetY = currentLineOffset.Y + charGeo.yoffset;
+					float x = offsetX;
+					float y = offsetY - charGeo.geoHeight;
+					originPositions[verticesCount] = FVector(x, y, 0);
+					x = charGeo.geoWidth + offsetX;
+					originPositions[verticesCount + 1] = FVector(x, y, 0);
+					x = offsetX;
+					y = offsetY;
+					originPositions[verticesCount + 2] = FVector(x, y, 0);
+					x = charGeo.geoWidth + offsetX;
+					originPositions[verticesCount + 3] = FVector(x, y, 0);
+				}
+				//uv
+				{
+					vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
+					vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
+					vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
+					vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+				}
+				//color
+				{
+					vertices[verticesCount].Color = color;
+					vertices[verticesCount + 1].Color = color;
+					vertices[verticesCount + 2].Color = color;
+					vertices[verticesCount + 3].Color = color;
+				}
+				//triangle
+				{
+					triangles[indicesCount] = verticesCount;
+					triangles[indicesCount + 1] = verticesCount + 3;
+					triangles[indicesCount + 2] = verticesCount + 2;
+					triangles[indicesCount + 3] = verticesCount;
+					triangles[indicesCount + 4] = verticesCount + 1;
+					triangles[indicesCount + 5] = verticesCount + 3;
+				}
+				verticesCount += 4;
+				indicesCount += 6;
 			}
-			//triangle
-			{
-				triangles[indicesCount] = verticesCount;
-				triangles[indicesCount + 1] = verticesCount + 3;
-				triangles[indicesCount + 2] = verticesCount + 2;
-				triangles[indicesCount + 3] = verticesCount;
-				triangles[indicesCount + 4] = verticesCount + 1;
-				triangles[indicesCount + 5] = verticesCount + 3;
-			}
-			verticesCount += 4;
-			indicesCount += 6;
 			visibleCharIndex++;
 		}
 
-
-		float charWidth = charGeo.xadvance + fontSpace.X;
 		currentLineOffset.X += charWidth;
 		currentLineWidth += charWidth;
 
@@ -739,7 +966,9 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 			case UITextOverflowType::VerticalOverflow://vertical overflow
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
-				int nextCharXAdv = nextCharXAdv = GetCharGeo(content[charIndex + 1]).xadvance;
+				int nextCharXAdv = nextCharXAdv = richText
+					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size, richTextParseResult.bold, richTextParseResult.italic)
+					: GetCharGeoXAdv(content[charIndex + 1], fontSize, bold, italic);
 				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 				{
 					auto nextChar = content[charIndex + 1];
@@ -805,7 +1034,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 	break;
 	case UITextOverflowType::VerticalOverflow://vertical overflow
 	{
-		if (haveMultipleLine)
+		if (linesCount > 1)
 			textRealSize.X = width;
 		else
 			textRealSize.X = maxLineWidth;
@@ -828,7 +1057,6 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 	float pivotOffsetX = width * (0.5f - pivot.X);
 	float pivotOffsetY = height * (0.5f - pivot.Y);
 	float xOffset = pivotOffsetX;
-	float yOffset = pivotOffsetY - halfFontSize;
 	switch (paragraphHAlign)
 	{
 	case UITextParagraphHorizontalAlign::Left:
@@ -841,6 +1069,7 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 		xOffset += width * 0.5f;
 		break;
 	}
+	float yOffset = pivotOffsetY - firstLineHeight * 0.5f;
 	switch (paragraphVAlign)
 	{
 	case UITextParagraphVerticalAlign::Top:
@@ -853,28 +1082,31 @@ void UIGeometry::UpdateUITextVertexOrUV(FString& content, int32 visibleCharCount
 		yOffset += paragraphHeight - height * 0.5f;
 		break;
 	}
-	//cache property
-	for (auto& sentenceItem : cacheTextPropertyList)
+	//caret property
+	if (!richText)
 	{
-		for (auto& charItem : sentenceItem.charPropertyList)
+		for (auto& sentenceItem : cacheTextPropertyList)
 		{
-			charItem.caretPosition.X += xOffset;
-			charItem.caretPosition.Y += yOffset;
+			for (auto& charItem : sentenceItem.charPropertyList)
+			{
+				charItem.caretPosition.X += xOffset;
+				charItem.caretPosition.Y += yOffset;
+			}
 		}
 	}
 	UIGeometry::OffsetVertices(originPositions, xOffset, yOffset);
 }
 
-void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float sentenceWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty)
+void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty)
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
 	{
 	case UITextParagraphHorizontalAlign::Center:
-		xOffset = -sentenceWidth * 0.5f;
+		xOffset = -lineWidth * 0.5f;
 		break;
 	case UITextParagraphHorizontalAlign::Right:
-		xOffset = -sentenceWidth;
+		xOffset = -lineWidth;
 		break;
 	}
 
@@ -888,6 +1120,25 @@ void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlig
 	for (auto& item : charList)
 	{
 		item.caretPosition.X += xOffset;
+	}
+}
+void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices)
+{
+	float xOffset = 0;
+	switch (pivotHAlign)
+	{
+	case UITextParagraphHorizontalAlign::Center:
+		xOffset = -lineWidth * 0.5f;
+		break;
+	case UITextParagraphHorizontalAlign::Right:
+		xOffset = -lineWidth;
+		break;
+	}
+
+	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
+	{
+		auto& vertex = vertices[i];
+		vertex.X += xOffset;
 	}
 }
 

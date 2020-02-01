@@ -75,6 +75,11 @@ void UUITextInputComponent::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	if (TextActor != nullptr)
 	{
 		TextActor->GetUIText()->SetOverflowType(bAllowMultiLine ? UITextOverflowType::VerticalOverflow : UITextOverflowType::HorizontalOverflow);
+		if (TextActor->GetUIText()->GetRichText() == true)
+		{
+			TextActor->GetUIText()->SetRichText(false);//rich text not support input
+			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::PostEditChangeProperty]RichText not support with TextInput! Set it to false."));
+		}
 	}
 	UpdateUITextComponent();
 	UpdatePlaceHolderComponent();
