@@ -231,7 +231,5 @@ public:
 
 	//range selection
 	void GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSelectionEndCaretIndex, TArray<FUITextSelectionProperty>& OutSelectionProeprtyArray);
-	//line count, return 0 means no char
-	int GetLineCount();
 #pragma endregion UITextInputComponent
 };
