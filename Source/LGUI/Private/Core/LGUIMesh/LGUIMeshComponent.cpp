@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
-#include "LGUIMeshComponent.h"
+#include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "DynamicMeshBuilder.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "Containers/ResourceArray.h"

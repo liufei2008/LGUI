@@ -36,7 +36,9 @@ void UUIText::ApplyFontTextureScaleUp()
 	geometry->texture = font->texture;
 	if (CheckRenderCanvas())
 	{
-		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
+		//RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
+		//RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+		RenderCanvas->MarkRebuildAllDrawcall();
 	}
 }
 
