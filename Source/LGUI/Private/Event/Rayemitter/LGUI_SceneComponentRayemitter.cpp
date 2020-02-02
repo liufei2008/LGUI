@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #include "Event/Rayemitter/LGUI_SceneComponentRayEmitter.h"
+#include "LGUI.h"
 
 ULGUI_SceneComponentRayEmitter::ULGUI_SceneComponentRayEmitter()
 {

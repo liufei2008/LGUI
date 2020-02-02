@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #include "Event/Rayemitter/LGUIBaseRayEmitter.h"
+#include "LGUI.h"
 
 
 ULGUIBaseRayEmitter::ULGUIBaseRayEmitter()
