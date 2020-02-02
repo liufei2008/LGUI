@@ -339,10 +339,8 @@ void UUIText::SetParagraphVerticalAlignment(UITextParagraphVerticalAlign newVAli
 void UUIText::SetOverflowType(UITextOverflowType newOverflowType) {
 	if (overflowType != newOverflowType)
 	{
-		if (overflowType == UITextOverflowType::ClampContentLeft 
-			|| overflowType == UITextOverflowType::ClampContentRight
-			|| newOverflowType == UITextOverflowType::ClampContentLeft
-			|| newOverflowType == UITextOverflowType::ClampContentRight
+		if (overflowType == UITextOverflowType::ClampContent
+			|| newOverflowType == UITextOverflowType::ClampContent
 			)
 			MarkTriangleDirty();
 		else

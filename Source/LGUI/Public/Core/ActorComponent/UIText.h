@@ -32,12 +32,12 @@ enum class UITextFontStyle :uint8
 UENUM(BlueprintType)
 enum class UITextOverflowType :uint8
 {
+	//chars will go out of rect range horizontally
 	HorizontalOverflow,
+	//chars will go out of rect range vertically
 	VerticalOverflow,
-	//remove chars left if out of range
-	ClampContentLeft,
-	//remove chars right if out of range
-	ClampContentRight,
+	//remove chars on right if out of range
+	ClampContent,
 };
 
 //single char property
