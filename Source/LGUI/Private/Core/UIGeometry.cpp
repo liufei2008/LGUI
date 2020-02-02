@@ -958,12 +958,12 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		{
 			switch (overflowType)
 			{
-			case UITextOverflowType::HorizontalOverflow://horizontal overflow
+			case UITextOverflowType::HorizontalOverflow:
 			{
 				//no need to do anything
 			}
 			break;
-			case UITextOverflowType::VerticalOverflow://vertical overflow
+			case UITextOverflowType::VerticalOverflow:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = nextCharXAdv = richText
@@ -985,32 +985,24 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 				}
 			}
 			break;
-			case UITextOverflowType::ClampContentLeft://clamp content left
+			case UITextOverflowType::ClampContent:
 			{
-				//@todo
-			}
-			break;
-			case UITextOverflowType::ClampContentRight://clamp content right
-			{
-				//@todo
-				//if (charIndex + 1 == contentLength)continue;//last char
-				//int nextCharXAdv = nextCharXAdv = GetCharGeo(content[charIndex + 1]).xadvance;
-				//if (currentLineOffset.X + nextCharXAdv > width)//discard out-of-range chars
-				//{
-				//	currentLineWidth -= fontSpace.X;//last char don't need space
-				//	maxLineWidth = maxLineWidth < currentLineWidth ? currentLineWidth : maxLineWidth;
-				//	AlignUITextLineVertex(paragraphHAlign, currentLineWidth, currentLineUIGeoVertexList, sentenceProperty);
-				//	paragraphHeight += fontSize;
-				//	cacheTextPropertyList.Add(sentenceProperty);
-				//	//set rest char's position to invisible
-				//	int verticesCount = originPositions.Num();
-				//	for (int vertIndex = visibleCharIndex * 4; vertIndex < verticesCount; vertIndex++)
-				//	{
-				//		originPositions[vertIndex] = FVector::ZeroVector;
-				//	}
-
-				//	charIndex = contentLength;//break the main loop
-				//}
+				if (charIndex + 1 == contentLength)continue;//last char
+				int nextCharXAdv = richText
+					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size, richTextParseResult.bold, richTextParseResult.italic)
+					: GetCharGeoXAdv(content[charIndex + 1], fontSize, bold, italic);
+				if (currentLineOffset.X + nextCharXAdv > width)//horizontal cannot fit next char
+				{
+					//@todo: ClampContent mode may cause triangle change if UIText's width change
+					//set rest char's position to invisible
+					int allVerticesCount = originPositions.Num();
+					for (int vertIndex = verticesCount; vertIndex < allVerticesCount; vertIndex++)
+					{
+						originPositions[vertIndex] = FVector::ZeroVector;
+					}
+					//break the main loop
+					charIndex = contentLength;
+				}
 			}
 			break;
 			}
@@ -1022,7 +1014,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 	
 	switch (overflowType)
 	{
-	case UITextOverflowType::HorizontalOverflow://horizontal overflow
+	case UITextOverflowType::HorizontalOverflow:
 	{
 		textRealSize.X = maxLineWidth;
 		textRealSize.Y = paragraphHeight;
@@ -1032,7 +1024,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 	}
 	break;
-	case UITextOverflowType::VerticalOverflow://vertical overflow
+	case UITextOverflowType::VerticalOverflow:
 	{
 		if (linesCount > 1)
 			textRealSize.X = width;
@@ -1045,7 +1037,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 	}
 	break;
-	case UITextOverflowType::ClampContentLeft://clamp content
+	case UITextOverflowType::ClampContent:
 	{
 		textRealSize.X = maxLineWidth;
 		textRealSize.Y = paragraphHeight;
