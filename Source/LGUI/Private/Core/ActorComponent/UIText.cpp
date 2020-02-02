@@ -724,9 +724,3 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 		OutSelectionProeprtyArray.Add(selectionProperty);
 	}
 }
-int UUIText::GetLineCount()
-{
-	if (text.Len() == 0)return 0;
-	CheckCachedTextPropertyList();
-	return cachedTextPropertyList.Num();
-}
