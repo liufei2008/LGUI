@@ -124,25 +124,25 @@ private:
 	UPROPERTY(Transient) APlayerController* PlayerController = nullptr;
 	bool CheckPlayerController();
 	bool bInputActive = false;
-	int CaretPositionIndex = 0;//Caret positin index, equal to char index. caret is on left side of char
-	int CaretPositionLineIndex = 0;//caret position line index in text
+	//Caret position of full text. caret is on left side of char
+	int CaretPositionIndex = 0;
+	//caret position line index of full text
+	int CaretPositionLineIndex = 0;
 	float NextCaretBlinkTime = 0;
 	float ElapseTime = 0;
 	void BackSpace();
 	void ForwardSpace();
 	void MoveToStart();
 	void MoveToEnd();
-	void MoveLeft();
-	void MoveRight();
-	void MoveUp();
-	void MoveDown();
-	void SelectionMoveLeft();
-	void SelectionMoveRight();
-	void SelectionMoveUp();
-	void SelectionMoveDown();
+	void MoveLeft(bool withSelection);
+	void MoveRight(bool withSelection);
+	void MoveUp(bool withSelection);
+	void MoveDown(bool withSelection);
 	void Copy();
 	void Paste();
 	void Cut();
+
+	void UpdateAfterTextChange();
 
 	void FireOnValueChangeEvent();
 	void UpdateUITextComponent();
@@ -159,9 +159,7 @@ private:
 	TArray<FUITextSelectionProperty> SelectionPropertyArray;//range selection
 	int VisibleCharStartIndex = 0;//in single line mode, will clamp text if out of range. this is left start index of visible char
 	int VisibleCharStartLineIndex = 0;//in multi line mode, will clamp text line if out of range. this is top start line index of visible char
-	int LineCount = 0;//actural line count, not just UIText's display line count
-	//update caret line index when text change
-	void UpdateCaretPositionLineIndex();
+	int MaxVisibleLineCount = 0;//max visible line count that can fit in rect
 
 	FVector PressMousePosition = FVector(0, 0, 0);//mouse position when press, world space
 	FVector2D PressCaretPosition = FVector2D(0, 0);//caret position when press, UIText space
