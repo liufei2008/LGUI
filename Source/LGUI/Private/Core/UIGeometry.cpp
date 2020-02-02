@@ -579,7 +579,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		else
 		{
-			FUITextCharProperty charProperty;
+			FUITextCaretProperty charProperty;
 			charProperty.caretPosition = caretPosition;
 			charProperty.charIndex = charIndex;
 			sentenceProperty.charPropertyList.Add(charProperty);
@@ -730,7 +730,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		{
 			caretPosition.X = currentLineOffset.X - halfFontSpaceX;
 			caretPosition.Y = currentLineOffset.Y;
-			FUITextCharProperty charProperty;
+			FUITextCaretProperty charProperty;
 			charProperty.caretPosition = caretPosition;
 			charProperty.charIndex = charIndex;
 			sentenceProperty.charPropertyList.Add(charProperty);
