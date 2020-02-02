@@ -729,7 +729,7 @@ void UUITextInputComponent::MoveUp()
 		FVector2D caretPosition(CaretObject->RelativeLocation);
 		TextActor->GetUIText()->FindCaretUp(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
-		UpdateCaretPosition();
+		UpdateCaretPosition(caretPosition, true);
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
@@ -745,7 +745,7 @@ void UUITextInputComponent::MoveDown()
 		FVector2D caretPosition(CaretObject->RelativeLocation);
 		TextActor->GetUIText()->FindCaretDown(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
-		UpdateCaretPosition();
+		UpdateCaretPosition(caretPosition, true);
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
@@ -807,7 +807,7 @@ void UUITextInputComponent::SelectionMoveUp()
 		}
 		TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 		UpdateSelection();
-		UpdateCaretPosition(false);
+		UpdateCaretPosition(caretPosition, false);
 	}
 }
 void UUITextInputComponent::SelectionMoveDown()
@@ -830,7 +830,7 @@ void UUITextInputComponent::SelectionMoveDown()
 		}
 		TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 		UpdateSelection();
-		UpdateCaretPosition(false);
+		UpdateCaretPosition(caretPosition, false);
 	}
 }
 
@@ -968,9 +968,12 @@ void UUITextInputComponent::UpdateUITextComponent()
 		uiText->SetText(replaceText);
 		
 #if WITH_EDITOR
-		if (!this->GetWorld()->IsGameWorld())
+		if (auto world = this->GetWorld())
 		{
-			uiText->EditorForceUpdateImmediately();
+			if (world->WorldType == EWorldType::Editor || world->WorldType == EWorldType::EditorPreview)
+			{
+				uiText->EditorForceUpdateImmediately();
+			}
 		}
 #endif
 	}
