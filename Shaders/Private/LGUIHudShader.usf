@@ -79,7 +79,12 @@ void MainVS(
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
 
-#if OUTPUT_GAMMA_SPACE && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
+#if (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)  && !MOBILE_EMULATION
+	// The GLES target has a flipped Y axis
+	Position.y = -Position.y;
+#endif
+
+#if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
 	Output.Position.y *= -1;
 #endif
 }
