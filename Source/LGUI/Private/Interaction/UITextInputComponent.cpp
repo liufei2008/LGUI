@@ -167,33 +167,33 @@ void UUITextInputComponent::AnyKeyPressed()
 	else if (PlayerController->IsInputKeyDown(EKeys::Left))
 	{
 		if (shiftOnly)
-			SelectionMoveLeft();
+			MoveLeft(true);
 		else
-			MoveLeft();
+			MoveLeft(false);
 		return;
 	}
 	else if (PlayerController->IsInputKeyDown(EKeys::Right))
 	{
 		if (shiftOnly)
-			SelectionMoveRight();
+			MoveRight(true);
 		else
-			MoveRight();
+			MoveRight(false);
 		return;
 	}
 	else if (PlayerController->IsInputKeyDown(EKeys::Up))
 	{
 		if (shiftOnly)
-			SelectionMoveUp();
+			MoveUp(true);
 		else
-			MoveUp();
+			MoveUp(false);
 		return;
 	}
 	else if (PlayerController->IsInputKeyDown(EKeys::Down))
 	{
 		if (shiftOnly)
-			SelectionMoveDown();
+			MoveDown(true);
 		else
-			MoveDown();
+			MoveDown(false);
 		return;
 	}
 	//Submit
@@ -556,12 +556,7 @@ void UUITextInputComponent::AppendChar(char c)
 	}
 	Text.InsertAt(CaretPositionIndex, c);
 	CaretPositionIndex++;
-	UpdateCaretPositionLineIndex();
-	UpdateUITextComponent();
-	UpdateCaretPosition();
-	UpdateInputComposition();
-	UpdatePlaceHolderComponent();
-	FireOnValueChangeEvent();
+	UpdateAfterTextChange();
 	PressCaretPositionIndex = CaretPositionIndex;
 }
 void UUITextInputComponent::BackSpace()
@@ -572,12 +567,7 @@ void UUITextInputComponent::BackSpace()
 		{
 			CaretPositionIndex--;
 			Text.RemoveAt(CaretPositionIndex);
-			UpdateCaretPositionLineIndex();
-			UpdateUITextComponent();
-			UpdateCaretPosition();
-			UpdateInputComposition();
-			UpdatePlaceHolderComponent();
-			FireOnValueChangeEvent();
+			UpdateAfterTextChange();
 			PressCaretPositionIndex = CaretPositionIndex;
 		}
 	}
@@ -586,12 +576,7 @@ void UUITextInputComponent::BackSpace()
 		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
 		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
 		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		UpdateCaretPositionLineIndex();
-		UpdateUITextComponent();
-		UpdateCaretPosition();
-		UpdateInputComposition();
-		UpdatePlaceHolderComponent();
-		FireOnValueChangeEvent();
+		UpdateAfterTextChange();
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
@@ -602,12 +587,7 @@ void UUITextInputComponent::ForwardSpace()
 		if (CaretPositionIndex < Text.Len())
 		{
 			Text.RemoveAt(CaretPositionIndex);
-			UpdateCaretPositionLineIndex();
-			UpdateUITextComponent();
-			UpdateCaretPosition();
-			UpdateInputComposition();
-			UpdatePlaceHolderComponent();
-			FireOnValueChangeEvent();
+			UpdateAfterTextChange();
 			PressCaretPositionIndex = CaretPositionIndex;
 		}
 	}
@@ -616,12 +596,7 @@ void UUITextInputComponent::ForwardSpace()
 		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
 		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
 		CaretPositionIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
-		UpdateCaretPositionLineIndex();
-		UpdateUITextComponent();
-		UpdateCaretPosition();
-		UpdateInputComposition();
-		UpdatePlaceHolderComponent();
-		FireOnValueChangeEvent();
+		UpdateAfterTextChange();
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
@@ -658,14 +633,9 @@ void UUITextInputComponent::Paste()
 	}
 
 	Text.InsertAt(CaretPositionIndex, pasteString);
-	CaretPositionIndex+= pasteString.Len();
-	UpdateCaretPositionLineIndex();
-	UpdateUITextComponent();
-	UpdateCaretPosition();
-	UpdateInputComposition();
-	UpdatePlaceHolderComponent();
-	FireOnValueChangeEvent();
-	PressCaretPositionIndex = CaretPositionIndex;
+	CaretPositionIndex = PressCaretPositionIndex = Text.Len();
+	UpdateAfterTextChange();
+	PressCaretPositionLineIndex = CaretPositionLineIndex;
 }
 void UUITextInputComponent::Cut()
 {
@@ -675,10 +645,27 @@ void UUITextInputComponent::Cut()
 		BackSpace();
 	}
 }
+void UUITextInputComponent::UpdateAfterTextChange()
+{
+	if (bAllowMultiLine)
+	{
+		if (TextActor != nullptr)
+		{
+			//set to full text, and find CaretPositionLineIndex
+			TextActor->GetUIText()->SetText(Text);
+			FVector2D caretPosition;
+			TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex);
+		}
+	}
+	UpdateUITextComponent();
+	UpdateCaretPosition();
+	UpdateInputComposition();
+	UpdatePlaceHolderComponent();
+	FireOnValueChangeEvent();
+}
 void UUITextInputComponent::MoveToStart()
 {
 	CaretPositionIndex = 0;
-	NextCaretBlinkTime = 0;//force display
 	UpdateUITextComponent();
 	UpdateCaretPosition();
 	UpdateInputComposition();
@@ -687,42 +674,70 @@ void UUITextInputComponent::MoveToStart()
 void UUITextInputComponent::MoveToEnd()
 {
 	CaretPositionIndex = Text.Len();
-	NextCaretBlinkTime = 0;//force display
 	UpdateUITextComponent();
 	UpdateCaretPosition();
 	UpdateInputComposition();
 	PressCaretPositionIndex = CaretPositionIndex;
 }
-void UUITextInputComponent::MoveLeft()
+void UUITextInputComponent::MoveLeft(bool withSelection)
 {
 	if (CaretPositionIndex > 0)
 	{
 		CaretPositionIndex--;
-		NextCaretBlinkTime = 0;//force display
 		UpdateUITextComponent();
-		UpdateCaretPosition();
+		UpdateCaretPosition(!withSelection);
 		UpdateInputComposition();
-		PressCaretPositionIndex = CaretPositionIndex;
+
+		if (withSelection)
+		{
+			int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
+			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().Len());
+			TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
+			UpdateSelection();
+		}
+		else
+		{
+			PressCaretPositionIndex = CaretPositionIndex;
+		}
 	}
 }
-void UUITextInputComponent::MoveRight()
+void UUITextInputComponent::MoveRight(bool withSelection)
 {
 	if (CaretPositionIndex < Text.Len())
 	{
 		CaretPositionIndex++;
-		NextCaretBlinkTime = 0;//force display
-		UpdateCaretPositionLineIndex();
+		if (bAllowMultiLine)//multiline should check vertical range
+		{
+			if (CaretPositionIndex - VisibleCharStartIndex > TextActor->GetUIText()->GetText().Len())//if caret is more than visible text
+			{
+				if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().Len() < Text.Len())//if have more lines
+				{
+					CaretPositionLineIndex++;
+				}
+			}
+		}
 		UpdateUITextComponent();
-		UpdateCaretPosition();
+		UpdateCaretPosition(!withSelection);
 		UpdateInputComposition();
-		PressCaretPositionIndex = CaretPositionIndex;
+
+		if (withSelection)
+		{
+			int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
+			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().Len());
+			TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
+			UpdateSelection();
+		}
+		else
+		{
+			PressCaretPositionIndex = CaretPositionIndex;
+		}
 	}
 }
-void UUITextInputComponent::MoveUp()
+void UUITextInputComponent::MoveUp(bool withSelection)
 {
 	if (TextActor != nullptr)
 	{
-		if (LineCount <= 1) return;//have one or zero line
+		if (!bAllowMultiLine)return;
 		if (CaretPositionLineIndex <= 0)return;//already at first line
 		CaretPositionLineIndex--;
 
@@ -730,118 +745,58 @@ void UUITextInputComponent::MoveUp()
 		FVector2D caretPosition(CaretObject->GetRelativeLocation());
 		TextActor->GetUIText()->FindCaretUp(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
-		UpdateCaretPosition(caretPosition, true);
-		PressCaretPositionIndex = CaretPositionIndex;
-	}
-}
-void UUITextInputComponent::MoveDown()
-{
-	if (TextActor != nullptr)
-	{
-		if (LineCount <= 1) return;//have one or zero line
-		if (CaretPositionLineIndex + 1 >= LineCount)return;//already at last line
-		CaretPositionLineIndex++;
+		UpdateCaretPosition(caretPosition, !withSelection);
 
-		UpdateUITextComponent();
-		FVector2D caretPosition(CaretObject->GetRelativeLocation());
-		TextActor->GetUIText()->FindCaretDown(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
-		CaretPositionIndex += VisibleCharStartIndex;
-		UpdateCaretPosition(caretPosition, true);
-		PressCaretPositionIndex = CaretPositionIndex;
-	}
-}
-void UUITextInputComponent::SelectionMoveLeft()
-{
-	if (CaretPositionIndex > 0)
-	{
-		CaretPositionIndex--;
-		if (TextActor != nullptr)
+		if (withSelection)
 		{
-			UpdateUITextComponent();
 			int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-			if (tempStartCaretPositionIndex > TextActor->GetUIText()->GetText().Len())
-			{
-				tempStartCaretPositionIndex = TextActor->GetUIText()->GetText().Len();
-			}
+			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().Len());
 			TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 			UpdateSelection();
-			UpdateCaretPosition(false);
+		}
+		else
+		{
+			PressCaretPositionIndex = CaretPositionIndex;
 		}
 	}
 }
-void UUITextInputComponent::SelectionMoveRight()
+void UUITextInputComponent::MoveDown(bool withSelection)
 {
-	if (CaretPositionIndex < Text.Len())
+	if (TextActor != nullptr)
 	{
-		CaretPositionIndex++;
-		UpdateCaretPositionLineIndex();
-		if (TextActor != nullptr)
+		if (!bAllowMultiLine)return;
+		if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().Len() >= Text.Len()//no more invisible line
+			&& CaretPositionLineIndex + 1 == MaxVisibleLineCount + VisibleCharStartLineIndex//and caret is at last line
+			)//move caret to last
 		{
+			CaretPositionIndex = Text.Len();
+
 			UpdateUITextComponent();
+			UpdateCaretPosition(!withSelection);
+		}
+		else//have invisible line, move caret down
+		{
+			CaretPositionLineIndex++;
+
+			UpdateUITextComponent();
+			FVector2D caretPosition(CaretObject->GetRelativeLocation());
+			TextActor->GetUIText()->FindCaretDown(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
+			CaretPositionIndex += VisibleCharStartIndex;
+			UpdateCaretPosition(caretPosition, !withSelection);
+		}
+
+		if (withSelection)
+		{
 			int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-			if (tempStartCaretPositionIndex > TextActor->GetUIText()->GetText().Len())
-			{
-				tempStartCaretPositionIndex = TextActor->GetUIText()->GetText().Len();
-			}
+			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().Len());
 			TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 			UpdateSelection();
-			UpdateCaretPosition(false);
 		}
-	}
-}
-void UUITextInputComponent::SelectionMoveUp()
-{
-	if (TextActor != nullptr)
-	{
-		if (LineCount <= 1) return;//have one or zero line
-		if (CaretPositionLineIndex <= 0)return;//already at first line
-		CaretPositionLineIndex--;
-		
-		UpdateUITextComponent();
-		FVector2D caretPosition(CaretObject->GetRelativeLocation());
-		TextActor->GetUIText()->FindCaretUp(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
-		CaretPositionIndex += VisibleCharStartIndex;
-
-		int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-		if (tempStartCaretPositionIndex > TextActor->GetUIText()->GetText().Len())
+		else
 		{
-			tempStartCaretPositionIndex = TextActor->GetUIText()->GetText().Len();
+			PressCaretPositionIndex = CaretPositionIndex;
 		}
-		TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
-		UpdateSelection();
-		UpdateCaretPosition(caretPosition, false);
 	}
-}
-void UUITextInputComponent::SelectionMoveDown()
-{
-	if (TextActor != nullptr)
-	{
-		if (LineCount <= 1) return;//have one or zero line
-		if (CaretPositionLineIndex + 1 >= LineCount)return;//already at last line
-		CaretPositionLineIndex++;
-
-		UpdateUITextComponent();
-		FVector2D caretPosition(CaretObject->GetRelativeLocation());
-		TextActor->GetUIText()->FindCaretDown(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
-		CaretPositionIndex += VisibleCharStartIndex;
-
-		int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-		if (tempStartCaretPositionIndex > TextActor->GetUIText()->GetText().Len())
-		{
-			tempStartCaretPositionIndex = TextActor->GetUIText()->GetText().Len();
-		}
-		TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
-		UpdateSelection();
-		UpdateCaretPosition(caretPosition, false);
-	}
-}
-
-void UUITextInputComponent::UpdateCaretPositionLineIndex()
-{
-	TextActor->GetUIText()->SetText(Text);
-	LineCount = TextActor->GetUIText()->GetLineCount();
-	FVector2D caretPosition;
-	TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex);
 }
 
 void UUITextInputComponent::FireOnValueChangeEvent()
@@ -875,7 +830,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 		
 		if (bAllowMultiLine)//multi line, handle out of range chars
 		{
-			int maxLineCount = (int)((uiText->GetHeight() - uiText->GetSize()) / (uiText->GetSize() + uiText->GetFontSpace().Y));
+			MaxVisibleLineCount = (int)((uiText->GetHeight() + uiText->GetFontSpace().Y) / (uiText->GetSize() + uiText->GetFontSpace().Y));
 
 			if (CaretPositionIndex - VisibleCharStartIndex < 0)//caret position move left and out of current range, then do move up
 			{
@@ -892,12 +847,12 @@ void UUITextInputComponent::UpdateUITextComponent()
 			{
 				VisibleCharStartLineIndex = CaretPositionLineIndex;
 			}
-			if (VisibleCharStartLineIndex + maxLineCount < CaretPositionLineIndex)
+			if (VisibleCharStartLineIndex + (MaxVisibleLineCount - 1) < CaretPositionLineIndex)
 			{
-				VisibleCharStartLineIndex = CaretPositionLineIndex - maxLineCount;
+				VisibleCharStartLineIndex = CaretPositionLineIndex - (MaxVisibleLineCount - 1);
 			}
 			int VisibleCharEndIndex = 0;
-			int VisibleCharEndLineIndex = VisibleCharStartLineIndex + maxLineCount;
+			int VisibleCharEndLineIndex = VisibleCharStartLineIndex + (MaxVisibleLineCount - 1);
 			replaceText = uiText->GetSubStringByLine(replaceText, VisibleCharStartLineIndex, VisibleCharEndLineIndex, VisibleCharStartIndex, VisibleCharEndIndex);
 		}
 		else//single line, handle out of range chars
@@ -1049,6 +1004,7 @@ void UUITextInputComponent::UpdateCaretPosition(bool InHideSelection)
 	CaretPositionLineIndex = tempCaretPositionLineIndex + VisibleCharStartLineIndex;
 	CaretObject->SetRelativeLocation(FVector(caretPos, 0));
 	CaretObject->SetUIActive(true);
+	NextCaretBlinkTime = 0;//force display
 	if(InHideSelection) HideSelectionMask();//if use caret, then hide selection mask
 }
 void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool InHideSelection)
@@ -1219,36 +1175,34 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(const FLGUIPointerEvent
 			int tempCaretPositionLineIndex;
 			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), caretPosition, tempCaretPositionLineIndex, CaretPositionIndex);
 			int displayTextLength = TextActor->GetUIText()->GetText().Len();//visible text length
-			if (bAllowMultiLine)
+
+			if (CaretPositionIndex == 0)//caret position at left most
 			{
-				//todo: multi line drag
+				CaretPositionIndex = VisibleCharStartIndex - 1;//move caret to left
+				CaretPositionIndex = FMath::Max(CaretPositionIndex, 0);
+				VisibleCharStartIndex = CaretPositionIndex;
 			}
-			
+			else if (CaretPositionIndex >= displayTextLength)//caret position at right most
 			{
-				if (CaretPositionIndex == 0)//caret position at left most
+				CaretPositionIndex = CaretPositionIndex + VisibleCharStartIndex + 1;//move caret to right
+				CaretPositionIndex = FMath::Min(CaretPositionIndex, Text.Len());
+				if (bAllowMultiLine)//multiline should check vertical range
 				{
-					CaretPositionIndex = VisibleCharStartIndex - 1;//move caret to left, depend's on delta time
-					if (CaretPositionIndex < 0)
+					if (CaretPositionIndex - VisibleCharStartIndex > TextActor->GetUIText()->GetText().Len())//if caret is more than visible text
 					{
-						CaretPositionIndex = 0;
+						if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().Len() < Text.Len())//if have more lines
+						{
+							CaretPositionLineIndex++;
+						}
 					}
-					VisibleCharStartIndex = CaretPositionIndex;
 				}
-				else if (CaretPositionIndex == displayTextLength)//caret position at right most
-				{
-					CaretPositionIndex = CaretPositionIndex + VisibleCharStartIndex + 1;//move caret to right, depend's on delta time
-					if (CaretPositionIndex > Text.Len())
-					{
-						CaretPositionIndex = Text.Len();
-					}
-					VisibleCharStartIndex = CaretPositionIndex - displayTextLength;
-				}
-				else//not drag out-of-range
-				{
-					CaretPositionIndex += VisibleCharStartIndex;
-				}
+				VisibleCharStartIndex = CaretPositionIndex - displayTextLength;
 			}
-			
+			else//not drag out-of-range
+			{
+				CaretPositionIndex += VisibleCharStartIndex;
+			}
+
 			//selectionStartCaretIndex may out of range, need clamp.
 			int selectionStartCaretIndex = PressCaretPositionIndex - VisibleCharStartIndex;
 			selectionStartCaretIndex = FMath::Clamp(selectionStartCaretIndex, 0, displayTextLength);
@@ -1292,7 +1246,6 @@ bool UUITextInputComponent::OnPointerDown_Implementation(const FLGUIPointerEvent
 			CaretPositionLineIndex = PressCaretPositionLineIndex;
 			UpdateCaretPosition(PressCaretPosition);
 			UpdateInputComposition();
-			NextCaretBlinkTime = 0;//force display
 		}
 	}
 
@@ -1318,7 +1271,6 @@ void UUITextInputComponent::ActivateInput()
 	{
 		//if already active, then update caret position
 		CaretPositionIndex = Text.Len();
-		NextCaretBlinkTime = 0;//force display
 		UpdateUITextComponent();
 		UpdateCaretPosition();
 		return;
@@ -1345,7 +1297,6 @@ void UUITextInputComponent::ActivateInput()
 	if (Text.Len() == 0)//if no text, use caret
 	{
 		CaretPositionIndex = 0;
-		NextCaretBlinkTime = 0;//force display
 		PressCaretPositionIndex = 0;
 		UpdateUITextComponent();
 		UpdateCaretPosition();
@@ -1766,10 +1717,7 @@ void UUITextInputComponent::FTextInputMethodContext::SetTextInRange(const uint32
 	InputComp->Text.RemoveAt(beginIndex, Length);
 	InputComp->Text.InsertAt(beginIndex, InString);
 	InputComp->CaretPositionIndex = beginIndex + InString.Len();
-	InputComp->UpdateUITextComponent();
-	InputComp->UpdateCaretPosition();
-	InputComp->UpdatePlaceHolderComponent();
-	InputComp->FireOnValueChangeEvent();
+	InputComp->UpdateAfterTextChange();
 	//UE_LOG(LGUI, Log, TEXT("SetTextInRange, BeginIndex:%d, Length:%d, InString:%s"), BeginIndex, Length, *(InString));
 }
 int32 UUITextInputComponent::FTextInputMethodContext::GetCharacterIndexFromPoint(const FVector2D& Point)
