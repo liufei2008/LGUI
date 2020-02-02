@@ -41,7 +41,7 @@ enum class UITextOverflowType :uint8
 };
 
 //single char property
-struct FUITextCharProperty
+struct FUITextCaretProperty
 {
 	//caret position. caret is on left side of char
 	FVector2D caretPosition;
@@ -51,7 +51,7 @@ struct FUITextCharProperty
 //a line of text property
 struct FUITextLineProperty
 {
-	TArray<FUITextCharProperty> charPropertyList;
+	TArray<FUITextCaretProperty> charPropertyList;
 };
 //for range selection in TextInputComponent
 struct FUITextSelectionProperty
