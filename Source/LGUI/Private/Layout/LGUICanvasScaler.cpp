@@ -89,7 +89,6 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 #if WITH_EDITOR
 				if (!GetWorld()->IsGameWorld())//editor just keep in world space
 				{
-					Canvas->SetViewportParameterChange();
 					Canvas->MarkRebuildAllDrawcall();
 					Canvas->MarkCanvasUpdate();
 				}
@@ -104,6 +103,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 					{
 						canvasUIItem->SetWidth(PreferredWidth);
 						canvasUIItem->SetHeight(PreferredWidth * CurrentViewportSize.Y / CurrentViewportSize.X);
+						canvasUIItem->SetRelativeScale3D(FVector::OneVector * (CurrentViewportSize.X / PreferredWidth));
 					}
 					break;
 					case LGUIScaleMode::ScaleWithScreenHeight:
@@ -111,23 +111,23 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 						canvasUIItem->SetHeight(PreferredHeight);
 						auto tempPreferredWidth = PreferredHeight * CurrentViewportSize.X / CurrentViewportSize.Y;
 						canvasUIItem->SetWidth(tempPreferredWidth);
+						canvasUIItem->SetRelativeScale3D(FVector::OneVector * (CurrentViewportSize.Y / PreferredHeight));
 					}
 					break;
 					case LGUIScaleMode::ConstantPixelSize:
 					{
 						canvasUIItem->SetWidth(CurrentViewportSize.X);
 						canvasUIItem->SetHeight(CurrentViewportSize.Y);
+						canvasUIItem->SetRelativeScale3D(FVector::OneVector);
 					}
 					break;
 					default:
 						break;
 					}
 
-					canvasUIItem->SetRelativeScale3D(FVector::OneVector);
 					//set rotate to zero, and move left bottom corner to zero position
 					canvasUIItem->SetRelativeLocationAndRotation(FVector(canvasUIItem->GetWidth() * 0.5f, canvasUIItem->GetHeight() * 0.5f, 0), FQuat::Identity);
 
-					Canvas->SetViewportParameterChange();
 					Canvas->MarkRebuildAllDrawcall();
 					canvasUIItem->MarkAllDirtyRecursive();
 					Canvas->MarkCanvasUpdate();
@@ -177,34 +177,6 @@ void ULGUICanvasScaler::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto property = PropertyChangedEvent.Property)
 	{
-		auto propertyName = property->GetName();
-		if (propertyName == TEXT("PreferredHeight") || propertyName == TEXT("PreferredWidth"))
-		{
-			switch (UIScaleMode)
-			{
-			case LGUIScaleMode::ScaleWithScreenWidth:
-			{
-				Canvas->CheckAndGetUIItem()->SetWidth(PreferredWidth);
-				Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * CurrentViewportSize.Y / CurrentViewportSize.X);
-			}
-			break;
-			case LGUIScaleMode::ScaleWithScreenHeight:
-			{
-				Canvas->CheckAndGetUIItem()->SetHeight(PreferredHeight);
-				auto tempPreferredWidth = PreferredHeight * CurrentViewportSize.X / CurrentViewportSize.Y;
-				Canvas->CheckAndGetUIItem()->SetWidth(tempPreferredWidth);
-			}
-			break;
-			case LGUIScaleMode::ConstantPixelSize:
-			{
-				Canvas->CheckAndGetUIItem()->SetWidth(CurrentViewportSize.X);
-				Canvas->CheckAndGetUIItem()->SetHeight(CurrentViewportSize.Y);
-			}
-			break;
-			default:
-				break;
-			}
-		}
 		SetCanvasProperties();
 		OnViewportParameterChanged();
 	}
