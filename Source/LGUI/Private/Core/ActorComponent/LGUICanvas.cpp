@@ -39,6 +39,7 @@ void ULGUICanvas::BeginPlay()
 	Super::BeginPlay();
 	TopMostCanvas = nullptr;
 	CheckTopMostCanvas();
+	currentIsRenderInScreenOrWorld = IsScreenSpaceOverlayUI();
 	ParentCanvas = nullptr;
 	CheckParentCanvas();
 	CheckUIItem();
@@ -178,33 +179,6 @@ void ULGUICanvas::OnUIHierarchyChanged()
 		{
 			TopMostCanvas->AllCanvasBelongToThis.Add(this);
 		}
-
-#if WITH_EDITOR
-		if (!GetWorld()->IsGameWorld())
-		{
-			for (auto uiMesh : UIMeshList)
-			{
-				uiMesh->SetToLGUIWorld();
-			}
-		}
-		else
-#endif
-		{
-			if (IsScreenSpaceOverlayUI())
-			{
-				for (auto uiMesh : UIMeshList)
-				{
-					uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
-				}
-			}
-			else
-			{
-				for (auto uiMesh : UIMeshList)
-				{
-					uiMesh->SetToLGUIWorld();
-				}
-			}
-		}
 	}
 
 	//if hierarchy changed from World/Hud to Hud/World, then we need to recreate all
@@ -214,6 +188,7 @@ void ULGUICanvas::OnUIHierarchyChanged()
 		{
 			UIItem->MarkAllDirtyRecursive();
 		}
+		isRenderSpaceChanged = true;
 	}
 
 	ParentCanvas = nullptr;
@@ -632,20 +607,22 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					auto meshName = FString::Printf(TEXT("Drawcall_%d"), i);
 #endif
 					auto uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
-#if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())//editor world, do nothing
-					{
-
-					}
-					else
-#endif
-					if (IsScreenSpaceOverlayUI())
-					{
-						uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
-					}
 					uiMesh->RegisterComponent();
 					uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 					uiMesh->SetRelativeTransform(FTransform::Identity);
+
+#if WITH_EDITOR
+					if (!GetWorld()->IsGameWorld())//editor's UI should all put in world space
+					{
+						
+					}
+					else
+#endif
+					if (currentIsRenderInScreenOrWorld)
+					{
+						uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
+					}
+
 					UIMeshList[i] = uiMesh;
 				}
 			}
@@ -659,6 +636,16 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					meshItem->SetMeshVisible(false);
 				}
 			}
+
+			bool tempIsRenderSpaceChanged = isRenderSpaceChanged;
+			isRenderSpaceChanged = false;
+#if WITH_EDITOR
+			if (!GetWorld()->IsGameWorld())//editor's UI should all put in world space
+			{
+				tempIsRenderSpaceChanged = false;
+			}
+#endif
+
 			for (int i = 0; i < drawcallCount; i++)//set data for all valid UIMesh
 			{
 				auto& uiMesh = UIMeshList[i];
@@ -669,7 +656,22 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				auto& meshSection = uiMesh->MeshSection;
 				meshSection.Reset();
 				uiDrawcall->GetCombined(meshSection.vertices, meshSection.triangles);
-				uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
+				if (tempIsRenderSpaceChanged)
+				{
+					if (currentIsRenderInScreenOrWorld)
+					{
+						uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
+					}
+					else
+					{
+						uiMesh->SetToLGUIWorld();
+					}
+					uiMesh->CreateMeshSection();
+				}
+				else
+				{
+					uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
+				}
 			}
 
 			//after geometry created, need to sort UIMesh render order
@@ -763,7 +765,7 @@ void ULGUICanvas::SortDrawcallRenderPriority()
 	}
 	else
 #endif
-	if (IsScreenSpaceOverlayUI())
+	if (currentIsRenderInScreenOrWorld)
 	{
 		TopMostCanvas->GetViewExtension()->SortRenderPriority();
 	}
@@ -1414,6 +1416,7 @@ void ULGUICanvas::SetRenderMode(ELGUIRenderMode value)
 	if (renderMode != value)
 	{
 		renderMode = value;
+		isRenderSpaceChanged = true;
 		MarkRebuildAllDrawcall();
 		if (renderMode == ELGUIRenderMode::WorldSpace)
 		{
