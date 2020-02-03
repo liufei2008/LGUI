@@ -498,6 +498,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("FlyoutMenuButton"), "/LGUI/Prefabs/DefaultFlyoutMenuButton");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ComboBoxButton"), "/LGUI/Prefabs/DefaultComboBoxButton");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInput"), "/LGUI/Prefabs/DefaultTextInput");
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInputMultiline"), "/LGUI/Prefabs/DefaultTextInputMultiline");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollView"), "/LGUI/Prefabs/DefaultScrollView");
 	}
 	MenuBuilder.EndSection();
