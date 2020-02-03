@@ -67,7 +67,8 @@ void MainVS(
 	ResolvedView = ResolveView();
 
 	//float4 WorldPosition = mul(float4(Position, 1.0), GetPrimitiveData(Parameters.PrimitiveId).LocalToWorld);
-	float4 WorldPosition = TransformLocalToTranslatedWorld(Position);
+	//float4 WorldPosition = TransformLocalToTranslatedWorld(Position);
+	float4 WorldPosition = float4(Position.xyz + ResolvedView.PreViewTranslation.xyz, 1.0);
 	Output.Position = mul(WorldPosition, ResolvedView.TranslatedWorldToClip);
 	Output.BasePassInterpolants.PixelPosition = WorldPosition;
 
