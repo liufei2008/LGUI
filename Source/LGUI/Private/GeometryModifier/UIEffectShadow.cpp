@@ -10,7 +10,6 @@ UUIEffectShadow::UUIEffectShadow()
 }
 void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
 {
-	if (!GetRenderableUIItem())return;
 	auto& triangles = InGeometry->triangles;
 	auto& originPositions = InGeometry->originPositions;
 	auto& vertices = InGeometry->vertices;

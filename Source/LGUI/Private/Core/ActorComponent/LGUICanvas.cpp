@@ -162,6 +162,12 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	//recheck top most canvas
 	auto oldCanvas = TopMostCanvas;
 	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
+
+	bool oldIsRenderInScreenOrWorld = currentIsRenderInScreenOrWorld;
+	if (IsValid(TopMostCanvas))
+	{
+		currentIsRenderInScreenOrWorld = TopMostCanvas->IsScreenSpaceOverlayUI();
+	}
 	if (oldCanvas != TopMostCanvas)
 	{
 		if (IsValid(oldCanvas))//remove from old root canvas
@@ -198,6 +204,15 @@ void ULGUICanvas::OnUIHierarchyChanged()
 					uiMesh->SetToLGUIWorld();
 				}
 			}
+		}
+	}
+
+	//if hierarchy changed from World/Hud to Hud/World, then we need to recreate all
+	if (currentIsRenderInScreenOrWorld != oldIsRenderInScreenOrWorld)
+	{
+		if (CheckUIItem())
+		{
+			UIItem->MarkAllDirtyRecursive();
 		}
 	}
 
