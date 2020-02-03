@@ -124,6 +124,7 @@ public:
 	FORCEINLINE UUIItem* CheckAndGetUIItem() { CheckUIItem(); return UIItem; }
 	FORCEINLINE float GetViewportUIScale();
 protected:
+	bool currentIsRenderInScreenOrWorld = false;
 	//top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it
 	UPROPERTY(Transient) ULGUICanvas* TopMostCanvas = nullptr;
 	//chekc TopMostCanvas. search for it if not valid
