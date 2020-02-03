@@ -1610,113 +1610,71 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 		originPositions.AddDefaulted(vertexCount - originVertexCount);
 	}
 	
-	auto rootCanvasUIItem = canvas->GetRootCanvas()->CheckAndGetUIItem();
-
 	FTransform itemToCanvasTf;
 	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
 	FVector tempV3;
-	if (canvas->GetPixelPerfect() && rootCanvasUIItem != nullptr)
-	{
-		auto rootCanvas = canvas->GetRootCanvas();
-		if (canvasUIItem == rootCanvasUIItem)
-		{
-			auto canvasLeftBottom = FVector2D(-canvasUIItem->GetWidth() * canvasUIItem->GetPivot().X, -canvasUIItem->GetHeight() * canvasUIItem->GetPivot().Y);
-			float viewportScale = rootCanvas->GetViewportUIScale();
-			if (viewportScale == 1.0f)
-			{
-				for (int i = 0; i < vertexCount; i++)
-				{
-					tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
-					tempV3.X -= canvasLeftBottom.X;
-					tempV3.Y -= canvasLeftBottom.Y;
-					tempV3.X = RoundToFloat(tempV3.X);
-					tempV3.Y = RoundToFloat(tempV3.Y);
-					tempV3.X += canvasLeftBottom.X;
-					tempV3.Y += canvasLeftBottom.Y;
-
-					vertices[i].Position = tempV3;
-				}
-			}
-			else
-			{
-				float oneDivideViewportScale = 1.0f / viewportScale;
-				for (int i = 0; i < vertexCount; i++)
-				{
-					tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
-					tempV3.X -= canvasLeftBottom.X;
-					tempV3.Y -= canvasLeftBottom.Y;
-					tempV3.X *= viewportScale;
-					tempV3.Y *= viewportScale;
-					tempV3.X = RoundToFloat(tempV3.X);
-					tempV3.Y = RoundToFloat(tempV3.Y);
-					tempV3.X *= oneDivideViewportScale;
-					tempV3.Y *= oneDivideViewportScale;
-					tempV3.X += canvasLeftBottom.X;
-					tempV3.Y += canvasLeftBottom.Y;
-
-					vertices[i].Position = tempV3;
-				}
-			}
-		}
-		else
-		{
-			auto rootCanvasToWorld = rootCanvasUIItem->GetComponentTransform();
-			auto inverseRootCanvasTf = rootCanvasToWorld.Inverse();
-			FTransform vertToRootCanvasTf;
-			FTransform::Multiply(&vertToRootCanvasTf, &itemTf, &inverseRootCanvasTf);
-
-			FTransform vertToCanvas;
-			FTransform::Multiply(&vertToCanvas, &rootCanvasToWorld, &inverseCanvasTf);
-
-			auto canvasLeftBottom = FVector2D(-rootCanvasUIItem->GetWidth() * rootCanvasUIItem->GetPivot().X, -rootCanvasUIItem->GetHeight() * rootCanvasUIItem->GetPivot().Y);
-			float viewportScale = rootCanvas->GetViewportUIScale();
-			if (viewportScale == 1.0f)
-			{
-				for (int i = 0; i < vertexCount; i++)
-				{
-					tempV3 = vertToRootCanvasTf.TransformPosition(originPositions[i]);
-					tempV3.X -= canvasLeftBottom.X;
-					tempV3.Y -= canvasLeftBottom.Y;
-					tempV3.X = RoundToFloat(tempV3.X);
-					tempV3.Y = RoundToFloat(tempV3.Y);
-					tempV3.X += canvasLeftBottom.X;
-					tempV3.Y += canvasLeftBottom.Y;
-
-					tempV3 = vertToCanvas.TransformPosition(tempV3);
-
-					vertices[i].Position = tempV3;
-				}
-			}
-			else
-			{
-				float oneDivideViewportScale = 1.0f / viewportScale;
-				for (int i = 0; i < vertexCount; i++)
-				{
-					tempV3 = vertToRootCanvasTf.TransformPosition(originPositions[i]);
-					tempV3.X -= canvasLeftBottom.X;
-					tempV3.Y -= canvasLeftBottom.Y;
-					tempV3.X *= viewportScale;
-					tempV3.Y *= viewportScale;
-					tempV3.X = RoundToFloat(tempV3.X);
-					tempV3.Y = RoundToFloat(tempV3.Y);
-					tempV3.X *= oneDivideViewportScale;
-					tempV3.Y *= oneDivideViewportScale;
-					tempV3.X += canvasLeftBottom.X;
-					tempV3.Y += canvasLeftBottom.Y;
-
-					tempV3 = vertToCanvas.TransformPosition(tempV3);
-
-					vertices[i].Position = tempV3;
-				}
-			}
-		}
-	}
-	else
+#if WITH_EDITOR
+	if (!canvas->GetWorld()->IsGameWorld())
 	{
 		for (int i = 0; i < vertexCount; i++)
 		{
 			tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
 			vertices[i].Position = tempV3;
+		}
+	}
+	else
+#endif
+	{
+		if (canvas->IsScreenSpaceOverlayUI())
+		{
+			auto rootCanvas = canvas->GetRootCanvas();
+			if (canvas->GetPixelPerfect())//convert vertex to world, round position.xy(for pixel perfect)
+			{
+				float viewportScale = rootCanvas->GetViewportUIScale();
+				if (viewportScale == 1.0f)
+				{
+					for (int i = 0; i < vertexCount; i++)
+					{
+						tempV3 = itemTf.TransformPosition(originPositions[i]);
+						tempV3.X = RoundToFloat(tempV3.X);
+						tempV3.Y = RoundToFloat(tempV3.Y);
+
+						vertices[i].Position = tempV3;
+					}
+				}
+				else
+				{
+					float oneDivideViewportScale = 1.0f / viewportScale;
+					for (int i = 0; i < vertexCount; i++)
+					{
+						tempV3 = itemTf.TransformPosition(originPositions[i]);
+						tempV3.X *= viewportScale;
+						tempV3.Y *= viewportScale;
+						tempV3.X = RoundToFloat(tempV3.X);
+						tempV3.Y = RoundToFloat(tempV3.Y);
+						tempV3.X *= oneDivideViewportScale;
+						tempV3.Y *= oneDivideViewportScale;
+
+						vertices[i].Position = tempV3;
+					}
+				}
+			}
+			else//convert vertex to world
+			{
+				for (int i = 0; i < vertexCount; i++)
+				{
+					tempV3 = itemTf.TransformPosition(originPositions[i]);
+					vertices[i].Position = tempV3;
+				}
+			}
+		}
+		else//convert vertex to canvas's local space
+		{
+			for (int i = 0; i < vertexCount; i++)
+			{
+				tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
+				vertices[i].Position = tempV3;
+			}
 		}
 	}
 
