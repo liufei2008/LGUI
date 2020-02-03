@@ -655,6 +655,8 @@ void UUITextInputComponent::UpdateAfterTextChange()
 			TextActor->GetUIText()->SetText(Text);
 			FVector2D caretPosition;
 			TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex);
+			//calculate MaxVisibleLineCount
+			MaxVisibleLineCount = (int)((TextActor->GetUIText()->GetHeight() + TextActor->GetUIText()->GetFontSpace().Y) / (TextActor->GetUIText()->GetSize() + TextActor->GetUIText()->GetFontSpace().Y));
 		}
 	}
 	UpdateUITextComponent();
@@ -830,14 +832,12 @@ void UUITextInputComponent::UpdateUITextComponent()
 		
 		if (bAllowMultiLine)//multi line, handle out of range chars
 		{
-			MaxVisibleLineCount = (int)((uiText->GetHeight() + uiText->GetFontSpace().Y) / (uiText->GetSize() + uiText->GetFontSpace().Y));
-
 			if (CaretPositionIndex - VisibleCharStartIndex < 0)//caret position move left and out of current range, then do move up
 			{
 				VisibleCharStartLineIndex--;
 				CaretPositionLineIndex--;
 			}
-			if (CaretPositionIndex - VisibleCharStartIndex > replaceText.Len())//caret position move right and out of current range, then do move down
+			if (CaretPositionIndex - VisibleCharStartIndex >= uiText->GetText().Len())//caret position move right and out of current range, then do move down
 			{
 				VisibleCharStartLineIndex++;
 				CaretPositionLineIndex++;
@@ -1170,17 +1170,16 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(const FLGUIPointerEvent
 	{
 		if (TextActor != nullptr)
 		{
-			UpdateUITextComponent();
 			FVector2D caretPosition;
 			int tempCaretPositionLineIndex;
 			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), caretPosition, tempCaretPositionLineIndex, CaretPositionIndex);
 			int displayTextLength = TextActor->GetUIText()->GetText().Len();//visible text length
 
+			//@todo:caret move speed depend on drag distance
 			if (CaretPositionIndex == 0)//caret position at left most
 			{
 				CaretPositionIndex = VisibleCharStartIndex - 1;//move caret to left
 				CaretPositionIndex = FMath::Max(CaretPositionIndex, 0);
-				VisibleCharStartIndex = CaretPositionIndex;
 			}
 			else if (CaretPositionIndex >= displayTextLength)//caret position at right most
 			{
@@ -1188,27 +1187,25 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(const FLGUIPointerEvent
 				CaretPositionIndex = FMath::Min(CaretPositionIndex, Text.Len());
 				if (bAllowMultiLine)//multiline should check vertical range
 				{
-					if (CaretPositionIndex - VisibleCharStartIndex > TextActor->GetUIText()->GetText().Len())//if caret is more than visible text
+					if (CaretPositionIndex - VisibleCharStartIndex > displayTextLength)//if caret is more than visible text
 					{
-						if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().Len() < Text.Len())//if have more lines
+						if (VisibleCharStartIndex + displayTextLength < Text.Len())//if have more lines
 						{
 							CaretPositionLineIndex++;
 						}
 					}
 				}
-				VisibleCharStartIndex = CaretPositionIndex - displayTextLength;
 			}
 			else//not drag out-of-range
 			{
 				CaretPositionIndex += VisibleCharStartIndex;
 			}
 
+			UpdateUITextComponent();
 			//selectionStartCaretIndex may out of range, need clamp.
 			int selectionStartCaretIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-			selectionStartCaretIndex = FMath::Clamp(selectionStartCaretIndex, 0, displayTextLength);
-
+			selectionStartCaretIndex = FMath::Clamp(selectionStartCaretIndex, 0, TextActor->GetUIText()->GetText().Len());
 			TextActor->GetUIText()->GetSelectionProperty(selectionStartCaretIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
-			UpdateUITextComponent();
 			UpdateSelection();
 			UpdateCaretPosition(false);
 			UpdateInputComposition();

@@ -154,15 +154,25 @@ private:
 	void HideSelectionMask();
 	//return true if have selection
 	bool DeleteIfSelection(int& OutCaretOffset);
+	//a sprite for caret, can blink, can represent current caret location
 	UPROPERTY(Transient)class UUISprite* CaretObject;
-	UPROPERTY(Transient)TArray<class UUISprite*> SelectionMaskObjectArray;//selection mask
-	TArray<FUITextSelectionProperty> SelectionPropertyArray;//range selection
-	int VisibleCharStartIndex = 0;//in single line mode, will clamp text if out of range. this is left start index of visible char
-	int VisibleCharStartLineIndex = 0;//in multi line mode, will clamp text line if out of range. this is top start line index of visible char
-	int MaxVisibleLineCount = 0;//max visible line count that can fit in rect
+	//selection mask
+	UPROPERTY(Transient)TArray<class UUISprite*> SelectionMaskObjectArray;
+	//range selection
+	TArray<FUITextSelectionProperty> SelectionPropertyArray;
+	//in single line mode, will clamp text if out of range. this is left start index of visible char
+	//this property can only modify in UpdateUITextComponent function
+	int VisibleCharStartIndex = 0;
+	//in multi line mode, will clamp text line if out of range. this is top start line index of visible char
+	//this property can only modify in UpdateUITextComponent function
+	int VisibleCharStartLineIndex = 0;
+	//max visible line count that can fit in rect
+	int MaxVisibleLineCount = 0;
 
-	FVector PressMousePosition = FVector(0, 0, 0);//mouse position when press, world space
-	FVector2D PressCaretPosition = FVector2D(0, 0);//caret position when press, UIText space
+	//mouse position when press, world space
+	FVector PressMousePosition = FVector(0, 0, 0);
+	//caret position when press, UIText space
+	FVector2D PressCaretPosition = FVector2D(0, 0);
 	int PressCaretPositionIndex = 0, PressCaretPositionLineIndex = 0;
 protected:
 	virtual void OnUIActiveInHierachy(bool ativeOrInactive)override;
