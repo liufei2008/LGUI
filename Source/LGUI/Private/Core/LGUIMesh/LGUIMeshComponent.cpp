@@ -104,30 +104,39 @@ public:
 			// vertex and index buffer
 			const auto& SrcVertices = SrcSection.vertices;
 			int NumVerts = SrcVertices.Num();
-			auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
-			HudVertices.SetNumUninitialized(NumVerts);
-			for (int i = 0; i < NumVerts; i++)
+			if (IsHudOrWorldSpace)
 			{
-				FLGUIHudVertex& HudVert = HudVertices[i];
-				auto& Vert = SrcVertices[i];
-				HudVert.Position = Vert.Position;
-				HudVert.Color = Vert.Color;
-				HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
-				HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
-				HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
-				HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
+				auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
+				HudVertices.SetNumUninitialized(NumVerts);
+				for (int i = 0; i < NumVerts; i++)
+				{
+					FLGUIHudVertex& HudVert = HudVertices[i];
+					auto& Vert = SrcVertices[i];
+					HudVert.Position = Vert.Position;
+					HudVert.Color = Vert.Color;
+					HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
+					HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
+					HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
+					HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
+				}
+				NewSection->IndexBuffer.Indices = SrcSection.triangles;
+
+				// Enqueue initialization of render resource
+				BeginInitResource(&NewSection->IndexBuffer);
+				BeginInitResource(&NewSection->HudVertexBuffers);
 			}
-			NewSection->IndexBuffer.Indices = SrcSection.triangles;
+			else
+			{
+				NewSection->IndexBuffer.Indices = SrcSection.triangles;
+				NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection.vertices, 4);
 
-			NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection.vertices, 4);
-
-			// Enqueue initialization of render resource
-			BeginInitResource(&NewSection->VertexBuffers.PositionVertexBuffer);
-			BeginInitResource(&NewSection->VertexBuffers.StaticMeshVertexBuffer);
-			BeginInitResource(&NewSection->VertexBuffers.ColorVertexBuffer);
-			BeginInitResource(&NewSection->IndexBuffer);
-			BeginInitResource(&NewSection->VertexFactory);
-			BeginInitResource(&NewSection->HudVertexBuffers);
+				// Enqueue initialization of render resource
+				BeginInitResource(&NewSection->VertexBuffers.PositionVertexBuffer);
+				BeginInitResource(&NewSection->VertexBuffers.StaticMeshVertexBuffer);
+				BeginInitResource(&NewSection->VertexBuffers.ColorVertexBuffer);
+				BeginInitResource(&NewSection->IndexBuffer);
+				BeginInitResource(&NewSection->VertexFactory);
+			}
 
 			// Grab material
 			NewSection->Material = InComponent->GetMaterial(0);
@@ -148,12 +157,19 @@ public:
 	{
 		if (Section != nullptr)
 		{
-			Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
-			Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
-			Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
-			Section->IndexBuffer.ReleaseResource();
-			Section->VertexFactory.ReleaseResource();
-			Section->HudVertexBuffers.ReleaseResource();
+			if (IsHudOrWorldSpace)
+			{
+				Section->IndexBuffer.ReleaseResource();
+				Section->HudVertexBuffers.ReleaseResource();
+			}
+			else
+			{
+				Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
+				Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
+				Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
+				Section->IndexBuffer.ReleaseResource();
+				Section->VertexFactory.ReleaseResource();
+			}
 			delete Section;
 		}
 		if (LGUIHudRenderer.IsValid())
@@ -291,14 +307,6 @@ public:
 		{
 			Section->bSectionVisible = bNewVisibility;
 		}
-	}
-	void SetToHud_RenderThread()
-	{
-		IsHudOrWorldSpace = true;
-	}
-	void SetToWorld_RenderThread()
-	{
-		IsHudOrWorldSpace = false;
 	}
 	void SetRenderPriority_RenderThread(int32 NewPriority)
 	{
@@ -562,31 +570,11 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 void ULGUIMeshComponent::SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer)
 {
 	LGUIHudRenderer = HudRenderer;
-	if (SceneProxy)
-	{
-		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
-		ENQUEUE_RENDER_COMMAND(LGUIMeshComponent_SetToLGUIHud)(
-			[LGUIMeshSceneProxy](FRHICommandListImmediate& RHICmdList)
-		{
-			LGUIMeshSceneProxy->SetToHud_RenderThread();
-		}
-		);
-	}
 }
 
 void ULGUIMeshComponent::SetToLGUIWorld()
 {
 	LGUIHudRenderer.Reset();
-	if (SceneProxy)
-	{
-		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
-		ENQUEUE_RENDER_COMMAND(LGUIMeshComponent_SetToLGUIWorld)(
-			[LGUIMeshSceneProxy](FRHICommandListImmediate& RHICmdList)
-		{
-			LGUIMeshSceneProxy->SetToWorld_RenderThread();
-		}
-		);
-	}
 }
 
 int32 ULGUIMeshComponent::GetNumMaterials() const
