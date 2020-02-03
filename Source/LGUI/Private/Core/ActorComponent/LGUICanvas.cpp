@@ -441,15 +441,6 @@ TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewEx
 	return ViewExtension;
 }
 
-float ULGUICanvas::GetViewportUIScale()
-{
-	if (CheckTopMostCanvas())
-	{
-		return TopMostCanvas->viewportUIScale;
-	}
-	return viewportUIScale;
-}
-
 void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChanged, bool parentLayoutChanged)
 {
 	const auto& childrenList = target->GetAttachChildren();
@@ -1338,7 +1329,7 @@ float ULGUICanvas::CalculateDistanceToCamera()
 	}
 	else
 	{
-		return UIItem->GetWidth() * 0.5f / FMath::Tan(FMath::DegreesToRadians(FOVAngle * 0.5f));
+		return UIItem->GetWidth() * 0.5f / FMath::Tan(FMath::DegreesToRadians(FOVAngle * 0.5f)) * UIItem->GetRelativeScale3D().X;
 	}
 }
 FMatrix ULGUICanvas::GetViewProjectionMatrix()
@@ -1350,7 +1341,7 @@ FMatrix ULGUICanvas::GetViewProjectionMatrix()
 		return ViewProjectionMatrix;
 	}
 
-	FVector ViewLocation = UIItem->GetComponentLocation() - UIItem->GetUpVector() * CalculateDistanceToCamera();
+	FVector ViewLocation = GetViewLocation();
 	auto Transform = UIItem->GetComponentToWorld();
 	Transform.SetTranslation(FVector::ZeroVector);
 	Transform.SetScale3D(FVector::OneVector);
@@ -1443,11 +1434,6 @@ void ULGUICanvas::SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Typ
 	FOVAngle = InFovAngle;
 	NearClipPlane = InNearClipPlane;
 	FarClipPlane = InFarClipPlane;
-}
-
-void ULGUICanvas::SetViewportParameterChange()
-{
-	viewportUIScale = UIItem->GetHeight() / GetViewportSize().Y;
 }
 
 bool ULGUICanvas::GetPixelPerfect()const

@@ -10,8 +10,27 @@
 #include "RichTextParser.h"
 
 
+FORCEINLINE float RoundToFloat(float value)
+{
+	return value > 0.0 ? FMath::FloorToFloat(value + 0.5f) : FMath::CeilToFloat(value - 0.5f);
+}
+FORCEINLINE void AdjustPixelPerfectPos(TArray<FVector>& verticesArray, int startIndex, int count, const FTransform& itemToWorldTf, const FTransform& worldToItemTf)
+{
+	auto refVertPos = verticesArray[startIndex];
+	auto worldVertPos = itemToWorldTf.TransformPosition(refVertPos);
+	worldVertPos.X = RoundToFloat(worldVertPos.X);
+	worldVertPos.Y = RoundToFloat(worldVertPos.Y);
+	auto localVertPos = worldToItemTf.TransformPosition(worldVertPos);
+	auto vertOffset = localVertPos - refVertPos;
+	verticesArray[startIndex] = localVertPos;
+	for (int i = 1; i < count; i++)
+	{
+		verticesArray[startIndex + i] += vertOffset;
+	}
+}
+
 #pragma region UISprite_UITexture_Simple
-void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
@@ -39,14 +58,14 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 	{
 		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
 	}
-	UpdateUIRectSimpleVertex(uiGeo, width, height, pivot);
+	UpdateUIRectSimpleVertex(uiGeo, width, height, pivot, renderCanvas, uiComp);
 	//uvs
 	UpdateUIRectSimpleUV(uiGeo, spriteInfo);
 	//colors
 	UpdateUIColor(uiGeo, color);
 
 	//normals
-	if (requireNormal)
+	if (renderCanvas->GetRequireNormal())
 	{
 		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
@@ -59,7 +78,7 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 		}
 	}
 	//tangents
-	if (requireTangent)
+	if (renderCanvas->GetRequireTangent())
 	{
 		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
@@ -72,7 +91,7 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 		}
 	}
 	//uvs1
-	if (requireUV1)
+	if (renderCanvas->GetRequireUV1())
 	{
 		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
 		vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
@@ -89,7 +108,7 @@ void UIGeometry::UpdateUIRectSimpleUV(TSharedPtr<UIGeometry> uiGeo, const FLGUIS
 	vertices[2].TextureCoordinate[0] = spriteInfo.GetUV2();
 	vertices[3].TextureCoordinate[0] = spriteInfo.GetUV3();
 }
-void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot)
+void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
@@ -107,10 +126,18 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	originPositions[2] = FVector(x, y, 0);
 	x = (halfW + pivotOffsetX);
 	originPositions[3] = FVector(x, y, 0);
+	//snap pixel
+	if (renderCanvas->GetPixelPerfect())
+	{
+		FTransform itemToWorldTf = uiComp->GetComponentTransform();
+		FTransform worldToItemTf = itemToWorldTf.Inverse();
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), itemToWorldTf, worldToItemTf);
+	}
 }
 #pragma endregion
 #pragma region UISprite_UITexture_Border
-void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool fillCenter, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp
+	, bool fillCenter)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
@@ -159,14 +186,14 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 	{
 		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
 	}
-	UpdateUIRectBorderVertex(uiGeo, width, height, pivot, spriteInfo);
+	UpdateUIRectBorderVertex(uiGeo, width, height, pivot, spriteInfo, renderCanvas, uiComp);
 	//uvs
 	UpdateUIRectBorderUV(uiGeo, spriteInfo);
 	//colors
 	UpdateUIColor(uiGeo, color);
 
 	//normals
-	if (requireNormal)
+	if (renderCanvas->GetRequireNormal())
 	{
 		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
@@ -179,7 +206,7 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 		}
 	}
 	//tangents
-	if (requireTangent)
+	if (renderCanvas->GetRequireTangent())
 	{
 		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
@@ -192,7 +219,7 @@ void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& 
 		}
 	}
 	//uvs1
-	if (requireUV1)
+	if (renderCanvas->GetRequireUV1())
 	{
 		float widthReciprocal = 1.0f / spriteInfo.width;
 		float heightReciprocal = 1.0f / spriteInfo.height;
@@ -246,7 +273,7 @@ void UIGeometry::UpdateUIRectBorderUV(TSharedPtr<UIGeometry> uiGeo, const FLGUIS
 	vertices[14].TextureCoordinate[0] = FVector2D(spriteInfo.buv3X, spriteInfo.uv3Y);
 	vertices[15].TextureCoordinate[0] = FVector2D(spriteInfo.uv3X, spriteInfo.uv3Y);
 }
-void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo)
+void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
@@ -286,11 +313,20 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	originPositions[13] = FVector(x1, y3, 0);
 	originPositions[14] = FVector(x2, y3, 0);
 	originPositions[15] = FVector(x3, y3, 0);
+
+	//snap pixel
+	if (renderCanvas->GetPixelPerfect())
+	{
+		FTransform itemToWorldTf = uiComp->GetComponentTransform();
+		FTransform worldToItemTf = itemToWorldTf.Inverse();
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), itemToWorldTf, worldToItemTf);
+	}
 }
 #pragma endregion
 
 #pragma region UISprite_Tiled
-void UIGeometry::FromUIRectTiled(const float& width, const float& height, const FVector2D& pivot, const FColor& color, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIRectTiled(const float& width, const float& height, const FVector2D& pivot, const FColor& color, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	int rectangleCount = widthRectCount * heightRectCount;
 	//triangles
@@ -322,14 +358,14 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 	{
 		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
 	}
-	UpdateUIRectTiledVertex(uiGeo, spriteInfo, width, height, pivot, widthRectCount, heightRectCount, widthRemainedRectSize, heightRemainedRectSize);
+	UpdateUIRectTiledVertex(uiGeo, spriteInfo, renderCanvas, uiComp, width, height, pivot, widthRectCount, heightRectCount, widthRemainedRectSize, heightRemainedRectSize);
 	//uvs
 	UpdateUIRectTiledUV(uiGeo, spriteInfo, widthRectCount, heightRectCount, widthRemainedRectSize, heightRemainedRectSize);
 	//colors
 	UpdateUIColor(uiGeo, color);
 
 	//normals
-	if (requireNormal)
+	if (renderCanvas->GetRequireNormal())
 	{
 		auto& normals = uiGeo->originNormals;
 		if (normals.Num() == 0)
@@ -342,7 +378,7 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 		}
 	}
 	//tangents
-	if (requireTangent)
+	if (renderCanvas->GetRequireTangent())
 	{
 		auto& tangents = uiGeo->originTangents;
 		if (tangents.Num() == 0)
@@ -355,7 +391,7 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 		}
 	}
 	//uvs1
-	if (requireUV1)
+	if (renderCanvas->GetRequireUV1())
 	{
 		for (int i = 0; i < uiGeo->originVerticesCount; i += 4)
 		{
@@ -386,7 +422,8 @@ void UIGeometry::UpdateUIRectTiledUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISp
 		}
 	}
 }
-void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, const float& width, const float& height, const FVector2D& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize)
+void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp
+	, const float& width, const float& height, const FVector2D& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
@@ -414,6 +451,13 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 		x = startX;
 		y += spriteInfo.height;
 	}
+	//snap pixel
+	if (renderCanvas->GetPixelPerfect())
+	{
+		FTransform itemToWorldTf = uiComp->GetComponentTransform();
+		FTransform worldToItemTf = itemToWorldTf.Inverse();
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), itemToWorldTf, worldToItemTf);
+	}
 }
 #pragma endregion
 
@@ -422,11 +466,11 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
-	, ULGUICanvas* renderCanvas
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText)
 {
 	//vertex and triangle
-	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, cacheTextPropertyList, font, richText);
+	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, uiComp, cacheTextPropertyList, font, richText);
 	uiGeo->originVerticesCount = uiGeo->vertices.Num();
 	uiGeo->originTriangleCount = uiGeo->triangles.Num();
 
@@ -475,27 +519,36 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 	, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
 	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
-	, ULGUICanvas* renderCanvas
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText)
 {
 	bool pixelPerfect = renderCanvas->GetPixelPerfect();
-	bool dynamicPixelsPerUnitIsNot1 = renderCanvas->GetDynamicPixelsPerUnit() != 1;//use dynamicPixelsPerUnit or not
+	float dynamicPixelsPerUnit = renderCanvas->GetDynamicPixelsPerUnit();
+	bool dynamicPixelsPerUnitIsNot1 = dynamicPixelsPerUnit != 1;//use dynamicPixelsPerUnit or not
+	float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
 
 	auto GetAdjustedFontSize = [&](float inFontSize)
 	{
 		float adjustedFontSize = inFontSize;
 		if (pixelPerfect)
 		{
-			adjustedFontSize = adjustedFontSize / renderCanvas->GetViewportUIScale();
+			adjustedFontSize = adjustedFontSize * rootCanvasScale;
 			adjustedFontSize = FMath::Min(adjustedFontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
 		}
 		else if (dynamicPixelsPerUnitIsNot1)
 		{
-			adjustedFontSize = adjustedFontSize * renderCanvas->GetDynamicPixelsPerUnit();
+			adjustedFontSize = adjustedFontSize * dynamicPixelsPerUnit;
 			adjustedFontSize = FMath::Min(adjustedFontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
 		}
 		return adjustedFontSize;
 	};
+
+	FTransform itemToWorldTf, worldToItemTf;
+	if (pixelPerfect)
+	{
+		itemToWorldTf = uiComp->GetComponentTransform();
+		worldToItemTf = itemToWorldTf.Inverse();
+	}
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
@@ -575,7 +628,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 
 		if (richText)
 		{
-			AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions);
+			AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, pixelPerfect, rootCanvasScale, lineUIGeoVertStart, originPositions);
 		}
 		else
 		{
@@ -584,7 +637,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			charProperty.charIndex = charIndex;
 			sentenceProperty.charPropertyList.Add(charProperty);
 
-			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions, sentenceProperty);
+			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, pixelPerfect, rootCanvasScale, lineUIGeoVertStart, originPositions, sentenceProperty);
 
 			cacheTextPropertyList.Add(sentenceProperty);
 			sentenceProperty = FUITextLineProperty();
@@ -659,7 +712,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		else
 		{
-			auto charData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize), overrideBold, overrideItalic);
+			auto charData = font->GetCharData(charCode, overrideFontSize, overrideBold, overrideItalic);
 			return charData->xadvance;
 		}
 	};
@@ -851,6 +904,11 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 						x = charWidth + offsetX;
 						originPositions[verticesCount + 7] = FVector(x, y, 0);
 					}
+					//snap pixel
+					if (pixelPerfect)
+					{
+						AdjustPixelPerfectPos(originPositions, verticesCount, additionalVerticesCount, itemToWorldTf, worldToItemTf);
+					}
 				}
 				//uv
 				{
@@ -921,6 +979,11 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					originPositions[verticesCount + 2] = FVector(x, y, 0);
 					x = charGeo.geoWidth + offsetX;
 					originPositions[verticesCount + 3] = FVector(x, y, 0);
+					//snap pixel
+					if (pixelPerfect)
+					{
+						AdjustPixelPerfectPos(originPositions, verticesCount, 4, itemToWorldTf, worldToItemTf);
+					}
 				}
 				//uv
 				{
@@ -1074,6 +1137,17 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		yOffset += paragraphHeight - height * 0.5f;
 		break;
 	}
+	//pixel adjust
+	if (pixelPerfect)
+	{
+		xOffset *= rootCanvasScale;
+		xOffset = RoundToFloat(xOffset);
+		xOffset /= rootCanvasScale;
+
+		yOffset *= rootCanvasScale;
+		yOffset = RoundToFloat(yOffset);
+		yOffset /= rootCanvasScale;
+	}
 	//caret property
 	if (!richText)
 	{
@@ -1086,10 +1160,11 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			}
 		}
 	}
+
 	UIGeometry::OffsetVertices(originPositions, xOffset, yOffset);
 }
 
-void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty)
+void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, bool pixelPerfect, float rootCanvasScale, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty)
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
@@ -1100,6 +1175,14 @@ void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlig
 	case UITextParagraphHorizontalAlign::Right:
 		xOffset = -lineWidth;
 		break;
+	}
+
+	//pixel adjust
+	if (pixelPerfect)
+	{
+		xOffset *= rootCanvasScale;
+		xOffset = RoundToFloat(xOffset);
+		xOffset /= rootCanvasScale;
 	}
 
 	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
@@ -1114,17 +1197,25 @@ void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlig
 		item.caretPosition.X += xOffset;
 	}
 }
-void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices)
+void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, bool pixelPerfect, float rootCanvasScale, int lineUIGeoVertStart, TArray<FVector>& vertices)
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
 	{
 	case UITextParagraphHorizontalAlign::Center:
 		xOffset = -lineWidth * 0.5f;
-		break;
+	break;
 	case UITextParagraphHorizontalAlign::Right:
 		xOffset = -lineWidth;
-		break;
+	break;
+	}
+
+	//pixel adjust
+	if (pixelPerfect)
+	{
+		xOffset *= rootCanvasScale;
+		xOffset = RoundToFloat(xOffset);
+		xOffset /= rootCanvasScale;
 	}
 
 	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
@@ -1585,10 +1676,6 @@ void UIGeometry::CalculatePivotOffset(const float& width, const float& height, c
 	pivotOffsetY = height * (0.5f - pivot.Y);//height * 0.5f *(1 - pivot.Y * 2)
 }
 
-FORCEINLINE float RoundToFloat(float value)
-{
-	return value > 0.0 ? FMath::FloorToFloat(value + 0.5f) : FMath::CeilToFloat(value - 0.5f);
-}
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformVertices"), STAT_TransformVertices, STATGROUP_LGUI);
 void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo, bool requireNormal, bool requireTangent)
@@ -1625,47 +1712,12 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 	else
 #endif
 	{
-		if (canvas->IsScreenSpaceOverlayUI())
+		if (canvas->IsScreenSpaceOverlayUI())//convert to world space
 		{
-			auto rootCanvas = canvas->GetRootCanvas();
-			if (canvas->GetPixelPerfect())//convert vertex to world, round position.xy(for pixel perfect)
+			for (int i = 0; i < vertexCount; i++)
 			{
-				float viewportScale = rootCanvas->GetViewportUIScale();
-				if (viewportScale == 1.0f)
-				{
-					for (int i = 0; i < vertexCount; i++)
-					{
-						tempV3 = itemTf.TransformPosition(originPositions[i]);
-						tempV3.X = RoundToFloat(tempV3.X);
-						tempV3.Y = RoundToFloat(tempV3.Y);
-
-						vertices[i].Position = tempV3;
-					}
-				}
-				else
-				{
-					float oneDivideViewportScale = 1.0f / viewportScale;
-					for (int i = 0; i < vertexCount; i++)
-					{
-						tempV3 = itemTf.TransformPosition(originPositions[i]);
-						tempV3.X *= viewportScale;
-						tempV3.Y *= viewportScale;
-						tempV3.X = RoundToFloat(tempV3.X);
-						tempV3.Y = RoundToFloat(tempV3.Y);
-						tempV3.X *= oneDivideViewportScale;
-						tempV3.Y *= oneDivideViewportScale;
-
-						vertices[i].Position = tempV3;
-					}
-				}
-			}
-			else//convert vertex to world
-			{
-				for (int i = 0; i < vertexCount; i++)
-				{
-					tempV3 = itemTf.TransformPosition(originPositions[i]);
-					vertices[i].Position = tempV3;
-				}
+				tempV3 = itemTf.TransformPosition(originPositions[i]);
+				vertices[i].Position = tempV3;
 			}
 		}
 		else//convert vertex to canvas's local space
