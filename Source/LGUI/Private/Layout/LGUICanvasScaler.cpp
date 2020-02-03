@@ -86,12 +86,8 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 		{
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
-				auto halfFov = FOVAngle * 0.5f;//ue4 us horizontal fov
-				Canvas->CheckAndGetUIItem()->SetRelativeScale3D(FVector::OneVector);
-
-				//adjust size
 #if WITH_EDITOR
-				if (!GetWorld()->IsGameWorld())
+				if (!GetWorld()->IsGameWorld())//editor just keep in world space
 				{
 					Canvas->SetViewportParameterChange();
 					Canvas->MarkRebuildAllDrawcall();
@@ -100,33 +96,40 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 				else
 #endif
 				{
+					auto canvasUIItem = Canvas->CheckAndGetUIItem();
+					//adjust size
 					switch (UIScaleMode)
 					{
 					case LGUIScaleMode::ScaleWithScreenWidth:
 					{
-						Canvas->CheckAndGetUIItem()->SetWidth(PreferredWidth);
-						Canvas->CheckAndGetUIItem()->SetHeight(PreferredWidth * CurrentViewportSize.Y / CurrentViewportSize.X);
+						canvasUIItem->SetWidth(PreferredWidth);
+						canvasUIItem->SetHeight(PreferredWidth * CurrentViewportSize.Y / CurrentViewportSize.X);
 					}
 					break;
 					case LGUIScaleMode::ScaleWithScreenHeight:
 					{
-						Canvas->CheckAndGetUIItem()->SetHeight(PreferredHeight);
+						canvasUIItem->SetHeight(PreferredHeight);
 						auto tempPreferredWidth = PreferredHeight * CurrentViewportSize.X / CurrentViewportSize.Y;
-						Canvas->CheckAndGetUIItem()->SetWidth(tempPreferredWidth);
+						canvasUIItem->SetWidth(tempPreferredWidth);
 					}
 					break;
 					case LGUIScaleMode::ConstantPixelSize:
 					{
-						Canvas->CheckAndGetUIItem()->SetWidth(CurrentViewportSize.X);
-						Canvas->CheckAndGetUIItem()->SetHeight(CurrentViewportSize.Y);
+						canvasUIItem->SetWidth(CurrentViewportSize.X);
+						canvasUIItem->SetHeight(CurrentViewportSize.Y);
 					}
 					break;
 					default:
 						break;
 					}
+
+					canvasUIItem->SetRelativeScale3D(FVector::OneVector);
+					//set rotate to zero, and move left bottom corner to zero position
+					canvasUIItem->SetRelativeLocationAndRotation(FVector(canvasUIItem->GetWidth() * 0.5f, canvasUIItem->GetHeight() * 0.5f, 0), FQuat::Identity);
+
 					Canvas->SetViewportParameterChange();
 					Canvas->MarkRebuildAllDrawcall();
-					Canvas->CheckAndGetUIItem()->MarkAllDirtyRecursive();
+					canvasUIItem->MarkAllDirtyRecursive();
 					Canvas->MarkCanvasUpdate();
 				}
 			}
