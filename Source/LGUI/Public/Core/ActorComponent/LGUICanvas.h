@@ -122,7 +122,6 @@ public:
 	FORCEINLINE TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> GetViewExtension();
 
 	FORCEINLINE UUIItem* CheckAndGetUIItem() { CheckUIItem(); return UIItem; }
-	FORCEINLINE float GetViewportUIScale();
 protected:
 	//consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas
 	bool currentIsRenderInScreenOrWorld = false;
@@ -142,8 +141,6 @@ protected:
 	void SortDrawcallRenderPriority();
 	//@param	return	drawcall count
 	int32 SortDrawcall(int32 InStartRenderPriority);
-	//UI may render with scale due to LGUICanvasScaler's UIScaleMode
-	float viewportUIScale = 1.0f;
 	
 	UMaterialInterface** GetMaterials();
 
@@ -216,7 +213,6 @@ public:
 		void SetPixelPerfect(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
-	void SetViewportParameterChange();
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);
