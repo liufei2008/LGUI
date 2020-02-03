@@ -748,6 +748,7 @@ void UUITextInputComponent::MoveUp(bool withSelection)
 		TextActor->GetUIText()->FindCaretUp(caretPosition, CaretPositionLineIndex - VisibleCharStartLineIndex, CaretPositionIndex);
 		CaretPositionIndex += VisibleCharStartIndex;
 		UpdateCaretPosition(caretPosition, !withSelection);
+		UpdateInputComposition();
 
 		if (withSelection)
 		{
@@ -786,6 +787,8 @@ void UUITextInputComponent::MoveDown(bool withSelection)
 			CaretPositionIndex += VisibleCharStartIndex;
 			UpdateCaretPosition(caretPosition, !withSelection);
 		}
+
+		UpdateInputComposition();
 
 		if (withSelection)
 		{
@@ -837,7 +840,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 				VisibleCharStartLineIndex--;
 				CaretPositionLineIndex--;
 			}
-			if (CaretPositionIndex - VisibleCharStartIndex >= uiText->GetText().Len())//caret position move right and out of current range, then do move down
+			if (CaretPositionIndex - VisibleCharStartIndex > uiText->GetText().Len())//caret position move right and out of current range, then do move down
 			{
 				VisibleCharStartLineIndex++;
 				CaretPositionLineIndex++;
@@ -980,32 +983,12 @@ void UUITextInputComponent::UpdatePlaceHolderComponent()
 
 void UUITextInputComponent::UpdateCaretPosition(bool InHideSelection)
 {
-	if (TextActor == nullptr)return;
-	if (CaretObject == nullptr)
-	{
-		auto caretActor = this->GetWorld()->SpawnActor<AUISpriteActor>();
-		caretActor->AttachToActor(TextActor, FAttachmentTransformRules::KeepRelativeTransform);
-#if WITH_EDITOR
-		caretActor->SetActorLabel(TEXT("Caret"));
-#endif
-		CaretObject = caretActor->GetUISprite();
-		auto uiText = TextActor->GetUIText();
-		CaretObject->SetDepth(uiText->GetDepth() + 1);
-		CaretObject->SetWidth(CaretWidth);
-		CaretObject->SetHeight(uiText->GetSize());
-		CaretObject->SetColor(CaretColor);
-		CaretObject->SetAnchorHAlign(UIAnchorHorizontalAlign::None);
-		CaretObject->SetAnchorVAlign(UIAnchorVerticalAlign::None);
-		CaretObject->SetSprite(ULGUISpriteData::GetDefaultWhiteSolid(), false);
-	}
 	FVector2D caretPos;
 	int tempCaretPositionLineIndex = 0;
 	TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex - VisibleCharStartIndex, caretPos, tempCaretPositionLineIndex);
 	CaretPositionLineIndex = tempCaretPositionLineIndex + VisibleCharStartLineIndex;
-	CaretObject->SetRelativeLocation(FVector(caretPos, 0));
-	CaretObject->SetUIActive(true);
-	NextCaretBlinkTime = 0;//force display
-	if(InHideSelection) HideSelectionMask();//if use caret, then hide selection mask
+
+	UpdateCaretPosition(caretPos, InHideSelection);
 }
 void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool InHideSelection)
 {
@@ -1029,6 +1012,12 @@ void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool 
 	}
 	CaretObject->SetRelativeLocation(FVector(InCaretPosition, 0));
 	CaretObject->SetUIActive(true);
+	
+	//force display caret
+	NextCaretBlinkTime = 0.8f;
+	ElapseTime = 0.0f;
+	CaretObject->SetAlpha(1.0f);
+
 	if (InHideSelection) HideSelectionMask();//if use caret, then hide selection mask
 }
 void UUITextInputComponent::UpdateSelection()
@@ -1307,7 +1296,6 @@ void UUITextInputComponent::ActivateInput()
 		UpdateUITextComponent();
 		UpdateCaretPosition(false);
 		UpdateSelection();
-		UpdateInputComposition();
 	}
 	//end update selection
 	UpdateInputComposition();
