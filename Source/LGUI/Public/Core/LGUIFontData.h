@@ -18,22 +18,20 @@ struct FLGUIFontKeyData
 {
 public:
 	FLGUIFontKeyData() {}
-	FLGUIFontKeyData(const TCHAR& inCharIndex, const uint16& inCharSize, const bool& inBold)
+	FLGUIFontKeyData(const TCHAR& inCharIndex, const uint16& inCharSize)
 	{
 		this->charIndex = inCharIndex;
 		this->charSize = inCharSize;
-		this->bold = inBold;
 	}
 	TCHAR charIndex = 0;
 	uint16 charSize = 0;
-	bool bold = false;
 	bool operator==(const FLGUIFontKeyData& other)const
 	{
-		return this->charIndex == other.charIndex && this->charSize == other.charSize && this->bold == other.bold;
+		return this->charIndex == other.charIndex && this->charSize == other.charSize;
 	}
 	friend FORCEINLINE uint32 GetTypeHash(const FLGUIFontKeyData& other)
 	{
-		return HashCombine(other.bold, HashCombine(GetTypeHash(other.charIndex), GetTypeHash(other.charSize)));
+		return HashCombine(GetTypeHash(other.charIndex), GetTypeHash(other.charSize));
 	}
 };
 
@@ -92,6 +90,9 @@ public:
 	//angle of italic style in degree
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float italicAngle = 15.0f;
+	//bold size radio for bold style, large number create more bold effect
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		float boldRatio = 0.015f;
 	//Packing tag of this font. If packingTag is not none, then LGUI will search UISprite's atlas packingTag, and pack font texture into sprite atlas's texture.
 	//This can be very useful to reduce drawcall.
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -137,19 +138,18 @@ private:
 	FT_Face face = nullptr;
 	bool alreadyInitialized = false;
 	bool usePackingTag = false;
-	FLGUICharData* PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold);
-	FT_Matrix GetItalicMatrix();
+	FLGUICharData* PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize);
 	/*Insert rect into area, assign pixel if succeed
 	 return: if can fit in rect area return true, else false
 	*/
-	bool PackRectAndInsertChar(int32 InExtraSpace, const int32 InBoldOffset, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
+	bool PackRectAndInsertChar(int32 InExtraSpace, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
 	void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
 
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
 	void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize);
 public:
-	FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold);
+	FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize);
 #if WITH_EDITOR
 	void ReloadFont();
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

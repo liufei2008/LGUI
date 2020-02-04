@@ -179,7 +179,7 @@ void ULGUIFontData::RemoveUIText(UUIText* InText)
 	renderTextArray.Remove(InText);
 }
 
-FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold)
+FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize)
 {
 	if (alreadyInitialized == false)
 	{
@@ -192,7 +192,7 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 		}
 	}
 
-	cacheFontKey = FLGUIFontKeyData(charIndex, charSize, bold);
+	cacheFontKey = FLGUIFontKeyData(charIndex, charSize);
 	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
 	if (error)
 	{
@@ -204,14 +204,6 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 	{
 		UE_LOG(LGUI, Error, TEXT("FT_Load_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return &cacheCharData;
-	}
-	if (bold)
-	{
-		error = FT_Outline_Embolden(&face->glyph->outline, charSize * 2);
-		if (error)
-		{
-			UE_LOG(LGUI, Error, TEXT("FT_Outline_Embolden error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
-		}
 	}
 	error = FT_Render_Glyph(face->glyph, FT_Render_Mode::FT_RENDER_MODE_NORMAL);
 	if (error)
@@ -230,7 +222,7 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 #endif
 	int32 extraSpace = usePackingTag ? spaceBetweenSprites : 0;
 PACK_AND_INSERT:
-	if (PackRectAndInsertChar(extraSpace, bold ? charSize * 0.05f : 0, bitmap, slot, calcBinpack, calcTexture))
+	if (PackRectAndInsertChar(extraSpace, bitmap, slot, calcBinpack, calcTexture))
 	{
 
 	}
@@ -282,7 +274,7 @@ PACK_AND_INSERT:
 	//UE_LOG(LGUI, Error, TEXT("InsertCharTakeTime:%f"), GWorld->GetRealTimeSeconds() - prevTime);
 	return &cacheCharData;
 }
-bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const int32 InBoldOffset, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
+bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
 {
 	int charRectWidth = InCharBitmap.width + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
 	int charRectHeight = InCharBitmap.rows + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
@@ -319,8 +311,8 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const int32 InBold
 		cacheCharData.width = InCharBitmap.width + SPACE_NEED_EXPENDx2;
 		cacheCharData.height = InCharBitmap.rows + SPACE_NEED_EXPENDx2;
 		cacheCharData.xoffset = InSlot->bitmap_left - SPACE_NEED_EXPEND;
-		cacheCharData.yoffset = InSlot->bitmap_top - SPACE_NEED_EXPEND - InBoldOffset * 0.5f;
-		cacheCharData.xadvance = (uint16)(InSlot->linearHoriAdvance * MAX_UINT16_RECEPROCAL + InBoldOffset);
+		cacheCharData.yoffset = InSlot->bitmap_top - SPACE_NEED_EXPEND;
+		cacheCharData.xadvance = (uint16)(InSlot->linearHoriAdvance * MAX_UINT16_RECEPROCAL);
 		cacheCharData.uv0X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND);
 		cacheCharData.uv0Y = fullTextureSizeReciprocal * (packedRect.y + cacheCharData.height - SPACE_NEED_EXPEND);
 		cacheCharData.uv3X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND + cacheCharData.width);
@@ -483,16 +475,16 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	}
 }
 
-FLGUICharData* ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold)
+FLGUICharData* ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize)
 {
-	cacheFontKey = FLGUIFontKeyData(charIndex, charSize, bold);
+	cacheFontKey = FLGUIFontKeyData(charIndex, charSize);
 	if (auto charData = charDataMap.Find(cacheFontKey))
 	{
 		return charData;
 	}
 	else
 	{
-		return PushCharIntoFont(charIndex, charSize, bold);
+		return PushCharIntoFont(charIndex, charSize);
 	}
 	return nullptr;
 }
@@ -519,7 +511,7 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		{
 			ReloadFont();
 		}
-		if (PropertyName == TEXT("fixedVerticalOffset") || PropertyName == TEXT("italicAngle"))
+		if (PropertyName == TEXT("fixedVerticalOffset") || PropertyName == TEXT("italicAngle") || PropertyName == TEXT("boldRatio"))
 		{
 			for (auto textItem : renderTextArray)
 			{
