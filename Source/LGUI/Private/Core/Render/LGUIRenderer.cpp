@@ -11,116 +11,11 @@
 #include "SceneRendering.h"
 #include "Core/Render/ILGUIHudPrimitive.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "DrawingPolicy.h"
+#include "ScenePrivate.h"
 #if WITH_EDITOR
 #include "Engine.h"
 #include "Editor/EditorEngine.h"
 #endif
-
-
-class FLGUIHudRenderPolicy : public FMeshDrawingPolicy
-{
-public:
-	FLGUIHudRenderPolicy(
-		const FVertexFactory* InVertexFactory,
-		const FMaterialRenderProxy* InMaterialRenderProxy,
-		const FMaterial& InMaterialResource,
-		const FMeshDrawingPolicyOverrideSettings& InOverrideSettings
-	)
-		:FMeshDrawingPolicy(InVertexFactory, InMaterialRenderProxy, InMaterialResource, InOverrideSettings)
-	{
-		PixelShader = InMaterialResource.GetShader<FLGUIHudRenderPS>(InVertexFactory->GetType());
-		VertexShader = InMaterialResource.GetShader<FLGUIHudRenderVS>(InVertexFactory->GetType());
-		BaseVertexShader = VertexShader;
-	}
-	FDrawingPolicyMatchResult Matches(const FLGUIHudRenderPolicy& Other, bool bForReals = false)
-	{
-		DRAWING_POLICY_MATCH_BEGIN
-			DRAWING_POLICY_MATCH(FMeshDrawingPolicy::Matches(Other, bForReals)) &&
-			DRAWING_POLICY_MATCH(VertexShader == Other.VertexShader) &&
-			DRAWING_POLICY_MATCH(PixelShader == Other.PixelShader);
-		DRAWING_POLICY_MATCH_END
-	}
-	void SetupPipelineState(FDrawingPolicyRenderState& DrawRenderState, const FSceneView& View)const
-	{
-		auto BlendMode = MaterialResource->GetBlendMode();
-		switch (BlendMode)
-		{
-		default:
-		case BLEND_Opaque:
-			DrawRenderState.SetBlendState(TStaticBlendState<>::GetRHI());
-			break;
-		case BLEND_Masked:
-			DrawRenderState.SetBlendState(TStaticBlendState<>::GetRHI());
-			break;
-		case BLEND_Translucent:
-			// Note: alpha channel used by separate translucency, storing how much of the background should be added when doing the final composite
-			// The Alpha channel is also used by non-separate translucency when rendering to scene captures, which store the final opacity
-			DrawRenderState.SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI());
-			break;
-		case BLEND_Additive:
-			// Add to the existing scene color
-			// Note: alpha channel used by separate translucency, storing how much of the background should be added when doing the final composite
-			// The Alpha channel is also used by non-separate translucency when rendering to scene captures, which store the final opacity
-			DrawRenderState.SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_One, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI());
-			break;
-		case BLEND_Modulate:
-			// Modulate with the existing scene color, preserve destination alpha.
-			DrawRenderState.SetBlendState(TStaticBlendState<CW_RGB, BO_Add, BF_DestColor, BF_Zero>::GetRHI());
-			break;
-		case BLEND_AlphaComposite:
-			// Blend with existing scene color. New color is already pre-multiplied by alpha.
-			DrawRenderState.SetBlendState(TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI());
-			break;
-		};
-	}
-	void SetSharedState(FRHICommandList& RHICmdList, const FDrawingPolicyRenderState& DrawRenderState, const FSceneView* View, const FMeshDrawingPolicy::ContextDataType PolicyContext)const
-	{
-		VertexShader->SetParameters(RHICmdList, MaterialRenderProxy, *MaterialResource, *View, DrawRenderState.GetViewUniformBuffer());
-		PixelShader->SetParameters(RHICmdList, MaterialRenderProxy, *MaterialResource, *View, DrawRenderState.GetViewUniformBuffer());
-		FMeshDrawingPolicy::SetSharedState(RHICmdList, DrawRenderState, View, PolicyContext);
-	}
-	FBoundShaderStateInput GetBoundShaderStateInput(ERHIFeatureLevel::Type InFeatureLevel)const
-	{
-		return FBoundShaderStateInput(
-			FMeshDrawingPolicy::GetVertexDeclaration(),
-			VertexShader->GetVertexShader(),
-			NULL,
-			NULL,
-			PixelShader->GetPixelShader(),
-			NULL);
-	}
-	void SetMeshRenderState(
-		FRHICommandList& RHICmdList,
-		const FSceneView& View,
-		const FMeshBatch& Mesh, int32 BatchElementIndex,
-		const FDrawingPolicyRenderState& DrawRenderState,
-		const ElementDataType& ElementData,
-		const ContextDataType PolicyContext
-	)const
-	{
-		const FMeshBatchElement& BatchElement = Mesh.Elements[BatchElementIndex];
-		VertexShader->SetMesh(RHICmdList, VertexFactory, View, BatchElement, DrawRenderState);
-		PixelShader->SetMesh(RHICmdList, VertexFactory, View, BatchElement, DrawRenderState);
-	}
-	friend int32 CompareDrawingPolicy(const FLGUIHudRenderPolicy& A, const FLGUIHudRenderPolicy& B)
-	{
-		COMPAREDRAWINGPOLICYMEMBERS(VertexShader);
-		COMPAREDRAWINGPOLICYMEMBERS(PixelShader);
-		COMPAREDRAWINGPOLICYMEMBERS(VertexFactory);
-		COMPAREDRAWINGPOLICYMEMBERS(MaterialRenderProxy);
-		return 0;
-	}
-	bool IsInitialized()
-	{
-		return VertexFactory != nullptr && VertexFactory->IsInitialized();
-	}
-private:
-	FLGUIHudRenderVS* VertexShader;
-	FLGUIHudRenderPS* PixelShader;
-};
-
-
 
 FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas)
 	:FSceneViewExtensionBase(AutoRegister)
@@ -129,18 +24,19 @@ FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUIC
 }
 FLGUIViewExtension::~FLGUIViewExtension()
 {
-
+	
 }
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
+{
+	
+}
+void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
 	if (!UICanvas.IsValid())return;
 	ViewLocation = UICanvas->GetViewLocation();
 	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
-}
-void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
-{
-	
+	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
 }
 void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InOutProjectionData)
 {
@@ -184,12 +80,14 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		RenderView.ViewMatrices,
 		FViewMatrices()
 	);
+
 	RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
 
-	FDrawingPolicyRenderState drawRenderState(RenderView);
-	drawRenderState.SetDepthStencilState(TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI());
-	drawRenderState.SetViewUniformBuffer(RenderView.ViewUniformBuffer);
-
+	FGraphicsPipelineStateInitializer GraphicsPSOInit;
+	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+	
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
 		auto hudPrimitive = primitiveArray[i];
@@ -198,19 +96,25 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 			if (hudPrimitive->CanRender())
 			{
 				const FMeshBatch& Mesh = hudPrimitive->GetMeshElement();
-				FLGUIHudRenderPolicy drawingPolicy(Mesh.VertexFactory, Mesh.MaterialRenderProxy
-					, *Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel())
-					, ComputeMeshOverrideSettings(Mesh));
-				if (drawingPolicy.IsInitialized())
+				auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
+				const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+				FLGUIHudRenderVS* VertexShader = (FLGUIHudRenderVS*)MaterialShaderMap->GetShader(&FLGUIHudRenderVS::StaticType);
+				FLGUIHudRenderPS* PixelShader = (FLGUIHudRenderPS*)MaterialShaderMap->GetShader(&FLGUIHudRenderPS::StaticType);
+				if (VertexShader && PixelShader)
 				{
-					drawingPolicy.SetupPipelineState(drawRenderState, RenderView);
-					CommitGraphicsPipelineState(RHICmdList, drawingPolicy
-						, drawRenderState, drawingPolicy.GetBoundShaderStateInput(RenderView.GetFeatureLevel())
-						, drawingPolicy.GetMaterialRenderProxy());
-					drawingPolicy.SetSharedState(RHICmdList, drawRenderState, &RenderView, FLGUIHudRenderPolicy::ContextDataType());
+					PixelShader->SetBlendState(GraphicsPSOInit, Material);
 
-					drawingPolicy.SetMeshRenderState(RHICmdList, RenderView, Mesh, 0, drawRenderState, FMeshDrawingPolicy::ElementDataType(), FLGUIHudRenderPolicy::ContextDataType());
-					drawingPolicy.DrawMesh(RHICmdList, RenderView, Mesh, 0);
+					GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GLGUIVertexDeclaration.VertexDeclarationRHI;
+					GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
+					GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
+					GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+					SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+
+					VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+					PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+
+					RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+					RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, PT_TriangleList, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
 				}
 			}
 		}

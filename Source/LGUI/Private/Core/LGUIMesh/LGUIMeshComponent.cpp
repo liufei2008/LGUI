@@ -10,6 +10,41 @@
 #include "Core/Render/LGUIRenderer.h"
 #include "Engine.h"
 #include "LGUI.h"
+#include "Core/Render/LGUIHudVertex.h"
+
+
+class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
+{
+public:
+	FLGUIHudMeshVertexResourceArray(void* InData, uint32 InSize)
+		:Data(InData)
+		,Size(InSize)
+	{
+
+	}
+	virtual const void* GetResourceData() const override { return Data; }
+	virtual uint32 GetResourceDataSize() const override { return Size; }
+	virtual void Discard() override { }
+	virtual bool IsStatic() const override { return false; }
+	virtual bool GetAllowCPUAccess() const override { return false; }
+	virtual void SetAllowCPUAccess(bool bInNeedsCPUAccess) override { }
+private: 
+	void* Data;
+	uint32 Size;
+};
+class FLGUIHudVertexBuffer : public FVertexBuffer
+{
+public:
+	TArray<FLGUIHudVertex> Vertices;
+	virtual void InitRHI()override
+	{
+		const uint32 SizeInBytes = Vertices.Num() * sizeof(FLGUIHudVertex);
+
+		FLGUIHudMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
+		FRHIResourceCreateInfo CreateInfo(&ResourceArray);
+		VertexBufferRHI = RHICreateVertexBuffer(SizeInBytes, BUF_Static, CreateInfo);
+	}
+};
 
 
 /** Class representing a single section of the LGUI mesh */
@@ -20,6 +55,7 @@ public:
 	UMaterialInterface* Material;
 	/** Vertex buffer for this section */
 	FStaticMeshVertexBuffers VertexBuffers;
+	FLGUIHudVertexBuffer HudVertexBuffers;
 	/** Index buffer for this section */
 	FDynamicMeshIndexBuffer16 IndexBuffer;
 	/** Vertex factory for this section */
@@ -50,11 +86,37 @@ public:
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
+		LGUIHudRenderer = InComponent->LGUIHudRenderer;
+		if (LGUIHudRenderer.IsValid())
+		{
+			LGUIHudRenderer.Pin()->AddHudPrimitive(this);
+			IsHudOrWorldSpace = true;
+		}
+		else
+		{
+			IsHudOrWorldSpace = false;
+		}
+
 		FLGUIMeshSection& SrcSection = InComponent->MeshSection;
 		if (SrcSection.vertices.Num() > 0)
 		{
 			FLGUIMeshProxySection* NewSection = new FLGUIMeshProxySection(GetScene().GetFeatureLevel());
 			// vertex and index buffer
+			const auto& SrcVertices = SrcSection.vertices;
+			int NumVerts = SrcVertices.Num();
+			auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
+			HudVertices.SetNumUninitialized(NumVerts);
+			for (int i = 0; i < NumVerts; i++)
+			{
+				FLGUIHudVertex& HudVert = HudVertices[i];
+				auto& Vert = SrcVertices[i];
+				HudVert.Position = Vert.Position;
+				HudVert.Color = Vert.Color;
+				HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
+				HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
+				HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
+				HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
+			}
 			NewSection->IndexBuffer.Indices = SrcSection.triangles;
 
 			NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection.vertices, 4);
@@ -65,6 +127,7 @@ public:
 			BeginInitResource(&NewSection->VertexBuffers.ColorVertexBuffer);
 			BeginInitResource(&NewSection->IndexBuffer);
 			BeginInitResource(&NewSection->VertexFactory);
+			BeginInitResource(&NewSection->HudVertexBuffers);
 
 			// Grab material
 			NewSection->Material = InComponent->GetMaterial(0);
@@ -79,16 +142,6 @@ public:
 			// Save ref to new section
 			Section = NewSection;
 		}
-		LGUIHudRenderer = InComponent->LGUIHudRenderer;
-		if (LGUIHudRenderer.IsValid())
-		{
-			LGUIHudRenderer.Pin()->AddHudPrimitive(this);
-			IsHudOrWorldSpace = true;
-		}
-		else
-		{
-			IsHudOrWorldSpace = false;
-		}
 	}
 
 	virtual ~FLGUIMeshSceneProxy()
@@ -100,6 +153,7 @@ public:
 			Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
 			Section->IndexBuffer.ReleaseResource();
 			Section->VertexFactory.ReleaseResource();
+			Section->HudVertexBuffers.ReleaseResource();
 			delete Section;
 		}
 		if (LGUIHudRenderer.IsValid())
@@ -118,6 +172,42 @@ public:
 		// Check it references a valid section
 		if (Section != nullptr)
 		{
+			//vertex buffer
+			if (IsHudOrWorldSpace)
+			{
+				FLGUIHudVertex* HudVertexBufferData = new FLGUIHudVertex[NumVerts];
+				if (AdditionalChannelFlags == 0)
+				{
+					for (int i = 0; i < NumVerts; i++)
+					{
+						FLGUIHudVertex& HudVert = HudVertexBufferData[i];
+						auto& Vert = MeshVertexData[i];
+						HudVert.Position = Vert.Position;
+						HudVert.Color = Vert.Color;
+						HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
+					}
+				}
+				else
+				{
+					for (int i = 0; i < NumVerts; i++)
+					{
+						FLGUIHudVertex& HudVert = HudVertexBufferData[i];
+						auto& Vert = MeshVertexData[i];
+						HudVert.Position = Vert.Position;
+						HudVert.Color = Vert.Color;
+						HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
+						HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
+						HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
+						HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
+					}
+				}
+
+				uint32 vertexDataLength = NumVerts * sizeof(FLGUIHudVertex);
+				void* VertexBufferData = RHILockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, vertexDataLength, RLM_WriteOnly);
+				FMemory::Memcpy(VertexBufferData, HudVertexBufferData, vertexDataLength);
+				RHIUnlockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI);
+			}
+			else
 			{
 				if (AdditionalChannelFlags == 0)
 				{
@@ -153,36 +243,35 @@ public:
 							Section->VertexBuffers.StaticMeshVertexBuffer.SetVertexUV(i, 3, LGUIVert.TextureCoordinate[3]);
 					}
 				}
-			}
 
-			{
-				auto& VertexBuffer = Section->VertexBuffers.PositionVertexBuffer;
-				void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
-				FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
-				RHIUnlockVertexBuffer(VertexBuffer.VertexBufferRHI);
-			}
+				{
+					auto& VertexBuffer = Section->VertexBuffers.PositionVertexBuffer;
+					void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
+					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
+					RHIUnlockVertexBuffer(VertexBuffer.VertexBufferRHI);
+				}
 
-			{
-				auto& VertexBuffer = Section->VertexBuffers.ColorVertexBuffer;
-				void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
-				FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
-				RHIUnlockVertexBuffer(VertexBuffer.VertexBufferRHI);
-			}
+				{
+					auto& VertexBuffer = Section->VertexBuffers.ColorVertexBuffer;
+					void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
+					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
+					RHIUnlockVertexBuffer(VertexBuffer.VertexBufferRHI);
+				}
 
-			{
-				auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
-				void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTangentSize(), RLM_WriteOnly);
-				FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTangentData(), VertexBuffer.GetTangentSize());
-				RHIUnlockVertexBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI);
-			}
+				{
+					auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
+					void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTangentSize(), RLM_WriteOnly);
+					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTangentData(), VertexBuffer.GetTangentSize());
+					RHIUnlockVertexBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI);
+				}
 
-			{
-				auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
-				void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTexCoordSize(), RLM_WriteOnly);
-				FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTexCoordData(), VertexBuffer.GetTexCoordSize());
-				RHIUnlockVertexBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
+				{
+					auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
+					void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTexCoordSize(), RLM_WriteOnly);
+					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTexCoordData(), VertexBuffer.GetTexCoordSize());
+					RHIUnlockVertexBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
+				}
 			}
-
 
 
 			// Lock index buffer
@@ -219,7 +308,7 @@ public:
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_GetMeshElements);
-		if (IsHudOrWorldSpace)return;
+		if (IsHudOrWorldSpace) return;
 		// Set up wireframe material (if needed)
 		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
 
@@ -301,6 +390,18 @@ public:
 	virtual bool CanRender()const override
 	{
 		return Section != nullptr && Section->bSectionVisible;
+	}
+	virtual FPrimitiveSceneProxy* GetPrimitiveSceneProxy() override
+	{
+		return this;
+	}
+	virtual FRHIVertexBuffer* GetVertexBufferRHI()override
+	{
+		return Section->HudVertexBuffers.VertexBufferRHI;
+	}
+	virtual uint32 GetNumVerts()override
+	{
+		return Section->HudVertexBuffers.Vertices.Num();
 	}
 	//end ILGUIHudPrimitive interface
 

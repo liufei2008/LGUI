@@ -2,47 +2,122 @@
 
 #include "Core/Render/LGUIShaders.h"
 #include "LGUI.h"
-#include "StaticMeshVertexData.h"
 #include "PipelineStateCache.h"
-#include "SceneRendering.h"
+#include "Materials/Material.h"
+#include "ShaderParameterUtils.h"
+#include "Core/Render/LGUIHudVertex.h"
+#include "PrimitiveUniformShaderParameters.h"
+#include "MeshBatch.h"
+
+
+TGlobalResource<FLGUIVertexDeclaration> GLGUIVertexDeclaration;
+void FLGUIVertexDeclaration::InitRHI()
+{
+	FVertexDeclarationElementList Elements;
+	uint32 Stride = sizeof(FLGUIHudVertex);
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, Position), VET_Float3, 0, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, Color), VET_Color, 1, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate0), VET_Float2, 2, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate1), VET_Float2, 3, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate2), VET_Float2, 4, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate3), VET_Float2, 5, Stride));
+	VertexDeclarationRHI = RHICreateVertexDeclaration(Elements);
+}
+void FLGUIVertexDeclaration::ReleaseRHI()
+{
+	VertexDeclarationRHI.SafeRelease();
+}
+
 
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderVS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainVS"), SF_Vertex);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderPS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainPS"), SF_Pixel);
 
 
-FLGUIHudRenderVS::FLGUIHudRenderVS(const FMeshMaterialShaderType::CompiledShaderInitializerType& Initializer) 
-	: FMeshMaterialShader(Initializer)
+FLGUIHudRenderVS::FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
+	: FMaterialShader(Initializer)
 {
-	PassUniformBuffer.Bind(Initializer.ParameterMap, FSceneTexturesUniformParameters::StaticStruct.GetShaderVariableName());
+	
 }
-bool FLGUIHudRenderVS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material, const FVertexFactoryType* VertexFactoryType)
+bool FLGUIHudRenderVS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material)
 {
 	return true;
 }
-void FLGUIHudRenderVS::SetParameters(FRHICommandList& RHICmdList, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial& Material, const FSceneView& View, const TUniformBufferRef<FViewUniformShaderParameters>& ViewUniformBuffer)
+void FLGUIHudRenderVS::ModifyCompilationEnvironment(EShaderPlatform Platform, const class FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment)
 {
-	FMeshMaterialShader::SetParameters(RHICmdList, GetVertexShader(), MaterialRenderProxy, Material, View, ViewUniformBuffer, nullptr);
+	FMaterialShader::ModifyCompilationEnvironment(Platform, Material, OutEnvironment);
+	//OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
+	OutEnvironment.SetDefine(TEXT("HAS_PRIMITIVE_UNIFORM_BUFFER"), true);
+	OutEnvironment.SetDefine(TEXT("VF_SUPPORTS_PRIMITIVE_SCENE_DATA"), false);
+	OutEnvironment.SetDefine(TEXT("NEEDS_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS"), true);
 }
-void FLGUIHudRenderVS::SetMesh(FRHICommandList& RHICmdList, const FVertexFactory* VertexFactory, const FSceneView& View, const FMeshBatchElement& BatchElement, const FDrawingPolicyRenderState& DrawRenderState, uint32 DataFlags)
+void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
 {
-	FMeshMaterialShader::SetMesh(RHICmdList, GetVertexShader(), VertexFactory, View, nullptr, BatchElement, DrawRenderState, DataFlags);
+	SetUniformBufferParameter(RHICmdList, GetVertexShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), Mesh.Elements[0].PrimitiveUniformBuffer);
+	FMaterialShader::SetParameters(RHICmdList, GetVertexShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, ESceneTextureSetupMode::None);
+}
+bool FLGUIHudRenderVS::Serialize(FArchive& Ar)
+{
+	bool bShaderHasOutdatedParameters = FMaterialShader::Serialize(Ar);
+	return bShaderHasOutdatedParameters;
 }
 
 
-FLGUIHudRenderPS::FLGUIHudRenderPS(const FMeshMaterialShaderType::CompiledShaderInitializerType& Initializer)
-	:FMeshMaterialShader(Initializer)
+
+FLGUIHudRenderPS::FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
+	:FMaterialShader(Initializer)
 {
-	PassUniformBuffer.Bind(Initializer.ParameterMap, FSceneTexturesUniformParameters::StaticStruct.GetShaderVariableName());
+	
 }
-bool FLGUIHudRenderPS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material, const FVertexFactoryType* VertexFactoryType)
+bool FLGUIHudRenderPS::ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material)
 {
 	return true;
 }
-void FLGUIHudRenderPS::SetParameters(FRHICommandList& RHICmdList, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial& Material, const FSceneView& View, const TUniformBufferRef<FViewUniformShaderParameters>& ViewUniformBuffer)
+void FLGUIHudRenderPS::ModifyCompilationEnvironment(EShaderPlatform Platform, const FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment)
 {
-	FMeshMaterialShader::SetParameters(RHICmdList, GetPixelShader(), MaterialRenderProxy, Material, View, ViewUniformBuffer, nullptr);
+	FMaterialShader::ModifyCompilationEnvironment(Platform, Material, OutEnvironment);
+	//OutEnvironment.SetDefine(TEXT("NUM_CUSTOMIZED_UVS"), Material->GetNumCustomizedUVs());
+	OutEnvironment.SetDefine(TEXT("HAS_PRIMITIVE_UNIFORM_BUFFER"), true);
+	OutEnvironment.SetDefine(TEXT("VF_SUPPORTS_PRIMITIVE_SCENE_DATA"), false);
+	OutEnvironment.SetDefine(TEXT("NEEDS_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS"), true);
 }
-void FLGUIHudRenderPS::SetMesh(FRHICommandList& RHICmdList, const FVertexFactory* VertexFactory, const FSceneView& View, const FMeshBatchElement& BatchElement, const FDrawingPolicyRenderState& DrawRenderState, uint32 DataFlags)
+void FLGUIHudRenderPS::SetBlendState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material)
 {
-	FMeshMaterialShader::SetMesh(RHICmdList, GetPixelShader(), VertexFactory, View, nullptr, BatchElement, DrawRenderState, DataFlags);
+	EBlendMode BlendMode = Material->GetBlendMode();
+
+	switch (BlendMode)
+	{
+	default:
+	case BLEND_Opaque:
+		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+		break;
+	case BLEND_Masked:
+		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+		break;
+	case BLEND_Translucent:
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_InverseDestAlpha, BF_One>::GetRHI();
+		break;
+	case BLEND_Additive:
+		// Add to the existing scene color
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_One, BO_Add, BF_One, BF_One>::GetRHI();
+		break;
+	case BLEND_Modulate:
+		// Modulate with the existing scene color
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_Zero, BF_SourceColor>::GetRHI();
+		break;
+	case BLEND_AlphaComposite:
+		// Blend with existing scene color. New color is already pre-multiplied by alpha.
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
+		break;
+	};
+}
+void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
+{
+	SetUniformBufferParameter(RHICmdList, GetPixelShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), Mesh.Elements[0].PrimitiveUniformBuffer);
+	const ESceneTextureSetupMode SceneTextures = ESceneTextureSetupMode::SceneDepth | ESceneTextureSetupMode::SSAO | ESceneTextureSetupMode::CustomDepth;
+	FMaterialShader::SetParameters(RHICmdList, GetPixelShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, SceneTextures);
+}
+bool FLGUIHudRenderPS::Serialize(FArchive& Ar)
+{
+	bool bShaderHasOutdatedParameters = FMaterialShader::Serialize(Ar);
+	return bShaderHasOutdatedParameters;
 }

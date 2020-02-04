@@ -44,6 +44,6 @@ private:
 	FVector ViewLocation;
 	FMatrix ViewRotationMatrix;
 	FMatrix ProjectionMatrix;
-
+	FMatrix ViewProjectionMatrix;
 	FCriticalSection Mutex;//for lock HudPrimitiveArray, incase gamethread and renderthread
 };

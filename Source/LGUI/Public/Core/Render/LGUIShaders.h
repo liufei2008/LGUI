@@ -13,24 +13,44 @@
 #include "Engine/Texture2D.h"
 #include "MeshMaterialShader.h"
 
-class FLGUIHudRenderVS :public FMeshMaterialShader
+class FLGUIVertexDeclaration : public FRenderResource
 {
-	DECLARE_SHADER_TYPE(FLGUIHudRenderVS, MeshMaterial);
 public:
-	FLGUIHudRenderVS() {}
-	FLGUIHudRenderVS(const FMeshMaterialShaderType::CompiledShaderInitializerType& Initializer);
+	FVertexDeclarationRHIRef VertexDeclarationRHI;
+	virtual ~FLGUIVertexDeclaration() {}
+	virtual void InitRHI()override;
+	virtual void ReleaseRHI()override;
+};
 
-	static bool ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material, const FVertexFactoryType* VertexFactoryType);
-	void SetParameters(FRHICommandList& RHICmdList, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial& Material, const FSceneView& View, const TUniformBufferRef<FViewUniformShaderParameters>& ViewUniformBuffer);
-	void SetMesh(FRHICommandList& RHICmdList, const FVertexFactory* VertexFactory, const FSceneView& View, const FMeshBatchElement& BatchElement, const FDrawingPolicyRenderState& DrawRenderState, uint32 DataFlags = 0);
-};
-class FLGUIHudRenderPS : public FMeshMaterialShader
+class FLGUIHudRenderVS :public FMaterialShader
 {
-	DECLARE_SHADER_TYPE(FLGUIHudRenderPS, MeshMaterial);
 public:
-	FLGUIHudRenderPS() {}
-	FLGUIHudRenderPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer);
-	static bool ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material, const FVertexFactoryType* VertexFactoryType);
-	void SetParameters(FRHICommandList& RHICmdList, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial& Material, const FSceneView& View, const TUniformBufferRef<FViewUniformShaderParameters>& ViewUniformBuffer);
-	void SetMesh(FRHICommandList& RHICmdList, const FVertexFactory* VertexFactory, const FSceneView& View, const FMeshBatchElement& BatchElement, const FDrawingPolicyRenderState& DrawRenderState, uint32 DataFlags = 0);
+	DECLARE_SHADER_TYPE(FLGUIHudRenderVS, Material);
+
+	FLGUIHudRenderVS() {}
+	FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
+
+	static void ModifyCompilationEnvironment(EShaderPlatform Platform, const class FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment);
+	static bool ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material);
+	
+	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);
+	virtual bool Serialize(FArchive& Ar)override;
 };
+class FLGUIHudRenderPS : public FMaterialShader
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIHudRenderPS, Material);
+
+	FLGUIHudRenderPS() {}
+	FLGUIHudRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
+	static bool ShouldCompilePermutation(EShaderPlatform Platform, const FMaterial* Material);
+	static void ModifyCompilationEnvironment(EShaderPlatform Platform, const FMaterial* Material, FShaderCompilerEnvironment& OutEnvironment);
+
+	void SetBlendState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material);
+	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);
+
+	virtual bool Serialize(FArchive& Ar) override;
+};
+
+
+extern TGlobalResource<FLGUIVertexDeclaration> GLGUIVertexDeclaration;

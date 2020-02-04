@@ -2,7 +2,7 @@
 
 #include "/Engine/Private/Common.ush"
 #include "/Engine/Generated/Material.ush"
-#include "/Engine/Generated/VertexFactory.ush"
+#include "/Engine/Private/LocalVertexFactoryCommon.ush"
 
 
 struct FLGUIBasePassInterpolants
@@ -21,39 +21,90 @@ struct FLGUIBasePassVSToPS
 	float4 Position : SV_POSITION;
 };
 
+FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 VertexColor, float2 UV0, float2 UV1, float2 UV2, float2 UV3)
+{
+	FVertexFactoryInterpolantsVSToPS Interpolants;
+
+	// Initialize the whole struct to 0
+	// Really only the last two components of the packed UVs have the opportunity to be uninitialized
+	Interpolants = (FVertexFactoryInterpolantsVSToPS)0;
+
+#if NUM_TEX_COORD_INTERPOLATORS
+	float2 CustomizedUVs[4];
+	CustomizedUVs[0] = UV0;
+	CustomizedUVs[1] = UV1;
+	CustomizedUVs[2] = UV2;
+	CustomizedUVs[3] = UV3;
+	UNROLL
+	for (int CoordinateIndex = 0; CoordinateIndex < NUM_TEX_COORD_INTERPOLATORS; CoordinateIndex++)
+	{
+		SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
+	}
+#endif
+
+	//SetTangents(Interpolants, Intermediates.TangentToWorld[0], Intermediates.TangentToWorld[2], Intermediates.TangentToWorldSign);
+	SetColor(Interpolants, VertexColor);
+
+	return Interpolants;
+}
+
+float4 TransformLocalToTranslatedWorld(float3 LocalPosition)
+{
+	float3 RotatedPosition = Primitive.LocalToWorld[0].xyz * LocalPosition.xxx + Primitive.LocalToWorld[1].xyz * LocalPosition.yyy + Primitive.LocalToWorld[2].xyz * LocalPosition.zzz;
+	return float4(RotatedPosition + (Primitive.LocalToWorld[3].xyz + ResolvedView.PreViewTranslation.xyz),1);
+}
+
 void MainVS(
-    FVertexFactoryInput Input
-	, out FLGUIBasePassVSToPS Output
+    in float3 Position : ATTRIBUTE0,
+    in half4 Color : ATTRIBUTE1,
+    in float2 TextureCoord0 : ATTRIBUTE2,
+    in float2 TextureCoord1 : ATTRIBUTE3,
+    in float2 TextureCoord2 : ATTRIBUTE4,
+    in float2 TextureCoord3 : ATTRIBUTE5,
+	out FLGUIBasePassVSToPS Output
 )
 {
 	ResolvedView = ResolveView();
 
-	FVertexFactoryIntermediates VFIntermediates = GetVertexFactoryIntermediates(Input);
-	float4 WorldPositionExcludingWPO = VertexFactoryGetWorldPosition(Input, VFIntermediates);
-	float4 WorldPosition = WorldPositionExcludingWPO;
-
-	half3x3 TangentToLocal = VertexFactoryGetTangentToLocal(Input, VFIntermediates);	
-	FMaterialVertexParameters VertexParameters = GetMaterialVertexParameters(Input, VFIntermediates, WorldPosition.xyz, TangentToLocal);
-
-	half3 WorldPositionOffset = GetMaterialWorldPositionOffset(VertexParameters);
-	
-	WorldPosition.xyz += WorldPositionOffset;
-
-	float4 RasterizedWorldPosition = VertexFactoryGetRasterizedWorldPosition(Input, VFIntermediates, WorldPosition);
-	Output.Position = mul(RasterizedWorldPosition, ResolvedView.TranslatedWorldToClip);
+	//float4 WorldPosition = mul(float4(Position, 1.0), GetPrimitiveData(Parameters.PrimitiveId).LocalToWorld);
+	float4 WorldPosition = TransformLocalToTranslatedWorld(Position);
+	Output.Position = mul(WorldPosition, ResolvedView.TranslatedWorldToClip);
 	Output.BasePassInterpolants.PixelPosition = WorldPosition;
 
 #if USE_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS
-	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPositionExcludingWPO.xyz;
+	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPosition.xyz;
 #endif
 
-	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(Input, VFIntermediates, VertexParameters);
+	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(Color, TextureCoord0, TextureCoord1, TextureCoord2, TextureCoord3);
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
+
+#if (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)  && !MOBILE_EMULATION
+	// The GLES target has a flipped Y axis
+	Position.y = -Position.y;
+#endif
 
 #if OUTPUT_GAMMA_SPACE && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
 	Output.Position.y *= -1;
 #endif
+}
+
+
+
+FMaterialPixelParameters GetMaterialPixelParameters(FVertexFactoryInterpolantsVSToPS Interpolants, float4 SvPosition)
+{
+	// GetMaterialPixelParameters is responsible for fully initializing the result
+	FMaterialPixelParameters Result = MakeInitializedMaterialPixelParameters();
+
+#if NUM_TEX_COORD_INTERPOLATORS
+	UNROLL
+	for( int CoordinateIndex = 0; CoordinateIndex < NUM_TEX_COORD_INTERPOLATORS; CoordinateIndex++ )
+	{
+		Result.TexCoords[CoordinateIndex] = GetUV(Interpolants, CoordinateIndex);
+	}
+#endif
+	Result.VertexColor = GetColor(Interpolants);
+	return Result;
 }
 
 void MainPS(
