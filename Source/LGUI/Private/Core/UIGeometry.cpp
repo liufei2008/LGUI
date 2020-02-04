@@ -553,6 +553,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
+	float italicSlop = FMath::Tan(FMath::DegreesToRadians(font->italicAngle));
 
 	//rich text
 	using namespace LGUIRichTextParser;
@@ -662,7 +663,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		currentLineHeight = fontSize;
 	};
 
-	auto GetCharGeo = [&](TCHAR charCode, int overrideFontSize, bool overrideBold, bool overrideItalic)
+	auto GetCharGeo = [&](TCHAR charCode, int overrideFontSize, bool overrideBold)
 	{
 		FUITextCharGeometry charGeo;
 		if (charCode == ' ')
@@ -681,7 +682,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		else
 		{
-			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, overrideBold, overrideItalic);
+			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, overrideBold);
 			charGeo.geoWidth = charData->width;
 			charGeo.geoHeight = charData->height;
 			charGeo.xadvance = charData->xadvance;
@@ -691,7 +692,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			auto overrideCharData = charData;
 			if ((pixelPerfect && rootCanvasScale != 1.0f) || dynamicPixelsPerUnitIsNot1)
 			{
-				overrideCharData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize), overrideBold, overrideItalic);
+				overrideCharData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize), overrideBold);
 			}
 
 			charGeo.uv0 = overrideCharData->GetUV0();
@@ -701,7 +702,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		return charGeo;
 	};
-	auto GetCharGeoXAdv = [&](TCHAR charCode, int overrideFontSize, bool overrideBold, bool overrideItalic)
+	auto GetCharGeoXAdv = [&](TCHAR charCode, int overrideFontSize, bool overrideBold)
 	{
 		if (charCode == ' ')
 		{
@@ -713,7 +714,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		else
 		{
-			auto charData = font->GetCharData(charCode, overrideFontSize, overrideBold, overrideItalic);
+			auto charData = font->GetCharData(charCode, overrideFontSize, overrideBold);
 			return charData->xadvance;
 		}
 	};
@@ -721,7 +722,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 	{
 		FUITextCharGeometry charGeo;
 		{
-			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, false, false);
+			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, false);
 			charGeo.geoHeight = charData->height;
 			charGeo.xoffset = charData->xoffset;
 			charGeo.yoffset = charData->yoffset + GetCharFixedOffset(overrideFontSize);
@@ -777,8 +778,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		
 		auto charGeo = richText 
-			? GetCharGeo(charCode, richTextParseResult.size, richTextParseResult.bold, richTextParseResult.italic)
-			: GetCharGeo(charCode, fontSize, bold, italic);
+			? GetCharGeo(charCode, richTextParseResult.size, richTextParseResult.bold)
+			: GetCharGeo(charCode, fontSize, bold);
 		//caret property
 		if (!richText)
 		{
@@ -810,8 +811,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 						break;
 					}
 					spaceNeeded += richText
-						? GetCharGeoXAdv(charCodeOfForwardChar, richTextParseResult.size, richTextParseResult.bold, richTextParseResult.italic)
-						: GetCharGeoXAdv(charCodeOfForwardChar, fontSize, bold, italic);
+						? GetCharGeoXAdv(charCodeOfForwardChar, richTextParseResult.size, richTextParseResult.bold)
+						: GetCharGeoXAdv(charCodeOfForwardChar, fontSize, bold);
 					spaceNeeded += fontSpace.X;
 					forwardVisibleCharIndex++;
 				}
@@ -871,8 +872,10 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					originPositions[verticesCount + 1] = FVector(x, y, 0);
 					x = offsetX;
 					y = offsetY;
+					if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
 					originPositions[verticesCount + 2] = FVector(x, y, 0);
 					x = charGeo.geoWidth + offsetX;
+					if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
 					originPositions[verticesCount + 3] = FVector(x, y, 0);
 
 					if (richTextParseResult.underline)
@@ -977,8 +980,10 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					originPositions[verticesCount + 1] = FVector(x, y, 0);
 					x = offsetX;
 					y = offsetY;
+					if (italic)x += charGeo.geoHeight * italicSlop;
 					originPositions[verticesCount + 2] = FVector(x, y, 0);
 					x = charGeo.geoWidth + offsetX;
+					if (italic)x += charGeo.geoHeight * italicSlop;
 					originPositions[verticesCount + 3] = FVector(x, y, 0);
 					//snap pixel
 					if (pixelPerfect)
@@ -1031,8 +1036,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = nextCharXAdv = richText
-					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size, richTextParseResult.bold, richTextParseResult.italic)
-					: GetCharGeoXAdv(content[charIndex + 1], fontSize, bold, italic);
+					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size, richTextParseResult.bold)
+					: GetCharGeoXAdv(content[charIndex + 1], fontSize, bold);
 				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 				{
 					auto nextChar = content[charIndex + 1];
@@ -1053,8 +1058,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = richText
-					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size, richTextParseResult.bold, richTextParseResult.italic)
-					: GetCharGeoXAdv(content[charIndex + 1], fontSize, bold, italic);
+					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size, richTextParseResult.bold)
+					: GetCharGeoXAdv(content[charIndex + 1], fontSize, bold);
 				if (currentLineOffset.X + nextCharXAdv > width)//horizontal cannot fit next char
 				{
 					//@todo: ClampContent mode may cause triangle change if UIText's width change

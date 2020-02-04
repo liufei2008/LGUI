@@ -178,17 +178,8 @@ void ULGUIFontData::RemoveUIText(UUIText* InText)
 {
 	renderTextArray.Remove(InText);
 }
-FT_Matrix ULGUIFontData::GetItalicMatrix()
-{
-	FT_Matrix italicMatrix;
-	italicMatrix.xx = 1 << 16;
-	italicMatrix.xy = 0x4000;
-	italicMatrix.yx = 0;
-	italicMatrix.yy = 1 << 16;
-	return italicMatrix;
-}
 
-FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic)
+FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold)
 {
 	if (alreadyInitialized == false)
 	{
@@ -201,7 +192,7 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 		}
 	}
 
-	cacheFontKey = FLGUIFontKeyData(charIndex, charSize, bold, italic);
+	cacheFontKey = FLGUIFontKeyData(charIndex, charSize, bold);
 	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
 	if (error)
 	{
@@ -221,11 +212,6 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 		{
 			UE_LOG(LGUI, Error, TEXT("FT_Outline_Embolden error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		}
-	}
-	if (italic)
-	{
-		static FT_Matrix italicMatrix = GetItalicMatrix();
-		FT_Outline_Transform(&face->glyph->outline, &italicMatrix);
 	}
 	error = FT_Render_Glyph(face->glyph, FT_Render_Mode::FT_RENDER_MODE_NORMAL);
 	if (error)
@@ -500,16 +486,16 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	}
 }
 
-FLGUICharData* ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic)
+FLGUICharData* ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold)
 {
-	cacheFontKey = FLGUIFontKeyData(charIndex, charSize, bold, italic);
+	cacheFontKey = FLGUIFontKeyData(charIndex, charSize, bold);
 	if (auto charData = charDataMap.Find(cacheFontKey))
 	{
 		return charData;
 	}
 	else
 	{
-		return PushCharIntoFont(charIndex, charSize, bold, italic);
+		return PushCharIntoFont(charIndex, charSize, bold);
 	}
 	return nullptr;
 }
@@ -536,7 +522,7 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		{
 			ReloadFont();
 		}
-		if (PropertyName == TEXT("fixedVerticalOffset"))
+		if (PropertyName == TEXT("fixedVerticalOffset") || PropertyName == TEXT("italicAngle"))
 		{
 			for (auto textItem : renderTextArray)
 			{
