@@ -875,7 +875,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 			//all above step will break if out-of-range
 
 			//same as UIGeometry's function "UpdateUIText"
-			auto GetCharGeoXAdv = [](TCHAR charCode, ULGUIFontData* font, int overrideFontSize, bool overrideBold)
+			auto GetCharGeoXAdv = [](TCHAR charCode, ULGUIFontData* font, int overrideFontSize)
 			{
 				if (charCode == ' ')
 				{
@@ -887,7 +887,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 				}
 				else
 				{
-					auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, overrideBold);
+					auto charData = font->GetCharData(charCode, (uint16)overrideFontSize);
 					return charData->xadvance;
 				}
 			};
@@ -896,12 +896,11 @@ void UUITextInputComponent::UpdateUITextComponent()
 			auto fontSpace = uiText->GetFontSpace();
 			auto font = uiText->GetFont();
 			auto fontStyle = uiText->GetFontStyle();
-			bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 
 			//check from caret to left
 			for (int i = CaretPositionIndex - 1; i >= 0 && i >= VisibleCharStartIndex; i--)
 			{
-				auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize, bold) + fontSpace.X;
+				auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize) + fontSpace.X;
 				width += expendSpace;
 				if (width >= maxWidth)
 				{
@@ -916,7 +915,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 				//check from caret to right
 				for (int i = CaretPositionIndex, charCount = replaceText.Len(); i < charCount; i++)
 				{
-					auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize, bold) + fontSpace.X;
+					auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize) + fontSpace.X;
 					width += expendSpace;
 					if (width > maxWidth)
 					{
@@ -931,7 +930,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 					//check from VisibleCharStartIndex to left
 					for (int i = VisibleCharStartIndex - 1; i >= 0; i--)
 					{
-						auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize, bold) + fontSpace.X;
+						auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize) + fontSpace.X;
 						width += expendSpace;
 						if (width >= maxWidth)
 						{
