@@ -25,7 +25,8 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	}
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteTexture));
-	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo));
+	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.width));
+	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.height));
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
 	lguiCategory.AddCustomRow(LOCTEXT("ReloadTexture", "ReloadTexture"))
 		.WholeRowContent()
@@ -243,7 +244,7 @@ FOptionalSize FLGUISpriteDataCustomization::GetImageHeight()const
 }
 FOptionalSize FLGUISpriteDataCustomization::GetMinDesiredHeight(IDetailLayoutBuilder* DetailBuilder)const
 {
-	return DetailBuilder->GetDetailsView()->GetCachedGeometry().GetLocalSize().Y - 300;
+	return DetailBuilder->GetDetailsView()->GetCachedGeometry().GetLocalSize().Y - 410;
 }
 FOptionalSize FLGUISpriteDataCustomization::GetBorderLeftSize()const
 {
