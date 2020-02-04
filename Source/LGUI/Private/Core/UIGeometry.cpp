@@ -471,8 +471,6 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 {
 	//vertex and triangle
 	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, uiComp, cacheTextPropertyList, font, richText);
-	uiGeo->originVerticesCount = uiGeo->vertices.Num();
-	uiGeo->originTriangleCount = uiGeo->triangles.Num();
 
 	int32 vertexCount = uiGeo->originVerticesCount;
 	//normals
@@ -552,6 +550,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 	firstVertIndexOfChar_Array.Reset();
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
+	float boldSize = fontSize * font->boldRatio;
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
 	float italicSlop = FMath::Tan(FMath::DegreesToRadians(font->italicAngle));
 
@@ -663,7 +662,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		currentLineHeight = fontSize;
 	};
 
-	auto GetCharGeo = [&](TCHAR charCode, int overrideFontSize, bool overrideBold)
+	auto GetCharGeo = [&](TCHAR charCode, int overrideFontSize)
 	{
 		FUITextCharGeometry charGeo;
 		if (charCode == ' ')
@@ -682,7 +681,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		else
 		{
-			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, overrideBold);
+			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize);
 			charGeo.geoWidth = charData->width;
 			charGeo.geoHeight = charData->height;
 			charGeo.xadvance = charData->xadvance;
@@ -692,7 +691,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			auto overrideCharData = charData;
 			if ((pixelPerfect && rootCanvasScale != 1.0f) || dynamicPixelsPerUnitIsNot1)
 			{
-				overrideCharData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize), overrideBold);
+				overrideCharData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize));
 			}
 
 			charGeo.uv0 = overrideCharData->GetUV0();
@@ -702,7 +701,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		return charGeo;
 	};
-	auto GetCharGeoXAdv = [&](TCHAR charCode, int overrideFontSize, bool overrideBold)
+	auto GetCharGeoXAdv = [&](TCHAR charCode, int overrideFontSize)
 	{
 		if (charCode == ' ')
 		{
@@ -714,7 +713,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		else
 		{
-			auto charData = font->GetCharData(charCode, overrideFontSize, overrideBold);
+			auto charData = font->GetCharData(charCode, overrideFontSize);
 			return charData->xadvance;
 		}
 	};
@@ -722,7 +721,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 	{
 		FUITextCharGeometry charGeo;
 		{
-			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, false);
+			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize);
 			charGeo.geoHeight = charData->height;
 			charGeo.xoffset = charData->xoffset;
 			charGeo.yoffset = charData->yoffset + GetCharFixedOffset(overrideFontSize);
@@ -778,8 +777,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 		
 		auto charGeo = richText 
-			? GetCharGeo(charCode, richTextParseResult.size, richTextParseResult.bold)
-			: GetCharGeo(charCode, fontSize, bold);
+			? GetCharGeo(charCode, richTextParseResult.size)
+			: GetCharGeo(charCode, fontSize);
 		//caret property
 		if (!richText)
 		{
@@ -811,8 +810,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 						break;
 					}
 					spaceNeeded += richText
-						? GetCharGeoXAdv(charCodeOfForwardChar, richTextParseResult.size, richTextParseResult.bold)
-						: GetCharGeoXAdv(charCodeOfForwardChar, fontSize, bold);
+						? GetCharGeoXAdv(charCodeOfForwardChar, richTextParseResult.size)
+						: GetCharGeoXAdv(charCodeOfForwardChar, fontSize);
 					spaceNeeded += fontSpace.X;
 					forwardVisibleCharIndex++;
 				}
@@ -836,18 +835,25 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 
 				int additionalVerticesCount = 4;
 				int additionalIndicesCount = 6;
-				FUITextCharGeometry underlineOrStrikethroughCharGeo;
+				FUITextCharGeometry underlineCharGeo;
+				FUITextCharGeometry strikethroughCharGeo;
+				//underline and strikethrough should not exist at same char
 				if (richTextParseResult.underline)
 				{
-					additionalVerticesCount = 8;
-					additionalIndicesCount = 12;
-					underlineOrStrikethroughCharGeo = GetUnderlineOrStrikethroughCharGeo('_', richTextParseResult.size);
+					additionalVerticesCount += 4;
+					additionalIndicesCount += 6;
+					underlineCharGeo = GetUnderlineOrStrikethroughCharGeo('_', richTextParseResult.size);
 				}
 				if (richTextParseResult.strikethrough)
 				{
-					additionalVerticesCount = 8;
-					additionalIndicesCount = 12;
-					underlineOrStrikethroughCharGeo = GetUnderlineOrStrikethroughCharGeo('-', richTextParseResult.size);
+					additionalVerticesCount += 4;
+					additionalIndicesCount += 6;
+					strikethroughCharGeo = GetUnderlineOrStrikethroughCharGeo('-', richTextParseResult.size);
+				}
+				if (richTextParseResult.bold)
+				{
+					additionalVerticesCount += 12;
+					additionalIndicesCount += 18;
 				}
 				CheckVertices(additionalVerticesCount);
 				CheckIndices(additionalIndicesCount);
@@ -865,48 +871,97 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					}
 					float offsetX = lineOffset.X + charGeo.xoffset;
 					float offsetY = lineOffset.Y + charGeo.yoffset;
-					float x = offsetX;
-					float y = offsetY - charGeo.geoHeight;
-					originPositions[verticesCount] = FVector(x, y, 0);
-					x = charGeo.geoWidth + offsetX;
-					originPositions[verticesCount + 1] = FVector(x, y, 0);
-					x = offsetX;
-					y = offsetY;
-					if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
-					originPositions[verticesCount + 2] = FVector(x, y, 0);
-					x = charGeo.geoWidth + offsetX;
-					if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
-					originPositions[verticesCount + 3] = FVector(x, y, 0);
+					float x, y;
 
+					int addVertCount = 0;
+					if (richTextParseResult.bold)
+					{
+						x = offsetX;
+						y = offsetY - charGeo.geoHeight;
+						auto vert0 = FVector(x, y, 0);
+						x = charGeo.geoWidth + offsetX;
+						auto vert1 = FVector(x, y, 0);
+						x = offsetX;
+						y = offsetY;
+						if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
+						auto vert2 = FVector(x, y, 0);
+						x = charGeo.geoWidth + offsetX;
+						if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
+						auto vert3 = FVector(x, y, 0);
+						//bold left
+						originPositions[verticesCount] = vert0 + FVector(-boldSize, 0, 0);
+						originPositions[verticesCount + 1] = vert1 + FVector(-boldSize, 0, 0);
+						originPositions[verticesCount + 2] = vert2 + FVector(-boldSize, 0, 0);
+						originPositions[verticesCount + 3] = vert3 + FVector(-boldSize, 0, 0);
+						//bold right
+						originPositions[verticesCount + 4] = vert0 + FVector(boldSize, 0, 0);
+						originPositions[verticesCount + 5] = vert1 + FVector(boldSize, 0, 0);
+						originPositions[verticesCount + 6] = vert2 + FVector(boldSize, 0, 0);
+						originPositions[verticesCount + 7] = vert3 + FVector(boldSize, 0, 0);
+						//bold top
+						originPositions[verticesCount + 8] = vert0 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 9] = vert1 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 10] = vert2 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 11] = vert3 + FVector(0, boldSize, 0);
+						//bold bottom
+						originPositions[verticesCount + 12] = vert0 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 13] = vert1 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 14] = vert2 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 15] = vert3 + FVector(0, -boldSize, 0);
+
+						addVertCount = 16;
+					}
+					else
+					{
+						float x = offsetX;
+						float y = offsetY - charGeo.geoHeight;
+						originPositions[verticesCount] = FVector(x, y, 0);
+						x = charGeo.geoWidth + offsetX;
+						originPositions[verticesCount + 1] = FVector(x, y, 0);
+						x = offsetX;
+						y = offsetY;
+						if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
+						originPositions[verticesCount + 2] = FVector(x, y, 0);
+						x = charGeo.geoWidth + offsetX;
+						if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
+						originPositions[verticesCount + 3] = FVector(x, y, 0);
+
+						addVertCount = 4;
+					}
+					
 					if (richTextParseResult.underline)
 					{
 						offsetX = lineOffset.X;
-						offsetY = lineOffset.Y + underlineOrStrikethroughCharGeo.yoffset;
+						offsetY = lineOffset.Y + underlineCharGeo.yoffset;
 						x = offsetX;
-						y = offsetY - underlineOrStrikethroughCharGeo.geoHeight;
-						originPositions[verticesCount + 4] = FVector(x, y, 0);
+						y = offsetY - underlineCharGeo.geoHeight;
+						originPositions[verticesCount + addVertCount] = FVector(x, y, 0);
 						x = charWidth + offsetX;
-						originPositions[verticesCount + 5] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 1] = FVector(x, y, 0);
 						x = offsetX;
 						y = offsetY;
-						originPositions[verticesCount + 6] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 2] = FVector(x, y, 0);
 						x = charWidth + offsetX;
-						originPositions[verticesCount + 7] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 3] = FVector(x, y, 0);
+
+						addVertCount += 4;
 					}
 					if (richTextParseResult.strikethrough)
 					{
 						offsetX = lineOffset.X;
-						offsetY = lineOffset.Y + underlineOrStrikethroughCharGeo.yoffset;
+						offsetY = lineOffset.Y + strikethroughCharGeo.yoffset;
 						x = offsetX;
-						y = offsetY - underlineOrStrikethroughCharGeo.geoHeight;
-						originPositions[verticesCount + 4] = FVector(x, y, 0);
+						y = offsetY - strikethroughCharGeo.geoHeight;
+						originPositions[verticesCount + addVertCount] = FVector(x, y, 0);
 						x = charWidth + offsetX;
-						originPositions[verticesCount + 5] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 1] = FVector(x, y, 0);
 						x = offsetX;
 						y = offsetY;
-						originPositions[verticesCount + 6] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 2] = FVector(x, y, 0);
 						x = charWidth + offsetX;
-						originPositions[verticesCount + 7] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 3] = FVector(x, y, 0);
+
+						addVertCount += 4;
 					}
 					//snap pixel
 					if (pixelPerfect)
@@ -916,48 +971,189 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 				}
 				//uv
 				{
-					vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
-					vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
-					vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
-					vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
-					if (richTextParseResult.underline || richTextParseResult.strikethrough)
+					int addVertCount = 0;
+					if(richTextParseResult.bold)
 					{
-						vertices[verticesCount + 4].TextureCoordinate[0] = underlineOrStrikethroughCharGeo.uv0;
-						vertices[verticesCount + 5].TextureCoordinate[0] = underlineOrStrikethroughCharGeo.uv1;
-						vertices[verticesCount + 6].TextureCoordinate[0] = underlineOrStrikethroughCharGeo.uv2;
-						vertices[verticesCount + 7].TextureCoordinate[0] = underlineOrStrikethroughCharGeo.uv3;
+						//bold left
+						vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+						//bold right
+						vertices[verticesCount + 4].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 5].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 6].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 7].TextureCoordinate[0] = charGeo.uv3;
+						//bold top
+						vertices[verticesCount + 8].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 9].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 10].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 11].TextureCoordinate[0] = charGeo.uv3;
+						//bold bottom
+						vertices[verticesCount + 12].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 13].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 14].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 15].TextureCoordinate[0] = charGeo.uv3;
+
+						addVertCount = 16;
+					}
+					else
+					{
+						vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+
+						addVertCount = 4;
+					}
+					if (richTextParseResult.underline)
+					{
+						vertices[verticesCount + addVertCount].TextureCoordinate[0] = underlineCharGeo.uv0;
+						vertices[verticesCount + addVertCount + 1].TextureCoordinate[0] = underlineCharGeo.uv1;
+						vertices[verticesCount + addVertCount + 2].TextureCoordinate[0] = underlineCharGeo.uv2;
+						vertices[verticesCount + addVertCount + 3].TextureCoordinate[0] = underlineCharGeo.uv3;
+
+						addVertCount += 4;
+					}
+					if (richTextParseResult.strikethrough)
+					{
+						vertices[verticesCount + addVertCount].TextureCoordinate[0] = strikethroughCharGeo.uv0;
+						vertices[verticesCount + addVertCount + 1].TextureCoordinate[0] = strikethroughCharGeo.uv1;
+						vertices[verticesCount + addVertCount + 2].TextureCoordinate[0] = strikethroughCharGeo.uv2;
+						vertices[verticesCount + addVertCount + 3].TextureCoordinate[0] = strikethroughCharGeo.uv3;
+
+						addVertCount += 4;
 					}
 				}
 				//color
 				{
-					vertices[verticesCount].Color = richTextParseResult.color;
-					vertices[verticesCount + 1].Color = richTextParseResult.color;
-					vertices[verticesCount + 2].Color = richTextParseResult.color;
-					vertices[verticesCount + 3].Color = richTextParseResult.color;
-					if (richTextParseResult.underline || richTextParseResult.strikethrough)
+					int addVertCount = 0;
+					if (richTextParseResult.bold)
 					{
-						vertices[verticesCount + 4].Color = richTextParseResult.color;
-						vertices[verticesCount + 5].Color = richTextParseResult.color;
-						vertices[verticesCount + 6].Color = richTextParseResult.color;
-						vertices[verticesCount + 7].Color = richTextParseResult.color;
+						//bold left
+						vertices[verticesCount].Color = color;
+						vertices[verticesCount + 1].Color = color;
+						vertices[verticesCount + 2].Color = color;
+						vertices[verticesCount + 3].Color = color;
+						//bold right
+						vertices[verticesCount + 4].Color = color;
+						vertices[verticesCount + 5].Color = color;
+						vertices[verticesCount + 6].Color = color;
+						vertices[verticesCount + 7].Color = color;
+						//bold top
+						vertices[verticesCount + 8].Color = color;
+						vertices[verticesCount + 9].Color = color;
+						vertices[verticesCount + 10].Color = color;
+						vertices[verticesCount + 11].Color = color;
+						//bold bottom
+						vertices[verticesCount + 12].Color = color;
+						vertices[verticesCount + 13].Color = color;
+						vertices[verticesCount + 14].Color = color;
+						vertices[verticesCount + 15].Color = color;
+
+						addVertCount = 16;
+					}
+					else
+					{
+						vertices[verticesCount].Color = richTextParseResult.color;
+						vertices[verticesCount + 1].Color = richTextParseResult.color;
+						vertices[verticesCount + 2].Color = richTextParseResult.color;
+						vertices[verticesCount + 3].Color = richTextParseResult.color;
+
+						addVertCount = 4;
+					}
+					if (richTextParseResult.underline)
+					{
+						vertices[verticesCount + addVertCount].Color = richTextParseResult.color;
+						vertices[verticesCount + addVertCount + 1].Color = richTextParseResult.color;
+						vertices[verticesCount + addVertCount + 2].Color = richTextParseResult.color;
+						vertices[verticesCount + addVertCount + 3].Color = richTextParseResult.color;
+
+						addVertCount += 4;
+					}
+					if (richTextParseResult.strikethrough)
+					{
+						vertices[verticesCount + addVertCount].Color = richTextParseResult.color;
+						vertices[verticesCount + addVertCount + 1].Color = richTextParseResult.color;
+						vertices[verticesCount + addVertCount + 2].Color = richTextParseResult.color;
+						vertices[verticesCount + addVertCount + 3].Color = richTextParseResult.color;
+
+						addVertCount += 4;
 					}
 				}
 				//triangle
 				{
-					triangles[indicesCount] = verticesCount;
-					triangles[indicesCount + 1] = verticesCount + 3;
-					triangles[indicesCount + 2] = verticesCount + 2;
-					triangles[indicesCount + 3] = verticesCount;
-					triangles[indicesCount + 4] = verticesCount + 1;
-					triangles[indicesCount + 5] = verticesCount + 3;
-					if (richTextParseResult.underline || richTextParseResult.strikethrough)
+					int addVertCount = 0;
+					int addIndCount = 0;
+					if (richTextParseResult.bold)
 					{
+						//bold left
+						triangles[indicesCount] = verticesCount;
+						triangles[indicesCount + 1] = verticesCount + 3;
+						triangles[indicesCount + 2] = verticesCount + 2;
+						triangles[indicesCount + 3] = verticesCount;
+						triangles[indicesCount + 4] = verticesCount + 1;
+						triangles[indicesCount + 5] = verticesCount + 3;
+						//bold right
 						triangles[indicesCount + 6] = verticesCount + 4;
 						triangles[indicesCount + 7] = verticesCount + 7;
 						triangles[indicesCount + 8] = verticesCount + 6;
 						triangles[indicesCount + 9] = verticesCount + 4;
 						triangles[indicesCount + 10] = verticesCount + 5;
 						triangles[indicesCount + 11] = verticesCount + 7;
+						//bold top
+						triangles[indicesCount + 12] = verticesCount + 8;
+						triangles[indicesCount + 13] = verticesCount + 11;
+						triangles[indicesCount + 14] = verticesCount + 10;
+						triangles[indicesCount + 15] = verticesCount + 8;
+						triangles[indicesCount + 16] = verticesCount + 9;
+						triangles[indicesCount + 17] = verticesCount + 11;
+						//bold bottom
+						triangles[indicesCount + 18] = verticesCount + 12;
+						triangles[indicesCount + 19] = verticesCount + 15;
+						triangles[indicesCount + 20] = verticesCount + 14;
+						triangles[indicesCount + 21] = verticesCount + 12;
+						triangles[indicesCount + 22] = verticesCount + 13;
+						triangles[indicesCount + 23] = verticesCount + 15;
+
+						addVertCount = 16;
+						addIndCount = 24;
+					}
+					else
+					{
+						triangles[indicesCount] = verticesCount;
+						triangles[indicesCount + 1] = verticesCount + 3;
+						triangles[indicesCount + 2] = verticesCount + 2;
+						triangles[indicesCount + 3] = verticesCount;
+						triangles[indicesCount + 4] = verticesCount + 1;
+						triangles[indicesCount + 5] = verticesCount + 3;
+
+						addVertCount = 4;
+						addIndCount = 6;
+					}
+					if (richTextParseResult.underline)
+					{
+						triangles[indicesCount + addIndCount] = verticesCount + addVertCount;
+						triangles[indicesCount + addIndCount + 1] = verticesCount + addVertCount + 3;
+						triangles[indicesCount + addIndCount + 2] = verticesCount + addVertCount + 2;
+						triangles[indicesCount + addIndCount + 3] = verticesCount + addVertCount;
+						triangles[indicesCount + addIndCount + 4] = verticesCount + addVertCount + 1;
+						triangles[indicesCount + addIndCount + 5] = verticesCount + addVertCount + 3;
+
+						addVertCount += 4;
+						addIndCount += 6;
+					}
+					if (richTextParseResult.strikethrough)
+					{
+						triangles[indicesCount + addIndCount] = verticesCount + addVertCount;
+						triangles[indicesCount + addIndCount + 1] = verticesCount + addVertCount + 3;
+						triangles[indicesCount + addIndCount + 2] = verticesCount + addVertCount + 2;
+						triangles[indicesCount + addIndCount + 3] = verticesCount + addVertCount;
+						triangles[indicesCount + addIndCount + 4] = verticesCount + addVertCount + 1;
+						triangles[indicesCount + addIndCount + 5] = verticesCount + addVertCount + 3;
+
+						addVertCount += 4;
+						addIndCount += 6;
 					}
 				}
 
@@ -966,25 +1162,70 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			}
 			else
 			{
-				CheckVertices(4);
-				CheckIndices(6);
+				int additionalVerticesCount = 4;
+				int additionalIndicesCount = 6;
+				if (bold)
+				{
+					additionalVerticesCount = 16;
+					additionalIndicesCount = 24;
+				}
+				CheckVertices(additionalVerticesCount);
+				CheckIndices(additionalIndicesCount);
 
 				//position
 				{
 					float offsetX = currentLineOffset.X + charGeo.xoffset;
 					float offsetY = currentLineOffset.Y + charGeo.yoffset;
-					float x = offsetX;
-					float y = offsetY - charGeo.geoHeight;
-					originPositions[verticesCount] = FVector(x, y, 0);
-					x = charGeo.geoWidth + offsetX;
-					originPositions[verticesCount + 1] = FVector(x, y, 0);
-					x = offsetX;
-					y = offsetY;
-					if (italic)x += charGeo.geoHeight * italicSlop;
-					originPositions[verticesCount + 2] = FVector(x, y, 0);
-					x = charGeo.geoWidth + offsetX;
-					if (italic)x += charGeo.geoHeight * italicSlop;
-					originPositions[verticesCount + 3] = FVector(x, y, 0);
+					if (bold)
+					{
+						float x = offsetX;
+						float y = offsetY - charGeo.geoHeight;
+						auto vert0 = FVector(x, y, 0);
+						x = charGeo.geoWidth + offsetX;
+						auto vert1 = FVector(x, y, 0);
+						x = offsetX;
+						y = offsetY;
+						if (italic)x += charGeo.geoHeight * italicSlop;
+						auto vert2 = FVector(x, y, 0);
+						x = charGeo.geoWidth + offsetX;
+						if (italic)x += charGeo.geoHeight * italicSlop;
+						auto vert3 = FVector(x, y, 0);
+						//bold left
+						originPositions[verticesCount] = vert0 + FVector(-boldSize, 0, 0);
+						originPositions[verticesCount + 1] = vert1 + FVector(-boldSize, 0, 0);
+						originPositions[verticesCount + 2] = vert2 + FVector(-boldSize, 0, 0);
+						originPositions[verticesCount + 3] = vert3 + FVector(-boldSize, 0, 0);
+						//bold right
+						originPositions[verticesCount + 4] = vert0 + FVector(boldSize, 0, 0);
+						originPositions[verticesCount + 5] = vert1 + FVector(boldSize, 0, 0);
+						originPositions[verticesCount + 6] = vert2 + FVector(boldSize, 0, 0);
+						originPositions[verticesCount + 7] = vert3 + FVector(boldSize, 0, 0);
+						//bold top
+						originPositions[verticesCount + 8] = vert0 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 9] = vert1 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 10] = vert2 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 11] = vert3 + FVector(0, boldSize, 0);
+						//bold bottom
+						originPositions[verticesCount + 12] = vert0 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 13] = vert1 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 14] = vert2 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 15] = vert3 + FVector(0, -boldSize, 0);
+					}
+					else
+					{
+						float x = offsetX;
+						float y = offsetY - charGeo.geoHeight;
+						originPositions[verticesCount] = FVector(x, y, 0);
+						x = charGeo.geoWidth + offsetX;
+						originPositions[verticesCount + 1] = FVector(x, y, 0);
+						x = offsetX;
+						y = offsetY;
+						if (italic)x += charGeo.geoHeight * italicSlop;
+						originPositions[verticesCount + 2] = FVector(x, y, 0);
+						x = charGeo.geoWidth + offsetX;
+						if (italic)x += charGeo.geoHeight * italicSlop;
+						originPositions[verticesCount + 3] = FVector(x, y, 0);
+					}
 					//snap pixel
 					if (pixelPerfect)
 					{
@@ -993,29 +1234,116 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 				}
 				//uv
 				{
-					vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
-					vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
-					vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
-					vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+					if (bold)
+					{
+						//bold left
+						vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+						//bold right
+						vertices[verticesCount + 4].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 5].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 6].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 7].TextureCoordinate[0] = charGeo.uv3;
+						//bold top
+						vertices[verticesCount + 8].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 9].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 10].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 11].TextureCoordinate[0] = charGeo.uv3;
+						//bold bottom
+						vertices[verticesCount + 12].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 13].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 14].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 15].TextureCoordinate[0] = charGeo.uv3;
+					}
+					else
+					{
+						vertices[verticesCount].TextureCoordinate[0] = charGeo.uv0;
+						vertices[verticesCount + 1].TextureCoordinate[0] = charGeo.uv1;
+						vertices[verticesCount + 2].TextureCoordinate[0] = charGeo.uv2;
+						vertices[verticesCount + 3].TextureCoordinate[0] = charGeo.uv3;
+					}
 				}
 				//color
 				{
-					vertices[verticesCount].Color = color;
-					vertices[verticesCount + 1].Color = color;
-					vertices[verticesCount + 2].Color = color;
-					vertices[verticesCount + 3].Color = color;
+					if (bold)
+					{
+						//bold left
+						vertices[verticesCount].Color = color;
+						vertices[verticesCount + 1].Color = color;
+						vertices[verticesCount + 2].Color = color;
+						vertices[verticesCount + 3].Color = color;
+						//bold right
+						vertices[verticesCount + 4].Color = color;
+						vertices[verticesCount + 5].Color = color;
+						vertices[verticesCount + 6].Color = color;
+						vertices[verticesCount + 7].Color = color;
+						//bold top
+						vertices[verticesCount + 8].Color = color;
+						vertices[verticesCount + 9].Color = color;
+						vertices[verticesCount + 10].Color = color;
+						vertices[verticesCount + 11].Color = color;
+						//bold bottom
+						vertices[verticesCount + 12].Color = color;
+						vertices[verticesCount + 13].Color = color;
+						vertices[verticesCount + 14].Color = color;
+						vertices[verticesCount + 15].Color = color;
+					}
+					else
+					{
+						vertices[verticesCount].Color = color;
+						vertices[verticesCount + 1].Color = color;
+						vertices[verticesCount + 2].Color = color;
+						vertices[verticesCount + 3].Color = color;
+					}
 				}
 				//triangle
 				{
-					triangles[indicesCount] = verticesCount;
-					triangles[indicesCount + 1] = verticesCount + 3;
-					triangles[indicesCount + 2] = verticesCount + 2;
-					triangles[indicesCount + 3] = verticesCount;
-					triangles[indicesCount + 4] = verticesCount + 1;
-					triangles[indicesCount + 5] = verticesCount + 3;
+					if (bold)
+					{
+						//bold left
+						triangles[indicesCount] = verticesCount;
+						triangles[indicesCount + 1] = verticesCount + 3;
+						triangles[indicesCount + 2] = verticesCount + 2;
+						triangles[indicesCount + 3] = verticesCount;
+						triangles[indicesCount + 4] = verticesCount + 1;
+						triangles[indicesCount + 5] = verticesCount + 3;
+						//bold right
+						triangles[indicesCount + 6] = verticesCount + 4;
+						triangles[indicesCount + 7] = verticesCount + 7;
+						triangles[indicesCount + 8] = verticesCount + 6;
+						triangles[indicesCount + 9] = verticesCount + 4;
+						triangles[indicesCount + 10] = verticesCount + 5;
+						triangles[indicesCount + 11] = verticesCount + 7;
+						//bold top
+						triangles[indicesCount + 12] = verticesCount + 8;
+						triangles[indicesCount + 13] = verticesCount + 11;
+						triangles[indicesCount + 14] = verticesCount + 10;
+						triangles[indicesCount + 15] = verticesCount + 8;
+						triangles[indicesCount + 16] = verticesCount + 9;
+						triangles[indicesCount + 17] = verticesCount + 11;
+						//bold bottom
+						triangles[indicesCount + 18] = verticesCount + 12;
+						triangles[indicesCount + 19] = verticesCount + 15;
+						triangles[indicesCount + 20] = verticesCount + 14;
+						triangles[indicesCount + 21] = verticesCount + 12;
+						triangles[indicesCount + 22] = verticesCount + 13;
+						triangles[indicesCount + 23] = verticesCount + 15;
+					}
+					else
+					{
+						triangles[indicesCount] = verticesCount;
+						triangles[indicesCount + 1] = verticesCount + 3;
+						triangles[indicesCount + 2] = verticesCount + 2;
+						triangles[indicesCount + 3] = verticesCount;
+						triangles[indicesCount + 4] = verticesCount + 1;
+						triangles[indicesCount + 5] = verticesCount + 3;
+					}
 				}
-				verticesCount += 4;
-				indicesCount += 6;
+
+				verticesCount += additionalVerticesCount;
+				indicesCount += additionalIndicesCount;
 			}
 			visibleCharIndex++;
 		}
@@ -1036,8 +1364,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = nextCharXAdv = richText
-					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size, richTextParseResult.bold)
-					: GetCharGeoXAdv(content[charIndex + 1], fontSize, bold);
+					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size)
+					: GetCharGeoXAdv(content[charIndex + 1], fontSize);
 				if (currentLineOffset.X + nextCharXAdv > width)//if next char cannot fit this line, then add new line
 				{
 					auto nextChar = content[charIndex + 1];
@@ -1058,8 +1386,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
 				int nextCharXAdv = richText
-					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size, richTextParseResult.bold)
-					: GetCharGeoXAdv(content[charIndex + 1], fontSize, bold);
+					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size)
+					: GetCharGeoXAdv(content[charIndex + 1], fontSize);
 				if (currentLineOffset.X + nextCharXAdv > width)//horizontal cannot fit next char
 				{
 					//@todo: ClampContent mode may cause triangle change if UIText's width change
@@ -1080,6 +1408,9 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 
 	//last line
 	NewLine(contentLength);
+
+	uiGeo->originVerticesCount = verticesCount;
+	uiGeo->originTriangleCount = indicesCount;
 	
 	switch (overflowType)
 	{
