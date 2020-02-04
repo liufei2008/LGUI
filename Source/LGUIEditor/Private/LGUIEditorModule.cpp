@@ -397,11 +397,14 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("CreateUIExtensionSubMenu_Tooltip", "Create UI Extension Element"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIExtensionSubMenu)
 		);
-		MenuBuilder.AddSubMenu(
-			LOCTEXT("BasicSetup", "Basic Setup"),
-			LOCTEXT("BasicSetup", "Basic Setup"),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::BasicSetupSubMenu)
-		);
+		if (!IsSceneOutlineMenu)
+		{
+			MenuBuilder.AddSubMenu(
+				LOCTEXT("BasicSetup", "Basic Setup"),
+				LOCTEXT("BasicSetup", "Basic Setup"),
+				FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::BasicSetupSubMenu)
+			);
+		}
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("ReplaceUIElement", "Replace this by..."),
 			LOCTEXT("ReplaceUIElement_Tooltip", "Replace UI Element with..."),
