@@ -565,17 +565,11 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 void ULGUIMeshComponent::SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer)
 {
 	LGUIHudRenderer = HudRenderer;
-		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-			LGUIMeshComponent_SetToLGUIHud,
-		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 }
 
 void ULGUIMeshComponent::SetToLGUIWorld()
 {
 	LGUIHudRenderer.Reset();
-		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-			LGUIMeshComponent_SetToLGUIWorld,
-		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 }
 
 int32 ULGUIMeshComponent::GetNumMaterials() const

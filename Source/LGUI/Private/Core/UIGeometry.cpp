@@ -132,7 +132,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
 		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
 	}
 }
@@ -319,7 +319,7 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
 		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
 	}
 }
@@ -455,7 +455,7 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
 		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
 	}
 }
@@ -525,7 +525,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 	bool pixelPerfect = renderCanvas->GetPixelPerfect();
 	float dynamicPixelsPerUnit = renderCanvas->GetDynamicPixelsPerUnit();
 	bool dynamicPixelsPerUnitIsNot1 = dynamicPixelsPerUnit != 1;//use dynamicPixelsPerUnit or not
-	float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+	float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
 
 	auto GetAdjustedFontSize = [&](float inFontSize)
 	{
