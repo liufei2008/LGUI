@@ -81,8 +81,8 @@ public:
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText);
 private:
-	static void AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, bool pixelPerfect, float rootCanvasScale, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty);
-	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, bool pixelPerfect, float rootCanvasScale, int lineUIGeoVertStart, TArray<FVector>& vertices);
+	static void AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty);
+	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices);
 #pragma endregion
 
 #pragma region UISector

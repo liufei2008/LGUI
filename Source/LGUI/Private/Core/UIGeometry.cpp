@@ -14,13 +14,16 @@ FORCEINLINE float RoundToFloat(float value)
 {
 	return value > 0.0 ? FMath::FloorToFloat(value + 0.5f) : FMath::CeilToFloat(value - 0.5f);
 }
-FORCEINLINE void AdjustPixelPerfectPos(TArray<FVector>& verticesArray, int startIndex, int count, const FTransform& itemToWorldTf, const FTransform& worldToItemTf)
+
+//adjust pixel snap in world position, because world canvas is placed in world origin, so that 1 unit is 1 pixel
+//only position offset is take considerred
+void AdjustPixelPerfectPos(TArray<FVector>& verticesArray, int startIndex, int count, const FVector& worldLocation, float rootCanvasScale)
 {
 	auto refVertPos = verticesArray[startIndex];
-	auto worldVertPos = itemToWorldTf.TransformPosition(refVertPos);
+	auto worldVertPos = worldLocation + refVertPos;
 	worldVertPos.X = RoundToFloat(worldVertPos.X);
 	worldVertPos.Y = RoundToFloat(worldVertPos.Y);
-	auto localVertPos = worldToItemTf.TransformPosition(worldVertPos);
+	auto localVertPos = worldVertPos - worldLocation;
 	auto vertOffset = localVertPos - refVertPos;
 	verticesArray[startIndex] = localVertPos;
 	for (int i = 1; i < count; i++)
@@ -129,9 +132,8 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		FTransform itemToWorldTf = uiComp->GetComponentTransform();
-		FTransform worldToItemTf = itemToWorldTf.Inverse();
-		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), itemToWorldTf, worldToItemTf);
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
 	}
 }
 #pragma endregion
@@ -317,9 +319,8 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		FTransform itemToWorldTf = uiComp->GetComponentTransform();
-		FTransform worldToItemTf = itemToWorldTf.Inverse();
-		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), itemToWorldTf, worldToItemTf);
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
 	}
 }
 #pragma endregion
@@ -454,9 +455,8 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		FTransform itemToWorldTf = uiComp->GetComponentTransform();
-		FTransform worldToItemTf = itemToWorldTf.Inverse();
-		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), itemToWorldTf, worldToItemTf);
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
 	}
 }
 #pragma endregion
@@ -530,7 +530,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 	auto GetAdjustedFontSize = [&](float inFontSize)
 	{
 		float adjustedFontSize = inFontSize;
-		if (pixelPerfect)
+		if (pixelPerfect && rootCanvasScale != -1.0f)
 		{
 			adjustedFontSize = adjustedFontSize * rootCanvasScale;
 			adjustedFontSize = FMath::Min(adjustedFontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
@@ -543,12 +543,13 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		return adjustedFontSize;
 	};
 
-	FTransform itemToWorldTf, worldToItemTf;
+	FVector worldLocation;
 	if (pixelPerfect)
 	{
-		itemToWorldTf = uiComp->GetComponentTransform();
-		worldToItemTf = itemToWorldTf.Inverse();
+		worldLocation = uiComp->GetComponentLocation();
 	}
+	static TArray<int> firstVertIndexOfChar_Array;//for pixel perfect adjust, first vertex_position_index of a char, in originPosition's array
+	firstVertIndexOfChar_Array.Reset();
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
@@ -628,7 +629,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 
 		if (richText)
 		{
-			AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, pixelPerfect, rootCanvasScale, lineUIGeoVertStart, originPositions);
+			AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions);
 		}
 		else
 		{
@@ -637,7 +638,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			charProperty.charIndex = charIndex;
 			sentenceProperty.charPropertyList.Add(charProperty);
 
-			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, pixelPerfect, rootCanvasScale, lineUIGeoVertStart, originPositions, sentenceProperty);
+			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions, sentenceProperty);
 
 			cacheTextPropertyList.Add(sentenceProperty);
 			sentenceProperty = FUITextLineProperty();
@@ -688,7 +689,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			charGeo.yoffset = charData->yoffset + (richText ? GetCharFixedOffset(overrideFontSize) : charFixedOffset);
 
 			auto overrideCharData = charData;
-			if (pixelPerfect || dynamicPixelsPerUnitIsNot1)
+			if ((pixelPerfect && rootCanvasScale != 1.0f) || dynamicPixelsPerUnitIsNot1)
 			{
 				overrideCharData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize), overrideBold, overrideItalic);
 			}
@@ -907,7 +908,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					//snap pixel
 					if (pixelPerfect)
 					{
-						AdjustPixelPerfectPos(originPositions, verticesCount, additionalVerticesCount, itemToWorldTf, worldToItemTf);
+						firstVertIndexOfChar_Array.Add(verticesCount);
 					}
 				}
 				//uv
@@ -982,7 +983,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					//snap pixel
 					if (pixelPerfect)
 					{
-						AdjustPixelPerfectPos(originPositions, verticesCount, 4, itemToWorldTf, worldToItemTf);
+						firstVertIndexOfChar_Array.Add(verticesCount);
 					}
 				}
 				//uv
@@ -1137,17 +1138,6 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		yOffset += paragraphHeight - height * 0.5f;
 		break;
 	}
-	//pixel adjust
-	if (pixelPerfect)
-	{
-		xOffset *= rootCanvasScale;
-		xOffset = RoundToFloat(xOffset);
-		xOffset /= rootCanvasScale;
-
-		yOffset *= rootCanvasScale;
-		yOffset = RoundToFloat(yOffset);
-		yOffset /= rootCanvasScale;
-	}
 	//caret property
 	if (!richText)
 	{
@@ -1162,9 +1152,33 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 	}
 
 	UIGeometry::OffsetVertices(originPositions, xOffset, yOffset);
+
+	//snap pixel
+	if (pixelPerfect)
+	{
+		if (firstVertIndexOfChar_Array.Num() > 0)
+		{
+			int indexOf_FirstVertIndexOfChar = 0;
+			for (int vertStartIndex = 0, count = originPositions.Num(), vertEndIndex = firstVertIndexOfChar_Array[indexOf_FirstVertIndexOfChar]
+				; vertStartIndex < count;)
+			{
+				indexOf_FirstVertIndexOfChar++;
+				if (indexOf_FirstVertIndexOfChar >= firstVertIndexOfChar_Array.Num())
+				{
+					vertEndIndex = count;
+				}
+				else
+				{
+					vertEndIndex = firstVertIndexOfChar_Array[indexOf_FirstVertIndexOfChar];
+				}
+				AdjustPixelPerfectPos(originPositions, vertStartIndex, vertEndIndex - vertStartIndex, worldLocation, rootCanvasScale);
+				vertStartIndex = vertEndIndex;
+			}
+		}
+	}
 }
 
-void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, bool pixelPerfect, float rootCanvasScale, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty)
+void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty)
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
@@ -1175,14 +1189,6 @@ void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlig
 	case UITextParagraphHorizontalAlign::Right:
 		xOffset = -lineWidth;
 		break;
-	}
-
-	//pixel adjust
-	if (pixelPerfect)
-	{
-		xOffset *= rootCanvasScale;
-		xOffset = RoundToFloat(xOffset);
-		xOffset /= rootCanvasScale;
 	}
 
 	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
@@ -1197,7 +1203,7 @@ void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlig
 		item.caretPosition.X += xOffset;
 	}
 }
-void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, bool pixelPerfect, float rootCanvasScale, int lineUIGeoVertStart, TArray<FVector>& vertices)
+void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices)
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
@@ -1208,14 +1214,6 @@ void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign
 	case UITextParagraphHorizontalAlign::Right:
 		xOffset = -lineWidth;
 	break;
-	}
-
-	//pixel adjust
-	if (pixelPerfect)
-	{
-		xOffset *= rootCanvasScale;
-		xOffset = RoundToFloat(xOffset);
-		xOffset /= rootCanvasScale;
 	}
 
 	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)

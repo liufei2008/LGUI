@@ -103,7 +103,8 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 					{
 						canvasUIItem->SetWidth(PreferredWidth);
 						canvasUIItem->SetHeight(PreferredWidth * CurrentViewportSize.Y / CurrentViewportSize.X);
-						canvasUIItem->SetRelativeScale3D(FVector::OneVector * (CurrentViewportSize.X / PreferredWidth));
+						float scaleRatio = CurrentViewportSize.X / PreferredWidth;
+						canvasUIItem->SetRelativeScale3D(FVector::OneVector * scaleRatio);
 					}
 					break;
 					case LGUIScaleMode::ScaleWithScreenHeight:
@@ -111,7 +112,8 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 						canvasUIItem->SetHeight(PreferredHeight);
 						auto tempPreferredWidth = PreferredHeight * CurrentViewportSize.X / CurrentViewportSize.Y;
 						canvasUIItem->SetWidth(tempPreferredWidth);
-						canvasUIItem->SetRelativeScale3D(FVector::OneVector * (CurrentViewportSize.Y / PreferredHeight));
+						float scaleRatio = CurrentViewportSize.Y / PreferredHeight;
+						canvasUIItem->SetRelativeScale3D(FVector::OneVector * scaleRatio);
 					}
 					break;
 					case LGUIScaleMode::ConstantPixelSize:
@@ -126,7 +128,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 					}
 
 					//set rotate to zero, and move left bottom corner to zero position
-					canvasUIItem->SetRelativeLocationAndRotation(FVector(canvasUIItem->GetWidth() * 0.5f, canvasUIItem->GetHeight() * 0.5f, 0), FQuat::Identity);
+					canvasUIItem->SetRelativeLocationAndRotation(FVector(CurrentViewportSize.X * 0.5f, CurrentViewportSize.Y * 0.5f, 0), FQuat::Identity);
 
 					Canvas->MarkRebuildAllDrawcall();
 					canvasUIItem->MarkAllDirtyRecursive();
