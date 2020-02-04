@@ -18,24 +18,22 @@ struct FLGUIFontKeyData
 {
 public:
 	FLGUIFontKeyData() {}
-	FLGUIFontKeyData(const TCHAR& inCharIndex, const uint16& inCharSize, const bool& inBorder, const bool& inItalic)
+	FLGUIFontKeyData(const TCHAR& inCharIndex, const uint16& inCharSize, const bool& inBold)
 	{
 		this->charIndex = inCharIndex;
 		this->charSize = inCharSize;
-		this->border = inBorder;
-		this->italic = inItalic;
+		this->bold = inBold;
 	}
 	TCHAR charIndex = 0;
 	uint16 charSize = 0;
-	bool border = false;
-	bool italic = false;
+	bool bold = false;
 	bool operator==(const FLGUIFontKeyData& other)const
 	{
-		return this->charIndex == other.charIndex && this->charSize == other.charSize && this->border == other.border && this->italic == other.italic;
+		return this->charIndex == other.charIndex && this->charSize == other.charSize && this->bold == other.bold;
 	}
 	friend FORCEINLINE uint32 GetTypeHash(const FLGUIFontKeyData& other)
 	{
-		return HashCombine(other.italic, HashCombine(other.border, HashCombine(GetTypeHash(other.charIndex), GetTypeHash(other.charSize))));
+		return HashCombine(other.bold, HashCombine(GetTypeHash(other.charIndex), GetTypeHash(other.charSize)));
 	}
 };
 
@@ -91,6 +89,9 @@ public:
 	//Some font text may not renderred at vertical center, use this to offset
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float fixedVerticalOffset = 0.0f;
+	//angle of italic style in degree
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		float italicAngle = 15.0f;
 	//Packing tag of this font. If packingTag is not none, then LGUI will search UISprite's atlas packingTag, and pack font texture into sprite atlas's texture.
 	//This can be very useful to reduce drawcall.
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -136,7 +137,7 @@ private:
 	FT_Face face = nullptr;
 	bool alreadyInitialized = false;
 	bool usePackingTag = false;
-	FLGUICharData* PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
+	FLGUICharData* PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize, const bool& bold);
 	FT_Matrix GetItalicMatrix();
 	/*Insert rect into area, assign pixel if succeed
 	 return: if can fit in rect area return true, else false
@@ -148,7 +149,7 @@ private:
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
 	void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize);
 public:
-	FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold, const bool& italic);
+	FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize, const bool& bold);
 #if WITH_EDITOR
 	void ReloadFont();
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

@@ -11,6 +11,7 @@ UENUM(BlueprintType)
 enum class ELGUIRenderMode :uint8
 {
 	//render in screen space. 
+	//this mode need a LGUICanvasScaler to control the size and scale.
 	//Note that in this render mode, custom material is not supported
 	ScreenSpaceOverlay,
 	//render in world space, so post process effect will affect ui
