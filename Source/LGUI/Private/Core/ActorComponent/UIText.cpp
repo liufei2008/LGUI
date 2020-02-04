@@ -399,25 +399,6 @@ void UUIText::MarkAllDirtyRecursive()
 	cachedTextPropertyList.Reset();
 	Super::MarkAllDirtyRecursive();
 }
-FVector2D UUIText::GetCharSize(TCHAR character)
-{
-	if (character == '\n' || character == '\r')return FVector2D::ZeroVector;
-	if (character == ' ')
-	{
-		return FVector2D(size * 0.5f, size);
-	}
-	else if (character == '\t')
-	{
-		return FVector2D(size + size, size);
-	}
-	else
-	{
-		bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
-		bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
-		auto charData = font->GetCharData(character, size, bold, italic);
-		return FVector2D(charData->xadvance, size);
-	}
-}
 int UUIText::VisibleCharCountInString(const FString& srcStr)
 {
 	int count = srcStr.Len();

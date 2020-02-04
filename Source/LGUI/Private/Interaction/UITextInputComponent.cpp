@@ -874,10 +874,34 @@ void UUITextInputComponent::UpdateUITextComponent()
 			//then search from VisibleCharStartIndex to left,
 			//all above step will break if out-of-range
 
+			//same as UIGeometry's function "UpdateUIText"
+			auto GetCharGeoXAdv = [](TCHAR charCode, ULGUIFontData* font, int overrideFontSize, bool overrideBold)
+			{
+				if (charCode == ' ')
+				{
+					return (uint16)(overrideFontSize * 0.5f);
+				}
+				else if (charCode == '\t')
+				{
+					return (uint16)(overrideFontSize + overrideFontSize);
+				}
+				else
+				{
+					auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, overrideBold);
+					return charData->xadvance;
+				}
+			};
+
+			auto fontSize = uiText->GetSize();
+			auto fontSpace = uiText->GetFontSpace();
+			auto font = uiText->GetFont();
+			auto fontStyle = uiText->GetFontStyle();
+			bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
+
 			//check from caret to left
 			for (int i = CaretPositionIndex - 1; i >= 0 && i >= VisibleCharStartIndex; i--)
 			{
-				auto expendSpace = uiText->GetCharSize(replaceText[i]).X + uiText->GetFontSpace().X;
+				auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize, bold) + fontSpace.X;
 				width += expendSpace;
 				if (width >= maxWidth)
 				{
@@ -889,35 +913,10 @@ void UUITextInputComponent::UpdateUITextComponent()
 			}
 			if (!outOfRange)
 			{
-				//same as UIGeometry's function "UpdateUIText"
-				auto GetCharGeoXAdv = [](TCHAR charCode, ULGUIFontData* font, int overrideFontSize, bool overrideBold, bool overrideItalic)
-				{
-					if (charCode == ' ')
-					{
-						return (uint16)(overrideFontSize * 0.5f);
-					}
-					else if (charCode == '\t')
-					{
-						return (uint16)(overrideFontSize + overrideFontSize);
-					}
-					else
-					{
-						auto charData = font->GetCharData(charCode, (uint16)overrideFontSize, overrideBold, overrideItalic);
-						return charData->xadvance;
-					}
-				};
-
-				auto fontSize = uiText->GetSize();
-				auto fontSpace = uiText->GetFontSpace();
-				auto font = uiText->GetFont();
-				auto fontStyle = uiText->GetFontStyle();
-				bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
-				bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
-
 				//check from caret to right
 				for (int i = CaretPositionIndex, charCount = replaceText.Len(); i < charCount; i++)
 				{
-					auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize, bold, italic) + fontSpace.X;
+					auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize, bold) + fontSpace.X;
 					width += expendSpace;
 					if (width > maxWidth)
 					{
@@ -932,7 +931,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 					//check from VisibleCharStartIndex to left
 					for (int i = VisibleCharStartIndex - 1; i >= 0; i--)
 					{
-						auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize, bold, italic) + fontSpace.X;
+						auto expendSpace = GetCharGeoXAdv(replaceText[i], font, fontSize, bold) + fontSpace.X;
 						width += expendSpace;
 						if (width >= maxWidth)
 						{

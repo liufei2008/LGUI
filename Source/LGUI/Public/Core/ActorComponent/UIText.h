@@ -171,7 +171,6 @@ public:
 	void ApplyFontTextureChange();
 	void ApplyRecreateText();
 
-	FVector2D GetCharSize(TCHAR character);
 	FORCEINLINE static bool IsVisibleChar(TCHAR character)
 	{
 		return (character != '\n' && character != '\r' && character != ' ' && character != '\t');
