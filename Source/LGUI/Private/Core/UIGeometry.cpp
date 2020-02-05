@@ -913,8 +913,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					}
 					else
 					{
-						float x = offsetX;
-						float y = offsetY - charGeo.geoHeight;
+						x = offsetX;
+						y = offsetY - charGeo.geoHeight;
 						originPositions[verticesCount] = FVector(x, y, 0);
 						x = charGeo.geoWidth + offsetX;
 						originPositions[verticesCount + 1] = FVector(x, y, 0);
