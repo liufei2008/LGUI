@@ -70,12 +70,12 @@ void ULGUICanvasScaler::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ULGUICanvasScaler::CheckAndApplyViewportParameter()
 {
-	CurrentViewportSize = Canvas->GetViewportSize();
+	ViewportSize = Canvas->GetViewportSize();
 	OnViewportParameterChanged();
 }
 void ULGUICanvasScaler::OnViewportResized(FViewport* viewport, uint32)
 {
-	CurrentViewportSize = Canvas->GetViewportSize();//why not just get the viewport size from "viewport" parameter? because assets editor's viewport(ie. material, texture editor viewport) can fire the same event, and size is assets editor's viewport size
+	ViewportSize = Canvas->GetViewportSize();//why not just get the viewport size from "viewport" parameter? because assets editor's viewport(ie. material, texture editor viewport) can fire the same event, and size is assets editor's viewport size
 	OnViewportParameterChanged();
 }
 void ULGUICanvasScaler::OnViewportParameterChanged()
@@ -99,36 +99,81 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 					//adjust size
 					switch (UIScaleMode)
 					{
-					case LGUIScaleMode::ScaleWithScreenWidth:
-					{
-						canvasUIItem->SetWidth(PreferredWidth);
-						canvasUIItem->SetHeight(PreferredWidth * CurrentViewportSize.Y / CurrentViewportSize.X);
-						float scaleRatio = CurrentViewportSize.X / PreferredWidth;
-						canvasUIItem->SetRelativeScale3D(FVector::OneVector * scaleRatio);
-					}
-					break;
-					case LGUIScaleMode::ScaleWithScreenHeight:
-					{
-						canvasUIItem->SetHeight(PreferredHeight);
-						auto tempPreferredWidth = PreferredHeight * CurrentViewportSize.X / CurrentViewportSize.Y;
-						canvasUIItem->SetWidth(tempPreferredWidth);
-						float scaleRatio = CurrentViewportSize.Y / PreferredHeight;
-						canvasUIItem->SetRelativeScale3D(FVector::OneVector * scaleRatio);
-					}
-					break;
 					case LGUIScaleMode::ConstantPixelSize:
 					{
-						canvasUIItem->SetWidth(CurrentViewportSize.X);
-						canvasUIItem->SetHeight(CurrentViewportSize.Y);
+						canvasUIItem->SetWidth(ViewportSize.X);
+						canvasUIItem->SetHeight(ViewportSize.Y);
 						canvasUIItem->SetRelativeScale3D(FVector::OneVector);
 					}
 					break;
-					default:
+					case LGUIScaleMode::ScaleWithScreenSize:
+					{
+						switch (ScreenMatchMode)
+						{
+						case LGUIScreenMatchMode::MatchWidthOrHeight:
+						{
+							float matchWidth_PreferredWidth = ReferenceResolution.X;
+							float matchWidth_PreferredHeight = ReferenceResolution.X * ViewportSize.Y / ViewportSize.X;
+							float matchWidth_ScaleRatio = ViewportSize.X / ReferenceResolution.X;
+
+							float matchHeight_PreferredHeight = ReferenceResolution.Y;
+							float matchHeight_PreferredWidth = ReferenceResolution.Y * ViewportSize.X / ViewportSize.Y;
+							float matchHeight_ScaleRatio = ViewportSize.Y / ReferenceResolution.Y;
+
+							canvasUIItem->SetWidth(FMath::Lerp(matchWidth_PreferredWidth, matchHeight_PreferredWidth, MatchFromWidthToHeight));
+							canvasUIItem->SetHeight(FMath::Lerp(matchWidth_PreferredHeight, matchHeight_PreferredHeight, MatchFromWidthToHeight));
+							canvasUIItem->SetRelativeScale3D(FVector::OneVector * FMath::Lerp(matchWidth_ScaleRatio, matchHeight_ScaleRatio, MatchFromWidthToHeight));
+						}
 						break;
+						case LGUIScreenMatchMode::Expand:
+						case LGUIScreenMatchMode::Shrink:
+						{
+							float resultWidth = ViewportSize.X, resultHeight = ViewportSize.Y, resultScale = 1.0f;
+
+							float screenAspect = (float)ViewportSize.X / ViewportSize.Y;
+							float referenceAspect = ReferenceResolution.X / ReferenceResolution.Y;
+							if (screenAspect > referenceAspect)//screen width > reference width
+							{
+								if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
+								{
+									resultHeight = ReferenceResolution.Y;
+									resultWidth = resultHeight * screenAspect;
+									resultScale = (float)ViewportSize.Y / resultHeight;
+								}
+								else if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
+								{
+									resultWidth = ReferenceResolution.X;
+									resultHeight = resultWidth / screenAspect;
+									resultScale = (float)ViewportSize.X / resultWidth;
+								}
+							}
+							else//screen height > reference height
+							{
+								if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
+								{
+									resultWidth = ReferenceResolution.X;
+									resultHeight = resultWidth / screenAspect;
+									resultScale = (float)ViewportSize.X / resultWidth;
+								}
+								else if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
+								{
+									resultHeight = ReferenceResolution.Y;
+									resultWidth = resultHeight * screenAspect;
+									resultScale = (float)ViewportSize.Y / resultHeight;
+								}
+							}
+							canvasUIItem->SetWidth(resultWidth);
+							canvasUIItem->SetHeight(resultHeight);
+							canvasUIItem->SetRelativeScale3D(FVector::OneVector * resultScale);
+						}
+						break;
+						}
+					}
+					break;
 					}
 
 					//set rotate to zero, and move left bottom corner to zero position
-					canvasUIItem->SetRelativeLocationAndRotation(FVector(CurrentViewportSize.X * 0.5f, CurrentViewportSize.Y * 0.5f, 0), FQuat::Identity);
+					canvasUIItem->SetRelativeLocationAndRotation(FVector(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, 0), FQuat::Identity);
 
 					Canvas->MarkRebuildAllDrawcall();
 					canvasUIItem->MarkAllDirtyRecursive();
@@ -136,39 +181,6 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 				}
 			}
 		}
-	}
-}
-
-void ULGUICanvasScaler::SetProjectionType(TEnumAsByte<ECameraProjectionMode::Type> value)
-{
-	if (ProjectionType != value)
-	{
-		ProjectionType = ProjectionType = value;
-		OnViewportParameterChanged();
-	}
-}
-void ULGUICanvasScaler::SetFovAngle(float value)
-{
-	if (FOVAngle != value)
-	{
-		FOVAngle = FOVAngle = value;
-		OnViewportParameterChanged();
-	}
-}
-void ULGUICanvasScaler::SetNearClipPlane(float value)
-{
-	if (NearClipPlane != value)
-	{
-		NearClipPlane = value;
-		OnViewportParameterChanged();
-	}
-}
-void ULGUICanvasScaler::SetFarClipPlane(float value)
-{
-	if (FarClipPlane != value)
-	{
-		FarClipPlane = value;
-		OnViewportParameterChanged();
 	}
 }
 
@@ -214,9 +226,9 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
 				auto newViewportSize = Canvas->GetViewportSize();
-				if (newViewportSize != CurrentViewportSize)
+				if (newViewportSize != ViewportSize)
 				{
-					CurrentViewportSize = newViewportSize;
+					ViewportSize = newViewportSize;
 					OnViewportParameterChanged();
 				}
 				DrawVirtualCamera();
@@ -295,23 +307,6 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 }
 #endif
 
-void ULGUICanvasScaler::SetPreferredWidth(float InValue)
-{
-	if (PreferredWidth != InValue)
-	{
-		PreferredWidth = InValue;
-		OnViewportParameterChanged();
-	}
-}
-void ULGUICanvasScaler::SetPreferredHeight(float InValue)
-{
-	if (PreferredHeight != InValue)
-	{
-		PreferredHeight = InValue;
-		OnViewportParameterChanged();
-	}
-}
-
 bool ULGUICanvasScaler::CheckCanvas()
 {
 	if (Canvas != nullptr)return true;
@@ -330,4 +325,74 @@ bool ULGUICanvasScaler::CheckCanvas()
 void ULGUICanvasScaler::SetCanvasProperties()
 {
 	Canvas->SetProjectionParameters(ProjectionType, FOVAngle, NearClipPlane, FarClipPlane);
+}
+
+void ULGUICanvasScaler::SetProjectionType(TEnumAsByte<ECameraProjectionMode::Type> value)
+{
+	if (ProjectionType != value)
+	{
+		ProjectionType = ProjectionType = value;
+		OnViewportParameterChanged();
+		SetCanvasProperties();
+	}
+}
+void ULGUICanvasScaler::SetFovAngle(float value)
+{
+	if (FOVAngle != value)
+	{
+		FOVAngle = FOVAngle = value;
+		OnViewportParameterChanged();
+		SetCanvasProperties();
+	}
+}
+void ULGUICanvasScaler::SetNearClipPlane(float value)
+{
+	if (NearClipPlane != value)
+	{
+		NearClipPlane = value;
+		OnViewportParameterChanged();
+		SetCanvasProperties();
+	}
+}
+void ULGUICanvasScaler::SetFarClipPlane(float value)
+{
+	if (FarClipPlane != value)
+	{
+		FarClipPlane = value;
+		OnViewportParameterChanged();
+		SetCanvasProperties();
+	}
+}
+
+void ULGUICanvasScaler::SetUIScaleMode(LGUIScaleMode value)
+{
+	if (UIScaleMode != value)
+	{
+		UIScaleMode = value;
+		OnViewportParameterChanged();
+	}
+}
+void ULGUICanvasScaler::SetReferenceResolution(FVector2D value)
+{
+	if (ReferenceResolution != value)
+	{
+		ReferenceResolution = value;
+		OnViewportParameterChanged();
+	}
+}
+void ULGUICanvasScaler::SetMatchFromWidthToHeight(float value)
+{
+	if (MatchFromWidthToHeight != value)
+	{
+		MatchFromWidthToHeight = value;
+		OnViewportParameterChanged();
+	}
+}
+void ULGUICanvasScaler::SetScreenMatchMode(LGUIScreenMatchMode value)
+{
+	if (ScreenMatchMode != value)
+	{
+		ScreenMatchMode = value;
+		OnViewportParameterChanged();
+	}
 }
