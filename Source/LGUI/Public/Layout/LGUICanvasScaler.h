@@ -11,11 +11,23 @@
 UENUM(BlueprintType)
 enum class LGUIScaleMode:uint8
 {
-	ScaleWithScreenWidth,
-	ScaleWithScreenHeight,
+	//1 unit is 1 pixel render in screen
 	ConstantPixelSize,
+	//scale UI with reference resolution and screen resolution
+	ScaleWithScreenSize,
 };
-//put this on a actor with LGUICanvas component. use this to scale UI element. one hierarchy should only have one UICanvasScalar
+UENUM(BlueprintType)
+enum class LGUIScreenMatchMode :uint8
+{
+	//user "MatchFromWidthToHeight" and "ReferenceResolution" properties to control size and scale UI
+	MatchWidthOrHeight,
+	//if viewport's aspect ratio not match "ReferenceResolution"'s aspect ratio, then expand size and scale UI
+	Expand,
+	//if viewport's aspect ratio not match "ReferenceResolution"'s aspect ratio, then shrink size and scale UI
+	Shrink,
+};
+//put this on a actor with LGUICanvas component. use this to scale UI element. one hierarchy should only have one UICanvasScalar.
+//tweak parameters to make your UI adapt to different screen resolution
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUICanvasScaler :public UActorComponent
 {
@@ -45,34 +57,31 @@ protected:
 	friend class FUICanvasScalerCustomization;
 
 	//Virtual Camera Projection Type
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", meta = (DisplayName = "Projection Type"))
-		TEnumAsByte<ECameraProjectionMode::Type> ProjectionType;
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay, meta = (DisplayName = "Projection Type"))
+		TEnumAsByte<ECameraProjectionMode::Type> ProjectionType = ECameraProjectionMode::Perspective;
 	//Virtual Camera field of view (in degrees). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI", meta = (DisplayName = "Field of View", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay, meta = (DisplayName = "Field of View", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
 		float FOVAngle = 90;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		float NearClipPlane = 1;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		float FarClipPlane = 10000;
 	
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIScaleMode UIScaleMode = LGUIScaleMode::ScaleWithScreenHeight;
+		LGUIScaleMode UIScaleMode = LGUIScaleMode::ConstantPixelSize;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float PreferredHeight = 1080;
+		FVector2D ReferenceResolution = FVector2D(1280, 720);
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0", DisplayName = "Match"))
+		float MatchFromWidthToHeight = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float PreferredWidth = 1920;
+		LGUIScreenMatchMode ScreenMatchMode = LGUIScreenMatchMode::MatchWidthOrHeight;
 
 	bool CheckCanvas();
 	UPROPERTY(Transient) class ULGUICanvas* Canvas = nullptr;
 	void SetCanvasProperties();
 
-	FIntPoint CurrentViewportSize = FIntPoint(0, 0);//prev frame viewport size
+	FIntPoint ViewportSize = FIntPoint(0, 0);//current viewport size
 public:
-
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetPreferredWidth() { return PreferredWidth; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetPreferredHeight() { return PreferredHeight; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		TEnumAsByte<ECameraProjectionMode::Type> GetProjectionType()const { return ProjectionType; }
@@ -84,11 +93,6 @@ public:
 		float GetFarClipPlane()const { return FarClipPlane; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetPreferredWidth(float InValue);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetPreferredHeight(float InValue);
-
-	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetProjectionType(TEnumAsByte<ECameraProjectionMode::Type> value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetFovAngle(float value);
@@ -96,4 +100,22 @@ public:
 		void SetNearClipPlane(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetFarClipPlane(float value);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		LGUIScaleMode GetUIScaleMode() { return UIScaleMode; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FVector2D GetReferenceResolution() { return ReferenceResolution; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetMatchFromWidthToHeight() { return MatchFromWidthToHeight; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		LGUIScreenMatchMode GetScreenMatchMode() { return ScreenMatchMode; }
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetUIScaleMode(LGUIScaleMode value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetReferenceResolution(FVector2D value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetMatchFromWidthToHeight(float value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetScreenMatchMode(LGUIScreenMatchMode value);
 };
