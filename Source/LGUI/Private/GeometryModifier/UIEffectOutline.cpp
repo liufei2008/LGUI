@@ -21,10 +21,12 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 
 	const int32 singleChannelTriangleIndicesCount = InOutOriginTriangleIndicesCount;
 	const int32 singleChannelVerticesCount = InOutOriginVerticesCount;
+	const int32 additionalTriangleIndicesCount = singleChannelTriangleIndicesCount * 4;
+	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount * 5;
 	if (singleChannelTriangleIndicesCount == triangleCount)
 	{
+		//create additional triangle pass
 		OutTriangleChanged = true;
-		const int32 additionalTriangleIndicesCount = singleChannelTriangleIndicesCount * 4;
 		triangles.AddUninitialized(additionalTriangleIndicesCount);
 		//put orgin triangles on last pass, this will make the origin triangle render at top
 		for (int triangleIndex = additionalTriangleIndicesCount, originTriangleIndex = 0; originTriangleIndex < singleChannelTriangleIndicesCount; triangleIndex++, originTriangleIndex++)
@@ -53,8 +55,15 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			channelTriangleIndex1++, channelTriangleIndex2++, channelTriangleIndex3++, channelTriangleIndex4++;
 		}
 	}
-	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount * 5;
-	
+	else
+	{
+		//update triangle data is slightly different from create triangle data. the first pass may changed or not, all we need to do is set origin data (which can be calculated from other pass)
+		int lastPassVerticesCount = singleChannelVerticesCount * 4;
+		for (int lastPassTriangleIndex = additionalTriangleIndicesCount, firstPassTriangleIndex = 0; firstPassTriangleIndex < singleChannelTriangleIndicesCount; lastPassTriangleIndex++, firstPassTriangleIndex++)
+		{
+			triangles[firstPassTriangleIndex] = triangles[lastPassTriangleIndex] + lastPassVerticesCount;
+		}
+	}
 
 	if (singleChannelVerticesCount == vertexCount)
 	{
@@ -68,49 +77,52 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 		}
 	}
 	InOutOriginVerticesCount = singleChannelVerticesCount * 5;
-	int channelVertIndex1 = singleChannelVerticesCount
-		, channelVertIndex2 = channelVertIndex1 + singleChannelVerticesCount
-		, channelVertIndex3 = channelVertIndex2 + singleChannelVerticesCount
-		, channelVertIndex4 = channelVertIndex3 + singleChannelVerticesCount;
-	auto color = outlineColor;
-	if (multiplySourceAlpha)
+
+	//vertices
 	{
-		color.A = (uint8)(GetRenderableUIItem()->GetFinalAlpha() * color.A * 0.003921568627f/* 1 / 255 */);
+		int channelVertIndex1 = singleChannelVerticesCount
+			, channelVertIndex2 = channelVertIndex1 + singleChannelVerticesCount
+			, channelVertIndex3 = channelVertIndex2 + singleChannelVerticesCount
+			, channelVertIndex4 = channelVertIndex3 + singleChannelVerticesCount;
+		auto color = outlineColor;
+		if (multiplySourceAlpha)
+		{
+			color.A = (uint8)(GetRenderableUIItem()->GetFinalAlpha() * color.A * 0.003921568627f/* 1 / 255 */);
+		}
+		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
+		{
+			auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
+			vertices[channelVertIndex1].TextureCoordinate[0] = originUV;
+			vertices[channelVertIndex2].TextureCoordinate[0] = originUV;
+			vertices[channelVertIndex3].TextureCoordinate[0] = originUV;
+			vertices[channelVertIndex4].TextureCoordinate[0] = originUV;
+
+			vertices[channelVertIndex1].Color = color;
+			vertices[channelVertIndex2].Color = color;
+			vertices[channelVertIndex3].Color = color;
+			vertices[channelVertIndex4].Color = color;
+
+			auto originVert = originPositions[channelOriginVertIndex];
+			auto& channel1Vert = originPositions[channelVertIndex1];
+			channel1Vert = originVert;
+			channel1Vert.X += outlineSize.X;
+			channel1Vert.Y += outlineSize.Y;
+			auto& channel2Vert = originPositions[channelVertIndex2];
+			channel2Vert = originVert;
+			channel2Vert.X -= outlineSize.X;
+			channel2Vert.Y += outlineSize.Y;
+			auto& channel3Vert = originPositions[channelVertIndex3];
+			channel3Vert = originVert;
+			channel3Vert.X += outlineSize.X;
+			channel3Vert.Y -= outlineSize.Y;
+			auto& channel4Vert = originPositions[channelVertIndex4];
+			channel4Vert = originVert;
+			channel4Vert.X -= outlineSize.X;
+			channel4Vert.Y -= outlineSize.Y;
+
+			channelVertIndex1++, channelVertIndex2++, channelVertIndex3++, channelVertIndex4++;
+		}
 	}
-	for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
-	{
-		auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
-		vertices[channelVertIndex1].TextureCoordinate[0] = originUV;
-		vertices[channelVertIndex2].TextureCoordinate[0] = originUV;
-		vertices[channelVertIndex3].TextureCoordinate[0] = originUV;
-		vertices[channelVertIndex4].TextureCoordinate[0] = originUV;
-
-		vertices[channelVertIndex1].Color = color;
-		vertices[channelVertIndex2].Color = color;
-		vertices[channelVertIndex3].Color = color;
-		vertices[channelVertIndex4].Color = color;
-
-		auto originVert = originPositions[channelOriginVertIndex];
-		auto& channel1Vert = originPositions[channelVertIndex1];
-		channel1Vert = originVert;
-		channel1Vert.X += outlineSize.X;
-		channel1Vert.Y += outlineSize.Y;
-		auto& channel2Vert = originPositions[channelVertIndex2];
-		channel2Vert = originVert;
-		channel2Vert.X -= outlineSize.X;
-		channel2Vert.Y += outlineSize.Y;
-		auto& channel3Vert = originPositions[channelVertIndex3];
-		channel3Vert = originVert;
-		channel3Vert.X += outlineSize.X;
-		channel3Vert.Y -= outlineSize.Y;
-		auto& channel4Vert = originPositions[channelVertIndex4];
-		channel4Vert = originVert;
-		channel4Vert.X -= outlineSize.X;
-		channel4Vert.Y -= outlineSize.Y;
-
-		channelVertIndex1++, channelVertIndex2++, channelVertIndex3++, channelVertIndex4++;
-	}
-
 }
 
 void UUIEffectOutline::SetOutlineColor(FColor newColor)

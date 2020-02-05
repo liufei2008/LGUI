@@ -20,20 +20,28 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 	
 	const int32 singleChannelTriangleIndicesCount = InOutOriginTriangleIndicesCount;
 	const int32 singleChannelVerticesCount = InOutOriginVerticesCount;
+	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount + singleChannelTriangleIndicesCount;
 	if (singleChannelTriangleIndicesCount == triangleCount)//trangle count should have changed after apply this modifier
 	{
+		//create additional triangle pass
 		OutTriangleChanged = true;
-		triangleCount = singleChannelTriangleIndicesCount + singleChannelTriangleIndicesCount;
-		triangles.Reserve(triangleCount);
+		triangles.AddUninitialized(singleChannelTriangleIndicesCount);
 		//put orgin triangles on last pass, this will make the origin triangle render at top
-		for (int i = singleChannelTriangleIndicesCount, j = 0; i < triangleCount; i++, j++)
+		for (int i = singleChannelTriangleIndicesCount, j = 0; j < singleChannelTriangleIndicesCount; i++, j++)
 		{
 			auto index = triangles[j];
-			triangles.Add(index);
-			triangles[j] = triangles[j] + singleChannelVerticesCount;
+			triangles[i] = index;
+			triangles[j] = index + singleChannelVerticesCount;
 		}
 	}
-	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount + singleChannelTriangleIndicesCount;
+	else
+	{
+		//update triangle is slightly different from craete triangle data
+		for (int i = singleChannelTriangleIndicesCount, j = 0; j < singleChannelTriangleIndicesCount; i++, j++)
+		{
+			triangles[j] = triangles[i] + singleChannelVerticesCount;
+		}
+	}
 	
 	if (singleChannelVerticesCount == vertexCount)
 	{
@@ -47,6 +55,7 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 		}
 	}
 	InOutOriginVerticesCount = singleChannelVerticesCount + singleChannelVerticesCount;
+
 	FColor finalColor = shadowColor;
 	if (multiplySourceAlpha)
 	{

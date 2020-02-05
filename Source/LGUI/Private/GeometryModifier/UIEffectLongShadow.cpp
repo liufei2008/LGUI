@@ -21,10 +21,11 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 
 	const int32 singleChannelTriangleIndicesCount = InOutOriginTriangleIndicesCount;
 	const int32 singleChannelVerticesCount = InOutOriginVerticesCount;
+	int32 additionalTriangleIndicesCount = singleChannelTriangleIndicesCount * (shadowSegment + 1);
+	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount * (shadowSegment + 2);
 	if (singleChannelTriangleIndicesCount == triangleCount)
 	{
 		OutTriangleChanged = true;
-		int32 additionalTriangleIndicesCount = singleChannelTriangleIndicesCount * (shadowSegment + 1);
 		triangles.AddUninitialized(additionalTriangleIndicesCount);
 		//put orgin triangles on last pass, this will make the origin triangle render at top
 		for (int triangleIndex = additionalTriangleIndicesCount, originTriangleIndex = 0; originTriangleIndex < singleChannelTriangleIndicesCount; triangleIndex++, originTriangleIndex++)
@@ -47,7 +48,15 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 			}
 		}
 	}
-	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount * (shadowSegment + 2);
+	else
+	{
+		//update triangle data is slightly different from create triangle data. the first pass may changed or not, all we need to do is set origin data (which can be calculated from other pass)
+		int lastPassVerticesCount = singleChannelVerticesCount * (shadowSegment + 1);
+		for (int lastPassTriangleIndex = additionalTriangleIndicesCount, firstPassTriangleIndex = 0; firstPassTriangleIndex < singleChannelTriangleIndicesCount; lastPassTriangleIndex++, firstPassTriangleIndex++)
+		{
+			triangles[firstPassTriangleIndex] = triangles[lastPassTriangleIndex] + lastPassVerticesCount;
+		}
+	}
 
 	if (singleChannelVerticesCount == vertexCount)
 	{
@@ -62,37 +71,40 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 	}
 	InOutOriginVerticesCount = singleChannelVerticesCount * (shadowSegment + 2);
 
-	FVector shadowSizeInterval = shadowSize / (shadowSegment + 1);
-	int32 shadowChannelCount = shadowSegment + 1;
-	float alphaMultiply = multiplySourceAlpha ? (GetRenderableUIItem()->GetFinalAlpha() * 0.003921568627f/* 1 / 255 */) : 1.0f;
-	for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
+	//verticies
 	{
-		auto originVert = originPositions[channelOriginVertIndex];
-		auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
-		for (int channelIndex = 0; channelIndex < shadowChannelCount; channelIndex++)
+		FVector shadowSizeInterval = shadowSize / (shadowSegment + 1);
+		int32 shadowChannelCount = shadowSegment + 1;
+		float alphaMultiply = multiplySourceAlpha ? (GetRenderableUIItem()->GetFinalAlpha() * 0.003921568627f/* 1 / 255 */) : 1.0f;
+		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
-			int channelVertIndex = (channelIndex + 1) * singleChannelVerticesCount + channelOriginVertIndex;
-			vertices[channelVertIndex].TextureCoordinate[0] = originUV;
-			auto& vert = originPositions[channelVertIndex];
-			vert = originVert;
-			vert.X += shadowSizeInterval.X * (shadowChannelCount - channelIndex);
-			vert.Y += shadowSizeInterval.Y * (shadowChannelCount - channelIndex);
-			vert.Z += shadowSizeInterval.Z * (shadowChannelCount - channelIndex);
-			auto color = shadowColor;
-			if (useGradientColor)
+			auto originVert = originPositions[channelOriginVertIndex];
+			auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
+			for (int channelIndex = 0; channelIndex < shadowChannelCount; channelIndex++)
 			{
-				float colorRatio = ((float)(channelIndex) / (shadowChannelCount));
-				float colorRatio_INV = 1.0f - colorRatio;
-				color.R = shadowColor.R * colorRatio + gradientColor.R * colorRatio_INV;
-				color.G = shadowColor.G * colorRatio + gradientColor.G * colorRatio_INV;
-				color.B = shadowColor.B * colorRatio + gradientColor.B * colorRatio_INV;
-				color.A = shadowColor.A * colorRatio + gradientColor.A * colorRatio_INV;
+				int channelVertIndex = (channelIndex + 1) * singleChannelVerticesCount + channelOriginVertIndex;
+				vertices[channelVertIndex].TextureCoordinate[0] = originUV;
+				auto& vert = originPositions[channelVertIndex];
+				vert = originVert;
+				vert.X += shadowSizeInterval.X * (shadowChannelCount - channelIndex);
+				vert.Y += shadowSizeInterval.Y * (shadowChannelCount - channelIndex);
+				vert.Z += shadowSizeInterval.Z * (shadowChannelCount - channelIndex);
+				auto color = shadowColor;
+				if (useGradientColor)
+				{
+					float colorRatio = ((float)(channelIndex) / (shadowChannelCount));
+					float colorRatio_INV = 1.0f - colorRatio;
+					color.R = shadowColor.R * colorRatio + gradientColor.R * colorRatio_INV;
+					color.G = shadowColor.G * colorRatio + gradientColor.G * colorRatio_INV;
+					color.B = shadowColor.B * colorRatio + gradientColor.B * colorRatio_INV;
+					color.A = shadowColor.A * colorRatio + gradientColor.A * colorRatio_INV;
+				}
+				if (multiplySourceAlpha)
+				{
+					color.A = (uint8)(alphaMultiply * color.A);
+				}
+				vertices[channelVertIndex].Color = color;
 			}
-			if (multiplySourceAlpha)
-			{
-				color.A = (uint8)(alphaMultiply * color.A);
-			}
-			vertices[channelVertIndex].Color = color;
 		}
 	}
 }
