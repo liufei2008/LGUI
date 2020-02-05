@@ -14,4 +14,6 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
 	TWeakObjectPtr<class ULGUICanvasScaler> TargetScriptPtr;
+	float GetMatchValue()const;
+	void SetMatchValue(float value, bool fromSlider);
 };
