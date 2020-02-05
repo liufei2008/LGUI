@@ -531,12 +531,12 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		if (pixelPerfect && rootCanvasScale != -1.0f)
 		{
 			adjustedFontSize = adjustedFontSize * rootCanvasScale;
-			adjustedFontSize = FMath::Min(adjustedFontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
+			adjustedFontSize = FMath::Clamp(adjustedFontSize, 0.0f, 200.0f);//limit font size to 200. too large font size will result in large texture
 		}
 		else if (dynamicPixelsPerUnitIsNot1)
 		{
 			adjustedFontSize = adjustedFontSize * dynamicPixelsPerUnit;
-			adjustedFontSize = FMath::Min(adjustedFontSize, 200.0f);//limit font size to 200. too large font size will result in large texture
+			adjustedFontSize = FMath::Clamp(adjustedFontSize, 0.0f, 200.0f);//limit font size to 200. too large font size will result in large texture
 		}
 		return adjustedFontSize;
 	};
