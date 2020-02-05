@@ -126,8 +126,6 @@ public:
 protected:
 	//consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas
 	bool currentIsRenderInScreenOrWorld = false;
-	//is render space changed at last frame? maybe set from world to screen space. default is true to set initial parameter
-	bool isRenderSpaceChanged = true;
 	//top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it
 	UPROPERTY(Transient) ULGUICanvas* TopMostCanvas = nullptr;
 	//chekc TopMostCanvas. search for it if not valid

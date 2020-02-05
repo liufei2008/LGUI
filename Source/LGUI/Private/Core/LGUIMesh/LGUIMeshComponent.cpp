@@ -175,6 +175,7 @@ public:
 		if (LGUIHudRenderer.IsValid())
 		{
 			LGUIHudRenderer.Pin()->RemoveHudPrimitive(this);
+			LGUIHudRenderer.Reset();
 		}
 	}
 
