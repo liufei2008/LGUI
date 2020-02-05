@@ -172,11 +172,14 @@ void UUIText::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 {
 	if (richText)
 	{
-		float width = widget.width;
-		float height = widget.height;
-		UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, this, cachedTextPropertyList, font, richText);
-		SetWidth(width);
-		SetHeight(height);
+		if (InVertexPositionChanged || InVertexUVChanged || InVertexColorChanged)
+		{
+			float width = widget.width;
+			float height = widget.height;
+			UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, this, cachedTextPropertyList, font, richText);
+			SetWidth(width);
+			SetHeight(height);
+		}
 	}
 	else
 	{
