@@ -1031,25 +1031,25 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					if (richTextParseResult.bold)
 					{
 						//bold left
-						vertices[verticesCount].Color = color;
-						vertices[verticesCount + 1].Color = color;
-						vertices[verticesCount + 2].Color = color;
-						vertices[verticesCount + 3].Color = color;
+						vertices[verticesCount].Color = richTextParseResult.color;
+						vertices[verticesCount + 1].Color = richTextParseResult.color;
+						vertices[verticesCount + 2].Color = richTextParseResult.color;
+						vertices[verticesCount + 3].Color = richTextParseResult.color;
 						//bold right
-						vertices[verticesCount + 4].Color = color;
-						vertices[verticesCount + 5].Color = color;
-						vertices[verticesCount + 6].Color = color;
-						vertices[verticesCount + 7].Color = color;
+						vertices[verticesCount + 4].Color = richTextParseResult.color;
+						vertices[verticesCount + 5].Color = richTextParseResult.color;
+						vertices[verticesCount + 6].Color = richTextParseResult.color;
+						vertices[verticesCount + 7].Color = richTextParseResult.color;
 						//bold top
-						vertices[verticesCount + 8].Color = color;
-						vertices[verticesCount + 9].Color = color;
-						vertices[verticesCount + 10].Color = color;
-						vertices[verticesCount + 11].Color = color;
+						vertices[verticesCount + 8].Color = richTextParseResult.color;
+						vertices[verticesCount + 9].Color = richTextParseResult.color;
+						vertices[verticesCount + 10].Color = richTextParseResult.color;
+						vertices[verticesCount + 11].Color = richTextParseResult.color;
 						//bold bottom
-						vertices[verticesCount + 12].Color = color;
-						vertices[verticesCount + 13].Color = color;
-						vertices[verticesCount + 14].Color = color;
-						vertices[verticesCount + 15].Color = color;
+						vertices[verticesCount + 12].Color = richTextParseResult.color;
+						vertices[verticesCount + 13].Color = richTextParseResult.color;
+						vertices[verticesCount + 14].Color = richTextParseResult.color;
+						vertices[verticesCount + 15].Color = richTextParseResult.color;
 
 						addVertCount = 16;
 					}

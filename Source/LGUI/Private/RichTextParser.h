@@ -340,6 +340,7 @@ namespace LGUIRichTextParser
 					const static TArray<TCHAR> hexTable = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f' };
 					if (colorString.Len() == 7 || colorString.Len() == 9)//#ffffff/#ffffff00
 					{
+						outColor.A = 255;
 						int colorStringLength = colorString.Len();
 						for (int i = 1; i < colorStringLength; i += 2)
 						{
