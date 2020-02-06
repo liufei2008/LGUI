@@ -2012,7 +2012,7 @@ void UIGeometry::CalculatePivotOffset(const float& width, const float& height, c
 
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformVertices"), STAT_TransformVertices, STATGROUP_LGUI);
-void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo, bool requireNormal, bool requireTangent)
+void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
 	auto canvasUIItem = canvas->CheckAndGetUIItem();
@@ -2064,7 +2064,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 		}
 	}
 
-	if (requireNormal)
+	if (canvas->GetRequireNormal())
 	{
 		auto& originNormals = uiGeo->originNormals;
 		auto originNormalCount = originNormals.Num();
@@ -2083,7 +2083,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 			vertices[i].TangentZ.Vector.W = -127;
 		}
 	}
-	if (requireTangent)
+	if (canvas->GetRequireTangent())
 	{
 		auto& originTangents = uiGeo->originTangents;
 		auto originTangentCount = originTangents.Num();;
