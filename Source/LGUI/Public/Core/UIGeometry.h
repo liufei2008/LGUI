@@ -68,21 +68,23 @@ public:
 
 #pragma region UIText
 public:
-	static void FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
-		, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
+	static void FromUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
+		, const FColor& color, const FVector2D& fontSpace, TSharedPtr<UIGeometry> uiGeo, const float& fontSize
 		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
-		, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
+		, bool adjustWidth, bool adjustHeight
+		, UITextFontStyle fontStyle, FVector2D& textRealSize
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText);
-	static void UpdateUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
-		, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
+	static void UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
+		, const FColor& color, const FVector2D& fontSpace, TSharedPtr<UIGeometry> uiGeo, const float& fontSize
 		, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
-		, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
+		, bool adjustWidth, bool adjustHeight
+		, UITextFontStyle fontStyle, FVector2D& textRealSize
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp
 		, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText);
 private:
 	static void AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices, FUITextLineProperty& sentenceProperty);
-	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices);
+	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart, TArray<FVector>& vertices);
 #pragma endregion
 
 #pragma region UISector
@@ -104,6 +106,5 @@ public:
 	static void TransformVertices(class ULGUICanvas* canvas, class UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo);
 	static void CalculatePivotOffset(const float& width, const float& height, const FVector2D& pivot, float& pivotOffsetX, float& pivotOffsetY, float& halfW, float& halfH);
 private:
-	static void OffsetVertices(TArray<FVector>& vertices, float offsetX, float offsetY);
-	static void OffsetVertices(TArray<FVector*>& vertices, float offsetX, float offsetY);
+	static void OffsetVertices(TArray<FVector>& vertices, int count, float offsetX, float offsetY);
 };
