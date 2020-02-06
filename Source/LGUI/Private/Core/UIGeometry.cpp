@@ -462,10 +462,11 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 #pragma endregion
 
 #pragma region UIText
-void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
-	, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
+void UIGeometry::FromUIText(const FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
+	, const FColor& color, const FVector2D& fontSpace, TSharedPtr<UIGeometry> uiGeo, const float& fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
-	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
+	, bool adjustWidth, bool adjustHeight
+	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText)
 {
@@ -513,13 +514,16 @@ void UIGeometry::FromUIText(FString& content, int32 visibleCharCount, float& wid
 	}
 }
 
-void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
-	, FColor color, FVector2D fontSpace, TSharedPtr<UIGeometry> uiGeo, float fontSize
+void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
+	, const FColor& color, const FVector2D& fontSpace, TSharedPtr<UIGeometry> uiGeo, const float& fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
-	, bool adjustWidth, bool adjustHeight, UITextFontStyle fontStyle, FVector2D& textRealSize
+	, bool adjustWidth, bool adjustHeight
+	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText)
 {
+	FString content = text;
+
 	bool pixelPerfect = renderCanvas->GetPixelPerfect();
 	float dynamicPixelsPerUnit = renderCanvas->GetDynamicPixelsPerUnit();
 	bool dynamicPixelsPerUnitIsNot1 = dynamicPixelsPerUnit != 1;//use dynamicPixelsPerUnit or not
@@ -629,7 +633,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 
 		if (richText)
 		{
-			AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions);
+			AlignUITextLineVertexForRichText(paragraphHAlign, currentLineWidth, currentLineHeight, fontSize, lineUIGeoVertStart, originPositions);
 		}
 		else
 		{
@@ -657,8 +661,12 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 			caretPosition.X = currentLineOffset.X - halfFontSpaceX;
 			caretPosition.Y = currentLineOffset.Y;
 		}
+		//store first line height for paragraph align
+		if (linesCount == 1)
+		{
+			firstLineHeight = richText ? currentLineHeight : fontSize;
+		}
 		//set line height to origin
-		firstLineHeight = richText ? currentLineHeight : fontSize;
 		currentLineHeight = fontSize;
 	};
 
@@ -733,12 +741,16 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		return charGeo;
 	};
 
-	for (int charIndex = 0; charIndex < contentLength; charIndex++)
+	//pre parse rich text
+	FString richTextContent;
+	richTextContent.Reserve(content.Len());
+	static TArray<RichTextParseResult> richTextPropertyArray;
+	richTextPropertyArray.Reset();
+	if (richText)
 	{
-		auto charCode = content[charIndex];
-		//rich text
-		if (richText)
+		for (int charIndex = 0; charIndex < contentLength; charIndex++)
 		{
+			auto charCode = content[charIndex];
 			while (richTextParser.Parse(content, contentLength, charIndex, richTextParseResult))
 			{
 				if (charIndex < contentLength)
@@ -750,7 +762,21 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 					break;
 				}
 			}
+			richTextContent.AppendChar(charCode);
+			richTextPropertyArray.Add(richTextParseResult);
 			if (charIndex >= contentLength)break;
+		}
+		//replace text content with parsed rich text content
+		content = richTextContent;
+		contentLength = richTextContent.Len();
+	}
+
+	for (int charIndex = 0; charIndex < contentLength; charIndex++)
+	{
+		auto charCode = content[charIndex];
+		if (richText)
+		{
+			richTextParseResult = richTextPropertyArray[charIndex];
 		}
 
 		if (charCode == '\n' || charCode == '\r')//10 -- \n, 13 -- \r
@@ -1408,6 +1434,8 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 
 	//last line
 	NewLine(contentLength);
+	//remove last line's space Y
+	paragraphHeight -= fontSpace.Y;
 
 	uiGeo->originVerticesCount = verticesCount;
 	uiGeo->originTriangleCount = indicesCount;
@@ -1487,7 +1515,7 @@ void UIGeometry::UpdateUIText(FString& content, int32 visibleCharCount, float& w
 		}
 	}
 
-	UIGeometry::OffsetVertices(originPositions, xOffset, yOffset);
+	UIGeometry::OffsetVertices(originPositions, uiGeo->originVerticesCount, xOffset, yOffset);
 
 	//snap pixel
 	if (pixelPerfect)
@@ -1539,7 +1567,7 @@ void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlig
 		item.caretPosition.X += xOffset;
 	}
 }
-void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, int lineUIGeoVertStart, TArray<FVector>& vertices)
+void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart, TArray<FVector>& vertices)
 {
 	float xOffset = 0;
 	switch (pivotHAlign)
@@ -1551,11 +1579,13 @@ void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign
 		xOffset = -lineWidth;
 	break;
 	}
+	float yOffset = -(lineHeight - fontSize) * 0.5f;
 
 	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
 	{
 		auto& vertex = vertices[i];
 		vertex.X += xOffset;
+		vertex.Y += yOffset;
 	}
 }
 
@@ -1973,24 +2003,13 @@ void UIGeometry::UpdateUIRingVertex(TSharedPtr<UIGeometry> uiGeo, float& width, 
 }
 #pragma endregion
 
-void UIGeometry::OffsetVertices(TArray<FVector>& vertices, float offsetX, float offsetY)
+void UIGeometry::OffsetVertices(TArray<FVector>& vertices, int count, float offsetX, float offsetY)
 {
-	int count = vertices.Num();
 	for (int i = 0; i < count; i++)
 	{
 		auto& vertex = vertices[i];
 		vertex.X += offsetX;
 		vertex.Y += offsetY;
-	}
-}
-void UIGeometry::OffsetVertices(TArray<FVector*>& vertices, float offsetX, float offsetY)
-{
-	int count = vertices.Num();
-	for (int i = 0; i < count; i++)
-	{
-		auto& vertex = vertices[i];
-		vertex->X += offsetX;
-		vertex->Y += offsetY;
 	}
 }
 void UIGeometry::UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, FColor color)
