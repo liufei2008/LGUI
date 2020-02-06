@@ -279,7 +279,7 @@ void UUIRenderable::UpdateGeometry(const bool& parentTransformChanged)
 				}
 				if (cacheForThisUpdate_VertexPositionChanged)
 				{
-					UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
+					UIGeometry::TransformVertices(RenderCanvas, this, geometry);
 				}
 			}
 		}
@@ -304,7 +304,7 @@ void UUIRenderable::CreateGeometry()
 	OnCreateGeometry();
 	ApplyGeometryModifier();
 
-	UIGeometry::TransformVertices(RenderCanvas, this, geometry, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent());
+	UIGeometry::TransformVertices(RenderCanvas, this, geometry);
 }
 
 void UUIRenderable::OnBeforeCreateOrUpdateGeometry()
