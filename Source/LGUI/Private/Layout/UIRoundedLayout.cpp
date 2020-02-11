@@ -24,22 +24,16 @@ void UUIRoundedLayout::OnRebuildLayout()
 	for (int i = 0; i < childrenCount; i ++)
 	{
 		auto uiItem = uiChildrenList[i].uiItem;
-		uiItem->SetAnchorHAlign(UIAnchorHorizontalAlign::None);
-		uiItem->SetAnchorVAlign(UIAnchorVerticalAlign::None);
+		uiItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
+		uiItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
 		sin = FMath::Sin(angle);
 		cos = FMath::Cos(angle);
 		x = cos * Radius;
 		y = sin * Radius;
-		auto pos = uiItem->RelativeLocation;
-		pos.X = x;
-		pos.Y = y;
+		uiItem->SetAnchorOffset(FVector2D(x, y));
 		if (bSetChildAngle)
 		{
-			uiItem->SetRelativeLocationAndRotation(pos, FQuat::MakeFromEuler(FVector(0, 0, FMath::RadiansToDegrees(angle))));
-		}
-		else
-		{
-			uiItem->SetRelativeLocation(pos);
+			uiItem->SetRelativeRotation(FQuat::MakeFromEuler(FVector(0, 0, FMath::RadiansToDegrees(angle))));
 		}
 		angle += angleInterval;
 	}
