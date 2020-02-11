@@ -1310,7 +1310,7 @@ float ULGUICanvas::CalculateDistanceToCamera()
 	}
 	else
 	{
-		return UIItem->GetWidth() * 0.5f / FMath::Tan(FMath::DegreesToRadians(FOVAngle * 0.5f)) * UIItem->GetRelativeScale3D().X;
+		return UIItem->GetWidth() * 0.5f / FMath::Tan(FMath::DegreesToRadians(FOVAngle * 0.5f)) * UIItem->RelativeScale3D.X;
 	}
 }
 FMatrix ULGUICanvas::GetViewProjectionMatrix()
