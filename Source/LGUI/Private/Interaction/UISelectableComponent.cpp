@@ -17,6 +17,7 @@ void UUISelectableComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	CheckTarget();
+	ApplySelectionState(true);
 	ALGUIManagerActor::AddSelectable(this);
 }
 
@@ -70,7 +71,16 @@ void UUISelectableComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 		CurrentSelectionState = RootUIComp->IsGroupAllowInteraction()
 			? (IsPointerInsideThis ? EUISelectableSelectionState::Highlighted : EUISelectableSelectionState::Normal)
 			: EUISelectableSelectionState::Disabled;
-		ApplySelectionState();
+#if WITH_EDITOR
+		if (!this->GetWorld()->IsGameWorld())//is editor, just set properties immediately
+		{
+			ApplySelectionState(true);
+		}
+		else
+#endif
+		{
+			ApplySelectionState(false);
+		}
 	}
 }
 
@@ -79,7 +89,7 @@ bool UUISelectableComponent::CheckTarget()
 	if (TransitionActor)return true;
 	return false;
 }
-void UUISelectableComponent::ApplySelectionState()
+void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 {
 	if (!CheckTarget())return;
 	auto TransitionTargetUIItemComp = TransitionActor->GetUIItem();
@@ -91,11 +101,7 @@ void UUISelectableComponent::ApplySelectionState()
 		{
 		case UISelectableTransitionType::ColorTint:
 		{
-			if(FadeDuration <= 0.0f
-#if WITH_EDITOR
-				|| !this->GetWorld()->IsGameWorld()
-#endif
-				)
+			if(FadeDuration <= 0.0f || immediateSet)
 			{
 				TransitionTargetUIItemComp->SetColor(NormalColor);
 			}
@@ -126,7 +132,7 @@ void UUISelectableComponent::ApplySelectionState()
 				}
 				if (TransitionComp)
 				{
-					TransitionComp->OnNormal();
+					TransitionComp->OnNormal(immediateSet);
 				}
 			}
 		}
@@ -140,11 +146,7 @@ void UUISelectableComponent::ApplySelectionState()
 		{
 		case UISelectableTransitionType::ColorTint:
 		{
-			if (FadeDuration <= 0.0f
-#if WITH_EDITOR
-				|| !this->GetWorld()->IsGameWorld()
-#endif
-				)
+			if (FadeDuration <= 0.0f || immediateSet)
 			{
 				TransitionTargetUIItemComp->SetColor(HighlightedColor);
 			}
@@ -168,18 +170,13 @@ void UUISelectableComponent::ApplySelectionState()
 		break;
 		case UISelectableTransitionType::TransitionComponent:
 		{
-#if WITH_EDITOR
-			if (this->GetWorld()->IsGameWorld())
-#endif
+			if (TransitionComp == nullptr)
 			{
-				if (TransitionComp == nullptr)
-				{
-					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
-				}
-				if (TransitionComp)
-				{
-					TransitionComp->OnHighlighted();
-				}
+				TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+			}
+			if (TransitionComp)
+			{
+				TransitionComp->OnHighlighted(immediateSet);
 			}
 		}
 		break;
@@ -192,11 +189,7 @@ void UUISelectableComponent::ApplySelectionState()
 		{
 		case UISelectableTransitionType::ColorTint:
 		{
-			if (FadeDuration <= 0.0f
-#if WITH_EDITOR
-				|| !this->GetWorld()->IsGameWorld()
-#endif
-				)
+			if (FadeDuration <= 0.0f || immediateSet)
 			{
 				TransitionTargetUIItemComp->SetColor(PressedColor);
 			}
@@ -220,18 +213,13 @@ void UUISelectableComponent::ApplySelectionState()
 		break;
 		case UISelectableTransitionType::TransitionComponent:
 		{
-#if WITH_EDITOR
-			if (this->GetWorld()->IsGameWorld())
-#endif
+			if (TransitionComp == nullptr)
 			{
-				if (TransitionComp == nullptr)
-				{
-					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
-				}
-				if (TransitionComp)
-				{
-					TransitionComp->OnPressed();
-				}
+				TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+			}
+			if (TransitionComp)
+			{
+				TransitionComp->OnPressed(immediateSet);
 			}
 		}
 		break;
@@ -244,11 +232,7 @@ void UUISelectableComponent::ApplySelectionState()
 		{
 		case UISelectableTransitionType::ColorTint:
 		{
-			if (FadeDuration <= 0.0f
-#if WITH_EDITOR
-				|| !this->GetWorld()->IsGameWorld()
-#endif
-				)
+			if (FadeDuration <= 0.0f || immediateSet)
 			{
 				TransitionTargetUIItemComp->SetColor(DisabledColor);
 			}
@@ -272,18 +256,13 @@ void UUISelectableComponent::ApplySelectionState()
 		break;
 		case UISelectableTransitionType::TransitionComponent:
 		{
-#if WITH_EDITOR
-			if (this->GetWorld()->IsGameWorld())
-#endif
+			if (TransitionComp == nullptr)
 			{
-				if (TransitionComp == nullptr)
-				{
-					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
-				}
-				if (TransitionComp)
-				{
-					TransitionComp->OnDisabled();
-				}
+				TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+			}
+			if (TransitionComp)
+			{
+				TransitionComp->OnDisabled(immediateSet);
 			}
 		}
 		break;
@@ -297,40 +276,40 @@ bool UUISelectableComponent::OnPointerEnter_Implementation(const FLGUIPointerEve
 {
 	IsPointerInsideThis = true;
 	CurrentSelectionState = EUISelectableSelectionState::Highlighted;
-	ApplySelectionState();
+	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerExit_Implementation(const FLGUIPointerEventData& eventData)
 {
 	IsPointerInsideThis = false;
 	CurrentSelectionState = EUISelectableSelectionState::Normal;
-	ApplySelectionState();
+	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)
 {
 	CurrentSelectionState = EUISelectableSelectionState::Pressed;
-	ApplySelectionState();
+	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)
 {
 	CurrentSelectionState = IsPointerInsideThis ? EUISelectableSelectionState::Highlighted : EUISelectableSelectionState::Normal;
-	ApplySelectionState();
+	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)
 {
 	IsPointerInsideThis = true;
 	CurrentSelectionState = EUISelectableSelectionState::Highlighted;
-	ApplySelectionState();
+	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
 {
 	IsPointerInsideThis = false;
 	CurrentSelectionState = EUISelectableSelectionState::Normal;
-	ApplySelectionState();
+	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 
@@ -341,7 +320,7 @@ void UUISelectableComponent::SetNormalSprite(ULGUISpriteData* NewSprite)
 		NormalSprite = NewSprite;
 		if (CurrentSelectionState == EUISelectableSelectionState::Normal)
 		{
-			ApplySelectionState();
+			ApplySelectionState(false);
 		}
 	}
 }
@@ -352,7 +331,7 @@ void UUISelectableComponent::SetNormalColor(FColor NewColor)
 		NormalColor = NewColor;
 		if (CurrentSelectionState == EUISelectableSelectionState::Normal)
 		{
-			ApplySelectionState();
+			ApplySelectionState(false);
 		}
 	}
 }
@@ -363,7 +342,7 @@ void UUISelectableComponent::SetHighlightedSprite(ULGUISpriteData* NewSprite)
 		HighlightedSprite = NewSprite;
 		if (CurrentSelectionState == EUISelectableSelectionState::Highlighted)
 		{
-			ApplySelectionState();
+			ApplySelectionState(false);
 		}
 	}
 }
@@ -374,7 +353,7 @@ void UUISelectableComponent::SetHighlightedColor(FColor NewColor)
 		HighlightedColor = NewColor;
 		if (CurrentSelectionState == EUISelectableSelectionState::Highlighted)
 		{
-			ApplySelectionState();
+			ApplySelectionState(false);
 		}
 	}
 }
@@ -385,7 +364,7 @@ void UUISelectableComponent::SetPressedSprite(ULGUISpriteData* NewSprite)
 		PressedSprite = NewSprite;
 		if (CurrentSelectionState == EUISelectableSelectionState::Pressed)
 		{
-			ApplySelectionState();
+			ApplySelectionState(false);
 		}
 	}
 }
@@ -396,7 +375,7 @@ void UUISelectableComponent::SetPressedColor(FColor NewColor)
 		PressedColor = NewColor;
 		if (CurrentSelectionState == EUISelectableSelectionState::Pressed)
 		{
-			ApplySelectionState();
+			ApplySelectionState(false);
 		}
 	}
 }
@@ -405,7 +384,7 @@ void UUISelectableComponent::SetSelectionState(EUISelectableSelectionState NewSt
 	if (CurrentSelectionState != NewState)
 	{
 		CurrentSelectionState = NewState;
-		ApplySelectionState();
+		ApplySelectionState(false);
 	}
 }
 AUIBaseActor* UUISelectableComponent::GetTransitionTarget()
