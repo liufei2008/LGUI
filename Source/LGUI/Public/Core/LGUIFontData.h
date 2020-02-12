@@ -42,7 +42,7 @@ public:
 	uint16 height = 0;
 	int16 xoffset = 0;
 	int16 yoffset = 0;
-	uint16 xadvance = 0;
+	float xadvance = 0;
 	float uv0X = 0;
 	float uv0Y = 0;
 	float uv3X = 0;
