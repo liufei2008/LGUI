@@ -39,7 +39,14 @@ bool ActorReplaceTool::CopyCommonProperty(UProperty* Property, uint8* Src, uint8
 					{
 						targetObject = NewObject<UObject>(Outter, object->GetClass());
 					}
-					CopyProperty(object, targetObject, {});
+					if (object->GetClass()->IsChildOf(USceneComponent::StaticClass()))
+					{
+						CopyProperty(object, targetObject, GetComponentExcludeProperties());
+					}
+					else
+					{
+						CopyProperty(object, targetObject, {});
+					}
 					objProperty->SetObjectPropertyValue_InContainer(Dest, targetObject, cppArrayIndex);
 				}
 				else if (auto actor = Cast<AActor>(object))//Actor reference, need to remap
@@ -307,15 +314,19 @@ AActor* ActorReplaceTool::ReplaceActorClassInternal(AActor* TargetActor, TSubcla
 	OriginActor = TargetActor;
 	auto Result = CopySingleActorAndReplaceClass(TargetActor, NewActorClass);
 	Result->FinishSpawning(FTransform::Identity, true);
+
+	auto ActorExcludeProperties = GetActorExcludeProperties();
+	auto SceneComponentExcludeProperties = GetComponentExcludeProperties();
 	//iterate all actors in world and replace actor referece
 	for (TActorIterator<AActor> ActorItr(TargetActor->GetWorld()); ActorItr; ++ActorItr)
 	{
 		auto itemActor = *ActorItr;
-		CheckPropertyForActor(itemActor);
-		const auto& OriginComponents = itemActor->GetComponents();
-		for (auto OriginComp : OriginComponents)
+		CheckPropertyForActor(itemActor, ActorExcludeProperties);
+		const auto& Components = itemActor->GetComponents();
+		for (auto Comp : Components)
 		{
-			CheckProperty(OriginComp);
+			if (Comp->HasAnyFlags(EObjectFlags::RF_Transient))continue;//skip transient component
+			CheckProperty(Comp, SceneComponentExcludeProperties);
 		}
 	}
 
@@ -393,9 +404,10 @@ AActor* ActorReplaceTool::CopySingleActorAndReplaceClass(AActor* TargetActor, TS
 
 
 
-void ActorReplaceTool::CheckPropertyForActor(UObject* Origin)
+void ActorReplaceTool::CheckPropertyForActor(UObject* Origin, TArray<FName> ExcludeProperties)
 {
 	auto propertyField = TFieldRange<UProperty>(Origin->GetClass());
+	int excludePropertyCount = ExcludeProperties.Num();
 	for (const auto propertyItem : propertyField)
 	{
 		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
@@ -408,14 +420,37 @@ void ActorReplaceTool::CheckPropertyForActor(UObject* Origin)
 				}
 			}
 		}
+		auto propertyName = propertyItem->GetFName();
+		if (excludePropertyCount != 0)
+		{
+			int32 index;
+			if (ExcludeProperties.Find(propertyName, index))
+			{
+				ExcludeProperties.RemoveAt(index);
+				excludePropertyCount--;
+				continue;
+			}
+		}
 		CheckCommonProperty(propertyItem, (uint8*)Origin);
 	}
 }
-void ActorReplaceTool::CheckProperty(UObject* Origin)
+void ActorReplaceTool::CheckProperty(UObject* Origin, TArray<FName> ExcludeProperties)
 {
 	auto propertyField = TFieldRange<UProperty>(Origin->GetClass());
+	int excludePropertyCount = ExcludeProperties.Num();
 	for (const auto propertyItem : propertyField)
 	{
+		auto propertyName = propertyItem->GetFName();
+		if (excludePropertyCount != 0)
+		{
+			int32 index;
+			if (ExcludeProperties.Find(propertyName, index))
+			{
+				ExcludeProperties.RemoveAt(index);
+				excludePropertyCount--;
+				continue;
+			}
+		}
 		CheckCommonProperty(propertyItem, (uint8*)Origin);
 	}
 }
@@ -446,12 +481,14 @@ bool ActorReplaceTool::CheckCommonProperty(UProperty* Property, uint8* Src, int 
 				}
 				else if (Property->HasAnyPropertyFlags(CPF_InstancedReference))
 				{
-					UObject* targetObject = objProperty->GetObjectPropertyValue_InContainer(Src, cppArrayIndex);
-					if (targetObject == nullptr)
+					if (object->GetClass()->IsChildOf(USceneComponent::StaticClass()))
 					{
-						targetObject = NewObject<UObject>(Outter, object->GetClass());
+						CheckProperty(object, GetComponentExcludeProperties());
 					}
-					CheckProperty(targetObject);
+					else
+					{
+						CheckProperty(object, {});
+					}
 				}
 				else if (auto actor = Cast<AActor>(object))//Actor reference, need to remap
 				{

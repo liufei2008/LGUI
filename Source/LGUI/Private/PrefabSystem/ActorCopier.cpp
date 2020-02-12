@@ -37,7 +37,14 @@ bool ActorCopier::CopyCommonProperty(UProperty* Property, uint8* Src, uint8* Des
 					{
 						targetObject = NewObject<UObject>(Outter, object->GetClass());
 					}
-					CopyProperty(object, targetObject, {});
+					if (object->GetClass()->IsChildOf(USceneComponent::StaticClass()))
+					{
+						CopyProperty(object, targetObject, GetComponentExcludeProperties());
+					}
+					else
+					{
+						CopyProperty(object, targetObject, {});
+					}
 					objProperty->SetObjectPropertyValue_InContainer(Dest, targetObject, cppArrayIndex);
 				}
 				else if (auto actor = Cast<AActor>(object))//Actor reference, need to remap
