@@ -42,8 +42,7 @@ protected:
 		class AUIBaseActor* ToggleActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
 		UIToggleTransitionType ToggleTransition = UIToggleTransitionType::Fade;
-
-	UPROPERTY(Transient) USceneComponent* TargetComp = nullptr;
+	UPROPERTY(Transient) class UUISelectableTransitionComponent* ToggleTransitionComp = nullptr;
 	bool CheckTarget();
 #pragma region Transition
 	UPROPERTY(Transient) class ULTweener* ToggleTransitionTweener = nullptr;
@@ -75,6 +74,8 @@ protected:
 	FLGUIMulticastBoolDelegate OnToggleCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
 		FLGUIDrawableEvent OnToggle = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Bool);
+
+	void ApplyToggleState(bool immediateSet);
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")bool GetState() { return IsOn; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
