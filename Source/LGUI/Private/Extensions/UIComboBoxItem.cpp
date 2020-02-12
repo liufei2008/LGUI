@@ -9,7 +9,7 @@
 
 UUIComboBoxItem::UUIComboBoxItem()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UUIComboBoxItem::BeginPlay()
