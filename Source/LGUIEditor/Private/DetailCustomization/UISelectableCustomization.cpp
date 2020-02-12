@@ -81,6 +81,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 					SNew(STextBlock)
 					.AutoWrapText(true)
 					.Text(LOCTEXT("TransitionActorTip", "If use ColorTint, Target must have UIItem component"))
+					.ColorAndOpacity(FLinearColor(FColor::Red))
 				];
 		}
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NormalSprite));
@@ -106,6 +107,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 					SNew(STextBlock)
 					.AutoWrapText(true)
 					.Text(LOCTEXT("TransitionActorTip", "If use SpriteSwap, Target must have UISprite component"))
+					.ColorAndOpacity(FLinearColor(FColor::Red))
 				];
 		}
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NormalColor));
@@ -131,6 +133,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 					SNew(STextBlock)
 					.AutoWrapText(true)
 					.Text(LOCTEXT("TransitionActorTip", "If use TransitionComponent, Target must have UUISelectableTransitionComponent component"))
+					.ColorAndOpacity(FLinearColor(FColor::Red))
 				];
 		}
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NormalColor));

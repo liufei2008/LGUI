@@ -38,11 +38,11 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 	UUIItem* targetUIItem = nullptr;
 	USceneComponent* targetComp = nullptr;
 	UUISelectableTransitionComponent* targetTweenComp = nullptr;
-	if (auto transitionActor = TargetScriptPtr->TransitionActor)
+	if (auto toggleActor = TargetScriptPtr->ToggleActor)
 	{
-		targetUIItem = transitionActor->FindComponentByClass<UUIItem>();
-		targetComp = transitionActor->FindComponentByClass<USceneComponent>();
-		targetTweenComp = transitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+		targetUIItem = toggleActor->FindComponentByClass<UUIItem>();
+		targetComp = toggleActor->FindComponentByClass<USceneComponent>();
+		targetTweenComp = toggleActor->FindComponentByClass<UUISelectableTransitionComponent>();
 	}
 
 	uint8 transitionType;
@@ -73,6 +73,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 					SNew(STextBlock)
 					.AutoWrapText(true)
 					.Text(LOCTEXT("TransitionActorTip", "If use Fade, Target must have UIItem component"))
+					
 				];
 		}
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUIToggleComponent, OffColor));
@@ -96,6 +97,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 					SNew(STextBlock)
 					.AutoWrapText(true)
 					.Text(LOCTEXT("TransitionActorTip", "If use ColorTint, Target must have UIItem component"))
+					.ColorAndOpacity(FLinearColor(FColor::Red))
 				];
 		}
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUIToggleComponent, OffAlpha));
@@ -119,6 +121,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 					SNew(STextBlock)
 					.AutoWrapText(true)
 					.Text(LOCTEXT("TransitionActorTip", "If use TransitionComponent, Target must have UUISelectableTransitionComponent component"))
+					.ColorAndOpacity(FLinearColor(FColor::Red))
 				];
 		}
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUIToggleComponent, OffAlpha));
@@ -146,6 +149,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 					SNew(STextBlock)
 					.AutoWrapText(true)
 					.Text(LOCTEXT("GroupActorTip", "If use Group, Target must have UUIToggleGroupComponent"))
+					.ColorAndOpacity(FLinearColor(FColor::Red))
 				];
 		}
 	}

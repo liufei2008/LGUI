@@ -24,5 +24,9 @@ void UUISelectableTransitionComponent::StopTransition()
 	{
 		ULTweenBPLibrary::KillIfIsTweening(tweener);
 	}
-	TweenerCollection.Empty();
+	TweenerCollection.Reset();
+}
+void UUISelectableTransitionComponent::CollectTweener(ULTweener* InItem)
+{
+	TweenerCollection.Add(InItem);
 }
