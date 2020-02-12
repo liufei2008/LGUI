@@ -1117,7 +1117,14 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_InstancedObject;
 					auto id = FindClassIdFromList(object->GetClass());
 					ItemPropertyData.Data = BitConverter::GetBytes(id);
-					SaveProperty(object, ItemPropertyData.ContainerData, {});
+					if (object->GetClass()->IsChildOf(USceneComponent::StaticClass()))
+					{
+						SaveProperty(object, ItemPropertyData.ContainerData, GetComponentExcludeProperties());
+					}
+					else
+					{
+						SaveProperty(object, ItemPropertyData.ContainerData, {});
+					}
 					PropertyData.Add(ItemPropertyData);
 				}
 				else if (objProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//Actor need remap
