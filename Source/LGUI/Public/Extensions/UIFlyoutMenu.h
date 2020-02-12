@@ -41,15 +41,12 @@ protected:
 		class AUIBaseActor* _RootUIActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		class AUIBaseActor* _SrcItemActor;
-	TArray<class UUIFlyoutMenuItem*> _CreatedItemArray;
+	UPROPERTY(Transient) TArray<class UUIFlyoutMenuItem*> _CreatedItemArray;
 	FUIFlyoutMenuSelectDelegate _SelectionChangeCallback;
 	void CreateFromArray_Internal(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDelegate& InCallback);
 public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "InWidth,InVerticalPosition,InHorizontalAlign"), Category = LGUI)
-		static void CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDynamicDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InWidth = 200, EFlyoutMenuVerticalPosition InVerticalPosition = EFlyoutMenuVerticalPosition::Top, EFlyoutMenuHorizontalAlignment InHorizontalAlign = EFlyoutMenuHorizontalAlignment::Center);
-	static void CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InWidth = 200, EFlyoutMenuVerticalPosition InVerticalPosition = EFlyoutMenuVerticalPosition::Top, EFlyoutMenuHorizontalAlignment InHorizontalAlign = EFlyoutMenuHorizontalAlignment::Center);
+		static UUIFlyoutMenu* CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDynamicDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InWidth = 200, EFlyoutMenuVerticalPosition InVerticalPosition = EFlyoutMenuVerticalPosition::Top, EFlyoutMenuHorizontalAlignment InHorizontalAlign = EFlyoutMenuHorizontalAlignment::Center);
+	static UUIFlyoutMenu* CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InWidth = 200, EFlyoutMenuVerticalPosition InVerticalPosition = EFlyoutMenuVerticalPosition::Top, EFlyoutMenuHorizontalAlignment InHorizontalAlign = EFlyoutMenuHorizontalAlignment::Center);
 	void OnClickItem(const int32& InItemIndex, const FString& InItemName);
-
-	virtual bool OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData);
-	virtual bool OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData);
 };

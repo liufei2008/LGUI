@@ -122,7 +122,7 @@ bool UUIScrollbarComponent::OnPointerDown_Implementation(const FLGUIPointerEvent
 	Super::OnPointerDown_Implementation(eventData);
 	if (CheckHandle())
 	{
-		if (eventData.hitComponent != Handle)
+		if (eventData.currentComponent != Handle)
 		{
 			const auto& pointerInHandleAreaSpace = HandleArea->GetComponentTransform().InverseTransformPosition(eventData.worldPoint);
 			float value01 = Value;

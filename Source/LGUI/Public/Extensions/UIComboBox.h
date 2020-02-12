@@ -41,10 +41,7 @@ protected:
 	void CreateFromArray_Internal(const TArray<FString>& InItemNameArray, const int32& InSelectedItemIndex, const FUIComboBoxSelectDelegate& InCallback);
 public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "InSelectedItemIndex,InPosition"), Category = LGUI)
-		static void CreateComboBoxFromArray(const TArray<FString>& InItemNameArray, const FUIComboBoxSelectDynamicDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InSelectedItemIndex = -1, EComboBoxPosition InPosition = EComboBoxPosition::Top);
-	static void CreateComboBoxFromArray(const TArray<FString>& InItemNameArray, const FUIComboBoxSelectDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InSelectedItemIndex = -1, EComboBoxPosition InPosition = EComboBoxPosition::Top);
+		static UUIComboBox* CreateComboBoxFromArray(const TArray<FString>& InItemNameArray, const FUIComboBoxSelectDynamicDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InSelectedItemIndex = -1, EComboBoxPosition InPosition = EComboBoxPosition::Top);
+	static UUIComboBox* CreateComboBoxFromArray(const TArray<FString>& InItemNameArray, const FUIComboBoxSelectDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InSelectedItemIndex = -1, EComboBoxPosition InPosition = EComboBoxPosition::Top);
 	void OnClickItem(const int32& InItemIndex, const FString& InItemName);
-
-	virtual bool OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData);
-	virtual bool OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData);
 };

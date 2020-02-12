@@ -9,7 +9,7 @@
 
 UUIFlyoutMenuItem::UUIFlyoutMenuItem()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UUIFlyoutMenuItem::BeginPlay()
