@@ -210,7 +210,7 @@ protected:
 #define CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, interface, function)\
 {\
 	inEventData.eventType = EPointerEventType::function;\
-	inEventData.hitComponent = component;\
+	inEventData.currentComponent = component;\
 	LogEventData(inEventData, eventFireOnAll);\
 	bool eventAllowBubble = true;\
 	if (eventFireOnAll)\
