@@ -526,24 +526,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 	bool pixelPerfect = renderCanvas->GetPixelPerfect();
 	float dynamicPixelsPerUnit = renderCanvas->GetDynamicPixelsPerUnit();
-	bool dynamicPixelsPerUnitIsNot1 = dynamicPixelsPerUnit != 1;//use dynamicPixelsPerUnit or not
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
-
-	auto GetAdjustedFontSize = [&](float inFontSize)
-	{
-		float adjustedFontSize = inFontSize;
-		if (pixelPerfect && rootCanvasScale != -1.0f)
-		{
-			adjustedFontSize = adjustedFontSize * rootCanvasScale;
-			adjustedFontSize = FMath::Clamp(adjustedFontSize, 0.0f, 200.0f);//limit font size to 200. too large font size will result in large texture
-		}
-		else if (dynamicPixelsPerUnitIsNot1)
-		{
-			adjustedFontSize = adjustedFontSize * dynamicPixelsPerUnit;
-			adjustedFontSize = FMath::Clamp(adjustedFontSize, 0.0f, 200.0f);//limit font size to 200. too large font size will result in large texture
-		}
-		return adjustedFontSize;
-	};
+	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
+	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
 
 	FVector worldLocation;
 	if (pixelPerfect)
@@ -570,7 +555,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 	auto GetCharFixedOffset = [font](float fontSize)
 	{
-		return fontSize * (font->fixedVerticalOffset - 0.25f);
+		return fontSize * (font->fixedVerticalOffset - 0.25f);//-0.25 is a common number for most fonts
 	};
 	float charFixedOffset = GetCharFixedOffset(fontSize);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
 
@@ -670,36 +655,60 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		currentLineHeight = fontSize;
 	};
 
-	auto GetCharGeo = [&](TCHAR charCode, int overrideFontSize)
+	auto GetCharGeo = [&](TCHAR charCode, int inFontSize)
 	{
 		FUITextCharGeometry charGeo;
 		if (charCode == ' ')
 		{
-			charGeo.xadvance = overrideFontSize * 0.5f;
+			charGeo.xadvance = inFontSize * 0.5f;
 			charGeo.geoWidth = charGeo.geoHeight = 0;
 			charGeo.xoffset = charGeo.yoffset = 0;
 			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
 		}
 		else if (charCode == '\t')
 		{
-			charGeo.xadvance = overrideFontSize + overrideFontSize;
+			charGeo.xadvance = inFontSize + inFontSize;
 			charGeo.geoWidth = charGeo.geoHeight = 0;
 			charGeo.xoffset = charGeo.yoffset = 0;
 			charGeo.uv0 = charGeo.uv1 = charGeo.uv2 = charGeo.uv3 = FVector2D(1, 1);
 		}
 		else
 		{
-			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize);
-			charGeo.geoWidth = charData->width;
-			charGeo.geoHeight = charData->height;
-			charGeo.xadvance = charData->xadvance;
-			charGeo.xoffset = charData->xoffset;
-			charGeo.yoffset = charData->yoffset + (richText ? GetCharFixedOffset(overrideFontSize) : charFixedOffset);
+			auto charData = font->GetCharData(charCode, (uint16)inFontSize);
+			float calculatedCharFixedOffset = richText ? GetCharFixedOffset(inFontSize) : charFixedOffset;
 
 			auto overrideCharData = charData;
-			if ((pixelPerfect && rootCanvasScale != 1.0f) || dynamicPixelsPerUnitIsNot1)
+			if (pixelPerfect && rootCanvasScale != -1.0f)
 			{
-				overrideCharData = font->GetCharData(charCode, (uint16)GetAdjustedFontSize(overrideFontSize));
+				inFontSize = inFontSize * rootCanvasScale;
+				inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
+				overrideCharData = font->GetCharData(charCode, inFontSize);
+
+				charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
+				charGeo.geoHeight = overrideCharData->height * oneDivideRootCanvasScale;
+				charGeo.xadvance = overrideCharData->xadvance * oneDivideRootCanvasScale;
+				charGeo.xoffset = overrideCharData->xoffset * oneDivideRootCanvasScale;
+				charGeo.yoffset = overrideCharData->yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
+			}
+			else if (dynamicPixelsPerUnit != 1.0f)
+			{
+				inFontSize = inFontSize * dynamicPixelsPerUnit;
+				inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
+				overrideCharData = font->GetCharData(charCode, inFontSize);
+
+				charGeo.geoWidth = overrideCharData->width * oneDivideDynamicPixelsPerUnit;
+				charGeo.geoHeight = overrideCharData->height * oneDivideDynamicPixelsPerUnit;
+				charGeo.xadvance = overrideCharData->xadvance * oneDivideDynamicPixelsPerUnit;
+				charGeo.xoffset = overrideCharData->xoffset * oneDivideDynamicPixelsPerUnit;
+				charGeo.yoffset = overrideCharData->yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
+			}
+			else
+			{
+				charGeo.geoWidth = charData->width;
+				charGeo.geoHeight = charData->height;
+				charGeo.xadvance = charData->xadvance;
+				charGeo.xoffset = charData->xoffset;
+				charGeo.yoffset = charData->yoffset + calculatedCharFixedOffset;
 			}
 
 			charGeo.uv0 = overrideCharData->GetUV0();
@@ -713,16 +722,16 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	{
 		if (charCode == ' ')
 		{
-			return (uint16)(overrideFontSize * 0.5f);
+			return overrideFontSize * 0.5f;
 		}
 		else if (charCode == '\t')
 		{
-			return (uint16)(overrideFontSize + overrideFontSize);
+			return (float)(overrideFontSize + overrideFontSize);
 		}
 		else
 		{
 			auto charData = font->GetCharData(charCode, overrideFontSize);
-			return charData->xadvance;
+			return (float)charData->xadvance;
 		}
 	};
 	auto GetUnderlineOrStrikethroughCharGeo = [&](TCHAR charCode, int overrideFontSize)
