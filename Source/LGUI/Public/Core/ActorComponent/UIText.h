@@ -63,11 +63,11 @@ struct FUITextSelectionProperty
 //single char geometry
 struct FUITextCharGeometry
 {
-	uint16 geoWidth = 0;
-	uint16 geoHeight = 0;
-	uint16 xadvance = 0;
-	int16 xoffset = 0;
-	int16 yoffset = 0;
+	float geoWidth = 0;
+	float geoHeight = 0;
+	float xadvance = 0;
+	float xoffset = 0;
+	float yoffset = 0;
 
 	FVector2D uv0 = FVector2D(0, 0);
 	FVector2D uv1 = FVector2D(0, 0);
