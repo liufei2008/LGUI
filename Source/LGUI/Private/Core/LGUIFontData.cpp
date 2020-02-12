@@ -312,7 +312,7 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const FT_Bitmap& I
 		cacheCharData.height = InCharBitmap.rows + SPACE_NEED_EXPENDx2;
 		cacheCharData.xoffset = InSlot->bitmap_left - SPACE_NEED_EXPEND;
 		cacheCharData.yoffset = InSlot->bitmap_top - SPACE_NEED_EXPEND;
-		cacheCharData.xadvance = (uint16)(InSlot->linearHoriAdvance * MAX_UINT16_RECEPROCAL);
+		cacheCharData.xadvance = InSlot->linearHoriAdvance * MAX_UINT16_RECEPROCAL;
 		cacheCharData.uv0X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND);
 		cacheCharData.uv0Y = fullTextureSizeReciprocal * (packedRect.y + cacheCharData.height - SPACE_NEED_EXPEND);
 		cacheCharData.uv3X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND + cacheCharData.width);
