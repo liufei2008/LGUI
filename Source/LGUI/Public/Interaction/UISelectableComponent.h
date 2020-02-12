@@ -90,7 +90,7 @@ protected:
 		ULGUISpriteData* DisabledSprite;
 
 	EUISelectableSelectionState CurrentSelectionState = EUISelectableSelectionState::Normal;
-	void ApplySelectionState();
+	void ApplySelectionState(bool immediateSet);
 	bool IsPointerInsideThis = false;
 	UPROPERTY(Transient) class UUISelectableTransitionComponent* TransitionComp = nullptr;
 #pragma endregion

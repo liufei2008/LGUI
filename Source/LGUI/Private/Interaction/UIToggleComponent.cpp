@@ -7,6 +7,7 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Interaction/UISelectableTransitionComponent.h"
+#include "Core/Actor/UIBaseActor.h"
 
 
 UUIToggleComponent::UUIToggleComponent()
@@ -16,9 +17,14 @@ UUIToggleComponent::UUIToggleComponent()
 void UUIToggleComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	TargetComp = nullptr;
 	CheckTarget();
-	if (GroupComp)
+	ApplyToggleState(true);
+	//check toggle group
+	if (UIToggleGroupActor)
+	{
+		GroupComp = UIToggleGroupActor->FindComponentByClass<UUIToggleGroupComponent>();
+	}
+	if (GroupComp != nullptr)
 	{
 		if (IsOn)
 		{
@@ -29,35 +35,8 @@ void UUIToggleComponent::BeginPlay()
 
 bool UUIToggleComponent::CheckTarget()
 {
-	if (TargetComp != nullptr)return true;
-	bool result = false;
-	if (!ToggleActor) ToggleActor = Cast<AUIBaseActor>(GetOwner());
-	if (ToggleActor != nullptr)
-	{
-		if (ToggleTransition == UIToggleTransitionType::Fade)
-		{
-			if (auto uiItem = ToggleActor->FindComponentByClass<UUIItem>())
-			{
-				TargetComp = uiItem;
-				uiItem->SetAlpha(IsOn ? OnAlpha : OffAlpha);
-				result = true;
-			}
-		}
-		else if (ToggleTransition == UIToggleTransitionType::ColorTint)
-		{
-			if (auto uiItem = ToggleActor->FindComponentByClass<UUIItem>())
-			{
-				TargetComp = uiItem;
-				uiItem->SetColor(IsOn ? OnColor : OffColor);
-				result = true;
-			}
-		}
-	}
-	if (UIToggleGroupActor)
-	{
-		GroupComp = UIToggleGroupActor->FindComponentByClass<UUIToggleGroupComponent>();
-	}
-	return result;
+	if (ToggleActor)return true;
+	return false;
 }
 
 #if WITH_EDITOR
@@ -86,40 +65,7 @@ void UUIToggleComponent::SetState(bool newState, bool fireEvent)
 			OnToggle.FireEvent(IsOn);
 		}
 
-		if (ALTweenActor::IsTweening(ToggleTransitionTweener))ToggleTransitionTweener->Kill();
-		switch (ToggleTransition)
-		{
-		case UIToggleTransitionType::Fade:
-		{
-			if (auto TargetUIComp = Cast<UUIItem>(TargetComp))
-			{
-				ToggleTransitionTweener = ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(TargetUIComp, &UUIItem::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(TargetUIComp, &UUIItem::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration)
-					->SetEase(LTweenEase::InOutSine);
-			}
-		}
-		break;
-		case UIToggleTransitionType::ColorTint:
-		{
-			if (auto TargetUIComp = Cast<UUIItem>(TargetComp))
-			{
-				ToggleTransitionTweener = ALTweenActor::To(FLTweenColorGetterFunction::CreateUObject(TargetUIComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TargetUIComp, &UUIItem::SetColor), IsOn ? OnColor : OffColor, ToggleDuration)
-					->SetEase(LTweenEase::InOutSine);
-			}
-		}
-		break;
-		case UIToggleTransitionType::TransitionComponent:
-		{
-			if (TransitionComp == nullptr)
-			{
-				TransitionComp = ToggleActor->FindComponentByClass<UUISelectableTransitionComponent>();
-			}
-			if (TransitionComp)
-			{
-				TransitionComp->OnStartCustomTransition(IsOn ? OnTransitionName : OffTransitionName);
-			}
-		}
-		break;
-		}
+		ApplyToggleState(false);
 
 		if (GroupComp)
 		{
@@ -130,6 +76,54 @@ void UUIToggleComponent::SetState(bool newState, bool fireEvent)
 		}
 	}
 }
+void UUIToggleComponent::ApplyToggleState(bool immediateSet)
+{
+	if (!CheckTarget())return;
+	if (ToggleTransition == UIToggleTransitionType::Fade)
+	{
+		if (auto uiItem = ToggleActor->FindComponentByClass<UUIItem>())
+		{
+			if (ALTweenActor::IsTweening(ToggleTransitionTweener))ToggleTransitionTweener->Kill();
+			if (ToggleDuration <= 0.0f || immediateSet)
+			{
+				uiItem->SetAlpha(IsOn ? OnAlpha : OffAlpha);
+			}
+			else
+			{
+				ToggleTransitionTweener = ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(uiItem, &UUIItem::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(uiItem, &UUIItem::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration)
+					->SetEase(LTweenEase::InOutSine);
+			}
+		}
+	}
+	else if (ToggleTransition == UIToggleTransitionType::ColorTint)
+	{
+		if (auto uiItem = ToggleActor->FindComponentByClass<UUIItem>())
+		{
+			if (ALTweenActor::IsTweening(ToggleTransitionTweener))ToggleTransitionTweener->Kill();
+			if (ToggleDuration <= 0.0f || immediateSet)
+			{
+				uiItem->SetColor(IsOn ? OnColor : OffColor);
+			}
+			else
+			{
+				ToggleTransitionTweener = ALTweenActor::To(FLTweenColorGetterFunction::CreateUObject(uiItem, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(uiItem, &UUIItem::SetColor), IsOn ? OnColor : OffColor, ToggleDuration)
+					->SetEase(LTweenEase::InOutSine);
+			}
+		}
+	}
+	else if (ToggleTransition == UIToggleTransitionType::TransitionComponent)
+	{
+		if (ToggleTransitionComp == nullptr)
+		{
+			ToggleTransitionComp = ToggleActor->FindComponentByClass<UUISelectableTransitionComponent>();
+		}
+		if (ToggleTransitionComp)
+		{
+			ToggleTransitionComp->OnStartCustomTransition(IsOn ? OnTransitionName : OffTransitionName, immediateSet);
+		}
+	}
+}
+
 bool UUIToggleComponent::OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)
 {
 	SetState(!IsOn);
