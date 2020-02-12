@@ -27,10 +27,7 @@ void UUIFlyoutMenu::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 
 void UUIFlyoutMenu::CreateFromArray_Internal(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDelegate& InCallback)
 {
-	if (ULGUIEventSystem::GetLGUIEventSystemInstance() != nullptr)
-	{
-		ULGUIEventSystem::GetLGUIEventSystemInstance()->SetSelectComponent(_RootUIActor->GetUIItem());
-	}
+	_CreatedItemArray.Reset();
 	auto parentActor = _SrcItemActor->GetAttachParentActor();
 	{
 		auto script = _SrcItemActor->FindComponentByClass<UUIFlyoutMenuItem>();
@@ -47,25 +44,25 @@ void UUIFlyoutMenu::CreateFromArray_Internal(const TArray<FString>& InItemNameAr
 	}
 	_SelectionChangeCallback = InCallback;
 }
-void UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDynamicDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InWidth, EFlyoutMenuVerticalPosition InVerticalPosition, EFlyoutMenuHorizontalAlignment InHorizontalAlign)
+UUIFlyoutMenu* UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDynamicDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InWidth, EFlyoutMenuVerticalPosition InVerticalPosition, EFlyoutMenuHorizontalAlignment InHorizontalAlign)
 {
-	CreateFlyoutMenuFromArray(InItemNameArray, FUIFlyoutMenuSelectDelegate::CreateLambda([=](int32 InSelectItemIndex, FString InSelectItem) {
+	return CreateFlyoutMenuFromArray(InItemNameArray, FUIFlyoutMenuSelectDelegate::CreateLambda([=](int32 InSelectItemIndex, FString InSelectItem) {
 		if (InCallback.IsBound())
 			InCallback.Execute(InSelectItemIndex, InSelectItem);
 	}), InParentActor, InWidth, InVerticalPosition, InHorizontalAlign);
 }
-void UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InWidth, EFlyoutMenuVerticalPosition InVerticalPosition, EFlyoutMenuHorizontalAlignment InHorizontalAlign)
+UUIFlyoutMenu* UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameArray, const FUIFlyoutMenuSelectDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InWidth, EFlyoutMenuVerticalPosition InVerticalPosition, EFlyoutMenuHorizontalAlignment InHorizontalAlign)
 {
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, TEXT("/LGUI/Prefabs/DefaultFlyoutMenu"));
 	if (prefab == nullptr)
 	{
 		UE_LOG(LGUI, Error, TEXT("[UIFlyoutMenu::CreateFlyoutMenuFromArray]Load preset prefab error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
-		return;
+		return nullptr;
 	}
 	if (InItemNameArray.Num() == 0)
 	{
 		UE_LOG(LGUI, Error, TEXT("[UIFlyoutMenu/CreateFromArray]Input array count is 0!"));
-		return;
+		return nullptr;
 	}
 	auto loadedActor = ULGUIBPLibrary::LoadPrefab(InParentActor, prefab, InParentActor->GetRootComponent());
 	auto script = loadedActor->FindComponentByClass<UUIFlyoutMenu>();
@@ -108,23 +105,9 @@ void UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& InItemNameA
 	rootUIItem->SetPivot(pivot);
 	rootUIItem->SetWidth(InWidth);
 	script->CreateFromArray_Internal(InItemNameArray, InCallback);
+	return script;
 }
 void UUIFlyoutMenu::OnClickItem(const int32& InItemIndex, const FString& InItemName)
 {
 	_SelectionChangeCallback.ExecuteIfBound(InItemIndex, InItemName);
-	ULGUIBPLibrary::DeleteActor(GetOwner());
-}
-
-bool UUIFlyoutMenu::OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)
-{
-	return false;
-}
-bool UUIFlyoutMenu::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
-{
-	auto selectedComp = ULGUIEventSystem::GetLGUIEventSystemInstance()->GetCurrentSelectedComponent();
-	if (selectedComp == nullptr || !selectedComp->IsAttachedTo(_RootUIActor->GetUIItem()) && selectedComp != _RootUIActor->GetUIItem())
-	{
-		ULGUIBPLibrary::DeleteActor(GetOwner());
-	}
-	return false;
 }

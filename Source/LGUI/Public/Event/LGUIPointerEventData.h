@@ -46,7 +46,7 @@ struct FLGUIPointerEventData
 
 	//current event target component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI")
-		USceneComponent* hitComponent = nullptr;
+		USceneComponent* currentComponent = nullptr;
 	//world space hit point
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldPoint = FVector(0, 0, 0);
@@ -154,15 +154,15 @@ FVector FLGUIPointerEventData::GetLocalPointInPlane()const
 FString FLGUIPointerEventData::ToString()const
 {
 	FString result;
-	if (IsValid(hitComponent))
+	if (IsValid(currentComponent))
 	{
 		result += FString::Printf(TEXT("\n		hitComponent actor:%s, comp:%s"),
 #if WITH_EDITOR
-			*(hitComponent->GetOwner()->GetActorLabel()),
+			*(currentComponent->GetOwner()->GetActorLabel()),
 #else
-			*(hitComponent->GetOwner()->GetName()),
+			*(currentComponent->GetOwner()->GetName()),
 #endif
-			*(hitComponent->GetPathName()));
+			*(currentComponent->GetPathName()));
 	}
 	else
 	{

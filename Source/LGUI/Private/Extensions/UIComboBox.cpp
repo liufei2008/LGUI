@@ -26,10 +26,6 @@ void UUIComboBox::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 
 void UUIComboBox::CreateFromArray_Internal(const TArray<FString>& InItemNameArray, const int32& InSelectedItemIndex, const FUIComboBoxSelectDelegate& InCallback)
 {
-	if (ULGUIEventSystem::GetLGUIEventSystemInstance() != nullptr)
-	{
-		ULGUIEventSystem::GetLGUIEventSystemInstance()->SetSelectComponent(_RootUIActor->GetUIItem());
-	}
 	auto parentActor = _SrcItemActor->GetAttachParentActor();
 	{
 		auto script = _SrcItemActor->FindComponentByClass<UUIComboBoxItem>();
@@ -62,25 +58,25 @@ void UUIComboBox::CreateFromArray_Internal(const TArray<FString>& InItemNameArra
 	}
 	_SelectionChangeCallback = InCallback;
 }
-void UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemNameArray, const FUIComboBoxSelectDynamicDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InSelectedItemIndex, EComboBoxPosition InPosition)
+UUIComboBox* UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemNameArray, const FUIComboBoxSelectDynamicDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InSelectedItemIndex, EComboBoxPosition InPosition)
 {
-	CreateComboBoxFromArray(InItemNameArray, FUIComboBoxSelectDelegate::CreateLambda([=](int32 InSelectItemIndex, FString InSelectItem) {
+	return CreateComboBoxFromArray(InItemNameArray, FUIComboBoxSelectDelegate::CreateLambda([=](int32 InSelectItemIndex, FString InSelectItem) {
 		if (InCallback.IsBound())
 			InCallback.Execute(InSelectItemIndex, InSelectItem);
 	}), InParentActor, InSelectedItemIndex, InPosition);
 }
-void UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemNameArray, const FUIComboBoxSelectDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InSelectedItemIndex, EComboBoxPosition InPosition)
+UUIComboBox* UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemNameArray, const FUIComboBoxSelectDelegate& InCallback, class AUIBaseActor* InParentActor, int32 InSelectedItemIndex, EComboBoxPosition InPosition)
 {
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, TEXT("/LGUI/Prefabs/DefaultComboBox"));
 	if (prefab == nullptr)
 	{
 		UE_LOG(LGUI, Error, TEXT("[UIComboBox::CreateComboBoxFromArray]Load preset prefab error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
-		return;
+		return nullptr;
 	}
 	if (InItemNameArray.Num() == 0)
 	{
 		UE_LOG(LGUI, Error, TEXT("[UIComboBox/CreateFromArray]Input array count is 0!"));
-		return;
+		return nullptr;
 	}
 	auto loadedActor = ULGUIBPLibrary::LoadPrefab(InParentActor, prefab, InParentActor->GetRootComponent());
 	auto script = loadedActor->FindComponentByClass<UUIComboBox>();
@@ -109,23 +105,9 @@ void UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemNameArray
 	}
 	rootUIItem->SetPivot(pivot);
 	script->CreateFromArray_Internal(InItemNameArray, InSelectedItemIndex, InCallback);
+	return script;
 }
 void UUIComboBox::OnClickItem(const int32& InItemIndex, const FString& InItemName)
 {
 	_SelectionChangeCallback.ExecuteIfBound(InItemIndex, InItemName);
-	ULGUIBPLibrary::DeleteActor(GetOwner());
-}
-
-bool UUIComboBox::OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)
-{
-	return false;
-}
-bool UUIComboBox::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
-{
-	auto selectedComp = ULGUIEventSystem::GetLGUIEventSystemInstance()->GetCurrentSelectedComponent();
-	if (selectedComp == nullptr || !selectedComp->IsAttachedTo(_RootUIActor->GetUIItem()) && selectedComp != _RootUIActor->GetUIItem())
-	{
-		ULGUIBPLibrary::DeleteActor(GetOwner());
-	}
-	return false;
 }

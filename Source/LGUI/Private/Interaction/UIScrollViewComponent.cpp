@@ -136,7 +136,7 @@ bool UUIScrollViewComponent::OnPointerUp_Implementation(const FLGUIPointerEventD
 
 bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData)
 {
-	if (CheckParameters() && CheckValidHit(eventData.hitComponent))
+	if (CheckParameters() && CheckValidHit(eventData.currentComponent))
 	{
 		auto worldPoint = eventData.GetWorldPointInPlane();
 		const auto localMoveDelta = eventData.pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
@@ -236,7 +236,7 @@ bool UUIScrollViewComponent::OnPointerEndDrag_Implementation(const FLGUIPointerE
 }
 bool UUIScrollViewComponent::OnPointerScroll_Implementation(const FLGUIPointerEventData& eventData)
 {
-	if (CheckParameters() && CheckValidHit(eventData.hitComponent))
+	if (CheckParameters() && CheckValidHit(eventData.currentComponent))
 	{
 		auto delta = eventData.scrollAxisValue * -ScrollSensitivity;
 		if (Horizontal)
