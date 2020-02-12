@@ -39,8 +39,8 @@ private:
 	bool CopyCommonProperty(UProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex = 0, bool isInsideCppArray = false);
 
 	bool CheckCommonProperty(UProperty* Property, uint8* Src, int cppArrayIndex = 0, bool isInsideCppArray = false);
-	void CheckProperty(UObject* Origin);
-	void CheckPropertyForActor(UObject* Origin);
+	void CheckProperty(UObject* Origin, TArray<FName> ExcludeProperties);
+	void CheckPropertyForActor(UObject* Origin, TArray<FName> ExcludeProperties);
 
 	TArray<FName> GetActorExcludeProperties();
 	TArray<FName> GetComponentExcludeProperties();
