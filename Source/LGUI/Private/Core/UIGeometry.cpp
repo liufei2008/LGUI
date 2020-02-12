@@ -731,7 +731,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		else
 		{
 			auto charData = font->GetCharData(charCode, overrideFontSize);
-			return (float)charData->xadvance;
+			return charData->xadvance;
 		}
 	};
 	auto GetUnderlineOrStrikethroughCharGeo = [&](TCHAR charCode, int overrideFontSize)

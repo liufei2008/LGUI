@@ -879,11 +879,11 @@ void UUITextInputComponent::UpdateUITextComponent()
 			{
 				if (charCode == ' ')
 				{
-					return (uint16)(overrideFontSize * 0.5f);
+					return overrideFontSize * 0.5f;
 				}
 				else if (charCode == '\t')
 				{
-					return (uint16)(overrideFontSize + overrideFontSize);
+					return (float)(overrideFontSize + overrideFontSize);
 				}
 				else
 				{
