@@ -105,7 +105,6 @@ public:
 	void DeinitFreeType();
 	virtual void FinishDestroy()override;
 
-	const float MAX_UINT16_RECEPROCAL = 1.0f / 65536.0f;
 	const int32 SPACE_NEED_EXPEND = 1;//when draw a rectangle, need to expend 1 pixel to avoid too sharp edge
 	const int32 SPACE_NEED_EXPENDx2 = SPACE_NEED_EXPEND * 2;
 	const int32 SPACE_BETWEEN_GLYPH = SPACE_NEED_EXPEND + 1;//space between char in texture
@@ -142,7 +141,7 @@ private:
 	/*Insert rect into area, assign pixel if succeed
 	 return: if can fit in rect area return true, else false
 	*/
-	bool PackRectAndInsertChar(int32 InExtraSpace, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
+	bool PackRectAndInsertChar(int32 InExtraSpace, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
 	void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
 
