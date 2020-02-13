@@ -88,8 +88,8 @@ public:
 	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
 
 	FORCEINLINE const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
-	FORCEINLINE static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
-	FORCEINLINE static void RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster);
+	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
+	static void RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster);
 
 	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);
