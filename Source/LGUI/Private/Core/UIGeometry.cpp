@@ -17,12 +17,12 @@ FORCEINLINE float RoundToFloat(float value)
 
 //adjust pixel snap in world position, because world canvas is placed in world origin, so that 1 unit is 1 pixel
 //only position offset is take considerred
-void AdjustPixelPerfectPos(TArray<FVector>& verticesArray, int startIndex, int count, const FVector& worldLocation, float rootCanvasScale)
+void AdjustPixelPerfectPos(TArray<FVector>& verticesArray, int startIndex, int count, const FVector& worldLocation, float rootCanvasScale, float oneDivideRootCanvasScale)
 {
 	auto refVertPos = verticesArray[startIndex];
 	auto worldVertPos = worldLocation + refVertPos;
-	worldVertPos.X = RoundToFloat(worldVertPos.X);
-	worldVertPos.Y = RoundToFloat(worldVertPos.Y);
+	worldVertPos.X = RoundToFloat(worldVertPos.X * rootCanvasScale) * oneDivideRootCanvasScale;
+	worldVertPos.Y = RoundToFloat(worldVertPos.Y * rootCanvasScale) * oneDivideRootCanvasScale;
 	auto localVertPos = worldVertPos - worldLocation;
 	auto vertOffset = localVertPos - refVertPos;
 	verticesArray[startIndex] = localVertPos;
@@ -133,7 +133,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	if (renderCanvas->GetPixelPerfect())
 	{
 		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
-		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
 	}
 }
 #pragma endregion
@@ -320,7 +320,7 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	if (renderCanvas->GetPixelPerfect())
 	{
 		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
-		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
 	}
 }
 #pragma endregion
@@ -456,7 +456,7 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 	if (renderCanvas->GetPixelPerfect())
 	{
 		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
-		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale);
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
 	}
 }
 #pragma endregion
@@ -1544,7 +1544,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				{
 					vertEndIndex = firstVertIndexOfChar_Array[indexOf_FirstVertIndexOfChar];
 				}
-				AdjustPixelPerfectPos(originPositions, vertStartIndex, vertEndIndex - vertStartIndex, worldLocation, rootCanvasScale);
+				AdjustPixelPerfectPos(originPositions, vertStartIndex, vertEndIndex - vertStartIndex, worldLocation, rootCanvasScale, oneDivideRootCanvasScale);
 				vertStartIndex = vertEndIndex;
 			}
 		}

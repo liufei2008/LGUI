@@ -211,7 +211,6 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 		UE_LOG(LGUI, Error, TEXT("FT_Render_Glyph error:%s"), ANSI_TO_TCHAR(GetErrorMessage(error)));
 		return &cacheCharData;
 	}
-	FT_Bitmap bitmap = slot->bitmap;
 
 	auto& calcBinpack = usePackingTag ? packingAtlasData->atlasBinPack : this->binPack;
 	auto& calcTexture = usePackingTag ? packingAtlasData->atlasTexture : this->texture;
@@ -222,7 +221,7 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 #endif
 	int32 extraSpace = usePackingTag ? spaceBetweenSprites : 0;
 PACK_AND_INSERT:
-	if (PackRectAndInsertChar(extraSpace, bitmap, slot, calcBinpack, calcTexture))
+	if (PackRectAndInsertChar(extraSpace, slot, calcBinpack, calcTexture))
 	{
 
 	}
@@ -274,10 +273,11 @@ PACK_AND_INSERT:
 	//UE_LOG(LGUI, Error, TEXT("InsertCharTakeTime:%f"), GWorld->GetRealTimeSeconds() - prevTime);
 	return &cacheCharData;
 }
-bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const FT_Bitmap& InCharBitmap, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
+bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
 {
-	int charRectWidth = InCharBitmap.width + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
-	int charRectHeight = InCharBitmap.rows + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
+	const auto& charBitmap = InSlot->bitmap;
+	int charRectWidth = charBitmap.width + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
+	int charRectHeight = charBitmap.rows + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
 	auto method = rbp::MaxRectsBinPack::RectBestAreaFit;
 
 	auto packedRect = InOutBinpack.Insert(charRectWidth, charRectHeight, method);
@@ -304,15 +304,15 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const FT_Bitmap& I
 		{
 			auto& pixelColor = regionColor[i];
 			pixelColor.R = pixelColor.G = pixelColor.B = 255;
-			pixelColor.A = InCharBitmap.buffer[i];
+			pixelColor.A = charBitmap.buffer[i];
 		}
 		UpdateFontTextureRegion(InTexture, region, packedRect.width * 4, 4, (uint8*)regionColor);
 
-		cacheCharData.width = InCharBitmap.width + SPACE_NEED_EXPENDx2;
-		cacheCharData.height = InCharBitmap.rows + SPACE_NEED_EXPENDx2;
+		cacheCharData.width = charBitmap.width + SPACE_NEED_EXPENDx2;
+		cacheCharData.height = charBitmap.rows + SPACE_NEED_EXPENDx2;
 		cacheCharData.xoffset = InSlot->bitmap_left - SPACE_NEED_EXPEND;
-		cacheCharData.yoffset = InSlot->bitmap_top - SPACE_NEED_EXPEND;
-		cacheCharData.xadvance = InSlot->linearHoriAdvance * MAX_UINT16_RECEPROCAL;
+		cacheCharData.yoffset = InSlot->bitmap_top + SPACE_NEED_EXPEND;
+		cacheCharData.xadvance = InSlot->metrics.horiAdvance >> 6;
 		cacheCharData.uv0X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND);
 		cacheCharData.uv0Y = fullTextureSizeReciprocal * (packedRect.y + cacheCharData.height - SPACE_NEED_EXPEND);
 		cacheCharData.uv3X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND + cacheCharData.width);
