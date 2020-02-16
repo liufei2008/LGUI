@@ -6,6 +6,7 @@
 #include "Core/UIDrawcall.h"
 #include "Sound/SoundBase.h"
 #include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIPostProcess.h"
 
 void LGUIUtils::DeleteActor(AActor* Target, bool WithHierarchy)
 {
@@ -118,12 +119,19 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 	{
 		auto itemGeo = sortedList[i]->GetGeometry();
 		if (itemGeo.Get() == nullptr)continue;
-		if (itemGeo->material != nullptr)//consider every custom material as a drawcall
+		if (sortedList[i]->GetIsPostProcess())//every post process is a drawcall
+		{
+			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
+			prevUIDrawcall->geometryList.Add(itemGeo);
+			prevUIDrawcall->postProcessObject = (UUIPostProcess*)sortedList[i];
+			prevTex = nullptr;
+		}
+		else if (itemGeo->material != nullptr)//consider every custom material as a drawcall
 		{
 			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 			prevUIDrawcall->texture = itemGeo->texture;
 			prevUIDrawcall->material = itemGeo->material;
-			prevUIDrawcall->isFontTexture = itemGeo->isFontTexture;
+			prevUIDrawcall->postProcessObject.Reset();
 			prevUIDrawcall->geometryList.Add(itemGeo);
 			prevTex = nullptr;
 		}
@@ -134,7 +142,7 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 			{
 				prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 				prevUIDrawcall->texture = itemTex;
-				prevUIDrawcall->isFontTexture = itemGeo->isFontTexture;
+				prevUIDrawcall->postProcessObject.Reset();
 				prevUIDrawcall->geometryList.Add(itemGeo);
 			}
 			else//same texture means same drawcall
@@ -143,7 +151,7 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 				{
 					prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 					prevUIDrawcall->texture = itemTex;
-					prevUIDrawcall->isFontTexture = itemGeo->isFontTexture;
+					prevUIDrawcall->postProcessObject.Reset();
 					prevUIDrawcall->geometryList.Add(itemGeo);
 				}
 				else

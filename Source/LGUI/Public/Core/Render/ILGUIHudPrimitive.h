@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SceneManagement.h"
+#include "Core/Render/LGUIRenderer.h"
 
 class FLGUIViewExtension;
 
@@ -17,4 +18,8 @@ public:
 	virtual class FPrimitiveSceneProxy* GetPrimitiveSceneProxy() = 0;
 	virtual FVertexBufferRHIParamRef GetVertexBufferRHI() = 0;
 	virtual uint32 GetNumVerts() = 0;
+	virtual bool GetIsPostProcess() = 0;
+	virtual TWeakObjectPtr<UUIPostProcess> GetPostProcessObject() = 0;
+	//virtual BeforeRenderPostProcessFunction GetBeforeRenderPostProcess() = 0;
+	//virtual RenderPostProcessFunction GetRenderPostProcess() = 0;
 };

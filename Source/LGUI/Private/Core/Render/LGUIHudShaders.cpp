@@ -1,33 +1,12 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
-#include "Core/Render/LGUIShaders.h"
+#include "Core/Render/LGUIHudShaders.h"
 #include "LGUI.h"
 #include "PipelineStateCache.h"
 #include "Materials/Material.h"
 #include "ShaderParameterUtils.h"
-#include "Core/Render/LGUIHudVertex.h"
 #include "PrimitiveUniformShaderParameters.h"
 #include "MeshBatch.h"
-
-
-TGlobalResource<FLGUIVertexDeclaration> GLGUIVertexDeclaration;
-void FLGUIVertexDeclaration::InitRHI()
-{
-	FVertexDeclarationElementList Elements;
-	uint32 Stride = sizeof(FLGUIHudVertex);
-	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, Position), VET_Float3, 0, Stride));
-	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, Color), VET_Color, 1, Stride));
-	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate0), VET_Float2, 2, Stride));
-	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate1), VET_Float2, 3, Stride));
-	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate2), VET_Float2, 4, Stride));
-	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate3), VET_Float2, 5, Stride));
-	VertexDeclarationRHI = PipelineStateCache::GetOrCreateVertexDeclaration(Elements);
-}
-void FLGUIVertexDeclaration::ReleaseRHI()
-{
-	VertexDeclarationRHI.SafeRelease();
-}
-
 
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderVS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainVS"), SF_Vertex);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderPS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainPS"), SF_Pixel);
@@ -121,3 +100,10 @@ bool FLGUIHudRenderPS::Serialize(FArchive& Ar)
 	bool bShaderHasOutdatedParameters = FMaterialShader::Serialize(Ar);
 	return bShaderHasOutdatedParameters;
 }
+
+
+IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessSimpleVS, TEXT("/Plugin/LGUI/Private/LGUIPostProcessVertexShader.usf"), TEXT("SimpleVS"), SF_Vertex)
+IMPLEMENT_SHADER_TYPE(, FLGUIMeshPostProcessVS, TEXT("/Plugin/LGUI/Private/LGUIPostProcessVertexShader.usf"), TEXT("MeshPostProcessVS"), SF_Vertex)
+IMPLEMENT_SHADER_TYPE(, FLGUIBlurShaderPS, TEXT("/Plugin/LGUI/Private/LGUIBlurShader.usf"), TEXT("MainPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUICopyTargetSimplePS, TEXT("/Plugin/LGUI/Private/LGUICopyTargetShader.usf"), TEXT("SimplePS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUICopyTargetMeshPS, TEXT("/Plugin/LGUI/Private/LGUICopyTargetShader.usf"), TEXT("MeshPS"), SF_Pixel)
