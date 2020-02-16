@@ -52,7 +52,7 @@ void UUIText::ApplyFontTextureChange()
 		geometry->texture = font->texture;
 		if (CheckRenderCanvas())
 		{
-			RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
+			RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture);
 		}
 	}
 }

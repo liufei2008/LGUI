@@ -25,6 +25,8 @@
 #include "SceneOutliner/LGUINativeSceneOutlinerExtension.h"
 #include "AssetToolsModule.h"
 
+#include "Core/Actor/UIBackgroundBlurActor.h"
+
 const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIEventComponentSelectorName(TEXT("LGUIEventComponentSelector"));
 const FName FLGUIEditorModule::LGUIEventFunctionSelectorName(TEXT("LGUIEventFunctionSelector"));
@@ -397,6 +399,11 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("CreateUIExtensionSubMenu_Tooltip", "Create UI Extension Element"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIExtensionSubMenu)
 		);
+		MenuBuilder.AddSubMenu(
+			LOCTEXT("CreateUIPostProcessSubMenu", "Create UI Post Process"),
+			LOCTEXT("CreateUIPostProcessSubMenu_Tooltip", "Create UI Post Process"),
+			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIPostProcessSubMenu)
+		);
 		if (!IsSceneOutlineMenu)
 		{
 			MenuBuilder.AddSubMenu(
@@ -503,6 +510,31 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInput"), "/LGUI/Prefabs/DefaultTextInput");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInputMultiline"), "/LGUI/Prefabs/DefaultTextInputMultiline");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollView"), "/LGUI/Prefabs/DefaultScrollView");
+	}
+	MenuBuilder.EndSection();
+}
+
+void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
+{
+	struct FunctionContainer
+	{
+		static void CreateUIBaseElementMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
+		{
+			auto UIItemName = InClass->GetName();
+			auto ShotName = UIItemName;
+			ShotName.RemoveFromEnd(TEXT("Actor"));
+			InBuilder.AddMenuEntry(
+				FText::FromString(ShotName),
+				FText::FromString(FString::Printf(TEXT("Create %s"), *(UIItemName))),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateUIItemActor, InClass))
+			);
+		}
+	};
+
+	MenuBuilder.BeginSection("UIPostProcess");
+	{
+		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIBackgroundBlurActor::StaticClass());
 	}
 	MenuBuilder.EndSection();
 }

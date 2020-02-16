@@ -1,0 +1,26 @@
+// Copyright 2019 LexLiu. All Rights Reserved.
+#include "LGUIPostProcessVertexShader.usf"
+
+Texture2D _MainTex;
+SamplerState _MainTexSampler;
+bool _FlipY;
+
+void SimplePS(
+    SimpleVSToPS input,
+    out float4 OutColor : SV_Target0
+)
+{
+    if (_FlipY)
+        input.uv.y = 1 - input.uv.y;
+    OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
+}
+
+
+void MeshPS(
+    MeshPostProcessVSToPS input,
+    out float4 OutColor : SV_Target0
+)
+{
+    input.uv = (input.position.xy / input.position.w) * 0.5f + float2(0.5, 0.5);
+    OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
+}

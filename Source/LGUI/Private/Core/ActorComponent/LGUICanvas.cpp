@@ -322,7 +322,7 @@ void ULGUICanvas::MarkRebuildSpecificDrawcall(int drawcallIndex)
 	auto& uiDrawcall = UIDrawcallList[drawcallIndex];
 	uiDrawcall->needToBeRebuild = true;
 }
-void ULGUICanvas::SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture, bool isFontTexture)
+void ULGUICanvas::SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture)
 {
 	if (drawcallIndex == -1)return;//-1 means not add to render yet
 	if (drawcallIndex >= UIDrawcallList.Num())
@@ -333,11 +333,9 @@ void ULGUICanvas::SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTextur
 	}
 	auto& uiDrawcall = UIDrawcallList[drawcallIndex];
 	uiDrawcall->texture = drawcallTexture;
-	uiDrawcall->isFontTexture = isFontTexture;
 	//material
 	auto& uiMat = UIMaterialList[drawcallIndex];
 	uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
-	uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);
 }
 void ULGUICanvas::MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged)
 {
@@ -606,7 +604,6 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					uiMesh->RegisterComponent();
 					uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 					uiMesh->SetRelativeTransform(FTransform::Identity);
-
 #if WITH_EDITOR
 					if (!GetWorld()->IsGameWorld())//editor's UI should all put in world space
 					{
@@ -644,6 +641,14 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				meshSection.Reset();
 				uiDrawcall->GetCombined(meshSection.vertices, meshSection.triangles);
 				uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
+				if (uiDrawcall->postProcessObject.IsValid())
+				{
+					uiMesh->SetToPostProcess(true, uiDrawcall->postProcessObject.Get());
+				}
+				else
+				{
+					uiMesh->SetToPostProcess(false, nullptr);
+				}
 			}
 
 			//after geometry created, need to sort UIMesh render order
@@ -668,6 +673,14 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
 						uiDrawcall->needToBeRebuild = false;
 						uiDrawcall->needToUpdateVertex = false;
+						if (uiDrawcall->postProcessObject.IsValid())
+						{
+							uiMesh->SetToPostProcess(true, uiDrawcall->postProcessObject.Get());
+						}
+						else
+						{
+							uiMesh->SetToPostProcess(false, nullptr);
+						}
 						needToSortRenderPriority = true;
 					}
 					else if (uiDrawcall->needToUpdateVertex)
@@ -798,7 +811,6 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 			auto uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 			uiMat->SetFlags(RF_Transient);
 			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
-			uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);
 			UIMaterialList[i] = uiMat;
 			uiDrawcall->materialInstanceDynamic = uiMat;
 		}
@@ -810,7 +822,6 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 			auto uiDrawcall = UIDrawcallList[i];
 			auto uiMat = UIMaterialList[i];
 			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
-			uiMat->SetScalarParameterValue(FName("IsFontTexture"), uiDrawcall->isFontTexture);
 			auto& uiMesh = UIMeshList[i];
 			if (!IsValid(uiMesh))continue;
 			uiMesh->SetMaterial(0, uiMat);
@@ -1315,25 +1326,28 @@ float ULGUICanvas::CalculateDistanceToCamera()
 }
 FMatrix ULGUICanvas::GetViewProjectionMatrix()
 {
-	FMatrix ViewProjectionMatrix = FMatrix::Identity;
-	if (!CheckUIItem())
+	if (cacheViewProjectionMatrixFrameNumber != GFrameNumber)
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUICanvas::GetViewProjectionMatrix]UIItem not valid!"));
-		return ViewProjectionMatrix;
+		if (!CheckUIItem())
+		{
+			UE_LOG(LGUI, Error, TEXT("[LGUICanvas::GetViewProjectionMatrix]UIItem not valid!"));
+			return cacheViewProjectionMatrix;
+		}
+		cacheViewProjectionMatrixFrameNumber = GFrameNumber;
+
+		FVector ViewLocation = GetViewLocation();
+		auto Transform = UIItem->GetComponentToWorld();
+		Transform.SetTranslation(FVector::ZeroVector);
+		Transform.SetScale3D(FVector::OneVector);
+		FMatrix ViewRotationMatrix = Transform.ToInverseMatrixWithScale();
+
+		const float FOV = FOVAngle * (float)PI / 360.0f;
+
+		FMatrix ProjectionMatrix;
+		BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, UIItem->GetWidth(), UIItem->GetHeight(), ProjectionMatrix);
+		cacheViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
 	}
-
-	FVector ViewLocation = GetViewLocation();
-	auto Transform = UIItem->GetComponentToWorld();
-	Transform.SetTranslation(FVector::ZeroVector);
-	Transform.SetScale3D(FVector::OneVector);
-	FMatrix ViewRotationMatrix = Transform.ToInverseMatrixWithScale();
-
-	const float FOV = FOVAngle * (float)PI / 360.0f;
-
-	FMatrix ProjectionMatrix;
-	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, UIItem->GetWidth(), UIItem->GetHeight(), ProjectionMatrix);
-	ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
-	return ViewProjectionMatrix;
+	return cacheViewProjectionMatrix;
 }
 FMatrix ULGUICanvas::GetProjectionMatrix()
 {
