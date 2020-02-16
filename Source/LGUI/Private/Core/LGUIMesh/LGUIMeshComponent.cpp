@@ -11,6 +11,7 @@
 #include "Engine.h"
 #include "LGUI.h"
 #include "Core/Render/LGUIHudVertex.h"
+#include "Core/ActorComponent/UIPostProcess.h"
 
 
 class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
@@ -96,6 +97,8 @@ public:
 		{
 			IsHudOrWorldSpace = false;
 		}
+		PostProcessObject = InComponent->PostProcessObject;
+		IsPostProcess = IsValid(InComponent->PostProcessObject);
 
 		FLGUIMeshSection& SrcSection = InComponent->MeshSection;
 		if (SrcSection.vertices.Num() > 0)
@@ -428,6 +431,14 @@ public:
 	{
 		return Section->HudVertexBuffers.Vertices.Num();
 	}
+	virtual bool GetIsPostProcess()override
+	{
+		return IsPostProcess;
+	}
+	virtual TWeakObjectPtr<UUIPostProcess> GetPostProcessObject()override
+	{
+		return PostProcessObject;
+	}
 	//end ILGUIHudPrimitive interface
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const
@@ -466,6 +477,8 @@ private:
 	int32 RenderPriority = 0;
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
 	bool IsHudOrWorldSpace = false;
+	bool IsPostProcess = false;
+	TWeakObjectPtr<UUIPostProcess> PostProcessObject;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -577,6 +590,23 @@ void ULGUIMeshComponent::SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::Thre
 void ULGUIMeshComponent::SetToLGUIWorld()
 {
 	LGUIHudRenderer.Reset();
+}
+
+void ULGUIMeshComponent::SetToPostProcess(bool InPostProcessOrNot, UUIPostProcess* InPostProcessObject)
+{
+	if (InPostProcessOrNot != IsPostProcessOrNot)
+	{
+		if (InPostProcessOrNot)
+		{
+			PostProcessObject = InPostProcessObject;
+		}
+		else
+		{
+			PostProcessObject = nullptr;
+		}
+		IsPostProcessOrNot = InPostProcessOrNot;
+		CreateMeshSection();
+	}
 }
 
 int32 ULGUIMeshComponent::GetNumMaterials() const

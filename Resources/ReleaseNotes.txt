@@ -154,3 +154,14 @@
 		Fix a crash on LGUIPrefab when hit revert button.
 		Fix a crash when change level, caused by UIItem.
 		Fix a UIText texture display error.
+2.6
+	New feature:
+		Add UIPostProcess UI element type, now we can extend our own post process on UI.
+		Add UIBackgroundBlur effect, which is based on UIPostProcess.
+	Fix:
+		Fix a compile error in some specific condition(inline function xxx not defined)
+		Improve pixel perfect and dynamic pixel scale of UIText render
+		Fix a bug: If a UProperty is SceneComponent and AttachParent property have value, then endless loop will occur.
+	Modify:
+		Recreate UIFlyoutMenu and UIComboBox.
+		Change LGUIPointerEventData's property "hitComponent" to "currentComponent".

@@ -50,6 +50,7 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassThumbnail.UISectorActor", new IMAGE_BRUSH(TEXT("UISector_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.UIRingActor", new IMAGE_BRUSH(TEXT("UIRing_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.UITextureActor", new IMAGE_BRUSH(TEXT("UITexture_40x"), Icon40x40));
+	Style->Set("ClassThumbnail.UIBackgroundBlurActor", new IMAGE_BRUSH(TEXT("UIBackgroundBlur_40x"), Icon40x40));
 
 	Style->Set("ClassIcon.UISpriteActor", new IMAGE_BRUSH(TEXT("UISprite_16x"), Icon16x16));
 	Style->Set("ClassIcon.UITextActor", new IMAGE_BRUSH(TEXT("UIText_16x"), Icon16x16));
@@ -58,6 +59,7 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassIcon.UISectorActor", new IMAGE_BRUSH(TEXT("UISector_16x"), Icon16x16));
 	Style->Set("ClassIcon.UIRingActor", new IMAGE_BRUSH(TEXT("UIRing_16x"), Icon16x16));
 	Style->Set("ClassIcon.UITextureActor", new IMAGE_BRUSH(TEXT("UITexture_16x"), Icon16x16));
+	Style->Set("ClassIcon.UIBackgroundBlurActor", new IMAGE_BRUSH(TEXT("UIBackgroundBlur_16x"), Icon16x16));
 
 	Style->Set("ClassThumbnail.LGUICanvas", new IMAGE_BRUSH(TEXT("LGUICanvas_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.LGUICanvasScaler", new IMAGE_BRUSH(TEXT("CanvasScaler_40x"), Icon40x40));
@@ -68,6 +70,7 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassThumbnail.UISector", new IMAGE_BRUSH(TEXT("UISector_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.UIRing", new IMAGE_BRUSH(TEXT("UIRing_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.UITextureBase", new IMAGE_BRUSH(TEXT("UITexture_40x"), Icon40x40));
+	Style->Set("ClassThumbnail.UIBackgroundBlur", new IMAGE_BRUSH(TEXT("UIBackgroundBlur_40x"), Icon40x40));
 
 	Style->Set("ClassIcon.LGUICanvas", new IMAGE_BRUSH(TEXT("LGUICanvas_16x"), Icon16x16));
 	Style->Set("ClassIcon.LGUICanvasScaler", new IMAGE_BRUSH(TEXT("CanvasScaler_16x"), Icon16x16));
@@ -78,6 +81,7 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassIcon.UISector", new IMAGE_BRUSH(TEXT("UISector_16x"), Icon16x16));
 	Style->Set("ClassIcon.UIRing", new IMAGE_BRUSH(TEXT("UIRing_16x"), Icon16x16));
 	Style->Set("ClassIcon.UITextureBase", new IMAGE_BRUSH(TEXT("UITexture_16x"), Icon16x16));
+	Style->Set("ClassIcon.UIBackgroundBlur", new IMAGE_BRUSH(TEXT("UIBackgroundBlur_16x"), Icon16x16));
 
 	Style->Set("ClassThumbnail.LGUIEventSystemActor", new IMAGE_BRUSH(TEXT("EventSystem_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.LGUIEventSystem", new IMAGE_BRUSH(TEXT("EventSystem_40x"), Icon40x40));

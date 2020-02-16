@@ -1,0 +1,44 @@
+// Copyright 2019 LexLiu. All Rights Reserved.
+
+struct SimpleVSToPS
+{
+    float4 position : SV_Position;
+    float2 uv : TEXCOORD0;
+};
+
+void SimpleVS(
+    in float3 Position:ATTRIBUTE0,
+    in float2 TextureCoord0 : ATTRIBUTE1,
+    out SimpleVSToPS v2p
+)
+{
+    v2p.position = float4(Position.xyz, 1.0);
+    v2p.uv = TextureCoord0;
+}
+
+
+float4x4 _ViewProjectionMatrix;
+
+struct MeshPostProcessVSToPS
+{
+    float4 position : SV_Position;
+    half4 color : COLOR;
+    float2 uv : TEXCOORD0;
+    float4 screenPos : TEXCOORD1;
+};
+
+void MeshPostProcessVS(
+    in float3 Position : ATTRIBUTE0,
+    in half4 Color : ATTRIBUTE1,
+    in float2 TextureCoord0 : ATTRIBUTE2,
+    in float2 TextureCoord1 : ATTRIBUTE3,
+    in float2 TextureCoord2 : ATTRIBUTE4,
+    in float2 TextureCoord3 : ATTRIBUTE5,
+    out MeshPostProcessVSToPS v2p
+)
+{
+    v2p.position = mul(float4(Position.xyz, 1.0), _ViewProjectionMatrix);
+    v2p.color = Color;
+    v2p.uv = TextureCoord0;
+    v2p.screenPos = v2p.position;
+}
