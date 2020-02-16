@@ -118,7 +118,7 @@ public:
 	void SetParameters(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef SceneTexture, bool FlipY)
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI(), SceneTexture);
-		SetShaderValue(RHICmdList, GetPixelShader(), FlipYParameter, FlipY);
+		SetShaderValue(RHICmdList, GetPixelShader(), FlipYParameter, FlipY ? 1 : 0);
 	}
 	virtual bool Serialize(FArchive& Ar)override
 	{
