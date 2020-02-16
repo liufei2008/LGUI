@@ -4,6 +4,7 @@
 
 #include "UIGeometry.h"
 //#include "UIDrawcall.generated.h"
+class UUIPostProcess;
 
 class LGUI_API UUIDrawcall
 {
@@ -17,7 +18,7 @@ public:
 	bool needToBeRebuild = false;//rebuild only if need to
 	bool needToUpdateVertex = false;//update only if need to
 	bool vertexPositionChanged = false;//if vertex position changed? use for update bounds
-	bool isFontTexture = false;//the texture of this drawcall is font texture or not
+	TWeakObjectPtr<UUIPostProcess> postProcessObject;
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)const
 	{

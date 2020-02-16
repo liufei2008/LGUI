@@ -85,7 +85,7 @@ public:
 	//mark specific drawcall need to rebuild
 	void MarkRebuildSpecificDrawcall(int drawcallIndex);
 	//set specific drawcall's texture. eg when UIText's texture expend, just need to change the texture
-	void SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture, bool isFontTexture);
+	void SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture);
 	//mark update specific drawcall vertex, when vertex position/uv/color etc change
 	void MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged = true);
 	//insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall.
@@ -280,6 +280,9 @@ private:
 	bool bTextureClipParameterChanged = true;
 	//prev frame number, we can tell if we enter to a new render frame
 	uint32 prevFrameNumber = 0;
+
+	uint32 cacheViewProjectionMatrixFrameNumber = 0;
+	FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
 	UPROPERTY(Transient)TArray<UUIRenderable*> UIRenderableItemList;//all renderable UI element collection
 	UPROPERTY(Transient)TArray<class UUIDrawcallMesh*> UIMeshList;//UIDrawcallMesh collection of this Canvas

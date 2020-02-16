@@ -45,7 +45,7 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 	geometry->texture = sprite->InitAndGetAtlasTexture();
 	if (CheckRenderCanvas())
 	{
-		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, sprite->InitAndGetAtlasTexture(), false);
+		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, sprite->InitAndGetAtlasTexture());
 	}
 }
 

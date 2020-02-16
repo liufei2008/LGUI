@@ -46,6 +46,8 @@ public:
 	//return created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic();
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetIsPostProcess() { return bIsPostProcess; }
 
 	void MarkUVDirty();
 	void MarkTriangleDirty();
@@ -87,6 +89,8 @@ protected:
 
 	void CreateGeometry();
 	virtual void UpdateGeometry(const bool& parentTransformChanged)override final;
+
+	bool bIsPostProcess = false;//post process item
 private:
 	bool bUVChanged = true;//vertex's uv change
 	bool bTriangleChanged = true;//triangle index change
