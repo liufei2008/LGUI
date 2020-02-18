@@ -45,5 +45,5 @@ protected:
 	FCriticalSection mutex;
 	FORCEINLINE float GetBlurStrengthInternal();
 	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);
-	virtual void OnRenderPostProcess_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef ScreenImage, TShaderMap<FGlobalShaderType>* GlobalShaderMap, const FMatrix& ViewProjectionMatrix, FGraphicsPipelineStateInitializer& GraphicsPSOInit, const TFunction<void()>& DrawPrimitive)override;
+	virtual void OnRenderPostProcess_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef ScreenImage, TShaderMap<FGlobalShaderType>* GlobalShaderMap, const FMatrix& ViewProjectionMatrix, const TFunction<void()>& DrawPrimitive)override;
 };
