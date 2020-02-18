@@ -53,7 +53,10 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 			{
 				if (hudPrimitive->GetIsPostProcess())
 				{
-					hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
+					if (hudPrimitive->GetPostProcessObject().IsValid())
+					{
+						hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
+					}
 				}
 			}
 		}
@@ -193,6 +196,8 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+
+	TShaderMap<FGlobalShaderType>* GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
 	
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
@@ -203,22 +208,24 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 			{
 				if (hudPrimitive->GetIsPostProcess())//render post process
 				{
-					RHICmdList.EndRenderPass();
-					TShaderMap<FGlobalShaderType>* GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
 					auto postProcessObject = hudPrimitive->GetPostProcessObject();
-					postProcessObject->OnRenderPostProcess_RenderThread(
-						RHICmdList,
-						ScreenImageRenderTexture,
-						GlobalShaderMap,
-						ViewProjectionMatrix,
-						[&]()
-						{
+					if (postProcessObject.IsValid())
+					{
+						RHICmdList.EndRenderPass();
+						postProcessObject->OnRenderPostProcess_RenderThread(
+							RHICmdList,
+							ScreenImageRenderTexture,
+							GlobalShaderMap,
+							ViewProjectionMatrix,
+							[&]()
+							{
 							const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-							RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
 							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
-						}
-					);
-					RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
+							}
+						);
+						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
+					}
 				}
 				else//render mesh
 				{
