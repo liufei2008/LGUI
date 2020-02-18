@@ -23,7 +23,6 @@
 #include "Core/Actor/UITextActor.h"
 #include "Core/Actor/UITextureActor.h"
 #include "Core/Actor/UIBackgroundBlurActor.h"
-#include "Core/Actor/UIPostProcessActor.h"
 
 #include "PrefabSystem/ActorCopier.h"
 #include "PrefabSystem/ActorSerializer.h"

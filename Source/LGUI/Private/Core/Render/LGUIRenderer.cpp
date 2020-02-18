@@ -46,16 +46,15 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 	TArray<ILGUIHudPrimitive*> primitiveArray;
 	{
 		FScopeLock scopeLock(&Mutex);
-		primitiveArray = HudPrimitiveArray;
-	}
-	for (int i = 0; i < primitiveArray.Num(); i++)
-	{
-		auto hudPrimitive = primitiveArray[i];
-		if (hudPrimitive != nullptr)
+		for (int i = 0; i < HudPrimitiveArray.Num(); i++)
 		{
-			if (hudPrimitive->GetIsPostProcess())
+			auto hudPrimitive = HudPrimitiveArray[i];
+			if (hudPrimitive != nullptr)
 			{
-				hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
+				if (hudPrimitive->GetIsPostProcess())
+				{
+					hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
+				}
 			}
 		}
 	}
