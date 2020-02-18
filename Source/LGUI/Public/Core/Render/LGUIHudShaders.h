@@ -69,12 +69,12 @@ public:
 		return FGlobalShader::Serialize(Ar);
 	}
 };
-class FLGUIPostProcessSimpleVS :public FLGUIPostProcessShader
+class FLGUISimplePostProcessVS :public FLGUIPostProcessShader
 {
-	DECLARE_SHADER_TYPE(FLGUIPostProcessSimpleVS, Global);
+	DECLARE_SHADER_TYPE(FLGUISimplePostProcessVS, Global);
 public:
-	FLGUIPostProcessSimpleVS() {}
-	FLGUIPostProcessSimpleVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+	FLGUISimplePostProcessVS() {}
+	FLGUISimplePostProcessVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLGUIPostProcessShader(Initializer)
 	{
 

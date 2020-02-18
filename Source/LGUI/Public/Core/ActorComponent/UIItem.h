@@ -337,6 +337,7 @@ protected:
 	FORCEINLINE bool IsFloatNotEqual(float a, float b);
 public:
 	uint8 GetFinalAlpha()const;
+	float GetFinalAlpha01()const;
 	//get final color, calculate alpha
 	FColor GetFinalColor()const;
 	static float Color255To1_Table[256];

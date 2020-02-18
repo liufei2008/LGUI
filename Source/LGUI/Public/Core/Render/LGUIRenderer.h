@@ -11,6 +11,7 @@
 
 class ILGUIHudPrimitive;
 class ULGUICanvas;
+struct FLGUIPostProcessVertex;
 
 class LGUI_API FLGUIViewExtension : public FSceneViewExtensionBase
 {
@@ -35,11 +36,25 @@ public:
 	//
 	void AddHudPrimitive(ILGUIHudPrimitive* InPrimitive);
 	void RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive);
-	static void CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FGraphicsPipelineStateInitializer& GraphicsPSOInit, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY);
+	static void CopyRenderTarget(
+		FRHICommandListImmediate& RHICmdList, 
+		TShaderMap<FGlobalShaderType>* GlobalShaderMap, 
+		FGraphicsPipelineStateInitializer& GraphicsPSOInit, 
+		FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY
+	);
+	static void CopyRenderTargetOnMeshRegion(
+		FRHICommandListImmediate& RHICmdList,
+		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
+		FGraphicsPipelineStateInitializer& GraphicsPSOInit,
+		FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
+		const TArray<FLGUIPostProcessVertex>& RegionVertexData
+	);
+	static void DrawFullScreenQuad(
+		FRHICommandListImmediate& RHICmdList
+	);
 private:
 	void AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void MarkSortRenderPriority_RenderThread();
-	static void RenderPostProcess(FRHICommandListImmediate& RHICmdList);
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
 
