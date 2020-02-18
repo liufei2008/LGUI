@@ -109,11 +109,9 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 
 		blurEffectRenderTarget1 = NewObject<UTextureRenderTarget2D>(this);
 		blurEffectRenderTarget1->InitAutoFormat((int)width, (int)height);
-		blurEffectRenderTarget1->UpdateResource();
 
 		blurEffectRenderTarget2 = NewObject<UTextureRenderTarget2D>(this);
 		blurEffectRenderTarget2->InitAutoFormat((int)width, (int)height);
-		blurEffectRenderTarget2->UpdateResource();
 	}
 	else
 	{
@@ -163,8 +161,11 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	if (!IsValid(blurEffectRenderTarget1))return;
 	if (!IsValid(blurEffectRenderTarget2))return;
 
-	FTexture2DRHIRef BlurEffectRenderTexture1 = blurEffectRenderTarget1->GetRenderTargetResource()->GetRenderTargetTexture();
-	FTexture2DRHIRef BlurEffectRenderTexture2 = blurEffectRenderTarget2->GetRenderTargetResource()->GetRenderTargetTexture();
+	auto Resource1 = blurEffectRenderTarget1->GetRenderTargetResource();
+	auto Resource2 = blurEffectRenderTarget2->GetRenderTargetResource();
+	if (Resource1 == nullptr || Resource2 == nullptr)return;
+	FTexture2DRHIRef BlurEffectRenderTexture1 = Resource1->GetRenderTargetTexture();
+	FTexture2DRHIRef BlurEffectRenderTexture2 = Resource2->GetRenderTargetTexture();
 	//copy rect area from screen image to a render target, so we can just process this area
 	{
 		TArray<FLGUIPostProcessVertex> tempCopyRegion;
