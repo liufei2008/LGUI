@@ -59,7 +59,7 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 	FColor finalColor = shadowColor;
 	if (multiplySourceAlpha)
 	{
-		finalColor.A = (uint8)(GetRenderableUIItem()->GetFinalAlpha() * shadowColor.A * 0.003921568627f/* 1 / 255 */);
+		finalColor.A = (uint8)(GetRenderableUIItem()->GetFinalAlpha01() * shadowColor.A);
 	}
 	for (int channelIndex1 = singleChannelVerticesCount, channelIndexOrigin = 0; channelIndex1 < vertexCount; channelIndex1++, channelIndexOrigin++)
 	{

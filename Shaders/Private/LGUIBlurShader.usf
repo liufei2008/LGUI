@@ -22,13 +22,13 @@ static const float GaussWeight[7] =
 };
 
 void MainPS(
-    MeshPostProcessVSToPS input,
+    SimpleVSToPS input,
     out float4 OutColor : SV_Target0
 )
 {
     OutColor.a = 1;
     OutColor.rgb = 0.0;
-    float2 uv = (input.screenPos.xy / input.screenPos.w) * 0.5f + float2(0.5f, 0.5f);
+    float2 uv = input.uv;
     uv.y = 1.0 - uv.y;//mesh y is fliped
     uv = uv + _UVStart;
     for (int i = 0; i < 7; i++)

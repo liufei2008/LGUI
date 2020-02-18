@@ -102,7 +102,7 @@ bool FLGUIHudRenderPS::Serialize(FArchive& Ar)
 }
 
 
-IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessSimpleVS, TEXT("/Plugin/LGUI/Private/LGUIPostProcessVertexShader.usf"), TEXT("SimpleVS"), SF_Vertex)
+IMPLEMENT_SHADER_TYPE(, FLGUISimplePostProcessVS, TEXT("/Plugin/LGUI/Private/LGUIPostProcessVertexShader.usf"), TEXT("SimpleVS"), SF_Vertex)
 IMPLEMENT_SHADER_TYPE(, FLGUIMeshPostProcessVS, TEXT("/Plugin/LGUI/Private/LGUIPostProcessVertexShader.usf"), TEXT("MeshPostProcessVS"), SF_Vertex)
 IMPLEMENT_SHADER_TYPE(, FLGUIBlurShaderPS, TEXT("/Plugin/LGUI/Private/LGUIBlurShader.usf"), TEXT("MainPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUICopyTargetSimplePS, TEXT("/Plugin/LGUI/Private/LGUICopyTargetShader.usf"), TEXT("SimplePS"), SF_Pixel)

@@ -21,6 +21,5 @@ void MeshPS(
     out float4 OutColor : SV_Target0
 )
 {
-    input.uv = (input.position.xy / input.position.w) * 0.5f + float2(0.5, 0.5);
     OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
 }
