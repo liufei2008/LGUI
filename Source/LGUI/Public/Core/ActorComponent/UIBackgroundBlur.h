@@ -3,6 +3,7 @@
 #pragma once
 
 #include "UIPostProcess.h"
+#include "Core/Render/LGUIHudVertex.h"
 #include "UIBackgroundBlur.generated.h"
 
 //UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur
@@ -22,6 +23,8 @@ protected:
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "100.0"))
 		float blurStrength = 0.0f;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool applyAlphaToBlur = true;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetBlurStrength() { return blurStrength; }
@@ -34,8 +37,13 @@ protected:
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
-	UPROPERTY(Transient) UTextureRenderTarget2D* BlurEffectRenderTarget = nullptr;
+	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget1 = nullptr;
+	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget2 = nullptr;
+	const float downSampleThreshold = 3.0f;
 	bool bNeedToResize = false;
+	TArray<FLGUIPostProcessVertex> copyRegionVertexArray;
+	FCriticalSection mutex;
+	FORCEINLINE float GetBlurStrengthInternal();
 	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);
 	virtual void OnRenderPostProcess_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef ScreenImage, TShaderMap<FGlobalShaderType>* GlobalShaderMap, const FMatrix& ViewProjectionMatrix, FGraphicsPipelineStateInitializer& GraphicsPSOInit, const TFunction<void()>& DrawPrimitive)override;
 };

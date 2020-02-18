@@ -87,7 +87,7 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 		auto color = outlineColor;
 		if (multiplySourceAlpha)
 		{
-			color.A = (uint8)(GetRenderableUIItem()->GetFinalAlpha() * color.A * 0.003921568627f/* 1 / 255 */);
+			color.A = (uint8)(GetRenderableUIItem()->GetFinalAlpha01() * color.A);
 		}
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{

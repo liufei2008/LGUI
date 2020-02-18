@@ -75,7 +75,7 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 	{
 		FVector shadowSizeInterval = shadowSize / (shadowSegment + 1);
 		int32 shadowChannelCount = shadowSegment + 1;
-		float alphaMultiply = multiplySourceAlpha ? (GetRenderableUIItem()->GetFinalAlpha() * 0.003921568627f/* 1 / 255 */) : 1.0f;
+		float alphaMultiply = multiplySourceAlpha ? (GetRenderableUIItem()->GetFinalAlpha01()) : 1.0f;
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
 			auto originVert = originPositions[channelOriginVertIndex];

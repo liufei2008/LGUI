@@ -650,6 +650,7 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUISpriteActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUITextActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUITextureActor::StaticClass());
+		FunctionContainer::ReplaceUIElement(MenuBuilder, AUIBackgroundBlurActor::StaticClass());
 	}
 	MenuBuilder.EndSection();
 }

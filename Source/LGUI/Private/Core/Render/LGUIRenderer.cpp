@@ -73,50 +73,33 @@ void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InO
 	
 }
 
-void FLGUIViewExtension::RenderPostProcess(FRHICommandListImmediate& RHICmdList)
+static const uint16 FullScreenQuadIndices[6] =
 {
-	static const FLGUIPostProcessVertex Vertices[4] =
-	{
-		FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
-		FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
-		FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
-		FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
-	};
-	static const uint16 Indices[6] =
-	{
-		0, 2, 3,
-		0, 3, 1
-	};
+	0, 2, 3,
+	0, 3, 1
+};
+static TArray<FLGUIPostProcessVertex> FullScreenQuatdVertices =
+{
+	FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
+	FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
+	FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
+	FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
+};
 
-	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
-	FRHIResourceCreateInfo CreateInfo;
-	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
-	FPlatformMemory::Memcpy(VoidPtr, Vertices, VertexBufferSize);
-	RHIUnlockVertexBuffer(VertexBufferRHI);
-
-	FIndexBufferRHIRef IndexBufferRHI = RHICreateIndexBuffer(2, 12, BUF_Volatile, CreateInfo);
-	void* VoidPtr2 = RHILockIndexBuffer(IndexBufferRHI, 0, 12, RLM_WriteOnly);
-	FPlatformMemory::Memcpy(VoidPtr2, Indices, 12);
-	RHIUnlockIndexBuffer(IndexBufferRHI);
-
-	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
-	RHICmdList.DrawIndexedPrimitive(IndexBufferRHI, 0, 0, 4, 0, 2, 1);
-
-	IndexBufferRHI.SafeRelease();
-	VertexBufferRHI.SafeRelease();
-}
 void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FGraphicsPipelineStateInitializer& GraphicsPSOInit, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY)
 {
-	FRHIRenderPassInfo RPInfo(Dst, ERenderTargetActions::Load_Store);
-	RHICmdList.BeginRenderPass(RPInfo, TEXT("CopyRenderTarget"));
+	CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, GraphicsPSOInit, Src, Dst, FlipY, FullScreenQuatdVertices);
+}
+void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FGraphicsPipelineStateInitializer& GraphicsPSOInit, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
+{
+	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("CopyRenderTargetOnMeshRegion"));
 
-	TShaderMapRef<FLGUIPostProcessSimpleVS> VertexShader(GlobalShaderMap);
+	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
 	TShaderMapRef<FLGUICopyTargetSimplePS> PixelShader(GlobalShaderMap);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 	GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GLGUIPostProcessVertexDeclaration.VertexDeclarationRHI;
+	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
@@ -124,9 +107,45 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 
 	PixelShader->SetParameters(RHICmdList, Src, FlipY);
 
-	RenderPostProcess(RHICmdList);
+	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
+	FRHIResourceCreateInfo CreateInfo;
+	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+	FPlatformMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
+	RHIUnlockVertexBuffer(VertexBufferRHI);
+
+	FIndexBufferRHIRef IndexBufferRHI = RHICreateIndexBuffer(2, 12, BUF_Volatile, CreateInfo);
+	void* VoidPtr2 = RHILockIndexBuffer(IndexBufferRHI, 0, 12, RLM_WriteOnly);
+	FPlatformMemory::Memcpy(VoidPtr2, FullScreenQuadIndices, 12);
+	RHIUnlockIndexBuffer(IndexBufferRHI);
+
+	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
+	RHICmdList.DrawIndexedPrimitive(IndexBufferRHI, 0, 0, 4, 0, 2, 1);
+
+	IndexBufferRHI.SafeRelease();
+	VertexBufferRHI.SafeRelease();
 
 	RHICmdList.EndRenderPass();
+}
+void FLGUIViewExtension::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList)
+{
+	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
+	FRHIResourceCreateInfo CreateInfo;
+	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+	FPlatformMemory::Memcpy(VoidPtr, FullScreenQuatdVertices.GetData(), VertexBufferSize);
+	RHIUnlockVertexBuffer(VertexBufferRHI);
+
+	FIndexBufferRHIRef IndexBufferRHI = RHICreateIndexBuffer(2, 12, BUF_Volatile, CreateInfo);
+	void* VoidPtr2 = RHILockIndexBuffer(IndexBufferRHI, 0, 12, RLM_WriteOnly);
+	FPlatformMemory::Memcpy(VoidPtr2, FullScreenQuadIndices, 12);
+	RHIUnlockIndexBuffer(IndexBufferRHI);
+
+	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
+	RHICmdList.DrawIndexedPrimitive(IndexBufferRHI, 0, 0, 4, 0, 2, 1);
+
+	IndexBufferRHI.SafeRelease();
+	VertexBufferRHI.SafeRelease();
 }
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
 void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
@@ -212,7 +231,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 					{
 						PixelShader->SetBlendState(GraphicsPSOInit, Material);
 
-						GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GLGUIVertexDeclaration.VertexDeclarationRHI;
+						GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIVertexDeclaration();
 						GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
 						GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
 						GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;

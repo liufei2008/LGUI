@@ -19,6 +19,11 @@ void FLGUIVertexDeclaration::ReleaseRHI()
 {
 	VertexDeclarationRHI.SafeRelease();
 }
+TGlobalResource<FLGUIVertexDeclaration> GLGUIVertexDeclaration;
+FVertexDeclarationRHIRef& GetLGUIVertexDeclaration()
+{
+	return GLGUIVertexDeclaration.VertexDeclarationRHI;
+}
 
 
 void FLGUIPostProcessVertexDeclaration::InitRHI()
@@ -32,4 +37,9 @@ void FLGUIPostProcessVertexDeclaration::InitRHI()
 void FLGUIPostProcessVertexDeclaration::ReleaseRHI()
 {
 	VertexDeclarationRHI.SafeRelease();
+}
+TGlobalResource<FLGUIPostProcessVertexDeclaration> GLGUIPostProcessVertexDeclaration;
+FVertexDeclarationRHIRef& GetLGUIPostProcessVertexDeclaration()
+{
+	return GLGUIPostProcessVertexDeclaration.VertexDeclarationRHI;
 }
