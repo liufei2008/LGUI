@@ -15,7 +15,7 @@ struct LGUI_API FLGUIHudVertex
 	FVector2D TextureCoordinate3;
 };
 
-class FLGUIVertexDeclaration : public FRenderResource
+class LGUI_API FLGUIVertexDeclaration : public FRenderResource
 {
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRHI;
@@ -23,8 +23,8 @@ public:
 	virtual void InitRHI()override;
 	virtual void ReleaseRHI()override;
 };
+LGUI_API FVertexDeclarationRHIRef& GetLGUIVertexDeclaration();
 
-TGlobalResource<FLGUIVertexDeclaration> GLGUIVertexDeclaration;
 
 struct LGUI_API FLGUIPostProcessVertex
 {
@@ -38,12 +38,12 @@ struct LGUI_API FLGUIPostProcessVertex
 	}
 };
 
-class FLGUIPostProcessVertexDeclaration : public FRenderResource
+class LGUI_API FLGUIPostProcessVertexDeclaration : public FRenderResource
 {
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRHI;
 	virtual void InitRHI() override;
 	virtual void ReleaseRHI() override;
 };
+LGUI_API FVertexDeclarationRHIRef& GetLGUIPostProcessVertexDeclaration();
 
-TGlobalResource<FLGUIPostProcessVertexDeclaration> GLGUIPostProcessVertexDeclaration;

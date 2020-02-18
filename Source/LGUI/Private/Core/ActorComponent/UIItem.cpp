@@ -1379,6 +1379,11 @@ uint8 UUIItem::GetFinalAlpha()const
 	return inheritAlpha ? (uint8)(widget.color.A * calculatedParentAlpha) : widget.color.A;
 }
 
+float UUIItem::GetFinalAlpha01()const
+{
+	return Color255To1_Table[GetFinalAlpha()];
+}
+
 #pragma region InteractionGroup
 bool UUIItem::IsGroupAllowInteraction()
 {
