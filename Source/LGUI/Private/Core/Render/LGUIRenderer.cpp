@@ -42,7 +42,10 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 			{
 				if (hudPrimitive->GetIsPostProcess())
 				{
-					hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
+					if (hudPrimitive->GetPostProcessObject().IsValid())
+					{
+						hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
+					}
 				}
 			}
 		}
@@ -178,6 +181,8 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+
+	TShaderMap<FGlobalShaderType>* GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
 	
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
@@ -188,20 +193,22 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 			{
 				if (hudPrimitive->GetIsPostProcess())//render post process
 				{
-					TShaderMap<FGlobalShaderType>* GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
 					auto postProcessObject = hudPrimitive->GetPostProcessObject();
-					postProcessObject->OnRenderPostProcess_RenderThread(
-						RHICmdList,
-						ScreenImageRenderTexture,
-						GlobalShaderMap,
-						ViewProjectionMatrix,
-						[&]()
-						{
-							const FMeshBatch& Mesh = hudPrimitive->GetMeshElement();
-							RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, PT_TriangleList, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
-						}
-					);
+					if (postProcessObject.IsValid())
+					{
+						postProcessObject->OnRenderPostProcess_RenderThread(
+							RHICmdList,
+							ScreenImageRenderTexture,
+							GlobalShaderMap,
+							ViewProjectionMatrix,
+							[&]()
+							{
+								const FMeshBatch& Mesh = hudPrimitive->GetMeshElement();
+								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, PT_TriangleList, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+							}
+						);
+					}
 				}
 				else//render mesh
 				{
