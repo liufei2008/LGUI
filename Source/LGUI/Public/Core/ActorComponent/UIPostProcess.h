@@ -6,6 +6,7 @@
 #include "UIPostProcess.generated.h"
 
 //UI element that can add post processing effect
+//Only valid on ScreenSpaceUI
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIPostProcess : public UUIRenderable
 {

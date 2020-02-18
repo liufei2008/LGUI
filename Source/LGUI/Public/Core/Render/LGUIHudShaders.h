@@ -175,9 +175,9 @@ public:
 	void SetParameters(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef SceneTexture, float BlurStrength, bool HorizontalOrVertical)
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI(), SceneTexture);
+		BlurStrength = FMath::Min(BlurStrength, 1.0f);
 		if (HorizontalOrVertical)
 		{
-			BlurStrength = FMath::Min(BlurStrength, 1.0f);
 			FVector2D _UVInterval = FVector2D(BlurStrength / SceneTexture->GetSizeX(), 0);
 			FVector2D _UVStart = FVector2D(-_UVInterval.X * 3.0f, 0.0f);
 			SetShaderValue(RHICmdList, GetPixelShader(), UVStartParameter, _UVStart);
@@ -185,7 +185,6 @@ public:
 		}
 		else
 		{
-			BlurStrength = FMath::Min(BlurStrength, 1.0f);
 			FVector2D _UVInterval = FVector2D(0.0f, BlurStrength / SceneTexture->GetSizeY());
 			FVector2D _UVStart = FVector2D(0.0f, -_UVInterval.Y * 3.0f);
 			SetShaderValue(RHICmdList, GetPixelShader(), UVStartParameter, _UVStart);
