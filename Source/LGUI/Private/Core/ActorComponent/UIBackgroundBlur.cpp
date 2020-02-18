@@ -153,8 +153,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	FRHICommandListImmediate& RHICmdList, 
 	FTexture2DRHIRef ScreenImage, 
 	TShaderMap<FGlobalShaderType>* GlobalShaderMap, 
-	const FMatrix& ViewProjectionMatrix, 
-	FGraphicsPipelineStateInitializer& GraphicsPSOInit, 
+	const FMatrix& ViewProjectionMatrix,  
 	const TFunction<void()>& DrawPrimitive
 )
 {
@@ -173,12 +172,16 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			FScopeLock scopeLock(&mutex);
 			tempCopyRegion = copyRegionVertexArray;
 		}
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, GraphicsPSOInit, ScreenImage, BlurEffectRenderTexture1, false, tempCopyRegion);
+		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, false, tempCopyRegion);
 	}
 	//do the blur process on the area
 	{
 		TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
 		TShaderMapRef<FLGUIBlurShaderPS> PixelShader(GlobalShaderMap);
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
@@ -205,15 +208,19 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	}
 	//after blur process, copy the area back to screen image
 	{
+		SetRenderTarget(RHICmdList, ScreenImage, FTextureRHIRef());
 		TShaderMapRef<FLGUIMeshPostProcessVS> VertexShader(GlobalShaderMap);
 		TShaderMapRef<FLGUICopyTargetMeshPS> PixelShader(GlobalShaderMap);
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIVertexDeclaration();
 		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-		SetRenderTarget(RHICmdList, ScreenImage, FTextureRHIRef());
 		VertexShader->SetParameters(RHICmdList, ViewProjectionMatrix);
 		PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1);
 		DrawPrimitive();
