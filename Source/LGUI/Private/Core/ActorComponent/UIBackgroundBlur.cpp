@@ -162,6 +162,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	auto calculatedBlurStrength = GetBlurStrengthInternal();
 	if (calculatedBlurStrength <= 0.0f)return;
 	if (!IsValid(blurEffectRenderTarget1))return;
+	if (!IsValid(blurEffectRenderTarget2))return;
 
 	FTexture2DRHIRef BlurEffectRenderTexture1 = blurEffectRenderTarget1->GetRenderTargetResource()->GetRenderTargetTexture();
 	FTexture2DRHIRef BlurEffectRenderTexture2 = blurEffectRenderTarget2->GetRenderTargetResource()->GetRenderTargetTexture();
@@ -217,6 +218,4 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1);
 		DrawPrimitive();
 	}
-	//change render target back to origin screen image
-	//SetRenderTarget(RHICmdList, ScreenImage, FTextureRHIRef());//if current render target is not ScreenImage then we need to set it back, because other draw command depend on ScreenImage
 }
