@@ -120,7 +120,7 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 		if (blurEffectRenderTarget1->SizeX != widget.width || blurEffectRenderTarget1->SizeY != widget.height || bNeedToResize)
 		{
 			float width = widget.width;
-			float height = widget.width;
+			float height = widget.height;
 			if (calculatedBlurStrength >= downSampleThreshold)
 			{
 				float downSample = calculatedBlurStrength / downSampleThreshold;
