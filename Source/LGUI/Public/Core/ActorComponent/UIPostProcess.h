@@ -35,7 +35,6 @@ public:
 		FTexture2DRHIRef ScreenImage, 
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
-		FGraphicsPipelineStateInitializer& GraphicsPSOInit,
 		const TFunction<void()>& DrawPrimitive
 	) {};
 };
