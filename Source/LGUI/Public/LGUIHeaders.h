@@ -14,12 +14,16 @@
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UIInteractionGroup.h"
 #include "Core/UIComponentBase.h"
+#include "Core/ActorComponent/UIBackgroundBlur.h"
+#include "Core/ActorComponent/UIPostProcess.h"
 
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"
 #include "Core/Actor/UISpriteActor.h"
 #include "Core/Actor/UITextActor.h"
 #include "Core/Actor/UITextureActor.h"
+#include "Core/Actor/UIBackgroundBlurActor.h"
+#include "Core/Actor/UIPostProcessActor.h"
 
 #include "PrefabSystem/ActorCopier.h"
 #include "PrefabSystem/ActorSerializer.h"
