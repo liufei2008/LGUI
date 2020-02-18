@@ -85,16 +85,18 @@ static TArray<FLGUIPostProcessVertex> FullScreenQuatdVertices =
 	FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
 };
 
-void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FGraphicsPipelineStateInitializer& GraphicsPSOInit, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY)
+void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY)
 {
-	CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, GraphicsPSOInit, Src, Dst, FlipY, FullScreenQuatdVertices);
+	CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, Src, Dst, FlipY, FullScreenQuatdVertices);
 }
-void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FGraphicsPipelineStateInitializer& GraphicsPSOInit, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
+void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("CopyRenderTargetOnMeshRegion"));
 
 	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
 	TShaderMapRef<FLGUICopyTargetSimplePS> PixelShader(GlobalShaderMap);
+	FGraphicsPipelineStateInitializer GraphicsPSOInit;
+	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 	GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
@@ -209,7 +211,6 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 						ScreenImageRenderTexture,
 						GlobalShaderMap,
 						ViewProjectionMatrix,
-						GraphicsPSOInit,
 						[&]()
 						{
 							const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
