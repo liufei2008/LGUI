@@ -20,6 +20,48 @@
 #include "Slate/SceneViewport.h"
 #include "Core/ActorComponent/UIPostProcess.h"
 
+
+class FLGUIFullScreenQuadVertexBuffer :public FVertexBuffer
+{
+public:
+	void InitRHI()override
+	{
+		TResourceArray<FLGUIPostProcessVertex, VERTEXBUFFER_ALIGNMENT> Vertices;
+		Vertices.SetNumUninitialized(4);
+
+		Vertices[0] = FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f));
+		Vertices[1] = FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f));
+		Vertices[2] = FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f));
+		Vertices[3] = FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f));
+
+		FRHIResourceCreateInfo CreateInfo(&Vertices);
+		VertexBufferRHI = RHICreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
+	}
+};
+class FLGUIFullScreenQuadIndexBuffer :public FIndexBuffer
+{
+public:
+	void InitRHI()override
+	{
+		const uint16 Indices[] =
+		{
+			0, 2, 3,
+			0, 3, 1
+		};
+
+		TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
+		uint32 NumIndices = ARRAY_COUNT(Indices);
+		IndexBuffer.AddUninitialized(NumIndices);
+		FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
+
+		FRHIResourceCreateInfo CreateInfo(&IndexBuffer);
+		IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
+	}
+};
+static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVertexBuffer;
+static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;
+
+
 FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas)
 	:FSceneViewExtensionBase(AutoRegister)
 {
@@ -79,7 +121,24 @@ static TArray<FLGUIPostProcessVertex> FullScreenQuatdVertices =
 
 void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY)
 {
-	CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, Src, Dst, FlipY, FullScreenQuatdVertices);
+	SetRenderTarget(RHICmdList, Dst, FTextureRHIRef());
+
+	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+	TShaderMapRef<FLGUICopyTargetSimplePS> PixelShader(GlobalShaderMap);
+	FGraphicsPipelineStateInitializer GraphicsPSOInit;
+	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+	GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
+	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
+	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+
+	PixelShader->SetParameters(RHICmdList, Src, FlipY);
+
+	DrawFullScreenQuad(RHICmdList);
 }
 void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
 {
@@ -107,36 +166,15 @@ void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& 
 	FPlatformMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
 	RHIUnlockVertexBuffer(VertexBufferRHI);
 
-	FIndexBufferRHIRef IndexBufferRHI = RHICreateIndexBuffer(2, 12, BUF_Volatile, CreateInfo);
-	void* VoidPtr2 = RHILockIndexBuffer(IndexBufferRHI, 0, 12, RLM_WriteOnly);
-	FPlatformMemory::Memcpy(VoidPtr2, FullScreenQuadIndices, 12);
-	RHIUnlockIndexBuffer(IndexBufferRHI);
-
 	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
-	RHICmdList.DrawIndexedPrimitive(IndexBufferRHI, EPrimitiveType::PT_TriangleList, 0, 0, 4, 0, 2, 1);
+	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, EPrimitiveType::PT_TriangleList, 0, 0, 4, 0, 2, 1);
 
-	IndexBufferRHI.SafeRelease();
 	VertexBufferRHI.SafeRelease();
 }
 void FLGUIViewExtension::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList)
 {
-	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
-	FRHIResourceCreateInfo CreateInfo;
-	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
-	FPlatformMemory::Memcpy(VoidPtr, FullScreenQuatdVertices.GetData(), VertexBufferSize);
-	RHIUnlockVertexBuffer(VertexBufferRHI);
-
-	FIndexBufferRHIRef IndexBufferRHI = RHICreateIndexBuffer(2, 12, BUF_Volatile, CreateInfo);
-	void* VoidPtr2 = RHILockIndexBuffer(IndexBufferRHI, 0, 12, RLM_WriteOnly);
-	FPlatformMemory::Memcpy(VoidPtr2, FullScreenQuadIndices, 12);
-	RHIUnlockIndexBuffer(IndexBufferRHI);
-
-	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
-	RHICmdList.DrawIndexedPrimitive(IndexBufferRHI, EPrimitiveType::PT_TriangleList, 0, 0, 4, 0, 2, 1);
-
-	IndexBufferRHI.SafeRelease();
-	VertexBufferRHI.SafeRelease();
+	RHICmdList.SetStreamSource(0, GLGUIFullScreenQuadVertexBuffer.VertexBufferRHI, 0);
+	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, EPrimitiveType::PT_TriangleList, 0, 0, 4, 0, 2, 1);
 }
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
 void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
