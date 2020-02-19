@@ -173,7 +173,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			FScopeLock scopeLock(&mutex);
 			tempCopyRegion = copyRegionVertexArray;
 		}
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, false, tempCopyRegion);
+		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, true, tempCopyRegion);//mesh's uv.y is flipped
 	}
 	//do the blur process on the area
 	{
