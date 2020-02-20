@@ -106,19 +106,6 @@ void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InO
 	
 }
 
-static const uint16 FullScreenQuadIndices[6] =
-{
-	0, 2, 3,
-	0, 3, 1
-};
-static TArray<FLGUIPostProcessVertex> FullScreenQuatdVertices =
-{
-	FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
-	FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
-	FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
-	FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
-};
-
 void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY)
 {
 	SetRenderTarget(RHICmdList, Dst, FTextureRHIRef());
