@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "UIBackgroundBlurActor.generated.h"
 
-UCLASS()
+UCLASS(Experimental)
 class LGUI_API AUIBackgroundBlurActor : public AUIBaseActor
 {
 	GENERATED_BODY()
