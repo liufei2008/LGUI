@@ -7,7 +7,7 @@
 
 //UI element that can add post processing effect
 //Only valid on ScreenSpaceUI
-UCLASS(Abstract, NotBlueprintable)
+UCLASS(Abstract, NotBlueprintable, Experimental)
 class LGUI_API UUIPostProcess : public UUIRenderable
 {
 	GENERATED_BODY()
