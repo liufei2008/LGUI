@@ -5,7 +5,7 @@
 #include "Core/UIGeometry.h"
 #include "Core/LGUISpriteData.h"
 #include "Engine/TextureRenderTarget2D.h"
-#include "Core/HudRender/LGUIHudShaders.h"
+#include "Core/HudRender/LGUIPostProcessShaders.h"
 #include "Core/HudRender/LGUIHudVertex.h"
 #include "PipelineStateCache.h"
 #include "Core/HudRender/LGUIRenderer.h"
