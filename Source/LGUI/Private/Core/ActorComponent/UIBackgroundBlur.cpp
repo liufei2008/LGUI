@@ -207,7 +207,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			if (i + 1 == sampleCount)
 			{
 				float fracValue = (calculatedBlurStrength - (int)calculatedBlurStrength);
-				fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) / PI + 0.5f;//another thing to make the blur transition feel more linear
+				fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more linear
 				PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2 * fracValue);
 			}
 			else
