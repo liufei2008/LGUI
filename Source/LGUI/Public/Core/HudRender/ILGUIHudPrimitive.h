@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SceneManagement.h"
-#include "Core/Render/LGUIRenderer.h"
+#include "Core/HudRender/LGUIRenderer.h"
 
 class FLGUIViewExtension;
 

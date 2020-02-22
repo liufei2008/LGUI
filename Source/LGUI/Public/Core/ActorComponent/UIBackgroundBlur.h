@@ -3,7 +3,7 @@
 #pragma once
 
 #include "UIPostProcess.h"
-#include "Core/Render/LGUIHudVertex.h"
+#include "Core/HudRender/LGUIHudVertex.h"
 #include "UIBackgroundBlur.generated.h"
 
 //UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.

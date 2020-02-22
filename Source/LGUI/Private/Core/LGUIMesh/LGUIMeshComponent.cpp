@@ -6,11 +6,11 @@
 #include "Containers/ResourceArray.h"
 #include "StaticMeshResources.h"
 #include "Materials/Material.h"
-#include "Core/Render/ILGUIHudPrimitive.h"
-#include "Core/Render/LGUIRenderer.h"
+#include "Core/HudRender/ILGUIHudPrimitive.h"
+#include "Core/HudRender/LGUIRenderer.h"
 #include "Engine.h"
 #include "LGUI.h"
-#include "Core/Render/LGUIHudVertex.h"
+#include "Core/HudRender/LGUIHudVertex.h"
 #include "Core/ActorComponent/UIPostProcess.h"
 
 
