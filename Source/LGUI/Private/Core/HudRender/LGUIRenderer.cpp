@@ -1,8 +1,8 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
-#include "Core/Render/LGUIRenderer.h"
-#include "Core/Render/LGUIHudShaders.h"
-#include "Core/Render/LGUIHudVertex.h"
+#include "Core/HudRender/LGUIRenderer.h"
+#include "Core/HudRender/LGUIHudShaders.h"
+#include "Core/HudRender/LGUIHudVertex.h"
 #include "Modules/ModuleManager.h"
 #include "LGUI.h"
 #include "SceneView.h"
@@ -10,7 +10,7 @@
 #include "StaticMeshVertexData.h"
 #include "PipelineStateCache.h"
 #include "SceneRendering.h"
-#include "Core/Render/ILGUIHudPrimitive.h"
+#include "Core/HudRender/ILGUIHudPrimitive.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "ScenePrivate.h"
 #if WITH_EDITOR

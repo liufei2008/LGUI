@@ -12,7 +12,7 @@
 #include "Utils/LGUIUtils.h"
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "Core/Render/LGUIRenderer.h"
+#include "Core/HudRender/LGUIRenderer.h"
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
 #include "Core/UIDrawcall.h"
 #include "Core/ActorComponent/UIRenderable.h"

@@ -5,10 +5,10 @@
 #include "Core/UIGeometry.h"
 #include "Core/LGUISpriteData.h"
 #include "Engine/TextureRenderTarget2D.h"
-#include "Core/Render/LGUIHudShaders.h"
-#include "Core/Render/LGUIHudVertex.h"
+#include "Core/HudRender/LGUIHudShaders.h"
+#include "Core/HudRender/LGUIHudVertex.h"
 #include "PipelineStateCache.h"
-#include "Core/Render/LGUIRenderer.h"
+#include "Core/HudRender/LGUIRenderer.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
 UUIBackgroundBlur::UUIBackgroundBlur(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)

@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
-#include "Core/Render/LGUIHudVertex.h"
+#include "Core/HudRender/LGUIHudVertex.h"
 
 
 void FLGUIVertexDeclaration::InitRHI()
