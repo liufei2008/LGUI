@@ -7,7 +7,6 @@
 #include "UIBackgroundBlur.generated.h"
 
 //UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
-//This feature is still under development, the visual effects and performance need to imporove.
 //Known issue: in UE 4.23 and 4.24 packaged game, the blurred image is slightly lagged behide current screen image, still working on it.
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent), Experimental)
 class LGUI_API UUIBackgroundBlur : public UUIPostProcess
@@ -23,15 +22,24 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "100.0"))
+#define MAX_BlurStrength 100.0f
+#define INV_MAX_BlurStrength 0.01f
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 100.0f))
 		float blurStrength = 0.0f;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool applyAlphaToBlur = true;
+	//No need to change this because default value can give you good result
+	UPROPERTY(EditAnywhere, Category = "LGUI") 
+		int maxDownSampleLevel = 6;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetBlurStrength() { return blurStrength; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		int GetMaxDownSampleLevel() { return maxDownSampleLevel; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBlurStrength(float newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetMaxDownSampleLevel(int newValue);
 protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual bool NeedTextureToCreateGeometry()override { return false; }
@@ -41,8 +49,8 @@ protected:
 
 	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget1 = nullptr;
 	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget2 = nullptr;
-	const float downSampleThreshold = 3.0f;
-	bool bNeedToResize = false;
+	float inv_SampleLevelInterval = 1.0f;
+	FVector2D inv_TextureSize;
 	TArray<FLGUIPostProcessVertex> copyRegionVertexArray;
 	FCriticalSection mutex;
 	FORCEINLINE float GetBlurStrengthInternal();
