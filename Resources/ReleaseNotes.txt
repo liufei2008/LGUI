@@ -165,3 +165,6 @@
 	Modify:
 		Recreate UIFlyoutMenu and UIComboBox.
 		Change LGUIPointerEventData's property "hitComponent" to "currentComponent".
+2.6.1
+	Improve:
+		Improve visual effect and performance of UIBackgroundBlur.

@@ -6,14 +6,22 @@ struct SimpleVSToPS
     float2 uv : TEXCOORD0;
 };
 
-void SimpleVS(
+float4 _PositionScaleAndOffset;
+float4 _UVScaleAndOffset;
+bool _FlipUV_Y;
+
+void SimplePostProcessVS(
     in float3 Position:ATTRIBUTE0,
     in float2 TextureCoord0 : ATTRIBUTE1,
     out SimpleVSToPS v2p
 )
 {
     v2p.position = float4(Position.xyz, 1.0);
+    v2p.position.xy = v2p.position.xy * _PositionScaleAndOffset.xy + _PositionScaleAndOffset.zw;
     v2p.uv = TextureCoord0;
+    if (_FlipUV_Y)
+        v2p.uv.y = 1.0 - v2p.uv.y;
+    v2p.uv = v2p.uv * _UVScaleAndOffset.xy + _UVScaleAndOffset.zw;
 }
 
 

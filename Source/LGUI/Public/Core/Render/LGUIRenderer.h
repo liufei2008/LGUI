@@ -36,10 +36,12 @@ public:
 	//
 	void AddHudPrimitive(ILGUIHudPrimitive* InPrimitive);
 	void RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive);
+
 	static void CopyRenderTarget(
 		FRHICommandListImmediate& RHICmdList, 
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap, 
-		FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY
+		FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
+		const FVector4& PositionScaleAndOffset = FVector4(1, 1, 0, 0), const FVector4& UVScaleAndOffset = FVector4(1, 1, 0, 0)
 	);
 	static void CopyRenderTargetOnMeshRegion(
 		FRHICommandListImmediate& RHICmdList,

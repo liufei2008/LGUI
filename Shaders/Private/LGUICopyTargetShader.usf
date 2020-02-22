@@ -3,20 +3,16 @@
 
 Texture2D _MainTex;
 SamplerState _MainTexSampler;
-bool _FlipY;
 
-void SimplePS(
+void SimpleCopyTargetPS(
     SimpleVSToPS input,
     out float4 OutColor : SV_Target0
 )
 {
-    if (_FlipY)
-        input.uv.y = 1 - input.uv.y;
     OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
 }
 
-
-void MeshPS(
+void MeshCopyTargetPS(
     MeshPostProcessVSToPS input,
     out float4 OutColor : SV_Target0
 )

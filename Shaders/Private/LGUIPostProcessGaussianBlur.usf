@@ -1,0 +1,32 @@
+// Copyright 2019 LexLiu. All Rights Reserved.
+#include "LGUIPostProcessVertexShader.usf"
+
+static float _Offset[3] =
+{
+    0.0,
+	1.3846153846,
+	3.2307692308
+};
+
+static float _Weight[3] =
+{
+    0.2270270270,
+	0.3162162162,
+	0.0702702703
+};
+Texture2D _MainTex;
+SamplerState _MainTexSampler;
+float2 _HorizontalOrVerticalFilter;
+float2 _InvSize;
+float _BlurStrength;
+
+float4 GaussianBlurPS(SimpleVSToPS input) : SV_Target0
+{
+    float4 color = _MainTex.Sample(_MainTexSampler, input.uv) * _Weight[0];
+    for (int i = 1; i < 3; i++)
+    {
+        color += _MainTex.Sample(_MainTexSampler, input.uv + _Offset[i] * _InvSize * _BlurStrength * _HorizontalOrVerticalFilter) * _Weight[i];
+        color += _MainTex.Sample(_MainTexSampler, input.uv - _Offset[i] * _InvSize * _BlurStrength * _HorizontalOrVerticalFilter) * _Weight[i];
+    }
+    return color;
+}
