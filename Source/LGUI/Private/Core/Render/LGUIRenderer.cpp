@@ -117,12 +117,13 @@ void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InO
 	
 }
 
-void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY)
+void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
+	const FVector4& PositionScaleAndOffset, const FVector4& UVScaleAndOffset)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("CopyRenderTarget"));
 
 	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-	TShaderMapRef<FLGUICopyTargetSimplePS> PixelShader(GlobalShaderMap);
+	TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
 	FGraphicsPipelineStateInitializer GraphicsPSOInit;
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
@@ -134,18 +135,19 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-	PixelShader->SetParameters(RHICmdList, Src, FlipY);
+	VertexShader->SetParameters(RHICmdList, FlipY, PositionScaleAndOffset, UVScaleAndOffset);
+	PixelShader->SetParameters(RHICmdList, Src);
 
 	DrawFullScreenQuad(RHICmdList);
 
 	RHICmdList.EndRenderPass();
 }
-void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
+void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipUVY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("CopyRenderTargetOnMeshRegion"));
 
 	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-	TShaderMapRef<FLGUICopyTargetSimplePS> PixelShader(GlobalShaderMap);
+	TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
 	FGraphicsPipelineStateInitializer GraphicsPSOInit;
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
@@ -157,7 +159,8 @@ void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& 
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-	PixelShader->SetParameters(RHICmdList, Src, FlipY);
+	VertexShader->SetParameters(RHICmdList, FlipUVY);
+	PixelShader->SetParameters(RHICmdList, Src);
 
 	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
 	FRHIResourceCreateInfo CreateInfo;

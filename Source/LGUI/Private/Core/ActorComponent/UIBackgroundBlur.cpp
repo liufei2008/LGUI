@@ -31,6 +31,8 @@ void UUIBackgroundBlur::BeginPlay()
 			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
 		};
 	}
+
+	inv_SampleLevelInterval = 1.0f / (MAX_BlurStrength / maxDownSampleLevel);
 }
 
 void UUIBackgroundBlur::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -45,9 +47,10 @@ void UUIBackgroundBlur::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-		if (Property->GetFName() == TEXT("blurStrength") || Property->GetFName() == TEXT("applyAlphaToBlur"))
+		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(UUIBackgroundBlur, maxDownSampleLevel))
 		{
-			bNeedToResize = true;
+			maxDownSampleLevel += 1;
+			SetMaxDownSampleLevel(maxDownSampleLevel - 1);
 		}
 	}
 }
@@ -70,7 +73,6 @@ void UUIBackgroundBlur::OnUpdateGeometry(bool InVertexPositionChanged, bool InVe
 	if (InVertexColorChanged)
 	{
 		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-		bNeedToResize = true;
 	}
 }
 
@@ -79,7 +81,15 @@ void UUIBackgroundBlur::SetBlurStrength(float newValue)
 	if (blurStrength != newValue)
 	{
 		blurStrength = newValue;
-		bNeedToResize = true;
+	}
+}
+
+void UUIBackgroundBlur::SetMaxDownSampleLevel(int newValue)
+{
+	if (maxDownSampleLevel != newValue)
+	{
+		maxDownSampleLevel = newValue;
+		inv_SampleLevelInterval = 1.0f / (MAX_BlurStrength / maxDownSampleLevel);
 	}
 }
 
@@ -94,39 +104,34 @@ float UUIBackgroundBlur::GetBlurStrengthInternal()
 
 void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	auto calculatedBlurStrength = GetBlurStrengthInternal();
-	if (calculatedBlurStrength <= 0.0f)return;
+	auto blurStrengthWithAlpha = GetBlurStrengthInternal();
+	if (blurStrengthWithAlpha <= 0.0f)return;
 	if (!IsValid(blurEffectRenderTarget1))
 	{
 		float width = widget.width;
 		float height = widget.height;
-		if (calculatedBlurStrength >= downSampleThreshold)
-		{
-			float downSample = calculatedBlurStrength / downSampleThreshold;
-			width /= downSample;
-			height /= downSample;
-		}
 
 		blurEffectRenderTarget1 = NewObject<UTextureRenderTarget2D>(this);
 		blurEffectRenderTarget1->InitAutoFormat((int)width, (int)height);
 
 		blurEffectRenderTarget2 = NewObject<UTextureRenderTarget2D>(this);
 		blurEffectRenderTarget2->InitAutoFormat((int)width, (int)height);
+
+		inv_TextureSize.X = 1.0f / width;
+		inv_TextureSize.Y = 1.0f / height;
 	}
 	else
 	{
-		if (blurEffectRenderTarget1->SizeX != widget.width || blurEffectRenderTarget1->SizeY != widget.height || bNeedToResize)
+		if (blurEffectRenderTarget1->SizeX != widget.width || blurEffectRenderTarget1->SizeY != widget.height)
 		{
 			float width = widget.width;
 			float height = widget.height;
-			if (calculatedBlurStrength >= downSampleThreshold)
-			{
-				float downSample = calculatedBlurStrength / downSampleThreshold;
-				width /= downSample;
-				height /= downSample;
-			}
+
 			blurEffectRenderTarget1->ResizeTarget((int)width, (int)height);
 			blurEffectRenderTarget2->ResizeTarget((int)width, (int)height);
+
+			inv_TextureSize.X = 1.0f / width;
+			inv_TextureSize.Y = 1.0f / height;
 		}
 	}
 
@@ -156,8 +161,8 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);
-	auto calculatedBlurStrength = GetBlurStrengthInternal();
-	if (calculatedBlurStrength <= 0.0f)return;
+	auto blurStrengthWithAlpha = GetBlurStrengthInternal();
+	if (blurStrengthWithAlpha <= 0.0f)return;
 	if (!IsValid(blurEffectRenderTarget1))return;
 	if (!IsValid(blurEffectRenderTarget2))return;
 
@@ -178,7 +183,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	//do the blur process on the area
 	{
 		TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-		TShaderMapRef<FLGUIBlurShaderPS> PixelShader(GlobalShaderMap);
+		TShaderMapRef<FLGUIPostProcessGaussianBlurPS> PixelShader(GlobalShaderMap);
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
@@ -189,31 +194,46 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-		int iterateCount = 1;
-		if (calculatedBlurStrength >= 1.0f)
+		VertexShader->SetParameters(RHICmdList, false);
+
+		auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
+		PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
+		blurStrengthWithAlpha = FMath::Pow(blurStrengthWithAlpha * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more linear
+		float calculatedBlurStrength = blurStrengthWithAlpha * inv_SampleLevelInterval;
+		float calculatedBlurStrength2 = 1.0f;
+		int sampleCount = (int)calculatedBlurStrength + 1;
+		for (int i = 0; i < sampleCount; i++)
 		{
-			iterateCount = FMath::CeilToInt(calculatedBlurStrength);
-			iterateCount = FMath::Min(iterateCount, 5);//max iterate count is 5
-		}
-		for (int i = 0; i < iterateCount; i++)
-		{
-			//render vertical
+			if (i + 1 == sampleCount)
+			{
+				float fracValue = (calculatedBlurStrength - (int)calculatedBlurStrength);
+				fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) / PI + 0.5f;//another thing to make the blur transition feel more linear
+				PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2 * fracValue);
+			}
+			else
+			{
+				PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2);
+			}
+			//render horizontal
 			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_Store), TEXT("Vertical"));
-			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1, calculatedBlurStrength, false);
+			PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
+			PixelShader->SetHorizontalOrVertical(RHICmdList, true);
 			FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
 			RHICmdList.EndRenderPass();
 			//render horizontal
 			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_Store), TEXT("Horizontal"));
-			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture2, calculatedBlurStrength, true);
+			PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
+			PixelShader->SetHorizontalOrVertical(RHICmdList, false);
 			FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
 			RHICmdList.EndRenderPass();
+			calculatedBlurStrength2 *= 2;
 		}
 	}
 	//after blur process, copy the area back to screen image
 	{
 		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_Store), TEXT("CopyAreaToScreen"));
 		TShaderMapRef<FLGUIMeshPostProcessVS> VertexShader(GlobalShaderMap);
-		TShaderMapRef<FLGUICopyTargetMeshPS> PixelShader(GlobalShaderMap);
+		TShaderMapRef<FLGUIMeshCopyTargetPS> PixelShader(GlobalShaderMap);
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
