@@ -7,7 +7,7 @@
 #include "UIBackgroundBlur.generated.h"
 
 //UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
-//Known issue: in UE 4.23 and 4.24 packaged game, the blurred image is slightly lagged behide current screen image, still working on it.
+//Known issue: in UE 4.24 packaged game, the blurred image is slightly lagged behide current screen image, still working on it.
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent), Experimental)
 class LGUI_API UUIBackgroundBlur : public UUIPostProcess
 {
