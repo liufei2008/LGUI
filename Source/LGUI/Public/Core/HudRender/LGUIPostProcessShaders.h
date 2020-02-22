@@ -155,7 +155,7 @@ public:
 		InvSizeParameter.Bind(Initializer.ParameterMap, TEXT("_InvSize"));
 		BlurStrengthParameter.Bind(Initializer.ParameterMap, TEXT("_BlurStrength"));
 	}
-	void SetMainTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef MainTexture, const FSamplerStateRHIParamRef& MainTextureSampler)
+	void SetMainTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef MainTexture, FRHISamplerState* MainTextureSampler)
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
 	}
