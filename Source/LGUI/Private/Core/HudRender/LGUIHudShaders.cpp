@@ -31,13 +31,8 @@ void FLGUIHudRenderVS::ModifyCompilationEnvironment(const FMaterialShaderPermuta
 }
 void FLGUIHudRenderVS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
 {
-	SetUniformBufferParameter(RHICmdList, GetVertexShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
-	FMaterialShader::SetParameters(RHICmdList, GetVertexShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, ESceneTextureSetupMode::None);
-}
-bool FLGUIHudRenderVS::Serialize(FArchive& Ar)
-{
-	bool bShaderHasOutdatedParameters = FMaterialShader::Serialize(Ar);
-	return bShaderHasOutdatedParameters;
+	SetUniformBufferParameter(RHICmdList, RHICmdList.GetBoundVertexShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
+	FMaterialShader::SetParameters(RHICmdList, RHICmdList.GetBoundVertexShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, ESceneTextureSetupMode::None);
 }
 
 
@@ -91,12 +86,7 @@ void FLGUIHudRenderPS::SetBlendState(FGraphicsPipelineStateInitializer& Graphics
 }
 void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
 {
-	SetUniformBufferParameter(RHICmdList, GetPixelShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
+	SetUniformBufferParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), GetUniformBufferParameter<FPrimitiveUniformShaderParameters>(), *Mesh.Elements[0].PrimitiveUniformBufferResource);
 	const ESceneTextureSetupMode SceneTextures = ESceneTextureSetupMode::SceneDepth | ESceneTextureSetupMode::SSAO | ESceneTextureSetupMode::CustomDepth;
-	FMaterialShader::SetParameters(RHICmdList, GetPixelShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, SceneTextures);
-}
-bool FLGUIHudRenderPS::Serialize(FArchive& Ar)
-{
-	bool bShaderHasOutdatedParameters = FMaterialShader::Serialize(Ar);
-	return bShaderHasOutdatedParameters;
+	FMaterialShader::SetParameters(RHICmdList, RHICmdList.GetBoundPixelShader(), MaterialRenderProxy, *Material, View, View.ViewUniformBuffer, SceneTextures);
 }

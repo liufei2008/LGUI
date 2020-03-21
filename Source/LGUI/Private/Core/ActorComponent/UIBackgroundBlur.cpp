@@ -10,6 +10,7 @@
 #include "PipelineStateCache.h"
 #include "Core/HudRender/LGUIRenderer.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "GlobalShader.h"
 
 UUIBackgroundBlur::UUIBackgroundBlur(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -155,7 +156,7 @@ DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundBlur"), STAT_BackgroundBlur, STAT
 void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	FRHICommandListImmediate& RHICmdList, 
 	FTexture2DRHIRef ScreenImage, 
-	TShaderMap<FGlobalShaderType>* GlobalShaderMap, 
+	FGlobalShaderMap* GlobalShaderMap, 
 	const FMatrix& ViewProjectionMatrix,  
 	const TFunction<void()>& DrawPrimitive
 )
@@ -190,8 +191,8 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
+		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 		VertexShader->SetParameters(RHICmdList, false);
@@ -240,8 +241,8 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIVertexDeclaration();
-		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
+		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 		VertexShader->SetParameters(RHICmdList, ViewProjectionMatrix);

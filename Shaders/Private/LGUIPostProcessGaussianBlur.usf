@@ -1,5 +1,6 @@
 // Copyright 2019 LexLiu. All Rights Reserved.
 #include "LGUIPostProcessVertexShader.usf"
+#include "/Engine/Public/Platform.ush"
 
 static float _Offset[3] =
 {

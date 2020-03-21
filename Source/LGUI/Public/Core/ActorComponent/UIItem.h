@@ -40,7 +40,7 @@ public:
 	UIAnchorVerticalAlign prevAnchorVAlign;
 #endif
 #if WITH_EDITOR
-	virtual void PreEditChange(UProperty* PropertyAboutToChange)override;
+	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditComponentMove(bool bFinished) override;
 	//USceneComponent Interface.Only needed for show rect range in editor
@@ -352,7 +352,7 @@ protected:
 	void LGUIPropagateTransformUpdate(bool inTransformChanged);
 	void LGUIUpdateChildTransforms();
 
-	static class UBoolProperty* bComponentToWorldUpdated_PropertyRef;
+	static class FBoolProperty* bComponentToWorldUpdated_PropertyRef;
 	static bool LGUIGetComponentToWorldUpdated(USceneComponent* Target);
 	static void LGUISetComponentToWorldUpdated(USceneComponent* Target, bool value);
 	static void LGUICheckComponentToWorldUpdatedProperty();

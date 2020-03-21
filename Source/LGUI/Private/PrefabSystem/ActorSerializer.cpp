@@ -161,7 +161,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	{
 		if (auto obj = MapIDToActor.Find(item.id))
 		{
-			auto objProperty = (UObjectPropertyBase*)item.ObjProperty;
+			auto objProperty = (FObjectPropertyBase*)item.ObjProperty;
 			objProperty->SetObjectPropertyValue_InContainer(item.Dest, *obj, item.cppArrayIndex);
 		}
 	}
@@ -462,12 +462,12 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 	OutterArray.Add(Target);
 	Outter = Target;
 
-	auto propertyField = TFieldRange<UProperty>(Target->GetClass());
+	auto propertyField = TFieldRange<FProperty>(Target->GetClass());
 	int excludePropertyCount = ExcludeProperties.Num();
 	int propertyIndex = 0;
 	for (const auto propertyItem : propertyField)
 	{
-		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
+		if (auto objProperty = CastField<FObjectPropertyBase>(propertyItem))
 		{
 			if (objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
 			{
@@ -506,12 +506,12 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 	OutterArray.Add(Target);
 	Outter = Target;
 
-	auto propertyField = TFieldRange<UProperty>(Target->GetClass());
+	auto propertyField = TFieldRange<FProperty>(Target->GetClass());
 	int excludePropertyCount = ExcludeProperties.Num();
 	int propertyIndex = 0;
 	for (const auto propertyItem : propertyField)
 	{
-		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
+		if (auto objProperty = CastField<FObjectPropertyBase>(propertyItem))
 		{
 			if (objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
 			{
@@ -545,7 +545,7 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 		Outter = nullptr;
 	}
 }
-bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
+bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return false;//skip property with these flags
 	FLGUIPropertyData ItemPropertyData;
@@ -584,7 +584,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 		}
 		else
 		{
-			if (Cast<UClassProperty>(Property) != nullptr || Cast<USoftClassProperty>(Property) != nullptr)
+			if (CastField<FClassProperty>(Property) != nullptr || CastField<FSoftClassProperty>(Property) != nullptr)
 			{
 				int index = -2;
 				if (ItemPropertyData.Data.Num() == 4)
@@ -594,12 +594,12 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				if (index <= -1)return true;
 				if (auto asset = FindClassFromListByIndex(index))
 				{
-					auto classProperty = (UObjectPropertyBase*)Property;
+					auto classProperty = (FObjectPropertyBase*)Property;
 					classProperty->SetObjectPropertyValue_InContainer(Dest, asset, cppArrayIndex);
 				}
 				return true;
 			}
-			else if (auto objProperty = Cast<UObjectPropertyBase>(Property))
+			else if (auto objProperty = CastField<FObjectPropertyBase>(Property))
 			{
 				int index = -2;
 				if (ItemPropertyData.Data.Num() == 4)
@@ -658,12 +658,12 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				return true;
 			}
 			
-			else if (auto interfaceProperty = Cast<UInterfaceProperty>(Property))
+			else if (auto interfaceProperty = CastField<FInterfaceProperty>(Property))
 			{
-				//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]UInterfaceProperty:%s"), *(Property->GetFName().ToString()));
+				//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]FInterfaceProperty:%s"), *(Property->GetFName().ToString()));
 			}
 
-			else if (auto arrProperty = Cast<UArrayProperty>(Property))
+			else if (auto arrProperty = CastField<FArrayProperty>(Property))
 			{
 				FScriptArrayHelper ArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data);//array count
@@ -674,7 +674,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto mapProperty = Cast<UMapProperty>(Property))
+			else if (auto mapProperty = CastField<FMapProperty>(Property))
 			{
 				FScriptMapHelper MapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data) * 2;//Map element's data is stored as key,value,key,value...
@@ -690,7 +690,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				MapHelper.Rehash();
 				return true;
 			}
-			else if (auto setProperty = Cast<USetProperty>(Property))
+			else if (auto setProperty = CastField<FSetProperty>(Property))
 			{
 				FScriptSetHelper SetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data);//Set count
@@ -702,7 +702,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				SetHelper.Rehash();
 				return true;
 			}
-			else if (auto structProperty = Cast<UStructProperty>(Property))
+			else if (auto structProperty = CastField<FStructProperty>(Property))
 			{
 				bool isSimpleProperty = false;
 				switch (ItemPropertyData.PropertyType)
@@ -724,7 +724,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				{
 					auto structPtr = Property->ContainerPtrToValuePtr<uint8>(Dest, cppArrayIndex);
 					int propertyIndex = 0;
-					for (TFieldIterator<UProperty> It(structProperty->Struct); It; ++It)
+					for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 					{
 						if (LoadCommonProperty(*It, ItemType_Normal, propertyIndex, structPtr, ItemPropertyData.ContainerData))
 						{
@@ -735,7 +735,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				return true;
 			}
 
-			else if (auto strProperty = Cast<UStrProperty>(Property))//store string as reference
+			else if (auto strProperty = CastField<FStrProperty>(Property))//store string as reference
 			{
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
@@ -746,7 +746,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto nameProperty = Cast<UNameProperty>(Property))
+			else if (auto nameProperty = CastField<FNameProperty>(Property))
 			{
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
@@ -757,7 +757,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto textProperty = Cast<UTextProperty>(Property))
+			else if (auto textProperty = CastField<FTextProperty>(Property))
 			{
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
@@ -768,17 +768,17 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto delegateProperty = Cast<UDelegateProperty>(Property))//blueprint dynamic delegate
+			else if (auto delegateProperty = CastField<FDelegateProperty>(Property))//blueprint dynamic delegate
 			{
 				//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]delegateProperty:%s"), *(Property->GetFName().ToString()));
 			}
-			else if (auto multicastDelegateProperty = Cast<UMulticastDelegateProperty>(Property))//blueprint dynamic delegate
+			else if (auto multicastDelegateProperty = CastField<FMulticastDelegateProperty>(Property))//blueprint dynamic delegate
 			{
 				//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]multicastDelegateProperty:%s"), *(Property->GetFName().ToString()));
 			}
 			else
 			{
-				if (auto boolProperty = Cast<UBoolProperty>(Property))
+				if (auto boolProperty = CastField<FBoolProperty>(Property))
 				{
 					auto value = BitConverter::ToBoolean(ItemPropertyData.Data);
 					boolProperty->SetPropertyValue_InContainer((void*)Dest, value, cppArrayIndex);
@@ -803,7 +803,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 	}
 	return false;
 }
-bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
+bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return false;//skip property with these flags
 	if (Property->IsEditorOnlyProperty())return false;//Build data dont have EditorOnly property
@@ -847,7 +847,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 		}
 		else
 		{
-			if (Cast<UClassProperty>(Property) != nullptr || Cast<USoftClassProperty>(Property) != nullptr)
+			if (CastField<FClassProperty>(Property) != nullptr || CastField<FSoftClassProperty>(Property) != nullptr)
 			{
 				int index = -2;
 				if (ItemPropertyData.Data.Num() == 4)
@@ -857,12 +857,12 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				if (index <= -1)return true;
 				if (auto asset = FindClassFromListByIndex(index))
 				{
-					auto classProperty = (UObjectPropertyBase*)Property;
+					auto classProperty = (FObjectPropertyBase*)Property;
 					classProperty->SetObjectPropertyValue_InContainer(Dest, asset, cppArrayIndex);
 				}
 				return true;
 			}
-			else if (auto objProperty = Cast<UObjectPropertyBase>(Property))
+			else if (auto objProperty = CastField<FObjectPropertyBase>(Property))
 			{
 				int index = -2;
 				if (ItemPropertyData.Data.Num() == 4)
@@ -920,12 +920,12 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto interfaceProperty = Cast<UInterfaceProperty>(Property))
+			else if (auto interfaceProperty = CastField<FInterfaceProperty>(Property))
 			{
-				//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]UInterfaceProperty:%s"), *(Property->GetFName().ToString()));
+				//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]FInterfaceProperty:%s"), *(Property->GetFName().ToString()));
 			}
 
-			else if (auto arrProperty = Cast<UArrayProperty>(Property))
+			else if (auto arrProperty = CastField<FArrayProperty>(Property))
 			{
 				FScriptArrayHelper ArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data);//array count
@@ -936,7 +936,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto mapProperty = Cast<UMapProperty>(Property))
+			else if (auto mapProperty = CastField<FMapProperty>(Property))
 			{
 				FScriptMapHelper MapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data) * 2;//Map element's data is stored as key,value,key,value...
@@ -952,7 +952,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				MapHelper.Rehash();
 				return true;
 			}
-			else if (auto setProperty = Cast<USetProperty>(Property))
+			else if (auto setProperty = CastField<FSetProperty>(Property))
 			{
 				FScriptSetHelper SetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data);//Set count
@@ -964,7 +964,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				SetHelper.Rehash();
 				return true;
 			}
-			else if (auto structProperty = Cast<UStructProperty>(Property))
+			else if (auto structProperty = CastField<FStructProperty>(Property))
 			{
 				bool isSimpleProperty = false;
 				switch (ItemPropertyData.PropertyType)
@@ -986,7 +986,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				{
 					auto structPtr = Property->ContainerPtrToValuePtr<uint8>(Dest, cppArrayIndex);
 					int propertyIndex = 0;
-					for (TFieldIterator<UProperty> It(structProperty->Struct); It; ++It)
+					for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 					{
 						if (LoadCommonProperty(*It, ItemType_Normal, propertyIndex, structPtr, ItemPropertyData.ContainerData))
 						{
@@ -997,7 +997,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				return true;
 			}
 
-			else if (auto strProperty = Cast<UStrProperty>(Property))//string store as reference
+			else if (auto strProperty = CastField<FStrProperty>(Property))//string store as reference
 			{
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
@@ -1008,7 +1008,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto nameProperty = Cast<UNameProperty>(Property))
+			else if (auto nameProperty = CastField<FNameProperty>(Property))
 			{
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
@@ -1019,7 +1019,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto textProperty = Cast<UTextProperty>(Property))
+			else if (auto textProperty = CastField<FTextProperty>(Property))
 			{
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
@@ -1030,17 +1030,17 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				return true;
 			}
-			else if (auto delegateProperty = Cast<UDelegateProperty>(Property))//blueprint dynamic delegate
+			else if (auto delegateProperty = CastField<FDelegateProperty>(Property))//blueprint dynamic delegate
 			{
 				//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]delegateProperty:%s"), *(Property->GetFName().ToString()));
 			}
-			else if (auto multicastDelegateProperty = Cast<UMulticastDelegateProperty>(Property))//blueprint dynamic delegate
+			else if (auto multicastDelegateProperty = CastField<FMulticastDelegateProperty>(Property))//blueprint dynamic delegate
 			{
 				//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]multicastDelegateProperty:%s"), *(Property->GetFName().ToString()));
 			}
 			else
 			{
-				if (auto boolProperty = Cast<UBoolProperty>(Property))
+				if (auto boolProperty = CastField<FBoolProperty>(Property))
 				{
 					auto value = BitConverter::ToBoolean(ItemPropertyData.Data);
 					boolProperty->SetPropertyValue_InContainer((void*)Dest, value, cppArrayIndex);
@@ -1060,7 +1060,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 	return false;
 }
 
-void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint8* Dest, TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
+void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint8* Dest, TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return;//skip property with these flag
 	FLGUIPropertyData ItemPropertyData;
@@ -1086,9 +1086,9 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 	}
 	else
 	{
-		if (Cast<UClassProperty>(Property) != nullptr || Cast<USoftClassProperty>(Property) != nullptr)
+		if (CastField<FClassProperty>(Property) != nullptr || CastField<FSoftClassProperty>(Property) != nullptr)
 		{
-			auto classProperty = (UObjectPropertyBase*)Property;
+			auto classProperty = (FObjectPropertyBase*)Property;
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
 			if (auto object = classProperty->GetObjectPropertyValue_InContainer(Dest, cppArrayIndex))
 			{
@@ -1101,7 +1101,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			}
 			PropertyData.Add(ItemPropertyData);
 		}
-		else if (auto objProperty = Cast<UObjectPropertyBase>(Property))
+		else if (auto objProperty = CastField<FObjectPropertyBase>(Property))
 		{
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
 			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Dest, cppArrayIndex))
@@ -1154,12 +1154,12 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			}
 		}
 		
-		else if (auto interfaceProperty = Cast<UInterfaceProperty>(Property))
+		else if (auto interfaceProperty = CastField<FInterfaceProperty>(Property))
 		{
-			//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]UInterfaceProperty:%s"), *(Property->GetFName().ToString()));
+			//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]FInterfaceProperty:%s"), *(Property->GetFName().ToString()));
 		}
 
-		else if (auto arrProperty = Cast<UArrayProperty>(Property))
+		else if (auto arrProperty = CastField<FArrayProperty>(Property))
 		{
 			FScriptArrayHelper ArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 			auto arrayCount = ArrayHelper.Num();
@@ -1171,7 +1171,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			}
 			PropertyData.Add(ItemPropertyData);
 		}
-		else if (auto mapProperty = Cast<UMapProperty>(Property))//map element's data stored as key/value/key/value...
+		else if (auto mapProperty = CastField<FMapProperty>(Property))//map element's data stored as key/value/key/value...
 		{
 			FScriptMapHelper MapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 			auto count = MapHelper.Num();
@@ -1184,7 +1184,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			}
 			PropertyData.Add(ItemPropertyData);
 		}
-		else if (auto setProperty = Cast<USetProperty>(Property))
+		else if (auto setProperty = CastField<FSetProperty>(Property))
 		{
 			FScriptSetHelper SetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 			auto count = SetHelper.Num();
@@ -1196,7 +1196,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			}
 			PropertyData.Add(ItemPropertyData);
 		}
-		else if (auto structProperty = Cast<UStructProperty>(Property))
+		else if (auto structProperty = CastField<FStructProperty>(Property))
 		{
 			auto structName = structProperty->Struct->GetFName();
 			bool isSimpleData = false;
@@ -1241,7 +1241,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			{
 				ItemPropertyData.PropertyType = ELGUIPropertyType::PT_StructContainer;
 				auto structPtr = Property->ContainerPtrToValuePtr<uint8>(Dest, cppArrayIndex);
-				for (TFieldIterator<UProperty> It(structProperty->Struct); It; ++It)
+				for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 				{
 					SaveCommonProperty(*It, ItemType_Normal, structPtr, ItemPropertyData.ContainerData);
 				}
@@ -1249,7 +1249,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			PropertyData.Add(ItemPropertyData);
 		}
 
-		else if (auto strProperty = Cast<UStrProperty>(Property))
+		else if (auto strProperty = CastField<FStrProperty>(Property))
 		{
 			auto stringValue = strProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
 			auto id = FindStringIdFromList(stringValue);
@@ -1257,7 +1257,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
 			PropertyData.Add(ItemPropertyData);
 		}
-		else if (auto nameProperty = Cast<UNameProperty>(Property))
+		else if (auto nameProperty = CastField<FNameProperty>(Property))
 		{
 			auto nameValue = nameProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
 			auto id = FindNameIdFromList(nameValue);
@@ -1265,7 +1265,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
 			PropertyData.Add(ItemPropertyData);
 		}
-		else if (auto textProperty = Cast<UTextProperty>(Property))
+		else if (auto textProperty = CastField<FTextProperty>(Property))
 		{
 			auto textValue = textProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
 			auto id = FindTextIdFromList(textValue);
@@ -1273,17 +1273,17 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
 			PropertyData.Add(ItemPropertyData);
 		}
-		else if (auto delegateProperty = Cast<UDelegateProperty>(Property))//blueprint dynamic delegate
+		else if (auto delegateProperty = CastField<FDelegateProperty>(Property))//blueprint dynamic delegate
 		{
 			//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]delegateProperty:%s"), *(Property->GetFName().ToString()));
 		}
-		else if (auto multicastDelegateProperty = Cast<UMulticastDelegateProperty>(Property))//blueprint dynamic delegate
+		else if (auto multicastDelegateProperty = CastField<FMulticastDelegateProperty>(Property))//blueprint dynamic delegate
 		{
 			//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]multicastDelegateProperty:%s"), *(Property->GetFName().ToString()));
 		}
 		else
 		{
-			if (auto boolProperty = Cast<UBoolProperty>(Property))//some bool is declared as bit field, so we need to handle it specially
+			if (auto boolProperty = CastField<FBoolProperty>(Property))//some bool is declared as bit field, so we need to handle it specially
 			{
 				auto value = boolProperty->GetPropertyValue_InContainer((void*)Dest, cppArrayIndex);
 				ItemPropertyData.Data = BitConverter::GetBytes(value);
@@ -1291,47 +1291,47 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			}
 			else
 			{
-				if (Cast<UInt8Property>(Property) != nullptr)
+				if (CastField<FInt8Property>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_int8;
 				}
-				else if (Cast<UInt16Property>(Property) != nullptr)
+				else if (CastField<FInt16Property>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_int16;
 				}
-				else if (Cast<UIntProperty>(Property) != nullptr)
+				else if (CastField<FIntProperty>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_int32;
 				}
-				else if (Cast<UInt64Property>(Property) != nullptr)
+				else if (CastField<FInt64Property>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_int64;
 				}
-				else if (Cast<UByteProperty>(Property) != nullptr)
+				else if (CastField<FByteProperty>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_uint8;
 				}
-				else if (Cast<UUInt16Property>(Property) != nullptr)
+				else if (CastField<FUInt16Property>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_uint16;
 				}
-				else if (Cast<UUInt32Property>(Property) != nullptr)
+				else if (CastField<FUInt32Property>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_uint32;
 				}
-				else if (Cast<UUInt64Property>(Property) != nullptr)
+				else if (CastField<FUInt64Property>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_uint64;
 				}
-				else if (Cast<UFloatProperty>(Property) != nullptr)
+				else if (CastField<FFloatProperty>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_float;
 				}
-				else if (Cast<UDoubleProperty>(Property) != nullptr)
+				else if (CastField<FDoubleProperty>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_double;
 				}
-				else if (Cast<UEnumProperty>(Property) != nullptr)
+				else if (CastField<FEnumProperty>(Property) != nullptr)
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_uint8;
 				}
@@ -1348,11 +1348,11 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 }
 void ActorSerializer::SaveProperty(UObject* Target, TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties)
 {
-	auto propertyField = TFieldRange<UProperty>(Target->GetClass());
+	auto propertyField = TFieldRange<FProperty>(Target->GetClass());
 	int excludePropertyCount = ExcludeProperties.Num();
 	for (const auto propertyItem : propertyField)
 	{
-		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
+		if (auto objProperty = CastField<FObjectPropertyBase>(propertyItem))
 		{
 			if (objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//ignore ActorComponent, just need to handle normal properties
 			{

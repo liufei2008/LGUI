@@ -680,63 +680,63 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 	}
 
 	FText TransactionText;
-	UProperty* ValueProperty = nullptr;
-	UProperty* AxisProperty = nullptr;
+	FProperty* ValueProperty = nullptr;
+	FProperty* AxisProperty = nullptr;
 	
 	switch (TransformField)
 	{
 	case ETransformField::Location:
 		TransactionText = LOCTEXT("OnSetLocation", "Set Location");
-		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), TEXT("RelativeLocation"));
+		ValueProperty = FindField<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeLocation"));
 		
 		// Only set axis property for single axis set
 		if (Axis == EAxisList::X)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, X));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, X));
 		}
 		else if (Axis == EAxisList::Y)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Y));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Y));
 		}
 		else if (Axis == EAxisList::Z)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Z));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Z));
 		}
 		break;
 	case ETransformField::Rotation:
 		TransactionText = LOCTEXT("OnSetRotation", "Set Rotation");
-		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), TEXT("RelativeRotation"));
+		ValueProperty = FindField<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeRotation"));
 		
 		// Only set axis property for single axis set
 		if (Axis == EAxisList::X)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Roll));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Roll));
 		}
 		else if (Axis == EAxisList::Y)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Pitch));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Pitch));
 		}
 		else if (Axis == EAxisList::Z)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Yaw));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Yaw));
 		}
 		break;
 	case ETransformField::Scale:
 		TransactionText = LOCTEXT("OnSetScale", "Set Scale");
-		ValueProperty = FindField<UProperty>(USceneComponent::StaticClass(), TEXT("RelativeScale3D"));
+		ValueProperty = FindField<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeScale3D"));
 
 		// If keep scale is set, don't set axis property
 		if (!bPreserveScaleRatio && Axis == EAxisList::X)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, X));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, X));
 		}
 		else if (!bPreserveScaleRatio && Axis == EAxisList::Y)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Y));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Y));
 		}
 		else if (!bPreserveScaleRatio && Axis == EAxisList::Z)
 		{
-			AxisProperty = FindField<UFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Z));
+			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Z));
 		}
 		break;
 	default:

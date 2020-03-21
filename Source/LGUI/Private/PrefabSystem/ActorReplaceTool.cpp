@@ -6,7 +6,7 @@
 #include "Utils/LGUIUtils.h"
 #include "EngineUtils.h"
 
-bool ActorReplaceTool::CopyCommonProperty(UProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex, bool isInsideCppArray)
+bool ActorReplaceTool::CopyCommonProperty(FProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return true;//skip property with special flag
 	if (Property->ArrayDim > 1 && isInsideCppArray == false)
@@ -19,12 +19,12 @@ bool ActorReplaceTool::CopyCommonProperty(UProperty* Property, uint8* Src, uint8
 	}
 	else
 	{
-		if (Cast<UClassProperty>(Property) != nullptr || Cast<USoftClassProperty>(Property) != nullptr)
+		if (CastField<FClassProperty>(Property) != nullptr || CastField<FSoftClassProperty>(Property) != nullptr)
 		{
 			Property->CopyCompleteValue_InContainer(Dest, Src);
 			return false;
 		}
-		else if (auto objProperty = Cast<UObjectPropertyBase>(Property))
+		else if (auto objProperty = CastField<FObjectPropertyBase>(Property))
 		{
 			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Src, cppArrayIndex))
 			{
@@ -63,7 +63,7 @@ bool ActorReplaceTool::CopyCommonProperty(UProperty* Property, uint8* Src, uint8
 			}
 		}
 
-		else if (auto arrProperty = Cast<UArrayProperty>(Property))
+		else if (auto arrProperty = CastField<FArrayProperty>(Property))
 		{
 			FScriptArrayHelper OriginArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Src, cppArrayIndex));
 			FScriptArrayHelper CopiedArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
@@ -74,7 +74,7 @@ bool ActorReplaceTool::CopyCommonProperty(UProperty* Property, uint8* Src, uint8
 				CopyCommonProperty(arrProperty->Inner, OriginArrayHelper.GetRawPtr(i), CopiedArrayHelper.GetRawPtr(i));
 			}
 		}
-		else if (auto mapProperty = Cast<UMapProperty>(Property))
+		else if (auto mapProperty = CastField<FMapProperty>(Property))
 		{
 			FScriptMapHelper OriginMapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Src, cppArrayIndex));
 			FScriptMapHelper CopiedMapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
@@ -87,7 +87,7 @@ bool ActorReplaceTool::CopyCommonProperty(UProperty* Property, uint8* Src, uint8
 			}
 			CopiedMapHelper.Rehash();
 		}
-		else if (auto setProperty = Cast<USetProperty>(Property))
+		else if (auto setProperty = CastField<FSetProperty>(Property))
 		{
 			FScriptSetHelper OriginSetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Src, cppArrayIndex));
 			FScriptSetHelper CopiedSetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
@@ -99,11 +99,11 @@ bool ActorReplaceTool::CopyCommonProperty(UProperty* Property, uint8* Src, uint8
 			}
 			CopiedSetHelper.Rehash();
 		}
-		else if (auto structProperty = Cast<UStructProperty>(Property))
+		else if (auto structProperty = CastField<FStructProperty>(Property))
 		{
 			auto OriginPtr = Property->ContainerPtrToValuePtr<uint8>(Src, cppArrayIndex);
 			auto CopiedPtr = Property->ContainerPtrToValuePtr<uint8>(Dest, cppArrayIndex);
-			for (TFieldIterator<UProperty> It(structProperty->Struct); It; ++It)
+			for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 			{
 				CopyCommonProperty(*It, OriginPtr, CopiedPtr);
 			}
@@ -122,7 +122,7 @@ void ActorReplaceTool::CopyProperty(UObject* Origin, UObject* Target, TArray<FNa
 	OutterArray.Add(Target);
 	Outter = Target;
 
-	auto propertyField = TFieldRange<UProperty>(Target->GetClass());
+	auto propertyField = TFieldRange<FProperty>(Target->GetClass());
 	int excludePropertyCount = ExcludeProperties.Num();
 	for (const auto propertyItem : propertyField)
 	{
@@ -156,8 +156,8 @@ void ActorReplaceTool::CopyPropertyChecked(UObject* Origin, UObject* Target, TAr
 	Outter = Target;
 
 	//collect origin object's property value
-	TMap<FName, UProperty*> srcPropertyMap;
-	auto srcPropertyField = TFieldRange<UProperty>(Origin->GetClass());
+	TMap<FName, FProperty*> srcPropertyMap;
+	auto srcPropertyField = TFieldRange<FProperty>(Origin->GetClass());
 	int excludePropertyCount = ExcludeProperties.Num();
 	for (const auto propertyItem : srcPropertyField)
 	{
@@ -175,7 +175,7 @@ void ActorReplaceTool::CopyPropertyChecked(UObject* Origin, UObject* Target, TAr
 		srcPropertyMap.Add(propertyName, propertyItem);
 	}
 	//copy to target property
-	auto targetPropertyField = TFieldRange<UProperty>(Target->GetClass());
+	auto targetPropertyField = TFieldRange<FProperty>(Target->GetClass());
 	for (const auto targetProperty : targetPropertyField)
 	{
 		auto propertyName = targetProperty->GetFName();
@@ -207,8 +207,8 @@ void ActorReplaceTool::CopyPropertyForActorChecked(UObject* Origin, UObject* Tar
 	Outter = Target;
 
 	//collect origin object's property value
-	TMap<FName, UProperty*> srcPropertyMap;
-	auto srcPropertyField = TFieldRange<UProperty>(Origin->GetClass());
+	TMap<FName, FProperty*> srcPropertyMap;
+	auto srcPropertyField = TFieldRange<FProperty>(Origin->GetClass());
 	int excludePropertyCount = ExcludeProperties.Num();
 	for (const auto propertyItem : srcPropertyField)
 	{
@@ -226,10 +226,10 @@ void ActorReplaceTool::CopyPropertyForActorChecked(UObject* Origin, UObject* Tar
 		srcPropertyMap.Add(propertyName, propertyItem);
 	}
 	//copy to target property
-	auto targetPropertyField = TFieldRange<UProperty>(Target->GetClass());
+	auto targetPropertyField = TFieldRange<FProperty>(Target->GetClass());
 	for (const auto targetProperty : targetPropertyField)
 	{
-		if (auto objProperty = Cast<UObjectPropertyBase>(targetProperty))
+		if (auto objProperty = CastField<FObjectPropertyBase>(targetProperty))
 		{
 			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Origin))
 			{
@@ -406,11 +406,11 @@ AActor* ActorReplaceTool::CopySingleActorAndReplaceClass(AActor* TargetActor, TS
 
 void ActorReplaceTool::CheckPropertyForActor(UObject* Origin, TArray<FName> ExcludeProperties)
 {
-	auto propertyField = TFieldRange<UProperty>(Origin->GetClass());
+	auto propertyField = TFieldRange<FProperty>(Origin->GetClass());
 	int excludePropertyCount = ExcludeProperties.Num();
 	for (const auto propertyItem : propertyField)
 	{
-		if (auto objProperty = Cast<UObjectPropertyBase>(propertyItem))
+		if (auto objProperty = CastField<FObjectPropertyBase>(propertyItem))
 		{
 			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Origin))
 			{
@@ -436,7 +436,7 @@ void ActorReplaceTool::CheckPropertyForActor(UObject* Origin, TArray<FName> Excl
 }
 void ActorReplaceTool::CheckProperty(UObject* Origin, TArray<FName> ExcludeProperties)
 {
-	auto propertyField = TFieldRange<UProperty>(Origin->GetClass());
+	auto propertyField = TFieldRange<FProperty>(Origin->GetClass());
 	int excludePropertyCount = ExcludeProperties.Num();
 	for (const auto propertyItem : propertyField)
 	{
@@ -454,7 +454,7 @@ void ActorReplaceTool::CheckProperty(UObject* Origin, TArray<FName> ExcludePrope
 		CheckCommonProperty(propertyItem, (uint8*)Origin);
 	}
 }
-bool ActorReplaceTool::CheckCommonProperty(UProperty* Property, uint8* Src, int cppArrayIndex, bool isInsideCppArray)
+bool ActorReplaceTool::CheckCommonProperty(FProperty* Property, uint8* Src, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return true;//skip property with special flag
 	if (Property->ArrayDim > 1 && isInsideCppArray == false)
@@ -467,11 +467,11 @@ bool ActorReplaceTool::CheckCommonProperty(UProperty* Property, uint8* Src, int 
 	}
 	else
 	{
-		if (Cast<UClassProperty>(Property) != nullptr || Cast<USoftClassProperty>(Property) != nullptr)
+		if (CastField<FClassProperty>(Property) != nullptr || CastField<FSoftClassProperty>(Property) != nullptr)
 		{
 			return false;
 		}
-		else if (auto objProperty = Cast<UObjectPropertyBase>(Property))
+		else if (auto objProperty = CastField<FObjectPropertyBase>(Property))
 		{
 			if (auto object = objProperty->GetObjectPropertyValue_InContainer(Src, cppArrayIndex))
 			{
@@ -500,7 +500,7 @@ bool ActorReplaceTool::CheckCommonProperty(UProperty* Property, uint8* Src, int 
 			}
 		}
 
-		else if (auto arrProperty = Cast<UArrayProperty>(Property))
+		else if (auto arrProperty = CastField<FArrayProperty>(Property))
 		{
 			FScriptArrayHelper OriginArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Src, cppArrayIndex));
 			auto arrayCount = OriginArrayHelper.Num();
@@ -509,7 +509,7 @@ bool ActorReplaceTool::CheckCommonProperty(UProperty* Property, uint8* Src, int 
 				CheckCommonProperty(arrProperty->Inner, OriginArrayHelper.GetRawPtr(i));
 			}
 		}
-		else if (auto mapProperty = Cast<UMapProperty>(Property))
+		else if (auto mapProperty = CastField<FMapProperty>(Property))
 		{
 			FScriptMapHelper OriginMapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Src, cppArrayIndex));
 			auto count = OriginMapHelper.Num();
@@ -519,7 +519,7 @@ bool ActorReplaceTool::CheckCommonProperty(UProperty* Property, uint8* Src, int 
 				CheckCommonProperty(mapProperty->ValueProp, OriginMapHelper.GetPairPtr(i));//value
 			}
 		}
-		else if (auto setProperty = Cast<USetProperty>(Property))
+		else if (auto setProperty = CastField<FSetProperty>(Property))
 		{
 			FScriptSetHelper OriginSetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Src, cppArrayIndex));
 			auto count = OriginSetHelper.Num();
@@ -528,10 +528,10 @@ bool ActorReplaceTool::CheckCommonProperty(UProperty* Property, uint8* Src, int 
 				CheckCommonProperty(setProperty->ElementProp, OriginSetHelper.GetElementPtr(i));
 			}
 		}
-		else if (auto structProperty = Cast<UStructProperty>(Property))
+		else if (auto structProperty = CastField<FStructProperty>(Property))
 		{
 			auto OriginPtr = Property->ContainerPtrToValuePtr<uint8>(Src, cppArrayIndex);
-			for (TFieldIterator<UProperty> It(structProperty->Struct); It; ++It)
+			for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 			{
 				CheckCommonProperty(*It, OriginPtr);
 			}

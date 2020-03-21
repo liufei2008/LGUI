@@ -20,7 +20,6 @@ public:
 	static bool ShouldCompilePermutation(const FMaterialShaderPermutationParameters& Parameters);
 	
 	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);
-	virtual bool Serialize(FArchive& Ar)override;
 };
 class FLGUIHudRenderPS : public FMaterialShader
 {
@@ -34,6 +33,4 @@ public:
 
 	void SetBlendState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material);
 	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);
-
-	virtual bool Serialize(FArchive& Ar) override;
 };

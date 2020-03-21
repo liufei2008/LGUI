@@ -5,6 +5,8 @@
 #include "UIRenderable.h"
 #include "UIPostProcess.generated.h"
 
+class FGlobalShaderMap;
+
 //UI element that can add post processing effect
 //Only valid on ScreenSpaceUI
 UCLASS(Abstract, NotBlueprintable, Experimental)
@@ -33,7 +35,7 @@ public:
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList, 
 		FTexture2DRHIRef ScreenImage, 
-		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
+		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
 		const TFunction<void()>& DrawPrimitive
 	) {};

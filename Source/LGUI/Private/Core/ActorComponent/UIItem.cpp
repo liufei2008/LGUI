@@ -14,7 +14,7 @@
 #endif
 
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
-UBoolProperty* UUIItem::bComponentToWorldUpdated_PropertyRef = nullptr;
+FBoolProperty* UUIItem::bComponentToWorldUpdated_PropertyRef = nullptr;
 
 UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -243,7 +243,7 @@ void UUIItem::MarkAllDirtyRecursive()
 }
 
 #if WITH_EDITOR
-void UUIItem::PreEditChange(UProperty* PropertyAboutToChange)
+void UUIItem::PreEditChange(FProperty* PropertyAboutToChange)
 {
 	if (!isPreEditChange)
 	{
@@ -1980,7 +1980,7 @@ void UUIItem::LGUICheckComponentToWorldUpdatedProperty()
 {
 	if (bComponentToWorldUpdated_PropertyRef == nullptr)
 	{
-		bComponentToWorldUpdated_PropertyRef = FindField<UBoolProperty>(USceneComponent::StaticClass(), TEXT("bComponentToWorldUpdated"));
+		bComponentToWorldUpdated_PropertyRef = FindFProperty<FBoolProperty>(USceneComponent::StaticClass(), TEXT("bComponentToWorldUpdated"));
 		checkf(bComponentToWorldUpdated_PropertyRef != nullptr, TEXT("[UUIItem::LGUICheckComponentToWorldUpdatedProperty]This should not happed, must be something wrong"));
 	}
 }

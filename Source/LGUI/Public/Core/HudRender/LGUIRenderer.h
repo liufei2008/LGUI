@@ -39,13 +39,13 @@ public:
 
 	static void CopyRenderTarget(
 		FRHICommandListImmediate& RHICmdList, 
-		TShaderMap<FGlobalShaderType>* GlobalShaderMap, 
+		FGlobalShaderMap* GlobalShaderMap,
 		FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
 		const FVector4& PositionScaleAndOffset = FVector4(1, 1, 0, 0), const FVector4& UVScaleAndOffset = FVector4(1, 1, 0, 0)
 	);
 	static void CopyRenderTargetOnMeshRegion(
 		FRHICommandListImmediate& RHICmdList,
-		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
+		FGlobalShaderMap* GlobalShaderMap,
 		FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
 		const TArray<FLGUIPostProcessVertex>& RegionVertexData
 	);

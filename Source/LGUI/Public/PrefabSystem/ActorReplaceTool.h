@@ -36,9 +36,9 @@ private:
 	void CopyPropertyChecked(UObject* Origin, UObject* Target, TArray<FName> ExcludeProperties);
 
 	//@param	return	true-for cpp array, if need to loop for next, false otherwise
-	bool CopyCommonProperty(UProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex = 0, bool isInsideCppArray = false);
+	bool CopyCommonProperty(FProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex = 0, bool isInsideCppArray = false);
 
-	bool CheckCommonProperty(UProperty* Property, uint8* Src, int cppArrayIndex = 0, bool isInsideCppArray = false);
+	bool CheckCommonProperty(FProperty* Property, uint8* Src, int cppArrayIndex = 0, bool isInsideCppArray = false);
 	void CheckProperty(UObject* Origin, TArray<FName> ExcludeProperties);
 	void CheckPropertyForActor(UObject* Origin, TArray<FName> ExcludeProperties);
 

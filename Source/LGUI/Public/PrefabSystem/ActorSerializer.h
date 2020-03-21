@@ -102,7 +102,7 @@ struct HelperFunction
 	}
 };
 
-//store UProperty data
+//store FProperty data
 struct FLGUIPropertyData
 {
 public:
@@ -320,8 +320,8 @@ public:
 serialize/deserialize actor, include hierarchy, property, reference
 not yet supported property type:
 UDelegateProperty(DynamicDelegate)
-UMulticastDelegateProperty(DynamicMulticastDelegate)
-UInterfaceProperty(TScriptInterface<T>)
+FMulticastDelegateProperty(DynamicMulticastDelegate)
+FInterfaceProperty(TScriptInterface<T>)
 ActorComponent as reference property
 
 for Blueprint Actor: after finish spawn, all properties will be override by Blueprint, so try not serialize blueprint actor
@@ -361,9 +361,9 @@ private:
 	TMap<int32, AActor*> MapIDToActor;
 	struct UPropertyMapStruct 
 	{
-		UProperty* ObjProperty;//UObjectProperty
+		FProperty* ObjProperty;//FObjectProperty
 		int32 id;//property's UObject's id
-		uint8* Dest;//UObjectProperty's container address
+		uint8* Dest;//FObjectProperty's container address
 		int32 cppArrayIndex = 0;//if is c++ array's element
 	};
 	TArray<UPropertyMapStruct> ObjectMapStructList;
@@ -394,9 +394,9 @@ private:
 	AActor* DeserializeActorRecursive(USceneComponent* Parent, FLGUIActorSaveData& SaveData, int32& id);
 	AActor* DeserializeActorRecursive(USceneComponent* Parent, FLGUIActorSaveDataForBuild& SaveData, int32& id);
 
-	//serialize and save UProperty
+	//serialize and save FProperty
 	void SaveProperty(UObject* Target, TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties);
-	//load and deserialize UProperty
+	//load and deserialize FProperty
 	void LoadProperty(UObject* Target, const TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties);
 	void LoadProperty(UObject* Target, const TArray<FLGUIPropertyDataForBuild>& PropertyData, TArray<FName> ExcludeProperties);
 
@@ -413,9 +413,9 @@ private:
 	FText FindTextFromListByIndex(int32 Id);
 	UClass* FindClassFromListByIndex(int32 Id);
 
-	void SaveCommonProperty(UProperty* Property, int itemType, uint8* Dest, TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
-	bool LoadCommonProperty(UProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
-	bool LoadCommonProperty(UProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
+	void SaveCommonProperty(FProperty* Property, int itemType, uint8* Dest, TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
+	bool LoadCommonProperty(FProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
+	bool LoadCommonProperty(FProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
 
 	TArray<FName> GetActorExcludeProperties();
 	TArray<FName> GetComponentExcludeProperties();

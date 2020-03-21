@@ -30,10 +30,6 @@ public:
 	{
 		return true;
 	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		return FGlobalShader::Serialize(Ar);
-	}
 };
 class FLGUISimplePostProcessVS :public FLGUIPostProcessShader
 {
@@ -49,22 +45,14 @@ public:
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList, bool FlipUVY = false, const FVector4& PositionScaleAndOffset = FVector4(1, 1, 0, 0), const FVector4& UVScaleAndOffset = FVector4(1, 1, 0, 0))
 	{
-		SetShaderValue(RHICmdList, GetVertexShader(), PositionScaleAndOffsetParameter, PositionScaleAndOffset);
-		SetShaderValue(RHICmdList, GetVertexShader(), UVScaleAndOffsetParameter, UVScaleAndOffset);
-		SetShaderValue(RHICmdList, GetVertexShader(), FlipUVYParameter, FlipUVY ? 1 : 0);
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << PositionScaleAndOffsetParameter;
-		Ar << UVScaleAndOffsetParameter;
-		Ar << FlipUVYParameter;
-		return bShaderHasOutdatedParameters;
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), PositionScaleAndOffsetParameter, PositionScaleAndOffset);
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), UVScaleAndOffsetParameter, UVScaleAndOffset);
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), FlipUVYParameter, FlipUVY ? 1 : 0);
 	}
 private:
-	FShaderParameter PositionScaleAndOffsetParameter;
-	FShaderParameter UVScaleAndOffsetParameter;
-	FShaderParameter FlipUVYParameter;
+	LAYOUT_FIELD(FShaderParameter, PositionScaleAndOffsetParameter);
+	LAYOUT_FIELD(FShaderParameter, UVScaleAndOffsetParameter);
+	LAYOUT_FIELD(FShaderParameter, FlipUVYParameter);
 };
 class FLGUIMeshPostProcessVS :public FLGUIPostProcessShader
 {
@@ -78,16 +66,10 @@ public:
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& ViewProjectionMatrix)
 	{
-		SetShaderValue(RHICmdList, GetVertexShader(), ViewProjectionParameter, ViewProjectionMatrix);
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << ViewProjectionParameter;
-		return bShaderHasOutdatedParameters;
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), ViewProjectionParameter, ViewProjectionMatrix);
 	}
 private:
-	FShaderParameter ViewProjectionParameter;
+	LAYOUT_FIELD(FShaderParameter, ViewProjectionParameter);
 };
 class FLGUISimpleCopyTargetPS :public FLGUIPostProcessShader
 {
@@ -102,18 +84,11 @@ public:
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef SceneTexture)
 	{
-		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI(), SceneTexture);
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << MainTextureParameter;
-		Ar << MainTextureSamplerParameter;
-		return bShaderHasOutdatedParameters;
+		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI(), SceneTexture);
 	}
 private:
-	FShaderResourceParameter MainTextureParameter;
-	FShaderResourceParameter MainTextureSamplerParameter;
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
 };
 class FLGUIMeshCopyTargetPS :public FLGUIPostProcessShader
 {
@@ -128,18 +103,11 @@ public:
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef SceneTexture)
 	{
-		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI(), SceneTexture);
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << MainTextureParameter;
-		Ar << MainTextureSamplerParameter;
-		return bShaderHasOutdatedParameters;
+		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI(), SceneTexture);
 	}
 private:
-	FShaderResourceParameter MainTextureParameter;
-	FShaderResourceParameter MainTextureSamplerParameter;
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
 };
 class FLGUIPostProcessGaussianBlurPS :public FLGUIPostProcessShader
 {
@@ -157,34 +125,24 @@ public:
 	}
 	void SetMainTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef MainTexture, FRHISamplerState* MainTextureSampler)
 	{
-		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
+		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
 	}
 	void SetInverseTextureSize(FRHICommandListImmediate& RHICmdList, const FVector2D& InvSize)
 	{
-		SetShaderValue(RHICmdList, GetPixelShader(), InvSizeParameter, InvSize);
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), InvSizeParameter, InvSize);
 	}
 	void SetBlurStrength(FRHICommandListImmediate& RHICmdList, float BlurStrength)
 	{
-		SetShaderValue(RHICmdList, GetPixelShader(), BlurStrengthParameter, BlurStrength);
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), BlurStrengthParameter, BlurStrength);
 	}
 	void SetHorizontalOrVertical(FRHICommandListImmediate& RHICmdList, bool HorizontalOrVertical)
 	{
-		SetShaderValue(RHICmdList, GetPixelShader(), HorizontalOrVerticalFilterParameter, HorizontalOrVertical ? FVector2D(1.0f, 0.0f) : FVector2D(0.0f, 1.0f));
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << MainTextureParameter;
-		Ar << MainTextureSamplerParameter;
-		Ar << HorizontalOrVerticalFilterParameter;
-		Ar << InvSizeParameter;
-		Ar << BlurStrengthParameter;
-		return bShaderHasOutdatedParameters;
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), HorizontalOrVerticalFilterParameter, HorizontalOrVertical ? FVector2D(1.0f, 0.0f) : FVector2D(0.0f, 1.0f));
 	}
 private:
-	FShaderResourceParameter MainTextureParameter;
-	FShaderResourceParameter MainTextureSamplerParameter;
-	FShaderParameter HorizontalOrVerticalFilterParameter;
-	FShaderParameter InvSizeParameter;
-	FShaderParameter BlurStrengthParameter;
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
+	LAYOUT_FIELD(FShaderParameter, HorizontalOrVerticalFilterParameter);
+	LAYOUT_FIELD(FShaderParameter, InvSizeParameter);
+	LAYOUT_FIELD(FShaderParameter, BlurStrengthParameter);
 };

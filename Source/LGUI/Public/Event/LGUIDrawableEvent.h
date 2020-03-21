@@ -56,7 +56,7 @@ public:
 	static UClass* GetClassParameterClass(const UFunction* InFunction);
 private:
 	static bool IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIDrawableEventParameterType>& OutParameterTypeArray);
-	static bool IsPropertyCompatible(const UProperty* InFunctionProperty, LGUIDrawableEventParameterType& OutParameterType);
+	static bool IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIDrawableEventParameterType& OutParameterType);
 };
 
 #define LGUIEventActorSelfName "(ActorSelf)"

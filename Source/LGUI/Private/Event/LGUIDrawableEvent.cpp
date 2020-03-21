@@ -8,10 +8,10 @@
 bool ULGUIDrawableEventParameterHelper::IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIDrawableEventParameterType>& OutParameterTypeArray)
 {
 	if (InFunction->GetReturnProperty() != nullptr)return false;//not support return value for ProcessEvent
-	TFieldIterator<UProperty> IteratorA(InFunction);
+	TFieldIterator<FProperty> IteratorA(InFunction);
 	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
 	{
-		UProperty* PropA = *IteratorA;
+		FProperty* PropA = *IteratorA;
 		LGUIDrawableEventParameterType ParamType;
 		if (IsPropertyCompatible(PropA, ParamType))
 		{
@@ -26,74 +26,74 @@ bool ULGUIDrawableEventParameterHelper::IsFunctionCompatible(const UFunction* In
 	}
 	return true;
 }
-bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const UProperty* InFunctionProperty, LGUIDrawableEventParameterType& OutParameterType)
+bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIDrawableEventParameterType& OutParameterType)
 {
 	if (!InFunctionProperty )
 	{
 		return false;
 	}
 
-	if (auto boolProperty = Cast<UBoolProperty>(InFunctionProperty))
+	if (auto boolProperty = CastField<FBoolProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::Bool;
 		return true;
 	}
-	else if (auto floatProperty = Cast<UFloatProperty>(InFunctionProperty))
+	else if (auto floatProperty = CastField<FFloatProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::Float;
 		return true;
 	}
-	else if (auto doubleProperty = Cast<UDoubleProperty>(InFunctionProperty))
+	else if (auto doubleProperty = CastField<FDoubleProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::Double;
 		return true;
 	}
-	else if (auto int8Property = Cast<UInt8Property>(InFunctionProperty))
+	else if (auto int8Property = CastField<FInt8Property>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::Int8;
 		return true;
 	}
-	else if (auto uint8Property = Cast<UByteProperty>(InFunctionProperty))
+	else if (auto uint8Property = CastField<FByteProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::UInt8;
 		return true;
 	}
-	else if (auto int16Property = Cast<UInt16Property>(InFunctionProperty))
+	else if (auto int16Property = CastField<FInt16Property>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::Int16;
 		return true;
 	}
-	else if (auto uint16Property = Cast<UUInt16Property>(InFunctionProperty))
+	else if (auto uint16Property = CastField<FUInt16Property>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::UInt16;
 		return true;
 	}
-	else if (auto int32Property = Cast<UIntProperty>(InFunctionProperty))
+	else if (auto int32Property = CastField<FIntProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::Int32;
 		return true;
 	}
-	else if (auto uint32Property = Cast<UUInt32Property>(InFunctionProperty))
+	else if (auto uint32Property = CastField<FUInt32Property>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::UInt32;
 		return true;
 	}
-	else if (auto int64Property = Cast<UInt64Property>(InFunctionProperty))
+	else if (auto int64Property = CastField<FInt64Property>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::Int64;
 		return true;
 	}
-	else if (auto uint64Property = Cast<UUInt64Property>(InFunctionProperty))
+	else if (auto uint64Property = CastField<FUInt64Property>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::UInt64;
 		return true;
 	}
-	else if (auto enumProperty = Cast<UEnumProperty>(InFunctionProperty))
+	else if (auto enumProperty = CastField<FEnumProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::UInt8;
 		return true;
 	}
-	else if (auto structProperty = Cast<UStructProperty>(InFunctionProperty))
+	else if (auto structProperty = CastField<FStructProperty>(InFunctionProperty))
 	{
 		auto structName = structProperty->Struct->GetFName();
 		if (structName == TEXT("Vector2D"))
@@ -134,12 +134,12 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const UProperty* In
 		}
 	}
 
-	else if (auto classProperty = Cast<UClassProperty>(InFunctionProperty))
+	else if (auto classProperty = CastField<FClassProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::Class;
 		return true;
 	}
-	else if (auto objectProperty = Cast<UObjectProperty>(InFunctionProperty))//if object property
+	else if (auto objectProperty = CastField<FObjectProperty>(InFunctionProperty))//if object property
 	{
 		if (objectProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
 		{
@@ -156,7 +156,7 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const UProperty* In
 		return true;
 	}
 
-	else if (auto strProperty = Cast<UStrProperty>(InFunctionProperty))
+	else if (auto strProperty = CastField<FStrProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::String;
 		return true;
@@ -167,9 +167,9 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const UProperty* In
 
 UClass* ULGUIDrawableEventParameterHelper::GetObjectParameterClass(const UFunction* InFunction)
 {
-	TFieldIterator<UProperty> paramsIterator(InFunction);
-	UProperty* firstProperty = *paramsIterator;
-	if (auto objProperty = Cast<UObjectProperty>(firstProperty))
+	TFieldIterator<FProperty> paramsIterator(InFunction);
+	FProperty* firstProperty = *paramsIterator;
+	if (auto objProperty = CastField<FObjectProperty>(firstProperty))
 	{
 		return objProperty->PropertyClass;
 	}
@@ -178,16 +178,16 @@ UClass* ULGUIDrawableEventParameterHelper::GetObjectParameterClass(const UFuncti
 
 UEnum* ULGUIDrawableEventParameterHelper::GetEnumParameter(const UFunction* InFunction)
 {
-	TFieldIterator<UProperty> paramsIterator(InFunction);
-	UProperty* firstProperty = *paramsIterator;
-	if (auto uint8Property = Cast<UByteProperty>(firstProperty))
+	TFieldIterator<FProperty> paramsIterator(InFunction);
+	FProperty* firstProperty = *paramsIterator;
+	if (auto uint8Property = CastField<FByteProperty>(firstProperty))
 	{
 		if (uint8Property->IsEnum())
 		{
 			return uint8Property->Enum;
 		}
 	}
-	if (auto enumProperty = Cast<UEnumProperty>(firstProperty))
+	if (auto enumProperty = CastField<FEnumProperty>(firstProperty))
 	{
 		return enumProperty->GetEnum();
 	}
@@ -195,9 +195,9 @@ UEnum* ULGUIDrawableEventParameterHelper::GetEnumParameter(const UFunction* InFu
 }
 UClass* ULGUIDrawableEventParameterHelper::GetClassParameterClass(const UFunction* InFunction)
 {
-	TFieldIterator<UProperty> paramsIterator(InFunction);
-	UProperty* firstProperty = *paramsIterator;
-	if (auto classProperty = Cast<UClassProperty>(firstProperty))
+	TFieldIterator<FProperty> paramsIterator(InFunction);
+	FProperty* firstProperty = *paramsIterator;
+	if (auto classProperty = CastField<FClassProperty>(firstProperty))
 	{
 		return classProperty->MetaClass;
 	}
@@ -301,8 +301,8 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 		//	break;
 	case LGUIDrawableEventParameterType::Object:
 	{
-		TFieldIterator<UProperty> ParamIterator(InFunction);
-		if (auto firstProperty = Cast<UObjectProperty>(*ParamIterator))
+		TFieldIterator<FProperty> ParamIterator(InFunction);
+		if (auto firstProperty = CastField<FObjectProperty>(*ParamIterator))
 		{
 			if (firstProperty->PropertyClass != UObject::StaticClass())
 			{
@@ -321,8 +321,8 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 		break;
 	case LGUIDrawableEventParameterType::Actor:
 	{
-		TFieldIterator<UProperty> ParamIterator(InFunction);
-		if (auto firstProperty = Cast<UObjectProperty>(*ParamIterator))
+		TFieldIterator<FProperty> ParamIterator(InFunction);
+		if (auto firstProperty = CastField<FObjectProperty>(*ParamIterator))
 		{
 			if (firstProperty->PropertyClass != AActor::StaticClass())
 			{

@@ -17,7 +17,7 @@ bool ULGUIPrefabThumbnailRenderer::CanVisualizeAsset(UObject* Object)
 		return true;
 	return false;
 }
-void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* RenderTarget, FCanvas* Canvas)
+void ULGUIPrefabThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* RenderTarget, FCanvas* Canvas, bool bAdditionalViewFamily)
 {
 	auto prefab = Cast<ULGUIPrefab>(Object);
 	if (prefab != nullptr && !prefab->IsPendingKill())

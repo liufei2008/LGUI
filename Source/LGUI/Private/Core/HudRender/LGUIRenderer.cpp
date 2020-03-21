@@ -61,7 +61,7 @@ public:
 		};
 
 		TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
-		uint32 NumIndices = ARRAY_COUNT(Indices);
+		uint32 NumIndices = UE_ARRAY_COUNT(Indices);
 		IndexBuffer.AddUninitialized(NumIndices);
 		FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
 
@@ -117,7 +117,7 @@ void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InO
 	
 }
 
-void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
+void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
 	const FVector4& PositionScaleAndOffset, const FVector4& UVScaleAndOffset)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("CopyRenderTarget"));
@@ -130,8 +130,8 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 	GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
-	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
+	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
@@ -142,7 +142,7 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 
 	RHICmdList.EndRenderPass();
 }
-void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipUVY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
+void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipUVY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("CopyRenderTargetOnMeshRegion"));
 
@@ -154,8 +154,8 @@ void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& 
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 	GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
-	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
+	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
@@ -227,7 +227,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 
-	TShaderMap<FGlobalShaderType>* GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
+	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
 	
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
@@ -262,15 +262,15 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 					const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
 					auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
 					const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-					FLGUIHudRenderVS* VertexShader = (FLGUIHudRenderVS*)MaterialShaderMap->GetShader(&FLGUIHudRenderVS::StaticType);
-					FLGUIHudRenderPS* PixelShader = (FLGUIHudRenderPS*)MaterialShaderMap->GetShader(&FLGUIHudRenderPS::StaticType);
-					if (VertexShader && PixelShader)
+					auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
+					auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
+					if (VertexShader.IsValid() && PixelShader.IsValid())
 					{
 						PixelShader->SetBlendState(GraphicsPSOInit, Material);
 
 						GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIVertexDeclaration();
-						GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
-						GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
+						GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+						GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 						GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 						SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
