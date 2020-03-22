@@ -3,6 +3,7 @@
 #include "Core/HudRender/LGUIRenderer.h"
 #include "Core/HudRender/LGUIHudShaders.h"
 #include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/HudRender/LGUIPostProcessShaders.h"
 #include "Modules/ModuleManager.h"
 #include "LGUI.h"
 #include "SceneView.h"
