@@ -192,7 +192,6 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 		}
 	}
 
-	cacheFontKey = FLGUIFontKeyData(charIndex, charSize);
 	auto error = FT_Set_Pixel_Sizes(face, 0, charSize);
 	if (error)
 	{
@@ -313,6 +312,7 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const FT_GlyphSlot
 		cacheCharData.xoffset = InSlot->bitmap_left - SPACE_NEED_EXPEND;
 		cacheCharData.yoffset = InSlot->bitmap_top + SPACE_NEED_EXPEND;
 		cacheCharData.xadvance = InSlot->metrics.horiAdvance >> 6;
+		cacheCharData.horizontalBearingY = InSlot->metrics.horiBearingY >> 6;
 		cacheCharData.uv0X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND);
 		cacheCharData.uv0Y = fullTextureSizeReciprocal * (packedRect.y + cacheCharData.height - SPACE_NEED_EXPEND);
 		cacheCharData.uv3X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND + cacheCharData.width);

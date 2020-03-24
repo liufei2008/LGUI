@@ -60,21 +60,6 @@ struct FUITextSelectionProperty
 	int32 Size;
 };
 
-//single char geometry
-struct FUITextCharGeometry
-{
-	float geoWidth = 0;
-	float geoHeight = 0;
-	float xadvance = 0;
-	float xoffset = 0;
-	float yoffset = 0;
-
-	FVector2D uv0 = FVector2D(0, 0);
-	FVector2D uv1 = FVector2D(0, 0);
-	FVector2D uv2 = FVector2D(0, 0);
-	FVector2D uv3 = FVector2D(0, 0);
-};
-
 class ULGUIFontData;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
