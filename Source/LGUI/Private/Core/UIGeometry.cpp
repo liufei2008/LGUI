@@ -514,6 +514,22 @@ void UIGeometry::FromUIText(const FString& content, int32 visibleCharCount, floa
 	}
 }
 
+//single char geometry
+struct FUITextCharGeometry
+{
+	float geoWidth = 0;
+	float geoHeight = 0;
+	float xadvance = 0;
+	float horizontalBearingY = 0;
+	float xoffset = 0;
+	float yoffset = 0;
+
+	FVector2D uv0 = FVector2D(0, 0);
+	FVector2D uv1 = FVector2D(0, 0);
+	FVector2D uv2 = FVector2D(0, 0);
+	FVector2D uv3 = FVector2D(0, 0);
+};
+
 void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float& width, float& height, const FVector2D& pivot
 	, const FColor& color, const FVector2D& fontSpace, TSharedPtr<UIGeometry> uiGeo, const float& fontSize
 	, UITextParagraphHorizontalAlign paragraphHAlign, UITextParagraphVerticalAlign paragraphVAlign, UITextOverflowType overflowType
@@ -687,6 +703,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
 				charGeo.geoHeight = overrideCharData->height * oneDivideRootCanvasScale;
 				charGeo.xadvance = overrideCharData->xadvance * oneDivideRootCanvasScale;
+				charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideRootCanvasScale;
 				charGeo.xoffset = overrideCharData->xoffset * oneDivideRootCanvasScale;
 				charGeo.yoffset = overrideCharData->yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
 			}
@@ -699,6 +716,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				charGeo.geoWidth = overrideCharData->width * oneDivideDynamicPixelsPerUnit;
 				charGeo.geoHeight = overrideCharData->height * oneDivideDynamicPixelsPerUnit;
 				charGeo.xadvance = overrideCharData->xadvance * oneDivideDynamicPixelsPerUnit;
+				charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideDynamicPixelsPerUnit;
 				charGeo.xoffset = overrideCharData->xoffset * oneDivideDynamicPixelsPerUnit;
 				charGeo.yoffset = overrideCharData->yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
 			}
@@ -707,6 +725,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				charGeo.geoWidth = charData->width;
 				charGeo.geoHeight = charData->height;
 				charGeo.xadvance = charData->xadvance;
+				charGeo.horizontalBearingY = charData->horizontalBearingY;
 				charGeo.xoffset = charData->xoffset;
 				charGeo.yoffset = charData->yoffset + calculatedCharFixedOffset;
 			}
@@ -918,11 +937,18 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						auto vert1 = FVector(x, y, 0);
 						x = offsetX;
 						y = offsetY;
-						if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
 						auto vert2 = FVector(x, y, 0);
 						x = charGeo.geoWidth + offsetX;
-						if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
 						auto vert3 = FVector(x, y, 0);
+						if (richTextParseResult.italic)
+						{
+							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.horizontalBearingY) * italicSlop;
+							vert0.X -= vert01ItalicOffset;
+							vert1.X -= vert01ItalicOffset;
+							auto vert23ItalicOffset = charGeo.horizontalBearingY * italicSlop;
+							vert2.X += vert23ItalicOffset;
+							vert3.X += vert23ItalicOffset;
+						}
 						//bold left
 						originPositions[verticesCount] = vert0 + FVector(-boldSize, 0, 0);
 						originPositions[verticesCount + 1] = vert1 + FVector(-boldSize, 0, 0);
@@ -950,16 +976,27 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					{
 						x = offsetX;
 						y = offsetY - charGeo.geoHeight;
-						originPositions[verticesCount] = FVector(x, y, 0);
+						auto& vert0 = originPositions[verticesCount];
+						vert0 = FVector(x, y, 0);
 						x = charGeo.geoWidth + offsetX;
-						originPositions[verticesCount + 1] = FVector(x, y, 0);
+						auto& vert1 = originPositions[verticesCount + 1];
+						vert1 = FVector(x, y, 0);
 						x = offsetX;
 						y = offsetY;
-						if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
-						originPositions[verticesCount + 2] = FVector(x, y, 0);
+						auto& vert2 = originPositions[verticesCount + 2];
+						vert2 = FVector(x, y, 0);
 						x = charGeo.geoWidth + offsetX;
-						if (richTextParseResult.italic)x += charGeo.geoHeight * italicSlop;
-						originPositions[verticesCount + 3] = FVector(x, y, 0);
+						auto& vert3 = originPositions[verticesCount + 3];
+						vert3 = FVector(x, y, 0);
+						if (richTextParseResult.italic)
+						{
+							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.horizontalBearingY) * italicSlop;
+							vert0.X -= vert01ItalicOffset;
+							vert1.X -= vert01ItalicOffset;
+							auto vert23ItalicOffset = charGeo.horizontalBearingY * italicSlop;
+							vert2.X += vert23ItalicOffset;
+							vert3.X += vert23ItalicOffset;
+						}
 
 						addVertCount = 4;
 					}
@@ -1220,11 +1257,18 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						auto vert1 = FVector(x, y, 0);
 						x = offsetX;
 						y = offsetY;
-						if (italic)x += charGeo.geoHeight * italicSlop;
 						auto vert2 = FVector(x, y, 0);
 						x = charGeo.geoWidth + offsetX;
-						if (italic)x += charGeo.geoHeight * italicSlop;
 						auto vert3 = FVector(x, y, 0);
+						if (italic)
+						{
+							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.horizontalBearingY) * italicSlop;
+							vert0.X -= vert01ItalicOffset;
+							vert1.X -= vert01ItalicOffset;
+							auto vert23ItalicOffset = charGeo.horizontalBearingY * italicSlop;
+							vert2.X += vert23ItalicOffset;
+							vert3.X += vert23ItalicOffset;
+						}
 						//bold left
 						originPositions[verticesCount] = vert0 + FVector(-boldSize, 0, 0);
 						originPositions[verticesCount + 1] = vert1 + FVector(-boldSize, 0, 0);
@@ -1250,16 +1294,27 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					{
 						float x = offsetX;
 						float y = offsetY - charGeo.geoHeight;
-						originPositions[verticesCount] = FVector(x, y, 0);
+						auto& vert0 = originPositions[verticesCount];
+						vert0 = FVector(x, y, 0);
 						x = charGeo.geoWidth + offsetX;
-						originPositions[verticesCount + 1] = FVector(x, y, 0);
+						auto& vert1 = originPositions[verticesCount + 1];
+						vert1 = FVector(x, y, 0);
 						x = offsetX;
 						y = offsetY;
-						if (italic)x += charGeo.geoHeight * italicSlop;
-						originPositions[verticesCount + 2] = FVector(x, y, 0);
+						auto& vert2 = originPositions[verticesCount + 2];
+						vert2 = FVector(x, y, 0);
 						x = charGeo.geoWidth + offsetX;
-						if (italic)x += charGeo.geoHeight * italicSlop;
-						originPositions[verticesCount + 3] = FVector(x, y, 0);
+						auto& vert3 = originPositions[verticesCount + 3];
+						vert3 = FVector(x, y, 0);
+						if (italic)
+						{
+							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.horizontalBearingY) * italicSlop;
+							vert0.X -= vert01ItalicOffset;
+							vert1.X -= vert01ItalicOffset;
+							auto vert23ItalicOffset = charGeo.horizontalBearingY * italicSlop;
+							vert2.X += vert23ItalicOffset;
+							vert3.X += vert23ItalicOffset;
+						}
 					}
 					//snap pixel
 					if (pixelPerfect)
