@@ -43,6 +43,7 @@ public:
 	int16 xoffset = 0;
 	int16 yoffset = 0;
 	float xadvance = 0;
+	float horizontalBearingY = 0;
 	float uv0X = 0;
 	float uv0Y = 0;
 	float uv3X = 0;
