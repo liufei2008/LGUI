@@ -7,7 +7,7 @@
 UUIDrawcallMesh::UUIDrawcallMesh()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	bSelectable = false;
+	bSelectable = true;
 	bCastStaticShadow = false;
 	bAffectDynamicIndirectLighting = false;
 	bReceivesDecals = false;

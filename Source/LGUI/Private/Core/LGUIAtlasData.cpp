@@ -11,13 +11,13 @@
 
 void FLGUIAtlasData::EnsureAtlasTexture(const FName& packingTag)
 {
-#if WITH_EDITOR
-	int32 defaultAtlasTextureSize = ULGUISettings::GetAtlasTextureInitialSize(packingTag);
-#else
-	static int32 defaultAtlasTextureSize = ULGUISettings::GetAtlasTextureInitialSize(packingTag);
-#endif
 	if (!IsValid(atlasTexture))
 	{
+#if WITH_EDITOR
+		int32 defaultAtlasTextureSize = ULGUISettings::GetAtlasTextureInitialSize(packingTag);
+#else
+		static int32 defaultAtlasTextureSize = ULGUISettings::GetAtlasTextureInitialSize(packingTag);
+#endif
 		atlasBinPack.Init(defaultAtlasTextureSize, defaultAtlasTextureSize, 0, 0);
 		CreateAtlasTexture(packingTag, 0, defaultAtlasTextureSize);
 	}

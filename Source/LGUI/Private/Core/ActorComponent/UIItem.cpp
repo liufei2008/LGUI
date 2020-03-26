@@ -1575,8 +1575,12 @@ float UUIItem::Color255To1_Table[256] =
 
 UUIItemEditorHelperComp::UUIItemEditorHelperComp()
 {
-	bSelectable = true;
+	bSelectable = false;
 }
+#if WITH_EDITORONLY_DATA
+FIntRect UUIItemEditorHelperComp::viewRect;
+FViewMatrices UUIItemEditorHelperComp::viewMatrices;
+#endif
 #if WITH_EDITOR
 FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 {
@@ -1739,6 +1743,9 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 
 		virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
 		{
+			viewRect = View->UnconstrainedViewRect;
+			viewMatrices = View->ViewMatrices;
+
 			FPrimitiveViewRelevance Result;
 			Result.bDrawRelevance = true;
 			Result.bDynamicRelevance = true;
