@@ -341,15 +341,15 @@ bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const 
 			if (result.X > GetLocalSpaceLeft() && result.X < GetLocalSpaceRight() && result.Y > GetLocalSpaceBottom() && result.Y < GetLocalSpaceTop())
 			{
 				//triangle hit test
-				auto& vertices = geometry->vertices;
+				auto& vertices = geometry->originPositions;
 				auto& triangleIndices = geometry->triangles;
 				int triangleCount = triangleIndices.Num() / 3;
 				int index = 0;
 				for (int i = 0; i < triangleCount; i++)
 				{
-					auto point0 = (vertices[triangleIndices[index++]].Position);
-					auto point1 = (vertices[triangleIndices[index++]].Position);
-					auto point2 = (vertices[triangleIndices[index++]].Position);
+					auto point0 = (vertices[triangleIndices[index++]]);
+					auto point1 = (vertices[triangleIndices[index++]]);
+					auto point2 = (vertices[triangleIndices[index++]]);
 					FVector hitPoint, hitNormal;
 					if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
 					{
