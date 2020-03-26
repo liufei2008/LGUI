@@ -38,6 +38,7 @@ struct LGUI_API FLGUIAtlasData
 	{
 		friend struct FLGUIAtlasData;
 	};
+	//atlas texture size may change when dynamic packing, this event will be called when that happen.
 	FLGUIAtlasTextureExpendEvent expandTextureSizeCallback;
 };
 
