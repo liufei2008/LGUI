@@ -372,6 +372,11 @@ public:
 #if WITH_EDITOR
 	virtual FPrimitiveSceneProxy* CreateSceneProxy()override;
 #endif
+#if WITH_EDITORONLY_DATA
+	//just need these view releated parameters from FSceneView(GetViewRelevance(const FSceneView* View)), but don't know how to get them at anywhere else, so just put them here.
+	static FIntRect viewRect;
+	static FViewMatrices viewMatrices;
+#endif
 	UPROPERTY(Transient)UUIItem* Parent = nullptr;
 	virtual UBodySetup* GetBodySetup()override;
 	UPROPERTY(Transient, DuplicateTransient)

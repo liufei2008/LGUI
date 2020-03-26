@@ -12,7 +12,35 @@
 #include "ContentBrowserExtensions/LGUIContentBrowserExtensions.h"
 #include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
 #include "Window/LGUIAtlasViewer.h"
+
+#include "DataFactory/LGUISpriteDataTypeAction.h"
+#include "DataFactory/LGUIFontDataTypeAction.h"
+#include "DataFactory/LGUIPrefabTypeAction.h"
+
+#include "DetailCustomization/UIItemCustomization.h"
+#include "DetailCustomization/UISpriteBaseCustomization.h"
+#include "DetailCustomization/UISpriteCustomization.h"
+#include "DetailCustomization/LGUICanvasCustomization.h"
+#include "DetailCustomization/UITextCustomization.h"
+#include "DetailCustomization/UITextureBaseCustomization.h"
+#include "DetailCustomization/UIPanelCustomization.h"
+#include "DetailCustomization/LGUISpriteDataCustomization.h"
+#include "DetailCustomization/LGUIFontDataCustomization.h"
+#include "DetailCustomization/UISelectableCustomization.h"
+#include "DetailCustomization/UIToggleCustomization.h"
+#include "DetailCustomization/UITextInputCustomization.h"
+#include "DetailCustomization/UILayoutBaseCustomization.h"
+#include "DetailCustomization/UIVerticalLayoutCustomization.h"
+#include "DetailCustomization/UIHorizontalLayoutCustomization.h"
+#include "DetailCustomization/UIGridLayoutCustomization.h"
+#include "DetailCustomization/UILayoutElementCustomization.h"
+#include "DetailCustomization/UICanvasScalerCustomization.h"
+#include "DetailCustomization/LGUIPrefabHelperComponentCustomization.h"
+#include "DetailCustomization/LGUIPrefabCustomization.h"
+#include "DetailCustomization/EditorToolsCustomization.h"
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
+#include "DetailCustomization/LGUIEditHelperButtonCustomization.h"
+#include "DetailCustomization/LGUIComponentRefereceCustomization.h"
 
 #include "Core/LGUISettings.h"
 #include "ISettingsModule.h"
@@ -24,8 +52,11 @@
 #include "SceneOutlinerPublicTypes.h"
 #include "SceneOutliner/LGUINativeSceneOutlinerExtension.h"
 #include "AssetToolsModule.h"
+#include "SceneView.h"
 
-#include "Core/Actor/UIBackgroundBlurActor.h"
+#include "LGUIHeaders.h"
+#include "Core/ActorComponent/UIPanel.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIEventComponentSelectorName(TEXT("LGUIEventComponentSelector"));
@@ -208,6 +239,10 @@ void FLGUIEditorModule::StartupModule()
 				LOCTEXT("LGUISpriteSettingsDescription", "LGUISpriteSettings"),
 				GetMutableDefault<ULGUISettings>());
 		}
+	}
+	//selection
+	{
+		USelection::SelectObjectEvent.AddRaw(this, &FLGUIEditorModule::OnSelectObject);
 	}
 
 	Instance = this;
@@ -653,6 +688,100 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUIBackgroundBlurActor::StaticClass());
 	}
 	MenuBuilder.EndSection();
+}
+
+void FLGUIEditorModule::OnSelectObject(UObject* newSelection)
+{
+	if (IsCalculatingSelection)return;//incase infinite recursive, because selection can change inside this function
+	IsCalculatingSelection = true;
+	//UE_LOG(LGUIEditor, Log, TEXT("SelectObject:%s"), *(((AActor*)newSelection)->GetActorLabel()));
+
+	if (auto selectedCanvasActor = Cast<AUIBaseActor>(newSelection))
+	{
+		if (auto canvas = selectedCanvasActor->FindComponentByClass<ULGUICanvas>())
+		{
+			auto& allUIItems = canvas->GetUIRenderables();
+			if (GEditor)
+			{
+				if (auto viewport = GEditor->GetActiveViewport())
+				{
+					auto mouseX = viewport->GetMouseX();
+					auto mouseY = viewport->GetMouseY();
+					FVector rayOrigin, rayDirection;
+					FSceneView::DeprojectScreenToWorld(FVector2D(mouseX, mouseY), UUIItemEditorHelperComp::viewRect, UUIItemEditorHelperComp::viewMatrices.GetInvViewMatrix(), UUIItemEditorHelperComp::viewMatrices.GetInvProjectionMatrix(), rayOrigin, rayDirection);
+					float lineTraceLength = 10000;
+					//find hit UIRenderable
+					auto lineStart = rayOrigin;
+					auto lineEnd = rayOrigin + rayDirection * lineTraceLength;
+					CacheHitResultArray.Reset();
+					for (auto uiItem : allUIItems)
+					{
+						if (auto uiRenderable = Cast<UUIRenderable>(uiItem))
+						{
+							FHitResult hitInfo;
+							auto originRaycastComplex = uiRenderable->GetRaycastComplex();
+							auto originRaycastTarget = uiRenderable->IsRaycastTarget();
+							uiRenderable->SetRaycastComplex(true);//in editor selection, make the ray hit actural triangle
+							uiRenderable->SetRaycastTarget(true);
+							if (uiRenderable->LineTraceUI(hitInfo, lineStart, lineEnd))
+							{
+								if (canvas->IsPointVisible(hitInfo.Location))
+								{
+									CacheHitResultArray.Add(hitInfo);
+								}
+							}
+							uiRenderable->SetRaycastComplex(originRaycastComplex);
+							uiRenderable->SetRaycastTarget(originRaycastTarget);
+						}
+					}
+					if (CacheHitResultArray.Num() > 0)//hit something
+					{
+						CacheHitResultArray.Sort([](const FHitResult& A, const FHitResult& B)
+							{
+								auto AUIRenderable = (UUIRenderable*)(A.Component.Get());
+								auto BUIRenderable = (UUIRenderable*)(B.Component.Get());
+								if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())
+								{
+									return A.Distance < B.Distance;
+								}
+								else
+								{
+									return AUIRenderable->GetDepth() > BUIRenderable->GetDepth();
+								}
+							});
+						if (auto uiRenderableComp = Cast<UUIRenderable>(CacheHitResultArray[0].Component.Get()))//target need to select
+						{
+							if (LastSelectTarget.Get() == uiRenderableComp)//if selection not change, then select hierarchy up
+							{
+								if (auto parentActor = LastSelectedActor->GetAttachParentActor())
+								{
+									LastSelectedActor = parentActor;
+								}
+								else//not have parent, loop back to origin
+								{
+									LastSelectedActor = uiRenderableComp->GetOwner();
+								}
+							}
+							else
+							{
+								LastSelectedActor = uiRenderableComp->GetOwner();
+							}
+							GEditor->SelectNone(true, true);
+							GEditor->SelectActor(LastSelectedActor.Get(), true, true);
+							LastSelectTarget = uiRenderableComp;
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		LastSelectTarget.Reset();
+		LastSelectedActor.Reset();
+	}
+
+	IsCalculatingSelection = false;
 }
 
 IMPLEMENT_MODULE(FLGUIEditorModule, LGUIEditor)
