@@ -17,6 +17,10 @@
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "Core/ActorComponent/UIPostProcess.h"
 
+#include "Core/LGUIFontData.h"
+#include "Core/LGUIAtlasData.h"
+#include "Core/LGUISpriteData.h"
+
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"
 #include "Core/Actor/UISpriteActor.h"

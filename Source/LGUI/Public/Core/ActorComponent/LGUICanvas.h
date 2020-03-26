@@ -272,6 +272,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetDynamicPixelsPerUnit(float newValue);
 
+	//return UIRenderables that belong to this canvas
+	const TArray<UUIRenderable*> GetUIRenderables()const { return UIRenderableItemList; }
 private:
 	int8 GetAdditionalShaderChannelFlags()const;
 private:
