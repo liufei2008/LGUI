@@ -37,13 +37,15 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInterface* GetCustomUIMaterial()const { return CustomUIMaterial; }
+	//if inMat is a UMaterialInstanceDynamic, then it will directly use for render
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCustomUIMaterial(UMaterialInterface* inMat);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetRaycastComplex() { return bRaycastComplex; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRaycastComplex(bool newValue) { bRaycastComplex = newValue; }
-	//return created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr
+	//if CustomUIMaterial is a UMaterialInstanceDynamic, then will return it directly.
+	//if not, then return a created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic();
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
