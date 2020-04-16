@@ -808,8 +808,17 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 					return;
 				}
 			}
-			auto uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
-			uiMat->SetFlags(RF_Transient);
+
+			UMaterialInstanceDynamic* uiMat = nullptr;
+			if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
+			{
+				uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
+			}
+			else
+			{
+				uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
+				uiMat->SetFlags(RF_Transient);
+			}
 			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
 			UIMaterialList[i] = uiMat;
 			uiDrawcall->materialInstanceDynamic = uiMat;
