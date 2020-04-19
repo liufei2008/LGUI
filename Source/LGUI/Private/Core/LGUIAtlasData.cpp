@@ -159,7 +159,7 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 			spriteTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 			spriteTexture->SRGB = false;
 			spriteTexture->UpdateResource();
-			const FColor* spriteColorBuffer = static_cast<const FColor*>(spriteTexture->PlatformData->Mips[0].BulkData.LockReadOnly());
+			const FColor* spriteColorBuffer = reinterpret_cast<const FColor*>(spriteTexture->PlatformData->Mips[0].BulkData.LockReadOnly());
 			rbp::Rect rect = packResult[spriteIndex];
 			int32 spriteWidth = spriteTexture->GetSizeX();
 			int32 spriteHeight = spriteTexture->GetSizeY();
