@@ -3,6 +3,7 @@
 #include "Core/LGUISettings.h"
 #include "LGUI.h"
 #include "Core/LGUISpriteData.h"
+#include "Core/LGUIAtlasData.h"
 
 #if WITH_EDITOR
 void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
@@ -14,55 +15,44 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 			&& Property->GetFName() != TEXT("maxCanvasUpdateTimeInOneFrame"))
 		{
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
+			ULGUIAtlasManager::InitCheck();
 		}
 	}
 }
 #endif
-int32 ULGUISettings::GetAtlasTextureInitialSize(const FName& InPackingTag)
+const FLGUIAtlasSettings& ULGUISettings::GetAtlasSettings(const FName& InPackingTag)
 {
 	auto lguiSettings = GetDefault<ULGUISettings>();
 	if (auto atlasSettings = lguiSettings->atlasSettingForSpecificPackingTag.Find(InPackingTag))
 	{
-		return ConvertAtlasTextureSizeTypeToSize(atlasSettings->atlasTextureInitialSize);
+		return *atlasSettings;
 	}
 	else
 	{
-		return ConvertAtlasTextureSizeTypeToSize(lguiSettings->defaultAtlasSetting.atlasTextureInitialSize);
+		return lguiSettings->defaultAtlasSetting;
 	}
+}
+int32 ULGUISettings::GetAtlasTextureInitialSize(const FName& InPackingTag)
+{
+	return ConvertAtlasTextureSizeTypeToSize(GetAtlasSettings(InPackingTag).atlasTextureInitialSize);
 }
 bool ULGUISettings::GetAtlasTextureSRGB(const FName& InPackingTag)
 {
-	auto lguiSettings = GetDefault<ULGUISettings>();
-	if (auto atlasSettings = lguiSettings->atlasSettingForSpecificPackingTag.Find(InPackingTag))
-	{
-		return atlasSettings->atlasTextureUseSRGB;
-	}
-	else
-	{
-		return lguiSettings->defaultAtlasSetting.atlasTextureUseSRGB;
-	}
+	return GetAtlasSettings(InPackingTag).atlasTextureUseSRGB;
 }
 int32 ULGUISettings::GetAtlasTexturePadding(const FName& InPackingTag)
 {
-	auto lguiSettings = GetDefault<ULGUISettings>();
-	if (auto atlasSettings = lguiSettings->atlasSettingForSpecificPackingTag.Find(InPackingTag))
-	{
-		return atlasSettings->spaceBetweenSprites;
-	}
-	else
-	{
-		return lguiSettings->defaultAtlasSetting.spaceBetweenSprites;
-	}
+	return GetAtlasSettings(InPackingTag).spaceBetweenSprites;
 }
 TextureFilter ULGUISettings::GetAtlasTextureFilter(const FName& InPackingTag)
 {
-	auto lguiSettings = GetDefault<ULGUISettings>();
-	if (auto atlasSettings = lguiSettings->atlasSettingForSpecificPackingTag.Find(InPackingTag))
-	{
-		return atlasSettings->atlasTextureFilter;
-	}
-	else
-	{
-		return lguiSettings->defaultAtlasSetting.atlasTextureFilter;
-	}
+	return GetAtlasSettings(InPackingTag).atlasTextureFilter;
+}
+//ELGUIAtlasPackingType ULGUISettings::GetAtlasPackingType(const FName& InPackingTag)
+//{
+//	return GetAtlasSettings(InPackingTag).packingType;
+//}
+const TMap<FName, FLGUIAtlasSettings>& ULGUISettings::GetAllAtlasSettings()
+{
+	return GetDefault<ULGUISettings>()->atlasSettingForSpecificPackingTag;
 }

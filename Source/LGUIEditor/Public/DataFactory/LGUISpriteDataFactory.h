@@ -3,14 +3,14 @@
 #pragma once
 
 #include "Factories/Factory.h"
-#include "LGUISpriteFactory.generated.h"
+#include "LGUISpriteDataFactory.generated.h"
 
 UCLASS()
-class ULGUISpriteFactory : public UFactory
+class ULGUISpriteDataFactory : public UFactory
 {
 	GENERATED_BODY()
 public:
-	ULGUISpriteFactory();
+	ULGUISpriteDataFactory();
 
 	class UTexture2D* SpriteTexture = nullptr;
 	// UFactory interface

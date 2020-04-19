@@ -30,6 +30,7 @@ public:
 	static void CreateHelperButtons(FMenuBuilder& MenuBuilder, UUIItem* InUIItem)
 	{
 		return;
+		//@todo: make this work!
 		MenuBuilder.BeginSection("LGUI", LOCTEXT("LGUILevelEditorHeading", "LGUI"));
 		if (InUIItem)
 		{

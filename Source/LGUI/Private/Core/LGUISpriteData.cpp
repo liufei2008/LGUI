@@ -230,6 +230,14 @@ void ULGUISpriteData::CheckSpriteTexture()
 		spriteTexture = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/LGUIPreset_WhiteSolid"));
 	}
 }
+
+void ULGUISpriteData::ApplySpriteInfoAfterStaticPack(const rbp::Rect& packedRect, float atlasTextureSizeInv, UTexture2D* atlasTexture)
+{
+	this->atlasTexture = atlasTexture;
+	isInitialized = true;
+	spriteInfo.ApplyUV(packedRect.x, packedRect.y, packedRect.width, packedRect.height, atlasTextureSizeInv, atlasTextureSizeInv);
+	spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
+}
 #if WITH_EDITOR
 void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -250,16 +258,24 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 				spriteInfo.height = spriteTexture->GetSizeY();
 			}
 		}
-		//sprite data, apply border
-		if (spriteTexture != nullptr)
+		if (
+			propertyName == TEXT("borderLeft") ||
+			propertyName == TEXT("borderRight") ||
+			propertyName == TEXT("borderTop") ||
+			propertyName == TEXT("borderBottom")
+			)
 		{
-			if (isInitialized)
+			//sprite data, apply border
+			if (spriteTexture != nullptr)
 			{
-				float atlasTextureSizeInv = 1.0f / InitAndGetAtlasTexture()->GetSizeX();
-				spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
+				spriteInfo.width = spriteTexture->GetSizeX();
+				spriteInfo.height = spriteTexture->GetSizeY();
+				if (isInitialized)
+				{
+					float atlasTextureSizeInv = 1.0f / InitAndGetAtlasTexture()->GetSizeX();
+					spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
+				}
 			}
-			spriteInfo.width = spriteTexture->GetSizeX();
-			spriteInfo.height = spriteTexture->GetSizeY();
 		}
 	}
 }
@@ -302,7 +318,11 @@ void ULGUISpriteData::InitSpriteData()
 		}
 		else
 		{
-			PackageSprite();
+			//ULGUIAtlasManager::InitCheck();
+			//if (!isInitialized)
+			{
+				PackageSprite();
+			}
 		}
 		isInitialized = true;
 	}
