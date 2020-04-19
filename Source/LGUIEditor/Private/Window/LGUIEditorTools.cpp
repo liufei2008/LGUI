@@ -614,7 +614,7 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 		);
 		if (OutFileNames.Num() > 0)
 		{
-			auto selectedFilePath = OutFileNames[0];
+			FString selectedFilePath = OutFileNames[0];
 			if (selectedFilePath.StartsWith(FPaths::ProjectContentDir()))
 			{
 				selectedFilePath.RemoveFromStart(FPaths::ProjectContentDir(), ESearchCase::CaseSensitive);
@@ -637,7 +637,8 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 			}
 			else
 			{
-				UE_LOG(LGUIEditor, Error, TEXT("Prefab is a uasset, should only save inside Content folder!"));
+				FMessageDialog::Open(EAppMsgType::Ok
+					, FText::FromString(FString::Printf(TEXT("Prefab should only save inside Content folder!"))));
 			}
 		}
 	}
@@ -709,6 +710,13 @@ ALGUIPrefabActor* ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisAct
 		}
 	}
 	return nullptr;
+}
+void ULGUIEditorToolsAgentObject::SaveAsset(UObject* InObject, UPackage* InPackage)
+{
+	FAssetRegistryModule::AssetCreated(InObject);
+	FString packageSavePath = FString::Printf(TEXT("/Game/%s%s"), *(InObject->GetPathName()), *FPackageName::GetAssetPackageExtension());
+	UPackage::SavePackage(InPackage, InObject, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *packageSavePath);
+	InPackage->MarkPackageDirty();
 }
 #endif
 

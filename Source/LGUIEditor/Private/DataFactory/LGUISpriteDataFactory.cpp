@@ -1,21 +1,21 @@
 // Copyright 2019-2020 LexLiu. All Rights Reserved.
 
-#include "DataFactory/LGUISpriteFactory.h"
+#include "DataFactory/LGUISpriteDataFactory.h"
 #include "LGUIEditorModule.h"
 #include "Core/LGUISettings.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 
-#define LOCTEXT_NAMESPACE "LGUISpriteFactory"
+#define LOCTEXT_NAMESPACE "LGUISpriteDataFactory"
 
 
-ULGUISpriteFactory::ULGUISpriteFactory()
+ULGUISpriteDataFactory::ULGUISpriteDataFactory()
 {
 	SupportedClass = ULGUISpriteData::StaticClass();
 	bCreateNew = true;
 	bEditAfterNew = true;
 }
-UObject* ULGUISpriteFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
+UObject* ULGUISpriteDataFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
 	bool isDefaltTexture = false;
 	if (SpriteTexture == nullptr)

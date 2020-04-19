@@ -5,6 +5,8 @@
 #include "Core/LGUISettings.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Core/LGUIAtlasData.h"
+#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteDataCustomization"
 
@@ -23,13 +25,11 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 		return;
 	}
+	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo));
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteTexture));
-	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.width));
-	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.height));
-	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
 	lguiCategory.AddCustomRow(LOCTEXT("ReloadTexture", "ReloadTexture"))
-		.WholeRowContent()
+		.ValueContent()
 		[
 			SNew(SButton)
 			.Text(FText::FromString("ReloadTexture"))
@@ -39,6 +39,10 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 				return FReply::Handled();
 			})
 		];
+	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.width));
+	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.height));
+	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
+	
 	//if change packingTag, clear all sprites and repack
 	auto packingTagHangle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
 	packingTagHangle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([] {ULGUISpriteData::MarkAllSpritesNeedToReinitialize(); }));
@@ -244,7 +248,7 @@ FOptionalSize FLGUISpriteDataCustomization::GetImageHeight()const
 }
 FOptionalSize FLGUISpriteDataCustomization::GetMinDesiredHeight(IDetailLayoutBuilder* DetailBuilder)const
 {
-	return DetailBuilder->GetDetailsView()->GetCachedGeometry().GetLocalSize().Y - 410;
+	return DetailBuilder->GetDetailsView()->GetCachedGeometry().GetLocalSize().Y - 480;
 }
 FOptionalSize FLGUISpriteDataCustomization::GetBorderLeftSize()const
 {

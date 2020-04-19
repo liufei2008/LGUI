@@ -8,7 +8,7 @@
 #include "IContentBrowserSingleton.h"
 #include "ContentBrowserModule.h"
 #include "LGUIEditorStyle.h"
-#include "DataFactory/LGUISpriteFactory.h"
+#include "DataFactory/LGUISpriteDataFactory.h"
 
 #define LOCTEXT_NAMESPACE "LGUI"
 
@@ -56,7 +56,7 @@ struct FCreateSpriteFromTextureExtension : public FContentBrowserSelectedAssetEx
 			UTexture2D* Texture = *TextureIt;
 
 			// Create the factory used to generate the sprite
-			ULGUISpriteFactory* SpriteFactory = NewObject<ULGUISpriteFactory>();
+			ULGUISpriteDataFactory* SpriteFactory = NewObject<ULGUISpriteDataFactory>();
 			SpriteFactory->SpriteTexture = Texture;
 
 			// Create the sprite

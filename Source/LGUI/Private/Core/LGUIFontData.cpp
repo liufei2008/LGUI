@@ -142,7 +142,7 @@ void ULGUIFontData::InitFreeType()
 			fullTextureSizeReciprocal = 1.0f / textureSize;
 			CreateFontTexture(0, textureSize);
 			charDataMap.Empty();
-			binPack = rbp::MaxRectsBinPack(textureSize, textureSize, 0, 0);
+			binPack = rbp::MaxRectsBinPack(textureSize, textureSize);
 		}
 	}
 }
