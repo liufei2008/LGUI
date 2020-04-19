@@ -89,6 +89,7 @@ public:
 class ULGUISpriteData;
 class UUISpriteBase;
 struct FLGUIAtlasData;
+class ULGUIAtlas;
 
 #define WARNING_ATLAS_SIZE 4096
 
@@ -101,7 +102,7 @@ class LGUI_API ULGUISpriteData :public UObject
 	GENERATED_BODY()
 private:
 	friend class FLGUISpriteDataCustomization;
-	friend class ULGUISpriteFactory;
+	friend class ULGUISpriteDataFactory;
 	friend struct FLGUIAtlasData;
 	/*
 	Texture of this sprite. Sprite is acturally renderred from atlas texture, so spriteTexture is not needed if atlasdata is packed; But! since atlas texture is packed at runtime, we must include spriteTexture inside final package.
@@ -122,7 +123,7 @@ private:
 	bool InsertTexture(FLGUIAtlasData* InAtlasData);
 	void CheckSpriteTexture();
 	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);
-
+	void ApplySpriteInfoAfterStaticPack(const rbp::Rect& packedRect, float atlasTextureSizeInv, UTexture2D* atlasTexture);
 public:
 	//initialize sprite data, only need to call once
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void InitSpriteData();
