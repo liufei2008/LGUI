@@ -22,30 +22,35 @@ namespace rbp {
 
 	using namespace std;
 
-	float min(float a, float b)
+	int min(int a, int b)
 	{
 		return a > b ? b : a;
 	}
-	float max(float a, float b)
+	int max(int a, int b)
 	{
 		return a > b ? a : b;
 	}
+	int abs(int a)
+	{
+		return a > 0 ? a : -a;
+	}
 
 	MaxRectsBinPack::MaxRectsBinPack()
-		:
-		binX(0),
-		binY(0),
-		binWidth(0),
+		:binWidth(0),
 		binHeight(0)
 	{
 	}
 
-	MaxRectsBinPack::MaxRectsBinPack(int width, int height)
+	MaxRectsBinPack::MaxRectsBinPack(int width, int height, bool allowFlip)
 	{
+		Init(width, height, allowFlip);
+	}
+
+	void MaxRectsBinPack::Init(int width, int height, bool allowFlip)
+	{
+		binAllowFlip = allowFlip;
 		binWidth = width;
 		binHeight = height;
-		binX = 0;
-		binY = 0;
 
 		Rect n;
 		n.x = 0;
@@ -53,74 +58,12 @@ namespace rbp {
 		n.width = width;
 		n.height = height;
 
-		if (usedRectangles.Num() > 0)
-			usedRectangles.Empty();
+		usedRectangles.Empty();
 
-		if (freeRectangles.Num() > 0)
-			freeRectangles.Empty();
+		freeRectangles.Empty();
 		freeRectangles.Add(n);
 	}
 
-	MaxRectsBinPack::MaxRectsBinPack(int width, int height, int x, int y)
-	{
-		binWidth = width;
-		binHeight = height;
-		binX = x;
-		binY = y;
-
-		Rect n;
-		n.x = x;
-		n.y = y;
-		n.width = width;
-		n.height = height;
-
-		if (usedRectangles.Num() > 0)
-			usedRectangles.Empty();
-
-		if (freeRectangles.Num() > 0)
-			freeRectangles.Empty();
-		freeRectangles.Add(n);
-	}
-	void MaxRectsBinPack::Init(int width, int height)
-	{
-		binWidth = width;
-		binHeight = height;
-		binX = 0;
-		binY = 0;
-
-		Rect n;
-		n.x = 0;
-		n.y = 0;
-		n.width = width;
-		n.height = height;
-
-		if (usedRectangles.Num() > 0)
-			usedRectangles.Empty();
-
-		if (freeRectangles.Num() > 0)
-			freeRectangles.Empty();
-		freeRectangles.Add(n);
-	}
-	void MaxRectsBinPack::Init(int width, int height, int x, int y)
-	{
-		binWidth = width;
-		binHeight = height;
-		binX = x;
-		binY = y;
-
-		Rect n;
-		n.x = x;
-		n.y = y;
-		n.width = width;
-		n.height = height;
-
-		if (usedRectangles.Num() > 0)
-			usedRectangles.Empty();
-
-		if (freeRectangles.Num() > 0)
-			freeRectangles.Empty();
-		freeRectangles.Add(n);
-	}
 	void MaxRectsBinPack::ExpendSize(int newWidth, int newHeight)
 	{
 		if (binWidth > newWidth || binHeight > newHeight)//new size is smaller
@@ -331,6 +274,7 @@ namespace rbp {
 				return;
 
 			PlaceRect(bestNode);
+			dst.Add(bestNode);
 			rects.RemoveAt(bestRectIndex);
 		}
 	}
@@ -414,7 +358,7 @@ namespace rbp {
 					bestX = freeRectangles[i].x;
 				}
 			}
-			if (freeRectangles[i].width >= height && freeRectangles[i].height >= width)
+			if (binAllowFlip && freeRectangles[i].width >= height && freeRectangles[i].height >= width)
 			{
 				int topSideY = freeRectangles[i].y + width;
 				if (topSideY < bestY || (topSideY == bestY && freeRectangles[i].x < bestX))
@@ -461,7 +405,7 @@ namespace rbp {
 				}
 			}
 
-			if (freeRectangles[i].width >= height && freeRectangles[i].height >= width)
+			if (binAllowFlip && freeRectangles[i].width >= height && freeRectangles[i].height >= width)
 			{
 				int flippedLeftoverHoriz = abs(freeRectangles[i].width - height);
 				int flippedLeftoverVert = abs(freeRectangles[i].height - width);
@@ -512,7 +456,7 @@ namespace rbp {
 				}
 			}
 
-			if (freeRectangles[i].width >= height && freeRectangles[i].height >= width)
+			if (binAllowFlip && freeRectangles[i].width >= height && freeRectangles[i].height >= width)
 			{
 				int leftoverHoriz = abs(freeRectangles[i].width - height);
 				int leftoverVert = abs(freeRectangles[i].height - width);
@@ -559,6 +503,23 @@ namespace rbp {
 					bestNode.y = freeRectangles[i].y;
 					bestNode.width = width;
 					bestNode.height = height;
+					bestShortSideFit = shortSideFit;
+					bestAreaFit = areaFit;
+				}
+			}
+			
+			if (binAllowFlip && freeRectangles[i].width >= height && freeRectangles[i].height >= width)
+			{
+				int leftoverHoriz = abs(freeRectangles[i].width - height);
+				int leftoverVert = abs(freeRectangles[i].height - width);
+				int shortSideFit = min(leftoverHoriz, leftoverVert);
+
+				if (areaFit < bestAreaFit || (areaFit == bestAreaFit && shortSideFit < bestShortSideFit))
+				{
+					bestNode.x = freeRectangles[i].x;
+					bestNode.y = freeRectangles[i].y;
+					bestNode.width = height;
+					bestNode.height = width;
 					bestShortSideFit = shortSideFit;
 					bestAreaFit = areaFit;
 				}
@@ -616,7 +577,7 @@ namespace rbp {
 					bestContactScore = score;
 				}
 			}
-			if (freeRectangles[i].width >= height && freeRectangles[i].height >= width)
+			if (binAllowFlip && freeRectangles[i].width >= height && freeRectangles[i].height >= width)
 			{
 				int score = ContactPointScoreNode(freeRectangles[i].x, freeRectangles[i].y, height, width);
 				if (score > bestContactScore)

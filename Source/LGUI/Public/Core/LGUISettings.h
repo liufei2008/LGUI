@@ -18,6 +18,14 @@ enum class ELGUIAtlasTextureSizeType :uint8
 	SIZE_4096x4096			UMETA(DisplayName = "4096x4096"),
 	SIZE_8192x8192			UMETA(DisplayName = "8192x8192"),
 };
+UENUM(BlueprintType)
+enum class ELGUIAtlasPackingType :uint8
+{
+	//dynamic pack, without mipmap
+	Dynamic,
+	//pack atlas when first time the game start
+	Static,
+};
 
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUIAtlasSettings
@@ -39,6 +47,8 @@ public:
 	//space between two sprites when package into atlas
 	UPROPERTY(EditAnywhere, config, Category = Sprite)
 		int32 spaceBetweenSprites = 2;
+	//UPROPERTY(EditAnywhere, config, Category = Sprite)
+	//	ELGUIAtlasPackingType packingType = ELGUIAtlasPackingType::Dynamic;
 };
 //for LGUI config
 UCLASS(config=EditorPerProjectUserSettings)
@@ -63,12 +73,17 @@ public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
 #endif
+public:
 	static int32 GetAtlasTextureInitialSize(const FName& InPackingTag);
-	static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
-	{
-		return FMath::Pow(2, (int32)InType) * 256;
-	}
 	static bool GetAtlasTextureSRGB(const FName& InPackingTag);
 	static int32 GetAtlasTexturePadding(const FName& InPackingTag);
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
+	//static ELGUIAtlasPackingType GetAtlasPackingType(const FName& InPackingTag);
+	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
+private:
+	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
+	{
+		return FMath::Pow(2, (int32)InType) * 256;
+	}
+	FORCEINLINE static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);
 };

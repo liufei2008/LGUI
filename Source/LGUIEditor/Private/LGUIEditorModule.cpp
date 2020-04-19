@@ -210,11 +210,11 @@ void FLGUIEditorModule::StartupModule()
 		//register AssetCategory
 		EAssetTypeCategories::Type LGUIAssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("LGUI")), LOCTEXT("LGUIAssetCategory", "LGUI"));
 
-		TSharedRef<IAssetTypeActions> spriteAction = MakeShareable(new FLGUISpriteDataTypeAction(LGUIAssetCategoryBit));
-		TSharedRef<IAssetTypeActions> fontAction = MakeShareable(new FLGUIFontDataTypeAction(LGUIAssetCategoryBit));
+		TSharedRef<IAssetTypeActions> spriteDataAction = MakeShareable(new FLGUISpriteDataTypeAction(LGUIAssetCategoryBit));
+		TSharedRef<IAssetTypeActions> fontDataAction = MakeShareable(new FLGUIFontDataTypeAction(LGUIAssetCategoryBit));
 		TSharedRef<IAssetTypeActions> prefabAction = MakeShareable(new FLGUIPrefabTypeAction(LGUIAssetCategoryBit));
-		AssetTools.RegisterAssetTypeActions(spriteAction);
-		AssetTools.RegisterAssetTypeActions(fontAction);
+		AssetTools.RegisterAssetTypeActions(spriteDataAction);
+		AssetTools.RegisterAssetTypeActions(fontDataAction);
 		AssetTools.RegisterAssetTypeActions(prefabAction);
 	}
 	//register Thumbnail
