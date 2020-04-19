@@ -16,6 +16,7 @@ Modified by lexliu:
 	This version is also public domain - do whatever you want with it.
 */
 
+#include "CoreMinimal.h"
 #pragma once
 
 
@@ -47,13 +48,12 @@ namespace rbp {
 		MaxRectsBinPack();
 
 		/// Instantiates a bin of the given size.
-		MaxRectsBinPack(int width, int height);
-		MaxRectsBinPack(int width, int height, int x, int y);
+		MaxRectsBinPack(int width, int height, bool allowFlip = false);
 
 		/// (Re)initializes the packer to an empty bin of width x height units. Call whenever
 		/// you need to restart with a new bin.
-		void Init(int width, int height);
-		void Init(int width, int height, int x, int y);
+		void Init(int width, int height, bool allowFlip = false);
+
 		/// add by lexliu to expend the binpack size
 		void ExpendSize(int newWidth, int newHeight);
 		/// add by lexliu to expend the binpack size, for uitext, prevent too many small rects
@@ -81,15 +81,13 @@ namespace rbp {
 		/// Computes the ratio of used surface area to the total bin area.
 		float Occupancy() const;
 
-		int GetBinX() { return binX; }
-		int GetBinY() { return binY; }
 		int GetBinWidth() { return binWidth; }
 		int GetBinHeight() { return binHeight; }
 	private:
-		int binX = 0;
-		int binY = 0;
 		int binWidth = 0;
 		int binHeight = 0;
+
+		bool binAllowFlip = false;
 
 		TArray<Rect> usedRectangles;
 		TArray<Rect> freeRectangles;

@@ -40,6 +40,10 @@ struct LGUI_API FLGUIAtlasData
 	};
 	//atlas texture size may change when dynamic packing, this event will be called when that happen.
 	FLGUIAtlasTextureExpendEvent expandTextureSizeCallback;
+
+	bool StaticPacking(const FName& packingTag);
+private:
+	bool PackAtlasTest(uint32 size, TArray<rbp::Rect>& result, int32 spaceBetweenSprites);
 };
 
 UCLASS(NotBlueprintable, NotBlueprintType)
@@ -49,14 +53,17 @@ class LGUI_API ULGUIAtlasManager :public UObject
 public:
 	static ULGUIAtlasManager* Instance;
 private:
-	static bool InitCheck();
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 		TMap<FName, FLGUIAtlasData> atlasMap;
 protected:
 	virtual void BeginDestroy()override;
+	bool isStaticAtlasPacked = false;
 public:
+	static bool InitCheck();
 	const TMap<FName, FLGUIAtlasData>& GetAtlasMap();
 	static FLGUIAtlasData* FindOrAdd(const FName& packingTag);
 	static FLGUIAtlasData* Find(const FName& packingTag);
 	static void ResetAtlasMap();
+
+	static void PackStaticAtlas();
 };
