@@ -173,3 +173,6 @@
         Improve italic style text render.
     New feature:
         Now we can click to select UI direct inside level editor.
+2.6.3
+    New feature:
+        Now we can pass UMaterialInstanceDynamic to LGUIRenderable's custom material.
