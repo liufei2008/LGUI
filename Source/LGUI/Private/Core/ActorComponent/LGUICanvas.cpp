@@ -773,14 +773,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 	//if clip type change, or need to rebuild all drawcall, then recreate material
 	if (bClipTypeChanged || bShouldRebuildAllDrawcall)
 	{
-		for (auto uiMat : UIMaterialList)
-		{
-			if (IsValid(uiMat))
-			{
-				uiMat->ConditionalBeginDestroy();
-			}
-		}
-		UIMaterialList.Empty();
+		UIMaterialList.Reset();
 	}
 	//check if material count is enough, or create enough material
 	int materialCount = UIMaterialList.Num();
@@ -804,7 +797,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 				if (SrcMaterial == nullptr)
 				{
 					UE_LOG(LGUI, Log, TEXT("[ULGUICanvas::UpdateAndApplyMaterial]Material asset from Plugin/Content is missing! Reinstall this plugin may fix the issure"));
-					UIMaterialList.Empty();
+					UIMaterialList.Reset();
 					return;
 				}
 			}
@@ -1151,14 +1144,8 @@ void ULGUICanvas::SetDefaultMaterials(UMaterialInterface* InMaterials[3])
 			DefaultMaterials[i] = InMaterials[i];
 		}
 	}
-	//delete old material
-	for (auto uiMat : UIMaterialList)
-	{
-		if (IsValid(uiMat))
-		{
-			uiMat->ConditionalBeginDestroy();
-		}
-	}
+	//clear old material
+	UIMaterialList.Reset();
 }
 
 void ULGUICanvas::SetDynamicPixelsPerUnit(float newValue)
