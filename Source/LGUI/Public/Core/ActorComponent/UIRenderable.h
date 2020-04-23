@@ -37,7 +37,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInterface* GetCustomUIMaterial()const { return CustomUIMaterial; }
-	//if inMat is a UMaterialInstanceDynamic, then it will directly use for render
+	//if inMat is a UMaterialInstanceDynamic, then it will directly use for render.
+	//if not, then a new MaterialInstanceDynamic will be created to render this UI item, and the created MaterialInstanceDynamic may shared with others UI items.
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCustomUIMaterial(UMaterialInterface* inMat);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
