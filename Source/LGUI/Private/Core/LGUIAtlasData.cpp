@@ -258,17 +258,18 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 		}
 	}
 
-	FTexture2DMipMap* Mip = new FTexture2DMipMap();
-	texture->PlatformData->Mips.Add(Mip);
-	Mip->SizeX = packSize;
-	Mip->SizeY = packSize;
-	Mip->BulkData.Lock(LOCK_READ_WRITE);
-	void* textureData = Mip->BulkData.Realloc(packSize * packSize * GPixelFormats[PF_B8G8R8A8].BlockBytes);
-	FMemory::Memcpy(textureData, pixelData, pixelBufferLength);
-	texture->PlatformData->Mips[0].BulkData.Unlock();
-	//texture->Source.Init(atlasSize, atlasSize, 1, 1, ETextureSourceFormat::TSF_BGRA8, pixelData);
-	delete[] pixelData;
-
+	{
+		FTexture2DMipMap* textureMip = new FTexture2DMipMap();
+		texture->PlatformData->Mips.Add(textureMip);
+		textureMip->SizeX = packSize;
+		textureMip->SizeY = packSize;
+		textureMip->BulkData.Lock(LOCK_READ_WRITE);
+		void* textureData = textureMip->BulkData.Realloc(packSize * packSize * GPixelFormats[PF_B8G8R8A8].BlockBytes);
+		FMemory::Memcpy(textureData, pixelData, pixelBufferLength);
+		texture->PlatformData->Mips[0].BulkData.Unlock();
+		//texture->Source.Init(atlasSize, atlasSize, 1, 1, ETextureSourceFormat::TSF_BGRA8, pixelData);
+		delete[] pixelData;
+	}
 
 	//generate mipmaps
 	{
@@ -341,13 +342,13 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 			}
 
 			// Allocate next mipmap.
-			FTexture2DMipMap* Mip = new(texture->PlatformData->Mips) FTexture2DMipMap();
-			Mip->SizeX = mipwidth;
-			Mip->SizeY = mipheight;
-			Mip->BulkData.Lock(LOCK_READ_WRITE);
-			void* mipData = Mip->BulkData.Realloc(mipRGBAs->Num());
+			FTexture2DMipMap* mip = new(texture->PlatformData->Mips) FTexture2DMipMap();
+			mip->SizeX = mipwidth;
+			mip->SizeY = mipheight;
+			mip->BulkData.Lock(LOCK_READ_WRITE);
+			void* mipData = mip->BulkData.Realloc(mipRGBAs->Num());
 			FMemory::Memcpy(mipData, mipRGBAs->GetData(), mipRGBAs->Num());
-			Mip->BulkData.Unlock();
+			mip->BulkData.Unlock();
 
 			priorData = mipRGBAs->GetData();
 			priorwidth = mipwidth;
