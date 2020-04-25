@@ -339,7 +339,8 @@ bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 			}
 
 			// Allocate next mipmap.
-			FTexture2DMipMap* mip = new(texture->PlatformData->Mips) FTexture2DMipMap();
+			FTexture2DMipMap* mip = new FTexture2DMipMap;
+			texture->PlatformData->Mips.Add(mip);
 			mip->SizeX = mipwidth;
 			mip->SizeY = mipheight;
 			mip->BulkData.Lock(LOCK_READ_WRITE);
