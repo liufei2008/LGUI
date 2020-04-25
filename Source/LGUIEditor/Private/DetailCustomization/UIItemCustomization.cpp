@@ -74,7 +74,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				{
 					if (!viewportClient->IsRealtime())
 					{
-						viewportClient->SetRealtime(true, false);
+						viewportClient->SetRealtime(true);
 						UE_LOG(LGUIEditor, Warning, TEXT("[UIItemCustomization]Editor viewport set to realtime.(Something weird may happen if not realtime edit)"));
 					}
 				}

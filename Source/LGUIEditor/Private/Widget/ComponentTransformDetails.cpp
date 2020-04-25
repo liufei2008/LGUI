@@ -71,6 +71,16 @@ private:
 	UWorld* PrevWorld;
 };
 
+static USceneComponent* GetSceneComponentFromDetailsObject(UObject* InObject)
+{
+	AActor* Actor = Cast<AActor>(InObject);
+	if (Actor)
+	{
+		return Actor->GetRootComponent();
+	}
+
+	return Cast<USceneComponent>(InObject);
+}
 
 FComponentTransformDetails::FComponentTransformDetails( const TArray< TWeakObjectPtr<UUIItem> >& InSelectedObjects, const FSelectedActorInfo& InSelectedActorInfo, IDetailLayoutBuilder& DetailBuilder )
 	: TNumericUnitTypeInterface(GetDefault<UEditorProjectAppearanceSettings>()->bDisplayUnitsOnComponentTransforms ? EUnit::Centimeters : EUnit::Unspecified)
@@ -201,15 +211,15 @@ FUIAction FComponentTransformDetails::CreateCopyAction( ETransformField::Type Tr
 	return
 		FUIAction
 		(
-			FExecuteAction::CreateSP(this, &FComponentTransformDetails::OnCopy, TransformField ),
-			FCanExecuteAction::CreateSP(this, &FComponentTransformDetails::OnCanCopy, TransformField )
+			FExecuteAction::CreateSP(const_cast<FComponentTransformDetails*>(this), &FComponentTransformDetails::OnCopy, TransformField ),
+			FCanExecuteAction::CreateSP(const_cast<FComponentTransformDetails*>(this), &FComponentTransformDetails::OnCanCopy, TransformField )
 		);
 }
 
 FUIAction FComponentTransformDetails::CreatePasteAction( ETransformField::Type TransformField ) const
 {
 	return 
-		 FUIAction( FExecuteAction::CreateSP(this, &FComponentTransformDetails::OnPaste, TransformField ) );
+		 FUIAction( FExecuteAction::CreateSP(const_cast<FComponentTransformDetails*>(this), &FComponentTransformDetails::OnPaste, TransformField ) );
 }
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
@@ -687,56 +697,56 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 	{
 	case ETransformField::Location:
 		TransactionText = LOCTEXT("OnSetLocation", "Set Location");
-		ValueProperty = FindField<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeLocation"));
+		ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeLocation"));
 		
 		// Only set axis property for single axis set
 		if (Axis == EAxisList::X)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, X));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, X));
 		}
 		else if (Axis == EAxisList::Y)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Y));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Y));
 		}
 		else if (Axis == EAxisList::Z)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Z));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Z));
 		}
 		break;
 	case ETransformField::Rotation:
 		TransactionText = LOCTEXT("OnSetRotation", "Set Rotation");
-		ValueProperty = FindField<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeRotation"));
+		ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeRotation"));
 		
 		// Only set axis property for single axis set
 		if (Axis == EAxisList::X)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Roll));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Roll));
 		}
 		else if (Axis == EAxisList::Y)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Pitch));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Pitch));
 		}
 		else if (Axis == EAxisList::Z)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Yaw));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FRotator>::Get(), GET_MEMBER_NAME_CHECKED(FRotator, Yaw));
 		}
 		break;
 	case ETransformField::Scale:
 		TransactionText = LOCTEXT("OnSetScale", "Set Scale");
-		ValueProperty = FindField<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeScale3D"));
+		ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), TEXT("RelativeScale3D"));
 
 		// If keep scale is set, don't set axis property
 		if (!bPreserveScaleRatio && Axis == EAxisList::X)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, X));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, X));
 		}
 		else if (!bPreserveScaleRatio && Axis == EAxisList::Y)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Y));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Y));
 		}
 		else if (!bPreserveScaleRatio && Axis == EAxisList::Z)
 		{
-			AxisProperty = FindField<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Z));
+			AxisProperty = FindFProperty<FFloatProperty>(TBaseStructure<FVector>::Get(), GET_MEMBER_NAME_CHECKED(FVector, Z));
 		}
 		break;
 	default:
@@ -744,9 +754,9 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 	}
 
 	bool bBeganTransaction = false;
-	TArray<UUIItem*> ModifiedObjects;
+	TArray<UObject*> ModifiedObjects;
 
-	FPropertyChangedEvent PropertyChangedEvent(ValueProperty, !bCommitted ? EPropertyChangeType::Interactive : EPropertyChangeType::ValueSet, (const TArray<const UObject*>*)&ModifiedObjects);
+	FPropertyChangedEvent PropertyChangedEvent(ValueProperty, !bCommitted ? EPropertyChangeType::Interactive : EPropertyChangeType::ValueSet, MakeArrayView(ModifiedObjects));
 	FEditPropertyChain PropertyChain;
 
 	if (AxisProperty)
@@ -935,9 +945,9 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 
 	if (ModifiedObjects.Num())
 	{
-		for (UUIItem* Object : ModifiedObjects)
+		for (UObject* Object : ModifiedObjects)
 		{
-			USceneComponent* SceneComponent = Object;
+			USceneComponent* SceneComponent = GetSceneComponentFromDetailsObject(Object);
 			USceneComponent* OldSceneComponent = SceneComponent;
 
 			if (SceneComponent)
