@@ -231,12 +231,12 @@ void ULGUISpriteData::CheckSpriteTexture()
 	}
 }
 
-void ULGUISpriteData::ApplySpriteInfoAfterStaticPack(const rbp::Rect& packedRect, float atlasTextureSizeInv, UTexture2D* atlasTexture)
+void ULGUISpriteData::ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRect, float InAtlasTextureSizeInv, UTexture2D* InAtlasTexture)
 {
-	this->atlasTexture = atlasTexture;
+	this->atlasTexture = InAtlasTexture;
 	isInitialized = true;
-	spriteInfo.ApplyUV(packedRect.x, packedRect.y, packedRect.width, packedRect.height, atlasTextureSizeInv, atlasTextureSizeInv);
-	spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
+	spriteInfo.ApplyUV(InPackedRect.x, InPackedRect.y, InPackedRect.width, InPackedRect.height, InAtlasTextureSizeInv, InAtlasTextureSizeInv);
+	spriteInfo.ApplyBorderUV(InAtlasTextureSizeInv, InAtlasTextureSizeInv);
 }
 #if WITH_EDITOR
 void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)

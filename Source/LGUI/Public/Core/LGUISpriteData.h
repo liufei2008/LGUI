@@ -123,7 +123,7 @@ private:
 	bool InsertTexture(FLGUIAtlasData* InAtlasData);
 	void CheckSpriteTexture();
 	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);
-	void ApplySpriteInfoAfterStaticPack(const rbp::Rect& packedRect, float atlasTextureSizeInv, UTexture2D* atlasTexture);
+	void ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRect, float InAtlasTextureSizeInv, UTexture2D* InAtlasTexture);
 public:
 	//initialize sprite data, only need to call once
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void InitSpriteData();
