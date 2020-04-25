@@ -378,8 +378,8 @@ bool FLGUIAtlasData::PackAtlasTest(uint32 size, TArray<rbp::Rect>& result, int32
 	result.Reset();
 	result.AddDefaulted(spriteDataArray.Num());
 
-	rbp::MaxRectsBinPack atlasBinPack;
-	atlasBinPack.Init(size, size, false);
+	rbp::MaxRectsBinPack testAtlasBinPack;
+	testAtlasBinPack.Init(size, size, false);
 	auto methold = rbp::MaxRectsBinPack::FreeRectChoiceHeuristic::RectBestAreaFit;
 	for (int i = 0; i < spriteDataArray.Num(); i++)
 	{
@@ -389,7 +389,7 @@ bool FLGUIAtlasData::PackAtlasTest(uint32 size, TArray<rbp::Rect>& result, int32
 			//add space
 			int insertRectWidth = spriteDataItem->GetSpriteTexture()->GetSizeX() + spaceBetweenSprites + spaceBetweenSprites;
 			int insertRectHeight = spriteDataItem->GetSpriteTexture()->GetSizeY() + spaceBetweenSprites + spaceBetweenSprites;
-			auto rect = atlasBinPack.Insert(insertRectWidth, insertRectHeight, methold);
+			auto rect = testAtlasBinPack.Insert(insertRectWidth, insertRectHeight, methold);
 			if (rect.width <= 0)//cannot fit, should expend size
 			{
 				return false;
