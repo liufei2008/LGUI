@@ -620,6 +620,7 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 				selectedFilePath.RemoveFromStart(FPaths::ProjectContentDir(), ESearchCase::CaseSensitive);
 				FString packageName = TEXT("/Game/") + selectedFilePath;
 				UPackage* package = CreatePackage(NULL, *packageName);
+				package->FullyLoad();
 				FString fileName = FPaths::GetBaseFilename(selectedFilePath);
 				auto OutPrefab = NewObject<ULGUIPrefab>((UObject*)package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
 				FAssetRegistryModule::AssetCreated((UObject*)OutPrefab);
