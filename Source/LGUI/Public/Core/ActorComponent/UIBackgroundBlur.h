@@ -31,6 +31,9 @@ protected:
 	//No need to change this because default value can give you good result
 	UPROPERTY(EditAnywhere, Category = "LGUI") 
 		int maxDownSampleLevel = 6;
+	//use MaskTexture's red channel to control blur strength, 0-no blur, 1-full blur
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		UTexture2D* maskTexture;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetBlurStrength() { return blurStrength; }

@@ -127,6 +127,11 @@ public:
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
 	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("USE_MASK"), 0);
+		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
 	void SetInverseTextureSize(FRHICommandListImmediate& RHICmdList, const FVector2D& InvSize)
 	{
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), InvSizeParameter, InvSize);
@@ -145,4 +150,28 @@ private:
 	LAYOUT_FIELD(FShaderParameter, HorizontalOrVerticalFilterParameter);
 	LAYOUT_FIELD(FShaderParameter, InvSizeParameter);
 	LAYOUT_FIELD(FShaderParameter, BlurStrengthParameter);
+};
+class FLGUIPostProcessGaussianBlurWithMaskPS :public FLGUIPostProcessGaussianBlurPS
+{
+	DECLARE_SHADER_TYPE(FLGUIPostProcessGaussianBlurWithMaskPS, Global);
+public:
+	FLGUIPostProcessGaussianBlurWithMaskPS() {}
+	FLGUIPostProcessGaussianBlurWithMaskPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIPostProcessGaussianBlurPS(Initializer)
+	{
+		MaskTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTex"));
+		MaskTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTexSampler"));
+	}
+	void SetMaskTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef MaskTexture, FRHISamplerState* MaskTextureSampler)
+	{
+		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MaskTextureParameter, MaskTextureSamplerParameter, MaskTextureSampler, MaskTexture);
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("USE_MASK"), 1);
+		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+private:
+	LAYOUT_FIELD(FShaderResourceParameter, MaskTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MaskTextureSamplerParameter);
 };
