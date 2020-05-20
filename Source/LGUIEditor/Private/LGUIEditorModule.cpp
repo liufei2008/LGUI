@@ -570,6 +570,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 	MenuBuilder.BeginSection("UIPostProcess");
 	{
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIBackgroundBlurActor::StaticClass());
+		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIBackgroundPixelateActor::StaticClass());
 	}
 	MenuBuilder.EndSection();
 }
@@ -686,6 +687,7 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUITextActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUITextureActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUIBackgroundBlurActor::StaticClass());
+		FunctionContainer::ReplaceUIElement(MenuBuilder, AUIBackgroundPixelateActor::StaticClass());
 	}
 	MenuBuilder.EndSection();
 }
