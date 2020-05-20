@@ -159,6 +159,11 @@ public:
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
 	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("USE_MASK"), 0);
+		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
 	void SetInverseTextureSize(FRHICommandListImmediate& RHICmdList, const FVector2D& InvSize)
 	{
 		SetShaderValue(RHICmdList, GetPixelShader(), InvSizeParameter, InvSize);
@@ -187,4 +192,35 @@ private:
 	FShaderParameter HorizontalOrVerticalFilterParameter;
 	FShaderParameter InvSizeParameter;
 	FShaderParameter BlurStrengthParameter;
+};
+class FLGUIPostProcessGaussianBlurWithMaskPS :public FLGUIPostProcessGaussianBlurPS
+{
+	DECLARE_SHADER_TYPE(FLGUIPostProcessGaussianBlurWithMaskPS, Global);
+public:
+	FLGUIPostProcessGaussianBlurWithMaskPS() {}
+	FLGUIPostProcessGaussianBlurWithMaskPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIPostProcessGaussianBlurPS(Initializer)
+	{
+		MaskTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTex"));
+		MaskTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTexSampler"));
+	}
+	void SetMaskTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef MaskTexture, FRHISamplerState* MaskTextureSampler)
+	{
+		SetTextureParameter(RHICmdList, GetPixelShader(), MaskTextureParameter, MaskTextureSamplerParameter, MaskTextureSampler, MaskTexture);
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("USE_MASK"), 1);
+		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	virtual bool Serialize(FArchive& Ar)override
+	{
+		bool bShaderHasOutdatedParameters = FLGUIPostProcessGaussianBlurPS::Serialize(Ar);
+		Ar << MaskTextureParameter;
+		Ar << MaskTextureSamplerParameter;
+		return bShaderHasOutdatedParameters;
+	}
+private:
+	FShaderResourceParameter MaskTextureParameter;
+	FShaderResourceParameter MaskTextureSamplerParameter;
 };
