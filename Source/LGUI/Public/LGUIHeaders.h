@@ -15,6 +15,7 @@
 #include "Core/ActorComponent/UIInteractionGroup.h"
 #include "Core/UIComponentBase.h"
 #include "Core/ActorComponent/UIBackgroundBlur.h"
+#include "Core/ActorComponent/UIBackgroundPixelate.h"
 #include "Core/ActorComponent/UIPostProcess.h"
 
 #include "Core/LGUIFontData.h"
@@ -27,6 +28,7 @@
 #include "Core/Actor/UITextActor.h"
 #include "Core/Actor/UITextureActor.h"
 #include "Core/Actor/UIBackgroundBlurActor.h"
+#include "Core/Actor/UIBackgroundPixelateActor.h"
 
 #include "PrefabSystem/ActorCopier.h"
 #include "PrefabSystem/ActorSerializer.h"
