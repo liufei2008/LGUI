@@ -4,17 +4,16 @@
 
 #include "UIPostProcess.h"
 #include "Core/HudRender/LGUIHudVertex.h"
-#include "UIBackgroundBlur.generated.h"
+#include "UIBackgroundPixelate.generated.h"
 
-//UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
-//Known issue: in packaged game, the blurred image is slightly lagged behide current screen image, still working on it.
+//UI element that can make the background look pixelated
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent), Experimental)
-class LGUI_API UUIBackgroundBlur : public UUIPostProcess
+class LGUI_API UUIBackgroundPixelate : public UUIPostProcess
 {
 	GENERATED_BODY()
 
 public:	
-	UUIBackgroundBlur(const FObjectInitializer& ObjectInitializer);
+	UUIBackgroundPixelate(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;
@@ -22,27 +21,17 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-#define MAX_BlurStrength 100.0f
-#define INV_MAX_BlurStrength 0.01f
+#define MAX_PixelateStrength 100.0f
+#define INV_MAX_PixelateStrength 0.01f
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 100.0f))
-		float blurStrength = 0.0f;
+		float pixelateStrength = 0.0f;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool applyAlphaToBlur = true;
-	//No need to change this because default value can give you good result
-	UPROPERTY(EditAnywhere, Category = "LGUI") 
-		int maxDownSampleLevel = 6;
-	//use MaskTexture's red channel to control blur strength, 0-no blur, 1-full blur
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UTexture2D* maskTexture;
+		bool applyAlphaToStrength = true;
 public:
+	UFUNCTION(BlueprintCallable, Category="LGUI")
+		float GetPixelateStrength() { return pixelateStrength; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		float GetBlurStrength() { return blurStrength; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		int GetMaxDownSampleLevel() { return maxDownSampleLevel; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetBlurStrength(float newValue);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetMaxDownSampleLevel(int newValue);
+		void SetPixelateStrength(float newValue);
 protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual bool NeedTextureToCreateGeometry()override { return false; }
@@ -50,13 +39,10 @@ protected:
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
-	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget1 = nullptr;
-	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget2 = nullptr;
-	float inv_SampleLevelInterval = 1.0f;
-	FVector2D inv_TextureSize;
+	UPROPERTY(Transient) UTextureRenderTarget2D* helperRenderTarget = nullptr;
 	TArray<FLGUIPostProcessVertex> copyRegionVertexArray;
 	FCriticalSection mutex;
-	FORCEINLINE float GetBlurStrengthInternal();
+	FORCEINLINE float GetStrengthInternal();
 	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);
 	virtual void OnRenderPostProcess_RenderThread(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef ScreenImage, FGlobalShaderMap* GlobalShaderMap, const FMatrix& ViewProjectionMatrix, const TFunction<void()>& DrawPrimitive)override;
 };
