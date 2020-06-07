@@ -4,20 +4,6 @@
 #include "LTweenBPLibrary.h"
 
 
-UUISelectableTransitionComponent::UUISelectableTransitionComponent()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-void UUISelectableTransitionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void UUISelectableTransitionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
-
 void UUISelectableTransitionComponent::StopTransition() 
 { 
 	for (auto tweener : TweenerCollection)

@@ -21,16 +21,8 @@ UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIScrollViewWithScrollbarComponent : public UUIScrollViewComponent
 {
 	GENERATED_BODY()
-	
-public:	
-	UUIScrollViewWithScrollbarComponent();
-protected:
-	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
+protected:
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
 protected:
 	//For scrollbars to expand or shrink viewport

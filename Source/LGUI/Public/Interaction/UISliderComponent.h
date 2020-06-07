@@ -26,10 +26,8 @@ class LGUI_API UUISliderComponent : public UUISelectableComponent, public ILGUIP
 {
 	GENERATED_BODY()
 	
-public:	
-	UUISliderComponent();
-
-	virtual void BeginPlay() override;
+protected:	
+	virtual void Awake() override;
 	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

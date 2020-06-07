@@ -30,15 +30,7 @@ class LGUI_API UUIEventBlockerComponent : public UActorComponent
 	, public ILGUIPointerSelectDeselectInterface
 {
 	GENERATED_BODY()
-
-public:
-	UUIEventBlockerComponent();
 protected:
-	virtual void BeginPlay() override;
-
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 	UPROPERTY(EditAnywhere, Category = "UIEventBlocker") bool AllowEventBubbleUp = false;
 	virtual bool OnPointerEnter_Implementation(const FLGUIPointerEventData& eventData)override;
 	virtual bool OnPointerExit_Implementation(const FLGUIPointerEventData& eventData)override;

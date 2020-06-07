@@ -10,14 +10,14 @@
 #include "Event/LGUIPointerDragInterface.h"
 #include "Event/LGUIPointerScrollInterface.h"
 #include "Event/LGUIPointerDownUpInterface.h"
-#include "Core/UIComponentBase.h"
+#include "Core/LGUIBehaviour.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "UIScrollViewComponent.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIScrollViewDynamicDelegate, FVector2D, InVector2);
 
 UCLASS(ClassGroup=(LGUI), Transient)
-class LGUI_API UUIScrollViewHelper :public UUIComponentBase
+class LGUI_API UUIScrollViewHelper :public ULGUIBehaviour
 {
 	GENERATED_BODY()
 private:
@@ -28,15 +28,13 @@ private:
 };
 //ScrollView
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIScrollViewComponent : public UUIComponentBase, public ILGUIPointerDragInterface, public ILGUIPointerScrollInterface, public ILGUIPointerDownUpInterface
+class LGUI_API UUIScrollViewComponent : public ULGUIBehaviour, public ILGUIPointerDragInterface, public ILGUIPointerScrollInterface, public ILGUIPointerDownUpInterface
 {
 	GENERATED_BODY()
 	
-public:	
-	UUIScrollViewComponent();
 protected:
-	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void Awake() override;
+	virtual void Update(float DeltaTime) override;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

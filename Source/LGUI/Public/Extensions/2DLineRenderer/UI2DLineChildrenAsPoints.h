@@ -4,7 +4,6 @@
 
 #include "Core/Actor/UIBaseActor.h"
 #include "UI2DLineRendererBase.h"
-#include "Core/UIComponentBase.h"
 #include "UI2DLineChildrenAsPoints.generated.h"
 
 //Collect U2DLineChildrenAsPointsChild, and use child's relative location as points to draw line

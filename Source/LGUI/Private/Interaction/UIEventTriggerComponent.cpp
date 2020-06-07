@@ -3,24 +3,6 @@
 #include "Interaction/UIEventTriggerComponent.h"
 #include "LGUI.h"
 
-
-UUIEventTriggerComponent::UUIEventTriggerComponent()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-void UUIEventTriggerComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-#if WITH_EDITOR
-void UUIEventTriggerComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 void UUIEventTriggerComponent::RegisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate)
 {
 	OnPointerEnterCPP.Add(InDelegate);

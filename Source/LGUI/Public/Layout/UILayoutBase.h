@@ -4,7 +4,7 @@
 
 #include "Core/ActorComponent/UIItem.h"
 #include "CoreMinimal.h"
-#include "Core/UIComponentBase.h"
+#include "Core/LGUIBehaviour.h"
 #include "UILayoutBase.generated.h"
 
 UENUM(BlueprintType)
@@ -22,18 +22,12 @@ enum class ELGUILayoutAlignmentType :uint8
 };
 
 UCLASS(Abstract)
-class LGUI_API UUILayoutBase :public UUIComponentBase
+class LGUI_API UUILayoutBase :public ULGUIBehaviour
 {
 	GENERATED_BODY()
 
-public:
-	UUILayoutBase();
-
 protected:
-	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
+	virtual void Awake() override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

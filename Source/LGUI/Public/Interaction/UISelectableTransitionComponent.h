@@ -10,12 +10,8 @@ UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation
 class LGUI_API UUISelectableTransitionComponent :public UActorComponent
 {
 	GENERATED_BODY()
-public:
-	UUISelectableTransitionComponent();
-protected:
-	virtual void BeginPlay()override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
 		TArray<ULTweener*> TweenerCollection;
 

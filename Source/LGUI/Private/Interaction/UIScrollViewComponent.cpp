@@ -31,21 +31,15 @@ void UUIScrollViewHelper::OnUIChildDimensionsChanged(UUIItem* child, bool positi
 	}
 }
 
-
-UUIScrollViewComponent::UUIScrollViewComponent()
+void UUIScrollViewComponent::Awake()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-}
-
-void UUIScrollViewComponent::BeginPlay()
-{
-	Super::BeginPlay();
+	Super::Awake();
 	RecalculateRange();
 }
 
-void UUIScrollViewComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UUIScrollViewComponent::Update(float DeltaTime)
 {
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
+	Super::Update(DeltaTime);
 	if (CanUpdateAfterDrag)UpdateAfterDrag(DeltaTime);
 }
 

@@ -12,16 +12,6 @@ class LGUI_API UUIToggleGroupComponent : public UActorComponent
 {
 	GENERATED_BODY()
 	
-public:	
-	// Sets default values for this actor's properties
-	UUIToggleGroupComponent();
-
-	// Called when the game starts
-	virtual void BeginPlay() override;
-	
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 protected:
 	UPROPERTY(Transient) UUIToggleComponent* LastSelect = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ToggleGroup")
