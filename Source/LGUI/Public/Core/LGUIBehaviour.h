@@ -8,7 +8,7 @@
 
 class UUIItem;
 /*
-Base class for ui actor component, contains some easy-to-use callback functions. This type of component should be only attached to an actor which have UIItem as RootComponent.
+Base class for ui actor component, contains some easy-to-use event/functions. This type of component should be only attached to an actor which have UIItem as RootComponent.
 I'm trying to make this ULGUIBehaviour more like Unity's MonoBehaviour. You will see it contains function like Awake/Start/Update/OnDestroy/OnEnable/OnDisable.
 Don't use tick in child class, use Update instead.
 When a LGUIBehaviour is created, if GetIsActiveAndEnable=true (enabled and activeInHierarchy), then these event will execute with the order: 
@@ -69,19 +69,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		void SetEnable(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
-		bool GetEnable() { return enable; }
+		bool GetEnable() const { return enable; }
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
-		USceneComponent* GetTransform();
+		UUIItem* GetRootComponent() const;
 protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	friend class UUIItem;
 	//This owner's RootComponent cast to UIItem
-	UPROPERTY(Transient) UUIItem* RootUIComp = nullptr;
+	UPROPERTY(Transient) mutable UUIItem* RootUIComp = nullptr;
 	//Check and get RootUIItem
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-	bool CheckRootUIComponent();
+	bool CheckRootUIComponent() const;
 	
 	//Called when RootUIComp IsActiveInHierarchy state is changed
 	virtual void OnUIActiveInHierachy(bool activeOrInactive) { OnUIActiveInHierarchyBP(activeOrInactive); }

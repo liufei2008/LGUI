@@ -185,3 +185,4 @@
                 +ActiveClassRedirects=(OldClassName="/Script/LGUI.UIComponentBase",NewClassName="/Script/LGUI.LGUIBehaviour")
     New feature:
         LGUIBehaviour is a totally remaked class, all I want is trying to make it more like Unity's MonoBehaviour. Because I think Unity's interfaces are more normative.
+        LGUIBehaviour can control event execute order by changing LGUIBehaviourExecuteOrder in LGUISettings.
