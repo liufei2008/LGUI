@@ -9,9 +9,9 @@ UUIScrollbarComponent::UUIScrollbarComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUIScrollbarComponent::BeginPlay()
+void UUIScrollbarComponent::Awake()
 {
-	Super::BeginPlay();
+	Super::Awake();
 	ApplyValueToUI();
 }
 

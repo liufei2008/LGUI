@@ -46,16 +46,6 @@ void UUILayoutElement::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 }
 #endif
 
-void UUILayoutElement::OnRegister()
-{
-	Super::OnRegister();
-}
-
-void UUILayoutElement::OnUnregister()
-{
-	Super::OnUnregister();
-}
-
 bool UUILayoutElement::CheckParentLayout()
 {
 	if (ParentLayout != nullptr)return true;

@@ -176,3 +176,12 @@
 2.6.3
     New feature:
         Now we can pass UMaterialInstanceDynamic to LGUIRenderable's custom material.
+2.7
+    Modify:
+        Change UIComponentBase to LGUIBehaviour. If you already use UIComponentBase, follow these steps:
+            a.Find config file in your (UE4Project)/Config/DefaultEngine.ini
+            b.Find or add line [/Script/Engine.Engine]
+            c.Add these lines under [/Script/Engine.Engine]:
+                +ActiveClassRedirects=(OldClassName="/Script/LGUI.UIComponentBase",NewClassName="/Script/LGUI.LGUIBehaviour")
+    New feature:
+        LGUIBehaviour is a totally remaked class, all I want is trying to make it more like Unity's MonoBehaviour. Because I think Unity's interfaces are more normative.

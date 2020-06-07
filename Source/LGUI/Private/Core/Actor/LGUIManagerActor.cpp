@@ -142,6 +142,8 @@ ALGUIManagerActor::ALGUIManagerActor()
 		}
 	});
 #endif
+	CreateDefaultSubobject<ULGUIManagerComponent_PrePhysics>(TEXT("Tick_PrePhysics"))->ManagerActor = this;
+	CreateDefaultSubobject<ULGUIManagerComponent_DuringPhysics>(TEXT("Tick_DuringPhysics"))->ManagerActor = this;
 }
 
 void ALGUIManagerActor::BeginDestroy()
@@ -179,6 +181,125 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		if (IsValid(item))
 		{
 			item->CustomTick(DeltaTime);
+		}
+	}
+}
+void ALGUIManagerActor::Tick_PrePhysics()
+{
+	//awake
+	for (int i = uiComponentsForAwake.Num() - 1; i >= 0; i--)
+	{
+		auto item = uiComponentsForAwake[i];
+		if (IsValid(item))
+		{
+			if (item->GetIsActiveAndEnable())
+			{
+				item->Awake();
+				//add to enable array
+				{
+					if (!uiComponentsForEnable.Contains(item))
+					{
+						uiComponentsForEnable.Add(item);
+					}
+					else
+					{
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to enable array but already exist!"));
+					}
+				}
+				//remote from array
+				{
+					uiComponentsForAwake.RemoveAt(i);
+				}
+			}
+		}
+	}
+	//enable
+	for (int i = uiComponentsForEnable.Num() - 1; i >= 0; i--)
+	{
+		auto item = uiComponentsForEnable[i];
+		if (IsValid(item))
+		{
+			if (item->GetIsActiveAndEnable())
+			{
+				item->OnEnable();
+				//add to start array
+				{
+					if (!uiComponentsForStart.Contains(item))
+					{
+						uiComponentsForStart.Add(item);
+					}
+					else
+					{
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist!"));
+					}
+				}
+				//remote from array
+				{
+					uiComponentsForEnable.RemoveAt(i);
+				}
+			}
+		}
+	}
+	//start
+	for (int i = uiComponentsForStart.Num() - 1; i >= 0; i--)
+	{
+		auto item = uiComponentsForStart[i];
+		if (IsValid(item))
+		{
+			if (item->GetIsActiveAndEnable())
+			{
+				item->Start();
+				//add to start array
+				{
+					if (!uiComponentsForUpdate.Contains(item))
+					{
+						uiComponentsForUpdate.Add(item);
+					}
+					else
+					{
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist!"));
+					}
+				}
+				//remote from array
+				{
+					uiComponentsForStart.RemoveAt(i);
+				}
+			}
+		}
+	}
+}
+void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
+{
+	//update
+	for (int i = uiComponentsForUpdate.Num() - 1; i >= 0; i--)
+	{
+		auto item = uiComponentsForUpdate[i];
+		if (IsValid(item))
+		{
+			if (item->GetIsActiveAndEnable())
+			{
+				item->Update(deltaTime);
+			}
+			else
+			{
+				//call disable
+				item->OnDisable();
+				//add to enable array
+				{
+					if (!uiComponentsForEnable.Contains(item))
+					{
+						uiComponentsForEnable.Add(item);
+					}
+					else
+					{
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_DuringPhysics]trying to add to enable array but already exist!"));
+					}
+				}
+				//remote form update array
+				{
+					uiComponentsForUpdate.RemoveAt(i);
+				}
+			}
 		}
 	}
 }
@@ -277,6 +398,63 @@ void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
 		}
 	}
 }
+void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
+{
+	if (InitCheck(InComp->GetWorld()))
+	{
+		auto& uiComponentsForAwake = Instance->uiComponentsForAwake;
+		if (uiComponentsForAwake.Contains(InComp))
+		{
+			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddUIComponent]already contains!"));
+			return;
+		}
+		uiComponentsForAwake.Add(InComp);
+	}
+}
+void ALGUIManagerActor::RemoveLGUIComponent(ULGUIBehaviour* InComp)
+{
+	if (Instance != nullptr)
+	{
+		int32 index;
+		if (Instance->uiComponentsForAwake.Find(InComp, index))
+		{
+			Instance->uiComponentsForAwake.RemoveAt(index);
+		}
+	}
+}
+
+ULGUIManagerComponent_PrePhysics::ULGUIManagerComponent_PrePhysics()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = true;
+	PrimaryComponentTick.TickGroup = TG_PrePhysics;
+}
+void ULGUIManagerComponent_PrePhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (IsValid(ManagerActor))
+	{
+		ManagerActor->Tick_PrePhysics();
+	}
+}
+
+ULGUIManagerComponent_DuringPhysics::ULGUIManagerComponent_DuringPhysics()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = true;
+	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
+}
+void ULGUIManagerComponent_DuringPhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (IsValid(ManagerActor))
+	{
+		ManagerActor->Tick_DuringPhysics(DeltaTime);
+	}
+}
+
+
+
 
 
 

@@ -3,24 +3,6 @@
 #include "Interaction/UIEventBlockerComponent.h"
 #include "LGUI.h"
 
-
-UUIEventBlockerComponent::UUIEventBlockerComponent()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-void UUIEventBlockerComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-#if WITH_EDITOR
-void UUIEventBlockerComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 bool UUIEventBlockerComponent::OnPointerEnter_Implementation(const FLGUIPointerEventData& eventData)
 {
 	return AllowEventBubbleUp;

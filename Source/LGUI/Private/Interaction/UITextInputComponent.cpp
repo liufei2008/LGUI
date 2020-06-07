@@ -15,21 +15,16 @@
 #include "Widgets/SWindow.h"
 #include "Core/LGUIFontData.h"
 
-UUITextInputComponent::UUITextInputComponent()
+void UUITextInputComponent::Awake()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-}
-
-void UUITextInputComponent::BeginPlay()
-{
-	Super::BeginPlay();
+	Super::Awake();
 	
 	VirtualKeyboardEntry = FVirtualKeyboardEntry::Create(this);
 	TextInputMethodContext = FTextInputMethodContext::Create(this);
 }
-void UUITextInputComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UUITextInputComponent::Update(float DeltaTime)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::Update(DeltaTime);
 	if (bInputActive)
 	{
 		//blink caret

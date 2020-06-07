@@ -29,7 +29,7 @@ class LGUI_API UUIScrollbarComponent : public UUISelectableComponent, public ILG
 public:	
 	UUIScrollbarComponent();
 
-	virtual void BeginPlay() override;
+	virtual void Awake() override;
 	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

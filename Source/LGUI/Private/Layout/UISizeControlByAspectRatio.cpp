@@ -4,11 +4,6 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 
-UUISizeControlByAspectRatio::UUISizeControlByAspectRatio()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
 void UUISizeControlByAspectRatio::OnRebuildLayout()
 {
 	if (CheckRootUIComponent())

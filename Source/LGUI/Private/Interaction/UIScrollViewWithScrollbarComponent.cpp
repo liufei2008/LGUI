@@ -6,28 +6,6 @@
 #include "LTweenActor.h"
 #include "Core/Actor/UIBaseActor.h"
 
-UUIScrollViewWithScrollbarComponent::UUIScrollViewWithScrollbarComponent()
-{
-	PrimaryComponentTick.bCanEverTick = true;
-}
-
-void UUIScrollViewWithScrollbarComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void UUIScrollViewWithScrollbarComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
-}
-
-#if WITH_EDITOR
-void UUIScrollViewWithScrollbarComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
 {
 	Super::OnUIDimensionsChanged(positionChanged, sizeChanged);

@@ -10,13 +10,9 @@
 #include "Core/Actor/UIBaseActor.h"
 
 
-UUIToggleComponent::UUIToggleComponent()
+void UUIToggleComponent::Awake()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-}
-void UUIToggleComponent::BeginPlay()
-{
-	Super::BeginPlay();
+	Super::Awake();
 	CheckTarget();
 	ApplyToggleState(true);
 	//check toggle group
@@ -38,13 +34,6 @@ bool UUIToggleComponent::CheckTarget()
 	if (ToggleActor)return true;
 	return false;
 }
-
-#if WITH_EDITOR
-void UUIToggleComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
 
 void UUIToggleComponent::SetState(bool newState, bool fireEvent)
 {

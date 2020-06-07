@@ -7,7 +7,7 @@
 #include "Event/LGUIPointerSelectDeselectInterface.h"
 #include "Components/ActorComponent.h"
 #include "Core/ActorComponent/UISprite.h"
-#include "Core/UIComponentBase.h"
+#include "Core/LGUIBehaviour.h"
 #include "LGUIComponentReference.h"
 #include "UISelectableComponent.generated.h"
 
@@ -37,20 +37,19 @@ enum class EUISelectableNavigationMode:uint8
 };
 
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUISelectableComponent : public UUIComponentBase, public ILGUIPointerEnterExitInterface, public ILGUIPointerDownUpInterface, public ILGUIPointerSelectDeselectInterface
+class LGUI_API UUISelectableComponent : public ULGUIBehaviour, public ILGUIPointerEnterExitInterface, public ILGUIPointerDownUpInterface, public ILGUIPointerSelectDeselectInterface
 {
 	GENERATED_BODY()
 	
-public:	
-	UUISelectableComponent();
+protected:
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
+	virtual void Awake() override;
+	virtual void OnDestroy()override;
 
 	friend class FUISelectableCustomization;
 	//If not assigned, use self. must have UIItem component

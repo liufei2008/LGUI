@@ -18,19 +18,6 @@ void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positi
 	}
 }
 
-UUIHorizontalLayout::UUIHorizontalLayout()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-void UUIHorizontalLayout::BeginPlay()
-{
-	Super::BeginPlay();
-}
-void UUIHorizontalLayout::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
-
 void UUIHorizontalLayout::SetPadding(FMargin value)
 {
 	if (Padding != value)

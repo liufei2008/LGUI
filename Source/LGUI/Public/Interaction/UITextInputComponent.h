@@ -32,10 +32,9 @@ class LGUI_API UUITextInputComponent : public UUISelectableComponent, public ILG
 {
 	GENERATED_BODY()
 	
-public:	
-	UUITextInputComponent();
-	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+protected:	
+	virtual void Awake() override;
+	virtual void Update(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
