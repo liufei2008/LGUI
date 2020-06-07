@@ -72,6 +72,12 @@ public:
 		bool GetEnable() const { return enable; }
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		UUIItem* GetRootComponent() const;
+	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour", meta = (DeterminesOutputType = "OriginObject"))
+		AActor* InstantiateActor(AActor* OriginObject, USceneComponent* Parent);
+	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
+		AActor* InstantiatePrefab(class ULGUIPrefab* OriginObject, USceneComponent* Parent);
+	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
+		AActor* InstantiatePrefabWithTransform(class ULGUIPrefab* OriginObject, USceneComponent* Parent, FVector Location, FRotator Rotation, FVector Scale);
 protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
