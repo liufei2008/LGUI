@@ -15,16 +15,7 @@ UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIButtonComponent : public UUISelectableComponent, public ILGUIPointerClickInterface
 {
 	GENERATED_BODY()
-	
-public:	
-
-	UUIButtonComponent();
 protected:
-	virtual void BeginPlay() override;
-	
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 
 	UPROPERTY(EditAnywhere, Category = "LGUI-Button")
 		FLGUIDrawableEvent OnClick = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Empty);

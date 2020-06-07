@@ -11,13 +11,6 @@ UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUIVerticalLayout : public UUILayoutBase
 {
 	GENERATED_BODY()
-
-public:	
-	// Sets default values for this component's properties
-	UUIVerticalLayout();
-protected:
-	virtual void BeginPlay()override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 public:
 	virtual void OnRebuildLayout()override;
 

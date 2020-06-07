@@ -18,19 +18,6 @@ void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool position
 	}
 }
 
-UUIVerticalLayout::UUIVerticalLayout()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-void UUIVerticalLayout::BeginPlay()
-{
-	Super::BeginPlay();
-}
-void UUIVerticalLayout::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
-
 void UUIVerticalLayout::OnRebuildLayout()
 {
 	SCOPE_CYCLE_COUNTER(STAT_VerticalLayout);

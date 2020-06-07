@@ -13,7 +13,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UIInteractionGroup.h"
-#include "Core/UIComponentBase.h"
+#include "Core/LGUIBehaviour.h"
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
 #include "Core/ActorComponent/UIPostProcess.h"

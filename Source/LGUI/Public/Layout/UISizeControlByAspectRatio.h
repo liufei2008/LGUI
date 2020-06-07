@@ -20,8 +20,6 @@ class LGUI_API UUISizeControlByAspectRatio : public UUILayoutBase
 	GENERATED_BODY()
 
 public:	
-	UUISizeControlByAspectRatio();
-
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		EUISizeControlByAspectRatioMode GetControlMode() { return ControlMode; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

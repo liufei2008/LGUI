@@ -3,24 +3,6 @@
 #include "Interaction/UIButtonComponent.h"
 #include "LGUI.h"
 
-
-UUIButtonComponent::UUIButtonComponent()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-void UUIButtonComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-#if WITH_EDITOR
-void UUIButtonComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 bool UUIButtonComponent::OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)
 {
 	if (OnClickCPP.IsBound())OnClickCPP.Broadcast();

@@ -8,22 +8,17 @@
 #include "Interaction/UISelectableTransitionComponent.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-UUISelectableComponent::UUISelectableComponent()
+void UUISelectableComponent::Awake()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-void UUISelectableComponent::BeginPlay()
-{
-	Super::BeginPlay();
+	Super::Awake();
 	CheckTarget();
 	ApplySelectionState(true);
 	ALGUIManagerActor::AddSelectable(this);
 }
 
-void UUISelectableComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UUISelectableComponent::OnDestroy()
 {
-	Super::EndPlay(EndPlayReason);
+	Super::OnDestroy();
 	ALGUIManagerActor::RemoveSelectable(this);
 }
 

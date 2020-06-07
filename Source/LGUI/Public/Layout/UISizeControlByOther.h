@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "UILayoutBase.h"
+#include "Core/LGUIBehaviour.h"
 #include "UISizeControlByOther.generated.h"
 
 //this is only a helper component for UISizeControlByOther, no need to be serialized
 UCLASS(ClassGroup=(LGUI), Transient)
-class LGUI_API UUISizeControlByOtherHelper :public UUIComponentBase
+class LGUI_API UUISizeControlByOtherHelper :public ULGUIBehaviour
 {
 	GENERATED_BODY()
 
@@ -25,8 +26,7 @@ class LGUI_API UUISizeControlByOther : public UUILayoutBase
 
 public:	
 	UUISizeControlByOther();
-	virtual void BeginPlay()override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
+	virtual void Awake()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class AUIBaseActor* GetTargetActor() { return TargetActor; }

@@ -27,14 +27,8 @@ class LGUI_API UUIToggleComponent : public UUISelectableComponent, public ILGUIP
 {
 	GENERATED_BODY()
 	
-public:	
-	UUIToggleComponent();
-
-	virtual void BeginPlay() override;
-	
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
+protected:
+	virtual void Awake() override;
 protected:
 	friend class FUIToggleCustomization;
 	//If not assigned, use self. must have UIItem component

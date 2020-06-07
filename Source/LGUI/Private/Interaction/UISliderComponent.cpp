@@ -4,14 +4,10 @@
 #include "LGUI.h"
 #include "Core/Actor/UIBaseActor.h"
 
-UUISliderComponent::UUISliderComponent()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
 
-void UUISliderComponent::BeginPlay()
+void UUISliderComponent::Awake()
 {
-	Super::BeginPlay();
+	Super::Awake();
 	ApplyValueToUI();
 }
 

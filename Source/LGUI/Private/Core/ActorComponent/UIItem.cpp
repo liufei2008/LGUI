@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIInteractionGroup.h"
 #include "Core/LGUISettings.h"
-#include "Core/UIComponentBase.h"
+#include "Core/LGUIBehaviour.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PhysicsEngine/BodySetup.h"
 #if WITH_EDITOR

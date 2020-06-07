@@ -31,15 +31,7 @@ class LGUI_API UUIEventTriggerComponent : public UActorComponent
 	, public ILGUIPointerSelectDeselectInterface
 {
 	GENERATED_BODY()
-	
-public:	
-	UUIEventTriggerComponent();
 protected:
-	virtual void BeginPlay() override;
-	
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 	//inherited events of this component can bubble up?
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") bool AllowEventBubbleUp = false;
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerEnter = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);

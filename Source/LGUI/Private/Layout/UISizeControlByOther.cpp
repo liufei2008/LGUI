@@ -25,14 +25,10 @@ UUISizeControlByOther::UUISizeControlByOther()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUISizeControlByOther::BeginPlay()
+void UUISizeControlByOther::Awake()
 {
 	CheckTargetUIItem();
-	Super::BeginPlay();
-}
-void UUISizeControlByOther::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
+	Super::Awake();
 }
 
 void UUISizeControlByOther::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Components/ActorComponent.h"
 #include "Core/LGUISpriteData.h"
 #include "Tickable.h"
 #include "LGUIManagerActor.generated.h"
@@ -11,6 +12,7 @@ class UUIItem;
 class ULGUICanvas;
 class ULGUIBaseRaycaster;
 class UUISelectableComponent;
+class ULGUIBehaviour;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
@@ -74,6 +76,15 @@ protected:
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUISelectableComponent*> allSelectableArray;
+
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<ULGUIBehaviour*> uiComponentsForAwake;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<ULGUIBehaviour*> uiComponentsForEnable;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<ULGUIBehaviour*> uiComponentsForStart;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<ULGUIBehaviour*> uiComponentsForUpdate;
 private:
 	static bool InitCheck(UWorld* InWorld);
 	
@@ -94,6 +105,32 @@ public:
 	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);
 	static void RemoveSelectable(UUISelectableComponent* InSelectable);
+
+	static void AddLGUIComponent(ULGUIBehaviour* InComp);
+	static void RemoveLGUIComponent(ULGUIBehaviour* InComp);
+
+	void Tick_PrePhysics();
+	void Tick_DuringPhysics(float deltaTime);
+};
+UCLASS(ClassGroup=(LGUI), NotBlueprintable)
+class LGUI_API ULGUIManagerComponent_PrePhysics : public UActorComponent
+{
+	GENERATED_BODY()
+public:
+	ULGUIManagerComponent_PrePhysics();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		ALGUIManagerActor* ManagerActor;
+};
+UCLASS(ClassGroup = (LGUI), NotBlueprintable)
+class LGUI_API ULGUIManagerComponent_DuringPhysics : public UActorComponent
+{
+	GENERATED_BODY()
+public:
+	ULGUIManagerComponent_DuringPhysics();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		ALGUIManagerActor* ManagerActor;
 };
 
 class LGUI_API LGUIManager
