@@ -3,6 +3,8 @@
 #include "Core/LGUIBehaviour.h"
 #include "LGUI.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/ActorCopier.h"
+#include "PrefabSystem/ActorSerializer.h"
 
 ULGUIBehaviour::ULGUIBehaviour()
 {
@@ -122,4 +124,17 @@ UUIItem* ULGUIBehaviour::GetRootComponent() const
 		return RootUIComp;
 	}
 	return nullptr;
+}
+
+AActor* ULGUIBehaviour::InstantiateActor(AActor* OriginObject, USceneComponent* Parent)
+{
+	return ActorCopier::DuplicateActor(OriginObject, Parent);
+}
+AActor* ULGUIBehaviour::InstantiatePrefab(class ULGUIPrefab* OriginObject, USceneComponent* Parent)
+{
+	return ActorSerializer::LoadPrefab(this->GetWorld(), OriginObject, Parent, false);
+}
+AActor* ULGUIBehaviour::InstantiatePrefabWithTransform(class ULGUIPrefab* OriginObject, USceneComponent* Parent, FVector Location, FRotator Rotation, FVector Scale)
+{
+	return ActorSerializer::LoadPrefab(this->GetWorld(), OriginObject, Parent, Location, Rotation.Quaternion(), Scale);
 }
