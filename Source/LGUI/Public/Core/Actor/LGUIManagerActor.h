@@ -78,13 +78,13 @@ protected:
 		TArray<UUISelectableComponent*> allSelectableArray;
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> uiComponentsForAwake;
+		TArray<ULGUIBehaviour*> LGUIBehavioursForAwake;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> uiComponentsForEnable;
+		TArray<ULGUIBehaviour*> LGUIBehavioursForEnable;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> uiComponentsForStart;
+		TArray<ULGUIBehaviour*> LGUIBehavioursForStart;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> uiComponentsForUpdate;
+		TArray<ULGUIBehaviour*> LGUIBehavioursForUpdate;
 private:
 	static bool InitCheck(UWorld* InWorld);
 	

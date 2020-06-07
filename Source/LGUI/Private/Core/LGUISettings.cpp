@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUIAtlasData.h"
+#include "Core/LGUIBehaviour.h"
 
 #if WITH_EDITOR
 void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
@@ -11,11 +12,27 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-		if (Property->GetFName() != TEXT("defaultTraceChannel")
-			&& Property->GetFName() != TEXT("maxCanvasUpdateTimeInOneFrame"))
+		if (Property->GetFName() != GET_MEMBER_NAME_CHECKED(ULGUISettings, defaultTraceChannel)
+			&& Property->GetFName() != GET_MEMBER_NAME_CHECKED(ULGUISettings, maxCanvasUpdateTimeInOneFrame))
 		{
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
 			ULGUIAtlasManager::InitCheck();
+		}
+		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUISettings, LGUIBehaviourExecuteOrder))
+		{
+			//check repeat
+			for (int i = 0; i < LGUIBehaviourExecuteOrder.Num() - 1; i++)
+			{
+				for (int j = i + 1; j < LGUIBehaviourExecuteOrder.Num(); j++)
+				{
+					if (LGUIBehaviourExecuteOrder[i] == LGUIBehaviourExecuteOrder[j])
+					{
+						LGUIBehaviourExecuteOrder.RemoveAt(j);
+						i--;
+						break;
+					}
+				}
+			}
 		}
 	}
 }
@@ -55,4 +72,8 @@ TextureFilter ULGUISettings::GetAtlasTextureFilter(const FName& InPackingTag)
 const TMap<FName, FLGUIAtlasSettings>& ULGUISettings::GetAllAtlasSettings()
 {
 	return GetDefault<ULGUISettings>()->atlasSettingForSpecificPackingTag;
+}
+const TArray<TSubclassOf<ULGUIBehaviour>>& ULGUISettings::GetLGUIBehaviourExecuteOrder()
+{
+	return GetDefault<ULGUISettings>()->LGUIBehaviourExecuteOrder;
 }

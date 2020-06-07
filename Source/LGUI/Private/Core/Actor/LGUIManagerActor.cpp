@@ -8,6 +8,7 @@
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Engine/World.h"
 #include "Interaction/UISelectableComponent.h"
+#include "Core/LGUISettings.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -187,9 +188,9 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 void ALGUIManagerActor::Tick_PrePhysics()
 {
 	//awake
-	for (int i = uiComponentsForAwake.Num() - 1; i >= 0; i--)
+	for (int i = 0; i < LGUIBehavioursForAwake.Num(); i++)
 	{
-		auto item = uiComponentsForAwake[i];
+		auto item = LGUIBehavioursForAwake[i];
 		if (IsValid(item))
 		{
 			if (item->GetIsActiveAndEnable())
@@ -197,9 +198,9 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				item->Awake();
 				//add to enable array
 				{
-					if (!uiComponentsForEnable.Contains(item))
+					if (!LGUIBehavioursForEnable.Contains(item))
 					{
-						uiComponentsForEnable.Add(item);
+						LGUIBehavioursForEnable.Add(item);
 					}
 					else
 					{
@@ -208,15 +209,16 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				}
 				//remote from array
 				{
-					uiComponentsForAwake.RemoveAt(i);
+					LGUIBehavioursForAwake.RemoveAt(i);
+					i--;
 				}
 			}
 		}
 	}
 	//enable
-	for (int i = uiComponentsForEnable.Num() - 1; i >= 0; i--)
+	for (int i = 0; i < LGUIBehavioursForEnable.Num(); i++)
 	{
-		auto item = uiComponentsForEnable[i];
+		auto item = LGUIBehavioursForEnable[i];
 		if (IsValid(item))
 		{
 			if (item->GetIsActiveAndEnable())
@@ -224,9 +226,9 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				item->OnEnable();
 				//add to start array
 				{
-					if (!uiComponentsForStart.Contains(item))
+					if (!LGUIBehavioursForStart.Contains(item))
 					{
-						uiComponentsForStart.Add(item);
+						LGUIBehavioursForStart.Add(item);
 					}
 					else
 					{
@@ -235,15 +237,16 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				}
 				//remote from array
 				{
-					uiComponentsForEnable.RemoveAt(i);
+					LGUIBehavioursForEnable.RemoveAt(i);
+					i--;
 				}
 			}
 		}
 	}
 	//start
-	for (int i = uiComponentsForStart.Num() - 1; i >= 0; i--)
+	for (int i = 0; i < LGUIBehavioursForStart.Num(); i++)
 	{
-		auto item = uiComponentsForStart[i];
+		auto item = LGUIBehavioursForStart[i];
 		if (IsValid(item))
 		{
 			if (item->GetIsActiveAndEnable())
@@ -251,9 +254,9 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				item->Start();
 				//add to start array
 				{
-					if (!uiComponentsForUpdate.Contains(item))
+					if (!LGUIBehavioursForUpdate.Contains(item))
 					{
-						uiComponentsForUpdate.Add(item);
+						LGUIBehavioursForUpdate.Add(item);
 					}
 					else
 					{
@@ -262,7 +265,8 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				}
 				//remote from array
 				{
-					uiComponentsForStart.RemoveAt(i);
+					LGUIBehavioursForStart.RemoveAt(i);
+					i--;
 				}
 			}
 		}
@@ -271,9 +275,9 @@ void ALGUIManagerActor::Tick_PrePhysics()
 void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 {
 	//update
-	for (int i = uiComponentsForUpdate.Num() - 1; i >= 0; i--)
+	for (int i = 0; i < LGUIBehavioursForUpdate.Num(); i++)
 	{
-		auto item = uiComponentsForUpdate[i];
+		auto item = LGUIBehavioursForUpdate[i];
 		if (IsValid(item))
 		{
 			if (item->GetIsActiveAndEnable())
@@ -286,9 +290,9 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 				item->OnDisable();
 				//add to enable array
 				{
-					if (!uiComponentsForEnable.Contains(item))
+					if (!LGUIBehavioursForEnable.Contains(item))
 					{
-						uiComponentsForEnable.Add(item);
+						LGUIBehavioursForEnable.Add(item);
 					}
 					else
 					{
@@ -297,7 +301,8 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 				}
 				//remote form update array
 				{
-					uiComponentsForUpdate.RemoveAt(i);
+					LGUIBehavioursForUpdate.RemoveAt(i);
+					i--;
 				}
 			}
 		}
@@ -402,23 +407,90 @@ void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
 {
 	if (InitCheck(InComp->GetWorld()))
 	{
-		auto& uiComponentsForAwake = Instance->uiComponentsForAwake;
-		if (uiComponentsForAwake.Contains(InComp))
+#if WITH_EDITOR
+		auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
+#else
+		static auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
+#endif
+		auto& LGUIBehavioursForAwake = Instance->LGUIBehavioursForAwake;
+		if (Instance->LGUIBehavioursForAwake.Contains(InComp))
 		{
-			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddUIComponent]already contains!"));
+			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
 			return;
 		}
-		uiComponentsForAwake.Add(InComp);
+		if (lguiBehaviourExecuteOrders.Num() > 0)
+		{
+			auto inCompClass = InComp->GetClass();
+			int inCompIndex = INDEX_NONE;
+			if (lguiBehaviourExecuteOrders.Find(inCompClass, inCompIndex))
+			{
+				for (int i = 0; i < LGUIBehavioursForAwake.Num(); i++)
+				{
+					auto checkItemClass = LGUIBehavioursForAwake[i]->GetClass();
+					int checkItemIndex = INDEX_NONE;
+					if (lguiBehaviourExecuteOrders.Find(checkItemClass, checkItemIndex))//exist, check index
+					{
+						if (inCompIndex > checkItemIndex)
+						{
+							continue;
+						}
+						else
+						{
+							LGUIBehavioursForAwake.Insert(InComp, i);
+							break;
+						}
+					}
+					else//none exist
+					{
+						LGUIBehavioursForAwake.Insert(InComp, i);
+						break;
+					}
+				}
+			}
+			else//class no need reorder
+			{
+				Instance->LGUIBehavioursForAwake.Add(InComp);
+			}
+		}
+		else
+		{
+			Instance->LGUIBehavioursForAwake.Add(InComp);
+		}
 	}
 }
 void ALGUIManagerActor::RemoveLGUIComponent(ULGUIBehaviour* InComp)
 {
 	if (Instance != nullptr)
 	{
-		int32 index;
-		if (Instance->uiComponentsForAwake.Find(InComp, index))
+		int32 index = INDEX_NONE;
+		if (Instance->LGUIBehavioursForAwake.Find(InComp, index))
 		{
-			Instance->uiComponentsForAwake.RemoveAt(index);
+			Instance->LGUIBehavioursForAwake.RemoveAt(index);
+		}
+		else
+		{
+			if (Instance->LGUIBehavioursForEnable.Find(InComp, index))
+			{
+				Instance->LGUIBehavioursForEnable.RemoveAt(index);
+			}
+			else
+			{
+				if (Instance->LGUIBehavioursForStart.Find(InComp, index))
+				{
+					Instance->LGUIBehavioursForStart.RemoveAt(index);
+				}
+				else
+				{
+					if (Instance->LGUIBehavioursForUpdate.Find(InComp, index))
+					{
+						Instance->LGUIBehavioursForUpdate.RemoveAt(index);
+					}
+					else
+					{
+						UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIComponent]not exist, comp:%s"), *(InComp->GetPathName()));
+					}
+				}
+			}
 		}
 	}
 }

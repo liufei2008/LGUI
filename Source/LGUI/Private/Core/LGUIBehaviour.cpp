@@ -58,7 +58,7 @@ void ULGUIBehaviour::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 }
 #endif
 
-bool ULGUIBehaviour::CheckRootUIComponent()
+bool ULGUIBehaviour::CheckRootUIComponent() const
 {
 	if (this->GetWorld() == nullptr)return false;
 	if (RootUIComp != nullptr)return true;
@@ -115,7 +115,11 @@ void ULGUIBehaviour::OnDisable()
 	OnDisableBP();
 }
 
-USceneComponent* ULGUIBehaviour::GetTransform()
+UUIItem* ULGUIBehaviour::GetRootComponent() const
 {
-	return GetOwner()->GetRootComponent();
+	if (CheckRootUIComponent())
+	{
+		return RootUIComp;
+	}
+	return nullptr;
 }

@@ -50,6 +50,8 @@ public:
 	//UPROPERTY(EditAnywhere, config, Category = Sprite)
 	//	ELGUIAtlasPackingType packingType = ELGUIAtlasPackingType::Dynamic;
 };
+
+class ULGUIBehaviour;
 //for LGUI config
 UCLASS(config=EditorPerProjectUserSettings)
 class LGUI_API ULGUISettings :public UObject
@@ -63,12 +65,16 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = Sprite)
 		TMap<FName, FLGUIAtlasSettings> atlasSettingForSpecificPackingTag;
 	//new created uiitem will use this trace channel;
-	UPROPERTY(EditAnywhere, config, Category = UIItem)
+	UPROPERTY(EditAnywhere, config, Category = "LGUI")
 		TEnumAsByte<ETraceTypeQuery> defaultTraceChannel = TraceTypeQuery3;
 	//if LGUICanvas update times is greater than this in single frame, than a warning will show in Ouput Log, that means something not good.
 	//do not change this unless you know what you doing.
-	UPROPERTY(EditAnywhere, config, Category = LGUICanvas)
+	UPROPERTY(EditAnywhere, config, Category = "LGUI")
 		int32 maxCanvasUpdateTimeInOneFrame = 10;
+	//default ActorComponent execute order is not predictable, but sometimes we need some components to exeucte as we want.
+	//this array can change our LGUIBehaviour's execute order, smaller index will execute earlier
+	UPROPERTY(EditAnywhere, config, Category = "LGUI")
+		TArray<TSubclassOf<ULGUIBehaviour>> LGUIBehaviourExecuteOrder;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
@@ -80,6 +86,7 @@ public:
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
 	//static ELGUIAtlasPackingType GetAtlasPackingType(const FName& InPackingTag);
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
+	static const TArray<TSubclassOf<ULGUIBehaviour>>& GetLGUIBehaviourExecuteOrder();
 private:
 	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
 	{
