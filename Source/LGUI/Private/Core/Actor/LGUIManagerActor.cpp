@@ -191,12 +191,12 @@ void ALGUIManagerActor::Tick_PrePhysics()
 	for (int i = 0; i < LGUIBehavioursForAwake.Num(); i++)
 	{
 		auto item = LGUIBehavioursForAwake[i];
+		//UE_LOG(LGUI, Error, TEXT("Awake count:%d, i:%d, item:%s"), LGUIBehavioursForAwake.Num(), i, *(item->GetOwner()->GetActorLabel()));
 		if (IsValid(item))
 		{
 			if (item->GetIsActiveAndEnable())
 			{
-				item->Awake();
-				//add to enable array
+				//add to Enable array
 				{
 					if (!LGUIBehavioursForEnable.Contains(item))
 					{
@@ -204,14 +204,16 @@ void ALGUIManagerActor::Tick_PrePhysics()
 					}
 					else
 					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to enable array but already exist!"));
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to enable array but already exist! comp:%s"), *(item->GetPathName()));
 					}
 				}
-				//remote from array
+				//remote from Awake array
 				{
 					LGUIBehavioursForAwake.RemoveAt(i);
 					i--;
 				}
+
+				item->Awake();
 			}
 		}
 	}
@@ -219,12 +221,12 @@ void ALGUIManagerActor::Tick_PrePhysics()
 	for (int i = 0; i < LGUIBehavioursForEnable.Num(); i++)
 	{
 		auto item = LGUIBehavioursForEnable[i];
+		//UE_LOG(LGUI, Error, TEXT("Enable count:%d, i:%d, item:%s"), LGUIBehavioursForEnable.Num(), i, *(item->GetOwner()->GetActorLabel()));
 		if (IsValid(item))
 		{
 			if (item->GetIsActiveAndEnable())
 			{
-				item->OnEnable();
-				//add to start array
+				//add to Start array
 				{
 					if (!LGUIBehavioursForStart.Contains(item))
 					{
@@ -232,14 +234,16 @@ void ALGUIManagerActor::Tick_PrePhysics()
 					}
 					else
 					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist!"));
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist! comp:%s"), *(item->GetPathName()));
 					}
 				}
-				//remote from array
+				//remote from Enable array
 				{
 					LGUIBehavioursForEnable.RemoveAt(i);
 					i--;
 				}
+
+				item->OnEnable();
 			}
 		}
 	}
@@ -251,8 +255,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 		{
 			if (item->GetIsActiveAndEnable())
 			{
-				item->Start();
-				//add to start array
+				//add to Update array
 				{
 					if (!LGUIBehavioursForUpdate.Contains(item))
 					{
@@ -260,14 +263,16 @@ void ALGUIManagerActor::Tick_PrePhysics()
 					}
 					else
 					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist!"));
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist! comp:%s"), *(item->GetPathName()));
 					}
 				}
-				//remote from array
+				//remote from Start array
 				{
 					LGUIBehavioursForStart.RemoveAt(i);
 					i--;
 				}
+
+				item->Start();
 			}
 		}
 	}
@@ -286,8 +291,6 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 			}
 			else
 			{
-				//call disable
-				item->OnDisable();
 				//add to enable array
 				{
 					if (!LGUIBehavioursForEnable.Contains(item))
@@ -304,6 +307,8 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 					LGUIBehavioursForUpdate.RemoveAt(i);
 					i--;
 				}
+
+				item->OnDisable();
 			}
 		}
 	}
@@ -418,7 +423,7 @@ void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
 			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
 			return;
 		}
-		if (lguiBehaviourExecuteOrders.Num() > 0)
+		if (lguiBehaviourExecuteOrders.Num() > 0 && LGUIBehavioursForAwake.Num() > 0)
 		{
 			auto inCompClass = InComp->GetClass();
 			int inCompIndex = INDEX_NONE;
@@ -449,12 +454,12 @@ void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
 			}
 			else//class no need reorder
 			{
-				Instance->LGUIBehavioursForAwake.Add(InComp);
+				LGUIBehavioursForAwake.Add(InComp);
 			}
 		}
 		else
 		{
-			Instance->LGUIBehavioursForAwake.Add(InComp);
+			LGUIBehavioursForAwake.Add(InComp);
 		}
 	}
 }
