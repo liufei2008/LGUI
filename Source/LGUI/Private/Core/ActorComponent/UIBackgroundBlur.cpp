@@ -218,14 +218,14 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 				{
 					PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2);
 				}
-				//render horizontal
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_Store), TEXT("Vertical"));
+				//render vertical
+				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_DontStore), TEXT("Vertical"));
 				PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
 				PixelShader->SetHorizontalOrVertical(RHICmdList, true);
 				FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
 				RHICmdList.EndRenderPass();
 				//render horizontal
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_Store), TEXT("Horizontal"));
+				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_DontStore), TEXT("Horizontal"));
 				PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
 				PixelShader->SetHorizontalOrVertical(RHICmdList, false);
 				FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
@@ -268,14 +268,14 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 				{
 					PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2);
 				}
-				//render horizontal
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_Store), TEXT("Vertical"));
+				//render vertical
+				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture2, ERenderTargetActions::Load_DontStore), TEXT("Vertical"));
 				PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
 				PixelShader->SetHorizontalOrVertical(RHICmdList, true);
 				FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
 				RHICmdList.EndRenderPass();
 				//render horizontal
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_Store), TEXT("Horizontal"));
+				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_DontStore), TEXT("Horizontal"));
 				PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
 				PixelShader->SetHorizontalOrVertical(RHICmdList, false);
 				FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
@@ -286,7 +286,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	}
 	//after blur process, copy the area back to screen image
 	{
-		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_Store), TEXT("CopyAreaToScreen"));
+		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
 		TShaderMapRef<FLGUIMeshPostProcessVS> VertexShader(GlobalShaderMap);
 		TShaderMapRef<FLGUIMeshCopyTargetPS> PixelShader(GlobalShaderMap);
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
@@ -303,5 +303,6 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1);
 		DrawPrimitive();
 		RHICmdList.EndRenderPass();
+		RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
 	}
 }

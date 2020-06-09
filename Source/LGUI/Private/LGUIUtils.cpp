@@ -112,13 +112,12 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 {
 	UTexture* prevTex = nullptr;
 	TSharedPtr<UUIDrawcall> prevUIDrawcall = nullptr;
-	auto shapeCount = sortedList.Num();
 	int drawcallCount = 0;
 	int prevDrawcallListCount = drawcallList.Num();
-	for (int i = 0; i < shapeCount; i++)
+	for (int i = 0; i < sortedList.Num(); i++)
 	{
 		auto itemGeo = sortedList[i]->GetGeometry();
-		if (itemGeo.Get() == nullptr)continue;
+		if (!itemGeo.IsValid())continue;
 		if (sortedList[i]->GetIsPostProcess())//every post process is a drawcall
 		{
 			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
@@ -131,7 +130,6 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 			prevUIDrawcall->texture = itemGeo->texture;
 			prevUIDrawcall->material = itemGeo->material;
-			prevUIDrawcall->postProcessObject.Reset();
 			prevUIDrawcall->geometryList.Add(itemGeo);
 			prevTex = nullptr;
 		}
@@ -142,7 +140,6 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 			{
 				prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 				prevUIDrawcall->texture = itemTex;
-				prevUIDrawcall->postProcessObject.Reset();
 				prevUIDrawcall->geometryList.Add(itemGeo);
 			}
 			else//same texture means same drawcall
@@ -151,7 +148,6 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 				{
 					prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 					prevUIDrawcall->texture = itemTex;
-					prevUIDrawcall->postProcessObject.Reset();
 					prevUIDrawcall->geometryList.Add(itemGeo);
 				}
 				else

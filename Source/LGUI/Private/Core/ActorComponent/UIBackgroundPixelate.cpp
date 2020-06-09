@@ -183,5 +183,6 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 		PixelShader->SetParameters(RHICmdList, helperRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		DrawPrimitive();
 		RHICmdList.EndRenderPass();
+		RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
 	}
 }
