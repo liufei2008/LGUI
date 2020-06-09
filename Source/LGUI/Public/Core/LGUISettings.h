@@ -72,7 +72,8 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "LGUI")
 		int32 maxCanvasUpdateTimeInOneFrame = 10;
 	//default ActorComponent execute order is not predictable, but sometimes we need some components to exeucte as we want.
-	//this array can change our LGUIBehaviour's execute order, smaller index will execute earlier
+	//this array can make our LGUIBehaviour's lifecycle functions/events execute by the order we want, smaller index will execute earlier.
+	//eg. if we need class A execute earlier than class B, then we put class B under class A in the array blow. so the execute order is: Awake(A)-->Awake(B)-->OnEnable(A)-->OnEnable(B)-->Start(A)-->Start(B)-->Update(A)-->Update(B)
 	UPROPERTY(EditAnywhere, config, Category = "LGUI")
 		TArray<TSubclassOf<ULGUIBehaviour>> LGUIBehaviourExecuteOrder;
 
