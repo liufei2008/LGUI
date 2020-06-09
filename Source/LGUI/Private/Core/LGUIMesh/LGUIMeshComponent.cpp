@@ -592,21 +592,10 @@ void ULGUIMeshComponent::SetToLGUIWorld()
 	LGUIHudRenderer.Reset();
 }
 
-void ULGUIMeshComponent::SetToPostProcess(bool InPostProcessOrNot, UUIPostProcess* InPostProcessObject)
+void ULGUIMeshComponent::SetToPostProcess(UUIPostProcess* InPostProcessObject)
 {
-	if (InPostProcessOrNot != IsPostProcessOrNot)
-	{
-		if (InPostProcessOrNot)
-		{
-			PostProcessObject = InPostProcessObject;
-		}
-		else
-		{
-			PostProcessObject = nullptr;
-		}
-		IsPostProcessOrNot = InPostProcessOrNot;
-		CreateMeshSection();
-	}
+	PostProcessObject = InPostProcessObject;
+	CreateMeshSection();
 }
 
 int32 ULGUIMeshComponent::GetNumMaterials() const

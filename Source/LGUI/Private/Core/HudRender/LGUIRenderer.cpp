@@ -121,7 +121,7 @@ void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InO
 void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
 	const FVector4& PositionScaleAndOffset, const FVector4& UVScaleAndOffset)
 {
-	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("CopyRenderTarget"));
+	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("CopyRenderTarget"));
 
 	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
 	TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
@@ -145,7 +145,7 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 }
 void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipUVY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
 {
-	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_Store), TEXT("CopyRenderTargetOnMeshRegion"));
+	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("CopyRenderTargetOnMeshRegion"));
 
 	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
 	TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
@@ -203,7 +203,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 
 	FSceneView RenderView(InView);//use a copied view
 	FTexture2DRHIRef ScreenImageRenderTexture = RenderView.Family->RenderTarget->GetRenderTargetTexture();
-	FRHIRenderPassInfo RPInfo(ScreenImageRenderTexture, ERenderTargetActions::Load_Store);
+	FRHIRenderPassInfo RPInfo(ScreenImageRenderTexture, ERenderTargetActions::Load_DontStore);
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 
 	RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
@@ -229,7 +229,6 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 
 	TShaderMap<FGlobalShaderType>* GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
-	
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
 		auto hudPrimitive = primitiveArray[i];
@@ -250,9 +249,9 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 							ViewProjectionMatrix,
 							[&]()
 							{
-							const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
+								const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
 								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
 							}
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));

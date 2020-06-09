@@ -23,55 +23,71 @@ public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)const
 	{
 		int count = geometryList.Num();
-		int totalVertCount = 0;
-		int totalTriangleIndicesCount = 0;
-		for (int i = 0; i < count; i++)
+		if (count == 1)
 		{
-			totalVertCount += geometryList[i]->vertices.Num();
-			totalTriangleIndicesCount += geometryList[i]->triangles.Num();
+			vertices = geometryList[0]->vertices;
+			triangles = geometryList[0]->triangles;
 		}
-		int prevVertexCount = 0;
-		int triangleIndicesIndex = 0;
-		vertices.Reserve(totalVertCount);
-		triangles.SetNumUninitialized(totalTriangleIndicesCount);
-		for (int geoIndex = 0; geoIndex < count; geoIndex++)
+		else
 		{
-			auto& geometry = geometryList[geoIndex];
-			auto& geomTriangles = geometry->triangles;
-			int triangleCount = geomTriangles.Num();
-			if (triangleCount <= 0)continue;
-			vertices.Append(geometry->vertices);
-			for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
+			int totalVertCount = 0;
+			int totalTriangleIndicesCount = 0;
+			for (int i = 0; i < count; i++)
 			{
-				triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
+				totalVertCount += geometryList[i]->vertices.Num();
+				totalTriangleIndicesCount += geometryList[i]->triangles.Num();
 			}
+			int prevVertexCount = 0;
+			int triangleIndicesIndex = 0;
+			vertices.Reserve(totalVertCount);
+			triangles.SetNumUninitialized(totalTriangleIndicesCount);
+			for (int geoIndex = 0; geoIndex < count; geoIndex++)
+			{
+				auto& geometry = geometryList[geoIndex];
+				auto& geomTriangles = geometry->triangles;
+				int triangleCount = geomTriangles.Num();
+				if (triangleCount <= 0)continue;
+				vertices.Append(geometry->vertices);
+				for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
+				{
+					triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
+				}
 
-			prevVertexCount += geometry->vertices.Num();
+				prevVertexCount += geometry->vertices.Num();
+			}
 		}
 	}
 	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)
 	{
 		int count = geometryList.Num();
-		int prevVertexCount = 0;
-		int triangleIndicesIndex = 0;
-		int vertBufferOffset = 0;
-		for (int geoIndex = 0; geoIndex < count; geoIndex++)
+		if (count == 1)
 		{
-			auto& geometry = geometryList[geoIndex];
-			auto& geomTriangles = geometry->triangles;
-			int triangleCount = geomTriangles.Num();
-			if (triangleCount <= 0)continue;
-			int vertCount = geometry->vertices.Num();
-			int bufferSize = vertCount * sizeof(FDynamicMeshVertex);
-			FMemory::Memcpy((uint8*)vertices.GetData() + vertBufferOffset, (uint8*)geometry->vertices.GetData(), bufferSize);
-			vertBufferOffset += bufferSize;
-
-			for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
+			FMemory::Memcpy((uint8*)vertices.GetData(), geometryList[0]->vertices.GetData(), vertices.Num() * sizeof(FDynamicMeshVertex));
+			FMemory::Memcpy((uint8*)triangles.GetData(), geometryList[0]->triangles.GetData(), triangles.Num() * sizeof(uint16));
+		}
+		else
+		{
+			int prevVertexCount = 0;
+			int triangleIndicesIndex = 0;
+			int vertBufferOffset = 0;
+			for (int geoIndex = 0; geoIndex < count; geoIndex++)
 			{
-				triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
-			}
+				auto& geometry = geometryList[geoIndex];
+				auto& geomTriangles = geometry->triangles;
+				int triangleCount = geomTriangles.Num();
+				if (triangleCount <= 0)continue;
+				int vertCount = geometry->vertices.Num();
+				int bufferSize = vertCount * sizeof(FDynamicMeshVertex);
+				FMemory::Memcpy((uint8*)vertices.GetData() + vertBufferOffset, (uint8*)geometry->vertices.GetData(), bufferSize);
+				vertBufferOffset += bufferSize;
 
-			prevVertexCount += vertCount;
+				for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
+				{
+					triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
+				}
+
+				prevVertexCount += vertCount;
+			}
 		}
 	}
 	//update the max and min depth
@@ -102,5 +118,6 @@ public:
 		geometryList.Empty();
 		texture = nullptr;
 		material = nullptr;
+		postProcessObject = nullptr;
 	}
 };
