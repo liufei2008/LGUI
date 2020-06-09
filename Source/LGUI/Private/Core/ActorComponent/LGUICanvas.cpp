@@ -643,11 +643,11 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				uiMesh->GenerateOrUpdateMesh(true, additionalShaderChannels);
 				if (uiDrawcall->postProcessObject.IsValid())
 				{
-					uiMesh->SetToPostProcess(true, uiDrawcall->postProcessObject.Get());
+					uiMesh->SetToPostProcess(uiDrawcall->postProcessObject.Get());
 				}
 				else
 				{
-					uiMesh->SetToPostProcess(false, nullptr);
+					uiMesh->SetToPostProcess(nullptr);
 				}
 			}
 
@@ -675,11 +675,11 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						uiDrawcall->needToUpdateVertex = false;
 						if (uiDrawcall->postProcessObject.IsValid())
 						{
-							uiMesh->SetToPostProcess(true, uiDrawcall->postProcessObject.Get());
+							uiMesh->SetToPostProcess(uiDrawcall->postProcessObject.Get());
 						}
 						else
 						{
-							uiMesh->SetToPostProcess(false, nullptr);
+							uiMesh->SetToPostProcess(nullptr);
 						}
 						needToSortRenderPriority = true;
 					}

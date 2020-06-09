@@ -48,7 +48,7 @@ public:
 
 	void SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer);
 	void SetToLGUIWorld();
-	void SetToPostProcess(bool InPostProcessOrNot, class UUIPostProcess* InPostProcessObject);
+	void SetToPostProcess(class UUIPostProcess* InPostProcessObject);
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 
@@ -74,7 +74,6 @@ protected:
 	FLGUIMeshSection MeshSection;
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
 	UPROPERTY(Transient) class UUIPostProcess* PostProcessObject;
-	bool IsPostProcessOrNot = false;
 };
 
 
