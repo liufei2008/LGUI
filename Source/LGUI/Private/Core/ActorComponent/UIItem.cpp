@@ -452,6 +452,17 @@ void UUIItem::OnRegister()
 		}
 	}
 #endif
+
+#if WITH_EDITOR
+	//apply inactive actor's visibility state in editor scene outliner
+	if (auto ownerActor = GetOwner())
+	{
+		if (!IsUIActiveInHierarchy())
+		{
+			ownerActor->SetIsTemporarilyHiddenInEditor(true);
+		}
+	}
+#endif
 }
 void UUIItem::OnUnregister()
 {
@@ -1527,11 +1538,13 @@ void UUIItem::ApplyUIActiveState()
 		{
 			displayName = displayName.Right(displayName.Len() - prefix.Len());
 			ownerActor->SetActorLabel(displayName);
+			ownerActor->SetIsTemporarilyHiddenInEditor(false);
 		}
 		else if (!IsUIActiveInHierarchy() && !displayName.StartsWith(prefix))
 		{
 			displayName = prefix.Append(displayName);
 			ownerActor->SetActorLabel(displayName);
+			ownerActor->SetIsTemporarilyHiddenInEditor(true);
 		}
 	}
 #endif
