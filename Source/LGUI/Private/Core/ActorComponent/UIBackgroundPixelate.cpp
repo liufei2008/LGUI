@@ -91,6 +91,8 @@ void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamil
 {
 	auto pixelateStrengthWidthAlpha = GetStrengthInternal();
 	if (pixelateStrengthWidthAlpha <= 0.0f)return;
+	auto& vertices = geometry->vertices;
+	if (vertices.Num() <= 0)return;
 	if (!IsValid(helperRenderTarget))
 	{
 		pixelateStrengthWidthAlpha = FMath::Pow(pixelateStrengthWidthAlpha * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
@@ -123,7 +125,6 @@ void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamil
 	}
 
 	auto modelViewPrjectionMatrix = RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-	auto& vertices = geometry->vertices;
 	{
 		FScopeLock scopeLock(&mutex);
 
