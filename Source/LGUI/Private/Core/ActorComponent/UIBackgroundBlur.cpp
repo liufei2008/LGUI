@@ -106,6 +106,8 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 {
 	auto blurStrengthWithAlpha = GetBlurStrengthInternal();
 	if (blurStrengthWithAlpha <= 0.0f)return;
+	auto& vertices = geometry->vertices;
+	if (vertices.Num() <= 0)return;
 	if (!IsValid(blurEffectRenderTarget1))
 	{
 		float width = widget.width;
@@ -136,7 +138,6 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 	}
 
 	auto modelViewPrjectionMatrix = RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-	auto& vertices = geometry->vertices;
 	{
 		FScopeLock scopeLock(&mutex);
 
