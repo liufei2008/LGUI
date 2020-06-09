@@ -85,6 +85,18 @@ protected:
 		TArray<ULGUIBehaviour*> LGUIBehavioursForStart;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForUpdate;
+
+	enum class ELGUIBehaviourScriptExecutingType
+	{
+		None,
+		Awake,
+		OnEnable,
+		Start,
+		AfterStart,
+		Update,
+	};
+	ELGUIBehaviourScriptExecutingType scriptExecutingType = ELGUIBehaviourScriptExecutingType::None;
+	void AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp, TArray<ULGUIBehaviour*>& InArray);
 private:
 	static bool InitCheck(UWorld* InWorld);
 	

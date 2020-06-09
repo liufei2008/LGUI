@@ -188,6 +188,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 void ALGUIManagerActor::Tick_PrePhysics()
 {
 	//awake
+	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Awake;
 	for (int i = 0; i < LGUIBehavioursForAwake.Num(); i++)
 	{
 		auto item = LGUIBehavioursForAwake[i];
@@ -200,7 +201,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				{
 					if (!LGUIBehavioursForEnable.Contains(item))
 					{
-						LGUIBehavioursForEnable.Add(item);
+						Instance->AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForEnable);
 					}
 					else
 					{
@@ -218,6 +219,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 		}
 	}
 	//enable
+	scriptExecutingType = ELGUIBehaviourScriptExecutingType::OnEnable;
 	for (int i = 0; i < LGUIBehavioursForEnable.Num(); i++)
 	{
 		auto item = LGUIBehavioursForEnable[i];
@@ -230,7 +232,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				{
 					if (!LGUIBehavioursForStart.Contains(item))
 					{
-						LGUIBehavioursForStart.Add(item);
+						Instance->AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForStart);
 					}
 					else
 					{
@@ -248,6 +250,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 		}
 	}
 	//start
+	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Start;
 	for (int i = 0; i < LGUIBehavioursForStart.Num(); i++)
 	{
 		auto item = LGUIBehavioursForStart[i];
@@ -259,7 +262,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 				{
 					if (!LGUIBehavioursForUpdate.Contains(item))
 					{
-						LGUIBehavioursForUpdate.Add(item);
+						Instance->AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForUpdate);
 					}
 					else
 					{
@@ -276,10 +279,12 @@ void ALGUIManagerActor::Tick_PrePhysics()
 			}
 		}
 	}
+	scriptExecutingType = ELGUIBehaviourScriptExecutingType::AfterStart;
 }
 void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 {
 	//update
+	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Update;
 	for (int i = 0; i < LGUIBehavioursForUpdate.Num(); i++)
 	{
 		auto item = LGUIBehavioursForUpdate[i];
@@ -312,7 +317,112 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 			}
 		}
 	}
+	scriptExecutingType = ELGUIBehaviourScriptExecutingType::None;
 }
+
+void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
+{
+	if (InitCheck(InComp->GetWorld()))
+	{
+		auto& LGUIBehavioursForAwake = Instance->LGUIBehavioursForAwake;
+		if (Instance->LGUIBehavioursForAwake.Contains(InComp))
+		{
+			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
+			return;
+		}
+		if (Instance->scriptExecutingType == ELGUIBehaviourScriptExecutingType::Awake)//this means script is created during Awake, then put the script at the end of array
+		{
+			LGUIBehavioursForAwake.Add(InComp);
+		}
+		else
+		{
+			Instance->AddLGUIBehaviourToArrayWithOrder(InComp, LGUIBehavioursForAwake);
+		}
+	}
+}
+void ALGUIManagerActor::AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp, TArray<ULGUIBehaviour*>& InArray)
+{
+#if WITH_EDITOR
+	auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
+#else
+	static auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
+#endif
+	if (lguiBehaviourExecuteOrders.Num() > 0 && InArray.Num() > 0)
+	{
+		auto inCompClass = InComp->GetClass();
+		int inCompIndex = INDEX_NONE;
+		if (lguiBehaviourExecuteOrders.Find(inCompClass, inCompIndex))
+		{
+			for (int i = 0; i < InArray.Num(); i++)
+			{
+				auto checkItemClass = InArray[i]->GetClass();
+				int checkItemIndex = INDEX_NONE;
+				if (lguiBehaviourExecuteOrders.Find(checkItemClass, checkItemIndex))//exist, check index
+				{
+					if (inCompIndex > checkItemIndex)
+					{
+						continue;
+					}
+					else
+					{
+						InArray.Insert(InComp, i);
+						break;
+					}
+				}
+				else//none exist
+				{
+					InArray.Insert(InComp, i);
+					break;
+				}
+			}
+		}
+		else//class no need reorder
+		{
+			InArray.Add(InComp);
+		}
+	}
+	else
+	{
+		InArray.Add(InComp);
+	}
+}
+void ALGUIManagerActor::RemoveLGUIComponent(ULGUIBehaviour* InComp)
+{
+	if (Instance != nullptr)
+	{
+		int32 index = INDEX_NONE;
+		if (Instance->LGUIBehavioursForAwake.Find(InComp, index))
+		{
+			Instance->LGUIBehavioursForAwake.RemoveAt(index);
+		}
+		else
+		{
+			if (Instance->LGUIBehavioursForEnable.Find(InComp, index))
+			{
+				Instance->LGUIBehavioursForEnable.RemoveAt(index);
+			}
+			else
+			{
+				if (Instance->LGUIBehavioursForStart.Find(InComp, index))
+				{
+					Instance->LGUIBehavioursForStart.RemoveAt(index);
+				}
+				else
+				{
+					if (Instance->LGUIBehavioursForUpdate.Find(InComp, index))
+					{
+						Instance->LGUIBehavioursForUpdate.RemoveAt(index);
+					}
+					else
+					{
+						UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIComponent]not exist, comp:%s"), *(InComp->GetPathName()));
+					}
+				}
+			}
+		}
+	}
+}
+
 
 
 void ALGUIManagerActor::AddUIItem(UUIItem* InItem)
@@ -405,97 +515,6 @@ void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
 		if (Instance->allSelectableArray.Find(InSelectable, index))
 		{
 			Instance->allSelectableArray.RemoveAt(index);
-		}
-	}
-}
-void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
-{
-	if (InitCheck(InComp->GetWorld()))
-	{
-#if WITH_EDITOR
-		auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
-#else
-		static auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
-#endif
-		auto& LGUIBehavioursForAwake = Instance->LGUIBehavioursForAwake;
-		if (Instance->LGUIBehavioursForAwake.Contains(InComp))
-		{
-			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
-			return;
-		}
-		if (lguiBehaviourExecuteOrders.Num() > 0 && LGUIBehavioursForAwake.Num() > 0)
-		{
-			auto inCompClass = InComp->GetClass();
-			int inCompIndex = INDEX_NONE;
-			if (lguiBehaviourExecuteOrders.Find(inCompClass, inCompIndex))
-			{
-				for (int i = 0; i < LGUIBehavioursForAwake.Num(); i++)
-				{
-					auto checkItemClass = LGUIBehavioursForAwake[i]->GetClass();
-					int checkItemIndex = INDEX_NONE;
-					if (lguiBehaviourExecuteOrders.Find(checkItemClass, checkItemIndex))//exist, check index
-					{
-						if (inCompIndex > checkItemIndex)
-						{
-							continue;
-						}
-						else
-						{
-							LGUIBehavioursForAwake.Insert(InComp, i);
-							break;
-						}
-					}
-					else//none exist
-					{
-						LGUIBehavioursForAwake.Insert(InComp, i);
-						break;
-					}
-				}
-			}
-			else//class no need reorder
-			{
-				LGUIBehavioursForAwake.Add(InComp);
-			}
-		}
-		else
-		{
-			LGUIBehavioursForAwake.Add(InComp);
-		}
-	}
-}
-void ALGUIManagerActor::RemoveLGUIComponent(ULGUIBehaviour* InComp)
-{
-	if (Instance != nullptr)
-	{
-		int32 index = INDEX_NONE;
-		if (Instance->LGUIBehavioursForAwake.Find(InComp, index))
-		{
-			Instance->LGUIBehavioursForAwake.RemoveAt(index);
-		}
-		else
-		{
-			if (Instance->LGUIBehavioursForEnable.Find(InComp, index))
-			{
-				Instance->LGUIBehavioursForEnable.RemoveAt(index);
-			}
-			else
-			{
-				if (Instance->LGUIBehavioursForStart.Find(InComp, index))
-				{
-					Instance->LGUIBehavioursForStart.RemoveAt(index);
-				}
-				else
-				{
-					if (Instance->LGUIBehavioursForUpdate.Find(InComp, index))
-					{
-						Instance->LGUIBehavioursForUpdate.RemoveAt(index);
-					}
-					else
-					{
-						UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIComponent]not exist, comp:%s"), *(InComp->GetPathName()));
-					}
-				}
-			}
 		}
 	}
 }
