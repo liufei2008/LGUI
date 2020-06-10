@@ -138,12 +138,12 @@ public:
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MaskTextureParameter, MaskTextureSamplerParameter, MaskTextureSampler, MaskTexture);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter MainTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter MainTextureSamplerParameter);
-	LAYOUT_FIELD(FShaderResourceParameter OriginTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter OriginTextureSamplerParameter);
-	LAYOUT_FIELD(FShaderResourceParameter MaskTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter MaskTextureSamplerParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, OriginTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, OriginTextureSamplerParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MaskTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MaskTextureSamplerParameter);
 };
 class FLGUIPostProcessGaussianBlurPS :public FLGUIPostProcessShader
 {
@@ -208,6 +208,6 @@ public:
 		FGlobalShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
 private:
-	LAYOUT_FIELD(FShaderResourceParameter StrengthTextureParameter);
-	LAYOUT_FIELD(FShaderResourceParameter StrengthTextureSamplerParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, StrengthTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, StrengthTextureSamplerParameter);
 };
