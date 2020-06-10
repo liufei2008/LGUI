@@ -19,23 +19,22 @@ SamplerState _MainTexSampler;
 float2 _HorizontalOrVerticalFilter;
 float2 _InvSize;
 float _BlurStrength;
-//#define USE_MASK true
-#if USE_MASK
-Texture2D _MaskTex;
-SamplerState _MaskTexSampler;
+#if USE_STRENGTH_TEXTURE
+Texture2D _StrengthTex;
+SamplerState _StrengthTexSampler;
 #endif
 
 float4 GaussianBlurPS(SimpleVSToPS input) : SV_Target0
 {
-#if USE_MASK
-    float mask = _MaskTex.Sample(_MaskTexSampler, input.uv).r;
+#if USE_STRENGTH_TEXTURE
+    float strength = _StrengthTex.Sample(_StrengthTexSampler, input.uv).r;
 #endif
     float4 color = _MainTex.Sample(_MainTexSampler, input.uv) * _Weight[0];
     for (int i = 1; i < 3; i++)
     {
         float uvOffset = _Offset[i];
-#if USE_MASK
-        uvOffset *= mask;
+#if USE_STRENGTH_TEXTURE
+        uvOffset *= strength;
 #endif
         color += _MainTex.Sample(_MainTexSampler, input.uv + uvOffset * _InvSize * _BlurStrength * _HorizontalOrVerticalFilter) * _Weight[i];
         color += _MainTex.Sample(_MainTexSampler, input.uv - uvOffset * _InvSize * _BlurStrength * _HorizontalOrVerticalFilter) * _Weight[i];
