@@ -227,7 +227,7 @@ void UUISliderComponent::ApplyValueToUI()
 				{
 					Handle->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
 				}
-				auto anchorOffsetX = (1.0f - value01) * HandleArea->GetWidth();
+				auto anchorOffsetX = -value01 * HandleArea->GetWidth();
 				Handle->SetAnchorOffsetX(anchorOffsetX);
 			}
 			if (CheckFill())
@@ -263,7 +263,7 @@ void UUISliderComponent::ApplyValueToUI()
 				{
 					Handle->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
 				}
-				auto anchorOffsetY = (1.0f - value01) * HandleArea->GetHeight();
+				auto anchorOffsetY = -value01 * HandleArea->GetHeight();
 				Handle->SetAnchorOffsetY(anchorOffsetY);
 			}
 			if (CheckFill())
