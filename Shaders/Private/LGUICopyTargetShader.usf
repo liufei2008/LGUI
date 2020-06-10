@@ -19,3 +19,18 @@ void MeshCopyTargetPS(
 {
     OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
 }
+
+
+
+
+Texture2D _OriginTex;
+SamplerState _OriginTexSampler;
+Texture2D _MaskTex;
+SamplerState _MaskTexSampler;
+void MeshCopyTargetWithMaskPS(
+    MeshPostProcessVSToPS input,
+    out float4 OutColor : SV_Target0
+)
+{
+    OutColor = lerp(_OriginTex.Sample(_OriginTexSampler, input.uv), _MainTex.Sample(_MainTexSampler, input.uv), _MaskTex.Sample(_MaskTexSampler, input.uv).r);
+}
