@@ -187,7 +187,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			VertexShader->SetParameters(RHICmdList, false);
 			TShaderMapRef<FLGUIPostProcessGaussianBlurWithStrengthTexturePS> PixelShader(GlobalShaderMap);
 			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
-			PixelShader->SetMaskTexture(RHICmdList, ((FTexture2DResource*)strengthTexture->Resource)->GetTexture2DRHI(), strengthTexture->Resource->SamplerStateRHI);
+			PixelShader->SetStrengthTexture(RHICmdList, ((FTexture2DResource*)strengthTexture->Resource)->GetTexture2DRHI(), strengthTexture->Resource->SamplerStateRHI);
 
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
