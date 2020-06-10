@@ -173,23 +173,21 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	FTexture2DRHIRef BlurEffectRenderTexture1 = Resource1->GetRenderTargetTexture();
 	FTexture2DRHIRef BlurEffectRenderTexture2 = Resource2->GetRenderTargetTexture();
 	//copy rect area from screen image to a render target, so we can just process this area
+	TArray<FLGUIPostProcessVertex> tempCopyRegion;
 	{
-		TArray<FLGUIPostProcessVertex> tempCopyRegion;
-		{
-			FScopeLock scopeLock(&mutex);
-			tempCopyRegion = copyRegionVertexArray;
-		}
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, true, tempCopyRegion);//mesh's uv.y is flipped
+		FScopeLock scopeLock(&mutex);
+		tempCopyRegion = copyRegionVertexArray;
 	}
+	FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, true, tempCopyRegion);//mesh's uv.y is flipped
 	//do the blur process on the area
 	{
-		if (IsValid(maskTexture))//use mask texture to control blur strength
+		if (IsValid(strengthTexture))//use mask texture to control blur strength
 		{
 			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
 			VertexShader->SetParameters(RHICmdList, false);
-			TShaderMapRef<FLGUIPostProcessGaussianBlurWithMaskPS> PixelShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIPostProcessGaussianBlurWithStrengthTexturePS> PixelShader(GlobalShaderMap);
 			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
-			PixelShader->SetMaskTexture(RHICmdList, ((FTexture2DResource*)maskTexture->Resource)->GetTexture2DRHI(), maskTexture->Resource->SamplerStateRHI);
+			PixelShader->SetMaskTexture(RHICmdList, ((FTexture2DResource*)strengthTexture->Resource)->GetTexture2DRHI(), strengthTexture->Resource->SamplerStateRHI);
 
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
@@ -287,21 +285,48 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	}
 	//after blur process, copy the area back to screen image
 	{
-		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
-		TShaderMapRef<FLGUIMeshPostProcessVS> VertexShader(GlobalShaderMap);
-		TShaderMapRef<FLGUIMeshCopyTargetPS> PixelShader(GlobalShaderMap);
-		FGraphicsPipelineStateInitializer GraphicsPSOInit;
-		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
-		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIVertexDeclaration();
-		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-		VertexShader->SetParameters(RHICmdList, ViewProjectionMatrix);
-		PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1);
+		if (IsValid(maskTexture))
+		{
+			FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture2, true, tempCopyRegion);//mesh's uv.y is flipped
+
+			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
+			TShaderMapRef<FLGUIMeshPostProcessVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIMeshCopyTargetWithMaskPS> PixelShader(GlobalShaderMap);
+			FGraphicsPipelineStateInitializer GraphicsPSOInit;
+			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIVertexDeclaration();
+			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+			VertexShader->SetParameters(RHICmdList, ViewProjectionMatrix);
+			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1, BlurEffectRenderTexture2, ((FTexture2DResource*)maskTexture->Resource)->GetTexture2DRHI()
+				, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
+				, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
+				, maskTexture->Resource->SamplerStateRHI
+				);
+		}
+		else
+		{
+			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
+			TShaderMapRef<FLGUIMeshPostProcessVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIMeshCopyTargetPS> PixelShader(GlobalShaderMap);
+			FGraphicsPipelineStateInitializer GraphicsPSOInit;
+			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIVertexDeclaration();
+			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+			VertexShader->SetParameters(RHICmdList, ViewProjectionMatrix);
+			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1);
+		}
 		DrawPrimitive();
 		RHICmdList.EndRenderPass();
 		RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
