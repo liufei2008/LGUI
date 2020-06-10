@@ -251,7 +251,7 @@ public:
 		StrengthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_StrengthTex"));
 		StrengthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_StrengthTexSampler"));
 	}
-	void SetMaskTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef StrengthTexture, FRHISamplerState* StrengthTextureSampler)
+	void SetStrengthTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef StrengthTexture, FRHISamplerState* StrengthTextureSampler)
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), StrengthTextureParameter, StrengthTextureSamplerParameter, StrengthTextureSampler, StrengthTexture);
 	}
