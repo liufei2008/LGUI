@@ -183,6 +183,9 @@
             b.Find or add line [/Script/Engine.Engine]
             c.Add these lines under [/Script/Engine.Engine]:
                 +ActiveClassRedirects=(OldClassName="/Script/LGUI.UIComponentBase",NewClassName="/Script/LGUI.LGUIBehaviour")
+        UIBackgroundBlur now use maskTexture to acturally mask out blur area. add strengthTexture to control blur strength.
     New feature:
         LGUIBehaviour is a totally remaked class, all I want is trying to make it more like Unity's MonoBehaviour. Because I think Unity's interfaces are more normative.
         LGUIBehaviour can control event execute order by changing LGUIBehaviourExecuteOrder in LGUISettings.
+    Fix:
+        UISlider's handle's position issue when DirectionType=RightToLeft/TopToBottom.
