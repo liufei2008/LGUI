@@ -4,6 +4,7 @@
 #include "Window/LGUIEditorTools.h"
 #include "Layout/LGUICanvasScaler.h"
 #include "LGUIEditorUtils.h"
+#include "Widgets/Input/SNumericEntryBox.h"
 
 #define LOCTEXT_NAMESPACE "UICanvasScalarCustomization"
 
@@ -32,10 +33,10 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
 	TArray<FName> needToHidePropertyNameArray;
 	//add all property
-	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ProjectionType));
-	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FOVAngle));
-	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, NearClipPlane));
-	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FarClipPlane));
+	//needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ProjectionType));
+	//needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FOVAngle));
+	//needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, NearClipPlane));
+	//needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FarClipPlane));
 
 	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, UIScaleMode));
 	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ReferenceResolution));
@@ -90,11 +91,11 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 					break;
 					case LGUIScreenMatchMode::MatchWidthOrHeight:
 					{
+						auto matchProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, MatchFromWidthToHeight));
 						lguiCategory.AddCustomRow(LOCTEXT("MatchSlider", "MatchSlider"))
 						.NameContent()
 						[
 							SNew(SBox)
-							.HAlign(EHorizontalAlignment::HAlign_Right)
 							[
 								SNew(STextBlock)
 								.Text(LOCTEXT("Match", "Match"))
@@ -102,12 +103,49 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 							]
 						]
 						.ValueContent()
+						.MinDesiredWidth(500)
 						[
-							SNew(SBox)
+							SAssignNew(ValueBox, SHorizontalBox)
+							+SHorizontalBox::Slot()
+							.AutoWidth()
 							[
-								SNew(SSlider)
-								.Value(this, &FUICanvasScalerCustomization::GetMatchValue)
-								.OnValueChanged(this, &FUICanvasScalerCustomization::SetMatchValue, true)
+								SNew(SBox)
+								.WidthOverride(this, &FUICanvasScalerCustomization::GetValueWidth)
+								[
+									SNew(SVerticalBox)
+									+SVerticalBox::Slot()
+									[
+										SNew(SSlider)
+										.Value(this, &FUICanvasScalerCustomization::GetMatchValue)
+										.OnValueChanged(this, &FUICanvasScalerCustomization::SetMatchValue, true)
+									]
+									+SVerticalBox::Slot()
+									[
+										SNew(SHorizontalBox)
+										+SHorizontalBox::Slot()
+										[
+											SNew(STextBlock)
+											.Text(LOCTEXT("Width", "Width"))
+											.Font(IDetailLayoutBuilder::GetDetailFont())
+										]
+										+ SHorizontalBox::Slot()
+										.HAlign(EHorizontalAlignment::HAlign_Right)
+										[
+											SNew(STextBlock)
+											.Text(LOCTEXT("Height", "Height"))
+											.Font(IDetailLayoutBuilder::GetDetailFont())
+										]
+									]
+								]
+							]
+							+SHorizontalBox::Slot()
+							.HAlign(EHorizontalAlignment::HAlign_Right)
+							[
+								SNew(SBox)
+								.MinDesiredWidth(50)
+								[
+									matchProperty->CreatePropertyValueWidget()
+								]
 							]
 						]
 						;
@@ -145,6 +183,10 @@ float FUICanvasScalerCustomization::GetMatchValue()const
 	}
 	return 0.0f;
 }
+TOptional<float> FUICanvasScalerCustomization::GetMatchValueOptional()const
+{
+	return GetMatchValue();
+}
 void FUICanvasScalerCustomization::SetMatchValue(float value, bool fromSlider)
 {
 	if (fromSlider)
@@ -154,5 +196,9 @@ void FUICanvasScalerCustomization::SetMatchValue(float value, bool fromSlider)
 			TargetScriptPtr->SetMatchFromWidthToHeight(value);
 		}
 	}
+}
+FOptionalSize FUICanvasScalerCustomization::GetValueWidth()const
+{
+	return ValueBox->GetCachedGeometry().GetLocalSize().X - 60;
 }
 #undef LOCTEXT_NAMESPACE

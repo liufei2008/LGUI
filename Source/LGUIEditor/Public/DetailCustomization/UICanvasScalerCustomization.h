@@ -15,5 +15,8 @@ public:
 private:
 	TWeakObjectPtr<class ULGUICanvasScaler> TargetScriptPtr;
 	float GetMatchValue()const;
+	TOptional<float> GetMatchValueOptional()const;
 	void SetMatchValue(float value, bool fromSlider);
+	TSharedPtr<SHorizontalBox> ValueBox;
+	FOptionalSize GetValueWidth()const;
 };
