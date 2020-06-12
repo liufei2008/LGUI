@@ -75,6 +75,10 @@ protected:
 		float MatchFromWidthToHeight = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		LGUIScreenMatchMode ScreenMatchMode = LGUIScreenMatchMode::MatchWidthOrHeight;
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool TestWithEditorViewportSize = true;
+#endif
 
 	bool CheckCanvas();
 	UPROPERTY(Transient) class ULGUICanvas* Canvas = nullptr;

@@ -6,6 +6,7 @@
 #if WITH_EDITOR
 #include "Core/Actor/LGUIManagerActor.h"
 #include "DrawDebugHelpers.h"
+#include "Editor.h"
 #endif
 
 
@@ -86,99 +87,112 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 		{
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
-#if WITH_EDITOR
-				if (!GetWorld()->IsGameWorld())//editor just keep in world space
+				auto canvasUIItem = Canvas->CheckAndGetUIItem();
+				//adjust size
+				switch (UIScaleMode)
 				{
-					Canvas->MarkRebuildAllDrawcall();
-					Canvas->MarkCanvasUpdate();
+				case LGUIScaleMode::ConstantPixelSize:
+				{
+					canvasUIItem->SetWidth(ViewportSize.X);
+					canvasUIItem->SetHeight(ViewportSize.Y);
+#if WITH_EDITOR
+					if (!GetWorld()->IsGameWorld()) {}//editor don't change size
+					else
+#endif
+					{
+						canvasUIItem->SetRelativeScale3D(FVector::OneVector);
+					}
 				}
+				break;
+				case LGUIScaleMode::ScaleWithScreenSize:
+				{
+					switch (ScreenMatchMode)
+					{
+					case LGUIScreenMatchMode::MatchWidthOrHeight:
+					{
+						float matchWidth_PreferredWidth = ReferenceResolution.X;
+						float matchWidth_PreferredHeight = ReferenceResolution.X * ViewportSize.Y / ViewportSize.X;
+						float matchWidth_ScaleRatio = ViewportSize.X / ReferenceResolution.X;
+
+						float matchHeight_PreferredHeight = ReferenceResolution.Y;
+						float matchHeight_PreferredWidth = ReferenceResolution.Y * ViewportSize.X / ViewportSize.Y;
+						float matchHeight_ScaleRatio = ViewportSize.Y / ReferenceResolution.Y;
+
+						canvasUIItem->SetWidth(FMath::Lerp(matchWidth_PreferredWidth, matchHeight_PreferredWidth, MatchFromWidthToHeight));
+						canvasUIItem->SetHeight(FMath::Lerp(matchWidth_PreferredHeight, matchHeight_PreferredHeight, MatchFromWidthToHeight));
+#if WITH_EDITOR
+						if (!GetWorld()->IsGameWorld()) {}//editor don't change size
+						else
+#endif
+						{
+							canvasUIItem->SetRelativeScale3D(FVector::OneVector * FMath::Lerp(matchWidth_ScaleRatio, matchHeight_ScaleRatio, MatchFromWidthToHeight));
+						}
+					}
+					break;
+					case LGUIScreenMatchMode::Expand:
+					case LGUIScreenMatchMode::Shrink:
+					{
+						float resultWidth = ViewportSize.X, resultHeight = ViewportSize.Y, resultScale = 1.0f;
+
+						float screenAspect = (float)ViewportSize.X / ViewportSize.Y;
+						float referenceAspect = ReferenceResolution.X / ReferenceResolution.Y;
+						if (screenAspect > referenceAspect)//screen width > reference width
+						{
+							if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
+							{
+								resultHeight = ReferenceResolution.Y;
+								resultWidth = resultHeight * screenAspect;
+								resultScale = (float)ViewportSize.Y / resultHeight;
+							}
+							else if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
+							{
+								resultWidth = ReferenceResolution.X;
+								resultHeight = resultWidth / screenAspect;
+								resultScale = (float)ViewportSize.X / resultWidth;
+							}
+						}
+						else//screen height > reference height
+						{
+							if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
+							{
+								resultWidth = ReferenceResolution.X;
+								resultHeight = resultWidth / screenAspect;
+								resultScale = (float)ViewportSize.X / resultWidth;
+							}
+							else if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
+							{
+								resultHeight = ReferenceResolution.Y;
+								resultWidth = resultHeight * screenAspect;
+								resultScale = (float)ViewportSize.Y / resultHeight;
+							}
+						}
+						canvasUIItem->SetWidth(resultWidth);
+						canvasUIItem->SetHeight(resultHeight);
+#if WITH_EDITOR
+						if (!GetWorld()->IsGameWorld()) {}//editor don't change size
+						else
+#endif
+						{
+							canvasUIItem->SetRelativeScale3D(FVector::OneVector * resultScale);
+						}
+					}
+					break;
+					}
+				}
+				break;
+				}
+
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld()) {}//editor don't change size
 				else
 #endif
 				{
-					auto canvasUIItem = Canvas->CheckAndGetUIItem();
-					//adjust size
-					switch (UIScaleMode)
-					{
-					case LGUIScaleMode::ConstantPixelSize:
-					{
-						canvasUIItem->SetWidth(ViewportSize.X);
-						canvasUIItem->SetHeight(ViewportSize.Y);
-						canvasUIItem->SetRelativeScale3D(FVector::OneVector);
-					}
-					break;
-					case LGUIScaleMode::ScaleWithScreenSize:
-					{
-						switch (ScreenMatchMode)
-						{
-						case LGUIScreenMatchMode::MatchWidthOrHeight:
-						{
-							float matchWidth_PreferredWidth = ReferenceResolution.X;
-							float matchWidth_PreferredHeight = ReferenceResolution.X * ViewportSize.Y / ViewportSize.X;
-							float matchWidth_ScaleRatio = ViewportSize.X / ReferenceResolution.X;
-
-							float matchHeight_PreferredHeight = ReferenceResolution.Y;
-							float matchHeight_PreferredWidth = ReferenceResolution.Y * ViewportSize.X / ViewportSize.Y;
-							float matchHeight_ScaleRatio = ViewportSize.Y / ReferenceResolution.Y;
-
-							canvasUIItem->SetWidth(FMath::Lerp(matchWidth_PreferredWidth, matchHeight_PreferredWidth, MatchFromWidthToHeight));
-							canvasUIItem->SetHeight(FMath::Lerp(matchWidth_PreferredHeight, matchHeight_PreferredHeight, MatchFromWidthToHeight));
-							canvasUIItem->SetRelativeScale3D(FVector::OneVector * FMath::Lerp(matchWidth_ScaleRatio, matchHeight_ScaleRatio, MatchFromWidthToHeight));
-						}
-						break;
-						case LGUIScreenMatchMode::Expand:
-						case LGUIScreenMatchMode::Shrink:
-						{
-							float resultWidth = ViewportSize.X, resultHeight = ViewportSize.Y, resultScale = 1.0f;
-
-							float screenAspect = (float)ViewportSize.X / ViewportSize.Y;
-							float referenceAspect = ReferenceResolution.X / ReferenceResolution.Y;
-							if (screenAspect > referenceAspect)//screen width > reference width
-							{
-								if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
-								{
-									resultHeight = ReferenceResolution.Y;
-									resultWidth = resultHeight * screenAspect;
-									resultScale = (float)ViewportSize.Y / resultHeight;
-								}
-								else if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
-								{
-									resultWidth = ReferenceResolution.X;
-									resultHeight = resultWidth / screenAspect;
-									resultScale = (float)ViewportSize.X / resultWidth;
-								}
-							}
-							else//screen height > reference height
-							{
-								if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
-								{
-									resultWidth = ReferenceResolution.X;
-									resultHeight = resultWidth / screenAspect;
-									resultScale = (float)ViewportSize.X / resultWidth;
-								}
-								else if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
-								{
-									resultHeight = ReferenceResolution.Y;
-									resultWidth = resultHeight * screenAspect;
-									resultScale = (float)ViewportSize.Y / resultHeight;
-								}
-							}
-							canvasUIItem->SetWidth(resultWidth);
-							canvasUIItem->SetHeight(resultHeight);
-							canvasUIItem->SetRelativeScale3D(FVector::OneVector * resultScale);
-						}
-						break;
-						}
-					}
-					break;
-					}
-
-					//set rotate to zero, and move left bottom corner to zero position
-					canvasUIItem->SetRelativeLocationAndRotation(FVector(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, 0), FQuat::Identity);
-
-					Canvas->MarkRebuildAllDrawcall();
-					canvasUIItem->MarkAllDirtyRecursive();
-					Canvas->MarkCanvasUpdate();
+					canvasUIItem->SetRelativeLocationAndRotation(FVector(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, 0), FQuat::Identity);//set rotate to zero, and move left bottom corner to zero position
 				}
+
+				Canvas->MarkRebuildAllDrawcall();
+				canvasUIItem->MarkAllDirtyRecursive();
+				Canvas->MarkCanvasUpdate();
 			}
 		}
 	}
@@ -232,6 +246,21 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 					OnViewportParameterChanged();
 				}
 				DrawVirtualCamera();
+
+#if WITH_EDITORONLY_DATA
+				if (TestWithEditorViewportSize && !GetWorld()->IsGameWorld())
+				{
+					if (auto viewport = GEditor->GetActiveViewport())
+					{
+						auto prevSize = ViewportSize;
+						ViewportSize = viewport->GetSizeXY();
+						if (prevSize != ViewportSize)
+						{
+							OnViewportParameterChanged();
+						}
+					}
+				}
+#endif
 			}
 		}
 	}
@@ -297,11 +326,11 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 		DrawDebugLine(this->GetWorld(), rightTopEnd, leftTopEnd, lineColor);
 
 		auto viewRotationMatrix = Canvas->GetViewRotationMatrix();
-		viewRotationMatrix = viewRotationMatrix * FMatrix(
+		viewRotationMatrix = FMatrix(
 			FPlane(0, 0, 1, 0),
 			FPlane(1, 0, 0, 0),
 			FPlane(0, 1, 0, 0),
-			FPlane(0, 0, 0, 1)).Inverse();
+			FPlane(0, 0, 0, 1)) * viewRotationMatrix;
 		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), viewRotationMatrix.Rotator(), FOVAngle, 1.0f, FColor::Green);
 	}
 }

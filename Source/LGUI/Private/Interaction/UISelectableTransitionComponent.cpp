@@ -16,3 +16,11 @@ void UUISelectableTransitionComponent::CollectTweener(ULTweener* InItem)
 {
 	TweenerCollection.Add(InItem);
 }
+void UUISelectableTransitionComponent::CollectTweeners(const TSet<ULTweener*>& InItems)
+{
+	TweenerCollection.Reserve(TweenerCollection.Num() + InItems.Num());
+	for (auto item : InItems)
+	{
+		TweenerCollection.Add(item);
+	}
+}
