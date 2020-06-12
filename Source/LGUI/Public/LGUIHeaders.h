@@ -53,6 +53,7 @@
 #include "Interaction/UIScrollViewComponent.h"
 #include "Interaction/UIScrollViewWithScrollbarComponent.h"
 #include "Interaction/UISelectableComponent.h"
+#include "Interaction/UISelectableTransitionComponent.h"
 #include "Interaction/UISliderComponent.h"
 #include "Interaction/UITextInputComponent.h"
 #include "Interaction/UIToggleComponent.h"
