@@ -25,7 +25,6 @@ class LGUI_API UUISizeControlByOther : public UUILayoutBase
 	GENERATED_BODY()
 
 public:	
-	UUISizeControlByOther();
 	virtual void Awake()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

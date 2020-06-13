@@ -71,6 +71,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
 {
 	SCOPE_CYCLE_COUNTER(STAT_HorizontalLayout);
 	if (!CheckRootUIComponent())return;
+	if (!enable)return;
 	FVector2D startPosition;
 	startPosition.X = Padding.Left;
 	startPosition.Y = -Padding.Top;//left bottom as start point
@@ -241,15 +242,15 @@ void UUIHorizontalLayout::OnRebuildLayout()
 
 bool UUIHorizontalLayout::CanControlChildAnchor()
 {
-	return true;
+	return true && enable;
 }
 bool UUIHorizontalLayout::CanControlChildWidth()
 {
-	return GetExpendChildrenWidth();
+	return GetExpendChildrenWidth() && enable;
 }
 bool UUIHorizontalLayout::CanControlChildHeight()
 {
-	return GetExpendChildrenHeight();
+	return GetExpendChildrenHeight() && enable;
 }
 bool UUIHorizontalLayout::CanControlSelfHorizontalAnchor()
 { 
@@ -261,7 +262,7 @@ bool UUIHorizontalLayout::CanControlSelfVerticalAnchor()
 }
 bool UUIHorizontalLayout::CanControlSelfWidth()
 {
-	return !GetExpendChildrenWidth() && GetWidthFitToChildren();
+	return (!GetExpendChildrenWidth() && GetWidthFitToChildren()) && enable;
 }
 bool UUIHorizontalLayout::CanControlSelfHeight()
 { 

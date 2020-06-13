@@ -583,7 +583,7 @@ bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 	bool sizeChanged = false;
 	const auto& parentWidget = cacheParentUIItem->widget;
 	float width = parentWidget.width - widget.stretchLeft - widget.stretchRight;
-	if (IsFloatNotEqual(widget.width, width))
+	if (LGUIUtils::IsFloatNotEqual(widget.width, width))
 	{
 		widget.width = width;
 		WidthChanged();
@@ -599,7 +599,7 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 	bool sizeChanged = false;
 	const auto& parentWidget = cacheParentUIItem->widget;
 	float height = parentWidget.height - widget.stretchTop - widget.stretchBottom;
-	if (IsFloatNotEqual(widget.height, height))
+	if (LGUIUtils::IsFloatNotEqual(widget.height, height))
 	{
 		widget.height = height;
 		HeightChanged();
@@ -724,7 +724,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	case UIAnchorHorizontalAlign::Stretch:
 	{
 		float width = parentWidget.width - widget.stretchLeft - widget.stretchRight;
-		if (IsFloatNotEqual(widget.width, width))
+		if (LGUIUtils::IsFloatNotEqual(widget.width, width))
 		{
 			widget.width = width;
 			WidthChanged();
@@ -762,7 +762,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	case UIAnchorVerticalAlign::Stretch:
 	{
 		float height = parentWidget.height - widget.stretchTop - widget.stretchBottom;
-		if (IsFloatNotEqual(widget.height, height))
+		if (LGUIUtils::IsFloatNotEqual(widget.height, height))
 		{
 			widget.height = height;
 			HeightChanged();
@@ -777,7 +777,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	}
 	break;
 	}
-	if (!(this->GetRelativeLocation().Equals(resultLocation)))
+	if (LGUIUtils::IsVectorNotEqual(this->GetRelativeLocation(), resultLocation))
 	{
 		GetRelativeLocation_DirectMutable() = resultLocation;
 		LGUIUpdateComponentToWorld();
@@ -838,7 +838,7 @@ void UUIItem::SetAlpha(float newAlpha) {
 }
 void UUIItem::SetWidth(float newWidth)
 {
-	if (IsFloatNotEqual(widget.width, newWidth))
+	if (LGUIUtils::IsFloatNotEqual(widget.width, newWidth))
 	{
 		MarkVertexPositionDirty();
 		widget.width = newWidth;
@@ -853,7 +853,7 @@ void UUIItem::SetWidth(float newWidth)
 }
 void UUIItem::SetHeight(float newHeight)
 {
-	if (IsFloatNotEqual(widget.height, newHeight))
+	if (LGUIUtils::IsFloatNotEqual(widget.height, newHeight))
 	{
 		MarkVertexPositionDirty();
 		widget.height = newHeight;
@@ -876,7 +876,7 @@ void UUIItem::HeightChanged()
 }
 void UUIItem::SetAnchorOffsetX(float newOffset) 
 {
-	if (IsFloatNotEqual(widget.anchorOffsetX, newOffset))
+	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetX, newOffset))
 	{
 		widget.anchorOffsetX = newOffset;
 		if (cacheParentUIItem)
@@ -892,7 +892,7 @@ void UUIItem::SetAnchorOffsetX(float newOffset)
 }
 void UUIItem::SetAnchorOffsetY(float newOffset) 
 {
-	if (IsFloatNotEqual(widget.anchorOffsetY, newOffset))
+	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetY, newOffset))
 	{
 		widget.anchorOffsetY = newOffset;
 		if (cacheParentUIItem)
@@ -909,7 +909,7 @@ void UUIItem::SetAnchorOffsetY(float newOffset)
 void UUIItem::SetAnchorOffset(FVector2D newOffset)
 {
 	bool anyChange = false;
-	if (IsFloatNotEqual(widget.anchorOffsetX, newOffset.X))
+	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetX, newOffset.X))
 	{
 		widget.anchorOffsetX = newOffset.X;
 		if (cacheParentUIItem)
@@ -920,7 +920,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 			widget.stretchRight = parentWidget.width - widget.width - widget.stretchLeft;
 		}
 	}
-	if (IsFloatNotEqual(widget.anchorOffsetY, newOffset.Y))
+	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetY, newOffset.Y))
 	{
 		widget.anchorOffsetY = newOffset.Y;
 		if (cacheParentUIItem)
@@ -939,7 +939,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 }
 void UUIItem::SetUIRelativeLocation(FVector newLocation)
 {
-	if (!(GetRelativeLocation().Equals(newLocation)))
+	if (LGUIUtils::IsVectorNotEqual(this->GetRelativeLocation(), newLocation))
 	{
 		MarkVertexPositionDirty();
 		GetRelativeLocation_DirectMutable() = newLocation;
@@ -1030,12 +1030,12 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const FQuat& newRotation)
 {
 	bool rotationChange = false;
-	if (!newRotation.Equals(GetRelativeRotationCache().GetCachedQuat()))
+	if (LGUIUtils::IsQuaternionNotEqual(newRotation, GetRelativeRotationCache().GetCachedQuat()))
 	{
 		GetRelativeRotation_DirectMutable() = GetRelativeRotationCache().QuatToRotator(newRotation);
 		rotationChange = true;
 	}
-	if (!GetRelativeLocation().Equals(newLocation))
+	if (LGUIUtils::IsVectorNotEqual(GetRelativeLocation(), newLocation))
 	{
 		SetUIRelativeLocation(newLocation);
 	}
@@ -1049,7 +1049,7 @@ void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const
 }
 void UUIItem::SetStretchLeft(float newLeft)
 {
-	if (IsFloatNotEqual(widget.stretchLeft, newLeft))
+	if (LGUIUtils::IsFloatNotEqual(widget.stretchLeft, newLeft))
 	{
 		MarkVertexPositionDirty();
 		widget.stretchLeft = newLeft;
@@ -1066,7 +1066,7 @@ void UUIItem::SetStretchLeft(float newLeft)
 }
 void UUIItem::SetStretchRight(float newRight)
 {
-	if (IsFloatNotEqual(widget.stretchRight, newRight))
+	if (LGUIUtils::IsFloatNotEqual(widget.stretchRight, newRight))
 	{
 		MarkVertexPositionDirty();
 		widget.stretchRight = newRight;
@@ -1083,7 +1083,7 @@ void UUIItem::SetStretchRight(float newRight)
 }
 void UUIItem::SetHorizontalStretch(FVector2D newStretch)
 {
-	if (IsFloatNotEqual(widget.stretchLeft, newStretch.X) || IsFloatNotEqual(widget.stretchRight, newStretch.Y))
+	if (LGUIUtils::IsFloatNotEqual(widget.stretchLeft, newStretch.X) || LGUIUtils::IsFloatNotEqual(widget.stretchRight, newStretch.Y))
 	{
 		MarkVertexPositionDirty();
 		widget.stretchLeft = newStretch.X;
@@ -1101,7 +1101,7 @@ void UUIItem::SetHorizontalStretch(FVector2D newStretch)
 }
 void UUIItem::SetStretchTop(float newTop)
 {
-	if (IsFloatNotEqual(widget.stretchTop, newTop))
+	if (LGUIUtils::IsFloatNotEqual(widget.stretchTop, newTop))
 	{
 		MarkVertexPositionDirty();
 		widget.stretchTop = newTop;
@@ -1118,7 +1118,7 @@ void UUIItem::SetStretchTop(float newTop)
 }
 void UUIItem::SetStretchBottom(float newBottom)
 {
-	if (IsFloatNotEqual(widget.stretchBottom, newBottom))
+	if (LGUIUtils::IsFloatNotEqual(widget.stretchBottom, newBottom))
 	{
 		MarkVertexPositionDirty();
 		widget.stretchBottom = newBottom;
@@ -1135,7 +1135,7 @@ void UUIItem::SetStretchBottom(float newBottom)
 }
 void UUIItem::SetVerticalStretch(FVector2D newStretch)
 {
-	if (IsFloatNotEqual(widget.stretchBottom, newStretch.X) || IsFloatNotEqual(widget.stretchTop, newStretch.Y))
+	if (LGUIUtils::IsFloatNotEqual(widget.stretchBottom, newStretch.X) || LGUIUtils::IsFloatNotEqual(widget.stretchTop, newStretch.Y))
 	{
 		MarkVertexPositionDirty();
 		widget.stretchBottom = newStretch.X;
@@ -1153,7 +1153,7 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 }
 
 void UUIItem::SetPivot(FVector2D pivot) {
-	if (!(widget.pivot.Equals(pivot)))
+	if (LGUIUtils::IsVector2DNotEqual(widget.pivot, pivot))
 	{
 		MarkVertexPositionDirty();
 		widget.pivot = pivot;
@@ -1560,11 +1560,6 @@ void UUIItem::ApplyUIActiveState()
 }
 
 #pragma endregion UIActive
-
-bool UUIItem::IsFloatNotEqual(float a, float b)
-{
-	return FMath::Abs(a - b) > KINDA_SMALL_NUMBER;
-}
 
 float UUIItem::Color255To1_Table[256] =
 {

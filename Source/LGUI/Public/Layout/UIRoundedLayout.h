@@ -12,9 +12,6 @@ class LGUI_API UUIRoundedLayout : public UUILayoutBase
 {
 	GENERATED_BODY()
 
-public:	
-	UUIRoundedLayout();
-
 public:
 	virtual void OnRebuildLayout()override;
 
