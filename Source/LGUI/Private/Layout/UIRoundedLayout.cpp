@@ -5,15 +5,10 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
 
-
-UUIRoundedLayout::UUIRoundedLayout()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
 void UUIRoundedLayout::OnRebuildLayout()
 {
 	if (!CheckRootUIComponent())return;
+	if (!enable)return;
 
 	const auto& uiChildrenList = GetAvailableChildren();
 	int childrenCount = uiChildrenList.Num();
@@ -41,7 +36,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 
 bool UUIRoundedLayout::CanControlChildAnchor()
 {
-	return true;
+	return true && enable;
 }
 bool UUIRoundedLayout::CanControlChildWidth()
 {

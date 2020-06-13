@@ -20,11 +20,6 @@ void UUISizeControlByOtherHelper::OnUIDimensionsChanged(bool positionChanged, bo
 }
 
 
-UUISizeControlByOther::UUISizeControlByOther()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
 void UUISizeControlByOther::Awake()
 {
 	CheckTargetUIItem();
@@ -89,7 +84,7 @@ bool UUISizeControlByOther::CheckTargetUIItem()
 
 void UUISizeControlByOther::OnRebuildLayout()
 {
-	if (CheckTargetUIItem() && CheckRootUIComponent())
+	if (CheckTargetUIItem() && CheckRootUIComponent() && enable)
 	{
 		if (ControlWidth)
 		{
@@ -116,19 +111,19 @@ bool UUISizeControlByOther::CanControlChildHeight()
 }
 bool UUISizeControlByOther::CanControlSelfHorizontalAnchor()
 {
-	return GetControlWidth();
+	return GetControlWidth() && enable;
 }
 bool UUISizeControlByOther::CanControlSelfVerticalAnchor()
 {
-	return GetControlHeight();
+	return GetControlHeight() && enable;
 }
 bool UUISizeControlByOther::CanControlSelfWidth()
 {
-	return GetControlWidth();
+	return GetControlWidth() && enable;
 }
 bool UUISizeControlByOther::CanControlSelfHeight()
 {
-	return GetControlHeight();
+	return GetControlHeight() && enable;
 }
 
 void UUISizeControlByOther::SetControlWidth(bool value)

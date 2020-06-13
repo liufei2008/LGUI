@@ -274,6 +274,10 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		bool anchorVControlledBySelfLayout = false;
 		bool widthControlledBySelfLayout = false;
 		bool heightControlledBySelfLayout = false;
+		bool stretchLeftControlledBySelfLayout = false;
+		bool stretchRightControlledBySelfLayout = false;
+		bool stretchTopControlledBySelfLayout = false;
+		bool stretchBottomControlledBySelfLayout = false;
 		if (auto thisActor = TargetScriptArray[0]->GetOwner())
 		{
 			if (auto parentActor = thisActor->GetAttachParentActor())
@@ -299,6 +303,10 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
 				widthControlledBySelfLayout = thisLayout->CanControlSelfWidth();
 				heightControlledBySelfLayout = thisLayout->CanControlSelfHeight();
+				stretchLeftControlledBySelfLayout = thisLayout->CanControlSelfStrengthLeft();
+				stretchRightControlledBySelfLayout = thisLayout->CanControlSelfStrengthRight();
+				stretchTopControlledBySelfLayout = thisLayout->CanControlSelfStrengthTop();
+				stretchBottomControlledBySelfLayout = thisLayout->CanControlSelfStrengthBottom();
 			}
 		}
 
@@ -332,8 +340,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			[
 				SNew(SComboButton)
 				.HasDownArrow(true)
-				.IsEnabled(!anchorControlledByParentLayout)
-				.ToolTipText(FText::FromString(FString(anchorControlledByParentLayout ? TEXT("Anchor is controlled by parent layout") : TEXT("Change anchor"))))
+				.IsEnabled(this, &FUIItemCustomization::GetIsAnchorsEnabled)
+				.ToolTipText(this, &FUIItemCustomization::GetAnchorsTooltipText)
 				.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
 				.ButtonContent()
 				[
@@ -663,8 +671,12 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		}
 		else if (anchorHAlign == UIAnchorHorizontalAlign::Stretch)
 		{
-			transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchLeft));
-			transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchRight));
+			IDetailPropertyRow& stretchLeftProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchLeft));
+			if (stretchLeftControlledBySelfLayout)
+				LGUIEditorUtils::SetControlledBySelfLayout(stretchLeftProperty, true);
+			IDetailPropertyRow& stretchRightProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchRight));
+			if (stretchRightControlledBySelfLayout)
+				LGUIEditorUtils::SetControlledBySelfLayout(stretchRightProperty, true);
 		}
 		else
 		{
@@ -684,8 +696,12 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		}
 		else if (anchorVAlign == UIAnchorVerticalAlign::Stretch)
 		{
-			transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchTop));
-			transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom));
+			IDetailPropertyRow& stretchTopProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchTop));
+			if (stretchTopControlledBySelfLayout)
+				LGUIEditorUtils::SetControlledBySelfLayout(stretchTopProperty, true);
+			IDetailPropertyRow& stretchBottomProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom));
+			if (stretchBottomControlledBySelfLayout)
+				LGUIEditorUtils::SetControlledBySelfLayout(stretchBottomProperty, true);
 		}
 		else
 		{
@@ -762,5 +778,43 @@ void FUIItemCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 	{
 		DetailBuilder->ForceRefreshDetails();
 	}
+}
+bool FUIItemCustomization::GetIsAnchorsEnabled()const
+{
+	bool anchorControlledByParentLayout = false;
+	bool anchorHControlledBySelfLayout = false;
+	bool anchorVControlledBySelfLayout = false;
+	if (auto thisActor = TargetScriptArray[0]->GetOwner())
+	{
+		if (auto parentActor = thisActor->GetAttachParentActor())
+		{
+			bool ignoreParentLayout = false;
+			if (auto thisLayoutElement = thisActor->FindComponentByClass<UUILayoutElement>())
+			{
+				ignoreParentLayout = thisLayoutElement->GetIgnoreLayout();
+			}
+			if (!ignoreParentLayout)
+			{
+				if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
+				{
+					anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
+				}
+			}
+		}
+		if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
+		{
+			anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
+			anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
+		}
+	}
+
+	if (anchorControlledByParentLayout)return false;
+	if (anchorHControlledBySelfLayout)return false;
+	if (anchorVControlledBySelfLayout)return false;
+	return true;
+}
+FText FUIItemCustomization::GetAnchorsTooltipText()const
+{
+	return FText::FromString(FString(GetIsAnchorsEnabled() ? TEXT("Change anchor") : TEXT("Anchor is controlled by layout")));
 }
 #undef LOCTEXT_NAMESPACE

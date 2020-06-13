@@ -5,20 +5,6 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
 
-
-UUIGridLayout::UUIGridLayout()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-void UUIGridLayout::BeginPlay()
-{
-	Super::BeginPlay();
-}
-void UUIGridLayout::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
-
 void UUIGridLayout::SetPadding(FMargin value)
 {
 	if (Padding != value)
@@ -95,6 +81,7 @@ void UUIGridLayout::SetHeightFitToChildren(bool value)
 void UUIGridLayout::OnRebuildLayout()
 {
 	if (!CheckRootUIComponent())return;
+	if (!enable)return;
 	FVector2D startPosition;
 	startPosition.X = Padding.Left;
 	startPosition.Y = -Padding.Top;//left top as start point
@@ -204,15 +191,15 @@ void UUIGridLayout::OnRebuildLayout()
 
 bool UUIGridLayout::CanControlChildAnchor()
 {
-	return true;
+	return true && enable;
 }
 bool UUIGridLayout::CanControlChildWidth()
 {
-	return true;
+	return true && enable;
 }
 bool UUIGridLayout::CanControlChildHeight()
 {
-	return true;
+	return true && enable;
 }
 bool UUIGridLayout::CanControlSelfHorizontalAnchor()
 {
@@ -224,9 +211,9 @@ bool UUIGridLayout::CanControlSelfVerticalAnchor()
 }
 bool UUIGridLayout::CanControlSelfWidth()
 {
-	return !GetHorizontalOrVertical() && GetWidthFitToChildren();
+	return (!GetHorizontalOrVertical() && GetWidthFitToChildren()) && enable;
 }
 bool UUIGridLayout::CanControlSelfHeight()
 {
-	return GetHorizontalOrVertical() && GetHeightFitToChildren();
+	return (GetHorizontalOrVertical() && GetHeightFitToChildren()) && enable;
 }

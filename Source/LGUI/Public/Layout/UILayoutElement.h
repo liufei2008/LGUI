@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Core/LGUIBehaviour.h"
 #include "UILayoutElement.generated.h"
 
 UENUM()
@@ -19,16 +19,12 @@ enum class ELayoutElementType :uint8
 	RatioSize,
 };
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUILayoutElement : public UActorComponent
+class LGUI_API UUILayoutElement : public ULGUIBehaviour
 {
 	GENERATED_BODY()
 
-public:	
-	UUILayoutElement();
-
 protected:
-	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void Awake() override;
 
 public:
 #if WITH_EDITOR

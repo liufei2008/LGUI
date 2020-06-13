@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "LTweenActor.h"
 #include "Core/Actor/UIBaseActor.h"
+#include "Utils/LGUIUtils.h"
 
 
 void UUIScrollViewHelper::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
@@ -294,7 +295,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 				else
 				{
 					DragSpeed.X = 0;
-					if (HorizontalRange.X - Position.X < KINDA_SMALL_NUMBER)
+					if (LGUIUtils::IsFloatEqual(HorizontalRange.X, Position.X))
 					{
 						Position.X = HorizontalRange.X;
 					}
@@ -318,7 +319,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 				else
 				{
 					DragSpeed.X = 0;
-					if (Position.X - HorizontalRange.Y < KINDA_SMALL_NUMBER)
+					if (LGUIUtils::IsFloatEqual(Position.X, HorizontalRange.Y))
 					{
 						Position.X = HorizontalRange.Y;
 					}
@@ -357,7 +358,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 				else
 				{
 					DragSpeed.Y = 0;
-					if (VerticalRange.X - Position.Y < KINDA_SMALL_NUMBER)
+					if (LGUIUtils::IsFloatEqual(VerticalRange.X, Position.Y))
 					{
 						Position.Y = VerticalRange.X;
 					}
@@ -381,7 +382,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 				else
 				{
 					DragSpeed.Y = 0;
-					if (Position.Y - VerticalRange.Y < KINDA_SMALL_NUMBER)
+					if (LGUIUtils::IsFloatEqual(Position.Y, VerticalRange.Y))
 					{
 						Position.Y = VerticalRange.Y;
 					}

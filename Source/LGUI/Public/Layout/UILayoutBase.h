@@ -44,6 +44,10 @@ public:
 	virtual bool CanControlSelfVerticalAnchor() { return false; }
 	virtual bool CanControlSelfWidth() { return false; }
 	virtual bool CanControlSelfHeight() { return false; }
+	virtual bool CanControlSelfStrengthLeft() { return false; }
+	virtual bool CanControlSelfStrengthRight() { return false; }
+	virtual bool CanControlSelfStrengthTop() { return false; }
+	virtual bool CanControlSelfStrengthBottom() { return false; }
 protected:
 
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
