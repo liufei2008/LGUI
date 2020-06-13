@@ -24,6 +24,9 @@ private:
 	void SetDepthInfo(TWeakObjectPtr<class UUIItem> InTargetScript);
 	TSharedPtr<STextBlock> DepthInfoTextBlock = nullptr;
 
+	bool GetIsAnchorsEnabled()const;
+	FText GetAnchorsTooltipText()const;
+
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
 
 	void ForceUpdateUI();

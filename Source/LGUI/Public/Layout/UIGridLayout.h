@@ -21,12 +21,6 @@ class LGUI_API UUIGridLayout : public UUILayoutBase
 {
 	GENERATED_BODY()
 
-public:	
-	// Sets default values for this component's properties
-	UUIGridLayout();
-protected:
-	virtual void BeginPlay()override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 public:
 	virtual void OnRebuildLayout()override;
 

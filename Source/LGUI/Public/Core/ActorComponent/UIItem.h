@@ -333,8 +333,6 @@ protected:
 
 	//find LGUICanvas which render this UI element
 	FORCEINLINE bool CheckRenderCanvas();
-
-	FORCEINLINE bool IsFloatNotEqual(float a, float b);
 public:
 	uint8 GetFinalAlpha()const;
 	float GetFinalAlpha01()const;

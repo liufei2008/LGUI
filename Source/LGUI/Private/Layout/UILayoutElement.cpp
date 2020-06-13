@@ -5,24 +5,14 @@
 #include "Layout/UILayoutBase.h"
 #include "Core/ActorComponent/UIItem.h"
 
-UUILayoutElement::UUILayoutElement()
+void UUILayoutElement::Awake()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-void UUILayoutElement::BeginPlay()
-{
-	Super::BeginPlay();
+	Super::Awake();
 	if (CheckParentLayout())
 	{
 		ParentLayout->RebuildChildrenList();
 		ParentLayout->OnRebuildLayout();
 	}
-}
-
-void UUILayoutElement::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
 #if WITH_EDITOR

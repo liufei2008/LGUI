@@ -13,6 +13,8 @@ enum class EUISizeControlByAspectRatioMode :uint8
 	None,
 	WidthControlHeight,
 	HeightControlWidth,
+	FitInParent,
+	EnvelopeParent,
 };
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUISizeControlByAspectRatio : public UUILayoutBase
@@ -37,6 +39,10 @@ public:
 	virtual bool CanControlSelfVerticalAnchor()override;
 	virtual bool CanControlSelfWidth()override;
 	virtual bool CanControlSelfHeight()override;
+	virtual bool CanControlSelfStrengthLeft()override;
+	virtual bool CanControlSelfStrengthRight()override;
+	virtual bool CanControlSelfStrengthTop()override;
+	virtual bool CanControlSelfStrengthBottom()override;
 protected:
 	virtual void OnRebuildLayout()override;
 

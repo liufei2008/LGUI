@@ -6,28 +6,94 @@
 
 void UUISizeControlByAspectRatio::OnRebuildLayout()
 {
-	if (CheckRootUIComponent())
+	if (CheckRootUIComponent() && enable)
 	{
 		switch (ControlMode)
 		{
 		case EUISizeControlByAspectRatioMode::HeightControlWidth:
 		{
-			auto height = RootUIComp->GetHeight();
 			if (RootUIComp->GetAnchorHAlign() == UIAnchorHorizontalAlign::Stretch)
 			{
 				RootUIComp->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
 			}
-			RootUIComp->SetWidth(height * AspectRatio);
+			RootUIComp->SetWidth(RootUIComp->GetHeight() * AspectRatio);
 		}
 		break;
 		case EUISizeControlByAspectRatioMode::WidthControlHeight:
 		{
-			auto width = RootUIComp->GetWidth();
 			if (RootUIComp->GetAnchorVAlign() == UIAnchorVerticalAlign::Stretch)
 			{
 				RootUIComp->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
 			}
-			RootUIComp->SetHeight(width / AspectRatio);
+			RootUIComp->SetHeight(RootUIComp->GetWidth() / AspectRatio);
+		}
+		break;
+		case EUISizeControlByAspectRatioMode::FitInParent:
+		{
+			if (auto parent = RootUIComp->GetParentAsUIItem())
+			{
+				if (RootUIComp->GetAnchorHAlign() != UIAnchorHorizontalAlign::Stretch)
+				{
+					RootUIComp->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
+				}
+				if (RootUIComp->GetAnchorVAlign() != UIAnchorVerticalAlign::Stretch)
+				{
+					RootUIComp->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
+				}
+				auto parentWidth = parent->GetWidth();
+				auto parentHeight = parent->GetHeight();
+				auto parentAspectRatio = parentWidth / parentHeight;
+				if (parentAspectRatio > AspectRatio)
+				{
+					RootUIComp->SetStretchTop(0);
+					RootUIComp->SetStretchBottom(0);
+					auto stretch = (parentWidth - parentHeight * AspectRatio) * 0.5f;
+					RootUIComp->SetStretchLeft(stretch);
+					RootUIComp->SetStretchRight(stretch);
+				}
+				else
+				{
+					RootUIComp->SetStretchLeft(0);
+					RootUIComp->SetStretchRight(0);
+					auto stretch = (parentHeight - parentWidth / AspectRatio) * 0.5f;
+					RootUIComp->SetStretchTop(stretch);
+					RootUIComp->SetStretchBottom(stretch);
+				}
+			}
+		}
+		break;
+		case EUISizeControlByAspectRatioMode::EnvelopeParent:
+		{
+			if (auto parent = RootUIComp->GetParentAsUIItem())
+			{
+				if (RootUIComp->GetAnchorHAlign() != UIAnchorHorizontalAlign::Stretch)
+				{
+					RootUIComp->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
+				}
+				if (RootUIComp->GetAnchorVAlign() != UIAnchorVerticalAlign::Stretch)
+				{
+					RootUIComp->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
+				}
+				auto parentWidth = parent->GetWidth();
+				auto parentHeight = parent->GetHeight();
+				auto parentAspectRatio = parentWidth / parentHeight;
+				if (parentAspectRatio > AspectRatio)
+				{
+					RootUIComp->SetStretchLeft(0);
+					RootUIComp->SetStretchRight(0);
+					auto stretch = (parentHeight - parentWidth / AspectRatio) * 0.5f;
+					RootUIComp->SetStretchTop(stretch);
+					RootUIComp->SetStretchBottom(stretch);
+				}
+				else
+				{
+					RootUIComp->SetStretchTop(0);
+					RootUIComp->SetStretchBottom(0);
+					auto stretch = (parentWidth - parentHeight * AspectRatio) * 0.5f;
+					RootUIComp->SetStretchLeft(stretch);
+					RootUIComp->SetStretchRight(stretch);
+				}
+			}
 		}
 		break;
 		}
@@ -48,19 +114,63 @@ bool UUISizeControlByAspectRatio::CanControlChildHeight()
 }
 bool UUISizeControlByAspectRatio::CanControlSelfHorizontalAnchor()
 {
-	return ControlMode == EUISizeControlByAspectRatioMode::HeightControlWidth;
+	return (ControlMode == EUISizeControlByAspectRatioMode::HeightControlWidth 
+		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+		) && enable
+		;
 }
 bool UUISizeControlByAspectRatio::CanControlSelfVerticalAnchor()
 {
-	return ControlMode == EUISizeControlByAspectRatioMode::WidthControlHeight;
+	return (ControlMode == EUISizeControlByAspectRatioMode::WidthControlHeight
+		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+		) && enable
+		;
 }
 bool UUISizeControlByAspectRatio::CanControlSelfWidth()
 {
-	return ControlMode == EUISizeControlByAspectRatioMode::HeightControlWidth;
+	return (ControlMode == EUISizeControlByAspectRatioMode::HeightControlWidth
+		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+		) && enable
+		;
 }
 bool UUISizeControlByAspectRatio::CanControlSelfHeight()
 {
-	return ControlMode == EUISizeControlByAspectRatioMode::WidthControlHeight;
+	return (ControlMode == EUISizeControlByAspectRatioMode::WidthControlHeight
+		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+		) && enable
+		;
+}
+bool UUISizeControlByAspectRatio::CanControlSelfStrengthLeft()
+{
+	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+		) && enable
+		;
+}
+bool UUISizeControlByAspectRatio::CanControlSelfStrengthRight()
+{
+	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+		) && enable
+		;
+}
+bool UUISizeControlByAspectRatio::CanControlSelfStrengthTop()
+{
+	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+		) && enable
+		;
+}
+bool UUISizeControlByAspectRatio::CanControlSelfStrengthBottom()
+{
+	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+		) && enable
+		;
 }
 
 void UUISizeControlByAspectRatio::SetControlMode(EUISizeControlByAspectRatioMode value)
