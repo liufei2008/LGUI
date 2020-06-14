@@ -17,4 +17,5 @@ public:
 private:
 	TWeakObjectPtr<class UUISprite> TargetScriptPtr;
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
+
 };
