@@ -189,3 +189,13 @@
         LGUIBehaviour can control event execute order by changing LGUIBehaviourExecuteOrder in LGUISettings.
     Fix:
         UISlider's handle's position issue when DirectionType=RightToLeft/TopToBottom.
+2.7.1
+    New feature:
+        UISprite add fill type: Horizontal/ Vertical/ Radial90/ Radial180/ Radial360, all these type can flip fill direction and support several origin type.
+        Editor can preview canvas resolution scale of LGUICanvasScaler.
+        UISizeControlByAspectRatio now support FitInParent/ EnvelopeParent.
+    Improve:
+        Improve UISelectableTransitionComponent.
+        Improve layout editor.
+    Fix:
+        Fix virtual cameram draw issue of LGUICanvasScaler.
