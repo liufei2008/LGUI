@@ -196,7 +196,7 @@ void FComponentTransformDetails::OnPaste( ETransformField::Type TransformField )
 	}
 }
 
-FUIAction FComponentTransformDetails::CreateCopyAction( ETransformField::Type TransformField ) const
+FUIAction FComponentTransformDetails::CreateCopyAction( ETransformField::Type TransformField ) 
 {
 	return
 		FUIAction
@@ -206,7 +206,7 @@ FUIAction FComponentTransformDetails::CreateCopyAction( ETransformField::Type Tr
 		);
 }
 
-FUIAction FComponentTransformDetails::CreatePasteAction( ETransformField::Type TransformField ) const
+FUIAction FComponentTransformDetails::CreatePasteAction( ETransformField::Type TransformField ) 
 {
 	return 
 		 FUIAction( FExecuteAction::CreateSP(this, &FComponentTransformDetails::OnPaste, TransformField ) );
