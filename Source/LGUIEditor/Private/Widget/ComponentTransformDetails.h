@@ -125,12 +125,12 @@ private:
 	/**
 	 * Creates a UI action for copying a specified transform field
 	 */
-	FUIAction CreateCopyAction( ETransformField::Type TransformField ) const;
+	FUIAction CreateCopyAction( ETransformField::Type TransformField );
 
 	/**
 	 * Creates a UI action for pasting a specified transform field
 	 */
-	FUIAction CreatePasteAction( ETransformField::Type TransformField ) const;
+	FUIAction CreatePasteAction( ETransformField::Type TransformField );
 
 	/** Called when the "Reset to Default" button for the location has been clicked */
 	FReply OnLocationResetClicked();

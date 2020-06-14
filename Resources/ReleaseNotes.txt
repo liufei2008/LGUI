@@ -199,3 +199,4 @@
         Improve layout editor.
     Fix:
         Fix virtual cameram draw issue of LGUICanvasScaler.
+        Fix a build warning of bind none const function.
