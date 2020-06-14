@@ -23,6 +23,28 @@ void UUISprite::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	WidthChanged();
 	HeightChanged();
+	if (auto Property = PropertyChangedEvent.Property)
+	{
+		auto propName = Property->GetFName();
+		if (propName == GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial90))
+		{
+			fillOrigin = (uint8)fillOriginType_Radial90;
+			fillOriginType_Radial180 = (UISpriteFillOriginType_Radial180)fillOrigin;
+			fillOriginType_Radial360 = (UISpriteFillOriginType_Radial360)fillOrigin;
+		}
+		else if (propName == GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial180))
+		{
+			fillOrigin = (uint8)fillOriginType_Radial180;
+			fillOriginType_Radial90 = (UISpriteFillOriginType_Radial90)fillOrigin;
+			fillOriginType_Radial360 = (UISpriteFillOriginType_Radial360)fillOrigin;
+		}
+		else if (propName == GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial360))
+		{
+			fillOrigin = (uint8)fillOriginType_Radial360;
+			fillOriginType_Radial180 = (UISpriteFillOriginType_Radial180)fillOrigin;
+			fillOriginType_Radial90 = (UISpriteFillOriginType_Radial90)fillOrigin;
+		}
+	}
 }
 void UUISprite::EditorForceUpdateImmediately()
 {
@@ -59,25 +81,63 @@ void UUISprite::OnCreateGeometry()
 			UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, tempSpriteInfo, RenderCanvas, this);
 		}
 	}
-		break;
+	break;
+	case UISpriteType::Filled:
+	{
+		switch (fillMethod)
+		{
+		case UISpriteFillMethod::Horizontal:
+			UIGeometry::FromUIRectFillHorizontalVertical(widget.width, widget.height, widget.pivot, widget.color, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, true, RenderCanvas, this);
+			break;
+		case UISpriteFillMethod::Vertical:
+			UIGeometry::FromUIRectFillHorizontalVertical(widget.width, widget.height, widget.pivot, widget.color, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, false, RenderCanvas, this);
+			break;
+		case UISpriteFillMethod::Radial90:
+			UIGeometry::FromUIRectFillRadial90(widget.width, widget.height, widget.pivot, widget.color, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial90)fillOrigin, RenderCanvas, this);
+			break;
+		case UISpriteFillMethod::Radial180:
+			UIGeometry::FromUIRectFillRadial180(widget.width, widget.height, widget.pivot, widget.color, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial180)fillOrigin, RenderCanvas, this);
+			break;
+		case UISpriteFillMethod::Radial360:
+			UIGeometry::FromUIRectFillRadial360(widget.width, widget.height, widget.pivot, widget.color, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial360)fillOrigin, RenderCanvas, this);
+			break;
+		}
+	}
+	break;
 	}
 }
 void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	if (InVertexPositionChanged)
+	switch (type)
 	{
-		switch (type)
+	case UISpriteType::Normal:
+	{
+		if (InVertexPositionChanged)
 		{
-		case UISpriteType::Normal:
 			UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas, this);
-			break;
-		case UISpriteType::Sliced:
-		case UISpriteType::SlicedFrame:
+		}
+		if (InVertexUVChanged)
+		{
+			UIGeometry::UpdateUIRectSimpleUV(geometry, sprite->InitAndGetSpriteInfo());
+		}
+	}
+	break;
+	case UISpriteType::Sliced:
+	case UISpriteType::SlicedFrame:
+	{
+		if (InVertexPositionChanged)
 		{
 			UIGeometry::UpdateUIRectBorderVertex(geometry, widget.width, widget.height, widget.pivot, sprite->InitAndGetSpriteInfo(), RenderCanvas, this);
 		}
-		break;
-		case UISpriteType::Tiled:
+		if (InVertexUVChanged)
+		{
+			UIGeometry::UpdateUIRectBorderUV(geometry, sprite->InitAndGetSpriteInfo());
+		}
+	}
+	break;
+	case UISpriteType::Tiled:
+	{
+		if (InVertexPositionChanged)
 		{
 			if (sprite->HavePackingTag())
 			{
@@ -88,23 +148,7 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 				UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas, this);
 			}
 		}
-			break;
-		}
-	}
-	if (InVertexUVChanged)
-	{
-		switch (type)
-		{
-		case UISpriteType::Normal:
-			UIGeometry::UpdateUIRectSimpleUV(geometry, sprite->InitAndGetSpriteInfo());
-			break;
-		case UISpriteType::Sliced:
-		case UISpriteType::SlicedFrame:
-		{
-			UIGeometry::UpdateUIRectBorderUV(geometry, sprite->InitAndGetSpriteInfo());
-		}
-		break;
-		case UISpriteType::Tiled:
+		if (InVertexUVChanged)
 		{
 			if (sprite->HavePackingTag())
 			{
@@ -117,8 +161,30 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 				UIGeometry::UpdateUIRectSimpleUV(geometry, tempSpriteInfo);
 			}
 		}
+	}
+	break;
+	case UISpriteType::Filled:
+	{
+		switch (fillMethod)
+		{
+		case UISpriteFillMethod::Horizontal:
+			UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(widget.width, widget.height, widget.pivot, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, true, InVertexPositionChanged, InVertexUVChanged, RenderCanvas, this);
+			break;
+		case UISpriteFillMethod::Vertical:
+			UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(widget.width, widget.height, widget.pivot, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, false, InVertexPositionChanged, InVertexUVChanged, RenderCanvas, this);
+			break;
+		case UISpriteFillMethod::Radial90:
+			UIGeometry::UpdateUIRectFillRadial90Vertex(widget.width, widget.height, widget.pivot, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial90)fillOrigin, InVertexPositionChanged, InVertexUVChanged, RenderCanvas, this);
+			break;
+		case UISpriteFillMethod::Radial180:
+			UIGeometry::UpdateUIRectFillRadial180Vertex(widget.width, widget.height, widget.pivot, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial180)fillOrigin, InVertexPositionChanged, InVertexUVChanged, RenderCanvas, this);
+			break;
+		case UISpriteFillMethod::Radial360:
+			UIGeometry::UpdateUIRectFillRadial360Vertex(widget.width, widget.height, widget.pivot, geometry, sprite->InitAndGetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial360)fillOrigin, InVertexPositionChanged, InVertexUVChanged, RenderCanvas, this);
 			break;
 		}
+	}
+	break;
 	}
 	if (InVertexColorChanged)
 	{
@@ -214,6 +280,60 @@ void UUISprite::SetSpriteType(UISpriteType newType) {
 		{
 			WidthChanged();
 			HeightChanged();
+		}
+	}
+}
+void UUISprite::SetFillMethod(UISpriteFillMethod newValue)
+{
+	if (fillMethod != newValue)
+	{
+		fillMethod = newValue;
+		if (type == UISpriteType::Filled)
+		{
+			MarkTriangleDirty();
+		}
+	}
+}
+void UUISprite::SetFillOrigin(uint8 newValue)
+{
+	if (fillOrigin != newValue)
+	{
+		fillOrigin = newValue;
+		if (type == UISpriteType::Filled)
+		{
+			if (fillMethod == UISpriteFillMethod::Radial90)
+			{
+				MarkVertexPositionDirty();
+				MarkUVDirty();
+			}
+			else if (fillMethod == UISpriteFillMethod::Radial180 || fillMethod == UISpriteFillMethod::Radial360)
+			{
+				MarkTriangleDirty();
+			}
+		}
+	}
+}
+void UUISprite::SetFillDirectionFlip(bool newValue)
+{
+	if (fillDirectionFlip != newValue)
+	{
+		fillDirectionFlip = newValue;
+		if (type == UISpriteType::Filled)
+		{
+			MarkVertexPositionDirty();
+			MarkUVDirty();
+		}
+	}
+}
+void UUISprite::SetFillAmount(float newValue)
+{
+	if (fillAmount != newValue)
+	{
+		fillAmount = newValue;
+		if (type == UISpriteType::Filled)
+		{
+			MarkVertexPositionDirty();
+			MarkUVDirty();
 		}
 	}
 }

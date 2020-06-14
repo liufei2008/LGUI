@@ -118,17 +118,14 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//positions
 	auto& originPositions = uiGeo->originPositions;
-	float x, y;
-	x = (-halfW + pivotOffsetX);
-	y = (-halfH + pivotOffsetY);
-	originPositions[0] = FVector(x, y, 0);
-	x = (halfW + pivotOffsetX);
-	originPositions[1] = FVector(x, y, 0);
-	x = (-halfW + pivotOffsetX);
-	y = (halfH + pivotOffsetY);
-	originPositions[2] = FVector(x, y, 0);
-	x = (halfW + pivotOffsetX);
-	originPositions[3] = FVector(x, y, 0);
+	float minX = -halfW + pivotOffsetX;
+	float minY = -halfH + pivotOffsetY;
+	float maxX = halfW + pivotOffsetX;
+	float maxY = halfH + pivotOffsetY;
+	originPositions[0] = FVector(minX, minY, 0);
+	originPositions[1] = FVector(maxX, minY, 0);
+	originPositions[2] = FVector(minX, maxY, 0);
+	originPositions[3] = FVector(maxX, maxY, 0);
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
@@ -451,6 +448,1790 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 		}
 		x = startX;
 		y += spriteInfo.height;
+	}
+	//snap pixel
+	if (renderCanvas->GetPixelPerfect())
+	{
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
+	}
+}
+#pragma endregion
+
+#pragma region UISprite_Fill_Horizontal_Vertial
+void UIGeometry::FromUIRectFillHorizontalVertical(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, bool horizontalOrVertical
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+{
+	//triangles
+	auto& triangles = uiGeo->triangles;
+	if (triangles.Num() == 0)
+	{
+		uiGeo->originTriangleCount = 6;
+		triangles.SetNumUninitialized(6);
+		triangles[0] = 0;
+		triangles[1] = 3;
+		triangles[2] = 2;
+		triangles[3] = 0;
+		triangles[4] = 1;
+		triangles[5] = 3;
+	}
+	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		uiGeo->originVerticesCount = 4;
+		vertices.SetNumUninitialized(4);
+	}
+	//positions and uvs
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
+	UpdateUIRectFillHorizontalVerticalVertex(width, height, pivot, uiGeo, spriteInfo, flipDirection, fillAmount, horizontalOrVertical, true, true, renderCanvas, uiComp);
+	//colors
+	UpdateUIColor(uiGeo, color);
+
+	//@todo: additional shader channels
+	//normals
+	if (renderCanvas->GetRequireNormal())
+	{
+		auto& normals = uiGeo->originNormals;
+		if (normals.Num() == 0)
+		{
+			normals.Reserve(4);
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+		}
+	}
+	//tangents
+	if (renderCanvas->GetRequireTangent())
+	{
+		auto& tangents = uiGeo->originTangents;
+		if (tangents.Num() == 0)
+		{
+			tangents.Reserve(4);
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+		}
+	}
+	//uvs1
+	if (renderCanvas->GetRequireUV1())
+	{
+		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
+		vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
+		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
+		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
+	}
+}
+void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount
+	, bool horizontalOrVertical, bool updatePosition, bool updateUV
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+{
+	//pivot offset
+	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
+	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	float posMinX = -halfW + pivotOffsetX;
+	float posMinY = -halfH + pivotOffsetY;
+	float posMaxX = halfW + pivotOffsetX;
+	float posMaxY = halfH + pivotOffsetY;
+	//uvs
+	auto& vertices = uiGeo->vertices;
+	float uvMinX = spriteInfo.uv0X;
+	float uvMinY = spriteInfo.uv0Y;
+	float uvMaxX = spriteInfo.uv3X;
+	float uvMaxY = spriteInfo.uv3Y;
+	if (horizontalOrVertical)
+	{
+		if (flipDirection)
+		{
+			if (updatePosition)
+			{
+				float value = FMath::Lerp(posMinX, posMaxX, fillAmount);
+				originPositions[0] = FVector(posMinX, posMinY, 0);
+				originPositions[1] = FVector(value, posMinY, 0);
+				originPositions[2] = FVector(posMinX, posMaxY, 0);
+				originPositions[3] = FVector(value, posMaxY, 0);
+			}
+			if (updateUV)
+			{
+				float value = FMath::Lerp(uvMinX, uvMaxX, fillAmount);
+				vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+				vertices[1].TextureCoordinate[0] = FVector2D(value, uvMinY);
+				vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+				vertices[3].TextureCoordinate[0] = FVector2D(value, uvMaxY);
+			}
+		}
+		else
+		{
+			if (updatePosition)
+			{
+				float value = FMath::Lerp(posMaxX, posMinX, fillAmount);
+				originPositions[0] = FVector(value, posMinY, 0);
+				originPositions[1] = FVector(posMaxX, posMinY, 0);
+				originPositions[2] = FVector(value, posMaxY, 0);
+				originPositions[3] = FVector(posMaxX, posMaxY, 0);
+			}
+			if (updateUV)
+			{
+				float value = FMath::Lerp(uvMaxX, uvMinX, fillAmount);
+				vertices[0].TextureCoordinate[0] = FVector2D(value, uvMinY);
+				vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+				vertices[2].TextureCoordinate[0] = FVector2D(value, uvMaxY);
+				vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+			}
+		}
+	}
+	else
+	{
+		if (flipDirection)
+		{
+			if (updatePosition)
+			{
+				float value = FMath::Lerp(posMinY, posMaxY, fillAmount);
+				originPositions[0] = FVector(posMinX, posMinY, 0);
+				originPositions[1] = FVector(posMaxX, posMinY, 0);
+				originPositions[2] = FVector(posMinX, value, 0);
+				originPositions[3] = FVector(posMaxX, value, 0);
+			}
+			if (updateUV)
+			{
+				float value = FMath::Lerp(uvMinY, uvMaxY, fillAmount);
+				vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+				vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+				vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, value);
+				vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, value);
+			}
+		}
+		else
+		{
+			if (updatePosition)
+			{
+				float value = FMath::Lerp(posMaxY, posMinY, fillAmount);
+				originPositions[0] = FVector(posMinX, value, 0);
+				originPositions[1] = FVector(posMaxX, value, 0);
+				originPositions[2] = FVector(posMinX, posMaxY, 0);
+				originPositions[3] = FVector(posMaxX, posMaxY, 0);
+			}
+			if (updateUV)
+			{
+				float value = FMath::Lerp(uvMaxY, uvMinY, fillAmount);
+				vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, value);
+				vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, value);
+				vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+				vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+			}			
+		}
+	}
+	//snap pixel
+	if (renderCanvas->GetPixelPerfect())
+	{
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
+	}
+}
+#pragma endregion
+#pragma region UISprite_Fill_Radial90
+void UIGeometry::FromUIRectFillRadial90(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+{
+	//triangles
+	auto& triangles = uiGeo->triangles;
+	if (triangles.Num() == 0)
+	{
+		uiGeo->originTriangleCount = 6;
+		triangles.SetNumUninitialized(6);
+		triangles[0] = 0;
+		triangles[1] = 3;
+		triangles[2] = 2;
+		triangles[3] = 0;
+		triangles[4] = 1;
+		triangles[5] = 3;
+	}
+	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		uiGeo->originVerticesCount = 4;
+		vertices.SetNumUninitialized(4);
+	}
+	//positions and uvs
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
+	UpdateUIRectFillRadial90Vertex(width, height, pivot, uiGeo, spriteInfo, flipDirection, fillAmount, originType, true, true, renderCanvas, uiComp);
+	//colors
+	UpdateUIColor(uiGeo, color);
+
+	//@todo: additional shader channels
+	//normals
+	if (renderCanvas->GetRequireNormal())
+	{
+		auto& normals = uiGeo->originNormals;
+		if (normals.Num() == 0)
+		{
+			normals.Reserve(4);
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+		}
+	}
+	//tangents
+	if (renderCanvas->GetRequireTangent())
+	{
+		auto& tangents = uiGeo->originTangents;
+		if (tangents.Num() == 0)
+		{
+			tangents.Reserve(4);
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+		}
+	}
+	//uvs1
+	if (renderCanvas->GetRequireUV1())
+	{
+		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
+		vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
+		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
+		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
+	}
+}
+void UIGeometry::UpdateUIRectFillRadial90Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
+	, bool updatePosition, bool updateUV
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+{
+	//pivot offset
+	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
+	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	float posMinX = -halfW + pivotOffsetX;
+	float posMinY = -halfH + pivotOffsetY;
+	float posMaxX = halfW + pivotOffsetX;
+	float posMaxY = halfH + pivotOffsetY;
+	//uvs
+	auto& vertices = uiGeo->vertices;
+	float uvMinX = spriteInfo.uv0X;
+	float uvMinY = spriteInfo.uv0Y;
+	float uvMaxX = spriteInfo.uv3X;
+	float uvMaxY = spriteInfo.uv3Y;
+	switch (originType)
+	{
+	case UISpriteFillOriginType_Radial90::BottomLeft:
+	{
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[1] = originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[1].TextureCoordinate[0] = vertices[3].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMaxY);
+				}
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+				}
+			}			
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial90::TopLeft:
+	{
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+				}
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+				}
+			}
+			else
+			{
+				float lerpVaue = fillAmount * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpVaue), posMinY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = vertices[1].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpVaue), uvMinY);
+				}
+			}			
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial90::TopRight:
+	{
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[2] = originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[2].TextureCoordinate[0] = vertices[0].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMinY);
+				}
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[1] = originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+				}
+				if (updateUV)
+				{
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[1].TextureCoordinate[0] = vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+				}
+			}			
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial90::BottomRight:
+	{
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[3] = originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[3].TextureCoordinate[0] = vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+				}
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 2.0f;
+				if (updatePosition)
+				{
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[0] = originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[0].TextureCoordinate[0] = vertices[2].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMaxY);
+				}
+			}			
+		}
+	}
+	break;
+	}
+	//snap pixel
+	if (renderCanvas->GetPixelPerfect())
+	{
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
+	}
+}
+#pragma endregion
+#pragma region UISprite_Fill_Radial180
+void UIGeometry::FromUIRectFillRadial180(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+{
+	//triangles
+	auto& triangles = uiGeo->triangles;
+	if (triangles.Num() == 0)
+	{
+		uiGeo->originTriangleCount = 9;
+		triangles.SetNumUninitialized(9);
+		switch (originType)
+		{
+		case UISpriteFillOriginType_Radial180::Bottom:
+		{
+			triangles[0] = 4;
+			triangles[1] = 2;
+			triangles[2] = 0;
+
+			triangles[3] = 4;
+			triangles[4] = 3;
+			triangles[5] = 2;
+
+			triangles[6] = 4;
+			triangles[7] = 1;
+			triangles[8] = 3;
+		}
+		break;
+		case UISpriteFillOriginType_Radial180::Left:
+		{
+			triangles[0] = 4;
+			triangles[1] = 3;
+			triangles[2] = 2;
+
+			triangles[3] = 4;
+			triangles[4] = 1;
+			triangles[5] = 3;
+
+			triangles[6] = 4;
+			triangles[7] = 0;
+			triangles[8] = 1;
+		}
+		break;
+		case UISpriteFillOriginType_Radial180::Top:
+		{
+			triangles[0] = 4;
+			triangles[1] = 1;
+			triangles[2] = 3;
+
+			triangles[3] = 4;
+			triangles[4] = 0;
+			triangles[5] = 1;
+
+			triangles[6] = 4;
+			triangles[7] = 2;
+			triangles[8] = 0;
+		}
+		break;
+		case UISpriteFillOriginType_Radial180::Right:
+		{
+			triangles[0] = 4;
+			triangles[1] = 0;
+			triangles[2] = 1;
+
+			triangles[3] = 4;
+			triangles[4] = 2;
+			triangles[5] = 0;
+
+			triangles[6] = 4;
+			triangles[7] = 3;
+			triangles[8] = 2;
+		}
+		break;
+		}
+	}
+	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		uiGeo->originVerticesCount = 5;
+		vertices.SetNumUninitialized(5);
+	}
+	//positions and uvs
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
+	UpdateUIRectFillRadial180Vertex(width, height, pivot, uiGeo, spriteInfo, flipDirection, fillAmount, originType, true, true, renderCanvas, uiComp);
+	//colors
+	UpdateUIColor(uiGeo, color);
+
+	//@todo: additional shader channels
+	//normals
+	if (renderCanvas->GetRequireNormal())
+	{
+		auto& normals = uiGeo->originNormals;
+		if (normals.Num() == 0)
+		{
+			normals.Reserve(5);
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+		}
+	}
+	//tangents
+	if (renderCanvas->GetRequireTangent())
+	{
+		auto& tangents = uiGeo->originTangents;
+		if (tangents.Num() == 0)
+		{
+			tangents.Reserve(5);
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+		}
+	}
+	//uvs1
+	if (renderCanvas->GetRequireUV1())
+	{
+		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
+		vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
+		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
+		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
+		vertices[4].TextureCoordinate[1] = FVector2D(1, 0);
+	}
+}
+void UIGeometry::UpdateUIRectFillRadial180Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
+	, bool updatePosition, bool updateUV
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+{
+	//pivot offset
+	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
+	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	float posMinX = -halfW + pivotOffsetX;
+	float posMinY = -halfH + pivotOffsetY;
+	float posMaxX = halfW + pivotOffsetX;
+	float posMaxY = halfH + pivotOffsetY;
+	//uvs
+	auto& vertices = uiGeo->vertices;
+	float uvMinX = spriteInfo.uv0X;
+	float uvMinY = spriteInfo.uv0Y;
+	float uvMaxX = spriteInfo.uv3X;
+	float uvMaxY = spriteInfo.uv3Y;
+	switch (originType)
+	{
+	case UISpriteFillOriginType_Radial180::Bottom:
+	{
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.666666666f)
+			{
+				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMinY);
+				}
+			}
+			else if (fillAmount >= 0.33333333f)
+			{
+				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[1] = originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[1].TextureCoordinate[0] = vertices[3].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMinY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = originPositions[3] = originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = vertices[3].TextureCoordinate[0] = vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMinY);
+				}
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.666666666f)
+			{
+				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMinY);
+				}
+			}
+			else if (fillAmount >= 0.33333333f)
+			{
+				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[0] = originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[0].TextureCoordinate[0] = vertices[2].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMinY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[0] = originPositions[2] = originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[0].TextureCoordinate[0] = vertices[2].TextureCoordinate[0] = vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMinY);
+				}
+			}
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial180::Left:
+	{
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.666666666f)
+			{
+				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMinX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+			else if (fillAmount >= 0.33333333f)
+			{
+				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMinX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[0] = originPositions[1] = originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
+					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[0].TextureCoordinate[0] = vertices[1].TextureCoordinate[0] = vertices[3].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMinX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.666666666f)
+			{
+				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMinX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+			else if (fillAmount >= 0.33333333f)
+			{
+				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMinX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[2] = originPositions[3] = originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY, 0);
+					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[2].TextureCoordinate[0] = vertices[3].TextureCoordinate[0] = vertices[1].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMinY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMinX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial180::Top:
+	{
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.666666666f)
+			{
+				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMaxY);
+				}
+			}
+			else if (fillAmount >= 0.33333333f)
+			{
+				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[2] = originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[2].TextureCoordinate[0] = vertices[0].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[2] = originPositions[0] = originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[2].TextureCoordinate[0] = vertices[0].TextureCoordinate[0] = vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMaxY);
+				}
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.666666666f)
+			{
+				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMaxY);
+				}
+			}
+			else if (fillAmount >= 0.33333333f)
+			{
+				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[3] = originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[3].TextureCoordinate[0] = vertices[1].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMaxY);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[3] = originPositions[1] = originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+				}
+				if (updateUV)
+				{
+					vertices[3].TextureCoordinate[0] = vertices[1].TextureCoordinate[0] = vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D((uvMinX + uvMaxX) * 0.5f, uvMaxY);
+				}
+			}
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial180::Right:
+	{
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.666666666f)
+			{
+				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
+					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMaxX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+			else if (fillAmount >= 0.33333333f)
+			{
+				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[3] = originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[3].TextureCoordinate[0] = vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMinY, uvMaxY, lerpValue));
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMaxX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[3] = originPositions[2] = originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
+					originPositions[1] = FVector(posMaxX, posMinY, 0);
+					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[3].TextureCoordinate[0] = vertices[2].TextureCoordinate[0] = vertices[0].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMaxX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.666666666f)
+			{
+				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[0] = FVector(posMinX, posMinY, 0);
+					originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY, 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+					vertices[1].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMinX, uvMaxX, lerpValue), uvMinY);
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMaxX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+			else if (fillAmount >= 0.33333333f)
+			{
+				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[1] = originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[2] = FVector(posMinX, posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[1].TextureCoordinate[0] = vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, FMath::Lerp(uvMaxY, uvMinY, lerpValue));
+					vertices[2].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMaxX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+			else
+			{
+				float lerpValue = fillAmount * 3.0f;
+				if (updatePosition)
+				{
+					originPositions[1] = originPositions[0] = originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
+					originPositions[3] = FVector(posMaxX, posMaxY, 0);
+					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+				}
+				if (updateUV)
+				{
+					vertices[1].TextureCoordinate[0] = vertices[0].TextureCoordinate[0] = vertices[2].TextureCoordinate[0] = FVector2D(FMath::Lerp(uvMaxX, uvMinX, lerpValue), uvMaxY);
+					vertices[3].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+					vertices[4].TextureCoordinate[0] = FVector2D(uvMaxX, (uvMinY + uvMaxY) * 0.5f);
+				}
+			}
+		}
+	}
+	break;
+	}
+	//snap pixel
+	if (renderCanvas->GetPixelPerfect())
+	{
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
+	}
+}
+#pragma endregion
+#pragma region UISprite_Fill_Radial360
+void UIGeometry::FromUIRectFillRadial360(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+{
+	//triangles
+	auto& triangles = uiGeo->triangles;
+	if (triangles.Num() == 0)
+	{
+		uiGeo->originTriangleCount = 24;
+		triangles.SetNumUninitialized(24);
+
+		triangles[0] = 4;
+		triangles[1] = 1;
+		triangles[2] = 2;
+
+		triangles[3] = 4;
+		triangles[4] = 0;
+		triangles[5] = 1;
+
+		triangles[6] = 4;
+		triangles[7] = 3;
+		triangles[8] = 0;
+
+		triangles[9] = 4;
+		triangles[10] = 6;
+		triangles[11] = 3;
+
+		triangles[12] = 4;
+		triangles[13] = 7;
+		triangles[14] = 6;
+
+		triangles[15] = 4;
+		triangles[16] = 8;
+		triangles[17] = 7;
+
+		triangles[18] = 4;
+		triangles[19] = 5;
+		triangles[20] = 8;
+
+		triangles[21] = 4;
+		triangles[22] = 2;
+		triangles[23] = 5;
+
+		switch (originType)
+		{
+		case UISpriteFillOriginType_Radial360::Bottom:
+			triangles[1] = 9;
+			break;
+		case UISpriteFillOriginType_Radial360::Right:
+			triangles[19] = 9;
+			break;
+		case UISpriteFillOriginType_Radial360::Top:
+			triangles[13] = 9;
+			break;
+		case UISpriteFillOriginType_Radial360::Left:
+			triangles[7] = 9;
+			break;
+		}
+	}
+	//vertices
+	auto& vertices = uiGeo->vertices;
+	if (vertices.Num() == 0)
+	{
+		uiGeo->originVerticesCount = 10;
+		vertices.SetNumUninitialized(10);
+	}
+	//positions and uvs
+	auto& originPositions = uiGeo->originPositions;
+	if (originPositions.Num() == 0)
+	{
+		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+	}
+	UpdateUIRectFillRadial360Vertex(width, height, pivot, uiGeo, spriteInfo, flipDirection, fillAmount, originType, true, true, renderCanvas, uiComp);
+	//colors
+	UpdateUIColor(uiGeo, color);
+
+	//@todo: additional shader channels
+	//normals
+	if (renderCanvas->GetRequireNormal())
+	{
+		auto& normals = uiGeo->originNormals;
+		if (normals.Num() == 0)
+		{
+			normals.Reserve(4);
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(0, 0, -1));
+		}
+	}
+	//tangents
+	if (renderCanvas->GetRequireTangent())
+	{
+		auto& tangents = uiGeo->originTangents;
+		if (tangents.Num() == 0)
+		{
+			tangents.Reserve(4);
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(1, 0, 0));
+		}
+	}
+	//uvs1
+	if (renderCanvas->GetRequireUV1())
+	{
+		vertices[0].TextureCoordinate[1] = FVector2D(0, 1);
+		vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
+		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
+		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
+	}
+}
+void UIGeometry::UpdateUIRectFillRadial360Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
+	, bool updatePosition, bool updateUV
+	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+{
+	//pivot offset
+	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
+	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	//positions
+	auto& originPositions = uiGeo->originPositions;
+	float posMinX = -halfW + pivotOffsetX;
+	float posMinY = -halfH + pivotOffsetY;
+	float posMaxX = halfW + pivotOffsetX;
+	float posMaxY = halfH + pivotOffsetY;
+	float posHalfX = (posMinX + posMaxX) * 0.5f;
+	float posHalfY = (posMinY + posMaxY) * 0.5f;
+	//uvs
+	auto& vertices = uiGeo->vertices;
+	float uvMinX = spriteInfo.uv0X;
+	float uvMinY = spriteInfo.uv0Y;
+	float uvMaxX = spriteInfo.uv3X;
+	float uvMaxY = spriteInfo.uv3Y;
+	float uvHalfX = (uvMinX + uvMaxX) * 0.5f;
+	float uvHalfY = (uvMinY + uvMaxY) * 0.5f;
+
+	originPositions[0] = FVector(posMinX, posMinY, 0);
+	originPositions[1] = FVector(posHalfX, posMinY, 0);
+	originPositions[2] = FVector(posMaxX, posMinY, 0);
+	originPositions[3] = FVector(posMinX, posHalfY, 0);
+	originPositions[4] = FVector(posHalfX, posHalfY, 0);
+	originPositions[5] = FVector(posMaxX, posHalfY, 0);
+	originPositions[6] = FVector(posMinX, posMaxY, 0);
+	originPositions[7] = FVector(posHalfX, posMaxY, 0);
+	originPositions[8] = FVector(posMaxX, posMaxY, 0);
+
+	vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
+	vertices[1].TextureCoordinate[0] = FVector2D(uvHalfX, uvMinY);
+	vertices[2].TextureCoordinate[0] = FVector2D(uvMaxX, uvMinY);
+	vertices[3].TextureCoordinate[0] = FVector2D(uvMinX, uvHalfY);
+	vertices[4].TextureCoordinate[0] = FVector2D(uvHalfX, uvHalfY);
+	vertices[5].TextureCoordinate[0] = FVector2D(uvMaxX, uvHalfY);
+	vertices[6].TextureCoordinate[0] = FVector2D(uvMinX, uvMaxY);
+	vertices[7].TextureCoordinate[0] = FVector2D(uvHalfX, uvMaxY);
+	vertices[8].TextureCoordinate[0] = FVector2D(uvMaxX, uvMaxY);
+
+	auto setPosAndUv = [&](int changeIndex, bool xory, float posFrom, float uvFrom, float lerpValue, const TArray<int>& inVertIndexArray) {
+		auto& pos = originPositions[changeIndex];
+		auto& uv = vertices[changeIndex].TextureCoordinate[0];
+		if (xory)
+		{
+			pos.X = FMath::Lerp(posFrom, pos.X, lerpValue);
+			uv.X = FMath::Lerp(uvFrom, uv.X, lerpValue);
+		}
+		else
+		{
+			pos.Y = FMath::Lerp(posFrom, pos.Y, lerpValue);
+			uv.Y = FMath::Lerp(uvFrom, uv.Y, lerpValue);
+		}
+		for (int i : inVertIndexArray)
+		{
+			originPositions[i] = pos;
+			vertices[i].TextureCoordinate[0] = uv;
+		}
+	};
+	switch (originType)
+	{
+	case UISpriteFillOriginType_Radial360::Bottom:
+	{
+		originPositions[9] = originPositions[1];
+		vertices[9].TextureCoordinate[0] = vertices[1].TextureCoordinate[0];
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.875f)
+			{
+				float lerpValue = (fillAmount - 0.875f) * 8.0f;
+				setPosAndUv(9, true, posMaxX, uvMaxX, lerpValue, {});
+			}
+			else if (fillAmount >= 0.75f)
+			{
+				float lerpValue = (fillAmount - 0.75f) * 8.0f;
+				setPosAndUv(2, false, posHalfY, uvHalfY, lerpValue, {9});
+			}
+			else if (fillAmount >= 0.625f)
+			{
+				float lerpValue = (fillAmount - 0.625f) * 8.0f;
+				setPosAndUv(5, false, posMaxY, uvMaxY, lerpValue, { 9, 2 });
+			}
+			else if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 8.0f;
+				setPosAndUv(8, true, posHalfX, uvHalfX, lerpValue, { 9, 2, 5});
+			}
+			else if (fillAmount >= 0.375f)
+			{
+				float lerpValue = (fillAmount - 0.375f) * 8.0f;
+				setPosAndUv(7, true, posMinX, uvMinX, lerpValue, { 9, 2, 5, 8 });
+			}
+			else if (fillAmount >= 0.25f)
+			{
+				float lerpValue = (fillAmount - 0.25f) * 8.0f;
+				setPosAndUv(6, false, posHalfY, uvHalfY, lerpValue, { 9, 2, 5, 8, 7 });
+			}
+			else if (fillAmount >= 0.125f)
+			{
+				float lerpValue = (fillAmount - 0.125f) * 8.0f;
+				setPosAndUv(3, false, posMinY, uvMinY, lerpValue, { 9, 2, 5, 8, 7, 6 });
+			}
+			else
+			{
+				float lerpValue = fillAmount * 8.0f;
+				setPosAndUv(0, true, posHalfX, uvHalfX, lerpValue, { 9, 2, 5, 8, 7, 6, 3 });
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.875f)
+			{
+				float lerpValue = (fillAmount - 0.875f) * 8.0f;
+				setPosAndUv(1, true, posMinX, uvMinX, lerpValue, {});
+			}
+			else if (fillAmount >= 0.75f)
+			{
+				float lerpValue = (fillAmount - 0.75f) * 8.0f;
+				setPosAndUv(0, false, posHalfY, uvHalfY, lerpValue, {1});
+			}
+			else if (fillAmount >= 0.625f)
+			{
+				float lerpValue = (fillAmount - 0.625f) * 8.0f;
+				setPosAndUv(3, false, posMaxY, uvMaxY, lerpValue, { 1, 0 });
+			}
+			else if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 8.0f;
+				setPosAndUv(6, true, posHalfX, uvHalfX, lerpValue, { 1, 0, 3 });
+			}
+			else if (fillAmount >= 0.375f)
+			{
+				float lerpValue = (fillAmount - 0.375f) * 8.0f;
+				setPosAndUv(7, true, posMaxX, uvMaxX, lerpValue, { 1, 0, 3, 6 });
+			}
+			else if (fillAmount >= 0.25f)
+			{
+				float lerpValue = (fillAmount - 0.25f) * 8.0f;
+				setPosAndUv(8, false, posHalfY, uvHalfY, lerpValue, { 1, 0, 3, 6, 7 });
+			}
+			else if (fillAmount >= 0.125f)
+			{
+				float lerpValue = (fillAmount - 0.125f) * 8.0f;
+				setPosAndUv(5, false, posMinY, uvMinY, lerpValue, { 1, 0, 3, 6, 7, 8 });
+			}
+			else
+			{
+				float lerpValue = fillAmount * 8.0f;
+				setPosAndUv(2, true, posHalfX, uvHalfX, lerpValue, { 1, 0, 3, 6, 7, 8, 5 });
+			}
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial360::Right:
+	{
+		originPositions[9] = originPositions[5];
+		vertices[9].TextureCoordinate[0] = vertices[5].TextureCoordinate[0];
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.875f)
+			{
+				float lerpValue = (fillAmount - 0.875f) * 8.0f;
+				setPosAndUv(9, false, posMaxY, uvMaxY, lerpValue, {});
+			}
+			else if (fillAmount >= 0.75f)
+			{
+				float lerpValue = (fillAmount - 0.75f) * 8.0f;
+				setPosAndUv(8, true, posHalfX, uvHalfX, lerpValue, {9});
+			}
+			else if (fillAmount >= 0.625f)
+			{
+				float lerpValue = (fillAmount - 0.625f) * 8.0f;
+				setPosAndUv(7, true, posMinX, uvMinX, lerpValue, { 9, 8 });
+			}
+			else if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 8.0f;
+				setPosAndUv(6, false, posHalfY, uvHalfY, lerpValue, { 9, 8, 7 });
+			}
+			else if (fillAmount >= 0.375f)
+			{
+				float lerpValue = (fillAmount - 0.375f) * 8.0f;
+				setPosAndUv(3, false, posMinY, uvMinY, lerpValue, { 9, 8, 7, 6 });
+			}
+			else if (fillAmount >= 0.25f)
+			{
+				float lerpValue = (fillAmount - 0.25f) * 8.0f;
+				setPosAndUv(0, true, posHalfX, uvHalfX, lerpValue, { 9, 8, 7, 6, 3 });
+			}
+			else if (fillAmount >= 0.125f)
+			{
+				float lerpValue = (fillAmount - 0.125f) * 8.0f;
+				setPosAndUv(1, true, posMaxX, uvMaxX, lerpValue, { 9, 8, 7, 6, 3, 0 });
+			}
+			else
+			{
+				float lerpValue = fillAmount * 8.0f;
+				setPosAndUv(2, false, posHalfY, uvHalfY, lerpValue, { 9, 8, 7, 6, 3, 0, 1 });
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.875f)
+			{
+				float lerpValue = (fillAmount - 0.875f) * 8.0f;
+				setPosAndUv(5, false, posMinY, uvMinY, lerpValue, {});
+			}
+			else if (fillAmount >= 0.75f)
+			{
+				float lerpValue = (fillAmount - 0.75f) * 8.0f;
+				setPosAndUv(2, true, posHalfX, uvHalfX, lerpValue, {5});
+			}
+			else if (fillAmount >= 0.625f)
+			{
+				float lerpValue = (fillAmount - 0.625f) * 8.0f;
+				setPosAndUv(1, true, posMinX, uvMinX, lerpValue, { 5, 2 });
+			}
+			else if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 8.0f;
+				setPosAndUv(0, false, posHalfY, uvHalfY, lerpValue, { 5, 2, 1 });
+			}
+			else if (fillAmount >= 0.375f)
+			{
+				float lerpValue = (fillAmount - 0.375f) * 8.0f;
+				setPosAndUv(3, false, posMaxY, uvMaxY, lerpValue, { 5, 2, 1, 0 });
+			}
+			else if (fillAmount >= 0.25f)
+			{
+				float lerpValue = (fillAmount - 0.25f) * 8.0f;
+				setPosAndUv(6, true, posHalfX, uvHalfX, lerpValue, { 5, 2, 1, 0, 3 });
+			}
+			else if (fillAmount >= 0.125f)
+			{
+				float lerpValue = (fillAmount - 0.125f) * 8.0f;
+				setPosAndUv(7, true, posMaxX, uvMaxX, lerpValue, { 5, 2, 1, 0, 3, 6 });
+			}
+			else
+			{
+				float lerpValue = fillAmount * 8.0f;
+				setPosAndUv(8, false, posHalfY, uvHalfY, lerpValue, { 5, 2, 1, 0, 3, 6, 7 });
+			}
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial360::Top:
+	{
+		originPositions[9] = originPositions[7];
+		vertices[9].TextureCoordinate[0] = vertices[7].TextureCoordinate[0];
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.875f)
+			{
+				float lerpValue = (fillAmount - 0.875f) * 8.0f;
+				setPosAndUv(9, true, posMinX, uvMinX, lerpValue, {});
+			}
+			else if (fillAmount >= 0.75f)
+			{
+				float lerpValue = (fillAmount - 0.75f) * 8.0f;
+				setPosAndUv(6, false, posHalfY, uvHalfY, lerpValue, {9});
+			}
+			else if (fillAmount >= 0.625f)
+			{
+				float lerpValue = (fillAmount - 0.625f) * 8.0f;
+				setPosAndUv(3, false, posMinY, uvMinY, lerpValue, { 9, 6 });
+			}
+			else if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 8.0f;
+				setPosAndUv(0, true, posHalfX, uvHalfX, lerpValue, { 9, 6, 3 });
+			}
+			else if (fillAmount >= 0.375f)
+			{
+				float lerpValue = (fillAmount - 0.375f) * 8.0f;
+				setPosAndUv(1, true, posMaxX, uvMaxX, lerpValue, { 9, 6, 3, 0 });
+			}
+			else if (fillAmount >= 0.25f)
+			{
+				float lerpValue = (fillAmount - 0.25f) * 8.0f;
+				setPosAndUv(2, false, posHalfY, uvHalfY, lerpValue, { 9, 6, 3, 0, 1 });
+			}
+			else if (fillAmount >= 0.125f)
+			{
+				float lerpValue = (fillAmount - 0.125f) * 8.0f;
+				setPosAndUv(5, false, posMaxY, uvMaxY, lerpValue, { 9, 6, 3, 0, 1, 2 });
+			}
+			else
+			{
+				float lerpValue = fillAmount * 8.0f;
+				setPosAndUv(8, true, posHalfX, uvHalfX, lerpValue, { 9, 6, 3, 0, 1, 2, 5 });
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.875f)
+			{
+				float lerpValue = (fillAmount - 0.875f) * 8.0f;
+				setPosAndUv(7, true, posMaxX, uvMaxX, lerpValue, {});
+			}
+			else if (fillAmount >= 0.75f)
+			{
+				float lerpValue = (fillAmount - 0.75f) * 8.0f;
+				setPosAndUv(8, false, posHalfY, uvHalfY, lerpValue, {7});
+			}
+			else if (fillAmount >= 0.625f)
+			{
+				float lerpValue = (fillAmount - 0.625f) * 8.0f;
+				setPosAndUv(5, false, posMinY, uvMinY, lerpValue, { 7, 8 });
+			}
+			else if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 8.0f;
+				setPosAndUv(2, true, posHalfX, uvHalfX, lerpValue, { 7, 8, 5 });
+			}
+			else if (fillAmount >= 0.375f)
+			{
+				float lerpValue = (fillAmount - 0.375f) * 8.0f;
+				setPosAndUv(1, true, posMinX, uvMinX, lerpValue, { 7, 8, 5, 2 });
+			}
+			else if (fillAmount >= 0.25f)
+			{
+				float lerpValue = (fillAmount - 0.25f) * 8.0f;
+				setPosAndUv(0, false, posHalfY, uvHalfY, lerpValue, { 7, 8, 5, 2, 1 });
+			}
+			else if (fillAmount >= 0.125f)
+			{
+				float lerpValue = (fillAmount - 0.125f) * 8.0f;
+				setPosAndUv(3, false, posMaxY, uvMaxY, lerpValue, { 7, 8, 5, 2, 1, 0 });
+			}
+			else
+			{
+				float lerpValue = fillAmount * 8.0f;
+				setPosAndUv(6, true, posHalfX, uvHalfX, lerpValue, { 7, 8, 5, 2, 1, 0, 3 });
+			}
+		}
+	}
+	break;
+	case UISpriteFillOriginType_Radial360::Left:
+	{
+		originPositions[9] = originPositions[3];
+		vertices[9].TextureCoordinate[0] = vertices[3].TextureCoordinate[0];
+		if (flipDirection)
+		{
+			if (fillAmount >= 0.875f)
+			{
+				float lerpValue = (fillAmount - 0.875f) * 8.0f;
+				setPosAndUv(9, false, posMinY, uvMinY, lerpValue, {});
+			}
+			else if (fillAmount >= 0.75f)
+			{
+				float lerpValue = (fillAmount - 0.75f) * 8.0f;
+				setPosAndUv(0, true, posHalfX, uvHalfX, lerpValue, {9});
+			}
+			else if (fillAmount >= 0.625f)
+			{
+				float lerpValue = (fillAmount - 0.625f) * 8.0f;
+				setPosAndUv(1, true, posMaxX, uvMaxX, lerpValue, { 9, 0 });
+			}
+			else if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 8.0f;
+				setPosAndUv(2, false, posHalfY, uvHalfY, lerpValue, { 9, 0, 1 });
+			}
+			else if (fillAmount >= 0.375f)
+			{
+				float lerpValue = (fillAmount - 0.375f) * 8.0f;
+				setPosAndUv(5, false, posMaxY, uvMaxY, lerpValue, { 9, 0, 1, 2 });
+			}
+			else if (fillAmount >= 0.25f)
+			{
+				float lerpValue = (fillAmount - 0.25f) * 8.0f;
+				setPosAndUv(8, true, posHalfX, uvHalfX, lerpValue, { 9, 0, 1, 2, 5 });
+			}
+			else if (fillAmount >= 0.125f)
+			{
+				float lerpValue = (fillAmount - 0.125f) * 8.0f;
+				setPosAndUv(7, true, posMinX, uvMinX, lerpValue, { 9, 0, 1, 2, 5, 8 });
+			}
+			else
+			{
+				float lerpValue = fillAmount * 8.0f;
+				setPosAndUv(6, false, posHalfY, uvHalfY, lerpValue, { 9, 0, 1, 2, 5, 8, 7 });
+			}
+		}
+		else
+		{
+			if (fillAmount >= 0.875f)
+			{
+				float lerpValue = (fillAmount - 0.875f) * 8.0f;
+				setPosAndUv(3, false, posMaxY, uvMaxY, lerpValue, {});
+			}
+			else if (fillAmount >= 0.75f)
+			{
+				float lerpValue = (fillAmount - 0.75f) * 8.0f;
+				setPosAndUv(6, true, posHalfX, uvHalfX, lerpValue, {3});
+			}
+			else if (fillAmount >= 0.625f)
+			{
+				float lerpValue = (fillAmount - 0.625f) * 8.0f;
+				setPosAndUv(7, true, posMaxX, uvMaxX, lerpValue, { 3, 6 });
+			}
+			else if (fillAmount >= 0.5f)
+			{
+				float lerpValue = (fillAmount - 0.5f) * 8.0f;
+				setPosAndUv(8, false, posHalfY, uvHalfY, lerpValue, { 3, 6, 7 });
+			}
+			else if (fillAmount >= 0.375f)
+			{
+				float lerpValue = (fillAmount - 0.375f) * 8.0f;
+				setPosAndUv(5, false, posMinY, uvMinY, lerpValue, { 3, 6, 7, 8 });
+			}
+			else if (fillAmount >= 0.25f)
+			{
+				float lerpValue = (fillAmount - 0.25f) * 8.0f;
+				setPosAndUv(2, true, posHalfX, uvHalfX, lerpValue, { 3, 6, 7, 8, 5 });
+			}
+			else if (fillAmount >= 0.125f)
+			{
+				float lerpValue = (fillAmount - 0.125f) * 8.0f;
+				setPosAndUv(1, true, posMinX, uvMinX, lerpValue, { 3, 6, 7, 8, 5, 2 });
+			}
+			else
+			{
+				float lerpValue = fillAmount * 8.0f;
+				setPosAndUv(0, false, posHalfY, uvHalfY, lerpValue, { 3, 6, 7, 8, 5, 2, 1 });
+			}
+		}
+	}
+	break;
 	}
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())

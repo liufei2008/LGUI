@@ -2,7 +2,7 @@
 
 #include "Event/LGUIDrawableEvent.h"
 #include "Utils/BitConverter.h"
-
+#include "LGUI.h"
 
 
 bool ULGUIDrawableEventParameterHelper::IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIDrawableEventParameterType>& OutParameterTypeArray)
