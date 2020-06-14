@@ -36,9 +36,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 	auto spriteTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, type));
 	category.AddProperty(spriteTypeHandle);
 	spriteTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISpriteCustomization::ForceRefresh, &DetailBuilder));
-	uint8 spriteTypeInt;
-	spriteTypeHandle->GetValue(spriteTypeInt);
-	UISpriteType spriteType = (UISpriteType)spriteTypeInt;
+	UISpriteType spriteType = TargetScriptPtr->type;
 	if (spriteType == UISpriteType::Sliced || spriteType == UISpriteType::SlicedFrame)
 	{
 		if (TargetScriptPtr->sprite != nullptr)
@@ -56,6 +54,61 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 					];
 			}
 		}
+	}
+	else if (spriteType == UISpriteType::Filled)
+	{
+		auto fillMethodProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillMethod));
+		fillMethodProperty->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUISpriteCustomization::ForceRefresh, &DetailBuilder));
+		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, fillMethodProperty);
+		UISpriteFillMethod fillMethod = TargetScriptPtr->fillMethod;
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOrigin));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial90));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial180));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial360));
+		switch (fillMethod)
+		{
+		case UISpriteFillMethod::Horizontal:
+		case UISpriteFillMethod::Vertical:
+			break;
+		case UISpriteFillMethod::Radial90:
+		{
+			TargetScriptPtr->fillOriginType_Radial90 = (UISpriteFillOriginType_Radial90)TargetScriptPtr->fillOrigin;
+			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial90));
+			originTypeRadialProperty->SetPropertyDisplayName(FText::FromString(TEXT("    Fill Origin")));
+			category.AddProperty(originTypeRadialProperty);
+		}
+			break;
+		case UISpriteFillMethod::Radial180:
+		{
+			TargetScriptPtr->fillOriginType_Radial180 = (UISpriteFillOriginType_Radial180)TargetScriptPtr->fillOrigin;
+			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial180));
+			originTypeRadialProperty->SetPropertyDisplayName(FText::FromString(TEXT("    Fill Origin")));
+			category.AddProperty(originTypeRadialProperty);
+		}
+			break;
+		case UISpriteFillMethod::Radial360:
+		{
+			TargetScriptPtr->fillOriginType_Radial360 = (UISpriteFillOriginType_Radial360)TargetScriptPtr->fillOrigin;
+			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial360));
+			originTypeRadialProperty->SetPropertyDisplayName(FText::FromString(TEXT("    Fill Origin")));
+			category.AddProperty(originTypeRadialProperty);
+		}
+			break;
+		}
+		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillDirectionFlip)));
+		LGUIEditorUtils::CreateSubDetail(&category, &DetailBuilder, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillAmount)));
+	}
+
+	if (spriteType != UISpriteType::Filled)
+	{
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillMethod));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOrigin));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillDirectionFlip));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillAmount));
+
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial90));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial180));
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial360));
 	}
 }
 void FUISpriteCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)

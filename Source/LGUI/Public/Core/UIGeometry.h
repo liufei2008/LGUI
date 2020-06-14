@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Core/ActorComponent/UIText.h"
+#include "Core/ActorComponent/UISprite.h"
 
 struct FLGUISpriteInfo;
 struct FUITextLineProperty;
@@ -65,6 +66,48 @@ public:
 	static void UpdateUIRectTiledUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize);
 	static void UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp, const float& width, const float& height, const FVector2D& pivot, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize);
 #pragma endregion
+#pragma region UISprite_Fill_Horizontal_Vertical
+public:
+	static void FromUIRectFillHorizontalVertical(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, bool horizontalOrVertical
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+	static void UpdateUIRectFillHorizontalVerticalVertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount
+		, bool horizontalOrVertical, bool updatePosition, bool updateUV
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+#pragma endregion
+#pragma region UISprite_Fill_Radial90
+public:
+	static void FromUIRectFillRadial90(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+	static void UpdateUIRectFillRadial90Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
+		, bool updatePosition, bool updateUV
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+#pragma endregion
+#pragma region UISprite_Fill_Radial180
+public:
+	static void FromUIRectFillRadial180(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+	static void UpdateUIRectFillRadial180Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
+		, bool updatePosition, bool updateUV
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+#pragma endregion
+#pragma region UISprite_Fill_Radial360
+public:
+	static void FromUIRectFillRadial360(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+	static void UpdateUIRectFillRadial360Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
+		, bool updatePosition, bool updateUV
+		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+#pragma endregion
+
+
 
 #pragma region UIText
 public:
