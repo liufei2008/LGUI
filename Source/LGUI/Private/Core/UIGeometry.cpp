@@ -634,7 +634,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(float& width, float& h
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
 		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
 	}
 }
@@ -1046,7 +1046,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(float& width, float& height, con
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
 		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
 	}
 }
@@ -1680,7 +1680,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(float& width, float& height, co
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
 		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
 	}
 }
@@ -2236,7 +2236,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(float& width, float& height, co
 	//snap pixel
 	if (renderCanvas->GetPixelPerfect())
 	{
-		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->GetRelativeScale3D().X;
+		float rootCanvasScale = renderCanvas->GetRootCanvas()->CheckAndGetUIItem()->RelativeScale3D.X;
 		AdjustPixelPerfectPos(originPositions, 0, originPositions.Num(), uiComp->GetComponentLocation(), rootCanvasScale, 1.0f / rootCanvasScale);
 	}
 }
