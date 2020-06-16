@@ -105,34 +105,34 @@ void UUISliderComponent::UnregisterSlideEvent(const FLGUIDelegateHandleWrapper& 
 	OnValueChangeCPP.Remove(InDelegateHandle.DelegateHandle);
 }
 
-bool UUISliderComponent::OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISliderComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerDown_Implementation(eventData);
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUISliderComponent::OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISliderComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerUp_Implementation(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUISliderComponent::OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISliderComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUISliderComponent::OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISliderComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUISliderComponent::OnPointerEndDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISliderComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
 }
 
-void UUISliderComponent::CalculateInputValue(const FLGUIPointerEventData& eventData)
+void UUISliderComponent::CalculateInputValue(ULGUIPointerEventData* eventData)
 {
 	UUIItem* mainUIItem = nullptr;
 	UUIItem* areaUIItem = nullptr;
@@ -152,7 +152,7 @@ void UUISliderComponent::CalculateInputValue(const FLGUIPointerEventData& eventD
 	if (mainUIItem != nullptr && areaUIItem != nullptr)
 	{
 		//calculate value to 0-1 range
-		auto localPointerPosition = areaUIItem->GetComponentTransform().InverseTransformPosition(eventData.GetWorldPointInPlane());
+		auto localPointerPosition = areaUIItem->GetComponentTransform().InverseTransformPosition(eventData->GetWorldPointInPlane());
 		auto widget = areaUIItem->GetWidget();
 		float MinPosition = 0;
 		float value01 = 0;

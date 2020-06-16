@@ -23,7 +23,7 @@ bool ULGUIBaseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirectio
 	return false;
 }
 
-bool ULGUIBaseRayEmitter::ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData)
+bool ULGUIBaseRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	UE_LOG(LGUI, Error, TEXT("[ULGUIBaseRayEmitter]Function ShouldStartDrag must be implemented!"));
 	return false;

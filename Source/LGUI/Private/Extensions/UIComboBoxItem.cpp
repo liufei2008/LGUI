@@ -33,7 +33,7 @@ void UUIComboBoxItem::SetSelectionState(const bool& InSelect)
 {
 	_HighlightSpriteActor->GetUIItem()->SetAlpha(InSelect ? 1.0f : 0.0f);
 }
-bool UUIComboBoxItem::OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIComboBoxItem::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
 	_Manager->OnClickItem(_Index, _TextActor->GetUIText()->GetText());
 	return false;

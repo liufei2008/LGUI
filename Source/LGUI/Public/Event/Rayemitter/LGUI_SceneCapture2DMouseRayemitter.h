@@ -33,8 +33,8 @@ public:
 		void SetSceneCapture2DComponent(class USceneCaptureComponent2D* InComp) { sceneCaptureComp = InComp; }
 
 	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
-	virtual bool ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData)override;
-	virtual void MarkPress(const FLGUIPointerEventData& InPointerEventData)override;
+	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
+	virtual void MarkPress(ULGUIPointerEventData* InPointerEventData)override;
 
 	static FMatrix ComputeViewProjectionMatrix(USceneCaptureComponent2D* InSceneCapture2D, bool InWithViewLocation = false);
 	/*

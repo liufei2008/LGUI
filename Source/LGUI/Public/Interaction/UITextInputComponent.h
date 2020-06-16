@@ -177,16 +177,16 @@ protected:
 	virtual void OnUIActiveInHierachy(bool ativeOrInactive)override;
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot)override;
 
-	virtual bool OnPointerEnter_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerExit_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData) override;
-	virtual bool OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData) override;
-	virtual bool OnPointerClick_Implementation(const FLGUIPointerEventData& eventData) override;
-	virtual bool OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData) override;
-	virtual bool OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData) override;
-	virtual bool OnPointerEndDrag_Implementation(const FLGUIPointerEventData& eventData) override;
-	virtual bool OnPointerDown_Implementation(const FLGUIPointerEventData& eventData) override;
-	virtual bool OnPointerUp_Implementation(const FLGUIPointerEventData& eventData) override;
+	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerSelect_Implementation(ULGUIPointerEventData* eventData) override;
+	virtual bool OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData) override;
+	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData) override;
+	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData) override;
+	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData) override;
+	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData) override;
+	virtual bool OnPointerDown_Implementation(ULGUIPointerEventData* eventData) override;
+	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData) override;
 
 private:
 	friend class FVirtualKeyboardEntry;

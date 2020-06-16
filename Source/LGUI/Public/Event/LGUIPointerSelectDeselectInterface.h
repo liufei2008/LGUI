@@ -18,7 +18,7 @@ class LGUI_API ILGUIPointerSelectDeselectInterface
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerSelect(const FLGUIPointerEventData& eventData);
+		bool OnPointerSelect(ULGUIPointerEventData* eventData);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerDeselect(const FLGUIPointerEventData& eventData);
+		bool OnPointerDeselect(ULGUIPointerEventData* eventData);
 };

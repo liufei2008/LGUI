@@ -119,22 +119,22 @@ bool UUIScrollViewComponent::CheckValidHit(USceneComponent* InHitComp)
 	return (InHitComp->IsAttachedTo(RootUIComp) || InHitComp == RootUIComp);//make sure hit component is child of this or is this
 }
 
-bool UUIScrollViewComponent::OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollViewComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
-	PrevWorldPoint = eventData.pressWorldPoint;
+	PrevWorldPoint = eventData->pressWorldPoint;
 	return AllowEventBubbleUp;
 }
-bool UUIScrollViewComponent::OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollViewComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
 {
 	return AllowEventBubbleUp;
 }
 
-bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)
 {
-	if (CheckParameters() && CheckValidHit(eventData.currentComponent))
+	if (CheckParameters() && CheckValidHit(eventData->enterComponent))
 	{
-		auto worldPoint = eventData.GetWorldPointInPlane();
-		const auto localMoveDelta = eventData.pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
+		auto worldPoint = eventData->GetWorldPointInPlane();
+		const auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
 		PrevWorldPoint = worldPoint;
 		if (OnlyOneDirection && Horizontal && Vertical)
 		{
@@ -169,12 +169,12 @@ bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(const FLGUIPointe
 	return AllowEventBubbleUp;
 }
 
-bool UUIScrollViewComponent::OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	if (ContentUIItem == nullptr)return AllowEventBubbleUp;
 	auto position = ContentUIItem->GetRelativeLocation();
-	auto worldPoint = eventData.GetWorldPointInPlane();
-	auto localMoveDelta = eventData.pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
+	auto worldPoint = eventData->GetWorldPointInPlane();
+	auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
 	localMoveDelta.Z = 0;
 	PrevWorldPoint = worldPoint;
 	if (AllowHorizontalScroll)
@@ -210,10 +210,10 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(const FLGUIPointerEven
 	return AllowEventBubbleUp;
 }
 
-bool UUIScrollViewComponent::OnPointerEndDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollViewComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)
 {
-	auto worldPoint = eventData.GetWorldPointInPlane();
-	const auto localMoveDelta = eventData.pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
+	auto worldPoint = eventData->GetWorldPointInPlane();
+	const auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
 	PrevWorldPoint = worldPoint;
 	if (AllowHorizontalScroll)
 	{
@@ -229,11 +229,11 @@ bool UUIScrollViewComponent::OnPointerEndDrag_Implementation(const FLGUIPointerE
 	}
 	return AllowEventBubbleUp;
 }
-bool UUIScrollViewComponent::OnPointerScroll_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)
 {
-	if (CheckParameters() && CheckValidHit(eventData.currentComponent))
+	if (CheckParameters() && CheckValidHit(eventData->enterComponent))
 	{
-		auto delta = eventData.scrollAxisValue * -ScrollSensitivity;
+		auto delta = eventData->scrollAxisValue * -ScrollSensitivity;
 		if (Horizontal)
 		{
 			AllowHorizontalScroll = true;

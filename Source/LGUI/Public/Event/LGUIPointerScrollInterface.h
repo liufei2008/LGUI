@@ -18,5 +18,5 @@ class LGUI_API ILGUIPointerScrollInterface
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerScroll(const FLGUIPointerEventData& eventData);
+		bool OnPointerScroll(ULGUIPointerEventData* eventData);
 };

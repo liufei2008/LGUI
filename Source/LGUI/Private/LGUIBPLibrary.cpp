@@ -197,19 +197,6 @@ UActorComponent* ULGUIBPLibrary::FindComponentInChildrenRecursive(AActor* InActo
 	return nullptr;
 }
 
-FString ULGUIBPLibrary::Conv_LGUIPointerEventDataToString(const FLGUIPointerEventData& InData)
-{
-	return InData.ToString();
-}
-FVector ULGUIBPLibrary::GetWorldPointInPlane(const FLGUIPointerEventData& InData)
-{
-	return InData.GetWorldPointInPlane();
-}
-FVector ULGUIBPLibrary::GetLocalPointInPlane(const FLGUIPointerEventData& InData)
-{
-	return InData.GetLocalPointInPlane();
-}
-
 UActorComponent* ULGUIBPLibrary::LGUICompRef_GetComponent(const FLGUIComponentReference& InLGUIComponentReference, TSubclassOf<UActorComponent> InComponentType)
 {
 	auto comp = InLGUIComponentReference.GetComponent();

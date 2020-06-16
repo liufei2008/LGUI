@@ -158,10 +158,10 @@ public:
 	virtual UUISelectableComponent* FindSelectableOnNext();
 	virtual UUISelectableComponent* FindSelectableOnPrev();
 public:
-	virtual bool OnPointerEnter_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerExit_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDown_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)override;
 };

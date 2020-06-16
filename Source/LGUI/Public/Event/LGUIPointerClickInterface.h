@@ -19,5 +19,5 @@ class LGUI_API ILGUIPointerClickInterface
 public:
 	//Called when a click event occurs
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerClick(const FLGUIPointerEventData& eventData);
+		bool OnPointerClick(ULGUIPointerEventData* eventData);
 };
