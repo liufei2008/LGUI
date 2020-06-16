@@ -19,5 +19,5 @@ class LGUI_API ILGUIPointerDragDropInterface
 public:
 	//Called when dragging a object and drop on another object
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerDragDrop(const FLGUIPointerEventData& eventData);
+		bool OnPointerDragDrop(ULGUIPointerEventData* eventData);
 };

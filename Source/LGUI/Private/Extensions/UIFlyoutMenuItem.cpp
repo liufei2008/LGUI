@@ -33,7 +33,7 @@ void UUIFlyoutMenuItem::SetSelectionState(const bool& InSelect)
 {
 	_HighlightSpriteActor->GetUIItem()->SetAlpha(InSelect ? 1.0f : 0.0f);
 }
-bool UUIFlyoutMenuItem::OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIFlyoutMenuItem::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
 	_Manager->OnClickItem(_Index, _TextActor->GetUIText()->GetText());
 	return false;

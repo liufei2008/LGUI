@@ -96,12 +96,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void UnregisterScrollEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
-	virtual bool OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerDown_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
 
-	virtual bool OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerEndDrag_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
 
-	virtual bool OnPointerScroll_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
 };

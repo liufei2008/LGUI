@@ -82,15 +82,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteObject(const FLGUIDrawableEvent& InEvent, UObject* InParameter) { InEvent.FireEvent(InParameter); }
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteActor(const FLGUIDrawableEvent& InEvent, AActor* InParameter) { InEvent.FireEvent(InParameter); }
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteClass(const FLGUIDrawableEvent& InEvent, UClass* InParameter) { InEvent.FireEvent(InParameter); }
-	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecutePointerEvent(const FLGUIDrawableEvent& InEvent, const FLGUIPointerEventData& InParameter) { InEvent.FireEvent(InParameter); }
+	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecutePointerEvent(const FLGUIDrawableEvent& InEvent, ULGUIPointerEventData* InParameter) { InEvent.FireEvent(InParameter); }
 #pragma endregion DrawableEvent
-
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToString (LGUIPointerEventData)", CompactNodeTitle = ".", BlueprintAutocast), Category = "LGUI")
-		static FString Conv_LGUIPointerEventDataToString(const FLGUIPointerEventData& InData);
-	//use a line-plane intersection to get world point
-	UFUNCTION(BlueprintPure, Category = LGUI)static FVector GetWorldPointInPlane(const FLGUIPointerEventData& InData);
-	//use a line-plane intersection to get world point, and convert to press component's local space
-	UFUNCTION(BlueprintPure, Category = LGUI)static FVector GetLocalPointInPlane(const FLGUIPointerEventData& InData);
 
 	//InComponentType must be the same as InLGUIComponentReference's component type
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "GetComponent", CompactNodeTitle = ".", BlueprintAutocast, DeterminesOutputType = "InComponentType"))

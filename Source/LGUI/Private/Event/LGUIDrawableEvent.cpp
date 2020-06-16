@@ -753,7 +753,7 @@ void FLGUIDrawableEvent::FireEvent(AActor* InParam)const
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(const FLGUIPointerEventData& InParam)const
+void FLGUIDrawableEvent::FireEvent(ULGUIPointerEventData* InParam)const
 {
 	if (eventList.Num() == 0)return;
 	if (supportParameterType == LGUIDrawableEventParameterType::PointerEvent)

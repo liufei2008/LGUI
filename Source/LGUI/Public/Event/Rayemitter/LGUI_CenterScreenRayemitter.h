@@ -17,8 +17,8 @@ public:
 
 public:
 	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
-	virtual bool ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData)override;
-	virtual void MarkPress(const FLGUIPointerEventData& InPointerEventData)override;
+	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
+	virtual void MarkPress(ULGUIPointerEventData* InPointerEventData)override;
 private:
 	FVector2D pressMousePos;
 	bool GetMousePosition(FVector2D& OutPos);

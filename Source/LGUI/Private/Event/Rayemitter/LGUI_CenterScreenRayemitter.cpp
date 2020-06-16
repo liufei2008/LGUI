@@ -36,7 +36,7 @@ bool ULGUI_CenterScreenRayemitter::EmitRay(FVector& OutRayOrigin, FVector& OutRa
 	}
 	return false;
 }
-bool ULGUI_CenterScreenRayemitter::ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData)
+bool ULGUI_CenterScreenRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	FVector2D mousePos;
 	if (GetMousePosition(mousePos))
@@ -45,7 +45,7 @@ bool ULGUI_CenterScreenRayemitter::ShouldStartDrag(const FLGUIPointerEventData& 
 	}
 	return false;
 }
-void ULGUI_CenterScreenRayemitter::MarkPress(const FLGUIPointerEventData& InPointerEventData)
+void ULGUI_CenterScreenRayemitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
 	GetMousePosition(pressMousePos);
 }

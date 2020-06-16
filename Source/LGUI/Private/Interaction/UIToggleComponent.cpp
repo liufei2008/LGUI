@@ -113,7 +113,7 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 	}
 }
 
-bool UUIToggleComponent::OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIToggleComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
 	SetState(!IsOn);
 	return AllowEventBubbleUp;

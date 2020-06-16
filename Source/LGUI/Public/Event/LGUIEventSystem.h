@@ -10,11 +10,11 @@
 #include "LGUIDelegateHandleWrapper.h"
 #include "LGUIEventSystem.generated.h"
 
-struct FLGUIPointerEventData;
+class ULGUIPointerEventData;
 class UUISelectableComponent;
 
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FLGUIHitDynamicDelegate, bool, isHit, const FHitResult&, hitResult, USceneComponent*, hitComponent);
-DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, const FLGUIPointerEventData&, pointerEvent);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, ULGUIPointerEventData*, pointerEvent);
 
 /*
  This is a preset actor that contans a LGUIEventSystem component
@@ -60,7 +60,7 @@ protected:
 	bool nowIsTriggerPressed = false;
 	EMouseButtonType mouseButtonType = EMouseButtonType::Left;
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)
-		FLGUIPointerEventData eventData;
+		ULGUIPointerEventData* eventData;
 
 	bool isNavigationActive = false;
 	void BeginNavigation();
@@ -170,47 +170,47 @@ protected:
 	bool LineTraceAndEvent();
 	bool LineTrace(FHitResultContainerStruct& hitResult);
 
-	void CallOnPointerEnter(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerExit(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDown(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerUp(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerClick(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerBeginDrag(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDrag(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerEndDrag(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerDown(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerUp(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerClick(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerBeginDrag(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerDrag(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerEndDrag(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 
-	void CallOnPointerScroll(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerScroll(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 
-	void CallOnPointerDragEnter(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDragExit(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDragDrop(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerDragEnter(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerDragExit(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerDragDrop(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 
-	void CallOnPointerSelect(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
-	void CallOnPointerDeselect(USceneComponent* component, FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void CallOnPointerSelect(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerDeselect(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 
-	void LogEventData(FLGUIPointerEventData& eventData, bool eventFireOnAll);
+	void LogEventData(ULGUIPointerEventData* eventData, bool eventFireOnAll);
 
 
-	void BubbleOnPointerEnter(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerExit(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerDown(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerUp(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerClick(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerBeginDrag(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerDrag(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerEndDrag(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerScroll(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerDragEnter(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerDragExit(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerDragDrop(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerSelect(AActor* actor, FLGUIPointerEventData& eventData);
-	void BubbleOnPointerDeselect(AActor* actor, FLGUIPointerEventData& eventData);
+	void BubbleOnPointerEnter(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerExit(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerDown(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerUp(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerClick(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerBeginDrag(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerDrag(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerEndDrag(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerScroll(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerDragEnter(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerDragExit(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerSelect(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerDeselect(AActor* actor, ULGUIPointerEventData* eventData);
 };
 
 #define CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, interface, function)\
 {\
-	inEventData.eventType = EPointerEventType::function;\
-	inEventData.currentComponent = component;\
+	inEventData->eventType = EPointerEventType::function;\
+	inEventData->enterComponent = component;\
 	LogEventData(inEventData, eventFireOnAll);\
 	bool eventAllowBubble = true;\
 	if (eventFireOnAll)\

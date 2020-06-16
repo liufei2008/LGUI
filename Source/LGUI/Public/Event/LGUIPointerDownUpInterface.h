@@ -19,8 +19,8 @@ class LGUI_API ILGUIPointerDownUpInterface
 public:
 	//Called when press
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerDown(const FLGUIPointerEventData& eventData);
+		bool OnPointerDown(ULGUIPointerEventData* eventData);
 	//Called when release
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerUp(const FLGUIPointerEventData& eventData);
+		bool OnPointerUp(ULGUIPointerEventData* eventData);
 };

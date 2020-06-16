@@ -19,8 +19,8 @@ class LGUI_API ILGUIPointerEnterExitInterface
 public:
 	//Called when pointer enter a object
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerEnter(const FLGUIPointerEventData& eventData);
+		bool OnPointerEnter(ULGUIPointerEventData* eventData);
 	//Called when pointer exit a object
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerExit(const FLGUIPointerEventData& eventData);
+		bool OnPointerExit(ULGUIPointerEventData* eventData);
 };

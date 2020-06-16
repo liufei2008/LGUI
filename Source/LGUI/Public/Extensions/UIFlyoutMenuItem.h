@@ -31,5 +31,5 @@ protected:
 public:
 	void Init(class UUIFlyoutMenu* InManager, const int32 InItemIndex, const FString& InItemName);
 	void SetSelectionState(const bool& InSelect);
-	virtual bool OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 };

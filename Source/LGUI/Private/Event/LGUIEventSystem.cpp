@@ -12,7 +12,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Event/Rayemitter/LGUIBaseRayemitter.h"
-#include "Event/LGUIPointerEventData.h"
+#include "Event/LGUIPointereventData.h"
 #include "Interaction/UISelectableComponent.h"
 #include "LGUIBPLibrary.h"
 
@@ -257,23 +257,23 @@ void ULGUIEventSystem::ClearEvent()
 		{
 			if (!isUpFiredAtCurrentFrame)
 			{
-				if (IsValid(eventData.dragComponent))
+				if (IsValid(eventData->dragComponent))
 				{
-					CallOnPointerUp(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+					CallOnPointerUp(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
 				}
 			}
 			if (!isEndDragFiredAtCurrentFrame)
 			{
-				if (IsValid(eventData.dragComponent))
+				if (IsValid(eventData->dragComponent))
 				{
-					CallOnPointerEndDrag(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+					CallOnPointerEndDrag(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
 				}
 			}
 			if (!isExitFiredAtCurrentFrame)
 			{
-				if (IsValid(eventData.dragComponent))
+				if (IsValid(eventData->dragComponent))
 				{
-					CallOnPointerExit(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+					CallOnPointerExit(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
 				}
 			}
 			if (!isDragExitFiredAtCurrentFrame)
@@ -283,7 +283,7 @@ void ULGUIEventSystem::ClearEvent()
 					CallOnPointerDragExit(dragEnterComponent, eventData, dragEnterComponentEventFireOnAllOrOnlyTarget);
 				}
 			}
-			eventData.dragComponent = nullptr;
+			eventData->dragComponent = nullptr;
 			startToDrag = false;
 		}
 		else
@@ -303,7 +303,7 @@ void ULGUIEventSystem::ClearEvent()
 				}
 			}
 			enterComponent = nullptr;
-			eventData.pressComponent = nullptr;
+			eventData->pressComponent = nullptr;
 		}
 
 		prevIsTriggerPressed = false;
@@ -388,9 +388,13 @@ bool ULGUIEventSystem::LineTraceAndEvent()
 	FHitResultContainerStruct hitResultContainer;
 
 	bool lineTraceHitSomething = LineTrace(hitResultContainer);
-	eventData.raycaster = hitResultContainer.raycaster;
-	eventData.rayOrigin = hitResultContainer.rayOrigin;
-	eventData.rayDirection = hitResultContainer.rayDirection;
+	if (!IsValid(eventData))
+	{
+		eventData = NewObject<ULGUIPointerEventData>(this);
+	}
+	eventData->raycaster = hitResultContainer.raycaster;
+	eventData->rayOrigin = hitResultContainer.rayOrigin;
+	eventData->rayDirection = hitResultContainer.rayDirection;
 	FHitResult hitResult = hitResultContainer.hitResult;
 	bool isHitSomething = lineTraceHitSomething;
 	if (nowIsTriggerPressed && prevIsTriggerPressed)//if trigger keep pressing
@@ -403,16 +407,16 @@ bool ULGUIEventSystem::LineTraceAndEvent()
 				{
 					auto nowHitComponent = (USceneComponent*)hitResult.Component.Get();
 					//fire event
-					eventData.worldPoint = hitResult.Location;
-					eventData.worldNormal = hitResult.Normal;
+					eventData->worldPoint = hitResult.Location;
+					eventData->worldNormal = hitResult.Normal;
 					if (dragEnterComponent != nowHitComponent)//drag and hit different object
 					{
-						if (IsValid(dragEnterComponent) && dragEnterComponent != eventData.dragComponent)//prev object, not dragging object
+						if (IsValid(dragEnterComponent) && dragEnterComponent != eventData->dragComponent)//prev object, not dragging object
 						{
 							CallOnPointerDragExit(dragEnterComponent, eventData, dragEnterComponentEventFireOnAllOrOnlyTarget);
 							dragEnterComponent = nullptr;
 						}
-						if (IsValid(nowHitComponent) && nowHitComponent != eventData.dragComponent)//current object, not dragging object
+						if (IsValid(nowHitComponent) && nowHitComponent != eventData->dragComponent)//current object, not dragging object
 						{
 							dragEnterComponent = nowHitComponent;
 							dragEnterComponentEventFireOnAllOrOnlyTarget = hitResultContainer.eventFireOnAll;
@@ -424,7 +428,7 @@ bool ULGUIEventSystem::LineTraceAndEvent()
 				}
 				else//hit nothing during drag
 				{
-					if (IsValid(dragEnterComponent) && dragEnterComponent != eventData.dragComponent)//prev object
+					if (IsValid(dragEnterComponent) && dragEnterComponent != eventData->dragComponent)//prev object
 					{
 						CallOnPointerDragExit(dragEnterComponent, eventData, dragEnterComponentEventFireOnAllOrOnlyTarget);
 						dragEnterComponent = nullptr;
@@ -433,46 +437,46 @@ bool ULGUIEventSystem::LineTraceAndEvent()
 					isHitSomething = false;
 				}
 
-				FVector approximatHitPosition = eventData.pressRaycaster->rayEmitter->GetCurrentRayOrigin()
-					+ eventData.pressRaycaster->rayEmitter->GetCurrentRayDirection() * eventData.pressDistance;
+				FVector approximatHitPosition = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin()
+					+ eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection() * eventData->pressDistance;
 				//trigger drag event
-				eventData.worldPoint = approximatHitPosition;
-				eventData.worldNormal = hitResult.Normal;
-				eventData.cumulativeMoveDelta = approximatHitPosition - eventData.pressWorldPoint;
-				eventData.moveDelta = approximatHitPosition - prevHitPoint;
-				eventData.dragRayOrigin = eventData.pressRaycaster->rayEmitter->GetCurrentRayOrigin();
-				eventData.dragRayDirection = eventData.pressRaycaster->rayEmitter->GetCurrentRayDirection();
-				CallOnPointerDrag(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+				eventData->worldPoint = approximatHitPosition;
+				eventData->worldNormal = hitResult.Normal;
+				eventData->cumulativeMoveDelta = approximatHitPosition - eventData->pressWorldPoint;
+				eventData->moveDelta = approximatHitPosition - prevHitPoint;
+				eventData->dragRayOrigin = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin();
+				eventData->dragRayDirection = eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection();
+				CallOnPointerDrag(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
 
 				prevHitPoint = approximatHitPosition;
 				hitResult.Location = approximatHitPosition;
 				hitResult.ImpactPoint = approximatHitPosition;
-				hitResult.Distance = eventData.pressDistance;
+				hitResult.Distance = eventData->pressDistance;
 				isHitSomething = true;//always hit a plane when drag
 			}
 			else//trigger press but not dragging, only consern if trigger drag event
 			{
-				if (pressHitSomething && IsValid(eventData.pressComponent))//if hit something when press
+				if (pressHitSomething && IsValid(eventData->pressComponent))//if hit something when press
 				{
-					FVector approximatHitPosition = eventData.pressRaycaster->rayEmitter->GetCurrentRayOrigin()
-						+ eventData.pressRaycaster->rayEmitter->GetCurrentRayDirection() * eventData.pressDistance;
-					eventData.worldPoint = approximatHitPosition;
-					eventData.worldNormal = hitResult.Normal;
-					eventData.cumulativeMoveDelta = approximatHitPosition - eventData.pressWorldPoint;
-					eventData.moveDelta = approximatHitPosition - eventData.pressWorldPoint;
-					if (eventData.pressRaycaster->rayEmitter->ShouldStartDrag(eventData))
+					FVector approximatHitPosition = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin()
+						+ eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection() * eventData->pressDistance;
+					eventData->worldPoint = approximatHitPosition;
+					eventData->worldNormal = hitResult.Normal;
+					eventData->cumulativeMoveDelta = approximatHitPosition - eventData->pressWorldPoint;
+					eventData->moveDelta = approximatHitPosition - eventData->pressWorldPoint;
+					if (eventData->pressRaycaster->rayEmitter->ShouldStartDrag(eventData))
 					{
 						startToDrag = true;
-						eventData.dragComponent = eventData.pressComponent;
-						eventData.dragRayOrigin = eventData.pressRaycaster->rayEmitter->GetCurrentRayOrigin();
-						eventData.dragRayDirection = eventData.pressRaycaster->rayEmitter->GetCurrentRayDirection();
+						eventData->dragComponent = eventData->pressComponent;
+						eventData->dragRayOrigin = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin();
+						eventData->dragRayDirection = eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection();
 						dragComponentEventFireOnAllOrOnlyTarget = enterComponentEventFireOnAllOrOnlyTarget;
-						CallOnPointerBeginDrag(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+						CallOnPointerBeginDrag(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
 					}
 					prevHitPoint = approximatHitPosition;
 					hitResult.Location = approximatHitPosition;
 					hitResult.ImpactPoint = approximatHitPosition;
-					hitResult.Distance = eventData.pressDistance;
+					hitResult.Distance = eventData->pressDistance;
 					isHitSomething = true;
 				}
 			}
@@ -484,8 +488,8 @@ bool ULGUIEventSystem::LineTraceAndEvent()
 		{
 			auto nowHitComponent = (USceneComponent*)hitResult.Component.Get();
 			//fire event
-			eventData.worldPoint = hitResult.Location;
-			eventData.worldNormal = hitResult.Normal;
+			eventData->worldPoint = hitResult.Location;
+			eventData->worldNormal = hitResult.Normal;
 			if (enterComponent != nowHitComponent)//hit differenct object
 			{
 				if (IsValid(enterComponent))//prev object
@@ -517,16 +521,16 @@ bool ULGUIEventSystem::LineTraceAndEvent()
 			{
 				hitResultContainer.raycaster->rayEmitter->MarkPress(eventData);
 				auto nowHitComponent = (USceneComponent*)hitResult.Component.Get();
-				eventData.worldPoint = hitResult.Location;
-				eventData.worldNormal = hitResult.Normal;
-				eventData.pressDistance = hitResult.Distance;
-				eventData.pressRayOrigin = hitResultContainer.rayOrigin;
-				eventData.pressRayDirection = hitResultContainer.rayDirection;
-				eventData.pressWorldPoint = hitResult.Location;
-				eventData.pressWorldNormal = hitResult.Normal;
-				eventData.pressRaycaster = hitResultContainer.raycaster;
-				eventData.pressComponent = nowHitComponent;
-				eventData.pressWorldToLocalTransform = nowHitComponent->GetComponentTransform().Inverse();
+				eventData->worldPoint = hitResult.Location;
+				eventData->worldNormal = hitResult.Normal;
+				eventData->pressDistance = hitResult.Distance;
+				eventData->pressRayOrigin = hitResultContainer.rayOrigin;
+				eventData->pressRayDirection = hitResultContainer.rayDirection;
+				eventData->pressWorldPoint = hitResult.Location;
+				eventData->pressWorldNormal = hitResult.Normal;
+				eventData->pressRaycaster = hitResultContainer.raycaster;
+				eventData->pressComponent = nowHitComponent;
+				eventData->pressWorldToLocalTransform = nowHitComponent->GetComponentTransform().Inverse();
 				if (enterComponent != nowHitComponent)//hit different object
 				{
 					if (IsValid(enterComponent))//prev object
@@ -565,55 +569,55 @@ bool ULGUIEventSystem::LineTraceAndEvent()
 				if (startToDrag)//is dragging
 				{
 					startToDrag = false;
-					auto approximatHitPosition = eventData.pressRaycaster->rayEmitter->GetCurrentRayOrigin()
-						+ eventData.pressRaycaster->rayEmitter->GetCurrentRayDirection() * eventData.pressDistance;//calculated approximate hit position
-					eventData.cumulativeMoveDelta = approximatHitPosition - eventData.pressWorldPoint;
-					eventData.worldPoint = approximatHitPosition;
-					eventData.worldNormal = hitResult.Normal;
-					eventData.moveDelta = approximatHitPosition - prevHitPoint;
-					eventData.dragRayOrigin = eventData.pressRaycaster->rayEmitter->GetCurrentRayOrigin();
-					eventData.dragRayDirection = eventData.pressRaycaster->rayEmitter->GetCurrentRayDirection();
-					CallOnPointerUp(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+					auto approximatHitPosition = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin()
+						+ eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection() * eventData->pressDistance;//calculated approximate hit position
+					eventData->cumulativeMoveDelta = approximatHitPosition - eventData->pressWorldPoint;
+					eventData->worldPoint = approximatHitPosition;
+					eventData->worldNormal = hitResult.Normal;
+					eventData->moveDelta = approximatHitPosition - prevHitPoint;
+					eventData->dragRayOrigin = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin();
+					eventData->dragRayDirection = eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection();
+					CallOnPointerUp(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
 					if (lineTraceHitSomething)//hit something when stop drag
 					{
 						//if DragEnter an object when press, and after one frame trigger release and hit new object, then old object need to call DragExit
-						if (IsValid(dragEnterComponent) && dragEnterComponent != eventData.dragComponent)
+						if (IsValid(dragEnterComponent) && dragEnterComponent != eventData->dragComponent)
 						{
 							CallOnPointerDragDrop(dragEnterComponent, eventData, dragEnterComponentEventFireOnAllOrOnlyTarget);
 							CallOnPointerDragExit(dragEnterComponent, eventData, dragEnterComponentEventFireOnAllOrOnlyTarget);
 							dragEnterComponent = nullptr;
 						}
 
-						if (nowHitComponent != eventData.dragComponent)//hit object is not dragging object
+						if (nowHitComponent != eventData->dragComponent)//hit object is not dragging object
 						{
 							//Enter/Exit will not fire during drag, so we need to call Enter/Exit at drag end
 							CallOnPointerEnter(nowHitComponent, eventData, hitResultContainer.eventFireOnAll);
-							CallOnPointerExit(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+							CallOnPointerExit(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
 						}
 						//drag end
-						CallOnPointerEndDrag(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
-						eventData.dragComponent = nullptr;
+						CallOnPointerEndDrag(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+						eventData->dragComponent = nullptr;
 						enterComponent = nowHitComponent;
 						enterComponentEventFireOnAllOrOnlyTarget = hitResultContainer.eventFireOnAll;
 					}
 					else//hit nothing when stop drag
 					{
 						//drag end
-						CallOnPointerEndDrag(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
-						CallOnPointerExit(eventData.dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+						CallOnPointerEndDrag(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
+						CallOnPointerExit(eventData->dragComponent, eventData, dragComponentEventFireOnAllOrOnlyTarget);
 						enterComponent = nullptr;
 					}
 				}
 				else//not dragging
 				{
-					eventData.worldPoint = hitResult.Location;
-					eventData.worldNormal = hitResult.Normal;
+					eventData->worldPoint = hitResult.Location;
+					eventData->worldNormal = hitResult.Normal;
 					if (lineTraceHitSomething)//hit something when release
 					{
 						if (IsValid(enterComponent))
 						{
 							CallOnPointerUp(enterComponent, eventData, enterComponentEventFireOnAllOrOnlyTarget);
-							eventData.clickTime = GetWorld()->TimeSeconds;
+							eventData->clickTime = GetWorld()->TimeSeconds;
 							CallOnPointerClick(enterComponent, eventData, enterComponentEventFireOnAllOrOnlyTarget);
 						}
 						if (enterComponent != nowHitComponent)//if hit different object when release
@@ -632,7 +636,7 @@ bool ULGUIEventSystem::LineTraceAndEvent()
 						if (IsValid(enterComponent))
 						{
 							CallOnPointerUp(enterComponent, eventData, enterComponentEventFireOnAllOrOnlyTarget);
-							eventData.clickTime = GetWorld()->TimeSeconds;
+							eventData->clickTime = GetWorld()->TimeSeconds;
 							CallOnPointerClick(enterComponent, eventData, enterComponentEventFireOnAllOrOnlyTarget);
 							CallOnPointerExit(enterComponent, eventData, enterComponentEventFireOnAllOrOnlyTarget);
 							enterComponent = nullptr;
@@ -687,7 +691,7 @@ void ULGUIEventSystem::UnregisterHitEvent(const FLGUIDelegateHandleWrapper& InHa
 }
 FLGUIDelegateHandleWrapper ULGUIEventSystem::RegisterGlobalListener(const FLGUIPointerEventDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = globalListenerPointerEvent.AddLambda([InDelegate](const FLGUIPointerEventData& eventData) {
+	auto delegateHandle = globalListenerPointerEvent.AddLambda([InDelegate](ULGUIPointerEventData* eventData) {
 		InDelegate.ExecuteIfBound(eventData);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
@@ -704,7 +708,7 @@ void ULGUIEventSystem::InputScroll(const float& inAxisValue)
 	{
 		if (inAxisValue != 0)
 		{
-			eventData.scrollAxisValue = inAxisValue;
+			eventData->scrollAxisValue = inAxisValue;
 			CallOnPointerScroll(enterComponent, eventData, enterComponentEventFireOnAllOrOnlyTarget);
 		}
 	}
@@ -722,7 +726,7 @@ void ULGUIEventSystem::InputTrigger(bool inTriggerPress, EMouseButtonType inMous
 			prevPressTriggerType = inMouseButtonType;
 		}
 	}
-	eventData.mouseButtonType = inMouseButtonType;
+	eventData->mouseButtonType = inMouseButtonType;
 }
 
 void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp)
@@ -751,83 +755,83 @@ void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp)
 }
 
 
-void ULGUIEventSystem::LogEventData(FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::LogEventData(ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 #if WITH_EDITORONLY_DATA
 	if (outputLog == false)return;
-	UE_LOG(LGUI, Log, TEXT("%s"), *inEventData.ToString());
+	UE_LOG(LGUI, Log, TEXT("%s"), *inEventData->ToString());
 #endif
 }
 
 
 #pragma region BubbleEvent
-void ULGUIEventSystem::BubbleOnPointerEnter(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerEnter(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, EnterExit, Enter);
 }
-void ULGUIEventSystem::BubbleOnPointerExit(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerExit(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, EnterExit, Exit);
 }
-void ULGUIEventSystem::BubbleOnPointerDown(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerDown(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, DownUp, Down);
 }
-void ULGUIEventSystem::BubbleOnPointerUp(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerUp(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, DownUp, Up);
 }
-void ULGUIEventSystem::BubbleOnPointerClick(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerClick(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, Click, Click);
 }
-void ULGUIEventSystem::BubbleOnPointerBeginDrag(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerBeginDrag(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, Drag, BeginDrag);
 }
-void ULGUIEventSystem::BubbleOnPointerDrag(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerDrag(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, Drag, Drag);
 }
-void ULGUIEventSystem::BubbleOnPointerEndDrag(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerEndDrag(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, Drag, EndDrag);
 }
 
-void ULGUIEventSystem::BubbleOnPointerScroll(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerScroll(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, Scroll, Scroll);
 }
 
-void ULGUIEventSystem::BubbleOnPointerDragEnter(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerDragEnter(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, DragEnterExit, DragEnter);
 }
-void ULGUIEventSystem::BubbleOnPointerDragExit(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerDragExit(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, DragEnterExit, DragExit);
 }
-void ULGUIEventSystem::BubbleOnPointerDragDrop(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, DragDrop, DragDrop);
 }
 
-void ULGUIEventSystem::BubbleOnPointerSelect(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerSelect(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, SelectDeselect, Select);
 }
-void ULGUIEventSystem::BubbleOnPointerDeselect(AActor* actor, FLGUIPointerEventData& inEventData)
+void ULGUIEventSystem::BubbleOnPointerDeselect(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, SelectDeselect, Deselect);
 }
 #pragma endregion
 
 #pragma region CallEvent
-void ULGUIEventSystem::CallOnPointerEnter(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, EnterExit, Enter);
 }
-void ULGUIEventSystem::CallOnPointerExit(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	if (!isExitFiredAtCurrentFrame)
 	{
@@ -835,12 +839,12 @@ void ULGUIEventSystem::CallOnPointerExit(USceneComponent* component, FLGUIPointe
 		CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, EnterExit, Exit);
 	}
 }
-void ULGUIEventSystem::CallOnPointerDown(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerDown(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	SetSelectComponent(component);
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DownUp, Down);
 }
-void ULGUIEventSystem::CallOnPointerUp(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerUp(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	if (!isUpFiredAtCurrentFrame)
 	{
@@ -848,19 +852,19 @@ void ULGUIEventSystem::CallOnPointerUp(USceneComponent* component, FLGUIPointerE
 		CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DownUp, Up);
 	}
 }
-void ULGUIEventSystem::CallOnPointerClick(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerClick(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, Click, Click);
 }
-void ULGUIEventSystem::CallOnPointerBeginDrag(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerBeginDrag(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, Drag, BeginDrag);
 }
-void ULGUIEventSystem::CallOnPointerDrag(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerDrag(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, Drag, Drag);
 }
-void ULGUIEventSystem::CallOnPointerEndDrag(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerEndDrag(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	if (!isEndDragFiredAtCurrentFrame)
 	{
@@ -869,16 +873,16 @@ void ULGUIEventSystem::CallOnPointerEndDrag(USceneComponent* component, FLGUIPoi
 	}
 }
 
-void ULGUIEventSystem::CallOnPointerScroll(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerScroll(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, Scroll, Scroll);
 }
 
-void ULGUIEventSystem::CallOnPointerDragEnter(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerDragEnter(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DragEnterExit, DragEnter);
 }
-void ULGUIEventSystem::CallOnPointerDragExit(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerDragExit(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	if (!isDragExitFiredAtCurrentFrame)
 	{
@@ -886,16 +890,16 @@ void ULGUIEventSystem::CallOnPointerDragExit(USceneComponent* component, FLGUIPo
 		CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DragEnterExit, DragExit);
 	}
 }
-void ULGUIEventSystem::CallOnPointerDragDrop(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerDragDrop(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DragDrop, DragDrop);
 }
 
-void ULGUIEventSystem::CallOnPointerSelect(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerSelect(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, SelectDeselect, Select);
 }
-void ULGUIEventSystem::CallOnPointerDeselect(USceneComponent* component, FLGUIPointerEventData& inEventData, bool eventFireOnAll)
+void ULGUIEventSystem::CallOnPointerDeselect(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, SelectDeselect, Deselect);
 }

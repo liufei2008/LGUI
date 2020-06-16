@@ -74,7 +74,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")bool GetState() { return IsOn; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		virtual void SetState(bool newState, bool fireEvent = true);
-	virtual bool OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 
 	void RegisterToggleEvent(const FLGUIBoolDelegate& InDelegate);
 	void UnregisterToggleEvent(const FLGUIBoolDelegate& InDelegate);

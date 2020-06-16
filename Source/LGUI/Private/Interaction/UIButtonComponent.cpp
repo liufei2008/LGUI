@@ -3,7 +3,7 @@
 #include "Interaction/UIButtonComponent.h"
 #include "LGUI.h"
 
-bool UUIButtonComponent::OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIButtonComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
 	if (OnClickCPP.IsBound())OnClickCPP.Broadcast();
 	OnClick.FireEvent();

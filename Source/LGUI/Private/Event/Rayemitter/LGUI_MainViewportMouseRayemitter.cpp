@@ -184,7 +184,7 @@ bool ULGUI_MainViewportMouseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& 
 #endif
 	return false;
 }
-bool ULGUI_MainViewportMouseRayEmitter::ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData)
+bool ULGUI_MainViewportMouseRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	FVector2D mousePos;
 	if (GetMousePosition(mousePos))
@@ -193,7 +193,7 @@ bool ULGUI_MainViewportMouseRayEmitter::ShouldStartDrag(const FLGUIPointerEventD
 	}
 	return false;
 }
-void ULGUI_MainViewportMouseRayEmitter::MarkPress(const FLGUIPointerEventData& InPointerEventData)
+void ULGUI_MainViewportMouseRayEmitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
 	GetMousePosition(pressMousePos);
 }

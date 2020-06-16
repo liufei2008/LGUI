@@ -117,14 +117,14 @@ void UUIScrollbarComponent::UnregisterSlideEvent(const FLGUIDelegateHandleWrappe
 	OnValueChangeCPP.Remove(InDelegateHandle.DelegateHandle);
 }
 
-bool UUIScrollbarComponent::OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerDown_Implementation(eventData);
 	if (CheckHandle())
 	{
-		if (eventData.currentComponent != Handle)
+		if (eventData->enterComponent != Handle)
 		{
-			const auto& pointerInHandleAreaSpace = HandleArea->GetComponentTransform().InverseTransformPosition(eventData.worldPoint);
+			const auto& pointerInHandleAreaSpace = HandleArea->GetComponentTransform().InverseTransformPosition(eventData->worldPoint);
 			float value01 = Value;
 			switch (DirectionType)
 			{
@@ -195,33 +195,33 @@ bool UUIScrollbarComponent::OnPointerDown_Implementation(const FLGUIPointerEvent
 	}
 	return AllowEventBubbleUp;
 }
-bool UUIScrollbarComponent::OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollbarComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerUp_Implementation(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUIScrollbarComponent::OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollbarComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	PressValue = Value;
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUIScrollbarComponent::OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollbarComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUIScrollbarComponent::OnPointerEndDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollbarComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
 }
 
-void UUIScrollbarComponent::CalculateInputValue(const FLGUIPointerEventData& eventData)
+void UUIScrollbarComponent::CalculateInputValue(ULGUIPointerEventData* eventData)
 {
 	if (CheckHandle())
 	{
-		auto localCumulativeMoveDelta = eventData.pressWorldToLocalTransform.TransformVector(eventData.GetWorldPointInPlane() - eventData.pressWorldPoint);
+		auto localCumulativeMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(eventData->GetWorldPointInPlane() - eventData->pressWorldPoint);
 		localCumulativeMoveDelta.Z = 0;
 		float slideAreaSize = 0;
 		float handleSize = 0;

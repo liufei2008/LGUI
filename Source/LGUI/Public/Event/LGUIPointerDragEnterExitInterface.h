@@ -19,8 +19,8 @@ class LGUI_API ILGUIPointerDragEnterExitInterface
 public:
 	//Called when dragging a object and pointer enter another object
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerDragEnter(const FLGUIPointerEventData& eventData);
+		bool OnPointerDragEnter(ULGUIPointerEventData* eventData);
 	//Called when dragging a object and pointer exit another object
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerDragExit(const FLGUIPointerEventData& eventData);
+		bool OnPointerDragExit(ULGUIPointerEventData* eventData);
 };
