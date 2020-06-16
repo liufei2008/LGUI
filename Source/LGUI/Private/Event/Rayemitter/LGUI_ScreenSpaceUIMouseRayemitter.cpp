@@ -68,7 +68,7 @@ void ULGUI_ScreenSpaceUIMouseRayemitter::DeprojectViewPointToWorld(const FMatrix
 	OutWorldDirection = RayDirWorldSpace;
 }
 
-bool ULGUI_ScreenSpaceUIMouseRayemitter::ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData)
+bool ULGUI_ScreenSpaceUIMouseRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	FVector2D mousePos;
 	if (this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos))
@@ -77,7 +77,7 @@ bool ULGUI_ScreenSpaceUIMouseRayemitter::ShouldStartDrag(const FLGUIPointerEvent
 	}
 	return false;
 }
-void ULGUI_ScreenSpaceUIMouseRayemitter::MarkPress(const FLGUIPointerEventData& InPointerEventData)
+void ULGUI_ScreenSpaceUIMouseRayemitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
 	this->GetWorld()->GetGameViewport()->GetMousePosition(pressMountPos);
 }

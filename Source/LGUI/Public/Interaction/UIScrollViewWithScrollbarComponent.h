@@ -41,8 +41,8 @@ protected:
 	virtual void CalculateVerticalRange()override;
 	virtual bool CheckValidHit(USceneComponent* InHitComp)override;
 	virtual void UpdateProgress(bool InFireEvent = true)override;
-	virtual bool OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerScroll_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
 	UPROPERTY(Transient)class UUIScrollbarComponent* HorizontalScrollbarComp = nullptr;
 	UPROPERTY(Transient)class UUIScrollbarComponent* VerticalScrollbarComp = nullptr;
 	bool CheckScrollbarParameter();

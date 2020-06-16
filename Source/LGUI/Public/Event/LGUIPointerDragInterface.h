@@ -19,11 +19,11 @@ class LGUI_API ILGUIPointerDragInterface
 public:
 	//Called when drag a object begin
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerBeginDrag(const FLGUIPointerEventData& eventData);
+		bool OnPointerBeginDrag(ULGUIPointerEventData* eventData);
 	//Called when drag a object
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerDrag(const FLGUIPointerEventData& eventData);
+		bool OnPointerDrag(ULGUIPointerEventData* eventData);
 	//Called when drag a object end
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
-		bool OnPointerEndDrag(const FLGUIPointerEventData& eventData);
+		bool OnPointerEndDrag(ULGUIPointerEventData* eventData);
 };

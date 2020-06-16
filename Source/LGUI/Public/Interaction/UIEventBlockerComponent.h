@@ -32,18 +32,18 @@ class LGUI_API UUIEventBlockerComponent : public UActorComponent
 	GENERATED_BODY()
 protected:
 	UPROPERTY(EditAnywhere, Category = "UIEventBlocker") bool AllowEventBubbleUp = false;
-	virtual bool OnPointerEnter_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerExit_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerEndDrag_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDragEnter_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDragExit_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDragDrop_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerScroll_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDown_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDragEnter_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDragExit_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDragDrop_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)override;
 };

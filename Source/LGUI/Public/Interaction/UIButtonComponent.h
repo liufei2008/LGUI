@@ -20,7 +20,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Button")
 		FLGUIDrawableEvent OnClick = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Empty);
 	FSimpleMulticastDelegate OnClickCPP;
-	virtual bool OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 public:
 	//Register click event
 	void RegisterClickEvent(const FSimpleDelegate& InDelegate);

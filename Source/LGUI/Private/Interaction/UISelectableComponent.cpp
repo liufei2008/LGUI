@@ -267,40 +267,40 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 	}
 }
 
-bool UUISelectableComponent::OnPointerEnter_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISelectableComponent::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
 {
 	IsPointerInsideThis = true;
 	CurrentSelectionState = EUISelectableSelectionState::Highlighted;
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
-bool UUISelectableComponent::OnPointerExit_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISelectableComponent::OnPointerExit_Implementation(ULGUIPointerEventData* eventData)
 {
 	IsPointerInsideThis = false;
 	CurrentSelectionState = EUISelectableSelectionState::Normal;
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
-bool UUISelectableComponent::OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISelectableComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
 	CurrentSelectionState = EUISelectableSelectionState::Pressed;
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
-bool UUISelectableComponent::OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISelectableComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
 {
 	CurrentSelectionState = IsPointerInsideThis ? EUISelectableSelectionState::Highlighted : EUISelectableSelectionState::Normal;
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
-bool UUISelectableComponent::OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISelectableComponent::OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)
 {
 	IsPointerInsideThis = true;
 	CurrentSelectionState = EUISelectableSelectionState::Highlighted;
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
-bool UUISelectableComponent::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
+bool UUISelectableComponent::OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)
 {
 	IsPointerInsideThis = false;
 	CurrentSelectionState = EUISelectableSelectionState::Normal;

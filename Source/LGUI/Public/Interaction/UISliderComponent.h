@@ -76,14 +76,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		void UnregisterSlideEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 public:
-	virtual bool OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)override;
-	virtual bool OnPointerEndDrag_Implementation(const FLGUIPointerEventData& eventData)override;
+	virtual bool OnPointerDown_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
 private:
 	bool CheckFill();
 	bool CheckHandle();
-	void CalculateInputValue(const FLGUIPointerEventData& eventData);
+	void CalculateInputValue(ULGUIPointerEventData* eventData);
 	void ApplyValueToUI();
 };

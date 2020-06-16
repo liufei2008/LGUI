@@ -1097,7 +1097,7 @@ void UUITextInputComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 	DeactivateInput();
 }
 
-bool UUITextInputComponent::OnPointerEnter_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerEnter_Implementation(eventData);
 	if (APlayerController* pc = this->GetWorld()->GetFirstPlayerController())
@@ -1106,7 +1106,7 @@ bool UUITextInputComponent::OnPointerEnter_Implementation(const FLGUIPointerEven
 	}
 	return AllowEventBubbleUp;
 }
-bool UUITextInputComponent::OnPointerExit_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerExit_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerExit_Implementation(eventData);
 	if (APlayerController* pc = this->GetWorld()->GetFirstPlayerController())
@@ -1115,19 +1115,19 @@ bool UUITextInputComponent::OnPointerExit_Implementation(const FLGUIPointerEvent
 	}
 	return AllowEventBubbleUp;
 }
-bool UUITextInputComponent::OnPointerSelect_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerSelect_Implementation(eventData);
 	//ActivateInput();//handled at PointerClick
 	return AllowEventBubbleUp;
 }
-bool UUITextInputComponent::OnPointerDeselect_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerDeselect_Implementation(eventData);
 	DeactivateInput();
 	return AllowEventBubbleUp;
 }
-bool UUITextInputComponent::OnPointerClick_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
 	if (!bInputActive)//need active input
 	{
@@ -1135,7 +1135,7 @@ bool UUITextInputComponent::OnPointerClick_Implementation(const FLGUIPointerEven
 	}
 	return AllowEventBubbleUp;
 }
-bool UUITextInputComponent::OnPointerBeginDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	if (bInputActive)
 	{
@@ -1146,7 +1146,7 @@ bool UUITextInputComponent::OnPointerBeginDrag_Implementation(const FLGUIPointer
 		return true;
 	}
 }
-bool UUITextInputComponent::OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	if (bInputActive)
 	{
@@ -1154,7 +1154,7 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(const FLGUIPointerEvent
 		{
 			FVector2D caretPosition;
 			int tempCaretPositionLineIndex;
-			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), caretPosition, tempCaretPositionLineIndex, CaretPositionIndex);
+			TextActor->GetUIText()->FindCaretByPosition(eventData->GetWorldPointInPlane(), caretPosition, tempCaretPositionLineIndex, CaretPositionIndex);
 			int displayTextLength = TextActor->GetUIText()->GetText().Len();//visible text length
 
 			//@todo:caret move speed depend on drag distance
@@ -1199,7 +1199,7 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(const FLGUIPointerEvent
 		return true;
 	}
 }
-bool UUITextInputComponent::OnPointerEndDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	if (bInputActive)
 	{
@@ -1210,7 +1210,7 @@ bool UUITextInputComponent::OnPointerEndDrag_Implementation(const FLGUIPointerEv
 		return true;
 	}
 }
-bool UUITextInputComponent::OnPointerDown_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerDown_Implementation(eventData);
 	if (bInputActive)//if already active, then put caret position at mouse position
@@ -1218,7 +1218,7 @@ bool UUITextInputComponent::OnPointerDown_Implementation(const FLGUIPointerEvent
 		if (TextActor != nullptr)
 		{
 			UpdateUITextComponent();
-			TextActor->GetUIText()->FindCaretByPosition(eventData.GetWorldPointInPlane(), PressCaretPosition, PressCaretPositionLineIndex, PressCaretPositionIndex);
+			TextActor->GetUIText()->FindCaretByPosition(eventData->GetWorldPointInPlane(), PressCaretPosition, PressCaretPositionLineIndex, PressCaretPositionIndex);
 			PressCaretPositionIndex = PressCaretPositionIndex + VisibleCharStartIndex;
 			CaretPositionIndex = PressCaretPositionIndex;
 			PressCaretPositionLineIndex = PressCaretPositionLineIndex + VisibleCharStartLineIndex;
@@ -1230,7 +1230,7 @@ bool UUITextInputComponent::OnPointerDown_Implementation(const FLGUIPointerEvent
 
 	return AllowEventBubbleUp;
 }
-bool UUITextInputComponent::OnPointerUp_Implementation(const FLGUIPointerEventData& eventData)
+bool UUITextInputComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerUp_Implementation(eventData);
 	return AllowEventBubbleUp;

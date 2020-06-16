@@ -184,7 +184,7 @@ public:
 	void FireEvent(FString InParam)const;
 	void FireEvent(UObject* InParam)const;
 	void FireEvent(AActor* InParam)const;
-	void FireEvent(const FLGUIPointerEventData& InParam)const;
+	void FireEvent(ULGUIPointerEventData* InParam)const;
 };
 
 

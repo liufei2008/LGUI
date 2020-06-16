@@ -221,7 +221,7 @@ bool ULGUI_SceneCapture2DMouseRayEmitter::ProjectWorldToViewPointForSceneCapture
 	}
 	return false;
 }
-bool ULGUI_SceneCapture2DMouseRayEmitter::ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData)
+bool ULGUI_SceneCapture2DMouseRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	FVector2D mousePos;
 	if (this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos))
@@ -230,7 +230,7 @@ bool ULGUI_SceneCapture2DMouseRayEmitter::ShouldStartDrag(const FLGUIPointerEven
 	}
 	return false;
 }
-void ULGUI_SceneCapture2DMouseRayEmitter::MarkPress(const FLGUIPointerEventData& InPointerEventData)
+void ULGUI_SceneCapture2DMouseRayEmitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
 	this->GetWorld()->GetGameViewport()->GetMousePosition(pressMountPos);
 }

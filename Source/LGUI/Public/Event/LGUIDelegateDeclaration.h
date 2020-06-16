@@ -18,5 +18,5 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastStringDelegate, const FString&
 
 DECLARE_DELEGATE_ThreeParams(FLGUIHitDelegate, bool, const FHitResult&, USceneComponent*);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FLGUIMulticastHitDelegate, bool, const FHitResult&, USceneComponent*);
-DECLARE_DELEGATE_OneParam(FLGUIPointerEventDelegate, const FLGUIPointerEventData&);
-DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastPointerEventDelegate, const FLGUIPointerEventData&);
+DECLARE_DELEGATE_OneParam(FLGUIPointerEventDelegate, ULGUIPointerEventData*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastPointerEventDelegate, ULGUIPointerEventData*);

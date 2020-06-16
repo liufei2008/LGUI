@@ -13,14 +13,14 @@ void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool positionCha
 }
 
 
-bool UUIScrollViewWithScrollbarComponent::OnPointerDrag_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollViewWithScrollbarComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerDrag_Implementation(eventData);
 	ValueIsSetFromHorizontalScrollbar = false;
 	ValueIsSetFromVerticalScrollbar = false;
 	return AllowEventBubbleUp;
 }
-bool UUIScrollViewWithScrollbarComponent::OnPointerScroll_Implementation(const FLGUIPointerEventData& eventData)
+bool UUIScrollViewWithScrollbarComponent::OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerScroll_Implementation(eventData);
 	ValueIsSetFromHorizontalScrollbar = false;

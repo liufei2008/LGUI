@@ -30,8 +30,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	float GetClickThreshold() { return clickThreshold; }
 	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors);
-	virtual bool ShouldStartDrag(const FLGUIPointerEventData& InPointerEventData);
-	virtual void MarkPress(const FLGUIPointerEventData& InPointerEventData) {};
+	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData);
+	virtual void MarkPress(ULGUIPointerEventData* InPointerEventData) {};
 	virtual FVector GetCurrentRayOrigin() { return currentRayOrigin; }
 	virtual FVector GetCurrentRayDirection() { return currentRayDirection; }
 };
