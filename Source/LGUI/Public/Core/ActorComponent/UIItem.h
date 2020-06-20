@@ -287,6 +287,10 @@ public:
 		int32 GetHierarchyIndex() const { return hierarchyIndex; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetHierarchyIndex(int32 InInt);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetAsFirstHierarchy();
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetAsLastHierarchy();
 #pragma region Collider
 protected:
 	//if this is a raycastTarget? means LineTrace can hit this or not. for EventSystem interaction
