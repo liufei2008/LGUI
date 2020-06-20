@@ -200,3 +200,9 @@
     Fix:
         Fix virtual cameram draw issue of LGUICanvasScaler.
         Fix a build warning of bind none const function.
+2.7.2
+    Change:
+        Change FLGUIPointerEventData to ULGUIPointerEventData.
+        Delete LGUIPointerEventData's currentComponent, use enterComponent instead.
+    Improve:
+        Auto UIItem's hierarchyIndex management.
