@@ -188,6 +188,8 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 
+	PrefabDeserializingActorCollection.Reset();
+
 	//UE_LOG(LGUI, Display, TEXT("Dserialize Prefab Duration:%s"), *((FDateTime::Now() - StartTime).ToString()));
 	return CreatedActor;
 }
@@ -203,6 +205,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
+		PrefabDeserializingActorCollection.Add(NewActor);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties());
 		CreatedActors.Add(NewActor);
 
@@ -335,6 +338,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
+		PrefabDeserializingActorCollection.Add(NewActor);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties());
 		CreatedActors.Add(NewActor);
 
@@ -1700,4 +1704,10 @@ UClass* ActorSerializer::FindClassFromListByIndex(int32 Id)
 		return nullptr;
 	}
 	return ReferenceClassList[Id];
+}
+
+TArray<AActor*> ActorSerializer::PrefabDeserializingActorCollection;
+bool ActorSerializer::IsDeserializingActor(AActor* InActor)
+{
+	return PrefabDeserializingActorCollection.Contains(InActor);
 }

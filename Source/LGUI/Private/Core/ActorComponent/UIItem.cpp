@@ -9,6 +9,7 @@
 #include "Core/LGUIBehaviour.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "PrefabSystem/ActorSerializer.h"
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
 #endif
@@ -38,10 +39,8 @@ void UUIItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (auto parent = GetAttachParent())
-	{
-		cacheParentUIItem = Cast<UUIItem>(parent);
-	}
+	cacheParentUIItem = nullptr;
+	GetParentAsUIItem();
 	CheckRenderCanvas();
 	bVertexPositionChanged = true;
 	bColorChanged = true;
@@ -215,9 +214,15 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 { 
 	if (InInt != hierarchyIndex)
 	{
-		hierarchyIndex = InInt;
 		if (IsValid(cacheParentUIItem))
 		{
+			hierarchyIndex = InInt;
+			cacheParentUIItem->SortCacheUIChildren();
+			for (int i = 0; i < cacheParentUIItem->cacheUIChildren.Num(); i++)
+			{
+				cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex = i;
+			}
+
 			cacheParentUIItem->OnChildHierarchyIndexChanged(this);
 		}
 	}
@@ -230,13 +235,9 @@ void UUIItem::MarkAllDirtyRecursive()
 	bDepthChanged = true;
 	bTransformChanged = true;
 
-	auto& children = this->GetAttachChildren();
-	for (auto child : children)
+	for (auto uiChild : cacheUIChildren)
 	{
-		if (UUIItem* uiChild = Cast<UUIItem>(child))
-		{
-			uiChild->MarkAllDirtyRecursive();
-		}
+		uiChild->MarkAllDirtyRecursive();
 	}
 }
 
@@ -406,7 +407,18 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 	if (GetWorld() == nullptr)return;
 	if (UUIItem* childUIItem = Cast<UUIItem>(ChildComponent))
 	{
+		//UE_LOG(LGUI, Error, TEXT("OnChildAttached:%s, registered:%d"), *(childUIItem->GetOwner()->GetActorLabel()), childUIItem->IsRegistered());
 		MarkVertexPositionDirty();
+		//hierarchy index
+		if (!ActorSerializer::IsDeserializingActor(this->GetOwner()))//when load from prefab, then not set hierarchy index
+		{
+			if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+			{
+				childUIItem->hierarchyIndex = cacheUIChildren.Num();
+			}
+		}
+		cacheUIChildren.Add(childUIItem);
+		SortCacheUIChildren();
 		//interaction group
 		childUIItem->allUpParentGroupAllowInteraction = this->IsGroupAllowInteraction();
 		childUIItem->SetInteractionGroupStateChange();
@@ -427,7 +439,13 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 	if (auto childUIItem = Cast<UUIItem>(ChildComponent))
 	{
 		MarkVertexPositionDirty();
-
+		//hierarchy index
+		cacheUIChildren.Remove(childUIItem);
+		for (int i = 0; i < cacheUIChildren.Num(); i++)
+		{
+			cacheUIChildren[i]->hierarchyIndex = i;
+		}
+		
 		CallUIComponentsChildAttachmentChanged(childUIItem, false);
 	}
 	MarkCanvasUpdate();
@@ -435,6 +453,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 void UUIItem::OnRegister()
 {
 	Super::OnRegister();
+	//UE_LOG(LGUI, Error, TEXT("OnRegister:%s, registered:%d"), *(this->GetOwner()->GetActorLabel()), this->IsRegistered());
 	LGUIManager::AddUIItem(this);
 #if WITH_EDITORONLY_DATA
 	if (GetWorld())
@@ -475,6 +494,16 @@ void UUIItem::OnUnregister()
 #endif
 }
 
+void UUIItem::SortCacheUIChildren()
+{
+	cacheUIChildren.Sort([](const UUIItem& A, const UUIItem& B)
+	{
+		if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
+			return true;
+		return false;
+	});
+}
+
 void UUIItem::UIHierarchyChanged()
 {
 	auto oldRenderCanvas = RenderCanvas;
@@ -510,56 +539,49 @@ void UUIItem::UIHierarchyChanged()
 	}
 	MarkVertexPositionDirty();
 
-	const auto& children = GetAttachChildren();
-	for (auto item : children)
+	for (auto uiItem : cacheUIChildren)
 	{
-		auto uiItem = Cast<UUIItem>(item);
-		if (uiItem)
-		{
-			uiItem->UIHierarchyChanged();
-		}
+		uiItem->UIHierarchyChanged();
 	}
 
-	if (auto parent = GetAttachParent())
+	cacheParentUIItem = nullptr;
+	GetParentAsUIItem();
+	if (IsValid(cacheParentUIItem))
 	{
-		cacheParentUIItem = Cast<UUIItem>(parent);
-		if (IsValid(cacheParentUIItem))
+		//calculate dimensions
+		switch (widget.anchorHAlign)
 		{
-			//calculate dimensions
-			switch (widget.anchorHAlign)
-			{
-			case UIAnchorHorizontalAlign::None:
-				break;
-			case UIAnchorHorizontalAlign::Left:
-			case UIAnchorHorizontalAlign::Center:
-			case UIAnchorHorizontalAlign::Right:
-			{
-				CalculateHorizontalStretchFromAnchorAndSize();
-			}
+		case UIAnchorHorizontalAlign::None:
 			break;
-			case UIAnchorHorizontalAlign::Stretch:
-			{
-				CalculateHorizontalAnchorAndSizeFromStretch();
-			}
+		case UIAnchorHorizontalAlign::Left:
+		case UIAnchorHorizontalAlign::Center:
+		case UIAnchorHorizontalAlign::Right:
+		{
+			CalculateHorizontalStretchFromAnchorAndSize();
+		}
+		break;
+		case UIAnchorHorizontalAlign::Stretch:
+		{
+			CalculateHorizontalAnchorAndSizeFromStretch();
+		}
+		break;
+		}
+		switch (widget.anchorVAlign)
+		{
+		case UIAnchorVerticalAlign::None:
 			break;
-			}
-			switch (widget.anchorVAlign)
-			{
-			case UIAnchorVerticalAlign::None:
-				break;
-			case UIAnchorVerticalAlign::Bottom:
-			case UIAnchorVerticalAlign::Middle:
-			case UIAnchorVerticalAlign::Top:
-			{
-				CalculateVerticalStretchFromAnchorAndSize();
-			}
-			break;
-			case UIAnchorVerticalAlign::Stretch:
-			{
-				CalculateVerticalAnchorAndSizeFromStretch();
-			}
-			break;
-			}
+		case UIAnchorVerticalAlign::Bottom:
+		case UIAnchorVerticalAlign::Middle:
+		case UIAnchorVerticalAlign::Top:
+		{
+			CalculateVerticalStretchFromAnchorAndSize();
+		}
+		break;
+		case UIAnchorVerticalAlign::Stretch:
+		{
+			CalculateVerticalAnchorAndSizeFromStretch();
+		}
+		break;
 		}
 	}
 }
@@ -1423,18 +1445,10 @@ bool UUIItem::IsGroupAllowInteraction()
 }
 void UUIItem::SetChildInteractionGroupStateChangeRecursive(bool InParentInteractable)
 {
-	if (auto ownerActor = GetOwner())
+	for (auto uiChild : cacheUIChildren)
 	{
-		TArray<AActor*> ChildrenActor;
-		ownerActor->GetAttachedActors(ChildrenActor);
-		for (auto childActor : ChildrenActor)
-		{
-			if (auto childUIItem = Cast<UUIItem>(childActor->GetRootComponent()))
-			{
-				childUIItem->allUpParentGroupAllowInteraction = InParentInteractable;
-				childUIItem->SetInteractionGroupStateChange();
-			}
-		}
+		uiChild->allUpParentGroupAllowInteraction = InParentInteractable;
+		uiChild->SetInteractionGroupStateChange();
 	}
 }
 
@@ -1476,31 +1490,27 @@ void UUIItem::OnChildActiveStateChanged(UUIItem* child)
 
 void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
 {
-	auto& children = this->GetAttachChildren();
-	for (auto child : children)
+	for (auto uiChild : cacheUIChildren)
 	{
-		if (UUIItem* uiChild = Cast<UUIItem>(child))
+		//state is changed
+		if (uiChild->bIsUIActive &&//when child is active, then parent's active state can affect child
+			(uiChild->allUpParentUIActive != InUpParentUIActive)//state change
+			)
 		{
-			//state is changed
-			if (uiChild->bIsUIActive &&//when child is active, then parent's active state can affect child
-				(uiChild->allUpParentUIActive != InUpParentUIActive)//state change
-				)
-			{
-				uiChild->allUpParentUIActive = InUpParentUIActive;
-				//apply for state change
-				uiChild->ApplyUIActiveState();
-				//affect children
-				uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
-				//callback for parent
-				this->OnChildActiveStateChanged(uiChild);
-			}
-			//state not changed
-			else
-			{
-				uiChild->allUpParentUIActive = InUpParentUIActive;
-				//affect children
-				uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
-			}
+			uiChild->allUpParentUIActive = InUpParentUIActive;
+			//apply for state change
+			uiChild->ApplyUIActiveState();
+			//affect children
+			uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
+			//callback for parent
+			this->OnChildActiveStateChanged(uiChild);
+		}
+		//state not changed
+		else
+		{
+			uiChild->allUpParentUIActive = InUpParentUIActive;
+			//affect children
+			uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
 		}
 	}
 }
@@ -1710,31 +1720,25 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 							}
 						}
 						//child selected
-						const auto childrenCompArray = Component->GetAttachChildren();
-						for (auto childComp : childrenCompArray)
+						const auto childrenCompArray = Component->GetAttachUIChildren();
+						for (auto uiComp : childrenCompArray)
 						{
-							if (auto uiComp = Cast<UUIItem>(childComp))
+							if (LGUIManager::IsSelected_Editor(uiComp->GetOwner()))
 							{
-								if (LGUIManager::IsSelected_Editor(uiComp->GetOwner()))
-								{
-									canDraw = true;
-									break;
-								}
+								canDraw = true;
+								break;
 							}
 						}
 						//other object of same hierarchy is selected
 						if (IsValid(Component->GetParentAsUIItem()))
 						{
-							const auto& sameLevelCompArray = Component->GetParentAsUIItem()->GetAttachChildren();
-							for (auto childComp : sameLevelCompArray)
+							const auto& sameLevelCompArray = Component->GetParentAsUIItem()->GetAttachUIChildren();
+							for (auto uiComp : sameLevelCompArray)
 							{
-								if (auto uiComp = Cast<UUIItem>(childComp))
+								if (LGUIManager::IsSelected_Editor(uiComp->GetOwner()))
 								{
-									if (LGUIManager::IsSelected_Editor(uiComp->GetOwner()))
-									{
-										canDraw = true;
-										break;
-									}
+									canDraw = true;
+									break;
 								}
 							}
 						}

@@ -99,7 +99,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		auto hierarchyIndexHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex));
 		DetailBuilder.HideProperty(hierarchyIndexHandle);
 		hierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-			SetHierarchyIndexInfo(TargetScriptArray[0]);
 			ForceUpdateUI();
 			FLGUIEditorModule::Instance->RefreshSceneOutliner();
 		}));
@@ -123,7 +122,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				for (auto item : TargetScriptArray)
 				{
 					item->SetHierarchyIndex(item->hierarchyIndex + 1);
-					SetHierarchyIndexInfo(item);
 					ForceUpdateUI();
 				}
 				FLGUIEditorModule::Instance->RefreshSceneOutliner();
@@ -142,7 +140,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				for (auto item : TargetScriptArray)
 				{
 					item->SetHierarchyIndex(item->hierarchyIndex - 1);
-					SetHierarchyIndexInfo(item);
 					ForceUpdateUI();
 				}
 				FLGUIEditorModule::Instance->RefreshSceneOutliner();
@@ -159,14 +156,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		[
 			hierarchyIndexWidget
 		];
-
-		lguiCategory.AddCustomRow(LOCTEXT("HierarchyIndexInfo", "HierarchyIndexInfo"), true)
-			.ValueContent()
-			[
-				SAssignNew(HierarchyIndexTextBlock, STextBlock)
-				.Text(FText::FromString("SharedCount:0"))
-			];
-		SetHierarchyIndexInfo(TargetScriptArray[0]);
 	}
 	DetailBuilder.HideCategory("TransformCommon");
 	IDetailCategoryBuilder& transformCategory = DetailBuilder.EditCategory("LGUITransform", LOCTEXT("LGUI Transform", "LGUI Transform"), ECategoryPriority::Transform);
@@ -750,27 +739,6 @@ void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScri
 			}
 		}
 	}
-}
-void FUIItemCustomization::SetHierarchyIndexInfo(TWeakObjectPtr<class UUIItem> InTargetScript)
-{
-	int sameIndexCount = 0;
-	if (auto parentSceneComp = InTargetScript->GetAttachParent())
-	{
-		auto hierarchyIndex = InTargetScript->hierarchyIndex;
-		const auto& childrenList = parentSceneComp->GetAttachChildren();
-		for (auto childSceneComp : childrenList)
-		{
-			if (auto uiChild = Cast<UUIItem>(childSceneComp))
-			{
-				if (uiChild->hierarchyIndex == hierarchyIndex)
-				{
-					sameIndexCount++;
-				}
-			}
-		}
-		
-	}
-	HierarchyIndexTextBlock->SetText(FString::Printf(TEXT("SharedCount:%d"), sameIndexCount));
 }
 void FUIItemCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
