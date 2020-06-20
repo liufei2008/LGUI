@@ -6,6 +6,7 @@
 
 ULGUIBaseRayEmitter::ULGUIBaseRayEmitter()
 {
+	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 void ULGUIBaseRayEmitter::BeginPlay()

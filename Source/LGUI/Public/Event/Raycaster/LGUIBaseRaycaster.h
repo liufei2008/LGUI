@@ -27,8 +27,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
-	virtual void OnRegister()override;
-	virtual void OnUnregister()override;
 
 	friend class FUIBaseRaycasterCustomization;
 
