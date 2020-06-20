@@ -45,12 +45,6 @@ class LGUI_API ULGUIPointerEventData: public UObject
 {
 	GENERATED_BODY()
 public:
-	//current event target component
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DeprecatedProperty, DeprecatedMessage="This property will be removed in future release"))
-		USceneComponent* currentComponent = nullptr;
-
-
-
 	//enterred component
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		USceneComponent* enterComponent = nullptr;
