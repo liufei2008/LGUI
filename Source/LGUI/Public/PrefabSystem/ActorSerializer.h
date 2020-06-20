@@ -424,4 +424,9 @@ private:
 	static const int ItemType_Array = 1;
 	static const int ItemType_Map = 2;
 	static const int ItemType_Set = 3;
+
+private:
+	static TArray<AActor*> PrefabDeserializingActorCollection;
+public:
+	static bool IsDeserializingActor(AActor* InActor);
 };

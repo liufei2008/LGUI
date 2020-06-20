@@ -61,14 +61,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		{
 			if (canvas->GetRenderMode() == ELGUIRenderMode::WorldSpace)
 			{
-				lguiCategory.AddCustomRow(LOCTEXT("NothingDisplay", "NothingDisplay"))
-				.WholeRowContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(FString(TEXT("Nothing for WorldSpace canvas"))))
-					.ColorAndOpacity(FSlateColor(FLinearColor::Green))
-					.AutoWrapText(true)
-				];
+				needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, TestWithEditorViewportSize));
 			}
 			else if (canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
