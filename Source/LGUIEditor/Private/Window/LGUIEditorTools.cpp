@@ -620,6 +620,12 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 				selectedFilePath.RemoveFromStart(FPaths::ProjectContentDir(), ESearchCase::CaseSensitive);
 				FString packageName = TEXT("/Game/") + selectedFilePath;
 				UPackage* package = CreatePackage(NULL, *packageName);
+				if (package == nullptr)
+				{
+					FMessageDialog::Open(EAppMsgType::Ok
+						, FText::FromString(FString::Printf(TEXT("Selected path not valid, please choose another path to save prefab."))));
+					return;
+				}
 				package->FullyLoad();
 				FString fileName = FPaths::GetBaseFilename(selectedFilePath);
 				auto OutPrefab = NewObject<ULGUIPrefab>((UObject*)package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
