@@ -12,6 +12,7 @@
 
 ULGUIBaseRaycaster::ULGUIBaseRaycaster()
 {
+	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 void ULGUIBaseRaycaster::BeginPlay()
@@ -23,14 +24,6 @@ void ULGUIBaseRaycaster::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	DeactivateRaycaster();
-}
-void ULGUIBaseRaycaster::OnRegister()
-{
-	Super::OnRegister();
-}
-void ULGUIBaseRaycaster::OnUnregister()
-{
-	Super::OnUnregister();
 }
 void ULGUIBaseRaycaster::ActivateRaycaster()
 {
