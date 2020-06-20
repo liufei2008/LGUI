@@ -122,6 +122,8 @@ protected:
 	float calculatedParentAlpha = 1.0f;
 	//parent in hierarchy
 	UPROPERTY(Transient) mutable UUIItem* cacheParentUIItem = nullptr;
+	UPROPERTY(Transient) TArray<UUIItem*> cacheUIChildren;
+	FORCEINLINE void SortCacheUIChildren();
 	//alpha inherit from parent or not
 	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
 		bool inheritAlpha = true;
@@ -224,8 +226,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetLocalSpaceTop()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIItem* GetParentAsUIItem()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const TArray<UUIItem*>& GetAttachUIChildren()const { return cacheUIChildren; }
 
 	void MarkVertexPositionDirty();
 	void MarkColorDirty();
@@ -276,7 +280,7 @@ public:
 protected:
 	//hierarchy index, for layout to sort order
 	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
-		int32 hierarchyIndex;
+		int32 hierarchyIndex = INDEX_NONE;
 	void OnChildHierarchyIndexChanged(UUIItem* child);
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)

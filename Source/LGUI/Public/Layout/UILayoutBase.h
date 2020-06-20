@@ -21,6 +21,8 @@ enum class ELGUILayoutAlignmentType :uint8
 	LowerRight,
 };
 
+class UUILayoutElement;
+
 UCLASS(Abstract)
 class LGUI_API UUILayoutBase :public ULGUIBehaviour
 {
@@ -62,14 +64,14 @@ protected:
 	//called when a valid child is detached
 	virtual void OnDetachValidChild(UUIItem* InChild) {};
 
-	class UUILayoutElement* GetLayoutElement(AActor* Target);
+	UUILayoutElement* GetLayoutElement(AActor* Target);
 	struct FAvaliableChild
 	{
-		UUIItem* uiItem;
-		class UUILayoutElement* layoutElement;
+		TWeakObjectPtr<UUIItem> uiItem;
+		TWeakObjectPtr<UUILayoutElement> layoutElement;
 		bool operator == (const FAvaliableChild& Other)const
 		{
-			return uiItem == Other.uiItem;
+			return uiItem.Get() == Other.uiItem.Get();
 		}
 	};
 	const TArray<FAvaliableChild>& GetAvailableChildren() { return availableChildrenArray; }

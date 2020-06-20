@@ -48,27 +48,24 @@ void UUILayoutBase::RebuildChildrenList()
 	if (CheckRootUIComponent())
 	{
 		availableChildrenArray.Reset();
-		const auto& children = RootUIComp->GetAttachChildren();
-		for (auto item : children)
+		const auto& children = RootUIComp->GetAttachUIChildren();
+		for (auto uiItem : children)
 		{
-			if (auto uiItem = Cast<UUIItem>(item))
+			if (uiItem->IsUIActiveInHierarchy())
 			{
-				if (uiItem->IsUIActiveInHierarchy())
+				UUILayoutElement* layoutElement = GetLayoutElement(uiItem->GetOwner());
+				if (layoutElement)
 				{
-					UUILayoutElement* layoutElement = GetLayoutElement(uiItem->GetOwner());
-					if (layoutElement)
+					if (layoutElement->GetIgnoreLayout())
 					{
-						if (layoutElement->GetIgnoreLayout())
-						{
-							continue;
-						}
+						continue;
 					}
-					FAvaliableChild child;
-					child.uiItem = uiItem;
-					child.layoutElement = layoutElement;
-					availableChildrenArray.Add(child);
-					OnAttachValidChild(uiItem);
 				}
+				FAvaliableChild child;
+				child.uiItem = uiItem;
+				child.layoutElement = layoutElement;
+				availableChildrenArray.Add(child);
+				OnAttachValidChild(uiItem);
 			}
 		}
 		availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B)//sort children by HierarchyIndex
