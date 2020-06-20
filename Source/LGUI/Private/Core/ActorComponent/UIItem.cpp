@@ -227,6 +227,17 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 		}
 	}
 }
+void UUIItem::SetAsFirstHierarchy()
+{
+	SetHierarchyIndex(-1);
+}
+void UUIItem::SetAsLastHierarchy()
+{
+	if (IsValid(cacheParentUIItem))
+	{
+		SetHierarchyIndex(cacheParentUIItem->GetAttachUIChildren().Num());
+	}
+}
 
 void UUIItem::MarkAllDirtyRecursive()
 {
