@@ -87,7 +87,7 @@ void ULGUICanvas::OnRegister()
 #if WITH_EDITOR
 	LGUIManager::AddCanvas(this);
 #else
-	if (!this->IsDefaultSubobject())//if is default subobject, then call AddCanvas in BeginPlay, because widget.depth value may not set if use PrefabSystem
+	if (!this->IsDefaultSubobject())//if is default subobject, then call AddCanvas in BeginPlay, because sortOrder value may not set if use PrefabSystem
 	{
 		LGUIManager::AddCanvas(this);
 	}
@@ -161,24 +161,13 @@ bool ULGUICanvas::CheckUIItem()
 void ULGUICanvas::OnUIHierarchyChanged()
 {
 	//recheck top most canvas
-	auto oldCanvas = TopMostCanvas;
+	auto oldTopMostCanvas = TopMostCanvas;
 	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
 
 	bool oldIsRenderInScreenOrWorld = currentIsRenderInScreenOrWorld;
 	if (IsValid(TopMostCanvas))
 	{
 		currentIsRenderInScreenOrWorld = TopMostCanvas->IsScreenSpaceOverlayUI();
-	}
-	if (oldCanvas != TopMostCanvas)
-	{
-		if (IsValid(oldCanvas))//remove from old root canvas
-		{
-			oldCanvas->AllCanvasBelongToThis.Remove(this);
-		}
-		if (IsValid(TopMostCanvas))//add to new root canvas
-		{
-			TopMostCanvas->AllCanvasBelongToThis.Add(this);
-		}
 	}
 
 	//if hierarchy changed from World/Hud to Hud/World, then we need to recreate all
@@ -1005,12 +994,12 @@ void ULGUICanvas::SetInheriRectClip(bool newBool)
 		MarkCanvasUpdate();
 	}
 }
-void ULGUICanvas::SetSortOrder(int32 newDepth, bool propagateToChildrenCanvas)
+void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanvas)
 {
-	if (sortOrder != newDepth)
+	if (sortOrder != newSortOrder)
 	{
-		int32 diff = newDepth - sortOrder;
-		sortOrder = newDepth;
+		int32 diff = newSortOrder - sortOrder;
+		sortOrder = newSortOrder;
 		MarkCanvasUpdate();
 		if (propagateToChildrenCanvas)
 		{

@@ -56,7 +56,7 @@ void ULGUIEditorManagerObject::RemoveUIItem(UUIItem* InItem)
 {
 	if (Instance != nullptr)
 	{
-		Instance->allUIItem.Remove(InItem);
+		Instance->allUIItem.RemoveSingle(InItem);
 	}
 }
 
@@ -88,7 +88,7 @@ void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 {
 	if (Instance != nullptr)
 	{
-		Instance->allCanvas.Remove(InCanvas);
+		Instance->allCanvas.RemoveSingle(InCanvas);
 	}
 }
 
@@ -436,7 +436,7 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 {
 	if (Instance != nullptr)
 	{
-		Instance->allUIItem.Remove(InItem);
+		Instance->allUIItem.RemoveSingle(InItem);
 	}
 }
 
@@ -468,7 +468,7 @@ void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
 {
 	if (Instance != nullptr)
 	{
-		Instance->allCanvas.Remove(InCanvas);
+		Instance->allCanvas.RemoveSingle(InCanvas);
 	}
 }
 
