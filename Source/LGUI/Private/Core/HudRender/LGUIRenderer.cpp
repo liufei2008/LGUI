@@ -86,20 +86,17 @@ FLGUIViewExtension::~FLGUIViewExtension()
 
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	TArray<ILGUIHudPrimitive*> primitiveArray;
+	FScopeLock scopeLock(&Mutex);
+	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
 	{
-		FScopeLock scopeLock(&Mutex);
-		for (int i = 0; i < HudPrimitiveArray.Num(); i++)
+		auto hudPrimitive = HudPrimitiveArray[i];
+		if (hudPrimitive != nullptr)
 		{
-			auto hudPrimitive = HudPrimitiveArray[i];
-			if (hudPrimitive != nullptr)
+			if (hudPrimitive->GetIsPostProcess())
 			{
-				if (hudPrimitive->GetIsPostProcess())
+				if (hudPrimitive->GetPostProcessObject().IsValid())
 				{
-					if (hudPrimitive->GetPostProcessObject().IsValid())
-					{
-						hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
-					}
+					hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
 				}
 			}
 		}
@@ -321,7 +318,7 @@ void FLGUIViewExtension::RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 	if (InPrimitive != nullptr)
 	{
 		FScopeLock scopeLock(&Mutex);
-		HudPrimitiveArray.Remove(InPrimitive);
+		HudPrimitiveArray.RemoveSingle(InPrimitive);
 	}
 	else
 	{
