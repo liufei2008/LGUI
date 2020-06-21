@@ -134,8 +134,6 @@ protected:
 	UPROPERTY(Transient) ULGUICanvas* ParentCanvas = nullptr;
 	//check parent Canvas. search for it if not valid
 	FORCEINLINE bool CheckParentCanvas();
-	//collection of canvas that belongs to this in herarchy
-	UPROPERTY(Transient) TArray<ULGUICanvas*> AllCanvasBelongToThis;
 	//sort drawcall
 	void SortDrawcallRenderPriority();
 	//@param	return	drawcall count

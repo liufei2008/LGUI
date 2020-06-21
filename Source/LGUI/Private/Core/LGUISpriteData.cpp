@@ -416,7 +416,7 @@ void ULGUISpriteData::RemoveUISprite(UUISpriteBase* InUISprite)
 {
 	if (auto spriteData = ULGUIAtlasManager::Find(packingTag))
 	{
-		spriteData->renderSpriteArray.Remove(InUISprite);
+		spriteData->renderSpriteArray.RemoveSingle(InUISprite);
 	}
 }
 

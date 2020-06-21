@@ -81,8 +81,8 @@ protected://these funcions are same as UIBaseComponent, for easier to use
 	//Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child) { }
 public:
-	void AddUIBaseComponent(class ULGUIBehaviour* InComp) { UIBaseComponentArray.Add(InComp); }
-	void RemoveUIBaseComponent(class ULGUIBehaviour* InComp) { UIBaseComponentArray.Remove(InComp); }
+	void AddUIBaseComponent(class ULGUIBehaviour* InComp) { UIBaseComponentArray.AddUnique(InComp); }
+	void RemoveUIBaseComponent(class ULGUIBehaviour* InComp) { UIBaseComponentArray.RemoveSingle(InComp); }
 #pragma endregion UIBaseComponent
 protected:
 	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;
