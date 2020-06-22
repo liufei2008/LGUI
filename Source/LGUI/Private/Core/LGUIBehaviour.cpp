@@ -9,6 +9,7 @@
 ULGUIBehaviour::ULGUIBehaviour()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 void ULGUIBehaviour::BeginPlay()
