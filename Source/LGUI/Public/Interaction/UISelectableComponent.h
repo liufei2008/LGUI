@@ -162,6 +162,6 @@ public:
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDown_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerUp_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)override;
+	virtual bool OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)override;
 };

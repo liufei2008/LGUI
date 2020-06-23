@@ -51,11 +51,11 @@ void UUIEventTriggerComponent::RegisterOnPointerScroll(const FLGUIPointerEventDe
 {
 	OnPointerScrollCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerSelect(const FLGUIPointerEventDelegate& InDelegate)
+void UUIEventTriggerComponent::RegisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate)
 {
 	OnPointerSelectCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerDeselect(const FLGUIPointerEventDelegate& InDelegate)
+void UUIEventTriggerComponent::RegisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate)
 {
 	OnPointerDeselectCPP.Add(InDelegate);
 }
@@ -108,11 +108,11 @@ void UUIEventTriggerComponent::UnregisterOnPointerScroll(const FLGUIPointerEvent
 {
 	OnPointerScrollCPP.Remove(InDelegate.GetHandle());
 }
-void UUIEventTriggerComponent::UnregisterOnPointerSelect(const FLGUIPointerEventDelegate& InDelegate)
+void UUIEventTriggerComponent::UnregisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate)
 {
 	OnPointerSelectCPP.Remove(InDelegate.GetHandle());
 }
-void UUIEventTriggerComponent::UnregisterOnPointerDeselect(const FLGUIPointerEventDelegate& InDelegate)
+void UUIEventTriggerComponent::UnregisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate)
 {
 	OnPointerDeselectCPP.Remove(InDelegate.GetHandle());
 }
@@ -189,13 +189,13 @@ bool UUIEventTriggerComponent::OnPointerScroll_Implementation(ULGUIPointerEventD
 	if (OnPointerScrollCPP.IsBound())OnPointerScrollCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUIEventTriggerComponent::OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)
+bool UUIEventTriggerComponent::OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)
 {
 	OnPointerSelect.FireEvent(eventData);
 	if (OnPointerSelectCPP.IsBound())OnPointerSelectCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
-bool UUIEventTriggerComponent::OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)
+bool UUIEventTriggerComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)
 {
 	OnPointerDeselect.FireEvent(eventData);
 	if (OnPointerDeselectCPP.IsBound())OnPointerDeselectCPP.Broadcast(eventData);
@@ -263,14 +263,14 @@ FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerScroll(con
 	auto delegateHandle = OnPointerScrollCPP.AddLambda([InDelegate](ULGUIPointerEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
-FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerSelect(const FLGUIPointerEventDynamicDelegate& InDelegate)
+FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerSelect(const FLGUIBaseEventDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnPointerSelectCPP.AddLambda([InDelegate](ULGUIPointerEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
+	auto delegateHandle = OnPointerSelectCPP.AddLambda([InDelegate](ULGUIBaseEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
-FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerDeselect(const FLGUIPointerEventDynamicDelegate& InDelegate)
+FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerDeselect(const FLGUIBaseEventDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnPointerDeselectCPP.AddLambda([InDelegate](ULGUIPointerEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
+	auto delegateHandle = OnPointerDeselectCPP.AddLambda([InDelegate](ULGUIBaseEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
 

@@ -20,3 +20,5 @@ DECLARE_DELEGATE_ThreeParams(FLGUIHitDelegate, bool, const FHitResult&, USceneCo
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FLGUIMulticastHitDelegate, bool, const FHitResult&, USceneComponent*);
 DECLARE_DELEGATE_OneParam(FLGUIPointerEventDelegate, ULGUIPointerEventData*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastPointerEventDelegate, ULGUIPointerEventData*);
+DECLARE_DELEGATE_OneParam(FLGUIBaseEventDelegate, ULGUIBaseEventData*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIMulticastBaseEventDelegate, ULGUIBaseEventData*);

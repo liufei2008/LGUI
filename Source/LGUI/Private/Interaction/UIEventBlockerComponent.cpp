@@ -51,11 +51,11 @@ bool UUIEventBlockerComponent::OnPointerScroll_Implementation(ULGUIPointerEventD
 {
 	return AllowEventBubbleUp;
 }
-bool UUIEventBlockerComponent::OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)
+bool UUIEventBlockerComponent::OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)
 {
 	return AllowEventBubbleUp;
 }
-bool UUIEventBlockerComponent::OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)
+bool UUIEventBlockerComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)
 {
 	return AllowEventBubbleUp;
 }
