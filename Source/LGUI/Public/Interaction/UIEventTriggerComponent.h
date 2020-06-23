@@ -61,8 +61,8 @@ protected:
 	FLGUIMulticastPointerEventDelegate OnPointerDragExitCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerDragDropCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerScrollCPP;
-	FLGUIMulticastPointerEventDelegate OnPointerSelectCPP;
-	FLGUIMulticastPointerEventDelegate OnPointerDeselectCPP;
+	FLGUIMulticastBaseEventDelegate OnPointerSelectCPP;
+	FLGUIMulticastBaseEventDelegate OnPointerDeselectCPP;
 public:
 	void RegisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate); 
 	void RegisterOnPointerExit(const FLGUIPointerEventDelegate& InDelegate);
@@ -76,8 +76,8 @@ public:
 	void RegisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate);
 	void RegisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate);
 	void RegisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerSelect(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerDeselect(const FLGUIPointerEventDelegate& InDelegate);
+	void RegisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate);
+	void RegisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate);
 
 	void UnregisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate); 
 	void UnregisterOnPointerExit(const FLGUIPointerEventDelegate& InDelegate);
@@ -91,8 +91,8 @@ public:
 	void UnregisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate);
 	void UnregisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate);
 	void UnregisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerSelect(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerDeselect(const FLGUIPointerEventDelegate& InDelegate);
+	void UnregisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate);
+	void UnregisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate);
 
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerEnter(const FLGUIPointerEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerExit(const FLGUIPointerEventDynamicDelegate& InDelegate);
@@ -106,8 +106,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDragExit(const FLGUIPointerEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDragDrop(const FLGUIPointerEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerScroll(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerSelect(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDeselect(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerSelect(const FLGUIBaseEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDeselect(const FLGUIBaseEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerEnter(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerExit(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerDown(const FLGUIDelegateHandleWrapper& InDelegateHandle);
@@ -135,6 +135,6 @@ public:
 	virtual bool OnPointerDragExit_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDragDrop_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)override;
+	virtual bool OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)override;
 };

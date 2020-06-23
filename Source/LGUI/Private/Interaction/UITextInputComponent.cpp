@@ -1115,13 +1115,13 @@ bool UUITextInputComponent::OnPointerExit_Implementation(ULGUIPointerEventData* 
 	}
 	return AllowEventBubbleUp;
 }
-bool UUITextInputComponent::OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)
+bool UUITextInputComponent::OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)
 {
 	Super::OnPointerSelect_Implementation(eventData);
 	//ActivateInput();//handled at PointerClick
 	return AllowEventBubbleUp;
 }
-bool UUITextInputComponent::OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)
+bool UUITextInputComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)
 {
 	Super::OnPointerDeselect_Implementation(eventData);
 	DeactivateInput();
@@ -1299,7 +1299,7 @@ void UUITextInputComponent::ActivateInput()
 	{
 		if (CheckRootUIComponent())
 		{
-			ULGUIEventSystem::GetLGUIEventSystemInstance()->SetSelectComponent(RootUIComp);
+			ULGUIEventSystem::GetLGUIEventSystemInstance()->SetSelectComponentWithDefault(RootUIComp);
 		}
 	}
 	//fire event

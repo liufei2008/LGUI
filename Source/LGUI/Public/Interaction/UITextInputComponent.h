@@ -179,8 +179,8 @@ protected:
 
 	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerSelect_Implementation(ULGUIPointerEventData* eventData) override;
-	virtual bool OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData) override;
+	virtual bool OnPointerSelect_Implementation(ULGUIBaseEventData* eventData) override;
+	virtual bool OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData) override;
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData) override;
 	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData) override;
 	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData) override;

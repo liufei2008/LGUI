@@ -69,49 +69,6 @@ void UUIInteractionGroup::SetInteractable(const bool& InBool)
 		{
 			CacheUIItem->SetInteractionGroupStateChange(bInteractable, bIgnoreParentGroup);
 		}
-
-		if (!bInteractable)//if not interactable, need to check current ray hit object, if the object is interacting
-		{
-			if (ULGUIEventSystem::GetLGUIEventSystemInstance() != nullptr)
-			{
-				if (auto hitComp = ULGUIEventSystem::GetLGUIEventSystemInstance()->GetCurrentHitComponent())
-				{
-					if (hitComp->IsAttachedTo(GetOwner()->GetRootComponent()))//target is child of this
-					{
-						//walk up hierarchy and clear any interaction event
-						auto LoopActor = hitComp->GetOwner();
-						while (IsValid(LoopActor))
-						{
-							if (auto GroupComp = LoopActor->FindComponentByClass<UUIInteractionGroup>())
-							{
-								if (GroupComp == this)
-								{
-									ULGUIEventSystem::GetLGUIEventSystemInstance()->ClearEvent();
-									break;
-								}
-								else
-								{
-									if (GroupComp->GetIgnoreParentGroup())
-									{
-										break;
-									}
-									else
-									{
-										LoopActor = LoopActor->GetAttachParentActor();
-										continue;
-									}
-								}
-							}
-							else
-							{
-								LoopActor = LoopActor->GetAttachParentActor();
-								continue;
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 }
 void UUIInteractionGroup::SetIgnoreParentGroup(const bool& InBool)

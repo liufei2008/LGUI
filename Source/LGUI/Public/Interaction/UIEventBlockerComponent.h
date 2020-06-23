@@ -44,6 +44,6 @@ protected:
 	virtual bool OnPointerDragExit_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDragDrop_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)override;
+	virtual bool OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)override;
 };

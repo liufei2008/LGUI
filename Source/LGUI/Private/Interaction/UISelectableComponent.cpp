@@ -293,14 +293,14 @@ bool UUISelectableComponent::OnPointerUp_Implementation(ULGUIPointerEventData* e
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
-bool UUISelectableComponent::OnPointerSelect_Implementation(ULGUIPointerEventData* eventData)
+bool UUISelectableComponent::OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)
 {
 	IsPointerInsideThis = true;
 	CurrentSelectionState = EUISelectableSelectionState::Highlighted;
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
-bool UUISelectableComponent::OnPointerDeselect_Implementation(ULGUIPointerEventData* eventData)
+bool UUISelectableComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)
 {
 	IsPointerInsideThis = false;
 	CurrentSelectionState = EUISelectableSelectionState::Normal;
