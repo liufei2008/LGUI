@@ -13,6 +13,7 @@ class ULGUICanvas;
 class ULGUIBaseRaycaster;
 class UUISelectableComponent;
 class ULGUIBehaviour;
+class ULGUIBaseInputModule;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
@@ -75,6 +76,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		ULGUIBaseInputModule* currentInputModule = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUISelectableComponent*> allSelectableArray;
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -113,6 +116,10 @@ public:
 	FORCEINLINE const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
 	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
 	static void RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster);
+
+	FORCEINLINE ULGUIBaseInputModule* GetInputModule() { return currentInputModule; }
+	static void SetInputModule(ULGUIBaseInputModule* InInputModule);
+	static void ClearInputModule();
 
 	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);

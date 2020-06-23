@@ -12,9 +12,11 @@
 
 class ULGUIPointerEventData;
 class UUISelectableComponent;
+class ULGUIBaseInputModule;
 
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FLGUIHitDynamicDelegate, bool, isHit, const FHitResult&, hitResult, USceneComponent*, hitComponent);
-DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, ULGUIPointerEventData*, pointerEvent);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, ULGUIPointerEventData*, pointerEventData);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIBaseEventDynamicDelegate, ULGUIBaseEventData*, eventData);
 
 /*
  This is a preset actor that contans a LGUIEventSystem component
@@ -57,20 +59,18 @@ protected:
 #endif
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
 		bool bRayEventEnable = true;
-	bool nowIsTriggerPressed = false;
-	EMouseButtonType mouseButtonType = EMouseButtonType::Left;
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)
-		ULGUIPointerEventData* eventData;
 
 	bool isNavigationActive = false;
 	void BeginNavigation();
 public:
 	//TriggerInput, need mannually setup
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputTrigger instead")
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
-		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left);
+		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left) {};
 	//ScrollInput, need mannually setup
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputScroll instead")
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputScroll(const float& inAxisValue);
+		void InputScroll(const float& inAxisValue) {};
 
 	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -103,73 +103,46 @@ public:
 	//clear event. eg when mouse is hovering a UI and highlight, and then event is disabled, we can use this to clear the hover event
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void ClearEvent();
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		USceneComponent* GetCurrentHitComponent();
 	//SetRaycast enable or disable
 	//@param	clearEvent		call ClearEvent after disable Raycast
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRaycastEnable(bool enable, bool clearEvent = false);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetSelectComponent(USceneComponent* InSelectComp);
+		void SetSelectComponent(USceneComponent* InSelectComp, ULGUIBaseEventData* eventData, bool eventFireOnAllOrOnlyTarget);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetSelectComponentWithDefault(USceneComponent* InSelectComp);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		USceneComponent* GetCurrentSelectedComponent() { return selectedComponent; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ULGUIBaseInputModule* GetCurrentInputModule();
+	UPROPERTY(VisibleAnywhere, Category = LGUI)
+		ULGUIBaseEventData* defaultEventData;
 protected:
 	//call back for hit event
 	FLGUIMulticastHitDelegate hitEvent;
 	//call back for all event
-	FLGUIMulticastPointerEventDelegate globalListenerPointerEvent;
+	FLGUIMulticastBaseEventDelegate globalListenerPointerEvent;
 public:
 	void RegisterHitEvent(const FLGUIHitDelegate& InEvent);
 	void UnregisterHitEvent(const FLGUIHitDelegate& InEvent);
-	void RegisterGlobalListener(const FLGUIPointerEventDelegate& InEvent);
-	void UnregisterGlobalListener(const FLGUIPointerEventDelegate& InEvent);
+	void RegisterGlobalListener(const FLGUIBaseEventDelegate& InEvent);
+	void UnregisterGlobalListener(const FLGUIBaseEventDelegate& InEvent);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FLGUIDelegateHandleWrapper RegisterHitEvent(const FLGUIHitDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void UnregisterHitEvent(const FLGUIDelegateHandleWrapper& InHandle);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		FLGUIDelegateHandleWrapper RegisterGlobalListener(const FLGUIPointerEventDynamicDelegate& InDelegate);
+		FLGUIDelegateHandleWrapper RegisterGlobalListener(const FLGUIBaseEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void UnregisterGlobalListener(const FLGUIDelegateHandleWrapper& InHandle);
+	void RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult, USceneComponent* hitComponent);
 protected:
-	bool prevIsTriggerPressed = false;
-	EMouseButtonType prevPressTriggerType = EMouseButtonType::Left;
-	UPROPERTY(Transient)USceneComponent* enterComponent = nullptr;
 	UPROPERTY(Transient)USceneComponent* selectedComponent = nullptr;
-	UPROPERTY(Transient)USceneComponent* dragEnterComponent = nullptr;
-	bool enterComponentEventFireOnAllOrOnlyTarget = false;
-	bool dragComponentEventFireOnAllOrOnlyTarget = false;
-	bool selectedComponentEventFireOnAllOrOnlyTarget = false;
-	bool dragEnterComponentEventFireOnAllOrOnlyTarget = false;
-
-	bool pressHitSomething = false;//is hit something when trigger press?
-	bool startToDrag = false;//is start to drag?
-
-	FVector prevHitPoint = FVector(0, 0, 0);//prev frame hit point
 
 	UPROPERTY(Transient)UUISelectableComponent* selectableComponent = nullptr;//current navigation selectable component
-
-	struct FHitResultContainerStruct
-	{
-		FHitResult hitResult;
-		bool eventFireOnAll = false;
-
-		FVector rayOrigin = FVector(0, 0, 0), rayDirection = FVector(1, 0, 0), rayEnd = FVector(1, 0, 0);
-
-		ULGUIBaseRaycaster* raycaster = nullptr;
-	};
-	TArray<FHitResultContainerStruct> multiHitResult;//temp array for hit result
-
-	bool isUpFiredAtCurrentFrame = false;//is PointerUp event in current frame is called?
-	bool isExitFiredAtCurrentFrame = false;//is PointerExit event in current frame is called?
-	bool isEndDragFiredAtCurrentFrame = false;//is EndDrag event in current frame is called?
-	bool isDragExitFiredAtCurrentFrame = false;//is EndDrag event in current frame is called?
-protected:
-	bool LineTraceAndEvent();
-	bool LineTrace(FHitResultContainerStruct& hitResult);
-
+public:
 	void CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 	void CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 	void CallOnPointerDown(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
@@ -185,10 +158,10 @@ protected:
 	void CallOnPointerDragExit(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 	void CallOnPointerDragDrop(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 
-	void CallOnPointerSelect(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
-	void CallOnPointerDeselect(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerSelect(USceneComponent* component, ULGUIBaseEventData* eventData, bool eventFireOnAll);
+	void CallOnPointerDeselect(USceneComponent* component, ULGUIBaseEventData* eventData, bool eventFireOnAll);
 
-	void LogEventData(ULGUIPointerEventData* eventData, bool eventFireOnAll);
+	void LogEventData(ULGUIBaseEventData* eventData, bool eventFireOnAll);
 
 
 	void BubbleOnPointerEnter(AActor* actor, ULGUIPointerEventData* eventData);
@@ -203,14 +176,13 @@ protected:
 	void BubbleOnPointerDragEnter(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerDragExit(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerSelect(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDeselect(AActor* actor, ULGUIPointerEventData* eventData);
+	void BubbleOnPointerSelect(AActor* actor, ULGUIBaseEventData* eventData);
+	void BubbleOnPointerDeselect(AActor* actor, ULGUIBaseEventData* eventData);
 };
 
 #define CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, interface, function)\
 {\
 	inEventData->eventType = EPointerEventType::function;\
-	inEventData->enterComponent = component;\
 	LogEventData(inEventData, eventFireOnAll);\
 	bool eventAllowBubble = true;\
 	if (eventFireOnAll)\

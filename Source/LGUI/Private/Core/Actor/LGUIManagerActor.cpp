@@ -9,6 +9,7 @@
 #include "Engine/World.h"
 #include "Interaction/UISelectableComponent.h"
 #include "Core/LGUISettings.h"
+#include "Event/InputModule/LGUIBaseInputModule.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -495,6 +496,21 @@ void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 		{
 			Instance->raycasterArray.RemoveAt(index);
 		}
+	}
+}
+
+void ALGUIManagerActor::SetInputModule(ULGUIBaseInputModule* InInputModule)
+{
+	if (InitCheck(InInputModule->GetWorld()))
+	{
+		Instance->currentInputModule = InInputModule;
+	}
+}
+void ALGUIManagerActor::ClearInputModule()
+{
+	if (Instance != nullptr)
+	{
+		Instance->currentInputModule = nullptr;
 	}
 }
 
