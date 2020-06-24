@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "Event/LGUIPointerEnterExitInterface.h"
-#include "Event/LGUIPointerDownUpInterface.h"
-#include "Event/LGUIPointerSelectDeselectInterface.h"
+#include "Event/Interface/LGUIPointerEnterExitInterface.h"
+#include "Event/Interface/LGUIPointerDownUpInterface.h"
+#include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Components/ActorComponent.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/LGUIBehaviour.h"

@@ -77,7 +77,7 @@ void ULGUINativeSceneOutlinerExtension::OnMapOpened(const FString& FileName, boo
 }
 const FString& ULGUINativeSceneOutlinerExtension::GetLGUIDataFilePath()
 {
-	static FString jsonFilePath = FPaths::Combine(FPaths::ProjectDir(), TEXT("LGUI_Saved_Data.json"));
+	static FString jsonFilePath = FPaths::Combine(FPaths::ProjectIntermediateDir(), TEXT("LGUI_Saved_Data.json"));
 	return jsonFilePath;
 }
 void ULGUINativeSceneOutlinerExtension::OnPreBeginPIE(const bool IsSimulating)
