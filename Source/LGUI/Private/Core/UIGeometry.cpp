@@ -2580,6 +2580,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		contentLength = richTextContent.Len();
 	}
 
+	bool haveClampContent = false;
+	int clamp_RestVerticesCount = 0;
+	float clamp_CurrentLineWidth = 0;
+	float clamp_ParagraphHeight = 0;
 	for (int charIndex = 0; charIndex < contentLength; charIndex++)
 	{
 		auto charCode = content[charIndex];
@@ -3256,25 +3260,36 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			case UITextOverflowType::ClampContent:
 			{
 				if (charIndex + 1 == contentLength)continue;//last char
+				if (haveClampContent)continue;
+
 				int nextCharXAdv = richText
 					? GetCharGeoXAdv(content[charIndex + 1], richTextParseResult.size)
 					: GetCharGeoXAdv(content[charIndex + 1], fontSize);
 				if (currentLineOffset.X + nextCharXAdv > width)//horizontal cannot fit next char
 				{
-					//@todo: ClampContent mode may cause triangle change if UIText's width change
-					//set rest char's position to invisible
-					int allVerticesCount = originPositions.Num();
-					for (int vertIndex = verticesCount; vertIndex < allVerticesCount; vertIndex++)
-					{
-						originPositions[vertIndex] = FVector::ZeroVector;
-					}
-					//break the main loop
-					charIndex = contentLength;
+					haveClampContent = true;
+					clamp_RestVerticesCount = verticesCount;
+					clamp_CurrentLineWidth = currentLineWidth;
+					clamp_ParagraphHeight = paragraphHeight;
 				}
 			}
 			break;
 			}
 		}
+	}
+
+	//clamp content
+	if (haveClampContent)
+	{
+		//set rest char's position to invisible
+		int allVerticesCount = originPositions.Num();
+		for (int vertIndex = clamp_RestVerticesCount; vertIndex < allVerticesCount; vertIndex++)
+		{
+			originPositions[vertIndex] = FVector::ZeroVector;
+		}
+
+		currentLineWidth = clamp_CurrentLineWidth;
+		paragraphHeight = clamp_ParagraphHeight;
 	}
 
 	//last line
