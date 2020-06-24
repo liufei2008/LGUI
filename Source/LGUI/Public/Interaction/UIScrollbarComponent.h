@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Event/LGUIPointerDragInterface.h"
+#include "Event/Interface/LGUIPointerDragInterface.h"
 #include "UISelectableComponent.h"
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateDeclaration.h"

@@ -1,14 +1,14 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #include "Event/LGUIEventSystem.h"
-#include "Event/LGUIPointerClickInterface.h"
-#include "Event/LGUIPointerEnterExitInterface.h"
-#include "Event/LGUIPointerDownUpInterface.h"
-#include "Event/LGUIPointerDragInterface.h"
-#include "Event/LGUIPointerScrollInterface.h"
-#include "Event/LGUIPointerDragEnterExitInterface.h"
-#include "Event/LGUIPointerDragDropInterface.h"
-#include "Event/LGUIPointerSelectDeselectInterface.h"
+#include "Event/Interface/LGUIPointerClickInterface.h"
+#include "Event/Interface/LGUIPointerEnterExitInterface.h"
+#include "Event/Interface/LGUIPointerDownUpInterface.h"
+#include "Event/Interface/LGUIPointerDragInterface.h"
+#include "Event/Interface/LGUIPointerScrollInterface.h"
+#include "Event/Interface/LGUIPointerDragEnterExitInterface.h"
+#include "Event/Interface/LGUIPointerDragDropInterface.h"
+#include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Event/Rayemitter/LGUIBaseRayemitter.h"
@@ -348,6 +348,10 @@ void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp, ULGUIBa
 }
 void ULGUIEventSystem::SetSelectComponentWithDefault(USceneComponent* InSelectComp)
 {
+	if (!IsValid(defaultEventData))
+	{
+		defaultEventData = NewObject<ULGUIBaseEventData>(this);
+	}
 	SetSelectComponent(InSelectComp, defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
 }
 ULGUIBaseInputModule* ULGUIEventSystem::GetCurrentInputModule()
@@ -356,6 +360,7 @@ ULGUIBaseInputModule* ULGUIEventSystem::GetCurrentInputModule()
 	{
 		return ALGUIManagerActor::Instance->GetInputModule();
 	}
+	return nullptr;
 }
 
 

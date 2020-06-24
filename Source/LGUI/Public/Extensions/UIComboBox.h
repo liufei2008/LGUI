@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Event/LGUIPointerSelectDeselectInterface.h"
+#include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "UIComboBox.generated.h"
 
 /*

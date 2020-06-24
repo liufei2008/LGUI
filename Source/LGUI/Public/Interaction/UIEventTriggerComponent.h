@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include "Event/LGUIPointerEnterExitInterface.h"
-#include "Event/LGUIPointerDownUpInterface.h"
-#include "Event/LGUIPointerClickInterface.h"
-#include "Event/LGUIPointerDragInterface.h"
-#include "Event/LGUIPointerDragEnterExitInterface.h"
-#include "Event/LGUIPointerDragDropInterface.h"
-#include "Event/LGUIPointerScrollInterface.h"
-#include "Event/LGUIPointerSelectDeselectInterface.h"
+#include "Event/Interface/LGUIPointerEnterExitInterface.h"
+#include "Event/Interface/LGUIPointerDownUpInterface.h"
+#include "Event/Interface/LGUIPointerClickInterface.h"
+#include "Event/Interface/LGUIPointerDragInterface.h"
+#include "Event/Interface/LGUIPointerDragEnterExitInterface.h"
+#include "Event/Interface/LGUIPointerDragDropInterface.h"
+#include "Event/Interface/LGUIPointerScrollInterface.h"
+#include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateDeclaration.h"
