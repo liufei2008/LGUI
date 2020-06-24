@@ -64,11 +64,11 @@ protected:
 	void BeginNavigation();
 public:
 	//TriggerInput, need mannually setup
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputTrigger instead")
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputTrigger instead.")
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
 		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left) {};
 	//ScrollInput, need mannually setup
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputScroll instead")
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputScroll instead.")
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputScroll(const float& inAxisValue) {};
 
@@ -126,6 +126,10 @@ protected:
 public:
 	void RegisterHitEvent(const FLGUIHitDelegate& InEvent);
 	void UnregisterHitEvent(const FLGUIHitDelegate& InEvent);
+	/// <summary>
+	/// Register a global event listener, that listener will called when any LGUIEventSystem's event is executed.
+	/// </summary>
+	/// <param name="InEvent">Callback delegate, you can cast LGUIBaseEventData to LGUIPointerEventData if you need</param>
 	void RegisterGlobalListener(const FLGUIBaseEventDelegate& InEvent);
 	void UnregisterGlobalListener(const FLGUIBaseEventDelegate& InEvent);
 
@@ -133,6 +137,10 @@ public:
 		FLGUIDelegateHandleWrapper RegisterHitEvent(const FLGUIHitDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void UnregisterHitEvent(const FLGUIDelegateHandleWrapper& InHandle);
+	/// <summary>
+	/// Register a global event listener, that listener will called when any LGUIEventSystem's event is executed.
+	/// </summary>
+	/// <param name="InDelegate">Callback delegate, you can cast LGUIBaseEventData to LGUIPointerEventData if you need</param>
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FLGUIDelegateHandleWrapper RegisterGlobalListener(const FLGUIBaseEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = LGUI)

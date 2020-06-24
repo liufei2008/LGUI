@@ -58,6 +58,10 @@ public:
 		return TEXT("");
 	};
 };
+
+#ifndef FLGUIPointerEventData
+#define FLGUIPointerEventData DEPRECATED_MACRO(4.23, "FLGUIPointerEventData has been changed to ULGUIPointerEventData which is inherited from UObject.") ULGUIPointerEventData
+#endif
 //change from ustruct to uclass for something big...
 UCLASS(BlueprintType)
 class LGUI_API ULGUIPointerEventData: public ULGUIBaseEventData
@@ -67,6 +71,10 @@ public:
 	//id of the pointer (touch id)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		int pointerID = 0;
+
+	UE_DEPRECATED(4.23, "hitComponent not valid anymore, use enterComponent instead.")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		USceneComponent* hitComponent = nullptr;
 
 	//enterred component
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")

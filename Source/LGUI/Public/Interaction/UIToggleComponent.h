@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Event/LGUIPointerClickInterface.h"
+#include "Event/Interface/LGUIPointerClickInterface.h"
 #include "UISelectableComponent.h"
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateDeclaration.h"
