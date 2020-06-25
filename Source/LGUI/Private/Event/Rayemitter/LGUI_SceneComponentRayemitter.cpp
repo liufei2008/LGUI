@@ -3,11 +3,6 @@
 #include "Event/Rayemitter/LGUI_SceneComponentRayEmitter.h"
 #include "LGUI.h"
 
-ULGUI_SceneComponentRayEmitter::ULGUI_SceneComponentRayEmitter()
-{
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-}
-
 bool ULGUI_SceneComponentRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (CacheTargetSceneComponent == nullptr)

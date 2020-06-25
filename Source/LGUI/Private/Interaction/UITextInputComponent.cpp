@@ -44,7 +44,10 @@ void UUITextInputComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	DeactivateInput(EndPlayReason != EEndPlayReason::EndPlayInEditor);
-	TextInputMethodContext->Dispose();
+	if (TextInputMethodContext.IsValid())
+	{
+		TextInputMethodContext->Dispose();
+	}
 }
 
 #if WITH_EDITOR

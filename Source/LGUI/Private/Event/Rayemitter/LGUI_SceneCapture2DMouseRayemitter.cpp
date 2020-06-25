@@ -5,11 +5,6 @@
 #include "Engine/SceneCapture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 
-ULGUI_SceneCapture2DMouseRayEmitter::ULGUI_SceneCapture2DMouseRayEmitter()
-{
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-}
-
 USceneCaptureComponent2D* ULGUI_SceneCapture2DMouseRayEmitter::GetSceneCapture2DComponent()
 {
 	if (!IsValid(sceneCaptureComp))

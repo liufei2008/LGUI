@@ -10,9 +10,6 @@ UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_SceneCapture2DMouseRayEmitter : public ULGUIBaseRayEmitter
 {
 	GENERATED_BODY()
-
-public:	
-	ULGUI_SceneCapture2DMouseRayEmitter();
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		class ASceneCapture2D* SceneCaptureActor;
