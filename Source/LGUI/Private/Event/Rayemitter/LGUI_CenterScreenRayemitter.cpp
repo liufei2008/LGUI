@@ -5,12 +5,6 @@
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
 
-ULGUI_CenterScreenRayemitter::ULGUI_CenterScreenRayemitter()
-{
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-}
-
-
 bool ULGUI_CenterScreenRayemitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (auto playerController = this->GetWorld()->GetFirstPlayerController())

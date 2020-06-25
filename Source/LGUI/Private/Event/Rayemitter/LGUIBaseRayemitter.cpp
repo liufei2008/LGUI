@@ -3,21 +3,6 @@
 #include "Event/Rayemitter/LGUIBaseRayEmitter.h"
 #include "LGUI.h"
 
-
-ULGUIBaseRayEmitter::ULGUIBaseRayEmitter()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-}
-void ULGUIBaseRayEmitter::BeginPlay()
-{
-	Super::BeginPlay();
-}
-void ULGUIBaseRayEmitter::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
-
 bool ULGUIBaseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	UE_LOG(LGUI, Error, TEXT("[ULGUIBaseRayEmitter]Function EmitRay must be implemented!"));

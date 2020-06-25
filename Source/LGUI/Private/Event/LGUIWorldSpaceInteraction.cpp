@@ -22,32 +22,28 @@ void ULGUIWorldSpaceInteraction::CheckRayemitter()
 {
 	if (!IsValid(rayEmitter))
 	{
-		if (auto actor = GetOwner())
+		switch (interactionSource)
 		{
-			switch (interactionSource)
-			{
-			default:
-			case ELGUIWorldSpaceInteractionSource::World:
-			{
-				auto emitter = NewObject<ULGUI_SceneComponentRayEmitter>(actor);
-				emitter->SetTargetSceneComponent(this);
-				rayEmitter = emitter;
-			}
-				break;
-			case ELGUIWorldSpaceInteractionSource::Mouse:
-			{
-				rayEmitter = NewObject<ULGUI_MainViewportMouseRayEmitter>(actor);
-			}
-				break;
-			case ELGUIWorldSpaceInteractionSource::CenterScreen:
-			{
-				rayEmitter = NewObject<ULGUI_CenterScreenRayemitter>(actor);
-			}
-				break;
-			}
-			rayEmitter->SetClickThreshold(clickThreshold);
-			rayEmitter->RegisterComponent();
+		default:
+		case ELGUIWorldSpaceInteractionSource::World:
+		{
+			auto emitter = NewObject<ULGUI_SceneComponentRayEmitter>(this);
+			emitter->SetTargetSceneComponent(this);
+			rayEmitter = emitter;
 		}
+		break;
+		case ELGUIWorldSpaceInteractionSource::Mouse:
+		{
+			rayEmitter = NewObject<ULGUI_MainViewportMouseRayEmitter>(this);
+		}
+		break;
+		case ELGUIWorldSpaceInteractionSource::CenterScreen:
+		{
+			rayEmitter = NewObject<ULGUI_CenterScreenRayemitter>(this);
+		}
+		break;
+		}
+		rayEmitter->SetClickThreshold(clickThreshold);
 	}
 }
 bool ULGUIWorldSpaceInteraction::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)

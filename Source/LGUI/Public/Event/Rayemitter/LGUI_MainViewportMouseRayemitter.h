@@ -13,10 +13,6 @@ UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_MainViewportMouseRayEmitter : public ULGUIBaseRayEmitter
 {
 	GENERATED_BODY()
-
-public:	
-	ULGUI_MainViewportMouseRayEmitter();
-
 public:
 	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;

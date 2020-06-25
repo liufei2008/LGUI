@@ -7,13 +7,10 @@
 #include "LGUI_CenterScreenRayemitter.generated.h"
 
 //Sends trace from the center of the first local player's screen
-UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
+UCLASS(ClassGroup = LGUI, Blueprintable)
 class LGUI_API ULGUI_CenterScreenRayemitter : public ULGUIBaseRayEmitter
 {
 	GENERATED_BODY()
-
-public:	
-	ULGUI_CenterScreenRayemitter();
 
 public:
 	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;

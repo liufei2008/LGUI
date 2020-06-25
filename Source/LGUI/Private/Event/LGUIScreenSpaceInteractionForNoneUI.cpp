@@ -2,6 +2,8 @@
 
 #include "Event/LGUIScreenSpaceInteractionForNoneUI.h"
 #include "Event/Rayemitter/LGUI_ScreenSpaceUIMouseRayemitter.h"
+#include "Core/ActorComponent/LGUICanvas.h"
+#include "LGUI.h"
 
 ULGUIScreenSpaceInteractionForNoneUI::ULGUIScreenSpaceInteractionForNoneUI()
 {
@@ -13,10 +15,18 @@ void ULGUIScreenSpaceInteractionForNoneUI::CheckRayemitter()
 	{
 		if (auto actor = GetOwner())
 		{
-			auto emitter = NewObject<ULGUI_ScreenSpaceUIMouseRayemitter>(actor);
-			emitter->SetClickThreshold(clickThreshold);
-			emitter->RegisterComponent();
-			rayEmitter = emitter;
+			auto renderCanvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
+			if (IsValid(renderCanvas))
+			{
+				auto emitter = NewObject<ULGUI_ScreenSpaceUIMouseRayemitter>(this);
+				emitter->SetClickThreshold(clickThreshold);
+				emitter->SetRenderCanvas(renderCanvas);
+				rayEmitter = emitter;
+			}
+		}
+		if (!IsValid(rayEmitter))
+		{
+			UE_LOG(LGUI, Error, TEXT("This component should be placed on a actor which have a LGUICanvas, and RenderMode of LGUICanvas should set to ScreenSpace."));
 		}
 	}
 }
