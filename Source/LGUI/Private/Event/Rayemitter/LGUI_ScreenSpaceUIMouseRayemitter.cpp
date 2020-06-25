@@ -3,23 +3,13 @@
 #include "Event/Rayemitter/LGUI_ScreenSpaceUIMouseRayemitter.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-ULGUI_ScreenSpaceUIMouseRayemitter::ULGUI_ScreenSpaceUIMouseRayemitter()
-{
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-}
-
 bool ULGUI_ScreenSpaceUIMouseRayemitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (!IsValid(RenderCanvas))
-	{
-		if (!IsValid(GetOwner()))
-			return false;
-		RenderCanvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
-		if (!IsValid(RenderCanvas))
-			return false;
-		if (RenderCanvas->GetRenderMode() == ELGUIRenderMode::WorldSpace)
-			return false;
-	}
+		return false;
+	if (RenderCanvas->GetRenderMode() == ELGUIRenderMode::WorldSpace)
+		return false;
+
 	auto ViewProjectionMatrix = RenderCanvas->GetViewProjectionMatrix();
 	//Get mouse position, convert to range 0-1, project to SceneCapture2D
 	FVector2D mousePos;

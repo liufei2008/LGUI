@@ -6,9 +6,9 @@
 #include "Raycaster/LGUI_WorldRaycaster.h"
 #include "LGUIScreenSpaceInteractionForNoneUI.generated.h"
 
-//Perform a preset raycaster interaction for ScreenSpaceUI with SceneCapture2D.
-//This component should be placed on a SceneCapture2D.
-//When hit play, a LGUI_SceneCapture2DMouseRayemitter will be created.
+//Perform a preset raycaster interaction for ScreenSpaceUI for none UI.
+//This component should be placed on a actor which have a LGUICanvas, and RenderMode of LGUICanvas should set to ScreenSpace.
+//When hit play, a LGUI_ScreenSpaceUIMouseRayemitter will be created.
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUIScreenSpaceInteractionForNoneUI : public ULGUI_WorldRaycaster
 {

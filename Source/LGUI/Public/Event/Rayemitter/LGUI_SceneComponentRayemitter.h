@@ -22,8 +22,6 @@ UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_SceneComponentRayEmitter : public ULGUIBaseRayEmitter
 {
 	GENERATED_BODY()
-public:
-	ULGUI_SceneComponentRayEmitter();
 protected:
 	//use TargetActor's RootComponent as ray object, world location as RayOrigin, axis direction as RayDirection
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)

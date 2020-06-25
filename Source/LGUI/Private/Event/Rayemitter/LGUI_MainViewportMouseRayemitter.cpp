@@ -5,11 +5,6 @@
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
 
-ULGUI_MainViewportMouseRayEmitter::ULGUI_MainViewportMouseRayEmitter()
-{
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-}
-
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
 void MainViewportMouseRayEmitter_BuildProjectionMatrix(FIntPoint RenderTargetSize, ECameraProjectionMode::Type ProjectionType, float FOV, float InOrthoWidth, FMatrix& ProjectionMatrix)
 {

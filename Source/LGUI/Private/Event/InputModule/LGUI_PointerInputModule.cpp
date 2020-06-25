@@ -80,10 +80,6 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 	eventData->isEndDragFiredAtCurrentFrame = false;
 	eventData->isDragExitFiredAtCurrentFrame = false;
 
-	if (!IsValid(eventData))
-	{
-		eventData = NewObject<ULGUIPointerEventData>(this);
-	}
 	eventData->raycaster = hitResultContainer.raycaster;
 	eventData->rayOrigin = hitResultContainer.rayOrigin;
 	eventData->rayDirection = hitResultContainer.rayDirection;
@@ -418,7 +414,9 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 			{
 				eventSystem->CallOnPointerExit(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
 			}
+			eventData->enterComponent = nullptr;
 		}
+		eventData->prevIsTriggerPressed = false;
 	}
 }
 void ULGUI_PointerInputModule::ClearEvent()

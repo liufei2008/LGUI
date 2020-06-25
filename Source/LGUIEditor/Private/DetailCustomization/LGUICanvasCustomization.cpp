@@ -187,17 +187,21 @@ void FLGUICanvasCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 }
 FText FLGUICanvasCustomization::GetDrawcallInfo()const
 {
-	int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
-	auto& allCanvas = LGUIManager::GetAllCanvas(TargetScriptArray[0]->GetWorld());
-	int allDrawcallCount = 0;
-	for (ULGUICanvas* canvasItem : allCanvas)
+	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
 	{
-		if (TargetScriptArray[0]->IsScreenSpaceOverlayUI() == canvasItem->IsScreenSpaceOverlayUI())
+		int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
+		auto& allCanvas = LGUIManager::GetAllCanvas(TargetScriptArray[0]->GetWorld());
+		int allDrawcallCount = 0;
+		for (ULGUICanvas* canvasItem : allCanvas)
 		{
-			allDrawcallCount += canvasItem->UIDrawcallList.Num();
+			if (TargetScriptArray[0]->IsScreenSpaceOverlayUI() == canvasItem->IsScreenSpaceOverlayUI())
+			{
+				allDrawcallCount += canvasItem->UIDrawcallList.Num();
+			}
 		}
+		return FText::FromString(FString::Printf(TEXT("%d/%d"), drawcallCount, allDrawcallCount));
 	}
-	return FText::FromString(FString::Printf(TEXT("%d/%d"), drawcallCount, allDrawcallCount));
+	return FText::FromString(FString::Printf(TEXT("0/0")));
 }
 FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 {
