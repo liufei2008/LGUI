@@ -20,6 +20,13 @@ protected:
 	//click/drag threshold, calculated in target's local space
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
 		float clickThreshold = 5;
+	//hold press for a little while to entering drag mode
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool holdToDrag = false;
+	//hold press for "holdToDragTime" to entering drag mode
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		float holdToDragTime = 0.5f;
+
 	void CheckRayemitter();
 	virtual bool ShouldSkipUIItem(class UUIItem* UIItem)override;
 public:

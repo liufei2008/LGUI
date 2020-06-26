@@ -20,6 +20,6 @@ public:
 	static void DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection);
 	void SetRenderCanvas(ULGUICanvas* InCanvas) { RenderCanvas = InCanvas; }
 private:
-	FVector2D pressMountPos;
+	FVector2D pressMousePos;
 	UPROPERTY(Transient)ULGUICanvas* RenderCanvas = nullptr;
 };

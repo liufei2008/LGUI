@@ -60,14 +60,15 @@ void ULGUI_ScreenSpaceUIMouseRayemitter::DeprojectViewPointToWorld(const FMatrix
 
 bool ULGUI_ScreenSpaceUIMouseRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
+	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
 	FVector2D mousePos;
 	if (this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos))
 	{
-		return FVector2D::Distance(pressMountPos, mousePos) > clickThreshold;
+		return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
 	}
 	return false;
 }
 void ULGUI_ScreenSpaceUIMouseRayemitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
-	this->GetWorld()->GetGameViewport()->GetMousePosition(pressMountPos);
+	this->GetWorld()->GetGameViewport()->GetMousePosition(pressMousePos);
 }

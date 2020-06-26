@@ -43,7 +43,7 @@ void ULGUIWorldSpaceInteraction::CheckRayemitter()
 		}
 		break;
 		}
-		rayEmitter->SetClickThreshold(clickThreshold);
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
 	}
 }
 bool ULGUIWorldSpaceInteraction::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)

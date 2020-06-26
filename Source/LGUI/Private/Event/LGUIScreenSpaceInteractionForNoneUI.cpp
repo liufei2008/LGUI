@@ -19,7 +19,7 @@ void ULGUIScreenSpaceInteractionForNoneUI::CheckRayemitter()
 			if (IsValid(renderCanvas))
 			{
 				auto emitter = NewObject<ULGUI_ScreenSpaceUIMouseRayemitter>(this);
-				emitter->SetClickThreshold(clickThreshold);
+				emitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
 				emitter->SetRenderCanvas(renderCanvas);
 				rayEmitter = emitter;
 			}
