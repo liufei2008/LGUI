@@ -218,10 +218,11 @@ bool ULGUI_SceneCapture2DMouseRayEmitter::ProjectWorldToViewPointForSceneCapture
 }
 bool ULGUI_SceneCapture2DMouseRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
+	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
 	FVector2D mousePos;
 	if (this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos))
 	{
-		return FVector2D::Distance(pressMountPos, mousePos) > clickThreshold;
+		return FVector2D::DistSquared(pressMountPos, mousePos) > clickTresholdSquare;
 	}
 	return false;
 }

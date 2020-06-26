@@ -181,10 +181,11 @@ bool ULGUI_MainViewportMouseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& 
 }
 bool ULGUI_MainViewportMouseRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
+	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
 	FVector2D mousePos;
 	if (GetMousePosition(mousePos))
 	{
-		return FVector2D::Distance(pressMousePos, mousePos) > clickThreshold;
+		return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
 	}
 	return false;
 }
