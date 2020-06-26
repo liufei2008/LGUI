@@ -43,10 +43,11 @@ bool ULGUI_SceneComponentRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& Out
 }
 bool ULGUI_SceneComponentRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
-	auto calculatedThreshold = clickThreshold;
+	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
+	auto calculatedThreshold = clickTresholdSquare;
 	if (clickThresholdRelateToRayDistance)
 	{
 		calculatedThreshold *= InPointerEventData->pressDistance;
 	}
-	return InPointerEventData->cumulativeMoveDelta.Size() > calculatedThreshold;
+	return InPointerEventData->cumulativeMoveDelta.SizeSquared() > calculatedThreshold;
 }

@@ -85,6 +85,7 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 	eventData->rayDirection = hitResultContainer.rayDirection;
 	FHitResult hitResult = hitResultContainer.hitResult;
 	isHitSomething = lineTraceHitSomething;
+
 	if (eventData->nowIsTriggerPressed && eventData->prevIsTriggerPressed)//if trigger keep pressing
 	{
 		if (IsValid(eventData->pressComponent))
@@ -231,6 +232,7 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 				}
 				if (nowHitComponent != nullptr)//now object
 				{
+					eventData->pressTime = GetWorld()->TimeSeconds;
 					eventSystem->CallOnPointerDown(nowHitComponent, eventData, hitResultContainer.eventFireOnAll);
 				}
 				eventData->enterComponent = nowHitComponent;
@@ -416,7 +418,6 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 			}
 			eventData->enterComponent = nullptr;
 		}
-		eventData->prevIsTriggerPressed = false;
 	}
 }
 void ULGUI_PointerInputModule::ClearEvent()

@@ -136,6 +136,9 @@ public:
 	//the last time when trigger click(get time from GetWorld()->TimeSeconds), can be used to tell double click
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		float clickTime;
+	//the last time when trigger press.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		float pressTime;
 
 	//current dragging component
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
@@ -166,7 +169,6 @@ public:
 	bool nowIsTriggerPressed = false;
 	bool prevIsTriggerPressed = false;
 	EMouseButtonType prevPressTriggerType = EMouseButtonType::Left;
-
 
 	virtual FString ToString()const override;
 	//use a line-plane intersection to get world point
