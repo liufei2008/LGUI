@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = LGUI)TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
 	ULGUIPointerEventData* GetPointerEventData(int pointerID, bool createIfNotExist = false);
 	void ProcessPointerEvent(ULGUIPointerEventData* pointerEventData, bool pointerHitAnything, const FHitResultContainerStruct& hitResult, bool& isHitSomething);
-	bool LineTrace(FHitResultContainerStruct& hitResult);
+	bool LineTrace(ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult);
 	TArray<FHitResultContainerStruct> multiHitResult;//temp array for hit result
 
 	void ClearEventByID(int pointerID);

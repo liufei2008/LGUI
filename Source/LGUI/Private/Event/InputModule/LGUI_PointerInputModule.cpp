@@ -19,7 +19,7 @@ ULGUIPointerEventData* ULGUI_PointerInputModule::GetPointerEventData(int pointer
 	pointerEventDataMap.Add(pointerID, newEventData);
 	return newEventData;
 }
-bool ULGUI_PointerInputModule::LineTrace(FHitResultContainerStruct& hitResult)
+bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult)
 {
 	multiHitResult.Reset();
 	if (ALGUIManagerActor::Instance != nullptr)
@@ -38,7 +38,7 @@ bool ULGUI_PointerInputModule::LineTrace(FHitResultContainerStruct& hitResult)
 					break;
 				}
 				FVector rayOrigin(0, 0, 0), rayDir(1, 0, 0), rayEnd(1, 0, 0);
-				if (raycasterItem->Raycast(rayOrigin, rayDir, rayEnd, hitResultItem))
+				if (raycasterItem->Raycast(InPointerEventData, rayOrigin, rayDir, rayEnd, hitResultItem))
 				{
 					FHitResultContainerStruct container;
 					container.hitResult = hitResultItem;

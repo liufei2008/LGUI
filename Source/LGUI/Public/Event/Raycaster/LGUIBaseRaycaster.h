@@ -7,6 +7,7 @@
 #include "CollisionQueryParams.h"
 #include "LGUIBaseRaycaster.generated.h"
 
+class ULGUIPointerEventData;
 //call event type
 UENUM(BlueprintType)
 enum class ELGUIEventFireType :uint8
@@ -53,8 +54,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = LGUI)
 		class ULGUIBaseRayEmitter* rayEmitter;
 	
-	bool GenerateRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& OutTraceOnlyActors, TArray<AActor*>& OutTraceIgnoreActors);
-	virtual bool Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult);
+	bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& OutTraceOnlyActors, TArray<AActor*>& OutTraceIgnoreActors);
+	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)void ActivateRaycaster();
 	UFUNCTION(BlueprintCallable, Category = LGUI)void DeactivateRaycaster();

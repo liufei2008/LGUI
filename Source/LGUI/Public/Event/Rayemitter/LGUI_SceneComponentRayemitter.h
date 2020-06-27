@@ -46,6 +46,6 @@ public:
 	}
 	UFUNCTION(BlueprintCallable, Category = LGUI)void SetTargetSceneComponent(USceneComponent* InSceneComp) { CacheTargetSceneComponent = InSceneComp; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)USceneComponent* GetTargetSceneComponent() { return CacheTargetSceneComponent; }
-	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
+	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 };

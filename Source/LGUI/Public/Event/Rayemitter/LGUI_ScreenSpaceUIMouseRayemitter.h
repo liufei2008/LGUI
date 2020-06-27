@@ -14,7 +14,7 @@ class LGUI_API ULGUI_ScreenSpaceUIMouseRayemitter : public ULGUIBaseRayEmitter
 	GENERATED_BODY()
 
 public:	
-	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
+	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 	virtual void MarkPress(ULGUIPointerEventData* InPointerEventData)override;
 	static void DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection);

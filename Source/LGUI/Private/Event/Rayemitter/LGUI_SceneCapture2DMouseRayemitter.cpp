@@ -17,7 +17,7 @@ USceneCaptureComponent2D* ULGUI_SceneCapture2DMouseRayEmitter::GetSceneCapture2D
 	}
 	return sceneCaptureComp;
 }
-bool ULGUI_SceneCapture2DMouseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
+bool ULGUI_SceneCapture2DMouseRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (!IsValid(sceneCaptureComp))
 	{

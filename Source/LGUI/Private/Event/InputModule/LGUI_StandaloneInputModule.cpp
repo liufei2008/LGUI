@@ -10,8 +10,12 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 	if (eventSystem == nullptr)return;
 
 	auto leftButtonEventData = GetPointerEventData(0, true);
+	FVector2D mousePos;
+	this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos);
+	leftButtonEventData->pointerPosition = FVector(mousePos, 0);
+
 	FHitResultContainerStruct hitResultContainer;
-	bool lineTraceHitSomething = LineTrace(hitResultContainer);
+	bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
 	bool resultHitSomething = false;
 	ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething);
 

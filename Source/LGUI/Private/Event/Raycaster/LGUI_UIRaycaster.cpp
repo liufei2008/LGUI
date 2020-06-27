@@ -43,11 +43,11 @@ bool ULGUI_UIRaycaster::IsUIInteractionGroupAllowHit(UUIItem* HitUI)
 	return HitUI->IsGroupAllowInteraction();
 }
 
-bool ULGUI_UIRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
+bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
 {
 	traceIgnoreActorArray.Reset();
 	traceOnlyActorArray.Reset();
-	if (GenerateRay(OutRayOrigin, OutRayDirection, traceOnlyActorArray, traceIgnoreActorArray))
+	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection, traceOnlyActorArray, traceIgnoreActorArray))
 	{
 		//UI element need to check if hit visible
 		multiUIHitResult.Reset();
