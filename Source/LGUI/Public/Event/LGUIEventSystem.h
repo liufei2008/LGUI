@@ -65,13 +65,11 @@ protected:
 
 	FORCEINLINE void ProcessInputEvent();
 public:
-	//TriggerInput, need mannually setup
 	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputTrigger instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType", DeprecatedFunction, DeprecationMessage="Use LGUI_StandaloneInputModule's InputTrigger instead."))
 		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left) {};
-	//ScrollInput, need mannually setup
 	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputScroll instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule's InputScroll instead."))
 		void InputScroll(const float& inAxisValue) {};
 
 	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
