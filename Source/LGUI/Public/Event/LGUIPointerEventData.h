@@ -76,7 +76,7 @@ public:
 		FVector pointerPosition;
 
 	UE_DEPRECATED(4.23, "currentComponent not valid anymore, use enterComponent instead.")
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY()
 		USceneComponent* currentComponent_DEPRECATED = nullptr;
 
 	//enterred component
