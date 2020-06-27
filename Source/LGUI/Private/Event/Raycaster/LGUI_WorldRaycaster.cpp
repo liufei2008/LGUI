@@ -1,17 +1,18 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #include "Event/Raycaster/LGUI_WorldRaycaster.h"
+#include "Engine/World.h"
 
 ULGUI_WorldRaycaster::ULGUI_WorldRaycaster()
 {
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
-bool ULGUI_WorldRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
+bool ULGUI_WorldRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
 {
 	traceIgnoreActorArray.Reset();
 	traceOnlyActorArray.Reset();
-	if (GenerateRay(OutRayOrigin, OutRayDirection, traceOnlyActorArray, traceIgnoreActorArray))
+	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection, traceOnlyActorArray, traceIgnoreActorArray))
 	{
 		multiWorldHitResult.Reset();
 		OutRayEnd = OutRayDirection * rayLength + OutRayOrigin;

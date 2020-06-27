@@ -39,8 +39,8 @@ bool ULGUIScreenSpaceInteraction::ShouldSkipUIItem(UUIItem* UIItem)
 	}
 	return true;
 }
-bool ULGUIScreenSpaceInteraction::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
+bool ULGUIScreenSpaceInteraction::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
 {
 	CheckRayemitter();
-	return Super::Raycast(OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult);
+	return Super::Raycast(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult);
 }

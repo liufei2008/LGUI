@@ -5,7 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
 
-bool ULGUI_CenterScreenRayemitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
+bool ULGUI_CenterScreenRayemitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (auto playerController = this->GetWorld()->GetFirstPlayerController())
 	{
@@ -33,26 +33,10 @@ bool ULGUI_CenterScreenRayemitter::EmitRay(FVector& OutRayOrigin, FVector& OutRa
 bool ULGUI_CenterScreenRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
-	FVector2D mousePos;
-	if (GetMousePosition(mousePos))
-	{
-		return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
-	}
-	return false;
+	FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
+	return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
 }
 void ULGUI_CenterScreenRayemitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
-	GetMousePosition(pressMousePos);
-}
-bool ULGUI_CenterScreenRayemitter::GetMousePosition(FVector2D& OutPos)
-{
-	if (auto playerController = this->GetWorld()->GetFirstPlayerController())
-	{
-		ULocalPlayer* const LocalPlayer = playerController->GetLocalPlayer();
-		if (LocalPlayer && LocalPlayer->ViewportClient)
-		{
-			return LocalPlayer->ViewportClient->GetMousePosition(OutPos);
-		}
-	}
-	return false;
+	pressMousePos = FVector2D(InPointerEventData->pointerPosition);
 }

@@ -135,7 +135,7 @@ void ULGUI_MainViewportMouseRayEmitter::DeprojectViewPointToWorldForMainViewport
 #endif
 
 
-bool ULGUI_MainViewportMouseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
+bool ULGUI_MainViewportMouseRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
 	if (auto pc = GetWorld()->GetFirstPlayerController())
@@ -143,8 +143,7 @@ bool ULGUI_MainViewportMouseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& 
 		FIntPoint ScreenSize;
 		pc->GetViewportSize(ScreenSize.X, ScreenSize.Y);
 		FMatrix viewProjectionMatrix = ComputeViewProjectionMatrix(pc->PlayerCameraManager, ScreenSize);
-		FVector2D MousePosition;
-		pc->GetMousePosition(MousePosition.X, MousePosition.Y);
+		FVector2D MousePosition = FVector2D(InPointerEventData->pointerPosition);
 		MousePosition.X /= ScreenSize.X;
 		MousePosition.Y /= ScreenSize.Y;
 		MousePosition.Y = 1.0f - MousePosition.Y;
@@ -158,21 +157,18 @@ bool ULGUI_MainViewportMouseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& 
 		ULocalPlayer* const LocalPlayer = playerController->GetLocalPlayer();
 		if (LocalPlayer && LocalPlayer->ViewportClient)
 		{
-			FVector2D ScreenPosition;
-			if (LocalPlayer->ViewportClient->GetMousePosition(ScreenPosition))
+			FVector2D ScreenPosition = FVector2D(InPointerEventData->pointerPosition);
+			// get the projection data
+			FSceneViewProjectionData ProjectionData;
+			if (LocalPlayer->GetProjectionData(LocalPlayer->ViewportClient->Viewport, eSSP_FULL, /*out*/ ProjectionData))
 			{
-				// get the projection data
-				FSceneViewProjectionData ProjectionData;
-				if (LocalPlayer->GetProjectionData(LocalPlayer->ViewportClient->Viewport, eSSP_FULL, /*out*/ ProjectionData))
-				{
-					auto ViewProMatrix = ProjectionData.ViewRotationMatrix * ProjectionData.ProjectionMatrix;//VieProjectionMatrix without position
-					FMatrix const InvViewProjMatrix = ViewProMatrix.InverseFast();
-					FSceneView::DeprojectScreenToWorld(ScreenPosition, ProjectionData.GetConstrainedViewRect(), InvViewProjMatrix, /*out*/ OutRayOrigin, /*out*/ OutRayDirection);
-					OutRayOrigin += ProjectionData.ViewOrigin;//take position out from ViewProjectionMatrix, after deproject calculation, add position to result, this can avoid float precition issue. otherwise result ray will have some obvious bias
-					currentRayOrigin = OutRayOrigin;
-					currentRayDirection = OutRayDirection;
-					return true;
-				}
+				auto ViewProMatrix = ProjectionData.ViewRotationMatrix * ProjectionData.ProjectionMatrix;//VieProjectionMatrix without position
+				FMatrix const InvViewProjMatrix = ViewProMatrix.InverseFast();
+				FSceneView::DeprojectScreenToWorld(ScreenPosition, ProjectionData.GetConstrainedViewRect(), InvViewProjMatrix, /*out*/ OutRayOrigin, /*out*/ OutRayDirection);
+				OutRayOrigin += ProjectionData.ViewOrigin;//take position out from ViewProjectionMatrix, after deproject calculation, add position to result, this can avoid float precition issue. otherwise result ray will have some obvious bias
+				currentRayOrigin = OutRayOrigin;
+				currentRayDirection = OutRayDirection;
+				return true;
 			}
 		}
 	}
@@ -182,26 +178,10 @@ bool ULGUI_MainViewportMouseRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& 
 bool ULGUI_MainViewportMouseRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
-	FVector2D mousePos;
-	if (GetMousePosition(mousePos))
-	{
-		return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
-	}
-	return false;
+	FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
+	return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
 }
 void ULGUI_MainViewportMouseRayEmitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
-	GetMousePosition(pressMousePos);
-}
-bool ULGUI_MainViewportMouseRayEmitter::GetMousePosition(FVector2D& OutPos)
-{
-	if (auto playerController = this->GetWorld()->GetFirstPlayerController())
-	{
-		ULocalPlayer* const LocalPlayer = playerController->GetLocalPlayer();
-		if (LocalPlayer && LocalPlayer->ViewportClient)
-		{
-			return LocalPlayer->ViewportClient->GetMousePosition(OutPos);
-		}
-	}
-	return false;
+	pressMousePos = FVector2D(InPointerEventData->pointerPosition);
 }

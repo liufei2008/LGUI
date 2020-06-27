@@ -39,5 +39,5 @@ public:
 	//if two UI element hit distance's difference less than threshold, then sort the two UI element on depth
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
 		float uiSortDependOnDistanceThreshold = 0.001f;
-	virtual bool Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)override;
+	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)override;
 };

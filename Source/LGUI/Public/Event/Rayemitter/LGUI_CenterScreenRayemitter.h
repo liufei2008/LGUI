@@ -13,10 +13,9 @@ class LGUI_API ULGUI_CenterScreenRayemitter : public ULGUIBaseRayEmitter
 	GENERATED_BODY()
 
 public:
-	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
+	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 	virtual void MarkPress(ULGUIPointerEventData* InPointerEventData)override;
 private:
 	FVector2D pressMousePos;
-	bool GetMousePosition(FVector2D& OutPos);
 };

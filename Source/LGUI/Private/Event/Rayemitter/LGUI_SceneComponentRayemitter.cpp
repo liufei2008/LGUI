@@ -3,7 +3,7 @@
 #include "Event/Rayemitter/LGUI_SceneComponentRayEmitter.h"
 #include "LGUI.h"
 
-bool ULGUI_SceneComponentRayEmitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
+bool ULGUI_SceneComponentRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (CacheTargetSceneComponent == nullptr)
 	{
