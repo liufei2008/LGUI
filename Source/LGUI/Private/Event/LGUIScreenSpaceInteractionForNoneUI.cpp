@@ -18,9 +18,10 @@ void ULGUIScreenSpaceInteractionForNoneUI::CheckRayemitter()
 			auto renderCanvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
 			if (IsValid(renderCanvas))
 			{
-				auto emitter = NewObject<ULGUI_ScreenSpaceUIMouseRayemitter>(this);
+				auto emitter = NewObject<ULGUI_ScreenSpaceUIMouseRayemitter>(actor);
 				emitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
 				emitter->SetRenderCanvas(renderCanvas);
+				actor->FinishAndRegisterComponent(emitter);
 				rayEmitter = emitter;
 			}
 		}

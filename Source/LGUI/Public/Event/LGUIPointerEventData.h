@@ -77,7 +77,7 @@ public:
 
 	UE_DEPRECATED(4.23, "hitComponent not valid anymore, use enterComponent instead.")
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		USceneComponent* hitComponent = nullptr;
+		USceneComponent* currentComponent = nullptr;
 
 	//enterred component
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")

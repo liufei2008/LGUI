@@ -61,13 +61,18 @@ void ULGUIEventSystem::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	if (bRayEventEnable)
 	{
-		if (ALGUIManagerActor::Instance != nullptr)
+		ProcessInputEvent();
+	}
+}
+
+void ULGUIEventSystem::ProcessInputEvent()
+{
+	if (ALGUIManagerActor::Instance != nullptr)
+	{
+		if (auto inputModule = ALGUIManagerActor::Instance->GetInputModule())
 		{
-			if (auto inputModule = ALGUIManagerActor::Instance->GetInputModule())
-			{
-				SCOPE_CYCLE_COUNTER(STAT_RayAndEvent);
-				inputModule->ProcessInput();
-			}
+			SCOPE_CYCLE_COUNTER(STAT_RayAndEvent);
+			inputModule->ProcessInput();
 		}
 	}
 }
