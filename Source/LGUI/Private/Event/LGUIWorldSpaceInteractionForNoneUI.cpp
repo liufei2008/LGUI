@@ -13,28 +13,32 @@ void ULGUIWorldSpaceInteractionForNoneUI::CheckRayemitter()
 {
 	if (!IsValid(rayEmitter))
 	{
-		switch (interactionSource)
+		if (auto actor = GetOwner())
 		{
-		default:
-		case ELGUIWorldSpaceInteractionSource::World:
-		{
-			auto emitter = NewObject<ULGUI_SceneComponentRayEmitter>(this);
-			emitter->SetTargetSceneComponent(this);
-			rayEmitter = emitter;
+			switch (interactionSource)
+			{
+			default:
+			case ELGUIWorldSpaceInteractionSource::World:
+			{
+				auto emitter = NewObject<ULGUI_SceneComponentRayEmitter>(actor);
+				emitter->SetTargetSceneComponent(this);
+				rayEmitter = emitter;
+			}
+			break;
+			case ELGUIWorldSpaceInteractionSource::Mouse:
+			{
+				rayEmitter = NewObject<ULGUI_MainViewportMouseRayEmitter>(actor);
+			}
+			break;
+			case ELGUIWorldSpaceInteractionSource::CenterScreen:
+			{
+				rayEmitter = NewObject<ULGUI_CenterScreenRayemitter>(actor);
+			}
+			break;
+			}
+			rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+			actor->FinishAndRegisterComponent(rayEmitter);
 		}
-		break;
-		case ELGUIWorldSpaceInteractionSource::Mouse:
-		{
-			rayEmitter = NewObject<ULGUI_MainViewportMouseRayEmitter>(this);
-		}
-		break;
-		case ELGUIWorldSpaceInteractionSource::CenterScreen:
-		{
-			rayEmitter = NewObject<ULGUI_CenterScreenRayemitter>(this);
-		}
-		break;
-		}
-		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
 	}
 }
 bool ULGUIWorldSpaceInteractionForNoneUI::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)

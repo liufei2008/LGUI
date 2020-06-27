@@ -103,6 +103,9 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassThumbnail.LGUISpriteData", new IMAGE_BRUSH(TEXT("Sprite_40x"), Icon40x40));
 	Style->Set("ClassIcon.LGUISpriteData", new IMAGE_BRUSH(TEXT("Sprite_16x"), Icon16x16));
 
+	Style->Set("ClassThumbnail.LGUIBaseInputModule", new IMAGE_BRUSH(TEXT("InputModule_40x"), Icon40x40));
+	Style->Set("ClassIcon.LGUIBaseInputModule", new IMAGE_BRUSH(TEXT("InputModule_16x"), Icon16x16));
+
 	Style->Set("LGUIEditor.SpriteDataAction", new IMAGE_BRUSH(TEXT("UISprite_16x"), Icon16x16));
 	Style->Set("LGUIEditor.SpriteDataCreate", new IMAGE_BRUSH(TEXT("SpriteDataCreate_16x"), Icon16x16));
 	Style->Set("LGUIEditor.SpriteDataSetting", new IMAGE_BRUSH(TEXT("SpriteDataSetting_16x"), Icon16x16));
