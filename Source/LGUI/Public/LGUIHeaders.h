@@ -78,6 +78,7 @@
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "Event/InputModule/LGUI_PointerInputModule.h"
 #include "Event/InputModule/LGUI_StandaloneInputModule.h"
+#include "Event/InputModule/LGUI_TouchInputModule.h"
 
 #include "Extensions/UIComboBox.h"
 #include "Extensions/UIFlyoutMenu.h"
