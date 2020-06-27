@@ -207,7 +207,7 @@ Fix a build warning of bind none const function.
 ## 2.7.2
 #### Change:
 Change FLGUIPointerEventData to ULGUIPointerEventData.
-Delete LGUIPointerEventData's currentComponent, use enterComponent instead.
+Deprecate LGUIPointerEventData's currentComponent, use enterComponent instead.
 #### Improve:
 Auto UIItem's hierarchyIndex management.
 ## 2.8
@@ -217,6 +217,7 @@ LGUI_Saved_Data.json file now save to project intermediate folder.
 LGUIPointerXXXInterface.h file move to Event/Interface/ folder.
 #### NewFeature:
 EventSystem now user InputModule to handle input events, this should be more extensible for us to make different input for different platform, such as mobile.
+Add dragToHold parameter to LGUIXXXRayemitter.
 #### Fix:
 Fix a crash caused by UIText's OverflowType=ClampContent.
 

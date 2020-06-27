@@ -62,6 +62,8 @@ protected:
 
 	bool isNavigationActive = false;
 	void BeginNavigation();
+
+	FORCEINLINE void ProcessInputEvent();
 public:
 	//TriggerInput, need mannually setup
 	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputTrigger instead.")
