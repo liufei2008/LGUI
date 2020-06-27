@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "LGUIPointerEventData.h"
+#include "Event/LGUIPointerEventData.h"
 #include "LGUIPointerClickInterface.generated.h"
 
 
