@@ -3,7 +3,7 @@
 #include "Event/Rayemitter/LGUI_ScreenSpaceUIMouseRayemitter.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-bool ULGUI_ScreenSpaceUIMouseRayemitter::EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
+bool ULGUI_ScreenSpaceUIMouseRayemitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (!IsValid(RenderCanvas))
 		return false;
@@ -11,9 +11,8 @@ bool ULGUI_ScreenSpaceUIMouseRayemitter::EmitRay(FVector& OutRayOrigin, FVector&
 		return false;
 
 	auto ViewProjectionMatrix = RenderCanvas->GetViewProjectionMatrix();
-	//Get mouse position, convert to range 0-1, project to SceneCapture2D
-	FVector2D mousePos;
-	this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos);
+	//Get mouse position, convert to range 0-1
+	FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
 	FVector2D viewportSize = RenderCanvas->GetViewportSize();
 	FVector2D mousePos01 = mousePos / viewportSize;
 	mousePos01.Y = 1.0f - mousePos01.Y;
@@ -61,14 +60,10 @@ void ULGUI_ScreenSpaceUIMouseRayemitter::DeprojectViewPointToWorld(const FMatrix
 bool ULGUI_ScreenSpaceUIMouseRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
-	FVector2D mousePos;
-	if (this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos))
-	{
-		return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
-	}
-	return false;
+	FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
+	return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
 }
 void ULGUI_ScreenSpaceUIMouseRayemitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
-	this->GetWorld()->GetGameViewport()->GetMousePosition(pressMousePos);
+	pressMousePos = FVector2D(InPointerEventData->pointerPosition);
 }

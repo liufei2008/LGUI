@@ -18,5 +18,5 @@ protected:
 	//temp array, hit result
 	TArray<FHitResult> multiWorldHitResult;
 public:
-	virtual bool Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)override;
+	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)override;
 };

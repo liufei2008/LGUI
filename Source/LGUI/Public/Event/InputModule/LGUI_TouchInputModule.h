@@ -5,19 +5,19 @@
 #include "CoreMinimal.h"
 #include "Event/InputModule/LGUI_PointerInputModule.h"
 #include "Event/LGUIPointerEventData.h"
-#include "LGUI_StandaloneInputModule.generated.h"
+#include "LGUI_TouchInputModule.generated.h"
 
-//Common standalone platform input, or mouse input
+//for mobile multi touch input
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUI_StandaloneInputModule : public ULGUI_PointerInputModule
+class LGUI_API ULGUI_TouchInputModule : public ULGUI_PointerInputModule
 {
 	GENERATED_BODY()
 
 public:
 	virtual void ProcessInput()override;
 	//TriggerInput, need mannually setup
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
-		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputTouch(bool inTouchPress, int inTouchID, const FVector& inTouchPointPosition);
 	//ScrollInput, need mannually setup
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputScroll(const float& inAxisValue);

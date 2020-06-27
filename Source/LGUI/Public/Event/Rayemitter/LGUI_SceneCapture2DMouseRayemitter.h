@@ -29,7 +29,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSceneCapture2DComponent(class USceneCaptureComponent2D* InComp) { sceneCaptureComp = InComp; }
 
-	virtual bool EmitRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
+	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 	virtual void MarkPress(ULGUIPointerEventData* InPointerEventData)override;
 

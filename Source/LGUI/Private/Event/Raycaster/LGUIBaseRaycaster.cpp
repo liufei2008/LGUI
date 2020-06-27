@@ -33,14 +33,14 @@ void ULGUIBaseRaycaster::DeactivateRaycaster()
 {
 	ALGUIManagerActor::RemoveRaycaster(this);
 }
-bool ULGUIBaseRaycaster::GenerateRay(FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& OutTraceOnlyActors, TArray<AActor*>& OutTraceIgnoreActors)
+bool ULGUIBaseRaycaster::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& OutTraceOnlyActors, TArray<AActor*>& OutTraceIgnoreActors)
 {
 	if (rayEmitter == nullptr)
 	{
 		UE_LOG(LGUI, Warning, TEXT("[ULGUIBaseRaycaster::GenerateRay]Raycaster:%s ray emitter is not set! This raycaster will not work without a rayemitter!"), *(this->GetPathName()));
 		return false;
 	}
-	return rayEmitter->EmitRay(OutRayOrigin, OutRayDirection, OutTraceOnlyActors, OutTraceIgnoreActors);
+	return rayEmitter->EmitRay(InPointerEventData, OutRayOrigin, OutRayDirection, OutTraceOnlyActors, OutTraceIgnoreActors);
 }
 
 void ULGUIBaseRaycaster::ActorLineTraceMulti(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ECollisionChannel InTraceChannel, const struct FCollisionQueryParams& InParams)
@@ -66,7 +66,7 @@ void ULGUIBaseRaycaster::ActorLineTraceMulti(TArray<FHitResult>& OutHitArray, bo
 	}
 }
 
-bool ULGUIBaseRaycaster::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
+bool ULGUIBaseRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
 {
 	UE_LOG(LGUI, Error, TEXT("[LGUI_UIRaycaster]Function Raycast must be implemented!"));
 	return false;

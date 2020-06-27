@@ -37,8 +37,8 @@ void ULGUIWorldSpaceInteractionForNoneUI::CheckRayemitter()
 		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
 	}
 }
-bool ULGUIWorldSpaceInteractionForNoneUI::Raycast(FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
+bool ULGUIWorldSpaceInteractionForNoneUI::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
 {
 	CheckRayemitter();
-	return Super::Raycast(OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult);
+	return Super::Raycast(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult);
 }

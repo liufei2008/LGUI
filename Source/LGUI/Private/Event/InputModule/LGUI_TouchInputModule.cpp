@@ -1,0 +1,52 @@
+﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
+
+#include "Event/InputModule/LGUI_TouchInputModule.h"
+#include "LGUI.h"
+#include "Event/LGUIEventSystem.h"
+
+void ULGUI_TouchInputModule::ProcessInput()
+{
+	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance();
+	if (eventSystem == nullptr)return;
+
+	for (auto keyValue : pointerEventDataMap)
+	{
+		auto touchPointerEventData = keyValue.Value;
+		if (IsValid(touchPointerEventData))
+		{
+			if (touchPointerEventData->nowIsTriggerPressed || touchPointerEventData->prevIsTriggerPressed)
+			{
+				FHitResultContainerStruct hitResultContainer;
+				bool lineTraceHitSomething = LineTrace(touchPointerEventData, hitResultContainer);
+				bool resultHitSomething = false;
+				ProcessPointerEvent(touchPointerEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething);
+
+				auto tempHitComp = (USceneComponent*)hitResultContainer.hitResult.Component.Get();
+				hitResultContainer.hitResult.Component = nullptr;
+				eventSystem->RaiseHitEvent(resultHitSomething, hitResultContainer.hitResult, tempHitComp);
+			}
+		}
+	}
+}
+void ULGUI_TouchInputModule::InputScroll(const float& inAxisValue)
+{
+	auto eventData = GetPointerEventData(0, true);
+	if (IsValid(eventData->enterComponent))
+	{
+		if (inAxisValue != 0)
+		{
+			eventData->scrollAxisValue = inAxisValue;
+			if (auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance())
+			{
+				eventSystem->CallOnPointerScroll(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
+			}
+		}
+	}
+}
+
+void ULGUI_TouchInputModule::InputTouch(bool inTouchPress, int inTouchID, const FVector& inTouchPointPosition)
+{
+	auto eventData = GetPointerEventData(inTouchID, true);
+	eventData->nowIsTriggerPressed = inTouchPress;
+	eventData->pointerPosition = inTouchPointPosition;
+}
