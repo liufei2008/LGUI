@@ -12,6 +12,8 @@ UCLASS(Abstract)
 class LGUI_API ULGUIBaseRayEmitter : public UActorComponent
 {
 	GENERATED_BODY()
+public:
+	virtual void BeginPlay()override;
 protected:
 	//click/drag threshold
 	UPROPERTY(EditAnywhere, Category = LGUI)

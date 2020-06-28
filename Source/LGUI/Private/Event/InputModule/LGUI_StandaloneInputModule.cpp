@@ -17,11 +17,11 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 	FHitResultContainerStruct hitResultContainer;
 	bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
 	bool resultHitSomething = false;
-	ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething);
+	FHitResult hitResult;
+	ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
 
-	auto tempHitComp = (USceneComponent*)hitResultContainer.hitResult.Component.Get();
-	hitResultContainer.hitResult.Component = nullptr;
-	eventSystem->RaiseHitEvent(resultHitSomething, hitResultContainer.hitResult, tempHitComp);
+	auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+	eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
 }
 void ULGUI_StandaloneInputModule::InputScroll(const float& inAxisValue)
 {
