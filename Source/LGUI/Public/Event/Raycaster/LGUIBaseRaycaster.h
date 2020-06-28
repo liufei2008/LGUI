@@ -44,7 +44,7 @@ public:
 		int32 depth = 0;
 	//line trace ray emit length
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
-		float rayLength = 1000;
+		float rayLength = 10000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		TEnumAsByte<ETraceTypeQuery> traceChannel;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
