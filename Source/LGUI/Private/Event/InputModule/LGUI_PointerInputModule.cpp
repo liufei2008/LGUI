@@ -121,23 +121,30 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 				}
 			}
 
-			FVector approximatHitPosition = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin()
-				+ eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection() * eventData->pressDistance;
 			//trigger drag event
-			auto prevHitPoint = eventData->worldPoint;
-			eventData->worldPoint = approximatHitPosition;
-			eventData->worldNormal = outHitResult.Normal;
-			eventData->cumulativeMoveDelta = approximatHitPosition - eventData->pressWorldPoint;
-			eventData->moveDelta = approximatHitPosition - prevHitPoint;
-			eventData->dragRayOrigin = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin();
-			eventData->dragRayDirection = eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection();
-			//@todo: check dragComponent
-			eventSystem->CallOnPointerDrag(eventData->dragComponent, eventData, eventData->dragComponentEventFireOnAllOrOnlyTarget);
+			if (IsValid(eventData->dragComponent))
+			{
+				FVector approximatHitPosition = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin()
+					+ eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection() * eventData->pressDistance;
 
-			outHitResult.Location = approximatHitPosition;
-			outHitResult.ImpactPoint = approximatHitPosition;
-			outHitResult.Distance = eventData->pressDistance;
-			outIsHitSomething = true;//always hit a plane when drag
+				auto prevHitPoint = eventData->worldPoint;
+				eventData->worldPoint = approximatHitPosition;
+				eventData->worldNormal = outHitResult.Normal;
+				eventData->cumulativeMoveDelta = approximatHitPosition - eventData->pressWorldPoint;
+				eventData->moveDelta = approximatHitPosition - prevHitPoint;
+				eventData->dragRayOrigin = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin();
+				eventData->dragRayDirection = eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection();
+				eventSystem->CallOnPointerDrag(eventData->dragComponent, eventData, eventData->dragComponentEventFireOnAllOrOnlyTarget);
+
+				outHitResult.Location = approximatHitPosition;
+				outHitResult.ImpactPoint = approximatHitPosition;
+				outHitResult.Distance = eventData->pressDistance;
+				outIsHitSomething = true;//always hit a plane when drag
+			}
+			else
+			{
+				eventData->dragging = false;
+			}
 		}
 		else//trigger press but not dragging, only consern if trigger drag event
 		{
@@ -363,9 +370,9 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 			if (!eventData->isUpFiredAtCurrentFrame)
 			{
 				eventData->isUpFiredAtCurrentFrame = true;
-				if (IsValid(eventData->dragComponent))
+				if (IsValid(eventData->pressComponent))
 				{
-					eventSystem->CallOnPointerUp(eventData->dragComponent, eventData, eventData->dragComponentEventFireOnAllOrOnlyTarget);
+					eventSystem->CallOnPointerUp(eventData->pressComponent, eventData, eventData->pressComponentEventFireOnAllOrOnlyTarget);
 				}
 			}
 			if (!eventData->isEndDragFiredAtCurrentFrame)
@@ -379,9 +386,9 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 			if (!eventData->isExitFiredAtCurrentFrame)
 			{
 				eventData->isExitFiredAtCurrentFrame = true;
-				if (IsValid(eventData->dragComponent))
+				if (IsValid(eventData->enterComponent))
 				{
-					eventSystem->CallOnPointerExit(eventData->dragComponent, eventData, eventData->dragComponentEventFireOnAllOrOnlyTarget);
+					eventSystem->CallOnPointerExit(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
 				}
 			}
 			if (!eventData->isDragExitFiredAtCurrentFrame)
@@ -394,19 +401,24 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 				}
 			}
 			eventData->dragging = false;
+			eventData->enterComponent = nullptr;
+			eventData->pressComponent = nullptr;
 			eventData->dragComponent = nullptr;
+			eventData->dragEnterComponent = nullptr;
 		}
 		else
 		{
 			if (!eventData->isUpFiredAtCurrentFrame)
 			{
-				if (IsValid(eventData->enterComponent))
+				eventData->isUpFiredAtCurrentFrame = true;
+				if (IsValid(eventData->pressComponent))
 				{
-					eventSystem->CallOnPointerUp(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
+					eventSystem->CallOnPointerUp(eventData->pressComponent, eventData, eventData->pressComponentEventFireOnAllOrOnlyTarget);
 				}
 			}
 			if (!eventData->isExitFiredAtCurrentFrame)
 			{
+				eventData->isExitFiredAtCurrentFrame = true;
 				if (IsValid(eventData->enterComponent))
 				{
 					eventSystem->CallOnPointerExit(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
@@ -422,6 +434,7 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 	{
 		if (!eventData->isExitFiredAtCurrentFrame)
 		{
+			eventData->isExitFiredAtCurrentFrame = true;
 			if (IsValid(eventData->enterComponent))
 			{
 				eventSystem->CallOnPointerExit(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);

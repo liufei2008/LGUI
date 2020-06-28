@@ -335,17 +335,17 @@ void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp, ULGUIBa
 		{
 			if (IsValid(oldSelectedComp))
 			{
-				eventData->selectedComponent = oldSelectedComp;
-				CallOnPointerDeselect(selectedComponent, eventData, eventData->selectedComponentEventFireOnAllOrOnlyTarget);
+				eventData->selectedComponent = selectedComponent;
+				CallOnPointerDeselect(oldSelectedComp, eventData, eventData->selectedComponentEventFireOnAllOrOnlyTarget);
 			}
 		}
-		if (InSelectComp != nullptr)
+		if (selectedComponent != nullptr)
 		{
-			if (auto tempComp = InSelectComp->GetOwner()->FindComponentByClass<UUISelectableComponent>())
+			if (auto tempComp = selectedComponent->GetOwner()->FindComponentByClass<UUISelectableComponent>())
 			{
 				selectableComponent = tempComp;
 			}
-			eventData->selectedComponent = InSelectComp;
+			eventData->selectedComponent = selectedComponent;
 			CallOnPointerSelect(selectedComponent, eventData, eventFireOnAllOrOnlyTarget);
 		}
 		eventData->selectedComponentEventFireOnAllOrOnlyTarget = eventFireOnAllOrOnlyTarget;
