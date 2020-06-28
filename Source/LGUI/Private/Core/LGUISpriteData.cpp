@@ -18,6 +18,16 @@ void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeigh
 	uv3X = (InX + InWidth) * texFullWidthReciprocal;
 	uv3Y = InY * texFullHeightReciprocal;
 }
+void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal, const FVector4& uvRect)
+{
+	width = InWidth;
+	height = InHeight;
+
+	uv0X = InX * texFullWidthReciprocal + uvRect.X;
+	uv0Y = (InY + InHeight) * texFullHeightReciprocal + uvRect.Y;
+	uv3X = (InX + InWidth) * texFullWidthReciprocal * uvRect.Z + uvRect.X;
+	uv3Y = InY * texFullHeightReciprocal * uvRect.W + uvRect.Y;
+}
 bool FLGUISpriteInfo::HasBorder()const
 {
 	return borderLeft != 0 || borderRight != 0 || borderTop != 0 || borderBottom != 0;
