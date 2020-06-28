@@ -16,7 +16,6 @@ void UUITexture::BeginPlay()
 	Super::BeginPlay();
 	WidthChanged();
 	HeightChanged();
-	CheckSpriteData();
 }
 #if WITH_EDITOR
 void UUITexture::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -43,7 +42,7 @@ void UUITexture::CheckSpriteData()
 		spriteData.height = texture->GetSurfaceHeight();
 		if (type != UITextureType::Tiled)
 		{
-			spriteData.ApplyUV(uvRect.X * spriteData.width, uvRect.Y * spriteData.height, uvRect.Z * spriteData.width, uvRect.W * spriteData.height, 1.0f / spriteData.width, 1.0f / spriteData.height);
+			spriteData.ApplyUV(0, 0, spriteData.width, spriteData.height, 1.0f / spriteData.width, 1.0f / spriteData.height, uvRect);
 			spriteData.ApplyBorderUV(1.0f / spriteData.width, 1.0f / spriteData.height);
 		}
 	}
@@ -51,6 +50,7 @@ void UUITexture::CheckSpriteData()
 
 void UUITexture::OnCreateGeometry()
 {
+	CheckSpriteData();
 	switch (type)
 	{
 	case UITextureType::Normal:
@@ -68,7 +68,7 @@ void UUITexture::OnCreateGeometry()
 	case UITextureType::Tiled:
 	{
 		FLGUISpriteInfo tempSpriteInfo;
-		tempSpriteInfo.ApplyUV(uvRect.X * spriteData.width, uvRect.Y * spriteData.height, uvRect.Z * widget.width, uvRect.W * widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight());
+		tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight(), uvRect);
 		UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, tempSpriteInfo, RenderCanvas, this);
 	}
 		break;
@@ -116,7 +116,7 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 		case UITextureType::Tiled:
 		{
 			FLGUISpriteInfo tempSpriteInfo;
-			tempSpriteInfo.ApplyUV(uvRect.X * spriteData.width, uvRect.Y * spriteData.height, uvRect.Z * widget.width, uvRect.W * widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight());
+			tempSpriteInfo.ApplyUV(0, 0, widget.width, widget.height, 1.0f / texture->GetSurfaceWidth(), 1.0f / texture->GetSurfaceHeight(), uvRect);
 			UIGeometry::UpdateUIRectSimpleUV(geometry, tempSpriteInfo);
 		}
 			break;
