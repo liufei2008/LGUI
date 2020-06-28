@@ -19,11 +19,11 @@ void ULGUI_TouchInputModule::ProcessInput()
 				FHitResultContainerStruct hitResultContainer;
 				bool lineTraceHitSomething = LineTrace(touchPointerEventData, hitResultContainer);
 				bool resultHitSomething = false;
-				ProcessPointerEvent(touchPointerEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething);
+				FHitResult hitResult;
+				ProcessPointerEvent(touchPointerEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
 
-				auto tempHitComp = (USceneComponent*)hitResultContainer.hitResult.Component.Get();
-				hitResultContainer.hitResult.Component = nullptr;
-				eventSystem->RaiseHitEvent(resultHitSomething, hitResultContainer.hitResult, tempHitComp);
+				auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+				eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
 			}
 		}
 	}

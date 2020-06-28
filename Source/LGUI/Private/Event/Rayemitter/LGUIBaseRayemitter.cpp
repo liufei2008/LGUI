@@ -3,6 +3,11 @@
 #include "Event/Rayemitter/LGUIBaseRayEmitter.h"
 #include "LGUI.h"
 
+void ULGUIBaseRayEmitter::BeginPlay()
+{
+	Super::BeginPlay();
+	clickTresholdSquare = clickThreshold * clickThreshold;
+}
 bool ULGUIBaseRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	UE_LOG(LGUI, Error, TEXT("[ULGUIBaseRayEmitter]Function EmitRay must be implemented!"));
