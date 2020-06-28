@@ -220,4 +220,5 @@ EventSystem now user InputModule to handle input events, this should be more ext
 Add dragToHold parameter to LGUIXXXRayemitter.
 #### Fix:
 Fix a crash caused by UIText's OverflowType=ClampContent.
+Fix UITexture's UVRect issue.
 
