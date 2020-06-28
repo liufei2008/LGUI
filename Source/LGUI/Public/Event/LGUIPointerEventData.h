@@ -44,7 +44,7 @@ class LGUI_API ULGUIBaseEventData :public UObject
 {
 	GENERATED_BODY()
 public:
-	//current selected component
+	//current selected component. when call Deselect interface, this is also the new selected component
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		USceneComponent* selectedComponent = nullptr;
 	//event type
