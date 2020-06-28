@@ -159,6 +159,7 @@ public:
 
 
 	bool enterComponentEventFireOnAllOrOnlyTarget = false;
+	bool pressComponentEventFireOnAllOrOnlyTarget = false;
 	bool dragComponentEventFireOnAllOrOnlyTarget = false;
 	bool dragEnterComponentEventFireOnAllOrOnlyTarget = false;
 
