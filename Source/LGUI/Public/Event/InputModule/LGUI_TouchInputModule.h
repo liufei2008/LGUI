@@ -15,10 +15,13 @@ class LGUI_API ULGUI_TouchInputModule : public ULGUI_PointerInputModule
 
 public:
 	virtual void ProcessInput()override;
-	//TriggerInput, need mannually setup
+	//input for touch press and release
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputTouch(bool inTouchPress, int inTouchID, const FVector& inTouchPointPosition);
-	//ScrollInput, need mannually setup
+		void InputTouchTrigger(bool inTouchPress, int inTouchID, const FVector& inTouchPointPosition);
+	//input for touch point moved
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputTouchMoved(int inTouchID, const FVector& inTouchPointPosition);
+	//input for scroll
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputScroll(const float& inAxisValue);
 };
