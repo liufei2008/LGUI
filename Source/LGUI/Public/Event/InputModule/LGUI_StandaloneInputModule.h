@@ -15,10 +15,10 @@ class LGUI_API ULGUI_StandaloneInputModule : public ULGUI_PointerInputModule
 
 public:
 	virtual void ProcessInput()override;
-	//TriggerInput, need mannually setup
+	//input for mouse press and release
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
 		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left);
-	//ScrollInput, need mannually setup
+	//input for scroll
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputScroll(const float& inAxisValue);
 };
