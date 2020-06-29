@@ -44,9 +44,15 @@ void ULGUI_TouchInputModule::InputScroll(const float& inAxisValue)
 	}
 }
 
-void ULGUI_TouchInputModule::InputTouch(bool inTouchPress, int inTouchID, const FVector& inTouchPointPosition)
+void ULGUI_TouchInputModule::InputTouchTrigger(bool inTouchPress, int inTouchID, const FVector& inTouchPointPosition)
 {
 	auto eventData = GetPointerEventData(inTouchID, true);
 	eventData->nowIsTriggerPressed = inTouchPress;
+	eventData->pointerPosition = inTouchPointPosition;
+}
+
+void ULGUI_TouchInputModule::InputTouchMoved(int inTouchID, const FVector& inTouchPointPosition)
+{
+	auto eventData = GetPointerEventData(inTouchID, true);
 	eventData->pointerPosition = inTouchPointPosition;
 }

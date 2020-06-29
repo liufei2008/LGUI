@@ -26,10 +26,10 @@ void ULGUIBaseInputModule::Activate(bool bReset)
 	if (this->GetWorld() == nullptr)return;
 #if WITH_EDITOR
 	if (this->GetWorld()->IsGameWorld())
+#endif
 	{
 		ActivateInputModule();
 	}
-#endif
 }
 void ULGUIBaseInputModule::Deactivate()
 {
