@@ -53,7 +53,7 @@ public:
 
 class ULGUIBehaviour;
 //for LGUI config
-UCLASS(config=EditorPerProjectUserSettings)
+UCLASS(config=Engine, defaultconfig)
 class LGUI_API ULGUISettings :public UObject
 {
 	GENERATED_BODY()
