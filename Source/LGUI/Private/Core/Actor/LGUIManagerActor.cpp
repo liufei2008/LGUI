@@ -209,7 +209,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to enable array but already exist! comp:%s"), *(item->GetPathName()));
 					}
 				}
-				//remote from Awake array
+				//remove from Awake array
 				{
 					LGUIBehavioursForAwake.RemoveAt(i);
 					i--;
@@ -240,7 +240,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist! comp:%s"), *(item->GetPathName()));
 					}
 				}
-				//remote from Enable array
+				//remove from Enable array
 				{
 					LGUIBehavioursForEnable.RemoveAt(i);
 					i--;
@@ -270,7 +270,7 @@ void ALGUIManagerActor::Tick_PrePhysics()
 						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist! comp:%s"), *(item->GetPathName()));
 					}
 				}
-				//remote from Start array
+				//remove from Start array
 				{
 					LGUIBehavioursForStart.RemoveAt(i);
 					i--;
@@ -308,7 +308,7 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_DuringPhysics]trying to add to enable array but already exist!"));
 					}
 				}
-				//remote form update array
+				//remove form update array
 				{
 					LGUIBehavioursForUpdate.RemoveAt(i);
 					i--;
@@ -348,12 +348,14 @@ void ALGUIManagerActor::AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp,
 #else
 	static auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
 #endif
+	//UE_LOG(LGUI, Error, TEXT("executeOrderCount:%d"), lguiBehaviourExecuteOrders.Num());
 	if (lguiBehaviourExecuteOrders.Num() > 0 && InArray.Num() > 0)
 	{
 		auto inCompClass = InComp->GetClass();
 		int inCompIndex = INDEX_NONE;
 		if (lguiBehaviourExecuteOrders.Find(inCompClass, inCompIndex))
 		{
+			bool addToArray = false;
 			for (int i = 0; i < InArray.Num(); i++)
 			{
 				auto checkItemClass = InArray[i]->GetClass();
@@ -361,20 +363,27 @@ void ALGUIManagerActor::AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp,
 				if (lguiBehaviourExecuteOrders.Find(checkItemClass, checkItemIndex))//exist, check index
 				{
 					if (inCompIndex > checkItemIndex)
-					{
+					{		
+						//addToArray = false;
 						continue;
 					}
 					else
 					{
 						InArray.Insert(InComp, i);
+						addToArray = true;
 						break;
 					}
 				}
 				else//none exist
 				{
 					InArray.Insert(InComp, i);
+					addToArray = true;
 					break;
 				}
+			}
+			if (!addToArray)
+			{
+				InArray.Add(InComp);
 			}
 		}
 		else//class no need reorder

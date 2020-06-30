@@ -214,6 +214,7 @@ Auto UIItem's hierarchyIndex management.
 #### Change:
 LGUIEventSystem's RegisterGlobalListener now use FLGUIBaseEventDelegate/FLGUIBaseEventDynamicDelegate. After your delegate is called, you can cast ULGUIBaseEventData to ULGUIPointerEventData if you need.
 LGUI_Saved_Data.json file now save to project intermediate folder.
+Move LGUISettings to DefaultEngine.ini.
 LGUIPointerXXXInterface.h file move to Event/Interface/ folder.
 #### NewFeature:
 EventSystem now user InputModule to handle input events, this should be more extensible for us to make different input for different platform, such as mobile.
@@ -221,4 +222,4 @@ Add dragToHold parameter to LGUIXXXRayemitter.
 #### Fix:
 Fix a crash caused by UIText's OverflowType=ClampContent.
 Fix UITexture's UVRect issue.
-
+Fix LGUIBehaviour execute order error.
