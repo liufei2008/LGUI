@@ -236,9 +236,9 @@ void FLGUIEditorModule::StartupModule()
 	{
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
 		{
-			SettingsModule->RegisterSettings("Project", "Plugins", "LGUISprite",
+			SettingsModule->RegisterSettings("Project", "Plugins", "LGUI",
 				LOCTEXT("LGUISpriteSettingsName", "LGUI"),
-				LOCTEXT("LGUISpriteSettingsDescription", "LGUISpriteSettings"),
+				LOCTEXT("LGUISpriteSettingsDescription", "LGUISettings"),
 				GetMutableDefault<ULGUISettings>());
 		}
 	}
