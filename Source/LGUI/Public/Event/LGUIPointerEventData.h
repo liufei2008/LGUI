@@ -69,10 +69,10 @@ class LGUI_API ULGUIPointerEventData: public ULGUIBaseEventData
 	GENERATED_BODY()
 public:
 	//id of the pointer (touch id)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		int pointerID = 0;
 	//current pointer position (mouse positin or touch point position in screen space)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pointerPosition;
 
 	UE_DEPRECATED(4.23, "currentComponent not valid anymore, use enterComponent instead.")
@@ -80,81 +80,81 @@ public:
 		USceneComponent* currentComponent_DEPRECATED = nullptr;
 
 	//enterred component
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* enterComponent = nullptr;
 	//current world space hit point
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldPoint = FVector(0, 0, 0);
 	//current world space hit normal
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldNormal = FVector(0, 0, 1);
 
 	//current world space hit point delta when drag
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector moveDelta = FVector(0, 0, 0);
 	//current world space hit point cumulative delta when drag
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector cumulativeMoveDelta = FVector(0, 0, 0);
 
 	//pointer scroll event
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float scrollAxisValue = 0;
 	//current ray origin
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector rayOrigin;
 	//current ray direction
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector rayDirection;
 	//current raycaster
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		ULGUIBaseRaycaster* raycaster;
 	//mouse input type
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		EMouseButtonType mouseButtonType = EMouseButtonType::Left;
 
 	//hit component when press
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* pressComponent = nullptr;
 	//world space hit point when press and hit something
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pressWorldPoint = FVector(0, 0, 0);
 	//world space normal direction when press and hit something
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pressWorldNormal = FVector(0, 0, 1);
 	//ray distance when press and hit something
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float pressDistance = 0;
 	//ray origin when press and hit something
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pressRayOrigin;
 	//ray direction when press and hit something
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pressRayDirection;
 	//world to press component's local transform when trigger press, usefull to calculate local space point/normal/delta
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FTransform pressWorldToLocalTransform;
 	//raycaster when press
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		ULGUIBaseRaycaster* pressRaycaster;
 	//the last time when trigger click(get time from GetWorld()->TimeSeconds), can be used to tell double click
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float clickTime;
 	//the last time when trigger press.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float pressTime;
 
 	//current dragging component
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* dragComponent = nullptr;
 	//drag event ray emitter's ray origin
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector dragRayOrigin;
 	//drag event ray emitter's ray direction
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector dragRayDirection;
 
 	//enter a component when drag anything
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* dragEnterComponent = nullptr;
 
 
