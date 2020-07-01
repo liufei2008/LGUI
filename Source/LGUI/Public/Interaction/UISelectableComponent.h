@@ -91,6 +91,8 @@ protected:
 	EUISelectableSelectionState CurrentSelectionState = EUISelectableSelectionState::Normal;
 	void ApplySelectionState(bool immediateSet);
 	bool IsPointerInsideThis = false;
+	bool IsPointerDown = false;
+	EUISelectableSelectionState GetSelectionState();
 	UPROPERTY(Transient) class UUISelectableTransitionComponent* TransitionComp = nullptr;
 #pragma endregion
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
@@ -127,7 +129,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetNormalColor()const { return NormalColor; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetHighlightedSprite()const { return HighlightedSprite; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetHighlightedColor()const { return HighlightedColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetPressedSprite() { return PressedSprite; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetPressedSprite()const { return PressedSprite; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetPressedColor()const { return PressedColor; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") EUISelectableSelectionState GetSelectionState()const { return CurrentSelectionState; }
 
