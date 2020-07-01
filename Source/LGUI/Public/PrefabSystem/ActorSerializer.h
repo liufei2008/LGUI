@@ -353,6 +353,8 @@ private:
 
 	TWeakObjectPtr<ULGUIPrefab> Prefab = nullptr;
 
+	TArray<AActor*> DeserializingActorCollection;//collect for deserializing actor
+
 #if WITH_EDITORONLY_DATA
 	bool IsLoadForEdit = false;
 #endif
@@ -425,10 +427,4 @@ private:
 	static const int ItemType_Array = 1;
 	static const int ItemType_Map = 2;
 	static const int ItemType_Set = 3;
-
-private:
-	static TArray<AActor*> PrefabDeserializingActorCollection;
-public:
-	static bool IsDeserializingActor(AActor* InActor);
-	static FLGUIPrefabSystem_DeserializeActorDelegate DeserializingActorEvent;
 };

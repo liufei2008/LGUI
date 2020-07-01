@@ -9,6 +9,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 
 ActorSerializer::ActorSerializer(UWorld* InTargetWorld)
@@ -84,10 +85,6 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 #endif
 		}
 	}
-	if (DeserializingActorEvent.IsBound())
-	{
-		DeserializingActorEvent.Broadcast(true);
-	}
 	//auto StartTime = FDateTime::Now();
 	FLGUIActorSaveDataForBuild SaveDataForBuild;
 #if WITH_EDITORONLY_DATA
@@ -137,7 +134,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 #endif
 	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
-
+	ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
 	int32 id = 0;
 	AActor* CreatedActor = nullptr;
 #if WITH_EDITORONLY_DATA
@@ -170,12 +167,13 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 	//finish Actor Spawn
+	bool isGameWorld = TargetWorld->IsGameWorld();
 	for (auto Actor : CreatedActors)
 	{
 		if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destroyed by other actor when BeginPlay
 		{
 #if WITH_EDITOR
-			if (TargetWorld->IsGameWorld())
+			if (isGameWorld)
 			{
 				Actor->bIsEditorPreviewActor = false;//make this to false, or BeginPlay won't be called
 			}
@@ -192,12 +190,11 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 
-	PrefabDeserializingActorCollection.Reset();
-	if (DeserializingActorEvent.IsBound())
+	for (auto item : DeserializingActorCollection)
 	{
-		DeserializingActorEvent.Broadcast(false);
+		ALGUIManagerActor::RemoveActorForPrefabSystem(item);
 	}
-
+	ALGUIManagerActor::EndPrefabSystemProcessingActor();
 	//UE_LOG(LGUI, Display, TEXT("Dserialize Prefab Duration:%s"), *((FDateTime::Now() - StartTime).ToString()));
 	return CreatedActor;
 }
@@ -213,7 +210,8 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-		PrefabDeserializingActorCollection.Add(NewActor);
+		DeserializingActorCollection.Add(NewActor);
+		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties());
 		CreatedActors.Add(NewActor);
 
@@ -346,7 +344,8 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-		PrefabDeserializingActorCollection.Add(NewActor);
+		DeserializingActorCollection.Add(NewActor);
+		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties());
 		CreatedActors.Add(NewActor);
 
@@ -1713,10 +1712,3 @@ UClass* ActorSerializer::FindClassFromListByIndex(int32 Id)
 	}
 	return ReferenceClassList[Id];
 }
-
-TArray<AActor*> ActorSerializer::PrefabDeserializingActorCollection;
-bool ActorSerializer::IsDeserializingActor(AActor* InActor)
-{
-	return PrefabDeserializingActorCollection.Contains(InActor);
-}
-FLGUIPrefabSystem_DeserializeActorDelegate ActorSerializer::DeserializingActorEvent;

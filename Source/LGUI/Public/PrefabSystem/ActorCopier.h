@@ -23,6 +23,8 @@ private:
 	AActor * CopyActorInternal(AActor* RootActor, USceneComponent* Parent);
 	void CopyComponentValueInternal(UActorComponent* SrcComp, UActorComponent* TargetComp);
 
+	TArray<AActor*> DuplicatingActorCollection;//collect for duplicating actor
+
 	TWeakObjectPtr<UWorld> TargetWorld = nullptr;
 
 	TMap<AActor*, int32> MapOriginActorToID;//origin actor to id
