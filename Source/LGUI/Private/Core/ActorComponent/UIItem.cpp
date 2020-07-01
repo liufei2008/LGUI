@@ -9,7 +9,6 @@
 #include "Core/LGUIBehaviour.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PhysicsEngine/BodySetup.h"
-#include "PrefabSystem/ActorSerializer.h"
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
 #endif
@@ -423,7 +422,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		//UE_LOG(LGUI, Error, TEXT("OnChildAttached:%s, registered:%d"), *(childUIItem->GetOwner()->GetActorLabel()), childUIItem->IsRegistered());
 		MarkVertexPositionDirty();
 		//hierarchy index
-		if (!ActorSerializer::IsDeserializingActor(this->GetOwner()))//when load from prefab, then not set hierarchy index
+		if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 		{
 			if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
 			{

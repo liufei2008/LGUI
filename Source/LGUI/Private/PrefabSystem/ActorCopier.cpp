@@ -3,6 +3,7 @@
 #include "PrefabSystem/ActorCopier.h"
 #include "Engine/World.h"
 #include "LGUI.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 bool ActorCopier::CopyCommonProperty(UProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex, bool isInsideCppArray)
 {
@@ -308,6 +309,8 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 	auto SceneComponentExcludeProperties = GetComponentExcludeProperties();
 
 	auto CopiedActor = TargetWorld->SpawnActorDeferred<AActor>(OriginActor->GetClass(), FTransform::Identity);
+	DuplicatingActorCollection.Add(CopiedActor);
+	ALGUIManagerActor::AddActorForPrefabSystem(CopiedActor);
 	CopyPropertyForActor(OriginActor, CopiedActor, ActorExcludeProperties);
 	const auto& OriginComponents = OriginActor->GetComponents();
 
@@ -400,6 +403,8 @@ AActor* ActorCopier::CopyActorRecursive(AActor* Actor, USceneComponent* Parent, 
 }
 AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Parent)
 {
+	ALGUIManagerActor::BeginPrefabSystemProcessingActor(RootActor->GetWorld());
+
 	TargetWorld = RootActor->GetWorld();
 	
 	int32 originActorId = 0, copiedActorId = 0;
@@ -431,6 +436,12 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 			ActorAndParentData.Actor->GetRootComponent()->AttachToComponent(ActorAndParentData.Parent, FAttachmentTransformRules::KeepRelativeTransform);
 		}
 	}
+
+	for (auto item : DuplicatingActorCollection)
+	{
+		ALGUIManagerActor::RemoveActorForPrefabSystem(item);
+	}
+	ALGUIManagerActor::EndPrefabSystemProcessingActor();
 	return Result;
 }
 AActor* ActorCopier::DuplicateActor(AActor* RootActor, USceneComponent* Parent)

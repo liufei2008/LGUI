@@ -57,6 +57,15 @@ public:
 	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
 };
 
+USTRUCT()
+struct FLGUIBehaviourArrayContainer
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere, Category = LGUI)
+		TArray<ULGUIBehaviour*> LGUIBehaviourArray;
+};
+
 UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
 class LGUI_API ALGUIManagerActor : public AActor
 {
@@ -83,8 +92,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForAwake;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> LGUIBehavioursForAwake_PrefabCreated;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForEnable;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForStart;
@@ -102,11 +109,9 @@ protected:
 	};
 	ELGUIBehaviourScriptExecutingType scriptExecutingType = ELGUIBehaviourScriptExecutingType::None;
 	void AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp, TArray<ULGUIBehaviour*>& InArray);
+	bool firstAwakeExecuted = false;
 private:
 	static bool InitCheck(UWorld* InWorld);
-	void PrefabSystem_DeserializeActor(bool beginOrEnd);
-	bool PrefabSystem_IsDeserializingActor = false;
-	FDelegateHandle DeserializingActor_DelegateHangle;
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
@@ -128,6 +133,20 @@ public:
 	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);
 	static void RemoveSelectable(UUISelectableComponent* InSelectable);
+
+private:
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<AActor*> AllActors_PrefabSystemProcessing;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<FLGUIBehaviourArrayContainer> LGUIBehaviours_PrefabSystemProcessing;
+	int PrefabSystemProcessing_CurrentArrayIndex = -1;
+	void EndPrefabSystemProcessingActor_Implement();
+public:
+	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);
+	static void EndPrefabSystemProcessingActor();
+	static void AddActorForPrefabSystem(AActor* InActor);
+	static void RemoveActorForPrefabSystem(AActor* InActor);
+	static bool IsPrefabSystemProcessingActor(AActor* InActor);
 
 	static void AddLGUIComponent(ULGUIBehaviour* InComp);
 	static void RemoveLGUIComponent(ULGUIBehaviour* InComp);
