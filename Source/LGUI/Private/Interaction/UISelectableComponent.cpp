@@ -270,42 +270,53 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 bool UUISelectableComponent::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)
 {
 	IsPointerInsideThis = true;
-	CurrentSelectionState = EUISelectableSelectionState::Highlighted;
+	CurrentSelectionState = GetSelectionState();
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerExit_Implementation(ULGUIPointerEventData* eventData)
 {
 	IsPointerInsideThis = false;
-	CurrentSelectionState = EUISelectableSelectionState::Normal;
+	CurrentSelectionState = GetSelectionState();
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
-	CurrentSelectionState = EUISelectableSelectionState::Pressed;
+	IsPointerDown = true;
+	CurrentSelectionState = GetSelectionState();
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
 {
-	CurrentSelectionState = IsPointerInsideThis ? EUISelectableSelectionState::Highlighted : EUISelectableSelectionState::Normal;
+	IsPointerDown = false;
+	CurrentSelectionState = GetSelectionState();
 	ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)
 {
-	IsPointerInsideThis = true;
-	CurrentSelectionState = EUISelectableSelectionState::Highlighted;
-	ApplySelectionState(false);
+	//CurrentSelectionState = GetSelectionState();
+	//ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)
 {
-	IsPointerInsideThis = false;
-	CurrentSelectionState = EUISelectableSelectionState::Normal;
-	ApplySelectionState(false);
+	//CurrentSelectionState = GetSelectionState();
+	//ApplySelectionState(false);
 	return AllowEventBubbleUp;
+}
+
+EUISelectableSelectionState UUISelectableComponent::GetSelectionState()
+{
+	if (!IsInteractable())
+		return EUISelectableSelectionState::Disabled;
+	if (IsPointerDown)
+		return EUISelectableSelectionState::Pressed;
+	if (IsPointerInsideThis)
+		return EUISelectableSelectionState::Highlighted;
+	return EUISelectableSelectionState::Normal;
 }
 
 void UUISelectableComponent::SetNormalSprite(ULGUISpriteData* NewSprite)
