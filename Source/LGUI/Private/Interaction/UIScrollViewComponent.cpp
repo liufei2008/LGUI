@@ -503,8 +503,8 @@ void UUIScrollViewComponent::UnregisterScrollEvent(const FLGUIVector2Delegate& I
 
 FLGUIDelegateHandleWrapper UUIScrollViewComponent::RegisterScrollEvent(const FLGUIScrollViewDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnScrollCPP.AddLambda([InDelegate](FVector2D Progress) {
-		if (InDelegate.IsBound())InDelegate.Execute(Progress);
+	auto delegateHandle = OnScrollCPP.AddLambda([InDelegate](FVector2D InProgress) {
+		if (InDelegate.IsBound())InDelegate.Execute(InProgress);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }

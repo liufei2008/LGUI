@@ -2350,9 +2350,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		richTextParser.Prepare(fontSize, color, bold, italic, richTextParseResult);
 	}
 
-	auto GetCharFixedOffset = [font](float fontSize)
+	auto GetCharFixedOffset = [font](float inFontSize)
 	{
-		return fontSize * (font->fixedVerticalOffset - 0.25f);//-0.25 is a common number for most fonts
+		return inFontSize * (font->fixedVerticalOffset - 0.25f);//-0.25 is a common number for most fonts
 	};
 	float charFixedOffset = GetCharFixedOffset(fontSize);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
 

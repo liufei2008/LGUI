@@ -107,8 +107,8 @@ void UUIScrollbarComponent::UnregisterSlideEvent(const FLGUIFloatDelegate& InDel
 
 FLGUIDelegateHandleWrapper UUIScrollbarComponent::RegisterSlideEvent(const FLGUIScrollbarDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](float Value) {
-		if (InDelegate.IsBound())InDelegate.Execute(Value);
+	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](float InValue) {
+		if (InDelegate.IsBound())InDelegate.Execute(InValue);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
