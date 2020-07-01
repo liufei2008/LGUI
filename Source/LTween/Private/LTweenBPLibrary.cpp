@@ -7,10 +7,9 @@ ULTweener* ULTweenBPLibrary::FloatTo(FLTweenFloatGetterDynamic getter, FLTweenFl
 {
 	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([getter]
 	{
-		float value = 0.0f;
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return 0.0f;
 	}), FLTweenFloatSetterFunction::CreateLambda([setter](float value)
 	{
 		if (setter.IsBound())
@@ -21,10 +20,9 @@ ULTweener* ULTweenBPLibrary::IntTo(FLTweenIntGetterDynamic getter, FLTweenIntSet
 {
 	return ALTweenActor::To(FLTweenIntGetterFunction::CreateLambda([getter]
 	{
-		int value = 0;
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return 0;
 	}), FLTweenIntSetterFunction::CreateLambda([setter](int value)
 	{
 		if (setter.IsBound())
@@ -35,10 +33,9 @@ ULTweener* ULTweenBPLibrary::Vector2To(FLTweenVector2GetterDynamic getter, FLTwe
 {
 	return ALTweenActor::To(FLTweenVector2DGetterFunction::CreateLambda([getter]
 	{
-		FVector2D value = FVector2D::ZeroVector;
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return FVector2D::ZeroVector;
 	}), FLTweenVector2DSetterFunction::CreateLambda([setter](const FVector2D& value)
 	{
 		if (setter.IsBound())
@@ -49,10 +46,9 @@ ULTweener* ULTweenBPLibrary::Vector3To(FLTweenVector3GetterDynamic getter, FLTwe
 {
 	return ALTweenActor::To(FLTweenVectorGetterFunction::CreateLambda([getter]
 	{
-		FVector value = FVector::ZeroVector;
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return FVector::ZeroVector;
 	}), FLTweenVectorSetterFunction::CreateLambda([setter](const FVector& value)
 	{
 		if (setter.IsBound())
@@ -63,10 +59,9 @@ ULTweener* ULTweenBPLibrary::Vector4To(FLTweenVector4GetterDynamic getter, FLTwe
 {
 	return ALTweenActor::To(FLTweenVector4GetterFunction::CreateLambda([getter]
 	{
-		FVector4 value = FVector4(EForceInit::ForceInitToZero);
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return FVector4(EForceInit::ForceInitToZero);
 	}), FLTweenVector4SetterFunction::CreateLambda([setter](const FVector4& value)
 	{
 		if (setter.IsBound())
@@ -77,10 +72,9 @@ ULTweener* ULTweenBPLibrary::ColorTo(FLTweenColorGetterDynamic getter, FLTweenCo
 {
 	return ALTweenActor::To(FLTweenColorGetterFunction::CreateLambda([getter]
 	{
-		FColor value = FColor::Black;
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return FColor::Black;
 	}), FLTweenColorSetterFunction::CreateLambda([setter](const FColor& value)
 	{
 		if (setter.IsBound())
@@ -91,10 +85,9 @@ ULTweener* ULTweenBPLibrary::LinearColorTo(FLTweenLinearColorGetterDynamic gette
 {
 	return ALTweenActor::To(FLTweenLinearColorGetterFunction::CreateLambda([getter]
 	{
-		FLinearColor value = FLinearColor::Black;
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return FLinearColor::Black;
 	}), FLTweenLinearColorSetterFunction::CreateLambda([setter](const FLinearColor& value)
 	{
 		if (setter.IsBound())
@@ -105,10 +98,9 @@ ULTweener* ULTweenBPLibrary::QuaternionTo(FLTweenQuaternionGetterDynamic getter,
 {
 	return ALTweenActor::To(FLTweenQuaternionGetterFunction::CreateLambda([getter]
 	{
-		FQuat value = FQuat::Identity;
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return FQuat::Identity;
 	}), FLTweenQuaternionSetterFunction::CreateLambda([setter](const FQuat& value)
 	{
 		if (setter.IsBound())
@@ -119,10 +111,9 @@ ULTweener* ULTweenBPLibrary::RotatorTo(FLTweenRotatorGetterDynamic getter, FLTwe
 {
 	return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([getter]
 	{
-		FRotator value = FRotator::ZeroRotator;
 		if (getter.IsBound())
-			getter.Execute(value);
-		return value;
+			return getter.Execute();
+		return FRotator::ZeroRotator;
 	}), FLTweenRotatorSetterFunction::CreateLambda([setter](const FRotator& value)
 	{
 		if (setter.IsBound())
