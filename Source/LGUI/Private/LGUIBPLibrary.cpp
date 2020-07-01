@@ -374,4 +374,28 @@ ULTweener* ULGUIBPLibrary::EndAngleTo(UUISector* target, float endValue, float d
 	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(target, &UUISector::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(target, &UUISector::SetEndAngle), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 #pragma endregion
+
+void ULGUIBPLibrary::LGUIExecuteInputAxis(FKey inputKey, float value)
+{
+	if (inputKey.IsValid())
+	{
+		const FGamepadKeyNames::Type keyName = inputKey.GetFName();
+		FSlateApplication::Get().OnControllerAnalog(keyName, 0, value);
+	}
+}
+void ULGUIBPLibrary::LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease)
+{
+	if (inputKey.IsValid())
+	{
+		const FGamepadKeyNames::Type keyName = inputKey.GetFName();
+		if (pressOrRelease)
+		{
+			FSlateApplication::Get().OnControllerButtonPressed(keyName, 0, false);
+		}
+		else
+		{
+			FSlateApplication::Get().OnControllerButtonReleased(keyName, 0, false);
+		}
+	}
+}
 #pragma endregion
