@@ -134,6 +134,8 @@ public:
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		const FUIWidget& GetWidget()const { return widget; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+		void SetWidget(const FUIWidget& inWidget);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetDepth(int32 depth);
