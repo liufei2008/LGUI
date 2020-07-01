@@ -29,7 +29,7 @@ protected:
 		bool applyAlphaToStrength = true;
 public:
 	UFUNCTION(BlueprintCallable, Category="LGUI")
-		float GetPixelateStrength() { return pixelateStrength; }
+		float GetPixelateStrength() const { return pixelateStrength; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetPixelateStrength(float newValue);
 protected:
