@@ -83,6 +83,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForAwake;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<ULGUIBehaviour*> LGUIBehavioursForAwake_PrefabCreated;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForEnable;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForStart;
@@ -102,7 +104,9 @@ protected:
 	void AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp, TArray<ULGUIBehaviour*>& InArray);
 private:
 	static bool InitCheck(UWorld* InWorld);
-	
+	void PrefabSystem_DeserializeActor(bool beginOrEnd);
+	bool PrefabSystem_IsDeserializingActor = false;
+	FDelegateHandle DeserializingActor_DelegateHangle;
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);

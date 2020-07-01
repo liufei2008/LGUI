@@ -315,6 +315,7 @@ public:
 	}
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIPrefabSystem_DeserializeActorDelegate, bool);
 
 /*
 serialize/deserialize actor, include hierarchy, property, reference
@@ -429,4 +430,5 @@ private:
 	static TArray<AActor*> PrefabDeserializingActorCollection;
 public:
 	static bool IsDeserializingActor(AActor* InActor);
+	static FLGUIPrefabSystem_DeserializeActorDelegate DeserializingActorEvent;
 };

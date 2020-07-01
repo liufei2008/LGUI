@@ -844,6 +844,22 @@ void UUIItem::UpdateBasePrevData()
 	bTransformChanged = false;
 }
 
+void UUIItem::SetWidget(const FUIWidget& inWidget)
+{
+	SetDepth(inWidget.depth);
+	SetColor(inWidget.color);
+	SetPivot(inWidget.pivot);
+	SetAnchorHAlign(inWidget.anchorHAlign);
+	SetAnchorVAlign(inWidget.anchorVAlign);
+	SetAnchorOffsetX(inWidget.anchorOffsetX);
+	SetAnchorOffsetY(inWidget.anchorOffsetY);
+	SetWidth(inWidget.width);
+	SetHeight(inWidget.height);
+	SetStretchLeft(inWidget.stretchLeft);
+	SetStretchRight(inWidget.stretchRight);
+	SetStretchTop(inWidget.stretchTop);
+	SetStretchBottom(inWidget.stretchBottom);
+}
 void UUIItem::SetDepth(int32 depth) {
 	if (widget.depth != depth)
 	{
