@@ -1529,8 +1529,8 @@ void UUITextInputComponent::UnregisterValueChangeEvent(const FLGUIStringDelegate
 }
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterValueChangeEvent(const FLGUITextInputDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](FString Text) {
-		if (InDelegate.IsBound())InDelegate.Execute(Text);
+	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](FString InText) {
+		if (InDelegate.IsBound())InDelegate.Execute(InText);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
@@ -1549,8 +1549,8 @@ void UUITextInputComponent::UnregisterSubmitEvent(const FLGUIStringDelegate& InD
 }
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterSubmitEvent(const FLGUITextInputDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](FString Text) {
-		if (InDelegate.IsBound())InDelegate.Execute(Text);
+	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](FString InText) {
+		if (InDelegate.IsBound())InDelegate.Execute(InText);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }

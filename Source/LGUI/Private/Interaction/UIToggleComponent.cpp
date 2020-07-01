@@ -130,8 +130,8 @@ void UUIToggleComponent::UnregisterToggleEvent(const FLGUIBoolDelegate& InDelega
 
 FLGUIDelegateHandleWrapper UUIToggleComponent::RegisterToggleEvent(const FLGUIToggleDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnToggleCPP.AddLambda([InDelegate](bool IsOn) {
-		if (InDelegate.IsBound())InDelegate.Execute(IsOn);
+	auto delegateHandle = OnToggleCPP.AddLambda([InDelegate](bool InIsOn) {
+		if (InDelegate.IsBound())InDelegate.Execute(InIsOn);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }

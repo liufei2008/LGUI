@@ -95,8 +95,8 @@ void UUISliderComponent::UnregisterSlideEvent(const FLGUIFloatDelegate& InDelega
 
 FLGUIDelegateHandleWrapper UUISliderComponent::RegisterSlideEvent(const FLGUISliderDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](float Value) {
-		if (InDelegate.IsBound())InDelegate.Execute(Value);
+	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](float InValue) {
+		if (InDelegate.IsBound())InDelegate.Execute(InValue);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
