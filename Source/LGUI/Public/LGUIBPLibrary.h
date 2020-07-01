@@ -134,6 +134,11 @@ public:
 		static ULTweener* EndAngleTo(UUISector* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 #pragma endregion
 
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void LGUIExecuteInputAxis(FKey inputKey, float value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		static void LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease);
+
 #pragma endregion
 
 };
