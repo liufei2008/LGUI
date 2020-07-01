@@ -39,9 +39,9 @@ protected:
 		UTexture2D* maskTexture;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		float GetBlurStrength() { return blurStrength; }
+		float GetBlurStrength() const { return blurStrength; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		int GetMaxDownSampleLevel() { return maxDownSampleLevel; }
+		int GetMaxDownSampleLevel() const { return maxDownSampleLevel; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBlurStrength(float newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

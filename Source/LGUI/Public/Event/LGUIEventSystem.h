@@ -43,7 +43,7 @@ class LGUI_API ULGUIEventSystem : public UActorComponent
 public:
 	ULGUIEventSystem();
 
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Get LGUI Event System Instance"))
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get LGUI Event System Instance"))
 		static ULGUIEventSystem* GetLGUIEventSystemInstance();
 protected:
 	static ULGUIEventSystem* Instance;//a level should only have one LGUIEventSystemActpr
