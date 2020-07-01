@@ -10,6 +10,7 @@
 #include "Interaction/UISelectableComponent.h"
 #include "Core/LGUISettings.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
+#include "PrefabSystem/ActorSerializer.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -164,6 +165,7 @@ bool ALGUIManagerActor::InitCheck(UWorld* InWorld)
 			param.ObjectFlags = RF_Transient;
 			Instance = InWorld->SpawnActor<ALGUIManagerActor>(param);
 			UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::InitCheck]No Instance for LGUIManagerActor, create!"));
+			Instance->DeserializingActor_DelegateHangle = ActorSerializer::DeserializingActorEvent.AddUObject(Instance, &ALGUIManagerActor::PrefabSystem_DeserializeActor);
 		}
 		else
 		{
@@ -171,6 +173,43 @@ bool ALGUIManagerActor::InitCheck(UWorld* InWorld)
 		}
 	}
 	return true;
+}
+
+void ALGUIManagerActor::PrefabSystem_DeserializeActor(bool beginOrEnd)
+{
+	PrefabSystem_IsDeserializingActor = beginOrEnd;
+	if (!PrefabSystem_IsDeserializingActor)
+	{
+		//awake
+		scriptExecutingType = ELGUIBehaviourScriptExecutingType::Awake;
+		auto tempAwakeArray = LGUIBehavioursForAwake_PrefabCreated;
+		LGUIBehavioursForAwake_PrefabCreated.Reset();
+		for (int i = 0; i < tempAwakeArray.Num(); i++)
+		{
+			auto item = tempAwakeArray[i];
+			//UE_LOG(LGUI, Error, TEXT("Awake count:%d, i:%d, item:%s"), tempAwakeArray.Num(), i, *(item->GetOwner()->GetActorLabel()));
+			if (IsValid(item))
+			{
+				if (item->GetIsActiveAndEnable())
+				{
+					//add to Enable array
+					{
+						if (!LGUIBehavioursForEnable.Contains(item))
+						{
+							Instance->AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForEnable);
+						}
+						else
+						{
+							UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to enable array but already exist! comp:%s"), *(item->GetPathName()));
+						}
+					}
+					item->Awake();
+				}
+			}
+		}
+
+		scriptExecutingType = ELGUIBehaviourScriptExecutingType::None;
+	}
 }
 
 
@@ -325,19 +364,31 @@ void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
 {
 	if (InitCheck(InComp->GetWorld()))
 	{
-		auto& LGUIBehavioursForAwake = Instance->LGUIBehavioursForAwake;
-		if (Instance->LGUIBehavioursForAwake.Contains(InComp))
+		if (Instance->PrefabSystem_IsDeserializingActor && ActorSerializer::IsDeserializingActor(InComp->GetOwner()))//if this component is created from prefab system, then we need to collect it to custom awake array
 		{
-			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
-			return;
-		}
-		if (Instance->scriptExecutingType == ELGUIBehaviourScriptExecutingType::Awake)//this means script is created during Awake, then put the script at the end of array
-		{
-			LGUIBehavioursForAwake.Add(InComp);
+			if (Instance->LGUIBehavioursForAwake_PrefabCreated.Contains(InComp))
+			{
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
+				return;
+			}
+			Instance->AddLGUIBehaviourToArrayWithOrder(InComp, Instance->LGUIBehavioursForAwake_PrefabCreated);
 		}
 		else
 		{
-			Instance->AddLGUIBehaviourToArrayWithOrder(InComp, LGUIBehavioursForAwake);
+			auto& LGUIBehavioursForAwake = Instance->LGUIBehavioursForAwake;
+			if (LGUIBehavioursForAwake.Contains(InComp))
+			{
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
+				return;
+			}
+			if (Instance->scriptExecutingType == ELGUIBehaviourScriptExecutingType::Awake)//this means script is created during Awake, then put the script at the end of array
+			{
+				LGUIBehavioursForAwake.Add(InComp);
+			}
+			else
+			{
+				Instance->AddLGUIBehaviourToArrayWithOrder(InComp, LGUIBehavioursForAwake);
+			}
 		}
 	}
 }

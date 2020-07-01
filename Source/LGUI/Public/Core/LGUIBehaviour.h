@@ -10,7 +10,7 @@ class UUIItem;
 /*
 Base class for ui actor component, contains some easy-to-use event/functions. This type of component should be only attached to an actor which have UIItem as RootComponent.
 I'm trying to make this ULGUIBehaviour more like Unity's MonoBehaviour. You will see it contains function like Awake/Start/Update/OnDestroy/OnEnable/OnDisable.
-Don't use tick in child class, use Update instead.
+So you should use Awake/Start instead of BeginPlay, Update instead of Tick, OnDestroy instead of EndPlay.
 When a LGUIBehaviour is created, if GetIsActiveAndEnable=true (enabled and activeInHierarchy), then these event will execute with the order: 
 		Awake-->OnEnable-->Start. In the same frame, all OnEnable will execute after all Awake, all Start will execute after all OnEnable, all Update will execute after all Start.
 */

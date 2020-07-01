@@ -84,6 +84,10 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 #endif
 		}
 	}
+	if (DeserializingActorEvent.IsBound())
+	{
+		DeserializingActorEvent.Broadcast(true);
+	}
 	//auto StartTime = FDateTime::Now();
 	FLGUIActorSaveDataForBuild SaveDataForBuild;
 #if WITH_EDITORONLY_DATA
@@ -189,6 +193,10 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 
 	PrefabDeserializingActorCollection.Reset();
+	if (DeserializingActorEvent.IsBound())
+	{
+		DeserializingActorEvent.Broadcast(false);
+	}
 
 	//UE_LOG(LGUI, Display, TEXT("Dserialize Prefab Duration:%s"), *((FDateTime::Now() - StartTime).ToString()));
 	return CreatedActor;
@@ -1711,3 +1719,4 @@ bool ActorSerializer::IsDeserializingActor(AActor* InActor)
 {
 	return PrefabDeserializingActorCollection.Contains(InActor);
 }
+FLGUIPrefabSystem_DeserializeActorDelegate ActorSerializer::DeserializingActorEvent;
