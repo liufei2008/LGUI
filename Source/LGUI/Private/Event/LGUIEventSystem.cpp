@@ -456,7 +456,6 @@ void ULGUIEventSystem::CallOnPointerExit(USceneComponent* component, ULGUIPointe
 void ULGUIEventSystem::CallOnPointerDown(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, DownUp, Down);
-	SetSelectComponent(component, inEventData, inEventData->enterComponentEventFireOnAllOrOnlyTarget);
 }
 void ULGUIEventSystem::CallOnPointerUp(USceneComponent* component, ULGUIPointerEventData* inEventData, bool eventFireOnAll)
 {
