@@ -7,6 +7,7 @@
 #include "LTweenActor.h"
 #include "Interaction/UISelectableTransitionComponent.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Event/LGUIEventSystem.h"
 
 void UUISelectableComponent::Awake()
 {
@@ -286,6 +287,10 @@ bool UUISelectableComponent::OnPointerDown_Implementation(ULGUIPointerEventData*
 	IsPointerDown = true;
 	CurrentSelectionState = GetSelectionState();
 	ApplySelectionState(false);
+	if (auto eventSystemInstance = ULGUIEventSystem::GetLGUIEventSystemInstance())
+	{
+		eventSystemInstance->SetSelectComponent(GetRootComponent(), eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
+	}
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
