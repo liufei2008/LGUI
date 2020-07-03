@@ -20,6 +20,8 @@
 #include "DesktopPlatformModule.h"
 #include "AssetRegistryModule.h"
 #include "Toolkits/AssetEditorManager.h"
+#include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -724,6 +726,34 @@ void ULGUIEditorToolsAgentObject::SaveAsset(UObject* InObject, UPackage* InPacka
 	FString packageSavePath = FString::Printf(TEXT("/Game/%s%s"), *(InObject->GetPathName()), *FPackageName::GetAssetPackageExtension());
 	UPackage::SavePackage(InPackage, InObject, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *packageSavePath);
 	InPackage->MarkPackageDirty();
+}
+bool ULGUIEditorToolsAgentObject::IsCanvasActor(AActor* InActor)
+{
+	if (auto rootComp = InActor->GetRootComponent())
+	{
+		if (auto rootUIItem = Cast<UUIItem>(rootComp))
+		{
+			if (rootUIItem->IsCanvasUIItem())
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+int ULGUIEditorToolsAgentObject::GetCanvasDrawcallCount(AActor* InActor)
+{
+	if (auto rootComp = InActor->GetRootComponent())
+	{
+		if (auto rootUIItem = Cast<UUIItem>(rootComp))
+		{
+			if (rootUIItem->IsCanvasUIItem())
+			{
+				return rootUIItem->GetRenderCanvas()->GetDrawcallCount();
+			}
+		}
+	}
+	return 0;
 }
 #endif
 

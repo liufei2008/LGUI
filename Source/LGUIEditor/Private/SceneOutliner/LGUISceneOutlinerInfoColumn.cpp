@@ -62,8 +62,8 @@ namespace LGUISceneOutliner
 	}
 	FName FLGUISceneOutlinerInfoColumn::GetID()
 	{
-		static FName LGUIPrefabID("LGUIPrefab");
-		return LGUIPrefabID;
+		static FName LGUIInfoID("LGUIInfo");
+		return LGUIInfoID;
 	}
 
 	FName FLGUISceneOutlinerInfoColumn::GetColumnID()
@@ -76,7 +76,7 @@ namespace LGUISceneOutliner
 		return SHeaderRow::Column(GetColumnID())
 			.DefaultLabel(LOCTEXT("LGUIColumeHeader", "UI"))
 			.DefaultTooltip(LOCTEXT("LGUIColumeHeader_Tooltip", "LGUI functions"))
-			.FixedWidth(20)
+			.FixedWidth(40)
 			;
 	}
 
@@ -98,35 +98,77 @@ namespace LGUISceneOutliner
 			.HasDownArrow(false)
 			.ButtonContent()
 			[
-				SNew(SOverlay)
-				+SOverlay::Slot()//down arrow
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
 				[
-					SNew(SBox)
-					.WidthOverride(8)
-					.HeightOverride(8)
-					.Padding(FMargin(0))
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.VAlign(EVerticalAlignment::VAlign_Center)
+					SNew(SOverlay)
+					+SOverlay::Slot()//canvas icon
 					[
-						SNew(SImage)
-						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility, weakTreeItem)
-						.Image(FEditorStyle::GetBrush("ComboButton.Arrow"))
-						.ColorAndOpacity(FSlateColor::UseForeground())
+						SNew(SBox)
+						.WidthOverride(16)
+						.HeightOverride(16)
+						.Padding(FMargin(0))
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(SImage)
+							.Image(FLGUIEditorStyle::Get().GetBrush("CanvasMark"))
+							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetCanvasIconVisibility, weakTreeItem)
+							.ColorAndOpacity(FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)))
+						]
+					]
+					+SOverlay::Slot()//drawcall count
+					[
+						SNew(SBox)
+						.WidthOverride(16)
+						.HeightOverride(16)
+						.Padding(FMargin(0))
+						.HAlign(EHorizontalAlignment::HAlign_Left)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(STextBlock)
+							.ShadowColorAndOpacity(FLinearColor::Black)
+							.ShadowOffset(FVector2D(1, 1))
+							.Text(this, &FLGUISceneOutlinerInfoColumn::GetDrawcallInfo, weakTreeItem)
+							.ToolTipText(FText::FromString(FString(TEXT("This actor have LGUICanvas. The number is drawcall count of this canvas."))))
+							.ColorAndOpacity(FSlateColor(FLinearColor(FColor::Green)))
+							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetCanvasIconVisibility, weakTreeItem)
+						]
 					]
 				]
-				+SOverlay::Slot()//prefab
+				+SHorizontalBox::Slot()
 				[
-					SNew(SBox)
-					.WidthOverride(16)
-					.HeightOverride(16)
-					.Padding(FMargin(0))
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.VAlign(EVerticalAlignment::VAlign_Center)
+					SNew(SOverlay)
+					+SOverlay::Slot()//down arrow
 					[
-						SNew(SImage)
-						.Image(FLGUIEditorStyle::Get().GetBrush("PrefabMarkWhite"))
-						.ColorAndOpacity(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconColor, weakTreeItem)
-						.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility, weakTreeItem)
+						SNew(SBox)
+						.WidthOverride(8)
+						.HeightOverride(8)
+						.Padding(FMargin(0))
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(SImage)
+							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility, weakTreeItem)
+							.Image(FEditorStyle::GetBrush("ComboButton.Arrow"))
+							.ColorAndOpacity(FSlateColor::UseForeground())
+						]
+					]
+					+SOverlay::Slot()//prefab
+					[
+						SNew(SBox)
+						.WidthOverride(16)
+						.HeightOverride(16)
+						.Padding(FMargin(0))
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(SImage)
+							.Image(FLGUIEditorStyle::Get().GetBrush("PrefabMarkWhite"))
+							.ColorAndOpacity(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconColor, weakTreeItem)
+							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetPrefabIconVisibility, weakTreeItem)
+							.ToolTipText(FText::FromString(FString(TEXT("This actor is part of a LGUIPrefab."))))
+						]
 					]
 				]
 			]
@@ -226,6 +268,23 @@ namespace LGUISceneOutliner
 		{
 			return EVisibility::Hidden;
 		}
+	}
+	EVisibility FLGUISceneOutlinerInfoColumn::GetCanvasIconVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
+	{
+		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
+		{
+			return ULGUIEditorToolsAgentObject::IsCanvasActor(actor) ? EVisibility::Visible : EVisibility::Hidden;
+		}
+		return EVisibility::Hidden;
+	}
+	FText FLGUISceneOutlinerInfoColumn::GetDrawcallInfo(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
+	{
+		int drawcallCount = 0;
+		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
+		{
+			drawcallCount = ULGUIEditorToolsAgentObject::GetCanvasDrawcallCount(actor);
+		}
+		return FText::FromString(FString::Printf(TEXT("%d"), drawcallCount));
 	}
 	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
 	{
