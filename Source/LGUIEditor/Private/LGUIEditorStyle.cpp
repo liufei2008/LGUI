@@ -130,6 +130,7 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("EmptyButton", EmptyButton);
 	Style->Set("PrefabMark", new IMAGE_BRUSH("PrefabMark_16x", Icon16x16));
 	Style->Set("PrefabMarkWhite", new IMAGE_BRUSH("PrefabMarkWhite_16x", Icon16x16));
+	Style->Set("CanvasMark", new IMAGE_BRUSH("CanvasMark_16x", Icon16x16));
 
 	return Style;
 }
