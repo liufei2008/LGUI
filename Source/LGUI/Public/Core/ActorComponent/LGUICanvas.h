@@ -272,6 +272,7 @@ public:
 
 	//return UIRenderables that belong to this canvas
 	const TArray<UUIRenderable*> GetUIRenderables()const { return UIRenderableItemList; }
+	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
 private:
 	int8 GetAdditionalShaderChannelFlags()const;
 private:

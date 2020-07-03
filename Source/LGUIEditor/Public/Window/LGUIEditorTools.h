@@ -82,6 +82,8 @@ public:
 	static void SelectPrefabAsset();
 	static class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
+	static bool IsCanvasActor(AActor* InActor);
+	static int GetCanvasDrawcallCount(AActor* InActor);
 
 	UPROPERTY(Transient) TArray<class ULGUIPrefab*> copiedActorPrefabList;
 	UPROPERTY(Transient) UActorComponent* copiedComponent;
