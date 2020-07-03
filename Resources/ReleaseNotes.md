@@ -219,6 +219,7 @@ LGUIPointerXXXInterface.h file move to Event/Interface/ folder.
 #### NewFeature:
 EventSystem now user InputModule to handle input events, this should be more extensible for us to make different input for different platform, such as mobile.
 Add dragToHold parameter to LGUIXXXRayemitter.
+LGUIXXXInputMobule and LGUIXXXRaycaster now can use ActorComponent's Activate/Deactivate.
 #### Fix:
 Fix a crash caused by UIText's OverflowType=ClampContent.
 Fix UITexture's UVRect issue.

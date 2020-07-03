@@ -26,8 +26,8 @@ class LGUI_API ULGUIBaseRaycaster : public USceneComponent
 public:	
 	ULGUIBaseRaycaster();
 protected:
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
+	virtual void Activate(bool bReset = false)override;
+	virtual void Deactivate()override;
 
 	friend class FUIBaseRaycasterCustomization;
 

@@ -14,15 +14,22 @@ ULGUIBaseRaycaster::ULGUIBaseRaycaster()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+	bAutoActivate = true;
 }
-void ULGUIBaseRaycaster::BeginPlay()
+void ULGUIBaseRaycaster::Activate(bool bReset)
 {
-	Super::BeginPlay();
-	ActivateRaycaster();
+	Super::Activate(bReset);
+	if (this->GetWorld() == nullptr)return;
+#if WITH_EDITOR
+	if (this->GetWorld()->IsGameWorld())
+#endif
+	{
+		ActivateRaycaster();
+	}
 }
-void ULGUIBaseRaycaster::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ULGUIBaseRaycaster::Deactivate()
 {
-	Super::EndPlay(EndPlayReason);
+	Super::Deactivate();
 	DeactivateRaycaster();
 }
 void ULGUIBaseRaycaster::ActivateRaycaster()
