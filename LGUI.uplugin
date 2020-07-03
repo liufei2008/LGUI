@@ -1,45 +1,44 @@
 {
-  "FileVersion": 3,
-  "Version": 1,
-  "VersionName": "2.8",
-  "FriendlyName": "LGUI",
-  "Description": "LGUI (Lex GUI) - Powerful 3D UI System, Event Framework, Prefab Workflow, Tween Animation",
-  "Category": "LexPlugin",
-  "CreatedBy": "LexLiu",
-  "CreatedByURL": "",
-  "DocsURL": "",
-  "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/92c868e93e1d4dd596f87b200102f0cf",
-  "SupportURL": "707908214@qq.com",
-  "EngineVersion": "4.24.0",
-  "CanContainContent": true,
-  "IsBetaVersion": false,
-  "Installed": true,
-  "Modules": [
-    {
-      "Name": "LGUI",
-      "Type": "Runtime",
-      "LoadingPhase": "PostConfigInit",
-      "WhitelistPlatforms": [
-        "Win64",
-        "Win32"
-      ]
-    },
-    {
-      "Name": "LGUIEditor",
-      "Type": "Editor",
-      "LoadingPhase": "Default",
-      "WhitelistPlatforms": [
-        "Win64"
-      ]
-    },
-    {
-      "Name": "LTween",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "WhitelistPlatforms": [
-        "Win64",
-        "Win32"
-      ]
-    }
-  ]
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "2.8",
+	"FriendlyName": "LGUI",
+	"Description": "LGUI (Lex GUI) - Powerful 3D UI System, Event Framework, Prefab Workflow, Tween Animation",
+	"Category": "LexPlugin",
+	"CreatedBy": "LexLiu",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/92c868e93e1d4dd596f87b200102f0cf",
+	"SupportURL": "707908214@qq.com",
+	"EngineVersion": "4.24.0",
+	"CanContainContent": true,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "LGUI",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32"
+			]
+		},
+		{
+			"Name": "LGUIEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64"
+			]
+		},
+		{
+			"Name": "LTween",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32"
+			]
+		}
+	]
 }
