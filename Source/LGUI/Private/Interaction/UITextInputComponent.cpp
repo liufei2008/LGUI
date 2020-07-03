@@ -1502,13 +1502,8 @@ void UUITextInputComponent::SetText(FString InText, bool InFireEvent)
 		}
 		Text = InText;
 		CaretPositionIndex = 0;
-		UpdateUITextComponent();
-		if (InFireEvent)
-		{
-			FireOnValueChangeEvent();
-		}
+		UpdateAfterTextChange();
 	}
-	UpdatePlaceHolderComponent();
 }
 void UUITextInputComponent::SetInputType(ELGUIInputType newValue)
 {
