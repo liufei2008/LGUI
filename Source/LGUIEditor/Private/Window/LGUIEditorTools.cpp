@@ -502,7 +502,9 @@ void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
 	if (prefab)
 	{
 		auto actor = ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, nullptr, true);
-		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
+		actor->GetRootComponent()->SetRelativeScale3D(FVector::OneVector);
+		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
+		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(0, 180, 0)));
 		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
 

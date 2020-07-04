@@ -735,7 +735,7 @@ void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScri
 			}
 			else
 			{
-				DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("(MustAttachToUIPanel)"))));
+				DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("(Need LGUI Canvas!)"))));
 			}
 		}
 	}
