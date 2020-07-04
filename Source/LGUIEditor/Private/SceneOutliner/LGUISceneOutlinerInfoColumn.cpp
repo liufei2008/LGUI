@@ -324,7 +324,7 @@ namespace LGUISceneOutliner
 
 			if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid() && !ActorTreeItem->Actor->IsPendingKillPending())
 			{
-				if (ActorTreeItem->Actor->GetWorld() && ActorTreeItem->Actor->GetWorld()->WorldType == EWorldType::Editor)
+				if (ActorTreeItem->Actor->GetWorld())
 				{
 					return Cast<AActor>(ActorTreeItem->Actor.Get());
 				}

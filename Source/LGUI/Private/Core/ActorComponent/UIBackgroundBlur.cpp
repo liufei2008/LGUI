@@ -112,15 +112,17 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 	{
 		float width = widget.width;
 		float height = widget.height;
+		if (width >= 1.0f && height >= 1.0f)
+		{
+			blurEffectRenderTarget1 = NewObject<UTextureRenderTarget2D>(this);
+			blurEffectRenderTarget1->InitAutoFormat((int)width, (int)height);
 
-		blurEffectRenderTarget1 = NewObject<UTextureRenderTarget2D>(this);
-		blurEffectRenderTarget1->InitAutoFormat((int)width, (int)height);
+			blurEffectRenderTarget2 = NewObject<UTextureRenderTarget2D>(this);
+			blurEffectRenderTarget2->InitAutoFormat((int)width, (int)height);
 
-		blurEffectRenderTarget2 = NewObject<UTextureRenderTarget2D>(this);
-		blurEffectRenderTarget2->InitAutoFormat((int)width, (int)height);
-
-		inv_TextureSize.X = 1.0f / width;
-		inv_TextureSize.Y = 1.0f / height;
+			inv_TextureSize.X = 1.0f / width;
+			inv_TextureSize.Y = 1.0f / height;
+		}
 	}
 	else
 	{
@@ -128,6 +130,8 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 		{
 			float width = widget.width;
 			float height = widget.height;
+			width = FMath::Max(width, 1.0f);
+			height = FMath::Max(height, 1.0f);
 
 			blurEffectRenderTarget1->ResizeTarget((int)width, (int)height);
 			blurEffectRenderTarget2->ResizeTarget((int)width, (int)height);
