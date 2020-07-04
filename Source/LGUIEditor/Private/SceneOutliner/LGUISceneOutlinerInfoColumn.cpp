@@ -116,6 +116,7 @@ namespace LGUISceneOutliner
 							.Image(FLGUIEditorStyle::Get().GetBrush("CanvasMark"))
 							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetCanvasIconVisibility, weakTreeItem)
 							.ColorAndOpacity(FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)))
+							.ToolTipText(FText::FromString(FString(TEXT("This actor have LGUICanvas. The number is the drawcall count of this canvas."))))
 						]
 					]
 					+SOverlay::Slot()//drawcall count
@@ -131,9 +132,9 @@ namespace LGUISceneOutliner
 							.ShadowColorAndOpacity(FLinearColor::Black)
 							.ShadowOffset(FVector2D(1, 1))
 							.Text(this, &FLGUISceneOutlinerInfoColumn::GetDrawcallInfo, weakTreeItem)
-							.ToolTipText(FText::FromString(FString(TEXT("This actor have LGUICanvas. The number is the drawcall count of this canvas."))))
 							.ColorAndOpacity(FSlateColor(FLinearColor(FColor::Green)))
 							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetCanvasIconVisibility, weakTreeItem)
+							.ToolTipText(FText::FromString(FString(TEXT("This actor have LGUICanvas. The number is the drawcall count of this canvas."))))
 						]
 					]
 				]

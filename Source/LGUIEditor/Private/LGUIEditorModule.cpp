@@ -23,7 +23,6 @@
 #include "DetailCustomization/LGUICanvasCustomization.h"
 #include "DetailCustomization/UITextCustomization.h"
 #include "DetailCustomization/UITextureBaseCustomization.h"
-#include "DetailCustomization/UIPanelCustomization.h"
 #include "DetailCustomization/LGUISpriteDataCustomization.h"
 #include "DetailCustomization/LGUIFontDataCustomization.h"
 #include "DetailCustomization/UISelectableCustomization.h"
@@ -57,7 +56,6 @@
 #include "Kismet2/KismetEditorUtilities.h"
 
 #include "LGUIHeaders.h"
-#include "Core/ActorComponent/UIPanel.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
 const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
@@ -179,7 +177,6 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUICanvasCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIText::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextureBaseCustomization::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout(UUIPanel::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIPanelCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUISpriteDataCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIFontDataCustomization::MakeInstance));
@@ -286,7 +283,6 @@ void FLGUIEditorModule::ShutdownModule()
 	PropertyModule.UnregisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUIText::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIPanel::StaticClass()->GetFName());
 
 	PropertyModule.UnregisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName());

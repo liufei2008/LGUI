@@ -731,11 +731,11 @@ void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScri
 					if (item->widget.depth == TargetScript->widget.depth)
 						depthCount++;
 				}
-				DepthInfoTextBlock->SetText(FString::Printf(TEXT("SharedDepthCount:%d"), depthCount));
+				DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("SharedDepthCount:%d"), depthCount)));
 			}
 			else
 			{
-				DepthInfoTextBlock->SetText(FString::Printf(TEXT("(MustAttachToUIPanel)")));
+				DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("(Need LGUI Canvas!)"))));
 			}
 		}
 	}

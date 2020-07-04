@@ -224,3 +224,11 @@ LGUIXXXInputMobule and LGUIXXXRaycaster now can use ActorComponent's Activate/De
 Fix a crash caused by UIText's OverflowType=ClampContent.
 Fix UITexture's UVRect issue.
 Fix LGUIBehaviour execute order error.
+## 2.8.1
+#### Change:
+Remove UIPanel.
+#### NewFeature:
+Add Canvas and drawcall count tip info in scene outliner.
+#### Fix:
+Fix basic setup not interactable issue.
+Fix UIText disappear when second time input from UITextInputComponent in some special case.
