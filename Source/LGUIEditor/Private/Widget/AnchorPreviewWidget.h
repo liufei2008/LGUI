@@ -344,6 +344,7 @@ private:
 		bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsControlDown();
 		if (TargetScriptArray.Num() > 0)
 		{
+			GEditor->BeginTransaction(LOCTEXT("ChangeAnchor", "Change LGUI Anchor"));
 			for (auto item : TargetScriptArray)
 			{
 				item->SetAnchorHAlign(HorizontalAlign);
@@ -371,6 +372,7 @@ private:
 				}
 				item->EditorForceUpdateImmediately();
 			}
+			GEditor->EndTransaction();
 			
 			// Close the menu
 			FSlateApplication::Get().DismissAllMenus();

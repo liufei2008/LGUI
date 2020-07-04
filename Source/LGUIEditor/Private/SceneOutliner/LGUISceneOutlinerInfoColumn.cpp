@@ -74,8 +74,9 @@ namespace LGUISceneOutliner
 	SHeaderRow::FColumn::FArguments FLGUISceneOutlinerInfoColumn::ConstructHeaderRowColumn()
 	{
 		return SHeaderRow::Column(GetColumnID())
-			.DefaultLabel(LOCTEXT("LGUIColumeHeader", "UI"))
+			.DefaultLabel(LOCTEXT("LGUIColumeHeader", "LGUI"))
 			.DefaultTooltip(LOCTEXT("LGUIColumeHeader_Tooltip", "LGUI functions"))
+			.HAlignHeader(EHorizontalAlignment::HAlign_Center)
 			.FixedWidth(40)
 			;
 	}
@@ -130,7 +131,7 @@ namespace LGUISceneOutliner
 							.ShadowColorAndOpacity(FLinearColor::Black)
 							.ShadowOffset(FVector2D(1, 1))
 							.Text(this, &FLGUISceneOutlinerInfoColumn::GetDrawcallInfo, weakTreeItem)
-							.ToolTipText(FText::FromString(FString(TEXT("This actor have LGUICanvas. The number is drawcall count of this canvas."))))
+							.ToolTipText(FText::FromString(FString(TEXT("This actor have LGUICanvas. The number is the drawcall count of this canvas."))))
 							.ColorAndOpacity(FSlateColor(FLinearColor(FColor::Green)))
 							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetCanvasIconVisibility, weakTreeItem)
 						]
