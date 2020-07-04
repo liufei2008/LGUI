@@ -727,7 +727,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	{
 		if (!GetWorld()->IsGameWorld())
 		{
-			this->GetRelativeLocation() = prevRelativeLocation;
+			this->GetRelativeLocation_DirectMutable() = prevRelativeLocation;
 		}
 		isPreEditChange = false;
 	}
