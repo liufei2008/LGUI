@@ -256,6 +256,7 @@ FVector2D UUIText::GetRealSize()
 			UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, this, cachedTextPropertyList, font, richText);
 			if (adjustWidth) SetWidth(width);
 			if (adjustHeight) SetHeight(height);
+			geometry->Clear();//@todo: clear it because UIRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
 		}
 		return textRealSize;
 	}
@@ -425,7 +426,7 @@ int UUIText::VisibleCharCountInString(const FString& srcStr)
 void UUIText::CheckCachedTextPropertyList()
 {
 	auto cacheCount = cachedTextPropertyList.Num();
-	if (cacheCount == 0)//no cache ye
+	if (cacheCount == 0)//no cache yet
 	{
 		CacheTextGeometry();
 		float width = widget.width;
@@ -433,6 +434,7 @@ void UUIText::CheckCachedTextPropertyList()
 		UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas, this, cachedTextPropertyList, font, richText);
 		if (adjustWidth) SetWidth(width);
 		if (adjustHeight) SetHeight(height);
+		geometry->Clear();//@todo: clear it because UIRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
 	}
 }
 FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineStartIndex, int32& inOutLineEndIndex, int32& inOutCharStartIndex, int32& inOutCharEndIndex)
