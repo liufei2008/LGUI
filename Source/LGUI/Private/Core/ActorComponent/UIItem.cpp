@@ -1425,7 +1425,12 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 bool UUIItem::IsScreenSpaceOverlayUI()
 {
 	if (!IsValid(RenderCanvas))return false;
-	return RenderCanvas->IsScreenSpaceOverlayUI();
+	return RenderCanvas->IsRenderToScreenSpace();
+}
+bool UUIItem::IsWorldSpaceUI()
+{
+	if (!IsValid(RenderCanvas))return false;
+	return RenderCanvas->IsRenderToWorldSpace();
 }
 
 FColor UUIItem::GetFinalColor()const

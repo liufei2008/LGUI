@@ -12,10 +12,11 @@ enum class ELGUIRenderMode :uint8
 {
 	//render in screen space. 
 	//this mode need a LGUICanvasScaler to control the size and scale.
-	//Note that in this render mode, custom material is not supported
 	ScreenSpaceOverlay,
 	//render in world space, so post process effect will affect ui
 	WorldSpace,
+	//render to a custom render target
+	RenderTarget		UMETA(DisplayName = "RenderTarget(Experimental)"),
 };
 
 UENUM(BlueprintType)
@@ -53,6 +54,7 @@ ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
 
 class UUIItem;
 class UUIRenderable;
+class UTextureRenderTarget2D;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API ULGUICanvas : public UActorComponent
@@ -119,13 +121,18 @@ public:
 
 	void SetDefaultMaterials(UMaterialInterface* InMaterials[3]);
 
-	FORCEINLINE bool IsScreenSpaceOverlayUI();
+	UE_DEPRECATED(4.23, "Use IsRenderToScreenSpace instead.")
+	bool IsScreenSpaceOverlayUI();
+	FORCEINLINE bool IsRenderToScreenSpace();
+	FORCEINLINE bool IsRenderToScreenSpaceOrRenderTarget();
+	FORCEINLINE bool IsRenderToRenderTarget();
+	FORCEINLINE bool IsRenderToWorldSpace();
 	FORCEINLINE TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> GetViewExtension();
 
 	FORCEINLINE UUIItem* CheckAndGetUIItem() { CheckUIItem(); return UIItem; }
 protected:
 	//consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas
-	bool currentIsRenderInScreenOrWorld = false;
+	bool currentIsRenderToRenderTargetOrWorld = false;
 	//top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it
 	UPROPERTY(Transient) ULGUICanvas* TopMostCanvas = nullptr;
 	//chekc TopMostCanvas. search for it if not valid
@@ -158,6 +165,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIRenderMode renderMode = ELGUIRenderMode::WorldSpace;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		UTextureRenderTarget2D* renderTarget;
 	//This can avoid half-pixel render
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
@@ -210,6 +219,8 @@ public:
 		void SetPixelPerfect(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetRenderTarget(UTextureRenderTarget2D* value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);
@@ -242,6 +253,8 @@ public:
 		ELGUIRenderMode GetRenderMode()const { return renderMode; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetPixelPerfect()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		UTextureRenderTarget2D* GetRenderTarget()const { return renderTarget; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return sortOrder; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)

@@ -16,7 +16,7 @@ struct FLGUIPostProcessVertex;
 class LGUI_API FLGUIViewExtension : public FSceneViewExtensionBase
 {
 public:
-	FLGUIViewExtension(const FAutoRegister&, ULGUICanvas* InLGUICanvas);
+	FLGUIViewExtension(const FAutoRegister&, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget);
 	virtual ~FLGUIViewExtension();
 
 	//begin ISceneViewExtension interfaces
@@ -57,6 +57,7 @@ private:
 	void MarkSortRenderPriority_RenderThread();
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
+	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 
 	FVector ViewLocation;
 	FMatrix ViewRotationMatrix;

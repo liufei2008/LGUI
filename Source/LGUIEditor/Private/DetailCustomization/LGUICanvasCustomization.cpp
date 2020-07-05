@@ -54,15 +54,16 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	{
 		auto renderModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
 		renderModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
-		uint8 renderMode;
-		renderModeHandle->GetValue(renderMode);
-		if (renderMode == (uint8)ELGUIRenderMode::ScreenSpaceOverlay)
+		switch (TargetScriptArray[0]->renderMode)
 		{
-			
-		}
-		else if (renderMode == (uint8)ELGUIRenderMode::WorldSpace)
-		{
+		case ELGUIRenderMode::ScreenSpaceOverlay:
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
+			break;
+		case ELGUIRenderMode::WorldSpace:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
+			break;
+		case ELGUIRenderMode::RenderTarget:
+			break;
 		}
 
 		auto clipTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipType));
@@ -89,6 +90,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	else
 	{
 		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
+		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 		if (TargetScriptArray[0]->GetRootCanvas() != nullptr)
 		{
 			if (TargetScriptArray[0]->GetRootCanvas()->renderMode == ELGUIRenderMode::WorldSpace)
@@ -194,9 +196,28 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 		int allDrawcallCount = 0;
 		for (ULGUICanvas* canvasItem : allCanvas)
 		{
-			if (TargetScriptArray[0]->IsScreenSpaceOverlayUI() == canvasItem->IsScreenSpaceOverlayUI())
+			switch (TargetScriptArray[0]->renderMode)
 			{
-				allDrawcallCount += canvasItem->UIDrawcallList.Num();
+			case ELGUIRenderMode::WorldSpace:
+			case ELGUIRenderMode::ScreenSpaceOverlay:
+			{
+				if (canvasItem->renderMode == TargetScriptArray[0]->renderMode)
+				{
+					allDrawcallCount += canvasItem->UIDrawcallList.Num();
+				}
+			}
+			break;
+			case ELGUIRenderMode::RenderTarget:
+			{
+				if (canvasItem->renderMode == ELGUIRenderMode::RenderTarget)
+				{
+					if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
+					{
+						allDrawcallCount += canvasItem->UIDrawcallList.Num();
+					}
+				}
+			}
+			break;
 			}
 		}
 		return FText::FromString(FString::Printf(TEXT("%d/%d"), drawcallCount, allDrawcallCount));
@@ -208,14 +229,59 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 	int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
 	auto& allCanvas = LGUIManager::GetAllCanvas(TargetScriptArray[0]->GetWorld());
 	int allDrawcallCount = 0;
-	for (ULGUICanvas* canvasItem : allCanvas)
+	FString spaceText;
+	switch (TargetScriptArray[0]->renderMode)
 	{
-		if (TargetScriptArray[0]->IsScreenSpaceOverlayUI() == canvasItem->IsScreenSpaceOverlayUI())
+	case ELGUIRenderMode::WorldSpace:
+	{
+		spaceText = TEXT("WorldSpace");
+	}
+	break;
+	case ELGUIRenderMode::ScreenSpaceOverlay:
+	{
+		spaceText = TEXT("ScreenSpaceOverlay");
+	}
+	break;
+	case ELGUIRenderMode::RenderTarget:
+	{
+		if (IsValid(TargetScriptArray[0]->renderTarget))
 		{
-			allDrawcallCount += canvasItem->UIDrawcallList.Num();
+			spaceText = FString::Printf(TEXT("RenderTarget(%s)"), *(TargetScriptArray[0]->renderTarget->GetName()));
+		}
+		else
+		{
+			spaceText = FString::Printf(TEXT("RenderTarget(NotValid)"));
 		}
 	}
-	FString tooltipStr = FString::Printf(TEXT("This canvas's drawcall count:%d, all canvas of %s drawcall count:%d"), drawcallCount, (TargetScriptArray[0]->IsScreenSpaceOverlayUI() ? TEXT("screen space") : TEXT("world space")), allDrawcallCount);
+	break;
+	}
+	for (ULGUICanvas* canvasItem : allCanvas)
+	{
+		switch (TargetScriptArray[0]->renderMode)
+		{
+		case ELGUIRenderMode::WorldSpace:
+		case ELGUIRenderMode::ScreenSpaceOverlay:
+		{
+			if (canvasItem->renderMode == TargetScriptArray[0]->renderMode)
+			{
+				allDrawcallCount += canvasItem->UIDrawcallList.Num();
+			}
+		}
+		break;
+		case ELGUIRenderMode::RenderTarget:
+		{
+			if (canvasItem->renderMode == ELGUIRenderMode::RenderTarget)
+			{
+				if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
+				{
+					allDrawcallCount += canvasItem->UIDrawcallList.Num();
+				}
+			}
+		}
+		break;
+		}
+	}
+	FString tooltipStr = FString::Printf(TEXT("This canvas's drawcall count:%d, all canvas of %s drawcall count:%d"), drawcallCount, *spaceText, allDrawcallCount);
 	return FText::FromString(tooltipStr);
 }
 #undef LOCTEXT_NAMESPACE
