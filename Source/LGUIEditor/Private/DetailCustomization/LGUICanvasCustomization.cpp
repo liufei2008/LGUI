@@ -61,6 +61,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			break;
 		case ELGUIRenderMode::WorldSpace:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 			break;
 		case ELGUIRenderMode::RenderTarget:
 			break;
@@ -154,11 +155,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		}
 	}
 
-	for (auto item : needToHidePropertyNames)
-	{
-		DetailBuilder.HideProperty(item);
-	}
-
 	if (TargetScriptArray[0]->GetWorld() != nullptr)
 	{
 		category.AddCustomRow(LOCTEXT("DrawcallInfo", "DrawcallInfo"))
@@ -178,6 +174,56 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			.ColorAndOpacity(FLinearColor(FColor::Green))
 		]
 		;
+	}
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
+	//category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
+	auto sortOrderHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
+	category.AddCustomRow(LOCTEXT("SortOrderManager", "SortOrderManager"))
+		.NameContent()
+		[
+			sortOrderHandle->CreatePropertyNameWidget()
+		]
+		.ValueContent()
+		[
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.Padding(2, 4)
+			.FillWidth(5)
+			[
+				sortOrderHandle->CreatePropertyValueWidget()
+			]
+			+ SHorizontalBox::Slot()
+			.Padding(2, 6)
+			.FillWidth(2)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("Up", "+"))
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.OnClicked_Lambda([=]()
+				{
+					sortOrderHandle->SetValue(TargetScriptArray[0]->GetSortOrder() + 1);
+					return FReply::Handled(); 
+				})
+			]
+			+ SHorizontalBox::Slot()
+			.Padding(2, 6)
+			.FillWidth(2)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("Down", "-"))
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.OnClicked_Lambda([=]()
+				{
+					sortOrderHandle->SetValue(TargetScriptArray[0]->GetSortOrder() - 1);
+					return FReply::Handled();
+				})
+			]
+		];
+
+	needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
+	for (auto item : needToHidePropertyNames)
+	{
+		DetailBuilder.HideProperty(item);
 	}
 }
 void FLGUICanvasCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
