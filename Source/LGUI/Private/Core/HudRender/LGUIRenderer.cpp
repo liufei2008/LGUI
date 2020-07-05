@@ -74,10 +74,11 @@ static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVerte
 static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;
 
 
-FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas)
+FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget)
 	:FSceneViewExtensionBase(AutoRegister)
 {
 	UICanvas = InLGUICanvas;
+	CustomRenderTarget = InCustomRenderTarget;
 }
 FLGUIViewExtension::~FLGUIViewExtension()
 {
@@ -199,8 +200,18 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	}
 
 	FSceneView RenderView(InView);//use a copied view
-	FTexture2DRHIRef ScreenImageRenderTexture = RenderView.Family->RenderTarget->GetRenderTargetTexture();
-	FRHIRenderPassInfo RPInfo(ScreenImageRenderTexture, ERenderTargetActions::Load_DontStore);
+	FTexture2DRHIRef ScreenImageRenderTexture;
+	FRHIRenderPassInfo RPInfo;
+	if (CustomRenderTarget.IsValid())
+	{
+		ScreenImageRenderTexture = CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+		RPInfo = FRHIRenderPassInfo(ScreenImageRenderTexture, ERenderTargetActions::Clear_DontStore);
+	}
+	else
+	{
+		ScreenImageRenderTexture = RenderView.Family->RenderTarget->GetRenderTargetTexture();;
+		RPInfo = FRHIRenderPassInfo(ScreenImageRenderTexture, ERenderTargetActions::Load_DontStore);
+	}
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 
 	RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;

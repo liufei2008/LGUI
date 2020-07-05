@@ -3925,7 +3925,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 	else
 #endif
 	{
-		if (canvas->IsScreenSpaceOverlayUI())//convert to world space
+		if (canvas->IsRenderToScreenSpaceOrRenderTarget())//convert to world space
 		{
 			for (int i = 0; i < vertexCount; i++)
 			{
