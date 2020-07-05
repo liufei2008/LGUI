@@ -39,7 +39,7 @@ void ULGUICanvas::BeginPlay()
 	Super::BeginPlay();
 	TopMostCanvas = nullptr;
 	CheckTopMostCanvas();
-	currentIsRenderInScreenOrWorld = IsScreenSpaceOverlayUI();
+	currentIsRenderToRenderTargetOrWorld = IsRenderToScreenSpaceOrRenderTarget();
 	ParentCanvas = nullptr;
 	CheckParentCanvas();
 	CheckUIItem();
@@ -164,14 +164,14 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	auto oldTopMostCanvas = TopMostCanvas;
 	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
 
-	bool oldIsRenderInScreenOrWorld = currentIsRenderInScreenOrWorld;
+	bool oldIsRenderToRenderTargetOrWorld = currentIsRenderToRenderTargetOrWorld;
 	if (IsValid(TopMostCanvas))
 	{
-		currentIsRenderInScreenOrWorld = TopMostCanvas->IsScreenSpaceOverlayUI();
+		currentIsRenderToRenderTargetOrWorld = TopMostCanvas->IsRenderToScreenSpaceOrRenderTarget();
 	}
 
 	//if hierarchy changed from World/Hud to Hud/World, then we need to recreate all
-	if (currentIsRenderInScreenOrWorld != oldIsRenderInScreenOrWorld)
+	if (currentIsRenderToRenderTargetOrWorld != oldIsRenderToRenderTargetOrWorld)
 	{
 		if (CheckUIItem())
 		{
@@ -195,6 +195,40 @@ bool ULGUICanvas::IsScreenSpaceOverlayUI()
 	if (IsValid(TopMostCanvas))
 	{
 		return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay;
+	}
+	return false;
+}
+bool ULGUICanvas::IsRenderToScreenSpace()
+{
+	if (IsValid(TopMostCanvas))
+	{
+		return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay;
+	}
+	return false;
+}
+bool ULGUICanvas::IsRenderToScreenSpaceOrRenderTarget()
+{
+	if (IsValid(TopMostCanvas))
+	{
+		return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay
+			|| (TopMostCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(TopMostCanvas->renderTarget))
+				;
+	}
+	return false;
+}
+bool ULGUICanvas::IsRenderToRenderTarget()
+{
+	if (IsValid(TopMostCanvas))
+	{
+		return TopMostCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(TopMostCanvas->renderTarget);
+	}
+	return false;
+}
+bool ULGUICanvas::IsRenderToWorldSpace()
+{
+	if (IsValid(TopMostCanvas))
+	{
+		return TopMostCanvas->renderMode == ELGUIRenderMode::WorldSpace;
 	}
 	return false;
 }
@@ -422,11 +456,15 @@ TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewEx
 {
 	if (!ViewExtension.IsValid())
 	{
-		if (renderMode == ELGUIRenderMode::ScreenSpaceOverlay)
+		if (GEngine)
 		{
-			if (GEngine)
+			if (renderMode == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
-				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIViewExtension>(this);
+				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIViewExtension>(this, nullptr);
+			}
+			else if (renderMode == ELGUIRenderMode::RenderTarget && IsValid(renderTarget))
+			{
+				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIViewExtension>(this, renderTarget);
 			}
 		}
 	}
@@ -600,7 +638,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					}
 					else
 #endif
-					if (currentIsRenderInScreenOrWorld)
+					if (currentIsRenderToRenderTargetOrWorld)
 					{
 						uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
 					}
@@ -739,7 +777,7 @@ void ULGUICanvas::SortDrawcallRenderPriority()
 	}
 	else
 #endif
-	if (currentIsRenderInScreenOrWorld)
+	if (currentIsRenderToRenderTargetOrWorld)
 	{
 		TopMostCanvas->GetViewExtension()->SortRenderPriority();
 	}
@@ -1415,11 +1453,17 @@ void ULGUICanvas::SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Typ
 	FarClipPlane = InFarClipPlane;
 }
 
+void ULGUICanvas::SetRenderTarget(UTextureRenderTarget2D* value)
+{
+	//@todo:finish this!!!
+}
+
 bool ULGUICanvas::GetPixelPerfect()const
 {
 	if (IsRootCanvas())
 	{
-		return renderMode == ELGUIRenderMode::ScreenSpaceOverlay && pixelPerfect;
+		return this->currentIsRenderToRenderTargetOrWorld
+			&& pixelPerfect;
 	}
 	else
 	{
@@ -1427,13 +1471,15 @@ bool ULGUICanvas::GetPixelPerfect()const
 		{
 			if (GetOverridePixelPerfect())
 			{
-				return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay && this->pixelPerfect;
+				return TopMostCanvas->currentIsRenderToRenderTargetOrWorld
+					&& this->pixelPerfect;
 			}
 			else
 			{
 				if (IsValid(ParentCanvas))
 				{
-					return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay && ParentCanvas->GetPixelPerfect();
+					return TopMostCanvas->currentIsRenderToRenderTargetOrWorld
+						&& ParentCanvas->GetPixelPerfect();
 				}
 			}
 		}

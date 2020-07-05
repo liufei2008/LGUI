@@ -14,7 +14,7 @@ bool ULGUIWorldSpaceInteraction::ShouldSkipUIItem(class UUIItem* UIItem)
 {
 	if (UIItem != nullptr)
 	{
-		return UIItem->IsScreenSpaceOverlayUI();
+		return !UIItem->IsWorldSpaceUI();
 	}
 	return true;
 }

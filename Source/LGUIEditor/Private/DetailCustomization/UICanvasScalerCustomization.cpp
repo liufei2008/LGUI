@@ -63,7 +63,10 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 			{
 				needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, TestWithEditorViewportSize));
 			}
-			else if (canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+			else if (
+				canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay
+				|| canvas->GetRenderMode() == ELGUIRenderMode::RenderTarget
+				)
 			{
 				lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, UIScaleMode));
 
