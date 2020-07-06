@@ -28,6 +28,7 @@ class LGUI_API UUISliderComponent : public UUISelectableComponent, public ILGUIP
 	
 protected:	
 	virtual void Awake() override;
+	virtual void Start() override;
 	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

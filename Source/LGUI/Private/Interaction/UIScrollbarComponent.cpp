@@ -12,6 +12,11 @@ UUIScrollbarComponent::UUIScrollbarComponent()
 void UUIScrollbarComponent::Awake()
 {
 	Super::Awake();
+}
+
+void UUIScrollbarComponent::Start()
+{
+	Super::Start();
 	ApplyValueToUI();
 }
 

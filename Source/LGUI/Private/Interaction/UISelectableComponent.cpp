@@ -13,8 +13,12 @@ void UUISelectableComponent::Awake()
 {
 	Super::Awake();
 	CheckTarget();
-	ApplySelectionState(true);
 	ALGUIManagerActor::AddSelectable(this);
+}
+void UUISelectableComponent::Start()
+{
+	Super::Start();
+	ApplySelectionState(true);
 }
 
 void UUISelectableComponent::OnDestroy()
