@@ -18,7 +18,8 @@ enum class UIToggleTransitionType :uint8
 	None				UMETA(DisplayName = "None"),
 	Fade				UMETA(DisplayName = "Fade"),
 	ColorTint			UMETA(DisplayName = "ColorTint"),
-	//You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to toggle actor
+	//You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to toggle actor.
+	//Use OnStartCustomTransition event in UISelectableTransitionComponent, and switch "On"/"Off" condition to do the transition.
 	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
 };
 
@@ -29,6 +30,7 @@ class LGUI_API UUIToggleComponent : public UUISelectableComponent, public ILGUIP
 	
 protected:
 	virtual void Awake() override;
+	virtual void Start() override;
 protected:
 	friend class FUIToggleCustomization;
 	//If not assigned, use self. must have UIItem component

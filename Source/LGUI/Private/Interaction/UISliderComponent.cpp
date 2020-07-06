@@ -8,6 +8,11 @@
 void UUISliderComponent::Awake()
 {
 	Super::Awake();
+}
+
+void UUISliderComponent::Start()
+{
+	Super::Start();
 	ApplyValueToUI();
 }
 

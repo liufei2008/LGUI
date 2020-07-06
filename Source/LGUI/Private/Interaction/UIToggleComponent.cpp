@@ -14,19 +14,21 @@ void UUIToggleComponent::Awake()
 {
 	Super::Awake();
 	CheckTarget();
-	ApplyToggleState(true);
 	//check toggle group
 	if (UIToggleGroupActor)
 	{
 		GroupComp = UIToggleGroupActor->FindComponentByClass<UUIToggleGroupComponent>();
 	}
-	if (GroupComp != nullptr)
+}
+
+void UUIToggleComponent::Start()
+{
+	Super::Start();
+	if (IsValid(GroupComp) && IsOn)
 	{
-		if (IsOn)
-		{
-			GroupComp->SetSelection(this);//if default is selected, set to group
-		}
+		GroupComp->SetSelection(this);//if default is selected, set to group
 	}
+	ApplyToggleState(true);
 }
 
 bool UUIToggleComponent::CheckTarget()
@@ -70,7 +72,7 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 	if (!CheckTarget())return;
 	if (ToggleTransition == UIToggleTransitionType::Fade)
 	{
-		if (auto uiItem = ToggleActor->FindComponentByClass<UUIItem>())
+		if (auto uiItem = ToggleActor->GetUIItem())
 		{
 			if (ALTweenActor::IsTweening(ToggleTransitionTweener))ToggleTransitionTweener->Kill();
 			if (ToggleDuration <= 0.0f || immediateSet)
@@ -86,7 +88,7 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 	}
 	else if (ToggleTransition == UIToggleTransitionType::ColorTint)
 	{
-		if (auto uiItem = ToggleActor->FindComponentByClass<UUIItem>())
+		if (auto uiItem = ToggleActor->GetUIItem())
 		{
 			if (ALTweenActor::IsTweening(ToggleTransitionTweener))ToggleTransitionTweener->Kill();
 			if (ToggleDuration <= 0.0f || immediateSet)

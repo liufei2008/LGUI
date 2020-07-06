@@ -49,6 +49,7 @@ protected:
 
 protected:
 	virtual void Awake() override;
+	virtual void Start() override;
 	virtual void OnDestroy()override;
 
 	friend class FUISelectableCustomization;
