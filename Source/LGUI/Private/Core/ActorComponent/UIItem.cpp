@@ -535,12 +535,6 @@ void UUIItem::UIHierarchyChanged()
 	GetParentAsUIItem();
 	if (IsValid(cacheParentUIItem))
 	{
-		if (isRootUIItem)
-		{
-			isRootUIItem = false;
-			//remove from colleciton
-			LGUIManager::RemoveRootUIItem(this);
-		}
 		//calculate dimensions
 		switch (widget.anchorHAlign)
 		{
@@ -575,15 +569,6 @@ void UUIItem::UIHierarchyChanged()
 			CalculateVerticalAnchorAndSizeFromStretch();
 		}
 		break;
-		}
-	}
-	else
-	{
-		if (!isRootUIItem)
-		{
-			isRootUIItem = true;
-			//add to collection
-			LGUIManager::AddRootUIItem(this);
 		}
 	}
 }

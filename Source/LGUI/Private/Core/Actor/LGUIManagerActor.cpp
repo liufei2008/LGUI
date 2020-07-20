@@ -94,30 +94,8 @@ void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 	}
 }
 
-void ULGUIEditorManagerObject::AddRootUIItem(UUIItem* InRootUIItem)
-{
-	if (InitCheck(InRootUIItem->GetWorld()))
-	{
-		Instance->rootUIItems.AddUnique(InRootUIItem);
-	}
-}
-void ULGUIEditorManagerObject::RemoveRootUIItem(UUIItem* InRootUIItem)
-{
-	if (Instance != nullptr)
-	{
-		Instance->rootUIItems.RemoveSingle(InRootUIItem);
-	}
-}
-
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
-	for (auto item : rootUIItems)
-	{
-		if (IsValid(item))
-		{
-			//@todo:update here
-		}
-	}
 	for (auto item : allCanvas)
 	{
 		if (IsValid(item))
@@ -201,13 +179,6 @@ bool ALGUIManagerActor::InitCheck(UWorld* InWorld)
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
-	for (auto item : rootUIItems)
-	{
-		if (IsValid(item))
-		{
-			//@todo:update here
-		}
-	}
 	for (auto item : allCanvas)
 	{
 		if (IsValid(item))
@@ -548,21 +519,6 @@ void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
 	if (Instance != nullptr)
 	{
 		Instance->allCanvas.RemoveSingle(InCanvas);
-	}
-}
-
-void ALGUIManagerActor::AddRootUIItem(UUIItem* InRootUIItem)
-{
-	if (InitCheck(InRootUIItem->GetWorld()))
-	{
-		Instance->rootUIItems.AddUnique(InRootUIItem);
-	}
-}
-void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InRootUIItem)
-{
-	if (Instance != nullptr)
-	{
-		Instance->rootUIItems.RemoveSingle(InRootUIItem);
 	}
 }
 
@@ -911,68 +867,3 @@ bool LGUIManager::IsSelected_Editor(AActor* InItem)
 	return ULGUIEditorManagerObject::IsSelected(InItem);
 }
 #endif
-
-void LGUIManager::AddRootUIItem(UUIItem* InUIItem)
-{
-	if (IsValid(InUIItem->GetWorld()))
-	{
-#if WITH_EDITOR
-		if (InUIItem->GetWorld()->IsGameWorld())
-		{
-			ALGUIManagerActor::AddRootUIItem(InUIItem);
-		}
-		else if (InUIItem->GetWorld()->IsEditorWorld())
-		{
-			ULGUIEditorManagerObject::AddRootUIItem(InUIItem);
-		}
-#else
-		ALGUIManagerActor::AddRootUIItem(InUIItem);
-#endif
-	}
-}
-void LGUIManager::RemoveRootUIItem(UUIItem* InUIItem)
-{
-	if (IsValid(InUIItem->GetWorld()))
-	{
-#if WITH_EDITOR
-		if (InUIItem->GetWorld()->IsGameWorld())
-		{
-			ALGUIManagerActor::RemoveRootUIItem(InUIItem);
-		}
-		else if (InUIItem->GetWorld()->IsEditorWorld())
-		{
-			ULGUIEditorManagerObject::RemoveRootUIItem(InUIItem);
-		}
-#else
-		ALGUIManagerActor::RemoveRootUIItem(InUIItem);
-#endif
-	}
-}
-const TArray<UUIItem*>& LGUIManager::GetRootUIItems(UWorld* InWorld)
-{
-	if (IsValid(InWorld))
-	{
-#if WITH_EDITOR
-		if (InWorld->IsGameWorld())
-		{
-			if (ALGUIManagerActor::Instance != nullptr)
-			{
-				return ALGUIManagerActor::Instance->GetRootUIItems();
-			}
-		}
-		else if (InWorld->IsEditorWorld())
-		{
-			if (ULGUIEditorManagerObject::Instance != nullptr)
-			{
-				return ULGUIEditorManagerObject::Instance->GetRootUIItems();
-			}
-		}
-#else
-		if (ALGUIManagerActor::Instance != nullptr)
-		{
-			return ALGUIManagerActor::Instance->GetAllCanvas();
-		}
-#endif
-	}
-	return ALGUIManagerActor::Instance->GetRootUIItems();
-}
