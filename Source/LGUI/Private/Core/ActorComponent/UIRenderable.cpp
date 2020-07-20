@@ -64,6 +64,20 @@ void UUIRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 }
 #endif
 
+void UUIRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
+{
+	if (IsValid(OldCanvas))
+	{
+		OldCanvas->RemoveUIRenderable(this);
+		OldCanvas->MarkCanvasUpdate();
+	}
+	if (IsValid(NewCanvas))
+	{
+		NewCanvas->AddUIRenderable(this);
+		NewCanvas->MarkCanvasUpdate();
+	}
+}
+
 void UUIRenderable::MarkUVDirty()
 {
 	bUVChanged = true;

@@ -373,58 +373,6 @@ void ULGUICanvas::MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool verte
 	uiDrawcall->needToUpdateVertex = true;
 	if (vertexPositionChanged)uiDrawcall->vertexPositionChanged = vertexPositionChanged;
 }
-void ULGUICanvas::InsertIntoDrawcall(UUIRenderable* item)
-{
-	bool accommodate = false;//can this item fit into list?
-	auto itemDepth = item->GetDepth();
-	auto itemTexture = item->GetGeometry()->texture;
-	int drawcallCount = UIDrawcallList.Num();
-	for (int i = 0; i < drawcallCount; i++)
-	{
-		auto drawcallItem = UIDrawcallList[i];
-		if (drawcallItem->texture == itemTexture && drawcallItem->IsDepthInsideDrawcall(itemDepth))//if texture is equal and depth can insert into drawcall
-		{
-			drawcallItem->geometryList.Add(item->GetGeometry());
-			item->GetGeometry()->drawcallIndex = i;
-			drawcallItem->needToBeRebuild = true;
-			accommodate = true;
-			break;
-		}
-	}
-	if (!accommodate)//cannot fit to list, then mark rebuild all drawcall. and mark UIItem as not render yet
-	{
-		item->GetGeometry()->drawcallIndex = -1;
-		bShouldRebuildAllDrawcall = true;
-	}
-}
-void ULGUICanvas::RemoveFromDrawcall(UUIRenderable* item)
-{
-	auto drawcallIndex = item->GetGeometry()->drawcallIndex;
-	if (drawcallIndex == -1)return;//-1 means not add to render yet
-	if (drawcallIndex >= UIDrawcallList.Num())//drawcall index not inside list, need to rebuild all drawcall
-	{
-		bShouldRebuildAllDrawcall = true;
-		return;
-	}
-	UIDrawcallList[drawcallIndex]->needToBeRebuild = true;
-	auto& geometryList = UIDrawcallList[drawcallIndex]->geometryList;
-	int geoCount = geometryList.Num();
-	for (int i = 0; i < geoCount; i++)
-	{
-		auto geoItem = geometryList[i];
-		if (geoItem == item->GetGeometry())
-		{
-			geometryList.RemoveAt(i);
-			item->GetGeometry()->drawcallIndex = -1;
-			geoCount -= 1;
-			break;
-		}
-	}
-	if (geoCount == 0)//if drawcall is empty after remove the UIItem, then rebuild all drawcall
-	{
-		bShouldRebuildAllDrawcall = true;
-	}
-}
 void ULGUICanvas::OnUIElementDepthChange(UUIRenderable* item)
 {
 	//shouldRebuildAllDrawcall = true; return;
@@ -491,18 +439,72 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChan
 			}
 			else
 			{
-				auto childItemType = uiChild->GetUIItemType();
-				if (childItemType == UIItemType::UIRenderable)
-				{
-					auto uiChildRenderable = (UUIRenderable*)uiChild;
-					if (uiChildRenderable->GetGeometry().IsValid() && uiChildRenderable->GetGeometry()->vertices.Num() > 0)
-					{
-						UIRenderableItemList.Add(uiChildRenderable);
-					}
-				}
 				UpdateChildRecursive(uiChild, transformChanged, layoutChanged);
 			}			
 		}
+	}
+}
+
+void ULGUICanvas::AddUIRenderable(UUIRenderable* InUIRenderable)
+{
+	InsertIntoDrawcall(InUIRenderable);
+	UIRenderableItemList.Add(InUIRenderable);
+}
+void ULGUICanvas::RemoveUIRenderable(UUIRenderable* InUIRenderable)
+{
+	RemoveFromDrawcall(InUIRenderable);
+	UIRenderableItemList.Remove(InUIRenderable);
+}
+void ULGUICanvas::InsertIntoDrawcall(UUIRenderable* item)
+{
+	bool accommodate = false;//can this item fit into list?
+	auto itemDepth = item->GetDepth();
+	auto itemTexture = item->GetGeometry()->texture;
+	int drawcallCount = UIDrawcallList.Num();
+	for (int i = 0; i < drawcallCount; i++)
+	{
+		auto drawcallItem = UIDrawcallList[i];
+		if (drawcallItem->texture == itemTexture && drawcallItem->IsDepthInsideDrawcall(itemDepth))//if texture is equal and depth can insert into drawcall
+		{
+			drawcallItem->geometryList.Add(item->GetGeometry());
+			item->GetGeometry()->drawcallIndex = i;
+			drawcallItem->needToBeRebuild = true;
+			accommodate = true;
+			break;
+		}
+	}
+	if (!accommodate)//cannot fit to list, then mark rebuild all drawcall. and mark geometry as not render yet
+	{
+		item->GetGeometry()->drawcallIndex = -1;
+		bShouldRebuildAllDrawcall = true;
+	}
+}
+void ULGUICanvas::RemoveFromDrawcall(UUIRenderable* item)
+{
+	auto drawcallIndex = item->GetGeometry()->drawcallIndex;
+	if (drawcallIndex == -1)return;//-1 means not add to render yet
+	if (drawcallIndex >= UIDrawcallList.Num())//drawcall index not inside list, need to rebuild all drawcall
+	{
+		bShouldRebuildAllDrawcall = true;
+		return;
+	}
+	UIDrawcallList[drawcallIndex]->needToBeRebuild = true;
+	auto& geometryList = UIDrawcallList[drawcallIndex]->geometryList;
+	int geoCount = geometryList.Num();
+	for (int i = 0; i < geoCount; i++)
+	{
+		auto geoItem = geometryList[i];
+		if (geoItem == item->GetGeometry())
+		{
+			geometryList.RemoveAt(i);
+			item->GetGeometry()->drawcallIndex = -1;
+			geoCount -= 1;
+			break;
+		}
+	}
+	if (geoCount == 0)//if drawcall is empty after remove the UIItem, then rebuild all drawcall
+	{
+		bShouldRebuildAllDrawcall = true;
 	}
 }
 
@@ -540,15 +542,6 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, parentTransformChanged);
 		}
 
-		UIRenderableItemList.Reset();
-		if (UIItem->GetUIItemType() == UIItemType::UIRenderable)
-		{
-			auto uiRenderable = (UUIRenderable*)UIItem;
-			if (uiRenderable->GetGeometry().IsValid() && uiRenderable->GetGeometry()->vertices.Num() > 0)
-			{
-				UIRenderableItemList.Add(uiRenderable);
-			}
-		}
 		const auto& childrenList = UIItem->GetAttachChildren();
 		for (auto child : childrenList)
 		{
@@ -567,14 +560,6 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				}
 				else
 				{
-					if (uiChild->GetUIItemType() == UIItemType::UIRenderable)//only UIRenderable have geometry
-					{
-						auto uiChildRenderable = (UUIRenderable*)uiChild;
-						if (uiChildRenderable->GetGeometry().IsValid() && uiChildRenderable->GetGeometry()->vertices.Num() > 0)
-						{
-							UIRenderableItemList.Add(uiChildRenderable);
-						}
-					}
 					UpdateChildRecursive(uiChild, transformChanged, layoutChanged);
 				}
 			}

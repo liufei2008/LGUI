@@ -90,10 +90,6 @@ public:
 	void SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture);
 	//mark update specific drawcall vertex, when vertex position/uv/color etc change
 	void MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged = true);
-	//insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall.
-	void InsertIntoDrawcall(UUIRenderable* item);
-	//remove a UI element from drawcall list
-	void RemoveFromDrawcall(UUIRenderable* item);
 	//UI element's depth change
 	void OnUIElementDepthChange(UUIRenderable* item);
 	//return created MaterialInstanceDynamic for target drawcall, return nullptr if drawcallIndex is -1
@@ -287,6 +283,14 @@ public:
 	//return UIRenderables that belong to this canvas
 	const TArray<UUIRenderable*> GetUIRenderables()const { return UIRenderableItemList; }
 	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
+
+	FORCEINLINE void AddUIRenderable(UUIRenderable* InUIRenderable);
+	FORCEINLINE void RemoveUIRenderable(UUIRenderable* InUIRenderable);
+private:
+	//insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall.
+	void InsertIntoDrawcall(UUIRenderable* item);
+	//remove a UI element from drawcall list
+	void RemoveFromDrawcall(UUIRenderable* item);
 private:
 	int8 GetAdditionalShaderChannelFlags()const;
 private:
