@@ -234,4 +234,6 @@ Fix basic setup not interactable issue.
 Fix UIText disappear when second time input from UITextInputComponent in some special case.
 ## 2.8.2
 #### NewFeature:
-LGUICanvas support render to custom RenderTarget2D.
+LGUICanvas support render to custom RenderTarget2D.(Experimental)
+#### Improve:
+Performance improve.

@@ -107,13 +107,13 @@ public:
 public:
 	//update layout and geometry
 	virtual void UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool& parentTransformChanged);
+protected:
 	//UIItem's hierarchy changed
 	virtual void UIHierarchyChanged();
 	//@param return		true if size changed, else false
 	bool CalculateLayoutRelatedParameters();
 	//update render geometry
 	virtual void UpdateGeometry(const bool& parentTransformChanged);
-protected:
 	//called when attach to a new RenderCanvas.
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
 
@@ -126,8 +126,6 @@ protected:
 	//parent in hierarchy
 	UPROPERTY(Transient) mutable UUIItem* cacheParentUIItem = nullptr;
 	UPROPERTY(Transient) TArray<UUIItem*> cacheUIChildren;
-	//if this UIItem not attach to any other UIItem, then it is a root UIItem.
-	bool isRootUIItem = false;
 	FORCEINLINE void SortCacheUIChildren();
 	//alpha inherit from parent or not
 	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
