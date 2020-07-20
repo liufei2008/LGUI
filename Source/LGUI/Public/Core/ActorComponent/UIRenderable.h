@@ -7,6 +7,7 @@
 
 class UIGeometry;
 class UMaterialInterface;
+class ULGUICanvas;
 //UI element which have render geometry, and can be renderred by LGUICanvas
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIRenderable : public UUIItem
@@ -51,6 +52,8 @@ public:
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic();
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetIsPostProcess() { return bIsPostProcess; }
+
+	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 
 	void MarkUVDirty();
 	void MarkTriangleDirty();

@@ -149,7 +149,9 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 	for (int i = 0; i < sortedList.Num(); i++)
 	{
 		auto itemGeo = sortedList[i]->GetGeometry();
-		if (!itemGeo.IsValid())continue;
+		if (itemGeo.IsValid() == false)continue;
+		if (itemGeo->vertices.Num() == 0)continue;
+
 		if (sortedList[i]->GetIsPostProcess())//every post process is a drawcall
 		{
 			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
