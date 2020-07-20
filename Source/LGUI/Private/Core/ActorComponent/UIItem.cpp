@@ -524,30 +524,7 @@ void UUIItem::UIHierarchyChanged()
 	if (isCanvasUIItem)RenderCanvas->OnUIHierarchyChanged();
 	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
 	{
-		if (itemType == UIItemType::UIRenderable)
-		{
-			if (IsValid(oldRenderCanvas))
-			{
-				oldRenderCanvas->RemoveFromDrawcall((UUIRenderable*)this);
-				oldRenderCanvas->MarkCanvasUpdate();
-			}
-			if (IsValid(RenderCanvas))
-			{
-				RenderCanvas->InsertIntoDrawcall((UUIRenderable*)this);
-				RenderCanvas->MarkCanvasUpdate();
-			}
-		}
-		else
-		{
-			if (IsValid(oldRenderCanvas))
-			{
-				oldRenderCanvas->MarkCanvasUpdate();
-			}
-			if (IsValid(RenderCanvas))
-			{
-				RenderCanvas->MarkCanvasUpdate();
-			}
-		}
+		OnRenderCanvasChanged(oldRenderCanvas, RenderCanvas);
 	}
 	MarkVertexPositionDirty();
 
@@ -560,6 +537,12 @@ void UUIItem::UIHierarchyChanged()
 	GetParentAsUIItem();
 	if (IsValid(cacheParentUIItem))
 	{
+		if (isRootUIItem)
+		{
+			isRootUIItem = false;
+			//remove from colleciton
+			LGUIManager::RemoveRootUIItem(this);
+		}
 		//calculate dimensions
 		switch (widget.anchorHAlign)
 		{
@@ -595,6 +578,26 @@ void UUIItem::UIHierarchyChanged()
 		}
 		break;
 		}
+	}
+	else
+	{
+		if (!isRootUIItem)
+		{
+			isRootUIItem = true;
+			//add to collection
+			LGUIManager::AddRootUIItem(this);
+		}
+	}
+}
+void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
+{
+	if (IsValid(OldCanvas))
+	{
+		OldCanvas->MarkCanvasUpdate();
+	}
+	if (IsValid(NewCanvas))
+	{
+		NewCanvas->MarkCanvasUpdate();
 	}
 }
 
