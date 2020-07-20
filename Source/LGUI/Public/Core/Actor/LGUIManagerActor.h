@@ -40,8 +40,6 @@ protected:
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUICanvas*> allCanvas;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUIItem*> rootUIItems;
 private:
 	static bool InitCheck(UWorld* InWorld);
 #if WITH_EDITOR
@@ -57,10 +55,6 @@ public:
 	static void SortCanvasOnOrder();
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
-
-	static void AddRootUIItem(UUIItem* InUIItem);
-	static void RemoveRootUIItem(UUIItem* InUIItem);
-	FORCEINLINE const TArray<UUIItem*>& GetRootUIItems() { return rootUIItems; }
 };
 
 USTRUCT()
@@ -88,8 +82,6 @@ protected:
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUICanvas*> allCanvas;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUIItem*> rootUIItems;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -129,10 +121,6 @@ public:
 	static void SortCanvasOnOrder();
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
-
-	static void AddRootUIItem(UUIItem* InUIItem);
-	static void RemoveRootUIItem(UUIItem* InUIItem);
-	FORCEINLINE const TArray<UUIItem*>& GetRootUIItems() { return rootUIItems; }
 
 	FORCEINLINE const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
 	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
@@ -200,10 +188,6 @@ public:
 	static void SortCanvasOnOrder(UWorld* InWorld);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	static const TArray<ULGUICanvas*>& GetAllCanvas(UWorld* InWorld);
-
-	static void AddRootUIItem(UUIItem* InUIItem);
-	static void RemoveRootUIItem(UUIItem* InUIItem);
-	static const TArray<UUIItem*>& GetRootUIItems(UWorld* InWorld);
 #if WITH_EDITOR
 	static bool IsSelected_Editor(AActor* InItem);
 #endif
