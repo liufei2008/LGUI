@@ -175,7 +175,10 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		]
 		;
 	}
-	category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
+	if (!needToHidePropertyNames.Contains(FName(TEXT("renderMode"))))
+	{
+		category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));//show before sortOrder
+	}
 	//category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 	auto sortOrderHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
 	category.AddCustomRow(LOCTEXT("SortOrderManager", "SortOrderManager"))
