@@ -331,17 +331,17 @@ protected:
 	//LGUICanvas which render this UI element
 	UPROPERTY(Transient) ULGUICanvas* RenderCanvas = nullptr;
 	//is this UIItem's actor have LGUICanvas component
-	bool isCanvasUIItem = false;
+	uint8 isCanvasUIItem:1;
 
-	bool bDepthChanged = true;//depth changed
-	bool bVertexPositionChanged = true;//vertex position changed
-	bool bColorChanged = true;//vertex color chnaged
-	bool bTransformChanged = true;//transform changed
+	uint8 bDepthChanged:1;//depth changed
+	uint8 bVertexPositionChanged:1;//vertex position changed
+	uint8 bColorChanged:1;//vertex color chnaged
+	uint8 bTransformChanged:1;//transform changed
 	//update prev frame's data
 	virtual void UpdateBasePrevData();
 
 	//use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again 
-	bool cacheForThisUpdate_DepthChanged, cacheForThisUpdate_VertexPositionChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_TransformChanged;
+	uint8 cacheForThisUpdate_DepthChanged:1, cacheForThisUpdate_VertexPositionChanged:1, cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_TransformChanged:1;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 

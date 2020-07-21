@@ -33,6 +33,8 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bDepthChanged = true;
 	bTransformChanged = true;
 
+	isCanvasUIItem = false;
+
 	traceChannel = GetDefault<ULGUISettings>()->defaultTraceChannel;
 }
 

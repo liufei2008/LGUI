@@ -8,6 +8,8 @@ UUIPostProcess::UUIPostProcess(const FObjectInitializer& ObjectInitializer) :Sup
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	itemType = UIItemType::UIRenderable;
+
+	bIsPostProcess = true;
 }
 
 void UUIPostProcess::BeginPlay()

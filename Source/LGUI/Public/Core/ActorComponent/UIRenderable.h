@@ -96,12 +96,13 @@ protected:
 	void CreateGeometry();
 	virtual void UpdateGeometry(const bool& parentTransformChanged)override final;
 
-	bool bIsPostProcess = false;//post process item
+protected:
+	uint8 bIsPostProcess : 1;//post process item
 private:
-	bool bUVChanged = true;//vertex's uv change
-	bool bTriangleChanged = true;//triangle index change
-	bool bTextureChanged = true;//texture change
-	bool bMaterialChanged = true;//custom material change
+	uint8 bUVChanged:1;//vertex's uv change
+	uint8 bTriangleChanged:1;//triangle index change
+	uint8 bTextureChanged:1;//texture change
+	uint8 bMaterialChanged:1;//custom material change
 
-	bool cacheForThisUpdate_UVChanged, cacheForThisUpdate_TriangleChanged, cacheForThisUpdate_TextureChanged, cacheForThisUpdate_MaterialChanged;
+	uint8 cacheForThisUpdate_UVChanged:1, cacheForThisUpdate_TriangleChanged:1, cacheForThisUpdate_TextureChanged:1, cacheForThisUpdate_MaterialChanged:1;
 };
