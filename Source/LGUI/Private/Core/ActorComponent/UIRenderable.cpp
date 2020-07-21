@@ -13,6 +13,12 @@ UUIRenderable::UUIRenderable(const FObjectInitializer& ObjectInitializer) :Super
 	PrimaryComponentTick.bCanEverTick = false;
 	itemType = UIItemType::UIRenderable;
 	geometry = TSharedPtr<UIGeometry>(new UIGeometry);
+
+	bIsPostProcess = false;
+	bUVChanged = true;
+	bTriangleChanged = true;
+	bTextureChanged = true;
+	bMaterialChanged = true;
 }
 
 void UUIRenderable::BeginPlay()
@@ -23,6 +29,7 @@ void UUIRenderable::BeginPlay()
 		RenderCanvas->MarkRebuildAllDrawcall();
 		RenderCanvas->MarkCanvasUpdate();
 	}
+	bIsPostProcess = false;
 	bUVChanged = true;
 	bTriangleChanged = true;
 	bTextureChanged = true;
