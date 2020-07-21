@@ -237,3 +237,5 @@ Fix UIText disappear when second time input from UITextInputComponent in some sp
 LGUICanvas support render to custom RenderTarget2D.(Experimental)
 #### Improve:
 Performance improve.
+#### Fix:
+UISprite's fill type in pixel perfect mode.
