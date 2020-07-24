@@ -264,12 +264,6 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 		{
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
-				auto newViewportSize = Canvas->GetViewportSize();
-				if (newViewportSize != ViewportSize)
-				{
-					ViewportSize = newViewportSize;
-					OnViewportParameterChanged();
-				}
 				DrawVirtualCamera();
 
 #if WITH_EDITORONLY_DATA
@@ -285,7 +279,16 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 						}
 					}
 				}
+				else
 #endif
+				{
+					auto newViewportSize = Canvas->GetViewportSize();
+					if (newViewportSize != ViewportSize)
+					{
+						ViewportSize = newViewportSize;
+						OnViewportParameterChanged();
+					}
+				}
 			}
 		}
 	}
