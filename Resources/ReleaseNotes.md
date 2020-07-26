@@ -239,3 +239,6 @@ LGUICanvas support render to custom RenderTarget2D.(Experimental)
 Performance improve.
 #### Fix:
 UISprite's fill type in pixel perfect mode.
+## 2.8.3
+#### Improve:
+Increase performance.
