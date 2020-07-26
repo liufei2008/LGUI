@@ -97,23 +97,23 @@ private:
 	FORCEINLINE bool CalculateHorizontalAnchorAndSizeFromStretch();
 	//@param return		true if size changed, else false
 	FORCEINLINE bool CalculateVerticalAnchorAndSizeFromStretch();
-#pragma region VertexPositionChangeCallback
+#pragma region LayoutChangeCallback
 private:
-	FSimpleMulticastDelegate vertexPositionChangeCallback;
+	FSimpleMulticastDelegate layoutChangeCallback;
 public:
-	void RegisterVertexPositionChange(const FSimpleDelegate& InDelegate);
-	void UnregisterVertexPositionChange(const FSimpleDelegate& InDelegate);
-#pragma endregion VertexPositionChangeCallback
+	void RegisterLayoutChange(const FSimpleDelegate& InDelegate);
+	void UnregisterLayoutChange(const FSimpleDelegate& InDelegate);
+#pragma endregion LayoutChangeCallback
 public:
 	//update layout and geometry
-	virtual void UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool& parentTransformChanged);
+	virtual void UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpdateLayout);
 protected:
 	//UIItem's hierarchy changed
 	virtual void UIHierarchyChanged();
 	//@param return		true if size changed, else false
 	bool CalculateLayoutRelatedParameters();
 	//update render geometry
-	virtual void UpdateGeometry(const bool& parentTransformChanged);
+	virtual void UpdateGeometry(const bool& parentLayoutChanged);
 	//called when attach to a new RenderCanvas.
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
 
@@ -236,7 +236,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TArray<UUIItem*>& GetAttachUIChildren()const { return cacheUIChildren; }
 
-	void MarkVertexPositionDirty();
+	void MarkLayoutDirty();
 	void MarkColorDirty();
 
 	//mark all dirty for UI element to update, include all children
@@ -334,14 +334,13 @@ protected:
 	uint8 isCanvasUIItem:1;
 
 	uint8 bDepthChanged:1;//depth changed
-	uint8 bVertexPositionChanged:1;//vertex position changed
 	uint8 bColorChanged:1;//vertex color chnaged
-	uint8 bTransformChanged:1;//transform changed
+	uint8 bLayoutChanged:1;//layout changed
 	//update prev frame's data
 	virtual void UpdateBasePrevData();
 
 	//use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again 
-	uint8 cacheForThisUpdate_DepthChanged:1, cacheForThisUpdate_VertexPositionChanged:1, cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_TransformChanged:1;
+	uint8 cacheForThisUpdate_DepthChanged:1, cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 

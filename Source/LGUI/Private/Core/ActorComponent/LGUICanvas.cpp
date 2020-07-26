@@ -32,6 +32,7 @@ ULGUICanvas::ULGUICanvas()
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;
+	bShouldUpdateLayout = true;
 }
 
 void ULGUICanvas::BeginPlay()
@@ -50,6 +51,7 @@ void ULGUICanvas::BeginPlay()
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;	
+	bShouldUpdateLayout = true;
 
 	if (this->IsDefaultSubobject())
 	{
@@ -241,6 +243,10 @@ void ULGUICanvas::MarkCanvasUpdate()
 		TopMostCanvas->bCanTickUpdate = true;//incase this Canvas's parent have layout component, so mark TopMostCanvas to update
 	}
 }
+void ULGUICanvas::MarkCanvasUpdateLayout()
+{
+	this->bShouldUpdateLayout = true;
+}
 #if WITH_EDITOR
 void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -248,6 +254,7 @@ void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;
+	bShouldUpdateLayout = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	this->MarkRebuildAllDrawcall();
@@ -419,7 +426,7 @@ TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewEx
 	return ViewExtension;
 }
 
-void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChanged, bool parentLayoutChanged)
+void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged)
 {
 	const auto& childrenList = target->GetAttachChildren();
 	for (auto child : childrenList)
@@ -430,8 +437,8 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChan
 			if (uiChild->IsUIActiveInHierarchy() == false)continue;
 
 			auto layoutChanged = parentLayoutChanged;
-			auto transformChanged = parentTransformChanged;
-			uiChild->UpdateLayoutAndGeometry(layoutChanged, transformChanged);
+			uiChild->UpdateLayoutAndGeometry(layoutChanged, bShouldUpdateLayout);
+
 			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()))
 			{
 				uiChild->GetRenderCanvas()->bCanTickUpdate = false;
@@ -439,7 +446,7 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentTransformChan
 			}
 			else
 			{
-				UpdateChildRecursive(uiChild, transformChanged, layoutChanged);
+				UpdateChildRecursive(uiChild, layoutChanged);
 			}			
 		}
 	}
@@ -513,7 +520,6 @@ DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI)
 
 void ULGUICanvas::UpdateCanvasGeometry()
 {
-	SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
 	if (!CheckUIItem())return;
 	if (!IsValid(TopMostCanvas))return;
 	if (prevFrameNumber == GFrameNumber)
@@ -522,10 +528,11 @@ void ULGUICanvas::UpdateCanvasGeometry()
 	}
 	prevFrameNumber = GFrameNumber;
 	
+	int updateCountOfThisFrame = 0;
 	//update geometry
 	{
-		int updateCountOfThisFrame = 0;
 	UPDATE_GEOMETRY:
+		SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
 		updateCountOfThisFrame++;
 		
 		//update first Canvas
@@ -537,9 +544,11 @@ void ULGUICanvas::UpdateCanvasGeometry()
 		if (bCanTickUpdate)//if Canvas is update from Tick, then update self's layout first
 		{
 			bCanTickUpdate = false;
+		}
+		if (bShouldUpdateLayout)
+		{
 			bool parentLayoutChanged = false;
-			bool parentTransformChanged = false;
-			UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, parentTransformChanged);
+			UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, bShouldUpdateLayout);
 		}
 
 		const auto& childrenList = UIItem->GetAttachChildren();
@@ -548,11 +557,11 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			auto uiChild = Cast<UUIItem>(child);
 			if (IsValid(uiChild))
 			{
-				if(uiChild->IsUIActiveInHierarchy() == false)continue;
+				if (uiChild->IsUIActiveInHierarchy() == false)continue;
 
-				bool layoutChanged = UIItem->cacheForThisUpdate_VertexPositionChanged;
-				bool transformChanged = false;
-				uiChild->UpdateLayoutAndGeometry(layoutChanged, transformChanged);
+				bool layoutChanged = UIItem->cacheForThisUpdate_LayoutChanged;
+				uiChild->UpdateLayoutAndGeometry(layoutChanged, bShouldUpdateLayout);
+
 				if (uiChild->isCanvasUIItem && IsValid(uiChild->GetRenderCanvas()))
 				{
 					uiChild->GetRenderCanvas()->bCanTickUpdate = false;
@@ -560,10 +569,11 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				}
 				else
 				{
-					UpdateChildRecursive(uiChild, transformChanged, layoutChanged);
+					UpdateChildRecursive(uiChild, layoutChanged);
 				}
 			}
 		}
+		
 		if (bCanTickUpdate)
 		{
 #if WITH_EDITOR
@@ -721,6 +731,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 	bRectClipParameterChanged = false;
 	bTextureClipParameterChanged = false;
 	bRectRangeCalculated = false;
+	bShouldUpdateLayout = false;
 
 	bShouldRebuildAllDrawcall = false;
 }
