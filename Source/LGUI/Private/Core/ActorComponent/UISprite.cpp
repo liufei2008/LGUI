@@ -195,79 +195,91 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 void UUISprite::WidthChanged()
 {
 	if (!IsValid(sprite))return;
-	if (type != UISpriteType::Tiled)return;
-	if (sprite->HavePackingTag())
+	if (type == UISpriteType::Tiled)
 	{
-		if (widget.width <= 0)
+		if (sprite->HavePackingTag())
 		{
-			if (Tiled_WidthRectCount != 0)
+			if (widget.width <= 0)
 			{
-				Tiled_WidthRectCount = 0;
-				Tiled_WidthRemainedRectSize = 0;
+				if (Tiled_WidthRectCount != 0)
+				{
+					Tiled_WidthRectCount = 0;
+					Tiled_WidthRemainedRectSize = 0;
+					MarkTriangleDirty();
+					MarkVertexPositionDirty();
+					MarkUVDirty();
+				}
+				return;
+			}
+			float widthCountFloat = widget.width / sprite->InitAndGetSpriteInfo().width;
+			int widthCount = (int)widthCountFloat + 1;//rect count of width-direction, +1 means not-full-size rect
+			if (widthCount != Tiled_WidthRectCount)
+			{
+				Tiled_WidthRectCount = widthCount;
 				MarkTriangleDirty();
+			}
+			float remainedWidth = (widthCountFloat - (widthCount - 1)) * sprite->InitAndGetSpriteInfo().width;//not-full-size rect's width
+			if (remainedWidth != Tiled_WidthRemainedRectSize)
+			{
+				Tiled_WidthRemainedRectSize = remainedWidth;
 				MarkVertexPositionDirty();
 				MarkUVDirty();
 			}
-			return;
 		}
-		float widthCountFloat = widget.width / sprite->InitAndGetSpriteInfo().width;
-		int widthCount = (int)widthCountFloat + 1;//rect count of width-direction, +1 means not-full-size rect
-		if (widthCount != Tiled_WidthRectCount)
+		else
 		{
-			Tiled_WidthRectCount = widthCount;
-			MarkTriangleDirty();
-		}
-		float remainedWidth = (widthCountFloat - (widthCount - 1)) * sprite->InitAndGetSpriteInfo().width;//not-full-size rect's width
-		if (remainedWidth != Tiled_WidthRemainedRectSize)
-		{
-			Tiled_WidthRemainedRectSize = remainedWidth;
 			MarkVertexPositionDirty();
 			MarkUVDirty();
 		}
 	}
 	else
 	{
-		MarkVertexPositionDirty();
-		MarkUVDirty();
+		Super::WidthChanged();
 	}
 }
 void UUISprite::HeightChanged()
 {
 	if (!IsValid(sprite))return;
-	if (type != UISpriteType::Tiled)return;
-	if (sprite->HavePackingTag())
+	if (type == UISpriteType::Tiled)
 	{
-		if (widget.height <= 0)
+		if (sprite->HavePackingTag())
 		{
-			if (Tiled_HeightRectCount != 0)
+			if (widget.height <= 0)
 			{
-				Tiled_HeightRectCount = 0;
-				Tiled_HeightRemainedRectSize = 0;
+				if (Tiled_HeightRectCount != 0)
+				{
+					Tiled_HeightRectCount = 0;
+					Tiled_HeightRemainedRectSize = 0;
+					MarkTriangleDirty();
+					MarkVertexPositionDirty();
+					MarkUVDirty();
+				}
+				return;
+			}
+			float heightCountFloat = widget.height / sprite->InitAndGetSpriteInfo().height;
+			int heightCount = (int)heightCountFloat + 1;//rect count of height-direction, +1 means not-full-size rect
+			if (heightCount != Tiled_HeightRectCount)
+			{
+				Tiled_HeightRectCount = heightCount;
 				MarkTriangleDirty();
+			}
+			float remainedHeight = (heightCountFloat - (heightCount - 1)) * sprite->InitAndGetSpriteInfo().height;//not-full-size rect's height
+			if (remainedHeight != Tiled_HeightRemainedRectSize)
+			{
+				Tiled_HeightRemainedRectSize = remainedHeight;
 				MarkVertexPositionDirty();
 				MarkUVDirty();
 			}
-			return;
 		}
-		float heightCountFloat = widget.height / sprite->InitAndGetSpriteInfo().height;
-		int heightCount = (int)heightCountFloat + 1;//rect count of height-direction, +1 means not-full-size rect
-		if (heightCount != Tiled_HeightRectCount)
+		else
 		{
-			Tiled_HeightRectCount = heightCount;
-			MarkTriangleDirty();
-		}
-		float remainedHeight = (heightCountFloat - (heightCount - 1)) * sprite->InitAndGetSpriteInfo().height;//not-full-size rect's height
-		if (remainedHeight != Tiled_HeightRemainedRectSize)
-		{
-			Tiled_HeightRemainedRectSize = remainedHeight;
 			MarkVertexPositionDirty();
 			MarkUVDirty();
 		}
 	}
 	else
 	{
-		MarkVertexPositionDirty();
-		MarkUVDirty();
+		Super::HeightChanged();
 	}
 }
 

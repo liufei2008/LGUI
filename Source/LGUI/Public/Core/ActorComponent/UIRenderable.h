@@ -54,7 +54,10 @@ public:
 		bool GetIsPostProcess() { return bIsPostProcess; }
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
+	virtual void WidthChanged()override;
+	virtual void HeightChanged()override;
 
+	void MarkVertexPositionDirty();
 	void MarkUVDirty();
 	void MarkTriangleDirty();
 	void MarkTextureDirty();
@@ -94,15 +97,16 @@ protected:
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 
 	void CreateGeometry();
-	virtual void UpdateGeometry(const bool& parentTransformChanged)override final;
+	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;
 
 protected:
 	uint8 bIsPostProcess : 1;//post process item
 private:
+	uint8 bLocalVertexPositionChanged : 1;//local vertex position changed
 	uint8 bUVChanged:1;//vertex's uv change
 	uint8 bTriangleChanged:1;//triangle index change
 	uint8 bTextureChanged:1;//texture change
 	uint8 bMaterialChanged:1;//custom material change
 
-	uint8 cacheForThisUpdate_UVChanged:1, cacheForThisUpdate_TriangleChanged:1, cacheForThisUpdate_TextureChanged:1, cacheForThisUpdate_MaterialChanged:1;
+	uint8 cacheForThisUpdate_LocalVertexPositionChanged:1, cacheForThisUpdate_UVChanged:1, cacheForThisUpdate_TriangleChanged:1, cacheForThisUpdate_TextureChanged:1, cacheForThisUpdate_MaterialChanged:1;
 };
