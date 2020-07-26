@@ -15,6 +15,8 @@ UUIRenderable::UUIRenderable(const FObjectInitializer& ObjectInitializer) :Super
 	geometry = TSharedPtr<UIGeometry>(new UIGeometry);
 
 	bIsPostProcess = false;
+
+	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
 	bTextureChanged = true;
@@ -30,6 +32,8 @@ void UUIRenderable::BeginPlay()
 		RenderCanvas->MarkCanvasUpdate();
 	}
 	bIsPostProcess = false;
+
+	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
 	bTextureChanged = true;
@@ -85,6 +89,20 @@ void UUIRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* N
 	}
 }
 
+void UUIRenderable::WidthChanged()
+{
+	MarkVertexPositionDirty();
+}
+void UUIRenderable::HeightChanged()
+{
+	MarkVertexPositionDirty();
+}
+
+void UUIRenderable::MarkVertexPositionDirty()
+{
+	bLocalVertexPositionChanged = true;
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+}
 void UUIRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
@@ -132,6 +150,7 @@ void UUIRenderable::RemoveGeometryModifier(class UUIGeometryModifierBase* InModi
 
 void UUIRenderable::UpdateCachedData()
 {
+	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
 	cacheForThisUpdate_UVChanged = bUVChanged;
 	cacheForThisUpdate_TriangleChanged = bTriangleChanged;
 	cacheForThisUpdate_TextureChanged = bTextureChanged ;
@@ -140,6 +159,7 @@ void UUIRenderable::UpdateCachedData()
 }
 void UUIRenderable::UpdateCachedDataBeforeGeometry()
 {
+	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
 	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
 	if (bTriangleChanged)cacheForThisUpdate_TriangleChanged = true;
 	if (bTextureChanged)cacheForThisUpdate_TextureChanged = true;
@@ -148,6 +168,7 @@ void UUIRenderable::UpdateCachedDataBeforeGeometry()
 }
 void UUIRenderable::UpdateBasePrevData()
 {
+	bLocalVertexPositionChanged = false;
 	bUVChanged = false;
 	bTriangleChanged = false;
 	bTextureChanged = false;
@@ -156,6 +177,7 @@ void UUIRenderable::UpdateBasePrevData()
 }
 void UUIRenderable::MarkAllDirtyRecursive()
 {
+	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
 	bTextureChanged = true;
@@ -223,7 +245,7 @@ bool UUIRenderable::ApplyGeometryModifier()
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIRenderable UpdateGeometry"), STAT_UIRenderableUpdateGeometry, STATGROUP_LGUI);
-void UUIRenderable::UpdateGeometry(const bool& parentTransformChanged)
+void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIRenderableUpdateGeometry);
 	if (IsUIActiveInHierarchy() == false)return;
@@ -282,13 +304,13 @@ void UUIRenderable::UpdateGeometry(const bool& parentTransformChanged)
 		}
 		else//update geometry
 		{
-			OnUpdateGeometry(cacheForThisUpdate_VertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
-			if (parentTransformChanged)
+			if (parentLayoutChanged)
 			{
-				cacheForThisUpdate_VertexPositionChanged = true;
+				cacheForThisUpdate_LocalVertexPositionChanged = true;
 			}
-			if (cacheForThisUpdate_UVChanged || cacheForThisUpdate_ColorChanged || cacheForThisUpdate_VertexPositionChanged)//vertex data change, need to update geometry's vertex
+			if (cacheForThisUpdate_UVChanged || cacheForThisUpdate_ColorChanged || cacheForThisUpdate_LocalVertexPositionChanged)//vertex data change, need to update geometry's vertex
 			{
 				if (ApplyGeometryModifier())
 				{
@@ -296,9 +318,9 @@ void UUIRenderable::UpdateGeometry(const bool& parentTransformChanged)
 				}
 				else
 				{
-					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_VertexPositionChanged);
+					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_LocalVertexPositionChanged);
 				}
-				if (cacheForThisUpdate_VertexPositionChanged)
+				if (cacheForThisUpdate_LocalVertexPositionChanged)
 				{
 					UIGeometry::TransformVertices(RenderCanvas, this, geometry);
 				}

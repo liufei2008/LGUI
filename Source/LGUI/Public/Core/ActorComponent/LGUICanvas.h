@@ -81,6 +81,8 @@ public:
 	void UpdateCanvasGeometry();
 	//mark update this Canvas. Canvas dont need to update every frame, only when need to
 	void MarkCanvasUpdate();
+	//mark any child's layout change
+	void MarkCanvasUpdateLayout();
 
 	//mark need to rebuild all drawcall
 	void MarkRebuildAllDrawcall();
@@ -294,9 +296,16 @@ private:
 private:
 	int8 GetAdditionalShaderChannelFlags()const;
 private:
-	bool bClipTypeChanged = true;
-	bool bRectClipParameterChanged = true;
-	bool bTextureClipParameterChanged = true;
+	uint8 bClipTypeChanged:1;
+	uint8 bRectClipParameterChanged:1;
+	uint8 bTextureClipParameterChanged:1;
+
+	uint8 bCanTickUpdate:1;//if Canvas can update from tick
+	uint8 bShouldUpdateLayout:1;//if any child layout changed
+	uint8 bShouldRebuildAllDrawcall:1;//if Canvas need to rebuild all drawcall
+
+	uint8 bRectRangeCalculated:1;
+
 	//prev frame number, we can tell if we enter to a new render frame
 	uint32 prevFrameNumber = 0;
 
@@ -308,10 +317,6 @@ private:
 	TArray<TSharedPtr<class UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
 
-	bool bCanTickUpdate = false;//if Canvas can update from tick
-	bool bShouldRebuildAllDrawcall = false;//if Canvas need to rebuild all drawcall
-
-	bool bRectRangeCalculated = false;
 	//rect clip's min position
 	FVector2D rectMin = FVector2D(0, 0);
 	//rect clip's max position
@@ -319,7 +324,7 @@ private:
 	//calculate rect range
 	void CalculateRectRange();
 private:
-	void UpdateChildRecursive(UUIItem* target, bool parentTransformChanged, bool parentLayoutChanged);
+	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();
 	void SetParameterForStandard(int drawcallCount);
 	void SetParameterForRectClip(int drawcallCount);

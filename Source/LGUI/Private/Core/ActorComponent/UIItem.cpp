@@ -28,10 +28,9 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	
 	itemType = UIItemType::UIItem;
 
-	bVertexPositionChanged = true;
 	bColorChanged = true;
 	bDepthChanged = true;
-	bTransformChanged = true;
+	bLayoutChanged = true;
 
 	isCanvasUIItem = false;
 
@@ -45,11 +44,11 @@ void UUIItem::BeginPlay()
 	cacheParentUIItem = nullptr;
 	GetParentAsUIItem();
 	CheckRenderCanvas();
-	bVertexPositionChanged = true;
+
 	bColorChanged = true;
 	bDepthChanged = true;
-	bTransformChanged = true;
-	MarkCanvasUpdate();
+	bLayoutChanged = true;
+	MarkLayoutDirty();
 }
 
 void UUIItem::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -244,10 +243,9 @@ void UUIItem::SetAsLastHierarchy()
 
 void UUIItem::MarkAllDirtyRecursive()
 {
-	bVertexPositionChanged = true;
 	bColorChanged = true;
 	bDepthChanged = true;
-	bTransformChanged = true;
+	bLayoutChanged = true;
 
 	for (auto uiChild : cacheUIChildren)
 	{
@@ -411,8 +409,7 @@ void UUIItem::OnAttachmentChanged()
 void UUIItem::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
 	Super::OnUpdateTransform(UpdateTransformFlags, Teleport);
-	bTransformChanged = true;
-	MarkCanvasUpdate();
+	MarkLayoutDirty();
 }
 void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 {
@@ -422,7 +419,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 	if (UUIItem* childUIItem = Cast<UUIItem>(ChildComponent))
 	{
 		//UE_LOG(LGUI, Error, TEXT("OnChildAttached:%s, registered:%d"), *(childUIItem->GetOwner()->GetActorLabel()), childUIItem->IsRegistered());
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		//hierarchy index
 		if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 		{
@@ -452,7 +449,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 	if (GetWorld() == nullptr)return;
 	if (auto childUIItem = Cast<UUIItem>(ChildComponent))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		//hierarchy index
 		cacheUIChildren.Remove(childUIItem);
 		for (int i = 0; i < cacheUIChildren.Num(); i++)
@@ -528,7 +525,7 @@ void UUIItem::UIHierarchyChanged()
 	{
 		OnRenderCanvasChanged(oldRenderCanvas, RenderCanvas);
 	}
-	MarkVertexPositionDirty();
+	MarkLayoutDirty();
 
 	for (auto uiItem : cacheUIChildren)
 	{
@@ -634,13 +631,13 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 }
 
 #pragma region VertexPositionChangeCallback
-void UUIItem::RegisterVertexPositionChange(const FSimpleDelegate& InDelegate)
+void UUIItem::RegisterLayoutChange(const FSimpleDelegate& InDelegate)
 {
-	vertexPositionChangeCallback.Add(InDelegate);
+	layoutChangeCallback.Add(InDelegate);
 }
-void UUIItem::UnregisterVertexPositionChange(const FSimpleDelegate& InDelegate)
+void UUIItem::UnregisterLayoutChange(const FSimpleDelegate& InDelegate)
 {
-	vertexPositionChangeCallback.Remove(InDelegate.GetHandle());
+	layoutChangeCallback.Remove(InDelegate.GetHandle());
 }
 #pragma endregion VertexPositionChangeCallback
 
@@ -658,7 +655,7 @@ bool UUIItem::CheckRenderCanvas()
 	return false;
 }
 
-void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool& parentTransformChanged)
+void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpdateLayout)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayoutAndGeometry);
 	if (IsUIActiveInHierarchy() == false)return;
@@ -667,42 +664,45 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool& parentTra
 	//update layout
 	if (parentLayoutChanged == false)
 	{
-		if (cacheForThisUpdate_VertexPositionChanged)
+		if (cacheForThisUpdate_LayoutChanged)
 			parentLayoutChanged = true;
 	}
 	//if parent layout change or self layout change, then update layout
-	if (parentLayoutChanged)
+	if (parentLayoutChanged && shouldUpdateLayout)
 	{
 		bool sizeChanged = CalculateLayoutRelatedParameters();
 		CallUIComponentsDimensionsChanged(true, sizeChanged);
 	}
-	//prev update geometry
-	if (cacheForThisUpdate_TransformChanged)
-	{
-		parentTransformChanged = true;
-	}
-	if (this->inheritAlpha)
-	{
-		if (IsValid(cacheParentUIItem))
-		{
-			auto tempAlpha = cacheParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[cacheParentUIItem->widget.color.A]);
-			this->SetCalculatedParentAlpha(tempAlpha);
-		}
-	}
-	else
-	{
-		this->SetCalculatedParentAlpha(1.0f);
-	}
+
 	//update cache data
 	UpdateCachedDataBeforeGeometry();
+	//alpha
+	if (cacheForThisUpdate_ColorChanged)
+	{
+		if (this->inheritAlpha)
+		{
+			if (IsValid(cacheParentUIItem))
+			{
+				auto tempAlpha = cacheParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[cacheParentUIItem->widget.color.A]);
+				this->SetCalculatedParentAlpha(tempAlpha);
+			}
+		}
+		else
+		{
+			this->SetCalculatedParentAlpha(1.0f);
+		}
+	}
 	//update geometry
-	UpdateGeometry(parentTransformChanged);
+	UpdateGeometry(parentLayoutChanged);
 	//post update geometry
 
 	//callback
-	vertexPositionChangeCallback.Broadcast();
+	if (parentLayoutChanged && layoutChangeCallback.IsBound())
+	{
+		layoutChangeCallback.Broadcast();
+	}
 }
-void UUIItem::UpdateGeometry(const bool& parentTransformChanged)
+void UUIItem::UpdateGeometry(const bool& parentLayoutChanged)
 {
 	
 }
@@ -750,7 +750,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 		{
 			widget.width = width;
 			WidthChanged();
-			MarkVertexPositionDirty();
+			MarkLayoutDirty();
 			sizeChanged = true;
 			if (isCanvasUIItem)RenderCanvas->OnWidthChanged();
 		}
@@ -788,7 +788,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 		{
 			widget.height = height;
 			HeightChanged();
-			MarkVertexPositionDirty();
+			MarkLayoutDirty();
 			sizeChanged = true;
 			if (isCanvasUIItem)RenderCanvas->OnHeightChanged();
 		}
@@ -814,23 +814,20 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 void UUIItem::UpdateCachedData()
 {
 	this->cacheForThisUpdate_DepthChanged = bDepthChanged;
-	this->cacheForThisUpdate_VertexPositionChanged = bVertexPositionChanged;
 	this->cacheForThisUpdate_ColorChanged = bColorChanged;
-	this->cacheForThisUpdate_TransformChanged = bTransformChanged;
+	this->cacheForThisUpdate_LayoutChanged = bLayoutChanged;
 }
 void UUIItem::UpdateCachedDataBeforeGeometry()
 {
 	if (bDepthChanged)cacheForThisUpdate_DepthChanged = true;
-	if (bVertexPositionChanged)cacheForThisUpdate_VertexPositionChanged = true;
 	if (bColorChanged)cacheForThisUpdate_ColorChanged = true;
-	if (bTransformChanged)cacheForThisUpdate_TransformChanged = true;
+	if (bLayoutChanged)cacheForThisUpdate_LayoutChanged = true;
 }
 void UUIItem::UpdateBasePrevData()
 {
-	bVertexPositionChanged = false;
 	bColorChanged = false;
 	bDepthChanged = false;
-	bTransformChanged = false;
+	bLayoutChanged = false;
 }
 
 void UUIItem::SetWidget(const FUIWidget& inWidget)
@@ -878,7 +875,7 @@ void UUIItem::SetWidth(float newWidth)
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.width, newWidth))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.width = newWidth;
 		WidthChanged();
 		if (isCanvasUIItem)RenderCanvas->OnWidthChanged();
@@ -893,7 +890,7 @@ void UUIItem::SetHeight(float newHeight)
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.height, newHeight))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.height = newHeight;
 		HeightChanged();
 		if (isCanvasUIItem)RenderCanvas->OnHeightChanged();
@@ -923,7 +920,7 @@ void UUIItem::SetAnchorOffsetX(float newOffset)
 			widget.stretchLeft = (parentWidget.width - widget.width) * 0.5f + widget.anchorOffsetX;
 			widget.stretchRight = parentWidget.width - widget.width - widget.stretchLeft;
 			
-			MarkVertexPositionDirty();
+			MarkLayoutDirty();
 			CallUIComponentsDimensionsChanged(true, false);
 		}
 	}
@@ -939,7 +936,7 @@ void UUIItem::SetAnchorOffsetY(float newOffset)
 			widget.stretchBottom = (parentWidget.height - widget.height) * 0.5f + widget.anchorOffsetY;
 			widget.stretchTop = parentWidget.height - widget.height - widget.stretchBottom;
 			
-			MarkVertexPositionDirty();
+			MarkLayoutDirty();
 			CallUIComponentsDimensionsChanged(true, false);
 		}
 	}
@@ -971,7 +968,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 	}
 	if (anyChange)
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		CallUIComponentsDimensionsChanged(true, false);
 	}
 }
@@ -979,7 +976,7 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 {
 	if (LGUIUtils::IsVectorNotEqual(this->GetRelativeLocation(), newLocation))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		GetRelativeLocation_DirectMutable() = newLocation;
 		LGUIUpdateComponentToWorld();
 
@@ -1089,7 +1086,7 @@ void UUIItem::SetStretchLeft(float newLeft)
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.stretchLeft, newLeft))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.stretchLeft = newLeft;
 		if (cacheParentUIItem)
 		{
@@ -1106,7 +1103,7 @@ void UUIItem::SetStretchRight(float newRight)
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.stretchRight, newRight))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.stretchRight = newRight;
 		if (cacheParentUIItem)
 		{
@@ -1123,7 +1120,7 @@ void UUIItem::SetHorizontalStretch(FVector2D newStretch)
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.stretchLeft, newStretch.X) || LGUIUtils::IsFloatNotEqual(widget.stretchRight, newStretch.Y))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.stretchLeft = newStretch.X;
 		widget.stretchRight = newStretch.Y;
 		if (cacheParentUIItem)
@@ -1141,7 +1138,7 @@ void UUIItem::SetStretchTop(float newTop)
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.stretchTop, newTop))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.stretchTop = newTop;
 		if (cacheParentUIItem)
 		{
@@ -1158,7 +1155,7 @@ void UUIItem::SetStretchBottom(float newBottom)
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.stretchBottom, newBottom))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.stretchBottom = newBottom;
 		if (cacheParentUIItem)
 		{
@@ -1175,7 +1172,7 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.stretchBottom, newStretch.X) || LGUIUtils::IsFloatNotEqual(widget.stretchTop, newStretch.Y))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.stretchBottom = newStretch.X;
 		widget.stretchTop = newStretch.Y;
 		if (cacheParentUIItem)
@@ -1193,7 +1190,7 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 void UUIItem::SetPivot(FVector2D pivot) {
 	if (LGUIUtils::IsVector2DNotEqual(widget.pivot, pivot))
 	{
-		MarkVertexPositionDirty();
+		MarkLayoutDirty();
 		widget.pivot = pivot;
 	}
 }
@@ -1237,7 +1234,7 @@ void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align, bool keepRelativeLo
 				}
 			}
 
-			MarkVertexPositionDirty();
+			MarkLayoutDirty();
 		}
 		widget.anchorHAlign = align;
 	}
@@ -1285,7 +1282,7 @@ void UUIItem::SetAnchorVAlign(UIAnchorVerticalAlign align, bool keepRelativeLoca
 				}
 			}
 
-			MarkVertexPositionDirty();
+			MarkLayoutDirty();
 		}
 		widget.anchorVAlign = align;
 	}
@@ -1349,10 +1346,14 @@ UUIItem* UUIItem::GetParentAsUIItem()const
 	return cacheParentUIItem;
 }
 
-void UUIItem::MarkVertexPositionDirty() 
-{ 
-	bVertexPositionChanged = true; 
-	MarkCanvasUpdate();
+void UUIItem::MarkLayoutDirty()
+{
+	bLayoutChanged = true;
+	if (CheckRenderCanvas())
+	{
+		RenderCanvas->MarkCanvasUpdate();
+		RenderCanvas->MarkCanvasUpdateLayout();
+	}
 }
 void UUIItem::MarkColorDirty() 
 { 
@@ -1580,10 +1581,9 @@ void UUIItem::ApplyUIActiveState()
 	}
 #endif
 	if (isCanvasUIItem)RenderCanvas->OnUIActiveStateChange(IsUIActiveInHierarchy());
-	bVertexPositionChanged = true;
 	bColorChanged = true;
 	bDepthChanged = true;
-	bTransformChanged = true;
+	bLayoutChanged = true;
 	//canvas update
 	MarkCanvasUpdate();
 	//callback
