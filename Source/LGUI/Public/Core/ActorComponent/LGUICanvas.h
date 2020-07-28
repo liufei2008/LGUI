@@ -158,6 +158,7 @@ protected:
 	float FOVAngle = 90;
 	float NearClipPlane = GNearClippingPlane;
 	float FarClipPlane = GNearClippingPlane;
+	int32 EditorPreview_ViewIndex = 0;
 
 	float CalculateDistanceToCamera();
 

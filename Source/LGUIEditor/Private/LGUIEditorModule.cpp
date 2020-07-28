@@ -234,8 +234,8 @@ void FLGUIEditorModule::StartupModule()
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
 		{
 			SettingsModule->RegisterSettings("Project", "Plugins", "LGUI",
-				LOCTEXT("LGUISpriteSettingsName", "LGUI"),
-				LOCTEXT("LGUISpriteSettingsDescription", "LGUISettings"),
+				LOCTEXT("LGUISettingsName", "LGUI"),
+				LOCTEXT("LGUISettingsDescription", "LGUISettings"),
 				GetMutableDefault<ULGUISettings>());
 		}
 	}
@@ -508,6 +508,17 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			//MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenScreenSpaceUIViewer);
 		}
 		MenuBuilder.EndSection();
+
+		MenuBuilder.BeginSection("PreviewScreenSpaceUISelector", LOCTEXT("PreviewScreenSpaceUISelector", "Preview"));
+		{
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("UseActiveViewportAsPreview", "Active Viewport as LGUI Preview"),
+				LOCTEXT("UseActiveViewportAsPreview_Tooltip", "Use current selected active editor viewport for ScreenSpace UI preview"),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEditorModule::UseActiveViewportAsPreview))
+			);
+		}
+		MenuBuilder.EndSection();
 	}
 	return MenuBuilder.MakeWidget();
 }
@@ -559,6 +570,20 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollView"), "/LGUI/Prefabs/DefaultScrollView");
 	}
 	MenuBuilder.EndSection();
+}
+
+void FLGUIEditorModule::UseActiveViewportAsPreview()
+{
+	if (auto viewport = GEditor->GetActiveViewport())
+	{
+		if (auto viewportClient = viewport->GetClient())
+		{
+			if (auto editorViewportClient = (FEditorViewportClient*)(viewportClient))
+			{
+				ULGUIEditorSettings::SetLGUIPreview_EditorViewIndex(editorViewportClient->ViewIndex);
+			}
+		}
+	}
 }
 
 void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)

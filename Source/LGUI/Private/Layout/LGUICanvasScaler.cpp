@@ -7,6 +7,9 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
+#include "Core/LGUISettings.h"
+#include "Core/HudRender/LGUIRenderer.h"
+#include "EditorViewportClient.h"
 #endif
 #include "Engine/TextureRenderTarget2D.h"
 
@@ -125,7 +128,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 						else
 #endif
 						{
-							canvasUIItem->SetRelativeScale3D(FVector::OneVector);
+							//canvasUIItem->SetRelativeScale3D(FVector::OneVector);
 						}
 					}
 					break;
@@ -150,7 +153,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 							else
 #endif
 							{
-								canvasUIItem->SetRelativeScale3D(FVector::OneVector * FMath::Lerp(matchWidth_ScaleRatio, matchHeight_ScaleRatio, MatchFromWidthToHeight));
+								//canvasUIItem->SetRelativeScale3D(FVector::OneVector * FMath::Lerp(matchWidth_ScaleRatio, matchHeight_ScaleRatio, MatchFromWidthToHeight));
 							}
 						}
 						break;
@@ -198,7 +201,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 							else
 #endif
 							{
-								canvasUIItem->SetRelativeScale3D(FVector::OneVector * resultScale);
+								//canvasUIItem->SetRelativeScale3D(FVector::OneVector * resultScale);
 							}
 						}
 						break;
@@ -211,7 +214,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 					else
 #endif
 					{
-						canvasUIItem->SetRelativeLocationAndRotation(FVector(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, 0), FQuat::Identity);//set rotate to zero, and move left bottom corner to zero position
+						//canvasUIItem->SetRelativeLocationAndRotation(FVector(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, 0), FQuat::Identity);//set rotate to zero, and move left bottom corner to zero position
 					}
 
 					Canvas->MarkRebuildAllDrawcall();
@@ -242,6 +245,8 @@ void ULGUICanvasScaler::OnRegister()
 		if (ULGUIEditorManagerObject::Instance != nullptr)
 		{
 			EditorTickDelegateHandle = ULGUIEditorManagerObject::Instance->EditorTick.AddUObject(this, &ULGUICanvasScaler::OnEditorTick);
+			EditorViewportIndexAndKeyChangeDelegateHandle = ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.AddUObject(this, &ULGUICanvasScaler::OnEditorViewportIndexAndKeyChange);
+			LGUIPreview_ViewportIndexChangeDelegateHandle = ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.AddUObject(this, &ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange);
 		}
 	}
 }
@@ -253,6 +258,8 @@ void ULGUICanvasScaler::OnUnregister()
 		if (ULGUIEditorManagerObject::Instance != nullptr)
 		{
 			ULGUIEditorManagerObject::Instance->EditorTick.Remove(EditorTickDelegateHandle);
+			ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.Remove(EditorViewportIndexAndKeyChangeDelegateHandle);
+			ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.Remove(LGUIPreview_ViewportIndexChangeDelegateHandle);
 		}
 	}
 }
@@ -265,11 +272,23 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
 				DrawVirtualCamera();
-
+				
 #if WITH_EDITORONLY_DATA
 				if (TestWithEditorViewportSize && !GetWorld()->IsGameWorld())
 				{
-					if (auto viewport = GEditor->GetActiveViewport())
+					FViewport* viewport = nullptr;
+
+					int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
+					auto viewportClients = GEditor->GetAllViewportClients();
+					for (auto viewportClient : viewportClients)
+					{
+						if (viewportClient->ViewIndex == editorViewIndex)
+						{
+							viewport = viewportClient->Viewport;
+							break;
+						}
+					}
+					if (viewport != nullptr)
 					{
 						auto prevSize = ViewportSize;
 						ViewportSize = viewport->GetSizeXY();
@@ -292,6 +311,15 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 			}
 		}
 	}
+}
+void ULGUICanvasScaler::OnEditorViewportIndexAndKeyChange()
+{
+	
+}
+void ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange()
+{
+	int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
+	FLGUIViewExtension::EditorPreview_ViewKey = ULGUIEditorManagerObject::Instance->GetViewportKeyFromIndex(editorViewIndex);
 }
 void DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldStart, FVector& OutWorldEnd)
 {

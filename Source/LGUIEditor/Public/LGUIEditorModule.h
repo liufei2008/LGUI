@@ -47,6 +47,7 @@ private:
 	void ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder);
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
+	void UseActiveViewportAsPreview();
 
 	TSharedRef<SDockTab> HandleSpawnEditorToolsTab(const FSpawnTabArgs& SpawnTabArgs);
 

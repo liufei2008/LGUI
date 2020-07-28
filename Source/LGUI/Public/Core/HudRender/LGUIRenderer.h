@@ -64,4 +64,9 @@ private:
 	FMatrix ProjectionMatrix;
 	FMatrix ViewProjectionMatrix;
 	FCriticalSection Mutex;//for lock HudPrimitiveArray, incase gamethread and renderthread
+public:
+#if WITH_EDITORONLY_DATA
+	static uint32 EditorPreview_ViewKey;
+	bool IsEditorPreview = false;
+#endif
 };

@@ -34,6 +34,10 @@ public:
 	virtual TStatId GetStatId() const override;
 	//end TickableEditorObject interface
 	FLGUIEditorTickMulticastDelegate EditorTick;
+	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
+private:
+	TMap<int32, uint32> EditorViewportIndexToKeyMap;
+	int32 PrevEditorViewportCount = 0;
 protected:
 	//collection of all UIItem from current level
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -45,6 +49,8 @@ private:
 #if WITH_EDITOR
 public:
 	static bool IsSelected(AActor* InObject);
+	void CheckEditorViewportIndexAndKey();
+	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
 #endif
 public:
 	static void AddUIItem(UUIItem* InItem);
@@ -73,7 +79,9 @@ class LGUI_API ALGUIManagerActor : public AActor
 	
 public:	
 	static ALGUIManagerActor* Instance;
+	static bool IsPlaying;
 	ALGUIManagerActor();
+	virtual void BeginPlay()override;
 	virtual void BeginDestroy()override;
 	virtual void Tick(float DeltaTime)override;
 protected:

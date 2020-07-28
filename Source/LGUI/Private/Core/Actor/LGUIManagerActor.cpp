@@ -15,6 +15,7 @@
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/Selection.h"
+#include "EditorViewportClient.h"
 #endif
 
 
@@ -107,6 +108,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		EditorTick.Broadcast(DeltaTime);
 	}
+	CheckEditorViewportIndexAndKey();
 }
 TStatId ULGUIEditorManagerObject::GetStatId() const
 {
@@ -125,6 +127,33 @@ bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
 		}
 	}
 	return false;
+}
+void ULGUIEditorManagerObject::CheckEditorViewportIndexAndKey()
+{
+	auto viewportClients = GEditor->GetAllViewportClients();
+	if (PrevEditorViewportCount != viewportClients.Num())
+	{
+		PrevEditorViewportCount = viewportClients.Num();
+		EditorViewportIndexToKeyMap.Reset();
+		for (FEditorViewportClient* viewportClient : viewportClients)
+		{
+			auto viewKey = viewportClient->ViewState.GetReference()->GetViewKey();
+			EditorViewportIndexToKeyMap.Add(viewportClient->ViewIndex, viewKey);
+		}
+
+		if (EditorViewportIndexAndKeyChange.IsBound())
+		{
+			EditorViewportIndexAndKeyChange.Broadcast();
+		}
+	}
+}
+uint32 ULGUIEditorManagerObject::GetViewportKeyFromIndex(int32 InViewportIndex)
+{
+	if (auto key = EditorViewportIndexToKeyMap.Find(InViewportIndex))
+	{
+		return *key;
+	}
+	return 0;
 }
 #endif
 
@@ -149,10 +178,17 @@ ALGUIManagerActor::ALGUIManagerActor()
 	CreateDefaultSubobject<ULGUIManagerComponent_DuringPhysics>(TEXT("Tick_DuringPhysics"))->ManagerActor = this;
 }
 
+bool ALGUIManagerActor::IsPlaying = false;
+void ALGUIManagerActor::BeginPlay()
+{
+	Super::BeginPlay();
+	IsPlaying = true;
+}
 void ALGUIManagerActor::BeginDestroy()
 {
 	Instance = nullptr;
 	Super::BeginDestroy();
+	IsPlaying = false;
 }
 
 bool ALGUIManagerActor::InitCheck(UWorld* InWorld)

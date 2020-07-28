@@ -77,3 +77,32 @@ const TArray<TSubclassOf<ULGUIBehaviour>>& ULGUISettings::GetLGUIBehaviourExecut
 {
 	return GetDefault<ULGUISettings>()->LGUIBehaviourExecuteOrder;
 }
+
+
+FSimpleMulticastDelegate ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange;
+void ULGUIEditorSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (auto Property = PropertyChangedEvent.Property)
+	{
+		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIEditorSettings, LGUIPreview_EditorViewIndex))
+		{
+			if (LGUIPreviewSetting_EditorPreviewViewportIndexChange.IsBound())
+			{
+				LGUIPreviewSetting_EditorPreviewViewportIndexChange.Broadcast();
+			}
+		}
+	}
+}
+int32 ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex()
+{
+	return GetDefault<ULGUIEditorSettings>()->LGUIPreview_EditorViewIndex;
+}
+void ULGUIEditorSettings::SetLGUIPreview_EditorViewIndex(int32 value)
+{
+	GetMutableDefault<ULGUIEditorSettings>()->LGUIPreview_EditorViewIndex = value;
+	if (LGUIPreviewSetting_EditorPreviewViewportIndexChange.IsBound())
+	{
+		LGUIPreviewSetting_EditorPreviewViewportIndexChange.Broadcast();
+	}
+}
