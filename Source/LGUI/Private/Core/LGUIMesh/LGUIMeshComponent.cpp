@@ -91,12 +91,10 @@ public:
 		if (LGUIHudRenderer.IsValid())
 		{
 			LGUIHudRenderer.Pin()->AddHudPrimitive(this);
-			IsHudOrWorldSpace = true;
+			IsSupportScreenSpace = true;
 		}
-		else
-		{
-			IsHudOrWorldSpace = false;
-		}
+		IsSupportWorldSpace = InComponent->IsSupportWorldSpace;
+
 		PostProcessObject = InComponent->PostProcessObject;
 		IsPostProcess = IsValid(InComponent->PostProcessObject);
 
@@ -107,7 +105,7 @@ public:
 			// vertex and index buffer
 			const auto& SrcVertices = SrcSection.vertices;
 			int NumVerts = SrcVertices.Num();
-			if (IsHudOrWorldSpace)
+			if (IsSupportScreenSpace)
 			{
 				auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
 				HudVertices.SetNumUninitialized(NumVerts);
@@ -128,7 +126,7 @@ public:
 				BeginInitResource(&NewSection->IndexBuffer);
 				BeginInitResource(&NewSection->HudVertexBuffers);
 			}
-			else
+			if (IsSupportWorldSpace)
 			{
 				NewSection->IndexBuffer.Indices = SrcSection.triangles;
 				NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection.vertices, 4);
@@ -160,12 +158,12 @@ public:
 	{
 		if (Section != nullptr)
 		{
-			if (IsHudOrWorldSpace)
+			if (IsSupportScreenSpace)
 			{
 				Section->IndexBuffer.ReleaseResource();
 				Section->HudVertexBuffers.ReleaseResource();
 			}
-			else
+			if (IsSupportWorldSpace)
 			{
 				Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
 				Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
@@ -193,7 +191,7 @@ public:
 		if (Section != nullptr)
 		{
 			//vertex buffer
-			if (IsHudOrWorldSpace)
+			if (IsSupportScreenSpace)
 			{
 				FLGUIHudVertex* HudVertexBufferData = new FLGUIHudVertex[NumVerts];
 				if (AdditionalChannelFlags == 0)
@@ -227,7 +225,7 @@ public:
 				FMemory::Memcpy(VertexBufferData, HudVertexBufferData, vertexDataLength);
 				RHIUnlockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI);
 			}
-			else
+			if(IsSupportWorldSpace)
 			{
 				if (AdditionalChannelFlags == 0)
 				{
@@ -320,7 +318,7 @@ public:
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_GetMeshElements);
-		if (IsHudOrWorldSpace) return;
+		if (!IsSupportWorldSpace) return;
 		// Set up wireframe material (if needed)
 		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
 
@@ -381,7 +379,7 @@ public:
 	virtual FMeshBatch GetMeshElement(FMeshElementCollector* Collector) override
 	{
 		//if (Section != nullptr && Section->bSectionVisible)//check CanRender before call GetMeshElement, so this line is not necessary
-		if (IsHudOrWorldSpace)
+		if (IsSupportScreenSpace)
 		{
 			FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy();
 
@@ -476,7 +474,8 @@ private:
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
-	bool IsHudOrWorldSpace = false;
+	bool IsSupportScreenSpace = false;
+	bool IsSupportWorldSpace = true;
 	bool IsPostProcess = false;
 	TWeakObjectPtr<UUIPostProcess> PostProcessObject;
 };
@@ -582,14 +581,21 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	return Proxy;
 }
 
-void ULGUIMeshComponent::SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer)
+void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer)
 {
-	LGUIHudRenderer = HudRenderer;
+	if (supportOrNot)
+	{
+		LGUIHudRenderer = HudRenderer;
+	}
+	else
+	{
+		LGUIHudRenderer.Reset();
+	}
 }
 
-void ULGUIMeshComponent::SetToLGUIWorld()
+void ULGUIMeshComponent::SetSupportWorldSpace(bool supportOrNot)
 {
-	LGUIHudRenderer.Reset();
+	IsSupportWorldSpace = supportOrNot;
 }
 
 void ULGUIMeshComponent::SetToPostProcess(UUIPostProcess* InPostProcessObject)

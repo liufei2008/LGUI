@@ -46,8 +46,8 @@ public:
 	void SetColor(FColor InColor);
 	FColor GetColor()const;
 
-	void SetToLGUIHud(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer);
-	void SetToLGUIWorld();
+	void SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer);
+	void SetSupportWorldSpace(bool supportOrNot);
 	void SetToPostProcess(class UUIPostProcess* InPostProcessObject);
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
@@ -73,6 +73,7 @@ private:
 protected:
 	FLGUIMeshSection MeshSection;
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
+	bool IsSupportWorldSpace = true;
 	UPROPERTY(Transient) class UUIPostProcess* PostProcessObject;
 };
 

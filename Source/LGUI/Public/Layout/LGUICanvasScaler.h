@@ -43,11 +43,15 @@ protected:
 
 #if WITH_EDITOR
 	FDelegateHandle EditorTickDelegateHandle;
+	FDelegateHandle EditorViewportIndexAndKeyChangeDelegateHandle;
+	FDelegateHandle LGUIPreview_ViewportIndexChangeDelegateHandle;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void OnRegister();
 	void OnUnregister();
 	void DrawVirtualCamera();
 	void OnEditorTick(float DeltaTime);
+	void OnEditorViewportIndexAndKeyChange();
+	void OnPreviewSetting_EditorPreviewViewportIndexChange();
 #endif
 	void OnViewportParameterChanged();
 	void CheckAndApplyViewportParameter();

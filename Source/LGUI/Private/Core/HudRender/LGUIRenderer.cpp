@@ -21,6 +21,7 @@
 #endif
 #include "Slate/SceneViewport.h"
 #include "Core/ActorComponent/UIPostProcess.h"
+#include "Core/Actor/LGUIManagerActor.h"
 class FLGUIMeshElementCollector : FMeshElementCollector
 {
 public:
@@ -74,11 +75,18 @@ static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVerte
 static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;
 
 
+#if WITH_EDITORONLY_DATA
+uint32 FLGUIViewExtension::EditorPreview_ViewKey = 0;
+#endif
 FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget)
 	:FSceneViewExtensionBase(AutoRegister)
 {
 	UICanvas = InLGUICanvas;
 	CustomRenderTarget = InCustomRenderTarget;
+
+#if WITH_EDITORONLY_DATA
+	IsEditorPreview = !UICanvas->GetWorld()->IsGameWorld();
+#endif
 }
 FLGUIViewExtension::~FLGUIViewExtension()
 {
@@ -87,6 +95,12 @@ FLGUIViewExtension::~FLGUIViewExtension()
 
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
+	if (!UICanvas.IsValid())return;
+	ViewLocation = UICanvas->GetViewLocation();
+	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
+	ProjectionMatrix = UICanvas->GetProjectionMatrix();
+	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
+
 	FScopeLock scopeLock(&Mutex);
 	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
 	{
@@ -105,11 +119,7 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 }
 void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
-	if (!UICanvas.IsValid())return;
-	ViewLocation = UICanvas->GetViewLocation();
-	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
-	ProjectionMatrix = UICanvas->GetProjectionMatrix();
-	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
+	
 }
 void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InOutProjectionData)
 {
@@ -185,8 +195,18 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
-	if (!InView.bIsGameView)return;
 #if WITH_EDITOR
+	if (ALGUIManagerActor::IsPlaying == IsEditorPreview)return;
+	if (ALGUIManagerActor::IsPlaying)
+	{
+		if (!InView.bIsGameView)return;
+		//if (InView.State->GetViewKey() == EditorPreview_ViewKey)return;
+	}
+	else//editor viewport preview
+	{
+		if (InView.State->GetViewKey() != EditorPreview_ViewKey)return;//only preview in specific viewport in editor
+	}
+	//simulation
 	if (GEngine == nullptr)return;
 	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
 	{
