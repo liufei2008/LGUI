@@ -95,3 +95,21 @@ private:
 	}
 	FORCEINLINE static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);
 };
+
+UCLASS(config=EditorPerProjectUserSettings)
+class LGUI_API ULGUIEditorSettings : public UObject
+{
+	GENERATED_BODY()
+public:
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
+#endif
+#if WITH_EDITORONLY_DATA
+	//show screen space LGUI on target editor view. 
+	UPROPERTY(EditAnywhere, config, Category = "LGUI")
+		int32 LGUIPreview_EditorViewIndex = 6;
+#endif
+	static FSimpleMulticastDelegate LGUIPreviewSetting_EditorPreviewViewportIndexChange;
+	static int32 GetLGUIPreview_EditorViewIndex();
+	static void SetLGUIPreview_EditorViewIndex(int32 value);
+};

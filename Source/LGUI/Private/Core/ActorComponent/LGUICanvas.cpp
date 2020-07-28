@@ -627,15 +627,20 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 					uiMesh->SetRelativeTransform(FTransform::Identity);
 #if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())//editor's UI should all put in world space
+					if (!GetWorld()->IsGameWorld())
 					{
-						
+						if (currentIsRenderToRenderTargetOrWorld)
+						{
+							uiMesh->SetSupportScreenSpace(true, TopMostCanvas->GetViewExtension());
+						}
+						uiMesh->SetSupportWorldSpace(true);
 					}
 					else
 #endif
 					if (currentIsRenderToRenderTargetOrWorld)
 					{
-						uiMesh->SetToLGUIHud(TopMostCanvas->GetViewExtension());
+						uiMesh->SetSupportScreenSpace(true, TopMostCanvas->GetViewExtension());
+						uiMesh->SetSupportWorldSpace(false);
 					}
 
 					UIMeshList[i] = uiMesh;
@@ -766,13 +771,13 @@ void ULGUICanvas::SortDrawcallRenderPriority()
 			prevCanvasDrawcallCount = canvasItemDrawcallCount;
 		}
 	}
-#if WITH_EDITOR
-	if (!GetWorld()->IsGameWorld())//editor world, do nothing
-	{
-
-	}
-	else
-#endif
+//#if WITH_EDITOR
+//	if (!GetWorld()->IsGameWorld())//editor world, do nothing
+//	{
+//
+//	}
+//	else
+//#endif
 	if (currentIsRenderToRenderTargetOrWorld)
 	{
 		TopMostCanvas->GetViewExtension()->SortRenderPriority();

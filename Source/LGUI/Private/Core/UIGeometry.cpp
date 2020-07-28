@@ -3926,27 +3926,27 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 	FTransform itemToCanvasTf;
 	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
 	FVector tempV3;
-#if WITH_EDITOR
-	if (!canvas->GetWorld()->IsGameWorld())
+//#if WITH_EDITOR
+//	if (!canvas->GetWorld()->IsGameWorld())
+//	{
+//		for (int i = 0; i < vertexCount; i++)
+//		{
+//			tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
+//			vertices[i].Position = tempV3;
+//		}
+//	}
+//	else
+//#endif
 	{
-		for (int i = 0; i < vertexCount; i++)
-		{
-			tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
-			vertices[i].Position = tempV3;
-		}
-	}
-	else
-#endif
-	{
-		if (canvas->IsRenderToScreenSpaceOrRenderTarget())//convert to world space
-		{
-			for (int i = 0; i < vertexCount; i++)
-			{
-				tempV3 = itemTf.TransformPosition(originPositions[i]);
-				vertices[i].Position = tempV3;
-			}
-		}
-		else//convert vertex to canvas's local space
+		//if (canvas->IsRenderToScreenSpaceOrRenderTarget())//convert to world space
+		//{
+		//	for (int i = 0; i < vertexCount; i++)
+		//	{
+		//		tempV3 = itemTf.TransformPosition(originPositions[i]);
+		//		vertices[i].Position = tempV3;
+		//	}
+		//}
+		//else//convert vertex to canvas's local space
 		{
 			for (int i = 0; i < vertexCount; i++)
 			{
