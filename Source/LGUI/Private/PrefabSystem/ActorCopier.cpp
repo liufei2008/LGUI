@@ -403,9 +403,14 @@ AActor* ActorCopier::CopyActorRecursive(AActor* Actor, USceneComponent* Parent, 
 }
 AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Parent)
 {
-	ALGUIManagerActor::BeginPrefabSystemProcessingActor(RootActor->GetWorld());
-
 	TargetWorld = RootActor->GetWorld();
+
+#if WITH_EDITOR
+	if (TargetWorld->IsGameWorld())
+#endif
+	{
+		ALGUIManagerActor::BeginPrefabSystemProcessingActor(RootActor->GetWorld());
+	}
 	
 	int32 originActorId = 0, copiedActorId = 0;
 	GenerateActorIDRecursive(RootActor, originActorId);
@@ -437,11 +442,16 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 		}
 	}
 
-	for (auto item : DuplicatingActorCollection)
+#if WITH_EDITOR
+	if (TargetWorld->IsGameWorld())
+#endif
 	{
-		ALGUIManagerActor::RemoveActorForPrefabSystem(item);
+		for (auto item : DuplicatingActorCollection)
+		{
+			ALGUIManagerActor::RemoveActorForPrefabSystem(item);
+		}
+		ALGUIManagerActor::EndPrefabSystemProcessingActor();
 	}
-	ALGUIManagerActor::EndPrefabSystemProcessingActor();
 	return Result;
 }
 AActor* ActorCopier::DuplicateActor(AActor* RootActor, USceneComponent* Parent)

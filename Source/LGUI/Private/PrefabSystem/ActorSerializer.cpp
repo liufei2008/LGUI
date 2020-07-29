@@ -134,7 +134,13 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 #endif
 	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
-	ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
+	bool isGameWorld = TargetWorld->IsGameWorld();
+#if WITH_EDITOR
+	if (isGameWorld)
+#endif
+	{
+		ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
+	}
 	int32 id = 0;
 	AActor* CreatedActor = nullptr;
 #if WITH_EDITORONLY_DATA
@@ -167,7 +173,6 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 	//finish Actor Spawn
-	bool isGameWorld = TargetWorld->IsGameWorld();
 	for (auto Actor : CreatedActors)
 	{
 		if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destroyed by other actor when BeginPlay
@@ -190,11 +195,17 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 
-	for (auto item : DeserializingActorCollection)
+#if WITH_EDITOR
+	if (isGameWorld)
+#endif
 	{
-		ALGUIManagerActor::RemoveActorForPrefabSystem(item);
+		for (auto item : DeserializingActorCollection)
+		{
+			ALGUIManagerActor::RemoveActorForPrefabSystem(item);
+		}
+		ALGUIManagerActor::EndPrefabSystemProcessingActor();
+
 	}
-	ALGUIManagerActor::EndPrefabSystemProcessingActor();
 	//UE_LOG(LGUI, Display, TEXT("Dserialize Prefab Duration:%s"), *((FDateTime::Now() - StartTime).ToString()));
 	return CreatedActor;
 }
