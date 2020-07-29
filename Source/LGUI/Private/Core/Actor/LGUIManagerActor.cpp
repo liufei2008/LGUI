@@ -108,7 +108,9 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		EditorTick.Broadcast(DeltaTime);
 	}
+#if WITH_EDITOR
 	CheckEditorViewportIndexAndKey();
+#endif
 }
 TStatId ULGUIEditorManagerObject::GetStatId() const
 {
@@ -130,7 +132,7 @@ bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
 }
 void ULGUIEditorManagerObject::CheckEditorViewportIndexAndKey()
 {
-	auto viewportClients = GEditor->GetAllViewportClients();
+	auto& viewportClients = GEditor->GetAllViewportClients();
 	if (PrevEditorViewportCount != viewportClients.Num())
 	{
 		PrevEditorViewportCount = viewportClients.Num();

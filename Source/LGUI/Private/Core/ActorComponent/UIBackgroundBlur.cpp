@@ -155,7 +155,8 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 			auto& copyVert = copyRegionVertexArray[i];
 			//convert vertex postition to screen, and use as texture coordinate
 			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
-			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X / clipSpacePos.W, clipSpacePos.Y / clipSpacePos.W) * 0.5f + FVector2D(0.5f, 0.5f);
+			float inv_W = 1.0f / clipSpacePos.W;
+			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X * inv_W, clipSpacePos.Y * inv_W) * 0.5f + FVector2D(0.5f, 0.5f);
 		}
 	}
 }

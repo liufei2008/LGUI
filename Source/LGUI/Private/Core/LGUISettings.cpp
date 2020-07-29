@@ -79,6 +79,7 @@ const TArray<TSubclassOf<ULGUIBehaviour>>& ULGUISettings::GetLGUIBehaviourExecut
 }
 
 
+#if WITH_EDITOR
 FSimpleMulticastDelegate ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange;
 void ULGUIEditorSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -106,3 +107,4 @@ void ULGUIEditorSettings::SetLGUIPreview_EditorViewIndex(int32 value)
 		LGUIPreviewSetting_EditorPreviewViewportIndexChange.Broadcast();
 	}
 }
+#endif
