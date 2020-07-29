@@ -739,7 +739,7 @@ void FLGUIEditorModule::OnSelectObject(UObject* newSelection)
 	{
 		if (auto canvas = selectedCanvasActor->FindComponentByClass<ULGUICanvas>())
 		{
-			auto& allUIItems = canvas->GetUIRenderables();
+			auto& allUIItems = LGUIManager::GetAllUIItem(selectedCanvasActor->GetWorld());
 			if (GEditor)
 			{
 				if (auto viewport = GEditor->GetActiveViewport())
@@ -764,7 +764,7 @@ void FLGUIEditorModule::OnSelectObject(UObject* newSelection)
 							uiRenderable->SetRaycastTarget(true);
 							if (uiRenderable->LineTraceUI(hitInfo, lineStart, lineEnd))
 							{
-								if (canvas->IsPointVisible(hitInfo.Location))
+								if (uiRenderable->GetRenderCanvas()->IsPointVisible(hitInfo.Location))
 								{
 									CacheHitResultArray.Add(hitInfo);
 								}
