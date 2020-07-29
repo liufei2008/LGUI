@@ -242,3 +242,8 @@ UISprite's fill type in pixel perfect mode.
 ## 2.8.3
 #### Improve:
 Increase performance.
+#### NewFeature:
+Now we can preview screen space UI in edit mode, just choose a viewport(which you can find in "Window/Viewports/") and click the button "LGUI Tools/Active Viewport as LGUI Preview".
+#### Fix:
+Duplicate actor or generate a prefab in edit mode will also create a LGUIManagerActor, this is incorrect, fixed.
+Click and select UI element in viewport more stable now.
