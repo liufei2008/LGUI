@@ -675,7 +675,7 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor()
 }
 void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor)
 {
-	if (InitCheck(InActor->GetWorld()))
+	if (Instance != nullptr)
 	{
 		Instance->AllActors_PrefabSystemProcessing.AddUnique(InActor);
 	}
