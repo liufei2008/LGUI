@@ -26,6 +26,7 @@ void SimplePostProcessVS(
 }
 
 
+float4x4 _LocalToWorldMatrix;
 float4x4 _ViewProjectionMatrix;
 
 struct MeshPostProcessVSToPS
@@ -46,7 +47,8 @@ void MeshPostProcessVS(
     out MeshPostProcessVSToPS v2p
 )
 {
-    v2p.position = mul(float4(Position.xyz, 1.0), _ViewProjectionMatrix);
+    float4 worldPos = mul(float4(Position.xyz, 1.0), _LocalToWorldMatrix);
+    v2p.position = mul(worldPos, _ViewProjectionMatrix);
     v2p.color = Color;
     v2p.uv = TextureCoord0;
     v2p.screenPos = v2p.position;

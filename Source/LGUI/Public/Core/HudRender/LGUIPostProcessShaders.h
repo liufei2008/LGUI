@@ -62,13 +62,16 @@ public:
 	FLGUIMeshPostProcessVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLGUIPostProcessShader(Initializer)
 	{
+		LocalToWorldMatrixParameter.Bind(Initializer.ParameterMap, TEXT("_LocalToWorldMatrix"));
 		ViewProjectionParameter.Bind(Initializer.ParameterMap, TEXT("_ViewProjectionMatrix"));
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& ViewProjectionMatrix)
+	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& LocalToWorldMatrix, const FMatrix& ViewProjectionMatrix)
 	{
+		SetShaderValue(RHICmdList, GetVertexShader(), LocalToWorldMatrixParameter, LocalToWorldMatrix);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), ViewProjectionParameter, ViewProjectionMatrix);
 	}
 private:
+	LAYOUT_FIELD(FShaderParameter, LocalToWorldMatrixParameter);
 	LAYOUT_FIELD(FShaderParameter, ViewProjectionParameter);
 };
 class FLGUISimpleCopyTargetPS :public FLGUIPostProcessShader

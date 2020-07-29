@@ -58,6 +58,7 @@ protected:
 	float inv_SampleLevelInterval = 1.0f;
 	FVector2D inv_TextureSize;
 	TArray<FLGUIPostProcessVertex> copyRegionVertexArray;
+	FMatrix objectToWorldMatrix;
 	FCriticalSection mutex;
 	FORCEINLINE float GetBlurStrengthInternal();
 	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);

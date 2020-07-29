@@ -20,18 +20,6 @@ void UUIBackgroundBlur::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (copyRegionVertexArray.Num() == 0)
-	{
-		//full screen vertex position
-		copyRegionVertexArray =
-		{
-			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
-			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
-		};
-	}
-
 	inv_SampleLevelInterval = 1.0f / (MAX_BlurStrength / maxDownSampleLevel);
 }
 
@@ -49,7 +37,7 @@ void UUIBackgroundBlur::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	{
 		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(UUIBackgroundBlur, maxDownSampleLevel))
 		{
-			maxDownSampleLevel += 1;
+			maxDownSampleLevel += 1;//just make it work
 			SetMaxDownSampleLevel(maxDownSampleLevel - 1);
 		}
 	}
@@ -141,7 +129,24 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 		}
 	}
 
-	auto modelViewPrjectionMatrix = RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+
+#if WITH_EDITOR
+	inv_SampleLevelInterval = 1.0f / (MAX_BlurStrength / maxDownSampleLevel);//only execute in edit mode, because it's already calculated in BeginPlay.
+#endif
+
+	if (copyRegionVertexArray.Num() == 0)
+	{
+		//full screen vertex position
+		copyRegionVertexArray =
+		{
+			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
+			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
+			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
+			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
+		};
+	}
+	objectToWorldMatrix = this->GetComponentTransform().ToMatrixWithScale();
+	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
 		FScopeLock scopeLock(&mutex);
 
@@ -306,7 +311,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-			VertexShader->SetParameters(RHICmdList, ViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, objectToWorldMatrix, ViewProjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1, BlurEffectRenderTexture2, ((FTexture2DResource*)maskTexture->Resource)->GetTexture2DRHI()
 				, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 				, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
@@ -328,7 +333,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-			VertexShader->SetParameters(RHICmdList, ViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, objectToWorldMatrix, ViewProjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1);
 		}
 		DrawPrimitive();

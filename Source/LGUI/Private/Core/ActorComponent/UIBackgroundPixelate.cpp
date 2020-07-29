@@ -19,18 +19,6 @@ UUIBackgroundPixelate::UUIBackgroundPixelate(const FObjectInitializer& ObjectIni
 void UUIBackgroundPixelate::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (copyRegionVertexArray.Num() == 0)
-	{
-		//full screen vertex position
-		copyRegionVertexArray =
-		{
-			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
-			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
-		};
-	}
 }
 
 void UUIBackgroundPixelate::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -124,7 +112,20 @@ void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamil
 		}
 	}
 
-	auto modelViewPrjectionMatrix = RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+
+	if (copyRegionVertexArray.Num() == 0)
+	{
+		//full screen vertex position
+		copyRegionVertexArray =
+		{
+			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
+			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
+			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
+			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
+		};
+	}
+	objectToWorldMatrix = this->GetComponentTransform().ToMatrixWithScale();
+	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
 		FScopeLock scopeLock(&mutex);
 
@@ -180,7 +181,7 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-		VertexShader->SetParameters(RHICmdList, ViewProjectionMatrix);
+		VertexShader->SetParameters(RHICmdList, objectToWorldMatrix, ViewProjectionMatrix);
 		PixelShader->SetParameters(RHICmdList, helperRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		DrawPrimitive();
 		RHICmdList.EndRenderPass();
