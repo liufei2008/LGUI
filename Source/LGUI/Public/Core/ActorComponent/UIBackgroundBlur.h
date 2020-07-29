@@ -25,7 +25,7 @@ protected:
 #define MAX_BlurStrength 100.0f
 #define INV_MAX_BlurStrength 0.01f
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 100.0f))
-		float blurStrength = 0.0f;
+		float blurStrength = 10.0f;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool applyAlphaToBlur = true;
 	//No need to change this because default value can give you good result
