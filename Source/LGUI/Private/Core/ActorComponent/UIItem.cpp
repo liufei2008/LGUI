@@ -11,6 +11,7 @@
 #include "PhysicsEngine/BodySetup.h"
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
+#include "EditorViewportClient.h"
 #endif
 
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
@@ -1776,8 +1777,14 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 
 		virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
 		{
-			viewRect = View->UnconstrainedViewRect;
-			viewMatrices = View->ViewMatrices;
+			if (ULGUIEditorManagerObject::Instance != nullptr)
+			{
+				if (View->GetViewKey() == ULGUIEditorManagerObject::Instance->CurrentActiveViewportKey)
+				{
+					viewRect = View->UnconstrainedViewRect;
+					viewMatrices = View->ViewMatrices;
+				}
+			}
 
 			FPrimitiveViewRelevance Result;
 			Result.bDrawRelevance = true;

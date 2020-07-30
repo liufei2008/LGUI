@@ -30,6 +30,30 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	Super::BeginDestroy();
 }
 
+void ULGUIEditorManagerObject::Tick(float DeltaTime)
+{
+#if WITH_EDITORONLY_DATA
+	for (auto item : allCanvas)
+	{
+		if (IsValid(item))
+		{
+			item->CustomTick(DeltaTime);
+		}
+	}
+	if (EditorTick.IsBound())
+	{
+		EditorTick.Broadcast(DeltaTime);
+	}
+#endif
+#if WITH_EDITOR
+	CheckEditorViewportIndexAndKey();
+#endif
+}
+TStatId ULGUIEditorManagerObject::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
+}
+#if WITH_EDITOR
 bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 {
 	if (Instance == nullptr)
@@ -46,6 +70,20 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 		}
 	}
 	return true;
+}
+
+bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
+{
+	TArray<UObject*> selection;
+	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator()); itr; ++itr)
+	{
+		auto itrActor = Cast<AActor>(*itr);
+		if (itrActor == InObject)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void ULGUIEditorManagerObject::AddUIItem(UUIItem* InItem)
@@ -71,9 +109,9 @@ void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
 		canvasArray.AddUnique(InCanvas);
 		//sort on order
 		canvasArray.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
-		{
-			return A.GetSortOrder() < B.GetSortOrder();
-		});
+			{
+				return A.GetSortOrder() < B.GetSortOrder();
+			});
 	}
 }
 void ULGUIEditorManagerObject::SortCanvasOnOrder()
@@ -82,9 +120,9 @@ void ULGUIEditorManagerObject::SortCanvasOnOrder()
 	{
 		//sort on order
 		Instance->allCanvas.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
-		{
-			return A.GetSortOrder() < B.GetSortOrder();
-		});
+			{
+				return A.GetSortOrder() < B.GetSortOrder();
+			});
 	}
 }
 void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
@@ -95,41 +133,7 @@ void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 	}
 }
 
-void ULGUIEditorManagerObject::Tick(float DeltaTime)
-{
-	for (auto item : allCanvas)
-	{
-		if (IsValid(item))
-		{
-			item->CustomTick(DeltaTime);
-		}
-	}
-	if (EditorTick.IsBound())
-	{
-		EditorTick.Broadcast(DeltaTime);
-	}
-#if WITH_EDITOR
-	CheckEditorViewportIndexAndKey();
-#endif
-}
-TStatId ULGUIEditorManagerObject::GetStatId() const
-{
-	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
-}
-#if WITH_EDITOR
-bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
-{
-	TArray<UObject*> selection;
-	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator());itr;++itr)
-	{
-		auto itrActor = Cast<AActor>(*itr);
-		if (itrActor == InObject)
-		{
-			return true;
-		}
-	}
-	return false;
-}
+
 void ULGUIEditorManagerObject::CheckEditorViewportIndexAndKey()
 {
 	auto& viewportClients = GEditor->GetAllViewportClients();
@@ -146,6 +150,19 @@ void ULGUIEditorManagerObject::CheckEditorViewportIndexAndKey()
 		if (EditorViewportIndexAndKeyChange.IsBound())
 		{
 			EditorViewportIndexAndKeyChange.Broadcast();
+		}
+	}
+
+	if (auto viewport = GEditor->GetActiveViewport())
+	{
+		if (auto viewportClient = viewport->GetClient())
+		{
+			if (ULGUIEditorManagerObject::Instance != nullptr)
+			{
+				auto editorViewportClient = (FEditorViewportClient*)viewportClient;
+				CurrentActiveViewportIndex = editorViewportClient->ViewIndex;
+				CurrentActiveViewportKey = ULGUIEditorManagerObject::Instance->GetViewportKeyFromIndex(editorViewportClient->ViewIndex);
+			}
 		}
 	}
 }

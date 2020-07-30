@@ -48,6 +48,7 @@ private:
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 	void UseActiveViewportAsPreview();
+	void ClearViewportPreview();
 
 	TSharedRef<SDockTab> HandleSpawnEditorToolsTab(const FSpawnTabArgs& SpawnTabArgs);
 

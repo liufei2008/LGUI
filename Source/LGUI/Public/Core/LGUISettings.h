@@ -96,6 +96,7 @@ private:
 	FORCEINLINE static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);
 };
 
+//@todo:save config in editor
 UCLASS(config=EditorPerProjectUserSettings)
 class LGUI_API ULGUIEditorSettings : public UObject
 {
