@@ -20,7 +20,7 @@ void UUIBackgroundBlur::BeginPlay()
 {
 	Super::BeginPlay();
 
-	inv_SampleLevelInterval = 1.0f / (MAX_BlurStrength / maxDownSampleLevel);
+	inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
 }
 
 void UUIBackgroundBlur::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -77,7 +77,7 @@ void UUIBackgroundBlur::SetMaxDownSampleLevel(int newValue)
 	if (maxDownSampleLevel != newValue)
 	{
 		maxDownSampleLevel = newValue;
-		inv_SampleLevelInterval = 1.0f / (MAX_BlurStrength / maxDownSampleLevel);
+		inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
 	}
 }
 
@@ -131,7 +131,7 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 
 
 #if WITH_EDITOR
-	inv_SampleLevelInterval = 1.0f / (MAX_BlurStrength / maxDownSampleLevel);//only execute in edit mode, because it's already calculated in BeginPlay.
+	inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;//only execute in edit mode, because it's already calculated in BeginPlay.
 #endif
 
 	if (copyRegionVertexArray.Num() == 0)
@@ -145,7 +145,7 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
 		};
 	}
-	objectToWorldMatrix = this->GetComponentTransform().ToMatrixWithScale();
+	objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
 	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
 		FScopeLock scopeLock(&mutex);
