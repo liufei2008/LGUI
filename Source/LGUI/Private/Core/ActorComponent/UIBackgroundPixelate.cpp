@@ -124,7 +124,7 @@ void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamil
 			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
 		};
 	}
-	objectToWorldMatrix = this->GetComponentTransform().ToMatrixWithScale();
+	objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
 	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
 		FScopeLock scopeLock(&mutex);

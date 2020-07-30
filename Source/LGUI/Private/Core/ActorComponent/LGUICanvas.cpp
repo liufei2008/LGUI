@@ -130,24 +130,24 @@ void ULGUICanvas::OnUIActiveStateChange(bool active)
 
 bool ULGUICanvas::CheckTopMostCanvas()
 {
-	if (this->GetWorld() == nullptr)return false;
 	if (IsValid(TopMostCanvas))return true;
+	if (this->GetWorld() == nullptr)return false;
 	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
 	if (IsValid(TopMostCanvas))return true;
 	return false;
 }
 bool ULGUICanvas::CheckParentCanvas()
 {
-	if (this->GetWorld() == nullptr)return false;
 	if (IsValid(ParentCanvas))return true;
+	if (this->GetWorld() == nullptr)return false;
 	LGUIUtils::FindParentCanvas(this->GetOwner(), ParentCanvas);
 	if (IsValid(ParentCanvas))return true;
 	return false;
 }
 bool ULGUICanvas::CheckUIItem()
 {
-	if (this->GetWorld() == nullptr)return false;
 	if (IsValid(UIItem))return true;
+	if (this->GetWorld() == nullptr)return false;
 	UIItem = Cast<UUIItem>(GetOwner()->GetRootComponent());
 	if (!IsValid(UIItem))
 	{
