@@ -32,26 +32,30 @@ public:
 	virtual bool IsTickable() const { return Instance == this; }
 	virtual bool IsTickableInEditor()const { return Instance == this; }
 	virtual TStatId GetStatId() const override;
+#if WITH_EDITORONLY_DATA
 	//end TickableEditorObject interface
 	FLGUIEditorTickMulticastDelegate EditorTick;
 	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
 private:
 	TMap<int32, uint32> EditorViewportIndexToKeyMap;
 	int32 PrevEditorViewportCount = 0;
+public:
+	int32 CurrentActiveViewportIndex = 0;
+	uint32 CurrentActiveViewportKey = 0;
 protected:
 	//collection of all UIItem from current level
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUICanvas*> allCanvas;
+#endif
+#if WITH_EDITOR
 private:
 	static bool InitCheck(UWorld* InWorld);
-#if WITH_EDITOR
 public:
 	static bool IsSelected(AActor* InObject);
 	void CheckEditorViewportIndexAndKey();
 	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
-#endif
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
@@ -61,6 +65,7 @@ public:
 	static void SortCanvasOnOrder();
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
+#endif
 };
 
 USTRUCT()
