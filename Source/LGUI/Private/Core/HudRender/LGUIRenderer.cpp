@@ -204,7 +204,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	}
 	else//editor viewport preview
 	{
-		if (InView.State->GetViewKey() != EditorPreview_ViewKey)return;//only preview in specific viewport in editor
+		if (InView.GetViewKey() != EditorPreview_ViewKey)return;//only preview in specific viewport in editor
 	}
 	//simulation
 	if (GEngine == nullptr)return;

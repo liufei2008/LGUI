@@ -509,13 +509,19 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 		}
 		MenuBuilder.EndSection();
 
-		MenuBuilder.BeginSection("PreviewScreenSpaceUISelector", LOCTEXT("PreviewScreenSpaceUISelector", "Preview"));
+		MenuBuilder.BeginSection("PreviewScreenSpaceUISelector", LOCTEXT("PreviewScreenSpaceUISelector", "Preview Viewport"));
 		{
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("UseActiveViewportAsPreview", "Active Viewport as LGUI Preview"),
 				LOCTEXT("UseActiveViewportAsPreview_Tooltip", "Use current selected active editor viewport for ScreenSpace UI preview"),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEditorModule::UseActiveViewportAsPreview))
+			);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("ClearViewportPreview", "Clear LGUI Preview"),
+				LOCTEXT("ClearViewportPreview_Tooltip", "Clear LGUI Preview"),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ClearViewportPreview))
 			);
 		}
 		MenuBuilder.EndSection();
@@ -584,6 +590,10 @@ void FLGUIEditorModule::UseActiveViewportAsPreview()
 			}
 		}
 	}
+}
+void FLGUIEditorModule::ClearViewportPreview()
+{
+	ULGUIEditorSettings::SetLGUIPreview_EditorViewIndex(-1);
 }
 
 void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
@@ -747,6 +757,7 @@ void FLGUIEditorModule::OnSelectObject(UObject* newSelection)
 					auto mouseX = viewport->GetMouseX();
 					auto mouseY = viewport->GetMouseY();
 					FVector rayOrigin, rayDirection;
+					auto client = (FEditorViewportClient*)viewport->GetClient();
 					FSceneView::DeprojectScreenToWorld(FVector2D(mouseX, mouseY), UUIItemEditorHelperComp::viewRect, UUIItemEditorHelperComp::viewMatrices.GetInvViewMatrix(), UUIItemEditorHelperComp::viewMatrices.GetInvProjectionMatrix(), rayOrigin, rayDirection);
 					float lineTraceLength = 10000;
 					//find hit UIRenderable
