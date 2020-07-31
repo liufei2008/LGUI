@@ -12,6 +12,7 @@
 class ILGUIHudPrimitive;
 class ULGUICanvas;
 struct FLGUIPostProcessVertex;
+class FGlobalShaderMap;
 
 class LGUI_API FLGUIViewExtension : public FSceneViewExtensionBase
 {
