@@ -67,7 +67,7 @@ public:
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& LocalToWorldMatrix, const FMatrix& ViewProjectionMatrix)
 	{
-		SetShaderValue(RHICmdList, GetVertexShader(), LocalToWorldMatrixParameter, LocalToWorldMatrix);
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), LocalToWorldMatrixParameter, LocalToWorldMatrix);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), ViewProjectionParameter, ViewProjectionMatrix);
 	}
 private:
