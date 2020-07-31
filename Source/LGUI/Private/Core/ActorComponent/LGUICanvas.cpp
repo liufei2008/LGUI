@@ -436,9 +436,6 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged
 		{
 			if (uiChild->IsUIActiveInHierarchy() == false)continue;
 
-			auto layoutChanged = parentLayoutChanged;
-			uiChild->UpdateLayoutAndGeometry(layoutChanged, bShouldUpdateLayout);
-
 			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()))
 			{
 				uiChild->GetRenderCanvas()->bCanTickUpdate = false;
@@ -446,6 +443,8 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged
 			}
 			else
 			{
+				auto layoutChanged = parentLayoutChanged;
+				uiChild->UpdateLayoutAndGeometry(layoutChanged, bShouldUpdateLayout);
 				UpdateChildRecursive(uiChild, layoutChanged);
 			}			
 		}
@@ -559,16 +558,15 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			{
 				if (uiChild->IsUIActiveInHierarchy() == false)continue;
 
-				bool layoutChanged = UIItem->cacheForThisUpdate_LayoutChanged;
-				uiChild->UpdateLayoutAndGeometry(layoutChanged, bShouldUpdateLayout);
-
-				if (uiChild->isCanvasUIItem && IsValid(uiChild->GetRenderCanvas()))
+				if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()))
 				{
 					uiChild->GetRenderCanvas()->bCanTickUpdate = false;
 					uiChild->GetRenderCanvas()->UpdateCanvasGeometry();
 				}
 				else
 				{
+					bool layoutChanged = UIItem->cacheForThisUpdate_LayoutChanged;
+					uiChild->UpdateLayoutAndGeometry(layoutChanged, bShouldUpdateLayout);
 					UpdateChildRecursive(uiChild, layoutChanged);
 				}
 			}
