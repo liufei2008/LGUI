@@ -381,13 +381,7 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 		DrawDebugLine(this->GetWorld(), rightTopEnd, rightBottomEnd, lineColor);
 		DrawDebugLine(this->GetWorld(), rightTopEnd, leftTopEnd, lineColor);
 
-		auto viewRotationMatrix = Canvas->GetViewRotationMatrix();
-		viewRotationMatrix = FMatrix(
-			FPlane(0, 0, 1, 0),
-			FPlane(1, 0, 0, 0),
-			FPlane(0, 1, 0, 0),
-			FPlane(0, 0, 0, 1)) * viewRotationMatrix;
-		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), viewRotationMatrix.Rotator(), FOVAngle, 1.0f, FColor::Green);
+		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), Canvas->GetViewRotator(), FOVAngle, 1.0f, FColor::Green);
 	}
 }
 #endif

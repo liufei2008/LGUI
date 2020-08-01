@@ -1391,7 +1391,7 @@ FMatrix ULGUICanvas::GetViewRotationMatrix()
 }
 FRotator ULGUICanvas::GetViewRotator()
 {
-	return UIItem->GetComponentToWorld().Rotator().Add(90, 90, 0);
+	return UIItem->GetComponentToWorld().Rotator();
 }
 FIntPoint ULGUICanvas::GetViewportSize()
 {
