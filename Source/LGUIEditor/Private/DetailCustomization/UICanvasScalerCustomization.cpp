@@ -61,7 +61,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		{
 			if (canvas->GetRenderMode() == ELGUIRenderMode::WorldSpace)
 			{
-				needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, TestWithEditorViewportSize));
+
 			}
 			else if (
 				canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay
