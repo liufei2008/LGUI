@@ -1413,9 +1413,6 @@ FIntPoint ULGUICanvas::GetViewportSize()
 			if (auto pc = world->GetFirstPlayerController())
 			{
 				pc->GetViewportSize(viewportSize.X, viewportSize.Y);
-
-				viewportSize.X = FMath::Max(viewportSize.X, 2);
-				viewportSize.Y = FMath::Max(viewportSize.Y, 2);
 			}
 		}
 	}
