@@ -105,6 +105,7 @@ void ULGUICanvasScaler::OnViewportResized(FViewport* viewport, uint32)
 }
 void ULGUICanvasScaler::OnViewportParameterChanged()
 {
+	if (ViewportSize.X <= 0 || ViewportSize.Y <= 0)return;
 	if (CheckCanvas())
 	{
 		if (Canvas->IsRootCanvas())
@@ -274,7 +275,7 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 				DrawVirtualCamera();
 				
 #if WITH_EDITORONLY_DATA
-				if (TestWithEditorViewportSize && !GetWorld()->IsGameWorld())
+				if (!GetWorld()->IsGameWorld())
 				{
 					FViewport* viewport = nullptr;
 
