@@ -323,7 +323,7 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 	bool rootCompNeedRegister = false;
 	if (!CopiedRootComp)
 	{
-		CopiedRootComp = NewObject<USceneComponent>(CopiedActor, OriginRootComp->GetClass(), OriginRootComp->GetFName(), RF_NoFlags);
+		CopiedRootComp = NewObject<USceneComponent>(CopiedActor, OriginRootComp->GetClass(), OriginRootComp->GetFName(), RF_Transactional);
 		rootCompNeedRegister = true;
 	}
 	CopyProperty(OriginRootComp, CopiedRootComp, SceneComponentExcludeProperties);
@@ -341,7 +341,7 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 	{
 		if (OriginComp == OriginRootComp)continue;//skip RootComponent
 		if (OriginComp->HasAnyFlags(EObjectFlags::RF_Transient))continue;//skip transient component
-		auto CopiedComp = NewObject<UActorComponent>(CopiedActor, OriginComp->GetClass(), OriginComp->GetFName(), RF_NoFlags);
+		auto CopiedComp = NewObject<UActorComponent>(CopiedActor, OriginComp->GetClass(), OriginComp->GetFName(), RF_Transactional);
 		CopyProperty(OriginComp, CopiedComp, SceneComponentExcludeProperties);
 		CopiedActor->FinishAndRegisterComponent(CopiedComp);
 

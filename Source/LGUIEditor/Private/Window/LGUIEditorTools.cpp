@@ -166,37 +166,6 @@ public:
 
 #if WITH_EDITOR
 ULGUIEditorToolsAgentObject* ULGUIEditorToolsAgentObject::EditorToolsAgentObject;
-void ULGUIEditorToolsAgentObject::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (UIContainer.IsClicked())CreateUIItemActor<AUIContainerActor>();
-	if (UISprite.IsClicked())CreateUIItemActor<AUISpriteActor>();
-	if (UIText.IsClicked())CreateUIItemActor<AUITextActor>();
-	if (UITexture.IsClicked())CreateUIItemActor<AUITextureActor>();
-
-	if (Button.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultButton"));
-	if (Toggle.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultToggle"));
-	if (HorizontalSlider.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultHorizontalSlider"));
-	if (VerticalSlider.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultVerticalSlider"));
-	if (HorizontalScrollbar.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultHorizontalScrollbar"));
-	if (VerticalScrollbar.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultVerticalScrollbar"));
-	if (FlyoutMenuButton.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultFlyoutMenuButton"));
-	if (ComboBoxButton.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultComboBoxButton"));
-	if (TextInput.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultTextInput"));
-	if (ScrollView.IsClicked())CreateUIControls(TEXT("/LGUI/Prefabs/DefaultScrollView"));
-
-	if (CopySelectedActors.IsClicked())CopySelectedActors_Impl();
-	if (PasteSelectedActors.IsClicked())PasteSelectedActors_Impl();
-	if (DuplicateSelectedActors.IsClicked())DuplicateSelectedActors_Impl();
-	if (DeleteSelectedActors.IsClicked())DeleteSelectedActors_Impl();
-
-	if (CopyComponentValues.IsClicked())CopyComponentValues_Impl();
-	if (PasteComponentValues.IsClicked())PasteComponentValues_Impl();
-
-	if (AtlasViewer.IsClicked())OpenAtlasViewer_Impl();
-
-	GEditor->RedrawAllViewports();
-}
 
 UWorld* ULGUIEditorToolsAgentObject::GetWorldFromSelection()
 {
@@ -440,12 +409,12 @@ void ULGUIEditorToolsAgentObject::PasteComponentValues_Impl()
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return;
 	}
-	if (IsValid(GetInstance()->copiedComponent))
+	if (GetInstance()->copiedComponent.IsValid())
 	{
 		GEditor->BeginTransaction(LOCTEXT("PasteComponentValues", "LGUI Paste Component Proeprties"));
 		for (UActorComponent* item : selectedComponents)
 		{
-			ActorCopier::CopyComponentValue(GetInstance()->copiedComponent, item);
+			ActorCopier::CopyComponentValue(GetInstance()->copiedComponent.Get(), item);
 		}
 		GEditor->EndTransaction();
 	}
@@ -583,7 +552,7 @@ bool ULGUIEditorToolsAgentObject::HaveValidCopiedActors()
 }
 bool ULGUIEditorToolsAgentObject::HaveValidCopiedComponent()
 {
-	return IsValid(GetInstance()->copiedComponent);
+	return GetInstance()->copiedComponent.IsValid();
 }
 
 ULGUIEditorToolsAgentObject* ULGUIEditorToolsAgentObject::GetInstance()
@@ -756,6 +725,68 @@ int ULGUIEditorToolsAgentObject::GetCanvasDrawcallCount(AActor* InActor)
 		}
 	}
 	return 0;
+}
+FString ULGUIEditorToolsAgentObject::PrintObjectFlags(UObject* Target)
+{
+	return FString::Printf(TEXT("Flags:%d\
+, \nRF_Public:%d\
+, \nRF_Standalone:%d\
+, \nRF_MarkAsNative:%d\
+, \nRF_Transactional:%d\
+, \nRF_ClassDefaultObject:%d\
+, \nRF_ArchetypeObject:%d\
+, \nRF_Transient:%d\
+, \nRF_MarkAsRootSet:%d\
+, \nRF_TagGarbageTemp:%d\
+, \nRF_NeedInitialization:%d\
+, \nRF_NeedLoad:%d\
+, \nRF_KeepForCooker:%d\
+, \nRF_NeedPostLoad:%d\
+, \nRF_NeedPostLoadSubobjects:%d\
+, \nRF_NewerVersionExists:%d\
+, \nRF_BeginDestroyed:%d\
+, \nRF_FinishDestroyed:%d\
+, \nRF_BeingRegenerated:%d\
+, \nRF_DefaultSubObject:%d\
+, \nRF_WasLoaded:%d\
+, \nRF_TextExportTransient:%d\
+, \nRF_LoadCompleted:%d\
+, \nRF_InheritableComponentTemplate:%d\
+, \nRF_DuplicateTransient:%d\
+, \nRF_StrongRefOnFrame:%d\
+, \nRF_NonPIEDuplicateTransient:%d\
+, \nRF_Dynamic:%d\
+, \nRF_WillBeLoaded:%d\
+"), Target->GetFlags()
+, Target->HasAnyFlags(EObjectFlags::RF_Public)
+, Target->HasAnyFlags(EObjectFlags::RF_Standalone)
+, Target->HasAnyFlags(EObjectFlags::RF_MarkAsNative)
+, Target->HasAnyFlags(EObjectFlags::RF_Transactional)
+, Target->HasAnyFlags(EObjectFlags::RF_ClassDefaultObject)
+, Target->HasAnyFlags(EObjectFlags::RF_ArchetypeObject)
+, Target->HasAnyFlags(EObjectFlags::RF_Transient)
+, Target->HasAnyFlags(EObjectFlags::RF_MarkAsRootSet)
+, Target->HasAnyFlags(EObjectFlags::RF_TagGarbageTemp)
+, Target->HasAnyFlags(EObjectFlags::RF_NeedInitialization)
+, Target->HasAnyFlags(EObjectFlags::RF_NeedLoad)
+, Target->HasAnyFlags(EObjectFlags::RF_KeepForCooker)
+, Target->HasAnyFlags(EObjectFlags::RF_NeedPostLoad)
+, Target->HasAnyFlags(EObjectFlags::RF_NeedPostLoadSubobjects)
+, Target->HasAnyFlags(EObjectFlags::RF_NewerVersionExists)
+, Target->HasAnyFlags(EObjectFlags::RF_BeginDestroyed)
+, Target->HasAnyFlags(EObjectFlags::RF_FinishDestroyed)
+, Target->HasAnyFlags(EObjectFlags::RF_BeingRegenerated)
+, Target->HasAnyFlags(EObjectFlags::RF_DefaultSubObject)
+, Target->HasAnyFlags(EObjectFlags::RF_WasLoaded)
+, Target->HasAnyFlags(EObjectFlags::RF_TextExportTransient)
+, Target->HasAnyFlags(EObjectFlags::RF_LoadCompleted)
+, Target->HasAnyFlags(EObjectFlags::RF_InheritableComponentTemplate)
+, Target->HasAnyFlags(EObjectFlags::RF_DuplicateTransient)
+, Target->HasAnyFlags(EObjectFlags::RF_StrongRefOnFrame)
+, Target->HasAnyFlags(EObjectFlags::RF_NonPIEDuplicateTransient)
+, Target->HasAnyFlags(EObjectFlags::RF_Dynamic)
+, Target->HasAnyFlags(EObjectFlags::RF_WillBeLoaded)
+);
 }
 #endif
 
