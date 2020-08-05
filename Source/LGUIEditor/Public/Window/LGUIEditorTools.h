@@ -13,35 +13,6 @@ UCLASS()
 class LGUIEDITOR_API ULGUIEditorToolsAgentObject :public UObject
 {
 	GENERATED_BODY()
-protected:
-	void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent);
-
-	UPROPERTY(EditAnywhere, Category = "UI Create Base Element")FLGUIEditHelperButton UIContainer;
-	UPROPERTY(EditAnywhere, Category = "UI Create Base Element")FLGUIEditHelperButton UISprite;
-	UPROPERTY(EditAnywhere, Category = "UI Create Base Element")FLGUIEditHelperButton UIText;
-	UPROPERTY(EditAnywhere, Category = "UI Create Base Element")FLGUIEditHelperButton UITexture;
-
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton Button;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton Toggle;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton HorizontalSlider;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton VerticalSlider;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton HorizontalScrollbar;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton VerticalScrollbar;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton FlyoutMenuButton;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton ComboBoxButton;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton TextInput;
-	UPROPERTY(EditAnywhere, Category = "UI Create Control")FLGUIEditHelperButton ScrollView;
-
-	UPROPERTY(EditAnywhere, Category = "Actor Action(With Hierarchy)")FLGUIEditHelperButton CopySelectedActors;
-	UPROPERTY(EditAnywhere, Category = "Actor Action(With Hierarchy)")FLGUIEditHelperButton PasteSelectedActors;
-	UPROPERTY(EditAnywhere, Category = "Actor Action(With Hierarchy)")FLGUIEditHelperButton DuplicateSelectedActors;
-	UPROPERTY(EditAnywhere, Category = "Actor Action(With Hierarchy)")FLGUIEditHelperButton DeleteSelectedActors;
-
-	UPROPERTY(EditAnywhere, Category = "Component Action")FLGUIEditHelperButton CopyComponentValues;
-	UPROPERTY(EditAnywhere, Category = "Component Action")FLGUIEditHelperButton PasteComponentValues;
-
-	UPROPERTY(EditAnywhere, Category = "UI Atlas Viewer")FLGUIEditHelperButton AtlasViewer;
-
 public:
 	static AActor * GetFirstSelectedActor();
 	template<class T>
@@ -84,9 +55,10 @@ public:
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
 	static bool IsCanvasActor(AActor* InActor);
 	static int GetCanvasDrawcallCount(AActor* InActor);
+	static FString PrintObjectFlags(UObject* Target);
 
 	UPROPERTY(Transient) TArray<class ULGUIPrefab*> copiedActorPrefabList;
-	UPROPERTY(Transient) UActorComponent* copiedComponent;
+	UPROPERTY(Transient) TWeakObjectPtr<UActorComponent> copiedComponent;
 	static bool HaveValidCopiedActors();
 	static bool HaveValidCopiedComponent();
 

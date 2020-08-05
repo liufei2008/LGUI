@@ -244,7 +244,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 						CompClass = USceneComponent::StaticClass();
 						UE_LOG(LGUI, Error, TEXT("Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
-					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_NoFlags);
+					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
 					LoadProperty(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 					if (!RootComp->IsDefaultSubobject())
@@ -277,7 +277,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 					CompClass = UActorComponent::StaticClass();
 					UE_LOG(LGUI, Error, TEXT("Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
-				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_NoFlags);
+				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
 				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
 				if (!Comp->IsDefaultSubobject())
 				{
@@ -378,7 +378,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 						CompClass = USceneComponent::StaticClass();
 						UE_LOG(LGUI, Error, TEXT("Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
-					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_NoFlags);
+					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
 					LoadProperty(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 					if (!RootComp->IsDefaultSubobject())
@@ -411,7 +411,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 					CompClass = UActorComponent::StaticClass();
 					UE_LOG(LGUI, Error, TEXT("Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
-				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_NoFlags);
+				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
 				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
 				if (!Comp->IsDefaultSubobject())
 				{
