@@ -134,9 +134,13 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 #endif
 	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
-	bool isGameWorld = TargetWorld->IsGameWorld();
+	IsEditMode = !TargetWorld->IsGameWorld();
 #if WITH_EDITOR
-	if (isGameWorld)
+	if (IsEditMode)
+	{
+		ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get());
+	}
+	else
 #endif
 	{
 		ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
@@ -157,7 +161,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		CreatedActor = DeserializeActorRecursive(Parent, SaveDataForBuild, id);
 	}
 #endif
-	if (ReplaceTransform)
+	if (CreatedActor != nullptr && ReplaceTransform)
 	{
 		CreatedActor->GetRootComponent()->SetRelativeLocationAndRotation(InLocation, FQuat(InRotation));
 		CreatedActor->GetRootComponent()->SetRelativeScale3D(InScale);
@@ -177,8 +181,8 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	{
 		if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destroyed by other actor when BeginPlay
 		{
-#if WITH_EDITOR
-			if (isGameWorld)
+#if WITH_EDITORONLY_DATA
+			if (!IsEditMode)
 			{
 				Actor->bIsEditorPreviewActor = false;//make this to false, or BeginPlay won't be called
 			}
@@ -195,8 +199,16 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 
-#if WITH_EDITOR
-	if (isGameWorld)
+#if WITH_EDITORONLY_DATA
+	if (IsEditMode)
+	{
+		for (auto item : DeserializingActorCollection)
+		{
+			ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
+		}
+		ULGUIEditorManagerObject::EndPrefabSystemProcessingActor();
+	}
+	else
 #endif
 	{
 		for (auto item : DeserializingActorCollection)
@@ -204,7 +216,6 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 			ALGUIManagerActor::RemoveActorForPrefabSystem(item);
 		}
 		ALGUIManagerActor::EndPrefabSystemProcessingActor();
-
 	}
 	//UE_LOG(LGUI, Display, TEXT("Dserialize Prefab Duration:%s"), *((FDateTime::Now() - StartTime).ToString()));
 	return CreatedActor;
@@ -222,7 +233,16 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
 		DeserializingActorCollection.Add(NewActor);
-		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+#if WITH_EDITORONLY_DATA
+		if (IsEditMode)
+		{
+			ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+		}
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties());
 		CreatedActors.Add(NewActor);
 
@@ -356,7 +376,16 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
 		DeserializingActorCollection.Add(NewActor);
-		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+#if WITH_EDITORONLY_DATA
+		if (IsEditMode)
+		{
+			ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+		}
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties());
 		CreatedActors.Add(NewActor);
 

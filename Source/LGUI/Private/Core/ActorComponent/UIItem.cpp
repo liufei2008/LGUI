@@ -219,6 +219,32 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 	{
 		if (IsValid(cacheParentUIItem))
 		{
+			UUIItem* existChildOfIndex = nullptr;
+			for (int i = 0; i < cacheParentUIItem->cacheUIChildren.Num(); i++)
+			{
+				if (cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex == InInt)
+				{
+					existChildOfIndex = cacheParentUIItem->cacheUIChildren[i];
+					break;
+				}
+			}
+			if (existChildOfIndex != nullptr)//already exist
+			{
+				if (InInt < hierarchyIndex)//move to prev
+				{
+					for (int i = InInt; i < cacheParentUIItem->cacheUIChildren.Num(); i++)
+					{
+						cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex++;
+					}
+				}
+				else//move to next
+				{
+					for (int i = 0; i <= InInt; i++)
+					{
+						cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex--;
+					}
+				}
+			}
 			hierarchyIndex = InInt;
 			cacheParentUIItem->SortCacheUIChildren();
 			for (int i = 0; i < cacheParentUIItem->cacheUIChildren.Num(); i++)
@@ -422,11 +448,28 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		//UE_LOG(LGUI, Error, TEXT("OnChildAttached:%s, registered:%d"), *(childUIItem->GetOwner()->GetActorLabel()), childUIItem->IsRegistered());
 		MarkLayoutDirty();
 		//hierarchy index
-		if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+		bool canLog = false;
+		if (this->GetOwner()->GetActorLabel().Left(1).IsNumeric())canLog = true;
+#if WITH_EDITORONLY_DATA
+		if (!GetWorld()->IsGameWorld())
 		{
-			if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 			{
-				childUIItem->hierarchyIndex = cacheUIChildren.Num();
+				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+				{
+					childUIItem->hierarchyIndex = cacheUIChildren.Num();
+				}
+			}
+		}
+		else
+#endif
+		{
+			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+			{
+				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+				{
+					childUIItem->hierarchyIndex = cacheUIChildren.Num();
+				}
 			}
 		}
 		cacheUIChildren.Add(childUIItem);

@@ -36,6 +36,8 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 {
 	if (!LoadedRootActor)
 	{
+		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
+
 		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
 			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() 
 			: nullptr, AllLoadedActorArray);
@@ -43,7 +45,10 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 
 		FActorFolders::Get().CreateFolder(*this->GetWorld(), PrefabFolderName);
 		this->GetOwner()->SetFolderPath(PrefabFolderName);
+		GEditor->SelectNone(false, true);
 		GEditor->SelectActor(LoadedRootActor, true, false);
+
+		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 	}
 }
 void ULGUIPrefabHelperComponent::SavePrefab()

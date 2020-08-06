@@ -247,3 +247,10 @@ Now we can preview screen space UI in edit mode, just choose a viewport(which yo
 #### Fix:
 Duplicate actor or generate a prefab in edit mode will also create a LGUIManagerActor, this is incorrect, fixed.
 Click and select UI element in viewport more stable now.
+## 2.8.4
+#### Fix:
+Fix alpha not update correctly issue, caused by 2.8.3 version.
+Fix a crash when unload current level after use "Copy Component Values".
+Fix drawcall count error.
+Fix a crash when deserialize actor from prefab.
+Fix hierarchyIndex sort error.

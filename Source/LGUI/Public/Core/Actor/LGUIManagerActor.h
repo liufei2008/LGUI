@@ -36,6 +36,7 @@ public:
 	//end TickableEditorObject interface
 	FLGUIEditorTickMulticastDelegate EditorTick;
 	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
+	static bool CanExecuteSelectionConvert;
 private:
 	TMap<int32, uint32> EditorViewportIndexToKeyMap;
 	int32 PrevEditorViewportCount = 0;
@@ -65,6 +66,16 @@ public:
 	static void SortCanvasOnOrder();
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
+
+private:
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<AActor*> AllActors_PrefabSystemProcessing;
+public:
+	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);
+	static void EndPrefabSystemProcessingActor();
+	static void AddActorForPrefabSystem(AActor* InActor);
+	static void RemoveActorForPrefabSystem(AActor* InActor);
+	static bool IsPrefabSystemProcessingActor(AActor* InActor);
 #endif
 };
 

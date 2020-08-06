@@ -53,6 +53,9 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
 }
+#if WITH_EDITORONLY_DATA
+bool ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
+#endif
 #if WITH_EDITOR
 bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 {
@@ -173,6 +176,45 @@ uint32 ULGUIEditorManagerObject::GetViewportKeyFromIndex(int32 InViewportIndex)
 		return *key;
 	}
 	return 0;
+}
+
+
+
+void ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(UWorld* InWorld)
+{
+	if (InitCheck(InWorld))
+	{
+		Instance->AllActors_PrefabSystemProcessing.Reset();
+	}
+}
+void ULGUIEditorManagerObject::EndPrefabSystemProcessingActor()
+{
+	if (Instance != nullptr)
+	{
+		Instance->AllActors_PrefabSystemProcessing.Reset();
+	}
+}
+void ULGUIEditorManagerObject::AddActorForPrefabSystem(AActor* InActor)
+{
+	if (Instance != nullptr)
+	{
+		Instance->AllActors_PrefabSystemProcessing.AddUnique(InActor);
+	}
+}
+void ULGUIEditorManagerObject::RemoveActorForPrefabSystem(AActor* InActor)
+{
+	if (Instance != nullptr)
+	{
+		Instance->AllActors_PrefabSystemProcessing.RemoveSingle(InActor);
+	}
+}
+bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
+{
+	if (Instance != nullptr)
+	{
+		return Instance->AllActors_PrefabSystemProcessing.Contains(InActor);
+	}
+	return false;
 }
 #endif
 
@@ -708,6 +750,7 @@ void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor)
 }
 bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
 {
+	UE_LOG(LGUI, Error, TEXT(""));
 	if (Instance != nullptr)
 	{
 		return Instance->AllActors_PrefabSystemProcessing.Contains(InActor);

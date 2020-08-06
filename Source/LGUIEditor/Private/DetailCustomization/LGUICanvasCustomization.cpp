@@ -243,6 +243,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 		int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
 		auto& allCanvas = LGUIManager::GetAllCanvas(TargetScriptArray[0]->GetWorld());
 		int allDrawcallCount = 0;
+		auto world = TargetScriptArray[0]->GetWorld();
 		for (ULGUICanvas* canvasItem : allCanvas)
 		{
 			switch (TargetScriptArray[0]->renderMode)
@@ -252,7 +253,10 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 			{
 				if (canvasItem->renderMode == TargetScriptArray[0]->renderMode)
 				{
-					allDrawcallCount += canvasItem->UIDrawcallList.Num();
+					if (canvasItem->GetWorld() == world)
+					{
+						allDrawcallCount += canvasItem->UIDrawcallList.Num();
+					}
 				}
 			}
 			break;
@@ -262,7 +266,10 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 				{
 					if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
 					{
-						allDrawcallCount += canvasItem->UIDrawcallList.Num();
+						if (canvasItem->GetWorld() == world)
+						{
+							allDrawcallCount += canvasItem->UIDrawcallList.Num();
+						}
 					}
 				}
 			}
@@ -304,6 +311,8 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 	}
 	break;
 	}
+
+	auto world = TargetScriptArray[0]->GetWorld();
 	for (ULGUICanvas* canvasItem : allCanvas)
 	{
 		switch (TargetScriptArray[0]->renderMode)
@@ -313,7 +322,10 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 		{
 			if (canvasItem->renderMode == TargetScriptArray[0]->renderMode)
 			{
-				allDrawcallCount += canvasItem->UIDrawcallList.Num();
+				if (canvasItem->GetWorld() == world)
+				{
+					allDrawcallCount += canvasItem->UIDrawcallList.Num();
+				}
 			}
 		}
 		break;
@@ -323,7 +335,10 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 			{
 				if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
 				{
-					allDrawcallCount += canvasItem->UIDrawcallList.Num();
+					if (canvasItem->GetWorld() == world)
+					{
+						allDrawcallCount += canvasItem->UIDrawcallList.Num();
+					}
 				}
 			}
 		}

@@ -356,6 +356,7 @@ private:
 	TArray<AActor*> DeserializingActorCollection;//collect for deserializing actor
 
 #if WITH_EDITORONLY_DATA
+	bool IsEditMode = false;
 	bool IsLoadForEdit = false;
 #endif
 
