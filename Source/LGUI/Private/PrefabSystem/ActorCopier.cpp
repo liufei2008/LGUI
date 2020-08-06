@@ -310,7 +310,16 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 
 	auto CopiedActor = TargetWorld->SpawnActorDeferred<AActor>(OriginActor->GetClass(), FTransform::Identity);
 	DuplicatingActorCollection.Add(CopiedActor);
-	ALGUIManagerActor::AddActorForPrefabSystem(CopiedActor);
+#if WITH_EDITORONLY_DATA
+	if (IsEditMode)
+	{
+		ULGUIEditorManagerObject::AddActorForPrefabSystem(CopiedActor);
+	}
+	else
+#endif
+	{
+		ALGUIManagerActor::AddActorForPrefabSystem(CopiedActor);
+	}
 	CopyPropertyForActor(OriginActor, CopiedActor, ActorExcludeProperties);
 	const auto& OriginComponents = OriginActor->GetComponents();
 
@@ -404,12 +413,16 @@ AActor* ActorCopier::CopyActorRecursive(AActor* Actor, USceneComponent* Parent, 
 AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Parent)
 {
 	TargetWorld = RootActor->GetWorld();
-
-#if WITH_EDITOR
-	if (TargetWorld->IsGameWorld())
+	IsEditMode = !TargetWorld->IsGameWorld();
+#if WITH_EDITORONLY_DATA
+	if (IsEditMode)
+	{
+		ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get());
+	}
+	else
 #endif
 	{
-		ALGUIManagerActor::BeginPrefabSystemProcessingActor(RootActor->GetWorld());
+		ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
 	}
 	
 	int32 originActorId = 0, copiedActorId = 0;
@@ -443,7 +456,15 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 	}
 
 #if WITH_EDITOR
-	if (TargetWorld->IsGameWorld())
+	if (IsEditMode)
+	{
+		for (auto item : DuplicatingActorCollection)
+		{
+			ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
+		}
+		ULGUIEditorManagerObject::EndPrefabSystemProcessingActor();
+	}
+	else
 #endif
 	{
 		for (auto item : DuplicatingActorCollection)
