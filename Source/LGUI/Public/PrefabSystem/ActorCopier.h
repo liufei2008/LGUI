@@ -26,6 +26,9 @@ private:
 	TArray<AActor*> DuplicatingActorCollection;//collect for duplicating actor
 
 	TWeakObjectPtr<UWorld> TargetWorld = nullptr;
+#if WITH_EDITORONLY_DATA
+	bool IsEditMode = false;
+#endif
 
 	TMap<AActor*, int32> MapOriginActorToID;//origin actor to id
 	void GenerateActorIDRecursive(AActor* Actor, int32& id);

@@ -241,7 +241,7 @@ void FLGUIEditorModule::StartupModule()
 	}
 	//selection
 	{
-		USelection::SelectObjectEvent.AddRaw(this, &FLGUIEditorModule::OnSelectObject);
+		OnSelectObjectDelegateHandle = USelection::SelectObjectEvent.AddRaw(this, &FLGUIEditorModule::OnSelectObject);
 	}
 	//blueprint
 	{
@@ -315,6 +315,8 @@ void FLGUIEditorModule::ShutdownModule()
 	}
 
 	FKismetEditorUtilities::UnregisterAutoBlueprintNodeCreation(this);
+
+	USelection::SelectObjectEvent.Remove(OnSelectObjectDelegateHandle);
 }
 
 void FLGUIEditorModule::RefreshSceneOutliner()
@@ -741,6 +743,8 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 
 void FLGUIEditorModule::OnSelectObject(UObject* newSelection)
 {
+	if (!ULGUIEditorManagerObject::CanExecuteSelectionConvert)return;
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	if (IsCalculatingSelection)return;//incase infinite recursive, because selection can change inside this function
 	IsCalculatingSelection = true;
 	//UE_LOG(LGUIEditor, Log, TEXT("SelectObject:%s"), *(((AActor*)newSelection)->GetActorLabel()));

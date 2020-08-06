@@ -64,4 +64,5 @@ private:
 	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
 	TWeakObjectPtr<AActor> LastSelectedActor;
 	void OnSelectObject(UObject* NewSelection);
+	FDelegateHandle OnSelectObjectDelegateHandle;
 };
