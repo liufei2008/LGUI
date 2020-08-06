@@ -543,9 +543,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 		if (bCanTickUpdate)//if Canvas is update from Tick, then update self's layout first
 		{
 			bCanTickUpdate = false;
-		}
-		if (bShouldUpdateLayout)
-		{
+
 			bool parentLayoutChanged = false;
 			UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, bShouldUpdateLayout);
 		}

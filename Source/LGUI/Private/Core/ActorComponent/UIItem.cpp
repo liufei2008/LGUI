@@ -678,20 +678,17 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpda
 	//update cache data
 	UpdateCachedDataBeforeGeometry();
 	//alpha
-	if (cacheForThisUpdate_ColorChanged)
+	if (this->inheritAlpha)
 	{
-		if (this->inheritAlpha)
+		if (IsValid(cacheParentUIItem))
 		{
-			if (IsValid(cacheParentUIItem))
-			{
-				auto tempAlpha = cacheParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[cacheParentUIItem->widget.color.A]);
-				this->SetCalculatedParentAlpha(tempAlpha);
-			}
+			auto tempAlpha = cacheParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[cacheParentUIItem->widget.color.A]);
+			this->SetCalculatedParentAlpha(tempAlpha);
 		}
-		else
-		{
-			this->SetCalculatedParentAlpha(1.0f);
-		}
+	}
+	else
+	{
+		this->SetCalculatedParentAlpha(1.0f);
 	}
 	//update geometry
 	UpdateGeometry(parentLayoutChanged);
