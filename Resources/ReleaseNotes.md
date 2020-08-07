@@ -254,3 +254,5 @@ Fix a crash when unload current level after use "Copy Component Values".
 Fix drawcall count error.
 Fix a crash when deserialize actor from prefab.
 Fix hierarchyIndex sort error.
+#### NewFeature:
+Add SCOPE_CYCLE_COUNTER to LGUIBehaviour's update function.
