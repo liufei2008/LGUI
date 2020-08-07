@@ -562,7 +562,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
 		}
 		//update layout and geometry
-		if (bCanTickUpdate)//if Canvas is update from Tick, then update self's layout first
+		if (bCanTickUpdate || bShouldUpdateLayout)//if Canvas is update from Tick, then update self's layout first
 		{
 			bCanTickUpdate = false;
 
