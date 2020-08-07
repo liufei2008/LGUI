@@ -134,8 +134,8 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 #endif
 	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
-	IsEditMode = !TargetWorld->IsGameWorld();
 #if WITH_EDITOR
+	IsEditMode = !TargetWorld->IsGameWorld();
 	if (IsEditMode)
 	{
 		ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get());
