@@ -357,7 +357,7 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 {
 	if (CheckCanvas())
 	{
-		if (!LGUIManager::IsSelected_Editor(this->GetOwner()))return;
+		if (!ULGUIEditorManagerObject::IsSelected(this->GetOwner()))return;
 		auto ViewProjectionMatrix = Canvas->GetViewProjectionMatrix();
 		FVector leftBottom, rightBottom, leftTop, rightTop;
 		FVector leftBottomEnd, rightBottomEnd, leftTopEnd, rightTopEnd;

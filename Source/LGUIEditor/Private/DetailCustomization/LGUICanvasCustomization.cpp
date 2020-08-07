@@ -241,7 +241,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
 	{
 		int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
-		auto& allCanvas = LGUIManager::GetAllCanvas(TargetScriptArray[0]->GetWorld());
+		auto& allCanvas = TargetScriptArray[0]->GetAllCanvasArray();
 		int allDrawcallCount = 0;
 		auto world = TargetScriptArray[0]->GetWorld();
 		for (ULGUICanvas* canvasItem : allCanvas)
@@ -283,7 +283,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 {
 	int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
-	auto& allCanvas = LGUIManager::GetAllCanvas(TargetScriptArray[0]->GetWorld());
+	auto& allCanvas = TargetScriptArray[0]->GetAllCanvasArray();
 	int allDrawcallCount = 0;
 	FString spaceText;
 	switch (TargetScriptArray[0]->renderMode)

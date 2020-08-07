@@ -198,21 +198,3 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ALGUIManagerActor* ManagerActor;
 };
-
-class LGUI_API LGUIManager
-{
-public:
-	static bool IsManagerValid(UWorld* InWorld);
-
-	static void AddUIItem(UUIItem* InItem);
-	static void RemoveUIItem(UUIItem* InItem);
-	static const TArray<UUIItem*>& GetAllUIItem(UWorld* InWorld);
-
-	static void AddCanvas(ULGUICanvas* InCanvas);
-	static void SortCanvasOnOrder(UWorld* InWorld);
-	static void RemoveCanvas(ULGUICanvas* InCanvas);
-	static const TArray<ULGUICanvas*>& GetAllCanvas(UWorld* InWorld);
-#if WITH_EDITOR
-	static bool IsSelected_Editor(AActor* InItem);
-#endif
-};
