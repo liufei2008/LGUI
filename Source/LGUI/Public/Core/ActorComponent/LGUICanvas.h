@@ -139,6 +139,8 @@ protected:
 	UPROPERTY(Transient) ULGUICanvas* ParentCanvas = nullptr;
 	//check parent Canvas. search for it if not valid
 	FORCEINLINE bool CheckParentCanvas();
+	const TArray<ULGUICanvas*>& GetAllCanvasArray();
+	void SortCanvasOnOrder();
 	//sort drawcall
 	void SortDrawcallRenderPriority();
 	//@param	return	drawcall count
