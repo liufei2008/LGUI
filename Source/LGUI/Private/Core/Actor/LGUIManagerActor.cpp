@@ -381,8 +381,12 @@ void ALGUIManagerActor::Tick_PrePhysics()
 	}
 	scriptExecutingType = ELGUIBehaviourScriptExecutingType::AfterStart;
 }
+
+DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATGROUP_LGUI);
+
 void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 {
+	SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourUpdate);
 	//update
 	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Update;
 	for (int i = 0; i < LGUIBehavioursForUpdate.Num(); i++)
