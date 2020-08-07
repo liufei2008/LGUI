@@ -58,11 +58,4 @@ private:
 	TSharedRef<SDockTab> HandleSpawnEventComponentSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnEventFunctionSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
-
-	TArray<FHitResult> CacheHitResultArray;
-	bool IsCalculatingSelection = false;
-	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
-	TWeakObjectPtr<AActor> LastSelectedActor;
-	void OnSelectObject(UObject* NewSelection);
-	FDelegateHandle OnSelectObjectDelegateHandle;
 };

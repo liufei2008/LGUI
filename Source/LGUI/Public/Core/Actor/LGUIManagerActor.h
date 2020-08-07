@@ -9,6 +9,7 @@
 #include "LGUIManagerActor.generated.h"
 
 class UUIItem;
+class UUIRenderable;
 class ULGUICanvas;
 class ULGUIBaseRaycaster;
 class UUISelectableComponent;
@@ -78,6 +79,13 @@ public:
 	static void AddActorForPrefabSystem(AActor* InActor);
 	static void RemoveActorForPrefabSystem(AActor* InActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
+
+	bool IsCalculatingSelection = false;
+	FDelegateHandle OnSelectObjectDelegateHandle;
+	TArray<FHitResult> CacheHitResultArray;
+	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
+	TWeakObjectPtr<AActor> LastSelectedActor;
+	void OnSelectObject(UObject* newSelection);
 #endif
 };
 
