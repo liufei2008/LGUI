@@ -68,8 +68,10 @@ public:
 	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
 
 private:
+#if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllActors_PrefabSystemProcessing;
+#endif
 public:
 	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);
 	static void EndPrefabSystemProcessingActor();

@@ -413,8 +413,8 @@ AActor* ActorCopier::CopyActorRecursive(AActor* Actor, USceneComponent* Parent, 
 AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Parent)
 {
 	TargetWorld = RootActor->GetWorld();
-	IsEditMode = !TargetWorld->IsGameWorld();
 #if WITH_EDITORONLY_DATA
+	IsEditMode = !TargetWorld->IsGameWorld();
 	if (IsEditMode)
 	{
 		ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get());

@@ -446,8 +446,6 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		//UE_LOG(LGUI, Error, TEXT("OnChildAttached:%s, registered:%d"), *(childUIItem->GetOwner()->GetActorLabel()), childUIItem->IsRegistered());
 		MarkLayoutDirty();
 		//hierarchy index
-		bool canLog = false;
-		if (this->GetOwner()->GetActorLabel().Left(1).IsNumeric())canLog = true;
 #if WITH_EDITORONLY_DATA
 		if (!GetWorld()->IsGameWorld())
 		{
