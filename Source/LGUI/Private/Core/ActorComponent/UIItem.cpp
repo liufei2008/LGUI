@@ -507,12 +507,13 @@ void UUIItem::OnRegister()
 {
 	Super::OnRegister();
 	//UE_LOG(LGUI, Error, TEXT("OnRegister:%s, registered:%d"), *(this->GetOwner()->GetActorLabel()), this->IsRegistered());
-	LGUIManager::AddUIItem(this);
-#if WITH_EDITORONLY_DATA
-	if (GetWorld())
+	if (auto world = this->GetWorld())
 	{
-		if (!GetWorld()->IsGameWorld())
+#if WITH_EDITOR
+		if (!world->IsGameWorld())
 		{
+			ULGUIEditorManagerObject::AddUIItem(this);
+			//create helper
 			if (!IsValid(HelperComp))
 			{
 				HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
@@ -520,8 +521,12 @@ void UUIItem::OnRegister()
 				HelperComp->SetupAttachment(this);
 			}
 		}
-	}
+		else
 #endif
+		{
+			ALGUIManagerActor::AddUIItem(this);
+		}
+	}
 
 #if WITH_EDITOR
 	//apply inactive actor's visibility state in editor scene outliner
@@ -537,8 +542,20 @@ void UUIItem::OnRegister()
 void UUIItem::OnUnregister()
 {
 	Super::OnUnregister();
-	LGUIManager::RemoveUIItem(this);
-#if WITH_EDITORONLY_DATA
+	if (auto world = this->GetWorld())
+	{
+#if WITH_EDITOR
+		if (!world->IsGameWorld())
+		{
+			ULGUIEditorManagerObject::RemoveUIItem(this);
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::RemoveUIItem(this);
+		}
+	}
+#if WITH_EDITOR
 	if (IsValid(HelperComp))
 	{
 		HelperComp->DestroyComponent();
@@ -1765,7 +1782,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 				{
 					bool canDraw = false;
 					FLinearColor DrawColor = FColor(128, 128, 128);//gray means normal object
-					if (LGUIManager::IsSelected_Editor(Component->GetOwner()))//select self
+					if (ULGUIEditorManagerObject::IsSelected(Component->GetOwner()))//select self
 					{
 						DrawColor = FColor(0, 255, 0);//green means selected object
 						extends += FVector(0, 0, 1);
@@ -1776,7 +1793,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 						//parent selected
 						if (IsValid(Component->GetParentAsUIItem()))
 						{
-							if (LGUIManager::IsSelected_Editor(Component->GetParentAsUIItem()->GetOwner()))
+							if (ULGUIEditorManagerObject::IsSelected(Component->GetParentAsUIItem()->GetOwner()))
 							{
 								canDraw = true;
 							}
@@ -1785,7 +1802,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 						const auto childrenCompArray = Component->GetAttachUIChildren();
 						for (auto uiComp : childrenCompArray)
 						{
-							if (LGUIManager::IsSelected_Editor(uiComp->GetOwner()))
+							if (ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
 							{
 								canDraw = true;
 								break;
@@ -1797,7 +1814,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 							const auto& sameLevelCompArray = Component->GetParentAsUIItem()->GetAttachUIChildren();
 							for (auto uiComp : sameLevelCompArray)
 							{
-								if (LGUIManager::IsSelected_Editor(uiComp->GetOwner()))
+								if (ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
 								{
 									canDraw = true;
 									break;

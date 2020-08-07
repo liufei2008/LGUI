@@ -55,11 +55,11 @@ void ULGUICanvas::BeginPlay()
 
 	if (this->IsDefaultSubobject())
 	{
-		LGUIManager::AddCanvas(this);
+		ALGUIManagerActor::AddCanvas(this);
 	}
 	else
 	{
-		LGUIManager::SortCanvasOnOrder(this->GetWorld());
+		ALGUIManagerActor::SortCanvasOnOrder();
 	}
 }
 void ULGUICanvas::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -87,11 +87,21 @@ void ULGUICanvas::OnRegister()
 {
 	Super::OnRegister();
 #if WITH_EDITOR
-	LGUIManager::AddCanvas(this);
+	if (auto world = this->GetWorld())
+	{
+		if (!world->IsGameWorld())
+		{
+			ULGUIEditorManagerObject::AddCanvas(this);
+		}
+		else
+		{
+			ALGUIManagerActor::AddCanvas(this);
+		}
+	}
 #else
 	if (!this->IsDefaultSubobject())//if is default subobject, then call AddCanvas in BeginPlay, because sortOrder value may not set if use PrefabSystem
 	{
-		LGUIManager::AddCanvas(this);
+		ALGUIManagerActor::AddCanvas(this);
 	}
 #endif
 	TopMostCanvas = nullptr;
@@ -102,7 +112,19 @@ void ULGUICanvas::OnRegister()
 void ULGUICanvas::OnUnregister()
 {
 	Super::OnUnregister();
-	LGUIManager::RemoveCanvas(this);
+	if (auto world = this->GetWorld())
+	{
+#if WITH_EDITOR
+		if (!world->IsGameWorld())
+		{
+			ULGUIEditorManagerObject::RemoveCanvas(this);
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::RemoveCanvas(this);
+		}
+	}
 }
 void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
@@ -736,10 +758,54 @@ void ULGUICanvas::UpdateCanvasGeometry()
 
 	bShouldRebuildAllDrawcall = false;
 }
+const TArray<ULGUICanvas*>& ULGUICanvas::GetAllCanvasArray()
+{
+	if (auto world = this->GetWorld())
+	{
+#if WITH_EDITOR
+		if (!world->IsGameWorld())
+		{
+			if (ULGUIEditorManagerObject::Instance != nullptr)
+			{
+				return ULGUIEditorManagerObject::Instance->GetAllCanvas();
+			}
+		}
+		else
+#endif
+		{
+			if (ALGUIManagerActor::Instance != nullptr)
+			{
+				return ALGUIManagerActor::Instance->GetAllCanvas();
+			}
+		}
+	}
+	return ALGUIManagerActor::Instance->GetAllCanvas();
+}
+void ULGUICanvas::SortCanvasOnOrder()
+{
+	if (auto world = this->GetWorld())
+	{
+#if WITH_EDITOR
+		if (!world->IsGameWorld())
+		{
+			if (ULGUIEditorManagerObject::Instance != nullptr)
+			{
+				ULGUIEditorManagerObject::SortCanvasOnOrder();
+			}
+		}
+		else
+#endif
+		{
+			if (ALGUIManagerActor::Instance != nullptr)
+			{
+				ALGUIManagerActor::SortCanvasOnOrder();
+			}
+		}
+	}
+}
 void ULGUICanvas::SortDrawcallRenderPriority()
 {
-	if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-	auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
+	auto& allCanvasArray = GetAllCanvasArray();
 	if (allCanvasArray.Num() == 0)return;
 	//set drawcall render order
 	int32 startRenderPriority = 0;
@@ -1038,22 +1104,19 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 		MarkCanvasUpdate();
 		if (propagateToChildrenCanvas)
 		{
-			if (LGUIManager::IsManagerValid(this->GetWorld()))
+			auto& allCanvasArray = GetAllCanvasArray();
+			for (ULGUICanvas* itemCanvas : allCanvasArray)
 			{
-				auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
-				for (ULGUICanvas* itemCanvas : allCanvasArray)
+				if (IsValid(itemCanvas))
 				{
-					if (IsValid(itemCanvas))
+					if (itemCanvas->UIItem->IsAttachedTo(this->UIItem))
 					{
-						if (itemCanvas->UIItem->IsAttachedTo(this->UIItem))
-						{
-							itemCanvas->sortOrder += diff;
-						}
+						itemCanvas->sortOrder += diff;
 					}
 				}
 			}
 		}
-		LGUIManager::SortCanvasOnOrder(this->GetWorld());
+		SortCanvasOnOrder();
 		SortDrawcallRenderPriority();
 	}
 }
@@ -1062,8 +1125,8 @@ void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanva
 	if (CheckTopMostCanvas())
 	{
 		int32 maxSortOrder = 0;
-		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
+		auto& allCanvasArray = GetAllCanvasArray();
+		if (allCanvasArray.Num() == 0)return;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
 			if (IsValid(itemCanvas))
@@ -1085,9 +1148,8 @@ void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas
 {
 	if (CheckTopMostCanvas())
 	{
-		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
-
+		auto& allCanvasArray = GetAllCanvasArray();
+		if (allCanvasArray.Num() == 0)return;
 		int32 minSortOrder = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
@@ -1110,9 +1172,8 @@ void ULGUICanvas::SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas)
 {
 	if (CheckTopMostCanvas())
 	{
-		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
-
+		auto& allCanvasArray = GetAllCanvasArray();
+		if (allCanvasArray.Num() == 0)return;
 		int32 maxSortOrder = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
@@ -1135,9 +1196,8 @@ void ULGUICanvas::SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas)
 {
 	if (CheckTopMostCanvas())
 	{
-		if (!LGUIManager::IsManagerValid(this->GetWorld()))return;
-		auto& allCanvasArray = LGUIManager::GetAllCanvas(this->GetWorld());
-
+		auto& allCanvasArray = GetAllCanvasArray();
+		if (allCanvasArray.Num() == 0)return;
 		int32 minDepth = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
