@@ -11,7 +11,7 @@ FReply SLGUISceneOutlinerButton::OnButtonClicked()
 	if (_TreeItemActor.IsValid(false))
 	{
 		GEditor->SelectNone(true, false);
-		GEditor->SelectActor(_TreeItemActor.Get(), true, true);
+		GEditor->SelectActor(_TreeItemActor.Get(), true, false);
 		SetIsOpen(ShouldOpenDueToClick(), false);
 
 		// If the menu is open, execute the related delegate.

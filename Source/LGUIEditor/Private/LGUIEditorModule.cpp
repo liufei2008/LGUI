@@ -744,16 +744,15 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 void FLGUIEditorModule::OnSelectObject(UObject* newSelection)
 {
 	if (!ULGUIEditorManagerObject::CanExecuteSelectionConvert)return;
-	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	if (IsCalculatingSelection)return;//incase infinite recursive, because selection can change inside this function
 	IsCalculatingSelection = true;
-	//UE_LOG(LGUIEditor, Log, TEXT("SelectObject:%s"), *(((AActor*)newSelection)->GetActorLabel()));
 
 	if (auto selectedCanvasActor = Cast<AUIBaseActor>(newSelection))
 	{
 		if (auto canvas = selectedCanvasActor->FindComponentByClass<ULGUICanvas>())
 		{
-			auto& allUIItems = LGUIManager::GetAllUIItem(selectedCanvasActor->GetWorld());
+			auto world = selectedCanvasActor->GetWorld();
+			auto& allUIItems = LGUIManager::GetAllUIItem(world);
 			if (GEditor)
 			{
 				if (auto viewport = GEditor->GetActiveViewport())
@@ -770,22 +769,25 @@ void FLGUIEditorModule::OnSelectObject(UObject* newSelection)
 					CacheHitResultArray.Reset();
 					for (auto uiItem : allUIItems)
 					{
-						if (auto uiRenderable = Cast<UUIRenderable>(uiItem))
+						if (uiItem->GetWorld() == world)
 						{
-							FHitResult hitInfo;
-							auto originRaycastComplex = uiRenderable->GetRaycastComplex();
-							auto originRaycastTarget = uiRenderable->IsRaycastTarget();
-							uiRenderable->SetRaycastComplex(true);//in editor selection, make the ray hit actural triangle
-							uiRenderable->SetRaycastTarget(true);
-							if (uiRenderable->LineTraceUI(hitInfo, lineStart, lineEnd))
+							if (auto uiRenderable = Cast<UUIRenderable>(uiItem))
 							{
-								if (uiRenderable->GetRenderCanvas()->IsPointVisible(hitInfo.Location))
+								FHitResult hitInfo;
+								auto originRaycastComplex = uiRenderable->GetRaycastComplex();
+								auto originRaycastTarget = uiRenderable->IsRaycastTarget();
+								uiRenderable->SetRaycastComplex(true);//in editor selection, make the ray hit actural triangle
+								uiRenderable->SetRaycastTarget(true);
+								if (uiRenderable->LineTraceUI(hitInfo, lineStart, lineEnd))
 								{
-									CacheHitResultArray.Add(hitInfo);
+									if (uiRenderable->GetRenderCanvas()->IsPointVisible(hitInfo.Location))
+									{
+										CacheHitResultArray.Add(hitInfo);
+									}
 								}
+								uiRenderable->SetRaycastComplex(originRaycastComplex);
+								uiRenderable->SetRaycastTarget(originRaycastTarget);
 							}
-							uiRenderable->SetRaycastComplex(originRaycastComplex);
-							uiRenderable->SetRaycastTarget(originRaycastTarget);
 						}
 					}
 					if (CacheHitResultArray.Num() > 0)//hit something
