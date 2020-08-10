@@ -700,7 +700,6 @@ void UUIItem::UnregisterLayoutChange(const FSimpleDelegate& InDelegate)
 
 bool UUIItem::CheckRenderCanvas()
 {
-	if (this->GetWorld() == nullptr)return false;
 	if (IsValid(RenderCanvas))return true;
 	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner());
 	if (IsValid(RenderCanvas))
