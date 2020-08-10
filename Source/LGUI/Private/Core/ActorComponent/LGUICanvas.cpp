@@ -104,10 +104,12 @@ void ULGUICanvas::OnRegister()
 		ALGUIManagerActor::AddCanvas(this);
 	}
 #endif
-	TopMostCanvas = nullptr;
 	OnUIHierarchyChanged();
-	CheckTopMostCanvas();
-	CheckParentCanvas();
+	//tell UIItem
+	if (CheckUIItem())
+	{
+		UIItem->UIHierarchyChanged();
+	}
 }
 void ULGUICanvas::OnUnregister()
 {
@@ -124,6 +126,12 @@ void ULGUICanvas::OnUnregister()
 		{
 			ALGUIManagerActor::RemoveCanvas(this);
 		}
+	}
+	OnUIHierarchyChanged();
+	//tell UIItem
+	if (IsValid(UIItem))
+	{
+		UIItem->UIHierarchyChanged();
 	}
 }
 void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
@@ -185,8 +193,8 @@ bool ULGUICanvas::CheckUIItem()
 void ULGUICanvas::OnUIHierarchyChanged()
 {
 	//recheck top most canvas
-	auto oldTopMostCanvas = TopMostCanvas;
-	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
+	TopMostCanvas = nullptr;
+	CheckTopMostCanvas();
 
 	bool oldIsRenderToRenderTargetOrWorld = currentIsRenderToRenderTargetOrWorld;
 	if (IsValid(TopMostCanvas))
