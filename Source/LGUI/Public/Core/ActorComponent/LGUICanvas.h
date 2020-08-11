@@ -107,6 +107,11 @@ public:
 	FMatrix GetViewRotationMatrix();
 	FRotator GetViewRotator();
 	FIntPoint GetViewportSize();
+	//get scale value of canvas. only valid for root canvas.
+	FORCEINLINE float GetCanvasScale() { return canvasScale; }
+private:
+	friend class ULGUICanvasScaler;
+	float canvasScale = 1.0f;//screen size / root canvas size
 public:
 	//get top most LGUICanvas on hierarchy
 	ULGUICanvas* GetRootCanvas();
