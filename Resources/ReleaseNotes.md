@@ -256,3 +256,7 @@ Fix a crash when deserialize actor from prefab.
 Fix hierarchyIndex sort error.
 #### NewFeature:
 Add SCOPE_CYCLE_COUNTER to LGUIBehaviour's update function.
+## 2.8.5
+#### Fix:
+Fix a crash when delete LGUICanvas.
+Fix pixel perfect calculation issue caused by 2.8.2 version.
