@@ -266,6 +266,10 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 							break;
 						}
 					}
+					if (viewport == nullptr)
+					{
+						viewport = GEditor->GetActiveViewport();
+					}
 					if (viewport != nullptr)
 					{
 						auto prevSize = ViewportSize;
