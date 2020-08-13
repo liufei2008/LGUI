@@ -12,8 +12,7 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-		if (Property->GetFName() != GET_MEMBER_NAME_CHECKED(ULGUISettings, defaultTraceChannel)
-			&& Property->GetFName() != GET_MEMBER_NAME_CHECKED(ULGUISettings, maxCanvasUpdateTimeInOneFrame))
+		if (Property->GetFName() != GET_MEMBER_NAME_CHECKED(ULGUISettings, defaultTraceChannel))
 		{
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
 			ULGUIAtlasManager::InitCheck();

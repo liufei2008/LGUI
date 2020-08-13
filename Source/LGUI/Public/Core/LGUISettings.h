@@ -67,10 +67,6 @@ public:
 	//new created uiitem will use this trace channel;
 	UPROPERTY(EditAnywhere, config, Category = "LGUI")
 		TEnumAsByte<ETraceTypeQuery> defaultTraceChannel = TraceTypeQuery3;
-	//if LGUICanvas update times is greater than this in single frame, than a warning will show in Ouput Log, that means something not good.
-	//do not change this unless you know what you doing.
-	UPROPERTY(EditAnywhere, config, Category = "LGUI")
-		int32 maxCanvasUpdateTimeInOneFrame = 10;
 	//default ActorComponent execute order is not predictable, but sometimes we need some components to exeucte as we want.
 	//this array can make our LGUIBehaviour's lifecycle functions/events execute by the order we want, smaller index will execute earlier.
 	//eg. if we need class A execute earlier than class B, then we put class B under class A in the array blow. so the execute order is: Awake(A)-->Awake(B)-->OnEnable(A)-->OnEnable(B)-->Start(A)-->Start(B)-->Update(A)-->Update(B)
