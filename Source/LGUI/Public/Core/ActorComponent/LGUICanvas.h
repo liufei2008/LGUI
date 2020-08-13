@@ -76,9 +76,16 @@ public:
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
-public:
+private:
+	//children canvas array, for update children's geometry
+	UPROPERTY(Transient) TArray<ULGUICanvas*> childrenCanvasArray;
+	//for top most canvas only
+	void UpdateTopMostCanvas();
+	//update canvas's layout
+	void UpdateCanvasLayout(bool parentLayoutChanged);
 	//update Canvas's geometry
 	void UpdateCanvasGeometry();
+public:
 	//mark update this Canvas. Canvas dont need to update every frame, only when need to
 	void MarkCanvasUpdate();
 	//mark any child's layout change
@@ -311,9 +318,10 @@ private:
 	uint8 bCanTickUpdate:1;//if Canvas can update from tick
 	uint8 bShouldUpdateLayout:1;//if any child layout changed
 	uint8 bShouldRebuildAllDrawcall:1;//if Canvas need to rebuild all drawcall
-
 	uint8 bRectRangeCalculated:1;
 
+	uint8 cacheForThisUpdate_ShouldRebuildAllDrawcall : 1, cacheForThisUpdate_ShouldUpdateLayout:1
+		, cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
 	//prev frame number, we can tell if we enter to a new render frame
 	uint32 prevFrameNumber = 0;
 

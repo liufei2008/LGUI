@@ -76,9 +76,10 @@ void ULGUICanvas::CustomTick(float DeltaTime)
 {
 	if (bCanTickUpdate)
 	{
+		bCanTickUpdate = false;
 		if (CheckUIItem() && UIItem->IsUIActiveInHierarchy())
 		{
-			this->UpdateCanvasGeometry();
+			this->UpdateTopMostCanvas();
 		}
 	}
 }
@@ -267,9 +268,9 @@ bool ULGUICanvas::IsRenderToWorldSpace()
 
 void ULGUICanvas::MarkCanvasUpdate()
 {
+	this->bCanTickUpdate = true;
 	if (CheckTopMostCanvas())
 	{
-		this->bCanTickUpdate = false;//if need upper Canvas to update, then this Canvas don't need to, because upper Canvas will go down hierarchy to update this Canvas
 		TopMostCanvas->bCanTickUpdate = true;//incase this Canvas's parent have layout component, so mark TopMostCanvas to update
 	}
 }
@@ -456,31 +457,6 @@ TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewEx
 	return ViewExtension;
 }
 
-void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged)
-{
-	const auto& childrenList = target->GetAttachChildren();
-	for (auto child : childrenList)
-	{
-		auto uiChild = Cast<UUIItem>(child);
-		if (IsValid(uiChild))
-		{
-			if (uiChild->IsUIActiveInHierarchy() == false)continue;
-
-			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()))
-			{
-				uiChild->GetRenderCanvas()->bCanTickUpdate = false;
-				uiChild->GetRenderCanvas()->UpdateCanvasGeometry();
-			}
-			else
-			{
-				auto layoutChanged = parentLayoutChanged;
-				uiChild->UpdateLayoutAndGeometry(layoutChanged, bShouldUpdateLayout);
-				UpdateChildRecursive(uiChild, layoutChanged);
-			}			
-		}
-	}
-}
-
 void ULGUICanvas::AddUIRenderable(UUIRenderable* InUIRenderable)
 {
 	InsertIntoDrawcall(InUIRenderable);
@@ -546,87 +522,79 @@ void ULGUICanvas::RemoveFromDrawcall(UUIRenderable* item)
 
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
-
-void ULGUICanvas::UpdateCanvasGeometry()
+void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged)
 {
-	if (!CheckUIItem())return;
-	if (!IsValid(TopMostCanvas))return;
-	if (prevFrameNumber == GFrameNumber)
+	const auto& childrenList = target->GetAttachChildren();
+	for (auto child : childrenList)
 	{
-		return;//ignore if not at new render frame
-	}
-	prevFrameNumber = GFrameNumber;
-	
-	int updateCountOfThisFrame = 0;
-	//update geometry
-	{
-	UPDATE_GEOMETRY:
-		SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
-		updateCountOfThisFrame++;
-		
-		//update first Canvas
-		if (TopMostCanvas == this)
+		auto uiChild = Cast<UUIItem>(child);
+		if (IsValid(uiChild))
 		{
-			UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
-		}
-		//update layout and geometry
-		if (bCanTickUpdate || bShouldUpdateLayout)//if Canvas is update from Tick, then update self's layout first
-		{
-			bCanTickUpdate = false;
+			if (uiChild->IsUIActiveInHierarchy() == false)continue;
 
-			bool parentLayoutChanged = false;
-			UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, bShouldUpdateLayout);
-		}
-
-		const auto& childrenList = UIItem->GetAttachChildren();
-		for (auto child : childrenList)
-		{
-			auto uiChild = Cast<UUIItem>(child);
-			if (IsValid(uiChild))
+			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()))
 			{
-				if (uiChild->IsUIActiveInHierarchy() == false)continue;
-
-				if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()))
-				{
-					uiChild->GetRenderCanvas()->bCanTickUpdate = false;
-					uiChild->GetRenderCanvas()->UpdateCanvasGeometry();
-				}
-				else
-				{
-					bool layoutChanged = UIItem->cacheForThisUpdate_LayoutChanged;
-					uiChild->UpdateLayoutAndGeometry(layoutChanged, bShouldUpdateLayout);
-					UpdateChildRecursive(uiChild, layoutChanged);
-				}
-			}
-		}
-		
-		if (bCanTickUpdate)
-		{
-#if WITH_EDITOR
-			int32 maxCanvasUpdateTimeInOneFrame = GetDefault<ULGUISettings>()->maxCanvasUpdateTimeInOneFrame;
-#else
-			static int32 maxCanvasUpdateTimeInOneFrame = GetDefault<ULGUISettings>()->maxCanvasUpdateTimeInOneFrame;
-#endif
-			if (updateCountOfThisFrame < maxCanvasUpdateTimeInOneFrame)
-			{
-				goto UPDATE_GEOMETRY;
+				uiChild->GetRenderCanvas()->UpdateCanvasLayout(parentLayoutChanged);
+				childrenCanvasArray.Add(uiChild->GetRenderCanvas());
 			}
 			else
 			{
-				if (GetOwner())
-				{
-					UE_LOG(LGUI, Warning, TEXT("LGUICanvas:%s, update geometry more than %d times in one frame, this is weird, must be something wrong.\
-						But if you absolutely understand how this LGUICanvas work, you can increase the \"maxCanvasUpdateTimeInOneFrame\" in LGUISettings, so this warning will be gone.")
-						, *(GetOwner()->GetPathName()), updateCountOfThisFrame);
-				}
+				auto layoutChanged = parentLayoutChanged;
+				uiChild->UpdateLayoutAndGeometry(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
+				UpdateChildRecursive(uiChild, layoutChanged);
 			}
 		}
 	}
+}
+void ULGUICanvas::UpdateCanvasLayout(bool parentLayoutChanged)
+{
+	cacheForThisUpdate_ShouldRebuildAllDrawcall = bShouldRebuildAllDrawcall;
+	cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout;
+	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
+	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged;
+	cacheForThisUpdate_TextureClipParameterChanged = bTextureClipParameterChanged;
+	bShouldRebuildAllDrawcall = false;
+	bShouldUpdateLayout = false;
+	bClipTypeChanged = false;
+	bRectClipParameterChanged = false;
+	bTextureClipParameterChanged = false;
 
+	childrenCanvasArray.Reset();
+	//update layout and geometry
+	UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
+
+	UpdateChildRecursive(UIItem, UIItem->cacheForThisUpdate_LayoutChanged);
+
+	if (bShouldRebuildAllDrawcall)cacheForThisUpdate_ShouldRebuildAllDrawcall = true;
+}
+void ULGUICanvas::UpdateTopMostCanvas()
+{
+	SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
+	if (this != TopMostCanvas) return;
+	//update first Canvas
+	if (TopMostCanvas == this)
 	{
-		//draw triangle
+		UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
+	}
+
+	UpdateCanvasLayout(false);
+	if (prevFrameNumber != GFrameNumber)//ignore if not at new render frame
+	{
+		prevFrameNumber = GFrameNumber;
+		UpdateCanvasGeometry();
+	}
+}
+void ULGUICanvas::UpdateCanvasGeometry()
+{
+	for (auto item : childrenCanvasArray)
+	{
+		item->UpdateCanvasGeometry();
+	}
+
+	//draw triangle
+	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
-		if (bShouldRebuildAllDrawcall)
+		if (cacheForThisUpdate_ShouldRebuildAllDrawcall)
 		{
 			LGUIUtils::SortUIItemDepth(UIRenderableItemList);//sort on depth
 			LGUIUtils::CreateDrawcallFast(UIRenderableItemList, UIDrawcallList);//create drawcall
@@ -758,13 +726,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 
 
 	//this frame is complete
-	bClipTypeChanged = false;
-	bRectClipParameterChanged = false;
-	bTextureClipParameterChanged = false;
 	bRectRangeCalculated = false;
-	bShouldUpdateLayout = false;
-
-	bShouldRebuildAllDrawcall = false;
 }
 const TArray<ULGUICanvas*>& ULGUICanvas::GetAllCanvasArray()
 {
@@ -869,7 +831,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 {
 	int drawcallCount = UIDrawcallList.Num();
 	//if clip type change, or need to rebuild all drawcall, then recreate material
-	if (bClipTypeChanged || bShouldRebuildAllDrawcall)
+	if (cacheForThisUpdate_ClipTypeChanged || cacheForThisUpdate_ShouldRebuildAllDrawcall)
 	{
 		UIMaterialList.Reset();
 	}
@@ -878,7 +840,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 	auto tempClipType = GetClipType();
 	if (materialCount < drawcallCount)
 	{
-		bClipTypeChanged = true;//mark to true, set materials clip property
+		cacheForThisUpdate_ClipTypeChanged = true;//mark to true, set materials clip property
 		UIMaterialList.AddUninitialized(drawcallCount - materialCount);
 		auto matArray = GetMaterials();
 		for (int i = materialCount; i < drawcallCount; i++)
@@ -915,7 +877,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 			uiDrawcall->materialInstanceDynamic = uiMat;
 		}
 	}
-	if (bShouldRebuildAllDrawcall)
+	if (cacheForThisUpdate_ShouldRebuildAllDrawcall)
 	{
 		for (int i = 0; i < drawcallCount; i++)//set material property
 		{
@@ -938,7 +900,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 	break;
 	case ELGUICanvasClipType::Rect:
 	{
-		if (bClipTypeChanged || bRectClipParameterChanged)
+		if (cacheForThisUpdate_ClipTypeChanged || cacheForThisUpdate_RectClipParameterChanged)
 		{
 			SetParameterForRectClip(drawcallCount);
 		}
@@ -946,7 +908,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 	break;
 	case ELGUICanvasClipType::Texture:
 	{
-		if (bClipTypeChanged || bTextureClipParameterChanged)
+		if (cacheForThisUpdate_ClipTypeChanged || cacheForThisUpdate_TextureClipParameterChanged)
 		{
 			SetParameterForTextureClip(drawcallCount);
 		}
