@@ -21,7 +21,7 @@ public:
 	static void DeleteActor(AActor* Target, bool WithHierarchy = true);
 	//Find first component of type T from InActor, if not found go up hierarchy until found
 	template<class T>
-	static T* GetComponentInParent(AActor* InActor)
+	static T* GetComponentInParent(AActor* InActor, bool IncludeUnregisteredComponent = true)
 	{
 		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to FindComponentUpHierarchy must be derived from UActorComponent");
 		T* resultComp = nullptr;
@@ -31,12 +31,19 @@ public:
 			resultComp = parentActor->FindComponentByClass<T>();
 			if (IsValid(resultComp))
 			{
-				return resultComp;
+				if (resultComp->IsRegistered())
+				{
+					return resultComp;
+				}
+				else
+				{
+					if (IncludeUnregisteredComponent)
+					{
+						return resultComp;
+					}
+				}
 			}
-			else
-			{
-				parentActor = parentActor->GetAttachParentActor();
-			}
+			parentActor = parentActor->GetAttachParentActor();
 		}
 		return nullptr;
 	}
