@@ -105,11 +105,10 @@ void ULGUICanvas::OnRegister()
 		ALGUIManagerActor::AddCanvas(this);
 	}
 #endif
-	OnUIHierarchyChanged();
 	//tell UIItem
 	if (CheckUIItem())
 	{
-		UIItem->UIHierarchyChanged();
+		UIItem->CanvasAddedOrRemoved(true);
 	}
 }
 void ULGUICanvas::OnUnregister()
@@ -128,11 +127,10 @@ void ULGUICanvas::OnUnregister()
 			ALGUIManagerActor::RemoveCanvas(this);
 		}
 	}
-	OnUIHierarchyChanged();
 	//tell UIItem
 	if (IsValid(UIItem))
 	{
-		UIItem->UIHierarchyChanged();
+		UIItem->CanvasAddedOrRemoved(false);
 	}
 }
 void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)

@@ -110,6 +110,7 @@ public:
 protected:
 	//UIItem's hierarchy changed
 	virtual void UIHierarchyChanged();
+	void CanvasAddedOrRemoved(bool addOrRemove);
 	//@param return		true if size changed, else false
 	bool CalculateLayoutRelatedParameters();
 	//update render geometry
