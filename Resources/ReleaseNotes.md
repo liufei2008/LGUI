@@ -260,3 +260,6 @@ Add SCOPE_CYCLE_COUNTER to LGUIBehaviour's update function.
 #### Fix:
 Fix a crash when delete LGUICanvas.
 Fix pixel perfect calculation issue caused by 2.8.2 version.
+Fix: add or remove canvas not update correctly.
+#### Change:
+Change LGUICanvas's update methold. Basicall the old methold will update hierarchy multiple times in one frame, new method will update in multiple frames, this is more stable.
