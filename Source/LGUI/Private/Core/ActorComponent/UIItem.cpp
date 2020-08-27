@@ -653,7 +653,12 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 	}
 	if (IsValid(NewCanvas))
 	{
+		isCanvasUIItem = (this->GetOwner() == NewCanvas->GetOwner());
 		NewCanvas->MarkCanvasUpdate();
+	}
+	else
+	{
+		isCanvasUIItem = false;
 	}
 }
 
