@@ -145,6 +145,7 @@ protected:
 	bool currentIsRenderToRenderTargetOrWorld = false;
 	//top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it
 	UPROPERTY(Transient) ULGUICanvas* TopMostCanvas = nullptr;
+	void CheckRenderMode();
 	//chekc TopMostCanvas. search for it if not valid
 	FORCEINLINE bool CheckTopMostCanvas();
 	//nearest up parent Canvas
