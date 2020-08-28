@@ -110,7 +110,6 @@ void ULGUICanvas::OnRegister()
 	if (CheckUIItem())
 	{
 		UIItem->UIHierarchyChanged();
-		UIItem->CanvasAddedOrRemoved(true);
 	}
 }
 void ULGUICanvas::OnUnregister()
@@ -134,7 +133,6 @@ void ULGUICanvas::OnUnregister()
 	if (IsValid(UIItem))
 	{
 		UIItem->UIHierarchyChanged();
-		UIItem->CanvasAddedOrRemoved(false);
 	}
 }
 void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
@@ -192,13 +190,8 @@ bool ULGUICanvas::CheckUIItem()
 		return true;
 	}
 }
-
-void ULGUICanvas::OnUIHierarchyChanged()
+void ULGUICanvas::CheckRenderMode()
 {
-	//recheck top most canvas
-	TopMostCanvas = nullptr;
-	CheckTopMostCanvas();
-
 	bool oldIsRenderToRenderTargetOrWorld = currentIsRenderToRenderTargetOrWorld;
 	if (IsValid(TopMostCanvas))
 	{
@@ -219,6 +212,14 @@ void ULGUICanvas::OnUIHierarchyChanged()
 		}
 		UIMeshList.Reset();
 	}
+}
+void ULGUICanvas::OnUIHierarchyChanged()
+{
+	//recheck top most canvas
+	TopMostCanvas = nullptr;
+	CheckTopMostCanvas();
+
+	CheckRenderMode();
 
 	ParentCanvas = nullptr;
 	CheckParentCanvas();
@@ -533,8 +534,7 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged
 		if (IsValid(uiChild))
 		{
 			if (uiChild->IsUIActiveInHierarchy() == false)continue;
-
-			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()))
+			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()) && uiChild->GetRenderCanvas() != this)
 			{
 				uiChild->GetRenderCanvas()->UpdateCanvasLayout(parentLayoutChanged);
 				childrenCanvasArray.Add(uiChild->GetRenderCanvas());

@@ -632,21 +632,6 @@ void UUIItem::UIHierarchyChanged()
 		}
 	}
 }
-void UUIItem::CanvasAddedOrRemoved(bool addOrRemove)
-{
-	auto oldRenderCanvas = RenderCanvas;
-
-	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner(), false);
-	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
-	{
-		OnRenderCanvasChanged(oldRenderCanvas, RenderCanvas);
-	}
-
-	for (auto uiItem : cacheUIChildren)
-	{
-		uiItem->CanvasAddedOrRemoved(addOrRemove);
-	}
-}
 void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
 	if (IsValid(OldCanvas))
@@ -723,7 +708,7 @@ void UUIItem::UnregisterLayoutChange(const FSimpleDelegate& InDelegate)
 bool UUIItem::CheckRenderCanvas()
 {
 	if (IsValid(RenderCanvas))return true;
-	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner());
+	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner(), false);
 	if (IsValid(RenderCanvas))
 	{
 		isCanvasUIItem = (this->GetOwner() == RenderCanvas->GetOwner());
