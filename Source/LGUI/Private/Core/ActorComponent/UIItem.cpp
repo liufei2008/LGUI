@@ -582,12 +582,13 @@ void UUIItem::UIHierarchyChanged()
 	{
 		OnRenderCanvasChanged(oldRenderCanvas, RenderCanvas);
 	}
-	MarkLayoutDirty();
 
 	for (auto uiItem : cacheUIChildren)
 	{
 		uiItem->UIHierarchyChanged();
 	}
+
+	MarkLayoutDirty();
 
 	cacheParentUIItem = nullptr;
 	GetParentAsUIItem();

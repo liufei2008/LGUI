@@ -64,22 +64,22 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FVector>& originPositi
 	for (int i = 0; i < vertArray.Num(); i++)
 	{
 		int vertIndex = vertArray[i];
-		auto item = originPositions[vertIndex];
+		auto originPos = originPositions[vertIndex];
 
-		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(item);
+		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(originPos);
 		canvasSpaceLocation.X += halfCanvasWidth;
 		canvasSpaceLocation.Y += halfCanvasHeight;
 		float screenSpaceLocationX = canvasSpaceLocation.X * rootCanvasScale;
 		float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
-		item.X = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
-		item.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
-		item.X -= halfCanvasWidth;
-		item.Y -= halfCanvasHeight;
+		canvasSpaceLocation.X = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
+		canvasSpaceLocation.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
+		canvasSpaceLocation.X -= halfCanvasWidth;
+		canvasSpaceLocation.Y -= halfCanvasHeight;
 
-		originPositions[vertIndex] = canvasToComponentTransform.TransformPosition(item);
+		originPositions[vertIndex] = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
 	}
 }
-void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TArray<int>& firstVertIndexOfChar_Array, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TArray<int>& lastVertCountNumberOfChar_Array, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
 	auto canvasUIItem = renderCanvas->GetRootCanvas()->CheckAndGetUIItem();
@@ -92,35 +92,46 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TA
 	componentToCanvasTransform = uiComp->GetComponentTransform() * canvasUIItem->GetComponentTransform().Inverse();
 	FTransform canvasToComponentTransform = componentToCanvasTransform.Inverse();
 
-	int indexOf_FirstVertIndexOfChar = 0;
-	for (int vertStartIndex = 0, count = originPositions.Num(), vertEndIndex = firstVertIndexOfChar_Array[indexOf_FirstVertIndexOfChar]
+	int indexOf_LastVertCountNumberOfChar = 0;
+	for (int vertStartIndex = 0, count = originPositions.Num(), vertEndIndex = lastVertCountNumberOfChar_Array[indexOf_LastVertCountNumberOfChar]
 		; vertStartIndex < count;)
 	{
-		indexOf_FirstVertIndexOfChar++;
-		if (indexOf_FirstVertIndexOfChar >= firstVertIndexOfChar_Array.Num())
+		indexOf_LastVertCountNumberOfChar++;
+		if (indexOf_LastVertCountNumberOfChar >= lastVertCountNumberOfChar_Array.Num())
 		{
 			vertEndIndex = count;
 		}
 		else
 		{
-			vertEndIndex = firstVertIndexOfChar_Array[indexOf_FirstVertIndexOfChar];
+			vertEndIndex = lastVertCountNumberOfChar_Array[indexOf_LastVertCountNumberOfChar];
 		}
 
-		for (int i = vertStartIndex; i < vertEndIndex; i++)
+		//calculate first vert
+		float offsetX, offsetY;
 		{
-			auto item = originPositions[i];
+			auto originPos = originPositions[vertStartIndex];
 
-			auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(item);
+			auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(originPos);
 			canvasSpaceLocation.X += halfCanvasWidth;
 			canvasSpaceLocation.Y += halfCanvasHeight;
 			float screenSpaceLocationX = canvasSpaceLocation.X * rootCanvasScale;
 			float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
-			item.X = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
-			item.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
-			item.X -= halfCanvasWidth;
-			item.Y -= halfCanvasHeight;
+			canvasSpaceLocation.X = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
+			canvasSpaceLocation.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
+			canvasSpaceLocation.X -= halfCanvasWidth;
+			canvasSpaceLocation.Y -= halfCanvasHeight;
 
-			originPositions[i] = canvasToComponentTransform.TransformPosition(item);
+			auto newPos = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
+			originPositions[vertStartIndex] = newPos;
+			offsetX = newPos.X - originPos.X;
+			offsetY = newPos.Y - originPos.Y;
+		}
+
+		for (int i = vertStartIndex + 1; i < vertEndIndex; i++)
+		{
+			auto& originPos = originPositions[i];
+			originPos.X += offsetX;
+			originPos.Y += offsetY;
 		}
 
 		vertStartIndex = vertEndIndex;
@@ -2369,8 +2380,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
 
-	static TArray<int> firstVertIndexOfChar_Array;//for pixel perfect adjust, first vertex_position_index of a char, in originPosition's array
-	firstVertIndexOfChar_Array.Reset();
+	static TArray<int> lastVertCountNumberOfChar_Array;//for pixel perfect adjust, last vertex_count_number of a char, in originPosition's array
+	lastVertCountNumberOfChar_Array.Reset();
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	float boldSize = fontSize * font->boldRatio;
@@ -2860,7 +2871,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					//snap pixel
 					if (pixelPerfect)
 					{
-						firstVertIndexOfChar_Array.Add(verticesCount);
+						lastVertCountNumberOfChar_Array.Add(verticesCount);
 					}
 				}
 				//uv
@@ -3141,7 +3152,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					//snap pixel
 					if (pixelPerfect)
 					{
-						firstVertIndexOfChar_Array.Add(verticesCount);
+						lastVertCountNumberOfChar_Array.Add(verticesCount);
 					}
 				}
 				//uv
@@ -3417,7 +3428,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	//snap pixel
 	if (pixelPerfect)
 	{
-		AdjustPixelPerfectPos_For_UIText(originPositions, firstVertIndexOfChar_Array, renderCanvas, uiComp);
+		AdjustPixelPerfectPos_For_UIText(originPositions, lastVertCountNumberOfChar_Array, renderCanvas, uiComp);
 	}
 }
 

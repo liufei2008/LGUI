@@ -204,7 +204,7 @@ void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TS
 void LGUIUtils::FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 {
 	if (!IsValid(actor))return;
-	auto tempComp = GetComponentInParent<ULGUICanvas>(actor);
+	auto tempComp = GetComponentInParent<ULGUICanvas>(actor, false);
 	if (tempComp != nullptr)
 	{
 		resultCanvas = tempComp;
@@ -223,7 +223,7 @@ void LGUIUtils::FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 	auto parentActor = actor->GetAttachParentActor();
 	if (parentActor != nullptr)
 	{
-		auto tempComp = GetComponentInParent<ULGUICanvas>(parentActor);
+		auto tempComp = GetComponentInParent<ULGUICanvas>(parentActor, false);
 		if (tempComp != nullptr)
 		{
 			resultCanvas = tempComp;
