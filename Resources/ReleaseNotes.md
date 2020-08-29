@@ -263,3 +263,7 @@ Fix pixel perfect calculation issue caused by 2.8.2 version.
 Fix: add or remove canvas not update correctly.
 #### Change:
 Change LGUICanvas's update methold. Basicall the old methold will update hierarchy multiple times in one frame, new method will update in multiple frames, this is more stable.
+## 2.8.6
+#### Fix:
+Fix ScreenSpaceUI preview in editor viewport.
+Other fix: crash caused by LGUICanvas, pixel perfect render of UIText.
