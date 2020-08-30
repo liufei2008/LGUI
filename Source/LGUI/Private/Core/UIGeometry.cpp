@@ -82,6 +82,7 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FVector>& originPositi
 void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TArray<int>& lastVertCountNumberOfChar_Array, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
+	if (lastVertCountNumberOfChar_Array.Num() <= 0)return;
 	auto canvasUIItem = renderCanvas->GetRootCanvas()->CheckAndGetUIItem();
 	auto halfCanvasWidth = canvasUIItem->GetWidth() * 0.5f;
 	auto halfCanvasHeight = canvasUIItem->GetHeight() * 0.5f;
