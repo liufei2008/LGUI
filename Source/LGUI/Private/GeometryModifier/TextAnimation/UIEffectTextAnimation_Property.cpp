@@ -6,6 +6,7 @@
 
 void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry)
 {
+	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = 0; charIndex < charProperties.Num(); charIndex++)
@@ -13,7 +14,7 @@ void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, c
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		float lerpValue = InSelection[charIndex].lerpValue;
+		auto lerpValue = easeFunction.Execute(1.0f, 0.0f, InSelection[charIndex].lerpValue, 1.0f);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = vertPositions[vertIndex];
@@ -24,6 +25,7 @@ void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, c
 
 void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry)
 {
+	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = 0; charIndex < charProperties.Num(); charIndex++)
@@ -37,7 +39,8 @@ void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, c
 			charCenterPos += vertPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		auto calcRotationMatrix = FRotationMatrix(rotator * InSelection[charIndex].lerpValue);
+		auto lerpValue = easeFunction.Execute(1.0f, 0.0f, InSelection[charIndex].lerpValue, 1.0f);
+		auto calcRotationMatrix = FRotationMatrix(rotator * lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = vertPositions[vertIndex];
@@ -49,6 +52,7 @@ void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, c
 
 void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry)
 {
+	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = 0; charIndex < charProperties.Num(); charIndex++)
@@ -62,7 +66,8 @@ void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, cons
 			charCenterPos += vertPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		auto calcScale = FMath::Lerp(FVector::OneVector, scale, InSelection[charIndex].lerpValue);
+		auto lerpValue = easeFunction.Execute(1.0f, 0.0f, InSelection[charIndex].lerpValue, 1.0f);
+		auto calcScale = FMath::Lerp(FVector::OneVector, scale, lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = vertPositions[vertIndex];
@@ -74,6 +79,7 @@ void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, cons
 
 void UUIEffectTextAnimation_AlphaProperty::ApplyProperty(UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry)
 {
+	auto easeFunction = GetEaseFunction();
 	auto& vertices = OutGeometry->vertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = 0; charIndex < charProperties.Num(); charIndex++)
@@ -81,7 +87,7 @@ void UUIEffectTextAnimation_AlphaProperty::ApplyProperty(UUIText* InUIText, cons
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		float lerpValue = InSelection[charIndex].lerpValue;
+		auto lerpValue = easeFunction.Execute(1.0f, 0.0f, InSelection[charIndex].lerpValue, 1.0f);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& vert = vertices[vertIndex];
@@ -92,6 +98,7 @@ void UUIEffectTextAnimation_AlphaProperty::ApplyProperty(UUIText* InUIText, cons
 
 void UUIEffectTextAnimation_ColorProperty::ApplyProperty(UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry)
 {
+	auto easeFunction = GetEaseFunction();
 	auto& vertices = OutGeometry->vertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = 0; charIndex < charProperties.Num(); charIndex++)
@@ -99,7 +106,7 @@ void UUIEffectTextAnimation_ColorProperty::ApplyProperty(UUIText* InUIText, cons
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		float lerpValue = InSelection[charIndex].lerpValue;
+		auto lerpValue = easeFunction.Execute(1.0f, 0.0f, InSelection[charIndex].lerpValue, 1.0f);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& vert = vertices[vertIndex];

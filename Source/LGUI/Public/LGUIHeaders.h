@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "LGUIBPLibrary.h"
-
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIRenderable.h"
 #include "Core/ActorComponent/UISpriteBase.h"
@@ -29,35 +27,6 @@
 #include "Core/Actor/UITextureActor.h"
 #include "Core/Actor/UIBackgroundBlurActor.h"
 #include "Core/Actor/UIBackgroundPixelateActor.h"
-
-#include "PrefabSystem/ActorCopier.h"
-#include "PrefabSystem/ActorSerializer.h"
-#include "PrefabSystem/LGUIPrefabActor.h"
-
-#include "Utils/BitConverter.h"
-#include "Utils/LGUIUtils.h"
-
-#include "Layout/UILayoutBase.h"
-#include "Layout/UIGridLayout.h"
-#include "Layout/UIHorizontalLayout.h"
-#include "Layout/UIVerticalLayout.h"
-#include "Layout/UILayoutElement.h"
-#include "Layout/UISizeControlByAspectRatio.h"
-#include "Layout/UISizeControlByOther.h"
-#include "Layout/LGUICanvasScaler.h"
-
-#include "Interaction/UIButtonComponent.h"
-#include "Interaction/UIEventBlockerComponent.h"
-#include "Interaction/UIEventTriggerComponent.h"
-#include "Interaction/UIScrollbarComponent.h"
-#include "Interaction/UIScrollViewComponent.h"
-#include "Interaction/UIScrollViewWithScrollbarComponent.h"
-#include "Interaction/UISelectableComponent.h"
-#include "Interaction/UISelectableTransitionComponent.h"
-#include "Interaction/UISliderComponent.h"
-#include "Interaction/UITextInputComponent.h"
-#include "Interaction/UIToggleComponent.h"
-#include "Interaction/UIToggleGroupComponent.h"
 
 #include "Event/LGUIEventSystem.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"
@@ -91,5 +60,45 @@
 #include "Extensions/2DLineRenderer/UI2dLineRing.h"
 #include "Extensions/2DLineRenderer/UI2dLineRingFrame.h"
 
+#include "GeometryModifier/UIEffectGradientColor.h"
+#include "GeometryModifier/UIEffectLongShadow.h"
+#include "GeometryModifier/UIEffectOutline.h"
+#include "GeometryModifier/UIEffectPositionAsUV.h"
+#include "GeometryModifier/UIEffectShadow.h"
+#include "GeometryModifier/UIEffectTextAnimation.h"
+#include "GeometryModifier/UIGeometryModifierBase.h"
+#include "GeometryModifier/TextAnimation/UIEffectTextAnimation_Property.h"
+#include "GeometryModifier/TextAnimation/UIEffectTextAnimation_Selector.h"
+
+#include "Interaction/UIButtonComponent.h"
+#include "Interaction/UIEventBlockerComponent.h"
+#include "Interaction/UIEventTriggerComponent.h"
+#include "Interaction/UIScrollbarComponent.h"
+#include "Interaction/UIScrollViewComponent.h"
+#include "Interaction/UIScrollViewWithScrollbarComponent.h"
+#include "Interaction/UISelectableComponent.h"
+#include "Interaction/UISelectableTransitionComponent.h"
+#include "Interaction/UISliderComponent.h"
+#include "Interaction/UITextInputComponent.h"
+#include "Interaction/UIToggleComponent.h"
+#include "Interaction/UIToggleGroupComponent.h"
+
+#include "Layout/UILayoutBase.h"
+#include "Layout/UIGridLayout.h"
+#include "Layout/UIHorizontalLayout.h"
+#include "Layout/UIVerticalLayout.h"
+#include "Layout/UILayoutElement.h"
+#include "Layout/UISizeControlByAspectRatio.h"
+#include "Layout/UISizeControlByOther.h"
+#include "Layout/LGUICanvasScaler.h"
+
+#include "PrefabSystem/ActorCopier.h"
+#include "PrefabSystem/ActorSerializer.h"
+#include "PrefabSystem/LGUIPrefabActor.h"
+
+#include "Utils/BitConverter.h"
+#include "Utils/LGUIUtils.h"
+
+#include "LGUIBPLibrary.h"
 #include "LGUIEditHelper.h"
 #include "LGUIComponentReference.h"

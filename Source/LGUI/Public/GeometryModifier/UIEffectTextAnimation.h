@@ -3,6 +3,7 @@
 #pragma once
 
 #include "UIGeometryModifierBase.h"
+#include "LTweener.h"
 #include "UIEffectTextAnimation.generated.h"
 
 USTRUCT(BlueprintType)
@@ -27,10 +28,33 @@ UCLASS(ClassGroup = (LGUI), Abstract, BlueprintType, DefaultToInstanced, EditInl
 class LGUI_API UUIEffectTextAnimation_Property : public UObject
 {
 	GENERATED_BODY()
+private:
+	UPROPERTY(EditAnywhere, Category = "Property")
+		LTweenEase easeType = LTweenEase::InOutSine;
+	//only valid if easeLerp = CurveFloat
+	UPROPERTY(EditAnywhere, Category = "Property")
+		UCurveFloat* easeCurve;
+	FLTweenFunction easeFunc;
+	float EaseCurveFunction(float c, float b, float t, float d);
+protected:
+	const FLTweenFunction& GetEaseFunction();
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 public:
 	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) PURE_VIRTUAL(UUIEffectTextAnimation_Property::ApplyEffect, );
 protected:
 	class UUIText* GetUIText();
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		LTweenEase GetEaseType()const { return easeType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UCurveFloat* GetCurveFloat()const { return easeCurve; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEaseType(LTweenEase value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEaseCurve(UCurveFloat* value);
 };
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
