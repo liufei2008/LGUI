@@ -9,6 +9,20 @@ UUIEffectLongShadow::UUIEffectLongShadow()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UUIEffectLongShadow::ApplyColorAndAlpha(FColor& InOutColor, FColor InTintColor, uint8 InOriginAlpha)
+{
+	if (multiplySourceAlpha)
+	{
+		InOutColor.A = (uint8)(UUIItem::Color255To1_Table[InOriginAlpha] * InTintColor.A);
+		InOutColor.R = InTintColor.R;
+		InOutColor.G = InTintColor.G;
+		InOutColor.B = InTintColor.B;
+	}
+	else
+	{
+		InOutColor = InTintColor;
+	}
+}
 void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
 {
 	auto& triangles = InGeometry->triangles;
@@ -75,11 +89,11 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 	{
 		FVector shadowSizeInterval = shadowSize / (shadowSegment + 1);
 		int32 shadowChannelCount = shadowSegment + 1;
-		float alphaMultiply = multiplySourceAlpha ? (GetRenderableUIItem()->GetFinalAlpha01()) : 1.0f;
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
 			auto originVert = originPositions[channelOriginVertIndex];
 			auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
+			auto originAlpha = vertices[channelOriginVertIndex].Color.A;
 			for (int channelIndex = 0; channelIndex < shadowChannelCount; channelIndex++)
 			{
 				int channelVertIndex = (channelIndex + 1) * singleChannelVerticesCount + channelOriginVertIndex;
@@ -89,21 +103,22 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 				vert.X += shadowSizeInterval.X * (shadowChannelCount - channelIndex);
 				vert.Y += shadowSizeInterval.Y * (shadowChannelCount - channelIndex);
 				vert.Z += shadowSizeInterval.Z * (shadowChannelCount - channelIndex);
-				auto color = shadowColor;
+				
 				if (useGradientColor)
 				{
 					float colorRatio = ((float)(channelIndex) / (shadowChannelCount));
 					float colorRatio_INV = 1.0f - colorRatio;
+					FColor color;
 					color.R = shadowColor.R * colorRatio + gradientColor.R * colorRatio_INV;
 					color.G = shadowColor.G * colorRatio + gradientColor.G * colorRatio_INV;
 					color.B = shadowColor.B * colorRatio + gradientColor.B * colorRatio_INV;
 					color.A = shadowColor.A * colorRatio + gradientColor.A * colorRatio_INV;
+					ApplyColorAndAlpha(vertices[channelVertIndex].Color, color, originAlpha);
 				}
-				if (multiplySourceAlpha)
+				else
 				{
-					color.A = (uint8)(alphaMultiply * color.A);
+					ApplyColorAndAlpha(vertices[channelVertIndex].Color, shadowColor, originAlpha);
 				}
-				vertices[channelVertIndex].Color = color;
 			}
 		}
 	}

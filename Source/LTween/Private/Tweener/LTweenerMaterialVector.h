@@ -2,6 +2,7 @@
 
 #pragma once
 #include "LTweener.h"
+#include "LTween.h"
 #include "LTweenerMaterialVector.generated.h"
 
 UCLASS(NotBlueprintType)

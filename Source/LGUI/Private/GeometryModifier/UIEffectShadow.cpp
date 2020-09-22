@@ -56,11 +56,6 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 	}
 	InOutOriginVerticesCount = singleChannelVerticesCount + singleChannelVerticesCount;
 
-	FColor finalColor = shadowColor;
-	if (multiplySourceAlpha)
-	{
-		finalColor.A = (uint8)(GetRenderableUIItem()->GetFinalAlpha01() * shadowColor.A);
-	}
 	for (int channelIndex1 = singleChannelVerticesCount, channelIndexOrigin = 0; channelIndex1 < vertexCount; channelIndex1++, channelIndexOrigin++)
 	{
 		auto originVertPos = originPositions[channelIndexOrigin];
@@ -68,7 +63,18 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 		originVertPos.Y += shadowOffset.Y;
 		originPositions[channelIndex1] = originVertPos;
 
-		vertices[channelIndex1].Color = finalColor;
+		if (multiplySourceAlpha)
+		{
+			auto& vertColor = vertices[channelIndex1].Color;
+			vertColor.A = (uint8)(UUIItem::Color255To1_Table[vertices[channelIndexOrigin].Color.A] * shadowColor.A);
+			vertColor.R = shadowColor.R;
+			vertColor.G = shadowColor.G;
+			vertColor.B = shadowColor.B;
+		}
+		else
+		{
+			vertices[channelIndex1].Color = shadowColor;
+		}
 
 		vertices[channelIndex1].TextureCoordinate[0] = vertices[channelIndexOrigin].TextureCoordinate[0];
 	}

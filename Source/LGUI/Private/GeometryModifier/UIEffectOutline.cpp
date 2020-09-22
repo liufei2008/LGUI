@@ -9,6 +9,20 @@ UUIEffectOutline::UUIEffectOutline()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UUIEffectOutline::ApplyColorAndAlpha(FColor& InOutColor, uint8 InSourceAlpha)
+{
+	if (multiplySourceAlpha)
+	{
+		InOutColor.A = (uint8)(UUIItem::Color255To1_Table[InSourceAlpha] * outlineColor.A);
+		InOutColor.R = outlineColor.R;
+		InOutColor.G = outlineColor.G;
+		InOutColor.B = outlineColor.B;
+	}
+	else
+	{
+		InOutColor = outlineColor;
+	}
+}
 void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
 {
 	auto& triangles = InGeometry->triangles;
@@ -84,11 +98,7 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			, channelVertIndex2 = channelVertIndex1 + singleChannelVerticesCount
 			, channelVertIndex3 = channelVertIndex2 + singleChannelVerticesCount
 			, channelVertIndex4 = channelVertIndex3 + singleChannelVerticesCount;
-		auto color = outlineColor;
-		if (multiplySourceAlpha)
-		{
-			color.A = (uint8)(GetRenderableUIItem()->GetFinalAlpha01() * color.A);
-		}
+
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
 			auto originUV = vertices[channelOriginVertIndex].TextureCoordinate[0];
@@ -97,10 +107,11 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			vertices[channelVertIndex3].TextureCoordinate[0] = originUV;
 			vertices[channelVertIndex4].TextureCoordinate[0] = originUV;
 
-			vertices[channelVertIndex1].Color = color;
-			vertices[channelVertIndex2].Color = color;
-			vertices[channelVertIndex3].Color = color;
-			vertices[channelVertIndex4].Color = color;
+			auto originAlpha = vertices[channelOriginVertIndex].Color.A;
+			ApplyColorAndAlpha(vertices[channelVertIndex1].Color, originAlpha);
+			ApplyColorAndAlpha(vertices[channelVertIndex2].Color, originAlpha);
+			ApplyColorAndAlpha(vertices[channelVertIndex3].Color, originAlpha);
+			ApplyColorAndAlpha(vertices[channelVertIndex4].Color, originAlpha);
 
 			auto originVert = originPositions[channelOriginVertIndex];
 			auto& channel1Vert = originPositions[channelVertIndex1];
