@@ -267,3 +267,6 @@ Change LGUICanvas's update methold. Basicall the old methold will update hierarc
 #### Fix:
 Fix ScreenSpaceUI preview in editor viewport.
 Other fix: crash caused by LGUICanvas, pixel perfect render of UIText.
+## 2.9
+#### NewFeature:
+TextAnimation, WOW!!!
