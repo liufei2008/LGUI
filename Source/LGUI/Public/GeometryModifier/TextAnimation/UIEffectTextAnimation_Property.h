@@ -62,7 +62,7 @@ class LGUI_API UUIEffectTextAnimation_AlphaProperty : public UUIEffectTextAnimat
 {
 	GENERATED_BODY()
 private:
-	UPROPERTY(EditAnywhere, Category = "Property")
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float alpha;
 public:
 	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
