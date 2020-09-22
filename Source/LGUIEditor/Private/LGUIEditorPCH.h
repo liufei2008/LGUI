@@ -6,4 +6,5 @@
 #include "Engine/Selection.h"
 #include "Editor.h"
 #include "Window/LGUIEditorTools.h"
+#include "LGUIEditorUtils.h"
 

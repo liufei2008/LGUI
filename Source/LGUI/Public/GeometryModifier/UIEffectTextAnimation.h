@@ -29,23 +29,23 @@ class LGUI_API UUIEffectTextAnimation_Property : public UObject
 {
 	GENERATED_BODY()
 private:
+	friend class FUIEffectTextAnimationPropertyCustomization;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		LTweenEase easeType = LTweenEase::InOutSine;
-	//only valid if easeLerp = CurveFloat
+	//only valid if easeType = CurveFloat
 	UPROPERTY(EditAnywhere, Category = "Property")
 		UCurveFloat* easeCurve;
 	FLTweenFunction easeFunc;
 	float EaseCurveFunction(float c, float b, float t, float d);
 protected:
 	const FLTweenFunction& GetEaseFunction();
+	class UUIText* GetUIText();
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 public:
 	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) PURE_VIRTUAL(UUIEffectTextAnimation_Property::ApplyEffect, );
-protected:
-	class UUIText* GetUIText();
-
+public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		LTweenEase GetEaseType()const { return easeType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -64,7 +64,6 @@ class LGUI_API UUIEffectTextAnimation : public UUIGeometryModifierBase
 
 public:	
 	UUIEffectTextAnimation();
-
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
 		UUIEffectTextAnimation_Selector* selector;
