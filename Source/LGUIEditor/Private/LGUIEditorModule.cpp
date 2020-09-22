@@ -40,6 +40,8 @@
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
 #include "DetailCustomization/LGUIEditHelperButtonCustomization.h"
 #include "DetailCustomization/LGUIComponentRefereceCustomization.h"
+#include "DetailCustomization/UIEffectTextAnimationPropertyCustomization.h"
+#include "DetailCustomization/UIEffectTextAnimationCustomization.h"
 #include "Core/LGUIBehaviour.h"
 
 #include "Core/LGUISettings.h"
@@ -168,7 +170,7 @@ void FLGUIEditorModule::StartupModule()
 			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUI Atlas Texture Viewer"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
 	}
-	//register component editor
+	//register custom editor
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		PropertyModule.RegisterCustomClassLayout(UUIItem::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIItemCustomization::MakeInstance));
@@ -196,6 +198,9 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(ULGUIEditorToolsAgentObject::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FEditorToolsCustomization::MakeInstance));
+
+		PropertyModule.RegisterCustomClassLayout(UUIEffectTextAnimation::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIEffectTextAnimationCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIEffectTextAnimation_Property::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIEffectTextAnimationPropertyCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIDrawableEventOneParamCustomization::MakeInstance));
 		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEventTwoParam::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIDrawableEventTwoParamCustomization::MakeInstance));
@@ -297,6 +302,9 @@ void FLGUIEditorModule::ShutdownModule()
 	PropertyModule.UnregisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName());
 
 	PropertyModule.UnregisterCustomClassLayout(ULGUIEditorToolsAgentObject::StaticClass()->GetFName());
+
+	PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation_Property::StaticClass()->GetFName());
+	PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation::StaticClass()->GetFName());
 
 	PropertyModule.UnregisterCustomPropertyTypeLayout("LGUIDrawableEvent");
 	PropertyModule.UnregisterCustomPropertyTypeLayout("LGUIEditHelperButton");
