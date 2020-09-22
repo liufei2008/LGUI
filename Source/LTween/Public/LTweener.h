@@ -2,8 +2,6 @@
 
 #pragma once
 #include "CoreMinimal.h"
-#include "LTween.h"
-#include "Curves/CurveFloat.h"
 #include "LTweener.generated.h"
 
 DECLARE_DELEGATE_RetVal_FourParams(float, FLTweenFunction, float, float, float, float);
@@ -102,8 +100,9 @@ enum class LTweenLoop :uint8
 	Yoyo, 
 };
 
+class UCurveFloat;
 
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, Abstract)
 //class for manage single tween
 class LTWEEN_API ULTweener : public UObject
 {
@@ -261,17 +260,11 @@ public:
 
 protected:
 	//get value when start. child class must override this, check LTweenerFloat for reference
-	virtual void OnStartGetValue()
-	{
-		UE_LOG(LTween, Warning, TEXT("The function \"OnStartGetValue\" must be override by a child class!"));
-	}
+	virtual void OnStartGetValue() PURE_VIRTUAL(ULTweener::OnStartGetValue, );
 	//set value when tweening. child class must override this, check LTweenerFloat for reference
-	virtual void TweenAndApplyValue()
-	{
-		UE_LOG(LTween, Warning, TEXT("The function \"TweenAndApplyValue\" must be override by a child class!"));
-	};
+	virtual void TweenAndApplyValue() PURE_VIRTUAL(ULTweener::TweenAndApplyValue, );
 #pragma region tweenFunctions
-private:
+public:
 	/**
 	* @param c		Change needed in value.
 	* @param b		Starting value.
@@ -279,21 +272,21 @@ private:
 	* @param d		Expected eaSing duration (in frames or seconds).
 	* @return		The correct value.
 	*/
-	float Linear(float c, float b, float t, float d)
+	static float Linear(float c, float b, float t, float d)
 	{
 		return c*t / d + b;
 	}
-	float InQuad(float c, float b, float t, float d)
+	static float InQuad(float c, float b, float t, float d)
 	{
 		t /= d;
 		return c*t*t + b;
 	}
-	float OutQuad(float c, float b, float t, float d)
+	static float OutQuad(float c, float b, float t, float d)
 	{
 		t /= d;
 		return -c*t*(t - 2) + b;
 	}
-	float InOutQuad(float c, float b, float t, float d)
+	static float InOutQuad(float c, float b, float t, float d)
 	{
 		t /= d * 0.5f;
 		if (t < 1)
@@ -306,17 +299,17 @@ private:
 			return -c * 0.5f * (t*(t - 2) - 1) + b;
 		}
 	}
-	float InCubic(float c, float b, float t, float d)
+	static float InCubic(float c, float b, float t, float d)
 	{
 		t /= d;
 		return c*t*t*t + b;
 	}
-	float OutCubic(float c, float b, float t, float d)
+	static float OutCubic(float c, float b, float t, float d)
 	{
 		t = t / d - 1.0f;
 		return c*(t*t*t + 1) + b;
 	}
-	float InOutCubic(float c, float b, float t, float d)
+	static float InOutCubic(float c, float b, float t, float d)
 	{
 		t /= d * 0.5f;
 		if (t < 1)
@@ -329,17 +322,17 @@ private:
 			return c * 0.5f * (t*t*t + 2) + b;
 		}
 	}
-	float InQuart(float c, float b, float t, float d)
+	static float InQuart(float c, float b, float t, float d)
 	{
 		t /= d;
 		return c*t*t*t*t + b;
 	}
-	float OutQuart(float c, float b, float t, float d)
+	static float OutQuart(float c, float b, float t, float d)
 	{
 		t = t / d - 1.0f;
 		return -c * (t*t*t*t - 1) + b;
 	}
-	float InOutQuart(float c, float b, float t, float d)
+	static float InOutQuart(float c, float b, float t, float d)
 	{
 		t /= d * 0.5f;
 		if (t < 1)
@@ -352,27 +345,27 @@ private:
 			return -c * 0.5f * (t*t*t*t - 2) + b;
 		}
 	}
-	float InSine(float c, float b, float t, float d)
+	static float InSine(float c, float b, float t, float d)
 	{
 		return -c * FMath::Cos(t / d * HALF_PI) + c + b;
 	}
-	float OutSine(float c, float b, float t, float d)
+	static float OutSine(float c, float b, float t, float d)
 	{
 		return c * FMath::Sin(t / d * HALF_PI) + b;
 	}
-	float InOutSine(float c, float b, float t, float d)
+	static float InOutSine(float c, float b, float t, float d)
 	{
 		return -c * 0.5f * (FMath::Cos(PI*t / d) - 1) + b;
 	}
-	float InExpo(float c, float b, float t, float d)
+	static float InExpo(float c, float b, float t, float d)
 	{
 		return (t == 0.0f) ? b : c * FMath::Pow(2.0f, 10.0f * (t / d - 1.0f)) + b - c * 0.001f;
 	}
-	float OutExpo(float c, float b, float t, float d)
+	static float OutExpo(float c, float b, float t, float d)
 	{
 		return (t == d) ? b + c : c * 1.001f * (-FMath::Pow(2.0f, -10.0f * t / d) + 1.0f) + b;
 	}
-	float InOutExpo(float c, float b, float t, float d)
+	static float InOutExpo(float c, float b, float t, float d)
 	{
 		if (t == 0) return b;
 		if (t == d) return b + c;
@@ -386,17 +379,17 @@ private:
 			return c * 0.5f * 1.0005f * (-FMath::Pow(2.0f, -10.0f * (t - 1.0f)) + 2.0f) + b;
 		}
 	}
-	float InCirc(float c, float b, float t, float d)
+	static float InCirc(float c, float b, float t, float d)
 	{
 		t /= d;
 		return -c * (FMath::Sqrt(1.0f - t*t) - 1.0f) + b;
 	}
-	float OutCirc(float c, float b, float t, float d)
+	static float OutCirc(float c, float b, float t, float d)
 	{
 		t = t / d - 1.0f;
 		return c * FMath::Sqrt(1.0f - t*t) + b;
 	}
-	float InOutCirc(float c, float b, float t, float d)
+	static float InOutCirc(float c, float b, float t, float d)
 	{
 		t /= d * 0.5f;
 		if (t < 1)
@@ -409,7 +402,7 @@ private:
 			return c * 0.5f * (FMath::Sqrt(1.0f - t*t) + 1.0f) + b;
 		}
 	}
-	float InElastic(float c, float b, float t, float d)
+	static float InElastic(float c, float b, float t, float d)
 	{
 		if (t == 0) return b;
 		t /= d;
@@ -420,7 +413,7 @@ private:
 		t -= 1.0f;
 		return -(a*FMath::Pow(2.0f, 10.0f * t) * FMath::Sin((t*d - s)*(2.0f * PI) / p)) + b;
 	}
-	float OutElastic(float c, float b, float t, float d)
+	static float OutElastic(float c, float b, float t, float d)
 	{
 		if (t == 0) return b;
 		t /= d;
@@ -430,7 +423,7 @@ private:
 		float a = c;
 		return (a*FMath::Pow(2.0f, -10.0f * t) * FMath::Sin((t*d - s)*(2.0f * PI) / p) + c + b);
 	}
-	float InOutElastic(float c, float b, float t, float d)
+	static float InOutElastic(float c, float b, float t, float d)
 	{
 		if (t == 0) return b;
 		t /= d;
@@ -449,25 +442,25 @@ private:
 			return a * FMath::Pow(2.0f, -10.0f * t) * FMath::Sin((t*d - s)*(2.0f * PI) / p)*0.5f + c + b;
 		}
 	}
-	float InBack(float c, float b, float t, float d)
+	static float InBack(float c, float b, float t, float d)
 	{
 		static float s = 1.70158f;
 		t /= d;
 		return c*t*t*((s + 1)*t - s) + b;
 	}
-	float OutBack(float c, float b, float t, float d)
+	static float OutBack(float c, float b, float t, float d)
 	{
 		static float s = 1.70158f;
 		t = t / d - 1;
 		return c*(t*t*((s + 1)*t + s) + 1) + b;
 	}
-	float InOutBack(float c, float b, float t, float d)
+	static float InOutBack(float c, float b, float t, float d)
 	{
 		if (t < d * 0.5f) return InBack(t * 2, 0, c, d) * .5f + b;
 		else return OutBack(t * 2 - d, 0, c, d) * .5f + c * .5f + b;
 	}
 
-	float OutBounce(float c, float b, float t, float d)
+	static float OutBounce(float c, float b, float t, float d)
 	{
 		t /= d;
 		if (t < (1.0f / 2.75f)) {
@@ -486,11 +479,11 @@ private:
 			return c*(7.5625f*t*t + .984375f) + b;
 		}
 	}
-	float InBounce(float c, float b, float t, float d)
+	static float InBounce(float c, float b, float t, float d)
 	{
 		return c - OutBounce(d - t, 0, c, d) + b;
 	}
-	float InOutBounce(float c, float b, float t, float d)
+	static float InOutBounce(float c, float b, float t, float d)
 	{
 		if (t < d * 0.5f) return InBounce(t * 2, 0, c, d) * .5f + b;
 		else return OutBounce(t * 2 - d, 0, c, d) * .5f + c*.5f + b;

@@ -19,7 +19,7 @@ void UUIGeometryModifierBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 	
 }
-UUIRenderable*& UUIGeometryModifierBase::GetRenderableUIItem()
+UUIRenderable* UUIGeometryModifierBase::GetRenderableUIItem()
 {
 	if(!IsValid(renderableUIItem))
 	{
@@ -66,7 +66,3 @@ void UUIGeometryModifierBase::OnUnregister()
 	}
 }
 
-void UUIGeometryModifierBase::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
-{
-	UE_LOG(LGUI, Warning, TEXT("The function \"UUIGeometryModifierBase/ModifyUIGeometry\" must be override by a child class!"));
-}

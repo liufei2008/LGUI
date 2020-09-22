@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int executeOrder = 0;
 
-	FORCEINLINE class UUIRenderable*& GetRenderableUIItem();
+	FORCEINLINE class UUIRenderable* GetRenderableUIItem();
 private:
 	UPROPERTY(Transient) class UUIRenderable* renderableUIItem = nullptr;
 	
@@ -40,7 +40,7 @@ public:
 	Add or modify vertex/triangle
 	InOutOriginVerticesCount:orign vertex count; after modify, new vertex count must be set to this
 	InOutOriginTriangleIndicesCount:orign triangle indices count; after modify, new triangle indices count must be set to this
-	InOutTriangleChanged: if this modifier affect triangle, then set this to true
+	OutTriangleChanged: if this modifier affect triangle, then set this to true
 	*/
-	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged);
+	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged) PURE_VIRTUAL(UUIGeometryModifierBase::ModifyUIGeometry,);
 };
