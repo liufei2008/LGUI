@@ -84,7 +84,7 @@ protected:
 
 	//do we have valid data to create geometry?
 	virtual bool HaveDataToCreateGeometry() { return true; }
-	//do we need texture create geometry?
+	//do we need texture to create geometry?
 	virtual bool NeedTextureToCreateGeometry() { return false; }
 	//if NeedTextureToCreateGeometry() is true, then we should provide this texture
 	virtual UTexture* GetTextureToCreateGeometry() { return nullptr; }

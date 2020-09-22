@@ -21,6 +21,7 @@ protected:
 		FVector2D outlineSize = FVector2D(1, -1);
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool multiplySourceAlpha = true;
+	FORCEINLINE void ApplyColorAndAlpha(FColor& InOutColor, uint8 InSourceAlpha);
 public:
 	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)override;
 

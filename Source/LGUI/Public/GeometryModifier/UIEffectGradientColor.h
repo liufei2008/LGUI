@@ -39,6 +39,7 @@ protected:
 	//only use for FourCornor
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FColor color4 = FColor::White;
+	FORCEINLINE void ApplyColorAndAlpha(FColor& InOutColor, FColor InTintColor);
 public:
 	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)override;
 };

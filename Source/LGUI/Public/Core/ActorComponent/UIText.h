@@ -59,6 +59,23 @@ struct FUITextSelectionProperty
 	FVector2D Pos;
 	int32 Size;
 };
+//char property
+struct FUITextCharProperty
+{
+	//char index in string
+	int32 CharIndex;
+	//vertex index in UIGeometry::vertices
+	int32 StartVertIndex;
+	//vertex count
+	int32 VertCount;
+	//triangle index in UIGeometry::triangles
+	int32 StartTriangleIndex;
+	//triangle indices count
+	int32 IndicesCount;
+
+	//center position of the char, in UIText's local space
+	//FVector2D CenterPosition;
+};
 
 class ULGUIFontData;
 
@@ -135,12 +152,17 @@ private:
 	//real size of this UIText, not the widget's width and height
 	FVector2D textRealSize;
 	//cached texture property
-	TArray<FUITextLineProperty> cachedTextPropertyList;
+	TArray<FUITextLineProperty> cachedTextPropertyArray;
 	
 	void CheckCachedTextPropertyList();
 
 	//calculate text geometry
 	void CacheTextGeometry();
+
+	//char properties, from first char to last one in array
+	TArray<FUITextCharProperty> cacheCharPropertyArray;
+public:
+	const TArray<FUITextCharProperty>& GetCharPropertyArray();
 public:
 	virtual void MarkAllDirtyRecursive()override;
 protected:

@@ -27,6 +27,7 @@ protected:
 		FColor gradientColor = FColor::Black;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool multiplySourceAlpha = true;
+	FORCEINLINE void ApplyColorAndAlpha(FColor& InOutColor, FColor InTintColor, uint8 InOriginAlpha);
 public:
 	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)override;
 

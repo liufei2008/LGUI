@@ -79,10 +79,10 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FVector>& originPositi
 		originPositions[vertIndex] = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
 	}
 }
-void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TArray<int>& lastVertCountNumberOfChar_Array, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TArray<FUITextCharProperty>& cacheCharPropertyArray, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
-	if (lastVertCountNumberOfChar_Array.Num() <= 0)return;
+	if (cacheCharPropertyArray.Num() <= 0)return;
 	auto canvasUIItem = renderCanvas->GetRootCanvas()->CheckAndGetUIItem();
 	auto halfCanvasWidth = canvasUIItem->GetWidth() * 0.5f;
 	auto halfCanvasHeight = canvasUIItem->GetHeight() * 0.5f;
@@ -93,19 +93,11 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TA
 	componentToCanvasTransform = uiComp->GetComponentTransform() * canvasUIItem->GetComponentTransform().Inverse();
 	FTransform canvasToComponentTransform = componentToCanvasTransform.Inverse();
 
-	int indexOf_LastVertCountNumberOfChar = 0;
-	for (int vertStartIndex = 0, count = originPositions.Num(), vertEndIndex = lastVertCountNumberOfChar_Array[indexOf_LastVertCountNumberOfChar]
-		; vertStartIndex < count;)
+	for (int i = 0; i < cacheCharPropertyArray.Num(); i++)
 	{
-		indexOf_LastVertCountNumberOfChar++;
-		if (indexOf_LastVertCountNumberOfChar >= lastVertCountNumberOfChar_Array.Num())
-		{
-			vertEndIndex = count;
-		}
-		else
-		{
-			vertEndIndex = lastVertCountNumberOfChar_Array[indexOf_LastVertCountNumberOfChar];
-		}
+		auto charProperty = cacheCharPropertyArray[i];
+		int vertStartIndex = charProperty.StartVertIndex;
+		int vertEndIndex = charProperty.StartVertIndex + charProperty.VertCount;
 
 		//calculate first vert
 		float offsetX, offsetY;
@@ -128,14 +120,12 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TA
 			offsetY = newPos.Y - originPos.Y;
 		}
 
-		for (int i = vertStartIndex + 1; i < vertEndIndex; i++)
+		for (int vertIndex = vertStartIndex + 1; vertIndex < vertEndIndex; vertIndex++)
 		{
-			auto& originPos = originPositions[i];
+			auto& originPos = originPositions[vertIndex];
 			originPos.X += offsetX;
 			originPos.Y += offsetY;
 		}
-
-		vertStartIndex = vertEndIndex;
 	}
 }
 
@@ -2303,10 +2293,10 @@ void UIGeometry::FromUIText(const FString& content, int32 visibleCharCount, floa
 	, bool adjustWidth, bool adjustHeight
 	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
-	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText)
+	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, ULGUIFontData* font, bool richText)
 {
 	//vertex and triangle
-	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, uiComp, cacheTextPropertyList, font, richText);
+	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, uiComp, cacheTextPropertyArray, cacheCharPropertyArray, font, richText);
 
 	int32 vertexCount = uiGeo->originVerticesCount;
 	//normals
@@ -2371,7 +2361,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	, bool adjustWidth, bool adjustHeight
 	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
-	, TArray<FUITextLineProperty>& cacheTextPropertyList, ULGUIFontData* font, bool richText)
+	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, ULGUIFontData* font, bool richText)
 {
 	FString content = text;
 
@@ -2380,9 +2370,6 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
-
-	static TArray<int> lastVertCountNumberOfChar_Array;//for pixel perfect adjust, last vertex_count_number of a char, in originPosition's array
-	lastVertCountNumberOfChar_Array.Reset();
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	float boldSize = fontSize * font->boldRatio;
@@ -2405,7 +2392,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	};
 	float charFixedOffset = GetCharFixedOffset(fontSize);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
 
-	cacheTextPropertyList.Reset();
+	cacheTextPropertyArray.Reset();
+	cacheCharPropertyArray.Reset();
 	int contentLength = content.Len();
 	FVector2D currentLineOffset(0, 0);
 	float currentLineWidth = 0, currentLineHeight = fontSize, paragraphHeight = 0;//single line width, height, all line height
@@ -2446,7 +2434,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			triangles.AddUninitialized(newCount - triangles.Num());
 		}
 	};
-
+	 
 	enum class NewLineMode
 	{
 		None,//not new line
@@ -2468,14 +2456,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		}
 		else
 		{
-			FUITextCaretProperty charProperty;
-			charProperty.caretPosition = caretPosition;
-			charProperty.charIndex = charIndex;
-			sentenceProperty.charPropertyList.Add(charProperty);
+			FUITextCaretProperty caretProperty;
+			caretProperty.caretPosition = caretPosition;
+			caretProperty.charIndex = charIndex;
+			sentenceProperty.charPropertyList.Add(caretProperty);
 
 			AlignUITextLineVertex(paragraphHAlign, currentLineWidth, lineUIGeoVertStart, originPositions, sentenceProperty);
 
-			cacheTextPropertyList.Add(sentenceProperty);
+			cacheTextPropertyArray.Add(sentenceProperty);
 			sentenceProperty = FUITextLineProperty();
 		}
 		lineUIGeoVertStart = verticesCount;
@@ -2672,10 +2660,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		{
 			caretPosition.X = currentLineOffset.X - halfFontSpaceX;
 			caretPosition.Y = currentLineOffset.Y;
-			FUITextCaretProperty charProperty;
-			charProperty.caretPosition = caretPosition;
-			charProperty.charIndex = charIndex;
-			sentenceProperty.charPropertyList.Add(charProperty);
+			FUITextCaretProperty caretProperty;
+			caretProperty.caretPosition = caretPosition;
+			caretProperty.charIndex = charIndex;
+			sentenceProperty.charPropertyList.Add(caretProperty);
 
 			caretPosition.X += fontSpace.X + charGeo.xadvance;//for line's last char's caret position
 		}
@@ -2834,7 +2822,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 						addVertCount = 4;
 					}
-					
+
 					if (richTextParseResult.underline)
 					{
 						offsetX = lineOffset.X;
@@ -2868,11 +2856,6 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						originPositions[verticesCount + addVertCount + 3] = FVector(x, y, 0);
 
 						addVertCount += 4;
-					}
-					//snap pixel
-					if (pixelPerfect)
-					{
-						lastVertCountNumberOfChar_Array.Add(verticesCount);
 					}
 				}
 				//uv
@@ -3063,6 +3046,17 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					}
 				}
 
+				//collect char property
+				{
+					FUITextCharProperty charProperty;
+					charProperty.CharIndex = charIndex;
+					charProperty.StartVertIndex = verticesCount;
+					charProperty.VertCount = additionalVerticesCount;
+					charProperty.StartTriangleIndex = indicesCount;
+					charProperty.IndicesCount = indicesCount + additionalIndicesCount;
+					cacheCharPropertyArray.Add(charProperty);
+				}
+
 				verticesCount += additionalVerticesCount;
 				indicesCount += additionalIndicesCount;
 			}
@@ -3149,11 +3143,6 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 							vert2.X += vert23ItalicOffset;
 							vert3.X += vert23ItalicOffset;
 						}
-					}
-					//snap pixel
-					if (pixelPerfect)
-					{
-						lastVertCountNumberOfChar_Array.Add(verticesCount);
 					}
 				}
 				//uv
@@ -3264,6 +3253,16 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						triangles[indicesCount + 4] = verticesCount + 1;
 						triangles[indicesCount + 5] = verticesCount + 3;
 					}
+				}
+
+				//collect char property
+				{
+					FUITextCharProperty charProperty;
+					charProperty.StartVertIndex = verticesCount;
+					charProperty.VertCount = additionalVerticesCount;
+					charProperty.StartTriangleIndex = indicesCount;
+					charProperty.IndicesCount = indicesCount + additionalIndicesCount;
+					cacheCharPropertyArray.Add(charProperty);
 				}
 
 				verticesCount += additionalVerticesCount;
@@ -3414,7 +3413,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	//caret property
 	if (!richText)
 	{
-		for (auto& sentenceItem : cacheTextPropertyList)
+		for (auto& sentenceItem : cacheTextPropertyArray)
 		{
 			for (auto& charItem : sentenceItem.charPropertyList)
 			{
@@ -3429,7 +3428,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	//snap pixel
 	if (pixelPerfect)
 	{
-		AdjustPixelPerfectPos_For_UIText(originPositions, lastVertCountNumberOfChar_Array, renderCanvas, uiComp);
+		AdjustPixelPerfectPos_For_UIText(originPositions, cacheCharPropertyArray, renderCanvas, uiComp);
 	}
 }
 
