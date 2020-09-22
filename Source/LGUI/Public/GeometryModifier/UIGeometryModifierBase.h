@@ -26,7 +26,7 @@ protected:
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 
-	//Execute order of this component in actor. The greater executeOrder is the later this component execute
+	//Execute order of this effect in actor. The greater executeOrder is the later this effect execute
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int executeOrder = 0;
 
