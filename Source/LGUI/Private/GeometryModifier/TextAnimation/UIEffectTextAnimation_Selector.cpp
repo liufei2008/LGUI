@@ -4,24 +4,49 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIText.h"
 
-bool UUIEffectTextAnimation_RangeSelector::Select(UUIText* InUIText, TArray<FUIEffectTextAnimation_SelectResult>& OutSelection)
+bool UUIEffectTextAnimation_RangeSelector::Select(UUIText* InUIText, FUIEffectTextAnimation_SelectResult& OutSelection)
 {
 	if (FMath::Abs(range) < KINDA_SMALL_NUMBER)return false;
+	if (end <= start)return false;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	float interval = 1.0f / charProperties.Num();
+	float interval = 1.0f / (charProperties.Num() * (end - start));
 	float calculatedOffset = offset * (1.0f + range) - range;
 	float value = -calculatedOffset;
-	OutSelection.Reset(charProperties.Num());
-	OutSelection.AddUninitialized(charProperties.Num());
-	for (int i = 0; i < charProperties.Num(); i++)
+	auto& lerpValueArray = OutSelection.lerpValueArray;
+	lerpValueArray.Reset(charProperties.Num());
+	lerpValueArray.AddDefaulted(charProperties.Num());
+	OutSelection.startCharIndex = charProperties.Num() * start;
+	OutSelection.endCharIndex = charProperties.Num() * end;
+	for (int i = OutSelection.startCharIndex, count = OutSelection.endCharIndex; i < count; i++)
 	{
 		auto lerpValue = FMath::Clamp(value, 0.0f, range);
 		lerpValue /= range;
-		auto& selectItem = OutSelection[flipDirection ? charProperties.Num() - i - 1 : i];
-		selectItem.lerpValue = 1.0f - lerpValue;
+		lerpValueArray[flipDirection ? count - i - 1 : i] = 1.0f - lerpValue;
 		value += interval;
 	}
 	return true;
+}
+void UUIEffectTextAnimation_RangeSelector::SetStart(float value)
+{
+	if (start != value)
+	{
+		start = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkVertexPositionDirty();
+		}
+	}
+}
+void UUIEffectTextAnimation_RangeSelector::SetEnd(float value)
+{
+	if (end != value)
+	{
+		end = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkVertexPositionDirty();
+		}
+	}
 }
 void UUIEffectTextAnimation_RangeSelector::SetRange(float value)
 {
@@ -57,21 +82,46 @@ void UUIEffectTextAnimation_RangeSelector::SetFlipDirection(bool value)
 	}
 }
 
-bool UUIEffectTextAnimation_RandomSelector::Select(UUIText* InUIText, TArray<FUIEffectTextAnimation_SelectResult>& OutSelection)
+bool UUIEffectTextAnimation_RandomSelector::Select(UUIText* InUIText, FUIEffectTextAnimation_SelectResult& OutSelection)
 {
+	if (end <= start)return false;
 	FMath::RandInit(seed);
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	float calculatedOffset = offset * 2.0f - 1.0f;
-	OutSelection.Reset(charProperties.Num());
-	for (int i = 0; i < charProperties.Num(); i++)
+	auto& lerpValueArray = OutSelection.lerpValueArray;
+	lerpValueArray.Reset(charProperties.Num());
+	lerpValueArray.AddDefaulted(charProperties.Num());
+	OutSelection.startCharIndex = charProperties.Num() * start;
+	OutSelection.endCharIndex = charProperties.Num() * end;
+	for (int i = OutSelection.startCharIndex, count = OutSelection.endCharIndex; i < count; i++)
 	{
 		float lerpValue = FMath::FRand() + calculatedOffset;
 		lerpValue = FMath::Clamp(lerpValue, 0.0f, 1.0f);
-		auto selectItem = FUIEffectTextAnimation_SelectResult();
-		selectItem.lerpValue = lerpValue;
-		OutSelection.Add(selectItem);
+		lerpValueArray[i] = lerpValue;
 	}
 	return true;
+}
+void UUIEffectTextAnimation_RandomSelector::SetStart(float value)
+{
+	if (start != value)
+	{
+		start = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkVertexPositionDirty();
+		}
+	}
+}
+void UUIEffectTextAnimation_RandomSelector::SetEnd(float value)
+{
+	if (end != value)
+	{
+		end = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkVertexPositionDirty();
+		}
+	}
 }
 void UUIEffectTextAnimation_RandomSelector::SetSeed(int value)
 {

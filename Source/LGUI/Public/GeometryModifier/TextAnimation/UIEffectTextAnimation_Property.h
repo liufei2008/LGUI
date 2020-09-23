@@ -14,7 +14,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector position;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetPosition()const { return position; }
@@ -38,7 +38,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector max = FVector(0, 10, 0);
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		int GetSeed()const { return seed; }
@@ -63,7 +63,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FRotator rotator;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FRotator GetRotator()const { return rotator; }
@@ -87,7 +87,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FRotator max = FRotator(0, 90, 0);
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		int GetSeed()const { return seed; }
@@ -112,7 +112,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector scale = FVector::OneVector;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetScale()const { return scale; }
@@ -136,7 +136,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector max = FVector(2, 2, 2);
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		int GetSeed()const { return seed; }
@@ -161,7 +161,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float alpha;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetAlpha()const { return alpha; }
@@ -178,7 +178,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FColor color = FColor::Green;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetColor()const { return color; }
@@ -202,7 +202,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FColor max = FColor::Red;
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		int GetSeed()const { return seed; }
