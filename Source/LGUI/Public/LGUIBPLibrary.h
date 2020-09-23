@@ -3,15 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "LGUI.h"
-#include "Event/LGUIDrawableEvent.h"
-#include "Event/LGUIDelegateHandleWrapper.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "LGUIComponentReference.h"
+#include "Event/LGUIDrawableEvent.h"
 #include "LTweener.h"
 #include "LGUIBPLibrary.generated.h"
 
-class ULTweener;
 class UUIItem;
 class UUISector;
 
