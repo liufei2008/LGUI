@@ -10,8 +10,13 @@ USTRUCT(BlueprintType)
 struct FUIEffectTextAnimation_SelectResult
 {
 	GENERATED_BODY()
-	UPROPERTY(VisibleAnywhere) 
-		float lerpValue;
+public:
+	UPROPERTY(VisibleAnywhere)
+		int startCharIndex = 0;
+	UPROPERTY(VisibleAnywhere)
+		int endCharIndex = 0;
+	UPROPERTY(VisibleAnywhere)
+		TArray<float> lerpValueArray;
 };
 
 UCLASS(ClassGroup = (LGUI), Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
@@ -19,7 +24,7 @@ class LGUI_API UUIEffectTextAnimation_Selector : public UObject
 {
 	GENERATED_BODY()
 public:
-	virtual bool Select(class UUIText* InUIText, TArray<FUIEffectTextAnimation_SelectResult>& OutSelection) PURE_VIRTUAL(UUIEffectTextAnimation_Selector::Select, return false;);
+	virtual bool Select(class UUIText* InUIText, FUIEffectTextAnimation_SelectResult& OutSelection) PURE_VIRTUAL(UUIEffectTextAnimation_Selector::Select, return false;);
 protected:
 	class UUIText* GetUIText();
 };
@@ -44,7 +49,7 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 public:
-	virtual void ApplyProperty(class UUIText* InUIText, const TArray<FUIEffectTextAnimation_SelectResult>& InSelection, TSharedPtr<UIGeometry> OutGeometry) PURE_VIRTUAL(UUIEffectTextAnimation_Property::ApplyEffect, );
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) PURE_VIRTUAL(UUIEffectTextAnimation_Property::ApplyEffect, );
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		LTweenEase GetEaseType()const { return easeType; }
@@ -70,7 +75,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
 		TArray<UUIEffectTextAnimation_Property*> properties;
 	UPROPERTY(Transient)class UUIText* uiText;
-	TArray<FUIEffectTextAnimation_SelectResult> selection;
+	FUIEffectTextAnimation_SelectResult selection;
 	bool CheckUIText();
 public:
 	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)override;
