@@ -12,13 +12,13 @@ bool UUIEffectTextAnimation_RangeSelector::Select(UUIText* InUIText, TArray<FUIE
 	float calculatedOffset = offset * (1.0f + range) - range;
 	float value = -calculatedOffset;
 	OutSelection.Reset(charProperties.Num());
+	OutSelection.AddUninitialized(charProperties.Num());
 	for (int i = 0; i < charProperties.Num(); i++)
 	{
 		auto lerpValue = FMath::Clamp(value, 0.0f, range);
 		lerpValue /= range;
-		auto selectItem = FUIEffectTextAnimation_SelectResult();
-		selectItem.lerpValue = flipDirection ? 1.0f - lerpValue : lerpValue;
-		OutSelection.Add(selectItem);
+		auto& selectItem = OutSelection[flipDirection ? charProperties.Num() - i - 1 : i];
+		selectItem.lerpValue = 1.0f - lerpValue;
 		value += interval;
 	}
 	return true;
@@ -68,7 +68,7 @@ bool UUIEffectTextAnimation_RandomSelector::Select(UUIText* InUIText, TArray<FUI
 		float lerpValue = FMath::FRand() + calculatedOffset;
 		lerpValue = FMath::Clamp(lerpValue, 0.0f, 1.0f);
 		auto selectItem = FUIEffectTextAnimation_SelectResult();
-		selectItem.lerpValue = flipDirection ? lerpValue : 1.0f - lerpValue;
+		selectItem.lerpValue = lerpValue;
 		OutSelection.Add(selectItem);
 	}
 	return true;
@@ -89,17 +89,6 @@ void UUIEffectTextAnimation_RandomSelector::SetOffset(float value)
 	if (offset != value)
 	{
 		offset = value;
-		if (auto uiText = GetUIText())
-		{
-			uiText->MarkVertexPositionDirty();
-		}
-	}
-}
-void UUIEffectTextAnimation_RandomSelector::SetFlipDirection(bool value)
-{
-	if (flipDirection != value)
-	{
-		flipDirection = value;
 		if (auto uiText = GetUIText())
 		{
 			uiText->MarkVertexPositionDirty();
