@@ -8,6 +8,9 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Extensions/UISector.h"
+#include "Engine/Engine.h"
+#include "Framework/Application/SlateApplication.h"
+#include "LGUI.h"
 
 #pragma region QuickEntry
 void ULGUIBPLibrary::SetUIAlpha(AActor* Target, float InAlpha)
