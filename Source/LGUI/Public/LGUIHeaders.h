@@ -67,7 +67,8 @@
 #include "GeometryModifier/UIEffectShadow.h"
 #include "GeometryModifier/UIEffectTextAnimation.h"
 #include "GeometryModifier/UIGeometryModifierBase.h"
-#include "GeometryModifier/TextAnimation/UIEffectTextAnimation_Property.h"
+#include "GeometryModifier/TextAnimation/UIEffectTextAnimation_PropertyWithEase.h"
+#include "GeometryModifier/TextAnimation/UIEffectTextAnimation_PropertyWithWave.h"
 #include "GeometryModifier/TextAnimation/UIEffectTextAnimation_Selector.h"
 
 #include "Interaction/UIButtonComponent.h"
