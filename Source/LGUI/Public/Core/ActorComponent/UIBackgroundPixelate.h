@@ -31,7 +31,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category="LGUI")
 		float GetPixelateStrength() const { return pixelateStrength; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetApplyAlphaToStrength()const { return applyAlphaToStrength; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetPixelateStrength(float newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetApplyAlphaToStrength(bool newValue);
 protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual bool NeedTextureToCreateGeometry()override { return false; }

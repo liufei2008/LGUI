@@ -66,6 +66,14 @@ void UUIBackgroundPixelate::SetPixelateStrength(float newValue)
 	}
 }
 
+void UUIBackgroundPixelate::SetApplyAlphaToStrength(bool newValue)
+{
+	if (applyAlphaToStrength != newValue)
+	{
+		applyAlphaToStrength = newValue;
+	}
+}
+
 float UUIBackgroundPixelate::GetStrengthInternal()
 {
 	if (applyAlphaToStrength)
