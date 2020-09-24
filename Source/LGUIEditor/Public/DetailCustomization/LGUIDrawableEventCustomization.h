@@ -171,25 +171,32 @@ public:
 				componentClass = (UClass*)componentClassObject;
 				if (actor != nullptr)
 				{
-					TArray<UActorComponent*> compArray;
-					actor->GetComponents(componentClass, compArray);
-					auto componentNameHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentName));
-					if (compArray.Num() > 1)
+					if (actor->GetClass() == componentClass)
 					{
-						FName componentName;
-						componentNameHandle->GetValue(componentName);
-						if (componentName.IsNone() || !componentName.IsValid())
-						{
-							componentDisplayName = componentClass->GetName();
-						}
-						else
-						{
-							componentDisplayName = componentName.ToString() + FString::Printf(TEXT("(%s)"), *componentClass->GetName());
-						}
+						componentDisplayName = LGUIEventActorSelfName;
 					}
 					else
 					{
-						componentDisplayName = componentClass->GetName();
+						TArray<UActorComponent*> compArray;
+						actor->GetComponents(componentClass, compArray);
+						auto componentNameHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentName));
+						if (compArray.Num() > 1)
+						{
+							FName componentName;
+							componentNameHandle->GetValue(componentName);
+							if (componentName.IsNone() || !componentName.IsValid())
+							{
+								componentDisplayName = componentClass->GetName();
+							}
+							else
+							{
+								componentDisplayName = componentName.ToString() + FString::Printf(TEXT("(%s)"), *componentClass->GetName());
+							}
+						}
+						else
+						{
+							componentDisplayName = componentClass->GetName();
+						}
 					}
 				}
 				else

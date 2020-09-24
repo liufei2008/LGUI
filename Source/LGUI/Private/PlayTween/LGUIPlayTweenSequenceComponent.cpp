@@ -5,9 +5,9 @@
 #include "LTweener.h"
 #include "LTweenActor.h"
 
-void ULGUIPlayTweenSequenceComponent::Start()
+void ULGUIPlayTweenSequenceComponent::BeginPlay()
 {
-	Super::Start();
+	Super::BeginPlay();
 	if (playTweenArray.Num() > 0)
 	{
 		for (auto playTween : playTweenArray)

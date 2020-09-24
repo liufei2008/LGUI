@@ -23,10 +23,30 @@ UCLASS(ClassGroup = (LGUI), Abstract, BlueprintType, DefaultToInstanced, EditInl
 class LGUI_API UUIEffectTextAnimation_Selector : public UObject
 {
 	GENERATED_BODY()
+protected:
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float start = 0.0f;
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float end = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float offset = 0.5f;
+	class UUIText* GetUIText();
 public:
 	virtual bool Select(class UUIText* InUIText, FUIEffectTextAnimation_SelectResult& OutSelection) PURE_VIRTUAL(UUIEffectTextAnimation_Selector::Select, return false;);
-protected:
-	class UUIText* GetUIText();
+	
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetStart()const { return start; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetEnd()const { return end; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetOffset()const { return offset; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetStart(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetEnd(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetOffset(float value);
 };
 
 UCLASS(ClassGroup = (LGUI), Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
@@ -87,6 +107,12 @@ public:
 		const TArray<UUIEffectTextAnimation_Property*> GetProperties()const { return properties; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIEffectTextAnimation_Property* GetProperty(int index)const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetSelectorOffset()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetSelectorStart()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetSelectorEnd()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSelector(UUIEffectTextAnimation_Selector* value);
@@ -94,4 +120,10 @@ public:
 		void SetProperties(const TArray<UUIEffectTextAnimation_Property*>& value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetProperty(int index, UUIEffectTextAnimation_Property* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetSelectorOffset(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetSelectorStart(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetSelectorEnd(float value);
 };

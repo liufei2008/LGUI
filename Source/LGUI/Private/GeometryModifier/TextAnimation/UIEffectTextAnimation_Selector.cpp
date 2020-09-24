@@ -26,44 +26,11 @@ bool UUIEffectTextAnimation_RangeSelector::Select(UUIText* InUIText, FUIEffectTe
 	}
 	return true;
 }
-void UUIEffectTextAnimation_RangeSelector::SetStart(float value)
-{
-	if (start != value)
-	{
-		start = value;
-		if (auto uiText = GetUIText())
-		{
-			uiText->MarkVertexPositionDirty();
-		}
-	}
-}
-void UUIEffectTextAnimation_RangeSelector::SetEnd(float value)
-{
-	if (end != value)
-	{
-		end = value;
-		if (auto uiText = GetUIText())
-		{
-			uiText->MarkVertexPositionDirty();
-		}
-	}
-}
 void UUIEffectTextAnimation_RangeSelector::SetRange(float value)
 {
 	if (range != value)
 	{
 		range = value;
-		if (auto uiText = GetUIText())
-		{
-			uiText->MarkVertexPositionDirty();
-		}
-	}
-}
-void UUIEffectTextAnimation_RangeSelector::SetOffset(float value)
-{
-	if (offset != value)
-	{
-		offset = value;
 		if (auto uiText = GetUIText())
 		{
 			uiText->MarkVertexPositionDirty();
@@ -101,44 +68,11 @@ bool UUIEffectTextAnimation_RandomSelector::Select(UUIText* InUIText, FUIEffectT
 	}
 	return true;
 }
-void UUIEffectTextAnimation_RandomSelector::SetStart(float value)
-{
-	if (start != value)
-	{
-		start = value;
-		if (auto uiText = GetUIText())
-		{
-			uiText->MarkVertexPositionDirty();
-		}
-	}
-}
-void UUIEffectTextAnimation_RandomSelector::SetEnd(float value)
-{
-	if (end != value)
-	{
-		end = value;
-		if (auto uiText = GetUIText())
-		{
-			uiText->MarkVertexPositionDirty();
-		}
-	}
-}
 void UUIEffectTextAnimation_RandomSelector::SetSeed(int value)
 {
 	if (seed != value)
 	{
 		seed = value;
-		if (auto uiText = GetUIText())
-		{
-			uiText->MarkVertexPositionDirty();
-		}
-	}
-}
-void UUIEffectTextAnimation_RandomSelector::SetOffset(float value)
-{
-	if (offset != value)
-	{
-		offset = value;
 		if (auto uiText = GetUIText())
 		{
 			uiText->MarkVertexPositionDirty();
