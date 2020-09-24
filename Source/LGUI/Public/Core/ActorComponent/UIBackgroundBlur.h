@@ -43,9 +43,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		int GetMaxDownSampleLevel() const { return maxDownSampleLevel; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetApplyAlphaToBlur()const { return applyAlphaToBlur; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UTexture2D* GetStrengthTexture()const { return strengthTexture; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UTexture2D* GetMaskTexture()const { return maskTexture; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBlurStrength(float newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaxDownSampleLevel(int newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetApplyAlphaToBlur(bool newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetStrengthTexture(UTexture2D* newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetMaskTexture(UTexture2D* newValue);
 protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual bool NeedTextureToCreateGeometry()override { return false; }
