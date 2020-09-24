@@ -97,6 +97,7 @@ public:
 			[
 				SNew(STextBlock)
 				.Text(textContent)
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
 			+ SHorizontalBox::Slot()
 			.HAlign(HAlign_Right)
@@ -115,6 +116,7 @@ public:
 			.HAlign(HAlign_Left)
 			[
 				SNew(STextBlock)
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 				.Text_Lambda([=] {
 					if(getTextFunction.IsBound())
 						return getTextFunction.Execute();

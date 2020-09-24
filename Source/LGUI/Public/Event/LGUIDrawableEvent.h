@@ -4,6 +4,7 @@
 
 #include "LGUIPointerEventData.h"
 #include "LGUIDelegateHandleWrapper.h"
+#include "LGUIDelegateDeclaration.h"
 #include "LGUIDrawableEvent.generated.h"
 
 
@@ -91,9 +92,11 @@ public:
 	//use actor and component class to find target object
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		AActor* targetActor;
-	//component class. if an actor have multiple component of same class, not supported
+	//component class.
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UClass* componentClass;
+	//if the actor only have one component of the componentClass, then just use that one.
+	//if the actor have multiple component of same class, then check the componentName.
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName componentName;
 	//target function name
@@ -129,10 +132,10 @@ public:
 	void Execute();
 	void Execute(void* InParam, LGUIDrawableEventParameterType InParameterType);
 private:
-	void FindAndExecute(UObject* Target, FName FunctionName);
-	void FindAndExecute(UObject* Target, FName FunctionName, void* ParamData);
+	void FindAndExecute(UObject* Target, FName FunctionName, void* ParamData = nullptr);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func, void* ParamData);
+	void FindAndExecuteFromActor(void* InParam = nullptr);
 };
 
 /*
@@ -185,6 +188,7 @@ public:
 	void FireEvent(UObject* InParam)const;
 	void FireEvent(AActor* InParam)const;
 	void FireEvent(ULGUIPointerEventData* InParam)const;
+	void FireEvent(FRotator InParam)const;
 };
 
 

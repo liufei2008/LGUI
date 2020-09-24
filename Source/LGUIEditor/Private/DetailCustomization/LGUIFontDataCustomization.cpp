@@ -34,6 +34,7 @@ void FLGUIFontDataCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 		[
 			SNew(STextBlock)
 			.Text(LOCTEXT("FontSourceFile", "FontSourceFile"))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		.ValueContent()
 		.MinDesiredWidth(600)
@@ -61,6 +62,7 @@ void FLGUIFontDataCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 					SNew(STextBlock)
 					.Text(LOCTEXT("UseRelativePath","Relative To \"ProjectDir\""))
 					.ToolTipText(LOCTEXT("Tooltip", "Font file use relative path(relative to ProjectDir) or absolute path. After build your game, remember to copy your font file to target path, unless \"UseExternalFileOrEmbedInToUAsset\" is false"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			]
 		];
@@ -73,6 +75,7 @@ void FLGUIFontDataCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				SNew(STextBlock)
 				.Text(FText::FromString(TEXT("Initialize font fail, check outputlog for detail")))
 				.ColorAndOpacity(FSlateColor(FLinearColor::Yellow))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 			];
 	}
 	lguiCategory.AddProperty("useExternalFileOrEmbedInToUAsset");

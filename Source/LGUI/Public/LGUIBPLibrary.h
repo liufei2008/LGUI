@@ -80,6 +80,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteActor(const FLGUIDrawableEvent& InEvent, AActor* InParameter) { InEvent.FireEvent(InParameter); }
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteClass(const FLGUIDrawableEvent& InEvent, UClass* InParameter) { InEvent.FireEvent(InParameter); }
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecutePointerEvent(const FLGUIDrawableEvent& InEvent, ULGUIPointerEventData* InParameter) { InEvent.FireEvent(InParameter); }
+	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteRotator(const FLGUIDrawableEvent& InEvent, const FRotator& InParameter) { InEvent.FireEvent(InParameter); }
 #pragma endregion DrawableEvent
 
 	//InComponentType must be the same as InLGUIComponentReference's component type

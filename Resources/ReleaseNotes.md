@@ -269,4 +269,5 @@ Fix ScreenSpaceUI preview in editor viewport.
 Other fix: crash caused by LGUICanvas, pixel perfect render of UIText.
 ## 2.9
 #### NewFeature:
-TextAnimation, WOW!!!
+TextAnimation, WOW!!! You can use UIEffectTextAnimation to customize it.
+LGUIDrawableEvent now support multiple component of same type on actor, use component name to identify.
