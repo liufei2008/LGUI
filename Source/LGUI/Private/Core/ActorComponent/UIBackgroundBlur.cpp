@@ -72,12 +72,36 @@ void UUIBackgroundBlur::SetBlurStrength(float newValue)
 	}
 }
 
+void UUIBackgroundBlur::SetApplyAlphaToBlur(bool newValue)
+{
+	if (applyAlphaToBlur != newValue)
+	{
+		applyAlphaToBlur = newValue;
+	}
+}
+
 void UUIBackgroundBlur::SetMaxDownSampleLevel(int newValue)
 {
 	if (maxDownSampleLevel != newValue)
 	{
 		maxDownSampleLevel = newValue;
 		inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
+	}
+}
+
+void UUIBackgroundBlur::SetStrengthTexture(UTexture2D* newValue)
+{
+	if (strengthTexture != newValue)
+	{
+		strengthTexture = newValue;
+	}
+}
+
+void UUIBackgroundBlur::SetMaskTexture(UTexture2D* newValue)
+{
+	if (maskTexture != newValue)
+	{
+		maskTexture = newValue;
 	}
 }
 
