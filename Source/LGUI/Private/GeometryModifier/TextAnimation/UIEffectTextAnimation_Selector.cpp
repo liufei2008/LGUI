@@ -19,8 +19,8 @@ bool UUIEffectTextAnimation_RangeSelector::Select(UUIText* InUIText, FUIEffectTe
 	OutSelection.endCharIndex = charProperties.Num() * end;
 	for (int i = OutSelection.startCharIndex, count = OutSelection.endCharIndex; i < count; i++)
 	{
-		auto lerpValue = FMath::Clamp(value, 0.0f, range);
-		lerpValue /= range;
+		float lerpValue = value / range;
+		//lerpValue = FMath::Clamp(value, 0.0f, 1.0f);
 		lerpValueArray[flipDirection ? count - i - 1 : i] = 1.0f - lerpValue;
 		value += interval;
 	}
@@ -63,7 +63,7 @@ bool UUIEffectTextAnimation_RandomSelector::Select(UUIText* InUIText, FUIEffectT
 	for (int i = OutSelection.startCharIndex, count = OutSelection.endCharIndex; i < count; i++)
 	{
 		float lerpValue = FMath::FRand() + calculatedOffset;
-		lerpValue = FMath::Clamp(lerpValue, 0.0f, 1.0f);
+		//lerpValue = FMath::Clamp(lerpValue, 0.0f, 1.0f);
 		lerpValueArray[i] = lerpValue;
 	}
 	return true;
