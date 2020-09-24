@@ -105,6 +105,92 @@ UUIText* UUIEffectTextAnimation_Selector::GetUIText()
 	}
 	return nullptr;
 }
+void UUIEffectTextAnimation_Selector::SetStart(float value)
+{
+	if (start != value)
+	{
+		start = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkVertexPositionDirty();
+		}
+	}
+}
+void UUIEffectTextAnimation_Selector::SetEnd(float value)
+{
+	if (end != value)
+	{
+		end = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkVertexPositionDirty();
+		}
+	}
+}
+void UUIEffectTextAnimation_Selector::SetOffset(float value)
+{
+	if (offset != value)
+	{
+		offset = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkVertexPositionDirty();
+		}
+	}
+}
+
+float UUIEffectTextAnimation::GetSelectorOffset()const
+{
+	if (IsValid(selector))
+	{
+		return selector->GetOffset();
+	}
+	UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::GetSelectorOffset]selector is null!"));
+	return 0;
+}
+float UUIEffectTextAnimation::GetSelectorStart()const
+{
+	if (IsValid(selector))
+	{
+		return selector->GetStart();
+	}
+	UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::GetSelectorStart]selector is null!"));
+	return 0;
+}
+float UUIEffectTextAnimation::GetSelectorEnd()const
+{
+	if (IsValid(selector))
+	{
+		return selector->GetEnd();
+	}
+	UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::GetSelectorEnd]selector is null!"));
+	return 0;
+}
+void UUIEffectTextAnimation::SetSelectorOffset(float value)
+{
+	if (IsValid(selector))
+	{
+		return selector->SetOffset(value);
+	}
+	UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::SetSelectorOffset]selector is null!"));
+}
+void UUIEffectTextAnimation::SetSelectorStart(float value)
+{
+	if (IsValid(selector))
+	{
+		return selector->SetStart(value);
+	}
+	UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::SetSelectorStart]selector is null!"));
+}
+void UUIEffectTextAnimation::SetSelectorEnd(float value)
+{
+	if (IsValid(selector))
+	{
+		return selector->SetEnd(value);
+	}
+	UE_LOG(LGUI, Warning, TEXT("[UUIEffectTextAnimation::SetSelectorEnd]selector is null!"));
+}
+
 UUIText* UUIEffectTextAnimation_Property::GetUIText()
 {
 	if (auto outter = this->GetOuter())
