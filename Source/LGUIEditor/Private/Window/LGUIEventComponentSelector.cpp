@@ -21,7 +21,9 @@ void SLGUIEventComponentSelector::Construct(const FArguments& Args, TSharedPtr<S
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			[
-				SNew(STextBlock).Text(FText::FromString("You must select a component first!"))
+				SNew(STextBlock)
+				.Text(FText::FromString("You must select a component first!"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 			];
 	}
 	else
@@ -81,12 +83,14 @@ TSharedRef<ITableRow> SLGUIEventComponentSelector::OnGenerateTemplateTile(TShare
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString(InItem->ComponentName.ToString()))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				+SHorizontalBox::Slot()
 				.HAlign(HAlign_Right)
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString(InItem->ComponentDiscription))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			]
 		];

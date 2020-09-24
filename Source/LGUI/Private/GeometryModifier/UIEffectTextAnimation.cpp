@@ -26,6 +26,7 @@ bool UUIEffectTextAnimation::CheckUIText()
 void UUIEffectTextAnimation::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
 {
 	if (!CheckUIText())return;
+	if (InGeometry->originVerticesCount <= 0)return;
 	if (IsValid(selector))
 	{
 		if (selector->Select(uiText, selection))

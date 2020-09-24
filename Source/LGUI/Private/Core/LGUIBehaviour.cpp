@@ -75,12 +75,14 @@ bool ULGUIBehaviour::CheckRootUIComponent() const
 
 bool ULGUIBehaviour::GetIsActiveAndEnable()
 {
-	return
-		CheckRootUIComponent()
-		&& RootUIComp->IsUIActiveInHierarchy()
-		&& enable
-		&& bRegistered
-		;
+	if (CheckRootUIComponent())
+	{
+		return RootUIComp->IsUIActiveInHierarchy() && enable && bRegistered;
+	}
+	else
+	{
+		return enable && bRegistered;
+	}
 }
 
 void ULGUIBehaviour::SetEnable(bool value)
@@ -123,6 +125,15 @@ UUIItem* ULGUIBehaviour::GetRootComponent() const
 	if (CheckRootUIComponent())
 	{
 		return RootUIComp;
+	}
+	return nullptr;
+}
+
+USceneComponent* ULGUIBehaviour::GetRootSceneComponent()const
+{
+	if (auto owner = GetOwner())
+	{
+		return owner->GetRootComponent();
 	}
 	return nullptr;
 }

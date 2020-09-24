@@ -22,7 +22,9 @@ void SLGUIEventFunctionSelector::Construct(const FArguments& Args, TSharedPtr<SD
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			[
-				SNew(STextBlock).Text(FText::FromString("Target object is null"))
+				SNew(STextBlock)
+				.Text(FText::FromString("Target object is null"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 			];
 	}
 	else
@@ -100,12 +102,14 @@ TSharedRef<ITableRow> SLGUIEventFunctionSelector::OnGenerateTemplateTile(TShared
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString(InItem->FunctionName.ToString()))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				+ SHorizontalBox::Slot()
 				.HAlign(HAlign_Right)
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString(InItem->ParameterTypeString))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			]
 		];

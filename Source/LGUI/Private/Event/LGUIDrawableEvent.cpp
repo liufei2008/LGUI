@@ -356,16 +356,54 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 
 
 
+void FLGUIDrawableEventData::FindAndExecuteFromActor(void* InParam)
+{
+	TArray<UActorComponent*> compArray;
+	targetActor->GetComponents(componentClass, compArray);
+	if (compArray.Num() > 1)
+	{
+		bool found = false;
+		for (auto comp : compArray)
+		{
+			if (comp->GetFName() == componentName)
+			{
+				FindAndExecute(comp, functionName, InParam);
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+		{
+			if (componentName.IsNone() || !componentName.IsValid())
+			{
+				FindAndExecute(compArray[0], functionName, InParam);
+				UE_LOG(LGUI, Warning, TEXT("[LGUIDrawableEventData/FindAndExecuteFromActor]Pos 0, Target component:%s with name:%s not found! will use the first compatible component."), *(componentClass->GetPathName(), *(componentName.ToString())));
+			}
+			else
+			{
+				UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecuteFromActor]Pos 1, Target component:%s with name:%s not found! event will not execute!"), *(componentClass->GetPathName(), *(componentName.ToString())));
+			}
+		}
+	}
+	else if (compArray.Num() == 1)
+	{
+		FindAndExecute(compArray[0], functionName, InParam);
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecuteFromActor]Pos 2, Target component:%s not found!"), *(componentClass->GetPathName()));
+	}
+}
 void FLGUIDrawableEventData::Execute()
 {
 	if (UseNativeParameter)
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEvent]If use NativeParameter, you must FireEvent with your own parameter!"));
+		UE_LOG(LGUI, Error, TEXT("[FLGUIDrawableEventData::Execute]If use NativeParameter, you must FireEvent with your own parameter!"));
 		return;
 	}
 	if (ParamType == LGUIDrawableEventParameterType::None)
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEvent]Not valid event"));
+		UE_LOG(LGUI, Error, TEXT("[FLGUIDrawableEventData::Execute]Not valid event"));
 		return;
 	}
 	if (CacheTarget != nullptr && CacheFunction != nullptr)
@@ -382,14 +420,7 @@ void FLGUIDrawableEventData::Execute()
 			}
 			else//search from actor's component list
 			{
-				if(auto comp = targetActor->FindComponentByClass(componentClass))
-				{
-					FindAndExecute(comp, functionName);
-				}
-				else
-				{
-					UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/Execute]Pos 0, Target component:%s not found!"), *(componentClass->GetPathName()));
-				}
+				FindAndExecuteFromActor(nullptr);
 			}
 		}
 	}
@@ -419,14 +450,7 @@ void FLGUIDrawableEventData::Execute(void* InParam, LGUIDrawableEventParameterTy
 				}
 				else//search from actor's component list
 				{
-					if (auto comp = targetActor->FindComponentByClass(componentClass))
-					{
-						FindAndExecute(comp, functionName, InParam);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/Execute]Pos 1, Target component:%s not found!"), *(componentClass->GetPathName()));
-					}
+					FindAndExecuteFromActor(InParam);
 				}
 			}
 		}
@@ -447,38 +471,10 @@ void FLGUIDrawableEventData::Execute(void* InParam, LGUIDrawableEventParameterTy
 				}
 				else//search from actor's component list
 				{
-					if (auto comp = targetActor->FindComponentByClass(componentClass))
-					{
-						FindAndExecute(comp, functionName);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/Execute]Pos 2, Target component:%s not found!"), *(componentClass->GetPathName()));
-					}
+					FindAndExecuteFromActor(InParam);
 				}
 			}
 		}
-	}
-}
-void FLGUIDrawableEventData::FindAndExecute(UObject* Target, FName FunctionName)
-{
-	CacheTarget = Target;
-	CacheFunction = Target->FindFunction(functionName);
-	if (CacheFunction)
-	{
-		if (!ULGUIDrawableEventParameterHelper::IsStillSupported(CacheFunction, { ParamType }))
-		{
-			UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 0, Target function:%s not supported!"), *(FunctionName.ToString()));
-			CacheFunction = nullptr;
-		}
-		else
-		{
-			ExecuteTargetFunction(Target, CacheFunction);
-		}
-	}
-	else
-	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 1, Target function:%s not found!"), *(FunctionName.ToString()));
 	}
 }
 void FLGUIDrawableEventData::FindAndExecute(UObject* Target, FName FunctionName, void* ParamData)
@@ -494,7 +490,14 @@ void FLGUIDrawableEventData::FindAndExecute(UObject* Target, FName FunctionName,
 		}
 		else
 		{
-			ExecuteTargetFunction(Target, CacheFunction, ParamData);
+			if (ParamData == nullptr)
+			{
+				ExecuteTargetFunction(Target, CacheFunction);
+			}
+			else
+			{
+				ExecuteTargetFunction(Target, CacheFunction, ParamData);
+			}
 		}
 	}
 	else
@@ -759,6 +762,15 @@ void FLGUIDrawableEvent::FireEvent(ULGUIPointerEventData* InParam)const
 	if (supportParameterType == LGUIDrawableEventParameterType::PointerEvent)
 	{
 		FireEvent((void*)&InParam);
+	}
+	else LogParameterError();
+}
+void FLGUIDrawableEvent::FireEvent(FRotator InParam)const
+{
+	if (eventList.Num() == 0)return;
+	if (supportParameterType == LGUIDrawableEventParameterType::Rotator)
+	{
+		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }

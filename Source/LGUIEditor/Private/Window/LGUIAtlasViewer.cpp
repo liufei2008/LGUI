@@ -42,6 +42,7 @@ void SLGUIAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> In
 				SNew(STextBlock)
 				.AutoWrapText(true)
 				.Text(LOCTEXT("NoneAtlas", "None atlas texture here because none sprite have packed. Sprite will be packed when it get renderred"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
 		];
 	}

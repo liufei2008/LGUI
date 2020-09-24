@@ -51,6 +51,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 						.AutoWrapText(true)
 						.Text(LOCTEXT("Warning", "Target sprite does not have any border information!"))
 						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
 					];
 			}
 		}

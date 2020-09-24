@@ -55,6 +55,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 				.Text(FText::FromString(FString(TEXT("Only valid for root LGUICanvas"))))
 				.ColorAndOpacity(FSlateColor(FLinearColor::Red))
 				.AutoWrapText(true)
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 			];
 		}
 		else

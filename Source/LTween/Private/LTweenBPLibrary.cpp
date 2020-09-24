@@ -1,6 +1,7 @@
 // Copyright 2019-2020 LexLiu. All Rights Reserved.
 
 #include "LTweenBPLibrary.h"
+#include "LTween.h"
 
 
 ULTweener* ULTweenBPLibrary::FloatTo(FLTweenFloatGetterDynamic getter, FLTweenFloatSetterDynamic setter, float endValue, float duration)
