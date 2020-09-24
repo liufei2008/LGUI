@@ -3,12 +3,15 @@
 #include "PlayTween/LGUIPlayTweenComponent.h"
 #include "PlayTween/LGUIPlayTween.h"
 
-void ULGUIPlayTweenComponent::Start()
+void ULGUIPlayTweenComponent::BeginPlay()
 {
-	Super::Start();
-	if (IsValid(playTween))
+	Super::BeginPlay();
+	if (playOnStart)
 	{
-		playTween->Start();
+		if (IsValid(playTween))
+		{
+			playTween->Start();
+		}
 	}
 }
 

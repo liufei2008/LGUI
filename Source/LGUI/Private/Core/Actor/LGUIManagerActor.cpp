@@ -562,7 +562,8 @@ void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
 		else
 		{
 			if (Instance->firstAwakeExecuted//if first awake is already executed, then just call awake
-				&& InComp->GetIsActiveAndEnable())//should call awake now?
+				&& InComp->GetIsActiveAndEnable()//should call awake now?
+				)
 			{
 				//add to Enable array
 				{
