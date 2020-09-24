@@ -28,6 +28,7 @@ protected:
 		float start = 0.0f;
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float end = 1.0f;
+	//editor clamp this value between 0-1, but you can assign it more than 0-1 for PositionWave/RotationWave/ScaleWave/XXXWave
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float offset = 0.5f;
 	class UUIText* GetUIText();
@@ -53,35 +54,14 @@ UCLASS(ClassGroup = (LGUI), Abstract, BlueprintType, DefaultToInstanced, EditInl
 class LGUI_API UUIEffectTextAnimation_Property : public UObject
 {
 	GENERATED_BODY()
-private:
-	friend class FUIEffectTextAnimationPropertyCustomization;
-	UPROPERTY(EditAnywhere, Category = "Property")
-		LTweenEase easeType = LTweenEase::InOutSine;
-	//only valid if easeType = CurveFloat
-	UPROPERTY(EditAnywhere, Category = "Property")
-		UCurveFloat* easeCurve;
-	FLTweenFunction easeFunc;
-	float EaseCurveFunction(float c, float b, float t, float d);
 protected:
-	const FLTweenFunction& GetEaseFunction();
 	class UUIText* GetUIText();
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
+	FORCEINLINE void MarkUITextPositionDirty();
 public:
 	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) PURE_VIRTUAL(UUIEffectTextAnimation_Property::ApplyEffect, );
-public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		LTweenEase GetEaseType()const { return easeType; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UCurveFloat* GetCurveFloat()const { return easeCurve; }
-
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetEaseType(LTweenEase value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetEaseCurve(UCurveFloat* value);
 };
 
+//per character animation control for UIText
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIEffectTextAnimation : public UUIGeometryModifierBase
 {

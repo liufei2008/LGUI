@@ -14,7 +14,7 @@ void FUIEffectTextAnimationPropertyCustomization::CustomizeDetails(IDetailLayout
 {
 	TArray<TWeakObjectPtr<UObject>> targetObjects;
 	DetailBuilder.GetObjectsBeingCustomized(targetObjects);
-	TargetScriptPtr = Cast<UUIEffectTextAnimation_Property>(targetObjects[0].Get());
+	TargetScriptPtr = Cast<UUIEffectTextAnimation_PropertyWithEase>(targetObjects[0].Get());
 	if (TargetScriptPtr == nullptr)
 	{
 		UE_LOG(LGUIEditor, Log, TEXT("[UIEffectTextAnimationPropertyCustomization]Get TargetScript is null"));
@@ -22,13 +22,13 @@ void FUIEffectTextAnimationPropertyCustomization::CustomizeDetails(IDetailLayout
 	}
 
 	TArray<FName> needToHidePropertyName;
-	auto easeTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIEffectTextAnimation_Property, easeType));
+	auto easeTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIEffectTextAnimation_PropertyWithEase, easeType));
 	easeTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, &DetailBuilder] {
 		DetailBuilder.ForceRefreshDetails();
 	}));
 	if (TargetScriptPtr->GetEaseType() != LTweenEase::CurveFloat)
 	{
-		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIEffectTextAnimation_Property, easeCurve));
+		needToHidePropertyName.Add(GET_MEMBER_NAME_CHECKED(UUIEffectTextAnimation_PropertyWithEase, easeCurve));
 	}
 
 	for (auto item : needToHidePropertyName)
