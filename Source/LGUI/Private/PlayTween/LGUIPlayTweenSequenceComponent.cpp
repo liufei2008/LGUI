@@ -1,0 +1,58 @@
+// Copyright 2019-2020 LexLiu. All Rights Reserved.
+
+#include "PlayTween/LGUIPlayTweenSequenceComponent.h"
+#include "PlayTween/LGUIPlayTween.h"
+#include "LTweener.h"
+#include "LTweenActor.h"
+
+void ULGUIPlayTweenSequenceComponent::Start()
+{
+	Super::Start();
+	if (playTweenArray.Num() > 0)
+	{
+		for (auto playTween : playTweenArray)
+		{
+			playTween->RegisterOnComplete(FSimpleDelegate::CreateLambda([this] {
+				OnTweenComplete();
+				})
+			);
+		}
+	}
+	if (playOnStart)
+	{
+		Play();
+	}
+}
+void ULGUIPlayTweenSequenceComponent::OnTweenComplete()
+{
+	currentTweenPlayIndex++;
+	if (currentTweenPlayIndex >= playTweenArray.Num())
+	{
+		isPlaying = false;
+		onComplete.FireEvent();
+	}
+	else
+	{
+		playTweenArray[currentTweenPlayIndex]->Start();
+	}
+}
+void ULGUIPlayTweenSequenceComponent::Play()
+{
+	if (playTweenArray.Num() > 0)
+	{
+		if (!isPlaying)
+		{
+			isPlaying = true;
+			currentTweenPlayIndex = -1;
+			OnTweenComplete();
+		}
+	}
+}
+void ULGUIPlayTweenSequenceComponent::Stop()
+{
+	if (isPlaying)
+	{
+		isPlaying = false;
+		ALTweenActor::KillIfIsTweening(playTweenArray[currentTweenPlayIndex]->GetTweener(), false);
+	}
+}

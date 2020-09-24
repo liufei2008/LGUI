@@ -55,6 +55,7 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 			contentWidget = SNew(STextBlock)
 				.ColorAndOpacity(FSlateColor(FLinearColor::Red))
 				.AutoWrapText(true)
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 				.Text(LOCTEXT("ComponnetCheckTip", "You must assign your component class!"));
 		}
 		else
@@ -81,6 +82,7 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
 						.AutoWrapText(true)
 						.Text(LOCTEXT("ComponentNotFoundTip", "Component not found on target actor!"))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
 					];
 				}
 				else if (components.Num() == 1 && componentName.IsNone())
@@ -106,6 +108,7 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 						[
 							SNew(STextBlock)
 							.Text(this, &FLGUIComponentRefereceCustomization::GetButtonText)
+							.Font(IDetailLayoutBuilder::GetDetailFont())
 						]
 					]
 					;

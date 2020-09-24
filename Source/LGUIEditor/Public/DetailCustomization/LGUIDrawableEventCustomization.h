@@ -87,6 +87,7 @@ public:
 		[
 			SNew(STextBlock)
 			.Text(FText::FromString(nameStr))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		.ValueContent()
 		.MinDesiredWidth(500)
@@ -101,6 +102,7 @@ public:
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString(valueStr))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
@@ -131,6 +133,7 @@ public:
 					.AutoWrapText(true)
 					.ColorAndOpacity(FSlateColor(FLinearColor::Red))
 					.Text(FText::FromString("Parameter type is wrong!"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			)
 		];
@@ -166,7 +169,33 @@ public:
 			if (componentClassObject != nullptr)
 			{
 				componentClass = (UClass*)componentClassObject;
-				componentDisplayName = componentClass->GetName();
+				if (actor != nullptr)
+				{
+					TArray<UActorComponent*> compArray;
+					actor->GetComponents(componentClass, compArray);
+					auto componentNameHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentName));
+					if (compArray.Num() > 1)
+					{
+						FName componentName;
+						componentNameHandle->GetValue(componentName);
+						if (componentName.IsNone() || !componentName.IsValid())
+						{
+							componentDisplayName = componentClass->GetName();
+						}
+						else
+						{
+							componentDisplayName = componentName.ToString() + FString::Printf(TEXT("(%s)"), *componentClass->GetName());
+						}
+					}
+					else
+					{
+						componentDisplayName = componentClass->GetName();
+					}
+				}
+				else
+				{
+					componentDisplayName = componentClass->GetName();
+				}
 			}
 			//function
 			auto functionHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, functionName));
@@ -246,6 +275,7 @@ public:
 			[
 				SNew(STextBlock)
 				.Text(FText::FromString("Component"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
 			.ValueContent()
 			.MinDesiredWidth(500)
@@ -263,6 +293,7 @@ public:
 			[
 				SNew(STextBlock)
 				.Text(FText::FromString("Function"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
 			.ValueContent()
 			.MinDesiredWidth(500)
@@ -297,12 +328,14 @@ public:
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString("Parameter"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				.ValueContent()
 				.MinDesiredWidth(500)
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString("(NativeParameter)"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
 			}
 			else
@@ -392,12 +425,14 @@ public:
 		UObject* actorObject = nullptr;
 		actorHandle->GetValue(actorObject);
 		auto compClassHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentClass));
+		auto compNameHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentName));
 		auto& componentList = ((AActor*)actorObject)->GetComponents();
 		for (auto comp : componentList)
 		{
 			if (comp->GetFName() == CompName)
 			{
 				compClassHandle->SetValue(comp->GetClass());
+				compNameHandle->SetValue(CompName);
 				break;
 			}
 		}
@@ -410,8 +445,10 @@ public:
 		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
 		UObject* actorObject = nullptr;
 		actorHandle->GetValue(actorObject);
-		auto componentClassHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentClass));
-		componentClassHandle->SetValue(actorObject->GetClass());
+		auto compClassHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentClass));
+		compClassHandle->SetValue(actorObject->GetClass());
+		auto compNameHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentName));
+		compNameHandle->SetValue(FName(TEXT("")));
 
 		PropertyUtilites->ForceRefresh();
 	}
@@ -529,7 +566,7 @@ protected:
 		{
 			AActor* actor = (AActor*)actorObject;
 			auto& Components = actor->GetComponents();
-			for (auto Comp : Components)//fint component by class Component
+			for (auto Comp : Components)//find component by class Component
 			{
 				if (Comp->GetClass() == componentClass)
 				{
@@ -572,12 +609,14 @@ protected:
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString("Parameter"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				.ValueContent()
 				.MinDesiredWidth(500)
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString("(No parameter)"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
 			}
 			break;
@@ -634,6 +673,7 @@ protected:
 					[
 						SNew(STextBlock)
 						.Text(FText::FromString("Parameter"))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
 					]
 					.ValueContent()
 					.MinDesiredWidth(500)
@@ -775,6 +815,7 @@ protected:
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString("Parameter"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				.ValueContent()
 				.MinDesiredWidth(500)
@@ -784,6 +825,7 @@ protected:
 					.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
 					.AutoWrapText(true)
 					.ColorAndOpacity(FLinearColor(FColor(255, 0, 0, 255)))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
 			}
 			break;
@@ -806,6 +848,7 @@ protected:
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString("Parameter"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				.ValueContent()
 				.MinDesiredWidth(500)
@@ -815,6 +858,7 @@ protected:
 					.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
 					.AutoWrapText(true)
 					.ColorAndOpacity(FLinearColor(FColor(255, 0, 0, 255)))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
 			}
 			break;
@@ -827,6 +871,7 @@ protected:
 				[
 					SNew(STextBlock)
 					.Text(FText::FromString("Parameter"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				.ValueContent()
 				.MinDesiredWidth(500)
@@ -855,7 +900,8 @@ protected:
 			ClearNumericValueBuffer(InDataContainerHandle);
 			ClearReferenceValue(InDataContainerHandle);
 			SNew(STextBlock)
-				.Text(FText::FromString("(Not handled)"));
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+			.Text(FText::FromString("(Not handled)"));
 		}
 	}
 	//function's parameter editor
@@ -917,7 +963,9 @@ protected:
 		default:
 			break;
 		}
-		return SNew(STextBlock)
+		return 
+			SNew(STextBlock)
+			.Font(IDetailLayoutBuilder::GetDetailFont())
 			.Text(FText::FromString("(Not handled)"));
 	}
 	void BoolValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)

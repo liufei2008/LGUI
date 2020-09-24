@@ -8,7 +8,8 @@
 
 class UUIItem;
 /*
-Base class for ui actor component, contains some easy-to-use event/functions. This type of component should be only attached to an actor which have UIItem as RootComponent.
+Base class for ui actor component, contains some easy-to-use event/functions.
+This type of component should be attached to an actor which have UIItem as RootComponent, so the UI's callback will execute (OnUIXXX).
 I'm trying to make this ULGUIBehaviour more like Unity's MonoBehaviour. You will see it contains function like Awake/Start/Update/OnDestroy/OnEnable/OnDisable.
 So you should use Awake/Start instead of BeginPlay, Update instead of Tick, OnDestroy instead of EndPlay.
 When a LGUIBehaviour is created, if GetIsActiveAndEnable=true (enabled and activeInHierarchy), then these event will execute with the order: 
@@ -72,6 +73,8 @@ public:
 		bool GetEnable() const { return enable; }
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		UUIItem* GetRootComponent() const;
+	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
+		USceneComponent* GetRootSceneComponent() const;
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour", meta = (DeterminesOutputType = "OriginObject"))
 		AActor* InstantiateActor(AActor* OriginObject, USceneComponent* Parent);
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")

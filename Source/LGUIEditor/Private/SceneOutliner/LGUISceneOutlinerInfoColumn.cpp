@@ -135,6 +135,7 @@ namespace LGUISceneOutliner
 							.ColorAndOpacity(FSlateColor(FLinearColor(FColor::Green)))
 							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetCanvasIconVisibility, weakTreeItem)
 							.ToolTipText(FText::FromString(FString(TEXT("This actor have LGUICanvas. The number is the drawcall count of this canvas."))))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
 						]
 					]
 				]

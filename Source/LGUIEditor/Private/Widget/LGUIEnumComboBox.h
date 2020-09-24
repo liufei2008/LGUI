@@ -41,6 +41,7 @@ public:
 			.OnGenerateWidget_Lambda([this](TSharedPtr<int32> InItem)
 		{
 			return SNew(STextBlock)
+				.Font(IDetailLayoutBuilder::GetDetailFont())
 				.Text(Enum->GetDisplayNameTextByIndex(*InItem));
 		})
 			.OnSelectionChanged(this, &SEnumCombobox::OnComboSelectionChanged)
@@ -49,7 +50,7 @@ public:
 			[
 				SNew(STextBlock)
 				.Font(FEditorStyle::GetFontStyle("Sequencer.AnimationOutliner.RegularFont"))
-			.Text(this, &SEnumCombobox::GetCurrentValue)
+				.Text(this, &SEnumCombobox::GetCurrentValue)
 			]);
 	}
 
@@ -63,6 +64,7 @@ private:
 	TSharedRef<SWidget> OnGenerateWidget(TSharedPtr<int32> InItem)
 	{
 		return SNew(STextBlock)
+			.Font(IDetailLayoutBuilder::GetDetailFont())
 			.Text(Enum->GetDisplayNameTextByIndex(*InItem));
 	}
 
