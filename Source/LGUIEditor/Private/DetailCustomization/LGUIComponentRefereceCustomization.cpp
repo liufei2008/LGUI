@@ -52,11 +52,16 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 	{
 		if (!IsValid(targetCompClass))
 		{
-			contentWidget = SNew(STextBlock)
-				.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-				.AutoWrapText(true)
-				.Font(IDetailLayoutBuilder::GetDetailFont())
-				.Text(LOCTEXT("ComponnetCheckTip", "You must assign your component class!"));
+			contentWidget =
+				SNew(SBox)
+				.VAlign(EVerticalAlignment::VAlign_Center)
+				[
+					SNew(STextBlock)
+					.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+					.AutoWrapText(true)
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+					.Text(LOCTEXT("ComponnetCheckTip", "You must set your component class in variable declaration!"))
+				];
 		}
 		else
 		{
@@ -85,7 +90,7 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 						.Font(IDetailLayoutBuilder::GetDetailFont())
 					];
 				}
-				else if (components.Num() == 1 && componentName.IsNone())
+				else if (components.Num() == 1)
 				{
 					contentWidget = targetActorHandle->CreatePropertyValueWidget();
 				}
@@ -107,7 +112,7 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 						.ButtonContent()
 						[
 							SNew(STextBlock)
-							.Text(this, &FLGUIComponentRefereceCustomization::GetButtonText)
+							.Text(this, &FLGUIComponentRefereceCustomization::GetButtonText, components)
 							.Font(IDetailLayoutBuilder::GetDetailFont())
 						]
 					]
@@ -145,6 +150,7 @@ TSharedRef<SWidget> FLGUIComponentRefereceCustomization::OnGetMenu(TArray<UActor
 		);
 		for (auto comp : Components)
 		{
+			if (comp->HasAnyFlags(EObjectFlags::RF_Transient))continue;
 			MenuBuilder.AddMenuEntry(
 				FText::FromString(comp->GetName()),
 				FText(),
@@ -161,10 +167,34 @@ void FLGUIComponentRefereceCustomization::OnSelectComponent(FName CompName)
 	ComponentNameProperty->SetValue(CompName);
 	PropertyUtilites->ForceRefresh();
 }
-FText FLGUIComponentRefereceCustomization::GetButtonText()const
+FText FLGUIComponentRefereceCustomization::GetButtonText(TArray<UActorComponent*> Components)const
 {
 	FName ComponentName;
 	ComponentNameProperty->GetValue(ComponentName);
-	return FText::FromName(ComponentName);
+
+	if (ComponentName.IsValid() && !ComponentName.IsNone())
+	{
+		bool foundComponentByName = false;
+		for (auto comp : Components)
+		{
+			if (comp->GetFName() == ComponentName)
+			{
+				foundComponentByName = true;
+				break;
+			}
+		}
+		if (foundComponentByName)
+		{
+			return FText::FromName(ComponentName);
+		}
+		else
+		{
+			return FText::FromString(FString::Printf(TEXT("%s(Missing)"), *ComponentName.ToString()));
+		}
+	}
+	else
+	{
+		return FText::FromString(FString(TEXT("None")));
+	}
 }
 #undef LOCTEXT_NAMESPACE

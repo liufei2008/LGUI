@@ -21,5 +21,5 @@ private:
 	TSharedPtr<IPropertyHandle> ComponentNameProperty;
 	TSharedRef<SWidget> OnGetMenu(TArray<UActorComponent*> Components);
 	void OnSelectComponent(FName CompName);
-	FText GetButtonText()const;
+	FText GetButtonText(TArray<UActorComponent*> Components)const;
 };
