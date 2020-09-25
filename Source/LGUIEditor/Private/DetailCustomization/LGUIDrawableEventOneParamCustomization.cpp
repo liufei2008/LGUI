@@ -21,19 +21,8 @@ TArray<LGUIDrawableEventParameterType> FLGUIDrawableEventOneParamCustomization::
 }
 void FLGUIDrawableEventOneParamCustomization::AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder)
 {
-	bool isInWorld = false;
-	FCommentNodeSet nodeSet;
-	PropertyHandle->GetOuterObjects(nodeSet);
-	for (UObject* obj : nodeSet)
-	{
-		isInWorld = obj->GetWorld() != nullptr;
-		break;
-	}
-	if (!isInWorld)
-	{
-		auto supportedParameterHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIDrawableEvent, supportParameterType));
-		ChildBuilder.AddProperty(supportedParameterHandle.ToSharedRef());
-	}
+	auto supportedParameterHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIDrawableEvent, supportParameterType));
+	ChildBuilder.AddProperty(supportedParameterHandle.ToSharedRef());
 }
 TArray<LGUIDrawableEventParameterType> FLGUIDrawableEventOneParamCustomization::GetEventDataParameterTypeArray(TSharedRef<IPropertyHandle> EventDataItemHandle)
 {

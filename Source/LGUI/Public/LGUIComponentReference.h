@@ -20,7 +20,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		AActor* targetActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TSubclassOf<UActorComponent> targetComponentClass = UActorComponent::StaticClass();
+		TSubclassOf<UActorComponent> targetComponentClass;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName targetComonentName;
 
