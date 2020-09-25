@@ -58,8 +58,22 @@ public:
 
 		EventParameterTypeArray = GetNativeParameterTypeArray(PropertyHandle);
 		EventListHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(Event, eventList))->AsArray();
-		uint32 arrayCount;
-		EventListHandle->GetNumElements(arrayCount);
+
+		//add parameter type property
+		bool isInWorld = false;
+		FCommentNodeSet nodeSet;
+		PropertyHandle->GetOuterObjects(nodeSet);
+		for (UObject* obj : nodeSet)
+		{
+			isInWorld = obj->GetWorld() != nullptr;
+			break;
+		}
+		if (!isInWorld)
+		{
+			AddNativeParameterTypeProperty(PropertyHandle, ChildBuilder);
+			return;
+		}
+
 		auto nameStr = PropertyHandle->GetPropertyDisplayName().ToString();
 		FString paramTypeString(TEXT(""));
 		for (auto item : EventParameterTypeArray)
@@ -70,63 +84,54 @@ public:
 		paramTypeString.RemoveAt(paramTypeString.Len() - 1);
 		nameStr = nameStr + "(" + paramTypeString + ")";
 		auto titleWidget = 
-		SNew(SHorizontalBox)
-		+SHorizontalBox::Slot()
-		.HAlign(EHorizontalAlignment::HAlign_Left)
-		.VAlign(EVerticalAlignment::VAlign_Center)
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(nameStr))
-			//.Font(IDetailLayoutBuilder::GetDetailFont())
-		]
-		+SHorizontalBox::Slot()
-		.HAlign(EHorizontalAlignment::HAlign_Right)
-		[
-			IsParameterTypeArrayValid(EventParameterTypeArray) ?
-			(
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.HAlign(HAlign_Left)
-				.VAlign(VAlign_Center)
-				.Padding(2, 0)
-				[
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.HAlign(EHorizontalAlignment::HAlign_Left)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(nameStr))
+				//.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+			+SHorizontalBox::Slot()
+			.HAlign(EHorizontalAlignment::HAlign_Right)
+			[
+				IsParameterTypeArrayValid(EventParameterTypeArray) ?
+				(
 					SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.HAlign(HAlign_Left)
+					.VAlign(VAlign_Center)
+					.Padding(2, 0)
 					[
-						PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::OnClickListAdd))
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::OnClickListAdd))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::OnClickListEmpty))
+						]
 					]
+				)
+				:
+				(
+					SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
+					.HAlign(HAlign_Left)
+					.VAlign(VAlign_Center)
+					.Padding(2, 0)
 					[
-						PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::OnClickListEmpty))
+						SNew(STextBlock)
+						.AutoWrapText(true)
+						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+						.Text(FText::FromString("Parameter type is wrong!"))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
 					]
-				]
-			)
-			:
-			(
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.HAlign(HAlign_Left)
-				.VAlign(VAlign_Center)
-				.Padding(2, 0)
-				[
-					SNew(STextBlock)
-					.AutoWrapText(true)
-					.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-					.Text(FText::FromString("Parameter type is wrong!"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
-			)
-		];
-
-		//add parameter type property
-		bool canChangeSupportParameterType;
-		auto canChangeSupportParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(Event, canChangeSupportParameterType));
-		canChangeSupportParameterTypeHandle->GetValue(canChangeSupportParameterType);
-		if (canChangeSupportParameterType)
-		{
-			AddNativeParameterTypeProperty(PropertyHandle, ChildBuilder);
-		}
+				)
+			];
 
 		auto verticalLayout = 
 			SNew(SVerticalBox)
@@ -141,6 +146,8 @@ public:
 				]
 			];
 		const int eventItemHeight = 84;
+		uint32 arrayCount;
+		EventListHandle->GetNumElements(arrayCount);
 		for (int32 i = 0; i < (int32)arrayCount; i++)
 		{
 			auto itemHandle = EventListHandle->GetElement(i);

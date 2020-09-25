@@ -5,71 +5,49 @@
 
 UActorComponent* FLGUIComponentReference::GetComponentFromTargetActor(AActor* InActor, FName InCompName, UClass* InClass)
 {
-	UActorComponent* resultComp = nullptr;
-	if (resultComp == nullptr)
+	if (!IsValid(InActor))
 	{
-		if (InActor == nullptr)
-			return nullptr;
-		auto& components = InActor->GetComponents();
-		if (InCompName.IsNone())
-		{
-			resultComp = InActor->FindComponentByClass(InClass);
-		}
-		else
-		{
-			TInlineComponentArray<UActorComponent*> tempCompArray;
-			if (InClass != nullptr)
-			{
-				for (UActorComponent* comp : components)
-				{
-					if (comp->IsA(InClass))
-					{
-						tempCompArray.Add(comp);
-					}
-				}
-			}
-			if (tempCompArray.Num() == 0)
-			{
-				FString actorName =
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIComponentReference::GetComponent]Target actor not valid!"));
+		return nullptr;
+	}
+	if (!IsValid(InClass))
+	{
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIComponentReference::GetComponent]Component class not assigned!"));
+		return nullptr;
+	}
+
+	TArray<UActorComponent*> components;
+	InActor->GetComponents(InClass, components);
+	if (components.Num() == 0)
+	{
+		FString actorName =
 #if WITH_EDITOR
-					InActor->GetActorLabel();
+			InActor->GetActorLabel();
 #else
-					InActor->GetPathName();
+			InActor->GetPathName();
 #endif
-				UE_LOG(LGUI, Error, TEXT("[FLGUIComponentReference::GetComponent]Target actor:%s does not contain a Component of type:%s!"),
-					*actorName,
-					*InClass->GetName()
-				);
-				resultComp = nullptr;
-			}
-			else
-			{
-				for (UActorComponent* comp : tempCompArray)
-				{
-					if (comp->GetFName() == InCompName)
-					{
-						resultComp = comp;
-						break;
-					}
-				}
-				if (!IsValid(resultComp))
-				{
-					FString actorName =
-#if WITH_EDITOR
-						InActor->GetActorLabel();
-#else
-						InActor->GetPathName();
-#endif
-					UE_LOG(LGUI, Warning, TEXT("[FLGUIComponentReference::GetComponent]Target actor:%s does not contain a Component of name:%s, use default one"),
-						*actorName,
-						*InCompName.ToString()
-					);
-					resultComp = tempCompArray[0];
-				}
-			}
-		}
-		if (!IsValid(resultComp))
+		UE_LOG(LGUI, Error, TEXT("[FLGUIComponentReference::GetComponent]Target actor:%s does not contain a Component of type:%s!"),
+			*actorName,
+			*InClass->GetName()
+			);
+		return nullptr;
+	}
+	else if (components.Num() == 1)
+	{
+		return components[0];
+	}
+	else
+	{
+		if (InCompName.IsValid() && !InCompName.IsNone())
 		{
+			for (auto comp : components)
+			{
+				if (comp->GetFName() == InCompName)
+				{
+					return comp;
+				}
+			}
+			//not found on name
 			FString actorName =
 #if WITH_EDITOR
 				InActor->GetActorLabel();
@@ -80,10 +58,24 @@ UActorComponent* FLGUIComponentReference::GetComponentFromTargetActor(AActor* In
 				*InClass->GetName(),
 				*InCompName.ToString(),
 				*actorName
-			);
+				);
+			return nullptr;
+		}
+		else
+		{
+			FString actorName =
+#if WITH_EDITOR
+				InActor->GetActorLabel();
+#else
+				InActor->GetPathName();
+#endif
+			UE_LOG(LGUI, Warning, TEXT("[FLGUIComponentReference::GetComponent]Target actor:%s contains multiple component of type:%s, you should choose one of them."),
+				*actorName,
+				*InClass->GetName()
+				);
+			return nullptr;
 		}
 	}
-	return resultComp;
 }
 UActorComponent* FLGUIComponentReference::GetComponent()const
 {

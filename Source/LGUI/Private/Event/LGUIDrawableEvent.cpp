@@ -539,12 +539,11 @@ void FLGUIDrawableEventData::ExecuteTargetFunction(UObject* Target, UFunction* F
 
 FLGUIDrawableEvent::FLGUIDrawableEvent()
 {
-	canChangeSupportParameterType = true;
+	
 }
 FLGUIDrawableEvent::FLGUIDrawableEvent(LGUIDrawableEventParameterType InParameterType)
 {
 	supportParameterType = InParameterType;
-	canChangeSupportParameterType = false;
 }
 bool FLGUIDrawableEvent::IsBound()const
 {

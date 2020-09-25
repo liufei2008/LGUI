@@ -153,8 +153,6 @@ public:
 	//event list
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<FLGUIDrawableEventData> eventList;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "CanChangeNativeParameterType?"))
-		bool canChangeSupportParameterType = true;
 	//supported parameter type of this event
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName="NativeParameterType"))
 		LGUIDrawableEventParameterType supportParameterType = LGUIDrawableEventParameterType::Empty;
