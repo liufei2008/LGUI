@@ -183,7 +183,7 @@ public:
 	void FireEvent(FVector4 InParam)const;
 	void FireEvent(FColor InParam)const;
 	void FireEvent(FLinearColor InParam)const;
-	void FireEvent(FQuat InParam)const;
+	void FireEvent(FQuat InParam)const; 
 	void FireEvent(FString InParam)const;
 	void FireEvent(UObject* InParam)const;
 	void FireEvent(AActor* InParam)const;

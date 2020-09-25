@@ -271,3 +271,5 @@ Other fix: crash caused by LGUICanvas, pixel perfect render of UIText.
 #### NewFeature:
 TextAnimation, WOW!!! You can use UIEffectTextAnimation to customize it.
 LGUIDrawableEvent now support multiple component of same type on actor, use component name to identify.
+LGUIDrawableEvent now get a very clean and clear editor interface.
+LGUIPlayTween, for quick setup tween animation.
