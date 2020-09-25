@@ -19,7 +19,7 @@ public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 protected:
 	virtual TArray<LGUIDrawableEventParameterType> GetNativeParameterTypeArray(TSharedRef<IPropertyHandle> PropertyHandle)override;
-	virtual void AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailGroup& DetailGroup)override;
+	virtual void AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder)override;
 	virtual TArray<LGUIDrawableEventParameterType> GetEventDataParameterTypeArray(TSharedRef<IPropertyHandle> EventDataItemHandle)override;
 	virtual void SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, TArray<LGUIDrawableEventParameterType> ParameterTypeArray)override;
 	virtual TSharedRef<IPropertyHandle> GetAdditionalParameterContainer(TSharedPtr<IPropertyHandle> EventDataItemHandle, int32 InAdditionalIndex)override { return TSharedRef<IPropertyHandle>((IPropertyHandle*)0); };
@@ -42,7 +42,7 @@ public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 protected:
 	virtual TArray<LGUIDrawableEventParameterType> GetNativeParameterTypeArray(TSharedRef<IPropertyHandle> PropertyHandle)override;
-	virtual void AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailGroup& DetailGroup)override;
+	virtual void AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder)override;
 	virtual TArray<LGUIDrawableEventParameterType> GetEventDataParameterTypeArray(TSharedRef<IPropertyHandle> EventDataItemHandle)override;
 	virtual void SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, TArray<LGUIDrawableEventParameterType> ParameterTypeArray)override;
 	virtual TSharedRef<IPropertyHandle> GetAdditionalParameterContainer(TSharedPtr<IPropertyHandle> EventDataItemHandle, int32 InAdditionalIndex)override;

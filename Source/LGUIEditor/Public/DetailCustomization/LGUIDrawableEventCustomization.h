@@ -9,26 +9,16 @@
 #include "Utils/BitConverter.h"
 #include "PropertyCustomizationHelpers.h"
 #include "Widget/LGUIEnumComboBox.h"
-#include "Window/LGUIEventComponentSelector.h"
-#include "Window/LGUIEventFunctionSelector.h"
 
 #pragma once
 
 #define LOCTEXT_NAMESPACE "LGUIDrawableEventCustomization"
 
-class ILGUIDrawableEventCustomizationInterface
-{
-public:
-	virtual void OnSelectComponent(IPropertyHandleArray* InEventListHandle, FName CompName, int32 itemIndex) = 0;
-	virtual void OnSelectActorSelf(IPropertyHandleArray* InEventListHandle, int32 itemIndex) = 0;
-	virtual void OnSelectFunction(IPropertyHandleArray* InEventListHandle, FName FuncName, int32 EventArrayItemIndex, TArray<LGUIDrawableEventParameterType> ParamType, bool UseNativeParameter) = 0;
-};
-
 /**
  * 
  */
 template<class Event, class EventData>
-class FLGUIDrawableEventCustomization : public IPropertyTypeCustomization, public ILGUIDrawableEventCustomizationInterface
+class FLGUIDrawableEventCustomization : public IPropertyTypeCustomization
 {
 protected:
 	TSharedPtr<IPropertyUtilities> PropertyUtilites;
@@ -52,14 +42,13 @@ public:
 	}
 	~FLGUIDrawableEventCustomization()
 	{
-		SLGUIEventComponentSelector::TargetCustomization = nullptr;
-		SLGUIEventFunctionSelector::TargetCustomization = nullptr;
+		
 	}
 	/** IDetailCustomization interface */
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override {};
 
 	virtual TArray<LGUIDrawableEventParameterType> GetNativeParameterTypeArray(TSharedRef<IPropertyHandle> PropertyHandle) = 0;
-	virtual void AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailGroup& DetailGroup) = 0;
+	virtual void AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder) = 0;
 	virtual TArray<LGUIDrawableEventParameterType> GetEventDataParameterTypeArray(TSharedRef<IPropertyHandle> EventDataItemHandle) = 0;
 	virtual TSharedRef<IPropertyHandle> GetAdditionalParameterContainer(TSharedPtr<IPropertyHandle> EventDataItemHandle, int32 InAdditionalIndex = 1/*start from 1, because 0 is default one parameter*/) = 0;
 
@@ -80,30 +69,22 @@ public:
 		}
 		paramTypeString.RemoveAt(paramTypeString.Len() - 1);
 		nameStr = nameStr + "(" + paramTypeString + ")";
-		FString valueStr = FString::Printf(TEXT("Listener count %d"), arrayCount);
-		IDetailGroup& eventGroup = ChildBuilder.AddGroup(FName("LGUIEvent"), FText::FromString(nameStr));
-		eventGroup.HeaderRow()
-		.NameContent()
+		auto titleWidget = 
+		SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		.HAlign(EHorizontalAlignment::HAlign_Left)
+		.VAlign(EVerticalAlignment::VAlign_Center)
 		[
 			SNew(STextBlock)
 			.Text(FText::FromString(nameStr))
-			.Font(IDetailLayoutBuilder::GetDetailFont())
+			//.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
-		.ValueContent()
-		.MinDesiredWidth(500)
+		+SHorizontalBox::Slot()
+		.HAlign(EHorizontalAlignment::HAlign_Right)
 		[
 			IsParameterTypeArrayValid(EventParameterTypeArray) ?
 			(
 				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.HAlign(HAlign_Left)
-				.VAlign(VAlign_Center)
-				.Padding(2, 0)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(valueStr))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
 				.HAlign(HAlign_Left)
@@ -144,9 +125,22 @@ public:
 		canChangeSupportParameterTypeHandle->GetValue(canChangeSupportParameterType);
 		if (canChangeSupportParameterType)
 		{
-			AddNativeParameterTypeProperty(PropertyHandle, eventGroup);
+			AddNativeParameterTypeProperty(PropertyHandle, ChildBuilder);
 		}
 
+		auto verticalLayout = 
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(SBox)
+				.Padding(FMargin(8, 0))
+				.HeightOverride(30)
+				[
+					titleWidget
+				]
+			];
+		const int eventItemHeight = 84;
 		for (int32 i = 0; i < (int32)arrayCount; i++)
 		{
 			auto itemHandle = EventListHandle->GetElement(i);
@@ -274,95 +268,72 @@ public:
 			}
 			if (componentDisplayName.IsEmpty())componentDisplayName = "No Component";
 			if (functionName.IsEmpty())functionName = "No Function";
-			//actor
-			eventGroup.AddPropertyRow(targetActorHandle.ToSharedRef());
-			//component
-			eventGroup.AddWidgetRow()
-			.NameContent()
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString("Component"))
-				.Font(IDetailLayoutBuilder::GetDetailFont())
-			]
-			.ValueContent()
-			.MinDesiredWidth(500)
-			[
-				SNew(SButton)
-				.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickComponentNameButton, i)
-				[
-					LGUIEditorUtils::GenerateArrowButtonContent(FText::FromString(componentDisplayName))
-				]
-			];
 
-			//function
-			eventGroup.AddWidgetRow()
-			.NameContent()
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString("Function"))
-				.Font(IDetailLayoutBuilder::GetDetailFont())
-			]
-			.ValueContent()
-			.MinDesiredWidth(500)
-			[
-				SNew(SButton)
-				.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickFunctionNameButton, i)
-				[
-					LGUIEditorUtils::GenerateArrowButtonContent(FText::FromString(functionName))
-				]
-			];
+
 			//parameter
-			bool useNativeParameter = false;
-			auto useNativeParameterHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UseNativeParameter));
-			useNativeParameterHandle->GetValue(useNativeParameter);
-			if ((EventParameterTypeArray == functionParameterTypeArray) && useNativeParameter)//support native parameter
+			TSharedRef<SWidget> parameterWidget = SNew(SBox);
+			if (IsValid(EventTarget) && IsValid(eventFunction))
 			{
-				//clear buffer and value
-				ClearNumericValueBuffer(itemHandle);
-				ClearReferenceValue(itemHandle);
-				if (ParameterCount > 1)
+				bool useNativeParameter = false;
+				auto useNativeParameterHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UseNativeParameter));
+				useNativeParameterHandle->GetValue(useNativeParameter);
+				if ((EventParameterTypeArray == functionParameterTypeArray) && useNativeParameter)//support native parameter
 				{
-					for (int paramIndex = 1; paramIndex < ParameterCount; paramIndex++)
+					//clear buffer and value
+					ClearNumericValueBuffer(itemHandle);
+					ClearReferenceValue(itemHandle);
+					if (ParameterCount > 1)
 					{
-						auto dataContainerHandle = GetAdditionalParameterContainer(itemHandle, i);
-						ClearNumericValueBuffer(dataContainerHandle);
-						ClearReferenceValue(dataContainerHandle);
+						for (int paramIndex = 1; paramIndex < ParameterCount; paramIndex++)
+						{
+							auto dataContainerHandle = GetAdditionalParameterContainer(itemHandle, i);
+							ClearNumericValueBuffer(dataContainerHandle);
+							ClearReferenceValue(dataContainerHandle);
+						}
+					}
+					//native parameter widget
+					parameterWidget =
+						SNew(SBox)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString("(NativeParameter)"))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+						;
+				}
+				else
+				{
+					parameterWidget = DrawFunctionParameter(itemHandle, functionParameterTypeArray, 0, eventFunction);
+					if (ParameterCount > 1)
+					{
+						for (int paramIndex = 1; paramIndex < ParameterCount; paramIndex++)
+						{
+							parameterWidget = DrawFunctionParameter(GetAdditionalParameterContainer(itemHandle, i), functionParameterTypeArray, paramIndex, eventFunction);
+						}
 					}
 				}
-				//add native parameter widget
-				eventGroup.AddWidgetRow()
-				.NameContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("Parameter"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
-				.ValueContent()
-				.MinDesiredWidth(500)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("(NativeParameter)"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				];
 			}
 			else
 			{
-				DrawFunctionParameter(itemHandle, functionParameterTypeArray, 0, eventFunction, eventGroup);
-				if (ParameterCount > 1)
-				{
-					for (int paramIndex = 1; paramIndex < ParameterCount; paramIndex++)
-					{
-						DrawFunctionParameter(GetAdditionalParameterContainer(itemHandle, i), functionParameterTypeArray, paramIndex, eventFunction, eventGroup);
-					}
-				}
+				parameterWidget = 
+					SNew(SBox)
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString("(NotValid)"))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+					]
+					;
 			}
+			parameterWidget->SetToolTipText(LOCTEXT("Parameter", "Set parameter for the function of this event"));
 
 			//additional button
-			eventGroup.AddWidgetRow()
-			.ValueContent()
-			.MinDesiredWidth(500)
+			int additionalButtonHeight = 20;
+			auto additionalButtons = 
+			SNew(SBox)
 			[
-				//add, delete
+				//copy, paste, add, delete
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
 				.HAlign(HAlign_Right)
@@ -370,7 +341,12 @@ public:
 					SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
 					[
+						SNew(SVerticalBox)
+						+SVerticalBox::Slot()
+						.AutoHeight()
+						[
 						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
 						.WidthOverride(30)
 						[
 							SNew(SButton)
@@ -380,10 +356,16 @@ public:
 							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, true, i)
 							.ToolTipText(LOCTEXT("Copy", "Copy this function"))
 						]
+						]
 					]
 					+ SHorizontalBox::Slot()
 					[
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						[
 						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
 						.WidthOverride(30)
 						[
 							SNew(SButton)
@@ -393,10 +375,16 @@ public:
 							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, false, i)
 							.ToolTipText(LOCTEXT("Paste", "Paste copied function to this function"))
 						]
+						]
 					]
 					+ SHorizontalBox::Slot()
 					[
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						[
 						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
 						.WidthOverride(30)
 						[
 							SNew(SButton)
@@ -406,10 +394,16 @@ public:
 							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickAddRemove, true, i, (int32)arrayCount)
 							.ToolTipText(LOCTEXT("Add", "Add new one"))
 						]
+						]
 					]
 					+ SHorizontalBox::Slot()
 					[
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						[
 						SNew(SBox)
+						.HeightOverride(additionalButtonHeight)
 						.WidthOverride(30)
 						[
 							SNew(SButton)
@@ -419,15 +413,170 @@ public:
 							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickAddRemove, false, i, (int32)arrayCount)
 							.ToolTipText(LOCTEXT("Delete", "Delete this one"))
 						]
+						]
 					]
 				]
 			];
+
+
+			verticalLayout->AddSlot()
+				[
+					SNew(SBox)
+					.Padding(FMargin(2, 0))
+					[
+						SNew(SOverlay)
+						+ SOverlay::Slot()
+						[
+							SNew(SVerticalBox)
+							+SVerticalBox::Slot()
+							.AutoHeight()
+							.HAlign(EHorizontalAlignment::HAlign_Center)
+							.VAlign(EVerticalAlignment::VAlign_Center)
+							[
+								SNew(SBox)
+								.WidthOverride(1000)
+								.HeightOverride(eventItemHeight)
+								[
+									SNew(SImage)
+									.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.EventItem"))
+									.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
+								]
+							]
+						]
+						+ SOverlay::Slot()
+						[
+							SNew(SBox)
+							.Padding(FMargin(4, 4))
+							[
+								SNew(SVerticalBox)
+								+SVerticalBox::Slot()
+								.AutoHeight()
+								[
+									SNew(SBox)
+									.Padding(FMargin(0, 0, 0, 2))
+									[
+										SNew(SHorizontalBox)
+										+SHorizontalBox::Slot()
+										[
+											//actor
+											SNew(SBox)
+											.Padding(FMargin(0, 0, 6, 0))
+											[
+												targetActorHandle->CreatePropertyValueWidget()
+											]
+										]
+										+SHorizontalBox::Slot()
+										[
+											SNew(SBox)
+											.HeightOverride(26)
+											[
+												//component
+												SNew(SComboButton)
+												.HasDownArrow(true)
+												.IsEnabled(this, &FLGUIDrawableEventCustomization::IsComponentSelectorMenuEnabled, i)
+												.ToolTipText(LOCTEXT("Component", "Pick component for target actor of this event"))
+												.ButtonContent()
+												[
+													SNew(STextBlock)
+													.Text(FText::FromString(componentDisplayName))
+													.Font(IDetailLayoutBuilder::GetDetailFont())
+												]
+												.MenuContent()
+												[
+													MakeComponentSelectorMenu(i)
+												]
+											]
+										]
+									]
+								]
+								+SVerticalBox::Slot()
+								.AutoHeight()
+								[
+									SNew(SBox)
+									.Padding(FMargin(0, 0, 0, 2))
+									[
+										SNew(SHorizontalBox)
+										+SHorizontalBox::Slot()
+										[
+											SNew(SBox)
+											.Padding(FMargin(0, 0, 6, 0))
+											[
+												SNew(SBox)
+												.HeightOverride(26)
+												[
+													//function
+													SNew(SComboButton)
+													.HasDownArrow(true)
+													.IsEnabled(this, &FLGUIDrawableEventCustomization::IsFunctionSelectorMenuEnabled, i)
+													.ToolTipText(LOCTEXT("Function", "Pick a function to execute of this event"))
+													.ButtonContent()
+													[
+														SNew(STextBlock)
+														.Text(FText::FromString(functionName))
+														.Font(IDetailLayoutBuilder::GetDetailFont())
+													]
+													.MenuContent()
+													[
+														MakeFunctionSelectorMenu(i)
+													]
+												]
+											]
+										]
+										+SHorizontalBox::Slot()
+										[
+											//parameter
+											parameterWidget
+										]
+									]
+								]
+								+SVerticalBox::Slot()
+								[
+									additionalButtons
+								]
+							]
+						]
+					]
+				]
+			;
 		}
+		ChildBuilder.AddCustomRow(LOCTEXT("DrawableEvent", "DrawableEvent"))
+			.WholeRowContent()
+			[
+				SNew(SBox)
+				.Padding(FMargin(-10, 0, -2, 0))
+				[
+					SNew(SOverlay)
+					+ SOverlay::Slot()
+					[
+						SNew(SBox)
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(SBox)
+							.WidthOverride(1000)
+							.HeightOverride(eventItemHeight * (int32)arrayCount + 40)
+							[
+								SNew(SImage)
+								.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.EventGroup"))
+								.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
+							]
+						]
+					]
+					+ SOverlay::Slot()
+					[
+						verticalLayout
+					]
+				]
+			]
+		;
+
 	}
 
-	virtual void OnSelectComponent(IPropertyHandleArray* InEventListHandle, FName CompName, int32 itemIndex)override
+	virtual void SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, TArray<LGUIDrawableEventParameterType> ParameterTypeArray) = 0;
+protected:
+	void OnSelectComponent(FName CompName, int32 itemIndex)
 	{
-		auto itemHandle = InEventListHandle->GetElement(itemIndex);
+		auto itemHandle = EventListHandle->GetElement(itemIndex);
 		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
 		UObject* actorObject = nullptr;
 		actorHandle->GetValue(actorObject);
@@ -445,9 +594,9 @@ public:
 		}
 		PropertyUtilites->ForceRefresh();
 	}
-	virtual void OnSelectActorSelf(IPropertyHandleArray* InEventListHandle, int32 itemIndex)override
+	void OnSelectActorSelf(int32 itemIndex)
 	{
-		auto itemHandle = InEventListHandle->GetElement(itemIndex);
+		auto itemHandle = EventListHandle->GetElement(itemIndex);
 
 		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
 		UObject* actorObject = nullptr;
@@ -459,10 +608,9 @@ public:
 
 		PropertyUtilites->ForceRefresh();
 	}
-	virtual void SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, TArray<LGUIDrawableEventParameterType> ParameterTypeArray) = 0;
-	virtual void OnSelectFunction(IPropertyHandleArray* InEventListHandle, FName FuncName, int32 EventArrayItemIndex, TArray<LGUIDrawableEventParameterType> ParamTypeArray, bool UseNativeParameter)override
+	void OnSelectFunction(FName FuncName, int32 itemIndex, TArray<LGUIDrawableEventParameterType> ParamTypeArray, bool UseNativeParameter)
 	{
-		auto itemHandle = InEventListHandle->GetElement(EventArrayItemIndex);
+		auto itemHandle = EventListHandle->GetElement(itemIndex);
 		auto nameHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, functionName));
 		nameHandle->SetValue(FuncName);
 		SetEventDataParameterType(itemHandle, ParamTypeArray);
@@ -470,7 +618,197 @@ public:
 		useNativeParameterHandle->SetValue(UseNativeParameter);
 		PropertyUtilites->ForceRefresh();
 	}
-protected:
+	bool IsComponentSelectorMenuEnabled(int32 itemIndex)const
+	{
+		auto itemHandle = EventListHandle->GetElement(itemIndex);
+		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
+		UObject* actorObject = nullptr;
+		actorHandle->GetValue(actorObject);
+		return IsValid(actorObject);
+	}
+	bool IsFunctionSelectorMenuEnabled(int32 itemIndex)const
+	{
+		auto itemHandle = EventListHandle->GetElement(itemIndex);
+		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
+		UObject* actorObject = nullptr;
+		actorHandle->GetValue(actorObject);
+
+		auto compClassHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentClass));
+		UObject* componentClassObject = nullptr;
+		compClassHandle->GetValue(componentClassObject);
+
+		return IsValid(actorObject) && IsValid(componentClassObject);
+	}
+	TSharedRef<SWidget> MakeComponentSelectorMenu(int32 itemIndex)
+	{
+		auto itemHandle = EventListHandle->GetElement(itemIndex);
+		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
+		UObject* actorObject = nullptr;
+		actorHandle->GetValue(actorObject);
+		if (actorObject == nullptr)
+		{
+			return SNew(SBox);
+		}
+
+
+		auto tempCmd = MakeShareable(new FUICommandList);
+		FMenuBuilder MenuBuilder(true, tempCmd);
+
+		auto actor = (AActor*)actorObject;
+		MenuBuilder.AddMenuEntry(
+			FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectActorSelf, itemIndex)),
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(LGUIEventActorSelfName))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+			//+SHorizontalBox::Slot()
+			//.HAlign(EHorizontalAlignment::HAlign_Right)
+			//[
+			//	SNew(STextBlock)
+			//	.Text(FText::FromString(actor->GetClass()->GetName()))
+			//	.Font(IDetailLayoutBuilder::GetDetailFont())
+			//]
+		);
+		auto components = actor->GetComponents();
+		for (auto comp : components)
+		{
+			if(comp->HasAnyFlags(EObjectFlags::RF_Transient))continue;
+			auto compName = comp->GetFName();
+			auto compTypeName = comp->GetClass()->GetName();
+			MenuBuilder.AddMenuEntry(
+				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectComponent, compName, itemIndex)),
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.HAlign(EHorizontalAlignment::HAlign_Left)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(compName.ToString()))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
+				//+ SHorizontalBox::Slot()
+				//.HAlign(EHorizontalAlignment::HAlign_Right)
+				//[
+				//	SNew(STextBlock)
+				//	.Text(FText::FromString(compTypeName))
+				//	.Font(IDetailLayoutBuilder::GetDetailFont())
+				//]
+			);
+		}
+		return MenuBuilder.MakeWidget();
+	}
+	TSharedRef<SWidget> MakeFunctionSelectorMenu(int32 itemIndex)
+	{
+		auto itemHandle = EventListHandle->GetElement(itemIndex);
+		auto compClassHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentClass));
+		UObject* componentClassObject = nullptr;
+		compClassHandle->GetValue(componentClassObject);
+		if (componentClassObject == nullptr)
+		{
+			return SNew(SBox);
+		}
+
+		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
+		UObject* actorObject = nullptr;
+		actorHandle->GetValue(actorObject);
+		if (actorObject == nullptr)
+		{
+			return SNew(SBox);
+		}
+
+		UClass* componentClass = (UClass*)componentClassObject;
+		UObject* targetObject = nullptr;
+		if (actorObject->GetClass() == componentClass)//actor self
+		{
+			targetObject = actorObject;
+		}
+		else
+		{
+			AActor* actor = (AActor*)actorObject;
+			auto& Components = actor->GetComponents();
+			for (auto Comp : Components)//find component by class Component
+			{
+				if (Comp->GetClass() == componentClass)
+				{
+					targetObject = Comp;
+					break;
+				}
+			}
+		}
+		if (!IsValid(targetObject))
+		{
+			return SNew(SBox);
+		}
+
+
+		auto tempCmd = MakeShareable(new FUICommandList);
+		FMenuBuilder MenuBuilder(true, tempCmd);
+
+		auto FunctionField = TFieldRange<UFunction>(targetObject->GetClass());
+		for (auto Func : FunctionField)
+		{
+			TArray<LGUIDrawableEventParameterType> paramTypeArray;
+			if (ULGUIDrawableEventParameterHelper::IsSupportedFunction(Func, paramTypeArray) && (paramTypeArray.Num() == EventParameterTypeArray.Num() || paramTypeArray.Num() == 0))//show only supported type
+			{
+				if (paramTypeArray.Num() == 0)//empty parameter
+				{
+					FString ParamTypeString = ULGUIDrawableEventParameterHelper::ParameterTypeToName({ }, Func);
+					auto FunctionSelectorName = FString::Printf(TEXT("%s(%s)"), *Func->GetName(), *ParamTypeString);
+					MenuBuilder.AddMenuEntry(
+						FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, false)),
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.HAlign(EHorizontalAlignment::HAlign_Left)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString(FunctionSelectorName))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					);
+				}
+				else
+				{
+					FString ParamTypeString(TEXT(""));
+					for (auto item : paramTypeArray)
+					{
+						ParamTypeString += ULGUIDrawableEventParameterHelper::ParameterTypeToName(item, Func);
+						ParamTypeString.AppendChar(',');
+					}
+					ParamTypeString.RemoveAt(ParamTypeString.Len() - 1);
+					auto FunctionSelectorName = FString::Printf(TEXT("%s(%s)"), *Func->GetName(), *ParamTypeString);
+					MenuBuilder.AddMenuEntry(
+						FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, false)),
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.HAlign(EHorizontalAlignment::HAlign_Left)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString(FunctionSelectorName))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					);
+					if (paramTypeArray == EventParameterTypeArray)//if function support native parameter, then draw another button, and show as native parameter
+					{
+						FunctionSelectorName = FString::Printf(TEXT("%s(NativeParameter)"), *Func->GetName());
+						MenuBuilder.AddMenuEntry(
+							FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, true)),
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot()
+							.HAlign(EHorizontalAlignment::HAlign_Left)
+							[
+								SNew(STextBlock)
+								.Text(FText::FromString(FunctionSelectorName))
+								.Font(IDetailLayoutBuilder::GetDetailFont())
+							]
+						);
+					}					
+				}
+			}
+		}
+		return MenuBuilder.MakeWidget();
+	}
 	void OnClickListAdd()
 	{
 		EventListHandle->AddItem();
@@ -516,90 +854,12 @@ protected:
 		else
 		{
 			eventDataHandle->SetPerObjectValues(CopySourceData);
+			PropertyUtilites->ForceRefresh();
 		}
-		PropertyUtilites->ForceRefresh();
-		return FReply::Handled();
-	}
-	FReply OnClickComponentNameButton(int32 itemIndex)
-	{
-		auto itemHandle = EventListHandle->GetElement(itemIndex);
-		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
-		UObject* actorObject = nullptr;
-		actorHandle->GetValue(actorObject);
-		if (actorObject == nullptr)
-		{
-			UE_LOG(LGUIEditor, Error, TEXT("Target actor is null!"));
-			return FReply::Handled();
-		}
-
-		SLGUIEventComponentSelector::TargetCustomization = this;
-		SLGUIEventComponentSelector::TargetActor = (AActor*)actorObject;
-		SLGUIEventComponentSelector::TargetItemIndex = itemIndex;
-		SLGUIEventComponentSelector::EventListHandle = EventListHandle.Get();
-		FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIEventComponentSelectorName);
 		return FReply::Handled();
 	}
 
-	FReply OnClickFunctionNameButton(int32 itemIndex)
-	{
-		auto itemHandle = EventListHandle->GetElement(itemIndex);
-		auto compClassHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentClass));
-		UObject* componentClassObject = nullptr;
-		compClassHandle->GetValue(componentClassObject);
-		if (componentClassObject == nullptr)
-		{
-			UE_LOG(LGUIEditor, Error, TEXT("Target component is null!"));
-			return FReply::Handled();
-		}
-
-		auto actorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
-		UObject* actorObject = nullptr;
-		actorHandle->GetValue(actorObject);
-		if (actorObject == nullptr)
-		{
-			UE_LOG(LGUIEditor, Error, TEXT("Target actor is null!"));
-			return FReply::Handled();
-		}
-
-		UClass* componentClass = (UClass*)componentClassObject;
-
-		bool GetObject = false;
-		if (actorObject->GetClass() == componentClass)//actor self
-		{
-			SLGUIEventFunctionSelector::TargetObject = actorObject;
-			GetObject = true;
-		}
-		else
-		{
-			AActor* actor = (AActor*)actorObject;
-			auto& Components = actor->GetComponents();
-			for (auto Comp : Components)//find component by class Component
-			{
-				if (Comp->GetClass() == componentClass)
-				{
-					SLGUIEventFunctionSelector::TargetObject = Comp;
-					GetObject = true;
-					break;
-				}
-			}
-		}
-		if (GetObject)
-		{
-			SLGUIEventFunctionSelector::TargetCustomization = this;
-			SLGUIEventFunctionSelector::NativeSupportParameter = EventParameterTypeArray;
-			SLGUIEventFunctionSelector::TargetItemIndex = itemIndex;
-			SLGUIEventFunctionSelector::EventListHandle = EventListHandle.Get();
-			FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIEventFunctionSelectorName);
-		}
-		else
-		{
-			UE_LOG(LGUIEditor, Error, TEXT("Target component is missing!"));
-		}
-
-		return FReply::Handled();
-	}
-	
-	void DrawFunctionParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, TArray<LGUIDrawableEventParameterType> InFunctionParameterTypeArray, int32 InParameterIndex, UFunction* InFunction, IDetailGroup& InDetailGroup)
+	TSharedRef<SWidget> DrawFunctionParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, TArray<LGUIDrawableEventParameterType> InFunctionParameterTypeArray, int32 InParameterIndex, UFunction* InFunction)
 	{
 		auto paramBufferHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ParamBuffer));
 		auto functionParameterType = InFunctionParameterTypeArray[InParameterIndex];
@@ -607,24 +867,21 @@ protected:
 		{
 			switch (functionParameterType)
 			{
+			default:
 			case LGUIDrawableEventParameterType::Empty:
 			{
 				ClearNumericValueBuffer(InDataContainerHandle);
 				ClearReferenceValue(InDataContainerHandle);
-				InDetailGroup.AddWidgetRow()
-				.NameContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("Parameter"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
-				.ValueContent()
-				.MinDesiredWidth(500)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("(No parameter)"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				];
+				return
+					SNew(SBox)
+					.MinDesiredWidth(500)
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString("(No parameter)"))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+					]
+				;
 			}
 			break;
 			case LGUIDrawableEventParameterType::Bool:
@@ -634,7 +891,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, BoolValue));
 				valueHandle->SetValue(BitConverter::ToBoolean(GetBuffer(paramBufferHandle, 1)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::BoolValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Float:
@@ -644,7 +901,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, FloatValue));
 				valueHandle->SetValue(BitConverter::ToFloat(GetBuffer(paramBufferHandle, 4)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::FloatValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Double:
@@ -654,7 +911,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, DoubleValue));
 				valueHandle->SetValue(BitConverter::ToDouble(GetBuffer(paramBufferHandle, 8)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::DoubleValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Int8:
@@ -664,7 +921,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int8Value));
 				valueHandle->SetValue(BitConverter::ToInt8(GetBuffer(paramBufferHandle, 1)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int8ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::UInt8:
@@ -675,25 +932,20 @@ protected:
 				valueHandle->SetValue(BitConverter::ToUInt8(GetBuffer(paramBufferHandle, 1)));
 				if (auto enumValue = ULGUIDrawableEventParameterHelper::GetEnumParameter(InFunction))
 				{
-					InDetailGroup.AddWidgetRow()
-					.NameContent()
-					[
-						SNew(STextBlock)
-						.Text(FText::FromString("Parameter"))
-						.Font(IDetailLayoutBuilder::GetDetailFont())
-					]
-					.ValueContent()
-					.MinDesiredWidth(500)
-					[
-						SNew(SEnumCombobox, enumValue)
-						.CurrentValue(this, &FLGUIDrawableEventCustomization::GetEnumValue, valueHandle)
-						.OnEnumSelectionChanged(this, &FLGUIDrawableEventCustomization::EnumValueChange, valueHandle, paramBufferHandle)
-					];
+					return
+						SNew(SBox)
+						.MinDesiredWidth(500)
+						[
+							SNew(SEnumCombobox, enumValue)
+							.CurrentValue(this, &FLGUIDrawableEventCustomization::GetEnumValue, valueHandle)
+							.OnEnumSelectionChanged(this, &FLGUIDrawableEventCustomization::EnumValueChange, valueHandle, paramBufferHandle)
+						]
+					;
 				}
 				else
 				{
 					valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt8ValueChange, valueHandle, paramBufferHandle));
-					InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+					return valueHandle->CreatePropertyValueWidget();
 				}
 			}
 			break;
@@ -704,7 +956,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int16Value));
 				valueHandle->SetValue(BitConverter::ToInt16(GetBuffer(paramBufferHandle, 2)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int16ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::UInt16:
@@ -714,7 +966,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt16Value));
 				valueHandle->SetValue(BitConverter::ToUInt16(GetBuffer(paramBufferHandle, 2)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt16ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Int32:
@@ -724,7 +976,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int32Value));
 				valueHandle->SetValue(BitConverter::ToInt32(GetBuffer(paramBufferHandle, 4)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int32ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::UInt32:
@@ -734,7 +986,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt32Value));
 				valueHandle->SetValue(BitConverter::ToUInt32(GetBuffer(paramBufferHandle, 4)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt32ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Int64:
@@ -744,7 +996,7 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int64Value));
 				valueHandle->SetValue(BitConverter::ToInt64(GetBuffer(paramBufferHandle, 8)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int64ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::UInt64:
@@ -754,8 +1006,9 @@ protected:
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt64Value));
 				valueHandle->SetValue(BitConverter::ToUInt64(GetBuffer(paramBufferHandle, 8)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt64ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
+			break;
 			case LGUIDrawableEventParameterType::Vector2:
 			{
 				ClearReferenceValue(InDataContainerHandle);
@@ -764,7 +1017,7 @@ protected:
 				valueHandle->SetValue(BitConverter::ToVector2(GetBuffer(paramBufferHandle, 8)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector2ValueChange, valueHandle, paramBufferHandle));
 				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector2ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Vector3:
@@ -775,7 +1028,7 @@ protected:
 				valueHandle->SetValue(BitConverter::ToVector3(GetBuffer(paramBufferHandle, 12)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector3ValueChange, valueHandle, paramBufferHandle));
 				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector3ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Vector4:
@@ -786,7 +1039,7 @@ protected:
 				valueHandle->SetValue(BitConverter::ToVector4(GetBuffer(paramBufferHandle, 16)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector4ValueChange, valueHandle, paramBufferHandle));
 				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector4ValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Color:
@@ -797,7 +1050,7 @@ protected:
 				valueHandle->SetValue(BitConverter::ToInt32(GetBuffer(paramBufferHandle, 4)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::ColorValueChange, valueHandle, paramBufferHandle));
 				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::ColorValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::LinearColor:
@@ -808,7 +1061,7 @@ protected:
 				valueHandle->SetValue(BitConverter::ToLinearColor(GetBuffer(paramBufferHandle, 16)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::LinearColorValueChange, valueHandle, paramBufferHandle));
 				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::LinearColorValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::Quaternion:
@@ -817,23 +1070,17 @@ protected:
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, QuatValue));
 				valueHandle->SetValue(BitConverter::ToQuat(GetBuffer(paramBufferHandle, 16)));
-				InDetailGroup.AddWidgetRow()
-				.NameContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("Parameter"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
-				.ValueContent()
-				.MinDesiredWidth(500)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(TEXT("(Quaternion not editable! You can only pass native parameter! Consider use Vector as euler angle or Rotator, and convert to Quaterion before calculation)")))
-					.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
-					.AutoWrapText(true)
-					.ColorAndOpacity(FLinearColor(FColor(255, 0, 0, 255)))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				];
+				return
+					SNew(SBox)
+					.MinDesiredWidth(500)
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(TEXT("(Quaternion not editable! You can only pass native parameter! Consider use Vector as euler angle or Rotator, and convert to Quaterion before calculation)")))
+						.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
+						.AutoWrapText(true)
+						.ColorAndOpacity(FLinearColor(FColor(255, 0, 0, 255)))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+					];
 			}
 			break;
 			case LGUIDrawableEventParameterType::String:
@@ -843,48 +1090,36 @@ protected:
 				ClearActorValue(InDataContainerHandle);
 				ClearClassValue(InDataContainerHandle);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceString));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
 			case LGUIDrawableEventParameterType::PointerEvent:
 			{
 				ClearNumericValueBuffer(InDataContainerHandle);
 				ClearReferenceValue(InDataContainerHandle);
-				InDetailGroup.AddWidgetRow()
-				.NameContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("Parameter"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
-				.ValueContent()
-				.MinDesiredWidth(500)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(TEXT("(PointerEventData not editable! You can only pass native parameter!)")))
-					.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
-					.AutoWrapText(true)
-					.ColorAndOpacity(FLinearColor(FColor(255, 0, 0, 255)))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				];
+				return
+					SNew(SBox)
+					.MinDesiredWidth(500)
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(TEXT("(PointerEventData not editable! You can only pass native parameter!)")))
+						.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
+						.AutoWrapText(true)
+						.ColorAndOpacity(FLinearColor(FColor(255, 0, 0, 255)))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+					];
 			}
 			break;
 			case LGUIDrawableEventParameterType::Object:
 			case LGUIDrawableEventParameterType::Actor:
 			case LGUIDrawableEventParameterType::Class:
 			{
-				InDetailGroup.AddWidgetRow()
-				.NameContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("Parameter"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
-				.ValueContent()
-				.MinDesiredWidth(500)
-				[
-					DrawFunctionReferenceParameter(InDataContainerHandle, functionParameterType, InFunction)
-				];
+				return
+					SNew(SBox)
+					.MinDesiredWidth(500)
+					[
+						DrawFunctionReferenceParameter(InDataContainerHandle, functionParameterType, InFunction)
+					];
 			}
 			break;
 			case LGUIDrawableEventParameterType::Rotator:
@@ -895,20 +1130,19 @@ protected:
 				valueHandle->SetValue(BitConverter::ToRotator(GetBuffer(paramBufferHandle, 12)));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::RotatorValueChange, valueHandle, paramBufferHandle));
 				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::RotatorValueChange, valueHandle, paramBufferHandle));
-				InDetailGroup.AddPropertyRow(valueHandle.ToSharedRef()).DisplayName(FText::FromString("Parameter"));
+				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			default:
-				break;
 			}
 		}
 		else
 		{
 			ClearNumericValueBuffer(InDataContainerHandle);
 			ClearReferenceValue(InDataContainerHandle);
-			SNew(STextBlock)
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-			.Text(FText::FromString("(Not handled)"));
+			return
+				SNew(STextBlock)
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+				.Text(FText::FromString("(Not handled)"));
 		}
 	}
 	//function's parameter editor

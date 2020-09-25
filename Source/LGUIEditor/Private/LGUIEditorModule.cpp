@@ -61,8 +61,6 @@
 #include "Core/Actor/LGUIManagerActor.h"
 
 const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
-const FName FLGUIEditorModule::LGUIEventComponentSelectorName(TEXT("LGUIEventComponentSelector"));
-const FName FLGUIEditorModule::LGUIEventFunctionSelectorName(TEXT("LGUIEventFunctionSelector"));
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
 
 FLGUIEditorModule* FLGUIEditorModule::Instance = nullptr;
@@ -152,19 +150,6 @@ void FLGUIEditorModule::StartupModule()
 	}
 	//register window
 	{
-		//Editor tools
-		//FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIEditorToolsTabName, FOnSpawnTab::CreateRaw(this,
-		//	&FLGUIEditorModule::HandleSpawnEditorToolsTab))
-		//	.SetDisplayName(LOCTEXT("LGUIEditorToolsTitle", "LGUI Editor Tools"))
-		//	.SetMenuType(ETabSpawnerMenuType::Hidden);
-		//event component selector
-		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIEventComponentSelectorName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnEventComponentSelectorTab))
-			.SetDisplayName(LOCTEXT("LGUIEventComponentSelector", "LGUI Event Component Selector"))
-			.SetMenuType(ETabSpawnerMenuType::Hidden);
-		//event function selector
-		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIEventFunctionSelectorName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnEventFunctionSelectorTab))
-			.SetDisplayName(LOCTEXT("LGUIEventFuntionSelector", "LGUI Event Funtion Selector"))
-			.SetMenuType(ETabSpawnerMenuType::Hidden);
 		//atlas texture viewer
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIAtlasViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnAtlasViewerTab))
 			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUI Atlas Texture Viewer"))
@@ -269,9 +254,6 @@ void FLGUIEditorModule::ShutdownModule()
 
 	FLGUIEditorCommands::Unregister();
 
-	//FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEditorToolsTabName);
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEventComponentSelectorName);
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIEventFunctionSelectorName);
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIAtlasViewerName);
 
 	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
@@ -330,20 +312,6 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnEditorToolsTab(const FSpawnTa
 {
 	TSharedRef<SDockTab> ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
 	auto TabContentWidget = SNew(SLGUIEditorTools, ResultTab);
-	ResultTab->SetContent(TabContentWidget);
-	return ResultTab;
-}
-TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnEventComponentSelectorTab(const FSpawnTabArgs& SpawnTabArgs)
-{
-	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
-	auto TabContentWidget = SNew(SLGUIEventComponentSelector, ResultTab);
-	ResultTab->SetContent(TabContentWidget);
-	return ResultTab;
-}
-TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnEventFunctionSelectorTab(const FSpawnTabArgs& SpawnTabArgs)
-{
-	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
-	auto TabContentWidget = SNew(SLGUIEventFunctionSelector, ResultTab);
 	ResultTab->SetContent(TabContentWidget);
 	return ResultTab;
 }

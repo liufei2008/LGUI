@@ -24,8 +24,6 @@ class FLGUIEditorModule : public IModuleInterface
 public:
 
 	static const FName LGUIEditorToolsTabName;
-	static const FName LGUIEventComponentSelectorName;
-	static const FName LGUIEventFunctionSelectorName;
 	static const FName LGUIAtlasViewerName;
 
 	static FLGUIEditorModule* Instance;
@@ -55,7 +53,5 @@ private:
 	void EditorToolButtonClicked();
 	bool CanEditActorForPrefab();
 private:
-	TSharedRef<SDockTab> HandleSpawnEventComponentSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
-	TSharedRef<SDockTab> HandleSpawnEventFunctionSelectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 };
