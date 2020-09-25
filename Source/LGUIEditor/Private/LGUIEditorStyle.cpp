@@ -115,6 +115,9 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("LGUIEditor.WhiteFrameVertical", new BOX_BRUSH(TEXT("WhiteFrameVertical_1x"), FVector2D(16, 16), 4.0f / 16.0f));
 	Style->Set("LGUIEditor.WhiteDot", new IMAGE_BRUSH(TEXT("WhiteDot_1x"), FVector2D(1, 1)));
 
+	Style->Set("LGUIEditor.EventGroup", new BOX_BRUSH(TEXT("EventGroup"), FMargin(15.0f / 30.0f, 34.0f / 40.0f, 15.0f / 30.0f, 6.0f / 40.0f)));
+	Style->Set("LGUIEditor.EventItem", new BOX_BRUSH(TEXT("EventItem"), FVector2D(26, 26), 12.0f / 26.0f));
+
 	Style->Set("LGUIEditor.EditorTools", new IMAGE_BRUSH(TEXT("Button_Icon40"), FVector2D(40, 40)));
 
 	FButtonStyle AnchorButton = FButtonStyle()
