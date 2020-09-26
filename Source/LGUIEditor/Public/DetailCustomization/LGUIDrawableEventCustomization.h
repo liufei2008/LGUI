@@ -88,6 +88,7 @@ public:
 			+SHorizontalBox::Slot()
 			.HAlign(EHorizontalAlignment::HAlign_Left)
 			.VAlign(EVerticalAlignment::VAlign_Center)
+			.AutoWidth()
 			[
 				SNew(STextBlock)
 				.Text(FText::FromString(nameStr))
@@ -352,17 +353,17 @@ public:
 						+SVerticalBox::Slot()
 						.AutoHeight()
 						[
-						SNew(SBox)
-						.HeightOverride(additionalButtonHeight)
-						.WidthOverride(30)
-						[
-							SNew(SButton)
-							.HAlign(HAlign_Center)
-							.VAlign(VAlign_Center)
-							.Text(LOCTEXT("C", "C"))
-							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, true, i)
-							.ToolTipText(LOCTEXT("Copy", "Copy this function"))
-						]
+							SNew(SBox)
+							.HeightOverride(additionalButtonHeight)
+							.WidthOverride(30)
+							[
+								SNew(SButton)
+								.HAlign(HAlign_Center)
+								.VAlign(VAlign_Center)
+								.Text(LOCTEXT("C", "C"))
+								.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, true, i)
+								.ToolTipText(LOCTEXT("Copy", "Copy this function"))
+							]
 						]
 					]
 					+ SHorizontalBox::Slot()
