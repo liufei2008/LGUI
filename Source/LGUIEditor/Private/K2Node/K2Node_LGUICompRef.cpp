@@ -88,15 +88,15 @@ void UK2Node_LGUICompRef_GetComponent::SetOutputPinType()
 				UClass* objectClass = GetBlueprint()->GeneratedClass;
 				auto objectInstance = GetDefault<UObject>(objectClass);
 
-				if (auto structProperty = Cast<UStructProperty>(variableNode->GetPropertyForVariable()))
+				if (auto structProperty = Cast<FStructProperty>(variableNode->GetPropertyForVariable()))
 				{
 					auto structPtr = structProperty->ContainerPtrToValuePtr<FLGUIComponentReference>((void*)objectInstance, 0);
-					for (TFieldIterator<UProperty> It(structProperty->Struct); It; ++It)
+					for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 					{
 						auto memberProperty = *It;
 						if (memberProperty->GetFName() == TEXT("targetComponentClass"))
 						{
-							if (auto classProperty = Cast<UClassProperty>(memberProperty))
+							if (auto classProperty = Cast<FClassProperty>(memberProperty))
 							{
 								if (auto object = classProperty->GetObjectPropertyValue_InContainer((void*)structPtr))
 								{
