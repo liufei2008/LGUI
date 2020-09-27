@@ -226,6 +226,11 @@ AActor* ULGUIBPLibrary::LGUICompRef_GetActor(const FLGUIComponentReference& InLG
 	return InLGUIComponentReference.GetActor();
 }
 
+void ULGUIBPLibrary::K2_LGUICompRef_GetComponent(const FLGUIComponentReference& InLGUICompRef, UActorComponent*& OutResult)
+{
+	OutResult = InLGUICompRef.GetComponent();
+}
+
 
 #pragma region LTween
 
