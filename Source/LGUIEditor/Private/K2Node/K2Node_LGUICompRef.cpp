@@ -48,10 +48,6 @@ TSharedPtr<SWidget> UK2Node_LGUICompRef_GetComponent::CreateNodeImage() const
 {
 	return SPinTypeSelector::ConstructPinTypeImage(Pins[0]);
 }
-void UK2Node_LGUICompRef_GetComponent::GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context)const
-{
-	Super::GetNodeContextMenuActions(Menu, Context);
-}
 FSlateIcon UK2Node_LGUICompRef_GetComponent::GetIconAndTint(FLinearColor& OutColor)const
 {
 	return Super::GetIconAndTint(OutColor);
@@ -170,3 +166,4 @@ bool UK2Node_LGUICompRef_GetComponent::ReferencesVariable(const FName& InVarName
 	return false;
 }
 
+#undef LOCTEXT_NAMESPACE
