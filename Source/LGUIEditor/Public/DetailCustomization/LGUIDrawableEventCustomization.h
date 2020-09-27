@@ -179,8 +179,7 @@ public:
 					}
 					else
 					{
-						TArray<UActorComponent*> compArray;
-						actor->GetComponents(componentClass, compArray);
+						TArray<UActorComponent*> compArray = actor->GetComponentsByClass(componentClass);
 						auto componentNameHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, componentName));
 						if (compArray.Num() > 1)
 						{
