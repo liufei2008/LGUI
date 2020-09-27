@@ -18,7 +18,7 @@
 #include "K2Node_Variable.h"
 #include "K2Node_CallFunction.h"
 
-#define LOCTEXT_NAMESPACE "UK2Node_GetComponent"
+#define LOCTEXT_NAMESPACE "UK2Node_LGUICompRef_GetComponent"
 
 void UK2Node_LGUICompRef_GetComponent::AllocateDefaultPins()
 {
