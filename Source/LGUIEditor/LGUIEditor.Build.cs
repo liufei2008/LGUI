@@ -33,6 +33,8 @@ public class LGUIEditor : ModuleRules
                 "ContentBrowser",//LGUI editor
                 "SceneOutliner",//LGUIPrefab editor, extend SceneOutliner
                 "ApplicationCore",//ClipboardCopy
+                "BlueprintGraph",//K2Node
+                "KismetCompiler",
                 //"AssetRegistry",
                 //"LShapePlugin",
                 //"InputCore",
