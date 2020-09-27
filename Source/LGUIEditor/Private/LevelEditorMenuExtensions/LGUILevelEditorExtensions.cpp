@@ -6,7 +6,7 @@
 #include "LGUIEditorStyle.h"
 #include "LevelEditor.h"
 
-#define LOCTEXT_NAMESPACE "LGUI"
+#define LOCTEXT_NAMESPACE "FLGUILevelEditorExtensions"
 
 //////////////////////////////////////////////////////////////////////////
 
