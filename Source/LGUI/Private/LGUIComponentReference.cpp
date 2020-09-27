@@ -16,8 +16,7 @@ UActorComponent* FLGUIComponentReference::GetComponentFromTargetActor(AActor* In
 		return nullptr;
 	}
 
-	TArray<UActorComponent*> components;
-	InActor->GetComponents(InClass, components);
+	TArray<UActorComponent*> components = InActor->GetComponentsByClass(InClass);
 	if (components.Num() == 0)
 	{
 		FString actorName =

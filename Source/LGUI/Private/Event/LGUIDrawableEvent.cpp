@@ -358,8 +358,7 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 
 void FLGUIDrawableEventData::FindAndExecuteFromActor(void* InParam)
 {
-	TArray<UActorComponent*> compArray;
-	targetActor->GetComponents(componentClass, compArray);
+	TArray<UActorComponent*> compArray = targetActor->GetComponentsByClass(componentClass);
 	if (compArray.Num() > 1)
 	{
 		bool found = false;
