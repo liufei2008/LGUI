@@ -6,17 +6,12 @@
 #include "LTweener.h"
 #include "UIEffectTextAnimation.generated.h"
 
-USTRUCT(BlueprintType)
 struct FUIEffectTextAnimation_SelectResult
 {
-	GENERATED_BODY()
 public:
-	UPROPERTY(VisibleAnywhere)
-		int startCharIndex = 0;
-	UPROPERTY(VisibleAnywhere)
-		int endCharIndex = 0;
-	UPROPERTY(VisibleAnywhere)
-		TArray<float> lerpValueArray;
+	int startCharIndex = 0;
+	int endCharIndex = 0;
+	TArray<float> lerpValueArray;
 };
 
 UCLASS(ClassGroup = (LGUI), Abstract, BlueprintType, DefaultToInstanced, EditInlineNew)
