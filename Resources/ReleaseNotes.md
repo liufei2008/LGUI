@@ -274,3 +274,6 @@ LGUIDrawableEvent now support multiple component of same type on actor, use comp
 LGUIDrawableEvent now get a very clean and clear editor interface.
 LGUIPlayTween, for quick setup tween animation.
 LGUIComponentReference now get a specific blueprint node, that you can get component directly.
+#### Fix:
+Fix LGUICanvasScaler scale and size issue.
+Fix Layout update issue, when there is hierarchy nested LGUICanvas exist.
