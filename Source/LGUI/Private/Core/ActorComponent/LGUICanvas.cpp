@@ -551,7 +551,7 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged
 void ULGUICanvas::UpdateCanvasLayout(bool parentLayoutChanged)
 {
 	cacheForThisUpdate_ShouldRebuildAllDrawcall = bShouldRebuildAllDrawcall;
-	cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout;
+	cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout || parentLayoutChanged;
 	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
 	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged;
 	cacheForThisUpdate_TextureClipParameterChanged = bTextureClipParameterChanged;
