@@ -26,6 +26,8 @@ void UUIEffectTextAnimation::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry
 {
 	if (!CheckUIText())return;
 	if (InGeometry->originVerticesCount <= 0)return;
+	if (InGeometry->vertices.Num() <= 0)return;
+	if (InGeometry->originPositions.Num() <= 0)return;
 	if (IsValid(selector))
 	{
 		if (selector->Select(uiText, selection))

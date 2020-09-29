@@ -157,13 +157,13 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 							float referenceAspect = ReferenceResolution.X / ReferenceResolution.Y;
 							if (screenAspect > referenceAspect)//screen width > reference width
 							{
-								if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
+								if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
 								{
 									resultHeight = ReferenceResolution.Y;
 									resultWidth = resultHeight * screenAspect;
 									canvasScale = (float)ViewportSize.Y / resultHeight;
 								}
-								else if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
+								else if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
 								{
 									resultWidth = ReferenceResolution.X;
 									resultHeight = resultWidth / screenAspect;
@@ -172,13 +172,13 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 							}
 							else//screen height > reference height
 							{
-								if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
+								if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
 								{
 									resultWidth = ReferenceResolution.X;
 									resultHeight = resultWidth / screenAspect;
 									canvasScale = (float)ViewportSize.X / resultWidth;
 								}
-								else if (ScreenMatchMode == LGUIScreenMatchMode::Shrink)
+								else if (ScreenMatchMode == LGUIScreenMatchMode::Expand)
 								{
 									resultHeight = ReferenceResolution.Y;
 									resultWidth = resultHeight * screenAspect;
