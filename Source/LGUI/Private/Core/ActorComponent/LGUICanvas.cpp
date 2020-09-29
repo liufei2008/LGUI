@@ -1328,18 +1328,8 @@ void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProject
 		float XAxisMultiplier;
 		float YAxisMultiplier;
 
-		if (InViewportSize.X > InViewportSize.Y)
-		{
-			// if the viewport is wider than it is tall
-			XAxisMultiplier = 1.0f;
-			YAxisMultiplier = InViewportSize.X / (float)InViewportSize.Y;
-		}
-		else
-		{
-			// if the viewport is taller than it is wide
-			XAxisMultiplier = InViewportSize.Y / (float)InViewportSize.X;
-			YAxisMultiplier = 1.0f;
-		}
+		XAxisMultiplier = 1.0f;
+		YAxisMultiplier = InViewportSize.X / (float)InViewportSize.Y;
 
 		if ((int32)ERHIZBuffer::IsInverted)
 		{
