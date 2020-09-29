@@ -162,7 +162,7 @@ private:
 	//char properties, from first char to last one in array
 	TArray<FUITextCharProperty> cacheCharPropertyArray;
 public:
-	const TArray<FUITextCharProperty>& GetCharPropertyArray();
+	const TArray<FUITextCharProperty>& GetCharPropertyArray(bool createIfNotExist = false);
 public:
 	virtual void MarkAllDirtyRecursive()override;
 protected:
