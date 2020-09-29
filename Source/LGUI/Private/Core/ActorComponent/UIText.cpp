@@ -434,9 +434,12 @@ int UUIText::VisibleCharCountInString(const FString& srcStr)
 	}
 	return result;
 }
-const TArray<FUITextCharProperty>& UUIText::GetCharPropertyArray()
+const TArray<FUITextCharProperty>& UUIText::GetCharPropertyArray(bool createIfNotExist)
 {
-	CheckCachedTextPropertyList();
+	if (createIfNotExist)
+	{
+		CheckCachedTextPropertyList();
+	}
 	return cacheCharPropertyArray;
 }
 
@@ -445,8 +448,7 @@ const TArray<FUITextCharProperty>& UUIText::GetCharPropertyArray()
 
 void UUIText::CheckCachedTextPropertyList()
 {
-	auto cacheCount = cachedTextPropertyArray.Num();
-	if (cacheCount == 0)//no cache yet
+	if (cachedTextPropertyArray.Num() == 0 || cacheCharPropertyArray.Num() == 0)//no cache yet
 	{
 		CacheTextGeometry();
 		float width = widget.width;

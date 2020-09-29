@@ -25,13 +25,12 @@ bool UUIEffectTextAnimation::CheckUIText()
 void UUIEffectTextAnimation::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
 {
 	if (!CheckUIText())return;
-	if (InGeometry->originVerticesCount <= 0)return;
 	if (InGeometry->vertices.Num() <= 0)return;
-	if (InGeometry->originPositions.Num() <= 0)return;
 	if (IsValid(selector))
 	{
 		if (selector->Select(uiText, selection))
 		{
+			if (InGeometry->vertices.Num() <= 0)return;
 			for (auto propertyItem : properties)
 			{
 				if (IsValid(propertyItem))
