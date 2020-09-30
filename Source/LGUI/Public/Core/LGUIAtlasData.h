@@ -34,7 +34,7 @@ struct LGUI_API FLGUIAtlasData
 	//create a new texture with size * 2
 	int32 ExpendTextureSize(const FName& packingTag);
 
-	class FLGUIAtlasTextureExpendEvent : public TBaseMulticastDelegate<void, UTexture2D*, int32>
+	class FLGUIAtlasTextureExpendEvent : public TMulticastDelegate<void(UTexture2D*, int32)>
 	{
 		friend struct FLGUIAtlasData;
 	};

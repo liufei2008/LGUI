@@ -1591,6 +1591,18 @@ void UUITextInputComponent::FVirtualKeyboardEntry::SetSelectionFromVirtualKeyboa
 {
 	//todo
 }
+bool UUITextInputComponent::FVirtualKeyboardEntry::GetSelection(int& OutSelStart, int& OutSelEnd)
+{
+	//check(IsInGameThread());
+
+	//const FTextLocation CursorInteractionPosition = OwnerLayout->CursorInfo.GetCursorInteractionLocation();
+	//FTextLocation SelectionLocation = OwnerLayout->SelectionStart.Get(CursorInteractionPosition);
+	//FTextSelection Selection(SelectionLocation, CursorInteractionPosition);
+
+	//OutSelStart = Selection.GetBeginning().GetOffset();
+	//OutSelEnd = Selection.GetEnd().GetOffset();
+	return true;
+}
 FText UUITextInputComponent::FVirtualKeyboardEntry::GetText() const
 {
 	return FText::FromString(InputComp->GetText());

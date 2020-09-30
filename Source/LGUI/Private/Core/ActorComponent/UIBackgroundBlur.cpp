@@ -10,6 +10,7 @@
 #include "PipelineStateCache.h"
 #include "Core/HudRender/LGUIRenderer.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Rendering/Texture2DResource.h"
 
 UUIBackgroundBlur::UUIBackgroundBlur(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {

@@ -197,6 +197,7 @@ private:
 
 		virtual void SetTextFromVirtualKeyboard(const FText& InNewText, ETextEntryType TextEntryType) override;
 		virtual void SetSelectionFromVirtualKeyboard(int InSelStart, int SelEnd)override;
+		virtual bool GetSelection(int& OutSelStart, int& OutSelEnd) override;
 
 		virtual FText GetText() const override;
 		virtual FText GetHintText() const override;
