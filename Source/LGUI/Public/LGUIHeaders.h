@@ -40,6 +40,7 @@
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/LGUIPointerEventData.h"
 #include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIDrawableEvent_PresetParameter.h"
 #include "Event/LGUIScreenSpaceInteraction.h"
 #include "Event/LGUIScreenSpaceInteractionForNoneUI.h"
 #include "Event/LGUIWorldSpaceInteraction.h"
