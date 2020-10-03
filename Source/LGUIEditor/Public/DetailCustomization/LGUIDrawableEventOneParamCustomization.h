@@ -16,6 +16,7 @@ class FLGUIDrawableEventOneParamCustomization : public FLGUIDrawableEventCustomi
 private:
 	FLGUIDrawableEventOneParamCustomization();
 public:
+	FLGUIDrawableEventOneParamCustomization(bool InCanChangeParameterType);
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 protected:
 	virtual TArray<LGUIDrawableEventParameterType> GetNativeParameterTypeArray(TSharedRef<IPropertyHandle> PropertyHandle)override;
