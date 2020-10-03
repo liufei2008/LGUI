@@ -407,3 +407,61 @@ void ULGUIBPLibrary::LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease)
 	}
 }
 #pragma endregion
+
+#pragma region DrawableEvent
+#define IMPLEMENT_DRAWABLEEVENT_BP(DrawableEventParamType, ParamType)\
+FLGUIDelegateHandleWrapper ULGUIBPLibrary::LGUIDrawableEvent_##DrawableEventParamType##_Register(const FLGUIDrawableEvent_##DrawableEventParamType##& InEvent, FLGUIDrawableEvent_##DrawableEventParamType##_DynamicDelegate InDelegate)\
+{\
+	auto delegateHandle = InEvent.Register([InDelegate](ParamType value) {\
+		if (InDelegate.IsBound())\
+		{\
+			InDelegate.Execute(value);\
+		}\
+		});\
+	return FLGUIDelegateHandleWrapper(delegateHandle);\
+}\
+void ULGUIBPLibrary::LGUIDrawableEvent_##DrawableEventParamType##_Unregister(const FLGUIDrawableEvent_##DrawableEventParamType##& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle)\
+{\
+	InEvent.Unregister(InDelegateHandle.DelegateHandle);\
+}
+
+FLGUIDelegateHandleWrapper ULGUIBPLibrary::LGUIDrawableEvent_Empty_Register(const FLGUIDrawableEvent_Empty& InEvent, FLGUIDrawableEvent_Empty_DynamicDelegate InDelegate)
+{
+	auto delegateHandle = InEvent.Register([InDelegate]() {
+		if (InDelegate.IsBound())
+		{
+			InDelegate.Execute();
+		}
+		});
+	return FLGUIDelegateHandleWrapper(delegateHandle);
+}
+void ULGUIBPLibrary::LGUIDrawableEvent_Empty_Unregister(const FLGUIDrawableEvent_Empty& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle)
+{
+	InEvent.Unregister(InDelegateHandle.DelegateHandle);
+}
+
+IMPLEMENT_DRAWABLEEVENT_BP(Bool, bool);
+IMPLEMENT_DRAWABLEEVENT_BP(Float, float);
+//IMPLEMENT_DRAWABLEEVENT_BP(Double, double);
+//IMPLEMENT_DRAWABLEEVENT_BP(Int8, int8);
+IMPLEMENT_DRAWABLEEVENT_BP(UInt8, uint8);
+//IMPLEMENT_DRAWABLEEVENT_BP(Int16, int16);
+//IMPLEMENT_DRAWABLEEVENT_BP(UInt16, uint16);
+IMPLEMENT_DRAWABLEEVENT_BP(Int32, int32);
+//IMPLEMENT_DRAWABLEEVENT_BP(UInt32, uint32);
+IMPLEMENT_DRAWABLEEVENT_BP(Int64, int64);
+//IMPLEMENT_DRAWABLEEVENT_BP(UInt64, uint64);
+IMPLEMENT_DRAWABLEEVENT_BP(Vector2, FVector2D);
+IMPLEMENT_DRAWABLEEVENT_BP(Vector3, FVector);
+IMPLEMENT_DRAWABLEEVENT_BP(Vector4, FVector4);
+IMPLEMENT_DRAWABLEEVENT_BP(Color, FColor);
+IMPLEMENT_DRAWABLEEVENT_BP(LinearColor, FLinearColor);
+IMPLEMENT_DRAWABLEEVENT_BP(Quaternion, FQuat);
+IMPLEMENT_DRAWABLEEVENT_BP(String, FString);
+IMPLEMENT_DRAWABLEEVENT_BP(Object, UObject*);
+IMPLEMENT_DRAWABLEEVENT_BP(Actor, AActor*);
+IMPLEMENT_DRAWABLEEVENT_BP(PointerEvent, ULGUIPointerEventData*);
+IMPLEMENT_DRAWABLEEVENT_BP(Class, UClass*);
+IMPLEMENT_DRAWABLEEVENT_BP(Rotator, FRotator);
+
+#pragma endregion

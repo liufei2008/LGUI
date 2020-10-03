@@ -238,8 +238,6 @@ public:
 	}\
 }
 
-#define LGUI_XXXX(x) x
-
 #define BUBBLE_LGUIINTERFACE(actor, inEventData, interface, function)\
 {\
 	bool eventAllowBubble = true;\

@@ -27,6 +27,7 @@ protected:
 	TArray<LGUIDrawableEventParameterType> EventParameterTypeArray;
 private:
 	int32 ParameterCount = 1;
+	bool CanChangeParameterType = true;
 	bool IsParameterTypeArrayValid(const TArray<LGUIDrawableEventParameterType> InArray)
 	{
 		for (auto item : InArray)
@@ -36,9 +37,10 @@ private:
 		return true;
 	}
 public:
-	FLGUIDrawableEventCustomization(int32 InParameterCount)
+	FLGUIDrawableEventCustomization(int32 InParameterCount, bool InCanChangeParameterType)
 	{
 		ParameterCount = InParameterCount;
+		CanChangeParameterType = InCanChangeParameterType;
 	}
 	~FLGUIDrawableEventCustomization()
 	{
@@ -70,7 +72,10 @@ public:
 		}
 		if (!isInWorld)
 		{
-			AddNativeParameterTypeProperty(PropertyHandle, ChildBuilder);
+			if (CanChangeParameterType)
+			{
+				AddNativeParameterTypeProperty(PropertyHandle, ChildBuilder);
+			}
 			return;
 		}
 

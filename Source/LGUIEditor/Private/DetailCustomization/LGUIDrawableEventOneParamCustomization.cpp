@@ -2,7 +2,11 @@
 
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
 
-FLGUIDrawableEventOneParamCustomization::FLGUIDrawableEventOneParamCustomization():FLGUIDrawableEventCustomization(1)
+FLGUIDrawableEventOneParamCustomization::FLGUIDrawableEventOneParamCustomization():FLGUIDrawableEventCustomization(1, true)
+{
+
+}
+FLGUIDrawableEventOneParamCustomization::FLGUIDrawableEventOneParamCustomization(bool InCanChangeParameterType) : FLGUIDrawableEventCustomization(1, InCanChangeParameterType)
 {
 
 }
