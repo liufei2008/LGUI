@@ -38,7 +38,7 @@ enum class LGUIDrawableEventParameterType :uint8
 	//for actor reference in level
 	Actor,
 	//for LGUIPointerEventData
-	PointerEvent	UMETA(DisplayName = "LGUIPointerEvent"),
+	PointerEvent	UMETA(DisplayName = "LGUIPointerEventData"),
 	//Class for UClass reference
 	Class,
 	
@@ -156,15 +156,13 @@ public:
 	//supported parameter type of this event
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName="NativeParameterType"))
 		LGUIDrawableEventParameterType supportParameterType = LGUIDrawableEventParameterType::Empty;
-private:
 	//Parameter type must be the same as your declaration of FLGUIDrawableEvent(LGUIDrawableEventParameterType InParameterType)
 	void FireEvent(void* InParam)const;
 	void LogParameterError()const;
 public:
 	bool IsBound()const;
-
+public:
 	void FireEvent()const;
-
 	void FireEvent(bool InParam)const;
 	void FireEvent(float InParam)const;
 	void FireEvent(double InParam)const;
@@ -188,7 +186,6 @@ public:
 	void FireEvent(ULGUIPointerEventData* InParam)const;
 	void FireEvent(FRotator InParam)const;
 };
-
 
 
 #if 0

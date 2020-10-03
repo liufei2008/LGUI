@@ -38,6 +38,7 @@
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "DetailCustomization/EditorToolsCustomization.h"
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
+#include "DetailCustomization/LGUIDrawableEventOnePresetParamCustomization.h"
 #include "DetailCustomization/LGUIEditHelperButtonCustomization.h"
 #include "DetailCustomization/LGUIComponentRefereceCustomization.h"
 #include "DetailCustomization/UIEffectTextAnimationPropertyCustomization.h"
@@ -189,6 +190,30 @@ void FLGUIEditorModule::StartupModule()
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIDrawableEventOneParamCustomization::MakeInstance));
 		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEventTwoParam::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIDrawableEventTwoParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Empty::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Bool::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Float::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Double::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Int8::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_UInt8::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Int16::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_UInt16::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Int32::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_UInt32::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Int64::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_UInt64::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Vector2::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Vector3::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Vector4::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Color::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_LinearColor::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Quaternion::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_String::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Object::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Actor::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_PointerEvent::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Class::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Rotator::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEditHelperButton::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIEditHelperButtonCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIComponentRefereceCustomization::MakeInstance));
