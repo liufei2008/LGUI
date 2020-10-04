@@ -12,6 +12,7 @@ void ULGUIPlayTween::Start()
 {
 	tweener = ALTweenActor::VirtualTo(duration)
 		->SetDelay(startDelay)
+		->SetLoopType(loopType)
 		->OnStart([&] {
 			onStart.FireEvent();
 		})
