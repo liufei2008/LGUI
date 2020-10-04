@@ -120,10 +120,6 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* In
 		{
 			OutParameterType = LGUIDrawableEventParameterType::Quaternion; return true;
 		}
-		else if (structName == TEXT("LGUIPointerEventData"))
-		{
-			OutParameterType = LGUIDrawableEventParameterType::PointerEvent; return true;
-		}
 		else if (structName == TEXT("Rotator"))
 		{
 			OutParameterType = LGUIDrawableEventParameterType::Rotator; return true;
@@ -144,6 +140,10 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* In
 		if (objectProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
 		{
 			OutParameterType = LGUIDrawableEventParameterType::Actor;
+		}
+		else if (objectProperty->PropertyClass->IsChildOf(ULGUIPointerEventData::StaticClass()))
+		{
+			OutParameterType = LGUIDrawableEventParameterType::PointerEvent;
 		}
 		else if (objectProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))
 		{
@@ -471,7 +471,7 @@ void FLGUIDrawableEventData::Execute(void* InParam, LGUIDrawableEventParameterTy
 				}
 				else//search from actor's component list
 				{
-					FindAndExecuteFromActor(InParam);
+					FindAndExecuteFromActor(nullptr);
 				}
 			}
 		}
