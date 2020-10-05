@@ -24,9 +24,10 @@ void SLGUIVectorInputBox::Construct( const FArguments& InArgs )
 		HorizontalBox
 	];
 
-	ConstructX( InArgs, HorizontalBox );
-	ConstructY( InArgs, HorizontalBox );
-	ConstructZ( InArgs, HorizontalBox );
+	if (InArgs._ShowX)ConstructX(InArgs, HorizontalBox);
+	if (InArgs._ShowY)ConstructY(InArgs, HorizontalBox);
+	if (InArgs._ShowZ)ConstructZ(InArgs, HorizontalBox);
+	if (InArgs._ShowW)ConstructW(InArgs, HorizontalBox);
 }
 
 void SLGUIVectorInputBox::ConstructX( const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox )
@@ -130,7 +131,7 @@ void SLGUIVectorInputBox::ConstructZ( const FArguments& InArgs, TSharedRef<SHori
 	HorizontalBox->AddSlot()
 	.VAlign( VAlign_Center )
 	.FillWidth( 1.0f )
-	.Padding( 0.0f, 1.0f, 0.0f, 1.0f )
+	.Padding( 0.0f, 1.0f, 2.0f, 1.0f )
 	[
 		SNew( SNumericEntryBox<float> )
 		.AllowSpin(InArgs._AllowSpin)
@@ -158,6 +159,49 @@ void SLGUIVectorInputBox::ConstructZ( const FArguments& InArgs, TSharedRef<SHori
 			LabelWidget
 		]
 	];
+}
+
+void SLGUIVectorInputBox::ConstructW(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox)
+{
+	const FLinearColor LabelColor = InArgs._bColorAxisLabels ? FLinearColor(0.594f, 0.3959f, 0.0f) : FLinearColor(0.0f, 0.0f, 0.0f, .5f);
+	TSharedRef<SWidget> LabelWidget = BuildDecoratorLabel(LabelColor, FLinearColor::White, LOCTEXT("W_Label", "W"));
+	TAttribute<FMargin> MarginAttribute;
+	if (bCanBeCrushed)
+	{
+		MarginAttribute = TAttribute<FMargin>::Create(TAttribute<FMargin>::FGetter::CreateSP(this, &SLGUIVectorInputBox::GetTextMargin));
+	}
+
+	HorizontalBox->AddSlot()
+		.VAlign(VAlign_Center)
+		.FillWidth(1.0f)
+		.Padding(0.0f, 1.0f, 0.0f, 1.0f)
+		[
+			SNew(SNumericEntryBox<float>)
+			.AllowSpin(InArgs._AllowSpin)
+			.Font(InArgs._Font)
+			.Value(InArgs._W)
+			.OnValueChanged(InArgs._OnWChanged)
+			.OnValueCommitted(InArgs._OnWCommitted)
+			.UndeterminedString(LOCTEXT("MultipleValues", "Multiple Values"))
+			.LabelPadding(0)
+			.OverrideTextMargin(MarginAttribute)
+			.TypeInterface(InArgs._TypeInterface)
+			.IsEnabled(InArgs._EnableW)
+			.ToolTipText_Lambda([=] {
+			if (InArgs._EnableW.IsBound())
+			{
+				return
+					InArgs._EnableW.Get()
+					? LOCTEXT("W_ToolTip", "W Value")
+					: LOCTEXT("W_ToolTip_Control", "W Value Controlled by LGUI's Anchors");
+			}
+			return LOCTEXT("W_ToolTip", "W Value");
+			})
+			.Label()
+				[
+					LabelWidget
+				]
+		];
 }
 
 TSharedRef<SWidget> SLGUIVectorInputBox::BuildDecoratorLabel(FLinearColor BackgroundColor, FLinearColor InForegroundColor, FText Label)
