@@ -29,16 +29,16 @@ public:
 		, _AllowSpin(true)
 		, _bColorAxisLabels( false )
 		, _AllowResponsiveLayout( false )
+		, _ShowX(true)
+		, _ShowY(false)
+		, _ShowZ(false)
+		, _ShowW(false)
 		{}
 
-		/** X Component of the vector */
 		SLATE_ATTRIBUTE( TOptional<float>, X )
-
-		/** Y Component of the vector */
 		SLATE_ATTRIBUTE( TOptional<float>, Y )
-
-		/** Z Component of the vector */
 		SLATE_ATTRIBUTE( TOptional<float>, Z )
+		SLATE_ATTRIBUTE( TOptional<float>, W )
 
 		/** Font to use for the text in this box */
 		SLATE_ATTRIBUTE( FSlateFontInfo, Font )
@@ -49,6 +49,7 @@ public:
 		SLATE_ATTRIBUTE(bool, EnableX)
 		SLATE_ATTRIBUTE(bool, EnableY)
 		SLATE_ATTRIBUTE(bool, EnableZ)
+		SLATE_ATTRIBUTE(bool, EnableW)
 
 		/** Should the axis labels be colored */
 		SLATE_ARGUMENT( bool, bColorAxisLabels )		
@@ -56,23 +57,20 @@ public:
 		/** Allow responsive layout to crush the label and margins when there is not a lot of room */
 		SLATE_ARGUMENT(bool, AllowResponsiveLayout)
 
-		/** Called when the x value of the vector is changed */
+		SLATE_ARGUMENT(bool, ShowX)
+		SLATE_ARGUMENT(bool, ShowY)
+		SLATE_ARGUMENT(bool, ShowZ)
+		SLATE_ARGUMENT(bool, ShowW)
+
 		SLATE_EVENT( FOnFloatValueChanged, OnXChanged )
-
-		/** Called when the y value of the vector is changed */
 		SLATE_EVENT( FOnFloatValueChanged, OnYChanged )
-
-		/** Called when the z value of the vector is changed */
 		SLATE_EVENT( FOnFloatValueChanged, OnZChanged )
+		SLATE_EVENT( FOnFloatValueChanged, OnWChanged )
 
-		/** Called when the x value of the vector is committed */
 		SLATE_EVENT( FOnFloatValueCommitted, OnXCommitted )
-
-		/** Called when the y value of the vector is committed */
 		SLATE_EVENT( FOnFloatValueCommitted, OnYCommitted )
-
-		/** Called when the z value of the vector is committed */
 		SLATE_EVENT( FOnFloatValueCommitted, OnZCommitted )
+		SLATE_EVENT( FOnFloatValueCommitted, OnWCommitted )
 
 		/** Provide custom type functionality for the vector */
 		SLATE_ARGUMENT( TSharedPtr< INumericTypeInterface<float> >, TypeInterface )
@@ -107,18 +105,8 @@ private:
 	/** Creates a decorator label (potentially adding a switcher widget if this is cruhsable) */
 	TSharedRef<SWidget> BuildDecoratorLabel(FLinearColor BackgroundColor, FLinearColor ForegroundColor, FText Label);
 
-	/**
-	 * Construct widgets for the X Value
-	 */
-	void ConstructX( const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox );
-
-	/**
-	 * Construct widgets for the Y Value
-	 */
-	void ConstructY( const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox );
-
-	/**
-	 * Construct widgets for the Z Value
-	 */
-	void ConstructZ( const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox );
+	void ConstructX(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox);
+	void ConstructY(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox);
+	void ConstructZ(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox);
+	void ConstructW(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox);
 };
