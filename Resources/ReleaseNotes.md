@@ -277,3 +277,9 @@ LGUIComponentReference now get a specific blueprint node, that you can get compo
 #### Fix:
 Fix LGUICanvasScaler scale and size issue.
 Fix Layout update issue, when there is hierarchy nested LGUICanvas exist.
+## 2.9.1
+#### NewFeature:
+LGUIDrawableEvent now have preset parameter struct, like LGUIDrawableEvent_Float/ LGUIDrawableEvent_Int32...
+#### Fix;
+Fix UIPlayTween's loop issue.
+Fix LGUIDrawableEvent's editor issue when use Vector2/Vector3/Vector4/Color/LinearColor/Rotator as parameter.
