@@ -35,6 +35,7 @@ public class LGUIEditor : ModuleRules
                 "ApplicationCore",//ClipboardCopy
                 "BlueprintGraph",//K2Node
                 "KismetCompiler",
+                "AppFramework",
                 //"AssetRegistry",
                 //"LShapePlugin",
                 //"InputCore",
