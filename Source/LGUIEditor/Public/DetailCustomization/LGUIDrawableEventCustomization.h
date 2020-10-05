@@ -9,6 +9,10 @@
 #include "Utils/BitConverter.h"
 #include "PropertyCustomizationHelpers.h"
 #include "Widget/LGUIEnumComboBox.h"
+#include "Widget/LGUIVectorInputBox.h"
+#include "Widgets/Input/SRotatorInputBox.h"
+#include "Widgets/Colors/SColorBlock.h"
+#include "Widgets/Colors/SColorPicker.h"
 
 #pragma once
 
@@ -25,6 +29,7 @@ protected:
 	TSharedPtr<IPropertyHandleArray> EventListHandle;
 	static TArray<FString> CopySourceData;
 	TArray<LGUIDrawableEventParameterType> EventParameterTypeArray;
+	TSharedPtr<SWidget> ColorPickerParentWidget;
 private:
 	int32 ParameterCount = 1;
 	bool CanChangeParameterType = true;
@@ -1028,9 +1033,25 @@ protected:
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector2Value));
 				valueHandle->SetValue(BitConverter::ToVector2(GetBuffer(paramBufferHandle, 8)));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector2ValueChange, valueHandle, paramBufferHandle));
-				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector2ValueChange, valueHandle, paramBufferHandle));
-				return valueHandle->CreatePropertyValueWidget();
+				return SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.FillWidth(1.0f)
+					[
+						SNew(SLGUIVectorInputBox)
+						.AllowSpin(false)
+						.bColorAxisLabels(true)
+						.AllowResponsiveLayout(true)
+						.EnableX(true)
+						.EnableY(true)
+						.ShowX(true)
+						.ShowY(true)
+						.X(this, &FLGUIDrawableEventCustomization::Vector2GetItemValue, 0, valueHandle, paramBufferHandle)
+						.Y(this, &FLGUIDrawableEventCustomization::Vector2GetItemValue, 1, valueHandle, paramBufferHandle)
+						.OnXCommitted(this, &FLGUIDrawableEventCustomization::Vector2ItemValueChange, 0, valueHandle, paramBufferHandle)
+						.OnYCommitted(this, &FLGUIDrawableEventCustomization::Vector2ItemValueChange, 1, valueHandle, paramBufferHandle)
+					]
+				;
 			}
 			break;
 			case LGUIDrawableEventParameterType::Vector3:
@@ -1039,9 +1060,29 @@ protected:
 				SetBufferLength(paramBufferHandle, 12);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector3Value));
 				valueHandle->SetValue(BitConverter::ToVector3(GetBuffer(paramBufferHandle, 12)));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector3ValueChange, valueHandle, paramBufferHandle));
-				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector3ValueChange, valueHandle, paramBufferHandle));
-				return valueHandle->CreatePropertyValueWidget();
+				return SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.FillWidth(1.0f)
+					[
+						SNew(SLGUIVectorInputBox)
+						.AllowSpin(false)
+						.bColorAxisLabels(true)
+						.AllowResponsiveLayout(true)
+						.EnableX(true)
+						.EnableY(true)
+						.EnableZ(true)
+						.ShowX(true)
+						.ShowY(true)
+						.ShowZ(true)
+						.X(this, &FLGUIDrawableEventCustomization::Vector3GetItemValue, 0, valueHandle, paramBufferHandle)
+						.Y(this, &FLGUIDrawableEventCustomization::Vector3GetItemValue, 1, valueHandle, paramBufferHandle)
+						.Z(this, &FLGUIDrawableEventCustomization::Vector3GetItemValue, 2, valueHandle, paramBufferHandle)
+						.OnXCommitted(this, &FLGUIDrawableEventCustomization::Vector3ItemValueChange, 0, valueHandle, paramBufferHandle)
+						.OnYCommitted(this, &FLGUIDrawableEventCustomization::Vector3ItemValueChange, 1, valueHandle, paramBufferHandle)
+						.OnZCommitted(this, &FLGUIDrawableEventCustomization::Vector3ItemValueChange, 2, valueHandle, paramBufferHandle)
+					]
+				;
 			}
 			break;
 			case LGUIDrawableEventParameterType::Vector4:
@@ -1050,9 +1091,33 @@ protected:
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector4Value));
 				valueHandle->SetValue(BitConverter::ToVector4(GetBuffer(paramBufferHandle, 16)));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector4ValueChange, valueHandle, paramBufferHandle));
-				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Vector4ValueChange, valueHandle, paramBufferHandle));
-				return valueHandle->CreatePropertyValueWidget();
+				return SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.FillWidth(1.0f)
+					[
+						SNew(SLGUIVectorInputBox)
+						.AllowSpin(false)
+						.bColorAxisLabels(true)
+						.AllowResponsiveLayout(true)
+						.EnableX(true)
+						.EnableY(true)
+						.EnableZ(true)
+						.EnableW(true)
+						.ShowX(true)
+						.ShowY(true)
+						.ShowZ(true)
+						.ShowW(true)
+						.X(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 0, valueHandle, paramBufferHandle)
+						.Y(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 1, valueHandle, paramBufferHandle)
+						.Z(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 2, valueHandle, paramBufferHandle)
+						.W(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 3, valueHandle, paramBufferHandle)
+						.OnXCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 0, valueHandle, paramBufferHandle)
+						.OnYCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 1, valueHandle, paramBufferHandle)
+						.OnZCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 2, valueHandle, paramBufferHandle)
+						.OnWCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 3, valueHandle, paramBufferHandle)
+					]
+				;
 			}
 			break;
 			case LGUIDrawableEventParameterType::Color:
@@ -1060,10 +1125,34 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ColorValue));
-				valueHandle->SetValue(BitConverter::ToInt32(GetBuffer(paramBufferHandle, 4)));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::ColorValueChange, valueHandle, paramBufferHandle));
-				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::ColorValueChange, valueHandle, paramBufferHandle));
-				return valueHandle->CreatePropertyValueWidget();
+				auto color = BitConverter::ToColor(GetBuffer(paramBufferHandle, 4));
+				valueHandle->SetValueFromFormattedString(color.ToString());
+				return SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 2.0f)
+					[
+						// Displays the color with alpha unless it is ignored
+						SAssignNew(ColorPickerParentWidget, SColorBlock)
+						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, false, valueHandle, paramBufferHandle)
+						.ShowBackgroundForAlpha(true)
+						.IgnoreAlpha(false)
+						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, false, valueHandle, paramBufferHandle)
+						.Size(FVector2D(35.0f, 12.0f))
+					]
+					+ SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 2.0f)
+					[
+						// Displays the color without alpha
+						SNew(SColorBlock)
+						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, false, valueHandle, paramBufferHandle)
+						.ShowBackgroundForAlpha(false)
+						.IgnoreAlpha(true)
+						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, false, valueHandle, paramBufferHandle)
+						.Size(FVector2D(35.0f, 12.0f))
+					];
+				;
 			}
 			break;
 			case LGUIDrawableEventParameterType::LinearColor:
@@ -1071,10 +1160,34 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, LinearColorValue));
-				valueHandle->SetValue(BitConverter::ToLinearColor(GetBuffer(paramBufferHandle, 16)));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::LinearColorValueChange, valueHandle, paramBufferHandle));
-				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::LinearColorValueChange, valueHandle, paramBufferHandle));
-				return valueHandle->CreatePropertyValueWidget();
+				auto color = BitConverter::ToLinearColor(GetBuffer(paramBufferHandle, 16));
+				valueHandle->SetValueFromFormattedString(color.ToString());
+				return SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 2.0f)
+					[
+						// Displays the color with alpha unless it is ignored
+						SAssignNew(ColorPickerParentWidget, SColorBlock)
+						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, true, valueHandle, paramBufferHandle)
+						.ShowBackgroundForAlpha(true)
+						.IgnoreAlpha(false)
+						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, true, valueHandle, paramBufferHandle)
+						.Size(FVector2D(35.0f, 12.0f))
+					]
+					+ SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 2.0f)
+					[
+						// Displays the color without alpha
+						SNew(SColorBlock)
+						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, true, valueHandle, paramBufferHandle)
+						.ShowBackgroundForAlpha(false)
+						.IgnoreAlpha(true)
+						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, true, valueHandle, paramBufferHandle)
+						.Size(FVector2D(35.0f, 12.0f))
+					];
+				;
 			}
 			break;
 			case LGUIDrawableEventParameterType::Quaternion:
@@ -1083,17 +1196,33 @@ protected:
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, QuatValue));
 				valueHandle->SetValue(BitConverter::ToQuat(GetBuffer(paramBufferHandle, 16)));
-				return
-					SNew(SBox)
-					.MinDesiredWidth(500)
+				return SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.FillWidth(1.0f)
 					[
-						SNew(STextBlock)
-						.Text(FText::FromString(TEXT("(Quaternion not editable! You can only pass native parameter! Consider use Vector as euler angle or Rotator, and convert to Quaterion before calculation)")))
-						.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
-						.AutoWrapText(true)
-						.ColorAndOpacity(FLinearColor(FColor(255, 0, 0, 255)))
-						.Font(IDetailLayoutBuilder::GetDetailFont())
-					];
+						SNew(SLGUIVectorInputBox)
+						.AllowSpin(false)
+						.bColorAxisLabels(true)
+						.AllowResponsiveLayout(true)
+						.EnableX(true)
+						.EnableY(true)
+						.EnableZ(true)
+						.EnableW(true)
+						.ShowX(true)
+						.ShowY(true)
+						.ShowZ(true)
+						.ShowW(true)
+						.X(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 0, valueHandle, paramBufferHandle)
+						.Y(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 1, valueHandle, paramBufferHandle)
+						.Z(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 2, valueHandle, paramBufferHandle)
+						.W(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 3, valueHandle, paramBufferHandle)
+						.OnXCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 0, valueHandle, paramBufferHandle)
+						.OnYCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 1, valueHandle, paramBufferHandle)
+						.OnZCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 2, valueHandle, paramBufferHandle)
+						.OnWCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 3, valueHandle, paramBufferHandle)
+					]
+				;
 			}
 			break;
 			case LGUIDrawableEventParameterType::String:
@@ -1141,9 +1270,29 @@ protected:
 				SetBufferLength(paramBufferHandle, 12);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, RotatorValue));
 				valueHandle->SetValue(BitConverter::ToRotator(GetBuffer(paramBufferHandle, 12)));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::RotatorValueChange, valueHandle, paramBufferHandle));
-				valueHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::RotatorValueChange, valueHandle, paramBufferHandle));
-				return valueHandle->CreatePropertyValueWidget();
+				TSharedPtr<INumericTypeInterface<float>> TypeInterface;
+				if (FUnitConversion::Settings().ShouldDisplayUnits())
+				{
+					TypeInterface = MakeShareable(new TNumericUnitTypeInterface<float>(EUnit::Degrees));
+				}
+				return SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.FillWidth(1.0f)
+					[
+						SNew(SRotatorInputBox)
+						.AllowSpin(false)
+						.bColorAxisLabels(true)
+						.AllowResponsiveLayout(true)
+						.Roll(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 0, valueHandle, paramBufferHandle)
+						.Pitch(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 1, valueHandle, paramBufferHandle)
+						.Yaw(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 2, valueHandle, paramBufferHandle)
+						.OnRollCommitted(this, &FLGUIDrawableEventCustomization::RotatorValueChange, 0, valueHandle, paramBufferHandle)
+						.OnPitchCommitted(this, &FLGUIDrawableEventCustomization::RotatorValueChange, 1, valueHandle, paramBufferHandle)
+						.OnYawCommitted(this, &FLGUIDrawableEventCustomization::RotatorValueChange, 2, valueHandle, paramBufferHandle)
+						.TypeInterface(TypeInterface)
+					]
+				;
 			}
 			break;
 			}
@@ -1331,49 +1480,150 @@ protected:
 		ValueHandle->GetValue(Value);
 		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
 	}
-	void Vector2ValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	void Vector2ItemValueChange(float NewValue, ETextCommit::Type CommitInfo, int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
 	{
 		FVector2D Value;
 		ValueHandle->GetValue(Value);
+		switch (AxisType)
+		{
+		case 0:	Value.X = NewValue; break;
+		case 1:	Value.Y = NewValue; break;
+		}
+		ValueHandle->SetValue(Value);
 		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
 	}
-	void Vector3ValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	TOptional<float> Vector2GetItemValue(int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)const
+	{
+		FVector2D Value;
+		ValueHandle->GetValue(Value);
+		switch (AxisType)
+		{
+		default:
+		case 0: return	Value.X;
+		case 1: return	Value.Y;
+		}
+	}
+	void Vector3ItemValueChange(float NewValue, ETextCommit::Type CommitInfo, int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
 	{
 		FVector Value;
 		ValueHandle->GetValue(Value);
+		switch (AxisType)
+		{
+		case 0:	Value.X = NewValue; break;
+		case 1:	Value.Y = NewValue; break;
+		case 2:	Value.Z = NewValue; break;
+		}
+		ValueHandle->SetValue(Value);
 		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
 	}
-	void Vector4ValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	TOptional<float> Vector3GetItemValue(int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)const
+	{
+		FVector Value;
+		ValueHandle->GetValue(Value);
+		switch (AxisType)
+		{
+		default:
+		case 0: return	Value.X;
+		case 1: return	Value.Y;
+		case 2: return	Value.Z;
+		}
+	}
+	void Vector4ItemValueChange(float NewValue, ETextCommit::Type CommitInfo, int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
 	{
 		FVector4 Value;
 		ValueHandle->GetValue(Value);
+		switch (AxisType)
+		{
+		case 0:	Value.X = NewValue; break;
+		case 1:	Value.Y = NewValue; break;
+		case 2:	Value.Z = NewValue; break;
+		case 3:	Value.W = NewValue; break;
+		}
+		ValueHandle->SetValue(Value);
 		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
 	}
-	void ColorValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	TOptional<float> Vector4GetItemValue(int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)const
 	{
-		FColor Value;
-		FString FormatedString;
-		ValueHandle->GetValueAsFormattedString(FormatedString);
-		Value.InitFromString(FormatedString);
-		//format string use bgra, color use rgba, so switch it
-		auto r = Value.R;
-		auto b = Value.B;
-		Value.R = b;
-		Value.B = r;
-		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
+		FVector4 Value;
+		ValueHandle->GetValue(Value);
+		switch (AxisType)
+		{
+		default:
+		case 0: return	Value.X;
+		case 1: return	Value.Y;
+		case 2: return	Value.Z;
+		case 3: return	Value.W;
+		}
 	}
-	void LinearColorValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	FLinearColor LinearColorGetValue(bool bIsLinearColor, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)const
 	{
-		FLinearColor Value;
-		FString FormatedString;
-		ValueHandle->GetValueAsFormattedString(FormatedString);
-		Value.InitFromString(FormatedString);
-		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
+		if (bIsLinearColor)
+		{
+			FLinearColor Value;
+			FString FormatedString;
+			ValueHandle->GetValueAsFormattedString(FormatedString);
+			Value.InitFromString(FormatedString);
+			return Value;
+		}
+		else
+		{
+			FColor Value;
+			FString FormatedString;
+			ValueHandle->GetValueAsFormattedString(FormatedString);
+			Value.InitFromString(FormatedString);
+			return FLinearColor(Value.R / 255.0f, Value.G / 255.0f, Value.B / 255.0f, Value.A / 255.0f);
+		}
 	}
-	void RotatorValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	void LinearColorValueChange(FLinearColor NewValue, bool bIsLinearColor, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	{
+		if (bIsLinearColor)
+		{
+			FString FormatedString = NewValue.ToString();
+			ValueHandle->SetValueFromFormattedString(FormatedString);
+			SetBufferValue(BufferHandle, BitConverter::GetBytes(NewValue));
+		}
+		else
+		{
+			FColor ColorValue = NewValue.ToFColor(false);
+			FString FormatedString = ColorValue.ToString();
+			ValueHandle->SetValueFromFormattedString(FormatedString);
+			SetBufferValue(BufferHandle, BitConverter::GetBytes(ColorValue));
+		}
+	}
+	FReply OnMouseButtonDownColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, bool bIsLinearColor, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	{
+		if (MouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+		{
+			return FReply::Unhandled();
+		}
+
+		CreateColorPicker(bIsLinearColor, ValueHandle, BufferHandle);
+
+		return FReply::Handled();
+	}
+	TOptional<float> RotatorGetItemValue(int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)const
 	{
 		FRotator Value;
 		ValueHandle->GetValue(Value);
+		switch (AxisType)
+		{
+		default:
+		case 0: return	Value.Roll;
+		case 1: return	Value.Pitch;
+		case 2: return	Value.Yaw;
+		}
+	}
+	void RotatorValueChange(float NewValue, ETextCommit::Type CommitInfo, int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	{
+		FRotator Value;
+		ValueHandle->GetValue(Value);
+		switch (AxisType)
+		{
+		case 0:	Value.Roll = NewValue; break;
+		case 1:	Value.Pitch = NewValue; break;
+		case 2:	Value.Yaw = NewValue; break;
+		}
+		ValueHandle->SetValue(Value);
 		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
 	}
 	void SetBufferValue(TSharedPtr<IPropertyHandle> BufferHandle, TArray<uint8> BufferArray)
@@ -1522,6 +1772,37 @@ protected:
 		valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, LinearColorValue)); valueHandle->ResetToDefault();
 		valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, RotatorValue)); valueHandle->ResetToDefault();
 	}
+
+
+
+	void CreateColorPicker(bool bIsLinearColor, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	{
+		FLinearColor InitialColor = LinearColorGetValue(bIsLinearColor, ValueHandle, BufferHandle);
+
+		FColorPickerArgs PickerArgs;
+		{
+			PickerArgs.bUseAlpha = true;
+			PickerArgs.bOnlyRefreshOnMouseUp = false;
+			PickerArgs.bOnlyRefreshOnOk = false;
+			PickerArgs.sRGBOverride = bIsLinearColor;
+			PickerArgs.DisplayGamma = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateUObject(GEngine, &UEngine::GetDisplayGamma));
+			PickerArgs.OnColorCommitted = FOnLinearColorValueChanged::CreateSP(this, &FLGUIDrawableEventCustomization::LinearColorValueChange, bIsLinearColor, ValueHandle, BufferHandle);
+			//PickerArgs.OnColorPickerCancelled = FOnColorPickerCancelled::CreateSP(this, &FColorStructCustomization::OnColorPickerCancelled);
+			//PickerArgs.OnInteractivePickBegin = FSimpleDelegate::CreateSP(this, &FColorStructCustomization::OnColorPickerInteractiveBegin);
+			//PickerArgs.OnInteractivePickEnd = FSimpleDelegate::CreateSP(this, &FColorStructCustomization::OnColorPickerInteractiveEnd);
+			PickerArgs.InitialColorOverride = InitialColor;
+			PickerArgs.ParentWidget = ColorPickerParentWidget;
+			PickerArgs.OptionalOwningDetailsView = ColorPickerParentWidget;
+			FWidgetPath ParentWidgetPath;
+			if (FSlateApplication::Get().FindPathToWidget(ColorPickerParentWidget.ToSharedRef(), ParentWidgetPath))
+			{
+				PickerArgs.bOpenAsMenu = FSlateApplication::Get().FindMenuInWidgetPath(ParentWidgetPath).IsValid();
+			}
+		}
+
+		OpenColorPicker(PickerArgs);
+	}
+
 };
 
 #undef LOCTEXT_NAMESPACE
