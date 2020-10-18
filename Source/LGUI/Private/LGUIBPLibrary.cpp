@@ -410,7 +410,7 @@ void ULGUIBPLibrary::LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease)
 
 #pragma region DrawableEvent
 #define IMPLEMENT_DRAWABLEEVENT_BP(DrawableEventParamType, ParamType)\
-FLGUIDelegateHandleWrapper ULGUIBPLibrary::LGUIDrawableEvent_##DrawableEventParamType##_Register(const FLGUIDrawableEvent_##DrawableEventParamType##& InEvent, FLGUIDrawableEvent_##DrawableEventParamType##_DynamicDelegate InDelegate)\
+FLGUIDelegateHandleWrapper ULGUIBPLibrary::LGUIDrawableEvent_##DrawableEventParamType##_Register(const FLGUIDrawableEvent_##DrawableEventParamType& InEvent, FLGUIDrawableEvent_##DrawableEventParamType##_DynamicDelegate InDelegate)\
 {\
 	auto delegateHandle = InEvent.Register([InDelegate](ParamType value) {\
 		if (InDelegate.IsBound())\
@@ -420,7 +420,7 @@ FLGUIDelegateHandleWrapper ULGUIBPLibrary::LGUIDrawableEvent_##DrawableEventPara
 		});\
 	return FLGUIDelegateHandleWrapper(delegateHandle);\
 }\
-void ULGUIBPLibrary::LGUIDrawableEvent_##DrawableEventParamType##_Unregister(const FLGUIDrawableEvent_##DrawableEventParamType##& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle)\
+void ULGUIBPLibrary::LGUIDrawableEvent_##DrawableEventParamType##_Unregister(const FLGUIDrawableEvent_##DrawableEventParamType& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle)\
 {\
 	InEvent.Unregister(InDelegateHandle.DelegateHandle);\
 }
