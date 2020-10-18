@@ -43,6 +43,9 @@ FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 Vertex
 #endif
 
 	//SetTangents(Interpolants, Intermediates.TangentToWorld[0], Intermediates.TangentToWorld[2], Intermediates.TangentToWorldSign);
+#if (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)  && !MOBILE_EMULATION
+	VertexColor.rgba = VertexColor.bgra;
+#endif
 	SetColor(Interpolants, VertexColor);
 
 	return Interpolants;
