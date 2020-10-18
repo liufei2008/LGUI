@@ -13,7 +13,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIDrawableEvent_##DrawableEventParamType#
 
 #define MAKE_DRAWABLEEVENT_PRESETPARAM(DrawableEventParamType, ParamType)\
 public:\
-	FLGUIDrawableEvent_##DrawableEventParamType() :FLGUIDrawableEvent(LGUIDrawableEventParameterType::##DrawableEventParamType) {}\
+	FLGUIDrawableEvent_##DrawableEventParamType() :FLGUIDrawableEvent(LGUIDrawableEventParameterType::DrawableEventParamType) {}\
 private:\
 	mutable FLGUIDrawableEvent_##DrawableEventParamType##_MulticastDelegate eventDelegate;\
 public:\
