@@ -528,11 +528,11 @@ void UUI2DLineRendererBase::SetFlipGrow(bool newValue)
 
 ULTweener* UUI2DLineRendererBase::LineWidthTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration)
+	return ALTweenActor::To(this->GetWorld(), FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetLineWidth), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetLineWidth), endValue, duration)
 		->SetDelay(delay)->SetEase(easeType);
 }
 ULTweener* UUI2DLineRendererBase::GrowValueTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetGrowValue), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetGrowValue), endValue, duration)
+	return ALTweenActor::To(this->GetWorld(), FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRendererBase::GetGrowValue), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRendererBase::SetGrowValue), endValue, duration)
 		->SetDelay(delay)->SetEase(easeType);
 }

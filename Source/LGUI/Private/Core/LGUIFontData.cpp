@@ -269,7 +269,6 @@ PACK_AND_INSERT:
 
 	charDataMap.Add(cacheFontKey, cacheCharData);
 
-	//UE_LOG(LGUI, Error, TEXT("InsertCharTakeTime:%f"), GWorld->GetRealTimeSeconds() - prevTime);
 	return &cacheCharData;
 }
 bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
