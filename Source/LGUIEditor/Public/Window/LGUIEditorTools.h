@@ -22,7 +22,7 @@ public:
 		auto selectedActor = GetFirstSelectedActor();
 		AActor* newActor = nullptr;
 		GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
-		newActor = GWorld->SpawnActor<T>(FVector::ZeroVector, FQuat::Identity.Rotator(), FActorSpawnParameters());
+		newActor = GetWorldFromSelection()->SpawnActor<T>(FVector::ZeroVector, FQuat::Identity.Rotator(), FActorSpawnParameters());
 		if (selectedActor != nullptr)
 		{
 			newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
