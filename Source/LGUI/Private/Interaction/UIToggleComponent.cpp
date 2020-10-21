@@ -81,7 +81,7 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 			}
 			else
 			{
-				ToggleTransitionTweener = ALTweenActor::To(FLTweenFloatGetterFunction::CreateUObject(uiItem, &UUIItem::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(uiItem, &UUIItem::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration)
+				ToggleTransitionTweener = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(uiItem, &UUIItem::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(uiItem, &UUIItem::SetAlpha), IsOn ? OnAlpha : OffAlpha, ToggleDuration)
 					->SetEase(LTweenEase::InOutSine);
 			}
 		}
@@ -97,7 +97,7 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 			}
 			else
 			{
-				ToggleTransitionTweener = ALTweenActor::To(FLTweenColorGetterFunction::CreateUObject(uiItem, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(uiItem, &UUIItem::SetColor), IsOn ? OnColor : OffColor, ToggleDuration)
+				ToggleTransitionTweener = ALTweenActor::To(this, FLTweenColorGetterFunction::CreateUObject(uiItem, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(uiItem, &UUIItem::SetColor), IsOn ? OnColor : OffColor, ToggleDuration)
 					->SetEase(LTweenEase::InOutSine);
 			}
 		}

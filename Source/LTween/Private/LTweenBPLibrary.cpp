@@ -4,9 +4,9 @@
 #include "LTween.h"
 
 
-ULTweener* ULTweenBPLibrary::FloatTo(FLTweenFloatGetterDynamic getter, FLTweenFloatSetterDynamic setter, float endValue, float duration)
+ULTweener* ULTweenBPLibrary::FloatTo(UObject* WorldContextObject, FLTweenFloatGetterDynamic getter, FLTweenFloatSetterDynamic setter, float endValue, float duration)
 {
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenFloatGetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -17,9 +17,9 @@ ULTweener* ULTweenBPLibrary::FloatTo(FLTweenFloatGetterDynamic getter, FLTweenFl
 			setter.Execute(value);
 	}), endValue, duration);
 }
-ULTweener* ULTweenBPLibrary::IntTo(FLTweenIntGetterDynamic getter, FLTweenIntSetterDynamic setter, int endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::IntTo(UObject* WorldContextObject, FLTweenIntGetterDynamic getter, FLTweenIntSetterDynamic setter, int endValue, float duration /* = 0.5f */)
 {
-	return ALTweenActor::To(FLTweenIntGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenIntGetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -30,9 +30,9 @@ ULTweener* ULTweenBPLibrary::IntTo(FLTweenIntGetterDynamic getter, FLTweenIntSet
 			setter.Execute(value);
 	}), endValue, duration);
 }
-ULTweener* ULTweenBPLibrary::Vector2To(FLTweenVector2GetterDynamic getter, FLTweenVector2SetterDynamic setter, const FVector2D& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::Vector2To(UObject* WorldContextObject, FLTweenVector2GetterDynamic getter, FLTweenVector2SetterDynamic setter, const FVector2D& endValue, float duration /* = 0.5f */)
 {
-	return ALTweenActor::To(FLTweenVector2DGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenVector2DGetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -43,9 +43,9 @@ ULTweener* ULTweenBPLibrary::Vector2To(FLTweenVector2GetterDynamic getter, FLTwe
 			setter.Execute(value);
 	}), endValue, duration);
 }
-ULTweener* ULTweenBPLibrary::Vector3To(FLTweenVector3GetterDynamic getter, FLTweenVector3SetterDynamic setter, const FVector& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::Vector3To(UObject* WorldContextObject, FLTweenVector3GetterDynamic getter, FLTweenVector3SetterDynamic setter, const FVector& endValue, float duration /* = 0.5f */)
 {
-	return ALTweenActor::To(FLTweenVectorGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenVectorGetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -56,9 +56,9 @@ ULTweener* ULTweenBPLibrary::Vector3To(FLTweenVector3GetterDynamic getter, FLTwe
 			setter.Execute(value);
 	}), endValue, duration);
 }
-ULTweener* ULTweenBPLibrary::Vector4To(FLTweenVector4GetterDynamic getter, FLTweenVector4SetterDynamic setter, const FVector4& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::Vector4To(UObject* WorldContextObject, FLTweenVector4GetterDynamic getter, FLTweenVector4SetterDynamic setter, const FVector4& endValue, float duration /* = 0.5f */)
 {
-	return ALTweenActor::To(FLTweenVector4GetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenVector4GetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -69,9 +69,9 @@ ULTweener* ULTweenBPLibrary::Vector4To(FLTweenVector4GetterDynamic getter, FLTwe
 			setter.Execute(value);
 	}), endValue, duration);
 }
-ULTweener* ULTweenBPLibrary::ColorTo(FLTweenColorGetterDynamic getter, FLTweenColorSetterDynamic setter, const FColor& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::ColorTo(UObject* WorldContextObject, FLTweenColorGetterDynamic getter, FLTweenColorSetterDynamic setter, const FColor& endValue, float duration /* = 0.5f */)
 {
-	return ALTweenActor::To(FLTweenColorGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenColorGetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -82,9 +82,9 @@ ULTweener* ULTweenBPLibrary::ColorTo(FLTweenColorGetterDynamic getter, FLTweenCo
 			setter.Execute(value);
 	}), endValue, duration);
 }
-ULTweener* ULTweenBPLibrary::LinearColorTo(FLTweenLinearColorGetterDynamic getter, FLTweenLinearColorSetterDynamic setter, const FLinearColor& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::LinearColorTo(UObject* WorldContextObject, FLTweenLinearColorGetterDynamic getter, FLTweenLinearColorSetterDynamic setter, const FLinearColor& endValue, float duration /* = 0.5f */)
 {
-	return ALTweenActor::To(FLTweenLinearColorGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -95,9 +95,9 @@ ULTweener* ULTweenBPLibrary::LinearColorTo(FLTweenLinearColorGetterDynamic gette
 			setter.Execute(value);
 	}), endValue, duration);
 }
-ULTweener* ULTweenBPLibrary::QuaternionTo(FLTweenQuaternionGetterDynamic getter, FLTweenQuaternionSetterDynamic setter, const FQuat& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::QuaternionTo(UObject* WorldContextObject, FLTweenQuaternionGetterDynamic getter, FLTweenQuaternionSetterDynamic setter, const FQuat& endValue, float duration /* = 0.5f */)
 {
-	return ALTweenActor::To(FLTweenQuaternionGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenQuaternionGetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -108,9 +108,9 @@ ULTweener* ULTweenBPLibrary::QuaternionTo(FLTweenQuaternionGetterDynamic getter,
 			setter.Execute(value);
 	}), endValue, duration);
 }
-ULTweener* ULTweenBPLibrary::RotatorTo(FLTweenRotatorGetterDynamic getter, FLTweenRotatorSetterDynamic setter, const FRotator& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::RotatorTo(UObject* WorldContextObject, FLTweenRotatorGetterDynamic getter, FLTweenRotatorSetterDynamic setter, const FRotator& endValue, float duration /* = 0.5f */)
 {
-	return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenRotatorGetterFunction::CreateLambda([getter]
 	{
 		if (getter.IsBound())
 			return getter.Execute();
@@ -130,7 +130,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionXTo(USceneComponent* target, float end
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionXTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->RelativeLocation.X;
@@ -152,7 +152,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionYTo(USceneComponent* target, float end
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionYTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->RelativeLocation.Y;
@@ -174,7 +174,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo(USceneComponent* target, float end
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionZTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->RelativeLocation.Z;
@@ -196,7 +196,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionXTo_Sweep(USceneComponent* target, flo
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionXTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->RelativeLocation.X;
@@ -218,7 +218,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionYTo_Sweep(USceneComponent* target, flo
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionYTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->RelativeLocation.Y;
@@ -240,7 +240,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo_Sweep(USceneComponent* target, flo
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionZTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->RelativeLocation.Z;
@@ -265,7 +265,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionXTo(USceneComponent* target, float end
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionXTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->GetComponentLocation().X;
@@ -287,7 +287,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionYTo(USceneComponent* target, float end
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionYTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->GetComponentLocation().Y;
@@ -309,7 +309,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionZTo(USceneComponent* target, float end
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionZTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->GetComponentLocation().Z;
@@ -331,7 +331,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionXTo_Sweep(USceneComponent* target, flo
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionXTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->GetComponentLocation().X;
@@ -353,7 +353,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionYTo_Sweep(USceneComponent* target, flo
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionYTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->GetComponentLocation().Y;
@@ -375,7 +375,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionZTo_Sweep(USceneComponent* target, flo
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionZTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenFloatGetterFunction::CreateLambda([target] {
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateLambda([target] {
 		if (IsValid(target))
 		{
 			return target->GetComponentLocation().Z;
@@ -403,7 +403,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo(USceneComponent* target, FVector en
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenPositionGetterFunction::CreateLambda([target] 
+	return ALTweenActor::To(target, FLTweenPositionGetterFunction::CreateLambda([target]
 	{
 		if (!IsValid(target))
 		{
@@ -421,7 +421,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionTo(USceneComponent* target, FVector en
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenPositionGetterFunction::CreateUObject(target, &USceneComponent::GetComponentLocation), 
+	return ALTweenActor::To(target, FLTweenPositionGetterFunction::CreateUObject(target, &USceneComponent::GetComponentLocation),
 		FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetWorldLocation), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
@@ -432,7 +432,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo_Sweep(USceneComponent* target, FVec
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenVectorGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenVectorGetterFunction::CreateLambda([target]
 	{
 		if (!IsValid(target))
 		{
@@ -451,7 +451,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionTo_Sweep(USceneComponent* target, FVec
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldPositionTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenPositionGetterFunction::CreateUObject(target, &USceneComponent::GetComponentLocation),
+	return ALTweenActor::To(target, FLTweenPositionGetterFunction::CreateUObject(target, &USceneComponent::GetComponentLocation),
 		FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
 }
@@ -466,7 +466,7 @@ ULTweener* ULTweenBPLibrary::LocalScaleTo(USceneComponent* target, FVector endVa
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalScaleTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenVectorGetterFunction::CreateLambda([target] 
+	return ALTweenActor::To(target, FLTweenVectorGetterFunction::CreateLambda([target]
 	{
 		if (!IsValid(target))
 		{
@@ -487,7 +487,7 @@ ULTweener* ULTweenBPLibrary::LocalRotateEulerAngleTo(USceneComponent* target, FV
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalRotateEulerAngleTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenRotationQuatGetterFunction::CreateLambda([target]
 	{ 
 		if (IsValid(target))
 			return target->GetRelativeRotationCache().GetCachedQuat();
@@ -503,7 +503,7 @@ ULTweener* ULTweenBPLibrary::LocalRotationQuaternionTo(USceneComponent* target, 
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalRotationTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenRotationQuatGetterFunction::CreateLambda([target]
 	{
 		if (IsValid(target))
 			return target->GetRelativeRotationCache().GetCachedQuat();
@@ -519,7 +519,7 @@ ULTweener* ULTweenBPLibrary::LocalRotateEulerAngleTo_Sweep(USceneComponent* targ
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalRotateEulerAngleTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenRotationQuatGetterFunction::CreateLambda([target]
 	{ 
 		if (IsValid(target))
 			return target->GetRelativeRotationCache().GetCachedQuat();
@@ -535,7 +535,7 @@ ULTweener* ULTweenBPLibrary::LocalRotationQuaternionTo_Sweep(USceneComponent* ta
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalRotationTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenRotationQuatGetterFunction::CreateLambda([target]
 	{
 		if (IsValid(target))
 			return target->GetRelativeRotationCache().GetCachedQuat();
@@ -557,7 +557,7 @@ ULTweener* ULTweenBPLibrary::LocalRotatorTo(USceneComponent* target, FRotator en
 	}
 	else
 	{
-		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([target]
+		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateLambda([target]
 		{
 			if (IsValid(target))
 				return target->RelativeRotation;
@@ -583,7 +583,7 @@ ULTweener* ULTweenBPLibrary::LocalRotatorTo_Sweep(USceneComponent* target, FRota
 	}
 	else
 	{
-		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([target]
+		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateLambda([target]
 		{
 			if (IsValid(target))
 				return target->RelativeRotation;
@@ -606,7 +606,7 @@ ULTweener* ULTweenBPLibrary::WorldRotateEulerAngleTo(USceneComponent* target, FV
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldRotateEulerAngleTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenRotationQuatGetterFunction::CreateLambda([target]
 	{
 		if (IsValid(target))
 			return target->GetComponentRotation().Quaternion();
@@ -622,7 +622,7 @@ ULTweener* ULTweenBPLibrary::WorldRotationQuaternionTo(USceneComponent* target, 
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldRotationTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenRotationQuatGetterFunction::CreateLambda([target]
 	{
 		if (IsValid(target))
 			return target->GetComponentRotation().Quaternion();
@@ -638,7 +638,7 @@ ULTweener* ULTweenBPLibrary::WorldRotateEulerAngleTo_Sweep(USceneComponent* targ
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldRotateEulerAngleTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenRotationQuatGetterFunction::CreateLambda([target]
 	{
 		if (IsValid(target))
 			return target->GetComponentRotation().Quaternion();
@@ -654,7 +654,7 @@ ULTweener* ULTweenBPLibrary::WorldRotationQuaternionTo_Sweep(USceneComponent* ta
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::WorldRotationTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenRotationQuatGetterFunction::CreateLambda([target]
+	return ALTweenActor::To(target, FLTweenRotationQuatGetterFunction::CreateLambda([target]
 	{
 		if (IsValid(target))
 			return target->GetComponentRotation().Quaternion();
@@ -676,7 +676,7 @@ ULTweener* ULTweenBPLibrary::WorldRotatorTo(USceneComponent* target, FRotator en
 	}
 	else
 	{
-		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([target]
+		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateLambda([target]
 		{
 			if (IsValid(target))
 				return target->GetComponentRotation();
@@ -702,7 +702,7 @@ ULTweener* ULTweenBPLibrary::WorldRotatorTo_Sweep(USceneComponent* target, FRota
 	}
 	else
 	{
-		return ALTweenActor::To(FLTweenRotatorGetterFunction::CreateLambda([target]
+		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateLambda([target]
 		{
 			if (IsValid(target))
 				return target->GetComponentRotation();
@@ -737,7 +737,7 @@ ULTweener* ULTweenBPLibrary::MaterialScalarParameterTo(UMaterialInstanceDynamic*
 		UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::MaterialScalarParameterTo]GetScalarParameterValue:%s error!"), *(parameterName.ToString()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenMaterialScalarGetterFunction::CreateLambda([target, parameterName](float& result)
+	return ALTweenActor::To(target, FLTweenMaterialScalarGetterFunction::CreateLambda([target, parameterName](float& result)
 	{
 		if (IsValid(target))
 			return target->GetScalarParameterValue(parameterName, result);
@@ -763,7 +763,7 @@ ULTweener* ULTweenBPLibrary::MaterialVectorParameterTo(UMaterialInstanceDynamic*
 		UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::MaterialVectorParameterTo]GetVectorParameterValue:%s error!"), *(parameterName.ToString()));
 		return nullptr;
 	}
-	return ALTweenActor::To(FLTweenMaterialVectorGetterFunction::CreateLambda([target, parameterName](FLinearColor& result)
+	return ALTweenActor::To(target, FLTweenMaterialVectorGetterFunction::CreateLambda([target, parameterName](FLinearColor& result)
 	{
 		if (IsValid(target))
 			return target->GetVectorParameterValue(parameterName, result);

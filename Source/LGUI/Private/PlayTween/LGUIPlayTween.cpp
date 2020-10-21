@@ -10,7 +10,7 @@ void ULGUIPlayTween::Stop()
 }
 void ULGUIPlayTween::Start()
 {
-	tweener = ALTweenActor::VirtualTo(duration)
+	tweener = ALTweenActor::VirtualTo(this->GetWorld(), duration)
 		->SetDelay(startDelay)
 		->SetLoopType(loopType)
 		->OnStart([&] {
