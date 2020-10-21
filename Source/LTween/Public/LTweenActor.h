@@ -22,7 +22,7 @@ private:
 	//current active tweener collection
 	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<ULTweener*> tweenerList;
 	static ALTweenActor* Instance;
-	static bool InitCheck();
+	static bool InitCheck(UObject* WorldContextObject);
 	virtual void Tick(float DeltaSeconds) override;
 	void OnTick(float DeltaTime);
 	LTweenUpdateMulticastDelegate updateEvent;
@@ -37,26 +37,26 @@ public:
 	static bool IsTweening(ULTweener* item);
 	static void KillIfIsTweening(ULTweener* item, bool callComplete);
 
-	static ULTweener* To(const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration);
-	static ULTweener* To(const FLTweenIntGetterFunction& getter, const FLTweenIntSetterFunction& setter, int endValue, float duration);
-	static ULTweener* To(const FLTweenPositionGetterFunction& getter, const FLTweenPositionSetterFunction& setter, const FVector& endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
-	static ULTweener* To(const FLTweenVectorGetterFunction& getter, const FLTweenVectorSetterFunction& setter, const FVector& endValue, float duration);
-	static ULTweener* To(const FLTweenColorGetterFunction& getter, const FLTweenColorSetterFunction& setter, const FColor& endValue, float duration);
-	static ULTweener* To(const FLTweenLinearColorGetterFunction& getter, const FLTweenLinearColorSetterFunction& setter, const FLinearColor& endValue, float duration);
-	static ULTweener* To(const FLTweenVector2DGetterFunction& getter, const FLTweenVector2DSetterFunction& setter, const FVector2D& endValue, float duration);
-	static ULTweener* To(const FLTweenVector4GetterFunction& getter, const FLTweenVector4SetterFunction& setter, const FVector4& endValue, float duration);
-	static ULTweener* To(const FLTweenQuaternionGetterFunction& getter, const FLTweenQuaternionSetterFunction& setter, const FQuat& endValue, float duration);
-	static ULTweener* To(const FLTweenRotatorGetterFunction& getter, const FLTweenRotatorSetterFunction& setter, const FRotator& endValue, float duration);
-	static ULTweener* To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FVector& eulerAngle, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
-	static ULTweener* To(const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FQuat& endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
-	static ULTweener* To(const FLTweenMaterialScalarGetterFunction& getter, const FLTweenMaterialScalarSetterFunction& setter, float endValue, float duration, int32 parameterIndex);
-	static ULTweener* To(const FLTweenMaterialVectorGetterFunction& getter, const FLTweenMaterialVectorSetterFunction& setter, const FLinearColor& endValue, float duration, int32 parameterIndex);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenIntGetterFunction& getter, const FLTweenIntSetterFunction& setter, int endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenPositionGetterFunction& getter, const FLTweenPositionSetterFunction& setter, const FVector& endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenVectorGetterFunction& getter, const FLTweenVectorSetterFunction& setter, const FVector& endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenColorGetterFunction& getter, const FLTweenColorSetterFunction& setter, const FColor& endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenLinearColorGetterFunction& getter, const FLTweenLinearColorSetterFunction& setter, const FLinearColor& endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenVector2DGetterFunction& getter, const FLTweenVector2DSetterFunction& setter, const FVector2D& endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenVector4GetterFunction& getter, const FLTweenVector4SetterFunction& setter, const FVector4& endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenQuaternionGetterFunction& getter, const FLTweenQuaternionSetterFunction& setter, const FQuat& endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenRotatorGetterFunction& getter, const FLTweenRotatorSetterFunction& setter, const FRotator& endValue, float duration);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FVector& eulerAngle, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FQuat& endValue, float duration, bool sweep = false, FHitResult* sweepHitResult = nullptr, ETeleportType teleportType = ETeleportType::None);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenMaterialScalarGetterFunction& getter, const FLTweenMaterialScalarSetterFunction& setter, float endValue, float duration, int32 parameterIndex);
+	static ULTweener* To(UObject* WorldContextObject, const FLTweenMaterialVectorGetterFunction& getter, const FLTweenMaterialVectorSetterFunction& setter, const FLinearColor& endValue, float duration, int32 parameterIndex);
 
-	static ULTweener* VirtualTo(float duration);
+	static ULTweener* VirtualTo(UObject* WorldContextObject, float duration);
 
-	static ULTweener* DelayFrameCall(int delayFrame);
+	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int delayFrame);
 
-	static void RegisterUpdateEvent(const LTweenUpdateDelegate& update);
+	static void RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update);
 	static void UnregisterUpdateEvent(const LTweenUpdateDelegate& update);
 	static void UnregisterUpdateEvent(const FDelegateHandle& delegateHandle);
 };

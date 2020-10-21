@@ -286,3 +286,6 @@ Fix LGUIDrawableEvent's editor issue when use Vector2/Vector3/Vector4/Color/Line
 ## 2.9.2
 #### NewFeature:
 Android platform ready!
+## 2.9.3
+#### Fix:
+Avoid GWorld for LTweenActor creation, so LTween related code should provide a object to get world.
