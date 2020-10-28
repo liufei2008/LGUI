@@ -82,6 +82,7 @@ FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUIC
 	:FSceneViewExtensionBase(AutoRegister)
 {
 	UICanvas = InLGUICanvas;
+	World = UICanvas->GetWorld();
 	CustomRenderTarget = InCustomRenderTarget;
 
 #if WITH_EDITORONLY_DATA
@@ -100,7 +101,7 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
 	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
-
+	
 	FScopeLock scopeLock(&Mutex);
 	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
 	{
@@ -195,6 +196,9 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
+	if (!World.IsValid())return;
+	if (InView.Family == nullptr || InView.Family->Scene == nullptr || InView.Family->Scene->GetWorld() == nullptr)return;
+	if (World.Get() != InView.Family->Scene->GetWorld())return;
 #if WITH_EDITOR
 	if (ALGUIManagerActor::IsPlaying == IsEditorPreview)return;
 	if (ALGUIManagerActor::IsPlaying)

@@ -58,6 +58,7 @@ private:
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
+	TWeakObjectPtr<UWorld> World;
 
 	FVector ViewLocation;
 	FMatrix ViewRotationMatrix;
