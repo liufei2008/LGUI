@@ -336,7 +336,7 @@ void ULGUIEditorManagerObject::OnSelectObject(UObject* newSelection)
 
 
 
-ALGUIManagerActor* ALGUIManagerActor::Instance = nullptr;
+TMap<UWorld*, ALGUIManagerActor*> ALGUIManagerActor::WorldToInstanceMap ;
 ALGUIManagerActor::ALGUIManagerActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -344,47 +344,115 @@ ALGUIManagerActor::ALGUIManagerActor()
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 #if WITH_EDITOR
 	FEditorDelegates::BeginPIE.AddLambda([=](const bool isSimulating) {
-		if (Instance != nullptr)
+		for (auto keyValue : WorldToInstanceMap)
 		{
-			LGUIUtils::DeleteActor(Instance);//delete any instance before begin play
-			Instance = nullptr;
+			if (IsValid(keyValue.Value))
+			{
+				LGUIUtils::DeleteActor(keyValue.Value);//delete any instance before begin play
+			}
 		}
 	});
 #endif
 	CreateDefaultSubobject<ULGUIManagerComponent_PrePhysics>(TEXT("Tick_PrePhysics"))->ManagerActor = this;
 	CreateDefaultSubobject<ULGUIManagerComponent_DuringPhysics>(TEXT("Tick_DuringPhysics"))->ManagerActor = this;
 }
-
+ALGUIManagerActor* ALGUIManagerActor::GetLGUIManagerActorInstance(UObject* WorldContextObject)
+{
+	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (auto result = WorldToInstanceMap.Find(world))
+	{
+		return *result;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+#if WITH_EDITORONLY_DATA
 bool ALGUIManagerActor::IsPlaying = false;
+#endif
 void ALGUIManagerActor::BeginPlay()
 {
 	Super::BeginPlay();
+#if WITH_EDITORONLY_DATA
 	IsPlaying = true;
+#endif
 }
 void ALGUIManagerActor::BeginDestroy()
 {
-	Instance = nullptr;
-	Super::BeginDestroy();
-	IsPlaying = false;
-}
-
-bool ALGUIManagerActor::InitCheck(UWorld* InWorld)
-{
-	if (Instance == nullptr)
+	if (WorldToInstanceMap.Num() > 0 && existInInstanceMap)
 	{
-		if (IsValid(InWorld))
+		bool removed = false;
+		if (auto world = this->GetWorld())
 		{
-			FActorSpawnParameters param = FActorSpawnParameters();
-			param.ObjectFlags = RF_Transient;
-			Instance = InWorld->SpawnActor<ALGUIManagerActor>(param);
-			UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::InitCheck]No Instance for LGUIManagerActor, create!"));
+			WorldToInstanceMap.Remove(world);
+			removed = true;
 		}
 		else
 		{
-			return false;
+			world = nullptr;
+			for (auto keyValue : WorldToInstanceMap)
+			{
+				if (keyValue.Value == this)
+				{
+					world = keyValue.Key;
+				}
+			}
+			if (world != nullptr)
+			{
+				WorldToInstanceMap.Remove(world);
+				removed = true;
+			}
+		}
+		if (removed)
+		{
+			existInInstanceMap = false;
+		}
+		else
+		{
+			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::BeginDestroy]Cannot remove instance!"));
 		}
 	}
-	return true;
+	if (WorldToInstanceMap.Num() <= 0)
+	{
+		UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::BeginDestroy]All instance removed."));
+	}
+	Super::BeginDestroy();
+#if WITH_EDITORONLY_DATA
+	IsPlaying = false;
+#endif
+}
+
+ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
+{
+	if (IsValid(InWorld))
+	{
+		if (auto instance = WorldToInstanceMap.Find(InWorld))
+		{
+			return *instance;
+		}
+		else
+		{
+			if (CreateIfNotValid)
+			{
+				FActorSpawnParameters param = FActorSpawnParameters();
+				param.ObjectFlags = RF_Transient;
+				auto newInstance = InWorld->SpawnActor<ALGUIManagerActor>(param);
+				WorldToInstanceMap.Add(InWorld, newInstance);
+				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::InitCheck]No Instance for LGUIManagerActor, create!"));
+				newInstance->existInInstanceMap = true;
+				return newInstance;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 
@@ -542,7 +610,7 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 
 void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
 {
-	if (InitCheck(InComp->GetWorld()))
+	if (auto Instance = GetInstance(InComp->GetWorld(), true))
 	{
 		if (IsPrefabSystemProcessingActor(InComp->GetOwner()))//if this component is processing by prefab system(creating from prefab, or duplicating from ActorCopier), then we need to collect it to custom awake array
 		{
@@ -656,7 +724,7 @@ void ALGUIManagerActor::AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp,
 }
 void ALGUIManagerActor::RemoveLGUIComponent(ULGUIBehaviour* InComp)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InComp->GetWorld()))
 	{
 		int32 index = INDEX_NONE;
 		if (Instance->LGUIBehavioursForAwake.Find(InComp, index))
@@ -695,14 +763,14 @@ void ALGUIManagerActor::RemoveLGUIComponent(ULGUIBehaviour* InComp)
 
 void ALGUIManagerActor::AddUIItem(UUIItem* InItem)
 {
-	if (InitCheck(InItem->GetWorld()))
+	if (auto Instance = GetInstance(InItem->GetWorld(), true))
 	{
 		Instance->allUIItem.Add(InItem);
 	}
 }
 void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InItem->GetWorld()))
 	{
 		Instance->allUIItem.RemoveSingle(InItem);
 	}
@@ -710,7 +778,7 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 
 void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 {
-	if (InitCheck(InCanvas->GetWorld()))
+	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
 	{
 		auto& canvasArray = Instance->allCanvas;
 		canvasArray.AddUnique(InCanvas);
@@ -721,9 +789,9 @@ void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 		});
 	}
 }
-void ALGUIManagerActor::SortCanvasOnOrder()
+void ALGUIManagerActor::SortCanvasOnOrder(ULGUICanvas* InCanvas)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
 		//sort on depth
 		Instance->allCanvas.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
@@ -734,7 +802,7 @@ void ALGUIManagerActor::SortCanvasOnOrder()
 }
 void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InCanvas->GetWorld()))
 	{
 		Instance->allCanvas.RemoveSingle(InCanvas);
 	}
@@ -742,7 +810,7 @@ void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
 
 void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 {
-	if (InitCheck(InRaycaster->GetWorld()))
+	if (auto Instance = GetInstance(InRaycaster->GetWorld(), true))
 	{
 		auto& raycasterArray = Instance->raycasterArray;
 		if (raycasterArray.Contains(InRaycaster))return;
@@ -756,7 +824,7 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 }
 void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InRaycaster->GetWorld()))
 	{
 		int32 index;
 		if (Instance->raycasterArray.Find(InRaycaster, index))
@@ -768,14 +836,14 @@ void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 
 void ALGUIManagerActor::SetInputModule(ULGUIBaseInputModule* InInputModule)
 {
-	if (InitCheck(InInputModule->GetWorld()))
+	if (auto Instance = GetInstance(InInputModule->GetWorld(), true))
 	{
 		Instance->currentInputModule = InInputModule;
 	}
 }
-void ALGUIManagerActor::ClearInputModule()
+void ALGUIManagerActor::ClearInputModule(ULGUIBaseInputModule* InInputModule)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InInputModule->GetWorld()))
 	{
 		Instance->currentInputModule = nullptr;
 	}
@@ -783,7 +851,7 @@ void ALGUIManagerActor::ClearInputModule()
 
 void ALGUIManagerActor::AddSelectable(UUISelectableComponent* InSelectable)
 {
-	if (InitCheck(InSelectable->GetWorld()))
+	if (auto Instance = GetInstance(InSelectable->GetWorld(), true))
 	{
 		auto& allSelectableArray = Instance->allSelectableArray;
 		if (allSelectableArray.Contains(InSelectable))return;
@@ -792,7 +860,7 @@ void ALGUIManagerActor::AddSelectable(UUISelectableComponent* InSelectable)
 }
 void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InSelectable->GetWorld()))
 	{
 		int32 index;
 		if (Instance->allSelectableArray.Find(InSelectable, index))
@@ -842,36 +910,36 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement()
 }
 void ALGUIManagerActor::BeginPrefabSystemProcessingActor(UWorld* InWorld)
 {
-	if (InitCheck(InWorld))
+	if (auto Instance = GetInstance(InWorld, true))
 	{
 		Instance->LGUIBehaviours_PrefabSystemProcessing.Add({});
 		Instance->PrefabSystemProcessing_CurrentArrayIndex++;
 	}
 }
-void ALGUIManagerActor::EndPrefabSystemProcessingActor()
+void ALGUIManagerActor::EndPrefabSystemProcessingActor(UWorld* InWorld)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InWorld, false))
 	{
 		Instance->EndPrefabSystemProcessingActor_Implement();
 	}
 }
 void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InActor->GetWorld(), true))
 	{
 		Instance->AllActors_PrefabSystemProcessing.AddUnique(InActor);
 	}
 }
 void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InActor->GetWorld()))
 	{
 		Instance->AllActors_PrefabSystemProcessing.RemoveSingle(InActor);
 	}
 }
 bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
 {
-	if (Instance != nullptr)
+	if (auto Instance = GetInstance(InActor->GetWorld()))
 	{
 		return Instance->AllActors_PrefabSystemProcessing.Contains(InActor);
 	}

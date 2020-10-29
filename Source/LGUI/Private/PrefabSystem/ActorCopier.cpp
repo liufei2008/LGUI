@@ -471,7 +471,7 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 		{
 			ALGUIManagerActor::RemoveActorForPrefabSystem(item);
 		}
-		ALGUIManagerActor::EndPrefabSystemProcessingActor();
+		ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get());
 	}
 	return Result;
 }

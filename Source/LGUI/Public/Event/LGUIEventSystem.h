@@ -43,13 +43,15 @@ class LGUI_API ULGUIEventSystem : public UActorComponent
 public:
 	ULGUIEventSystem();
 
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get LGUI Event System Instance"))
-		static ULGUIEventSystem* GetLGUIEventSystemInstance();
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (WorldContext = "WorldContextObject", DisplayName = "Get LGUI Event System Instance"))
+		static ULGUIEventSystem* GetLGUIEventSystemInstance(UObject* WorldContextObject);
 protected:
-	static ULGUIEventSystem* Instance;//a level should only have one LGUIEventSystemActpr
+	static TMap<UWorld*, ULGUIEventSystem*> WorldToInstanceMap;//a world should only have one LGUIEventSystemActpr
+	bool existInInstanceMap = false;
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void BeginDestroy()override;
 
 protected:
 

@@ -291,7 +291,7 @@ bool UUISelectableComponent::OnPointerDown_Implementation(ULGUIPointerEventData*
 	IsPointerDown = true;
 	CurrentSelectionState = GetSelectionState();
 	ApplySelectionState(false);
-	if (auto eventSystemInstance = ULGUIEventSystem::GetLGUIEventSystemInstance())
+	if (auto eventSystemInstance = ULGUIEventSystem::GetLGUIEventSystemInstance(this))
 	{
 		eventSystemInstance->SetSelectComponent(GetRootComponent(), eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
 	}
@@ -444,40 +444,44 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 
 UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection, USceneComponent* InParent)
 {
-	const auto& uiSelectables = ALGUIManagerActor::Instance->GetSelectables();
-	FVector pos = CheckRootUIComponent() ? FVector(RootUIComp->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-	pos = GetOwner()->GetRootComponent()->GetComponentTransform().TransformPosition(pos);
-	float maxScore = MIN_flt;
-	UUISelectableComponent* bestPick = this;
-	for (int i = 0; i < uiSelectables.Num(); ++i)
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		auto sel = uiSelectables[i];
-
-		if (sel == this || sel == nullptr)
-			continue;
-
-		if (InParent != nullptr && !sel->GetOwner()->GetRootComponent()->IsAttachedTo(InParent))
-			continue;
-
-		if (!sel->IsInteractable())
-			continue;
-
-		UUIItem* selRect = Cast<UUIItem>(sel->GetOwner()->GetRootComponent());
-		FVector selCenter = selRect != nullptr ? FVector(selRect->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-		FVector myVector = sel->GetOwner()->GetRootComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
-
-		float dot = FVector::DotProduct(InDirection, myVector);
-		if (dot <= 0)
-			continue;
-
-		float score = dot / myVector.SizeSquared();
-		if (score > maxScore)
+		const auto& uiSelectables = LGUIManagerActor->GetSelectables();
+		FVector pos = CheckRootUIComponent() ? FVector(RootUIComp->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
+		pos = GetOwner()->GetRootComponent()->GetComponentTransform().TransformPosition(pos);
+		float maxScore = MIN_flt;
+		UUISelectableComponent* bestPick = this;
+		for (int i = 0; i < uiSelectables.Num(); ++i)
 		{
-			maxScore = score;
-			bestPick = sel;
+			auto sel = uiSelectables[i];
+
+			if (sel == this || sel == nullptr)
+				continue;
+
+			if (InParent != nullptr && !sel->GetOwner()->GetRootComponent()->IsAttachedTo(InParent))
+				continue;
+
+			if (!sel->IsInteractable())
+				continue;
+
+			UUIItem* selRect = Cast<UUIItem>(sel->GetOwner()->GetRootComponent());
+			FVector selCenter = selRect != nullptr ? FVector(selRect->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
+			FVector myVector = sel->GetOwner()->GetRootComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
+
+			float dot = FVector::DotProduct(InDirection, myVector);
+			if (dot <= 0)
+				continue;
+
+			float score = dot / myVector.SizeSquared();
+			if (score > maxScore)
+			{
+				maxScore = score;
+				bestPick = sel;
+			}
 		}
+		return bestPick;
 	}
-	return bestPick;
+	return nullptr;
 }
 UUISelectableComponent* UUISelectableComponent::FindSelectableOnLeft()
 {

@@ -54,9 +54,9 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 		OutRayEnd = OutRayDirection * rayLength + OutRayOrigin;
 		if (traceOnlyActorArray.Num() == 0)//trace all
 		{
-			if (ALGUIManagerActor::Instance != nullptr)
+			if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 			{
-				auto allUIItemArray = ALGUIManagerActor::Instance->GetAllUIItem();
+				auto allUIItemArray = LGUIManagerActor->GetAllUIItem();
 				for (auto uiItem : allUIItemArray)
 				{
 					if (ShouldSkipUIItem(uiItem))continue;
