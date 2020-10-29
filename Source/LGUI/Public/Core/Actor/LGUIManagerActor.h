@@ -102,10 +102,14 @@ UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
 class LGUI_API ALGUIManagerActor : public AActor
 {
 	GENERATED_BODY()
-	
+private:
+	static TMap<UWorld*, ALGUIManagerActor*> WorldToInstanceMap;
+	bool existInInstanceMap = false;
 public:	
-	static ALGUIManagerActor* Instance;
+	static ALGUIManagerActor* GetLGUIManagerActorInstance(UObject* WorldContextObject);
+#if WITH_EDITORONLY_DATA
 	static bool IsPlaying;
+#endif
 	ALGUIManagerActor();
 	virtual void BeginPlay()override;
 	virtual void BeginDestroy()override;
@@ -145,14 +149,14 @@ protected:
 	void AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp, TArray<ULGUIBehaviour*>& InArray);
 	bool firstAwakeExecuted = false;
 private:
-	static bool InitCheck(UWorld* InWorld);
+	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
 	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
-	static void SortCanvasOnOrder();
+	static void SortCanvasOnOrder(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
 
@@ -162,7 +166,7 @@ public:
 
 	FORCEINLINE ULGUIBaseInputModule* GetInputModule() { return currentInputModule; }
 	static void SetInputModule(ULGUIBaseInputModule* InInputModule);
-	static void ClearInputModule();
+	static void ClearInputModule(ULGUIBaseInputModule* InInputModule);
 
 	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);
@@ -177,7 +181,7 @@ private:
 	void EndPrefabSystemProcessingActor_Implement();
 public:
 	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);
-	static void EndPrefabSystemProcessingActor();
+	static void EndPrefabSystemProcessingActor(UWorld* InWorld);
 	static void AddActorForPrefabSystem(AActor* InActor);
 	static void RemoveActorForPrefabSystem(AActor* InActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);

@@ -1298,11 +1298,11 @@ void UUITextInputComponent::ActivateInput()
 	BindKeys();
 	UpdatePlaceHolderComponent();
 	//set is selected
-	if (ULGUIEventSystem::GetLGUIEventSystemInstance() != nullptr)
+	if (ULGUIEventSystem::GetLGUIEventSystemInstance(this) != nullptr)
 	{
 		if (CheckRootUIComponent())
 		{
-			ULGUIEventSystem::GetLGUIEventSystemInstance()->SetSelectComponentWithDefault(RootUIComp);
+			ULGUIEventSystem::GetLGUIEventSystemInstance(this)->SetSelectComponentWithDefault(RootUIComp);
 		}
 	}
 	//fire event

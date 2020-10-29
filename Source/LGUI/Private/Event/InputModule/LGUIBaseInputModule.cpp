@@ -18,7 +18,7 @@ void ULGUIBaseInputModule::ActivateInputModule()
 }
 void ULGUIBaseInputModule::DeactivateInputModule()
 {
-	ALGUIManagerActor::ClearInputModule();
+	ALGUIManagerActor::ClearInputModule(this);
 }
 void ULGUIBaseInputModule::Activate(bool bReset)
 {
