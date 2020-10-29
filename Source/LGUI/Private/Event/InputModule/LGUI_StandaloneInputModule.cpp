@@ -6,12 +6,13 @@
 
 void ULGUI_StandaloneInputModule::ProcessInput()
 {
-	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this);
-	if (eventSystem == nullptr)return;
+	if (!CheckEventSystem())return;
 
 	auto leftButtonEventData = GetPointerEventData(0, true);
+	auto viewport = this->GetWorld()->GetGameViewport();
+	if (viewport == nullptr)return;
 	FVector2D mousePos;
-	this->GetWorld()->GetGameViewport()->GetMousePosition(mousePos);
+	viewport->GetMousePosition(mousePos);
 	leftButtonEventData->pointerPosition = FVector(mousePos, 0);
 
 	FHitResultContainerStruct hitResultContainer;
@@ -31,7 +32,7 @@ void ULGUI_StandaloneInputModule::InputScroll(const float& inAxisValue)
 		if (inAxisValue != 0)
 		{
 			eventData->scrollAxisValue = inAxisValue;
-			if (auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this))
+			if (CheckEventSystem())
 			{
 				eventSystem->CallOnPointerScroll(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
 			}
