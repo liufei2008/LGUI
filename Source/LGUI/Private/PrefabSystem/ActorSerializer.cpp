@@ -220,7 +220,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		{
 			ALGUIManagerActor::RemoveActorForPrefabSystem(item);
 		}
-		ALGUIManagerActor::EndPrefabSystemProcessingActor();
+		ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get());
 	}
 	//UE_LOG(LGUI, Display, TEXT("Dserialize Prefab Duration:%s"), *((FDateTime::Now() - StartTime).ToString()));
 	return CreatedActor;

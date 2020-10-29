@@ -25,33 +25,46 @@ ALGUIEventSystemActor::ALGUIEventSystemActor()
 
 DECLARE_CYCLE_STAT(TEXT("EventSystem RayAndEvent"), STAT_RayAndEvent, STATGROUP_LGUI);
 
-ULGUIEventSystem* ULGUIEventSystem::Instance = nullptr;
+TMap<UWorld*, ULGUIEventSystem*> ULGUIEventSystem::WorldToInstanceMap;
 ULGUIEventSystem::ULGUIEventSystem()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
-ULGUIEventSystem* ULGUIEventSystem::GetLGUIEventSystemInstance()
+ULGUIEventSystem* ULGUIEventSystem::GetLGUIEventSystemInstance(UObject* WorldContextObject)
 {
-	return Instance;
-}
-void ULGUIEventSystem::BeginPlay()
-{
-	if (Instance != nullptr)
+	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (auto result = WorldToInstanceMap.Find(world))
 	{
-		FString actorName =
-#if WITH_EDITOR
-			Instance->GetOwner()->GetActorLabel();
-#else
-			Instance->GetOwner()->GetName();
-#endif
-		UE_LOG(LGUI, Error, TEXT("LGUIEventSystem component is already exist in actor:%s, multiple LGUIEventSystem is not allowed!"), *actorName);
-		this->SetComponentTickEnabled(false);
-		Super::BeginPlay();
+		return *result;
 	}
 	else
 	{
-		Instance = this;
-		Super::BeginPlay();
+		return nullptr;
+	}
+}
+void ULGUIEventSystem::BeginPlay()
+{
+	Super::BeginPlay();
+	//UE_LOG(LGUI, Error, TEXT("LGUIEventSystem, world:%d, this:%d, isClientOrServer:%d, worldPath:%s"), this->GetWorld(), this, this->GetWorld()->IsClient(), *this->GetWorld()->GetPathName());
+	if (auto world = this->GetWorld())
+	{
+		if (auto instancePtr = WorldToInstanceMap.Find(world))
+		{
+			auto instance = *instancePtr;
+			FString actorName =
+#if WITH_EDITOR
+				instance->GetOwner()->GetActorLabel();
+#else
+				instance->GetOwner()->GetName();
+#endif
+			UE_LOG(LGUI, Warning, TEXT("LGUIEventSystem component is already exist in actor:%s, pathName:%s, world:%s, multiple LGUIEventSystem in same world is not allowed!"), *actorName, *instance->GetPathName(), *world->GetPathName());
+			this->SetComponentTickEnabled(false);
+		}
+		else
+		{
+			WorldToInstanceMap.Add(world, this);
+			existInInstanceMap = true;
+		}
 	}
 }
 
@@ -67,9 +80,9 @@ void ULGUIEventSystem::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void ULGUIEventSystem::ProcessInputEvent()
 {
-	if (ALGUIManagerActor::Instance != nullptr)
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		if (auto inputModule = ALGUIManagerActor::Instance->GetInputModule())
+		if (auto inputModule = LGUIManagerActor->GetInputModule())
 		{
 			SCOPE_CYCLE_COUNTER(STAT_RayAndEvent);
 			inputModule->ProcessInput();
@@ -223,13 +236,13 @@ void ULGUIEventSystem::InputNavigationBegin()
 }
 void ULGUIEventSystem::BeginNavigation()
 {
-	if (ALGUIManagerActor::Instance != nullptr)
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
 		if (!IsValid(defaultEventData))
 		{
 			defaultEventData = NewObject<ULGUIBaseEventData>(this);
 		}
-		auto& selectables = ALGUIManagerActor::Instance->GetSelectables();
+		auto& selectables = LGUIManagerActor->GetSelectables();
 		if (selectables.Num() > 0)
 		{
 			int index = 0;
@@ -262,14 +275,56 @@ void ULGUIEventSystem::SetRaycastEnable(bool enable, bool clearEvent)
 void ULGUIEventSystem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	Instance = nullptr;
+}
+void ULGUIEventSystem::BeginDestroy()
+{
+	Super::BeginDestroy();
+	if (WorldToInstanceMap.Num() > 0 && existInInstanceMap)
+	{
+		bool removed = false;
+		if (auto world = this->GetWorld())
+		{
+			WorldToInstanceMap.Remove(world);
+			//UE_LOG(LGUI, Error, TEXT("[ULGUIEventSystem::BeginDestroy]Remove instance:%d"), this);
+			removed = true;
+		}
+		else
+		{
+			world = nullptr;
+			for (auto keyValue : WorldToInstanceMap)
+			{
+				if (keyValue.Value == this)
+				{
+					world = keyValue.Key;
+				}
+			}
+			if (world != nullptr)
+			{
+				WorldToInstanceMap.Remove(world);
+				//UE_LOG(LGUI, Error, TEXT("[ULGUIEventSystem::BeginDestroy]Remove instance:%d"), this);
+				removed = true;
+			}
+		}
+		if (removed)
+		{
+			existInInstanceMap = false;
+		}
+		else
+		{
+			UE_LOG(LGUI, Warning, TEXT("[ULGUIEventSystem::BeginDestroy]Instance not removed!"));
+		}
+	}
+	if(WorldToInstanceMap.Num() <= 0)
+	{
+		UE_LOG(LGUI, Log, TEXT("[ULGUIEventSystem::BeginDestroy]All instance removed."));
+	}
 }
 
 void ULGUIEventSystem::ClearEvent()
 {
-	if (ALGUIManagerActor::Instance != nullptr)
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		if (auto inputModule = ALGUIManagerActor::Instance->GetInputModule())
+		if (auto inputModule = LGUIManagerActor->GetInputModule())
 		{
 			inputModule->ClearEvent();
 		}
@@ -361,9 +416,9 @@ void ULGUIEventSystem::SetSelectComponentWithDefault(USceneComponent* InSelectCo
 }
 ULGUIBaseInputModule* ULGUIEventSystem::GetCurrentInputModule()
 {
-	if (ALGUIManagerActor::Instance != nullptr)
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		return ALGUIManagerActor::Instance->GetInputModule();
+		return LGUIManagerActor->GetInputModule();
 	}
 	return nullptr;
 }

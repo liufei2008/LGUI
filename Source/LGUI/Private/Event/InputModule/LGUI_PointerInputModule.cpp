@@ -22,9 +22,9 @@ ULGUIPointerEventData* ULGUI_PointerInputModule::GetPointerEventData(int pointer
 bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult)
 {
 	multiHitResult.Reset();
-	if (ALGUIManagerActor::Instance != nullptr)
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		auto& raycasterArray = ALGUIManagerActor::Instance->GetRaycasters();
+		auto& raycasterArray = LGUIManagerActor->GetRaycasters();
 
 		int32 prevRaycasterDepth = 0;
 		for (int i = 0; i < raycasterArray.Num(); i++)
@@ -72,7 +72,7 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 }
 void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventData, bool lineTraceHitSomething, const FHitResultContainerStruct& hitResultContainer, bool& outIsHitSomething, FHitResult& outHitResult)
 {
-	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance();
+	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this);
 	if (eventSystem == nullptr)return;
 
 	eventData->isUpFiredAtCurrentFrame = false;
@@ -384,7 +384,7 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 {
 	auto eventData = GetPointerEventData(pointerID, false);
 	if (eventData == nullptr)return;
-	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance();
+	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this);
 	if (eventSystem == nullptr)return;
 
 	if (eventData->prevIsTriggerPressed)//if trigger is pressed
