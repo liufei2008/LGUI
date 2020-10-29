@@ -59,7 +59,7 @@ void ULGUICanvas::BeginPlay()
 	}
 	else
 	{
-		ALGUIManagerActor::SortCanvasOnOrder();
+		ALGUIManagerActor::SortCanvasOnOrder(this);
 	}
 }
 void ULGUICanvas::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -745,13 +745,18 @@ const TArray<ULGUICanvas*>& ULGUICanvas::GetAllCanvasArray()
 		else
 #endif
 		{
-			if (ALGUIManagerActor::Instance != nullptr)
+			if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
 			{
-				return ALGUIManagerActor::Instance->GetAllCanvas();
+				return LGUIManagerActor->GetAllCanvas();
 			}
 		}
 	}
-	return ALGUIManagerActor::Instance->GetAllCanvas();
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUICanvas::GetAllCanvasArray]World is null, this is wierd"));
+	}
+	static TArray<ULGUICanvas*> staticArray;//just for the return value
+	return staticArray;
 }
 void ULGUICanvas::SortCanvasOnOrder()
 {
@@ -768,10 +773,7 @@ void ULGUICanvas::SortCanvasOnOrder()
 		else
 #endif
 		{
-			if (ALGUIManagerActor::Instance != nullptr)
-			{
-				ALGUIManagerActor::SortCanvasOnOrder();
-			}
+			ALGUIManagerActor::SortCanvasOnOrder(this);
 		}
 	}
 }

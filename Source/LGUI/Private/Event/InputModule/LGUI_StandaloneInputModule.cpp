@@ -6,7 +6,7 @@
 
 void ULGUI_StandaloneInputModule::ProcessInput()
 {
-	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance();
+	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this);
 	if (eventSystem == nullptr)return;
 
 	auto leftButtonEventData = GetPointerEventData(0, true);
@@ -31,7 +31,7 @@ void ULGUI_StandaloneInputModule::InputScroll(const float& inAxisValue)
 		if (inAxisValue != 0)
 		{
 			eventData->scrollAxisValue = inAxisValue;
-			if (auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance())
+			if (auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this))
 			{
 				eventSystem->CallOnPointerScroll(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
 			}
