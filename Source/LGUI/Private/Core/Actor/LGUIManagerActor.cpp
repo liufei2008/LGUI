@@ -13,6 +13,7 @@
 #include "PrefabSystem/ActorSerializer.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/ActorComponent/UIRenderable.h"
+#include "Engine/Engine.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
