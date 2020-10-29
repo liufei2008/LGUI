@@ -289,3 +289,6 @@ Android platform ready!
 ## 2.9.3
 #### Fix:
 Avoid GWorld for LTweenActor creation, so LTween related code should provide a object to get world.
+## 2.9.4
+#### Fix:
+Duplicated screen space UI on viewport, when PIE with multiplayer(player count more than 1).
