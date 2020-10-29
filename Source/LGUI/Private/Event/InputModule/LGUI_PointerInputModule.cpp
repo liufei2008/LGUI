@@ -8,6 +8,18 @@
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Event/Rayemitter/LGUIBaseRayemitter.h"
 
+bool ULGUI_PointerInputModule::CheckEventSystem()
+{
+	if (IsValid(eventSystem))
+	{
+		return true;
+	}
+	else
+	{
+		eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this);
+		return IsValid(eventSystem);
+	}
+}
 ULGUIPointerEventData* ULGUI_PointerInputModule::GetPointerEventData(int pointerID, bool createIfNotExist)
 {
 	if (auto foundPtr = pointerEventDataMap.Find(pointerID))
@@ -72,8 +84,7 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 }
 void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventData, bool lineTraceHitSomething, const FHitResultContainerStruct& hitResultContainer, bool& outIsHitSomething, FHitResult& outHitResult)
 {
-	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this);
-	if (eventSystem == nullptr)return;
+	if (!CheckEventSystem())return;
 
 	eventData->isUpFiredAtCurrentFrame = false;
 	eventData->isExitFiredAtCurrentFrame = false;
@@ -384,8 +395,7 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 {
 	auto eventData = GetPointerEventData(pointerID, false);
 	if (eventData == nullptr)return;
-	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this);
-	if (eventSystem == nullptr)return;
+	if (!CheckEventSystem())return;
 
 	if (eventData->prevIsTriggerPressed)//if trigger is pressed
 	{
