@@ -7,8 +7,7 @@
 
 void ULGUI_TouchInputModule::ProcessInput()
 {
-	auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this);
-	if (eventSystem == nullptr)return;
+	if (!CheckEventSystem())return;
 
 	for (auto keyValue : pointerEventDataMap)
 	{
@@ -37,7 +36,7 @@ void ULGUI_TouchInputModule::InputScroll(const float& inAxisValue)
 		if (inAxisValue != eventData->scrollAxisValue)
 		{
 			eventData->scrollAxisValue = inAxisValue;
-			if (auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this))
+			if (CheckEventSystem())
 			{
 				eventSystem->CallOnPointerScroll(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
 			}
