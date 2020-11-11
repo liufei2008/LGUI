@@ -30,7 +30,7 @@ void UUIToggleGroupComponent::ClearSelection()
 {
 	SelectNone();
 }
-UUIToggleComponent* UUIToggleGroupComponent::GetSelectedItem()
+UUIToggleComponent* UUIToggleGroupComponent::GetSelectedItem()const
 {
 	return LastSelect;
 }

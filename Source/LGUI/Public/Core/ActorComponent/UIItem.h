@@ -255,7 +255,7 @@ protected:
 public:
 	void SetInteractionGroupStateChange(bool InInteractable, bool InIgnoreParentGroup);
 	void SetInteractionGroupStateChange();
-	bool IsGroupAllowInteraction();
+	bool IsGroupAllowInteraction()const;
 #pragma endregion InteractionGroup
 #pragma region UIActive
 protected:

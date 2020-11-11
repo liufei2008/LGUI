@@ -1499,7 +1499,7 @@ float UUIItem::GetFinalAlpha01()const
 }
 
 #pragma region InteractionGroup
-bool UUIItem::IsGroupAllowInteraction()
+bool UUIItem::IsGroupAllowInteraction()const
 {
 	bool thisGroupsAllowInteraction = true;
 	if (auto interactionGroup = GetOwner()->FindComponentByClass<UUIInteractionGroup>())

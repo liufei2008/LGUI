@@ -24,10 +24,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ToggleGroup")
 		void ClearSelection();
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ToggleGroup")
-		UUIToggleComponent* GetSelectedItem();
+		UUIToggleComponent* GetSelectedItem()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ToggleGroup")
-		bool GetAllowNoneSelected() { return bAllowNoneSelected; }
+		bool GetAllowNoneSelected()const { return bAllowNoneSelected; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ToggleGroup")
 		void SetAllowNoneSelected(bool InBool) { bAllowNoneSelected = InBool; }
 };

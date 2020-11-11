@@ -1480,7 +1480,7 @@ void UUITextInputComponent::DeactivateInput(bool InFireEvent)
 		OnInputActivate.FireEvent(bInputActive);
 	}
 }
-UUIText* UUITextInputComponent::GetTextComponent()
+UUIText* UUITextInputComponent::GetTextComponent()const
 {
 	if (TextActor != nullptr)
 	{
@@ -1488,7 +1488,7 @@ UUIText* UUITextInputComponent::GetTextComponent()
 	}
 	return nullptr;
 }
-FString UUITextInputComponent::GetText()
+FString UUITextInputComponent::GetText()const
 {
 	return Text;
 }
