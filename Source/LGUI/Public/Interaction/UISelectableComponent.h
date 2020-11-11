@@ -93,7 +93,6 @@ protected:
 	void ApplySelectionState(bool immediateSet);
 	bool IsPointerInsideThis = false;
 	bool IsPointerDown = false;
-	EUISelectableSelectionState GetSelectionState();
 	UPROPERTY(Transient) class UUISelectableTransitionComponent* TransitionComp = nullptr;
 #pragma endregion
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
@@ -124,7 +123,7 @@ protected:
 		FLGUIComponentReference NavigationPrevSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
-		class AUIBaseActor* GetTransitionTarget();
+		class AUIBaseActor* GetTransitionTarget()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetNormalSprite()const { return NormalSprite; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetNormalColor()const { return NormalColor; }
@@ -132,7 +131,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetHighlightedColor()const { return HighlightedColor; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetPressedSprite()const { return PressedSprite; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetPressedColor()const { return PressedColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") EUISelectableSelectionState GetSelectionState()const { return CurrentSelectionState; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") EUISelectableSelectionState GetSelectionState()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		void SetNormalSprite(ULGUISpriteData* NewSprite);
@@ -150,7 +149,7 @@ public:
 		void SetSelectionState(EUISelectableSelectionState NewState);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
-		bool IsInteractable();
+		bool IsInteractable()const;
 
 	UUISelectableComponent* FindSelectable(FVector InDirection);
 	UUISelectableComponent* FindSelectable(FVector InDirection, USceneComponent* InParent);

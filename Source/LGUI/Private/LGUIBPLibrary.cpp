@@ -133,12 +133,9 @@ void ULGUIBPLibrary::CollectComponentsInChildrenRecursive(AActor* InActor, TSubc
 	auto& components = InActor->GetComponents();
 	for (UActorComponent* comp : components)
 	{
-		if (IsValid(comp))
+		if (IsValid(comp) && comp->IsA(ComponentClass))
 		{
-			if (comp->StaticClass()->IsChildOf(ComponentClass->StaticClass()))
-			{
-				InOutArray.Add(comp);
-			}
+			InOutArray.Add(comp);
 		}
 	}
 
@@ -155,6 +152,11 @@ void ULGUIBPLibrary::CollectComponentsInChildrenRecursive(AActor* InActor, TSubc
 
 UActorComponent* ULGUIBPLibrary::GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
 {
+	if (!IsValid(InActor))
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::GetComponentInChildren]InActor is not valid!"));
+		return nullptr;
+	}
 	UActorComponent* result = nullptr;
 	if (IncludeSelf)
 	{
