@@ -80,13 +80,13 @@ protected:
 		FLGUIDrawableEvent OnInputActivate = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Bool);
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		class UUIText* GetTextComponent();
+		class UUIText* GetTextComponent()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		FString GetText();
+		FString GetText()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetText(FString InText, bool InFireEvent = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		ELGUIInputType GetInputType() { return InputType; }
+		ELGUIInputType GetInputType()const { return InputType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetInputType(ELGUIInputType newValue);
 	void ActivateInput();

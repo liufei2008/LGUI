@@ -317,7 +317,7 @@ bool UUISelectableComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData
 	return AllowEventBubbleUp;
 }
 
-EUISelectableSelectionState UUISelectableComponent::GetSelectionState()
+EUISelectableSelectionState UUISelectableComponent::GetSelectionState()const
 {
 	if (!IsInteractable())
 		return EUISelectableSelectionState::Disabled;
@@ -402,11 +402,11 @@ void UUISelectableComponent::SetSelectionState(EUISelectableSelectionState NewSt
 		ApplySelectionState(false);
 	}
 }
-AUIBaseActor* UUISelectableComponent::GetTransitionTarget()
+AUIBaseActor* UUISelectableComponent::GetTransitionTarget()const
 { 
 	return TransitionActor; 
 }
-bool UUISelectableComponent::IsInteractable()
+bool UUISelectableComponent::IsInteractable()const
 {
 	if (CheckRootUIComponent())
 	{
