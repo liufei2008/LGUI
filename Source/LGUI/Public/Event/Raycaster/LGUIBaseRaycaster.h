@@ -28,6 +28,7 @@ public:
 protected:
 	virtual void Activate(bool bReset = false)override;
 	virtual void Deactivate()override;
+	virtual void OnUnregister()override;
 
 	friend class FUIBaseRaycasterCustomization;
 
