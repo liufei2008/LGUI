@@ -40,6 +40,11 @@ void ULGUIBaseRaycaster::DeactivateRaycaster()
 {
 	ALGUIManagerActor::RemoveRaycaster(this);
 }
+void ULGUIBaseRaycaster::OnUnregister()
+{
+	Super::OnUnregister();
+	DeactivateRaycaster();
+}
 bool ULGUIBaseRaycaster::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& OutTraceOnlyActors, TArray<AActor*>& OutTraceIgnoreActors)
 {
 	if (rayEmitter == nullptr)
