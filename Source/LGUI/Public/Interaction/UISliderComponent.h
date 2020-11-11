@@ -65,7 +65,7 @@ protected:
 		FLGUIDrawableEvent OnValueChange = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Float);
 	
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")float GetValue() { return Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")float GetValue()const { return Value; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		void SetValue(float InValue, bool FireEvent = true);
 

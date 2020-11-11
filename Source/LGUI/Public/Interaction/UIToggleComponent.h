@@ -73,7 +73,7 @@ protected:
 
 	void ApplyToggleState(bool immediateSet);
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")bool GetState() { return IsOn; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")bool GetState()const { return IsOn; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		virtual void SetState(bool newState, bool fireEvent = true);
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
