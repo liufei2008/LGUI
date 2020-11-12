@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "2.9.3",
+	"VersionName": "2.9.5",
 	"FriendlyName": "LGUI",
 	"Description": "LGUI (Lex GUI) - Powerful 3D UI System, Event Framework, Prefab Workflow, Tween Animation",
 	"Category": "LexPlugin",
@@ -10,7 +10,7 @@
 	"DocsURL": "",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/92c868e93e1d4dd596f87b200102f0cf",
 	"SupportURL": "707908214@qq.com",
-	"EngineVersion": "4.26.0",
+	"EngineVersion": "4.25.0",
 	"CanContainContent": true,
 	"Installed": true,
 	"Modules": [
