@@ -219,6 +219,7 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 	{
 		if (IsValid(cacheParentUIItem))
 		{
+			cacheParentUIItem->CheckCacheUIChildren();
 			UUIItem* existChildOfIndex = nullptr;
 			for (int i = 0; i < cacheParentUIItem->cacheUIChildren.Num(); i++)
 			{
@@ -276,7 +277,10 @@ void UUIItem::MarkAllDirtyRecursive()
 
 	for (auto uiChild : cacheUIChildren)
 	{
-		uiChild->MarkAllDirtyRecursive();
+		if (IsValid(uiChild))
+		{
+			uiChild->MarkAllDirtyRecursive();
+		}
 	}
 }
 
@@ -448,6 +452,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		//UE_LOG(LGUI, Error, TEXT("OnChildAttached:%s, registered:%d"), *(childUIItem->GetOwner()->GetActorLabel()), childUIItem->IsRegistered());
 		MarkLayoutDirty();
 		//hierarchy index
+		CheckCacheUIChildren();//check
 #if WITH_EDITORONLY_DATA
 		if (!GetWorld()->IsGameWorld())
 		{
@@ -493,6 +498,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 	{
 		MarkLayoutDirty();
 		//hierarchy index
+		CheckCacheUIChildren();
 		cacheUIChildren.Remove(childUIItem);
 		for (int i = 0; i < cacheUIChildren.Num(); i++)
 		{
@@ -564,6 +570,17 @@ void UUIItem::OnUnregister()
 #endif
 }
 
+void UUIItem::CheckCacheUIChildren()
+{
+	for (int i = cacheUIChildren.Num() - 1; i >= 0; i--)
+	{
+		if (!IsValid(cacheUIChildren[i]))
+		{
+			cacheUIChildren.RemoveAt(i);
+		}
+	}
+}
+
 void UUIItem::SortCacheUIChildren()
 {
 	cacheUIChildren.Sort([](const UUIItem& A, const UUIItem& B)
@@ -587,7 +604,10 @@ void UUIItem::UIHierarchyChanged()
 
 	for (auto uiItem : cacheUIChildren)
 	{
-		uiItem->UIHierarchyChanged();
+		if (IsValid(uiItem))
+		{
+			uiItem->UIHierarchyChanged();
+		}
 	}
 
 	MarkLayoutDirty();
@@ -1532,8 +1552,11 @@ void UUIItem::SetChildInteractionGroupStateChangeRecursive(bool InParentInteract
 {
 	for (auto uiChild : cacheUIChildren)
 	{
-		uiChild->allUpParentGroupAllowInteraction = InParentInteractable;
-		uiChild->SetInteractionGroupStateChange();
+		if (IsValid(uiChild))
+		{
+			uiChild->allUpParentGroupAllowInteraction = InParentInteractable;
+			uiChild->SetInteractionGroupStateChange();
+		}
 	}
 }
 
@@ -1577,25 +1600,27 @@ void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
 {
 	for (auto uiChild : cacheUIChildren)
 	{
-		//state is changed
-		if (uiChild->bIsUIActive &&//when child is active, then parent's active state can affect child
-			(uiChild->allUpParentUIActive != InUpParentUIActive)//state change
-			)
-		{
-			uiChild->allUpParentUIActive = InUpParentUIActive;
-			//apply for state change
-			uiChild->ApplyUIActiveState();
-			//affect children
-			uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
-			//callback for parent
-			this->OnChildActiveStateChanged(uiChild);
-		}
-		//state not changed
-		else
-		{
-			uiChild->allUpParentUIActive = InUpParentUIActive;
-			//affect children
-			uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
+		if (IsValid(uiChild))
+		{		//state is changed
+			if (uiChild->bIsUIActive &&//when child is active, then parent's active state can affect child
+				(uiChild->allUpParentUIActive != InUpParentUIActive)//state change
+				)
+			{
+				uiChild->allUpParentUIActive = InUpParentUIActive;
+				//apply for state change
+				uiChild->ApplyUIActiveState();
+				//affect children
+				uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
+				//callback for parent
+				this->OnChildActiveStateChanged(uiChild);
+			}
+			//state not changed
+			else
+			{
+				uiChild->allUpParentUIActive = InUpParentUIActive;
+				//affect children
+				uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
+			}
 		}
 	}
 }
@@ -1807,7 +1832,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 						const auto childrenCompArray = Component->GetAttachUIChildren();
 						for (auto uiComp : childrenCompArray)
 						{
-							if (ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
+							if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
 							{
 								canDraw = true;
 								break;
@@ -1819,7 +1844,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 							const auto& sameLevelCompArray = Component->GetParentAsUIItem()->GetAttachUIChildren();
 							for (auto uiComp : sameLevelCompArray)
 							{
-								if (ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
+								if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
 								{
 									canDraw = true;
 									break;

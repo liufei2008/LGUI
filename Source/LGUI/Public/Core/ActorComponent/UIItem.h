@@ -126,6 +126,8 @@ protected:
 	//parent in hierarchy
 	UPROPERTY(Transient) mutable UUIItem* cacheParentUIItem = nullptr;
 	UPROPERTY(Transient) TArray<UUIItem*> cacheUIChildren;
+	//check valid, incase unnormally deleting actor, like undo
+	FORCEINLINE void CheckCacheUIChildren();
 	FORCEINLINE void SortCacheUIChildren();
 	//alpha inherit from parent or not
 	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")

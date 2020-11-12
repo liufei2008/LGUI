@@ -728,8 +728,11 @@ void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScri
 				int depthCount = 0;
 				for (auto item : itemList)
 				{
-					if (item->widget.depth == TargetScript->widget.depth)
-						depthCount++;
+					if (IsValid(item))
+					{
+						if (item->widget.depth == TargetScript->widget.depth)
+							depthCount++;
+					}
 				}
 				DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("SharedDepthCount:%d"), depthCount)));
 			}
