@@ -598,6 +598,16 @@ void ULGUICanvas::UpdateCanvasGeometry()
 		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
 		if (cacheForThisUpdate_ShouldRebuildAllDrawcall)
 		{
+			//check valid renderable, incase unnormally deleting actor, like undo
+			{
+				for (int i = UIRenderableItemList.Num() - 1; i >= 0; i--)
+				{
+					if (!IsValid(UIRenderableItemList[i]))
+					{
+						UIRenderableItemList.RemoveAt(i);
+					}
+				}
+			}
 			LGUIUtils::SortUIItemDepth(UIRenderableItemList);//sort on depth
 			LGUIUtils::CreateDrawcallFast(UIRenderableItemList, UIDrawcallList);//create drawcall
 			for (auto item : UIDrawcallList)
