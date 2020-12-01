@@ -147,6 +147,17 @@ public:
 	//always remember to call InitSpriteData() before this function to initialize this SpriteData
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y)const;
 
+	/**
+	 * Create a LGUIspriteData with provided parameter. This can use at runtime
+	 * @param inSpriteTexture			Use this texture to create
+	 * @param inHorizontalBorder		Horizontal border value, x for left, y for right, will be convert to uint16</param>
+	 * @param inVerticalBorder			Vertical border value, x for top, y for bottom, will be convert to uint16</param>
+	 * @param inPackingTag				
+	 * @param return					Created LGUISpriteData, nullptr if something wrong.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
+		static ULGUISpriteData* CreateLGUISpriteData(UObject* WorldContextObject, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder = FVector2D::ZeroVector, FVector2D inVerticalBorder = FVector2D::ZeroVector, FName inPackingTag = TEXT("Main"));
+
 	void AddUISprite(UUISpriteBase* InUISprite);
 	void RemoveUISprite(UUISpriteBase* InUISprite);
 	//if texture is changed, use this to reload texture
