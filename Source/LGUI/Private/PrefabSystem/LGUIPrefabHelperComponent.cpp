@@ -9,26 +9,40 @@
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorActorFolders.h"
+#include "Core/Actor/LGUIManagerActor.h"
 #endif
 
 #if WITH_EDITORONLY_DATA
 FName ULGUIPrefabHelperComponent::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
+float ULGUIPrefabHelperComponent::IdentityColorHue = -1.0f;
 #endif
 
 ULGUIPrefabHelperComponent::ULGUIPrefabHelperComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-#if WITH_EDITORONLY_DATA
-	IdentityColor = FColor::MakeRandomColor();
-#endif
 }
-void ULGUIPrefabHelperComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
+
 void ULGUIPrefabHelperComponent::OnRegister()
 {
 	Super::OnRegister();
+}
+void ULGUIPrefabHelperComponent::OnUnregister()
+{
+	Super::OnUnregister();
+}
+FColor ULGUIPrefabHelperComponent::MakeColorForPrefab()
+{
+	if (IdentityColorHue <= -1.0f)
+	{
+		IdentityColorHue = FMath::FRand() * 360.0f;
+	}
+	const FLinearColor HSVColor(IdentityColorHue, 1.0f, 1.0f);
+	IdentityColorHue += 36.0f + 1.0f;
+	if (IdentityColorHue > 360.0f)
+	{
+		IdentityColorHue -= 360.0f;
+	}
+	return HSVColor.HSVToLinearRGB().ToFColor(true);
 }
 
 #if WITH_EDITOR
@@ -36,6 +50,9 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 {
 	if (!LoadedRootActor)
 	{
+#if WITH_EDITORONLY_DATA
+		IdentityColor = MakeColorForPrefab();
+#endif
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 
 		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
