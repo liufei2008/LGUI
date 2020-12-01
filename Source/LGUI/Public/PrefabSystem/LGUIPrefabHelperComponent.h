@@ -17,9 +17,8 @@ class LGUI_API ULGUIPrefabHelperComponent : public USceneComponent
 public:	
 
 	ULGUIPrefabHelperComponent();
-	virtual void BeginPlay() override;
 	virtual void OnRegister()override;
-
+	virtual void OnUnregister()override;
 #if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void LoadPrefab();
@@ -57,6 +56,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllLoadedActorArray;
 	FColor IdentityColor;
+private:
+	static float IdentityColorHue;
 	static FName PrefabFolderName;
+	FColor MakeColorForPrefab();
 #endif
 };
