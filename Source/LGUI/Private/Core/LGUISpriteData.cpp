@@ -6,6 +6,7 @@
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/LGUIAtlasData.h"
 #include "UObject/UObjectIterator.h"
+#include "Engine/Engine.h"
 
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
@@ -414,6 +415,47 @@ void ULGUISpriteData::GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, fl
 	borderUV0Y = spriteInfo.buv0Y;
 	borderUV3X = spriteInfo.buv3X;
 	borderUV3Y = spriteInfo.buv3Y;
+}
+
+ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* WorldContextObject, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder /* = FVector2D::ZeroVector */, FVector2D inVerticalBorder /* = FVector2D::ZeroVector */, FName inPackingTag /* = TEXT("Main") */)
+{
+	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (!IsValid(inSpriteTexture))
+	{
+		return nullptr;
+	}
+	// check size
+	if (inSpriteTexture)
+	{
+		int32 atlasPadding = 0;
+		auto lguiSetting = GetDefault<ULGUISettings>()->defaultAtlasSetting.spaceBetweenSprites;
+		if (inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
+		{
+			UE_LOG(LGUI, Error, TEXT("Target texture width or height is too large! Consider use UITexture to render this texture."));
+			return nullptr;
+		}
+		// Apply setting for sprite creation
+		//inSpriteTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
+		inSpriteTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
+		inSpriteTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
+		inSpriteTexture->SRGB = true;
+		inSpriteTexture->UpdateResource();
+		inSpriteTexture->MarkPackageDirty();
+	}
+
+	ULGUISpriteData* result = NewObject<ULGUISpriteData>(world);
+	if (inSpriteTexture)
+	{
+		result->spriteTexture = inSpriteTexture;
+		auto& spriteInfo = result->spriteInfo;
+		spriteInfo.width = inSpriteTexture->GetSurfaceWidth();
+		spriteInfo.height = inSpriteTexture->GetSurfaceHeight();
+		spriteInfo.borderLeft = (uint16)inHorizontalBorder.X;
+		spriteInfo.borderRight = (uint16)inHorizontalBorder.Y;
+		spriteInfo.borderTop = (uint16)inVerticalBorder.X;
+		spriteInfo.borderBottom = (uint16)inVerticalBorder.Y;
+	}
+	return result;
 }
 
 void ULGUISpriteData::AddUISprite(UUISpriteBase* InUISprite)

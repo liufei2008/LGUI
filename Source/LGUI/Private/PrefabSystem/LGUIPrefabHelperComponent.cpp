@@ -30,6 +30,8 @@ void ULGUIPrefabHelperComponent::OnUnregister()
 {
 	Super::OnUnregister();
 }
+
+#if WITH_EDITOR
 FColor ULGUIPrefabHelperComponent::MakeColorForPrefab()
 {
 	if (IdentityColorHue <= -1.0f)
@@ -44,8 +46,6 @@ FColor ULGUIPrefabHelperComponent::MakeColorForPrefab()
 	}
 	return HSVColor.HSVToLinearRGB().ToFColor(true);
 }
-
-#if WITH_EDITOR
 void ULGUIPrefabHelperComponent::LoadPrefab()
 {
 	if (!LoadedRootActor)
