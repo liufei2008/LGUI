@@ -465,6 +465,34 @@ void ALGUIManagerActor::Tick_PrePhysics()
 			}
 		}
 	}
+	//disabled after update called
+	for (int i = 0; i < LGUIBehavioursDisabled.Num(); i++)
+	{
+		auto item = LGUIBehavioursDisabled[i];
+		if (IsValid(item))
+		{
+			if (item->GetIsActiveAndEnable())
+			{
+				//add to Update array
+				{
+					if (!LGUIBehavioursForUpdate.Contains(item))
+					{
+						AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForUpdate);
+					}
+					else
+					{
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist! comp:%s"), *(item->GetPathName()));
+					}
+				}
+				//remove from Disabled array
+				{
+					LGUIBehavioursDisabled.RemoveAt(i);
+					i--;
+				}
+				item->OnEnable();
+			}
+		}
+	}
 	//start
 	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Start;
 	for (int i = 0; i < LGUIBehavioursForStart.Num(); i++)
@@ -518,13 +546,13 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 			{
 				//add to enable array
 				{
-					if (!LGUIBehavioursForEnable.Contains(item))
+					if (!LGUIBehavioursDisabled.Contains(item))
 					{
-						LGUIBehavioursForEnable.Add(item);
+						LGUIBehavioursDisabled.Add(item);
 					}
 					else
 					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_DuringPhysics]trying to add to enable array but already exist!"));
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_DuringPhysics]trying to add to disabled array but already exist!"));
 					}
 				}
 				//remove form update array
@@ -662,32 +690,29 @@ void ALGUIManagerActor::RemoveLGUIComponent(ULGUIBehaviour* InComp)
 		if (Instance->LGUIBehavioursForAwake.Find(InComp, index))
 		{
 			Instance->LGUIBehavioursForAwake.RemoveAt(index);
+			return;
 		}
-		else
+		if (Instance->LGUIBehavioursForEnable.Find(InComp, index))
 		{
-			if (Instance->LGUIBehavioursForEnable.Find(InComp, index))
-			{
-				Instance->LGUIBehavioursForEnable.RemoveAt(index);
-			}
-			else
-			{
-				if (Instance->LGUIBehavioursForStart.Find(InComp, index))
-				{
-					Instance->LGUIBehavioursForStart.RemoveAt(index);
-				}
-				else
-				{
-					if (Instance->LGUIBehavioursForUpdate.Find(InComp, index))
-					{
-						Instance->LGUIBehavioursForUpdate.RemoveAt(index);
-					}
-					else
-					{
-						UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIComponent]not exist, comp:%s"), *(InComp->GetPathName()));
-					}
-				}
-			}
+			Instance->LGUIBehavioursForEnable.RemoveAt(index);
+			return;
 		}
+		if (Instance->LGUIBehavioursDisabled.Find(InComp, index))
+		{
+			Instance->LGUIBehavioursDisabled.RemoveAt(index);
+			return;
+		}
+		if (Instance->LGUIBehavioursForStart.Find(InComp, index))
+		{
+			Instance->LGUIBehavioursForStart.RemoveAt(index);
+			return;
+		}
+		if (Instance->LGUIBehavioursForUpdate.Find(InComp, index))
+		{
+			Instance->LGUIBehavioursForUpdate.RemoveAt(index);
+			return;
+		}
+		UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIComponent]not exist, comp:%s"), *(InComp->GetPathName()));
 	}
 }
 
