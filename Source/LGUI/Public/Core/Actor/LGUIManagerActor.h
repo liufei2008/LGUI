@@ -131,6 +131,9 @@ protected:
 		TArray<ULGUIBehaviour*> LGUIBehavioursForAwake;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForEnable;
+	//disabled after update is called
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<ULGUIBehaviour*> LGUIBehavioursDisabled;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBehaviour*> LGUIBehavioursForStart;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
