@@ -297,3 +297,9 @@ Duplicated screen space UI on viewport, when PIE with multiplayer(player count m
 Fix a crashed caused by Raycaster.  
 Fix problems with undo system.  
 --Thanks to Wifi(it's acturally a name), he helped testing this plugin.  
+## 2.9.6
+#### Fix:
+Fix ScrollViewWithScrollbar issue.
+Fix Start call issue in LGUIBehaviour.
+#### NewFeature:
+Add a blueprint function for runtime create LGUISpriteData.
