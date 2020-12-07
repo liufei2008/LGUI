@@ -350,7 +350,7 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTa
 
 void FLGUIEditorModule::EditorToolButtonClicked()
 {
-	FGlobalTabmanager::Get()->InvokeTab(LGUIEditorToolsTabName);
+	FGlobalTabmanager::Get()->TryInvokeTab(LGUIEditorToolsTabName);
 }
 bool FLGUIEditorModule::CanEditActorForPrefab()
 {

@@ -425,7 +425,7 @@ void ULGUIEditorToolsAgentObject::PasteComponentValues_Impl()
 }
 void ULGUIEditorToolsAgentObject::OpenAtlasViewer_Impl()
 {
-	FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIAtlasViewerName);
+	FGlobalTabmanager::Get()->TryInvokeTab(FLGUIEditorModule::LGUIAtlasViewerName);
 }
 void ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 {
@@ -592,7 +592,7 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 			{
 				selectedFilePath.RemoveFromStart(FPaths::ProjectContentDir(), ESearchCase::CaseSensitive);
 				FString packageName = TEXT("/Game/") + selectedFilePath;
-				UPackage* package = CreatePackage(NULL, *packageName);
+				UPackage* package = CreatePackage(*packageName);
 				if (package == nullptr)
 				{
 					FMessageDialog::Open(EAppMsgType::Ok

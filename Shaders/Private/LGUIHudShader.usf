@@ -83,12 +83,7 @@ void MainVS(
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
 
-#if (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)  && !MOBILE_EMULATION
-	// The GLES target has a flipped Y axis
-	Position.y = -Position.y;
-#endif
-
-#if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
+#if !OUTPUT_MOBILE_HDR && COMPILER_GLSL_ES3_1
 	Output.Position.y *= -1;
 #endif
 }
@@ -111,18 +106,26 @@ FMaterialPixelParameters GetMaterialPixelParameters(FVertexFactoryInterpolantsVS
 	return Result;
 }
 
+void ApplyPixelDepthOffsetForLGUIBasePass(inout FMaterialPixelParameters MaterialParameters, FPixelMaterialInputs PixelMaterialInputs, out float OutDepth)
+{
+    float PixelDepthOffset = ApplyPixelDepthOffsetToMaterialParameters(MaterialParameters, PixelMaterialInputs, OutDepth);
+}
+
 void MainPS(
 	FVertexFactoryInterpolantsVSToPS Interpolants
 	, FLGUIBasePassInterpolants BasePassInterpolants
 	, in float4 SvPosition : SV_Position
 	OPTIONAL_IsFrontFace
 	, out half4 OutColor	: SV_Target0
+#if OUTPUT_PIXEL_DEPTH_OFFSET
+    , out float OutDepth : SV_Depth
+#endif
 )
 {
 	ResolvedView = ResolveView();
 
-#if (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT) && OUTPUT_GAMMA_SPACE && !MOBILE_EMULATION
-	// LDR ES2 needs screen vertical flipped
+#if COMPILER_GLSL_ES3_1 && !OUTPUT_MOBILE_HDR && !MOBILE_EMULATION
+	// LDR Mobile needs screen vertical flipped
 	SvPosition.y = ResolvedView.BufferSizeAndInvSize.y - SvPosition.y - 1;
 #endif
 
@@ -137,6 +140,13 @@ void MainPS(
 		#endif
 		CalcMaterialParametersEx(MaterialParameters, PixelMaterialInputs, SvPosition, ScreenPosition, bIsFrontFace, WorldPosition, WorldPositionExcludingWPO);
 	}
+	
+#if OUTPUT_PIXEL_DEPTH_OFFSET
+	ApplyPixelDepthOffsetForLGUIBasePass(MaterialParameters, PixelMaterialInputs, OutDepth);
+#endif
+	
 	OutColor = half4(GetMaterialEmissive(PixelMaterialInputs).rgb, GetMaterialOpacity(PixelMaterialInputs));
 	OutColor.rgb = pow(OutColor.rgb, 0.454545);
+    //OutColor.rgb = mul(BasePassInterpolants.PixelPosition.xyz, GetPrimitiveData(MaterialParameters.PrimitiveId).WorldToLocal);
+
 }
