@@ -85,6 +85,7 @@ float UUIBackgroundPixelate::GetStrengthInternal()
 
 void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
+	if (!IsValid(this->RenderCanvas))return;
 	auto pixelateStrengthWidthAlpha = GetStrengthInternal();
 	if (pixelateStrengthWidthAlpha <= 0.0f)return;
 	auto& vertices = geometry->vertices;
