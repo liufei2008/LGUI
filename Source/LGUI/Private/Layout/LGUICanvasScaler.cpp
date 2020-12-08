@@ -46,6 +46,13 @@ void ULGUICanvasScaler::BeginPlay()
 							}
 						}
 					}
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 26
+					if (auto uiItem = Canvas->CheckAndGetUIItem())
+					{
+						uiItem->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator::ZeroRotator);
+						uiItem->SetWorldScale3D(FVector::OneVector);
+					}
+#endif
 				}
 			}
 		}

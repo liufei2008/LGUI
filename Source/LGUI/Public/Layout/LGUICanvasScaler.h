@@ -27,7 +27,8 @@ enum class LGUIScreenMatchMode :uint8
 	Shrink,
 };
 //put this on a actor with LGUICanvas component. use this to scale UI element. one hierarchy should only have one UICanvasScalar.
-//tweak parameters to make your UI adapt to different screen resolution
+//tweak parameters to make your UI adapt to different screen resolution.
+//for 4.26: ScreenSpaceUI's root UIItem will be set to world origin, otherwise rect clip will not render correctly. still working on it.
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUICanvasScaler :public UActorComponent
 {
