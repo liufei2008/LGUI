@@ -117,6 +117,7 @@ float UUIBackgroundBlur::GetBlurStrengthInternal()
 
 void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
+	if (!IsValid(this->RenderCanvas))return;
 	auto blurStrengthWithAlpha = GetBlurStrengthInternal();
 	if (blurStrengthWithAlpha <= 0.0f)return;
 	auto& vertices = geometry->vertices;
