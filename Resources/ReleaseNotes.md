@@ -294,12 +294,18 @@ Avoid GWorld for LTweenActor creation, so LTween related code should provide a o
 Duplicated screen space UI on viewport, when PIE with multiplayer(player count more than 1).  
 ## 2.9.5  
 #### Fix:  
-Fix a crashed caused by Raycaster.  
+Fix a crash caused by Raycaster.  
 Fix problems with undo system.  
---Thanks to Wifi(it's acturally a name), he helped testing this plugin.  
+--Thanks to "Wifi"(it's acturally a name), he helped testing this plugin.  
 ## 2.9.6
 #### Fix:
 Fix ScrollViewWithScrollbar issue.
 Fix Start call issue in LGUIBehaviour.
 #### NewFeature:
 Add a blueprint function for runtime create LGUISpriteData.
+## 2.9.7
+#### Fix:
+Fix a crash when destroy UIBackgroundBlur and UIBackgroundPixelate.
+#### Change:
+When select a actor and copy/paste use LGUI's method, the new actors will use selected actor as parent.
+--Thanks to "四青", he helped testing this plugin.
