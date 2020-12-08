@@ -322,10 +322,7 @@ void ULGUIEditorToolsAgentObject::PasteSelectedActors_Impl()
 	USceneComponent* parentComp = nullptr;
 	if (selectedActors.Num() > 0)
 	{
-		if (auto parentActor = selectedActors[0]->GetAttachParentActor())
-		{
-			parentComp = parentActor->GetRootComponent();
-		}
+		parentComp = selectedActors[0]->GetRootComponent();
 	}
 	GEditor->BeginTransaction(LOCTEXT("PasteActor", "LGUI Paste Actors"));
 	for (auto item : selectedActors)
