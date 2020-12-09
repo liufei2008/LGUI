@@ -111,12 +111,20 @@ FMaterialPixelParameters GetMaterialPixelParameters(FVertexFactoryInterpolantsVS
 	return Result;
 }
 
+void ApplyPixelDepthOffsetForLGUIBasePass(inout FMaterialPixelParameters MaterialParameters, FPixelMaterialInputs PixelMaterialInputs, out float OutDepth)
+{
+    float PixelDepthOffset = ApplyPixelDepthOffsetToMaterialParameters(MaterialParameters, PixelMaterialInputs, OutDepth);
+}
+
 void MainPS(
 	FVertexFactoryInterpolantsVSToPS Interpolants
 	, FLGUIBasePassInterpolants BasePassInterpolants
 	, in float4 SvPosition : SV_Position
 	OPTIONAL_IsFrontFace
 	, out half4 OutColor	: SV_Target0
+#if OUTPUT_PIXEL_DEPTH_OFFSET
+    , out float OutDepth : SV_Depth
+#endif
 )
 {
 	ResolvedView = ResolveView();
@@ -137,6 +145,11 @@ void MainPS(
 		#endif
 		CalcMaterialParametersEx(MaterialParameters, PixelMaterialInputs, SvPosition, ScreenPosition, bIsFrontFace, WorldPosition, WorldPositionExcludingWPO);
 	}
+
+#if OUTPUT_PIXEL_DEPTH_OFFSET
+	ApplyPixelDepthOffsetForLGUIBasePass(MaterialParameters, PixelMaterialInputs, OutDepth);
+#endif
+	
 	OutColor = half4(GetMaterialEmissive(PixelMaterialInputs).rgb, GetMaterialOpacity(PixelMaterialInputs));
 	OutColor.rgb = pow(OutColor.rgb, 0.454545);
 	
