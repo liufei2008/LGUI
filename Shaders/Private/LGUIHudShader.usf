@@ -147,6 +147,8 @@ void MainPS(
 	
 	OutColor = half4(GetMaterialEmissive(PixelMaterialInputs).rgb, GetMaterialOpacity(PixelMaterialInputs));
 	OutColor.rgb = pow(OutColor.rgb, 0.454545);
-    //OutColor.rgb = mul(BasePassInterpolants.PixelPosition.xyz, GetPrimitiveData(MaterialParameters.PrimitiveId).WorldToLocal);
-
+	
+#if MATERIALBLENDING_MASKED
+    clip(GetMaterialMask(PixelMaterialInputs));
+#endif
 }
