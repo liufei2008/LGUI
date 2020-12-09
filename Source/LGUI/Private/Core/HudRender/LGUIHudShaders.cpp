@@ -87,6 +87,10 @@ void FLGUIHudRenderPS::SetBlendState(FGraphicsPipelineStateInitializer& Graphics
 		// Blend with existing scene color. New color is already pre-multiplied by alpha.
 		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
 		break;
+	case BLEND_AlphaHoldout:
+		// Blend by holding out the matte shape of the source alpha
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_Zero, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI();
+		break;
 	};
 }
 void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh)
