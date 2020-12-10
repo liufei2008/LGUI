@@ -2,6 +2,7 @@
 
 #pragma once
 #include "CoreMinimal.h"
+#include "Event/LGUIDrawableEvent.h"
 #include "LGUIPlayTweenSequenceComponent.generated.h"
 
 //play tween array sequentially, one after one.
