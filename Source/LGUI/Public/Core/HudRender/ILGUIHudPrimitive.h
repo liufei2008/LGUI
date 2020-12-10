@@ -7,6 +7,7 @@
 #include "Core/HudRender/LGUIRenderer.h"
 
 class FLGUIViewExtension;
+class UUIPostProcess;
 
 class ILGUIHudPrimitive
 {

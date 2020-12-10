@@ -8,6 +8,7 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Event/LGUIEventSystem.h"
+#include "PrefabSystem/LGUIPrefab.h"
 #include "LGUIBPLibrary.h"
 
 UUIFlyoutMenu::UUIFlyoutMenu()
