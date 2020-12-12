@@ -50,7 +50,7 @@ void FUITextureBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailB
 	[
 		SNew(SButton)
 		.Text(LOCTEXT("MakePixelPerfectButton", "Snap Size"))
-		.OnClicked_Lambda([&]()
+		.OnClicked_Lambda([=]()
 		{
 			for (auto item : TargetScriptArray)
 			{
