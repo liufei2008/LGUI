@@ -57,8 +57,6 @@ public:
 		TArray<AActor*> AllLoadedActorArray;
 	FColor IdentityColor;
 private:
-	static float IdentityColorHue;
 	static FName PrefabFolderName;
-	FColor MakeColorForPrefab();
 #endif
 };
