@@ -131,18 +131,30 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 void UUITexture::WidthChanged()
 {
 	if (!IsValid(texture))return;
-	if (type != UITextureType::Tiled)return;
-	spriteData.ApplyUV(0, 0, widget.width, widget.height, 1.0f / spriteData.width, 1.0f / spriteData.height);
-	MarkVertexPositionDirty();
-	MarkUVDirty();
+	if (type == UITextureType::Tiled)
+	{
+		spriteData.ApplyUV(0, 0, widget.width, widget.height, 1.0f / spriteData.width, 1.0f / spriteData.height);
+		MarkVertexPositionDirty();
+		MarkUVDirty();
+	}
+	else
+	{
+		Super::HeightChanged();
+	}
 }
 void UUITexture::HeightChanged()
 {
 	if (!IsValid(texture))return;
-	if (type != UITextureType::Tiled)return;
-	spriteData.ApplyUV(0, 0, widget.width, widget.height, 1.0f / spriteData.width, 1.0f / spriteData.height);
-	MarkVertexPositionDirty();
-	MarkUVDirty();
+	if (type == UITextureType::Tiled)
+	{
+		spriteData.ApplyUV(0, 0, widget.width, widget.height, 1.0f / spriteData.width, 1.0f / spriteData.height);
+		MarkVertexPositionDirty();
+		MarkUVDirty();
+	}
+	else
+	{
+		Super::HeightChanged();
+	}
 }
 
 
