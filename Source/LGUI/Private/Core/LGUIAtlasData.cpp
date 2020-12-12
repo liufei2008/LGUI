@@ -76,8 +76,11 @@ int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
 	//scale down sprite uv
 	for (ULGUISpriteData* spriteItem : this->spriteDataArray)
 	{
-		spriteItem->atlasTexture = this->atlasTexture;
-		spriteItem->spriteInfo.ScaleUV(0.5f);
+		if (IsValid(spriteItem))
+		{
+			spriteItem->atlasTexture = this->atlasTexture;
+			spriteItem->spriteInfo.ScaleUV(0.5f);
+		}
 	}
 	//tell UISprite to scale down uv
 	for (auto itemSprite : this->renderSpriteArray)

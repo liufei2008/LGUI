@@ -432,7 +432,6 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* WorldContextObje
 		if (inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
 		{
 			UE_LOG(LGUI, Error, TEXT("Target texture width or height is too large! Consider use UITexture to render this texture."));
-			return nullptr;
 		}
 		// Apply setting for sprite creation
 		//inSpriteTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
