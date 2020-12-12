@@ -309,3 +309,5 @@ Fix a crash when destroy UIBackgroundBlur and UIBackgroundPixelate.
 #### Change:
 When select a actor and copy/paste use LGUI's method, the new actors will use selected actor as parent.
 --Thanks to "四青", he helped testing this plugin.
+#### NewFeature:
+Support material masked blend mode for screen space UI's custom material.
