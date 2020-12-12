@@ -306,6 +306,7 @@ Add a blueprint function for runtime create LGUISpriteData.
 ## 2.9.7
 #### Fix:
 Fix a crash when destroy UIBackgroundBlur and UIBackgroundPixelate.
+Fix bug: UITexture not update when click snap size.
 #### Change:
 When select a actor and copy/paste use LGUI's method, the new actors will use selected actor as parent.
 --Thanks to "四青", he helped testing this plugin.
