@@ -97,6 +97,10 @@ void UUIRenderable::HeightChanged()
 {
 	MarkVertexPositionDirty();
 }
+void UUIRenderable::PivotChanged()
+{
+	MarkVertexPositionDirty();
+}
 
 void UUIRenderable::MarkVertexPositionDirty()
 {
