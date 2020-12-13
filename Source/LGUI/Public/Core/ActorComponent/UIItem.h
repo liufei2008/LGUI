@@ -247,6 +247,7 @@ protected:
 	virtual void MarkCanvasUpdate();
 	virtual void WidthChanged();
 	virtual void HeightChanged();	
+	virtual void PivotChanged();
 
 
 #pragma region InteractionGroup

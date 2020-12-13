@@ -416,10 +416,12 @@ void UUIItem::EditorForceUpdateImmediately()
 		if (RenderCanvas->GetRootCanvas())
 		{
 			RenderCanvas->GetRootCanvas()->MarkCanvasUpdate();
+			RenderCanvas->GetRootCanvas()->MarkCanvasUpdateLayout();
 		}
 		else
 		{
 			RenderCanvas->MarkCanvasUpdate();
+			RenderCanvas->MarkCanvasUpdateLayout();
 		}
 	}
 }
@@ -988,6 +990,10 @@ void UUIItem::HeightChanged()
 {
 
 }
+void UUIItem::PivotChanged()
+{
+
+}
 void UUIItem::SetAnchorOffsetX(float newOffset) 
 {
 	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetX, newOffset))
@@ -1270,6 +1276,7 @@ void UUIItem::SetPivot(FVector2D pivot) {
 	if (LGUIUtils::IsVector2DNotEqual(widget.pivot, pivot))
 	{
 		MarkLayoutDirty();
+		PivotChanged();
 		widget.pivot = pivot;
 	}
 }
