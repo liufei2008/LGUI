@@ -56,6 +56,7 @@ public:
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void WidthChanged()override;
 	virtual void HeightChanged()override;
+	virtual void PivotChanged()override;
 
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
