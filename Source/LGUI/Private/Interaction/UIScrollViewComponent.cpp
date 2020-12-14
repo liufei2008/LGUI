@@ -48,10 +48,6 @@ void UUIScrollViewComponent::Update(float DeltaTime)
 void UUIScrollViewComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (GetOwner())
-	{
-		ContentUIItem = Cast<UUIItem>(GetOwner()->GetRootComponent());
-	}
 }
 #endif
 
@@ -511,4 +507,11 @@ FLGUIDelegateHandleWrapper UUIScrollViewComponent::RegisterScrollEvent(const FLG
 void UUIScrollViewComponent::UnregisterScrollEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle)
 {
 	OnScrollCPP.Remove(InDelegateHandle.DelegateHandle);
+}
+void UUIScrollViewComponent::SetScrollSensitivity(float value)
+{
+	if (ScrollSensitivity != value)
+	{
+		ScrollSensitivity = value;
+	}
 }

@@ -5,47 +5,10 @@
 #include "LevelEditor.h"
 #include "Modules/ModuleManager.h"
 
-#include "LGUIEditorStyle.h"
-#include "LGUIEditorCommands.h"
-#include "Thumbnail/LGUIPrefabThumbnailRenderer.h"
-#include "Thumbnail/LGUISpriteThumbnailRenderer.h"
-#include "ContentBrowserExtensions/LGUIContentBrowserExtensions.h"
-#include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
-#include "Window/LGUIAtlasViewer.h"
-
-#include "DataFactory/LGUISpriteDataTypeAction.h"
-#include "DataFactory/LGUIFontDataTypeAction.h"
-#include "DataFactory/LGUIPrefabTypeAction.h"
-
-#include "DetailCustomization/UIItemCustomization.h"
-#include "DetailCustomization/UISpriteBaseCustomization.h"
-#include "DetailCustomization/UISpriteCustomization.h"
-#include "DetailCustomization/LGUICanvasCustomization.h"
-#include "DetailCustomization/UITextCustomization.h"
-#include "DetailCustomization/UITextureBaseCustomization.h"
-#include "DetailCustomization/LGUISpriteDataCustomization.h"
-#include "DetailCustomization/LGUIFontDataCustomization.h"
-#include "DetailCustomization/UISelectableCustomization.h"
-#include "DetailCustomization/UIToggleCustomization.h"
-#include "DetailCustomization/UITextInputCustomization.h"
-#include "DetailCustomization/UILayoutBaseCustomization.h"
-#include "DetailCustomization/UIVerticalLayoutCustomization.h"
-#include "DetailCustomization/UIHorizontalLayoutCustomization.h"
-#include "DetailCustomization/UIGridLayoutCustomization.h"
-#include "DetailCustomization/UILayoutElementCustomization.h"
-#include "DetailCustomization/UICanvasScalerCustomization.h"
-#include "DetailCustomization/LGUIPrefabHelperComponentCustomization.h"
-#include "DetailCustomization/LGUIPrefabCustomization.h"
-#include "DetailCustomization/EditorToolsCustomization.h"
-#include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
-#include "DetailCustomization/LGUIDrawableEventOnePresetParamCustomization.h"
-#include "DetailCustomization/LGUIEditHelperButtonCustomization.h"
-#include "DetailCustomization/LGUIComponentRefereceCustomization.h"
-#include "DetailCustomization/UIEffectTextAnimationPropertyCustomization.h"
-#include "DetailCustomization/UIEffectTextAnimationCustomization.h"
 #include "Core/LGUIBehaviour.h"
-
 #include "Core/LGUISettings.h"
+#include "Core/Actor/LGUIManagerActor.h"
+
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
 
@@ -58,8 +21,7 @@
 #include "SceneView.h"
 #include "Kismet2/KismetEditorUtilities.h"
 
-#include "LGUIHeaders.h"
-#include "Core/Actor/LGUIManagerActor.h"
+#include "LGUIEditorPCH.h"
 
 const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
@@ -172,6 +134,7 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUISelectableComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISelectableCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIToggleComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIToggleCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUITextInputComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUITextInputCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUIScrollViewWithScrollbarComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIScrollViewWithScrollBarCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(UUILayoutBase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUILayoutBaseCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUIVerticalLayout::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIVerticalLayoutCustomization::MakeInstance));
@@ -298,6 +261,7 @@ void FLGUIEditorModule::ShutdownModule()
 	PropertyModule.UnregisterCustomClassLayout(UUISelectableComponent::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUIToggleComponent::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUITextInputComponent::StaticClass()->GetFName());
+	PropertyModule.UnregisterCustomClassLayout(UUIScrollViewWithScrollbarComponent::StaticClass()->GetFName());
 
 	PropertyModule.UnregisterCustomClassLayout(UUILayoutBase::StaticClass()->GetFName());
 	PropertyModule.UnregisterCustomClassLayout(UUIVerticalLayout::StaticClass()->GetFName());

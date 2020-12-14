@@ -104,4 +104,18 @@ public:
 	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
 
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		AUIBaseActor* GetContent()const { return Content; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		bool GetHorizontal()const { return Horizontal; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		bool GetVertical()const { return Vertical; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		bool GetOnlyOneDirection()const { return OnlyOneDirection; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		float GetScrollSensitivity()const { return ScrollSensitivity; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetScrollSensitivity(float value);
 };
