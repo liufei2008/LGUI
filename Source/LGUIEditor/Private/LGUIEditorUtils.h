@@ -51,10 +51,10 @@ public:
 			}
 		}
 	}
-	static void ShowError(IDetailLayoutBuilder* DetailBuilder, const FString& ErrorMessage)
+	static void ShowErrorAsIndependentCategory(IDetailLayoutBuilder* LayoutBuilder, const FString& ErrorMessage)
 	{
-		IDetailCategoryBuilder& lguiCategory = DetailBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
-		lguiCategory.AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
+		IDetailCategoryBuilder& category = LayoutBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
+		category.AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
 		.WholeRowContent()
 		[
 			SNew(STextBlock)
@@ -62,6 +62,18 @@ public:
 			.ColorAndOpacity(FLinearColor(FColor::Red))
 			.AutoWrapText(true)
 		]
+		;
+	}
+	static void ShowError(IDetailCategoryBuilder* CategoryBuilder, const FString& ErrorMessage)
+	{
+		CategoryBuilder->AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
+			.WholeRowContent()
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(ErrorMessage))
+			.ColorAndOpacity(FLinearColor(FColor::Red))
+			.AutoWrapText(true)
+			]
 		;
 	}
 	static IDetailPropertyRow& CreateSubDetail(IDetailCategoryBuilder* category, IDetailLayoutBuilder* DetailBuilder, TSharedRef<IPropertyHandle> handle)
