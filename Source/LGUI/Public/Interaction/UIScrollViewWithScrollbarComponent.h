@@ -11,8 +11,12 @@
 UENUM(BlueprintType)
 enum class EScrollViewScrollbarVisibility :uint8
 {
+	//Always visible.
 	Permanent,
+	//Auto hide scrollbar when content's size less than viewport's size.
 	AutoHide,
+	//Same like AutoHide, but also expand viewport size when hide scrollbar.
+	//For this mode, viewport and scrollbar must be a child of ScrollViewWithScrollBar.
 	AutoHideAndExpandViewport,
 };
 
@@ -25,6 +29,7 @@ class LGUI_API UUIScrollViewWithScrollbarComponent : public UUIScrollViewCompone
 protected:
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
 protected:
+	friend class FUIScrollViewWithScrollBarCustomization;
 	//For scrollbars to expand or shrink viewport
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
 		AUIBaseActor* Viewport;
@@ -51,4 +56,19 @@ protected:
 	bool ValueIsSetFromHorizontalScrollbar = false;
 	bool ValueIsSetFromVerticalScrollbar = false;
 public:
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+		AUIBaseActor* GetViewport()const { return Viewport; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+		AUIBaseActor* GetHorizontalScrollbar()const { return HorizontalScrollbar; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+		EScrollViewScrollbarVisibility GetHorizontalScrollbarVisibility()const { return HorizontalScrollbarVisibility; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+		AUIBaseActor* GetVerticalScrollbar()const { return VerticalScrollbar; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+		EScrollViewScrollbarVisibility GetVerticalScrollbarVisibility()const { return VerticalScrollbarVisibility; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+		void SetHorizontalScrollbarVisibility(EScrollViewScrollbarVisibility value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
+		void SetVerticalScrollbarVisibility(EScrollViewScrollbarVisibility value);
 };
