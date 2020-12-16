@@ -66,6 +66,11 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		UE_LOG(LGUI, Error, TEXT("Load Prefab, InPrefab is null!"));
 		return nullptr;
 	}
+	if (!TargetWorld.IsValid())
+	{
+		UE_LOG(LGUI, Error, TEXT("Load Prefab, World is null!"));
+		return nullptr;
+	}
 #if WITH_EDITORONLY_DATA
 	if (!IsLoadForEdit)
 #endif

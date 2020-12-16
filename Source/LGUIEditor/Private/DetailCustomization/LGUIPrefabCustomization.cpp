@@ -140,9 +140,21 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 	if (auto script = TargetScriptPtr.Get())
 	{
 		ActorSerializer serializer(script->GetWorld());
-		auto loadedActor = ActorSerializer::LoadPrefabForEdit(script->GetWorld(), script, nullptr);
-		serializer.SerializeActor(loadedActor, script);
-		LGUIUtils::DeleteActor(loadedActor, true);
+		auto world = script->GetWorld();
+		if (!IsValid(world))
+		{
+			world = GWorld;
+		}
+		if (IsValid(world))
+		{
+			auto loadedActor = ActorSerializer::LoadPrefabForEdit(world, script, nullptr);
+			serializer.SerializeActor(loadedActor, script);
+			LGUIUtils::DeleteActor(loadedActor, true);
+		}
+		else
+		{
+			UE_LOG(LGUIEditor, Error, TEXT("[FLGUIPrefabCustomization::OnClickRecreteButton]Can not get World! This is wired..."));
+		}
 	}
 	return FReply::Handled();
 }
