@@ -312,3 +312,7 @@ When select a actor and copy/paste use LGUI's method, the new actors will use se
 --Thanks to "四青", he helped testing this plugin.
 #### NewFeature:
 Support material masked blend mode for screen space UI's custom material.
+## 2.9.8
+#### Fix:
+Fix a crash when click RecreateThis in prefab.
+Fix a issue in UIScrollViewWithScrollbar, add more hints.
