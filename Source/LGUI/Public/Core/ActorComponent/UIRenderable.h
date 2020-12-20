@@ -91,11 +91,11 @@ protected:
 	virtual UTexture* GetTextureToCreateGeometry() { return nullptr; }
 
 	//do anything before acturally create or update geometry
-	virtual void OnBeforeCreateOrUpdateGeometry();
+	virtual void OnBeforeCreateOrUpdateGeometry()PURE_VIRTUAL(UUIRenderable::OnBeforeCreateOrUpdateGeometry, );
 	//create ui geometry
-	virtual void OnCreateGeometry();
+	virtual void OnCreateGeometry()PURE_VIRTUAL(UUIRenderable::OnCreateGeometry, );
 	//update ui geometry
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIRenderable::OnUpdateGeometry, );
 
 	void CreateGeometry();
 	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;

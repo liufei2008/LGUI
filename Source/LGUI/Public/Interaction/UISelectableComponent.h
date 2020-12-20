@@ -123,7 +123,7 @@ protected:
 		FLGUIComponentReference NavigationPrevSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
-		class AUIBaseActor* GetTransitionTarget()const;
+		class AUIBaseActor* GetTransitionTarget()const { return TransitionActor; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetNormalSprite()const { return NormalSprite; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetNormalColor()const { return NormalColor; }

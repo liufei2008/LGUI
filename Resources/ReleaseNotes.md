@@ -316,3 +316,6 @@ Support material masked blend mode for screen space UI's custom material.
 #### Fix:
 Fix a crash when click RecreateThis in prefab.
 Fix a issue in UIScrollViewWithScrollbar, add more hints.
+## 2.10.0
+#### NewFeature:
+New type of UI element: UIMesh, allow to use a UStaticMesh to render in screen space UI.
