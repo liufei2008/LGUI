@@ -402,10 +402,6 @@ void UUISelectableComponent::SetSelectionState(EUISelectableSelectionState NewSt
 		ApplySelectionState(false);
 	}
 }
-AUIBaseActor* UUISelectableComponent::GetTransitionTarget()const
-{ 
-	return TransitionActor; 
-}
 bool UUISelectableComponent::IsInteractable()const
 {
 	if (CheckRootUIComponent())
