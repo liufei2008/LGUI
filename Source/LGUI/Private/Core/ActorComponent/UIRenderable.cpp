@@ -261,6 +261,8 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 		)
 	{
 		CreateGeometry();
+		RenderCanvas->MarkRebuildAllDrawcall();
+		goto COMPLETE;
 	}
 	else//if geometry is created, update data
 	{
@@ -273,6 +275,7 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 				goto COMPLETE;
 			}
 			CreateGeometry();
+			RenderCanvas->MarkRebuildAllDrawcall();
 			goto COMPLETE;
 		}
 		if (cacheForThisUpdate_DepthChanged)
@@ -280,6 +283,8 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 			if (IsValid(CustomUIMaterial))
 			{
 				CreateGeometry();
+				RenderCanvas->MarkRebuildAllDrawcall();
+				goto COMPLETE;
 			}
 			else
 			{
@@ -290,6 +295,7 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{
 			CreateGeometry();
+			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -339,9 +345,6 @@ void UUIRenderable::CreateGeometry()
 		OnCreateGeometry();
 		ApplyGeometryModifier();
 		UIGeometry::TransformVertices(RenderCanvas, this, geometry);
-
-
-		RenderCanvas->MarkRebuildAllDrawcall();
 	}
 	else
 	{
