@@ -260,18 +260,7 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 		|| geometry->drawcallIndex == -1//if geometry not rendered yet
 		)
 	{
-		if (HaveDataToCreateGeometry())
-		{
-			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();
-		}
-		else
-		{
-			if (geometry->vertices.Num() > 0)
-			{
-				geometry->Clear();
-			}
-		}
+		CreateGeometry();
 	}
 	else//if geometry is created, update data
 	{
@@ -284,7 +273,6 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 				goto COMPLETE;
 			}
 			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();
 			goto COMPLETE;
 		}
 		if (cacheForThisUpdate_DepthChanged)
@@ -292,7 +280,6 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 			if (IsValid(CustomUIMaterial))
 			{
 				CreateGeometry();
-				RenderCanvas->MarkRebuildAllDrawcall();
 			}
 			else
 			{
@@ -303,7 +290,6 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{
 			CreateGeometry();
-			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -337,36 +323,35 @@ COMPLETE:
 
 void UUIRenderable::CreateGeometry()
 {
-	geometry->Clear();
-	if (NeedTextureToCreateGeometry())
+	if (HaveDataToCreateGeometry())
 	{
-		geometry->texture = GetTextureToCreateGeometry();
-		if (!IsValid(geometry->texture))
+		geometry->Clear();
+		if (NeedTextureToCreateGeometry())
 		{
-			UE_LOG(LGUI, Error, TEXT("[UUIRenderable::CreateGeometry]Need texture to create geometry, but provided texture is no valid!"));
+			geometry->texture = GetTextureToCreateGeometry();
+			if (!IsValid(geometry->texture))
+			{
+				UE_LOG(LGUI, Error, TEXT("[UUIRenderable::CreateGeometry]Need texture to create geometry, but provided texture is no valid!"));
+			}
+		}
+		geometry->material = CustomUIMaterial;
+		geometry->depth = widget.depth;
+		OnCreateGeometry();
+		ApplyGeometryModifier();
+		UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+
+
+		RenderCanvas->MarkRebuildAllDrawcall();
+	}
+	else
+	{
+		if (geometry->vertices.Num() > 0)
+		{
+			geometry->Clear();
+			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 		}
 	}
-	geometry->material = CustomUIMaterial;
-	geometry->depth = widget.depth;
-	OnCreateGeometry();
-	ApplyGeometryModifier();
-
-	UIGeometry::TransformVertices(RenderCanvas, this, geometry);
 }
-
-void UUIRenderable::OnBeforeCreateOrUpdateGeometry()
-{
-	UE_LOG(LGUI, Error, TEXT("[UUIRenderable::OnBeforeCreateOrUpdateGeometry]This function must be override!"));
-}
-void UUIRenderable::OnCreateGeometry()
-{
-	UE_LOG(LGUI, Error, TEXT("[UUIRenderable::OnCreateGeometry]This function must be override!"));
-}
-void UUIRenderable::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	UE_LOG(LGUI, Error, TEXT("[UUIRenderable::OnUpdateGeometry]This function must be override!"));
-}
-
 
 bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
