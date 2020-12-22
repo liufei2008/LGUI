@@ -10,6 +10,7 @@
 #include "ITreeItem.h"
 #include "ActorTreeItem.h"
 #include "JsonObjectConverter.h"
+#include "SceneOutlinerStandaloneTypes.h"
 
 bool ULGUINativeSceneOutlinerExtension::active = true;
 
@@ -132,12 +133,15 @@ void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerTreeFolder()
 			TreeView.GetExpandedItems(VisitingItems);
 			for (SceneOutliner::FTreeItemPtr& Item : VisitingItems)
 			{
-				TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
-				if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid() && !ActorTreeItem->Actor->IsPendingKillPending())
+				if (Item->GetTypeSortPriority() == SceneOutliner::ETreeItemSortOrder::Actor)
 				{
-					if (ActorTreeItem->Actor->IsValidLowLevel())
+					TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
+					if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid() && !ActorTreeItem->Actor->IsPendingKillPending())
 					{
-						ExpandedActorTreeItemArray.Add(ActorTreeItem->Actor.Get());
+						if (ActorTreeItem->Actor->IsValidLowLevel())
+						{
+							ExpandedActorTreeItemArray.Add(ActorTreeItem->Actor.Get());
+						}
 					}
 				}
 			}
@@ -175,12 +179,15 @@ void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerTreeFolder()
 			TreeView.GetExpandedItems(VisitingItems);
 			for (SceneOutliner::FTreeItemPtr& Item : VisitingItems)
 			{
-				TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
-				if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid() && !ActorTreeItem->Actor->IsPendingKillPending())
+				if (Item->GetTypeSortPriority() == SceneOutliner::ETreeItemSortOrder::Actor)
 				{
-					bool needToExpand = NeedToExpand(ActorTreeItem->Actor.Get());
-					FToggleExpansionVisitor ExpansionVisitor(needToExpand);
-					ActorTreeItem->Visit(ExpansionVisitor);
+					TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
+					if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid() && !ActorTreeItem->Actor->IsPendingKillPending())
+					{
+						bool needToExpand = NeedToExpand(ActorTreeItem->Actor.Get());
+						FToggleExpansionVisitor ExpansionVisitor(needToExpand);
+						ActorTreeItem->Visit(ExpansionVisitor);
+					}
 				}
 			}
 			GEngine->BroadcastLevelActorListChanged();
