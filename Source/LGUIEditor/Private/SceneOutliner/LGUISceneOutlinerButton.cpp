@@ -3,6 +3,7 @@
 #include "SceneOutliner/LGUISceneOutlinerButton.h"
 #include "LGUIEditorModule.h"
 #include "Widgets/Input/SComboButton.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerButton"
 
@@ -10,8 +11,10 @@ FReply SLGUISceneOutlinerButton::OnButtonClicked()
 {
 	if (_TreeItemActor.IsValid(false))
 	{
+		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 		GEditor->SelectNone(true, false);
 		GEditor->SelectActor(_TreeItemActor.Get(), true, false);
+		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 		SetIsOpen(ShouldOpenDueToClick(), false);
 
 		// If the menu is open, execute the related delegate.

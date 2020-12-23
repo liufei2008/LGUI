@@ -22,6 +22,7 @@
 #include "Toolkits/AssetEditorManager.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -177,6 +178,7 @@ UWorld* ULGUIEditorToolsAgentObject::GetWorldFromSelection()
 }
 void ULGUIEditorToolsAgentObject::CreateUIItemActor(UClass* ActorClass)
 {
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
 	auto selectedActor = GetFirstSelectedActor();
 	AActor* newActor = nullptr;
@@ -188,9 +190,11 @@ void ULGUIEditorToolsAgentObject::CreateUIItemActor(UClass* ActorClass)
 	}
 	GEditor->SelectActor(newActor, true, true);
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 void ULGUIEditorToolsAgentObject::CreateEmptyActor()
 {
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
 	auto selectedActor = GetFirstSelectedActor();
 	AActor* newActor = nullptr;
@@ -213,6 +217,7 @@ void ULGUIEditorToolsAgentObject::CreateEmptyActor()
 	}
 	GEditor->SelectActor(newActor, true, true);
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 
 AActor* ULGUIEditorToolsAgentObject::GetFirstSelectedActor()
@@ -233,6 +238,7 @@ AActor* ULGUIEditorToolsAgentObject::GetFirstSelectedActor()
 }
 void ULGUIEditorToolsAgentObject::CreateUIControls(FString InPrefabPath)
 {
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(LOCTEXT("CreateUIControl", "LGUI Create UI Control"));
 	auto selectedActor = GetFirstSelectedActor();
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *InPrefabPath);
@@ -248,14 +254,17 @@ void ULGUIEditorToolsAgentObject::CreateUIControls(FString InPrefabPath)
 		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateUIControls]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *InPrefabPath);
 	}
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 void ULGUIEditorToolsAgentObject::ReplaceUIElementWith(UClass* ActorClass)
 {
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
+		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 		return;
 	}
 	auto rootActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
@@ -268,14 +277,17 @@ void ULGUIEditorToolsAgentObject::ReplaceUIElementWith(UClass* ActorClass)
 		GEditor->SelectActor(newActor, true, true);
 	}
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 void ULGUIEditorToolsAgentObject::DuplicateSelectedActors_Impl()
 {
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
+		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 		return;
 	}
 	auto rootActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
@@ -297,6 +309,7 @@ void ULGUIEditorToolsAgentObject::DuplicateSelectedActors_Impl()
 		GEditor->SelectActor(copiedActor, true, true);
 	}
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 void ULGUIEditorToolsAgentObject::CopySelectedActors_Impl()
 {
@@ -318,6 +331,7 @@ void ULGUIEditorToolsAgentObject::CopySelectedActors_Impl()
 }
 void ULGUIEditorToolsAgentObject::PasteSelectedActors_Impl()
 {
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	USceneComponent* parentComp = nullptr;
 	if (selectedActors.Num() > 0)
@@ -344,6 +358,7 @@ void ULGUIEditorToolsAgentObject::PasteSelectedActors_Impl()
 		}
 	}
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 void ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl()
 {
@@ -461,6 +476,7 @@ void ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl(ETraceTypeQuery InTrac
 }
 void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
 {
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create Screen Space UI")));
 	auto selectedActor = GetFirstSelectedActor();
 	FString prefabPath(TEXT("/LGUI/Prefabs/ScreenSpaceUI"));
@@ -497,9 +513,11 @@ void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
 		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
 	}
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 void ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup()
 {
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI")));
 	auto selectedActor = GetFirstSelectedActor();
 	FString prefabPath(TEXT("/LGUI/Prefabs/WorldSpaceUI"));
@@ -534,6 +552,7 @@ void ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup()
 		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
 	}
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 bool ULGUIEditorToolsAgentObject::HaveValidCopiedActors()
 {
