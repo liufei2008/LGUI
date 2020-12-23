@@ -15,15 +15,15 @@ struct LGUI_API FLGUIHudVertex
 	FVector2D TextureCoordinate3;
 };
 
-class LGUI_API FLGUIVertexDeclaration : public FRenderResource
+class LGUI_API FLGUIHudVertexDeclaration : public FRenderResource
 {
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRHI;
-	virtual ~FLGUIVertexDeclaration() {}
+	virtual ~FLGUIHudVertexDeclaration() {}
 	virtual void InitRHI()override;
 	virtual void ReleaseRHI()override;
 };
-LGUI_API FVertexDeclarationRHIRef& GetLGUIVertexDeclaration();
+LGUI_API FVertexDeclarationRHIRef& GetLGUIHudVertexDeclaration();
 
 
 struct LGUI_API FLGUIPostProcessVertex

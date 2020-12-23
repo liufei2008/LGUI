@@ -300,7 +300,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 					{
 						PixelShader->SetBlendState(GraphicsPSOInit, Material);
 
-						GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIVertexDeclaration();
+						GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
 						GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
 						GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(PixelShader);
 						GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;

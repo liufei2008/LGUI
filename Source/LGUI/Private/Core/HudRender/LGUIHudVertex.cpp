@@ -3,7 +3,7 @@
 #include "Core/HudRender/LGUIHudVertex.h"
 
 
-void FLGUIVertexDeclaration::InitRHI()
+void FLGUIHudVertexDeclaration::InitRHI()
 {
 	FVertexDeclarationElementList Elements;
 	uint32 Stride = sizeof(FLGUIHudVertex);
@@ -15,12 +15,12 @@ void FLGUIVertexDeclaration::InitRHI()
 	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIHudVertex, TextureCoordinate3), VET_Float2, 5, Stride));
 	VertexDeclarationRHI = RHICreateVertexDeclaration(Elements);
 }
-void FLGUIVertexDeclaration::ReleaseRHI()
+void FLGUIHudVertexDeclaration::ReleaseRHI()
 {
 	VertexDeclarationRHI.SafeRelease();
 }
-TGlobalResource<FLGUIVertexDeclaration> GLGUIVertexDeclaration;
-FVertexDeclarationRHIRef& GetLGUIVertexDeclaration()
+TGlobalResource<FLGUIHudVertexDeclaration> GLGUIVertexDeclaration;
+FVertexDeclarationRHIRef& GetLGUIHudVertexDeclaration()
 {
 	return GLGUIVertexDeclaration.VertexDeclarationRHI;
 }
