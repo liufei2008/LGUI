@@ -224,9 +224,16 @@ public:
 				void* VertexBufferData = RHILockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, vertexDataLength, RLM_WriteOnly);
 				FMemory::Memcpy(VertexBufferData, HudVertexBufferData, vertexDataLength);
 				RHIUnlockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI);
+				delete[] HudVertexBufferData;
 			}
 			if(IsSupportWorldSpace)
 			{
+				int meshNumVert = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices();
+				if (meshNumVert != NumVerts)//for some unknown reason, in mobile platform, VertexBuffers.PositionVertexBuffer/StaticMeshVertexBuffer/ColorVertexBuffer 's vertex count changed
+				{
+					UE_LOG(LGUI, Warning, TEXT("Vert count not equal, NewData NumVerts:%d, VertBuffer NumVert:%d"), NumVerts, meshNumVert);
+					NumVerts = FMath::Min(NumVerts, meshNumVert);
+				}
 				if (AdditionalChannelFlags == 0)
 				{
 					for (int i = 0; i < NumVerts; i++)
