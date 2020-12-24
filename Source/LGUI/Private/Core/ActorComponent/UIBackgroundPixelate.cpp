@@ -133,8 +133,8 @@ void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamil
 			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
 		};
 	}
-	objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
-	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
+	modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
 		FScopeLock scopeLock(&mutex);
 
@@ -174,7 +174,7 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 			FScopeLock scopeLock(&mutex);
 			tempCopyRegion = copyRegionVertexArray;
 		}
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, helperRenderTargetTexture, true, tempCopyRegion);//mesh's uv.y is flipped
+		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, helperRenderTargetTexture, tempCopyRegion);//mesh's uv.y is flipped
 	}
 	//copy the area back to screen image
 	{
@@ -191,10 +191,9 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-		VertexShader->SetParameters(RHICmdList, objectToWorldMatrix, ViewProjectionMatrix);
+		VertexShader->SetParameters(RHICmdList, modelViewPrjectionMatrix);
 		PixelShader->SetParameters(RHICmdList, helperRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		DrawPrimitive();
 		RHICmdList.EndRenderPass();
-		RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
 	}
 }
