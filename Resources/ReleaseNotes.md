@@ -319,5 +319,8 @@ Fix a issue in UIScrollViewWithScrollbar, add more hints.
 ## 2.9.9
 #### Fix:
 Fix a crash caused by LGUI's scene outliner extension.
+Fix a crash when package android platform.
 #### NewFeature:
 New type of UI element: UIMesh, allow to use a UStaticMesh to render in screen space UI.
+#### Modify:
+Simplify post process shader.
