@@ -145,6 +145,7 @@ void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamil
 			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
 			float inv_W = 1.0f / clipSpacePos.W;
 			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X * inv_W, clipSpacePos.Y * inv_W) * 0.5f + FVector2D(0.5f, 0.5f);
+			copyVert.TextureCoordinate0.Y = 1.0f - copyVert.TextureCoordinate0.Y;
 		}
 	}
 }
