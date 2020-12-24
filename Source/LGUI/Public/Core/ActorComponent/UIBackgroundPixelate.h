@@ -45,7 +45,7 @@ protected:
 
 	UPROPERTY(Transient) UTextureRenderTarget2D* helperRenderTarget = nullptr;
 	TArray<FLGUIPostProcessVertex> copyRegionVertexArray;
-	FMatrix objectToWorldMatrix;
+	FMatrix modelViewPrjectionMatrix;
 	FCriticalSection mutex;
 	FORCEINLINE float GetStrengthInternal();
 	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);

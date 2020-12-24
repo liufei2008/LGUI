@@ -170,8 +170,8 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
 		};
 	}
-	objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
-	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
+	modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
 		FScopeLock scopeLock(&mutex);
 
@@ -182,6 +182,7 @@ void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& I
 			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
 			float inv_W = 1.0f / clipSpacePos.W;
 			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X * inv_W, clipSpacePos.Y * inv_W) * 0.5f + FVector2D(0.5f, 0.5f);
+			copyVert.TextureCoordinate0.Y = 1.0f - copyVert.TextureCoordinate0.Y;
 		}
 	}
 }
@@ -213,13 +214,13 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		FScopeLock scopeLock(&mutex);
 		tempCopyRegion = copyRegionVertexArray;
 	}
-	FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, true, tempCopyRegion);//mesh's uv.y is flipped
+	FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, tempCopyRegion);
 	//do the blur process on the area
 	{
 		if (IsValid(strengthTexture))//use mask texture to control blur strength
 		{
 			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-			VertexShader->SetParameters(RHICmdList, false);
+			VertexShader->SetParameters(RHICmdList);
 			TShaderMapRef<FLGUIPostProcessGaussianBlurWithStrengthTexturePS> PixelShader(GlobalShaderMap);
 			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 			PixelShader->SetStrengthTexture(RHICmdList, ((FTexture2DResource*)strengthTexture->Resource)->GetTexture2DRHI(), strengthTexture->Resource->SamplerStateRHI);
@@ -270,7 +271,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		else
 		{
 			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-			VertexShader->SetParameters(RHICmdList, false);
+			VertexShader->SetParameters(RHICmdList);
 			TShaderMapRef<FLGUIPostProcessGaussianBlurPS> PixelShader(GlobalShaderMap);
 			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 
@@ -322,7 +323,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	{
 		if (IsValid(maskTexture))
 		{
-			FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture2, true, tempCopyRegion);//mesh's uv.y is flipped
+			FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture2, tempCopyRegion);//mesh's uv.y is flipped
 
 			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
 			TShaderMapRef<FLGUIMeshPostProcessVS> VertexShader(GlobalShaderMap);
@@ -337,7 +338,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-			VertexShader->SetParameters(RHICmdList, objectToWorldMatrix, ViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, modelViewPrjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1, BlurEffectRenderTexture2, ((FTexture2DResource*)maskTexture->Resource)->GetTexture2DRHI()
 				, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 				, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
@@ -359,11 +360,10 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-			VertexShader->SetParameters(RHICmdList, objectToWorldMatrix, ViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, modelViewPrjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1);
 		}
 		DrawPrimitive();
 		RHICmdList.EndRenderPass();
-		RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
 	}
 }

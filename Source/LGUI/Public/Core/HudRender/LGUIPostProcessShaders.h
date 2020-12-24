@@ -43,28 +43,13 @@ public:
 	FLGUISimplePostProcessVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLGUIPostProcessShader(Initializer)
 	{
-		PositionScaleAndOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_PositionScaleAndOffset"));
-		UVScaleAndOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_UVScaleAndOffset"));
-		FlipUVYParameter.Bind(Initializer.ParameterMap, TEXT("_FlipUV_Y"));
+
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, bool FlipUVY = false, const FVector4& PositionScaleAndOffset = FVector4(1, 1, 0, 0), const FVector4& UVScaleAndOffset = FVector4(1, 1, 0, 0))
+	void SetParameters(FRHICommandListImmediate& RHICmdList)
 	{
-		SetShaderValue(RHICmdList, GetVertexShader(), PositionScaleAndOffsetParameter, PositionScaleAndOffset);
-		SetShaderValue(RHICmdList, GetVertexShader(), UVScaleAndOffsetParameter, UVScaleAndOffset);
-		SetShaderValue(RHICmdList, GetVertexShader(), FlipUVYParameter, FlipUVY ? 1 : 0);
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << PositionScaleAndOffsetParameter;
-		Ar << UVScaleAndOffsetParameter;
-		Ar << FlipUVYParameter;
-		return bShaderHasOutdatedParameters;
+
 	}
 private:
-	FShaderParameter PositionScaleAndOffsetParameter;
-	FShaderParameter UVScaleAndOffsetParameter;
-	FShaderParameter FlipUVYParameter;
 };
 class FLGUIMeshPostProcessVS :public FLGUIPostProcessShader
 {
@@ -74,24 +59,20 @@ public:
 	FLGUIMeshPostProcessVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLGUIPostProcessShader(Initializer)
 	{
-		LocalToWorldMatrixParameter.Bind(Initializer.ParameterMap, TEXT("_LocalToWorldMatrix"));
-		ViewProjectionParameter.Bind(Initializer.ParameterMap, TEXT("_ViewProjectionMatrix"));
+		ModelViewProjectionMatrixParameter.Bind(Initializer.ParameterMap, TEXT("_ModelViewProjectionMatrix"));
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& LocalToWorldMatrix, const FMatrix& ViewProjectionMatrix)
+	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& ModelViewProjectionMatrix)
 	{
-		SetShaderValue(RHICmdList, GetVertexShader(), LocalToWorldMatrixParameter, LocalToWorldMatrix);
-		SetShaderValue(RHICmdList, GetVertexShader(), ViewProjectionParameter, ViewProjectionMatrix);
+		SetShaderValue(RHICmdList, GetVertexShader(), ModelViewProjectionMatrixParameter, ModelViewProjectionMatrix);
 	}
 	virtual bool Serialize(FArchive& Ar)override
 	{
 		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << LocalToWorldMatrixParameter;
-		Ar << ViewProjectionParameter;
+		Ar << ModelViewProjectionMatrixParameter;
 		return bShaderHasOutdatedParameters;
 	}
 private:
-	FShaderParameter LocalToWorldMatrixParameter;
-	FShaderParameter ViewProjectionParameter;
+	FShaderParameter ModelViewProjectionMatrixParameter;
 };
 class FLGUISimpleCopyTargetPS :public FLGUIPostProcessShader
 {
