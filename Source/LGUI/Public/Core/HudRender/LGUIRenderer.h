@@ -41,13 +41,12 @@ public:
 	static void CopyRenderTarget(
 		FRHICommandListImmediate& RHICmdList, 
 		FGlobalShaderMap* GlobalShaderMap,
-		FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
-		const FVector4& PositionScaleAndOffset = FVector4(1, 1, 0, 0), const FVector4& UVScaleAndOffset = FVector4(1, 1, 0, 0)
+		FTexture2DRHIRef Src, FTexture2DRHIRef Dst
 	);
 	static void CopyRenderTargetOnMeshRegion(
 		FRHICommandListImmediate& RHICmdList,
 		FGlobalShaderMap* GlobalShaderMap,
-		FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
+		FTexture2DRHIRef Src, FTexture2DRHIRef Dst,
 		const TArray<FLGUIPostProcessVertex>& RegionVertexData
 	);
 	static void DrawFullScreenQuad(

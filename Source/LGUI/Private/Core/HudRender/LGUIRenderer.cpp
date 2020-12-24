@@ -126,8 +126,7 @@ void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InO
 	
 }
 
-void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipY,
-	const FVector4& PositionScaleAndOffset, const FVector4& UVScaleAndOffset)
+void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("CopyRenderTarget"));
 
@@ -144,14 +143,14 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-	VertexShader->SetParameters(RHICmdList, FlipY, PositionScaleAndOffset, UVScaleAndOffset);
+	VertexShader->SetParameters(RHICmdList);
 	PixelShader->SetParameters(RHICmdList, Src);
 
 	DrawFullScreenQuad(RHICmdList);
 
 	RHICmdList.EndRenderPass();
 }
-void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, bool FlipUVY, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
+void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("CopyRenderTargetOnMeshRegion"));
 
@@ -168,7 +167,7 @@ void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& 
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-	VertexShader->SetParameters(RHICmdList, FlipUVY);
+	VertexShader->SetParameters(RHICmdList);
 	PixelShader->SetParameters(RHICmdList, Src);
 
 	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);

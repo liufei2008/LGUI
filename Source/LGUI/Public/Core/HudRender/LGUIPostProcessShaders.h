@@ -39,20 +39,13 @@ public:
 	FLGUISimplePostProcessVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLGUIPostProcessShader(Initializer)
 	{
-		PositionScaleAndOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_PositionScaleAndOffset"));
-		UVScaleAndOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_UVScaleAndOffset"));
-		FlipUVYParameter.Bind(Initializer.ParameterMap, TEXT("_FlipUV_Y"));
+
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, bool FlipUVY = false, const FVector4& PositionScaleAndOffset = FVector4(1, 1, 0, 0), const FVector4& UVScaleAndOffset = FVector4(1, 1, 0, 0))
+	void SetParameters(FRHICommandListImmediate& RHICmdList)
 	{
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), PositionScaleAndOffsetParameter, PositionScaleAndOffset);
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), UVScaleAndOffsetParameter, UVScaleAndOffset);
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), FlipUVYParameter, FlipUVY ? 1 : 0);
+
 	}
 private:
-	LAYOUT_FIELD(FShaderParameter, PositionScaleAndOffsetParameter);
-	LAYOUT_FIELD(FShaderParameter, UVScaleAndOffsetParameter);
-	LAYOUT_FIELD(FShaderParameter, FlipUVYParameter);
 };
 class FLGUIMeshPostProcessVS :public FLGUIPostProcessShader
 {
@@ -62,17 +55,14 @@ public:
 	FLGUIMeshPostProcessVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLGUIPostProcessShader(Initializer)
 	{
-		LocalToWorldMatrixParameter.Bind(Initializer.ParameterMap, TEXT("_LocalToWorldMatrix"));
-		ViewProjectionParameter.Bind(Initializer.ParameterMap, TEXT("_ViewProjectionMatrix"));
+		ModelViewProjectionMatrixParameter.Bind(Initializer.ParameterMap, TEXT("_ModelViewProjectionMatrix"));
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& LocalToWorldMatrix, const FMatrix& ViewProjectionMatrix)
+	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& ModelViewProjectionMatrix)
 	{
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), LocalToWorldMatrixParameter, LocalToWorldMatrix);
-		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), ViewProjectionParameter, ViewProjectionMatrix);
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundVertexShader(), ModelViewProjectionMatrixParameter, ModelViewProjectionMatrix);
 	}
 private:
-	LAYOUT_FIELD(FShaderParameter, LocalToWorldMatrixParameter);
-	LAYOUT_FIELD(FShaderParameter, ViewProjectionParameter);
+	LAYOUT_FIELD(FShaderParameter, ModelViewProjectionMatrixParameter);
 };
 class FLGUISimpleCopyTargetPS :public FLGUIPostProcessShader
 {

@@ -13,7 +13,7 @@ void SimpleCopyTargetPS(
 }
 
 void MeshCopyTargetPS(
-    MeshPostProcessVSToPS input,
+    SimpleVSToPS input,
     out float4 OutColor : SV_Target0
 )
 {
@@ -28,7 +28,7 @@ SamplerState _OriginTexSampler;
 Texture2D _MaskTex;
 SamplerState _MaskTexSampler;
 void MeshCopyTargetWithMaskPS(
-    MeshPostProcessVSToPS input,
+    SimpleVSToPS input,
     out float4 OutColor : SV_Target0
 )
 {
