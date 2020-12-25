@@ -6,7 +6,8 @@
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
 #include "UIBackgroundPixelateActor.generated.h"
 
-UCLASS(Experimental)
+//Not supported on mobile device!
+UCLASS()
 class LGUI_API AUIBackgroundPixelateActor : public AUIBaseActor
 {
 	GENERATED_BODY()
