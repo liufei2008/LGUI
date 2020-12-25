@@ -6,7 +6,8 @@
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "UIBackgroundBlurActor.generated.h"
 
-UCLASS(Experimental)
+//Not supported on mobile device!
+UCLASS()
 class LGUI_API AUIBackgroundBlurActor : public AUIBaseActor
 {
 	GENERATED_BODY()

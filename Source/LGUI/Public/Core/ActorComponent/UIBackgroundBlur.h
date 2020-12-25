@@ -7,8 +7,8 @@
 #include "UIBackgroundBlur.generated.h"
 
 //UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
-//Known issue: in packaged game, the blurred image is slightly offset from current screen image if we move the blur area, still working on it.
-UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent), Experimental)
+//Not supported on mobile device!
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIBackgroundBlur : public UUIPostProcess
 {
 	GENERATED_BODY()

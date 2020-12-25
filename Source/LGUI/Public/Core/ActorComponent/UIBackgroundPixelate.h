@@ -7,7 +7,8 @@
 #include "UIBackgroundPixelate.generated.h"
 
 //UI element that can make the background look pixelated
-UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent), Experimental)
+//Not supported on mobile device!
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIBackgroundPixelate : public UUIPostProcess
 {
 	GENERATED_BODY()
