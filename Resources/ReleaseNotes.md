@@ -324,3 +324,8 @@ Fix a crash when package android platform.
 New type of UI element: UIMesh, allow to use a UStaticMesh to render in screen space UI.
 #### Modify:
 Simplify post process shader.
+## 2.9.10
+#### Fix:
+UIBackgroundPixelate flipped.
+#### Modify:
+UIBackgroundBlur and UIBackgroundPixelate now become stable, but not support mobile.
