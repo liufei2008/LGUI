@@ -19,24 +19,3 @@ void SimplePostProcessVS(
 	v2p.position.y *= -1;
 #endif
 }
-
-
-float4x4 _ModelViewProjectionMatrix;
-
-
-void MeshPostProcessVS(
-    in float3 Position : ATTRIBUTE0,
-    in half4 Color : ATTRIBUTE1,
-    in float2 TextureCoord0 : ATTRIBUTE2,
-    in float2 TextureCoord1 : ATTRIBUTE3,
-    in float2 TextureCoord2 : ATTRIBUTE4,
-    in float2 TextureCoord3 : ATTRIBUTE5,
-    out SimpleVSToPS v2p
-)
-{
-    v2p.position = mul(float4(Position.xyz, 1.0), _ModelViewProjectionMatrix);
-    v2p.uv = TextureCoord0;
-#if !OUTPUT_MOBILE_HDR && COMPILER_GLSL_ES3_1
-	v2p.position.y *= -1;
-#endif
-}

@@ -44,8 +44,9 @@ protected:
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
 	UPROPERTY(Transient) UTextureRenderTarget2D* helperRenderTarget = nullptr;
-	TArray<FLGUIPostProcessVertex> copyRegionVertexArray;
-	FMatrix modelViewPrjectionMatrix;
+	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
+	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
+	void UpdateRegionVertex();
 	FCriticalSection mutex;
 	FORCEINLINE float GetStrengthInternal();
 	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);

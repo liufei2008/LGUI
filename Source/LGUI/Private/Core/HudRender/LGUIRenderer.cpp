@@ -32,49 +32,6 @@ public:
 };
 
 
-
-
-class FLGUIFullScreenQuadVertexBuffer :public FVertexBuffer
-{
-public:
-	void InitRHI()override
-	{
-		TResourceArray<FLGUIPostProcessVertex, VERTEXBUFFER_ALIGNMENT> Vertices;
-		Vertices.SetNumUninitialized(4);
-
-		Vertices[0] = FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 1.0f));
-		Vertices[1] = FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 1.0f));
-		Vertices[2] = FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 0.0f));
-		Vertices[3] = FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 0.0f));
-
-		FRHIResourceCreateInfo CreateInfo(&Vertices);
-		VertexBufferRHI = RHICreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
-	}
-};
-class FLGUIFullScreenQuadIndexBuffer :public FIndexBuffer
-{
-public:
-	void InitRHI()override
-	{
-		const uint16 Indices[] =
-		{
-			0, 2, 3,
-			0, 3, 1
-		};
-
-		TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
-		uint32 NumIndices = UE_ARRAY_COUNT(Indices);
-		IndexBuffer.AddUninitialized(NumIndices);
-		FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
-
-		FRHIResourceCreateInfo CreateInfo(&IndexBuffer);
-		IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
-	}
-};
-static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVertexBuffer;
-static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;
-
-
 #if WITH_EDITORONLY_DATA
 uint32 FLGUIViewExtension::EditorPreview_ViewKey = 0;
 #endif
@@ -372,4 +329,35 @@ void FLGUIViewExtension::SortRenderPriority()
 			viewExtension->MarkSortRenderPriority_RenderThread();
 		}
 	);
+}
+
+
+void FLGUIFullScreenQuadVertexBuffer::InitRHI()
+{
+	TResourceArray<FLGUIPostProcessVertex, VERTEXBUFFER_ALIGNMENT> Vertices;
+	Vertices.SetNumUninitialized(4);
+
+	Vertices[0] = FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 1.0f));
+	Vertices[1] = FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 1.0f));
+	Vertices[2] = FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 0.0f));
+	Vertices[3] = FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 0.0f));
+
+	FRHIResourceCreateInfo CreateInfo(&Vertices);
+	VertexBufferRHI = RHICreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
+}
+void FLGUIFullScreenQuadIndexBuffer::InitRHI()
+{
+	const uint16 Indices[] =
+	{
+		0, 2, 3,
+		0, 3, 1
+	};
+
+	TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
+	uint32 NumIndices = UE_ARRAY_COUNT(Indices);
+	IndexBuffer.AddUninitialized(NumIndices);
+	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
+
+	FRHIResourceCreateInfo CreateInfo(&IndexBuffer);
+	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
