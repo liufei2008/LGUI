@@ -69,8 +69,9 @@ protected:
 	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget2 = nullptr;
 	float inv_SampleLevelInterval = 1.0f;
 	FVector2D inv_TextureSize;
-	TArray<FLGUIPostProcessVertex> copyRegionVertexArray;
-	FMatrix modelViewPrjectionMatrix;
+	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
+	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
+	void UpdateRegionVertex();
 	FCriticalSection mutex;
 	FORCEINLINE float GetBlurStrengthInternal();
 	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);
