@@ -329,3 +329,4 @@ Simplify post process shader.
 UIBackgroundPixelate flipped.
 #### Modify:
 UIBackgroundBlur and UIBackgroundPixelate now become stable, but not support mobile.
+Simplify post process shader.
