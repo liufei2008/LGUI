@@ -51,61 +51,12 @@ public:
 	}
 private:
 };
-class FLGUIMeshPostProcessVS :public FLGUIPostProcessShader
-{
-	DECLARE_SHADER_TYPE(FLGUIMeshPostProcessVS, Global);
-public:
-	FLGUIMeshPostProcessVS() {}
-	FLGUIMeshPostProcessVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FLGUIPostProcessShader(Initializer)
-	{
-		ModelViewProjectionMatrixParameter.Bind(Initializer.ParameterMap, TEXT("_ModelViewProjectionMatrix"));
-	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& ModelViewProjectionMatrix)
-	{
-		SetShaderValue(RHICmdList, GetVertexShader(), ModelViewProjectionMatrixParameter, ModelViewProjectionMatrix);
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << ModelViewProjectionMatrixParameter;
-		return bShaderHasOutdatedParameters;
-	}
-private:
-	FShaderParameter ModelViewProjectionMatrixParameter;
-};
 class FLGUISimpleCopyTargetPS :public FLGUIPostProcessShader
 {
 	DECLARE_SHADER_TYPE(FLGUISimpleCopyTargetPS, Global);
 public:
 	FLGUISimpleCopyTargetPS() {}
 	FLGUISimpleCopyTargetPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FLGUIPostProcessShader(Initializer)
-	{
-		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
-		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
-	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef SceneTexture)
-	{
-		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI(), SceneTexture);
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << MainTextureParameter;
-		Ar << MainTextureSamplerParameter;
-		return bShaderHasOutdatedParameters;
-	}
-private:
-	FShaderResourceParameter MainTextureParameter;
-	FShaderResourceParameter MainTextureSamplerParameter;
-};
-class FLGUIMeshCopyTargetPS :public FLGUIPostProcessShader
-{
-	DECLARE_SHADER_TYPE(FLGUIMeshCopyTargetPS, Global);
-public:
-	FLGUIMeshCopyTargetPS() {}
-	FLGUIMeshCopyTargetPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLGUIPostProcessShader(Initializer)
 	{
 		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
@@ -126,12 +77,12 @@ private:
 	FShaderResourceParameter MainTextureParameter;
 	FShaderResourceParameter MainTextureSamplerParameter;
 };
-class FLGUIMeshCopyTargetWithMaskPS :public FLGUIPostProcessShader
+class FLGUISimpleCopyTargetWithMaskPS :public FLGUIPostProcessShader
 {
-	DECLARE_SHADER_TYPE(FLGUIMeshCopyTargetWithMaskPS, Global);
+	DECLARE_SHADER_TYPE(FLGUISimpleCopyTargetWithMaskPS, Global);
 public:
-	FLGUIMeshCopyTargetWithMaskPS() {}
-	FLGUIMeshCopyTargetWithMaskPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+	FLGUISimpleCopyTargetWithMaskPS() {}
+	FLGUISimpleCopyTargetWithMaskPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FLGUIPostProcessShader(Initializer)
 	{
 		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));

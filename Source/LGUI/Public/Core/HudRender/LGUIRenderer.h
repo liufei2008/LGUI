@@ -70,3 +70,16 @@ public:
 	bool IsEditorPreview = false;
 #endif
 };
+
+class FLGUIFullScreenQuadVertexBuffer :public FVertexBuffer
+{
+public:
+	void InitRHI()override;
+};
+class FLGUIFullScreenQuadIndexBuffer :public FIndexBuffer
+{
+public:
+	void InitRHI()override;
+};
+static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVertexBuffer;
+static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;

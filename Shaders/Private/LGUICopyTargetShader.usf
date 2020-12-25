@@ -12,22 +12,13 @@ void SimpleCopyTargetPS(
     OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
 }
 
-void MeshCopyTargetPS(
-    SimpleVSToPS input,
-    out float4 OutColor : SV_Target0
-)
-{
-    OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
-}
-
-
 
 
 Texture2D _OriginTex;
 SamplerState _OriginTexSampler;
 Texture2D _MaskTex;
 SamplerState _MaskTexSampler;
-void MeshCopyTargetWithMaskPS(
+void SimpleCopyTargetWithMaskPS(
     SimpleVSToPS input,
     out float4 OutColor : SV_Target0
 )

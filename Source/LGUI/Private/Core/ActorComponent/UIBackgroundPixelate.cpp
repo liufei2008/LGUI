@@ -41,6 +41,7 @@ void UUIBackgroundPixelate::PostEditChangeProperty(FPropertyChangedEvent& Proper
 void UUIBackgroundPixelate::OnCreateGeometry()
 {
 	UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas, this);
+	UpdateRegionVertex();
 }
 void UUIBackgroundPixelate::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
@@ -55,6 +56,51 @@ void UUIBackgroundPixelate::OnUpdateGeometry(bool InVertexPositionChanged, bool 
 	if (InVertexColorChanged)
 	{
 		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
+	}
+	UpdateRegionVertex();
+}
+void UUIBackgroundPixelate::UpdateRegionVertex()
+{
+	auto& vertices = geometry->vertices;
+	if (vertices.Num() <= 0)return;
+	if (renderScreenToMeshRegionVertexArray.Num() == 0)
+	{
+		//full screen vertex position
+		renderScreenToMeshRegionVertexArray =
+		{
+			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
+			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
+			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
+			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
+		};
+	}
+	if (renderMeshRegionToScreenVertexArray.Num() == 0)
+	{
+		renderMeshRegionToScreenVertexArray.AddUninitialized(4);
+	}
+	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
+	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+	{
+		FScopeLock scopeLock(&mutex);
+
+		for (int i = 0; i < 4; i++)
+		{
+			auto& copyVert = renderScreenToMeshRegionVertexArray[i];
+			//convert vertex postition to screen, and use as texture coordinate
+			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
+			float inv_W = 1.0f / clipSpacePos.W;
+			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X * inv_W, clipSpacePos.Y * inv_W) * 0.5f + FVector2D(0.5f, 0.5f);
+			copyVert.TextureCoordinate0.Y = 1.0f - copyVert.TextureCoordinate0.Y;
+		}
+
+		for (int i = 0; i < 4; i++)
+		{
+			auto& copyVert = renderMeshRegionToScreenVertexArray[i];
+			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
+			float inv_W = 1.0f / clipSpacePos.W;
+			copyVert.Position = FVector(clipSpacePos.X, clipSpacePos.Y, clipSpacePos.Z) * inv_W;
+			copyVert.TextureCoordinate0 = geometry->vertices[i].TextureCoordinate[0];
+		}
 	}
 }
 
@@ -88,8 +134,7 @@ void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamil
 	if (!IsValid(this->RenderCanvas))return;
 	auto pixelateStrengthWidthAlpha = GetStrengthInternal();
 	if (pixelateStrengthWidthAlpha <= 0.0f)return;
-	auto& vertices = geometry->vertices;
-	if (vertices.Num() <= 0)return;
+	if (geometry->vertices.Num() <= 0)return;
 	if (!IsValid(helperRenderTarget))
 	{
 		pixelateStrengthWidthAlpha = FMath::Pow(pixelateStrengthWidthAlpha * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
@@ -120,34 +165,6 @@ void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamil
 			helperRenderTarget->ResizeTarget((int)width, (int)height);
 		}
 	}
-
-
-	if (copyRegionVertexArray.Num() == 0)
-	{
-		//full screen vertex position
-		copyRegionVertexArray =
-		{
-			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
-			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
-		};
-	}
-	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
-	modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-	{
-		FScopeLock scopeLock(&mutex);
-
-		for (int i = 0; i < 4; i++)
-		{
-			auto& copyVert = copyRegionVertexArray[i];
-			//convert vertex postition to screen, and use as texture coordinate
-			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
-			float inv_W = 1.0f / clipSpacePos.W;
-			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X * inv_W, clipSpacePos.Y * inv_W) * 0.5f + FVector2D(0.5f, 0.5f);
-			copyVert.TextureCoordinate0.Y = 1.0f - copyVert.TextureCoordinate0.Y;
-		}
-	}
 }
 
 DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundPixelate"), STAT_BackgroundPixelate, STATGROUP_LGUI);
@@ -173,28 +190,43 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 		TArray<FLGUIPostProcessVertex> tempCopyRegion;
 		{
 			FScopeLock scopeLock(&mutex);
-			tempCopyRegion = copyRegionVertexArray;
+			tempCopyRegion = renderScreenToMeshRegionVertexArray;
 		}
 		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, helperRenderTargetTexture, tempCopyRegion);//mesh's uv.y is flipped
 	}
 	//copy the area back to screen image
 	{
 		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
-		TShaderMapRef<FLGUIMeshPostProcessVS> VertexShader(GlobalShaderMap);
-		TShaderMapRef<FLGUIMeshCopyTargetPS> PixelShader(GlobalShaderMap);
+		TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+		TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-		VertexShader->SetParameters(RHICmdList, modelViewPrjectionMatrix);
+		VertexShader->SetParameters(RHICmdList);
 		PixelShader->SetParameters(RHICmdList, helperRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
-		DrawPrimitive();
+		
+		TArray<FLGUIPostProcessVertex> tempRenderRegion;
+		{
+			FScopeLock scopeLock(&mutex);
+			tempRenderRegion = renderMeshRegionToScreenVertexArray;
+		}
+		uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
+		FRHIResourceCreateInfo CreateInfo;
+		FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+		void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+		FPlatformMemory::Memcpy(VoidPtr, tempRenderRegion.GetData(), VertexBufferSize);
+		RHIUnlockVertexBuffer(VertexBufferRHI);
+		RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
+		RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
+		VertexBufferRHI.SafeRelease();
+
 		RHICmdList.EndRenderPass();
 	}
 }
