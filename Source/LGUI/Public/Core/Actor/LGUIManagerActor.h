@@ -81,11 +81,11 @@ public:
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
 
 	bool IsCalculatingSelection = false;
-	FDelegateHandle OnSelectObjectDelegateHandle;
+	FDelegateHandle OnSelectionChangedDelegateHandle;
 	TArray<FHitResult> CacheHitResultArray;
 	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
 	TWeakObjectPtr<AActor> LastSelectedActor;
-	void OnSelectObject(UObject* newSelection);
+	void OnSelectionChanged(UObject* newSelection);
 #endif
 };
 

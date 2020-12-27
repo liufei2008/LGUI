@@ -29,7 +29,7 @@ void ULGUI_StandaloneInputModule::InputScroll(const float& inAxisValue)
 	auto eventData = GetPointerEventData(0, true);
 	if (IsValid(eventData->enterComponent))
 	{
-		if (inAxisValue != 0)
+		if (inAxisValue != eventData->scrollAxisValue)
 		{
 			eventData->scrollAxisValue = inAxisValue;
 			if (CheckEventSystem())

@@ -37,16 +37,6 @@ void UUI2DLineChildrenAsPoints::OnRegister()
 	}
 #endif
 }
-void UUI2DLineChildrenAsPoints::OnCreateGeometry()
-{
-	CalculatePoints();
-	Super::OnCreateGeometry();
-}
-void UUI2DLineChildrenAsPoints::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	CalculatePoints();
-	Super::OnUpdateGeometry(InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
-}
 
 void UUI2DLineChildrenAsPoints::OnUIChildHierarchyIndexChanged(UUIItem* child)
 {

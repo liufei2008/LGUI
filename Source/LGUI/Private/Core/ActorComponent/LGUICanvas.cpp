@@ -1428,19 +1428,19 @@ FRotator ULGUICanvas::GetViewRotator()
 FIntPoint ULGUICanvas::GetViewportSize()
 {
 	FIntPoint viewportSize = FIntPoint(2, 2);
+	if (auto world = this->GetWorld())
+	{
 #if WITH_EDITOR
-	if (!GetWorld()->IsGameWorld())
-	{
-		if (CheckUIItem())
+		if (!world->IsGameWorld())
 		{
-			viewportSize.X = UIItem->GetWidth();
-			viewportSize.Y = UIItem->GetHeight();
+			if (CheckUIItem())
+			{
+				viewportSize.X = UIItem->GetWidth();
+				viewportSize.Y = UIItem->GetHeight();
+			}
 		}
-	}
-	else
+		else
 #endif
-	{
-		if (auto world = this->GetWorld())
 		{
 			if (auto pc = world->GetFirstPlayerController())
 			{

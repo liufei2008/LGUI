@@ -22,4 +22,9 @@ private:
 	TSharedRef<SWidget> OnGetMenu(TArray<UActorComponent*> Components);
 	void OnSelectComponent(FName CompName);
 	FText GetButtonText(TArray<UActorComponent*> Components)const;
+	void OnCopy(AActor* actor, UClass* compClass, FName compName);
+	void OnPaste(TSharedPtr<IPropertyHandle> actorProperty, TSharedPtr<IPropertyHandle> compClassProperty, TSharedPtr<IPropertyHandle> compNameProperty);
+
+	static TWeakObjectPtr<AActor> CopiedTargetActor;
+	static FName CopiedTargetComponentName;
 };
