@@ -22,7 +22,7 @@ protected:
 #endif
 
 	UPROPERTY(EditAnywhere, Category = LGUI)
-		TArray<FVector2D> PointArray;
+		TArray<FVector2D> PointArray = { FVector2D(-100, 0), FVector2D(100, 0) };
 
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
 	{

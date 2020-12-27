@@ -6,7 +6,6 @@
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Components/ActorComponent.h"
-#include "Core/ActorComponent/UISprite.h"
 #include "Core/LGUIBehaviour.h"
 #include "LGUIComponentReference.h"
 #include "UISelectableComponent.generated.h"
@@ -15,7 +14,10 @@ UENUM(BlueprintType)
 enum class UISelectableTransitionType:uint8
 {
 	None				UMETA(DisplayName = "None"),
+	//In this mode, TransitionActor's color property will be override by this component.
 	ColorTint			UMETA(DisplayName = "ColorTint"),
+	//In this mode, TransitionActor's root component need to be a UISpriteBase. 
+	//Target UISprite's sprite will be override by this component.
 	SpriteSwap			UMETA(DisplayName = "SpriteSwap"),
 	//You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to transition actor
 	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
@@ -23,18 +25,27 @@ enum class UISelectableTransitionType:uint8
 UENUM(BlueprintType)
 enum class EUISelectableSelectionState :uint8
 {
+	//Not hovered by pointer, just a normal state.
 	Normal,
+	//Hovered by pointer.
 	Highlighted,
+	//Pressed by pointer.
 	Pressed,
+	//Disabled, not interactable. Check the "OnUIInteractionStateChanged" function of UISelectableComponent, to see why it is disabled.
 	Disabled,
 };
 UENUM(BlueprintType)
 enum class EUISelectableNavigationMode:uint8
 {
+	//No navigation.
 	None,
+	//Navigation is controlled by LGUI.
 	Auto,
+	//Control your navigation behaviour on your own.
 	Explicit,
 };
+
+class ULGUISpriteData;
 
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUISelectableComponent : public ULGUIBehaviour, public ILGUIPointerEnterExitInterface, public ILGUIPointerDownUpInterface, public ILGUIPointerSelectDeselectInterface

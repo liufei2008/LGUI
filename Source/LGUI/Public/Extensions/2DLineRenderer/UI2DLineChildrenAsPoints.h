@@ -22,14 +22,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)bool UseWidthOrHeightAsRadius = true;
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
 
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
-
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child)override;
 	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)override;
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)override;
 	UPROPERTY(Transient)TArray<UUIItem*> SortedItemArray;
-	void CalculatePoints();
+	virtual void CalculatePoints()override;
 	void RebuildChildrenList();
 
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override

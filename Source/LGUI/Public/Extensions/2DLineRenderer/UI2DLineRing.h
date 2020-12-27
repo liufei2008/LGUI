@@ -28,10 +28,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
 
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
-
-	void CalculatePoints();
+	virtual void CalculatePoints()override;
 
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
 	{

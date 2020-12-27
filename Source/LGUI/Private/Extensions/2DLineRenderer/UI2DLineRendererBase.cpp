@@ -484,6 +484,10 @@ bool UUI2DLineRendererBase::HaveDataToCreateGeometry()
 {
 	return GetCalcaultedPointArray().Num() > 0;
 }
+void UUI2DLineRendererBase::OnBeforeCreateOrUpdateGeometry()
+{
+	CalculatePoints();
+}
 
 void UUI2DLineRendererBase::SetConnectStartEndPoint(bool newValue)
 {

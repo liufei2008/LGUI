@@ -123,4 +123,17 @@ public:
 		void SetMatchFromWidthToHeight(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetScreenMatchMode(LGUIScreenMatchMode value);
+
+	/**
+	 * Convert position from viewport to LGUICanvas space.
+	 * @param position The point's pixel position on viewport.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FVector2D ConvertPositionFromViewportToLGUICanvas(const FVector2D& position)const;
+	/**
+	 * Convert position from LGUICanvas space to viewport.
+	 * @param position The point's position in LGUICanvas space.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FVector2D ConvertPositionFromLGUICanvasToViewport(const FVector2D& position)const;
 };

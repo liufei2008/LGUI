@@ -8,6 +8,7 @@
 #include "Interaction/UISelectableTransitionComponent.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Event/LGUIEventSystem.h"
+#include "Core/ActorComponent/UISprite.h"
 
 void UUISelectableComponent::Awake()
 {

@@ -464,3 +464,38 @@ void ULGUICanvasScaler::SetScreenMatchMode(LGUIScreenMatchMode value)
 		OnViewportParameterChanged();
 	}
 }
+
+FVector2D ULGUICanvasScaler::ConvertPositionFromViewportToLGUICanvas(const FVector2D& position)const
+{
+	switch (UIScaleMode)
+	{
+	default:
+	case LGUIScaleMode::ConstantPixelSize:
+	{
+		return FVector2D(position.X, ViewportSize.Y - position.Y);
+	}
+	break;
+	case LGUIScaleMode::ScaleWithScreenSize:
+	{
+		return FVector2D(position.X, ViewportSize.Y - position.Y) / Canvas->canvasScale;
+	}
+	break;
+	}
+}
+FVector2D ULGUICanvasScaler::ConvertPositionFromLGUICanvasToViewport(const FVector2D& position)const
+{
+	switch (UIScaleMode)
+	{
+	default:
+	case LGUIScaleMode::ConstantPixelSize:
+	{
+		return FVector2D(position.X, ViewportSize.Y - position.Y);
+	}
+	break;
+	case LGUIScaleMode::ScaleWithScreenSize:
+	{
+		return FVector2D(position.X, ViewportSize.Y - position.Y) * Canvas->canvasScale;
+	}
+	break;
+	}
+}
