@@ -25,18 +25,6 @@ AUI2DLineRingFrameActor::AUI2DLineRingFrameActor()
 	RootComponent = UIElement;
 }
 
-
-void UUI2DLineRingFrame::OnCreateGeometry()
-{
-	CalculatePoints();
-	Super::OnCreateGeometry();
-}
-void UUI2DLineRingFrame::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	CalculatePoints();
-	Super::OnUpdateGeometry(InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
-}
-
 void UUI2DLineRingFrame::CalculatePoints()
 {
 	if (Segment < 0)

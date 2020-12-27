@@ -25,9 +25,13 @@ public:
 	virtual FText GetTooltipText() const override;
 	virtual TSharedPtr<SWidget> CreateNodeImage() const override;
 	virtual FSlateIcon GetIconAndTint(FLinearColor& OutColor) const override;
+	virtual void PinConnectionListChanged(UEdGraphPin* Pin)override;
+	virtual void NodeConnectionListChanged()override;
+	virtual void ValidateNodeDuringCompilation(class FCompilerResultsLog& MessageLog) const override;
 	// End of UEdGraphNode interface
 
 	// UK2Node interface
+	virtual void ReconstructNode()override;
 	virtual bool ShouldDrawCompact() const { return true; }
 	virtual void NotifyPinConnectionListChanged(UEdGraphPin* Pin) override;
 	virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
@@ -40,6 +44,7 @@ public:
 	virtual bool ReferencesVariable(const FName& InVarName, const UStruct* InScope)const override;
 	// End of UK2Node interface
 
-	void SetOutputPinType();
 private:
+	void SetOutputPinType();
+	bool autoOutputTypeSuccess = false;
 };

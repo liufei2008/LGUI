@@ -9,6 +9,9 @@
 
 #define LOCTEXT_NAMESPACE "LGUIComponentRefereceHelperCustomization"
 
+TWeakObjectPtr<AActor> FLGUIComponentRefereceCustomization::CopiedTargetActor;
+FName FLGUIComponentRefereceCustomization::CopiedTargetComponentName;
+
 TSharedRef<IPropertyTypeCustomization> FLGUIComponentRefereceCustomization::MakeInstance()
 {
 	return MakeShareable(new FLGUIComponentRefereceCustomization);
@@ -136,7 +139,28 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 	.MinDesiredWidth(500)
 	[
 		contentWidget.ToSharedRef()
-	];
+	]
+	.CopyAction(FUIAction
+	(
+		FExecuteAction::CreateSP(this, &FLGUIComponentRefereceCustomization::OnCopy, targetActor, targetCompClass, componentName),
+		FCanExecuteAction::CreateLambda([=] {return isInWorld; })
+	))
+	.PasteAction(FUIAction
+	(
+		FExecuteAction::CreateSP(this, &FLGUIComponentRefereceCustomization::OnPaste, targetActorHandle, targetCompClassHandle, ComponentNameProperty),
+		FCanExecuteAction::CreateLambda([=] {return isInWorld; })
+	))
+	;
+}
+void FLGUIComponentRefereceCustomization::OnCopy(AActor* actor, UClass* compClass, FName compName)
+{
+	CopiedTargetActor = actor;
+	CopiedTargetComponentName = compName;
+}
+void FLGUIComponentRefereceCustomization::OnPaste(TSharedPtr<IPropertyHandle> actorProperty, TSharedPtr<IPropertyHandle> compClassProperty, TSharedPtr<IPropertyHandle> compNameProperty)
+{
+	actorProperty->SetValue((UObject*)CopiedTargetActor.Get());
+	compNameProperty->SetValue(CopiedTargetComponentName);
 }
 TSharedRef<SWidget> FLGUIComponentRefereceCustomization::OnGetMenu(TArray<UActorComponent*> Components)
 {

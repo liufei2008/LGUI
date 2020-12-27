@@ -30,9 +30,9 @@ ULGUIEditorManagerObject::ULGUIEditorManagerObject()
 void ULGUIEditorManagerObject::BeginDestroy()
 {
 #if WITH_EDITORONLY_DATA
-	if (OnSelectObjectDelegateHandle.IsValid())
+	if (OnSelectionChangedDelegateHandle.IsValid())
 	{
-		USelection::SelectObjectEvent.Remove(OnSelectObjectDelegateHandle);
+		USelection::SelectObjectEvent.Remove(OnSelectionChangedDelegateHandle);
 	}
 #endif
 	Instance = nullptr;
@@ -77,7 +77,7 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
 			//selection
 			{
-				Instance->OnSelectObjectDelegateHandle = USelection::SelectObjectEvent.AddUObject(Instance, &ULGUIEditorManagerObject::OnSelectObject);
+				Instance->OnSelectionChangedDelegateHandle = USelection::SelectionChangedEvent.AddUObject(Instance, &ULGUIEditorManagerObject::OnSelectionChanged);
 			}
 		}
 		else
@@ -229,95 +229,106 @@ bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
 	}
 	return false;
 }
-void ULGUIEditorManagerObject::OnSelectObject(UObject* newSelection)
+void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 {
 	if (!ULGUIEditorManagerObject::CanExecuteSelectionConvert)return;
 	if (IsCalculatingSelection)return;//incase infinite recursive, because selection can change inside this function
 	IsCalculatingSelection = true;
 
-	if (auto selectedCanvasActor = Cast<AUIBaseActor>(newSelection))
+	AUIBaseActor* selectedActor = nullptr;
+	ULGUICanvas* selectedCanvas = nullptr;
+	if (USelection* selection = Cast<USelection>(newSelection))
 	{
-		if (auto canvas = selectedCanvasActor->FindComponentByClass<ULGUICanvas>())
+		if (selection->Num() > 0)
 		{
-			auto world = selectedCanvasActor->GetWorld();
-			if (!world->IsGameWorld())
+			selectedActor = Cast<AUIBaseActor>(selection->GetSelectedObject(0));
+			if (IsValid(selectedActor))
 			{
-				if (ULGUIEditorManagerObject::Instance != nullptr)
+				selectedCanvas = selectedActor->FindComponentByClass<ULGUICanvas>();
+			}
+		}
+	}
+	if (IsValid(selectedCanvas))
+	{
+		auto world = selectedCanvas->GetWorld();
+		if (!world->IsGameWorld())
+		{
+			if (ULGUIEditorManagerObject::Instance != nullptr)
+			{
+				auto& allUIItems = ULGUIEditorManagerObject::Instance->GetAllUIItem();
+				if (GEditor)
 				{
-					auto& allUIItems = ULGUIEditorManagerObject::Instance->GetAllUIItem();
-					if (GEditor)
+					if (auto viewport = GEditor->GetActiveViewport())
 					{
-						if (auto viewport = GEditor->GetActiveViewport())
+						auto mouseX = viewport->GetMouseX();
+						auto mouseY = viewport->GetMouseY();
+						FVector rayOrigin, rayDirection;
+						auto client = (FEditorViewportClient*)viewport->GetClient();
+						FSceneView::DeprojectScreenToWorld(FVector2D(mouseX, mouseY), UUIItemEditorHelperComp::viewRect, UUIItemEditorHelperComp::viewMatrices.GetInvViewMatrix(), UUIItemEditorHelperComp::viewMatrices.GetInvProjectionMatrix(), rayOrigin, rayDirection);
+						float lineTraceLength = 10000;
+						//find hit UIRenderable
+						auto lineStart = rayOrigin;
+						auto lineEnd = rayOrigin + rayDirection * lineTraceLength;
+						CacheHitResultArray.Reset();
+						for (auto uiItem : allUIItems)
 						{
-							auto mouseX = viewport->GetMouseX();
-							auto mouseY = viewport->GetMouseY();
-							FVector rayOrigin, rayDirection;
-							auto client = (FEditorViewportClient*)viewport->GetClient();
-							FSceneView::DeprojectScreenToWorld(FVector2D(mouseX, mouseY), UUIItemEditorHelperComp::viewRect, UUIItemEditorHelperComp::viewMatrices.GetInvViewMatrix(), UUIItemEditorHelperComp::viewMatrices.GetInvProjectionMatrix(), rayOrigin, rayDirection);
-							float lineTraceLength = 10000;
-							//find hit UIRenderable
-							auto lineStart = rayOrigin;
-							auto lineEnd = rayOrigin + rayDirection * lineTraceLength;
-							CacheHitResultArray.Reset();
-							for (auto uiItem : allUIItems)
+							if (uiItem->GetWorld() == world)
 							{
-								if (uiItem->GetWorld() == world)
+								if (auto uiRenderable = Cast<UUIRenderable>(uiItem))
 								{
-									if (auto uiRenderable = Cast<UUIRenderable>(uiItem))
+									FHitResult hitInfo;
+									auto originRaycastComplex = uiRenderable->GetRaycastComplex();
+									auto originRaycastTarget = uiRenderable->IsRaycastTarget();
+									uiRenderable->SetRaycastComplex(true);//in editor selection, make the ray hit actural triangle
+									uiRenderable->SetRaycastTarget(true);
+									if (uiRenderable->LineTraceUI(hitInfo, lineStart, lineEnd))
 									{
-										FHitResult hitInfo;
-										auto originRaycastComplex = uiRenderable->GetRaycastComplex();
-										auto originRaycastTarget = uiRenderable->IsRaycastTarget();
-										uiRenderable->SetRaycastComplex(true);//in editor selection, make the ray hit actural triangle
-										uiRenderable->SetRaycastTarget(true);
-										if (uiRenderable->LineTraceUI(hitInfo, lineStart, lineEnd))
+										if (uiRenderable->GetRenderCanvas()->IsPointVisible(hitInfo.Location))
 										{
-											if (uiRenderable->GetRenderCanvas()->IsPointVisible(hitInfo.Location))
-											{
-												CacheHitResultArray.Add(hitInfo);
-											}
+											CacheHitResultArray.Add(hitInfo);
 										}
-										uiRenderable->SetRaycastComplex(originRaycastComplex);
-										uiRenderable->SetRaycastTarget(originRaycastTarget);
 									}
+									uiRenderable->SetRaycastComplex(originRaycastComplex);
+									uiRenderable->SetRaycastTarget(originRaycastTarget);
 								}
 							}
-							if (CacheHitResultArray.Num() > 0)//hit something
-							{
-								CacheHitResultArray.Sort([](const FHitResult& A, const FHitResult& B)
-									{
-										auto AUIRenderable = (UUIRenderable*)(A.Component.Get());
-										auto BUIRenderable = (UUIRenderable*)(B.Component.Get());
-										if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())
-										{
-											return A.Distance < B.Distance;
-										}
-										else
-										{
-											return AUIRenderable->GetDepth() > BUIRenderable->GetDepth();
-										}
-									});
-								if (auto uiRenderableComp = Cast<UUIRenderable>(CacheHitResultArray[0].Component.Get()))//target need to select
+						}
+						if (CacheHitResultArray.Num() > 0)//hit something
+						{
+							CacheHitResultArray.Sort([](const FHitResult& A, const FHitResult& B)
 								{
-									if (LastSelectTarget.Get() == uiRenderableComp)//if selection not change, then select hierarchy up
+									auto AUIRenderable = (UUIRenderable*)(A.Component.Get());
+									auto BUIRenderable = (UUIRenderable*)(B.Component.Get());
+									if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())
 									{
-										if (auto parentActor = LastSelectedActor->GetAttachParentActor())
-										{
-											LastSelectedActor = parentActor;
-										}
-										else//not have parent, loop back to origin
-										{
-											LastSelectedActor = uiRenderableComp->GetOwner();
-										}
+										return A.Distance < B.Distance;
 									}
 									else
 									{
+										return AUIRenderable->GetDepth() > BUIRenderable->GetDepth();
+									}
+								});
+							if (auto uiRenderableComp = Cast<UUIRenderable>(CacheHitResultArray[0].Component.Get()))//target need to select
+							{
+								if (LastSelectTarget.Get() == uiRenderableComp)//if selection not change, then select hierarchy up
+								{
+									if (auto parentActor = LastSelectedActor->GetAttachParentActor())
+									{
+										LastSelectedActor = parentActor;
+									}
+									else//not have parent, loop back to origin
+									{
 										LastSelectedActor = uiRenderableComp->GetOwner();
 									}
-									GEditor->SelectNone(true, true);
-									GEditor->SelectActor(LastSelectedActor.Get(), true, true);
-									LastSelectTarget = uiRenderableComp;
 								}
+								else
+								{
+									LastSelectedActor = uiRenderableComp->GetOwner();
+								}
+								GEditor->SelectNone(true, true);
+								GEditor->SelectActor(LastSelectedActor.Get(), true, true);
+								LastSelectTarget = uiRenderableComp;
+								goto END;
 							}
 						}
 					}
@@ -325,12 +336,11 @@ void ULGUIEditorManagerObject::OnSelectObject(UObject* newSelection)
 			}
 		}
 	}
-	else
-	{
-		LastSelectTarget.Reset();
-		LastSelectedActor.Reset();
-	}
 
+	LastSelectTarget.Reset();
+	LastSelectedActor.Reset();
+
+	END:
 	IsCalculatingSelection = false;
 }
 #endif

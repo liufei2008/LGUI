@@ -28,21 +28,29 @@ void UK2Node_LGUICompRef_GetComponent::AllocateDefaultPins()
 	//output pin
 	CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Wildcard, TEXT("Output"));
 }
+void UK2Node_LGUICompRef_GetComponent::ReconstructNode()
+{
+	//SetOutputPinType();
+	Super::ReconstructNode();
+}
 void UK2Node_LGUICompRef_GetComponent::PostReconstructNode()
 {
 	SetOutputPinType();
+	Super::PostReconstructNode();
 }
 FText UK2Node_LGUICompRef_GetComponent::GetNodeTitle(ENodeTitleType::Type TitleType)const
 {
 	if (TitleType == ENodeTitleType::FullTitle)
 	{
-		return LOCTEXT("GetComponentTitle", "Get");
+		return autoOutputTypeSuccess ? LOCTEXT("GetComponentTitle", "Get") : LOCTEXT("GetComponentTitle", "!Get");
 	}
 	return LOCTEXT("GetComponentTitle_Full", "Get Component for LGUIComponentReference");
 }
 FText UK2Node_LGUICompRef_GetComponent::GetTooltipText()const
 {
-	return LOCTEXT("GetComponent_Tooltip", "Get component from LGUIComponentReferencce");
+	return LOCTEXT("GetComponent_Tooltip", "Get component from LGUIComponentReference.\
+\nIf the node is \"Get\", then auto cast success, output is good to use.\
+\nIf the node is \"!Get\", that means auto cast failed, so you need to cast the result ActorComponent to your desired type.");
 }
 TSharedPtr<SWidget> UK2Node_LGUICompRef_GetComponent::CreateNodeImage() const
 {
@@ -80,46 +88,67 @@ void UK2Node_LGUICompRef_GetComponent::SetOutputPinType()
 		{
 			if (auto variablePin = Pins[0]->LinkedTo[0])
 			{
-				auto variableNode = Cast<UK2Node_Variable>(variablePin->GetOwningNode());
-				UClass* objectClass = GetBlueprint()->GeneratedClass;
-				auto objectInstance = GetDefault<UObject>(objectClass);
-
-				if (auto structProperty = CastField<FStructProperty>(variableNode->GetPropertyForVariable()))
+				UK2Node_Variable* variableNode = Cast<UK2Node_Variable>(variablePin->GetOwningNode());
+				auto propertyName = variableNode->GetVarName();
+				if (auto blueprint = variableNode->GetBlueprint())
 				{
-					auto structPtr = structProperty->ContainerPtrToValuePtr<FLGUIComponentReference>((void*)objectInstance, 0);
-					for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
+					if (auto generatedClass = blueprint->GeneratedClass)
 					{
-						auto memberProperty = *It;
-						if (memberProperty->GetFName() == TEXT("targetComponentClass"))
+						if (auto objectInstance = generatedClass->GetDefaultObject())
 						{
-							if (auto classProperty = CastField<FClassProperty>(memberProperty))
+							auto propertyField = TFieldRange<FProperty>(generatedClass);
+							for (const auto propertyItem : propertyField)
 							{
-								if (auto object = classProperty->GetObjectPropertyValue_InContainer((void*)structPtr))
+								if (auto structProperty = Cast<FStructProperty>(propertyItem))
 								{
-									UEdGraphPin* outputPin = Pins[1];
-									outputPin->PinType.PinCategory = UEdGraphSchema_K2::PC_Object;
-									outputPin->PinType.PinSubCategoryObject = object;
+									if (structProperty->Struct == FLGUIComponentReference::StaticStruct())
+									{
+										if (structProperty->GetFName() == propertyName)
+										{
+											FLGUIComponentReference* structPtr = structProperty->ContainerPtrToValuePtr<FLGUIComponentReference>(objectInstance);
+											if (structPtr->GetComponentClass() != nullptr)
+											{
+												UEdGraphPin* outputPin = Pins[1];
+												outputPin->PinType.PinCategory = UEdGraphSchema_K2::PC_Object;
+												outputPin->PinType.PinSubCategoryObject = structPtr->GetComponentClass().Get();
+												autoOutputTypeSuccess = true;
+												return;
+											}
+										}
+									}
 								}
 							}
-							break;
 						}
 					}
 				}
 			}
-			else
-			{
-				UEdGraphPin* outputPin = Pins[1];
-				outputPin->PinType.PinCategory = UEdGraphSchema_K2::PC_Wildcard;
-				outputPin->PinType.PinSubCategoryObject = nullptr;
-			}
 		}
-		else
-		{
-			UEdGraphPin* outputPin = Pins[1];
-			outputPin->PinType.PinCategory = UEdGraphSchema_K2::PC_Wildcard;
-			outputPin->PinType.PinSubCategoryObject = nullptr;
-		}
+		UEdGraphPin* outputPin = Pins[1];
+		outputPin->PinType.PinCategory = UEdGraphSchema_K2::PC_Object;
+		outputPin->PinType.PinSubCategoryObject = UActorComponent::StaticClass();
+		//outputPin->PinType.PinCategory = UEdGraphSchema_K2::PC_Wildcard;
+		//outputPin->PinType.PinSubCategoryObject = nullptr;
+		autoOutputTypeSuccess = false;
 	}
+}
+void UK2Node_LGUICompRef_GetComponent::ValidateNodeDuringCompilation(class FCompilerResultsLog& MessageLog)const
+{
+	Super::ValidateNodeDuringCompilation(MessageLog);
+	if (!autoOutputTypeSuccess)
+	{
+		auto msg = FString(TEXT("Auto cast fail! You need to cast the result ActorComponent to your desired type."));
+		MessageLog.Note(*msg);
+	}
+}
+void UK2Node_LGUICompRef_GetComponent::PinConnectionListChanged(UEdGraphPin* Pin)
+{
+	Super::PinConnectionListChanged(Pin);
+	SetOutputPinType();
+}
+void UK2Node_LGUICompRef_GetComponent::NodeConnectionListChanged()
+{
+	Super::NodeConnectionListChanged();
+	SetOutputPinType();
 }
 void UK2Node_LGUICompRef_GetComponent::NotifyPinConnectionListChanged(UEdGraphPin* Pin)
 {

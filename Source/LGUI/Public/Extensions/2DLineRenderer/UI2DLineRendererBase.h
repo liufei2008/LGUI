@@ -37,10 +37,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> PointArrayWithGrowValue;
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray();
+	virtual void CalculatePoints() {};
 
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 	virtual bool HaveDataToCreateGeometry()override;
+	virtual void OnBeforeCreateOrUpdateGeometry()override;
 
 	bool AngleLargerThanPi(const FVector2D& A, const FVector2D& B)
 	{

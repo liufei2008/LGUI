@@ -25,17 +25,6 @@ AUI2DLineRingActor::AUI2DLineRingActor()
 }
 
 
-void UUI2DLineRing::OnCreateGeometry()
-{
-	CalculatePoints();
-	Super::OnCreateGeometry();
-}
-void UUI2DLineRing::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	CalculatePoints();
-	Super::OnUpdateGeometry(InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
-}
-
 void UUI2DLineRing::CalculatePoints()
 {
 	if (Segment < 0)
