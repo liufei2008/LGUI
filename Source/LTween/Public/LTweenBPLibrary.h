@@ -185,6 +185,10 @@ public:
 	{
 		return ALTweenActor::IsTweening(inTweener);
 	}
+	/**
+	 * Force stop this animation. if callComplete = true, OnComplete will call after stop.
+	 * This method will check if the tweener is valid.
+	 */
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "callComplete"), Category = LTween)
 		static void KillIfIsTweening(ULTweener* inTweener, bool callComplete = false)
 	{
