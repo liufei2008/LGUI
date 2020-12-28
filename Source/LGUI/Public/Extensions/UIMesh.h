@@ -16,7 +16,7 @@ enum class UIMeshVertexColorType :uint8
 	//Use mesh's vertex color only, not consider LGUI's color parameter
 	NotAffectByUIColor,
 };
-//render a mesh as UI element
+//render a StaticMesh as UI element
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIMesh : public UUIRenderable
 {

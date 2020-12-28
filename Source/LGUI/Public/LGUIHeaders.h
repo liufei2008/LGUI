@@ -59,7 +59,6 @@
 #include "Extensions/2DLineRenderer/UI2DLineRaw.h"
 #include "Extensions/2DLineRenderer/UI2DLineRendererBase.h"
 #include "Extensions/2DLineRenderer/UI2dLineRing.h"
-#include "Extensions/2DLineRenderer/UI2dLineRingFrame.h"
 
 #include "GeometryModifier/UIEffectGradientColor.h"
 #include "GeometryModifier/UIEffectLongShadow.h"

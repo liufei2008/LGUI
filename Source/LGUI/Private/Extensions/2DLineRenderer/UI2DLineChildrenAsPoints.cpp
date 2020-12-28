@@ -8,7 +8,6 @@
 UUI2DLineChildrenAsPoints::UUI2DLineChildrenAsPoints(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	ConnectStartEndPoint = true;
 }
 
 void UUI2DLineChildrenAsPoints::BeginPlay()
@@ -122,5 +121,5 @@ void UUI2DLineChildrenAsPoints::CalculatePoints()
 
 void UUI2DLineChildrenAsPoints::OnChildPositionChanged()
 {
-	MarkCanvasUpdate();
+	MarkVertexPositionDirty();
 }

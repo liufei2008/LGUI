@@ -19,8 +19,6 @@ public:
 protected:
 	virtual void BeginPlay()override;
 
-	//use widget width or height as ring radius
-	UPROPERTY(EditAnywhere, Category = LGUI)bool UseWidthOrHeightAsRadius = true;
 	UPROPERTY(EditAnywhere, Category = LGUI)float AngleBegin = 0.0f;
 	UPROPERTY(EditAnywhere, Category = LGUI)float AngleEnd = 90.0f;
 	//line segment
@@ -28,12 +26,17 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
 
-	virtual void CalculatePoints()override;
-
+	//Begin UI2DLineRendererBase interface
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
 	{
 		return CurrentPointArray;
 	}
+	virtual void CalculatePoints()override;
+	virtual bool OverrideStartPointTangentDirection()override { return true; }
+	virtual bool OverrideEndPointTangentDirection()override { return true; }
+	virtual FVector2D GetStartPointTangentDirection()override;
+	virtual FVector2D GetEndPointTangentDirection()override;
+	//End UI2DLineRendererBase interface
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)float GetAngleBegin() { return AngleBegin; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)float GetAngleEnd() { return AngleEnd; }
