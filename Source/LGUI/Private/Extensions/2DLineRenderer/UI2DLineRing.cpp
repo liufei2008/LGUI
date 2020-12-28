@@ -36,19 +36,37 @@ void UUI2DLineRing::CalculatePoints()
 
 	float angle = FMath::DegreesToRadians(AngleBegin);
 	float angleInterval = FMath::DegreesToRadians((AngleEnd - AngleBegin) / (Segment + 1));
-	float radius = (UseWidthOrHeightAsRadius ? widget.width : widget.height) * 0.5f;
+	float halfWidth = widget.width * 0.5f;
+	float halfHeight = widget.height * 0.5f;
 	//first point
-	float x = radius * FMath::Cos(angle);
-	float y = radius * FMath::Sin(angle);
+	float x = halfWidth * FMath::Cos(angle);
+	float y = halfHeight * FMath::Sin(angle);
 	CurrentPointArray.Add(FVector2D(x, y));
 	//rest point
 	for (int i = 0, count = pointCount - 1; i < count; i++)
 	{
 		angle += angleInterval;
-		x = radius * FMath::Cos(angle);
-		y = radius * FMath::Sin(angle);
+		x = halfWidth * FMath::Cos(angle);
+		y = halfHeight * FMath::Sin(angle);
 		CurrentPointArray.Add(FVector2D(x, y));
 	}
+}
+
+FVector2D UUI2DLineRing::GetStartPointTangentDirection()
+{
+	float angle = FMath::DegreesToRadians(AngleBegin);
+	auto dir = FVector2D(FMath::Cos(angle), FMath::Sin(angle));
+	auto tanDir = FVector2D(-widget.width * dir.Y, widget.height * dir.X);
+	tanDir.Normalize();
+	return tanDir;
+}
+FVector2D UUI2DLineRing::GetEndPointTangentDirection()
+{
+	float angle = FMath::DegreesToRadians(AngleEnd);
+	auto dir = FVector2D(FMath::Cos(angle), FMath::Sin(angle));
+	auto tanDir = FVector2D(-widget.width * dir.Y, widget.height * dir.X);
+	tanDir.Normalize();
+	return tanDir;
 }
 
 void UUI2DLineRing::SetAngleBegin(float newValue)

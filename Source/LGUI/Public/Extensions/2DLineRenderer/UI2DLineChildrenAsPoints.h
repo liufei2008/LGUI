@@ -19,16 +19,16 @@ protected:
 	virtual void BeginPlay()override;
 	virtual void OnRegister()override;
 
-	UPROPERTY(EditAnywhere, Category = LGUI)bool UseWidthOrHeightAsRadius = true;
-	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> CurrentPointArray;
+	UPROPERTY(VisibleAnywhere, Transient, Category = LGUI)TArray<FVector2D> 
+		CurrentPointArray;
 
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child)override;
 	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)override;
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)override;
 	UPROPERTY(Transient)TArray<UUIItem*> SortedItemArray;
-	virtual void CalculatePoints()override;
 	void RebuildChildrenList();
 
+	virtual void CalculatePoints()override;
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
 	{
 		return CurrentPointArray;
