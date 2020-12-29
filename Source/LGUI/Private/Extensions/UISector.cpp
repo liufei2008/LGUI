@@ -6,55 +6,55 @@
 #include "LGUI.h"
 
 
-UUISector::UUISector(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
+UDEPRECATED_UISector::UDEPRECATED_UISector(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUISector::OnCreateGeometry()
+void UDEPRECATED_UISector::OnCreateGeometry()
 {
-	UIGeometry::FromUISector(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), geometry, sprite->InitAndGetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
+	//UIGeometry::FromUISector(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), geometry, sprite->InitAndGetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 }
-void UUISector::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UDEPRECATED_UISector::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (InVertexUVChanged)
 	{
-		UIGeometry::UpdateUISectorUV(geometry, (uint8)uvType, startAngle, endAngle, segment, sprite->InitAndGetSpriteInfo());
+		//UIGeometry::UpdateUISectorUV(geometry, (uint8)uvType, startAngle, endAngle, segment, sprite->InitAndGetSpriteInfo());
 	}
 	if (InVertexColorChanged)
 	{
-		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
+		//UIGeometry::UpdateUIColor(geometry, GetFinalColor());
 	}
 	if (InVertexPositionChanged)
 	{
-		UIGeometry::UpdateUISectorVertex(geometry, widget.width, widget.height, widget.pivot, startAngle, endAngle, segment);
+		//UIGeometry::UpdateUISectorVertex(geometry, widget.width, widget.height, widget.pivot, startAngle, endAngle, segment);
 	}
 }
 
-void UUISector::SetStartAngle(float newStartAngle) {
+void UDEPRECATED_UISector::SetStartAngle(float newStartAngle) {
 	startAngle = newStartAngle;
 	MarkVertexPositionDirty();
 	if (uvType == UISectorUVType::SpriteRect) MarkUVDirty();
 }
-void UUISector::SetEndAngle(float newEndAngle) {
+void UDEPRECATED_UISector::SetEndAngle(float newEndAngle) {
 	endAngle = newEndAngle;
 	MarkVertexPositionDirty();
 	if (uvType == UISectorUVType::SpriteRect) MarkUVDirty();
 }
-void UUISector::SetUVType(UISectorUVType newUVType) {
+void UDEPRECATED_UISector::SetUVType(UISectorUVType newUVType) {
 	uvType = newUVType;
 	MarkUVDirty();
 }
-void UUISector::SetSegment(uint8 newSegment) {
+void UDEPRECATED_UISector::SetSegment(uint8 newSegment) {
 	segment = newSegment;
 	MarkTriangleDirty();
 }
 
 
-AUISectorActor::AUISectorActor()
+ADEPRECATED_UISectorActor::ADEPRECATED_UISectorActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	UISector = CreateDefaultSubobject<UUISector>(TEXT("UISectorComponent"));
-	RootComponent = UISector;
+	UISector_DEPRECATED = CreateDefaultSubobject<UDEPRECATED_UISector>(TEXT("UISectorComponent"));
+	RootComponent = UISector_DEPRECATED;
 }

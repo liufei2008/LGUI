@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UISprite.h"
+#include "Extensions/UIPolygon.h"
 
 struct FLGUISpriteInfo;
 struct FUITextLineProperty;
@@ -132,16 +133,18 @@ private:
 
 #pragma region UISector
 public:
-	static void FromUISector(float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, uint8 uvType, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1);
-	static void UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, const FLGUISpriteInfo& spriteInfo);
-	static void UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment);
-#pragma endregion
-
-#pragma region UIRing
-public:
-	static void FromUIRing(float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, uint8 uvType, FColor color, float ringWidth, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1);
-	static void UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, float ringWidth, float& width, float& height, const FLGUISpriteInfo& spriteInfo);
-	static void UpdateUIRingVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, float ringWidth);
+	static void FromUIPolygon(float& width, float& height, const FVector2D& pivot
+		, float startAngle, float endAngle, int sides, EUIPolygonUVType uvType
+		, TArray<float>& vertexOffsetArray, bool fullCycle
+		, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
+		, bool requireNormal, bool requireTangent, bool requireUV1);
+	static void UpdateUIPolygonUV(float startAngle, float endAngle, int sides, EUIPolygonUVType uvType
+		, bool fullCycle
+		, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo);
+	static void UpdateUIPolygonVertex(float& width, float& height, const FVector2D& pivot
+		, float startAngle, float endAngle, int sides
+		, const TArray<float>& vertexOffsetArray, bool fullCycle
+		, TSharedPtr<UIGeometry> uiGeo);
 #pragma endregion
 
 public:

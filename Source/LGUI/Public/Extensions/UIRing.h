@@ -16,14 +16,17 @@ enum class UIRingUVType:uint8
 	StretchSpriteWidth		UMETA(DisplayName = "StretchSpriteWidth"),
 };
 
-//render a ring shape
-UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIRing : public UUISpriteBase
+/**
+ * render a ring shape
+ * @deprecated This class is deprecated, use UI2DLineRing instead
+ */
+UCLASS(Deprecated, ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
+class LGUI_API UDEPRECATED_UIRing : public UUISpriteBase
 {
 	GENERATED_BODY()
 
 public:	
-	UUIRing(const FObjectInitializer& ObjectInitializer);
+	UDEPRECATED_UIRing(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -58,18 +61,22 @@ public:
 		void SetRingWidth(float newRingWidth);
 };
 
-UCLASS()
-class LGUI_API AUIRingActor : public AUIBaseActor
+/**
+ * render a ring shape
+ * @deprecated This class is deprecated, use UI2DLineRing instead
+ */
+UCLASS(Deprecated)
+class LGUI_API ADEPRECATED_UIRingActor : public AUIBaseActor
 {
 	GENERATED_BODY()
 
 public:
-	AUIRingActor();
+	ADEPRECATED_UIRingActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIRing; }
-	FORCEINLINE UUIRing* GetUIRing()const { return UIRing; }
+	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIRing_DEPRECATED; }
+	FORCEINLINE UDEPRECATED_UIRing* GetUIRing()const { return UIRing_DEPRECATED; }
 private:
-	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUIRing* UIRing;
+	UPROPERTY(Transient, meta = (DeprecatedProperty, DeprecationMessage = "This class is deprecated, use UI2DLineRing instead"))
+		class UDEPRECATED_UIRing* UIRing_DEPRECATED;
 
 };

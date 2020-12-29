@@ -609,7 +609,9 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 					&& *ClassItr != AUISpriteActor::StaticClass()
 					&& *ClassItr != AUITextActor::StaticClass()
 					&& *ClassItr != AUITextureActor::StaticClass()
-					&& *ClassItr != AUIBaseActor::StaticClass())
+					&& !ClassItr->HasAnyClassFlags(CLASS_Abstract)
+					&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))
+					)
 				{
 					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
 					if (isBlueprint)
@@ -694,8 +696,31 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUISpriteActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUITextActor::StaticClass());
 		FunctionContainer::ReplaceUIElement(MenuBuilder, AUITextureActor::StaticClass());
-		FunctionContainer::ReplaceUIElement(MenuBuilder, AUIBackgroundBlurActor::StaticClass());
-		FunctionContainer::ReplaceUIElement(MenuBuilder, AUIBackgroundPixelateActor::StaticClass());
+
+		for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
+		{
+			if (ClassItr->IsChildOf(AUIBaseActor::StaticClass()))
+			{
+				if (*ClassItr != AUIContainerActor::StaticClass()
+					&& *ClassItr != AUISpriteActor::StaticClass()
+					&& *ClassItr != AUITextActor::StaticClass()
+					&& *ClassItr != AUITextureActor::StaticClass()
+					&& !ClassItr->HasAnyClassFlags(CLASS_Abstract)
+					&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))
+					)
+				{
+					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
+					if (isBlueprint)
+					{
+						if (ClassItr->GetName().StartsWith(TEXT("SKEL_")))
+						{
+							continue;
+						}
+					}
+					FunctionContainer::ReplaceUIElement(MenuBuilder, *ClassItr);
+				}
+			}
+		}
 	}
 	MenuBuilder.EndSection();
 }

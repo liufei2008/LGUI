@@ -34,8 +34,8 @@ void UUI2DLineRing::CalculatePoints()
 	int pointCount = Segment + 2;
 	CurrentPointArray.Reset(pointCount);
 
-	float angle = FMath::DegreesToRadians(AngleBegin);
-	float angleInterval = FMath::DegreesToRadians((AngleEnd - AngleBegin) / (Segment + 1));
+	float angle = FMath::DegreesToRadians(StartAngle);
+	float angleInterval = FMath::DegreesToRadians((EndAngle - StartAngle) / (Segment + 1));
 	float halfWidth = widget.width * 0.5f;
 	float halfHeight = widget.height * 0.5f;
 	//first point
@@ -54,7 +54,7 @@ void UUI2DLineRing::CalculatePoints()
 
 FVector2D UUI2DLineRing::GetStartPointTangentDirection()
 {
-	float angle = FMath::DegreesToRadians(AngleBegin);
+	float angle = FMath::DegreesToRadians(StartAngle);
 	auto dir = FVector2D(FMath::Cos(angle), FMath::Sin(angle));
 	auto tanDir = FVector2D(-widget.width * dir.Y, widget.height * dir.X);
 	tanDir.Normalize();
@@ -62,26 +62,26 @@ FVector2D UUI2DLineRing::GetStartPointTangentDirection()
 }
 FVector2D UUI2DLineRing::GetEndPointTangentDirection()
 {
-	float angle = FMath::DegreesToRadians(AngleEnd);
+	float angle = FMath::DegreesToRadians(EndAngle);
 	auto dir = FVector2D(FMath::Cos(angle), FMath::Sin(angle));
 	auto tanDir = FVector2D(-widget.width * dir.Y, widget.height * dir.X);
 	tanDir.Normalize();
 	return tanDir;
 }
 
-void UUI2DLineRing::SetAngleBegin(float newValue)
+void UUI2DLineRing::SetStartAngle(float newValue)
 {
-	if (AngleBegin != newValue)
+	if (StartAngle != newValue)
 	{
-		AngleBegin = newValue;
+		StartAngle = newValue;
 		MarkVertexPositionDirty();
 	}
 }
-void UUI2DLineRing::SetAngleEnd(float newValue)
+void UUI2DLineRing::SetEndAngle(float newValue)
 {
-	if (AngleEnd != newValue)
+	if (EndAngle != newValue)
 	{
-		AngleEnd = newValue;
+		EndAngle = newValue;
 		MarkVertexPositionDirty();
 	}
 }
@@ -95,13 +95,13 @@ void UUI2DLineRing::SetSegment(float newValue)
 }
 
 
-ULTweener* UUI2DLineRing::AngleBeginTo(float endValue, float duration, float delay, LTweenEase easeType)
+ULTweener* UUI2DLineRing::StartAngleTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRing::GetAngleBegin), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRing::SetAngleBegin), endValue, duration)
+	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRing::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRing::SetStartAngle), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }
-ULTweener* UUI2DLineRing::AngleEndTo(float endValue, float duration, float delay, LTweenEase easeType)
+ULTweener* UUI2DLineRing::EndAngleTo(float endValue, float duration, float delay, LTweenEase easeType)
 {
-	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRing::GetAngleEnd), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRing::SetAngleEnd), endValue, duration)
+	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUI2DLineRing::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUI2DLineRing::SetEndAngle), endValue, duration)
 		->SetEase(easeType)->SetDelay(delay);
 }

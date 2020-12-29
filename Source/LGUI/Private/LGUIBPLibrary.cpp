@@ -364,27 +364,6 @@ ULTweener* ULGUIBPLibrary::StretchBottomTo(UUIItem* target, float endValue, floa
 #pragma endregion
 
 
-#pragma region UISector
-ULTweener* ULGUIBPLibrary::StartAngleTo(UUISector* target, float endValue, float duration, float delay, LTweenEase ease)
-{
-	if (!IsValid(target))
-	{
-		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::StartAngleTo target is not valid:%s"), *(target->GetPathName()));
-		return nullptr;
-	}
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUISector::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(target, &UUISector::SetStartAngle), endValue, duration)->SetEase(ease)->SetDelay(delay);
-}
-ULTweener* ULGUIBPLibrary::EndAngleTo(UUISector* target, float endValue, float duration, float delay, LTweenEase ease)
-{
-	if (!IsValid(target))
-	{
-		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::EndAngleTo target is not valid:%s"), *(target->GetPathName()));
-		return nullptr;
-	}
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUISector::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(target, &UUISector::SetEndAngle), endValue, duration)->SetEase(ease)->SetDelay(delay);
-}
-#pragma endregion
-
 void ULGUIBPLibrary::LGUIExecuteInputAxis(FKey inputKey, float value)
 {
 	if (inputKey.IsValid())
