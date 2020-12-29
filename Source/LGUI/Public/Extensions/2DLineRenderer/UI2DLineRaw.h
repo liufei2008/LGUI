@@ -24,6 +24,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		TArray<FVector2D> PointArray = { FVector2D(-100, 0), FVector2D(100, 0) };
 
+	virtual void CalculatePoints()override {};
 	virtual const TArray<FVector2D>& GetCalcaultedPointArray()override
 	{
 		return PointArray;
