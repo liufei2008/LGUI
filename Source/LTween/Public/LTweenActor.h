@@ -19,7 +19,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 private:
-	//current active tweener collection
+	/** current active tweener collection*/
 	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<ULTweener*> tweenerList;
 	static ALTweenActor* Instance;
 	static bool InitCheck(UObject* WorldContextObject);
@@ -28,13 +28,27 @@ private:
 	LTweenUpdateMulticastDelegate updateEvent;
 	bool TickPaused = false;
 public:
-	//this function can use your own DeltaSeconds instead of UE4's Tick. use DisableTick to disable UE4's Tick function, then call this CustomTick function.
+	/** this function can use your own DeltaSeconds instead of UE4's Tick. use DisableTick to disable UE4's Tick function, then call this CustomTick function.*/
 	static void CustomTick(float DeltaTime);
-	//disable default Tick function, so you can pause all tween or use CustomTick to do your own tick and use your own DeltaTime.
-	//this will only pause the tick with current LTweenActor instance, so after load a new level, default Tick will work again, and you need to call DisableTick again if you want to disable tick
+	/**
+	 * Disable default Tick function, so you can pause all tween or use CustomTick to do your own tick and use your own DeltaTime.
+	 * This will only pause the tick with current LTweenActor instance, so after load a new level, default Tick will work again, and you need to call DisableTick again if you want to disable tick.
+	 */ 
 	static void DisableTick();
+	/**
+	 * Enable default Tick if it is disabled.
+	 */
 	static void EnableTick();
+	/**
+	 * Is the tweener is currently tweening? 
+	 * @param item tweener item
+	 */
 	static bool IsTweening(ULTweener* item);
+	/**
+	 * Kill the tweener if it is tweening.
+	 * @param item tweener item
+	 * @param callComplete true-execute onComplete event.
+	 */
 	static void KillIfIsTweening(ULTweener* item, bool callComplete);
 
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration);

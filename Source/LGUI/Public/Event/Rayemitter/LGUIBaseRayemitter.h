@@ -7,7 +7,9 @@
 #include "Event/LGUIPointerEventData.h"
 #include "LGUIBaseRayEmitter.generated.h"
 
-//RayEmitter for raycaster
+/**
+ * RayEmitter for raycaster
+ */
 UCLASS(Abstract)
 class LGUI_API ULGUIBaseRayEmitter : public UActorComponent
 {
@@ -15,10 +17,10 @@ class LGUI_API ULGUIBaseRayEmitter : public UActorComponent
 public:
 	virtual void BeginPlay()override;
 protected:
-	//click/drag threshold
+	/** click/drag threshold*/
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		float clickThreshold = 5;
-	//hold for a little while to entering drag mode
+	/** hold for a little while to entering drag mode*/
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool holdToDrag = false;
 	UPROPERTY(EditAnywhere, Category = LGUI)

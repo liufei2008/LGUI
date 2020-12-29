@@ -11,23 +11,25 @@
 UENUM(BlueprintType)
 enum class LGUIScaleMode:uint8
 {
-	//1 unit is 1 pixel render in screen
+	/** 1 unit is 1 pixel render in screen*/
 	ConstantPixelSize,
-	//scale UI with reference resolution and screen resolution
+	/** scale UI with reference resolution and screen resolution*/
 	ScaleWithScreenSize,
 };
 UENUM(BlueprintType)
 enum class LGUIScreenMatchMode :uint8
 {
-	//user "MatchFromWidthToHeight" and "ReferenceResolution" properties to control size and scale UI
+	/** Use "MatchFromWidthToHeight" and "ReferenceResolution" properties to control size and scale UI*/
 	MatchWidthOrHeight,
-	//if viewport's aspect ratio not match "ReferenceResolution"'s aspect ratio, then expand size and scale UI
+	/** If viewport's aspect ratio not match "ReferenceResolution"'s aspect ratio, then expand size and scale UI*/
 	Expand,
-	//if viewport's aspect ratio not match "ReferenceResolution"'s aspect ratio, then shrink size and scale UI
+	/** if viewport's aspect ratio not match "ReferenceResolution"'s aspect ratio, then shrink size and scale UI*/
 	Shrink,
 };
-//put this on a actor with LGUICanvas component. use this to scale UI element. one hierarchy should only have one UICanvasScalar.
-//tweak parameters to make your UI adapt to different screen resolution
+/**
+ * Put this on a actor with LGUICanvas component. Use this to scale UI element to adapt different screen resolution.
+ * One hierarchy should only have one UICanvasScalar.
+ */
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUICanvasScaler :public UActorComponent
 {
@@ -60,10 +62,10 @@ protected:
 
 	friend class FUICanvasScalerCustomization;
 
-	//Virtual Camera Projection Type
+	/** Virtual Camera Projection Type.*/
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay, meta = (DisplayName = "Projection Type"))
 		TEnumAsByte<ECameraProjectionMode::Type> ProjectionType = ECameraProjectionMode::Perspective;
-	//Virtual Camera field of view (in degrees). */
+	/** Virtual Camera field of view (in degrees). */
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay, meta = (DisplayName = "Field of View", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0"))
 		float FOVAngle = 90;
 	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
@@ -84,7 +86,8 @@ protected:
 	UPROPERTY(Transient) class ULGUICanvas* Canvas = nullptr;
 	void SetCanvasProperties();
 
-	FIntPoint ViewportSize = FIntPoint(2, 2);//current viewport size
+	/** Current viewport size*/
+	FIntPoint ViewportSize = FIntPoint(2, 2);
 public:
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -126,12 +129,14 @@ public:
 	/**
 	 * Convert position from viewport to LGUICanvas space.
 	 * @param position The point's pixel position on viewport.
+	 * @return Position in LGUICanvas space, left bottom is zero point.
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector2D ConvertPositionFromViewportToLGUICanvas(const FVector2D& position)const;
 	/**
 	 * Convert position from LGUICanvas space to viewport.
 	 * @param position The point's position in LGUICanvas space.
+	 * @return Position in viewport, pixel unit, left top is zero point.
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector2D ConvertPositionFromLGUICanvasToViewport(const FVector2D& position)const;
