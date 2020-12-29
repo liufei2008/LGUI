@@ -64,6 +64,14 @@ void UUIPolygon::SetSides(int value) {
 		MarkTriangleDirty();
 	}
 }
+void UUIPolygon::SetUVType(UIPolygonUVType value)
+{
+	if (UVType != value)
+	{
+		UVType = value;
+		MarkUVDirty();
+	}
+}
 void UUIPolygon::SetVertexOffsetArray(const TArray<float>& value)
 {
 	if (VertexOffsetArray.Num() == value.Num())

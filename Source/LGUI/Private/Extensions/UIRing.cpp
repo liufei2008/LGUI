@@ -5,60 +5,97 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-UDEPRECATED_UIRing::UDEPRECATED_UIRing(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
+UUIRing::UUIRing(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UDEPRECATED_UIRing::OnCreateGeometry()
+void UUIRing::BeginPlay()
 {
-	//UIGeometry::FromUIRing(widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, (uint8)uvType, GetFinalColor(), ringWidth, geometry, sprite->InitAndGetSpriteInfo(), RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
-}
-void UDEPRECATED_UIRing::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	if (InVertexUVChanged)
-	{
-		//UIGeometry::UpdateUIRingUV(geometry, (uint8)uvType, startAngle, endAngle, segment, ringWidth, widget.width, widget.height, sprite->InitAndGetSpriteInfo());
-	}
-	if (InVertexColorChanged)
-	{
-		//UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-	}
-	if (InVertexPositionChanged)
-	{
-		//UIGeometry::UpdateUIRingVertex(geometry, widget.width, widget.height, widget.pivot, startAngle, endAngle, segment, ringWidth);
-	}
-}
-
-void UDEPRECATED_UIRing::SetStartAngle(float newStartAngle) {
-	startAngle = newStartAngle;
-	MarkVertexPositionDirty();
-	if (uvType == UIRingUVType::SpriteRect) MarkUVDirty();
-}
-void UDEPRECATED_UIRing::SetEndAngle(float newEndAngle) {
-	endAngle = newEndAngle;
-	MarkVertexPositionDirty();
-	if (uvType == UIRingUVType::SpriteRect) MarkUVDirty();
-}
-void UDEPRECATED_UIRing::SetUVType(UIRingUVType newUVType) {
-	uvType = newUVType;
-	MarkUVDirty();
-}
-void UDEPRECATED_UIRing::SetSegment(uint8 newSegment) {
-	segment = newSegment; 
-	MarkTriangleDirty();
-}
-void UDEPRECATED_UIRing::SetRingWidth(float newRingWidth) {
-	ringWidth = newRingWidth;
-	MarkVertexPositionDirty();
-	MarkUVDirty();
+	Super::BeginPlay();
 }
 
 
-ADEPRECATED_UIRingActor::ADEPRECATED_UIRingActor()
+AUIRingActor::AUIRingActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	UIRing_DEPRECATED = CreateDefaultSubobject<UDEPRECATED_UIRing>(TEXT("UIRingComponent"));
-	RootComponent = UIRing_DEPRECATED;
+	UIElement = CreateDefaultSubobject<UUIRing>(TEXT("UIElement"));
+	RootComponent = UIElement;
+}
+
+
+void UUIRing::CalculatePoints()
+{
+	Segment = FMath::Max(0, Segment);
+	int pointCount = Segment + 2;
+	CurrentPointArray.Reset(pointCount);
+
+	float angle = FMath::DegreesToRadians(StartAngle);
+	float angleInterval = FMath::DegreesToRadians((EndAngle - StartAngle) / (Segment + 1));
+	float halfWidth = widget.width * 0.5f;
+	float halfHeight = widget.height * 0.5f;
+	//points
+	for (int i = 0; i < pointCount; i++)
+	{
+		float x = halfWidth * FMath::Cos(angle);
+		float y = halfHeight * FMath::Sin(angle);
+		CurrentPointArray.Add(FVector2D(x, y));
+		angle += angleInterval;
+	}
+}
+
+FVector2D UUIRing::GetStartPointTangentDirection()
+{
+	float angle = FMath::DegreesToRadians(StartAngle);
+	auto dir = FVector2D(FMath::Cos(angle), FMath::Sin(angle));
+	auto tanDir = FVector2D(-widget.width * dir.Y, widget.height * dir.X);
+	tanDir.Normalize();
+	return tanDir;
+}
+FVector2D UUIRing::GetEndPointTangentDirection()
+{
+	float angle = FMath::DegreesToRadians(EndAngle);
+	auto dir = FVector2D(FMath::Cos(angle), FMath::Sin(angle));
+	auto tanDir = FVector2D(-widget.width * dir.Y, widget.height * dir.X);
+	tanDir.Normalize();
+	return tanDir;
+}
+
+void UUIRing::SetStartAngle(float newValue)
+{
+	if (StartAngle != newValue)
+	{
+		StartAngle = newValue;
+		MarkVertexPositionDirty();
+	}
+}
+void UUIRing::SetEndAngle(float newValue)
+{
+	if (EndAngle != newValue)
+	{
+		EndAngle = newValue;
+		MarkVertexPositionDirty();
+	}
+}
+void UUIRing::SetSegment(int newValue)
+{
+	newValue = FMath::Max(0, newValue);
+	if (Segment != newValue)
+	{
+		Segment = newValue;
+		MarkTriangleDirty();
+	}
+}
+
+
+ULTweener* UUIRing::StartAngleTo(float endValue, float duration, float delay, LTweenEase easeType)
+{
+	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetStartAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetStartAngle), endValue, duration)
+		->SetEase(easeType)->SetDelay(delay);
+}
+ULTweener* UUIRing::EndAngleTo(float endValue, float duration, float delay, LTweenEase easeType)
+{
+	return ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(this, &UUIRing::GetEndAngle), FLTweenFloatSetterFunction::CreateUObject(this, &UUIRing::SetEndAngle), endValue, duration)
+		->SetEase(easeType)->SetDelay(delay);
 }
