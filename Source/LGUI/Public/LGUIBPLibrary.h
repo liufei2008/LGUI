@@ -298,13 +298,6 @@ public:
 		static ULTweener* StretchBottomTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 #pragma endregion
 
-#pragma region UISector
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTween-LGUI")
-		static ULTweener* StartAngleTo(UUISector* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTween-LGUI")
-		static ULTweener* EndAngleTo(UUISector* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
-#pragma endregion
-
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void LGUIExecuteInputAxis(FKey inputKey, float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)

@@ -16,14 +16,17 @@ enum class UISectorUVType:uint8
 	StretchSpriteWidth		UMETA(DisplayName = "StretchSpriteWidth"),
 };
 
-//render a sector shape
-UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUISector : public UUISpriteBase
+/**
+ * render a sector shape
+ * @deprecated This class is deprecated, use UIPolygon instead
+ */
+UCLASS(Deprecated, ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
+class LGUI_API UDEPRECATED_UISector : public UUISpriteBase
 {
 	GENERATED_BODY()
 
 public:	
-	UUISector(const FObjectInitializer& ObjectInitializer);
+	UDEPRECATED_UISector(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -53,18 +56,22 @@ public:
 		void SetSegment(uint8 newSegment);
 };
 
-UCLASS()
-class LGUI_API AUISectorActor : public AUIBaseActor
+/**
+ * render a ring shape
+ * @deprecated This class is deprecated, use UIPolygon instead
+ */
+UCLASS(Deprecated)
+class LGUI_API ADEPRECATED_UISectorActor : public AUIBaseActor
 {
 	GENERATED_BODY()
 
 public:
-	AUISectorActor();
+	ADEPRECATED_UISectorActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UISector; }
-	FORCEINLINE UUISector* GetUISector()const { return UISector; }
+	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UISector_DEPRECATED; }
+	FORCEINLINE UDEPRECATED_UISector* GetUISector()const { return UISector_DEPRECATED; }
 private:
-	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUISector* UISector;
+	UPROPERTY(Transient, meta = (DeprecatedProperty, DeprecationMessage = "This class is deprecated, use UIPolygon instead"))
+		class UDEPRECATED_UISector* UISector_DEPRECATED;
 
 };
