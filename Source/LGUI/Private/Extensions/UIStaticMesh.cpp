@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
 
-#include "Extensions/UIMesh.h"
+#include "Extensions/UIStaticMesh.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Engine/StaticMesh.h"
@@ -10,12 +10,12 @@
 #include "LGUI.h"
 
 
-UUIMesh::UUIMesh(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+UUIStaticMesh::UUIStaticMesh(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-bool UUIMesh::HaveDataToCreateGeometry()
+bool UUIStaticMesh::HaveDataToCreateGeometry()
 {
 	if (IsValid(mesh))
 	{
@@ -37,7 +37,7 @@ bool UUIMesh::HaveDataToCreateGeometry()
 	return false;
 }
 #define ONE_DIVIDE_255 0.0039215686274509803921568627451f
-void UUIMesh::OnCreateGeometry()
+void UUIStaticMesh::OnCreateGeometry()
 {
 	FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
 	FRawStaticIndexBuffer& indicesBuffers = mesh->RenderData->LODResources[0].IndexBuffer;
@@ -69,7 +69,7 @@ void UUIMesh::OnCreateGeometry()
 			auto tempVertexColorType = vertexColorType;
 			if (vertexBuffers.ColorVertexBuffer.VertexBufferRHI == nullptr)
 			{
-				tempVertexColorType = UIMeshVertexColorType::ReplaceByUIColor;
+				tempVertexColorType = UIStaticMeshVertexColorType::ReplaceByUIColor;
 			}
 			FMemory::Memcpy(geometry->originPositions.GetData(), positionBuffer.GetVertexData(), numVertices * positionBuffer.GetStride());
 			for (int i = 0; i < numVertices; i++)
@@ -77,7 +77,7 @@ void UUIMesh::OnCreateGeometry()
 				auto& vert = geometry->vertices[i];
 				switch (tempVertexColorType)
 				{
-				case UIMeshVertexColorType::MultiplyWithUIColor:
+				case UIStaticMeshVertexColorType::MultiplyWithUIColor:
 				{
 				vert.Color = vertexBuffers.ColorVertexBuffer.VertexColor(i);
 				auto uiFinalColor = GetFinalColor();
@@ -87,12 +87,12 @@ void UUIMesh::OnCreateGeometry()
 				vert.Color.A = (uint8)((float)vert.Color.A * uiFinalColor.A * ONE_DIVIDE_255);
 				}
 				break;
-				case UIMeshVertexColorType::NotAffectByUIColor:
+				case UIStaticMeshVertexColorType::NotAffectByUIColor:
 				{
 					vert.Color = vertexBuffers.ColorVertexBuffer.VertexColor(i);
 				}
 				break;
-				case UIMeshVertexColorType::ReplaceByUIColor:
+				case UIStaticMeshVertexColorType::ReplaceByUIColor:
 				{
 					vert.Color = GetFinalColor();
 				}
@@ -140,7 +140,7 @@ void UUIMesh::OnCreateGeometry()
 		geometry->material = mesh->GetMaterial(0);
 	}
 }
-void UUIMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UUIStaticMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (InVertexUVChanged)
 	{
@@ -152,12 +152,12 @@ void UUIMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 		auto tempVertexColorType = vertexColorType;
 		if (vertexBuffers.ColorVertexBuffer.VertexBufferRHI == nullptr)
 		{
-			tempVertexColorType = UIMeshVertexColorType::ReplaceByUIColor;
+			tempVertexColorType = UIStaticMeshVertexColorType::ReplaceByUIColor;
 		}
 
 		switch (tempVertexColorType)
 		{
-		case UIMeshVertexColorType::MultiplyWithUIColor:
+		case UIStaticMeshVertexColorType::MultiplyWithUIColor:
 		{
 			auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
 			if (numVertices > 0)
@@ -176,7 +176,7 @@ void UUIMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 			}
 		}
 		break;
-		case UIMeshVertexColorType::NotAffectByUIColor:
+		case UIStaticMeshVertexColorType::NotAffectByUIColor:
 		{
 			auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
 			if (numVertices > 0)
@@ -193,7 +193,7 @@ void UUIMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 			}
 		}
 		break;
-		case UIMeshVertexColorType::ReplaceByUIColor:
+		case UIStaticMeshVertexColorType::ReplaceByUIColor:
 		{
 			UIGeometry::UpdateUIColor(geometry, GetFinalColor());
 		}
@@ -205,7 +205,7 @@ void UUIMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 		//UIGeometry::UpdateUIMeshVertex(geometry, widget.width, widget.height, widget.pivot, startAngle, endAngle, segment);
 	}
 }
-void UUIMesh::SetMesh(UStaticMesh* value)
+void UUIStaticMesh::SetMesh(UStaticMesh* value)
 {
 	if (mesh != value)
 	{
@@ -214,7 +214,7 @@ void UUIMesh::SetMesh(UStaticMesh* value)
 		MarkMaterialDirty();
 	}
 }
-void UUIMesh::SetVertexColorType(UIMeshVertexColorType value)
+void UUIStaticMesh::SetVertexColorType(UIStaticMeshVertexColorType value)
 {
 	if (vertexColorType != value)
 	{
@@ -224,10 +224,10 @@ void UUIMesh::SetVertexColorType(UIMeshVertexColorType value)
 }
 
 
-AUIMeshActor::AUIMeshActor()
+AUIStaticMeshActor::AUIStaticMeshActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	UIMesh = CreateDefaultSubobject<UUIMesh>(TEXT("UIMeshComponent"));
-	RootComponent = UIMesh;
+	UIStaticMesh = CreateDefaultSubobject<UUIStaticMesh>(TEXT("UIStaticMeshComponent"));
+	RootComponent = UIStaticMesh;
 }
