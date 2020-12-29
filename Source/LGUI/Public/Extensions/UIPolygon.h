@@ -9,7 +9,7 @@
 
 
 UENUM(BlueprintType)
-enum class EUIPolygonUVType :uint8
+enum class UIPolygonUVType :uint8
 {
 	//Use full rect uv
 	SpriteRect,
@@ -40,7 +40,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int Sides = 3;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		EUIPolygonUVType UVType = EUIPolygonUVType::SpriteRect;
+		UIPolygonUVType UVType = UIPolygonUVType::SpriteRect;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(UIMin="0.0", UIMax="1.0"))
 		TArray<float> VertexOffsetArray;
 	

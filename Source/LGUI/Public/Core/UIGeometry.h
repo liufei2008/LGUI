@@ -134,11 +134,11 @@ private:
 #pragma region UISector
 public:
 	static void FromUIPolygon(float& width, float& height, const FVector2D& pivot
-		, float startAngle, float endAngle, int sides, EUIPolygonUVType uvType
+		, float startAngle, float endAngle, int sides, UIPolygonUVType uvType
 		, TArray<float>& vertexOffsetArray, bool fullCycle
 		, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
 		, bool requireNormal, bool requireTangent, bool requireUV1);
-	static void UpdateUIPolygonUV(float startAngle, float endAngle, int sides, EUIPolygonUVType uvType
+	static void UpdateUIPolygonUV(float startAngle, float endAngle, int sides, UIPolygonUVType uvType
 		, bool fullCycle
 		, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo);
 	static void UpdateUIPolygonVertex(float& width, float& height, const FVector2D& pivot
