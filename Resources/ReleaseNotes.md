@@ -330,3 +330,12 @@ UIBackgroundPixelate flipped.
 #### Modify:
 UIBackgroundBlur and UIBackgroundPixelate now become stable, but not support mobile.
 Simplify post process shader.
+## 2.10.0
+#### Modify:
+Rename UISector to UIPolygon, remake it so it is much handy now. (You may need UE's "redirect" if you use UISector before, but some properties may need to mannually setup)
+Remake UIRing, based on UI2DLineRenderer. Now UIRing and UI2DLine is more powerfull. (You may need UE's "redirect" if you use UIMesh before)
+Rename UIMesh to UIStaticMesh. (You may need UE's "redirect" if you use UIMesh before)
+#### NewFeature:
+Add UIPolygonLine, a line/frame version of UIPolygon.
+#### Fix:
+Fix a lot of bugs.

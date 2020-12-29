@@ -6,7 +6,7 @@
 
 DECLARE_DELEGATE_RetVal_FourParams(float, FLTweenFunction, float, float, float, float);
 
-// @param	Progress of this tween, from 0 to 1.
+/** @param Progress of this tween, from 0 to 1. */
 DECLARE_DELEGATE_OneParam(LTweenUpdateDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(LTweenUpdateMulticastDelegate, float);
 
@@ -50,13 +50,14 @@ DECLARE_DELEGATE_RetVal_TwoParams(bool, FLTweenMaterialScalarSetterFunction, int
 DECLARE_DELEGATE_RetVal_OneParam(bool, FLTweenMaterialVectorGetterFunction, FLinearColor&);
 DECLARE_DELEGATE_RetVal_TwoParams(bool, FLTweenMaterialVectorSetterFunction, int32, const FLinearColor&);
 
-//for blueprint callback
-
+/** for blueprint callback*/
 DECLARE_DYNAMIC_DELEGATE(FTweenerSimpleDynamicDelegate);
-//@param InProgress Progress of this tween, from 0 to 1
+/** @param InProgress Progress of this tween, from 0 to 1*/
 DECLARE_DYNAMIC_DELEGATE_OneParam(FTweenerFloatDynamicDelegate, float, InProgress);
 
-//animation curve type
+/**
+ * Animation curve type
+ */
 UENUM(BlueprintType)
 enum class LTweenEase :uint8
 {
@@ -88,22 +89,27 @@ enum class LTweenEase :uint8
 	InBounce		UMETA(DisplayName = "InBounce"),
 	OutBounce		UMETA(DisplayName = "OutBounce"),
 	InOutBounce		UMETA(DisplayName = "InOutBounce"),
-	//Use CurveFloat to animate, only range 0-1 is valid. If use this you must assign curveFloat, or fallback to Linear
+	/** Use CurveFloat to animate, only range 0-1 is valid. If use this you must assign curveFloat, or fallback to Linear. */
 	CurveFloat		UMETA(DisplayName = "CurveFloat"),
 };
-//loop type
+/**
+ * Loop type
+ */
 UENUM(BlueprintType)
 enum class LTweenLoop :uint8
 {
+	/** Play noce, not loop */
 	Once, 
+	/** Restart loop when complete */
 	Restart, 
+	/** Restart loop when complete, but reverse start/end value */
 	Yoyo, 
 };
 
 class UCurveFloat;
 
+/** Class for manage single tween */
 UCLASS(BlueprintType, Abstract)
-//class for manage single tween
 class LTWEEN_API ULTweener : public UObject
 {
 	GENERATED_BODY()
@@ -112,44 +118,44 @@ public:
 	ULTweener();
 
 protected:
-	//d, animation duration
+	/** d, animation duration */
 	float duration = 0.0f;
-	//delay time before animation start
+	/** delay time before animation start */
 	float delay = 0.0f;
-	//t, elapse time
+	/** t, elapse time */
 	float elapseTime = 0.0f;
-	//use CurveFloat as animation function,horizontal is time (0-1),vertical is value (0-1)
+	/** use CurveFloat as animation function,horizontal is time (0-1),vertical is value (0-1) */
 	UPROPERTY(Transient) UCurveFloat* curveFloat = nullptr;
-	//loop type
+	/** loop type */
 	LTweenLoop loopType = LTweenLoop::Once;
-	//if loopType = Yoyo, reverse time
+	/** if loopType = Yoyo, reverse time */
 	bool reverseTween = false;
-	//how many times is this animation loops
+	/** how many times is this animation loops. when loop type is Restart/Yoyo, every time the tween complete the loopCount will increase */
 	int32 loopCount = 0;
 
-	//if animation start play
+	/** if animation start play */
 	bool startToTween = false;
-	//tween function
+	/** tween function */
 	FLTweenFunction tweenFunc;
-	//
+	/** mark this tween for kill, so when the next update came, the tween will be killed */
 	bool isMarkedToKill = false;
-	//
+	/** mark this tween as pause, it will keep pause until call Resume() */
 	bool isMarkedPause = false;
 
-	//call once after animation complete. if use loop, this will call every time after complete in every cycle
+	/** call once after animation complete. if use loop, this will call every time after complete in every cycle */
 	FSimpleDelegate onCompleteCpp;
-	//call every frame after animation starts
+	/** call every frame after animation starts */
 	LTweenUpdateDelegate onUpdateCpp;
-	//call once when animation starts
+	/** call once when animation starts */
 	FSimpleDelegate onStartCpp;
 public:
-	//set animation curve type
+	/** set animation curve type */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetEase(LTweenEase easetype);
-	//use CurveFloat as animation function,horizontal is time (0-1),vertical is value (0-1)
+	/** use CurveFloat as animation function,horizontal is time (0-1),vertical is value (0-1) */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetEaseCurve(UCurveFloat* newCurve);
-	//delay start animation
+	/** delay start animation */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual ULTweener* SetDelay(float newDelay)
 	{
@@ -165,15 +171,20 @@ public:
 		this->loopType = newLoopType;
 		return this;
 	}
+	/**
+	 * How many times is this animation loops. 
+	 * When loop type is Restart/Yoyo, every time the tween complete the loopCount will increase.
+	 * Register a OnComplete callback and check loopCount, so we can limit the loop to a specific times.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		int32 GetLoopCount() { return loopCount; }
-	//finish animation callback function
+	/** finish animation callback function */
 	ULTweener* OnComplete(const FSimpleDelegate& newComplete)
 	{
 		this->onCompleteCpp = newComplete;
 		return this;
 	}
-	//finish animation callback function for blueprint
+	/** finish animation callback function for blueprint */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* OnComplete(const FTweenerSimpleDynamicDelegate& newComplete)
 	{
@@ -182,19 +193,19 @@ public:
 		});
 		return this;
 	}
-	//finish animation callback function for lambda
+	/** finish animation callback function for lambda */
 	ULTweener* OnComplete(const TFunction<void()>& newComplete)
 	{
 		this->onCompleteCpp.BindLambda(newComplete);
 		return this;
 	}
-	//execute every frame if animation is playing
+	/** execute every frame if animation is playing */
 	ULTweener* OnUpdate(const LTweenUpdateDelegate& newUpdate)
 	{
 		this->onUpdateCpp = newUpdate;
 		return this;
 	}
-	//execute every frame if animation is playing, blueprint version
+	/** execute every frame if animation is playing, blueprint version*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* OnUpdate(const FTweenerFloatDynamicDelegate& newUpdate)
 	{
@@ -203,19 +214,19 @@ public:
 		});
 		return this;
 	}
-	//execute every frame if animation is playing, lambda version
+	/** execute every frame if animation is playing, lambda version*/
 	ULTweener* OnUpdate(const TFunction<void(float)>& newUpdate)
 	{
 		this->onUpdateCpp.BindLambda(newUpdate);
 		return this;
 	}
-	//execute when animation start
+	/** execute when animation start*/
 	ULTweener* OnStart(const FSimpleDelegate& newStart)
 	{
 		this->onStartCpp = newStart;
 		return this;
 	}
-	//execute when animation start, blueprint version
+	/** execute when animation start, blueprint version*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* OnStart(const FTweenerSimpleDynamicDelegate& newStart)
 	{
@@ -224,13 +235,16 @@ public:
 		});
 		return this;
 	}
-	//execute when animation start, lambda version
+	/** execute when animation start, lambda version*/
 	ULTweener* OnStart(const TFunction<void()>& newStart)
 	{
 		this->onStartCpp.BindLambda(newStart);
 		return this;
 	}
-	//set CurveFloat as animation curve
+	/**
+	 * Make sure ease type is CurveFloat. (Call SetEase function to set ease type)
+	 * Set CurveFloat as animation curve.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetCurveFloat(UCurveFloat* newCurveFloat)
 	{
@@ -239,19 +253,19 @@ public:
 	}
 
 	virtual bool ToNext(float deltaTime);
-	//force stop this animation. if callComplete = true, OnComplete will call after stop
+	/** Force stop this animation. if callComplete = true, OnComplete will call after stop*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual void Kill(bool callComplete = false);
-	//force complete this animation at this frame, call OnComplete
+	/** Force complete this animation at this frame, call OnComplete*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		virtual void ForceComplete();
-	//pause this animation
+	/** pause this animation*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		void Pause()
 	{
 		isMarkedPause = true;
 	}
-	//resume animation after pause
+	/** resume animation after pause*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		void Resume()
 	{
@@ -259,9 +273,9 @@ public:
 	}
 
 protected:
-	//get value when start. child class must override this, check LTweenerFloat for reference
+	/** get value when start. child class must override this, check LTweenerFloat for reference */
 	virtual void OnStartGetValue() PURE_VIRTUAL(ULTweener::OnStartGetValue, );
-	//set value when tweening. child class must override this, check LTweenerFloat for reference
+	/** set value when tweening. child class must override this, check LTweenerFloat for reference */
 	virtual void TweenAndApplyValue() PURE_VIRTUAL(ULTweener::TweenAndApplyValue, );
 #pragma region tweenFunctions
 public:
@@ -488,7 +502,7 @@ public:
 		if (t < d * 0.5f) return InBounce(t * 2, 0, c, d) * .5f + b;
 		else return OutBounce(t * 2 - d, 0, c, d) * .5f + c*.5f + b;
 	}
-	//Tween use CurveFloat, in range of 0-1. if curveFloat is null, fallback to Linear
+	/** Tween use CurveFloat, in range of 0-1. if curveFloat is null, fallback to Linear */
 	float CurveFloat(float c, float b, float t, float d);
 #pragma endregion
 };
