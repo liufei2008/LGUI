@@ -54,11 +54,12 @@
 #include "Extensions/UIFlyoutMenu.h"
 #include "Extensions/ViewportUITexture.h"
 #include "Extensions/UIRing.h"
-#include "Extensions/UISector.h"
+#include "Extensions/UIPolygon.h"
+#include "Extensions/UIPolygonLine.h"
+#include "Extensions/UIStaticMesh.h"
 #include "Extensions/2DLineRenderer/UI2DLineChildrenAsPoints.h"
 #include "Extensions/2DLineRenderer/UI2DLineRaw.h"
 #include "Extensions/2DLineRenderer/UI2DLineRendererBase.h"
-#include "Extensions/2DLineRenderer/UI2dLineRing.h"
 
 #include "GeometryModifier/UIEffectGradientColor.h"
 #include "GeometryModifier/UIEffectLongShadow.h"
@@ -95,7 +96,10 @@
 
 #include "PrefabSystem/ActorCopier.h"
 #include "PrefabSystem/ActorSerializer.h"
+#include "PrefabSystem/ActorReplaceTool.h"
+#include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 
 #include "Utils/BitConverter.h"
 #include "Utils/LGUIUtils.h"
