@@ -63,7 +63,10 @@ protected:
 		float temp = A.X * B.Y - B.X * A.Y;
 		return temp < 0;
 	}
-	void GenerateLinePoint(const FVector2D& InCurrentPoint, const FVector2D& InPrevPoint, const FVector2D& InNextPoint, float InLineLeftWidth, float InLineRightWidth, FVector2D& OutPosA, FVector2D& OutPosB);
+	void GenerateLinePoint(const FVector2D& InCurrentPoint, const FVector2D& InPrevPoint, const FVector2D& InNextPoint
+		, float InLineLeftWidth, float InLineRightWidth
+		, FVector2D& OutPosA, FVector2D& OutPosB
+		, FVector2D& InOutPrevLineDir);
 	void Generate2DLineGeometry(const TArray<FVector2D>& InPointArray);
 	FORCEINLINE bool CanConnectStartEndPoint(int InPointCount) { return EndType == EUI2DLineRenderer_EndType::ConnectStartAndEnd && InPointCount >= 3; }
 	void Update2DLineRendererBaseUV(const TArray<FVector2D>& InPointArray);

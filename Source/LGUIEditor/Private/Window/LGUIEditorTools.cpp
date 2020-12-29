@@ -181,14 +181,16 @@ void ULGUIEditorToolsAgentObject::CreateUIItemActor(UClass* ActorClass)
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
 	auto selectedActor = GetFirstSelectedActor();
-	AActor* newActor = nullptr;
-	newActor = GetWorldFromSelection()->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
-	if (selectedActor != nullptr)
+	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
+	if (IsValid(newActor))
 	{
-		newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
-		GEditor->SelectActor(selectedActor, false, true);
+		if (selectedActor != nullptr)
+		{
+			newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
+			GEditor->SelectActor(selectedActor, false, true);
+		}
+		GEditor->SelectActor(newActor, true, true);
 	}
-	GEditor->SelectActor(newActor, true, true);
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
@@ -197,25 +199,27 @@ void ULGUIEditorToolsAgentObject::CreateEmptyActor()
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
 	auto selectedActor = GetFirstSelectedActor();
-	AActor* newActor = nullptr;
-	newActor = GetWorldFromSelection()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
-	//create SceneComponent
+	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
+	if (IsValid(newActor))
 	{
-		USceneComponent* RootComponent = NewObject<USceneComponent>(newActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
-		RootComponent->Mobility = EComponentMobility::Movable;
-		RootComponent->bVisualizeComponent = false;
+		//create SceneComponent
+		{
+			USceneComponent* RootComponent = NewObject<USceneComponent>(newActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
+			RootComponent->Mobility = EComponentMobility::Movable;
+			RootComponent->bVisualizeComponent = false;
 
-		newActor->SetRootComponent(RootComponent);
-		newActor->AddInstanceComponent(RootComponent);
+			newActor->SetRootComponent(RootComponent);
+			newActor->AddInstanceComponent(RootComponent);
 
-		RootComponent->RegisterComponent();
+			RootComponent->RegisterComponent();
+		}
+		if (selectedActor != nullptr)
+		{
+			newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
+			GEditor->SelectActor(selectedActor, false, true);
+		}
+		GEditor->SelectActor(newActor, true, true);
 	}
-	if (selectedActor != nullptr)
-	{
-		newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
-		GEditor->SelectActor(selectedActor, false, true);
-	}
-	GEditor->SelectActor(newActor, true, true);
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
@@ -623,13 +627,21 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 				UPackage::SavePackage(package, OutPrefab, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *packageSavePath);
 
 				auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabActor>(ALGUIPrefabActor::StaticClass(), FTransform::Identity);
-				prefabActor->SetActorLabel(fileName);
-				auto prefabComp = prefabActor->GetPrefabComponent();
-				prefabComp->PrefabAsset = OutPrefab;
-				prefabComp->LoadedRootActor = selectedActor;
-				LGUIUtils::CollectChildrenActors(selectedActor, prefabComp->AllLoadedActorArray);
-				prefabActor->FinishSpawning(FTransform::Identity, true);
-				prefabComp->SavePrefab();
+				if (IsValid(prefabActor))
+				{
+					prefabActor->SetActorLabel(fileName);
+					auto prefabComp = prefabActor->GetPrefabComponent();
+					prefabComp->PrefabAsset = OutPrefab;
+					prefabComp->LoadedRootActor = selectedActor;
+					LGUIUtils::CollectChildrenActors(selectedActor, prefabComp->AllLoadedActorArray);
+					prefabActor->FinishSpawning(FTransform::Identity, true);
+					prefabComp->SavePrefab();
+				}
+				else
+				{
+					FMessageDialog::Open(EAppMsgType::Ok
+						, FText::FromString(FString::Printf(TEXT("Prefab spawn failed! Is there any missing class referenced by prefab?"))));
+				}
 			}
 			else
 			{

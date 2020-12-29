@@ -3482,29 +3482,64 @@ void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign
 #pragma endregion
 
 #pragma region UISector
-void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, uint8 uvType, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
+void UIGeometry::FromUIPolygon(float& width, float& height, const FVector2D& pivot
+	, float startAngle, float endAngle, int sides, EUIPolygonUVType uvType
+	, TArray<float>& vertexOffsetArray, bool fullCycle
+	, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
+	, bool requireNormal, bool requireTangent, bool requireUV1)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
 	if (triangles.Num() == 0)
 	{
-		uiGeo->originTriangleCount = (segment + 1) * 3;
+		uiGeo->originTriangleCount = sides * 3;
 		triangles.AddUninitialized(uiGeo->originTriangleCount);
 		int index = 0;
-		for (int i = 0; i < segment + 1; i++)
+		if (fullCycle)
 		{
+			for (int i = 0; i < sides - 1; i++)
+			{
+				triangles[index++] = 0;
+				triangles[index++] = i + 1;
+				triangles[index++] = i + 2;
+			}
 			triangles[index++] = 0;
-			triangles[index++] = i + 1;
-			triangles[index++] = i + 2;
+			triangles[index++] = sides;
+			triangles[index++] = 1;
+		}
+		else
+		{
+			for (int i = 0; i < sides; i++)
+			{
+				triangles[index++] = 0;
+				triangles[index++] = i + 1;
+				triangles[index++] = i + 2;
+			}
 		}
 	}
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
 	{
-		int vertexCount = 2 + segment + 1;
+		int vertexCount = (fullCycle ? 1 : 2) + sides;
 		uiGeo->originVerticesCount = vertexCount;
 		vertices.SetNumUninitialized(vertexCount);
+	}
+	//vert offset
+	int vertexOffsetCount = fullCycle ? sides : (sides + 1);
+	if (vertexOffsetArray.Num() != vertexOffsetCount)
+	{
+		if (vertexOffsetArray.Num() > vertexOffsetCount)
+		{
+			vertexOffsetArray.SetNumUninitialized(vertexOffsetCount);
+		}
+		else
+		{
+			for (int i = vertexOffsetArray.Num(); i < vertexOffsetCount; i++)
+			{
+				vertexOffsetArray.Add(1.0f);
+			}
+		}
 	}
 	//positions
 	auto& originPositions = uiGeo->originPositions;
@@ -3512,13 +3547,13 @@ void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivo
 	{
 		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
 	}
-	UpdateUISectorVertex(uiGeo, width, height, pivot, startAngle, endAngle, segment);
+	UpdateUIPolygonVertex(width, height, pivot, startAngle, endAngle, sides, vertexOffsetArray, fullCycle, uiGeo);
 	//uvs
-	UpdateUISectorUV(uiGeo, uvType, startAngle, endAngle, segment, spriteInfo);
+	UpdateUIPolygonUV(startAngle, endAngle, sides, uvType, fullCycle, uiGeo, spriteInfo);
 	//colors
 	UpdateUIColor(uiGeo, color);
 
-	int vertexCount = 2 + segment + 1;
+	int vertexCount = uiGeo->originVerticesCount;
 	//normals
 	if (requireNormal)
 	{
@@ -3554,13 +3589,18 @@ void UIGeometry::FromUISector(float& width, float& height, const FVector2D& pivo
 		}
 	}
 }
-void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, const FLGUISpriteInfo& spriteInfo)
+void UIGeometry::UpdateUIPolygonUV(float startAngle, float endAngle, int sides, EUIPolygonUVType uvType
+	, bool fullCycle
+	, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo)
 {
 	auto& vertices = uiGeo->vertices;
 	int vertexCount = uiGeo->originVerticesCount;
-	if(uvType == 0)
+	switch (uvType)
 	{
-		float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / (segment + 1));
+	case EUIPolygonUVType::SpriteRect:
+	{
+		if (fullCycle)endAngle = startAngle + 360.0f;
+		float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / sides);
 		float angle = FMath::DegreesToRadians(startAngle);
 
 		float sin = FMath::Sin(angle);
@@ -3575,7 +3615,8 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 		float y = centerUVY;
 		vertices[0].TextureCoordinate[0] = FVector2D(x, y);
 
-		for (int i = 0; i < segment + 2; i++)
+		int count = fullCycle ? sides : (sides + 1);
+		for (int i = 0; i < count; i++)
 		{
 			sin = FMath::Sin(angle);
 			cos = FMath::Cos(angle);
@@ -3585,16 +3626,8 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 			angle += singleAngle;
 		}
 	}
-	else if(uvType == 1)
-	{
-		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
-		FVector2D otherUV(spriteInfo.uv3X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
-		for (int i = 1; i < vertexCount; i++)
-		{
-			vertices[i].TextureCoordinate[0] = otherUV;
-		}
-	}
-	else if (uvType == 2)
+	break;
+	case EUIPolygonUVType::HeightCenter:
 	{
 		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv0Y);
 		FVector2D otherUV((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv3Y);
@@ -3603,30 +3636,28 @@ void UIGeometry::UpdateUISectorUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, fl
 			vertices[i].TextureCoordinate[0] = otherUV;
 		}
 	}
-	else if (uvType == 3)
+	break;
+	case EUIPolygonUVType::StretchSpriteHeight:
 	{
 		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
-		float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (vertexCount - 1);
-		FVector2D otherUV(spriteInfo.uv3X, spriteInfo.uv0Y);
+		float uvX = spriteInfo.uv3X;
+		float uvY = spriteInfo.uv0Y;
+		float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (vertexCount - 2);
 		for (int i = 1; i < vertexCount; i++)
 		{
-			vertices[i].TextureCoordinate[0] = otherUV;
-			otherUV.Y += uvYInterval;
+			auto& uv = vertices[i].TextureCoordinate[0];
+			uv.X = uvX;
+			uv.Y = uvY;
+			uvY += uvYInterval;
 		}
 	}
-	else if (uvType == 4)
-	{
-		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv0Y);
-		float uvXInterval = (spriteInfo.uv3X - spriteInfo.uv0X) / (vertexCount - 1);
-		FVector2D otherUV(spriteInfo.uv0X, spriteInfo.uv3Y);
-		for (int i = 1; i < vertexCount; i++)
-		{
-			vertices[i].TextureCoordinate[0] = otherUV;
-			otherUV.X += uvXInterval;
-		}
+	break;
 	}
 }
-void UIGeometry::UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment)
+void UIGeometry::UpdateUIPolygonVertex(float& width, float& height, const FVector2D& pivot
+	, float startAngle, float endAngle, int sides
+	, const TArray<float>& vertexOffsetArray, bool fullCycle
+	, TSharedPtr<UIGeometry> uiGeo)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
@@ -3635,12 +3666,13 @@ void UIGeometry::UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width
 	auto& originPositions = uiGeo->originPositions;
 	if (originPositions.Num() == 0)
 	{
-		int vertexCount = 2 + segment + 1;
+		int vertexCount = (fullCycle ? 1 : 2) + sides;
 		uiGeo->originVerticesCount = vertexCount;
 		originPositions.AddUninitialized(vertexCount);
 	}
 
-	float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / (segment + 1));
+	if (fullCycle)endAngle = startAngle + 360.0f;
+	float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / sides);
 	float angle = FMath::DegreesToRadians(startAngle);
 
 	float sin = FMath::Sin(angle);
@@ -3649,246 +3681,23 @@ void UIGeometry::UpdateUISectorVertex(TSharedPtr<UIGeometry> uiGeo, float& width
 	float x = pivotOffsetX;
 	float y = pivotOffsetY;
 	originPositions[0] = FVector(x, y, 0);
-	x = cos * halfW + pivotOffsetX;
-	y = sin * halfH + pivotOffsetY;
-	originPositions[1] = FVector(x, y, 0);
 
-	for (int i = 0; i < segment + 1; i++)
+	for (int i = 0, count = sides; i < count; i++)
 	{
-		angle += singleAngle;
 		sin = FMath::Sin(angle);
 		cos = FMath::Cos(angle);
-		x = cos * halfW + pivotOffsetX;
-		y = sin * halfH + pivotOffsetY;
-		originPositions[i + 2] = FVector(x, y, 0);
-	}
-}
-#pragma endregion
-
-#pragma region UIRing
-void UIGeometry::FromUIRing(float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, uint8 uvType, FColor color, float ringWidth, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool requireNormal, bool requireTangent, bool requireUV1)
-{
-	//triangles
-	auto& triangles = uiGeo->triangles;
-	if (triangles.Num() == 0)
-	{
-		uiGeo->originTriangleCount = (segment + 1) * 2 * 3;
-		triangles.AddUninitialized(uiGeo->originTriangleCount);
-		for (int i = 0; i < segment + 1; i++)
-		{
-			int k = i * 6;
-			int j = i * 2;
-			triangles[k] = j;
-			triangles[k + 1] = j + 3;
-			triangles[k + 2] = j + 2;
-
-			triangles[k + 3] = j;
-			triangles[k + 4] = j + 1;
-			triangles[k + 5] = j + 3;
-		}
-	}
-	//vertices
-	auto& vertices = uiGeo->vertices;
-	if (vertices.Num() == 0)
-	{
-		int vertexCount = 2 + (segment + 1) * 2;
-		uiGeo->originVerticesCount = vertexCount;
-		vertices.AddUninitialized(vertexCount);
-	}
-	//positions
-	auto& originPositions = uiGeo->originPositions;
-	if (originPositions.Num() == 0)
-	{
-		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
-	}
-	UpdateUIRingVertex(uiGeo, width, height, pivot, startAngle, endAngle, segment, ringWidth);
-	//uvs
-	UpdateUIRingUV(uiGeo, uvType, startAngle, endAngle, segment, ringWidth, width, height, spriteInfo);
-	//colors
-	UpdateUIColor(uiGeo, color);
-
-	int vertexCount = 2 + (segment + 1) * 2;
-	//normals
-	if (requireNormal)
-	{
-		auto& normals = uiGeo->originNormals;
-		if (normals.Num() == 0)
-		{
-			normals.Reserve(vertexCount);
-			for (int i = 0; i < vertexCount; i++)
-			{
-				normals.Add(FVector(0, 0, -1));
-			}
-		}
-	}
-	//tangents
-	if (requireTangent)
-	{
-		auto& tangents = uiGeo->originTangents;
-		if (tangents.Num() == 0)
-		{
-			tangents.Reserve(vertexCount);
-			for (int i = 0; i < vertexCount; i++)
-			{
-				tangents.Add(FVector(1, 0, 0));
-			}
-		}
-	}
-	//uv1
-	if (requireUV1)
-	{
-		for (int i = 0; i < vertexCount; i++)
-		{
-			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
-		}
-	}
-}
-void UIGeometry::UpdateUIRingUV(TSharedPtr<UIGeometry> uiGeo, uint8 uvType, float startAngle, float endAngle, uint8 segment, float ringWidth, float& width, float& height, const FLGUISpriteInfo& spriteInfo)
-{
-	auto& vertices = uiGeo->vertices;
-	int vertexCount = uiGeo->originVerticesCount;
-	if (uvType == 0)
-	{
-		float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / (segment + 1));
-		float angle = FMath::DegreesToRadians(startAngle);
-
-		float sin = FMath::Sin(angle);
-		float cos = FMath::Cos(angle);
-
-		float halfUVWidth = (spriteInfo.uv3X - spriteInfo.uv0X) * 0.5f;
-		float halfUVHeight = (spriteInfo.uv3Y - spriteInfo.uv0Y) * 0.5f;
-		float centerUVX = (spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f;
-		float centerUVY = (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f;
-
-		float halfW = width * 0.5f;
-		float halfH = height * 0.5f;
-		float minHalfWRatio = (halfW - ringWidth) / halfW;
-		float minHalfHRatio = (halfH - ringWidth) / halfH;
-		float x = cos * halfUVWidth * minHalfWRatio + centerUVX;
-		float y = sin * halfUVHeight * minHalfHRatio + centerUVY;
-		vertices[0].TextureCoordinate[0] = FVector2D(x, y);
-		x = cos * halfUVWidth + centerUVX;
-		y = sin * halfUVHeight + centerUVY;
-		vertices[1].TextureCoordinate[0] = FVector2D(x, y);
-
-		for (int i = 0; i < segment + 1; i++)
-		{
-			angle += singleAngle;
-			sin = FMath::Sin(angle);
-			cos = FMath::Cos(angle);
-			x = cos * halfUVWidth * minHalfWRatio + centerUVX;
-			y = sin * halfUVHeight * minHalfHRatio + centerUVY;
-			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(x, y);
-			x = cos * halfUVWidth + centerUVX;
-			y = sin * halfUVHeight + centerUVY;
-			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(x, y);
-		}
-	}
-	else if (uvType == 1)
-	{
-		float centerUVX = (spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f;
-
-		float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (segment + 1);
-		float uvY = spriteInfo.uv0Y;
-		vertices[0].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
-		vertices[1].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
-		for (int i = 0; i < segment + 1; i++)
-		{
-			uvY += uvYInterval;
-			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
-			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(centerUVX, uvY);
-		}
-	}
-	else if (uvType == 2)
-	{
-		float centerUVY = (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f;
-
-		float uvXInterval = (spriteInfo.uv3X - spriteInfo.uv0X) / (segment + 1);
-		float uvX = spriteInfo.uv0X;
-		vertices[0].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
-		vertices[1].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
-		for (int i = 0; i < segment + 1; i++)
-		{
-			uvX += uvXInterval;
-			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
-			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(uvX, centerUVY);
-		}
-	}
-	else if (uvType == 3)
-	{
-		float innerUVX = spriteInfo.uv0X;
-		float outerUVX = spriteInfo.uv3X;
-
-		float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (segment + 1);
-		float uvY = spriteInfo.uv0Y;
-
-		vertices[0].TextureCoordinate[0] = FVector2D(innerUVX, uvY);
-		vertices[1].TextureCoordinate[0] = FVector2D(outerUVX, uvY);
-		for (int i = 0; i < segment + 1; i++)
-		{
-			uvY += uvYInterval;
-			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(innerUVX, uvY);
-			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(outerUVX, uvY);
-		}
-	}
-	else if (uvType == 4)
-	{
-		float innerUVY = spriteInfo.uv0Y;
-		float outerUVY = spriteInfo.uv3Y;
-
-		float uvXInterval = (spriteInfo.uv3X - spriteInfo.uv0X) / (segment + 1);
-		float uvX = spriteInfo.uv0X;
-
-		vertices[0].TextureCoordinate[0] = FVector2D(uvX, innerUVY);
-		vertices[1].TextureCoordinate[0] = FVector2D(uvX, outerUVY);
-		for (int i = 0; i < segment + 1; i++)
-		{
-			uvX += uvXInterval;
-			vertices[i * 2 + 2].TextureCoordinate[0] = FVector2D(uvX, innerUVY);
-			vertices[i * 2 + 3].TextureCoordinate[0] = FVector2D(uvX, outerUVY);
-		}
-	}
-}
-void UIGeometry::UpdateUIRingVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, float startAngle, float endAngle, uint8 segment, float ringWidth)
-{
-	//pivot offset
-	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
-	//vertices
-	auto& originPositions = uiGeo->originPositions;
-	if (originPositions.Num() == 0)
-	{
-		int vertexCount = 2 + (segment + 1) * 2;
-		uiGeo->originVerticesCount = vertexCount;
-		originPositions.AddUninitialized(vertexCount);
-	}
-
-	float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / (segment + 1));
-	float angle = FMath::DegreesToRadians(startAngle);
-	float minHalfW = halfW - ringWidth;
-	float minHalfH = halfH - ringWidth;
-
-	float sin = FMath::Sin(angle);
-	float cos = FMath::Cos(angle);
-
-	float x = cos * minHalfW + pivotOffsetX;
-	float y = sin * minHalfH + pivotOffsetY;
-	originPositions[0] = FVector(x, y, 0);
-	x = cos * halfW + pivotOffsetX;
-	y = sin * halfH + pivotOffsetY;
-	originPositions[1] = FVector(x, y, 0);
-
-	for (int i = 0; i < (segment + 1); i++)
-	{
+		x = cos * halfW * vertexOffsetArray[i] + pivotOffsetX;
+		y = sin * halfH * vertexOffsetArray[i] + pivotOffsetY;
+		originPositions[i + 1] = FVector(x, y, 0);
 		angle += singleAngle;
+	}
+	if (!fullCycle)
+	{
 		sin = FMath::Sin(angle);
 		cos = FMath::Cos(angle);
-		x = cos * minHalfW + pivotOffsetX;
-		y = sin * minHalfH + pivotOffsetY;
-		originPositions[i * 2 + 2] = FVector(x, y, 0);
-		x = cos * halfW + pivotOffsetX;
-		y = sin * halfH + pivotOffsetY;
-		originPositions[i * 2 + 3] = FVector(x, y, 0);
+		x = cos * halfW * vertexOffsetArray[sides] + pivotOffsetX;
+		y = sin * halfH * vertexOffsetArray[sides] + pivotOffsetY;
+		originPositions[sides + 1] = FVector(x, y, 0);
 	}
 }
 #pragma endregion

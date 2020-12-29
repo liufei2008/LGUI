@@ -87,10 +87,11 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	FVector2D pos0, pos1;
 	float lineLeftWidth = LineWidth * LineWidthOffset;
 	float lineRightWidth = LineWidth * (1.0f - LineWidthOffset);
+	FVector2D prevLineDir = CacheStartPointDirection;
 	
 	if (CanConnectStartEndPoint(pointCount))
 	{
-		GenerateLinePoint(InPointArray[0], InPointArray[pointCount - 1], InPointArray[1], lineLeftWidth, lineRightWidth, pos0, pos1);
+		GenerateLinePoint(InPointArray[0], InPointArray[pointCount - 1], InPointArray[1], lineLeftWidth, lineRightWidth, pos0, pos1, prevLineDir);
 		originPositions[0] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
 		originPositions[1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
 	}
@@ -118,6 +119,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 				CacheStartPointDirection = dir;
 			}
 		}
+		prevLineDir = dir;
 		widthDir = FVector2D(dir.Y, -dir.X);//rotate 90 degree
 
 		pos0 = v0 + lineLeftWidth * widthDir;
@@ -147,7 +149,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		for (; i < pointCount - 1; i++)
 		{
 			FVector2D posA, posB;
-			GenerateLinePoint(InPointArray[i], InPointArray[i - 1], InPointArray[i + 1], lineLeftWidth, lineRightWidth, posA, posB);
+			GenerateLinePoint(InPointArray[i], InPointArray[i - 1], InPointArray[i + 1], lineLeftWidth, lineRightWidth, posA, posB, prevLineDir);
 			originPositions[i + i] = FVector(posA.X + pivotOffsetX, posA.Y + pivotOffsetY, 0);
 			originPositions[i + i + 1] = FVector(posB.X + pivotOffsetX, posB.Y + pivotOffsetY, 0);
 		}
@@ -157,7 +159,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	if (CanConnectStartEndPoint(pointCount))
 	{
 		FVector2D posA, posB;
-		GenerateLinePoint(InPointArray[pointCount - 1], InPointArray[pointCount - 2], InPointArray[0], lineLeftWidth, lineRightWidth, posA, posB);
+		GenerateLinePoint(InPointArray[pointCount - 1], InPointArray[pointCount - 2], InPointArray[0], lineLeftWidth, lineRightWidth, posA, posB, prevLineDir);
 		originPositions[i2] = FVector(posA.X + pivotOffsetX, posA.Y + pivotOffsetY, 0);
 		originPositions[i2 + 1] = FVector(posB.X + pivotOffsetX, posB.Y + pivotOffsetY, 0);
 	}
@@ -186,7 +188,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 				v1to2.ToDirectionAndLength(dir, magnitude);
 				if (magnitude < KINDA_SMALL_NUMBER)//the two points are too close
 				{
-					dir = CacheStartPointDirection;
+					dir = prevLineDir;
 					widthDir = FVector2D(dir.Y, -dir.X);
 				}
 			}
@@ -322,18 +324,23 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 	}
 }
 
-void UUI2DLineRendererBase::GenerateLinePoint(const FVector2D& InCurrentPoint, const FVector2D& InPrevPoint, const FVector2D& InNextPoint, float InLineLeftWidth, float InLineRightWidth, FVector2D& OutPosA, FVector2D& OutPosB)
+void UUI2DLineRendererBase::GenerateLinePoint(const FVector2D& InCurrentPoint, const FVector2D& InPrevPoint, const FVector2D& InNextPoint
+	, float InLineLeftWidth, float InLineRightWidth
+	, FVector2D& OutPosA, FVector2D& OutPosB
+	, FVector2D& InOutPrevLineDir)
 {
 	if (InCurrentPoint == InPrevPoint || InCurrentPoint == InNextPoint)
 	{
-		OutPosA = InCurrentPoint;
-		OutPosB = InCurrentPoint;
+		auto itemNormal = FVector2D(InOutPrevLineDir.Y, -InOutPrevLineDir.X);
+		OutPosA = InCurrentPoint + InLineLeftWidth * itemNormal;
+		OutPosB = InCurrentPoint - InLineRightWidth * itemNormal;
 		return;
 	}
 	FVector2D normalizedV1 = (InPrevPoint - InCurrentPoint).GetSafeNormal();
 	FVector2D normalizedV2 = (InNextPoint - InCurrentPoint).GetSafeNormal();
 	if (normalizedV1 == -normalizedV2)
 	{
+		InOutPrevLineDir = normalizedV2;
 		auto itemNormal = FVector2D(normalizedV2.Y, -normalizedV2.X);
 		OutPosA = InCurrentPoint + InLineLeftWidth * itemNormal;
 		OutPosB = InCurrentPoint - InLineRightWidth * itemNormal;
@@ -352,6 +359,7 @@ void UUI2DLineRendererBase::GenerateLinePoint(const FVector2D& InCurrentPoint, c
 		itemNormal = AngleLargerThanPi(normalizedV1, normalizedV2) ? -itemNormal : itemNormal;
 		OutPosA = InCurrentPoint + InLineLeftWidth / sin * itemNormal;
 		OutPosB = InCurrentPoint - InLineRightWidth / sin * itemNormal;
+		InOutPrevLineDir = normalizedV2;
 	}
 }
 
