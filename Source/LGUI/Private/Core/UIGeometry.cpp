@@ -3483,7 +3483,7 @@ void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign
 
 #pragma region UISector
 void UIGeometry::FromUIPolygon(float& width, float& height, const FVector2D& pivot
-	, float startAngle, float endAngle, int sides, EUIPolygonUVType uvType
+	, float startAngle, float endAngle, int sides, UIPolygonUVType uvType
 	, TArray<float>& vertexOffsetArray, bool fullCycle
 	, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
 	, bool requireNormal, bool requireTangent, bool requireUV1)
@@ -3589,7 +3589,7 @@ void UIGeometry::FromUIPolygon(float& width, float& height, const FVector2D& piv
 		}
 	}
 }
-void UIGeometry::UpdateUIPolygonUV(float startAngle, float endAngle, int sides, EUIPolygonUVType uvType
+void UIGeometry::UpdateUIPolygonUV(float startAngle, float endAngle, int sides, UIPolygonUVType uvType
 	, bool fullCycle
 	, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo)
 {
@@ -3597,7 +3597,7 @@ void UIGeometry::UpdateUIPolygonUV(float startAngle, float endAngle, int sides, 
 	int vertexCount = uiGeo->originVerticesCount;
 	switch (uvType)
 	{
-	case EUIPolygonUVType::SpriteRect:
+	case UIPolygonUVType::SpriteRect:
 	{
 		if (fullCycle)endAngle = startAngle + 360.0f;
 		float singleAngle = FMath::DegreesToRadians((endAngle - startAngle) / sides);
@@ -3627,7 +3627,7 @@ void UIGeometry::UpdateUIPolygonUV(float startAngle, float endAngle, int sides, 
 		}
 	}
 	break;
-	case EUIPolygonUVType::HeightCenter:
+	case UIPolygonUVType::HeightCenter:
 	{
 		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv0Y);
 		FVector2D otherUV((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv3Y);
@@ -3637,7 +3637,7 @@ void UIGeometry::UpdateUIPolygonUV(float startAngle, float endAngle, int sides, 
 		}
 	}
 	break;
-	case EUIPolygonUVType::StretchSpriteHeight:
+	case UIPolygonUVType::StretchSpriteHeight:
 	{
 		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
 		float uvX = spriteInfo.uv3X;

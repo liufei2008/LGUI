@@ -4,10 +4,10 @@
 
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/Actor/UIBaseActor.h"
-#include "UIMesh.generated.h"
+#include "UIStaticMesh.generated.h"
 
 UENUM(BlueprintType)
-enum class UIMeshVertexColorType :uint8
+enum class UIStaticMeshVertexColorType :uint8
 {
 	//Multiply mesh's vertex color with LGUI's color parameter
 	MultiplyWithUIColor,
@@ -16,20 +16,22 @@ enum class UIMeshVertexColorType :uint8
 	//Use mesh's vertex color only, not consider LGUI's color parameter
 	NotAffectByUIColor,
 };
-//render a StaticMesh as UI element
-UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIMesh : public UUIRenderable
+/**
+ * render a StaticMesh as UI element
+ */
+UCLASS(ClassGroup = (LGUI), Blueprintable, Experimental, meta = (BlueprintSpawnableComponent))
+class LGUI_API UUIStaticMesh : public UUIRenderable
 {
 	GENERATED_BODY()
 
 public:	
-	UUIMesh(const FObjectInitializer& ObjectInitializer);
+	UUIStaticMesh(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UStaticMesh* mesh;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UIMeshVertexColorType vertexColorType = UIMeshVertexColorType::MultiplyWithUIColor;
+		UIStaticMeshVertexColorType vertexColorType = UIStaticMeshVertexColorType::MultiplyWithUIColor;
 	
 	virtual bool HaveDataToCreateGeometry()override;
 	virtual bool NeedTextureToCreateGeometry()override { return false; }
@@ -40,26 +42,26 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 
 		UStaticMesh* GetMesh()const { return mesh; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UIMeshVertexColorType GetVertexColorType()const { return vertexColorType; }
+		UIStaticMeshVertexColorType GetVertexColorType()const { return vertexColorType; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMesh(UStaticMesh* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetVertexColorType(UIMeshVertexColorType value);
+		void SetVertexColorType(UIStaticMeshVertexColorType value);
 };
 
 UCLASS()
-class LGUI_API AUIMeshActor : public AUIBaseActor
+class LGUI_API AUIStaticMeshActor : public AUIBaseActor
 {
 	GENERATED_BODY()
 
 public:
-	AUIMeshActor();
+	AUIStaticMeshActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIMesh; }
-	FORCEINLINE UUIMesh* GetUIMesh()const { return UIMesh; }
+	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIStaticMesh; }
+	FORCEINLINE UUIStaticMesh* GetUIStaticMesh()const { return UIStaticMesh; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class UUIMesh* UIMesh;
+		class UUIStaticMesh* UIStaticMesh;
 
 };
