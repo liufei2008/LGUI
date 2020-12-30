@@ -6,7 +6,10 @@
 #include "Components/ActorComponent.h"
 #include "LGUIBaseInputModule.generated.h"
 
-//only one InputModule is valid in the same time. so if multiple InputModule is activated, then the latest one is valid.
+/**
+ * This is the place for handling inputs.
+ * Only one InputModule is valid in the same time. so if multiple InputModule is activate, then the last one will be deactivate.
+ */
 UCLASS(Abstract)
 class LGUI_API ULGUIBaseInputModule : public UActorComponent
 {

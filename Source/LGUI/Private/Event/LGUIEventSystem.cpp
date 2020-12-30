@@ -95,14 +95,14 @@ void ULGUIEventSystem::InputNavigationLeft()
 {
 	if (isNavigationActive)
 	{
-		if (!IsValid(selectableComponent))
+		if (!IsValid(navigationSelectableComponent))
 		{
 			BeginNavigation();
 		}
 		else
 		{
-			auto newSelectable = selectableComponent->FindSelectableOnLeft();
-			if (selectableComponent != newSelectable)
+			auto newSelectable = navigationSelectableComponent->FindSelectableOnLeft();
+			if (navigationSelectableComponent != newSelectable)
 			{
 				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent(), defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
 			}
@@ -117,14 +117,14 @@ void ULGUIEventSystem::InputNavigationRight()
 {
 	if (isNavigationActive)
 	{
-		if (!IsValid(selectableComponent))
+		if (!IsValid(navigationSelectableComponent))
 		{
 			BeginNavigation();
 		}
 		else
 		{
-			auto newSelectable = selectableComponent->FindSelectableOnRight();
-			if (selectableComponent != newSelectable)
+			auto newSelectable = navigationSelectableComponent->FindSelectableOnRight();
+			if (navigationSelectableComponent != newSelectable)
 			{
 				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent(), defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
 			}
@@ -139,14 +139,14 @@ void ULGUIEventSystem::InputNavigationUp()
 {
 	if (isNavigationActive)
 	{
-		if (!IsValid(selectableComponent))
+		if (!IsValid(navigationSelectableComponent))
 		{
 			BeginNavigation();
 		}
 		else
 		{
-			auto newSelectable = selectableComponent->FindSelectableOnUp();
-			if (selectableComponent != newSelectable)
+			auto newSelectable = navigationSelectableComponent->FindSelectableOnUp();
+			if (navigationSelectableComponent != newSelectable)
 			{
 				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent(), defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
 			}
@@ -161,14 +161,14 @@ void ULGUIEventSystem::InputNavigationDown()
 {
 	if (isNavigationActive)
 	{
-		if (!IsValid(selectableComponent))
+		if (!IsValid(navigationSelectableComponent))
 		{
 			BeginNavigation();
 		}
 		else
 		{
-			auto newSelectable = selectableComponent->FindSelectableOnDown();
-			if (selectableComponent != newSelectable)
+			auto newSelectable = navigationSelectableComponent->FindSelectableOnDown();
+			if (navigationSelectableComponent != newSelectable)
 			{
 				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent(), defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
 			}
@@ -183,14 +183,14 @@ void ULGUIEventSystem::InputNavigationNext()
 {
 	if (isNavigationActive)
 	{
-		if (!IsValid(selectableComponent))
+		if (!IsValid(navigationSelectableComponent))
 		{
 			BeginNavigation();
 		}
 		else
 		{
-			auto newSelectable = selectableComponent->FindSelectableOnNext();
-			if (selectableComponent != newSelectable)
+			auto newSelectable = navigationSelectableComponent->FindSelectableOnNext();
+			if (navigationSelectableComponent != newSelectable)
 			{
 				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent(), defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
 			}
@@ -205,14 +205,14 @@ void ULGUIEventSystem::InputNavigationPrev()
 {
 	if (isNavigationActive)
 	{
-		if (!IsValid(selectableComponent))
+		if (!IsValid(navigationSelectableComponent))
 		{
 			BeginNavigation();
 		}
 		else
 		{
-			auto newSelectable = selectableComponent->FindSelectableOnPrev();
-			if (selectableComponent != newSelectable)
+			auto newSelectable = navigationSelectableComponent->FindSelectableOnPrev();
+			if (navigationSelectableComponent != newSelectable)
 			{
 				SetSelectComponent(newSelectable->GetOwner()->GetRootComponent(), defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
 			}
@@ -228,7 +228,7 @@ void ULGUIEventSystem::InputNavigationBegin()
 	if (!isNavigationActive)
 	{
 		isNavigationActive = true;
-		if (!IsValid(selectableComponent))
+		if (!IsValid(navigationSelectableComponent))
 		{
 			BeginNavigation();
 		}
@@ -248,9 +248,9 @@ void ULGUIEventSystem::BeginNavigation()
 			int index = 0;
 			do
 			{
-				selectableComponent = selectables[index];
-			} while (!IsValid(selectableComponent));
-			SetSelectComponent(selectableComponent->GetOwner()->GetRootComponent(), defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
+				navigationSelectableComponent = selectables[index];
+			} while (!IsValid(navigationSelectableComponent));
+			SetSelectComponent(navigationSelectableComponent->GetOwner()->GetRootComponent(), defaultEventData, defaultEventData->selectedComponentEventFireOnAllOrOnlyTarget);
 		}
 	}
 }
@@ -398,7 +398,7 @@ void ULGUIEventSystem::SetSelectComponent(USceneComponent* InSelectComp, ULGUIBa
 		{
 			if (auto tempComp = selectedComponent->GetOwner()->FindComponentByClass<UUISelectableComponent>())
 			{
-				selectableComponent = tempComp;
+				navigationSelectableComponent = tempComp;
 			}
 			eventData->selectedComponent = selectedComponent;
 			CallOnPointerSelect(selectedComponent, eventData, eventFireOnAllOrOnlyTarget);
@@ -430,6 +430,87 @@ void ULGUIEventSystem::LogEventData(ULGUIBaseEventData* inEventData, bool eventF
 	if (outputLog == false)return;
 	UE_LOG(LGUI, Log, TEXT("%s"), *inEventData->ToString());
 #endif
+}
+
+
+#define CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, interface, function)\
+{\
+	inEventData->eventType = EPointerEventType::function;\
+	LogEventData(inEventData, eventFireOnAll);\
+	bool eventAllowBubble = true;\
+	if (eventFireOnAll)\
+	{\
+		auto ownerActor = component->GetOwner();\
+		if (ownerActor->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+		{\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(ownerActor, inEventData) == false)\
+			{\
+				eventAllowBubble = false;\
+			}\
+		}\
+		auto components = ownerActor->GetComponents();\
+		for (auto item : components)\
+		{\
+			if (item->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+			{\
+				if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(item, inEventData) == false)\
+				{\
+					eventAllowBubble = false;\
+				}\
+			}\
+		}\
+	}\
+	else\
+	{\
+		if (component->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+		{\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(component, inEventData) == false)\
+			{\
+				eventAllowBubble = false;\
+			}\
+		}\
+	}\
+	if (eventAllowBubble)\
+	{\
+		if (auto parentActor = component->GetOwner()->GetAttachParentActor())\
+		{\
+			BubbleOnPointer##function(parentActor, inEventData);\
+		}\
+	}\
+	if (globalListenerPointerEvent.IsBound())\
+	{\
+		globalListenerPointerEvent.Broadcast(inEventData);\
+	}\
+}
+
+#define BUBBLE_LGUIINTERFACE(actor, inEventData, interface, function)\
+{\
+	bool eventAllowBubble = true;\
+	if (actor->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+	{\
+		if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(actor, inEventData) == false)\
+		{\
+			eventAllowBubble = false;\
+		}\
+	}\
+	auto components = actor->GetComponents();\
+	for (auto item : components)\
+	{\
+		if (item->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
+		{\
+			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(item, inEventData) == false)\
+			{\
+				eventAllowBubble = false;\
+			}\
+		}\
+	}\
+	if (eventAllowBubble)\
+	{\
+		if (auto parentActor = actor->GetAttachParentActor())\
+		{\
+			BubbleOnPointer##function(parentActor, inEventData);\
+		}\
+	}\
 }
 
 

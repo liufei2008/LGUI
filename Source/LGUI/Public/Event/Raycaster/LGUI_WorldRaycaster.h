@@ -6,7 +6,9 @@
 #include "LGUIBaseRaycaster.h"
 #include "LGUI_WorldRaycaster.generated.h"
 
-//RayEmitter must be set for raycaster, or it will not work
+/**
+ * RayEmitter must be set for raycaster, or it will not work
+ */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_WorldRaycaster : public ULGUIBaseRaycaster
 {
@@ -15,7 +17,7 @@ class LGUI_API ULGUI_WorldRaycaster : public ULGUIBaseRaycaster
 public:	
 	ULGUI_WorldRaycaster();
 protected:
-	//temp array, hit result
+	/** temp array, hit result */
 	TArray<FHitResult> multiWorldHitResult;
 public:
 	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)override;

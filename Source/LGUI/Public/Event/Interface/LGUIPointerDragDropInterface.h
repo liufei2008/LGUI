@@ -12,12 +12,17 @@ class ULGUIPointerDragDropInterface : public UInterface
 {
 	GENERATED_BODY()
 };
-//Called when dragging a object and drop on another object
+/**
+ * Interface for handling LGUI drag->drop event
+ */
 class LGUI_API ILGUIPointerDragDropInterface
 {
 	GENERATED_BODY()
 public:
-	//Called when dragging a object and drop on another object
+	/**
+	 * Called when dragging another object and drop on this object.
+	 * @return Allow event bubble up? If all interface of same actor's components return true, then the event can bubble up.
+	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnPointerDragDrop(ULGUIPointerEventData* eventData);
 };

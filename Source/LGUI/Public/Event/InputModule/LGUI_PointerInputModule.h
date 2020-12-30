@@ -9,7 +9,6 @@
 class ULGUIPointerEventData;
 class ULGUIBaseRaycaster;
 
-//only one InputModule is valid in the same time. so if multiple InputModule is activated, then the latest one is valid.
 UCLASS(Abstract)
 class LGUI_API ULGUI_PointerInputModule : public ULGUIBaseInputModule
 {

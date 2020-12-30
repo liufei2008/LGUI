@@ -132,7 +132,7 @@ public:
 	void SetDefaultMaterials(UMaterialInterface* InMaterials[3]);
 
 	UE_DEPRECATED(4.23, "Use IsRenderToScreenSpace instead.")
-	bool IsScreenSpaceOverlayUI();
+		bool IsScreenSpaceOverlayUI() { return true; };
 	FORCEINLINE bool IsRenderToScreenSpace();
 	FORCEINLINE bool IsRenderToScreenSpaceOrRenderTarget();
 	FORCEINLINE bool IsRenderToRenderTarget();

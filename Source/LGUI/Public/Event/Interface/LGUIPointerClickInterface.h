@@ -12,12 +12,17 @@ class ULGUIPointerClickInterface : public UInterface
 {
 	GENERATED_BODY()
 };
-//Called when click
+/**
+ * Interface for handling LGUI click event
+ */ 
 class LGUI_API ILGUIPointerClickInterface
 {
 	GENERATED_BODY()
 public:
-	//Called when a click event occurs
+	/**
+	 * Called when a click event occurs.
+	 * @return Allow event bubble up? If all interface of same actor's components return true, then the event can bubble up.
+	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnPointerClick(ULGUIPointerEventData* eventData);
 };

@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Event/InputModule/LGUI_PointerInputModule.h"
-#include "Event/LGUIPointerEventData.h"
 #include "LGUI_TouchInputModule.generated.h"
 
-//for mobile multi touch input
+/** 
+ * for mobile multi touch input
+ */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable, Experimental)
 class LGUI_API ULGUI_TouchInputModule : public ULGUI_PointerInputModule
 {
@@ -15,13 +16,13 @@ class LGUI_API ULGUI_TouchInputModule : public ULGUI_PointerInputModule
 
 public:
 	virtual void ProcessInput()override;
-	//input for touch press and release
+	/** input for touch press and release */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputTouchTrigger(bool inTouchPress, int inTouchID, const FVector& inTouchPointPosition);
-	//input for touch point moved
+	/** input for touch point moved */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputTouchMoved(int inTouchID, const FVector& inTouchPointPosition);
-	//input for scroll
+	/** input for scroll */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputScroll(const float& inAxisValue);
 };

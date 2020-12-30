@@ -7,7 +7,9 @@
 #include "Event/LGUIPointerEventData.h"
 #include "LGUI_StandaloneInputModule.generated.h"
 
-//Common standalone platform input, or mouse input
+/**
+ * Common standalone platform input, or mouse input
+ */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_StandaloneInputModule : public ULGUI_PointerInputModule
 {
@@ -15,10 +17,10 @@ class LGUI_API ULGUI_StandaloneInputModule : public ULGUI_PointerInputModule
 
 public:
 	virtual void ProcessInput()override;
-	//input for mouse press and release
+	/** input for mouse press and release */
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
 		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left);
-	//input for scroll
+	/** input for scroll */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputScroll(const float& inAxisValue);
 };
