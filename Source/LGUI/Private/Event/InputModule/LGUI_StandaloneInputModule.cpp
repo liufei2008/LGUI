@@ -3,6 +3,7 @@
 #include "Event/InputModule/LGUI_StandaloneInputModule.h"
 #include "LGUI.h"
 #include "Event/LGUIEventSystem.h"
+#include "Event/LGUIPointerEventData.h"
 
 void ULGUI_StandaloneInputModule::ProcessInput()
 {

@@ -30,5 +30,5 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float EndAngle = 360;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool bSetChildAngle = false;
+		bool bSetChildAngle = true;
 };

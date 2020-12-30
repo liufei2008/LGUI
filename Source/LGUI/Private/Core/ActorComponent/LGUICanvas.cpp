@@ -226,14 +226,6 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	//rebuild drawcall
 	MarkRebuildAllDrawcall();
 }
-bool ULGUICanvas::IsScreenSpaceOverlayUI()
-{
-	if (IsValid(TopMostCanvas))
-	{
-		return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay;
-	}
-	return false;
-}
 bool ULGUICanvas::IsRenderToScreenSpace()
 {
 	if (IsValid(TopMostCanvas))

@@ -4,9 +4,9 @@
 #include "CoreMinimal.h"
 #include "LGUIDelegateHandleWrapper.generated.h"
 
-/*
-Just a wrapper for blueprint to store a delegate handle
-*/
+/**
+ *Just a wrapper for blueprint to store a delegate handle
+ */
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUIDelegateHandleWrapper
 {

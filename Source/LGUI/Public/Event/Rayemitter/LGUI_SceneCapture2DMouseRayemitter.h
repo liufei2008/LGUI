@@ -23,7 +23,7 @@ protected:
 	//	FVector4 ViewportMappingRect = FVector4(0, 0, 1, 1);
 
 public:
-	//return value could be null, so check is before you use
+	/** return value could be null, so check is before you use */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		class USceneCaptureComponent2D* GetSceneCapture2DComponent();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -34,22 +34,22 @@ public:
 	virtual void MarkPress(ULGUIPointerEventData* InPointerEventData)override;
 
 	static FMatrix ComputeViewProjectionMatrix(USceneCaptureComponent2D* InSceneCapture2D, bool InWithViewLocation = false);
-	/*
-	Deproject view point to world ray, for SceneCaptureComponent2D use
-	@param	InSceneCapture2D	target SceneCaptureComponent2D, TextureTarget of this SceneCaptureComponent2D must be assigned, 
-	@param	InViewPoint01		point position of range 0-1, left bottom means (0,0), right top means (1,1)
-	@param	OutRayOrigin		result ray origin
-	@param	OutRayDirection		result ray direction
-	*/
+	/**
+	 * Deproject view point to world ray, for SceneCaptureComponent2D use
+	 * @param	InSceneCapture2D	target SceneCaptureComponent2D, TextureTarget of this SceneCaptureComponent2D must be assigned, 
+	 * @param	InViewPoint01		point position of range 0-1, left bottom means (0,0), right top means (1,1)
+	 * @param	OutRayOrigin		result ray origin
+	 * @param	OutRayDirection		result ray direction
+	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	static void DeprojectViewPointToWorldForSceneCapture2D(USceneCaptureComponent2D* InSceneCapture2D, const FVector2D& InViewPoint01, FVector& OutRayOrigin, FVector& OutRayDirection);
 	static void DeprojectViewPointToWorldForSceneCapture2D(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutRayOrigin, FVector& OutRayDirection);
-	/*
-	Project world point to screen space point, for SceneCaptureComponent2D use
-	@param	InSceneCapture2D	target SceneCaptureComponent2D, TextureTarget of this SceneCaptureComponent2D must be assigned,
-	@param	InWorldPosition		world position
-	@param	OutViewPoint		result view space point position of range 0-1, left bottom means (0,0), right top means (1,1)
-	*/
+	/**
+	 * Project world point to screen space point, for SceneCaptureComponent2D use
+	 * @param	InSceneCapture2D	target SceneCaptureComponent2D, TextureTarget of this SceneCaptureComponent2D must be assigned,
+	 * @param	InWorldPosition		world position
+	 * @param	OutViewPoint		result view space point position of range 0-1, left bottom means (0,0), right top means (1,1)
+	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	static bool ProjectWorldToViewPointForSceneCapture2D(USceneCaptureComponent2D* InSceneCapture2D, const FVector& InWorldPosition, FVector2D& OutViewPoint);
 	static bool ProjectWorldToViewPointForSceneCapture2D(const FMatrix& InViewProjectionMatrix, const FVector& InWorldPosition, FVector2D& OutViewPoint);

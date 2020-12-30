@@ -3,6 +3,7 @@
 #include "Event/InputModule/LGUI_TouchInputModule.h"
 #include "LGUI.h"
 #include "Event/LGUIEventSystem.h"
+#include "Event/LGUIPointerEventData.h"
 
 void ULGUI_TouchInputModule::ProcessInput()
 {
@@ -33,7 +34,7 @@ void ULGUI_TouchInputModule::InputScroll(const float& inAxisValue)
 	auto eventData = GetPointerEventData(0, true);
 	if (IsValid(eventData->enterComponent))
 	{
-		if (inAxisValue != 0)
+		if (inAxisValue != eventData->scrollAxisValue)
 		{
 			eventData->scrollAxisValue = inAxisValue;
 			if (auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance())

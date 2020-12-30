@@ -20,10 +20,10 @@ protected:
 	/** click/drag threshold*/
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		float clickThreshold = 5;
-	/** hold for a little while to entering drag mode*/
+	/** hold for a little while to entering drag mode */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool holdToDrag = false;
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (EditCondition = "holdToDrag"))
 		float holdToDragTime = 0.5f;
 
 	float clickTresholdSquare = 0;

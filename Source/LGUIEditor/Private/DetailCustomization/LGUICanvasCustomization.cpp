@@ -246,12 +246,11 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 		auto world = TargetScriptArray[0]->GetWorld();
 		for (ULGUICanvas* canvasItem : allCanvas)
 		{
-			switch (TargetScriptArray[0]->renderMode)
+			if (TargetScriptArray[0]->IsRenderToScreenSpace() || TargetScriptArray[0]->IsRenderToWorldSpace())
 			{
-			case ELGUIRenderMode::WorldSpace:
-			case ELGUIRenderMode::ScreenSpaceOverlay:
-			{
-				if (canvasItem->renderMode == TargetScriptArray[0]->renderMode)
+				if (canvasItem->IsRenderToScreenSpace() == TargetScriptArray[0]->IsRenderToScreenSpace()
+					|| canvasItem->IsRenderToWorldSpace() == TargetScriptArray[0]->IsRenderToWorldSpace()
+					)
 				{
 					if (canvasItem->GetWorld() == world)
 					{
@@ -259,10 +258,9 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 					}
 				}
 			}
-			break;
-			case ELGUIRenderMode::RenderTarget:
+			else if (TargetScriptArray[0]->IsRenderToRenderTarget())
 			{
-				if (canvasItem->renderMode == ELGUIRenderMode::RenderTarget)
+				if (canvasItem->IsRenderToRenderTarget())
 				{
 					if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
 					{
@@ -272,8 +270,6 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 						}
 					}
 				}
-			}
-			break;
 			}
 		}
 		return FText::FromString(FString::Printf(TEXT("%d/%d"), drawcallCount, allDrawcallCount));
@@ -286,19 +282,15 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 	auto& allCanvas = TargetScriptArray[0]->GetAllCanvasArray();
 	int allDrawcallCount = 0;
 	FString spaceText;
-	switch (TargetScriptArray[0]->renderMode)
-	{
-	case ELGUIRenderMode::WorldSpace:
-	{
-		spaceText = TEXT("WorldSpace");
-	}
-	break;
-	case ELGUIRenderMode::ScreenSpaceOverlay:
+	if (TargetScriptArray[0]->IsRenderToScreenSpace())
 	{
 		spaceText = TEXT("ScreenSpaceOverlay");
 	}
-	break;
-	case ELGUIRenderMode::RenderTarget:
+	else if (TargetScriptArray[0]->IsRenderToWorldSpace())
+	{
+		spaceText = TEXT("WorldSpace");
+	}
+	else if (TargetScriptArray[0]->IsRenderToRenderTarget())
 	{
 		if (IsValid(TargetScriptArray[0]->renderTarget))
 		{
@@ -309,18 +301,15 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 			spaceText = FString::Printf(TEXT("RenderTarget(NotValid)"));
 		}
 	}
-	break;
-	}
 
 	auto world = TargetScriptArray[0]->GetWorld();
 	for (ULGUICanvas* canvasItem : allCanvas)
 	{
-		switch (TargetScriptArray[0]->renderMode)
+		if (TargetScriptArray[0]->IsRenderToScreenSpace() || TargetScriptArray[0]->IsRenderToWorldSpace())
 		{
-		case ELGUIRenderMode::WorldSpace:
-		case ELGUIRenderMode::ScreenSpaceOverlay:
-		{
-			if (canvasItem->renderMode == TargetScriptArray[0]->renderMode)
+			if (canvasItem->IsRenderToScreenSpace() == TargetScriptArray[0]->IsRenderToScreenSpace()
+				|| canvasItem->IsRenderToWorldSpace() == TargetScriptArray[0]->IsRenderToWorldSpace()
+				)
 			{
 				if (canvasItem->GetWorld() == world)
 				{
@@ -328,10 +317,9 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 				}
 			}
 		}
-		break;
-		case ELGUIRenderMode::RenderTarget:
+		else if (TargetScriptArray[0]->IsRenderToRenderTarget())
 		{
-			if (canvasItem->renderMode == ELGUIRenderMode::RenderTarget)
+			if (canvasItem->IsRenderToRenderTarget())
 			{
 				if (TargetScriptArray[0]->renderTarget == canvasItem->renderTarget && IsValid(canvasItem->renderTarget))
 				{
@@ -341,8 +329,6 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 					}
 				}
 			}
-		}
-		break;
 		}
 	}
 	FString tooltipStr = FString::Printf(TEXT("This canvas's drawcall count:%d, all canvas of %s drawcall count:%d"), drawcallCount, *spaceText, allDrawcallCount);

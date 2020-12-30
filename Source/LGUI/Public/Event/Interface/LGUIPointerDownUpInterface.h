@@ -12,15 +12,23 @@ class ULGUIPointerDownUpInterface : public UInterface
 {
 	GENERATED_BODY()
 };
-//Called when press or release
+/**
+ * Interface for handling LGUI trigger press or release event
+ */
 class LGUI_API ILGUIPointerDownUpInterface
 {
 	GENERATED_BODY()
 public:
-	//Called when press
+	/**
+	 * Called when a pointer press event occurs.
+	 * @return Allow event bubble up? If all interface of same actor's components return true, then the event can bubble up.
+	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnPointerDown(ULGUIPointerEventData* eventData);
-	//Called when release
+	/**
+	 * Called when a pointer release event occurs.
+	 * @return Allow event bubble up? If all interface of same actor's components return true, then the event can bubble up.
+	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnPointerUp(ULGUIPointerEventData* eventData);
 };
