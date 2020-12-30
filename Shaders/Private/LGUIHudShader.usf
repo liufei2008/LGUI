@@ -4,15 +4,10 @@
 #include "/Engine/Generated/Material.ush"
 #include "/Engine/Private/LocalVertexFactoryCommon.ush"
 
-//Specific for UE4.26: something wrong with ResolvedView.PreViewTranslation in pixel shader, so I just pass it from vertex shader.
-#define PASS_PreViewTranslation_FROM_VERTEX_TO_PIXEL 1
 
 struct FLGUIBasePassInterpolants
 {
 	float4 PixelPosition	: TEXCOORD8; // xyz = world position, w = clip z
-#if PASS_PreViewTranslation_FROM_VERTEX_TO_PIXEL
-    float3 PreViewTranslation : TEXCOORD7; 
-#endif
 
 #if USE_WORLD_POSITION_EXCLUDING_SHADER_OFFSETS
 	float3 PixelPositionExcludingWPO	: TEXCOORD9;
@@ -91,9 +86,6 @@ void MainVS(
 #if !OUTPUT_MOBILE_HDR && COMPILER_GLSL_ES3_1
 	Output.Position.y *= -1;
 #endif
-#if PASS_PreViewTranslation_FROM_VERTEX_TO_PIXEL
-    Output.BasePassInterpolants.PreViewTranslation = ResolvedView.PreViewTranslation;
-#endif
 }
 
 
@@ -132,9 +124,6 @@ void MainPS(
 {
 	ResolvedView = ResolveView();
 
-#if PASS_PreViewTranslation_FROM_VERTEX_TO_PIXEL
-    ResolvedView.PreViewTranslation.xyz = BasePassInterpolants.PreViewTranslation.xyz;
-#endif
 #if COMPILER_GLSL_ES3_1 && !OUTPUT_MOBILE_HDR && !MOBILE_EMULATION
 	// LDR Mobile needs screen vertical flipped
 	SvPosition.y = ResolvedView.BufferSizeAndInvSize.y - SvPosition.y - 1;
@@ -151,7 +140,7 @@ void MainPS(
 		#endif
 		CalcMaterialParametersEx(MaterialParameters, PixelMaterialInputs, SvPosition, ScreenPosition, bIsFrontFace, WorldPosition, WorldPositionExcludingWPO);
 	}
-	
+
 #if OUTPUT_PIXEL_DEPTH_OFFSET
 	ApplyPixelDepthOffsetForLGUIBasePass(MaterialParameters, PixelMaterialInputs, OutDepth);
 #endif
