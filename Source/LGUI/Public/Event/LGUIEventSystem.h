@@ -6,7 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "Components/ActorComponent.h"
 #include "LGUIDelegateDeclaration.h"
-#include "Raycaster/LGUIBaseRaycaster.h"
 #include "LGUIDelegateHandleWrapper.h"
 #include "LGUIEventSystem.generated.h"
 
@@ -18,23 +17,12 @@ DECLARE_DYNAMIC_DELEGATE_ThreeParams(FLGUIHitDynamicDelegate, bool, isHit, const
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIPointerEventDynamicDelegate, ULGUIPointerEventData*, pointerEventData);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIBaseEventDynamicDelegate, ULGUIBaseEventData*, eventData);
 
-/*
- This is a preset actor that contans a LGUIEventSystem component
- */
-UCLASS()
-class LGUI_API ALGUIEventSystemActor : public AActor
-{
-	GENERATED_BODY()
-	
-public:	
-	ALGUIEventSystemActor();
-protected:
-	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
-		class ULGUIEventSystem* EventSystem;
-};
 
-//InputTrigger and InputScroll need mannually setup
-//about the event bubble: if all interface of target component and actor return true, then event will bubble up. if no interface found on target, then event will bubble up
+/**
+ * This is the place for manage LGUI's input/raycast/event.
+ * InputTrigger and InputScroll need mannually setup in InputModule.
+ * About event bubble: if all interface of target component and actor return true, then event will bubble up. if no interface found on target, then event will bubble up
+ */
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API ULGUIEventSystem : public UActorComponent
 {
@@ -46,7 +34,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (WorldContext = "WorldContextObject", DisplayName = "Get LGUI Event System Instance"))
 		static ULGUIEventSystem* GetLGUIEventSystemInstance(UObject* WorldContextObject);
 protected:
-	static TMap<UWorld*, ULGUIEventSystem*> WorldToInstanceMap;//a world should only have one LGUIEventSystemActpr
+	/** a world should only have one LGUIEventSystem */
+	static TMap<UWorld*, ULGUIEventSystem*> WorldToInstanceMap;
 	bool existInInstanceMap = false;
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)override;
@@ -74,39 +63,41 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule's InputScroll instead."))
 		void InputScroll(const float& inAxisValue) {};
 
-	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputNavigationLeft();
-	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputNavigationRight();
-	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputNavigationUp();
-	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputNavigationDown();
-	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputNavigationNext();
-	//Call InputNavigationBegin to activate navigation before this function. Only component which inherit UISelectable can be navigate to
+	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputNavigationPrev();
-	//Activate navigation
+	/** Activate navigation */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputNavigationBegin();
-	//Cancel navigation
+	/** Cancel navigation */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputNavigationEnd();
-	//is navigation mode acivated
+	/** is navigation mode acivated */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool IsNavigationActive()const { return isNavigationActive; }
 
-	//clear event. eg when mouse is hovering a UI and highlight, and then event is disabled, we can use this to clear the hover event
+	/** clear event. eg when mouse is hovering a UI and highlight, and then event is disabled, we can use this to clear the hover event */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void ClearEvent();
-	//SetRaycast enable or disable
-	//@param	clearEvent		call ClearEvent after disable Raycast
+	/** 
+	 * SetRaycast enable or disable
+	 * @param	clearEvent		call ClearEvent after disable Raycast
+	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRaycastEnable(bool enable, bool clearEvent = false);
 
@@ -121,17 +112,17 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
 		ULGUIBaseEventData* defaultEventData;
 protected:
-	//call back for hit event
+	/** call back for hit event */
 	FLGUIMulticastHitDelegate hitEvent;
-	//call back for all event
+	/** call back for all event */
 	FLGUIMulticastBaseEventDelegate globalListenerPointerEvent;
 public:
 	void RegisterHitEvent(const FLGUIHitDelegate& InEvent);
 	void UnregisterHitEvent(const FLGUIHitDelegate& InEvent);
-	/// <summary>
-	/// Register a global event listener, that listener will called when any LGUIEventSystem's event is executed.
-	/// </summary>
-	/// <param name="InEvent">Callback delegate, you can cast LGUIBaseEventData to LGUIPointerEventData if you need</param>
+	/**
+	 * Register a global event listener, that listener will called when any LGUIEventSystem's event is executed.
+	 * @param InEvent Callback delegate, you can cast LGUIBaseEventData to LGUIPointerEventData if you need.
+	 */
 	void RegisterGlobalListener(const FLGUIBaseEventDelegate& InEvent);
 	void UnregisterGlobalListener(const FLGUIBaseEventDelegate& InEvent);
 
@@ -139,10 +130,10 @@ public:
 		FLGUIDelegateHandleWrapper RegisterHitEvent(const FLGUIHitDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void UnregisterHitEvent(const FLGUIDelegateHandleWrapper& InHandle);
-	/// <summary>
-	/// Register a global event listener, that listener will called when any LGUIEventSystem's event is executed.
-	/// </summary>
-	/// <param name="InDelegate">Callback delegate, you can cast LGUIBaseEventData to LGUIPointerEventData if you need</param>
+	/**
+	 * Register a global event listener, that listener will called when any LGUIEventSystem's event is executed.
+	 * @param InDelegate Callback delegate, you can cast LGUIBaseEventData to LGUIPointerEventData if you need.
+	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FLGUIDelegateHandleWrapper RegisterGlobalListener(const FLGUIBaseEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -150,8 +141,8 @@ public:
 	void RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult, USceneComponent* hitComponent);
 protected:
 	UPROPERTY(Transient)USceneComponent* selectedComponent = nullptr;
-
-	UPROPERTY(Transient)UUISelectableComponent* selectableComponent = nullptr;//current navigation selectable component
+	/** current navigation selectable component */
+	UPROPERTY(Transient)UUISelectableComponent* navigationSelectableComponent = nullptr;
 public:
 	void CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
 	void CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* eventData, bool eventFireOnAll);
@@ -190,82 +181,17 @@ public:
 	void BubbleOnPointerDeselect(AActor* actor, ULGUIBaseEventData* eventData);
 };
 
-#define CALL_LGUIINTERFACE(component, inEventData, eventFireOnAll, interface, function)\
-{\
-	inEventData->eventType = EPointerEventType::function;\
-	LogEventData(inEventData, eventFireOnAll);\
-	bool eventAllowBubble = true;\
-	if (eventFireOnAll)\
-	{\
-		auto ownerActor = component->GetOwner();\
-		if (ownerActor->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
-		{\
-			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(ownerActor, inEventData) == false)\
-			{\
-				eventAllowBubble = false;\
-			}\
-		}\
-		auto components = ownerActor->GetComponents();\
-		for (auto item : components)\
-		{\
-			if (item->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
-			{\
-				if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(item, inEventData) == false)\
-				{\
-					eventAllowBubble = false;\
-				}\
-			}\
-		}\
-	}\
-	else\
-	{\
-		if (component->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
-		{\
-			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(component, inEventData) == false)\
-			{\
-				eventAllowBubble = false;\
-			}\
-		}\
-	}\
-	if (eventAllowBubble)\
-	{\
-		if (auto parentActor = component->GetOwner()->GetAttachParentActor())\
-		{\
-			BubbleOnPointer##function(parentActor, inEventData);\
-		}\
-	}\
-	if (globalListenerPointerEvent.IsBound())\
-	{\
-		globalListenerPointerEvent.Broadcast(inEventData);\
-	}\
-}
+/*
+ * This is a preset actor that contans a LGUIEventSystem component
+ */
+UCLASS()
+class LGUI_API ALGUIEventSystemActor : public AActor
+{
+	GENERATED_BODY()
 
-#define BUBBLE_LGUIINTERFACE(actor, inEventData, interface, function)\
-{\
-	bool eventAllowBubble = true;\
-	if (actor->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
-	{\
-		if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(actor, inEventData) == false)\
-		{\
-			eventAllowBubble = false;\
-		}\
-	}\
-	auto components = actor->GetComponents();\
-	for (auto item : components)\
-	{\
-		if (item->GetClass()->ImplementsInterface(ULGUIPointer##interface##Interface::StaticClass()))\
-		{\
-			if (ILGUIPointer##interface##Interface::Execute_OnPointer##function(item, inEventData) == false)\
-			{\
-				eventAllowBubble = false;\
-			}\
-		}\
-	}\
-	if (eventAllowBubble)\
-	{\
-		if (auto parentActor = actor->GetAttachParentActor())\
-		{\
-			BubbleOnPointer##function(parentActor, inEventData);\
-		}\
-	}\
-}
+public:
+	ALGUIEventSystemActor();
+protected:
+	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
+		class ULGUIEventSystem* EventSystem;
+};

@@ -6,7 +6,9 @@
 #include "Raycaster/LGUI_UIRaycaster.h"
 #include "LGUIWorldSpaceInteraction.generated.h"
 
-//The interaction source for world space UI, actually the ray emitter.
+/**
+ * The interaction source for world space UI, actually the ray emitter.
+ */
 UENUM(BlueprintType)
 enum class ELGUIWorldSpaceInteractionSource :uint8
 {
@@ -22,8 +24,10 @@ enum class ELGUIWorldSpaceInteractionSource :uint8
 	 */
 	//Custom
 };
-//Perform a preset raycaster interaction for WorldSpaceUI.
-//When hit play, a Rayemitter will be created depend on interactionSource.
+/**
+ * Perform a raycaster interaction for WorldSpaceUI.
+ * When hit play, a Rayemitter will be created depend on interactionSource.
+ */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUIWorldSpaceInteraction : public ULGUI_UIRaycaster
 {
@@ -32,13 +36,13 @@ class LGUI_API ULGUIWorldSpaceInteraction : public ULGUI_UIRaycaster
 public:	
 	ULGUIWorldSpaceInteraction();
 protected:
-	//click/drag threshold, calculated in target's local space
+	/** click/drag threshold, calculated in target's local space */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
 		float clickThreshold = 5;
-	//hold press for a little while to entering drag mode
+	/** hold press for a little while to entering drag mode */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool holdToDrag = false;
-	//hold press for "holdToDragTime" to entering drag mode
+	/** hold press for "holdToDragTime" to entering drag mode */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		float holdToDragTime = 0.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")

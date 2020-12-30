@@ -11,7 +11,7 @@
 UENUM()
 enum class LGUIDrawableEventParameterType :uint8
 {
-	//not initialized
+	/** not initialized */
 	None		UMETA(Hidden),
 	Empty,
 	Bool		UMETA(DisplayName = "Boolean"),
@@ -32,26 +32,26 @@ enum class LGUIDrawableEventParameterType :uint8
 	LinearColor,
 	Quaternion,
 	String,
-	//Name,
-	//for asset reference
+	Name,
+	/** for asset reference */
 	Object,
-	//for actor reference in level
+	/** for actor reference in level */
 	Actor,
-	//for LGUIPointerEventData
+	/** for LGUIPointerEventData */
 	PointerEvent	UMETA(DisplayName = "LGUIPointerEventData"),
-	//Class for UClass reference
+	/** Class for UClass reference */
 	Class,
 	
 	Rotator,
 };
-//helper class for finding function
+/** helper class for finding function */
 class LGUI_API ULGUIDrawableEventParameterHelper
 {
 public:
 	static bool IsSupportedFunction(UFunction* Target, TArray<LGUIDrawableEventParameterType>& OutParamTypeArray);
 	static bool IsStillSupported(UFunction* Target, const TArray<LGUIDrawableEventParameterType>& InParamTypeArray);
 	static FString ParameterTypeToName(LGUIDrawableEventParameterType paramType, const UFunction* InFunction = nullptr);
-	//if first parameter is an object type, then return it's objectclass
+	/** if first parameter is an object type, then return it's objectclass */
 	static UClass* GetObjectParameterClass(const UFunction* InFunction);
 	static UEnum* GetEnumParameter(const UFunction* InFunction);
 	static UClass* GetClassParameterClass(const UFunction* InFunction);
@@ -89,40 +89,42 @@ public:
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FLinearColor LinearColorValue;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FRotator RotatorValue;
 #endif
-	//use actor and component class to find target object
+	/** use actor and component class to find target object */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		AActor* targetActor;
-	//component class.
+	/** component class. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UClass* componentClass;
-	//if the actor only have one component of the componentClass, then just use that one.
-	//if the actor have multiple component of same class, then check the componentName.
+	/** 
+	 * if the actor only have one component of the componentClass, then just use that one.
+	 * if the actor have multiple component of same class, then check the componentName.
+	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName componentName;
-	//target function name
+	/** target function name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName functionName;
-	//target function supported parameter type
+	/** target function supported parameter type */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		LGUIDrawableEventParameterType ParamType = LGUIDrawableEventParameterType::None;
 
-	//data buffer stores function's parameter
+	/** data buffer stores function's parameter */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<uint8> ParamBuffer;
-	//asset reference
+	/** asset reference */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UObject* ReferenceObject;
-	//actor reference
+	/** actor reference */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		AActor* ReferenceActor;
-	//UClass reference
+	/** UClass reference */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UClass* ReferenceClass;
-	//string reference
+	/** string reference */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FString ReferenceString;
 
-	//use the function's native parameter?
+	/** use the function's native parameter? */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool UseNativeParameter = false;
 private:
@@ -138,9 +140,9 @@ private:
 	void FindAndExecuteFromActor(void* InParam = nullptr);
 };
 
-/*
-event or callback that can edit inside ue4 editor
-*/
+/**
+ * event or callback that can edit inside ue4 editor
+ */
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUIDrawableEvent
 {
@@ -150,13 +152,13 @@ public:
 	FLGUIDrawableEvent();
 	FLGUIDrawableEvent(LGUIDrawableEventParameterType InParameterType);
 public:
-	//event list
+	/** event list */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<FLGUIDrawableEventData> eventList;
-	//supported parameter type of this event
+	/** supported parameter type of this event */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName="NativeParameterType"))
 		LGUIDrawableEventParameterType supportParameterType = LGUIDrawableEventParameterType::Empty;
-	//Parameter type must be the same as your declaration of FLGUIDrawableEvent(LGUIDrawableEventParameterType InParameterType)
+	/** Parameter type must be the same as your declaration of FLGUIDrawableEvent(LGUIDrawableEventParameterType InParameterType) */
 	void FireEvent(void* InParam)const;
 	void LogParameterError()const;
 public:

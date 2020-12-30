@@ -17,18 +17,20 @@ enum class ESceneComponentRayDirection :uint8
 	PositiveZ		UMETA(DisplayName = "Z+"),
 	NagtiveZ		UMETA(DisplayName = "Z-"),
 };
-//If VR mode, you can use this component to emit ray from hand controller
+/**
+ * If VR mode, you can use this component to emit ray from hand controller
+ */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_SceneComponentRayEmitter : public ULGUIBaseRayEmitter
 {
 	GENERATED_BODY()
 protected:
-	//use TargetActor's RootComponent as ray object, world location as RayOrigin, axis direction as RayDirection
+	/** use TargetActor's RootComponent as ray object, world location as RayOrigin, axis direction as RayDirection */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		AActor* TargetActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		ESceneComponentRayDirection RayDirectionType = ESceneComponentRayDirection::PositiveX;
-	//if click/drag threshold relate to line trace distance ?
+	/** if click/drag threshold relate to line trace distance ? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
 		bool clickThresholdRelateToRayDistance = true;
 

@@ -12,15 +12,23 @@ class ULGUIPointerEnterExitInterface : public UInterface
 {
 	GENERATED_BODY()
 };
-//Called when pointer enter or exit a object
+/**
+ * Interface for handling LGUI pointer enter/exist event
+ */
 class LGUI_API ILGUIPointerEnterExitInterface
 {
 	GENERATED_BODY()
 public:
-	//Called when pointer enter a object
+	/**
+	 * Called when pointer enter this object.
+	 * @return Allow event bubble up? If all interface of same actor's components return true, then the event can bubble up.
+	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnPointerEnter(ULGUIPointerEventData* eventData);
-	//Called when pointer exit a object
+	/**
+	 * Called when pointer exit this object.
+	 * @return Allow event bubble up? If all interface of same actor's components return true, then the event can bubble up.
+	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = LGUI)
 		bool OnPointerExit(ULGUIPointerEventData* eventData);
 };

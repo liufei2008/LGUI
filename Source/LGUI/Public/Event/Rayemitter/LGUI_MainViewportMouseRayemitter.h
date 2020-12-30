@@ -8,7 +8,9 @@
 
 #define BUILD_VP_MATRIX_FROM_CAMERA_MANAGER 0
 
-//This is for standalone mouse input, it will emit a ray from main viewport mouse position
+/**
+ * This is for standalone mouse input, it will emit a ray from main viewport mouse position
+ */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_MainViewportMouseRayEmitter : public ULGUIBaseRayEmitter
 {

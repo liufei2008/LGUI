@@ -8,16 +8,18 @@
 #include "LGUIBaseRaycaster.generated.h"
 
 class ULGUIPointerEventData;
-//call event type
+/** call event type */
 UENUM(BlueprintType)
 enum class ELGUIEventFireType :uint8
 {
-	//event will call on trace target actor and all component of the actor
+	/** event will call on trace target actor and all component of the actor */
 	TargetActorAndAllItsComponents,
-	//event will call only on trace target
+	/** event will call only on trace target */
 	OnlyTargetComponent,
 };
-//RayEmitter must be set for raycaster, or it will not work
+/** 
+ * RayEmitter must be set for raycaster, or it will not work
+ */
 UCLASS(Abstract)
 class LGUI_API ULGUIBaseRaycaster : public USceneComponent
 {
@@ -32,18 +34,20 @@ protected:
 
 	friend class FUIBaseRaycasterCustomization;
 
-	//ignore these actors
+	/** ignore these actors */
 	TArray<AActor*> traceIgnoreActorArray;
-	//line trace only these actors
+	/** line trace only these actors */
 	TArray<AActor*> traceOnlyActorArray;
-	//line trace multi for specific actors
+	/** line trace multi for specific actors */
 	void ActorLineTraceMulti(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ECollisionChannel InTraceChannel, const struct FCollisionQueryParams& InParams = FCollisionQueryParams::DefaultQueryParam);
 public:
-	//for raycasters with same depth, will line trace them all and sort result on hit distance
-	//for raycasters with different depth, will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace
+	/** 
+	 * for raycasters with same depth, will line trace them all and sort result on hit distance
+	 * for raycasters with different depth, will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		int32 depth = 0;
-	//line trace ray emit length
+	/** line trace ray emit length */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		float rayLength = 10000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
@@ -51,7 +55,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		ELGUIEventFireType eventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 
-	//use ray emitter to emit a ray and use that ray to do linecast
+	/** use ray emitter to emit a ray and use that ray to do linecast */
 	UPROPERTY(BlueprintReadWrite, Category = LGUI)
 		class ULGUIBaseRayEmitter* rayEmitter;
 	

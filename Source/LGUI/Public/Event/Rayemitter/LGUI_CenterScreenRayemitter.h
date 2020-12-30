@@ -6,7 +6,9 @@
 #include "LGUIBaseRayemitter.h"
 #include "LGUI_CenterScreenRayemitter.generated.h"
 
-//Sends trace from the center of the first local player's screen
+/** 
+ * Sends trace from the center of the first local player's screen
+ */
 UCLASS(ClassGroup = LGUI, Blueprintable)
 class LGUI_API ULGUI_CenterScreenRayemitter : public ULGUIBaseRayEmitter
 {
