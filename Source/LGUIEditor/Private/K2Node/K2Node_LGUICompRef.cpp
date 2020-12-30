@@ -99,7 +99,7 @@ void UK2Node_LGUICompRef_GetComponent::SetOutputPinType()
 							auto propertyField = TFieldRange<FProperty>(generatedClass);
 							for (const auto propertyItem : propertyField)
 							{
-								if (auto structProperty = Cast<FStructProperty>(propertyItem))
+								if (auto structProperty = CastField<FStructProperty>(propertyItem))
 								{
 									if (structProperty->Struct == FLGUIComponentReference::StaticStruct())
 									{
