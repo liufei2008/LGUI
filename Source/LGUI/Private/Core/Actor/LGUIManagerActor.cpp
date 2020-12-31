@@ -46,7 +46,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		if (IsValid(item))
 		{
-			item->CustomTick(DeltaTime);
+			item->UpdateCanvas(DeltaTime);
 		}
 	}
 	if (EditorTick.IsBound())
@@ -490,7 +490,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	{
 		if (IsValid(item))
 		{
-			item->CustomTick(DeltaTime);
+			item->UpdateCanvas(DeltaTime);
 		}
 	}
 }

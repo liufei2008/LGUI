@@ -72,7 +72,7 @@ void ULGUICanvas::TickComponent( float DeltaTime, ELevelTick TickType, FActorCom
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void ULGUICanvas::CustomTick(float DeltaTime)
+void ULGUICanvas::UpdateCanvas(float DeltaTime)
 {
 	if (bCanTickUpdate)
 	{

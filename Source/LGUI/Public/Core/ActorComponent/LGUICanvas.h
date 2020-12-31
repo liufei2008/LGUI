@@ -10,12 +10,14 @@
 UENUM(BlueprintType)
 enum class ELGUIRenderMode :uint8
 {
-	//render in screen space. 
-	//this mode need a LGUICanvasScaler to control the size and scale.
+	/**
+	 * render in screen space. 
+	 * this mode need a LGUICanvasScaler to control the size and scale.
+	 */
 	ScreenSpaceOverlay,
-	//render in world space, so post process effect will affect ui
+	/** render in world space, so post process effect will affect ui */
 	WorldSpace,
-	//render to a custom render target
+	/** render to a custom render target */
 	RenderTarget		UMETA(DisplayName = "RenderTarget(Experimental)"),
 };
 
@@ -30,11 +32,11 @@ enum class ELGUICanvasClipType :uint8
 UENUM(BlueprintType, meta = (Bitflags))
 enum class ELGUICanvasAdditionalChannelType :uint8
 {
-	//Lit shader may need this
+	/** Lit shader may need this */
 	Normal,
-	//Lit and normalMap may need this
+	/** Lit and normalMap may need this */
 	Tangent,
-	//Additional textureCoordinate at uv1(first uv is uv0, which is used by LGUI. Second uv is uv1)
+	/** Additional textureCoordinate at uv1(first uv is uv0, which is used by LGUI. Second uv is uv1) */
 	UV1,
 	UV2,
 	UV3,
@@ -56,6 +58,9 @@ class UUIItem;
 class UUIRenderable;
 class UTextureRenderTarget2D;
 
+/**
+ * Canvas is for render and update all UI elements.
+ */
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API ULGUICanvas : public UActorComponent
 {
@@ -63,7 +68,10 @@ class LGUI_API ULGUICanvas : public UActorComponent
 
 public:	
 	ULGUICanvas();
-	void CustomTick(float DeltaTime);
+	UE_DEPRECATED(4.23, "Use UpdateCanvas instead.")
+	void CustomTick(float DeltaTime) {};
+	/** Called from LGUIManagerActor */
+	void UpdateCanvas(float DeltaTime);
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
@@ -77,34 +85,34 @@ public:
 	virtual void OnUnregister()override;
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 private:
-	//children canvas array, for update children's geometry
+	/** children canvas array, for update children's geometry */
 	UPROPERTY(Transient) TArray<ULGUICanvas*> childrenCanvasArray;
-	//for top most canvas only
+	/** for top most canvas only */
 	void UpdateTopMostCanvas();
-	//update canvas's layout
+	/** update canvas's layout */
 	void UpdateCanvasLayout(bool parentLayoutChanged);
-	//update Canvas's geometry
+	/** update Canvas's geometry */
 	void UpdateCanvasGeometry();
 public:
-	//mark update this Canvas. Canvas dont need to update every frame, only when need to
+	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
-	//mark any child's layout change
+	/** mark any child's layout change */
 	void MarkCanvasUpdateLayout();
 
-	//mark need to rebuild all drawcall
+	/** mark need to rebuild all drawcall */
 	void MarkRebuildAllDrawcall();
-	//mark specific drawcall need to rebuild
+	/** mark specific drawcall need to rebuild */
 	void MarkRebuildSpecificDrawcall(int drawcallIndex);
-	//set specific drawcall's texture. eg when UIText's texture expend, just need to change the texture
+	/** set specific drawcall's texture. eg when UIText's texture expend, just need to change the texture */
 	void SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture);
-	//mark update specific drawcall vertex, when vertex position/uv/color etc change
+	/** mark update specific drawcall vertex, when vertex position/uv/color etc change */
 	void MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged = true);
-	//UI element's depth change
+	/** UI element's depth change */
 	void OnUIElementDepthChange(UUIRenderable* item);
-	//return created MaterialInstanceDynamic for target drawcall, return nullptr if drawcallIndex is -1
+	/** @return created MaterialInstanceDynamic for target drawcall, return nullptr if drawcallIndex is -1 */
 	UMaterialInstanceDynamic* GetMaterialInstanceDynamicForDrawcall(int drawcallIndex);
 	
-	//is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value
+	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
 
 	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix);
@@ -114,16 +122,16 @@ public:
 	FMatrix GetViewRotationMatrix();
 	FRotator GetViewRotator();
 	FIntPoint GetViewportSize();
-	//get scale value of canvas. only valid for root canvas.
+	/** get scale value of canvas. only valid for root canvas. */
 	FORCEINLINE float GetCanvasScale() { return canvasScale; }
 private:
 	friend class ULGUICanvasScaler;
 	float canvasScale = 1.0f;//screen size / root canvas size
 public:
-	//get top most LGUICanvas on hierarchy
+	/** get top most LGUICanvas on hierarchy */
 	ULGUICanvas* GetRootCanvas();
 	bool IsRootCanvas()const;
-	//hierarchy changed
+	/** hierarchy changed */
 	void OnUIHierarchyChanged();
 	void OnWidthChanged();
 	void OnHeightChanged();
@@ -141,22 +149,22 @@ public:
 
 	FORCEINLINE UUIItem* CheckAndGetUIItem() { CheckUIItem(); return UIItem; }
 protected:
-	//consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas
+	/** consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas */
 	bool currentIsRenderToRenderTargetOrWorld = false;
-	//top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it
+	/** top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it */
 	UPROPERTY(Transient) ULGUICanvas* TopMostCanvas = nullptr;
 	void CheckRenderMode();
-	//chekc TopMostCanvas. search for it if not valid
+	/** chekc TopMostCanvas. search for it if not valid */
 	FORCEINLINE bool CheckTopMostCanvas();
-	//nearest up parent Canvas
+	/** nearest up parent Canvas */
 	UPROPERTY(Transient) ULGUICanvas* ParentCanvas = nullptr;
-	//check parent Canvas. search for it if not valid
+	/** check parent Canvas. search for it if not valid */
 	FORCEINLINE bool CheckParentCanvas();
 	const TArray<ULGUICanvas*>& GetAllCanvasArray();
 	void SortCanvasOnOrder();
-	//sort drawcall
+	/** sort drawcall */
 	void SortDrawcallRenderPriority();
-	//@param	return	drawcall count
+	/** @return	drawcall count */
 	int32 SortDrawcall(int32 InStartRenderPriority);
 	
 	UMaterialInterface** GetMaterials();
@@ -181,10 +189,10 @@ protected:
 		ELGUIRenderMode renderMode = ELGUIRenderMode::WorldSpace;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UTextureRenderTarget2D* renderTarget;
-	//This can avoid half-pixel render
+	/** This can avoid half-pixel render */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
-	//Canvas with larger order will render on top of lower one
+	/** Canvas with larger order will render on top of lower one */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int32 sortOrder = 0;
 
@@ -197,23 +205,25 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		UTexture* clipTexture = nullptr;
 
-	//if inherit parent's rect clip value. only valid if self is RectClip
+	/** if inherit parent's rect clip value. only valid if self is RectClip */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool inheritRectClip = true;
 
-	//The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
-	//But!!! Do not set this value too large if you already have large font size of UIText, because that will result in extreamly large texture! 
+	/**
+	 * The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
+	 * But!!! Do not set this value too large if you already have large font size of UIText, because that will result in extreamly large texture! 
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		float dynamicPixelsPerUnit = 1.0f;
 
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasAdditionalChannelType"))
 		int8 additionalShaderChannels = 0;
 
-	//default materials, for render default UI elements
+	/** default materials, for render default UI elements */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		UMaterialInterface* DefaultMaterials[3];
 
-	//for not root canvas, inherit or override parent canvas parameters
+	/** for not root canvas, inherit or override parent canvas parameters */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
 
@@ -233,7 +243,7 @@ public:
 		void SetPixelPerfect(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
-	//if renderMode is RenderTarget, then this will change the renderTarget
+	/** if renderMode is RenderTarget, then this will change the renderTarget */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderTarget(UTextureRenderTarget2D* value);
 
@@ -245,22 +255,22 @@ public:
 		void SetClipTexture(UTexture* newTexture);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetInheriRectClip(bool newBool);
-	/*
-	Set LGUICanvas SortOrder
-	@param	propagateToChildrenCanvas	if true, set this Canvas's SortOrder and all Canvases that is attached to this Canvas, not just set absolute value, but keep child Canvas's relative order to this one
-	*/
+	/** 
+	 * Set LGUICanvas SortOrder
+	 * @param	propagateToChildrenCanvas	if true, set this Canvas's SortOrder and all Canvases that is attached to this Canvas, not just set absolute value, but keep child Canvas's relative order to this one
+	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrder(int32 newValue, bool propagateToChildrenCanvas = true);
-	//Set SortOrder to highest, so this canvas will render on top of all canvas that belong to same hierarchy.
+	/** Set SortOrder to highest, so this canvas will render on top of all canvas that belong to same hierarchy. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanvas = true);
-	//Set SortOrder to lowest, so this canvas will render behide all canvas that belong to same hierarchy.
+	/** Set SortOrder to lowest, so this canvas will render behide all canvas that belong to same hierarchy. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas = true);
-	//Set SortOrder to highest of all Canvas, so this canvas will render on top of all other canvas no matter if it belongs to different hierarchy.
+	/** Set SortOrder to highest of all Canvas, so this canvas will render on top of all other canvas no matter if it belongs to different hierarchy. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas = true);
-	//Set SortOrder to lowest of all Canvas, so this canvas will render behide all other canvas no matter if it belongs to different hierarchy.
+	/** Set SortOrder to lowest of all Canvas, so this canvas will render behide all other canvas no matter if it belongs to different hierarchy. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas = true);
 
@@ -298,16 +308,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetDynamicPixelsPerUnit(float newValue);
 
-	//return UIRenderables that belong to this canvas
+	/** return UIRenderables that belong to this canvas */
 	const TArray<UUIRenderable*> GetUIRenderables()const { return UIRenderableItemList; }
 	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
 
 	FORCEINLINE void AddUIRenderable(UUIRenderable* InUIRenderable);
 	FORCEINLINE void RemoveUIRenderable(UUIRenderable* InUIRenderable);
 private:
-	//insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall.
+	/** insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall. */
 	void InsertIntoDrawcall(UUIRenderable* item);
-	//remove a UI element from drawcall list
+	/** remove a UI element from drawcall list */
 	void RemoveFromDrawcall(UUIRenderable* item);
 private:
 	int8 GetAdditionalShaderChannelFlags()const;
@@ -323,7 +333,7 @@ private:
 
 	uint8 cacheForThisUpdate_ShouldRebuildAllDrawcall : 1, cacheForThisUpdate_ShouldUpdateLayout:1
 		, cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
-	//prev frame number, we can tell if we enter to a new render frame
+	/** prev frame number, we can tell if we enter to a new render frame */
 	uint32 prevFrameNumber = 0;
 
 	uint32 cacheViewProjectionMatrixFrameNumber = 0;
@@ -334,11 +344,11 @@ private:
 	TArray<TSharedPtr<class UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
 
-	//rect clip's min position
+	/** rect clip's min position */
 	FVector2D rectMin = FVector2D(0, 0);
-	//rect clip's max position
+	/** rect clip's max position */
 	FVector2D rectMax = FVector2D(0, 0);
-	//calculate rect range
+	/** calculate rect range */
 	void CalculateRectRange();
 private:
 	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);

@@ -8,7 +8,7 @@
 UENUM(BlueprintType)
 enum class UIAnchorHorizontalAlign :uint8
 {
-	//Usually dont use this "None" mode
+	/** Usually dont use this "None" mode */
 	None	UMETA(DisplayName = "None"),
 	Left	UMETA(DisplayName = "Left"),
 	Center	UMETA(DisplayName = "Center"),
@@ -18,7 +18,7 @@ enum class UIAnchorHorizontalAlign :uint8
 UENUM(BlueprintType)
 enum class UIAnchorVerticalAlign :uint8
 {
-	//Usually dont use this "None" mode
+	/** Usually dont use this "None" mode */
 	None	UMETA(DisplayName = "None"),
 	Top		UMETA(DisplayName = "Top"),
 	Middle	UMETA(DisplayName = "Middle"),
@@ -26,7 +26,7 @@ enum class UIAnchorVerticalAlign :uint8
 	Stretch UMETA(DisplayName = "Stretch"),
 };
 
-// UI's base data, rect transform, color
+/** UI's base data, rect transform, color */
 USTRUCT(BlueprintType)
 struct LGUI_API FUIWidget
 {
@@ -50,16 +50,16 @@ struct LGUI_API FUIWidget
 		float width = 100;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		float height = 100;
-	//distance from self bottom to parent left
+	/** distance from self bottom to parent left */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		float stretchLeft = 0;
-	//distance from self right to parent right
+	/** distance from self right to parent right */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		float stretchRight = 0;
-	//distance from self top to parent top
+	/** distance from self top to parent top */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		float stretchTop = 0;
-	//distance from self bottom to parent bottom
+	/** distance from self bottom to parent bottom */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		float stretchBottom = 0;
 };
