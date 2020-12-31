@@ -33,7 +33,7 @@ void ULGUI_TouchInputModule::InputScroll(const float& inAxisValue)
 	auto eventData = GetPointerEventData(0, true);
 	if (IsValid(eventData->enterComponent))
 	{
-		if (inAxisValue != eventData->scrollAxisValue)
+		if (inAxisValue != 0)
 		{
 			eventData->scrollAxisValue = inAxisValue;
 			if (CheckEventSystem())
