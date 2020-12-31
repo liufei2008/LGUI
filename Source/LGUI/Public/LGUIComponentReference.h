@@ -5,7 +5,9 @@
 #include "GameFramework/Actor.h"
 #include "LGUIComponentReference.generated.h"
 
-//for reference a ActorComponent
+/**
+ * for reference a ActorComponent
+ */ 
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUIComponentReference
 {

@@ -20,17 +20,17 @@ class LGUI_API ULGUIBPLibrary : public UBlueprintFunctionLibrary
 
 public:
 #pragma region QuickEntry
-	//Set alpha if root component is a UIItem component
+	/** Set alpha if root component is a UIItem component */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void SetUIAlpha(AActor* Target, float InAlpha);
-	//Set UIActive if root component is a UIItem component
+	/** Set UIActive if root component is a UIItem component */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void SetUIActive(AActor* Target, bool Acitve);
-	//Set HierarchyIndex if root component is a UIItem component
+	/** Set HierarchyIndex if root component is a UIItem component */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void SetUIHierarchyIndex(AActor* Target, int32 index);
 #pragma endregion
-	//Delete actor and all it's children actors
+	/** Delete actor and all it's children actors */
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "WithHierarchy", UnsafeDuringActorConstruction = "true"), Category = LGUI)
 		static void DeleteActor(AActor* Target, bool WithHierarchy = true);
 
@@ -40,18 +40,18 @@ public:
 		static AActor* LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale);
 	static AActor* LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale);
 
-	//Duplicate actor and all it's children actors
+	/** Duplicate actor and all it's children actors */
 	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType = "Target", UnsafeDuringActorConstruction = "true", ToolTip = "Copy actor with hierarchy"), Category = LGUI)
 		static AActor* DuplicateActor(AActor* Target, USceneComponent* Parent);
 
+	/** find the first component in parent and up parent hierarchy with type */
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
-		//find the first component in parent and up parent hierarchy with type
 		static UActorComponent* GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass);
+	/** find all compoents in children with type */
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
-		//find all compoents in children with type
 		static TArray<UActorComponent*> GetComponentsInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf);
+	/** find the first component in children with type */
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
-		//find the first component in children with type
 		static UActorComponent* GetComponentInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf);
 private:
 	static void CollectComponentsInChildrenRecursive(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, TArray<UActorComponent*>& InOutArray);
@@ -253,7 +253,7 @@ public:
 		static void LGUIDrawableEvent_Rotator_Unregister(const FLGUIDrawableEvent_Rotator& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
 #pragma endregion DrawableEvent
 
-	//InComponentType must be the same as InLGUIComponentReference's component type
+	/** InComponentType must be the same as InLGUIComponentReference's component type */
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "GetComponent", CompactNodeTitle = ".", BlueprintAutocast, DeterminesOutputType = "InComponentType", DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use default \"Get\" node to get component."))
 		static UActorComponent* LGUICompRef_GetComponent(const FLGUIComponentReference& InLGUIComponentReference, TSubclassOf<UActorComponent> InComponentType);
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "GetComponentClass", CompactNodeTitle = "Class", BlueprintAutocast))
