@@ -74,7 +74,7 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 	{
 		if (auto uiItem = ToggleActor->GetUIItem())
 		{
-			if (ALTweenActor::IsTweening(ToggleTransitionTweener))ToggleTransitionTweener->Kill();
+			if (ALTweenActor::IsTweening(this, ToggleTransitionTweener))ToggleTransitionTweener->Kill();
 			if (ToggleDuration <= 0.0f || immediateSet)
 			{
 				uiItem->SetAlpha(IsOn ? OnAlpha : OffAlpha);
@@ -90,7 +90,7 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 	{
 		if (auto uiItem = ToggleActor->GetUIItem())
 		{
-			if (ALTweenActor::IsTweening(ToggleTransitionTweener))ToggleTransitionTweener->Kill();
+			if (ALTweenActor::IsTweening(this, ToggleTransitionTweener))ToggleTransitionTweener->Kill();
 			if (ToggleDuration <= 0.0f || immediateSet)
 			{
 				uiItem->SetColor(IsOn ? OnColor : OffColor);

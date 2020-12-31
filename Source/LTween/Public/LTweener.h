@@ -252,6 +252,9 @@ public:
 		return this;
 	}
 
+	/**
+	 * @return false: the tween need to be killed. true: don't kill the tween, still alive.
+	 */
 	virtual bool ToNext(float deltaTime);
 	/** Force stop this animation. if callComplete = true, OnComplete will call after stop*/
 	UFUNCTION(BlueprintCallable, Category = "LTween")
