@@ -1,4 +1,4 @@
-﻿// Copyright 2019-2020 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "Extensions/2DLineRenderer/UI2DLineRendererBase.h"
 #include "LGUI.h"
