@@ -51,6 +51,15 @@ FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 Vertex
 	return Interpolants;
 }
 
+/** Converts from vertex factory specific input to a FMaterialVertexParameters, which is used by vertex shader material inputs. */
+FMaterialVertexParameters GetMaterialVertexParameters(/*FVertexFactoryInput Input, */half4 VertexColor, float3 WorldPosition)
+{
+    FMaterialVertexParameters Result = (FMaterialVertexParameters) 0;
+    Result.WorldPosition = WorldPosition;
+    Result.VertexColor = VertexColor;
+    return Result;
+}
+
 float4 TransformLocalToTranslatedWorld(float3 LocalPosition)
 {
 	float3 RotatedPosition = Primitive.LocalToWorld[0].xyz * LocalPosition.xxx + Primitive.LocalToWorld[1].xyz * LocalPosition.yyy + Primitive.LocalToWorld[2].xyz * LocalPosition.zzz;
@@ -72,6 +81,11 @@ void MainVS(
 	//float4 WorldPosition = mul(float4(Position, 1.0), GetPrimitiveData(Parameters.PrimitiveId).LocalToWorld);
     float4 WorldPosition = TransformLocalToTranslatedWorld(Position);
 	//float4 WorldPosition = float4(Position.xyz + ResolvedView.PreViewTranslation.xyz, 1.0);
+
+    FMaterialVertexParameters VertexParameters = GetMaterialVertexParameters(Color, WorldPosition.xyz);
+    half3 WorldPositionOffset = GetMaterialWorldPositionOffset(VertexParameters);
+    WorldPosition.xyz += WorldPositionOffset;
+
 	Output.Position = mul(WorldPosition, ResolvedView.TranslatedWorldToClip);
 	Output.BasePassInterpolants.PixelPosition = WorldPosition;
 

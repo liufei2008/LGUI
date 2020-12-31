@@ -48,6 +48,7 @@ protected:
 	//collection of all UIItem from current level
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUIItem*> allUIItem;
+	/** Collect all canvas, and sort by order. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUICanvas*> allCanvas;
 #endif
