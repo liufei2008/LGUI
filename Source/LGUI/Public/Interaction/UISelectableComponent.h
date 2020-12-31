@@ -14,34 +14,34 @@ UENUM(BlueprintType)
 enum class UISelectableTransitionType:uint8
 {
 	None				UMETA(DisplayName = "None"),
-	//In this mode, TransitionActor's color property will be override by this component.
+	/** In this mode, TransitionActor's color property will be override by this component. */
 	ColorTint			UMETA(DisplayName = "ColorTint"),
-	//In this mode, TransitionActor's root component need to be a UISpriteBase. 
-	//Target UISprite's sprite will be override by this component.
+	/** In this mode, TransitionActor's root component need to be a UISpriteBase. */
+	/** Target UISprite's sprite will be override by this component. */
 	SpriteSwap			UMETA(DisplayName = "SpriteSwap"),
-	//You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to transition actor
+	/** You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to transition actor */
 	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
 };
 UENUM(BlueprintType)
 enum class EUISelectableSelectionState :uint8
 {
-	//Not hovered by pointer, just a normal state.
+	/** Not hovered by pointer, just a normal state. */
 	Normal,
-	//Hovered by pointer.
+	/** Hovered by pointer. */
 	Highlighted,
-	//Pressed by pointer.
+	/** Pressed by pointer. */
 	Pressed,
-	//Disabled, not interactable. Check the "OnUIInteractionStateChanged" function of UISelectableComponent, to see why it is disabled.
+	/** Disabled, not interactable. Check the "OnUIInteractionStateChanged" function of UISelectableComponent, to see why it is disabled. */
 	Disabled,
 };
 UENUM(BlueprintType)
 enum class EUISelectableNavigationMode:uint8
 {
-	//No navigation.
+	/** No navigation. */
 	None,
-	//Navigation is controlled by LGUI.
+	/** Navigation is controlled by LGUI. */
 	Auto,
-	//Control your navigation behaviour on your own.
+	/** Control your navigation behaviour on your own. */
 	Explicit,
 };
 
@@ -64,10 +64,10 @@ protected:
 	virtual void OnDestroy()override;
 
 	friend class FUISelectableCustomization;
-	//If not assigned, use self. must have UIItem component
+	/** If not assigned, use self. must have UIItem component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
 		class AUIBaseActor* TransitionActor;
-	//inherited events of this component can bubble up?
+	/** inherited events of this component can bubble up? */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		bool AllowEventBubbleUp = false;
 
