@@ -229,38 +229,41 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
 {
 	if (CheckParameters() && CheckValidHit(eventData->enterComponent))
 	{
-		auto delta = eventData->scrollAxisValue * -ScrollSensitivity;
-		if (Horizontal)
+		if (eventData->scrollAxisValue != 0)
 		{
-			AllowHorizontalScroll = true;
-			CanUpdateAfterDrag = true;
-			if (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y)
+			auto delta = eventData->scrollAxisValue * -ScrollSensitivity;
+			if (Horizontal)
 			{
-				Position.X += delta * 0.5f;
-				DragSpeed.X = delta * 0.5f;
+				AllowHorizontalScroll = true;
+				CanUpdateAfterDrag = true;
+				if (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y)
+				{
+					Position.X += delta * 0.5f;
+					DragSpeed.X = delta * 0.5f;
+				}
+				else
+				{
+					Position.X += delta;
+					DragSpeed.X = delta;
+				}
+				ContentUIItem->SetUIRelativeLocation(Position);
 			}
-			else
+			if (Vertical)
 			{
-				Position.X += delta;
-				DragSpeed.X = delta;
+				AllowVerticalScroll = true;
+				CanUpdateAfterDrag = true;
+				if (Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)
+				{
+					Position.Y += delta * 0.5f;
+					DragSpeed.Y = delta * 0.5f;
+				}
+				else
+				{
+					Position.Y += delta;
+					DragSpeed.Y = delta;
+				}
+				ContentUIItem->SetUIRelativeLocation(Position);
 			}
-			ContentUIItem->SetUIRelativeLocation(Position);
-		}
-		if (Vertical)
-		{
-			AllowVerticalScroll = true;
-			CanUpdateAfterDrag = true;
-			if (Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)
-			{
-				Position.Y += delta * 0.5f;
-				DragSpeed.Y = delta * 0.5f;
-			}
-			else
-			{
-				Position.Y += delta;
-				DragSpeed.Y = delta;
-			}
-			ContentUIItem->SetUIRelativeLocation(Position);
 		}
 	}
 	return AllowEventBubbleUp;
