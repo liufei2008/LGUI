@@ -56,6 +56,7 @@ private:
 	static bool InitCheck(UWorld* InWorld);
 public:
 	static bool IsSelected(AActor* InObject);
+	static bool AnySelectedIsChildOf(AActor* InObject);
 	void CheckEditorViewportIndexAndKey();
 	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
 public:

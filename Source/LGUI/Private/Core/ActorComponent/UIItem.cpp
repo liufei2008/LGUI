@@ -1716,6 +1716,7 @@ FIntRect UUIItemEditorHelperComp::viewRect;
 FViewMatrices UUIItemEditorHelperComp::viewMatrices;
 #endif
 #if WITH_EDITOR
+#include "Layout/LGUICanvasScaler.h"
 FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 {
 	class FUIItemSceneProxy : public FPrimitiveSceneProxy
@@ -1855,6 +1856,21 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 								{
 									canDraw = true;
 									break;
+								}
+							}
+						}
+					}
+					//canvas scaler
+					if (!canDraw)
+					{
+						if (Component->IsCanvasUIItem())
+						{
+							if (auto canvasScaler = Component->GetOwner()->FindComponentByClass<ULGUICanvasScaler>())
+							{
+								if (ULGUIEditorManagerObject::AnySelectedIsChildOf(Component->GetOwner()))
+								{
+									canDraw = true;
+									DrawColor = FColor(255, 227, 124);
 								}
 							}
 						}
