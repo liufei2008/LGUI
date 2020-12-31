@@ -24,7 +24,7 @@
 
 DECLARE_CYCLE_STAT(TEXT("LTween Update"), STAT_Update, STATGROUP_LTween);
 
-ALTweenActor* ALTweenActor::Instance = nullptr;
+TMap<UWorld*, ALTweenActor*> ALTweenActor::WorldToInstanceMap;
 
 ALTweenActor::ALTweenActor()
 {
@@ -39,8 +39,76 @@ void ALTweenActor::BeginPlay()
 void ALTweenActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+}
+
+ALTweenActor* ALTweenActor::GetLTweenInstance(UObject* WorldContextObject)
+{
+	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (auto InstancePtr = WorldToInstanceMap.Find(world))
+	{
+		return *InstancePtr;
+	}
+	else
+	{
+		if (IsValid(world))
+		{
+			FActorSpawnParameters param = FActorSpawnParameters();
+			param.ObjectFlags = RF_Transient;
+			auto Instance = world->SpawnActor<ALTweenActor>(param);
+			Instance->existInInstanceMap = true;
+			WorldToInstanceMap.Add(world, Instance);
+			UE_LOG(LTween, Log, TEXT("[ALTweenActor::InitCheck]No Instance for LTweenActor, create!"));
+			return Instance;
+		}
+		else
+		{
+			UE_LOG(LTween, Error, TEXT("[ALTweenActor::InitCheck]Get world fail, cannot create LTweenActor!"));
+			return nullptr;
+		}
+	}
+}
+
+void ALTweenActor::BeginDestroy()
+{
+	Super::BeginDestroy();
 	tweenerList.Empty();
-	Instance = nullptr;
+	if (WorldToInstanceMap.Num() > 0 && existInInstanceMap)
+	{
+		bool removed = false;
+		if (auto world = this->GetWorld())
+		{
+			WorldToInstanceMap.Remove(world);
+			removed = true;
+		}
+		else
+		{
+			world = nullptr;
+			for (auto keyValue : WorldToInstanceMap)
+			{
+				if (keyValue.Value == this)
+				{
+					world = keyValue.Key;
+				}
+			}
+			if (world != nullptr)
+			{
+				WorldToInstanceMap.Remove(world);
+				removed = true;
+			}
+		}
+		if (removed)
+		{
+			existInInstanceMap = false;
+		}
+		else
+		{
+			UE_LOG(LTween, Warning, TEXT("[ALTweenActor::BeginDestroy]Instance not removed!"));
+		}
+	}
+	if (WorldToInstanceMap.Num() <= 0)
+	{
+		UE_LOG(LTween, Log, TEXT("[ALTweenActor::BeginDestroy]All instance removed."));
+	}
 }
 
 void ALTweenActor::Tick( float DeltaTime )
@@ -56,7 +124,7 @@ void ALTweenActor::OnTick(float DeltaTime)
 	SCOPE_CYCLE_COUNTER(STAT_Update);
 	
 	auto count = tweenerList.Num();
-	for (int32 i = count - 1; i >= 0; i--)
+	for (int32 i = 0; i < count; i++)
 	{
 		auto tweener = tweenerList[i];
 		if (IsValid(tweener) == false)
@@ -69,6 +137,8 @@ void ALTweenActor::OnTick(float DeltaTime)
 			{
 				tweenerList.RemoveAt(i);
 				tweener->ConditionalBeginDestroy();
+				i--;
+				count--;
 			}
 		}
 	}
@@ -78,53 +148,28 @@ void ALTweenActor::OnTick(float DeltaTime)
 
 void ALTweenActor::CustomTick(float DeltaTime)
 {
-	if (Instance != nullptr)
-	{
-		Instance->OnTick(DeltaTime);
-	}
+	OnTick(DeltaTime);
 }
 
-bool ALTweenActor::InitCheck(UObject* WorldContextObject)
-{
-	if (Instance == nullptr)
-	{
-		auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-		if (IsValid(world))
-		{
-			FActorSpawnParameters param = FActorSpawnParameters();
-			param.ObjectFlags = RF_Transient;
-			Instance = world->SpawnActor<ALTweenActor>(param);
-			UE_LOG(LTween, Log, TEXT("[ALTweenActor::InitCheck]No Instance for LTweenActor, create!"));
-		}
-		else
-		{
-			UE_LOG(LTween, Error, TEXT("[ALTweenActor::InitCheck]Get world fail, cannot create LTweenActor!"));
-			return false;
-		}
-	}
-	return true;
-}
 void ALTweenActor::DisableTick()
 {
-	if (Instance == nullptr)return;
-	Instance->TickPaused = true;
+	TickPaused = true;
 }
 void ALTweenActor::EnableTick()
 {
-	if (Instance == nullptr)return;
-	Instance->TickPaused = false;
+	TickPaused = false;
 }
-bool ALTweenActor::IsTweening(ULTweener* item)
+bool ALTweenActor::IsTweening(UObject* WorldContextObject, ULTweener* item)
 {
-	if (Instance == nullptr)return false;
-	if (item == nullptr)return false;
-	if (!item->IsValidLowLevelFast())return false;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return false;
+
 	if (!IsValid(item))return false;
 	return Instance->tweenerList.Contains(item);
 }
-void ALTweenActor::KillIfIsTweening(ULTweener* item, bool callComplete)
+void ALTweenActor::KillIfIsTweening(UObject* WorldContextObject, ULTweener* item, bool callComplete)
 {
-	if (IsTweening(item))
+	if (IsTweening(WorldContextObject, item))
 	{
 		item->Kill(callComplete);
 	}
@@ -132,7 +177,9 @@ void ALTweenActor::KillIfIsTweening(ULTweener* item, bool callComplete)
 //float
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerFloat>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -141,7 +188,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenFloatGette
 //interger
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenIntGetterFunction& getter, const FLTweenIntSetterFunction& setter, int endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerInteger>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -150,7 +199,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenIntGetterF
 //position
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenPositionGetterFunction& getter, const FLTweenPositionSetterFunction& setter, const FVector& endValue, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerPosition>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration, sweep, sweepHitResult, teleportType);
 	Instance->tweenerList.Add(tweener);
@@ -159,7 +210,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenPositionGe
 //vector
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenVectorGetterFunction& getter, const FLTweenVectorSetterFunction& setter, const FVector& endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerVector>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -168,7 +221,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenVectorGett
 //color
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenColorGetterFunction& getter, const FLTweenColorSetterFunction& setter, const FColor& endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerColor>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -177,7 +232,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenColorGette
 //linearcolor
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenLinearColorGetterFunction& getter, const FLTweenLinearColorSetterFunction& setter, const FLinearColor& endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerLinearColor>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -186,7 +243,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenLinearColo
 //vector2d
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenVector2DGetterFunction& getter, const FLTweenVector2DSetterFunction& setter, const FVector2D& endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerVector2D>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -195,7 +254,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenVector2DGe
 //vector4
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenVector4GetterFunction& getter, const FLTweenVector4SetterFunction& setter, const FVector4& endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerVector4>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -204,7 +265,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenVector4Get
 //quaternion
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenQuaternionGetterFunction& getter, const FLTweenQuaternionSetterFunction& setter, const FQuat& endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerQuaternion>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -213,7 +276,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenQuaternion
 //rotator
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenRotatorGetterFunction& getter, const FLTweenRotatorSetterFunction& setter, const FRotator& endValue, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerRotator>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration);
 	Instance->tweenerList.Add(tweener);
@@ -222,7 +287,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenRotatorGet
 //rotation euler
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FVector& eulerAngle, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerRotationEuler>(Instance);
 	tweener->SetInitialValue(getter, setter, eulerAngle, duration, sweep, sweepHitResult, teleportType);
 	Instance->tweenerList.Add(tweener);
@@ -231,7 +298,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenRotationQu
 //rotation quat
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenRotationQuatGetterFunction& getter, const FLTweenRotationQuatSetterFunction& setter, const FQuat& endValue, float duration, bool sweep, FHitResult* sweepHitResult, ETeleportType teleportType)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerRotationQuat>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration, sweep, sweepHitResult, teleportType);
 	Instance->tweenerList.Add(tweener);
@@ -240,7 +309,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenRotationQu
 //material scalar
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenMaterialScalarGetterFunction& getter, const FLTweenMaterialScalarSetterFunction& setter, float endValue, float duration, int32 parameterIndex)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerMaterialScalar>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration, parameterIndex);
 	Instance->tweenerList.Add(tweener);
@@ -249,7 +320,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenMaterialSc
 //material vector
 ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenMaterialVectorGetterFunction& getter, const FLTweenMaterialVectorSetterFunction& setter, const FLinearColor& endValue, float duration, int32 parameterIndex)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerMaterialVector>(Instance);
 	tweener->SetInitialValue(getter, setter, endValue, duration, parameterIndex);
 	Instance->tweenerList.Add(tweener);
@@ -258,7 +331,9 @@ ULTweener* ALTweenActor::To(UObject* WorldContextObject, const FLTweenMaterialVe
 
 ULTweener* ALTweenActor::VirtualTo(UObject* WorldContextObject, float duration)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerVirtual>(Instance);
 	tweener->SetInitialValue(duration);
 	Instance->tweenerList.Add(tweener);
@@ -267,7 +342,9 @@ ULTweener* ALTweenActor::VirtualTo(UObject* WorldContextObject, float duration)
 
 ULTweener* ALTweenActor::DelayFrameCall(UObject* WorldContextObject, int delayFrame)
 {
-	if (!InitCheck(WorldContextObject))return nullptr;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return nullptr;
+
 	auto tweener = NewObject<ULTweenerFrame>(Instance);
 	tweener->SetInitialValue(delayFrame);
 	Instance->tweenerList.Add(tweener);
@@ -277,16 +354,22 @@ ULTweener* ALTweenActor::DelayFrameCall(UObject* WorldContextObject, int delayFr
 
 void ALTweenActor::RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 {
-	if (!InitCheck(WorldContextObject))return;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return;
+
 	Instance->updateEvent.Add(update);
 }
-void ALTweenActor::UnregisterUpdateEvent(const LTweenUpdateDelegate& update)
+void ALTweenActor::UnregisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 {
-	if (Instance == nullptr)return;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return;
+
 	Instance->updateEvent.Remove(update.GetHandle());
 }
-void ALTweenActor::UnregisterUpdateEvent(const FDelegateHandle& delegateHandle)
+void ALTweenActor::UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& delegateHandle)
 {
-	if (Instance == nullptr)return;
+	auto Instance = GetLTweenInstance(WorldContextObject);
+	if (!IsValid(Instance))return;
+
 	Instance->updateEvent.Remove(delegateHandle);
 }
