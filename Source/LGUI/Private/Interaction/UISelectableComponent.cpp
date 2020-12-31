@@ -108,7 +108,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			}
 			else
 			{
-				if (ALTweenActor::IsTweening(TransitionTweener))TransitionTweener->Kill();
+				if (ALTweenActor::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
 				TransitionTweener = ALTweenActor::To(this, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), NormalColor, FadeDuration);
 			}
 		}
@@ -153,7 +153,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			}
 			else
 			{
-				if (ALTweenActor::IsTweening(TransitionTweener))TransitionTweener->Kill();
+				if (ALTweenActor::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
 				TransitionTweener = ALTweenActor::To(this, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), HighlightedColor, FadeDuration);
 			}
 		}
@@ -196,7 +196,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			}
 			else
 			{
-				if (ALTweenActor::IsTweening(TransitionTweener))TransitionTweener->Kill();
+				if (ALTweenActor::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
 				TransitionTweener = ALTweenActor::To(this, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), PressedColor, FadeDuration);
 			}
 		}
@@ -239,7 +239,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			}
 			else
 			{
-				if (ALTweenActor::IsTweening(TransitionTweener))TransitionTweener->Kill();
+				if (ALTweenActor::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
 				TransitionTweener = ALTweenActor::To(this, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), DisabledColor, FadeDuration);
 			}
 		}

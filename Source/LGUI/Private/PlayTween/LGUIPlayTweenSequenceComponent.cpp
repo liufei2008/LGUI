@@ -53,6 +53,6 @@ void ULGUIPlayTweenSequenceComponent::Stop()
 	if (isPlaying)
 	{
 		isPlaying = false;
-		ALTweenActor::KillIfIsTweening(playTweenArray[currentTweenPlayIndex]->GetTweener(), false);
+		ALTweenActor::KillIfIsTweening(this, playTweenArray[currentTweenPlayIndex]->GetTweener(), false);
 	}
 }

@@ -8,7 +8,7 @@ void UUISelectableTransitionComponent::StopTransition()
 { 
 	for (auto tweener : TweenerCollection)
 	{
-		ULTweenBPLibrary::KillIfIsTweening(tweener);
+		ULTweenBPLibrary::KillIfIsTweening(this, tweener);
 	}
 	TweenerCollection.Reset();
 }

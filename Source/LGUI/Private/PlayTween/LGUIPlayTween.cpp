@@ -6,7 +6,7 @@
 
 void ULGUIPlayTween::Stop()
 {
-	ALTweenActor::KillIfIsTweening(tweener, false);
+	ALTweenActor::KillIfIsTweening(this, tweener, false);
 }
 void ULGUIPlayTween::Start()
 {

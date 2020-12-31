@@ -16,8 +16,8 @@ protected:
 		LTweenLoop loopType = LTweenLoop::Once;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		LTweenEase easeType = LTweenEase::Linear;
-	//only valid if easeType=CurveFloat
-	UPROPERTY(EditAnywhere, Category = "Property")
+	/** only valid if easeType=CurveFloat */
+	UPROPERTY(EditAnywhere, Category = "Property", meta=(EditCondition = "easeType == LTweenEase::CurveFloat"))
 		UCurveFloat* easeCurve;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float duration = 0.5f;

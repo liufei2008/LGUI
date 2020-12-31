@@ -17,39 +17,44 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void BeginDestroy()override;
 	
+	UFUNCTION(BlueprintPure, Category = LTween, meta = (WorldContext = "WorldContextObject", DisplayName = "Get LTween Instance"))
+	static ALTweenActor* GetLTweenInstance(UObject* WorldContextObject);
 private:
 	/** current active tweener collection*/
 	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<ULTweener*> tweenerList;
-	static ALTweenActor* Instance;
-	static bool InitCheck(UObject* WorldContextObject);
+	/** a world should only have one LTweenActor */
+	static TMap<UWorld*, ALTweenActor*> WorldToInstanceMap;
+	bool existInInstanceMap = false;
 	virtual void Tick(float DeltaSeconds) override;
 	void OnTick(float DeltaTime);
 	LTweenUpdateMulticastDelegate updateEvent;
 	bool TickPaused = false;
 public:
 	/** this function can use your own DeltaSeconds instead of UE4's Tick. use DisableTick to disable UE4's Tick function, then call this CustomTick function.*/
-	static void CustomTick(float DeltaTime);
+	void CustomTick(float DeltaTime);
 	/**
 	 * Disable default Tick function, so you can pause all tween or use CustomTick to do your own tick and use your own DeltaTime.
 	 * This will only pause the tick with current LTweenActor instance, so after load a new level, default Tick will work again, and you need to call DisableTick again if you want to disable tick.
 	 */ 
-	static void DisableTick();
+	void DisableTick();
 	/**
 	 * Enable default Tick if it is disabled.
 	 */
-	static void EnableTick();
+	void EnableTick();
+
 	/**
 	 * Is the tweener is currently tweening? 
 	 * @param item tweener item
 	 */
-	static bool IsTweening(ULTweener* item);
+	static bool IsTweening(UObject* WorldContextObject, ULTweener* item);
 	/**
 	 * Kill the tweener if it is tweening.
 	 * @param item tweener item
 	 * @param callComplete true-execute onComplete event.
 	 */
-	static void KillIfIsTweening(ULTweener* item, bool callComplete);
+	static void KillIfIsTweening(UObject* WorldContextObject, ULTweener* item, bool callComplete);
 
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenFloatGetterFunction& getter, const FLTweenFloatSetterFunction& setter, float endValue, float duration);
 	static ULTweener* To(UObject* WorldContextObject, const FLTweenIntGetterFunction& getter, const FLTweenIntSetterFunction& setter, int endValue, float duration);
@@ -71,6 +76,6 @@ public:
 	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int delayFrame);
 
 	static void RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update);
-	static void UnregisterUpdateEvent(const LTweenUpdateDelegate& update);
-	static void UnregisterUpdateEvent(const FDelegateHandle& delegateHandle);
+	static void UnregisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update);
+	static void UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& delegateHandle);
 };

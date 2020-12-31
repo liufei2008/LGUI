@@ -180,32 +180,38 @@ public:
 		return ALTweenActor::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
 	}
 
-	UFUNCTION(BlueprintCallable, Category = LTween)
-		static bool IsTweening(ULTweener* inTweener)
+	UFUNCTION(BlueprintCallable, Category = LTween, meta = (WorldContext = "WorldContextObject"))
+		static bool IsTweening(UObject* WorldContextObject, ULTweener* inTweener)
 	{
-		return ALTweenActor::IsTweening(inTweener);
+		return ALTweenActor::IsTweening(WorldContextObject, inTweener);
 	}
 	/**
 	 * Force stop this animation. if callComplete = true, OnComplete will call after stop.
 	 * This method will check if the tweener is valid.
 	 */
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "callComplete"), Category = LTween)
-		static void KillIfIsTweening(ULTweener* inTweener, bool callComplete = false)
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "callComplete", WorldContext = "WorldContextObject"), Category = LTween)
+		static void KillIfIsTweening(UObject* WorldContextObject, ULTweener* inTweener, bool callComplete = false)
 	{
-		ALTweenActor::KillIfIsTweening(inTweener, callComplete);
+		ALTweenActor::KillIfIsTweening(WorldContextObject, inTweener, callComplete);
 	}
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Kill If Is Tweening (Array)", AdvancedDisplay = "callComplete"), Category = LTween)
-		static void ArrayKillIfIsTweening(const TArray<ULTweener*>& inTweenerArray, bool callComplete = false)
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Kill If Is Tweening (Array)", AdvancedDisplay = "callComplete", WorldContext = "WorldContextObject"), Category = LTween)
+		static void ArrayKillIfIsTweening(UObject* WorldContextObject, const TArray<ULTweener*>& inTweenerArray, bool callComplete = false)
 	{
+		auto Instance = ALTweenActor::GetLTweenInstance(WorldContextObject);
+		if (!IsValid(Instance))return;
+
 		for (auto tweener : inTweenerArray)
 		{
-			ALTweenActor::KillIfIsTweening(tweener, callComplete);
+			Instance->KillIfIsTweening(WorldContextObject, tweener, callComplete);
 		}
 	}
 
 	static void RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 	{
-		ALTweenActor::RegisterUpdateEvent(WorldContextObject, update);
+		auto Instance = ALTweenActor::GetLTweenInstance(WorldContextObject);
+		if (!IsValid(Instance))return;
+
+		Instance->RegisterUpdateEvent(WorldContextObject, update);
 	}
 	static FLTweenDelegateHandleWrapper RegisterUpdateEvent(UObject* WorldContextObject, const TFunction<void(float)>& update)
 	{
@@ -222,13 +228,13 @@ public:
 		ALTweenActor::RegisterUpdateEvent(WorldContextObject, updateDelegate);
 		return delegateHandle;
 	}
-	static void UnregisterUpdateEvent(const LTweenUpdateDelegate& update)
+	static void UnregisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 	{
-		ALTweenActor::UnregisterUpdateEvent(update);
+		ALTweenActor::UnregisterUpdateEvent(WorldContextObject, update);
 	}
-	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Unregister the update function. \"delegateHandle\" is the return value when use RegisterUpdateEvent."), Category = LTween)
-		static void UnregisterUpdateEvent(const FLTweenDelegateHandleWrapper& delegateHandle)
+	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Unregister the update function. \"delegateHandle\" is the return value when use RegisterUpdateEvent.", WorldContext = "WorldContextObject"), Category = LTween)
+		static void UnregisterUpdateEvent(UObject* WorldContextObject, const FLTweenDelegateHandleWrapper& delegateHandle)
 	{
-		ALTweenActor::UnregisterUpdateEvent(delegateHandle.DelegateHandle);
+		ALTweenActor::UnregisterUpdateEvent(WorldContextObject, delegateHandle.DelegateHandle);
 	}
 };
