@@ -6,7 +6,9 @@
 #include "UIRenderable.h"
 #include "UISpriteBase.generated.h"
 
-//This is base class for create custom mesh based on UISprite. Just override OnCreateGeometry() and OnUpdateGeometry(...) to create or update your own geometry
+/**
+ * This is base class for create custom mesh based on UISprite.
+ */
 UCLASS(ClassGroup = (LGUI), Abstract, NotBlueprintable)
 class LGUI_API UUISpriteBase : public UUIRenderable
 {
@@ -33,6 +35,7 @@ protected:
 	friend class SLGUISpriteSelector;
 	friend class FUISpriteBaseCustomization;
 
+	/** sprite may override by UISelectable(UIButton, UIToggle, UISlider ...) */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ULGUISpriteData* sprite;
 

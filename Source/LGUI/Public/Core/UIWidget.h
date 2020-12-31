@@ -34,6 +34,7 @@ struct LGUI_API FUIWidget
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		int32 depth = 0;
+	/** sprite may override by UISelectable(UIButton, UIToggle, UISlider ...) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		FColor color = FColor::White;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
