@@ -18,6 +18,9 @@ enum class UIItemType :uint8
 	UIRenderable,
 };
 
+/**
+ * Base class for almost all UI related things.
+ */
 UCLASS(HideCategories = ( LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIItem : public USceneComponent
 {
@@ -32,20 +35,20 @@ public:
 
 #if WITH_EDITORONLY_DATA
 	bool isPreEditChange = false;
-	//prev frame location
+	/** prev frame location */
 	FVector prevRelativeLocation;
-	//prev frame anchor horizontal alignment
+	/** prev frame anchor horizontal alignment */
 	UIAnchorHorizontalAlign prevAnchorHAlign;
-	//prev frame anchor vertical alignemnt
+	/** prev frame anchor vertical alignemnt */
 	UIAnchorVerticalAlign prevAnchorVAlign;
 #endif
 #if WITH_EDITOR
 	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditComponentMove(bool bFinished) override;
-	//USceneComponent Interface.Only needed for show rect range in editor
+	/** USceneComponent Interface.Only needed for show rect range in editor */
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
-	//update UI immediately in edit mode
+	/** update UI immediately in edit mode */
 	virtual void EditorForceUpdateImmediately();
 #endif
 	virtual void OnAttachmentChanged() override;
@@ -61,24 +64,28 @@ private:
 	void CallUIComponentsChildAttachmentChanged(UUIItem* child, bool attachOrDettach);
 	void CallUIComponentsInteractionStateChanged();
 	void CallUIComponentsChildHierarchyIndexChanged(UUIItem* child);
-protected://these funcions are same as UIBaseComponent, for easier to use
-	//Called when RootUIComp IsActiveInHierarchy state is changed
+protected://these funcions are same as UIBehaviour, for easier to use
+	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive) { }
-	//Called when RootUIComp->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
-	//@param positionChanged	relative position
+	/** 
+	 * Called when RootUIComp->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
+	 * @param positionChanged	relative position
+	 */
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged) { }
-	//Called when RootUIComp's attachchildren->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
-	//@param positionChanged	relative position
+	/**
+	 * Called when RootUIComp's attachchildren->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
+	 * @param positionChanged	relative position
+	 */
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged) { }
-	//Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed
+	/** Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed */
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive) { }
-	//Called when RootUIComp attach to a new parent
+	/** Called when RootUIComp attach to a new parent */
 	virtual void OnUIAttachmentChanged() { }
-	//Called when RootUIComp's attachchildren is attached to RootUIComp or detached from RootUIComp 
+	/** Called when RootUIComp's attachchildren is attached to RootUIComp or detached from RootUIComp  */
 	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach) { }
-	//Called when RootUIComp's interaction state changed(when UIInteractionGroup component allow interaction or not)
+	/** Called when RootUIComp's interaction state changed(when UIInteractionGroup component allow interaction or not) */
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot) { }
-	//Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children
+	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child) { }
 public:
 	void AddUIBaseComponent(class ULGUIBehaviour* InComp) { UIBaseComponentArray.AddUnique(InComp); }
@@ -93,9 +100,9 @@ protected:
 private:
 	FORCEINLINE void CalculateHorizontalStretchFromAnchorAndSize();
 	FORCEINLINE void CalculateVerticalStretchFromAnchorAndSize();
-	//@param return		true if size changed, else false
+	/** @return		true if size changed, else false */
 	FORCEINLINE bool CalculateHorizontalAnchorAndSizeFromStretch();
-	//@param return		true if size changed, else false
+	/** @return		true if size changed, else false */
 	FORCEINLINE bool CalculateVerticalAnchorAndSizeFromStretch();
 #pragma region LayoutChangeCallback
 private:
@@ -105,31 +112,31 @@ public:
 	void UnregisterLayoutChange(const FSimpleDelegate& InDelegate);
 #pragma endregion LayoutChangeCallback
 public:
-	//update layout and geometry
+	/** update layout and geometry */
 	virtual void UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpdateLayout);
 protected:
-	//UIItem's hierarchy changed
+	/** UIItem's hierarchy changed */
 	virtual void UIHierarchyChanged();
-	//@param return		true if size changed, else false
+	/** @return		true if size changed, else false */
 	bool CalculateLayoutRelatedParameters();
-	//update render geometry
+	/** update render geometry */
 	virtual void UpdateGeometry(const bool& parentLayoutChanged);
-	//called when attach to a new RenderCanvas.
+	/** called when attach to a new RenderCanvas. */
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
 
 protected:
-	//widget contains rect transform and color
+	/** widget contains rect transform and color */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
 		FUIWidget widget;
-	//parent's final alpha value, multiplyed by parent's parent's parent's... alpha value
+	/** parent's final alpha value, multiplyed by parent's parent's parent's... alpha value */
 	float calculatedParentAlpha = 1.0f;
-	//parent in hierarchy
+	/** parent in hierarchy */
 	UPROPERTY(Transient) mutable UUIItem* cacheParentUIItem = nullptr;
 	UPROPERTY(Transient) TArray<UUIItem*> cacheUIChildren;
-	//check valid, incase unnormally deleting actor, like undo
+	/** check valid, incase unnormally deleting actor, like undo */
 	FORCEINLINE void CheckCacheUIChildren();
 	FORCEINLINE void SortCacheUIChildren();
-	//alpha inherit from parent or not
+	/** alpha inherit from parent or not */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
 		bool inheritAlpha = true;
 public:
@@ -213,7 +220,7 @@ public:
 #pragma endregion
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetCalculatedParentAlpha() const { return calculatedParentAlpha; }
-	//This can auto calculate dimensions
+	/** This can auto calculate dimensions */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetUIRelativeLocation(FVector newLocation);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -241,7 +248,7 @@ public:
 	void MarkLayoutDirty();
 	void MarkColorDirty();
 
-	//mark all dirty for UI element to update, include all children
+	/** mark all dirty for UI element to update, include all children */
 	virtual void MarkAllDirtyRecursive();
 protected:
 	virtual void MarkCanvasUpdate();
@@ -262,31 +269,31 @@ public:
 #pragma endregion InteractionGroup
 #pragma region UIActive
 protected:
-	//all up parent IsUIActive is true, then this is true. if any up parent is false, then this is false
+	/** all up parent IsUIActive is true, then this is true. if any up parent is false, then this is false */
 	bool allUpParentUIActive = true;
 	void SetChildUIActiveRecursive(bool InUpParentUIActive);
-	/*
-	active ui is visible and can interact.
-	if parent or parent's parent... IsUIActive is false, then this ui is not visible and not interactable
-	*/
+	/**
+	 * active ui is visible and can interact.
+	 * if parent or parent's parent... IsUIActive is false, then this ui is not visible and not interactable
+	 */
 	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
 		bool bIsUIActive = true;
-	//apply IsUIActive state
+	/** apply IsUIActive state */
 	virtual void ApplyUIActiveState();
 	void OnChildActiveStateChanged(UUIItem* child);
 public:
-	//Set this UI element's bIsUIActive
+	/** Set this UI element's bIsUIActive */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	virtual void SetUIActive(bool active);
-	//is UI active itself, parent not count
+	/** is UI active itself, parent not count */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool IsUIActiveSelf()const { return bIsUIActive; }
-	//is UI active hierarchy. if all up parent of this ui item is active then return this->IsUIActive. if any up parent ui item is not active then return false
+	/** is UI active hierarchy. if all up parent of this ui item is active then return this->IsUIActive. if any up parent ui item is not active then return false */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool IsUIActiveInHierarchy()const { return bIsUIActive && allUpParentUIActive; };
 #pragma endregion UIActive
 protected:
-	//hierarchy index, for layout to sort order
+	/** hierarchy index, for layout to sort order */
 	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
 		int32 hierarchyIndex = INDEX_NONE;
 	void OnChildHierarchyIndexChanged(UUIItem* child);
@@ -301,10 +308,10 @@ public:
 		void SetAsLastHierarchy();
 #pragma region Collider
 protected:
-	//if this is a raycastTarget? means LineTrace can hit this or not. for EventSystem interaction
+	/** if this is a raycastTarget? means LineTrace can hit this or not. for EventSystem interaction */
 	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
 		bool bRaycastTarget = false;
-	//traceChannel for line trace of EventSystem interaction
+	/** traceChannel for line trace of EventSystem interaction */
 	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
 		TEnumAsByte<ETraceTypeQuery> traceChannel = TraceTypeQuery3;
 public:
@@ -323,7 +330,7 @@ public:
 	bool IsScreenSpaceOverlayUI();
 	bool IsWorldSpaceUI();
 
-	//get UI element type
+	/** get UI element type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UIItemType GetUIItemType()const { return itemType; }
 	bool IsCanvasUIItem() { return isCanvasUIItem; }
@@ -331,28 +338,28 @@ protected:
 	friend class FUIItemCustomization;
 	friend class ULGUICanvas;
 	UIItemType itemType = UIItemType::None;
-	//LGUICanvas which render this UI element
+	/** LGUICanvas which render this UI element */
 	UPROPERTY(Transient) ULGUICanvas* RenderCanvas = nullptr;
-	//is this UIItem's actor have LGUICanvas component
+	/** is this UIItem's actor have LGUICanvas component */
 	uint8 isCanvasUIItem:1;
 
 	uint8 bDepthChanged:1;//depth changed
 	uint8 bColorChanged:1;//vertex color chnaged
 	uint8 bLayoutChanged:1;//layout changed
-	//update prev frame's data
+	/** update prev frame's data */
 	virtual void UpdateBasePrevData();
 
-	//use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again 
+	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
 	uint8 cacheForThisUpdate_DepthChanged:1, cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 
-	//find LGUICanvas which render this UI element
+	/** find LGUICanvas which render this UI element */
 	FORCEINLINE bool CheckRenderCanvas();
 public:
 	uint8 GetFinalAlpha()const;
 	float GetFinalAlpha01()const;
-	//get final color, calculate alpha
+	/** get final color, calculate alpha */
 	FColor GetFinalColor()const;
 	static float Color255To1_Table[256];
 
