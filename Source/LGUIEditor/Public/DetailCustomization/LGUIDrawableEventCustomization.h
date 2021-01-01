@@ -102,6 +102,7 @@ public:
 			[
 				SNew(STextBlock)
 				.Text(FText::FromString(nameStr))
+				.ToolTipText(PropertyHandle->GetToolTipText())
 				//.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
 			+SHorizontalBox::Slot()
