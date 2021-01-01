@@ -10,15 +10,19 @@ void ULGUIPlayTween::Stop()
 }
 void ULGUIPlayTween::Start()
 {
-	tweener = ALTweenActor::VirtualTo(this->GetWorld(), duration)
+	tweener = ALTweenActor::To(this->GetWorld()
+		, FLTweenFloatGetterFunction::CreateLambda([] { return 0.0f; })
+		, FLTweenFloatSetterFunction::CreateLambda([=](float value) { OnUpdate(value); })
+		, 1.0f, duration)
 		->SetDelay(startDelay)
 		->SetLoopType(loopType)
+		->SetEase(easeType)
+		->SetCurveFloat(easeCurve)
 		->OnStart([&] {
 			onStart.FireEvent();
 		})
 		->OnUpdate([&](float progress) {
 			onUpdateProgress.FireEvent(progress);
-			OnUpdate(progress);
 		})
 		->OnComplete([&] {
 			onComplete.FireEvent();

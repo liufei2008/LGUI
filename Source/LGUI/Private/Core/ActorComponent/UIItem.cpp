@@ -1149,10 +1149,14 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 		}
 	}
 }
-void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const FQuat& newRotation)
+void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation)
+{
+	SetUIRelativeLocationAndRotationQuat(newLocation, newRotation.Quaternion());
+}
+void UUIItem::SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, const FQuat& newRotation)
 {
 	bool rotationChange = false;
-	if (LGUIUtils::IsQuaternionNotEqual(newRotation, GetRelativeRotationCache().GetCachedQuat()))
+	if (!newRotation.Equals(GetRelativeRotationCache().GetCachedQuat()))
 	{
 		GetRelativeRotation_DirectMutable() = GetRelativeRotationCache().QuatToRotator(newRotation);
 		rotationChange = true;
@@ -1168,6 +1172,14 @@ void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const
 			LGUIUpdateComponentToWorld();
 		}
 	}
+}
+void UUIItem::SetUIRelativeRotation(const FRotator& newRotation)
+{
+	this->SetUIRelativeLocationAndRotationQuat(GetRelativeLocation(), newRotation.Quaternion());
+}
+void UUIItem::SetUIRelativeRotationQuat(const FQuat& newRotation)
+{
+	this->SetUIRelativeLocationAndRotationQuat(GetRelativeLocation(), newRotation);
 }
 void UUIItem::SetStretchLeft(float newLeft)
 {
@@ -2055,13 +2067,11 @@ void UUIItem::LGUIPropagateTransformUpdate(bool inTransformChanged)
 	}
 	else
 	{
+		//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_PropagateTransformUpdate_UpdateChildTransforms);
+		// Now go and update children
+		if (AttachedChildren.Num() > 0)
 		{
-			//QUICK_SCOPE_CYCLE_COUNTER(STAT_USceneComponent_PropagateTransformUpdate_UpdateChildTransforms);
-			// Now go and update children
-			if (AttachedChildren.Num() > 0)
-			{
-				LGUIUpdateChildTransforms();
-			}
+			LGUIUpdateChildTransforms();
 		}
 	}
 }
@@ -2085,19 +2095,11 @@ void UUIItem::LGUIUpdateChildTransforms()
 
 		for (USceneComponent* ChildComp : TempAttachChildren)
 		{
-			if (ChildComp != nullptr)
+			if (IsValid(ChildComp))
 			{
 				if (auto ChildUIItem = Cast<UUIItem>(ChildComp))
 				{
-					// Update Child if it's never been updated.
-					if (!LGUIGetComponentToWorldUpdated(ChildUIItem))
-					{
-						ChildUIItem->LGUIUpdateComponentToWorld();
-					}
-					else
-					{
-						ChildUIItem->LGUIUpdateComponentToWorld();
-					}
+					ChildUIItem->LGUIUpdateComponentToWorld();
 				}
 				else
 				{

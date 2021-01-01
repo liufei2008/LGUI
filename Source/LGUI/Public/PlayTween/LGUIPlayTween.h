@@ -25,7 +25,7 @@ protected:
 		float startDelay = 0.0f;
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onStart = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Empty);
-	//parameter float is the progress in range 0-1
+	/** parameter float is the progress in range 0-1, not affected by ease type (linear on time) */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateProgress = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Float);
 	UPROPERTY(EditAnywhere, Category = "Event")

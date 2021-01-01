@@ -221,10 +221,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetCalculatedParentAlpha() const { return calculatedParentAlpha; }
 	/** This can auto calculate dimensions */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetUIRelativeLocation(FVector newLocation);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetUIRelativeLocationAndRotation(const FVector& newLocation, const FQuat& newRotation);
+	/** This can auto calculate dimensions */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation);
+	/** This can auto calculate dimensions */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, const FQuat& newRotation);
+	/** This is a simple one parameter version */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetUIRelativeRotation(const FRotator& newRotation);
+	/** This is a simple one parameter version */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetUIRelativeRotationQuat(const FQuat& newRotation);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetLocalSpaceLeftBottomPoint()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
