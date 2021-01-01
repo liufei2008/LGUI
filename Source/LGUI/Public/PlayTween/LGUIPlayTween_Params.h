@@ -15,7 +15,7 @@ protected:
 		float from = 0.0f;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float to = 1.0f;
-	//parameter float is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Float);
 
@@ -35,7 +35,7 @@ protected:
 		FColor from = FColor::White;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FColor to = FColor::Green;
-	//parameter float is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Color);
 
@@ -60,7 +60,7 @@ protected:
 		int from = 0;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		int to = 100;
-	//parameter float is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Int32);
 
@@ -80,7 +80,7 @@ protected:
 		FLinearColor from = FLinearColor::White;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FLinearColor to = FLinearColor::Green;
-	//parameter float is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::LinearColor);
 
@@ -100,7 +100,7 @@ protected:
 		FQuat from = FQuat::Identity;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FQuat to = FQuat(FVector(0.0f, 0.0f, 1.0f), HALF_PI);
-	//parameter float is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Quaternion);
 
@@ -120,7 +120,7 @@ protected:
 		FRotator from = FRotator::ZeroRotator;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FRotator to = FRotator(0.0f, 0.0f, 90.0f);
-	//parameter float is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Rotator);
 
@@ -140,7 +140,7 @@ protected:
 		FVector2D from = FVector2D::ZeroVector;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector2D to = FVector2D(1.0f, 1.0f);
-	//parameter Vector3 is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Vector2);
 
@@ -160,7 +160,7 @@ protected:
 		FVector from = FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector to = FVector::OneVector;
-	//parameter Vector3 is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Vector3);
 
@@ -180,7 +180,7 @@ protected:
 		FVector4 from = FVector4(0.0f, 0.0f, 0.0f, 0.0f);
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector4 to = FVector4(1.0f, 1.0f, 1.0f, 1.0f);
-	//parameter Vector3 is interpolated value from to
+	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
 		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Vector4);
 
