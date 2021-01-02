@@ -469,7 +469,13 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 			}
 			else
 			{
-				checkf(false, TEXT("[DeserializeActorRecursive]Component Class of index:%d not found!"), (CompData.ComponentClass));
+#if WITH_EDITOR
+				auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
+				UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg); 
+				LGUIUtils::EditorNotification(FText::FromString(ErrorMsg)); 
+#else
+				checkf(false, TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
+#endif
 			}
 		}
 		//SceneComponent reattach to parent
@@ -508,7 +514,13 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 	}
 	else
 	{
-		checkf(false, TEXT("[DeserializeActorRecursive]Actor Class of index:%d not found!"), (SaveData.ActorClass));
+#if WITH_EDITOR
+		auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
+		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
+		LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
+#else
+		checkf(false, TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
+#endif
 		return nullptr;
 	}
 }
@@ -1103,9 +1115,23 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				else
 				{
-					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("[ActorSerializer/LoadCommonProperty]Load value of Property:%s, but size not match, PropertySize:%d, dataSize:%d.\
- Try rebuild this prefab, and if this problem still exist, please contact the plugin author.")
-						, *(Property->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
+#if WITH_EDITOR
+					if (Property->GetSize() != ItemPropertyData.Data.Num())
+					{
+						auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/LoadCommonProperty]Error prefab:%s. \n	Load value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.\
+ Open the prefab and click \"RecreateThis\" can fix it.\
+ If this problem still exist, please contact the plugin author.")
+							, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetPathName()), Property->GetSize(), ItemPropertyData.Data.Num());
+						UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
+						LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
+						return false;
+					}
+#else
+					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("[ActorSerializer/LoadCommonProperty]Error prefab:%s. \nLoad value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.\
+ Open the prefab and click \"RecreateThis\" can fix it.\
+ If this problem still exist, please contact the plugin author.")
+						, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetPathName()), Property->GetSize(), ItemPropertyData.Data.Num());
+#endif
 					Property->CopyCompleteValue(Property->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex), ItemPropertyData.Data.GetData());
 				}
 				return true;
