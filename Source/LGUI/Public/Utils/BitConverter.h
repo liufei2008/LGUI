@@ -16,7 +16,7 @@ if(bytes.Num() < byteCountNeeded)\
 }\
 
 #define BITCONVERTER_ERRORCHECK_RUNTIME(func, bytes, byteCountNeeded)\
-checkf(bytes.Num() >= byteCountNeeded, ErrorMsgFormat, TEXT(func), bytes.Num());
+checkf(bytes.Num() >= byteCountNeeded, ErrorMsgFormat, TEXT(#func), bytes.Num());
 
 class LGUI_API BitConverter
 {
