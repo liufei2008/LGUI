@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "Utils/LGUIUtils.h"
+#include "Utils/BitConverter.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/UIDrawcall.h"
@@ -283,3 +284,7 @@ TSharedPtr<UUIDrawcall> LGUIUtils::GetAvalibleDrawcall(TArray<TSharedPtr<UUIDraw
 	}
 	return result;
 }
+
+const TCHAR BitConverter::ErrorMsgFormat[] = TEXT("[BitConvert/%s]bytes.Num %d is not enough! \
+If this happens when loading a LGUIPrefab, then open that prefab and click \"RecreateThis\" can fix it. \
+If this problem still exist, please contact the plugin author.");

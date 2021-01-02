@@ -3,130 +3,216 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Utils/LGUIUtils.h"
+#include "LGUI.h"
+
+#define BITCONVERTER_ERRORCHECK_EDITOR(func, bytes, byteCountNeeded, returnValueIfError)\
+if(bytes.Num() < byteCountNeeded)\
+{\
+	auto ErrorMsg = FString::Printf(ErrorMsgFormat, TEXT(#func), bytes.Num());\
+	UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);\
+	LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));\
+	return returnValueIfError; \
+}\
+
+#define BITCONVERTER_ERRORCHECK_RUNTIME(func, bytes, byteCountNeeded)\
+checkf(bytes.Num() >= byteCountNeeded, ErrorMsgFormat, TEXT(func), bytes.Num());
 
 class LGUI_API BitConverter
 {
 public:
 	static bool ToBoolean(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 1, TEXT("[BitConvert/ToBoolen]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToBoolean, bytes, 1, false)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToBoolean, bytes, 1)
+#endif
 		return bytes[0] == 1;
 	}
 	static int8 ToInt8(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 1, TEXT("[BitConvert/ToInt8]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt8, bytes, 1, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt8, bytes, 1)
+#endif
 		int8 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 1);
 		return result;
 	}
 	static uint8 ToUInt8(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 1, TEXT("[BitConvert/ToUInt8]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt8, bytes, 1, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt8, bytes, 1)
+#endif
 		uint8 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 1);
 		return result;
 	}
 	static int16 ToInt16(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 2, TEXT("[BitConvert/ToInt16]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt16, bytes, 2, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt16, bytes, 2)
+#endif
 		int16 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 2);
 		return result;
 	}
 	static uint16 ToUInt16(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 2, TEXT("[BitConvert/ToUInt16]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt16, bytes, 2, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt16, bytes, 2)
+#endif
 		uint16 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 2);
 		return result;
 	}
 	static int32 ToInt32(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 4, TEXT("[BitConvert/ToInt32]bytes.Num:%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt32, bytes, 4, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt32, bytes, 4)
+#endif
 		int32 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 4);
 		return result;
 	}
 	static uint32 ToUInt32(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 4, TEXT("[BitConvert/ToUInt32]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt32, bytes, 4, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt32, bytes, 4)
+#endif
 		uint32 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 4);
 		return result;
 	}
 	static int64 ToInt64(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 8, TEXT("[BitConvert/ToInt64]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt64, bytes, 8, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt64, bytes, 8)
+#endif
 		int64 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 8);
 		return result;
 	}
 	static uint64 ToUInt64(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 8, TEXT("[BitConvert/ToUInt64]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt64, bytes, 8, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt64, bytes, 8)
+#endif
 		uint64 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 8);
 		return result;
 	}
 	static float ToFloat(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 4, TEXT("[BitConvert/ToFloat]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToFloat, bytes, 4, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToFloat, bytes, 4)
+#endif
 		float result;
 		FMemory::Memcpy(&result, bytes.GetData(), 4);
 		return result;
 	}
 	static double ToDouble(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 8, TEXT("[BitConvert/ToDouble]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToDouble, bytes, 8, 0)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToDouble, bytes, 8)
+#endif
 		double result;
 		FMemory::Memcpy(&result, bytes.GetData(), 8);
 		return result;
 	}
 	static FVector2D ToVector2(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 8, TEXT("[BitConvert/ToVector2]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector2, bytes, 8, FVector2D::ZeroVector)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector2, bytes, 8)
+#endif
 		FVector2D result;
 		FMemory::Memcpy(&result, bytes.GetData(), 8);
 		return result;
 	}
 	static FVector ToVector3(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 12, TEXT("[BitConvert/ToVector3]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector3, bytes, 12, FVector::ZeroVector)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector3, bytes, 12)
+#endif
 		FVector result;
 		FMemory::Memcpy(&result, bytes.GetData(), 12);
 		return result;
 	}
 	static FVector4 ToVector4(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 16, TEXT("[BitConvert/ToVector4]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector4, bytes, 16, FVector4(EForceInit::ForceInitToZero))
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector4, bytes, 16)
+#endif
 		FVector4 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 16);
 		return result;
 	}
 	static FQuat ToQuat(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 16, TEXT("[BitConvert/ToQuat]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToBoolean, bytes, 16, FQuat::Identity)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToBoolean, bytes, 16)
+#endif
 		FQuat result;
 		FMemory::Memcpy(&result, bytes.GetData(), 16);
 		return result;
 	}
 	static FColor ToColor(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 4, TEXT("[BitConvert/ToColor]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToColor, bytes, 4, FColor::White)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToColor, bytes, 4)
+#endif
 		FColor result;
 		FMemory::Memcpy(&result, bytes.GetData(), 4);
 		return result;
 	}
 	static FLinearColor ToLinearColor(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 16, TEXT("[BitConvert/ToLinearColor]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToLinearColor, bytes, 16, FLinearColor::White)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToLinearColor, bytes, 16)
+#endif
 		FLinearColor result;
 		FMemory::Memcpy(&result, bytes.GetData(), 16);
 		return result;
 	}
 	static FRotator ToRotator(const TArray<uint8>& bytes)
 	{
-		checkf(bytes.Num() >= 12, TEXT("[BitConvert/ToRotator]bytes.Num%d is not enough! If this happened when loading a LGUIPrefab, then recreate that prefab may fix it."), bytes.Num());
+#if WITH_EDITORONLY_DATA
+		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToRotator, bytes, 12, FRotator::ZeroRotator)
+#else
+		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToRotator, bytes, 12)
+#endif
 		FRotator result;
 		FMemory::Memcpy(&result, bytes.GetData(), 12);
 		return result;
@@ -214,4 +300,5 @@ private:
 		FMemory::Memcpy(result.GetData(), InData, count);
 		return result;
 	}
+	static const TCHAR ErrorMsgFormat[];
 };
