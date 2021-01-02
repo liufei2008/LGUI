@@ -1121,7 +1121,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 						auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/LoadCommonProperty]Error prefab:%s. \n	Load value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.\
  Open the prefab and click \"RecreateThis\" can fix it.\
  If this problem still exist, please contact the plugin author.")
-							, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetPathName()), Property->GetSize(), ItemPropertyData.Data.Num());
+							, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
 						UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
 						LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
 						return false;
@@ -1130,7 +1130,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("[ActorSerializer/LoadCommonProperty]Error prefab:%s. \nLoad value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.\
  Open the prefab and click \"RecreateThis\" can fix it.\
  If this problem still exist, please contact the plugin author.")
-						, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetPathName()), Property->GetSize(), ItemPropertyData.Data.Num());
+						, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
 #endif
 					Property->CopyCompleteValue(Property->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex), ItemPropertyData.Data.GetData());
 				}
