@@ -88,6 +88,9 @@ public:
 	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
 	TWeakObjectPtr<AActor> LastSelectedActor;
 	void OnSelectionChanged(UObject* newSelection);
+#if 0
+	void LogObjectFlags(UObject* obj);
+#endif
 #endif
 };
 
