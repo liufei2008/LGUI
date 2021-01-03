@@ -3481,7 +3481,7 @@ void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign
 
 #pragma endregion
 
-#pragma region UISector
+#pragma region UIPolygon
 void UIGeometry::FromUIPolygon(float& width, float& height, const FVector2D& pivot
 	, float startAngle, float endAngle, int sides, UIPolygonUVType uvType
 	, TArray<float>& vertexOffsetArray, bool fullCycle
@@ -3629,8 +3629,8 @@ void UIGeometry::UpdateUIPolygonUV(float startAngle, float endAngle, int sides, 
 	break;
 	case UIPolygonUVType::HeightCenter:
 	{
-		vertices[0].TextureCoordinate[0] = FVector2D((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv0Y);
-		FVector2D otherUV((spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f, spriteInfo.uv3Y);
+		vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+		FVector2D otherUV(spriteInfo.uv3X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
 		for (int i = 1; i < vertexCount; i++)
 		{
 			vertices[i].TextureCoordinate[0] = otherUV;

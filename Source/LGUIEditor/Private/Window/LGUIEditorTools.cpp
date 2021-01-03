@@ -2,6 +2,7 @@
 
 #include "Window/LGUIEditorTools.h"
 #include "LGUIHeaders.h"
+#include "Core/Actor/LGUIManagerActor.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Misc/FileHelper.h"
 #include "LGUIEditorStyle.h"
@@ -85,13 +86,27 @@ public:
 	static FString GetCopiedActorLabel(AActor* srcActor)
 	{
 		TArray<AActor*> sameLevelActorList;
+		auto parentActor = srcActor->GetAttachParentActor();
 		for (TActorIterator<AActor> ActorItr(srcActor->GetWorld()); ActorItr; ++ActorItr)
 		{
 			if (AActor* itemActor = *ActorItr)
 			{
 				if (IsValid(itemActor))
 				{
-					sameLevelActorList.Add(itemActor);
+					if (IsValid(parentActor))
+					{
+						if (itemActor->GetAttachParentActor() == parentActor)
+						{
+							sameLevelActorList.Add(itemActor);
+						}
+					}
+					else
+					{
+						if (itemActor->GetAttachParentActor() == nullptr)
+						{
+							sameLevelActorList.Add(itemActor);
+						}
+					}
 				}
 			}
 		}
@@ -362,6 +377,7 @@ void ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl()
 	}
 	auto rootActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
 	GEditor->BeginTransaction(LOCTEXT("DeleteActor", "LGUI Delete Actor"));
+	GEditor->GetSelectedActors()->DeselectAll();
 	for (auto item : rootActorList)
 	{
 		bool shouldDeletePrefab = false;

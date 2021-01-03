@@ -76,11 +76,11 @@ protected:
 	FVector2D CacheStartPointDirection = FVector2D(1, 0);
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetLineWidth() { return LineWidth; }
+		float GetLineWidth()const { return LineWidth; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		EUI2DLineRenderer_EndType GetEndType() { return EndType; }
+		EUI2DLineRenderer_EndType GetEndType()const { return EndType; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetLineWidthOffset() { return LineWidthOffset; }
+		float GetLineWidthOffset()const { return LineWidthOffset; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetEndType(EUI2DLineRenderer_EndType newValue);

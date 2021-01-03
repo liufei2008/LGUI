@@ -131,7 +131,7 @@ private:
 	static void AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign pivotHAlign, float lineWidth, float lineHeight, float fontSize, int lineUIGeoVertStart, TArray<FVector>& vertices);
 #pragma endregion
 
-#pragma region UISector
+#pragma region UIPolygon
 public:
 	static void FromUIPolygon(float& width, float& height, const FVector2D& pivot
 		, float startAngle, float endAngle, int sides, UIPolygonUVType uvType

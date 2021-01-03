@@ -251,12 +251,14 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 	ULGUICanvas* selectedCanvas = nullptr;
 	if (USelection* selection = Cast<USelection>(newSelection))
 	{
-		if (selection->Num() > 0)
+		for (int i = 0; i < selection->Num(); i++)
 		{
-			selectedActor = Cast<AUIBaseActor>(selection->GetSelectedObject(0));
+			selectedActor = Cast<AUIBaseActor>(selection->GetSelectedObject(i));
 			if (IsValid(selectedActor))
 			{
 				selectedCanvas = selectedActor->FindComponentByClass<ULGUICanvas>();
+				if (IsValid(selectedCanvas))
+					break;
 			}
 		}
 	}
@@ -358,6 +360,74 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 	END:
 	IsCalculatingSelection = false;
 }
+#if 0
+void ULGUIEditorManagerObject::LogObjectFlags(UObject* obj)
+{
+	EObjectFlags of = obj->GetFlags();
+	UE_LOG(LGUI, Error, TEXT("obj:%s\
+\n	flagValue:%d\
+\n	RF_Public:%d\
+\n	RF_Standalone:%d\
+\n	RF_MarkAsNative:%d\
+\n	RF_Transactional:%d\
+\n	RF_ClassDefaultObject:%d\
+\n	RF_ArchetypeObject:%d\
+\n	RF_Transient:%d\
+\n	RF_MarkAsRootSet:%d\
+\n	RF_TagGarbageTemp:%d\
+\n	RF_NeedInitialization:%d\
+\n	RF_NeedLoad:%d\
+\n	RF_KeepForCooker:%d\
+\n	RF_NeedPostLoad:%d\
+\n	RF_NeedPostLoadSubobjects:%d\
+\n	RF_NewerVersionExists:%d\
+\n	RF_BeginDestroyed:%d\
+\n	RF_FinishDestroyed:%d\
+\n	RF_BeingRegenerated:%d\
+\n	RF_DefaultSubObject:%d\
+\n	RF_WasLoaded:%d\
+\n	RF_TextExportTransient:%d\
+\n	RF_LoadCompleted:%d\
+\n	RF_InheritableComponentTemplate:%d\
+\n	RF_DuplicateTransient:%d\
+\n	RF_StrongRefOnFrame:%d\
+\n	RF_NonPIEDuplicateTransient:%d\
+\n	RF_Dynamic:%d\
+\n	RF_WillBeLoaded:%d\
+")
+, *obj->GetPathName()
+, obj->GetFlags()
+, obj->HasAnyFlags(EObjectFlags::RF_Public)
+, obj->HasAnyFlags(EObjectFlags::RF_Standalone)
+, obj->HasAnyFlags(EObjectFlags::RF_MarkAsNative)
+, obj->HasAnyFlags(EObjectFlags::RF_Transactional)
+, obj->HasAnyFlags(EObjectFlags::RF_ClassDefaultObject)
+, obj->HasAnyFlags(EObjectFlags::RF_ArchetypeObject)
+, obj->HasAnyFlags(EObjectFlags::RF_Transient)
+, obj->HasAnyFlags(EObjectFlags::RF_MarkAsRootSet)
+, obj->HasAnyFlags(EObjectFlags::RF_TagGarbageTemp)
+, obj->HasAnyFlags(EObjectFlags::RF_NeedInitialization)
+, obj->HasAnyFlags(EObjectFlags::RF_NeedLoad)
+, obj->HasAnyFlags(EObjectFlags::RF_KeepForCooker)
+, obj->HasAnyFlags(EObjectFlags::RF_NeedPostLoad)
+, obj->HasAnyFlags(EObjectFlags::RF_NeedPostLoadSubobjects)
+, obj->HasAnyFlags(EObjectFlags::RF_NewerVersionExists)
+, obj->HasAnyFlags(EObjectFlags::RF_BeginDestroyed)
+, obj->HasAnyFlags(EObjectFlags::RF_FinishDestroyed)
+, obj->HasAnyFlags(EObjectFlags::RF_BeingRegenerated)
+, obj->HasAnyFlags(EObjectFlags::RF_DefaultSubObject)
+, obj->HasAnyFlags(EObjectFlags::RF_WasLoaded)
+, obj->HasAnyFlags(EObjectFlags::RF_TextExportTransient)
+, obj->HasAnyFlags(EObjectFlags::RF_LoadCompleted)
+, obj->HasAnyFlags(EObjectFlags::RF_InheritableComponentTemplate)
+, obj->HasAnyFlags(EObjectFlags::RF_DuplicateTransient)
+, obj->HasAnyFlags(EObjectFlags::RF_StrongRefOnFrame)
+, obj->HasAnyFlags(EObjectFlags::RF_NonPIEDuplicateTransient)
+, obj->HasAnyFlags(EObjectFlags::RF_Dynamic)
+, obj->HasAnyFlags(EObjectFlags::RF_WillBeLoaded)
+);
+}
+#endif
 #endif
 
 
