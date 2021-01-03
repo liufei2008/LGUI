@@ -41,9 +41,9 @@ protected:
 	virtual FVector2D GetEndPointTangentDirection()override;
 	//End UI2DLineRendererBase interface
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)float GetStartAngle() { return StartAngle; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)float GetEndAngle() { return EndAngle; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)int GetSegment() { return Segment; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)float GetStartAngle()const { return StartAngle; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)float GetEndAngle()const { return EndAngle; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)int GetSegment()const { return Segment; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)void SetStartAngle(float newValue);
 	UFUNCTION(BlueprintCallable, Category = LGUI)void SetEndAngle(float newValue);
