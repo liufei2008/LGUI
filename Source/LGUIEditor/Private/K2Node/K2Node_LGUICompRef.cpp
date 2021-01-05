@@ -134,6 +134,7 @@ void UK2Node_LGUICompRef_GetComponent::SetOutputPinType()
 void UK2Node_LGUICompRef_GetComponent::ValidateNodeDuringCompilation(class FCompilerResultsLog& MessageLog)const
 {
 	Super::ValidateNodeDuringCompilation(MessageLog);
+	//@todo: give some hint when class change.
 	if (!autoOutputTypeSuccess)
 	{
 		auto msg = FString(TEXT("Auto cast fail! You need to cast the result ActorComponent to your desired type."));
