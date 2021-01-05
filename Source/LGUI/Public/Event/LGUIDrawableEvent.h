@@ -32,7 +32,6 @@ enum class LGUIDrawableEventParameterType :uint8
 	LinearColor,
 	Quaternion,
 	String,
-	Name,
 	/** for asset reference */
 	Object,
 	/** for actor reference in level */
