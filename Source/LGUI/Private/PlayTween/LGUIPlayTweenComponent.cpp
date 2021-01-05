@@ -14,4 +14,17 @@ void ULGUIPlayTweenComponent::BeginPlay()
 		}
 	}
 }
-
+void ULGUIPlayTweenComponent::Play()
+{
+	if (IsValid(playTween))
+	{
+		playTween->Start();
+	}
+}
+void ULGUIPlayTweenComponent::Stop()
+{
+	if (IsValid(playTween))
+	{
+		playTween->Stop();
+	}
+}

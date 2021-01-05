@@ -16,4 +16,9 @@ protected:
 		class ULGUIPlayTween* playTween;
 
 	virtual void BeginPlay() override;
+public:
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void Play();
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void Stop();
 };
