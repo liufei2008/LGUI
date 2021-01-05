@@ -627,7 +627,7 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 				auto OutPrefab = NewObject<ULGUIPrefab>((UObject*)package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
 				FAssetRegistryModule::AssetCreated((UObject*)OutPrefab);
 				FString packageSavePath = FString::Printf(TEXT("/Game/%s%s"), *selectedFilePath, *FPackageName::GetAssetPackageExtension());
-				UPackage::SavePackage(package, OutPrefab, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *packageSavePath);
+				UPackage::SavePackage(package, OutPrefab, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *packageSavePath);//@todo: this will create a "Game" folder at D: drive, fix it!
 
 				auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabActor>(ALGUIPrefabActor::StaticClass(), FTransform::Identity);
 				if (IsValid(prefabActor))
