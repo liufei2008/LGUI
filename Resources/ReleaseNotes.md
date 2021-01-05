@@ -1,3 +1,6 @@
+## 2.10.1
+#### Fix:
+Fix bug: UIEventTrigger parameter become (Actor) type.
 ## 2.10.0
 #### Modify:
 Rename UISector to UIPolygon, remake it so it is much handy now. (You may need UE's "redirect" if you use UISector before, but some properties may need to mannually setup).
