@@ -63,7 +63,7 @@ public:
 		void SetWidthFitToChildren(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetHeightFitToChildren(bool value);
-	
+#if WITH_EDITOR
 	virtual bool CanControlChildAnchor()override;
 	virtual bool CanControlChildWidth()override;
 	virtual bool CanControlChildHeight()override;
@@ -71,6 +71,7 @@ public:
 	virtual bool CanControlSelfVerticalAnchor()override;
 	virtual bool CanControlSelfWidth()override;
 	virtual bool CanControlSelfHeight()override;
+#endif
 protected:
 
 	friend class FUIGridLayoutCustomization;
