@@ -188,7 +188,7 @@ void UUIGridLayout::OnRebuildLayout()
 		}
 	}
 }
-
+#if WITH_EDITOR
 bool UUIGridLayout::CanControlChildAnchor()
 {
 	return true && enable;
@@ -217,3 +217,4 @@ bool UUIGridLayout::CanControlSelfHeight()
 {
 	return (GetHorizontalOrVertical() && GetHeightFitToChildren()) && enable;
 }
+#endif

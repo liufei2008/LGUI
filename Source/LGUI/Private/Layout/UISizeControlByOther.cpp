@@ -96,7 +96,7 @@ void UUISizeControlByOther::OnRebuildLayout()
 		}
 	}
 }
-
+#if WITH_EDITOR
 bool UUISizeControlByOther::CanControlChildAnchor()
 {
 	return false;
@@ -125,7 +125,7 @@ bool UUISizeControlByOther::CanControlSelfHeight()
 {
 	return GetControlHeight() && enable;
 }
-
+#endif
 void UUISizeControlByOther::SetControlWidth(bool value)
 {
 	if (ControlWidth != value)

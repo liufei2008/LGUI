@@ -6,7 +6,9 @@
 #include "UILayoutBase.h"
 #include "UIRoundedLayout.generated.h"
 
-//rounded layout, only affect position and size, not affect size
+/**
+ * rounded layout, only affect position, not affect size
+ */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUIRoundedLayout : public UUILayoutBase
 {
@@ -14,7 +16,7 @@ class LGUI_API UUIRoundedLayout : public UUILayoutBase
 
 public:
 	virtual void OnRebuildLayout()override;
-
+#if WITH_EDITOR
 	virtual bool CanControlChildAnchor()override;
 	virtual bool CanControlChildWidth()override;
 	virtual bool CanControlChildHeight()override;
@@ -22,6 +24,7 @@ public:
 	virtual bool CanControlSelfVerticalAnchor()override;
 	virtual bool CanControlSelfWidth()override;
 	virtual bool CanControlSelfHeight()override;
+#endif
 protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float Radius = 100;

@@ -7,6 +7,9 @@
 #include "Layout/Margin.h"
 #include "UIVerticalLayout.generated.h"
 
+/**
+ * Layout child elements side by side vertically
+ */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUIVerticalLayout : public UUILayoutBase
 {
@@ -41,7 +44,7 @@ public:
 		void SetExpendChildrenHeight(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetHeightFitToChildren(bool value);
-
+#if WITH_EDITOR
 	virtual bool CanControlChildAnchor()override;
 	virtual bool CanControlChildWidth()override;
 	virtual bool CanControlChildHeight()override;
@@ -49,6 +52,7 @@ public:
 	virtual bool CanControlSelfVerticalAnchor()override;
 	virtual bool CanControlSelfWidth()override;
 	virtual bool CanControlSelfHeight()override;
+#endif
 protected:
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)override;
 
@@ -63,7 +67,7 @@ protected:
 		bool ExpendChildrenWidth = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool ExpendChildrenHeight = false;
-	//this object's height set to children range
+	/** this object's height set to children range */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool HeightFitToChildren = false;
 	
