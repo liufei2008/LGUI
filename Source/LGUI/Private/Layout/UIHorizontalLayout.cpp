@@ -239,7 +239,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
 		RootUIComp->SetWidth(thisWidth);
 	}
 }
-
+#if WITH_EDITOR
 bool UUIHorizontalLayout::CanControlChildAnchor()
 {
 	return true && enable;
@@ -268,3 +268,4 @@ bool UUIHorizontalLayout::CanControlSelfHeight()
 { 
 	return false;
 }
+#endif

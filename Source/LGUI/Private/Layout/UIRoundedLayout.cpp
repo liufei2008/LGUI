@@ -33,7 +33,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 		angle += angleInterval;
 	}
 }
-
+#if WITH_EDITOR
 bool UUIRoundedLayout::CanControlChildAnchor()
 {
 	return true && enable;
@@ -62,3 +62,4 @@ bool UUIRoundedLayout::CanControlSelfHeight()
 {
 	return false;
 }
+#endif

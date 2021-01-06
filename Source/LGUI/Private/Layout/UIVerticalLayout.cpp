@@ -190,7 +190,7 @@ void UUIVerticalLayout::OnRebuildLayout()
 		RootUIComp->SetHeight(thisHeight);
 	}
 }
-
+#if WITH_EDITOR
 bool UUIVerticalLayout::CanControlChildAnchor()
 {
 	return true && enable;
@@ -219,7 +219,7 @@ bool UUIVerticalLayout::CanControlSelfHeight()
 {
 	return (!GetExpendChildrenHeight() && GetHeightFitToChildren()) && enable;
 }
-
+#endif
 void UUIVerticalLayout::SetPadding(FMargin value)
 {
 	if (Padding != value)

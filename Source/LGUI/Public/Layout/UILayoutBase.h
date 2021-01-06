@@ -37,8 +37,9 @@ protected:
 	virtual void OnUnregister() override;
 public:
 	void RebuildChildrenList();
-	virtual void OnRebuildLayout() {};
-
+	/** Called when UIItem's layout changed */
+	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
+#if WITH_EDITOR
 	virtual bool CanControlChildAnchor() { return false; };
 	virtual bool CanControlChildWidth() { return false; }
 	virtual bool CanControlChildHeight() { return false; }
@@ -50,6 +51,7 @@ public:
 	virtual bool CanControlSelfStrengthRight() { return false; }
 	virtual bool CanControlSelfStrengthTop() { return false; }
 	virtual bool CanControlSelfStrengthBottom() { return false; }
+#endif
 protected:
 
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
@@ -59,9 +61,9 @@ protected:
 	virtual void OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)override;
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* InChild)override;
 
-	//called when a child is attached, and is valid for layout
+	/** called when a child is attached, and is valid for layout */
 	virtual void OnAttachValidChild(UUIItem* InChild) {};
-	//called when a valid child is detached
+	/** called when a valid child is detached */
 	virtual void OnDetachValidChild(UUIItem* InChild) {};
 
 	UUILayoutElement* GetLayoutElement(AActor* Target);

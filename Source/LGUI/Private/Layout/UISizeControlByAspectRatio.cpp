@@ -99,7 +99,7 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		}
 	}
 }
-
+#if WITH_EDITOR
 bool UUISizeControlByAspectRatio::CanControlChildAnchor()
 {
 	return false;
@@ -172,7 +172,7 @@ bool UUISizeControlByAspectRatio::CanControlSelfStrengthBottom()
 		) && enable
 		;
 }
-
+#endif
 void UUISizeControlByAspectRatio::SetControlMode(EUISizeControlByAspectRatioMode value)
 {
 	if (ControlMode != value)

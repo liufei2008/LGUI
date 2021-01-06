@@ -31,7 +31,7 @@ public:
 		void SetControlMode(EUISizeControlByAspectRatioMode value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAspectRatio(float value);
-
+#if WITH_EDITOR
 	virtual bool CanControlChildAnchor()override;
 	virtual bool CanControlChildWidth()override;
 	virtual bool CanControlChildHeight()override;
@@ -43,6 +43,7 @@ public:
 	virtual bool CanControlSelfStrengthRight()override;
 	virtual bool CanControlSelfStrengthTop()override;
 	virtual bool CanControlSelfStrengthBottom()override;
+#endif
 protected:
 	virtual void OnRebuildLayout()override;
 
