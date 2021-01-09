@@ -2608,9 +2608,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					break;
 				}
 			}
+			if (charIndex >= contentLength)break;
 			richTextContent.AppendChar(charCode);
 			richTextPropertyArray.Add(richTextParseResult);
-			if (charIndex >= contentLength)break;
 		}
 		//replace text content with parsed rich text content
 		content = richTextContent;

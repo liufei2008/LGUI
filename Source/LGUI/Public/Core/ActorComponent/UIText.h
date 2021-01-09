@@ -32,48 +32,48 @@ enum class UITextFontStyle :uint8
 UENUM(BlueprintType)
 enum class UITextOverflowType :uint8
 {
-	//chars will go out of rect range horizontally
+	/** chars will go out of rect range horizontally */
 	HorizontalOverflow,
-	//chars will go out of rect range vertically
+	/** chars will go out of rect range vertically */
 	VerticalOverflow,
-	//remove chars on right if out of range
+	/** remove chars on right if out of range */
 	ClampContent,
 };
 
-//single char property
+/** single char property */
 struct FUITextCaretProperty
 {
-	//caret position. caret is on left side of char
+	/** caret position. caret is on left side of char */
 	FVector2D caretPosition;
-	//char index in text
+	/** char index in text */
 	int32 charIndex;
 };
-//a line of text property
+/** a line of text property */
 struct FUITextLineProperty
 {
 	TArray<FUITextCaretProperty> charPropertyList;
 };
-//for range selection in TextInputComponent
+/** for range selection in TextInputComponent */
 struct FUITextSelectionProperty
 {
 	FVector2D Pos;
 	int32 Size;
 };
-//char property
+/** char property */
 struct FUITextCharProperty
 {
-	//char index in string
+	/** char index in string */
 	int32 CharIndex;
-	//vertex index in UIGeometry::vertices
+	/** vertex index in UIGeometry::vertices */
 	int32 StartVertIndex;
-	//vertex count
+	/** vertex count */
 	int32 VertCount;
-	//triangle index in UIGeometry::triangles
+	/** triangle index in UIGeometry::triangles */
 	int32 StartTriangleIndex;
-	//triangle indices count
+	/** triangle indices count */
 	int32 IndicesCount;
 
-	//center position of the char, in UIText's local space
+	/** center position of the char, in UIText's local space */
 	//FVector2D CenterPosition;
 };
 
@@ -102,7 +102,7 @@ protected:
 	virtual void OnPostChangeFontProperty();
 #endif
 #if WITH_EDITORONLY_DATA
-	//current using font. the default font when creating new UIText
+	/** current using font. the default font when creating new UIText */
 	static TWeakObjectPtr<ULGUIFontData> CurrentUsingFontData;
 #endif
 
@@ -122,44 +122,44 @@ protected:
 		UITextParagraphVerticalAlign vAlign = UITextParagraphVerticalAlign::Middle;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UITextOverflowType overflowType = UITextOverflowType::VerticalOverflow;
-	//if overflowType = HorizontalOverflow then adjust widget width to true width
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	/** if overflowType = HorizontalOverflow then adjust widget width to true width */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalOverflow"))
 		bool adjustWidth = false;
-	//if overflowType = VerticalOverflow then adjust widget height to true height
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	/** if overflowType = VerticalOverflow then adjust widget height to true height */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::VerticalOverflow"))
 		bool adjustHeight = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UITextFontStyle fontStyle = UITextFontStyle::None;
-	/*
-	rich text support, eg:
-	<b>Bold</b>
-	<i>Italic</i>
-	<u>Underline</u>
-	<s>Strikethrough</s>
-	<size=48>Point size 48</size>
-	<size=+18>Point size increased by 18</size>
-	<size=-18>Point size decreased by 18</size>
-	<color=yellow>Yellow text</color> support color name: black, blue, green, orange, purple, red, white, and yellow
-	<color=#00ff00>Green text</color>
-	<sup>Superscript</sup>
-	<sub>Superscript</sub>
-	*/
+	/**
+	 * rich text support, eg:
+	 * <b>Bold</b>
+	 * <i>Italic</i>
+	 * <u>Underline</u>
+	 * <s>Strikethrough</s>
+	 * <size=48>Point size 48</size>
+	 * <size=+18>Point size increased by 18</size>
+	 * <size=-18>Point size decreased by 18</size>
+	 * <color=yellow>Yellow text</color> support color name: black, blue, green, orange, purple, red, white, and yellow
+	 * <color=#00ff00>Green text</color>
+	 * <sup>Superscript</sup>
+	 * <sub>Superscript</sub>
+	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool richText = false;
 private:
-	//visible/renderable char count of current text. -1 means not set yet
+	/** visible/renderable char count of current text. -1 means not set yet */
 	int visibleCharCount = -1;
-	//real size of this UIText, not the widget's width and height
+	/** real size of this UIText, not the widget's width and height */
 	FVector2D textRealSize;
-	//cached texture property
+	/** cached texture property */
 	TArray<FUITextLineProperty> cachedTextPropertyArray;
 	
 	void CheckCachedTextPropertyList();
 
-	//calculate text geometry
+	/** calculate text geometry */
 	void CacheTextGeometry();
 
-	//char properties, from first char to last one in array
+	/** char properties, from first char to last one in array */
 	TArray<FUITextCharProperty> cacheCharPropertyArray;
 public:
 	const TArray<FUITextCharProperty>& GetCharPropertyArray(bool createIfNotExist = false);
@@ -182,7 +182,7 @@ public:
 	{
 		return (character != '\n' && character != '\r' && character != ' ' && character != '\t');
 	}
-	//count visible char count of the string
+	/** count visible char count of the string */
 	static int VisibleCharCountInString(const FString& srcStr);
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIFontData* GetFont()const { return font; }
@@ -225,17 +225,17 @@ public:
 	virtual void WidthChanged()override;
 	virtual void HeightChanged()override;
 #pragma region UITextInputComponent
-	//get caret position and line index
+	/** get caret position and line index */
 	void FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex);
-	//find up of current caret position
+	/** find up of current caret position */
 	void FindCaretUp(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
-	//find down of current caret position
+	/** find down of current caret position */
 	void FindCaretDown(FVector2D& inOutCaretPosition, int32 inCaretPositionLineIndex, int32& outCaretPositionIndex);
-	//find caret index by position
+	/** find caret index by position */
 	void FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex, int32& outCaretPositionIndex);
 	FString GetSubStringByLine(const FString& inString, int32& inOutLineStartIndex, int32& inOutLineEndIndex, int32& inOutCharStartIndex, int32& inOutCharEndIndex);
 
-	//range selection
+	/** range selection */
 	void GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSelectionEndCaretIndex, TArray<FUITextSelectionProperty>& OutSelectionProeprtyArray);
 #pragma endregion UITextInputComponent
 };
