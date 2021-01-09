@@ -4,6 +4,9 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
+#include "LTweenActor.h"
+#include "LTweenBPLibrary.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 DECLARE_CYCLE_STAT(TEXT("UILayout VerticalRebuildLayout"), STAT_VerticalLayout, STATGROUP_LGUI);
 
@@ -23,6 +26,15 @@ void UUIVerticalLayout::OnRebuildLayout()
 	SCOPE_CYCLE_COUNTER(STAT_VerticalLayout);
 	if (!CheckRootUIComponent())return;
 	if (!enable)return;
+	for (auto item : TweenerArray)
+	{
+		if (IsValid(item))
+		{
+			ULTweenBPLibrary::KillIfIsTweening(this, item);
+		}
+	}
+	TweenerArray.Reset();
+
 	FVector2D startPosition;
 	startPosition.X = Padding.Left;
 	startPosition.Y = -Padding.Top;//left bottom as start point
@@ -175,8 +187,35 @@ void UUIVerticalLayout::OnRebuildLayout()
 		{
 			childHeight = uiItem->GetHeight();
 		}
-		uiItem->SetAnchorOffsetX(posX + uiItem->GetPivot().X * childWidth);
-		uiItem->SetAnchorOffsetY(posY - (1.0f - uiItem->GetPivot().Y) * childHeight);
+
+		float anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;
+		float anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
+		EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+#if WITH_EDITOR
+		if (!ALGUIManagerActor::IsPlaying)
+		{
+			tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+		}
+#endif
+		switch (tempAnimationType)
+		{
+		default:
+		case EUILayoutChangePositionAnimationType::Immediately:
+		{
+			uiItem->SetAnchorOffsetX(anchorOffsetX);
+			uiItem->SetAnchorOffsetY(anchorOffsetY);
+		}
+		break;
+		case EUILayoutChangePositionAnimationType::EaseAnimation:
+		{
+			auto tweener1 = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffsetX), FLTweenFloatSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffsetX), anchorOffsetX, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener2 = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffsetY), FLTweenFloatSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffsetY), anchorOffsetY, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			TweenerArray.Add(tweener1);
+			TweenerArray.Add(tweener2);
+		}
+		break;
+		}
+
 		posY -= childHeight + Spacing;
 		ActuralRange += childHeight;
 	}
