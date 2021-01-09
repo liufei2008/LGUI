@@ -4,6 +4,9 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
+#include "LTweenActor.h"
+#include "LTweenBPLibrary.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 void UUIGridLayout::SetPadding(FMargin value)
 {
@@ -136,6 +139,7 @@ void UUIGridLayout::OnRebuildLayout()
 		uiItem->SetWidth(childWidth);
 		uiItem->SetHeight(childHeight);
 
+		float anchorOffsetX, anchorOffsetY;
 		if (HorizontalOrVertical)//use horizontal
 		{
 			if (posX - Spacing.X + childWidth > endPosX//if horizontal exceed range, then newline
@@ -146,8 +150,8 @@ void UUIGridLayout::OnRebuildLayout()
 				posY -= childHeight + Spacing.Y;
 				ActuralRange.Y += childHeight + Spacing.Y;
 			}
-			uiItem->SetAnchorOffsetX(posX + uiItem->GetPivot().X * childWidth);
-			uiItem->SetAnchorOffsetY(posY - (1.0f - uiItem->GetPivot().Y) * childHeight);
+			anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;
+			anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
 			posX += childWidth + Spacing.X;
 		}
 		else//use vertical
@@ -160,9 +164,35 @@ void UUIGridLayout::OnRebuildLayout()
 				posY = startPosition.Y;
 				ActuralRange.X += childWidth + Spacing.X;
 			}
-			uiItem->SetAnchorOffsetX(posX + uiItem->GetPivot().X * childWidth);
-			uiItem->SetAnchorOffsetY(posY - (1.0f - uiItem->GetPivot().Y) * childHeight);
+			anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;
+			anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
 			posY -= childHeight + Spacing.Y;
+		}
+
+		EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+#if WITH_EDITOR
+		if (!ALGUIManagerActor::IsPlaying)
+		{
+			tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+		}
+#endif
+		switch (tempAnimationType)
+		{
+		default:
+		case EUILayoutChangePositionAnimationType::Immediately:
+		{
+			uiItem->SetAnchorOffsetX(anchorOffsetX);
+			uiItem->SetAnchorOffsetY(anchorOffsetY);
+		}
+		break;
+		case EUILayoutChangePositionAnimationType::EaseAnimation:
+		{
+			auto tweener1 = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffsetX), FLTweenFloatSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffsetX), anchorOffsetX, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener2 = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffsetY), FLTweenFloatSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffsetY), anchorOffsetY, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			TweenerArray.Add(tweener1);
+			TweenerArray.Add(tweener2);
+		}
+		break;
 		}
 	}
 	if (HorizontalOrVertical)

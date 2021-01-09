@@ -98,6 +98,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool HeightFitToChildren = false;
 
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		EUILayoutChangePositionAnimationType AnimationType = EUILayoutChangePositionAnimationType::Immediately;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		float AnimationDuration = 0.3f;
+	UPROPERTY(Transient)
+		TArray<class ULTweener*> TweenerArray;
 	//actural children fill range
 	FVector2D ActuralRange;
 };
