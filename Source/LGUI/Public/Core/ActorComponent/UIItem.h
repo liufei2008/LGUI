@@ -132,6 +132,7 @@ protected:
 	float calculatedParentAlpha = 1.0f;
 	/** parent in hierarchy */
 	UPROPERTY(Transient) mutable UUIItem* cacheParentUIItem = nullptr;
+	/** UI children array, sorted by hierarchy index */
 	UPROPERTY(Transient) TArray<UUIItem*> cacheUIChildren;
 	/** check valid, incase unnormally deleting actor, like undo */
 	FORCEINLINE void CheckCacheUIChildren();
@@ -235,6 +236,9 @@ public:
 	/** This is a simple one parameter version */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetUIRelativeRotationQuat(const FQuat& newRotation);
+	/** This can auto calculate dimensions */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetUIParent(UUIItem* inParent, bool keepWorldTransform = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetLocalSpaceLeftBottomPoint()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -252,8 +256,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIItem* GetParentAsUIItem()const;
+	/** get UI children array, sorted by hierarchy index */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TArray<UUIItem*>& GetAttachUIChildren()const { return cacheUIChildren; }
+	/** Get root canvas of hierarchy */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		ULGUICanvas* GetRootCanvas()const;
+	/** Get LGUICanvasScaler from root canvas, return null if not have one */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		class ULGUICanvasScaler* GetCanvasScaler()const;
 
 	void MarkLayoutDirty();
 	void MarkColorDirty();
@@ -335,8 +346,9 @@ public:
 		TEnumAsByte<ETraceTypeQuery> GetTraceChannel()const { return traceChannel; }
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End);
 #pragma endregion
-
-	ULGUICanvas* GetRenderCanvas() const { return RenderCanvas; }
+	/** Get the canvas that render and update this UI element */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		ULGUICanvas* GetRenderCanvas() const { return RenderCanvas; }
 	bool IsScreenSpaceOverlayUI();
 	bool IsWorldSpaceUI();
 
