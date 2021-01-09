@@ -9,6 +9,7 @@
 #include "Core/LGUIBehaviour.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "Layout/LGUICanvasScaler.h"
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
 #include "EditorViewportClient.h"
@@ -744,7 +745,6 @@ bool UUIItem::CheckRenderCanvas()
 void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpdateLayout)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayoutAndGeometry);
-	if (IsUIActiveInHierarchy() == false)return;
 	UpdateCachedData();
 	UpdateBasePrevData();
 	//update layout
@@ -1180,6 +1180,30 @@ void UUIItem::SetUIRelativeRotation(const FRotator& newRotation)
 void UUIItem::SetUIRelativeRotationQuat(const FQuat& newRotation)
 {
 	this->SetUIRelativeLocationAndRotationQuat(GetRelativeLocation(), newRotation);
+}
+void UUIItem::SetUIParent(UUIItem* inParent, bool keepWorldTransform)
+{
+	if (this->GetParentAsUIItem() != inParent)
+	{
+		if (this->AttachToComponent(inParent, keepWorldTransform ? FAttachmentTransformRules::KeepWorldTransform : FAttachmentTransformRules::KeepRelativeTransform))
+		{
+			auto attachResultPosition = this->GetRelativeLocation();
+			this->GetRelativeLocation_DirectMutable() = attachResultPosition + FVector(1, 0, 0);
+			SetUIRelativeLocation(attachResultPosition);
+		}
+	}
+}
+ULGUICanvas* UUIItem::GetRootCanvas()const
+{
+	return RenderCanvas->GetRootCanvas();
+}
+ULGUICanvasScaler* UUIItem::GetCanvasScaler()const
+{
+	if (auto canvas = GetRootCanvas())
+	{
+		return canvas->GetOwner()->FindComponentByClass<ULGUICanvasScaler>();
+	}
+	return nullptr;
 }
 void UUIItem::SetStretchLeft(float newLeft)
 {
