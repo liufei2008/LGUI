@@ -4,9 +4,7 @@
 #include "CoreMinimal.h"
 #include "LTweenDelegateHandleWrapper.generated.h"
 
-/*
-Just a wrapper for blueprint to store a delegate handle
-*/
+/** Just a wrapper for blueprint to store a delegate handle */
 USTRUCT(BlueprintType)
 struct LTWEEN_API FLTweenDelegateHandleWrapper
 {
