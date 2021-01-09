@@ -29,7 +29,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
 		FVector tagent;
 };
-//a helper class for create LGUI geometry
+/** a helper class for create LGUI geometry */
 UCLASS(BlueprintType)
 class LGUI_API ULGUICreateGeometryHelper : public UObject
 {
@@ -45,24 +45,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void AddTriangle(int index0, int index1, int index2);
 };
-//a helper class for update LGUI geometry
+/** a helper class for update LGUI geometry */
 UCLASS(BlueprintType)
 class LGUI_API ULGUIUpdateGeometryHelper : public UObject
 {
 	GENERATED_BODY()
 public:
 	TSharedPtr<UIGeometry> uiGeometry = nullptr;
-	//do not midify this vertices array's size!!!
+	/** do not midify this vertices array's size!!! */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "LGUI")
 		TArray<FLGUIGeometryVertex> cacheVertices;
-	//do not midify this vertices array's size!!!
+	/** do not midify this vertices array's size!!! */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void BeginUpdateVertices();
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void EndUpdateVertices();
 };
 
-//a wrapper class, blueprint can use this to create custom UI type
+/** a wrapper class, blueprint can use this to create custom UI type */
 UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable)
 class LGUI_API UUIRenderable_BP : public UUIRenderable
 {
@@ -84,17 +84,16 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
 		void OnBeforeCreateOrUpdateGeometry_BP();
-	//
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnCreateGeometry"))
 		void OnCreateGeometry_BP(ULGUICreateGeometryHelper* InCreateGeometryHelper);
-	//update geometry data. Do Not add or remove any vertex or triangles in this function
+	/** update geometry data. Do Not add or remove any vertex or triangles in this function */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
 		void OnUpdateGeometry_BP(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 public:
-	//if vertex data change and vertex count not change.
+	/** if vertex data change and vertex count not change. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkVertexChanged"))
 		void MarkVertexChanged_BP();
-	//if vertex count change or triangle count change, call this
+	/** if vertex count change or triangle count change, call this */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkRebuildGeometry"))
 		void MarkRebuildGeometry_BP();
 private:

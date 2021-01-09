@@ -6,8 +6,10 @@
 #include "Core/HudRender/LGUIHudVertex.h"
 #include "UIBackgroundBlur.generated.h"
 
-//UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
-//Not supported on mobile device!
+/** 
+ * UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
+ * Not supported on mobile device!
+ */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIBackgroundBlur : public UUIPostProcess
 {
@@ -28,13 +30,13 @@ protected:
 		float blurStrength = 10.0f;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool applyAlphaToBlur = true;
-	//No need to change this because default value can give you good result
+	/** No need to change this because default value can give you good result */
 	UPROPERTY(EditAnywhere, Category = "LGUI") 
 		int maxDownSampleLevel = 6;
-	//use strengthTexture's red channel to control blur strength, 0-no blur, 1-full blur
+	/** use strengthTexture's red channel to control blur strength, 0-no blur, 1-full blur */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UTexture2D* strengthTexture;
-	//use maskTexture's red channel to mask out blur result
+	/** use maskTexture's red channel to mask out blur result */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UTexture2D* maskTexture;
 public:
