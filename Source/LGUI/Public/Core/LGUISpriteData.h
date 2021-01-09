@@ -9,9 +9,9 @@
 #include "LGUISpriteData.generated.h"
 
 
-/*
-SpriteInfo contains information for render a sprite
-*/
+/**
+ * SpriteInfo contains information for render a sprite
+ */
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUISpriteInfo
 {
@@ -94,9 +94,9 @@ class ULGUIAtlas;
 
 #define WARNING_ATLAS_SIZE 4096
 
-/*
-A sprite contains a texture and a spritedata
-*/
+/**
+ * A sprite contains a texture and a spritedata
+ */
 UCLASS(BlueprintType)
 class LGUI_API ULGUISpriteData :public UObject
 {
@@ -105,16 +105,16 @@ private:
 	friend class FLGUISpriteDataCustomization;
 	friend class ULGUISpriteDataFactory;
 	friend struct FLGUIAtlasData;
-	/*
-	Texture of this sprite. Sprite is acturally renderred from atlas texture, so spriteTexture is not needed if atlasdata is packed; But! since atlas texture is packed at runtime, we must include spriteTexture inside final package.
-	Donot modify spriteTexture's setting unless you know what you doing
-	*/
+	/**
+	 * Texture of this sprite. Sprite is acturally renderred from atlas texture, so spriteTexture is not needed if atlasdata is packed; But! since atlas texture is packed at runtime, we must include spriteTexture inside final package.
+	 * Donot modify spriteTexture's setting unless you know what you doing
+	 */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		UTexture2D* spriteTexture;
-	//Information needed for render this sprite
+	/** Information needed for render this sprite */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FLGUISpriteInfo spriteInfo;
-	//Sprites that have same packingTag will be packed into same atlas. If packingTag is None, then the UISprite which render this LGUISpriteData will be treated as a UITexture
+	/** Sprites that have same packingTag will be packed into same atlas. If packingTag is None, then the UISprite which render this LGUISpriteData will be treated as a UITexture */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FName packingTag = TEXT("Main");
 private:
@@ -126,7 +126,7 @@ private:
 	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);
 	void ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRect, float InAtlasTextureSizeInv, UTexture2D* InAtlasTexture);
 public:
-	//initialize sprite data, only need to call once
+	/** initialize sprite data, only need to call once */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void InitSpriteData();
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D * InitAndGetAtlasTexture();
@@ -134,17 +134,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool HavePackingTag()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI") const FName& GetPackingTag()const;
 
-	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D * GetAtlasTexture()const;
-	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") const FLGUISpriteInfo& GetSpriteInfo()const;
-	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteSize(int32& width, int32& height)const;
-	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderSize(int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom)const;
-	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteUV(float& UV0X, float& UV0Y, float& UV3X, float& UV3Y)const;
-	//always remember to call InitSpriteData() before this function to initialize this SpriteData
+	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y)const;
 
 	/**
@@ -152,15 +152,15 @@ public:
 	 * @param inSpriteTexture			Use this texture to create
 	 * @param inHorizontalBorder		Horizontal border value, x for left, y for right, will be convert to uint16</param>
 	 * @param inVerticalBorder			Vertical border value, x for top, y for bottom, will be convert to uint16</param>
-	 * @param inPackingTag				
-	 * @param return					Created LGUISpriteData, nullptr if something wrong.
+	 * @param inPackingTag				see "packingTag" property
+	 * @return							Created LGUISpriteData, nullptr if something wrong.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
 		static ULGUISpriteData* CreateLGUISpriteData(UObject* WorldContextObject, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder = FVector2D::ZeroVector, FVector2D inVerticalBorder = FVector2D::ZeroVector, FName inPackingTag = TEXT("Main"));
 
 	void AddUISprite(UUISpriteBase* InUISprite);
 	void RemoveUISprite(UUISpriteBase* InUISprite);
-	//if texture is changed, use this to reload texture
+	/** if texture is changed, use this to reload texture */
 	void ReloadTexture();
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D* GetSpriteTexture()const { return spriteTexture; }
 #if WITH_EDITOR

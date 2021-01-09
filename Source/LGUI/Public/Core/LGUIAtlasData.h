@@ -12,33 +12,33 @@
 class ULGUISpriteData;
 class UUISpriteBase;
 
-//atlas data container
+/** atlas data container */
 USTRUCT()
 struct LGUI_API FLGUIAtlasData
 {
 	GENERATED_BODY()
-	//collection of all UISprite whitch use this atlas to render
+	/** collection of all UISprite whitch use this atlas to render */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
-	//atlasTexture is the real texture for render
+	/** atlasTexture is the real texture for render */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	UTexture2D* atlasTexture;
-	//information needed when insert a sprite
+	/** information needed when insert a sprite */
 	rbp::MaxRectsBinPack atlasBinPack;
-	//sprites belong to this atlas
+	/** sprites belong to this atlas */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	TArray<ULGUISpriteData*> spriteDataArray;
 
 	void EnsureAtlasTexture(const FName& packingTag);
 	void CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize);
-	//create a new texture with size * 2
+	/** create a new texture with size * 2 */
 	int32 ExpendTextureSize(const FName& packingTag);
 
 	class FLGUIAtlasTextureExpendEvent : public TMulticastDelegate<void(UTexture2D*, int32)>
 	{
 		friend struct FLGUIAtlasData;
 	};
-	//atlas texture size may change when dynamic packing, this event will be called when that happen.
+	/** atlas texture size may change when dynamic packing, this event will be called when that happen. */
 	FLGUIAtlasTextureExpendEvent expandTextureSizeCallback;
 
 	bool StaticPacking(const FName& packingTag);

@@ -5,7 +5,9 @@
 #include "UIRenderable.h"
 #include "UITextureBase.generated.h"
 
-//This is base class for create custom mesh based on UITexture. Just override OnCreateGeometry() and OnUpdateGeometry(...) to create or update your own geometry
+/** 
+ * This is base class for create custom mesh based on UITexture. Just override OnCreateGeometry() and OnUpdateGeometry(...) to create or update your own geometry
+ */
 UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable)
 class LGUI_API UUITextureBase : public UUIRenderable
 {

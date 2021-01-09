@@ -7,7 +7,9 @@
 #include "UIRenderable_BP.h"
 #include "UISpriteBase_BP.generated.h"
 
-//This is base class for create custom mesh based on UISprite. Just override OnCreateGeometry() and OnUpdateGeometry(...) to create or update your own geometry
+/** 
+ * This is base class for create custom mesh based on UISprite. Just override OnCreateGeometry() and OnUpdateGeometry(...) to create or update your own geometry
+ */
 UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable)
 class LGUI_API UUISpriteBase_BP : public UUISpriteBase
 {
@@ -24,17 +26,16 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
 		void OnBeforeCreateOrUpdateGeometry_BP();
-	//
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnCreateGeometry"))
 		void OnCreateGeometry_BP(ULGUICreateGeometryHelper* InCreateGeometryHelper, ULGUISpriteData* InSpriteData);
-	//update geometry data. Do Not add or remove any vertex or triangles in this function
+	/** update geometry data. Do Not add or remove any vertex or triangles in this function */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
 		void OnUpdateGeometry_BP(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, ULGUISpriteData* InSpriteData, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 public:
-	//if vertex data change and vertex count not change.
+	/** if vertex data change and vertex count not change. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkVertexChanged"))
 		void MarkVertexChanged_BP();
-	//if vertex count change or triangle count change, call this
+	/** if vertex count change or triangle count change, call this */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkRebuildGeometry"))
 		void MarkRebuildGeometry_BP();
 private:

@@ -6,10 +6,10 @@
 #include "Components/ActorComponent.h"
 #include "UIInteractionGroup.generated.h"
 
-/*
-This component controls interaction state of all children UI elements, include self
-One actor can only have one UIInteractionGroup component
-*/
+/**
+ * This component controls interaction state of all children UI elements, include self
+ * One actor can only have one UIInteractionGroup component
+ */
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIInteractionGroup : public UActorComponent
 {
