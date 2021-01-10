@@ -1,3 +1,14 @@
+## 2.10.2
+#### Fix:
+Select canvas on SceneOutliner may change selection.
+UIItem depth info wrong.
+RichText may display "<" if end with symbol.
+#### NewFeature:
+Layout support animation when change item position.
+Add more blueprint functions in UIItem: GetRenderCanvas GetRootCanvas GetCanvasScaler IsScreenSpaceOverlayUI IsRenderTargetUI IsWorldSpaceUI.
+OnPointerEnter/Exit event now support: parent will not 
+LGUIEventFireType add new enum: OnlyTargetActor.
+Play/Stop mark as UFUNCTION in LGUIPlayTween.
 ## 2.10.1
 #### Fix:
 Fix bug: UIEventTrigger parameter become (Actor) type.
