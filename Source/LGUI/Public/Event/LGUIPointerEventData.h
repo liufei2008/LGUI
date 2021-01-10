@@ -21,22 +21,24 @@ enum class ELGUIEventFireType :uint8
 };
 
 UENUM(BlueprintType)
-enum class EPointerEventType:uint8
+enum class EPointerEventType :uint8
 {
-	Click,
-	Enter,
-	Exit,
-	Down,
-	Up,
-	BeginDrag,
-	Drag,
-	EndDrag,
-	Scroll,
-	DragEnter,
-	DragExit,
-	DragDrop,
-	Select,
-	Deselect,
+	Click = 0,
+	Enter = 1,
+	Exit = 2,
+	Down = 3,
+	Up = 4,
+	BeginDrag = 5,
+	Drag = 6,
+	EndDrag = 7,
+	Scroll = 8,
+	/* @deprecated This was removed in LGUI version 2.10.2*/
+	DragEnter_DEPRECATED = 9,
+	/* @deprecated This was removed in LGUI version 2.10.2*/
+	DragExit_DEPRECATED = 10,
+	DragDrop = 11,
+	Select = 12,
+	Deselect = 13,
 };
 UENUM(BlueprintType)
 enum class EMouseButtonType :uint8
@@ -162,6 +164,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float pressTime;
 
+	/** is dragging? */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+		bool isDragging = false;
 	/** current dragging component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* dragComponent = nullptr;
@@ -172,22 +177,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector dragRayDirection;
 
-	/** enter a component when drag anything */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		USceneComponent* dragEnterComponent = nullptr;
 
+	/** enter a component when drag anything */
+	UE_DEPRECATED(4.23, "dragEnterComponent not valid anymore, use isDragging and enterComponent to get drag and enter component.")
+		USceneComponent* dragEnterComponent = nullptr;
 
 	ELGUIEventFireType enterComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 	ELGUIEventFireType pressComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 	ELGUIEventFireType dragComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
-	ELGUIEventFireType dragEnterComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 
 	bool isUpFiredAtCurrentFrame = false;//is PointerUp event in current frame is called?
 	bool isExitFiredAtCurrentFrame = false;//is PointerExit event in current frame is called?
 	bool isEndDragFiredAtCurrentFrame = false;//is EndDrag event in current frame is called?
-	bool isDragExitFiredAtCurrentFrame = false;//is EndDrag event in current frame is called?
-
-	bool dragging = false;//is dragging anything?
 
 	bool nowIsTriggerPressed = false;
 	bool prevIsTriggerPressed = false;

@@ -35,14 +35,6 @@ bool UUIEventBlockerComponent::OnPointerEndDrag_Implementation(ULGUIPointerEvent
 {
 	return AllowEventBubbleUp;
 }
-bool UUIEventBlockerComponent::OnPointerDragEnter_Implementation(ULGUIPointerEventData* eventData)
-{
-	return AllowEventBubbleUp;
-}
-bool UUIEventBlockerComponent::OnPointerDragExit_Implementation(ULGUIPointerEventData* eventData)
-{
-	return AllowEventBubbleUp;
-}
 bool UUIEventBlockerComponent::OnPointerDragDrop_Implementation(ULGUIPointerEventData* eventData)
 {
 	return AllowEventBubbleUp;
