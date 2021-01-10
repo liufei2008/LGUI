@@ -42,5 +42,21 @@ void FUIVerticalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, HeightFitToChildren));
 	}
+
+	auto animationTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationType));
+	animationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
+	switch (TargetScriptPtr->AnimationType)
+	{
+	case EUILayoutChangePositionAnimationType::Immediately:
+	{
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIVerticalLayout, AnimationDuration));
+	}
+	break;
+	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	{
+
+	}
+	break;
+	}
 }
 #undef LOCTEXT_NAMESPACE

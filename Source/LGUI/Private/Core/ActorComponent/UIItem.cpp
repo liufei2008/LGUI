@@ -1537,12 +1537,17 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 	return false;
 }
 
-bool UUIItem::IsScreenSpaceOverlayUI()
+bool UUIItem::IsScreenSpaceOverlayUI()const
 {
 	if (!IsValid(RenderCanvas))return false;
 	return RenderCanvas->IsRenderToScreenSpace();
 }
-bool UUIItem::IsWorldSpaceUI()
+bool UUIItem::IsRenderTargetUI()const
+{
+	if (!IsValid(RenderCanvas))return false;
+	return RenderCanvas->IsRenderToRenderTarget();
+}
+bool UUIItem::IsWorldSpaceUI()const
 {
 	if (!IsValid(RenderCanvas))return false;
 	return RenderCanvas->IsRenderToWorldSpace();

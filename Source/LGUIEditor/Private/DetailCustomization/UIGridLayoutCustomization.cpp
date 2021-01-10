@@ -62,5 +62,21 @@ void FUIGridLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	{
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIGridLayout, HeightFitToChildren));
 	}
+
+	auto animationTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIGridLayout, AnimationType));
+	animationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
+	switch (TargetScriptPtr->AnimationType)
+	{
+	case EUILayoutChangePositionAnimationType::Immediately:
+	{
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIGridLayout, AnimationDuration));
+	}
+	break;
+	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	{
+
+	}
+	break;
+	}
 }
 #undef LOCTEXT_NAMESPACE
