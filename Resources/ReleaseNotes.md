@@ -9,6 +9,8 @@ Add more blueprint functions in UIItem: GetRenderCanvas GetRootCanvas GetCanvasS
 OnPointerEnter/Exit event now support: parent will not 
 LGUIEventFireType add new enum: OnlyTargetActor.
 Play/Stop mark as UFUNCTION in LGUIPlayTween.
+#### Modify:
+Remove OnPointerDragEnter/Exit interface because it is not needed, we can instead use isDragging and enterComponent from LGUIPointerEventData.
 ## 2.10.1
 #### Fix:
 Fix bug: UIEventTrigger parameter become (Actor) type.
