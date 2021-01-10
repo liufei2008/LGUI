@@ -44,9 +44,12 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType = "Target", UnsafeDuringActorConstruction = "true", ToolTip = "Copy actor with hierarchy"), Category = LGUI)
 		static AActor* DuplicateActor(AActor* Target, USceneComponent* Parent);
 
-	/** find the first component in parent and up parent hierarchy with type */
+	/**
+	 * find the first component in parent and up parent hierarchy with type 
+	 * @param IncludeSelf	include actor self
+	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
-		static UActorComponent* GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass);
+		static UActorComponent* GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf = true);
 	/** find all compoents in children with type */
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (ComponentClass = "ActorComponent"), meta = (DeterminesOutputType = "ComponentClass"))
 		static TArray<UActorComponent*> GetComponentsInChildren(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf);
