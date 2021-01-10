@@ -43,10 +43,11 @@ bool ULGUI_UIRaycaster::IsUIInteractionGroupAllowHit(UUIItem* HitUI)
 	return HitUI->IsGroupAllowInteraction();
 }
 
-bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
+bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	traceIgnoreActorArray.Reset();
 	traceOnlyActorArray.Reset();
+	OutHoverArray.Reset();
 	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection, traceOnlyActorArray, traceIgnoreActorArray))
 	{
 		//UI element need to check if hit visible
@@ -86,7 +87,7 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 		}
 		else//trace only specific actors
 		{
-			//todo:need to get root object, because this function will go through hierarchy to check all children. find root object can avoid repetition
+			//@todo:need to get root object, because this function will go through hierarchy to check all children. find root object can avoid repetition
 			LineTraceUIHierarchy(multiUIHitResult, false, traceOnlyActorArray, OutRayOrigin, OutRayEnd, traceChannel);
 		}
 		int hitCount = multiUIHitResult.Num();
@@ -135,6 +136,7 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 			});
 
 			//consider UI may not visible or InteractionGroup not allow interaction, so we cannot take first one as result, we need to check from start
+			bool haveValidHitResult = false;
 			for (int i = 0; i < hitCount; i++)
 			{
 				auto hit = multiUIHitResult[i];
@@ -142,16 +144,26 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 				{
 					if (IsHitVisibleUI(hitUIItem, hit.Location) && IsUIInteractionGroupAllowHit(hitUIItem))
 					{
-						OutHitResult = hit;
-						return true;
+						if (!haveValidHitResult)
+						{
+							OutHitResult = hit;
+							haveValidHitResult = true;
+						}
+						OutHoverArray.Add(hit.Component.Get());
 					}
 				}
 				else
 				{
-					OutHitResult = hit;
-					return true;
+					if (!haveValidHitResult)
+					{
+						OutHitResult = hit;
+						haveValidHitResult = true;
+					}
+					OutHoverArray.Add(hit.Component.Get());
 				}
 			}
+			if (haveValidHitResult)
+				return true;
 		}
 	}
 	return false;
