@@ -317,13 +317,18 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 										{
 											auto AUIRenderable = (UUIRenderable*)(A.Component.Get());
 											auto BUIRenderable = (UUIRenderable*)(B.Component.Get());
-											if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())
+											if (AUIRenderable->GetRenderCanvas() == BUIRenderable->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
 											{
-												return A.Distance < B.Distance;
+												if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())//if item's depth is equal then sort on distance
+												{
+													return A.Distance < B.Distance;
+												}
+												else
+													return AUIRenderable->GetDepth() > BUIRenderable->GetDepth();
 											}
-											else
+											else//if Canvas's depth not equal then sort on Canvas's SortOrder
 											{
-												return AUIRenderable->GetDepth() > BUIRenderable->GetDepth();
+												return AUIRenderable->GetRenderCanvas()->GetSortOrder() > BUIRenderable->GetRenderCanvas()->GetSortOrder();
 											}
 										});
 									if (auto uiRenderableComp = Cast<UUIRenderable>(CacheHitResultArray[0].Component.Get()))//target need to select
