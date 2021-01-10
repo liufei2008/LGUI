@@ -24,9 +24,9 @@ enum class ELGUILayoutAlignmentType :uint8
 UENUM(BlueprintType)
 enum class EUILayoutChangePositionAnimationType :uint8
 {
-	/** Immediately change position and size */
+	/** Immediately change position */
 	Immediately,
-	/** Change position and size with ease animation */
+	/** Change position with ease animation */
 	EaseAnimation,
 	/** Register custom event and do the transition */
 	//Custom,
