@@ -113,7 +113,7 @@ private:
 public:	
 	static ALGUIManagerActor* GetLGUIManagerActorInstance(UObject* WorldContextObject);
 #if WITH_EDITORONLY_DATA
-	static bool IsPlaying;
+	static bool IsPlaying;//@todo: this should relate to world
 #endif
 	ALGUIManagerActor();
 	virtual void BeginPlay()override;
