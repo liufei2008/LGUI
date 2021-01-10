@@ -5,18 +5,9 @@
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 #include "CollisionQueryParams.h"
+#include "Event/LGUIPointerEventData.h"
 #include "LGUIBaseRaycaster.generated.h"
 
-class ULGUIPointerEventData;
-/** call event type */
-UENUM(BlueprintType)
-enum class ELGUIEventFireType :uint8
-{
-	/** event will call on trace target actor and all component of the actor */
-	TargetActorAndAllItsComponents,
-	/** event will call only on trace target */
-	OnlyTargetComponent,
-};
 /** 
  * RayEmitter must be set for raycaster, or it will not work
  */
@@ -60,7 +51,7 @@ public:
 		class ULGUIBaseRayEmitter* rayEmitter;
 	
 	bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& OutTraceOnlyActors, TArray<AActor*>& OutTraceIgnoreActors);
-	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult);
+	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray) PURE_VIRTUAL(ULGUIBaseRaycaster::Raycast, return false;);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)void ActivateRaycaster();
 	UFUNCTION(BlueprintCallable, Category = LGUI)void DeactivateRaycaster();

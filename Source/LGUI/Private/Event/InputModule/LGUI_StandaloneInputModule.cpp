@@ -35,7 +35,7 @@ void ULGUI_StandaloneInputModule::InputScroll(const float& inAxisValue)
 			eventData->scrollAxisValue = inAxisValue;
 			if (CheckEventSystem())
 			{
-				eventSystem->CallOnPointerScroll(eventData->enterComponent, eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
+				eventSystem->CallOnPointerScroll(eventData->enterComponent, eventData, eventData->enterComponentEventFireType);
 			}
 		}
 	}
