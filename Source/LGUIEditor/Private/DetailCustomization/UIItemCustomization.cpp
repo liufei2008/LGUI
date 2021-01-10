@@ -236,6 +236,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					SAssignNew(DepthInfoTextBlock, STextBlock)
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 					.Text(FText::FromString("0"))
+					.ToolTipText(FText::FromString(FString(TEXT("The same depth count shared by all UI element in same canvas"))))
 				];
 			SetDepthInfo(TargetScriptArray[0]);
 		}
@@ -718,27 +719,51 @@ void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScri
 {
 	if (DepthInfoTextBlock.Get() != nullptr)
 	{
-		auto uiType = TargetScript->GetUIItemType();
-		if (uiType == UIItemType::UIRenderable || uiType == UIItemType::UIItem)
+		if (TargetScript.IsValid())
 		{
-			auto renderCanvas = TargetScript.Get()->GetRenderCanvas();
-			if (renderCanvas != nullptr)
+			if (auto world = TargetScript->GetWorld())
 			{
-				auto itemList = renderCanvas->UIRenderableItemList;
-				int depthCount = 0;
-				for (auto item : itemList)
+				TArray<UUIItem*> itemList;
+				if (world->IsGameWorld())
 				{
-					if (IsValid(item))
+					if (auto instance = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
 					{
-						if (item->widget.depth == TargetScript->widget.depth)
-							depthCount++;
+						itemList = instance->GetAllUIItem();
 					}
 				}
-				DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("SharedDepthCount:%d"), depthCount)));
-			}
-			else
-			{
-				DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("(Need LGUI Canvas!)"))));
+				else
+				{
+					if (ULGUIEditorManagerObject::Instance != nullptr)
+					{
+						itemList = ULGUIEditorManagerObject::Instance->GetAllUIItem();
+					}
+				}
+
+				auto uiType = TargetScript->GetUIItemType();
+				if (uiType != UIItemType::None)
+				{
+					auto renderCanvas = TargetScript.Get()->GetRenderCanvas();
+					if (renderCanvas != nullptr)
+					{
+						int depthCount = 0;
+						for (auto item : itemList)
+						{
+							if (IsValid(item))
+							{
+								if (item->GetRenderCanvas() == renderCanvas)
+								{
+									if (item->widget.depth == TargetScript->widget.depth)
+										depthCount++;
+								}
+							}
+						}
+						DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("SharedDepthCount:%d"), depthCount)));
+					}
+					else
+					{
+						DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("(Need LGUI Canvas!)"))));
+					}
+				}
 			}
 		}
 	}
