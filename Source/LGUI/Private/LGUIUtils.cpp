@@ -92,38 +92,6 @@ UTexture2D* LGUIUtils::CreateTransientBlackTransparentTexture(int32 InSize, FNam
 	Mip->BulkData.Unlock();
 	return texture;
 }
-bool LGUIUtils::IsFloatEqual(float a, float b)
-{
-	int aExp;
-	float aFrac = frexpf(a, &aExp);
-	int bExp;
-	float bFrac = frexpf(b, &bExp);
-	return (FMath::Abs(aFrac - bFrac) < SMALL_NUMBER) && (aExp == bExp);
-}
-bool LGUIUtils::IsFloatNotEqual(float a, float b)
-{
-	int aExp;
-	float aFrac = frexpf(a, &aExp);
-	int bExp;
-	float bFrac = frexpf(b, &bExp);
-	return aExp != bExp || FMath::Abs(aFrac - bFrac) > SMALL_NUMBER;
-}
-bool LGUIUtils::IsVectorEqual(const FVector& a, const FVector& b)
-{
-	return IsFloatEqual(a.X, b.X) && IsFloatEqual(a.Y, b.Y) && IsFloatEqual(a.Z, b.Z);
-}
-bool LGUIUtils::IsVectorNotEqual(const FVector& a, const FVector& b)
-{
-	return IsFloatNotEqual(a.X, b.X) || IsFloatNotEqual(a.Y, b.Y) || IsFloatNotEqual(a.Z, b.Z);
-}
-bool LGUIUtils::IsVector2DNotEqual(const FVector2D& a, const FVector2D& b)
-{
-	return IsFloatNotEqual(a.X, b.X) || IsFloatNotEqual(a.Y, b.Y);
-}
-bool LGUIUtils::IsQuaternionNotEqual(const FQuat& a, const FQuat& b)
-{
-	return IsFloatNotEqual(a.X, b.X) || IsFloatNotEqual(a.Y, b.Y) || IsFloatNotEqual(a.Z, b.Z) || IsFloatNotEqual(a.W, b.W);
-}
 
 
 void LGUIUtils::SortUIItemDepth(TArray<UUIRenderable*>& shapeList)
