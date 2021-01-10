@@ -73,22 +73,17 @@ AActor* ULGUIBPLibrary::DuplicateActor(AActor* Target, USceneComponent* Parent)
 {
 	return ActorCopier::DuplicateActor(Target, Parent);
 }
-UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass)
+UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
 {
 	if (!IsValid(InActor))
 	{
 		UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::GetComponentInParent]InActor is not valid!"));
 		return nullptr;
 	}
-	UActorComponent* resultComp = InActor->FindComponentByClass(ComponentClass);
-	if (resultComp != nullptr)
-	{
-		return resultComp;
-	}
-	AActor* parentActor = InActor->GetAttachParentActor();
+	AActor* parentActor = IncludeSelf ? InActor : InActor->GetAttachParentActor();
 	while (parentActor != nullptr)
 	{
-		resultComp = parentActor->FindComponentByClass(ComponentClass);
+		auto resultComp = parentActor->FindComponentByClass(ComponentClass);
 		if (resultComp != nullptr)
 		{
 			return resultComp;
