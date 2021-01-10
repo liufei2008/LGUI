@@ -640,18 +640,6 @@ void ULGUIEventSystem::CallOnPointerScroll(USceneComponent* component, ULGUIPoin
 	CALL_LGUIINTERFACE(component, inEventData, eventFireType, Scroll, Scroll, true);
 }
 
-void ULGUIEventSystem::CallOnPointerDragEnter(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
-{
-	CALL_LGUIINTERFACE(component, inEventData, eventFireType, DragEnterExit, DragEnter, true);
-}
-void ULGUIEventSystem::CallOnPointerDragExit(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
-{
-	if (!inEventData->isDragExitFiredAtCurrentFrame)
-	{
-		inEventData->isDragExitFiredAtCurrentFrame = true;
-		CALL_LGUIINTERFACE(component, inEventData, eventFireType, DragEnterExit, DragExit, true);
-	}
-}
 void ULGUIEventSystem::CallOnPointerDragDrop(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
 	CALL_LGUIINTERFACE(component, inEventData, eventFireType, DragDrop, DragDrop, true);

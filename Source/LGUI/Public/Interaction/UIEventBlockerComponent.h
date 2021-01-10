@@ -6,7 +6,6 @@
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"
 #include "Event/Interface/LGUIPointerDragInterface.h"
-#include "Event/Interface/LGUIPointerDragEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDragDropInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
@@ -24,7 +23,6 @@ class LGUI_API UUIEventBlockerComponent : public UActorComponent
 	, public ILGUIPointerDownUpInterface
 	, public ILGUIPointerClickInterface
 	, public ILGUIPointerDragInterface
-	, public ILGUIPointerDragEnterExitInterface
 	, public ILGUIPointerDragDropInterface
 	, public ILGUIPointerScrollInterface
 	, public ILGUIPointerSelectDeselectInterface
@@ -40,8 +38,6 @@ protected:
 	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerDragEnter_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerDragExit_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDragDrop_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)override;

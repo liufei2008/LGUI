@@ -35,14 +35,6 @@ void UUIEventTriggerComponent::RegisterOnPointerEndDrag(const FLGUIPointerEventD
 {
 	OnPointerEndDragCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate)
-{
-	OnPointerDragEnterCPP.Add(InDelegate);
-}
-void UUIEventTriggerComponent::RegisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate)
-{
-	OnPointerDragExitCPP.Add(InDelegate);
-}
 void UUIEventTriggerComponent::RegisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate)
 {
 	OnPointerDragDropCPP.Add(InDelegate);
@@ -91,14 +83,6 @@ void UUIEventTriggerComponent::UnregisterOnPointerDrag(const FLGUIPointerEventDe
 void UUIEventTriggerComponent::UnregisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate)
 {
 	OnPointerEndDragCPP.Remove(InDelegate.GetHandle());
-}
-void UUIEventTriggerComponent::UnregisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate)
-{
-	OnPointerDragEnterCPP.Remove(InDelegate.GetHandle());
-}
-void UUIEventTriggerComponent::UnregisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate)
-{
-	OnPointerDragExitCPP.Remove(InDelegate.GetHandle());
 }
 void UUIEventTriggerComponent::UnregisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate)
 {
@@ -163,18 +147,6 @@ bool UUIEventTriggerComponent::OnPointerEndDrag_Implementation(ULGUIPointerEvent
 {
 	OnPointerEndDrag.FireEvent(eventData);
 	if (OnPointerEndDragCPP.IsBound())OnPointerEndDragCPP.Broadcast(eventData);
-	return AllowEventBubbleUp;
-}
-bool UUIEventTriggerComponent::OnPointerDragEnter_Implementation(ULGUIPointerEventData* eventData)
-{
-	OnPointerDragEnter.FireEvent(eventData);
-	if (OnPointerDragEnterCPP.IsBound())OnPointerDragEnterCPP.Broadcast(eventData);
-	return AllowEventBubbleUp;
-}
-bool UUIEventTriggerComponent::OnPointerDragExit_Implementation(ULGUIPointerEventData* eventData)
-{
-	OnPointerDragExit.FireEvent(eventData);
-	if (OnPointerDragExitCPP.IsBound())OnPointerDragExitCPP.Broadcast(eventData);
 	return AllowEventBubbleUp;
 }
 bool UUIEventTriggerComponent::OnPointerDragDrop_Implementation(ULGUIPointerEventData* eventData)
@@ -243,16 +215,6 @@ FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerEndDrag(co
 	auto delegateHandle = OnPointerEndDragCPP.AddLambda([InDelegate](ULGUIPointerEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
-FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerDragEnter(const FLGUIPointerEventDynamicDelegate& InDelegate)
-{
-	auto delegateHandle = OnPointerDragEnterCPP.AddLambda([InDelegate](ULGUIPointerEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
-	return FLGUIDelegateHandleWrapper(delegateHandle);
-}
-FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerDragExit(const FLGUIPointerEventDynamicDelegate& InDelegate)
-{
-	auto delegateHandle = OnPointerDragExitCPP.AddLambda([InDelegate](ULGUIPointerEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
-	return FLGUIDelegateHandleWrapper(delegateHandle);
-}
 FLGUIDelegateHandleWrapper UUIEventTriggerComponent::RegisterOnPointerDragDrop(const FLGUIPointerEventDynamicDelegate& InDelegate)
 {
 	auto delegateHandle = OnPointerDragDropCPP.AddLambda([InDelegate](ULGUIPointerEventData* eventData) {InDelegate.ExecuteIfBound(eventData); });
@@ -305,14 +267,6 @@ void UUIEventTriggerComponent::UnregisterOnPointerDrag(const FLGUIDelegateHandle
 void UUIEventTriggerComponent::UnregisterOnPointerEndDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle)
 {
 	OnPointerEndDragCPP.Remove(InDelegateHandle.DelegateHandle);
-}
-void UUIEventTriggerComponent::UnregisterOnPointerDragEnter(const FLGUIDelegateHandleWrapper& InDelegateHandle)
-{
-	OnPointerDragEnterCPP.Remove(InDelegateHandle.DelegateHandle);
-}
-void UUIEventTriggerComponent::UnregisterOnPointerDragExit(const FLGUIDelegateHandleWrapper& InDelegateHandle)
-{
-	OnPointerDragExitCPP.Remove(InDelegateHandle.DelegateHandle);
 }
 void UUIEventTriggerComponent::UnregisterOnPointerDragDrop(const FLGUIDelegateHandleWrapper& InDelegateHandle)
 {

@@ -6,7 +6,6 @@
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"
 #include "Event/Interface/LGUIPointerDragInterface.h"
-#include "Event/Interface/LGUIPointerDragEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDragDropInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
@@ -25,7 +24,6 @@ class LGUI_API UUIEventTriggerComponent : public UActorComponent
 	, public ILGUIPointerDownUpInterface
 	, public ILGUIPointerClickInterface
 	, public ILGUIPointerDragInterface
-	, public ILGUIPointerDragEnterExitInterface
 	, public ILGUIPointerDragDropInterface
 	, public ILGUIPointerScrollInterface
 	, public ILGUIPointerSelectDeselectInterface
@@ -33,21 +31,36 @@ class LGUI_API UUIEventTriggerComponent : public UActorComponent
 	GENERATED_BODY()
 protected:
 	//inherited events of this component can bubble up?
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") bool AllowEventBubbleUp = false;
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerEnter = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerExit = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerDown = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerUp = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerClick = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerBeginDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerEndDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerDragEnter = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerDragExit = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerDragDrop = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerScroll = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerSelect = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") FLGUIDrawableEvent OnPointerDeselect = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		bool AllowEventBubbleUp = false;
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerEnter = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerExit = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerDown = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerUp = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerClick = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerBeginDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerEndDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "Drag enter/exit event is deprecated."))
+		FLGUIDrawableEvent OnPointerDragEnter_DEPRECATED = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "Drag enter/exit event is deprecated."))
+		FLGUIDrawableEvent OnPointerDragExit_DEPRECATED = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerDragDrop = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerScroll = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerSelect = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
+		FLGUIDrawableEvent OnPointerDeselect = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
 
 	FLGUIMulticastPointerEventDelegate OnPointerEnterCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerExitCPP;
@@ -57,8 +70,6 @@ protected:
 	FLGUIMulticastPointerEventDelegate OnPointerBeginDragCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerDragCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerEndDragCPP;
-	FLGUIMulticastPointerEventDelegate OnPointerDragEnterCPP;
-	FLGUIMulticastPointerEventDelegate OnPointerDragExitCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerDragDropCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerScrollCPP;
 	FLGUIMulticastBaseEventDelegate OnPointerSelectCPP;
@@ -72,8 +83,10 @@ public:
 	void RegisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate);
 	void RegisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate);
 	void RegisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate);
+	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
+	void RegisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate) {};
+	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
+	void RegisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate) {};
 	void RegisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate);
 	void RegisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate);
 	void RegisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate);
@@ -87,41 +100,69 @@ public:
 	void UnregisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate);
 	void UnregisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate);
 	void UnregisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate);
+	void UnregisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate) {};
+	void UnregisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate) {};
 	void UnregisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate);
 	void UnregisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate);
 	void UnregisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate);
 	void UnregisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate);
 
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerEnter(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerExit(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDown(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerUp(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerClick(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerBeginDrag(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDrag(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerEndDrag(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDragEnter(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDragExit(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDragDrop(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerScroll(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerSelect(const FLGUIBaseEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")FLGUIDelegateHandleWrapper RegisterOnPointerDeselect(const FLGUIBaseEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerEnter(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerExit(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerDown(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerUp(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerClick(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerBeginDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerEndDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerDragEnter(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerDragExit(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerDragDrop(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerScroll(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerSelect(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")void UnregisterOnPointerDeselect(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerEnter(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerExit(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerDown(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerUp(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerClick(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerBeginDrag(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerDrag(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerEndDrag(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger", meta = (DeprecatedFunction, DeprecationMessage = "Drag enter/exit event is deprecated."))
+		FLGUIDelegateHandleWrapper RegisterOnPointerDragEnter(const FLGUIPointerEventDynamicDelegate& InDelegate) { return FLGUIDelegateHandleWrapper(); };
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger", meta = (DeprecatedFunction, DeprecationMessage = "Drag enter/exit event is deprecated."))
+		FLGUIDelegateHandleWrapper RegisterOnPointerDragExit(const FLGUIPointerEventDynamicDelegate& InDelegate) { return FLGUIDelegateHandleWrapper(); };
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerDragDrop(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerScroll(const FLGUIPointerEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerSelect(const FLGUIBaseEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		FLGUIDelegateHandleWrapper RegisterOnPointerDeselect(const FLGUIBaseEventDynamicDelegate& InDelegate);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerEnter(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerExit(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerDown(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerUp(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerClick(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerBeginDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerEndDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger", meta = (DeprecatedFunction, DeprecationMessage = "Drag enter/exit event is deprecated."))
+		void UnregisterOnPointerDragEnter(const FLGUIDelegateHandleWrapper& InDelegateHandle) {};
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger", meta = (DeprecatedFunction, DeprecationMessage = "Drag enter/exit event is deprecated."))
+		void UnregisterOnPointerDragExit(const FLGUIDelegateHandleWrapper& InDelegateHandle) {};
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerDragDrop(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerScroll(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerSelect(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
+		void UnregisterOnPointerDeselect(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
 	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
@@ -131,8 +172,6 @@ public:
 	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerDragEnter_Implementation(ULGUIPointerEventData* eventData)override;
-	virtual bool OnPointerDragExit_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDragDrop_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)override;
