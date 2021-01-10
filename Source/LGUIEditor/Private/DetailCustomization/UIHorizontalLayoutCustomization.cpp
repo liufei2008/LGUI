@@ -42,5 +42,21 @@ void FUIHorizontalLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& De
 		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, WidthFitToChildren));
 	}
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, ExpendChildrenHeight));
+
+	auto animationTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, AnimationType));
+	animationTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] { DetailBuilder.ForceRefreshDetails(); }));
+	switch (TargetScriptPtr->AnimationType)
+	{
+	case EUILayoutChangePositionAnimationType::Immediately:
+	{
+		DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIHorizontalLayout, AnimationDuration));
+	}
+	break;
+	case EUILayoutChangePositionAnimationType::EaseAnimation:
+	{
+
+	}
+	break;
+	}
 }
 #undef LOCTEXT_NAMESPACE

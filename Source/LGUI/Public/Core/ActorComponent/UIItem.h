@@ -349,8 +349,15 @@ public:
 	/** Get the canvas that render and update this UI element */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		ULGUICanvas* GetRenderCanvas() const { return RenderCanvas; }
-	bool IsScreenSpaceOverlayUI();
-	bool IsWorldSpaceUI();
+	/** Is this UI element render to screen space overlay? */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool IsScreenSpaceOverlayUI()const;
+	/** Is this UI element render to a RenderTarget? */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool IsRenderTargetUI()const;
+	/** Is this UI element render in world space? */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool IsWorldSpaceUI()const;
 
 	/** get UI element type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
