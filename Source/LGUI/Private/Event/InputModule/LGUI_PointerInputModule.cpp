@@ -248,7 +248,6 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 	eventData->isUpFiredAtCurrentFrame = false;
 	eventData->isExitFiredAtCurrentFrame = false;
 	eventData->isEndDragFiredAtCurrentFrame = false;
-	eventData->isDragExitFiredAtCurrentFrame = false;
 
 	eventData->raycaster = hitResultContainer.raycaster;
 	eventData->rayOrigin = hitResultContainer.rayOrigin;
@@ -256,40 +255,29 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 	outHitResult = hitResultContainer.hitResult;
 	outIsHitSomething = lineTraceHitSomething;
 
+	if (lineTraceHitSomething)
+	{
+		auto nowHitComponent = (USceneComponent*)outHitResult.Component.Get();
+		//fire event
+		eventData->worldPoint = outHitResult.Location;
+		eventData->worldNormal = outHitResult.Normal;
+		if (eventData->enterComponent != nowHitComponent)//hit differenct object
+		{
+			ProcessPointerEnterExit(eventData, eventData->enterComponent, nowHitComponent, hitResultContainer.eventFireType);
+		}
+	}
+	else
+	{
+		if (IsValid(eventData->enterComponent) || eventData->enterComponentStack.Num() > 0)//prev object
+		{
+			ProcessPointerEnterExit(eventData, eventData->enterComponent, nullptr, hitResultContainer.eventFireType);
+		}
+	}
+
 	if (eventData->nowIsTriggerPressed && eventData->prevIsTriggerPressed)//if trigger keep pressing
 	{
-		if (eventData->dragging)//if is dragging
+		if (eventData->isDragging)//if is dragging
 		{
-			if (lineTraceHitSomething)//hit something during drag
-			{
-				auto nowHitComponent = (USceneComponent*)outHitResult.Component.Get();
-				//fire event
-				eventData->worldPoint = outHitResult.Location;
-				eventData->worldNormal = outHitResult.Normal;
-				if (eventData->dragEnterComponent != nowHitComponent)//drag and hit different object
-				{
-					if (IsValid(eventData->dragEnterComponent) && eventData->dragEnterComponent != eventData->dragComponent)//prev object, not dragging object
-					{
-						eventSystem->CallOnPointerDragExit(eventData->dragEnterComponent, eventData, eventData->dragEnterComponentEventFireType);
-						eventData->dragEnterComponent = nullptr;
-					}
-					if (IsValid(nowHitComponent) && nowHitComponent != eventData->dragComponent)//current object, not dragging object
-					{
-						eventData->dragEnterComponent = nowHitComponent;
-						eventData->dragEnterComponentEventFireType = hitResultContainer.eventFireType;
-						eventSystem->CallOnPointerDragEnter(eventData->dragEnterComponent, eventData, eventData->dragEnterComponentEventFireType);
-					}
-				}
-			}
-			else//hit nothing during drag
-			{
-				if (IsValid(eventData->dragEnterComponent) && eventData->dragEnterComponent != eventData->dragComponent)//prev object
-				{
-					eventSystem->CallOnPointerDragExit(eventData->dragEnterComponent, eventData, eventData->dragEnterComponentEventFireType);
-					eventData->dragEnterComponent = nullptr;
-				}
-			}
-
 			//trigger drag event
 			if (IsValid(eventData->dragComponent))
 			{
@@ -312,7 +300,7 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 			}
 			else
 			{
-				eventData->dragging = false;
+				eventData->isDragging = false;
 			}
 		}
 		else//trigger press but not dragging, only consern if trigger drag event
@@ -327,7 +315,7 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 				eventData->moveDelta = approximatHitPosition - eventData->pressWorldPoint;
 				if (eventData->pressRaycaster->rayEmitter->ShouldStartDrag(eventData))
 				{
-					eventData->dragging = true;
+					eventData->isDragging = true;
 					eventData->dragComponent = eventData->pressComponent;
 					eventData->dragRayOrigin = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin();
 					eventData->dragRayDirection = eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection();
@@ -343,24 +331,7 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 	}
 	else if (!eventData->nowIsTriggerPressed && !eventData->prevIsTriggerPressed)//is trigger keep release, only concern Enter/Exit event
 	{
-		if (lineTraceHitSomething)
-		{
-			auto nowHitComponent = (USceneComponent*)outHitResult.Component.Get();
-			//fire event
-			eventData->worldPoint = outHitResult.Location;
-			eventData->worldNormal = outHitResult.Normal;
-			if (eventData->enterComponent != nowHitComponent)//hit differenct object
-			{
-				ProcessPointerEnterExit(eventData, eventData->enterComponent, nowHitComponent, hitResultContainer.eventFireType);
-			}
-		}
-		else
-		{
-			if (IsValid(eventData->enterComponent) || eventData->enterComponentStack.Num() > 0)//prev object
-			{
-				ProcessPointerEnterExit(eventData, eventData->enterComponent, nullptr, hitResultContainer.eventFireType);
-			}
-		}
+		
 	}
 	else//trigger state change
 	{
@@ -379,10 +350,6 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 				eventData->pressWorldNormal = outHitResult.Normal;
 				eventData->pressRaycaster = hitResultContainer.raycaster;
 				eventData->pressWorldToLocalTransform = nowHitComponent->GetComponentTransform().Inverse();
-				if (eventData->enterComponent != nowHitComponent)//hit different object
-				{
-					ProcessPointerEnterExit(eventData, eventData->enterComponent, nowHitComponent, hitResultContainer.eventFireType);
-				}
 				if (IsValid(eventData->enterComponent))//now object
 				{
 					eventData->pressTime = GetWorld()->TimeSeconds;
@@ -391,22 +358,33 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 					eventSystem->CallOnPointerDown(eventData->pressComponent, eventData, eventData->enterComponentEventFireType);
 				}
 			}
-			else
-			{
-				if (IsValid(eventData->enterComponent) || eventData->enterComponentStack.Num() > 0)//prev object
-				{
-					ProcessPointerEnterExit(eventData, eventData->enterComponent, nullptr, hitResultContainer.eventFireType);
-				}
-			}
 		}
 		else//now is release, prev is press
 		{
 			auto nowHitComponent = (USceneComponent*)outHitResult.Component.Get();
 
-			if (eventData->dragging)//is dragging
+			if (eventData->isDragging)//is dragging
 			{
-				eventData->dragging = false;
+				eventData->isDragging = false;
 				if (IsValid(eventData->pressComponent))
+				{
+					eventData->worldPoint = outHitResult.Location;
+					eventData->worldNormal = outHitResult.Normal;
+
+					auto oldPressComponent = eventData->pressComponent;
+					eventData->pressComponent = nullptr;
+					eventSystem->CallOnPointerUp(oldPressComponent, eventData, eventData->pressComponentEventFireType);
+				}
+				if (lineTraceHitSomething)//hit something when stop drag
+				{
+					//if enter an object when drag, and after one frame trigger release and hit new object, then old object need to call DragExit
+					if (IsValid(eventData->enterComponent) && eventData->enterComponent != eventData->dragComponent)
+					{
+						eventSystem->CallOnPointerDragDrop(eventData->enterComponent, eventData, eventData->enterComponentEventFireType);
+					}
+				}
+				//drag end
+				if (IsValid(eventData->dragComponent))
 				{
 					auto prevHitPoint = eventData->worldPoint;
 					auto approximatHitPosition = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin()
@@ -418,79 +396,22 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 					eventData->dragRayOrigin = eventData->pressRaycaster->rayEmitter->GetCurrentRayOrigin();
 					eventData->dragRayDirection = eventData->pressRaycaster->rayEmitter->GetCurrentRayDirection();
 
-					auto oldPressComponent = eventData->pressComponent;
-					eventData->pressComponent = nullptr;
-					eventSystem->CallOnPointerUp(oldPressComponent, eventData, eventData->pressComponentEventFireType);
-				}
-				if (lineTraceHitSomething)//hit something when stop drag
-				{
-					//if DragEnter an object when press, and after one frame trigger release and hit new object, then old object need to call DragExit
-					if (IsValid(eventData->dragEnterComponent) && eventData->dragEnterComponent != eventData->dragComponent)
-					{
-						eventSystem->CallOnPointerDragDrop(eventData->dragEnterComponent, eventData, eventData->dragEnterComponentEventFireType);
-						eventSystem->CallOnPointerDragExit(eventData->dragEnterComponent, eventData, eventData->dragEnterComponentEventFireType);
-						eventData->dragEnterComponent = nullptr;
-					}
-					//drag end
-					if (IsValid(eventData->dragComponent))
-					{
-						eventSystem->CallOnPointerEndDrag(eventData->dragComponent, eventData, eventData->dragComponentEventFireType);
-						eventData->dragComponent = nullptr;
-					}
-
-					if (nowHitComponent != eventData->enterComponent)//hit different object
-					{
-						//Enter/Exit will not fire during drag, so we need to call Enter/Exit at drag end
-						ProcessPointerEnterExit(eventData, eventData->enterComponent, nowHitComponent, hitResultContainer.eventFireType);
-					}
-				}
-				else//hit nothing when stop drag
-				{
-					//drag end
-					if (IsValid(eventData->dragComponent))
-					{
-						eventSystem->CallOnPointerEndDrag(eventData->dragComponent, eventData, eventData->dragComponentEventFireType);
-						eventData->dragComponent = nullptr;
-					}
-					if (IsValid(eventData->enterComponent) || eventData->enterComponentStack.Num() > 0)
-					{
-						ProcessPointerEnterExit(eventData, eventData->enterComponent, nullptr, hitResultContainer.eventFireType);
-					}
+					eventSystem->CallOnPointerEndDrag(eventData->dragComponent, eventData, eventData->dragComponentEventFireType);
+					eventData->dragComponent = nullptr;
 				}
 			}
 			else//not dragging
 			{
-				eventData->worldPoint = outHitResult.Location;
-				eventData->worldNormal = outHitResult.Normal;
-				if (lineTraceHitSomething)//hit something when release
+				if (IsValid(eventData->pressComponent))
 				{
-					if (IsValid(eventData->pressComponent))
-					{
-						auto oldPressComponent = eventData->pressComponent;
-						eventData->pressComponent = nullptr;
-						eventSystem->CallOnPointerUp(oldPressComponent, eventData, eventData->pressComponentEventFireType);
-						eventData->clickTime = GetWorld()->TimeSeconds;
-						eventSystem->CallOnPointerClick(oldPressComponent, eventData, eventData->pressComponentEventFireType);
-					}
-					if (eventData->enterComponent != nowHitComponent)//if hit different object when release
-					{
-						ProcessPointerEnterExit(eventData, eventData->enterComponent, nowHitComponent, hitResultContainer.eventFireType);
-					}
-				}
-				else
-				{
-					if (IsValid(eventData->pressComponent))
-					{
-						auto oldPressComponent = eventData->pressComponent;
-						eventData->pressComponent = nullptr;
-						eventSystem->CallOnPointerUp(oldPressComponent, eventData, eventData->pressComponentEventFireType);
-						eventData->clickTime = GetWorld()->TimeSeconds;
-						eventSystem->CallOnPointerClick(oldPressComponent, eventData, eventData->pressComponentEventFireType);
-					}
-					if (IsValid(eventData->enterComponent) || eventData->enterComponentStack.Num() > 0)
-					{
-						ProcessPointerEnterExit(eventData, eventData->enterComponent, nullptr, hitResultContainer.eventFireType);
-					}
+					eventData->worldPoint = outHitResult.Location;
+					eventData->worldNormal = outHitResult.Normal;
+
+					auto oldPressComponent = eventData->pressComponent;
+					eventData->pressComponent = nullptr;
+					eventSystem->CallOnPointerUp(oldPressComponent, eventData, eventData->pressComponentEventFireType);
+					eventData->clickTime = GetWorld()->TimeSeconds;
+					eventSystem->CallOnPointerClick(oldPressComponent, eventData, eventData->pressComponentEventFireType);
 				}
 			}
 		}
@@ -506,19 +427,9 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 
 	if (eventData->prevIsTriggerPressed)//if trigger is pressed
 	{
-		if (eventData->dragging)
+		if (eventData->isDragging)
 		{
-			eventData->dragging = false;
-			if (!eventData->isUpFiredAtCurrentFrame)
-			{
-				if (IsValid(eventData->pressComponent))
-				{
-					auto oldPressComponent = eventData->pressComponent;
-					eventData->pressComponent = nullptr;
-					eventSystem->CallOnPointerUp(oldPressComponent, eventData, eventData->pressComponentEventFireType);
-				}
-				eventData->isUpFiredAtCurrentFrame = true;
-			}
+			eventData->isDragging = false;
 			if (!eventData->isEndDragFiredAtCurrentFrame)
 			{
 				if (IsValid(eventData->dragComponent))
@@ -528,44 +439,25 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 				}
 				eventData->isEndDragFiredAtCurrentFrame = true;
 			}
-			if (!eventData->isExitFiredAtCurrentFrame)
-			{
-				if (IsValid(eventData->enterComponent) || eventData->enterComponentStack.Num() > 0)
-				{
-					ProcessPointerEnterExit(eventData, eventData->enterComponent, nullptr, eventData->enterComponentEventFireType);
-				}
-				eventData->isExitFiredAtCurrentFrame = true;
-			}
-			if (!eventData->isDragExitFiredAtCurrentFrame)
-			{
-				if (IsValid(eventData->dragEnterComponent))
-				{
-					eventSystem->CallOnPointerDragExit(eventData->dragEnterComponent, eventData, eventData->dragEnterComponentEventFireType);
-					eventData->dragEnterComponent = nullptr;
-				}
-				eventData->isDragExitFiredAtCurrentFrame = true;
-			}
 		}
-		else
+
+		if (!eventData->isUpFiredAtCurrentFrame)
 		{
-			if (!eventData->isUpFiredAtCurrentFrame)
+			if (IsValid(eventData->pressComponent))
 			{
-				if (IsValid(eventData->pressComponent))
-				{
-					auto oldPressComponent = eventData->pressComponent;
-					eventData->pressComponent = nullptr;
-					eventSystem->CallOnPointerUp(oldPressComponent, eventData, eventData->pressComponentEventFireType);
-				}
-				eventData->isUpFiredAtCurrentFrame = true;
+				auto oldPressComponent = eventData->pressComponent;
+				eventData->pressComponent = nullptr;
+				eventSystem->CallOnPointerUp(oldPressComponent, eventData, eventData->pressComponentEventFireType);
 			}
-			if (!eventData->isExitFiredAtCurrentFrame)
+			eventData->isUpFiredAtCurrentFrame = true;
+		}
+		if (!eventData->isExitFiredAtCurrentFrame)
+		{
+			if (IsValid(eventData->enterComponent) || eventData->enterComponentStack.Num() > 0)
 			{
-				if (IsValid(eventData->enterComponent) || eventData->enterComponentStack.Num() > 0)
-				{
-					ProcessPointerEnterExit(eventData, eventData->enterComponent, nullptr, eventData->enterComponentEventFireType);
-				}
-				eventData->isExitFiredAtCurrentFrame = true;
+				ProcessPointerEnterExit(eventData, eventData->enterComponent, nullptr, eventData->enterComponentEventFireType);
 			}
+			eventData->isExitFiredAtCurrentFrame = true;
 		}
 
 		eventData->prevIsTriggerPressed = false;
