@@ -268,7 +268,7 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
 	}
 	return AllowEventBubbleUp;
 }
-
+#define POSITION_THRESHOLD 0.001f
 void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 {
 	if (FMath::Abs(DragSpeed.X) > 0 || FMath::Abs(DragSpeed.Y) > 0//speed large then threshold
@@ -294,7 +294,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 				else
 				{
 					DragSpeed.X = 0;
-					if (LGUIUtils::IsFloatEqual(HorizontalRange.X, Position.X))
+					if (FMath::Abs(HorizontalRange.X - Position.X) < POSITION_THRESHOLD)
 					{
 						Position.X = HorizontalRange.X;
 					}
@@ -318,7 +318,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 				else
 				{
 					DragSpeed.X = 0;
-					if (LGUIUtils::IsFloatEqual(Position.X, HorizontalRange.Y))
+					if (FMath::Abs(Position.X - HorizontalRange.Y) < POSITION_THRESHOLD)
 					{
 						Position.X = HorizontalRange.Y;
 					}
@@ -357,7 +357,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 				else
 				{
 					DragSpeed.Y = 0;
-					if (LGUIUtils::IsFloatEqual(VerticalRange.X, Position.Y))
+					if (FMath::Abs(VerticalRange.X - Position.Y) < POSITION_THRESHOLD)
 					{
 						Position.Y = VerticalRange.X;
 					}
@@ -381,7 +381,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 				else
 				{
 					DragSpeed.Y = 0;
-					if (LGUIUtils::IsFloatEqual(Position.Y, VerticalRange.Y))
+					if (FMath::Abs(Position.Y - VerticalRange.Y) < POSITION_THRESHOLD)
 					{
 						Position.Y = VerticalRange.Y;
 					}
@@ -438,47 +438,46 @@ void UUIScrollViewComponent::UpdateProgress(bool InFireEvent)
 void UUIScrollViewComponent::CalculateHorizontalRange()
 {
 	auto& parentWidget = ContentParentUIItem->GetWidget();
-	auto& thisWidget = ContentUIItem->GetWidget();
-	if (parentWidget.width > thisWidget.width)
+	auto& contentWidget = ContentUIItem->GetWidget();
+	if (parentWidget.width > contentWidget.width)
 	{
-		HorizontalRange.X = HorizontalRange.Y = ContentUIItem->GetRelativeLocation().X;
 		//parent
 		HorizontalRange.X = -parentWidget.pivot.X * parentWidget.width;
 		HorizontalRange.Y = (1.0f - parentWidget.pivot.X) * parentWidget.width;
-		//selft
-		HorizontalRange.X += thisWidget.pivot.X * parentWidget.width;
-		HorizontalRange.Y += (thisWidget.pivot.X - 1) * parentWidget.width;
+		//self
+		HorizontalRange.X += contentWidget.pivot.X * contentWidget.width;
+		HorizontalRange.Y += (contentWidget.pivot.X - 1.0f) * contentWidget.width;
 	}
 	else
 	{
 		//self
-		HorizontalRange.X = (thisWidget.pivot.X - 1) * thisWidget.width;
-		HorizontalRange.Y = thisWidget.pivot.X * thisWidget.width;
+		HorizontalRange.X = (contentWidget.pivot.X - 1.0f) * contentWidget.width;
+		HorizontalRange.Y = contentWidget.pivot.X * contentWidget.width;
 		//parent
-		HorizontalRange.X += (1 - parentWidget.pivot.X) * parentWidget.width;
+		HorizontalRange.X += (1.0f - parentWidget.pivot.X) * parentWidget.width;
 		HorizontalRange.Y += -parentWidget.pivot.X * parentWidget.width;
 	}
 }
 void UUIScrollViewComponent::CalculateVerticalRange()
 {
 	auto& parentWidget = ContentParentUIItem->GetWidget();
-	auto& thisWidget = ContentUIItem->GetWidget();
-	if (parentWidget.height > thisWidget.height)
+	auto& contentWidget = ContentUIItem->GetWidget();
+	if (parentWidget.height > contentWidget.height)
 	{
 		//parent
 		VerticalRange.X = -parentWidget.pivot.Y * parentWidget.height;
 		VerticalRange.Y = (1.0f - parentWidget.pivot.Y) * parentWidget.height;
 		//self
-		VerticalRange.X += thisWidget.pivot.Y * parentWidget.height;
-		VerticalRange.Y += (thisWidget.pivot.Y - 1) * parentWidget.height;
+		VerticalRange.X += contentWidget.pivot.Y * contentWidget.height;
+		VerticalRange.Y += (contentWidget.pivot.Y - 1.0f) * contentWidget.height;
 	}
 	else
 	{
 		//self
-		VerticalRange.X = (thisWidget.pivot.Y - 1) * thisWidget.height;
-		VerticalRange.Y = thisWidget.pivot.Y * thisWidget.height;
+		VerticalRange.X = (contentWidget.pivot.Y - 1.0f) * contentWidget.height;
+		VerticalRange.Y = contentWidget.pivot.Y * contentWidget.height;
 		//parent
-		VerticalRange.X += (1 - parentWidget.pivot.Y) * parentWidget.height;
+		VerticalRange.X += (1.0f - parentWidget.pivot.Y) * parentWidget.height;
 		VerticalRange.Y += -parentWidget.pivot.Y * parentWidget.height;
 	}
 }

@@ -8,10 +8,11 @@ ULGUI_WorldRaycaster::ULGUI_WorldRaycaster()
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
-bool ULGUI_WorldRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
+bool ULGUI_WorldRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	traceIgnoreActorArray.Reset();
 	traceOnlyActorArray.Reset();
+	OutHoverArray.Reset();
 	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection, traceOnlyActorArray, traceIgnoreActorArray))
 	{
 		multiWorldHitResult.Reset();
@@ -35,6 +36,10 @@ bool ULGUI_WorldRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FV
 			//	return A.Distance < B.Distance;
 			//});
 			OutHitResult = multiWorldHitResult[0];
+			for (auto item : multiWorldHitResult)
+			{
+				OutHoverArray.Add(item.Component.Get());
+			}
 			return true;
 		}
 	}

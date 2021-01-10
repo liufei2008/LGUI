@@ -294,7 +294,7 @@ bool UUISelectableComponent::OnPointerDown_Implementation(ULGUIPointerEventData*
 	ApplySelectionState(false);
 	if (auto eventSystemInstance = ULGUIEventSystem::GetLGUIEventSystemInstance(this))
 	{
-		eventSystemInstance->SetSelectComponent(GetRootComponent(), eventData, eventData->enterComponentEventFireOnAllOrOnlyTarget);
+		eventSystemInstance->SetSelectComponent(GetRootComponent(), eventData, eventData->enterComponentEventFireType);
 	}
 	return AllowEventBubbleUp;
 }

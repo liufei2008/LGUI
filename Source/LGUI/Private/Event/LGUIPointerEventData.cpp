@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "Event/LGUIPointerEventData.h"
+#include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "LGUI.h"
 
 
@@ -34,7 +35,7 @@ FString ULGUIPointerEventData::ToString()const
 	FString result;
 	if (IsValid(enterComponent))
 	{
-		result += FString::Printf(TEXT("\n		hitComponent actor:%s, comp:%s"),
+		result += FString::Printf(TEXT("\n		enterComponent actor:%s, comp:%s"),
 #if WITH_EDITOR
 			* (enterComponent->GetOwner()->GetActorLabel()),
 #else
@@ -44,7 +45,15 @@ FString ULGUIPointerEventData::ToString()const
 	}
 	else
 	{
-		result += TEXT("\n		hitComponent is null");
+		result += TEXT("\n		enterComponent is null");
+	}
+	if (enterComponentStack.Num() > 0)
+	{
+		result += FString::Printf(TEXT("\n		enterActorStack count:%d"), enterComponentStack.Num());
+	}
+	else
+	{
+		result += TEXT("\n		enterActorStack empty");
 	}
 	if (IsValid(dragComponent))
 	{

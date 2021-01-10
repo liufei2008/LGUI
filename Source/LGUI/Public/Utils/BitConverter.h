@@ -23,7 +23,7 @@ class LGUI_API BitConverter
 public:
 	static bool ToBoolean(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToBoolean, bytes, 1, false)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToBoolean, bytes, 1)
@@ -32,7 +32,7 @@ public:
 	}
 	static int8 ToInt8(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt8, bytes, 1, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt8, bytes, 1)
@@ -43,7 +43,7 @@ public:
 	}
 	static uint8 ToUInt8(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt8, bytes, 1, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt8, bytes, 1)
@@ -54,7 +54,7 @@ public:
 	}
 	static int16 ToInt16(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt16, bytes, 2, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt16, bytes, 2)
@@ -65,7 +65,7 @@ public:
 	}
 	static uint16 ToUInt16(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt16, bytes, 2, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt16, bytes, 2)
@@ -76,7 +76,7 @@ public:
 	}
 	static int32 ToInt32(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt32, bytes, 4, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt32, bytes, 4)
@@ -87,7 +87,7 @@ public:
 	}
 	static uint32 ToUInt32(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt32, bytes, 4, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt32, bytes, 4)
@@ -98,7 +98,7 @@ public:
 	}
 	static int64 ToInt64(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt64, bytes, 8, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt64, bytes, 8)
@@ -109,7 +109,7 @@ public:
 	}
 	static uint64 ToUInt64(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt64, bytes, 8, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt64, bytes, 8)
@@ -120,7 +120,7 @@ public:
 	}
 	static float ToFloat(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToFloat, bytes, 4, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToFloat, bytes, 4)
@@ -131,7 +131,7 @@ public:
 	}
 	static double ToDouble(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToDouble, bytes, 8, 0)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToDouble, bytes, 8)
@@ -142,7 +142,7 @@ public:
 	}
 	static FVector2D ToVector2(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector2, bytes, 8, FVector2D::ZeroVector)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector2, bytes, 8)
@@ -153,7 +153,7 @@ public:
 	}
 	static FVector ToVector3(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector3, bytes, 12, FVector::ZeroVector)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector3, bytes, 12)
@@ -164,7 +164,7 @@ public:
 	}
 	static FVector4 ToVector4(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector4, bytes, 16, FVector4(EForceInit::ForceInitToZero))
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector4, bytes, 16)
@@ -175,7 +175,7 @@ public:
 	}
 	static FQuat ToQuat(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToBoolean, bytes, 16, FQuat::Identity)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToBoolean, bytes, 16)
@@ -186,7 +186,7 @@ public:
 	}
 	static FColor ToColor(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToColor, bytes, 4, FColor::White)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToColor, bytes, 4)
@@ -197,7 +197,7 @@ public:
 	}
 	static FLinearColor ToLinearColor(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToLinearColor, bytes, 16, FLinearColor::White)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToLinearColor, bytes, 16)
@@ -208,7 +208,7 @@ public:
 	}
 	static FRotator ToRotator(const TArray<uint8>& bytes)
 	{
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
 		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToRotator, bytes, 12, FRotator::ZeroRotator)
 #else
 		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToRotator, bytes, 12)

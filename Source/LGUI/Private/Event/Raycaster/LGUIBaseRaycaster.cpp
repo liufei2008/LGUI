@@ -77,9 +77,3 @@ void ULGUIBaseRaycaster::ActorLineTraceMulti(TArray<FHitResult>& OutHitArray, bo
 		});
 	}
 }
-
-bool ULGUIBaseRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult)
-{
-	UE_LOG(LGUI, Error, TEXT("[LGUI_UIRaycaster]Function Raycast must be implemented!"));
-	return false;
-}

@@ -4,8 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Components/PrimitiveComponent.h"
-#include "Raycaster/LGUIBaseRaycaster.h"
 #include "LGUIPointerEventData.generated.h"
+
+class ULGUIBaseRaycaster;
+
+/** event execute type */
+UENUM(BlueprintType)
+enum class ELGUIEventFireType :uint8
+{
+	/** event will call on trace target actor and all component of the actor */
+	TargetActorAndAllItsComponents,
+	/** event will call only on trace target */
+	OnlyTargetComponent,
+	/** event will call only on trace target actor */
+	OnlyTargetActor,
+};
 
 UENUM(BlueprintType)
 enum class EPointerEventType:uint8
@@ -51,7 +64,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		EPointerEventType eventType = EPointerEventType::Click;
 
-	bool selectedComponentEventFireOnAllOrOnlyTarget = false;
+	ELGUIEventFireType selectedComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToString (LGUIEventData)", CompactNodeTitle = ".", BlueprintAutocast), Category = "LGUI") virtual FString ToString()const 
 	{
@@ -82,6 +95,12 @@ public:
 	/** enterred component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* enterComponent = nullptr;
+	/** a stack list for store enterred component. the latest enter actor stay at num-1, first stay at 0 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+		TArray<USceneComponent*> enterComponentStack;
+	/** a collection that current pointer hoverring objects */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+		TArray<USceneComponent*> hoverComponentArray;
 	/** current world space hit point */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldPoint = FVector(0, 0, 0);
@@ -158,10 +177,10 @@ public:
 		USceneComponent* dragEnterComponent = nullptr;
 
 
-	bool enterComponentEventFireOnAllOrOnlyTarget = false;
-	bool pressComponentEventFireOnAllOrOnlyTarget = false;
-	bool dragComponentEventFireOnAllOrOnlyTarget = false;
-	bool dragEnterComponentEventFireOnAllOrOnlyTarget = false;
+	ELGUIEventFireType enterComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
+	ELGUIEventFireType pressComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
+	ELGUIEventFireType dragComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
+	ELGUIEventFireType dragEnterComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 
 	bool isUpFiredAtCurrentFrame = false;//is PointerUp event in current frame is called?
 	bool isExitFiredAtCurrentFrame = false;//is PointerExit event in current frame is called?

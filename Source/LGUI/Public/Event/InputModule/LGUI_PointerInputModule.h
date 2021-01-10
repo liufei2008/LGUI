@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
+#include "Event/LGUIPointerEventData.h"
 #include "LGUI_PointerInputModule.generated.h"
 
-class ULGUIPointerEventData;
 class ULGUIBaseRaycaster;
 
 UCLASS(Abstract)
@@ -20,11 +20,13 @@ protected:
 	struct FHitResultContainerStruct
 	{
 		FHitResult hitResult;
-		bool eventFireOnAll = false;
+		ELGUIEventFireType eventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 
 		FVector rayOrigin = FVector(0, 0, 0), rayDirection = FVector(1, 0, 0), rayEnd = FVector(1, 0, 0);
 
 		ULGUIBaseRaycaster* raycaster = nullptr;
+
+		TArray<USceneComponent*> hoverArray;
 	};
 
 	UPROPERTY(VisibleAnywhere, Category = LGUI)TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
@@ -32,6 +34,9 @@ protected:
 	void ProcessPointerEvent(ULGUIPointerEventData* pointerEventData, bool pointerHitAnything, const FHitResultContainerStruct& hitResult, bool& outIsHitSomething, FHitResult& outHitResult);
 	bool LineTrace(ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult);
 	TArray<FHitResultContainerStruct> multiHitResult;//temp array for hit result
+	void ProcessPointerEnterExit(ULGUIPointerEventData* pointerEventData, USceneComponent* oldObj, USceneComponent* newObj, ELGUIEventFireType enterFireType);
+	/** find a commont root actor of two actors. return nullptr if no common root */
+	AActor* FindCommonRoot(AActor* actorA, AActor* actorB);
 
 	void ClearEventByID(int pointerID);
 public:
