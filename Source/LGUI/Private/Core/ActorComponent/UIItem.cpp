@@ -690,7 +690,7 @@ bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 	bool sizeChanged = false;
 	const auto& parentWidget = cacheParentUIItem->widget;
 	float width = parentWidget.width - widget.stretchLeft - widget.stretchRight;
-	if (LGUIUtils::IsFloatNotEqual(widget.width, width))
+	if (FMath::Abs(widget.width - width) > KINDA_SMALL_NUMBER)
 	{
 		widget.width = width;
 		WidthChanged();
@@ -706,7 +706,7 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 	bool sizeChanged = false;
 	const auto& parentWidget = cacheParentUIItem->widget;
 	float height = parentWidget.height - widget.stretchTop - widget.stretchBottom;
-	if (LGUIUtils::IsFloatNotEqual(widget.height, height))
+	if (FMath::Abs(widget.height - height) > KINDA_SMALL_NUMBER)
 	{
 		widget.height = height;
 		HeightChanged();
@@ -829,7 +829,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	case UIAnchorHorizontalAlign::Stretch:
 	{
 		float width = parentWidget.width - widget.stretchLeft - widget.stretchRight;
-		if (LGUIUtils::IsFloatNotEqual(widget.width, width))
+		if (FMath::Abs(widget.width - width) > KINDA_SMALL_NUMBER)
 		{
 			widget.width = width;
 			WidthChanged();
@@ -867,7 +867,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	case UIAnchorVerticalAlign::Stretch:
 	{
 		float height = parentWidget.height - widget.stretchTop - widget.stretchBottom;
-		if (LGUIUtils::IsFloatNotEqual(widget.height, height))
+		if (FMath::Abs(widget.height - height) > KINDA_SMALL_NUMBER)
 		{
 			widget.height = height;
 			HeightChanged();
@@ -882,7 +882,7 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	}
 	break;
 	}
-	if (LGUIUtils::IsVectorNotEqual(this->GetRelativeLocation(), resultLocation))
+	if (!this->GetRelativeLocation().Equals(resultLocation))
 	{
 		GetRelativeLocation_DirectMutable() = resultLocation;
 		LGUIUpdateComponentToWorld();
@@ -956,7 +956,7 @@ void UUIItem::SetAlpha(float newAlpha) {
 }
 void UUIItem::SetWidth(float newWidth)
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.width, newWidth))
+	if (FMath::Abs(widget.width - newWidth) > KINDA_SMALL_NUMBER)
 	{
 		MarkLayoutDirty();
 		widget.width = newWidth;
@@ -971,7 +971,7 @@ void UUIItem::SetWidth(float newWidth)
 }
 void UUIItem::SetHeight(float newHeight)
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.height, newHeight))
+	if (FMath::Abs(widget.height - newHeight) > KINDA_SMALL_NUMBER)
 	{
 		MarkLayoutDirty();
 		widget.height = newHeight;
@@ -998,7 +998,7 @@ void UUIItem::PivotChanged()
 }
 void UUIItem::SetAnchorOffsetX(float newOffset) 
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetX, newOffset))
+	if (FMath::Abs(widget.anchorOffsetX - newOffset) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetX = newOffset;
 		if (cacheParentUIItem)
@@ -1014,7 +1014,7 @@ void UUIItem::SetAnchorOffsetX(float newOffset)
 }
 void UUIItem::SetAnchorOffsetY(float newOffset) 
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetY, newOffset))
+	if (FMath::Abs(widget.anchorOffsetY - newOffset) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetY = newOffset;
 		if (cacheParentUIItem)
@@ -1031,7 +1031,7 @@ void UUIItem::SetAnchorOffsetY(float newOffset)
 void UUIItem::SetAnchorOffset(FVector2D newOffset)
 {
 	bool anyChange = false;
-	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetX, newOffset.X))
+	if (FMath::Abs(widget.anchorOffsetX - newOffset.X) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetX = newOffset.X;
 		if (cacheParentUIItem)
@@ -1042,7 +1042,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 			widget.stretchRight = parentWidget.width - widget.width - widget.stretchLeft;
 		}
 	}
-	if (LGUIUtils::IsFloatNotEqual(widget.anchorOffsetY, newOffset.Y))
+	if (FMath::Abs(widget.anchorOffsetY - newOffset.Y) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetY = newOffset.Y;
 		if (cacheParentUIItem)
@@ -1061,7 +1061,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 }
 void UUIItem::SetUIRelativeLocation(FVector newLocation)
 {
-	if (LGUIUtils::IsVectorNotEqual(this->GetRelativeLocation(), newLocation))
+	if (!(this->GetRelativeLocation().Equals(newLocation)))
 	{
 		MarkLayoutDirty();
 		GetRelativeLocation_DirectMutable() = newLocation;
@@ -1161,7 +1161,7 @@ void UUIItem::SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, c
 		GetRelativeRotation_DirectMutable() = GetRelativeRotationCache().QuatToRotator(newRotation);
 		rotationChange = true;
 	}
-	if (LGUIUtils::IsVectorNotEqual(GetRelativeLocation(), newLocation))
+	if (!(this->GetRelativeLocation().Equals(newLocation)))
 	{
 		SetUIRelativeLocation(newLocation);
 	}
@@ -1207,7 +1207,7 @@ ULGUICanvasScaler* UUIItem::GetCanvasScaler()const
 }
 void UUIItem::SetStretchLeft(float newLeft)
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.stretchLeft, newLeft))
+	if (FMath::Abs(widget.stretchLeft - newLeft) > KINDA_SMALL_NUMBER)
 	{
 		MarkLayoutDirty();
 		widget.stretchLeft = newLeft;
@@ -1224,7 +1224,7 @@ void UUIItem::SetStretchLeft(float newLeft)
 }
 void UUIItem::SetStretchRight(float newRight)
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.stretchRight, newRight))
+	if (FMath::Abs(widget.stretchRight - newRight) > KINDA_SMALL_NUMBER)
 	{
 		MarkLayoutDirty();
 		widget.stretchRight = newRight;
@@ -1241,7 +1241,7 @@ void UUIItem::SetStretchRight(float newRight)
 }
 void UUIItem::SetHorizontalStretch(FVector2D newStretch)
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.stretchLeft, newStretch.X) || LGUIUtils::IsFloatNotEqual(widget.stretchRight, newStretch.Y))
+	if (FMath::Abs(widget.stretchLeft - newStretch.X) > KINDA_SMALL_NUMBER || FMath::Abs(widget.stretchRight - newStretch.Y) > KINDA_SMALL_NUMBER)
 	{
 		MarkLayoutDirty();
 		widget.stretchLeft = newStretch.X;
@@ -1259,7 +1259,7 @@ void UUIItem::SetHorizontalStretch(FVector2D newStretch)
 }
 void UUIItem::SetStretchTop(float newTop)
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.stretchTop, newTop))
+	if (FMath::Abs(widget.stretchTop - newTop) > KINDA_SMALL_NUMBER)
 	{
 		MarkLayoutDirty();
 		widget.stretchTop = newTop;
@@ -1276,7 +1276,7 @@ void UUIItem::SetStretchTop(float newTop)
 }
 void UUIItem::SetStretchBottom(float newBottom)
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.stretchBottom, newBottom))
+	if (FMath::Abs(widget.stretchBottom - newBottom) > KINDA_SMALL_NUMBER)
 	{
 		MarkLayoutDirty();
 		widget.stretchBottom = newBottom;
@@ -1293,7 +1293,7 @@ void UUIItem::SetStretchBottom(float newBottom)
 }
 void UUIItem::SetVerticalStretch(FVector2D newStretch)
 {
-	if (LGUIUtils::IsFloatNotEqual(widget.stretchBottom, newStretch.X) || LGUIUtils::IsFloatNotEqual(widget.stretchTop, newStretch.Y))
+	if (FMath::Abs(widget.stretchBottom - newStretch.X) > KINDA_SMALL_NUMBER || FMath::Abs(widget.stretchTop - newStretch.Y) > KINDA_SMALL_NUMBER)
 	{
 		MarkLayoutDirty();
 		widget.stretchBottom = newStretch.X;
@@ -1311,7 +1311,7 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 }
 
 void UUIItem::SetPivot(FVector2D pivot) {
-	if (LGUIUtils::IsVector2DNotEqual(widget.pivot, pivot))
+	if (!widget.pivot.Equals(pivot))
 	{
 		MarkLayoutDirty();
 		PivotChanged();

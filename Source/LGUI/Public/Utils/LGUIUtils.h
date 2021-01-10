@@ -123,12 +123,6 @@ public:
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
 
 	static UTexture2D* CreateTransientBlackTransparentTexture(int32 InSize, FName InDefaultName = NAME_None);
-	static bool IsFloatEqual(float a, float b);
-	static bool IsFloatNotEqual(float a, float b);
-	static bool IsVectorEqual(const FVector& a, const FVector& b);
-	static bool IsVectorNotEqual(const FVector& a, const FVector& b);
-	static bool IsVector2DNotEqual(const FVector2D& a, const FVector2D& b);
-	static bool IsQuaternionNotEqual(const FQuat& a, const FQuat& b);
 private:
 	static TSharedPtr<class UUIDrawcall> GetAvalibleDrawcall(TArray<TSharedPtr<class UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
 	template<class T>
