@@ -111,11 +111,11 @@ public:
 		FVector worldNormal = FVector(0, 0, 1);
 
 	/** current world space hit point delta when drag */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		FVector moveDelta = FVector(0, 0, 0);
+	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "This property is deprecated. Use GetWorldPointSpherical() to get cumulative point and minus prev one to get delta."))
+		FVector moveDelta_DEPRECATED = FVector(0, 0, 0);
 	/** current world space hit point cumulative delta when drag */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		FVector cumulativeMoveDelta = FVector(0, 0, 0);
+	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "This property is deprecated. Use GetCumulativeMoveDelta() instead."))
+		FVector cumulativeMoveDelta_DEPRECATED = FVector(0, 0, 0);
 
 	/** pointer scroll event */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
@@ -171,12 +171,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* dragComponent = nullptr;
 	/** drag event ray emitter's ray origin */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		FVector dragRayOrigin;
+	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "This property is deprecated. Use GetDragRayOrigin() function instead."))
+		FVector dragRayOrigin_DEPRECATED;
 	/** drag event ray emitter's ray direction */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		FVector dragRayDirection;
-
+	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "This property is deprecated. Use GetDragRayDirection() function instead."))
+		FVector dragRayDirection_DEPRECATED;
 
 	/** enter a component when drag anything */
 	UE_DEPRECATED(4.23, "dragEnterComponent not valid anymore, use isDragging and enterComponent to get drag and enter component.")
@@ -195,8 +194,21 @@ public:
 	EMouseButtonType prevPressTriggerType = EMouseButtonType::Left;
 
 	virtual FString ToString()const override;
-	/** use a line-plane intersection to get world point */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector GetWorldPointInPlane()const;
-	/** use a line-plane intersection to get world point, and convert to press component's local space */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector GetLocalPointInPlane()const;
+	/** Use a line-plane intersection to get world point. The plane is pressComponent's z-axis plane. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI") 
+		FVector GetWorldPointInPlane()const;
+	/** Use a line-plane intersection to get world point, and convert to pressComponent's local space. The plane is pressComponent's z-axis plane.  */
+	UFUNCTION(BlueprintCallable, Category = "LGUI") 
+		FVector GetLocalPointInPlane()const;
+	/** Use (ray direction) * (press line distance) + (ray origin) to calculated world point, so the result is a sphere with (ray origin) as center point. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FVector GetWorldPointSpherical()const;
+	/** Get ray origin of drag */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FVector GetDragRayOrigin()const;
+	/** Get ray direction of drag */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FVector GetDragRayDirection()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FVector GetCumulativeMoveDelta()const;
 };
