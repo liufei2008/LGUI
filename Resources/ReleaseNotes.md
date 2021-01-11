@@ -6,7 +6,7 @@ RichText may display "<" if end with symbol.
 #### NewFeature:
 Layout support animation when change item position.
 Add more blueprint functions in UIItem: GetRenderCanvas GetRootCanvas GetCanvasScaler IsScreenSpaceOverlayUI IsRenderTargetUI IsWorldSpaceUI.
-OnPointerEnter/Exit event now support: parent will not 
+OnPointerEnter/Exit event more reasonable: parent enter/exit will execute only once if pointer enter/exit any child.
 LGUIEventFireType add new enum: OnlyTargetActor.
 Play/Stop mark as UFUNCTION in LGUIPlayTween.
 #### Modify:

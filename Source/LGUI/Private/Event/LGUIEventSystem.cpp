@@ -628,7 +628,7 @@ void ULGUIEventSystem::CallOnPointerDrag(USceneComponent* component, ULGUIPointe
 }
 void ULGUIEventSystem::CallOnPointerEndDrag(USceneComponent* component, ULGUIPointerEventData* inEventData, ELGUIEventFireType eventFireType)
 {
-	if (!inEventData->isEndDragFiredAtCurrentFrame)
+	//if (!inEventData->isEndDragFiredAtCurrentFrame)
 	{
 		inEventData->isEndDragFiredAtCurrentFrame = true;
 		CALL_LGUIINTERFACE(component, inEventData, eventFireType, Drag, EndDrag, true);

@@ -20,7 +20,11 @@ FVector ULGUIPointerEventData::GetWorldPointInPlane()const
 	case EPointerEventType::BeginDrag:
 	case EPointerEventType::Drag:
 	case EPointerEventType::EndDrag:
+	{
+		auto dragRayOrigin = GetDragRayOrigin();
+		auto dragRayDirection = GetDragRayDirection();
 		return FMath::LinePlaneIntersection(dragRayOrigin, dragRayOrigin + dragRayDirection * pressRaycaster->rayLength, pressWorldPoint, pressWorldNormal);
+	}
 		break;
 	}
 
@@ -29,9 +33,71 @@ FVector ULGUIPointerEventData::GetLocalPointInPlane()const
 {
 	return pressWorldToLocalTransform.TransformPosition(GetWorldPointInPlane());
 }
+FVector ULGUIPointerEventData::GetWorldPointSpherical()const
+{
+	switch (eventType)
+	{
+	default:
+		return worldPoint;
+		break;
+	case EPointerEventType::Down:
+		return pressWorldPoint;
+		break;
+	case EPointerEventType::Up:
+	case EPointerEventType::Click:
+	case EPointerEventType::BeginDrag:
+	case EPointerEventType::Drag:
+	case EPointerEventType::EndDrag:
+		return pressRaycaster->rayEmitter->GetCurrentRayOrigin() + pressRaycaster->rayEmitter->GetCurrentRayDirection() * pressDistance;//calculated approximate hit position
+		break;
+	}
+}
+FVector ULGUIPointerEventData::GetDragRayOrigin()const
+{
+	switch (eventType)
+	{
+	default:
+		return worldPoint;
+		break;
+	case EPointerEventType::Down:
+		return pressWorldPoint;
+		break;
+	case EPointerEventType::Up:
+	case EPointerEventType::Click:
+	case EPointerEventType::BeginDrag:
+	case EPointerEventType::Drag:
+	case EPointerEventType::EndDrag:
+		return pressRaycaster->rayEmitter->GetCurrentRayOrigin();
+		break;
+	}
+}
+FVector ULGUIPointerEventData::GetDragRayDirection()const
+{
+	switch (eventType)
+	{
+	default:
+		return worldPoint;
+		break;
+	case EPointerEventType::Down:
+		return pressWorldPoint;
+		break;
+	case EPointerEventType::Up:
+	case EPointerEventType::Click:
+	case EPointerEventType::BeginDrag:
+	case EPointerEventType::Drag:
+	case EPointerEventType::EndDrag:
+		return pressRaycaster->rayEmitter->GetCurrentRayDirection();
+		break;
+	}
+}
+FVector ULGUIPointerEventData::GetCumulativeMoveDelta()const
+{
+	return GetWorldPointSpherical() - pressWorldPoint;
+}
 
 FString ULGUIPointerEventData::ToString()const
 {
+	//@todo: fill all properties
 	FString result;
 	if (IsValid(enterComponent))
 	{
@@ -69,20 +135,14 @@ FString ULGUIPointerEventData::ToString()const
 	{
 		result += TEXT("\n		dragComponent is null");
 	}
-	result += FString::Printf(TEXT("\n		dragRayOrigin:%s"), *(dragRayOrigin.ToString()));
-	result += FString::Printf(TEXT("\n		dragRayDirection:%s"), *(dragRayDirection.ToString()));
-
 	result += FString::Printf(TEXT("\n		worldPoint:%s"), *(worldPoint.ToString()));
-	result += FString::Printf(TEXT("\n		moveDelta:%s"), *(moveDelta.ToString()));
-	result += FString::Printf(TEXT("\n		cumulativeMoveDelta:%s"), *(cumulativeMoveDelta.ToString()));
+	result += FString::Printf(TEXT("\n		moveDelta:%s"), *(worldNormal.ToString()));
 
 	result += FString::Printf(TEXT("\n		scrollAxisValue:%f"), scrollAxisValue);
 
 	result += FString::Printf(TEXT("\n		rayOrigin:%s"), *(rayOrigin.ToString()));
 	result += FString::Printf(TEXT("\n		rayDirection:%s"), *(rayDirection.ToString()));
-
 	result += FString::Printf(TEXT("\n		raycaster:%s"), *(IsValid(raycaster) ? raycaster->GetName() : TEXT("null")));
-
 	switch (mouseButtonType)
 	{
 	case EMouseButtonType::Left:
@@ -95,6 +155,20 @@ FString ULGUIPointerEventData::ToString()const
 		result += TEXT("\n		mouseButtonType:Right");
 		break;
 	}
+
+	result += FString::Printf(TEXT("\n		pressComponent:%s"), *(IsValid(pressComponent) ? pressComponent->GetName() : TEXT("null")));
+	result += FString::Printf(TEXT("\n		pressWorldPoint:%s"), *(pressWorldPoint.ToString()));
+	result += FString::Printf(TEXT("\n		pressWorldNormal:%s"), *(pressWorldNormal.ToString()));
+	result += FString::Printf(TEXT("\n		pressDistance:%f"), pressDistance);
+	result += FString::Printf(TEXT("\n		pressRayOrigin:%s"), *(pressRayOrigin.ToString()));
+	result += FString::Printf(TEXT("\n		pressRayDirection:%s"), *(pressRayDirection.ToString()));
+	result += FString::Printf(TEXT("\n		pressRaycaster:%s"), *(IsValid(pressRaycaster) ? pressRaycaster->GetName() : TEXT("null")));
+	result += FString::Printf(TEXT("\n		clickTime:%f"), clickTime);
+	result += FString::Printf(TEXT("\n		pressTime:%f"), pressTime);
+
+	result += FString::Printf(TEXT("\n		isDragging:%s"), isDragging ? TEXT("true") : TEXT("false"));
+	result += FString::Printf(TEXT("\n		dragComponent:%s"), *(IsValid(dragComponent) ? dragComponent->GetName() : TEXT("null")));
+
 	switch (eventType)
 	{
 	case EPointerEventType::Click:
