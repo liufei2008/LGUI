@@ -214,13 +214,13 @@ FColor LGUIUtils::MultiplyColor(FColor A, FColor B)
 
 #if WITH_EDITOR
 //nodify some informations in editor
-void LGUIUtils::EditorNotification(FText NofityText)
+void LGUIUtils::EditorNotification(FText NofityText, float ExpireDuration)
 {
 	FNotificationInfo Info(NofityText);
 	Info.Image = FEditorStyle::GetBrush(TEXT("LevelEditor.RecompileGameCode"));
 	Info.FadeInDuration = 0.1f;
 	Info.FadeOutDuration = 0.5f;
-	Info.ExpireDuration = 5.0f;
+	Info.ExpireDuration = ExpireDuration;
 	Info.bUseThrobber = false;
 	Info.bUseSuccessFailIcons = true;
 	Info.bUseLargeFont = true;

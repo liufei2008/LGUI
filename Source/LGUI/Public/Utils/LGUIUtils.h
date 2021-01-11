@@ -118,7 +118,7 @@ public:
 	static FColor MultiplyColor(FColor A, FColor B);
 #if WITH_EDITOR
 	//nodify some informations in editor
-	static void EditorNotification(FText NofityText);
+	static void EditorNotification(FText NofityText, float ExpireDuration = 5.0f);
 #endif
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
 

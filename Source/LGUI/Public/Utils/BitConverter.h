@@ -11,7 +11,7 @@ if(bytes.Num() < byteCountNeeded)\
 {\
 	auto ErrorMsg = FString::Printf(ErrorMsgFormat, TEXT(#func), bytes.Num());\
 	UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);\
-	LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));\
+	LGUIUtils::EditorNotification(FText::FromString(ErrorMsg), 10.0f);\
 	return returnValueIfError; \
 }\
 
