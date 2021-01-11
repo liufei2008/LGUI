@@ -49,5 +49,5 @@ bool ULGUI_SceneComponentRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPo
 	{
 		calculatedThreshold *= InPointerEventData->pressDistance;
 	}
-	return InPointerEventData->cumulativeMoveDelta.SizeSquared() > calculatedThreshold;
+	return (InPointerEventData->GetWorldPointSpherical() - InPointerEventData->pressWorldPoint).SizeSquared() > calculatedThreshold;
 }
