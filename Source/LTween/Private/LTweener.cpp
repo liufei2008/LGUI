@@ -222,6 +222,7 @@ void ULTweener::ForceComplete()
 
 float ULTweener::CurveFloat(float c, float b, float t, float d)
 {
+	if (d < KINDA_SMALL_NUMBER)return c + b;
 	if (curveFloat != nullptr)
 	{
 		return curveFloat->GetFloatValue(t / d) * c + b;
