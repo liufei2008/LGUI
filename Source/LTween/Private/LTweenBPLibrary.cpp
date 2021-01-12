@@ -143,7 +143,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionXTo(USceneComponent* target, float end
 			location.X = value;
 			target->SetRelativeLocation(location);
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalPositionYTo(USceneComponent* target, float endValue, float duration, float delay, LTweenEase ease)
 {
@@ -165,7 +165,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionYTo(USceneComponent* target, float end
 			location.Y = value;
 			target->SetRelativeLocation(location);
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalPositionZTo(USceneComponent* target, float endValue, float duration, float delay, LTweenEase ease)
 {
@@ -187,7 +187,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo(USceneComponent* target, float end
 			location.Z = value;
 			target->SetRelativeLocation(location);
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalPositionXTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
 {
@@ -209,7 +209,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionXTo_Sweep(USceneComponent* target, flo
 			location.X = value;
 			target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalPositionYTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
 {
@@ -231,7 +231,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionYTo_Sweep(USceneComponent* target, flo
 			location.Y = value;
 			target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::LocalPositionZTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
 {
@@ -253,7 +253,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionZTo_Sweep(USceneComponent* target, flo
 			location.Z = value;
 			target->SetRelativeLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
 
@@ -278,7 +278,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionXTo(USceneComponent* target, float end
 			location.X = value;
 			target->SetWorldLocation(location);
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionYTo(USceneComponent* target, float endValue, float duration, float delay, LTweenEase ease)
 {
@@ -300,7 +300,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionYTo(USceneComponent* target, float end
 			location.Y = value;
 			target->SetWorldLocation(location);
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionZTo(USceneComponent* target, float endValue, float duration, float delay, LTweenEase ease)
 {
@@ -322,7 +322,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionZTo(USceneComponent* target, float end
 			location.Z = value;
 			target->SetWorldLocation(location);
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionXTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
 {
@@ -344,7 +344,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionXTo_Sweep(USceneComponent* target, flo
 			location.X = value;
 			target->SetWorldLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionYTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
 {
@@ -366,7 +366,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionYTo_Sweep(USceneComponent* target, flo
 			location.Y = value;
 			target->SetWorldLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionZTo_Sweep(USceneComponent* target, float endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
 {
@@ -388,7 +388,7 @@ ULTweener* ULTweenBPLibrary::WorldPositionZTo_Sweep(USceneComponent* target, flo
 			location.Z = value;
 			target->SetWorldLocation(location, teleport, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
 		}
-	}), endValue, duration)->SetEase(ease);
+	}), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 #pragma endregion PositionXYZ
 
