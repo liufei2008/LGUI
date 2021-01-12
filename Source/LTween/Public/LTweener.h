@@ -291,20 +291,24 @@ public:
 	*/
 	static float Linear(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		return c*t / d + b;
 	}
 	static float InQuad(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d;
 		return c*t*t + b;
 	}
 	static float OutQuad(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d;
 		return -c*t*(t - 2) + b;
 	}
 	static float InOutQuad(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d * 0.5f;
 		if (t < 1)
 		{
@@ -318,16 +322,19 @@ public:
 	}
 	static float InCubic(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d;
 		return c*t*t*t + b;
 	}
 	static float OutCubic(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t = t / d - 1.0f;
 		return c*(t*t*t + 1) + b;
 	}
 	static float InOutCubic(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d * 0.5f;
 		if (t < 1)
 		{
@@ -341,16 +348,19 @@ public:
 	}
 	static float InQuart(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d;
 		return c*t*t*t*t + b;
 	}
 	static float OutQuart(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t = t / d - 1.0f;
 		return -c * (t*t*t*t - 1) + b;
 	}
 	static float InOutQuart(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d * 0.5f;
 		if (t < 1)
 		{
@@ -364,26 +374,32 @@ public:
 	}
 	static float InSine(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		return -c * FMath::Cos(t / d * HALF_PI) + c + b;
 	}
 	static float OutSine(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		return c * FMath::Sin(t / d * HALF_PI) + b;
 	}
 	static float InOutSine(float c, float b, float t, float d)
 	{
-		return -c * 0.5f * (FMath::Cos(PI*t / d) - 1) + b;
+		if (d < KINDA_SMALL_NUMBER)return c + b;
+		return -c * 0.5f * (FMath::Cos(PI * t / d) - 1) + b;
 	}
 	static float InExpo(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		return (t == 0.0f) ? b : c * FMath::Pow(2.0f, 10.0f * (t / d - 1.0f)) + b - c * 0.001f;
 	}
 	static float OutExpo(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		return (t == d) ? b + c : c * 1.001f * (-FMath::Pow(2.0f, -10.0f * t / d) + 1.0f) + b;
 	}
 	static float InOutExpo(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		if (t == 0) return b;
 		if (t == d) return b + c;
 		t /= d * 0.5f;
@@ -398,16 +414,19 @@ public:
 	}
 	static float InCirc(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d;
 		return -c * (FMath::Sqrt(1.0f - t*t) - 1.0f) + b;
 	}
 	static float OutCirc(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t = t / d - 1.0f;
 		return c * FMath::Sqrt(1.0f - t*t) + b;
 	}
 	static float InOutCirc(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d * 0.5f;
 		if (t < 1)
 		{
@@ -421,6 +440,7 @@ public:
 	}
 	static float InElastic(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		if (t == 0) return b;
 		t /= d;
 		if (t == 1) return b + c;
@@ -432,6 +452,7 @@ public:
 	}
 	static float OutElastic(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		if (t == 0) return b;
 		t /= d;
 		if (t == 1) return b + c;
@@ -442,6 +463,7 @@ public:
 	}
 	static float InOutElastic(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		if (t == 0) return b;
 		t /= d;
 		if (t * 0.5f == 2) return b + c;
@@ -461,24 +483,28 @@ public:
 	}
 	static float InBack(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		static float s = 1.70158f;
 		t /= d;
 		return c*t*t*((s + 1)*t - s) + b;
 	}
 	static float OutBack(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		static float s = 1.70158f;
 		t = t / d - 1;
 		return c*(t*t*((s + 1)*t + s) + 1) + b;
 	}
 	static float InOutBack(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		if (t < d * 0.5f) return InBack(t * 2, 0, c, d) * .5f + b;
 		else return OutBack(t * 2 - d, 0, c, d) * .5f + c * .5f + b;
 	}
 
 	static float OutBounce(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		t /= d;
 		if (t < (1.0f / 2.75f)) {
 			return c*(7.5625f*t*t) + b;
@@ -498,10 +524,12 @@ public:
 	}
 	static float InBounce(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		return c - OutBounce(d - t, 0, c, d) + b;
 	}
 	static float InOutBounce(float c, float b, float t, float d)
 	{
+		if (d < KINDA_SMALL_NUMBER)return c + b;
 		if (t < d * 0.5f) return InBounce(t * 2, 0, c, d) * .5f + b;
 		else return OutBounce(t * 2 - d, 0, c, d) * .5f + c*.5f + b;
 	}
