@@ -21,13 +21,13 @@ class LGUI_API ULGUIBPLibrary : public UBlueprintFunctionLibrary
 public:
 #pragma region QuickEntry
 	/** Set alpha if root component is a UIItem component */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetAlpha instead"))
 		static void SetUIAlpha(AActor* Target, float InAlpha);
 	/** Set UIActive if root component is a UIItem component */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetUIActive instead"))
 		static void SetUIActive(AActor* Target, bool Acitve);
 	/** Set HierarchyIndex if root component is a UIItem component */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetHierarchyIndex instead"))
 		static void SetUIHierarchyIndex(AActor* Target, int32 index);
 #pragma endregion
 	/** Delete actor and all it's children actors */
