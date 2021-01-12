@@ -12,6 +12,7 @@
 #include "LGUIEditorStyle.h"
 #include "SceneOutliner/LGUISceneOutlinerButton.h"
 #include "Window/LGUIEditorTools.h"
+#include "SortHelper.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
@@ -199,6 +200,11 @@ namespace LGUISceneOutliner
 
 		OutItems.Sort([this, SortMode](const SceneOutliner::FTreeItemPtr& A, const SceneOutliner::FTreeItemPtr& B)
 		{
+			auto CommonCompare = [&] {
+				auto AStr = SceneOutliner::FNumericStringWrapper(A->GetDisplayString());
+				auto BStr = SceneOutliner::FNumericStringWrapper(B->GetDisplayString());
+				return AStr > BStr;
+			};
 			bool result = true;
 			AActor* ActorA = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(A));
 			AActor* ActorB = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(B));
@@ -223,13 +229,24 @@ namespace LGUISceneOutliner
 					}
 					else
 					{
-						result = ActorA->GetActorLabel().Compare(ActorB->GetActorLabel()) > 0;
+						if (A->GetTypeSortPriority() != B->GetTypeSortPriority())
+						{
+							result = A->GetTypeSortPriority() > B->GetTypeSortPriority();
+						}
+						else
+						{
+							result = CommonCompare();
+						}
 					}
 				}
 				else
 				{
-					result = ActorA->GetActorLabel().Compare(ActorB->GetActorLabel()) > 0;
+					result = CommonCompare();
 				}
+			}
+			else
+			{
+				result = CommonCompare();
 			}
 			return SortMode == EColumnSortMode::Ascending ? !result : result;
 		});
