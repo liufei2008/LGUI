@@ -326,6 +326,10 @@ void ULGUISpriteData::InitSpriteData()
 		if (packingTag.IsNone())
 		{
 			atlasTexture = spriteTexture;
+			float atlasTextureWidthInv = 1.0f / atlasTexture->GetSurfaceWidth();
+			float atlasTextureHeightInv = 1.0f / atlasTexture->GetSurfaceHeight();
+			//spriteInfo.ApplyUV(0, 0, atlasTexture->GetSurfaceWidth(), atlasTexture->GetSurfaceHeight(), atlasTextureWidthInv, atlasTextureHeightInv);
+			spriteInfo.ApplyBorderUV(atlasTextureWidthInv, atlasTextureHeightInv);
 		}
 		else
 		{
@@ -459,15 +463,21 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* WorldContextObje
 
 void ULGUISpriteData::AddUISprite(UUISpriteBase* InUISprite)
 {
-	InitSpriteData();
-	auto& spriteArray = ULGUIAtlasManager::FindOrAdd(packingTag)->renderSpriteArray;
-	spriteArray.AddUnique(InUISprite);
+	if (!packingTag.IsNone())
+	{
+		InitSpriteData();
+		auto& spriteArray = ULGUIAtlasManager::FindOrAdd(packingTag)->renderSpriteArray;
+		spriteArray.AddUnique(InUISprite);
+	}
 }
 void ULGUISpriteData::RemoveUISprite(UUISpriteBase* InUISprite)
 {
-	if (auto spriteData = ULGUIAtlasManager::Find(packingTag))
+	if (!packingTag.IsNone())
 	{
-		spriteData->renderSpriteArray.RemoveSingle(InUISprite);
+		if (auto spriteData = ULGUIAtlasManager::Find(packingTag))
+		{
+			spriteData->renderSpriteArray.RemoveSingle(InUISprite);
+		}
 	}
 }
 

@@ -435,10 +435,6 @@ void ULGUIAtlasManager::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-const TMap<FName, FLGUIAtlasData>& ULGUIAtlasManager::GetAtlasMap()
-{
-	return atlasMap;
-}
 FLGUIAtlasData* ULGUIAtlasManager::FindOrAdd(const FName& packingTag)
 {
 	if (InitCheck())

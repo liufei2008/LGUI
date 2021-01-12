@@ -60,22 +60,22 @@ bool UUIInteractionGroup::CheckUIItem()
 	return false;
 }
 
-void UUIInteractionGroup::SetInteractable(const bool& InBool)
+void UUIInteractionGroup::SetInteractable(bool value)
 {
-	if (InBool != bInteractable)
+	if (value != bInteractable)
 	{
-		bInteractable = InBool;
+		bInteractable = value;
 		if (CheckUIItem())
 		{
 			CacheUIItem->SetInteractionGroupStateChange(bInteractable, bIgnoreParentGroup);
 		}
 	}
 }
-void UUIInteractionGroup::SetIgnoreParentGroup(const bool& InBool)
+void UUIInteractionGroup::SetIgnoreParentGroup(bool value)
 {
-	if (InBool != bIgnoreParentGroup)
+	if (value != bIgnoreParentGroup)
 	{
-		bIgnoreParentGroup = InBool;
+		bIgnoreParentGroup = value;
 		if (CheckUIItem())
 		{
 			CacheUIItem->SetInteractionGroupStateChange(bInteractable, bIgnoreParentGroup);
