@@ -48,7 +48,7 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 				bool isGroupAllowInteraction = RootUIComp->IsGroupAllowInteraction();
 				if (Transition == UISelectableTransitionType::SpriteSwap)
 				{
-					if (TargetUISpriteComp != nullptr && NormalSprite != nullptr)
+					if (IsValid(TargetUISpriteComp) && IsValid(NormalSprite))
 					{
 						TargetUISpriteComp->SetSprite(isGroupAllowInteraction ? NormalSprite : DisabledSprite, false);
 					}
@@ -73,14 +73,14 @@ void UUISelectableComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 			? (IsPointerInsideThis ? EUISelectableSelectionState::Highlighted : EUISelectableSelectionState::Normal)
 			: EUISelectableSelectionState::Disabled;
 #if WITH_EDITOR
-		if (!this->GetWorld()->IsGameWorld())//is editor, just set properties immediately
+		if (this->GetWorld()->IsGameWorld())//is editor, just set properties immediately
 		{
-			ApplySelectionState(true);
+			ApplySelectionState(false);
 		}
 		else
 #endif
 		{
-			ApplySelectionState(false);
+			ApplySelectionState(true);
 		}
 	}
 }
@@ -127,7 +127,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			if (this->GetWorld()->IsGameWorld())
 #endif
 			{
-				if (TransitionComp == nullptr)
+				if (!IsValid(TransitionComp))
 				{
 					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
@@ -162,7 +162,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		{
 			if (auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionTargetUIItemComp))
 			{
-				if (HighlightedSprite != nullptr)
+				if (IsValid(HighlightedSprite))
 				{
 					TargetUISpriteComp->SetSprite(HighlightedSprite, false);
 				}
@@ -171,13 +171,18 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		break;
 		case UISelectableTransitionType::TransitionComponent:
 		{
-			if (TransitionComp == nullptr)
+#if WITH_EDITOR
+			if (this->GetWorld()->IsGameWorld())
+#endif
 			{
-				TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
-			}
-			if (TransitionComp)
-			{
-				TransitionComp->OnHighlighted(immediateSet);
+				if (!IsValid(TransitionComp))
+				{
+					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+				}
+				if (TransitionComp)
+				{
+					TransitionComp->OnHighlighted(immediateSet);
+				}
 			}
 		}
 		break;
@@ -205,7 +210,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		{
 			if (auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionTargetUIItemComp))
 			{
-				if (PressedSprite != nullptr)
+				if (IsValid(PressedSprite))
 				{
 					TargetUISpriteComp->SetSprite(PressedSprite, false);
 				}
@@ -214,13 +219,18 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		break;
 		case UISelectableTransitionType::TransitionComponent:
 		{
-			if (TransitionComp == nullptr)
+#if WITH_EDITOR
+			if (this->GetWorld()->IsGameWorld())
+#endif
 			{
-				TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
-			}
-			if (TransitionComp)
-			{
-				TransitionComp->OnPressed(immediateSet);
+				if (!IsValid(TransitionComp))
+				{
+					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+				}
+				if (TransitionComp)
+				{
+					TransitionComp->OnPressed(immediateSet);
+				}
 			}
 		}
 		break;
@@ -248,7 +258,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		{
 			if (auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionTargetUIItemComp))
 			{
-				if (DisabledSprite != nullptr)
+				if (IsValid(DisabledSprite))
 				{
 					TargetUISpriteComp->SetSprite(DisabledSprite, false);
 				}
@@ -257,13 +267,18 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		break;
 		case UISelectableTransitionType::TransitionComponent:
 		{
-			if (TransitionComp == nullptr)
+#if WITH_EDITOR
+			if (this->GetWorld()->IsGameWorld())
+#endif
 			{
-				TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
-			}
-			if (TransitionComp)
-			{
-				TransitionComp->OnDisabled(immediateSet);
+				if (!IsValid(TransitionComp))
+				{
+					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+				}
+				if (TransitionComp)
+				{
+					TransitionComp->OnDisabled(immediateSet);
+				}
 			}
 		}
 		break;

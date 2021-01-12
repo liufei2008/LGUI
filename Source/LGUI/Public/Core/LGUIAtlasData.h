@@ -60,7 +60,7 @@ protected:
 	bool isStaticAtlasPacked = false;
 public:
 	static bool InitCheck();
-	const TMap<FName, FLGUIAtlasData>& GetAtlasMap();
+	const TMap<FName, FLGUIAtlasData>& GetAtlasMap() { return atlasMap; }
 	static FLGUIAtlasData* FindOrAdd(const FName& packingTag);
 	static FLGUIAtlasData* Find(const FName& packingTag);
 	static void ResetAtlasMap();
