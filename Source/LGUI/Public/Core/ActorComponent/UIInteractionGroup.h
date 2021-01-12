@@ -31,9 +31,9 @@ protected:
 		bool bIgnoreParentGroup = false;
 	UPROPERTY(Transient) UUIItem* CacheUIItem = nullptr;
 public:
-	UFUNCTION(Category = LGUI) bool GetInteractable() const { return bInteractable; }
-	UFUNCTION(Category = LGUI) bool GetIgnoreParentGroup() const { return bIgnoreParentGroup; }
+	UFUNCTION(BlueprintCallable, Category = LGUI) bool GetInteractable() const { return bInteractable; }
+	UFUNCTION(BlueprintCallable, Category = LGUI) bool GetIgnoreParentGroup() const { return bIgnoreParentGroup; }
 
-	UFUNCTION(Category = LGUI) void SetInteractable(const bool& InBool);
-	UFUNCTION(Category = LGUI) void SetIgnoreParentGroup(const bool& InBool);
+	UFUNCTION(BlueprintCallable, Category = LGUI) void SetInteractable(bool value);
+	UFUNCTION(BlueprintCallable, Category = LGUI) void SetIgnoreParentGroup(bool value);
 };
