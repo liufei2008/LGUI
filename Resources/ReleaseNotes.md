@@ -1,8 +1,4 @@
-## 2.10.2
-#### Fix:
-Select canvas on SceneOutliner may change selection.
-UIItem depth info wrong.
-RichText may display "<" if end with symbol.
+## 2.11.0
 #### NewFeature:
 Layout support animation when change item position.
 Add more blueprint functions in UIItem: GetRenderCanvas GetRootCanvas GetCanvasScaler IsScreenSpaceOverlayUI IsRenderTargetUI IsWorldSpaceUI.
@@ -11,6 +7,17 @@ LGUIEventFireType add new enum: OnlyTargetActor.
 Play/Stop mark as UFUNCTION in LGUIPlayTween.
 #### Modify:
 Remove OnPointerDragEnter/Exit interface because it is not needed, we can instead use isDragging and enterComponent from LGUIPointerEventData.
+Rename DeleteActor to DestroyActorWithHierarchy.
+Simplify LGUIPointerInputModule's event handle.
+#### Fix:
+Select canvas on SceneOutliner may change selection.
+UIItem depth info wrong.
+RichText may display "<" if end with symbol.
+Fix sort issue when use LGUI hierarchy sort.
+Fix bug: delay not working in some LTweenBPLibrary.
+Fix bug: If sprite have none packingTag, then uv get wrong.
+Fix bug: if LTween's duration = 0, then nothing happen.
+
 ## 2.10.1
 #### Fix:
 Fix bug: UIEventTrigger parameter become (Actor) type.
