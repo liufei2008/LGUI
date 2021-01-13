@@ -21,18 +21,24 @@ class LGUI_API ULGUIBPLibrary : public UBlueprintFunctionLibrary
 public:
 #pragma region QuickEntry
 	/** Set alpha if root component is a UIItem component */
+	UE_DEPRECATED(4.23, "This node is not valid any more. Use UIItem's SetAlpha instead")
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetAlpha instead"))
 		static void SetUIAlpha(AActor* Target, float InAlpha);
 	/** Set UIActive if root component is a UIItem component */
+	UE_DEPRECATED(4.23, "This node is not valid any more. Use UIItem's SetUIActive instead")
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetUIActive instead"))
 		static void SetUIActive(AActor* Target, bool Acitve);
 	/** Set HierarchyIndex if root component is a UIItem component */
+	UE_DEPRECATED(4.23, "This node is not valid any more. Use UIItem's SetHierarchyIndex instead")
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetHierarchyIndex instead"))
 		static void SetUIHierarchyIndex(AActor* Target, int32 index);
 #pragma endregion
 	/** Delete actor and all it's children actors */
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "WithHierarchy", UnsafeDuringActorConstruction = "true"), Category = LGUI)
+	UE_DEPRECATED(4.23, "This node is not valid any more. Use DestroyActorWithHierarchy instead")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "WithHierarchy", UnsafeDuringActorConstruction = "true", DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use DestroyActorWithHierarchy instead"), Category = LGUI)
 		static void DeleteActor(AActor* Target, bool WithHierarchy = true);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "WithHierarchy", UnsafeDuringActorConstruction = "true"), Category = LGUI)
+		static void DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy = true);
 
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SetRelativeTransformToIdentity", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject"), Category = LGUI)
 		static AActor* LoadPrefab(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, bool SetRelativeTransformToIdentity = true);

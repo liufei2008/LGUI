@@ -11,9 +11,13 @@
 
 void LGUIUtils::DeleteActor(AActor* Target, bool WithHierarchy)
 {
+	DestroyActorWithHierarchy(Target, WithHierarchy);
+}
+void LGUIUtils::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
+{
 	if (!Target->IsValidLowLevelFast())
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIUtils::DeleteActor]Try to delete not valid actor"));
+		UE_LOG(LGUI, Error, TEXT("[LGUIUtils::DestroyActorWithHierarchy]Try to delete not valid actor"));
 		return;
 	}
 	if (WithHierarchy)

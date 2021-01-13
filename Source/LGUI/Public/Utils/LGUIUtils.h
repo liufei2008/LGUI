@@ -17,8 +17,11 @@ class ULGUICanvas;
 class LGUI_API LGUIUtils
 {
 public:	
-	//Delete actor and all it's hierarchy children
+	/** Destroy actor and all it's hierarchy children */
+	UE_DEPRECATED(4.23, "This node is not valid any more. Use DestroyActorWithHierarchy instead")
 	static void DeleteActor(AActor* Target, bool WithHierarchy = true);
+	/** Destroy actor and all it's hierarchy children */
+	static void DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy = true);
 	//Find first component of type T from InActor, if not found go up hierarchy until found
 	template<class T>
 	static T* GetComponentInParent(AActor* InActor, bool IncludeUnregisteredComponent = true)
