@@ -64,7 +64,7 @@ private:
 	void CallUIComponentsChildAttachmentChanged(UUIItem* child, bool attachOrDettach);
 	void CallUIComponentsInteractionStateChanged();
 	void CallUIComponentsChildHierarchyIndexChanged(UUIItem* child);
-protected://these funcions are same as UIBehaviour, for easier to use
+protected://these funcions are same as UIBehaviour's, for easier use
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive) { }
 	/** 
