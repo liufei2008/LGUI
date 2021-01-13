@@ -69,7 +69,7 @@ void FLGUIEditorModule::StartupModule()
 			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })
 		);
 		PluginCommands->MapAction(
-			editorCommand.DeleteActor,
+			editorCommand.DestroyActor,
 			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl),
 			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })
 		);
@@ -436,7 +436,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 		MenuBuilder.AddMenuEntry(commandList.CopyActor);
 		MenuBuilder.AddMenuEntry(commandList.PasteActor);
 		MenuBuilder.AddMenuEntry(commandList.DuplicateActor);
-		MenuBuilder.AddMenuEntry(commandList.DeleteActor);
+		MenuBuilder.AddMenuEntry(commandList.DestroyActor);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("ChangeCollisionChannelSubMenu", "Change Trace Channel"),
 			LOCTEXT("ChangeCollisionChannelSubMenu_Tooltip", "Change a UI element's trace channel to selected channel, with hierarchy"),

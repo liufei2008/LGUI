@@ -376,7 +376,7 @@ void ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl()
 		return;
 	}
 	auto rootActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
-	GEditor->BeginTransaction(LOCTEXT("DeleteActor", "LGUI Delete Actor"));
+	GEditor->BeginTransaction(LOCTEXT("DestroyActor", "LGUI Destroy Actor"));
 	GEditor->GetSelectedActors()->DeselectAll();
 	for (auto item : rootActorList)
 	{
@@ -395,10 +395,10 @@ void ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl()
 				}
 			}
 		}
-		ULGUIBPLibrary::DeleteActor(item);
+		ULGUIBPLibrary::DestroyActorWithHierarchy(item);
 		if (shouldDeletePrefab)
 		{
-			ULGUIBPLibrary::DeleteActor(prefabActor, false);
+			ULGUIBPLibrary::DestroyActorWithHierarchy(prefabActor, false);
 		}
 	}
 	GEditor->EndTransaction();

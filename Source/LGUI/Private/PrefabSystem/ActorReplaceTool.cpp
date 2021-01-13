@@ -299,7 +299,7 @@ AActor* ActorReplaceTool::ReplaceActorClass(AActor* TargetActor, TSubclassOf<AAc
 		child->AttachToActor(resultActor, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 	resultActor->AttachToComponent(OrignParent, FAttachmentTransformRules::KeepRelativeTransform);
-	LGUIUtils::DeleteActor(TargetActor);
+	LGUIUtils::DestroyActorWithHierarchy(TargetActor);
 
 	return resultActor;
 }

@@ -452,7 +452,7 @@ ALGUIManagerActor::ALGUIManagerActor()
 		{
 			if (IsValid(keyValue.Value))
 			{
-				LGUIUtils::DeleteActor(keyValue.Value);//delete any instance before begin play
+				LGUIUtils::DestroyActorWithHierarchy(keyValue.Value);//delete any instance before begin play
 			}
 		}
 	});
