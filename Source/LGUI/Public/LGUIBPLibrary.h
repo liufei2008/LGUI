@@ -276,6 +276,8 @@ public:
 #pragma region LTween
 
 #pragma region UIItem
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "UI Local Position To"), Category = "LTween-LGUI")
+		static ULTweener* UILocalPositionTo(UUIItem* target, FVector endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTween-LGUI")
 		static ULTweener* WidthTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTween-LGUI")

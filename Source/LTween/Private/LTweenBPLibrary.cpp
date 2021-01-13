@@ -403,15 +403,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo(USceneComponent* target, FVector en
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenPositionGetterFunction::CreateLambda([target]
-	{
-		if (!IsValid(target))
-		{
-			UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::LocalPositionZTo_Sweep]PositionGetterFunction target is not valid:%s"), *(target->GetPathName()));
-			return FVector();
-		}
-		return target->GetRelativeLocation();
-	}), FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration)
+	return ALTweenActor::To(target, FLTweenPositionGetterFunction::CreateUObject(target, &USceneComponent::GetRelativeLocation), FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionTo(USceneComponent* target, FVector endValue, float duration, float delay, LTweenEase ease)
@@ -432,16 +424,7 @@ ULTweener* ULTweenBPLibrary::LocalPositionTo_Sweep(USceneComponent* target, FVec
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalPositionTo_Sweep] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenVectorGetterFunction::CreateLambda([target]
-	{
-		if (!IsValid(target))
-		{
-			UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::LocalPositionTo_Sweep]PositionGetterFunction target is not valid:%s"), *(target->GetPathName()));
-			return FVector();
-		}
-		return target->GetRelativeLocation();
-	}),
-		FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
+	return ALTweenActor::To(target, FLTweenVectorGetterFunction::CreateUObject(target, &USceneComponent::GetRelativeLocation), FLTweenPositionSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeLocation), endValue, duration, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport))
 		->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULTweenBPLibrary::WorldPositionTo_Sweep(USceneComponent* target, FVector endValue, FHitResult& sweepHitResult, bool sweep, bool teleport, float duration, float delay, LTweenEase ease)
@@ -466,15 +449,7 @@ ULTweener* ULTweenBPLibrary::LocalScaleTo(USceneComponent* target, FVector endVa
 		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::LocalScaleTo] target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenVectorGetterFunction::CreateLambda([target]
-	{
-		if (!IsValid(target))
-		{
-			UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::LocalScaleTo]VectorGetterFunction target is not valid:%s"), *(target->GetPathName()));
-			return FVector();
-		}
-		return target->GetRelativeScale3D(); 
-	}), FLTweenVectorSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeScale3D), endValue, duration)
+	return ALTweenActor::To(target, FLTweenVectorGetterFunction::CreateUObject(target, &USceneComponent::GetRelativeScale3D), FLTweenVectorSetterFunction::CreateUObject(target, &USceneComponent::SetRelativeScale3D), endValue, duration)
 		->SetEase(ease)->SetDelay(delay);
 }
 
@@ -557,13 +532,8 @@ ULTweener* ULTweenBPLibrary::LocalRotatorTo(USceneComponent* target, FRotator en
 	}
 	else
 	{
-		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateLambda([target]
-		{
-			if (IsValid(target))
-				return target->GetRelativeRotation();
-			else
-				return FRotator();
-		}), FLTweenRotatorSetterFunction::CreateLambda([target] (FRotator value)
+		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateUObject(target, &USceneComponent::GetRelativeRotation),
+		FLTweenRotatorSetterFunction::CreateLambda([target] (FRotator value)
 		{
 			if (IsValid(target))
 				target->SetRelativeRotation(value);
@@ -583,13 +553,8 @@ ULTweener* ULTweenBPLibrary::LocalRotatorTo_Sweep(USceneComponent* target, FRota
 	}
 	else
 	{
-		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateLambda([target]
-		{
-			if (IsValid(target))
-				return target->GetRelativeRotation();
-			else
-				return FRotator();
-		}), FLTweenRotatorSetterFunction::CreateLambda([target, &sweepHitResult, sweep, teleport](FRotator value)
+		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateUObject(target, &USceneComponent::GetRelativeRotation), 
+		FLTweenRotatorSetterFunction::CreateLambda([target, &sweepHitResult, sweep, teleport](FRotator value)
 		{
 			if(IsValid(target))
 				target->SetRelativeRotation(value, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
@@ -676,13 +641,8 @@ ULTweener* ULTweenBPLibrary::WorldRotatorTo(USceneComponent* target, FRotator en
 	}
 	else
 	{
-		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateLambda([target]
-		{
-			if (IsValid(target))
-				return target->GetComponentRotation();
-			else
-				return FRotator();
-		}), FLTweenRotatorSetterFunction::CreateLambda([target](FRotator value)
+		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateUObject(target, &USceneComponent::GetComponentRotation), 
+		FLTweenRotatorSetterFunction::CreateLambda([target](FRotator value)
 		{
 			if (IsValid(target))
 				target->SetWorldRotation(value);
@@ -702,13 +662,8 @@ ULTweener* ULTweenBPLibrary::WorldRotatorTo_Sweep(USceneComponent* target, FRota
 	}
 	else
 	{
-		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateLambda([target]
-		{
-			if (IsValid(target))
-				return target->GetComponentRotation();
-			else
-				return FRotator();
-		}), FLTweenRotatorSetterFunction::CreateLambda([target, &sweepHitResult, sweep, teleport](FRotator value)
+		return ALTweenActor::To(target, FLTweenRotatorGetterFunction::CreateUObject(target, &USceneComponent::GetComponentRotation),
+		FLTweenRotatorSetterFunction::CreateLambda([target, &sweepHitResult, sweep, teleport](FRotator value)
 		{
 			if (IsValid(target))
 				target->SetWorldRotation(value, sweep, sweep ? &sweepHitResult : nullptr, TeleportFlagToEnum(teleport));
