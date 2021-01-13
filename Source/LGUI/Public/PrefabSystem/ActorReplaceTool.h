@@ -10,7 +10,7 @@
 class LGUI_API ActorReplaceTool
 {
 public:
-	//todo: not handled condition: other actor(not child of this actor) reference this actor
+	//@todo: not handled condition: other actor(not child of this actor) reference this actor
 	static AActor* ReplaceActorClass(AActor* TargetActor, TSubclassOf<AActor> NewActorClass);
 private:
 	AActor* ReplaceActorClassInternal(AActor* TargetActor, TSubclassOf<AActor> NewActorClass);

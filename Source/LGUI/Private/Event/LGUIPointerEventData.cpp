@@ -97,7 +97,6 @@ FVector ULGUIPointerEventData::GetCumulativeMoveDelta()const
 
 FString ULGUIPointerEventData::ToString()const
 {
-	//@todo: fill all properties
 	FString result;
 	if (IsValid(enterComponent))
 	{
