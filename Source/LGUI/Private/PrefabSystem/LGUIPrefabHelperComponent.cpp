@@ -94,7 +94,7 @@ void ULGUIPrefabHelperComponent::RevertPrefab()
 			{
 				OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
 			}
-			LGUIUtils::DeleteActor(LoadedRootActor, true);
+			LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
 			LoadedRootActor = nullptr;
 		}
 		//create new actor
@@ -124,8 +124,8 @@ void ULGUIPrefabHelperComponent::DeleteThisInstance()
 #if WITH_EDITOR
 		GEditor->RedrawAllViewports();
 #endif
-		LGUIUtils::DeleteActor(LoadedRootActor, true);
-		LGUIUtils::DeleteActor(GetOwner(), false);
+		LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
+		LGUIUtils::DestroyActorWithHierarchy(GetOwner(), false);
 	}
 	else
 	{

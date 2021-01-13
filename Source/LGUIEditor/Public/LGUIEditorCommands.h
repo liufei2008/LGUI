@@ -23,7 +23,7 @@ public:
 	TSharedPtr<FUICommandInfo> CopyActor;
 	TSharedPtr<FUICommandInfo> PasteActor;
 	TSharedPtr<FUICommandInfo> DuplicateActor;
-	TSharedPtr<FUICommandInfo> DeleteActor;
+	TSharedPtr<FUICommandInfo> DestroyActor;
 
 	TSharedPtr<FUICommandInfo> CopyComponentValues;
 	TSharedPtr<FUICommandInfo> PasteComponentValues;

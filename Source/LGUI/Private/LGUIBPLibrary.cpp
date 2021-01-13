@@ -52,7 +52,11 @@ void ULGUIBPLibrary::SetUIHierarchyIndex(AActor* Target, int32 index)
 
 void ULGUIBPLibrary::DeleteActor(AActor* Target, bool WithHierarchy)
 {
-	LGUIUtils::DeleteActor(Target, WithHierarchy);
+	LGUIUtils::DestroyActorWithHierarchy(Target, WithHierarchy);
+}
+void ULGUIBPLibrary::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
+{
+	LGUIUtils::DestroyActorWithHierarchy(Target, WithHierarchy);
 }
 AActor* ULGUIBPLibrary::LoadPrefab(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
