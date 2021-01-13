@@ -243,7 +243,7 @@ AActor* ULGUI_PointerInputModule::FindCommonRoot(AActor* actorA, AActor* actorB)
 void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventData, bool lineTraceHitSomething, const FHitResultContainerStruct& hitResultContainer, bool& outIsHitSomething, FHitResult& outHitResult)
 {
 	if (!CheckEventSystem())return;
-	//@todo: fix enter/exit in hierarchy
+
 	eventData->isUpFiredAtCurrentFrame = false;
 	eventData->isExitFiredAtCurrentFrame = false;
 	eventData->isEndDragFiredAtCurrentFrame = false;
