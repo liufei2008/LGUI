@@ -1,4 +1,7 @@
 ## 2.11.0
+#### Fix:
+Fix a shader compiler error X3504 caused by LGUIHudShader.usf.
+## 2.11.0
 #### NewFeature:
 Layout support animation when change item position.
 Add more blueprint functions in UIItem: GetRenderCanvas GetRootCanvas GetCanvasScaler IsScreenSpaceOverlayUI IsRenderTargetUI IsWorldSpaceUI.
