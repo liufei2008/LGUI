@@ -7,6 +7,7 @@
 #include "Core/LGUIAtlasData.h"
 #include "UObject/UObjectIterator.h"
 #include "Engine/Engine.h"
+#include "Utils/LGUIUtils.h"
 
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
@@ -228,7 +229,13 @@ PACK_AND_INSERT:
 		UE_LOG(LGUI, Log, TEXT("[PackageSprite]Insert texture:%s expend size to %d"), *(spriteTexture->GetPathName()), newTextureSize);
 		if (newTextureSize > WARNING_ATLAS_SIZE)
 		{
-			UE_LOG(LGUI, Warning, TEXT("[PackageSprite]Trying to insert texture:%s, result to expend size to:%d larger than the preferred maximun texture size:%d! Try reduce some sprite texture size, or use UITexture to render some large texture, or use different packingTag to splite your atlasTexture."), *(spriteTexture->GetPathName()), newTextureSize, WARNING_ATLAS_SIZE);
+			FString warningMsg = FString::Printf(TEXT("[PackageSprite]Trying to insert texture:%s, result to expend size to:%d larger than the preferred maximun texture size:%d!\
+Try reduce some sprite texture size, or use UITexture to render some large texture, or use different packingTag to splite your atlasTexture.")
+				, *(spriteTexture->GetPathName()), newTextureSize, WARNING_ATLAS_SIZE);
+			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
+#if WITH_EDITOR
+			LGUIUtils::EditorNotification(FText::FromString(warningMsg));
+#endif
 		}
 		goto PACK_AND_INSERT;
 	}
@@ -333,11 +340,7 @@ void ULGUISpriteData::InitSpriteData()
 		}
 		else
 		{
-			//ULGUIAtlasManager::InitCheck();
-			//if (!isInitialized)
-			{
-				PackageSprite();
-			}
+			PackageSprite();
 		}
 		isInitialized = true;
 	}
