@@ -35,8 +35,9 @@ FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 Vertex
 	CustomizedUVs[1] = UV1;
 	CustomizedUVs[2] = UV2;
 	CustomizedUVs[3] = UV3;
+	int MaxCount = min(NUM_TEX_COORD_INTERPOLATORS, 4);
 	UNROLL
-	for (int CoordinateIndex = 0; CoordinateIndex < NUM_TEX_COORD_INTERPOLATORS; CoordinateIndex++)
+	for (int CoordinateIndex = 0; CoordinateIndex < MaxCount; CoordinateIndex++)
 	{
 		SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
 	}
