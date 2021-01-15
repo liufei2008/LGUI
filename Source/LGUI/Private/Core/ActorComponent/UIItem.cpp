@@ -1854,17 +1854,18 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 			}
 
 			auto extends = FVector(widget.width, widget.height, 0) * 0.5f;
+			auto scaleZ = worldTransform.GetScale3D().Z;
 			for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
 			{
 				auto& View = Views[ViewIndex];
 				if (VisibilityMap & (1 << ViewIndex))
 				{
 					bool canDraw = false;
-					FLinearColor DrawColor = FColor(128, 128, 128);//gray means normal object
+					FLinearColor DrawColor = FColor(128, 128, 128, 128);//gray means normal object
 					if (ULGUIEditorManagerObject::IsSelected(Component->GetOwner()))//select self
 					{
-						DrawColor = FColor(0, 255, 0);//green means selected object
-						extends += FVector(0, 0, 1);
+						DrawColor = FColor(0, 255, 0, 255);//green means selected object
+						extends += FVector(0, 0, scaleZ);
 						canDraw = true;
 					}
 					else
