@@ -22,6 +22,7 @@
 #include "Slate/SceneViewport.h"
 #include "Core/ActorComponent/UIPostProcess.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Core/LGUISettings.h"
 class FLGUIMeshElementCollector : FMeshElementCollector
 {
 public:
@@ -58,6 +59,7 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
 	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
+	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
 	
 	FScopeLock scopeLock(&Mutex);
 	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
@@ -84,7 +86,7 @@ void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InO
 	
 }
 
-void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst)
+void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("CopyRenderTarget"));
 
@@ -108,7 +110,7 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 
 	RHICmdList.EndRenderPass();
 }
-void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTexture2DRHIRef Src, FTexture2DRHIRef Dst, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
+void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst, const TArray<FLGUIPostProcessVertex>& RegionVertexData)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("CopyRenderTargetOnMeshRegion"));
 
@@ -179,18 +181,27 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		primitiveArray = HudPrimitiveArray;
 	}
 
+	//create render target
+	{
+		FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(InView.UnscaledViewRect.Size(), InView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable | TexCreate_ShaderResource, false));
+		desc.NumSamples = MultiSampleCount;
+		GRenderTargetPool.FindFreeElement(RHICmdList, desc, SceneColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
+		if (!SceneColorRenderTarget.IsValid())
+			return;
+	}
+	auto ScreenColorRenderTexture = SceneColorRenderTarget->GetRenderTargetItem().TargetableTexture;
+
 	FSceneView RenderView(InView);//use a copied view
-	FTexture2DRHIRef ScreenImageRenderTexture;
 	FRHIRenderPassInfo RPInfo;
 	if (CustomRenderTarget.IsValid())
 	{
-		ScreenImageRenderTexture = CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
-		RPInfo = FRHIRenderPassInfo(ScreenImageRenderTexture, ERenderTargetActions::Clear_DontStore);
+		ScreenColorRenderTexture = CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+		RPInfo = FRHIRenderPassInfo(ScreenColorRenderTexture, ERenderTargetActions::Clear_DontStore);
 	}
 	else
 	{
-		ScreenImageRenderTexture = RenderView.Family->RenderTarget->GetRenderTargetTexture();;
-		RPInfo = FRHIRenderPassInfo(ScreenImageRenderTexture, ERenderTargetActions::Load_DontStore);
+		CopyRenderTarget(RHICmdList, GetGlobalShaderMap(RenderView.GetFeatureLevel()), (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTexture);
+		RPInfo = FRHIRenderPassInfo(ScreenColorRenderTexture, ERenderTargetActions::Load_DontStore);
 	}
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 
@@ -214,7 +225,15 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	FGraphicsPipelineStateInitializer GraphicsPSOInit;
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+	if (MultiSampleCount > 0)
+	{
+		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false, true>::GetRHI();
+	}
+	else
+	{
+		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false, false>::GetRHI();
+	}
+	GraphicsPSOInit.NumSamples = MultiSampleCount;
 
 	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
 	for (int i = 0; i < primitiveArray.Num(); i++)
@@ -232,7 +251,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 						RHICmdList.EndRenderPass();
 						postProcessObject->OnRenderPostProcess_RenderThread(
 							RHICmdList,
-							ScreenImageRenderTexture,
+							ScreenColorRenderTexture,
 							GlobalShaderMap,
 							ViewProjectionMatrix,
 							[&]()
@@ -273,6 +292,10 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		}
 	}
 	RHICmdList.EndRenderPass();
+	//copy back to screen
+	CopyRenderTarget(RHICmdList, GetGlobalShaderMap(RenderView.GetFeatureLevel()), ScreenColorRenderTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture());
+	//release render target
+	SceneColorRenderTarget.SafeRelease();
 }
 void FLGUIViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {

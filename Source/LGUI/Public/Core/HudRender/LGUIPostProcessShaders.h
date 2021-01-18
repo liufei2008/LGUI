@@ -58,7 +58,7 @@ public:
 		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
 		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef SceneTexture, FRHISamplerState* SceneTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetParameters(FRHICommandListImmediate& RHICmdList, FTextureRHIRef SceneTexture, FRHISamplerState* SceneTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, SceneTextureSampler, SceneTexture);
 	}
@@ -82,9 +82,9 @@ public:
 		MaskTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTexSampler"));
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList
-		, FTexture2DRHIRef MainTexture
-		, FTexture2DRHIRef OriginTexture
-		, FTexture2DRHIRef MaskTexture
+		, FTextureRHIRef MainTexture
+		, FTextureRHIRef OriginTexture
+		, FTextureRHIRef MaskTexture
 		, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 		, FRHISamplerState* OriginTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 		, FRHISamplerState* MaskTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
@@ -116,7 +116,7 @@ public:
 		InvSizeParameter.Bind(Initializer.ParameterMap, TEXT("_InvSize"));
 		BlurStrengthParameter.Bind(Initializer.ParameterMap, TEXT("_BlurStrength"));
 	}
-	void SetMainTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef MainTexture, FRHISamplerState* MainTextureSampler)
+	void SetMainTexture(FRHICommandListImmediate& RHICmdList, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler)
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
 	}
@@ -155,7 +155,7 @@ public:
 		StrengthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_StrengthTex"));
 		StrengthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_StrengthTexSampler"));
 	}
-	void SetStrengthTexture(FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef StrengthTexture, FRHISamplerState* StrengthTextureSampler)
+	void SetStrengthTexture(FRHICommandListImmediate& RHICmdList, FTextureRHIRef StrengthTexture, FRHISamplerState* StrengthTextureSampler)
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), StrengthTextureParameter, StrengthTextureSamplerParameter, StrengthTextureSampler, StrengthTexture);
 	}
