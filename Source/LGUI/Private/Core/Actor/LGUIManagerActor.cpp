@@ -372,7 +372,7 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 void ULGUIEditorManagerObject::LogObjectFlags(UObject* obj)
 {
 	EObjectFlags of = obj->GetFlags();
-	UE_LOG(LGUI, Error, TEXT("obj:%s\
+	UE_LOG(LGUI, Log, TEXT("obj:%s\
 \n	flagValue:%d\
 \n	RF_Public:%d\
 \n	RF_Standalone:%d\
