@@ -40,12 +40,12 @@ public:
 	static void CopyRenderTarget(
 		FRHICommandListImmediate& RHICmdList, 
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap, 
-		FTexture2DRHIRef Src, FTexture2DRHIRef Dst
+		FTextureRHIRef Src, FTextureRHIRef Dst
 	);
 	static void CopyRenderTargetOnMeshRegion(
 		FRHICommandListImmediate& RHICmdList,
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
-		FTexture2DRHIRef Src, FTexture2DRHIRef Dst,
+		FTextureRHIRef Src, FTextureRHIRef Dst,
 		const TArray<FLGUIPostProcessVertex>& RegionVertexData
 	);
 	static void DrawFullScreenQuad(
@@ -58,6 +58,8 @@ private:
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
+	TRefCountPtr<IPooledRenderTarget> SceneColorRenderTarget;
+	uint16 MultiSampleCount = 0;
 
 	FVector ViewLocation;
 	FMatrix ViewRotationMatrix;
