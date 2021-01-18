@@ -210,7 +210,7 @@ DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundBlur"), STAT_BackgroundBlur, STAT
 
 void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	FRHICommandListImmediate& RHICmdList, 
-	FTexture2DRHIRef ScreenImage, 
+	FTextureRHIRef ScreenImage, 
 	FGlobalShaderMap* GlobalShaderMap,
 	const FMatrix& ViewProjectionMatrix,  
 	const TFunction<void()>& DrawPrimitive
@@ -225,8 +225,8 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	auto Resource1 = blurEffectRenderTarget1->GetRenderTargetResource();
 	auto Resource2 = blurEffectRenderTarget2->GetRenderTargetResource();
 	if (Resource1 == nullptr || Resource2 == nullptr)return;
-	FTexture2DRHIRef BlurEffectRenderTexture1 = Resource1->GetRenderTargetTexture();
-	FTexture2DRHIRef BlurEffectRenderTexture2 = Resource2->GetRenderTargetTexture();
+	auto BlurEffectRenderTexture1 = (FTextureRHIRef)Resource1->GetRenderTargetTexture();
+	auto BlurEffectRenderTexture2 = (FTextureRHIRef)Resource2->GetRenderTargetTexture();
 	//copy rect area from screen image to a render target, so we can just process this area
 	TArray<FLGUIPostProcessVertex> tempCopyRegion;
 	{
@@ -242,7 +242,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			VertexShader->SetParameters(RHICmdList);
 			TShaderMapRef<FLGUIPostProcessGaussianBlurWithStrengthTexturePS> PixelShader(GlobalShaderMap);
 			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
-			PixelShader->SetStrengthTexture(RHICmdList, ((FTexture2DResource*)strengthTexture->Resource)->GetTexture2DRHI(), strengthTexture->Resource->SamplerStateRHI);
+			PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->Resource->TextureRHI, strengthTexture->Resource->SamplerStateRHI);
 
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
@@ -358,7 +358,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 			VertexShader->SetParameters(RHICmdList);
-			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1, BlurEffectRenderTexture2, ((FTexture2DResource*)maskTexture->Resource)->GetTexture2DRHI()
+			PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1, BlurEffectRenderTexture2, maskTexture->Resource->TextureRHI
 				, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 				, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 				, maskTexture->Resource->SamplerStateRHI

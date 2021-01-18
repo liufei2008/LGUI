@@ -35,7 +35,7 @@ public:
 	 */
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList, 
-		FTexture2DRHIRef ScreenImage, 
+		FTextureRHIRef ScreenImage, 
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
 		const TFunction<void()>& DrawPrimitive

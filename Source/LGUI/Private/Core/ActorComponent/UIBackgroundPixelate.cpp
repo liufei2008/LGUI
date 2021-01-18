@@ -171,7 +171,7 @@ DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundPixelate"), STAT_BackgroundPixela
 
 void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 	FRHICommandListImmediate& RHICmdList, 
-	FTexture2DRHIRef ScreenImage, 
+	FTextureRHIRef ScreenImage, 
 	FGlobalShaderMap* GlobalShaderMap,
 	const FMatrix& ViewProjectionMatrix,  
 	const TFunction<void()>& DrawPrimitive
@@ -184,7 +184,7 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 
 	auto helperRenderTargetResource = helperRenderTarget->GetRenderTargetResource();
 	if (helperRenderTargetResource == nullptr)return;
-	FTexture2DRHIRef helperRenderTargetTexture = helperRenderTargetResource->GetRenderTargetTexture();
+	auto helperRenderTargetTexture = (FTextureRHIRef)helperRenderTargetResource->GetRenderTargetTexture();
 	//copy rect area from screen image to a render target, so we can just process this area
 	{
 		TArray<FLGUIPostProcessVertex> tempCopyRegion;
