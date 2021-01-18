@@ -11,8 +11,3 @@ AUIBaseActor::AUIBaseActor()
 
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 }
-UUIItem* AUIBaseActor::GetUIItem()const
-{
-	UE_LOG(LGUI, Error, TEXT("[AUIBaseActor::GetUIItem]This function must be override!"));
-	return nullptr;
-}

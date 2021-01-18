@@ -1316,6 +1316,7 @@ void UUIItem::SetPivot(FVector2D pivot) {
 		MarkLayoutDirty();
 		PivotChanged();
 		widget.pivot = pivot;
+		CallUIComponentsDimensionsChanged(true, false);
 	}
 }
 void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align, bool keepRelativeLocation)

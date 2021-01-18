@@ -15,6 +15,7 @@
 #include "Event/LGUIPointereventData.h"
 #include "Interaction/UISelectableComponent.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
+#include "Utils/LGUIUtils.h"
 
 ALGUIEventSystemActor::ALGUIEventSystemActor()
 {
@@ -57,7 +58,11 @@ void ULGUIEventSystem::BeginPlay()
 #else
 				instance->GetOwner()->GetName();
 #endif
-			UE_LOG(LGUI, Warning, TEXT("LGUIEventSystem component is already exist in actor:%s, pathName:%s, world:%s, multiple LGUIEventSystem in same world is not allowed!"), *actorName, *instance->GetPathName(), *world->GetPathName());
+			FString errorMsg = FString::Printf(TEXT("LGUIEventSystem component is already exist in actor:%s, pathName:%s, world:%s, multiple LGUIEventSystem in same world is not allowed!"), *actorName, *instance->GetPathName(), *world->GetPathName());
+			UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg);
+#if WITH_EDITOR
+			LGUIUtils::EditorNotification(FText::FromString(errorMsg), 10);
+#endif
 			this->SetComponentTickEnabled(false);
 		}
 		else

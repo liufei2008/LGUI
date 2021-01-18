@@ -14,5 +14,5 @@ public:
 	AUIBaseActor();
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-	virtual class UUIItem* GetUIItem()const;
+	virtual class UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
 };

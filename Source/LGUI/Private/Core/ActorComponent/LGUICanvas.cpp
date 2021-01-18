@@ -319,7 +319,11 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 				auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
 				if (mat == nullptr)
 				{
-					UE_LOG(LGUI, Error, TEXT("[ULGUICanvas/CheckMaterials]Assign material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+					FString errMsg = FString::Printf(TEXT("[ULGUICanvas/CheckMaterials]Assign material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+					UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
+#if WITH_EDITOR
+					LGUIUtils::EditorNotification(FText::FromString(errMsg), 10);
+#endif
 					continue;
 				}
 				DefaultMaterials[i] = mat;

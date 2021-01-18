@@ -26,9 +26,9 @@ void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeigh
 	height = InHeight;
 
 	uv0X = InX * texFullWidthReciprocal + uvRect.X;
-	uv0Y = (InY + InHeight) * texFullHeightReciprocal + uvRect.Y;
+	uv0Y = (InY + InHeight) * texFullHeightReciprocal * uvRect.W + uvRect.Y;
 	uv3X = (InX + InWidth) * texFullWidthReciprocal * uvRect.Z + uvRect.X;
-	uv3Y = InY * texFullHeightReciprocal * uvRect.W + uvRect.Y;
+	uv3Y = InY * texFullHeightReciprocal + uvRect.Y;
 }
 bool FLGUISpriteInfo::HasBorder()const
 {
