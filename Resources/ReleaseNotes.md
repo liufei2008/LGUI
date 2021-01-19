@@ -1,6 +1,11 @@
-## 2.11.0
+## 2.11.1
 #### Fix:
 Fix a shader compiler error X3504 caused by LGUIHudShader.usf.
+Fix buildin prefab not loaded in packaged game.
+Fix UITexture's UVRect issue.
+#### NewFeature:
+**Support MultiSampleAntiAliasing!!!(MSAA)** Turn on MSAA in ProjectSettins/LGUI/Renderging/AntiAliasing.
+UIBackgroundBlur and UIBackgroundPixelate now support on mobile.
 ## 2.11.0
 #### NewFeature:
 Layout support animation when change item position.
@@ -20,7 +25,6 @@ Fix sort issue when use LGUI hierarchy sort.
 Fix bug: delay not working in some LTweenBPLibrary.
 Fix bug: If sprite have none packingTag, then uv get wrong.
 Fix bug: if LTween's duration = 0, then nothing happen.
-
 ## 2.10.1
 #### Fix:
 Fix bug: UIEventTrigger parameter become (Actor) type.
