@@ -8,7 +8,6 @@
 
 /** 
  * UI element that can make the background look pixelated
- * Not supported on mobile device!
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIBackgroundPixelate : public UUIPostProcess

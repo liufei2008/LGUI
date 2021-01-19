@@ -192,7 +192,7 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 			FScopeLock scopeLock(&mutex);
 			tempCopyRegion = renderScreenToMeshRegionVertexArray;
 		}
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, helperRenderTargetTexture, tempCopyRegion);//mesh's uv.y is flipped
+		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, helperRenderTargetTexture, tempCopyRegion);
 	}
 	//copy the area back to screen image
 	{

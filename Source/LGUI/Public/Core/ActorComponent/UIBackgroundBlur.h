@@ -8,7 +8,6 @@
 
 /** 
  * UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
- * Not supported on mobile device!
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIBackgroundBlur : public UUIPostProcess
