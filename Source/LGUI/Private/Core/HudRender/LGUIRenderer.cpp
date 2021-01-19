@@ -200,7 +200,11 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	}
 	else
 	{
+#if PLATFORM_ANDROID
+		RHICmdList.CopyToResolveTarget((FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTexture, FResolveParams());
+#else
 		CopyRenderTarget(RHICmdList, GetGlobalShaderMap(RenderView.GetFeatureLevel()), (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTexture);
+#endif
 		RPInfo = FRHIRenderPassInfo(ScreenColorRenderTexture, ERenderTargetActions::Load_DontStore);
 	}
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));

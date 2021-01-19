@@ -342,7 +342,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	{
 		if (IsValid(maskTexture))
 		{
-			FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture2, tempCopyRegion);//mesh's uv.y is flipped
+			FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture2, tempCopyRegion);
 
 			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
 			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
