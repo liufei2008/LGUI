@@ -20,7 +20,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUITextInputDynamicDelegate, FString, InStri
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIInputActivateDynamicDelegate, bool, InActivate);
 
 UENUM(BlueprintType)
-enum class ELGUIInputType:uint8
+enum class ELGUITextInputType:uint8
 {
 	Standard,
 	IntegerNumber,
@@ -46,7 +46,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FString Text;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		ELGUIInputType InputType;
+		ELGUITextInputType InputType;
 	//password display character
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FString PasswordChar = TEXT("*");
@@ -86,10 +86,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void SetText(FString InText, bool InFireEvent = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		ELGUIInputType GetInputType()const { return InputType; }
+		ELGUITextInputType GetInputType()const { return InputType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
-		void SetInputType(ELGUIInputType newValue);
-	void ActivateInput();
+		void SetInputType(ELGUITextInputType newValue);
+	void ActivateInput(ULGUIPointerEventData* eventData = nullptr);
 	void DeactivateInput(bool InFireEvent = true);
 
 	void RegisterValueChangeEvent(const FLGUIStringDelegate& InDelegate);

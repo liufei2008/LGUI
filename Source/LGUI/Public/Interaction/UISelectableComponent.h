@@ -114,7 +114,6 @@ protected:
 		EUISelectableNavigationMode NavigationRight = EUISelectableNavigationMode::Auto;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
 		FLGUIComponentReference NavigationRightSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
-
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
 		EUISelectableNavigationMode NavigationUp = EUISelectableNavigationMode::Auto;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
@@ -123,7 +122,6 @@ protected:
 		EUISelectableNavigationMode NavigationDown = EUISelectableNavigationMode::Auto;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
 		FLGUIComponentReference NavigationDownSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
-	
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
 		EUISelectableNavigationMode NavigationNext = EUISelectableNavigationMode::Auto;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
@@ -136,13 +134,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		class AUIBaseActor* GetTransitionTarget()const { return TransitionActor; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetNormalSprite()const { return NormalSprite; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetNormalColor()const { return NormalColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetHighlightedSprite()const { return HighlightedSprite; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetHighlightedColor()const { return HighlightedColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") ULGUISpriteData* GetPressedSprite()const { return PressedSprite; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") FColor GetPressedColor()const { return PressedColor; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") EUISelectableSelectionState GetSelectionState()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
+		ULGUISpriteData* GetNormalSprite()const { return NormalSprite; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
+		FColor GetNormalColor()const { return NormalColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
+		ULGUISpriteData* GetHighlightedSprite()const { return HighlightedSprite; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
+		FColor GetHighlightedColor()const { return HighlightedColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
+		ULGUISpriteData* GetPressedSprite()const { return PressedSprite; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
+		FColor GetPressedColor()const { return PressedColor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
+		EUISelectableSelectionState GetSelectionState()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		void SetNormalSprite(ULGUISpriteData* NewSprite);
@@ -162,14 +167,79 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		bool IsInteractable()const;
 
-	UUISelectableComponent* FindSelectable(FVector InDirection);
-	UUISelectableComponent* FindSelectable(FVector InDirection, USceneComponent* InParent);
+#pragma region Navigation
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode GetNavigationLeft()const { return NavigationLeft; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode GetNavigationRight()const { return NavigationRight; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode GetNavigationUp()const { return NavigationUp; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode GetNavigationDown()const { return NavigationDown; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode GetNavigationPrev()const { return NavigationPrev; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		EUISelectableNavigationMode GetNavigationNext()const { return NavigationNext; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		UUISelectableComponent* GetNavigationLeftExplicit()const { return NavigationLeftSpecific.GetComponent<UUISelectableComponent>(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		UUISelectableComponent* GetNavigationRightExplicit()const { return NavigationRightSpecific.GetComponent<UUISelectableComponent>(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		UUISelectableComponent* GetNavigationUpExplicit()const { return NavigationUpSpecific.GetComponent<UUISelectableComponent>(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		UUISelectableComponent* GetNavigationDownExplicit()const { return NavigationDownSpecific.GetComponent<UUISelectableComponent>(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		UUISelectableComponent* GetNavigationPrevExplicit()const { return NavigationPrevSpecific.GetComponent<UUISelectableComponent>(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		UUISelectableComponent* GetNavigationNextExplicit()const { return NavigationNextSpecific.GetComponent<UUISelectableComponent>(); }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationLeft(EUISelectableNavigationMode value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationRight(EUISelectableNavigationMode value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationUp(EUISelectableNavigationMode value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationDown(EUISelectableNavigationMode value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationPrev(EUISelectableNavigationMode value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationNext(EUISelectableNavigationMode value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationLeftExplicit(UUISelectableComponent* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationRightExplicit(UUISelectableComponent* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationUpExplicit(UUISelectableComponent* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationDownExplicit(UUISelectableComponent* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationPrevExplicit(UUISelectableComponent* value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable-Navigation")
+		void SetNavigationNextExplicit(UUISelectableComponent* value);
+	/**
+	 * Called by input module to navigate on selectables.
+	 * @return true if can navigate to other selectable.
+	 */
+	virtual bool OnNavigate(ELGUINavigationDirection InDirection);
+	/**
+	 * Find UISelectable component on specific direction.
+	 */
+	virtual UUISelectableComponent* FindSelectable(FVector InDirection);
+	/**
+	 * Find UISelectable component inside InParent on specific direction.
+	 */
+	virtual UUISelectableComponent* FindSelectable(FVector InDirection, USceneComponent* InParent);
+	static UUISelectableComponent* FindDefaultSelectable(UObject* WorldContextObject);
 	virtual UUISelectableComponent* FindSelectableOnLeft();
 	virtual UUISelectableComponent* FindSelectableOnRight();
 	virtual UUISelectableComponent* FindSelectableOnUp();
 	virtual UUISelectableComponent* FindSelectableOnDown();
 	virtual UUISelectableComponent* FindSelectableOnNext();
 	virtual UUISelectableComponent* FindSelectableOnPrev();
+#pragma endregion
 public:
 	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;

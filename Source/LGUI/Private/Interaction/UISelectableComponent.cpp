@@ -427,6 +427,11 @@ bool UUISelectableComponent::IsInteractable()const
 	return true;
 }
 
+#pragma region Navigation
+bool UUISelectableComponent::OnNavigate(ELGUINavigationDirection InDirection)
+{
+	return true;
+}
 UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirection)
 {
 	InDirection.Normalize();
@@ -460,28 +465,30 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 	{
 		const auto& uiSelectables = LGUIManagerActor->GetSelectables();
 		FVector pos = CheckRootUIComponent() ? FVector(RootUIComp->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-		pos = GetOwner()->GetRootComponent()->GetComponentTransform().TransformPosition(pos);
+		pos = GetRootSceneComponent()->GetComponentTransform().TransformPosition(pos);
 		float maxScore = MIN_flt;
 		UUISelectableComponent* bestPick = this;
 		for (int i = 0; i < uiSelectables.Num(); ++i)
 		{
 			auto sel = uiSelectables[i];
 
-			if (sel == this || sel == nullptr)
+			if (sel == this || !IsValid(sel))
 				continue;
 
-			if (InParent != nullptr && !sel->GetOwner()->GetRootComponent()->IsAttachedTo(InParent))
+			if (IsValid(InParent) && !sel->GetRootSceneComponent()->IsAttachedTo(InParent))
 				continue;
 
 			if (!sel->IsInteractable())
 				continue;
 
-			UUIItem* selRect = Cast<UUIItem>(sel->GetOwner()->GetRootComponent());
-			FVector selCenter = selRect != nullptr ? FVector(selRect->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-			FVector myVector = sel->GetOwner()->GetRootComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
+			if(!sel->GetRootComponent()->IsUIActiveInHierarchy())
+				continue;
+
+			FVector selCenter = sel->CheckRootUIComponent() ? FVector(sel->GetRootComponent()->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
+			FVector myVector = sel->GetRootSceneComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
 
 			float dot = FVector::DotProduct(InDirection, myVector);
-			if (dot <= 0)
+			if (dot <= 0.1f)
 				continue;
 
 			float score = dot / myVector.SizeSquared();
@@ -495,6 +502,18 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 	}
 	return nullptr;
 }
+UUISelectableComponent* UUISelectableComponent::FindDefaultSelectable(UObject* WorldContextObject)
+{
+	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(WorldContextObject->GetWorld()))
+	{
+		const auto& uiSelectables = LGUIManagerActor->GetSelectables();
+		if (uiSelectables.Num() > 0)
+		{
+			return uiSelectables[0];
+		}
+	}
+	return nullptr;
+}
 UUISelectableComponent* UUISelectableComponent::FindSelectableOnLeft()
 {
 	if (NavigationLeft == EUISelectableNavigationMode::Explicit)
@@ -503,7 +522,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnLeft()
 	}
 	if (NavigationLeft == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetOwner()->GetRootComponent()->GetForwardVector());
+		return FindSelectable(-GetRootSceneComponent()->GetForwardVector());
 	}
 	return nullptr;
 }
@@ -515,7 +534,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnRight()
 	}
 	if (NavigationRight == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetOwner()->GetRootComponent()->GetForwardVector());//forward as right
+		return FindSelectable(GetRootSceneComponent()->GetForwardVector());//forward as right
 	}
 	return nullptr;
 }
@@ -527,7 +546,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnUp()
 	}
 	if (NavigationUp == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetOwner()->GetRootComponent()->GetRightVector());//right as up 
+		return FindSelectable(GetRootSceneComponent()->GetRightVector());//right as up 
 	}
 	return nullptr;
 }
@@ -539,7 +558,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnDown()
 	}
 	if (NavigationDown == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetOwner()->GetRootComponent()->GetRightVector());
+		return FindSelectable(-GetRootSceneComponent()->GetRightVector());
 	}
 	return nullptr;
 }
@@ -561,3 +580,96 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnPrev()
 	}
 	return FindSelectableOnUp();
 }
+
+void UUISelectableComponent::SetNavigationLeft(EUISelectableNavigationMode value)
+{
+	NavigationLeft = value;
+}
+void UUISelectableComponent::SetNavigationRight(EUISelectableNavigationMode value)
+{
+	NavigationRight = value;
+}
+void UUISelectableComponent::SetNavigationUp(EUISelectableNavigationMode value)
+{
+	NavigationUp = value;
+}
+void UUISelectableComponent::SetNavigationDown(EUISelectableNavigationMode value)
+{
+	NavigationDown = value;
+}
+void UUISelectableComponent::SetNavigationPrev(EUISelectableNavigationMode value)
+{
+	NavigationPrev = value;
+}
+void UUISelectableComponent::SetNavigationNext(EUISelectableNavigationMode value)
+{
+	NavigationNext = value;
+}
+
+void UUISelectableComponent::SetNavigationLeftExplicit(UUISelectableComponent* value)
+{
+	if (IsValid(value))
+	{
+		NavigationLeftSpecific = FLGUIComponentReference(value);
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUISelectableComponent::SetNavigationLeftExplicit] value is not valid!"));
+	}
+}
+void UUISelectableComponent::SetNavigationRightExplicit(UUISelectableComponent* value)
+{
+	if (IsValid(value))
+	{
+		NavigationRightSpecific = FLGUIComponentReference(value);
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUISelectableComponent::SetNavigationRightExplicit] value is not valid!"));
+	}
+}
+void UUISelectableComponent::SetNavigationUpExplicit(UUISelectableComponent* value)
+{
+	if (IsValid(value))
+	{
+		NavigationUpSpecific = FLGUIComponentReference(value);
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUISelectableComponent::SetNavigationUpExplicit] value is not valid!"));
+	}
+}
+void UUISelectableComponent::SetNavigationDownExplicit(UUISelectableComponent* value)
+{
+	if (IsValid(value))
+	{
+		NavigationDownSpecific = FLGUIComponentReference(value);
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUISelectableComponent::SetNavigationDownExplicit] value is not valid!"));
+	}
+}
+void UUISelectableComponent::SetNavigationPrevExplicit(UUISelectableComponent* value)
+{
+	if (IsValid(value))
+	{
+		NavigationPrevSpecific = FLGUIComponentReference(value);
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUISelectableComponent::SetNavigationPrevExplicit] value is not valid!"));
+	}
+}
+void UUISelectableComponent::SetNavigationNextExplicit(UUISelectableComponent* value)
+{
+	if (IsValid(value))
+	{
+		NavigationNextSpecific = FLGUIComponentReference(value);
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUISelectableComponent::SetNavigationNextExplicit] value is not valid!"));
+	}
+}
+#pragma endregion
