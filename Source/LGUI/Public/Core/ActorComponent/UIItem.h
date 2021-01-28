@@ -321,6 +321,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetHierarchyIndex() const { return hierarchyIndex; }
+	/** Get hierarchy index, add parent's hierarchy index and parent's parent's hierarchy index... */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		int32 GetHierarchyIndexWithAllParent()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetHierarchyIndex(int32 InInt);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
