@@ -296,6 +296,15 @@ public:
 				bool useNativeParameter = false;
 				auto useNativeParameterHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UseNativeParameter));
 				useNativeParameterHandle->GetValue(useNativeParameter);
+				
+				if (EventParameterTypeArray != functionParameterTypeArray)//check "useNativeParameter" parameter
+				{
+					if (useNativeParameter)
+					{
+						useNativeParameter = false;
+						useNativeParameterHandle->SetValue(useNativeParameter);
+					}
+				}
 				if ((EventParameterTypeArray == functionParameterTypeArray) && useNativeParameter)//support native parameter
 				{
 					//clear buffer and value
