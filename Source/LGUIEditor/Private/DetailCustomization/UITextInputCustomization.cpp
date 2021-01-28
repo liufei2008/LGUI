@@ -1,6 +1,7 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UITextInputCustomization.h"
+#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "UITextComponentDetails"
 FUITextInputCustomization::FUITextInputCustomization()
@@ -29,12 +30,12 @@ void FUITextInputCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-Input");
 	auto inputTypeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, InputType));
 	inputTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUITextInputCustomization::ForceRefresh, &DetailBuilder));
-	ELGUIInputType inputType = TargetScriptPtr->InputType;
+	ELGUITextInputType inputType = TargetScriptPtr->InputType;
 
 	TArray<FName> needToHidePropertyName;
 	switch (inputType)
 	{
-	case ELGUIInputType::Password:
+	case ELGUITextInputType::Password:
 	{
 
 	}

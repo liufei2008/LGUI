@@ -9,7 +9,7 @@ void ULGUI_TouchInputModule::ProcessInput()
 {
 	if (!CheckEventSystem())return;
 
-	for (auto keyValue : pointerEventDataMap)
+	for (auto keyValue : eventSystem->pointerEventDataMap)
 	{
 		auto touchPointerEventData = keyValue.Value;
 		if (IsValid(touchPointerEventData))
@@ -30,7 +30,9 @@ void ULGUI_TouchInputModule::ProcessInput()
 }
 void ULGUI_TouchInputModule::InputScroll(const float& inAxisValue)
 {
-	auto eventData = GetPointerEventData(0, true);
+	if (!CheckEventSystem())return;
+
+	auto eventData = eventSystem->GetPointerEventData(0, true);
 	if (IsValid(eventData->enterComponent))
 	{
 		if (inAxisValue != 0 || eventData->scrollAxisValue != inAxisValue)
@@ -46,13 +48,17 @@ void ULGUI_TouchInputModule::InputScroll(const float& inAxisValue)
 
 void ULGUI_TouchInputModule::InputTouchTrigger(bool inTouchPress, int inTouchID, const FVector& inTouchPointPosition)
 {
-	auto eventData = GetPointerEventData(inTouchID, true);
+	if (!CheckEventSystem())return;
+
+	auto eventData = eventSystem->GetPointerEventData(inTouchID, true);
 	eventData->nowIsTriggerPressed = inTouchPress;
 	eventData->pointerPosition = inTouchPointPosition;
 }
 
 void ULGUI_TouchInputModule::InputTouchMoved(int inTouchID, const FVector& inTouchPointPosition)
 {
-	auto eventData = GetPointerEventData(inTouchID, true);
+	if (!CheckEventSystem())return;
+
+	auto eventData = eventSystem->GetPointerEventData(inTouchID, true);
 	eventData->pointerPosition = inTouchPointPosition;
 }

@@ -22,10 +22,10 @@ protected:
 	FSimpleMulticastDelegate OnClickCPP;
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 public:
-	//Register click event
-	void RegisterClickEvent(const FSimpleDelegate& InDelegate);
-	//Unregister click event
-	void UnregisterClickEvent(const FSimpleDelegate& InDelegate);
+	/** Register click event */
+	void RegisterClickEvent(const FSimpleDelegate& InDelegate);//@todo: return delegatehandle
+	/*** Unregister click event */
+	void UnregisterClickEvent(const FSimpleDelegate& InDelegate);//@todo: passin delegatehandle
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Button")
 		FLGUIDelegateHandleWrapper RegisterClickEvent(const FLGUIButtonDynamicDelegate& InDelegate);

@@ -63,16 +63,16 @@ protected:
 	/** Executed when this behaviour is destroyed. */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDestroy"), Category = "LGUIBehaviour")void OnDestroyBP();
 
-	/**
-	 * Return true when this behaviour is active in hierarchy and enable.
-	 * "active in hierarchy" is related to UIItem's IsUIActive 
-	 */
-	FORCEINLINE bool GetIsActiveAndEnable();
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		void SetEnable(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		bool GetEnable() const { return enable; }
+	/**
+	 * @return true when this behaviour is active in hierarchy and enable. "active in hierarchy" is related to UIItem's IsUIActive
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
+		bool GetIsActiveAndEnable() const;
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		UUIItem* GetRootComponent() const;
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")

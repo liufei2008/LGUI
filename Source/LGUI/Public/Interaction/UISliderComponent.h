@@ -12,7 +12,7 @@
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUISliderDynamicDelegate, float, InFloat);
 
-UENUM()
+UENUM(BlueprintType)
 enum class UISliderDirectionType:uint8
 {
 	LeftToRight,
@@ -82,6 +82,7 @@ public:
 	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnNavigate(ELGUINavigationDirection InDirection)override;
 private:
 	bool CheckFill();
 	bool CheckHandle();

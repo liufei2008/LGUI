@@ -9,7 +9,7 @@
 /** 
  * for mobile multi touch input
  */
-UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable, Experimental)
+UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_TouchInputModule : public ULGUI_PointerInputModule
 {
 	GENERATED_BODY()

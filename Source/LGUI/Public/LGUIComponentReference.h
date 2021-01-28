@@ -17,6 +17,12 @@ struct LGUI_API FLGUIComponentReference
 	{
 		targetComponentClass = InCompClass;
 	}
+	FLGUIComponentReference(UActorComponent* InComp)
+	{
+		targetComponentClass = InComp->StaticClass();
+		targetActor = InComp->GetOwner();
+		targetComonentName = InComp->GetFName();
+	}
 protected:
 	friend class FLGUIComponentRefereceCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")

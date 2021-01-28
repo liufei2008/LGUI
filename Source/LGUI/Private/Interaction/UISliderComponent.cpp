@@ -113,7 +113,10 @@ void UUISliderComponent::UnregisterSlideEvent(const FLGUIDelegateHandleWrapper& 
 bool UUISliderComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerDown_Implementation(eventData);
-	CalculateInputValue(eventData);
+	if (eventData->inputType == ELGUIPointerInputType::Pointer)
+	{
+		CalculateInputValue(eventData);
+	}
 	return AllowEventBubbleUp;
 }
 bool UUISliderComponent::OnPointerUp_Implementation(ULGUIPointerEventData* eventData)
@@ -135,6 +138,40 @@ bool UUISliderComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventData* 
 {
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
+}
+bool UUISliderComponent::OnNavigate(ELGUINavigationDirection InDirection)
+{
+	float valueIntervalMultiply = 0.0f;
+	if (
+		(DirectionType == UISliderDirectionType::LeftToRight && InDirection == ELGUINavigationDirection::Left)
+		|| (DirectionType == UISliderDirectionType::RightToLeft && InDirection == ELGUINavigationDirection::Right)
+		|| (DirectionType == UISliderDirectionType::BottomToTop && InDirection == ELGUINavigationDirection::Down)
+		|| (DirectionType == UISliderDirectionType::TopToBottom && InDirection == ELGUINavigationDirection::Up)
+		)
+	{
+		valueIntervalMultiply = -0.1f;
+	}
+	else if (
+		(DirectionType == UISliderDirectionType::LeftToRight && InDirection == ELGUINavigationDirection::Right)
+		|| (DirectionType == UISliderDirectionType::RightToLeft && InDirection == ELGUINavigationDirection::Left)
+		|| (DirectionType == UISliderDirectionType::BottomToTop && InDirection == ELGUINavigationDirection::Up)
+		|| (DirectionType == UISliderDirectionType::TopToBottom && InDirection == ELGUINavigationDirection::Down)
+		)
+	{
+		valueIntervalMultiply = 0.1f;
+	}
+	if (valueIntervalMultiply == 0.0f)
+	{
+		return true;
+	}
+	else
+	{
+		auto tempValue = Value;
+		tempValue += (MaxValue - MinValue) * valueIntervalMultiply;
+		tempValue = FMath::Clamp(tempValue, MinValue, MaxValue);
+		SetValue(tempValue);
+		return false;
+	}
 }
 
 void UUISliderComponent::CalculateInputValue(ULGUIPointerEventData* eventData)

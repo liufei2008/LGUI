@@ -51,9 +51,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
 		bool bRayEventEnable = true;
 
-	bool isNavigationActive = false;
-	void BeginNavigation();
-
 	FORCEINLINE void ProcessInputEvent();
 public:
 	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputTrigger instead.")
@@ -64,32 +61,41 @@ public:
 		void InputScroll(const float& inAxisValue) {};
 
 	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigationLeft();
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		void InputNavigationLeft() {};
 	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigationRight();
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		void InputNavigationRight() {};
 	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigationUp();
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		void InputNavigationUp() {};
 	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigationDown();
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		void InputNavigationDown() {};
 	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigationNext();
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		void InputNavigationNext() {};
 	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigationPrev();
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		void InputNavigationPrev() {};
 	/** Activate navigation */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigationBegin();
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		void InputNavigationBegin() {};
 	/** Cancel navigation */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputNavigationEnd();
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		void InputNavigationEnd() {};
 	/** is navigation mode acivated */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool IsNavigationActive()const { return isNavigationActive; }
+	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
+		bool IsNavigationActive()const { return false; }
 
 	/** clear event. eg when mouse is hovering a UI and highlight, and then event is disabled, we can use this to clear the hover event */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -109,9 +115,9 @@ public:
 		USceneComponent* GetCurrentSelectedComponent() { return selectedComponent; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIBaseInputModule* GetCurrentInputModule();
-	/** event data for navigation */
-	UPROPERTY(VisibleAnywhere, Category = LGUI)
-		ULGUIBaseEventData* defaultEventData;
+
+	UPROPERTY(VisibleAnywhere, Category = LGUI)TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
+	ULGUIPointerEventData* GetPointerEventData(int pointerID, bool createIfNotExist = false);
 protected:
 	/** call back for hit event */
 	FLGUIMulticastHitDelegate hitEvent;
@@ -140,10 +146,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void UnregisterGlobalListener(const FLGUIDelegateHandleWrapper& InHandle);
 	void RaiseHitEvent(bool hitOrNot, const FHitResult& hitResult, USceneComponent* hitComponent);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetHighlightedComponentForNavigation(USceneComponent* InComp);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		USceneComponent* GetHighlightedComponentForNavigation()const { return highlightedComponent; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
+		ELGUIPointerInputType defaultInputType = ELGUIPointerInputType::Pointer;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
+		ELGUIEventFireType eventFireTypeForNavigation = ELGUIEventFireType::TargetActorAndAllItsComponents;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
+		float navigateInputInterval = 0.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
+		float navigateInputIntervalForFirstTime = 0.5f;
 protected:
 	UPROPERTY(Transient)USceneComponent* selectedComponent = nullptr;
-	/** current navigation selectable component */
-	UPROPERTY(Transient)UUISelectableComponent* navigationSelectableComponent = nullptr;
+	UPROPERTY(Transient)USceneComponent* highlightedComponent = nullptr;
 public:
 	void CallOnPointerEnter(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerExit(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
@@ -153,11 +172,8 @@ public:
 	void CallOnPointerBeginDrag(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerDrag(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerEndDrag(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-
 	void CallOnPointerScroll(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-
 	void CallOnPointerDragDrop(USceneComponent* component, ULGUIPointerEventData* eventData, ELGUIEventFireType eventFireType);
-
 	void CallOnPointerSelect(USceneComponent* component, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
 	void CallOnPointerDeselect(USceneComponent* component, ULGUIBaseEventData* eventData, ELGUIEventFireType eventFireType);
 
