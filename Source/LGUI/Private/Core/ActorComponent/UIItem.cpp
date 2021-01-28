@@ -214,6 +214,17 @@ void UUIItem::OnChildHierarchyIndexChanged(UUIItem* child)
 {
 	CallUIComponentsChildHierarchyIndexChanged(child);
 }
+int32 UUIItem::GetHierarchyIndexWithAllParent()const
+{
+	int32 result = 0;
+	auto parent = this;
+	while (IsValid(parent))
+	{
+		result += parent->GetHierarchyIndex();
+		parent = parent->GetParentAsUIItem();
+	}
+	return result;
+}
 void UUIItem::SetHierarchyIndex(int32 InInt) 
 { 
 	if (InInt != hierarchyIndex)
