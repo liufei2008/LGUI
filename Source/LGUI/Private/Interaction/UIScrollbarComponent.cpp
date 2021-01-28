@@ -125,77 +125,80 @@ void UUIScrollbarComponent::UnregisterSlideEvent(const FLGUIDelegateHandleWrappe
 bool UUIScrollbarComponent::OnPointerDown_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerDown_Implementation(eventData);
-	if (CheckHandle())
+	if (eventData->inputType == ELGUIPointerInputType::Pointer)
 	{
-		if (eventData->enterComponent != Handle)
+		if (CheckHandle())
 		{
-			const auto& pointerInHandleAreaSpace = HandleArea->GetComponentTransform().InverseTransformPosition(eventData->worldPoint);
-			float value01 = Value;
-			switch (DirectionType)
+			if (eventData->enterComponent != Handle)
 			{
-			case UIScrollbarDirectionType::LeftToRight:
-			{
-				float validSpace = HandleArea->GetWidth() * (1.0f - Size);
-				float valueDiff01;
-				if (pointerInHandleAreaSpace.X > Handle->GetRelativeLocation().X)
+				const auto& pointerInHandleAreaSpace = HandleArea->GetComponentTransform().InverseTransformPosition(eventData->worldPoint);
+				float value01 = Value;
+				switch (DirectionType)
 				{
-					valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceRight() + Handle->GetRelativeLocation().X)) / validSpace;
-				}
-				else
+				case UIScrollbarDirectionType::LeftToRight:
 				{
-					valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceLeft() + Handle->GetRelativeLocation().X)) / validSpace;
+					float validSpace = HandleArea->GetWidth() * (1.0f - Size);
+					float valueDiff01;
+					if (pointerInHandleAreaSpace.X > Handle->GetRelativeLocation().X)
+					{
+						valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceRight() + Handle->GetRelativeLocation().X)) / validSpace;
+					}
+					else
+					{
+						valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceLeft() + Handle->GetRelativeLocation().X)) / validSpace;
+					}
+					value01 += valueDiff01;
 				}
-				value01 += valueDiff01;
+				break;
+				case UIScrollbarDirectionType::RightToLeft:
+				{
+					float validSpace = HandleArea->GetWidth() * (1.0f - Size);
+					float valueDiff01;
+					if (pointerInHandleAreaSpace.X > Handle->GetRelativeLocation().X)
+					{
+						valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceRight() + Handle->GetRelativeLocation().X)) / validSpace;
+					}
+					else
+					{
+						valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceLeft() + Handle->GetRelativeLocation().X)) / validSpace;
+					}
+					value01 -= valueDiff01;
+				}
+				break;
+				case UIScrollbarDirectionType::BottomToTop:
+				{
+					float validSpace = HandleArea->GetHeight() * (1.0f - Size);
+					float valueDiff01;
+					if (pointerInHandleAreaSpace.Y > Handle->GetRelativeLocation().Y)
+					{
+						valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceTop() + Handle->GetRelativeLocation().Y)) / validSpace;
+					}
+					else
+					{
+						valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceBottom() + Handle->GetRelativeLocation().Y)) / validSpace;
+					}
+					value01 += valueDiff01;
+				}
+				break;
+				case UIScrollbarDirectionType::TopToBottom:
+				{
+					float validSpace = HandleArea->GetHeight() * (1.0f - Size);
+					float valueDiff01;
+					if (pointerInHandleAreaSpace.Y > Handle->GetRelativeLocation().Y)
+					{
+						valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceTop() + Handle->GetRelativeLocation().Y)) / validSpace;
+					}
+					else
+					{
+						valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceBottom() + Handle->GetRelativeLocation().Y)) / validSpace;
+					}
+					value01 -= valueDiff01;
+				}
+				break;
+				}
+				value01 = FMath::Clamp(value01, 0.0f, 1.0f);
+				SetValue(value01, true);
 			}
-			break;
-			case UIScrollbarDirectionType::RightToLeft:
-			{
-				float validSpace = HandleArea->GetWidth() * (1.0f - Size);
-				float valueDiff01;
-				if (pointerInHandleAreaSpace.X > Handle->GetRelativeLocation().X)
-				{
-					valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceRight() + Handle->GetRelativeLocation().X)) / validSpace;
-				}
-				else
-				{
-					valueDiff01 = (pointerInHandleAreaSpace.X - (Handle->GetLocalSpaceLeft() + Handle->GetRelativeLocation().X)) / validSpace;
-				}
-				value01 -= valueDiff01;
-			}
-			break;
-			case UIScrollbarDirectionType::BottomToTop:
-			{
-				float validSpace = HandleArea->GetHeight() * (1.0f - Size);
-				float valueDiff01;
-				if (pointerInHandleAreaSpace.Y > Handle->GetRelativeLocation().Y)
-				{
-					valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceTop() + Handle->GetRelativeLocation().Y)) / validSpace;
-				}
-				else
-				{
-					valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceBottom() + Handle->GetRelativeLocation().Y)) / validSpace;
-				}
-				value01 += valueDiff01;
-			}
-			break;
-			case UIScrollbarDirectionType::TopToBottom:
-			{
-				float validSpace = HandleArea->GetHeight() * (1.0f - Size);
-				float valueDiff01;
-				if (pointerInHandleAreaSpace.Y > Handle->GetRelativeLocation().Y)
-				{
-					valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceTop() + Handle->GetRelativeLocation().Y)) / validSpace;
-				}
-				else
-				{
-					valueDiff01 = (pointerInHandleAreaSpace.Y - (Handle->GetLocalSpaceBottom() + Handle->GetRelativeLocation().Y)) / validSpace;
-				}
-				value01 -= valueDiff01;
-			}
-			break;
-			}
-			value01 = FMath::Clamp(value01, 0.0f, 1.0f);
-			SetValue(value01, true);
 		}
 	}
 	return AllowEventBubbleUp;
@@ -220,6 +223,40 @@ bool UUIScrollbarComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventDat
 {
 	CalculateInputValue(eventData);
 	return AllowEventBubbleUp;
+}
+bool UUIScrollbarComponent::OnNavigate(ELGUINavigationDirection InDirection)
+{
+	float valueIntervalMultiply = 0.0f;
+	if (
+		(DirectionType == UIScrollbarDirectionType::LeftToRight && InDirection == ELGUINavigationDirection::Left)
+		|| (DirectionType == UIScrollbarDirectionType::RightToLeft && InDirection == ELGUINavigationDirection::Right)
+		|| (DirectionType == UIScrollbarDirectionType::BottomToTop && InDirection == ELGUINavigationDirection::Down)
+		|| (DirectionType == UIScrollbarDirectionType::TopToBottom && InDirection == ELGUINavigationDirection::Up)
+		)
+	{
+		valueIntervalMultiply = -0.1f;
+	}
+	else if (
+		(DirectionType == UIScrollbarDirectionType::LeftToRight && InDirection == ELGUINavigationDirection::Right)
+		|| (DirectionType == UIScrollbarDirectionType::RightToLeft && InDirection == ELGUINavigationDirection::Left)
+		|| (DirectionType == UIScrollbarDirectionType::BottomToTop && InDirection == ELGUINavigationDirection::Up)
+		|| (DirectionType == UIScrollbarDirectionType::TopToBottom && InDirection == ELGUINavigationDirection::Down)
+		)
+	{
+		valueIntervalMultiply = 0.1f;
+	}
+	if (valueIntervalMultiply == 0.0f)
+	{
+		return true;
+	}
+	else
+	{
+		auto tempValue = Value;
+		tempValue += valueIntervalMultiply;
+		tempValue = FMath::Clamp(tempValue, 0.0f, 1.0f);
+		SetValue(tempValue);
+		return false;
+	}
 }
 
 void UUIScrollbarComponent::CalculateInputValue(ULGUIPointerEventData* eventData)

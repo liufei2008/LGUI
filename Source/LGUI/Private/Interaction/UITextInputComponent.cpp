@@ -490,10 +490,10 @@ bool UUITextInputComponent::IsValidChar(char c)
 	//input type
 	switch (InputType)
 	{
-	case ELGUIInputType::Standard:
+	case ELGUITextInputType::Standard:
 		return true;
 		break;
-	case ELGUIInputType::IntegerNumber:
+	case ELGUITextInputType::IntegerNumber:
 	{
 		if (c >= 48 && c <= 57)//0-9
 		{
@@ -502,7 +502,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 		return false;
 	}
 		break;
-	case ELGUIInputType::DecimalNumber:
+	case ELGUITextInputType::DecimalNumber:
 	{
 		bool originHasDot = false;
 		int32 textLength = Text.Len();
@@ -532,7 +532,7 @@ bool UUITextInputComponent::IsValidChar(char c)
 		return false;
 	}
 		break;
-	case ELGUIInputType::Password:
+	case ELGUITextInputType::Password:
 		//handled when UpdateUITextComponent
 		return true;
 		break;
@@ -815,7 +815,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 		FString replaceText;
 		switch (InputType)
 		{
-		case ELGUIInputType::Password:
+		case ELGUITextInputType::Password:
 		{
 			int len = Text.Len();
 			replaceText.Reset(len);
@@ -1238,7 +1238,7 @@ bool UUITextInputComponent::OnPointerUp_Implementation(ULGUIPointerEventData* ev
 	Super::OnPointerUp_Implementation(eventData);
 	return AllowEventBubbleUp;
 }
-void UUITextInputComponent::ActivateInput()
+void UUITextInputComponent::ActivateInput(ULGUIPointerEventData* eventData)
 {
 	if (TextActor == nullptr)
 	{
@@ -1298,11 +1298,18 @@ void UUITextInputComponent::ActivateInput()
 	BindKeys();
 	UpdatePlaceHolderComponent();
 	//set is selected
-	if (ULGUIEventSystem::GetLGUIEventSystemInstance(this) != nullptr)
+	if (auto eventSystem = ULGUIEventSystem::GetLGUIEventSystemInstance(this))
 	{
 		if (CheckRootUIComponent())
 		{
-			ULGUIEventSystem::GetLGUIEventSystemInstance(this)->SetSelectComponentWithDefault(RootUIComp);
+			if (IsValid(eventData))
+			{
+				eventSystem->SetSelectComponent(RootUIComp, eventData, eventData->pressComponentEventFireType);
+			}
+			else
+			{
+				eventSystem->SetSelectComponentWithDefault(RootUIComp);
+			}
 		}
 	}
 	//fire event
@@ -1505,7 +1512,7 @@ void UUITextInputComponent::SetText(FString InText, bool InFireEvent)
 		UpdateAfterTextChange();
 	}
 }
-void UUITextInputComponent::SetInputType(ELGUIInputType newValue)
+void UUITextInputComponent::SetInputType(ELGUITextInputType newValue)
 {
 	if (InputType != newValue)
 	{
@@ -1611,13 +1618,13 @@ EKeyboardType UUITextInputComponent::FVirtualKeyboardEntry::GetVirtualKeyboardTy
 	switch (InputComp->InputType)
 	{
 	default:
-	case ELGUIInputType::Standard:
+	case ELGUITextInputType::Standard:
 		return EKeyboardType::Keyboard_Default;
 		break;
-	case ELGUIInputType::Password:
+	case ELGUITextInputType::Password:
 		return EKeyboardType::Keyboard_Password;
 		break;
-	case ELGUIInputType::DecimalNumber:
+	case ELGUITextInputType::DecimalNumber:
 		return EKeyboardType::Keyboard_Number;
 		break;
 	}

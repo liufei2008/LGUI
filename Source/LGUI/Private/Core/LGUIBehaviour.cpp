@@ -73,7 +73,7 @@ bool ULGUIBehaviour::CheckRootUIComponent() const
 	return false;
 }
 
-bool ULGUIBehaviour::GetIsActiveAndEnable()
+bool ULGUIBehaviour::GetIsActiveAndEnable()const
 {
 	if (CheckRootUIComponent())
 	{

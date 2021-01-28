@@ -82,6 +82,7 @@ public:
 	virtual bool OnPointerBeginDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerEndDrag_Implementation(ULGUIPointerEventData* eventData)override;
+	virtual bool OnNavigate(ELGUINavigationDirection InDirection)override;
 private:
 	bool CheckHandle();
 	void CalculateInputValue(ULGUIPointerEventData* eventData);

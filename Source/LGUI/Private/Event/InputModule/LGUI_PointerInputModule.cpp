@@ -7,6 +7,8 @@
 #include "Event/LGUIEventSystem.h"
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Event/Rayemitter/LGUIBaseRayemitter.h"
+#include "Interaction/UISelectableComponent.h"
+#include "Utils/LGUIUtils.h"
 
 bool ULGUI_PointerInputModule::CheckEventSystem()
 {
@@ -20,17 +22,7 @@ bool ULGUI_PointerInputModule::CheckEventSystem()
 		return IsValid(eventSystem);
 	}
 }
-ULGUIPointerEventData* ULGUI_PointerInputModule::GetPointerEventData(int pointerID, bool createIfNotExist)
-{
-	if (auto foundPtr = pointerEventDataMap.Find(pointerID))
-	{
-		return *foundPtr;
-	}
-	auto newEventData = NewObject<ULGUIPointerEventData>(this);
-	newEventData->pointerID = pointerID;
-	pointerEventDataMap.Add(pointerID, newEventData);
-	return newEventData;
-}
+
 bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult)
 {
 	multiHitResult.Reset();
@@ -141,6 +133,7 @@ void ULGUI_PointerInputModule::ProcessPointerEnterExit(ULGUIPointerEventData* ev
 #endif
 			int insertIndex = eventData->enterComponentStack.Num();
 			eventSystem->CallOnPointerEnter(newObj, eventData, eventData->enterComponentEventFireType);
+			eventSystem->SetHighlightedComponentForNavigation(newObj);
 			eventData->enterComponentStack.Add(newObj);
 #if WITH_EDITOR
 			//UE_LOG(LGUI, Error, TEXT("	:%s"), *(enterObjectActor->GetActorLabel()));
@@ -207,6 +200,7 @@ void ULGUI_PointerInputModule::ProcessPointerEnterExit(ULGUIPointerEventData* ev
 				//UE_LOG(LGUI, Error, TEXT("	%s"), *(enterObjectActor->GetActorLabel()));
 #endif
 				eventSystem->CallOnPointerEnter(newObj, eventData, eventData->enterComponentEventFireType);
+				eventSystem->SetHighlightedComponentForNavigation(newObj);
 				eventData->enterComponentStack.Add(newObj);
 				enterObjectActor = enterObjectActor->GetAttachParentActor();
 				while (enterObjectActor != nullptr)
@@ -294,12 +288,15 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 		{
 			if (IsValid(eventData->pressComponent))//if hit something when press
 			{
-				if (eventData->pressRaycaster->rayEmitter->ShouldStartDrag(eventData))
+				if (IsValid(eventData->pressRaycaster))
 				{
-					eventData->isDragging = true;
-					eventData->dragComponent = eventData->pressComponent;
-					eventData->dragComponentEventFireType = eventData->pressComponentEventFireType;
-					eventSystem->CallOnPointerBeginDrag(eventData->dragComponent, eventData, eventData->dragComponentEventFireType);
+					if (eventData->pressRaycaster->rayEmitter->ShouldStartDrag(eventData))
+					{
+						eventData->isDragging = true;
+						eventData->dragComponent = eventData->pressComponent;
+						eventData->dragComponentEventFireType = eventData->pressComponentEventFireType;
+						eventSystem->CallOnPointerBeginDrag(eventData->dragComponent, eventData, eventData->dragComponentEventFireType);
+					}
 				}
 				outHitResult.Distance = eventData->pressDistance;
 				outIsHitSomething = true;
@@ -316,7 +313,10 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 		{
 			if (lineTraceHitSomething)
 			{
-				hitResultContainer.raycaster->rayEmitter->MarkPress(eventData);
+				if (hitResultContainer.raycaster)
+				{
+					hitResultContainer.raycaster->rayEmitter->MarkPress(eventData);
+				}
 
 				eventData->worldPoint = outHitResult.Location;
 				eventData->worldNormal = outHitResult.Normal;
@@ -376,9 +376,149 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 
 	eventData->prevIsTriggerPressed = eventData->nowIsTriggerPressed;
 }
+bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGUIPointerEventData* InPointerEventData, FHitResultContainerStruct& hitResult, bool firstPressTime)
+{
+	if (!CheckEventSystem())return false;
+
+	auto currentHover = eventSystem->GetHighlightedComponentForNavigation();
+	if (!IsValid(currentHover))
+	{
+		currentHover = UUISelectableComponent::FindDefaultSelectable(this)->GetRootComponent();
+	}
+	if (!IsValid(currentHover))
+	{
+		if (firstPressTime)
+		{
+			FString errMsg = FString::Printf(TEXT("[ULGUI_PointerInputModule::Navigate]Current selected component is not valid! Navigation will not work."));
+			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
+		}
+		return false;
+	}
+	if (direction == ELGUINavigationDirection::None)
+	{
+		hitResult.hitResult.Component = (UPrimitiveComponent*)currentHover;//this convert is incorrect, but I need this pointer
+		hitResult.hitResult.Actor = currentHover->GetOwner();
+		hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
+		hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
+		hitResult.hitResult.Normal.Normalize();
+		hitResult.eventFireType = eventSystem->eventFireTypeForNavigation;
+		hitResult.raycaster = nullptr;
+		hitResult.hoverArray.Reset();
+
+		return true;
+	}
+	if (auto currentSelectable = currentHover->GetOwner()->FindComponentByClass<UUISelectableComponent>())
+	{
+		UUISelectableComponent* newSelectable = currentSelectable;
+		if (currentSelectable->OnNavigate(direction))
+		{
+			switch (direction)
+			{
+			default:
+			case ELGUINavigationDirection::None:
+				newSelectable = currentSelectable;
+				break;
+			case ELGUINavigationDirection::Left:
+				newSelectable = currentSelectable->FindSelectableOnLeft();
+				break;
+			case ELGUINavigationDirection::Right:
+				newSelectable = currentSelectable->FindSelectableOnRight();
+				break;
+			case ELGUINavigationDirection::Up:
+				newSelectable = currentSelectable->FindSelectableOnUp();
+				break;
+			case ELGUINavigationDirection::Down:
+				newSelectable = currentSelectable->FindSelectableOnDown();
+				break;
+			case ELGUINavigationDirection::Prev:
+				newSelectable = currentSelectable->FindSelectableOnPrev();
+				break;
+			case ELGUINavigationDirection::Next:
+				newSelectable = currentSelectable->FindSelectableOnNext();
+				break;
+			}
+		}
+		if (IsValid(newSelectable))
+		{
+			hitResult.hitResult.Component = (UPrimitiveComponent*)newSelectable->GetRootSceneComponent();//this convert is incorrect, but I need this pointer
+			hitResult.hitResult.Actor = newSelectable->GetOwner();
+			hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
+			hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
+			hitResult.hitResult.Normal.Normalize();
+			hitResult.eventFireType = eventSystem->eventFireTypeForNavigation;
+			hitResult.raycaster = nullptr;
+			hitResult.hoverArray.Reset();
+
+			eventSystem->SetHighlightedComponentForNavigation(newSelectable->GetRootSceneComponent());
+			return true;
+		}
+	}
+	return false;
+}
+void ULGUI_PointerInputModule::ProcessInputForNavigation()
+{
+	if (this->GetWorld()->GetTimeSeconds() > navigatePressTime)
+	{
+		bool firstPressTime = navigatePressTime == 0.0f;
+		navigatePressTime = this->GetWorld()->GetTimeSeconds() + (navigatePressTime == 0.0f ? eventSystem->navigateInputIntervalForFirstTime : eventSystem->navigateInputInterval);
+
+		auto eventData = eventSystem->GetPointerEventData(0, true);
+		FHitResultContainerStruct hitResultContainer;
+		bool selectValid = Navigate(currentNavigationDirection, eventData, hitResultContainer, firstPressTime);
+		bool resultHitSomething = false;
+		FHitResult hitResult;
+		ProcessPointerEvent(eventData, selectValid, hitResultContainer, resultHitSomething, hitResult);
+		if (resultHitSomething)
+		{
+			eventSystem->SetSelectComponent((USceneComponent*)hitResult.Component.Get(), eventData, eventSystem->eventFireTypeForNavigation);
+		}
+
+		auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+		eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
+	}
+}
+void ULGUI_PointerInputModule::InputNavigation(ELGUINavigationDirection direction, bool pressOrRelease)
+{
+	if (pressOrRelease)
+	{
+		auto eventData = eventSystem->GetPointerEventData(0, true);
+		if (eventData->inputType != ELGUIPointerInputType::Navigation)
+		{
+			eventData->inputType = ELGUIPointerInputType::Navigation;
+			if (inputChangeDelegate.IsBound())
+			{
+				inputChangeDelegate.Broadcast(eventData->inputType);
+			}
+		}
+		currentNavigationDirection = direction;
+	}
+	else
+	{
+		currentNavigationDirection = ELGUINavigationDirection::None;
+	}
+	navigatePressTime = 0.0f;
+}
+void ULGUI_PointerInputModule::InputTriggerForNavigation(bool inTriggerPress)
+{
+	if (inTriggerPress)
+	{
+		auto eventData = eventSystem->GetPointerEventData(0, true);
+		if (eventData->inputType != ELGUIPointerInputType::Navigation)
+		{
+			eventData->inputType = ELGUIPointerInputType::Navigation;
+			if (inputChangeDelegate.IsBound())
+			{
+				inputChangeDelegate.Broadcast(eventData->inputType);
+			}
+		}
+	}
+	auto eventData = eventSystem->GetPointerEventData(0, true);
+	eventData->nowIsTriggerPressed = inTriggerPress;
+	navigatePressTime = 0.0f;
+}
 void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 {
-	auto eventData = GetPointerEventData(pointerID, false);
+	auto eventData = eventSystem->GetPointerEventData(pointerID, false);
 	if (eventData == nullptr)return;
 	if (!CheckEventSystem())return;
 
@@ -433,8 +573,28 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 }
 void ULGUI_PointerInputModule::ClearEvent()
 {
-	for (auto keyValue : pointerEventDataMap)
+	for (auto keyValue : eventSystem->pointerEventDataMap)
 	{
 		ClearEventByID(keyValue.Key);
 	}
+}
+
+void ULGUI_PointerInputModule::RegisterInputChangeEvent(const FLGUIPointerInputChange_Delegate& pointerInputChange)
+{
+	inputChangeDelegate.Add(pointerInputChange);
+}
+void ULGUI_PointerInputModule::UnregisterInputChangeEvent(const FDelegateHandle& delegateHandle)
+{
+	inputChangeDelegate.Remove(delegateHandle);
+}
+FLGUIDelegateHandleWrapper ULGUI_PointerInputModule::RegisterInputChangeEvent(const FLGUIPointerInputChange_DynamicDelegate& pointerInputChange)
+{
+	auto delegateHandle = inputChangeDelegate.AddLambda([pointerInputChange](ELGUIPointerInputType pointerInputType) {
+		if (pointerInputChange.IsBound())pointerInputChange.Execute(pointerInputType);
+		});
+	return FLGUIDelegateHandleWrapper(delegateHandle);
+}
+void ULGUI_PointerInputModule::UnregisterInputChangeEvent(FLGUIDelegateHandleWrapper delegateHandle)
+{
+	inputChangeDelegate.Remove(delegateHandle.DelegateHandle);
 }
