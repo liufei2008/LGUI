@@ -38,14 +38,7 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)AActor* GetTargetActor() { return TargetActor; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetTargetActor(AActor* InActor)
-	{
-		TargetActor = InActor;
-		if (TargetActor != nullptr)
-		{
-			CacheTargetSceneComponent = TargetActor->GetRootComponent();
-		}
-	}
+		void SetTargetActor(AActor* InActor);
 	UFUNCTION(BlueprintCallable, Category = LGUI)void SetTargetSceneComponent(USceneComponent* InSceneComp) { CacheTargetSceneComponent = InSceneComp; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)USceneComponent* GetTargetSceneComponent() { return CacheTargetSceneComponent; }
 	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)override;
