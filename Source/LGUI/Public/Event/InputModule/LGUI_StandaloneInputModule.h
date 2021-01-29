@@ -23,4 +23,15 @@ public:
 	/** input for scroll */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void InputScroll(const float& inAxisValue);
+	/**
+	 * see "bOverrideMousePosition" property
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void InputOverrideMousePosition(const FVector2D& inMousePosition);
+	/**
+	 * should we use custom mouse position?
+	 * if set to true, then you should call InputOverrideMousePosition to set mouse position;
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
+		bool bOverrideMousePosition = false;
 };

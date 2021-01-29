@@ -2,6 +2,7 @@
 
 #include "Event/Rayemitter/LGUI_SceneComponentRayEmitter.h"
 #include "LGUI.h"
+#include "GameFramework/Actor.h"
 
 bool ULGUI_SceneComponentRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
@@ -50,4 +51,12 @@ bool ULGUI_SceneComponentRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPo
 		calculatedThreshold *= InPointerEventData->pressDistance;
 	}
 	return (InPointerEventData->GetWorldPointSpherical() - InPointerEventData->pressWorldPoint).SizeSquared() > calculatedThreshold;
+}
+void ULGUI_SceneComponentRayEmitter::SetTargetActor(AActor* InActor)
+{
+	TargetActor = InActor;
+	if (TargetActor != nullptr)
+	{
+		CacheTargetSceneComponent = TargetActor->GetRootComponent();
+	}
 }

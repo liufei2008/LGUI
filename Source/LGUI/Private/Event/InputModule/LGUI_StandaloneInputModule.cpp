@@ -16,11 +16,14 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 	default:
 	case ELGUIPointerInputType::Pointer:
 	{
-		auto viewport = this->GetWorld()->GetGameViewport();
-		if (viewport == nullptr)return;
-		FVector2D mousePos;
-		if (!viewport->GetMousePosition(mousePos))return;
-		leftButtonEventData->pointerPosition = FVector(mousePos, 0);
+		if (!bOverrideMousePosition)
+		{
+			auto viewport = this->GetWorld()->GetGameViewport();
+			if (viewport == nullptr)return;
+			FVector2D mousePos;
+			viewport->GetMousePosition(mousePos);
+			leftButtonEventData->pointerPosition = FVector(mousePos, 0);
+		}
 
 		FHitResultContainerStruct hitResultContainer;
 		bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
@@ -81,4 +84,17 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 		}
 	}
 	eventData->mouseButtonType = inMouseButtonType;
+}
+
+void ULGUI_StandaloneInputModule::InputOverrideMousePosition(const FVector2D& inMousePosition)
+{
+	if (!bOverrideMousePosition)
+	{
+		UE_LOG(LGUI, Warning, TEXT("[ULGUI_StandaloneInputModule::InputOverrideMousePosition]Check parameter bOverrideMousePosition if you need to use custom mouse position. Or custom mouse position will not work!"));
+		return;
+	}
+	if (!CheckEventSystem())return;
+
+	auto eventData = eventSystem->GetPointerEventData(0, true);
+	eventData->pointerPosition = FVector(inMousePosition, 0);
 }
