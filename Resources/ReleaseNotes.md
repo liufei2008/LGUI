@@ -1,3 +1,9 @@
+## 2.11.2
+#### NewFeature:
+Add controller input support.
+Custom mouse position input.
+#### Fix:
+Fix useNativeParameter issue when copy event in LGUIDrawableEvent.
 ## 2.11.1
 #### Fix:
 Fix a shader compiler error X3504 caused by LGUIHudShader.usf.
