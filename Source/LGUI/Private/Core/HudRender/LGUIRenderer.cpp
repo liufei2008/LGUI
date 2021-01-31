@@ -295,7 +295,11 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	}
 	RHICmdList.EndRenderPass();
 	//copy back to screen
+#if PLATFORM_ANDROID
+	CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture());
+#else
 	RHICmdList.CopyToResolveTarget(ScreenColorRenderTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
+#endif
 	//release render target
 	SceneColorRenderTarget.SafeRelease();
 }
