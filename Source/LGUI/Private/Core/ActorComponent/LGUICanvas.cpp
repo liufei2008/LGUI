@@ -529,7 +529,6 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged
 		auto uiChild = Cast<UUIItem>(child);
 		if (IsValid(uiChild))
 		{
-			if (uiChild->IsUIActiveInHierarchy() == false)continue;
 			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()) && uiChild->GetRenderCanvas() != this)
 			{
 				uiChild->GetRenderCanvas()->UpdateCanvasLayout(parentLayoutChanged);
