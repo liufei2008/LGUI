@@ -44,7 +44,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 #if WITH_EDITORONLY_DATA
 	for (auto item : allCanvas)
 	{
-		if (IsValid(item))
+		if (item.IsValid())
 		{
 			item->UpdateCanvas(DeltaTime);
 		}
@@ -136,9 +136,9 @@ void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
 		auto& canvasArray = Instance->allCanvas;
 		canvasArray.AddUnique(InCanvas);
 		//sort on order
-		canvasArray.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
+		canvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 			{
-				return A.GetSortOrder() < B.GetSortOrder();
+				return A->GetSortOrder() < B->GetSortOrder();
 			});
 	}
 }
@@ -147,9 +147,9 @@ void ULGUIEditorManagerObject::SortCanvasOnOrder()
 	if (Instance != nullptr)
 	{
 		//sort on order
-		Instance->allCanvas.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
+		Instance->allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 			{
-				return A.GetSortOrder() < B.GetSortOrder();
+				return A->GetSortOrder() < B->GetSortOrder();
 			});
 	}
 }
@@ -159,6 +159,30 @@ void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 	{
 		Instance->allCanvas.RemoveSingle(InCanvas);
 	}
+}
+const TArray<UUIItem*>& ULGUIEditorManagerObject::GetAllUIItem()
+{
+	tempUIItemArray.Reset();
+	for (auto item : allUIItem)
+	{
+		if (item.IsValid())
+		{
+			tempUIItemArray.Add(item.Get());
+		}
+	}
+	return tempUIItemArray;
+}
+const TArray<ULGUICanvas*>& ULGUIEditorManagerObject::GetAllCanvas()
+{
+	tempCanvasArray.Reset();
+	for (auto item : allCanvas)
+	{
+		if (item.IsValid())
+		{
+			tempCanvasArray.Add(item.Get());
+		}
+	}
+	return tempCanvasArray;
 }
 
 
