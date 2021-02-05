@@ -47,10 +47,12 @@ public:
 protected:
 	//collection of all UIItem from current level
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUIItem*> allUIItem;
+		TArray<TWeakObjectPtr<UUIItem>> allUIItem;
 	/** Collect all canvas, and sort by order. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUICanvas*> allCanvas;
+		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
+	TArray<UUIItem*> tempUIItemArray;
+	TArray<ULGUICanvas*> tempCanvasArray;
 #endif
 #if WITH_EDITOR
 private:
@@ -63,17 +65,17 @@ public:
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
-	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
+	const TArray<UUIItem*>& GetAllUIItem();
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void SortCanvasOnOrder();
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
-	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
+	const TArray<ULGUICanvas*>& GetAllCanvas();
 
 private:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<AActor*> AllActors_PrefabSystemProcessing;
+		TArray<TWeakObjectPtr<AActor>> AllActors_PrefabSystemProcessing;
 #endif
 public:
 	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);
