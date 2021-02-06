@@ -577,8 +577,27 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 
 	MenuBuilder.BeginSection("UIPostProcess");
 	{
-		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIBackgroundBlurActor::StaticClass());
-		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUIBackgroundPixelateActor::StaticClass());
+		for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
+		{
+			if (ClassItr->IsChildOf(AUIPostProcessBaseActor::StaticClass()))
+			{
+				if (
+					!ClassItr->HasAnyClassFlags(CLASS_Abstract)
+					&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))
+					)
+				{
+					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
+					if (isBlueprint)
+					{
+						if (ClassItr->GetName().StartsWith(TEXT("SKEL_")))
+						{
+							continue;
+						}
+					}
+					FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, *ClassItr);
+				}
+			}
+		}
 	}
 	MenuBuilder.EndSection();
 }
@@ -609,6 +628,7 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 					&& *ClassItr != AUISpriteActor::StaticClass()
 					&& *ClassItr != AUITextActor::StaticClass()
 					&& *ClassItr != AUITextureActor::StaticClass()
+					&& !(*ClassItr)->IsChildOf(AUIPostProcessBaseActor::StaticClass())
 					&& !ClassItr->HasAnyClassFlags(CLASS_Abstract)
 					&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))
 					)

@@ -16,3 +16,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	virtual class UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
 };
+
+UCLASS(Abstract, HideCategories = (Actor, Rendering))
+class LGUI_API AUIPostProcessBaseActor : public AUIBaseActor
+{
+	GENERATED_BODY()
+
+public:
+	AUIPostProcessBaseActor();
+};
