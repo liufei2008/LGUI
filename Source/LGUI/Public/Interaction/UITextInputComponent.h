@@ -92,22 +92,25 @@ public:
 	void ActivateInput(ULGUIPointerEventData* eventData = nullptr);
 	void DeactivateInput(bool InFireEvent = true);
 
-	void RegisterValueChangeEvent(const FLGUIStringDelegate& InDelegate);
-	void UnregisterValueChangeEvent(const FLGUIStringDelegate& InDelegate);
+	FDelegateHandle RegisterValueChangeEvent(const FLGUIStringDelegate& InDelegate);
+	FDelegateHandle RegisterValueChangeEvent(const TFunction<void(const FString&)>& InFunction);
+	void UnregisterValueChangeEvent(const FDelegateHandle& InHandle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		FLGUIDelegateHandleWrapper RegisterValueChangeEvent(const FLGUITextInputDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void UnregisterValueChangeEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
-	void RegisterSubmitEvent(const FLGUIStringDelegate& InDelegate);
-	void UnregisterSubmitEvent(const FLGUIStringDelegate& InDelegate);
+	FDelegateHandle RegisterSubmitEvent(const FLGUIStringDelegate& InDelegate);
+	FDelegateHandle RegisterSubmitEvent(const TFunction<void(const FString&)>& InFunction);
+	void UnregisterSubmitEvent(const FDelegateHandle& InHandle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		FLGUIDelegateHandleWrapper RegisterSubmitEvent(const FLGUITextInputDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void UnregisterSubmitEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 
-	void RegisterInputActivateEvent(const FLGUIBoolDelegate& InDelegate);
-	void UnregisterInputActivateEvent(const FLGUIBoolDelegate& InDelegate);
+	FDelegateHandle RegisterInputActivateEvent(const FLGUIBoolDelegate& InDelegate);
+	FDelegateHandle RegisterInputActivateEvent(const TFunction<void(bool)>& InDelegate);
+	void UnregisterInputActivateEvent(const FDelegateHandle& InHandle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		FLGUIDelegateHandleWrapper RegisterInputActivateEvent(const FLGUIInputActivateDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")

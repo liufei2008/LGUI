@@ -490,13 +490,17 @@ void UUIScrollViewComponent::RectRangeChanged()
 }
 
 
-void UUIScrollViewComponent::RegisterScrollEvent(const FLGUIVector2Delegate& InDelegate)
+FDelegateHandle UUIScrollViewComponent::RegisterScrollEvent(const FLGUIVector2Delegate& InDelegate)
 {
-	OnScrollCPP.Add(InDelegate);
+	return OnScrollCPP.Add(InDelegate);
 }
-void UUIScrollViewComponent::UnregisterScrollEvent(const FLGUIVector2Delegate& InDelegate)
+FDelegateHandle UUIScrollViewComponent::RegisterScrollEvent(const TFunction<void(FVector2D)>& InFunction)
 {
-	OnScrollCPP.Remove(InDelegate.GetHandle());
+	return OnScrollCPP.AddLambda(InFunction);
+}
+void UUIScrollViewComponent::UnregisterScrollEvent(const FDelegateHandle& InHandle)
+{
+	OnScrollCPP.Remove(InHandle);
 }
 
 FLGUIDelegateHandleWrapper UUIScrollViewComponent::RegisterScrollEvent(const FLGUIScrollViewDynamicDelegate& InDelegate)

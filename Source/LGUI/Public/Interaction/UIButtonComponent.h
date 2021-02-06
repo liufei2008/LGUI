@@ -23,9 +23,11 @@ protected:
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 public:
 	/** Register click event */
-	void RegisterClickEvent(const FSimpleDelegate& InDelegate);//@todo: return delegatehandle
-	/*** Unregister click event */
-	void UnregisterClickEvent(const FSimpleDelegate& InDelegate);//@todo: passin delegatehandle
+	FDelegateHandle RegisterClickEvent(const FSimpleDelegate& InDelegate);
+	/** Register click event */
+	FDelegateHandle RegisterClickEvent(const TFunction<void()>& InFunction);
+	/** Unregister click event */
+	void UnregisterClickEvent(const FDelegateHandle& InHandle);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Button")
 		FLGUIDelegateHandleWrapper RegisterClickEvent(const FLGUIButtonDynamicDelegate& InDelegate);
