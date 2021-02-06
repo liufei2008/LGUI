@@ -34,6 +34,11 @@ void ULGUIPrefabHelperComponent::OnUnregister()
 }
 
 #if WITH_EDITOR
+void ULGUIPrefabHelperComponent::MoveActorToPrefabFolder()
+{
+	FActorFolders::Get().CreateFolder(*this->GetWorld(), PrefabFolderName);
+	this->GetOwner()->SetFolderPath(PrefabFolderName);
+}
 void ULGUIPrefabHelperComponent::LoadPrefab()
 {
 	if (!LoadedRootActor)
