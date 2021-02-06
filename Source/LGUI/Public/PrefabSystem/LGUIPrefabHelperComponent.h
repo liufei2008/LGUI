@@ -44,6 +44,7 @@ public:
 	{
 		return LoadedRootActor;
 	}
+	void MoveActorToPrefabFolder();
 #endif
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Transient)AActor* ParentActorForEditor;

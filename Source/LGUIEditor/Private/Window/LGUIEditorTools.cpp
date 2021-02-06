@@ -639,6 +639,8 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 					LGUIUtils::CollectChildrenActors(selectedActor, prefabComp->AllLoadedActorArray);
 					prefabActor->FinishSpawning(FTransform::Identity, true);
 					prefabComp->SavePrefab();
+
+					prefabComp->MoveActorToPrefabFolder();
 				}
 				else
 				{
