@@ -89,13 +89,17 @@ void UUISliderComponent::SetValue(float InValue, bool FireEvent)
 	}
 }
 
-void UUISliderComponent::RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate)
+FDelegateHandle UUISliderComponent::RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate)
 {
-	OnValueChangeCPP.Add(InDelegate);
+	return OnValueChangeCPP.Add(InDelegate);
 }
-void UUISliderComponent::UnregisterSlideEvent(const FLGUIFloatDelegate& InDelegate)
+FDelegateHandle UUISliderComponent::RegisterSlideEvent(const TFunction<void(float)>& InFunction)
 {
-	OnValueChangeCPP.Remove(InDelegate.GetHandle());
+	return OnValueChangeCPP.AddLambda(InFunction);
+}
+void UUISliderComponent::UnregisterSlideEvent(const FDelegateHandle& InHandle)
+{
+	OnValueChangeCPP.Remove(InHandle);
 }
 
 FLGUIDelegateHandleWrapper UUISliderComponent::RegisterSlideEvent(const FLGUISliderDynamicDelegate& InDelegate)

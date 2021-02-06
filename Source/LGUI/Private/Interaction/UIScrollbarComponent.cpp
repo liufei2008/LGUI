@@ -101,13 +101,17 @@ void UUIScrollbarComponent::SetValueAndSize(float InValue, float InSize, bool Fi
 		}
 	}
 }
-void UUIScrollbarComponent::RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate)
+FDelegateHandle UUIScrollbarComponent::RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate)
 {
-	OnValueChangeCPP.Add(InDelegate);
+	return OnValueChangeCPP.Add(InDelegate);
 }
-void UUIScrollbarComponent::UnregisterSlideEvent(const FLGUIFloatDelegate& InDelegate)
+FDelegateHandle UUIScrollbarComponent::RegisterSlideEvent(const TFunction<void(float)>& InFunction)
 {
-	OnValueChangeCPP.Remove(InDelegate.GetHandle());
+	return OnValueChangeCPP.AddLambda(InFunction);
+}
+void UUIScrollbarComponent::UnregisterSlideEvent(const FDelegateHandle& InHandle)
+{
+	OnValueChangeCPP.Remove(InHandle);
 }
 
 FLGUIDelegateHandleWrapper UUIScrollbarComponent::RegisterSlideEvent(const FLGUIScrollbarDynamicDelegate& InDelegate)
