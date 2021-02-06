@@ -75,37 +75,52 @@ protected:
 	FLGUIMulticastBaseEventDelegate OnPointerSelectCPP;
 	FLGUIMulticastBaseEventDelegate OnPointerDeselectCPP;
 public:
-	void RegisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate); 
-	void RegisterOnPointerExit(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerDown(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerUp(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerClick(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate); 
+	FDelegateHandle RegisterOnPointerExit(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerDown(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerUp(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerClick(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate);
 	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
 	void RegisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate) {};
 	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
 	void RegisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate) {};
-	void RegisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate);
-	void RegisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate);
-	void RegisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerSelect(const FLGUIBaseEventDelegate& InFunction);
+	FDelegateHandle RegisterOnPointerDeselect(const FLGUIBaseEventDelegate& InFunction);
 
-	void UnregisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate); 
-	void UnregisterOnPointerExit(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerDown(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerUp(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerClick(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate);
+	FDelegateHandle RegisterOnPointerEnter(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerExit(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerDown(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerUp(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerClick(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerBeginDrag(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerDrag(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerEndDrag(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerDragDrop(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerScroll(const TFunction<void(ULGUIPointerEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerSelect(const TFunction<void(ULGUIBaseEventData*)>& InFunction);
+	FDelegateHandle RegisterOnPointerDeselect(const TFunction<void(ULGUIBaseEventData*)>& InFunction);
+
+	void UnregisterOnPointerEnter(const FDelegateHandle& InHandle); 
+	void UnregisterOnPointerExit(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerDown(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerUp(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerClick(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerBeginDrag(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerDrag(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerEndDrag(const FDelegateHandle& InHandle);
+	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
 	void UnregisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate) {};
+	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
 	void UnregisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate) {};
-	void UnregisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate);
-	void UnregisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate);
-	void UnregisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate);
+	void UnregisterOnPointerDragDrop(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerScroll(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerSelect(const FDelegateHandle& InHandle);
+	void UnregisterOnPointerDeselect(const FDelegateHandle& InHandle);
 
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
 		FLGUIDelegateHandleWrapper RegisterOnPointerEnter(const FLGUIPointerEventDynamicDelegate& InDelegate);

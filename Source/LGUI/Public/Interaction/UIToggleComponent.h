@@ -18,8 +18,10 @@ enum class UIToggleTransitionType :uint8
 	None				UMETA(DisplayName = "None"),
 	Fade				UMETA(DisplayName = "Fade"),
 	ColorTint			UMETA(DisplayName = "ColorTint"),
-	//You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to toggle actor.
-	//Use OnStartCustomTransition event in UISelectableTransitionComponent, and switch "On"/"Off" condition to do the transition.
+	/**
+	 * You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to toggle actor.
+	 * Use OnStartCustomTransition event in UISelectableTransitionComponent, and switch "On"/"Off" condition to do the transition.
+	 */
 	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
 };
 
@@ -33,7 +35,7 @@ protected:
 	virtual void Start() override;
 protected:
 	friend class FUIToggleCustomization;
-	//If not assigned, use self. must have UIItem component
+	/** If not assigned, use self. must have UIItem component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
 		class AUIBaseActor* ToggleActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
@@ -62,7 +64,7 @@ protected:
 #pragma endregion
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
 		bool IsOn = true;
-	//Must have UIToggleGroupComponent
+	/** Must have UIToggleGroupComponent */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
 		AActor* UIToggleGroupActor;
 	UPROPERTY(Transient) class UUIToggleGroupComponent* GroupComp = nullptr;
@@ -78,8 +80,9 @@ public:
 		virtual void SetState(bool newState, bool fireEvent = true);
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 
-	void RegisterToggleEvent(const FLGUIBoolDelegate& InDelegate);
-	void UnregisterToggleEvent(const FLGUIBoolDelegate& InDelegate);
+	FDelegateHandle RegisterToggleEvent(const FLGUIBoolDelegate& InDelegate);
+	FDelegateHandle RegisterToggleEvent(const TFunction<void(bool)>& InFunction);
+	void UnregisterToggleEvent(const FDelegateHandle& InHandle);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		FLGUIDelegateHandleWrapper RegisterToggleEvent(const FLGUIToggleDynamicDelegate& InDelegate);

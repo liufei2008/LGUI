@@ -43,7 +43,7 @@ protected:
 		float Value = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float Size = 0;
-	//Handle can move inside it's parent
+	/** Handle can move inside it's parent */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
 		AUIBaseActor* HandleActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
@@ -69,8 +69,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		void SetValueAndSize(float InValue, float InSize, bool FireEvent = true);
 
-	void RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
-	void UnregisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
+	FDelegateHandle RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
+	FDelegateHandle RegisterSlideEvent(const TFunction<void(float)>& InFunction);
+	void UnregisterSlideEvent(const FDelegateHandle& InHandle);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		FLGUIDelegateHandleWrapper RegisterSlideEvent(const FLGUIScrollbarDynamicDelegate& InDelegate);

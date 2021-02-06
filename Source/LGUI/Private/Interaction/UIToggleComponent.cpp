@@ -121,13 +121,17 @@ bool UUIToggleComponent::OnPointerClick_Implementation(ULGUIPointerEventData* ev
 	return AllowEventBubbleUp;
 }
 
-void UUIToggleComponent::RegisterToggleEvent(const FLGUIBoolDelegate& InDelegate)
+FDelegateHandle UUIToggleComponent::RegisterToggleEvent(const FLGUIBoolDelegate& InDelegate)
 {
-	OnToggleCPP.Add(InDelegate);
+	return OnToggleCPP.Add(InDelegate);
 }
-void UUIToggleComponent::UnregisterToggleEvent(const FLGUIBoolDelegate& InDelegate)
+FDelegateHandle UUIToggleComponent::RegisterToggleEvent(const TFunction<void(bool)>& InFunction)
 {
-	OnToggleCPP.Remove(InDelegate.GetHandle());
+	return OnToggleCPP.AddLambda(InFunction);
+}
+void UUIToggleComponent::UnregisterToggleEvent(const FDelegateHandle& InHandle)
+{
+	OnToggleCPP.Remove(InHandle);
 }
 
 FLGUIDelegateHandleWrapper UUIToggleComponent::RegisterToggleEvent(const FLGUIToggleDynamicDelegate& InDelegate)

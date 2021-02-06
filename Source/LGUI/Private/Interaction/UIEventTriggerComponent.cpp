@@ -3,102 +3,151 @@
 #include "Interaction/UIEventTriggerComponent.h"
 #include "LGUI.h"
 
-void UUIEventTriggerComponent::RegisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerEnterCPP.Add(InDelegate);
+	return OnPointerEnterCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerExit(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerExit(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerExitCPP.Add(InDelegate);
+	return OnPointerExitCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerDown(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerDown(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerDownCPP.Add(InDelegate);
+	return OnPointerDownCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerUp(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerUp(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerUpCPP.Add(InDelegate);
+	return OnPointerUpCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerClick(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerClick(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerClickCPP.Add(InDelegate);
+	return OnPointerClickCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerBeginDragCPP.Add(InDelegate);
+	return OnPointerBeginDragCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerDragCPP.Add(InDelegate);
+	return OnPointerDragCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerEndDragCPP.Add(InDelegate);
+	return OnPointerEndDragCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerDragDropCPP.Add(InDelegate);
+	return OnPointerDragDropCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate)
 {
-	OnPointerScrollCPP.Add(InDelegate);
+	return OnPointerScrollCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate)
 {
-	OnPointerSelectCPP.Add(InDelegate);
+	return OnPointerSelectCPP.Add(InDelegate);
 }
-void UUIEventTriggerComponent::RegisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate)
 {
-	OnPointerDeselectCPP.Add(InDelegate);
+	return OnPointerDeselectCPP.Add(InDelegate);
 }
 
-void UUIEventTriggerComponent::UnregisterOnPointerEnter(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerEnter(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerEnterCPP.Remove(InDelegate.GetHandle());
+	return OnPointerEnterCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerExit(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerExit(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerExitCPP.Remove(InDelegate.GetHandle());
+	return OnPointerExitCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerDown(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerDown(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerDownCPP.Remove(InDelegate.GetHandle());
+	return OnPointerDownCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerUp(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerUp(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerUpCPP.Remove(InDelegate.GetHandle());
+	return OnPointerUpCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerClick(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerClick(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerClickCPP.Remove(InDelegate.GetHandle());
+	return OnPointerClickCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerBeginDrag(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerBeginDragCPP.Remove(InDelegate.GetHandle());
+	return OnPointerBeginDragCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerDrag(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerDragCPP.Remove(InDelegate.GetHandle());
+	return OnPointerDragCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerEndDrag(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerEndDragCPP.Remove(InDelegate.GetHandle());
+	return OnPointerEndDragCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerDragDrop(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerDragDropCPP.Remove(InDelegate.GetHandle());
+	return OnPointerDragDropCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerScroll(const TFunction<void(ULGUIPointerEventData*)>& InFunction)
 {
-	OnPointerScrollCPP.Remove(InDelegate.GetHandle());
+	return OnPointerScrollCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerSelect(const FLGUIBaseEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerSelect(const TFunction<void(ULGUIBaseEventData*)>& InFunction)
 {
-	OnPointerSelectCPP.Remove(InDelegate.GetHandle());
+	return OnPointerSelectCPP.AddLambda(InFunction);
 }
-void UUIEventTriggerComponent::UnregisterOnPointerDeselect(const FLGUIBaseEventDelegate& InDelegate)
+FDelegateHandle UUIEventTriggerComponent::RegisterOnPointerDeselect(const TFunction<void(ULGUIBaseEventData*)>& InFunction)
 {
-	OnPointerDeselectCPP.Remove(InDelegate.GetHandle());
+	return OnPointerDeselectCPP.AddLambda(InFunction);
+}
+
+void UUIEventTriggerComponent::UnregisterOnPointerEnter(const FDelegateHandle& InHandle)
+{
+	OnPointerEnterCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerExit(const FDelegateHandle& InHandle)
+{
+	OnPointerExitCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerDown(const FDelegateHandle& InHandle)
+{
+	OnPointerDownCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerUp(const FDelegateHandle& InHandle)
+{
+	OnPointerUpCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerClick(const FDelegateHandle& InHandle)
+{
+	OnPointerClickCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerBeginDrag(const FDelegateHandle& InHandle)
+{
+	OnPointerBeginDragCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerDrag(const FDelegateHandle& InHandle)
+{
+	OnPointerDragCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerEndDrag(const FDelegateHandle& InHandle)
+{
+	OnPointerEndDragCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerDragDrop(const FDelegateHandle& InHandle)
+{
+	OnPointerDragDropCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerScroll(const FDelegateHandle& InHandle)
+{
+	OnPointerScrollCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerSelect(const FDelegateHandle& InHandle)
+{
+	OnPointerSelectCPP.Remove(InHandle);
+}
+void UUIEventTriggerComponent::UnregisterOnPointerDeselect(const FDelegateHandle& InHandle)
+{
+	OnPointerDeselectCPP.Remove(InHandle);
 }
 
 bool UUIEventTriggerComponent::OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)

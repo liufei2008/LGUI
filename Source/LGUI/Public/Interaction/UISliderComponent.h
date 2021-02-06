@@ -43,13 +43,13 @@ protected:
 		float MinValue = 0;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
 		float MaxValue = 1;
-	//clamp to integer value
+	/** clamp to integer value */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
 		bool WholeNumbers = false;
-	//"Fill" can fill inside it's parent
+	/** "Fill" can fill inside it's parent */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
 		AUIBaseActor* FillActor;
-	//Handle can move inside it's parent
+	/** Handle can move inside it's parent */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
 		AUIBaseActor* HandleActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
@@ -65,12 +65,14 @@ protected:
 		FLGUIDrawableEvent OnValueChange = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Float);
 	
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")float GetValue()const { return Value; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		float GetValue()const { return Value; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		void SetValue(float InValue, bool FireEvent = true);
 
-	void RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
-	void UnregisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
+	FDelegateHandle RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
+	FDelegateHandle RegisterSlideEvent(const TFunction<void(float)>& InFunction);
+	void UnregisterSlideEvent(const FDelegateHandle& InHandle);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		FLGUIDelegateHandleWrapper RegisterSlideEvent(const FLGUISliderDynamicDelegate& InDelegate);

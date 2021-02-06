@@ -1521,13 +1521,17 @@ void UUITextInputComponent::SetInputType(ELGUITextInputType newValue)
 		UpdateUITextComponent();
 	}
 }
-void UUITextInputComponent::RegisterValueChangeEvent(const FLGUIStringDelegate& InDelegate)
+FDelegateHandle UUITextInputComponent::RegisterValueChangeEvent(const FLGUIStringDelegate& InDelegate)
 {
-	OnValueChangeCPP.Add(InDelegate);
+	return OnValueChangeCPP.Add(InDelegate);
 }
-void UUITextInputComponent::UnregisterValueChangeEvent(const FLGUIStringDelegate& InDelegate)
+FDelegateHandle UUITextInputComponent::RegisterValueChangeEvent(const TFunction<void(const FString&)>& InFunction)
 {
-	OnValueChangeCPP.Remove(InDelegate.GetHandle());
+	return OnValueChangeCPP.AddLambda(InFunction);
+}
+void UUITextInputComponent::UnregisterValueChangeEvent(const FDelegateHandle& InHandle)
+{
+	OnValueChangeCPP.Remove(InHandle);
 }
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterValueChangeEvent(const FLGUITextInputDynamicDelegate& InDelegate)
 {
@@ -1541,13 +1545,17 @@ void UUITextInputComponent::UnregisterValueChangeEvent(const FLGUIDelegateHandle
 	OnValueChangeCPP.Remove(InDelegateHandle.DelegateHandle);
 }
 
-void UUITextInputComponent::RegisterSubmitEvent(const FLGUIStringDelegate& InDelegate)
+FDelegateHandle UUITextInputComponent::RegisterSubmitEvent(const FLGUIStringDelegate& InDelegate)
 {
-	OnSubmitCPP.Add(InDelegate);
+	return OnSubmitCPP.Add(InDelegate);
 }
-void UUITextInputComponent::UnregisterSubmitEvent(const FLGUIStringDelegate& InDelegate)
+FDelegateHandle UUITextInputComponent::RegisterSubmitEvent(const TFunction<void(const FString&)>& InFunction)
 {
-	OnSubmitCPP.Remove(InDelegate.GetHandle());
+	return OnSubmitCPP.AddLambda(InFunction);
+}
+void UUITextInputComponent::UnregisterSubmitEvent(const FDelegateHandle& InHandle)
+{
+	OnSubmitCPP.Remove(InHandle);
 }
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterSubmitEvent(const FLGUITextInputDynamicDelegate& InDelegate)
 {
@@ -1561,13 +1569,17 @@ void UUITextInputComponent::UnregisterSubmitEvent(const FLGUIDelegateHandleWrapp
 	OnValueChangeCPP.Remove(InDelegateHandle.DelegateHandle);
 }
 
-void UUITextInputComponent::RegisterInputActivateEvent(const FLGUIBoolDelegate& InDelegate)
+FDelegateHandle UUITextInputComponent::RegisterInputActivateEvent(const FLGUIBoolDelegate& InDelegate)
 {
-	OnInputActivateCPP.Add(InDelegate);
+	return OnInputActivateCPP.Add(InDelegate);
 }
-void UUITextInputComponent::UnregisterInputActivateEvent(const FLGUIBoolDelegate& InDelegate)
+FDelegateHandle UUITextInputComponent::RegisterInputActivateEvent(const TFunction<void(bool)>& InDelegate)
 {
-	OnInputActivateCPP.Remove(InDelegate.GetHandle());
+	return OnInputActivateCPP.AddLambda(InDelegate);
+}
+void UUITextInputComponent::UnregisterInputActivateEvent(const FDelegateHandle& InHandle)
+{
+	OnInputActivateCPP.Remove(InHandle);
 }
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterInputActivateEvent(const FLGUIInputActivateDynamicDelegate& InDelegate)
 {

@@ -88,8 +88,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void RectRangeChanged();
 
-	void RegisterScrollEvent(const FLGUIVector2Delegate& InDelegate);
-	void UnregisterScrollEvent(const FLGUIVector2Delegate& InDelegate);
+	FDelegateHandle RegisterScrollEvent(const FLGUIVector2Delegate& InDelegate);
+	FDelegateHandle RegisterScrollEvent(const TFunction<void(FVector2D)>& InFunction);
+	void UnregisterScrollEvent(const FDelegateHandle& InHandle);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		FLGUIDelegateHandleWrapper RegisterScrollEvent(const FLGUIScrollViewDynamicDelegate& InDelegate);
