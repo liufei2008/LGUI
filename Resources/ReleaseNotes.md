@@ -1,3 +1,11 @@
+## 2.11.3
+#### Fix:
+Fix update layout issue when IsUIActive=false.
+Fix memory leak caused by LGUIEditorManagerObject referencing UIItem.
+#### Modify:
+Add right and middle mouse button trigger event to PresetEventSystemActor.
+Menu "Create UI Extension Elements" remove post process actors.
+Add lambda function for RegisterEvent of interaction components.
 ## 2.11.2
 #### NewFeature:
 Add controller input support.
