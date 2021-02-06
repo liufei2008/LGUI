@@ -11,3 +11,10 @@ AUIBaseActor::AUIBaseActor()
 
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 }
+
+AUIPostProcessBaseActor::AUIPostProcessBaseActor()
+{
+	PrimaryActorTick.bCanEverTick = false;
+
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+}
