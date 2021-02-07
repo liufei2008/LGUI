@@ -135,9 +135,9 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
-		static ULTweener* MaterialScalarParameterTo(UMaterialInstanceDynamic* target, FName parameterName, float endValue, float duration, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+		static ULTweener* MaterialScalarParameterTo(UMaterialInstanceDynamic* target, FName parameterName, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = LTween)
-		static ULTweener* MaterialVectorParameterTo(UMaterialInstanceDynamic* target, FName parameterName, FLinearColor endValue, float duration, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+		static ULTweener* MaterialVectorParameterTo(UMaterialInstanceDynamic* target, FName parameterName, FLinearColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Assign onComplete or onUpdate or onStart", WorldContext = "WorldContextObject"), Category = LTween)
 		static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, const FTweenerSimpleDynamicDelegate& start, const FTweenerFloatDynamicDelegate& update, const FTweenerSimpleDynamicDelegate& complete)
