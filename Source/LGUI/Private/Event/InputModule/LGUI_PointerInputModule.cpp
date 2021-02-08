@@ -383,7 +383,10 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 	auto currentHover = eventSystem->GetHighlightedComponentForNavigation();
 	if (!IsValid(currentHover))
 	{
-		currentHover = UUISelectableComponent::FindDefaultSelectable(this)->GetRootComponent();
+		if (auto selectable = UUISelectableComponent::FindDefaultSelectable(this))
+		{
+			currentHover = selectable->GetRootComponent();
+		}
 	}
 	if (!IsValid(currentHover))
 	{
