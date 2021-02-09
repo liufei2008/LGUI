@@ -9,10 +9,11 @@ class LTWEEN_API ULTweenerInteger :public ULTweener
 {
 	GENERATED_BODY()
 public:
-	float startValue = 0.0f;//b
-	float changeValue = 0.0f;//c
-
+	float startFloat = 0.0f;//b
+	float changeFloat = 1.0f;//c
+	int startValue;
 	int endValue;
+
 	FLTweenIntGetterFunction getter;
 	FLTweenIntSetterFunction setter;
 
@@ -28,12 +29,17 @@ protected:
 	{
 		if (getter.IsBound())
 			this->startValue = getter.Execute();
-		this->changeValue = (float)endValue - startValue;
 	}
 	virtual void TweenAndApplyValue() override
 	{
-		auto value = tweenFunc.Execute(changeValue, startValue, elapseTime, duration);
+		auto lerpValue = tweenFunc.Execute(changeFloat, startFloat, elapseTime, duration);
 		if (setter.IsBound()) 
-			setter.Execute((int)value);
+			setter.Execute(FMath::Lerp(startValue, endValue, lerpValue));
+	}
+	virtual void SetValueForIncremental() override
+	{
+		auto diffValue = endValue - startValue;
+		startValue = endValue;
+		endValue += diffValue;
 	}
 };

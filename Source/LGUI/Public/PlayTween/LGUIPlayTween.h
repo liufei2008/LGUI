@@ -14,6 +14,9 @@ class LGUI_API ULGUIPlayTween : public UObject
 protected:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		LTweenLoop loopType = LTweenLoop::Once;
+	/** number of cycles to play (-1 for infinite) */
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "loopType != LTweenLoop::Once"))
+		int32 loopCount = 0;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		LTweenEase easeType = LTweenEase::Linear;
 	/** only valid if easeType=CurveFloat */
@@ -41,6 +44,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		ULTweener* GetTweener()const { return tweener; }
 	FDelegateHandle RegisterOnComplete(const FSimpleDelegate& InDelegate);
+	FDelegateHandle RegisterOnComplete(const TFunction<void()>& InFunction);
 	void UnregisterOnComplete(const FDelegateHandle& InDelegateHandle);
 protected:
 	virtual void OnUpdate(float progress)PURE_VIRTUAL(ULGUIPlayTween::OnUpdate, );

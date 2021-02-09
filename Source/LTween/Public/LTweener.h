@@ -100,10 +100,12 @@ enum class LTweenLoop :uint8
 {
 	/** Play noce, not loop */
 	Once, 
-	/** Restart loop when complete */
+	/** Each loop restarts from beginning */
 	Restart, 
-	/** Restart loop when complete, but reverse start/end value */
+	/** The tween move forward and backward */
 	Yoyo, 
+	/** Continuously increments the tween at the end of each loop cycle (A to B, B to B+(A-B), and so on). */
+	Incremental,
 };
 
 class UCurveFloat;
@@ -130,8 +132,10 @@ protected:
 	LTweenLoop loopType = LTweenLoop::Once;
 	/** if loopType = Yoyo, reverse time */
 	bool reverseTween = false;
-	/** how many times is this animation loops. when loop type is Restart/Yoyo, every time the tween complete the loopCount will increase */
-	int32 loopCount = 0;
+	/** max loop count when loop type is Restart/Yoyo/Incremental */
+	int32 maxLoopCount = 0;
+	/** current completed cycle count */
+	int32 loopCycleCount = 0;
 
 	/** if animation start play */
 	bool startToTween = false;
@@ -142,8 +146,10 @@ protected:
 	/** mark this tween as pause, it will keep pause until call Resume() */
 	bool isMarkedPause = false;
 
-	/** call once after animation complete. if use loop, this will call every time after complete in every cycle */
+	/** call once after animation complete */
 	FSimpleDelegate onCompleteCpp;
+	/** if use loop, this will call every time after complete in every cycle */
+	FSimpleDelegate onCycleCompleteCpp;
 	/** call every frame after animation starts */
 	LTweenUpdateDelegate onUpdateCpp;
 	/** call once when animation starts */
@@ -165,26 +171,45 @@ public:
 		}
 		return this;
 	}
-	UFUNCTION(BlueprintCallable, Category = "LTween")
+	UE_DEPRECATED(4.23, "SetLoopType not valid anymore, use SetLoop instead.")
+	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "SetLoopType not valid anymore, use SetLoop instead."))
 		virtual ULTweener* SetLoopType(LTweenLoop newLoopType)
 	{
 		this->loopType = newLoopType;
 		return this;
 	}
 	/**
-	 * How many times is this animation loops. 
-	 * When loop type is Restart/Yoyo, every time the tween complete the loopCount will increase.
-	 * Register a OnComplete callback and check loopCount, so we can limit the loop to a specific times.
+	 * Set loop of tween.
+	 * @param newLoopType	loop type
+	 * @param newLoopCount	number of cycles to play (-1 for infinite)
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		int32 GetLoopCount() { return loopCount; }
-	/** finish animation callback function */
+		virtual ULTweener* SetLoop(LTweenLoop newLoopType, int32 newLoopCount)
+	{
+		this->loopType = newLoopType;
+		this->maxLoopCount = newLoopCount;
+		return this;
+	}
+	UE_DEPRECATED(4.23, "GetLoopCount not valid anymore, use GetLoopCycleCount instead.")
+	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "GetLoopCount not valid anymore, use GetLoopCycleCount instead."))
+		int32 GetLoopCount() { return loopCycleCount; }
+	/** curently completed loop cycle count */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		int32 GetLoopCycleCount()const { return loopCycleCount; }
+
+	/** execute when animation complete */
 	ULTweener* OnComplete(const FSimpleDelegate& newComplete)
 	{
 		this->onCompleteCpp = newComplete;
 		return this;
 	}
-	/** finish animation callback function for blueprint */
+	/** execute when animation complete */
+	ULTweener* OnComplete(const TFunction<void()>& newComplete)
+	{
+		this->onCompleteCpp.BindLambda(newComplete);
+		return this;
+	}
+	/** execute when animation complete */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* OnComplete(const FTweenerSimpleDynamicDelegate& newComplete)
 	{
@@ -193,19 +218,42 @@ public:
 		});
 		return this;
 	}
-	/** finish animation callback function for lambda */
-	ULTweener* OnComplete(const TFunction<void()>& newComplete)
+	
+	/** execute every cycle complete when use loop */
+	ULTweener* OnCycleComplete(const FSimpleDelegate& newCycleComplete)
 	{
-		this->onCompleteCpp.BindLambda(newComplete);
+		this->onCycleCompleteCpp = newCycleComplete;
 		return this;
 	}
+	/** execute every cycle complete when use loop */
+	ULTweener* OnCycleComplete(const TFunction<void()>& newCycleComplete)
+	{
+		this->onCycleCompleteCpp.BindLambda(newCycleComplete);
+		return this;
+	}
+	/** execute every cycle complete when use loop */
+	UFUNCTION(BlueprintCallable, Category = "LTween")
+		ULTweener* OnCycleComplete(const FTweenerSimpleDynamicDelegate& newCycleComplete)
+	{
+		this->onCycleCompleteCpp.BindLambda([newCycleComplete] {
+			if (newCycleComplete.IsBound())newCycleComplete.Execute();
+			});
+		return this;
+	}
+
 	/** execute every frame if animation is playing */
 	ULTweener* OnUpdate(const LTweenUpdateDelegate& newUpdate)
 	{
 		this->onUpdateCpp = newUpdate;
 		return this;
 	}
-	/** execute every frame if animation is playing, blueprint version*/
+	/** execute every frame if animation is playing */
+	ULTweener* OnUpdate(const TFunction<void(float)>& newUpdate)
+	{
+		this->onUpdateCpp.BindLambda(newUpdate);
+		return this;
+	}
+	/** execute every frame if animation is playing */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* OnUpdate(const FTweenerFloatDynamicDelegate& newUpdate)
 	{
@@ -214,12 +262,7 @@ public:
 		});
 		return this;
 	}
-	/** execute every frame if animation is playing, lambda version*/
-	ULTweener* OnUpdate(const TFunction<void(float)>& newUpdate)
-	{
-		this->onUpdateCpp.BindLambda(newUpdate);
-		return this;
-	}
+	
 	/** execute when animation start*/
 	ULTweener* OnStart(const FSimpleDelegate& newStart)
 	{
@@ -280,6 +323,8 @@ protected:
 	virtual void OnStartGetValue() PURE_VIRTUAL(ULTweener::OnStartGetValue, );
 	/** set value when tweening. child class must override this, check LTweenerFloat for reference */
 	virtual void TweenAndApplyValue() PURE_VIRTUAL(ULTweener::TweenAndApplyValue, );
+	/** set start and change value if looptype is Incremental. */
+	virtual void SetValueForIncremental() PURE_VIRTUAL(ULTweener::SetValueForIncremental, );
 #pragma region tweenFunctions
 public:
 	/**

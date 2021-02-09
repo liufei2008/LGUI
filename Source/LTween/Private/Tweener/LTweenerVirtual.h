@@ -23,4 +23,8 @@ protected:
 	{
 		
 	}
+	virtual void SetValueForIncremental() override
+	{
+		
+	}
 };
