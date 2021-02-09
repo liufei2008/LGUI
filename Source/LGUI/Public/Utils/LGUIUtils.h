@@ -112,7 +112,7 @@ public:
 	static void SortUIItemDepth(TArray<class UUIRenderable*>& shapeList);
 	static void SortUIItemDepth(TArray<TSharedPtr<class UIGeometry>>& shapeList);
 	//create drawcall
-	static void CreateDrawcallFast(TArray<class UUIRenderable*>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
+	static void CreateDrawcall(TArray<class UUIRenderable*>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
 	//find root LGUICanvas
 	static void FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
 	//find LGUICanvas component in parent, not include self

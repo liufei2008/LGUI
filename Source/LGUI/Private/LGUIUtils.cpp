@@ -113,7 +113,7 @@ void LGUIUtils::SortUIItemDepth(TArray<TSharedPtr<UIGeometry>>& shapeList)
 	});
 }
 
-void LGUIUtils::CreateDrawcallFast(TArray<UUIRenderable*>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
+void LGUIUtils::CreateDrawcall(TArray<UUIRenderable*>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
 {
 	UTexture* prevTex = nullptr;
 	TSharedPtr<UUIDrawcall> prevUIDrawcall = nullptr;
