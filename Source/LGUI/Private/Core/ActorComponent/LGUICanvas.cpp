@@ -604,7 +604,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				}
 			}
 			LGUIUtils::SortUIItemDepth(UIRenderableItemList);//sort on depth
-			LGUIUtils::CreateDrawcallFast(UIRenderableItemList, UIDrawcallList);//create drawcall
+			LGUIUtils::CreateDrawcall(UIRenderableItemList, UIDrawcallList);//create drawcall
 			for (auto item : UIDrawcallList)
 			{
 				item->UpdateDepthRange();
@@ -830,7 +830,10 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 	{
 		if (i < UIMeshList.Num())
 		{
-			UIMeshList[i]->SetUITranslucentSortPriority(InStartRenderPriority++);
+			if (IsValid(UIMeshList[i]))
+			{
+				UIMeshList[i]->SetUITranslucentSortPriority(InStartRenderPriority++);
+			}
 		}
 	}
 	return UIDrawcallList.Num();
