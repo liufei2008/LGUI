@@ -44,4 +44,10 @@ protected:
 		if (setter.IsBound())
 			setter.Execute(value);
 	}
+	virtual void SetValueForIncremental() override
+	{
+		auto diffValue = endValue - startValue;
+		startValue = endValue;
+		endValue += diffValue;
+	}
 };

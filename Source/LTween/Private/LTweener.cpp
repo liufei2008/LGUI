@@ -131,6 +131,7 @@ bool ULTweener::ToNext(float deltaTime)
 		if (elapseTime >= duration || elapseTime < 0)//elapseTime less than 0 means loop reverse
 		{
 			bool returnValue = true;
+			loopCycleCount++;
 			switch (loopType)
 			{
 			case LTweenLoop::Once:
@@ -143,7 +144,6 @@ bool ULTweener::ToNext(float deltaTime)
 			{
 				elapseTime -= duration;
 				returnValue = true;
-				loopCount++;
 			}
 			break;
 			case LTweenLoop::Yoyo:
@@ -158,7 +158,13 @@ bool ULTweener::ToNext(float deltaTime)
 				}
 				returnValue = true;
 				reverseTween = !reverseTween;
-				loopCount++;
+			}
+			break;
+			case LTweenLoop::Incremental:
+			{
+				SetValueForIncremental();
+				elapseTime -= duration;
+				returnValue = true;
 			}
 			break;
 			}
@@ -166,8 +172,17 @@ bool ULTweener::ToNext(float deltaTime)
 			TweenAndApplyValue();
 			if (onUpdateCpp.IsBound()) 
 				onUpdateCpp.Execute(1.0f);
-			if (onCompleteCpp.IsBound()) 
-				onCompleteCpp.Execute();
+			if (onCycleCompleteCpp.IsBound())
+				onCycleCompleteCpp.Execute();
+			if (maxLoopCount != -1)//infinite loop
+			{
+				if (loopCycleCount >= maxLoopCount)
+				{
+					if (onCompleteCpp.IsBound())
+						onCompleteCpp.Execute();
+					returnValue = false;
+				}
+			}
 			return returnValue;
 		}
 		else

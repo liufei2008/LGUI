@@ -36,4 +36,9 @@ protected:
 		if (setter.IsBound()) 
 			setter.Execute(value);
 	}
+	virtual void SetValueForIncremental() override
+	{
+		startValue = endValue;
+		endValue += changeValue;
+	}
 };

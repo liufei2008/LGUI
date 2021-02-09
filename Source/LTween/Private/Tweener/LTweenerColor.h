@@ -44,4 +44,14 @@ protected:
 		if (setter.IsBound())
 			setter.Execute(value);
 	}
+	virtual void SetValueForIncremental() override
+	{
+		FColor diffValue;
+		diffValue.R = endValue.R - startValue.R;
+		diffValue.G = endValue.G - startValue.G;
+		diffValue.B = endValue.B - startValue.B;
+		diffValue.A = endValue.A - startValue.A;
+		startValue = endValue;
+		endValue += diffValue;
+	}
 };

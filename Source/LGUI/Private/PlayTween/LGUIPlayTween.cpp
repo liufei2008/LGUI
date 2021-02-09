@@ -15,7 +15,7 @@ void ULGUIPlayTween::Start()
 		, FLTweenFloatSetterFunction::CreateLambda([=](float value) { OnUpdate(value); })
 		, 1.0f, duration)
 		->SetDelay(startDelay)
-		->SetLoopType(loopType)
+		->SetLoop(loopType, loopCount)
 		->SetEase(easeType)
 		->SetCurveFloat(easeCurve)
 		->OnStart([&] {
@@ -35,6 +35,10 @@ void ULGUIPlayTween::Start()
 FDelegateHandle ULGUIPlayTween::RegisterOnComplete(const FSimpleDelegate& InDelegate)
 {
 	return onComplete_Delegate.Add(InDelegate);
+}
+FDelegateHandle ULGUIPlayTween::RegisterOnComplete(const TFunction<void()>& InFunction)
+{
+	return onComplete_Delegate.AddLambda(InFunction);
 }
 void ULGUIPlayTween::UnregisterOnComplete(const FDelegateHandle& InDelegateHandle)
 {
