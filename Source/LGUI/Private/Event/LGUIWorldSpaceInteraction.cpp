@@ -55,3 +55,33 @@ bool ULGUIWorldSpaceInteraction::Raycast(ULGUIPointerEventData* InPointerEventDa
 	CheckRayemitter();
 	return Super::Raycast(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 }
+
+void ULGUIWorldSpaceInteraction::SetClickThreshold(float value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
+void ULGUIWorldSpaceInteraction::SetHoldToDrag(bool value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
+void ULGUIWorldSpaceInteraction::SetHoldToDragTime(float value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
+void ULGUIWorldSpaceInteraction::SetInteractionSource(ELGUIWorldSpaceInteractionSource value)
+{
+	if (interactionSource != value)
+	{
+		interactionSource = value;
+		rayEmitter = nullptr;
+	}
+}
