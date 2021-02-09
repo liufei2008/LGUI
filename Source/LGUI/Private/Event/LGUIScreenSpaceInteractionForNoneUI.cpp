@@ -36,3 +36,25 @@ bool ULGUIScreenSpaceInteractionForNoneUI::Raycast(ULGUIPointerEventData* InPoin
 	CheckRayemitter();
 	return Super::Raycast(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 }
+
+void ULGUIScreenSpaceInteractionForNoneUI::SetClickThreshold(float value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
+void ULGUIScreenSpaceInteractionForNoneUI::SetHoldToDrag(bool value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
+void ULGUIScreenSpaceInteractionForNoneUI::SetHoldToDragTime(float value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
