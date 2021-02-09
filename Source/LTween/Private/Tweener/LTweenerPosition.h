@@ -48,4 +48,10 @@ protected:
 		if (setter.IsBound())
 			setter.Execute(value, sweep, sweepHitResult, teleportType);
 	}
+	virtual void SetValueForIncremental() override
+	{
+		auto diffValue = endValue - startValue;
+		startValue = endValue;
+		endValue += diffValue;
+	}
 };

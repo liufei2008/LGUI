@@ -55,4 +55,10 @@ protected:
 				UE_LOG(LTween, Warning, TEXT("[ULTweenerMaterialScalar/TweenAndApplyValue]Set paramter value error!"));
 			}
 	}
+	virtual void SetValueForIncremental() override
+	{
+		auto diffValue = endValue - startValue;
+		startValue = endValue;
+		endValue += diffValue;
+	}
 };
