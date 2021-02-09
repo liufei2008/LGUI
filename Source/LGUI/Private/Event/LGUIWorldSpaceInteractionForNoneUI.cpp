@@ -4,6 +4,7 @@
 #include "Event/Rayemitter/LGUI_MainViewportMouseRayemitter.h"
 #include "Event/Rayemitter/LGUI_SceneComponentRayemitter.h"
 #include "Event/Rayemitter/LGUI_CenterScreenRayemitter.h"
+#include "GameFramework/Actor.h"
 
 ULGUIWorldSpaceInteractionForNoneUI::ULGUIWorldSpaceInteractionForNoneUI()
 {
@@ -45,4 +46,34 @@ bool ULGUIWorldSpaceInteractionForNoneUI::Raycast(ULGUIPointerEventData* InPoint
 {
 	CheckRayemitter();
 	return Super::Raycast(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
+}
+
+void ULGUIWorldSpaceInteractionForNoneUI::SetClickThreshold(float value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
+void ULGUIWorldSpaceInteractionForNoneUI::SetHoldToDrag(bool value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
+void ULGUIWorldSpaceInteractionForNoneUI::SetHoldToDragTime(float value)
+{
+	if (IsValid(rayEmitter))
+	{
+		rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
+	}
+}
+void ULGUIWorldSpaceInteractionForNoneUI::SetInteractionSource(ELGUIWorldSpaceInteractionSource value)
+{
+	if (interactionSource != value)
+	{
+		interactionSource = value;
+		rayEmitter = nullptr;
+	}
 }
