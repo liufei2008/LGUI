@@ -105,46 +105,54 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		auto hierarchyIndexWidget =
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
-			.Padding(2, 4)
+			.Padding(2, 0)
 			.FillWidth(5)
 			[
 				hierarchyIndexHandle->CreatePropertyValueWidget()
 			]
 			+ SHorizontalBox::Slot()
-			.Padding(2, 6)
+			.Padding(2, 0)
 			.FillWidth(2)
 			[
-				SNew(SButton)
-				.Text(LOCTEXT("Increase", "+"))
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.OnClicked_Lambda([&]()
-				{
-				for (auto item : TargetScriptArray)
-				{
-					item->SetHierarchyIndex(item->hierarchyIndex + 1);
-					ForceUpdateUI();
-				}
-				FLGUIEditorModule::Instance->RefreshSceneOutliner();
-				return FReply::Handled(); 
-				})
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("Increase", "+"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([&]()
+					{
+						for (auto item : TargetScriptArray)
+						{
+							item->SetHierarchyIndex(item->hierarchyIndex + 1);
+							ForceUpdateUI();
+						}
+						FLGUIEditorModule::Instance->RefreshSceneOutliner();
+						return FReply::Handled(); 
+					})
+				]
 			]
 			+ SHorizontalBox::Slot()
-			.Padding(2, 6)
+			.Padding(2, 0)
 			.FillWidth(2)
 			[
-				SNew(SButton)
-				.Text(LOCTEXT("Decrease", "-"))
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.OnClicked_Lambda([&]()
-				{
-				for (auto item : TargetScriptArray)
-				{
-					item->SetHierarchyIndex(item->hierarchyIndex - 1);
-					ForceUpdateUI();
-				}
-				FLGUIEditorModule::Instance->RefreshSceneOutliner();
-				return FReply::Handled();
-				})
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("Decrease", "-"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([&]()
+					{
+						for (auto item : TargetScriptArray)
+						{
+							item->SetHierarchyIndex(item->hierarchyIndex - 1);
+							ForceUpdateUI();
+						}
+						FLGUIEditorModule::Instance->RefreshSceneOutliner();
+						return FReply::Handled();
+					})
+				]
 			];
 
 		lguiCategory.AddCustomRow(LOCTEXT("HierarchyIndexManager", "HierarchyIndexManager"), true)
@@ -174,57 +182,65 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		auto depthWidget =
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
-			.Padding(2, 4)
+			.Padding(2, 0)
 			.FillWidth(5)
 			[
 				depthHandle->CreatePropertyValueWidget()
 			]
 			+ SHorizontalBox::Slot()
-			.Padding(2, 6)
+			.Padding(2, 0)
 			.FillWidth(2)
 			[
-				SNew(SButton)
-				.Text(LOCTEXT("MoveUp", "+"))
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.OnClicked_Lambda([&]()
-				{
-				for (auto Script : TargetScriptArray)
-				{
-					Script->widget.depth++;
-				}
-				SetDepthInfo(TargetScriptArray[0]);
-				ForceUpdateUI();
-					return FReply::Handled(); 
-				})
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("MoveUp", "+"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([&]()
+					{
+						for (auto Script : TargetScriptArray)
+						{
+							Script->widget.depth++;
+						}
+						SetDepthInfo(TargetScriptArray[0]);
+						ForceUpdateUI();
+						return FReply::Handled(); 
+					})
+				]
 			]
 			+ SHorizontalBox::Slot()
-			.Padding(2, 6)
+			.Padding(2, 0)
 			.FillWidth(2)
 			[
-				SNew(SButton)
-				.Text(LOCTEXT("MoveDown", "-"))
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.OnClicked_Lambda([&]()
-				{
-				for (auto Script : TargetScriptArray)
-				{
-					Script->widget.depth--;
-				}
-				SetDepthInfo(TargetScriptArray[0]);
-				ForceUpdateUI();
-				return FReply::Handled();
-				})
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("MoveDown", "-"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([&]()
+					{
+						for (auto Script : TargetScriptArray)
+						{
+							Script->widget.depth--;
+						}
+						SetDepthInfo(TargetScriptArray[0]);
+						ForceUpdateUI();
+						return FReply::Handled();
+					})
+				]
 			];
 
 			lguiCategory.AddCustomRow(LOCTEXT("DepthManager", "DepthManager"))
-		.NameContent()
-		[
-			depthHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		[
-			depthWidget
-		];
+			.NameContent()
+			[
+				depthHandle->CreatePropertyNameWidget()
+			]
+			.ValueContent()
+			[
+				depthWidget
+			];
 
 
 		//depth info

@@ -190,36 +190,44 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		[
 			SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
-			.Padding(2, 4)
+			.Padding(2, 0)
 			.FillWidth(5)
 			[
 				sortOrderHandle->CreatePropertyValueWidget()
 			]
 			+ SHorizontalBox::Slot()
-			.Padding(2, 6)
+			.Padding(2, 0)
 			.FillWidth(2)
 			[
-				SNew(SButton)
-				.Text(LOCTEXT("Up", "+"))
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.OnClicked_Lambda([=]()
-				{
-					sortOrderHandle->SetValue(TargetScriptArray[0]->GetSortOrder() + 1);
-					return FReply::Handled(); 
-				})
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("Up", "+"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([=]()
+					{
+						sortOrderHandle->SetValue(TargetScriptArray[0]->GetSortOrder() + 1);
+						return FReply::Handled(); 
+					})
+				]
 			]
 			+ SHorizontalBox::Slot()
-			.Padding(2, 6)
+			.Padding(2, 0)
 			.FillWidth(2)
 			[
-				SNew(SButton)
-				.Text(LOCTEXT("Down", "-"))
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.OnClicked_Lambda([=]()
-				{
-					sortOrderHandle->SetValue(TargetScriptArray[0]->GetSortOrder() - 1);
-					return FReply::Handled();
-				})
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("Down", "-"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([=]()
+					{
+						sortOrderHandle->SetValue(TargetScriptArray[0]->GetSortOrder() - 1);
+						return FReply::Handled();
+					})
+				]
 			]
 		];
 

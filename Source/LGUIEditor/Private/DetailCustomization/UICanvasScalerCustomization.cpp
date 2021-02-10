@@ -48,15 +48,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		auto canvas = TargetScriptPtr->Canvas;
 		if (!canvas->IsRootCanvas())
 		{
-			lguiCategory.AddCustomRow(LOCTEXT("NotRootCanvasWarning", "NotRootCanvasWarning"))
-			.WholeRowContent()
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(FString(TEXT("Only valid for root LGUICanvas"))))
-				.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-				.AutoWrapText(true)
-				.Font(IDetailLayoutBuilder::GetDetailFont())
-			];
+			LGUIEditorUtils::ShowError(&lguiCategory, FString(TEXT("This component is only valid for root LGUICanvas")));
 		}
 		else
 		{

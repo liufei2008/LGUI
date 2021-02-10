@@ -47,7 +47,7 @@ public:
 					.WholeRowContent()
 					[
 						SNew(STextBlock)
-						.Text(FText::FromString(FString::Printf(TEXT("This component require %s component on the same actor!"), *(RequireComponentType->GetName()))))
+						.Text(FText::FromString(FString::Printf(TEXT("This component require %s component on actor!"), *(RequireComponentType->GetName()))))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.AutoWrapText(true)
 					]
