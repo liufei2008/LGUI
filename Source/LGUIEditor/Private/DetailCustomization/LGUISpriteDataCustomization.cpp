@@ -91,7 +91,7 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		borderEditorCategory.AddCustomRow(LOCTEXT("BorderEditor", "BorderEditor"))
 		.WholeRowContent()
 		[
-			SAssignNew(imageBorder, SBorder)
+			SNew(SBorder)
 			[
 				SAssignNew(ImageBox, SBox)
 				//.MinDesiredHeight(this, &FLGUISpriteDataCustomization::GetMinDesiredHeight, &DetailBuilder)

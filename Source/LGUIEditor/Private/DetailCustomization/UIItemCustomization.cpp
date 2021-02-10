@@ -176,7 +176,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		auto depthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.depth));
 		DetailBuilder.HideProperty(depthHandle);
 		depthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-			SetDepthInfo(TargetScriptArray[0]);
 			ForceUpdateUI();
 		}));
 		auto depthWidget =
@@ -203,7 +202,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 						{
 							Script->widget.depth++;
 						}
-						SetDepthInfo(TargetScriptArray[0]);
 						ForceUpdateUI();
 						return FReply::Handled(); 
 					})
@@ -225,7 +223,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 						{
 							Script->widget.depth--;
 						}
-						SetDepthInfo(TargetScriptArray[0]);
 						ForceUpdateUI();
 						return FReply::Handled();
 					})
@@ -246,15 +243,15 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		//depth info
 		{
 			lguiCategory.AddCustomRow(LOCTEXT("DepthInfo", "DepthInfo"))
-				.ValueContent()
+				.WholeRowContent()
 				.MinDesiredWidth(500)
 				[
-					SAssignNew(DepthInfoTextBlock, STextBlock)
+					SNew(STextBlock)
 					.Font(IDetailLayoutBuilder::GetDetailFont())
-					.Text(FText::FromString("0"))
-					.ToolTipText(FText::FromString(FString(TEXT("The same depth count shared by all UI element in same canvas"))))
+					.Text(this, &FUIItemCustomization::GetDepthInfo, TargetScriptArray[0])
+					.AutoWrapText(true)
+					.ToolTipText(FText::FromString(FString(TEXT("The same depth count shared by UI elements in same canvas"))))
 				];
-			SetDepthInfo(TargetScriptArray[0]);
 		}
 	}
 	//color
@@ -731,58 +728,66 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		
 	//TSharedPtr<IPropertyHandle> widgetHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(FUIWidget, depth));
 }
-void FUIItemCustomization::SetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScript)
+FText FUIItemCustomization::GetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScript)const
 {
-	if (DepthInfoTextBlock.Get() != nullptr)
+	if (TargetScript.IsValid())
 	{
-		if (TargetScript.IsValid())
+		if (auto world = TargetScript->GetWorld())
 		{
-			if (auto world = TargetScript->GetWorld())
+			TArray<UUIItem*> itemList;
+			if (world->IsGameWorld())
 			{
-				TArray<UUIItem*> itemList;
-				if (world->IsGameWorld())
+				if (auto instance = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
 				{
-					if (auto instance = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
-					{
-						itemList = instance->GetAllUIItem();
-					}
+					itemList = instance->GetAllUIItem();
 				}
-				else
+			}
+			else
+			{
+				if (ULGUIEditorManagerObject::Instance != nullptr)
 				{
-					if (ULGUIEditorManagerObject::Instance != nullptr)
-					{
-						itemList = ULGUIEditorManagerObject::Instance->GetAllUIItem();
-					}
+					itemList = ULGUIEditorManagerObject::Instance->GetAllUIItem();
 				}
+			}
 
-				auto uiType = TargetScript->GetUIItemType();
-				if (uiType != UIItemType::None)
+			auto uiType = TargetScript->GetUIItemType();
+			if (uiType != UIItemType::None)
+			{
+				auto renderCanvas = TargetScript.Get()->GetRenderCanvas();
+				if (renderCanvas != nullptr)
 				{
-					auto renderCanvas = TargetScript.Get()->GetRenderCanvas();
-					if (renderCanvas != nullptr)
+					int renderDepthCount = 0;
+					int raycastDepthCount = 0;
+					for (auto item : itemList)
 					{
-						int depthCount = 0;
-						for (auto item : itemList)
+						if (IsValid(item))
 						{
-							if (IsValid(item))
+							if (item->GetRenderCanvas() == renderCanvas)
 							{
-								if (item->GetRenderCanvas() == renderCanvas)
+								if (TargetScript->GetUIItemType() == UIItemType::UIRenderable && item->GetUIItemType() == UIItemType::UIRenderable)
 								{
 									if (item->widget.depth == TargetScript->widget.depth)
-										depthCount++;
+										renderDepthCount++;
+								}
+								if (TargetScript->IsRaycastTarget() && item->IsRaycastTarget())
+								{
+									if (item->widget.depth == TargetScript->widget.depth)
+										raycastDepthCount++;
 								}
 							}
 						}
-						DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("SharedDepthCount:%d"), depthCount)));
 					}
-					else
-					{
-						DepthInfoTextBlock->SetText(FText::FromString(FString::Printf(TEXT("(Need LGUI Canvas!)"))));
-					}
+					auto depthInfo = FString::Printf(TEXT("Shared Renderable depth count:%d\nShared RaycastTarget depth count:%d"), renderDepthCount, raycastDepthCount);
+					return FText::FromString(depthInfo);
+				}
+				else
+				{
+					return FText::FromString(FString::Printf(TEXT("(Need LGUI Canvas!)")));
 				}
 			}
 		}
 	}
+	return LOCTEXT("", "");
 }
 void FUIItemCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
