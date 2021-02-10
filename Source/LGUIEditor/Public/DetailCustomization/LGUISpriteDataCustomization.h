@@ -17,7 +17,6 @@ private:
 
 	TSharedPtr<FSlateBrush> spriteSlateBrush;
 	TSharedPtr<SBox> ImageBox;
-	TSharedPtr<SBorder> imageBorder;
 	FOptionalSize GetMinDesiredHeight(IDetailLayoutBuilder* DetailBuilder)const;
 	FOptionalSize GetImageWidth()const;
 	FOptionalSize GetImageHeight()const;

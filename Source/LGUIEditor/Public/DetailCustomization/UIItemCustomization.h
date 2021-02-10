@@ -17,9 +17,7 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
 	TArray<TWeakObjectPtr<class UUIItem>> TargetScriptArray;
-
-	void SetDepthInfo(TWeakObjectPtr<class UUIItem> InTargetScript);
-	TSharedPtr<STextBlock> DepthInfoTextBlock = nullptr;
+	FText GetDepthInfo(TWeakObjectPtr<class UUIItem> InTargetScript)const;
 
 	bool GetIsAnchorsEnabled()const;
 	FText GetAnchorsTooltipText()const;

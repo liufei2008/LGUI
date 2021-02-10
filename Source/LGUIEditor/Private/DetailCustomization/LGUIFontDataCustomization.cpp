@@ -4,6 +4,7 @@
 #include "Misc/FileHelper.h"
 #include "Core/LGUIFontData.h"
 #include "Widget/LGUIFileBrowser.h"
+#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "LGUIFontDataCustomization"
 
@@ -43,7 +44,7 @@ void FLGUIFontDataCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			+ SHorizontalBox::Slot()
 			.MaxWidth(500)
 			[
-				SAssignNew(LGUIFontSourceFileBrowser, SLGUIFileBrowser)
+				SNew(SLGUIFileBrowser)
 				.FolderPath(TargetScriptPtr->fontFilePath.IsEmpty() ? fileManager.GetFilenameOnDisk(*FPaths::ProjectDir()) : TargetScriptPtr->fontFilePath)
 				.DialogTitle(TEXT("Browse for a font data file"))
 				.DefaultFileName("font.ttf")

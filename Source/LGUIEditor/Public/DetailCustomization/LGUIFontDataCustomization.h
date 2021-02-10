@@ -16,7 +16,6 @@ public:
 private:
 	TWeakObjectPtr<class ULGUIFontData> TargetScriptPtr;
 	FReply OnReloadButtonClicked();
-	TSharedPtr<class SLGUIFileBrowser> LGUIFontSourceFileBrowser;
 	void OnPathTextChanged(const FString& InText);
 	void OnPathTextCommitted(const FString& InText);
 	IDetailLayoutBuilder* DetailBuilderPtr = nullptr;
