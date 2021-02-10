@@ -63,7 +63,7 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	{
 		category.AddCustomRow(LOCTEXT("AdditionalButton", "AdditionalButton"))
 		.ValueContent()
-		.MinDesiredWidth(300)
+		.MinDesiredWidth(160)
 		[
 			SNew(SButton)
 			.Text(LOCTEXT("MakePixelPerfectButton", "Snap Size"))
