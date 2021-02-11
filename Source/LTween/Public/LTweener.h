@@ -61,36 +61,36 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FTweenerFloatDynamicDelegate, float, InProgres
 UENUM(BlueprintType)
 enum class LTweenEase :uint8
 {
-	Linear			UMETA(DisplayName = "Linear"),
-	InQuad			UMETA(DisplayName = "InQuad"),
-	OutQuad			UMETA(DisplayName = "OutQuad"),
-	InOutQuad		UMETA(DisplayName = "InOutQuad"),
-	InCubic			UMETA(DisplayName = "InCubic"),
-	OutCubic		UMETA(DisplayName = "OutCubic"),
-	InOutCubic		UMETA(DisplayName = "InOutCubic"),
-	InQuart			UMETA(DisplayName = "InQuart"),
-	OutQuart		UMETA(DisplayName = "OutQuart"),
-	InOutQuart		UMETA(DisplayName = "InOutQuart"),
-	InSine			UMETA(DisplayName = "InSine"),
-	OutSine			UMETA(DisplayName = "OutSine"),
-	InOutSine		UMETA(DisplayName = "InOutSine"),
-	InExpo			UMETA(DisplayName = "InExpo"),
-	OutExpo			UMETA(DisplayName = "OutExpo"),
-	InOutExpo		UMETA(DisplayName = "InOutExpo"),
-	InCirc			UMETA(DisplayName = "InCirc"),
-	OutCirc			UMETA(DisplayName = "OutCirc"),
-	InOutCirc		UMETA(DisplayName = "InOutCirc"),
-	InElastic		UMETA(DisplayName = "InElastic"),
-	OutElastic		UMETA(DisplayName = "OutElastic"),
-	InOutElastic	UMETA(DisplayName = "InOutElastic"),
-	InBack			UMETA(DisplayName = "InBack"),
-	OutBack			UMETA(DisplayName = "OutBack"),
-	InOutBack		UMETA(DisplayName = "InOutBack"),
-	InBounce		UMETA(DisplayName = "InBounce"),
-	OutBounce		UMETA(DisplayName = "OutBounce"),
-	InOutBounce		UMETA(DisplayName = "InOutBounce"),
+	Linear,
+	InQuad,
+	OutQuad,
+	InOutQuad,
+	InCubic,
+	OutCubic,
+	InOutCubic,
+	InQuart,
+	OutQuart,
+	InOutQuart,
+	InSine,
+	OutSine,
+	InOutSine,
+	InExpo,
+	OutExpo,
+	InOutExpo,
+	InCirc,
+	OutCirc,
+	InOutCirc,
+	InElastic,
+	OutElastic,
+	InOutElastic,
+	InBack,
+	OutBack,
+	InOutBack,
+	InBounce,
+	OutBounce,
+	InOutBounce,
 	/** Use CurveFloat to animate, only range 0-1 is valid. If use this you must assign curveFloat, or fallback to Linear. */
-	CurveFloat		UMETA(DisplayName = "CurveFloat"),
+	CurveFloat,
 };
 /**
  * Loop type
@@ -98,11 +98,11 @@ enum class LTweenEase :uint8
 UENUM(BlueprintType)
 enum class LTweenLoop :uint8
 {
-	/** Play noce, not loop */
+	/** Play once, not loop */
 	Once, 
-	/** Each loop restarts from beginning */
+	/** Each loop cycle restarts from beginning */
 	Restart, 
-	/** The tween move forward and backward */
+	/** The tween move forward and backward at alternate cycles */
 	Yoyo, 
 	/** Continuously increments the tween at the end of each loop cycle (A to B, B to B+(A-B), and so on). */
 	Incremental,
@@ -158,8 +158,9 @@ public:
 	/** set animation curve type */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
 		ULTweener* SetEase(LTweenEase easetype);
-	/** use CurveFloat as animation function,horizontal is time (0-1),vertical is value (0-1) */
-	UFUNCTION(BlueprintCallable, Category = "LTween")
+	/** set ease to CurveFloat and use CurveFloat as animation function, horizontal is time (0-1),vertical is value (0-1) */
+	UE_DEPRECATED(4.23, "SetEaseCurve is not valid anymore, use SetEase and SetCurveFloat instead.")
+	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "SetEaseCurve is not valid anymore, use SetEase and SetCurveFloat instead."))
 		ULTweener* SetEaseCurve(UCurveFloat* newCurve);
 	/** delay start animation */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
