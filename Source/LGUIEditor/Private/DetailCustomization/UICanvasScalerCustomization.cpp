@@ -33,10 +33,10 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
 	TArray<FName> needToHidePropertyNameArray;
 	//add all property
-	//needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ProjectionType));
-	//needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FOVAngle));
-	//needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, NearClipPlane));
-	//needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FarClipPlane));
+	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ProjectionType));
+	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FOVAngle));
+	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, NearClipPlane));
+	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FarClipPlane));
 
 	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, UIScaleMode));
 	needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ReferenceResolution));
@@ -54,7 +54,15 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		{
 			if (canvas->GetRenderMode() == ELGUIRenderMode::WorldSpace)
 			{
-
+				lguiCategory.AddCustomRow(LOCTEXT("WorldSpaceUIInfo", "WorldSpaceUIInfo"))
+					.WholeRowContent()
+					.MinDesiredWidth(500)
+					[
+						SNew(STextBlock)
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+						.Text(FText::FromString(TEXT("Nothing here for WorldSpaceUI")))
+						.AutoWrapText(true)
+					];
 			}
 			else if (
 				canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay
@@ -156,6 +164,11 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 				{
 					needToHidePropertyNameArray.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FOVAngle));
 				}
+
+				lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, ProjectionType));
+				lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FOVAngle));
+				lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, NearClipPlane));
+				lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvasScaler, FarClipPlane));
 			}
 		}
 	}
