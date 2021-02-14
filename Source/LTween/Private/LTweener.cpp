@@ -174,7 +174,13 @@ bool ULTweener::ToNext(float deltaTime)
 				onUpdateCpp.Execute(1.0f);
 			if (onCycleCompleteCpp.IsBound())
 				onCycleCompleteCpp.Execute();
-			if (maxLoopCount != -1)//infinite loop
+			if (loopType == LTweenLoop::Once)
+			{
+				if (onCompleteCpp.IsBound())
+					onCompleteCpp.Execute();
+				returnValue = false;
+			}
+			else if (maxLoopCount != -1)//infinite loop
 			{
 				if (loopCycleCount >= maxLoopCount)
 				{
