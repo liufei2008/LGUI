@@ -41,5 +41,7 @@ protected:
 		FColor color4 = FColor::White;
 	FORCEINLINE void ApplyColorAndAlpha(FColor& InOutColor, FColor InTintColor);
 public:
-	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)override;
+	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
+		bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
+		)override;
 };

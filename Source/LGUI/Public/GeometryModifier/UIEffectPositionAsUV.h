@@ -18,5 +18,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		uint8 uvChannel = 1;
 public:
-	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)override;
+	virtual void ModifyUIGeometry(
+		TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
+		bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
+		)override;
 };

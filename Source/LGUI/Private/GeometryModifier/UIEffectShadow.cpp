@@ -8,7 +8,9 @@ UUIEffectShadow::UUIEffectShadow()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
-void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
+void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
+	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
+	)
 {
 	auto& triangles = InGeometry->triangles;
 	auto& originPositions = InGeometry->originPositions;

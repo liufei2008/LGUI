@@ -42,5 +42,8 @@ public:
 	InOutOriginTriangleIndicesCount:orign triangle indices count; after modify, new triangle indices count must be set to this
 	OutTriangleChanged: if this modifier affect triangle, then set this to true
 	*/
-	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged) PURE_VIRTUAL(UUIGeometryModifierBase::ModifyUIGeometry,);
+	virtual void ModifyUIGeometry(
+		TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
+		bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
+		) PURE_VIRTUAL(UUIGeometryModifierBase::ModifyUIGeometry,);
 };
