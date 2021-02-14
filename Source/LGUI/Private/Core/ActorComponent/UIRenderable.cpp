@@ -218,7 +218,7 @@ bool UUIRenderable::HaveGeometryModifier()
 	}
 	return false;
 }
-bool UUIRenderable::ApplyGeometryModifier()
+bool UUIRenderable::ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ApplyModifier);
 #if WITH_EDITOR
@@ -240,7 +240,8 @@ bool UUIRenderable::ApplyGeometryModifier()
 		{
 			auto modifierComp = GeometryModifierComponentArray[i];
 			bool thisModifierAffectTriangleCount = false;
-			modifierComp->ModifyUIGeometry(geometry, originVerticesCount, originTriangleIndicesCount, thisModifierAffectTriangleCount);
+			modifierComp->ModifyUIGeometry(geometry, originVerticesCount, originTriangleIndicesCount, thisModifierAffectTriangleCount,
+				uvChanged, colorChanged, vertexPositionChanged, layoutChanged);
 			if (thisModifierAffectTriangleCount)modifierAffectTriangleCount = true;
 		}
 		return modifierAffectTriangleCount;
@@ -302,24 +303,17 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 		{
 			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
-			if (parentLayoutChanged)
+			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
 			{
-				cacheForThisUpdate_LocalVertexPositionChanged = true;
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			}
-			if (cacheForThisUpdate_UVChanged || cacheForThisUpdate_ColorChanged || cacheForThisUpdate_LocalVertexPositionChanged)//vertex data change, need to update geometry's vertex
+			else
 			{
-				if (ApplyGeometryModifier())
-				{
-					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-				}
-				else
-				{
-					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_LocalVertexPositionChanged);
-				}
-				if (cacheForThisUpdate_LocalVertexPositionChanged)
-				{
-					UIGeometry::TransformVertices(RenderCanvas, this, geometry);
-				}
+				RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged);
+			}
+			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
+			{
+				UIGeometry::TransformVertices(RenderCanvas, this, geometry);
 			}
 		}
 	}
@@ -343,7 +337,7 @@ void UUIRenderable::CreateGeometry()
 		geometry->material = CustomUIMaterial;
 		geometry->depth = widget.depth;
 		OnCreateGeometry();
-		ApplyGeometryModifier();
+		ApplyGeometryModifier(true, true, true, true);
 		UIGeometry::TransformVertices(RenderCanvas, this, geometry);
 	}
 	else

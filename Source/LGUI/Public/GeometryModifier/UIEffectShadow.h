@@ -22,7 +22,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector2D shadowOffset = FVector2D(1, -1);
 public:
-	virtual void ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)override;
+	virtual void ModifyUIGeometry(
+		TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
+		bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
+		)override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetShadowColor()const { return shadowColor; }

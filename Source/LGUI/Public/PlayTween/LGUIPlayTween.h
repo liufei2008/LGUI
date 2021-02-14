@@ -16,7 +16,7 @@ protected:
 		LTweenLoop loopType = LTweenLoop::Once;
 	/** number of cycles to play (-1 for infinite) */
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "loopType != LTweenLoop::Once"))
-		int32 loopCount = 0;
+		int32 loopCount = -1;
 	UPROPERTY(EditAnywhere, Category = "Property")
 		LTweenEase easeType = LTweenEase::Linear;
 	/** only valid if easeType=CurveFloat */

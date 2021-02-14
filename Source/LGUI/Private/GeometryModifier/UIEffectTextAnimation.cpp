@@ -22,20 +22,25 @@ bool UUIEffectTextAnimation::CheckUIText()
 	}
 	return false;
 }
-void UUIEffectTextAnimation::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
+void UUIEffectTextAnimation::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
+	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
+	)
 {
 	if (!CheckUIText())return;
 	if (InGeometry->vertices.Num() <= 0)return;
-	if (IsValid(selector))
+	if (uvChanged || colorChanged || vertexPositionChanged)
 	{
-		if (selector->Select(uiText, selection))
+		if (IsValid(selector))
 		{
-			if (InGeometry->vertices.Num() <= 0)return;
-			for (auto propertyItem : properties)
+			if (selector->Select(uiText, selection))
 			{
-				if (IsValid(propertyItem))
+				if (InGeometry->vertices.Num() <= 0)return;
+				for (auto propertyItem : properties)
 				{
-					propertyItem->ApplyProperty(uiText, selection, InGeometry);
+					if (IsValid(propertyItem))
+					{
+						propertyItem->ApplyProperty(uiText, selection, InGeometry);
+					}
 				}
 			}
 		}
