@@ -88,7 +88,7 @@ public:
 		TArray<TSubclassOf<ULGUIBehaviour>> LGUIBehaviourExecuteOrder;
 
 	UPROPERTY(EditAnywhere, config, Category = "Rendering")
-		ELGUIScreenSpaceUIAntiAliasing antiAliasing = ELGUIScreenSpaceUIAntiAliasing::SampleCount_8x;
+		ELGUIScreenSpaceUIAntiAliasing antiAliasing = ELGUIScreenSpaceUIAntiAliasing::Disabled;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
