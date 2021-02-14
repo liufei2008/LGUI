@@ -32,7 +32,7 @@ protected:
 	 * use GeometryModifier to modify geometry 
 	 * return: true if the modifier change the triangle count, else false
 	 */
-	bool ApplyGeometryModifier();
+	bool ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged);
 	TInlineComponentArray<class UUIGeometryModifierBase*> GeometryModifierComponentArray;
 
 	virtual void ApplyUIActiveState() override;

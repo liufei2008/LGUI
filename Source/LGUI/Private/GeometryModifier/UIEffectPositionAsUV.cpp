@@ -10,7 +10,9 @@ UUIEffectPositionAsUV::UUIEffectPositionAsUV()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged)
+void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
+	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
+	)
 {
 	auto uiRenderable = GetRenderableUIItem();
 	if (!uiRenderable)return;
