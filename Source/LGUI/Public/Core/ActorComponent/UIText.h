@@ -77,6 +77,16 @@ struct FUITextCharProperty
 	//FVector2D CenterPosition;
 };
 
+struct FUIText_RichTextCustomTag
+{
+	/** Tag name */
+	FName TagName;
+	/** start char index in cacheCharPropertyArray */
+	int32 CharIndexStart;
+	/** end char index in cacheCharPropertyArray */
+	int32 CharIndexEnd;
+};
+
 class ULGUIFontData;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
@@ -143,6 +153,7 @@ protected:
 	 * <color=#00ff00>Green text</color>
 	 * <sup>Superscript</sup>
 	 * <sub>Superscript</sub>
+	 * <custom=CustomTag>Custom tag</custom>
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool richText = false;
@@ -161,8 +172,10 @@ private:
 
 	/** char properties, from first char to last one in array */
 	TArray<FUITextCharProperty> cacheCharPropertyArray;
+	TArray<FUIText_RichTextCustomTag> cacheRichTextCustomTagArray;
 public:
 	const TArray<FUITextCharProperty>& GetCharPropertyArray(bool createIfNotExist = false);
+	const TArray<FUIText_RichTextCustomTag>& GetRichTextCustomTagArray(bool createIfNotExist = false);
 public:
 	virtual void MarkAllDirtyRecursive()override;
 protected:

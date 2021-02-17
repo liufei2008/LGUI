@@ -2293,10 +2293,11 @@ void UIGeometry::FromUIText(const FString& content, int32 visibleCharCount, floa
 	, bool adjustWidth, bool adjustHeight
 	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
-	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, ULGUIFontData* font, bool richText)
+	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
+	, ULGUIFontData* font, bool richText)
 {
 	//vertex and triangle
-	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, uiComp, cacheTextPropertyArray, cacheCharPropertyArray, font, richText);
+	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, uiComp, cacheTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
 
 	int32 vertexCount = uiGeo->originVerticesCount;
 	//normals
@@ -2361,7 +2362,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	, bool adjustWidth, bool adjustHeight
 	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
-	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, ULGUIFontData* font, bool richText)
+	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
+	, ULGUIFontData* font, bool richText)
 {
 	FString content = text;
 
@@ -2394,6 +2396,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 	cacheTextPropertyArray.Reset();
 	cacheCharPropertyArray.Reset();
+	cacheRichTextCustomTagArray.Reset();
 	int contentLength = content.Len();
 	FVector2D currentLineOffset(0, 0);
 	float currentLineWidth = 0, currentLineHeight = fontSize, paragraphHeight = 0;//single line width, height, all line height
@@ -2597,6 +2600,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		for (int charIndex = 0; charIndex < contentLength; charIndex++)
 		{
 			auto charCode = content[charIndex];
+			richTextParseResult.customTag = NAME_None;
+			richTextParseResult.customTagMode = CustomTagMode::None;
 			while (richTextParser.Parse(content, contentLength, charIndex, richTextParseResult))
 			{
 				if (charIndex < contentLength)
@@ -2608,6 +2613,16 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					break;
 				}
 			}
+			//if find end symbol, then mark the prev one as end
+			if (richTextParseResult.customTagMode == LGUIRichTextParser::CustomTagMode::End)
+			{
+				auto& last = richTextPropertyArray[richTextPropertyArray.Num() - 1];
+				last.customTag = richTextParseResult.customTag;
+				last.customTagMode = richTextParseResult.customTagMode;
+				richTextParseResult.customTag = NAME_None;
+				richTextParseResult.customTagMode = LGUIRichTextParser::CustomTagMode::None;
+			}
+
 			if (charIndex >= contentLength)break;
 			richTextContent.AppendChar(charCode);
 			richTextPropertyArray.Add(richTextParseResult);
@@ -3055,6 +3070,32 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					charProperty.StartTriangleIndex = indicesCount;
 					charProperty.IndicesCount = indicesCount + additionalIndicesCount;
 					cacheCharPropertyArray.Add(charProperty);
+				}
+				//collect rich text custom tag
+				{
+					switch (richTextParseResult.customTagMode)
+					{
+					case LGUIRichTextParser::CustomTagMode::Start:
+					{
+						FUIText_RichTextCustomTag customTag;
+						customTag.TagName = richTextParseResult.customTag;
+						customTag.CharIndexStart = visibleCharIndex;
+						customTag.CharIndexEnd = 0;
+						cacheRichTextCustomTagArray.Add(customTag);
+					}
+					break;
+					case LGUIRichTextParser::CustomTagMode::End:
+					{
+						int foundIndex = cacheRichTextCustomTagArray.IndexOfByPredicate([richTextParseResult](const FUIText_RichTextCustomTag& A) {
+							return A.TagName == richTextParseResult.customTag;
+							});
+						if (foundIndex != -1)
+						{
+							cacheRichTextCustomTagArray[foundIndex].CharIndexEnd = visibleCharIndex;
+						}
+					}
+					break;
+					}
 				}
 
 				verticesCount += additionalVerticesCount;
