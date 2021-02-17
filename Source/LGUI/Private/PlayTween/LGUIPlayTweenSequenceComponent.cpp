@@ -12,7 +12,7 @@ void ULGUIPlayTweenSequenceComponent::BeginPlay()
 	{
 		for (auto playTween : playTweenArray)
 		{
-			playTween->RegisterOnComplete(FSimpleDelegate::CreateLambda([this] {
+			playTween->RegisterOnComplete(FSimpleDelegate::CreateWeakLambda(this, [this] {
 				OnTweenComplete();
 				})
 			);
