@@ -206,19 +206,15 @@ public:
 		}
 	}
 
-	static void RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
+	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 	{
-		auto Instance = ALTweenActor::GetLTweenInstance(WorldContextObject);
-		if (!IsValid(Instance))return;
-
-		Instance->RegisterUpdateEvent(WorldContextObject, update);
+		return ALTweenActor::RegisterUpdateEvent(WorldContextObject, update);
 	}
-	static FLTweenDelegateHandleWrapper RegisterUpdateEvent(UObject* WorldContextObject, const TFunction<void(float)>& update)
+	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const TFunction<void(float)>& update)
 	{
 		LTweenUpdateDelegate updateDelegate = LTweenUpdateDelegate::CreateLambda(update);
-		FLTweenDelegateHandleWrapper delegateHandle(updateDelegate.GetHandle());
 		ALTweenActor::RegisterUpdateEvent(WorldContextObject, updateDelegate);
-		return delegateHandle;
+		return updateDelegate.GetHandle();
 	}
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Registerred update function will be called every frame from mainthread.", WorldContext = "WorldContextObject"), Category = LTween)
 		static FLTweenDelegateHandleWrapper RegisterUpdateEvent(UObject* WorldContextObject, const FTweenerFloatDynamicDelegate& update)
@@ -228,9 +224,9 @@ public:
 		ALTweenActor::RegisterUpdateEvent(WorldContextObject, updateDelegate);
 		return delegateHandle;
 	}
-	static void UnregisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
+	static void UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& handle)
 	{
-		ALTweenActor::UnregisterUpdateEvent(WorldContextObject, update);
+		ALTweenActor::UnregisterUpdateEvent(WorldContextObject, handle);
 	}
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Unregister the update function. \"delegateHandle\" is the return value when use RegisterUpdateEvent.", WorldContext = "WorldContextObject"), Category = LTween)
 		static void UnregisterUpdateEvent(UObject* WorldContextObject, const FLTweenDelegateHandleWrapper& delegateHandle)

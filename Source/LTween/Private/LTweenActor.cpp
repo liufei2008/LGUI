@@ -352,19 +352,12 @@ ULTweener* ALTweenActor::DelayFrameCall(UObject* WorldContextObject, int delayFr
 }
 
 
-void ALTweenActor::RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
+FDelegateHandle ALTweenActor::RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 {
 	auto Instance = GetLTweenInstance(WorldContextObject);
-	if (!IsValid(Instance))return;
+	if (!IsValid(Instance))return FDelegateHandle();
 
-	Instance->updateEvent.Add(update);
-}
-void ALTweenActor::UnregisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
-{
-	auto Instance = GetLTweenInstance(WorldContextObject);
-	if (!IsValid(Instance))return;
-
-	Instance->updateEvent.Remove(update.GetHandle());
+	return Instance->updateEvent.Add(update);
 }
 void ALTweenActor::UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& delegateHandle)
 {
