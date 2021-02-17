@@ -155,10 +155,6 @@ bool UUIText::HaveDataToCreateGeometry()
 
 void UUIText::OnBeforeCreateOrUpdateGeometry()
 {
-	if (visibleCharCount == -1)
-	{
-		visibleCharCount = VisibleCharCountInString(text);
-	}
 	CacheTextGeometry();
 }
 void UUIText::OnCreateGeometry()
