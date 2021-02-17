@@ -9,12 +9,21 @@ UCLASS(ClassGroup = (LGUI), Abstract, BlueprintType)
 class LGUI_API UUIEffectTextAnimation_PropertyWithWave : public UUIEffectTextAnimation_Property
 {
 	GENERATED_BODY()
-private:
+protected:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float frequency = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Property")
+		float speed = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Property")
+		bool flipDirection = false;
+	struct FLTweenDelegateHandleWrapper delegateHandle;
+	virtual void OnUpdate(float deltaTime);
+	UPROPERTY(Transient)class UUIText* uiText;
 public:
+	virtual void Init()override;
+	virtual void Deinit()override;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		float GetFrequency()const { return frequency; }
+		float GetFrequency()const { return speed; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFrequency(float value);
 };
@@ -59,7 +68,7 @@ class LGUI_API UUIEffectTextAnimation_ScaleWaveProperty : public UUIEffectTextAn
 	GENERATED_BODY()
 private:
 	UPROPERTY(EditAnywhere, Category = "Property")
-		FVector scale;
+		FVector scale = FVector::OneVector;
 public:
 	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 

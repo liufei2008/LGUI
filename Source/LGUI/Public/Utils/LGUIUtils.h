@@ -176,4 +176,8 @@ private:
 		}
 		return nullptr;
 	}
+
+public:
+	static FColor ColorHSVDataToColorRGB(FVector InHSVColor);
+	static FVector ColorRGBToColorHSVData(FColor InRGBColor);
 };

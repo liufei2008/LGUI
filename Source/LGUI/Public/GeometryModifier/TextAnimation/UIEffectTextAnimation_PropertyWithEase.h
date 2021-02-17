@@ -15,7 +15,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		LTweenEase easeType = LTweenEase::InOutSine;
 	//only valid if easeType = CurveFloat
-	UPROPERTY(EditAnywhere, Category = "Property")
+	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "easeType == LTweenEase::CurveFloat"))
 		UCurveFloat* easeCurve;
 	FLTweenFunction easeFunc;
 	float EaseCurveFunction(float c, float b, float t, float d);
@@ -207,14 +207,21 @@ class LGUI_API UUIEffectTextAnimation_ColorProperty : public UUIEffectTextAnimat
 private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FColor color = FColor::Green;
+	/** convert color to linear hsv, interlpate, and convert back to color */
+	UPROPERTY(EditAnywhere, Category = "Property")
+		bool useHSV = true;
 public:
 	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetColor()const { return color; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetUseHSV()const { return useHSV; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetColor(FColor value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetUseHSV(bool value);
 };
 
 UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "ColorRandom"))
@@ -231,6 +238,9 @@ private:
 	//random max
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FColor max = FColor::Red;
+	/** convert color to linear hsv, interlpate, and convert back to color */
+	UPROPERTY(EditAnywhere, Category = "Property")
+		bool useHSV = true;
 public:
 	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) override;
 
@@ -240,6 +250,8 @@ public:
 		FColor GetMin()const { return min; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetMax()const { return max; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetUseHSV()const { return useHSV; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSeed(int value);
@@ -247,4 +259,6 @@ public:
 		void SetMin(FColor value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMax(FColor value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetUseHSV(bool value);
 };
