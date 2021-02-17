@@ -75,7 +75,6 @@ public:
 
 	static ULTweener* DelayFrameCall(UObject* WorldContextObject, int delayFrame);
 
-	static void RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update);
-	static void UnregisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update);
+	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update);
 	static void UnregisterUpdateEvent(UObject* WorldContextObject, const FDelegateHandle& delegateHandle);
 };
