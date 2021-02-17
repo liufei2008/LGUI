@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Curves/CurveFloat.h"
+#include "Utils/LGUIUtils.h"
 
 const FLTweenFunction& UUIEffectTextAnimation_PropertyWithEase::GetEaseFunction()
 {
@@ -159,12 +160,12 @@ void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, c
 	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
@@ -180,12 +181,12 @@ void UUIEffectTextAnimation_PositionRandomProperty::ApplyProperty(UUIText* InUIT
 	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		auto position = FVector(FMath::FRandRange(min.X, max.X), FMath::FRandRange(min.Y, max.Y), FMath::FRandRange(min.Z, max.Z));
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
@@ -201,7 +202,7 @@ void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, c
 	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
@@ -212,7 +213,7 @@ void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, c
 			charCenterPos += vertPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		auto calcRotationMatrix = FRotationMatrix(rotator * lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
@@ -230,7 +231,7 @@ void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIT
 	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
@@ -241,7 +242,7 @@ void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIT
 			charCenterPos += vertPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		auto rotator = FRotator(FMath::FRandRange(min.Pitch, max.Pitch), FMath::FRandRange(min.Yaw, max.Yaw), FMath::FRandRange(min.Roll, max.Roll));
 		auto calcRotationMatrix = FRotationMatrix(rotator * lerpValue);
@@ -259,7 +260,7 @@ void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, cons
 	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
@@ -270,7 +271,7 @@ void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, cons
 			charCenterPos += vertPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		auto calcScale = FMath::Lerp(FVector::OneVector, scale, lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
@@ -288,7 +289,7 @@ void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText
 	auto easeFunction = GetEaseFunction();
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
@@ -299,7 +300,7 @@ void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText
 			charCenterPos += vertPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		auto scale = FVector(FMath::FRandRange(min.X, max.X), FMath::FRandRange(min.Y, max.Y), FMath::FRandRange(min.Z, max.Z));
 		auto calcScale = FMath::Lerp(FVector::OneVector, scale, lerpValue);
@@ -317,12 +318,12 @@ void UUIEffectTextAnimation_AlphaProperty::ApplyProperty(UUIText* InUIText, cons
 	auto easeFunction = GetEaseFunction();
 	auto& vertices = OutGeometry->vertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
@@ -337,20 +338,48 @@ void UUIEffectTextAnimation_ColorProperty::ApplyProperty(UUIText* InUIText, cons
 	auto easeFunction = GetEaseFunction();
 	auto& vertices = OutGeometry->vertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	FVector colorHsv;
+	if (useHSV)
+	{
+		colorHsv = LGUIUtils::ColorRGBToColorHSVData(color);
+	}
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& vert = vertices[vertIndex];
-			vert.Color.R = FMath::Lerp(vert.Color.R, color.R, lerpValue);
-			vert.Color.G = FMath::Lerp(vert.Color.G, color.G, lerpValue);
-			vert.Color.B = FMath::Lerp(vert.Color.B, color.B, lerpValue);
+			if (useHSV)
+			{
+				auto vertColorHsv = LGUIUtils::ColorRGBToColorHSVData(vert.Color);
+				vertColorHsv = FMath::Lerp(vertColorHsv, colorHsv, lerpValue);
+				auto vertColor = LGUIUtils::ColorHSVDataToColorRGB(vertColorHsv);
+				vert.Color.R = vertColor.R;
+				vert.Color.G = vertColor.G;
+				vert.Color.B = vertColor.B;
+			}
+			else
+			{
+				vert.Color.R = FMath::Lerp(vert.Color.R, color.R, lerpValue);
+				vert.Color.G = FMath::Lerp(vert.Color.G, color.G, lerpValue);
+				vert.Color.B = FMath::Lerp(vert.Color.B, color.B, lerpValue);
+			}
 			vert.Color.A = FMath::Lerp(vert.Color.A, color.A, lerpValue);
+		}
+	}
+}
+void UUIEffectTextAnimation_ColorProperty::SetUseHSV(bool value)
+{
+	if (useHSV != value)
+	{
+		useHSV = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkColorDirty();
 		}
 	}
 }
@@ -361,21 +390,49 @@ void UUIEffectTextAnimation_ColorRandomProperty::ApplyProperty(UUIText* InUIText
 	auto easeFunction = GetEaseFunction();
 	auto& vertices = OutGeometry->vertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
 		auto color = FColor(FMath::FRandRange(min.R, max.R), FMath::FRandRange(min.G, max.G), FMath::FRandRange(min.B, max.B), FMath::FRandRange(min.A, max.A));
-		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex], 0.0f, 1.0f);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
 		lerpValue = easeFunction.Execute(1.0f, 0.0f, lerpValue, 1.0f);
+		FVector colorHsv;
+		if (useHSV)
+		{
+			colorHsv = LGUIUtils::ColorRGBToColorHSVData(color);
+		}
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& vert = vertices[vertIndex];
-			vert.Color.R = FMath::Lerp(vert.Color.R, color.R, lerpValue);
-			vert.Color.G = FMath::Lerp(vert.Color.G, color.G, lerpValue);
-			vert.Color.B = FMath::Lerp(vert.Color.B, color.B, lerpValue);
+			if (useHSV)
+			{
+				auto vertColorHsv = LGUIUtils::ColorRGBToColorHSVData(vert.Color);
+				vertColorHsv = FMath::Lerp(vertColorHsv, colorHsv, lerpValue);
+				auto vertColor = LGUIUtils::ColorHSVDataToColorRGB(vertColorHsv);
+				vert.Color.R = vertColor.R;
+				vert.Color.G = vertColor.G;
+				vert.Color.B = vertColor.B;
+			}
+			else
+			{
+				vert.Color.R = FMath::Lerp(vert.Color.R, color.R, lerpValue);
+				vert.Color.G = FMath::Lerp(vert.Color.G, color.G, lerpValue);
+				vert.Color.B = FMath::Lerp(vert.Color.B, color.B, lerpValue);
+			}
 			vert.Color.A = FMath::Lerp(vert.Color.A, color.A, lerpValue);
+		}
+	}
+}
+void UUIEffectTextAnimation_ColorRandomProperty::SetUseHSV(bool value)
+{
+	if (useHSV != value)
+	{
+		useHSV = value;
+		if (auto uiText = GetUIText())
+		{
+			uiText->MarkColorDirty();
 		}
 	}
 }

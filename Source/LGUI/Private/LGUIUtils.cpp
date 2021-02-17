@@ -206,6 +206,19 @@ void LGUIUtils::FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 }
 
 float LGUIUtils::INV_255 = 1.0f / 255.0f;
+
+FColor LGUIUtils::ColorHSVDataToColorRGB(FVector InHSVColor)
+{
+	FLinearColor colorHSV(InHSVColor);
+	return colorHSV.HSVToLinearRGB().ToFColor(false);
+}
+FVector LGUIUtils::ColorRGBToColorHSVData(FColor InRGBColor)
+{
+	auto linearColorRGB = FLinearColor(InRGBColor.R * INV_255, InRGBColor.G * INV_255, InRGBColor.B * INV_255, 1.0f);
+	auto linearColorHSV = linearColorRGB.LinearRGBToHSV();
+	return FVector(linearColorHSV);
+}
+
 FColor LGUIUtils::MultiplyColor(FColor A, FColor B)
 {
 	FColor result;

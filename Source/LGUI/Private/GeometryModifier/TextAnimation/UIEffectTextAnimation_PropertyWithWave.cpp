@@ -3,13 +3,30 @@
 #include "GeometryModifier/TextAnimation/UIEffectTextAnimation_PropertyWithWave.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIText.h"
+#include "LTweenBPLibrary.h"
 
+void UUIEffectTextAnimation_PropertyWithWave::Init()
+{
+	uiText = GetUIText();
+	delegateHandle = ULTweenBPLibrary::RegisterUpdateEvent(this, LTweenUpdateDelegate::CreateUObject(this, &UUIEffectTextAnimation_PropertyWithWave::OnUpdate));
+}
+void UUIEffectTextAnimation_PropertyWithWave::Deinit()
+{
+	ULTweenBPLibrary::UnregisterUpdateEvent(this, delegateHandle);
+}
 void UUIEffectTextAnimation_PropertyWithWave::SetFrequency(float value)
 {
-	if (frequency != value)
+	if (speed != value)
 	{
-		frequency = value;
+		speed = value;
 		MarkUITextPositionDirty();
+	}
+}
+void UUIEffectTextAnimation_PropertyWithWave::OnUpdate(float deltaTime)
+{
+	if (IsValid(uiText))
+	{
+		uiText->MarkVertexPositionDirty();
 	}
 }
 
@@ -17,18 +34,19 @@ void UUIEffectTextAnimation_PositionWaveProperty::ApplyProperty(UUIText* InUITex
 {
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	float PIx2xFreq = PI * 2.0f * GetFrequency();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	float PIxFreq = this->GetWorld()->TimeSeconds * PI * speed;
+	PIxFreq = flipDirection ? -PIxFreq : PIxFreq;
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
 		int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
-		float lerpValue = InSelection.lerpValueArray[charIndex];
-		lerpValue = FMath::Sin(lerpValue * PIx2xFreq);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
+		FVector wavePosition = position * FMath::Sin(PIxFreq + charIndex * frequency);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = vertPositions[vertIndex];
-			pos = FMath::Lerp(pos, pos + position, lerpValue);
+			pos = FMath::Lerp(pos, pos + wavePosition, lerpValue);
 		}
 	}
 }
@@ -45,8 +63,9 @@ void UUIEffectTextAnimation_RotationWaveProperty::ApplyProperty(UUIText* InUITex
 {
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	float PIx2xFreq = PI * 2.0f * GetFrequency();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	float PIxFreq = this->GetWorld()->TimeSeconds * PI * speed;
+	PIxFreq = flipDirection ? -PIxFreq : PIxFreq;
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
@@ -57,9 +76,9 @@ void UUIEffectTextAnimation_RotationWaveProperty::ApplyProperty(UUIText* InUITex
 			charCenterPos += vertPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		float lerpValue = InSelection.lerpValueArray[charIndex];
-		lerpValue = FMath::Sin(lerpValue * PIx2xFreq);
-		auto calcRotationMatrix = FRotationMatrix(rotator * lerpValue);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
+		auto waveRotator = rotator * FMath::Sin(PIxFreq + charIndex * frequency);
+		auto calcRotationMatrix = FRotationMatrix(waveRotator * lerpValue);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = vertPositions[vertIndex];
@@ -81,8 +100,9 @@ void UUIEffectTextAnimation_ScaleWaveProperty::ApplyProperty(UUIText* InUIText, 
 {
 	auto& vertPositions = OutGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
-	float PIx2xFreq = PI * 2.0f * GetFrequency();
-	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharIndex; charIndex++)
+	float PIxFreq = this->GetWorld()->TimeSeconds * PI * speed;
+	PIxFreq = flipDirection ? -PIxFreq : PIxFreq;
+	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
 		auto charPropertyItem = charProperties[charIndex];
 		int startVertIndex = charPropertyItem.StartVertIndex;
@@ -93,14 +113,13 @@ void UUIEffectTextAnimation_ScaleWaveProperty::ApplyProperty(UUIText* InUIText, 
 			charCenterPos += vertPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
-		float lerpValue = InSelection.lerpValueArray[charIndex];
-		lerpValue = FMath::Sin(lerpValue * PIx2xFreq);
-		auto calcScale = FMath::Lerp(FVector::OneVector, scale, lerpValue);
+		float lerpValue = FMath::Clamp(InSelection.lerpValueArray[charIndex - InSelection.startCharIndex], 0.0f, 1.0f);
+		auto waveScale = FVector::OneVector + (scale - FVector::OneVector) * FMath::Sin(PIxFreq + charIndex * frequency);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
 			auto& pos = vertPositions[vertIndex];
 			auto vector = pos - charCenterPos;
-			pos = charCenterPos + vector * calcScale;
+			pos = charCenterPos + vector * waveScale;
 		}
 	}
 }
