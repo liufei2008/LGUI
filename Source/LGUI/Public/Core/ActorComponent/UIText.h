@@ -153,7 +153,7 @@ protected:
 	 * <color=#00ff00>Green text</color>
 	 * <sup>Superscript</sup>
 	 * <sub>Superscript</sub>
-	 * <custom=CustomTag>Custom tag</custom>
+	 * <MyTag>Custom tag</MyTag> use any string as custom tag
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool richText = false;

@@ -147,27 +147,6 @@ namespace LGUIRichTextParser
 						haveSymbol = true;
 					}
 				}
-				else if (charIndex + 7 < textLength
-					&& text[charIndex + 1] == 'c'
-					&& text[charIndex + 2] == 'u'
-					&& text[charIndex + 3] == 's'
-					&& text[charIndex + 4] == 't'
-					&& text[charIndex + 5] == 'o'
-					&& text[charIndex + 6] == 'm'
-					&& text[charIndex + 7] == '='
-					)//begin custom=
-				{
-					int charEndIndex;
-					FName tag;
-					if (GetCustomTag(text, textLength, charIndex + 8, charEndIndex, tag))
-					{
-						startIndex += charEndIndex - charIndex + 1;
-						customTagArray.Add(tag);
-						haveSymbol = true;
-						parseResult.customTag = tag;
-						parseResult.customTagMode = CustomTagMode::Start;
-					}
-				}
 				else if (charIndex + 4 < textLength
 					&& text[charIndex + 1] == 's'
 					&& text[charIndex + 2] == 'u'
@@ -190,8 +169,7 @@ namespace LGUIRichTextParser
 					supOrSubArray.Add(SupOrSubMode::Sub);
 					haveSymbol = true;
 				}
-				//end
-				else if (charIndex + 1 < textLength && text[charIndex + 1] == '/')
+				else if (charIndex + 1 < textLength && text[charIndex + 1] == '/')//end
 				{
 					if (charIndex + 3 < textLength && text[charIndex + 3] == '>')
 					{
@@ -247,24 +225,6 @@ namespace LGUIRichTextParser
 						colorArray.RemoveAt(colorArray.Num() - 1);
 						haveSymbol = true;
 					}
-					else if (charIndex + 8 < textLength
-						&& text[charIndex + 2] == 'c'
-						&& text[charIndex + 3] == 'u'
-						&& text[charIndex + 4] == 's'
-						&& text[charIndex + 5] == 't'
-						&& text[charIndex + 6] == 'o'
-						&& text[charIndex + 7] == 'm'
-						&& text[charIndex + 8] == '>'
-						&& customTagArray.Num() > 0
-						)//end custom tag
-					{
-						startIndex += 9;
-						auto tag = customTagArray.Last();
-						customTagArray.RemoveAt(customTagArray.Num() - 1);
-						parseResult.customTag = tag;
-						parseResult.customTagMode = CustomTagMode::End;
-						haveSymbol = true;
-					}
 					else if (charIndex + 5 < textLength
 						&& text[charIndex + 2] == 's'
 						&& text[charIndex + 3] == 'u'
@@ -288,6 +248,42 @@ namespace LGUIRichTextParser
 						startIndex += 6;
 						supOrSubArray.RemoveAt(supOrSubArray.Num() - 1);
 						haveSymbol = true;
+					}
+					else if (customTagArray.Num() > 0
+						)//end custom tag
+					{
+						int charEndIndex;
+						FName tag;
+						if (GetCustomTag(text, textLength, charIndex + 2, charEndIndex, tag))
+						{
+							auto foundIndex = customTagArray.IndexOfByKey(tag);
+							if (foundIndex != -1)
+							{
+								customTagArray.RemoveAt(foundIndex);
+								startIndex += charEndIndex - charIndex + 1;
+								parseResult.customTag = tag;
+								parseResult.customTagMode = CustomTagMode::End;
+								haveSymbol = true;
+							}
+						}
+					}
+				}
+				else if(charIndex + 1 < textLength
+					)//check custom tag
+				{
+					int charEndIndex;
+					FName tag;
+					if (GetCustomTag(text, textLength, charIndex + 1, charEndIndex, tag))
+					{
+						auto foundIndex = customTagArray.IndexOfByKey(tag);
+						if (foundIndex == -1)
+						{
+							startIndex += charEndIndex - charIndex + 1;
+							customTagArray.Add(tag);
+							parseResult.customTag = tag;
+							parseResult.customTagMode = CustomTagMode::Start;
+							haveSymbol = true;
+						}
 					}
 				}
 			}
@@ -321,6 +317,14 @@ namespace LGUIRichTextParser
 					endIndex = i;
 					break;
 				}
+				else if (text[i] == '<'//reach another tag
+					|| text[i] == ' '//reach space
+					|| text[i] == '\n'//reach new line
+					|| text[i] == '\t'//reach new line
+					)
+				{
+					break;
+				}
 			}
 			if (endIndex != -1 && endIndex > startIndex)//found end
 			{
@@ -345,6 +349,14 @@ namespace LGUIRichTextParser
 					endIndex = i;
 					break;
 				}
+				else if (text[i] == '<'//reach another tag
+					|| text[i] == ' '//reach space
+					|| text[i] == '\n'//reach new line
+					|| text[i] == '\t'//reach new line
+					)
+				{
+					break;
+				}
 			}
 			if (endIndex != -1 && endIndex > startIndex)//found end
 			{
@@ -364,6 +376,14 @@ namespace LGUIRichTextParser
 				if (text[i] == '>')
 				{
 					endIndex = i;
+					break;
+				}
+				else if (text[i] == '<'//reach another tag
+					|| text[i] == ' '//reach space
+					|| text[i] == '\n'//reach new line
+					|| text[i] == '\t'//reach new line
+					)
+				{
 					break;
 				}
 			}
