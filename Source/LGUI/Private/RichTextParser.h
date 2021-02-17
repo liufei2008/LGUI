@@ -10,6 +10,10 @@ namespace LGUIRichTextParser
 	{
 		None, Sup, Sub,
 	};
+	enum class CustomTagMode
+	{
+		None, Start, End,
+	};
 	struct RichTextParseResult
 	{
 		bool bold = false;
@@ -22,7 +26,11 @@ namespace LGUIRichTextParser
 		FColor color = FColor::Black;
 
 		SupOrSubMode supOrSubMode = SupOrSubMode::None;
+
+		CustomTagMode customTagMode = CustomTagMode::None;
+		FName customTag;
 	};
+	
 	struct RichTextParser
 	{
 	private:
@@ -30,9 +38,10 @@ namespace LGUIRichTextParser
 		int						italicCount = 0;
 		int						underlineCount = 0;
 		int						strikethroughCount = 0;
-		TArray<float>				sizeArray;
+		TArray<float>			sizeArray;
 		TArray<FColor>			colorArray;
 		TArray<SupOrSubMode>	supOrSubArray;
+		TArray<FName>			customTagArray;
 
 		int originSize;
 		FColor originColor;
@@ -60,6 +69,7 @@ namespace LGUIRichTextParser
 			sizeArray.Reset();
 			colorArray.Reset();
 			supOrSubArray.Reset();
+			customTagArray.Reset();
 		}
 		bool Parse(const FString& text, const int& textLength, int& startIndex, RichTextParseResult& parseResult)
 		{
@@ -135,6 +145,27 @@ namespace LGUIRichTextParser
 						startIndex += charEndIndex - charIndex + 1;
 						colorArray.Add(parsedColor);
 						haveSymbol = true;
+					}
+				}
+				else if (charIndex + 7 < textLength
+					&& text[charIndex + 1] == 'c'
+					&& text[charIndex + 2] == 'u'
+					&& text[charIndex + 3] == 's'
+					&& text[charIndex + 4] == 't'
+					&& text[charIndex + 5] == 'o'
+					&& text[charIndex + 6] == 'm'
+					&& text[charIndex + 7] == '='
+					)//begin custom=
+				{
+					int charEndIndex;
+					FName tag;
+					if (GetCustomTag(text, textLength, charIndex + 8, charEndIndex, tag))
+					{
+						startIndex += charEndIndex - charIndex + 1;
+						customTagArray.Add(tag);
+						haveSymbol = true;
+						parseResult.customTag = tag;
+						parseResult.customTagMode = CustomTagMode::Start;
 					}
 				}
 				else if (charIndex + 4 < textLength
@@ -216,6 +247,24 @@ namespace LGUIRichTextParser
 						colorArray.RemoveAt(colorArray.Num() - 1);
 						haveSymbol = true;
 					}
+					else if (charIndex + 8 < textLength
+						&& text[charIndex + 2] == 'c'
+						&& text[charIndex + 3] == 'u'
+						&& text[charIndex + 4] == 's'
+						&& text[charIndex + 5] == 't'
+						&& text[charIndex + 6] == 'o'
+						&& text[charIndex + 7] == 'm'
+						&& text[charIndex + 8] == '>'
+						&& customTagArray.Num() > 0
+						)//end custom tag
+					{
+						startIndex += 9;
+						auto tag = customTagArray.Last();
+						customTagArray.RemoveAt(customTagArray.Num() - 1);
+						parseResult.customTag = tag;
+						parseResult.customTagMode = CustomTagMode::End;
+						haveSymbol = true;
+					}
 					else if (charIndex + 5 < textLength
 						&& text[charIndex + 2] == 's'
 						&& text[charIndex + 3] == 'u'
@@ -283,6 +332,25 @@ namespace LGUIRichTextParser
 					outEndIndex = endIndex;
 					return true;
 				}
+			}
+			return false;
+		}
+		static bool GetCustomTag(const FString& text, int textLength, int startIndex, int& outEndIndex, FName& outTag)
+		{
+			int endIndex = -1;
+			for (int i = startIndex; i < textLength; i++)
+			{
+				if (text[i] == '>')
+				{
+					endIndex = i;
+					break;
+				}
+			}
+			if (endIndex != -1 && endIndex > startIndex)//found end
+			{
+				outTag = FName(*text.Mid(startIndex, endIndex - startIndex));
+				outEndIndex = endIndex;
+				return true;
 			}
 			return false;
 		}
