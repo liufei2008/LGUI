@@ -85,7 +85,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UMaterialInterface* CustomUIMaterial = nullptr;
 	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit widget rectangle */
-	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastComplex = false;
 
 	/** do we have valid data to create geometry? */

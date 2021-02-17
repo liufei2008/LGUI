@@ -83,94 +83,21 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	}
 
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
+	DetailBuilder.HideCategory("TransformCommon");
+	IDetailCategoryBuilder& transformCategory = DetailBuilder.EditCategory("LGUITransform", LOCTEXT("LGUI-Transform", "LGUI-Transform"), ECategoryPriority::Transform);
 
 	//base
 	{
-		lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive), nullptr, NAME_None, EPropertyLocation::Advanced);
-		lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, bRaycastTarget), nullptr, NAME_None, EPropertyLocation::Advanced);
-		lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, traceChannel), nullptr, NAME_None, EPropertyLocation::Advanced);
 		auto uiActiveHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive));
 		uiActiveHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
 			ForceUpdateUI();
 		}));
 	}
-	//HierarchyIndex
-	{
-		auto hierarchyIndexHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex));
-		DetailBuilder.HideProperty(hierarchyIndexHandle);
-		hierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-			ForceUpdateUI();
-			FLGUIEditorModule::Instance->RefreshSceneOutliner();
-		}));
-		auto hierarchyIndexWidget =
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.Padding(2, 0)
-			.FillWidth(5)
-			[
-				hierarchyIndexHandle->CreatePropertyValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			.Padding(2, 0)
-			.FillWidth(2)
-			[
-				SNew(SBox)
-				.HeightOverride(18)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Increase", "+"))
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked_Lambda([&]()
-					{
-						for (auto item : TargetScriptArray)
-						{
-							item->SetHierarchyIndex(item->hierarchyIndex + 1);
-							ForceUpdateUI();
-						}
-						FLGUIEditorModule::Instance->RefreshSceneOutliner();
-						return FReply::Handled(); 
-					})
-				]
-			]
-			+ SHorizontalBox::Slot()
-			.Padding(2, 0)
-			.FillWidth(2)
-			[
-				SNew(SBox)
-				.HeightOverride(18)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Decrease", "-"))
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked_Lambda([&]()
-					{
-						for (auto item : TargetScriptArray)
-						{
-							item->SetHierarchyIndex(item->hierarchyIndex - 1);
-							ForceUpdateUI();
-						}
-						FLGUIEditorModule::Instance->RefreshSceneOutliner();
-						return FReply::Handled();
-					})
-				]
-			];
-
-		lguiCategory.AddCustomRow(LOCTEXT("HierarchyIndexManager", "HierarchyIndexManager"), true)
-		.NameContent()
-		[
-			hierarchyIndexHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		[
-			hierarchyIndexWidget
-		];
-	}
-	DetailBuilder.HideCategory("TransformCommon");
-	IDetailCategoryBuilder& transformCategory = DetailBuilder.EditCategory("LGUITransform", LOCTEXT("LGUI Transform", "LGUI Transform"), ECategoryPriority::Transform);
 
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget));
 	auto uiType = TargetScriptArray[0]->GetUIItemType();
 
+	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive));
 	//depth
 	{
 		auto depthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.depth));
@@ -725,6 +652,78 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	const FSelectedActorInfo& selectedActorInfo = DetailBuilder.GetDetailsView()->GetSelectedActorInfo();
 	TSharedRef<FComponentTransformDetails> transformDetails = MakeShareable(new FComponentTransformDetails(TargetScriptArray, selectedActorInfo, DetailBuilder));
 	transformCategory.AddCustomBuilder(transformDetails);
+
+	//HierarchyIndex
+	{
+		auto hierarchyIndexHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex));
+		DetailBuilder.HideProperty(hierarchyIndexHandle);
+		hierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+			ForceUpdateUI();
+			FLGUIEditorModule::Instance->RefreshSceneOutliner();
+		}));
+		auto hierarchyIndexWidget =
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.Padding(2, 0)
+			.FillWidth(5)
+			[
+				hierarchyIndexHandle->CreatePropertyValueWidget()
+			]
+			+ SHorizontalBox::Slot()
+			.Padding(2, 0)
+			.FillWidth(2)
+			[
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("Increase", "+"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([&]()
+					{
+						for (auto item : TargetScriptArray)
+						{
+							item->SetHierarchyIndex(item->hierarchyIndex + 1);
+							ForceUpdateUI();
+						}
+						FLGUIEditorModule::Instance->RefreshSceneOutliner();
+						return FReply::Handled(); 
+					})
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.Padding(2, 0)
+			.FillWidth(2)
+			[
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("Decrease", "-"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([&]()
+					{
+						for (auto item : TargetScriptArray)
+						{
+							item->SetHierarchyIndex(item->hierarchyIndex - 1);
+							ForceUpdateUI();
+						}
+						FLGUIEditorModule::Instance->RefreshSceneOutliner();
+						return FReply::Handled();
+					})
+				]
+			];
+
+		transformCategory.AddCustomRow(LOCTEXT("HierarchyIndexManager", "HierarchyIndexManager"))
+		.NameContent()
+		[
+			hierarchyIndexHandle->CreatePropertyNameWidget()
+		]
+		.ValueContent()
+		[
+			hierarchyIndexWidget
+		];
+	}
 		
 	//TSharedPtr<IPropertyHandle> widgetHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(FUIWidget, depth));
 }
