@@ -294,10 +294,10 @@ protected:
 	bool allUpParentUIActive = true;
 	void SetChildUIActiveRecursive(bool InUpParentUIActive);
 	/**
-	 * active ui is visible and can interact.
-	 * if parent or parent's parent... IsUIActive is false, then this ui is not visible and not interactable
+	 * Active ui is visible and interactable.
+	 * If parent or parent's parent... IsUIActive is false, then this ui is not visible and not interactable.
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bIsUIActive = true;
 	/** apply IsUIActive state */
 	virtual void ApplyUIActiveState();
@@ -315,7 +315,7 @@ public:
 #pragma endregion UIActive
 protected:
 	/** hierarchy index, for layout to sort order */
-	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 hierarchyIndex = INDEX_NONE;
 	void OnChildHierarchyIndexChanged(UUIItem* child);
 public:
@@ -333,10 +333,10 @@ public:
 #pragma region Collider
 protected:
 	/** if this is a raycastTarget? means LineTrace can hit this or not. for EventSystem interaction */
-	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastTarget = false;
 	/** traceChannel for line trace of EventSystem interaction */
-	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		TEnumAsByte<ETraceTypeQuery> traceChannel = TraceTypeQuery3;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
