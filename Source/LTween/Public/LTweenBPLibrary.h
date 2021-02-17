@@ -140,7 +140,7 @@ public:
 		static ULTweener* MaterialVectorParameterTo(UMaterialInstanceDynamic* target, FName parameterName, FLinearColor endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "Assign start or update or omplete functions", WorldContext = "WorldContextObject"), Category = LTween)
-		static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, const FTweenerSimpleDynamicDelegate& start, const FTweenerFloatDynamicDelegate& update, const FTweenerSimpleDynamicDelegate& complete)
+		static ULTweener* VirtualCall(UObject* WorldContextObject, float duration, float delay, FTweenerSimpleDynamicDelegate start, FTweenerFloatDynamicDelegate update, FTweenerSimpleDynamicDelegate complete)
 	{
 		return ALTweenActor::VirtualTo(WorldContextObject, duration)->SetDelay(delay)->OnStart(start)->OnUpdate(update)->OnComplete(complete);
 	}
@@ -154,7 +154,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
-		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, const FTweenerSimpleDynamicDelegate& delayComplete)
+		static ULTweener* DelayCall(UObject* WorldContextObject, float delayTime, FTweenerSimpleDynamicDelegate delayComplete)
 	{
 		return ALTweenActor::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
 	}
@@ -167,7 +167,7 @@ public:
 		return ALTweenActor::VirtualTo(WorldContextObject, delayTime)->OnComplete(delayComplete);
 	}
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "MainThread delay frame call function, Assign delayComplete to call", WorldContext = "WorldContextObject"), Category = LTween)
-		static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, const FTweenerSimpleDynamicDelegate& delayComplete)
+		static ULTweener* DelayFrameCall(UObject* WorldContextObject, int frameCount, FTweenerSimpleDynamicDelegate delayComplete)
 	{
 		return ALTweenActor::DelayFrameCall(WorldContextObject, frameCount)->OnComplete(delayComplete);
 	}
