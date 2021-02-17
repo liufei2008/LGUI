@@ -3080,7 +3080,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						FUIText_RichTextCustomTag customTag;
 						customTag.TagName = richTextParseResult.customTag;
 						customTag.CharIndexStart = visibleCharIndex;
-						customTag.CharIndexEnd = 0;
+						customTag.CharIndexEnd = -1;
 						cacheRichTextCustomTagArray.Add(customTag);
 					}
 					break;
@@ -3363,6 +3363,19 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				}
 			}
 			break;
+			}
+		}
+	}
+
+	//verify custom tag
+	if (richText)
+	{
+		for (int i = 0; i < cacheRichTextCustomTagArray.Num(); i++)
+		{
+			auto& item = cacheRichTextCustomTagArray[i];
+			if (item.CharIndexEnd == -1)
+			{
+				item.CharIndexEnd = visibleCharIndex - 1;
 			}
 		}
 	}
