@@ -24,7 +24,7 @@ bool UUIEffectTextAnimation_RangeSelector::Select(UUIText* InUIText, FUIEffectTe
 		float lerpValue = value * rangeInv;
 		//lerpValue = FMath::Clamp(value, 0.0f, 1.0f);
 		int lerpValueIndex = startIndex - OutSelection.startCharIndex;
-		lerpValueArray[flipDirection ? endIndex - lerpValueIndex - 1 : lerpValueIndex] = 1.0f - lerpValue;
+		lerpValueArray[flipDirection ? endIndex - startIndex - 1 : lerpValueIndex] = 1.0f - lerpValue;
 		value += interval;
 	}
 	return true;
@@ -155,7 +155,7 @@ bool UUIEffectTextAnimation_RichTextTagSelector::Select(class UUIText* InUIText,
 		float lerpValue = value * rangeInv;
 		//lerpValue = FMath::Clamp(lerpValue, 0.0f, 1.0f);
 		int lerpValueIndex = startIndex - OutSelection.startCharIndex;
-		lerpValueArray[flipDirection ? endIndex - lerpValueIndex - 1 : lerpValueIndex] = 1.0f - lerpValue;
+		lerpValueArray[flipDirection ? endIndex - startIndex - 1 : lerpValueIndex] = 1.0f - lerpValue;
 		value += interval;
 	}
 	return true;
