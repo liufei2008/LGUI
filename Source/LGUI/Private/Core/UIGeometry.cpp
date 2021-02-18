@@ -3071,32 +3071,6 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					charProperty.IndicesCount = indicesCount + additionalIndicesCount;
 					cacheCharPropertyArray.Add(charProperty);
 				}
-				//collect rich text custom tag
-				{
-					switch (richTextParseResult.customTagMode)
-					{
-					case LGUIRichTextParser::CustomTagMode::Start:
-					{
-						FUIText_RichTextCustomTag customTag;
-						customTag.TagName = richTextParseResult.customTag;
-						customTag.CharIndexStart = visibleCharIndex;
-						customTag.CharIndexEnd = -1;
-						cacheRichTextCustomTagArray.Add(customTag);
-					}
-					break;
-					case LGUIRichTextParser::CustomTagMode::End:
-					{
-						int foundIndex = cacheRichTextCustomTagArray.IndexOfByPredicate([richTextParseResult](const FUIText_RichTextCustomTag& A) {
-							return A.TagName == richTextParseResult.customTag;
-							});
-						if (foundIndex != -1)
-						{
-							cacheRichTextCustomTagArray[foundIndex].CharIndexEnd = visibleCharIndex;
-						}
-					}
-					break;
-					}
-				}
 
 				verticesCount += additionalVerticesCount;
 				indicesCount += additionalIndicesCount;
@@ -3310,6 +3284,35 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				indicesCount += additionalIndicesCount;
 			}
 			visibleCharIndex++;
+		}
+
+		//collect rich text custom tag. custom tag use start/end mark, so put these code outside of visible-char-check.
+		if (richText)
+		{
+			switch (richTextParseResult.customTagMode)
+			{
+			case LGUIRichTextParser::CustomTagMode::Start:
+			{
+				FUIText_RichTextCustomTag customTag;
+				customTag.TagName = richTextParseResult.customTag;
+				customTag.CharIndexStart = visibleCharIndex - 1;//-1 because visibleCharIndex++
+				customTag.CharIndexStart = FMath::Max(0, customTag.CharIndexStart);//incase first char is invisible char, that makes index == -1
+				customTag.CharIndexEnd = -1;
+				cacheRichTextCustomTagArray.Add(customTag);
+			}
+			break;
+			case LGUIRichTextParser::CustomTagMode::End:
+			{
+				int foundIndex = cacheRichTextCustomTagArray.IndexOfByPredicate([richTextParseResult](const FUIText_RichTextCustomTag& A) {
+					return A.TagName == richTextParseResult.customTag;
+					});
+				if (foundIndex != -1)
+				{
+					cacheRichTextCustomTagArray[foundIndex].CharIndexEnd = visibleCharIndex - 1;//-1 because visibleCharIndex++
+				}
+			}
+			break;
+			}
 		}
 
 		currentLineOffset.X += charWidth;
