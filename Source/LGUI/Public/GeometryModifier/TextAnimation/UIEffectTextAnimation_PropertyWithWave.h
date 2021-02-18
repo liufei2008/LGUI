@@ -10,10 +10,13 @@ class LGUI_API UUIEffectTextAnimation_PropertyWithWave : public UUIEffectTextAni
 {
 	GENERATED_BODY()
 protected:
+	/** Higher frequency will generate smaller wavelength. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float frequency = 1.0f;
+	/** Move speed of the wave. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float speed = 1.0f;
+	/** Flip move speed direction of the wave. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		bool flipDirection = false;
 	struct FLTweenDelegateHandleWrapper delegateHandle;
@@ -33,6 +36,7 @@ class LGUI_API UUIEffectTextAnimation_PositionWaveProperty : public UUIEffectTex
 {
 	GENERATED_BODY()
 private:
+	/** Max position value for sin wave. Sin function generate values from -1 to 1, so the result will be from -position to position. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector position;
 public:
@@ -50,6 +54,7 @@ class LGUI_API UUIEffectTextAnimation_RotationWaveProperty : public UUIEffectTex
 {
 	GENERATED_BODY()
 private:
+	/** Max rotator value for sin wave. Sin function generate values from -1 to 1, so the result will be from -rotator to rotator. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FRotator rotator;
 public:
@@ -67,6 +72,7 @@ class LGUI_API UUIEffectTextAnimation_ScaleWaveProperty : public UUIEffectTextAn
 {
 	GENERATED_BODY()
 private:
+	/** Max scale value for sin wave. Sin function generate values from -1 to 1, so the result will be from -scale to scale. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FVector scale = FVector::OneVector;
 public:
