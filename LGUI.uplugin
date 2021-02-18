@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "2.11.5",
+	"VersionName": "2.11.6",
 	"FriendlyName": "LGUI",
 	"Description": "LGUI (Lex GUI) - Powerful 3D UI System, Event Framework, Prefab Workflow, Tween Animation",
 	"Category": "LexPlugin",

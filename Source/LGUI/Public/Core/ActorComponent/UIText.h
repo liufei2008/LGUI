@@ -152,7 +152,7 @@ protected:
 	 * <color=yellow>Yellow text</color> support color name: black, blue, green, orange, purple, red, white, and yellow
 	 * <color=#00ff00>Green text</color>
 	 * <sup>Superscript</sup>
-	 * <sub>Superscript</sub>
+	 * <sub>Subscript</sub>
 	 * <MyTag>Custom tag</MyTag> use any string as custom tag
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")

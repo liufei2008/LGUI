@@ -21,7 +21,10 @@ class LGUI_API UUIEffectTextAnimation_Selector : public UObject
 {
 	GENERATED_BODY()
 protected:
-	//editor clamp this value between 0-1, but you can assign it more than 0-1 for PositionWave/RotationWave/ScaleWave/XXXWave
+	/** 
+	 * 0 means *Properties* will have no effect, 1 means *Properties* have full effect, and middle value is interplation.
+	 * So we can set this "offset" property to make animation.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float offset = 0.5f;
 	class UUIText* GetUIText();
@@ -57,8 +60,10 @@ class LGUI_API UUIEffectTextAnimation : public UUIGeometryModifierBase
 public:	
 	UUIEffectTextAnimation();
 protected:
+	/** Selector defines the method to select characters in text */
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
 		UUIEffectTextAnimation_Selector* selector;
+	/** Properties defines which property will affect and how it affect */
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
 		TArray<UUIEffectTextAnimation_Property*> properties;
 

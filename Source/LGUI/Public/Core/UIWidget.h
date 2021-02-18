@@ -31,10 +31,13 @@ USTRUCT(BlueprintType)
 struct LGUI_API FUIWidget
 {
 	GENERATED_BODY()
-
+	/** Higher depth render on top of lower one, and receive raycast before lower one */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		int32 depth = 0;
-	/** sprite may override by UISelectable(UIButton, UIToggle, UISlider ...) */
+	/**
+	 * Render color of UI element.
+	 * Color may be override by UISelectable(UIButton, UIToggle, UISlider ...), if UISelectable's transition set to "Color Tint".
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		FColor color = FColor::White;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")

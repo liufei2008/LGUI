@@ -12,9 +12,10 @@ class LGUI_API UUIEffectTextAnimation_PropertyWithEase : public UUIEffectTextAni
 	GENERATED_BODY()
 private:
 	friend class FUIEffectTextAnimationPropertyCustomization;
+	/** Animation type, same as LTween ease */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		LTweenEase easeType = LTweenEase::InOutSine;
-	//only valid if easeType = CurveFloat
+	/** Only valid if easeType = CurveFloat. Use CurveFloat to control the animation. */
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (EditCondition = "easeType == LTweenEase::CurveFloat"))
 		UCurveFloat* easeCurve;
 	FLTweenFunction easeFunc;
@@ -188,6 +189,7 @@ class LGUI_API UUIEffectTextAnimation_AlphaProperty : public UUIEffectTextAnimat
 {
 	GENERATED_BODY()
 private:
+	/** Target alpha value, 0-1 range. */
 	UPROPERTY(EditAnywhere, Category = "Property", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 		float alpha;
 public:
@@ -207,7 +209,7 @@ class LGUI_API UUIEffectTextAnimation_ColorProperty : public UUIEffectTextAnimat
 private:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FColor color = FColor::Green;
-	/** convert color to linear hsv, interlpate, and convert back to color */
+	/** Conver color to HSV(Hue, Saturate, Value) and interpolate, then convert the result back. Interpolate two colors in HSV may look better. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		bool useHSV = true;
 public:
@@ -229,13 +231,13 @@ class LGUI_API UUIEffectTextAnimation_ColorRandomProperty : public UUIEffectText
 {
 	GENERATED_BODY()
 private:
-	//random seed
+	/** Random seed. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		int seed = 0;
-	//random min
+	/** Random min. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FColor min = FColor::Green;
-	//random max
+	/** Random max. */
 	UPROPERTY(EditAnywhere, Category = "Property")
 		FColor max = FColor::Red;
 	/** convert color to linear hsv, interlpate, and convert back to color */
