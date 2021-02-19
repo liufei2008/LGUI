@@ -2523,7 +2523,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 				charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
 				charGeo.geoHeight = overrideCharData->height * oneDivideRootCanvasScale;
-				charGeo.xadvance = overrideCharData->xadvance * oneDivideRootCanvasScale;
+				charGeo.xadvance = charData->xadvance;
 				charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideRootCanvasScale;
 				charGeo.xoffset = overrideCharData->xoffset * oneDivideRootCanvasScale;
 				charGeo.yoffset = overrideCharData->yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
