@@ -216,14 +216,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		float dynamicPixelsPerUnit = 1.0f;
 
+	/** Flags to enable/disable shader channels. Default only provide Position/Color/UV0, you can check Normal/Tangent/UV1/UV2/UV3 for your own use. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasAdditionalChannelType"))
 		int8 additionalShaderChannels = 0;
 
-	/** default materials, for render default UI elements */
+	/** Default materials, for render default UI elements. */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		UMaterialInterface* DefaultMaterials[3];
 
-	/** for not root canvas, inherit or override parent canvas parameters */
+	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
 
