@@ -395,33 +395,41 @@ namespace LGUIRichTextParser
 				{
 					outColor = FColor::Black; return true;
 				}
-				else if (colorString == TEXT("blue"))
+				else if (colorString == TEXT("white"))
 				{
-					outColor = FColor::Blue; return true;
+					outColor = FColor::White; return true;
 				}
-				else if (colorString == TEXT("green"))
+				else if (colorString == TEXT("gray"))
 				{
-					outColor = FColor::Green; return true;
+					outColor = FColor(128, 128, 128, 255); return true;
 				}
-				else if (colorString == TEXT("orange"))
+				else if (colorString == TEXT("silver"))
 				{
-					outColor = FColor::Orange; return true;
-				}
-				else if (colorString == TEXT("purple"))
-				{
-					outColor = FColor::Purple; return true;
+					outColor = FColor(192, 192, 192, 255); return true;
 				}
 				else if (colorString == TEXT("red"))
 				{
 					outColor = FColor::Red; return true;
 				}
-				else if (colorString == TEXT("white"))
+				else if (colorString == TEXT("green"))
 				{
-					outColor = FColor::White; return true;
+					outColor = FColor::Green; return true;
+				}
+				else if (colorString == TEXT("blue"))
+				{
+					outColor = FColor::Blue; return true;
+				}
+				else if (colorString == TEXT("orange"))
+				{
+					outColor = FColor(255, 165, 0, 255); return true;
+				}
+				else if (colorString == TEXT("purple"))
+				{
+					outColor = FColor(128, 0, 128, 255); return true;
 				}
 				else if (colorString == TEXT("yellow"))
 				{
-					outColor = FColor::Yellow; return true;
+					outColor = FColor(255, 255, 0, 255); return true;
 				}
 				else if (colorString[0] == '#')
 				{
