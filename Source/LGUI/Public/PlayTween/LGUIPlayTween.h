@@ -5,6 +5,7 @@
 #include "Event/LGUIDrawableEvent.h"
 #include "LGUIPlayTween.generated.h"
 
+DECLARE_DYNAMIC_DELEGATE(FLGUIPlayTweenCompleteDynamicDelegate);
 
 UCLASS(BlueprintType, Abstract, DefaultToInstanced, EditInlineNew)
 class LGUI_API ULGUIPlayTween : public UObject
@@ -45,7 +46,11 @@ public:
 		ULTweener* GetTweener()const { return tweener; }
 	FDelegateHandle RegisterOnComplete(const FSimpleDelegate& InDelegate);
 	FDelegateHandle RegisterOnComplete(const TFunction<void()>& InFunction);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FLGUIDelegateHandleWrapper RegisterOnComplete(const FLGUIPlayTweenCompleteDynamicDelegate& InDelegate);
 	void UnregisterOnComplete(const FDelegateHandle& InDelegateHandle);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void UnregisterOnComplete(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 protected:
 	virtual void OnUpdate(float progress)PURE_VIRTUAL(ULGUIPlayTween::OnUpdate, );
 };
