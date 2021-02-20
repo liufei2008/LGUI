@@ -12,7 +12,7 @@ void ULGUIPlayTween::Start()
 {
 	tweener = ALTweenActor::To(this->GetWorld()
 		, FLTweenFloatGetterFunction::CreateLambda([] { return 0.0f; })
-		, FLTweenFloatSetterFunction::CreateLambda([=](float value) { OnUpdate(value); })
+		, FLTweenFloatSetterFunction::CreateWeakLambda(this, [this](float value) { OnUpdate(value); })
 		, 1.0f, duration)
 		->SetDelay(startDelay)
 		->SetLoop(loopType, loopCount)
@@ -43,4 +43,15 @@ FDelegateHandle ULGUIPlayTween::RegisterOnComplete(const TFunction<void()>& InFu
 void ULGUIPlayTween::UnregisterOnComplete(const FDelegateHandle& InDelegateHandle)
 {
 	onComplete_Delegate.Remove(InDelegateHandle);
+}
+FLGUIDelegateHandleWrapper ULGUIPlayTween::RegisterOnComplete(const FLGUIPlayTweenCompleteDynamicDelegate& InDelegate)
+{
+	return FLGUIDelegateHandleWrapper(onComplete_Delegate.AddLambda([=] {
+		InDelegate.ExecuteIfBound();
+		})
+	);
+}
+void ULGUIPlayTween::UnregisterOnComplete(const FLGUIDelegateHandleWrapper& InDelegateHandle)
+{
+	onComplete_Delegate.Remove(InDelegateHandle.DelegateHandle);
 }
