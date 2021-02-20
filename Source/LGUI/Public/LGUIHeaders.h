@@ -105,5 +105,4 @@
 #include "Utils/LGUIUtils.h"
 
 #include "LGUIBPLibrary.h"
-#include "LGUIEditHelper.h"
 #include "LGUIComponentReference.h"

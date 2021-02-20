@@ -3,7 +3,6 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "CoreMinimal.h"
-#include "LGUIEditHelper.h"
 #include "LGUIEditorTools.generated.h"
 
 #pragma once
