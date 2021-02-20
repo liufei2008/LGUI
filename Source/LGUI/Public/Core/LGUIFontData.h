@@ -7,7 +7,6 @@
 #include "RHI.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include "LGUIEditHelper.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "LGUIFontData.generated.h"
 

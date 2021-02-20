@@ -42,7 +42,6 @@
 #include "DetailCustomization/EditorToolsCustomization.h"
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
 #include "DetailCustomization/LGUIDrawableEventOnePresetParamCustomization.h"
-#include "DetailCustomization/LGUIEditHelperButtonCustomization.h"
 #include "DetailCustomization/LGUIComponentRefereceCustomization.h"
 #include "DetailCustomization/UIEffectTextAnimationPropertyCustomization.h"
 #include "DetailCustomization/UIEffectTextAnimationCustomization.h"
