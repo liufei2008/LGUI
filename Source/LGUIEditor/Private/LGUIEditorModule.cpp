@@ -178,7 +178,6 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Class::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Rotator::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
 
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEditHelperButton::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIEditHelperButtonCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIComponentRefereceCustomization::MakeInstance));
 	}
 	//register asset
