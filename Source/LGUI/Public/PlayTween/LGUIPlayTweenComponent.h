@@ -18,6 +18,8 @@ protected:
 	virtual void BeginPlay() override;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+		class ULGUIPlayTween* GetPlayTween()const { return playTween; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void Play();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void Stop();
