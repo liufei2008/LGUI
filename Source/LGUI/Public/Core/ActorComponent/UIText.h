@@ -118,7 +118,7 @@ protected:
 
 protected:
 	friend class FUITextCustomization;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		ULGUIFontData* font;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FString text = TEXT("New Text");

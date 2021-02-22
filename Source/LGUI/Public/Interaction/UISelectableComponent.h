@@ -91,13 +91,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (ClampMin = "0.0"))
 		float FadeDuration = 0.2f;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (DisplayThumbnail = "false"))
 		ULGUISpriteData* NormalSprite;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (DisplayThumbnail = "false"))
 		ULGUISpriteData* HighlightedSprite;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (DisplayThumbnail = "false"))
 		ULGUISpriteData* PressedSprite;
-	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable", meta = (DisplayThumbnail = "false"))
 		ULGUISpriteData* DisabledSprite;
 
 	EUISelectableSelectionState CurrentSelectionState = EUISelectableSelectionState::Normal;
