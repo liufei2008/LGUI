@@ -84,12 +84,16 @@ public:
 	static void RemoveActorForPrefabSystem(AActor* InActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
 
+	static void RefreshAllUI();
+private:
 	bool IsCalculatingSelection = false;
 	FDelegateHandle OnSelectionChangedDelegateHandle;
 	TArray<FHitResult> CacheHitResultArray;
 	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
 	TWeakObjectPtr<AActor> LastSelectedActor;
 	void OnSelectionChanged(UObject* newSelection);
+	FDelegateHandle OnAssetReimportDelegateHandle;
+	void OnAssetReimport(UObject* asset);
 #if 0
 	void LogObjectFlags(UObject* obj);
 #endif
