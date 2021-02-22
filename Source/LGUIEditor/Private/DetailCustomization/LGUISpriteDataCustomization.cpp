@@ -7,6 +7,7 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Core/LGUIAtlasData.h"
 #include "LGUIEditorPCH.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteDataCustomization"
 
@@ -36,6 +37,8 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 			.HAlign(EHorizontalAlignment::HAlign_Center)
 			.OnClicked_Lambda([=]{
 				TargetScriptPtr->ReloadTexture();
+				TargetScriptPtr->MarkPackageDirty();
+				ULGUIEditorManagerObject::RefreshAllUI();
 				return FReply::Handled();
 			})
 		];

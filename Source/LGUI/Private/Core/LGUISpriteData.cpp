@@ -8,6 +8,7 @@
 #include "UObject/UObjectIterator.h"
 #include "Engine/Engine.h"
 #include "Utils/LGUIUtils.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
@@ -295,6 +296,8 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 				}
 			}
 		}
+
+		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 }
 void ULGUISpriteData::MarkAllSpritesNeedToReinitialize()
@@ -319,6 +322,12 @@ void ULGUISpriteData::ApplySpriteTextureSetting(UTexture2D* InSpriteTexture)
 void ULGUISpriteData::ReloadTexture()
 {
 	isInitialized = false;
+
+	atlasTexture = spriteTexture;
+	float atlasTextureWidthInv = 1.0f / atlasTexture->GetSurfaceWidth();
+	float atlasTextureHeightInv = 1.0f / atlasTexture->GetSurfaceHeight();
+	spriteInfo.ApplyUV(0, 0, atlasTexture->GetSurfaceWidth(), atlasTexture->GetSurfaceHeight(), atlasTextureWidthInv, atlasTextureHeightInv);
+	spriteInfo.ApplyBorderUV(atlasTextureWidthInv, atlasTextureHeightInv);
 }
 
 void ULGUISpriteData::InitSpriteData()

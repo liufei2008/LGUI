@@ -34,6 +34,10 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	{
 		USelection::SelectObjectEvent.Remove(OnSelectionChangedDelegateHandle);
 	}
+	if (OnAssetReimportDelegateHandle.IsValid())
+	{
+		GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.Remove(OnAssetReimportDelegateHandle);
+	}
 #endif
 	Instance = nullptr;
 	Super::BeginDestroy();
@@ -79,6 +83,9 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			{
 				Instance->OnSelectionChangedDelegateHandle = USelection::SelectionChangedEvent.AddUObject(Instance, &ULGUIEditorManagerObject::OnSelectionChanged);
 			}
+
+			//reimport asset
+			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
 		}
 		else
 		{
@@ -86,6 +93,58 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 		}
 	}
 	return true;
+}
+
+void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
+{
+	if (IsValid(asset))
+	{
+		auto textureAsset = Cast<UTexture2D>(asset);
+		if (IsValid(textureAsset))
+		{
+			bool needToRebuildUI = false;
+			//find sprite data that reference this texture
+			for (TObjectIterator<ULGUISpriteData> Itr; Itr; ++Itr)
+			{
+				ULGUISpriteData* spriteData = *Itr;
+				if (IsValid(spriteData))
+				{
+					if (spriteData->GetSpriteTexture() == textureAsset)
+					{
+						spriteData->ReloadTexture();
+						spriteData->MarkPackageDirty();
+						needToRebuildUI = true;
+					}
+				}
+			}
+			//Refresh ui
+			if (needToRebuildUI)
+			{
+				RefreshAllUI();
+			}
+		}
+	}
+}
+
+void ULGUIEditorManagerObject::RefreshAllUI()
+{
+	if (Instance != nullptr)
+	{
+		for (auto itemCanvas : Instance->allCanvas)
+		{
+			if (itemCanvas.IsValid())
+			{
+				if (auto uiItem = itemCanvas->CheckAndGetUIItem())
+				{
+					if (IsValid(uiItem))
+					{
+						uiItem->MarkAllDirtyRecursive();
+						uiItem->EditorForceUpdateImmediately();
+					}
+				}
+			}
+		}
+	}
 }
 
 bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
