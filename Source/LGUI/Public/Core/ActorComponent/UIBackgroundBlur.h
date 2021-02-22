@@ -33,10 +33,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI") 
 		int maxDownSampleLevel = 6;
 	/** use strengthTexture's red channel to control blur strength, 0-no blur, 1-full blur */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UTexture2D* strengthTexture;
 	/** use maskTexture's red channel to mask out blur result */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UTexture2D* maskTexture;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
