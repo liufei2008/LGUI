@@ -36,7 +36,7 @@ protected:
 	friend class FUISpriteBaseCustomization;
 
 	/** sprite may override by UISelectable(UIButton, UIToggle, UISlider ...) */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		ULGUISpriteData* sprite;
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}

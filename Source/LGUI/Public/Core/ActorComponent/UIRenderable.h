@@ -82,7 +82,7 @@ public:
 protected:
 	friend class FUIRenderableCustomization;
 	/** Use custom material to render this element */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* CustomUIMaterial = nullptr;
 	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit widget rectangle */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
