@@ -35,6 +35,7 @@ public:
 	TSharedRef<SWidget> MakeEditorToolsMenu(bool IsSceneOutlineMenu);
 	TSharedPtr<class FUICommandList> PluginCommands;
 	void RefreshSceneOutliner();
+	TArray<TSharedPtr<FAssetTypeActions_Base>> AssetTypeActionsArray;
 private:
 
 	void CreateUIElementSubMenu(FMenuBuilder& MenuBuilder);
