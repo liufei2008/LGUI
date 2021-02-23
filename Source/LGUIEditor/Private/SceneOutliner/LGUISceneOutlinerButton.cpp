@@ -13,7 +13,7 @@ FReply SLGUISceneOutlinerButton::OnButtonClicked()
 	{
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 		GEditor->SelectNone(true, false);
-		GEditor->SelectActor(_TreeItemActor.Get(), true, false);
+		GEditor->SelectActor(_TreeItemActor.Get(), true, true, true);
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 		SetIsOpen(ShouldOpenDueToClick(), false);
 
@@ -54,21 +54,14 @@ FReply SLGUISceneOutlinerButton::OnButtonClicked()
 }
 FReply SLGUISceneOutlinerButton::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	FReply Reply = FReply::Handled();
-	if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
-	{
-		// Handle menu open with controller.
-		Reply = OnButtonClicked();
-	}
-
-	return Reply;
+	return FReply::Handled();
 }
 FReply SLGUISceneOutlinerButton::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	return FReply::Handled();
-}
-FReply SLGUISceneOutlinerButton::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
-{
+	if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		return OnButtonClicked();
+	}
 	return FReply::Handled();
 }
 
