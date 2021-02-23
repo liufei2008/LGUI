@@ -397,16 +397,19 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 void UUIItem::PostEditComponentMove(bool bFinished)
 {
 #if WITH_EDITORONLY_DATA
-	//modify AnchorOffset for drag in editor
-	if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
+	if (auto parent = GetParentAsUIItem())
 	{
-		float anchorOffsetX = this->GetRelativeLocation().X - prevRelativeLocation.X + widget.anchorOffsetX;
-		SetAnchorOffsetX(anchorOffsetX);
-	}
-	if (widget.anchorVAlign != UIAnchorVerticalAlign::None)
-	{
-		float anchorOffsetY = this->GetRelativeLocation().Y - prevRelativeLocation.Y + widget.anchorOffsetY;
-		SetAnchorOffsetY(anchorOffsetY);
+		//modify AnchorOffset for drag in editor
+		if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
+		{
+			float anchorOffsetX = this->GetRelativeLocation().X - prevRelativeLocation.X + widget.anchorOffsetX;
+			SetAnchorOffsetX(anchorOffsetX);
+		}
+		if (widget.anchorVAlign != UIAnchorVerticalAlign::None)
+		{
+			float anchorOffsetY = this->GetRelativeLocation().Y - prevRelativeLocation.Y + widget.anchorOffsetY;
+			SetAnchorOffsetY(anchorOffsetY);
+		}
 	}
 #endif
 
