@@ -12,7 +12,7 @@ void ULGUIPlayTween::Start()
 {
 	tweener = ALTweenActor::To(this->GetWorld()
 		, FLTweenFloatGetterFunction::CreateLambda([] { return 0.0f; })
-		, FLTweenFloatSetterFunction::CreateWeakLambda(this, [this](float value) { OnUpdate(value); })
+		, FLTweenFloatSetterFunction::CreateUObject(this, &ULGUIPlayTween::OnUpdate)
 		, 1.0f, duration)
 		->SetDelay(startDelay)
 		->SetLoop(loopType, loopCount)
