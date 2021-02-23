@@ -56,14 +56,18 @@ void ULGUIImageSequencePlayer::Stop()
 void ULGUIImageSequencePlayer::SeekFrame(int frameNumber)
 {
 	elapsedTime = frameNumber / fps;
-
-	OnUpdateAnimation(frameNumber);
+	if (CanPlay())
+	{
+		OnUpdateAnimation(frameNumber);
+	}
 }
 void ULGUIImageSequencePlayer::SeekTime(float time)
 {
 	elapsedTime = time;
-
-	OnUpdateAnimation(elapsedTime * fps);
+	if (CanPlay())
+	{
+		OnUpdateAnimation(elapsedTime * fps);
+	}
 }
 
 void ULGUIImageSequencePlayer::UpdateAnimation(float deltaTime)

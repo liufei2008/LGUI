@@ -60,7 +60,7 @@ public:
 		bool GetLoop()const { return loop; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFps(float value);
-	/** Will take effect after current cycle. */
+	/** Will take effect on nexe cycle. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetLoop(bool value);
 };
