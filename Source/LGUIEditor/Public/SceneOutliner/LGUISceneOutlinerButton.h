@@ -12,7 +12,6 @@ protected:
 	virtual FReply OnButtonClicked()override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)override;
-	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 public:
 	TWeakObjectPtr<AActor> _TreeItemActor;
 };
