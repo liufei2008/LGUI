@@ -6,12 +6,12 @@
 /**
  * 
  */
-class FUIEffectTextAnimationPropertyCustomization : public IDetailCustomization
+class FUISpriteSheetTexturePlayerCustomization : public IDetailCustomization
 {
 public:
 	static TSharedRef<IDetailCustomization> MakeInstance();
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
-	TWeakObjectPtr<class UUIEffectTextAnimation_PropertyWithEase> TargetScriptPtr;
+	TWeakObjectPtr<class UUISpriteSheetTexturePlayer> TargetScriptPtr;
 };

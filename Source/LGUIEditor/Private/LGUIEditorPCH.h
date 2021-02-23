@@ -43,8 +43,9 @@
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
 #include "DetailCustomization/LGUIDrawableEventOnePresetParamCustomization.h"
 #include "DetailCustomization/LGUIComponentRefereceCustomization.h"
-#include "DetailCustomization/UIEffectTextAnimationPropertyCustomization.h"
 #include "DetailCustomization/UIEffectTextAnimationCustomization.h"
 #include "DetailCustomization/UIScrollViewWithScrollBarCustomization.h"
+#include "DetailCustomization/UISpriteSequencePlayerCustomization.h"
+#include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
 
 #include "LGUIHeaders.h"

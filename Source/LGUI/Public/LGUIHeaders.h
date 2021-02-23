@@ -60,6 +60,8 @@
 #include "Extensions/2DLineRenderer/UI2DLineChildrenAsPoints.h"
 #include "Extensions/2DLineRenderer/UI2DLineRaw.h"
 #include "Extensions/2DLineRenderer/UI2DLineRendererBase.h"
+#include "Extensions/UISpriteSequencePlayer.h"
+#include "Extensions/UISpriteSheetTexturePlayer.h"
 
 #include "GeometryModifier/UIEffectGradientColor.h"
 #include "GeometryModifier/UIEffectLongShadow.h"

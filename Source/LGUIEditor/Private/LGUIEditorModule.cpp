@@ -149,7 +149,9 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(ULGUIEditorToolsAgentObject::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FEditorToolsCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(UUIEffectTextAnimation::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIEffectTextAnimationCustomization::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout(UUIEffectTextAnimation_PropertyWithEase::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIEffectTextAnimationPropertyCustomization::MakeInstance));
+
+		PropertyModule.RegisterCustomClassLayout(UUISpriteSequencePlayer::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISpriteSequencePlayerCustomization::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(UUISpriteSheetTexturePlayer::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISpriteSheetTexturePlayerCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIDrawableEventOneParamCustomization::MakeInstance));
 		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEventTwoParam::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIDrawableEventTwoParamCustomization::MakeInstance));
@@ -186,19 +188,22 @@ void FLGUIEditorModule::StartupModule()
 		//register AssetCategory
 		EAssetTypeCategories::Type LGUIAssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("LGUI")), LOCTEXT("LGUIAssetCategory", "LGUI"));
 
-		TSharedRef<IAssetTypeActions> spriteDataAction = MakeShareable(new FLGUISpriteDataTypeAction(LGUIAssetCategoryBit));
-		TSharedRef<IAssetTypeActions> fontDataAction = MakeShareable(new FLGUIFontDataTypeAction(LGUIAssetCategoryBit));
-		TSharedRef<IAssetTypeActions> prefabAction = MakeShareable(new FLGUIPrefabTypeAction(LGUIAssetCategoryBit));
-		AssetTools.RegisterAssetTypeActions(spriteDataAction);
-		AssetTools.RegisterAssetTypeActions(fontDataAction);
-		AssetTools.RegisterAssetTypeActions(prefabAction);
+		TSharedPtr<FAssetTypeActions_Base> spriteDataAction = MakeShareable(new FLGUISpriteDataTypeAction(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> fontDataAction = MakeShareable(new FLGUIFontDataTypeAction(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> prefabAction = MakeShareable(new FLGUIPrefabTypeAction(LGUIAssetCategoryBit));
+		AssetTools.RegisterAssetTypeActions(spriteDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(fontDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(prefabAction.ToSharedRef());
+		AssetTypeActionsArray.Add(spriteDataAction);
+		AssetTypeActionsArray.Add(fontDataAction);
+		AssetTypeActionsArray.Add(prefabAction);
 	}
 	//register Thumbnail
 	{
 		UThumbnailManager::Get().RegisterCustomRenderer(ULGUIPrefab::StaticClass(), ULGUIPrefabThumbnailRenderer::StaticClass());
 		UThumbnailManager::Get().RegisterCustomRenderer(ULGUISpriteData::StaticClass(), ULGUISpriteThumbnailRenderer::StaticClass());
 	}
-	//register right mout button in content browser
+	//register right mouse button in content browser
 	{
 		if (!IsRunningCommandlet())
 		{
@@ -241,51 +246,111 @@ void FLGUIEditorModule::ShutdownModule()
 
 	FLGUIEditorCommands::Unregister();
 
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIAtlasViewerName);
-
-	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
-	SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
-
-	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	PropertyModule.UnregisterCustomClassLayout(UUIItem::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUISpriteBase::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUISprite::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIText::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName());
-
-	PropertyModule.UnregisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName());
-
-	PropertyModule.UnregisterCustomClassLayout(UUISelectableComponent::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIToggleComponent::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUITextInputComponent::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIScrollViewWithScrollbarComponent::StaticClass()->GetFName());
-
-	PropertyModule.UnregisterCustomClassLayout(UUILayoutBase::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIVerticalLayout::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIHorizontalLayout::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIGridLayout::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUILayoutElement::StaticClass()->GetFName());
-
-	PropertyModule.UnregisterCustomClassLayout(ULGUIPrefabHelperComponent::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName());
-
-	PropertyModule.UnregisterCustomClassLayout(ULGUIEditorToolsAgentObject::StaticClass()->GetFName());
-
-	PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation_Property::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation::StaticClass()->GetFName());
-
-	PropertyModule.UnregisterCustomPropertyTypeLayout("LGUIDrawableEvent");
-	PropertyModule.UnregisterCustomPropertyTypeLayout("LGUIEditHelperButton");
-	PropertyModule.UnregisterCustomPropertyTypeLayout("LGUIComponentReference");
-
-	FLGUIContentBrowserExtensions::RemoveHooks();
-	FLGUILevelEditorExtensions::RemoveHooks();
-
-	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	//unregister SceneOutliner ColumnInfo
 	{
-		SettingsModule->UnregisterSettings("Project", "Plugins", "LGUISprite");
+		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
+		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
+	}
+	//unregister window
+	{
+		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIAtlasViewerName);
+	}
+	//unregister custom editor
+	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
+	{
+		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		PropertyModule.UnregisterCustomClassLayout(UUIItem::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUISpriteBase::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUISprite::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(ULGUICanvas::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIText::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUITextureBase::StaticClass()->GetFName());
+
+		PropertyModule.UnregisterCustomClassLayout(ULGUISpriteData::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(ULGUIFontData::StaticClass()->GetFName());
+
+		PropertyModule.UnregisterCustomClassLayout(UUISelectableComponent::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIToggleComponent::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUITextInputComponent::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIScrollViewWithScrollbarComponent::StaticClass()->GetFName());
+
+		PropertyModule.UnregisterCustomClassLayout(UUILayoutBase::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIVerticalLayout::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIHorizontalLayout::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIGridLayout::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUILayoutElement::StaticClass()->GetFName());
+
+		PropertyModule.UnregisterCustomClassLayout(ULGUIPrefabHelperComponent::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName());
+
+		PropertyModule.UnregisterCustomClassLayout(ULGUIEditorToolsAgentObject::StaticClass()->GetFName());
+
+		PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation_Property::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation::StaticClass()->GetFName());
+
+		PropertyModule.UnregisterCustomClassLayout(UUISpriteSequencePlayer::StaticClass()->GetFName());
+		PropertyModule.UnregisterCustomClassLayout(UUISpriteSheetTexturePlayer::StaticClass()->GetFName());
+
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent::StaticStruct()->GetFName());
+		//PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEventTwoParam::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Empty::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Bool::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Float::StaticStruct()->GetFName());
+		//PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Double::StaticStruct()->GetFName());
+		//PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Int8::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_UInt8::StaticStruct()->GetFName());
+		//PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Int16::StaticStruct()->GetFName());
+		//PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_UInt16::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Int32::StaticStruct()->GetFName());
+		//PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_UInt32::StaticStruct()->GetFName());
+		//PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Int64::StaticStruct()->GetFName());
+		//PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_UInt64::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Vector2::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Vector3::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Vector4::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Color::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_LinearColor::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Quaternion::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_String::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Object::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Actor::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_PointerEvent::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Class::StaticStruct()->GetFName());
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Rotator::StaticStruct()->GetFName());
+
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName());
+	}
+	//unregister asset
+	{
+		if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetTools")))
+		{
+			IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+			for (TSharedPtr<FAssetTypeActions_Base>& AssetTypeActions : AssetTypeActionsArray)
+			{
+				AssetTools.UnregisterAssetTypeActions(AssetTypeActions.ToSharedRef());
+			}
+		}
+		AssetTypeActionsArray.Empty();
+	}
+	//unregister thumbnail
+	if (UObjectInitialized())
+	{
+		UThumbnailManager::Get().UnregisterCustomRenderer(ULGUIPrefab::StaticClass());
+		UThumbnailManager::Get().UnregisterCustomRenderer(ULGUISpriteData::StaticClass());
+	}
+	//unregister right mouse button in content browser
+	{
+		FLGUIContentBrowserExtensions::RemoveHooks();
+		FLGUILevelEditorExtensions::RemoveHooks();
+	}
+
+	//unregister setting
+	{
+		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+		{
+			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUISprite");
+		}
 	}
 
 	FKismetEditorUtilities::UnregisterAutoBlueprintNodeCreation(this);
