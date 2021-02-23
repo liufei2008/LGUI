@@ -21,7 +21,7 @@ struct FLGUIBasePassVSToPS
 	float4 Position : SV_POSITION;
 };
 
-FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 VertexColor, float2 UV0, float2 UV1, float2 UV2, float2 UV3)
+FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(FMaterialVertexParameters VertexParameters, half4 VertexColor)
 {
 	FVertexFactoryInterpolantsVSToPS Interpolants;
 
@@ -30,14 +30,12 @@ FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 Vertex
 	Interpolants = (FVertexFactoryInterpolantsVSToPS)0;
 
 #if NUM_TEX_COORD_INTERPOLATORS
-	float2 CustomizedUVs[4];
-	CustomizedUVs[0] = UV0;
-	CustomizedUVs[1] = UV1;
-	CustomizedUVs[2] = UV2;
-	CustomizedUVs[3] = UV3;
-	int MaxCount = min(NUM_TEX_COORD_INTERPOLATORS, 4);
+	float2 CustomizedUVs[NUM_TEX_COORD_INTERPOLATORS];
+	GetMaterialCustomizedUVs(VertexParameters, CustomizedUVs);
+	GetCustomInterpolators(VertexParameters, CustomizedUVs);
+	
 	UNROLL
-	for (int CoordinateIndex = 0; CoordinateIndex < MaxCount; CoordinateIndex++)
+	for (int CoordinateIndex = 0; CoordinateIndex < NUM_TEX_COORD_INTERPOLATORS; CoordinateIndex++)
 	{
 		SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
 	}
@@ -53,11 +51,21 @@ FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(half4 Vertex
 }
 
 /** Converts from vertex factory specific input to a FMaterialVertexParameters, which is used by vertex shader material inputs. */
-FMaterialVertexParameters GetMaterialVertexParameters(/*FVertexFactoryInput Input, */half4 VertexColor, float3 WorldPosition)
+FMaterialVertexParameters GetMaterialVertexParameters(half4 VertexColor, float3 WorldPosition, float2 UVs[4])
 {
     FMaterialVertexParameters Result = (FMaterialVertexParameters) 0;
     Result.WorldPosition = WorldPosition;
     Result.VertexColor = VertexColor;
+	
+#if NUM_MATERIAL_TEXCOORDS_VERTEX
+	int MaxCount = min(NUM_MATERIAL_TEXCOORDS_VERTEX, 4);
+    UNROLL
+    for (int CoordinateIndex = 0; CoordinateIndex < MaxCount; CoordinateIndex++)
+    {
+        Result.TexCoords[CoordinateIndex] = UVs[CoordinateIndex].xy;
+    }
+#endif
+	
     return Result;
 }
 
@@ -83,7 +91,12 @@ void MainVS(
     float4 WorldPosition = TransformLocalToTranslatedWorld(Position);
 	//float4 WorldPosition = float4(Position.xyz + ResolvedView.PreViewTranslation.xyz, 1.0);
 
-    FMaterialVertexParameters VertexParameters = GetMaterialVertexParameters(Color, WorldPosition.xyz);
+    float2 UVs[4];
+    UVs[0] = TextureCoord0;
+    UVs[1] = TextureCoord1;
+    UVs[2] = TextureCoord2;
+    UVs[3] = TextureCoord3;
+    FMaterialVertexParameters VertexParameters = GetMaterialVertexParameters(Color, WorldPosition.xyz, UVs);
     half3 WorldPositionOffset = GetMaterialWorldPositionOffset(VertexParameters);
     WorldPosition.xyz += WorldPositionOffset;
 
@@ -94,7 +107,7 @@ void MainVS(
 	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPosition.xyz;
 #endif
 
-	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(Color, TextureCoord0, TextureCoord1, TextureCoord2, TextureCoord3);
+	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(VertexParameters, Color);
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
 
