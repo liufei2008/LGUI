@@ -24,4 +24,14 @@ protected:
 	virtual void PrepareForPlay()override;
 	virtual void OnUpdateAnimation(int frameNumber)override;
 public:
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		int GetWidthCount()const { return widthCount; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		int GetHeightCount()const { return heightCount; }
+	/** Will take effect on nexe cycle. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetWidthCount(int value);
+	/** Will take effect on nexe cycle. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetHeightCount(int value);
 };

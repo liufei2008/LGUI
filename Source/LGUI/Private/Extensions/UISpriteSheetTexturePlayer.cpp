@@ -45,3 +45,12 @@ void UUISpriteSheetTexturePlayer::OnUpdateAnimation(int frameNumber)
 	horizontalFrame = FMath::Clamp(horizontalFrame, 0, widthCount);
 	texture->SetUVRect(FVector4(widthUVInterval * horizontalFrame, heightUVInterval * verticalFrame, widthUVInterval, heightUVInterval));
 }
+
+void UUISpriteSheetTexturePlayer::SetWidthCount(int value)
+{
+	widthCount = value;
+}
+void UUISpriteSheetTexturePlayer::SetHeightCount(int value)
+{
+	heightCount = value;
+}
