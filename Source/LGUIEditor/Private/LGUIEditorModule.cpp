@@ -23,7 +23,6 @@
 
 #include "LGUIEditorPCH.h"
 
-const FName FLGUIEditorModule::LGUIEditorToolsTabName(TEXT("LGUIEditorTools"));
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
 
 FLGUIEditorModule* FLGUIEditorModule::Instance = nullptr;
@@ -47,43 +46,39 @@ void FLGUIEditorModule::StartupModule()
 	//Editor tools
 	{
 		auto editorCommand = FLGUIEditorCommands::Get();
-		//PluginCommands->MapAction(
-		//	editorCommand.OpenEditorToolsWindow,
-		//	FExecuteAction::CreateRaw(this, &FLGUIEditorModule::EditorToolButtonClicked),
-		//	FCanExecuteAction());
 
 		//actor action
 		PluginCommands->MapAction(
 			editorCommand.CopyActor,
-			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CopySelectedActors_Impl),
+			FExecuteAction::CreateStatic(&LGUIEditorTools::CopySelectedActors_Impl),
 			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })
 		);
 		PluginCommands->MapAction(
 			editorCommand.PasteActor,
-			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::PasteSelectedActors_Impl),
-			FCanExecuteAction::CreateLambda([] {return ULGUIEditorToolsAgentObject::HaveValidCopiedActors(); })
+			FExecuteAction::CreateStatic(&LGUIEditorTools::PasteSelectedActors_Impl),
+			FCanExecuteAction::CreateLambda([] {return LGUIEditorTools::HaveValidCopiedActors(); })
 		);
 		PluginCommands->MapAction(
 			editorCommand.DuplicateActor,
-			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::DuplicateSelectedActors_Impl),
+			FExecuteAction::CreateStatic(&LGUIEditorTools::DuplicateSelectedActors_Impl),
 			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })
 		);
 		PluginCommands->MapAction(
 			editorCommand.DestroyActor,
-			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl),
+			FExecuteAction::CreateStatic(&LGUIEditorTools::DeleteSelectedActors_Impl),
 			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })
 		);
 
 		//component action
 		PluginCommands->MapAction(
 			editorCommand.CopyComponentValues,
-			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CopyComponentValues_Impl),
+			FExecuteAction::CreateStatic(&LGUIEditorTools::CopyComponentValues_Impl),
 			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedComponentCount() > 0; })
 		);
 		PluginCommands->MapAction(
 			editorCommand.PasteComponentValues,
-			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::PasteComponentValues_Impl),
-			FCanExecuteAction::CreateLambda([] {return ULGUIEditorToolsAgentObject::HaveValidCopiedComponent(); })
+			FExecuteAction::CreateStatic(&LGUIEditorTools::PasteComponentValues_Impl),
+			FCanExecuteAction::CreateLambda([] {return LGUIEditorTools::HaveValidCopiedComponent(); })
 		);
 
 		PluginCommands->MapAction(
@@ -94,7 +89,7 @@ void FLGUIEditorModule::StartupModule()
 		
 		PluginCommands->MapAction(
 			editorCommand.OpenAtlasViewer,
-			FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::OpenAtlasViewer_Impl),
+			FExecuteAction::CreateStatic(&LGUIEditorTools::OpenAtlasViewer_Impl),
 			FCanExecuteAction());
 
 		TSharedPtr<FExtender> toolbarExtender = MakeShareable(new FExtender);
@@ -145,8 +140,6 @@ void FLGUIEditorModule::StartupModule()
 
 		PropertyModule.RegisterCustomClassLayout(ULGUIPrefabHelperComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabHelperComponentCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabCustomization::MakeInstance));
-
-		PropertyModule.RegisterCustomClassLayout(ULGUIEditorToolsAgentObject::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FEditorToolsCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(UUIEffectTextAnimation::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIEffectTextAnimationCustomization::MakeInstance));
 
@@ -283,8 +276,6 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomClassLayout(ULGUIPrefabHelperComponent::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName());
 
-		PropertyModule.UnregisterCustomClassLayout(ULGUIEditorToolsAgentObject::StaticClass()->GetFName());
-
 		PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation_Property::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation::StaticClass()->GetFName());
 
@@ -361,13 +352,6 @@ void FLGUIEditorModule::RefreshSceneOutliner()
 	GEngine->BroadcastLevelActorListChanged();
 }
 
-TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnEditorToolsTab(const FSpawnTabArgs& SpawnTabArgs)
-{
-	TSharedRef<SDockTab> ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
-	auto TabContentWidget = SNew(SLGUIEditorTools, ResultTab);
-	ResultTab->SetContent(TabContentWidget);
-	return ResultTab;
-}
 TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs)
 {
 	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
@@ -376,13 +360,9 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTa
 	return ResultTab;
 }
 
-void FLGUIEditorModule::EditorToolButtonClicked()
-{
-	FGlobalTabmanager::Get()->TryInvokeTab(LGUIEditorToolsTabName);
-}
 bool FLGUIEditorModule::CanEditActorForPrefab()
 {
-	return GEditor->GetSelectedActorCount() == 1 && ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(ULGUIEditorToolsAgentObject::GetFirstSelectedActor()) != nullptr;
+	return GEditor->GetSelectedActorCount() == 1 && LGUIEditorTools::GetPrefabActor_WhichManageThisActor(LGUIEditorTools::GetFirstSelectedActor()) != nullptr;
 }
 
 void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder)
@@ -411,14 +391,14 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("CreatePrefab", "Create Prefab"),
 			LOCTEXT("Create_Tooltip", "Use selected actor to create a new prefab"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreatePrefabAsset)
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreatePrefabAsset)
 				, FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; }))
 		);
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("ApplyPrefab", "Apply Prefab"),
 			LOCTEXT("Apply_Tooltip", "Apply change and save prefab to asset"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::ApplyPrefab)
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ApplyPrefab)
 				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
 				, FGetActionCheckState()
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
@@ -427,7 +407,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("RevertPrefab", "Revert Prefab"),
 			LOCTEXT("Revert_Tooltip", "Revert any changes"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::RevertPrefab)
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::RevertPrefab)
 				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
 				, FGetActionCheckState()
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
@@ -436,7 +416,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("DeletePrefab", "Delete this Prefab instance"),
 			LOCTEXT("Delete_Tooltip", "Delete actors created by this prefab with hierarchy"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::DeletePrefab)
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::DeletePrefab)
 				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
 				, FGetActionCheckState()
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
@@ -445,7 +425,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("SelectPrefabAsset", "Browse to Prefab asset"),
 			LOCTEXT("SelectPrefabAsset_Tooltip", "Browse to Prefab asset in Content Browser"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::SelectPrefabAsset)
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::SelectPrefabAsset)
 				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
 				, FGetActionCheckState()
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
@@ -459,7 +439,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("EmptyActor", "Empty Actor"),
 			LOCTEXT("EmptyActor_Tooltip", "Create an empty actor"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateEmptyActor))
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateEmptyActor))
 		);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("CreateUIElementSubMenu", "Create UI Element"),
@@ -567,7 +547,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::FromString(FString::Printf(TEXT("Create %s"), *(UIItemName))),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateUIItemActor, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
 			);
 		}
 		static void CreateUIControlMenuEntry(FMenuBuilder& InBuilder, const FString& InControlName, const FString& InPrefabPath)
@@ -576,7 +556,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(InControlName),
 				FText::FromString(FString::Printf(TEXT("Create %s"), *InControlName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateUIControls, InPrefabPath))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIControls, InPrefabPath))
 			);
 		}
 	};
@@ -634,7 +614,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::FromString(FString::Printf(TEXT("Create %s"), *(UIItemName))),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateUIItemActor, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
 			);
 		}
 	};
@@ -677,7 +657,7 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(UIItemName),
 				FText::FromString(FString::Printf(TEXT("Create %s"), *UIItemName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateUIItemActor, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
 			);
 		}
 	};
@@ -721,13 +701,13 @@ void FLGUIEditorModule::BasicSetupSubMenu(FMenuBuilder& MenuBuilder)
 			FText::FromString(TEXT("Screen Space UI")),
 			FText::FromString(FString::Printf(TEXT("Create Screen Space UI"))),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup))
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateScreenSpaceUIBasicSetup))
 		);
 		MenuBuilder.AddMenuEntry(
 			FText::FromString(TEXT("World Space UI")),
 			FText::FromString(FString::Printf(TEXT("Create World Space UI"))),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup))
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateWorldSpaceUIBasicSetup))
 		);
 	}
 	MenuBuilder.EndSection();
@@ -748,7 +728,7 @@ void FLGUIEditorModule::ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder)
 					FText::FromString(channelName),
 					FText::FromString(FString::Printf(TEXT("Change selected UI item actor's trace channel to %s"), *channelName)),
 					FSlateIcon(),
-					FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl, (ETraceTypeQuery)i))
+					FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ChangeTraceChannel_Impl, (ETraceTypeQuery)i))
 				);
 			}
 		}
@@ -769,7 +749,7 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(ShotName),
 				FText::FromString(FString::Printf(TEXT("ReplaceWith:%s"), *UIItemName)),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&ULGUIEditorToolsAgentObject::ReplaceUIElementWith, InClass))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceUIElementWith, InClass))
 			);
 		}
 	};

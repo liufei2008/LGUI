@@ -50,7 +50,7 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 
 	PrefabComponent->SetPrefabAsset(Prefab);
 	//PrefabComponent->SetRelativeRotation(FQuat::MakeFromEuler(FVector(-90, 0, 90)));
-	if (auto selectedActor = ULGUIEditorToolsAgentObject::GetFirstSelectedActor())
+	if (auto selectedActor = LGUIEditorTools::GetFirstSelectedActor())
 	{
 		PrefabComponent->ParentActorForEditor = selectedActor;
 	}

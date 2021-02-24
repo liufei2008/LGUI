@@ -23,7 +23,6 @@ class FLGUIEditorModule : public IModuleInterface
 {
 public:
 
-	static const FName LGUIEditorToolsTabName;
 	static const FName LGUIAtlasViewerName;
 
 	static FLGUIEditorModule* Instance;
@@ -35,7 +34,7 @@ public:
 	TSharedRef<SWidget> MakeEditorToolsMenu(bool IsSceneOutlineMenu);
 	TSharedPtr<class FUICommandList> PluginCommands;
 	void RefreshSceneOutliner();
-	TArray<TSharedPtr<FAssetTypeActions_Base>> AssetTypeActionsArray;
+	TArray<TSharedPtr<class FAssetTypeActions_Base>> AssetTypeActionsArray;
 private:
 
 	void CreateUIElementSubMenu(FMenuBuilder& MenuBuilder);
@@ -49,9 +48,6 @@ private:
 	void UseActiveViewportAsPreview();
 	void ClearViewportPreview();
 
-	TSharedRef<SDockTab> HandleSpawnEditorToolsTab(const FSpawnTabArgs& SpawnTabArgs);
-
-	void EditorToolButtonClicked();
 	bool CanEditActorForPrefab();
 private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
