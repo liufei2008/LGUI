@@ -8,7 +8,7 @@
 class UCurveFloat;
 
 /** Range selector defines start and end range of characters in UIText, and provide 0 to 1 value(for interpolation) from start to end. */
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Range"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Range Selector (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_RangeSelector : public UUIEffectTextAnimation_Selector
 {
 	GENERATED_BODY()
@@ -48,7 +48,7 @@ public:
 };
 
 /** Random selector will select characters randomly, and generate random value from 0 to 1 for interpolation. */
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Random"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Random Selector (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_RandomSelector : public UUIEffectTextAnimation_Selector
 {
 	GENERATED_BODY()
@@ -81,7 +81,7 @@ public:
 };
 
 /** RichTextTag selector can select characters by rich-text custom-tag, and provide 0 to 1 value(for interpolation) from start to end. */
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "RichTextTag"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "RichTextTag Selector (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_RichTextTagSelector : public UUIEffectTextAnimation_Selector
 {
 	GENERATED_BODY()
