@@ -37,7 +37,7 @@ public:
 		void SetEaseCurve(UCurveFloat* value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Position"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Position Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_PositionProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()
@@ -54,7 +54,7 @@ public:
 		void SetPosition(FVector value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "PositionRandom"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "PositionRandom Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_PositionRandomProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()
@@ -86,7 +86,7 @@ public:
 		void SetMax(FVector value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Rotation"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Rotation Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_RotationProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()
@@ -103,7 +103,7 @@ public:
 		void SetRotator(FRotator value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "RotationRandom"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "RotationRandom Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_RotationRandomProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()
@@ -135,7 +135,7 @@ public:
 		void SetMax(FRotator value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Scale"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Scale Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_ScaleProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()
@@ -152,7 +152,7 @@ public:
 		void SetScale(FVector value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "ScaleRandom"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "ScaleRandom Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_ScaleRandomProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()
@@ -184,7 +184,7 @@ public:
 		void SetMax(FVector value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Alpha"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Alpha Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_AlphaProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()
@@ -202,7 +202,7 @@ public:
 		void SetAlpha(float value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Color"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "Color Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_ColorProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()
@@ -226,7 +226,7 @@ public:
 		void SetUseHSV(bool value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "ColorRandom"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "ColorRandom Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_ColorRandomProperty : public UUIEffectTextAnimation_PropertyWithEase
 {
 	GENERATED_BODY()

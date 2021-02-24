@@ -31,7 +31,7 @@ public:
 		void SetFrequency(float value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "PositionWave"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "PositionWave Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_PositionWaveProperty : public UUIEffectTextAnimation_PropertyWithWave
 {
 	GENERATED_BODY()
@@ -49,7 +49,7 @@ public:
 		void SetPosition(FVector value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "RotationWave"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "RotationWave Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_RotationWaveProperty : public UUIEffectTextAnimation_PropertyWithWave
 {
 	GENERATED_BODY()
@@ -67,7 +67,7 @@ public:
 		void SetRotator(FRotator value);
 };
 
-UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "ScaleWave"))
+UCLASS(ClassGroup = (LGUI), BlueprintType, meta = (DisplayName = "ScaleWave Property (UI Effect TextAnimation)"))
 class LGUI_API UUIEffectTextAnimation_ScaleWaveProperty : public UUIEffectTextAnimation_PropertyWithWave
 {
 	GENERATED_BODY()
