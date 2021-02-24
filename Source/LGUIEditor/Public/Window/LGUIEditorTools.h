@@ -3,15 +3,11 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "CoreMinimal.h"
-#include "LGUIEditorTools.generated.h"
 
 #pragma once
 
-
-UCLASS()
-class LGUIEDITOR_API ULGUIEditorToolsAgentObject :public UObject
+class LGUIEDITOR_API LGUIEditorTools
 {
-	GENERATED_BODY()
 public:
 	static AActor * GetFirstSelectedActor();
 	template<class T>
@@ -58,28 +54,8 @@ public:
 	static int GetCanvasDrawcallCount(AActor* InActor);
 	static FString PrintObjectFlags(UObject* Target);
 
-	UPROPERTY(Transient) TArray<class ULGUIPrefab*> copiedActorPrefabList;
-	UPROPERTY(Transient) TWeakObjectPtr<UActorComponent> copiedComponent;
+	static TArray<TWeakObjectPtr<class ULGUIPrefab>> copiedActorPrefabList;
+	static TWeakObjectPtr<class UActorComponent> copiedComponent;
 	static bool HaveValidCopiedActors();
 	static bool HaveValidCopiedComponent();
-
-	static ULGUIEditorToolsAgentObject* GetInstance();
-private:
-	static ULGUIEditorToolsAgentObject* EditorToolsAgentObject;
-};
-/**
- * 
- */
-class SLGUIEditorTools : public SCompoundWidget
-{
-public:
-	SLATE_BEGIN_ARGS(SLGUIEditorTools)
-
-	{}
-
-	SLATE_END_ARGS()
-
-	void Construct(const FArguments& InArgs, TSharedPtr<SDockTab> InOwnerTab);
-
-	SLGUIEditorTools();
 };

@@ -18,8 +18,6 @@ public:
 	virtual void RegisterCommands() override;
 
 public:
-	//TSharedPtr<FUICommandInfo> OpenEditorToolsWindow;
-
 	TSharedPtr<FUICommandInfo> CopyActor;
 	TSharedPtr<FUICommandInfo> PasteActor;
 	TSharedPtr<FUICommandInfo> DuplicateActor;

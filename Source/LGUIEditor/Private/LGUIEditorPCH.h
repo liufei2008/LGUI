@@ -39,7 +39,6 @@
 #include "DetailCustomization/UICanvasScalerCustomization.h"
 #include "DetailCustomization/LGUIPrefabHelperComponentCustomization.h"
 #include "DetailCustomization/LGUIPrefabCustomization.h"
-#include "DetailCustomization/EditorToolsCustomization.h"
 #include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
 #include "DetailCustomization/LGUIDrawableEventOnePresetParamCustomization.h"
 #include "DetailCustomization/LGUIComponentRefereceCustomization.h"
