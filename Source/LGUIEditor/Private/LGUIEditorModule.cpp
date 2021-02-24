@@ -256,7 +256,7 @@ void FLGUIEditorModule::ShutdownModule()
 		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIAtlasViewerName);
 	}
 	//unregister custom editor
-	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
+	if (UObjectInitialized() && FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		PropertyModule.UnregisterCustomClassLayout(UUIItem::StaticClass()->GetFName());
