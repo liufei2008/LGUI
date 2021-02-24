@@ -11,14 +11,11 @@
 #include "DesktopPlatformModule.h"
 #include "AssetRegistryModule.h"
 #include "Toolkits/AssetEditorManager.h"
+#include "Engine/EngineTypes.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
-SLGUIEditorTools::SLGUIEditorTools()
-{
-
-}
-struct EditorToolsHelperFunctionHolder
+struct LGUIEditorToolsHelperFunctionHolder
 {
 public:
 	static TArray<AActor*> ConvertSelectionToActors(USelection* InSelection)
@@ -167,10 +164,10 @@ public:
 	}
 };
 
-#if WITH_EDITOR
-ULGUIEditorToolsAgentObject* ULGUIEditorToolsAgentObject::EditorToolsAgentObject;
+TArray<TWeakObjectPtr<class ULGUIPrefab>> LGUIEditorTools::copiedActorPrefabList;
+TWeakObjectPtr<class UActorComponent> LGUIEditorTools::copiedComponent;
 
-UWorld* ULGUIEditorToolsAgentObject::GetWorldFromSelection()
+UWorld* LGUIEditorTools::GetWorldFromSelection()
 {
 	if (auto selectedActor = GetFirstSelectedActor())
 	{
@@ -178,7 +175,7 @@ UWorld* ULGUIEditorToolsAgentObject::GetWorldFromSelection()
 	}
 	return GWorld;
 }
-void ULGUIEditorToolsAgentObject::CreateUIItemActor(UClass* ActorClass)
+void LGUIEditorTools::CreateUIItemActor(UClass* ActorClass)
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
@@ -196,7 +193,7 @@ void ULGUIEditorToolsAgentObject::CreateUIItemActor(UClass* ActorClass)
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
-void ULGUIEditorToolsAgentObject::CreateEmptyActor()
+void LGUIEditorTools::CreateEmptyActor()
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
@@ -226,9 +223,9 @@ void ULGUIEditorToolsAgentObject::CreateEmptyActor()
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
 
-AActor* ULGUIEditorToolsAgentObject::GetFirstSelectedActor()
+AActor* LGUIEditorTools::GetFirstSelectedActor()
 {
-	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
@@ -242,7 +239,7 @@ AActor* ULGUIEditorToolsAgentObject::GetFirstSelectedActor()
 	}
 	return selectedActors[0];
 }
-void ULGUIEditorToolsAgentObject::CreateUIControls(FString InPrefabPath)
+void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(LOCTEXT("CreateUIControl", "LGUI Create UI Control"));
@@ -262,10 +259,10 @@ void ULGUIEditorToolsAgentObject::CreateUIControls(FString InPrefabPath)
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
-void ULGUIEditorToolsAgentObject::ReplaceUIElementWith(UClass* ActorClass)
+void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
-	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
@@ -273,7 +270,7 @@ void ULGUIEditorToolsAgentObject::ReplaceUIElementWith(UClass* ActorClass)
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 		return;
 	}
-	auto rootActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
+	auto rootActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
 
 	GEditor->BeginTransaction(LOCTEXT("ReplaceUIElement", "LGUI Replace UI Element"));
 	GEditor->SelectNone(true, true);
@@ -285,10 +282,10 @@ void ULGUIEditorToolsAgentObject::ReplaceUIElementWith(UClass* ActorClass)
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
-void ULGUIEditorToolsAgentObject::DuplicateSelectedActors_Impl()
+void LGUIEditorTools::DuplicateSelectedActors_Impl()
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
-	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
@@ -296,11 +293,11 @@ void ULGUIEditorToolsAgentObject::DuplicateSelectedActors_Impl()
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 		return;
 	}
-	auto rootActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
+	auto rootActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
 	GEditor->BeginTransaction(LOCTEXT("DuplicateActor", "LGUI Duplicate Actors"));
 	for (auto item : rootActorList)
 	{
-		auto copiedActorLabel = EditorToolsHelperFunctionHolder::GetCopiedActorLabel(item);
+		auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(item);
 		AActor* copiedActor;
 		if (item->GetAttachParentActor())
 		{
@@ -317,28 +314,28 @@ void ULGUIEditorToolsAgentObject::DuplicateSelectedActors_Impl()
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
-void ULGUIEditorToolsAgentObject::CopySelectedActors_Impl()
+void LGUIEditorTools::CopySelectedActors_Impl()
 {
-	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return;
 	}
-	auto copiedActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
-	GetInstance()->copiedActorPrefabList.Reset();
+	auto copiedActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
+	copiedActorPrefabList.Reset();
 	for (auto copiedActor : copiedActorList)
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		ActorSerializer::SavePrefab(copiedActor, prefab);
-		GetInstance()->copiedActorPrefabList.Add(prefab);
+		copiedActorPrefabList.Add(prefab);
 	}
 }
-void ULGUIEditorToolsAgentObject::PasteSelectedActors_Impl()
+void LGUIEditorTools::PasteSelectedActors_Impl()
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
-	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	USceneComponent* parentComp = nullptr;
 	if (selectedActors.Num() > 0)
 	{
@@ -349,12 +346,12 @@ void ULGUIEditorToolsAgentObject::PasteSelectedActors_Impl()
 	{
 		GEditor->SelectActor(item, false, true);
 	}
-	for (auto prefab : GetInstance()->copiedActorPrefabList)
+	for (auto prefab : copiedActorPrefabList)
 	{
-		if (IsValid(prefab))
+		if (prefab.IsValid())
 		{
-			auto copiedActor = ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, parentComp);
-			auto copiedActorLabel = EditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
+			auto copiedActor = ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab.Get(), parentComp);
+			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
 			copiedActor->SetActorLabel(copiedActorLabel);
 			GEditor->SelectActor(copiedActor, true, true);
 		}
@@ -366,22 +363,22 @@ void ULGUIEditorToolsAgentObject::PasteSelectedActors_Impl()
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
-void ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl()
+void LGUIEditorTools::DeleteSelectedActors_Impl()
 {
-	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return;
 	}
-	auto rootActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
+	auto rootActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
 	GEditor->BeginTransaction(LOCTEXT("DestroyActor", "LGUI Destroy Actor"));
 	GEditor->GetSelectedActors()->DeselectAll();
 	for (auto item : rootActorList)
 	{
 		bool shouldDeletePrefab = false;
-		auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(item);
+		auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(item);
 		if (prefabActor != nullptr)
 		{
 			if (auto prefabComp = prefabActor->GetPrefabComponent())
@@ -403,9 +400,9 @@ void ULGUIEditorToolsAgentObject::DeleteSelectedActors_Impl()
 	}
 	GEditor->EndTransaction();
 }
-void ULGUIEditorToolsAgentObject::CopyComponentValues_Impl()
+void LGUIEditorTools::CopyComponentValues_Impl()
 {
-	auto selectedComponents = EditorToolsHelperFunctionHolder::ConvertSelectionToComponents(GEditor->GetSelectedComponents());
+	auto selectedComponents = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToComponents(GEditor->GetSelectedComponents());
 	auto count = selectedComponents.Num();
 	if (count == 0)
 	{
@@ -417,23 +414,23 @@ void ULGUIEditorToolsAgentObject::CopyComponentValues_Impl()
 		UE_LOG(LGUIEditor, Error, TEXT("Only support one component"));
 		return;
 	}
-	GetInstance()->copiedComponent = selectedComponents[0];
+	copiedComponent = selectedComponents[0];
 }
-void ULGUIEditorToolsAgentObject::PasteComponentValues_Impl()
+void LGUIEditorTools::PasteComponentValues_Impl()
 {
-	auto selectedComponents = EditorToolsHelperFunctionHolder::ConvertSelectionToComponents(GEditor->GetSelectedComponents());
+	auto selectedComponents = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToComponents(GEditor->GetSelectedComponents());
 	auto count = selectedComponents.Num();
 	if (count == 0)
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return;
 	}
-	if (GetInstance()->copiedComponent.IsValid())
+	if (copiedComponent.IsValid())
 	{
 		GEditor->BeginTransaction(LOCTEXT("PasteComponentValues", "LGUI Paste Component Proeprties"));
 		for (UActorComponent* item : selectedComponents)
 		{
-			ActorCopier::CopyComponentValue(GetInstance()->copiedComponent.Get(), item);
+			ActorCopier::CopyComponentValue(copiedComponent.Get(), item);
 		}
 		GEditor->EndTransaction();
 	}
@@ -442,13 +439,13 @@ void ULGUIEditorToolsAgentObject::PasteComponentValues_Impl()
 		UE_LOG(LGUIEditor, Error, TEXT("Selected component is missing!"));
 	}
 }
-void ULGUIEditorToolsAgentObject::OpenAtlasViewer_Impl()
+void LGUIEditorTools::OpenAtlasViewer_Impl()
 {
 	FGlobalTabmanager::Get()->InvokeTab(FLGUIEditorModule::LGUIAtlasViewerName);
 }
-void ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
+void LGUIEditorTools::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 {
-	auto selectedActors = EditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
 	if (count == 0)
 	{
@@ -473,7 +470,7 @@ void ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl(ETraceTypeQuery InTrac
 			}
 		}
 	};
-	auto rootActorList = EditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
+	auto rootActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
 	GEditor->BeginTransaction(LOCTEXT("ChangeTraceChannel", "LGUI Change Trace Channel"));
 	for (auto item : rootActorList)
 	{
@@ -481,7 +478,7 @@ void ULGUIEditorToolsAgentObject::ChangeTraceChannel_Impl(ETraceTypeQuery InTrac
 	}
 	GEditor->EndTransaction();
 }
-void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
+void LGUIEditorTools::CreateScreenSpaceUIBasicSetup()
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create Screen Space UI")));
@@ -522,7 +519,7 @@ void ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup()
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
-void ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup()
+void LGUIEditorTools::CreateWorldSpaceUIBasicSetup()
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI")));
@@ -561,33 +558,24 @@ void ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup()
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
-bool ULGUIEditorToolsAgentObject::HaveValidCopiedActors()
+bool LGUIEditorTools::HaveValidCopiedActors()
 {
-	if (GetInstance()->copiedActorPrefabList.Num() == 0)return false;
-	for (auto item : GetInstance()->copiedActorPrefabList)
+	if (copiedActorPrefabList.Num() == 0)return false;
+	for (auto item : copiedActorPrefabList)
 	{
-		if (!IsValid(item))
+		if (!item.IsValid())
 		{
 			return false;
 		}
 	}
 	return true;
 }
-bool ULGUIEditorToolsAgentObject::HaveValidCopiedComponent()
+bool LGUIEditorTools::HaveValidCopiedComponent()
 {
-	return GetInstance()->copiedComponent.IsValid();
+	return copiedComponent.IsValid();
 }
 
-ULGUIEditorToolsAgentObject* ULGUIEditorToolsAgentObject::GetInstance()
-{
-	if (EditorToolsAgentObject == nullptr)
-	{
-		EditorToolsAgentObject = NewObject<ULGUIEditorToolsAgentObject>();
-		EditorToolsAgentObject->AddToRoot();
-	}
-	return EditorToolsAgentObject;
-}
-void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
+void LGUIEditorTools::CreatePrefabAsset()
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (Cast<ALGUIPrefabActor>(selectedActor) != nullptr)
@@ -656,44 +644,44 @@ void ULGUIEditorToolsAgentObject::CreatePrefabAsset()
 		}
 	}
 }
-void ULGUIEditorToolsAgentObject::ApplyPrefab()
+void LGUIEditorTools::ApplyPrefab()
 {
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
 	auto selectedActor = GetFirstSelectedActor();
-	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
+	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
 		prefabActor->GetPrefabComponent()->SavePrefab();
 	}
 	GEditor->EndTransaction();
 }
-void ULGUIEditorToolsAgentObject::RevertPrefab()
+void LGUIEditorTools::RevertPrefab()
 {
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI RevertPrefab")));
 	auto selectedActor = GetFirstSelectedActor();
-	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
+	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
 		prefabActor->GetPrefabComponent()->RevertPrefab();
 	}
 	GEditor->EndTransaction();
 }
-void ULGUIEditorToolsAgentObject::DeletePrefab()
+void LGUIEditorTools::DeletePrefab()
 {
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI DeletePrefab")));
 	auto selectedActor = GetFirstSelectedActor();
-	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
+	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
 		prefabActor->GetPrefabComponent()->DeleteThisInstance();
 	}
 	GEditor->EndTransaction();
 }
-void ULGUIEditorToolsAgentObject::SelectPrefabAsset()
+void LGUIEditorTools::SelectPrefabAsset()
 {
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI SelectPrefabAsset")));
 	auto selectedActor = GetFirstSelectedActor();
-	auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(selectedActor);
+	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
 		auto prefabAsset = prefabActor->GetPrefabComponent()->PrefabAsset;
@@ -706,7 +694,7 @@ void ULGUIEditorToolsAgentObject::SelectPrefabAsset()
 	}
 	GEditor->EndTransaction();
 }
-ALGUIPrefabActor* ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(AActor* InActor)
+ALGUIPrefabActor* LGUIEditorTools::GetPrefabActor_WhichManageThisActor(AActor* InActor)
 {
 	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
 	{
@@ -724,14 +712,14 @@ ALGUIPrefabActor* ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisAct
 	}
 	return nullptr;
 }
-void ULGUIEditorToolsAgentObject::SaveAsset(UObject* InObject, UPackage* InPackage)
+void LGUIEditorTools::SaveAsset(UObject* InObject, UPackage* InPackage)
 {
 	FAssetRegistryModule::AssetCreated(InObject);
 	FString packageSavePath = FString::Printf(TEXT("/Game/%s%s"), *(InObject->GetPathName()), *FPackageName::GetAssetPackageExtension());
 	UPackage::SavePackage(InPackage, InObject, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *packageSavePath);
 	InPackage->MarkPackageDirty();
 }
-bool ULGUIEditorToolsAgentObject::IsCanvasActor(AActor* InActor)
+bool LGUIEditorTools::IsCanvasActor(AActor* InActor)
 {
 	if (auto rootComp = InActor->GetRootComponent())
 	{
@@ -745,7 +733,7 @@ bool ULGUIEditorToolsAgentObject::IsCanvasActor(AActor* InActor)
 	}
 	return false;
 }
-int ULGUIEditorToolsAgentObject::GetCanvasDrawcallCount(AActor* InActor)
+int LGUIEditorTools::GetCanvasDrawcallCount(AActor* InActor)
 {
 	if (auto rootComp = InActor->GetRootComponent())
 	{
@@ -759,7 +747,7 @@ int ULGUIEditorToolsAgentObject::GetCanvasDrawcallCount(AActor* InActor)
 	}
 	return 0;
 }
-FString ULGUIEditorToolsAgentObject::PrintObjectFlags(UObject* Target)
+FString LGUIEditorTools::PrintObjectFlags(UObject* Target)
 {
 	return FString::Printf(TEXT("Flags:%d\
 , \nRF_Public:%d\
@@ -821,26 +809,5 @@ FString ULGUIEditorToolsAgentObject::PrintObjectFlags(UObject* Target)
 , Target->HasAnyFlags(EObjectFlags::RF_WillBeLoaded)
 );
 }
-#endif
 
-void SLGUIEditorTools::Construct(const FArguments& InArgs, TSharedPtr<SDockTab> InOwnerTab)
-{
-	FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	FDetailsViewArgs DetailsViewArgs;
-	{
-		DetailsViewArgs.bAllowSearch = false;
-		DetailsViewArgs.bShowOptions = false;
-		DetailsViewArgs.bAllowMultipleTopLevelObjects = false;
-		DetailsViewArgs.bAllowFavoriteSystem = false;
-		DetailsViewArgs.bShowActorLabel = false;
-		DetailsViewArgs.bHideSelectionTip = true;
-	}
-	TSharedPtr<IDetailsView> DescriptorDetailView = EditModule.CreateDetailView(DetailsViewArgs);
-	DescriptorDetailView->SetObject(ULGUIEditorToolsAgentObject::GetInstance());
-
-	ChildSlot
-		[
-			DescriptorDetailView.ToSharedRef()
-		];
-}
 #undef LOCTEXT_NAMESPACE

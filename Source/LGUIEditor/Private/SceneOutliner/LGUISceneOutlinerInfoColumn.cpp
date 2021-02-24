@@ -270,7 +270,7 @@ namespace LGUISceneOutliner
 	{
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			return ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(actor) != nullptr ? EVisibility::Visible : EVisibility::Hidden;
+			return LGUIEditorTools::GetPrefabActor_WhichManageThisActor(actor) != nullptr ? EVisibility::Visible : EVisibility::Hidden;
 		}
 		else
 		{
@@ -281,7 +281,7 @@ namespace LGUISceneOutliner
 	{
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			bool isPrefab = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(actor) != nullptr;
+			bool isPrefab = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(actor) != nullptr;
 			return isPrefab ? EVisibility::Hidden : EVisibility::Visible;
 		}
 		else
@@ -293,7 +293,7 @@ namespace LGUISceneOutliner
 	{
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			return ULGUIEditorToolsAgentObject::IsCanvasActor(actor) ? EVisibility::Visible : EVisibility::Hidden;
+			return LGUIEditorTools::IsCanvasActor(actor) ? EVisibility::Visible : EVisibility::Hidden;
 		}
 		return EVisibility::Hidden;
 	}
@@ -302,7 +302,7 @@ namespace LGUISceneOutliner
 		int drawcallCount = 0;
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			drawcallCount = ULGUIEditorToolsAgentObject::GetCanvasDrawcallCount(actor);
+			drawcallCount = LGUIEditorTools::GetCanvasDrawcallCount(actor);
 		}
 		return FText::FromString(FString::Printf(TEXT("%d"), drawcallCount));
 	}
@@ -311,7 +311,7 @@ namespace LGUISceneOutliner
 		FColor resultColor = FColor::White;
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			auto prefabActor = ULGUIEditorToolsAgentObject::GetPrefabActor_WhichManageThisActor(actor);
+			auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(actor);
 			if (prefabActor != nullptr)
 			{
 				resultColor = prefabActor->GetPrefabComponent()->IdentityColor;
