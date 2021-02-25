@@ -934,14 +934,34 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 	SetPivot(inWidget.pivot);
 	SetAnchorHAlign(inWidget.anchorHAlign);
 	SetAnchorVAlign(inWidget.anchorVAlign);
-	SetAnchorOffsetX(inWidget.anchorOffsetX);
-	SetAnchorOffsetY(inWidget.anchorOffsetY);
-	SetWidth(inWidget.width);
-	SetHeight(inWidget.height);
-	SetStretchLeft(inWidget.stretchLeft);
-	SetStretchRight(inWidget.stretchRight);
-	SetStretchTop(inWidget.stretchTop);
-	SetStretchBottom(inWidget.stretchBottom);
+	if (inWidget.anchorHAlign == UIAnchorHorizontalAlign::Stretch)
+	{
+		SetAnchorOffsetX(inWidget.anchorOffsetX);
+		SetWidth(inWidget.width);
+		SetStretchLeft(inWidget.stretchLeft);
+		SetStretchRight(inWidget.stretchRight);
+	}
+	else
+	{
+		SetStretchLeft(inWidget.stretchLeft);
+		SetStretchRight(inWidget.stretchRight);
+		SetAnchorOffsetX(inWidget.anchorOffsetX);
+		SetWidth(inWidget.width);
+	}
+	if (inWidget.anchorVAlign == UIAnchorVerticalAlign::Stretch)
+	{
+		SetAnchorOffsetY(inWidget.anchorOffsetY);
+		SetHeight(inWidget.height);
+		SetStretchTop(inWidget.stretchTop);
+		SetStretchBottom(inWidget.stretchBottom);
+	}
+	else
+	{
+		SetStretchTop(inWidget.stretchTop);
+		SetStretchBottom(inWidget.stretchBottom);
+		SetAnchorOffsetY(inWidget.anchorOffsetY);
+		SetHeight(inWidget.height);
+	}
 }
 void UUIItem::SetDepth(int32 depth) {
 	if (widget.depth != depth)

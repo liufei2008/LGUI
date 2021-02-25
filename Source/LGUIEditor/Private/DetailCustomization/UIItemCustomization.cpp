@@ -12,6 +12,8 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Widget/ComponentTransformDetails.h"
 #include "Widget/AnchorPreviewWidget.h"
+#include "PropertyCustomizationHelpers.h"
+#include "HAL/PlatformApplicationMisc.h"
 
 #define LOCTEXT_NAMESPACE "UIItemComponentDetails"
 
@@ -157,6 +159,12 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			];
 
 			lguiCategory.AddCustomRow(LOCTEXT("DepthManager", "DepthManager"))
+			.CopyAction(FUIAction(
+				FExecuteAction::CreateSP(this, &FUIItemCustomization::OnCopyDepth)
+			))
+			.PasteAction(FUIAction(
+				FExecuteAction::CreateSP(this, &FUIItemCustomization::OnPasteDepth, depthHandle)
+			))
 			.NameContent()
 			[
 				depthHandle->CreatePropertyNameWidget()
@@ -241,7 +249,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		}
 
 		
-		auto refreshDelegate = FSimpleDelegate::CreateSP(this, &FUIItemCustomization::ForceRefresh, &DetailBuilder);
+		auto refreshDelegate = FSimpleDelegate::CreateSP(this, &FUIItemCustomization::ForceRefreshEditor, &DetailBuilder);
 
 		auto anchorHAlignHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorHAlign));
 		uint8 anchorHAlignUInt8;
@@ -260,16 +268,29 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		float itemBasePadding = 8;
 		IDetailGroup& anchorGroup = transformCategory.AddGroup(FName("AnchorGroup"), LOCTEXT("AnchorGroup", "AnchorGroup"));
 		anchorGroup.HeaderRow()
-			.NameContent()
-			[
-				SNew(STextBlock)
-				.Font(IDetailLayoutBuilder::GetDetailFont())
-				.Text(LOCTEXT("Anchors", "Anchors"))
-			]
-			.ValueContent()
+		.CopyAction(FUIAction
+		(
+			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnCopyAnchor),
+			FCanExecuteAction::CreateSP(this, &FUIItemCustomization::OnCanCopyAnchor)
+		))
+		.PasteAction(FUIAction
+		(
+			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnPasteAnchor, &DetailBuilder),
+			FCanExecuteAction::CreateSP(this, &FUIItemCustomization::OnCanPasteAnchor)
+		))
+		.NameContent()
+		[
+			SNew(STextBlock)
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+			.Text(LOCTEXT("Anchors", "Anchors"))
+		]
+		.ValueContent()
+		[
+			SNew(SBox)
+			.Padding(2)
 			[
 				SNew(SComboButton)
-				.HasDownArrow(true)
+				.HasDownArrow(false)
 				.IsEnabled(this, &FUIItemCustomization::GetIsAnchorsEnabled)
 				.ToolTipText(this, &FUIItemCustomization::GetAnchorsTooltipText)
 				.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
@@ -571,7 +592,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					]
 				]
 			]
-			;
+		]
+		;
 
 		IDetailPropertyRow& anchorHAlignDetailProperty = anchorGroup.AddPropertyRow(anchorHAlignHandle);
 		if (anchorControlledByParentLayout)
@@ -598,6 +620,10 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		if (anchorHAlign == UIAnchorHorizontalAlign::None)
 		{
 			transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.width));
+
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetX))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchLeft))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchRight))).IsEnabled(false);
 		}
 		else if (anchorHAlign == UIAnchorHorizontalAlign::Stretch)
 		{
@@ -607,6 +633,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			IDetailPropertyRow& stretchRightProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchRight));
 			if (stretchRightControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(stretchRightProperty, true);
+
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetX))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.width))).IsEnabled(false);
 		}
 		else
 		{
@@ -618,11 +647,18 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			else
 				if (widthControlledByParentLayout)
 					LGUIEditorUtils::SetControlledByParentLayout(widthDetailProperty, widthControlledByParentLayout);
+
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchLeft))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchRight))).IsEnabled(false);
 		}
 
 		if (anchorVAlign == UIAnchorVerticalAlign::None)
 		{
 			transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.height));
+
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetY))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchTop))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom))).IsEnabled(false);
 		}
 		else if (anchorVAlign == UIAnchorVerticalAlign::Stretch)
 		{
@@ -632,6 +668,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			IDetailPropertyRow& stretchBottomProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom));
 			if (stretchBottomControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(stretchBottomProperty, true);
+
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetY))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.height))).IsEnabled(false);
 		}
 		else
 		{
@@ -643,6 +682,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			else
 				if (heightControlledByParentLayout)
 					LGUIEditorUtils::SetControlledByParentLayout(heightDetailProperty, heightControlledByParentLayout);
+
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchTop))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom))).IsEnabled(false);
 		}
 	}
 	//pivot
@@ -715,6 +757,12 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			];
 
 		transformCategory.AddCustomRow(LOCTEXT("HierarchyIndexManager", "HierarchyIndexManager"))
+		.CopyAction(FUIAction(
+			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnCopyHierarchyIndex)
+		))
+		.PasteAction(FUIAction(
+			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnPasteHierarchyIndex, hierarchyIndexHandle)
+		))
 		.NameContent()
 		[
 			hierarchyIndexHandle->CreatePropertyNameWidget()
@@ -722,7 +770,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		.ValueContent()
 		[
 			hierarchyIndexWidget
-		];
+		]
+		;
 	}
 		
 	//TSharedPtr<IPropertyHandle> widgetHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(FUIWidget, depth));
@@ -788,7 +837,7 @@ FText FUIItemCustomization::GetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScr
 	}
 	return LOCTEXT("", "");
 }
-void FUIItemCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
+void FUIItemCustomization::ForceRefreshEditor(IDetailLayoutBuilder* DetailBuilder)
 {
 	if (DetailBuilder)
 	{
@@ -832,5 +881,119 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 FText FUIItemCustomization::GetAnchorsTooltipText()const
 {
 	return FText::FromString(FString(GetIsAnchorsEnabled() ? TEXT("Change anchor") : TEXT("Anchor is controlled by layout")));
+}
+bool FUIItemCustomization::OnCanCopyAnchor()const
+{
+	return TargetScriptArray.Num() == 1;
+}
+#define BEGIN_UIWIDGET_CLIPBOARD TEXT("Begin LGUI UIWidget")
+bool FUIItemCustomization::OnCanPasteAnchor()const
+{
+	FString PastedText;
+	FPlatformApplicationMisc::ClipboardPaste(PastedText);
+	return PastedText.StartsWith(BEGIN_UIWIDGET_CLIPBOARD);
+}
+void FUIItemCustomization::OnCopyAnchor()
+{
+	if (TargetScriptArray.Num() == 1)
+	{
+		auto script = TargetScriptArray[0];
+		if (script.IsValid())
+		{
+			auto widget = script->GetWidget();
+			auto CopiedText = FString::Printf(TEXT("%s, pivotX=%f, pivotY=%f, anchorHAlign=%d, anchorVAlign=%d, anchorOffsetX=%f, anchorOffsetY=%f\
+, width=%f, height=%f, stretchLeft=%f, stretchRight=%f, stretchTop=%f, stretchBottom=%f")
+, BEGIN_UIWIDGET_CLIPBOARD
+, widget.pivot.X
+, widget.pivot.Y
+, (int)widget.anchorHAlign
+, (int)widget.anchorVAlign
+, widget.anchorOffsetX
+, widget.anchorOffsetY
+, widget.width
+, widget.height
+, widget.stretchLeft
+, widget.stretchRight
+, widget.stretchTop
+, widget.stretchBottom
+);
+			FPlatformApplicationMisc::ClipboardCopy(*CopiedText);
+		}
+	}
+}
+void FUIItemCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
+{
+	FString PastedText;
+	FPlatformApplicationMisc::ClipboardPaste(PastedText);
+	if (PastedText.StartsWith(BEGIN_UIWIDGET_CLIPBOARD))
+	{
+		FUIWidget widget;
+		FParse::Value(*PastedText, TEXT("pivotX="), widget.pivot.X);
+		FParse::Value(*PastedText, TEXT("pivotY="), widget.pivot.Y);
+		uint8 tempUint8;
+		FParse::Value(*PastedText, TEXT("anchorHAlign="), tempUint8); widget.anchorHAlign = (UIAnchorHorizontalAlign)tempUint8;
+		FParse::Value(*PastedText, TEXT("anchorVAlign="), tempUint8); widget.anchorVAlign = (UIAnchorVerticalAlign)tempUint8;
+		FParse::Value(*PastedText, TEXT("anchorOffsetX="), widget.anchorOffsetX);
+		FParse::Value(*PastedText, TEXT("anchorOffsetY="), widget.anchorOffsetY);
+		FParse::Value(*PastedText, TEXT("width="), widget.width);
+		FParse::Value(*PastedText, TEXT("height="), widget.height);
+		FParse::Value(*PastedText, TEXT("stretchLeft="), widget.stretchLeft);
+		FParse::Value(*PastedText, TEXT("stretchRight="), widget.stretchRight);
+		FParse::Value(*PastedText, TEXT("stretchBottom="), widget.stretchBottom);
+		FParse::Value(*PastedText, TEXT("stretchTop="), widget.stretchTop);
+		for (auto item : TargetScriptArray)
+		{
+			if (item.IsValid())
+			{
+				auto itemWidget = item->GetWidget();
+				widget.color = itemWidget.color;
+				widget.depth = itemWidget.depth;
+				item->SetWidget(widget);
+				item->MarkPackageDirty();
+			}
+		}
+		ForceUpdateUI();
+		ForceRefreshEditor(DetailBuilder);
+	}
+}
+void FUIItemCustomization::OnCopyHierarchyIndex()
+{
+	if (TargetScriptArray.Num() > 0)
+	{
+		if (TargetScriptArray[0].IsValid())
+		{
+			FPlatformApplicationMisc::ClipboardCopy(*FString::Printf(TEXT("%d"), TargetScriptArray[0]->GetHierarchyIndex()));
+		}
+	}
+}
+void FUIItemCustomization::OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	FString PastedText;
+	FPlatformApplicationMisc::ClipboardPaste(PastedText);
+	if (PastedText.IsNumeric())
+	{
+		int value = FCString::Atoi(*PastedText);
+		PropertyHandle->SetValue(value);
+	}
+}
+void FUIItemCustomization::OnCopyDepth()
+{
+	if (TargetScriptArray.Num() > 0)
+	{
+		if (TargetScriptArray[0].IsValid())
+		{
+			FPlatformApplicationMisc::ClipboardCopy(*FString::Printf(TEXT("%d"), TargetScriptArray[0]->GetDepth()));
+		}
+	}
+}
+void FUIItemCustomization::OnPasteDepth(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	FString PastedText;
+	FPlatformApplicationMisc::ClipboardPaste(PastedText);
+	if (PastedText.IsNumeric())
+	{
+		int value = FCString::Atoi(*PastedText);
+		PropertyHandle->SetValue(value);
+	}
 }
 #undef LOCTEXT_NAMESPACE

@@ -19,4 +19,6 @@ private:
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
 	FText GetDrawcallInfo()const;
 	FText GetDrawcallInfoTooltip()const;
+	void OnCopySortOrder();
+	void OnPasteSortOrder(TSharedRef<IPropertyHandle> PropertyHandle);
 };

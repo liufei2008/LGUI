@@ -7,7 +7,6 @@
 #include "IDetailGroup.h"
 #include "IPropertyUtilities.h"
 #include "Utils/BitConverter.h"
-#include "PropertyCustomizationHelpers.h"
 #include "Widget/LGUIEnumComboBox.h"
 #include "Widget/LGUIVectorInputBox.h"
 #include "Widgets/Input/SRotatorInputBox.h"

@@ -2,6 +2,7 @@
 
 #include "DetailCustomization/UITextCustomization.h"
 #include "LGUIEditorPCH.h"
+#include "HAL/PlatformApplicationMisc.h"
 
 #define LOCTEXT_NAMESPACE "UITextComponentDetails"
 FUITextCustomization::FUITextCustomization()
@@ -32,6 +33,12 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	auto textHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, text));
 	DetailBuilder.HideProperty(textHandle);
 	category.AddCustomRow(LOCTEXT("Text", "Text"))
+	.CopyAction(FUIAction(
+		FExecuteAction::CreateSP(this, &FUITextCustomization::OnCopyText)
+	))
+	.PasteAction(FUIAction(
+		FExecuteAction::CreateSP(this, &FUITextCustomization::OnPasteText, textHandle)
+	))
 	.NameContent()
 	[
 		textHandle->CreatePropertyNameWidget()
@@ -57,6 +64,13 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		auto hAlignPropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, hAlign));
 		auto vAlignPropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, vAlign));
 		category.AddCustomRow(LOCTEXT("Alignment", "Alignment"))
+		.CopyAction(FUIAction(
+			FExecuteAction::CreateSP(this, &FUITextCustomization::OnCopyAlignment)
+		))
+		.PasteAction(FUIAction(
+			FExecuteAction::CreateSP(this, &FUITextCustomization::OnPasteAlignment, hAlignPropertyHandle, vAlignPropertyHandle),
+			FCanExecuteAction::CreateSP(this, &FUITextCustomization::OnCanPasteAlignment)
+		))
 		.NameContent()
 		[
 			SNew(STextBlock)
@@ -261,5 +275,48 @@ ECheckBoxState FUITextCustomization::GetVerticalAlignmentCheckState(TSharedRef<I
 	}
 
 	return ECheckBoxState::Unchecked;
+}
+
+void FUITextCustomization::OnCopyText()
+{
+	if (TargetScriptPtr.IsValid())
+	{
+		FPlatformApplicationMisc::ClipboardCopy(*TargetScriptPtr->GetText());
+	}
+}
+void FUITextCustomization::OnPasteText(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	FString PastedText;
+	FPlatformApplicationMisc::ClipboardPaste(PastedText);
+	PropertyHandle->SetValue(*PastedText);
+}
+
+#define BEGIN_ALIGNMENT_CLIPBOARD TEXT("Begin LGUI UIWidget")
+void FUITextCustomization::OnCopyAlignment()
+{
+	if (TargetScriptPtr.IsValid())
+	{
+		FString CopiedText = FString::Printf(TEXT("%s, hAlign=%d, vAlign=%d"), BEGIN_ALIGNMENT_CLIPBOARD, (int)TargetScriptPtr->hAlign, (int)TargetScriptPtr->vAlign);
+		FPlatformApplicationMisc::ClipboardCopy(*CopiedText);
+	}
+}
+void FUITextCustomization::OnPasteAlignment(TSharedRef<IPropertyHandle> HAlignPropertyHandle, TSharedRef<IPropertyHandle> VAlignPropertyHandle)
+{
+	FString PastedText;
+	FPlatformApplicationMisc::ClipboardPaste(PastedText);
+	if (PastedText.StartsWith(BEGIN_ALIGNMENT_CLIPBOARD))
+	{
+		uint8 tempUInt8;
+		FParse::Value(*PastedText, TEXT("hAlign="), tempUInt8);
+		HAlignPropertyHandle->SetValue(tempUInt8);
+		FParse::Value(*PastedText, TEXT("vAlign="), tempUInt8);
+		VAlignPropertyHandle->SetValue(tempUInt8);
+	}
+}
+bool FUITextCustomization::OnCanPasteAlignment()const
+{
+	FString PastedText;
+	FPlatformApplicationMisc::ClipboardPaste(PastedText);
+	return PastedText.StartsWith(BEGIN_ALIGNMENT_CLIPBOARD);
 }
 #undef LOCTEXT_NAMESPACE
