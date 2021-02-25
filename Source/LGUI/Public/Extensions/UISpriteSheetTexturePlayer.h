@@ -6,6 +6,7 @@
 
 class ULGUISpriteData;
 
+/** Play spritesheet texture, need UITexture component. */
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent))
 class LGUI_API UUISpriteSheetTexturePlayer : public ULGUIImageSequencePlayer
 {

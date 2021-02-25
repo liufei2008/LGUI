@@ -6,6 +6,7 @@
 
 class ULGUISpriteData;
 
+/** Play sprite sequence, need UISprite component. */
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent))
 class LGUI_API UUISpriteSequencePlayer : public ULGUIImageSequencePlayer
 {

@@ -3,6 +3,7 @@
 #include "DetailCustomization/LGUICanvasCustomization.h"
 #include "LGUIEditorUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "HAL/PlatformApplicationMisc.h"
 
 #define LOCTEXT_NAMESPACE "LGUICanvasCustomization"
 FLGUICanvasCustomization::FLGUICanvasCustomization()
@@ -182,6 +183,12 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	//category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 	auto sortOrderHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
 	category.AddCustomRow(LOCTEXT("SortOrderManager", "SortOrderManager"))
+		.CopyAction(FUIAction(
+			FExecuteAction::CreateSP(this, &FLGUICanvasCustomization::OnCopySortOrder)
+		))
+		.PasteAction(FUIAction(
+			FExecuteAction::CreateSP(this, &FLGUICanvasCustomization::OnPasteSortOrder, sortOrderHandle)
+		))
 		.NameContent()
 		[
 			sortOrderHandle->CreatePropertyNameWidget()
@@ -341,5 +348,25 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 	}
 	FString tooltipStr = FString::Printf(TEXT("This canvas's drawcall count:%d, all canvas of %s drawcall count:%d"), drawcallCount, *spaceText, allDrawcallCount);
 	return FText::FromString(tooltipStr);
+}
+void FLGUICanvasCustomization::OnCopySortOrder()
+{
+	if (TargetScriptArray.Num() > 0)
+	{
+		if (TargetScriptArray[0].IsValid())
+		{
+			FPlatformApplicationMisc::ClipboardCopy(*FString::Printf(TEXT("%d"), TargetScriptArray[0]->GetSortOrder()));
+		}
+	}
+}
+void FLGUICanvasCustomization::OnPasteSortOrder(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	FString PastedText;
+	FPlatformApplicationMisc::ClipboardPaste(PastedText);
+	if (PastedText.IsNumeric())
+	{
+		int value = FCString::Atoi(*PastedText);
+		PropertyHandle->SetValue(value);
+	}
 }
 #undef LOCTEXT_NAMESPACE

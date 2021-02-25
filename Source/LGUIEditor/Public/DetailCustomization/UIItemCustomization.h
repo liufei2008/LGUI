@@ -22,7 +22,16 @@ private:
 	bool GetIsAnchorsEnabled()const;
 	FText GetAnchorsTooltipText()const;
 
-	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
+	void ForceRefreshEditor(IDetailLayoutBuilder* DetailBuilder);
 
 	void ForceUpdateUI();
+
+	bool OnCanCopyAnchor()const;
+	bool OnCanPasteAnchor()const;
+	void OnCopyAnchor();
+	void OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder);
+	void OnCopyHierarchyIndex();
+	void OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> PropertyHandle);
+	void OnCopyDepth();
+	void OnPasteDepth(TSharedRef<IPropertyHandle> PropertyHandle);
 };
