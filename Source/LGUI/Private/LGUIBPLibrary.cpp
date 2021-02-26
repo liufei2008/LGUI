@@ -61,21 +61,21 @@ void ULGUIBPLibrary::DestroyActorWithHierarchy(AActor* Target, bool WithHierarch
 AActor* ULGUIBPLibrary::LoadPrefab(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
 	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	return ActorSerializer::LoadPrefab(world, InPrefab, InParent, SetRelativeTransformToIdentity);
+	return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, InPrefab, InParent, SetRelativeTransformToIdentity);
 }
 AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale)
 {
 	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	return ActorSerializer::LoadPrefab(world, InPrefab, InParent, Location, Rotation.Quaternion(), Scale);
+	return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, InPrefab, InParent, Location, Rotation.Quaternion(), Scale);
 }
 AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale)
 {
 	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	return ActorSerializer::LoadPrefab(world, InPrefab, InParent, Location, Rotation, Scale);
+	return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, InPrefab, InParent, Location, Rotation, Scale);
 }
 AActor* ULGUIBPLibrary::DuplicateActor(AActor* Target, USceneComponent* Parent)
 {
-	return ActorCopier::DuplicateActor(Target, Parent);
+	return LGUIPrefabSystem::ActorCopier::DuplicateActor(Target, Parent);
 }
 UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
 {
