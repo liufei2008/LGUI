@@ -5,6 +5,7 @@
 #include "LGUI.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
+using namespace LGUIPrefabSystem;
 bool ActorCopier::CopyCommonProperty(UProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return true;//skip property with special flag

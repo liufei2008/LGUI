@@ -140,13 +140,13 @@ USceneComponent* ULGUIBehaviour::GetRootSceneComponent()const
 
 AActor* ULGUIBehaviour::InstantiateActor(AActor* OriginObject, USceneComponent* Parent)
 {
-	return ActorCopier::DuplicateActor(OriginObject, Parent);
+	return LGUIPrefabSystem::ActorCopier::DuplicateActor(OriginObject, Parent);
 }
 AActor* ULGUIBehaviour::InstantiatePrefab(class ULGUIPrefab* OriginObject, USceneComponent* Parent)
 {
-	return ActorSerializer::LoadPrefab(this->GetWorld(), OriginObject, Parent, false);
+	return LGUIPrefabSystem::ActorSerializer::LoadPrefab(this->GetWorld(), OriginObject, Parent, false);
 }
 AActor* ULGUIBehaviour::InstantiatePrefabWithTransform(class ULGUIPrefab* OriginObject, USceneComponent* Parent, FVector Location, FRotator Rotation, FVector Scale)
 {
-	return ActorSerializer::LoadPrefab(this->GetWorld(), OriginObject, Parent, Location, Rotation.Quaternion(), Scale);
+	return LGUIPrefabSystem::ActorSerializer::LoadPrefab(this->GetWorld(), OriginObject, Parent, Location, Rotation.Quaternion(), Scale);
 }
