@@ -84,7 +84,9 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	Prefab engine version:%d.%d, current engine version:%d.%d")
 				, *InPrefab->GetPathName(), InPrefab->EngineMajorVersion, InPrefab->EngineMinorVersion, ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION);
 			UE_LOG(LGUI, Warning, TEXT("%s"), *ErrorMsg);
+#if WITH_EDITOR
 			LGUIUtils::EditorNotification(FText::FromString(ErrorMsg), 10.0f);
+#endif
 #if WITH_EDITORONLY_DATA
 			if (InPrefab->UseBuildData && !ForceUseEditorData)
 			{
