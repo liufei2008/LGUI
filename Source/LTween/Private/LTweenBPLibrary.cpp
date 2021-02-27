@@ -4,122 +4,104 @@
 #include "LTween.h"
 
 
-ULTweener* ULTweenBPLibrary::FloatTo(UObject* WorldContextObject, FLTweenFloatGetterDynamic getter, FLTweenFloatSetterDynamic setter, float endValue, float duration)
+ULTweener* ULTweenBPLibrary::FloatTo(UObject* WorldContextObject, FLTweenFloatSetterDynamic setter, float startValue, float endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenFloatGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenFloatGetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return 0.0f;
+		return startValue;
 	}), FLTweenFloatSetterFunction::CreateLambda([setter](float value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* ULTweenBPLibrary::IntTo(UObject* WorldContextObject, FLTweenIntGetterDynamic getter, FLTweenIntSetterDynamic setter, int endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::IntTo(UObject* WorldContextObject, FLTweenIntSetterDynamic setter, int startValue, int endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenIntGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenIntGetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return 0;
+		return startValue;
 	}), FLTweenIntSetterFunction::CreateLambda([setter](int value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* ULTweenBPLibrary::Vector2To(UObject* WorldContextObject, FLTweenVector2GetterDynamic getter, FLTweenVector2SetterDynamic setter, const FVector2D& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::Vector2To(UObject* WorldContextObject, FLTweenVector2SetterDynamic setter, FVector2D startValue, FVector2D endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenVector2DGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenVector2DGetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return FVector2D::ZeroVector;
+		return startValue;
 	}), FLTweenVector2DSetterFunction::CreateLambda([setter](const FVector2D& value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* ULTweenBPLibrary::Vector3To(UObject* WorldContextObject, FLTweenVector3GetterDynamic getter, FLTweenVector3SetterDynamic setter, const FVector& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::Vector3To(UObject* WorldContextObject, FLTweenVector3SetterDynamic setter, FVector startValue, FVector endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenVectorGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenVectorGetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return FVector::ZeroVector;
+		return startValue;
 	}), FLTweenVectorSetterFunction::CreateLambda([setter](const FVector& value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* ULTweenBPLibrary::Vector4To(UObject* WorldContextObject, FLTweenVector4GetterDynamic getter, FLTweenVector4SetterDynamic setter, const FVector4& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::Vector4To(UObject* WorldContextObject, FLTweenVector4SetterDynamic setter, FVector4 startValue, FVector4 endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenVector4GetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenVector4GetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return FVector4(EForceInit::ForceInitToZero);
+		return startValue;
 	}), FLTweenVector4SetterFunction::CreateLambda([setter](const FVector4& value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* ULTweenBPLibrary::ColorTo(UObject* WorldContextObject, FLTweenColorGetterDynamic getter, FLTweenColorSetterDynamic setter, const FColor& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::ColorTo(UObject* WorldContextObject, FLTweenColorSetterDynamic setter, FColor startValue, FColor endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenColorGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenColorGetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return FColor::Black;
+		return startValue;
 	}), FLTweenColorSetterFunction::CreateLambda([setter](const FColor& value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* ULTweenBPLibrary::LinearColorTo(UObject* WorldContextObject, FLTweenLinearColorGetterDynamic getter, FLTweenLinearColorSetterDynamic setter, const FLinearColor& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::LinearColorTo(UObject* WorldContextObject, FLTweenLinearColorSetterDynamic setter, FLinearColor startValue, FLinearColor endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenLinearColorGetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return FLinearColor::Black;
+		return startValue;
 	}), FLTweenLinearColorSetterFunction::CreateLambda([setter](const FLinearColor& value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* ULTweenBPLibrary::QuaternionTo(UObject* WorldContextObject, FLTweenQuaternionGetterDynamic getter, FLTweenQuaternionSetterDynamic setter, const FQuat& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::QuaternionTo(UObject* WorldContextObject, FLTweenQuaternionSetterDynamic setter, FQuat startValue, FQuat endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenQuaternionGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenQuaternionGetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return FQuat::Identity;
+		return startValue;
 	}), FLTweenQuaternionSetterFunction::CreateLambda([setter](const FQuat& value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
-ULTweener* ULTweenBPLibrary::RotatorTo(UObject* WorldContextObject, FLTweenRotatorGetterDynamic getter, FLTweenRotatorSetterDynamic setter, const FRotator& endValue, float duration /* = 0.5f */)
+ULTweener* ULTweenBPLibrary::RotatorTo(UObject* WorldContextObject, FLTweenRotatorSetterDynamic setter, FRotator startValue, FRotator endValue, float duration, float delay, LTweenEase ease)
 {
-	return ALTweenActor::To(WorldContextObject, FLTweenRotatorGetterFunction::CreateLambda([getter]
+	return ALTweenActor::To(WorldContextObject, FLTweenRotatorGetterFunction::CreateLambda([startValue]
 	{
-		if (getter.IsBound())
-			return getter.Execute();
-		return FRotator::ZeroRotator;
+		return startValue;
 	}), FLTweenRotatorSetterFunction::CreateLambda([setter](const FRotator& value)
 	{
 		if (setter.IsBound())
 			setter.Execute(value);
-	}), endValue, duration);
+	}), endValue, duration)->SetDelay(delay)->SetEase(ease);
 }
 
 #pragma region PositionXYZ
