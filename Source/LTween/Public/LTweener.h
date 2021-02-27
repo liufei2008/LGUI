@@ -511,8 +511,8 @@ public:
 	{
 		if (d < KINDA_SMALL_NUMBER)return c + b;
 		if (t == 0) return b;
-		t /= d;
-		if (t * 0.5f == 2) return b + c;
+		t /= d * 0.5f;
+		if (t == 2) return b + c;
 		float p = d*0.3f;
 		float s = p / 4;
 		float a = c;
@@ -544,8 +544,8 @@ public:
 	static float InOutBack(float c, float b, float t, float d)
 	{
 		if (d < KINDA_SMALL_NUMBER)return c + b;
-		if (t < d * 0.5f) return InBack(t * 2, 0, c, d) * .5f + b;
-		else return OutBack(t * 2 - d, 0, c, d) * .5f + c * .5f + b;
+		if (t < d * 0.5f) return InBack(c, 0, t * 2, d) * .5f + b;
+		else return OutBack(c, 0, t * 2 - d, d) * .5f + c * .5f + b;
 	}
 
 	static float OutBounce(float c, float b, float t, float d)
@@ -571,13 +571,13 @@ public:
 	static float InBounce(float c, float b, float t, float d)
 	{
 		if (d < KINDA_SMALL_NUMBER)return c + b;
-		return c - OutBounce(d - t, 0, c, d) + b;
+		return c - OutBounce(c, 0, d - t, d) + b;
 	}
 	static float InOutBounce(float c, float b, float t, float d)
 	{
 		if (d < KINDA_SMALL_NUMBER)return c + b;
-		if (t < d * 0.5f) return InBounce(t * 2, 0, c, d) * .5f + b;
-		else return OutBounce(t * 2 - d, 0, c, d) * .5f + c*.5f + b;
+		if (t < d * 0.5f) return InBounce(c, 0, t * 2, d) * .5f + b;
+		else return OutBounce(c, 0, t * 2 - d, d) * .5f + c * .5f + b;
 	}
 	/** Tween use CurveFloat, in range of 0-1. if curveFloat is null, fallback to Linear */
 	float CurveFloat(float c, float b, float t, float d);
