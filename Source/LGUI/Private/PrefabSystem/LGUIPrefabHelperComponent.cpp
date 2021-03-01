@@ -45,7 +45,7 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 	{
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 
-		LoadedRootActor = ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
+		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
 			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() 
 			: nullptr, AllLoadedActorArray);
 		ParentActorForEditor = nullptr;
@@ -71,7 +71,7 @@ void ULGUIPrefabHelperComponent::SavePrefab()
 		{
 			Target = GetOwner();
 		}
-		ActorSerializer serializer(this->GetWorld());
+		LGUIPrefabSystem::ActorSerializer serializer(this->GetWorld());
 		serializer.SerializeActor(Target, PrefabAsset);
 
 		AllLoadedActorArray.Empty();
@@ -90,14 +90,19 @@ void ULGUIPrefabHelperComponent::RevertPrefab()
 		AActor* OldParentActor = nullptr;
 		bool haveRootTransform = true;
 		FTransform OldTransform;
+		FUIWidget OldWidget;
 		//delete loaded actor
 		if (IsValid(LoadedRootActor))
 		{
 			OldParentActor = LoadedRootActor->GetAttachParentActor();
-			haveRootTransform = LoadedRootActor->GetRootComponent() != nullptr;
-			if (haveRootTransform)
+			if(auto RootComp = LoadedRootActor->GetRootComponent())
 			{
+				haveRootTransform = true;
 				OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
+				if (auto RootUIComp = Cast<UUIItem>(RootComp))
+				{
+					OldWidget = RootUIComp->GetWidget();
+				}
 			}
 			LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
 			LoadedRootActor = nullptr;
@@ -109,9 +114,16 @@ void ULGUIPrefabHelperComponent::RevertPrefab()
 			LoadedRootActor->AttachToActor(OldParentActor, FAttachmentTransformRules::KeepRelativeTransform);
 			if (haveRootTransform)
 			{
-				if (auto rootComp = LoadedRootActor->GetRootComponent())
+				if (auto RootComp = LoadedRootActor->GetRootComponent())
 				{
-					rootComp->SetRelativeTransform(OldTransform);
+					RootComp->SetRelativeTransform(OldTransform);
+					if (auto RootUIItem = Cast<UUIItem>(RootComp))
+					{
+						auto newWidget = RootUIItem->GetWidget();
+						OldWidget.color = newWidget.color;
+						OldWidget.depth = newWidget.depth;
+						RootUIItem->SetWidget(OldWidget);
+					}
 				}
 			}
 		}
