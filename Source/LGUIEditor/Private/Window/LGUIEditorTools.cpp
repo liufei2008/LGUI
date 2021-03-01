@@ -324,10 +324,16 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		return;
 	}
 	auto copiedActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
+	for (auto prevCopiedActor : copiedActorList)
+	{
+		prevCopiedActor->RemoveFromRoot();
+		prevCopiedActor->ConditionalBeginDestroy();
+	}
 	copiedActorPrefabList.Reset();
 	for (auto copiedActor : copiedActorList)
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
+		prefab->AddToRoot();
 		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab);
 		copiedActorPrefabList.Add(prefab);
 	}
