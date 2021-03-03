@@ -210,7 +210,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 }
 void FUISelectableCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
-	if (auto Script = TargetScriptPtr.Get())
+	if (TargetScriptPtr.IsValid())
 	{
 		DetailBuilder->ForceRefreshDetails();
 	}

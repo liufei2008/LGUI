@@ -188,7 +188,7 @@ void FUIToggleCustomization::CreateSpriteSelector(IDetailCategoryBuilder* catego
 }
 void FUIToggleCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
-	if (auto Script = TargetScriptPtr.Get())
+	if (TargetScriptPtr.IsValid())
 	{
 		DetailBuilder->ForceRefreshDetails();
 	}
