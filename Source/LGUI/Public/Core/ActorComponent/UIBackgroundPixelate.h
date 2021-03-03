@@ -8,6 +8,7 @@
 
 /** 
  * UI element that can make the background look pixelated
+ * May have issue when MSAA is on.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIBackgroundPixelate : public UUIPostProcess
@@ -25,8 +26,10 @@ protected:
 #endif
 #define MAX_PixelateStrength 100.0f
 #define INV_MAX_PixelateStrength 0.01f
+	/** Pixelate effect strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 100.0f))
 		float pixelateStrength = 10.0f;
+	/** Will alpha affect pixelate strength? If true, then 0 alpha means 0 pixelate strength, and 1 alpha means full pixelate strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool applyAlphaToStrength = true;
 public:
