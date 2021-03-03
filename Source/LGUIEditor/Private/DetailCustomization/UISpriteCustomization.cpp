@@ -114,7 +114,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 }
 void FUISpriteCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
-	if (TargetScriptPtr.Get() != nullptr && DetailBuilder != nullptr)
+	if (TargetScriptPtr.IsValid() && DetailBuilder != nullptr)
 	{
 		DetailBuilder->ForceRefreshDetails();
 	}

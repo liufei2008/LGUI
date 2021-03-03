@@ -113,8 +113,8 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 									+SVerticalBox::Slot()
 									[
 										SNew(SSlider)
-										.Value(this, &FUICanvasScalerCustomization::GetMatchValue)
-										.OnValueChanged(this, &FUICanvasScalerCustomization::SetMatchValue, true)
+										.Value(this, &FUICanvasScalerCustomization::GetMatchValue, matchProperty)
+										.OnValueChanged(this, &FUICanvasScalerCustomization::SetMatchValue, matchProperty)
 									]
 									+SVerticalBox::Slot()
 									[
@@ -177,27 +177,15 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		DetailBuilder.HideProperty(item);
 	}
 }
-float FUICanvasScalerCustomization::GetMatchValue()const
+float FUICanvasScalerCustomization::GetMatchValue(TSharedRef<IPropertyHandle> Property)const
 {
-	if (TargetScriptPtr.IsValid())
-	{
-		return TargetScriptPtr->GetMatchFromWidthToHeight();
-	}
-	return 0.0f;
+	float value = 0.0;
+	Property->GetValue(value);
+	return value;
 }
-TOptional<float> FUICanvasScalerCustomization::GetMatchValueOptional()const
+void FUICanvasScalerCustomization::SetMatchValue(float value, TSharedRef<IPropertyHandle> Property)
 {
-	return GetMatchValue();
-}
-void FUICanvasScalerCustomization::SetMatchValue(float value, bool fromSlider)
-{
-	if (fromSlider)
-	{
-		if (TargetScriptPtr.IsValid())
-		{
-			TargetScriptPtr->SetMatchFromWidthToHeight(value);
-		}
-	}
+	Property->SetValue(value);
 }
 FOptionalSize FUICanvasScalerCustomization::GetValueWidth()const
 {

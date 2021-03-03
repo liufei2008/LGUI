@@ -347,30 +347,33 @@ private:
 			GEditor->BeginTransaction(LOCTEXT("ChangeAnchor", "Change LGUI Anchor"));
 			for (auto item : TargetScriptArray)
 			{
-				item->SetAnchorHAlign(HorizontalAlign);
-				item->SetAnchorVAlign(VerticalAlign);
-				if (snapAnchor)
+				if (item.IsValid())
 				{
-					if (HorizontalAlign == UIAnchorHorizontalAlign::Stretch)
+					item->SetAnchorHAlign(HorizontalAlign);
+					item->SetAnchorVAlign(VerticalAlign);
+					if (snapAnchor)
 					{
-						item->SetStretchLeft(0);
-						item->SetStretchRight(0);
+						if (HorizontalAlign == UIAnchorHorizontalAlign::Stretch)
+						{
+							item->SetStretchLeft(0);
+							item->SetStretchRight(0);
+						}
+						else if (HorizontalAlign != UIAnchorHorizontalAlign::None)
+						{
+							item->SetAnchorOffsetX(0);
+						}
+						if (VerticalAlign == UIAnchorVerticalAlign::Stretch)
+						{
+							item->SetStretchBottom(0);
+							item->SetStretchTop(0);
+						}
+						else if (VerticalAlign != UIAnchorVerticalAlign::None)
+						{
+							item->SetAnchorOffsetY(0);
+						}
 					}
-					else if (HorizontalAlign != UIAnchorHorizontalAlign::None)
-					{
-						item->SetAnchorOffsetX(0);
-					}
-					if (VerticalAlign == UIAnchorVerticalAlign::Stretch)
-					{
-						item->SetStretchBottom(0);
-						item->SetStretchTop(0);
-					}
-					else if (VerticalAlign != UIAnchorVerticalAlign::None)
-					{
-						item->SetAnchorOffsetY(0);
-					}
+					item->EditorForceUpdateImmediately();
 				}
-				item->EditorForceUpdateImmediately();
 			}
 			GEditor->EndTransaction();
 			

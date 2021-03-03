@@ -54,8 +54,11 @@ void FUITextureBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailB
 		{
 			for (auto item : TargetScriptArray)
 			{
-				item->SetSizeFromTexture();
-				item->EditorForceUpdateImmediately();
+				if (item.IsValid())
+				{
+					item->SetSizeFromTexture();
+					item->EditorForceUpdateImmediately();
+				}
 			}
 			return FReply::Handled();
 		})
