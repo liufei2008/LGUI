@@ -8,6 +8,7 @@
 
 /** 
  * UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
+ * May have issue when MSAA is on.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIBackgroundBlur : public UUIPostProcess
@@ -25,17 +26,19 @@ protected:
 #endif
 #define MAX_BlurStrength 100.0f
 #define INV_MAX_BlurStrength 0.01f
+	/** Blur effect strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 100.0f))
 		float blurStrength = 10.0f;
+	/** Will alpha affect blur strength? If true, then 0 alpha means 0 blur strength, and 1 alpha means full blur strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool applyAlphaToBlur = true;
-	/** No need to change this because default value can give you good result */
-	UPROPERTY(EditAnywhere, Category = "LGUI") 
+	/** No need to change this because default value can give you good result. */
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay) 
 		int maxDownSampleLevel = 6;
-	/** use strengthTexture's red channel to control blur strength, 0-no blur, 1-full blur */
+	/** Use strengthTexture's red channel to control blur strength, 0-no blur, 1-full blur. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UTexture2D* strengthTexture;
-	/** use maskTexture's red channel to mask out blur result */
+	/** Use maskTexture's red channel to mask out blur result. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UTexture2D* maskTexture;
 public:
