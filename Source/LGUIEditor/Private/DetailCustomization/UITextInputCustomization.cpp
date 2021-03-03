@@ -63,23 +63,25 @@ void FUITextInputCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 		.MinDesiredWidth(500)
 		[
 			SNew(SEditableTextBox)
-			.Text(this, &FUITextInputCustomization::GetText)
-			.OnTextChanged(this, &FUITextInputCustomization::OnTextChanged)
+			.Text(this, &FUITextInputCustomization::GetText, textHandle)
+			.OnTextChanged(this, &FUITextInputCustomization::OnTextChanged, textHandle)
 		];
 }
 void FUITextInputCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
-	if (auto Script = TargetScriptPtr.Get())
+	if (TargetScriptPtr.IsValid())
 	{
 		DetailBuilder->ForceRefreshDetails();
 	}
 }
-FText FUITextInputCustomization::GetText()const
+FText FUITextInputCustomization::GetText(TSharedRef<IPropertyHandle> Property)const
 {
-	return FText::FromString(TargetScriptPtr->Text);
+	FString text;
+	Property->GetValue(text);
+	return FText::FromString(text);
 }
-void FUITextInputCustomization::OnTextChanged(const FText& InText)
+void FUITextInputCustomization::OnTextChanged(const FText& InText, TSharedRef<IPropertyHandle> Property)
 {
-	TargetScriptPtr->SetText(InText.ToString());
+	Property->SetValue(InText.ToString());
 }
 #undef LOCTEXT_NAMESPACE

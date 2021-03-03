@@ -149,6 +149,58 @@ namespace LGUIPrefabSystem
 			return false;
 		}
 	};
+	//ActorComponent serialize and save data
+	struct FLGUIComponentSaveData
+	{
+	public:
+		int32 ComponentClass = -1;//-1 means not exist. if RootComponent is -1 means this actor dont have RootComponent
+		FName ComponentName;
+		int32 SceneComponentParentID = -1;//-1 means the the SceneComponent dont have parent
+		TArray<FLGUIPropertyData> PropertyData;
+		USceneComponent* SceneComponentParent = nullptr;//helper
+		friend FArchive& operator<<(FArchive& Ar, FLGUIComponentSaveData& ComponentData)
+		{
+			Ar << ComponentData.ComponentClass;
+			Ar << ComponentData.ComponentName;
+			Ar << ComponentData.SceneComponentParentID;
+			Ar << ComponentData.PropertyData;
+			return Ar;
+		}
+	};
+	//Actor serialize and save data
+	struct FLGUIActorSaveData
+	{
+	public:
+
+		int32 ActorClass;
+		int32 ActorID;//Actor id. if some property reference actor, use id to find
+		TArray<FLGUIPropertyData> ActorPropertyData;
+		TArray<FLGUIComponentSaveData> ComponentPropertyData;
+		TArray<FLGUIActorSaveData> ChildActorData;
+
+		friend FArchive& operator<<(FArchive& Ar, FLGUIActorSaveData& ActorData)
+		{
+			Ar << ActorData.ActorID;
+			Ar << ActorData.ActorClass;
+			Ar << ActorData.ActorPropertyData;
+			Ar << ActorData.ComponentPropertyData;
+			Ar << ActorData.ChildActorData;
+			return Ar;
+		}
+	};
+	struct FLGUIPrefabSaveData
+	{
+	public:
+		FLGUIActorSaveData SavedActor;
+
+		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabSaveData& GameData)
+		{
+			Ar << GameData.SavedActor;
+			return Ar;
+		}
+	};
+
+
 	//same as FLGUIPropertyData, except not store property name
 	struct FLGUIPropertyDataForBuild
 	{
@@ -184,25 +236,6 @@ namespace LGUIPrefabSystem
 			}
 		}
 	};
-	//ActorComponent serialize and save data
-	struct FLGUIComponentSaveData
-	{
-	public:
-		int32 ComponentClass = -1;//-1 means not exist. if RootComponent is -1 means this actor dont have RootComponent
-		FName ComponentName;
-		int32 SceneComponentParentID = -1;//-1 means the the SceneComponent dont have parent
-		TArray<FLGUIPropertyData> PropertyData;
-		USceneComponent* SceneComponentParent = nullptr;//helper
-		friend FArchive& operator<<(FArchive& Ar, FLGUIComponentSaveData& ComponentData)
-		{
-			Ar << ComponentData.ComponentClass;
-			Ar << ComponentData.ComponentName;
-			Ar << ComponentData.SceneComponentParentID;
-			Ar << ComponentData.PropertyData;
-			return Ar;
-		}
-	};
-
 	struct FLGUIComponentSaveDataForBuild
 	{
 	public:
@@ -234,28 +267,6 @@ namespace LGUIPrefabSystem
 			}
 		}
 	};
-	//Actor serialize and save data
-	struct FLGUIActorSaveData
-	{
-	public:
-
-		int32 ActorClass;
-		int32 ActorID;//Actor id. if some property reference actor, use id to find
-		TArray<FLGUIPropertyData> ActorPropertyData;
-		TArray<FLGUIComponentSaveData> ComponentPropertyData;
-		TArray<FLGUIActorSaveData> ChildActorData;
-
-		friend FArchive& operator<<(FArchive& Ar, FLGUIActorSaveData& ActorData)
-		{
-			Ar << ActorData.ActorID;
-			Ar << ActorData.ActorClass;
-			Ar << ActorData.ActorPropertyData;
-			Ar << ActorData.ComponentPropertyData;
-			Ar << ActorData.ChildActorData;
-			return Ar;
-		}
-	};
-
 	struct FLGUIActorSaveDataForBuild
 	{
 	public:
@@ -303,18 +314,6 @@ namespace LGUIPrefabSystem
 		}
 	};
 
-
-	struct FLGUIPrefabSaveData
-	{
-	public:
-		FLGUIActorSaveData SavedActor;
-
-		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabSaveData& GameData)
-		{
-			Ar << GameData.SavedActor;
-			return Ar;
-		}
-	};
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIPrefabSystem_DeserializeActorDelegate, bool);
 
