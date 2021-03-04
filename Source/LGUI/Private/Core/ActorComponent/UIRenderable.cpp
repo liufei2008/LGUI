@@ -329,7 +329,7 @@ void UUIRenderable::CreateGeometry()
 		if (NeedTextureToCreateGeometry())
 		{
 			geometry->texture = GetTextureToCreateGeometry();
-			if (!IsValid(geometry->texture))
+			if (!geometry->texture.IsValid())
 			{
 				UE_LOG(LGUI, Error, TEXT("[UUIRenderable::CreateGeometry]Need texture to create geometry, but provided texture is no valid!"));
 			}

@@ -98,11 +98,11 @@ UTexture2D* LGUIUtils::CreateTransientBlackTransparentTexture(int32 InSize, FNam
 }
 
 
-void LGUIUtils::SortUIItemDepth(TArray<UUIRenderable*>& shapeList)
+void LGUIUtils::SortUIItemDepth(TArray<TWeakObjectPtr<UUIRenderable>>& shapeList)
 {
-	shapeList.Sort([](const UUIRenderable& A, const UUIRenderable& B)
+	shapeList.Sort([](const TWeakObjectPtr<UUIRenderable>& A, const TWeakObjectPtr<UUIRenderable>& B)
 	{
-		return A.GetDepth() < B.GetDepth();
+		return A->GetDepth() < B->GetDepth();
 	});
 }
 void LGUIUtils::SortUIItemDepth(TArray<TSharedPtr<UIGeometry>>& shapeList)
@@ -113,7 +113,7 @@ void LGUIUtils::SortUIItemDepth(TArray<TSharedPtr<UIGeometry>>& shapeList)
 	});
 }
 
-void LGUIUtils::CreateDrawcall(TArray<UUIRenderable*>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
+void LGUIUtils::CreateDrawcall(TArray<TWeakObjectPtr<UUIRenderable>>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
 {
 	UTexture* prevTex = nullptr;
 	TSharedPtr<UUIDrawcall> prevUIDrawcall = nullptr;
@@ -129,10 +129,10 @@ void LGUIUtils::CreateDrawcall(TArray<UUIRenderable*>& sortedList, TArray<TShare
 		{
 			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 			prevUIDrawcall->geometryList.Add(itemGeo);
-			prevUIDrawcall->postProcessObject = (UUIPostProcess*)sortedList[i];
+			prevUIDrawcall->postProcessObject = (UUIPostProcess*)sortedList[i].Get();
 			prevTex = nullptr;
 		}
-		else if (itemGeo->material != nullptr)//consider every custom material as a drawcall
+		else if (itemGeo->material.IsValid())//consider every custom material as a drawcall
 		{
 			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 			prevUIDrawcall->texture = itemGeo->texture;
@@ -143,7 +143,7 @@ void LGUIUtils::CreateDrawcall(TArray<UUIRenderable*>& sortedList, TArray<TShare
 		else//batch elements into drawcall by comparing their texture
 		{
 			auto itemTex = itemGeo->texture;
-			if (itemTex != prevTex)//this ui element's texture is different from previous one
+			if (itemTex.Get() != prevTex)//this ui element's texture is different from previous one
 			{
 				prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 				prevUIDrawcall->texture = itemTex;
@@ -162,7 +162,7 @@ void LGUIUtils::CreateDrawcall(TArray<UUIRenderable*>& sortedList, TArray<TShare
 					prevUIDrawcall->geometryList.Add(itemGeo);
 				}
 			}
-			prevTex = itemTex;
+			prevTex = itemTex.Get();
 		}
 		itemGeo->drawcallIndex = drawcallCount - 1;
 	}
