@@ -8,6 +8,7 @@
 
 /** 
  * UI element that can add blur effect on background renderred image, just like UMG's BackgroundBlur.
+ * Use it on ScreenSpaceUI.
  * May have issue when MSAA is on.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))

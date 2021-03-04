@@ -8,6 +8,7 @@
 
 /** 
  * UI element that can make the background look pixelated
+ * Use it on ScreenSpaceUI.
  * May have issue when MSAA is on.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))

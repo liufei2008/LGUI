@@ -144,9 +144,12 @@ void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 	}
 	if (UIMeshList.Num() > 0)
 	{
-		for (UUIDrawcallMesh* item : UIMeshList)
+		for (TWeakObjectPtr<UUIDrawcallMesh> item : UIMeshList)
 		{
-			item->DestroyComponent();
+			if (item.IsValid())
+			{
+				item->DestroyComponent();
+			}
 		}
 	}
 }
@@ -155,7 +158,10 @@ void ULGUICanvas::OnUIActiveStateChange(bool active)
 {
 	for (auto uiMesh : UIMeshList)
 	{
-		uiMesh->SetVisibility(active);
+		if (uiMesh.IsValid())
+		{
+			uiMesh->SetVisibility(active);
+		}
 	}
 }
 
@@ -208,7 +214,10 @@ void ULGUICanvas::CheckRenderMode()
 		//clear UIMeshList and delete mesh components, so new mesh will be created. because hud and world mesh not compatible
 		for (auto uiMesh : UIMeshList)
 		{
-			uiMesh->DestroyComponent();
+			if (uiMesh.IsValid())
+			{
+				uiMesh->DestroyComponent();
+			}
 		}
 		UIMeshList.Reset();
 	}
@@ -597,7 +606,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			{
 				for (int i = UIRenderableItemList.Num() - 1; i >= 0; i--)
 				{
-					if (!IsValid(UIRenderableItemList[i]))
+					if (!UIRenderableItemList[i].IsValid())
 					{
 						UIRenderableItemList.RemoveAt(i);
 					}
@@ -652,8 +661,8 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				int additionalMeshCount = meshCount - drawcallCount;
 				for (int i = drawcallCount; i < meshCount; i++)
 				{
-					auto& meshItem = UIMeshList[i];
-					if (!IsValid(meshItem))continue;
+					auto meshItem = UIMeshList[i];
+					if (!meshItem.IsValid())continue;
 					meshItem->SetMeshVisible(false);
 				}
 			}
@@ -661,7 +670,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			for (int i = 0; i < drawcallCount; i++)//set data for all valid UIMesh
 			{
 				auto& uiMesh = UIMeshList[i];
-				if (!IsValid(uiMesh))continue;
+				if (!uiMesh.IsValid())continue;
 				auto& uiDrawcall = UIDrawcallList[i];
 				if (!uiDrawcall.IsValid())continue;
 				uiMesh->SetMeshVisible(true);//some UIMesh may set to invisible on prev frame, set to visible
@@ -690,7 +699,9 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				for (int i = drawcallCount - 1; i >= 0; i--)
 				{
 					auto uiMesh = UIMeshList[i];
+					if (!uiMesh.IsValid())continue;
 					auto uiDrawcall = UIDrawcallList[i];
+					if (!uiDrawcall.IsValid())continue;
 					if (uiDrawcall->needToBeRebuild)
 					{
 						LGUIUtils::SortUIItemDepth(uiDrawcall->geometryList);//sort needed for new add item
@@ -830,7 +841,7 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 	{
 		if (i < UIMeshList.Num())
 		{
-			if (IsValid(UIMeshList[i]))
+			if (UIMeshList[i].IsValid())
 			{
 				UIMeshList[i]->SetUITranslucentSortPriority(InStartRenderPriority++);
 			}
@@ -897,7 +908,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 			auto uiMat = UIMaterialList[i];
 			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
 			auto& uiMesh = UIMeshList[i];
-			if (!IsValid(uiMesh))continue;
+			if (!uiMesh.IsValid())continue;
 			uiMesh->SetMaterial(0, uiMat);
 		}
 	}
