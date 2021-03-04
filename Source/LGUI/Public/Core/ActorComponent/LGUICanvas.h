@@ -56,6 +56,8 @@ ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
 
 class UUIItem;
 class UUIRenderable;
+class UUIDrawcallMesh;
+class UUIDrawcall;
 class UTextureRenderTarget2D;
 
 /**
@@ -310,7 +312,7 @@ public:
 		void SetDynamicPixelsPerUnit(float newValue);
 
 	/** return UIRenderables that belong to this canvas */
-	const TArray<UUIRenderable*> GetUIRenderables()const { return UIRenderableItemList; }
+	const TArray<TWeakObjectPtr<UUIRenderable>>& GetUIRenderables()const { return UIRenderableItemList; }
 	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
 
 	FORCEINLINE void AddUIRenderable(UUIRenderable* InUIRenderable);
@@ -340,9 +342,9 @@ private:
 	uint32 cacheViewProjectionMatrixFrameNumber = 0;
 	FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
-	UPROPERTY(Transient)TArray<UUIRenderable*> UIRenderableItemList;//all renderable UI element collection
-	UPROPERTY(Transient)TArray<class UUIDrawcallMesh*> UIMeshList;//UIDrawcallMesh collection of this Canvas
-	TArray<TSharedPtr<class UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
+	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIRenderable>> UIRenderableItemList;//all renderable UI element collection
+	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIDrawcallMesh>> UIMeshList;//UIDrawcallMesh collection of this Canvas
+	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
 
 	/** rect clip's min position */

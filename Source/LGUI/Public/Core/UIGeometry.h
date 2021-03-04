@@ -30,8 +30,8 @@ public:
 	//triangle indices
 	TArray<uint16> triangles;
 
-	UTexture* texture = nullptr;
-	UMaterialInterface* material = nullptr;
+	TWeakObjectPtr<UTexture> texture = nullptr;
+	TWeakObjectPtr<UMaterialInterface> material = nullptr;
 	int depth;//depth of this UIRenderable
 	int drawcallIndex = -1;//index of drawcall(which collect this geometry for render) in drawcall list, -1 means not add to drawcall yet
 	bool isFontTexture = false;//the texture of this geometry is font texture or not
