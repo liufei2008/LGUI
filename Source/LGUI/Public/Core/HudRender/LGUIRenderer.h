@@ -74,12 +74,12 @@ public:
 #endif
 };
 
-class FLGUIFullScreenQuadVertexBuffer :public FVertexBuffer
+class LGUI_API FLGUIFullScreenQuadVertexBuffer :public FVertexBuffer
 {
 public:
 	void InitRHI()override;
 };
-class FLGUIFullScreenQuadIndexBuffer :public FIndexBuffer
+class LGUI_API FLGUIFullScreenQuadIndexBuffer :public FIndexBuffer
 {
 public:
 	void InitRHI()override;
