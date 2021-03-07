@@ -6,16 +6,13 @@
 #include "UIDrawcallMesh.generated.h"
 
 //render and show UI geometry
-UCLASS(ClassGroup = (LGUI), Transient, NotBlueprintable, NotBlueprintType)
+UCLASS(ClassGroup = (LGUI), Transient, NotBlueprintable)
 class LGUI_API UUIDrawcallMesh : public ULGUIMeshComponent
 {
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UUIDrawcallMesh();
-
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:
@@ -24,8 +21,7 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 private:
-	friend class ULGUICanvas;
-	//prev vertex and triangle index count, for us to tell which data should we update
+	//prev vertex and triangle index count, for us to tell which data should we update or recreate
 	int prevVertexCount = 0;
 	int prevIndexCount = 0;
 };

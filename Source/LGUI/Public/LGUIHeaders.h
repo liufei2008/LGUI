@@ -3,7 +3,9 @@
 #pragma once
 
 #include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIPostProcess.h"
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/UITextureBase.h"
@@ -14,7 +16,6 @@
 #include "Core/LGUIBehaviour.h"
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
-#include "Core/ActorComponent/UIPostProcess.h"
 
 #include "Core/LGUIFontData.h"
 #include "Core/LGUIAtlasData.h"

@@ -11,7 +11,6 @@
 #include "Engine.h"
 #include "LGUI.h"
 #include "Core/HudRender/LGUIHudVertex.h"
-#include "Core/ActorComponent/UIPostProcess.h"
 
 
 class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
@@ -95,9 +94,6 @@ public:
 		}
 		IsSupportWorldSpace = InComponent->IsSupportWorldSpace;
 
-		PostProcessObject = InComponent->PostProcessObject;
-		IsPostProcess = IsValid(InComponent->PostProcessObject);
-
 		FLGUIMeshSection& SrcSection = InComponent->MeshSection;
 		if (SrcSection.vertices.Num() > 0)
 		{
@@ -175,7 +171,7 @@ public:
 		}
 		if (LGUIHudRenderer.IsValid())
 		{
-			LGUIHudRenderer.Pin()->RemoveHudPrimitive(this);
+			LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread(this);
 			LGUIHudRenderer.Reset();
 		}
 	}
@@ -424,10 +420,6 @@ public:
 	{
 		return Section != nullptr && Section->bSectionVisible;
 	}
-	virtual FPrimitiveSceneProxy* GetPrimitiveSceneProxy() override
-	{
-		return this;
-	}
 	virtual FRHIVertexBuffer* GetVertexBufferRHI()override
 	{
 		return Section->HudVertexBuffers.VertexBufferRHI;
@@ -436,14 +428,8 @@ public:
 	{
 		return Section->HudVertexBuffers.Vertices.Num();
 	}
-	virtual bool GetIsPostProcess()override
-	{
-		return IsPostProcess;
-	}
-	virtual TWeakObjectPtr<UUIPostProcess> GetPostProcessObject()override
-	{
-		return PostProcessObject;
-	}
+	virtual bool GetIsPostProcess()override { return false; }
+	virtual TWeakObjectPtr<UUIPostProcess> GetPostProcessObject()override { return nullptr; }
 	//end ILGUIHudPrimitive interface
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const
@@ -483,8 +469,6 @@ private:
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
 	bool IsSupportScreenSpace = false;
 	bool IsSupportWorldSpace = true;
-	bool IsPostProcess = false;
-	TWeakObjectPtr<UUIPostProcess> PostProcessObject;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -530,7 +514,7 @@ void ULGUIMeshComponent::ClearMesh()
 	MarkRenderStateDirty();
 }
 
-void ULGUIMeshComponent::SetMeshVisible(bool bNewVisibility)
+void ULGUIMeshComponent::SetUIMeshVisibility(bool bNewVisibility)
 {
 	this->SetVisibility(bNewVisibility);
 	// Set game thread state
@@ -603,12 +587,6 @@ void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUI
 void ULGUIMeshComponent::SetSupportWorldSpace(bool supportOrNot)
 {
 	IsSupportWorldSpace = supportOrNot;
-}
-
-void ULGUIMeshComponent::SetToPostProcess(UUIPostProcess* InPostProcessObject)
-{
-	PostProcessObject = InPostProcessObject;
-	CreateMeshSection();
 }
 
 int32 ULGUIMeshComponent::GetNumMaterials() const

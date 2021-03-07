@@ -151,7 +151,8 @@ public:
 
 public:
 	static void UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, FColor color);
-	static void TransformVertices(class ULGUICanvas* canvas, class UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo);
+	static void TransformVertices(class ULGUICanvas* canvas, class UUIItem* item, TSharedPtr<UIGeometry> uiGeo);
+	static void TransformVerticesForSelfRender(class ULGUICanvas* canvas, TSharedPtr<UIGeometry> uiGeo);
 	static void CalculatePivotOffset(const float& width, const float& height, const FVector2D& pivot, float& pivotOffsetX, float& pivotOffsetY, float& halfW, float& halfH);
 private:
 	static void OffsetVertices(TArray<FVector>& vertices, int count, float offsetX, float offsetY);

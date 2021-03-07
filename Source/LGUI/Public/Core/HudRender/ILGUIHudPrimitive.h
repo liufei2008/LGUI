@@ -13,14 +13,18 @@ class ILGUIHudPrimitive
 {
 public:
 	virtual ~ILGUIHudPrimitive() {}
-	virtual FMeshBatch GetMeshElement(class FMeshElementCollector* Collector) = 0;
-	virtual int GetRenderPriority() const = 0;
+
 	virtual bool CanRender() const = 0;
-	virtual class FPrimitiveSceneProxy* GetPrimitiveSceneProxy() = 0;
+	virtual int GetRenderPriority() const = 0;
+
+	//begin mesh interface
+	virtual FMeshBatch GetMeshElement(class FMeshElementCollector* Collector) = 0;
 	virtual FRHIVertexBuffer* GetVertexBufferRHI() = 0;
 	virtual uint32 GetNumVerts() = 0;
+	//end mesh interface
+
+	//begin post process interface
 	virtual bool GetIsPostProcess() = 0;
 	virtual TWeakObjectPtr<UUIPostProcess> GetPostProcessObject() = 0;
-	//virtual BeforeRenderPostProcessFunction GetBeforeRenderPostProcess() = 0;
-	//virtual RenderPostProcessFunction GetRenderPostProcess() = 0;
+	//end post process interface
 };

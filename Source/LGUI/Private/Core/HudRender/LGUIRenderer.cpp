@@ -177,11 +177,6 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		if (editor->bIsSimulatingInEditor)return;
 	}
 #endif
-	TArray<ILGUIHudPrimitive*> primitiveArray;
-	{
-		FScopeLock scopeLock(&Mutex);
-		primitiveArray = HudPrimitiveArray;
-	}
 
 	//create render target
 	{
@@ -236,6 +231,11 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	GraphicsPSOInit.NumSamples = MultiSampleCount;
 
 	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
+	TArray<ILGUIHudPrimitive*> primitiveArray;
+	{
+		FScopeLock scopeLock(&Mutex);
+		primitiveArray = HudPrimitiveArray;
+	}
 	for (int i = 0; i < primitiveArray.Num(); i++)
 	{
 		auto hudPrimitive = primitiveArray[i];
@@ -253,13 +253,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 							RHICmdList,
 							ScreenColorRenderTexture,
 							GlobalShaderMap,
-							ViewProjectionMatrix,
-							[&]()
-							{
-								const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
-							}
+							ViewProjectionMatrix
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 						RHICmdList.SetViewport(0, 0, 0.0f, InView.UnscaledViewRect.Size().X, InView.UnscaledViewRect.Size().Y, 1.0f);
@@ -333,7 +327,7 @@ void FLGUIViewExtension::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimi
 		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::AddHudPrimitive]Add nullptr as ILGUIHudPrimitive!"));
 	}
 }
-void FLGUIViewExtension::RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive)
+void FLGUIViewExtension::RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
@@ -346,7 +340,7 @@ void FLGUIViewExtension::RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive)
 	}
 }
 
-void FLGUIViewExtension::MarkSortRenderPriority_RenderThread()
+void FLGUIViewExtension::SortRenderPriority_RenderThread()
 {
 	HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
 	{
@@ -359,7 +353,7 @@ void FLGUIViewExtension::SortRenderPriority()
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
 		[viewExtension](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->MarkSortRenderPriority_RenderThread();
+			viewExtension->SortRenderPriority_RenderThread();
 		}
 	);
 }

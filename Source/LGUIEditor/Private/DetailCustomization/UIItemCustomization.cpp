@@ -1,7 +1,7 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UIItemCustomization.h"
-#include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Widgets/Layout/Anchors.h"
 #include "Widgets/Layout/SConstraintCanvas.h"
 #include "IDetailGroup.h"
