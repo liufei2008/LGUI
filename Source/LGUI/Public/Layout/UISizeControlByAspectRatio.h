@@ -7,7 +7,7 @@
 #include "UISizeControlByAspectRatio.generated.h"
 
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EUISizeControlByAspectRatioMode :uint8
 {
 	None,

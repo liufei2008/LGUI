@@ -5,7 +5,7 @@
 #include "UISpriteBase.h"
 #include "UISprite.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UISpriteType :uint8
 {
 	Normal,
@@ -14,7 +14,7 @@ enum class UISpriteType :uint8
 	Tiled,
 	Filled,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UISpriteFillMethod:uint8
 {
 	Horizontal,
@@ -23,7 +23,7 @@ enum class UISpriteFillMethod:uint8
 	Radial180,
 	Radial360,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UISpriteFillOriginType_Radial90 :uint8 
 {
 	BottomLeft,
@@ -31,7 +31,7 @@ enum class UISpriteFillOriginType_Radial90 :uint8
 	TopRight,
 	BottomRight,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UISpriteFillOriginType_Radial180 :uint8
 {
 	Bottom,
@@ -39,7 +39,7 @@ enum class UISpriteFillOriginType_Radial180 :uint8
 	Top,
 	Right,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UISpriteFillOriginType_Radial360 :uint8
 {
 	Bottom,

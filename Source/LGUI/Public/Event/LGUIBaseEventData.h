@@ -7,7 +7,7 @@
 #include "LGUIBaseEventData.generated.h"
 
 /** event execute type */
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIEventFireType :uint8
 {
 	/** event will call on trace target actor and all component of the actor */
@@ -18,7 +18,7 @@ enum class ELGUIEventFireType :uint8
 	OnlyTargetActor,
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EPointerEventType :uint8
 {
 	Click = 0,
@@ -39,7 +39,7 @@ enum class EPointerEventType :uint8
 	Deselect = 13,
 	Navigate = 14,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EMouseButtonType :uint8
 {
 	Left,Middle,Right,
@@ -53,7 +53,7 @@ enum class EMouseButtonType :uint8
 	UserDefined7,
 	UserDefined8,
 };
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, classGroup = LGUI)
 class LGUI_API ULGUIBaseEventData :public UObject
 {
 	GENERATED_BODY()

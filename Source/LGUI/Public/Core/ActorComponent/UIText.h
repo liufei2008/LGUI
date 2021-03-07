@@ -6,21 +6,21 @@
 #include "UIText.generated.h"
 
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UITextParagraphHorizontalAlign : uint8
 {
 	Left,
 	Center,
 	Right,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UITextParagraphVerticalAlign : uint8
 {
 	Top,
 	Middle,
 	Bottom,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UITextFontStyle :uint8
 {
 	None,
@@ -29,7 +29,7 @@ enum class UITextFontStyle :uint8
 	BoldAndItalic,
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UITextOverflowType :uint8
 {
 	/** chars will go out of rect range horizontally */

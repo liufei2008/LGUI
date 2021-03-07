@@ -6,7 +6,7 @@
 #include "UITextureBase.h"
 #include "UITexture.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UITextureType :uint8
 {
 	Normal		 		UMETA(DisplayName = "Normal"),

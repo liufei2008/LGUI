@@ -12,7 +12,7 @@
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIScrollbarDynamicDelegate, float, InFloat);
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UIScrollbarDirectionType:uint8
 {
 	LeftToRight,

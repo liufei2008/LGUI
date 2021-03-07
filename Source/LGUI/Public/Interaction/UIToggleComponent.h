@@ -12,7 +12,7 @@
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIToggleDynamicDelegate, bool, InBool);
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UIToggleTransitionType :uint8
 {
 	None				UMETA(DisplayName = "None"),

@@ -14,12 +14,12 @@
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FUIFlyoutMenuSelectDynamicDelegate, int32, InSelectIndex, FString, InSelectItem);
 DECLARE_DELEGATE_TwoParams(FUIFlyoutMenuSelectDelegate, const int32&, const FString&);
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EFlyoutMenuVerticalPosition : uint8
 {
 	Top,Bottom,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EFlyoutMenuHorizontalAlignment : uint8
 {
 	Left, Center, Right

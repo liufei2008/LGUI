@@ -6,7 +6,7 @@
 #include "Core/Actor/UIBaseActor.h"
 #include "UIStaticMesh.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UIStaticMeshVertexColorType :uint8
 {
 	//Multiply mesh's vertex color with LGUI's color parameter

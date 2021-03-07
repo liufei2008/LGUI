@@ -10,7 +10,7 @@
 #include "LGUIComponentReference.h"
 #include "UISelectableComponent.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UISelectableTransitionType:uint8
 {
 	None				UMETA(DisplayName = "None"),
@@ -22,7 +22,7 @@ enum class UISelectableTransitionType:uint8
 	/** You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to transition actor */
 	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EUISelectableSelectionState :uint8
 {
 	/** Not hovered by pointer, just a normal state. */
@@ -34,7 +34,7 @@ enum class EUISelectableSelectionState :uint8
 	/** Disabled, not interactable. Check the "OnUIInteractionStateChanged" function of UISelectableComponent, to see why it is disabled. */
 	Disabled,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EUISelectableNavigationMode:uint8
 {
 	/** No navigation. */
