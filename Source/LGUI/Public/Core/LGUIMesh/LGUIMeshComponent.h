@@ -30,7 +30,7 @@ class FLGUIViewExtension;
 class ILGUIHudPrimitive;
 
 //Generate dynamic mesh
-UCLASS(NotBlueprintable, NotBlueprintType, Abstract)
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, Abstract)
 class LGUI_API ULGUIMeshComponent : public UMeshComponent
 {
 	GENERATED_BODY()
@@ -41,14 +41,13 @@ public:
 
 	void ClearMesh();
 
-	void SetMeshVisible(bool bNewVisibility);
+	void SetUIMeshVisibility(bool bNewVisibility);
 	bool IsMeshVisible() const;
 	void SetColor(FColor InColor);
 	FColor GetColor()const;
 
 	void SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer);
 	void SetSupportWorldSpace(bool supportOrNot);
-	void SetToPostProcess(class UUIPostProcess* InPostProcessObject);
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 
@@ -60,6 +59,7 @@ public:
 	virtual int32 GetNumMaterials() const override;
 	//~ End UMeshComponent Interface.
 
+	FLGUIMeshSection MeshSection;
 private:
 	//~ Begin USceneComponent Interface.
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
@@ -71,10 +71,8 @@ private:
 	friend class FLGUIMeshSceneProxy;
 
 protected:
-	FLGUIMeshSection MeshSection;
 	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
 	bool IsSupportWorldSpace = true;
-	UPROPERTY(Transient) class UUIPostProcess* PostProcessObject;
 };
 
 

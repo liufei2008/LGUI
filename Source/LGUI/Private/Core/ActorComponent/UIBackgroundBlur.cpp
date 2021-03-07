@@ -105,7 +105,7 @@ void UUIBackgroundBlur::UpdateRegionVertex()
 			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
 			float inv_W = 1.0f / clipSpacePos.W;
 			copyVert.Position = FVector(clipSpacePos.X, clipSpacePos.Y, clipSpacePos.Z) * inv_W;
-			copyVert.TextureCoordinate0 = geometry->vertices[i].TextureCoordinate[0];
+			copyVert.TextureCoordinate0 = vertices[i].TextureCoordinate[0];
 		}
 	}
 }
@@ -211,8 +211,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	FRHICommandListImmediate& RHICmdList, 
 	FTextureRHIRef ScreenImage, 
 	FGlobalShaderMap* GlobalShaderMap,
-	const FMatrix& ViewProjectionMatrix,  
-	const TFunction<void()>& DrawPrimitive
+	const FMatrix& ViewProjectionMatrix
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);

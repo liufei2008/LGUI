@@ -3787,7 +3787,7 @@ void UIGeometry::CalculatePivotOffset(const float& width, const float& height, c
 
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformVertices"), STAT_TransformVertices, STATGROUP_LGUI);
-void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSharedPtr<UIGeometry> uiGeo)
+void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPtr<UIGeometry> uiGeo)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
 	auto canvasUIItem = canvas->CheckAndGetUIItem();
@@ -3808,11 +3808,9 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 	
 	FTransform itemToCanvasTf;
 	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
-	FVector tempV3;
 	for (int i = 0; i < vertexCount; i++)
 	{
-		tempV3 = itemToCanvasTf.TransformPosition(originPositions[i]);
-		vertices[i].Position = tempV3;
+		vertices[i].Position = itemToCanvasTf.TransformPosition(originPositions[i]);
 	}
 
 	if (canvas->GetRequireNormal())
@@ -3850,6 +3848,65 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIRenderable* item, TSh
 		for (int i = 0; i < vertexCount; i++)
 		{
 			vertices[i].TangentX = itemToCanvasTf.TransformVector(originTangents[i]);
+		}
+	}
+}
+void UIGeometry::TransformVerticesForSelfRender(ULGUICanvas* canvas, TSharedPtr<UIGeometry> uiGeo)
+{
+	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
+	auto& vertices = uiGeo->vertices;
+	auto& originPositions = uiGeo->originPositions;
+	auto vertexCount = vertices.Num();
+	auto originVertexCount = originPositions.Num();
+	if (originVertexCount > vertexCount)
+	{
+		originPositions.RemoveAt(vertexCount, originVertexCount - vertexCount);
+	}
+	else if (originVertexCount < vertexCount)
+	{
+		originPositions.AddDefaulted(vertexCount - originVertexCount);
+	}
+
+	for (int i = 0; i < vertexCount; i++)
+	{
+		vertices[i].Position = originPositions[i];
+	}
+
+	if (canvas->GetRequireNormal())
+	{
+		auto& originNormals = uiGeo->originNormals;
+		auto originNormalCount = originNormals.Num();
+		if (originNormalCount < vertexCount)
+		{
+			originNormals.AddDefaulted(vertexCount - originNormalCount);
+		}
+		else if (originNormalCount > vertexCount)
+		{
+			originNormals.RemoveAt(vertexCount, originNormalCount - vertexCount);
+		}
+
+		for (int i = 0; i < vertexCount; i++)
+		{
+			vertices[i].TangentZ = originNormals[i];
+			vertices[i].TangentZ.Vector.W = -127;
+		}
+	}
+	if (canvas->GetRequireTangent())
+	{
+		auto& originTangents = uiGeo->originTangents;
+		auto originTangentCount = originTangents.Num();;
+		if (originTangentCount < vertexCount)
+		{
+			originTangents.AddDefaulted(vertexCount - originTangentCount);
+		}
+		else if (originTangentCount > vertexCount)
+		{
+			originTangents.RemoveAt(vertexCount, originTangentCount - vertexCount);
+		}
+
+		for (int i = 0; i < vertexCount; i++)
+		{
+			vertices[i].TangentX = originTangents[i];
 		}
 	}
 }

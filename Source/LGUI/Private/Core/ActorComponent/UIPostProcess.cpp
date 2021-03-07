@@ -3,19 +3,29 @@
 #include "Core/ActorComponent/UIPostProcess.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/UIGeometry.h"
 
 UUIPostProcess::UUIPostProcess(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	itemType = UIItemType::UIRenderable;
+	uiRenderableType = EUIRenderableType::UIPostProcessRenderable;
+	geometry = TSharedPtr<UIGeometry>(new UIGeometry);
 
-	bIsPostProcess = true;
+	bLocalVertexPositionChanged = true;
+	bUVChanged = true;
 }
 
 void UUIPostProcess::BeginPlay()
 {
 	Super::BeginPlay();
-	bIsPostProcess = true;
+	if (CheckRenderCanvas())
+	{
+		RenderCanvas->MarkRebuildAllDrawcall();
+		RenderCanvas->MarkCanvasUpdate();
+	}
+
+	bLocalVertexPositionChanged = true;
+	bUVChanged = true;
 }
 
 void UUIPostProcess::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -27,6 +37,115 @@ void UUIPostProcess::TickComponent( float DeltaTime, ELevelTick TickType, FActor
 #if WITH_EDITOR
 void UUIPostProcess::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	bUVChanged = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
+
+void UUIPostProcess::ApplyUIActiveState()
+{
+	bUVChanged = true;
+	if (IsUIActiveInHierarchy() == false)
+	{
+		if (geometry->vertices.Num() != 0)
+		{
+			geometry->Clear();
+			if (CheckRenderCanvas())
+			{
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+			}
+		}
+	}
+	Super::ApplyUIActiveState();
+}
+
+void UUIPostProcess::WidthChanged()
+{
+	MarkVertexPositionDirty();
+}
+void UUIPostProcess::HeightChanged()
+{
+	MarkVertexPositionDirty();
+}
+void UUIPostProcess::PivotChanged()
+{
+	MarkVertexPositionDirty();
+}
+
+void UUIPostProcess::MarkVertexPositionDirty()
+{
+	bLocalVertexPositionChanged = true;
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+}
+void UUIPostProcess::MarkUVDirty()
+{
+	bUVChanged = true;
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+}
+
+void UUIPostProcess::UpdateCachedData()
+{
+	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
+	cacheForThisUpdate_UVChanged = bUVChanged;
+	Super::UpdateCachedData();
+}
+void UUIPostProcess::UpdateCachedDataBeforeGeometry()
+{
+	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
+	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
+	Super::UpdateCachedDataBeforeGeometry();
+}
+void UUIPostProcess::UpdateBasePrevData()
+{
+	bLocalVertexPositionChanged = false;
+	bUVChanged = false;
+	Super::UpdateBasePrevData();
+}
+void UUIPostProcess::MarkAllDirtyRecursive()
+{
+	bLocalVertexPositionChanged = true;
+	bUVChanged = true;
+	Super::MarkAllDirtyRecursive();
+}
+
+void UUIPostProcess::CreateGeometry()
+{
+	geometry->Clear();
+	OnCreateGeometry();
+	UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+}
+
+DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateRenderable"), STAT_UIPostProcessRenderableUpdate, STATGROUP_LGUI);
+void UUIPostProcess::UpdateGeometry(const bool& parentLayoutChanged)
+{
+	SCOPE_CYCLE_COUNTER(STAT_UIPostProcessRenderableUpdate);
+	if (IsUIActiveInHierarchy() == false)return;
+	if (!CheckRenderCanvas())return;
+
+	if (geometry->vertices.Num() == 0//if geometry not created yet
+		)
+	{
+		CreateGeometry();
+		RenderCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
+		goto COMPLETE;
+	}
+	else//if geometry is created, update data
+	{
+		if (cacheForThisUpdate_DepthChanged)
+		{
+			RenderCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
+			goto COMPLETE;
+		}
+		//update geometry
+		{
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+
+			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
+			{
+				UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+			}
+		}
+	}
+COMPLETE:
+	;
+}

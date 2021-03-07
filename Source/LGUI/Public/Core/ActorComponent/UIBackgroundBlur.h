@@ -64,9 +64,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaskTexture(UTexture2D* newValue);
 protected:
-	virtual void OnBeforeCreateOrUpdateGeometry()override {}
-	virtual bool NeedTextureToCreateGeometry()override { return false; }
-
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
@@ -80,5 +77,5 @@ protected:
 	FCriticalSection mutex;
 	FORCEINLINE float GetBlurStrengthInternal();
 	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);
-	virtual void OnRenderPostProcess_RenderThread(FRHICommandListImmediate& RHICmdList, FTextureRHIRef ScreenImage, FGlobalShaderMap* GlobalShaderMap, const FMatrix& ViewProjectionMatrix, const TFunction<void()>& DrawPrimitive)override;
+	virtual void OnRenderPostProcess_RenderThread(FRHICommandListImmediate& RHICmdList, FTextureRHIRef ScreenImage, FGlobalShaderMap* GlobalShaderMap, const FMatrix& ViewProjectionMatrix)override;
 };
