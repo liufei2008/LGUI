@@ -9,7 +9,7 @@
 /**
  * The interaction source for world space UI, actually the ray emitter.
  */
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIWorldSpaceInteractionSource :uint8
 {
 	/** Sends traces from the world location and orientation of the interaction component. */

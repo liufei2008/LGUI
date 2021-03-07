@@ -8,7 +8,7 @@
 #include "UIScrollViewComponent.h"
 #include "UIScrollViewWithScrollbarComponent.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EScrollViewScrollbarVisibility :uint8
 {
 	//Always visible.

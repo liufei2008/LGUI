@@ -14,7 +14,7 @@
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FUIComboBoxSelectDynamicDelegate, int32, InSelectIndex, FString, InSelectItem);
 DECLARE_DELEGATE_TwoParams(FUIComboBoxSelectDelegate, const int32&, const FString&);
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EComboBoxPosition : uint8
 {
 	Top,Middle,Bottom,

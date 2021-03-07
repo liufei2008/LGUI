@@ -7,7 +7,7 @@
 #include "UI2DLineRendererBase.generated.h"
 
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EUI2DLineRenderer_EndType :uint8
 {
 	None,

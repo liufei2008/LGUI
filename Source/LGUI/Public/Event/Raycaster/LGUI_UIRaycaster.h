@@ -6,7 +6,7 @@
 #include "LGUIBaseRaycaster.h"
 #include "LGUI_UIRaycaster.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EUIRaycastSortType :uint8
 {
 	/** sort on UI element's depth */

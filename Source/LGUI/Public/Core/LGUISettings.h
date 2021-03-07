@@ -8,7 +8,7 @@
 #include "LGUISettings.generated.h"
 
 /** Atlas texture size must be power of 2 */
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIAtlasTextureSizeType :uint8
 {
 	SIZE_256x256 = 0		UMETA(DisplayName = "256x256"),
@@ -18,7 +18,7 @@ enum class ELGUIAtlasTextureSizeType :uint8
 	SIZE_4096x4096			UMETA(DisplayName = "4096x4096"),
 	SIZE_8192x8192			UMETA(DisplayName = "8192x8192"),
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIAtlasPackingType :uint8
 {
 	/** dynamic pack, without mipmap */
@@ -29,7 +29,7 @@ enum class ELGUIAtlasPackingType :uint8
 /**
  * Aniti Aliasing(MSAA) for LGUI screen space UI renderring
  */
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIScreenSpaceUIAntiAliasing :uint8
 {
 	Hidden=0				UMETA(Hidden),

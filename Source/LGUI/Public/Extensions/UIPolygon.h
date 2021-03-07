@@ -8,7 +8,7 @@
 #include "UIPolygon.generated.h"
 
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UIPolygonUVType :uint8
 {
 	//Use full rect uv

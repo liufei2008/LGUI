@@ -11,7 +11,7 @@ class ULGUIBaseRaycaster;
 #define FLGUIPointerEventData DEPRECATED_MACRO(4.23, "FLGUIPointerEventData has been changed to ULGUIPointerEventData which is inherited from UObject.") ULGUIPointerEventData
 #endif
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUINavigationDirection :uint8
 {
 	None,
@@ -22,14 +22,14 @@ enum class ELGUINavigationDirection :uint8
 	Next,
 	Prev,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIPointerInputType :uint8
 {
 	Pointer,
 	Navigation,
 };
 
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, classGroup = LGUI)
 class LGUI_API ULGUIPointerEventData: public ULGUIBaseEventData
 {
 	GENERATED_BODY()

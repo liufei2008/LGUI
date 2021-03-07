@@ -58,7 +58,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FTweenerFloatDynamicDelegate, float, InProgres
 /**
  * Animation curve type
  */
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LTween)
 enum class LTweenEase :uint8
 {
 	Linear,
@@ -95,7 +95,7 @@ enum class LTweenEase :uint8
 /**
  * Loop type
  */
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class LTweenLoop :uint8
 {
 	/** Play once, not loop */

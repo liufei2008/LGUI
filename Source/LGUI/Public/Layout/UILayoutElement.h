@@ -6,7 +6,7 @@
 #include "Core/LGUIBehaviour.h"
 #include "UILayoutElement.generated.h"
 
-UENUM()
+UENUM(BlueprintType, Category = LGUI)
 enum class ELayoutElementType :uint8
 {
 	//AutoSize, after ConstantSize and RatioSize are allocated, left size is for AutoSize. euqal to without UILayoutElement
