@@ -55,9 +55,11 @@ enum class ELGUICanvasOverrideParameters :uint8
 ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
 
 class UUIItem;
+class UUIBaseRenderable;
 class UUIRenderable;
 class UUIDrawcallMesh;
 class UUIDrawcall;
+class UUIPostProcessPrimitive;
 class UTextureRenderTarget2D;
 
 /**
@@ -304,7 +306,8 @@ public:
 		bool GetRequireUV2()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetRequireUV3()const;
-
+	/** return calculated additional-shaderchannel-flags, not just the property value, but take consider the overrideParameters */
+	int8 GetAdditionalShaderChannelFlags()const;
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetDynamicPixelsPerUnit()const;
@@ -312,18 +315,16 @@ public:
 		void SetDynamicPixelsPerUnit(float newValue);
 
 	/** return UIRenderables that belong to this canvas */
-	const TArray<TWeakObjectPtr<UUIRenderable>>& GetUIRenderables()const { return UIRenderableItemList; }
+	const TArray<TWeakObjectPtr<UUIBaseRenderable>>& GetUIRenderables()const { return UIRenderableItemList; }
 	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
 
-	FORCEINLINE void AddUIRenderable(UUIRenderable* InUIRenderable);
-	FORCEINLINE void RemoveUIRenderable(UUIRenderable* InUIRenderable);
+	FORCEINLINE void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
+	FORCEINLINE void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
 private:
 	/** insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall. */
 	void InsertIntoDrawcall(UUIRenderable* item);
 	/** remove a UI element from drawcall list */
 	void RemoveFromDrawcall(UUIRenderable* item);
-private:
-	int8 GetAdditionalShaderChannelFlags()const;
 private:
 	uint8 bClipTypeChanged:1;
 	uint8 bRectClipParameterChanged:1;
@@ -342,9 +343,16 @@ private:
 	uint32 cacheViewProjectionMatrixFrameNumber = 0;
 	FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
-	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIRenderable>> UIRenderableItemList;//all renderable UI element collection
-	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIDrawcallMesh>> UIMeshList;//UIDrawcallMesh collection of this Canvas
+	struct FLGUIDrawcallPrimitive
+	{
+		TWeakObjectPtr<UUIDrawcallMesh> UIDrawcallMesh = nullptr;
+		TSharedPtr<UUIPostProcessPrimitive> UIPostProcess = nullptr;
+	};
+	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIBaseRenderable>> UIRenderableItemList;//all renderable UI element collection
+	TArray<FLGUIDrawcallPrimitive> UIDrawcallPrimitiveList;//UIDrawcallPrimitive collection of this Canvas
 	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
+	TArray<TWeakObjectPtr<UUIDrawcallMesh>> CacheUIMeshList;//UIDrawcallMesh pool
+	TArray<TSharedPtr<UUIPostProcessPrimitive>> CacheUIPostProcessList;//UIPostProcess pool
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
 
 	/** rect clip's min position */

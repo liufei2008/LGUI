@@ -6,8 +6,9 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/UIDrawcall.h"
 #include "Sound/SoundBase.h"
-#include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcess.h"
+#include "Core/ActorComponent/UIRenderable.h"
 
 void LGUIUtils::DeleteActor(AActor* Target, bool WithHierarchy)
 {
@@ -98,22 +99,7 @@ UTexture2D* LGUIUtils::CreateTransientBlackTransparentTexture(int32 InSize, FNam
 }
 
 
-void LGUIUtils::SortUIItemDepth(TArray<TWeakObjectPtr<UUIRenderable>>& shapeList)
-{
-	shapeList.Sort([](const TWeakObjectPtr<UUIRenderable>& A, const TWeakObjectPtr<UUIRenderable>& B)
-	{
-		return A->GetDepth() < B->GetDepth();
-	});
-}
-void LGUIUtils::SortUIItemDepth(TArray<TSharedPtr<UIGeometry>>& shapeList)
-{
-	shapeList.Sort([](const TSharedPtr<UIGeometry>& A, const TSharedPtr<UIGeometry>& B)
-	{
-		return A->depth < B->depth;
-	});
-}
-
-void LGUIUtils::CreateDrawcall(TArray<TWeakObjectPtr<UUIRenderable>>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
+void LGUIUtils::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
 {
 	UTexture* prevTex = nullptr;
 	TSharedPtr<UUIDrawcall> prevUIDrawcall = nullptr;
@@ -121,50 +107,66 @@ void LGUIUtils::CreateDrawcall(TArray<TWeakObjectPtr<UUIRenderable>>& sortedList
 	int prevDrawcallListCount = drawcallList.Num();
 	for (int i = 0; i < sortedList.Num(); i++)
 	{
-		auto itemGeo = sortedList[i]->GetGeometry();
-		if (itemGeo.IsValid() == false)continue;
-		if (itemGeo->vertices.Num() == 0)continue;
+		switch (sortedList[i]->GetUIRenderableType())
+		{
+		default:
+		case EUIRenderableType::UIGeometryRenderable:
+		{
+			auto sortedItem = (UUIRenderable*)sortedList[i].Get();
+			auto itemGeo = sortedItem->GetGeometry();
+			if (itemGeo.IsValid() == false)continue;
+			if (itemGeo->vertices.Num() == 0)continue;
 
-		if (sortedList[i]->GetIsPostProcess())//every post process is a drawcall
-		{
-			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-			prevUIDrawcall->geometryList.Add(itemGeo);
-			prevUIDrawcall->postProcessObject = (UUIPostProcess*)sortedList[i].Get();
-			prevTex = nullptr;
-		}
-		else if (itemGeo->material.IsValid())//consider every custom material as a drawcall
-		{
-			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-			prevUIDrawcall->texture = itemGeo->texture;
-			prevUIDrawcall->material = itemGeo->material;
-			prevUIDrawcall->geometryList.Add(itemGeo);
-			prevTex = nullptr;
-		}
-		else//batch elements into drawcall by comparing their texture
-		{
-			auto itemTex = itemGeo->texture;
-			if (itemTex.Get() != prevTex)//this ui element's texture is different from previous one
+			if (itemGeo->material.IsValid())//consider every custom material as a drawcall
 			{
 				prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-				prevUIDrawcall->texture = itemTex;
+				prevUIDrawcall->texture = itemGeo->texture;
+				prevUIDrawcall->material = itemGeo->material;
 				prevUIDrawcall->geometryList.Add(itemGeo);
+				prevUIDrawcall->type = EUIDrawcallType::Geometry;
+				prevTex = nullptr;
 			}
-			else//same texture means same drawcall
+			else//batch elements into drawcall by comparing their texture
 			{
-				if (!prevUIDrawcall.IsValid())//if first is null
+				auto itemTex = itemGeo->texture;
+				if (itemTex.Get() != prevTex)//this ui element's texture is different from previous one
 				{
 					prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 					prevUIDrawcall->texture = itemTex;
 					prevUIDrawcall->geometryList.Add(itemGeo);
+					prevUIDrawcall->type = EUIDrawcallType::Geometry;
 				}
-				else
+				else//same texture means same drawcall
 				{
-					prevUIDrawcall->geometryList.Add(itemGeo);
+					if (!prevUIDrawcall.IsValid())//if first is null
+					{
+						prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
+						prevUIDrawcall->texture = itemTex;
+						prevUIDrawcall->geometryList.Add(itemGeo);
+					}
+					else
+					{
+						prevUIDrawcall->geometryList.Add(itemGeo);
+					}
+					prevUIDrawcall->type = EUIDrawcallType::Geometry;
 				}
+				prevTex = itemTex.Get();
 			}
-			prevTex = itemTex.Get();
+			itemGeo->drawcallIndex = drawcallCount - 1;
 		}
-		itemGeo->drawcallIndex = drawcallCount - 1;
+		break;
+		case EUIRenderableType::UIPostProcessRenderable:
+		{
+			auto sortedItem = (UUIPostProcess*)sortedList[i].Get();
+			//every postprocess is a drawcall
+			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
+			prevUIDrawcall->postProcessObject = sortedItem;
+			prevUIDrawcall->type = EUIDrawcallType::PostProcess;
+			prevUIDrawcall = nullptr;
+			prevTex = nullptr;
+		}
+		break;
+		}
 	}
 	while (prevDrawcallListCount > drawcallCount)//delete needless drawcall
 	{

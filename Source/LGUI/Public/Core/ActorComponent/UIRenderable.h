@@ -2,15 +2,16 @@
 
 #pragma once
 
-#include "UIItem.h"
+#include "UIBaseRenderable.h"
 #include "UIRenderable.generated.h"
 
 class UIGeometry;
 class UMaterialInterface;
 class ULGUICanvas;
+class UUIDrawcallMesh;
 /** UI element which have render geometry, and can be renderred by LGUICanvas */
 UCLASS(Abstract, NotBlueprintable)
-class LGUI_API UUIRenderable : public UUIItem
+class LGUI_API UUIRenderable : public UUIBaseRenderable
 {
 	GENERATED_BODY()
 
@@ -23,6 +24,7 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 
 	TSharedPtr<UIGeometry> geometry = nullptr;
 
@@ -39,6 +41,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInterface* GetCustomUIMaterial()const { return CustomUIMaterial; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetIsSelfRender()const { return bIsSelfRender; }
 	/** 
 	 * if inMat is a UMaterialInstanceDynamic, then it will directly use for render.
 	 * if not, then a new MaterialInstanceDynamic will be created to render this UI item, and the created MaterialInstanceDynamic may shared with others UI items.
@@ -49,14 +53,14 @@ public:
 		bool GetRaycastComplex() { return bRaycastComplex; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRaycastComplex(bool newValue) { bRaycastComplex = newValue; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetIsSelfRender(bool value);
 	/** 
 	 * if CustomUIMaterial is a UMaterialInstanceDynamic, then will return it directly.
 	 * if not, then return a created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetIsPostProcess() { return bIsPostProcess; }
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void WidthChanged()override;
@@ -80,10 +84,17 @@ public:
 
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
 protected:
-	friend class FUIRenderableCustomization;
+	friend class FUIGeometryRenderableCustomization;
 	/** Use custom material to render this element */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* CustomUIMaterial = nullptr;
+	/** 
+	 * Render by self or by LGUICanvas.
+	 * true: Generate UIDrawcallMesh by it self, so every object is a drawcall. By not support canvas clip.
+	 * false: Render by LGUICanvas, so drawcall can be combined.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
+		bool bIsSelfRender = false;
 	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit widget rectangle */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastComplex = false;
@@ -105,9 +116,13 @@ protected:
 	void CreateGeometry();
 	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;
 
-protected:
-	/** if this is a post process item? */
-	uint8 bIsPostProcess : 1;
+	/** created drawcall mesh */
+	TWeakObjectPtr<UUIDrawcallMesh> uiMesh;
+	/** created material */
+	TWeakObjectPtr<UMaterialInstanceDynamic> uiMaterial;
+	void UpdateSelfRenderDrawcall();
+	void UpdateSelfRenderMaterial(bool textureChange, bool materialChange);
+	void ClearSelfRenderMaterial();
 private:
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;

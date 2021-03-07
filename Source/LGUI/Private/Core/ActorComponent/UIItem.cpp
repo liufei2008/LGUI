@@ -799,10 +799,6 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpda
 		layoutChangeCallback.Broadcast();
 	}
 }
-void UUIItem::UpdateGeometry(const bool& parentLayoutChanged)
-{
-	
-}
 
 bool UUIItem::CalculateLayoutRelatedParameters()
 {

@@ -10,7 +10,7 @@
 
 class ULGUICanvas;
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UIItemType :uint8
 {
 	None,
@@ -120,7 +120,7 @@ protected:
 	/** @return		true if size changed, else false */
 	bool CalculateLayoutRelatedParameters();
 	/** update render geometry */
-	virtual void UpdateGeometry(const bool& parentLayoutChanged);
+	virtual void UpdateGeometry(const bool& parentLayoutChanged) {};
 	/** called when attach to a new RenderCanvas. */
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
 

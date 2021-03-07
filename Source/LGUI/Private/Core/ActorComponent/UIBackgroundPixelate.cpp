@@ -173,8 +173,7 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 	FRHICommandListImmediate& RHICmdList, 
 	FTextureRHIRef ScreenImage, 
 	FGlobalShaderMap* GlobalShaderMap,
-	const FMatrix& ViewProjectionMatrix,  
-	const TFunction<void()>& DrawPrimitive
+	const FMatrix& ViewProjectionMatrix
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_BackgroundPixelate);

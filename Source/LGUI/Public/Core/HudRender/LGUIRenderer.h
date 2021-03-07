@@ -36,7 +36,7 @@ public:
 
 	//
 	void AddHudPrimitive(ILGUIHudPrimitive* InPrimitive);
-	void RemoveHudPrimitive(ILGUIHudPrimitive* InPrimitive);
+	void RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
 	static void CopyRenderTarget(
 		FRHICommandListImmediate& RHICmdList, 
@@ -54,7 +54,7 @@ public:
 	);
 private:
 	void AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
-	void MarkSortRenderPriority_RenderThread();
+	void SortRenderPriority_RenderThread();
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
