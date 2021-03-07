@@ -12,7 +12,7 @@
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUISliderDynamicDelegate, float, InFloat);
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UISliderDirectionType:uint8
 {
 	LeftToRight,

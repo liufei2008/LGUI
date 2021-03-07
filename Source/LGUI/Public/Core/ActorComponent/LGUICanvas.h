@@ -7,7 +7,7 @@
 #include "Camera/CameraTypes.h"
 #include "LGUICanvas.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIRenderMode :uint8
 {
 	/**
@@ -21,7 +21,7 @@ enum class ELGUIRenderMode :uint8
 	RenderTarget		UMETA(DisplayName = "RenderTarget(Experimental)"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUICanvasClipType :uint8
 {
 	None		 		UMETA(DisplayName = "None"),
@@ -29,7 +29,7 @@ enum class ELGUICanvasClipType :uint8
 	Texture				UMETA(DisplayName = "Texture"),
 };
 
-UENUM(BlueprintType, meta = (Bitflags))
+UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
 enum class ELGUICanvasAdditionalChannelType :uint8
 {
 	/** Lit shader may need this */
@@ -43,7 +43,7 @@ enum class ELGUICanvasAdditionalChannelType :uint8
 };
 ENUM_CLASS_FLAGS(ELGUICanvasAdditionalChannelType)
 
-UENUM(BlueprintType, meta = (Bitflags))
+UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
 enum class ELGUICanvasOverrideParameters :uint8
 {
 	DefaltMaterials,

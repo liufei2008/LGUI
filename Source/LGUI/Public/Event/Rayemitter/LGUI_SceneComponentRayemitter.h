@@ -7,7 +7,7 @@
 #include "LGUI_SceneComponentRayEmitter.generated.h"
 
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ESceneComponentRayDirection :uint8
 {
 	PositiveX		UMETA(DisplayName = "X+"),

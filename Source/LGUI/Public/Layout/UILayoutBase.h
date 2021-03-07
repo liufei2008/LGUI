@@ -7,7 +7,7 @@
 #include "Core/LGUIBehaviour.h"
 #include "UILayoutBase.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUILayoutAlignmentType :uint8
 {
 	UpperLeft,
@@ -21,7 +21,7 @@ enum class ELGUILayoutAlignmentType :uint8
 	LowerRight,
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EUILayoutChangePositionAnimationType :uint8
 {
 	/** Immediately change position */

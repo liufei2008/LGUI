@@ -5,7 +5,7 @@
 #include "UIWidget.generated.h"
 
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UIAnchorHorizontalAlign :uint8
 {
 	/** Usually dont use this "None" mode */
@@ -15,7 +15,7 @@ enum class UIAnchorHorizontalAlign :uint8
 	Right	UMETA(DisplayName = "Right"),
 	Stretch UMETA(DisplayName = "Stretch"),
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class UIAnchorVerticalAlign :uint8
 {
 	/** Usually dont use this "None" mode */

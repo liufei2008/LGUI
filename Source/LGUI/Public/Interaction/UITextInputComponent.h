@@ -19,7 +19,7 @@
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUITextInputDynamicDelegate, FString, InString);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIInputActivateDynamicDelegate, bool, InActivate);
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class ELGUITextInputType:uint8
 {
 	Standard,

@@ -6,7 +6,7 @@
 #include "UIEffectGradientColor.generated.h"
 
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class EUIEffectGradientColorDirection :uint8
 {
 	BottomToTop,

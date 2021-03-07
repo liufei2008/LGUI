@@ -8,7 +8,7 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "LGUICanvasScaler.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class LGUIScaleMode:uint8
 {
 	/** 1 unit is 1 pixel render in screen*/
@@ -16,7 +16,7 @@ enum class LGUIScaleMode:uint8
 	/** scale UI with reference resolution and screen resolution*/
 	ScaleWithScreenSize,
 };
-UENUM(BlueprintType)
+UENUM(BlueprintType, Category = LGUI)
 enum class LGUIScreenMatchMode :uint8
 {
 	/** Use "MatchFromWidthToHeight" and "ReferenceResolution" properties to control size and scale UI*/
