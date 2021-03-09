@@ -46,7 +46,6 @@ protected:
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
-	UPROPERTY(Transient) UTextureRenderTarget2D* helperRenderTarget = nullptr;
 	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	void UpdateRegionVertex();

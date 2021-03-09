@@ -67,10 +67,7 @@ protected:
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
-	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget1 = nullptr;
-	UPROPERTY(Transient) UTextureRenderTarget2D* blurEffectRenderTarget2 = nullptr;
 	float inv_SampleLevelInterval = 1.0f;
-	FVector2D inv_TextureSize;
 	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	void UpdateRegionVertex();
