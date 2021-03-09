@@ -10,6 +10,8 @@
 #include "PipelineStateCache.h"
 #include "Core/HudRender/LGUIRenderer.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUISettings.h"
+#include "RenderTargetPool.h"
 
 UUIBackgroundBlur::UUIBackgroundBlur(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -162,45 +164,7 @@ float UUIBackgroundBlur::GetBlurStrengthInternal()
 
 void UUIBackgroundBlur::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	if (!IsValid(this->RenderCanvas))return;
-	auto blurStrengthWithAlpha = GetBlurStrengthInternal();
-	if (blurStrengthWithAlpha <= 0.0f)return;
-	if (geometry->vertices.Num() <= 0)return;
-	if (!IsValid(blurEffectRenderTarget1))
-	{
-		float width = widget.width;
-		float height = widget.height;
-		if (width >= 1.0f && height >= 1.0f)
-		{
-			blurEffectRenderTarget1 = NewObject<UTextureRenderTarget2D>(this);
-			blurEffectRenderTarget1->InitAutoFormat((int)width, (int)height);
 
-			blurEffectRenderTarget2 = NewObject<UTextureRenderTarget2D>(this);
-			blurEffectRenderTarget2->InitAutoFormat((int)width, (int)height);
-
-			inv_TextureSize.X = 1.0f / width;
-			inv_TextureSize.Y = 1.0f / height;
-		}
-	}
-	else
-	{
-		if (blurEffectRenderTarget1->SizeX != widget.width || blurEffectRenderTarget1->SizeY != widget.height)
-		{
-			float width = widget.width;
-			float height = widget.height;
-			width = FMath::Max(width, 1.0f);
-			height = FMath::Max(height, 1.0f);
-
-			blurEffectRenderTarget1->ResizeTarget((int)width, (int)height);
-			blurEffectRenderTarget2->ResizeTarget((int)width, (int)height);
-
-			inv_TextureSize.X = 1.0f / width;
-			inv_TextureSize.Y = 1.0f / height;
-		}
-	}
-#if WITH_EDITOR
-	inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;//only execute in edit mode, because it's already calculated in BeginPlay.
-#endif
 }
 
 
@@ -217,14 +181,32 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 	SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);
 	auto blurStrengthWithAlpha = GetBlurStrengthInternal();
 	if (blurStrengthWithAlpha <= 0.0f)return;
-	if (!IsValid(blurEffectRenderTarget1))return;
-	if (!IsValid(blurEffectRenderTarget2))return;
 
-	auto Resource1 = blurEffectRenderTarget1->GetRenderTargetResource();
-	auto Resource2 = blurEffectRenderTarget2->GetRenderTargetResource();
-	if (Resource1 == nullptr || Resource2 == nullptr)return;
-	auto BlurEffectRenderTexture1 = (FTextureRHIRef)Resource1->GetRenderTargetTexture();
-	auto BlurEffectRenderTexture2 = (FTextureRHIRef)Resource2->GetRenderTargetTexture();
+	float width = widget.width;
+	float height = widget.height;
+	width = FMath::Max(width, 1.0f);
+	height = FMath::Max(height, 1.0f);
+	FVector2D inv_TextureSize(1.0f / width, 1.0f / height);
+#if WITH_EDITOR
+	inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;//only execute in edit mode, because it's already calculated in BeginPlay.
+#endif
+	//get render target
+	TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget1;
+	TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
+	{
+		auto MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
+		FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+		desc.NumSamples = MultiSampleCount;
+		GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget1, TEXT("LGUIBlurEffectRenderTarget1"));
+		GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget2, TEXT("LGUIBlurEffectRenderTarget2"));
+		if (!BlurEffectRenderTarget1.IsValid())
+			return;
+		if (!BlurEffectRenderTarget2.IsValid())
+			return;
+	}
+	auto BlurEffectRenderTexture1 = BlurEffectRenderTarget1->GetRenderTargetItem().TargetableTexture;
+	auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
+
 	//copy rect area from screen image to a render target, so we can just process this area
 	TArray<FLGUIPostProcessVertex> tempCopyRegion;
 	{
@@ -237,11 +219,8 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		if (IsValid(strengthTexture))//use mask texture to control blur strength
 		{
 			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-			VertexShader->SetParameters(RHICmdList);
 			TShaderMapRef<FLGUIPostProcessGaussianBlurWithStrengthTexturePS> PixelShader(GlobalShaderMap);
-			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
-			PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->Resource->TextureRHI, strengthTexture->Resource->SamplerStateRHI);
-
+			
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
@@ -252,7 +231,10 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-			
+			VertexShader->SetParameters(RHICmdList);
+			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
+			PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->Resource->TextureRHI, strengthTexture->Resource->SamplerStateRHI);
+
 			auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 			blurStrengthWithAlpha = FMath::Pow(blurStrengthWithAlpha * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more linear
 			float calculatedBlurStrength = blurStrengthWithAlpha * inv_SampleLevelInterval;
@@ -290,9 +272,7 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 		else
 		{
 			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-			VertexShader->SetParameters(RHICmdList);
 			TShaderMapRef<FLGUIPostProcessGaussianBlurPS> PixelShader(GlobalShaderMap);
-			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 
 			FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
@@ -304,6 +284,8 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+			VertexShader->SetParameters(RHICmdList);
+			PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 
 			auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 			blurStrengthWithAlpha = FMath::Pow(blurStrengthWithAlpha * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more linear
@@ -404,4 +386,8 @@ void UUIBackgroundBlur::OnRenderPostProcess_RenderThread(
 
 		RHICmdList.EndRenderPass();
 	}
+	
+	//release render target
+	BlurEffectRenderTarget1.SafeRelease();
+	BlurEffectRenderTarget2.SafeRelease();
 }

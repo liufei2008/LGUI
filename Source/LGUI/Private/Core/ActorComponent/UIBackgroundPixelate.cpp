@@ -10,6 +10,8 @@
 #include "PipelineStateCache.h"
 #include "Core/HudRender/LGUIRenderer.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUISettings.h"
+#include "RenderTargetPool.h"
 
 UUIBackgroundPixelate::UUIBackgroundPixelate(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -131,40 +133,7 @@ float UUIBackgroundPixelate::GetStrengthInternal()
 
 void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	if (!IsValid(this->RenderCanvas))return;
-	auto pixelateStrengthWidthAlpha = GetStrengthInternal();
-	if (pixelateStrengthWidthAlpha <= 0.0f)return;
-	if (geometry->vertices.Num() <= 0)return;
-	if (!IsValid(helperRenderTarget))
-	{
-		pixelateStrengthWidthAlpha = FMath::Pow(pixelateStrengthWidthAlpha * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
-		pixelateStrengthWidthAlpha = FMath::Clamp(pixelateStrengthWidthAlpha, 0.0f, 100.0f);
-		pixelateStrengthWidthAlpha += 1;
 
-		auto width = (int)(widget.width / pixelateStrengthWidthAlpha);
-		auto height = (int)(widget.height / pixelateStrengthWidthAlpha);
-		width = FMath::Clamp(width, 1, (int)widget.width);
-		height = FMath::Clamp(height, 1, (int)widget.height);
-
-		helperRenderTarget = NewObject<UTextureRenderTarget2D>(this);
-		helperRenderTarget->InitAutoFormat((int)width, (int)height);
-	}
-	else
-	{
-		pixelateStrengthWidthAlpha = FMath::Pow(pixelateStrengthWidthAlpha * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
-		pixelateStrengthWidthAlpha = FMath::Clamp(pixelateStrengthWidthAlpha, 0.0f, 100.0f);
-		pixelateStrengthWidthAlpha += 1;
-
-		auto width = (int)(widget.width / pixelateStrengthWidthAlpha);
-		auto height = (int)(widget.height / pixelateStrengthWidthAlpha);
-		width = FMath::Clamp(width, 1, (int)widget.width);
-		height = FMath::Clamp(height, 1, (int)widget.height);
-
-		if (helperRenderTarget->SizeX != width || helperRenderTarget->SizeY != height)
-		{
-			helperRenderTarget->ResizeTarget((int)width, (int)height);
-		}
-	}
 }
 
 DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundPixelate"), STAT_BackgroundPixelate, STATGROUP_LGUI);
@@ -179,11 +148,27 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 	SCOPE_CYCLE_COUNTER(STAT_BackgroundPixelate);
 	auto pixelateStrengthWidthAlpha = GetStrengthInternal();
 	if (pixelateStrengthWidthAlpha <= 0.0f)return;
-	if (!IsValid(helperRenderTarget))return;
+	pixelateStrengthWidthAlpha = FMath::Pow(pixelateStrengthWidthAlpha * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
+	pixelateStrengthWidthAlpha = FMath::Clamp(pixelateStrengthWidthAlpha, 0.0f, 100.0f);
+	pixelateStrengthWidthAlpha += 1;
 
-	auto helperRenderTargetResource = helperRenderTarget->GetRenderTargetResource();
-	if (helperRenderTargetResource == nullptr)return;
-	auto helperRenderTargetTexture = (FTextureRHIRef)helperRenderTargetResource->GetRenderTargetTexture();
+	auto width = (int)(widget.width / pixelateStrengthWidthAlpha);
+	auto height = (int)(widget.height / pixelateStrengthWidthAlpha);
+	width = FMath::Clamp(width, 1, (int)widget.width);
+	height = FMath::Clamp(height, 1, (int)widget.height);
+
+	//get render target
+	TRefCountPtr<IPooledRenderTarget> PixelateEffectRenderTarget;
+	{
+		auto MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
+		FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+		desc.NumSamples = MultiSampleCount;
+		GRenderTargetPool.FindFreeElement(RHICmdList, desc, PixelateEffectRenderTarget, TEXT("LGUIPixelateEffectRenderTarget"));
+		if (!PixelateEffectRenderTarget.IsValid())
+			return;
+	}
+	auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
+
 	//copy rect area from screen image to a render target, so we can just process this area
 	{
 		TArray<FLGUIPostProcessVertex> tempCopyRegion;
@@ -191,7 +176,7 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 			FScopeLock scopeLock(&mutex);
 			tempCopyRegion = renderScreenToMeshRegionVertexArray;
 		}
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, helperRenderTargetTexture, tempCopyRegion);
+		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, tempCopyRegion);
 	}
 	//copy the area back to screen image
 	{
@@ -209,7 +194,7 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 		VertexShader->SetParameters(RHICmdList);
-		PixelShader->SetParameters(RHICmdList, helperRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+		PixelShader->SetParameters(RHICmdList, PixelateEffectRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 		
 		TArray<FLGUIPostProcessVertex> tempRenderRegion;
 		{
@@ -228,4 +213,7 @@ void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
 
 		RHICmdList.EndRenderPass();
 	}
+
+	//release render target
+	PixelateEffectRenderTarget.SafeRelease();
 }
