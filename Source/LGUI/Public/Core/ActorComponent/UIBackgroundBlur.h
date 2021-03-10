@@ -3,7 +3,6 @@
 #pragma once
 
 #include "UIPostProcess.h"
-#include "Core/HudRender/LGUIHudVertex.h"
 #include "UIBackgroundBlur.generated.h"
 
 /** 
@@ -67,19 +66,11 @@ public:
 	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
 	virtual void MarkAllDirtyRecursive()override;
 protected:
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
-	virtual void WidthChanged()override;
-	virtual void HeightChanged()override;
-
 	float inv_SampleLevelInterval = 1.0f;
-	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
-	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-	void UpdateRegionVertex();
 	FORCEINLINE float GetBlurStrengthInternal();
 protected:
-	void UpdateOthersData();
-	void UpdateVertexData();
-	void UpdateStrengthTexture();
-	void UpdateMaskTexture();
+	virtual void SendRegionVertexDataToRenderProxy()override;
+	void SendOthersDataToRenderProxy();
+	void SendStrengthTextureToRenderProxy();
+	void SendMaskTextureToRenderProxy();
 };

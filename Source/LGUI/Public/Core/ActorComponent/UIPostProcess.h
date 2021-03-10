@@ -3,9 +3,11 @@
 #pragma once
 
 #include "UIBaseRenderable.h"
+#include "Core/HudRender/LGUIHudVertex.h"
 #include "UIPostProcess.generated.h"
 
 class FUIPostProcessRenderProxy;
+struct FLGUIPostProcessVertex;
 /** 
  * UI element that can add post processing effect
  * Only valid on ScreenSpaceUI
@@ -55,9 +57,15 @@ private:
 protected:
 	TSharedPtr<FUIPostProcessRenderProxy> RenderProxy = nullptr;
 	/** create ui geometry */
-	virtual void OnCreateGeometry()PURE_VIRTUAL(UUIRenderable::OnCreateGeometry, );
+	virtual void OnCreateGeometry();
 	/** update ui geometry */
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIRenderable::OnUpdateGeometry, );
+	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+	/** update region vertex data */
+	virtual void UpdateRegionVertex();
+	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
+	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
+
+	virtual void SendRegionVertexDataToRenderProxy() {};
 private:
 	void CreateGeometry();
 };
