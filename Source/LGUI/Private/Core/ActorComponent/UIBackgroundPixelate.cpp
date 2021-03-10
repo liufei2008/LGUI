@@ -41,70 +41,6 @@ void UUIBackgroundPixelate::PostEditChangeProperty(FPropertyChangedEvent& Proper
 }
 #endif
 
-void UUIBackgroundPixelate::OnCreateGeometry()
-{
-	UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas, this);
-	UpdateRegionVertex();
-}
-void UUIBackgroundPixelate::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	if (InVertexPositionChanged)
-	{
-		UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas, this);
-	}
-	if (InVertexUVChanged)
-	{
-		UIGeometry::UpdateUIRectSimpleUV(geometry, FLGUISpriteInfo());
-	}
-	if (InVertexColorChanged)
-	{
-		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-	}
-	UpdateRegionVertex();
-}
-void UUIBackgroundPixelate::UpdateRegionVertex()
-{
-	auto& vertices = geometry->vertices;
-	if (vertices.Num() <= 0)return;
-	if (renderScreenToMeshRegionVertexArray.Num() == 0)
-	{
-		//full screen vertex position
-		renderScreenToMeshRegionVertexArray =
-		{
-			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
-			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
-		};
-	}
-	if (renderMeshRegionToScreenVertexArray.Num() == 0)
-	{
-		renderMeshRegionToScreenVertexArray.AddUninitialized(4);
-	}
-	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
-	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			auto& copyVert = renderScreenToMeshRegionVertexArray[i];
-			//convert vertex postition to screen, and use as texture coordinate
-			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
-			float inv_W = 1.0f / clipSpacePos.W;
-			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X * inv_W, clipSpacePos.Y * inv_W) * 0.5f + FVector2D(0.5f, 0.5f);
-			copyVert.TextureCoordinate0.Y = 1.0f - copyVert.TextureCoordinate0.Y;
-		}
-
-		for (int i = 0; i < 4; i++)
-		{
-			auto& copyVert = renderMeshRegionToScreenVertexArray[i];
-			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
-			float inv_W = 1.0f / clipSpacePos.W;
-			copyVert.Position = FVector(clipSpacePos.X, clipSpacePos.Y, clipSpacePos.Z) * inv_W;
-			copyVert.TextureCoordinate0 = geometry->vertices[i].TextureCoordinate[0];
-		}
-	}
-	UpdateVertexData();
-}
 
 
 
@@ -113,7 +49,7 @@ void UUIBackgroundPixelate::SetPixelateStrength(float newValue)
 	if (pixelateStrength != newValue)
 	{
 		pixelateStrength = newValue;
-		UpdateOthersData();
+		SendOthersDataToRenderProxy();
 	}
 }
 
@@ -122,7 +58,7 @@ void UUIBackgroundPixelate::SetApplyAlphaToStrength(bool newValue)
 	if (applyAlphaToStrength != newValue)
 	{
 		applyAlphaToStrength = newValue;
-		UpdateOthersData();
+		SendOthersDataToRenderProxy();
 	}
 }
 
@@ -219,7 +155,7 @@ public:
 	}
 };
 
-void UUIBackgroundPixelate::UpdateOthersData()
+void UUIBackgroundPixelate::SendOthersDataToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
@@ -238,18 +174,18 @@ void UUIBackgroundPixelate::UpdateOthersData()
 				});
 	}
 }
-void UUIBackgroundPixelate::UpdateVertexData()
+void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
 		auto BackgroundBlurRenderProxy = (FUIBackgroundPixelateRenderProxy*)(RenderProxy.Get());
-		struct FUIBackgroundPixelateUpdateVertexData
+		struct FUIBackgroundPixelate_SendRegionVertexDataToRenderProxy
 		{
 			TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 			FUIWidget widget;
 		};
-		auto updateData = new FUIBackgroundPixelateUpdateVertexData();
+		auto updateData = new FUIBackgroundPixelate_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->widget = this->widget;
@@ -269,8 +205,8 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
 	if (!RenderProxy.IsValid())
 	{
 		RenderProxy = TSharedPtr<FUIBackgroundPixelateRenderProxy>(new FUIBackgroundPixelateRenderProxy());
-		UpdateVertexData();
-		UpdateOthersData();
+		SendRegionVertexDataToRenderProxy();
+		SendOthersDataToRenderProxy();
 	}
 	return RenderProxy;
 }

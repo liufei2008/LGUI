@@ -22,8 +22,6 @@ UUIBackgroundBlur::UUIBackgroundBlur(const FObjectInitializer& ObjectInitializer
 void UUIBackgroundBlur::BeginPlay()
 {
 	Super::BeginPlay();
-
-	inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
 }
 
 void UUIBackgroundBlur::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -47,86 +45,15 @@ void UUIBackgroundBlur::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 }
 #endif
 
-void UUIBackgroundBlur::OnCreateGeometry()
-{
-	UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas, this);
-	UpdateRegionVertex();
-}
-void UUIBackgroundBlur::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	if (InVertexPositionChanged)
-	{
-		UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas, this);
-	}
-	if (InVertexUVChanged)
-	{
-		UIGeometry::UpdateUIRectSimpleUV(geometry, FLGUISpriteInfo());
-	}
-	if (InVertexColorChanged)
-	{
-		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-	}
-	UpdateRegionVertex();
-}
-void UUIBackgroundBlur::WidthChanged()
-{
-	Super::WidthChanged();
-}
-void UUIBackgroundBlur::HeightChanged()
-{
-	Super::HeightChanged();
-}
+
 void UUIBackgroundBlur::MarkAllDirtyRecursive()
 {
 	Super::MarkAllDirtyRecursive();
 
-	UpdateVertexData();
-	UpdateStrengthTexture();
-	UpdateMaskTexture();
-	UpdateOthersData();
-}
-void UUIBackgroundBlur::UpdateRegionVertex()
-{
-	auto& vertices = geometry->vertices;
-	if (vertices.Num() <= 0)return;
-	if (renderScreenToMeshRegionVertexArray.Num() == 0)
-	{
-		//full screen vertex position
-		renderScreenToMeshRegionVertexArray =
-		{
-			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
-			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
-			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
-		};
-	}
-	if (renderMeshRegionToScreenVertexArray.Num() == 0)
-	{
-		renderMeshRegionToScreenVertexArray.AddUninitialized(4);
-	}
-	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
-	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			auto& copyVert = renderScreenToMeshRegionVertexArray[i];
-			//convert vertex postition to screen, and use as texture coordinate
-			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
-			float inv_W = 1.0f / clipSpacePos.W;
-			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X * inv_W, clipSpacePos.Y * inv_W) * 0.5f + FVector2D(0.5f, 0.5f);
-			copyVert.TextureCoordinate0.Y = 1.0f - copyVert.TextureCoordinate0.Y;
-		}
-
-		for (int i = 0; i < 4; i++)
-		{
-			auto& copyVert = renderMeshRegionToScreenVertexArray[i];
-			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
-			float inv_W = 1.0f / clipSpacePos.W;
-			copyVert.Position = FVector(clipSpacePos.X, clipSpacePos.Y, clipSpacePos.Z) * inv_W;
-			copyVert.TextureCoordinate0 = vertices[i].TextureCoordinate[0];
-		}
-	}
-	UpdateVertexData();
+	SendRegionVertexDataToRenderProxy();
+	SendStrengthTextureToRenderProxy();
+	SendMaskTextureToRenderProxy();
+	SendOthersDataToRenderProxy();
 }
 
 
@@ -163,9 +90,6 @@ public:
 		width = FMath::Max(width, 1.0f);
 		height = FMath::Max(height, 1.0f);
 		FVector2D inv_TextureSize(1.0f / width, 1.0f / height);
-#if WITH_EDITOR
-		inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;//only execute in edit mode, because it's already calculated in BeginPlay.
-#endif
 		//get render target
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget1;
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
@@ -359,7 +283,7 @@ public:
 };
 
 
-void UUIBackgroundBlur::UpdateOthersData()
+void UUIBackgroundBlur::SendOthersDataToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
@@ -384,18 +308,18 @@ void UUIBackgroundBlur::UpdateOthersData()
 				});
 	}
 }
-void UUIBackgroundBlur::UpdateVertexData()
+void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
 		auto BackgroundBlurRenderProxy = (FUIBackgroundBlurRenderProxy*)(RenderProxy.Get());
-		struct FUIBackgroundBlurUpdateVertexData
+		struct FUIBackgroundBlur_SendRegionVertexDataToRenderProxy
 		{
 			TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 			FUIWidget widget;
 		};
-		auto updateData = new FUIBackgroundBlurUpdateVertexData();
+		auto updateData = new FUIBackgroundBlur_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->widget = this->widget;
@@ -409,7 +333,7 @@ void UUIBackgroundBlur::UpdateVertexData()
 				});
 	}
 }
-void UUIBackgroundBlur::UpdateStrengthTexture()
+void UUIBackgroundBlur::SendStrengthTextureToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
@@ -426,7 +350,7 @@ void UUIBackgroundBlur::UpdateStrengthTexture()
 				});
 	}
 }
-void UUIBackgroundBlur::UpdateMaskTexture()
+void UUIBackgroundBlur::SendMaskTextureToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
@@ -449,7 +373,7 @@ void UUIBackgroundBlur::SetBlurStrength(float newValue)
 	if (blurStrength != newValue)
 	{
 		blurStrength = newValue;
-		UpdateOthersData();
+		SendOthersDataToRenderProxy();
 	}
 }
 
@@ -458,7 +382,7 @@ void UUIBackgroundBlur::SetApplyAlphaToBlur(bool newValue)
 	if (applyAlphaToBlur != newValue)
 	{
 		applyAlphaToBlur = newValue;
-		UpdateOthersData();
+		SendOthersDataToRenderProxy();
 	}
 }
 
@@ -468,7 +392,7 @@ void UUIBackgroundBlur::SetMaxDownSampleLevel(int newValue)
 	{
 		maxDownSampleLevel = newValue;
 		inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
-		UpdateOthersData();
+		SendOthersDataToRenderProxy();
 	}
 }
 
@@ -477,7 +401,7 @@ void UUIBackgroundBlur::SetStrengthTexture(UTexture2D* newValue)
 	if (strengthTexture != newValue)
 	{
 		strengthTexture = newValue;
-		UpdateStrengthTexture();
+		SendStrengthTextureToRenderProxy();
 	}
 }
 
@@ -486,7 +410,7 @@ void UUIBackgroundBlur::SetMaskTexture(UTexture2D* newValue)
 	if (maskTexture != newValue)
 	{
 		maskTexture = newValue;
-		UpdateMaskTexture();
+		SendMaskTextureToRenderProxy();
 	}
 }
 
@@ -504,10 +428,11 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
 	if (!RenderProxy.IsValid())
 	{
 		RenderProxy = TSharedPtr<FUIBackgroundBlurRenderProxy>(new FUIBackgroundBlurRenderProxy());
-		UpdateVertexData();
-		UpdateStrengthTexture();
-		UpdateMaskTexture();
-		UpdateOthersData();
+		inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
+		SendRegionVertexDataToRenderProxy();
+		SendStrengthTextureToRenderProxy();
+		SendMaskTextureToRenderProxy();
+		SendOthersDataToRenderProxy();
 	}
 	return RenderProxy;
 }
