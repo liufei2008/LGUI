@@ -12,6 +12,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISettings.h"
 #include "RenderTargetPool.h"
+#include "Core/UIPostProcessRenderProxy.h"
 
 UUIBackgroundPixelate::UUIBackgroundPixelate(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -83,8 +84,6 @@ void UUIBackgroundPixelate::UpdateRegionVertex()
 	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
 	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
-		FScopeLock scopeLock(&mutex);
-
 		for (int i = 0; i < 4; i++)
 		{
 			auto& copyVert = renderScreenToMeshRegionVertexArray[i];
@@ -104,13 +103,17 @@ void UUIBackgroundPixelate::UpdateRegionVertex()
 			copyVert.TextureCoordinate0 = geometry->vertices[i].TextureCoordinate[0];
 		}
 	}
+	UpdateVertexData();
 }
+
+
 
 void UUIBackgroundPixelate::SetPixelateStrength(float newValue)
 {
 	if (pixelateStrength != newValue)
 	{
 		pixelateStrength = newValue;
+		UpdateOthersData();
 	}
 }
 
@@ -119,6 +122,7 @@ void UUIBackgroundPixelate::SetApplyAlphaToStrength(bool newValue)
 	if (applyAlphaToStrength != newValue)
 	{
 		applyAlphaToStrength = newValue;
+		UpdateOthersData();
 	}
 }
 
@@ -131,89 +135,142 @@ float UUIBackgroundPixelate::GetStrengthInternal()
 	return pixelateStrength;
 }
 
-void UUIBackgroundPixelate::OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView)
+DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundPixelate"), STAT_BackgroundPixelate, STATGROUP_LGUI);
+class FUIBackgroundPixelateRenderProxy :public FUIPostProcessRenderProxy
 {
+public:
+	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
+	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
+	FUIWidget widget;
+	float pixelateStrength = 0.0f;
+public:
+	FUIBackgroundPixelateRenderProxy()
+		:FUIPostProcessRenderProxy()
+	{
 
+	}
+	virtual void OnRenderPostProcess_RenderThread(
+		FRHICommandListImmediate& RHICmdList,
+		FTextureRHIRef ScreenImage,
+		FGlobalShaderMap* GlobalShaderMap,
+		const FMatrix& ViewProjectionMatrix
+	)override
+	{
+		SCOPE_CYCLE_COUNTER(STAT_BackgroundPixelate);
+		if (pixelateStrength <= 0.0f)return;
+		float calculatedStrength = FMath::Pow(pixelateStrength * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
+		calculatedStrength = FMath::Clamp(calculatedStrength, 0.0f, 100.0f);
+		calculatedStrength += 1;
+
+		auto width = (int)(widget.width / calculatedStrength);
+		auto height = (int)(widget.height / calculatedStrength);
+		width = FMath::Clamp(width, 1, (int)widget.width);
+		height = FMath::Clamp(height, 1, (int)widget.height);
+
+		//get render target
+		TRefCountPtr<IPooledRenderTarget> PixelateEffectRenderTarget;
+		{
+			auto MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			desc.NumSamples = MultiSampleCount;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, PixelateEffectRenderTarget, TEXT("LGUIPixelateEffectRenderTarget"));
+			if (!PixelateEffectRenderTarget.IsValid())
+				return;
+		}
+		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
+
+		//copy rect area from screen image to a render target, so we can just process this area
+		{
+			FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray);
+		}
+		//copy the area back to screen image
+		{
+			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
+			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
+			FGraphicsPipelineStateInitializer GraphicsPSOInit;
+			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+			VertexShader->SetParameters(RHICmdList);
+			PixelShader->SetParameters(RHICmdList, PixelateEffectRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+
+			uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
+			FRHIResourceCreateInfo CreateInfo;
+			FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+			void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+			FPlatformMemory::Memcpy(VoidPtr, renderMeshRegionToScreenVertexArray.GetData(), VertexBufferSize);
+			RHIUnlockVertexBuffer(VertexBufferRHI);
+			RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
+			RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
+			VertexBufferRHI.SafeRelease();
+
+			RHICmdList.EndRenderPass();
+		}
+
+		//release render target
+		PixelateEffectRenderTarget.SafeRelease();
+	}
+};
+
+void UUIBackgroundPixelate::UpdateOthersData()
+{
+	if (RenderProxy.IsValid())
+	{
+		auto BackgroundBlurRenderProxy = (FUIBackgroundPixelateRenderProxy*)(RenderProxy.Get());
+		struct FUIBackgroundPixelateUpdateOthersData
+		{
+			float pixelateStrengthWidthAlpha;
+		};
+		auto updateData = new FUIBackgroundPixelateUpdateOthersData();
+		updateData->pixelateStrengthWidthAlpha = this->GetStrengthInternal();
+		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
+			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+				{
+					BackgroundBlurRenderProxy->pixelateStrength = updateData->pixelateStrengthWidthAlpha;
+					delete updateData;
+				});
+	}
+}
+void UUIBackgroundPixelate::UpdateVertexData()
+{
+	if (RenderProxy.IsValid())
+	{
+		auto BackgroundBlurRenderProxy = (FUIBackgroundPixelateRenderProxy*)(RenderProxy.Get());
+		struct FUIBackgroundPixelateUpdateVertexData
+		{
+			TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
+			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
+			FUIWidget widget;
+		};
+		auto updateData = new FUIBackgroundPixelateUpdateVertexData();
+		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
+		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
+		updateData->widget = this->widget;
+		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
+			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+				{
+					BackgroundBlurRenderProxy->renderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
+					BackgroundBlurRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
+					BackgroundBlurRenderProxy->widget = updateData->widget;
+					delete updateData;
+				});
+	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundPixelate"), STAT_BackgroundPixelate, STATGROUP_LGUI);
-
-void UUIBackgroundPixelate::OnRenderPostProcess_RenderThread(
-	FRHICommandListImmediate& RHICmdList, 
-	FTextureRHIRef ScreenImage, 
-	FGlobalShaderMap* GlobalShaderMap,
-	const FMatrix& ViewProjectionMatrix
-)
+TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
 {
-	SCOPE_CYCLE_COUNTER(STAT_BackgroundPixelate);
-	auto pixelateStrengthWidthAlpha = GetStrengthInternal();
-	if (pixelateStrengthWidthAlpha <= 0.0f)return;
-	pixelateStrengthWidthAlpha = FMath::Pow(pixelateStrengthWidthAlpha * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
-	pixelateStrengthWidthAlpha = FMath::Clamp(pixelateStrengthWidthAlpha, 0.0f, 100.0f);
-	pixelateStrengthWidthAlpha += 1;
-
-	auto width = (int)(widget.width / pixelateStrengthWidthAlpha);
-	auto height = (int)(widget.height / pixelateStrengthWidthAlpha);
-	width = FMath::Clamp(width, 1, (int)widget.width);
-	height = FMath::Clamp(height, 1, (int)widget.height);
-
-	//get render target
-	TRefCountPtr<IPooledRenderTarget> PixelateEffectRenderTarget;
+	if (!RenderProxy.IsValid())
 	{
-		auto MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
-		FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-		desc.NumSamples = MultiSampleCount;
-		GRenderTargetPool.FindFreeElement(RHICmdList, desc, PixelateEffectRenderTarget, TEXT("LGUIPixelateEffectRenderTarget"));
-		if (!PixelateEffectRenderTarget.IsValid())
-			return;
+		RenderProxy = TSharedPtr<FUIBackgroundPixelateRenderProxy>(new FUIBackgroundPixelateRenderProxy());
+		UpdateVertexData();
+		UpdateOthersData();
 	}
-	auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
-
-	//copy rect area from screen image to a render target, so we can just process this area
-	{
-		TArray<FLGUIPostProcessVertex> tempCopyRegion;
-		{
-			FScopeLock scopeLock(&mutex);
-			tempCopyRegion = renderScreenToMeshRegionVertexArray;
-		}
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, tempCopyRegion);
-	}
-	//copy the area back to screen image
-	{
-		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
-		TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-		TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
-		FGraphicsPipelineStateInitializer GraphicsPSOInit;
-		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
-		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-		VertexShader->SetParameters(RHICmdList);
-		PixelShader->SetParameters(RHICmdList, PixelateEffectRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
-		
-		TArray<FLGUIPostProcessVertex> tempRenderRegion;
-		{
-			FScopeLock scopeLock(&mutex);
-			tempRenderRegion = renderMeshRegionToScreenVertexArray;
-		}
-		uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
-		FRHIResourceCreateInfo CreateInfo;
-		FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-		void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
-		FPlatformMemory::Memcpy(VoidPtr, tempRenderRegion.GetData(), VertexBufferSize);
-		RHIUnlockVertexBuffer(VertexBufferRHI);
-		RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
-		RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
-		VertexBufferRHI.SafeRelease();
-
-		RHICmdList.EndRenderPass();
-	}
-
-	//release render target
-	PixelateEffectRenderTarget.SafeRelease();
+	return RenderProxy;
 }

@@ -14,6 +14,7 @@
 #include "Widget/AnchorPreviewWidget.h"
 #include "PropertyCustomizationHelpers.h"
 #include "HAL/PlatformApplicationMisc.h"
+#include "LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "UIItemComponentDetails"
 
@@ -701,7 +702,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		DetailBuilder.HideProperty(hierarchyIndexHandle);
 		hierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
 			ForceUpdateUI();
-			FLGUIEditorModule::Instance->RefreshSceneOutliner();
+			LGUIEditorTools::RefreshSceneOutliner();
 		}));
 		auto hierarchyIndexWidget =
 			SNew(SHorizontalBox)
@@ -728,7 +729,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 							item->SetHierarchyIndex(item->hierarchyIndex + 1);
 							ForceUpdateUI();
 						}
-						FLGUIEditorModule::Instance->RefreshSceneOutliner();
+						LGUIEditorTools::RefreshSceneOutliner();
 						return FReply::Handled(); 
 					})
 				]
@@ -750,7 +751,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 							item->SetHierarchyIndex(item->hierarchyIndex - 1);
 							ForceUpdateUI();
 						}
-						FLGUIEditorModule::Instance->RefreshSceneOutliner();
+						LGUIEditorTools::RefreshSceneOutliner();
 						return FReply::Handled();
 					})
 				]

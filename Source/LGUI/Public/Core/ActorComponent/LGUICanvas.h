@@ -59,7 +59,7 @@ class UUIBaseRenderable;
 class UUIRenderable;
 class UUIDrawcallMesh;
 class UUIDrawcall;
-class UUIPostProcessPrimitive;
+class FUIPostProcessRenderProxy;
 class UTextureRenderTarget2D;
 
 /**
@@ -346,13 +346,12 @@ private:
 	struct FLGUIDrawcallPrimitive
 	{
 		TWeakObjectPtr<UUIDrawcallMesh> UIDrawcallMesh = nullptr;
-		TSharedPtr<UUIPostProcessPrimitive> UIPostProcess = nullptr;
+		TWeakPtr<FUIPostProcessRenderProxy> UIPostProcess = nullptr;
 	};
 	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIBaseRenderable>> UIRenderableItemList;//all renderable UI element collection
 	TArray<FLGUIDrawcallPrimitive> UIDrawcallPrimitiveList;//UIDrawcallPrimitive collection of this Canvas
 	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 	TArray<TWeakObjectPtr<UUIDrawcallMesh>> CacheUIMeshList;//UIDrawcallMesh pool
-	TArray<TSharedPtr<UUIPostProcessPrimitive>> CacheUIPostProcessList;//UIPostProcess pool
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
 
 	/** rect clip's min position */

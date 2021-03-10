@@ -24,7 +24,7 @@
 #include "Engine/LocalPlayer.h"
 #include "SceneViewExtension.h"
 #include "Engine.h"
-#include "Core/UIPostProcessPrimitive.h"
+#include "Core/UIPostProcessRenderProxy.h"
 
 ULGUICanvas::ULGUICanvas()
 {
@@ -145,18 +145,19 @@ void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 	{
 		ViewExtension.Reset();
 	}
-	UIDrawcallPrimitiveList.Empty();
-	if (CacheUIMeshList.Num() > 0)
+	for (auto item : UIDrawcallPrimitiveList)
 	{
-		for (auto item : CacheUIMeshList)
+		if (item.UIDrawcallMesh.IsValid())
 		{
-			if (item.IsValid())
-			{
-				item->DestroyComponent();
-			}
+			item.UIDrawcallMesh->DestroyComponent();
+		}
+		if (item.UIPostProcess.IsValid())
+		{
+			item.UIPostProcess.Pin()->RemoveFromHudRenderer();
 		}
 	}
-	CacheUIPostProcessList.Empty();
+	UIDrawcallPrimitiveList.Empty();
+	CacheUIMeshList.Empty();
 }
 
 void ULGUICanvas::OnUIActiveStateChange(bool active)
@@ -169,7 +170,7 @@ void ULGUICanvas::OnUIActiveStateChange(bool active)
 		}
 		if (item.UIPostProcess.IsValid())
 		{
-			item.UIPostProcess->SetVisibility(active);
+			item.UIPostProcess.Pin()->SetVisibility(active);
 		}
 	}
 }
@@ -221,15 +222,19 @@ void ULGUICanvas::CheckRenderMode()
 			UIItem->MarkAllDirtyRecursive();
 		}
 		//clear UIMeshList and delete mesh components, so new mesh will be created. because hud and world mesh not compatible
-		for (auto item : CacheUIMeshList)
+		for (auto item : UIDrawcallPrimitiveList)
 		{
-			if (item.IsValid())
+			if (item.UIDrawcallMesh.IsValid())
 			{
-				item->DestroyComponent();
+				item.UIDrawcallMesh->DestroyComponent();
+			}
+			if (item.UIPostProcess.IsValid())
+			{
+				item.UIPostProcess.Pin()->RemoveFromHudRenderer();
 			}
 		}
-		CacheUIMeshList.Reset();
 		UIDrawcallPrimitiveList.Reset();
+		CacheUIMeshList.Reset();
 	}
 }
 void ULGUICanvas::OnUIHierarchyChanged()
@@ -682,9 +687,16 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			}
 			//create UIMesh based on Drawcall
 			int drawcallCount = UIDrawcallList.Num();
+			for (auto item : UIDrawcallPrimitiveList)
+			{
+				if (item.UIPostProcess.IsValid())
+				{
+					item.UIPostProcess.Pin()->RemoveFromHudRenderer();
+					item.UIPostProcess.Reset();
+				}
+			}
 			UIDrawcallPrimitiveList.SetNum(drawcallCount);
 			int meshIndex = 0;
-			int postprocessIndex = 0;
 			for (int i = 0; i < drawcallCount; i++)
 			{
 				switch (UIDrawcallList[i]->type)
@@ -703,12 +715,12 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					else//create mesh
 					{
 #if WITH_EDITOR
-						auto meshName = FString::Printf(TEXT("%s_Drawcall_%d"), *GetOwner()->GetActorLabel(), i);
+						auto meshName = FString::Printf(TEXT("%s_Drawcall_%d"), *GetOwner()->GetActorLabel(), meshIndex);
 #else
-						auto meshName = FString::Printf(TEXT("Drawcall_%d"), i);
+						auto meshName = FString::Printf(TEXT("Drawcall_%d"), meshIndex);
 #endif
 						uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
-						uiMesh->RegisterComponent();
+						this->GetOwner()->FinishAndRegisterComponent(uiMesh);
 						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 						uiMesh->SetRelativeTransform(FTransform::Identity);
 						CacheUIMeshList.Add(uiMesh);
@@ -748,29 +760,12 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				break;
 				case EUIDrawcallType::PostProcess:
 				{
-					TSharedPtr<UUIPostProcessPrimitive> uiPostProcessPrimitive = nullptr;
-					if (postprocessIndex < CacheUIPostProcessList.Num())
-					{
-						if (CacheUIPostProcessList[postprocessIndex].IsValid())
-						{
-							uiPostProcessPrimitive = CacheUIPostProcessList[postprocessIndex];
-						}
-					}
-					else
-					{
-						uiPostProcessPrimitive = TSharedPtr<UUIPostProcessPrimitive>(new UUIPostProcessPrimitive(UIDrawcallList[i]->postProcessObject, TopMostCanvas->GetViewExtension()));
-						CacheUIPostProcessList.Add(uiPostProcessPrimitive);
-					}
-					//set data
-					if (uiPostProcessPrimitive.IsValid())
-					{
-						uiPostProcessPrimitive->SetVisibility(true);
-					}
+					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessObject->GetRenderProxy();
+					uiPostProcessPrimitive.Pin()->AddToHudRenderer(TopMostCanvas->GetViewExtension());
+
 					UIDrawcallPrimitiveList[i].UIPostProcess = uiPostProcessPrimitive;
 
 					UIDrawcallPrimitiveList[i].UIDrawcallMesh = nullptr;
-
-					postprocessIndex++;
 				}
 				break;
 				}
@@ -783,16 +778,6 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					if (CacheUIMeshList[i].IsValid())
 					{
 						CacheUIMeshList[i]->SetUIMeshVisibility(false);
-					}
-				}
-			}
-			if (CacheUIPostProcessList.Num() > postprocessIndex)//set needless post process invisible
-			{
-				for (int i = postprocessIndex; i < CacheUIPostProcessList.Num(); i++)
-				{
-					if (CacheUIPostProcessList[i].IsValid())
-					{
-						CacheUIPostProcessList[i]->SetVisibility(false);
 					}
 				}
 			}
@@ -958,31 +943,19 @@ void ULGUICanvas::SortDrawcallRenderPriority()
 }
 int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 {
-	for (int i = 0; i < UIDrawcallList.Num(); i++)
+	for (int i = 0; i < UIDrawcallPrimitiveList.Num(); i++)
 	{
 		if (i >= UIDrawcallPrimitiveList.Num())break;
-		switch (UIDrawcallList[i]->type)
+		if (UIDrawcallPrimitiveList[i].UIDrawcallMesh.IsValid())
 		{
-		default:
-		case EUIDrawcallType::Geometry:
-		{
-			if (UIDrawcallPrimitiveList[i].UIDrawcallMesh.IsValid())
-			{
-				UIDrawcallPrimitiveList[i].UIDrawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
-			}
+			UIDrawcallPrimitiveList[i].UIDrawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
 		}
-		break;
-		case EUIDrawcallType::PostProcess:
+		if (UIDrawcallPrimitiveList[i].UIPostProcess.IsValid())
 		{
-			if (UIDrawcallPrimitiveList[i].UIPostProcess.IsValid())
-			{
-				UIDrawcallPrimitiveList[i].UIPostProcess->SetUITranslucentSortPriority(InStartRenderPriority++);
-			}
-		}
-		break;
+			UIDrawcallPrimitiveList[i].UIPostProcess.Pin()->SetUITranslucentSortPriority(InStartRenderPriority++);
 		}
 	}
-	return UIDrawcallList.Num();
+	return UIDrawcallPrimitiveList.Num();
 }
 
 void ULGUICanvas::UpdateAndApplyMaterial()

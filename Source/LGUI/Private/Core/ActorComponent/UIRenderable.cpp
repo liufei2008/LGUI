@@ -7,7 +7,7 @@
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
 
-DECLARE_CYCLE_STAT(TEXT("UIGeometryRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
 UUIRenderable::UUIRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -96,9 +96,9 @@ void UUIRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	}
 }
 #endif
-void UUIRenderable::OnComponentDestroyed(bool bDestroyingHierarchy)
+void UUIRenderable::OnUnregister()
 {
-	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	Super::OnUnregister();
 	if (uiMesh.IsValid())//delete ui mesh when this component is delete
 	{
 		uiMesh->DestroyComponent();
@@ -507,7 +507,7 @@ void UUIRenderable::UpdateSelfRenderDrawcall()
 		if (!uiMesh.IsValid())
 		{
 			uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), NAME_None, RF_Transient);
-			uiMesh->RegisterComponent();
+			this->GetOwner()->FinishAndRegisterComponent(uiMesh.Get());
 			uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 			uiMesh->SetRelativeTransform(FTransform::Identity);
 #if WITH_EDITOR

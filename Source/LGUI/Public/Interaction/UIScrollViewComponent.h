@@ -24,7 +24,8 @@ private:
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)override;
 	friend class UUIScrollViewComponent;
-	class UUIScrollViewComponent* TargetComp;
+	UPROPERTY(Transient)
+		TWeakObjectPtr<class UUIScrollViewComponent> TargetComp;
 };
 //ScrollView
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))

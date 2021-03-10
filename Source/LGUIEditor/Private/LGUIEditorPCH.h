@@ -5,7 +5,7 @@
 #include "LGUIEditorModule.h"
 #include "Engine/Selection.h"
 #include "Editor.h"
-#include "Window/LGUIEditorTools.h"
+#include "LGUIEditorTools.h"
 #include "LGUIEditorUtils.h"
 
 #include "LGUIEditorStyle.h"

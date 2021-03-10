@@ -158,6 +158,9 @@ void LGUIUtils::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sorted
 		case EUIRenderableType::UIPostProcessRenderable:
 		{
 			auto sortedItem = (UUIPostProcess*)sortedList[i].Get();
+			auto itemGeo = sortedItem->GetGeometry();
+			if (itemGeo.IsValid() == false)continue;
+			if (itemGeo->vertices.Num() == 0)continue;
 			//every postprocess is a drawcall
 			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 			prevUIDrawcall->postProcessObject = sortedItem;

@@ -31,8 +31,6 @@ public:
 	bool vertexPositionChanged = false;//if vertex position changed? use for update bounds
 
 	TWeakObjectPtr<UUIPostProcess> postProcessObject;//post process object
-
-	TWeakObjectPtr<UUISelfRenderable> selfRenderObject;//self render object
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)const
 	{
@@ -135,6 +133,5 @@ public:
 		materialInstanceDynamic = nullptr;
 
 		postProcessObject = nullptr;
-		selfRenderObject = nullptr;
 	}
 };
