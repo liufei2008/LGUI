@@ -89,7 +89,17 @@ public:
 		LGUIHudRenderer = InComponent->LGUIHudRenderer;
 		if (LGUIHudRenderer.IsValid())
 		{
-			LGUIHudRenderer.Pin()->AddHudPrimitive(this);
+			auto HudRenderer = LGUIHudRenderer;
+			auto HudPrimitive = this;
+			ENQUEUE_RENDER_COMMAND(FLGUIMeshSceneProxy_AddHudPrimitive)(
+				[HudRenderer, HudPrimitive](FRHICommandListImmediate& RHICmdList)
+				{
+					if (HudRenderer.IsValid())
+					{
+						HudRenderer.Pin()->AddHudPrimitive_RenderThread(HudPrimitive);
+					}
+				}
+			);
 			IsSupportScreenSpace = true;
 		}
 		IsSupportWorldSpace = InComponent->IsSupportWorldSpace;
@@ -429,7 +439,6 @@ public:
 		return Section->HudVertexBuffers.Vertices.Num();
 	}
 	virtual bool GetIsPostProcess()override { return false; }
-	virtual TWeakObjectPtr<UUIPostProcess> GetPostProcessObject()override { return nullptr; }
 	//end ILGUIHudPrimitive interface
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const

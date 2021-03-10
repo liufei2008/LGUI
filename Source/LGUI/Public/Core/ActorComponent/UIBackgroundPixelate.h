@@ -42,6 +42,8 @@ public:
 		void SetPixelateStrength(float newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetApplyAlphaToStrength(bool newValue);
+
+	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
 protected:
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
@@ -49,8 +51,8 @@ protected:
 	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	void UpdateRegionVertex();
-	FCriticalSection mutex;
 	FORCEINLINE float GetStrengthInternal();
-	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);
-	virtual void OnRenderPostProcess_RenderThread(FRHICommandListImmediate& RHICmdList, FTextureRHIRef ScreenImage, FGlobalShaderMap* GlobalShaderMap, const FMatrix& ViewProjectionMatrix)override;
+protected:
+	void UpdateOthersData();
+	void UpdateVertexData();
 };

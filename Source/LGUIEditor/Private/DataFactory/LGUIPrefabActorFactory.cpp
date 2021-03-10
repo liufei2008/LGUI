@@ -3,7 +3,7 @@
 #include "DataFactory/LGUIPrefabActorFactory.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabActor.h"
-#include "Window/LGUIEditorTools.h"
+#include "LGUIEditorTools.h"
 #include "AssetData.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabActorFactory"

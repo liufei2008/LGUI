@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Window/LGUIEditorTools.h"
+#include "LGUIEditorTools.h"
 #include "LGUIHeaders.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Widgets/Docking/SDockTab.h"
@@ -180,6 +180,7 @@ void LGUIEditorTools::CreateUIItemActor(UClass* ActorClass)
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
 	auto selectedActor = GetFirstSelectedActor();
+	MakeCurrentLevel(selectedActor);
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
 	{
@@ -198,6 +199,7 @@ void LGUIEditorTools::CreateEmptyActor()
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
 	auto selectedActor = GetFirstSelectedActor();
+	MakeCurrentLevel(selectedActor);
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
 	{
@@ -210,7 +212,7 @@ void LGUIEditorTools::CreateEmptyActor()
 			newActor->SetRootComponent(RootComponent);
 			newActor->AddInstanceComponent(RootComponent);
 
-			RootComponent->RegisterComponent();
+			newActor->FinishAndRegisterComponent(RootComponent);
 		}
 		if (selectedActor != nullptr)
 		{
@@ -244,6 +246,7 @@ void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(LOCTEXT("CreateUIControl", "LGUI Create UI Control"));
 	auto selectedActor = GetFirstSelectedActor();
+	MakeCurrentLevel(selectedActor);
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *InPrefabPath);
 	if (prefab)
 	{
@@ -752,6 +755,30 @@ int LGUIEditorTools::GetCanvasDrawcallCount(AActor* InActor)
 		}
 	}
 	return 0;
+}
+void LGUIEditorTools::MakeCurrentLevel(AActor* InActor)
+{
+	if (IsValid(InActor) && InActor->GetWorld() && InActor->GetLevel())
+	{
+		if (InActor->GetWorld()->GetCurrentLevel() != InActor->GetLevel())
+		{
+			if (!InActor->GetWorld()->GetCurrentLevel()->bLocked)
+			{
+				if (InActor->GetLevel()->IsCurrentLevel())
+				{
+					InActor->GetWorld()->SetCurrentLevel(InActor->GetLevel());
+				}
+			}
+			else
+			{
+				LGUIUtils::EditorNotification(FText::FromString(FString::Printf(TEXT("The level of selected actor:%s is locked!"), *(InActor->GetActorLabel()))));
+			}
+		}
+	}
+}
+void LGUIEditorTools::RefreshSceneOutliner()
+{
+	GEngine->BroadcastLevelActorListChanged();
 }
 FString LGUIEditorTools::PrintObjectFlags(UObject* Target)
 {
