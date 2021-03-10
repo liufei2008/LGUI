@@ -103,7 +103,7 @@ bool UUIScrollViewComponent::CheckParameters()
 	{
 		auto contentParentHelperComp = NewObject<UUIScrollViewHelper>(contentParentActor);
 		contentParentHelperComp->TargetComp = this;
-		contentParentHelperComp->RegisterComponent();
+		contentParentActor->FinishAndRegisterComponent(contentParentHelperComp);
 	}
 	CheckRootUIComponent();
 	if (ContentUIItem != nullptr && ContentParentUIItem != nullptr && RootUIComp != nullptr)return true;

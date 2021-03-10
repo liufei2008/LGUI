@@ -58,4 +58,8 @@ public:
 	static TWeakObjectPtr<class UActorComponent> copiedComponent;
 	static bool HaveValidCopiedActors();
 	static bool HaveValidCopiedComponent();
+
+	static void RefreshSceneOutliner();
+
+	static void MakeCurrentLevel(AActor* InActor);
 };

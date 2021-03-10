@@ -63,16 +63,23 @@ public:
 		void SetStrengthTexture(UTexture2D* newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaskTexture(UTexture2D* newValue);
+
+	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
+	virtual void MarkAllDirtyRecursive()override;
 protected:
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual void WidthChanged()override;
+	virtual void HeightChanged()override;
 
 	float inv_SampleLevelInterval = 1.0f;
 	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	void UpdateRegionVertex();
-	FCriticalSection mutex;
 	FORCEINLINE float GetBlurStrengthInternal();
-	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView);
-	virtual void OnRenderPostProcess_RenderThread(FRHICommandListImmediate& RHICmdList, FTextureRHIRef ScreenImage, TShaderMap<FGlobalShaderType>* GlobalShaderMap, const FMatrix& ViewProjectionMatrix)override;
+protected:
+	void UpdateOthersData();
+	void UpdateVertexData();
+	void UpdateStrengthTexture();
+	void UpdateMaskTexture();
 };

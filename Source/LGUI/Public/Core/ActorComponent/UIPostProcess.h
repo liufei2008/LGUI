@@ -5,6 +5,7 @@
 #include "UIBaseRenderable.h"
 #include "UIPostProcess.generated.h"
 
+class FUIPostProcessRenderProxy;
 /** 
  * UI element that can add post processing effect
  * Only valid on ScreenSpaceUI
@@ -23,10 +24,12 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	virtual void OnUnregister()override;
 	virtual void ApplyUIActiveState() override;
 	TSharedPtr<UIGeometry> geometry = nullptr;
 	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;
 
+	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void WidthChanged()override;
 	virtual void HeightChanged()override;
 	virtual void PivotChanged()override;
@@ -35,23 +38,13 @@ protected:
 	virtual void UpdateCachedData()override;
 	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;
+
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
+	TSharedPtr<UIGeometry> GetGeometry() { return geometry; }
 public:
-	/** game thread function. setup anything you need on game thread before rendering, like create RenderTargetTexture */
-	virtual void OnBeforeRenderPostProcess_GameThread(FSceneViewFamily& InViewFamily, FSceneView& InView) {};
-	/**
-	 * render thread function that will do the post process draw
-	 * @param	ScreenImage				the full screen render image
-	 * @param	ViewProjectionMatrix	for vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
-	 */
-	virtual void OnRenderPostProcess_RenderThread(
-		FRHICommandListImmediate& RHICmdList, 
-		FTextureRHIRef ScreenImage, 
-		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
-		const FMatrix& ViewProjectionMatrix
-	) {};
+	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcess::GetRenderProxy, return 0;);
 private:
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
@@ -60,6 +53,7 @@ private:
 
 	uint8 cacheForThisUpdate_LocalVertexPositionChanged : 1, cacheForThisUpdate_UVChanged : 1;
 protected:
+	TSharedPtr<FUIPostProcessRenderProxy> RenderProxy = nullptr;
 	/** create ui geometry */
 	virtual void OnCreateGeometry()PURE_VIRTUAL(UUIRenderable::OnCreateGeometry, );
 	/** update ui geometry */

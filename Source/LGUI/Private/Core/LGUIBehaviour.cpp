@@ -32,10 +32,6 @@ void ULGUIBehaviour::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 	OnDestroy();
 }
-void ULGUIBehaviour::OnComponentDestroyed(bool bDestroyingHierarchy)
-{
-	Super::OnComponentDestroyed(bDestroyingHierarchy);
-}
 void ULGUIBehaviour::OnRegister()
 {
 	Super::OnRegister();

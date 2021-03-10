@@ -33,7 +33,6 @@ public:
 	
 	TSharedRef<SWidget> MakeEditorToolsMenu(bool IsSceneOutlineMenu);
 	TSharedPtr<class FUICommandList> PluginCommands;
-	void RefreshSceneOutliner();
 	TArray<TSharedPtr<class FAssetTypeActions_Base>> AssetTypeActionsArray;
 private:
 

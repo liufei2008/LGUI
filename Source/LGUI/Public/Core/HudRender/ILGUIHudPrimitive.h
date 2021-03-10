@@ -25,6 +25,16 @@ public:
 
 	//begin post process interface
 	virtual bool GetIsPostProcess() = 0;
-	virtual TWeakObjectPtr<UUIPostProcess> GetPostProcessObject() = 0;
+	/**
+	 * render thread function that will do the post process draw
+	 * @param	ScreenImage				the full screen render image
+	 * @param	ViewProjectionMatrix	for vertex shader to convert vertex to screen space. vertex position is already transformed to world space, so we dont need model matrix
+	 */
+	virtual void OnRenderPostProcess_RenderThread(
+		FRHICommandListImmediate& RHICmdList,
+		FTextureRHIRef ScreenImage,
+		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
+		const FMatrix& ViewProjectionMatrix
+	) {};
 	//end post process interface
 };

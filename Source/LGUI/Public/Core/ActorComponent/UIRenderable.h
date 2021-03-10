@@ -24,7 +24,7 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
+	virtual void OnUnregister()override;
 
 	TSharedPtr<UIGeometry> geometry = nullptr;
 

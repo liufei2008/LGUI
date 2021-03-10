@@ -12,7 +12,7 @@
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
 
-#include "Window/LGUIEditorTools.h"
+#include "LGUIEditorTools.h"
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
 #include "SceneOutlinerModule.h"
 #include "SceneOutlinerPublicTypes.h"
@@ -345,11 +345,6 @@ void FLGUIEditorModule::ShutdownModule()
 	}
 
 	FKismetEditorUtilities::UnregisterAutoBlueprintNodeCreation(this);
-}
-
-void FLGUIEditorModule::RefreshSceneOutliner()
-{
-	GEngine->BroadcastLevelActorListChanged();
 }
 
 TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs)

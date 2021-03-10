@@ -25,7 +25,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
-	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;

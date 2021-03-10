@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/UIGeometry.h"
+#include "Core/UIPostProcessRenderProxy.h"
 
 UUIPostProcess::UUIPostProcess(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -38,9 +39,24 @@ void UUIPostProcess::TickComponent( float DeltaTime, ELevelTick TickType, FActor
 void UUIPostProcess::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	bUVChanged = true;
+	bLocalVertexPositionChanged = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
+
+void UUIPostProcess::OnUnregister()
+{
+	Super::OnUnregister();
+	if (RenderProxy.IsValid())
+	{
+		auto tempRenderProxy = RenderProxy;
+		ENQUEUE_RENDER_COMMAND(FUIPostProcess_RemoveRenderProxy)(
+			[tempRenderProxy](FRHICommandListImmediate& RHICmdList)
+			{
+				tempRenderProxy->RemoveFromHudRenderer_RenderThread();
+			});
+	}
+}
 
 void UUIPostProcess::ApplyUIActiveState()
 {
@@ -52,13 +68,26 @@ void UUIPostProcess::ApplyUIActiveState()
 			geometry->Clear();
 			if (CheckRenderCanvas())
 			{
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				RenderCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
 			}
 		}
 	}
 	Super::ApplyUIActiveState();
 }
 
+void UUIPostProcess::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
+{
+	if (IsValid(OldCanvas))
+	{
+		OldCanvas->RemoveUIRenderable(this);
+		OldCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
+	}
+	if (IsValid(NewCanvas))
+	{
+		NewCanvas->AddUIRenderable(this);
+		NewCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
+	}
+}
 void UUIPostProcess::WidthChanged()
 {
 	MarkVertexPositionDirty();

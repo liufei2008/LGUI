@@ -1,7 +1,7 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UICanvasScalerCustomization.h"
-#include "Window/LGUIEditorTools.h"
+#include "LGUIEditorTools.h"
 #include "Layout/LGUICanvasScaler.h"
 #include "LGUIEditorUtils.h"
 #include "Widgets/Input/SNumericEntryBox.h"

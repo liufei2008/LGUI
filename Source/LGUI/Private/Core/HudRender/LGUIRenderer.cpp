@@ -60,22 +60,6 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
 	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
 	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
-	
-	FScopeLock scopeLock(&Mutex);
-	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
-	{
-		auto hudPrimitive = HudPrimitiveArray[i];
-		if (hudPrimitive != nullptr)
-		{
-			if (hudPrimitive->GetIsPostProcess())
-			{
-				if (hudPrimitive->GetPostProcessObject().IsValid())
-				{
-					hudPrimitive->GetPostProcessObject()->OnBeforeRenderPostProcess_GameThread(InViewFamily, InView);
-				}
-			}
-		}
-	}
 }
 void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
@@ -231,34 +215,25 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	GraphicsPSOInit.NumSamples = MultiSampleCount;
 
 	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
-	TArray<ILGUIHudPrimitive*> primitiveArray;
+	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
 	{
-		FScopeLock scopeLock(&Mutex);
-		primitiveArray = HudPrimitiveArray;
-	}
-	for (int i = 0; i < primitiveArray.Num(); i++)
-	{
-		auto hudPrimitive = primitiveArray[i];
+		auto hudPrimitive = HudPrimitiveArray[i];
 		if (hudPrimitive != nullptr)
 		{
 			if (hudPrimitive->CanRender())
 			{
 				if (hudPrimitive->GetIsPostProcess())//render post process
 				{
-					auto postProcessObject = hudPrimitive->GetPostProcessObject();
-					if (postProcessObject.IsValid())
-					{
-						RHICmdList.EndRenderPass();
-						postProcessObject->OnRenderPostProcess_RenderThread(
-							RHICmdList,
-							ScreenColorRenderTexture,
-							GlobalShaderMap,
-							ViewProjectionMatrix
-						);
-						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-						RHICmdList.SetViewport(0, 0, 0.0f, InView.UnscaledViewRect.Size().X, InView.UnscaledViewRect.Size().Y, 1.0f);
-						GraphicsPSOInit.NumSamples = MultiSampleCount;
-					}
+					RHICmdList.EndRenderPass();
+					hudPrimitive->OnRenderPostProcess_RenderThread(
+						RHICmdList,
+						ScreenColorRenderTexture,
+						GlobalShaderMap,
+						ViewProjectionMatrix
+					);
+					RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
+					RHICmdList.SetViewport(0, 0, 0.0f, InView.UnscaledViewRect.Size().X, InView.UnscaledViewRect.Size().Y, 1.0f);
+					GraphicsPSOInit.NumSamples = MultiSampleCount;
 				}
 				else//render mesh
 				{
@@ -302,36 +277,22 @@ void FLGUIViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RH
 
 }
 
-void FLGUIViewExtension::AddHudPrimitive(ILGUIHudPrimitive* InPrimitive)
-{
-	ENQUEUE_RENDER_COMMAND(FLGUIRender_AddHudPrimitive)(
-		[this, InPrimitive](FRHICommandListImmediate& RHICmdList)
-		{
-			this->AddHudPrimitive_RenderThread(InPrimitive);
-		}
-	);
-}
 void FLGUIViewExtension::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
-		FScopeLock scopeLock(&Mutex);
 		HudPrimitiveArray.AddUnique(InPrimitive);
-		HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
-		{
-			return A.GetRenderPriority() < B.GetRenderPriority();
-		});
+		SortRenderPriority_RenderThread();//I don't know which time the primitive is added, because I don't know when SceneProxy or RenderProxy is created, so I need to sort it every time a new one added.
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::AddHudPrimitive]Add nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::AddHudPrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
 	}
 }
 void FLGUIViewExtension::RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
-		FScopeLock scopeLock(&Mutex);
 		HudPrimitiveArray.RemoveSingle(InPrimitive);
 	}
 	else

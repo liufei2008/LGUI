@@ -34,7 +34,7 @@ public:
 	void SortRenderPriority();
 
 	//
-	void AddHudPrimitive(ILGUIHudPrimitive* InPrimitive);
+	void AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
 	static void CopyRenderTarget(
@@ -52,7 +52,6 @@ public:
 		FRHICommandListImmediate& RHICmdList
 	);
 private:
-	void AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void SortRenderPriority_RenderThread();
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
@@ -65,7 +64,6 @@ private:
 	FMatrix ViewRotationMatrix;
 	FMatrix ProjectionMatrix;
 	FMatrix ViewProjectionMatrix;
-	FCriticalSection Mutex;//for lock HudPrimitiveArray, incase gamethread and renderthread
 public:
 #if WITH_EDITORONLY_DATA
 	static uint32 EditorPreview_ViewKey;
