@@ -142,6 +142,7 @@ void UUIPostProcess::CreateGeometry()
 	geometry->Clear();
 	OnCreateGeometry();
 	UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+	UpdateRegionVertex();
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateRenderable"), STAT_UIPostProcessRenderableUpdate, STATGROUP_LGUI);
@@ -173,8 +174,71 @@ void UUIPostProcess::UpdateGeometry(const bool& parentLayoutChanged)
 			{
 				UIGeometry::TransformVertices(RenderCanvas, this, geometry);
 			}
+			UpdateRegionVertex();
 		}
 	}
 COMPLETE:
 	;
+}
+void UUIPostProcess::OnCreateGeometry()
+{
+	UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas, this);
+}
+void UUIPostProcess::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+{
+	if (InVertexPositionChanged)
+	{
+		UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas, this);
+	}
+	if (InVertexUVChanged)
+	{
+		UIGeometry::UpdateUIRectSimpleUV(geometry, FLGUISpriteInfo());
+	}
+	if (InVertexColorChanged)
+	{
+		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
+	}
+}
+void UUIPostProcess::UpdateRegionVertex()
+{
+	auto& vertices = geometry->vertices;
+	if (vertices.Num() <= 0)return;
+	if (renderScreenToMeshRegionVertexArray.Num() == 0)
+	{
+		//full screen vertex position
+		renderScreenToMeshRegionVertexArray =
+		{
+			FLGUIPostProcessVertex(FVector(-1, -1, 0), FVector2D(0.0f, 0.0f)),
+			FLGUIPostProcessVertex(FVector(1, -1, 0), FVector2D(1.0f, 0.0f)),
+			FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 1.0f)),
+			FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 1.0f))
+		};
+	}
+	if (renderMeshRegionToScreenVertexArray.Num() == 0)
+	{
+		renderMeshRegionToScreenVertexArray.AddUninitialized(4);
+	}
+	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
+	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			auto& copyVert = renderScreenToMeshRegionVertexArray[i];
+			//convert vertex postition to screen, and use as texture coordinate
+			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
+			float inv_W = 1.0f / clipSpacePos.W;
+			copyVert.TextureCoordinate0 = FVector2D(clipSpacePos.X * inv_W, clipSpacePos.Y * inv_W) * 0.5f + FVector2D(0.5f, 0.5f);
+			copyVert.TextureCoordinate0.Y = 1.0f - copyVert.TextureCoordinate0.Y;
+		}
+
+		for (int i = 0; i < 4; i++)
+		{
+			auto& copyVert = renderMeshRegionToScreenVertexArray[i];
+			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
+			float inv_W = 1.0f / clipSpacePos.W;
+			copyVert.Position = FVector(clipSpacePos.X, clipSpacePos.Y, clipSpacePos.Z) * inv_W;
+			copyVert.TextureCoordinate0 = vertices[i].TextureCoordinate[0];
+		}
+	}
+	SendRegionVertexDataToRenderProxy();
 }

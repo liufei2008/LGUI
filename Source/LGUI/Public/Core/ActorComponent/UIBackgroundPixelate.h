@@ -45,14 +45,8 @@ public:
 
 	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
 protected:
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
-
-	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
-	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-	void UpdateRegionVertex();
 	FORCEINLINE float GetStrengthInternal();
 protected:
-	void UpdateOthersData();
-	void UpdateVertexData();
+	virtual void SendRegionVertexDataToRenderProxy()override;
+	void SendOthersDataToRenderProxy();
 };
