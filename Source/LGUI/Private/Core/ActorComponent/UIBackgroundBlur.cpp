@@ -318,17 +318,20 @@ void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy()
 			TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 			FUIWidget widget;
+			float blurStrengthWithAlpha;
 		};
 		auto updateData = new FUIBackgroundBlur_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->widget = this->widget;
+		updateData->blurStrengthWithAlpha = this->GetBlurStrengthInternal();
 		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
 			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{
 					BackgroundBlurRenderProxy->renderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
 					BackgroundBlurRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
 					BackgroundBlurRenderProxy->widget = updateData->widget;
+					BackgroundBlurRenderProxy->blurStrength = updateData->blurStrengthWithAlpha;
 					delete updateData;
 				});
 	}

@@ -184,17 +184,20 @@ void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy()
 			TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 			FUIWidget widget;
+			float pixelateStrengthWidthAlpha;
 		};
 		auto updateData = new FUIBackgroundPixelate_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->widget = this->widget;
+		updateData->pixelateStrengthWidthAlpha = this->GetStrengthInternal();
 		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
 			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{
 					BackgroundBlurRenderProxy->renderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
 					BackgroundBlurRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
 					BackgroundBlurRenderProxy->widget = updateData->widget;
+					BackgroundBlurRenderProxy->pixelateStrength = updateData->pixelateStrengthWidthAlpha;
 					delete updateData;
 				});
 	}
