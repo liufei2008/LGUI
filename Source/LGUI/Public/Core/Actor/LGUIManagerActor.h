@@ -27,6 +27,7 @@ public:
 	static ULGUIEditorManagerObject* Instance;
 	ULGUIEditorManagerObject();
 	virtual void BeginDestroy()override;
+	static ULGUIEditorManagerObject* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 public:
 	//begin TickableEditorObject interface
 	virtual void Tick(float DeltaTime)override;
@@ -89,8 +90,8 @@ private:
 	bool IsCalculatingSelection = false;
 	FDelegateHandle OnSelectionChangedDelegateHandle;
 	TArray<FHitResult> CacheHitResultArray;
-	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
-	TWeakObjectPtr<AActor> LastSelectedActor;
+	UPROPERTY(Transient)TWeakObjectPtr<UUIRenderable> LastSelectTarget;
+	UPROPERTY(Transient)TWeakObjectPtr<AActor> LastSelectedActor;
 	void OnSelectionChanged(UObject* newSelection);
 	FDelegateHandle OnAssetReimportDelegateHandle;
 	void OnAssetReimport(UObject* asset);
@@ -106,7 +107,7 @@ struct FLGUIBehaviourArrayContainer
 	GENERATED_BODY()
 public:
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
-		TArray<ULGUIBehaviour*> LGUIBehaviourArray;
+		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehaviourArray;
 };
 
 UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
@@ -139,28 +140,8 @@ protected:
 		TArray<UUISelectableComponent*> allSelectableArray;
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> LGUIBehavioursForAwake;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> LGUIBehavioursForEnable;
-	//disabled after update is called
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> LGUIBehavioursDisabled;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> LGUIBehavioursForStart;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBehaviour*> LGUIBehavioursForUpdate;
+		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForUpdate;
 
-	enum class ELGUIBehaviourScriptExecutingType
-	{
-		None,
-		Awake,
-		OnEnable,
-		Start,
-		AfterStart,
-		Update,
-	};
-	ELGUIBehaviourScriptExecutingType scriptExecutingType = ELGUIBehaviourScriptExecutingType::None;
-	void AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp, TArray<ULGUIBehaviour*>& InArray);
 	bool firstAwakeExecuted = false;
 private:
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
@@ -200,22 +181,24 @@ public:
 	static void RemoveActorForPrefabSystem(AActor* InActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
 
-	static void AddLGUIComponent(ULGUIBehaviour* InComp);
-	static void RemoveLGUIComponent(ULGUIBehaviour* InComp);
+	static void AddLGUIComponentForLifecycleEvent(ULGUIBehaviour* InComp);
+	static void AddLGUIBehavioursForUpdate(ULGUIBehaviour* InComp);
+	static void RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp);
+	static void ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InComp);
 
 	void Tick_PrePhysics();
 	void Tick_DuringPhysics(float deltaTime);
 };
-UCLASS(ClassGroup=(LGUI), NotBlueprintable)
-class LGUI_API ULGUIManagerComponent_PrePhysics : public UActorComponent
-{
-	GENERATED_BODY()
-public:
-	ULGUIManagerComponent_PrePhysics();
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ALGUIManagerActor* ManagerActor;
-};
+//UCLASS(ClassGroup=(LGUI), NotBlueprintable)
+//class LGUI_API ULGUIManagerComponent_PrePhysics : public UActorComponent
+//{
+//	GENERATED_BODY()
+//public:
+//	ULGUIManagerComponent_PrePhysics();
+//	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+//	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+//		ALGUIManagerActor* ManagerActor;
+//};
 UCLASS(ClassGroup = (LGUI), NotBlueprintable)
 class LGUI_API ULGUIManagerComponent_DuringPhysics : public UActorComponent
 {

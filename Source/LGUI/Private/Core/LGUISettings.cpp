@@ -20,22 +20,6 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
 			ULGUIAtlasManager::InitCheck();
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISettings, LGUIBehaviourExecuteOrder))
-		{
-			//check repeat
-			for (int i = 0; i < LGUIBehaviourExecuteOrder.Num() - 1; i++)
-			{
-				for (int j = i + 1; j < LGUIBehaviourExecuteOrder.Num(); j++)
-				{
-					if (LGUIBehaviourExecuteOrder[i] == LGUIBehaviourExecuteOrder[j])
-					{
-						LGUIBehaviourExecuteOrder.RemoveAt(j);
-						i--;
-						break;
-					}
-				}
-			}
-		}
 	}
 }
 #endif
@@ -74,10 +58,6 @@ TextureFilter ULGUISettings::GetAtlasTextureFilter(const FName& InPackingTag)
 const TMap<FName, FLGUIAtlasSettings>& ULGUISettings::GetAllAtlasSettings()
 {
 	return GetDefault<ULGUISettings>()->atlasSettingForSpecificPackingTag;
-}
-const TArray<TSubclassOf<ULGUIBehaviour>>& ULGUISettings::GetLGUIBehaviourExecuteOrder()
-{
-	return GetDefault<ULGUISettings>()->LGUIBehaviourExecuteOrder;
 }
 ELGUIScreenSpaceUIAntiAliasing ULGUISettings::GetAntiAliasingSampleCount()
 {
