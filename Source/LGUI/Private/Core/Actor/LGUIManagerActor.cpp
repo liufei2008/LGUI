@@ -44,6 +44,15 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	Super::BeginDestroy();
 }
 
+ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
+{
+	if (CreateIfNotValid)
+	{
+		InitCheck(InWorld);
+	}
+	return Instance;
+}
+
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
 #if WITH_EDITORONLY_DATA
@@ -541,7 +550,7 @@ ALGUIManagerActor::ALGUIManagerActor()
 		}
 	});
 #endif
-	CreateDefaultSubobject<ULGUIManagerComponent_PrePhysics>(TEXT("Tick_PrePhysics"))->ManagerActor = this;
+	//CreateDefaultSubobject<ULGUIManagerComponent_PrePhysics>(TEXT("Tick_PrePhysics"))->ManagerActor = this;
 	CreateDefaultSubobject<ULGUIManagerComponent_DuringPhysics>(TEXT("Tick_DuringPhysics"))->ManagerActor = this;
 }
 ALGUIManagerActor* ALGUIManagerActor::GetLGUIManagerActorInstance(UObject* WorldContextObject)
@@ -623,11 +632,20 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 		{
 			if (CreateIfNotValid)
 			{
+#if WITH_EDITOR
+				if (!InWorld->IsGameWorld())
+				{
+					auto msg = FString(TEXT("[ALGUIManagerActor::GetInstance]Trying to create a LGUIManagerActor in edit mode, this is not allowed!"));
+					UE_LOG(LGUI, Error, TEXT("%s"), *msg);
+					LGUIUtils::EditorNotification(FText::FromString(msg));
+					return nullptr;
+				}
+#endif
 				FActorSpawnParameters param = FActorSpawnParameters();
 				param.ObjectFlags = RF_Transient;
 				auto newInstance = InWorld->SpawnActor<ALGUIManagerActor>(param);
 				WorldToInstanceMap.Add(InWorld, newInstance);
-				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::InitCheck]No Instance for LGUIManagerActor, create!"));
+				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::GetInstance]No Instance for LGUIManagerActor, create!"));
 				newInstance->existInInstanceMap = true;
 				return newInstance;
 			}
@@ -658,128 +676,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 }
 void ALGUIManagerActor::Tick_PrePhysics()
 {
-	//awake
-	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Awake;
-	for (int i = 0; i < LGUIBehavioursForAwake.Num(); i++)
-	{
-		auto item = LGUIBehavioursForAwake[i];
-		//UE_LOG(LGUI, Error, TEXT("Awake count:%d, i:%d, item:%s"), LGUIBehavioursForAwake.Num(), i, *(item->GetOwner()->GetActorLabel()));
-		if (IsValid(item))
-		{
-			if (item->GetIsActiveAndEnable())
-			{
-				//add to Enable array
-				{
-					if (!LGUIBehavioursForEnable.Contains(item))
-					{
-						AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForEnable);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to enable array but already exist! comp:%s"), *(item->GetPathName()));
-					}
-				}
-				//remove from Awake array
-				{
-					LGUIBehavioursForAwake.RemoveAt(i);
-					i--;
-				}
-
-				item->Awake();
-			}
-		}
-	}
-	firstAwakeExecuted = true;
-	//enable
-	scriptExecutingType = ELGUIBehaviourScriptExecutingType::OnEnable;
-	for (int i = 0; i < LGUIBehavioursForEnable.Num(); i++)
-	{
-		auto item = LGUIBehavioursForEnable[i];
-		//UE_LOG(LGUI, Error, TEXT("Enable count:%d, i:%d, item:%s"), LGUIBehavioursForEnable.Num(), i, *(item->GetOwner()->GetActorLabel()));
-		if (IsValid(item))
-		{
-			if (item->GetIsActiveAndEnable())
-			{
-				//add to Start array
-				{
-					if (!LGUIBehavioursForStart.Contains(item))
-					{
-						AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForStart);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist! comp:%s"), *(item->GetPathName()));
-					}
-				}
-				//remove from Enable array
-				{
-					LGUIBehavioursForEnable.RemoveAt(i);
-					i--;
-				}
-
-				item->OnEnable();
-			}
-		}
-	}
-	//disabled after update called
-	for (int i = 0; i < LGUIBehavioursDisabled.Num(); i++)
-	{
-		auto item = LGUIBehavioursDisabled[i];
-		if (IsValid(item))
-		{
-			if (item->GetIsActiveAndEnable())
-			{
-				//add to Update array
-				{
-					if (!LGUIBehavioursForUpdate.Contains(item))
-					{
-						AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForUpdate);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist! comp:%s"), *(item->GetPathName()));
-					}
-				}
-				//remove from Disabled array
-				{
-					LGUIBehavioursDisabled.RemoveAt(i);
-					i--;
-				}
-				item->OnEnable();
-			}
-		}
-	}
-	//start
-	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Start;
-	for (int i = 0; i < LGUIBehavioursForStart.Num(); i++)
-	{
-		auto item = LGUIBehavioursForStart[i];
-		if (IsValid(item))
-		{
-			if (item->GetIsActiveAndEnable())
-			{
-				//add to Update array
-				{
-					if (!LGUIBehavioursForUpdate.Contains(item))
-					{
-						AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForUpdate);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to start array but already exist! comp:%s"), *(item->GetPathName()));
-					}
-				}
-				//remove from Start array
-				{
-					LGUIBehavioursForStart.RemoveAt(i);
-					i--;
-				}
-
-				item->Start();
-			}
-		}
-	}
-	scriptExecutingType = ELGUIBehaviourScriptExecutingType::AfterStart;
+	
 }
 
 DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATGROUP_LGUI);
@@ -788,187 +685,96 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourUpdate);
 	//update
-	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Update;
 	for (int i = 0; i < LGUIBehavioursForUpdate.Num(); i++)
 	{
 		auto item = LGUIBehavioursForUpdate[i];
-		if (IsValid(item))
+		if (item.IsValid())
 		{
-			if (item->GetIsActiveAndEnable())
+			if (!item->isStartCalled)
 			{
-				item->Update(deltaTime);
+				item->Start();
 			}
-			else
-			{
-				//add to enable array
-				{
-					if (!LGUIBehavioursDisabled.Contains(item))
-					{
-						LGUIBehavioursDisabled.Add(item);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_DuringPhysics]trying to add to disabled array but already exist!"));
-					}
-				}
-				//remove form update array
-				{
-					LGUIBehavioursForUpdate.RemoveAt(i);
-					i--;
-				}
-
-				item->OnDisable();
-			}
+			item->Update(deltaTime);
 		}
 	}
-	scriptExecutingType = ELGUIBehaviourScriptExecutingType::None;
 }
 
-void ALGUIManagerActor::AddLGUIComponent(ULGUIBehaviour* InComp)
+void ALGUIManagerActor::AddLGUIComponentForLifecycleEvent(ULGUIBehaviour* InComp)
 {
-	if (auto Instance = GetInstance(InComp->GetWorld(), true))
+	if (IsValid(InComp))
 	{
-		if (IsPrefabSystemProcessingActor(InComp->GetOwner()))//if this component is processing by prefab system(creating from prefab, or duplicating from ActorCopier), then we need to collect it to custom awake array
+		if (auto Instance = GetInstance(InComp->GetWorld(), true))
 		{
-			if (Instance->PrefabSystemProcessing_CurrentArrayIndex < 0 || Instance->PrefabSystemProcessing_CurrentArrayIndex >= Instance->LGUIBehaviours_PrefabSystemProcessing.Num())
+			if (IsPrefabSystemProcessingActor(InComp->GetOwner()))
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]array out of range, index:%d, arrayCount:%d"), Instance->PrefabSystemProcessing_CurrentArrayIndex, Instance->LGUIBehaviours_PrefabSystemProcessing.Num());
-				return;
-			}
-			auto& compArray = Instance->LGUIBehaviours_PrefabSystemProcessing[Instance->PrefabSystemProcessing_CurrentArrayIndex].LGUIBehaviourArray;
-			if (compArray.Contains(InComp))
-			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
-				return;
-			}
-			Instance->AddLGUIBehaviourToArrayWithOrder(InComp, compArray);
-		}
-		else
-		{
-			if (Instance->firstAwakeExecuted//if first awake is already executed, then just call awake
-				&& InComp->GetIsActiveAndEnable()//should call awake now?
-				)
-			{
-				//add to Enable array
+				if (Instance->PrefabSystemProcessing_CurrentArrayIndex < 0 || Instance->PrefabSystemProcessing_CurrentArrayIndex >= Instance->LGUIBehaviours_PrefabSystemProcessing.Num())
 				{
-					if (!Instance->LGUIBehavioursForEnable.Contains(InComp))
-					{
-						Instance->AddLGUIBehaviourToArrayWithOrder(InComp, Instance->LGUIBehavioursForEnable);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::AddLGUIComponent]trying to add to enable array but already exist! comp:%s"), *(InComp->GetPathName()));
-					}
+					UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]array out of range, index:%d, arrayCount:%d"), Instance->PrefabSystemProcessing_CurrentArrayIndex, Instance->LGUIBehaviours_PrefabSystemProcessing.Num());
+					return;
 				}
-
-				InComp->Awake();
-			}
-			else
-			{
-				auto& LGUIBehavioursForAwake = Instance->LGUIBehavioursForAwake;
-				if (LGUIBehavioursForAwake.Contains(InComp))
+				auto& compArray = Instance->LGUIBehaviours_PrefabSystemProcessing[Instance->PrefabSystemProcessing_CurrentArrayIndex].LGUIBehaviourArray;
+				if (compArray.Contains(InComp))
 				{
 					UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
 					return;
 				}
-				if (Instance->scriptExecutingType == ELGUIBehaviourScriptExecutingType::Awake)//this means script is created during Awake, then put the script at the end of array
-				{
-					LGUIBehavioursForAwake.Add(InComp);
-				}
-				else
-				{
-					Instance->AddLGUIBehaviourToArrayWithOrder(InComp, LGUIBehavioursForAwake);
-				}
+				compArray.Add(InComp);
+			}
+			else
+			{
+				ProcessLGUIComponentLifecycleEvent(InComp);
 			}
 		}
 	}
 }
-void ALGUIManagerActor::AddLGUIBehaviourToArrayWithOrder(ULGUIBehaviour* InComp, TArray<ULGUIBehaviour*>& InArray)
+void ALGUIManagerActor::AddLGUIBehavioursForUpdate(ULGUIBehaviour* InComp)
 {
-#if WITH_EDITOR
-	auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
-#else
-	static auto& lguiBehaviourExecuteOrders = ULGUISettings::GetLGUIBehaviourExecuteOrder();
-#endif
-	//UE_LOG(LGUI, Error, TEXT("executeOrderCount:%d"), lguiBehaviourExecuteOrders.Num());
-	if (lguiBehaviourExecuteOrders.Num() > 0 && InArray.Num() > 0)
+	if (IsValid(InComp))
 	{
-		auto inCompClass = InComp->GetClass();
-		int inCompIndex = INDEX_NONE;
-		if (lguiBehaviourExecuteOrders.Find(inCompClass, inCompIndex))
+		if (auto Instance = GetInstance(InComp->GetWorld(), true))
 		{
-			bool addToArray = false;
-			for (int i = 0; i < InArray.Num(); i++)
+			int32 index = INDEX_NONE;
+			if (!Instance->LGUIBehavioursForUpdate.Find(InComp, index))
 			{
-				auto checkItemClass = InArray[i]->GetClass();
-				int checkItemIndex = INDEX_NONE;
-				if (lguiBehaviourExecuteOrders.Find(checkItemClass, checkItemIndex))//exist, check index
-				{
-					if (inCompIndex > checkItemIndex)
-					{		
-						//addToArray = false;
-						continue;
-					}
-					else
-					{
-						InArray.Insert(InComp, i);
-						addToArray = true;
-						break;
-					}
-				}
-				else//none exist
-				{
-					InArray.Insert(InComp, i);
-					addToArray = true;
-					break;
-				}
+				Instance->LGUIBehavioursForUpdate.Add(InComp);
+				return;
 			}
-			if (!addToArray)
-			{
-				InArray.Add(InComp);
-			}
+			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIBehavioursForUpdate]Already exist, comp:%s"), *(InComp->GetPathName()));
 		}
-		else//class no need reorder
-		{
-			InArray.Add(InComp);
-		}
-	}
-	else
-	{
-		InArray.Add(InComp);
 	}
 }
-void ALGUIManagerActor::RemoveLGUIComponent(ULGUIBehaviour* InComp)
+void ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp)
 {
-	if (auto Instance = GetInstance(InComp->GetWorld()))
+	if (IsValid(InComp))
 	{
-		int32 index = INDEX_NONE;
-		if (Instance->LGUIBehavioursForAwake.Find(InComp, index))
+		if (auto Instance = GetInstance(InComp->GetWorld(), false))
 		{
-			Instance->LGUIBehavioursForAwake.RemoveAt(index);
-			return;
+			auto& updateArray = Instance->LGUIBehavioursForUpdate;
+			int32 index = INDEX_NONE;
+			if (updateArray.Find(InComp, index))
+			{
+				updateArray.RemoveAt(index);
+			}
+			else
+			{
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate]Not exist, comp:%s"), *(InComp->GetPathName()));
+			}
+
+			//cleanup array
+			int inValidCount = 0;
+			for (int i = updateArray.Num() - 1; i >= 0; i--)
+			{
+				if (!updateArray[i].IsValid())
+				{
+					updateArray.RemoveAt(i);
+					inValidCount++;
+				}
+			}
+			if (inValidCount > 0)
+			{
+				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate]Cleanup %d invalid LGUIBehaviour"), inValidCount);
+			}
 		}
-		if (Instance->LGUIBehavioursForEnable.Find(InComp, index))
-		{
-			Instance->LGUIBehavioursForEnable.RemoveAt(index);
-			return;
-		}
-		if (Instance->LGUIBehavioursDisabled.Find(InComp, index))
-		{
-			Instance->LGUIBehavioursDisabled.RemoveAt(index);
-			return;
-		}
-		if (Instance->LGUIBehavioursForStart.Find(InComp, index))
-		{
-			Instance->LGUIBehavioursForStart.RemoveAt(index);
-			return;
-		}
-		if (Instance->LGUIBehavioursForUpdate.Find(InComp, index))
-		{
-			Instance->LGUIBehavioursForUpdate.RemoveAt(index);
-			return;
-		}
-		UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIComponent]not exist, comp:%s"), *(InComp->GetPathName()));
 	}
 }
 
@@ -1089,37 +895,52 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement()
 	auto LGUIBehaviourArray = LGUIBehaviours_PrefabSystemProcessing.Pop().LGUIBehaviourArray;
 	PrefabSystemProcessing_CurrentArrayIndex--;
 
-	//awake
-	scriptExecutingType = ELGUIBehaviourScriptExecutingType::Awake;
 	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
 		auto item = LGUIBehaviourArray[i];
-		//UE_LOG(LGUI, Error, TEXT("Awake count:%d, i:%d, item:%s"), LGUIBehaviourArray.Num(), i, *(item->GetOwner()->GetActorLabel()));
-		if (IsValid(item))
+		if (item.IsValid())
 		{
-			if (item->GetIsActiveAndEnable())
+			ProcessLGUIComponentLifecycleEvent(item.Get());
+		}
+	}
+	LGUIBehaviourArray.Reset();
+}
+void ALGUIManagerActor::ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InComp)
+{
+	if (InComp)
+	{
+		if (auto rootComp = InComp->GetRootComponent())
+		{
+			if (rootComp->IsUIActiveInHierarchy())
 			{
-				//add to Enable array
+				if (!InComp->isAwakeCalled)
 				{
-					if (!LGUIBehavioursForEnable.Contains(item))
+					InComp->Awake();
+				}
+				if (InComp->enable)
+				{
+					if (!InComp->isEnableCalled)
 					{
-						AddLGUIBehaviourToArrayWithOrder(item, LGUIBehavioursForEnable);
-					}
-					else
-					{
-						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::Tick_PrePhysics]trying to add to enable array but already exist! comp:%s"), *(item->GetPathName()));
+						InComp->OnEnable();
 					}
 				}
-				item->Awake();
 			}
-			else
+		}
+		else
+		{
+			if (!InComp->isAwakeCalled)
 			{
-				LGUIBehavioursForAwake.AddUnique(item);
+				InComp->Awake();
+			}
+			if (InComp->enable)
+			{
+				if (!InComp->isEnableCalled)
+				{
+					InComp->OnEnable();
+				}
 			}
 		}
 	}
-
-	scriptExecutingType = ELGUIBehaviourScriptExecutingType::None;
 }
 void ALGUIManagerActor::BeginPrefabSystemProcessingActor(UWorld* InWorld)
 {
@@ -1159,20 +980,20 @@ bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
 	return false;
 }
 
-ULGUIManagerComponent_PrePhysics::ULGUIManagerComponent_PrePhysics()
-{
-	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = true;
-	PrimaryComponentTick.TickGroup = TG_PrePhysics;
-}
-void ULGUIManagerComponent_PrePhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (IsValid(ManagerActor))
-	{
-		ManagerActor->Tick_PrePhysics();
-	}
-}
+//ULGUIManagerComponent_PrePhysics::ULGUIManagerComponent_PrePhysics()
+//{
+//	PrimaryComponentTick.bCanEverTick = true;
+//	PrimaryComponentTick.bStartWithTickEnabled = true;
+//	PrimaryComponentTick.TickGroup = TG_PrePhysics;
+//}
+//void ULGUIManagerComponent_PrePhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+//{
+//	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+//	if (IsValid(ManagerActor))
+//	{
+//		ManagerActor->Tick_PrePhysics();
+//	}
+//}
 
 ULGUIManagerComponent_DuringPhysics::ULGUIManagerComponent_DuringPhysics()
 {
