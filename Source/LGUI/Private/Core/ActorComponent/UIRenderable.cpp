@@ -84,8 +84,19 @@ void UUIRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	{
 		if (Property->GetName() == TEXT("bIsSelfRender"))
 		{
-			if (!bIsSelfRender)
+			if (bIsSelfRender)//prev is not self renderer, then remove this from canvas
 			{
+				if (IsValid(RenderCanvas))
+				{
+					RenderCanvas->RemoveUIRenderable(this);
+				}
+			}
+			else//prev is self renderer, then ui mesh
+			{
+				if (IsValid(RenderCanvas))
+				{
+					RenderCanvas->AddUIRenderable(this);
+				}
 				if (uiMesh.IsValid())//delete ui mesh when not self render
 				{
 					uiMesh->DestroyComponent();
@@ -250,8 +261,19 @@ void UUIRenderable::SetIsSelfRender(bool value)
 	if (bIsSelfRender != value)
 	{
 		bIsSelfRender = value;
-		if (!bIsSelfRender)
+		if (bIsSelfRender)
 		{
+			if (IsValid(RenderCanvas))
+			{
+				RenderCanvas->RemoveUIRenderable(this);
+			}
+		}
+		else
+		{
+			if (IsValid(RenderCanvas))
+			{
+				RenderCanvas->AddUIRenderable(this);
+			}
 			//destroy mesh if not selfrender, because canvas will render it
 			if (uiMesh.IsValid())
 			{
