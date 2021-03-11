@@ -79,13 +79,6 @@ public:
 	/** new created uiitem will use this trace channel; */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI")
 		TEnumAsByte<ETraceTypeQuery> defaultTraceChannel = TraceTypeQuery3;
-	/** 
-	 * default ActorComponent execute order is not predictable, but sometimes we need some components to exeucte as we want.
-	 * this array can make our LGUIBehaviour's lifecycle functions/events execute by the order we want, smaller index will execute earlier.
-	 * eg. if we need class A execute earlier than class B, then we put class B under class A in the array blow. so the execute order is: Awake(A)-->Awake(B)-->OnEnable(A)-->OnEnable(B)-->Start(A)-->Start(B)-->Update(A)-->Update(B)
-	 */
-	UPROPERTY(EditAnywhere, config, Category = "LGUI")
-		TArray<TSubclassOf<ULGUIBehaviour>> LGUIBehaviourExecuteOrder;
 
 	UPROPERTY(EditAnywhere, config, Category = "Rendering")
 		ELGUIScreenSpaceUIAntiAliasing antiAliasing = ELGUIScreenSpaceUIAntiAliasing::Disabled;
@@ -100,7 +93,6 @@ public:
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
 	//static ELGUIAtlasPackingType GetAtlasPackingType(const FName& InPackingTag);
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
-	static const TArray<TSubclassOf<ULGUIBehaviour>>& GetLGUIBehaviourExecuteOrder();
 	static ELGUIScreenSpaceUIAntiAliasing GetAntiAliasingSampleCount();
 private:
 	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)

@@ -12,8 +12,6 @@ class UUIItem;
  * This type of component should be attached to an actor which have UIItem as RootComponent, so the UI's callback will execute (OnUIXXX).
  * I'm trying to make this ULGUIBehaviour more like Unity's MonoBehaviour. You will see it contains function like Awake/Start/Update/OnDestroy/OnEnable/OnDisable.
  * So you should use Awake/Start instead of BeginPlay, Update instead of Tick, OnDestroy instead of EndPlay.
- * When a LGUIBehaviour is created, if GetIsActiveAndEnable=true (enabled and activeInHierarchy), then these event will execute with the order:
- *		Awake-->OnEnable-->Start. In the same frame, all OnEnable will execute after all Awake, all Start will execute after all OnEnable, all Update will execute after all Start.
  */
 UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable, HideCategories=(Activation))
 class LGUI_API ULGUIBehaviour : public UActorComponent
@@ -31,35 +29,58 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUIBehaviour")
 		bool enable = true;
+#if WITH_EDITORONLY_DATA
+	/** This will allow Update function execute in edit mode. */
+	UPROPERTY(EditAnywhere, Category = "LGUIBehaviour")
+		bool executeInEditMode = false;
+	FDelegateHandle EditorTickDelegateHandle;
+#endif
 private:
-	bool isOnDisableCalled = false;
+	uint8 isAwakeCalled : 1;
+	uint8 isStartCalled : 1;
+	uint8 isEnableCalled : 1;
+	bool GetIsRootComponentActive()const;
 protected:
 	friend class ALGUIManagerActor;
 
-	/** Use this for initialization. All Awake is execute before all Start in same frame */
+	/**
+	 * This function is always called before any Start functions and also after a prefab is instantiated.
+	 * This is a good replacement for BeginPlay in LGUI's Prefab workflow. Because Awake will execute after all prefab serialization and object reference is done.
+	 * If a UIItem is inactive during start up, then Awake is not called until it is made active.
+	 */
 	virtual void Awake();
-	/** Executed when GetIsActiveAndEnable state change to true. */
+	/** Executed after Awake when UI set to active and enable is true. */
 	virtual void OnEnable();
-	/** Use this for initialization. All Awake is execute before all Start in same frame */
+	/** Start is called before the first frame update only if UI is active and enable is true. */
 	virtual void Start();
-	/** Update is called once per frame. */
+	/** Update is called once per frame if if UI is active and enable is true. */
 	virtual void Update(float DeltaTime);
-	/** Executed when GetIsActiveAndEnable state change to false. */
+	/** Executed when UI is active or enable become false. */
 	virtual void OnDisable();
-	/** Executed when this behaviour is destroyed. */
+	/**
+	 * Executed when this behaviour is destroyed.
+	 * If Awake is not executed, then OnDestroy won't execute too.
+	 */
 	virtual void OnDestroy();
 
-	/** Use this for initialization. All Awake is execute before all Start in same frame */
+	/**
+	 * This function is always called before any Start functions and also after a prefab is instantiated.
+	 * This is a good replacement for BeginPlay in LGUI's Prefab workflow. Because Awake will execute after all prefab serialization and object reference is done.
+	 * If a UIItem is inactive during start up, then Awake is not called until it is made active.
+	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Awake"), Category = "LGUIBehaviour")void AwakeBP();
-	/** Executed when GetIsActiveAndEnable state change to true. */
+	/** Executed after Awake when UI set to active and enable is true. */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnEnable"), Category = "LGUIBehaviour")void OnEnableBP();
-	/** Use this for initialization. All Awake is execute before all Start in same frame */
+	/** Start is called before the first frame update only if UI is active and enable is true. */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Start"), Category = "LGUIBehaviour")void StartBP();
-	/** Update is called once per frame. */
+	/** Update is called once per frame if if UI is active and enable is true. */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Update"), Category = "LGUIBehaviour")void UpdateBP(float DeltaTime);
 	/** Executed when GetIsActiveAndEnable state change to false. */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDisable"), Category = "LGUIBehaviour")void OnDisableBP();
-	/** Executed when this behaviour is destroyed. */
+	/**
+	 * Executed when this behaviour is destroyed.
+	 * If Awake is not executed, then OnDestroy won't execute too.
+	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDestroy"), Category = "LGUIBehaviour")void OnDestroyBP();
 
 public:
@@ -94,7 +115,7 @@ protected:
 	bool CheckRootUIComponent() const;
 	
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
-	virtual void OnUIActiveInHierachy(bool activeOrInactive) { OnUIActiveInHierarchyBP(activeOrInactive); }
+	virtual void OnUIActiveInHierachy(bool activeOrInactive);
 	/** 
 	 * Called when RootUIComp->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
 	 * @param positionChanged	relative position
