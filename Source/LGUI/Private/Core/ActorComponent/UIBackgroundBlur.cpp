@@ -13,6 +13,7 @@
 #include "Core/LGUISettings.h"
 #include "RenderTargetPool.h"
 #include "Core/UIPostProcessRenderProxy.h"
+#include "Rendering/Texture2DResource.h"
 
 UUIBackgroundBlur::UUIBackgroundBlur(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
