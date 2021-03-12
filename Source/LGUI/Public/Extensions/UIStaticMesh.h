@@ -31,13 +31,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UStaticMesh* mesh;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UIStaticMeshVertexColorType vertexColorType = UIStaticMeshVertexColorType::MultiplyWithUIColor;
+		UIStaticMeshVertexColorType vertexColorType = UIStaticMeshVertexColorType::NotAffectByUIColor;
 	
 	virtual bool HaveDataToCreateGeometry()override;
 	virtual bool NeedTextureToCreateGeometry()override { return false; }
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual void UpdateSelfRenderMaterial(bool textureChange, bool materialChange)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 
 		UStaticMesh* GetMesh()const { return mesh; }

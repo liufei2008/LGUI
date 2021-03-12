@@ -121,7 +121,7 @@ protected:
 	/** created material */
 	TWeakObjectPtr<UMaterialInstanceDynamic> uiMaterial;
 	void UpdateSelfRenderDrawcall();
-	void UpdateSelfRenderMaterial(bool textureChange, bool materialChange);
+	virtual void UpdateSelfRenderMaterial(bool textureChange, bool materialChange);
 	void ClearSelfRenderMaterial();
 private:
 	/** local vertex position changed */

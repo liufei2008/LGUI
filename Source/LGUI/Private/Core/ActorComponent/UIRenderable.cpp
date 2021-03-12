@@ -562,31 +562,34 @@ void UUIRenderable::UpdateSelfRenderDrawcall()
 }
 void UUIRenderable::UpdateSelfRenderMaterial(bool textureChange, bool materialChange)
 {
-	if (materialChange)
+	if (uiMesh.IsValid())
 	{
-		UMaterialInterface* SrcMaterial = CustomUIMaterial;
-		if (!IsValid(SrcMaterial))
+		if (materialChange)
 		{
-			SrcMaterial = LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/LGUI_Standard"));
+			UMaterialInterface* SrcMaterial = CustomUIMaterial;
+			if (!IsValid(SrcMaterial))
+			{
+				SrcMaterial = LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/LGUI_Standard"));
+			}
+			UMaterialInstanceDynamic* uiMat = nullptr;
+			if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
+			{
+				uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
+			}
+			else
+			{
+				uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
+				uiMat->SetFlags(RF_Transient);
+			}
+			uiMesh->SetMaterial(0, uiMat);
+			uiMaterial = uiMat;
 		}
-		UMaterialInstanceDynamic* uiMat = nullptr;
-		if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
+		if (textureChange)
 		{
-			uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
-		}
-		else
-		{
-			uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
-			uiMat->SetFlags(RF_Transient);
-		}
-		uiMesh->SetMaterial(0, uiMat);
-		uiMaterial = uiMat;
-	}
-	if (textureChange)
-	{
-		if (uiMaterial.IsValid())
-		{
-			uiMaterial->SetTextureParameterValue(FName("MainTexture"), GetTextureToCreateGeometry());
+			if (uiMaterial.IsValid())
+			{
+				uiMaterial->SetTextureParameterValue(FName("MainTexture"), GetTextureToCreateGeometry());
+			}
 		}
 	}
 }

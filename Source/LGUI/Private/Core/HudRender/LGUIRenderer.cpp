@@ -135,6 +135,64 @@ void FLGUIViewExtension::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList
 	RHICmdList.SetStreamSource(0, GLGUIFullScreenQuadVertexBuffer.VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
 }
+void FLGUIViewExtension::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material)
+{
+	EBlendMode BlendMode = Material->GetBlendMode();
+	switch (BlendMode)
+	{
+	default:
+	case BLEND_Opaque:
+		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+		break;
+	case BLEND_Masked:
+		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+		break;
+	case BLEND_Translucent:
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_InverseDestAlpha, BF_One>::GetRHI();
+		break;
+	case BLEND_Additive:
+		// Add to the existing scene color
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_One, BO_Add, BF_One, BF_One>::GetRHI();
+		break;
+	case BLEND_Modulate:
+		// Modulate with the existing scene color
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_Zero, BF_SourceColor>::GetRHI();
+		break;
+	case BLEND_AlphaComposite:
+		// Blend with existing scene color. New color is already pre-multiplied by alpha.
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
+		break;
+	case BLEND_AlphaHoldout:
+		// Blend by holding out the matte shape of the source alpha
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_Zero, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI();
+		break;
+	};
+
+	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+	
+	if (!Material->IsWireframe())
+	{
+		if (Material->IsTwoSided())
+		{
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+		}
+		else
+		{
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_CW, false>::GetRHI();
+		}
+	}
+	else
+	{
+		if (Material->IsTwoSided())
+		{
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_None, true>::GetRHI();
+		}
+		else
+		{
+			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_CW, true>::GetRHI();
+		}
+	}
+}
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
 void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
@@ -210,8 +268,6 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
 	FGraphicsPipelineStateInitializer GraphicsPSOInit;
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-	GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 	GraphicsPSOInit.NumSamples = MultiSampleCount;
 
 	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
@@ -244,7 +300,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 					FLGUIHudRenderPS* PixelShader = (FLGUIHudRenderPS*)MaterialShaderMap->GetShader(&FLGUIHudRenderPS::StaticType);
 					if (VertexShader && PixelShader)
 					{
-						PixelShader->SetBlendState(GraphicsPSOInit, Material);
+						SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
 
 						GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
 						GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(VertexShader);
