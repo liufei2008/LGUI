@@ -53,6 +53,7 @@ public:
 		FRHICommandListImmediate& RHICmdList
 	);
 private:
+	void SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material);
 	void SortRenderPriority_RenderThread();
 	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
