@@ -8,6 +8,8 @@
 #include "LTweenBPLibrary.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
+DECLARE_CYCLE_STAT(TEXT("UILayout GridRebuildLayout"), STAT_GridLayout, STATGROUP_LGUI);
+
 void UUIGridLayout::SetPadding(FMargin value)
 {
 	if (Padding != value)
@@ -83,6 +85,7 @@ void UUIGridLayout::SetHeightFitToChildren(bool value)
 
 void UUIGridLayout::OnRebuildLayout()
 {
+	SCOPE_CYCLE_COUNTER(STAT_GridLayout);
 	if (!CheckRootUIComponent())return;
 	if (!enable)return;
 	FVector2D startPosition;

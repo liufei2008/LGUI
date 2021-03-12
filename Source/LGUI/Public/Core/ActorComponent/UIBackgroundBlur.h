@@ -24,8 +24,6 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-#define MAX_BlurStrength 100.0f
-#define INV_MAX_BlurStrength 0.01f
 	/** Blur effect strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 100.0f))
 		float blurStrength = 10.0f;

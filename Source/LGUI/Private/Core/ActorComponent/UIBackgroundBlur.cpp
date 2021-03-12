@@ -56,6 +56,8 @@ void UUIBackgroundBlur::MarkAllDirtyRecursive()
 	SendOthersDataToRenderProxy();
 }
 
+#define MAX_BlurStrength 100.0f
+#define INV_MAX_BlurStrength 0.01f
 
 DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundBlur"), STAT_BackgroundBlur, STATGROUP_LGUI);
 class FUIBackgroundBlurRenderProxy : public FUIPostProcessRenderProxy

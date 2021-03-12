@@ -25,8 +25,6 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-#define MAX_PixelateStrength 100.0f
-#define INV_MAX_PixelateStrength 0.01f
 	/** Pixelate effect strength. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 100.0f))
 		float pixelateStrength = 10.0f;

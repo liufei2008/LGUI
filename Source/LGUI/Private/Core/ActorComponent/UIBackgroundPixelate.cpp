@@ -71,6 +71,10 @@ float UUIBackgroundPixelate::GetStrengthInternal()
 	return pixelateStrength;
 }
 
+
+#define MAX_PixelateStrength 100.0f
+#define INV_MAX_PixelateStrength 0.01f
+
 DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundPixelate"), STAT_BackgroundPixelate, STATGROUP_LGUI);
 class FUIBackgroundPixelateRenderProxy :public FUIPostProcessRenderProxy
 {

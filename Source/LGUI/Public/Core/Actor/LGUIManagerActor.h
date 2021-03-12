@@ -27,7 +27,6 @@ public:
 	static ULGUIEditorManagerObject* Instance;
 	ULGUIEditorManagerObject();
 	virtual void BeginDestroy()override;
-	static ULGUIEditorManagerObject* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 public:
 	//begin TickableEditorObject interface
 	virtual void Tick(float DeltaTime)override;
@@ -59,6 +58,7 @@ protected:
 private:
 	static bool InitCheck(UWorld* InWorld);
 public:
+	static ULGUIEditorManagerObject* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	static bool IsSelected(AActor* InObject);
 	static bool AnySelectedIsChildOf(AActor* InObject);
 	void CheckEditorViewportIndexAndKey();
@@ -90,8 +90,8 @@ private:
 	bool IsCalculatingSelection = false;
 	FDelegateHandle OnSelectionChangedDelegateHandle;
 	TArray<FHitResult> CacheHitResultArray;
-	UPROPERTY(Transient)TWeakObjectPtr<UUIRenderable> LastSelectTarget;
-	UPROPERTY(Transient)TWeakObjectPtr<AActor> LastSelectedActor;
+	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
+	TWeakObjectPtr<AActor> LastSelectedActor;
 	void OnSelectionChanged(UObject* newSelection);
 	FDelegateHandle OnAssetReimportDelegateHandle;
 	void OnAssetReimport(UObject* asset);

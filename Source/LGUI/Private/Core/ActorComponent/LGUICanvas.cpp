@@ -501,7 +501,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 	}
 	else
 	{
-		//@todo: still have some room to optimize
 #if SHOULD_LOG_RebuildAllDrawcall
 		UE_LOG(LGUI, Log, TEXT("AddUIRenderable rebuildDrawcall"));
 #endif
@@ -517,7 +516,6 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 	}
 	else
 	{
-		//@todo: still have some room to optimize
 #if SHOULD_LOG_RebuildAllDrawcall
 		UE_LOG(LGUI, Log, TEXT("RemoveUIRenderable rebuildDrawcall"));
 #endif
@@ -900,7 +898,6 @@ void ULGUICanvas::SortCanvasOnOrder()
 }
 void ULGUICanvas::SortDrawcallRenderPriority()
 {
-	//@todo: sort seperately on world/screen UI.
 	auto& allCanvasArray = GetAllCanvasArray();
 	if (allCanvasArray.Num() == 0)return;
 	//set drawcall render order

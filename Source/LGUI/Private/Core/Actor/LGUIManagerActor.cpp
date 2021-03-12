@@ -44,15 +44,6 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
-{
-	if (CreateIfNotValid)
-	{
-		InitCheck(InWorld);
-	}
-	return Instance;
-}
-
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
 #if WITH_EDITORONLY_DATA
@@ -80,6 +71,14 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 bool ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 #endif
 #if WITH_EDITOR
+ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
+{
+	if (CreateIfNotValid)
+	{
+		InitCheck(InWorld);
+	}
+	return Instance;
+}
 bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 {
 	if (Instance == nullptr)
