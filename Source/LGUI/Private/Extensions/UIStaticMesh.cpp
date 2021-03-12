@@ -8,11 +8,13 @@
 #include "StaticMeshResources.h"
 #include "Rendering/ColorVertexBuffer.h"
 #include "LGUI.h"
+#include "Core/LGUIMesh/UIDrawcallMesh.h"
 
 
 UUIStaticMesh::UUIStaticMesh(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bIsSelfRender = true;
 }
 
 bool UUIStaticMesh::HaveDataToCreateGeometry()
@@ -135,7 +137,11 @@ void UUIStaticMesh::OnCreateGeometry()
 			}
 		}
 	}
-	if (!CustomUIMaterial)
+	if (CustomUIMaterial)
+	{
+		geometry->material = CustomUIMaterial;
+	}
+	else
 	{
 		geometry->material = mesh->GetMaterial(0);
 	}
@@ -205,6 +211,27 @@ void UUIStaticMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertex
 		//UIGeometry::UpdateUIMeshVertex(geometry, widget.width, widget.height, widget.pivot, startAngle, endAngle, segment);
 	}
 }
+
+void UUIStaticMesh::UpdateSelfRenderMaterial(bool textureChange, bool materialChange)
+{
+	if (uiMesh.IsValid())
+	{
+		if (materialChange)
+		{
+			UMaterialInterface* SrcMaterial = CustomUIMaterial;
+			if (!IsValid(SrcMaterial))
+			{
+				SrcMaterial = mesh->GetMaterial(0);
+				if (!IsValid(SrcMaterial))
+				{
+					SrcMaterial = LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/LGUI_Standard"));
+				}
+			}
+			uiMesh->SetMaterial(0, SrcMaterial);
+		}
+	}
+}
+
 void UUIStaticMesh::SetMesh(UStaticMesh* value)
 {
 	if (mesh != value)

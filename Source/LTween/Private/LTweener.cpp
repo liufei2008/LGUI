@@ -244,12 +244,13 @@ void ULTweener::ForceComplete()
 float ULTweener::CurveFloat(float c, float b, float t, float d)
 {
 	if (d < KINDA_SMALL_NUMBER)return c + b;
-	if (curveFloat != nullptr)
+	if (curveFloat.IsValid())
 	{
 		return curveFloat->GetFloatValue(t / d) * c + b;
 	}
 	else
 	{
+		UE_LOG(LTween, Warning, TEXT("[ULTweener::CurveFloat]CurveFloat not valid! Fallback to linear. You should always call SetCurveFloat(and pass a valid curve) if set Easetype to CurveFloat."));
 		return Linear(c, b, t, d);
 	}
 }

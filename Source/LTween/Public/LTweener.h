@@ -127,7 +127,7 @@ protected:
 	/** t, elapse time */
 	float elapseTime = 0.0f;
 	/** use CurveFloat as animation function,horizontal is time (0-1),vertical is value (0-1) */
-	UPROPERTY(Transient) UCurveFloat* curveFloat = nullptr;
+	TWeakObjectPtr<UCurveFloat> curveFloat = nullptr;
 	/** loop type */
 	LTweenLoop loopType = LTweenLoop::Once;
 	/** if loopType = Yoyo, reverse time */
