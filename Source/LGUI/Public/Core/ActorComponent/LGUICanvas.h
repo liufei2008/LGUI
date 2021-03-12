@@ -242,10 +242,13 @@ protected:
 	FORCEINLINE bool GetOverrideClipType()const						{ return overrideParameters & (1 << 3); }
 	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << 4); }
 public:
+	/** Set render mode of this canvas. This may not take effect if the canvas is not a root cnavas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderMode(ELGUIRenderMode value);
+	/** Set pixel perfect of this canvas. This may not take effect if the canvas is not a root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetPixelPerfect(bool value);
+	/** Set parameters for calculating projection matrix. Only valid for ScreenSpace/RenderTarget mode. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Type> InProjectionType, float InFovAngle, float InNearClipPlane, float InFarClipPlane);
 	/** if renderMode is RenderTarget, then this will change the renderTarget */
@@ -279,16 +282,32 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas = true);
 
+	/** Get actural render mode of canvas. Actually canvas's render mode property is inherit from root canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ELGUIRenderMode GetActualRenderMode()const;
+	/** Get render mode of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUIRenderMode GetRenderMode()const { return renderMode; }
+	/** Get pixel perfect of canvas. Actually canvas's pixel perfect property is inherit from root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetPixelPerfect()const;
+		bool GetActualPixelPerfect()const;
+	/** Get pixel perfect of this canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetPixelPerfect()const { return pixelPerfect; }
+	/** Get render target of canvas if render mode is RenderTarget. Actually canvas's render target property is inherit from root canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		UTextureRenderTarget2D* GetActualRenderTarget()const;
+	/** Get render target of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTextureRenderTarget2D* GetRenderTarget()const { return renderTarget; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return sortOrder; }
+	/** Get clip type of canvas. Actually canvas's clip type property is inherit from root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ELGUICanvasClipType GetClipType()const;
+		ELGUICanvasClipType GetActualClipType()const;
+	/** Get clip type of this canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ELGUICanvasClipType GetClipType()const { return clipType; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector2D GetClipFeather()const { return clipFeather; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -306,11 +325,15 @@ public:
 		bool GetRequireUV2()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetRequireUV3()const;
+	/** Get the shader channel flags of canvas. Actually canvas's additional shader channel flags property is inherit from root canvas. */
+	int8 GetActualAdditionalShaderChannelFlags()const;
 	/** return calculated additional-shaderchannel-flags, not just the property value, but take consider the overrideParameters */
-	int8 GetAdditionalShaderChannelFlags()const;
+	int8 GetAdditionalShaderChannelFlags()const { return additionalShaderChannels; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetDynamicPixelsPerUnit()const;
+		float GetActualDynamicPixelsPerUnit()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetDynamicPixelsPerUnit()const { return dynamicPixelsPerUnit; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetDynamicPixelsPerUnit(float newValue);
 
