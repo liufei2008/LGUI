@@ -7,7 +7,7 @@ bool ULGUI_ScreenSpaceUIMouseRayemitter::EmitRay(ULGUIPointerEventData* InPointe
 {
 	if (!IsValid(RenderCanvas))
 		return false;
-	if (RenderCanvas->GetRenderMode() == ELGUIRenderMode::WorldSpace)
+	if (RenderCanvas->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
 		return false;
 
 	auto ViewProjectionMatrix = RenderCanvas->GetViewProjectionMatrix();

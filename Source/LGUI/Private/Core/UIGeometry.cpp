@@ -224,7 +224,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	originPositions[2] = FVector(minX, maxY, 0);
 	originPositions[3] = FVector(maxX, maxY, 0);
 	//snap pixel
-	if (renderCanvas->GetPixelPerfect())
+	if (renderCanvas->GetActualPixelPerfect())
 	{
 		AdjustPixelPerfectPos(originPositions, 0, uiGeo->originVerticesCount, renderCanvas, uiComp);
 	}
@@ -410,7 +410,7 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 	originPositions[15] = FVector(x3, y3, 0);
 
 	//snap pixel
-	if (renderCanvas->GetPixelPerfect())
+	if (renderCanvas->GetActualPixelPerfect())
 	{
 		AdjustPixelPerfectPos(originPositions, 0, uiGeo->originVerticesCount, renderCanvas, uiComp);
 	}
@@ -545,7 +545,7 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 		y += spriteInfo.height;
 	}
 	//snap pixel
-	if (renderCanvas->GetPixelPerfect())
+	if (renderCanvas->GetActualPixelPerfect())
 	{
 		AdjustPixelPerfectPos(originPositions, 0, uiGeo->originVerticesCount, renderCanvas, uiComp);
 	}
@@ -652,7 +652,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(float& width, float& h
 		originPositions[3] = FVector(posMaxX, posMaxY, 0);
 
 		//snap pixel
-		if (renderCanvas->GetPixelPerfect())
+		if (renderCanvas->GetActualPixelPerfect())
 		{
 			AdjustPixelPerfectPos(originPositions, 0, uiGeo->originVerticesCount, renderCanvas, uiComp);
 
@@ -831,7 +831,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(float& width, float& height, con
 		originPositions[2] = FVector(posMinX, posMaxY, 0);
 		originPositions[3] = FVector(posMaxX, posMaxY, 0);
 		//snap pixel
-		if (renderCanvas->GetPixelPerfect())
+		if (renderCanvas->GetActualPixelPerfect())
 		{
 			AdjustPixelPerfectPos(originPositions, 0, uiGeo->originVerticesCount, renderCanvas, uiComp);
 
@@ -1277,7 +1277,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(float& width, float& height, co
 		originPositions[2] = FVector(posMinX, posMaxY, 0);
 		originPositions[3] = FVector(posMaxX, posMaxY, 0);
 		//snap pixel
-		if (renderCanvas->GetPixelPerfect())
+		if (renderCanvas->GetActualPixelPerfect())
 		{
 			AdjustPixelPerfectPos(originPositions, 0, uiGeo->originVerticesCount - 1, renderCanvas, uiComp);
 
@@ -1862,7 +1862,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(float& width, float& height, co
 		originPositions[6] = FVector(posMinX, posMaxY, 0);
 		originPositions[8] = FVector(posMaxX, posMaxY, 0);
 		//snap pixel
-		if (renderCanvas->GetPixelPerfect())
+		if (renderCanvas->GetActualPixelPerfect())
 		{
 			AdjustPixelPerfectPos_For_UIRectFillRadial360(originPositions, renderCanvas, uiComp);
 
@@ -2367,8 +2367,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 {
 	FString content = text;
 
-	bool pixelPerfect = renderCanvas->GetPixelPerfect();
-	float dynamicPixelsPerUnit = renderCanvas->GetDynamicPixelsPerUnit();
+	bool pixelPerfect = renderCanvas->GetActualPixelPerfect();
+	float dynamicPixelsPerUnit = renderCanvas->GetActualDynamicPixelsPerUnit();
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
