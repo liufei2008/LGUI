@@ -186,7 +186,7 @@ public:
 
 				auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 				float calculatedBlurStrength = FMath::Pow(blurStrength * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more linear
-				calculatedBlurStrength = blurStrength * inv_SampleLevelInterval;
+				calculatedBlurStrength = calculatedBlurStrength * inv_SampleLevelInterval;
 				float calculatedBlurStrength2 = 1.0f;
 				int sampleCount = (int)calculatedBlurStrength + 1;
 				for (int i = 0; i < sampleCount; i++)

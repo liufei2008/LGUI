@@ -59,7 +59,7 @@ private:
 	TWeakObjectPtr<ULGUICanvas> UICanvas;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
-	TRefCountPtr<IPooledRenderTarget> SceneColorRenderTarget;
+	bool bCanRender = true;
 	uint16 MultiSampleCount = 0;
 
 	FVector ViewLocation;
