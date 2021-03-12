@@ -746,7 +746,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						auto& meshSection = uiMesh->MeshSection;
 						meshSection.Reset();
 						UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
-						uiMesh->GenerateOrUpdateMesh(true, GetAdditionalShaderChannelFlags());
+						uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
 					}
 
 					UIDrawcallPrimitiveList[i].UIDrawcallMesh = uiMesh;
@@ -812,7 +812,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 							auto& meshSection = uiMesh->MeshSection;
 							meshSection.Reset();
 							uiDrawcall->GetCombined(meshSection.vertices, meshSection.triangles);
-							uiMesh->GenerateOrUpdateMesh(true, GetAdditionalShaderChannelFlags());
+							uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
 							uiDrawcall->needToBeRebuild = false;
 							uiDrawcall->needToUpdateVertex = false;
 							needToSortRenderPriority = true;
@@ -821,7 +821,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						{
 							auto& meshSection = uiMesh->MeshSection;
 							uiDrawcall->UpdateData(meshSection.vertices, meshSection.triangles);
-							uiMesh->GenerateOrUpdateMesh(uiDrawcall->vertexPositionChanged, GetAdditionalShaderChannelFlags());
+							uiMesh->GenerateOrUpdateMesh(uiDrawcall->vertexPositionChanged, GetActualAdditionalShaderChannelFlags());
 							uiDrawcall->needToUpdateVertex = false;
 							uiDrawcall->vertexPositionChanged = false;
 						}
@@ -965,7 +965,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 	}
 	//check if material count is enough, or create enough material
 	int materialCount = UIMaterialList.Num();
-	auto tempClipType = GetClipType();
+	auto tempClipType = GetActualClipType();
 	if (materialCount < drawcallCount)
 	{
 		cacheForThisUpdate_ClipTypeChanged = true;//mark to true, set materials clip property
@@ -1074,7 +1074,7 @@ void ULGUICanvas::SetParameterForTextureClip(int drawcallCount)
 bool ULGUICanvas::IsPointVisible(FVector worldPoint)
 {
 	//if not use clip or use texture clip, then point is visible. texture clip not support this calculation yet.
-	switch (GetClipType())
+	switch (GetActualClipType())
 	{
 	case ELGUICanvasClipType::None:
 		return true;
@@ -1109,7 +1109,7 @@ void ULGUICanvas::CalculateRectRange()
 		rectMax.X = (1.0f - widget.pivot.X) * widget.width;
 		rectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
 		//calculate parent rect range
-		if (inheritRectClip && IsValid(ParentCanvas) && ParentCanvas->GetClipType() == ELGUICanvasClipType::Rect)
+		if (inheritRectClip && IsValid(ParentCanvas) && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)
 		{
 			ParentCanvas->CalculateRectRange();
 			auto parentRectMin = FVector(ParentCanvas->rectMin, 0);
@@ -1338,7 +1338,7 @@ void ULGUICanvas::SetDynamicPixelsPerUnit(float newValue)
 		MarkRebuildAllDrawcall();
 	}
 }
-float ULGUICanvas::GetDynamicPixelsPerUnit()const
+float ULGUICanvas::GetActualDynamicPixelsPerUnit()const
 {
 	if (IsRootCanvas())
 	{
@@ -1354,13 +1354,13 @@ float ULGUICanvas::GetDynamicPixelsPerUnit()const
 		{
 			if (IsValid(ParentCanvas))
 			{
-				return ParentCanvas->GetDynamicPixelsPerUnit();
+				return ParentCanvas->GetActualDynamicPixelsPerUnit();
 			}
 		}
 	}
 	return dynamicPixelsPerUnit;
 }
-ELGUICanvasClipType ULGUICanvas::GetClipType()const
+ELGUICanvasClipType ULGUICanvas::GetActualClipType()const
 {
 	if (IsRootCanvas())
 	{
@@ -1376,14 +1376,14 @@ ELGUICanvasClipType ULGUICanvas::GetClipType()const
 		{
 			if (IsValid(ParentCanvas))
 			{
-				return ParentCanvas->GetClipType();
+				return ParentCanvas->GetActualClipType();
 			}
 		}
 	}
 	return clipType;
 }
 
-int8 ULGUICanvas::GetAdditionalShaderChannelFlags()const
+int8 ULGUICanvas::GetActualAdditionalShaderChannelFlags()const
 {
 	if (IsRootCanvas())
 	{
@@ -1399,7 +1399,7 @@ int8 ULGUICanvas::GetAdditionalShaderChannelFlags()const
 		{
 			if (IsValid(ParentCanvas))
 			{
-				return ParentCanvas->GetAdditionalShaderChannelFlags();
+				return ParentCanvas->GetActualAdditionalShaderChannelFlags();
 			}
 		}
 	}
@@ -1407,23 +1407,23 @@ int8 ULGUICanvas::GetAdditionalShaderChannelFlags()const
 }
 bool ULGUICanvas::GetRequireNormal()const 
 {
-	return GetAdditionalShaderChannelFlags() & (1 << 0);
+	return GetActualAdditionalShaderChannelFlags() & (1 << 0);
 }
 bool ULGUICanvas::GetRequireTangent()const 
 { 
-	return GetAdditionalShaderChannelFlags() & (1 << 1);
+	return GetActualAdditionalShaderChannelFlags() & (1 << 1);
 }
 bool ULGUICanvas::GetRequireUV1()const 
 { 
-	return GetAdditionalShaderChannelFlags() & (1 << 2);
+	return GetActualAdditionalShaderChannelFlags() & (1 << 2);
 }
 bool ULGUICanvas::GetRequireUV2()const 
 {
-	return GetAdditionalShaderChannelFlags() & (1 << 3);
+	return GetActualAdditionalShaderChannelFlags() & (1 << 3);
 }
 bool ULGUICanvas::GetRequireUV3()const 
 { 
-	return GetAdditionalShaderChannelFlags() & (1 << 4);
+	return GetActualAdditionalShaderChannelFlags() & (1 << 4);
 }
 
 
@@ -1617,7 +1617,22 @@ void ULGUICanvas::SetRenderTarget(UTextureRenderTarget2D* value)
 	}
 }
 
-bool ULGUICanvas::GetPixelPerfect()const
+ELGUIRenderMode ULGUICanvas::GetActualRenderMode()const
+{
+	if (IsRootCanvas())
+	{
+		return this->renderMode;
+	}
+	else
+	{
+		if (IsValid(TopMostCanvas))
+		{
+			return TopMostCanvas->renderMode;
+		}
+	}
+	return ELGUIRenderMode::WorldSpace;
+}
+bool ULGUICanvas::GetActualPixelPerfect()const
 {
 	if (IsRootCanvas())
 	{
@@ -1638,10 +1653,25 @@ bool ULGUICanvas::GetPixelPerfect()const
 				if (IsValid(ParentCanvas))
 				{
 					return TopMostCanvas->currentIsRenderToRenderTargetOrWorld
-						&& ParentCanvas->GetPixelPerfect();
+						&& ParentCanvas->GetActualPixelPerfect();
 				}
 			}
 		}
 	}
 	return false;
+}
+UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
+{
+	if (IsRootCanvas())
+	{
+		return this->renderTarget;
+	}
+	else
+	{
+		if (IsValid(TopMostCanvas))
+		{
+			return TopMostCanvas->renderTarget;
+		}
+	}
+	return nullptr;
 }

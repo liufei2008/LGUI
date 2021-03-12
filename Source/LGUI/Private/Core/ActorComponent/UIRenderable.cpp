@@ -556,7 +556,7 @@ void UUIRenderable::UpdateSelfRenderDrawcall()
 			meshSection.vertices = geometry->vertices;
 			meshSection.triangles = geometry->triangles;
 			uiMesh->SetUIMeshVisibility(true);
-			uiMesh->GenerateOrUpdateMesh(true, RenderCanvas->GetRootCanvas()->GetAdditionalShaderChannelFlags());
+			uiMesh->GenerateOrUpdateMesh(true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
 		}
 	}
 }
