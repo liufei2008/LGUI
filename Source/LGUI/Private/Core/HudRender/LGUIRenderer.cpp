@@ -54,12 +54,35 @@ FLGUIViewExtension::~FLGUIViewExtension()
 
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
+	bCanRender = false;
+
 	if (!UICanvas.IsValid())return;
+	if (!World.IsValid())return;
+#if WITH_EDITOR
+	if (ALGUIManagerActor::IsPlaying == IsEditorPreview)return;
+	if (ALGUIManagerActor::IsPlaying)
+	{
+		if (!InView.bIsGameView)return;
+		//if (InView.State->GetViewKey() == EditorPreview_ViewKey)return;
+	}
+	else//editor viewport preview
+	{
+		if (InView.GetViewKey() != EditorPreview_ViewKey)return;//only preview in specific viewport in editor
+	}
+	//simulation
+	if (GEngine == nullptr)return;
+	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
+	{
+		if (editor->bIsSimulatingInEditor)return;
+	}
+#endif
+
 	ViewLocation = UICanvas->GetViewLocation();
 	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
 	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
 	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
+	bCanRender = true;
 }
 void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
@@ -198,29 +221,13 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
-	if (!World.IsValid())return;
+	if (!bCanRender)return;
+	//the following two lines can prevent duplicated ui in viewport when "Number of Players" > 1
 	if (InView.Family == nullptr || InView.Family->Scene == nullptr || InView.Family->Scene->GetWorld() == nullptr)return;
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
-#if WITH_EDITOR
-	if (ALGUIManagerActor::IsPlaying == IsEditorPreview)return;
-	if (ALGUIManagerActor::IsPlaying)
-	{
-		if (!InView.bIsGameView)return;
-		//if (InView.State->GetViewKey() == EditorPreview_ViewKey)return;
-	}
-	else//editor viewport preview
-	{
-		if (InView.GetViewKey() != EditorPreview_ViewKey)return;//only preview in specific viewport in editor
-	}
-	//simulation
-	if (GEngine == nullptr)return;
-	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
-	{
-		if (editor->bIsSimulatingInEditor)return;
-	}
-#endif
 
 	//create render target
+	TRefCountPtr<IPooledRenderTarget> SceneColorRenderTarget;
 	{
 		FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(InView.UnscaledViewRect.Size(), InView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 		desc.NumSamples = MultiSampleCount;
