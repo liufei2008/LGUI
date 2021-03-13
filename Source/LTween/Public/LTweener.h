@@ -290,12 +290,7 @@ public:
 	 * Set CurveFloat as animation curve.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LTween")
-		ULTweener* SetCurveFloat(UCurveFloat* newCurveFloat)
-	{
-		curveFloat = newCurveFloat;
-		return this;
-	}
-
+		ULTweener* SetCurveFloat(UCurveFloat* newCurveFloat);
 	/**
 	 * @return false: the tween need to be killed. true: don't kill the tween, still alive.
 	 */
