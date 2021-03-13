@@ -116,6 +116,12 @@ ULTweener* ULTweener::SetEaseCurve(UCurveFloat* newCurve)
 	return this;
 }
 
+ULTweener* ULTweener::SetCurveFloat(UCurveFloat* newCurveFloat)
+{
+	curveFloat = newCurveFloat;
+	return this;
+}
+
 bool ULTweener::ToNext(float deltaTime)
 {
 	if (isMarkedToKill)return false;
