@@ -300,6 +300,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 	GEditor->BeginTransaction(LOCTEXT("DuplicateActor", "LGUI Duplicate Actors"));
 	for (auto item : rootActorList)
 	{
+		MakeCurrentLevel(item);
 		auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(item);
 		AActor* copiedActor;
 		if (item->GetAttachParentActor())
@@ -764,7 +765,7 @@ void LGUIEditorTools::MakeCurrentLevel(AActor* InActor)
 		{
 			if (!InActor->GetWorld()->GetCurrentLevel()->bLocked)
 			{
-				if (InActor->GetLevel()->IsCurrentLevel())
+				if (!InActor->GetLevel()->IsCurrentLevel())
 				{
 					InActor->GetWorld()->SetCurrentLevel(InActor->GetLevel());
 				}
