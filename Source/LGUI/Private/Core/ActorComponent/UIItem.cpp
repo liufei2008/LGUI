@@ -959,12 +959,25 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 		SetHeight(inWidget.height);
 	}
 }
-void UUIItem::SetDepth(int32 depth) {
+void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 	if (widget.depth != depth)
 	{
 		bDepthChanged = true;
 		MarkCanvasUpdate();
+		int32 diff = depth - widget.depth;
 		widget.depth = depth;
+		if (propagateToChildren)
+		{
+			auto children = this->cacheUIChildren;
+			for (int i = 0; i < children.Num(); i++)
+			{
+				auto child = children[i];
+				if (IsValid(child))
+				{
+					child->SetDepth(child->widget.depth + diff, propagateToChildren);
+				}
+			}
+		}
 	}
 }
 void UUIItem::SetColor(FColor color) {

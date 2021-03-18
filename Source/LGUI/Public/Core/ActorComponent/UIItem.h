@@ -149,9 +149,12 @@ public:
 		const FUIWidget& GetWidget()const { return widget; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetWidget(const FUIWidget& inWidget);
-
+	/**
+	 * Set UIItem depth.
+	 * @param	propagateToChildren	if true, set this UIItem's depth and all UIItems that is attached to this UIItem, not just set absolute value, but keep child's relative depth to this one.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetDepth(int32 depth);
+		void SetDepth(int32 depth, bool propagateToChildren = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetColor(FColor color);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
