@@ -12,6 +12,7 @@ ALGUIPrefabActor::ALGUIPrefabActor()
 
 	PrefabComponent = CreateDefaultSubobject<ULGUIPrefabHelperComponent>(TEXT("LGUIPrefab"));
 	RootComponent = PrefabComponent;
+	bIsEditorOnlyActor = true;
 }
 
 // Called when the game starts or when spawned

@@ -115,6 +115,14 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 	}
 }
 
+void UUIToggleComponent::SetToggleGroup(UUIToggleGroupComponent* InGroupComp)
+{
+	if (GroupComp != InGroupComp)
+	{
+		GroupComp = InGroupComp;
+	}
+}
+
 bool UUIToggleComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
 	SetState(!IsOn);

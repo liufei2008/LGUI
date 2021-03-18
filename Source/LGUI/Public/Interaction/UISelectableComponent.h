@@ -64,8 +64,8 @@ protected:
 	virtual void OnDestroy()override;
 
 	friend class FUISelectableCustomization;
-	/** If not assigned, use self. must have UIItem component */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
+	/** If not assigned, then use self. must have UIItem component */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		class AUIBaseActor* TransitionActor;
 	/** inherited events of this component can bubble up? */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
@@ -149,6 +149,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
 		EUISelectableSelectionState GetSelectionState()const;
 
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
+		void SetTransitionTarget(class AUIBaseActor* value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
 		void SetNormalSprite(ULGUISpriteData* NewSprite);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")

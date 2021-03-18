@@ -33,6 +33,7 @@ public:
 	virtual bool IsTickable() const { return Instance == this; }
 	virtual bool IsTickableInEditor()const { return Instance == this; }
 	virtual TStatId GetStatId() const override;
+	virtual bool IsEditorOnly()const override { return true; }
 #if WITH_EDITORONLY_DATA
 	//end TickableEditorObject interface
 	FLGUIEditorTickMulticastDelegate EditorTick;
