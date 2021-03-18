@@ -36,7 +36,7 @@ protected:
 protected:
 	friend class FUIToggleCustomization;
 	/** If not assigned, use self. must have UIItem component */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
 		class AUIBaseActor* ToggleActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
 		UIToggleTransitionType ToggleTransition = UIToggleTransitionType::Fade;
@@ -65,7 +65,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
 		bool IsOn = true;
 	/** Must have UIToggleGroupComponent */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
 		AActor* UIToggleGroupActor;
 	UPROPERTY(Transient) class UUIToggleGroupComponent* GroupComp = nullptr;
 
@@ -75,7 +75,13 @@ protected:
 
 	void ApplyToggleState(bool immediateSet);
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")bool GetState()const { return IsOn; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+		AActor* GetToggleGroupActor()const { return UIToggleGroupActor; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+		void SetToggleGroup(UUIToggleGroupComponent* InGroupComp);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")bool GetState()
+		const { return IsOn; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		virtual void SetState(bool newState, bool fireEvent = true);
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
