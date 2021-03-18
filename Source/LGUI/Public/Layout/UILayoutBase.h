@@ -49,6 +49,7 @@ protected:
 public:
 	void RebuildChildrenList();
 	/** Called when UIItem's layout changed */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
 #if WITH_EDITOR
 	virtual bool CanControlChildAnchor() { return false; };

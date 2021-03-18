@@ -344,6 +344,14 @@ EUISelectableSelectionState UUISelectableComponent::GetSelectionState()const
 	return EUISelectableSelectionState::Normal;
 }
 
+void UUISelectableComponent::SetTransitionTarget(class AUIBaseActor* value)
+{
+	if (TransitionActor != value)
+	{
+		TransitionActor = value;
+		ApplySelectionState(false);
+	}
+}
 void UUISelectableComponent::SetNormalSprite(ULGUISpriteData* NewSprite)
 {
 	if (NormalSprite != NewSprite)
