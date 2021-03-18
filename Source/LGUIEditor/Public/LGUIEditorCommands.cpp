@@ -17,7 +17,9 @@ void FLGUIEditorCommands::RegisterCommands()
 	UI_COMMAND(CopyComponentValues, "Copy Component Values", "Copy selected component values", EUserInterfaceActionType::Button, FInputGesture());
 	UI_COMMAND(PasteComponentValues, "Paste Component Values", "Paste values to selected component", EUserInterfaceActionType::Button, FInputGesture());
 
-	UI_COMMAND(PreserveSceneoutlinerHierarchy, "Preserve hierarchy state", "Preserve hierarchy state in SceneOutliner. When hit play, all actor fold will expand, but use this option will keep that actor fold state", EUserInterfaceActionType::ToggleButton, FInputChord());
+	UI_COMMAND(PreserveSceneoutlinerHierarchy, 
+"Preserve hierarchy state", "Preserve \"World Outliner\"'s actor state. When reload a level, all actor will expand and temporarily hidden actor become visible, so use this option can keep these actor and folder's state.\n\
+Note: If actors in folder and the folder is not expanded, then these actors's state will not affected, because I can't get these tree items.", EUserInterfaceActionType::ToggleButton, FInputChord());
 
 	UI_COMMAND(OpenAtlasViewer, "OpenAtlasViewer", "Open LGUI atlas viewer", EUserInterfaceActionType::Button, FInputGesture());
 }
