@@ -135,11 +135,11 @@ void UK2Node_LGUICompRef_GetComponent::ValidateNodeDuringCompilation(class FComp
 {
 	Super::ValidateNodeDuringCompilation(MessageLog);
 	//@todo: give some hint when class change.
-	if (!autoOutputTypeSuccess)
-	{
-		auto msg = FString(TEXT("Auto cast fail! You need to cast the result ActorComponent to your desired type."));
-		MessageLog.Note(*msg);
-	}
+	//if (!autoOutputTypeSuccess)
+	//{
+	//	auto msg = FString(TEXT("Auto cast fail! You need to cast the result ActorComponent to your desired type."));
+	//	MessageLog.Note(*msg);
+	//}
 }
 void UK2Node_LGUICompRef_GetComponent::PinConnectionListChanged(UEdGraphPin* Pin)
 {
