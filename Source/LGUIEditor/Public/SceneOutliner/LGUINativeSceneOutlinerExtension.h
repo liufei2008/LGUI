@@ -7,38 +7,30 @@
 #include "LGUINativeSceneOutlinerExtension.generated.h"
 
 
-USTRUCT()
-struct LGUIEDITOR_API FLGUISceneOutlinerStateArrayStruct
+/**
+ * This actor is used by LGUI Editor to restore SceneOutliner actor's folder state and temp hidden state, only valid for editor
+ */
+UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
+class LGUIEDITOR_API ALGUIEditorLevelDataStorageActor : public AActor
 {
 	GENERATED_BODY()
-	UPROPERTY() TArray<FName> ExpandedFolderArray;
-	UPROPERTY() TArray<FName> UnexpandedActorArray;
-	UPROPERTY() TArray<FName> TemporarilyHiddenInEditorActorArray;
+public:
+	ALGUIEditorLevelDataStorageActor()
+	{
+		bIsEditorOnlyActor = true;
+		bListedInSceneOutliner = false;
+	}
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<AActor>> UnexpandedActorArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TSoftObjectPtr<AActor>> UnexpandedSoftActorArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<AActor>> TemporarilyHiddenActorArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TSoftObjectPtr<AActor>> TemporarilyHiddenSoftActorArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<FName> ExpandedFolderArray;
 };
-USTRUCT()
-struct LGUIEDITOR_API FLGUISceneOutlinerStateMapStruct
-{
-	GENERATED_BODY()
-	UPROPERTY() FString readme;
-	UPROPERTY() FString readmeCH;
-	UPROPERTY() TMap<FString, FLGUISceneOutlinerStateArrayStruct> WorldNameToUnexpandedActor;
-};
-
-//UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
-//class LGUI_API ALGUIEditorLevelDataStorageActor : public AActor
-//{
-//	GENERATED_BODY()
-//public:
-//	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-//		TArray<TWeakObjectPtr<AActor>> ExpandedActors;
-//	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-//		TArray<FName> ExpandedFolders;
-//	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-//		TArray<TWeakObjectPtr<ULevel>> ExpandedLevels;
-//
-//	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-//		TArray<TWeakObjectPtr<AActor>> TemporarilyHiddenInEditorActors;
-//};
 
 UCLASS()
 class LGUIEDITOR_API ULGUINativeSceneOutlinerExtension : public UObject, public FTickableGameObject
@@ -62,15 +54,10 @@ private:
 	void OnEndPIE(const bool IsSimulating);
 	void SaveSceneOutlinerState();
 	void RestoreSceneOutlinerState();
-	void RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item);
+	void RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
 	void SetDelayRestore(bool RestoreTemporarilyHidden);
-	const FString& GetLGUIDataFilePath();
-	TArray<FName> ExpandedFolderArray;
-	TArray<FName> UnexpandedActorArray;
-	TArray<FName> TemporarilyHiddenInEditorActorArray;
-	FLGUISceneOutlinerStateMapStruct SceneOutlinerStateStruct;
 	int frameCount = 0;
 	bool needToRestore = false;
 	bool shouldRestoreTemporarilyHidden = false;
-	//ALGUIEditorLevelDataStorageActor* FindOrCreateDataStorageActor();
+	ALGUIEditorLevelDataStorageActor* FindOrCreateDataStorageActor();
 };
