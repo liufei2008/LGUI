@@ -163,6 +163,7 @@ void UUIPostProcess::UpdateGeometry(const bool& parentLayoutChanged)
 	{
 		if (cacheForThisUpdate_DepthChanged)
 		{
+			CreateGeometry();
 			RenderCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
 			goto COMPLETE;
 		}
