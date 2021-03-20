@@ -54,35 +54,13 @@ FLGUIViewExtension::~FLGUIViewExtension()
 
 void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	bCanRender = false;
-
 	if (!UICanvas.IsValid())return;
-	if (!World.IsValid())return;
-#if WITH_EDITOR
-	if (ALGUIManagerActor::IsPlaying == IsEditorPreview)return;
-	if (ALGUIManagerActor::IsPlaying)
-	{
-		if (!InView.bIsGameView)return;
-		//if (InView.State->GetViewKey() == EditorPreview_ViewKey)return;
-	}
-	else//editor viewport preview
-	{
-		if (InView.GetViewKey() != EditorPreview_ViewKey)return;//only preview in specific viewport in editor
-	}
-	//simulation
-	if (GEngine == nullptr)return;
-	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
-	{
-		if (editor->bIsSimulatingInEditor)return;
-	}
-#endif
 
 	ViewLocation = UICanvas->GetViewLocation();
 	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
 	ProjectionMatrix = UICanvas->GetProjectionMatrix();
 	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
 	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
-	bCanRender = true;
 }
 void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
@@ -221,10 +199,31 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
-	if (!bCanRender)return;
+	if (!World.IsValid())return;
+	if (!UICanvas.IsValid())return;
+#if WITH_EDITOR
+	if (ALGUIManagerActor::IsPlaying == IsEditorPreview)return;
+	if (ALGUIManagerActor::IsPlaying)
+	{
+		if (!InView.bIsGameView)return;
+		//if (InView.State->GetViewKey() == EditorPreview_ViewKey)return;
+	}
+	else//editor viewport preview
+	{
+		if (InView.GetViewKey() != EditorPreview_ViewKey)return;//only preview in specific viewport in editor
+	}
+	//check if simulation
+	if (GEngine == nullptr)return;
+	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
+	{
+		if (editor->bIsSimulatingInEditor)return;
+	}
+#endif
 	//the following two lines can prevent duplicated ui in viewport when "Number of Players" > 1
+#if WITH_EDITOR
 	if (InView.Family == nullptr || InView.Family->Scene == nullptr || InView.Family->Scene->GetWorld() == nullptr)return;
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
+#endif
 
 	//create render target
 	TRefCountPtr<IPooledRenderTarget> SceneColorRenderTarget;

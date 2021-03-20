@@ -14,15 +14,30 @@ void FUIPostProcessRenderProxy::AddToHudRenderer(TWeakPtr<FLGUIViewExtension, ES
 }
 void FUIPostProcessRenderProxy::AddToHudRenderer_RenderThread(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> InLGUIHudRenderer)
 {
-	if (LGUIHudRenderer.IsValid())
+	if (LGUIHudRenderer == InLGUIHudRenderer)
 	{
-		UE_LOG(LGUI, Error, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]Already added to LGUIRenderer!"));
+		if (!LGUIHudRenderer.IsValid())
+		{
+			UE_LOG(LGUI, Log, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]0Trying add to LGUIRenderer but the LGUIRenderer is not valid."));
+		}
 		return;
+	}
+	else
+	{
+		//remove from old
+		if (LGUIHudRenderer.IsValid())
+		{
+			LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread(this);
+		}
 	}
 	LGUIHudRenderer = InLGUIHudRenderer;
 	if (LGUIHudRenderer.IsValid())
 	{
 		LGUIHudRenderer.Pin()->AddHudPrimitive_RenderThread(this);
+	}
+	else
+	{
+		UE_LOG(LGUI, Log, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]1Trying add to LGUIRenderer but the LGUIRenderer is not valid."));
 	}
 }
 void FUIPostProcessRenderProxy::RemoveFromHudRenderer()
