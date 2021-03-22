@@ -5,7 +5,7 @@
 #include "LGUIPlayTween_Params.generated.h"
 
 
-UCLASS(BlueprintType, meta = (DisplayName = "Float"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Float"))
 class LGUI_API ULGUIPlayTween_Float : public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -25,7 +25,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "Color"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Color"))
 class LGUI_API ULGUIPlayTween_Color : public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -50,7 +50,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "Int"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Int"))
 class LGUI_API ULGUIPlayTween_Int : public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -70,7 +70,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "LinearColor"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween LinearColor"))
 class LGUI_API ULGUIPlayTween_LinearColor : public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -90,7 +90,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "Quaternion"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Quaternion"))
 class LGUI_API ULGUIPlayTween_Quaternion : public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -110,7 +110,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "Rotator"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Rotator"))
 class LGUI_API ULGUIPlayTween_Rotator : public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -130,7 +130,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "Vector2"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Vector2"))
 class LGUI_API ULGUIPlayTween_Vector2: public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -150,7 +150,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "Vector3"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Vector3"))
 class LGUI_API ULGUIPlayTween_Vector3: public ULGUIPlayTween
 {
 	GENERATED_BODY()
@@ -170,7 +170,7 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "Vector4"))
+UCLASS(BlueprintType, meta = (DisplayName = "LGUIPLayTween Vector4"))
 class LGUI_API ULGUIPlayTween_Vector4: public ULGUIPlayTween
 {
 	GENERATED_BODY()
