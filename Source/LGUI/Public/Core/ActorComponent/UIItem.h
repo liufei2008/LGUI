@@ -262,6 +262,8 @@ public:
 	/** get UI children array, sorted by hierarchy index */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TArray<UUIItem*>& GetAttachUIChildren()const { return cacheUIChildren; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIItem* GetAttachUIChild(int index)const;
 	/** Get root canvas of hierarchy */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		ULGUICanvas* GetRootCanvas()const;
