@@ -258,7 +258,16 @@ void ULGUIBehaviour::OnUIActiveInHierachy(bool activeOrInactive)
 	{
 		if (!isAwakeCalled)
 		{
-			Awake();
+#if WITH_EDITOR
+			if (!this->GetWorld()->IsGameWorld())//edit mode
+			{
+
+			}
+			else
+#endif
+			{
+				Awake();
+			}
 		}
 		if (enable)
 		{
