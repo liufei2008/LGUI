@@ -1236,6 +1236,15 @@ void UUIItem::SetUIParent(UUIItem* inParent, bool keepWorldTransform)
 		}
 	}
 }
+UUIItem* UUIItem::GetAttachUIChild(int index)const
+{
+	if (index < 0 || index >= cacheUIChildren.Num())
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUIItem::GetAttachUIChild]index:%d out of range[%d, %d]"), index, 0, cacheUIChildren.Num() - 1);
+		return nullptr;
+	}
+	return cacheUIChildren[index];
+}
 ULGUICanvas* UUIItem::GetRootCanvas()const
 {
 	return RenderCanvas->GetRootCanvas();

@@ -5,6 +5,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Misc/FileHelper.h"
+#include "Misc/MessageDialog.h"
 #include "LGUIEditorStyle.h"
 #include "LGUIEditorPCH.h"
 #include "PropertyCustomizationHelpers.h"
@@ -382,6 +383,10 @@ void LGUIEditorTools::DeleteSelectedActors_Impl()
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return;
 	}
+	auto confirmMsg = FString::Printf(TEXT("Destroy selected actors? This will also destroy the children attached to selected actors."));
+	auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg));
+	if (confirmResult == EAppReturnType::No)return;
+
 	auto rootActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
 	GEditor->BeginTransaction(LOCTEXT("DestroyActor", "LGUI Destroy Actor"));
 	GEditor->GetSelectedActors()->DeselectAll();
