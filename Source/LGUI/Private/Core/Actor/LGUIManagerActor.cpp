@@ -916,7 +916,7 @@ void ALGUIManagerActor::ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InCom
 				{
 					InComp->Awake();
 				}
-				if (InComp->enable)
+				if (InComp->GetIsActiveAndEnable())
 				{
 					if (!InComp->isEnableCalled)
 					{
@@ -931,7 +931,7 @@ void ALGUIManagerActor::ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InCom
 			{
 				InComp->Awake();
 			}
-			if (InComp->enable)
+			if (InComp->GetIsActiveAndEnable())
 			{
 				if (!InComp->isEnableCalled)
 				{
