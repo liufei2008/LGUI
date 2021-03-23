@@ -590,3 +590,52 @@ ULTweener* ULTweenBPLibrary::MaterialVectorParameterTo(UMaterialInstanceDynamic*
 		return target->GetVectorParameterValue(parameterName, result);
 	}), FLTweenMaterialVectorSetterFunction::CreateUObject(target, &UMaterialInstanceDynamic::SetVectorParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
 }
+
+ULTweener* ULTweenBPLibrary::MeshMaterialScalarParameterTo(UMeshComponent* target, int materialIndex, FName parameterName, float endValue, float duration, float delay, LTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::MeshMaterialScalarParameterTo] target is not valid:%s"), *(target->GetPathName()));
+		return nullptr;
+	}
+	float startValue = 0;
+	int32 parameterIndex = 0;
+	auto material = target->CreateAndSetMaterialInstanceDynamic(parameterIndex);
+	if (material->GetScalarParameterValue(parameterName, startValue))
+	{
+		material->InitializeScalarParameterAndGetIndex(parameterName, startValue, parameterIndex);
+	}
+	else
+	{
+		UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::MaterialScalarParameterTo]GetScalarParameterValue:%s error!"), *(parameterName.ToString()));
+		return nullptr;
+	}
+	return ALTweenActor::To(material, FLTweenMaterialScalarGetterFunction::CreateWeakLambda(material, [material, parameterName](float& result)
+		{
+			return material->GetScalarParameterValue(parameterName, result);
+		}), FLTweenMaterialScalarSetterFunction::CreateUObject(material, &UMaterialInstanceDynamic::SetScalarParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
+}
+ULTweener* ULTweenBPLibrary::MeshMaterialVectorParameterTo(UMeshComponent* target, int materialIndex, FName parameterName, FLinearColor endValue, float duration, float delay, LTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LTween, Error, TEXT("[ULTweenBPLibrary::MeshMaterialVectorParameterTo] target is not valid:%s"), *(target->GetPathName()));
+		return nullptr;
+	}
+	FLinearColor startValue = FLinearColor();
+	int32 parameterIndex = 0;
+	auto material = target->CreateAndSetMaterialInstanceDynamic(parameterIndex);
+	if (material->GetVectorParameterValue(parameterName, startValue))
+	{
+		material->InitializeVectorParameterAndGetIndex(parameterName, startValue, parameterIndex);
+	}
+	else
+	{
+		UE_LOG(LTween, Warning, TEXT("[ULTweenBPLibrary::MaterialVectorParameterTo]GetVectorParameterValue:%s error!"), *(parameterName.ToString()));
+		return nullptr;
+	}
+	return ALTweenActor::To(material, FLTweenMaterialVectorGetterFunction::CreateWeakLambda(material, [material, parameterName](FLinearColor& result)
+		{
+			return material->GetVectorParameterValue(parameterName, result);
+		}), FLTweenMaterialVectorSetterFunction::CreateUObject(material, &UMaterialInstanceDynamic::SetVectorParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
+}
