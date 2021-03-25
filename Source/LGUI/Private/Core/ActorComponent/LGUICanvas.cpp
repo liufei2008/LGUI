@@ -901,6 +901,7 @@ void ULGUICanvas::SortDrawcallRenderPriority()
 	auto& allCanvasArray = GetAllCanvasArray();
 	if (allCanvasArray.Num() == 0)return;
 	//set drawcall render order
+	//@todo: sort seperately on world/screen/renderTarget
 	int32 startRenderPriority = 0;
 	int32 prevSortOrder = allCanvasArray[0]->sortOrder - 1;//-1 is for first check of the loop
 	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
