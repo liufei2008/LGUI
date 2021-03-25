@@ -23,6 +23,7 @@
 #include "DetailCustomization/UIItemCustomization.h"
 #include "DetailCustomization/UISpriteBaseCustomization.h"
 #include "DetailCustomization/UISpriteCustomization.h"
+#include "DetailCustomization/UITextureCustomization.h"
 #include "DetailCustomization/LGUICanvasCustomization.h"
 #include "DetailCustomization/UITextCustomization.h"
 #include "DetailCustomization/UITextureBaseCustomization.h"
