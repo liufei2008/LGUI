@@ -557,6 +557,7 @@ void UUIRenderable::UpdateSelfRenderDrawcall()
 			meshSection.triangles = geometry->triangles;
 			uiMesh->SetUIMeshVisibility(true);
 			uiMesh->GenerateOrUpdateMesh(true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+			uiMesh->SetUITranslucentSortPriority(this->widget.depth);
 		}
 	}
 }

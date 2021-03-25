@@ -1804,6 +1804,7 @@ float UUIItem::Color255To1_Table[256] =
 UUIItemEditorHelperComp::UUIItemEditorHelperComp()
 {
 	bSelectable = false;
+	this->bIsEditorOnly = true;
 }
 #if WITH_EDITORONLY_DATA
 FIntRect UUIItemEditorHelperComp::viewRect;
