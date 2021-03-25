@@ -420,7 +420,7 @@ protected:
 
 //Editor only
 //This component is only a helper component for UIItem! Don't use this!
-UCLASS(HideCategories = (LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), NotBlueprintable, NotBlueprintType, Transient)
+UCLASS(HideCategories = (LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), NotBlueprintable, NotBlueprintType, Transient)
 class LGUI_API UUIItemEditorHelperComp : public UPrimitiveComponent
 {
 	GENERATED_BODY()
