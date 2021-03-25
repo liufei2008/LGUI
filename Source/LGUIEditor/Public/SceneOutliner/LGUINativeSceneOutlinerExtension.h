@@ -55,9 +55,11 @@ private:
 	void SaveSceneOutlinerState();
 	void RestoreSceneOutlinerState();
 	void RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
-	void SetDelayRestore(bool RestoreTemporarilyHidden);
+	void SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName);
 	int frameCount = 0;
 	bool needToRestore = false;
 	bool shouldRestoreTemporarilyHidden = false;
+	bool shouldRestoreUseFNameData = false;
+	TArray<FName> UnexpandedActorArray;
 	ALGUIEditorLevelDataStorageActor* FindOrCreateDataStorageActor();
 };

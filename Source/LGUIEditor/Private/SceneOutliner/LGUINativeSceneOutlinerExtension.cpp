@@ -52,25 +52,26 @@ void ULGUINativeSceneOutlinerExtension::OnPreSaveWorld(uint32 SaveFlags, UWorld*
 }
 void ULGUINativeSceneOutlinerExtension::OnMapOpened(const FString& FileName, bool AsTemplate)
 {
-	SetDelayRestore(true);
+	SetDelayRestore(true, false);
 }
 void ULGUINativeSceneOutlinerExtension::OnPreBeginPIE(const bool IsSimulating)
 {
-	//SaveSceneOutlinerState();
+	SaveSceneOutlinerState();
 }
 void ULGUINativeSceneOutlinerExtension::OnBeginPIE(const bool IsSimulating)
 {
-	SetDelayRestore(false);
+	SetDelayRestore(false, true);
 }
 void ULGUINativeSceneOutlinerExtension::OnEndPIE(const bool IsSimulating)
 {
-	SetDelayRestore(true);
+	SetDelayRestore(true, false);
 }
-void ULGUINativeSceneOutlinerExtension::SetDelayRestore(bool RestoreTemporarilyHidden)
+void ULGUINativeSceneOutlinerExtension::SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName)
 {
 	shouldRestoreTemporarilyHidden = RestoreTemporarilyHidden;
 	needToRestore = true;
 	frameCount = 0;
+	shouldRestoreUseFNameData = RestoreUseFName;
 }
 
 void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
@@ -132,6 +133,7 @@ void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 	storageActor->TemporarilyHiddenSoftActorArray.Reset();
 	storageActor->UnexpandedActorArray.Reset();
 	storageActor->UnexpandedSoftActorArray.Reset();
+	UnexpandedActorArray.Reset();
 	if (auto world = GEditor->GetEditorWorldContext().World())
 	{
 		for (TActorIterator<AActor> ActorItr(world); ActorItr; ++ActorItr)
@@ -147,6 +149,7 @@ void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 				{
 					storageActor->UnexpandedSoftActorArray.Add(*ActorItr);
 				}
+				UnexpandedActorArray.Add((*ActorItr)->GetFName());
 			}
 			if ((*ActorItr)->IsTemporarilyHiddenInEditor())
 			{
@@ -215,15 +218,23 @@ void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(Sce
 		if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid())
 		{
 			//expend
-			if (storageActor->GetLevel() == ActorTreeItem->Actor->GetLevel())
+			if (shouldRestoreUseFNameData)
 			{
-				bool needToExpand = !storageActor->UnexpandedActorArray.Contains(ActorTreeItem->Actor);
+				bool needToExpand = !UnexpandedActorArray.Contains(ActorTreeItem->Actor->GetFName());
 				ActorTreeItem->Flags.bIsExpanded = needToExpand;
 			}
 			else
 			{
-				bool needToExpand = !storageActor->UnexpandedSoftActorArray.Contains(ActorTreeItem->Actor.Get());
-				ActorTreeItem->Flags.bIsExpanded = needToExpand;
+				if (storageActor->GetLevel() == ActorTreeItem->Actor->GetLevel())
+				{
+					bool needToExpand = !storageActor->UnexpandedActorArray.Contains(ActorTreeItem->Actor);
+					ActorTreeItem->Flags.bIsExpanded = needToExpand;
+				}
+				else
+				{
+					bool needToExpand = !storageActor->UnexpandedSoftActorArray.Contains(ActorTreeItem->Actor.Get());
+					ActorTreeItem->Flags.bIsExpanded = needToExpand;
+				}
 			}
 		}
 	}
