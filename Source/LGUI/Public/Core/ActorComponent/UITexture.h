@@ -4,15 +4,17 @@
 
 #include "Core/LGUISpriteData.h"
 #include "UITextureBase.h"
+#include "UISprite.h"
 #include "UITexture.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
 enum class UITextureType :uint8
 {
-	Normal		 		UMETA(DisplayName = "Normal"),
-	Sliced		 		UMETA(DisplayName = "Sliced"),
-	SlicedFrame			UMETA(DisplayName = "SlicedFrame"),
-	Tiled				UMETA(DisplayName = "Tiled"),
+	Normal,
+	Sliced,
+	SlicedFrame,
+	Tiled,
+	Filled,
 };
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUITexture : public UUITextureBase
@@ -29,12 +31,27 @@ public:
 protected:
 	virtual void BeginPlay()override;
 protected:
+	friend class FUITextureCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UITextureType type = UITextureType::Normal;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FLGUISpriteInfo spriteData;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector4 uvRect = FVector4(0, 0, 1, 1);
+
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		UISpriteFillMethod fillMethod = UISpriteFillMethod::Horizontal;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		uint8 fillOrigin = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool fillDirectionFlip = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float fillAmount = 1;
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")UISpriteFillOriginType_Radial90 fillOriginType_Radial90;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")UISpriteFillOriginType_Radial180 fillOriginType_Radial180;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")UISpriteFillOriginType_Radial360 fillOriginType_Radial360;
+#endif
 
 	void CheckSpriteData();
 
@@ -47,6 +64,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextureType GetTextureType()const { return type; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FLGUISpriteInfo GetSpriteData()const { return spriteData; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector4 GetUVRect()const { return uvRect; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")	UISpriteFillMethod GetFillMethod()const { return fillMethod; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")	uint8 GetFillOrigin()const { return fillOrigin; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")	bool GetFillDirectionFlip()const { return fillDirectionFlip; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")	float GetFillAmount()const { return fillAmount; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetTextureType(UITextureType newType);
@@ -54,6 +75,10 @@ public:
 		void SetSpriteData(FLGUISpriteInfo newSpriteData);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetUVRect(FVector4 newUVRect);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillMethod(UISpriteFillMethod newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillOrigin(uint8 newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillDirectionFlip(bool newValue);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillAmount(float newValue);
 
 	virtual void SetTexture(UTexture* newTexture)override;
 };
