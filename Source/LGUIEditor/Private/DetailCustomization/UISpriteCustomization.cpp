@@ -43,7 +43,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 		{
 			if (TargetScriptPtr->sprite->InitAndGetSpriteInfo().HasBorder() == false)
 			{
-				category.AddCustomRow(LOCTEXT("AdditionalButton", "AdditionalButton"))
+				category.AddCustomRow(LOCTEXT("NoBorderWarning", "NoBorderWarning"))
 					.WholeRowContent()
 					.MinDesiredWidth(300)
 					[
