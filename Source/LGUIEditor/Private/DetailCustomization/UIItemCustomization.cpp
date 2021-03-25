@@ -117,20 +117,21 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				depthHandle->CreatePropertyValueWidget()
 			]
 			+ SHorizontalBox::Slot()
-			.Padding(2, 0)
+			.Padding(1, 0)
 			.FillWidth(2)
 			[
 				SNew(SBox)
 				.HeightOverride(18)
 				[
 					SNew(SButton)
-					.Text(LOCTEXT("MoveUp", "+"))
+					.Text(LOCTEXT("Forward", "+"))
+					.ToolTipText(LOCTEXT("ForwardTooltip", "Move depth forward"))
 					.HAlign(EHorizontalAlignment::HAlign_Center)
 					.OnClicked_Lambda([&]()
 					{
 						for (auto Script : TargetScriptArray)
 						{
-							Script->widget.depth++;
+							Script->SetDepth(Script->GetDepth() + 1);
 						}
 						ForceUpdateUI();
 						return FReply::Handled(); 
@@ -138,26 +139,79 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				]
 			]
 			+ SHorizontalBox::Slot()
-			.Padding(2, 0)
+			.Padding(1, 0)
 			.FillWidth(2)
 			[
 				SNew(SBox)
 				.HeightOverride(18)
 				[
 					SNew(SButton)
-					.Text(LOCTEXT("MoveDown", "-"))
+					.Text(LOCTEXT("Back", "-"))
+					.ToolTipText(LOCTEXT("BackTooltip", "Move depth backward"))
 					.HAlign(EHorizontalAlignment::HAlign_Center)
 					.OnClicked_Lambda([&]()
 					{
 						for (auto Script : TargetScriptArray)
 						{
-							Script->widget.depth--;
+							Script->SetDepth(Script->GetDepth() - 1);
 						}
 						ForceUpdateUI();
 						return FReply::Handled();
 					})
 				]
-			];
+			]
+
+			+ SHorizontalBox::Slot()
+			[
+				SNew(SBox)
+				.HeightOverride(5)
+			]
+
+			+ SHorizontalBox::Slot()
+			.Padding(1, 0)
+			.FillWidth(2)
+			[
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("ForwardWithChildren", "++"))
+					.ToolTipText(LOCTEXT("ForwardWithChildrenTooltip", "Move depth forward with all children"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([&]()
+					{
+						for (auto Script : TargetScriptArray)
+						{
+							Script->SetDepth(Script->GetDepth() + 1, true);
+						}
+						ForceUpdateUI();
+						return FReply::Handled(); 
+					})
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.Padding(1, 0)
+			.FillWidth(2)
+			[
+				SNew(SBox)
+				.HeightOverride(18)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("BackWithChildren", "--"))
+					.ToolTipText(LOCTEXT("BackWithChildrenTooltip", "Move depth backward with all children"))
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.OnClicked_Lambda([&]()
+					{
+						for (auto Script : TargetScriptArray)
+						{
+							Script->SetDepth(Script->GetDepth() - 1, true);
+						}
+						ForceUpdateUI();
+						return FReply::Handled();
+					})
+				]
+			]
+			;
 
 			lguiCategory.AddCustomRow(LOCTEXT("DepthManager", "DepthManager"))
 			.CopyAction(FUIAction(
@@ -171,6 +225,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				depthHandle->CreatePropertyNameWidget()
 			]
 			.ValueContent()
+			.MinDesiredWidth(200)
+			.MaxDesiredWidth(200)
 			[
 				depthWidget
 			];
