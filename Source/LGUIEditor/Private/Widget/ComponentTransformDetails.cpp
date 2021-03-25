@@ -1034,27 +1034,21 @@ void FComponentTransformDetails::OnSetTransformAxis(float NewValue, ETextCommit:
 	case ETransformField::Location:
 	{
 		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->GetRelativeLocation());
-		Archetype->SetUIRelativeLocation(NewVector);
-		CachedLocation.Set(NewVector);
+		OnSetTransform(TransformField, Axis, NewVector, bCommitted);
 	}
-		break;
+	break;
 	case ETransformField::Rotation:
 	{
 		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->GetRelativeRotation().Euler());
-		FRotator NewRotation = FRotator::MakeFromEuler(NewVector);
-		Archetype->SetRelativeRotation(NewRotation);
-		Archetype->UpdateComponentToWorld();
-		CachedRotation.Set(NewRotation);
+		OnSetTransform(TransformField, Axis, NewVector, bCommitted);
 	}
-		break;
+	break;
 	case ETransformField::Scale:
 	{
 		FVector NewVector = GetAxisFilteredVector(Axis, FVector(NewValue), Archetype->GetRelativeScale3D());
-		Archetype->SetRelativeScale3D(NewVector);
-		Archetype->UpdateComponentToWorld();
-		CachedScale.Set(NewVector);
+		OnSetTransform(TransformField, Axis, NewVector, bCommitted);
 	}
-		break;
+	break;
 	}
 }
 
