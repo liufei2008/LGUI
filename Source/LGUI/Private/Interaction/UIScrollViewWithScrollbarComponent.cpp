@@ -73,11 +73,11 @@ bool UUIScrollViewWithScrollbarComponent::CheckScrollbarParameter()
 {
 	if (Horizontal)
 	{
-		if (!IsValid(HorizontalScrollbarComp))
+		if (!HorizontalScrollbarComp.IsValid())
 		{
-			if (!IsValid(HorizontalScrollbar))return false;
+			if (!HorizontalScrollbar.IsValid())return false;
 			HorizontalScrollbarComp = HorizontalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
-			if (IsValid(HorizontalScrollbarComp))
+			if (HorizontalScrollbarComp.IsValid())
 			{
 				HorizontalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar));
 			}
@@ -89,11 +89,11 @@ bool UUIScrollViewWithScrollbarComponent::CheckScrollbarParameter()
 	}
 	if (Vertical)
 	{
-		if (!IsValid(VerticalScrollbarComp))
+		if (!VerticalScrollbarComp.IsValid())
 		{
-			if (!IsValid(VerticalScrollbar))return false;
+			if (!VerticalScrollbar.IsValid())return false;
 			VerticalScrollbarComp = VerticalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
-			if (IsValid(VerticalScrollbarComp))
+			if (VerticalScrollbarComp.IsValid())
 			{
 				VerticalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar));
 			}
@@ -107,8 +107,8 @@ bool UUIScrollViewWithScrollbarComponent::CheckScrollbarParameter()
 }
 bool UUIScrollViewWithScrollbarComponent::CheckValidHit(USceneComponent* InHitComp)
 {
-	bool hitHorizontalScrollbar = IsValid(HorizontalScrollbar) && (InHitComp->IsAttachedTo(HorizontalScrollbar->GetUIItem()) || InHitComp == HorizontalScrollbar->GetUIItem());
-	bool hitVerticalScrollbar = IsValid(VerticalScrollbar) && (InHitComp->IsAttachedTo(VerticalScrollbar->GetUIItem()) || InHitComp == VerticalScrollbar->GetUIItem());
+	bool hitHorizontalScrollbar = HorizontalScrollbar.IsValid() && (InHitComp->IsAttachedTo(HorizontalScrollbar->GetUIItem()) || InHitComp == HorizontalScrollbar->GetUIItem());
+	bool hitVerticalScrollbar = VerticalScrollbar.IsValid() && (InHitComp->IsAttachedTo(VerticalScrollbar->GetUIItem()) || InHitComp == VerticalScrollbar->GetUIItem());
 	return Super::CheckValidHit(InHitComp)
 		&& !hitHorizontalScrollbar && !hitVerticalScrollbar;//make sure hit component is not scrollbar
 }
@@ -123,10 +123,10 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 		{
 			if (HorizontalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
-				if (IsValid(HorizontalScrollbar))
+				if (HorizontalScrollbar.IsValid())
 				{
 					HorizontalScrollbar->GetUIItem()->SetUIActive(false);
-					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && IsValid(Viewport))
+					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
 						Viewport->GetUIItem()->SetStretchBottom(0);
 					}
@@ -137,11 +137,11 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 		{
 			if (HorizontalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
-				if (IsValid(HorizontalScrollbar))
+				if (HorizontalScrollbar.IsValid())
 				{
 					HorizontalScrollbar->GetUIItem()->SetUIActive(true);
 					HorizontalScrollbarComp->SetValueAndSize(Progress.X, parentWidth / contentWidth, false);
-					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && IsValid(Viewport))
+					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
 						Viewport->GetUIItem()->SetStretchBottom(HorizontalScrollbar->GetUIItem()->GetHeight());
 					}
@@ -161,10 +161,10 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 		{
 			if (VerticalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
-				if (IsValid(VerticalScrollbar))
+				if (VerticalScrollbar.IsValid())
 				{
 					VerticalScrollbar->GetUIItem()->SetUIActive(false);
-					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && IsValid(Viewport))
+					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
 						Viewport->GetUIItem()->SetStretchRight(0);
 					}
@@ -175,11 +175,11 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 		{
 			if (VerticalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
-				if (IsValid(VerticalScrollbar))
+				if (VerticalScrollbar.IsValid())
 				{
 					VerticalScrollbar->GetUIItem()->SetUIActive(true);
 					VerticalScrollbarComp->SetValueAndSize(Progress.Y, parentHeight / contentHeight, false);
-					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && IsValid(Viewport))
+					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
 						Viewport->GetUIItem()->SetStretchRight(VerticalScrollbar->GetUIItem()->GetWidth());
 					}
@@ -190,7 +190,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 }
 void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollValue)
 {
-	if (!IsValid(ContentUIItem))return;
+	if (!ContentUIItem.IsValid())return;
 	CanUpdateAfterDrag = false;
 	ValueIsSetFromHorizontalScrollbar = true;
 	AllowHorizontalScroll = true;
@@ -201,7 +201,7 @@ void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollVa
 }
 void UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar(float InScrollValue)
 {
-	if (!IsValid(ContentUIItem))return;
+	if (!ContentUIItem.IsValid())return;
 	CanUpdateAfterDrag = false;
 	ValueIsSetFromVerticalScrollbar = true;
 	AllowVerticalScroll = true;

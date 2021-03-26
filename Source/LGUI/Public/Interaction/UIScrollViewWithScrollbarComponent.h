@@ -32,13 +32,13 @@ protected:
 	friend class FUIScrollViewWithScrollBarCustomization;
 	//For scrollbars to expand or shrink viewport
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
-		AUIBaseActor* Viewport;
+		TWeakObjectPtr<AUIBaseActor> Viewport;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
-		AUIBaseActor* HorizontalScrollbar;
+		TWeakObjectPtr<AUIBaseActor> HorizontalScrollbar;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
 		EScrollViewScrollbarVisibility HorizontalScrollbarVisibility = EScrollViewScrollbarVisibility::AutoHideAndExpandViewport;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
-		AUIBaseActor* VerticalScrollbar;
+		TWeakObjectPtr<AUIBaseActor> VerticalScrollbar;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollViewWithScrollbar")
 		EScrollViewScrollbarVisibility VerticalScrollbarVisibility = EScrollViewScrollbarVisibility::AutoHideAndExpandViewport;
 
@@ -48,8 +48,8 @@ protected:
 	virtual void UpdateProgress(bool InFireEvent = true)override;
 	virtual bool OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
-	UPROPERTY(Transient)class UUIScrollbarComponent* HorizontalScrollbarComp = nullptr;
-	UPROPERTY(Transient)class UUIScrollbarComponent* VerticalScrollbarComp = nullptr;
+	UPROPERTY(Transient)TWeakObjectPtr<class UUIScrollbarComponent> HorizontalScrollbarComp = nullptr;
+	UPROPERTY(Transient)TWeakObjectPtr<class UUIScrollbarComponent> VerticalScrollbarComp = nullptr;
 	bool CheckScrollbarParameter();
 	void OnHorizontalScrollbar(float InScrollValue);
 	void OnVerticalScrollbar(float InScrollValue);
@@ -57,13 +57,13 @@ protected:
 	bool ValueIsSetFromVerticalScrollbar = false;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
-		AUIBaseActor* GetViewport()const { return Viewport; }
+		AUIBaseActor* GetViewport()const { return Viewport.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
-		AUIBaseActor* GetHorizontalScrollbar()const { return HorizontalScrollbar; }
+		AUIBaseActor* GetHorizontalScrollbar()const { return HorizontalScrollbar.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
 		EScrollViewScrollbarVisibility GetHorizontalScrollbarVisibility()const { return HorizontalScrollbarVisibility; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
-		AUIBaseActor* GetVerticalScrollbar()const { return VerticalScrollbar; }
+		AUIBaseActor* GetVerticalScrollbar()const { return VerticalScrollbar.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
 		EScrollViewScrollbarVisibility GetVerticalScrollbarVisibility()const { return VerticalScrollbarVisibility; }
 

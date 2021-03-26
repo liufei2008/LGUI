@@ -47,7 +47,7 @@ protected:
 	friend class UUIScrollViewHelper;
 	//Content can move inside it's parent area
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
-		AUIBaseActor* Content;
+		TWeakObjectPtr<AUIBaseActor> Content;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool Horizontal = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
@@ -67,8 +67,8 @@ protected:
 	virtual void CalculateVerticalRange();
 	bool CheckParameters();
 	virtual bool CheckValidHit(USceneComponent* InHitComp);
-	UPROPERTY(Transient)UUIItem* ContentUIItem = nullptr;//drag or scroll Content
-	UPROPERTY(Transient)UUIItem* ContentParentUIItem = nullptr;//Content's parent
+	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> ContentUIItem = nullptr;//drag or scroll Content
+	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> ContentParentUIItem = nullptr;//Content's parent
 	FVector2D Progress = FVector2D(0, 0);//progress, 0--1, x for horizontal, y for vertical
 	virtual void UpdateProgress(bool InFireEvent = true);
 	FVector Position = FVector(0, 0, 0);//content position in parent space
@@ -108,7 +108,7 @@ public:
 	virtual bool OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
-		AUIBaseActor* GetContent()const { return Content; }
+		AUIBaseActor* GetContent()const { return Content.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		bool GetHorizontal()const { return Horizontal; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")

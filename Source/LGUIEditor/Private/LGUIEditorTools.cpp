@@ -774,7 +774,7 @@ int LGUIEditorTools::GetDrawcallCount(AActor* InActor)
 			}
 			if (auto uiRenderable = Cast<UUIRenderable>(rootComp))
 			{
-				return uiRenderable->GetIsSelfRender() ? 1 : 0;
+				return (uiRenderable->GetIsSelfRender() && uiRenderable->IsUIActiveInHierarchy()) ? 1 : 0;
 			}
 		}
 	}

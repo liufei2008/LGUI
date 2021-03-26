@@ -42,7 +42,7 @@ protected:
 protected:
 	friend class FUITextInputCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		class AUITextActor* TextActor;
+		TWeakObjectPtr<class AUITextActor> TextActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FString Text;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")

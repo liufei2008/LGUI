@@ -5,121 +5,118 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
-UUI2DLineChildrenAsPoints::UUI2DLineChildrenAsPoints(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
+UUI2DLineChildrenAsPoints::UUI2DLineChildrenAsPoints(const FObjectInitializer &ObjectInitializer) : Super(ObjectInitializer)
 {
-	PrimaryComponentTick.bCanEverTick = false;
+    PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UUI2DLineChildrenAsPoints::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
-	RebuildChildrenList();
+    RebuildChildrenList();
 }
-
 
 AUI2DLineChildrenAsPointsActor::AUI2DLineChildrenAsPointsActor()
 {
-	PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = false;
 
-	UIElement = CreateDefaultSubobject<UUI2DLineChildrenAsPoints>(TEXT("UIElement"));
-	RootComponent = UIElement;
+    UIElement = CreateDefaultSubobject<UUI2DLineChildrenAsPoints>(TEXT("UIElement"));
+    RootComponent = UIElement;
 }
 
 void UUI2DLineChildrenAsPoints::OnRegister()
 {
-	Super::OnRegister();
+    Super::OnRegister();
 #if WITH_EDITOR
-	if (!GetWorld()->IsGameWorld())
-	{
-		RebuildChildrenList();
-	}
+    if (!GetWorld()->IsGameWorld())
+    {
+        RebuildChildrenList();
+    }
 #endif
 }
 
-void UUI2DLineChildrenAsPoints::OnUIChildHierarchyIndexChanged(UUIItem* child)
+void UUI2DLineChildrenAsPoints::OnUIChildHierarchyIndexChanged(UUIItem *child)
 {
-	Super::OnUIChildHierarchyIndexChanged(child);
-	//sort order
-	SortedItemArray.Sort([](const UUIItem& A, const UUIItem& B)
-	{
-		if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
-			return true;
-		return false;
-	});
+    Super::OnUIChildHierarchyIndexChanged(child);
+    //sort order
+    SortedItemArray.Sort([](const UUIItem &A, const UUIItem &B) {
+        if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
+            return true;
+        return false;
+    });
 
-	MarkCanvasUpdate();
+    MarkCanvasUpdate();
 }
 
-void UUI2DLineChildrenAsPoints::OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)
+void UUI2DLineChildrenAsPoints::OnUIChildAttachmentChanged(UUIItem *child, bool attachOrDetach)
 {
-	Super::OnUIChildAttachmentChanged(child, attachOrDetach);
+    Super::OnUIChildAttachmentChanged(child, attachOrDetach);
 
-	if (attachOrDetach)
-	{
-		int32 index;
-		if (!SortedItemArray.Find(child, index))
-		{
-			SortedItemArray.Add(child);
+    if (attachOrDetach)
+    {
+        int32 index;
+        if (!SortedItemArray.Find(child, index))
+        {
+            SortedItemArray.Add(child);
 
-			SortedItemArray.Sort([](const UUIItem& A, const UUIItem& B)
-			{
-				if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
-					return true;
-				return false;
-			});
+            SortedItemArray.Sort([](const UUIItem &A, const UUIItem &B) {
+                if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
+                    return true;
+                return false;
+            });
 
-			MarkTriangleDirty();
-		}
-	}
-	else
-	{
-		int32 index;
-		if (SortedItemArray.Find(child, index))
-		{
-			SortedItemArray.RemoveAt(index);
-			MarkTriangleDirty();
-		}
-	}
+            MarkTriangleDirty();
+        }
+    }
+    else
+    {
+        int32 index;
+        if (SortedItemArray.Find(child, index))
+        {
+            SortedItemArray.RemoveAt(index);
+            MarkTriangleDirty();
+        }
+    }
 }
-void UUI2DLineChildrenAsPoints::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+void UUI2DLineChildrenAsPoints::OnUIChildDimensionsChanged(UUIItem *child, bool positionChanged, bool sizeChanged)
 {
-	if (positionChanged)
-	{
-		OnChildPositionChanged();
-	}
+    Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+    if (positionChanged)
+    {
+        OnChildPositionChanged();
+    }
 }
 
 void UUI2DLineChildrenAsPoints::RebuildChildrenList()
 {
-	SortedItemArray.Reset();
-	const auto& childrenArray = this->GetAttachChildren();
-	for (int i = 0, count = childrenArray.Num(); i < count; i++)
-	{
-		if (auto uiItem = Cast<UUIItem>(childrenArray[i]))
-		{
-			SortedItemArray.Add(uiItem);
-		}
-	}
-	SortedItemArray.Sort([](const UUIItem& A, const UUIItem& B)
-	{
-		if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
-			return true;
-		return false;
-	});
+    SortedItemArray.Reset();
+    const auto &childrenArray = this->GetAttachChildren();
+    for (int i = 0, count = childrenArray.Num(); i < count; i++)
+    {
+        if (auto uiItem = Cast<UUIItem>(childrenArray[i]))
+        {
+            SortedItemArray.Add(uiItem);
+        }
+    }
+    SortedItemArray.Sort([](const UUIItem &A, const UUIItem &B) {
+        if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
+            return true;
+        return false;
+    });
 }
 
 void UUI2DLineChildrenAsPoints::CalculatePoints()
 {
-	int pointCount = SortedItemArray.Num();
-	CurrentPointArray.Reset(pointCount);
-	for (int i = 0; i < pointCount; i++)
-	{
-		CurrentPointArray.Add(FVector2D(SortedItemArray[i]->GetRelativeLocation()));
-	}
+    int pointCount = SortedItemArray.Num();
+    CurrentPointArray.Reset(pointCount);
+    for (int i = 0; i < pointCount; i++)
+    {
+        CurrentPointArray.Add(FVector2D(SortedItemArray[i]->GetRelativeLocation()));
+    }
 }
 
 void UUI2DLineChildrenAsPoints::OnChildPositionChanged()
 {
-	MarkVertexPositionDirty();
+    MarkVertexPositionDirty();
 }

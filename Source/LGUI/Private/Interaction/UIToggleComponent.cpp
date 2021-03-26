@@ -15,7 +15,7 @@ void UUIToggleComponent::Awake()
 	Super::Awake();
 	CheckTarget();
 	//check toggle group
-	if (UIToggleGroupActor)
+	if (UIToggleGroupActor.IsValid())
 	{
 		GroupComp = UIToggleGroupActor->FindComponentByClass<UUIToggleGroupComponent>();
 	}
@@ -24,7 +24,7 @@ void UUIToggleComponent::Awake()
 void UUIToggleComponent::Start()
 {
 	Super::Start();
-	if (IsValid(GroupComp) && IsOn)
+	if (GroupComp.IsValid() && IsOn)
 	{
 		GroupComp->SetSelection(this);//if default is selected, set to group
 	}
@@ -33,7 +33,7 @@ void UUIToggleComponent::Start()
 
 bool UUIToggleComponent::CheckTarget()
 {
-	if (ToggleActor)return true;
+	if (ToggleActor.IsValid())return true;
 	return false;
 }
 
@@ -41,7 +41,7 @@ void UUIToggleComponent::SetState(bool newState, bool fireEvent)
 {
 	if (IsOn != newState)
 	{
-		if (GroupComp)
+		if (GroupComp.IsValid())
 		{
 			if (GroupComp->GetAllowNoneSelected() == false && GroupComp->GetSelectedItem() == this && newState == false)//not allow none select
 			{
@@ -58,7 +58,7 @@ void UUIToggleComponent::SetState(bool newState, bool fireEvent)
 
 		ApplyToggleState(false);
 
-		if (GroupComp)
+		if (GroupComp.IsValid())
 		{
 			if (IsOn)
 			{
@@ -104,11 +104,11 @@ void UUIToggleComponent::ApplyToggleState(bool immediateSet)
 	}
 	else if (ToggleTransition == UIToggleTransitionType::TransitionComponent)
 	{
-		if (ToggleTransitionComp == nullptr)
+		if (!ToggleTransitionComp.IsValid())
 		{
 			ToggleTransitionComp = ToggleActor->FindComponentByClass<UUISelectableTransitionComponent>();
 		}
-		if (ToggleTransitionComp)
+		if (ToggleTransitionComp.IsValid())
 		{
 			ToggleTransitionComp->OnStartCustomTransition(IsOn ? OnTransitionName : OffTransitionName, immediateSet);
 		}

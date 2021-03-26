@@ -13,7 +13,7 @@ class LGUI_API UUIToggleGroupComponent : public UActorComponent
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(Transient) UUIToggleComponent* LastSelect = nullptr;
+	UPROPERTY(Transient) TWeakObjectPtr<UUIToggleComponent> LastSelect = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ToggleGroup")
 		bool bAllowNoneSelected = true;
 public:

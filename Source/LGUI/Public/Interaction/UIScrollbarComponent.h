@@ -45,12 +45,12 @@ protected:
 		float Size = 0;
 	/** Handle can move inside it's parent */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
-		AUIBaseActor* HandleActor;
+		TWeakObjectPtr<AUIBaseActor> HandleActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")
 		UIScrollbarDirectionType DirectionType;
 
-	UPROPERTY(Transient)UUIItem* Handle;
-	UPROPERTY(Transient)UUIItem* HandleArea;
+	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> Handle;
+	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> HandleArea;
 
 	FLGUIMulticastFloatDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Scrollbar")

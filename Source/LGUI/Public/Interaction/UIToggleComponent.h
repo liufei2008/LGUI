@@ -37,10 +37,10 @@ protected:
 	friend class FUIToggleCustomization;
 	/** If not assigned, use self. must have UIItem component */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
-		class AUIBaseActor* ToggleActor;
+		TWeakObjectPtr<class AUIBaseActor> ToggleActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI-Toggle")
 		UIToggleTransitionType ToggleTransition = UIToggleTransitionType::Fade;
-	UPROPERTY(Transient) class UUISelectableTransitionComponent* ToggleTransitionComp = nullptr;
+	UPROPERTY(Transient) TWeakObjectPtr<class UUISelectableTransitionComponent> ToggleTransitionComp = nullptr;
 	bool CheckTarget();
 #pragma region Transition
 	UPROPERTY(Transient) class ULTweener* ToggleTransitionTweener = nullptr;
@@ -66,8 +66,8 @@ protected:
 		bool IsOn = true;
 	/** Must have UIToggleGroupComponent */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
-		AActor* UIToggleGroupActor;
-	UPROPERTY(Transient) class UUIToggleGroupComponent* GroupComp = nullptr;
+		TWeakObjectPtr<AActor> UIToggleGroupActor;
+	UPROPERTY(Transient) TWeakObjectPtr<class UUIToggleGroupComponent> GroupComp = nullptr;
 
 	FLGUIMulticastBoolDelegate OnToggleCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
@@ -76,7 +76,7 @@ protected:
 	void ApplyToggleState(bool immediateSet);
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
-		AActor* GetToggleGroupActor()const { return UIToggleGroupActor; }
+		AActor* GetToggleGroupActor()const { return UIToggleGroupActor.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		void SetToggleGroup(UUIToggleGroupComponent* InGroupComp);
 

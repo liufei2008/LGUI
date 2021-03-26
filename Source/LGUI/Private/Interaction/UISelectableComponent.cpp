@@ -87,7 +87,7 @@ void UUISelectableComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 
 bool UUISelectableComponent::CheckTarget()
 {
-	if (TransitionActor)return true;
+	if (TransitionActor.IsValid())return true;
 	return false;
 }
 void UUISelectableComponent::ApplySelectionState(bool immediateSet)
@@ -127,11 +127,11 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			if (this->GetWorld()->IsGameWorld())
 #endif
 			{
-				if (!IsValid(TransitionComp))
+				if (!TransitionComp.IsValid())
 				{
 					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
-				if (TransitionComp)
+				if (TransitionComp.IsValid())
 				{
 					TransitionComp->OnNormal(immediateSet);
 				}
@@ -175,11 +175,11 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			if (this->GetWorld()->IsGameWorld())
 #endif
 			{
-				if (!IsValid(TransitionComp))
+				if (!TransitionComp.IsValid())
 				{
 					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
-				if (TransitionComp)
+				if (TransitionComp.IsValid())
 				{
 					TransitionComp->OnHighlighted(immediateSet);
 				}
@@ -223,11 +223,11 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			if (this->GetWorld()->IsGameWorld())
 #endif
 			{
-				if (!IsValid(TransitionComp))
+				if (!TransitionComp.IsValid())
 				{
 					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
-				if (TransitionComp)
+				if (TransitionComp.IsValid())
 				{
 					TransitionComp->OnPressed(immediateSet);
 				}
@@ -271,11 +271,11 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			if (this->GetWorld()->IsGameWorld())
 #endif
 			{
-				if (!IsValid(TransitionComp))
+				if (!TransitionComp.IsValid())
 				{
 					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
-				if (TransitionComp)
+				if (TransitionComp.IsValid())
 				{
 					TransitionComp->OnDisabled(immediateSet);
 				}
