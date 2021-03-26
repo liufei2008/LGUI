@@ -43,6 +43,7 @@ namespace LGUISceneOutliner
 		EVisibility GetPrefabIconVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
 		EVisibility GetDownArrowVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
 		EVisibility GetCanvasIconVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
+		EVisibility GetDrawcallCountVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
 		FSlateColor GetPrefabIconColor(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
 		FText GetDrawcallInfo(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
 
