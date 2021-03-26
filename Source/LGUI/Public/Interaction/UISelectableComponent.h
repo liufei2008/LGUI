@@ -66,7 +66,7 @@ protected:
 	friend class FUISelectableCustomization;
 	/** If not assigned, then use self. must have UIItem component */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
-		class AUIBaseActor* TransitionActor;
+		TWeakObjectPtr<class AUIBaseActor> TransitionActor;
 	/** inherited events of this component can bubble up? */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		bool AllowEventBubbleUp = false;
@@ -104,7 +104,7 @@ protected:
 	void ApplySelectionState(bool immediateSet);
 	bool IsPointerInsideThis = false;
 	bool IsPointerDown = false;
-	UPROPERTY(Transient) class UUISelectableTransitionComponent* TransitionComp = nullptr;
+	UPROPERTY(Transient) TWeakObjectPtr<class UUISelectableTransitionComponent> TransitionComp = nullptr;
 #pragma endregion
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable-Navigation")
 		EUISelectableNavigationMode NavigationLeft = EUISelectableNavigationMode::Auto;
@@ -132,7 +132,7 @@ protected:
 		FLGUIComponentReference NavigationPrevSpecific = FLGUIComponentReference(UUISelectableComponent::StaticClass());
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable")
-		class AUIBaseActor* GetTransitionTarget()const { return TransitionActor; }
+		class AUIBaseActor* GetTransitionTarget()const { return TransitionActor.Get(); }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Selectable") 
 		ULGUISpriteData* GetNormalSprite()const { return NormalSprite; }

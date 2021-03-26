@@ -988,11 +988,11 @@ void UUITextInputComponent::UpdateCaretPosition(bool InHideSelection)
 }
 void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool InHideSelection)
 {
-	if (TextActor == nullptr)return;
+	if (!TextActor.IsValid())return;
 	if (CaretObject == nullptr)
 	{
 		auto caretActor = this->GetWorld()->SpawnActor<AUISpriteActor>();
-		caretActor->AttachToActor(TextActor, FAttachmentTransformRules::KeepRelativeTransform);
+		caretActor->AttachToActor(TextActor.Get(), FAttachmentTransformRules::KeepRelativeTransform);
 #if WITH_EDITOR
 		caretActor->SetActorLabel(TEXT("Caret"));
 #endif
@@ -1018,7 +1018,7 @@ void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool 
 }
 void UUITextInputComponent::UpdateSelection()
 {
-	if (TextActor == nullptr)return;
+	if (!TextActor.IsValid())return;
 	int32 createdSelectionMaskCount = SelectionMaskObjectArray.Num();
 	if (SelectionPropertyArray.Num() > createdSelectionMaskCount)//need more selection mask object
 	{
@@ -1026,7 +1026,7 @@ void UUITextInputComponent::UpdateSelection()
 		for (int32 i = 0; i < needToCreateSelectionMaskCount; i++)
 		{
 			auto spriteActor = this->GetWorld()->SpawnActor<AUISpriteActor>();
-			spriteActor->AttachToActor(TextActor, FAttachmentTransformRules::KeepRelativeTransform);
+			spriteActor->AttachToActor(TextActor.Get(), FAttachmentTransformRules::KeepRelativeTransform);
 #if WITH_EDITOR
 			spriteActor->SetActorLabel(FString::Printf(TEXT("Selection%d"), i + createdSelectionMaskCount));
 #endif
@@ -1304,11 +1304,11 @@ void UUITextInputComponent::ActivateInput(ULGUIPointerEventData* eventData)
 		{
 			if (IsValid(eventData))
 			{
-				eventSystem->SetSelectComponent(RootUIComp, eventData, eventData->pressComponentEventFireType);
+				eventSystem->SetSelectComponent(RootUIComp.Get(), eventData, eventData->pressComponentEventFireType);
 			}
 			else
 			{
-				eventSystem->SetSelectComponentWithDefault(RootUIComp);
+				eventSystem->SetSelectComponentWithDefault(RootUIComp.Get());
 			}
 		}
 	}

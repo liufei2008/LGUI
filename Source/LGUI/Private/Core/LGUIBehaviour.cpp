@@ -225,7 +225,7 @@ UUIItem* ULGUIBehaviour::GetRootComponent() const
 {
 	if (CheckRootUIComponent())
 	{
-		return RootUIComp;
+		return RootUIComp.Get();
 	}
 	return nullptr;
 }

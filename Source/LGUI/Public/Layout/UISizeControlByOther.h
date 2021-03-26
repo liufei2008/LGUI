@@ -16,7 +16,7 @@ class LGUI_API UUISizeControlByOtherHelper :public ULGUIBehaviour
 private:
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
 	friend class UUISizeControlByOther;
-	UPROPERTY(Transient)class UUISizeControlByOther* TargetComp;
+	UPROPERTY(Transient)TWeakObjectPtr<class UUISizeControlByOther> TargetComp;
 };
 
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
@@ -28,7 +28,7 @@ public:
 	virtual void Awake()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		class AUIBaseActor* GetTargetActor() { return TargetActor; }
+		class AUIBaseActor* GetTargetActor() { return TargetActor.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetControlWidth() { return ControlWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -64,7 +64,7 @@ protected:
 
 	//Target object's size control this object's size
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		class AUIBaseActor* TargetActor;
+		TWeakObjectPtr<class AUIBaseActor> TargetActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool ControlWidth = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -74,8 +74,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float AdditionalHeight = 0;
 
-	UPROPERTY(Transient) class UUIItem* TargetUIItem = nullptr;
-	UPROPERTY(Transient) class UUISizeControlByOtherHelper* HelperComp = nullptr;
+	UPROPERTY(Transient) TWeakObjectPtr<class UUIItem> TargetUIItem = nullptr;
+	UPROPERTY(Transient) TWeakObjectPtr<class UUISizeControlByOtherHelper> HelperComp = nullptr;
 	bool CheckTargetUIItem();
 
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;

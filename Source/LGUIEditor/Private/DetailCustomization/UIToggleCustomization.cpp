@@ -38,7 +38,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 	UUIItem* targetUIItem = nullptr;
 	USceneComponent* targetComp = nullptr;
 	UUISelectableTransitionComponent* targetTweenComp = nullptr;
-	if (auto toggleActor = TargetScriptPtr->ToggleActor)
+	if (auto toggleActor = TargetScriptPtr->ToggleActor.Get())
 	{
 		targetUIItem = toggleActor->FindComponentByClass<UUIItem>();
 		targetComp = toggleActor->FindComponentByClass<USceneComponent>();
@@ -138,7 +138,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 
 	auto groupActorHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIToggleComponent, UIToggleGroupActor));
 	groupActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FUIToggleCustomization::ForceRefresh, &DetailBuilder));
-	if (TargetScriptPtr->UIToggleGroupActor)
+	if (TargetScriptPtr->UIToggleGroupActor.Get())
 	{
 		auto toggleGroupComp = TargetScriptPtr->UIToggleGroupActor->FindComponentByClass<UUIToggleGroupComponent>();
 		if (!toggleGroupComp)
