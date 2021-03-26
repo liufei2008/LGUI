@@ -51,7 +51,8 @@ public:
 	static class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
 	static bool IsCanvasActor(AActor* InActor);
-	static int GetCanvasDrawcallCount(AActor* InActor);
+	static int GetDrawcallCount(AActor* InActor);
+	static bool IsSelfRenderActor(AActor* InActor);
 	static FString PrintObjectFlags(UObject* Target);
 
 	static TArray<TWeakObjectPtr<class ULGUIPrefab>> copiedActorPrefabList;

@@ -748,7 +748,21 @@ bool LGUIEditorTools::IsCanvasActor(AActor* InActor)
 	}
 	return false;
 }
-int LGUIEditorTools::GetCanvasDrawcallCount(AActor* InActor)
+bool LGUIEditorTools::IsSelfRenderActor(AActor* InActor)
+{
+	if (auto rootComp = InActor->GetRootComponent())
+	{
+		if (auto uiRenderable = Cast<UUIRenderable>(rootComp))
+		{
+			if (uiRenderable->GetIsSelfRender())
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+int LGUIEditorTools::GetDrawcallCount(AActor* InActor)
 {
 	if (auto rootComp = InActor->GetRootComponent())
 	{
@@ -757,6 +771,10 @@ int LGUIEditorTools::GetCanvasDrawcallCount(AActor* InActor)
 			if (rootUIItem->IsCanvasUIItem())
 			{
 				return rootUIItem->GetRenderCanvas()->GetDrawcallCount();
+			}
+			if (auto uiRenderable = Cast<UUIRenderable>(rootComp))
+			{
+				return uiRenderable->GetIsSelfRender() ? 1 : 0;
 			}
 		}
 	}
