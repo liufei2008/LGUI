@@ -2,6 +2,9 @@
 
 #include "LTweenBPLibrary.h"
 #include "LTween.h"
+#include "Components/SceneComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Components/MeshComponent.h"
 
 
 ULTweener* ULTweenBPLibrary::FloatTo(UObject* WorldContextObject, FLTweenFloatSetterDynamic setter, float startValue, float endValue, float duration, float delay, LTweenEase ease)
