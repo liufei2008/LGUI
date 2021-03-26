@@ -48,17 +48,17 @@ protected:
 		bool WholeNumbers = false;
 	/** "Fill" can fill inside it's parent */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
-		AUIBaseActor* FillActor;
+		TWeakObjectPtr<AUIBaseActor> FillActor;
 	/** Handle can move inside it's parent */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
-		AUIBaseActor* HandleActor;
+		TWeakObjectPtr<AUIBaseActor> HandleActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
 		UISliderDirectionType DirectionType;
 
-	UPROPERTY(Transient)UUIItem* Fill;
-	UPROPERTY(Transient)UUIItem* FillArea;
-	UPROPERTY(Transient)UUIItem* Handle;
-	UPROPERTY(Transient)UUIItem* HandleArea;
+	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> Fill;
+	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> FillArea;
+	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> Handle;
+	UPROPERTY(Transient)TWeakObjectPtr<UUIItem> HandleArea;
 
 	FLGUIMulticastFloatDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")

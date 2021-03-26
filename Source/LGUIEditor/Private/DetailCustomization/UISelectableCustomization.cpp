@@ -42,7 +42,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	UUIItem* targetUIItem = nullptr;
 	UUISprite* targetUISprite = nullptr;
 	UUISelectableTransitionComponent* targetTweenComp = nullptr;
-	if (auto transitionActor = TargetScriptPtr->TransitionActor)
+	if (auto transitionActor = TargetScriptPtr->TransitionActor.Get())
 	{
 		targetUIItem = transitionActor->FindComponentByClass<UUIItem>();
 		targetUISprite = transitionActor->FindComponentByClass<UUISprite>();

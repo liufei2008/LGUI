@@ -32,5 +32,5 @@ void UUIToggleGroupComponent::ClearSelection()
 }
 UUIToggleComponent* UUIToggleGroupComponent::GetSelectedItem()const
 {
-	return LastSelect;
+	return LastSelect.Get();
 }

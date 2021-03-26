@@ -267,7 +267,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 				.OnZCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Location, EAxisList::Z, true )
 				.Font( FontInfo )
 				.TypeInterface( TypeInterface )
-				.AllowSpin(false)
+				.AllowSpin(true)
 			]
 			+SHorizontalBox::Slot()
 			.AutoWidth()
@@ -397,7 +397,7 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 				.OnYCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Scale, EAxisList::Y, true )
 				.OnZCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Scale, EAxisList::Z, true )
 				.Font( FontInfo )
-				.AllowSpin(false)
+				.AllowSpin(true)
 			]
 			+SHorizontalBox::Slot()
 			.AutoWidth()
@@ -853,7 +853,7 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 							SceneComponent->SetUIRelativeLocation(NewComponentValue);
 
 							// Also forcibly set it as the cache may have changed it slightly
-							SceneComponent->GetRelativeLocation() = NewComponentValue;
+							SceneComponent->GetRelativeLocation_DirectMutable() = NewComponentValue;
 							CachedLocation.Set(NewComponentValue);
 
 							// If it's a template, propagate the change out to any current instances of the object

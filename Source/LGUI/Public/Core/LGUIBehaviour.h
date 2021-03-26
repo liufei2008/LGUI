@@ -109,7 +109,7 @@ protected:
 #endif
 	friend class UUIItem;
 	/** This owner's RootComponent cast to UIItem */
-	UPROPERTY(Transient) mutable UUIItem* RootUIComp = nullptr;
+	UPROPERTY(Transient) mutable TWeakObjectPtr<UUIItem> RootUIComp = nullptr;
 	/** Check and get RootUIItem */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool CheckRootUIComponent() const;
