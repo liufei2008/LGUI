@@ -468,6 +468,14 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			NAME_None,
 			EUserInterfaceActionType::Button
 		);
+		MenuBuilder.AddSubMenu(
+			LOCTEXT("Layout", "Attach Layout"),
+			LOCTEXT("Layout_Tooltip", "Attach Layout to selected UI Element"),
+			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::AttachLayout),
+			FUIAction(FExecuteAction(), FCanExecuteAction::CreateStatic(&LGUIEditorTools::IsSelectUIActor)),
+			NAME_None,
+			EUserInterfaceActionType::Button
+		);
 	}
 	MenuBuilder.EndSection();
 
@@ -481,7 +489,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("ChangeCollisionChannelSubMenu", "Change Trace Channel"),
 			LOCTEXT("ChangeCollisionChannelSubMenu_Tooltip", "Change a UI element's trace channel to selected channel, with hierarchy"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::ChangeTraceChannelSubMenu),
-			FUIAction(FExecuteAction(), FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })),
+			FUIAction(FExecuteAction(), FCanExecuteAction::CreateStatic(&LGUIEditorTools::IsSelectUIActor)),
 			NAME_None,
 			EUserInterfaceActionType::Button
 		);
@@ -728,6 +736,56 @@ void FLGUIEditorModule::ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder)
 				);
 			}
 		}
+	}
+	MenuBuilder.EndSection();
+}
+
+void FLGUIEditorModule::AttachLayout(FMenuBuilder& MenuBuilder)
+{
+	MenuBuilder.BeginSection("Layout");
+	{
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(TEXT("Horizontal Layout")),
+			FText::FromString(FString::Printf(TEXT("Layout child elements side by side horizontally"))),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUIHorizontalLayout::StaticClass())))
+		);
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(TEXT("Vertical Layout")),
+			FText::FromString(FString::Printf(TEXT("Layout child elements side by side vertically"))),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUIVerticalLayout::StaticClass())))
+		);
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(TEXT("Grid Layout")),
+			FText::FromString(FString::Printf(TEXT("Layout child elements in grid"))),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUIGridLayout::StaticClass())))
+		);
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(TEXT("Rounded Layout")),
+			FText::FromString(FString::Printf(TEXT("Rounded layout, only affect children's position and angle, not affect size"))),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUIRoundedLayout::StaticClass())))
+		);
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(TEXT("Layout Element")),
+			FText::FromString(FString::Printf(TEXT("Attach to layout's child, make is specific or ignore layout"))),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUILayoutElement::StaticClass())))
+		);
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(TEXT("Size Control by Aspect Ratio")),
+			FText::FromString(FString::Printf(TEXT("Use aspect ratio to control with and height"))),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUISizeControlByAspectRatio::StaticClass())))
+		);
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(TEXT("Size Control by Other")),
+			FText::FromString(FString::Printf(TEXT("Use other UI element to control the size of this one"))),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUISizeControlByOther::StaticClass())))
+		);
 	}
 	MenuBuilder.EndSection();
 }

@@ -42,6 +42,7 @@ public:
 	static void ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery);
 	static void CreateScreenSpaceUIBasicSetup();
 	static void CreateWorldSpaceUIBasicSetup();
+	static void AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass);
 	static UWorld* GetWorldFromSelection();
 	static void CreatePrefabAsset();
 	static void ApplyPrefab();
@@ -50,6 +51,7 @@ public:
 	static void SelectPrefabAsset();
 	static class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
+	static bool IsSelectUIActor();
 	static bool IsCanvasActor(AActor* InActor);
 	static int GetDrawcallCount(AActor* InActor);
 	static bool IsSelfRenderActor(AActor* InActor);

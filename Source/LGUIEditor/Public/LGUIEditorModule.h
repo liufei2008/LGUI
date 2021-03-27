@@ -42,6 +42,7 @@ private:
 	void BasicSetupSubMenu(FMenuBuilder& MenuBuilder);
 	void ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder);
 	void ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder);
+	void AttachLayout(FMenuBuilder& MenuBuilder);
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 	void UseActiveViewportAsPreview();

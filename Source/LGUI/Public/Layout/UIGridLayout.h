@@ -16,6 +16,9 @@
 //	LowerRight,
 //};
 
+/**
+ * Layout child elements in grid
+ */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUIGridLayout : public UUILayoutBase
 {
