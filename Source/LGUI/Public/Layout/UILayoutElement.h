@@ -9,15 +9,18 @@
 UENUM(BlueprintType, Category = LGUI)
 enum class ELayoutElementType :uint8
 {
-	//AutoSize, after ConstantSize and RatioSize are allocated, left size is for AutoSize. euqal to without UILayoutElement
+	/* AutoSize, after ConstantSize and RatioSize are allocated, left size is for AutoSize. euqal to without UILayoutElement. */
 	AutoSize,
-	//ignore parent Layout
+	/* Ignore parent Layout. */
 	IgnoreLayout,
-	//ConstantSize
+	/* Constant size. */
 	ConstantSize,
-	//RatioSize, set size by ratio. total size is 1.0
+	/* RatioSize, set size by ratio. total size is 1.0. */
 	RatioSize,
 };
+/**
+ * Attach to layout's child, make is specific or ignore layout
+ */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUILayoutElement : public ULGUIBehaviour
 {

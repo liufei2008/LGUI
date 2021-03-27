@@ -573,6 +573,38 @@ void LGUIEditorTools::CreateWorldSpaceUIBasicSetup()
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
+void LGUIEditorTools::AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass)
+{
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Attach Component to Actor")));
+
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	auto count = selectedActors.Num();
+	if (count == 0)
+	{
+		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
+		return;
+	}
+	UActorComponent* lastCreatedComponent = nullptr;
+	for (auto actor : selectedActors)
+	{
+		if (IsValid(actor))
+		{
+			auto comp = NewObject<UActorComponent>(actor, InComponentClass, *FComponentEditorUtils::GenerateValidVariableName(InComponentClass, actor), RF_Transactional);
+			actor->AddInstanceComponent(comp);
+			comp->OnComponentCreated();
+			comp->RegisterComponent();
+			lastCreatedComponent = comp;
+		}
+	}
+	if (lastCreatedComponent)
+	{
+		GEditor->SelectComponent(lastCreatedComponent, true, true);
+	}
+
+	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
+}
 bool LGUIEditorTools::HaveValidCopiedActors()
 {
 	if (copiedActorPrefabList.Num() == 0)return false;
@@ -745,6 +777,30 @@ bool LGUIEditorTools::IsCanvasActor(AActor* InActor)
 				return true;
 			}
 		}
+	}
+	return false;
+}
+bool LGUIEditorTools::IsSelectUIActor()
+{
+	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+	if (selectedActors.Num() > 0)
+	{
+		bool allIsUI = true;
+		for (auto actor : selectedActors)
+		{
+			if (IsValid(actor))
+			{
+				if (auto rootComp = actor->GetRootComponent())
+				{
+					auto uiRootComp = Cast<UUIItem>(rootComp);
+					if (uiRootComp == nullptr)
+					{
+						allIsUI = false;
+					}
+				}
+			}
+		}
+		return allIsUI;
 	}
 	return false;
 }

@@ -92,6 +92,7 @@
 #include "Layout/UIGridLayout.h"
 #include "Layout/UIHorizontalLayout.h"
 #include "Layout/UIVerticalLayout.h"
+#include "Layout/UIRoundedLayout.h"
 #include "Layout/UILayoutElement.h"
 #include "Layout/UISizeControlByAspectRatio.h"
 #include "Layout/UISizeControlByOther.h"

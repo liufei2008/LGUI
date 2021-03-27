@@ -7,7 +7,7 @@
 #include "UIRoundedLayout.generated.h"
 
 /**
- * rounded layout, only affect position, not affect size
+ * Rounded layout, only affect children's position and angle, not affect size
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUIRoundedLayout : public UUILayoutBase
