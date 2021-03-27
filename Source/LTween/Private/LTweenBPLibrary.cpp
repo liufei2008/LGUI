@@ -642,3 +642,25 @@ ULTweener* ULTweenBPLibrary::MeshMaterialVectorParameterTo(UMeshComponent* targe
 			return material->GetVectorParameterValue(parameterName, result);
 		}), FLTweenMaterialVectorSetterFunction::CreateUObject(material, &UMaterialInstanceDynamic::SetVectorParameterByIndex), endValue, duration, parameterIndex)->SetEase(ease)->SetDelay(delay);
 }
+
+void ULTweenBPLibrary::DisableTick(UObject* WorldContextObject)
+{
+	if (auto Instance = ALTweenActor::GetLTweenInstance(WorldContextObject))
+	{
+		Instance->DisableTick();
+	}
+}
+void ULTweenBPLibrary::EnableTick(UObject* WorldContextObject)
+{
+	if (auto Instance = ALTweenActor::GetLTweenInstance(WorldContextObject))
+	{
+		Instance->EnableTick();
+	}
+}
+void ULTweenBPLibrary::CustomTick(UObject* WorldContextObject, float DeltaTime)
+{
+	if (auto Instance = ALTweenActor::GetLTweenInstance(WorldContextObject))
+	{
+		Instance->CustomTick(DeltaTime);
+	}
+}
