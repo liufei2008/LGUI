@@ -264,8 +264,8 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 	CheckSpriteTexture();
 	if (PropertyChangedEvent.Property != nullptr)
 	{
-		auto propertyName = PropertyChangedEvent.Property->GetName();
-		if (propertyName == TEXT("spriteTexture"))
+		auto propertyName = PropertyChangedEvent.Property->GetFName();
+		if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteTexture))
 		{
 			if (spriteTexture != nullptr)
 			{
@@ -278,10 +278,10 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 			}
 		}
 		if (
-			propertyName == TEXT("borderLeft") ||
-			propertyName == TEXT("borderRight") ||
-			propertyName == TEXT("borderTop") ||
-			propertyName == TEXT("borderBottom")
+			propertyName == GET_MEMBER_NAME_CHECKED(FLGUISpriteInfo, borderLeft) ||
+			propertyName == GET_MEMBER_NAME_CHECKED(FLGUISpriteInfo, borderRight) ||
+			propertyName == GET_MEMBER_NAME_CHECKED(FLGUISpriteInfo, borderTop) ||
+			propertyName == GET_MEMBER_NAME_CHECKED(FLGUISpriteInfo, borderBottom)
 			)
 		{
 			//sprite data, apply border
@@ -295,6 +295,14 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 					spriteInfo.ApplyBorderUV(atlasTextureSizeInv, atlasTextureSizeInv);
 				}
 			}
+		}
+		if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag))
+		{
+			this->ReloadTexture();
+		}
+		if (propertyName == GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteTexture))
+		{
+			this->ReloadTexture();
 		}
 
 		ULGUIEditorManagerObject::RefreshAllUI();

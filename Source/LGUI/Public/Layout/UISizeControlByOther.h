@@ -8,7 +8,7 @@
 #include "UISizeControlByOther.generated.h"
 
 //this is only a helper component for UISizeControlByOther, no need to be serialized
-UCLASS(ClassGroup=(LGUI), Transient)
+UCLASS(Transient)
 class LGUI_API UUISizeControlByOtherHelper :public ULGUIBehaviour
 {
 	GENERATED_BODY()
@@ -19,6 +19,9 @@ private:
 	UPROPERTY(Transient)TWeakObjectPtr<class UUISizeControlByOther> TargetComp;
 };
 
+/**
+ * Use other UI element to control the size of this one.
+ */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUISizeControlByOther : public UUILayoutBase
 {

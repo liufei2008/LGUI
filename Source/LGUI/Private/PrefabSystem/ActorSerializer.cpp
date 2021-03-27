@@ -311,7 +311,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
 				if (!Comp->IsDefaultSubobject())
 				{
-					NewActor->FinishAndRegisterComponent(Comp);
+					NewActor->FinishAndRegisterComponent(Comp);//@todo: replace all FinishAndRegisterComponent with AddInstanceComponent
 				}
 
 				if (auto PrimitiveComp = Cast<UPrimitiveComponent>(Comp))

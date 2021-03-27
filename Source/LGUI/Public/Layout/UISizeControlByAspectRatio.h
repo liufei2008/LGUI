@@ -16,6 +16,10 @@ enum class EUISizeControlByAspectRatioMode :uint8
 	FitInParent,
 	EnvelopeParent,
 };
+
+/**
+ * Use aspect ratio to control with and height.
+ */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
 class LGUI_API UUISizeControlByAspectRatio : public UUILayoutBase
 {

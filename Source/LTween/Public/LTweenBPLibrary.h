@@ -207,12 +207,6 @@ public:
 			Instance->KillIfIsTweening(WorldContextObject, tweener, callComplete);
 		}
 	}
-	UFUNCTION(BlueprintCallable, Category = LTween, meta = (WorldContext = "WorldContextObject"))
-		static void DisableTick(UObject* WorldContextObject);
-	UFUNCTION(BlueprintCallable, Category = LTween, meta = (WorldContext = "WorldContextObject"))
-		static void EnableTick(UObject* WorldContextObject);
-	UFUNCTION(BlueprintCallable, Category = LTween, meta = (WorldContext = "WorldContextObject"))
-		static void CustomTick(UObject* WorldContextObject, float DeltaTime);
 
 	static FDelegateHandle RegisterUpdateEvent(UObject* WorldContextObject, const LTweenUpdateDelegate& update)
 	{
