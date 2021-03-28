@@ -597,13 +597,16 @@ void LGUIEditorTools::AttachComponentToSelectedActor(TSubclassOf<UActorComponent
 			lastCreatedComponent = comp;
 		}
 	}
-	if (lastCreatedComponent)
-	{
-		GEditor->SelectComponent(lastCreatedComponent, true, true);
-	}
 
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
+
+	if (selectedActors.Num() == 1)
+	{
+		GEditor->SelectNone(true, true);
+		GEditor->SelectActor(lastCreatedComponent->GetOwner(), true, true, false, true);
+		GEditor->SelectComponent(lastCreatedComponent, true, true, false);
+	}
 }
 bool LGUIEditorTools::HaveValidCopiedActors()
 {
