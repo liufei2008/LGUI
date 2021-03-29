@@ -502,7 +502,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 	else
 	{
 #if SHOULD_LOG_RebuildAllDrawcall
-		UE_LOG(LGUI, Log, TEXT("AddUIRenderable rebuildDrawcall"));
+		UE_LOG(LGUI, Log, TEXT("[ULGUICanvas::AddUIRenderable]AddUIRenderable rebuildDrawcall"));
 #endif
 		bShouldRebuildAllDrawcall = true;
 	}
@@ -661,7 +661,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 	//draw triangle
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
-		if (cacheForThisUpdate_ShouldRebuildAllDrawcall)
+		if (this->cacheForThisUpdate_ShouldRebuildAllDrawcall)
 		{
 			//check valid renderable, incase unnormally deleting actor, like undo
 			{
@@ -760,6 +760,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				{
 					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessObject->GetRenderProxy();
 					uiPostProcessPrimitive.Pin()->AddToHudRenderer(TopMostCanvas->GetViewExtension());
+					uiPostProcessPrimitive.Pin()->SetVisibility(true);
 
 					UIDrawcallPrimitiveList[i].UIPostProcess = uiPostProcessPrimitive;
 
