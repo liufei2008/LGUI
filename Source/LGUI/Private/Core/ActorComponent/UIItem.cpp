@@ -313,80 +313,87 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 
 	if (PropertyChangedEvent.Property != nullptr)
 	{
-		auto propetyName = PropertyChangedEvent.Property->GetName();
-		if (propetyName == TEXT("bIsUIActive"))
+		auto propetyName = PropertyChangedEvent.Property->GetFName();
+		if (PropertyChangedEvent.MemberProperty->GetFName() == TEXT("RelativeLocation"))
+		{
+			prevRelativeLocation = GetRelativeLocation();
+		}
+		else if (propetyName == GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive))
 		{
 			bIsUIActive = !bIsUIActive;//make it work
 			SetUIActive(!bIsUIActive);
 		}
 
-		else if (propetyName == TEXT("hierarchyIndex"))
+		else if (propetyName == GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex))
 		{
 			hierarchyIndex = hierarchyIndex + 1;//make it work
 			SetHierarchyIndex(hierarchyIndex - 1);
 		}
 
-		else if (propetyName == TEXT("width"))
+		if (PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(UUIItem, widget))
 		{
-			auto width = widget.width;
-			widget.width += 1;//+1 just for make it work
-			SetWidth(width);
-		}
-		else if (propetyName == TEXT("height"))
-		{
-			auto height = widget.height;
-			widget.height += 1;//+1 just for make it work
-			SetHeight(height);
-		}
-		else if (propetyName == TEXT("anchorOffsetX"))
-		{
-			auto originValue = widget.anchorOffsetX;
-			widget.anchorOffsetX += 1;
-			SetAnchorOffsetX(originValue);
-		}
-		else if (propetyName == TEXT("anchorOffsetY"))
-		{
-			auto originValue = widget.anchorOffsetY;
-			widget.anchorOffsetY += 1;
-			SetAnchorOffsetY(originValue);
-		}
-		else if (propetyName == TEXT("stretchLeft"))
-		{
-			auto originValue = widget.stretchLeft;
-			widget.stretchLeft += 1;
-			SetStretchLeft(originValue);
-		}
-		else if (propetyName == TEXT("stretchRight"))
-		{
-			auto originValue = widget.stretchRight;
-			widget.stretchRight += 1;
-			SetStretchRight(originValue);
-		}
-		else if (propetyName == TEXT("stretchTop"))
-		{
-			auto originValue = widget.stretchTop;
-			widget.stretchTop += 1;
-			SetStretchTop(originValue);
-		}
-		else if (propetyName == TEXT("stretchBottom"))
-		{
-			auto originValue = widget.stretchBottom;
-			widget.stretchBottom += 1;
-			SetStretchBottom(originValue);
-		}
+			if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, width))
+			{
+				auto width = widget.width;
+				widget.width += 1;//+1 just for make it work
+				SetWidth(width);
+			}
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, height))
+			{
+				auto height = widget.height;
+				widget.height += 1;//+1 just for make it work
+				SetHeight(height);
+			}
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, anchorOffsetX))
+			{
+				auto originValue = widget.anchorOffsetX;
+				widget.anchorOffsetX += 1;
+				SetAnchorOffsetX(originValue);
+			}
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, anchorOffsetY))
+			{
+				auto originValue = widget.anchorOffsetY;
+				widget.anchorOffsetY += 1;
+				SetAnchorOffsetY(originValue);
+			}
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, stretchLeft))
+			{
+				auto originValue = widget.stretchLeft;
+				widget.stretchLeft += 1;
+				SetStretchLeft(originValue);
+			}
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, stretchRight))
+			{
+				auto originValue = widget.stretchRight;
+				widget.stretchRight += 1;
+				SetStretchRight(originValue);
+			}
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, stretchTop))
+			{
+				auto originValue = widget.stretchTop;
+				widget.stretchTop += 1;
+				SetStretchTop(originValue);
+			}
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, stretchBottom))
+			{
+				auto originValue = widget.stretchBottom;
+				widget.stretchBottom += 1;
+				SetStretchBottom(originValue);
+			}
 
-		else if (propetyName == TEXT("anchorHAlign"))
-		{
-			auto newAlign = widget.anchorHAlign;
-			widget.anchorHAlign = prevAnchorHAlign;
-			SetAnchorHAlign(newAlign);
-		}
-		else if (propetyName == TEXT("anchorVAlign"))
-		{
-			auto newAlign = widget.anchorVAlign;
-			widget.anchorVAlign = prevAnchorVAlign;
-			SetAnchorVAlign(newAlign);
-			prevAnchorVAlign = newAlign;
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, anchorHAlign))
+			{
+				auto newAlign = widget.anchorHAlign;
+				widget.anchorHAlign = prevAnchorHAlign;
+				SetAnchorHAlign(newAlign);
+			}
+			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, anchorVAlign))
+			{
+				auto newAlign = widget.anchorVAlign;
+				widget.anchorVAlign = prevAnchorVAlign;
+				SetAnchorVAlign(newAlign);
+				prevAnchorVAlign = newAlign;
+			}
 		}
 
 		MarkAllDirtyRecursive();
