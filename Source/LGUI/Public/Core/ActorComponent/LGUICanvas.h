@@ -25,7 +25,9 @@ UENUM(BlueprintType, Category = LGUI)
 enum class ELGUICanvasClipType :uint8
 {
 	None		 		UMETA(DisplayName = "None"),
+	/** Clip content by a rectange area, with edge feather. Support nested rect clip. Support input hit test. */
 	Rect		 		UMETA(DisplayName = "Rect"),
+	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. Not support input hit test. */
 	Texture				UMETA(DisplayName = "Texture"),
 };
 
@@ -200,13 +202,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int32 sortOrder = 0;
 
+	/** Clip content UI elements. */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		ELGUICanvasClipType clipType = ELGUICanvasClipType::None;
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FVector2D clipFeather = FVector2D(4, 4);
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		FMargin clipRectOffset = FMargin(0);
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
 		UTexture* clipTexture = nullptr;
 
 	/** if inherit parent's rect clip value. only valid if self is RectClip */
@@ -217,7 +220,7 @@ protected:
 	 * The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
 	 * But!!! Do not set this value too large if you already have large font size of UIText, because that will result in extreamly large texture! 
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float dynamicPixelsPerUnit = 1.0f;
 
 	/** Flags to enable/disable shader channels. Default only provide Position/Color/UV0, you can check Normal/Tangent/UV1/UV2/UV3 for your own use. */
@@ -225,7 +228,7 @@ protected:
 		int8 additionalShaderChannels = 0;
 
 	/** Default materials, for render default UI elements. */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* DefaultMaterials[3];
 
 	/** For not root canvas, inherit or override parent canvas parameters. */
