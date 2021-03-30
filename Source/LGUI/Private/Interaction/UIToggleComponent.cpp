@@ -62,7 +62,14 @@ void UUIToggleComponent::SetState(bool newState, bool fireEvent)
 		{
 			if (IsOn)
 			{
-				GroupComp->SelectItem(this);
+				GroupComp->SetSelection(this);
+			}
+			else
+			{
+				if (GroupComp->GetSelectedItem() == this)
+				{
+					GroupComp->ClearSelection();
+				}
 			}
 		}
 	}
