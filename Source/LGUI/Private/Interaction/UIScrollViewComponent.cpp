@@ -50,6 +50,7 @@ void UUIScrollViewComponent::Update(float DeltaTime)
 void UUIScrollViewComponent::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
+    RecalculateRange();
 }
 #endif
 
@@ -111,7 +112,6 @@ bool UUIScrollViewComponent::CheckParameters()
         auto contentParentHelperComp = NewObject<UUIScrollViewHelper>(contentParentActor);
         contentParentHelperComp->TargetComp = this;
         contentParentHelperComp->RegisterComponent();
-        contentParentActor->AddInstanceComponent(contentParentHelperComp);
     }
     CheckRootUIComponent();
     if (ContentUIItem.IsValid() && ContentParentUIItem.IsValid() && RootUIComp.IsValid())
@@ -453,12 +453,24 @@ void UUIScrollViewComponent::CalculateHorizontalRange()
     auto &contentWidget = ContentUIItem->GetWidget();
     if (parentWidget.width > contentWidget.width)
     {
-        //parent
-        HorizontalRange.X = -parentWidget.pivot.X * parentWidget.width;
-        HorizontalRange.Y = (1.0f - parentWidget.pivot.X) * parentWidget.width;
-        //self
-        HorizontalRange.X += contentWidget.pivot.X * contentWidget.width;
-        HorizontalRange.Y += (contentWidget.pivot.X - 1.0f) * contentWidget.width;
+        if (CanScrollInSmallSize)
+        {
+            //parent
+            HorizontalRange.X = -parentWidget.pivot.X * parentWidget.width;
+            HorizontalRange.Y = (1.0f - parentWidget.pivot.X) * parentWidget.width;
+            //self
+            HorizontalRange.X += contentWidget.pivot.X * contentWidget.width;
+            HorizontalRange.Y += (contentWidget.pivot.X - 1.0f) * contentWidget.width;
+        }
+        else
+        {
+			//parent
+			HorizontalRange.X = -parentWidget.pivot.X * parentWidget.width;
+			HorizontalRange.Y = (1.0f - parentWidget.pivot.X) * parentWidget.width - (parentWidget.width - contentWidget.width);
+			//self
+			HorizontalRange.X += contentWidget.pivot.X * contentWidget.width;
+			HorizontalRange.Y += (contentWidget.pivot.X - 1.0f) * contentWidget.width;
+        }
     }
     else
     {
@@ -476,12 +488,24 @@ void UUIScrollViewComponent::CalculateVerticalRange()
     auto &contentWidget = ContentUIItem->GetWidget();
     if (parentWidget.height > contentWidget.height)
     {
-        //parent
-        VerticalRange.X = -parentWidget.pivot.Y * parentWidget.height;
-        VerticalRange.Y = (1.0f - parentWidget.pivot.Y) * parentWidget.height;
-        //self
-        VerticalRange.X += contentWidget.pivot.Y * contentWidget.height;
-        VerticalRange.Y += (contentWidget.pivot.Y - 1.0f) * contentWidget.height;
+        if (CanScrollInSmallSize)
+        {
+            //parent
+            VerticalRange.X = -parentWidget.pivot.Y * parentWidget.height;
+            VerticalRange.Y = (1.0f - parentWidget.pivot.Y) * parentWidget.height;
+            //self
+            VerticalRange.X += contentWidget.pivot.Y * contentWidget.height;
+            VerticalRange.Y += (contentWidget.pivot.Y - 1.0f) * contentWidget.height;
+        }
+        else
+        {
+			//parent
+			VerticalRange.X = -parentWidget.pivot.Y * parentWidget.height + (parentWidget.height - contentWidget.height);
+			VerticalRange.Y = (1.0f - parentWidget.pivot.Y) * parentWidget.height;
+			//self
+			VerticalRange.X += contentWidget.pivot.Y * contentWidget.height;
+			VerticalRange.Y += (contentWidget.pivot.Y - 1.0f) * contentWidget.height;
+        }
     }
     else
     {
@@ -526,10 +550,42 @@ void UUIScrollViewComponent::UnregisterScrollEvent(const FLGUIDelegateHandleWrap
 {
     OnScrollCPP.Remove(InDelegateHandle.DelegateHandle);
 }
+
+void UUIScrollViewComponent::SetHorizontal(bool value)
+{
+    if (Horizontal != value)
+    {
+        Horizontal = value;
+        RecalculateRange();
+    }
+}
+void UUIScrollViewComponent::SetVertical(bool value)
+{
+	if (Vertical != value)
+	{
+        Vertical = value;
+		RecalculateRange();
+	}
+}
+void UUIScrollViewComponent::SetOnlyOneDirection(bool value)
+{
+	if (OnlyOneDirection != value)
+	{
+        OnlyOneDirection = value;
+	}
+}
 void UUIScrollViewComponent::SetScrollSensitivity(float value)
 {
     if (ScrollSensitivity != value)
     {
         ScrollSensitivity = value;
+    }
+}
+void UUIScrollViewComponent::SetCanScrollInSmallSize(bool value)
+{
+    if (CanScrollInSmallSize != value)
+    {
+        CanScrollInSmallSize = value;
+        RecalculateRange();
     }
 }
