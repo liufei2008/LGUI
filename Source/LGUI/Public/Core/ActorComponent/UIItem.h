@@ -318,6 +318,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool IsUIActiveInHierarchy()const { return bIsUIActive && allUpParentUIActive; };
 #pragma endregion UIActive
+
+#pragma region HierarchyIndex
 protected:
 	/** hierarchy index, for layout to sort order */
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -335,6 +337,39 @@ public:
 		void SetAsFirstHierarchy();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetAsLastHierarchy();
+#pragma endregion HierarchyIndex
+
+#pragma region Name
+private:
+	/** 
+	 * This is useful when you need to find child UI element by name, use function "FindChildByDisplayName" or "FindChildArrayByDisplayName" to do it.
+	 * Mostly the displayName is the same as Actor's ActorLabel. If you want to change it, just change the actor label( Actor's name in world outliner).
+	 * If Actor's ActorLabel start with "//", then the "//" will be ignored.
+	 * ActorLabel is only valid in editor, but this is also valid on runtime.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = LGUI, AdvancedDisplay)
+		FString displayName;
+public:
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FString GetDisplayName()const { return displayName; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetDisplayName(const FString& InName) { displayName = InName; }
+	/** 
+	 * Search in children and return the first UIItem that the displayName match input name.
+	 * Support hierarchy nested search, eg: InName = "Content/ListItem/NameLabel".
+	 * @param InName	The child's name that need to find, case sensitive
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		UUIItem* FindChildByDisplayName(const FString& InName)const;
+	/**
+	 * Like "FindChildByDisplayName", but return all children that match the case.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		TArray<UUIItem*> FindChildArrayByDisplayName(const FString& InName)const;
+private:
+	void FindChildArrayByDisplayName_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const;
+#pragma endregion Name
+
 #pragma region Collider
 protected:
 	/** if this is a raycastTarget? means LineTrace can hit this or not. for EventSystem interaction */

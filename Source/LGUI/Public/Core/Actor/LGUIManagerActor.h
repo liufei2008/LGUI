@@ -96,6 +96,8 @@ private:
 	void OnSelectionChanged(UObject* newSelection);
 	FDelegateHandle OnAssetReimportDelegateHandle;
 	void OnAssetReimport(UObject* asset);
+	FDelegateHandle OnActorLabelChangedDelegateHandle;
+	void OnActorLabelChanged(AActor* actor);
 #if 0
 	void LogObjectFlags(UObject* obj);
 #endif

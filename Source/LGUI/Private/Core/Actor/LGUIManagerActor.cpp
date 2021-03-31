@@ -39,6 +39,10 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	{
 		GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.Remove(OnAssetReimportDelegateHandle);
 	}
+	if (OnActorLabelChangedDelegateHandle.IsValid())
+	{
+		FCoreDelegates::OnActorLabelChanged.Remove(OnActorLabelChangedDelegateHandle);
+	}
 #endif
 	Instance = nullptr;
 	Super::BeginDestroy();
@@ -89,10 +93,9 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance->AddToRoot();
 			UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
 			//selection
-			{
-				Instance->OnSelectionChangedDelegateHandle = USelection::SelectionChangedEvent.AddUObject(Instance, &ULGUIEditorManagerObject::OnSelectionChanged);
-			}
-
+			Instance->OnSelectionChangedDelegateHandle = USelection::SelectionChangedEvent.AddUObject(Instance, &ULGUIEditorManagerObject::OnSelectionChanged);
+			//actor label
+			Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
 			//reimport asset
 			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
 		}
@@ -131,6 +134,22 @@ void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
 			{
 				RefreshAllUI();
 			}
+		}
+	}
+}
+
+void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
+{
+	if (auto rootComp = actor->GetRootComponent())
+	{
+		if (auto rootUIComp = Cast<UUIItem>(rootComp))
+		{
+			auto actorLabel = actor->GetActorLabel();
+			if (actorLabel.StartsWith("//"))
+			{
+				actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+			}
+			rootUIComp->SetDisplayName(actorLabel);
 		}
 	}
 }
