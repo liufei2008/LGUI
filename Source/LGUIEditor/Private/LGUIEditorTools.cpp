@@ -328,12 +328,12 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
 		return;
 	}
-	auto copiedActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
-	for (auto prevCopiedActor : copiedActorList)
+	for (auto prevCopiedActorPrefab : copiedActorPrefabList)
 	{
-		prevCopiedActor->RemoveFromRoot();
-		prevCopiedActor->ConditionalBeginDestroy();
+		prevCopiedActorPrefab->RemoveFromRoot();
+		prevCopiedActorPrefab->ConditionalBeginDestroy();
 	}
+	auto copiedActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
 	copiedActorPrefabList.Reset();
 	for (auto copiedActor : copiedActorList)
 	{
@@ -356,6 +356,10 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	for (auto item : selectedActors)
 	{
 		GEditor->SelectActor(item, false, true);
+	}
+	if (IsValid(parentComp))
+	{
+		MakeCurrentLevel(parentComp->GetOwner());
 	}
 	for (auto prefab : copiedActorPrefabList)
 	{
