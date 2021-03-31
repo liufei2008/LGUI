@@ -211,9 +211,8 @@ void LGUIEditorTools::CreateEmptyActor()
 			RootComponent->bVisualizeComponent = false;
 
 			newActor->SetRootComponent(RootComponent);
+			RootComponent->RegisterComponent();
 			newActor->AddInstanceComponent(RootComponent);
-
-			newActor->FinishAndRegisterComponent(RootComponent);
 		}
 		if (selectedActor != nullptr)
 		{

@@ -110,7 +110,8 @@ bool UUIScrollViewComponent::CheckParameters()
     {
         auto contentParentHelperComp = NewObject<UUIScrollViewHelper>(contentParentActor);
         contentParentHelperComp->TargetComp = this;
-        contentParentActor->FinishAndRegisterComponent(contentParentHelperComp);
+        contentParentHelperComp->RegisterComponent();
+        contentParentActor->AddInstanceComponent(contentParentHelperComp);
     }
     CheckRootUIComponent();
     if (ContentUIItem.IsValid() && ContentParentUIItem.IsValid() && RootUIComp.IsValid())

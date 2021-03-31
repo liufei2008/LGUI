@@ -718,7 +718,8 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						auto meshName = FString::Printf(TEXT("Drawcall_%d"), meshIndex);
 #endif
 						uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
-						this->GetOwner()->FinishAndRegisterComponent(uiMesh);
+						uiMesh->RegisterComponent();
+						//this->GetOwner()->AddInstanceComponent(uiMesh);
 						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 						uiMesh->SetRelativeTransform(FTransform::Identity);
 						CacheUIMeshList.Add(uiMesh);

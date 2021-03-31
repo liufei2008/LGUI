@@ -62,7 +62,8 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			else if (auto rootUIItem = Cast<UUIItem>(rootActor->GetRootComponent()))
 			{
 				rootCanvas = NewObject<ULGUICanvas>(rootActor);
-				rootActor->FinishAndRegisterComponent(rootCanvas);
+				rootCanvas->RegisterComponent();
+				rootActor->AddInstanceComponent(rootCanvas);
 				rootCanvas->MarkRebuildAllDrawcall();
 				rootCanvas->MarkCanvasUpdate();
 				rootCanvas->UpdateCanvas(0.16f);

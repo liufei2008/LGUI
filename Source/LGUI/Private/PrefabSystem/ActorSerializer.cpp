@@ -279,7 +279,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 					LoadProperty(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 					if (!RootComp->IsDefaultSubobject())
 					{
-						NewActor->FinishAndRegisterComponent(RootComp);//mannually register component
+						RegisterComponent(NewActor, RootComp);
 					}
 				}
 			}
@@ -311,7 +311,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
 				if (!Comp->IsDefaultSubobject())
 				{
-					NewActor->FinishAndRegisterComponent(Comp);//@todo: replace all FinishAndRegisterComponent with AddInstanceComponent. But careful with blueprint default components (components that created inside actor blueprint).
+					RegisterComponent(NewActor, Comp);
 				}
 
 				if (auto PrimitiveComp = Cast<UPrimitiveComponent>(Comp))
@@ -422,7 +422,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 					LoadProperty(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 					if (!RootComp->IsDefaultSubobject())
 					{
-						NewActor->FinishAndRegisterComponent(RootComp);//mannually register component
+						RegisterComponent(NewActor, RootComp);
 					}
 				}
 			}
@@ -454,7 +454,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
 				if (!Comp->IsDefaultSubobject())
 				{
-					NewActor->FinishAndRegisterComponent(Comp);
+					RegisterComponent(NewActor, Comp);
 				}
 
 				if (auto PrimitiveComp = Cast<UPrimitiveComponent>(Comp))
@@ -1787,4 +1787,23 @@ UClass* ActorSerializer::FindClassFromListByIndex(int32 Id)
 		return nullptr;
 	}
 	return ReferenceClassList[Id];
+}
+void ActorSerializer::RegisterComponent(AActor* Actor, UActorComponent* Comp)
+{
+	switch (Comp->CreationMethod)
+	{
+	default:
+	case EComponentCreationMethod::SimpleConstructionScript:
+	case EComponentCreationMethod::UserConstructionScript:
+	{
+		Actor->FinishAndRegisterComponent(Comp);
+	}
+	break;
+	case EComponentCreationMethod::Instance:
+	{
+		Comp->RegisterComponent();
+		Actor->AddInstanceComponent(Comp);
+	}
+	break;
+	}
 }

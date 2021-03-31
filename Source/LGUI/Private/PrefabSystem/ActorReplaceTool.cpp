@@ -5,6 +5,7 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "EngineUtils.h"
+#include "PrefabSystem/ActorSerializer.h"
 
 using namespace LGUIPrefabSystem;
 bool ActorReplaceTool::CopyCommonProperty(UProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex, bool isInsideCppArray)
@@ -359,7 +360,7 @@ AActor* ActorReplaceTool::CopySingleActorAndReplaceClass(AActor* TargetActor, TS
 	CopyPropertyChecked(OriginRootComp, CopiedRootComp, SceneComponentExcludeProperties);
 	if (rootCompNeedRegister)
 	{
-		CopiedActor->FinishAndRegisterComponent(CopiedRootComp);
+		LGUIPrefabSystem::ActorSerializer::RegisterComponent(CopiedActor, CopiedRootComp);
 		CopiedActor->SetRootComponent(CopiedRootComp);
 	}
 
@@ -373,7 +374,7 @@ AActor* ActorReplaceTool::CopySingleActorAndReplaceClass(AActor* TargetActor, TS
 		if (OriginComp->HasAnyFlags(EObjectFlags::RF_Transient))continue;//skip transient component
 		auto CopiedComp = NewObject<UActorComponent>(CopiedActor, OriginComp->GetClass(), OriginComp->GetFName(), RF_NoFlags);
 		CopyProperty(OriginComp, CopiedComp, SceneComponentExcludeProperties);
-		CopiedActor->FinishAndRegisterComponent(CopiedComp);
+		LGUIPrefabSystem::ActorSerializer::RegisterComponent(CopiedActor, CopiedComp);
 
 		if (auto SceneComp = Cast<USceneComponent>(CopiedComp))
 		{
