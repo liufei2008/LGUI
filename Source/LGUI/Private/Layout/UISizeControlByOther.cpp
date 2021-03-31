@@ -56,7 +56,6 @@ void UUISizeControlByOther::PostEditChangeProperty(FPropertyChangedEvent &Proper
                 HelperComp = NewObject<UUISizeControlByOtherHelper>(TargetActor.Get());
                 HelperComp->TargetComp = this;
                 HelperComp->RegisterComponent();
-                TargetActor->AddInstanceComponent(HelperComp.Get());
             }
         }
     }
@@ -79,7 +78,6 @@ bool UUISizeControlByOther::CheckTargetUIItem()
                 HelperComp = NewObject<UUISizeControlByOtherHelper>(TargetActor.Get());
                 HelperComp->TargetComp = this;
 				HelperComp->RegisterComponent();
-				TargetActor->AddInstanceComponent(HelperComp.Get());
             }
             return true;
         }

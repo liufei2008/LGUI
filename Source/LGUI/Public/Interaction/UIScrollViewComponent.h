@@ -45,20 +45,24 @@ protected:
 	virtual void RecalculateRange();
 protected:
 	friend class UUIScrollViewHelper;
-	//Content can move inside it's parent area
+	/** Content can move inside it's parent area. */ 
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		TWeakObjectPtr<AUIBaseActor> Content;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool Horizontal = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool Vertical = true;
-	//If Horizontal and Vertical, only allow one direction drag at the same time. Not valid when use scroll(Mouse wheel), because scroll only have one direction
+	/** If Horizontal and Vertical, only allow one direction drag at the same time. Not valid when use scroll(Mouse wheel), because scroll only have one direction. */ 
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool OnlyOneDirection = true;
-	//Sensitivity when use scroll(Mouse wheel)
+	/** Sensitivity when use scroll(Mouse wheel) */ 
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		float ScrollSensitivity = 1.0f;
+	/** When Content size is smaller than Content's parent size, can we still scroll? */
+	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
+		bool CanScrollInSmallSize = true;
 
+	/** inherited events of this component can bubble up? */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool AllowEventBubbleUp = false;
 
@@ -117,7 +121,17 @@ public:
 		bool GetOnlyOneDirection()const { return OnlyOneDirection; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		float GetScrollSensitivity()const { return ScrollSensitivity; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		bool GetCanScrollInSmallSize()const { return CanScrollInSmallSize; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollSensitivity(float value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetHorizontal(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetVertical(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetOnlyOneDirection(bool value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetCanScrollInSmallSize(bool value);
 };
