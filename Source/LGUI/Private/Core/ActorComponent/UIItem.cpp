@@ -281,6 +281,70 @@ void UUIItem::SetAsLastHierarchy()
 	}
 }
 
+UUIItem* UUIItem::FindChildByDisplayName(const FString& InName)const
+{
+	int indexOfFirstSlash;
+	if (InName.FindChar('/', indexOfFirstSlash))
+	{
+		auto firstLayerName = InName.Left(indexOfFirstSlash);
+		for (auto childItem : this->cacheUIChildren)
+		{
+			if (childItem->displayName.Equals(firstLayerName, ESearchCase::CaseSensitive))
+			{
+				auto restName = InName.Right(InName.Len() - indexOfFirstSlash - 1);
+				return childItem->FindChildByDisplayName(restName);
+			}
+		}
+	}
+	else
+	{
+		for (auto childItem : this->cacheUIChildren)
+		{
+			if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
+			{
+				return childItem;
+			}
+		}
+	}
+	return nullptr;
+}
+TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName)const
+{
+	TArray<UUIItem*> resultArray;
+	FindChildArrayByDisplayName_Internal(InName, resultArray);
+	return resultArray;
+}
+void UUIItem::FindChildArrayByDisplayName_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const
+{
+	int indexOfLastSlash;
+	if (InName.FindLastChar('/', indexOfLastSlash))
+	{
+		auto parentLayerName = InName.Left(indexOfLastSlash);
+		auto parentItem = this->FindChildByDisplayName(parentLayerName);
+		if (IsValid(parentItem))
+		{
+			auto matchName = InName.Right(InName.Len() - indexOfLastSlash - 1);
+			for (auto childItem : parentItem->cacheUIChildren)
+			{
+				if (childItem->displayName.Equals(matchName, ESearchCase::CaseSensitive))
+				{
+					OutResultArray.Add(childItem);
+				}
+			}
+		}
+	}
+	else
+	{
+		for (auto childItem : this->cacheUIChildren)
+		{
+			if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
+			{
+				OutResultArray.Add(childItem);
+			}
+		}
+	}
+}
+
 void UUIItem::MarkAllDirtyRecursive()
 {
 	bColorChanged = true;
@@ -550,6 +614,13 @@ void UUIItem::OnRegister()
 				HelperComp->Parent = this;
 				HelperComp->SetupAttachment(this);
 			}
+			//display name
+			auto actorLabel = this->GetOwner()->GetActorLabel();
+			if (actorLabel.StartsWith("//"))
+			{
+				actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+			}
+			this->displayName = actorLabel;
 		}
 		else
 #endif
@@ -1758,18 +1829,18 @@ void UUIItem::ApplyUIActiveState()
 	//modify inactive actor's name
 	if (auto ownerActor = GetOwner())
 	{
-		auto displayName = ownerActor->GetActorLabel();
+		auto actorLabel = ownerActor->GetActorLabel();
 		FString prefix("//");
-		if (IsUIActiveInHierarchy() && displayName.StartsWith(prefix))
+		if (IsUIActiveInHierarchy() && actorLabel.StartsWith(prefix))
 		{
-			displayName = displayName.Right(displayName.Len() - prefix.Len());
-			ownerActor->SetActorLabel(displayName);
+			actorLabel = actorLabel.Right(actorLabel.Len() - prefix.Len());
+			ownerActor->SetActorLabel(actorLabel);
 			ownerActor->SetIsTemporarilyHiddenInEditor(false);
 		}
-		else if (!IsUIActiveInHierarchy() && !displayName.StartsWith(prefix))
+		else if (!IsUIActiveInHierarchy() && !actorLabel.StartsWith(prefix))
 		{
-			displayName = prefix.Append(displayName);
-			ownerActor->SetActorLabel(displayName);
+			actorLabel = prefix.Append(actorLabel);
+			ownerActor->SetActorLabel(actorLabel);
 			ownerActor->SetIsTemporarilyHiddenInEditor(true);
 		}
 	}
