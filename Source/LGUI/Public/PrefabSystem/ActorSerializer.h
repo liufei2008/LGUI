@@ -347,6 +347,7 @@ namespace LGUIPrefabSystem
 		static FLGUIActorSaveData CreateActorSaveData(ULGUIPrefab* InPrefab);
 #endif
 		static void ConvertForBuildData(const FLGUIActorSaveData InSaveData, ULGUIPrefab* InPrefab);//convert saved data to build data
+		static void RegisterComponent(AActor* Actor, UActorComponent* Comp);
 	private:
 
 		TWeakObjectPtr<UWorld> TargetWorld = nullptr;

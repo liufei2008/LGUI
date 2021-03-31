@@ -46,7 +46,8 @@ void ULGUIWorldSpaceInteraction::CheckRayemitter()
 			break;
 			}
 			rayEmitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
-			actor->FinishAndRegisterComponent(rayEmitter);
+			rayEmitter->RegisterComponent();
+			actor->AddInstanceComponent(rayEmitter);
 		}
 	}
 }

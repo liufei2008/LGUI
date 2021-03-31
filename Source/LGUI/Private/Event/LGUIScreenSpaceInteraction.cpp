@@ -22,7 +22,8 @@ void ULGUIScreenSpaceInteraction::CheckRayemitter()
 				auto emitter = NewObject<ULGUI_ScreenSpaceUIMouseRayemitter>(actor);
 				emitter->SetInitialValue(clickThreshold, holdToDrag, holdToDragTime);
 				emitter->SetRenderCanvas(renderCanvas);
-				actor->FinishAndRegisterComponent(emitter);
+				emitter->RegisterComponent();
+				actor->AddInstanceComponent(emitter);
 				rayEmitter = emitter;
 			}
 		}
