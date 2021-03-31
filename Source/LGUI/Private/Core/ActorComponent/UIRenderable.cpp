@@ -529,7 +529,8 @@ void UUIRenderable::UpdateSelfRenderDrawcall()
 		if (!uiMesh.IsValid())
 		{
 			uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), NAME_None, RF_Transient);
-			this->GetOwner()->FinishAndRegisterComponent(uiMesh.Get());
+			uiMesh->RegisterComponent();
+			//this->GetOwner()->AddInstanceComponent(uiMesh.Get());
 			uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 			uiMesh->SetRelativeTransform(FTransform::Identity);
 #if WITH_EDITOR
