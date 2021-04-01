@@ -1805,5 +1805,6 @@ void ActorSerializer::RegisterComponent(AActor* Actor, UActorComponent* Comp)
 		Actor->AddInstanceComponent(Comp);
 	}
 	break;
+	//@todo: should also consider EComponentCreationMethod::Native
 	}
 }
