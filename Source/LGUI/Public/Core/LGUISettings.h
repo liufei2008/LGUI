@@ -108,11 +108,13 @@ class LGUI_API ULGUIEditorSettings : public UObject
 {
 	GENERATED_BODY()
 public:
+	ULGUIEditorSettings();
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
 	static int32 GetLGUIPreview_EditorViewIndex();
 	static void SetLGUIPreview_EditorViewIndex(int32 value);
 #endif
+	virtual bool IsEditorOnly()const override { return true; }
 #if WITH_EDITORONLY_DATA
 	//show screen space LGUI on target editor view. 
 	UPROPERTY(EditAnywhere, config, Category = "LGUI")
