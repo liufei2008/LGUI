@@ -418,6 +418,15 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
 		);
 		MenuBuilder.AddMenuEntry(
+			LOCTEXT("UnlinkPrefab", "Unlink this Prefab"),
+			LOCTEXT("UnlinkPrefab_Tooltip", "Unlink the actor from related prefab asset"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::UnlinkPrefab)
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
+		);
+		MenuBuilder.AddMenuEntry(
 			LOCTEXT("SelectPrefabAsset", "Browse to Prefab asset"),
 			LOCTEXT("SelectPrefabAsset_Tooltip", "Browse to Prefab asset in Content Browser"),
 			FSlateIcon(),

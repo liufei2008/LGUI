@@ -364,7 +364,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	{
 		if (prefab.IsValid())
 		{
-			auto copiedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab.Get(), parentComp);
+			auto copiedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab.Get(), parentComp, false);
 			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
 			copiedActor->SetActorLabel(copiedActorLabel);
 			GEditor->SelectActor(copiedActor, true, true);
@@ -727,6 +727,17 @@ void LGUIEditorTools::DeletePrefab()
 	if (prefabActor != nullptr)
 	{
 		prefabActor->GetPrefabComponent()->DeleteThisInstance();
+	}
+	GEditor->EndTransaction();
+}
+void LGUIEditorTools::UnlinkPrefab()
+{
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI UnlinkPrefab")));
+	auto selectedActor = GetFirstSelectedActor();
+	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
+	if (prefabActor != nullptr)
+	{
+		ULGUIBPLibrary::DestroyActorWithHierarchy(prefabActor);
 	}
 	GEditor->EndTransaction();
 }
