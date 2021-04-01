@@ -32,7 +32,7 @@ void LGUIUtils::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 			{
 				if (world->WorldType == EWorldType::Editor || world->WorldType == EWorldType::EditorPreview)
 				{
-					world->EditorDestroyActor(item, false);
+					world->EditorDestroyActor(item, true);
 				}
 				else
 				{
@@ -51,7 +51,7 @@ void LGUIUtils::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 		{
 			if (world->WorldType == EWorldType::Editor || world->WorldType == EWorldType::EditorPreview)
 			{
-				world->EditorDestroyActor(Target, false);
+				world->EditorDestroyActor(Target, true);
 			}
 			else
 			{

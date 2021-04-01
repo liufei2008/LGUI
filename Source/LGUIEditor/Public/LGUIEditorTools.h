@@ -48,6 +48,7 @@ public:
 	static void ApplyPrefab();
 	static void RevertPrefab();
 	static void DeletePrefab();
+	static void UnlinkPrefab();
 	static void SelectPrefabAsset();
 	static class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
