@@ -97,4 +97,12 @@ void ULGUIEditorSettings::SetLGUIPreview_EditorViewIndex(int32 value)
 		LGUIPreviewSetting_EditorPreviewViewportIndexChange.Broadcast();
 	}
 }
+bool ULGUIEditorSettings::GetPreserveHierarchyState()
+{
+	return GetDefault<ULGUIEditorSettings>()->PreserveHierarchyState;
+}
+float ULGUIEditorSettings::GetDelayRestoreHierarchyTime()
+{
+	return GetDefault<ULGUIEditorSettings>()->DelayRestoreHierarchyTime;
+}
 #endif
