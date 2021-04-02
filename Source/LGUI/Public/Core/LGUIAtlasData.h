@@ -21,7 +21,7 @@ struct LGUI_API FLGUIAtlasData
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	TArray<TWeakObjectPtr<UUISpriteBase>> renderSpriteArray;
 	/** atlasTexture is the real texture for render */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 	UTexture2D* atlasTexture;
 	/** information needed when insert a sprite */
 	rbp::MaxRectsBinPack atlasBinPack;

@@ -31,7 +31,7 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 	static bool atlasSRGB = ULGUISettings::GetAtlasTextureSRGB(packingTag);
 	static auto filter = ULGUISettings::GetAtlasTextureFilter(packingTag);
 #endif
-	auto texture = LGUIUtils::CreateTransientBlackTransparentTexture(newTextureSize);
+	auto texture = LGUIUtils::CreateTexture(newTextureSize);
 
 	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
