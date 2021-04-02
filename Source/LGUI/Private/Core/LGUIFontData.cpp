@@ -440,7 +440,7 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	//store old texutre pointer
 	auto oldTexture = texture;
 	//create new texture
-	texture = LGUIUtils::CreateTransientBlackTransparentTexture(newTextureSize);
+	texture = LGUIUtils::CreateTexture(newTextureSize, FColor(255, 255, 255, 0));
 	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
 	texture->SRGB = true;
@@ -469,7 +469,7 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
 						CopyInfo
 					);
-					RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
+					RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);//if remove this line, then texture will go wrong if expand texture size and write font pixels, looks like copy-pixels hanppens after write-font-pixels.
 					oldTexture->RemoveFromRoot();//ready for gc
 				}
 			});
