@@ -73,10 +73,10 @@ void LGUIUtils::CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildr
 		CollectChildrenActors(item, AllChildrenActors);
 	}
 }
-UTexture2D* LGUIUtils::CreateTransientBlackTransparentTexture(int32 InSize, FName InDefaultName)
+UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UPackage* InDefaultPackage, FName InDefaultName)
 {
 	auto texture = NewObject<UTexture2D>(
-		GetTransientPackage(),
+		InDefaultPackage,
 		InDefaultName,
 		RF_Transient
 		);
@@ -93,7 +93,11 @@ UTexture2D* LGUIUtils::CreateTransientBlackTransparentTexture(int32 InSize, FNam
 	Mip->SizeY = InSize;
 	Mip->BulkData.Lock(LOCK_READ_WRITE);
 	void* dataPtr = Mip->BulkData.Realloc(NumBlocksX * NumBlocksY * GPixelFormats[PF_B8G8R8A8].BlockBytes);
-	FMemory::Memset(dataPtr, 0, Mip->BulkData.GetBulkDataSize());
+	FColor* pixelPtr = static_cast<FColor*>(dataPtr);
+	for (int i = 0, count = InSize * InSize, pixelSize = sizeof(FColor); i < count; i++)
+	{
+		pixelPtr[i] = InDefaultColor;
+	}
 	Mip->BulkData.Unlock();
 	return texture;
 }

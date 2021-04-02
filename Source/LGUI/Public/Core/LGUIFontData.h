@@ -102,7 +102,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName packingTag;
 	/** Texture of this font */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 		UTexture2D* texture;
 
 	void InitFreeType();

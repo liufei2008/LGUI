@@ -123,7 +123,7 @@ public:
 #endif
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
 
-	static UTexture2D* CreateTransientBlackTransparentTexture(int32 InSize, FName InDefaultName = NAME_None);
+	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, UPackage* InDefaultPackage = GetTransientPackage(), FName InDefaultName = NAME_None);
 private:
 	static TSharedPtr<class UUIDrawcall> GetAvalibleDrawcall(TArray<TSharedPtr<class UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
 	template<class T>
