@@ -26,7 +26,5 @@ public:
 	TSharedPtr<FUICommandInfo> CopyComponentValues;
 	TSharedPtr<FUICommandInfo> PasteComponentValues;
 
-	TSharedPtr<FUICommandInfo> PreserveSceneoutlinerHierarchy;
-
 	TSharedPtr<FUICommandInfo> OpenAtlasViewer;
 };

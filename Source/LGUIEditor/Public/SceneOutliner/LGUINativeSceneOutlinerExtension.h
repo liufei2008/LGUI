@@ -45,7 +45,6 @@ public:
 	virtual bool IsTickableInEditor()const { return true; }
 	virtual TStatId GetStatId() const override;
 	//end TickableEditorObject interface
-	static bool active;
 private:
 	void OnPreSaveWorld(uint32 SaveFlags, class UWorld* World);
 	void OnMapOpened(const FString& FileName, bool AsTemplate);
@@ -56,7 +55,7 @@ private:
 	void RestoreSceneOutlinerState();
 	void RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
 	void SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName);
-	int frameCount = 0;
+	float delayRestoreTime = 0;
 	bool needToRestore = false;
 	bool shouldRestoreTemporarilyHidden = false;
 	bool shouldRestoreUseFNameData = false;

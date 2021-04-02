@@ -721,7 +721,11 @@ void LGUIEditorTools::RevertPrefab()
 }
 void LGUIEditorTools::DeletePrefab()
 {
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI DeletePrefab")));
+	auto confirmMsg = FString::Printf(TEXT("Delete selected prefab instance?"));
+	auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg));
+	if (confirmResult == EAppReturnType::No)return;
+
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI DeletePrefabInstance")));
 	auto selectedActor = GetFirstSelectedActor();
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)

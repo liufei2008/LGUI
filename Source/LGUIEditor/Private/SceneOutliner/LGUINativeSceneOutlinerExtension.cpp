@@ -15,8 +15,6 @@
 #include "SceneOutlinerStandaloneTypes.h"
 #include "EditorActorFolders.h"
 
-bool ULGUINativeSceneOutlinerExtension::active = true;
-
 void ULGUINativeSceneOutlinerExtension::Init()
 {
 	FEditorDelegates::PreSaveWorld.AddUObject(this, &ULGUINativeSceneOutlinerExtension::OnPreSaveWorld);
@@ -29,16 +27,13 @@ void ULGUINativeSceneOutlinerExtension::Tick(float DeltaTime)
 {
 	if (needToRestore)
 	{
-		if (frameCount < 2)
+		delayRestoreTime += DeltaTime;
+		if (delayRestoreTime > ULGUIEditorSettings::GetDelayRestoreHierarchyTime())
 		{
 			RestoreSceneOutlinerState();
-		}
-		else
-		{
-			frameCount = 0;
+			delayRestoreTime = 0;
 			needToRestore = false;
 		}
-		frameCount++;
 	}
 }
 TStatId ULGUINativeSceneOutlinerExtension::GetStatId() const
@@ -70,13 +65,13 @@ void ULGUINativeSceneOutlinerExtension::SetDelayRestore(bool RestoreTemporarilyH
 {
 	shouldRestoreTemporarilyHidden = RestoreTemporarilyHidden;
 	needToRestore = true;
-	frameCount = 0;
+	delayRestoreTime = 0;
 	shouldRestoreUseFNameData = RestoreUseFName;
 }
 
 void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 {
-	if (!active)return;
+	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
 	auto storageActor = FindOrCreateDataStorageActor();
 	if (!storageActor)return;
 	FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
@@ -264,7 +259,7 @@ void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(Sce
 
 void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 {
-	if (!active)return;
+	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
 	auto storageActor = FindOrCreateDataStorageActor();
 	if (!storageActor)return;
 	FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));

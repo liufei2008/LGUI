@@ -80,12 +80,6 @@ void FLGUIEditorModule::StartupModule()
 			FExecuteAction::CreateStatic(&LGUIEditorTools::PasteComponentValues_Impl),
 			FCanExecuteAction::CreateLambda([] {return LGUIEditorTools::HaveValidCopiedComponent(); })
 		);
-
-		PluginCommands->MapAction(
-			editorCommand.PreserveSceneoutlinerHierarchy,
-			FExecuteAction::CreateLambda([]{ULGUINativeSceneOutlinerExtension::active = !ULGUINativeSceneOutlinerExtension::active; GEditor->RedrawAllViewports(); }),
-			FCanExecuteAction(),
-			FIsActionChecked::CreateLambda([] {return ULGUINativeSceneOutlinerExtension::active; }));
 		
 		PluginCommands->MapAction(
 			editorCommand.OpenAtlasViewer,
@@ -211,8 +205,12 @@ void FLGUIEditorModule::StartupModule()
 		{
 			SettingsModule->RegisterSettings("Project", "Plugins", "LGUI",
 				LOCTEXT("LGUISettingsName", "LGUI"),
-				LOCTEXT("LGUISettingsDescription", "LGUISettings"),
+				LOCTEXT("LGUISettingsDescription", "LGUI Settings"),
 				GetMutableDefault<ULGUISettings>());
+			SettingsModule->RegisterSettings("Project", "Plugins", "LGUI Editor",
+				LOCTEXT("LGUIEditorSettingsName", "LGUIEditor"),
+				LOCTEXT("LGUIEditorSettingsDescription", "LGUI Editor Settings"),
+				GetMutableDefault<ULGUIEditorSettings>());
 		}
 	}
 	//blueprint
@@ -341,7 +339,8 @@ void FLGUIEditorModule::ShutdownModule()
 	{
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
 		{
-			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUISprite");
+			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUI");
+			SettingsModule->UnregisterSettings("Project", "Plugins", "LGUI Editor");
 		}
 	}
 
@@ -511,12 +510,6 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 		{
 			MenuBuilder.AddMenuEntry(commandList.CopyComponentValues);
 			MenuBuilder.AddMenuEntry(commandList.PasteComponentValues);
-		}
-		MenuBuilder.EndSection();
-
-		MenuBuilder.BeginSection("Toggles", LOCTEXT("Toggles", "Toggles"));
-		{
-			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().PreserveSceneoutlinerHierarchy);
 		}
 		MenuBuilder.EndSection();
 
