@@ -52,9 +52,9 @@ protected:
 		FString PasswordChar = TEXT("*");
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		bool bAllowMultiLine = false;
-	//if PlaceHolderActor is a UITextActor, then mobile virtual keyboard's hint text will get from PlaceHolderActor
+	/** If PlaceHolderActor is a UITextActor, then mobile virtual keyboard's hint text will get from PlaceHolderActor. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		class AUIBaseActor* PlaceHolderActor;
+		TWeakObjectPtr<class AUIBaseActor> PlaceHolderActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		float CaretBlinkRate = 0.5f;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
@@ -157,9 +157,9 @@ private:
 	//return true if have selection
 	bool DeleteIfSelection(int& OutCaretOffset);
 	//a sprite for caret, can blink, can represent current caret location
-	UPROPERTY(Transient)class UUISprite* CaretObject;
+	UPROPERTY(Transient)TWeakObjectPtr<class UUISprite> CaretObject;
 	//selection mask
-	UPROPERTY(Transient)TArray<class UUISprite*> SelectionMaskObjectArray;
+	UPROPERTY(Transient)TArray<TWeakObjectPtr<class UUISprite>> SelectionMaskObjectArray;
 	//range selection
 	TArray<FUITextSelectionProperty> SelectionPropertyArray;
 	//in single line mode, will clamp text if out of range. this is left start index of visible char

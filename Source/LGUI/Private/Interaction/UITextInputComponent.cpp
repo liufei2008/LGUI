@@ -28,7 +28,7 @@ void UUITextInputComponent::Update(float DeltaTime)
 	if (bInputActive)
 	{
 		//blink caret
-		if (CaretObject != nullptr)
+		if (CaretObject.IsValid())
 		{
 			ElapseTime += DeltaTime;
 			if (NextCaretBlinkTime < ElapseTime)
@@ -963,14 +963,14 @@ void UUITextInputComponent::UpdatePlaceHolderComponent()
 {
 	if (bInputActive || !Text.IsEmpty())
 	{
-		if (PlaceHolderActor != nullptr)
+		if (PlaceHolderActor.IsValid())
 		{
 			PlaceHolderActor->GetUIItem()->SetUIActive(false);
 		}
 	}
 	else
 	{
-		if (PlaceHolderActor != nullptr)
+		if (PlaceHolderActor.IsValid())
 		{
 			PlaceHolderActor->GetUIItem()->SetUIActive(true);
 		}
@@ -989,7 +989,7 @@ void UUITextInputComponent::UpdateCaretPosition(bool InHideSelection)
 void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool InHideSelection)
 {
 	if (!TextActor.IsValid())return;
-	if (CaretObject == nullptr)
+	if (!CaretObject.IsValid())
 	{
 		auto caretActor = this->GetWorld()->SpawnActor<AUISpriteActor>();
 		caretActor->AttachToActor(TextActor.Get(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -1048,24 +1048,34 @@ void UUITextInputComponent::UpdateSelection()
 		for (int32 i = 0; i < needToHideTextureCount; i++)
 		{
 			auto uiSprite = SelectionMaskObjectArray[i + SelectionPropertyArray.Num()];
-			uiSprite->SetUIActive(false);
+			if (uiSprite.IsValid())
+			{
+				uiSprite->SetUIActive(false);
+			}
 		}
 	}
 
 	for (int32 i = 0; i < SelectionPropertyArray.Num(); i++)
 	{
 		auto uiSprite = SelectionMaskObjectArray[i];
-		uiSprite->SetUIActive(true);
-		auto& selectionProperty = SelectionPropertyArray[i];
-		uiSprite->SetRelativeLocation(FVector(selectionProperty.Pos, 0.0f));
-		uiSprite->SetWidth(selectionProperty.Size);
+		if (uiSprite.IsValid())
+		{
+			uiSprite->SetUIActive(true);
+			auto& selectionProperty = SelectionPropertyArray[i];
+			uiSprite->SetRelativeLocation(FVector(selectionProperty.Pos, 0.0f));
+			uiSprite->SetWidth(selectionProperty.Size);
+		}
 	}
 }
 void UUITextInputComponent::HideSelectionMask()
 {
 	for (int i = 0; i < SelectionMaskObjectArray.Num(); i++)
 	{
-		SelectionMaskObjectArray[i]->SetUIActive(false);
+		auto uiSprite = SelectionMaskObjectArray[i];
+		if (uiSprite.IsValid())
+		{
+			SelectionMaskObjectArray[i]->SetUIActive(false);
+		}
 	}
 	SelectionPropertyArray.Empty();//clear selection mask
 	//TextInputMethodContext->SetSelectionRange(0, 0, ITextInputMethodContext::ECaretPosition::Beginning);
@@ -1471,7 +1481,7 @@ void UUITextInputComponent::DeactivateInput(bool InFireEvent)
 	}
 	bInputActive = false;
 	//hide caret
-	if (CaretObject != nullptr)
+	if (CaretObject.IsValid())
 	{
 		CaretObject->SetUIActive(false);
 	}
@@ -1616,7 +1626,7 @@ FText UUITextInputComponent::FVirtualKeyboardEntry::GetText() const
 }
 FText UUITextInputComponent::FVirtualKeyboardEntry::GetHintText() const
 {
-	if (InputComp->PlaceHolderActor != nullptr)
+	if (InputComp->PlaceHolderActor.IsValid())
 	{
 		if (auto uiText = Cast<UUIText>(InputComp->PlaceHolderActor->GetUIItem()))
 		{
