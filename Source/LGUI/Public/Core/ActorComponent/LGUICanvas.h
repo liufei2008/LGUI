@@ -153,7 +153,11 @@ public:
 	FORCEINLINE bool IsRenderToWorldSpace();
 	FORCEINLINE TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> GetViewExtension();
 
-	FORCEINLINE UUIItem* CheckAndGetUIItem() { CheckUIItem(); return UIItem; }
+	UE_DEPRECATED(4.23, "Use GetUIItem instead.")
+		UUIItem* CheckAndGetUIItem() { return GetUIItem(); }
+
+	FORCEINLINE UUIItem* GetUIItem() { CheckUIItem(); return UIItem; }
+	bool GetIsUIActive()const;
 protected:
 	/** consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas */
 	bool currentIsRenderToRenderTargetOrWorld = false;

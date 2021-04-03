@@ -162,7 +162,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 		{
 			if (itemCanvas.IsValid())
 			{
-				if (auto uiItem = itemCanvas->CheckAndGetUIItem())
+				if (auto uiItem = itemCanvas->GetUIItem())
 				{
 					if (IsValid(uiItem))
 					{

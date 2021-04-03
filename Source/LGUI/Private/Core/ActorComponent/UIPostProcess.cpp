@@ -219,7 +219,7 @@ void UUIPostProcess::UpdateRegionVertex()
 	{
 		renderMeshRegionToScreenVertexArray.AddUninitialized(4);
 	}
-	auto objectToWorldMatrix = this->GetRenderCanvas()->CheckAndGetUIItem()->GetComponentTransform().ToMatrixWithScale();
+	auto objectToWorldMatrix = this->GetRenderCanvas()->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
 		for (int i = 0; i < 4; i++)

@@ -114,7 +114,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 				|| Canvas->GetRenderMode() == ELGUIRenderMode::RenderTarget
 				)
 			{
-				auto canvasUIItem = Canvas->CheckAndGetUIItem();
+				auto canvasUIItem = Canvas->GetUIItem();
 				if (IsValid(canvasUIItem))
 				{
 					float canvasScale = 1.0f;

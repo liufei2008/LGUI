@@ -556,11 +556,15 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
 			);
 		}
-		static void CreateUIControlMenuEntry(FMenuBuilder& InBuilder, const FString& InControlName, const FString& InPrefabPath)
+		static void CreateUIControlMenuEntry(FMenuBuilder& InBuilder, const FString& InControlName, const FString& InPrefabPath, FText InTooltip = FText())
 		{
+			if (InTooltip.IsEmpty())
+			{
+				InTooltip = FText::FromString(FString::Printf(TEXT("Create %s"), *InControlName));
+			}
 			InBuilder.AddMenuEntry(
 				FText::FromString(InControlName),
-				FText::FromString(FString::Printf(TEXT("Create %s"), *InControlName)),
+				InTooltip,
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIControls, InPrefabPath))
 			);
@@ -580,8 +584,11 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("VerticalSlider"), "/LGUI/Prefabs/DefaultVerticalSlider");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("HorizontalScrollbar"), "/LGUI/Prefabs/DefaultHorizontalScrollbar");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("VerticalScrollbar"), "/LGUI/Prefabs/DefaultVerticalScrollbar");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("FlyoutMenuButton"), "/LGUI/Prefabs/DefaultFlyoutMenuButton");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ComboBoxButton"), "/LGUI/Prefabs/DefaultComboBoxButton");
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("FlyoutMenuButton (Deprecated)"), "/LGUI/Prefabs/DefaultFlyoutMenuButton"
+			, LOCTEXT("FlyoutMenuButtonDeprecatedMessage", "FlyoutMenuButton is deprecated, use Dropdown instead."));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ComboBoxButton (Deprecated)"), "/LGUI/Prefabs/DefaultComboBoxButton"
+			, LOCTEXT("ComboBoxButtonDeprecatedMessage", "ComboBoxButton is deprecated, use Dropdown instead."));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Dropdown"), "/LGUI/Prefabs/DefaultDropdown");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInput"), "/LGUI/Prefabs/DefaultTextInput");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInputMultiline"), "/LGUI/Prefabs/DefaultTextInputMultiline");
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollView"), "/LGUI/Prefabs/DefaultScrollView");
