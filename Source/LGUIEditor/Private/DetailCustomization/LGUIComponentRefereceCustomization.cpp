@@ -90,7 +90,7 @@ void FLGUIComponentRefereceCustomization::CustomizeChildren(TSharedRef<IProperty
 						SNew(STextBlock)
 						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
 						.AutoWrapText(true)
-						.Text(LOCTEXT("ComponentNotFoundTip", "Component not found on target actor!"))
+						.Text(FText::FromString(FString::Printf(TEXT("Component of type: %s not found on target actor!"), *targetCompClass->GetName())))
 						.Font(IDetailLayoutBuilder::GetDetailFont())
 					];
 				}

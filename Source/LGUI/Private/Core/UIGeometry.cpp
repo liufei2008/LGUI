@@ -20,7 +20,7 @@ DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformPixelPerfectVertices"), STAT_Transf
 void AdjustPixelPerfectPos(TArray<FVector>& originPositions, int startIndex, int count, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
-	auto canvasUIItem = renderCanvas->GetRootCanvas()->CheckAndGetUIItem();
+	auto canvasUIItem = renderCanvas->GetRootCanvas()->GetUIItem();
 	auto halfCanvasWidth = canvasUIItem->GetWidth() * 0.5f;
 	auto halfCanvasHeight = canvasUIItem->GetHeight() * 0.5f;
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
@@ -50,7 +50,7 @@ void AdjustPixelPerfectPos(TArray<FVector>& originPositions, int startIndex, int
 void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FVector>& originPositions, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
-	auto canvasUIItem = renderCanvas->GetRootCanvas()->CheckAndGetUIItem();
+	auto canvasUIItem = renderCanvas->GetRootCanvas()->GetUIItem();
 	auto halfCanvasWidth = canvasUIItem->GetWidth() * 0.5f;
 	auto halfCanvasHeight = canvasUIItem->GetHeight() * 0.5f;
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
@@ -83,7 +83,7 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TA
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformPixelPerfectVertices);
 	if (cacheCharPropertyArray.Num() <= 0)return;
-	auto canvasUIItem = renderCanvas->GetRootCanvas()->CheckAndGetUIItem();
+	auto canvasUIItem = renderCanvas->GetRootCanvas()->GetUIItem();
 	auto halfCanvasWidth = canvasUIItem->GetWidth() * 0.5f;
 	auto halfCanvasHeight = canvasUIItem->GetHeight() * 0.5f;
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
@@ -3790,7 +3790,7 @@ DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformVertices"), STAT_TransformVertices,
 void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPtr<UIGeometry> uiGeo)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
-	auto canvasUIItem = canvas->CheckAndGetUIItem();
+	auto canvasUIItem = canvas->GetUIItem();
 	auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
 	const auto& itemTf = item->GetComponentTransform();
 	auto& vertices = uiGeo->vertices;

@@ -452,7 +452,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		bool isScreenSpaceUI = RootUIComp->IsScreenSpaceOverlayUI();
 		if (isScreenSpaceUI)
 		{
-			auto rootCanvasTf = RootUIComp->GetRenderCanvas()->GetRootCanvas()->CheckAndGetUIItem();
+			auto rootCanvasTf = RootUIComp->GetRenderCanvas()->GetRootCanvas()->GetUIItem();
 			return FindSelectable(InDirection, rootCanvasTf);
 		}
 		else

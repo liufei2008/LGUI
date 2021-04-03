@@ -18,7 +18,7 @@ void UUIToggleGroupComponent::SetSelection(UUIToggleComponent* Target)
 		LastSelect = Target;
 		if (TempSelected.IsValid())
 		{
-			TempSelected->SetState(false);
+			TempSelected->SetValue(false);
 		}
 		if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(Target);
 		OnToggle.FireEvent(Target->GetOwner());
@@ -28,7 +28,7 @@ void UUIToggleGroupComponent::ClearSelection()
 {
 	if (LastSelect.IsValid())
 	{
-		LastSelect->SetState(false);
+		LastSelect->SetValue(false);
 		LastSelect.Reset();
 
 		if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(nullptr);
