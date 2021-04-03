@@ -624,7 +624,11 @@ void ULGUICanvas::UpdateCanvasLayout(bool parentLayoutChanged)
 	cacheForThisUpdate_ShouldRebuildAllDrawcall = bShouldRebuildAllDrawcall;
 	cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout || parentLayoutChanged;
 	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
-	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged;
+	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged || bShouldUpdateLayout || parentLayoutChanged;
+	if (bRectRangeCalculated)
+	{
+		if (cacheForThisUpdate_RectClipParameterChanged)bRectRangeCalculated = false;
+	}
 	cacheForThisUpdate_TextureClipParameterChanged = bTextureClipParameterChanged;
 	bShouldRebuildAllDrawcall = false;
 	bShouldUpdateLayout = false;
@@ -1159,17 +1163,6 @@ FLinearColor ULGUICanvas::GetTextureClipOffsetAndSize()
 {
 	auto& widget = UIItem->widget;
 	return FLinearColor(widget.width * -widget.pivot.X, widget.height * -widget.pivot.Y, widget.width, widget.height);
-}
-
-void ULGUICanvas::OnWidthChanged()
-{
-	bRectClipParameterChanged = true;
-	bRectRangeCalculated = false;
-}
-void ULGUICanvas::OnHeightChanged()
-{
-	bRectClipParameterChanged = true;
-	bRectRangeCalculated = false;
 }
 
 void ULGUICanvas::SetClipType(ELGUICanvasClipType newClipType) 
