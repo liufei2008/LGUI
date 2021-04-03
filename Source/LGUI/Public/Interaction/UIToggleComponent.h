@@ -73,18 +73,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
 		FLGUIDrawableEvent OnToggle = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Bool);
 
-	void ApplyToggleState(bool immediateSet);
+	void ApplyValueToUI(bool immediateSet);
+	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		AActor* GetToggleGroupActor()const { return UIToggleGroupActor.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		void SetToggleGroup(UUIToggleGroupComponent* InGroupComp);
-
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")bool GetState()
-		const { return IsOn; }
+	UE_DEPRECATED(4.24, "GetState is not valid any more. Use GetValue instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle", meta = (DeprecatedFunction, DeprecationMessage = "GetState is not valid any more. Use GetValue instead"))
+		bool GetState()const { return IsOn; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+		bool GetValue()const { return IsOn; }
+	UE_DEPRECATED(4.24, "SetState is not valid any more. Use SetValue instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle", meta = (DeprecatedFunction, DeprecationMessage = "SetState is not valid any more. Use SetValue instead"))
 		virtual void SetState(bool newState, bool fireEvent = true);
-	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+		virtual void SetValue(bool newValue, bool fireEvent = true);
 
 	FDelegateHandle RegisterToggleEvent(const FLGUIBoolDelegate& InDelegate);
 	FDelegateHandle RegisterToggleEvent(const TFunction<void(bool)>& InFunction);

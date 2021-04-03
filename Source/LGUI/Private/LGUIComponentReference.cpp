@@ -5,14 +5,14 @@
 
 UActorComponent* FLGUIComponentReference::GetComponentFromTargetActor(AActor* InActor, FName InCompName, UClass* InClass)
 {
-	if (!IsValid(InActor))
+	if (InActor == nullptr || InActor->IsPendingKill())
 	{
 		UE_LOG(LGUI, Warning, TEXT("[FLGUIComponentReference::GetComponent]Target actor not valid!"));
 		return nullptr;
 	}
-	if (!IsValid(InClass))
+	if (InClass == nullptr || InClass->IsPendingKill())
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIComponentReference::GetComponent]Component class not assigned!"));
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIComponentReference::GetComponent]Component class not valid!"));
 		return nullptr;
 	}
 
@@ -79,6 +79,14 @@ UActorComponent* FLGUIComponentReference::GetComponentFromTargetActor(AActor* In
 }
 UActorComponent* FLGUIComponentReference::GetComponent()const
 {
-	componentInstance = GetComponentFromTargetActor(targetActor, targetComonentName, targetComponentClass);
-	return componentInstance;
+	if (!componentInstance.IsValid())
+	{
+		componentInstance = GetComponentFromTargetActor(targetActor.Get(), targetComonentName, targetComponentClass);
+	}
+	return componentInstance.Get();
+}
+bool FLGUIComponentReference::IsValid()const
+{
+	GetComponent();
+	return componentInstance.IsValid();
 }

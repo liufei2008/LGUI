@@ -242,7 +242,7 @@ public:
 	virtual UUISelectableComponent* FindSelectableOnNext();
 	virtual UUISelectableComponent* FindSelectableOnPrev();
 #pragma endregion
-public:
+protected:
 	virtual bool OnPointerEnter_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerExit_Implementation(ULGUIPointerEventData* eventData)override;
 	virtual bool OnPointerDown_Implementation(ULGUIPointerEventData* eventData)override;

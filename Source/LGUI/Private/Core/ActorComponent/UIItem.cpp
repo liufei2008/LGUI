@@ -1325,7 +1325,11 @@ UUIItem* UUIItem::GetAttachUIChild(int index)const
 }
 ULGUICanvas* UUIItem::GetRootCanvas()const
 {
-	return RenderCanvas->GetRootCanvas();
+	if (IsValid(RenderCanvas))
+	{
+		return RenderCanvas->GetRootCanvas();
+	}
+	return nullptr;
 }
 ULGUICanvasScaler* UUIItem::GetCanvasScaler()const
 {

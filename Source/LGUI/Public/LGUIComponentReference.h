@@ -26,17 +26,17 @@ struct LGUI_API FLGUIComponentReference
 protected:
 	friend class FLGUIComponentRefereceCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* targetActor;
+		TWeakObjectPtr<AActor> targetActor;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TSubclassOf<UActorComponent> targetComponentClass;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName targetComonentName;
 
-	UPROPERTY(Transient) mutable UActorComponent* componentInstance;
+	UPROPERTY(Transient) mutable TWeakObjectPtr<UActorComponent> componentInstance;
 public:
 	AActor* GetActor()const
 	{
-		return targetActor;
+		return targetActor.Get();
 	}
 	UActorComponent* GetComponent()const;
 	template<class T>
@@ -54,6 +54,7 @@ public:
 	{
 		return targetComponentClass;
 	}
+	bool IsValid()const;
 
 	static UActorComponent* GetComponentFromTargetActor(AActor* InActor, FName InCompName, UClass* InClass);
 };

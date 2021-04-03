@@ -28,7 +28,7 @@ void UUIToggleComponent::Start()
 	{
 		GroupComp->SetSelection(this);//if default is selected, set to group
 	}
-	ApplyToggleState(true);
+	ApplyValueToUI(true);
 }
 
 bool UUIToggleComponent::CheckTarget()
@@ -39,25 +39,21 @@ bool UUIToggleComponent::CheckTarget()
 
 void UUIToggleComponent::SetState(bool newState, bool fireEvent)
 {
-	if (IsOn != newState)
+	SetValue(newState, fireEvent);
+}
+void UUIToggleComponent::SetValue(bool newValue, bool fireEvent)
+{
+	if (IsOn != newValue)
 	{
 		if (GroupComp.IsValid())
 		{
-			if (GroupComp->GetAllowNoneSelected() == false && GroupComp->GetSelectedItem() == this && newState == false)//not allow none select
+			if (GroupComp->GetAllowNoneSelected() == false && GroupComp->GetSelectedItem() == this && newValue == false)//not allow none select
 			{
 				return;
 			}
 		}
 
-		IsOn = newState;
-		if (fireEvent)
-		{
-			if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(IsOn);
-			OnToggle.FireEvent(IsOn);
-		}
-
-		ApplyToggleState(false);
-
+		IsOn = newValue;
 		if (GroupComp.IsValid())
 		{
 			if (IsOn)
@@ -72,9 +68,16 @@ void UUIToggleComponent::SetState(bool newState, bool fireEvent)
 				}
 			}
 		}
+		if (fireEvent)
+		{
+			if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(IsOn);
+			OnToggle.FireEvent(IsOn);
+		}
+
+		ApplyValueToUI(false);
 	}
 }
-void UUIToggleComponent::ApplyToggleState(bool immediateSet)
+void UUIToggleComponent::ApplyValueToUI(bool immediateSet)
 {
 	if (!CheckTarget())return;
 	if (ToggleTransition == UIToggleTransitionType::Fade)
@@ -132,7 +135,7 @@ void UUIToggleComponent::SetToggleGroup(UUIToggleGroupComponent* InGroupComp)
 
 bool UUIToggleComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
 {
-	SetState(!IsOn);
+	SetValue(!IsOn);
 	return AllowEventBubbleUp;
 }
 

@@ -493,6 +493,15 @@ TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewEx
 	return ViewExtension;
 }
 
+bool ULGUICanvas::GetIsUIActive()const
+{
+	if (IsValid(UIItem))
+	{
+		return UIItem->IsUIActiveInHierarchy();
+	}
+	return false;
+}
+
 void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
 	if (InUIRenderable->GetUIRenderableType() == EUIRenderableType::UIGeometryRenderable)
@@ -909,24 +918,27 @@ void ULGUICanvas::SortDrawcallRenderPriority()
 	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
 	for (int i = 0; i < allCanvasArray.Num(); i++)
 	{
-		auto& canvasItem = allCanvasArray[i];
-		if (canvasItem->sortOrder != prevSortOrder)
+		auto canvasItem = allCanvasArray[i];
+		if (IsValid(canvasItem) && canvasItem->GetIsUIActive())
 		{
-			prevSortOrder = canvasItem->sortOrder;
-			startRenderPriority += prevCanvasDrawcallCount;
-		}
-		int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
+			if (canvasItem->sortOrder != prevSortOrder)
+			{
+				prevSortOrder = canvasItem->sortOrder;
+				startRenderPriority += prevCanvasDrawcallCount;
+			}
+			int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
 
-		if (canvasItem->sortOrder == prevSortOrder)//if Canvas's depth is equal, then take the max drawcall count
-		{
-			if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
+			if (canvasItem->sortOrder == prevSortOrder)//if Canvas's depth is equal, then take the max drawcall count
+			{
+				if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
+				{
+					prevCanvasDrawcallCount = canvasItemDrawcallCount;
+				}
+			}
+			else
 			{
 				prevCanvasDrawcallCount = canvasItemDrawcallCount;
 			}
-		}
-		else
-		{
-			prevCanvasDrawcallCount = canvasItemDrawcallCount;
 		}
 	}
 //#if WITH_EDITOR
@@ -1230,7 +1242,7 @@ void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanva
 		if (allCanvasArray.Num() == 0)return;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
-			if (IsValid(itemCanvas))
+			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
 				if (itemCanvas->TopMostCanvas == this->TopMostCanvas)//on the same hierarchy
 				{
@@ -1254,7 +1266,7 @@ void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas
 		int32 minSortOrder = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
-			if (IsValid(itemCanvas))
+			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
 				if (itemCanvas->TopMostCanvas == this->TopMostCanvas)//on the same hierarchy
 				{
@@ -1278,14 +1290,11 @@ void ULGUICanvas::SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas)
 		int32 maxSortOrder = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
-			if (IsValid(itemCanvas))
+			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
-				if (itemCanvas != this)
+				if (maxSortOrder < itemCanvas->sortOrder)
 				{
-					if (maxSortOrder < itemCanvas->sortOrder)
-					{
-						maxSortOrder = itemCanvas->sortOrder;
-					}
+					maxSortOrder = itemCanvas->sortOrder;
 				}
 			}
 		}
@@ -1302,14 +1311,11 @@ void ULGUICanvas::SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas)
 		int32 minDepth = 0;
 		for (ULGUICanvas* itemCanvas : allCanvasArray)
 		{
-			if (IsValid(itemCanvas))
+			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
-				if (itemCanvas != this)
+				if (minDepth > itemCanvas->sortOrder)
 				{
-					if (minDepth > itemCanvas->sortOrder)
-					{
-						minDepth = itemCanvas->sortOrder;
-					}
+					minDepth = itemCanvas->sortOrder;
 				}
 			}
 		}
