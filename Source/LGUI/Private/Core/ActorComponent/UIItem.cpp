@@ -787,7 +787,6 @@ bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 		widget.width = width;
 		WidthChanged();
 		sizeChanged = true;
-		if (isCanvasUIItem)RenderCanvas->OnWidthChanged();
 	}
 
 	widget.anchorOffsetX = widget.stretchLeft - (parentWidget.width - widget.width) * 0.5f;
@@ -803,7 +802,6 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 		widget.height = height;
 		HeightChanged();
 		sizeChanged = true;
-		if (isCanvasUIItem)RenderCanvas->OnHeightChanged();
 	}
 
 	widget.anchorOffsetY = widget.stretchBottom - (parentWidget.height - widget.height) * 0.5f;
@@ -923,7 +921,6 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 			WidthChanged();
 			MarkLayoutDirty();
 			sizeChanged = true;
-			if (isCanvasUIItem)RenderCanvas->OnWidthChanged();
 		}
 
 		resultLocation.X = -parentWidget.pivot.X * parentWidget.width;
@@ -961,7 +958,6 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 			HeightChanged();
 			MarkLayoutDirty();
 			sizeChanged = true;
-			if (isCanvasUIItem)RenderCanvas->OnHeightChanged();
 		}
 
 		resultLocation.Y = -parentWidget.pivot.Y * parentWidget.height;
@@ -1082,7 +1078,6 @@ void UUIItem::SetWidth(float newWidth)
 		MarkLayoutDirty();
 		widget.width = newWidth;
 		WidthChanged();
-		if (isCanvasUIItem)RenderCanvas->OnWidthChanged();
 		if (cacheParentUIItem)
 		{
 			CalculateHorizontalStretchFromAnchorAndSize();
@@ -1097,7 +1092,6 @@ void UUIItem::SetHeight(float newHeight)
 		MarkLayoutDirty();
 		widget.height = newHeight;
 		HeightChanged();
-		if (isCanvasUIItem)RenderCanvas->OnHeightChanged();
 		if (cacheParentUIItem)
 		{
 			CalculateVerticalStretchFromAnchorAndSize();
