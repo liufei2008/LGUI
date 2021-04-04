@@ -91,6 +91,8 @@ protected:
 	virtual bool OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)override;
 	void OnSelectItem(int index);
 	void ApplyValueToUI();
+	virtual void CreateBlocker();
+	virtual void CreateListItems();
 
 	FLGUIMulticastInt32Delegate OnSelectionChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
@@ -115,6 +117,8 @@ public:
 		FUIDropdownOptionData GetOption(int index)const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		FUIDropdownOptionData GetCurrentOption()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		float GetMaxHeight()const { return MaxHeight; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void SetValue(int newValue, bool fireEvent = true);
@@ -128,6 +132,8 @@ public:
 		void SetOptions(const TArray<FUIDropdownOptionData>& InOptions);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void AddOptions(const TArray<FUIDropdownOptionData>& InOptions);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
+		void SetMaxHeight(float newValue) { MaxHeight = newValue; }
 
 	//list items will be created at next time when show the list
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
