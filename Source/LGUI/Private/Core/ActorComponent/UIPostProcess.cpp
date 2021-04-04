@@ -219,7 +219,7 @@ void UUIPostProcess::UpdateRegionVertex()
 	{
 		renderMeshRegionToScreenVertexArray.AddUninitialized(4);
 	}
-	auto objectToWorldMatrix = this->GetRenderCanvas()->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+	auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	{
 		for (int i = 0; i < 4; i++)
@@ -235,11 +235,102 @@ void UUIPostProcess::UpdateRegionVertex()
 		for (int i = 0; i < 4; i++)
 		{
 			auto& copyVert = renderMeshRegionToScreenVertexArray[i];
-			auto clipSpacePos = modelViewPrjectionMatrix.TransformPosition(vertices[i].Position);
-			float inv_W = 1.0f / clipSpacePos.W;
-			copyVert.Position = FVector(clipSpacePos.X, clipSpacePos.Y, clipSpacePos.Z) * inv_W;
+			copyVert.Position = vertices[i].Position;
 			copyVert.TextureCoordinate0 = vertices[i].TextureCoordinate[0];
 		}
 	}
-	SendRegionVertexDataToRenderProxy();
+	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+}
+
+void UUIPostProcess::SetMaskTexture(UTexture2D* newValue)
+{
+	if (maskTexture != newValue)
+	{
+		maskTexture = newValue;
+		SendMaskTextureToRenderProxy();
+	}
+}
+void UUIPostProcess::SendMaskTextureToRenderProxy()
+{
+	if (RenderProxy.IsValid())
+	{
+		auto TempRenderProxy = RenderProxy.Get();
+		FTexture2DResource* maskTextureResource = nullptr;
+		if (IsValid(this->maskTexture) && this->maskTexture->Resource != nullptr)
+		{
+			maskTextureResource = (FTexture2DResource*)this->maskTexture->Resource;
+		}
+		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateMaskTexture)
+			([TempRenderProxy, maskTextureResource](FRHICommandListImmediate& RHICmdList)
+				{
+					TempRenderProxy->maskTexture = maskTextureResource;
+				});
+	}
+}
+
+void UUIPostProcess::SetClipType(ELGUICanvasClipType clipType)
+{
+	if (RenderProxy.IsValid())
+	{
+		auto TempRenderProxy = RenderProxy.Get();
+		struct FUIPostProcess_SendClipDataToRenderProxy
+		{
+			ELGUICanvasClipType clipType;
+		};
+		auto updateData = new FUIPostProcess_SendClipDataToRenderProxy();
+		updateData->clipType = clipType;
+		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateClipData)
+			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+				{
+					TempRenderProxy->clipType = updateData->clipType;
+					delete updateData;
+				});
+	}
+}
+void UUIPostProcess::SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather)
+{
+	if (RenderProxy.IsValid())
+	{
+		auto TempRenderProxy = RenderProxy.Get();
+		struct FUIPostProcess_SendClipDataToRenderProxy
+		{
+			FVector4 rectClipOffsetAndSize;
+			FVector4 rectClipFeather;
+		};
+		auto updateData = new FUIPostProcess_SendClipDataToRenderProxy();
+		updateData->rectClipOffsetAndSize = OffsetAndSize;
+		updateData->rectClipFeather = Feather;
+		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateClipData)
+			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+				{
+					TempRenderProxy->rectClipOffsetAndSize = updateData->rectClipOffsetAndSize;
+					TempRenderProxy->rectClipFeather = updateData->rectClipFeather;
+					delete updateData;
+				});
+	}
+}
+void UUIPostProcess::SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize)
+{
+	if (RenderProxy.IsValid())
+	{
+		auto TempRenderProxy = RenderProxy.Get();
+		struct FUIPostProcess_SendClipDataToRenderProxy
+		{
+			FTexture2DResource* clipTexture = nullptr;
+			FVector4 textureClipOffsetAndSize;
+		};
+		auto updateData = new FUIPostProcess_SendClipDataToRenderProxy();
+		updateData->textureClipOffsetAndSize = OffsetAndSize;
+		if (IsValid(ClipTex) && ClipTex->Resource != nullptr)
+		{
+			updateData->clipTexture = (FTexture2DResource*)ClipTex->Resource;
+		}
+		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateClipData)
+			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+				{
+					TempRenderProxy->clipTexture = updateData->clipTexture;
+					TempRenderProxy->textureClipOffsetAndSize = updateData->textureClipOffsetAndSize;
+					delete updateData;
+				});
+	}
 }

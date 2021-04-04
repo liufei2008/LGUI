@@ -993,35 +993,46 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 		for (int i = materialCount; i < drawcallCount; i++)
 		{
 			auto uiDrawcall = UIDrawcallList[i];
-			UMaterialInterface* SrcMaterial = nullptr;
-			if (uiDrawcall->material.IsValid())//custom material
+			if (uiDrawcall->type == EUIDrawcallType::Geometry)
 			{
-				SrcMaterial = uiDrawcall->material.Get();
-			}
-			else
-			{
-				SrcMaterial = matArray[(int)tempClipType];
-				if (SrcMaterial == nullptr)
+				UMaterialInterface* SrcMaterial = nullptr;
+				if (uiDrawcall->material.IsValid())//custom material
 				{
-					UE_LOG(LGUI, Log, TEXT("[ULGUICanvas::UpdateAndApplyMaterial]Material asset from Plugin/Content is missing! Reinstall this plugin may fix the issure"));
-					UIMaterialList.Reset();
-					return;
+					SrcMaterial = uiDrawcall->material.Get();
+				}
+				else
+				{
+					SrcMaterial = matArray[(int)tempClipType];
+					if (SrcMaterial == nullptr)
+					{
+						UE_LOG(LGUI, Log, TEXT("[ULGUICanvas::UpdateAndApplyMaterial]Material asset from Plugin/Content is missing! Reinstall this plugin may fix the issure"));
+						UIMaterialList.Reset();
+						return;
+					}
+				}
+
+				UMaterialInstanceDynamic* uiMat = nullptr;
+				if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
+				{
+					uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
+				}
+				else
+				{
+					uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
+					uiMat->SetFlags(RF_Transient);
+				}
+				uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
+				UIMaterialList[i] = uiMat;
+				uiDrawcall->materialInstanceDynamic = uiMat;
+			}
+			else if (uiDrawcall->type == EUIDrawcallType::PostProcess)
+			{
+				UIMaterialList[i] = nullptr;
+				if (uiDrawcall->postProcessObject.IsValid())
+				{
+					uiDrawcall->postProcessObject->SetClipType(tempClipType);
 				}
 			}
-
-			UMaterialInstanceDynamic* uiMat = nullptr;
-			if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
-			{
-				uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
-			}
-			else
-			{
-				uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
-				uiMat->SetFlags(RF_Transient);
-			}
-			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
-			UIMaterialList[i] = uiMat;
-			uiDrawcall->materialInstanceDynamic = uiMat;
 		}
 	}
 	if (cacheForThisUpdate_ShouldRebuildAllDrawcall)
@@ -1029,11 +1040,17 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 		for (int i = 0; i < drawcallCount; i++)//set material property
 		{
 			auto uiDrawcall = UIDrawcallList[i];
-			auto uiMat = UIMaterialList[i];
-			uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
-			auto uiMesh = UIDrawcallPrimitiveList[i].UIDrawcallMesh;
-			if (!uiMesh.IsValid())continue;
-			uiMesh->SetMaterial(0, uiMat);
+			if (uiDrawcall->type == EUIDrawcallType::Geometry)
+			{
+				auto uiMat = UIMaterialList[i];
+				if (IsValid(uiMat))
+				{
+					uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
+					auto uiMesh = UIDrawcallPrimitiveList[i].UIDrawcallMesh;
+					if (!uiMesh.IsValid())continue;
+					uiMesh->SetMaterial(0, uiMat);
+				}
+			}
 		}
 	}
 	//set clip parameter
@@ -1075,9 +1092,23 @@ void ULGUICanvas::SetParameterForRectClip(int drawcallCount)
 	auto rectClipFeather = this->GetRectClipFeather();
 	for (int i = 0; i < drawcallCount; i++)
 	{
-		auto uiMat = UIMaterialList[i];
-		uiMat->SetVectorParameterValue(FName("RectClipOffsetAndSize"), rectClipOffsetAndSize);
-		uiMat->SetVectorParameterValue(FName("RectClipFeather"), rectClipFeather);
+		auto uiDrawcall = UIDrawcallList[i];
+		if (uiDrawcall->type == EUIDrawcallType::Geometry)
+		{
+			auto uiMat = UIMaterialList[i];
+			if (IsValid(uiMat))
+			{
+				uiMat->SetVectorParameterValue(FName("RectClipOffsetAndSize"), rectClipOffsetAndSize);
+				uiMat->SetVectorParameterValue(FName("RectClipFeather"), rectClipFeather);
+			}
+		}
+		else if(uiDrawcall->type == EUIDrawcallType::PostProcess)
+		{
+			if (uiDrawcall->postProcessObject.IsValid())
+			{
+				uiDrawcall->postProcessObject->SetRectClipParameter(rectClipOffsetAndSize, rectClipFeather);
+			}
+		}
 	}
 }
 void ULGUICanvas::SetParameterForTextureClip(int drawcallCount)
@@ -1085,9 +1116,23 @@ void ULGUICanvas::SetParameterForTextureClip(int drawcallCount)
 	auto textureClipOffsetAndSize = this->GetTextureClipOffsetAndSize();
 	for (int i = 0; i < drawcallCount; i++)
 	{
-		auto uiMat = UIMaterialList[i];
-		uiMat->SetTextureParameterValue(FName("ClipTexture"), clipTexture);
-		uiMat->SetVectorParameterValue(FName("TextureClipOffsetAndSize"), textureClipOffsetAndSize);
+		auto uiDrawcall = UIDrawcallList[i];
+		if (uiDrawcall->type == EUIDrawcallType::Geometry)
+		{
+			auto uiMat = UIMaterialList[i];
+			if (IsValid(uiMat))
+			{
+				uiMat->SetTextureParameterValue(FName("ClipTexture"), clipTexture);
+				uiMat->SetVectorParameterValue(FName("TextureClipOffsetAndSize"), textureClipOffsetAndSize);
+			}
+		}
+		else if (uiDrawcall->type == EUIDrawcallType::PostProcess)
+		{
+			if (uiDrawcall->postProcessObject.IsValid())
+			{
+				uiDrawcall->postProcessObject->SetTextureClipParameter(clipTexture, textureClipOffsetAndSize);
+			}
+		}
 	}
 }
 bool ULGUICanvas::IsPointVisible(FVector worldPoint)

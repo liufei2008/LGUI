@@ -1,0 +1,26 @@
+// Copyright 2019-2021 LexLiu. All Rights Reserved.
+#include "/Engine/Public/Platform.ush"
+
+float4x4 _MVP;
+
+struct RenderMeshVSToPS
+{
+    float4 position : SV_Position;
+    float2 uv : TEXCOORD0;
+    float3 localPosition : TEXCOORD1;
+};
+
+void RenderMeshVS(
+    in float3 Position:ATTRIBUTE0,
+    in float2 TextureCoord0 : ATTRIBUTE1,
+    out RenderMeshVSToPS v2p
+)
+{
+    v2p.position = mul(float4(Position.xyz, 1.0), _MVP);
+    v2p.localPosition = Position.xyz;
+    v2p.uv = TextureCoord0;
+#if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
+	v2p.uv.y = 1.0 - v2p.uv.y;
+    v2p.position.y *= -1;
+#endif
+}
