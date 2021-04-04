@@ -62,29 +62,7 @@ void UUIDropdownComponent::Show()
 	}
 
 	//create blocker
-	AUIContainerActor* blocker = this->GetWorld()->SpawnActor<AUIContainerActor>();
-#if WITH_EDITOR
-	blocker->SetActorLabel(TEXT("UIDropdown_Blocker"));
-#endif
-	auto blockerUIItem = blocker->GetUIItem();
-	blockerUIItem->SetRaycastTarget(true);
-	blockerUIItem->SetTraceChannel(this->GetRootComponent()->GetTraceChannel());
-	blockerUIItem->AttachToComponent(this->GetRootComponent()->GetRootCanvas()->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
-	blockerUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
-	blockerUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
-	blockerUIItem->SetHorizontalStretch(FVector2D::ZeroVector);
-	blockerUIItem->SetVerticalStretch(FVector2D::ZeroVector);
-	auto blockerCanvas = NewObject<ULGUICanvas>(blocker);
-	blockerCanvas->RegisterComponent();
-	blocker->AddInstanceComponent(blockerCanvas);
-	blockerCanvas->SetSortOrderToHighestOfHierarchy();
-	auto blockerButton = NewObject<UUIButtonComponent>(blocker);
-	blockerButton->RegisterComponent();
-	blocker->AddInstanceComponent(blockerButton);
-	blockerButton->RegisterClickEvent([this] {
-		this->Hide();
-		});
-	BlockerActor = blocker;
+	CreateBlocker();
 	//show list
 	ListRoot->GetUIItem()->SetUIActive(true);
 	auto listRootUIItem = ListRoot->GetUIItem();
@@ -112,33 +90,8 @@ void UUIDropdownComponent::Show()
 			ULGUIBPLibrary::DestroyActorWithHierarchy(itemActor, true);
 		}
 		CreatedItemArray.Reset();
-		auto templateUIItem = Cast<UUIItem>(ItemTemplate.GetActor()->GetRootComponent());
-		if (!IsValid(templateUIItem))
-		{
-			UE_LOG(LGUI, Error, TEXT("[UUIDropdownComponent::Show]ItemTemplate must be a UIItem!"));
-			return;
-		}
-		templateUIItem->SetUIActive(true);
-		auto parentUIItem = templateUIItem->GetParentAsUIItem();
-		for (int i = 0, count = Options.Num(); i < count; i++)
-		{
-			auto copiedItemActor = ULGUIBPLibrary::DuplicateActor(ItemTemplate.GetActor(), parentUIItem);
-#if WITH_EDITOR
-			copiedItemActor->SetActorLabel(FString::Printf(TEXT("Item_%d"), i));
-#endif
-			auto script = copiedItemActor->FindComponentByClass<UUIDropdownItemComponent>();
-			int index = i;
-			script->Init(Options[i], [=]() {
-				this->OnSelectItem(index);
-				});
-			script->SetSelectionState(i == Value);
-			CreatedItemArray.Add(script);
-		}
-		templateUIItem->SetUIActive(false);
-		if (parentUIItem->GetHeight() < MaxHeight)
-		{
-			listRootUIItem->SetHeight(parentUIItem->GetHeight());
-		}
+		//create items
+		CreateListItems();
 	}
 
 	//set position
@@ -270,6 +223,68 @@ void UUIDropdownComponent::Hide()
 	if (BlockerActor.IsValid())
 	{
 		BlockerActor->Destroy();
+		BlockerActor.Reset();
+	}
+}
+void UUIDropdownComponent::CreateBlocker()
+{
+	AUIContainerActor* blocker = this->GetWorld()->SpawnActor<AUIContainerActor>();
+#if WITH_EDITOR
+	blocker->SetActorLabel(TEXT("UIDropdown_Blocker"));
+#endif
+	auto blockerUIItem = blocker->GetUIItem();
+	blockerUIItem->SetRaycastTarget(true);
+	blockerUIItem->SetTraceChannel(this->GetRootComponent()->GetTraceChannel());
+	blockerUIItem->AttachToComponent(this->GetRootComponent()->GetRootCanvas()->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
+	blockerUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
+	blockerUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
+	blockerUIItem->SetHorizontalStretch(FVector2D::ZeroVector);
+	blockerUIItem->SetVerticalStretch(FVector2D::ZeroVector);
+	auto blockerCanvas = NewObject<ULGUICanvas>(blocker);
+	blockerCanvas->RegisterComponent();
+	blocker->AddInstanceComponent(blockerCanvas);
+	blockerCanvas->SetSortOrderToHighestOfHierarchy();
+	auto blockerButton = NewObject<UUIButtonComponent>(blocker);
+	blockerButton->RegisterComponent();
+	blocker->AddInstanceComponent(blockerButton);
+	blockerButton->RegisterClickEvent([this] {
+		this->Hide();
+		});
+	BlockerActor = blocker;
+}
+void UUIDropdownComponent::CreateListItems()
+{
+	auto templateUIItem = Cast<UUIItem>(ItemTemplate.GetActor()->GetRootComponent());
+	if (!IsValid(templateUIItem))
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUIDropdownComponent::Show]ItemTemplate must be a UIItem!"));
+		return;
+	}
+	templateUIItem->SetUIActive(true);
+	auto contentUIItem = templateUIItem->GetParentAsUIItem();
+	for (int i = 0, count = Options.Num(); i < count; i++)
+	{
+		auto copiedItemActor = ULGUIBPLibrary::DuplicateActor(ItemTemplate.GetActor(), contentUIItem);
+#if WITH_EDITOR
+		copiedItemActor->SetActorLabel(FString::Printf(TEXT("Item_%d"), i));
+#endif
+		auto script = copiedItemActor->FindComponentByClass<UUIDropdownItemComponent>();
+		int index = i;
+		script->Init(Options[i], [=]() {
+			this->OnSelectItem(index);
+			});
+		script->SetSelectionState(i == Value);
+		CreatedItemArray.Add(script);
+	}
+	templateUIItem->SetUIActive(false);
+	float heightOffset = 0;
+	if (auto viewportUIItem = contentUIItem->GetParentAsUIItem())
+	{
+		heightOffset = ListRoot->GetUIItem()->GetHeight() - viewportUIItem->GetHeight();
+	}
+	if (contentUIItem->GetHeight() + heightOffset < MaxHeight)
+	{
+		ListRoot->GetUIItem()->SetHeight(contentUIItem->GetHeight() + heightOffset);
 	}
 }
 FUIDropdownOptionData UUIDropdownComponent::GetOption(int index)const
