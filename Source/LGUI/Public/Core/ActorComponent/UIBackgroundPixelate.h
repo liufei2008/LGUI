@@ -42,9 +42,10 @@ public:
 		void SetApplyAlphaToStrength(bool newValue);
 
 	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
+	virtual void MarkAllDirtyRecursive()override;
 protected:
 	FORCEINLINE float GetStrengthInternal();
 protected:
-	virtual void SendRegionVertexDataToRenderProxy()override;
+	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)override;
 	void SendOthersDataToRenderProxy();
 };

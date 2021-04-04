@@ -3,6 +3,7 @@
 #pragma once
 
 #include "UIGeometry.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/HudRender/ILGUIHudPrimitive.h"
 
 class UUIPostProcess;
@@ -52,4 +53,24 @@ private:
 	{
 		bIsVisible = value;
 	}
+
+public:
+	ELGUICanvasClipType clipType;
+
+	FVector4 rectClipOffsetAndSize;
+	FVector4 rectClipFeather;
+
+	FTexture2DResource* clipTexture;
+	FVector4 textureClipOffsetAndSize;
+
+	FMatrix modelViewProjectionMatrix = FMatrix::Identity;
+	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
+	FTexture2DResource* maskTexture = nullptr;
+
+	void RenderMeshOnScreen_RenderThread(FRHICommandListImmediate& RHICmdList
+		, FTextureRHIRef ScreenImage
+		, TShaderMap<FGlobalShaderType>* GlobalShaderMap
+		, FTextureRHIRef ResultTexture
+		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
+	);
 };

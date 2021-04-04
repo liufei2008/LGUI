@@ -50,7 +50,9 @@ void UUIBackgroundBlur::MarkAllDirtyRecursive()
 {
 	Super::MarkAllDirtyRecursive();
 
-	SendRegionVertexDataToRenderProxy();
+	auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
 	SendStrengthTextureToRenderProxy();
 	SendMaskTextureToRenderProxy();
 	SendOthersDataToRenderProxy();
@@ -64,9 +66,7 @@ class FUIBackgroundBlurRenderProxy : public FUIPostProcessRenderProxy
 {
 public:
 	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
-	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	FTexture2DResource* strengthTexture = nullptr;
-	FTexture2DResource* maskTexture = nullptr;
 	FUIWidget widget;
 	float inv_SampleLevelInterval = 0.0f;
 	float maxDownSampleLevel = 0.0f;
@@ -132,7 +132,7 @@ public:
 				PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->TextureRHI, strengthTexture->SamplerStateRHI);
 
 				auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
-				float calculatedBlurStrength = FMath::Pow(blurStrength * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more linear
+				float calculatedBlurStrength = FMath::Pow(blurStrength * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more smooth
 				calculatedBlurStrength = calculatedBlurStrength * inv_SampleLevelInterval;
 				float calculatedBlurStrength2 = 1.0f;
 				int sampleCount = (int)calculatedBlurStrength + 1;
@@ -141,7 +141,7 @@ public:
 					if (i + 1 == sampleCount)
 					{
 						float fracValue = (calculatedBlurStrength - (int)calculatedBlurStrength);
-						fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more linear
+						fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more smooth
 						PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2 * fracValue);
 					}
 					else
@@ -184,7 +184,7 @@ public:
 				PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
 
 				auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
-				float calculatedBlurStrength = FMath::Pow(blurStrength * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more linear
+				float calculatedBlurStrength = FMath::Pow(blurStrength * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more smooth
 				calculatedBlurStrength = calculatedBlurStrength * inv_SampleLevelInterval;
 				float calculatedBlurStrength2 = 1.0f;
 				int sampleCount = (int)calculatedBlurStrength + 1;
@@ -193,7 +193,7 @@ public:
 					if (i + 1 == sampleCount)
 					{
 						float fracValue = (calculatedBlurStrength - (int)calculatedBlurStrength);
-						fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more linear
+						fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more smooth
 						PixelShader->SetBlurStrength(RHICmdList, calculatedBlurStrength2 * fracValue);
 					}
 					else
@@ -219,64 +219,7 @@ public:
 			}
 		}
 		//after blur process, copy the area back to screen image
-		{
-			if (maskTexture != nullptr)
-			{
-				FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture2, renderScreenToMeshRegionVertexArray);
-
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
-				RHICmdList.SetViewport(0, 0, 0.0f, ScreenImage->GetSizeXYZ().X, ScreenImage->GetSizeXYZ().Y, 1.0f);
-				TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-				TShaderMapRef<FLGUISimpleCopyTargetWithMaskPS> PixelShader(GlobalShaderMap);
-				FGraphicsPipelineStateInitializer GraphicsPSOInit;
-				RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-				GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
-				GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-				GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
-				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
-				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-				VertexShader->SetParameters(RHICmdList);
-				PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1, BlurEffectRenderTexture2, maskTexture->TextureRHI
-					, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
-					, TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
-					, maskTexture->SamplerStateRHI
-				);
-			}
-			else
-			{
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
-				RHICmdList.SetViewport(0, 0, 0.0f, ScreenImage->GetSizeXYZ().X, ScreenImage->GetSizeXYZ().Y, 1.0f);
-				TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-				TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
-				FGraphicsPipelineStateInitializer GraphicsPSOInit;
-				RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-				GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-				GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
-				GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-				GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
-				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
-				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-				VertexShader->SetParameters(RHICmdList);
-				PixelShader->SetParameters(RHICmdList, BlurEffectRenderTexture1);
-			}
-
-			uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
-			FRHIResourceCreateInfo CreateInfo;
-			FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-			void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
-			FPlatformMemory::Memcpy(VoidPtr, renderMeshRegionToScreenVertexArray.GetData(), VertexBufferSize);
-			RHIUnlockVertexBuffer(VertexBufferRHI);
-			RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
-			RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
-			VertexBufferRHI.SafeRelease();
-
-			RHICmdList.EndRenderPass();
-		}
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenImage, GlobalShaderMap, BlurEffectRenderTexture1);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();
@@ -310,7 +253,7 @@ void UUIBackgroundBlur::SendOthersDataToRenderProxy()
 				});
 	}
 }
-void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy()
+void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
 {
 	if (RenderProxy.IsValid())
 	{
@@ -321,12 +264,14 @@ void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy()
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 			FUIWidget widget;
 			float blurStrengthWithAlpha;
+			FMatrix modelViewProjectionMatrix;
 		};
 		auto updateData = new FUIBackgroundBlur_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->widget = this->widget;
 		updateData->blurStrengthWithAlpha = this->GetBlurStrengthInternal();
+		updateData->modelViewProjectionMatrix = InModelViewProjectionMatrix;
 		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
 			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{
@@ -334,6 +279,7 @@ void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy()
 					BackgroundBlurRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
 					BackgroundBlurRenderProxy->widget = updateData->widget;
 					BackgroundBlurRenderProxy->blurStrength = updateData->blurStrengthWithAlpha;
+					BackgroundBlurRenderProxy->modelViewProjectionMatrix = updateData->modelViewProjectionMatrix;
 					delete updateData;
 				});
 	}
@@ -352,23 +298,6 @@ void UUIBackgroundBlur::SendStrengthTextureToRenderProxy()
 			([BackgroundBlurRenderProxy, strengthTextureResource](FRHICommandListImmediate& RHICmdList)
 				{
 					BackgroundBlurRenderProxy->strengthTexture = strengthTextureResource;
-				});
-	}
-}
-void UUIBackgroundBlur::SendMaskTextureToRenderProxy()
-{
-	if (RenderProxy.IsValid())
-	{
-		auto BackgroundBlurRenderProxy = (FUIBackgroundBlurRenderProxy*)(RenderProxy.Get());
-		FTexture2DResource* maskTextureResource = nullptr;
-		if (IsValid(this->maskTexture) && this->maskTexture->Resource != nullptr)
-		{
-			maskTextureResource = (FTexture2DResource*)this->maskTexture->Resource;
-		}
-		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
-			([this, BackgroundBlurRenderProxy, maskTextureResource](FRHICommandListImmediate& RHICmdList)
-				{
-					BackgroundBlurRenderProxy->maskTexture = maskTextureResource;
 				});
 	}
 }
@@ -410,15 +339,6 @@ void UUIBackgroundBlur::SetStrengthTexture(UTexture2D* newValue)
 	}
 }
 
-void UUIBackgroundBlur::SetMaskTexture(UTexture2D* newValue)
-{
-	if (maskTexture != newValue)
-	{
-		maskTexture = newValue;
-		SendMaskTextureToRenderProxy();
-	}
-}
-
 float UUIBackgroundBlur::GetBlurStrengthInternal()
 {
 	if (applyAlphaToBlur)
@@ -434,7 +354,9 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
 	{
 		RenderProxy = TSharedPtr<FUIBackgroundBlurRenderProxy>(new FUIBackgroundBlurRenderProxy());
 		inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
-		SendRegionVertexDataToRenderProxy();
+		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
 		SendStrengthTextureToRenderProxy();
 		SendMaskTextureToRenderProxy();
 		SendOthersDataToRenderProxy();

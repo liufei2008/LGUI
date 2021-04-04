@@ -4,6 +4,7 @@
 
 #include "UIBaseRenderable.h"
 #include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "UIPostProcess.generated.h"
 
 class FUIPostProcessRenderProxy;
@@ -12,7 +13,7 @@ struct FLGUIPostProcessVertex;
  * UI element that can add post processing effect
  * Only valid on ScreenSpaceUI
  */
-UCLASS(Abstract, NotBlueprintable, Experimental)
+UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIPostProcess : public UUIBaseRenderable
 {
 	GENERATED_BODY()
@@ -41,12 +42,25 @@ protected:
 	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;
 
+protected:
+	/** Use maskTexture's red channel to mask out blur result. */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
+		UTexture2D* maskTexture;
+	void SendMaskTextureToRenderProxy();
+public:
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UTexture2D* GetMaskTexture()const { return maskTexture; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetMaskTexture(UTexture2D* newValue);
 public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
 	TSharedPtr<UIGeometry> GetGeometry() { return geometry; }
 public:
 	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcess::GetRenderProxy, return 0;);
+	void SetClipType(ELGUICanvasClipType clipType);
+	void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather);
+	void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize);
 private:
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
@@ -65,7 +79,7 @@ protected:
 	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 
-	virtual void SendRegionVertexDataToRenderProxy() {};
+	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix) {};
 private:
 	void CreateGeometry();
 };

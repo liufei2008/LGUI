@@ -40,7 +40,16 @@ void UUIBackgroundPixelate::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	}
 }
 #endif
+void UUIBackgroundPixelate::MarkAllDirtyRecursive()
+{
+	Super::MarkAllDirtyRecursive();
 
+	auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+	SendMaskTextureToRenderProxy();
+	SendOthersDataToRenderProxy();
+}
 
 
 
@@ -80,7 +89,6 @@ class FUIBackgroundPixelateRenderProxy :public FUIPostProcessRenderProxy
 {
 public:
 	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
-	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	FUIWidget widget;
 	float pixelateStrength = 0.0f;
 public:
@@ -120,39 +128,9 @@ public:
 		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
 
 		//copy rect area from screen image to a render target, so we can just process this area
-		{
-			FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray);
-		}
-		//copy the area back to screen image
-		{
-			RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("CopyAreaToScreen"));
-			TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-			TShaderMapRef<FLGUISimpleCopyTargetPS> PixelShader(GlobalShaderMap);
-			FGraphicsPipelineStateInitializer GraphicsPSOInit;
-			RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-			GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
-			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
-			GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-			GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
-			GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
-			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
-			GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-			SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-			VertexShader->SetParameters(RHICmdList);
-			PixelShader->SetParameters(RHICmdList, PixelateEffectRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
-
-			uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
-			FRHIResourceCreateInfo CreateInfo;
-			FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-			void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
-			FPlatformMemory::Memcpy(VoidPtr, renderMeshRegionToScreenVertexArray.GetData(), VertexBufferSize);
-			RHIUnlockVertexBuffer(VertexBufferRHI);
-			RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
-			RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
-			VertexBufferRHI.SafeRelease();
-
-			RHICmdList.EndRenderPass();
-		}
+		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray);
+		//after pixelate process, copy the area back to screen image
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
 		//release render target
 		PixelateEffectRenderTarget.SafeRelease();
@@ -178,7 +156,7 @@ void UUIBackgroundPixelate::SendOthersDataToRenderProxy()
 				});
 	}
 }
-void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy()
+void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
 {
 	if (RenderProxy.IsValid())
 	{
@@ -189,12 +167,14 @@ void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy()
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 			FUIWidget widget;
 			float pixelateStrengthWidthAlpha;
+			FMatrix modelViewProjectionMatrix;
 		};
 		auto updateData = new FUIBackgroundPixelate_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->widget = this->widget;
 		updateData->pixelateStrengthWidthAlpha = this->GetStrengthInternal();
+		updateData->modelViewProjectionMatrix = InModelViewProjectionMatrix;
 		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
 			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{
@@ -202,6 +182,7 @@ void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy()
 					BackgroundBlurRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
 					BackgroundBlurRenderProxy->widget = updateData->widget;
 					BackgroundBlurRenderProxy->pixelateStrength = updateData->pixelateStrengthWidthAlpha;
+					BackgroundBlurRenderProxy->modelViewProjectionMatrix = updateData->modelViewProjectionMatrix;
 					delete updateData;
 				});
 	}
@@ -212,8 +193,11 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
 	if (!RenderProxy.IsValid())
 	{
 		RenderProxy = TSharedPtr<FUIBackgroundPixelateRenderProxy>(new FUIBackgroundPixelateRenderProxy());
-		SendRegionVertexDataToRenderProxy();
+		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
 		SendOthersDataToRenderProxy();
+		SendMaskTextureToRenderProxy();
 	}
 	return RenderProxy;
 }

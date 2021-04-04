@@ -1,7 +1,10 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "Core/UIPostProcessRenderProxy.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
+#include "Core/HudRender/LGUIPostProcessShaders.h"
+#include "Core/HudRender/LGUIHudVertex.h"
 
 void FUIPostProcessRenderProxy::AddToHudRenderer(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> InLGUIHudRenderer)
 {
@@ -78,4 +81,131 @@ void FUIPostProcessRenderProxy::SetVisibility(bool value)
 		{
 			renderProxy->SetVisibility_RenderThread(value);
 		});
+}
+
+#define SET_PIPELINE_STATE_FOR_CLIP()\
+FGraphicsPipelineStateInitializer GraphicsPSOInit;\
+RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);\
+GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();\
+GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();\
+GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_InverseDestAlpha, BF_One>::GetRHI();\
+GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();\
+GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);\
+GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);\
+GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;\
+SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+
+void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListImmediate& RHICmdList
+	, FTextureRHIRef ScreenImage
+	, TShaderMap<FGlobalShaderType>* GlobalShaderMap
+	, FTextureRHIRef ResultTexture
+	, FRHISamplerState* ResultTextureSamplerState
+)
+{
+	if (maskTexture != nullptr)
+	{
+		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
+		RHICmdList.SetViewport(0, 0, 0.0f, ScreenImage->GetSizeXYZ().X, ScreenImage->GetSizeXYZ().Y, 1.0f);
+
+		switch (clipType)
+		{
+		default:
+		case ELGUICanvasClipType::None:
+		{
+			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIRenderMeshWithMaskPS> PixelShader(GlobalShaderMap);
+			SET_PIPELINE_STATE_FOR_CLIP();
+			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			PixelShader->SetParameters(RHICmdList, ResultTexture, maskTexture->TextureRHI
+				, ResultTextureSamplerState
+				, maskTexture->SamplerStateRHI
+			);
+		}
+		break;
+		case ELGUICanvasClipType::Rect:
+		{
+			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIRenderMeshWithMaskPS_RectClip> PixelShader(GlobalShaderMap);
+			SET_PIPELINE_STATE_FOR_CLIP();
+			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			PixelShader->SetParameters(RHICmdList, ResultTexture, maskTexture->TextureRHI
+				, ResultTextureSamplerState
+				, maskTexture->SamplerStateRHI
+			);
+			PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
+		}
+		break;
+		case ELGUICanvasClipType::Texture:
+		{
+			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIRenderMeshWithMaskPS_TextureClip> PixelShader(GlobalShaderMap);
+			SET_PIPELINE_STATE_FOR_CLIP();
+			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			PixelShader->SetParameters(RHICmdList, ResultTexture, maskTexture->TextureRHI
+				, ResultTextureSamplerState
+				, maskTexture->SamplerStateRHI
+			);
+			if (clipTexture != nullptr)
+			{
+				PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
+			}
+		}
+		break;
+		}
+	}
+	else
+	{
+		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
+		RHICmdList.SetViewport(0, 0, 0.0f, ScreenImage->GetSizeXYZ().X, ScreenImage->GetSizeXYZ().Y, 1.0f);
+
+		switch (clipType)
+		{
+		default:
+		case ELGUICanvasClipType::None:
+		{
+			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIRenderMeshPS> PixelShader(GlobalShaderMap);
+			SET_PIPELINE_STATE_FOR_CLIP();
+			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			PixelShader->SetParameters(RHICmdList, ResultTexture, ResultTextureSamplerState);
+		}
+		break;
+		case ELGUICanvasClipType::Rect:
+		{
+			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIRenderMeshPS_RectClip> PixelShader(GlobalShaderMap);
+			SET_PIPELINE_STATE_FOR_CLIP();
+			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			PixelShader->SetParameters(RHICmdList, ResultTexture, ResultTextureSamplerState);
+			PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
+		}
+		break;
+		case ELGUICanvasClipType::Texture:
+		{
+			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
+			TShaderMapRef<FLGUIRenderMeshPS_TextureClip> PixelShader(GlobalShaderMap);
+			SET_PIPELINE_STATE_FOR_CLIP();
+			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			PixelShader->SetParameters(RHICmdList, ResultTexture, ResultTextureSamplerState);
+			if (clipTexture != nullptr)
+			{
+				PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
+			}
+		}
+		break;
+		}
+
+	}
+
+	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessVertex);
+	FRHIResourceCreateInfo CreateInfo;
+	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+	FPlatformMemory::Memcpy(VoidPtr, renderMeshRegionToScreenVertexArray.GetData(), VertexBufferSize);
+	RHIUnlockVertexBuffer(VertexBufferRHI);
+	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
+	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
+	VertexBufferRHI.SafeRelease();
+
+	RHICmdList.EndRenderPass();
 }
