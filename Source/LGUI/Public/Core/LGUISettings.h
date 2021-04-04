@@ -108,7 +108,6 @@ class LGUI_API ULGUIEditorSettings : public UObject
 {
 	GENERATED_BODY()
 public:
-	ULGUIEditorSettings();
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
 	static int32 GetLGUIPreview_EditorViewIndex();
