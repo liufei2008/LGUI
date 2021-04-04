@@ -36,9 +36,6 @@ protected:
 	/** Use strengthTexture's red channel to control blur strength, 0-no blur, 1-full blur. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UTexture2D* strengthTexture;
-	/** Use maskTexture's red channel to mask out blur result. */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		UTexture2D* maskTexture;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetBlurStrength() const { return blurStrength; }
@@ -49,8 +46,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UTexture2D* GetStrengthTexture()const { return strengthTexture; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UTexture2D* GetMaskTexture()const { return maskTexture; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetBlurStrength(float newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaxDownSampleLevel(int newValue);
@@ -58,8 +53,6 @@ public:
 		void SetApplyAlphaToBlur(bool newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetStrengthTexture(UTexture2D* newValue);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetMaskTexture(UTexture2D* newValue);
 
 	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
 	virtual void MarkAllDirtyRecursive()override;
@@ -67,8 +60,7 @@ protected:
 	float inv_SampleLevelInterval = 1.0f;
 	FORCEINLINE float GetBlurStrengthInternal();
 protected:
-	virtual void SendRegionVertexDataToRenderProxy()override;
+	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)override;
 	void SendOthersDataToRenderProxy();
 	void SendStrengthTextureToRenderProxy();
-	void SendMaskTextureToRenderProxy();
 };

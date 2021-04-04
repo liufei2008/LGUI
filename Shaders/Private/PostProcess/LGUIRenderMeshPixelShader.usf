@@ -1,0 +1,49 @@
+// Copyright 2019-2021 LexLiu. All Rights Reserved.
+#include "LGUIRenderMeshVertexShader.usf"
+
+#if LGUI_RECT_CLIP
+float4 _RectClipOffsetAndSize;
+float4 _RectClipFeather;
+float RectClip(float3 pos, float2 offset, float2 size, float2 feather)
+{
+    return (1.0f - saturate((abs(pos.x - offset.x) - size.x) / feather.x)) * (1.0f - saturate((abs(pos.y - offset.y) - size.y) / feather.y));
+}
+#endif
+#if LGUI_TEXTURE_CLIP
+float4 _TextureClipOffsetAndSize;
+Texture2D _ClipTex;
+SamplerState _ClipTexSampler;
+float TextureClip(float3 pos, float2 offset, float2 size)
+{
+    float2 uv = (pos.xy - offset) / size;
+    uv.y = 1.0 - uv.y;
+    return _ClipTex.Sample(_ClipTexSampler, uv).r;
+}
+#endif
+
+Texture2D _MainTex;
+SamplerState _MainTexSampler;
+
+#if LGUI_MASK
+Texture2D _MaskTex;
+SamplerState _MaskTexSampler;
+#endif
+
+void RenderMeshPS(
+    RenderMeshVSToPS input,
+    out float4 OutColor : SV_Target0
+)
+{
+    OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
+    OutColor.a = 1.0;
+#if LGUI_MASK
+    OutColor.a *= _MaskTex.Sample(_MaskTexSampler, input.uv).r;
+#endif
+#if LGUI_RECT_CLIP
+    OutColor.a *= RectClip(input.localPosition, _RectClipOffsetAndSize.xy, _RectClipOffsetAndSize.zw, _RectClipFeather.xy);
+#endif
+#if LGUI_TEXTURE_CLIP
+    OutColor.a *= TextureClip(input.localPosition, _TextureClipOffsetAndSize.xy, _TextureClipOffsetAndSize.zw);
+#endif
+}
+
