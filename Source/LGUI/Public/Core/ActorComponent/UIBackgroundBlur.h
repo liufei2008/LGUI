@@ -60,7 +60,6 @@ protected:
 	float inv_SampleLevelInterval = 1.0f;
 	FORCEINLINE float GetBlurStrengthInternal();
 protected:
-	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)override;
 	void SendOthersDataToRenderProxy();
 	void SendStrengthTextureToRenderProxy();
 };

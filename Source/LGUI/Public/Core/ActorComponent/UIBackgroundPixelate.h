@@ -46,6 +46,5 @@ public:
 protected:
 	FORCEINLINE float GetStrengthInternal();
 protected:
-	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)override;
 	void SendOthersDataToRenderProxy();
 };

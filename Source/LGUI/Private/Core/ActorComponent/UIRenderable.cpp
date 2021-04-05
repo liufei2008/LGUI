@@ -6,6 +6,7 @@
 #include "Utils/LGUIUtils.h"
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 DECLARE_CYCLE_STAT(TEXT("UIRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
