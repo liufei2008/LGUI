@@ -5,6 +5,7 @@
 #include "LGUI.h"
 #include "Core/HudRender/LGUIPostProcessShaders.h"
 #include "Core/HudRender/LGUIHudVertex.h"
+#include "Rendering/Texture2DResource.h"
 
 void FUIPostProcessRenderProxy::AddToHudRenderer(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> InLGUIHudRenderer)
 {

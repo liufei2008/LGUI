@@ -64,7 +64,7 @@ public:
 	FVector4 textureClipOffsetAndSize;
 
 	FMatrix modelViewProjectionMatrix = FMatrix::Identity;
-	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
+	TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	FUIWidget widget;
 	FTexture2DResource* maskTexture = nullptr;

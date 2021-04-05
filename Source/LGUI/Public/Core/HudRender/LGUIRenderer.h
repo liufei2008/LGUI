@@ -12,6 +12,7 @@
 class ILGUIHudPrimitive;
 class ULGUICanvas;
 struct FLGUIPostProcessVertex;
+struct FLGUIPostProcessCopyMeshRegionVertex;
 class FGlobalShaderMap;
 
 class LGUI_API FLGUIViewExtension : public FSceneViewExtensionBase
@@ -47,7 +48,8 @@ public:
 		FRHICommandListImmediate& RHICmdList,
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst,
-		const TArray<FLGUIPostProcessVertex>& RegionVertexData
+		const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData,
+		const FMatrix& MVP
 	);
 	static void DrawFullScreenQuad(
 		FRHICommandListImmediate& RHICmdList

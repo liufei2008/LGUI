@@ -20,3 +20,21 @@ void SimplePostProcessVS(
     v2p.position.y *= -1;
 #endif
 }
+
+
+float4x4 _MVP;
+struct CopyMeshRegionVSToPS
+{
+    float4 position : SV_Position;
+    float3 localPosition : TEXCOORD0;
+};
+
+void CopyMeshRegionVS(
+    in float3 ScreenPosition : ATTRIBUTE0,
+    in float3 LocalPosition : ATTRIBUTE1,
+    out CopyMeshRegionVSToPS v2p
+)
+{
+    v2p.position = float4(ScreenPosition.xyz, 1.0);
+    v2p.localPosition = LocalPosition;
+}
