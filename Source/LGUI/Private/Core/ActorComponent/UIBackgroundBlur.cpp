@@ -65,9 +65,7 @@ DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundBlur"), STAT_BackgroundBlur, STAT
 class FUIBackgroundBlurRenderProxy : public FUIPostProcessRenderProxy
 {
 public:
-	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 	FTexture2DResource* strengthTexture = nullptr;
-	FUIWidget widget;
 	float inv_SampleLevelInterval = 0.0f;
 	float maxDownSampleLevel = 0.0f;
 	float blurStrength = 0.0f;
@@ -249,37 +247,6 @@ void UUIBackgroundBlur::SendOthersDataToRenderProxy()
 					BackgroundBlurRenderProxy->inv_SampleLevelInterval = updateData->inv_SampleLevelInterval;
 					BackgroundBlurRenderProxy->maxDownSampleLevel = updateData->maxDownSampleLevel;
 					BackgroundBlurRenderProxy->blurStrength = updateData->blurStrengthWithAlpha;
-					delete updateData;
-				});
-	}
-}
-void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
-{
-	if (RenderProxy.IsValid())
-	{
-		auto BackgroundBlurRenderProxy = (FUIBackgroundBlurRenderProxy*)(RenderProxy.Get());
-		struct FUIBackgroundBlur_SendRegionVertexDataToRenderProxy
-		{
-			TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
-			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-			FUIWidget widget;
-			float blurStrengthWithAlpha;
-			FMatrix modelViewProjectionMatrix;
-		};
-		auto updateData = new FUIBackgroundBlur_SendRegionVertexDataToRenderProxy();
-		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
-		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
-		updateData->widget = this->widget;
-		updateData->blurStrengthWithAlpha = this->GetBlurStrengthInternal();
-		updateData->modelViewProjectionMatrix = InModelViewProjectionMatrix;
-		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
-			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
-				{
-					BackgroundBlurRenderProxy->renderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
-					BackgroundBlurRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
-					BackgroundBlurRenderProxy->widget = updateData->widget;
-					BackgroundBlurRenderProxy->blurStrength = updateData->blurStrengthWithAlpha;
-					BackgroundBlurRenderProxy->modelViewProjectionMatrix = updateData->modelViewProjectionMatrix;
 					delete updateData;
 				});
 	}

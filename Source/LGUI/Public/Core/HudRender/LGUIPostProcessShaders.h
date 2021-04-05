@@ -77,53 +77,6 @@ private:
 	FShaderResourceParameter MainTextureParameter;
 	FShaderResourceParameter MainTextureSamplerParameter;
 };
-class FLGUISimpleCopyTargetWithMaskPS :public FLGUIPostProcessShader
-{
-	DECLARE_SHADER_TYPE(FLGUISimpleCopyTargetWithMaskPS, Global);
-public:
-	FLGUISimpleCopyTargetWithMaskPS() {}
-	FLGUISimpleCopyTargetWithMaskPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
-		: FLGUIPostProcessShader(Initializer)
-	{
-		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
-		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
-		OriginTextureParameter.Bind(Initializer.ParameterMap, TEXT("_OriginTex"));
-		OriginTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_OriginTexSampler"));
-		MaskTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTex"));
-		MaskTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MaskTexSampler"));
-	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList
-		, FTextureRHIRef MainTexture
-		, FTextureRHIRef OriginTexture
-		, FTextureRHIRef MaskTexture
-		, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
-		, FRHISamplerState* OriginTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
-		, FRHISamplerState* MaskTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
-	)
-	{
-		SetTextureParameter(RHICmdList, GetPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
-		SetTextureParameter(RHICmdList, GetPixelShader(), OriginTextureParameter, OriginTextureSamplerParameter, OriginTextureSampler, OriginTexture);
-		SetTextureParameter(RHICmdList, GetPixelShader(), MaskTextureParameter, MaskTextureSamplerParameter, MaskTextureSampler, MaskTexture);
-	}
-	virtual bool Serialize(FArchive& Ar)override
-	{
-		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
-		Ar << MainTextureParameter;
-		Ar << MainTextureSamplerParameter;
-		Ar << OriginTextureParameter;
-		Ar << OriginTextureSamplerParameter;
-		Ar << MaskTextureParameter;
-		Ar << MaskTextureSamplerParameter;
-		return bShaderHasOutdatedParameters;
-	}
-private:
-	FShaderResourceParameter MainTextureParameter;
-	FShaderResourceParameter MainTextureSamplerParameter;
-	FShaderResourceParameter OriginTextureParameter;
-	FShaderResourceParameter OriginTextureSamplerParameter;
-	FShaderResourceParameter MaskTextureParameter;
-	FShaderResourceParameter MaskTextureSamplerParameter;
-};
 class FLGUIPostProcessGaussianBlurPS :public FLGUIPostProcessShader
 {
 	DECLARE_SHADER_TYPE(FLGUIPostProcessGaussianBlurPS, Global);

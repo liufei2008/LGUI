@@ -242,6 +242,35 @@ void UUIPostProcess::UpdateRegionVertex()
 	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
 }
 
+void UUIPostProcess::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+{
+	if (RenderProxy.IsValid())
+	{
+		auto TempRenderProxy = RenderProxy.Get();
+		struct FUIPostProcess_SendRegionVertexDataToRenderProxy
+		{
+			TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
+			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
+			FUIWidget widget;
+			FMatrix modelViewProjectionMatrix;
+		};
+		auto updateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
+		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
+		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
+		updateData->widget = this->widget;
+		updateData->modelViewProjectionMatrix = InModelViewProjectionMatrix;
+		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateData)
+			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+				{
+					TempRenderProxy->renderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
+					TempRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
+					TempRenderProxy->widget = updateData->widget;
+					TempRenderProxy->modelViewProjectionMatrix = updateData->modelViewProjectionMatrix;
+					delete updateData;
+				});
+	}
+}
+
 void UUIPostProcess::SetMaskTexture(UTexture2D* newValue)
 {
 	if (maskTexture != newValue)
@@ -273,17 +302,11 @@ void UUIPostProcess::SetClipType(ELGUICanvasClipType clipType)
 	if (RenderProxy.IsValid())
 	{
 		auto TempRenderProxy = RenderProxy.Get();
-		struct FUIPostProcess_SendClipDataToRenderProxy
-		{
-			ELGUICanvasClipType clipType;
-		};
-		auto updateData = new FUIPostProcess_SendClipDataToRenderProxy();
-		updateData->clipType = clipType;
+		auto tempClipType = clipType;
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateClipData)
-			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+			([TempRenderProxy, tempClipType](FRHICommandListImmediate& RHICmdList)
 				{
-					TempRenderProxy->clipType = updateData->clipType;
-					delete updateData;
+					TempRenderProxy->clipType = tempClipType;
 				});
 	}
 }
@@ -292,20 +315,13 @@ void UUIPostProcess::SetRectClipParameter(const FVector4& OffsetAndSize, const F
 	if (RenderProxy.IsValid())
 	{
 		auto TempRenderProxy = RenderProxy.Get();
-		struct FUIPostProcess_SendClipDataToRenderProxy
-		{
-			FVector4 rectClipOffsetAndSize;
-			FVector4 rectClipFeather;
-		};
-		auto updateData = new FUIPostProcess_SendClipDataToRenderProxy();
-		updateData->rectClipOffsetAndSize = OffsetAndSize;
-		updateData->rectClipFeather = Feather;
+		auto rectClipOffsetAndSize = OffsetAndSize;
+		auto rectClipFeather = Feather;
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateClipData)
-			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+			([TempRenderProxy, rectClipOffsetAndSize, rectClipFeather](FRHICommandListImmediate& RHICmdList)
 				{
-					TempRenderProxy->rectClipOffsetAndSize = updateData->rectClipOffsetAndSize;
-					TempRenderProxy->rectClipFeather = updateData->rectClipFeather;
-					delete updateData;
+					TempRenderProxy->rectClipOffsetAndSize = rectClipOffsetAndSize;
+					TempRenderProxy->rectClipFeather = rectClipFeather;
 				});
 	}
 }
@@ -314,23 +330,17 @@ void UUIPostProcess::SetTextureClipParameter(UTexture* ClipTex, const FVector4& 
 	if (RenderProxy.IsValid())
 	{
 		auto TempRenderProxy = RenderProxy.Get();
-		struct FUIPostProcess_SendClipDataToRenderProxy
-		{
-			FTexture2DResource* clipTexture = nullptr;
-			FVector4 textureClipOffsetAndSize;
-		};
-		auto updateData = new FUIPostProcess_SendClipDataToRenderProxy();
-		updateData->textureClipOffsetAndSize = OffsetAndSize;
+		FTexture2DResource* clipTextureResource = nullptr;
+		auto textureClipOffsetAndSize = OffsetAndSize;
 		if (IsValid(ClipTex) && ClipTex->Resource != nullptr)
 		{
-			updateData->clipTexture = (FTexture2DResource*)ClipTex->Resource;
+			clipTextureResource = (FTexture2DResource*)ClipTex->Resource;
 		}
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateClipData)
-			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+			([TempRenderProxy, textureClipOffsetAndSize, clipTextureResource](FRHICommandListImmediate& RHICmdList)
 				{
-					TempRenderProxy->clipTexture = updateData->clipTexture;
-					TempRenderProxy->textureClipOffsetAndSize = updateData->textureClipOffsetAndSize;
-					delete updateData;
+					TempRenderProxy->clipTexture = clipTextureResource;
+					TempRenderProxy->textureClipOffsetAndSize = textureClipOffsetAndSize;
 				});
 	}
 }

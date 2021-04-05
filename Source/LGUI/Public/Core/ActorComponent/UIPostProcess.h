@@ -79,7 +79,7 @@ protected:
 	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 
-	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix) {};
+	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix);
 private:
 	void CreateGeometry();
 };

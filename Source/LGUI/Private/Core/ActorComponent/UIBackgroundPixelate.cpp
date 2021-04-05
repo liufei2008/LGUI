@@ -88,8 +88,6 @@ DECLARE_CYCLE_STAT(TEXT("PostProcess_BackgroundPixelate"), STAT_BackgroundPixela
 class FUIBackgroundPixelateRenderProxy :public FUIPostProcessRenderProxy
 {
 public:
-	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
-	FUIWidget widget;
 	float pixelateStrength = 0.0f;
 public:
 	FUIBackgroundPixelateRenderProxy()
@@ -141,49 +139,12 @@ void UUIBackgroundPixelate::SendOthersDataToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
-		auto BackgroundBlurRenderProxy = (FUIBackgroundPixelateRenderProxy*)(RenderProxy.Get());
-		struct FUIBackgroundPixelateUpdateOthersData
-		{
-			float pixelateStrengthWidthAlpha;
-		};
-		auto updateData = new FUIBackgroundPixelateUpdateOthersData();
-		updateData->pixelateStrengthWidthAlpha = this->GetStrengthInternal();
-		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
-			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
+		auto TempRenderProxy = (FUIBackgroundPixelateRenderProxy*)(RenderProxy.Get());
+		float pixelateStrengthWidthAlpha = this->GetStrengthInternal();
+		ENQUEUE_RENDER_COMMAND(FUIBackgroundPixelate_UpdateData)
+			([TempRenderProxy, pixelateStrengthWidthAlpha](FRHICommandListImmediate& RHICmdList)
 				{
-					BackgroundBlurRenderProxy->pixelateStrength = updateData->pixelateStrengthWidthAlpha;
-					delete updateData;
-				});
-	}
-}
-void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
-{
-	if (RenderProxy.IsValid())
-	{
-		auto BackgroundBlurRenderProxy = (FUIBackgroundPixelateRenderProxy*)(RenderProxy.Get());
-		struct FUIBackgroundPixelate_SendRegionVertexDataToRenderProxy
-		{
-			TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
-			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-			FUIWidget widget;
-			float pixelateStrengthWidthAlpha;
-			FMatrix modelViewProjectionMatrix;
-		};
-		auto updateData = new FUIBackgroundPixelate_SendRegionVertexDataToRenderProxy();
-		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
-		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
-		updateData->widget = this->widget;
-		updateData->pixelateStrengthWidthAlpha = this->GetStrengthInternal();
-		updateData->modelViewProjectionMatrix = InModelViewProjectionMatrix;
-		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
-			([BackgroundBlurRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
-				{
-					BackgroundBlurRenderProxy->renderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
-					BackgroundBlurRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
-					BackgroundBlurRenderProxy->widget = updateData->widget;
-					BackgroundBlurRenderProxy->pixelateStrength = updateData->pixelateStrengthWidthAlpha;
-					BackgroundBlurRenderProxy->modelViewProjectionMatrix = updateData->modelViewProjectionMatrix;
-					delete updateData;
+					TempRenderProxy->pixelateStrength = pixelateStrengthWidthAlpha;
 				});
 	}
 }
