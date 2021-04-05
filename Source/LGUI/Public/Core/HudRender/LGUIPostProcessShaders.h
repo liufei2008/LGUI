@@ -86,7 +86,6 @@ public:
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
-		OutEnvironment.SetDefine(TEXT("USE_STRENGTH_TEXTURE"), 0);
 		FLGUIPostProcessShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
 	void SetInverseTextureSize(FRHICommandListImmediate& RHICmdList, const FVector2D& InvSize)
