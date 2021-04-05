@@ -136,6 +136,46 @@ private:
 
 
 
+//render mesh region 
+class FLGUICopyMeshRegionVS :public FLGUIPostProcessShader
+{
+	DECLARE_SHADER_TYPE(FLGUICopyMeshRegionVS, Global);
+public:
+	FLGUICopyMeshRegionVS() {}
+	FLGUICopyMeshRegionVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIPostProcessShader(Initializer)
+	{
+		
+	}
+};
+
+//render mesh pixel shader
+class FLGUICopyMeshRegionPS :public FLGUIPostProcessShader
+{
+	DECLARE_SHADER_TYPE(FLGUICopyMeshRegionPS, Global);
+public:
+	FLGUICopyMeshRegionPS() {}
+	FLGUICopyMeshRegionPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIPostProcessShader(Initializer)
+	{
+		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
+		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
+		MVPParameter.Bind(Initializer.ParameterMap, TEXT("_MVP"));
+	}
+	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& MVP, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	{
+		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), MVPParameter, MVP);
+	}
+private:
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
+	LAYOUT_FIELD(FShaderParameter, MVPParameter);
+};
+
+
+
+
 //common render mesh vertex shader
 class FLGUIRenderMeshVS :public FLGUIPostProcessShader
 {
