@@ -11,3 +11,21 @@ void SimpleCopyTargetPS(
 {
     OutColor = _MainTex.Sample(_MainTexSampler, input.uv);
 }
+
+
+
+void CopyMeshRegionPS(
+    CopyMeshRegionVSToPS input,
+    out float4 OutColor : SV_Target0
+)
+{
+    float4 clipSpacePos = mul(float4(input.localPosition.xyz, 1.0), _MVP);
+    float inv_W = 1.0f / clipSpacePos.w;
+    float2 uv = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
+    uv.y = 1.0f - uv.y;
+#if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
+	v2p.uv.y = 1.0 - v2p.uv.y;
+    v2p.position.y *= -1;
+#endif
+    OutColor = _MainTex.Sample(_MainTexSampler, uv);
+}

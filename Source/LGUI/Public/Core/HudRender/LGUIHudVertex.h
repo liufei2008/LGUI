@@ -47,3 +47,27 @@ public:
 };
 LGUI_API FVertexDeclarationRHIRef& GetLGUIPostProcessVertexDeclaration();
 
+
+
+
+struct LGUI_API FLGUIPostProcessCopyMeshRegionVertex
+{
+	FVector ScreenPosition;
+	FVector LocalPosition;
+
+	FLGUIPostProcessCopyMeshRegionVertex(FVector InScreenPosition, FVector InLocalPosition)
+	{
+		ScreenPosition = InScreenPosition;
+		LocalPosition = InLocalPosition;
+	}
+};
+
+class LGUI_API FLGUIPostProcessCopyMeshRegionVertexDeclaration : public FRenderResource
+{
+public:
+	FVertexDeclarationRHIRef VertexDeclarationRHI;
+	virtual void InitRHI() override;
+	virtual void ReleaseRHI() override;
+};
+LGUI_API FVertexDeclarationRHIRef& GetLGUIPostProcessCopyMeshRegionVertexDeclaration();
+

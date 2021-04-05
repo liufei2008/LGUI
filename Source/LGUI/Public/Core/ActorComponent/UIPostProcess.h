@@ -76,7 +76,7 @@ protected:
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/** update region vertex data */
 	virtual void UpdateRegionVertex();
-	TArray<FLGUIPostProcessVertex> renderScreenToMeshRegionVertexArray;
+	TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 
 	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix);

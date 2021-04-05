@@ -43,3 +43,24 @@ FVertexDeclarationRHIRef& GetLGUIPostProcessVertexDeclaration()
 {
 	return GLGUIPostProcessVertexDeclaration.VertexDeclarationRHI;
 }
+
+
+
+
+void FLGUIPostProcessCopyMeshRegionVertexDeclaration::InitRHI()
+{
+	FVertexDeclarationElementList Elements;
+	uint16 Stride = sizeof(FLGUIPostProcessCopyMeshRegionVertex);
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIPostProcessCopyMeshRegionVertex, ScreenPosition), VET_Float3, 0, Stride));
+	Elements.Add(FVertexElement(0, STRUCT_OFFSET(FLGUIPostProcessCopyMeshRegionVertex, LocalPosition), VET_Float3, 1, Stride));
+	VertexDeclarationRHI = RHICreateVertexDeclaration(Elements);
+}
+void FLGUIPostProcessCopyMeshRegionVertexDeclaration::ReleaseRHI()
+{
+	VertexDeclarationRHI.SafeRelease();
+}
+TGlobalResource<FLGUIPostProcessCopyMeshRegionVertexDeclaration> GLGUIPostProcessCopyMeshRegionVertexDeclaration;
+FVertexDeclarationRHIRef& GetLGUIPostProcessCopyMeshRegionVertexDeclaration()
+{
+	return GLGUIPostProcessCopyMeshRegionVertexDeclaration.VertexDeclarationRHI;
+}
