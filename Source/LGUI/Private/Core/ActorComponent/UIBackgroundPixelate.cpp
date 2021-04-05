@@ -48,7 +48,6 @@ void UUIBackgroundPixelate::MarkAllDirtyRecursive()
 	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
 	SendMaskTextureToRenderProxy();
-	SendOthersDataToRenderProxy();
 }
 
 
@@ -157,8 +156,13 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
 		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
 		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
-		SendOthersDataToRenderProxy();
 		SendMaskTextureToRenderProxy();
 	}
 	return RenderProxy;
+}
+
+void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+{
+	Super::SendRegionVertexDataToRenderProxy(InModelViewProjectionMatrix);
+	SendOthersDataToRenderProxy();
 }

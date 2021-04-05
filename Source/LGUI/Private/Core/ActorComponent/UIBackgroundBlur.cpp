@@ -332,3 +332,17 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
 	return RenderProxy;
 }
 
+void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+{
+	Super::SendRegionVertexDataToRenderProxy(InModelViewProjectionMatrix);
+	if (RenderProxy.IsValid())
+	{
+		auto BackgroundBlurRenderProxy = (FUIBackgroundBlurRenderProxy*)(RenderProxy.Get());
+		auto blurStrengthWithAlpha = this->GetBlurStrengthInternal();
+		ENQUEUE_RENDER_COMMAND(FUIBackgroundBlur_UpdateData)
+			([BackgroundBlurRenderProxy, blurStrengthWithAlpha](FRHICommandListImmediate& RHICmdList)
+				{
+					BackgroundBlurRenderProxy->blurStrength = blurStrengthWithAlpha;
+				});
+	}
+}
