@@ -454,7 +454,7 @@ void UUIDropdownItemComponent::Init(const FUIDropdownOptionData& Data, const TFu
 	{
 		TextActor->GetUIText()->SetText(Data.Text);
 	}
-	if (SpriteActor.IsValid() && IsValid(Data.Sprite))
+	if (SpriteActor.IsValid())
 	{
 		SpriteActor->GetUISprite()->SetSprite(Data.Sprite);
 	}
