@@ -40,9 +40,9 @@ struct FUIDropdownOptionData
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		FString Text;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = false))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (DisplayThumbnail = false))
 		ULGUISpriteData* Sprite;
 };
 
