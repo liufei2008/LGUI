@@ -281,7 +281,7 @@ void UUIItem::SetAsLastHierarchy()
 	}
 }
 
-UUIItem* UUIItem::FindChildByDisplayName(const FString& InName)const
+UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChildren)const
 {
 	int indexOfFirstSlash;
 	if (InName.FindChar('/', indexOfFirstSlash))
@@ -298,49 +298,86 @@ UUIItem* UUIItem::FindChildByDisplayName(const FString& InName)const
 	}
 	else
 	{
-		for (auto childItem : this->cacheUIChildren)
+		if (IncludeChildren)
 		{
-			if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
+			return FindChildByDisplayNameWithChildren_Internal(InName);
+		}
+		else
+		{
+			for (auto childItem : this->cacheUIChildren)
 			{
-				return childItem;
+				if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
+				{
+					return childItem;
+				}
 			}
 		}
 	}
 	return nullptr;
 }
-TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName)const
+UUIItem* UUIItem::FindChildByDisplayNameWithChildren_Internal(const FString& InName)const
+{
+	for (auto childItem : this->cacheUIChildren)
+	{
+		if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
+		{
+			return childItem;
+		}
+		else
+		{
+			auto result = childItem->FindChildByDisplayNameWithChildren_Internal(InName);
+			if (result)
+			{
+				return result;
+			}
+		}
+	}
+	return nullptr;
+}
+TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName, bool IncludeChildren)const
 {
 	TArray<UUIItem*> resultArray;
-	FindChildArrayByDisplayName_Internal(InName, resultArray);
-	return resultArray;
-}
-void UUIItem::FindChildArrayByDisplayName_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const
-{
 	int indexOfLastSlash;
 	if (InName.FindLastChar('/', indexOfLastSlash))
 	{
 		auto parentLayerName = InName.Left(indexOfLastSlash);
-		auto parentItem = this->FindChildByDisplayName(parentLayerName);
+		auto parentItem = this->FindChildByDisplayName(parentLayerName, false);
 		if (IsValid(parentItem))
 		{
 			auto matchName = InName.Right(InName.Len() - indexOfLastSlash - 1);
-			for (auto childItem : parentItem->cacheUIChildren)
-			{
-				if (childItem->displayName.Equals(matchName, ESearchCase::CaseSensitive))
-				{
-					OutResultArray.Add(childItem);
-				}
-			}
+			return parentItem->FindChildArrayByDisplayName(matchName, IncludeChildren);
 		}
 	}
 	else
 	{
-		for (auto childItem : this->cacheUIChildren)
+		if (IncludeChildren)
 		{
-			if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
+			FindChildArrayByDisplayNameWithChildren_Internal(InName, resultArray);
+		}
+		else
+		{
+			for (auto childItem : this->cacheUIChildren)
 			{
-				OutResultArray.Add(childItem);
+				if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
+				{
+					resultArray.Add(childItem);
+				}
 			}
+		}
+	}
+	return resultArray;
+}
+void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const
+{
+	for (auto childItem : this->cacheUIChildren)
+	{
+		if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
+		{
+			OutResultArray.Add(childItem);
+		}
+		else
+		{
+			childItem->FindChildArrayByDisplayNameWithChildren_Internal(InName, OutResultArray);
 		}
 	}
 }

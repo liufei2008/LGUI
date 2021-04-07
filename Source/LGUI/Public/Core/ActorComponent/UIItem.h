@@ -358,16 +358,20 @@ public:
 	 * Search in children and return the first UIItem that the displayName match input name.
 	 * Support hierarchy nested search, eg: InName = "Content/ListItem/NameLabel".
 	 * @param InName	The child's name that need to find, case sensitive
+	 * @param IncludeChildren	Also search in children
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		UUIItem* FindChildByDisplayName(const FString& InName)const;
+		UUIItem* FindChildByDisplayName(const FString& InName, bool IncludeChildren = false)const;
 	/**
 	 * Like "FindChildByDisplayName", but return all children that match the case.
+	 * @param InName	The child's name that need to find, case sensitive
+	 * @param IncludeChildren	Also search in children
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		TArray<UUIItem*> FindChildArrayByDisplayName(const FString& InName)const;
+		TArray<UUIItem*> FindChildArrayByDisplayName(const FString& InName, bool IncludeChildren = false)const;
 private:
-	void FindChildArrayByDisplayName_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const;
+	UUIItem* FindChildByDisplayNameWithChildren_Internal(const FString& InName)const;
+	void FindChildArrayByDisplayNameWithChildren_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const;
 #pragma endregion Name
 
 #pragma region Collider
