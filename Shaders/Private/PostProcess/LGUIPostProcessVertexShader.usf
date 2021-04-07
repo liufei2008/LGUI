@@ -37,4 +37,7 @@ void CopyMeshRegionVS(
 {
     v2p.position = float4(ScreenPosition.xyz, 1.0);
     v2p.localPosition = LocalPosition;
+#if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
+    v2p.position.y *= -1;
+#endif
 }
