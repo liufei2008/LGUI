@@ -101,15 +101,18 @@ void ULGUIBehaviour::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 	{
 		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(ULGUIBehaviour, enable))
 		{
-			if (this->GetWorld()->IsGameWorld())//only execute in edit mode
+			if (this->GetWorld())
 			{
-				if (enable)
+				if (this->GetWorld()->IsGameWorld())//only execute in edit mode
 				{
-					OnEnable();
-				}
-				else
-				{
-					OnDisable();
+					if (enable)
+					{
+						OnEnable();
+					}
+					else
+					{
+						OnDisable();
+					}
 				}
 			}
 		}
