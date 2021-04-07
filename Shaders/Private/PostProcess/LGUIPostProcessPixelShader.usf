@@ -24,8 +24,7 @@ void CopyMeshRegionPS(
     float2 uv = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
     uv.y = 1.0f - uv.y;
 #if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
-	v2p.uv.y = 1.0 - v2p.uv.y;
-    v2p.position.y *= -1;
+	uv.y = 1.0f - uv.y;
 #endif
     OutColor = _MainTex.Sample(_MainTexSampler, uv);
 }
