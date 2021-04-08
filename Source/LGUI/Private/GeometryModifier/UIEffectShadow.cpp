@@ -84,11 +84,17 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 
 void UUIEffectShadow::SetShadowColor(FColor newColor)
 {
-	shadowColor = newColor;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	if (shadowColor != newColor)
+	{
+		shadowColor = newColor;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	}
 }
 void UUIEffectShadow::SetShadowOffset(FVector2D newOffset)
 {
-	shadowOffset = newOffset;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkVertexPositionDirty();
+	if (shadowOffset != newOffset)
+	{
+		shadowOffset = newOffset;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkVertexPositionDirty();
+	}
 }
