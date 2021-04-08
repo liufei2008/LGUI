@@ -381,7 +381,7 @@ ULTweener* ULGUIBPLibrary::StretchBottomTo(UUIItem* target, float endValue, floa
 #pragma endregion
 
 
-void ULGUIBPLibrary::LGUIExecuteInputAxis(FKey inputKey, float value)
+void ULGUIBPLibrary::LGUIExecuteControllerInputAxis(FKey inputKey, float value)
 {
 	if (inputKey.IsValid())
 	{
@@ -389,7 +389,7 @@ void ULGUIBPLibrary::LGUIExecuteInputAxis(FKey inputKey, float value)
 		FSlateApplication::Get().OnControllerAnalog(keyName, 0, value);
 	}
 }
-void ULGUIBPLibrary::LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease)
+void ULGUIBPLibrary::LGUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease)
 {
 	if (inputKey.IsValid())
 	{
