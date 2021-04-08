@@ -311,10 +311,22 @@ public:
 		static ULTweener* StretchBottomTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 #pragma endregion
 
+	UE_DEPRECATED(4.24, "This node is not valid any more. Use LGUIExecuteControllerInputAxis instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use LGUIExecuteControllerInputAxis instead"))
+		static void LGUIExecuteInputAxis(FKey inputKey, float value) 
+	{ 
+		LGUIExecuteControllerInputAxis(inputKey, value);
+	}
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void LGUIExecuteInputAxis(FKey inputKey, float value);
+		static void LGUIExecuteControllerInputAxis(FKey inputKey, float value);
+	UE_DEPRECATED(4.24, "This node is not valid any more. Use LGUIExecuteControllerInputAction instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use LGUIExecuteControllerInputAction instead"))
+		static void LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease)
+	{
+		LGUIExecuteControllerInputAction(inputKey, pressOrRelease);
+	}
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		static void LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease);
+		static void LGUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease);
 
 #pragma endregion
 
