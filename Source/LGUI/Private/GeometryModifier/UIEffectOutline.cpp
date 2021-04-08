@@ -37,8 +37,8 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 
 	const int32 singleChannelTriangleIndicesCount = InOutOriginTriangleIndicesCount;
 	const int32 singleChannelVerticesCount = InOutOriginVerticesCount;
-	const int32 additionalTriangleIndicesCount = singleChannelTriangleIndicesCount * 4;
-	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount * 5;
+	const int32 additionalTriangleIndicesCount = singleChannelTriangleIndicesCount * (use8Direction ? 8 : 4);
+	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount * (use8Direction ? 9 : 5);
 	if (singleChannelTriangleIndicesCount == triangleCount)
 	{
 		//create additional triangle pass
@@ -50,15 +50,27 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			auto index = triangles[originTriangleIndex];
 			triangles[triangleIndex] = index;
 		}
-		//calculate other pass
+	}
+	//calculate other pass
+	{
 		int channelTriangleIndex1 = 0
 			, channelTriangleIndex2 = channelTriangleIndex1 + singleChannelTriangleIndicesCount
 			, channelTriangleIndex3 = channelTriangleIndex2 + singleChannelTriangleIndicesCount
-			, channelTriangleIndex4 = channelTriangleIndex3 + singleChannelTriangleIndicesCount;
+			, channelTriangleIndex4 = channelTriangleIndex3 + singleChannelTriangleIndicesCount
+			, channelTriangleIndex5 = channelTriangleIndex4 + singleChannelTriangleIndicesCount
+			, channelTriangleIndex6 = channelTriangleIndex5 + singleChannelTriangleIndicesCount
+			, channelTriangleIndex7 = channelTriangleIndex6 + singleChannelTriangleIndicesCount
+			, channelTriangleIndex8 = channelTriangleIndex7 + singleChannelTriangleIndicesCount
+			;
 		int channelIndicesOffset1 = singleChannelVerticesCount
 			, channelIndicesOffset2 = channelIndicesOffset1 + singleChannelVerticesCount
 			, channelIndicesOffset3 = channelIndicesOffset2 + singleChannelVerticesCount
-			, channelIndicesOffset4 = channelIndicesOffset3 + singleChannelVerticesCount;
+			, channelIndicesOffset4 = channelIndicesOffset3 + singleChannelVerticesCount
+			, channelIndicesOffset5 = channelIndicesOffset4 + singleChannelVerticesCount
+			, channelIndicesOffset6 = channelIndicesOffset5 + singleChannelVerticesCount
+			, channelIndicesOffset7 = channelIndicesOffset6 + singleChannelVerticesCount
+			, channelIndicesOffset8 = channelIndicesOffset7 + singleChannelVerticesCount
+			;
 		int triangleIndicesCount = additionalTriangleIndicesCount + singleChannelTriangleIndicesCount;
 		for (int channelIndexOrigin = additionalTriangleIndicesCount; channelIndexOrigin < triangleIndicesCount; channelIndexOrigin++)
 		{
@@ -67,23 +79,22 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			triangles[channelTriangleIndex2] = originTriangleIndex + channelIndicesOffset2;
 			triangles[channelTriangleIndex3] = originTriangleIndex + channelIndicesOffset3;
 			triangles[channelTriangleIndex4] = originTriangleIndex + channelIndicesOffset4;
+			if (use8Direction)
+			{
+				triangles[channelTriangleIndex5] = originTriangleIndex + channelIndicesOffset5;
+				triangles[channelTriangleIndex6] = originTriangleIndex + channelIndicesOffset6;
+				triangles[channelTriangleIndex7] = originTriangleIndex + channelIndicesOffset7;
+				triangles[channelTriangleIndex8] = originTriangleIndex + channelIndicesOffset8;
+			}
 
 			channelTriangleIndex1++, channelTriangleIndex2++, channelTriangleIndex3++, channelTriangleIndex4++;
-		}
-	}
-	else
-	{
-		//update triangle data is slightly different from create triangle data. the first pass may changed or not, all we need to do is set origin data (which can be calculated from other pass)
-		int lastPassVerticesCount = singleChannelVerticesCount * 4;
-		for (int lastPassTriangleIndex = additionalTriangleIndicesCount, firstPassTriangleIndex = 0; firstPassTriangleIndex < singleChannelTriangleIndicesCount; lastPassTriangleIndex++, firstPassTriangleIndex++)
-		{
-			triangles[firstPassTriangleIndex] = triangles[lastPassTriangleIndex] + lastPassVerticesCount;
+			channelTriangleIndex5++, channelTriangleIndex6++, channelTriangleIndex7++, channelTriangleIndex8++;
 		}
 	}
 
 	if (singleChannelVerticesCount == vertexCount)
 	{
-		vertexCount = singleChannelVerticesCount * 5;
+		vertexCount = singleChannelVerticesCount * (use8Direction ? 9 : 5);
 		originPositions.Reserve(vertexCount);
 		vertices.Reserve(vertexCount);
 		for (int i = singleChannelVerticesCount; i < vertexCount; i++)
@@ -92,14 +103,19 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			vertices.Add(FVector());
 		}
 	}
-	InOutOriginVerticesCount = singleChannelVerticesCount * 5;
+	InOutOriginVerticesCount = singleChannelVerticesCount * (use8Direction ? 9 : 5);
 
 	//vertices
 	{
 		int channelVertIndex1 = singleChannelVerticesCount
 			, channelVertIndex2 = channelVertIndex1 + singleChannelVerticesCount
 			, channelVertIndex3 = channelVertIndex2 + singleChannelVerticesCount
-			, channelVertIndex4 = channelVertIndex3 + singleChannelVerticesCount;
+			, channelVertIndex4 = channelVertIndex3 + singleChannelVerticesCount
+			, channelVertIndex5 = channelVertIndex4 + singleChannelVerticesCount
+			, channelVertIndex6 = channelVertIndex5 + singleChannelVerticesCount
+			, channelVertIndex7 = channelVertIndex6 + singleChannelVerticesCount
+			, channelVertIndex8 = channelVertIndex7 + singleChannelVerticesCount
+			;
 
 		for (int channelOriginVertIndex = 0; channelOriginVertIndex < singleChannelVerticesCount; channelOriginVertIndex++)
 		{
@@ -108,12 +124,26 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			vertices[channelVertIndex2].TextureCoordinate[0] = originUV;
 			vertices[channelVertIndex3].TextureCoordinate[0] = originUV;
 			vertices[channelVertIndex4].TextureCoordinate[0] = originUV;
+			if (use8Direction)
+			{
+				vertices[channelVertIndex5].TextureCoordinate[0] = originUV;
+				vertices[channelVertIndex6].TextureCoordinate[0] = originUV;
+				vertices[channelVertIndex7].TextureCoordinate[0] = originUV;
+				vertices[channelVertIndex8].TextureCoordinate[0] = originUV;
+			}
 
 			auto originAlpha = vertices[channelOriginVertIndex].Color.A;
 			ApplyColorAndAlpha(vertices[channelVertIndex1].Color, originAlpha);
 			ApplyColorAndAlpha(vertices[channelVertIndex2].Color, originAlpha);
 			ApplyColorAndAlpha(vertices[channelVertIndex3].Color, originAlpha);
 			ApplyColorAndAlpha(vertices[channelVertIndex4].Color, originAlpha);
+			if (use8Direction)
+			{
+				ApplyColorAndAlpha(vertices[channelVertIndex5].Color, originAlpha);
+				ApplyColorAndAlpha(vertices[channelVertIndex6].Color, originAlpha);
+				ApplyColorAndAlpha(vertices[channelVertIndex7].Color, originAlpha);
+				ApplyColorAndAlpha(vertices[channelVertIndex8].Color, originAlpha);
+			}
 
 			auto originVert = originPositions[channelOriginVertIndex];
 			auto& channel1Vert = originPositions[channelVertIndex1];
@@ -132,19 +162,53 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			channel4Vert = originVert;
 			channel4Vert.X -= outlineSize.X;
 			channel4Vert.Y -= outlineSize.Y;
+			if (use8Direction)
+			{
+				auto& channel5Vert = originPositions[channelVertIndex5];
+				channel5Vert = originVert;
+				channel5Vert.X -= outlineSize.X;
+				channel5Vert.Y += 0;
+				auto& channel6Vert = originPositions[channelVertIndex6];
+				channel6Vert = originVert;
+				channel6Vert.X += outlineSize.X;
+				channel6Vert.Y += 0;
+				auto& channel7Vert = originPositions[channelVertIndex7];
+				channel7Vert = originVert;
+				channel7Vert.X += 0;
+				channel7Vert.Y += outlineSize.Y;
+				auto& channel8Vert = originPositions[channelVertIndex8];
+				channel8Vert = originVert;
+				channel8Vert.X += 0;
+				channel8Vert.Y -= outlineSize.Y;
+			}
 
 			channelVertIndex1++, channelVertIndex2++, channelVertIndex3++, channelVertIndex4++;
+			channelVertIndex5++, channelVertIndex6++, channelVertIndex7++, channelVertIndex8++;
 		}
 	}
 }
 
 void UUIEffectOutline::SetOutlineColor(FColor newColor)
 {
-	outlineColor = newColor;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	if (outlineColor != newColor)
+	{
+		outlineColor = newColor;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	}
 }
 void UUIEffectOutline::SetOutlineSize(FVector2D newSize)
 {
-	outlineSize = newSize;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkVertexPositionDirty();
+	if (outlineSize != newSize)
+	{
+		outlineSize = newSize;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkVertexPositionDirty();
+	}
+}
+void UUIEffectOutline::SetUse8Direction(bool newValue)
+{
+	if (use8Direction != newValue)
+	{
+		use8Direction = newValue;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkTriangleDirty();
+	}
 }

@@ -128,26 +128,41 @@ void UUIEffectLongShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, i
 
 void UUIEffectLongShadow::SetShadowColor(FColor newColor)
 {
-	shadowColor = newColor;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	if (shadowColor != newColor)
+	{
+		shadowColor = newColor;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	}
 }
 void UUIEffectLongShadow::SetShadowSize(FVector newSize)
 {
-	shadowSize = newSize;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkVertexPositionDirty();
+	if (shadowSize != newSize)
+	{
+		shadowSize = newSize;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkVertexPositionDirty();
+	}
 }
 void UUIEffectLongShadow::SetShadowSegment(uint8 newSegment)
 {
-	shadowSegment = newSegment;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkTriangleDirty();
+	if (shadowSegment != newSegment)
+	{
+		shadowSegment = newSegment;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkTriangleDirty();
+	}
 }
 void UUIEffectLongShadow::SetUseGradientColor(bool newBool)
 {
-	useGradientColor = newBool;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	if (useGradientColor != newBool)
+	{
+		useGradientColor = newBool;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	}
 }
 void UUIEffectLongShadow::SetGradientColor(FColor newColor)
 {
-	shadowColor = newColor;
-	if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	if (shadowColor != newColor)
+	{
+		shadowColor = newColor;
+		if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+	}
 }
