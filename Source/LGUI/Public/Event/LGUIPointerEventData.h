@@ -149,7 +149,6 @@ public:
 
 	bool nowIsTriggerPressed = false;
 	bool prevIsTriggerPressed = false;
-	EMouseButtonType prevPressTriggerType = EMouseButtonType::Left;
 
 	virtual FString ToString()const override;
 	/** Use a line-plane intersection to get world point. The plane is pressComponent's z-axis plane. */
