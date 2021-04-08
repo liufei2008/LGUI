@@ -74,15 +74,6 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 		}
 	}
 	eventData->nowIsTriggerPressed = inTriggerPress;
-	if (eventData->nowIsTriggerPressed)
-	{
-		if (eventData->prevPressTriggerType != inMouseButtonType)
-		{
-			//clear event, because input trigger change
-			ClearEventByID(eventData->pointerID);
-			eventData->prevPressTriggerType = inMouseButtonType;
-		}
-	}
 	eventData->mouseButtonType = inMouseButtonType;
 }
 
