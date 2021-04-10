@@ -33,6 +33,8 @@ class LGUI_API UUIToggleComponent : public UUISelectableComponent, public ILGUIP
 protected:
 	virtual void Awake() override;
 	virtual void Start() override;
+	virtual void OnEnable()override;
+	virtual void OnDisable()override;
 protected:
 	friend class FUIToggleCustomization;
 	/** If not assigned, use self. must have UIItem component */
@@ -90,6 +92,9 @@ public:
 		virtual void SetState(bool newState, bool fireEvent = true);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		virtual void SetValue(bool newValue, bool fireEvent = true);
+	/** If this toggle added to a ToggleGroup, then return index in group. Return -1 if not add to ToggleGroup. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
+		virtual int32 GetIndexInGroup()const;
 
 	FDelegateHandle RegisterToggleEvent(const FLGUIBoolDelegate& InDelegate);
 	FDelegateHandle RegisterToggleEvent(const TFunction<void(bool)>& InFunction);
