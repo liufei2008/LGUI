@@ -31,6 +31,23 @@ void UUIToggleComponent::Start()
 	ApplyValueToUI(true);
 }
 
+void UUIToggleComponent::OnEnable()
+{
+	Super::OnEnable();
+	if (GroupComp.IsValid())
+	{
+		GroupComp->AddToggleComponent(this);
+	}
+}
+void UUIToggleComponent::OnDisable()
+{
+	Super::OnDisable();
+	if (GroupComp.IsValid())
+	{
+		GroupComp->RemoveToggleComponent(this);
+	}
+}
+
 bool UUIToggleComponent::CheckTarget()
 {
 	if (ToggleActor.IsValid())return true;
@@ -129,6 +146,14 @@ void UUIToggleComponent::SetToggleGroup(UUIToggleGroupComponent* InGroupComp)
 {
 	if (GroupComp != InGroupComp)
 	{
+		if (GroupComp.IsValid())
+		{
+			GroupComp->RemoveToggleComponent(this);
+		}
+		if (IsValid(InGroupComp))
+		{
+			InGroupComp->AddToggleComponent(this);
+		}
 		GroupComp = InGroupComp;
 	}
 }
@@ -162,4 +187,13 @@ FLGUIDelegateHandleWrapper UUIToggleComponent::RegisterToggleEvent(const FLGUITo
 void UUIToggleComponent::UnregisterToggleEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle)
 {
 	OnToggleCPP.Remove(InDelegateHandle.DelegateHandle);
+}
+
+int32 UUIToggleComponent::GetIndexInGroup()const
+{
+	if (GroupComp.IsValid())
+	{
+		return GroupComp->GetToggleIndex(this);
+	}
+	return -1;
 }
