@@ -325,12 +325,19 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 hierarchyIndex = INDEX_NONE;
 	void OnChildHierarchyIndexChanged(UUIItem* child);
+	/** Get all UI children count, include children's children. */
+	int32 GetAllUIChildrenCount()const;
+	int32 GetFlattenHierarchyIndexInParent()const;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetHierarchyIndex() const { return hierarchyIndex; }
 	/** Get hierarchy index, add parent's hierarchy index and parent's parent's hierarchy index... */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
+	UE_DEPRECATED(4.24, "This node is not valuable, and will be deprecated in future release. Another node \"GetFlattenHierarchyIndex\" is more usefull.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valuable, and will be deprecated in future release. Another node \"GetFlattenHierarchyIndex\" is more usefull."))
 		int32 GetHierarchyIndexWithAllParent()const;
+	/** Get flatten hierarchy index, calculate from the first top most UIItem. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		int32 GetFlattenHierarchyIndex()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetHierarchyIndex(int32 InInt);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
