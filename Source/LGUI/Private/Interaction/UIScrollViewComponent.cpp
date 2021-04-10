@@ -63,10 +63,18 @@ void UUIScrollViewComponent::RecalculateRange()
             this->CalculateHorizontalRange();
             AllowHorizontalScroll = true;
         }
+        else
+        {
+            AllowHorizontalScroll = false;
+        }
         if (Vertical)
         {
             this->CalculateVerticalRange();
             AllowVerticalScroll = true;
+        }
+        else
+        {
+            AllowVerticalScroll = false;
         }
         Position = ContentUIItem->GetRelativeLocation();
         if (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y || Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)
