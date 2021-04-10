@@ -225,6 +225,60 @@ int32 UUIItem::GetHierarchyIndexWithAllParent()const
 	}
 	return result;
 }
+int32 UUIItem::GetAllUIChildrenCount()const
+{
+	int32 result = this->cacheUIChildren.Num();
+	for (auto item : this->cacheUIChildren)
+	{
+		if (IsValid(item))
+		{
+			result += item->GetAllUIChildrenCount();
+		}
+	}
+	return result;
+}
+int32 UUIItem::GetFlattenHierarchyIndexInParent()const
+{
+	int32 result = 0;
+	if (IsValid(this->cacheParentUIItem))
+	{
+		for (auto item : cacheParentUIItem->cacheUIChildren)
+		{
+			if (item == this)
+			{
+				break;
+			}
+			else
+			{
+				if (IsValid(item))
+				{
+					result += 1;
+					result += item->GetAllUIChildrenCount();
+				}
+			}
+		}
+	}
+	return result;
+}
+int32 UUIItem::GetFlattenHierarchyIndex()const
+{
+	int32 result = 0;
+	auto item = this;
+	while (true)
+	{
+		result += item->GetFlattenHierarchyIndexInParent();
+		item = item->GetParentAsUIItem();
+		if (IsValid(item))
+		{
+			result += 1;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return result;
+}
 void UUIItem::SetHierarchyIndex(int32 InInt) 
 { 
 	if (InInt != hierarchyIndex)
