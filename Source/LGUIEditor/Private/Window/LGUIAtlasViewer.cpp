@@ -50,6 +50,6 @@ void SLGUIAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> In
 
 void SLGUIAtlasViewer::CloseTabCallback(TSharedRef<SDockTab> TabClosed)
 {
-	SpriteSlateBrushArray.Empty();
+	
 }
 #undef LOCTEXT_NAMESPACE

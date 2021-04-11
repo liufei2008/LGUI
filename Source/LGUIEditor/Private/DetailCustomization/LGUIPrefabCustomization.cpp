@@ -25,6 +25,16 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
 
+	//category.AddCustomRow(LOCTEXT("Edit prefab", "Edit prefab"))
+	//	.NameContent()
+	//	[
+	//		SNew(SButton)
+	//		.Text(LOCTEXT("Edit prefab", "Edit prefab"))
+	//		.ToolTipText(LOCTEXT("EditPrefab_Tooltip", "Edit this prefab in level editor, use selected actor as parent."))
+	//		.OnClicked(this, &FLGUIPrefabCustomization::OnClickEditPrefabButton)
+	//	]
+	//	;
+
 	//show prefab version
 	DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, EngineMajorVersion))->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
 	DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, EngineMinorVersion))->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([&DetailBuilder] {DetailBuilder.ForceRefreshDetails(); }));
@@ -219,5 +229,10 @@ FSlateColor FLGUIPrefabCustomization::GetPrefabVersionTextColorAndOpacity()const
 	{
 		return FSlateColor::UseForeground();
 	}
+}
+FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
+{
+	LGUIEditorTools::SpawnPrefabForEdit(TargetScriptPtr.Get());
+	return FReply::Handled();
 }
 #undef LOCTEXT_NAMESPACE
