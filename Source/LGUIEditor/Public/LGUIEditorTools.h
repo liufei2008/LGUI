@@ -66,4 +66,6 @@ public:
 	static void RefreshSceneOutliner();
 
 	static void MakeCurrentLevel(AActor* InActor);
+
+	static void SpawnPrefabForEdit(ULGUIPrefab* InPrefab);
 };

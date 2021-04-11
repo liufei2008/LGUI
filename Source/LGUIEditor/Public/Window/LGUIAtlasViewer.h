@@ -20,8 +20,5 @@ public:
 	void Construct(const FArguments& InArgs, TSharedPtr<SDockTab> InOwnerTab);
 
 private:
-	TArray<TWeakPtr<FSlateBrush>> SpriteSlateBrushArray;
-
 	void CloseTabCallback(TSharedRef<SDockTab> TabClosed);
-	const int ThumbnailSize = 256;
 };
