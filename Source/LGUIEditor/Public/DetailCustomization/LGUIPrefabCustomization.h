@@ -20,4 +20,5 @@ private:
 	FReply OnClickRecreteAllButton();
 	FText GetPrefabVersionText()const;
 	FSlateColor GetPrefabVersionTextColorAndOpacity()const;
+	FReply OnClickEditPrefabButton();
 };
