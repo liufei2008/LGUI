@@ -92,7 +92,10 @@ public:
 		virtual void SetState(bool newState, bool fireEvent = true);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		virtual void SetValue(bool newValue, bool fireEvent = true);
-	/** If this toggle added to a ToggleGroup, then return index in group. Return -1 if not add to ToggleGroup. */
+	/**
+	 * If this toggle added to a ToggleGroup, then return index in group. Return -1 if not add to ToggleGroup.
+	 * Index is sorted by flatten-hierarchy-index, from RootComponent(UIItem).
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		virtual int32 GetIndexInGroup()const;
 
