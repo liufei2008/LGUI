@@ -59,12 +59,11 @@ void UUIToggleGroupComponent::ClearSelection()
 {
 	if (LastSelect.IsValid())
 	{
-		int index = GetToggleIndex(LastSelect.Get());
 		LastSelect->SetValue(false);
 		LastSelect.Reset();
 
-		if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(index);
-		OnToggle.FireEvent(index);
+		if (OnToggleCPP.IsBound())OnToggleCPP.Broadcast(-1);
+		OnToggle.FireEvent(-1);
 	}
 }
 UUIToggleComponent* UUIToggleGroupComponent::GetSelectedItem()const
@@ -99,7 +98,11 @@ void UUIToggleGroupComponent::UnregisterToggleEvent(const FLGUIDelegateHandleWra
 
 int32 UUIToggleGroupComponent::GetToggleIndex(const UUIToggleComponent* InComp)const
 {
-	return ToggleCollection.Find(InComp);
+	if (IsValid(InComp))
+	{
+		return ToggleCollection.IndexOfByKey(InComp);
+	}
+	return -1;
 }
 UUIToggleComponent* UUIToggleGroupComponent::GetToggleByIndex(int32 InIndex)const
 {
