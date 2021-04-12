@@ -51,12 +51,14 @@ public:
 
 	/**
 	 * Register toggle change event.
-	 * Event will be called when selection change of this toggle group. Parameter of the event is selected toggle component, or null if none selected.
+	 * Event will be called when selection change of this toggle group.
+	 * Parameter of the event is selected toggle component's index in group, or -1 if none selected.
 	 */
 	FDelegateHandle RegisterToggleEvent(const FLGUIToggleGroupDelegate& InDelegate);
 	/**
 	 * Register toggle change event.
-	 * Event will be called when selection change of this toggle group. Parameter of the event is selected toggle component, or null if none selected.
+	 * Event will be called when selection change of this toggle group.
+	 * Parameter of the event is selected toggle component's index in group, or -1 if none selected.
 	 */
 	FDelegateHandle RegisterToggleEvent(const TFunction<void(int32)>& InFunction);
 	/**
@@ -66,7 +68,8 @@ public:
 
 	/**
 	 * Register toggle change event.
-	 * Event will be called when selection change of this toggle group. Parameter of the event is selected toggle component, or null if none selected.
+	 * Event will be called when selection change of this toggle group.
+	 * Parameter of the event is selected toggle component's index in group, or -1 if none selected.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ToggleGroup")
 		FLGUIDelegateHandleWrapper RegisterToggleEvent(const FLGUIToggleGroupDynamicDelegate& InDelegate);
