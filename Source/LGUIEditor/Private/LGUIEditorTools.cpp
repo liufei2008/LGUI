@@ -279,6 +279,7 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 	GEditor->SelectNone(true, true);
 	for (auto item : rootActorList)
 	{
+		MakeCurrentLevel(item);
 		auto newActor = LGUIPrefabSystem::ActorReplaceTool::ReplaceActorClass(item, ActorClass);
 		GEditor->SelectActor(newActor, true, true);
 	}
