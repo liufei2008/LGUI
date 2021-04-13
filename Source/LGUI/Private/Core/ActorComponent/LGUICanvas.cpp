@@ -731,8 +731,8 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						auto meshName = FString::Printf(TEXT("Drawcall_%d"), meshIndex);
 #endif
 						uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
-						uiMesh->SetOwnerNoSee(this->GetActuralOwnerNoSee());
-						uiMesh->SetOnlyOwnerSee(this->GetActuralOnlyOwnerSee());
+						uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
+						uiMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
 						uiMesh->RegisterComponent();
 						//this->GetOwner()->AddInstanceComponent(uiMesh);
 						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -798,10 +798,9 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			}
 
 			//after geometry created, need to sort UIMesh render order
-			//if (this == TopMostCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
-			//edit: commet this because sort not functionally as expected.
+			if (this == TopMostCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
 			{
-				SortDrawcallRenderPriority();
+				SortDrawcallRenderPriorityForRootCanvas();
 			}
 		}
 		else//no need to rebuild all drawcall
@@ -854,7 +853,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				//after geometry created, need to sort UIMesh render order
 				if (this == TopMostCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
 				{
-					SortDrawcallRenderPriority();
+					SortDrawcallRenderPriorityForRootCanvas();
 				}
 			}
 		}
@@ -913,47 +912,50 @@ void ULGUICanvas::SortCanvasOnOrder()
 		}
 	}
 }
-void ULGUICanvas::SortDrawcallRenderPriority()
+
+void ULGUICanvas::SortDrawcallRenderPriorityForRootCanvas()
 {
 	auto& allCanvasArray = GetAllCanvasArray();
 	if (allCanvasArray.Num() == 0)return;
 	//set drawcall render order
-	//@todo: sort seperately on world/screen/renderTarget
-	int32 startRenderPriority = 0;
+	int32 startRenderPriority = this->sortOrder;
 	int32 prevSortOrder = allCanvasArray[0]->sortOrder - 1;//-1 is for first check of the loop
 	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
+	auto thisCanvasRenderMode = this->GetActualRenderMode();
 	for (int i = 0; i < allCanvasArray.Num(); i++)
 	{
 		auto canvasItem = allCanvasArray[i];
 		if (IsValid(canvasItem) && canvasItem->GetIsUIActive())
 		{
-			if (canvasItem->sortOrder != prevSortOrder)
+			if (thisCanvasRenderMode == canvasItem->GetActualRenderMode())
 			{
-				prevSortOrder = canvasItem->sortOrder;
-				startRenderPriority += prevCanvasDrawcallCount;
-			}
-			int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
-
-			if (canvasItem->sortOrder == prevSortOrder)//if Canvas's depth is equal, then take the max drawcall count
-			{
-				if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
+				if (
+					this->childrenCanvasArray.Contains(canvasItem)//the sort function is just for root canvas, so make sure canvas item is child of this canvas
+					|| canvasItem == this
+					)
 				{
-					prevCanvasDrawcallCount = canvasItemDrawcallCount;
+					if (canvasItem->sortOrder != prevSortOrder)
+					{
+						prevSortOrder = canvasItem->sortOrder;
+						startRenderPriority += prevCanvasDrawcallCount;
+					}
+					int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
+
+					if (canvasItem->sortOrder == prevSortOrder)//if Canvas's depth is equal, then take the max drawcall count
+					{
+						if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
+						{
+							prevCanvasDrawcallCount = canvasItemDrawcallCount;
+						}
+					}
+					else
+					{
+						prevCanvasDrawcallCount = canvasItemDrawcallCount;
+					}
 				}
-			}
-			else
-			{
-				prevCanvasDrawcallCount = canvasItemDrawcallCount;
 			}
 		}
 	}
-//#if WITH_EDITOR
-//	if (!GetWorld()->IsGameWorld())//editor world, do nothing
-//	{
-//
-//	}
-//	else
-//#endif
 	if (currentIsRenderToRenderTargetOrWorld)
 	{
 		TopMostCanvas->GetViewExtension()->SortRenderPriority();
@@ -1270,7 +1272,10 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 			}
 		}
 		SortCanvasOnOrder();
-		SortDrawcallRenderPriority();
+		if (IsValid(TopMostCanvas))
+		{
+			TopMostCanvas->SortDrawcallRenderPriorityForRootCanvas();
+		}
 	}
 }
 void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanvas)
@@ -1709,7 +1714,7 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 	}
 	return false;
 }
-bool ULGUICanvas::GetActuralOwnerNoSee()const
+bool ULGUICanvas::GetActualOwnerNoSee()const
 {
 	if (IsRootCanvas())
 	{
@@ -1725,13 +1730,13 @@ bool ULGUICanvas::GetActuralOwnerNoSee()const
 		{
 			if (IsValid(ParentCanvas))
 			{
-				return ParentCanvas->GetActuralOwnerNoSee();
+				return ParentCanvas->GetActualOwnerNoSee();
 			}
 		}
 	}
 	return this->ownerNoSee;
 }
-bool ULGUICanvas::GetActuralOnlyOwnerSee()const
+bool ULGUICanvas::GetActualOnlyOwnerSee()const
 {
 	if (IsRootCanvas())
 	{
@@ -1747,7 +1752,7 @@ bool ULGUICanvas::GetActuralOnlyOwnerSee()const
 		{
 			if (IsValid(ParentCanvas))
 			{
-				return ParentCanvas->GetActuralOnlyOwnerSee();
+				return ParentCanvas->GetActualOnlyOwnerSee();
 			}
 		}
 	}
@@ -1775,8 +1780,8 @@ void ULGUICanvas::ApplyOwnerSeeRecursive()
 	{
 		if (uiMesh.IsValid())
 		{
-			uiMesh->SetOwnerNoSee(this->GetActuralOwnerNoSee());
-			uiMesh->SetOnlyOwnerSee(this->GetActuralOnlyOwnerSee());
+			uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
+			uiMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
 		}
 	}
 
