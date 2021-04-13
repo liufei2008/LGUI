@@ -173,7 +173,7 @@ protected:
 	const TArray<ULGUICanvas*>& GetAllCanvasArray();
 	void SortCanvasOnOrder();
 	/** sort drawcall */
-	void SortDrawcallRenderPriority();
+	void SortDrawcallRenderPriorityForRootCanvas();
 	/** @return	drawcall count */
 	int32 SortDrawcall(int32 InStartRenderPriority);
 	
@@ -197,6 +197,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIRenderMode renderMode = ELGUIRenderMode::WorldSpace;
+	/** Render to RenderTargets. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UTextureRenderTarget2D* renderTarget;
 	/** This can avoid half-pixel render */
@@ -325,10 +326,10 @@ public:
 		bool GetOnlyOwnerSee()const { return onlyOwnerSee; }
 	/** Get OwnerNoSee of this canvas. Actually canvas's OwnerNoSee property is inherit from root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetActuralOwnerNoSee()const;
+		bool GetActualOwnerNoSee()const;
 	/** Get OnlyOwnerSee of this canvas. Actually canvas's OnlyOwnerSee property is inherit from root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetActuralOnlyOwnerSee()const;
+		bool GetActualOnlyOwnerSee()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetOwnerNoSee(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
