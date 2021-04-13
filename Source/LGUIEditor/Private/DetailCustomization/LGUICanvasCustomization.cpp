@@ -154,6 +154,15 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, clipRectOffset));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
 		}
+
+		if (!TargetScriptArray[0]->GetOverrideOwnerNoSee())
+		{
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, ownerNoSee));
+		}
+		if (!TargetScriptArray[0]->GetOverrideOnlyOwnerSee())
+		{
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, onlyOwnerSee));
+		}
 	}
 
 	if (TargetScriptArray[0]->GetWorld() != nullptr)

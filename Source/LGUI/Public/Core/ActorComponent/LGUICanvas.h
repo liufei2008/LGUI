@@ -53,6 +53,8 @@ enum class ELGUICanvasOverrideParameters :uint8
 	DynamicPixelsPerUnit,
 	ClipType,
 	AdditionalShaderChannels,
+	OnlyOwnerSee,
+	OwnerNoSee,
 };
 ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
 
@@ -233,6 +235,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* DefaultMaterials[3];
 
+	/** Just like StaticMesh's OwnerNoSee property, only valid on world space UI. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool ownerNoSee = false;
+	/** Just like StaticMesh's OnlyOwnerSee property, only valid on world space UI. */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool onlyOwnerSee = false;
+
 	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
@@ -246,6 +255,8 @@ protected:
 	FORCEINLINE bool GetOverrideDynamicPixelsPerUnit()const			{ return overrideParameters & (1 << 2); }
 	FORCEINLINE bool GetOverrideClipType()const						{ return overrideParameters & (1 << 3); }
 	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << 4); }
+	FORCEINLINE bool GetOverrideOwnerNoSee()const					{ return overrideParameters & (1 << 5); }
+	FORCEINLINE bool GetOverrideOnlyOwnerSee()const					{ return overrideParameters & (1 << 6); }
 public:
 	/** Set render mode of this canvas. This may not take effect if the canvas is not a root cnavas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -305,6 +316,24 @@ public:
 	/** Get render target of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTextureRenderTarget2D* GetRenderTarget()const { return renderTarget; }
+
+	/** Get OwnerNoSee of this canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetOwnerNoSee()const { return ownerNoSee; }
+	/** Get OnlyOwnerSee of this canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetOnlyOwnerSee()const { return onlyOwnerSee; }
+	/** Get OwnerNoSee of this canvas. Actually canvas's OwnerNoSee property is inherit from root canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetActuralOwnerNoSee()const;
+	/** Get OnlyOwnerSee of this canvas. Actually canvas's OnlyOwnerSee property is inherit from root canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetActuralOnlyOwnerSee()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetOwnerNoSee(bool value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetOnlyOwnerSee(bool value);
+
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return sortOrder; }
 	/** Get clip type of canvas. Actually canvas's clip type property is inherit from root canvas. */
@@ -353,6 +382,8 @@ private:
 	void InsertIntoDrawcall(UUIRenderable* item);
 	/** remove a UI element from drawcall list */
 	void RemoveFromDrawcall(UUIRenderable* item);
+
+	void ApplyOwnerSeeRecursive();
 private:
 	uint8 bClipTypeChanged:1;
 	uint8 bRectClipParameterChanged:1;
