@@ -731,6 +731,8 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						auto meshName = FString::Printf(TEXT("Drawcall_%d"), meshIndex);
 #endif
 						uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), FName(*meshName), RF_Transient);
+						uiMesh->SetOwnerNoSee(this->GetActuralOwnerNoSee());
+						uiMesh->SetOnlyOwnerSee(this->GetActuralOnlyOwnerSee());
 						uiMesh->RegisterComponent();
 						//this->GetOwner()->AddInstanceComponent(uiMesh);
 						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -1707,6 +1709,87 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 	}
 	return false;
 }
+bool ULGUICanvas::GetActuralOwnerNoSee()const
+{
+	if (IsRootCanvas())
+	{
+		return this->ownerNoSee;
+	}
+	else
+	{
+		if (GetOverrideOwnerNoSee())
+		{
+			return this->ownerNoSee;
+		}
+		else
+		{
+			if (IsValid(ParentCanvas))
+			{
+				return ParentCanvas->GetActuralOwnerNoSee();
+			}
+		}
+	}
+	return this->ownerNoSee;
+}
+bool ULGUICanvas::GetActuralOnlyOwnerSee()const
+{
+	if (IsRootCanvas())
+	{
+		return this->onlyOwnerSee;
+	}
+	else
+	{
+		if (GetOverrideOnlyOwnerSee())
+		{
+			return this->onlyOwnerSee;
+		}
+		else
+		{
+			if (IsValid(ParentCanvas))
+			{
+				return ParentCanvas->GetActuralOnlyOwnerSee();
+			}
+		}
+	}
+	return this->onlyOwnerSee;
+}
+void ULGUICanvas::SetOwnerNoSee(bool value)
+{
+	if (ownerNoSee != value)
+	{
+		ownerNoSee = value;
+		ApplyOwnerSeeRecursive();
+	}
+}
+void ULGUICanvas::SetOnlyOwnerSee(bool value)
+{
+	if (onlyOwnerSee != value)
+	{
+		onlyOwnerSee = value;
+		ApplyOwnerSeeRecursive();
+	}
+}
+void ULGUICanvas::ApplyOwnerSeeRecursive()
+{
+	for (auto uiMesh : CacheUIMeshList)
+	{
+		if (uiMesh.IsValid())
+		{
+			uiMesh->SetOwnerNoSee(this->GetActuralOwnerNoSee());
+			uiMesh->SetOnlyOwnerSee(this->GetActuralOnlyOwnerSee());
+		}
+	}
+
+	for (auto item : childrenCanvasArray)
+	{
+		if (IsValid(item))
+		{
+			item->ApplyOwnerSeeRecursive();
+		}
+	}
+}
+
+
 UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 {
 	if (IsRootCanvas())
