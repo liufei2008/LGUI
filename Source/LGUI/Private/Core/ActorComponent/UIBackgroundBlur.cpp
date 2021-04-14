@@ -51,12 +51,15 @@ void UUIBackgroundBlur::MarkAllDirtyRecursive()
 {
 	Super::MarkAllDirtyRecursive();
 
-	auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
-	SendStrengthTextureToRenderProxy();
-	SendMaskTextureToRenderProxy();
-	SendOthersDataToRenderProxy();
+	if (IsValid(this->RenderCanvas))
+	{
+		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+		SendStrengthTextureToRenderProxy();
+		SendMaskTextureToRenderProxy();
+		SendOthersDataToRenderProxy();
+	}
 }
 
 #define MAX_BlurStrength 100.0f
@@ -321,13 +324,16 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
 	if (!RenderProxy.IsValid())
 	{
 		RenderProxy = TSharedPtr<FUIBackgroundBlurRenderProxy>(new FUIBackgroundBlurRenderProxy());
-		inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
-		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
-		SendStrengthTextureToRenderProxy();
-		SendMaskTextureToRenderProxy();
-		SendOthersDataToRenderProxy();
+		if (IsValid(this->RenderCanvas))
+		{
+			inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
+			auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+			auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+			SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+			SendStrengthTextureToRenderProxy();
+			SendMaskTextureToRenderProxy();
+			SendOthersDataToRenderProxy();
+		}
 	}
 	return RenderProxy;
 }
