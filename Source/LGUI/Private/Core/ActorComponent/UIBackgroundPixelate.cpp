@@ -44,10 +44,13 @@ void UUIBackgroundPixelate::MarkAllDirtyRecursive()
 {
 	Super::MarkAllDirtyRecursive();
 
-	auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
-	SendMaskTextureToRenderProxy();
+	if (IsValid(this->RenderCanvas))
+	{
+		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+		SendMaskTextureToRenderProxy();
+	}
 }
 
 
@@ -153,10 +156,13 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
 	if (!RenderProxy.IsValid())
 	{
 		RenderProxy = TSharedPtr<FUIBackgroundPixelateRenderProxy>(new FUIBackgroundPixelateRenderProxy());
-		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
-		SendMaskTextureToRenderProxy();
+		if (IsValid(this->RenderCanvas))
+		{
+			auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+			auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+			SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+			SendMaskTextureToRenderProxy();
+		}
 	}
 	return RenderProxy;
 }
