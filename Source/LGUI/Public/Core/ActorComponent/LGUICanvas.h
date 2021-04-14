@@ -394,6 +394,7 @@ private:
 	uint8 bShouldUpdateLayout:1;//if any child layout changed
 	uint8 bShouldRebuildAllDrawcall:1;//if Canvas need to rebuild all drawcall
 	uint8 bRectRangeCalculated:1;
+	uint8 bNeedToSortRenderPriority : 1;
 
 	uint8 cacheForThisUpdate_ShouldRebuildAllDrawcall : 1, cacheForThisUpdate_ShouldUpdateLayout:1
 		, cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
