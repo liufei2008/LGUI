@@ -2,6 +2,7 @@
 
 #include "DetailCustomization/LGUIPrefabHelperComponentCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabHelperComponentCustomization"
 
@@ -22,6 +23,10 @@ void FLGUIPrefabHelperComponentCustomization::CustomizeDetails(IDetailLayoutBuil
 	{
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 		return;
+	}
+	if (IsValid(TargetScriptPtr->ParentActorForEditor))
+	{
+		LGUIEditorTools::MakeCurrentLevel(TargetScriptPtr->ParentActorForEditor);
 	}
 	TargetScriptPtr->LoadPrefab();
 
