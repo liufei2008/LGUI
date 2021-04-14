@@ -798,10 +798,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			}
 
 			//after geometry created, need to sort UIMesh render order
-			if (this == TopMostCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
-			{
-				SortDrawcallRenderPriorityForRootCanvas();
-			}
+			TopMostCanvas->bNeedToSortRenderPriority = true;
 		}
 		else//no need to rebuild all drawcall
 		{
@@ -850,20 +847,24 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			}
 			if (UIItem->cacheForThisUpdate_DepthChanged || needToSortRenderPriority)
 			{
-				//after geometry created, need to sort UIMesh render order
-				if (this == TopMostCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
-				{
-					SortDrawcallRenderPriorityForRootCanvas();
-				}
+				TopMostCanvas->bNeedToSortRenderPriority = true;
 			}
 		}
 		//create or update material
 		UpdateAndApplyMaterial();
 	}
+	if (this == TopMostCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
+	{
+		if (bNeedToSortRenderPriority)
+		{
+			SortDrawcallRenderPriorityForRootCanvas();
+		}
+	}
 
 
 	//this frame is complete
 	bRectRangeCalculated = false;
+	bNeedToSortRenderPriority = false;
 }
 const TArray<ULGUICanvas*>& ULGUICanvas::GetAllCanvasArray()
 {
