@@ -4,6 +4,8 @@
 
 #include "LGUIPrefab.generated.h"
 
+#define LGUI_PREFAB_VERSION 1
+
 /**
  * similar to Unity3D's Prefab. store actor and it's hierarchy and serailize to asset, deserialize and restore when need.
  * See property "UseBuildData" to get more information. 
@@ -48,6 +50,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		uint64 DataCount;
 #endif
+	/** Prefab system's version when creating this prefab */
+	UPROPERTY()
+		uint16 PrefabVersion;
 	/** Engine's major version when creating this prefab */
 	UPROPERTY()
 		uint16 EngineMajorVersion;

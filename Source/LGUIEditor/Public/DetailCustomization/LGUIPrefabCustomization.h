@@ -18,7 +18,9 @@ private:
 	FReply OnClickUseBuildDataButton(bool AllUseBuildData);
 	FReply OnClickRecreteButton();
 	FReply OnClickRecreteAllButton();
+	FText GetEngineVersionText()const;
 	FText GetPrefabVersionText()const;
+	FSlateColor GetEngineVersionTextColorAndOpacity()const;
 	FSlateColor GetPrefabVersionTextColorAndOpacity()const;
 	FReply OnClickEditPrefabButton();
 };
