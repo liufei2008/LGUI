@@ -211,10 +211,7 @@ void ULGUISpriteData::CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InA
 
 void ULGUISpriteData::PackageSprite()
 {
-	if (spriteTexture->CompressionSettings != TextureCompressionSettings::TC_EditorIcon)
-	{
-		ApplySpriteTextureSetting(spriteTexture);
-	}
+	CheckAndApplySpriteTextureSetting(spriteTexture);
 
 	auto atlasData = ULGUIAtlasManager::FindOrAdd(packingTag);
 	atlasData->EnsureAtlasTexture(packingTag);
@@ -230,7 +227,7 @@ PACK_AND_INSERT:
 		UE_LOG(LGUI, Log, TEXT("[PackageSprite]Insert texture:%s expend size to %d"), *(spriteTexture->GetPathName()), newTextureSize);
 		if (newTextureSize > WARNING_ATLAS_SIZE)
 		{
-			FString warningMsg = FString::Printf(TEXT("[PackageSprite]Trying to insert texture:%s, result to expend size to:%d larger than the preferred maximun texture size:%d!\
+			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::PackageSprite]Trying to insert texture:%s, result to expend size to:%d larger than the preferred maximun texture size:%d!\
 Try reduce some sprite texture size, or use UITexture to render some large texture, or use different packingTag to splite your atlasTexture.")
 				, *(spriteTexture->GetPathName()), newTextureSize, WARNING_ATLAS_SIZE);
 			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
@@ -269,10 +266,7 @@ void ULGUISpriteData::PostEditChangeProperty(struct FPropertyChangedEvent& Prope
 		{
 			if (spriteTexture != nullptr)
 			{
-				if (spriteTexture->CompressionSettings != TextureCompressionSettings::TC_EditorIcon)
-				{
-					ApplySpriteTextureSetting(spriteTexture);
-				}
+				CheckAndApplySpriteTextureSetting(spriteTexture);
 				spriteInfo.width = spriteTexture->GetSizeX();
 				spriteInfo.height = spriteTexture->GetSizeY();
 			}
@@ -318,13 +312,20 @@ void ULGUISpriteData::MarkAllSpritesNeedToReinitialize()
 }
 #endif
 
-void ULGUISpriteData::ApplySpriteTextureSetting(UTexture2D* InSpriteTexture)
+void ULGUISpriteData::CheckAndApplySpriteTextureSetting(UTexture2D* InSpriteTexture)
 {
-	InSpriteTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
-	InSpriteTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
-	InSpriteTexture->SRGB = true;
-	InSpriteTexture->UpdateResource();
-	InSpriteTexture->MarkPackageDirty();
+	if (
+		InSpriteTexture->CompressionSettings != TextureCompressionSettings::TC_EditorIcon
+		|| InSpriteTexture->LODGroup != TextureGroup::TEXTUREGROUP_UI
+		|| InSpriteTexture->SRGB != true
+		)
+	{
+		InSpriteTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
+		InSpriteTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
+		InSpriteTexture->SRGB = true;
+		InSpriteTexture->UpdateResource();
+		InSpriteTexture->MarkPackageDirty();
+	}
 }
 
 void ULGUISpriteData::ReloadTexture()
@@ -444,8 +445,14 @@ void ULGUISpriteData::GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, fl
 ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* WorldContextObject, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder /* = FVector2D::ZeroVector */, FVector2D inVerticalBorder /* = FVector2D::ZeroVector */, FName inPackingTag /* = TEXT("Main") */)
 {
 	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (world == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::CreateLGUISpriteData]Get world return null!"));
+		return nullptr;
+	}
 	if (!IsValid(inSpriteTexture))
 	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::CreateLGUISpriteData]Input texture not valid!"));
 		return nullptr;
 	}
 	// check size
@@ -455,15 +462,15 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* WorldContextObje
 		auto lguiSetting = GetDefault<ULGUISettings>()->defaultAtlasSetting.spaceBetweenSprites;
 		if (inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE || inSpriteTexture->GetSurfaceWidth() + atlasPadding * 2 > WARNING_ATLAS_SIZE)
 		{
-			UE_LOG(LGUI, Error, TEXT("Target texture width or height is too large! Consider use UITexture to render this texture."));
+			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::CreateLGUISpriteData]Target texture width or height is too large! Consider use UITexture to render this texture."));
+			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
+#if WITH_EDITOR
+			LGUIUtils::EditorNotification(FText::FromString(warningMsg));
+#endif
 		}
 		// Apply setting for sprite creation
 		//inSpriteTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
-		inSpriteTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
-		inSpriteTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
-		inSpriteTexture->SRGB = true;
-		inSpriteTexture->UpdateResource();
-		inSpriteTexture->MarkPackageDirty();
+		CheckAndApplySpriteTextureSetting(inSpriteTexture);
 	}
 
 	ULGUISpriteData* result = NewObject<ULGUISpriteData>(world);
