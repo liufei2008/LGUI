@@ -133,7 +133,7 @@ void UUIItem::CallUIComponentsDimensionsChanged(bool positionChanged, bool sizeC
 	}
 
 	//call parent
-	if (cacheParentUIItem)
+	if (IsValid(cacheParentUIItem))
 	{
 		cacheParentUIItem->CallUIComponentsChildDimensionsChanged(this, positionChanged, sizeChanged);
 	}
@@ -240,7 +240,7 @@ int32 UUIItem::GetAllUIChildrenCount()const
 int32 UUIItem::GetFlattenHierarchyIndexInParent()const
 {
 	int32 result = 0;
-	if (IsValid(this->cacheParentUIItem))
+	if (IsValid(cacheParentUIItem))
 	{
 		for (auto item : cacheParentUIItem->cacheUIChildren)
 		{
@@ -1169,7 +1169,7 @@ void UUIItem::SetWidth(float newWidth)
 		MarkLayoutDirty();
 		widget.width = newWidth;
 		WidthChanged();
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			CalculateHorizontalStretchFromAnchorAndSize();
 		}
@@ -1183,7 +1183,7 @@ void UUIItem::SetHeight(float newHeight)
 		MarkLayoutDirty();
 		widget.height = newHeight;
 		HeightChanged();
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			CalculateVerticalStretchFromAnchorAndSize();
 		}
@@ -1207,7 +1207,7 @@ void UUIItem::SetAnchorOffsetX(float newOffset)
 	if (FMath::Abs(widget.anchorOffsetX - newOffset) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetX = newOffset;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			const auto& parentWidget = cacheParentUIItem->widget;
 			widget.stretchLeft = (parentWidget.width - widget.width) * 0.5f + widget.anchorOffsetX;
@@ -1223,7 +1223,7 @@ void UUIItem::SetAnchorOffsetY(float newOffset)
 	if (FMath::Abs(widget.anchorOffsetY - newOffset) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetY = newOffset;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			const auto& parentWidget = cacheParentUIItem->widget;
 			widget.stretchBottom = (parentWidget.height - widget.height) * 0.5f + widget.anchorOffsetY;
@@ -1240,7 +1240,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 	if (FMath::Abs(widget.anchorOffsetX - newOffset.X) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetX = newOffset.X;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			anyChange = true;
 			const auto& parentWidget = cacheParentUIItem->widget;
@@ -1251,7 +1251,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 	if (FMath::Abs(widget.anchorOffsetY - newOffset.Y) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetY = newOffset.Y;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			anyChange = true;
 			const auto& parentWidget = cacheParentUIItem->widget;
@@ -1273,7 +1273,7 @@ void UUIItem::SetUIRelativeLocation(FVector newLocation)
 		GetRelativeLocation_DirectMutable() = newLocation;
 		LGUIUpdateComponentToWorld();
 
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			const auto& parentWidget = cacheParentUIItem->widget;
 			if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
@@ -1430,7 +1430,7 @@ void UUIItem::SetStretchLeft(float newLeft)
 	{
 		MarkLayoutDirty();
 		widget.stretchLeft = newLeft;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			bool sizeChanged = CalculateHorizontalAnchorAndSizeFromStretch();
 			CallUIComponentsDimensionsChanged(true, sizeChanged);
@@ -1447,7 +1447,7 @@ void UUIItem::SetStretchRight(float newRight)
 	{
 		MarkLayoutDirty();
 		widget.stretchRight = newRight;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			bool sizeChanged = CalculateHorizontalAnchorAndSizeFromStretch();
 			CallUIComponentsDimensionsChanged(true, sizeChanged);
@@ -1465,7 +1465,7 @@ void UUIItem::SetHorizontalStretch(FVector2D newStretch)
 		MarkLayoutDirty();
 		widget.stretchLeft = newStretch.X;
 		widget.stretchRight = newStretch.Y;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			bool sizeChanged = CalculateHorizontalAnchorAndSizeFromStretch();
 			CallUIComponentsDimensionsChanged(true, sizeChanged);
@@ -1482,7 +1482,7 @@ void UUIItem::SetStretchTop(float newTop)
 	{
 		MarkLayoutDirty();
 		widget.stretchTop = newTop;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			bool sizeChanged = CalculateVerticalAnchorAndSizeFromStretch();
 			CallUIComponentsDimensionsChanged(true, sizeChanged);
@@ -1499,7 +1499,7 @@ void UUIItem::SetStretchBottom(float newBottom)
 	{
 		MarkLayoutDirty();
 		widget.stretchBottom = newBottom;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			bool sizeChanged = CalculateVerticalAnchorAndSizeFromStretch();
 			CallUIComponentsDimensionsChanged(true, sizeChanged);
@@ -1517,7 +1517,7 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 		MarkLayoutDirty();
 		widget.stretchBottom = newStretch.X;
 		widget.stretchTop = newStretch.Y;
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			bool sizeChanged = CalculateVerticalAnchorAndSizeFromStretch();
 			CallUIComponentsDimensionsChanged(true, sizeChanged);
@@ -1542,7 +1542,7 @@ void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align, bool keepRelativeLo
 {
 	if (widget.anchorHAlign != align)
 	{
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			if (keepRelativeLocation)
 			{
@@ -1590,7 +1590,7 @@ void UUIItem::SetAnchorVAlign(UIAnchorVerticalAlign align, bool keepRelativeLoca
 {
 	if (widget.anchorVAlign != align)
 	{
-		if (cacheParentUIItem)
+		if (IsValid(cacheParentUIItem))
 		{
 			if (keepRelativeLocation)
 			{
@@ -1903,7 +1903,10 @@ void UUIItem::SetUIActive(bool active)
 			//affect children
 			SetChildUIActiveRecursive(bIsUIActive);
 			//callback for parent
-			if (IsValid(cacheParentUIItem))cacheParentUIItem->OnChildActiveStateChanged(this);
+			if (IsValid(cacheParentUIItem))
+			{
+				cacheParentUIItem->OnChildActiveStateChanged(this);
+			}
 		}
 		else
 		{
