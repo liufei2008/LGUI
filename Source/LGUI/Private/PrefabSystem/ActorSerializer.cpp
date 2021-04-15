@@ -474,12 +474,12 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 			}
 			else
 			{
-#if WITH_EDITOR
 				auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
+#if WITH_EDITOR
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg); 
 				LGUIUtils::EditorNotification(FText::FromString(ErrorMsg)); 
 #else
-				checkf(false, TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
+				checkf(false, TEXT("%s"), *ErrorMsg);
 #endif
 			}
 		}
@@ -519,12 +519,12 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 	}
 	else
 	{
-#if WITH_EDITOR
 		auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
+#if WITH_EDITOR
 		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
 		LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
 #else
-		checkf(false, TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
+		checkf(false, TEXT("%s"), *ErrorMsg);
 #endif
 		return nullptr;
 	}
@@ -1120,22 +1120,20 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				}
 				else
 				{
-#if WITH_EDITOR
-					if (Property->GetSize() != ItemPropertyData.Data.Num())
-					{
-						auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/LoadCommonProperty]Error prefab:%s. \n	Load value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.\
+					auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/LoadCommonProperty]Error prefab:%s. \n	Load value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.\
  Open the prefab and click \"RecreateThis\" can fix it.\
  If this problem still exist, please contact the plugin author.")
 							, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetPathName()), Property->GetSize(), ItemPropertyData.Data.Num());
+#if WITH_EDITOR
+					if (Property->GetSize() != ItemPropertyData.Data.Num())
+					{
 						UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
 						LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
 						return false;
 					}
 #else
-					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("[ActorSerializer/LoadCommonProperty]Error prefab:%s. \nLoad value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.\
- Open the prefab and click \"RecreateThis\" can fix it.\
- If this problem still exist, please contact the plugin author.")
-						, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetPathName()), Property->GetSize(), ItemPropertyData.Data.Num());
+					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("%s"), *ErrorMsg);
+						, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
 #endif
 					Property->CopyCompleteValue(Property->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex), ItemPropertyData.Data.GetData());
 				}
@@ -1341,7 +1339,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			auto stringValue = strProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
 			auto id = FindStringIdFromList(stringValue);
 			ItemPropertyData.Data = BitConverter::GetBytes(id);
-			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
+			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_String;
 			PropertyData.Add(ItemPropertyData);
 		}
 		else if (auto nameProperty = Cast<UNameProperty>(Property))
@@ -1349,7 +1347,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			auto nameValue = nameProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
 			auto id = FindNameIdFromList(nameValue);
 			ItemPropertyData.Data = BitConverter::GetBytes(id);
-			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
+			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Name;
 			PropertyData.Add(ItemPropertyData);
 		}
 		else if (auto textProperty = Cast<UTextProperty>(Property))
@@ -1357,7 +1355,7 @@ void ActorSerializer::SaveCommonProperty(UProperty* Property, int itemType, uint
 			auto textValue = textProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
 			auto id = FindTextIdFromList(textValue);
 			ItemPropertyData.Data = BitConverter::GetBytes(id);
-			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
+			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Text;
 			PropertyData.Add(ItemPropertyData);
 		}
 		else if (auto delegateProperty = Cast<UDelegateProperty>(Property))//blueprint dynamic delegate
@@ -1598,6 +1596,7 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 #endif
 	Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 	Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
+	Prefab->PrefabVersion = LGUI_PREFAB_VERSION;
 
 	ConvertForBuildData(ActorSaveData, InPrefab);
 
