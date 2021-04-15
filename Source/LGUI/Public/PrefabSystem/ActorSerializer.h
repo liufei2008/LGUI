@@ -16,7 +16,7 @@ namespace LGUIPrefabSystem
 		PT_Container,
 		//struct container
 		PT_StructContainer,
-		//the property is an object type, or string/name/text type which is store the referece index into data
+		//the property is an object type which reference a actor/ asset/ class/ 
 		PT_Reference,
 
 		PT_int8,
@@ -42,13 +42,17 @@ namespace LGUIPrefabSystem
 
 		//the property is UObject and maked as Instanced
 		PT_InstancedObject,
+
+		PT_Name,
+		PT_String,
+		PT_Text,
 	};
 
 	struct LGUIHelperFunction
 	{
 		static void SerializeToArchiveByPropertyType(FArchive& Ar, ELGUIPropertyType& PropertyType, TArray<uint8>& Data)
 		{
-			int count = 0;
+			int count = 0;//if property is reference type, then count means index of the reference
 			switch (PropertyType)
 			{
 			case ELGUIPropertyType::PT_int8:
@@ -83,6 +87,9 @@ namespace LGUIPrefabSystem
 				Ar << Data; return;
 
 			case ELGUIPropertyType::PT_Reference:
+			case ELGUIPropertyType::PT_String:
+			case ELGUIPropertyType::PT_Name:
+			case ELGUIPropertyType::PT_Text:
 				count = 4; break;
 			case ELGUIPropertyType::PT_InstancedObject:
 				count = 4; break;
