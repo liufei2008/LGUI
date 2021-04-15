@@ -51,12 +51,8 @@ UObject* ULGUISpriteDataFactory::FactoryCreateNew(UClass* Class, UObject* InPare
 			return nullptr;
 		}
 		// Apply setting for sprite creation
-		SpriteTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
-		SpriteTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
-		SpriteTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
-		SpriteTexture->SRGB = true;
-		SpriteTexture->UpdateResource();
-		SpriteTexture->MarkPackageDirty();
+		//SpriteTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
+		ULGUISpriteData::CheckAndApplySpriteTextureSetting(SpriteTexture);
 	}
 
 	ULGUISpriteData* NewAsset = NewObject<ULGUISpriteData>(InParent, Class, Name, Flags | RF_Transactional);

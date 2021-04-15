@@ -107,7 +107,7 @@ struct FConfigureTexturesForSpriteUsageExtension : public FContentBrowserSelecte
 			const FAssetData& AssetData = *AssetIt;
 			if (UTexture2D* Texture = Cast<UTexture2D>(AssetData.GetAsset()))
 			{
-				ULGUISpriteData::ApplySpriteTextureSetting(Texture);
+				ULGUISpriteData::CheckAndApplySpriteTextureSetting(Texture);
 			}
 		}
 	}

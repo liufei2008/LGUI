@@ -167,6 +167,6 @@ public:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
 	static void MarkAllSpritesNeedToReinitialize();
 #endif
-	static void ApplySpriteTextureSetting(UTexture2D* InSpriteTexture);
+	static void CheckAndApplySpriteTextureSetting(UTexture2D* InSpriteTexture);
 	static ULGUISpriteData* GetDefaultWhiteSolid();
 };
