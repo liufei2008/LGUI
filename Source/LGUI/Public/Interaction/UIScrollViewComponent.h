@@ -55,7 +55,7 @@ protected:
 	/** If Horizontal and Vertical, only allow one direction drag at the same time. Not valid when use scroll(Mouse wheel), because scroll only have one direction. */ 
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool OnlyOneDirection = true;
-	/** Sensitivity when use scroll(Mouse wheel) */ 
+	/** Sensitivity when use mouse scroll wheel input */ 
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		float ScrollSensitivity = 1.0f;
 	/** When Content size is smaller than Content's parent size, can we still scroll? */

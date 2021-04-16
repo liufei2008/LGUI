@@ -850,7 +850,7 @@ void FComponentTransformDetails::OnSetTransform(ETransformField::Type TransformF
 								ObjectToRelativeRotationMap.FindOrAdd(SceneComponent) = SceneComponent->GetRelativeRotation();
 							}
 
-							SceneComponent->SetUIRelativeLocation(NewComponentValue);
+							SceneComponent->SetRelativeLocation(NewComponentValue);
 
 							// Also forcibly set it as the cache may have changed it slightly
 							SceneComponent->GetRelativeLocation_DirectMutable() = NewComponentValue;
