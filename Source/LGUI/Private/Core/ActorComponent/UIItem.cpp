@@ -708,26 +708,30 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 #if WITH_EDITORONLY_DATA
 		if (!GetWorld()->IsGameWorld())
 		{
-			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 			{
 				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
 				{
 					childUIItem->hierarchyIndex = cacheUIChildren.Num();
 				}
-
+			}
+			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))
+			{
 				childUIItem->CalculateAnchorParametersFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
 			}
 		}
 		else
 #endif
 		{
-			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 			{
 				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
 				{
 					childUIItem->hierarchyIndex = cacheUIChildren.Num();
 				}
-
+			}
+			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+			{
 				childUIItem->CalculateAnchorParametersFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
 			}
 		}
