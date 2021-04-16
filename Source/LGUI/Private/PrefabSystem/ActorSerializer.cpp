@@ -1145,7 +1145,6 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 					}
 #else
 					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("%s"), *ErrorMsg);
-						, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
 #endif
 					Property->CopyCompleteValue(Property->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex), ItemPropertyData.Data.GetData());
 				}
