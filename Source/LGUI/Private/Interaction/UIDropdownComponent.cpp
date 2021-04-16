@@ -73,7 +73,20 @@ void UUIDropdownComponent::Show()
 		canvasOnListRoot = NewObject<ULGUICanvas>(ListRoot.Get());
 		canvasOnListRoot->RegisterComponent();
 	}
-	canvasOnListRoot->SetSortOrderToHighestOfHierarchy(true);
+
+	bool sortOrderSet = false;
+	if (BlockerActor.IsValid())
+	{
+		if (auto blockerCanvas =BlockerActor->FindComponentByClass<ULGUICanvas>())
+		{
+			canvasOnListRoot->SetSortOrder(blockerCanvas->GetSortOrder() + 1, true);
+			sortOrderSet = true;
+		}
+	}
+	if(!sortOrderSet)
+	{
+		canvasOnListRoot->SetSortOrderToHighestOfHierarchy(true);
+	}
 
 	//create list item as options
 	if (!ItemTemplate.IsValid())
