@@ -171,10 +171,18 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		CreatedActor = DeserializeActorRecursive(Parent, SaveDataForBuild, id);
 	}
 #endif
-	if (CreatedActor != nullptr && ReplaceTransform)
+	if (CreatedActor != nullptr)
 	{
-		CreatedActor->GetRootComponent()->SetRelativeLocationAndRotation(InLocation, FQuat(InRotation));
-		CreatedActor->GetRootComponent()->SetRelativeScale3D(InScale);
+		if (USceneComponent* rootComp = CreatedActor->GetRootComponent())
+		{
+			if (ReplaceTransform)
+			{
+				rootComp->GetRelativeLocation_DirectMutable() = InLocation;
+				rootComp->GetRelativeRotation_DirectMutable() = rootComp->GetRelativeRotationCache().QuatToRotator(InRotation);
+				rootComp->SetRelativeScale3D(InScale);
+			}
+			rootComp->UpdateComponentToWorld();
+		}
 	}
 
 	//reassign actor reference after all actor are created
@@ -292,6 +300,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 				PrimitiveComp->BodyInstance.FixupData(PrimitiveComp);
 			}
 			RootComp->RecreatePhysicsState();
+			RootComp->MarkRenderStateDirty();
 			ThisActorSceneComponents.Add(RootComp);
 		}
 
@@ -321,6 +330,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 				if (auto SceneComp = Cast<USceneComponent>(Comp))
 				{
 					SceneComp->RecreatePhysicsState();
+					SceneComp->MarkRenderStateDirty();
 
 					SceneComponentToParentIDStruct ParentNameStruct;
 					ParentNameStruct.Comp = SceneComp;
@@ -435,6 +445,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 				PrimitiveComp->BodyInstance.FixupData(PrimitiveComp);
 			}
 			RootComp->RecreatePhysicsState();
+			RootComp->MarkRenderStateDirty();
 			ThisActorSceneComponents.Add(RootComp);
 		}
 
@@ -464,6 +475,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 				if (auto SceneComp = Cast<USceneComponent>(Comp))
 				{
 					SceneComp->RecreatePhysicsState();
+					SceneComp->MarkRenderStateDirty();
 
 					SceneComponentToParentIDStruct ParentNameStruct;
 					ParentNameStruct.Comp = SceneComp;
