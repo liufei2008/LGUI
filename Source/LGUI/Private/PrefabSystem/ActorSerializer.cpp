@@ -175,13 +175,12 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	{
 		if (USceneComponent* rootComp = CreatedActor->GetRootComponent())
 		{
+			rootComp->UpdateComponentToWorld();
 			if (ReplaceTransform)
 			{
-				rootComp->GetRelativeLocation_DirectMutable() = InLocation;
-				rootComp->GetRelativeRotation_DirectMutable() = rootComp->GetRelativeRotationCache().QuatToRotator(InRotation);
+				rootComp->SetRelativeLocationAndRotation(InLocation, InRotation);
 				rootComp->SetRelativeScale3D(InScale);
 			}
-			rootComp->UpdateComponentToWorld();
 		}
 	}
 
