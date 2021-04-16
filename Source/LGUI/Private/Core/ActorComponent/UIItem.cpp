@@ -26,7 +26,7 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	SetUsingAbsoluteScale(false);
 	SetVisibility(false);
 	bWantsOnUpdateTransform = true;
-	bCanSetAnchorFromTransform = false;
+	bCanSetAnchorFromTransform = true;
 	itemType = UIItemType::UIItem;
 
 	bColorChanged = true;
