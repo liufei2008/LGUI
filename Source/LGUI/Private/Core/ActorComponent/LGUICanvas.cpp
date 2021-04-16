@@ -930,10 +930,10 @@ void ULGUICanvas::SortDrawcallRenderPriorityForRootCanvas()
 		{
 			if (thisCanvasRenderMode == canvasItem->GetActualRenderMode())
 			{
-				if (
-					this->childrenCanvasArray.Contains(canvasItem)//the sort function is just for root canvas, so make sure canvas item is child of this canvas
-					|| canvasItem == this
-					)
+				//if (
+				//	this->childrenCanvasArray.Contains(canvasItem)//the sort function is just for root canvas, so make sure canvas item is child of this canvas
+				//	|| canvasItem == this
+				//	)//this is commeted because of unexpected result, @todo: make this work!
 				{
 					if (canvasItem->sortOrder != prevSortOrder)
 					{
@@ -1292,6 +1292,13 @@ void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanva
 			{
 				if (itemCanvas->TopMostCanvas == this->TopMostCanvas)//on the same hierarchy
 				{
+					if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
+					{
+						if (this->childrenCanvasArray.Contains(itemCanvas))
+						{
+							continue;
+						}
+					}
 					if (maxSortOrder < itemCanvas->sortOrder)
 					{
 						maxSortOrder = itemCanvas->sortOrder;
@@ -1316,6 +1323,13 @@ void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas
 			{
 				if (itemCanvas->TopMostCanvas == this->TopMostCanvas)//on the same hierarchy
 				{
+					if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
+					{
+						if (this->childrenCanvasArray.Contains(itemCanvas))
+						{
+							continue;
+						}
+					}
 					if (minSortOrder > itemCanvas->sortOrder)
 					{
 						minSortOrder = itemCanvas->sortOrder;
@@ -1338,6 +1352,13 @@ void ULGUICanvas::SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas)
 		{
 			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
+				if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
+				{
+					if (this->childrenCanvasArray.Contains(itemCanvas))
+					{
+						continue;
+					}
+				}
 				if (maxSortOrder < itemCanvas->sortOrder)
 				{
 					maxSortOrder = itemCanvas->sortOrder;
@@ -1359,6 +1380,13 @@ void ULGUICanvas::SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas)
 		{
 			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
+				if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
+				{
+					if (this->childrenCanvasArray.Contains(itemCanvas))
+					{
+						continue;
+					}
+				}
 				if (minDepth > itemCanvas->sortOrder)
 				{
 					minDepth = itemCanvas->sortOrder;
