@@ -33,15 +33,6 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-#if WITH_EDITORONLY_DATA
-	bool isPreEditChange = false;
-	/** prev frame location */
-	FVector prevRelativeLocation;
-	/** prev frame anchor horizontal alignment */
-	UIAnchorHorizontalAlign prevAnchorHAlign;
-	/** prev frame anchor vertical alignemnt */
-	UIAnchorVerticalAlign prevAnchorVAlign;
-#endif
 #if WITH_EDITOR
 	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -92,12 +83,14 @@ public:
 	void RemoveUIBaseComponent(class ULGUIBehaviour* InComp) { UIBaseComponentArray.RemoveSingle(InComp); }
 #pragma endregion UIBaseComponent
 protected:
+	virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit /* = NULL */, EMoveComponentFlags MoveFlags /* = MOVECOMP_NoFlags */, ETeleportType Teleport /* = ETeleportType::None */)override;
 	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;
 	virtual void OnChildAttached(USceneComponent* ChildComponent)override;
 	virtual void OnChildDetached(USceneComponent* ChildComponent)override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 private:
+	void CalculateAnchorParametersFromTransform();
 	FORCEINLINE void CalculateHorizontalStretchFromAnchorAndSize();
 	FORCEINLINE void CalculateVerticalStretchFromAnchorAndSize();
 	/** @return		true if size changed, else false */
@@ -226,7 +219,7 @@ public:
 		float GetCalculatedParentAlpha() const { return calculatedParentAlpha; }
 	/** This can auto calculate dimensions */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetUIRelativeLocation(FVector newLocation);
+		void SetUIRelativeLocation(FVector newLocation);//@todo: deprecate these SetUIXXX, because we can use native functions now
 	/** This can auto calculate dimensions */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation);
@@ -425,6 +418,7 @@ protected:
 	UPROPERTY(Transient) ULGUICanvas* RenderCanvas = nullptr;
 	/** is this UIItem's actor have LGUICanvas component */
 	uint8 isCanvasUIItem:1;
+	uint8 bCanSetAnchorFromTransform : 1;
 
 	uint8 bDepthChanged:1;//depth changed
 	uint8 bColorChanged:1;//vertex color chnaged
@@ -451,6 +445,8 @@ public:
 #endif
 
 #pragma region LGUIUpdateComponentToWorld
+#define USE_LGUIUpdateComponentToWorld 0
+#if USE_LGUIUpdateComponentToWorld
 protected:
 	void LGUIUpdateComponentToWorld();
 	void LGUIPropagateTransformUpdate(bool inTransformChanged);
@@ -460,7 +456,15 @@ protected:
 	static bool LGUIGetComponentToWorldUpdated(USceneComponent* Target);
 	static void LGUISetComponentToWorldUpdated(USceneComponent* Target, bool value);
 	static void LGUICheckComponentToWorldUpdatedProperty();
+#endif
 #pragma endregion
+#if WITH_EDITORONLY_DATA
+private:
+	/** prev frame anchor horizontal alignment */
+	UIAnchorHorizontalAlign prevAnchorHAlign;
+	/** prev frame anchor vertical alignemnt */
+	UIAnchorVerticalAlign prevAnchorVAlign;
+#endif
 };
 
 
