@@ -16,7 +16,6 @@
 #endif
 
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
-UBoolProperty* UUIItem::bComponentToWorldUpdated_PropertyRef = nullptr;
 
 UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -27,7 +26,7 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	SetUsingAbsoluteScale(false);
 	SetVisibility(false);
 	bWantsOnUpdateTransform = true;
-	
+	bCanSetAnchorFromTransform = false;
 	itemType = UIItemType::UIItem;
 
 	bColorChanged = true;
@@ -454,26 +453,18 @@ void UUIItem::MarkAllDirtyRecursive()
 #if WITH_EDITOR
 void UUIItem::PreEditChange(UProperty* PropertyAboutToChange)
 {
-	if (!isPreEditChange)
-	{
-		isPreEditChange = true;
-		prevRelativeLocation = GetRelativeLocation();
-	}
 	Super::PreEditChange(PropertyAboutToChange);
 	
 }
 void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	bCanSetAnchorFromTransform = false;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	if (PropertyChangedEvent.Property != nullptr)
 	{
 		auto propetyName = PropertyChangedEvent.Property->GetFName();
-		if (PropertyChangedEvent.MemberProperty->GetFName() == TEXT("RelativeLocation"))
-		{
-			prevRelativeLocation = GetRelativeLocation();
-		}
-		else if (propetyName == GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive))
+		if (propetyName == GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive))
 		{
 			bIsUIActive = !bIsUIActive;//make it work
 			SetUIActive(!bIsUIActive);
@@ -555,26 +546,11 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 		EditorForceUpdateImmediately();
 		UpdateBounds();
 	}
+	bCanSetAnchorFromTransform = true;
 }
+
 void UUIItem::PostEditComponentMove(bool bFinished)
 {
-#if WITH_EDITORONLY_DATA
-	if (auto parent = GetParentAsUIItem())
-	{
-		//modify AnchorOffset for drag in editor
-		if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
-		{
-			float anchorOffsetX = this->GetRelativeLocation().X - prevRelativeLocation.X + widget.anchorOffsetX;
-			SetAnchorOffsetX(anchorOffsetX);
-		}
-		if (widget.anchorVAlign != UIAnchorVerticalAlign::None)
-		{
-			float anchorOffsetY = this->GetRelativeLocation().Y - prevRelativeLocation.Y + widget.anchorOffsetY;
-			SetAnchorOffsetY(anchorOffsetY);
-		}
-	}
-#endif
-
 	Super::PostEditComponentMove(bFinished);
 	EditorForceUpdateImmediately();
 }
@@ -616,10 +592,107 @@ void UUIItem::OnAttachmentChanged()
 	//callback
 	CallUIComponentsAttachmentChanged();
 }
+bool UUIItem::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit, EMoveComponentFlags MoveFlags, ETeleportType Teleport)
+{
+	auto result = Super::MoveComponentImpl(Delta, NewRotation, bSweep, Hit, MoveFlags, Teleport);
+	if (!Delta.IsZero())
+	{
+		if (bCanSetAnchorFromTransform
+			&& this->IsRegistered()//check if registerred, because it may called from reconstruction.
+			)
+		{
+			CalculateAnchorParametersFromTransform();
+		}
+	}
+	return result;
+}
 void UUIItem::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
 	Super::OnUpdateTransform(UpdateTransformFlags, Teleport);
 	MarkLayoutDirty();
+}
+void UUIItem::CalculateAnchorParametersFromTransform()
+{
+	if (IsValid(cacheParentUIItem))
+	{
+		const auto& parentWidget = cacheParentUIItem->widget;
+		if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
+		{
+			switch (widget.anchorHAlign)
+			{
+			case UIAnchorHorizontalAlign::Left:
+			{
+				float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * parentWidget.pivot.X;
+				SetAnchorOffsetX(anchorOffsetX);
+			}
+			break;
+			case UIAnchorHorizontalAlign::Center:
+			{
+				float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * (parentWidget.pivot.X - 0.5f);
+				SetAnchorOffsetX(anchorOffsetX);
+			}
+			break;
+			case UIAnchorHorizontalAlign::Right:
+			{
+				float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * (parentWidget.pivot.X - 1.0f);
+				SetAnchorOffsetX(anchorOffsetX);
+			}
+			break;
+			case UIAnchorHorizontalAlign::Stretch:
+			{
+				//parent
+				float parentLeft, parentRight;
+				parentLeft = parentWidget.width * -parentWidget.pivot.X;
+				parentRight = parentWidget.width * (1.0f - parentWidget.pivot.X);
+				//self, relative to parent
+				float selfLeft, selfRight;
+				selfLeft = this->GetRelativeLocation().X + widget.width * -widget.pivot.X;
+				selfRight = this->GetRelativeLocation().X + widget.width * (1.0f - widget.pivot.X);
+				//stretch
+				SetHorizontalStretch(FVector2D(selfLeft - parentLeft, parentRight - selfRight));
+			}
+			break;
+			}
+		}
+		if (widget.anchorVAlign != UIAnchorVerticalAlign::None)
+		{
+			switch (widget.anchorVAlign)
+			{
+			case UIAnchorVerticalAlign::Top:
+			{
+				float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * (parentWidget.pivot.Y - 1.0f);
+				SetAnchorOffsetY(anchorOffsetY);
+			}
+			break;
+			case UIAnchorVerticalAlign::Middle:
+			{
+				float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * (parentWidget.pivot.Y - 0.5f);
+				SetAnchorOffsetY(anchorOffsetY);
+			}
+			break;
+			case UIAnchorVerticalAlign::Bottom:
+			{
+				float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * parentWidget.pivot.Y;
+				SetAnchorOffsetY(anchorOffsetY);
+			}
+			break;
+			case UIAnchorVerticalAlign::Stretch:
+			{
+				//parent
+				float parentBottom, parentTop;
+				parentBottom = parentWidget.height * -parentWidget.pivot.Y;
+				parentTop = parentWidget.height * (1.0f - parentWidget.pivot.Y);
+				//self, relative to parent
+				float selfBottom, selfTop;
+				selfBottom = this->GetRelativeLocation().Y + widget.height * -widget.pivot.Y;
+				selfTop = this->GetRelativeLocation().Y + widget.height * (1.0f - widget.pivot.Y);
+				//stretch
+				SetVerticalStretch(FVector2D(selfBottom - parentBottom, parentTop - selfTop));
+			}
+			break;
+			}
+		}
+	}
 }
 void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 {
@@ -635,23 +708,27 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 #if WITH_EDITORONLY_DATA
 		if (!GetWorld()->IsGameWorld())
 		{
-			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 			{
 				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
 				{
 					childUIItem->hierarchyIndex = cacheUIChildren.Num();
 				}
+
+				childUIItem->CalculateAnchorParametersFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
 			}
 		}
 		else
 #endif
 		{
-			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 			{
 				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
 				{
 					childUIItem->hierarchyIndex = cacheUIChildren.Num();
 				}
+
+				childUIItem->CalculateAnchorParametersFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
 			}
 		}
 		cacheUIChildren.Add(childUIItem);
@@ -937,7 +1014,9 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpda
 	//if parent layout change or self layout change, then update layout
 	if (parentLayoutChanged && shouldUpdateLayout)
 	{
+		bCanSetAnchorFromTransform = false;
 		bool sizeChanged = CalculateLayoutRelatedParameters();
+		bCanSetAnchorFromTransform = true;
 		CallUIComponentsDimensionsChanged(true, sizeChanged);
 	}
 
@@ -972,16 +1051,6 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	if (!IsValid(cacheParentUIItem))return false;
 	bool sizeChanged = false;
 	const auto& parentWidget = cacheParentUIItem->widget;
-#if WITH_EDITOR
-	if (isPreEditChange)
-	{
-		if (!GetWorld()->IsGameWorld())
-		{
-			this->GetRelativeLocation_DirectMutable() = prevRelativeLocation;
-		}
-		isPreEditChange = false;
-	}
-#endif
 	FVector resultLocation = this->GetRelativeLocation();
 	switch (widget.anchorHAlign)
 	{
@@ -1060,12 +1129,15 @@ bool UUIItem::CalculateLayoutRelatedParameters()
 	if (!this->GetRelativeLocation().Equals(resultLocation))
 	{
 		GetRelativeLocation_DirectMutable() = resultLocation;
+#if USE_LGUIUpdateComponentToWorld
 		LGUIUpdateComponentToWorld();
+#else
+		UpdateComponentToWorld();
+#endif
 	}
 #if WITH_EDITORONLY_DATA
 	prevAnchorHAlign = widget.anchorHAlign;
 	prevAnchorVAlign = widget.anchorVAlign;
-	prevRelativeLocation = GetRelativeLocation();
 #endif 
 	return sizeChanged;
 }
@@ -1267,93 +1339,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 }
 void UUIItem::SetUIRelativeLocation(FVector newLocation)
 {
-	if (!(this->GetRelativeLocation().Equals(newLocation)))
-	{
-		MarkLayoutDirty();
-		GetRelativeLocation_DirectMutable() = newLocation;
-		LGUIUpdateComponentToWorld();
-
-		if (IsValid(cacheParentUIItem))
-		{
-			const auto& parentWidget = cacheParentUIItem->widget;
-			if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
-			{
-				switch (widget.anchorHAlign)
-				{
-				case UIAnchorHorizontalAlign::Left:
-				{
-					float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * parentWidget.pivot.X;
-					SetAnchorOffsetX(anchorOffsetX);
-				}
-				break;
-				case UIAnchorHorizontalAlign::Center:
-				{
-					float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * (parentWidget.pivot.X - 0.5f);
-					SetAnchorOffsetX(anchorOffsetX);
-				}
-				break;
-				case UIAnchorHorizontalAlign::Right:
-				{
-					float anchorOffsetX = this->GetRelativeLocation().X + parentWidget.width * (parentWidget.pivot.X - 1.0f);
-					SetAnchorOffsetX(anchorOffsetX);
-				}
-				break;
-				case UIAnchorHorizontalAlign::Stretch:
-				{
-					//parent
-					float parentLeft, parentRight;
-					parentLeft = parentWidget.width * -parentWidget.pivot.X;
-					parentRight = parentWidget.width * (1.0f - parentWidget.pivot.X);
-					//self, relative to parent
-					float selfLeft, selfRight;
-					selfLeft = newLocation.X + widget.width * -widget.pivot.X;
-					selfRight = newLocation.X + widget.width * (1.0f - widget.pivot.X);
-					//stretch
-					SetHorizontalStretch(FVector2D(selfLeft - parentLeft, parentRight - selfRight));
-				}
-				break;
-				}
-			}
-			if (widget.anchorVAlign != UIAnchorVerticalAlign::None)
-			{
-				switch (widget.anchorVAlign)
-				{
-				case UIAnchorVerticalAlign::Top:
-				{
-					float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * (parentWidget.pivot.Y - 1.0f);
-					SetAnchorOffsetY(anchorOffsetY);
-				}
-				break;
-				case UIAnchorVerticalAlign::Middle:
-				{
-					float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * (parentWidget.pivot.Y - 0.5f);
-					SetAnchorOffsetY(anchorOffsetY);
-				}
-				break;
-				case UIAnchorVerticalAlign::Bottom:
-				{
-					float anchorOffsetY = this->GetRelativeLocation().Y + parentWidget.height * parentWidget.pivot.Y;
-					SetAnchorOffsetY(anchorOffsetY);
-				}
-				break;
-				case UIAnchorVerticalAlign::Stretch:
-				{
-					//parent
-					float parentBottom, parentTop;
-					parentBottom = parentWidget.height * -parentWidget.pivot.Y;
-					parentTop = parentWidget.height * (1.0f - parentWidget.pivot.Y);
-					//self, relative to parent
-					float selfBottom, selfTop;
-					selfBottom = newLocation.Y + widget.height * -widget.pivot.Y;
-					selfTop = newLocation.Y + widget.height * (1.0f - widget.pivot.Y);
-					//stretch
-					SetVerticalStretch(FVector2D(selfBottom - parentBottom, parentTop - selfTop));
-				}
-				break;
-				}
-			}
-		}
-	}
+	return Super::SetRelativeLocation(newLocation);
 }
 void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation)
 {
@@ -1361,23 +1347,7 @@ void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const
 }
 void UUIItem::SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, const FQuat& newRotation)
 {
-	bool rotationChange = false;
-	if (!newRotation.Equals(GetRelativeRotationCache().GetCachedQuat()))
-	{
-		GetRelativeRotation_DirectMutable() = GetRelativeRotationCache().QuatToRotator(newRotation);
-		rotationChange = true;
-	}
-	if (!(this->GetRelativeLocation().Equals(newLocation)))
-	{
-		SetUIRelativeLocation(newLocation);
-	}
-	else
-	{
-		if (rotationChange)
-		{
-			LGUIUpdateComponentToWorld();
-		}
-	}
+	return Super::SetRelativeLocationAndRotation(newLocation, newRotation);
 }
 void UUIItem::SetUIRelativeRotation(const FRotator& newRotation)
 {
@@ -1389,15 +1359,7 @@ void UUIItem::SetUIRelativeRotationQuat(const FQuat& newRotation)
 }
 void UUIItem::SetUIParent(UUIItem* inParent, bool keepWorldTransform)
 {
-	if (this->GetParentAsUIItem() != inParent)
-	{
-		if (this->AttachToComponent(inParent, keepWorldTransform ? FAttachmentTransformRules::KeepWorldTransform : FAttachmentTransformRules::KeepRelativeTransform))
-		{
-			auto attachResultPosition = this->GetRelativeLocation();
-			this->GetRelativeLocation_DirectMutable() = attachResultPosition + FVector(1, 0, 0);
-			SetUIRelativeLocation(attachResultPosition);
-		}
-	}
+	Super::AttachToComponent(inParent, keepWorldTransform ? FAttachmentTransformRules::KeepWorldTransform : FAttachmentTransformRules::KeepRelativeTransform);
 }
 UUIItem* UUIItem::GetAttachUIChild(int index)const
 {
@@ -2216,6 +2178,7 @@ FBoxSphereBounds UUIItemEditorHelperComp::CalcBounds(const FTransform& LocalToWo
 
 
 #pragma region LGUIUpdateComponentToWorld
+#if USE_LGUIUpdateComponentToWorld//@todo: remove all of this
 //use this function can slightly increase performance. remove unnecessary code for LGUI
 void UUIItem::LGUIUpdateComponentToWorld()
 {
@@ -2395,4 +2358,6 @@ void UUIItem::LGUICheckComponentToWorldUpdatedProperty()
 		checkf(bComponentToWorldUpdated_PropertyRef != nullptr, TEXT("[UUIItem::LGUICheckComponentToWorldUpdatedProperty]This should not happed, must be something wrong"));
 	}
 }
+UBoolProperty* UUIItem::bComponentToWorldUpdated_PropertyRef = nullptr;
+#endif
 #pragma endregion
