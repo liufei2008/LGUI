@@ -364,6 +364,7 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 			NeedReparentSceneComponents.Add(ParentNameStruct);
 			ThisActorSceneComponents.Add(SceneComp);
 			SceneComp->RecreatePhysicsState();
+			SceneComp->MarkRenderStateDirty();
 		}
 	}
 	//assign child SceneComponent's parent
@@ -393,6 +394,7 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 		}
 		CopiedRootComp->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
 	}
+	CopiedRootComp->UpdateComponentToWorld();
 	return CopiedActor;
 }
 
