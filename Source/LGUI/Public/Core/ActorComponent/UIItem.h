@@ -217,24 +217,32 @@ public:
 #pragma endregion
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetCalculatedParentAlpha() const { return calculatedParentAlpha; }
+
 	/** This can auto calculate dimensions */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetUIRelativeLocation(FVector newLocation);//@todo: deprecate these SetUIXXX, because we can use native functions now
+	UE_DEPRECATED(4.23, "Use SetRelativeLocation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
+		void SetUIRelativeLocation(FVector newLocation);
 	/** This can auto calculate dimensions */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UE_DEPRECATED(4.23, "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
 		void SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation);
 	/** This can auto calculate dimensions */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UE_DEPRECATED(4.23, "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
 		void SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, const FQuat& newRotation);
 	/** This is a simple one parameter version */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UE_DEPRECATED(4.23, "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
 		void SetUIRelativeRotation(const FRotator& newRotation);
 	/** This is a simple one parameter version */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UE_DEPRECATED(4.23, "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
 		void SetUIRelativeRotationQuat(const FQuat& newRotation);
 	/** This can auto calculate dimensions */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UE_DEPRECATED(4.23, "Use AttachToComponent instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use AttachToComponent instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
 		void SetUIParent(UUIItem* inParent, bool keepWorldTransform = false);
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetLocalSpaceLeftBottomPoint()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")

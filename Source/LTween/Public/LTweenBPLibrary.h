@@ -8,31 +8,14 @@
 #include "LTweenDelegateHandleWrapper.h"
 #include "LTweenBPLibrary.generated.h"
 
-DECLARE_DYNAMIC_DELEGATE_RetVal(float, FLTweenFloatGetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenFloatSetterDynamic, float, value);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal(int, FLTweenIntGetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenIntSetterDynamic, int, value);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal(FVector2D, FLTweenVector2GetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenVector2SetterDynamic, const FVector2D&, value);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal(FVector, FLTweenVector3GetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenVector3SetterDynamic, const FVector&, value);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal(FVector4, FLTweenVector4GetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenVector4SetterDynamic, const FVector4&, value);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal(FColor, FLTweenColorGetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenColorSetterDynamic, const FColor&, value);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal(FLinearColor, FLTweenLinearColorGetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenLinearColorSetterDynamic, const FLinearColor&, value);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal(FQuat, FLTweenQuaternionGetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenQuaternionSetterDynamic, const FQuat&, value);
-
-DECLARE_DYNAMIC_DELEGATE_RetVal(FRotator, FLTweenRotatorGetterDynamic);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLTweenRotatorSetterDynamic, const FRotator&, value);
 
 UCLASS()
