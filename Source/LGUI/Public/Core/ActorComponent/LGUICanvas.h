@@ -94,7 +94,7 @@ public:
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 private:
 	/** children canvas array, for update children's geometry */
-	UPROPERTY(Transient) TArray<ULGUICanvas*> childrenCanvasArray;
+	UPROPERTY(Transient) TArray<ULGUICanvas*> childrenCanvasArray;//@todo: collect this when needed
 	/** for top most canvas only */
 	void UpdateTopMostCanvas();
 	/** update canvas's layout */
