@@ -5,6 +5,7 @@
 #include "PrefabSystem/ActorSerializer.h"
 #include "PrefabSystem/ActorCopier.h"
 #include "LTweenActor.h"
+#include "LTweenBPLibrary.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Engine/Engine.h"
@@ -237,13 +238,7 @@ void ULGUIBPLibrary::K2_LGUICompRef_GetComponent(const FLGUIComponentReference& 
 #pragma region UIItem
 ULTweener* ULGUIBPLibrary::UILocalPositionTo(UUIItem* target, FVector endValue, float duration, float delay, LTweenEase ease)
 {
-	if (!IsValid(target))
-	{
-		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::UILocalPositionTo target is not valid:%s"), *(target->GetPathName()));
-		return nullptr;
-	}
-	return ALTweenActor::To(target, FLTweenVectorGetterFunction::CreateUObject(target, &UUIItem::GetRelativeLocation), FLTweenVectorSetterFunction::CreateUObject(target, &UUIItem::SetUIRelativeLocation), endValue, duration)
-		->SetEase(ease)->SetDelay(delay);
+	return ULTweenBPLibrary::LocalPositionTo(target, endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::WidthTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
 {

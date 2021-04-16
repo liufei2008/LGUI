@@ -428,7 +428,14 @@ void ULGUICanvas::SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTextur
 	uiDrawcall->texture = drawcallTexture;
 	//material
 	auto& uiMat = UIMaterialList[drawcallIndex];
-	uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
+	if (IsValid(uiMat))
+	{
+		uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
+	}
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[ULGUICanvas::SetDrawcallTexture]Material not valid!"));
+	}
 }
 void ULGUICanvas::MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged)
 {

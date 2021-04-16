@@ -203,7 +203,7 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
             position.X = predict;
         }
         CanUpdateAfterDrag = false;
-        ContentUIItem->SetUIRelativeLocation(position);
+        ContentUIItem->SetRelativeLocation(position);
         UpdateProgress();
     }
     if (AllowVerticalScroll)
@@ -218,7 +218,7 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
             position.Y = predict;
         }
         CanUpdateAfterDrag = false;
-        ContentUIItem->SetUIRelativeLocation(position);
+        ContentUIItem->SetRelativeLocation(position);
         UpdateProgress();
     }
     return AllowEventBubbleUp;
@@ -264,7 +264,7 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
                     Position.X += delta;
                     DragSpeed.X = delta;
                 }
-                ContentUIItem->SetUIRelativeLocation(Position);
+                ContentUIItem->SetRelativeLocation(Position);
             }
             if (Vertical)
             {
@@ -280,7 +280,7 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
                     Position.Y += delta;
                     DragSpeed.Y = delta;
                 }
-                ContentUIItem->SetUIRelativeLocation(Position);
+                ContentUIItem->SetRelativeLocation(Position);
             }
         }
     }
@@ -426,7 +426,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
         if (canMove)
         {
             UpdateProgress();
-            ContentUIItem->SetUIRelativeLocation(Position);
+            ContentUIItem->SetRelativeLocation(Position);
         }
     }
     else

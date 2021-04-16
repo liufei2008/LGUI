@@ -1343,23 +1343,23 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 }
 void UUIItem::SetUIRelativeLocation(FVector newLocation)
 {
-	return Super::SetRelativeLocation(newLocation);
+	Super::SetRelativeLocation(newLocation);
 }
 void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation)
 {
-	SetUIRelativeLocationAndRotationQuat(newLocation, newRotation.Quaternion());
+	Super::SetRelativeLocationAndRotation(newLocation, newRotation);
 }
 void UUIItem::SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, const FQuat& newRotation)
 {
-	return Super::SetRelativeLocationAndRotation(newLocation, newRotation);
+	Super::SetRelativeLocationAndRotation(newLocation, newRotation);
 }
 void UUIItem::SetUIRelativeRotation(const FRotator& newRotation)
 {
-	this->SetUIRelativeLocationAndRotationQuat(GetRelativeLocation(), newRotation.Quaternion());
+	Super::SetRelativeLocationAndRotation(GetRelativeLocation(), newRotation);
 }
 void UUIItem::SetUIRelativeRotationQuat(const FQuat& newRotation)
 {
-	this->SetUIRelativeLocationAndRotationQuat(GetRelativeLocation(), newRotation);
+	Super::SetRelativeLocationAndRotation(GetRelativeLocation(), newRotation);
 }
 void UUIItem::SetUIParent(UUIItem* inParent, bool keepWorldTransform)
 {
