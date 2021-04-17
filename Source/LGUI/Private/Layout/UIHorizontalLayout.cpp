@@ -13,11 +13,22 @@ DECLARE_CYCLE_STAT(TEXT("UILayout HorizontalRebuildLayout"), STAT_HorizontalLayo
 void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem *child, bool positionChanged, bool sizeChanged)
 {
     Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
-    if (sizeChanged && child->IsUIActiveInHierarchy())
+    if (child->IsUIActiveInHierarchy())
     {
+        if (this->GetWorld() == nullptr)return;
         if (!ExpendChildrenWidth)
         {
-            OnRebuildLayout();
+#if WITH_EDITOR
+            if (!this->GetWorld()->IsGameWorld())
+            {
+                OnRebuildLayout();
+            }
+            else
+#endif
+                if (sizeChanged)
+                {
+                    OnRebuildLayout();
+                }
         }
     }
 }
