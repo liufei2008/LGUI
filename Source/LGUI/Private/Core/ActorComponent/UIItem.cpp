@@ -717,7 +717,10 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 			}
 			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))
 			{
-				childUIItem->CalculateAnchorParametersFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
+				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+				{
+					childUIItem->CalculateAnchorParametersFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
+				}
 			}
 		}
 		else
@@ -732,7 +735,10 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 			}
 			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 			{
-				childUIItem->CalculateAnchorParametersFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
+				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+				{
+					childUIItem->CalculateAnchorParametersFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
+				}
 			}
 		}
 		cacheUIChildren.Add(childUIItem);
@@ -883,40 +889,43 @@ void UUIItem::UIHierarchyChanged()
 	GetParentAsUIItem();
 	if (IsValid(cacheParentUIItem))
 	{
-		//calculate dimensions
-		switch (widget.anchorHAlign)
+		if (this->IsRegistered())//not registerd, could be load from level
 		{
-		case UIAnchorHorizontalAlign::None:
+			//calculate dimensions
+			switch (widget.anchorHAlign)
+			{
+			case UIAnchorHorizontalAlign::None:
+				break;
+			case UIAnchorHorizontalAlign::Left:
+			case UIAnchorHorizontalAlign::Center:
+			case UIAnchorHorizontalAlign::Right:
+			{
+				CalculateHorizontalStretchFromAnchorAndSize();
+			}
 			break;
-		case UIAnchorHorizontalAlign::Left:
-		case UIAnchorHorizontalAlign::Center:
-		case UIAnchorHorizontalAlign::Right:
-		{
-			CalculateHorizontalStretchFromAnchorAndSize();
-		}
-		break;
-		case UIAnchorHorizontalAlign::Stretch:
-		{
-			CalculateHorizontalAnchorAndSizeFromStretch();
-		}
-		break;
-		}
-		switch (widget.anchorVAlign)
-		{
-		case UIAnchorVerticalAlign::None:
+			case UIAnchorHorizontalAlign::Stretch:
+			{
+				CalculateHorizontalAnchorAndSizeFromStretch();
+			}
 			break;
-		case UIAnchorVerticalAlign::Bottom:
-		case UIAnchorVerticalAlign::Middle:
-		case UIAnchorVerticalAlign::Top:
-		{
-			CalculateVerticalStretchFromAnchorAndSize();
-		}
-		break;
-		case UIAnchorVerticalAlign::Stretch:
-		{
-			CalculateVerticalAnchorAndSizeFromStretch();
-		}
-		break;
+			}
+			switch (widget.anchorVAlign)
+			{
+			case UIAnchorVerticalAlign::None:
+				break;
+			case UIAnchorVerticalAlign::Bottom:
+			case UIAnchorVerticalAlign::Middle:
+			case UIAnchorVerticalAlign::Top:
+			{
+				CalculateVerticalStretchFromAnchorAndSize();
+			}
+			break;
+			case UIAnchorVerticalAlign::Stretch:
+			{
+				CalculateVerticalAnchorAndSizeFromStretch();
+			}
+			break;
+			}
 		}
 	}
 }
