@@ -68,7 +68,7 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
 {
 	int32 oldTextureSize = this->atlasBinPack.GetBinWidth();
-	int32 newTextureSize = oldTextureSize * 2;
+	int32 newTextureSize = oldTextureSize + oldTextureSize;
 
 	this->atlasBinPack.ExpendSize(newTextureSize, newTextureSize);
 	//create new texture
@@ -97,6 +97,11 @@ int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
 	}
 
 	return newTextureSize;
+}
+int32 FLGUIAtlasData::GetWillExpendTextureSize()const
+{
+	int32 oldTextureSize = this->atlasBinPack.GetBinWidth();
+	return oldTextureSize + oldTextureSize;
 }
 bool FLGUIAtlasData::StaticPacking(const FName& packingTag)
 {
@@ -505,4 +510,16 @@ void ULGUIAtlasManager::PackStaticAtlas()
 		}
 	}
 #endif
+}
+
+void ULGUIAtlasManager::DisposeAtlasByPackingTag(FName inPackingTag)
+{
+	if (Instance != nullptr)
+	{
+		if (auto atlasData = Find(inPackingTag))
+		{
+			atlasData->atlasTexture->RemoveFromRoot();
+			Instance->atlasMap.Remove(inPackingTag);
+		}
+	}
 }

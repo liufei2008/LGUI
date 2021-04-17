@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "RHI.h"
 
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)
@@ -209,7 +210,7 @@ void ULGUISpriteData::CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InA
 	}
 }
 
-void ULGUISpriteData::PackageSprite()
+bool ULGUISpriteData::PackageSprite()
 {
 	CheckAndApplySpriteTextureSetting(spriteTexture);
 
@@ -219,22 +220,35 @@ void ULGUISpriteData::PackageSprite()
 PACK_AND_INSERT:
 	if (InsertTexture(atlasData))
 	{
-
+		return true;
 	}
 	else//all area cannot fit the texture, then expend texture size
 	{
-		int32 newTextureSize = atlasData->ExpendTextureSize(packingTag);
+		int32 newTextureSize = atlasData->GetWillExpendTextureSize();
 		UE_LOG(LGUI, Log, TEXT("[PackageSprite]Insert texture:%s expend size to %d"), *(spriteTexture->GetPathName()), newTextureSize);
 		if (newTextureSize > WARNING_ATLAS_SIZE)
 		{
 			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::PackageSprite]Trying to insert texture:%s, result to expend size to:%d larger than the preferred maximun texture size:%d!\
-Try reduce some sprite texture size, or use UITexture to render some large texture, or use different packingTag to splite your atlasTexture.")
+\nTry reduce some sprite texture size, or use UITexture to render some large texture, or use different packingTag to split your atlasTexture.\
+\nAlso remember to dispose unused atlas by call function DisposeAtlasByPackingTag from LGUIAtlasManager.\
+")
 				, *(spriteTexture->GetPathName()), newTextureSize, WARNING_ATLAS_SIZE);
 			UE_LOG(LGUI, Warning, TEXT("%s"), *warningMsg);
 #if WITH_EDITOR
 			LGUIUtils::EditorNotification(FText::FromString(warningMsg));
 #endif
 		}
+		if ((uint32)newTextureSize >= GetMax2DTextureDimension())
+		{
+			FString warningMsg = FString::Printf(TEXT("[ULGUISpriteData::PackageSprite]Trying to insert texture:%s, result too large size that not supported! Maximun texture size is:%d.")
+, *(spriteTexture->GetPathName()), GetMax2DTextureDimension());
+			UE_LOG(LGUI, Error, TEXT("%s"), *warningMsg);
+#if WITH_EDITOR
+			LGUIUtils::EditorNotification(FText::FromString(warningMsg));
+#endif
+			return false;
+		}
+		atlasData->ExpendTextureSize(packingTag);
 		goto PACK_AND_INSERT;
 	}
 }
@@ -348,6 +362,21 @@ void ULGUISpriteData::InitSpriteData()
 			UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::InitSpriteData]SpriteData:%s spriteTexture is null!"), *(this->GetPathName()));
 			return;
 		}
+		if (!packingTag.IsNone())
+		{
+			if (PackageSprite())
+			{
+				isInitialized = true;
+			}
+			else
+			{
+				UE_LOG(LGUI, Warning, TEXT("[ULGUISpriteData::InitSpriteData]PackageSprite fail. Will automatically clear packingTag to make it valid."));
+				packingTag = NAME_None;
+				this->MarkPackageDirty();
+				isInitialized = false;
+			}
+		}
+
 		if (packingTag.IsNone())
 		{
 			atlasTexture = spriteTexture;
@@ -355,12 +384,8 @@ void ULGUISpriteData::InitSpriteData()
 			float atlasTextureHeightInv = 1.0f / atlasTexture->GetSurfaceHeight();
 			//spriteInfo.ApplyUV(0, 0, atlasTexture->GetSurfaceWidth(), atlasTexture->GetSurfaceHeight(), atlasTextureWidthInv, atlasTextureHeightInv);
 			spriteInfo.ApplyBorderUV(atlasTextureWidthInv, atlasTextureHeightInv);
+			isInitialized = true;
 		}
-		else
-		{
-			PackageSprite();
-		}
-		isInitialized = true;
 	}
 }
 
