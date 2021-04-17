@@ -10,6 +10,21 @@
 
 DECLARE_CYCLE_STAT(TEXT("UILayout GridRebuildLayout"), STAT_GridLayout, STATGROUP_LGUI);
 
+void UUIGridLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+{
+	Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+#if WITH_EDITOR
+	if (child->IsUIActiveInHierarchy())
+	{
+		if (this->GetWorld() == nullptr)return;
+		if (!this->GetWorld()->IsGameWorld())
+		{
+			OnRebuildLayout();
+		}
+	}
+#endif
+}
+
 void UUIGridLayout::SetPadding(FMargin value)
 {
 	if (Padding != value)
