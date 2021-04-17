@@ -76,6 +76,7 @@ public:
 	virtual bool CanControlSelfHeight()override;
 #endif
 protected:
+	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)override;
 
 	friend class FUIGridLayoutCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
