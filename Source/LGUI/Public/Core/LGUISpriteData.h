@@ -120,7 +120,7 @@ private:
 private:
 	bool isInitialized = false;
 	UPROPERTY(Transient)UTexture2D * atlasTexture = nullptr;
-	void PackageSprite();
+	bool PackageSprite();
 	bool InsertTexture(FLGUIAtlasData* InAtlasData);
 	void CheckSpriteTexture();
 	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);

@@ -33,6 +33,7 @@ struct LGUI_API FLGUIAtlasData
 	void CreateAtlasTexture(const FName& packingTag, int oldTextureSize, int newTextureSize);
 	/** create a new texture with size * 2 */
 	int32 ExpendTextureSize(const FName& packingTag);
+	int32 GetWillExpendTextureSize()const;
 
 	class FLGUIAtlasTextureExpendEvent : public TBaseMulticastDelegate<void, UTexture2D*, int32>
 	{
@@ -66,4 +67,12 @@ public:
 	static void ResetAtlasMap();
 
 	static void PackStaticAtlas();
+
+	/**
+	 * Dispose and release atlas by packingTag.
+	 * This will not dispose the LGUISpriteData.
+	 * Default "Main" tag is not allowed to be disposed.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
+		static void DisposeAtlasByPackingTag(FName inPackingTag);
 };
