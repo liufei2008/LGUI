@@ -81,8 +81,8 @@ namespace rbp {
 		/// Computes the ratio of used surface area to the total bin area.
 		float Occupancy() const;
 
-		int GetBinWidth() { return binWidth; }
-		int GetBinHeight() { return binHeight; }
+		int GetBinWidth()const { return binWidth; }
+		int GetBinHeight()const { return binHeight; }
 	private:
 		int binWidth = 0;
 		int binHeight = 0;
