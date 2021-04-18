@@ -414,7 +414,7 @@ void FLGUIDrawableEventData::Execute()
 	{
 		if (targetActor)
 		{
-			if (componentClass == targetActor->GetClass())//target class is actor self
+			if (componentClass->IsChildOf(AActor::StaticClass()))//target class is actor self
 			{
 				FindAndExecute(targetActor, functionName);
 			}
@@ -444,7 +444,7 @@ void FLGUIDrawableEventData::Execute(void* InParam, LGUIDrawableEventParameterTy
 		{
 			if (targetActor)
 			{
-				if (componentClass == targetActor->GetClass())//target class is actor self
+				if (componentClass->IsChildOf(AActor::StaticClass()))//target class is actor self
 				{
 					FindAndExecute(targetActor, functionName, InParam);
 				}
@@ -465,7 +465,7 @@ void FLGUIDrawableEventData::Execute(void* InParam, LGUIDrawableEventParameterTy
 		{
 			if (targetActor)
 			{
-				if (componentClass == targetActor->GetClass())//target class is actor self
+				if (componentClass->IsChildOf(AActor::StaticClass()))//target class is actor self
 				{
 					FindAndExecute(targetActor, functionName);
 				}

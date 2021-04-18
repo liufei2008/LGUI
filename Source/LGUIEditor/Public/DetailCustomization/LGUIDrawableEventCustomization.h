@@ -183,7 +183,7 @@ public:
 				componentClass = (UClass*)componentClassObject;
 				if (actor != nullptr)
 				{
-					if (actor->GetClass() == componentClass)
+					if (componentClass->IsChildOf(AActor::StaticClass()))
 					{
 						componentDisplayName = LGUIEventActorSelfName;
 					}
@@ -232,7 +232,7 @@ public:
 			{
 				if (componentClass != nullptr)
 				{
-					if (componentClass != actor->GetClass())//if target is not actor self
+					if (!componentClass->IsChildOf(AActor::StaticClass()))//if target is not actor self
 					{
 						TArray<UActorComponent*> Components;
 						((AActor*)actor)->GetComponents(Components);
@@ -747,7 +747,7 @@ protected:
 
 		UClass* componentClass = (UClass*)componentClassObject;
 		UObject* targetObject = nullptr;
-		if (actorObject->GetClass() == componentClass)//actor self
+		if (componentClass->IsChildOf(AActor::StaticClass()))//actor self
 		{
 			targetObject = actorObject;
 		}
