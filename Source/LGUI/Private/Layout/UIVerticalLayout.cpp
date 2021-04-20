@@ -60,7 +60,7 @@ void UUIVerticalLayout::OnRebuildLayout()
     int childrenCount = uiChildrenList.Num();
     float childWidth = rectSize.X;
     childrenHeightList.Reset(childrenCount);
-    ActuralRange = 0;
+    float tempActuralRange = 0;
     if (ExpendChildrenHeight)
     {
         float sizeWithoutSpacing = rectSize.Y - Spacing * (childrenCount - 1);
@@ -229,15 +229,16 @@ void UUIVerticalLayout::OnRebuildLayout()
         }
 
         posY -= childHeight + Spacing;
-        ActuralRange += childHeight;
+        tempActuralRange += childHeight;
     }
     if (childrenCount > 1)
     {
-        ActuralRange += Spacing * (childrenCount - 1);
+        tempActuralRange += Spacing * (childrenCount - 1);
     }
     if (HeightFitToChildren && (ExpendChildrenHeight == false))
     {
-        auto thisHeight = ActuralRange + Padding.Top + Padding.Bottom;
+        auto thisHeight = tempActuralRange + Padding.Top + Padding.Bottom;
+        ActuralRange = tempActuralRange;
         RootUIComp->SetHeight(thisHeight);
     }
 }

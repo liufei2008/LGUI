@@ -7,6 +7,7 @@
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"
 #include "LGUIComponentReference.h"
+#include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "UIDropdownComponent.generated.h"
 

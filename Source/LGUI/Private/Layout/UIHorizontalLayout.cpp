@@ -109,7 +109,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
     int childrenCount = uiChildrenList.Num();
     float childHeight = rectSize.Y;
     childrenWidthList.Reset(childrenCount);
-    ActuralRange = 0;
+    float tempActuralRange = 0;
     if (ExpendChildrenWidth)
     {
         float sizeWithoutSpacing = rectSize.X - Spacing * (childrenCount - 1);
@@ -279,15 +279,16 @@ void UUIHorizontalLayout::OnRebuildLayout()
         }
 
         posX += childWidth + Spacing;
-        ActuralRange += childWidth;
+        tempActuralRange += childWidth;
     }
     if (childrenCount > 1)
     {
-        ActuralRange += Spacing * (childrenCount - 1);
+        tempActuralRange += Spacing * (childrenCount - 1);
     }
     if (WidthFitToChildren)
     {
-        auto thisWidth = ActuralRange + Padding.Left + Padding.Right;
+        auto thisWidth = tempActuralRange + Padding.Left + Padding.Right;
+        ActuralRange = tempActuralRange;
         RootUIComp->SetWidth(thisWidth);
     }
 }
