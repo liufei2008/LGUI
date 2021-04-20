@@ -116,7 +116,7 @@ void UUIGridLayout::OnRebuildLayout()
 	const auto& uiChildrenList = GetAvailableChildren();
 	int childrenCount = uiChildrenList.Num();
 	float childWidth = CellSize.X, childHeight = CellSize.Y;
-	ActuralRange.X = ActuralRange.Y = 0;
+	FVector2D tempActuralRange = FVector2D(0, 0);
 	if (DependOnSizeOrCount == false)//depend on count
 	{
 		if (HorizontalOrVertical)
@@ -140,13 +140,13 @@ void UUIGridLayout::OnRebuildLayout()
 	}
 	if (HorizontalOrVertical)
 	{
-		ActuralRange.X = rectSize.X;
-		ActuralRange.Y += childHeight;
+		tempActuralRange.X = rectSize.X;
+		tempActuralRange.Y += childHeight;
 	}
 	else
 	{
-		ActuralRange.Y = rectSize.Y;
-		ActuralRange.X += childWidth;
+		tempActuralRange.Y = rectSize.Y;
+		tempActuralRange.X += childWidth;
 	}
 	float posX = startPosition.X, posY = startPosition.Y;
 	for (int i = 0; i < childrenCount; i ++)
@@ -166,7 +166,7 @@ void UUIGridLayout::OnRebuildLayout()
 			{
 				posX = startPosition.X;
 				posY -= childHeight + Spacing.Y;
-				ActuralRange.Y += childHeight + Spacing.Y;
+				tempActuralRange.Y += childHeight + Spacing.Y;
 			}
 			anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;
 			anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
@@ -180,7 +180,7 @@ void UUIGridLayout::OnRebuildLayout()
 			{
 				posX += childWidth + Spacing.X;
 				posY = startPosition.Y;
-				ActuralRange.X += childWidth + Spacing.X;
+				tempActuralRange.X += childWidth + Spacing.X;
 			}
 			anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;
 			anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
@@ -219,7 +219,8 @@ void UUIGridLayout::OnRebuildLayout()
 		{
 			if (DependOnSizeOrCount || (DependOnSizeOrCount == false && ExpendChildSize == false))
 			{
-				auto thisHeight = ActuralRange.Y + Padding.Top + Padding.Bottom;
+				auto thisHeight = tempActuralRange.Y + Padding.Top + Padding.Bottom;
+				ActuralRange = tempActuralRange;
 				RootUIComp->SetHeight(thisHeight);
 			}
 		}
@@ -230,7 +231,8 @@ void UUIGridLayout::OnRebuildLayout()
 		{
 			if (DependOnSizeOrCount || (DependOnSizeOrCount == false && ExpendChildSize == false))
 			{
-				auto thisWidth = ActuralRange.X + Padding.Left + Padding.Right;
+				auto thisWidth = tempActuralRange.X + Padding.Left + Padding.Right;
+				ActuralRange = tempActuralRange;
 				RootUIComp->SetWidth(thisWidth);
 			}
 		}
