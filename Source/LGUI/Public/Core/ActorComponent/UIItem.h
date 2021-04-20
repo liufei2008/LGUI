@@ -90,7 +90,12 @@ protected:
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 private:
-	void CalculateAnchorParametersFromTransform();
+	void CalculateAnchorFromTransform();
+	void ApplyAnchorOffsetX(float newOffset);
+	void ApplyAnchorOffsetY(float newOffset);
+	void ApplyHorizontalStretch(FVector2D newStretch);
+	void ApplyVerticalStretch(FVector2D newStretch);
+	void CalculateTransformFromAnchor();
 	FORCEINLINE void CalculateHorizontalStretchFromAnchorAndSize();
 	FORCEINLINE void CalculateVerticalStretchFromAnchorAndSize();
 	/** @return		true if size changed, else false */
@@ -110,8 +115,6 @@ public:
 protected:
 	/** UIItem's hierarchy changed */
 	virtual void UIHierarchyChanged();
-	/** @return		true if size changed, else false */
-	bool CalculateLayoutRelatedParameters();
 	/** update render geometry */
 	virtual void UpdateGeometry(const bool& parentLayoutChanged) {};
 	/** called when attach to a new RenderCanvas. */
@@ -272,7 +275,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class ULGUICanvasScaler* GetCanvasScaler()const;
 
-	void MarkLayoutDirty();
+	void MarkLayoutDirty(bool sizeChange);
 	void MarkColorDirty();
 
 	/** mark all dirty for UI element to update, include all children */
@@ -431,11 +434,12 @@ protected:
 	uint8 bDepthChanged:1;//depth changed
 	uint8 bColorChanged:1;//vertex color chnaged
 	uint8 bLayoutChanged:1;//layout changed
+	uint8 bSizeChanged : 1;//rect size changed
 	/** update prev frame's data */
 	virtual void UpdateBasePrevData();
 
 	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
-	uint8 cacheForThisUpdate_DepthChanged:1, cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1;
+	uint8 cacheForThisUpdate_DepthChanged:1, cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 
