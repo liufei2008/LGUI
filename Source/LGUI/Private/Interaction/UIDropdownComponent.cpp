@@ -7,7 +7,11 @@
 #include "LGUIBPLibrary.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/UIText.h"
+#include "Core/ActorComponent/UISprite.h"
 #include "Core/Actor/UIContainerActor.h"
+#include "Core/Actor/UITextActor.h"
+#include "Core/Actor/UISpriteActor.h"
 #include "Interaction/UIButtonComponent.h"
 
 UUIDropdownComponent::UUIDropdownComponent()
