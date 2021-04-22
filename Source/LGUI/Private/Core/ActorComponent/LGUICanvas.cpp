@@ -23,8 +23,9 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/LocalPlayer.h"
 #include "SceneViewExtension.h"
-#include "Engine.h"
+#include "Engine/Engine.h"
 #include "Core/UIPostProcessRenderProxy.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 ULGUICanvas::ULGUICanvas()
 {

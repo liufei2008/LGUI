@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "LGUIEditorModule.h"
-#include "SlateExtras.h"
 #include "LevelEditor.h"
 #include "Modules/ModuleManager.h"
 
@@ -12,7 +11,6 @@
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
 
-#include "LGUIEditorTools.h"
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
 #include "SceneOutlinerModule.h"
 #include "SceneOutlinerPublicTypes.h"
@@ -20,6 +18,8 @@
 #include "AssetToolsModule.h"
 #include "SceneView.h"
 #include "Kismet2/KismetEditorUtilities.h"
+
+#include "Engine/CollisionProfile.h"
 
 #include "LGUIEditorPCH.h"
 

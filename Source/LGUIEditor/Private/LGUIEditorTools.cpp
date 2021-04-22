@@ -1,18 +1,18 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "LGUIEditorTools.h"
-#include "LGUIHeaders.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Misc/FileHelper.h"
 #include "Misc/MessageDialog.h"
-#include "LGUIEditorStyle.h"
 #include "LGUIEditorPCH.h"
 #include "PropertyCustomizationHelpers.h"
 #include "DesktopPlatformModule.h"
 #include "AssetRegistryModule.h"
 #include "Toolkits/AssetEditorManager.h"
 #include "Engine/EngineTypes.h"
+#include "Kismet2/ComponentEditorUtils.h"
+#include "Widgets/SViewport.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 

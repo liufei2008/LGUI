@@ -3,6 +3,7 @@
 #include "LGUIEditorStyle.h"
 #include "Slate/SlateGameResources.h"
 #include "Interfaces/IPluginManager.h"
+#include "Styling/SlateStyleRegistry.h"
 
 TSharedPtr< FSlateStyleSet > FLGUIEditorStyle::StyleInstance = NULL;
 

@@ -9,6 +9,12 @@
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcess.h"
 #include "Core/ActorComponent/UIRenderable.h"
+#if WITH_EDITOR
+#include "Editor.h"
+#include "EditorStyleSet.h"
+#include "Framework/Notifications/NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#endif
 
 void LGUIUtils::DeleteActor(AActor* Target, bool WithHierarchy)
 {
