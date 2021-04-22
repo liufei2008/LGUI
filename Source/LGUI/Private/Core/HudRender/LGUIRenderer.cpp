@@ -16,7 +16,7 @@
 #include "MeshPassProcessor.inl"
 #include "ScenePrivate.h"
 #if WITH_EDITOR
-#include "Engine.h"
+#include "Engine/Engine.h"
 #include "Editor/EditorEngine.h"
 #endif
 #include "Slate/SceneViewport.h"

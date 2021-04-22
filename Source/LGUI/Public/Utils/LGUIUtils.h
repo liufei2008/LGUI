@@ -4,12 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#if WITH_EDITOR
-#include "Editor.h"
-#include "EditorStyle.h"
-#include "Framework/Notifications/NotificationManager.h"
-#include "Widgets/Notifications/SNotificationList.h"
-#endif
 
 class UUIItem;
 class ULGUICanvas;

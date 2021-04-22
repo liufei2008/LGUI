@@ -6,6 +6,7 @@
 #include "SceneView.h"
 #include "Engine/EngineTypes.h"
 #include "Core/LGUISpriteData.h"
+#include "CanvasItem.h"
 
 ULGUISpriteThumbnailRenderer::ULGUISpriteThumbnailRenderer()
 {
