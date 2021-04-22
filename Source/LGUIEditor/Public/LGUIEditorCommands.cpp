@@ -2,9 +2,14 @@
 
 #include "LGUIEditorCommands.h"
 #include "LGUIEditorModule.h"
+#include "LGUIEditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "FLGUIEditorModule"
 
+FLGUIEditorCommands::FLGUIEditorCommands()
+	: TCommands<FLGUIEditorCommands>(TEXT("LGUIEditor"), NSLOCTEXT("Contexts", "LGUIEditor", "LGUIEditor Plugin"), NAME_None, FLGUIEditorStyle::GetStyleSetName())
+{
+}
 void FLGUIEditorCommands::RegisterCommands()
 {
 	//UI_COMMAND(OpenEditorToolsWindow, "LGUIEditorTools", "Open these tools as a window", EUserInterfaceActionType::Button, FInputGesture());

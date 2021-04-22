@@ -5,6 +5,7 @@
 #include "Core/LGUISettings.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Sound/SoundCue.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteDataFactory"
 

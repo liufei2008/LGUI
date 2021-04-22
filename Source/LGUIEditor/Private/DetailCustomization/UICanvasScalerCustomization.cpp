@@ -1,10 +1,10 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UICanvasScalerCustomization.h"
-#include "LGUIEditorTools.h"
 #include "Layout/LGUICanvasScaler.h"
-#include "LGUIEditorUtils.h"
 #include "Widgets/Input/SNumericEntryBox.h"
+#include "Widgets/Input/SSlider.h"
+#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "UICanvasScalarCustomization"
 

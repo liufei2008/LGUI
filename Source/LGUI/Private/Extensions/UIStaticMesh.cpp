@@ -4,7 +4,7 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Engine/StaticMesh.h"
-#include "Engine.h"
+#include "Engine/Engine.h"
 #include "StaticMeshResources.h"
 #include "Rendering/ColorVertexBuffer.h"
 #include "LGUI.h"

@@ -7,6 +7,12 @@
 #include "Editor.h"
 #include "LGUIEditorTools.h"
 #include "LGUIEditorUtils.h"
+#include "IDetailChildrenBuilder.h"
+#include "IDetailPropertyRow.h"
+#include "IDetailGroup.h"
+#include "IPropertyUtilities.h"
+#include "EngineUtils.h"
+#include "Framework/Application/SlateApplication.h"
 
 #include "LGUIEditorStyle.h"
 #include "LGUIEditorCommands.h"

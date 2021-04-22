@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "SlateBasics.h"
-
 /**  */
 class FLGUIEditorStyle
 {

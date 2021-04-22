@@ -6,6 +6,7 @@
 #include "IDetailPropertyRow.h"
 #include "IDetailGroup.h"
 #include "IPropertyUtilities.h"
+#include "IPropertyTypeCustomization.h"
 #include "Utils/BitConverter.h"
 #include "Widget/LGUIEnumComboBox.h"
 #include "Widget/LGUIVectorInputBox.h"

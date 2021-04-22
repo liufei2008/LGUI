@@ -2,18 +2,13 @@
 
 #pragma once
 
-#include "SlateBasics.h"
-#include "LGUIEditorStyle.h"
+#include "Framework/Commands/Commands.h"
 
 class FLGUIEditorCommands : public TCommands<FLGUIEditorCommands>
 {
 public:
 
-	FLGUIEditorCommands()
-		: TCommands<FLGUIEditorCommands>(TEXT("LGUIEditor"), NSLOCTEXT("Contexts", "LGUIEditor", "LGUIEditor Plugin"), NAME_None, FLGUIEditorStyle::GetStyleSetName())
-	{
-	}
-
+	FLGUIEditorCommands();
 	// TCommands<> interface
 	virtual void RegisterCommands() override;
 

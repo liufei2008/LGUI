@@ -3,9 +3,6 @@
 #pragma once
 
 #include "Modules/ModuleInterface.h"
-
-#include "SlateBasics.h"
-#include "UnrealEd.h"
 #include "PropertyEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"

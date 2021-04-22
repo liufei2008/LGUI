@@ -1,7 +1,6 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LGUIPrefabHelperComponentCustomization.h"
-#include "LGUIEditorUtils.h"
 #include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabHelperComponentCustomization"

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "SlateBasics.h"
 #include "ISceneOutliner.h"
 #include "ISceneOutlinerColumn.h"
 

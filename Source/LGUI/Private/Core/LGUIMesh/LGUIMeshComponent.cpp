@@ -8,7 +8,7 @@
 #include "Materials/Material.h"
 #include "Core/HudRender/ILGUIHudPrimitive.h"
 #include "Core/HudRender/LGUIRenderer.h"
-#include "Engine.h"
+#include "Engine/Engine.h"
 #include "LGUI.h"
 #include "Core/HudRender/LGUIHudVertex.h"
 

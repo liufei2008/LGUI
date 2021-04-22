@@ -1,11 +1,9 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LGUIComponentRefereceCustomization.h"
-#include "LGUIEditorUtils.h"
-#include "IDetailChildrenBuilder.h"
-#include "IDetailPropertyRow.h"
-#include "IDetailGroup.h"
-#include "IPropertyUtilities.h"
+#include "LGUIEditorPCH.h"
+#include "EdGraphNode_Comment.h"
+
 
 #define LOCTEXT_NAMESPACE "LGUIComponentRefereceHelperCustomization"
 
