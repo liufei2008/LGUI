@@ -13,6 +13,8 @@
 #include "Widgets/Input/SRotatorInputBox.h"
 #include "Widgets/Colors/SColorBlock.h"
 #include "Widgets/Colors/SColorPicker.h"
+#include "EdGraphNode_Comment.h"
+#include "Math/UnitConversion.h"
 
 #pragma once
 

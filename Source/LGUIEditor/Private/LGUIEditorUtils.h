@@ -8,8 +8,7 @@
 DECLARE_DELEGATE_RetVal(FText, FLGUIArrowButtonDelegate);
 class LGUIEditorUtils
 {
-private:
-	static FName ErrorInfoCategory;
+#define ErrorInfoCategory TEXT("Error")
 public:
 	template<class T>
 	static void ShowError_MultiComponentNotAllowed(IDetailLayoutBuilder* DetailBuilder, T* Component, const FString& ErrorMessage = "")
@@ -146,5 +145,3 @@ public:
 			];
 	}
 };
-
-FName LGUIEditorUtils::ErrorInfoCategory = TEXT("Error");

@@ -3,6 +3,7 @@
 #include "DetailCustomization/UITextCustomization.h"
 #include "LGUIEditorPCH.h"
 #include "HAL/PlatformApplicationMisc.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
 
 #define LOCTEXT_NAMESPACE "UITextComponentDetails"
 FUITextCustomization::FUITextCustomization()

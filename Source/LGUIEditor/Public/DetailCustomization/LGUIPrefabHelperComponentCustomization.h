@@ -15,5 +15,4 @@ public:
 private:
 	TWeakObjectPtr<class ULGUIPrefabHelperComponent> TargetScriptPtr;
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
-	void CreateSpriteSelector(IDetailCategoryBuilder* category, IDetailLayoutBuilder* DetailBuilder, TSharedRef<IPropertyHandle> handle);
 };
