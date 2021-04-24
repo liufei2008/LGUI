@@ -8,6 +8,7 @@
 #include "Core/LGUIAtlasData.h"
 #include "LGUIEditorPCH.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Sound/SoundCue.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteDataCustomization"
 

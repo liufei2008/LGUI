@@ -10,6 +10,7 @@
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "RHI.h"
+#include "Rendering/Texture2DResource.h"
 
 
 void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal)

@@ -23,6 +23,7 @@
 #include "Core/ActorComponent/UIPostProcess.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/LGUISettings.h"
+#include "Engine/TextureRenderTarget2D.h"
 class FLGUIMeshElementCollector : FMeshElementCollector
 {
 public:

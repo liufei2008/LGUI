@@ -9,6 +9,7 @@
 #include "Core/LGUIAtlasData.h"
 #include "Core/LGUISettings.h"
 #include "Utils/LGUIUtils.h"
+#include "Rendering/Texture2DResource.h"
 #include FT_OUTLINE_H
 
 ULGUIFontData::ULGUIFontData()

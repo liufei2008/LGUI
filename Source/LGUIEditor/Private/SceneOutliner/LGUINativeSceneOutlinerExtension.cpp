@@ -14,6 +14,9 @@
 #include "JsonObjectConverter.h"
 #include "SceneOutlinerStandaloneTypes.h"
 #include "EditorActorFolders.h"
+#include "Core/LGUISettings.h"
+#include "GameFramework/Actor.h"
+#include "EngineUtils.h"
 
 void ULGUINativeSceneOutlinerExtension::Init()
 {
