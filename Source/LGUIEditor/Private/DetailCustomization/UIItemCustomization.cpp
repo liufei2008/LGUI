@@ -15,7 +15,7 @@
 #include "Widget/AnchorPreviewWidget.h"
 #include "PropertyCustomizationHelpers.h"
 #include "HAL/PlatformApplicationMisc.h"
-#include "LGUIEditorTools.h"
+#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "UIItemComponentDetails"
 
