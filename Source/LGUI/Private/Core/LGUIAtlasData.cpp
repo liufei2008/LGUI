@@ -7,7 +7,7 @@
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/LGUISpriteData.h"
 #include "Utils/LGUIUtils.h"
-#include "Rendering/Texture2DResource.h"
+#include "TextureResource.h"
 
 
 void FLGUIAtlasData::EnsureAtlasTexture(const FName& packingTag)
