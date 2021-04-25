@@ -80,15 +80,21 @@ void FLGUIEditorModule::StartupModule()
 			FExecuteAction::CreateStatic(&LGUIEditorTools::PasteComponentValues_Impl),
 			FCanExecuteAction::CreateLambda([] {return LGUIEditorTools::HaveValidCopiedComponent(); })
 		);
-		
 		PluginCommands->MapAction(
-			editorCommand.OpenAtlasViewer,
-			FExecuteAction::CreateStatic(&LGUIEditorTools::OpenAtlasViewer_Impl),
-			FCanExecuteAction());
+			editorCommand.FocusToScreenSpaceUI,
+			FExecuteAction::CreateStatic(&LGUIEditorTools::FocusToScreenSpaceUI)
+		);
+		PluginCommands->MapAction(
+			editorCommand.ActiveViewportAsLGUIPreview,
+			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ToggleActiveViewportAsPreview),
+			FCanExecuteAction(),
+			FIsActionChecked::CreateLambda([this] {return this->bActiveViewportAsPreview; })
+		);
 
 		TSharedPtr<FExtender> toolbarExtender = MakeShareable(new FExtender);
 		toolbarExtender->AddToolBarExtension("Game", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FLGUIEditorModule::AddEditorToolsToToolbarExtension));
 		LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(toolbarExtender);
+		LevelEditorModule.GetGlobalLevelEditorActions()->Append(PluginCommands.ToSharedRef());
 	}
 	//register SceneOutliner ColumnInfo
 	{
@@ -515,24 +521,30 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 
 		MenuBuilder.BeginSection("OpenWindow", LOCTEXT("OpenWindow", "Open Window"));
 		{
-			MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenAtlasViewer);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("OpenAtlasViewer", "Open LGUI atlas viewer"),
+				LOCTEXT("OpenAtlasViewer_Tooltip", "Open LGUI atlas viewer"),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::OpenAtlasViewer_Impl))
+			);
 			//MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenScreenSpaceUIViewer);
 		}
 		MenuBuilder.EndSection();
 
 		MenuBuilder.BeginSection("PreviewScreenSpaceUISelector", LOCTEXT("PreviewScreenSpaceUISelector", "Preview Viewport"));
 		{
+			MenuBuilder.AddMenuEntry(commandList.ActiveViewportAsLGUIPreview);
+		}
+		MenuBuilder.EndSection();
+
+		MenuBuilder.BeginSection("EditorCamera", LOCTEXT("EditorCameraControl", "EditorCameraControl"));
+		{
+			MenuBuilder.AddMenuEntry(commandList.FocusToScreenSpaceUI);
 			MenuBuilder.AddMenuEntry(
-				LOCTEXT("UseActiveViewportAsPreview", "Active Viewport as LGUI Preview"),
-				LOCTEXT("UseActiveViewportAsPreview_Tooltip", "Use current selected active editor viewport for ScreenSpace UI preview"),
+				LOCTEXT("FocusToSelectedUI", "Focus to Selected UI"),
+				LOCTEXT("FocusToSelectedUI_Tooltip", "Make the editor viewport's camera face to selected UI"),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEditorModule::UseActiveViewportAsPreview))
-			);
-			MenuBuilder.AddMenuEntry(
-				LOCTEXT("ClearViewportPreview", "Clear LGUI Preview"),
-				LOCTEXT("ClearViewportPreview_Tooltip", "Clear LGUI Preview"),
-				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ClearViewportPreview))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::FocusToSelectedUI))
 			);
 		}
 		MenuBuilder.EndSection();
@@ -612,6 +624,18 @@ void FLGUIEditorModule::UseActiveViewportAsPreview()
 void FLGUIEditorModule::ClearViewportPreview()
 {
 	ULGUIEditorSettings::SetLGUIPreview_EditorViewIndex(-1);
+}
+void FLGUIEditorModule::ToggleActiveViewportAsPreview()
+{
+	bActiveViewportAsPreview = !bActiveViewportAsPreview;
+	if (bActiveViewportAsPreview)
+	{
+		UseActiveViewportAsPreview();
+	}
+	else
+	{
+		ClearViewportPreview();
+	}
 }
 
 void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)

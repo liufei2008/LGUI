@@ -13,6 +13,7 @@
 #include "Engine/EngineTypes.h"
 #include "Kismet2/ComponentEditorUtils.h"
 #include "Widgets/SViewport.h"
+#include "Layout/LGUICanvasScaler.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -548,6 +549,8 @@ void LGUIEditorTools::CreateWorldSpaceUIBasicSetup()
 	if (prefab)
 	{
 		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, nullptr, true);
+		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
+		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(-90, 0, 0)));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
 		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
@@ -975,6 +978,58 @@ FString LGUIEditorTools::PrintObjectFlags(UObject* Target)
 , Target->HasAnyFlags(EObjectFlags::RF_Dynamic)
 , Target->HasAnyFlags(EObjectFlags::RF_WillBeLoaded)
 );
+}
+
+void LGUIEditorTools::FocusToScreenSpaceUI()
+{
+	if (!GWorld)return;
+	if (!GEditor)return;
+	if (auto activeViewport = GEditor->GetActiveViewport())
+	{
+		if (auto viewportClient = activeViewport->GetClient())
+		{
+			auto editorViewportClient = (FEditorViewportClient*)viewportClient;
+			for (TActorIterator<AUIContainerActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+			{
+				auto canvas = ActorItr->FindComponentByClass<ULGUICanvas>();
+				auto canvasScaler = ActorItr->FindComponentByClass<ULGUICanvasScaler>();
+				if (canvas != nullptr && canvas->IsRenderToScreenSpace() && canvasScaler != nullptr)//make sure is screen space UI root
+				{
+					editorViewportClient->SetViewLocation(canvas->GetViewLocation());
+					editorViewportClient->SetViewRotation(canvas->GetViewRotator());
+					editorViewportClient->SetLookAtLocation(canvas->GetUIItem()->GetComponentLocation());
+					break;
+				}
+			}
+		}
+	}
+}
+void LGUIEditorTools::FocusToSelectedUI()
+{
+	if (!GEditor)return;
+	if (auto activeViewport = GEditor->GetActiveViewport())
+	{
+		if (auto viewportClient = activeViewport->GetClient())
+		{
+			auto editorViewportClient = (FEditorViewportClient*)viewportClient;
+			auto selectedActor = GetFirstSelectedActor();
+			if (auto selectedUIItem = Cast<AUIBaseActor>(selectedActor))
+			{
+				if (auto renderCavnas = selectedUIItem->GetUIItem()->GetRenderCanvas())
+				{
+					if (auto canvas = renderCavnas->GetRootCanvas())
+					{
+						if (canvas != nullptr)
+						{
+							editorViewportClient->SetViewLocation(canvas->GetViewLocation());
+							editorViewportClient->SetViewRotation(canvas->GetViewRotator());
+							editorViewportClient->SetLookAtLocation(canvas->GetUIItem()->GetComponentLocation());
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

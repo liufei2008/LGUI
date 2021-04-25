@@ -1628,7 +1628,7 @@ FMatrix ULGUICanvas::GetViewRotationMatrix()
 }
 FRotator ULGUICanvas::GetViewRotator()
 {
-	return UIItem->GetComponentToWorld().Rotator();
+	return (UIItem->GetComponentQuat() * FQuat::MakeFromEuler(FVector(90, 90, 0))).Rotator();
 }
 FIntPoint ULGUICanvas::GetViewportSize()
 {

@@ -363,7 +363,7 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 		DrawDebugLine(this->GetWorld(), rightTopEnd, rightBottomEnd, lineColor);
 		DrawDebugLine(this->GetWorld(), rightTopEnd, leftTopEnd, lineColor);
 
-		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), Canvas->GetViewRotator(), FOVAngle, 1.0f, FColor::Green);
+		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), Canvas->GetViewRotator(), FOVAngle, Canvas->GetUIItem()->GetComponentScale().X * 3.0f, FColor::Green);
 	}
 }
 #endif
