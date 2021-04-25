@@ -85,6 +85,10 @@ void FLGUIEditorModule::StartupModule()
 			FExecuteAction::CreateStatic(&LGUIEditorTools::FocusToScreenSpaceUI)
 		);
 		PluginCommands->MapAction(
+			editorCommand.FocusToSelectedUI,
+			FExecuteAction::CreateStatic(&LGUIEditorTools::FocusToSelectedUI)
+		);
+		PluginCommands->MapAction(
 			editorCommand.ActiveViewportAsLGUIPreview,
 			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ToggleActiveViewportAsPreview),
 			FCanExecuteAction(),
@@ -540,12 +544,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 		MenuBuilder.BeginSection("EditorCamera", LOCTEXT("EditorCameraControl", "EditorCameraControl"));
 		{
 			MenuBuilder.AddMenuEntry(commandList.FocusToScreenSpaceUI);
-			MenuBuilder.AddMenuEntry(
-				LOCTEXT("FocusToSelectedUI", "Focus to Selected UI"),
-				LOCTEXT("FocusToSelectedUI_Tooltip", "Make the editor viewport's camera face to selected UI"),
-				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::FocusToSelectedUI))
-			);
+			MenuBuilder.AddMenuEntry(commandList.FocusToSelectedUI);
 		}
 		MenuBuilder.EndSection();
 	}
