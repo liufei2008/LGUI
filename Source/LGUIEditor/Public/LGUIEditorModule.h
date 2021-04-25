@@ -40,12 +40,13 @@ private:
 	void ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder);
 	void ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder);
 	void AttachLayout(FMenuBuilder& MenuBuilder);
-
-	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 	void UseActiveViewportAsPreview();
 	void ClearViewportPreview();
-
+	void ToggleActiveViewportAsPreview();
 	bool CanEditActorForPrefab();
+
+	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
+	bool bActiveViewportAsPreview = false;
 };
