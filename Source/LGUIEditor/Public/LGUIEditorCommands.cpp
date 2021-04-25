@@ -22,7 +22,8 @@ void FLGUIEditorCommands::RegisterCommands()
 	UI_COMMAND(CopyComponentValues, "Copy Component Values", "Copy selected component values", EUserInterfaceActionType::Button, FInputGesture());
 	UI_COMMAND(PasteComponentValues, "Paste Component Values", "Paste values to selected component", EUserInterfaceActionType::Button, FInputGesture());
 
-	UI_COMMAND(OpenAtlasViewer, "OpenAtlasViewer", "Open LGUI atlas viewer", EUserInterfaceActionType::Button, FInputGesture());
+	UI_COMMAND(ActiveViewportAsLGUIPreview, "Active Viewport as LGUI Preview", "Use current selected active editor viewport for Screen-Space-UI preview", EUserInterfaceActionType::ToggleButton, FInputChord(EKeys::V, EModifierKey::Alt | EModifierKey::Shift));
+	UI_COMMAND(FocusToScreenSpaceUI, "Focus to Screen-Space-UI", "Make the editor viewport's camera face to Screen-Space-UI (If there is a screen space UI)", EUserInterfaceActionType::Button, FInputChord(EKeys::F, EModifierKey::Alt | EModifierKey::Shift));
 }
 
 #undef LOCTEXT_NAMESPACE

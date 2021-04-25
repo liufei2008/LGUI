@@ -57,6 +57,8 @@ public:
 	static int GetDrawcallCount(AActor* InActor);
 	static bool IsSelfRenderActor(AActor* InActor);
 	static FString PrintObjectFlags(UObject* Target);
+	static void FocusToScreenSpaceUI();
+	static void FocusToSelectedUI();
 
 	static TArray<TWeakObjectPtr<class ULGUIPrefab>> copiedActorPrefabList;
 	static TWeakObjectPtr<class UActorComponent> copiedComponent;

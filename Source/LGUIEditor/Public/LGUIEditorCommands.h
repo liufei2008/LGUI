@@ -21,5 +21,6 @@ public:
 	TSharedPtr<FUICommandInfo> CopyComponentValues;
 	TSharedPtr<FUICommandInfo> PasteComponentValues;
 
-	TSharedPtr<FUICommandInfo> OpenAtlasViewer;
+	TSharedPtr<FUICommandInfo> ActiveViewportAsLGUIPreview;
+	TSharedPtr<FUICommandInfo> FocusToScreenSpaceUI;
 };
