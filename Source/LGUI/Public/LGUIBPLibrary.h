@@ -263,11 +263,11 @@ public:
 #pragma endregion DrawableEvent
 
 	/** InComponentType must be the same as InLGUIComponentReference's component type */
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "GetComponent", CompactNodeTitle = ".", BlueprintAutocast, DeterminesOutputType = "InComponentType", DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use default \"Get\" node to get component."))
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get Component", CompactNodeTitle = "Component", BlueprintAutocast, DeterminesOutputType = "InComponentType"))
 		static UActorComponent* LGUICompRef_GetComponent(const FLGUIComponentReference& InLGUIComponentReference, TSubclassOf<UActorComponent> InComponentType);
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "GetComponentClass", CompactNodeTitle = "Class", BlueprintAutocast))
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get Component Class", CompactNodeTitle = "Class", BlueprintAutocast))
 		static TSubclassOf<UActorComponent> LGUICompRef_GetComponentClass(const FLGUIComponentReference& InLGUIComponentReference);
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "GetActor", CompactNodeTitle = "Actor", BlueprintAutocast))
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get Actor", CompactNodeTitle = "Actor", BlueprintAutocast))
 		static AActor* LGUICompRef_GetActor(const FLGUIComponentReference& InLGUIComponentReference);
 
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get", CompactNodeTitle = ".", BlueprintInternalUseOnly = "true"))
