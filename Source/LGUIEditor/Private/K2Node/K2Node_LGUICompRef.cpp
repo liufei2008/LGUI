@@ -40,26 +40,33 @@ void UK2Node_LGUICompRef_GetComponent::PostReconstructNode()
 }
 FText UK2Node_LGUICompRef_GetComponent::GetNodeTitle(ENodeTitleType::Type TitleType)const
 {
-	if (TitleType == ENodeTitleType::FullTitle)
-	{
-		return autoOutputTypeSuccess ? LOCTEXT("GetComponentTitle", "Get") : LOCTEXT("GetComponentTitle", "!Get");
-	}
+	//if (TitleType == ENodeTitleType::FullTitle)
+	//{
+	//	return autoOutputTypeSuccess ? LOCTEXT("UK2Node_LGUI_GetComponentTitle", ".") : LOCTEXT("UK2Node_LGUI_GetComponentTitle", "!Get");
+	//}
 	return LOCTEXT("GetComponentTitle_Full", "Get Component for LGUIComponentReference");
+}
+FText UK2Node_LGUICompRef_GetComponent::GetCompactNodeTitle()const
+{
+	return autoOutputTypeSuccess ? LOCTEXT("UK2Node_LGUI_GetCompactNodeTitle", "\x2022") : LOCTEXT("UK2Node_LGUI_GetCompactNodeTitle", "!Get");
+}
+FText UK2Node_LGUICompRef_GetComponent::GetKeywords() const
+{
+	return FText(LOCTEXT("UK2Node_LGUI_GetKeywords", "ComponentRef"));
 }
 FText UK2Node_LGUICompRef_GetComponent::GetTooltipText()const
 {
 	return LOCTEXT("GetComponent_Tooltip", "Get component from LGUIComponentReference.\
-\nIf the node is \"Get\", then auto cast success, output is good to use.\
 \nIf the node is \"!Get\", that means auto cast failed, so you need to cast the result ActorComponent to your desired type.");
 }
-TSharedPtr<SWidget> UK2Node_LGUICompRef_GetComponent::CreateNodeImage() const
-{
-	return SPinTypeSelector::ConstructPinTypeImage(Pins[0]);
-}
-FSlateIcon UK2Node_LGUICompRef_GetComponent::GetIconAndTint(FLinearColor& OutColor)const
-{
-	return Super::GetIconAndTint(OutColor);
-}
+//TSharedPtr<SWidget> UK2Node_LGUICompRef_GetComponent::CreateNodeImage() const
+//{
+//	return SPinTypeSelector::ConstructPinTypeImage(Pins[0]);
+//}
+//FSlateIcon UK2Node_LGUICompRef_GetComponent::GetIconAndTint(FLinearColor& OutColor)const
+//{
+//	return Super::GetIconAndTint(OutColor);
+//}
 void UK2Node_LGUICompRef_GetComponent::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar)const
 {
 	UClass* ActionKey = GetClass();
@@ -77,7 +84,7 @@ FBlueprintNodeSignature UK2Node_LGUICompRef_GetComponent::GetSignature()const
 }
 FText UK2Node_LGUICompRef_GetComponent::GetMenuCategory()const
 {
-	return LOCTEXT("LGUI", "LGUI");
+	return LOCTEXT("UK2Node_LGUI_GetMenuCategory", "LGUI");
 }
 
 void UK2Node_LGUICompRef_GetComponent::SetOutputPinType()
@@ -88,31 +95,33 @@ void UK2Node_LGUICompRef_GetComponent::SetOutputPinType()
 		{
 			if (auto variablePin = Pins[0]->LinkedTo[0])
 			{
-				UK2Node_Variable* variableNode = Cast<UK2Node_Variable>(variablePin->GetOwningNode());
-				auto propertyName = variableNode->GetVarName();
-				if (auto blueprint = variableNode->GetBlueprint())
+				if (UK2Node_Variable* variableNode = Cast<UK2Node_Variable>(variablePin->GetOwningNode()))
 				{
-					if (auto generatedClass = blueprint->GeneratedClass)
+					auto propertyName = variableNode->GetVarName();
+					if (auto blueprint = variableNode->GetBlueprint())
 					{
-						if (auto objectInstance = generatedClass->GetDefaultObject())
+						if (auto generatedClass = blueprint->GeneratedClass)
 						{
-							auto propertyField = TFieldRange<FProperty>(generatedClass);
-							for (const auto propertyItem : propertyField)
+							if (auto objectInstance = generatedClass->GetDefaultObject())
 							{
-								if (auto structProperty = CastField<FStructProperty>(propertyItem))
+								auto propertyField = TFieldRange<FProperty>(generatedClass);
+								for (const auto propertyItem : propertyField)
 								{
-									if (structProperty->Struct == FLGUIComponentReference::StaticStruct())
+									if (auto structProperty = CastField<FStructProperty>(propertyItem))
 									{
-										if (structProperty->GetFName() == propertyName)
+										if (structProperty->Struct == FLGUIComponentReference::StaticStruct())
 										{
-											FLGUIComponentReference* structPtr = structProperty->ContainerPtrToValuePtr<FLGUIComponentReference>(objectInstance);
-											if (structPtr->GetComponentClass() != nullptr)
+											if (structProperty->GetFName() == propertyName)
 											{
-												UEdGraphPin* outputPin = Pins[1];
-												outputPin->PinType.PinCategory = UEdGraphSchema_K2::PC_Object;
-												outputPin->PinType.PinSubCategoryObject = structPtr->GetComponentClass().Get();
-												autoOutputTypeSuccess = true;
-												return;
+												FLGUIComponentReference* structPtr = structProperty->ContainerPtrToValuePtr<FLGUIComponentReference>(objectInstance);
+												if (structPtr->GetComponentClass() != nullptr)
+												{
+													UEdGraphPin* outputPin = Pins[1];
+													outputPin->PinType.PinCategory = UEdGraphSchema_K2::PC_Object;
+													outputPin->PinType.PinSubCategoryObject = structPtr->GetComponentClass().Get();
+													autoOutputTypeSuccess = true;
+													return;
+												}
 											}
 										}
 									}
@@ -188,6 +197,17 @@ bool UK2Node_LGUICompRef_GetComponent::IsActionFilteredOut(FBlueprintActionFilte
 }
 bool UK2Node_LGUICompRef_GetComponent::IsConnectionDisallowed(const UEdGraphPin* MyPin, const UEdGraphPin* OtherPin, FString& OutReason)const
 {
+	//UEdGraphPin* InputPin = FindPin(TEXT("Input"));
+	//if (InputPin && OtherPin && (InputPin == MyPin) && (MyPin->PinType.PinCategory == UEdGraphSchema_K2::PC_Wildcard))
+	//{
+	//	if ((OtherPin->PinType.PinCategory != UEdGraphSchema_K2::PC_SoftObject) &&
+	//		(OtherPin->PinType.PinCategory != UEdGraphSchema_K2::PC_SoftClass) &&
+	//		(OtherPin->PinType.PinCategory != UEdGraphSchema_K2::PC_Object) &&
+	//		(OtherPin->PinType.PinCategory != UEdGraphSchema_K2::PC_Class))
+	//	{
+	//		return true;
+	//	}
+	//}
 	return false;
 }
 bool UK2Node_LGUICompRef_GetComponent::ReferencesVariable(const FName& InVarName, const UStruct* InScope)const
