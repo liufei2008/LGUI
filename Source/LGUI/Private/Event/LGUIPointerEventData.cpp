@@ -2,7 +2,9 @@
 
 #include "Event/LGUIPointerEventData.h"
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
+#include "Event/Rayemitter/LGUIBaseRayemitter.h"
 #include "LGUI.h"
+#include "GameFramework/Actor.h"
 
 
 FVector ULGUIPointerEventData::GetWorldPointInPlane()const

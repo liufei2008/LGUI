@@ -9,7 +9,9 @@
 #include "Core/LGUIAtlasData.h"
 #include "Core/LGUISettings.h"
 #include "Utils/LGUIUtils.h"
-#include "Rendering/Texture2DResource.h"
+#include "TextureResource.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H
 #include FT_OUTLINE_H
 
 ULGUIFontData::ULGUIFontData()
@@ -272,7 +274,7 @@ PACK_AND_INSERT:
 
 	return &cacheCharData;
 }
-bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
+bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, FT_GlyphSlotRec_* InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
 {
 	const auto& charBitmap = InSlot->bitmap;
 	int charRectWidth = charBitmap.width + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
