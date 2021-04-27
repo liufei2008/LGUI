@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "RHI.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "LGUIFontData.generated.h"
 
@@ -65,6 +63,9 @@ public:
 };
 
 class UUIText;
+struct FT_GlyphSlotRec_;
+struct FT_LibraryRec_;
+struct FT_FaceRec_;
 
 /**
  * font asset for UIText to render
@@ -143,8 +144,8 @@ private:
 	FLGUIFontKeyData cacheFontKey;
 	FLGUICharData cacheCharData;
 
-	FT_Library library = nullptr;
-	FT_Face face = nullptr;
+	FT_LibraryRec_* library = nullptr;
+	FT_FaceRec_* face = nullptr;
 	bool alreadyInitialized = false;
 	bool usePackingTag = false;
 	FLGUICharData* PushCharIntoFont(const TCHAR& charIndex, const uint16& charSize);
@@ -152,7 +153,7 @@ private:
 	 * Insert rect into area, assign pixel if succeed
 	 * return: if can fit in rect area return true, else false
 	 */
-	bool PackRectAndInsertChar(int32 InExtraSpace, const FT_GlyphSlot& InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
+	bool PackRectAndInsertChar(int32 InExtraSpace, FT_GlyphSlotRec_* InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
 	void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
 
