@@ -6,217 +6,161 @@
 #include "Utils/LGUIUtils.h"
 #include "LGUI.h"
 
-#define BITCONVERTER_ERRORCHECK_EDITOR(func, bytes, byteCountNeeded, returnValueIfError)\
+#define BITCONVERTER_ERRORCHECK(func, bytes, byteCountNeeded, returnValueIfError)\
 if(bytes.Num() < byteCountNeeded)\
 {\
 	auto ErrorMsg = FString::Printf(ErrorMsgFormat, TEXT(#func), bytes.Num());\
-	UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);\
-	LGUIUtils::EditorNotification(FText::FromString(ErrorMsg), 10.0f);\
+	EditorNotify(ErrorMsg);\
+	outSucceed = false;\
 	return returnValueIfError; \
 }\
 
-#define BITCONVERTER_ERRORCHECK_RUNTIME(func, bytes, byteCountNeeded)\
-checkf(bytes.Num() >= byteCountNeeded, ErrorMsgFormat, TEXT(#func), bytes.Num());
 
 class LGUI_API BitConverter
 {
 public:
-	static bool ToBoolean(const TArray<uint8>& bytes)
+	static bool ToBoolean(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToBoolean, bytes, 1, false)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToBoolean, bytes, 1)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToBoolean, bytes, 1, false)
+		outSucceed = true;
 		return bytes[0] == 1;
 	}
-	static int8 ToInt8(const TArray<uint8>& bytes)
+	static int8 ToInt8(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt8, bytes, 1, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt8, bytes, 1)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToInt8, bytes, 1, 0)
 		int8 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 1);
+		outSucceed = true;
 		return result;
 	}
-	static uint8 ToUInt8(const TArray<uint8>& bytes)
+	static uint8 ToUInt8(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt8, bytes, 1, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt8, bytes, 1)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToUInt8, bytes, 1, 0)
 		uint8 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 1);
 		return result;
 	}
-	static int16 ToInt16(const TArray<uint8>& bytes)
+	static int16 ToInt16(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt16, bytes, 2, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt16, bytes, 2)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToInt16, bytes, 2, 0)
 		int16 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 2);
+		outSucceed = true;
 		return result;
 	}
-	static uint16 ToUInt16(const TArray<uint8>& bytes)
+	static uint16 ToUInt16(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt16, bytes, 2, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt16, bytes, 2)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToUInt16, bytes, 2, 0)
 		uint16 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 2);
+		outSucceed = true;
 		return result;
 	}
-	static int32 ToInt32(const TArray<uint8>& bytes)
+	static int32 ToInt32(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt32, bytes, 4, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt32, bytes, 4)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToInt32, bytes, 4, 0)
 		int32 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 4);
+		outSucceed = true;
 		return result;
 	}
-	static uint32 ToUInt32(const TArray<uint8>& bytes)
+	static uint32 ToUInt32(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt32, bytes, 4, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt32, bytes, 4)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToUInt32, bytes, 4, 0)
 		uint32 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 4);
+		outSucceed = true;
 		return result;
 	}
-	static int64 ToInt64(const TArray<uint8>& bytes)
+	static int64 ToInt64(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToInt64, bytes, 8, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToInt64, bytes, 8)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToInt64, bytes, 8, 0)
 		int64 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 8);
+		outSucceed = true;
 		return result;
 	}
-	static uint64 ToUInt64(const TArray<uint8>& bytes)
+	static uint64 ToUInt64(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToUInt64, bytes, 8, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToUInt64, bytes, 8)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToUInt64, bytes, 8, 0)
 		uint64 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 8);
+		outSucceed = true;
 		return result;
 	}
-	static float ToFloat(const TArray<uint8>& bytes)
+	static float ToFloat(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToFloat, bytes, 4, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToFloat, bytes, 4)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToFloat, bytes, 4, 0)
 		float result;
 		FMemory::Memcpy(&result, bytes.GetData(), 4);
+		outSucceed = true;
 		return result;
 	}
-	static double ToDouble(const TArray<uint8>& bytes)
+	static double ToDouble(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToDouble, bytes, 8, 0)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToDouble, bytes, 8)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToDouble, bytes, 8, 0)
 		double result;
 		FMemory::Memcpy(&result, bytes.GetData(), 8);
+		outSucceed = true;
 		return result;
 	}
-	static FVector2D ToVector2(const TArray<uint8>& bytes)
+	static FVector2D ToVector2(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector2, bytes, 8, FVector2D::ZeroVector)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector2, bytes, 8)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToVector2, bytes, 8, FVector2D::ZeroVector)
 		FVector2D result;
 		FMemory::Memcpy(&result, bytes.GetData(), 8);
+		outSucceed = true;
 		return result;
 	}
-	static FVector ToVector3(const TArray<uint8>& bytes)
+	static FVector ToVector3(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector3, bytes, 12, FVector::ZeroVector)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector3, bytes, 12)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToVector3, bytes, 12, FVector::ZeroVector)
 		FVector result;
 		FMemory::Memcpy(&result, bytes.GetData(), 12);
+		outSucceed = true;
 		return result;
 	}
-	static FVector4 ToVector4(const TArray<uint8>& bytes)
+	static FVector4 ToVector4(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToVector4, bytes, 16, FVector4(EForceInit::ForceInitToZero))
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToVector4, bytes, 16)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToVector4, bytes, 16, FVector4(EForceInit::ForceInitToZero))
 		FVector4 result;
 		FMemory::Memcpy(&result, bytes.GetData(), 16);
+		outSucceed = true;
 		return result;
 	}
-	static FQuat ToQuat(const TArray<uint8>& bytes)
+	static FQuat ToQuat(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToBoolean, bytes, 16, FQuat::Identity)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToBoolean, bytes, 16)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToBoolean, bytes, 16, FQuat::Identity)
 		FQuat result;
 		FMemory::Memcpy(&result, bytes.GetData(), 16);
+		outSucceed = true;
 		return result;
 	}
-	static FColor ToColor(const TArray<uint8>& bytes)
+	static FColor ToColor(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToColor, bytes, 4, FColor::White)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToColor, bytes, 4)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToColor, bytes, 4, FColor::White)
 		FColor result;
 		FMemory::Memcpy(&result, bytes.GetData(), 4);
+		outSucceed = true;
 		return result;
 	}
-	static FLinearColor ToLinearColor(const TArray<uint8>& bytes)
+	static FLinearColor ToLinearColor(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToLinearColor, bytes, 16, FLinearColor::White)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToLinearColor, bytes, 16)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToLinearColor, bytes, 16, FLinearColor::White)
 		FLinearColor result;
 		FMemory::Memcpy(&result, bytes.GetData(), 16);
+		outSucceed = true;
 		return result;
 	}
-	static FRotator ToRotator(const TArray<uint8>& bytes)
+	static FRotator ToRotator(const TArray<uint8>& bytes, bool& outSucceed)
 	{
-#if WITH_EDITOR
-		BITCONVERTER_ERRORCHECK_EDITOR(BitConverter::ToRotator, bytes, 12, FRotator::ZeroRotator)
-#else
-		BITCONVERTER_ERRORCHECK_RUNTIME(BitConverter::ToRotator, bytes, 12)
-#endif
+		BITCONVERTER_ERRORCHECK(BitConverter::ToRotator, bytes, 12, FRotator::ZeroRotator)
 		FRotator result;
 		FMemory::Memcpy(&result, bytes.GetData(), 12);
+		outSucceed = true;
 		return result;
 	}
+
 
 	static TArray<uint8> GetBytes(bool InBool)
 	{
@@ -299,6 +243,13 @@ private:
 		result.AddUninitialized(count);
 		FMemory::Memcpy(result.GetData(), InData, count);
 		return result;
+	}
+	FORCEINLINE static void EditorNotify(const FString& ErrorMsg)
+	{
+		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(FText::FromString(ErrorMsg), 10.0f);
+#endif
 	}
 	static const TCHAR ErrorMsgFormat[];
 };
