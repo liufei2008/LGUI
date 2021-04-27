@@ -486,11 +486,9 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 			else
 			{
 				auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
-#if WITH_EDITOR
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg); 
+#if WITH_EDITOR
 				LGUIUtils::EditorNotification(FText::FromString(ErrorMsg)); 
-#else
-				checkf(false, TEXT("%s"), *ErrorMsg);
 #endif
 			}
 		}
@@ -531,11 +529,9 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, FLGU
 	else
 	{
 		auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/DeserializeActorRecursive]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
-#if WITH_EDITOR
 		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
+#if WITH_EDITOR
 		LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
-#else
-		checkf(false, TEXT("%s"), *ErrorMsg);
 #endif
 		return nullptr;
 	}
@@ -656,6 +652,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 	break;
 	}
 
+	bool bitConvertSuccess = false;
 	if (HaveData)
 	{
 		if (Property->ArrayDim > 1 && isInsideCppArray == false)
@@ -673,7 +670,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				int index = -2;
 				if (ItemPropertyData.Data.Num() == 4)
 				{
-					index = BitConverter::ToInt32(ItemPropertyData.Data);
+					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 				}
 				if (index <= -1)return true;
 				if (auto asset = FindClassFromListByIndex(index))
@@ -688,7 +685,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				int index = -2;
 				if (ItemPropertyData.Data.Num() == 4)
 				{
-					index = BitConverter::ToInt32(ItemPropertyData.Data);
+					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 				}
 				if (index <= -1) 
 				{
@@ -750,7 +747,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			else if (auto arrProperty = CastField<FArrayProperty>(Property))
 			{
 				FScriptArrayHelper ArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
-				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data);//array count
+				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//array count
 				ArrayHelper.Resize(ArrayCount);
 				for (int i = 0; i < ArrayCount; i++)
 				{
@@ -761,7 +758,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			else if (auto mapProperty = CastField<FMapProperty>(Property))
 			{
 				FScriptMapHelper MapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
-				auto count = BitConverter::ToInt32(ItemPropertyData.Data) * 2;//Map element's data is stored as key,value,key,value...
+				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess) * 2;//Map element's data is stored as key,value,key,value...
 				int mapIndex = 0;
 				for (int i = 0; i < count; i++)
 				{
@@ -777,7 +774,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			else if (auto setProperty = CastField<FSetProperty>(Property))
 			{
 				FScriptSetHelper SetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
-				auto count = BitConverter::ToInt32(ItemPropertyData.Data);//Set count
+				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//Set count
 				for (int i = 0; i < count; i++)
 				{
 					SetHelper.AddDefaultValue_Invalid_NeedsRehash();
@@ -824,7 +821,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data);
+					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
 					auto stringValue = FindStringFromListByIndex(index);
 					strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
 				}
@@ -835,7 +832,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data);
+					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
 					auto nameValue = FindNameFromListByIndex(index);
 					nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
 				}
@@ -846,7 +843,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data);
+					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
 					auto textValue = FindTextFromListByIndex(index);
 					textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
 				}
@@ -864,7 +861,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			{
 				if (auto boolProperty = CastField<FBoolProperty>(Property))
 				{
-					auto value = BitConverter::ToBoolean(ItemPropertyData.Data);
+					auto value = BitConverter::ToBoolean(ItemPropertyData.Data, bitConvertSuccess);
 					boolProperty->SetPropertyValue_InContainer((void*)Dest, value, cppArrayIndex);
 				}
 				else
@@ -919,6 +916,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 	}
 
 
+	bool bitConvertSuccess = false;
 	if (HaveData)
 	{
 		if (Property->ArrayDim > 1 && isInsideCppArray == false)
@@ -936,7 +934,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				int index = -2;
 				if (ItemPropertyData.Data.Num() == 4)
 				{
-					index = BitConverter::ToInt32(ItemPropertyData.Data);
+					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 				}
 				if (index <= -1)return true;
 				if (auto asset = FindClassFromListByIndex(index))
@@ -951,7 +949,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				int index = -2;
 				if (ItemPropertyData.Data.Num() == 4)
 				{
-					index = BitConverter::ToInt32(ItemPropertyData.Data);
+					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 				}
 				if (index <= -1)
 				{
@@ -1012,7 +1010,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			else if (auto arrProperty = CastField<FArrayProperty>(Property))
 			{
 				FScriptArrayHelper ArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
-				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data);//array count
+				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//array count
 				ArrayHelper.Resize(ArrayCount);
 				for (int i = 0; i < ArrayCount; i++)
 				{
@@ -1023,7 +1021,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			else if (auto mapProperty = CastField<FMapProperty>(Property))
 			{
 				FScriptMapHelper MapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
-				auto count = BitConverter::ToInt32(ItemPropertyData.Data) * 2;//Map element's data is stored as key,value,key,value...
+				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess) * 2;//Map element's data is stored as key,value,key,value...
 				int mapIndex = 0;
 				for (int i = 0; i < count; i++)
 				{
@@ -1039,7 +1037,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			else if (auto setProperty = CastField<FSetProperty>(Property))
 			{
 				FScriptSetHelper SetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
-				auto count = BitConverter::ToInt32(ItemPropertyData.Data);//Set count
+				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//Set count
 				for (int i = 0; i < count; i++)
 				{
 					SetHelper.AddDefaultValue_Invalid_NeedsRehash();
@@ -1086,7 +1084,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data);
+					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
 					auto stringValue = FindStringFromListByIndex(index);
 					strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
 				}
@@ -1097,7 +1095,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data);
+					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
 					auto nameValue = FindNameFromListByIndex(index);
 					nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
 				}
@@ -1108,7 +1106,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				auto data = ItemPropertyData.Data;
 				if (data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data);
+					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
 					auto textValue = FindTextFromListByIndex(index);
 					textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
 				}
@@ -1126,7 +1124,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			{
 				if (auto boolProperty = CastField<FBoolProperty>(Property))
 				{
-					auto value = BitConverter::ToBoolean(ItemPropertyData.Data);
+					auto value = BitConverter::ToBoolean(ItemPropertyData.Data, bitConvertSuccess);
 					boolProperty->SetPropertyValue_InContainer((void*)Dest, value, cppArrayIndex);
 				}
 				else
@@ -1135,16 +1133,14 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
  Open the prefab and click \"RecreateThis\" can fix it.\
  If this problem still exist, please contact the plugin author.")
 						, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
-#if WITH_EDITOR
 					if (Property->GetSize() != ItemPropertyData.Data.Num())
 					{
 						UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
+#if WITH_EDITOR
 						LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
+#endif
 						return false;
 					}
-#else
-					checkf(Property->GetSize() == ItemPropertyData.Data.Num(), TEXT("%s"), *ErrorMsg);
-#endif
 					Property->CopyCompleteValue(Property->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex), ItemPropertyData.Data.GetData());
 				}
 				return true;

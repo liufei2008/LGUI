@@ -895,6 +895,7 @@ protected:
 		auto functionParameterType = InFunctionParameterTypeArray[InParameterIndex];
 		if (functionParameterType != LGUIDrawableEventParameterType::None)//None means not select function yet
 		{
+			bool bitConvertSuccess = false;
 			switch (functionParameterType)
 			{
 			default:
@@ -919,7 +920,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 1);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, BoolValue));
-				valueHandle->SetValue(BitConverter::ToBoolean(GetBuffer(paramBufferHandle, 1)));
+				valueHandle->SetValue(BitConverter::ToBoolean(GetBuffer(paramBufferHandle, 1), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::BoolValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -929,7 +930,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, FloatValue));
-				valueHandle->SetValue(BitConverter::ToFloat(GetBuffer(paramBufferHandle, 4)));
+				valueHandle->SetValue(BitConverter::ToFloat(GetBuffer(paramBufferHandle, 4), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::FloatValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -939,7 +940,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, DoubleValue));
-				valueHandle->SetValue(BitConverter::ToDouble(GetBuffer(paramBufferHandle, 8)));
+				valueHandle->SetValue(BitConverter::ToDouble(GetBuffer(paramBufferHandle, 8), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::DoubleValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -949,7 +950,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 1);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int8Value));
-				valueHandle->SetValue(BitConverter::ToInt8(GetBuffer(paramBufferHandle, 1)));
+				valueHandle->SetValue(BitConverter::ToInt8(GetBuffer(paramBufferHandle, 1), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int8ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -959,7 +960,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 1);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt8Value));
-				valueHandle->SetValue(BitConverter::ToUInt8(GetBuffer(paramBufferHandle, 1)));
+				valueHandle->SetValue(BitConverter::ToUInt8(GetBuffer(paramBufferHandle, 1), bitConvertSuccess));
 				if (auto enumValue = ULGUIDrawableEventParameterHelper::GetEnumParameter(InFunction))
 				{
 					return
@@ -984,7 +985,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 2);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int16Value));
-				valueHandle->SetValue(BitConverter::ToInt16(GetBuffer(paramBufferHandle, 2)));
+				valueHandle->SetValue(BitConverter::ToInt16(GetBuffer(paramBufferHandle, 2), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int16ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -994,7 +995,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 2);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt16Value));
-				valueHandle->SetValue(BitConverter::ToUInt16(GetBuffer(paramBufferHandle, 2)));
+				valueHandle->SetValue(BitConverter::ToUInt16(GetBuffer(paramBufferHandle, 2), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt16ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -1004,7 +1005,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int32Value));
-				valueHandle->SetValue(BitConverter::ToInt32(GetBuffer(paramBufferHandle, 4)));
+				valueHandle->SetValue(BitConverter::ToInt32(GetBuffer(paramBufferHandle, 4), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int32ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -1014,7 +1015,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt32Value));
-				valueHandle->SetValue(BitConverter::ToUInt32(GetBuffer(paramBufferHandle, 4)));
+				valueHandle->SetValue(BitConverter::ToUInt32(GetBuffer(paramBufferHandle, 4), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt32ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -1024,7 +1025,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int64Value));
-				valueHandle->SetValue(BitConverter::ToInt64(GetBuffer(paramBufferHandle, 8)));
+				valueHandle->SetValue(BitConverter::ToInt64(GetBuffer(paramBufferHandle, 8), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int64ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -1034,7 +1035,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt64Value));
-				valueHandle->SetValue(BitConverter::ToUInt64(GetBuffer(paramBufferHandle, 8)));
+				valueHandle->SetValue(BitConverter::ToUInt64(GetBuffer(paramBufferHandle, 8), bitConvertSuccess));
 				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt64ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
@@ -1044,7 +1045,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector2Value));
-				valueHandle->SetValue(BitConverter::ToVector2(GetBuffer(paramBufferHandle, 8)));
+				valueHandle->SetValue(BitConverter::ToVector2(GetBuffer(paramBufferHandle, 8), bitConvertSuccess));
 				return SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
@@ -1071,7 +1072,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 12);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector3Value));
-				valueHandle->SetValue(BitConverter::ToVector3(GetBuffer(paramBufferHandle, 12)));
+				valueHandle->SetValue(BitConverter::ToVector3(GetBuffer(paramBufferHandle, 12), bitConvertSuccess));
 				return SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
@@ -1102,7 +1103,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector4Value));
-				valueHandle->SetValue(BitConverter::ToVector4(GetBuffer(paramBufferHandle, 16)));
+				valueHandle->SetValue(BitConverter::ToVector4(GetBuffer(paramBufferHandle, 16), bitConvertSuccess));
 				return SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
@@ -1137,7 +1138,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ColorValue));
-				auto color = BitConverter::ToColor(GetBuffer(paramBufferHandle, 4));
+				auto color = BitConverter::ToColor(GetBuffer(paramBufferHandle, 4), bitConvertSuccess);
 				valueHandle->SetValueFromFormattedString(color.ToString());
 				return SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
@@ -1172,7 +1173,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, LinearColorValue));
-				auto color = BitConverter::ToLinearColor(GetBuffer(paramBufferHandle, 16));
+				auto color = BitConverter::ToLinearColor(GetBuffer(paramBufferHandle, 16), bitConvertSuccess);
 				valueHandle->SetValueFromFormattedString(color.ToString());
 				return SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
@@ -1207,7 +1208,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, QuatValue));
-				valueHandle->SetValue(BitConverter::ToQuat(GetBuffer(paramBufferHandle, 16)));
+				valueHandle->SetValue(BitConverter::ToQuat(GetBuffer(paramBufferHandle, 16), bitConvertSuccess));
 				return SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
@@ -1281,7 +1282,7 @@ protected:
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 12);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, RotatorValue));
-				valueHandle->SetValue(BitConverter::ToRotator(GetBuffer(paramBufferHandle, 12)));
+				valueHandle->SetValue(BitConverter::ToRotator(GetBuffer(paramBufferHandle, 12), bitConvertSuccess));
 				TSharedPtr<INumericTypeInterface<float>> TypeInterface;
 				if (FUnitConversion::Settings().ShouldDisplayUnits())
 				{
