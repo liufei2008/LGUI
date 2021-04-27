@@ -144,7 +144,7 @@ bool UUIScrollViewComponent::OnPointerUp_Implementation(ULGUIPointerEventData *e
 
 bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEventData *eventData)
 {
-    if (CheckParameters() && CheckValidHit(eventData->enterComponent))
+    if (CheckParameters() && CheckValidHit(eventData->dragComponent))
     {
         auto worldPoint = eventData->GetWorldPointInPlane();
         const auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);

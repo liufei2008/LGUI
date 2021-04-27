@@ -280,7 +280,6 @@ void ULGUIEventSystem::LogEventData(ULGUIBaseEventData* inEventData)
 {\
 	inEventData->eventType = EPointerEventType::function;\
 	LogEventData(inEventData);\
-	bool interfaceExecuted = false;\
 	bool eventAllowBubble = allowBubble;\
 	switch(eventFireType)\
 	{\
@@ -293,7 +292,6 @@ void ULGUIEventSystem::LogEventData(ULGUIBaseEventData* inEventData)
 				{\
 					eventAllowBubble = false;\
 				}\
-				interfaceExecuted = true;\
 			}\
 		}\
 		break;\
@@ -305,7 +303,6 @@ void ULGUIEventSystem::LogEventData(ULGUIBaseEventData* inEventData)
 				{\
 					eventAllowBubble = false;\
 				}\
-				interfaceExecuted = true;\
 			}\
 		}\
 		break;\
@@ -318,7 +315,6 @@ void ULGUIEventSystem::LogEventData(ULGUIBaseEventData* inEventData)
 				{\
 					eventAllowBubble = false;\
 				}\
-				interfaceExecuted = true;\
 			}\
 			auto components = ownerActor->GetComponents();\
 			for (auto item : components)\
@@ -329,13 +325,12 @@ void ULGUIEventSystem::LogEventData(ULGUIBaseEventData* inEventData)
 					{\
 						eventAllowBubble = false;\
 					}\
-					interfaceExecuted = true;\
 				}\
 			}\
 		}\
 		break;\
 	}\
-	if (eventAllowBubble || !interfaceExecuted)\
+	if (eventAllowBubble)\
 	{\
 		if (auto parentActor = component->GetOwner()->GetAttachParentActor())\
 		{\
