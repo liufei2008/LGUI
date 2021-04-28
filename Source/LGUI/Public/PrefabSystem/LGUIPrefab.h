@@ -33,16 +33,6 @@ public:
 		TArray<UClass*> ReferenceClassList;
 
 #if WITH_EDITORONLY_DATA
-	/**
-	 * use build data?
-	 * after serialize, two data array will be saved --EditorData(BinaryData) and BinaryDataForBuild. build game will only use BinaryDataForBuild. UseBuildData can test BinaryDataForBuild in editor, if anything wrong happens, you can recreate prefab by click "RecreateThis".
-	 *
-	 * EditorData contains all properties including EditorOnly properties, when deserialize from it, LGUIPrefab will compare property name and type and then set the property value.
-	 *
-	 * BinaryDataForBuild don't contains EditorOnly property, when deserialize from it, LGUIPrefab will set property value by memory order, which is much faster than EditorData.
-	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool UseBuildData = false;
 	/** serialized data for editor use, this data contains property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
@@ -59,16 +49,24 @@ public:
 	/** Engine's minor version when creating this prefab */
 	UPROPERTY()
 		uint16 EngineMinorVersion;
-	/** serialized data for publish, not contain property name and editor only property. much more faster than BinaryData when deserialize */
+	/** 
+	 * serialized data for publish, not contain property name and editor only property. much more faster than BinaryData when deserialize
+	 * @todo: remove this, because new serialization system don't need this
+	 */
 	UPROPERTY()
 		TArray<uint8> BinaryDataForBuild;
 #if WITH_EDITORONLY_DATA
-	/** BinaryDataForBuild's length */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		uint64 DataCountForBuild;
 	UPROPERTY(Instanced, Transient)
 		class UThumbnailInfo* ThumbnailInfo;
 	UPROPERTY(Transient)
 		bool ThumbnailDirty = false;
+#endif
+
+#if WITH_EDITOR
+public:
+	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
+	virtual void WillNeverCacheCookedPlatformDataAgain()override;
+	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
+	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
 #endif
 };

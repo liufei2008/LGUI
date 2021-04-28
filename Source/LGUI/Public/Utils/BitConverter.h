@@ -15,7 +15,7 @@ if(bytes.Num() < byteCountNeeded)\
 	return returnValueIfError; \
 }\
 
-
+//@todo: use build-in instead of BitConverter
 class LGUI_API BitConverter
 {
 public:
