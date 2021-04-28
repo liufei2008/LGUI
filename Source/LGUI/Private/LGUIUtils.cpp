@@ -285,6 +285,4 @@ TSharedPtr<UUIDrawcall> LGUIUtils::GetAvalibleDrawcall(TArray<TSharedPtr<UUIDraw
 	return result;
 }
 
-const TCHAR BitConverter::ErrorMsgFormat[] = TEXT("[BitConvert/%s]bytes.Num %d is not enough! \
-If this happens when loading a LGUIPrefab, then open that prefab and click \"RecreateThis\" can fix it. \
-If this problem still exist, please contact the plugin author.");
+const TCHAR BitConverter::ErrorMsgFormat[] = TEXT("[BitConvert/%s]bytes.Num %d not enough!");
