@@ -459,9 +459,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(UProperty* Property, int itemTy
 				{
 					if (Property->GetSize() != ItemPropertyData.Data.Num())
 					{
-						auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/LoadCommonPropertyForBuild]Error prefab:%s. \n	Load value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.\
- Open the prefab and click \"RecreateThis\" can fix it.\
- If this problem still exist, please contact the plugin author.")
+						auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/LoadCommonPropertyForBuild]Error prefab:%s. \n	Load value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.")
 							, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
 						UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
 #if WITH_EDITOR
