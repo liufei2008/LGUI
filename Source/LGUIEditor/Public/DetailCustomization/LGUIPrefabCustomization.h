@@ -15,9 +15,6 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
 	TWeakObjectPtr<class ULGUIPrefab> TargetScriptPtr;
-	FReply OnClickUseBuildDataButton(bool AllUseBuildData);
-	FReply OnClickRecreteButton();
-	FReply OnClickRecreteAllButton();
 	FText GetEngineVersionText()const;
 	FText GetPrefabVersionText()const;
 	FSlateColor GetEngineVersionTextColorAndOpacity()const;
