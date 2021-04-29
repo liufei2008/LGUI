@@ -395,7 +395,7 @@ namespace LGUIPrefabSystem
 		FText FindTextFromListByIndex(int32 Id);
 		UClass* FindClassFromListByIndex(int32 Id);
 
-		void LogForBitConvertFail(bool success, UProperty* Property);
+		void LogForBitConvertFail(bool success, FProperty* Property);
 
 		TArray<FName> GetActorExcludeProperties();
 		TArray<FName> GetComponentExcludeProperties();
