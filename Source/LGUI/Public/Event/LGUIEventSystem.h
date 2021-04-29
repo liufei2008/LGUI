@@ -51,7 +51,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
 		bool bRayEventEnable = true;
 
-	FORCEINLINE void ProcessInputEvent();
+	void ProcessInputEvent();
 public:
 	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputTrigger instead.")
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType", DeprecatedFunction, DeprecationMessage="Use LGUI_StandaloneInputModule's InputTrigger instead."))
