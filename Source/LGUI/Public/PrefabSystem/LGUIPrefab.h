@@ -36,9 +36,6 @@ public:
 	/** serialized data for editor use, this data contains property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
-	/** BinaryData's length */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		uint64 DataCount;
 #endif
 	/** Prefab system's version when creating this prefab */
 	UPROPERTY()
