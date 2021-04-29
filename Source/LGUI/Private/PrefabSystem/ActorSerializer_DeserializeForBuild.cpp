@@ -226,7 +226,10 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 		if (itemPropertyIndex < PropertyData.Num())
 		{
 			ItemPropertyData = PropertyData[itemPropertyIndex];
-			HaveData = true;
+			if(ItemPropertyData.PropertyType != ELGUIPropertyType::PT_None)
+			{
+				HaveData = true;
+			}
 		}
 	}
 	break;
@@ -237,7 +240,10 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 		if (itemPropertyIndex < PropertyData.Num())
 		{
 			ItemPropertyData = PropertyData[itemPropertyIndex];
-			HaveData = true;
+			if(ItemPropertyData.PropertyType != ELGUIPropertyType::PT_None)
+			{
+				HaveData = true;
+			}
 		}
 	}
 	break;
@@ -263,6 +269,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				if (ItemPropertyData.Data.Num() == 4)
 				{
 					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 				}
 				if (index <= -1)return true;
 				if (auto asset = FindClassFromListByIndex(index))
@@ -278,6 +285,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				if (ItemPropertyData.Data.Num() == 4)
 				{
 					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 				}
 				if (index <= -1)
 				{
@@ -339,6 +347,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 			{
 				FScriptArrayHelper ArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//array count
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				ArrayHelper.Resize(ArrayCount);
 				for (int i = 0; i < ArrayCount; i++)
 				{
@@ -350,6 +359,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 			{
 				FScriptMapHelper MapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess) * 2;//Map element's data is stored as key,value,key,value...
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				int mapIndex = 0;
 				for (int i = 0; i < count; i++)
 				{
@@ -366,6 +376,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 			{
 				FScriptSetHelper SetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//Set count
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				for (int i = 0; i < count; i++)
 				{
 					SetHelper.AddDefaultValue_Invalid_NeedsRehash();
@@ -413,6 +424,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				if (data.Num() == 4)
 				{
 					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 					auto stringValue = FindStringFromListByIndex(index);
 					strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
 				}
@@ -424,6 +436,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				if (data.Num() == 4)
 				{
 					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 					auto nameValue = FindNameFromListByIndex(index);
 					nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
 				}
@@ -435,6 +448,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				if (data.Num() == 4)
 				{
 					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 					auto textValue = FindTextFromListByIndex(index);
 					textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
 				}
@@ -453,6 +467,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				if (auto boolProperty = CastField<FBoolProperty>(Property))
 				{
 					auto value = BitConverter::ToBoolean(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 					boolProperty->SetPropertyValue_InContainer((void*)Dest, value, cppArrayIndex);
 				}
 				else
