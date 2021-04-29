@@ -215,7 +215,9 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 	case ItemType_Normal:
 	{
 		if (FLGUIPropertyData::GetPropertyDataFromArray(Property->GetFName(), PropertyData, ItemPropertyData))
+		{
 			HaveData = true;
+		}
 	}
 	break;
 	case ItemType_Array:
@@ -251,6 +253,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				if (ItemPropertyData.Data.Num() == 4)
 				{
 					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 				}
 				if (index <= -1)return true;
 				if (auto asset = FindClassFromListByIndex(index))
@@ -266,6 +269,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 				if (ItemPropertyData.Data.Num() == 4)
 				{
 					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 				}
 				if (index <= -1) 
 				{
@@ -327,6 +331,7 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 			{
 				FScriptArrayHelper ArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//array count
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				ArrayHelper.Resize(ArrayCount);
 				for (int i = 0; i < ArrayCount; i++)
 				{

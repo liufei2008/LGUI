@@ -676,6 +676,20 @@ FLGUIActorSaveData ActorSerializer::CreateActorSaveData(ULGUIPrefab* InPrefab)
 }
 #endif
 
+#include "Engine/Engine.h"
+void ActorSerializer::LogForBitConvertFail(bool success, UProperty* Property)
+{
+	if (!success)
+	{
+		auto msg = FString::Printf(TEXT("bitconvert fail, property:%s, propertyType:%s, prefab:%s"), *(Property->GetPathName()), *(Property->GetClass()->GetPathName()), *Prefab->GetPathName());
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, msg);
+		}
+		UE_LOG(LGUI, Error, TEXT("%s"), *msg);
+	}
+}
+
 TArray<FName> ActorSerializer::GetActorExcludeProperties()
 {
 	return {
