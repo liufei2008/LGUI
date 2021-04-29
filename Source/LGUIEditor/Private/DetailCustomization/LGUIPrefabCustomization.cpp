@@ -83,14 +83,14 @@ FText FLGUIPrefabCustomization::GetEngineVersionText()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->EngineMajorVersion == ENGINE_MAJOR_VERSION && TargetScriptPtr->EngineMinorVersion == ENGINE_MINOR_VERSION)
+		//if (TargetScriptPtr->EngineMajorVersion == ENGINE_MAJOR_VERSION && TargetScriptPtr->EngineMinorVersion == ENGINE_MINOR_VERSION)
 		{
 			return FText::FromString(FString::Printf(TEXT("%d.%d"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion));
 		}
-		else
-		{
-			return FText::FromString(FString::Printf(TEXT("%d.%d (This prefab is made by a different engine version, this may cause problem, recreate the prefab can fix it.)"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion));
-		}
+		//else
+		//{
+		//	return FText::FromString(FString::Printf(TEXT("%d.%d (This prefab is made by a different engine version, this may cause problem, recreate the prefab can fix it.)"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion));
+		//}
 	}
 	else
 	{
@@ -101,14 +101,14 @@ FText FLGUIPrefabCustomization::GetPrefabVersionText()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->PrefabVersion == LGUI_PREFAB_VERSION)
+		//if (TargetScriptPtr->PrefabVersion == LGUI_PREFAB_VERSION)
 		{
 			return FText::FromString(FString::Printf(TEXT("%d"), TargetScriptPtr->PrefabVersion));
 		}
-		else
-		{
-			return FText::FromString(FString::Printf(TEXT("%d (This prefab is made by a different prefab system version, this may cause problem, recreate the prefab can fix it.)"), TargetScriptPtr->PrefabVersion));
-		}
+		//else
+		//{
+		//	return FText::FromString(FString::Printf(TEXT("%d (This prefab is made by a different prefab system version, this may cause problem, recreate the prefab can fix it.)"), TargetScriptPtr->PrefabVersion));
+		//}
 	}
 	else
 	{
@@ -119,14 +119,14 @@ FSlateColor FLGUIPrefabCustomization::GetEngineVersionTextColorAndOpacity()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->EngineMajorVersion == ENGINE_MAJOR_VERSION && TargetScriptPtr->EngineMinorVersion == ENGINE_MINOR_VERSION)
+		//if (TargetScriptPtr->EngineMajorVersion == ENGINE_MAJOR_VERSION && TargetScriptPtr->EngineMinorVersion == ENGINE_MINOR_VERSION)
 		{
 			return FSlateColor::UseForeground();
 		}
-		else
-		{
-			return FLinearColor::Red;
-		}
+		//else
+		//{
+		//	return FLinearColor::Red;
+		//}
 	}
 	else
 	{
@@ -137,14 +137,14 @@ FSlateColor FLGUIPrefabCustomization::GetPrefabVersionTextColorAndOpacity()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->PrefabVersion == LGUI_PREFAB_VERSION)
+		//if (TargetScriptPtr->PrefabVersion == LGUI_PREFAB_VERSION)
 		{
 			return FSlateColor::UseForeground();
 		}
-		else
-		{
-			return FLinearColor::Red;
-		}
+		//else
+		//{
+		//	return FLinearColor::Red;
+		//}
 	}
 	else
 	{

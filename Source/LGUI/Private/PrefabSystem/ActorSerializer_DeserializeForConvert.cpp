@@ -130,7 +130,8 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 		}
 		else
 		{
-			ResultPropertyData.Add(ItemPropertyDataForBuild);//have not data, empty
+			ItemPropertyDataForBuild.PropertyType = ELGUIPropertyType::PT_None;
+			ResultPropertyData.Add(ItemPropertyDataForBuild);
 			HaveData = false;
 			return true;
 		}
@@ -144,6 +145,13 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 		{
 			ItemPropertyData = PropertyData[itemPropertyIndex];
 			HaveData = true;
+		}
+		else
+		{
+			ItemPropertyDataForBuild.PropertyType = ELGUIPropertyType::PT_None;
+			ResultPropertyData.Add(ItemPropertyDataForBuild);
+			HaveData = false;
+			return true;
 		}
 	}
 	break;
@@ -175,6 +183,7 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 				if (ItemPropertyData.Data.Num() == 4)
 				{
 					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 				}
 				if (objProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
 				{
@@ -204,6 +213,7 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 			else if (auto arrProperty = CastField<FArrayProperty>(Property))
 			{
 				int ArrayCount = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//array count
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				for (int i = 0; i < ArrayCount; i++)
 				{
 					LoadCommonPropertyForConvert(arrProperty->Inner, ItemType_Array, i, ItemPropertyData.ContainerData, ItemPropertyDataForBuild.ContainerData);
@@ -214,6 +224,7 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 			else if (auto mapProperty = CastField<FMapProperty>(Property))
 			{
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess) * 2;//Map element's data is stored as key,value,key,value...
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				for (int i = 0; i < count; i++)
 				{
 					LoadCommonPropertyForConvert(mapProperty->KeyProp, ItemType_Map, i, ItemPropertyData.ContainerData, ItemPropertyDataForBuild.ContainerData);//key
@@ -226,6 +237,7 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 			else if (auto setProperty = CastField<FSetProperty>(Property))
 			{
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//Set count
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				for (int i = 0; i < count; i++)
 				{
 					LoadCommonPropertyForConvert(setProperty->ElementProp, ItemType_Set, i, ItemPropertyData.ContainerData, ItemPropertyDataForBuild.ContainerData);

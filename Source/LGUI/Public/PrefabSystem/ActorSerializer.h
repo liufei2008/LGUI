@@ -46,6 +46,9 @@ namespace LGUIPrefabSystem
 		PT_Name,
 		PT_String,
 		PT_Text,
+
+		//not valid
+		PT_None,
 	};
 
 	struct LGUIHelperFunction
@@ -392,6 +395,7 @@ namespace LGUIPrefabSystem
 		FText FindTextFromListByIndex(int32 Id);
 		UClass* FindClassFromListByIndex(int32 Id);
 
+		void LogForBitConvertFail(bool success, UProperty* Property);
 
 		TArray<FName> GetActorExcludeProperties();
 		TArray<FName> GetComponentExcludeProperties();

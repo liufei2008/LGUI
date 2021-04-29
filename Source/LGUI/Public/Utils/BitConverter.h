@@ -10,7 +10,7 @@
 if(bytes.Num() < byteCountNeeded)\
 {\
 	auto ErrorMsg = FString::Printf(ErrorMsgFormat, TEXT(#func), bytes.Num());\
-	EditorNotify(ErrorMsg);\
+	UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);\
 	outSucceed = false;\
 	return returnValueIfError; \
 }\
@@ -243,13 +243,6 @@ private:
 		result.AddUninitialized(count);
 		FMemory::Memcpy(result.GetData(), InData, count);
 		return result;
-	}
-	FORCEINLINE static void EditorNotify(const FString& ErrorMsg)
-	{
-		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
-#if WITH_EDITOR
-		LGUIUtils::EditorNotification(FText::FromString(ErrorMsg), 10.0f);
-#endif
 	}
 	static const TCHAR ErrorMsgFormat[];
 };
