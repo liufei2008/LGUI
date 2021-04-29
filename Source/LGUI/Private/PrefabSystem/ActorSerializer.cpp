@@ -644,14 +644,10 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 
 	ToBinary.FlushCache();
 	ToBinary.Empty();
-
-	Prefab->DataCount = Prefab->BinaryData.Num();
 #endif
 	Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 	Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 	Prefab->PrefabVersion = LGUI_PREFAB_VERSION;
-
-	//ConvertForBuildData(InPrefab);
 
 	Prefab->MarkPackageDirty();
 	UE_LOG(LGUI, Log, TEXT("SerializeActor, prefab:%s duration:%s"), *(Prefab->GetPathName()), *((FDateTime::Now() - StartTime).ToString()));
