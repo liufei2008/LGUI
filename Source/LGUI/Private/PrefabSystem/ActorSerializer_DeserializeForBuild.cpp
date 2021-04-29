@@ -230,6 +230,14 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 			{
 				HaveData = true;
 			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
 		}
 	}
 	break;
@@ -244,6 +252,14 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 			{
 				HaveData = true;
 			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
 		}
 	}
 	break;
