@@ -179,10 +179,13 @@ bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
 {
 	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator()); itr; ++itr)
 	{
-		auto itrActor = Cast<AActor>(*itr);
-		if (itrActor == InObject)
+		if (*itr != nullptr)
 		{
-			return true;
+			auto itrActor = Cast<AActor>(*itr);
+			if (itrActor == InObject)
+			{
+				return true;
+			}
 		}
 	}
 	return false;
