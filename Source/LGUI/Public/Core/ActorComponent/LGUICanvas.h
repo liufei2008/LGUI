@@ -170,11 +170,11 @@ protected:
 	UPROPERTY(Transient) ULGUICanvas* TopMostCanvas = nullptr;
 	void CheckRenderMode();
 	/** chekc TopMostCanvas. search for it if not valid */
-	FORCEINLINE bool CheckTopMostCanvas();
+	bool CheckTopMostCanvas();
 	/** nearest up parent Canvas */
 	UPROPERTY(Transient) ULGUICanvas* ParentCanvas = nullptr;
 	/** check parent Canvas. search for it if not valid */
-	FORCEINLINE bool CheckParentCanvas();
+	bool CheckParentCanvas();
 	const TArray<ULGUICanvas*>& GetAllCanvasArray();
 	void SortCanvasOnOrder();
 	/** sort drawcall */
