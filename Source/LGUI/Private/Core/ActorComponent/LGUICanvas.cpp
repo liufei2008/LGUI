@@ -1162,10 +1162,10 @@ bool ULGUICanvas::IsPointVisible(FVector worldPoint)
 		//transform to local space
 		auto localPoint = this->UIItem->GetComponentTransform().InverseTransformPosition(worldPoint);
 		//out of range
-		if (localPoint.X < rectMin.X) return false;
-		if (localPoint.Y < rectMin.Y) return false;
-		if (localPoint.X > rectMax.X) return false;
-		if (localPoint.Y > rectMax.Y) return false;
+		if (localPoint.X < clipRectMin.X) return false;
+		if (localPoint.Y < clipRectMin.Y) return false;
+		if (localPoint.X > clipRectMax.X) return false;
+		if (localPoint.Y > clipRectMax.Y) return false;
 	}
 		break;
 	case ELGUICanvasClipType::Texture:
@@ -1179,28 +1179,45 @@ void ULGUICanvas::CalculateRectRange()
 {
 	if (bRectRangeCalculated == false)//if not calculated yet
 	{
-		auto& widget = UIItem->widget;
-		//calculate sefl rect range
-		rectMin.X = -widget.pivot.X * widget.width;
-		rectMin.Y = -widget.pivot.Y * widget.height;
-		rectMax.X = (1.0f - widget.pivot.X) * widget.width;
-		rectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
-		//calculate parent rect range
-		if (inheritRectClip && IsValid(ParentCanvas) && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)
+		if (GetActualClipType() == ELGUICanvasClipType::Rect)
 		{
-			ParentCanvas->CalculateRectRange();
-			auto parentRectMin = FVector(ParentCanvas->rectMin, 0);
-			auto parentRectMax = FVector(ParentCanvas->rectMax, 0);
-			//transform ParentCanvas's rect to this space
-			auto& parentCanvasTf = ParentCanvas->UIItem->GetComponentTransform();
-			auto thisTfInv = this->UIItem->GetComponentTransform().Inverse();
-			parentRectMin = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMin));
-			parentRectMax = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMax));
-			//inherit
-			if (rectMin.X < parentRectMin.X)rectMin.X = parentRectMin.X;
-			if (rectMin.Y < parentRectMin.Y)rectMin.Y = parentRectMin.Y;
-			if (rectMax.X > parentRectMax.X)rectMax.X = parentRectMax.X;
-			if (rectMax.Y > parentRectMax.Y)rectMax.Y = parentRectMax.Y;
+			auto& widget = UIItem->widget;
+			//calculate sefl rect range
+			clipRectMin.X = -widget.pivot.X * widget.width;
+			clipRectMin.Y = -widget.pivot.Y * widget.height;
+			clipRectMax.X = (1.0f - widget.pivot.X) * widget.width;
+			clipRectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
+			//add offset
+			clipRectMin.X = clipRectMin.X - clipRectOffset.Left;
+			clipRectMax.X = clipRectMax.X + clipRectOffset.Right;
+			clipRectMin.Y = clipRectMin.Y - clipRectOffset.Bottom;
+			clipRectMax.Y = clipRectMax.Y + clipRectOffset.Top;
+			//calculate parent rect range
+			if (inheritRectClip && IsValid(ParentCanvas) && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)
+			{
+				ParentCanvas->CalculateRectRange();
+				auto parentRectMin = FVector(ParentCanvas->clipRectMin, 0);
+				auto parentRectMax = FVector(ParentCanvas->clipRectMax, 0);
+				//transform ParentCanvas's rect to this space
+				auto& parentCanvasTf = ParentCanvas->UIItem->GetComponentTransform();
+				auto thisTfInv = this->UIItem->GetComponentTransform().Inverse();
+				parentRectMin = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMin));
+				parentRectMax = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMax));
+				//inherit
+				if (clipRectMin.X < parentRectMin.X)clipRectMin.X = parentRectMin.X;
+				if (clipRectMin.Y < parentRectMin.Y)clipRectMin.Y = parentRectMin.Y;
+				if (clipRectMax.X > parentRectMax.X)clipRectMax.X = parentRectMax.X;
+				if (clipRectMax.Y > parentRectMax.Y)clipRectMax.Y = parentRectMax.Y;
+			}
+		}
+		else
+		{
+			auto& widget = UIItem->widget;
+			//calculate sefl rect range
+			clipRectMin.X = -widget.pivot.X * widget.width;
+			clipRectMin.Y = -widget.pivot.Y * widget.height;
+			clipRectMax.X = (1.0f - widget.pivot.X) * widget.width;
+			clipRectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
 		}
 
 		bRectRangeCalculated = true;
@@ -1211,7 +1228,7 @@ void ULGUICanvas::CalculateRectRange()
 FLinearColor ULGUICanvas::GetRectClipOffsetAndSize()
 {
 	CalculateRectRange();
-	return FLinearColor((rectMin.X - clipRectOffset.Left + rectMax.X + clipRectOffset.Right) * 0.5f, (rectMin.Y - clipRectOffset.Bottom + rectMax.Y + clipRectOffset.Top) * 0.5f, (rectMax.X - rectMin.X + clipRectOffset.Left + clipRectOffset.Right) * 0.5f, (rectMax.Y - rectMin.Y + clipRectOffset.Top + clipRectOffset.Bottom) * 0.5f);
+	return FLinearColor((clipRectMin.X + clipRectMax.X) * 0.5f, (clipRectMin.Y + clipRectMax.Y) * 0.5f, (clipRectMax.X - clipRectMin.X) * 0.5f, (clipRectMax.Y - clipRectMin.Y) * 0.5f);
 }
 FLinearColor ULGUICanvas::GetRectClipFeather()
 {
@@ -1238,6 +1255,15 @@ void ULGUICanvas::SetRectClipFeather(FVector2D newFeather)
 	{
 		bRectClipParameterChanged = true;
 		clipFeather = newFeather;
+		MarkCanvasUpdate();
+	}
+}
+void ULGUICanvas::SetRectClipOffset(FMargin newOffset)
+{
+	if (clipRectOffset != newOffset)
+	{
+		bRectClipParameterChanged = true;
+		bRectRangeCalculated = false;
 		MarkCanvasUpdate();
 	}
 }
