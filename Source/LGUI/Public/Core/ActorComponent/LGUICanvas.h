@@ -122,6 +122,10 @@ public:
 	
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
+	/** calculate rect clip range */
+	void CalculateRectRange();
+	FVector2D GetClipRectMin()const { return clipRectMin; }
+	FVector2D GetClipRectMax()const { return clipRectMax; }
 
 	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix);
 	FMatrix GetViewProjectionMatrix();
@@ -158,6 +162,7 @@ public:
 
 	FORCEINLINE UUIItem* GetUIItem() { CheckUIItem(); return UIItem; }
 	bool GetIsUIActive()const;
+	ULGUICanvas* GetParentCanvas() { CheckParentCanvas(); return ParentCanvas; }
 protected:
 	/** consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas */
 	bool currentIsRenderToRenderTargetOrWorld = false;
@@ -276,6 +281,8 @@ public:
 		void SetClipType(ELGUICanvasClipType newClipType);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRectClipFeather(FVector2D newFeather);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetRectClipOffset(FMargin newOffset);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipTexture(UTexture* newTexture);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -416,11 +423,9 @@ private:
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
 
 	/** rect clip's min position */
-	FVector2D rectMin = FVector2D(0, 0);
+	FVector2D clipRectMin = FVector2D(0, 0);
 	/** rect clip's max position */
-	FVector2D rectMax = FVector2D(0, 0);
-	/** calculate rect range */
-	void CalculateRectRange();
+	FVector2D clipRectMax = FVector2D(0, 0);
 private:
 	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();
