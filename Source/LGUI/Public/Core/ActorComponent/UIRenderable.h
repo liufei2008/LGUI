@@ -124,6 +124,8 @@ protected:
 	virtual void UpdateSelfRenderMaterial(bool textureChange, bool materialChange);
 	void ClearSelfRenderMaterial();
 private:
+	void UpdateGeometry_Implement(const bool& parentLayoutChanged);
+	void UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged);
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
 	/** vertex's uv change */
