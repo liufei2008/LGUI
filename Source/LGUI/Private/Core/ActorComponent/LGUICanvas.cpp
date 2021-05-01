@@ -607,10 +607,9 @@ DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP
 DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
 void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged)
 {
-	const auto& childrenList = target->GetAttachChildren();
-	for (auto child : childrenList)
+	const auto& childrenList = target->GetAttachUIChildren();
+	for (auto uiChild : childrenList)
 	{
-		auto uiChild = Cast<UUIItem>(child);
 		if (IsValid(uiChild))
 		{
 			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()) && uiChild->GetRenderCanvas() != this)
