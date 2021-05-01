@@ -352,21 +352,25 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 	if (IsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
+	if (bIsSelfRender)
+	{
+		UpdateGeometry_ImplementForSelfRender(parentLayoutChanged);
+	}
+	else
+	{
+		UpdateGeometry_Implement(parentLayoutChanged);
+	}
+}
+
+void UUIRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
+{
 	OnBeforeCreateOrUpdateGeometry();
 	if (geometry->vertices.Num() == 0//if geometry not created yet
 		|| geometry->drawcallIndex == -1//if geometry not rendered yet
 		)
 	{
 		CreateGeometry();
-		if (bIsSelfRender)
-		{
-			UpdateSelfRenderDrawcall();
-			UpdateSelfRenderMaterial(true, true);
-		}
-		else
-		{
-			RenderCanvas->MarkRebuildAllDrawcall();
-		}
+		RenderCanvas->MarkRebuildAllDrawcall();
 		goto COMPLETE;
 	}
 	else//if geometry is created, update data
@@ -376,27 +380,11 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
 			{
 				geometry->Clear();
-				if (bIsSelfRender)
-				{
-					UpdateSelfRenderDrawcall();
-					ClearSelfRenderMaterial();
-				}
-				else
-				{
-					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-				}
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 				goto COMPLETE;
 			}
 			CreateGeometry();
-			if (bIsSelfRender)
-			{
-				UpdateSelfRenderDrawcall();
-				UpdateSelfRenderMaterial(cacheForThisUpdate_TextureChanged, cacheForThisUpdate_MaterialChanged);
-			}
-			else
-			{
-				RenderCanvas->MarkRebuildAllDrawcall();
-			}
+			RenderCanvas->MarkRebuildAllDrawcall();
 			goto COMPLETE;
 		}
 		if (cacheForThisUpdate_DepthChanged)
@@ -404,40 +392,19 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 			if (IsValid(CustomUIMaterial))
 			{
 				CreateGeometry();
-				if (bIsSelfRender)
-				{
-					UpdateSelfRenderDrawcall();
-				}
-				else
-				{
-					RenderCanvas->MarkRebuildAllDrawcall();
-				}
+				RenderCanvas->MarkRebuildAllDrawcall();
 				goto COMPLETE;
 			}
 			else
 			{
 				geometry->depth = widget.depth;
-				if (bIsSelfRender)
-				{
-					UpdateSelfRenderDrawcall();
-				}
-				else
-				{
-					RenderCanvas->OnUIElementDepthChange(this);
-				}
+				RenderCanvas->OnUIElementDepthChange(this);
 			}
 		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{
 			CreateGeometry();
-			if (bIsSelfRender)
-			{
-				UpdateSelfRenderDrawcall();
-			}
-			else
-			{
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-			}
+			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -446,29 +413,83 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 
 			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
 			{
-				if (!bIsSelfRender)
-				{
-					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-				}
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
 			}
 			else
 			{
-				if (!bIsSelfRender)
-				{
-					RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged);
-				}
+				RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged);
 			}
 			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
 			{
-				if (bIsSelfRender)
-				{
-					UIGeometry::TransformVerticesForSelfRender(RenderCanvas, geometry);
-					UpdateSelfRenderDrawcall();
-				}
-				else
-				{
-					UIGeometry::TransformVertices(RenderCanvas, this, geometry);
-				}
+				UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+			}
+		}
+	}
+COMPLETE:
+	;
+}
+void UUIRenderable::UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged)
+{
+	OnBeforeCreateOrUpdateGeometry();
+	if (geometry->vertices.Num() == 0//if geometry not created yet
+		|| geometry->drawcallIndex == -1//if geometry not rendered yet
+		)
+	{
+		CreateGeometry();
+		UpdateSelfRenderDrawcall();
+		UpdateSelfRenderMaterial(true, true);
+		goto COMPLETE;
+	}
+	else//if geometry is created, update data
+	{
+		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
+		{
+			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
+			{
+				geometry->Clear();
+				UpdateSelfRenderDrawcall();
+				ClearSelfRenderMaterial();
+				goto COMPLETE;
+			}
+			CreateGeometry();
+			UpdateSelfRenderDrawcall();
+			UpdateSelfRenderMaterial(cacheForThisUpdate_TextureChanged, cacheForThisUpdate_MaterialChanged);
+			goto COMPLETE;
+		}
+		if (cacheForThisUpdate_DepthChanged)
+		{
+			if (IsValid(CustomUIMaterial))
+			{
+				CreateGeometry();
+				UpdateSelfRenderDrawcall();
+				goto COMPLETE;
+			}
+			else
+			{
+				geometry->depth = widget.depth;
+				UpdateSelfRenderDrawcall();
+			}
+		}
+		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
+		{
+			CreateGeometry();
+			UpdateSelfRenderDrawcall();
+			goto COMPLETE;
+		}
+		else//update geometry
+		{
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+
+			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
+			{
+			}
+			else
+			{
+			}
+			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
+			{
+				UIGeometry::TransformVerticesForSelfRender(RenderCanvas, geometry);
+				UpdateSelfRenderDrawcall();
 			}
 		}
 	}
