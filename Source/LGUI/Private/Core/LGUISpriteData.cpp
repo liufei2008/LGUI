@@ -468,14 +468,8 @@ void ULGUISpriteData::GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, fl
 	borderUV3Y = spriteInfo.buv3Y;
 }
 
-ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* WorldContextObject, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder /* = FVector2D::ZeroVector */, FVector2D inVerticalBorder /* = FVector2D::ZeroVector */, FName inPackingTag /* = TEXT("Main") */)
+ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* Outer, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder /* = FVector2D::ZeroVector */, FVector2D inVerticalBorder /* = FVector2D::ZeroVector */, FName inPackingTag /* = TEXT("Main") */)
 {
-	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (world == nullptr)
-	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::CreateLGUISpriteData]Get world return null!"));
-		return nullptr;
-	}
 	if (!IsValid(inSpriteTexture))
 	{
 		UE_LOG(LGUI, Error, TEXT("[ULGUISpriteData::CreateLGUISpriteData]Input texture not valid!"));
@@ -499,7 +493,7 @@ ULGUISpriteData* ULGUISpriteData::CreateLGUISpriteData(UObject* WorldContextObje
 		CheckAndApplySpriteTextureSetting(inSpriteTexture);
 	}
 
-	ULGUISpriteData* result = NewObject<ULGUISpriteData>(world);
+	ULGUISpriteData* result = NewObject<ULGUISpriteData>(IsValid(Outer) ? Outer : GetTransientPackage());
 	if (inSpriteTexture)
 	{
 		result->spriteTexture = inSpriteTexture;

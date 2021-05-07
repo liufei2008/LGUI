@@ -149,6 +149,7 @@ public:
 
 	/**
 	 * Create a LGUIspriteData with provided parameter. This can use at runtime
+	 * @param Outer						Outer of the result LGUISpriteData
 	 * @param inSpriteTexture			Use this texture to create
 	 * @param inHorizontalBorder		Horizontal border value, x for left, y for right, will be convert to uint16</param>
 	 * @param inVerticalBorder			Vertical border value, x for top, y for bottom, will be convert to uint16</param>
@@ -156,7 +157,7 @@ public:
 	 * @return							Created LGUISpriteData, nullptr if something wrong.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
-		static ULGUISpriteData* CreateLGUISpriteData(UObject* WorldContextObject, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder = FVector2D::ZeroVector, FVector2D inVerticalBorder = FVector2D::ZeroVector, FName inPackingTag = TEXT("Main"));
+		static ULGUISpriteData* CreateLGUISpriteData(UObject* Outer, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder = FVector2D::ZeroVector, FVector2D inVerticalBorder = FVector2D::ZeroVector, FName inPackingTag = TEXT("Main"));
 
 	void AddUISprite(UUISpriteBase* InUISprite);
 	void RemoveUISprite(UUISpriteBase* InUISprite);
