@@ -5,7 +5,6 @@
 #include "UIGeometry.h"
 //#include "UIDrawcall.generated.h"
 class UUIPostProcess;
-class UUISelfRenderable;
 
 enum class EUIDrawcallType :uint8
 {

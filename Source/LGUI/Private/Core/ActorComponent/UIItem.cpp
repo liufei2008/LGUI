@@ -785,7 +785,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 			{
 				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
 				{
-					childUIItem->CalculateAnchorFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
+					childUIItem->CalculateAnchorFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
 				}
 			}
 		}
@@ -801,9 +801,9 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 			}
 			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
 			{
-				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+				if (childUIItem->IsRegistered())//load from level
 				{
-					childUIItem->CalculateAnchorFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWork will work. If from PrefabSystem, then anchor will automatically do the job
+					childUIItem->CalculateAnchorFromTransform();//if not from PrefabSyste, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
 				}
 			}
 		}
@@ -1981,7 +1981,7 @@ void UUIItem::ApplyUIActiveState()
 		}
 	}
 #endif
-	if (isCanvasUIItem)RenderCanvas->OnUIActiveStateChange(IsUIActiveInHierarchy());
+	if (isCanvasUIItem)RenderCanvas->OnUIActiveStateChanged(IsUIActiveInHierarchy());
 	bColorChanged = true;
 	bDepthChanged = true;
 	bLayoutChanged = true;

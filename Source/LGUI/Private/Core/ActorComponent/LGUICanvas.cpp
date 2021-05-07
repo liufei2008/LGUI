@@ -161,7 +161,7 @@ void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 	CacheUIMeshList.Empty();
 }
 
-void ULGUICanvas::OnUIActiveStateChange(bool active)
+void ULGUICanvas::OnUIActiveStateChanged(bool active)
 {
 	for (auto item : UIDrawcallPrimitiveList)
 	{
@@ -678,7 +678,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 		item->UpdateCanvasGeometry();
 	}
 
-	//draw triangle
+	//update drawcall
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
 		if (this->cacheForThisUpdate_ShouldRebuildAllDrawcall)
