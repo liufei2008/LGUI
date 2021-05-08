@@ -68,7 +68,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		float GetValue()const { return Value; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		float GetMinValue()const { return MinValue; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		float GetMaxValue()const { return MaxValue; }
+
+	/**
+	 * @param	InValue				New value set for Value
+	 * @param	FireEvent			Should execute callback event?
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		void SetValue(float InValue, bool FireEvent = true);
+	/** 
+	 * @param	InMinValue			New value set for MinValue
+	 * @param	KeepRelativeValue	Keep percentage value, eg: if origin value is 0.25 from 0.0 to 1.0, then it will be 25.0 from 0.0 to 100.0, or be -7.5 from -10.0 to 0.0
+	 * @param	FireEvent			Should execute callback event?
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		void SetMinValue(float InMinValue, bool KeepRelativeValue, bool FireEvent = true);
+	/**
+	 * @param	InMaxValue			New value set for MaxValue
+	 * @param	KeepRelativeValue	Keep percentage value, eg: if origin value is 0.25 from 0.0 to 1.0, then it will be 25.0 from 0.0 to 100.0, or be -7.5 from -10.0 to 0.0
+	 * @param	FireEvent			Should execute callback event?
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		void SetMaxValue(float InMaxValue, bool KeepRelativeValue, bool FireEvent = true);
 
 	FDelegateHandle RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
 	FDelegateHandle RegisterSlideEvent(const TFunction<void(float)>& InFunction);
