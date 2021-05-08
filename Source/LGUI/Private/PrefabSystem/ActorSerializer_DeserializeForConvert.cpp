@@ -280,16 +280,46 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 
 			else if (auto strProperty = CastField<FStrProperty>(Property))//store string as reference
 			{
+				if (ItemPropertyData.PropertyType != ELGUIPropertyType::PT_String//prev property is not string
+					&& Prefab->PrefabVersion >= 1//string type is not valid in version below 1
+					)
+				{
+					auto stringValue = GetValueAsString(ItemPropertyData);
+					auto id = FindOrAddStringFromList(stringValue);
+					ItemPropertyData.Data = BitConverter::GetBytes(id);
+					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_String;
+					ItemPropertyDataForBuild.InitFromPropertySaveData(ItemPropertyData);
+				}
 				ResultPropertyData.Add(ItemPropertyDataForBuild);
 				return true;
 			}
 			else if (auto nameProperty = CastField<FNameProperty>(Property))
 			{
+				if(ItemPropertyData.PropertyType != ELGUIPropertyType::PT_Name//prev property is not name
+					&& Prefab->PrefabVersion >= 1//name type is not valid in version below 1
+					)
+				{
+					auto nameValue = FName(*GetValueAsString(ItemPropertyData));
+					auto id = FindOrAddNameFromList(nameValue);
+					ItemPropertyData.Data = BitConverter::GetBytes(id);
+					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Name;
+					ItemPropertyDataForBuild.InitFromPropertySaveData(ItemPropertyData);
+				}
 				ResultPropertyData.Add(ItemPropertyDataForBuild);
 				return true;
 			}
 			else if (auto textProperty = CastField<FTextProperty>(Property))
 			{
+				if(ItemPropertyData.PropertyType != ELGUIPropertyType::PT_Text//prev property is not text
+					&& Prefab->PrefabVersion >= 1//text type is not valid in version below 1
+					)
+				{
+					auto textValue = FText::FromString(GetValueAsString(ItemPropertyData));
+					auto id = FindOrAddTextFromList(textValue);
+					ItemPropertyData.Data = BitConverter::GetBytes(id);
+					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Text;
+					ItemPropertyDataForBuild.InitFromPropertySaveData(ItemPropertyData);
+				}
 				ResultPropertyData.Add(ItemPropertyDataForBuild);
 				return true;
 			}

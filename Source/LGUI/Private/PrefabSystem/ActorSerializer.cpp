@@ -230,7 +230,7 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Reference;
 			if (auto object = classProperty->GetObjectPropertyValue_InContainer(Dest, cppArrayIndex))
 			{
-				auto id = FindClassIdFromList((UClass*)object);
+				auto id = FindOrAddClassFromList((UClass*)object);
 				ItemPropertyData.Data = BitConverter::GetBytes(id);
 			}
 			else
@@ -253,7 +253,7 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 				else if (Property->HasAnyPropertyFlags(CPF_InstancedReference))
 				{
 					ItemPropertyData.PropertyType = ELGUIPropertyType::PT_InstancedObject;
-					auto id = FindClassIdFromList(object->GetClass());
+					auto id = FindOrAddClassFromList(object->GetClass());
 					ItemPropertyData.Data = BitConverter::GetBytes(id);
 					if (object->GetClass()->IsChildOf(USceneComponent::StaticClass()))
 					{
@@ -390,7 +390,7 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 		else if (auto strProperty = CastField<FStrProperty>(Property))
 		{
 			auto stringValue = strProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
-			auto id = FindStringIdFromList(stringValue);
+			auto id = FindOrAddStringFromList(stringValue);
 			ItemPropertyData.Data = BitConverter::GetBytes(id);
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_String;
 			PropertyData.Add(ItemPropertyData);
@@ -398,7 +398,7 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 		else if (auto nameProperty = CastField<FNameProperty>(Property))
 		{
 			auto nameValue = nameProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
-			auto id = FindNameIdFromList(nameValue);
+			auto id = FindOrAddNameFromList(nameValue);
 			ItemPropertyData.Data = BitConverter::GetBytes(id);
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Name;
 			PropertyData.Add(ItemPropertyData);
@@ -406,7 +406,7 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 		else if (auto textProperty = CastField<FTextProperty>(Property))
 		{
 			auto textValue = textProperty->GetPropertyValue_InContainer(Dest, cppArrayIndex);
-			auto id = FindTextIdFromList(textValue);
+			auto id = FindOrAddTextFromList(textValue);
 			ItemPropertyData.Data = BitConverter::GetBytes(id);
 			ItemPropertyData.PropertyType = ELGUIPropertyType::PT_Text;
 			PropertyData.Add(ItemPropertyData);
@@ -515,7 +515,7 @@ void ActorSerializer::SaveProperty(UObject* Target, TArray<FLGUIPropertyData>& P
 FLGUIActorSaveData ActorSerializer::SerializeSingleActor(AActor* Actor)
 {
 	FLGUIActorSaveData ActorRecord;
-	ActorRecord.ActorClass = FindClassIdFromList(Actor->GetClass());
+	ActorRecord.ActorClass = FindOrAddClassFromList(Actor->GetClass());
 
 	SaveProperty(Actor, ActorRecord.ActorPropertyData, GetActorExcludeProperties());
 	auto& Components = Actor->GetComponents();
@@ -525,7 +525,7 @@ FLGUIActorSaveData ActorSerializer::SerializeSingleActor(AActor* Actor)
 	FLGUIComponentSaveData RootCompData;
 	if (RootComp)
 	{
-		RootCompData.ComponentClass = FindClassIdFromList(RootComp->GetClass());
+		RootCompData.ComponentClass = FindOrAddClassFromList(RootComp->GetClass());
 		RootCompData.ComponentName = RootComp->GetFName();
 		SaveProperty(RootComp, RootCompData.PropertyData, GetComponentExcludeProperties());
 		AllSceneComponentOfThisActor.Add(RootComp);
@@ -539,7 +539,7 @@ FLGUIActorSaveData ActorSerializer::SerializeSingleActor(AActor* Actor)
 		if (Comp->GetClass()->IsChildOf(ULGUIPrefabHelperComponent::StaticClass()))continue;//skip LGUIPrefabHelperComponent, this component is only for editor helper
 																							//if (Comp->IsInBlueprint())continue;//skip Blueprint component
 		FLGUIComponentSaveData CompData;
-		CompData.ComponentClass = FindClassIdFromList(Comp->GetClass());
+		CompData.ComponentClass = FindOrAddClassFromList(Comp->GetClass());
 		CompData.ComponentName = Comp->GetFName();
 		if (auto SceneComp = Cast<USceneComponent>(Comp))
 		{
@@ -721,7 +721,7 @@ int32 ActorSerializer::FindAssetIdFromList(UObject* AssetObject)
 		return ReferenceAssetList.Num() - 1;
 	}
 }
-int32 ActorSerializer::FindStringIdFromList(FString string)//put string into list to avoid same string sotred multiple times
+int32 ActorSerializer::FindOrAddStringFromList(FString string)//put string into list to avoid same string sotred multiple times
 {
 	auto& ReferenceStringList = Prefab->ReferenceStringList;
 	int32 resultIndex;
@@ -735,7 +735,7 @@ int32 ActorSerializer::FindStringIdFromList(FString string)//put string into lis
 		return ReferenceStringList.Num() - 1;
 	}
 }
-int32 ActorSerializer::FindNameIdFromList(FName name)
+int32 ActorSerializer::FindOrAddNameFromList(FName name)
 {
 	auto& ReferenceNameList = Prefab->ReferenceNameList;
 	int32 resultIndex;
@@ -749,7 +749,7 @@ int32 ActorSerializer::FindNameIdFromList(FName name)
 		return ReferenceNameList.Num() - 1;
 	}
 }
-int32 ActorSerializer::FindTextIdFromList(FText text)
+int32 ActorSerializer::FindOrAddTextFromList(FText text)
 {
 	auto& ReferenceTextList = Prefab->ReferenceTextList;
 	int32 Count = ReferenceTextList.Num();
@@ -764,7 +764,7 @@ int32 ActorSerializer::FindTextIdFromList(FText text)
 	ReferenceTextList.Add(text);
 	return ReferenceTextList.Num() - 1;
 }
-int32 ActorSerializer::FindClassIdFromList(UClass* uclass)
+int32 ActorSerializer::FindOrAddClassFromList(UClass* uclass)
 {
 	if (!uclass)return -1;
 	auto& ReferenceClassList = Prefab->ReferenceClassList;
@@ -849,4 +849,157 @@ void ActorSerializer::RegisterComponent(AActor* Actor, UActorComponent* Comp)
 	break;
 	//@todo: should also consider EComponentCreationMethod::Native
 	}
+}
+
+FString ActorSerializer::GetValueAsString(const FLGUIPropertyData& ItemPropertyData)
+{
+	bool bitConvertSuccess;
+	switch (ItemPropertyData.PropertyType)
+	{
+
+	case ELGUIPropertyType::PT_bool:
+	{
+		auto value = BitConverter::ToBoolean(ItemPropertyData.Data, bitConvertSuccess);
+		return value ? FString(TEXT("true")) : FString(TEXT("false"));
+	}
+	break;
+
+	case ELGUIPropertyType::PT_int8:
+	{
+		auto value = BitConverter::ToInt8(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%i"), value);
+	}
+	break;
+	case ELGUIPropertyType::PT_int16:
+	{
+		auto value = BitConverter::ToInt16(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%i"), value);
+	}
+	break;
+	case ELGUIPropertyType::PT_int32:
+	{
+		auto value = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%i"), value);
+	}
+	break;
+	case ELGUIPropertyType::PT_int64:
+	{
+		auto value = BitConverter::ToInt64(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%i"), value);
+	}
+	break;
+
+	case ELGUIPropertyType::PT_uint8:
+	{
+		auto value = BitConverter::ToUInt8(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%u"), value);
+	}
+	break;
+	case ELGUIPropertyType::PT_uint16:
+	{
+		auto value = BitConverter::ToUInt16(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%u"), value);
+	}
+	break;
+	case ELGUIPropertyType::PT_uint32:
+	{
+		auto value = BitConverter::ToUInt32(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%u"), value);
+	}
+	break;
+	case ELGUIPropertyType::PT_uint64:
+	{
+		auto value = BitConverter::ToUInt64(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%u"), value);
+	}
+	break;
+
+	case ELGUIPropertyType::PT_float:
+	{
+		auto value = BitConverter::ToFloat(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%f"), value);
+	}
+	break;
+	case ELGUIPropertyType::PT_double:
+	{
+		auto value = BitConverter::ToDouble(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("%f"), value);
+	}
+	break;
+
+	case ELGUIPropertyType::PT_Vector2:
+	{
+		auto value = BitConverter::ToVector2(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("X=%f Y=%f"), value.X, value.Y);
+	}
+	break;
+	case ELGUIPropertyType::PT_Vector3:
+	{
+		auto value = BitConverter::ToVector3(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("X=%f Y=%f Z=%f"), value.X, value.Y, value.Z);
+	}
+	break;
+	case ELGUIPropertyType::PT_Vector4:
+	{
+		auto value = BitConverter::ToVector4(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("X=%f Y=%f Z=%f W=%f"), value.X, value.Y, value.Z, value.W);
+	}
+	break;
+	case ELGUIPropertyType::PT_Quat:
+	{
+		auto value = BitConverter::ToQuat(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("X=%f Y=%f Z=%f W=%f"), value.X, value.Y, value.Z, value.W);
+	}
+	break;
+	case ELGUIPropertyType::PT_Color:
+	{
+		auto value = BitConverter::ToColor(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("(R=%i,G=%i,B=%i,A=%i)"), value.R, value.G, value.B, value.A);
+	}
+	break;
+	case ELGUIPropertyType::PT_LinearColor:
+	{
+		auto value = BitConverter::ToLinearColor(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("(R=%f,G=%f,B=%f,A=%f)"), value.R, value.G, value.B, value.A);
+	}
+	break;
+	case ELGUIPropertyType::PT_Rotator:
+	{
+		auto value = BitConverter::ToRotator(ItemPropertyData.Data, bitConvertSuccess);
+		return FString::Printf(TEXT("P=%f Y=%f R=%f"), value.Pitch, value.Yaw, value.Roll);
+	}
+	break;
+
+	case ELGUIPropertyType::PT_Name:
+	{
+		if (ItemPropertyData.Data.Num() == 4)
+		{
+			auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+			return FindNameFromListByIndex(index).ToString();
+		}
+	}
+	break;
+	case ELGUIPropertyType::PT_String:
+	{
+		if (ItemPropertyData.Data.Num() == 4)
+		{
+			auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+			return FindStringFromListByIndex(index);
+		}
+	}
+	break;
+	case ELGUIPropertyType::PT_Text:
+	{
+		if (ItemPropertyData.Data.Num() == 4)
+		{
+			auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+			return FindTextFromListByIndex(index).ToString();
+		}
+	}
+	break;
+
+	default:
+		break;
+	}
+	return FString();
 }
