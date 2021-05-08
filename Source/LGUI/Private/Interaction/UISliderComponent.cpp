@@ -84,6 +84,7 @@ void UUISliderComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeCh
 }
 void UUISliderComponent::SetValue(float InValue, bool FireEvent)
 {
+    InValue = FMath::Clamp(InValue, MinValue, MaxValue);
     if (Value != InValue)
     {
         Value = InValue;
@@ -95,6 +96,52 @@ void UUISliderComponent::SetValue(float InValue, bool FireEvent)
             OnValueChange.FireEvent(Value);
         }
     }
+}
+void UUISliderComponent::SetMinValue(float InMinValue, bool KeepRelativeValue, bool FireEvent)
+{
+    if (MinValue != InMinValue)
+    {
+		float value01 = (Value - MinValue) / (MaxValue - MinValue);
+		MinValue = InMinValue;
+        if (KeepRelativeValue)
+        {
+            Value = value01 * (MaxValue - MinValue) + MinValue;
+        }
+        else
+        {
+            Value = FMath::Clamp(Value, MinValue, MaxValue);
+        }
+        ApplyValueToUI();
+		if (FireEvent)
+		{
+			if (OnValueChangeCPP.IsBound())
+				OnValueChangeCPP.Broadcast(Value);
+			OnValueChange.FireEvent(Value);
+		}
+    }
+}
+void UUISliderComponent::SetMaxValue(float InMaxValue, bool KeepRelativeValue, bool FireEvent)
+{
+	if (MaxValue != InMaxValue)
+	{
+		float value01 = (Value - MinValue) / (MaxValue - MinValue);
+        MaxValue = InMaxValue;
+		if (KeepRelativeValue)
+		{
+			Value = value01 * (MaxValue - MinValue) + MinValue;
+		}
+		else
+		{
+			Value = FMath::Clamp(Value, MinValue, MaxValue);
+		}
+		ApplyValueToUI();
+		if (FireEvent)
+		{
+			if (OnValueChangeCPP.IsBound())
+				OnValueChangeCPP.Broadcast(Value);
+			OnValueChange.FireEvent(Value);
+		}
+	}
 }
 
 FDelegateHandle UUISliderComponent::RegisterSlideEvent(const FLGUIFloatDelegate &InDelegate)
