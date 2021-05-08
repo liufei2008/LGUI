@@ -436,10 +436,9 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 
 			else if (auto strProperty = CastField<FStrProperty>(Property))//string store as reference
 			{
-				auto data = ItemPropertyData.Data;
-				if (data.Num() == 4)
+				if (ItemPropertyData.Data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
+					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 					LogForBitConvertFail(bitConvertSuccess, Property);
 					auto stringValue = FindStringFromListByIndex(index);
 					strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
@@ -448,10 +447,9 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 			}
 			else if (auto nameProperty = CastField<FNameProperty>(Property))
 			{
-				auto data = ItemPropertyData.Data;
-				if (data.Num() == 4)
+				if (ItemPropertyData.Data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
+					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 					LogForBitConvertFail(bitConvertSuccess, Property);
 					auto nameValue = FindNameFromListByIndex(index);
 					nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
@@ -460,10 +458,9 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 			}
 			else if (auto textProperty = CastField<FTextProperty>(Property))
 			{
-				auto data = ItemPropertyData.Data;
-				if (data.Num() == 4)
+				if (ItemPropertyData.Data.Num() == 4)
 				{
-					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
+					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 					LogForBitConvertFail(bitConvertSuccess, Property);
 					auto textValue = FindTextFromListByIndex(index);
 					textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
