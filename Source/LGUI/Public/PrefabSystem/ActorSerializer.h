@@ -384,10 +384,10 @@ namespace LGUIPrefabSystem
 
 		//find id from list, if not will create
 		int32 FindAssetIdFromList(UObject* AssetObject);
-		int32 FindStringIdFromList(FString string);
-		int32 FindNameIdFromList(FName name);
-		int32 FindTextIdFromList(FText text);
-		int32 FindClassIdFromList(UClass* uclass);
+		int32 FindOrAddStringFromList(FString string);
+		int32 FindOrAddNameFromList(FName name);
+		int32 FindOrAddTextFromList(FText text);
+		int32 FindOrAddClassFromList(UClass* uclass);
 		//find object by id
 		UObject* FindAssetFromListByIndex(int32 Id);
 		FString FindStringFromListByIndex(int32 Id);
@@ -397,6 +397,7 @@ namespace LGUIPrefabSystem
 
 		void LogForBitConvertFail(bool success, UProperty* Property);
 
+		FString GetValueAsString(const FLGUIPropertyData& ItemPropertyData);
 		TArray<FName> GetActorExcludeProperties();
 		TArray<FName> GetComponentExcludeProperties();
 

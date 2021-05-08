@@ -402,34 +402,61 @@ bool ActorSerializer::LoadCommonProperty(UProperty* Property, int itemType, int 
 
 			else if (auto strProperty = Cast<UStrProperty>(Property))//string store as reference
 			{
-				auto data = ItemPropertyData.Data;
-				if (data.Num() == 4)
+				if (ItemPropertyData.PropertyType != ELGUIPropertyType::PT_String//prev property is not string
+					&& Prefab->PrefabVersion >= 1//string type is not valid in version below 1
+					)
 				{
-					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
-					auto stringValue = FindStringFromListByIndex(index);
+					auto stringValue = GetValueAsString(ItemPropertyData);
 					strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
+				}
+				else
+				{
+					if (ItemPropertyData.Data.Num() == 4)
+					{
+						auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+						auto stringValue = FindStringFromListByIndex(index);
+						strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
+					}
 				}
 				return true;
 			}
 			else if (auto nameProperty = Cast<UNameProperty>(Property))
 			{
-				auto data = ItemPropertyData.Data;
-				if (data.Num() == 4)
+				if (ItemPropertyData.PropertyType != ELGUIPropertyType::PT_Name//prev property is not name
+					&& Prefab->PrefabVersion >= 1//name type is not valid in version below 1
+					)
 				{
-					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
-					auto nameValue = FindNameFromListByIndex(index);
+					auto nameValue = FName(*GetValueAsString(ItemPropertyData));
 					nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
+				}
+				else
+				{
+					if (ItemPropertyData.Data.Num() == 4)
+					{
+						auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+						auto nameValue = FindNameFromListByIndex(index);
+						nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
+					}
 				}
 				return true;
 			}
 			else if (auto textProperty = Cast<UTextProperty>(Property))
 			{
-				auto data = ItemPropertyData.Data;
-				if (data.Num() == 4)
+				if (ItemPropertyData.PropertyType == ELGUIPropertyType::PT_Text//prev property is not text
+					&& Prefab->PrefabVersion >= 1//text type is not valid in version below 1
+					)
 				{
-					auto index = BitConverter::ToInt32(data, bitConvertSuccess);
-					auto textValue = FindTextFromListByIndex(index);
+					auto textValue = FText::FromString(GetValueAsString(ItemPropertyData));
 					textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
+				}
+				else
+				{
+					if (ItemPropertyData.Data.Num() == 4)
+					{
+						auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+						auto textValue = FindTextFromListByIndex(index);
+						textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
+					}
 				}
 				return true;
 			}
