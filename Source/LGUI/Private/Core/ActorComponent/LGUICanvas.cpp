@@ -1195,7 +1195,10 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 	{
 		for (auto mat : UIMaterialList)
 		{
-			AddUIMaterialToCache(mat);
+			if (IsValid(mat))
+			{
+				AddUIMaterialToCache(mat);
+			}
 		}
 		UIMaterialList.Reset();
 	}
