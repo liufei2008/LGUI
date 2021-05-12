@@ -80,7 +80,7 @@ public:
 	virtual void UpdateCachedData()override;
 	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;
-	TSharedPtr<UIGeometry> GetGeometry() { return geometry; }
+	TSharedPtr<UIGeometry> GetGeometry()const { return geometry; }
 
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
 protected:
@@ -125,6 +125,7 @@ protected:
 	void ClearSelfRenderMaterial();
 private:
 	void UpdateGeometry_Implement(const bool& parentLayoutChanged);
+	void UpdateGeometry_ImplementForAutoManageDepth(const bool& parentLayoutChanged);
 	void UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged);
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;

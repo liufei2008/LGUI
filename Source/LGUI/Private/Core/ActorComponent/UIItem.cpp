@@ -226,60 +226,42 @@ int32 UUIItem::GetHierarchyIndexWithAllParent()const
 	}
 	return result;
 }
-int32 UUIItem::GetAllUIChildrenCount()const
+
+void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarchyIndex)
 {
-	int32 result = this->cacheUIChildren.Num();
-	for (auto item : this->cacheUIChildren)
+	if (this->flattenHierarchyIndex != parentFlattenHierarchyIndex)
 	{
-		if (IsValid(item))
+		this->flattenHierarchyIndex = parentFlattenHierarchyIndex;
+		if (IsValid(RenderCanvas))
 		{
-			result += item->GetAllUIChildrenCount();
-		}
-	}
-	return result;
-}
-int32 UUIItem::GetFlattenHierarchyIndexInParent()const
-{
-	int32 result = 0;
-	if (IsValid(cacheParentUIItem))
-	{
-		for (auto item : cacheParentUIItem->cacheUIChildren)
-		{
-			if (item == this)
+			if (RenderCanvas->GetAutoManageDepth())
 			{
-				break;
-			}
-			else
-			{
-				if (IsValid(item))
-				{
-					result += 1;
-					result += item->GetAllUIChildrenCount();
-				}
+				RenderCanvas->MarkRebuildAllDrawcall();
 			}
 		}
 	}
-	return result;
-}
-int32 UUIItem::GetFlattenHierarchyIndex()const
-{
-	int32 result = 0;
-	auto item = this;
-	while (true)
+	for (auto child : cacheUIChildren)
 	{
-		result += item->GetFlattenHierarchyIndexInParent();
-		item = item->GetParentAsUIItem();
-		if (IsValid(item))
+		if (IsValid(child))
 		{
-			result += 1;
-		}
-		else
-		{
-			break;
+			parentFlattenHierarchyIndex++;
+			child->CalculateFlattenHierarchyIndex_Recursive(parentFlattenHierarchyIndex);
 		}
 	}
-	return result;
 }
+void UUIItem::RecalculateFlattenHierarchyIndex()
+{
+	UUIItem* topUIItem = this;
+	UUIItem* rootUIItem = nullptr;
+	while (topUIItem != nullptr)
+	{
+		rootUIItem = topUIItem;
+		topUIItem = Cast<UUIItem>(topUIItem->GetAttachParent());
+	}
+	int tempIndex = rootUIItem->flattenHierarchyIndex;
+	rootUIItem->CalculateFlattenHierarchyIndex_Recursive(tempIndex);
+}
+
 void UUIItem::SetHierarchyIndex(int32 InInt) 
 { 
 	if (InInt != hierarchyIndex)
@@ -319,6 +301,8 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 			{
 				cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex = i;
 			}
+			//flatten hierarchy index
+			RecalculateFlattenHierarchyIndex();
 
 			cacheParentUIItem->OnChildHierarchyIndexChanged(this);
 		}
@@ -809,6 +793,8 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		}
 		cacheUIChildren.Add(childUIItem);
 		SortCacheUIChildren();
+		//flatten hierarchy index
+		RecalculateFlattenHierarchyIndex();
 		//interaction group
 		childUIItem->allUpParentGroupAllowInteraction = this->IsGroupAllowInteraction();
 		childUIItem->SetInteractionGroupStateChange();
@@ -836,7 +822,9 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 		{
 			cacheUIChildren[i]->hierarchyIndex = i;
 		}
-		
+		//flatten hierarchy index
+		RecalculateFlattenHierarchyIndex();
+
 		CallUIComponentsChildAttachmentChanged(childUIItem, false);
 	}
 	MarkCanvasUpdate();

@@ -58,6 +58,24 @@ enum class ELGUICanvasOverrideParameters :uint8
 };
 ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
 
+USTRUCT()
+struct FLGUIMaterialArrayContainer
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere, Category = LGUI)
+		TArray<UMaterialInstanceDynamic*> MaterialList;
+};
+struct FLGUICacheTransformContainer
+{
+public:
+	FTransform Transform;
+
+	FTransform2D Transform2D;
+	FVector2D BoundsMin2D;
+	FVector2D BoundsMax2D;
+};
+
 class UUIItem;
 class UUIBaseRenderable;
 class UUIRenderable;
@@ -101,6 +119,7 @@ private:
 	void UpdateCanvasLayout(bool parentLayoutChanged);
 	/** update Canvas's geometry */
 	void UpdateCanvasGeometry();
+	void UpdateCanvasGeometryForAutoManageDepth();
 public:
 	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
@@ -248,6 +267,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool onlyOwnerSee = false;
 
+	/**
+	 * When use auto manage depth, only 2D elements can be batched.
+	 * Ruls for telling if a UI element is 2D (convert the UI element in Canvas's relative space):
+	 * * Relative location.Z less than threshold.
+	 * * Relative rotation.X/Y less than threshold.
+	 * We can change the threshold in Edit/ProjectSettings/Plugins/LGUI/AutoManageDepthThreshold.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool autoManageDepth = true;
+
 	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
@@ -343,6 +372,9 @@ public:
 		void SetOnlyOwnerSee(bool value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetAutoManageDepth()const { return autoManageDepth; }
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return sortOrder; }
 	/** Get clip type of canvas. Actually canvas's clip type property is inherit from root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -419,17 +451,23 @@ private:
 	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIBaseRenderable>> UIRenderableItemList;//all renderable UI element collection
 	TArray<FLGUIDrawcallPrimitive> UIDrawcallPrimitiveList;//UIDrawcallPrimitive collection of this Canvas
 	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
+	TArray<TSharedPtr<UUIDrawcall>> TempUIDrawcallList;//for temperal create drawcall list, to compare the actual drawcall
 	TArray<TWeakObjectPtr<UUIDrawcallMesh>> CacheUIMeshList;//UIDrawcallMesh pool
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
+	UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)TArray<FLGUIMaterialArrayContainer> CacheUIMaterialList;//pool it
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);
 	/** rect clip's max position */
 	FVector2D clipRectMax = FVector2D(0, 0);
+public:
+	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UIItem relative to canvas transform
 private:
 	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();
 	void SetParameterForStandard(int drawcallCount);
 	void SetParameterForRectClip(int drawcallCount);
 	void SetParameterForTextureClip(int drawcallCount);
+	UMaterialInstanceDynamic* GetUIMaterialFromCache(ELGUICanvasClipType inClipType);
+	void AddUIMaterialToCache(UMaterialInstanceDynamic* uiMat);
 };

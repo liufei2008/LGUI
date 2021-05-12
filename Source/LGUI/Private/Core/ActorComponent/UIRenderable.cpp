@@ -358,7 +358,14 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 	}
 	else
 	{
-		UpdateGeometry_Implement(parentLayoutChanged);
+		if (RenderCanvas->GetAutoManageDepth())
+		{
+			UpdateGeometry_ImplementForAutoManageDepth(parentLayoutChanged);
+		}
+		else
+		{
+			UpdateGeometry_Implement(parentLayoutChanged);
+		}
 	}
 }
 
@@ -400,6 +407,58 @@ void UUIRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
 				geometry->depth = widget.depth;
 				RenderCanvas->OnUIElementDepthChange(this);
 			}
+		}
+		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
+		{
+			CreateGeometry();
+			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+			goto COMPLETE;
+		}
+		else//update geometry
+		{
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+
+			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
+			{
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+			}
+			else
+			{
+				RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged);
+			}
+			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
+			{
+				UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+			}
+		}
+	}
+COMPLETE:
+	;
+}
+void UUIRenderable::UpdateGeometry_ImplementForAutoManageDepth(const bool& parentLayoutChanged)
+{
+	OnBeforeCreateOrUpdateGeometry();
+	if (geometry->vertices.Num() == 0//if geometry not created yet
+		|| geometry->drawcallIndex == -1//if geometry not rendered yet
+		)
+	{
+		CreateGeometry();
+		RenderCanvas->MarkRebuildAllDrawcall();
+		goto COMPLETE;
+	}
+	else//if geometry is created, update data
+	{
+		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
+		{
+			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
+			{
+				geometry->Clear();
+				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				goto COMPLETE;
+			}
+			CreateGeometry();
+			RenderCanvas->MarkRebuildAllDrawcall();
+			goto COMPLETE;
 		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{

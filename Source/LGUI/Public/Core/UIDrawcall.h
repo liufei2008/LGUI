@@ -1,10 +1,15 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #pragma once
+#include "CoreMinimal.h"
 
-#include "UIGeometry.h"
-//#include "UIDrawcall.generated.h"
 class UUIPostProcess;
+class UIGeometry;
+struct FDynamicMeshVertex;
+class UMaterialInterface;
+class UMaterialInstanceDynamic;
+class UUIItem;
+class UUIRenderable;
 
 enum class EUIDrawcallType :uint8
 {
@@ -30,107 +35,32 @@ public:
 	bool vertexPositionChanged = false;//if vertex position changed? use for update bounds
 
 	TWeakObjectPtr<UUIPostProcess> postProcessObject;//post process object
+
+	TArray<TWeakObjectPtr<UUIRenderable>> renderObjectList;//render object collections belong to this drawcall
+	bool is3DDrawcall = false;//transform relative to canvas is 3d or not? 3d drawcall should not batch
 public:
-	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)const
-	{
-		int count = geometryList.Num();
-		if (count == 1)
-		{
-			vertices = geometryList[0]->vertices;
-			triangles = geometryList[0]->triangles;
-		}
-		else
-		{
-			int totalVertCount = 0;
-			int totalTriangleIndicesCount = 0;
-			for (int i = 0; i < count; i++)
-			{
-				totalVertCount += geometryList[i]->vertices.Num();
-				totalTriangleIndicesCount += geometryList[i]->triangles.Num();
-			}
-			int prevVertexCount = 0;
-			int triangleIndicesIndex = 0;
-			vertices.Reserve(totalVertCount);
-			triangles.SetNumUninitialized(totalTriangleIndicesCount);
-			for (int geoIndex = 0; geoIndex < count; geoIndex++)
-			{
-				auto& geometry = geometryList[geoIndex];
-				auto& geomTriangles = geometry->triangles;
-				int triangleCount = geomTriangles.Num();
-				if (triangleCount <= 0)continue;
-				vertices.Append(geometry->vertices);
-				for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
-				{
-					triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
-				}
-
-				prevVertexCount += geometry->vertices.Num();
-			}
-		}
-	}
-	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)
-	{
-		int count = geometryList.Num();
-		if (count == 1)
-		{
-			FMemory::Memcpy((uint8*)vertices.GetData(), geometryList[0]->vertices.GetData(), vertices.Num() * sizeof(FDynamicMeshVertex));
-			FMemory::Memcpy((uint8*)triangles.GetData(), geometryList[0]->triangles.GetData(), triangles.Num() * sizeof(uint16));
-		}
-		else
-		{
-			int prevVertexCount = 0;
-			int triangleIndicesIndex = 0;
-			int vertBufferOffset = 0;
-			for (int geoIndex = 0; geoIndex < count; geoIndex++)
-			{
-				auto& geometry = geometryList[geoIndex];
-				auto& geomTriangles = geometry->triangles;
-				int triangleCount = geomTriangles.Num();
-				if (triangleCount <= 0)continue;
-				int vertCount = geometry->vertices.Num();
-				int bufferSize = vertCount * sizeof(FDynamicMeshVertex);
-				FMemory::Memcpy((uint8*)vertices.GetData() + vertBufferOffset, (uint8*)geometry->vertices.GetData(), bufferSize);
-				vertBufferOffset += bufferSize;
-
-				for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
-				{
-					triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
-				}
-
-				prevVertexCount += vertCount;
-			}
-		}
-	}
+	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)const;
+	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles);
 	//update the max and min depth
-	void UpdateDepthRange()
-	{
-		depthMin = INT32_MAX;
-		depthMax = INT32_MIN;
-		for (auto item : geometryList)
-		{
-			auto itemDepth = item->depth;
-			if (depthMin > itemDepth)
-			{
-				depthMin = itemDepth;
-			}
-			if (depthMax < itemDepth)
-			{
-				depthMax = itemDepth;
-			}
-		}
-	}
+	void UpdateDepthRange();
 	
 	bool IsDepthInsideDrawcall(int depth)
 	{
 		return depth >= depthMin && depth < depthMax;
 	}
-	void Clear()
-	{
-		geometryList.Empty();
-		texture = nullptr;
-		material = nullptr;
-		materialInstanceDynamic = nullptr;
+	void Clear();
+	bool Equals(UUIDrawcall* Other);
 
-		postProcessObject = nullptr;
-	}
+	static bool CompareDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& A, const TArray<TSharedPtr<UUIDrawcall>>& B);
+	static void CopyDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& From, TArray<TSharedPtr<UUIDrawcall>>& To);
+
+	//create drawcall
+	static void CreateDrawcall(TArray<TWeakObjectPtr<class UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
+	static void CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<class UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
+private:
+	static TSharedPtr<class UUIDrawcall> GetAvailableDrawcall(TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
+	static struct FLGUICacheTransformContainer GetUIItemTransformRelativeToCanvas(UUIItem* UIItem);
+	static class FTransform2D ConvertTo2DTransform(const FTransform& Transform);
+	static void CalculateUIItem2DBounds(UUIItem* UIItem, const class FTransform2D& Transform, FVector2D& Min, FVector2D& Max);
+	static bool Is2DUITransform(const FTransform& Transform);
 };

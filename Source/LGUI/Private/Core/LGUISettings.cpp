@@ -7,6 +7,7 @@
 #include "Core/LGUIBehaviour.h"
 
 #if WITH_EDITOR
+float ULGUISettings::cacheAutoManageDepthThreshold = -1;
 void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -19,6 +20,10 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 		{
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
 			ULGUIAtlasManager::InitCheck();
+		}
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISettings, autoManageDepthThreshold))
+		{
+			cacheAutoManageDepthThreshold = autoManageDepthThreshold;
 		}
 	}
 }
@@ -62,6 +67,18 @@ const TMap<FName, FLGUIAtlasSettings>& ULGUISettings::GetAllAtlasSettings()
 ELGUIScreenSpaceUIAntiAliasing ULGUISettings::GetAntiAliasingSampleCount()
 {
 	return GetDefault<ULGUISettings>()->antiAliasing;
+}
+float ULGUISettings::GetAutoManageDepthThreshold()
+{
+#if WITH_EDITOR
+	if (cacheAutoManageDepthThreshold <= -0.5f)
+	{
+		cacheAutoManageDepthThreshold = GetDefault<ULGUISettings>()->autoManageDepthThreshold;
+	}
+	return cacheAutoManageDepthThreshold;
+#else
+	return GetDefault<ULGUISettings>()->autoManageDepthThreshold;
+#endif
 }
 
 

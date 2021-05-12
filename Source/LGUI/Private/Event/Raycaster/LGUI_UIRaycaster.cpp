@@ -111,12 +111,28 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 
 						if (AUIItem->GetRenderCanvas() == BUIItem->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
 						{
-							if (AUIItem->GetDepth() == BUIItem->GetDepth())//if item's depth is equal then sort on distance
+							if (AUIItem->GetRenderCanvas()->GetAutoManageDepth())
 							{
-								return A.Distance < B.Distance;
+								if (AUIItem->GetFlattenHierarchyIndex() == BUIItem->GetFlattenHierarchyIndex())//if item's flattenHierarchyIndex is equal then sort on distance
+								{
+									return A.Distance < B.Distance;
+								}
+								else
+								{
+									return AUIItem->GetFlattenHierarchyIndex() > BUIItem->GetFlattenHierarchyIndex();
+								}
 							}
 							else
-								return AUIItem->GetDepth() > BUIItem->GetDepth();
+							{
+								if (AUIItem->GetDepth() == BUIItem->GetDepth())//if item's depth is equal then sort on distance
+								{
+									return A.Distance < B.Distance;
+								}
+								else
+								{
+									return AUIItem->GetDepth() > BUIItem->GetDepth();
+								}
+							}
 						}
 						else//if Canvas's depth not equal then sort on Canvas's SortOrder
 						{
