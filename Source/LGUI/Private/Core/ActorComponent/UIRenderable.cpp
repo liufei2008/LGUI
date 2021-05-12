@@ -416,7 +416,8 @@ void UUIRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
 		}
 		else//update geometry
 		{
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+			bool pixelPerfect = RenderCanvas->GetActualPixelPerfect();
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || (parentLayoutChanged && pixelPerfect), cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
 			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
 			{
@@ -468,7 +469,8 @@ void UUIRenderable::UpdateGeometry_ImplementForAutoManageDepth(const bool& paren
 		}
 		else//update geometry
 		{
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+			bool pixelPerfect = RenderCanvas->GetActualPixelPerfect();
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || (parentLayoutChanged && pixelPerfect), cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
 			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
 			{
@@ -537,7 +539,8 @@ void UUIRenderable::UpdateGeometry_ImplementForSelfRender(const bool& parentLayo
 		}
 		else//update geometry
 		{
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+			bool pixelPerfect = RenderCanvas->GetActualPixelPerfect();
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || (parentLayoutChanged && pixelPerfect), cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
 			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
 			{
