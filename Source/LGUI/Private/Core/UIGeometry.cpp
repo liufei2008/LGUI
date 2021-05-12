@@ -3790,9 +3790,7 @@ DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformVertices"), STAT_TransformVertices,
 void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPtr<UIGeometry> uiGeo)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
-	auto canvasUIItem = canvas->GetUIItem();
-	auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
-	const auto& itemTf = item->GetComponentTransform();
+	
 	auto& vertices = uiGeo->vertices;
 	auto& originPositions = uiGeo->originPositions;
 	auto vertexCount = vertices.Num();
@@ -3806,6 +3804,9 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPt
 		originPositions.AddDefaulted(vertexCount - originVertexCount);
 	}
 	
+	auto canvasUIItem = canvas->GetUIItem();
+	auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
+	const auto& itemTf = item->GetComponentTransform();
 	FTransform itemToCanvasTf;
 	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
 	for (int i = 0; i < vertexCount; i++)

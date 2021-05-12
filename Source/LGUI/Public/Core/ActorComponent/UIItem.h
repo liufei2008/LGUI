@@ -131,8 +131,8 @@ protected:
 	/** UI children array, sorted by hierarchy index */
 	UPROPERTY(Transient) TArray<UUIItem*> cacheUIChildren;
 	/** check valid, incase unnormally deleting actor, like undo */
-	FORCEINLINE void CheckCacheUIChildren();
-	FORCEINLINE void SortCacheUIChildren();
+	void CheckCacheUIChildren();
+	void SortCacheUIChildren();
 	/** alpha inherit from parent or not */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
 		bool inheritAlpha = true;
@@ -185,7 +185,7 @@ public:
 		void SetAnchorOffsetY(float newOffset);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorOffset(FVector2D newOffset);
-	FORCEINLINE void SetCalculatedParentAlpha(float alpha);
+	void SetCalculatedParentAlpha(float alpha);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		int GetDepth() const { return widget.depth; }
@@ -328,10 +328,12 @@ protected:
 	/** hierarchy index, for layout to sort order */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 hierarchyIndex = INDEX_NONE;
+	UPROPERTY(VisibleAnywhere, Category = LGUI)
+		int32 flattenHierarchyIndex = 0;
 	void OnChildHierarchyIndexChanged(UUIItem* child);
-	/** Get all UI children count, include children's children. */
-	int32 GetAllUIChildrenCount()const;
-	int32 GetFlattenHierarchyIndexInParent()const;
+private:
+	void RecalculateFlattenHierarchyIndex();
+	void CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarchyIndex);
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetHierarchyIndex() const { return hierarchyIndex; }
@@ -341,7 +343,7 @@ public:
 		int32 GetHierarchyIndexWithAllParent()const;
 	/** Get flatten hierarchy index, calculate from the first top most UIItem. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		int32 GetFlattenHierarchyIndex()const;
+		int32 GetFlattenHierarchyIndex()const { return flattenHierarchyIndex; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetHierarchyIndex(int32 InInt);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -444,7 +446,7 @@ protected:
 	virtual void UpdateCachedDataBeforeGeometry();
 
 	/** find LGUICanvas which render this UI element */
-	FORCEINLINE bool CheckRenderCanvas();
+	bool CheckRenderCanvas();
 public:
 	uint8 GetFinalAlpha()const;
 	float GetFinalAlpha01()const;

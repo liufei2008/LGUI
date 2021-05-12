@@ -109,85 +109,6 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UPacka
 }
 
 
-void LGUIUtils::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
-{
-	UTexture* prevTex = nullptr;
-	TSharedPtr<UUIDrawcall> prevUIDrawcall = nullptr;
-	int drawcallCount = 0;
-	int prevDrawcallListCount = drawcallList.Num();
-	for (int i = 0; i < sortedList.Num(); i++)
-	{
-		switch (sortedList[i]->GetUIRenderableType())
-		{
-		default:
-		case EUIRenderableType::UIGeometryRenderable:
-		{
-			auto sortedItem = (UUIRenderable*)sortedList[i].Get();
-			auto itemGeo = sortedItem->GetGeometry();
-			if (itemGeo.IsValid() == false)continue;
-			if (itemGeo->vertices.Num() == 0)continue;
-
-			if (itemGeo->material.IsValid())//consider every custom material as a drawcall
-			{
-				prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-				prevUIDrawcall->texture = itemGeo->texture;
-				prevUIDrawcall->material = itemGeo->material;
-				prevUIDrawcall->geometryList.Add(itemGeo);
-				prevUIDrawcall->type = EUIDrawcallType::Geometry;
-				prevTex = nullptr;
-			}
-			else//batch elements into drawcall by comparing their texture
-			{
-				auto itemTex = itemGeo->texture;
-				if (itemTex.Get() != prevTex)//this ui element's texture is different from previous one
-				{
-					prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-					prevUIDrawcall->texture = itemTex;
-					prevUIDrawcall->geometryList.Add(itemGeo);
-					prevUIDrawcall->type = EUIDrawcallType::Geometry;
-				}
-				else//same texture means same drawcall
-				{
-					if (!prevUIDrawcall.IsValid())//if first is null
-					{
-						prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-						prevUIDrawcall->texture = itemTex;
-						prevUIDrawcall->geometryList.Add(itemGeo);
-					}
-					else
-					{
-						prevUIDrawcall->geometryList.Add(itemGeo);
-					}
-					prevUIDrawcall->type = EUIDrawcallType::Geometry;
-				}
-				prevTex = itemTex.Get();
-			}
-			itemGeo->drawcallIndex = drawcallCount - 1;
-		}
-		break;
-		case EUIRenderableType::UIPostProcessRenderable:
-		{
-			auto sortedItem = (UUIPostProcess*)sortedList[i].Get();
-			auto itemGeo = sortedItem->GetGeometry();
-			if (itemGeo.IsValid() == false)continue;
-			if (itemGeo->vertices.Num() == 0)continue;
-			//every postprocess is a drawcall
-			prevUIDrawcall = GetAvalibleDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-			prevUIDrawcall->postProcessObject = sortedItem;
-			prevUIDrawcall->type = EUIDrawcallType::PostProcess;
-			prevUIDrawcall = nullptr;
-			prevTex = nullptr;
-		}
-		break;
-		}
-	}
-	while (prevDrawcallListCount > drawcallCount)//delete needless drawcall
-	{
-		drawcallList.RemoveAt(prevDrawcallListCount - 1);
-		prevDrawcallListCount--;
-	}
-}
-
 //find first Canvas in hierarchy
 void LGUIUtils::FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 {
@@ -266,23 +187,5 @@ void LGUIUtils::EditorNotification(FText NofityText, float ExpireDuration)
 	GEditor->PlayEditorSound(CompileFailSound);
 }
 #endif
-TSharedPtr<UUIDrawcall> LGUIUtils::GetAvalibleDrawcall(TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount)
-{
-	TSharedPtr<UUIDrawcall> result;
-	drawcallCount++;
-	if (drawcallCount > prevDrawcallListCount)
-	{
-		result = TSharedPtr<UUIDrawcall>(new UUIDrawcall());
-		drawcallList.Add(result);
-		prevDrawcallListCount++;
-	}
-	else
-	{
-		result = drawcallList[drawcallCount - 1];
-		if (result.IsValid())
-			result->Clear();
-	}
-	return result;
-}
 
 const TCHAR BitConverter::ErrorMsgFormat[] = TEXT("[BitConvert/%s]bytes.Num %d not enough!");

@@ -7,6 +7,7 @@
 
 class UUIItem;
 class ULGUICanvas;
+class UTexture2D;
 
 class LGUI_API LGUIUtils
 {
@@ -103,8 +104,6 @@ public:
 		}
 		return nullptr;
 	}
-	//create drawcall
-	static void CreateDrawcall(TArray<TWeakObjectPtr<class UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
 	//find root LGUICanvas
 	static void FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
 	//find LGUICanvas component in parent, not include self
@@ -117,9 +116,8 @@ public:
 #endif
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
 
-	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, UPackage* InDefaultPackage = GetTransientPackage(), FName InDefaultName = NAME_None);
+	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, class UPackage* InDefaultPackage = GetTransientPackage(), FName InDefaultName = NAME_None);
 private:
-	static TSharedPtr<class UUIDrawcall> GetAvalibleDrawcall(TArray<TSharedPtr<class UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
 	template<class T>
 	static void CollectComponentsInChildrenRecursive(AActor* InActor, TArray<T*>& InOutArray)
 	{
