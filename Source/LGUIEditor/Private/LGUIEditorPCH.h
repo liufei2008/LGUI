@@ -22,6 +22,9 @@
 #include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
 #include "Window/LGUIAtlasViewer.h"
 
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Images/SImage.h"
+
 #include "DataFactory/LGUISpriteDataTypeAction.h"
 #include "DataFactory/LGUIFontDataTypeAction.h"
 #include "DataFactory/LGUIPrefabTypeAction.h"
