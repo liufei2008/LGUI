@@ -404,15 +404,6 @@ void UUIDropdownComponent::OnSelectItem(int index)
 {
 	SetValue(index, true);
 	Hide();
-	//apply to options
-	for (int i = 0, count = Options.Num(); i < count; i++)
-	{
-		auto script = CreatedItemArray[i];
-		if (script.IsValid())
-		{
-			script->SetSelectionState(i == Value);
-		}
-	}
 }
 void UUIDropdownComponent::ApplyValueToUI()
 {
@@ -425,6 +416,16 @@ void UUIDropdownComponent::ApplyValueToUI()
 	if (CaptionSprite.IsValid() && IsValid(Options[Value].Sprite))
 	{
 		CaptionSprite->GetUISprite()->SetSprite(Options[Value].Sprite);
+	}
+
+	//apply to options
+	for (int i = 0; i < Options.Num() && i < CreatedItemArray.Num(); i++)
+	{
+		auto script = CreatedItemArray[i];
+		if (script.IsValid())
+		{
+			script->SetSelectionState(i == Value);
+		}
 	}
 }
 bool UUIDropdownComponent::OnPointerClick_Implementation(ULGUIPointerEventData* eventData)
