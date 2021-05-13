@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int executeOrder = 0;
 
-	FORCEINLINE class UUIRenderable* GetRenderableUIItem();
+	class UUIRenderable* GetRenderableUIItem();
 private:
 	UPROPERTY(Transient) class UUIRenderable* renderableUIItem = nullptr;
 	

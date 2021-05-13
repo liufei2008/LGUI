@@ -29,18 +29,23 @@ void UUITextureBase::CheckTexture()
 {
 	if (!IsValid(texture))
 	{
-		static auto defaultWhiteSolid = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/LGUIPreset_WhiteSolid"));
+		auto defaultWhiteSolid = GetDefaultWhiteTexture();
 		if (IsValid(defaultWhiteSolid))
 		{
 			texture = defaultWhiteSolid;
 		}
-		else
-		{
-			UE_LOG(LGUI, Error, TEXT("[UUITextureBase::CheckTexture]Load default texture error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
-		}
 	}
 }
 #endif
+UTexture* UUITextureBase::GetDefaultWhiteTexture()
+{
+	auto defaultWhiteSolid = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/LGUIPreset_WhiteSolid"));
+	if (!IsValid(defaultWhiteSolid))
+	{
+		UE_LOG(LGUI, Error, TEXT("[UUITextureBase::CheckTexture]Load default texture error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+	}
+	return defaultWhiteSolid;
+}
 
 UTexture* UUITextureBase::GetTextureToCreateGeometry()
 {
@@ -52,6 +57,10 @@ void UUITextureBase::SetTexture(UTexture* newTexture)
 	if (texture != newTexture)
 	{
 		texture = newTexture;
+		if (texture == nullptr)
+		{
+			texture = GetDefaultWhiteTexture();
+		}
 		MarkTextureDirty();
 	}
 }
