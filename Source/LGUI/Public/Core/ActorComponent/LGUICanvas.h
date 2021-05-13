@@ -273,9 +273,10 @@ protected:
 	 * * Relative location.Z less than threshold.
 	 * * Relative rotation.X/Y less than threshold.
 	 * We can change the threshold in Edit/ProjectSettings/Plugins/LGUI/AutoManageDepthThreshold.
+	 * This property's default value will be "true" in future release.
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool autoManageDepth = true;
+		bool autoManageDepth = false;
 
 	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
