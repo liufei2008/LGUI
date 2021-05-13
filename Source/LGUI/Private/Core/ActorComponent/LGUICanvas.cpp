@@ -664,6 +664,7 @@ void ULGUICanvas::UpdateTopMostCanvas()
 		UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
 	}
 
+	CacheUIItemToCanvasTransformMap.Reset();
 	UpdateCanvasLayout(false);
 	if (prevFrameNumber != GFrameNumber)//ignore if not at new render frame
 	{
@@ -906,10 +907,10 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 				return A->GetFlattenHierarchyIndex() < B->GetFlattenHierarchyIndex();
 			});
 		UUIDrawcall::CreateDrawcallForAutoManageDepth(UIRenderableItemList, TempUIDrawcallList);//create drawcall
+		CacheUIItemToCanvasTransformMap.Reset();
 		//compare drawcall
 		auto drawcallsEqual = UUIDrawcall::CompareDrawcallList(TempUIDrawcallList, UIDrawcallList);
 		cacheForThisUpdate_ShouldRebuildAllDrawcall = (!drawcallsEqual) || cacheForThisUpdate_ShouldRebuildAllDrawcall;
-		CacheUIItemToCanvasTransformMap.Reset();
 		if (cacheForThisUpdate_ShouldRebuildAllDrawcall)
 		{
 			UUIDrawcall::CopyDrawcallList(TempUIDrawcallList, UIDrawcallList);
@@ -2112,4 +2113,68 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 		}
 	}
 	return nullptr;
+}
+
+bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult)
+{
+	if (auto tfPtr = this->CacheUIItemToCanvasTransformMap.Find(item))
+	{
+		outResult = *tfPtr;
+		return true;
+	}
+	else
+	{
+		if (createIfNotExist)
+		{
+			auto inverseCanvasTf = this->UIItem->GetComponentTransform().Inverse();
+			const auto& itemTf = item->GetComponentTransform();
+
+			FTransform itemToCanvasTf;
+			FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
+			outResult.Transform = itemToCanvasTf;
+
+			auto itemToCanvasTf2D = ConvertTo2DTransform(itemToCanvasTf);
+			FVector2D itemMin, itemMax;
+			CalculateUIItem2DBounds(item, itemToCanvasTf2D, itemMin, itemMax);
+
+			outResult.Transform2D = itemToCanvasTf2D;
+			outResult.BoundsMin2D = itemMin;
+			outResult.BoundsMax2D = itemMax;
+			return true;
+		}
+		return false;
+	}
+}
+FTransform2D ULGUICanvas::ConvertTo2DTransform(const FTransform& Transform)
+{
+	auto itemToCanvasMatrix = Transform.ToMatrixWithScale();
+	auto itemToCanvasTf2D = FTransform2D(FMatrix2x2(itemToCanvasMatrix.M[0][0], itemToCanvasMatrix.M[0][1], itemToCanvasMatrix.M[1][0], itemToCanvasMatrix.M[1][1]), FVector2D(Transform.GetLocation()));
+	return itemToCanvasTf2D;
+}
+void ULGUICanvas::CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& Transform, FVector2D& Min, FVector2D& Max)
+{
+	auto point1 = Transform.TransformPoint(item->GetLocalSpaceLeftBottomPoint());
+	auto point2 = Transform.TransformPoint(item->GetLocalSpaceRightTopPoint());
+	Min.X = point1.X < point2.X ? point1.X : point2.X;
+	Min.Y = point1.Y < point2.Y ? point1.Y : point2.Y;
+	if (point1.X < point2.X)
+	{
+		Min.X = point1.X;
+		Max.X = point2.X;
+	}
+	else
+	{
+		Min.X = point2.X;
+		Max.X = point1.X;
+	}
+	if (point1.Y < point2.Y)
+	{
+		Min.Y = point1.Y;
+		Max.Y = point2.Y;
+	}
+	else
+	{
+		Min.Y = point2.Y;
+		Max.Y = point1.Y;
+	}
 }
