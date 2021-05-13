@@ -26,6 +26,7 @@
 #include "Engine/Engine.h"
 #include "Core/UIPostProcessRenderProxy.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Math/TransformCalculus2D.h"
 
 ULGUICanvas::ULGUICanvas()
 {
@@ -2137,7 +2138,6 @@ bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNo
 			FVector2D itemMin, itemMax;
 			CalculateUIItem2DBounds(item, itemToCanvasTf2D, itemMin, itemMax);
 
-			outResult.Transform2D = itemToCanvasTf2D;
 			outResult.BoundsMin2D = itemMin;
 			outResult.BoundsMax2D = itemMax;
 			return true;
