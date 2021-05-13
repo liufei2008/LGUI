@@ -328,10 +328,10 @@ protected:
 	/** hierarchy index, for layout to sort order */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 hierarchyIndex = INDEX_NONE;
-	UPROPERTY(VisibleAnywhere, Category = LGUI)
-		int32 flattenHierarchyIndex = 0;
+	int32 flattenHierarchyIndex = 0;
 	void OnChildHierarchyIndexChanged(UUIItem* child);
 private:
+	//@todo: optimize this calculation
 	void RecalculateFlattenHierarchyIndex();
 	void CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarchyIndex);
 public:

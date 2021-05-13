@@ -34,4 +34,7 @@ private:
 	void OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> PropertyHandle);
 	void OnCopyDepth();
 	void OnPasteDepth(TSharedRef<IPropertyHandle> PropertyHandle);
+
+	EVisibility GetDisplayNameWarningVisibility()const;
+	FReply OnClickFixButton();
 };

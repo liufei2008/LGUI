@@ -457,7 +457,9 @@ private:
 	TArray<TSharedPtr<UUIDrawcall>> TempUIDrawcallList;//for temperal create drawcall list, to compare the actual drawcall
 	TArray<TWeakObjectPtr<UUIDrawcallMesh>> CacheUIMeshList;//UIDrawcallMesh pool
 	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
-	UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)TArray<FLGUIMaterialArrayContainer> CacheUIMaterialList;//pool it
+	//UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)
+	UPROPERTY(Transient)
+		TArray<FLGUIMaterialArrayContainer> CacheUIMaterialList;//pool it
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);
