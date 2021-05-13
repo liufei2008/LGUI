@@ -278,8 +278,7 @@ void UUITexture::SetTexture(UTexture* newTexture)
 {
 	if (texture != newTexture)
 	{
-		texture = newTexture;
-		MarkTextureDirty();
+		Super::SetTexture(newTexture);
 		CheckSpriteData();
 	}
 }
