@@ -263,7 +263,8 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 		auto renderObjectList = drawcallItem->renderObjectList;
 		for (auto otherItem : renderObjectList)
 		{
-			auto otherItemToCanvasTf = GetUIItemTransformRelativeToCanvas(otherItem.Get());
+			FLGUICacheTransformContainer otherItemToCanvasTf;
+			otherItem->GetRenderCanvas()->GetCacheUIItemToCanvasTransform(otherItem.Get(), true, otherItemToCanvasTf);
 			//check bounds overlap
 			if (IntersectBounds(itemToCanvasTf.BoundsMin2D, itemToCanvasTf.BoundsMax2D, otherItemToCanvasTf.BoundsMin2D, otherItemToCanvasTf.BoundsMax2D))
 			{
@@ -281,7 +282,8 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 			{
 				continue;
 			}
-			auto itemToCanvasTf = GetUIItemTransformRelativeToCanvas(item);
+			FLGUICacheTransformContainer itemToCanvasTf;
+			item->GetRenderCanvas()->GetCacheUIItemToCanvasTransform(item, true, itemToCanvasTf);
 			if (!Is2DUITransform(itemToCanvasTf.Transform))//auto-manage-depth only for 2d items
 			{
 				is3DUIItem = true;
@@ -390,37 +392,6 @@ TSharedPtr<class UUIDrawcall> UUIDrawcall::GetAvailableDrawcall(TArray<TSharedPt
 	return result;
 }
 
-FLGUICacheTransformContainer UUIDrawcall::GetUIItemTransformRelativeToCanvas(UUIItem* UIItem)
-{
-	auto canvas = UIItem->GetRenderCanvas();
-	auto& cacheTf = canvas->CacheUIItemToCanvasTransformMap;
-	if (auto tfPtr = cacheTf.Find(UIItem))
-	{
-		return *tfPtr;
-	}
-	else
-	{
-		FLGUICacheTransformContainer result;
-
-		auto canvasUIItem = canvas->GetUIItem();
-		auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
-		const auto& itemTf = UIItem->GetComponentTransform();
-
-		FTransform itemToCanvasTf;
-		FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
-		result.Transform = itemToCanvasTf;
-
-		auto itemToCanvasTf2D = ConvertTo2DTransform(itemToCanvasTf);
-		FVector2D itemMin, itemMax;
-		CalculateUIItem2DBounds(UIItem, itemToCanvasTf2D, itemMin, itemMax);
-
-		result.Transform2D = itemToCanvasTf2D;
-		result.BoundsMin2D = itemMin;
-		result.BoundsMax2D = itemMax;
-
-		return result;
-	}
-}
 bool UUIDrawcall::Is2DUITransform(const FTransform& Transform)
 {
 #if WITH_EDITOR
@@ -438,37 +409,4 @@ bool UUIDrawcall::Is2DUITransform(const FTransform& Transform)
 		return false;
 	}
 	return true;
-}
-FTransform2D UUIDrawcall::ConvertTo2DTransform(const FTransform& Transform)
-{
-	auto itemToCanvasMatrix = Transform.ToMatrixWithScale();
-	auto itemToCanvasTf2D = FTransform2D(FMatrix2x2(itemToCanvasMatrix.M[0][0], itemToCanvasMatrix.M[0][1], itemToCanvasMatrix.M[1][0], itemToCanvasMatrix.M[1][1]), FVector2D(Transform.GetLocation()));
-	return itemToCanvasTf2D;
-}
-void UUIDrawcall::CalculateUIItem2DBounds(UUIItem* UIItem, const FTransform2D& Transform, FVector2D& Min, FVector2D& Max)
-{
-	auto point1 = Transform.TransformPoint(UIItem->GetLocalSpaceLeftBottomPoint());
-	auto point2 = Transform.TransformPoint(UIItem->GetLocalSpaceRightTopPoint());
-	Min.X = point1.X < point2.X ? point1.X : point2.X;
-	Min.Y = point1.Y < point2.Y ? point1.Y : point2.Y;
-	if (point1.X < point2.X)
-	{
-		Min.X = point1.X;
-		Max.X = point2.X;
-	}
-	else
-	{
-		Min.X = point2.X;
-		Max.X = point1.X;
-	}
-	if (point1.Y < point2.Y)
-	{
-		Min.Y = point1.Y;
-		Max.Y = point2.Y;
-	}
-	else
-	{
-		Min.Y = point2.Y;
-		Max.Y = point1.Y;
-	}
 }

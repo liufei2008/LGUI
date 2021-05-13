@@ -461,8 +461,13 @@ private:
 	FVector2D clipRectMin = FVector2D(0, 0);
 	/** rect clip's max position */
 	FVector2D clipRectMax = FVector2D(0, 0);
+
+	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
 public:
-	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UIItem relative to canvas transform
+	bool GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
+private:
+	class FTransform2D ConvertTo2DTransform(const FTransform& Transform);
+	void CalculateUIItem2DBounds(UUIItem* item, const class FTransform2D& Transform, FVector2D& Min, FVector2D& Max);
 private:
 	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();

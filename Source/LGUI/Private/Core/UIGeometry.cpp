@@ -3804,11 +3804,21 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPt
 		originPositions.AddDefaulted(vertexCount - originVertexCount);
 	}
 	
-	auto canvasUIItem = canvas->GetUIItem();
-	auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
-	const auto& itemTf = item->GetComponentTransform();
 	FTransform itemToCanvasTf;
-	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
+	if (canvas->GetAutoManageDepth())
+	{
+		FLGUICacheTransformContainer tempTf;
+		canvas->GetCacheUIItemToCanvasTransform(item, true, tempTf);
+		itemToCanvasTf = tempTf.Transform;
+	}
+	else
+	{
+		auto canvasUIItem = canvas->GetUIItem();
+		auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
+		const auto& itemTf = item->GetComponentTransform();
+		FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
+	}
+
 	for (int i = 0; i < vertexCount; i++)
 	{
 		vertices[i].Position = itemToCanvasTf.TransformPosition(originPositions[i]);
