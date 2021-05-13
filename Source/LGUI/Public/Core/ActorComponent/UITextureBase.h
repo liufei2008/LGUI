@@ -3,6 +3,7 @@
 #pragma once
 
 #include "UIRenderable.h"
+#include "Engine/Texture.h"
 #include "UITextureBase.generated.h"
 
 /** 
@@ -21,6 +22,7 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void CheckTexture();
 #endif
+	static UTexture* GetDefaultWhiteTexture();
 protected:
 	virtual void BeginPlay()override;
 	friend class FUITextureBaseCustomization;

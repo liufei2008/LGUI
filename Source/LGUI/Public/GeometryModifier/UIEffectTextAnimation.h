@@ -44,7 +44,7 @@ class LGUI_API UUIEffectTextAnimation_Property : public UObject
 	GENERATED_BODY()
 protected:
 	class UUIText* GetUIText();
-	FORCEINLINE void MarkUITextPositionDirty();
+	void MarkUITextPositionDirty();
 public:
 	virtual void Init() {};
 	virtual void Deinit() {};
