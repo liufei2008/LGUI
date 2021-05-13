@@ -59,8 +59,5 @@ public:
 	static void CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<class UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
 private:
 	static TSharedPtr<class UUIDrawcall> GetAvailableDrawcall(TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
-	static struct FLGUICacheTransformContainer GetUIItemTransformRelativeToCanvas(UUIItem* UIItem);
-	static class FTransform2D ConvertTo2DTransform(const FTransform& Transform);
-	static void CalculateUIItem2DBounds(UUIItem* UIItem, const class FTransform2D& Transform, FVector2D& Min, FVector2D& Max);
 	static bool Is2DUITransform(const FTransform& Transform);
 };
