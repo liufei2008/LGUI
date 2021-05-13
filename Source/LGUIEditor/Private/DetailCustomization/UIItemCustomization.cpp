@@ -844,7 +844,74 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	}
 		
 	//TSharedPtr<IPropertyHandle> widgetHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(FUIWidget, depth));
+	//displayName
+	auto displayNamePropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, displayName));
+	DetailBuilder.HideProperty(displayNamePropertyHandle);
+	lguiCategory.AddCustomRow(LOCTEXT("DisplayName", "Display Name"), true)
+		.NameContent()
+		[
+			displayNamePropertyHandle->CreatePropertyNameWidget()
+		]
+		.ValueContent()
+		.MinDesiredWidth(500)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				displayNamePropertyHandle->CreatePropertyValueWidget(true)
+			]
+			+SHorizontalBox::Slot()
+			.MaxWidth(80)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Fix it")))
+				.OnClicked(this, &FUIItemCustomization::OnClickFixButton)
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.Visibility(this, &FUIItemCustomization::GetDisplayNameWarningVisibility)
+				.ToolTipText(FText::FromString(FString(TEXT("DisplayName not equal to ActorLabel."))))
+			]
+		]
+		;
 }
+
+EVisibility FUIItemCustomization::GetDisplayNameWarningVisibility()const
+{
+	if (TargetScriptArray[0].IsValid())
+	{
+		auto actorLabel = TargetScriptArray[0]->GetOwner()->GetActorLabel();
+		if (actorLabel.StartsWith("//"))
+		{
+			actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+		}
+		if (TargetScriptArray[0]->GetDisplayName() == actorLabel)
+		{
+			return EVisibility::Hidden;
+		}
+		else
+		{
+			return EVisibility::Visible;
+		}
+	}
+	else
+	{
+		return EVisibility::Hidden;
+	}
+}
+FReply FUIItemCustomization::OnClickFixButton()
+{
+	if (TargetScriptArray[0].IsValid())
+	{
+		auto actorLabel = TargetScriptArray[0]->GetOwner()->GetActorLabel();
+		if (actorLabel.StartsWith("//"))
+		{
+			actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+		}
+		TargetScriptArray[0]->SetDisplayName(actorLabel);
+	}
+	return FReply::Handled();
+}
+
 FText FUIItemCustomization::GetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScript)const
 {
 	if (TargetScript.IsValid())
