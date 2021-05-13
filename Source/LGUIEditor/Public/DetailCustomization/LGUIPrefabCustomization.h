@@ -17,7 +17,12 @@ private:
 	TWeakObjectPtr<class ULGUIPrefab> TargetScriptPtr;
 	FText GetEngineVersionText()const;
 	FText GetPrefabVersionText()const;
+	EVisibility ShouldShowFixEngineVersionButton()const;
 	FSlateColor GetEngineVersionTextColorAndOpacity()const;
 	FSlateColor GetPrefabVersionTextColorAndOpacity()const;
+	EVisibility ShouldShowFixPrefabVersionButton()const;
+
+	FReply OnClickRecreteButton();
+	FReply OnClickRecreteAllButton();
 	FReply OnClickEditPrefabButton();
 };
