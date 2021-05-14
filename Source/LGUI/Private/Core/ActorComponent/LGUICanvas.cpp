@@ -2151,30 +2151,25 @@ FTransform2D ULGUICanvas::ConvertTo2DTransform(const FTransform& Transform)
 	auto itemToCanvasTf2D = FTransform2D(FMatrix2x2(itemToCanvasMatrix.M[0][0], itemToCanvasMatrix.M[0][1], itemToCanvasMatrix.M[1][0], itemToCanvasMatrix.M[1][1]), FVector2D(Transform.GetLocation()));
 	return itemToCanvasTf2D;
 }
-void ULGUICanvas::CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& Transform, FVector2D& Min, FVector2D& Max)
+void ULGUICanvas::CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max)
 {
-	auto point1 = Transform.TransformPoint(item->GetLocalSpaceLeftBottomPoint());
-	auto point2 = Transform.TransformPoint(item->GetLocalSpaceRightTopPoint());
-	Min.X = point1.X < point2.X ? point1.X : point2.X;
-	Min.Y = point1.Y < point2.Y ? point1.Y : point2.Y;
-	if (point1.X < point2.X)
-	{
-		Min.X = point1.X;
-		Max.X = point2.X;
-	}
-	else
-	{
-		Min.X = point2.X;
-		Max.X = point1.X;
-	}
-	if (point1.Y < point2.Y)
-	{
-		Min.Y = point1.Y;
-		Max.Y = point2.Y;
-	}
-	else
-	{
-		Min.Y = point2.Y;
-		Max.Y = point1.Y;
-	}
+	auto localPoint1 = item->GetLocalSpaceLeftBottomPoint();
+	auto localPoint2 = item->GetLocalSpaceRightTopPoint();
+	auto point1 = transform.TransformPoint(localPoint1);
+	auto point2 = transform.TransformPoint(localPoint2);
+	auto point3 = transform.TransformPoint(FVector2D(localPoint2.X, localPoint1.Y));
+	auto point4 = transform.TransformPoint(FVector2D(localPoint1.X, localPoint2.Y));
+
+	GetMinMax(point1.X, point2.X, point3.X, point4.X, min.X, max.X);
+	GetMinMax(point1.Y, point2.Y, point3.Y, point4.Y, min.Y, max.Y);
+}
+
+void ULGUICanvas::GetMinMax(float a, float b, float c, float d, float& min, float& max)
+{
+	float abMin = FMath::Min(a, b);
+	float abMax = FMath::Max(a, b);
+	float cdMin = FMath::Min(c, d);
+	float cdMax = FMath::Max(c, d);
+	min = FMath::Min(abMin, cdMin);
+	max = FMath::Max(abMax, cdMax);
 }
