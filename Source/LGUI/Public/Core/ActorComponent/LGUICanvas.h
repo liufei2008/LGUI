@@ -471,7 +471,8 @@ public:
 	bool GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
 private:
 	FTransform2D ConvertTo2DTransform(const FTransform& Transform);
-	void CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& Transform, FVector2D& Min, FVector2D& Max);
+	void CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
+	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
 private:
 	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();
