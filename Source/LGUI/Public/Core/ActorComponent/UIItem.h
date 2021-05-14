@@ -458,20 +458,6 @@ public:
 	UPROPERTY(Transient)class UUIItemEditorHelperComp* HelperComp = nullptr;
 #endif
 
-#pragma region LGUIUpdateComponentToWorld
-#define USE_LGUIUpdateComponentToWorld 0
-#if USE_LGUIUpdateComponentToWorld
-protected:
-	void LGUIUpdateComponentToWorld();
-	void LGUIPropagateTransformUpdate(bool inTransformChanged);
-	void LGUIUpdateChildTransforms();
-
-	static class FBoolProperty* bComponentToWorldUpdated_PropertyRef;
-	static bool LGUIGetComponentToWorldUpdated(USceneComponent* Target);
-	static void LGUISetComponentToWorldUpdated(USceneComponent* Target, bool value);
-	static void LGUICheckComponentToWorldUpdatedProperty();
-#endif
-#pragma endregion
 #if WITH_EDITORONLY_DATA
 private:
 	/** prev frame anchor horizontal alignment */
