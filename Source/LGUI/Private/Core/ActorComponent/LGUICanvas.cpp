@@ -684,7 +684,14 @@ void ULGUICanvas::UpdateCanvasGeometry()
 {
 	for (auto item : childrenCanvasArray)
 	{
-		item->UpdateCanvasGeometry();
+		if (item->autoManageDepth)
+		{
+			item->UpdateCanvasGeometryForAutoManageDepth();
+		}
+		else
+		{
+			item->UpdateCanvasGeometry();
+		}
 	}
 
 	//update drawcall
@@ -886,7 +893,14 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 {
 	for (auto item : childrenCanvasArray)
 	{
-		item->UpdateCanvasGeometryForAutoManageDepth();
+		if (item->autoManageDepth)
+		{
+			item->UpdateCanvasGeometryForAutoManageDepth();
+		}
+		else
+		{
+			item->UpdateCanvasGeometry();
+		}
 	}
 
 	//update drawcall

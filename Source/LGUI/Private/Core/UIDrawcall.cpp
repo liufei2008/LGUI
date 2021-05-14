@@ -252,10 +252,10 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
 {
 	auto IntersectBounds = [](FVector2D aMin, FVector2D aMax, FVector2D bMin, FVector2D bMax) {
-		return !(bMin.X > aMax.X
-			|| bMax.X < aMin.X
-			|| bMax.Y < aMin.Y
-			|| bMin.Y > aMax.Y
+		return !(bMin.X >= aMax.X
+			|| bMax.X <= aMin.X
+			|| bMax.Y <= aMin.Y
+			|| bMin.Y >= aMax.Y
 			);
 	};
 	auto OverlapWithOtherDrawcall = [IntersectBounds](UUIRenderable* item, const FLGUICacheTransformContainer& itemToCanvasTf, TSharedPtr<UUIDrawcall> drawcallItem) {
