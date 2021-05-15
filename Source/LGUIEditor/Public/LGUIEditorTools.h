@@ -3,6 +3,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "CoreMinimal.h"
+#include "Engine/EngineTypes.h"
 
 #pragma once
 
