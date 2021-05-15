@@ -11,11 +11,15 @@ UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIRenderMode :uint8
 {
 	/**
-	 * render in screen space. 
-	 * this mode need a LGUICanvasScaler to control the size and scale.
+	 * Render in screen space. There should be only one screen-space-ui-root in world.
+	 * This mode use LGUI's custom render pipeline.
+	 * This mode need a LGUICanvasScaler to control the size and scale.
 	 */
 	ScreenSpaceOverlay,
-	/** render in world space, so post process effect will affect ui */
+	/**
+	 * Render in world space.
+	 * This mode use engine's default render pieple, so post process will affect ui.
+	 */
 	WorldSpace,
 	/** render to a custom render target */
 	RenderTarget		UMETA(DisplayName = "RenderTarget(Experimental)"),
@@ -24,11 +28,11 @@ enum class ELGUIRenderMode :uint8
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUICanvasClipType :uint8
 {
-	None		 		UMETA(DisplayName = "None"),
+	None,
 	/** Clip content by a rectange area, with edge feather. Support nested rect clip. Support input hit test. */
-	Rect		 		UMETA(DisplayName = "Rect"),
+	Rect,
 	/** Clip content with a black-white texture (acturally the red channel of the texture). Not support nested clip. Not support input hit test. */
-	Texture				UMETA(DisplayName = "Texture"),
+	Texture,
 };
 
 UENUM(BlueprintType, meta = (Bitflags), Category = LGUI)
