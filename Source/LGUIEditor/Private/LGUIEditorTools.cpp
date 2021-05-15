@@ -14,6 +14,7 @@
 #include "Kismet2/ComponentEditorUtils.h"
 #include "Widgets/SViewport.h"
 #include "Layout/LGUICanvasScaler.h"
+#include "EditorViewportClient.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -995,7 +996,10 @@ void LGUIEditorTools::FocusToScreenSpaceUI()
 				auto canvasScaler = ActorItr->FindComponentByClass<ULGUICanvasScaler>();
 				if (canvas != nullptr && canvas->IsRenderToScreenSpace() && canvasScaler != nullptr)//make sure is screen space UI root
 				{
-					editorViewportClient->SetViewLocation(canvas->GetViewLocation());
+					auto viewDistance = FVector::Distance(canvas->GetViewLocation(), canvas->GetUIItem()->GetComponentLocation());
+					auto halfViewWidth = viewDistance * FMath::Tan(FMath::DegreesToRadians(canvasScaler->GetFovAngle() * 0.5f));
+					auto editorViewDistance = halfViewWidth / FMath::Tan(FMath::DegreesToRadians(editorViewportClient->FOVAngle * 0.5f));
+					editorViewportClient->SetViewLocation(canvas->GetUIItem()->GetComponentLocation() - canvas->GetViewRotator().Quaternion().GetForwardVector() * editorViewDistance);
 					editorViewportClient->SetViewRotation(canvas->GetViewRotator());
 					editorViewportClient->SetLookAtLocation(canvas->GetUIItem()->GetComponentLocation());
 					break;

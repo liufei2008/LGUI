@@ -13,6 +13,7 @@
 #include "IPropertyUtilities.h"
 #include "EngineUtils.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 
 #include "LGUIEditorStyle.h"
 #include "LGUIEditorCommands.h"
