@@ -12,6 +12,12 @@ class LGUI_API UUISpriteSequencePlayer : public ULGUIImageSequencePlayer
 {
 	GENERATED_BODY()
 protected:
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+	/** preview in editor. */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
+		float preview = 0;
+#endif
 	UPROPERTY(Transient)
 		TWeakObjectPtr<class UUISpriteBase> sprite;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
