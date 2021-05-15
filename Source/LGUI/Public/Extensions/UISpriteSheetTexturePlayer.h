@@ -12,6 +12,12 @@ class LGUI_API UUISpriteSheetTexturePlayer : public ULGUIImageSequencePlayer
 {
 	GENERATED_BODY()
 protected:
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+	/** preview in editor. -1 means no preview, just show the origin texture. */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
+		float preview = -1;
+#endif
 	UPROPERTY(Transient)
 		TWeakObjectPtr<class UUITexture> texture;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
