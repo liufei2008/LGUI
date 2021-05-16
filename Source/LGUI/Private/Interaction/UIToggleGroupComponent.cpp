@@ -11,7 +11,8 @@ UUIToggleGroupComponent::UUIToggleGroupComponent()
 }
 void UUIToggleGroupComponent::AddToggleComponent(UUIToggleComponent* InComp)
 {
-	if (ToggleCollection.Contains(InComp))
+	int32 foundIndex = ToggleCollection.IndexOfByKey(InComp);
+	if (foundIndex != INDEX_NONE)
 	{
 		UE_LOG(LGUI, Warning, TEXT("[UUIToggleGroupComponent::AddToggleComponent]Already exist!"));
 		return;
@@ -28,12 +29,13 @@ void UUIToggleGroupComponent::AddToggleComponent(UUIToggleComponent* InComp)
 }
 void UUIToggleGroupComponent::RemoveToggleComponent(UUIToggleComponent* InComp)
 {
-	if (ToggleCollection.Contains(InComp))
+	int32 foundIndex = ToggleCollection.IndexOfByKey(InComp);
+	if (foundIndex == INDEX_NONE)
 	{
 		UE_LOG(LGUI, Warning, TEXT("[UUIToggleGroupComponent::RemoveToggleComponent]Not exist!"));
 		return;
 	}
-	ToggleCollection.Remove(InComp);
+	ToggleCollection.RemoveAt(foundIndex);
 }
 void UUIToggleGroupComponent::SetSelection(UUIToggleComponent* Target)
 {
