@@ -90,19 +90,20 @@ UUIComboBox* UUIComboBox::CreateComboBoxFromArray(const TArray<FString>& InItemN
 	case EComboBoxPosition::Top:
 	{
 		pivot.Y = 0.0f;
-		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
 	}break;
 	case EComboBoxPosition::Middle:
 	{
 		pivot.Y = 0.5f;
-		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
 	}break;
 	case EComboBoxPosition::Bottom:
 	{
 		pivot.Y = 1.0f;
-		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
 	}break;
 	}
+	rootUIItem->SetAnchorOffsetY(0);
 	rootUIItem->SetPivot(pivot);
 	script->CreateFromArray_Internal(InItemNameArray, InSelectedItemIndex, InCallback);
 	return script;

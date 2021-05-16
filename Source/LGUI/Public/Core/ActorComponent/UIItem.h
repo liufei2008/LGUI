@@ -176,9 +176,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetPivot(FVector2D pivot);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorHAlign(UIAnchorHorizontalAlign align, bool keepRelativeLocation = true);
+		void SetAnchorHAlign(UIAnchorHorizontalAlign align);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorVAlign(UIAnchorVerticalAlign align, bool keepRelativeLocation = true);
+		void SetAnchorVAlign(UIAnchorVerticalAlign align);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorOffsetX(float newOffset);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")

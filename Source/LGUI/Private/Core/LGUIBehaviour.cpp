@@ -23,12 +23,9 @@ void ULGUIBehaviour::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 }
 void ULGUIBehaviour::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (GetIsActiveAndEnable())
+	if (isEnableCalled)
 	{
-		if (isEnableCalled)
-		{
-			OnDisable();
-		}
+		OnDisable();
 	}
 	if (isAwakeCalled)
 	{
