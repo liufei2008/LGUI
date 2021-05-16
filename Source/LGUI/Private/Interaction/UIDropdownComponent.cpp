@@ -195,49 +195,53 @@ void UUIDropdownComponent::Show()
 		pivot.Y = 0.0f;
 		if (VerticalOverlap)
 		{
-			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom, false);
+			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
 		}
 		else
 		{
-			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top, false);
+			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
 		}
 	}break;
 	case EUIDropdownVerticalPosition::Middle:
 	{
 		pivot.Y = 0.5f;
-		listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle, false);
+		listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
 	}break;
 	case EUIDropdownVerticalPosition::Bottom:
 	{
 		pivot.Y = 1.0f;
 		if (VerticalOverlap)
 		{
-			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top, false);
+			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
 		}
 		else
 		{
-			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom, false);
+			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
 		}
 	}break;
 	}
+	listRootUIItem->SetAnchorOffsetY(0);
+
 	switch (tempHorizontalPosition)
 	{
 	case EUIDropdownHorizontalPosition::Left:
 	{
 		pivot.X = 1.0f;
-		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left, false);
+		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
 	}break;
 	case EUIDropdownHorizontalPosition::Center:
 	{
 		pivot.X = 0.5f;
-		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center, false);
+		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
 	}break;
 	case EUIDropdownHorizontalPosition::Right:
 	{
 		pivot.X = 0.0f;
-		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right, false);
+		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
 	}break;
 	}
+	listRootUIItem->SetAnchorOffsetX(0);
+
 	listRootUIItem->SetPivot(pivot);
 }
 void UUIDropdownComponent::Hide()

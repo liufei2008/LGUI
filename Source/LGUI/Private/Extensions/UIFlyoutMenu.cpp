@@ -77,32 +77,34 @@ UUIFlyoutMenu* UUIFlyoutMenu::CreateFlyoutMenuFromArray(const TArray<FString>& I
 	case EFlyoutMenuVerticalPosition::Top:
 	{
 		pivot.Y = 0.0f;
-		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
 	}break;
 	case EFlyoutMenuVerticalPosition::Bottom:
 	{
 		pivot.Y = 1.0f;
-		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom, false);
+		rootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
 	}break;
 	}
+	rootUIItem->SetAnchorOffsetX(0);
 	switch (InHorizontalAlign)
 	{
 	case EFlyoutMenuHorizontalAlignment::Left:
 	{
 		pivot.X = 0.0f;
-		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left, false);
+		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
 	}break;
 	case EFlyoutMenuHorizontalAlignment::Center:
 	{
 		pivot.X = 0.5f;
-		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center, false);
+		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
 	}break;
 	case EFlyoutMenuHorizontalAlignment::Right:
 	{
 		pivot.X = 1.0f;
-		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right, false);
+		rootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
 	}break;
 	}
+	rootUIItem->SetAnchorOffsetY(0);
 	rootUIItem->SetPivot(pivot);
 	rootUIItem->SetWidth(InWidth);
 	script->CreateFromArray_Internal(InItemNameArray, InCallback);

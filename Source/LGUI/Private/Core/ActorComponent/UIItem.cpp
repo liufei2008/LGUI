@@ -26,7 +26,7 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	SetUsingAbsoluteScale(false);
 	SetVisibility(false);
 	bWantsOnUpdateTransform = true;
-	bCanSetAnchorFromTransform = true;
+	bCanSetAnchorFromTransform = false;//skip construction
 	itemType = UIItemType::UIItem;
 
 	bColorChanged = true;
@@ -1002,15 +1002,47 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 
 void UUIItem::CalculateHorizontalStretchFromAnchorAndSize()
 {
-	const auto& parentWidget = cacheParentUIItem->widget;
-	widget.stretchLeft = (parentWidget.width - widget.width) * 0.5f + widget.anchorOffsetX;
-	widget.stretchRight = parentWidget.width - widget.width - widget.stretchLeft;
+	//calculate anchorOffsetX in left align
+	float leftAnchorOffsetX = widget.anchorOffsetX;
+	switch (widget.anchorHAlign)
+	{
+	case UIAnchorHorizontalAlign::Center:
+	{
+		float halfWidth = cacheParentUIItem->widget.width * 0.5f;
+		leftAnchorOffsetX += halfWidth;
+	}
+	break;
+	case UIAnchorHorizontalAlign::Right:
+	{
+		leftAnchorOffsetX += cacheParentUIItem->widget.width;
+	}
+	break;
+	}
+
+	widget.stretchLeft = leftAnchorOffsetX - widget.width * widget.pivot.X;
+	widget.stretchRight = cacheParentUIItem->widget.width - widget.width - widget.stretchLeft;
 }
 void UUIItem::CalculateVerticalStretchFromAnchorAndSize()
 {
-	const auto& parentWidget = cacheParentUIItem->widget;
-	widget.stretchBottom = (parentWidget.height - widget.height) * 0.5f + widget.anchorOffsetY;
-	widget.stretchTop = parentWidget.height - widget.height - widget.stretchBottom;
+	//calculate anchorOffsetY in bottom align
+	float leftAnchorOffsetY = widget.anchorOffsetY;
+	switch (widget.anchorVAlign)
+	{
+	case UIAnchorVerticalAlign::Middle:
+	{
+		float halfHeight = cacheParentUIItem->widget.height * 0.5f;
+		leftAnchorOffsetY += halfHeight;
+	}
+	break;
+	case UIAnchorVerticalAlign::Top:
+	{
+		leftAnchorOffsetY += cacheParentUIItem->widget.height;
+	}
+	break;
+	}
+
+	widget.stretchBottom = leftAnchorOffsetY - widget.height * widget.pivot.Y;
+	widget.stretchTop = cacheParentUIItem->widget.height - widget.height - widget.stretchBottom;
 }
 bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 {
@@ -1024,7 +1056,8 @@ bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 		sizeChanged = true;
 	}
 
-	widget.anchorOffsetX = widget.stretchLeft - (parentWidget.width - widget.width) * 0.5f;
+	//default calculate left anchor
+	widget.anchorOffsetX = widget.stretchLeft + widget.width * widget.pivot.X;
 	return sizeChanged;
 }
 bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
@@ -1039,7 +1072,8 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 		sizeChanged = true;
 	}
 
-	widget.anchorOffsetY = widget.stretchBottom - (parentWidget.height - widget.height) * 0.5f;
+	//default calculate right anchor
+	widget.anchorOffsetY = widget.stretchBottom + widget.height * widget.pivot.Y;
 	return sizeChanged;
 }
 
@@ -1343,9 +1377,7 @@ void UUIItem::SetAnchorOffsetX(float newOffset)
 		widget.anchorOffsetX = newOffset;
 		if (IsValid(cacheParentUIItem))
 		{
-			const auto& parentWidget = cacheParentUIItem->widget;
-			widget.stretchLeft = (parentWidget.width - widget.width) * 0.5f + widget.anchorOffsetX;
-			widget.stretchRight = parentWidget.width - widget.width - widget.stretchLeft;	
+			CalculateHorizontalStretchFromAnchorAndSize();
 		}
 		CalculateTransformFromAnchor();
 		MarkLayoutDirty(false);
@@ -1358,9 +1390,7 @@ void UUIItem::SetAnchorOffsetY(float newOffset)
 		widget.anchorOffsetY = newOffset;
 		if (IsValid(cacheParentUIItem))
 		{
-			const auto& parentWidget = cacheParentUIItem->widget;
-			widget.stretchBottom = (parentWidget.height - widget.height) * 0.5f + widget.anchorOffsetY;
-			widget.stretchTop = parentWidget.height - widget.height - widget.stretchBottom;
+			CalculateVerticalStretchFromAnchorAndSize();
 		}
 		CalculateTransformFromAnchor();
 		MarkLayoutDirty(false);
@@ -1374,10 +1404,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 		widget.anchorOffsetX = newOffset.X;
 		if (IsValid(cacheParentUIItem))
 		{
-			anyChange = true;
-			const auto& parentWidget = cacheParentUIItem->widget;
-			widget.stretchLeft = (parentWidget.width - widget.width) * 0.5f + widget.anchorOffsetX;
-			widget.stretchRight = parentWidget.width - widget.width - widget.stretchLeft;
+			CalculateHorizontalStretchFromAnchorAndSize();
 		}
 	}
 	if (FMath::Abs(widget.anchorOffsetY - newOffset.Y) > KINDA_SMALL_NUMBER)
@@ -1385,10 +1412,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 		widget.anchorOffsetY = newOffset.Y;
 		if (IsValid(cacheParentUIItem))
 		{
-			anyChange = true;
-			const auto& parentWidget = cacheParentUIItem->widget;
-			widget.stretchBottom = (parentWidget.height - widget.height) * 0.5f + widget.anchorOffsetY;
-			widget.stretchTop = parentWidget.height - widget.height - widget.stretchBottom;
+			CalculateVerticalStretchFromAnchorAndSize();
 		}
 	}
 	if (anyChange)
@@ -1554,105 +1578,122 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 void UUIItem::SetPivot(FVector2D pivot) {
 	if (!widget.pivot.Equals(pivot))
 	{
-		PivotChanged();
+		//@todo: keep relative to parent
 		widget.pivot = pivot;
+		PivotChanged();
 		MarkLayoutDirty(false);
 		CalculateTransformFromAnchor();
 	}
 }
-void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align, bool keepRelativeLocation)
+void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align)
 {
 	if (widget.anchorHAlign != align)
 	{
 		if (IsValid(cacheParentUIItem))
 		{
-			if (keepRelativeLocation)
+			//first, convert from other anchor to left
+			switch (widget.anchorHAlign)
 			{
-				//calculate to keep relative position
-				//anchor convert from other to center
+			case UIAnchorHorizontalAlign::Center:
+			{
 				float halfWidth = cacheParentUIItem->widget.width * 0.5f;
-				switch (widget.anchorHAlign)
-				{
-				case UIAnchorHorizontalAlign::Left:
-				{
-					widget.anchorOffsetX -= halfWidth;
-				}
-				break;
-				case UIAnchorHorizontalAlign::Right:
-				{
-					widget.anchorOffsetX += halfWidth;
-				}
-				break;
-				}
-				//anchor convert from center to other
-				switch (align)
-				{
-				case UIAnchorHorizontalAlign::Left:
-				{
-					widget.anchorOffsetX += halfWidth;
-				}
-				break;
-				case UIAnchorHorizontalAlign::Right:
-				{
-					widget.anchorOffsetX -= halfWidth;
-				}
-				break;
-				}
+				widget.anchorOffsetX += halfWidth;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Right:
+			{
+				widget.anchorOffsetX += cacheParentUIItem->widget.width;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Stretch:
+			{
+				widget.anchorOffsetX = widget.stretchLeft + widget.width * widget.pivot.X;
+			}
+			break;
+			}
+			//second, convert from left anchor to other
+			switch (align)
+			{
+			case UIAnchorHorizontalAlign::Center:
+			{
+				float halfWidth = cacheParentUIItem->widget.width * 0.5f;
+				widget.anchorOffsetX -= halfWidth;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Right:
+			{
+				widget.anchorOffsetX -= cacheParentUIItem->widget.width;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Stretch:
+			{
+				widget.stretchLeft = widget.anchorOffsetX - widget.width * widget.pivot.X;
+				widget.stretchRight = cacheParentUIItem->widget.width - widget.width - widget.stretchLeft;
+			}
+			break;
 			}
 
+			widget.anchorHAlign = align;
 			CalculateTransformFromAnchor();
 			MarkLayoutDirty(false);
 		}
-		widget.anchorHAlign = align;
 	}
 #if WITH_EDITORONLY_DATA
 	prevAnchorHAlign = align;
 #endif
 }
-void UUIItem::SetAnchorVAlign(UIAnchorVerticalAlign align, bool keepRelativeLocation)
+void UUIItem::SetAnchorVAlign(UIAnchorVerticalAlign align)
 {
 	if (widget.anchorVAlign != align)
 	{
 		if (IsValid(cacheParentUIItem))
 		{
-			if (keepRelativeLocation)
+			//first, convert from other anchor to bottom
+			switch (widget.anchorVAlign)
 			{
-				//calculate to keep relative position
-				//anchor convert from other to center
+			case UIAnchorVerticalAlign::Middle:
+			{
 				float halfHeight = cacheParentUIItem->widget.height * 0.5f;
-				switch (widget.anchorVAlign)
-				{
-				case UIAnchorVerticalAlign::Bottom:
-				{
-					widget.anchorOffsetY -= halfHeight;
-				}
-				break;
-				case UIAnchorVerticalAlign::Top:
-				{
-					widget.anchorOffsetY += halfHeight;
-				}
-				break;
-				}
-				//anchor convert from center to other
-				switch (align)
-				{
-				case UIAnchorVerticalAlign::Bottom:
-				{
-					widget.anchorOffsetY += halfHeight;
-				}
-				break;
-				case UIAnchorVerticalAlign::Top:
-				{
-					widget.anchorOffsetY -= halfHeight;
-				}
-				break;
-				}
+				widget.anchorOffsetY += halfHeight;
+			}
+			break;
+			case UIAnchorVerticalAlign::Top:
+			{
+				widget.anchorOffsetY += cacheParentUIItem->widget.height;
+			}
+			break;
+			case UIAnchorVerticalAlign::Stretch:
+			{
+				widget.anchorOffsetY = widget.stretchBottom + widget.height * widget.pivot.Y;
+			}
+			break;
+			}
+			//second, convert from bottom to other
+			switch (align)
+			{
+			case UIAnchorVerticalAlign::Middle:
+			{
+				float halfHeight = cacheParentUIItem->widget.height * 0.5f;
+				widget.anchorOffsetY -= halfHeight;
+			}
+			break;
+			case UIAnchorVerticalAlign::Top:
+			{
+				widget.anchorOffsetY -= cacheParentUIItem->widget.height;
+			}
+			break;
+			case UIAnchorVerticalAlign::Stretch:
+			{
+				widget.stretchBottom = widget.anchorOffsetY - widget.height * widget.pivot.Y;
+				widget.stretchTop = cacheParentUIItem->widget.height - widget.height - widget.stretchBottom;
+			}
+			break;
 			}
 
+			widget.anchorVAlign = align;
 			CalculateTransformFromAnchor();
 			MarkLayoutDirty(false);
 		}
-		widget.anchorVAlign = align;
 	}
 #if WITH_EDITORONLY_DATA
 	prevAnchorVAlign = align;
