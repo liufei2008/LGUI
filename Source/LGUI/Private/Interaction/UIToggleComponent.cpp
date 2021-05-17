@@ -155,6 +155,7 @@ void UUIToggleComponent::SetToggleGroup(UUIToggleGroupComponent* InGroupComp)
 			InGroupComp->AddToggleComponent(this);
 		}
 		GroupComp = InGroupComp;
+		UIToggleGroupActor = GroupComp->GetOwner();
 	}
 }
 
