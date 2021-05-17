@@ -108,7 +108,7 @@ int32 UUIToggleGroupComponent::GetToggleIndex(const UUIToggleComponent* InComp)c
 }
 UUIToggleComponent* UUIToggleGroupComponent::GetToggleByIndex(int32 InIndex)const
 {
-	if (InIndex < 0 || InIndex > ToggleCollection.Num())
+	if (InIndex < 0 || InIndex >= ToggleCollection.Num())
 	{
 		UE_LOG(LGUI, Error, TEXT("[UUIToggleGroupComponent::GetToggleByIndex]Index:%d out of range:%d"), InIndex, ToggleCollection.Num());
 		return nullptr;

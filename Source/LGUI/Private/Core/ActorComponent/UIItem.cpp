@@ -1002,46 +1002,52 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 
 void UUIItem::CalculateHorizontalStretchFromAnchorAndSize()
 {
-	//calculate anchorOffsetX in left align
-	float leftAnchorOffsetX = widget.anchorOffsetX;
+	float parentWidthMultiply = 0.0f;
 	switch (widget.anchorHAlign)
 	{
+	case UIAnchorHorizontalAlign::Left:
+	{
+		parentWidthMultiply = 0.0f;
+	}
+	break;
 	case UIAnchorHorizontalAlign::Center:
 	{
-		float halfWidth = cacheParentUIItem->widget.width * 0.5f;
-		leftAnchorOffsetX += halfWidth;
+		parentWidthMultiply = 0.5f;
 	}
 	break;
 	case UIAnchorHorizontalAlign::Right:
 	{
-		leftAnchorOffsetX += cacheParentUIItem->widget.width;
+		parentWidthMultiply = 1.0f;
 	}
 	break;
 	}
 
-	widget.stretchLeft = leftAnchorOffsetX - widget.width * widget.pivot.X;
+	widget.stretchLeft = widget.anchorOffsetX + cacheParentUIItem->widget.width * parentWidthMultiply - widget.width * widget.pivot.X;
 	widget.stretchRight = cacheParentUIItem->widget.width - widget.width - widget.stretchLeft;
 }
 void UUIItem::CalculateVerticalStretchFromAnchorAndSize()
 {
-	//calculate anchorOffsetY in bottom align
-	float leftAnchorOffsetY = widget.anchorOffsetY;
+	float parentHeightMultiply = 0.0f;
 	switch (widget.anchorVAlign)
 	{
+	case UIAnchorVerticalAlign::Bottom:
+	{
+		parentHeightMultiply = 0.0f;
+	}
+	break;
 	case UIAnchorVerticalAlign::Middle:
 	{
-		float halfHeight = cacheParentUIItem->widget.height * 0.5f;
-		leftAnchorOffsetY += halfHeight;
+		parentHeightMultiply = 0.5f;
 	}
 	break;
 	case UIAnchorVerticalAlign::Top:
 	{
-		leftAnchorOffsetY += cacheParentUIItem->widget.height;
+		parentHeightMultiply = 1.0f;
 	}
 	break;
 	}
 
-	widget.stretchBottom = leftAnchorOffsetY - widget.height * widget.pivot.Y;
+	widget.stretchBottom = widget.anchorOffsetY + cacheParentUIItem->widget.height * parentHeightMultiply - widget.height * widget.pivot.Y;
 	widget.stretchTop = cacheParentUIItem->widget.height - widget.height - widget.stretchBottom;
 }
 bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
@@ -1056,8 +1062,27 @@ bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 		sizeChanged = true;
 	}
 
-	//default calculate left anchor
-	widget.anchorOffsetX = widget.stretchLeft + widget.width * widget.pivot.X;
+	float parentWidthMultiply = 0.0f;
+	switch (widget.anchorHAlign)
+	{
+	case UIAnchorHorizontalAlign::Left:
+	{
+		parentWidthMultiply = 0;
+	}
+	break;
+	case UIAnchorHorizontalAlign::Stretch:
+	case UIAnchorHorizontalAlign::Center:
+	{
+		parentWidthMultiply = 0.5f;
+	}
+	break;
+	case UIAnchorHorizontalAlign::Right:
+	{
+		parentWidthMultiply = 1.0f;
+	}
+	break;
+	}
+	widget.anchorOffsetX = widget.stretchLeft - (parentWidget.width * parentWidthMultiply) + (widget.width * widget.pivot.X);
 	return sizeChanged;
 }
 bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
@@ -1072,8 +1097,27 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 		sizeChanged = true;
 	}
 
-	//default calculate right anchor
-	widget.anchorOffsetY = widget.stretchBottom + widget.height * widget.pivot.Y;
+	float parentHeightMultiply = 0.0f;
+	switch (widget.anchorVAlign)
+	{
+	case UIAnchorVerticalAlign::Bottom:
+	{
+		parentHeightMultiply = 0;
+	}
+	break;
+	case UIAnchorVerticalAlign::Stretch:
+	case UIAnchorVerticalAlign::Middle:
+	{
+		parentHeightMultiply = 0.5f;
+	}
+	break;
+	case UIAnchorVerticalAlign::Top:
+	{
+		parentHeightMultiply = 1.0f;
+	}
+	break;
+	}
+	widget.anchorOffsetY = widget.stretchBottom - (parentWidget.height * parentHeightMultiply) + (widget.height * widget.pivot.Y);
 	return sizeChanged;
 }
 
