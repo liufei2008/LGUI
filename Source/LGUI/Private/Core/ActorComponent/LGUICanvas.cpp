@@ -177,7 +177,7 @@ void ULGUICanvas::OnUIActiveStateChanged(bool active)
 	}
 }
 
-bool ULGUICanvas::CheckTopMostCanvas()
+bool ULGUICanvas::CheckTopMostCanvas()const
 {
 	if (IsValid(TopMostCanvas))return true;
 	if (this->GetWorld() == nullptr)return false;
@@ -193,7 +193,7 @@ bool ULGUICanvas::CheckParentCanvas()
 	if (IsValid(ParentCanvas))return true;
 	return false;
 }
-bool ULGUICanvas::CheckUIItem()
+bool ULGUICanvas::CheckUIItem()const
 {
 	if (IsValid(UIItem))return true;
 	if (this->GetWorld() == nullptr)return false;
@@ -382,7 +382,7 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 }
 
 
-ULGUICanvas* ULGUICanvas::GetRootCanvas() 
+ULGUICanvas* ULGUICanvas::GetRootCanvas() const
 { 
 	CheckTopMostCanvas(); 
 	return TopMostCanvas; 
@@ -1703,6 +1703,28 @@ void ULGUICanvas::SetDefaultMaterials(UMaterialInterface* InMaterials[3])
 	CacheUIMaterialList.Reset();
 }
 
+bool ULGUICanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const
+{
+	auto viewProjectionMatrix = GetViewProjectionMatrix();
+	auto result = viewProjectionMatrix.TransformFVector4(FVector4(Position3D, 1.0f));
+	if (result.W > 0.0f)
+	{
+		// the result of this will be x and y coords in -1..1 projection space
+		const float RHW = 1.0f / result.W;
+		FPlane PosInScreenSpace = FPlane(result.X * RHW, result.Y * RHW, result.Z * RHW, result.W);
+
+		// Move from projection space to normalized 0..1 UI space
+		OutPosition2D.X = (PosInScreenSpace.X / 2.f) + 0.5f;
+		OutPosition2D.Y = (PosInScreenSpace.Y / 2.f) + 0.5f;
+		//Convert to LGUI's viewport size
+		OutPosition2D *= GetViewportSize();
+		OutPosition2D /= canvasScale;
+
+		return true;
+	}
+	return false;
+}
+
 void ULGUICanvas::SetDynamicPixelsPerUnit(float newValue)
 {
 	if (dynamicPixelsPerUnit != newValue)
@@ -1800,7 +1822,7 @@ bool ULGUICanvas::GetRequireUV3()const
 }
 
 
-void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix)
+void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix)const
 {
 	if (InViewportSize.X == 0 || InViewportSize.Y == 0)//in DebugCamera mode(toggle in editor by press ';'), viewport size is 0
 	{
@@ -1854,7 +1876,7 @@ void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProject
 		}
 	}
 }
-float ULGUICanvas::CalculateDistanceToCamera()
+float ULGUICanvas::CalculateDistanceToCamera()const
 {
 	if (ProjectionType == ECameraProjectionMode::Orthographic)
 	{
@@ -1865,7 +1887,7 @@ float ULGUICanvas::CalculateDistanceToCamera()
 		return UIItem->GetWidth() * 0.5f / FMath::Tan(FMath::DegreesToRadians(FOVAngle * 0.5f)) * UIItem->GetRelativeScale3D().X;
 	}
 }
-FMatrix ULGUICanvas::GetViewProjectionMatrix()
+FMatrix ULGUICanvas::GetViewProjectionMatrix()const
 {
 	if (cacheViewProjectionMatrixFrameNumber != GFrameNumber)
 	{
@@ -1890,29 +1912,29 @@ FMatrix ULGUICanvas::GetViewProjectionMatrix()
 	}
 	return cacheViewProjectionMatrix;
 }
-FMatrix ULGUICanvas::GetProjectionMatrix()
+FMatrix ULGUICanvas::GetProjectionMatrix()const
 {
 	FMatrix ProjectionMatrix = FMatrix::Identity;
 	const float FOV = FOVAngle * (float)PI / 360.0f;
 	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, UIItem->GetWidth(), UIItem->GetHeight(), ProjectionMatrix);
 	return ProjectionMatrix;
 }
-FVector ULGUICanvas::GetViewLocation()
+FVector ULGUICanvas::GetViewLocation()const
 {
 	return UIItem->GetComponentLocation() - UIItem->GetUpVector() * CalculateDistanceToCamera();
 }
-FMatrix ULGUICanvas::GetViewRotationMatrix()
+FMatrix ULGUICanvas::GetViewRotationMatrix()const
 {
 	auto Transform = UIItem->GetComponentToWorld();
 	Transform.SetTranslation(FVector::ZeroVector);
 	Transform.SetScale3D(FVector::OneVector);
 	return Transform.ToInverseMatrixWithScale();
 }
-FRotator ULGUICanvas::GetViewRotator()
+FRotator ULGUICanvas::GetViewRotator()const
 {
 	return (UIItem->GetComponentQuat() * FQuat::MakeFromEuler(FVector(90, 90, 0))).Rotator();
 }
-FIntPoint ULGUICanvas::GetViewportSize()
+FIntPoint ULGUICanvas::GetViewportSize()const
 {
 	FIntPoint viewportSize = FIntPoint(2, 2);
 	if (auto world = this->GetWorld())

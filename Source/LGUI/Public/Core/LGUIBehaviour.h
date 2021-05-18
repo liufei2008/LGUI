@@ -97,10 +97,13 @@ public:
 		UUIItem* GetRootComponent() const;
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		USceneComponent* GetRootSceneComponent() const;
+	/** Same as DuplicateActor */
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour", meta = (DeterminesOutputType = "OriginObject"))
 		AActor* InstantiateActor(AActor* OriginObject, USceneComponent* Parent);
+	/** Same as LoadPrefab */
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		AActor* InstantiatePrefab(class ULGUIPrefab* OriginObject, USceneComponent* Parent);
+	/** Same as LoadPrefabWithTransform */
 	UFUNCTION(BlueprintCallable, Category = "LGUIBehaviour")
 		AActor* InstantiatePrefabWithTransform(class ULGUIPrefab* OriginObject, USceneComponent* Parent, FVector Location, FRotator Rotation, FVector Scale);
 protected:
