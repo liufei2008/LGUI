@@ -14,6 +14,8 @@ class LGUI_API UUISpriteSequencePlayer : public ULGUIImageSequencePlayer
 protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+#endif
+#if WITH_EDITORONLY_DATA
 	/** preview in editor. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
 		float preview = 0;
