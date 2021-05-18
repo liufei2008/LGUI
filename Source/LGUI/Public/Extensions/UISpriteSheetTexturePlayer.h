@@ -14,6 +14,8 @@ class LGUI_API UUISpriteSheetTexturePlayer : public ULGUIImageSequencePlayer
 protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+#endif
+#if WITH_EDITORONLY_DATA
 	/** preview in editor. -1 means no preview, just show the origin texture. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (UIMin = "0.0", UIMax = "1.0"))
 		float preview = -1;
