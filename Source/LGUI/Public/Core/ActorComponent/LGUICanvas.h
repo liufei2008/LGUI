@@ -152,21 +152,22 @@ public:
 	FVector2D GetClipRectMin()const { return clipRectMin; }
 	FVector2D GetClipRectMax()const { return clipRectMax; }
 
-	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix);
-	FMatrix GetViewProjectionMatrix();
-	FMatrix GetProjectionMatrix();
-	FVector GetViewLocation();
-	FMatrix GetViewRotationMatrix();
-	FRotator GetViewRotator();
-	FIntPoint GetViewportSize();
+	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix)const;
+	FMatrix GetViewProjectionMatrix()const;
+	FMatrix GetProjectionMatrix()const;
+	FVector GetViewLocation()const;
+	FMatrix GetViewRotationMatrix()const;
+	FRotator GetViewRotator()const;
+	FIntPoint GetViewportSize()const;
 	/** get scale value of canvas. only valid for root canvas. */
-	FORCEINLINE float GetCanvasScale() { return canvasScale; }
+	FORCEINLINE float GetCanvasScale()const { return canvasScale; }
 private:
 	friend class ULGUICanvasScaler;
 	float canvasScale = 1.0f;//screen size / root canvas size
 public:
-	/** get top most LGUICanvas on hierarchy */
-	ULGUICanvas* GetRootCanvas();
+	/** get root LGUICanvas on hierarchy */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+	ULGUICanvas* GetRootCanvas()const;
 	bool IsRootCanvas()const;
 	/** hierarchy changed */
 	void OnUIHierarchyChanged();
@@ -185,17 +186,17 @@ public:
 	UE_DEPRECATED(4.23, "Use GetUIItem instead.")
 		UUIItem* CheckAndGetUIItem() { return GetUIItem(); }
 
-	FORCEINLINE UUIItem* GetUIItem() { CheckUIItem(); return UIItem; }
+	FORCEINLINE UUIItem* GetUIItem()const { CheckUIItem(); return UIItem; }
 	bool GetIsUIActive()const;
 	ULGUICanvas* GetParentCanvas() { CheckParentCanvas(); return ParentCanvas; }
 protected:
 	/** consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas */
 	bool currentIsRenderToRenderTargetOrWorld = false;
 	/** top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it */
-	UPROPERTY(Transient) ULGUICanvas* TopMostCanvas = nullptr;
+	UPROPERTY(Transient) mutable ULGUICanvas* TopMostCanvas = nullptr;
 	void CheckRenderMode();
 	/** chekc TopMostCanvas. search for it if not valid */
-	bool CheckTopMostCanvas();
+	bool CheckTopMostCanvas()const;
 	/** nearest up parent Canvas */
 	UPROPERTY(Transient) ULGUICanvas* ParentCanvas = nullptr;
 	/** check parent Canvas. search for it if not valid */
@@ -209,8 +210,8 @@ protected:
 	
 	UMaterialInterface** GetMaterials();
 
-	UPROPERTY(Transient)UUIItem* UIItem = nullptr;
-	bool CheckUIItem();
+	UPROPERTY(Transient)mutable UUIItem* UIItem = nullptr;
+	bool CheckUIItem()const;
 
 	TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ViewExtension;
 protected:
@@ -223,7 +224,7 @@ protected:
 	float FarClipPlane = GNearClippingPlane;
 	int32 EditorPreview_ViewIndex = 0;
 
-	float CalculateDistanceToCamera();
+	float CalculateDistanceToCamera()const;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIRenderMode renderMode = ELGUIRenderMode::WorldSpace;
@@ -418,6 +419,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetDynamicPixelsPerUnit(float newValue);
 
+	/**
+	 * Project 3D screen-space-UI element's position to 2D screen-space-UI.
+	 * Only valid for ScreenSpaceUIRoot.
+	 * @param	Position3D	GetWorldLocation from the UI element (world location).
+	 * @param	OutPosition2D	2D Position in screen-space, left bottom is zero point.
+	 * @param	bool	convert may fail.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const;
+
 	/** return UIRenderables that belong to this canvas */
 	const TArray<TWeakObjectPtr<UUIBaseRenderable>>& GetUIRenderables()const { return UIRenderableItemList; }
 	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
@@ -447,8 +458,8 @@ private:
 	/** prev frame number, we can tell if we enter to a new render frame */
 	uint32 prevFrameNumber = 0;
 
-	uint32 cacheViewProjectionMatrixFrameNumber = 0;
-	FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
+	mutable uint32 cacheViewProjectionMatrixFrameNumber = 0;
+	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
 	struct FLGUIDrawcallPrimitive
 	{
