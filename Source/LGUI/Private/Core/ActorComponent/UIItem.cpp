@@ -1445,6 +1445,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 	bool anyChange = false;
 	if (FMath::Abs(widget.anchorOffsetX - newOffset.X) > KINDA_SMALL_NUMBER)
 	{
+		anyChange = true;
 		widget.anchorOffsetX = newOffset.X;
 		if (IsValid(cacheParentUIItem))
 		{
@@ -1453,6 +1454,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 	}
 	if (FMath::Abs(widget.anchorOffsetY - newOffset.Y) > KINDA_SMALL_NUMBER)
 	{
+		anyChange = true;
 		widget.anchorOffsetY = newOffset.Y;
 		if (IsValid(cacheParentUIItem))
 		{
