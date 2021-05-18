@@ -582,7 +582,7 @@ void UUIItem::OnAttachmentChanged()
 bool UUIItem::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit, EMoveComponentFlags MoveFlags, ETeleportType Teleport)
 {
 	auto result = Super::MoveComponentImpl(Delta, NewRotation, bSweep, Hit, MoveFlags, Teleport);
-	if (!Delta.IsZero())
+	if (!Delta.IsNearlyZero(KINDA_SMALL_NUMBER))
 	{
 		if (bCanSetAnchorFromTransform
 			&& this->IsRegistered()//check if registerred, because it may called from reconstruction.
