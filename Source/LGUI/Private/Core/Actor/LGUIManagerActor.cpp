@@ -867,9 +867,6 @@ Detect multiple LGUIBaseRaycaster components with same depth and traceChannel, t
 \n	For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.\
 \nLGUIXXXSpaceInteractionXXX is also a LGUIBaseRaycaster component."));
 				UE_LOG(LGUI, Warning, TEXT("\n%s"), *msg);
-#if WITH_EDITOR
-				LGUIUtils::EditorNotification(FText::FromString(msg), 8);
-#endif
 				break;
 			}
 		}
