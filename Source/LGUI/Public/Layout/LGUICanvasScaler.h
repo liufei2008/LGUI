@@ -43,13 +43,13 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 
+	void OnRegister();
+	void OnUnregister();
 #if WITH_EDITOR
 	FDelegateHandle EditorTickDelegateHandle;
 	FDelegateHandle EditorViewportIndexAndKeyChangeDelegateHandle;
 	FDelegateHandle LGUIPreview_ViewportIndexChangeDelegateHandle;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	void OnRegister();
-	void OnUnregister();
 	void DrawVirtualCamera();
 	void OnEditorTick(float DeltaTime);
 	void OnEditorViewportIndexAndKeyChange();
@@ -140,4 +140,12 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector2D ConvertPositionFromLGUICanvasToViewport(const FVector2D& position)const;
+	/**
+	 * Project 3D screen-space-UI element's position to 2D screen-space-UI.
+	 * @param	Position3D	GetWorldLocation from the UI element (world location).
+	 * @param	OutPosition2D	2D Position in screen-space, left bottom is zero point.
+	 * @param	bool	convert may fail.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const;
 };

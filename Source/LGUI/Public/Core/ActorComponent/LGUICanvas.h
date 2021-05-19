@@ -163,7 +163,7 @@ public:
 	FORCEINLINE float GetCanvasScale()const { return canvasScale; }
 private:
 	friend class ULGUICanvasScaler;
-	float canvasScale = 1.0f;//screen size / root canvas size
+	float canvasScale = -1.0f;//for screen space UI, screen size / root canvas size
 public:
 	/** get root LGUICanvas on hierarchy */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -418,16 +418,6 @@ public:
 		float GetDynamicPixelsPerUnit()const { return dynamicPixelsPerUnit; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetDynamicPixelsPerUnit(float newValue);
-
-	/**
-	 * Project 3D screen-space-UI element's position to 2D screen-space-UI.
-	 * Only valid for ScreenSpaceUIRoot.
-	 * @param	Position3D	GetWorldLocation from the UI element (world location).
-	 * @param	OutPosition2D	2D Position in screen-space, left bottom is zero point.
-	 * @param	bool	convert may fail.
-	 */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const;
 
 	/** return UIRenderables that belong to this canvas */
 	const TArray<TWeakObjectPtr<UUIBaseRenderable>>& GetUIRenderables()const { return UIRenderableItemList; }
