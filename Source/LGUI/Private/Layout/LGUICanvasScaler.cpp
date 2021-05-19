@@ -205,19 +205,10 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 }
 
 
-#if WITH_EDITOR
-void ULGUICanvasScaler::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (auto property = PropertyChangedEvent.Property)
-	{
-		SetCanvasProperties();
-		OnViewportParameterChanged();
-	}
-}
 void ULGUICanvasScaler::OnRegister()
 {
 	Super::OnRegister();
+#if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
 		if (ULGUIEditorManagerObject::Instance != nullptr)
@@ -227,10 +218,12 @@ void ULGUICanvasScaler::OnRegister()
 			LGUIPreview_ViewportIndexChangeDelegateHandle = ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.AddUObject(this, &ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange);
 		}
 	}
+#endif
 }
 void ULGUICanvasScaler::OnUnregister()
 {
 	Super::OnUnregister();
+#if WITH_EDITOR
 	if (GetWorld() && GetWorld()->WorldType == EWorldType::Editor)
 	{
 		if (ULGUIEditorManagerObject::Instance != nullptr)
@@ -239,6 +232,23 @@ void ULGUICanvasScaler::OnUnregister()
 			ULGUIEditorManagerObject::Instance->EditorViewportIndexAndKeyChange.Remove(EditorViewportIndexAndKeyChangeDelegateHandle);
 			ULGUIEditorSettings::LGUIPreviewSetting_EditorPreviewViewportIndexChange.Remove(LGUIPreview_ViewportIndexChangeDelegateHandle);
 		}
+	}
+#endif
+	//reset the canvasScale to default
+	if (IsValid(Canvas))
+	{
+		Canvas->canvasScale = -1.0f;
+	}
+}
+
+#if WITH_EDITOR
+void ULGUICanvasScaler::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (auto property = PropertyChangedEvent.Property)
+	{
+		SetCanvasProperties();
+		OnViewportParameterChanged();
 	}
 }
 void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
@@ -491,4 +501,25 @@ FVector2D ULGUICanvasScaler::ConvertPositionFromLGUICanvasToViewport(const FVect
 	}
 	break;
 	}
+}
+bool ULGUICanvasScaler::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const
+{
+	auto viewProjectionMatrix = Canvas->GetViewProjectionMatrix();
+	auto result = viewProjectionMatrix.TransformFVector4(FVector4(Position3D, 1.0f));
+	if (result.W > 0.0f)
+	{
+		// the result of this will be x and y coords in -1..1 projection space
+		const float RHW = 1.0f / result.W;
+		FPlane PosInScreenSpace = FPlane(result.X * RHW, result.Y * RHW, result.Z * RHW, result.W);
+
+		// Move from projection space to normalized 0..1 UI space
+		OutPosition2D.X = (PosInScreenSpace.X / 2.f) + 0.5f;
+		OutPosition2D.Y = (PosInScreenSpace.Y / 2.f) + 0.5f;
+		//Convert to LGUI's viewport size
+		OutPosition2D *= Canvas->GetViewportSize();
+		OutPosition2D /= Canvas->canvasScale;
+
+		return true;
+	}
+	return false;
 }

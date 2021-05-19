@@ -2368,8 +2368,8 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	FString content = text;
 
 	bool pixelPerfect = renderCanvas->GetActualPixelPerfect();
-	float dynamicPixelsPerUnit = renderCanvas->GetActualDynamicPixelsPerUnit();
 	float rootCanvasScale = renderCanvas->GetRootCanvas()->GetCanvasScale();
+	float dynamicPixelsPerUnit = renderCanvas->GetActualDynamicPixelsPerUnit() * rootCanvasScale;
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
 
@@ -2515,31 +2515,47 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			float calculatedCharFixedOffset = richText ? GetCharFixedOffset(inFontSize) : charFixedOffset;
 
 			auto overrideCharData = charData;
-			if (pixelPerfect && rootCanvasScale != -1.0f)
+			if (rootCanvasScale != -1.0f)
 			{
-				inFontSize = inFontSize * rootCanvasScale;
-				inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
-				overrideCharData = font->GetCharData(charCode, inFontSize);
+				if (pixelPerfect)
+				{
+					inFontSize = inFontSize * rootCanvasScale;
+					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
+					overrideCharData = font->GetCharData(charCode, inFontSize);
 
-				charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
-				charGeo.geoHeight = overrideCharData->height * oneDivideRootCanvasScale;
-				charGeo.xadvance = charData->xadvance;
-				charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideRootCanvasScale;
-				charGeo.xoffset = overrideCharData->xoffset * oneDivideRootCanvasScale;
-				charGeo.yoffset = overrideCharData->yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
-			}
-			else if (dynamicPixelsPerUnit != 1.0f)
-			{
-				inFontSize = inFontSize * dynamicPixelsPerUnit;
-				inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
-				overrideCharData = font->GetCharData(charCode, inFontSize);
+					charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
+					charGeo.geoHeight = overrideCharData->height * oneDivideRootCanvasScale;
+					charGeo.xadvance = charData->xadvance;
+					charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideRootCanvasScale;
+					charGeo.xoffset = overrideCharData->xoffset * oneDivideRootCanvasScale;
+					charGeo.yoffset = overrideCharData->yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
+				}
+				else if (dynamicPixelsPerUnit != 1.0f)
+				{
+					inFontSize = inFontSize * dynamicPixelsPerUnit;
+					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
+					overrideCharData = font->GetCharData(charCode, inFontSize);
 
-				charGeo.geoWidth = overrideCharData->width * oneDivideDynamicPixelsPerUnit;
-				charGeo.geoHeight = overrideCharData->height * oneDivideDynamicPixelsPerUnit;
-				charGeo.xadvance = overrideCharData->xadvance * oneDivideDynamicPixelsPerUnit;
-				charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideDynamicPixelsPerUnit;
-				charGeo.xoffset = overrideCharData->xoffset * oneDivideDynamicPixelsPerUnit;
-				charGeo.yoffset = overrideCharData->yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
+					charGeo.geoWidth = overrideCharData->width * oneDivideDynamicPixelsPerUnit;
+					charGeo.geoHeight = overrideCharData->height * oneDivideDynamicPixelsPerUnit;
+					charGeo.xadvance = overrideCharData->xadvance * oneDivideDynamicPixelsPerUnit;
+					charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideDynamicPixelsPerUnit;
+					charGeo.xoffset = overrideCharData->xoffset * oneDivideDynamicPixelsPerUnit;
+					charGeo.yoffset = overrideCharData->yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
+				}
+				else
+				{
+					inFontSize = inFontSize * rootCanvasScale;
+					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
+					overrideCharData = font->GetCharData(charCode, inFontSize);
+
+					charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
+					charGeo.geoHeight = overrideCharData->height * oneDivideRootCanvasScale;
+					charGeo.xadvance = charData->xadvance;
+					charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideRootCanvasScale;
+					charGeo.xoffset = overrideCharData->xoffset * oneDivideRootCanvasScale;
+					charGeo.yoffset = overrideCharData->yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
+				}
 			}
 			else
 			{
