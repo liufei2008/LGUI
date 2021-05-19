@@ -854,6 +854,26 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 	{
 		auto& raycasterArray = Instance->raycasterArray;
 		if (raycasterArray.Contains(InRaycaster))return;
+		//check multiple racaster
+		for (auto item : raycasterArray)
+		{
+			if (InRaycaster->depth == item->depth && InRaycaster->traceChannel == item->traceChannel)
+			{
+				auto msg = FString(TEXT("\
+Detect multiple LGUIBaseRaycaster components with same depth and traceChannel, this may cause wrong interaction results!\
+\neg: Want use mouse to click object A but get object B.\
+\nPlease note:\
+\n	For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.\
+\n	For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.\
+\nLGUIXXXSpaceInteractionXXX is also a LGUIBaseRaycaster component."));
+				UE_LOG(LGUI, Warning, TEXT("\n%s"), *msg);
+#if WITH_EDITOR
+				LGUIUtils::EditorNotification(FText::FromString(msg), 8);
+#endif
+				break;
+			}
+		}
+
 		raycasterArray.Add(InRaycaster);
 		//sort depth
 		raycasterArray.Sort([](const ULGUIBaseRaycaster& A, const ULGUIBaseRaycaster& B)

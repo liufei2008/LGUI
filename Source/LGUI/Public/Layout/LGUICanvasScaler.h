@@ -141,6 +141,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		FVector2D ConvertPositionFromLGUICanvasToViewport(const FVector2D& position)const;
 	/**
+	 * NOTE!!! This is only for screen-space-UI, don't use this for convert world space position!!!
 	 * Project 3D screen-space-UI element's position to 2D screen-space-UI.
 	 * @param	Position3D	GetWorldLocation from the UI element (world location).
 	 * @param	OutPosition2D	2D Position in screen-space, left bottom is zero point.
