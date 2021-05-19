@@ -5,6 +5,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "LGUIEditorPCH.H"
 
 #define LOCTEXT_NAMESPACE "LGUICanvasCustomization"
 FLGUICanvasCustomization::FLGUICanvasCustomization()

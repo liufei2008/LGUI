@@ -33,8 +33,8 @@ protected:
 	void ActorLineTraceMulti(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ECollisionChannel InTraceChannel, const struct FCollisionQueryParams& InParams = FCollisionQueryParams::DefaultQueryParam);
 public:
 	/** 
-	 * for raycasters with same depth, will line trace them all and sort result on hit distance
-	 * for raycasters with different depth, will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace
+	 * For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.
+	 * For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		int32 depth = 0;

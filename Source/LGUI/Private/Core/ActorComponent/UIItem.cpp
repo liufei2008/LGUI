@@ -15,7 +15,6 @@
 #include "EditorViewportClient.h"
 #endif
 
-DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
 
 UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -249,8 +248,11 @@ void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarc
 		}
 	}
 }
+
+DECLARE_CYCLE_STAT(TEXT("UIItem CalculateFlattenHierarchyIndex"), STAT_UIItemCalculateFlattenHierarchyIndex, STATGROUP_LGUI);
 void UUIItem::RecalculateFlattenHierarchyIndex()
 {
+	SCOPE_CYCLE_COUNTER(STAT_UIItemCalculateFlattenHierarchyIndex);
 	UUIItem* topUIItem = this;
 	UUIItem* rootUIItem = nullptr;
 	while (topUIItem != nullptr)
@@ -1145,6 +1147,7 @@ bool UUIItem::CheckRenderCanvas()
 	return false;
 }
 
+DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
 void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpdateLayout)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayoutAndGeometry);
