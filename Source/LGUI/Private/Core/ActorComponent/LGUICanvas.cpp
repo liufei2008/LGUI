@@ -1703,28 +1703,6 @@ void ULGUICanvas::SetDefaultMaterials(UMaterialInterface* InMaterials[3])
 	CacheUIMaterialList.Reset();
 }
 
-bool ULGUICanvas::Project3DToScreen(const FVector& Position3D, FVector2D& OutPosition2D)const
-{
-	auto viewProjectionMatrix = GetViewProjectionMatrix();
-	auto result = viewProjectionMatrix.TransformFVector4(FVector4(Position3D, 1.0f));
-	if (result.W > 0.0f)
-	{
-		// the result of this will be x and y coords in -1..1 projection space
-		const float RHW = 1.0f / result.W;
-		FPlane PosInScreenSpace = FPlane(result.X * RHW, result.Y * RHW, result.Z * RHW, result.W);
-
-		// Move from projection space to normalized 0..1 UI space
-		OutPosition2D.X = (PosInScreenSpace.X / 2.f) + 0.5f;
-		OutPosition2D.Y = (PosInScreenSpace.Y / 2.f) + 0.5f;
-		//Convert to LGUI's viewport size
-		OutPosition2D *= GetViewportSize();
-		OutPosition2D /= canvasScale;
-
-		return true;
-	}
-	return false;
-}
-
 void ULGUICanvas::SetDynamicPixelsPerUnit(float newValue)
 {
 	if (dynamicPixelsPerUnit != newValue)
