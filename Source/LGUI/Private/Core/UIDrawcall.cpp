@@ -260,8 +260,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 	};
 	auto OverlapWithOtherDrawcall = [IntersectBounds](UUIRenderable* item, const FLGUICacheTransformContainer& itemToCanvasTf, TSharedPtr<UUIDrawcall> drawcallItem) {
 		//calculate drawcall item's bounds
-		auto renderObjectList = drawcallItem->renderObjectList;
-		for (auto otherItem : renderObjectList)
+		for (auto otherItem : drawcallItem->renderObjectList)
 		{
 			FLGUICacheTransformContainer otherItemToCanvasTf;
 			otherItem->GetRenderCanvas()->GetCacheUIItemToCanvasTransform(otherItem.Get(), true, otherItemToCanvasTf);
