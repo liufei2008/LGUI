@@ -4,6 +4,7 @@
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/ActorSerializer.h"
 #include "LGUIEditorPCH.h"
+#include "AssetRegistryModule.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabCustomization"
 
@@ -73,6 +74,14 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteButton)
 				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixEngineVersionButton)
 			]
+			+SHorizontalBox::Slot()
+			.MaxWidth(80)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Fix all")))
+				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteAllButton)
+				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixEngineVersionButton)
+			]
 		]
 		;
 	category.AddCustomRow(LOCTEXT("PrefabVersion", "Prefab Version"))
@@ -107,6 +116,15 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 				SNew(SButton)
 				.Text(FText::FromString(TEXT("Fix it")))
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteButton)
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixPrefabVersionButton)
+			]
+			+SHorizontalBox::Slot()
+			.MaxWidth(80)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Fix all")))
+				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteAllButton)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixPrefabVersionButton)
 			]
@@ -247,25 +265,53 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 }
 FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 {
+	UWorld* world = nullptr;
 	if (auto script = TargetScriptPtr.Get())
 	{
-		for (TObjectIterator<ULGUIPrefab> PrefabItr; PrefabItr; ++PrefabItr)
+		world = script->GetWorld();
+	}
+	if (!IsValid(world))
+	{
+		world = GWorld;
+	}
+	if (!IsValid(world))
+	{
+		UE_LOG(LGUIEditor, Error, TEXT("[FLGUIPrefabCustomization::OnClickRecreteButton]Can not get World! This is wired..."));
+	}
+	else
+	{
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+		// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
+		TArray<FString> PathsToScan;
+		PathsToScan.Add(TEXT("/Game/"));
+		AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+		// Get asset in path
+		TArray<FAssetData> ScriptAssetList;
+		AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
+
+		// Ensure all assets are loaded
+		for (const FAssetData& Asset : ScriptAssetList)
 		{
-			auto world = script->GetWorld();
-			if (!IsValid(world))
+			// Gets the loaded asset, loads it if necessary
+			if (Asset.AssetClass == TEXT("LGUIPrefab"))
 			{
-				world = GWorld;
-			}
-			if (IsValid(world))
-			{
-				LGUIPrefabSystem::ActorSerializer serializer(world);
-				auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(world, *PrefabItr, nullptr);
-				serializer.SerializeActor(loadedActor, *PrefabItr);
-				LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
-			}
-			else
-			{
-				UE_LOG(LGUIEditor, Error, TEXT("[FLGUIPrefabCustomization::OnClickRecreteButton]Can not get World! This is wired..."));
+				auto assetObject = Asset.GetAsset();
+				if (auto prefab = Cast<ULGUIPrefab>(assetObject))
+				{
+					if (
+						prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
+						|| prefab->PrefabVersion != LGUI_PREFAB_VERSION
+						)
+					{
+						LGUIPrefabSystem::ActorSerializer serializer(world);
+						auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(world, prefab, nullptr);
+						serializer.SerializeActor(loadedActor, prefab);
+						LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
+					}
+				}
 			}
 		}
 	}
