@@ -558,7 +558,7 @@ TMap<UWorld*, ALGUIManagerActor*> ALGUIManagerActor::WorldToInstanceMap ;
 ALGUIManagerActor::ALGUIManagerActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.TickGroup = TG_PostUpdateWork;
+	PrimaryActorTick.TickGroup = ETickingGroup::TG_DuringPhysics;
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 #if WITH_EDITOR
 	FEditorDelegates::BeginPIE.AddLambda([=](const bool isSimulating) {
@@ -571,8 +571,6 @@ ALGUIManagerActor::ALGUIManagerActor()
 		}
 	});
 #endif
-	//CreateDefaultSubobject<ULGUIManagerComponent_PrePhysics>(TEXT("Tick_PrePhysics"))->ManagerActor = this;
-	CreateDefaultSubobject<ULGUIManagerComponent_DuringPhysics>(TEXT("Tick_DuringPhysics"))->ManagerActor = this;
 }
 ALGUIManagerActor* ALGUIManagerActor::GetLGUIManagerActorInstance(UObject* WorldContextObject)
 {
@@ -682,27 +680,8 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 	}
 }
 
-
-//DECLARE_CYCLE_STAT(TEXT("LGUIManagerTick"), STAT_LGUIManagerTick, STATGROUP_LGUI);
-void ALGUIManagerActor::Tick(float DeltaTime)
-{
-	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
-	for (auto item : allCanvas)
-	{
-		if (IsValid(item))
-		{
-			item->UpdateCanvas(DeltaTime);
-		}
-	}
-}
-void ALGUIManagerActor::Tick_PrePhysics()
-{
-	
-}
-
 DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATGROUP_LGUI);
-
-void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
+void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourUpdate);
 	//update
@@ -715,7 +694,15 @@ void ALGUIManagerActor::Tick_DuringPhysics(float deltaTime)
 			{
 				item->Start();
 			}
-			item->Update(deltaTime);
+			item->Update(DeltaTime);
+		}
+	}
+	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
+	for (auto item : allCanvas)
+	{
+		if (IsValid(item))
+		{
+			item->UpdateCanvas(DeltaTime);
 		}
 	}
 }
@@ -1016,34 +1003,4 @@ bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
 		return Instance->AllActors_PrefabSystemProcessing.Contains(InActor);
 	}
 	return false;
-}
-
-//ULGUIManagerComponent_PrePhysics::ULGUIManagerComponent_PrePhysics()
-//{
-//	PrimaryComponentTick.bCanEverTick = true;
-//	PrimaryComponentTick.bStartWithTickEnabled = true;
-//	PrimaryComponentTick.TickGroup = TG_PrePhysics;
-//}
-//void ULGUIManagerComponent_PrePhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-//{
-//	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-//	if (IsValid(ManagerActor))
-//	{
-//		ManagerActor->Tick_PrePhysics();
-//	}
-//}
-
-ULGUIManagerComponent_DuringPhysics::ULGUIManagerComponent_DuringPhysics()
-{
-	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = true;
-	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
-}
-void ULGUIManagerComponent_DuringPhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (IsValid(ManagerActor))
-	{
-		ManagerActor->Tick_DuringPhysics(DeltaTime);
-	}
 }
