@@ -188,27 +188,4 @@ public:
 	static void AddLGUIBehavioursForUpdate(ULGUIBehaviour* InComp);
 	static void RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp);
 	static void ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InComp);
-
-	void Tick_PrePhysics();
-	void Tick_DuringPhysics(float deltaTime);
-};
-//UCLASS(ClassGroup=(LGUI), NotBlueprintable)
-//class LGUI_API ULGUIManagerComponent_PrePhysics : public UActorComponent
-//{
-//	GENERATED_BODY()
-//public:
-//	ULGUIManagerComponent_PrePhysics();
-//	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-//	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-//		ALGUIManagerActor* ManagerActor;
-//};
-UCLASS(ClassGroup = (LGUI), NotBlueprintable)
-class LGUI_API ULGUIManagerComponent_DuringPhysics : public UActorComponent
-{
-	GENERATED_BODY()
-public:
-	ULGUIManagerComponent_DuringPhysics();
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ALGUIManagerActor* ManagerActor;
 };
