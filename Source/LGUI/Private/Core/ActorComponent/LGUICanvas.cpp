@@ -1929,9 +1929,17 @@ FIntPoint ULGUICanvas::GetViewportSize()const
 		else
 #endif
 		{
-			if (auto pc = world->GetFirstPlayerController())
+			if (renderMode == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
-				pc->GetViewportSize(viewportSize.X, viewportSize.Y);
+				if (auto pc = world->GetFirstPlayerController())
+				{
+					pc->GetViewportSize(viewportSize.X, viewportSize.Y);
+				}
+			}
+			else if (renderMode == ELGUIRenderMode::RenderTarget && IsValid(renderTarget))
+			{
+				viewportSize.X = renderTarget->SizeX;
+				viewportSize.Y = renderTarget->SizeY;
 			}
 		}
 	}

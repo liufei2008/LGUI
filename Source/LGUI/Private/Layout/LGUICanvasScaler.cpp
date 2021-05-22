@@ -257,33 +257,48 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 	{
 		if (Canvas->IsRootCanvas())
 		{
-			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+			if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay
+				|| Canvas->GetRenderMode() == ELGUIRenderMode::RenderTarget
+				)
 			{
 				DrawVirtualCamera();
 				
 #if WITH_EDITORONLY_DATA
 				if (!GetWorld()->IsGameWorld())
 				{
-					FViewport* viewport = nullptr;
-
-					int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
-					auto viewportClients = GEditor->GetAllViewportClients();
-					for (auto viewportClient : viewportClients)
+					if (Canvas->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 					{
-						if (viewportClient->ViewIndex == editorViewIndex)
+						FViewport* viewport = nullptr;
+
+						int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
+						auto viewportClients = GEditor->GetAllViewportClients();
+						for (auto viewportClient : viewportClients)
 						{
-							viewport = viewportClient->Viewport;
-							break;
+							if (viewportClient->ViewIndex == editorViewIndex)
+							{
+								viewport = viewportClient->Viewport;
+								break;
+							}
+						}
+						if (viewport == nullptr)
+						{
+							viewport = GEditor->GetActiveViewport();
+						}
+						if (viewport != nullptr)
+						{
+							auto prevSize = ViewportSize;
+							ViewportSize = viewport->GetSizeXY();
+							if (prevSize != ViewportSize)
+							{
+								OnViewportParameterChanged();
+							}
 						}
 					}
-					if (viewport == nullptr)
-					{
-						viewport = GEditor->GetActiveViewport();
-					}
-					if (viewport != nullptr)
+					if (Canvas->GetRenderMode() == ELGUIRenderMode::RenderTarget && IsValid(Canvas->renderTarget))
 					{
 						auto prevSize = ViewportSize;
-						ViewportSize = viewport->GetSizeXY();
+						ViewportSize.X = Canvas->renderTarget->SizeX;
+						ViewportSize.Y = Canvas->renderTarget->SizeY;
 						if (prevSize != ViewportSize)
 						{
 							OnViewportParameterChanged();
