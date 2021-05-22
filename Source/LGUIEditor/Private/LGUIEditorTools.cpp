@@ -992,17 +992,20 @@ void LGUIEditorTools::FocusToScreenSpaceUI()
 			auto editorViewportClient = (FEditorViewportClient*)viewportClient;
 			for (TActorIterator<AUIContainerActor> ActorItr(GWorld); ActorItr; ++ActorItr)
 			{
-				auto canvas = ActorItr->FindComponentByClass<ULGUICanvas>();
 				auto canvasScaler = ActorItr->FindComponentByClass<ULGUICanvasScaler>();
-				if (canvas != nullptr && canvas->IsRenderToScreenSpace() && canvasScaler != nullptr)//make sure is screen space UI root
+				if (canvasScaler != nullptr)
 				{
-					auto viewDistance = FVector::Distance(canvas->GetViewLocation(), canvas->GetUIItem()->GetComponentLocation());
-					auto halfViewWidth = viewDistance * FMath::Tan(FMath::DegreesToRadians(canvasScaler->GetFovAngle() * 0.5f));
-					auto editorViewDistance = halfViewWidth / FMath::Tan(FMath::DegreesToRadians(editorViewportClient->FOVAngle * 0.5f));
-					editorViewportClient->SetViewLocation(canvas->GetUIItem()->GetComponentLocation() - canvas->GetViewRotator().Quaternion().GetForwardVector() * editorViewDistance);
-					editorViewportClient->SetViewRotation(canvas->GetViewRotator());
-					editorViewportClient->SetLookAtLocation(canvas->GetUIItem()->GetComponentLocation());
-					break;
+					auto canvas = ActorItr->FindComponentByClass<ULGUICanvas>();
+					if (canvas != nullptr && canvas->IsRenderToScreenSpace())//make sure is screen space UI root
+					{
+						auto viewDistance = FVector::Distance(canvas->GetViewLocation(), canvas->GetUIItem()->GetComponentLocation());
+						auto halfViewWidth = viewDistance * FMath::Tan(FMath::DegreesToRadians(canvasScaler->GetFovAngle() * 0.5f));
+						auto editorViewDistance = halfViewWidth / FMath::Tan(FMath::DegreesToRadians(editorViewportClient->FOVAngle * 0.5f));
+						editorViewportClient->SetViewLocation(canvas->GetUIItem()->GetComponentLocation() - canvas->GetViewRotator().Quaternion().GetForwardVector() * editorViewDistance);
+						editorViewportClient->SetViewRotation(canvas->GetViewRotator());
+						editorViewportClient->SetLookAtLocation(canvas->GetUIItem()->GetComponentLocation());
+						break;
+					}
 				}
 			}
 		}
