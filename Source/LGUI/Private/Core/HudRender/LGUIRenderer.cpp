@@ -254,7 +254,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 		RPInfo = FRHIRenderPassInfo(ScreenColorRenderTexture, ERenderTargetActions::Load_DontStore);
 	}
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-	RHICmdList.SetViewport(0, 0, 0.0f, InView.UnscaledViewRect.Size().X, InView.UnscaledViewRect.Size().Y, 1.0f);
+	RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTexture->GetSizeXYZ().X, ScreenColorRenderTexture->GetSizeXYZ().Y, 1.0f);
 
 	RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
 	RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
@@ -295,7 +295,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 						ViewProjectionMatrix
 					);
 					RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-					RHICmdList.SetViewport(0, 0, 0.0f, InView.UnscaledViewRect.Size().X, InView.UnscaledViewRect.Size().Y, 1.0f);
+					RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTexture->GetSizeXYZ().X, ScreenColorRenderTexture->GetSizeXYZ().Y, 1.0f);
 					GraphicsPSOInit.NumSamples = MultiSampleCount;
 				}
 				else//render mesh
