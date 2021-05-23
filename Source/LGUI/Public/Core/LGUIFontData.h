@@ -62,6 +62,7 @@ public:
 	}
 };
 
+class UTexture2D;
 class UUIText;
 struct FT_GlyphSlotRec_;
 struct FT_LibraryRec_;
@@ -154,7 +155,6 @@ private:
 	 * return: if can fit in rect area return true, else false
 	 */
 	bool PackRectAndInsertChar(int32 InExtraSpace, FT_GlyphSlotRec_* InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
-	void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
 
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
