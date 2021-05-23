@@ -32,6 +32,7 @@ public:
 	 */
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
+		FLGUIViewExtension* Renderer,
 		FTextureRHIRef ScreenImage,
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix

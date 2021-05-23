@@ -80,6 +80,7 @@ public:
 	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
+		FLGUIViewExtension* Renderer,
 		FTextureRHIRef ScreenImage,
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix
@@ -110,7 +111,7 @@ public:
 		auto BlurEffectRenderTexture1 = BlurEffectRenderTarget1->GetRenderTargetItem().TargetableTexture;
 		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
 
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+		Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 		//do the blur process on the area
 		{
 			if (strengthTexture != nullptr)//use mask texture to control blur strength
@@ -154,14 +155,14 @@ public:
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture2->GetSizeXYZ().X, BlurEffectRenderTexture2->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
 					PixelShader->SetHorizontalOrVertical(RHICmdList, true);
-					FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
+					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					//render horizontal
 					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_DontStore), TEXT("Horizontal"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
 					PixelShader->SetHorizontalOrVertical(RHICmdList, false);
-					FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
+					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					calculatedBlurStrength2 *= 2;
 				}
@@ -206,14 +207,14 @@ public:
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture2->GetSizeXYZ().X, BlurEffectRenderTexture2->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
 					PixelShader->SetHorizontalOrVertical(RHICmdList, true);
-					FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
+					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					//render horizontal
 					RHICmdList.BeginRenderPass(FRHIRenderPassInfo(BlurEffectRenderTexture1, ERenderTargetActions::Load_DontStore), TEXT("Horizontal"));
 					RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y, 1.0f);
 					PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
 					PixelShader->SetHorizontalOrVertical(RHICmdList, false);
-					FLGUIViewExtension::DrawFullScreenQuad(RHICmdList);
+					Renderer->DrawFullScreenQuad(RHICmdList);
 					RHICmdList.EndRenderPass();
 					calculatedBlurStrength2 *= 2;
 				}
