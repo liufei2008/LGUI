@@ -15,11 +15,11 @@ struct FLGUIPostProcessVertex;
 struct FLGUIPostProcessCopyMeshRegionVertex;
 class FGlobalShaderMap;
 
-class LGUI_API FLGUIViewExtension : public FSceneViewExtensionBase
+class LGUI_API FLGUIHudRenderer : public FSceneViewExtensionBase
 {
 public:
-	FLGUIViewExtension(const FAutoRegister&, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget);
-	virtual ~FLGUIViewExtension();
+	FLGUIHudRenderer(const FAutoRegister&, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget);
+	virtual ~FLGUIHudRenderer();
 
 	//begin ISceneViewExtension interfaces
 	virtual void SetupViewFamily(FSceneViewFamily& InViewFamily)override {};

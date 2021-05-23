@@ -26,7 +26,7 @@ struct FLGUIMeshSection
 	}
 };
 
-class FLGUIViewExtension;
+class FLGUIHudRenderer;
 class ILGUIHudPrimitive;
 
 //Generate dynamic mesh
@@ -46,7 +46,7 @@ public:
 	void SetColor(FColor InColor);
 	FColor GetColor()const;
 
-	void SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer);
+	void SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer);
 	void SetSupportWorldSpace(bool supportOrNot);
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
@@ -71,7 +71,7 @@ private:
 	friend class FLGUIMeshSceneProxy;
 
 protected:
-	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
+	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIHudRenderer;
 	bool IsSupportWorldSpace = true;
 };
 
