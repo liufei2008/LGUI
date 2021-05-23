@@ -229,34 +229,26 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 #endif
 
 	//create render target
-	TRefCountPtr<IPooledRenderTarget> SceneColorRenderTarget;
+	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
 	{
 		FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(InView.UnscaledViewRect.Size(), InView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 		desc.NumSamples = MultiSampleCount;
-		GRenderTargetPool.FindFreeElement(RHICmdList, desc, SceneColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
-		if (!SceneColorRenderTarget.IsValid())
+		GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
+		if (!ScreenColorRenderTarget.IsValid())
 			return;
 	}
-	auto ScreenColorRenderTexture = SceneColorRenderTarget->GetRenderTargetItem().TargetableTexture;
+	auto ScreenColorRenderTargetTexture = ScreenColorRenderTarget->GetRenderTargetItem().TargetableTexture;
 
 	FSceneView RenderView(InView);//use a copied view
-	FRHIRenderPassInfo RPInfo;
-	if (CustomRenderTarget.IsValid())
-	{
-		ScreenColorRenderTexture = CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
-		RPInfo = FRHIRenderPassInfo(ScreenColorRenderTexture, ERenderTargetActions::Clear_DontStore);
-	}
-	else
-	{
-#if PLATFORM_ANDROID
-		RHICmdList.CopyToResolveTarget((FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTexture, FResolveParams());
+#if PLATFORM_WINDOWS
+	CopyRenderTarget(RHICmdList, GetGlobalShaderMap(RenderView.GetFeatureLevel()), (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture);
 #else
-		CopyRenderTarget(RHICmdList, GetGlobalShaderMap(RenderView.GetFeatureLevel()), (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTexture);
+	RHICmdList.CopyToResolveTarget((FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture, FResolveParams());
 #endif
-		RPInfo = FRHIRenderPassInfo(ScreenColorRenderTexture, ERenderTargetActions::Load_DontStore);
-	}
+	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
+
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-	RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTexture->GetSizeXYZ().X, ScreenColorRenderTexture->GetSizeXYZ().Y, 1.0f);
+	RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
 
 	RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
 	RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
@@ -293,12 +285,12 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 					hudPrimitive->OnRenderPostProcess_RenderThread(
 						RHICmdList,
 						this,
-						ScreenColorRenderTexture,
+						ScreenColorRenderTargetTexture,
 						GlobalShaderMap,
 						ViewProjectionMatrix
 					);
 					RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-					RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTexture->GetSizeXYZ().X, ScreenColorRenderTexture->GetSizeXYZ().Y, 1.0f);
+					RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
 					GraphicsPSOInit.NumSamples = MultiSampleCount;
 				}
 				else//render mesh
@@ -331,13 +323,20 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	}
 	RHICmdList.EndRenderPass();
 	//copy back to screen
-#if PLATFORM_ANDROID
-	CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture());
+	if (CustomRenderTarget.IsValid())
+	{
+		CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTargetTexture, (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture());
+	}
+	else
+	{
+#if PLATFORM_WINDOWS
+		RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
 #else
-	RHICmdList.CopyToResolveTarget(ScreenColorRenderTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
+		CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture());
 #endif
+	}
 	//release render target
-	SceneColorRenderTarget.SafeRelease();
+	ScreenColorRenderTarget.SafeRelease();
 }
 void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
