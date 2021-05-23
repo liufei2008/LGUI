@@ -198,38 +198,6 @@ bool UK2Node_LGUICompRef_GetComponent::IsActionFilteredOut(FBlueprintActionFilte
 bool UK2Node_LGUICompRef_GetComponent::IsConnectionDisallowed(const UEdGraphPin* MyPin, const UEdGraphPin* OtherPin, FString& OutReason)const
 {
 	return false;
-	if (UK2Node_Variable* variableNode = Cast<UK2Node_Variable>(OtherPin->GetOwningNode()))
-	{
-		auto propertyName = variableNode->GetVarName();
-		if (auto blueprint = variableNode->GetBlueprint())
-		{
-			if (auto generatedClass = blueprint->GeneratedClass)
-			{
-				if (auto objectInstance = generatedClass->GetDefaultObject())
-				{
-					auto propertyField = TFieldRange<UProperty>(generatedClass);
-					for (const auto propertyItem : propertyField)
-					{
-						if (auto structProperty = Cast<UStructProperty>(propertyItem))
-						{
-							if (structProperty->Struct == FLGUIComponentReference::StaticStruct())
-							{
-								if (structProperty->GetFName() == propertyName)
-								{
-									FLGUIComponentReference* structPtr = structProperty->ContainerPtrToValuePtr<FLGUIComponentReference>(objectInstance);
-									if (structPtr->GetComponentClass() != nullptr)
-									{
-										return false;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	return true;
 }
 bool UK2Node_LGUICompRef_GetComponent::ReferencesVariable(const FName& InVarName, const UStruct* InScope)const
 {
