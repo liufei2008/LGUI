@@ -6,7 +6,7 @@
 #include "SceneManagement.h"
 #include "Core/HudRender/LGUIRenderer.h"
 
-class FLGUIViewExtension;
+class FLGUIHudRenderer;
 class UUIPostProcess;
 
 class ILGUIHudPrimitive
@@ -32,7 +32,7 @@ public:
 	 */
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
-		FLGUIViewExtension* Renderer,
+		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef ScreenImage,
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix

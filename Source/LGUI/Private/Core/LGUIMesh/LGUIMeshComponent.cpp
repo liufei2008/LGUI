@@ -475,7 +475,7 @@ private:
 
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;
-	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
+	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIHudRenderer;
 	bool IsSupportScreenSpace = false;
 	bool IsSupportWorldSpace = true;
 };
@@ -581,7 +581,7 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	return Proxy;
 }
 
-void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> HudRenderer)
+void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer)
 {
 	if (supportOrNot)
 	{
