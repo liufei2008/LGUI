@@ -88,6 +88,7 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+	GraphicsPSOInit.NumSamples = MultiSampleCount;
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 	VertexShader->SetParameters(RHICmdList);
@@ -113,6 +114,7 @@ void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& 
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+	GraphicsPSOInit.NumSamples = MultiSampleCount;
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 	//VertexShader->SetParameters(RHICmdList);
@@ -290,6 +292,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 					RHICmdList.EndRenderPass();
 					hudPrimitive->OnRenderPostProcess_RenderThread(
 						RHICmdList,
+						this,
 						ScreenColorRenderTexture,
 						GlobalShaderMap,
 						ViewProjectionMatrix
@@ -313,6 +316,7 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 						GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 						GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 						GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+						GraphicsPSOInit.NumSamples = MultiSampleCount;
 						SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 						VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);

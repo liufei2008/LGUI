@@ -99,6 +99,7 @@ public:
 	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
+		FLGUIViewExtension* Renderer,
 		FTextureRHIRef ScreenImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix
@@ -128,7 +129,7 @@ public:
 		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
 
 		//copy rect area from screen image to a render target, so we can just process this area
-		FLGUIViewExtension::CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+		Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 		//after pixelate process, copy the area back to screen image
 		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 

@@ -39,21 +39,22 @@ public:
 	void AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
-	static void CopyRenderTarget(
+	void CopyRenderTarget(
 		FRHICommandListImmediate& RHICmdList, 
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst
 	);
-	static void CopyRenderTargetOnMeshRegion(
+	void CopyRenderTargetOnMeshRegion(
 		FRHICommandListImmediate& RHICmdList,
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst,
 		const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData,
 		const FMatrix& MVP
 	);
-	static void DrawFullScreenQuad(
+	void DrawFullScreenQuad(
 		FRHICommandListImmediate& RHICmdList
 	);
+	uint16 GetMultiSampleCount()const { return MultiSampleCount; }
 private:
 	void SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material);
 	void SortRenderPriority_RenderThread();
