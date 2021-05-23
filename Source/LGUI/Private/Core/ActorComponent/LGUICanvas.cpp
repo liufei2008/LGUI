@@ -483,7 +483,7 @@ UMaterialInstanceDynamic* ULGUICanvas::GetMaterialInstanceDynamicForDrawcall(int
 	return UIDrawcallList[drawcallIndex]->materialInstanceDynamic.Get();
 }
 
-TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewExtension()
+TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetViewExtension()
 {
 	if (!ViewExtension.IsValid())
 	{
@@ -491,11 +491,11 @@ TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ULGUICanvas::GetViewEx
 		{
 			if (renderMode == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
-				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIViewExtension>(this, nullptr);
+				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(this, nullptr);
 			}
 			else if (renderMode == ELGUIRenderMode::RenderTarget && IsValid(renderTarget))
 			{
-				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIViewExtension>(this, renderTarget);
+				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(this, renderTarget);
 			}
 		}
 	}

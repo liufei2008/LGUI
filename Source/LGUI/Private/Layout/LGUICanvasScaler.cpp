@@ -326,7 +326,7 @@ void ULGUICanvasScaler::OnEditorViewportIndexAndKeyChange()
 void ULGUICanvasScaler::OnPreviewSetting_EditorPreviewViewportIndexChange()
 {
 	int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
-	FLGUIViewExtension::EditorPreview_ViewKey = ULGUIEditorManagerObject::Instance->GetViewportKeyFromIndex(editorViewIndex);
+	FLGUIHudRenderer::EditorPreview_ViewKey = ULGUIEditorManagerObject::Instance->GetViewportKeyFromIndex(editorViewIndex);
 }
 void DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldStart, FVector& OutWorldEnd)
 {

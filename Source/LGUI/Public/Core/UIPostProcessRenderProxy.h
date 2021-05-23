@@ -23,14 +23,14 @@ public:
 		
 	}
 private:
-	TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> LGUIHudRenderer;
+	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIHudRenderer;
 	int32 RenderPriority = 0;
 	bool bIsVisible = true;
 public:
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 	void SetVisibility(bool value);
-	void AddToHudRenderer(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> InLGUIHudRenderer);
-	void AddToHudRenderer_RenderThread(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> InLGUIHudRenderer);
+	void AddToHudRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer);
+	void AddToHudRenderer_RenderThread(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer);
 	void RemoveFromHudRenderer();
 	void RemoveFromHudRenderer_RenderThread();
 

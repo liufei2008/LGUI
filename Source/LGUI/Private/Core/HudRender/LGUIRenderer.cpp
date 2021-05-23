@@ -35,9 +35,9 @@ public:
 
 
 #if WITH_EDITORONLY_DATA
-uint32 FLGUIViewExtension::EditorPreview_ViewKey = 0;
+uint32 FLGUIHudRenderer::EditorPreview_ViewKey = 0;
 #endif
-FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget)
+FLGUIHudRenderer::FLGUIHudRenderer(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget)
 	:FSceneViewExtensionBase(AutoRegister)
 {
 	UICanvas = InLGUICanvas;
@@ -48,12 +48,12 @@ FLGUIViewExtension::FLGUIViewExtension(const FAutoRegister& AutoRegister, ULGUIC
 	IsEditorPreview = !UICanvas->GetWorld()->IsGameWorld();
 #endif
 }
-FLGUIViewExtension::~FLGUIViewExtension()
+FLGUIHudRenderer::~FLGUIHudRenderer()
 {
 	
 }
 
-void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
+void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
 	if (!UICanvas.IsValid())return;
 
@@ -63,16 +63,16 @@ void FLGUIViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& I
 	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
 	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
 }
-void FLGUIViewExtension::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
+void FLGUIHudRenderer::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
 	
 }
-void FLGUIViewExtension::SetupViewProjectionMatrix(FSceneViewProjectionData& InOutProjectionData)
+void FLGUIHudRenderer::SetupViewProjectionMatrix(FSceneViewProjectionData& InOutProjectionData)
 {
 	
 }
 
-void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
+void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("LGUICopyRenderTarget"));
 	RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
@@ -98,7 +98,7 @@ void FLGUIViewExtension::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, 
 
 	RHICmdList.EndRenderPass();
 }
-void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst, const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData, const FMatrix& MVP)
+void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst, const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData, const FMatrix& MVP)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("LGUICopyRenderTargetOnMeshRegion"));
 	RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
@@ -134,12 +134,12 @@ void FLGUIViewExtension::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& 
 
 	RHICmdList.EndRenderPass();
 }
-void FLGUIViewExtension::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList)
+void FLGUIHudRenderer::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList)
 {
 	RHICmdList.SetStreamSource(0, GLGUIFullScreenQuadVertexBuffer.VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
 }
-void FLGUIViewExtension::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material)
+void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material)
 {
 	EBlendMode BlendMode = Material->GetBlendMode();
 	switch (BlendMode)
@@ -198,7 +198,7 @@ void FLGUIViewExtension::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineSt
 	}
 }
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
-void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
+void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
@@ -339,12 +339,12 @@ void FLGUIViewExtension::PostRenderView_RenderThread(FRHICommandListImmediate& R
 	//release render target
 	SceneColorRenderTarget.SafeRelease();
 }
-void FLGUIViewExtension::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
+void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
 
 }
 
-void FLGUIViewExtension::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
+void FLGUIHudRenderer::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
@@ -353,10 +353,10 @@ void FLGUIViewExtension::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimi
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::AddHudPrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::AddHudPrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
 	}
 }
-void FLGUIViewExtension::RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
+void FLGUIHudRenderer::RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
@@ -364,20 +364,20 @@ void FLGUIViewExtension::RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPr
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIViewExtension::RemoveHudPrimitive]Remove nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::RemoveHudPrimitive]Remove nullptr as ILGUIHudPrimitive!"));
 	}
 }
 
-void FLGUIViewExtension::SortRenderPriority_RenderThread()
+void FLGUIHudRenderer::SortRenderPriority_RenderThread()
 {
 	HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
 	{
 		return A.GetRenderPriority() < B.GetRenderPriority();
 	});
 }
-void FLGUIViewExtension::SortRenderPriority()
+void FLGUIHudRenderer::SortRenderPriority()
 {
-	FLGUIViewExtension* viewExtension = this;
+	FLGUIHudRenderer* viewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
 		[viewExtension](FRHICommandListImmediate& RHICmdList)
 		{

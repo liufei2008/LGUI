@@ -7,7 +7,7 @@
 #include "Core/HudRender/LGUIHudVertex.h"
 #include "Rendering/Texture2DResource.h"
 
-void FUIPostProcessRenderProxy::AddToHudRenderer(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> InLGUIHudRenderer)
+void FUIPostProcessRenderProxy::AddToHudRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer)
 {
 	auto renderProxy = this;
 	ENQUEUE_RENDER_COMMAND(FUIPostProcessRenderProxy_AddToHudRenderer)(
@@ -16,7 +16,7 @@ void FUIPostProcessRenderProxy::AddToHudRenderer(TWeakPtr<FLGUIViewExtension, ES
 			renderProxy->AddToHudRenderer_RenderThread(InLGUIHudRenderer);
 		});
 }
-void FUIPostProcessRenderProxy::AddToHudRenderer_RenderThread(TWeakPtr<FLGUIViewExtension, ESPMode::ThreadSafe> InLGUIHudRenderer)
+void FUIPostProcessRenderProxy::AddToHudRenderer_RenderThread(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer)
 {
 	if (LGUIHudRenderer == InLGUIHudRenderer)
 	{

@@ -181,7 +181,7 @@ public:
 	FORCEINLINE bool IsRenderToScreenSpaceOrRenderTarget();
 	FORCEINLINE bool IsRenderToRenderTarget();
 	FORCEINLINE bool IsRenderToWorldSpace();
-	FORCEINLINE TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> GetViewExtension();
+	FORCEINLINE TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension();
 
 	UE_DEPRECATED(4.23, "Use GetUIItem instead.")
 		UUIItem* CheckAndGetUIItem() { return GetUIItem(); }
@@ -213,7 +213,7 @@ protected:
 	UPROPERTY(Transient)mutable UUIItem* UIItem = nullptr;
 	bool CheckUIItem()const;
 
-	TSharedPtr<class FLGUIViewExtension, ESPMode::ThreadSafe> ViewExtension;
+	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension;
 protected:
 	friend class FLGUICanvasCustomization;
 	friend class FUIItemCustomization;

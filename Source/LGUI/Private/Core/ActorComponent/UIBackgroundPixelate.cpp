@@ -99,7 +99,7 @@ public:
 	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
-		FLGUIViewExtension* Renderer,
+		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef ScreenImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix
