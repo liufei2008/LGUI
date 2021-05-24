@@ -99,7 +99,7 @@ public:
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget1;
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
 		{
-			auto MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
+			auto MultiSampleCount = Renderer->GetMultiSampleCount();
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = MultiSampleCount;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget1, TEXT("LGUIBlurEffectRenderTarget1"));
