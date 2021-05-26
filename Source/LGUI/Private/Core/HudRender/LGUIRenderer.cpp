@@ -88,7 +88,7 @@ void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FG
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-	GraphicsPSOInit.NumSamples = MultiSampleCount;
+	GraphicsPSOInit.NumSamples = Dst->GetNumSamples();
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 	VertexShader->SetParameters(RHICmdList);
@@ -114,7 +114,7 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RH
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 	GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-	GraphicsPSOInit.NumSamples = MultiSampleCount;
+	GraphicsPSOInit.NumSamples = Dst->GetNumSamples();
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 	//VertexShader->SetParameters(RHICmdList);
@@ -228,23 +228,44 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
 #endif
 
-	//create render target
-	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
-	{
-		FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(InView.UnscaledViewRect.Size(), InView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-		desc.NumSamples = MultiSampleCount;
-		GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
-		if (!ScreenColorRenderTarget.IsValid())
-			return;
-	}
-	auto ScreenColorRenderTargetTexture = ScreenColorRenderTarget->GetRenderTargetItem().TargetableTexture;
-
 	FSceneView RenderView(InView);//use a copied view
+	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
+
+	//create render target
+	FTextureRHIRef ScreenColorRenderTargetTexture = nullptr;
+	FTextureRHIRef ScreenColorRenderTargetResolveTexture = nullptr;
+	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
+
+	if (CustomRenderTarget.IsValid())
+	{
+		ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
+		//clear render target;
+		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Clear_DontStore), TEXT("LGUIHudRender_ClearRenderTarget"));
+		RHICmdList.EndRenderPass();
+	}
+	else
+	{
+		if (MultiSampleCount > 1)
+		{
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.UnscaledViewRect.Size(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			desc.NumSamples = MultiSampleCount;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
+			if (!ScreenColorRenderTarget.IsValid())
+				return;
+			ScreenColorRenderTargetTexture = ScreenColorRenderTarget->GetRenderTargetItem().TargetableTexture;
+			ScreenColorRenderTargetResolveTexture = ScreenColorRenderTarget->GetRenderTargetItem().ShaderResourceTexture;
 #if PLATFORM_WINDOWS
-	CopyRenderTarget(RHICmdList, GetGlobalShaderMap(RenderView.GetFeatureLevel()), (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture);
+			CopyRenderTarget(RHICmdList, GlobalShaderMap, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture);
 #else
-	RHICmdList.CopyToResolveTarget((FTextureRHIRef)InView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture, FResolveParams());
+			RHICmdList.CopyToResolveTarget((FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), ScreenColorRenderTargetTexture, FResolveParams());
 #endif
+		}
+		else
+		{
+			ScreenColorRenderTargetTexture = (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture();
+		}
+	}
+
 	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
 
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
@@ -258,7 +279,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	RenderView.SetupCommonViewUniformBufferParameters(
 		viewUniformShaderParameters,
 		RenderView.UnscaledViewRect.Size(),
-		1,
+		MultiSampleCount,
 		RenderView.UnscaledViewRect,
 		RenderView.ViewMatrices,
 		FViewMatrices()
@@ -271,7 +292,6 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 	GraphicsPSOInit.NumSamples = MultiSampleCount;
 
-	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
 	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
 	{
 		auto hudPrimitive = HudPrimitiveArray[i];
@@ -286,6 +306,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 						RHICmdList,
 						this,
 						ScreenColorRenderTargetTexture,
+						ScreenColorRenderTargetResolveTexture,
 						GlobalShaderMap,
 						ViewProjectionMatrix
 					);
@@ -325,18 +346,24 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	//copy back to screen
 	if (CustomRenderTarget.IsValid())
 	{
-		CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTargetTexture, (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture());
+		
 	}
 	else
 	{
+		if (MultiSampleCount > 1)
+		{
 #if PLATFORM_WINDOWS
-		RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
+			RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
 #else
-		CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture());
+			CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture());
 #endif
+		}
 	}
 	//release render target
-	ScreenColorRenderTarget.SafeRelease();
+	if (ScreenColorRenderTarget.IsValid())
+	{
+		ScreenColorRenderTarget.SafeRelease();
+	}
 }
 void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
