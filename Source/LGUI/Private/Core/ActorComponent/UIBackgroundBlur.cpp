@@ -82,6 +82,7 @@ public:
 		FRHICommandListImmediate& RHICmdList,
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef ScreenImage,
+		FTextureRHIRef ScreenResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix
 	) override
@@ -98,9 +99,8 @@ public:
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget1;
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
 		{
-			auto MultiSampleCount = Renderer->GetMultiSampleCount();
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			desc.NumSamples = MultiSampleCount;
+			desc.NumSamples = 1;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget1, TEXT("LGUIBlurEffectRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget2, TEXT("LGUIBlurEffectRenderTarget2"));
 			if (!BlurEffectRenderTarget1.IsValid())
@@ -111,7 +111,15 @@ public:
 		auto BlurEffectRenderTexture1 = BlurEffectRenderTarget1->GetRenderTargetItem().TargetableTexture;
 		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
 
-		Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+		if (ScreenImage->IsMultisampled())
+		{
+			RHICmdList.CopyToResolveTarget(ScreenImage, ScreenResolveImage, FResolveParams());
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenResolveImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+		}
+		else
+		{
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+		}
 		//do the blur process on the area
 		{
 			if (strengthTexture != nullptr)//use mask texture to control blur strength
@@ -181,6 +189,7 @@ public:
 				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+				GraphicsPSOInit.NumSamples = 1;
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 				VertexShader->SetParameters(RHICmdList);
 				PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
@@ -220,7 +229,16 @@ public:
 				}
 			}
 		}
+
 		//after blur process, copy the area back to screen image
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
 		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenImage, GlobalShaderMap, BlurEffectRenderTexture1);
 
 		//release render target

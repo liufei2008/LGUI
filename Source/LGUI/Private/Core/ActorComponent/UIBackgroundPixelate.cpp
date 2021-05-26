@@ -101,6 +101,7 @@ public:
 		FRHICommandListImmediate& RHICmdList,
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef ScreenImage,
+		FTextureRHIRef ScreenResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix
 	)override
@@ -119,9 +120,8 @@ public:
 		//get render target
 		TRefCountPtr<IPooledRenderTarget> PixelateEffectRenderTarget;
 		{
-			auto MultiSampleCount = Renderer->GetMultiSampleCount();
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-			desc.NumSamples = MultiSampleCount;
+			desc.NumSamples = 1;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, PixelateEffectRenderTarget, TEXT("LGUIPixelateEffectRenderTarget"));
 			if (!PixelateEffectRenderTarget.IsValid())
 				return;
@@ -129,7 +129,15 @@ public:
 		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
 
 		//copy rect area from screen image to a render target, so we can just process this area
-		Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+		if (ScreenImage->IsMultisampled())
+		{
+			RHICmdList.CopyToResolveTarget(ScreenImage, ScreenResolveImage, FResolveParams());
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenResolveImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+		}
+		else
+		{
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+		}
 		//after pixelate process, copy the area back to screen image
 		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
