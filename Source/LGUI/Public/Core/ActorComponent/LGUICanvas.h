@@ -21,7 +21,9 @@ enum class ELGUIRenderMode :uint8
 	 * This mode use engine's default render pieple, so post process will affect ui.
 	 */
 	WorldSpace,
-	/** render to a custom render target */
+	/**
+	 * Render to a custom render target
+	 */
 	RenderTarget		UMETA(DisplayName = "RenderTarget(Experimental)"),
 };
 

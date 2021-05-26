@@ -34,6 +34,7 @@ public:
 		FRHICommandListImmediate& RHICmdList,
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef ScreenImage,
+		FTextureRHIRef ScreenResolveImage,
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix
 	) {};
