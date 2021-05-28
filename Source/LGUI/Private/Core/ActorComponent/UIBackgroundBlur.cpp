@@ -137,6 +137,7 @@ public:
 				GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 				GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 				GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+				GraphicsPSOInit.NumSamples = 1;
 				SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 				VertexShader->SetParameters(RHICmdList);
 				PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
