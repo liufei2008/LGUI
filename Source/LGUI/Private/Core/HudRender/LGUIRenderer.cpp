@@ -74,7 +74,7 @@ void FLGUIHudRenderer::SetupViewProjectionMatrix(FSceneViewProjectionData& InOut
 
 void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
 {
-	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("LGUICopyRenderTarget"));
+	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Clear_DontStore), TEXT("LGUICopyRenderTarget"));
 	RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
 
 	TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
@@ -100,7 +100,7 @@ void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, TS
 }
 void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, TShaderMap<FGlobalShaderType>* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst, const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData, const FMatrix& MVP)
 {
-	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Load_DontStore), TEXT("LGUICopyRenderTargetOnMeshRegion"));
+	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Clear_DontStore), TEXT("LGUICopyRenderTargetOnMeshRegion"));
 	RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
 
 	TShaderMapRef<FLGUICopyMeshRegionVS> VertexShader(GlobalShaderMap);
