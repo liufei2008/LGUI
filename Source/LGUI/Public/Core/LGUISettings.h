@@ -111,7 +111,7 @@ public:
 private:
 	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
 	{
-		return FMath::Pow(2, (int32)InType) * 256;
+		return FMath::Pow(2.0, (double)InType) * 256;
 	}
 	FORCEINLINE static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);
 };

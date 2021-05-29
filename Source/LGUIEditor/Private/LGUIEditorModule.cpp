@@ -96,15 +96,15 @@ void FLGUIEditorModule::StartupModule()
 		);
 
 		TSharedPtr<FExtender> toolbarExtender = MakeShareable(new FExtender);
-		toolbarExtender->AddToolBarExtension("Game", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FLGUIEditorModule::AddEditorToolsToToolbarExtension));
+		toolbarExtender->AddToolBarExtension("Play", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FLGUIEditorModule::AddEditorToolsToToolbarExtension));
 		LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(toolbarExtender);
 		LevelEditorModule.GetGlobalLevelEditorActions()->Append(PluginCommands.ToSharedRef());
 	}
 	//register SceneOutliner ColumnInfo
 	{
 		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
-		SceneOutliner::FColumnInfo ColumnInfo(SceneOutliner::EColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
-		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(SceneOutliner::FDefaultColumnInfo(ColumnInfo));
+		FSceneOutlinerColumnInfo ColumnInfo(ESceneOutlinerColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
+		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(ColumnInfo);
 		//SceneOutliner extension
 		auto sceneOutlinerExtensionObject = GetMutableDefault<ULGUINativeSceneOutlinerExtension>();
 		sceneOutlinerExtensionObject->AddToRoot();

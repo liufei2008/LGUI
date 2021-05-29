@@ -9,7 +9,6 @@
 #include "PropertyCustomizationHelpers.h"
 #include "DesktopPlatformModule.h"
 #include "AssetRegistryModule.h"
-#include "Toolkits/AssetEditorManager.h"
 #include "Engine/EngineTypes.h"
 #include "Kismet2/ComponentEditorUtils.h"
 #include "Widgets/SViewport.h"

@@ -121,11 +121,11 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RH
 	PixelShader->SetParameters(RHICmdList, MVP, Src);
 
 	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessCopyMeshRegionVertex);
-	FRHIResourceCreateInfo CreateInfo;
-	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+	FRHIResourceCreateInfo CreateInfo(TEXT("CopyRenderTargetOnMeshRegion"));
+	FBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+	void* VoidPtr = RHILockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
 	FPlatformMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
-	RHIUnlockVertexBuffer(VertexBufferRHI);
+	RHIUnlockBuffer(VertexBufferRHI);
 
 	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
@@ -317,7 +317,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 				else//render mesh
 				{
 					const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-					auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
+					auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
 					const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 					auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 					auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
@@ -423,7 +423,7 @@ void FLGUIFullScreenQuadVertexBuffer::InitRHI()
 	Vertices[2] = FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 0.0f));
 	Vertices[3] = FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 0.0f));
 
-	FRHIResourceCreateInfo CreateInfo(&Vertices);
+	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadVertexBuffer"), &Vertices);
 	VertexBufferRHI = RHICreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
 void FLGUIFullScreenQuadIndexBuffer::InitRHI()
@@ -439,6 +439,6 @@ void FLGUIFullScreenQuadIndexBuffer::InitRHI()
 	IndexBuffer.AddUninitialized(NumIndices);
 	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
 
-	FRHIResourceCreateInfo CreateInfo(&IndexBuffer);
+	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadIndexBuffer") , &IndexBuffer);
 	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
 }

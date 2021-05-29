@@ -7,7 +7,6 @@
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Views/STreeView.h"
 #include "ISceneOutliner.h"
-#include "ITreeItem.h"
 #include "ActorTreeItem.h"
 #include "FolderTreeItem.h"
 #include "WorldTreeItem.h"
@@ -89,40 +88,27 @@ void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 			auto BorderWidget = StaticCastSharedRef<SBorder>(SceneOutlinerTab->GetContent());
 			auto SceneOutlinerWidget = StaticCastSharedRef<ISceneOutliner>(BorderWidget->GetContent());
 			const auto& TreeView = SceneOutlinerWidget->GetTree();
-			TSet<SceneOutliner::FTreeItemPtr> VisitingItems;
+			TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
 			TreeView.GetExpandedItems(VisitingItems);
-			for (SceneOutliner::FTreeItemPtr& Item : VisitingItems)
+			for (FSceneOutlinerTreeItemPtr& Item : VisitingItems)
 			{
-				switch (Item->GetTypeSortPriority())
+				if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
 				{
-				default:
-				case SceneOutliner::ETreeItemSortOrder::Actor:
-				{
-					TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
-					if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid())
+					if (ActorTreeItem->Actor.IsValid())
 					{
 						ExpandedActorArray.Add(ActorTreeItem->Actor.Get());
 					}
 				}
-				break;
-				case SceneOutliner::ETreeItemSortOrder::Folder:
+				else if (auto FolderTreeItem = Item->CastTo<FFolderTreeItem>())
 				{
-					TSharedPtr<SceneOutliner::FFolderTreeItem> FolderTreeItem = StaticCastSharedPtr<SceneOutliner::FFolderTreeItem>(Item);
-					if (FolderTreeItem.IsValid())
-					{
-						storageActor->ExpandedFolderArray.Add(FolderTreeItem->Path);
-					}
+					storageActor->ExpandedFolderArray.Add(FolderTreeItem->Path);
 				}
-				break;
-				case SceneOutliner::ETreeItemSortOrder::World:
+				else if (auto WorldTreeItem = Item->CastTo<FWorldTreeItem>())
 				{
-					TSharedPtr<SceneOutliner::FWorldTreeItem> WorldTreeItem = StaticCastSharedPtr<SceneOutliner::FWorldTreeItem>(Item);
-					if (WorldTreeItem.IsValid() && WorldTreeItem->World.IsValid())
+					if (WorldTreeItem->World.IsValid())
 					{
-						
+
 					}
-				}
-				break;
 				}
 			}
 		}
@@ -205,15 +191,11 @@ ALGUIEditorLevelDataStorageActor* ULGUINativeSceneOutlinerExtension::FindOrCreat
 	return result;
 }
 
-void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor)
+void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(FSceneOutlinerTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor)
 {
-	switch (Item->GetTypeSortPriority())
+	if (auto ActorTreeItem = Item->CastTo<FActorTreeItem>())
 	{
-	default:
-	case SceneOutliner::ETreeItemSortOrder::Actor:
-	{
-		TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
-		if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid())
+		if (ActorTreeItem->Actor.IsValid())
 		{
 			//expend
 			if (shouldRestoreUseFNameData)
@@ -236,27 +218,18 @@ void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(Sce
 			}
 		}
 	}
-	break;
-	case SceneOutliner::ETreeItemSortOrder::Folder:
+	else if (auto FolderTreeItem = Item->CastTo<FFolderTreeItem>())
 	{
-		TSharedPtr<SceneOutliner::FFolderTreeItem> FolderTreeItem = StaticCastSharedPtr<SceneOutliner::FFolderTreeItem>(Item);
-		if (FolderTreeItem.IsValid())
-		{
-			//expend
-			bool needToExpand = storageActor->ExpandedFolderArray.Contains(FolderTreeItem->Path);
-			FolderTreeItem->Flags.bIsExpanded = needToExpand;
-		}
+		//expend
+		bool needToExpand = storageActor->ExpandedFolderArray.Contains(FolderTreeItem->Path);
+		FolderTreeItem->Flags.bIsExpanded = needToExpand;
 	}
-	break;
-	case SceneOutliner::ETreeItemSortOrder::World:
+	else if (auto WorldTreeItem = Item->CastTo<FWorldTreeItem>())
 	{
-		TSharedPtr<SceneOutliner::FWorldTreeItem> WorldTreeItem = StaticCastSharedPtr<SceneOutliner::FWorldTreeItem>(Item);
-		if (WorldTreeItem.IsValid() && WorldTreeItem->World.IsValid())
+		if (WorldTreeItem->World.IsValid())
 		{
-			
+
 		}
-	}
-	break;
 	}
 }
 
@@ -275,9 +248,9 @@ void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 			auto BorderWidget = StaticCastSharedRef<SBorder>(SceneOutlinerTab->GetContent());
 			auto SceneOutlinerWidget = StaticCastSharedRef<ISceneOutliner>(BorderWidget->GetContent());
 			auto& TreeView = SceneOutlinerWidget->GetTree();
-			TSet<SceneOutliner::FTreeItemPtr> VisitingItems;
+			TSet<FSceneOutlinerTreeItemPtr> VisitingItems;
 			TreeView.GetExpandedItems(VisitingItems);
-			for (SceneOutliner::FTreeItemPtr& Item : VisitingItems)
+			for (FSceneOutlinerTreeItemPtr& Item : VisitingItems)
 			{
 				RestoreSceneOutlinerStateForTreeItem(Item, storageActor);
 			}

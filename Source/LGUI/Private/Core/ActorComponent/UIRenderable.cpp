@@ -723,7 +723,6 @@ bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const 
 					{
 						OutHit.TraceStart = Start;
 						OutHit.TraceEnd = End;
-						OutHit.Actor = GetOwner();
 						OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
 						OutHit.Location = GetComponentTransform().TransformPosition(hitPoint);
 						OutHit.Normal = GetComponentTransform().TransformVector(hitNormal);

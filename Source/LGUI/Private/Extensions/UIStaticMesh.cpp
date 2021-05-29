@@ -21,12 +21,12 @@ bool UUIStaticMesh::HaveDataToCreateGeometry()
 {
 	if (IsValid(mesh))
 	{
-		if (mesh->RenderData.IsValid())
+		if (mesh->GetRenderData() != nullptr)
 		{
-			if (mesh->RenderData->LODResources.Num() > 0)
+			if (mesh->GetRenderData()->LODResources.Num() > 0)
 			{
-				FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
-				FRawStaticIndexBuffer& indicesBuffers = mesh->RenderData->LODResources[0].IndexBuffer;
+				FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
+				FRawStaticIndexBuffer& indicesBuffers = mesh->GetRenderData()->LODResources[0].IndexBuffer;
 				auto numVertices = vertexBuffers.PositionVertexBuffer.GetNumVertices();
 				auto numIndices = indicesBuffers.GetNumIndices();
 				if (numVertices > 0 && numIndices > 0)
@@ -41,8 +41,8 @@ bool UUIStaticMesh::HaveDataToCreateGeometry()
 #define ONE_DIVIDE_255 0.0039215686274509803921568627451f
 void UUIStaticMesh::OnCreateGeometry()
 {
-	FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
-	FRawStaticIndexBuffer& indicesBuffers = mesh->RenderData->LODResources[0].IndexBuffer;
+	FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
+	FRawStaticIndexBuffer& indicesBuffers = mesh->GetRenderData()->LODResources[0].IndexBuffer;
 	auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
 	auto numIndices = indicesBuffers.GetNumIndices();
 	if (numVertices > 0 && numIndices > 0)
@@ -154,7 +154,7 @@ void UUIStaticMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertex
 	}
 	if (InVertexColorChanged)
 	{
-		FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
+		FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
 		auto tempVertexColorType = vertexColorType;
 		if (vertexBuffers.ColorVertexBuffer.VertexBufferRHI == nullptr)
 		{

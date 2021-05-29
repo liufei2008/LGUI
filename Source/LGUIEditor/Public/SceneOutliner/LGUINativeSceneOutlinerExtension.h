@@ -53,7 +53,7 @@ private:
 	void OnEndPIE(const bool IsSimulating);
 	void SaveSceneOutlinerState();
 	void RestoreSceneOutlinerState();
-	void RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
+	void RestoreSceneOutlinerStateForTreeItem(FSceneOutlinerTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
 	void SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName);
 	float delayRestoreTime = 0;
 	bool needToRestore = false;

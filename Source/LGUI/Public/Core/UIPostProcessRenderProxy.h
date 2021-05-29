@@ -39,7 +39,7 @@ public:
 	virtual int GetRenderPriority() const { return RenderPriority; };
 
 	virtual FMeshBatch GetMeshElement(class FMeshElementCollector* Collector) { return FMeshBatch(); };
-	virtual FRHIVertexBuffer* GetVertexBufferRHI() { return nullptr; };
+	virtual FRHIBuffer* GetVertexBufferRHI() { return nullptr; };
 	virtual uint32 GetNumVerts() { return 0; };
 
 	virtual bool GetIsPostProcess() { return true; };

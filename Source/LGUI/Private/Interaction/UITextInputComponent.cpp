@@ -1515,7 +1515,7 @@ void UUITextInputComponent::SetText(FString InText, bool InFireEvent)
 	{
 		if (!bAllowMultiLine)
 		{
-			InText.Replace(TEXT("\n"), TEXT("")).Replace(TEXT("\t"), TEXT(""));
+			InText = InText.Replace(TEXT("\n"), TEXT("")).Replace(TEXT("\t"), TEXT(""));
 		}
 		Text = InText;
 		CaretPositionIndex = 0;

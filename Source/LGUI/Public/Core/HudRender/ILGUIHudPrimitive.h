@@ -19,7 +19,7 @@ public:
 
 	//begin mesh interface
 	virtual FMeshBatch GetMeshElement(class FMeshElementCollector* Collector) = 0;
-	virtual FRHIVertexBuffer* GetVertexBufferRHI() = 0;
+	virtual FRHIBuffer* GetVertexBufferRHI() = 0;
 	virtual uint32 GetNumVerts() = 0;
 	//end mesh interface
 

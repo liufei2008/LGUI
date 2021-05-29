@@ -1149,7 +1149,7 @@ protected:
 						SAssignNew(ColorPickerParentWidget, SColorBlock)
 						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, false, valueHandle, paramBufferHandle)
 						.ShowBackgroundForAlpha(true)
-						.IgnoreAlpha(false)
+						.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Separate)
 						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, false, valueHandle, paramBufferHandle)
 						.Size(FVector2D(35.0f, 12.0f))
 					]
@@ -1161,7 +1161,7 @@ protected:
 						SNew(SColorBlock)
 						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, false, valueHandle, paramBufferHandle)
 						.ShowBackgroundForAlpha(false)
-						.IgnoreAlpha(true)
+						.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Ignore)
 						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, false, valueHandle, paramBufferHandle)
 						.Size(FVector2D(35.0f, 12.0f))
 					];
@@ -1184,7 +1184,7 @@ protected:
 						SAssignNew(ColorPickerParentWidget, SColorBlock)
 						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, true, valueHandle, paramBufferHandle)
 						.ShowBackgroundForAlpha(true)
-						.IgnoreAlpha(false)
+						.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Separate)
 						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, true, valueHandle, paramBufferHandle)
 						.Size(FVector2D(35.0f, 12.0f))
 					]
@@ -1196,7 +1196,7 @@ protected:
 						SNew(SColorBlock)
 						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, true, valueHandle, paramBufferHandle)
 						.ShowBackgroundForAlpha(false)
-						.IgnoreAlpha(true)
+						.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Ignore)
 						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, true, valueHandle, paramBufferHandle)
 						.Size(FVector2D(35.0f, 12.0f))
 					];
@@ -1296,7 +1296,6 @@ protected:
 						SNew(SRotatorInputBox)
 						.AllowSpin(false)
 						.bColorAxisLabels(true)
-						.AllowResponsiveLayout(true)
 						.Roll(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 0, valueHandle, paramBufferHandle)
 						.Pitch(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 1, valueHandle, paramBufferHandle)
 						.Yaw(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 2, valueHandle, paramBufferHandle)
