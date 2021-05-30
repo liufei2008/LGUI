@@ -44,6 +44,19 @@ void UUISprite::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
 			fillOriginType_Radial180 = (UISpriteFillOriginType_Radial180)fillOrigin;
 			fillOriginType_Radial90 = (UISpriteFillOriginType_Radial90)fillOrigin;
 		}
+		else if (propName == GET_MEMBER_NAME_CHECKED(UUISprite, sprite))
+		{
+			if (IsValid(sprite))
+			{
+				if (sprite->InitAndGetSpriteInfo().HasBorder())
+				{
+					if (this->type == UISpriteType::Normal)
+					{
+						this->SetSpriteType(UISpriteType::Sliced);
+					}
+				}
+			}
+		}
 	}
 }
 void UUISprite::EditorForceUpdateImmediately()
