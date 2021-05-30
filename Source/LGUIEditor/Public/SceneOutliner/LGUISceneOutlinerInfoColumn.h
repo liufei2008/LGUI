@@ -44,6 +44,7 @@ namespace LGUISceneOutliner
 		EVisibility GetCanvasIconVisibility(FSceneOutlinerTreeItemRef TreeItem)const;
 		EVisibility GetDrawcallCountVisibility(FSceneOutlinerTreeItemRef TreeItem)const;
 		FSlateColor GetPrefabIconColor(FSceneOutlinerTreeItemRef TreeItem)const;
+		FSlateColor GetDrawcallIconColor(FSceneOutlinerTreeItemRef TreeItem)const;
 		FText GetDrawcallInfo(FSceneOutlinerTreeItemRef TreeItem)const;
 
 		/** Weak reference to the outliner widget that owns our list */
