@@ -144,7 +144,7 @@ private:
 	void Paste();
 	void Cut();
 
-	void UpdateAfterTextChange();
+	void UpdateAfterTextChange(bool InFireEvent = true);
 
 	void FireOnValueChangeEvent();
 	void UpdateUITextComponent();
