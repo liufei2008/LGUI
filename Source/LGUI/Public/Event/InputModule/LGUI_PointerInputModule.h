@@ -48,6 +48,9 @@ protected:
 	FLGUIPointerInputChange_MulticastDelegate inputChangeDelegate;
 	void ProcessInputForNavigation();
 	void ClearEventByID(int pointerID);
+	bool CanHandleInterface(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType);
+	USceneComponent* GetEventHandle(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType);
+	void DeselectIfSelectionChanged(USceneComponent* currentPressed, ULGUIBaseEventData* eventData);
 public:
 	virtual void ClearEvent()override;
 

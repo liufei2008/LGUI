@@ -315,25 +315,26 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 		{
 			if (lineTraceHitSomething)
 			{
-				if (hitResultContainer.raycaster)
-				{
-					hitResultContainer.raycaster->rayEmitter->MarkPress(eventData);
-				}
-
-				eventData->worldPoint = outHitResult.Location;
-				eventData->worldNormal = outHitResult.Normal;
-				eventData->pressDistance = outHitResult.Distance;
-				eventData->pressRayOrigin = hitResultContainer.rayOrigin;
-				eventData->pressRayDirection = hitResultContainer.rayDirection;
-				eventData->pressWorldPoint = outHitResult.Location;
-				eventData->pressWorldNormal = outHitResult.Normal;
-				eventData->pressRaycaster = hitResultContainer.raycaster;
-				eventData->pressWorldToLocalTransform = eventData->enterComponent->GetComponentTransform().Inverse();
 				if (IsValid(eventData->enterComponent))//now object
 				{
+					if (hitResultContainer.raycaster)
+					{
+						hitResultContainer.raycaster->rayEmitter->MarkPress(eventData);
+					}
+
+					eventData->worldPoint = outHitResult.Location;
+					eventData->worldNormal = outHitResult.Normal;
+					eventData->pressDistance = outHitResult.Distance;
+					eventData->pressRayOrigin = hitResultContainer.rayOrigin;
+					eventData->pressRayDirection = hitResultContainer.rayDirection;
+					eventData->pressWorldPoint = outHitResult.Location;
+					eventData->pressWorldNormal = outHitResult.Normal;
+					eventData->pressRaycaster = hitResultContainer.raycaster;
+					eventData->pressWorldToLocalTransform = eventData->enterComponent->GetComponentTransform().Inverse();
 					eventData->pressComponent = eventData->enterComponent;
 					eventData->pressComponentEventFireType = eventData->enterComponentEventFireType;
 					eventData->pressTime = GetWorld()->TimeSeconds;
+					DeselectIfSelectionChanged(eventData->pressComponent, eventData);
 					eventSystem->CallOnPointerDown(eventData->pressComponent, eventData, eventData->enterComponentEventFireType);
 				}
 			}
@@ -576,6 +577,79 @@ void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 		}
 	}
 }
+
+bool ULGUI_PointerInputModule::CanHandleInterface(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType)
+{
+	bool canSelectPressedComponent = false;
+	switch (eventFireType)
+	{
+	case ELGUIEventFireType::OnlyTargetActor:
+	{
+		if (targetComp->GetOwner()->GetClass()->ImplementsInterface(targetInterfaceClass))
+		{
+			canSelectPressedComponent = true;
+		}
+	}
+	break;
+	case ELGUIEventFireType::OnlyTargetComponent:
+	{
+		if (targetComp->GetClass()->ImplementsInterface(targetInterfaceClass))
+		{
+			canSelectPressedComponent = true;
+		}
+	}
+	break;
+	case ELGUIEventFireType::TargetActorAndAllItsComponents:
+	{
+		if (targetComp->GetOwner()->GetClass()->ImplementsInterface(targetInterfaceClass))
+		{
+			canSelectPressedComponent = true;
+		}
+		if (!canSelectPressedComponent)
+		{
+			auto components = targetComp->GetOwner()->GetComponents();
+			for (auto item : components)
+			{
+				if (item->GetClass()->ImplementsInterface(targetInterfaceClass))
+				{
+					canSelectPressedComponent = true;
+					break;
+				}
+			}
+		}
+	}
+	break;
+	}
+	return canSelectPressedComponent;
+}
+
+USceneComponent* ULGUI_PointerInputModule::GetEventHandle(USceneComponent* targetComp, UClass* targetInterfaceClass, ELGUIEventFireType eventFireType)
+{
+	if (!IsValid(targetComp))
+	{
+		return nullptr;
+	}
+
+	USceneComponent* rootComp = targetComp;
+	while (rootComp != nullptr)
+	{
+		if (CanHandleInterface(rootComp, targetInterfaceClass, eventFireType))
+		{
+			return rootComp;
+		}
+		rootComp = rootComp->GetAttachParent();
+	}
+	return nullptr;
+}
+void ULGUI_PointerInputModule::DeselectIfSelectionChanged(USceneComponent* currentPressed, ULGUIBaseEventData* eventData)
+{
+	auto selectHandleComp = GetEventHandle(currentPressed, ULGUIPointerSelectDeselectInterface::StaticClass(), eventData->selectedComponentEventFireType);
+	if (selectHandleComp != eventSystem->GetCurrentSelectedComponent())
+	{
+		eventSystem->SetSelectComponent(nullptr, eventData, eventData->selectedComponentEventFireType);
+	}
+}
+
 void ULGUI_PointerInputModule::ClearEvent()
 {
 	for (auto keyValue : eventSystem->pointerEventDataMap)
