@@ -480,7 +480,7 @@ void UUITextInputComponent::AnyKeyPressed()
 }
 void UUITextInputComponent::AnyKeyReleased()
 {
-	UE_LOG(LGUI, Log, TEXT("AnyKeyReleased"));
+	//UE_LOG(LGUI, Log, TEXT("AnyKeyReleased"));
 }
 bool UUITextInputComponent::IsValidChar(char c)
 {
@@ -643,7 +643,7 @@ void UUITextInputComponent::Cut()
 		BackSpace();
 	}
 }
-void UUITextInputComponent::UpdateAfterTextChange()
+void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
 {
 	if (bAllowMultiLine)
 	{
@@ -661,7 +661,10 @@ void UUITextInputComponent::UpdateAfterTextChange()
 	UpdateCaretPosition();
 	UpdateInputComposition();
 	UpdatePlaceHolderComponent();
-	FireOnValueChangeEvent();
+	if (InFireEvent)
+	{
+		FireOnValueChangeEvent();
+	}
 }
 void UUITextInputComponent::MoveToStart()
 {
@@ -979,12 +982,22 @@ void UUITextInputComponent::UpdatePlaceHolderComponent()
 
 void UUITextInputComponent::UpdateCaretPosition(bool InHideSelection)
 {
-	FVector2D caretPos;
-	int tempCaretPositionLineIndex = 0;
-	TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex - VisibleCharStartIndex, caretPos, tempCaretPositionLineIndex);
-	CaretPositionLineIndex = tempCaretPositionLineIndex + VisibleCharStartLineIndex;
+	if (!bInputActive)
+	{
+		if (CaretObject.IsValid())
+		{
+			CaretObject->SetUIActive(false);
+		}
+	}
+	else
+	{
+		FVector2D caretPos;
+		int tempCaretPositionLineIndex = 0;
+		TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex - VisibleCharStartIndex, caretPos, tempCaretPositionLineIndex);
+		CaretPositionLineIndex = tempCaretPositionLineIndex + VisibleCharStartLineIndex;
 
-	UpdateCaretPosition(caretPos, InHideSelection);
+		UpdateCaretPosition(caretPos, InHideSelection);
+	}
 }
 void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool InHideSelection)
 {
@@ -1519,7 +1532,7 @@ void UUITextInputComponent::SetText(FString InText, bool InFireEvent)
 		}
 		Text = InText;
 		CaretPositionIndex = 0;
-		UpdateAfterTextChange();
+		UpdateAfterTextChange(InFireEvent);
 	}
 }
 void UUITextInputComponent::SetInputType(ELGUITextInputType newValue)
@@ -1569,14 +1582,14 @@ void UUITextInputComponent::UnregisterSubmitEvent(const FDelegateHandle& InHandl
 }
 FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterSubmitEvent(const FLGUITextInputDynamicDelegate& InDelegate)
 {
-	auto delegateHandle = OnValueChangeCPP.AddLambda([InDelegate](FString InText) {
+	auto delegateHandle = OnSubmitCPP.AddLambda([InDelegate](FString InText) {
 		if (InDelegate.IsBound())InDelegate.Execute(InText);
 	});
 	return FLGUIDelegateHandleWrapper(delegateHandle);
 }
 void UUITextInputComponent::UnregisterSubmitEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle)
 {
-	OnValueChangeCPP.Remove(InDelegateHandle.DelegateHandle);
+	OnSubmitCPP.Remove(InDelegateHandle.DelegateHandle);
 }
 
 FDelegateHandle UUITextInputComponent::RegisterInputActivateEvent(const FLGUIBoolDelegate& InDelegate)
