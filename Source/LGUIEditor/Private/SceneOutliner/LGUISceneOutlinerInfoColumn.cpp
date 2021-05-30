@@ -13,6 +13,7 @@
 #include "SceneOutliner/LGUISceneOutlinerButton.h"
 #include "LGUIEditorTools.h"
 #include "SortHelper.h"
+#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
@@ -116,7 +117,7 @@ namespace LGUISceneOutliner
 							SNew(SImage)
 							.Image(FLGUIEditorStyle::Get().GetBrush("CanvasMark"))
 							.Visibility(this, &FLGUISceneOutlinerInfoColumn::GetCanvasIconVisibility, weakTreeItem)
-							.ColorAndOpacity(FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)))
+							.ColorAndOpacity(this, &FLGUISceneOutlinerInfoColumn::GetDrawcallIconColor, weakTreeItem)
 							.ToolTipText(FText::FromString(FString(TEXT("This actor have LGUICanvas. The number is the drawcall count of this canvas."))))
 						]
 					]
@@ -304,6 +305,14 @@ namespace LGUISceneOutliner
 			return (LGUIEditorTools::IsCanvasActor(actor) || LGUIEditorTools::IsSelfRenderActor(actor)) ? EVisibility::Visible : EVisibility::Hidden;
 		}
 		return EVisibility::Hidden;
+	}
+	FSlateColor FLGUISceneOutlinerInfoColumn::GetDrawcallIconColor(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
+	{
+		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
+		{
+			return (LGUIEditorTools::IsCanvasActor(actor) || LGUIEditorTools::IsSelfRenderActor(actor)) ? FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.4f)) : FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+		}
+		return FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 	FText FLGUISceneOutlinerInfoColumn::GetDrawcallInfo(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
 	{
