@@ -249,6 +249,24 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			]
 		];
 
+		//sortOrder info
+		{
+			category.AddCustomRow(LOCTEXT("SortOrderInfo", "SortOrderInfo"))
+			.WholeRowContent()
+			.MinDesiredWidth(500)
+			[
+				SNew(SBox)
+				.HeightOverride(20)
+				[
+					SNew(STextBlock)
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+					.Text(this, &FLGUICanvasCustomization::GetSortOrderInfo, TargetScriptArray[0])
+					.AutoWrapText(true)
+				]
+			]
+			;
+		}
+
 	needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
 	for (auto item : needToHidePropertyNames)
 	{
@@ -261,6 +279,43 @@ void FLGUICanvasCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 	{
 		DetailBuilder->ForceRefreshDetails();
 	}
+}
+FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> TargetScript)const
+{
+	if (TargetScript.IsValid())
+	{
+		if (auto world = TargetScript->GetWorld())
+		{
+			TArray<ULGUICanvas*> itemList;
+			if (world->IsGameWorld())
+			{
+				if (auto instance = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
+				{
+					itemList = instance->GetAllCanvas();
+				}
+			}
+			else
+			{
+				if (ULGUIEditorManagerObject::Instance != nullptr)
+				{
+					itemList = ULGUIEditorManagerObject::Instance->GetAllCanvas();
+				}
+			}
+
+			int sortOrderCount = 0;
+			for (auto item : itemList)
+			{
+				if (IsValid(item))
+				{
+					if (item->GetSortOrder() == TargetScript->GetSortOrder())
+						sortOrderCount++;
+				}
+			}
+			auto depthInfo = FString::Printf(TEXT("All LGUICanvas with same SortOrder count:%d\n"), sortOrderCount);
+			return FText::FromString(depthInfo);
+		}
+	}
+	return LOCTEXT("", "");
 }
 FText FLGUICanvasCustomization::GetDrawcallInfo()const
 {
