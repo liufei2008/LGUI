@@ -16,9 +16,10 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
 	TArray<TWeakObjectPtr<class ULGUICanvas>> TargetScriptArray;
-	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
+	void ForceRefresh(class IDetailLayoutBuilder* DetailBuilder);
+	FText GetSortOrderInfo(TWeakObjectPtr<class ULGUICanvas> InTargetScript)const;
 	FText GetDrawcallInfo()const;
 	FText GetDrawcallInfoTooltip()const;
 	void OnCopySortOrder();
-	void OnPasteSortOrder(TSharedRef<IPropertyHandle> PropertyHandle);
+	void OnPasteSortOrder(TSharedRef<class IPropertyHandle> PropertyHandle);
 };
