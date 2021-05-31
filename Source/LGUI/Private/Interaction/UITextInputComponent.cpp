@@ -107,12 +107,18 @@ void UUITextInputComponent::AnyKeyPressed()
 	//Function key
 	if (PlayerController->IsInputKeyDown(EKeys::BackSpace))
 	{
-		BackSpace();
+		if (IsValidString(BackSpaceResultString()))
+		{
+			BackSpace();
+		}
 		return;
 	}
 	else if (PlayerController->IsInputKeyDown(EKeys::Delete))
 	{
-		ForwardSpace();
+		if (IsValidString(ForwardSpaceResultString()))
+		{
+			ForwardSpace();
+		}
 		return;
 	}
 	else if (PlayerController->IsInputKeyDown(EKeys::Home))
@@ -130,7 +136,7 @@ void UUITextInputComponent::AnyKeyPressed()
 	{
 		if (ctrlOnly)
 		{
-
+			SelectAll();
 			return;
 		}
 	}
@@ -148,7 +154,10 @@ void UUITextInputComponent::AnyKeyPressed()
 	{
 		if (ctrlOnly)
 		{
-			Paste();
+			if (IsValidString(PasteResultString()))
+			{
+				Paste();
+			}
 			return;
 		}
 	}
@@ -157,7 +166,13 @@ void UUITextInputComponent::AnyKeyPressed()
 	{
 		if (ctrlOnly)
 		{
-			Cut();
+			if (SelectionPropertyArray.Num() != 0)
+			{
+				if (IsValidString(BackSpaceResultString()))
+				{
+					Cut();
+				}
+			}
 			return;
 		}
 	}
@@ -482,6 +497,33 @@ void UUITextInputComponent::AnyKeyReleased()
 {
 	//UE_LOG(LGUI, Log, TEXT("AnyKeyReleased"));
 }
+FString UUITextInputComponent::PasteResultString()
+{
+	auto TempText = Text;
+	auto TempCaretPositionIndex = CaretPositionIndex;
+	FString pasteString;
+	FPlatformApplicationMisc::ClipboardPaste(pasteString);
+	if (pasteString.Len() <= 0)return TempText;
+	pasteString.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
+	if (!bAllowMultiLine)
+	{
+		for (int i = 0; i < pasteString.Len(); i++)
+		{
+			if (pasteString[i] == '\n' || pasteString[i] == '\r')
+			{
+				pasteString[i] = ' ';
+			}
+		}
+	}
+	if (SelectionPropertyArray.Num() != 0)//delete selection frist
+	{
+		int32 startIndex = PressCaretPositionIndex > TempCaretPositionIndex ? TempCaretPositionIndex : PressCaretPositionIndex;
+		TempText.RemoveAt(startIndex, FMath::Abs(TempCaretPositionIndex - PressCaretPositionIndex));
+		TempCaretPositionIndex = PressCaretPositionIndex > TempCaretPositionIndex ? TempCaretPositionIndex : PressCaretPositionIndex;
+	}
+	TempText.InsertAt(TempCaretPositionIndex, pasteString);
+	return TempText;
+}
 bool UUITextInputComponent::IsValidChar(char c)
 {
 	//delete key on mac
@@ -536,17 +578,106 @@ bool UUITextInputComponent::IsValidChar(char c)
 		//handled when UpdateUITextComponent
 		return true;
 		break;
+	case ELGUITextInputType::CustomFunction:
+	{
+		if (CustomInputTypeFunction.IsBound())
+		{
+			auto TempText = Text;
+			auto TempCaretPositionIndex = CaretPositionIndex;
+			if (SelectionPropertyArray.Num() != 0)//delete selection frist
+			{
+				int32 startIndex = PressCaretPositionIndex > TempCaretPositionIndex ? TempCaretPositionIndex : PressCaretPositionIndex;
+				TempText.RemoveAt(startIndex, FMath::Abs(TempCaretPositionIndex - PressCaretPositionIndex));
+				TempCaretPositionIndex = PressCaretPositionIndex > TempCaretPositionIndex ? TempCaretPositionIndex : PressCaretPositionIndex;
+			}
+			TempText.InsertAt(TempCaretPositionIndex, c);
+
+			return CustomInputTypeFunction.Execute(TempText);
+		}
+		else
+		{
+			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::IsValidChar]InputType use CustomFunction but not valid!"));
+			return true;
+		}
+	}
+		break;
 	}
 	////new line and tab
 	//if (c == '\n' || c == '\t')
 	//	return true;
 	return true;
 }
+bool UUITextInputComponent::IsValidString(const FString& InString)
+{
+	//input type
+	switch (InputType)
+	{
+	case ELGUITextInputType::Standard:
+		return true;
+		break;
+	case ELGUITextInputType::IntegerNumber:
+	{
+		int32 textLength = InString.Len();
+		for (int i = 0; i < textLength; i++)
+		{
+			TCHAR c = InString[i];
+			if (c < 48 || c > 57)//0-9
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	break;
+	case ELGUITextInputType::DecimalNumber:
+	{
+		//check number and dot
+		int dotCount = 0;
+		int32 textLength = InString.Len();
+		for (int i = 0; i < textLength; i++)
+		{
+			TCHAR c = InString[i];
+			if (c == 46)//.(dot)
+			{
+				dotCount++;
+				if (dotCount > 1)
+				{
+					return false;
+				}
+			}
+			else if (c < 48 || c > 57)//0-9
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	break;
+	case ELGUITextInputType::Password:
+		//handled when UpdateUITextComponent
+		return true;
+		break;
+	case ELGUITextInputType::CustomFunction:
+	{
+		if (CustomInputTypeFunction.IsBound())
+		{
+			return CustomInputTypeFunction.Execute(InString);
+		}
+		else
+		{
+			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::IsValidString]InputType use CustomFunction but not valid!"));
+			return true;
+		}
+	}
+	break;
+	}
+	return true;
+}
 void UUITextInputComponent::AppendChar(char c)
 {
 	if (TextActor == nullptr)return;
 
-	if (SelectionPropertyArray.Num() != 0)//selection mask, delete 
+	if (SelectionPropertyArray.Num() != 0)//delete selection frist
 	{
 		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
 		Text.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
@@ -578,6 +709,24 @@ void UUITextInputComponent::BackSpace()
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
 }
+FString UUITextInputComponent::BackSpaceResultString()
+{
+	auto TempText = Text;
+
+	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
+	{
+		if (CaretPositionIndex > 0)
+		{
+			TempText.RemoveAt(CaretPositionIndex - 1);
+		}
+	}
+	else//selection mask, delete 
+	{
+		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
+		TempText.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
+	}
+	return TempText;
+}
 void UUITextInputComponent::ForwardSpace()
 {
 	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
@@ -597,6 +746,24 @@ void UUITextInputComponent::ForwardSpace()
 		UpdateAfterTextChange();
 		PressCaretPositionIndex = CaretPositionIndex;
 	}
+}
+FString UUITextInputComponent::ForwardSpaceResultString()
+{
+	auto TempText = Text;
+
+	if (SelectionPropertyArray.Num() == 0)//no selection mask, use caret
+	{
+		if (CaretPositionIndex < TempText.Len())
+		{
+			TempText.RemoveAt(CaretPositionIndex);
+		}
+	}
+	else//selection mask, delete 
+	{
+		int32 startIndex = PressCaretPositionIndex > CaretPositionIndex ? CaretPositionIndex : PressCaretPositionIndex;
+		TempText.RemoveAt(startIndex, FMath::Abs(CaretPositionIndex - PressCaretPositionIndex));
+	}
+	return TempText;
 }
 void UUITextInputComponent::Copy()
 {
@@ -642,6 +809,16 @@ void UUITextInputComponent::Cut()
 		Copy();
 		BackSpace();
 	}
+}
+void UUITextInputComponent::SelectAll()
+{
+	//update selection
+	TextActor->GetUIText()->GetSelectionProperty(0, TextActor->GetUIText()->GetText().Len(), SelectionPropertyArray);
+	CaretPositionIndex = Text.Len();
+	PressCaretPositionIndex = 0;
+	UpdateUITextComponent();
+	UpdateCaretPosition(false);
+	UpdateSelection();
 }
 void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
 {
@@ -1308,13 +1485,7 @@ void UUITextInputComponent::ActivateInput(ULGUIPointerEventData* eventData)
 	}
 	else//default select all
 	{
-		//update selection
-		TextActor->GetUIText()->GetSelectionProperty(0, TextActor->GetUIText()->GetText().Len(), SelectionPropertyArray);
-		CaretPositionIndex = Text.Len();
-		PressCaretPositionIndex = 0;
-		UpdateUITextComponent();
-		UpdateCaretPosition(false);
-		UpdateSelection();
+		SelectAll();
 	}
 	//end update selection
 	UpdateInputComposition();
@@ -1530,9 +1701,12 @@ void UUITextInputComponent::SetText(FString InText, bool InFireEvent)
 		{
 			InText = InText.Replace(TEXT("\n"), TEXT("")).Replace(TEXT("\t"), TEXT(""));
 		}
-		Text = InText;
-		CaretPositionIndex = 0;
-		UpdateAfterTextChange(InFireEvent);
+		if (IsValidString(InText))
+		{
+			Text = InText;
+			CaretPositionIndex = 0;
+			UpdateAfterTextChange(InFireEvent);
+		}
 	}
 }
 void UUITextInputComponent::SetInputType(ELGUITextInputType newValue)
@@ -1614,6 +1788,33 @@ FLGUIDelegateHandleWrapper UUITextInputComponent::RegisterInputActivateEvent(con
 void UUITextInputComponent::UnregisterInputActivateEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle)
 {
 	OnInputActivateCPP.Remove(InDelegateHandle.DelegateHandle);
+}
+
+void UUITextInputComponent::SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDelegate& InFunction)
+{
+	CustomInputTypeFunction = InFunction;
+}
+void UUITextInputComponent::SetCustomInputTypeFunction(const TFunction<bool(const FString&)>& InFunction)
+{
+	CustomInputTypeFunction = FLGUITextInputCustomInputTypeDelegate::CreateLambda(InFunction);
+}
+void UUITextInputComponent::SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDynamicDelegate& InFunction)
+{
+	CustomInputTypeFunction = FLGUITextInputCustomInputTypeDelegate::CreateLambda([InFunction](const FString& InString) {
+		if (InFunction.IsBound())
+		{
+			return InFunction.Execute(InString);
+		}
+		else
+		{
+			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::SetCustomInputTypeFunction]CustomInputType function not valid!"));
+			return false;
+		}
+	});
+}
+void UUITextInputComponent::ClearCustomInputTypeEvent()
+{
+	CustomInputTypeFunction.Unbind();
 }
 
 
