@@ -19,6 +19,13 @@
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUITextInputDynamicDelegate, FString, InString);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIInputActivateDynamicDelegate, bool, InActivate);
 
+DECLARE_DELEGATE_RetVal_OneParam(bool, FLGUITextInputCustomInputTypeDelegate, const FString&)
+/**
+ * @param	InString	The will display string value, for check if it is valid. If not, then display origin string value.
+ * @return	Is "InString" valid?
+ */
+DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FLGUITextInputCustomInputTypeDynamicDelegate, const FString&, InString);
+
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUITextInputType:uint8
 {
@@ -26,6 +33,8 @@ enum class ELGUITextInputType:uint8
 	IntegerNumber,
 	DecimalNumber,
 	Password,
+	/** Use *SetCustomInputTypeFunction* to check if input is valid. */
+	CustomFunction,
 };
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUITextInputComponent : public UUISelectableComponent, public ILGUIPointerClickInterface, public ILGUIPointerDragInterface
@@ -78,6 +87,7 @@ protected:
 	FLGUIMulticastBoolDelegate OnInputActivateCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
 		FLGUIDrawableEvent OnInputActivate = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Bool);
+	FLGUITextInputCustomInputTypeDelegate CustomInputTypeFunction;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		class UUIText* GetTextComponent()const;
@@ -115,12 +125,23 @@ public:
 		FLGUIDelegateHandleWrapper RegisterInputActivateEvent(const FLGUIInputActivateDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
 		void UnregisterInputActivateEvent(const FLGUIDelegateHandleWrapper& InDelegateHandle);
+
+	void SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDelegate& InFunction);
+	void SetCustomInputTypeFunction(const TFunction<bool(const FString&)>& InFunction);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void SetCustomInputTypeFunction(const FLGUITextInputCustomInputTypeDynamicDelegate& InFunction);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
+		void ClearCustomInputTypeEvent();
 private:
 	void BindKeys();
 	void UnbindKeys();
 	void AnyKeyPressed();
 	void AnyKeyReleased();
 	bool IsValidChar(char c);
+	bool IsValidString(const FString& InString);
+	FString PasteResultString();
+	FString ForwardSpaceResultString();
+	FString BackSpaceResultString();
 	void AppendChar(char c);
 	FInputKeyBinding AnyKeyBinding;
 	UPROPERTY(Transient) APlayerController* PlayerController = nullptr;
@@ -143,6 +164,7 @@ private:
 	void Copy();
 	void Paste();
 	void Cut();
+	void SelectAll();
 
 	void UpdateAfterTextChange(bool InFireEvent = true);
 
