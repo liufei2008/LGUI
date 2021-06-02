@@ -14,6 +14,7 @@
 #include "EngineUtils.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "EditorViewportClient.h"
 
 #include "LGUIEditorStyle.h"
 #include "LGUIEditorCommands.h"
