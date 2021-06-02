@@ -63,7 +63,7 @@ void UUIItem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-#pragma region UIBaseComponent
+#pragma region LGUIBehaviour
 void UUIItem::CallUIComponentsActiveInHierarchyStateChanged()
 {
 	if (this->GetOwner() == nullptr)return;
@@ -72,12 +72,12 @@ void UUIItem::CallUIComponentsActiveInHierarchyStateChanged()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(UIBaseComponentArray, false);
+		GetOwner()->GetComponents(LGUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < UIBaseComponentArray.Num(); i++)
+	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = UIBaseComponentArray[i];
+		auto& CompItem = LGUIBehaviourArray[i];
 		CompItem->OnUIActiveInHierachy(IsUIActiveInHierarchy());
 	}
 }
@@ -89,12 +89,12 @@ void UUIItem::CallUIComponentsChildDimensionsChanged(UUIItem* child, bool positi
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(UIBaseComponentArray, false);
+		GetOwner()->GetComponents(LGUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < UIBaseComponentArray.Num(); i++)
+	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = UIBaseComponentArray[i];
+		auto& CompItem = LGUIBehaviourArray[i];
 		CompItem->OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
 	}
 }
@@ -106,12 +106,12 @@ void UUIItem::CallUIComponentsChildActiveInHierarchyStateChanged(UUIItem* child,
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(UIBaseComponentArray, false);
+		GetOwner()->GetComponents(LGUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < UIBaseComponentArray.Num(); i++)
+	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = UIBaseComponentArray[i];
+		auto& CompItem = LGUIBehaviourArray[i];
 		CompItem->OnUIChildAcitveInHierarchy(child, activeOrInactive);
 	}
 }
@@ -123,12 +123,12 @@ void UUIItem::CallUIComponentsDimensionsChanged(bool positionChanged, bool sizeC
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(UIBaseComponentArray, false);
+		GetOwner()->GetComponents(LGUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < UIBaseComponentArray.Num(); i++)
+	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = UIBaseComponentArray[i];
+		auto& CompItem = LGUIBehaviourArray[i];
 		CompItem->OnUIDimensionsChanged(positionChanged, sizeChanged);
 	}
 
@@ -146,12 +146,12 @@ void UUIItem::CallUIComponentsAttachmentChanged()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(UIBaseComponentArray, false);
+		GetOwner()->GetComponents(LGUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < UIBaseComponentArray.Num(); i++)
+	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = UIBaseComponentArray[i];
+		auto& CompItem = LGUIBehaviourArray[i];
 		CompItem->OnUIAttachmentChanged();
 	}
 }
@@ -163,12 +163,12 @@ void UUIItem::CallUIComponentsChildAttachmentChanged(UUIItem* child, bool attach
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(UIBaseComponentArray, false);
+		GetOwner()->GetComponents(LGUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < UIBaseComponentArray.Num(); i++)
+	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = UIBaseComponentArray[i];
+		auto& CompItem = LGUIBehaviourArray[i];
 		CompItem->OnUIChildAttachmentChanged(child, attachOrDettach);
 	}
 }
@@ -181,12 +181,12 @@ void UUIItem::CallUIComponentsInteractionStateChanged()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(UIBaseComponentArray, false);
+		GetOwner()->GetComponents(LGUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < UIBaseComponentArray.Num(); i++)
+	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = UIBaseComponentArray[i];
+		auto& CompItem = LGUIBehaviourArray[i];
 		CompItem->OnUIInteractionStateChanged(interactable);
 	}
 }
@@ -198,16 +198,16 @@ void UUIItem::CallUIComponentsChildHierarchyIndexChanged(UUIItem* child)
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(UIBaseComponentArray, false);
+		GetOwner()->GetComponents(LGUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < UIBaseComponentArray.Num(); i++)
+	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = UIBaseComponentArray[i];
+		auto& CompItem = LGUIBehaviourArray[i];
 		CompItem->OnUIChildHierarchyIndexChanged(child);
 	}
 }
-#pragma endregion UIBaseComponent
+#pragma endregion LGUIBehaviour
 
 
 void UUIItem::OnChildHierarchyIndexChanged(UUIItem* child)

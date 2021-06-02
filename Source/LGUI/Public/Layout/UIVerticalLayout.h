@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutBase.h"
+#include "UILayoutWithAnimation.h"
 #include "Layout/Margin.h"
 #include "UIVerticalLayout.generated.h"
 
@@ -11,7 +11,7 @@
  * Layout child elements side by side vertically
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIVerticalLayout : public UUILayoutBase
+class LGUI_API UUIVerticalLayout : public UUILayoutWithAnimation
 {
 	GENERATED_BODY()
 public:
@@ -70,12 +70,7 @@ protected:
 	/** this object's height set to children range */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool HeightFitToChildren = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		EUILayoutChangePositionAnimationType AnimationType = EUILayoutChangePositionAnimationType::Immediately;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float AnimationDuration = 0.3f;
-	UPROPERTY(Transient)
-		TArray<class ULTweener*> TweenerArray;
+
 	//actural children fill range
 	float ActuralRange = 0;
 

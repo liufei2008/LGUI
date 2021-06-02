@@ -44,9 +44,9 @@ public:
 #endif
 	virtual void OnAttachmentChanged() override;
 	
-#pragma region UIBaseComponent
+#pragma region LGUIBehaviour
 private:
-	TInlineComponentArray<class ULGUIBehaviour*> UIBaseComponentArray;
+	TInlineComponentArray<class ULGUIBehaviour*> LGUIBehaviourArray;
 	void CallUIComponentsActiveInHierarchyStateChanged();
 	void CallUIComponentsChildActiveInHierarchyStateChanged(UUIItem* child, bool activeOrInactive);
 	void CallUIComponentsDimensionsChanged(bool positionChanged, bool sizeChanged);
@@ -79,9 +79,9 @@ protected://these funcions are same as UIBehaviour's, for easier use
 	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child) { }
 public:
-	void AddUIBaseComponent(class ULGUIBehaviour* InComp) { UIBaseComponentArray.AddUnique(InComp); }
-	void RemoveUIBaseComponent(class ULGUIBehaviour* InComp) { UIBaseComponentArray.RemoveSingle(InComp); }
-#pragma endregion UIBaseComponent
+	void AddLGUIBehaviourComponent(class ULGUIBehaviour* InComp) { LGUIBehaviourArray.AddUnique(InComp); }
+	void RemoveLGUIBehaviourComponent(class ULGUIBehaviour* InComp) { LGUIBehaviourArray.RemoveSingle(InComp); }
+#pragma endregion LGUIBehaviour
 protected:
 	virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit /* = NULL */, EMoveComponentFlags MoveFlags /* = MOVECOMP_NoFlags */, ETeleportType Teleport /* = ETeleportType::None */)override;
 	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;
