@@ -755,6 +755,19 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchTop))).IsEnabled(false);
 			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom))).IsEnabled(false);
 		}
+
+		if (anchorControlledByParentLayout && (anchorHControlledBySelfLayout || anchorVControlledBySelfLayout))
+		{
+			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("Anchor is controlled by more than one UILayout component! This may cause issue!"));
+		}
+		if (widthControlledByParentLayout && widthControlledBySelfLayout)
+		{
+			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("Width is controlled by more than one UILayout component! This may cause issue!"));
+		}
+		if (heightControlledByParentLayout && heightControlledBySelfLayout)
+		{
+			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("Height is controlled by more than one UILayout component! This may cause issue!"));
+		}
 	}
 	//pivot
 	transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.pivot));
