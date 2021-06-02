@@ -15,6 +15,7 @@
 #include "Core/ActorComponent/UIRenderable.h"
 #include "Core/ActorComponent/UIPostProcess.h"
 #include "Engine/Engine.h"
+#include "Layout/UILayoutBase.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -51,6 +52,13 @@ void ULGUIEditorManagerObject::BeginDestroy()
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
 #if WITH_EDITORONLY_DATA
+	for (auto item : allLayoutArray)
+	{
+		if (item.IsValid())
+		{
+			item->ConditionalRebuildLayout();
+		}
+	}
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
@@ -273,6 +281,21 @@ const TArray<ULGUICanvas*>& ULGUIEditorManagerObject::GetAllCanvas()
 		}
 	}
 	return tempCanvasArray;
+}
+
+void ULGUIEditorManagerObject::AddLayout(UUILayoutBase* InLayout)
+{
+	if (InitCheck(InLayout->GetWorld()))
+	{
+		Instance->allLayoutArray.Add(InLayout);
+	}
+}
+void ULGUIEditorManagerObject::RemoveLayout(UUILayoutBase* InLayout)
+{
+	if (Instance != nullptr)
+	{
+		Instance->allLayoutArray.RemoveSingle(InLayout);
+	}
 }
 
 
@@ -684,7 +707,7 @@ DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATG
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourUpdate);
-	//update
+	//LGUIBehaviour update
 	for (int i = 0; i < LGUIBehavioursForUpdate.Num(); i++)
 	{
 		auto item = LGUIBehavioursForUpdate[i];
@@ -695,6 +718,17 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 				item->Start();
 			}
 			item->Update(DeltaTime);
+		}
+	}
+	//update Layout
+	for (auto item : allLayoutArray)
+	{
+		if (IsValid(item))
+		{
+			if (item->GetIsActiveAndEnable())
+			{
+				item->ConditionalRebuildLayout();
+			}
 		}
 	}
 	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
@@ -910,6 +944,27 @@ void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
 		if (Instance->allSelectableArray.Find(InSelectable, index))
 		{
 			Instance->allSelectableArray.RemoveAt(index);
+		}
+	}
+}
+
+void ALGUIManagerActor::AddLayout(UUILayoutBase* InLayout)
+{
+	if (auto Instance = GetInstance(InLayout->GetWorld(), true))
+	{
+		auto& allLayoutArray = Instance->allLayoutArray;
+		if (allLayoutArray.Contains(InLayout))return;
+		allLayoutArray.Add(InLayout);
+	}
+}
+void ALGUIManagerActor::RemoveLayout(UUILayoutBase* InLayout)
+{
+	if (auto Instance = GetInstance(InLayout->GetWorld()))
+	{
+		int32 index;
+		if (Instance->allLayoutArray.Find(InLayout, index))
+		{
+			Instance->allLayoutArray.RemoveAt(index);
 		}
 	}
 }

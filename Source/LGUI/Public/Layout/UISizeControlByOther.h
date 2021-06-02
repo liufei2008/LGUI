@@ -51,10 +51,14 @@ public:
 		void SetAdditionalHeight(float value);
 #if WITH_EDITOR
 	virtual bool CanControlChildAnchor()override;
+	virtual bool CanControlChildAnchorOffsetX()override;
+	virtual bool CanControlChildAnchorOffsetY()override;
 	virtual bool CanControlChildWidth()override;
 	virtual bool CanControlChildHeight()override;
 	virtual bool CanControlSelfHorizontalAnchor()override;
 	virtual bool CanControlSelfVerticalAnchor()override;
+	virtual bool CanControlSelfAnchorOffsetX()override;
+	virtual bool CanControlSelfAnchorOffsetY()override;
 	virtual bool CanControlSelfWidth()override;
 	virtual bool CanControlSelfHeight()override;
 #endif
