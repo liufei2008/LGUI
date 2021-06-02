@@ -48,6 +48,12 @@ public:
 	void EnableTick();
 
 	/**
+	 * Kill all tweens
+	 */
+	UFUNCTION(BlueprintCallable, Category = LTween)
+	void KillAllTweens(bool callComplete = false);
+
+	/**
 	 * Is the tweener is currently tweening? 
 	 * @param item tweener item
 	 */

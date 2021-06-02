@@ -159,6 +159,17 @@ void ALTweenActor::EnableTick()
 {
 	TickPaused = false;
 }
+void ALTweenActor::KillAllTweens(bool callComplete)
+{
+	for (auto item : tweenerList)
+	{
+		if (IsValid(item))
+		{
+			item->Kill(callComplete);
+		}
+	}
+	tweenerList.Reset();
+}
 bool ALTweenActor::IsTweening(UObject* WorldContextObject, ULTweener* item)
 {
 	auto Instance = GetLTweenInstance(WorldContextObject);
