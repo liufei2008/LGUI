@@ -48,11 +48,11 @@ bool UUIRoundedLayout::CanControlChildAnchorOffsetY()
 }
 bool UUIRoundedLayout::CanControlSelfAnchorOffsetX()
 {
-	return true && enable;
+	return false;
 }
 bool UUIRoundedLayout::CanControlSelfAnchorOffsetY()
 {
-	return true && enable;
+	return false;
 }
 bool UUIRoundedLayout::CanControlChildWidth()
 {
