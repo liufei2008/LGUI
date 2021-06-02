@@ -10,7 +10,7 @@
 
 DECLARE_CYCLE_STAT(TEXT("UILayout VerticalRebuildLayout"), STAT_VerticalLayout, STATGROUP_LGUI);
 
-void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem *child, bool positionChanged, bool sizeChanged)
+void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
 {
     Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
     if (child->IsUIActiveInHierarchy())
@@ -56,7 +56,7 @@ void UUIVerticalLayout::OnRebuildLayout()
     rectSize.X = RootUIComp->GetWidth() - Padding.Left - Padding.Right;
     rectSize.Y = RootUIComp->GetHeight() - Padding.Top - Padding.Bottom;
 
-    const auto &uiChildrenList = GetAvailableChildren();
+    const auto& uiChildrenList = GetAvailableChildren();
     int childrenCount = uiChildrenList.Num();
     float childWidth = rectSize.X;
     childrenHeightList.Reset(childrenCount);
