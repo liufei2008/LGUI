@@ -38,7 +38,7 @@ void ULGUIBehaviour::OnRegister()
 	Super::OnRegister();
 	if (CheckRootUIComponent())
 	{
-		RootUIComp->AddUIBaseComponent(this);
+		RootUIComp->AddLGUIBehaviourComponent(this);
 	}
 #if WITH_EDITOR
 	if (this->GetWorld())
@@ -69,7 +69,7 @@ void ULGUIBehaviour::OnUnregister()
 	Super::OnUnregister();
 	if (CheckRootUIComponent())
 	{
-		RootUIComp->RemoveUIBaseComponent(this);
+		RootUIComp->AddLGUIBehaviourComponent(this);
 	}
 #if WITH_EDITOR
 	if (this->GetWorld())
