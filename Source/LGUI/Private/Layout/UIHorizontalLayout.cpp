@@ -10,7 +10,7 @@
 
 DECLARE_CYCLE_STAT(TEXT("UILayout HorizontalRebuildLayout"), STAT_HorizontalLayout, STATGROUP_LGUI);
 
-void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem *child, bool positionChanged, bool sizeChanged)
+void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
 {
     Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
     if (child->IsUIActiveInHierarchy())
@@ -105,7 +105,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
     rectSize.X = RootUIComp->GetWidth() - Padding.Left - Padding.Right;
     rectSize.Y = RootUIComp->GetHeight() - Padding.Top - Padding.Bottom;
 
-    const auto &uiChildrenList = GetAvailableChildren();
+    const auto& uiChildrenList = GetAvailableChildren();
     int childrenCount = uiChildrenList.Num();
     float childHeight = rectSize.Y;
     childrenWidthList.Reset(childrenCount);
