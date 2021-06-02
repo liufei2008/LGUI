@@ -19,7 +19,7 @@ void UUIGridLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positionChan
 		if (this->GetWorld() == nullptr)return;
 		if (!this->GetWorld()->IsGameWorld())
 		{
-			OnRebuildLayout();
+			MarkNeedRebuildLayout();
 		}
 	}
 #endif
@@ -30,7 +30,7 @@ void UUIGridLayout::SetPadding(FMargin value)
 	if (Padding != value)
 	{
 		Padding = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUIGridLayout::SetSpacing(FVector2D value)
@@ -38,7 +38,7 @@ void UUIGridLayout::SetSpacing(FVector2D value)
 	if (Spacing != value)
 	{
 		Spacing = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUIGridLayout::SetHorizontalOrVertical(bool value)
@@ -46,7 +46,7 @@ void UUIGridLayout::SetHorizontalOrVertical(bool value)
 	if (HorizontalOrVertical != value)
 	{
 		HorizontalOrVertical = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUIGridLayout::SetDependOnSizeOrCount(bool value)
@@ -54,7 +54,7 @@ void UUIGridLayout::SetDependOnSizeOrCount(bool value)
 	if (DependOnSizeOrCount != value)
 	{
 		DependOnSizeOrCount = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUIGridLayout::SetExpendChildSize(bool value)
@@ -62,7 +62,7 @@ void UUIGridLayout::SetExpendChildSize(bool value)
 	if (ExpendChildSize != value)
 	{
 		ExpendChildSize = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUIGridLayout::SetCellSize(FVector2D value)
@@ -70,7 +70,7 @@ void UUIGridLayout::SetCellSize(FVector2D value)
 	if (CellSize != value)
 	{
 		CellSize = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUIGridLayout::SetLineCount(int value)
@@ -78,7 +78,7 @@ void UUIGridLayout::SetLineCount(int value)
 	if (LineCount != value)
 	{
 		LineCount = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUIGridLayout::SetWidthFitToChildren(bool value)
@@ -86,7 +86,7 @@ void UUIGridLayout::SetWidthFitToChildren(bool value)
 	if (WidthFitToChildren != value)
 	{
 		WidthFitToChildren = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUIGridLayout::SetHeightFitToChildren(bool value)
@@ -94,7 +94,7 @@ void UUIGridLayout::SetHeightFitToChildren(bool value)
 	if (HeightFitToChildren != value)
 	{
 		HeightFitToChildren = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 
@@ -103,6 +103,11 @@ void UUIGridLayout::OnRebuildLayout()
 	SCOPE_CYCLE_COUNTER(STAT_GridLayout);
 	if (!CheckRootUIComponent())return;
 	if (!enable)return;
+	if (bIsAnimationPlaying)
+	{
+		bShouldRebuildLayoutAfterAnimation = true;
+		return;
+	}
 	CancelAnimation();
 
 	FVector2D startPosition;
@@ -165,8 +170,6 @@ void UUIGridLayout::OnRebuildLayout()
 		auto uiItem = uiChildrenList[i].uiItem;
 		uiItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
 		uiItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
-		uiItem->SetWidth(childWidth);
-		uiItem->SetHeight(childHeight);
 
 		float anchorOffsetX, anchorOffsetY;
 		if (HorizontalOrVertical)//use horizontal
@@ -198,22 +201,9 @@ void UUIGridLayout::OnRebuildLayout()
 			posY -= childHeight + Spacing.Y;
 		}
 
-		switch (tempAnimationType)
-		{
-		default:
-		case EUILayoutChangePositionAnimationType::Immediately:
-		{
-			uiItem->SetAnchorOffsetX(anchorOffsetX);
-			uiItem->SetAnchorOffsetY(anchorOffsetY);
-		}
-		break;
-		case EUILayoutChangePositionAnimationType::EaseAnimation:
-		{
-			auto tweener = ALTweenActor::To(this, FLTweenVector2DGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffset), FLTweenVector2DSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffset), FVector2D(anchorOffsetX, anchorOffsetY), AnimationDuration)->SetEase(LTweenEase::InOutSine);
-			TweenerArray.Add(tweener);
-		}
-		break;
-		}
+		ApplyAnchorOffsetWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
+		ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
+		ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
 	}
 	if (HorizontalOrVertical)
 	{
@@ -223,7 +213,8 @@ void UUIGridLayout::OnRebuildLayout()
 			{
 				auto thisHeight = tempActuralRange.Y + Padding.Top + Padding.Bottom;
 				ActuralRange = tempActuralRange;
-				RootUIComp->SetHeight(thisHeight);
+				
+				ApplyHeightWithAnimation(tempAnimationType, thisHeight, RootUIComp.Get());
 			}
 		}
 	}
@@ -235,13 +226,26 @@ void UUIGridLayout::OnRebuildLayout()
 			{
 				auto thisWidth = tempActuralRange.X + Padding.Left + Padding.Right;
 				ActuralRange = tempActuralRange;
-				RootUIComp->SetWidth(thisWidth);
+
+				ApplyWidthWithAnimation(tempAnimationType, thisWidth, RootUIComp.Get());
 			}
 		}
+	}
+	if (tempAnimationType == EUILayoutChangePositionAnimationType::EaseAnimation)
+	{
+		SetOnCompleteTween();
 	}
 }
 #if WITH_EDITOR
 bool UUIGridLayout::CanControlChildAnchor()
+{
+	return true && enable;
+}
+bool UUIGridLayout::CanControlChildAnchorOffsetX()
+{
+	return true && enable;
+}
+bool UUIGridLayout::CanControlChildAnchorOffsetY()
 {
 	return true && enable;
 }
@@ -260,6 +264,14 @@ bool UUIGridLayout::CanControlSelfHorizontalAnchor()
 bool UUIGridLayout::CanControlSelfVerticalAnchor()
 {
 	return false;
+}
+bool UUIGridLayout::CanControlSelfAnchorOffsetX()
+{
+	return true && enable;
+}
+bool UUIGridLayout::CanControlSelfAnchorOffsetY()
+{
+	return true && enable;
 }
 bool UUIGridLayout::CanControlSelfWidth()
 {

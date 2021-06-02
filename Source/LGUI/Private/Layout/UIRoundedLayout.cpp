@@ -38,6 +38,22 @@ bool UUIRoundedLayout::CanControlChildAnchor()
 {
 	return true && enable;
 }
+bool UUIRoundedLayout::CanControlChildAnchorOffsetX()
+{
+	return true && enable;
+}
+bool UUIRoundedLayout::CanControlChildAnchorOffsetY()
+{
+	return true && enable;
+}
+bool UUIRoundedLayout::CanControlSelfAnchorOffsetX()
+{
+	return true && enable;
+}
+bool UUIRoundedLayout::CanControlSelfAnchorOffsetY()
+{
+	return true && enable;
+}
 bool UUIRoundedLayout::CanControlChildWidth()
 {
 	return false;

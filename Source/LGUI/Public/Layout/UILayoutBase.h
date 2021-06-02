@@ -48,15 +48,30 @@ protected:
 	virtual void OnUnregister() override;
 public:
 	void RebuildChildrenList();
-	/** Called when UIItem's layout changed */
+	/**
+	 * Rebuild layout immediately
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
+	/**
+	 * Called by LGUIManager. Will check "bNeedRebuildLayout" then decide if we rebuild
+	 */
+	void ConditionalRebuildLayout();
+	/**
+	 * Mark this layout need to be rebuild, will do rebuild after all LGUIBehaviour's Update function.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	void MarkNeedRebuildLayout() { bNeedRebuildLayout = true; }
 #if WITH_EDITOR
 	virtual bool CanControlChildAnchor() { return false; };
+	virtual bool CanControlChildAnchorOffsetX() { return false; }
+	virtual bool CanControlChildAnchorOffsetY() { return false; }
 	virtual bool CanControlChildWidth() { return false; }
 	virtual bool CanControlChildHeight() { return false; }
 	virtual bool CanControlSelfHorizontalAnchor() { return false; }
 	virtual bool CanControlSelfVerticalAnchor() { return false; }
+	virtual bool CanControlSelfAnchorOffsetX() { return false; }
+	virtual bool CanControlSelfAnchorOffsetY() { return false; }
 	virtual bool CanControlSelfWidth() { return false; }
 	virtual bool CanControlSelfHeight() { return false; }
 	virtual bool CanControlSelfStrengthLeft() { return false; }
@@ -89,6 +104,8 @@ protected:
 		}
 	};
 	const TArray<FAvaliableChild>& GetAvailableChildren() { return availableChildrenArray; }
+
+	bool bNeedRebuildLayout = false;
 private:
 	TArray<FAvaliableChild> availableChildrenArray;
 };

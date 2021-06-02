@@ -275,10 +275,14 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		}));
 
 		bool anchorControlledByParentLayout = false;
+		bool anchorOffsetXControlledByParentLayout = false;
+		bool anchorOffsetYControlledByParentLayout = false;
 		bool widthControlledByParentLayout = false;
 		bool heightControlledByParentLayout = false;
 		bool anchorHControlledBySelfLayout = false;
 		bool anchorVControlledBySelfLayout = false;
+		bool anchorOffsetXControlledBySelfLayout = false;
+		bool anchorOffsetYControlledBySelfLayout = false;
 		bool widthControlledBySelfLayout = false;
 		bool heightControlledBySelfLayout = false;
 		bool stretchLeftControlledBySelfLayout = false;
@@ -301,6 +305,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 						anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
 						widthControlledByParentLayout = parentLayout->CanControlChildWidth();
 						heightControlledByParentLayout = parentLayout->CanControlChildHeight();
+						anchorOffsetXControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetX();
+						anchorOffsetYControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetY();
 					}
 				}
 			}
@@ -308,6 +314,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			{
 				anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
 				anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
+				anchorOffsetXControlledBySelfLayout = thisLayout->CanControlSelfAnchorOffsetX();
+				anchorOffsetYControlledBySelfLayout = thisLayout->CanControlSelfAnchorOffsetY();
 				widthControlledBySelfLayout = thisLayout->CanControlSelfWidth();
 				heightControlledBySelfLayout = thisLayout->CanControlSelfHeight();
 				stretchLeftControlledBySelfLayout = thisLayout->CanControlSelfStrengthLeft();
@@ -759,6 +767,14 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		if (anchorControlledByParentLayout && (anchorHControlledBySelfLayout || anchorVControlledBySelfLayout))
 		{
 			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("Anchor is controlled by more than one UILayout component! This may cause issue!"));
+		}
+		if (anchorOffsetXControlledByParentLayout && anchorOffsetXControlledBySelfLayout)
+		{
+			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("AnchorOffsetX is controlled by more than one UILayout component! This may cause issue!"));
+		}
+		if (anchorOffsetYControlledByParentLayout && anchorOffsetYControlledBySelfLayout)
+		{
+			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("AnchorOffsetY is controlled by more than one UILayout component! This may cause issue!"));
 		}
 		if (widthControlledByParentLayout && widthControlledBySelfLayout)
 		{
