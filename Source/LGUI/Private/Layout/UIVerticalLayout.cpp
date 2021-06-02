@@ -232,11 +232,11 @@ bool UUIVerticalLayout::CanControlChildAnchorOffsetY()
 }
 bool UUIVerticalLayout::CanControlSelfAnchorOffsetX()
 {
-    return true && enable;
+    return false;
 }
 bool UUIVerticalLayout::CanControlSelfAnchorOffsetY()
 {
-    return true && enable;
+    return false;
 }
 bool UUIVerticalLayout::CanControlChildWidth()
 {
