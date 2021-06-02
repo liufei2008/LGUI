@@ -106,9 +106,7 @@ void FLGUIEditorModule::StartupModule()
 		FSceneOutlinerColumnInfo ColumnInfo(ESceneOutlinerColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
 		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(ColumnInfo);
 		//SceneOutliner extension
-		auto sceneOutlinerExtensionObject = GetMutableDefault<ULGUINativeSceneOutlinerExtension>();
-		sceneOutlinerExtensionObject->AddToRoot();
-		sceneOutlinerExtensionObject->Init();
+		SceneOutlinerExtensionObject = new FLGUINativeSceneOutlinerExtension();
 	}
 	//register window
 	{
@@ -252,6 +250,8 @@ void FLGUIEditorModule::ShutdownModule()
 	{
 		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
 		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
+		delete SceneOutlinerExtensionObject;
+		SceneOutlinerExtensionObject = nullptr;
 	}
 	//unregister window
 	{

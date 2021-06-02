@@ -32,12 +32,11 @@ public:
 		TArray<FName> ExpandedFolderArray;
 };
 
-UCLASS()
-class LGUIEDITOR_API ULGUINativeSceneOutlinerExtension : public UObject, public FTickableGameObject
+class LGUIEDITOR_API FLGUINativeSceneOutlinerExtension : public FTickableGameObject
 {
 public:
-	GENERATED_BODY()
-	void Init();
+	FLGUINativeSceneOutlinerExtension();
+	~FLGUINativeSceneOutlinerExtension();
 public:
 	//begin TickableEditorObject interface
 	virtual void Tick(float DeltaTime)override;
@@ -51,6 +50,12 @@ private:
 	void OnPreBeginPIE(const bool IsSimulating);
 	void OnBeginPIE(const bool IsSimulating);
 	void OnEndPIE(const bool IsSimulating);
+	FDelegateHandle OnPreSaveWorldDelegateHandle;
+	FDelegateHandle OnMapOpenedDelegateHandle;
+	FDelegateHandle OnPreBeginPIEDelegateHandle;
+	FDelegateHandle OnBeginPIEDelegateHandle;
+	FDelegateHandle OnEndPIEDelegateHandle;
+
 	void SaveSceneOutlinerState();
 	void RestoreSceneOutlinerState();
 	void RestoreSceneOutlinerStateForTreeItem(FSceneOutlinerTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
