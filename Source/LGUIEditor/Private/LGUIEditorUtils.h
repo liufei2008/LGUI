@@ -54,7 +54,7 @@ public:
 			}
 		}
 	}
-	static void ShowErrorAsIndependentCategory(IDetailLayoutBuilder* LayoutBuilder, const FString& ErrorMessage)
+	static void ShowError(IDetailLayoutBuilder* LayoutBuilder, const FString& ErrorMessage)
 	{
 		IDetailCategoryBuilder& category = LayoutBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
 		category.AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
@@ -65,6 +65,19 @@ public:
 			.ColorAndOpacity(FLinearColor(FColor::Red))
 			.AutoWrapText(true)
 		]
+		;
+	}
+	static void ShowWarning(IDetailLayoutBuilder* LayoutBuilder, const FString& ErrorMessage)
+	{
+		IDetailCategoryBuilder& category = LayoutBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
+		category.AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
+			.WholeRowContent()
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(ErrorMessage))
+			.ColorAndOpacity(FLinearColor(FColor::Yellow))
+			.AutoWrapText(true)
+			]
 		;
 	}
 	static void ShowError(IDetailCategoryBuilder* CategoryBuilder, const FString& ErrorMessage)

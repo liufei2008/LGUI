@@ -114,11 +114,11 @@ bool UUISizeControlByOther::CanControlChildHeight()
 }
 bool UUISizeControlByOther::CanControlSelfHorizontalAnchor()
 {
-    return GetControlWidth() && enable;
+    return false;
 }
 bool UUISizeControlByOther::CanControlSelfVerticalAnchor()
 {
-    return GetControlHeight() && enable;
+    return false;
 }
 bool UUISizeControlByOther::CanControlSelfWidth()
 {
