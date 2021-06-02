@@ -18,15 +18,23 @@
 #include "GameFramework/Actor.h"
 #include "EngineUtils.h"
 
-void ULGUINativeSceneOutlinerExtension::Init()
+FLGUINativeSceneOutlinerExtension::FLGUINativeSceneOutlinerExtension()
 {
-	FEditorDelegates::PreSaveWorld.AddUObject(this, &ULGUINativeSceneOutlinerExtension::OnPreSaveWorld);
-	FEditorDelegates::OnMapOpened.AddUObject(this, &ULGUINativeSceneOutlinerExtension::OnMapOpened);
-	FEditorDelegates::PreBeginPIE.AddUObject(this, &ULGUINativeSceneOutlinerExtension::OnPreBeginPIE);
-	FEditorDelegates::BeginPIE.AddUObject(this, &ULGUINativeSceneOutlinerExtension::OnBeginPIE);
-	FEditorDelegates::EndPIE.AddUObject(this, &ULGUINativeSceneOutlinerExtension::OnEndPIE);
+	OnPreSaveWorldDelegateHandle = FEditorDelegates::PreSaveWorld.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreSaveWorld);
+	OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnMapOpened);
+	OnPreBeginPIEDelegateHandle = FEditorDelegates::PreBeginPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreBeginPIE);
+	OnBeginPIEDelegateHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnBeginPIE);
+	OnEndPIEDelegateHandle = FEditorDelegates::EndPIE.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnEndPIE);
 }
-void ULGUINativeSceneOutlinerExtension::Tick(float DeltaTime)
+FLGUINativeSceneOutlinerExtension::~FLGUINativeSceneOutlinerExtension()
+{
+	FEditorDelegates::PreSaveWorld.Remove(OnPreSaveWorldDelegateHandle);
+	FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
+	FEditorDelegates::PreBeginPIE.Remove(OnPreBeginPIEDelegateHandle);
+	FEditorDelegates::BeginPIE.Remove(OnBeginPIEDelegateHandle);
+	FEditorDelegates::EndPIE.Remove(OnEndPIEDelegateHandle);
+}
+void FLGUINativeSceneOutlinerExtension::Tick(float DeltaTime)
 {
 	if (needToRestore)
 	{
@@ -39,32 +47,32 @@ void ULGUINativeSceneOutlinerExtension::Tick(float DeltaTime)
 		}
 	}
 }
-TStatId ULGUINativeSceneOutlinerExtension::GetStatId() const
+TStatId FLGUINativeSceneOutlinerExtension::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
 }
 
-void ULGUINativeSceneOutlinerExtension::OnPreSaveWorld(uint32 SaveFlags, UWorld* World)
+void FLGUINativeSceneOutlinerExtension::OnPreSaveWorld(uint32 SaveFlags, UWorld* World)
 {
 	SaveSceneOutlinerState();
 }
-void ULGUINativeSceneOutlinerExtension::OnMapOpened(const FString& FileName, bool AsTemplate)
+void FLGUINativeSceneOutlinerExtension::OnMapOpened(const FString& FileName, bool AsTemplate)
 {
 	SetDelayRestore(true, false);
 }
-void ULGUINativeSceneOutlinerExtension::OnPreBeginPIE(const bool IsSimulating)
+void FLGUINativeSceneOutlinerExtension::OnPreBeginPIE(const bool IsSimulating)
 {
 	SaveSceneOutlinerState();
 }
-void ULGUINativeSceneOutlinerExtension::OnBeginPIE(const bool IsSimulating)
+void FLGUINativeSceneOutlinerExtension::OnBeginPIE(const bool IsSimulating)
 {
 	SetDelayRestore(false, true);
 }
-void ULGUINativeSceneOutlinerExtension::OnEndPIE(const bool IsSimulating)
+void FLGUINativeSceneOutlinerExtension::OnEndPIE(const bool IsSimulating)
 {
 	SetDelayRestore(true, false);
 }
-void ULGUINativeSceneOutlinerExtension::SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName)
+void FLGUINativeSceneOutlinerExtension::SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName)
 {
 	shouldRestoreTemporarilyHidden = RestoreTemporarilyHidden;
 	needToRestore = true;
@@ -72,7 +80,7 @@ void ULGUINativeSceneOutlinerExtension::SetDelayRestore(bool RestoreTemporarilyH
 	shouldRestoreUseFNameData = RestoreUseFName;
 }
 
-void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
+void FLGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 {
 	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
 	auto storageActor = FindOrCreateDataStorageActor();
@@ -163,7 +171,7 @@ void ULGUINativeSceneOutlinerExtension::SaveSceneOutlinerState()
 		}
 	}
 }
-ALGUIEditorLevelDataStorageActor* ULGUINativeSceneOutlinerExtension::FindOrCreateDataStorageActor()
+ALGUIEditorLevelDataStorageActor* FLGUINativeSceneOutlinerExtension::FindOrCreateDataStorageActor()
 {
 	ALGUIEditorLevelDataStorageActor* result = nullptr;
 	if (auto world = GEditor->GetEditorWorldContext().World())
@@ -205,7 +213,7 @@ ALGUIEditorLevelDataStorageActor* ULGUINativeSceneOutlinerExtension::FindOrCreat
 	return result;
 }
 
-void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor)
+void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor)
 {
 	switch (Item->GetTypeSortPriority())
 	{
@@ -260,7 +268,7 @@ void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerStateForTreeItem(Sce
 	}
 }
 
-void ULGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
+void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 {
 	if (!ULGUIEditorSettings::GetPreserveHierarchyState())return;
 	auto storageActor = FindOrCreateDataStorageActor();
