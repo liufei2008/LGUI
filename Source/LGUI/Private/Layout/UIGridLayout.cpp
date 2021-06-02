@@ -103,6 +103,8 @@ void UUIGridLayout::OnRebuildLayout()
 	SCOPE_CYCLE_COUNTER(STAT_GridLayout);
 	if (!CheckRootUIComponent())return;
 	if (!enable)return;
+	CancelAnimation();
+
 	FVector2D startPosition;
 	startPosition.X = Padding.Left;
 	startPosition.Y = -Padding.Top;//left top as start point
@@ -148,6 +150,15 @@ void UUIGridLayout::OnRebuildLayout()
 		tempActuralRange.Y = rectSize.Y;
 		tempActuralRange.X += childWidth;
 	}
+
+	EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
+#if WITH_EDITOR
+	if (!ALGUIManagerActor::IsPlaying)
+	{
+		tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
+	}
+#endif
+
 	float posX = startPosition.X, posY = startPosition.Y;
 	for (int i = 0; i < childrenCount; i ++)
 	{
@@ -187,13 +198,6 @@ void UUIGridLayout::OnRebuildLayout()
 			posY -= childHeight + Spacing.Y;
 		}
 
-		EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
-#if WITH_EDITOR
-		if (!ALGUIManagerActor::IsPlaying)
-		{
-			tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
-		}
-#endif
 		switch (tempAnimationType)
 		{
 		default:
@@ -205,10 +209,8 @@ void UUIGridLayout::OnRebuildLayout()
 		break;
 		case EUILayoutChangePositionAnimationType::EaseAnimation:
 		{
-			auto tweener1 = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffsetX), FLTweenFloatSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffsetX), anchorOffsetX, AnimationDuration)->SetEase(LTweenEase::InOutSine);
-			auto tweener2 = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffsetY), FLTweenFloatSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffsetY), anchorOffsetY, AnimationDuration)->SetEase(LTweenEase::InOutSine);
-			TweenerArray.Add(tweener1);
-			TweenerArray.Add(tweener2);
+			auto tweener = ALTweenActor::To(this, FLTweenVector2DGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffset), FLTweenVector2DSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffset), FVector2D(anchorOffsetX, anchorOffsetY), AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			TweenerArray.Add(tweener);
 		}
 		break;
 		}
