@@ -15,7 +15,7 @@ void UUISizeControlByOtherHelper::OnUIDimensionsChanged(bool positionChanged, bo
     else
     {
         if (sizeChanged)
-            TargetComp->OnRebuildLayout();
+            TargetComp->MarkNeedRebuildLayout();
     }
 }
 
@@ -87,6 +87,9 @@ bool UUISizeControlByOther::CheckTargetUIItem()
 
 void UUISizeControlByOther::OnRebuildLayout()
 {
+	if (!CheckRootUIComponent())return;
+	if (!enable)return;
+
     if (CheckTargetUIItem() && CheckRootUIComponent() && enable)
     {
         if (ControlWidth)
@@ -101,6 +104,22 @@ void UUISizeControlByOther::OnRebuildLayout()
 }
 #if WITH_EDITOR
 bool UUISizeControlByOther::CanControlChildAnchor()
+{
+    return false;
+}
+bool UUISizeControlByOther::CanControlChildAnchorOffsetX()
+{
+    return false;
+}
+bool UUISizeControlByOther::CanControlChildAnchorOffsetY()
+{
+    return false;
+}
+bool UUISizeControlByOther::CanControlSelfAnchorOffsetX()
+{
+    return false;
+}
+bool UUISizeControlByOther::CanControlSelfAnchorOffsetY()
 {
     return false;
 }
@@ -134,7 +153,7 @@ void UUISizeControlByOther::SetControlWidth(bool value)
     if (ControlWidth != value)
     {
         ControlWidth = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }
 void UUISizeControlByOther::SetAdditionalWidth(float value)
@@ -142,7 +161,7 @@ void UUISizeControlByOther::SetAdditionalWidth(float value)
     if (AdditionalWidth != value)
     {
         AdditionalWidth = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }
 void UUISizeControlByOther::SetControlHeight(bool value)
@@ -150,7 +169,7 @@ void UUISizeControlByOther::SetControlHeight(bool value)
     if (ControlHeight != value)
     {
         ControlHeight = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }
 void UUISizeControlByOther::SetAdditionalHeight(float value)
@@ -158,6 +177,6 @@ void UUISizeControlByOther::SetAdditionalHeight(float value)
     if (AdditionalHeight != value)
     {
         AdditionalHeight = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }

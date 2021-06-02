@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 void UUILayoutBase::Awake()
 {
@@ -12,7 +13,7 @@ void UUILayoutBase::Awake()
     //recreate list at start
     RebuildChildrenList();
 
-    OnRebuildLayout();
+    MarkNeedRebuildLayout();
 }
 
 #if WITH_EDITOR
@@ -20,7 +21,7 @@ void UUILayoutBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
 
-    OnRebuildLayout();
+    MarkNeedRebuildLayout();
     if (CheckRootUIComponent())
     {
         RootUIComp->EditorForceUpdateImmediately();
@@ -35,12 +36,36 @@ void UUILayoutBase::OnRegister()
     if (!GetWorld()->IsGameWorld())
     {
         RebuildChildrenList();
+        ULGUIEditorManagerObject::AddLayout(this);
     }
+    else
 #endif
+    {
+        ALGUIManagerActor::AddLayout(this);
+    }
 }
 void UUILayoutBase::OnUnregister()
 {
     Super::OnUnregister();
+#if WITH_EDITOR
+	if (!GetWorld()->IsGameWorld())
+	{
+		ULGUIEditorManagerObject::RemoveLayout(this);
+	}
+	else
+#endif
+	{
+		ALGUIManagerActor::RemoveLayout(this);
+	}
+}
+
+void UUILayoutBase::ConditionalRebuildLayout()
+{
+    if (bNeedRebuildLayout)
+    {
+        bNeedRebuildLayout = false;
+        OnRebuildLayout();
+    }
 }
 
 void UUILayoutBase::RebuildChildrenList()
@@ -80,18 +105,17 @@ void UUILayoutBase::RebuildChildrenList()
 void UUILayoutBase::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
 {
     Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
-    if (sizeChanged)
-        OnRebuildLayout();
+    MarkNeedRebuildLayout();
 }
 void UUILayoutBase::OnUIAttachmentChanged()
 {
     Super::OnUIAttachmentChanged();
-    OnRebuildLayout();
+    MarkNeedRebuildLayout();
 }
 void UUILayoutBase::OnUIActiveInHierachy(bool activeOrInactive)
 {
     Super::OnUIActiveInHierachy(activeOrInactive);
-    OnRebuildLayout();
+    MarkNeedRebuildLayout();
 }
 void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)
 {
@@ -130,7 +154,7 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive
         }
     }
 
-    OnRebuildLayout();
+    MarkNeedRebuildLayout();
 }
 void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)
 {
@@ -171,7 +195,7 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
         }
     }
 
-    OnRebuildLayout();
+    MarkNeedRebuildLayout();
 }
 void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
 {
@@ -188,7 +212,7 @@ void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
             });
     }
 
-    OnRebuildLayout();
+    MarkNeedRebuildLayout();
 }
 
 FORCEINLINE UUILayoutElement* UUILayoutBase::GetLayoutElement(AActor* Target)

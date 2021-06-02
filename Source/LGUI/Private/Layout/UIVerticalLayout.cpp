@@ -21,13 +21,13 @@ void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool position
 #if WITH_EDITOR
             if (!this->GetWorld()->IsGameWorld())
             {
-                OnRebuildLayout();
+                MarkNeedRebuildLayout();
             }
             else
 #endif
                 if (sizeChanged)
                 {
-                    OnRebuildLayout();
+                    MarkNeedRebuildLayout();
                 }
         }
     }
@@ -36,11 +36,14 @@ void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool position
 void UUIVerticalLayout::OnRebuildLayout()
 {
     SCOPE_CYCLE_COUNTER(STAT_VerticalLayout);
-    if (!CheckRootUIComponent())
-        return;
-    if (!enable)
-        return;
-    CancelAnimation();
+    if (!CheckRootUIComponent())return;
+    if (!enable)return;
+	if (bIsAnimationPlaying)
+	{
+		bShouldRebuildLayoutAfterAnimation = true;
+		return;
+	}
+	CancelAnimation();
 
     FVector2D startPosition;
     startPosition.X = Padding.Left;
@@ -159,7 +162,7 @@ void UUIVerticalLayout::OnRebuildLayout()
         uiItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
         if (ExpendChildrenWidth)
         {
-            uiItem->SetWidth(childWidth);
+            ApplyWidthWithAnimation(tempAnimationType, childWidth, uiItem.Get());
         }
         else
         {
@@ -194,7 +197,7 @@ void UUIVerticalLayout::OnRebuildLayout()
         if (ExpendChildrenHeight)
         {
             childHeight = childrenHeightList[i];
-            uiItem->SetHeight(childHeight);
+            ApplyHeightWithAnimation(tempAnimationType, childHeight, uiItem.Get());
         }
         else
         {
@@ -203,22 +206,7 @@ void UUIVerticalLayout::OnRebuildLayout()
 
         float anchorOffsetX = posX + uiItem->GetPivot().X * childWidth;
         float anchorOffsetY = posY - (1.0f - uiItem->GetPivot().Y) * childHeight;
-        switch (tempAnimationType)
-        {
-        default:
-        case EUILayoutChangePositionAnimationType::Immediately:
-        {
-            uiItem->SetAnchorOffsetX(anchorOffsetX);
-            uiItem->SetAnchorOffsetY(anchorOffsetY);
-        }
-        break;
-        case EUILayoutChangePositionAnimationType::EaseAnimation:
-        {
-            auto tweener = ALTweenActor::To(this, FLTweenVector2DGetterFunction::CreateUObject(uiItem.Get(), &UUIItem::GetAnchorOffset), FLTweenVector2DSetterFunction::CreateUObject(uiItem.Get(), &UUIItem::SetAnchorOffset), FVector2D(anchorOffsetX, anchorOffsetY), AnimationDuration)->SetEase(LTweenEase::InOutSine);
-            TweenerArray.Add(tweener);
-        }
-        break;
-        }
+        ApplyAnchorOffsetWithAnimation(tempAnimationType, FVector2D(anchorOffsetX, anchorOffsetY), uiItem.Get());
 
         posY -= childHeight + Spacing;
         tempActuralRange += childHeight;
@@ -231,11 +219,32 @@ void UUIVerticalLayout::OnRebuildLayout()
     {
         auto thisHeight = tempActuralRange + Padding.Top + Padding.Bottom;
         ActuralRange = tempActuralRange;
-        RootUIComp->SetHeight(thisHeight);
+        ApplyHeightWithAnimation(tempAnimationType, thisHeight, RootUIComp.Get());
     }
+
+	if (tempAnimationType == EUILayoutChangePositionAnimationType::EaseAnimation)
+	{
+		SetOnCompleteTween();
+	}
 }
 #if WITH_EDITOR
 bool UUIVerticalLayout::CanControlChildAnchor()
+{
+    return true && enable;
+}
+bool UUIVerticalLayout::CanControlChildAnchorOffsetX()
+{
+    return true && enable;
+}
+bool UUIVerticalLayout::CanControlChildAnchorOffsetY()
+{
+    return true && enable;
+}
+bool UUIVerticalLayout::CanControlSelfAnchorOffsetX()
+{
+    return true && enable;
+}
+bool UUIVerticalLayout::CanControlSelfAnchorOffsetY()
 {
     return true && enable;
 }
@@ -269,7 +278,7 @@ void UUIVerticalLayout::SetPadding(FMargin value)
     if (Padding != value)
     {
         Padding = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }
 void UUIVerticalLayout::SetSpacing(float value)
@@ -277,7 +286,7 @@ void UUIVerticalLayout::SetSpacing(float value)
     if (Spacing != value)
     {
         Spacing = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }
 void UUIVerticalLayout::SetAlign(ELGUILayoutAlignmentType value)
@@ -285,7 +294,7 @@ void UUIVerticalLayout::SetAlign(ELGUILayoutAlignmentType value)
     if (Align != value)
     {
         Align = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }
 void UUIVerticalLayout::SetExpendChildrenWidth(bool value)
@@ -293,7 +302,7 @@ void UUIVerticalLayout::SetExpendChildrenWidth(bool value)
     if (ExpendChildrenWidth != value)
     {
         ExpendChildrenWidth = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }
 void UUIVerticalLayout::SetExpendChildrenHeight(bool value)
@@ -301,7 +310,7 @@ void UUIVerticalLayout::SetExpendChildrenHeight(bool value)
     if (ExpendChildrenHeight != value)
     {
         ExpendChildrenHeight = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }
 void UUIVerticalLayout::SetHeightFitToChildren(bool value)
@@ -309,6 +318,6 @@ void UUIVerticalLayout::SetHeightFitToChildren(bool value)
     if (HeightFitToChildren != value)
     {
         HeightFitToChildren = value;
-        OnRebuildLayout();
+        MarkNeedRebuildLayout();
     }
 }

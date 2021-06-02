@@ -21,5 +21,27 @@ protected:
 	UPROPERTY(Transient)
 		TArray<class ULTweener*> TweenerArray;
 
-	void CancelAnimation(bool callComplete = false);
+	bool bIsAnimationPlaying = false;
+	bool bShouldRebuildLayoutAfterAnimation = false;
+	/** This function can be override. */
+	virtual void SetOnCompleteTween();
+	/** This function can be override to achive your own animation effect. */
+	virtual void ApplyAnchorOffsetWithAnimation(EUILayoutChangePositionAnimationType animationType, FVector2D offset, UUIItem* target);
+	/** This function can be override to achive your own animation effect. */
+	virtual void ApplyWidthWithAnimation(EUILayoutChangePositionAnimationType animationType, float width, UUIItem* target);
+	/** This function can be override to achive your own animation effect. */
+	virtual void ApplyHeightWithAnimation(EUILayoutChangePositionAnimationType animationType, float height, UUIItem* target);
+public:
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		EUILayoutChangePositionAnimationType GetAnimationType()const { return AnimationType; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetAnimationDuration()const { return AnimationDuration; }
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetAnimationType(EUILayoutChangePositionAnimationType value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetAnimationDuration(float value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void CancelAnimation(bool callComplete = false);
 };

@@ -6,6 +6,9 @@
 
 void UUISizeControlByAspectRatio::OnRebuildLayout()
 {
+	if (!CheckRootUIComponent())return;
+	if (!enable)return;
+
 	if (CheckRootUIComponent() && enable)
 	{
 		switch (ControlMode)
@@ -104,6 +107,22 @@ bool UUISizeControlByAspectRatio::CanControlChildAnchor()
 {
 	return false;
 }
+bool UUISizeControlByAspectRatio::CanControlChildAnchorOffsetX()
+{
+	return false;
+}
+bool UUISizeControlByAspectRatio::CanControlChildAnchorOffsetY()
+{
+	return false;
+}
+bool UUISizeControlByAspectRatio::CanControlSelfAnchorOffsetX()
+{
+	return false;
+}
+bool UUISizeControlByAspectRatio::CanControlSelfAnchorOffsetY()
+{
+	return false;
+}
 bool UUISizeControlByAspectRatio::CanControlChildWidth()
 {
 	return false;
@@ -114,16 +133,14 @@ bool UUISizeControlByAspectRatio::CanControlChildHeight()
 }
 bool UUISizeControlByAspectRatio::CanControlSelfHorizontalAnchor()
 {
-	return (ControlMode == EUISizeControlByAspectRatioMode::HeightControlWidth 
-		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
 		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
 		) && enable
 		;
 }
 bool UUISizeControlByAspectRatio::CanControlSelfVerticalAnchor()
 {
-	return (ControlMode == EUISizeControlByAspectRatioMode::WidthControlHeight
-		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
 		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
 		) && enable
 		;
@@ -178,7 +195,7 @@ void UUISizeControlByAspectRatio::SetControlMode(EUISizeControlByAspectRatioMode
 	if (ControlMode != value)
 	{
 		ControlMode = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }
 void UUISizeControlByAspectRatio::SetAspectRatio(float value)
@@ -186,6 +203,6 @@ void UUISizeControlByAspectRatio::SetAspectRatio(float value)
 	if (AspectRatio != value)
 	{
 		AspectRatio = value;
-		OnRebuildLayout();
+		MarkNeedRebuildLayout();
 	}
 }

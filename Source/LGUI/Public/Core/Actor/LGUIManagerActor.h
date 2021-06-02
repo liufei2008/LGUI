@@ -15,6 +15,7 @@ class ULGUIBaseRaycaster;
 class UUISelectableComponent;
 class ULGUIBehaviour;
 class ULGUIBaseInputModule;
+class UUILayoutBase;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
@@ -52,6 +53,8 @@ protected:
 	/** Collect all canvas, and sort by order. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<UUILayoutBase>> allLayoutArray;
 	TArray<UUIItem*> tempUIItemArray;
 	TArray<ULGUICanvas*> tempCanvasArray;
 #endif
@@ -73,6 +76,9 @@ public:
 	static void SortCanvasOnOrder();
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	const TArray<ULGUICanvas*>& GetAllCanvas();
+
+	static void AddLayout(UUILayoutBase* InLayout);
+	static void RemoveLayout(UUILayoutBase* InLayout);
 
 private:
 #if WITH_EDITORONLY_DATA
@@ -141,6 +147,8 @@ protected:
 		ULGUIBaseInputModule* currentInputModule = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUISelectableComponent*> allSelectableArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<UUILayoutBase*> allLayoutArray;
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForUpdate;
@@ -169,6 +177,9 @@ public:
 	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);
 	static void RemoveSelectable(UUISelectableComponent* InSelectable);
+
+	static void AddLayout(UUILayoutBase* InLayout);
+	static void RemoveLayout(UUILayoutBase* InLayout);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
