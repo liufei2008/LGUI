@@ -88,11 +88,6 @@ protected:
 	virtual void OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)override;
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* InChild)override;
 
-	/** called when a child is attached, and is valid for layout */
-	virtual void OnAttachValidChild(UUIItem* InChild) {};
-	/** called when a valid child is detached */
-	virtual void OnDetachValidChild(UUIItem* InChild) {};
-
 	UUILayoutElement* GetLayoutElement(AActor* Target);
 	struct FAvaliableChild
 	{

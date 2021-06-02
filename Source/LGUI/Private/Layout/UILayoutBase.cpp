@@ -90,7 +90,6 @@ void UUILayoutBase::RebuildChildrenList()
                 child.uiItem = uiItem;
                 child.layoutElement = layoutElement;
                 availableChildrenArray.Add(child);
-                OnAttachValidChild(uiItem);
             }
         }
         availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
@@ -183,7 +182,6 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
                         return true;
                     return false;
                 });
-            OnAttachValidChild(InChild);
         }
     }
     else
@@ -191,7 +189,6 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
         if (availableChildrenArray.Find(childData, index))
         {
             availableChildrenArray.RemoveAt(index);
-            OnDetachValidChild(InChild);
         }
     }
 

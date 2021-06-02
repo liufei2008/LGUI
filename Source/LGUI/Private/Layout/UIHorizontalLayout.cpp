@@ -18,17 +18,7 @@ void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positi
         if (this->GetWorld() == nullptr)return;
         if (!ExpendChildrenWidth)
         {
-#if WITH_EDITOR
-            if (!this->GetWorld()->IsGameWorld())
-            {
-                MarkNeedRebuildLayout();
-            }
-            else
-#endif
-                if (sizeChanged)
-                {
-                    MarkNeedRebuildLayout();
-                }
+			MarkNeedRebuildLayout();
         }
     }
 }
