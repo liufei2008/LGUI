@@ -267,11 +267,11 @@ bool UUIGridLayout::CanControlSelfVerticalAnchor()
 }
 bool UUIGridLayout::CanControlSelfAnchorOffsetX()
 {
-	return true && enable;
+	return false;
 }
 bool UUIGridLayout::CanControlSelfAnchorOffsetY()
 {
-	return true && enable;
+	return false;
 }
 bool UUIGridLayout::CanControlSelfWidth()
 {

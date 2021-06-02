@@ -281,11 +281,11 @@ bool UUIHorizontalLayout::CanControlChildAnchorOffsetY()
 }
 bool UUIHorizontalLayout::CanControlSelfAnchorOffsetX()
 {
-    return true && enable;
+    return false;
 }
 bool UUIHorizontalLayout::CanControlSelfAnchorOffsetY()
 {
-    return true && enable;
+    return false;
 }
 bool UUIHorizontalLayout::CanControlChildWidth()
 {
