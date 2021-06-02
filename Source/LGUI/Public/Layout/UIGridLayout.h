@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UILayoutBase.h"
+#include "UILayoutWithAnimation.h"
 #include "Layout/Margin.h"
 #include "UIGridLayout.generated.h"
 
@@ -20,7 +20,7 @@
  * Layout child elements in grid
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUIGridLayout : public UUILayoutBase
+class LGUI_API UUIGridLayout : public UUILayoutWithAnimation
 {
 	GENERATED_BODY()
 
@@ -102,12 +102,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool HeightFitToChildren = false;
 
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		EUILayoutChangePositionAnimationType AnimationType = EUILayoutChangePositionAnimationType::Immediately;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		float AnimationDuration = 0.3f;
-	UPROPERTY(Transient)
-		TArray<class ULTweener*> TweenerArray;
 	//actural children fill range
 	FVector2D ActuralRange;
 };
