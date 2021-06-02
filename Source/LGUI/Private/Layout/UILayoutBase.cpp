@@ -16,7 +16,7 @@ void UUILayoutBase::Awake()
 }
 
 #if WITH_EDITOR
-void UUILayoutBase::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
+void UUILayoutBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
 
@@ -48,12 +48,12 @@ void UUILayoutBase::RebuildChildrenList()
     if (CheckRootUIComponent())
     {
         availableChildrenArray.Reset();
-        const auto &children = RootUIComp->GetAttachUIChildren();
+        const auto& children = RootUIComp->GetAttachUIChildren();
         for (auto uiItem : children)
         {
             if (uiItem->IsUIActiveInHierarchy())
             {
-                UUILayoutElement *layoutElement = GetLayoutElement(uiItem->GetOwner());
+                UUILayoutElement* layoutElement = GetLayoutElement(uiItem->GetOwner());
                 if (layoutElement)
                 {
                     if (layoutElement->GetIgnoreLayout())
@@ -69,11 +69,11 @@ void UUILayoutBase::RebuildChildrenList()
             }
         }
         availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
-                                    {
-                                        if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
-                                            return true;
-                                        return false;
-                                    });
+            {
+                if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
+                    return true;
+                return false;
+            });
     }
 }
 
@@ -93,7 +93,7 @@ void UUILayoutBase::OnUIActiveInHierachy(bool activeOrInactive)
     Super::OnUIActiveInHierachy(activeOrInactive);
     OnRebuildLayout();
 }
-void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem *InChild, bool InUIActive)
+void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive)
 {
     Super::OnUIChildAcitveInHierarchy(InChild, InUIActive);
     int32 index;
@@ -103,7 +103,7 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem *InChild, bool InUIActive
     {
         if (!availableChildrenArray.Find(childData, index))
         {
-            UUILayoutElement *layoutElement = GetLayoutElement(InChild->GetOwner());
+            UUILayoutElement* layoutElement = GetLayoutElement(InChild->GetOwner());
             if (layoutElement)
             {
                 if (layoutElement->GetIgnoreLayout())
@@ -115,11 +115,11 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem *InChild, bool InUIActive
             availableChildrenArray.Add(childData);
 
             availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
-                                        {
-                                            if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
-                                                return true;
-                                            return false;
-                                        });
+                {
+                    if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
+                        return true;
+                    return false;
+                });
         }
     }
     else
@@ -132,7 +132,7 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem *InChild, bool InUIActive
 
     OnRebuildLayout();
 }
-void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem *InChild, bool attachOrDetach)
+void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)
 {
     Super::OnUIChildAttachmentChanged(InChild, attachOrDetach);
     int32 index;
@@ -142,7 +142,7 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem *InChild, bool attachOrDe
     {
         if (!availableChildrenArray.Find(childData, index))
         {
-            UUILayoutElement *layoutElement = GetLayoutElement(InChild->GetOwner());
+            UUILayoutElement* layoutElement = GetLayoutElement(InChild->GetOwner());
             if (layoutElement)
             {
                 if (layoutElement->GetIgnoreLayout())
@@ -154,11 +154,11 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem *InChild, bool attachOrDe
             availableChildrenArray.Add(childData);
             //sort by hierarchy index
             availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
-                                        {
-                                            if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
-                                                return true;
-                                            return false;
-                                        });
+                {
+                    if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
+                        return true;
+                    return false;
+                });
             OnAttachValidChild(InChild);
         }
     }
@@ -173,7 +173,7 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem *InChild, bool attachOrDe
 
     OnRebuildLayout();
 }
-void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem *InChild)
+void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
 {
     int32 index;
     FAvaliableChild childData;
@@ -181,17 +181,17 @@ void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem *InChild)
     if (availableChildrenArray.Find(childData, index))
     {
         availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
-                                    {
-                                        if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
-                                            return true;
-                                        return false;
-                                    });
+            {
+                if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
+                    return true;
+                return false;
+            });
     }
 
     OnRebuildLayout();
 }
 
-FORCEINLINE UUILayoutElement *UUILayoutBase::GetLayoutElement(AActor *Target)
+FORCEINLINE UUILayoutElement* UUILayoutBase::GetLayoutElement(AActor* Target)
 {
     return Target->FindComponentByClass<UUILayoutElement>();
 }
