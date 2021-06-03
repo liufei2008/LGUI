@@ -13,6 +13,7 @@
 #include "Core/Actor/UITextActor.h"
 #include "Core/Actor/UISpriteActor.h"
 #include "Interaction/UIButtonComponent.h"
+#include "Layout/UILayoutBase.h"
 
 UUIDropdownComponent::UUIDropdownComponent()
 {
@@ -320,6 +321,10 @@ void UUIDropdownComponent::CreateListItems()
 		CreatedItemArray.Add(script);
 	}
 	templateUIItem->SetUIActive(false);
+	if (auto contentLayout = contentUIItem->GetOwner()->FindComponentByClass<UUILayoutBase>())
+	{
+		contentLayout->OnRebuildLayout();
+	}
 	float heightOffset = 0;
 	if (auto viewportUIItem = contentUIItem->GetParentAsUIItem())
 	{
