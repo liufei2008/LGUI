@@ -87,13 +87,13 @@ protected:
 		FMargin Padding;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector2D Spacing;
-	//Which direction to tile children, true for horizontal, false for vertical
+	/** Which direction to tile children, true for horizontal, false for vertical. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool HorizontalOrVertical = true;
-	//Arrange by size(CellSize) or by count(LineCount), true for size, false for count
+	/** Arrange by size(CellSize) or by count(LineCount), true for size, false for count. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool DependOnSizeOrCount = true;
-	//If depend on count, then expend cell size to fill. 
+	/** If depend on count, then expend cell size to fill. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool ExpendChildSize = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
