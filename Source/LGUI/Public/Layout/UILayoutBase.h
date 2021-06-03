@@ -21,17 +21,6 @@ enum class ELGUILayoutAlignmentType :uint8
 	LowerRight,
 };
 
-UENUM(BlueprintType, Category = LGUI)
-enum class EUILayoutChangePositionAnimationType :uint8
-{
-	/** Immediately change position */
-	Immediately,
-	/** Change position with ease animation */
-	EaseAnimation,
-	/** Register custom event and do the transition */
-	//Custom,
-};
-
 class UUILayoutElement;
 
 UCLASS(Abstract)
