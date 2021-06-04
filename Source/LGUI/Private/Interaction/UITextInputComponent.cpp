@@ -19,8 +19,14 @@ void UUITextInputComponent::Awake()
 {
 	Super::Awake();
 	
-	VirtualKeyboardEntry = FVirtualKeyboardEntry::Create(this);
-	TextInputMethodContext = FTextInputMethodContext::Create(this);
+	if (!VirtualKeyboardEntry.IsValid())
+	{
+		VirtualKeyboardEntry = FVirtualKeyboardEntry::Create(this);
+	}
+	if (!TextInputMethodContext.IsValid())
+	{
+		TextInputMethodContext = FTextInputMethodContext::Create(this);
+	}
 }
 void UUITextInputComponent::Update(float DeltaTime)
 {
@@ -1286,7 +1292,10 @@ bool UUITextInputComponent::DeleteIfSelection(int& OutCaretOffset)
 
 void UUITextInputComponent::UpdateInputComposition()
 {
-	TextInputMethodContext->UpdateInputComposition();
+	if (TextInputMethodContext.IsValid())
+	{
+		TextInputMethodContext->UpdateInputComposition();
+	}
 }
 
 void UUITextInputComponent::OnUIActiveInHierachy(bool ativeOrInactive)
@@ -1459,6 +1468,10 @@ void UUITextInputComponent::ActivateInput(ULGUIPointerEventData* eventData)
 	}
 	if (FPlatformApplicationMisc::RequiresVirtualKeyboard())
 	{
+		if (!VirtualKeyboardEntry.IsValid())
+		{
+			VirtualKeyboardEntry = FVirtualKeyboardEntry::Create(this);
+		}
 		FSlateApplication::Get().ShowVirtualKeyboard(true, 0, VirtualKeyboardEntry);
 	}
 	else
@@ -1466,6 +1479,10 @@ void UUITextInputComponent::ActivateInput(ULGUIPointerEventData* eventData)
 		ITextInputMethodSystem* const TextInputMethodSystem = FSlateApplication::Get().GetTextInputMethodSystem();
 		if (TextInputMethodSystem)
 		{
+			if (!TextInputMethodContext.IsValid())
+			{
+				TextInputMethodContext = FTextInputMethodContext::Create(this);
+			}
 			TextInputMethodChangeNotifier = TextInputMethodSystem->RegisterContext(TextInputMethodContext.ToSharedRef());
 			TextInputMethodSystem->ActivateContext(TextInputMethodContext.ToSharedRef());
 		}
@@ -1648,16 +1665,19 @@ void UUITextInputComponent::DeactivateInput(bool InFireEvent)
 	ITextInputMethodSystem* const TextInputMethodSystem = FSlateApplication::IsInitialized() ? FSlateApplication::Get().GetTextInputMethodSystem() : nullptr;
 	if (TextInputMethodSystem)
 	{
-		TSharedRef<FTextInputMethodContext> TextInputMethodContextRef = TextInputMethodContext.ToSharedRef();
-
-		TextInputMethodContextRef->AbortComposition();
-
-		if (TextInputMethodSystem->IsActiveContext(TextInputMethodContextRef))
+		if (TextInputMethodContext.IsValid())
 		{
-			TextInputMethodSystem->DeactivateContext(TextInputMethodContextRef);
-		}
+			TSharedRef<FTextInputMethodContext> TextInputMethodContextRef = TextInputMethodContext.ToSharedRef();
 
-		TextInputMethodSystem->UnregisterContext(TextInputMethodContextRef);
+			TextInputMethodContextRef->AbortComposition();
+
+			if (TextInputMethodSystem->IsActiveContext(TextInputMethodContextRef))
+			{
+				TextInputMethodSystem->DeactivateContext(TextInputMethodContextRef);
+			}
+
+			TextInputMethodSystem->UnregisterContext(TextInputMethodContextRef);
+		}
 	}
 	if (FSlateApplication::IsInitialized() && FPlatformApplicationMisc::RequiresVirtualKeyboard())
 	{
