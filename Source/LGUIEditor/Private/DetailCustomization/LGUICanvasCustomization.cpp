@@ -307,8 +307,11 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 			{
 				if (IsValid(item))
 				{
-					if (item->GetSortOrder() == TargetScript->GetSortOrder())
-						sortOrderCount++;
+					if (item->GetWorld() == world)
+					{
+						if (item->GetSortOrder() == TargetScript->GetSortOrder())
+							sortOrderCount++;
+					}
 				}
 			}
 			auto depthInfo = FString::Printf(TEXT("All LGUICanvas with same SortOrder count:%d\n"), sortOrderCount);
