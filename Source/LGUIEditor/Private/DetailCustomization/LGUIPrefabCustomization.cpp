@@ -130,7 +130,26 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			]
 		]
 		;
-
+	category.AddCustomRow(LOCTEXT("PrefabVersion", "Prefab Version"), true)
+		.WholeRowContent()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Recreate this prefab")))
+				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteButton)
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+			]
+			+ SHorizontalBox::Slot()
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Recreate all prefabs")))
+				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteAllButton)
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+			]
+		]
+		;
 }
 FText FLGUIPrefabCustomization::GetEngineVersionText()const
 {
