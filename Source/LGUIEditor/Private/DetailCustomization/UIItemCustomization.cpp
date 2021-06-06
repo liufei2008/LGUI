@@ -173,9 +173,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				]
 
 				+ SHorizontalBox::Slot()
+				.MaxWidth(2)
 				[
 					SNew(SBox)
-					.HeightOverride(5)
 				]
 
 				+ SHorizontalBox::Slot()

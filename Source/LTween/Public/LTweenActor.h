@@ -23,7 +23,7 @@ public:
 	static ALTweenActor* GetLTweenInstance(UObject* WorldContextObject);
 private:
 	/** current active tweener collection*/
-	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<ULTweener*> tweenerList;
+	UPROPERTY(VisibleAnywhere, Category=LTween)TArray<TWeakObjectPtr<ULTweener>> tweenerList;
 	/** a world should only have one LTweenActor */
 	static TMap<UWorld*, ALTweenActor*> WorldToInstanceMap;
 	bool existInInstanceMap = false;
