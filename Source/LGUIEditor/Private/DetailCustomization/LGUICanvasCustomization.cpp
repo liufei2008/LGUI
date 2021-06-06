@@ -191,7 +191,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	{
 		category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));//show before sortOrder
 	}
-	//category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
+
 	auto sortOrderHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
 	category.AddCustomRow(LOCTEXT("SortOrderManager", "SortOrderManager"))
 		.CopyAction(FUIAction(
@@ -302,19 +302,40 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 				}
 			}
 
+			FString spaceText;
+			if (TargetScript->IsRenderToScreenSpace())
+			{
+				spaceText = TEXT("ScreenSpaceOverlay");
+			}
+			else if (TargetScript->IsRenderToWorldSpace())
+			{
+				spaceText = TEXT("WorldSpace");
+			}
+			else if (TargetScript->IsRenderToRenderTarget())
+			{
+				if (IsValid(TargetScript->renderTarget))
+				{
+					spaceText = FString::Printf(TEXT("RenderTarget(%s)"), *(TargetScript->renderTarget->GetName()));
+				}
+				else
+				{
+					spaceText = FString::Printf(TEXT("RenderTarget(NotValid)"));
+				}
+			}
+
+			auto renderMode = TargetScript->GetActualRenderMode();
 			int sortOrderCount = 0;
 			for (auto item : itemList)
 			{
-				if (IsValid(item))
-				{
-					if (item->GetWorld() == world)
-					{
-						if (item->GetSortOrder() == TargetScript->GetSortOrder())
-							sortOrderCount++;
-					}
-				}
+				if (!IsValid(item))continue;
+				if (item->GetWorld() != world)continue;
+				if (item == TargetScript)continue;
+				if (renderMode != item->GetActualRenderMode())continue;
+
+				if (item->GetSortOrder() == TargetScript->GetSortOrder())
+					sortOrderCount++;
 			}
-			auto depthInfo = FString::Printf(TEXT("All LGUICanvas with same SortOrder count:%d\n"), sortOrderCount);
+			auto depthInfo = FString::Printf(TEXT("All LGUICanvas of %s with same SortOrder count:%d\n"), *spaceText, sortOrderCount);
 			return FText::FromString(depthInfo);
 		}
 	}
@@ -328,7 +349,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 		auto& allCanvas = TargetScriptArray[0]->GetAllCanvasArray();
 		int allDrawcallCount = 0;
 		auto world = TargetScriptArray[0]->GetWorld();
-		for (ULGUICanvas* canvasItem : allCanvas)
+		for (auto canvasItem : allCanvas)
 		{
 			if (TargetScriptArray[0]->IsRenderToScreenSpace() || TargetScriptArray[0]->IsRenderToWorldSpace())
 			{
@@ -387,7 +408,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 	}
 
 	auto world = TargetScriptArray[0]->GetWorld();
-	for (ULGUICanvas* canvasItem : allCanvas)
+	for (auto canvasItem : allCanvas)
 	{
 		if (TargetScriptArray[0]->IsRenderToScreenSpace() || TargetScriptArray[0]->IsRenderToWorldSpace())
 		{
