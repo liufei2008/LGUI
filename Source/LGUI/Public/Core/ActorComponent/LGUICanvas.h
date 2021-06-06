@@ -236,6 +236,9 @@ protected:
 	/** This can avoid half-pixel render */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
+	/** Just store this default value to false, next updata will need it. */
+	UPROPERTY()
+		bool overrideSortOrder = false;
 	/** Canvas with larger order will render on top of lower one */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int32 sortOrder = 0;
