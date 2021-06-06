@@ -321,11 +321,13 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 
 			if (itemGeo->material.IsValid())//consider every custom material as a drawcall
 			{
-				auto drawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-				drawcall->texture = itemGeo->texture;
-				drawcall->material = itemGeo->material;
-				drawcall->geometryList.Add(itemGeo);
-				drawcall->type = EUIDrawcallType::Geometry;
+				auto drawcallItem = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
+				drawcallItem->texture = itemGeo->texture;
+				drawcallItem->material = itemGeo->material;
+				drawcallItem->type = EUIDrawcallType::Geometry;
+				drawcallItem->geometryList.Add(itemGeo);
+				drawcallItem->renderObjectList.Add(sortedItem);
+				itemGeo->drawcallIndex = drawcallCount - 1;
 			}
 			else//batch elements into drawcall
 			{
@@ -337,6 +339,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 					drawcallItem->geometryList.Add(itemGeo);
 					drawcallItem->is3DDrawcall = false;
 					drawcallItem->renderObjectList.Add(sortedItem);
+					itemGeo->drawcallIndex = drawcallIndexToFitin;
 				}
 				else
 				{
@@ -347,9 +350,9 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 
 					drawcallItem->texture = itemGeo->texture;
 					drawcallItem->type = EUIDrawcallType::Geometry;
+					itemGeo->drawcallIndex = drawcallCount - 1;
 				}
 			}
-			itemGeo->drawcallIndex = drawcallCount - 1;
 		}
 		break;
 		case EUIRenderableType::UIPostProcessRenderable:

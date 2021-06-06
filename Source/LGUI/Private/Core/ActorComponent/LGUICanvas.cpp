@@ -1036,7 +1036,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 		else//no need to rebuild all drawcall
 		{
 			int drawcallCount = UIDrawcallList.Num();
-			for (int i = drawcallCount - 1; i >= 0; i--)
+			for (int i = 0; i < drawcallCount; i++)
 			{
 				auto uiDrawcall = UIDrawcallList[i];
 				if (!uiDrawcall.IsValid())continue;
