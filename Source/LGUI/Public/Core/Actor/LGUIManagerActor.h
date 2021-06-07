@@ -50,13 +50,11 @@ protected:
 	//collection of all UIItem from current level
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUIItem>> allUIItem;
-	/** Collect all canvas, and sort by order. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUILayoutBase>> allLayoutArray;
 	TArray<UUIItem*> tempUIItemArray;
-	TArray<ULGUICanvas*> tempCanvasArray;
 #endif
 #if WITH_EDITOR
 private:
@@ -73,9 +71,8 @@ public:
 	const TArray<UUIItem*>& GetAllUIItem();
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
-	static void SortCanvasOnOrder();
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
-	const TArray<ULGUICanvas*>& GetAllCanvas();
+	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return allCanvas; };
 
 	static void AddLayout(UUILayoutBase* InLayout);
 	static void RemoveLayout(UUILayoutBase* InLayout);
@@ -140,7 +137,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUICanvas*> allCanvas;
+		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -159,22 +156,21 @@ private:
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
-	FORCEINLINE const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
+	const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
-	static void SortCanvasOnOrder(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
-	FORCEINLINE const TArray<ULGUICanvas*>& GetAllCanvas(){ return allCanvas; }
+	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return allCanvas; };
 
-	FORCEINLINE const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
+	const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
 	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
 	static void RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster);
 
-	FORCEINLINE ULGUIBaseInputModule* GetInputModule() { return currentInputModule; }
+	ULGUIBaseInputModule* GetInputModule() { return currentInputModule; }
 	static void SetInputModule(ULGUIBaseInputModule* InInputModule);
 	static void ClearInputModule(ULGUIBaseInputModule* InInputModule);
 
-	FORCEINLINE const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
+	const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);
 	static void RemoveSelectable(UUISelectableComponent* InSelectable);
 

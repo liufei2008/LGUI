@@ -157,7 +157,7 @@ namespace rbp {
 		if (binWidth > newWidth || binHeight > newHeight)//new size is smaller
 			return;
 
-#if true
+#if 0
 		//for freeRectangles, add extended size as new rects, just two new rects, one is long horizontal, another is square
 		freeRectangles.Empty();
 		usedRectangles.Empty();

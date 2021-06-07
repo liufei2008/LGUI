@@ -86,17 +86,17 @@ public:
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
-		LGUIHudRenderer = InComponent->LGUIHudRenderer;
-		if (LGUIHudRenderer.IsValid())
+		LGUIRenderer = InComponent->LGUIRenderer;
+		if (LGUIRenderer.IsValid())
 		{
-			auto HudRenderer = LGUIHudRenderer;
+			auto TempRenderer = LGUIRenderer;
 			auto HudPrimitive = this;
 			ENQUEUE_RENDER_COMMAND(FLGUIMeshSceneProxy_AddHudPrimitive)(
-				[HudRenderer, HudPrimitive](FRHICommandListImmediate& RHICmdList)
+				[TempRenderer, HudPrimitive](FRHICommandListImmediate& RHICmdList)
 				{
-					if (HudRenderer.IsValid())
+					if (TempRenderer.IsValid())
 					{
-						HudRenderer.Pin()->AddHudPrimitive_RenderThread(HudPrimitive);
+						TempRenderer.Pin()->AddHudPrimitive_RenderThread(HudPrimitive);
 					}
 				}
 			);
@@ -179,10 +179,10 @@ public:
 			}
 			delete Section;
 		}
-		if (LGUIHudRenderer.IsValid())
+		if (LGUIRenderer.IsValid())
 		{
-			LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread(this);
-			LGUIHudRenderer.Reset();
+			LGUIRenderer.Pin()->RemoveHudPrimitive_RenderThread(this);
+			LGUIRenderer.Reset();
 		}
 	}
 
@@ -475,7 +475,7 @@ private:
 
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;
-	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIHudRenderer;
+	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
 	bool IsSupportScreenSpace = false;
 	bool IsSupportWorldSpace = true;
 };
@@ -585,11 +585,11 @@ void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUI
 {
 	if (supportOrNot)
 	{
-		LGUIHudRenderer = HudRenderer;
+		LGUIRenderer = HudRenderer;
 	}
 	else
 	{
-		LGUIHudRenderer.Reset();
+		LGUIRenderer.Reset();
 	}
 }
 

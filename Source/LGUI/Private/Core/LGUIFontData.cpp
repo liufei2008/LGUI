@@ -244,7 +244,7 @@ PACK_AND_INSERT:
 			newTextureSize = textureSize + textureSize;
 			UE_LOG(LGUI, Log, TEXT("[PushCharIntoFont]Expend font texture size to:%d"), newTextureSize);
 			//expend by multiply 2
-			calcBinpack.ExpendSize(newTextureSize, newTextureSize);
+			calcBinpack.ExpendSizeForText(newTextureSize, newTextureSize);
 			CreateFontTexture(textureSize, newTextureSize);
 			textureSize = newTextureSize;
 			fullTextureSizeReciprocal = 1.0f / textureSize;
@@ -392,13 +392,12 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	//store old texutre pointer
 	auto oldTexture = texture;
 	//create new texture
-	texture = LGUIUtils::CreateTexture(newTextureSize, FColor(255, 255, 255, 0));
+	texture = LGUIUtils::CreateTexture(newTextureSize, FColor(255, 255, 255, 0), this);
 	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
 	texture->SRGB = true;
 	texture->Filter = TextureFilter::TF_Trilinear;
 	texture->UpdateResource();
-	texture->AddToRoot();
 
 	//copy old texture to new one
 	if (IsValid(oldTexture) && oldTextureSize > 0)
@@ -422,7 +421,6 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 						CopyInfo
 					);
 					RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);//if remove this line, then texture will go wrong if expand texture size and write font pixels, looks like copy-pixels hanppens after write-font-pixels.
-					oldTexture->RemoveFromRoot();//ready for gc
 				}
 			});
 		}

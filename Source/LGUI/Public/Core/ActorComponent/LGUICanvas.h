@@ -102,8 +102,6 @@ class LGUI_API ULGUICanvas : public UActorComponent
 
 public:	
 	ULGUICanvas();
-	UE_DEPRECATED(4.23, "Use UpdateCanvas instead.")
-	void CustomTick(float DeltaTime) {};
 	/** Called from LGUIManagerActor */
 	void UpdateCanvas(float DeltaTime);
 protected:
@@ -119,12 +117,12 @@ public:
 	virtual void OnUnregister()override;
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 private:
-	/** children canvas array, for update children's geometry */
-	UPROPERTY(Transient) TArray<ULGUICanvas*> childrenCanvasArray;//@todo: collect this when needed
+	/** canvas array belong to this canvas, include self. for update children's geometry */
+	TArray<TWeakObjectPtr<ULGUICanvas>> manageCanvasArray;//@todo: collect this when needed
 	/** for top most canvas only */
-	void UpdateTopMostCanvas();
+	void UpdateRootCanvas();
 	/** update canvas's layout */
-	void UpdateCanvasLayout(bool parentLayoutChanged);
+	void UpdateCanvasLayout(TArray<TWeakObjectPtr<ULGUICanvas>>& collection, bool parentLayoutChanged);
 	/** update Canvas's geometry */
 	void UpdateCanvasGeometry();
 	void UpdateCanvasGeometryForAutoManageDepth();
@@ -173,38 +171,33 @@ public:
 	bool IsRootCanvas()const;
 	/** hierarchy changed */
 	void OnUIHierarchyChanged();
+	void OnUIHierarchyIndexChanged();
 	void OnUIActiveStateChanged(bool active);
 
 	void SetDefaultMaterials(UMaterialInterface* InMaterials[3]);
 
-	UE_DEPRECATED(4.23, "Use IsRenderToScreenSpace instead.")
-		bool IsScreenSpaceOverlayUI() { return true; };
 	FORCEINLINE bool IsRenderToScreenSpace();
 	FORCEINLINE bool IsRenderToScreenSpaceOrRenderTarget();
 	FORCEINLINE bool IsRenderToRenderTarget();
 	FORCEINLINE bool IsRenderToWorldSpace();
 	FORCEINLINE TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension();
 
-	UE_DEPRECATED(4.23, "Use GetUIItem instead.")
-		UUIItem* CheckAndGetUIItem() { return GetUIItem(); }
-
-	FORCEINLINE UUIItem* GetUIItem()const { CheckUIItem(); return UIItem; }
+	FORCEINLINE TWeakObjectPtr<UUIItem> GetUIItem()const { CheckUIItem(); return UIItem; }
 	bool GetIsUIActive()const;
-	ULGUICanvas* GetParentCanvas() { CheckParentCanvas(); return ParentCanvas; }
+	TWeakObjectPtr<ULGUICanvas> GetParentCanvas() { CheckParentCanvas(); return ParentCanvas; }
 protected:
-	/** consider this as a cache to IsScreenSpaceOverlayUI(). eg: when attach to other canvas, this will tell which render mode in old canvas */
+	/** consider this as a cache to IsRenderToScreenSpaceOrRenderTarget(). eg: when attach to other canvas, this will tell which render mode in old canvas */
 	bool currentIsRenderToRenderTargetOrWorld = false;
-	/** top most LGUICanvas on hierarchy. LGUI's update start from the TopMostCanvas, and goes all down to every UI elements under it */
-	UPROPERTY(Transient) mutable ULGUICanvas* TopMostCanvas = nullptr;
+	/** Root LGUICanvas on hierarchy. LGUI's update start from the RootCanvas, and goes all down to every UI elements under it */
+	mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
 	void CheckRenderMode();
-	/** chekc TopMostCanvas. search for it if not valid */
-	bool CheckTopMostCanvas()const;
+	/** chekc RootCanvas. search for it if not valid */
+	bool CheckRootCanvas()const;
 	/** nearest up parent Canvas */
-	UPROPERTY(Transient) ULGUICanvas* ParentCanvas = nullptr;
+	TWeakObjectPtr<ULGUICanvas> ParentCanvas = nullptr;
 	/** check parent Canvas. search for it if not valid */
 	bool CheckParentCanvas();
-	const TArray<ULGUICanvas*>& GetAllCanvasArray();
-	void SortCanvasOnOrder();
+	const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray();
 	/** sort drawcall */
 	void SortDrawcallRenderPriorityForRootCanvas();
 	/** @return	drawcall count */
@@ -212,7 +205,7 @@ protected:
 	
 	UMaterialInterface** GetMaterials();
 
-	UPROPERTY(Transient)mutable UUIItem* UIItem = nullptr;
+	mutable TWeakObjectPtr<UUIItem> UIItem = nullptr;
 	bool CheckUIItem()const;
 
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension;
@@ -236,8 +229,7 @@ protected:
 	/** This can avoid half-pixel render */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
-	/** Just store this default value to false, next updata will need it. */
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool overrideSortOrder = false;
 	/** Canvas with larger order will render on top of lower one */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -483,7 +475,7 @@ private:
 	void CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
 	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
 private:
-	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
+	void UpdateChildRecursive(TArray<TWeakObjectPtr<ULGUICanvas>>& collection, UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();
 	void SetParameterForStandard(int drawcallCount);
 	void SetParameterForRectClip(int drawcallCount);
