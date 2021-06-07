@@ -141,7 +141,7 @@ void UUIPostProcess::CreateGeometry()
 {
 	geometry->Clear();
 	OnCreateGeometry();
-	UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+	UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 	UpdateRegionVertex();
 }
 
@@ -173,7 +173,7 @@ void UUIPostProcess::UpdateGeometry(const bool& parentLayoutChanged)
 
 			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
 			{
-				UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}
 			UpdateRegionVertex();
 		}
@@ -183,13 +183,13 @@ COMPLETE:
 }
 void UUIPostProcess::OnCreateGeometry()
 {
-	UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas, this);
+	UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas.Get(), this);
 }
 void UUIPostProcess::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (InVertexPositionChanged)
 	{
-		UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas, this);
+		UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas.Get(), this);
 	}
 	if (InVertexUVChanged)
 	{

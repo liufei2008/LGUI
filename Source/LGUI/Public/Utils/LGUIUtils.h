@@ -105,7 +105,7 @@ public:
 		return nullptr;
 	}
 	//find root LGUICanvas
-	static void FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
+	static void FindRootCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
 	//find LGUICanvas component in parent, not include self
 	static void FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
 	static float INV_255;
@@ -116,7 +116,7 @@ public:
 #endif
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
 
-	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, class UPackage* InDefaultPackage = GetTransientPackage(), FName InDefaultName = NAME_None);
+	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, class UObject* InOuter = GetTransientPackage(), FName InDefaultName = NAME_None);
 private:
 	template<class T>
 	static void CollectComponentsInChildrenRecursive(AActor* InActor, TArray<T*>& InOutArray)

@@ -43,8 +43,8 @@ ULGUICanvas::ULGUICanvas()
 void ULGUICanvas::BeginPlay()
 {
 	Super::BeginPlay();
-	TopMostCanvas = nullptr;
-	CheckTopMostCanvas();
+	RootCanvas = nullptr;
+	CheckRootCanvas();
 	currentIsRenderToRenderTargetOrWorld = IsRenderToScreenSpaceOrRenderTarget();
 	ParentCanvas = nullptr;
 	CheckParentCanvas();
@@ -57,15 +57,6 @@ void ULGUICanvas::BeginPlay()
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;	
 	bShouldUpdateLayout = true;
-
-	if (this->IsDefaultSubobject())
-	{
-		ALGUIManagerActor::AddCanvas(this);
-	}
-	else
-	{
-		ALGUIManagerActor::SortCanvasOnOrder(this);
-	}
 }
 void ULGUICanvas::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -84,7 +75,7 @@ void ULGUICanvas::UpdateCanvas(float DeltaTime)
 		bCanTickUpdate = false;
 		if (CheckUIItem() && UIItem->IsUIActiveInHierarchy())
 		{
-			this->UpdateTopMostCanvas();
+			this->UpdateRootCanvas();
 		}
 	}
 }
@@ -92,25 +83,20 @@ void ULGUICanvas::UpdateCanvas(float DeltaTime)
 void ULGUICanvas::OnRegister()
 {
 	Super::OnRegister();
-#if WITH_EDITOR
 	if (auto world = this->GetWorld())
 	{
+#if WITH_EDITOR
 		if (!world->IsGameWorld())
 		{
 			ULGUIEditorManagerObject::AddCanvas(this);
 		}
 		else
+#endif
 		{
 			ALGUIManagerActor::AddCanvas(this);
 		}
 	}
-#else
-	if (!this->IsDefaultSubobject())//if is default subobject, then call AddCanvas in BeginPlay, because sortOrder value may not set if use PrefabSystem
-	{
-		ALGUIManagerActor::AddCanvas(this);
-	}
-#endif
-	OnUIHierarchyChanged();
+	//OnUIHierarchyChanged();
 	//tell UIItem
 	if (CheckUIItem())
 	{
@@ -133,9 +119,9 @@ void ULGUICanvas::OnUnregister()
 			ALGUIManagerActor::RemoveCanvas(this);
 		}
 	}
-	OnUIHierarchyChanged();
+	//OnUIHierarchyChanged();
 	//tell UIItem
-	if (IsValid(UIItem))
+	if (UIItem.IsValid())
 	{
 		UIItem->UIHierarchyChanged();
 	}
@@ -177,28 +163,32 @@ void ULGUICanvas::OnUIActiveStateChanged(bool active)
 	}
 }
 
-bool ULGUICanvas::CheckTopMostCanvas()const
+bool ULGUICanvas::CheckRootCanvas()const
 {
-	if (IsValid(TopMostCanvas))return true;
+	if (RootCanvas.IsValid())return true;
 	if (this->GetWorld() == nullptr)return false;
-	LGUIUtils::FindTopMostCanvas(this->GetOwner(), TopMostCanvas);
-	if (IsValid(TopMostCanvas))return true;
+	ULGUICanvas* ResultCanvas = nullptr;
+	LGUIUtils::FindRootCanvas(this->GetOwner(), ResultCanvas);
+	RootCanvas = ResultCanvas;
+	if (RootCanvas.IsValid()) return true;
 	return false;
 }
 bool ULGUICanvas::CheckParentCanvas()
 {
-	if (IsValid(ParentCanvas))return true;
+	if (ParentCanvas.IsValid())return true;
 	if (this->GetWorld() == nullptr)return false;
-	LGUIUtils::FindParentCanvas(this->GetOwner(), ParentCanvas);
-	if (IsValid(ParentCanvas))return true;
+	ULGUICanvas* ResultCanvas = nullptr;
+	LGUIUtils::FindParentCanvas(this->GetOwner(), ResultCanvas);
+	ParentCanvas = ResultCanvas;
+	if (ParentCanvas.IsValid())return true;
 	return false;
 }
 bool ULGUICanvas::CheckUIItem()const
 {
-	if (IsValid(UIItem))return true;
+	if (UIItem.IsValid())return true;
 	if (this->GetWorld() == nullptr)return false;
 	UIItem = Cast<UUIItem>(GetOwner()->GetRootComponent());
-	if (!IsValid(UIItem))
+	if (!UIItem.IsValid())
 	{
 		UE_LOG(LGUI, Error, TEXT("LGUICanvas component should only attach to a actor which have UIItem as RootComponent!"));
 		return false;
@@ -211,9 +201,9 @@ bool ULGUICanvas::CheckUIItem()const
 void ULGUICanvas::CheckRenderMode()
 {
 	bool oldIsRenderToRenderTargetOrWorld = currentIsRenderToRenderTargetOrWorld;
-	if (IsValid(TopMostCanvas))
+	if (RootCanvas.IsValid())
 	{
-		currentIsRenderToRenderTargetOrWorld = TopMostCanvas->IsRenderToScreenSpaceOrRenderTarget();
+		currentIsRenderToRenderTargetOrWorld = RootCanvas->IsRenderToScreenSpaceOrRenderTarget();
 	}
 
 	//if hierarchy changed from World/Hud to Hud/World, then we need to recreate all
@@ -242,9 +232,8 @@ void ULGUICanvas::CheckRenderMode()
 void ULGUICanvas::OnUIHierarchyChanged()
 {
 	//recheck top most canvas
-	TopMostCanvas = nullptr;
-	CheckTopMostCanvas();
-
+	RootCanvas = nullptr;
+	CheckRootCanvas();
 	CheckRenderMode();
 
 	ParentCanvas = nullptr;
@@ -252,37 +241,41 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	//rebuild drawcall
 	MarkRebuildAllDrawcall();
 }
+void ULGUICanvas::OnUIHierarchyIndexChanged()
+{
+	
+}
 bool ULGUICanvas::IsRenderToScreenSpace()
 {
-	if (IsValid(TopMostCanvas))
+	if (RootCanvas.IsValid())
 	{
-		return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay;
+		return RootCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay;
 	}
 	return false;
 }
 bool ULGUICanvas::IsRenderToScreenSpaceOrRenderTarget()
 {
-	if (IsValid(TopMostCanvas))
+	if (RootCanvas.IsValid())
 	{
-		return TopMostCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay
-			|| (TopMostCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(TopMostCanvas->renderTarget))
+		return RootCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay
+			|| (RootCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(RootCanvas->renderTarget))
 				;
 	}
 	return false;
 }
 bool ULGUICanvas::IsRenderToRenderTarget()
 {
-	if (IsValid(TopMostCanvas))
+	if (RootCanvas.IsValid())
 	{
-		return TopMostCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(TopMostCanvas->renderTarget);
+		return RootCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(RootCanvas->renderTarget);
 	}
 	return false;
 }
 bool ULGUICanvas::IsRenderToWorldSpace()
 {
-	if (IsValid(TopMostCanvas))
+	if (RootCanvas.IsValid())
 	{
-		return TopMostCanvas->renderMode == ELGUIRenderMode::WorldSpace;
+		return RootCanvas->renderMode == ELGUIRenderMode::WorldSpace;
 	}
 	return false;
 }
@@ -290,9 +283,9 @@ bool ULGUICanvas::IsRenderToWorldSpace()
 void ULGUICanvas::MarkCanvasUpdate()
 {
 	this->bCanTickUpdate = true;
-	if (CheckTopMostCanvas())
+	if (CheckRootCanvas())
 	{
-		TopMostCanvas->bCanTickUpdate = true;//incase this Canvas's parent have layout component, so mark TopMostCanvas to update
+		RootCanvas->bCanTickUpdate = true;//incase this Canvas's parent have layout component, so mark TopMostCanvas to update
 	}
 }
 void ULGUICanvas::MarkCanvasUpdateLayout()
@@ -314,9 +307,9 @@ void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 	{
 		UIItem->MarkAllDirtyRecursive();
 	}
-	if (CheckTopMostCanvas())
+	if (CheckRootCanvas())
 	{
-		TopMostCanvas->MarkCanvasUpdate();
+		RootCanvas->MarkCanvasUpdate();
 	}
 	CheckParentCanvas();
 }
@@ -368,7 +361,7 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 		}
 		else
 		{
-			if (IsValid(ParentCanvas))
+			if (ParentCanvas.IsValid())
 			{
 				return ParentCanvas->GetMaterials();
 			}
@@ -384,12 +377,12 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 
 ULGUICanvas* ULGUICanvas::GetRootCanvas() const
 { 
-	CheckTopMostCanvas(); 
-	return TopMostCanvas; 
+	CheckRootCanvas(); 
+	return RootCanvas.Get(); 
 }
 bool ULGUICanvas::IsRootCanvas()const
 {
-	return TopMostCanvas == this;
+	return RootCanvas == this;
 }
 
 #define SHOULD_LOG_RebuildAllDrawcall 0
@@ -504,7 +497,7 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetViewExte
 
 bool ULGUICanvas::GetIsUIActive()const
 {
-	if (IsValid(UIItem))
+	if (UIItem.IsValid())
 	{
 		return UIItem->IsUIActiveInHierarchy();
 	}
@@ -606,28 +599,27 @@ void ULGUICanvas::RemoveFromDrawcall(UUIRenderable* item)
 
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
-void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged)
+void ULGUICanvas::UpdateChildRecursive(TArray<TWeakObjectPtr<ULGUICanvas>>& collection, UUIItem* target, bool parentLayoutChanged)
 {
 	const auto& childrenList = target->GetAttachUIChildren();
 	for (auto uiChild : childrenList)
 	{
-		if (IsValid(uiChild))
+		if (IsValid(uiChild) && uiChild->IsUIActiveInHierarchy())
 		{
-			if (uiChild->IsCanvasUIItem() && IsValid(uiChild->GetRenderCanvas()) && uiChild->GetRenderCanvas() != this)
+			if (uiChild->IsCanvasUIItem() && uiChild->GetRenderCanvas() != nullptr && uiChild->GetRenderCanvas() != this)
 			{
-				uiChild->GetRenderCanvas()->UpdateCanvasLayout(parentLayoutChanged);
-				childrenCanvasArray.Add(uiChild->GetRenderCanvas());
+				uiChild->GetRenderCanvas()->UpdateCanvasLayout(collection, parentLayoutChanged);
 			}
 			else
 			{
 				auto layoutChanged = parentLayoutChanged;
 				uiChild->UpdateLayoutAndGeometry(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
-				UpdateChildRecursive(uiChild, layoutChanged);
+				UpdateChildRecursive(collection, uiChild, layoutChanged);
 			}
 		}
 	}
 }
-void ULGUICanvas::UpdateCanvasLayout(bool parentLayoutChanged)
+void ULGUICanvas::UpdateCanvasLayout(TArray<TWeakObjectPtr<ULGUICanvas>>& collection, bool parentLayoutChanged)
 {
 	cacheForThisUpdate_ShouldRebuildAllDrawcall = bShouldRebuildAllDrawcall;
 	cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout || parentLayoutChanged;
@@ -644,29 +636,30 @@ void ULGUICanvas::UpdateCanvasLayout(bool parentLayoutChanged)
 	bRectClipParameterChanged = false;
 	bTextureClipParameterChanged = false;
 
-	childrenCanvasArray.Reset();
+	collection.Add(this);
 	//update layout and geometry
 	UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
 
-	UpdateChildRecursive(UIItem, UIItem->cacheForThisUpdate_LayoutChanged);
+	UpdateChildRecursive(collection, UIItem.Get(), UIItem->cacheForThisUpdate_LayoutChanged);
 
 	if (bShouldRebuildAllDrawcall)
 	{
 		cacheForThisUpdate_ShouldRebuildAllDrawcall = true;
 	}
 }
-void ULGUICanvas::UpdateTopMostCanvas()
+void ULGUICanvas::UpdateRootCanvas()
 {
 	SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
-	if (this != TopMostCanvas) return;
+	if (this != RootCanvas) return;
 	//update first Canvas
-	if (TopMostCanvas == this)
+	if (RootCanvas == this)
 	{
 		UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
 	}
 
 	CacheUIItemToCanvasTransformMap.Reset();
-	UpdateCanvasLayout(false);
+	manageCanvasArray.Reset();
+	UpdateCanvasLayout(manageCanvasArray, false);
 	if (prevFrameNumber != GFrameNumber)//ignore if not at new render frame
 	{
 		prevFrameNumber = GFrameNumber;
@@ -682,8 +675,9 @@ void ULGUICanvas::UpdateTopMostCanvas()
 }
 void ULGUICanvas::UpdateCanvasGeometry()
 {
-	for (auto item : childrenCanvasArray)
+	for (auto item : manageCanvasArray)
 	{
+		if (item == this)continue;//skip self
 		if (item->autoManageDepth)
 		{
 			item->UpdateCanvasGeometryForAutoManageDepth();
@@ -766,7 +760,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						{
 							if (currentIsRenderToRenderTargetOrWorld)
 							{
-								uiMesh->SetSupportScreenSpace(true, TopMostCanvas->GetViewExtension());
+								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
 							}
 							uiMesh->SetSupportWorldSpace(true);
 						}
@@ -774,7 +768,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #endif
 						if (currentIsRenderToRenderTargetOrWorld)
 						{
-							uiMesh->SetSupportScreenSpace(true, TopMostCanvas->GetViewExtension());
+							uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
 							uiMesh->SetSupportWorldSpace(false);
 						}
 					}
@@ -798,7 +792,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				case EUIDrawcallType::PostProcess:
 				{
 					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessObject->GetRenderProxy();
-					uiPostProcessPrimitive.Pin()->AddToHudRenderer(TopMostCanvas->GetViewExtension());
+					uiPostProcessPrimitive.Pin()->AddToHudRenderer(RootCanvas->GetViewExtension());
 					uiPostProcessPrimitive.Pin()->SetVisibility(true);
 
 					UIDrawcallPrimitiveList[i].UIPostProcess = uiPostProcessPrimitive;
@@ -821,7 +815,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			}
 
 			//after geometry created, need to sort UIMesh render order
-			TopMostCanvas->bNeedToSortRenderPriority = true;
+			RootCanvas->bNeedToSortRenderPriority = true;
 		}
 		else//no need to rebuild all drawcall
 		{
@@ -870,13 +864,13 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			}
 			if (UIItem->cacheForThisUpdate_DepthChanged || needToSortRenderPriority)
 			{
-				TopMostCanvas->bNeedToSortRenderPriority = true;
+				RootCanvas->bNeedToSortRenderPriority = true;
 			}
 		}
 		//create or update material
 		UpdateAndApplyMaterial();
 	}
-	if (this == TopMostCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
+	if (this == RootCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
 	{
 		if (bNeedToSortRenderPriority)
 		{
@@ -891,8 +885,9 @@ void ULGUICanvas::UpdateCanvasGeometry()
 }
 void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 {
-	for (auto item : childrenCanvasArray)
+	for (auto item : manageCanvasArray)
 	{
+		if (item == this)continue;//skip self
 		if (item->autoManageDepth)
 		{
 			item->UpdateCanvasGeometryForAutoManageDepth();
@@ -976,7 +971,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 						{
 							if (currentIsRenderToRenderTargetOrWorld)
 							{
-								uiMesh->SetSupportScreenSpace(true, TopMostCanvas->GetViewExtension());
+								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
 							}
 							uiMesh->SetSupportWorldSpace(true);
 						}
@@ -984,7 +979,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 #endif
 						if (currentIsRenderToRenderTargetOrWorld)
 						{
-							uiMesh->SetSupportScreenSpace(true, TopMostCanvas->GetViewExtension());
+							uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
 							uiMesh->SetSupportWorldSpace(false);
 						}
 					}
@@ -1008,7 +1003,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 				case EUIDrawcallType::PostProcess:
 				{
 					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessObject->GetRenderProxy();
-					uiPostProcessPrimitive.Pin()->AddToHudRenderer(TopMostCanvas->GetViewExtension());
+					uiPostProcessPrimitive.Pin()->AddToHudRenderer(RootCanvas->GetViewExtension());
 					uiPostProcessPrimitive.Pin()->SetVisibility(true);
 
 					UIDrawcallPrimitiveList[i].UIPostProcess = uiPostProcessPrimitive;
@@ -1031,7 +1026,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 			}
 
 			//after geometry created, need to sort UIMesh render order
-			TopMostCanvas->bNeedToSortRenderPriority = true;
+			RootCanvas->bNeedToSortRenderPriority = true;
 		}
 		else//no need to rebuild all drawcall
 		{
@@ -1077,7 +1072,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 		//create or update material
 		UpdateAndApplyMaterial();
 	}
-	if (this == TopMostCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
+	if (this == RootCanvas)//child canvas is already updated before this, so after all update, the topmost canvas should start the sort function
 	{
 		if (bNeedToSortRenderPriority)
 		{
@@ -1090,7 +1085,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 	bRectRangeCalculated = false;
 	bNeedToSortRenderPriority = false;
 }
-const TArray<ULGUICanvas*>& ULGUICanvas::GetAllCanvasArray()
+const TArray<TWeakObjectPtr<ULGUICanvas>>& ULGUICanvas::GetAllCanvasArray()
 {
 	if (auto world = this->GetWorld())
 	{
@@ -1099,7 +1094,7 @@ const TArray<ULGUICanvas*>& ULGUICanvas::GetAllCanvasArray()
 		{
 			if (ULGUIEditorManagerObject::Instance != nullptr)
 			{
-				return ULGUIEditorManagerObject::Instance->GetAllCanvas();
+				return ULGUIEditorManagerObject::Instance->GetCanvasArray();
 			}
 		}
 		else
@@ -1107,7 +1102,7 @@ const TArray<ULGUICanvas*>& ULGUICanvas::GetAllCanvasArray()
 		{
 			if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
 			{
-				return LGUIManagerActor->GetAllCanvas();
+				return LGUIManagerActor->GetCanvasArray();
 			}
 		}
 	}
@@ -1115,82 +1110,56 @@ const TArray<ULGUICanvas*>& ULGUICanvas::GetAllCanvasArray()
 	{
 		UE_LOG(LGUI, Error, TEXT("[ULGUICanvas::GetAllCanvasArray]World is null, this is wierd"));
 	}
-	static TArray<ULGUICanvas*> staticArray;//just for the return value
+	static TArray<TWeakObjectPtr<ULGUICanvas>> staticArray;//just for the return value
 	return staticArray;
-}
-void ULGUICanvas::SortCanvasOnOrder()
-{
-	if (auto world = this->GetWorld())
-	{
-#if WITH_EDITOR
-		if (!world->IsGameWorld())
-		{
-			if (ULGUIEditorManagerObject::Instance != nullptr)
-			{
-				ULGUIEditorManagerObject::SortCanvasOnOrder();
-			}
-		}
-		else
-#endif
-		{
-			ALGUIManagerActor::SortCanvasOnOrder(this);
-		}
-	}
 }
 
 void ULGUICanvas::SortDrawcallRenderPriorityForRootCanvas()
 {
-	auto& allCanvasArray = GetAllCanvasArray();
-	if (allCanvasArray.Num() == 0)return;
+	//sort
+	manageCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
+		{
+			return A->GetSortOrder() < B->GetSortOrder();
+		});
 	//set drawcall render order
 	int32 startRenderPriority = this->sortOrder;
-	int32 prevSortOrder = allCanvasArray[0]->sortOrder - 1;//-1 is for first check of the loop
+	int32 prevSortOrder = this->manageCanvasArray[0]->sortOrder - 1;//-1 is for first check of the loop
 	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
-	auto thisCanvasRenderMode = this->GetActualRenderMode();
-	for (int i = 0; i < allCanvasArray.Num(); i++)
+	for (int i = 0; i < this->manageCanvasArray.Num(); i++)
 	{
-		auto canvasItem = allCanvasArray[i];
-		if (IsValid(canvasItem) && canvasItem->GetIsUIActive())
+		auto canvasItem = this->manageCanvasArray[i];
+		if (canvasItem.IsValid())
 		{
-			if (thisCanvasRenderMode == canvasItem->GetActualRenderMode())
+			auto canvasItemSortOrder = canvasItem->sortOrder;
+			if (canvasItemSortOrder != prevSortOrder)
 			{
-				//if (
-				//	this->childrenCanvasArray.Contains(canvasItem)//the sort function is just for root canvas, so make sure canvas item is child of this canvas
-				//	|| canvasItem == this
-				//	)//this is commeted because of unexpected result, @todo: make this work!
-				{
-					if (canvasItem->sortOrder != prevSortOrder)
-					{
-						prevSortOrder = canvasItem->sortOrder;
-						startRenderPriority += prevCanvasDrawcallCount;
-					}
-					int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
+				prevSortOrder = canvasItemSortOrder;
+				startRenderPriority += prevCanvasDrawcallCount;
+			}
+			int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
 
-					if (canvasItem->sortOrder == prevSortOrder)//if Canvas's depth is equal, then take the max drawcall count
-					{
-						if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
-						{
-							prevCanvasDrawcallCount = canvasItemDrawcallCount;
-						}
-					}
-					else
-					{
-						prevCanvasDrawcallCount = canvasItemDrawcallCount;
-					}
+			if (canvasItemSortOrder == prevSortOrder)//if Canvas's depth is equal, then take the max drawcall count
+			{
+				if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
+				{
+					prevCanvasDrawcallCount = canvasItemDrawcallCount;
 				}
+			}
+			else
+			{
+				prevCanvasDrawcallCount = canvasItemDrawcallCount;
 			}
 		}
 	}
 	if (currentIsRenderToRenderTargetOrWorld)
 	{
-		TopMostCanvas->GetViewExtension()->SortRenderPriority();
+		RootCanvas->GetViewExtension()->SortRenderPriority();
 	}
 }
 int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 {
 	for (int i = 0; i < UIDrawcallPrimitiveList.Num(); i++)
 	{
-		if (i >= UIDrawcallPrimitiveList.Num())break;
 		if (UIDrawcallPrimitiveList[i].UIDrawcallMesh.IsValid())
 		{
 			UIDrawcallPrimitiveList[i].UIDrawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
@@ -1448,7 +1417,7 @@ void ULGUICanvas::CalculateRectRange()
 			clipRectMin.Y = clipRectMin.Y - clipRectOffset.Bottom;
 			clipRectMax.Y = clipRectMax.Y + clipRectOffset.Top;
 			//calculate parent rect range
-			if (inheritRectClip && IsValid(ParentCanvas) && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)
+			if (inheritRectClip && ParentCanvas.IsValid() && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)
 			{
 				ParentCanvas->CalculateRectRange();
 				auto parentRectMin = FVector(ParentCanvas->clipRectMin, 0);
@@ -1550,40 +1519,39 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 		if (propagateToChildrenCanvas)
 		{
 			auto& allCanvasArray = GetAllCanvasArray();
-			for (ULGUICanvas* itemCanvas : allCanvasArray)
+			for (auto itemCanvas : allCanvasArray)
 			{
-				if (IsValid(itemCanvas))
+				if (itemCanvas.IsValid())
 				{
-					if (itemCanvas->UIItem->IsAttachedTo(this->UIItem))
+					if (itemCanvas->UIItem->IsAttachedTo(this->UIItem.Get()))
 					{
 						itemCanvas->sortOrder += diff;
 					}
 				}
 			}
 		}
-		SortCanvasOnOrder();
-		if (IsValid(TopMostCanvas))
+		if (RootCanvas.IsValid())
 		{
-			TopMostCanvas->SortDrawcallRenderPriorityForRootCanvas();
+			RootCanvas->SortDrawcallRenderPriorityForRootCanvas();
 		}
 	}
 }
 void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanvas)
 {
-	if (CheckTopMostCanvas())
+	if (CheckRootCanvas())
 	{
 		int32 maxSortOrder = 0;
 		auto& allCanvasArray = GetAllCanvasArray();
 		if (allCanvasArray.Num() == 0)return;
-		for (ULGUICanvas* itemCanvas : allCanvasArray)
+		for (auto itemCanvas : allCanvasArray)
 		{
-			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
+			if (itemCanvas.IsValid() && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
-				if (itemCanvas->TopMostCanvas == this->TopMostCanvas)//on the same hierarchy
+				if (itemCanvas->RootCanvas == this->RootCanvas)//on the same hierarchy
 				{
 					if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
 					{
-						if (this->childrenCanvasArray.Contains(itemCanvas))
+						if (this->manageCanvasArray.Contains(itemCanvas))
 						{
 							continue;
 						}
@@ -1601,20 +1569,20 @@ void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanva
 }
 void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas)
 {
-	if (CheckTopMostCanvas())
+	if (CheckRootCanvas())
 	{
 		auto& allCanvasArray = GetAllCanvasArray();
 		if (allCanvasArray.Num() == 0)return;
 		int32 minSortOrder = 0;
-		for (ULGUICanvas* itemCanvas : allCanvasArray)
+		for (auto itemCanvas : allCanvasArray)
 		{
-			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
+			if (itemCanvas.IsValid() && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
-				if (itemCanvas->TopMostCanvas == this->TopMostCanvas)//on the same hierarchy
+				if (itemCanvas->RootCanvas == this->RootCanvas)//on the same hierarchy
 				{
 					if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
 					{
-						if (this->childrenCanvasArray.Contains(itemCanvas))
+						if (this->manageCanvasArray.Contains(itemCanvas))
 						{
 							continue;
 						}
@@ -1632,18 +1600,18 @@ void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas
 }
 void ULGUICanvas::SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas)
 {
-	if (CheckTopMostCanvas())
+	if (CheckRootCanvas())
 	{
 		auto& allCanvasArray = GetAllCanvasArray();
 		if (allCanvasArray.Num() == 0)return;
 		int32 maxSortOrder = 0;
-		for (ULGUICanvas* itemCanvas : allCanvasArray)
+		for (auto itemCanvas : allCanvasArray)
 		{
-			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
+			if (itemCanvas.IsValid() && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
 				if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
 				{
-					if (this->childrenCanvasArray.Contains(itemCanvas))
+					if (this->manageCanvasArray.Contains(itemCanvas))
 					{
 						continue;
 					}
@@ -1660,18 +1628,18 @@ void ULGUICanvas::SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas)
 }
 void ULGUICanvas::SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas)
 {
-	if (CheckTopMostCanvas())
+	if (CheckRootCanvas())
 	{
 		auto& allCanvasArray = GetAllCanvasArray();
 		if (allCanvasArray.Num() == 0)return;
 		int32 minDepth = 0;
-		for (ULGUICanvas* itemCanvas : allCanvasArray)
+		for (auto itemCanvas : allCanvasArray)
 		{
-			if (IsValid(itemCanvas) && itemCanvas != this && itemCanvas->GetIsUIActive())
+			if (itemCanvas.IsValid() && itemCanvas != this && itemCanvas->GetIsUIActive())
 			{
 				if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
 				{
-					if (this->childrenCanvasArray.Contains(itemCanvas))
+					if (this->manageCanvasArray.Contains(itemCanvas))
 					{
 						continue;
 					}
@@ -1725,7 +1693,7 @@ float ULGUICanvas::GetActualDynamicPixelsPerUnit()const
 		}
 		else
 		{
-			if (IsValid(ParentCanvas))
+			if (ParentCanvas.IsValid())
 			{
 				return ParentCanvas->GetActualDynamicPixelsPerUnit();
 			}
@@ -1747,7 +1715,7 @@ ELGUICanvasClipType ULGUICanvas::GetActualClipType()const
 		}
 		else
 		{
-			if (IsValid(ParentCanvas))
+			if (ParentCanvas.IsValid())
 			{
 				return ParentCanvas->GetActualClipType();
 			}
@@ -1770,7 +1738,7 @@ int8 ULGUICanvas::GetActualAdditionalShaderChannelFlags()const
 		}
 		else
 		{
-			if (IsValid(ParentCanvas))
+			if (ParentCanvas.IsValid())
 			{
 				return ParentCanvas->GetActualAdditionalShaderChannelFlags();
 			}
@@ -2006,9 +1974,9 @@ ELGUIRenderMode ULGUICanvas::GetActualRenderMode()const
 	}
 	else
 	{
-		if (IsValid(TopMostCanvas))
+		if (RootCanvas.IsValid())
 		{
-			return TopMostCanvas->renderMode;
+			return RootCanvas->renderMode;
 		}
 	}
 	return ELGUIRenderMode::WorldSpace;
@@ -2022,18 +1990,18 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 	}
 	else
 	{
-		if (IsValid(TopMostCanvas))
+		if (RootCanvas.IsValid())
 		{
 			if (GetOverridePixelPerfect())
 			{
-				return TopMostCanvas->currentIsRenderToRenderTargetOrWorld
+				return RootCanvas->currentIsRenderToRenderTargetOrWorld
 					&& this->pixelPerfect;
 			}
 			else
 			{
-				if (IsValid(ParentCanvas))
+				if (ParentCanvas.IsValid())
 				{
-					return TopMostCanvas->currentIsRenderToRenderTargetOrWorld
+					return RootCanvas->currentIsRenderToRenderTargetOrWorld
 						&& ParentCanvas->GetActualPixelPerfect();
 				}
 			}
@@ -2055,7 +2023,7 @@ bool ULGUICanvas::GetActualOwnerNoSee()const
 		}
 		else
 		{
-			if (IsValid(ParentCanvas))
+			if (ParentCanvas.IsValid())
 			{
 				return ParentCanvas->GetActualOwnerNoSee();
 			}
@@ -2077,7 +2045,7 @@ bool ULGUICanvas::GetActualOnlyOwnerSee()const
 		}
 		else
 		{
-			if (IsValid(ParentCanvas))
+			if (ParentCanvas.IsValid())
 			{
 				return ParentCanvas->GetActualOnlyOwnerSee();
 			}
@@ -2112,9 +2080,9 @@ void ULGUICanvas::ApplyOwnerSeeRecursive()
 		}
 	}
 
-	for (auto item : childrenCanvasArray)
+	for (auto item : manageCanvasArray)
 	{
-		if (IsValid(item))
+		if (item.IsValid())
 		{
 			item->ApplyOwnerSeeRecursive();
 		}
@@ -2130,9 +2098,9 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 	}
 	else
 	{
-		if (IsValid(TopMostCanvas))
+		if (RootCanvas.IsValid())
 		{
-			return TopMostCanvas->renderTarget;
+			return RootCanvas->renderTarget;
 		}
 	}
 	return nullptr;

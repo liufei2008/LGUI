@@ -79,10 +79,10 @@ void LGUIUtils::CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildr
 		CollectChildrenActors(item, AllChildrenActors);
 	}
 }
-UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UPackage* InDefaultPackage, FName InDefaultName)
+UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObject* InOuter, FName InDefaultName)
 {
 	auto texture = NewObject<UTexture2D>(
-		InDefaultPackage,
+		InOuter,
 		InDefaultName,
 		RF_Transient
 		);
@@ -110,7 +110,7 @@ UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UPacka
 
 
 //find first Canvas in hierarchy
-void LGUIUtils::FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
+void LGUIUtils::FindRootCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 {
 	if (!IsValid(actor))return;
 	auto tempComp = GetComponentInParent<ULGUICanvas>(actor, false);
@@ -122,7 +122,7 @@ void LGUIUtils::FindTopMostCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 	auto parentActor = actor->GetAttachParentActor();
 	if (parentActor != nullptr)
 	{
-		FindTopMostCanvas(parentActor, resultCanvas);
+		FindRootCanvas(parentActor, resultCanvas);
 	}
 }
 

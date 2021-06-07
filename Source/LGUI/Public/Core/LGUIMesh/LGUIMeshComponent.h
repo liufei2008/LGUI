@@ -71,7 +71,7 @@ private:
 	friend class FLGUIMeshSceneProxy;
 
 protected:
-	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIHudRenderer;
+	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
 	bool IsSupportWorldSpace = true;
 };
 

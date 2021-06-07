@@ -50,7 +50,7 @@ void UUIBackgroundBlur::MarkAllDirtyRecursive()
 {
 	Super::MarkAllDirtyRecursive();
 
-	if (IsValid(this->RenderCanvas))
+	if (this->RenderCanvas.IsValid())
 	{
 		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
@@ -343,7 +343,7 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
 	if (!RenderProxy.IsValid())
 	{
 		RenderProxy = TSharedPtr<FUIBackgroundBlurRenderProxy>(new FUIBackgroundBlurRenderProxy());
-		if (IsValid(this->RenderCanvas))
+		if (this->RenderCanvas.IsValid())
 		{
 			inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
 			auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
