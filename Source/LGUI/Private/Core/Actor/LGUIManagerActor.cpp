@@ -59,6 +59,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			item->ConditionalRebuildLayout();
 		}
 	}
+	
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
@@ -66,6 +67,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			item->UpdateCanvas(DeltaTime);
 		}
 	}
+
 	if (EditorTick.IsBound())
 	{
 		EditorTick.Broadcast(DeltaTime);
@@ -170,13 +172,11 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 		{
 			if (itemCanvas.IsValid())
 			{
-				if (auto uiItem = itemCanvas->GetUIItem())
+				auto uiItem = itemCanvas->GetUIItem();
+				if (uiItem.IsValid())
 				{
-					if (IsValid(uiItem))
-					{
-						uiItem->MarkAllDirtyRecursive();
-						uiItem->EditorForceUpdateImmediately();
-					}
+					uiItem->MarkAllDirtyRecursive();
+					uiItem->EditorForceUpdateImmediately();
 				}
 			}
 		}
@@ -227,37 +227,26 @@ void ULGUIEditorManagerObject::RemoveUIItem(UUIItem* InItem)
 	}
 }
 
-void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
-{
-	if (InitCheck(InCanvas->GetWorld()))
-	{
-		auto& canvasArray = Instance->allCanvas;
-		canvasArray.AddUnique(InCanvas);
-		//sort on order
-		canvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
-			{
-				return A->GetSortOrder() < B->GetSortOrder();
-			});
-	}
-}
-void ULGUIEditorManagerObject::SortCanvasOnOrder()
-{
-	if (Instance != nullptr)
-	{
-		//sort on order
-		Instance->allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
-			{
-				return A->GetSortOrder() < B->GetSortOrder();
-			});
-	}
-}
 void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 {
 	if (Instance != nullptr)
 	{
-		Instance->allCanvas.RemoveSingle(InCanvas);
+		int32 foundIndex = Instance->allCanvas.IndexOfByKey(InCanvas);
+		if (foundIndex != INDEX_NONE)
+		{
+			Instance->allCanvas.RemoveAt(foundIndex);
+		}
 	}
 }
+void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
+{
+	if (GetInstance(InCanvas->GetWorld(), true))
+	{
+		auto& canvasArray = Instance->allCanvas;
+		canvasArray.AddUnique(InCanvas);
+	}
+}
+
 const TArray<UUIItem*>& ULGUIEditorManagerObject::GetAllUIItem()
 {
 	tempUIItemArray.Reset();
@@ -269,18 +258,6 @@ const TArray<UUIItem*>& ULGUIEditorManagerObject::GetAllUIItem()
 		}
 	}
 	return tempUIItemArray;
-}
-const TArray<ULGUICanvas*>& ULGUIEditorManagerObject::GetAllCanvas()
-{
-	tempCanvasArray.Reset();
-	for (auto item : allCanvas)
-	{
-		if (item.IsValid())
-		{
-			tempCanvasArray.Add(item.Get());
-		}
-	}
-	return tempCanvasArray;
 }
 
 void ULGUIEditorManagerObject::AddLayout(UUILayoutBase* InLayout)
@@ -734,7 +711,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
 	for (auto item : allCanvas)
 	{
-		if (IsValid(item))
+		if (item.IsValid())
 		{
 			item->UpdateCanvas(DeltaTime);
 		}
@@ -837,35 +814,24 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 	}
 }
 
+void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
+{
+	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
+	{
+		int32 foundIndex = Instance->allCanvas.IndexOfByKey(InCanvas);
+		if (foundIndex != INDEX_NONE)
+		{
+			Instance->allCanvas.RemoveAt(foundIndex);
+		}
+	}
+}
 void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 {
+	RemoveCanvas(InCanvas);
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
 	{
 		auto& canvasArray = Instance->allCanvas;
 		canvasArray.AddUnique(InCanvas);
-		//sort on depth
-		canvasArray.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
-		{
-			return A.GetSortOrder() < B.GetSortOrder();
-		});
-	}
-}
-void ALGUIManagerActor::SortCanvasOnOrder(ULGUICanvas* InCanvas)
-{
-	if (auto Instance = GetInstance(InCanvas->GetWorld()))
-	{
-		//sort on depth
-		Instance->allCanvas.Sort([](const ULGUICanvas& A, const ULGUICanvas& B)
-		{
-			return A.GetSortOrder() < B.GetSortOrder();
-		});
-	}
-}
-void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
-{
-	if (auto Instance = GetInstance(InCanvas->GetWorld()))
-	{
-		Instance->allCanvas.RemoveSingle(InCanvas);
 	}
 }
 

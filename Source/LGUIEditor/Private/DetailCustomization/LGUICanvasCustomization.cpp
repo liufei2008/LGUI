@@ -48,8 +48,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			TargetScriptArray[0]->MarkRebuildAllDrawcall();
 		}
 	}
-	TargetScriptArray[0]->TopMostCanvas = nullptr;
-	TargetScriptArray[0]->CheckTopMostCanvas();
 	
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
 	TArray<FName> needToHidePropertyNames;
@@ -286,19 +284,19 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 	{
 		if (auto world = TargetScript->GetWorld())
 		{
-			TArray<ULGUICanvas*> itemList;
+			TArray<TWeakObjectPtr<ULGUICanvas>> itemList;
 			if (world->IsGameWorld())
 			{
 				if (auto instance = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
 				{
-					itemList = instance->GetAllCanvas();
+					itemList = instance->GetCanvasArray();
 				}
 			}
 			else
 			{
 				if (ULGUIEditorManagerObject::Instance != nullptr)
 				{
-					itemList = ULGUIEditorManagerObject::Instance->GetAllCanvas();
+					itemList = ULGUIEditorManagerObject::Instance->GetCanvasArray();
 				}
 			}
 
@@ -327,7 +325,7 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 			int sortOrderCount = 0;
 			for (auto item : itemList)
 			{
-				if (!IsValid(item))continue;
+				if (!item.IsValid())continue;
 				if (item->GetWorld() != world)continue;
 				if (item == TargetScript)continue;
 				if (renderMode != item->GetActualRenderMode())continue;

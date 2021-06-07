@@ -87,14 +87,14 @@ void UUIRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		{
 			if (bIsSelfRender)//prev is not self renderer, then remove this from canvas
 			{
-				if (IsValid(RenderCanvas))
+				if (RenderCanvas.IsValid())
 				{
 					RenderCanvas->RemoveUIRenderable(this);
 				}
 			}
 			else//prev is self renderer, then ui mesh
 			{
-				if (IsValid(RenderCanvas))
+				if (RenderCanvas.IsValid())
 				{
 					RenderCanvas->AddUIRenderable(this);
 				}
@@ -264,14 +264,14 @@ void UUIRenderable::SetIsSelfRender(bool value)
 		bIsSelfRender = value;
 		if (bIsSelfRender)
 		{
-			if (IsValid(RenderCanvas))
+			if (RenderCanvas.IsValid())
 			{
 				RenderCanvas->RemoveUIRenderable(this);
 			}
 		}
 		else
 		{
-			if (IsValid(RenderCanvas))
+			if (RenderCanvas.IsValid())
 			{
 				RenderCanvas->AddUIRenderable(this);
 			}
@@ -429,7 +429,7 @@ void UUIRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
 			}
 			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
 			{
-				UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}
 		}
 	}
@@ -482,7 +482,7 @@ void UUIRenderable::UpdateGeometry_ImplementForAutoManageDepth(const bool& paren
 			}
 			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
 			{
-				UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}
 		}
 	}
@@ -550,7 +550,7 @@ void UUIRenderable::UpdateGeometry_ImplementForSelfRender(const bool& parentLayo
 			}
 			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
 			{
-				UIGeometry::TransformVerticesForSelfRender(RenderCanvas, geometry);
+				UIGeometry::TransformVerticesForSelfRender(RenderCanvas.Get(), geometry);
 				UpdateSelfRenderDrawcall();
 			}
 		}
@@ -578,11 +578,11 @@ void UUIRenderable::CreateGeometry()
 		ApplyGeometryModifier(true, true, true, true);
 		if (bIsSelfRender)
 		{
-			UIGeometry::TransformVerticesForSelfRender(RenderCanvas, geometry);
+			UIGeometry::TransformVerticesForSelfRender(RenderCanvas.Get(), geometry);
 		}
 		else
 		{
-			UIGeometry::TransformVertices(RenderCanvas, this, geometry);
+			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 		}
 	}
 	else
@@ -694,7 +694,7 @@ bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const 
 	{
 		if (!bRaycastTarget)return false;
 		if (!IsUIActiveInHierarchy())return false;
-		if (!IsValid(RenderCanvas))return false;
+		if (!RenderCanvas.IsValid())return false;
 		auto inverseTf = GetComponentTransform().Inverse();
 		auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 		auto localSpaceRayEnd = inverseTf.TransformPosition(End);

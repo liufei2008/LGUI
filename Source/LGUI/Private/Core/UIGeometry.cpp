@@ -2520,7 +2520,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				if (pixelPerfect)
 				{
 					inFontSize = inFontSize * rootCanvasScale;
-					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
+					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in extream large texture
 					overrideCharData = font->GetCharData(charCode, inFontSize);
 
 					charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
@@ -2533,7 +2533,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 				else if (dynamicPixelsPerUnit != 1.0f)
 				{
 					inFontSize = inFontSize * dynamicPixelsPerUnit;
-					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
+					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in extream large texture
 					overrideCharData = font->GetCharData(charCode, inFontSize);
 
 					charGeo.geoWidth = overrideCharData->width * oneDivideDynamicPixelsPerUnit;

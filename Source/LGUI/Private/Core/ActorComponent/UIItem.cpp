@@ -42,7 +42,7 @@ void UUIItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	cacheParentUIItem = nullptr;
+	ParentUIItem = nullptr;
 	GetParentAsUIItem();
 	CheckRenderCanvas();
 
@@ -133,9 +133,9 @@ void UUIItem::CallUIComponentsDimensionsChanged(bool positionChanged, bool sizeC
 	}
 
 	//call parent
-	if (IsValid(cacheParentUIItem))
+	if (ParentUIItem.IsValid())
 	{
-		cacheParentUIItem->CallUIComponentsChildDimensionsChanged(this, positionChanged, sizeChanged);
+		ParentUIItem->CallUIComponentsChildDimensionsChanged(this, positionChanged, sizeChanged);
 	}
 }
 void UUIItem::CallUIComponentsAttachmentChanged()
@@ -214,32 +214,25 @@ void UUIItem::OnChildHierarchyIndexChanged(UUIItem* child)
 {
 	CallUIComponentsChildHierarchyIndexChanged(child);
 }
-int32 UUIItem::GetHierarchyIndexWithAllParent()const
-{
-	int32 result = 0;
-	auto parent = this;
-	while (IsValid(parent))
-	{
-		result += parent->GetHierarchyIndex();
-		parent = parent->GetParentAsUIItem();
-	}
-	return result;
-}
 
 void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarchyIndex)
 {
 	if (this->flattenHierarchyIndex != parentFlattenHierarchyIndex)
 	{
 		this->flattenHierarchyIndex = parentFlattenHierarchyIndex;
-		if (IsValid(RenderCanvas))
+		if (RenderCanvas.IsValid())
 		{
 			if (RenderCanvas->GetAutoManageDepth())
 			{
 				RenderCanvas->MarkRebuildAllDrawcall();
 			}
 		}
+		if (this->isCanvasUIItem)
+		{
+			RenderCanvas->OnUIHierarchyIndexChanged();
+		}
 	}
-	for (auto child : cacheUIChildren)
+	for (auto child : UIChildren)
 	{
 		if (IsValid(child))
 		{
@@ -268,15 +261,15 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 { 
 	if (InInt != hierarchyIndex)
 	{
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
-			cacheParentUIItem->CheckCacheUIChildren();
+			ParentUIItem->CheckCacheUIChildren();
 			UUIItem* existChildOfIndex = nullptr;
-			for (int i = 0; i < cacheParentUIItem->cacheUIChildren.Num(); i++)
+			for (int i = 0; i < ParentUIItem->UIChildren.Num(); i++)
 			{
-				if (cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex == InInt)
+				if (ParentUIItem->UIChildren[i]->hierarchyIndex == InInt)
 				{
-					existChildOfIndex = cacheParentUIItem->cacheUIChildren[i];
+					existChildOfIndex = ParentUIItem->UIChildren[i];
 					break;
 				}
 			}
@@ -284,29 +277,29 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 			{
 				if (InInt < hierarchyIndex)//move to prev
 				{
-					for (int i = InInt; i < cacheParentUIItem->cacheUIChildren.Num(); i++)
+					for (int i = InInt; i < ParentUIItem->UIChildren.Num(); i++)
 					{
-						cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex++;
+						ParentUIItem->UIChildren[i]->hierarchyIndex++;
 					}
 				}
 				else//move to next
 				{
 					for (int i = 0; i <= InInt; i++)
 					{
-						cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex--;
+						ParentUIItem->UIChildren[i]->hierarchyIndex--;
 					}
 				}
 			}
 			hierarchyIndex = InInt;
-			cacheParentUIItem->SortCacheUIChildren();
-			for (int i = 0; i < cacheParentUIItem->cacheUIChildren.Num(); i++)
+			ParentUIItem->SortCacheUIChildren();
+			for (int i = 0; i < ParentUIItem->UIChildren.Num(); i++)
 			{
-				cacheParentUIItem->cacheUIChildren[i]->hierarchyIndex = i;
+				ParentUIItem->UIChildren[i]->hierarchyIndex = i;
 			}
 			//flatten hierarchy index
 			RecalculateFlattenHierarchyIndex();
 
-			cacheParentUIItem->OnChildHierarchyIndexChanged(this);
+			ParentUIItem->OnChildHierarchyIndexChanged(this);
 		}
 	}
 }
@@ -316,9 +309,9 @@ void UUIItem::SetAsFirstHierarchy()
 }
 void UUIItem::SetAsLastHierarchy()
 {
-	if (IsValid(cacheParentUIItem))
+	if (ParentUIItem.IsValid())
 	{
-		SetHierarchyIndex(cacheParentUIItem->GetAttachUIChildren().Num());
+		SetHierarchyIndex(ParentUIItem->GetAttachUIChildren().Num());
 	}
 }
 
@@ -328,7 +321,7 @@ UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChil
 	if (InName.FindChar('/', indexOfFirstSlash))
 	{
 		auto firstLayerName = InName.Left(indexOfFirstSlash);
-		for (auto childItem : this->cacheUIChildren)
+		for (auto childItem : this->UIChildren)
 		{
 			if (childItem->displayName.Equals(firstLayerName, ESearchCase::CaseSensitive))
 			{
@@ -345,7 +338,7 @@ UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChil
 		}
 		else
 		{
-			for (auto childItem : this->cacheUIChildren)
+			for (auto childItem : this->UIChildren)
 			{
 				if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
 				{
@@ -358,7 +351,7 @@ UUIItem* UUIItem::FindChildByDisplayName(const FString& InName, bool IncludeChil
 }
 UUIItem* UUIItem::FindChildByDisplayNameWithChildren_Internal(const FString& InName)const
 {
-	for (auto childItem : this->cacheUIChildren)
+	for (auto childItem : this->UIChildren)
 	{
 		if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
 		{
@@ -397,7 +390,7 @@ TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName, boo
 		}
 		else
 		{
-			for (auto childItem : this->cacheUIChildren)
+			for (auto childItem : this->UIChildren)
 			{
 				if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
 				{
@@ -410,7 +403,7 @@ TArray<UUIItem*> UUIItem::FindChildArrayByDisplayName(const FString& InName, boo
 }
 void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& InName, TArray<UUIItem*>& OutResultArray)const
 {
-	for (auto childItem : this->cacheUIChildren)
+	for (auto childItem : this->UIChildren)
 	{
 		if (childItem->displayName.Equals(InName, ESearchCase::CaseSensitive))
 		{
@@ -430,7 +423,7 @@ void UUIItem::MarkAllDirtyRecursive()
 	bLayoutChanged = true;
 	bSizeChanged = true;
 
-	for (auto uiChild : cacheUIChildren)
+	for (auto uiChild : UIChildren)
 	{
 		if (IsValid(uiChild))
 		{
@@ -602,9 +595,9 @@ void UUIItem::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETel
 }
 void UUIItem::CalculateAnchorFromTransform()
 {
-	if (IsValid(cacheParentUIItem))
+	if (ParentUIItem.IsValid())
 	{
-		const auto& parentWidget = cacheParentUIItem->widget;
+		const auto& parentWidget = ParentUIItem->widget;
 		if (widget.anchorHAlign != UIAnchorHorizontalAlign::None)
 		{
 			switch (widget.anchorHAlign)
@@ -688,9 +681,9 @@ void UUIItem::ApplyAnchorOffsetX(float newOffset)
 	if (FMath::Abs(widget.anchorOffsetX - newOffset) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetX = newOffset;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
-			const auto& parentWidget = cacheParentUIItem->widget;
+			const auto& parentWidget = ParentUIItem->widget;
 			widget.stretchLeft = (parentWidget.width - widget.width) * 0.5f + widget.anchorOffsetX;
 			widget.stretchRight = parentWidget.width - widget.width - widget.stretchLeft;
 		}
@@ -702,9 +695,9 @@ void UUIItem::ApplyAnchorOffsetY(float newOffset)
 	if (FMath::Abs(widget.anchorOffsetY - newOffset) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetY = newOffset;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
-			const auto& parentWidget = cacheParentUIItem->widget;
+			const auto& parentWidget = ParentUIItem->widget;
 			widget.stretchBottom = (parentWidget.height - widget.height) * 0.5f + widget.anchorOffsetY;
 			widget.stretchTop = parentWidget.height - widget.height - widget.stretchBottom;
 		}
@@ -717,7 +710,7 @@ void UUIItem::ApplyHorizontalStretch(FVector2D newStretch)
 	{
 		widget.stretchLeft = newStretch.X;
 		widget.stretchRight = newStretch.Y;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			bool sizeChanged = CalculateHorizontalAnchorAndSizeFromStretch();
 			MarkLayoutDirty(sizeChanged);
@@ -734,7 +727,7 @@ void UUIItem::ApplyVerticalStretch(FVector2D newStretch)
 	{
 		widget.stretchBottom = newStretch.X;
 		widget.stretchTop = newStretch.Y;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			bool sizeChanged = CalculateVerticalAnchorAndSizeFromStretch();
 			MarkLayoutDirty(sizeChanged);
@@ -764,7 +757,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 			{
 				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
 				{
-					childUIItem->hierarchyIndex = cacheUIChildren.Num();
+					childUIItem->hierarchyIndex = UIChildren.Num();
 				}
 			}
 			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))
@@ -782,7 +775,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 			{
 				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
 				{
-					childUIItem->hierarchyIndex = cacheUIChildren.Num();
+					childUIItem->hierarchyIndex = UIChildren.Num();
 				}
 			}
 			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(childUIItem->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
@@ -793,7 +786,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 				}
 			}
 		}
-		cacheUIChildren.Add(childUIItem);
+		UIChildren.Add(childUIItem);
 		SortCacheUIChildren();
 		//flatten hierarchy index
 		RecalculateFlattenHierarchyIndex();
@@ -819,10 +812,10 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 		MarkLayoutDirty(true);
 		//hierarchy index
 		CheckCacheUIChildren();
-		cacheUIChildren.Remove(childUIItem);
-		for (int i = 0; i < cacheUIChildren.Num(); i++)
+		UIChildren.Remove(childUIItem);
+		for (int i = 0; i < UIChildren.Num(); i++)
 		{
-			cacheUIChildren[i]->hierarchyIndex = i;
+			UIChildren[i]->hierarchyIndex = i;
 		}
 		//flatten hierarchy index
 		RecalculateFlattenHierarchyIndex();
@@ -901,18 +894,18 @@ void UUIItem::OnUnregister()
 
 void UUIItem::CheckCacheUIChildren()
 {
-	for (int i = cacheUIChildren.Num() - 1; i >= 0; i--)
+	for (int i = UIChildren.Num() - 1; i >= 0; i--)
 	{
-		if (!IsValid(cacheUIChildren[i]))
+		if (!IsValid(UIChildren[i]))
 		{
-			cacheUIChildren.RemoveAt(i);
+			UIChildren.RemoveAt(i);
 		}
 	}
 }
 
 void UUIItem::SortCacheUIChildren()
 {
-	cacheUIChildren.Sort([](const UUIItem& A, const UUIItem& B)
+	UIChildren.Sort([](const UUIItem& A, const UUIItem& B)
 	{
 		if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
 			return true;
@@ -928,10 +921,10 @@ void UUIItem::UIHierarchyChanged()
 	if (isCanvasUIItem)RenderCanvas->OnUIHierarchyChanged();
 	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
 	{
-		OnRenderCanvasChanged(oldRenderCanvas, RenderCanvas);
+		OnRenderCanvasChanged(oldRenderCanvas.Get(), RenderCanvas.Get());
 	}
 
-	for (auto uiItem : cacheUIChildren)
+	for (auto uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
@@ -941,9 +934,9 @@ void UUIItem::UIHierarchyChanged()
 
 	MarkLayoutDirty(true);
 
-	cacheParentUIItem = nullptr;
+	ParentUIItem = nullptr;
 	GetParentAsUIItem();
-	if (IsValid(cacheParentUIItem))
+	if (ParentUIItem.IsValid())
 	{
 		if (this->IsRegistered())//not registerd, could be load from level
 		{
@@ -1024,8 +1017,8 @@ void UUIItem::CalculateHorizontalStretchFromAnchorAndSize()
 	break;
 	}
 
-	widget.stretchLeft = widget.anchorOffsetX + cacheParentUIItem->widget.width * parentWidthMultiply - widget.width * widget.pivot.X;
-	widget.stretchRight = cacheParentUIItem->widget.width - widget.width - widget.stretchLeft;
+	widget.stretchLeft = widget.anchorOffsetX + ParentUIItem->widget.width * parentWidthMultiply - widget.width * widget.pivot.X;
+	widget.stretchRight = ParentUIItem->widget.width - widget.width - widget.stretchLeft;
 }
 void UUIItem::CalculateVerticalStretchFromAnchorAndSize()
 {
@@ -1049,13 +1042,13 @@ void UUIItem::CalculateVerticalStretchFromAnchorAndSize()
 	break;
 	}
 
-	widget.stretchBottom = widget.anchorOffsetY + cacheParentUIItem->widget.height * parentHeightMultiply - widget.height * widget.pivot.Y;
-	widget.stretchTop = cacheParentUIItem->widget.height - widget.height - widget.stretchBottom;
+	widget.stretchBottom = widget.anchorOffsetY + ParentUIItem->widget.height * parentHeightMultiply - widget.height * widget.pivot.Y;
+	widget.stretchTop = ParentUIItem->widget.height - widget.height - widget.stretchBottom;
 }
 bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 {
 	bool sizeChanged = false;
-	const auto& parentWidget = cacheParentUIItem->widget;
+	const auto& parentWidget = ParentUIItem->widget;
 	float width = parentWidget.width - widget.stretchLeft - widget.stretchRight;
 	if (FMath::Abs(widget.width - width) > KINDA_SMALL_NUMBER)
 	{
@@ -1090,7 +1083,7 @@ bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 {
 	bool sizeChanged = false;
-	const auto& parentWidget = cacheParentUIItem->widget;
+	const auto& parentWidget = ParentUIItem->widget;
 	float height = parentWidget.height - widget.stretchTop - widget.stretchBottom;
 	if (FMath::Abs(widget.height - height) > KINDA_SMALL_NUMBER)
 	{
@@ -1136,9 +1129,9 @@ void UUIItem::UnregisterLayoutChange(const FSimpleDelegate& InDelegate)
 
 bool UUIItem::CheckRenderCanvas()
 {
-	if (IsValid(RenderCanvas))return true;
+	if (RenderCanvas.IsValid())return true;
 	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner(), false);
-	if (IsValid(RenderCanvas))
+	if (RenderCanvas.IsValid())
 	{
 		isCanvasUIItem = (this->GetOwner() == RenderCanvas->GetOwner());
 		return true;
@@ -1173,9 +1166,9 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpda
 	//alpha
 	if (this->inheritAlpha)
 	{
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
-			auto tempAlpha = cacheParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[cacheParentUIItem->widget.color.A]);
+			auto tempAlpha = ParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[ParentUIItem->widget.color.A]);
 			this->SetCalculatedParentAlpha(tempAlpha);
 		}
 	}
@@ -1196,8 +1189,8 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpda
 
 void UUIItem::CalculateTransformFromAnchor()
 {
-	if (!IsValid(cacheParentUIItem))return;
-	const auto& parentWidget = cacheParentUIItem->widget;
+	if (!ParentUIItem.IsValid())return;
+	const auto& parentWidget = ParentUIItem->widget;
 	FVector resultLocation = this->GetRelativeLocation();
 	switch (widget.anchorHAlign)
 	{
@@ -1348,7 +1341,7 @@ void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 		widget.depth = depth;
 		if (propagateToChildren)
 		{
-			auto children = this->cacheUIChildren;
+			auto children = this->UIChildren;
 			for (int i = 0; i < children.Num(); i++)
 			{
 				auto child = children[i];
@@ -1383,7 +1376,7 @@ void UUIItem::SetWidth(float newWidth)
 	{
 		widget.width = newWidth;
 		WidthChanged();
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			CalculateHorizontalStretchFromAnchorAndSize();
 		}
@@ -1397,7 +1390,7 @@ void UUIItem::SetHeight(float newHeight)
 	{
 		widget.height = newHeight;
 		HeightChanged();
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			CalculateVerticalStretchFromAnchorAndSize();
 		}
@@ -1422,7 +1415,7 @@ void UUIItem::SetAnchorOffsetX(float newOffset)
 	if (FMath::Abs(widget.anchorOffsetX - newOffset) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetX = newOffset;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			CalculateHorizontalStretchFromAnchorAndSize();
 		}
@@ -1435,7 +1428,7 @@ void UUIItem::SetAnchorOffsetY(float newOffset)
 	if (FMath::Abs(widget.anchorOffsetY - newOffset) > KINDA_SMALL_NUMBER)
 	{
 		widget.anchorOffsetY = newOffset;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			CalculateVerticalStretchFromAnchorAndSize();
 		}
@@ -1450,7 +1443,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 	{
 		anyChange = true;
 		widget.anchorOffsetX = newOffset.X;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			CalculateHorizontalStretchFromAnchorAndSize();
 		}
@@ -1459,7 +1452,7 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 	{
 		anyChange = true;
 		widget.anchorOffsetY = newOffset.Y;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			CalculateVerticalStretchFromAnchorAndSize();
 		}
@@ -1496,16 +1489,16 @@ void UUIItem::SetUIParent(UUIItem* inParent, bool keepWorldTransform)
 }
 UUIItem* UUIItem::GetAttachUIChild(int index)const
 {
-	if (index < 0 || index >= cacheUIChildren.Num())
+	if (index < 0 || index >= UIChildren.Num())
 	{
-		UE_LOG(LGUI, Error, TEXT("[UUIItem::GetAttachUIChild]index:%d out of range[%d, %d]"), index, 0, cacheUIChildren.Num() - 1);
+		UE_LOG(LGUI, Error, TEXT("[UUIItem::GetAttachUIChild]index:%d out of range[%d, %d]"), index, 0, UIChildren.Num() - 1);
 		return nullptr;
 	}
-	return cacheUIChildren[index];
+	return UIChildren[index];
 }
 ULGUICanvas* UUIItem::GetRootCanvas()const
 {
-	if (IsValid(RenderCanvas))
+	if (RenderCanvas.IsValid())
 	{
 		return RenderCanvas->GetRootCanvas();
 	}
@@ -1524,7 +1517,7 @@ void UUIItem::SetStretchLeft(float newLeft)
 	if (FMath::Abs(widget.stretchLeft - newLeft) > KINDA_SMALL_NUMBER)
 	{
 		widget.stretchLeft = newLeft;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			bool sizeChanged = CalculateHorizontalAnchorAndSizeFromStretch();
 			MarkLayoutDirty(sizeChanged);
@@ -1541,7 +1534,7 @@ void UUIItem::SetStretchRight(float newRight)
 	if (FMath::Abs(widget.stretchRight - newRight) > KINDA_SMALL_NUMBER)
 	{
 		widget.stretchRight = newRight;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			bool sizeChanged = CalculateHorizontalAnchorAndSizeFromStretch();
 			MarkLayoutDirty(sizeChanged);
@@ -1559,7 +1552,7 @@ void UUIItem::SetHorizontalStretch(FVector2D newStretch)
 	{
 		widget.stretchLeft = newStretch.X;
 		widget.stretchRight = newStretch.Y;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			bool sizeChanged = CalculateHorizontalAnchorAndSizeFromStretch();
 			MarkLayoutDirty(sizeChanged);
@@ -1576,7 +1569,7 @@ void UUIItem::SetStretchTop(float newTop)
 	if (FMath::Abs(widget.stretchTop - newTop) > KINDA_SMALL_NUMBER)
 	{
 		widget.stretchTop = newTop;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			bool sizeChanged = CalculateVerticalAnchorAndSizeFromStretch();
 			MarkLayoutDirty(sizeChanged);
@@ -1593,7 +1586,7 @@ void UUIItem::SetStretchBottom(float newBottom)
 	if (FMath::Abs(widget.stretchBottom - newBottom) > KINDA_SMALL_NUMBER)
 	{
 		widget.stretchBottom = newBottom;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			bool sizeChanged = CalculateVerticalAnchorAndSizeFromStretch();
 			MarkLayoutDirty(sizeChanged);
@@ -1611,7 +1604,7 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 	{
 		widget.stretchBottom = newStretch.X;
 		widget.stretchTop = newStretch.Y;
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			bool sizeChanged = CalculateVerticalAnchorAndSizeFromStretch();
 			MarkLayoutDirty(sizeChanged);
@@ -1638,20 +1631,20 @@ void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align)
 {
 	if (widget.anchorHAlign != align)
 	{
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			//first, convert from other anchor to left
 			switch (widget.anchorHAlign)
 			{
 			case UIAnchorHorizontalAlign::Center:
 			{
-				float halfWidth = cacheParentUIItem->widget.width * 0.5f;
+				float halfWidth = ParentUIItem->widget.width * 0.5f;
 				widget.anchorOffsetX += halfWidth;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Right:
 			{
-				widget.anchorOffsetX += cacheParentUIItem->widget.width;
+				widget.anchorOffsetX += ParentUIItem->widget.width;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Stretch:
@@ -1665,19 +1658,19 @@ void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align)
 			{
 			case UIAnchorHorizontalAlign::Center:
 			{
-				float halfWidth = cacheParentUIItem->widget.width * 0.5f;
+				float halfWidth = ParentUIItem->widget.width * 0.5f;
 				widget.anchorOffsetX -= halfWidth;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Right:
 			{
-				widget.anchorOffsetX -= cacheParentUIItem->widget.width;
+				widget.anchorOffsetX -= ParentUIItem->widget.width;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Stretch:
 			{
 				widget.stretchLeft = widget.anchorOffsetX - widget.width * widget.pivot.X;
-				widget.stretchRight = cacheParentUIItem->widget.width - widget.width - widget.stretchLeft;
+				widget.stretchRight = ParentUIItem->widget.width - widget.width - widget.stretchLeft;
 			}
 			break;
 			}
@@ -1695,20 +1688,20 @@ void UUIItem::SetAnchorVAlign(UIAnchorVerticalAlign align)
 {
 	if (widget.anchorVAlign != align)
 	{
-		if (IsValid(cacheParentUIItem))
+		if (ParentUIItem.IsValid())
 		{
 			//first, convert from other anchor to bottom
 			switch (widget.anchorVAlign)
 			{
 			case UIAnchorVerticalAlign::Middle:
 			{
-				float halfHeight = cacheParentUIItem->widget.height * 0.5f;
+				float halfHeight = ParentUIItem->widget.height * 0.5f;
 				widget.anchorOffsetY += halfHeight;
 			}
 			break;
 			case UIAnchorVerticalAlign::Top:
 			{
-				widget.anchorOffsetY += cacheParentUIItem->widget.height;
+				widget.anchorOffsetY += ParentUIItem->widget.height;
 			}
 			break;
 			case UIAnchorVerticalAlign::Stretch:
@@ -1722,19 +1715,19 @@ void UUIItem::SetAnchorVAlign(UIAnchorVerticalAlign align)
 			{
 			case UIAnchorVerticalAlign::Middle:
 			{
-				float halfHeight = cacheParentUIItem->widget.height * 0.5f;
+				float halfHeight = ParentUIItem->widget.height * 0.5f;
 				widget.anchorOffsetY -= halfHeight;
 			}
 			break;
 			case UIAnchorVerticalAlign::Top:
 			{
-				widget.anchorOffsetY -= cacheParentUIItem->widget.height;
+				widget.anchorOffsetY -= ParentUIItem->widget.height;
 			}
 			break;
 			case UIAnchorVerticalAlign::Stretch:
 			{
 				widget.stretchBottom = widget.anchorOffsetY - widget.height * widget.pivot.Y;
-				widget.stretchTop = cacheParentUIItem->widget.height - widget.height - widget.stretchBottom;
+				widget.stretchTop = ParentUIItem->widget.height - widget.height - widget.stretchBottom;
 			}
 			break;
 			}
@@ -1794,14 +1787,14 @@ float UUIItem::GetLocalSpaceTop()const
 }
 UUIItem* UUIItem::GetParentAsUIItem()const
 {
-	if (!IsValid(cacheParentUIItem))
+	if (!ParentUIItem.IsValid())
 	{
 		if (auto parent = GetAttachParent())
 		{
-			cacheParentUIItem = Cast<UUIItem>(parent);
+			ParentUIItem = Cast<UUIItem>(parent);
 		}
 	}
-	return cacheParentUIItem;
+	return ParentUIItem.Get();
 }
 
 void UUIItem::MarkLayoutDirty(bool sizeChange)
@@ -1847,7 +1840,7 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 {
 	if (!bRaycastTarget)return false;
 	if (!IsUIActiveInHierarchy())return false;
-	if (!IsValid(RenderCanvas))return false;
+	if (!RenderCanvas.IsValid())return false;
 	auto inverseTf = GetComponentTransform().Inverse();
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
@@ -1874,19 +1867,28 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 	return false;
 }
 
+ULGUICanvas* UUIItem::GetRenderCanvas()const
+{
+	if (RenderCanvas.IsValid())
+	{
+		return RenderCanvas.Get();
+	}
+	return nullptr;
+}
+
 bool UUIItem::IsScreenSpaceOverlayUI()const
 {
-	if (!IsValid(RenderCanvas))return false;
+	if (!RenderCanvas.IsValid())return false;
 	return RenderCanvas->IsRenderToScreenSpace();
 }
 bool UUIItem::IsRenderTargetUI()const
 {
-	if (!IsValid(RenderCanvas))return false;
+	if (!RenderCanvas.IsValid())return false;
 	return RenderCanvas->IsRenderToRenderTarget();
 }
 bool UUIItem::IsWorldSpaceUI()const
 {
-	if (!IsValid(RenderCanvas))return false;
+	if (!RenderCanvas.IsValid())return false;
 	return RenderCanvas->IsRenderToWorldSpace();
 }
 
@@ -1935,7 +1937,7 @@ bool UUIItem::IsGroupAllowInteraction()const
 }
 void UUIItem::SetChildInteractionGroupStateChangeRecursive(bool InParentInteractable)
 {
-	for (auto uiChild : cacheUIChildren)
+	for (auto uiChild : UIChildren)
 	{
 		if (IsValid(uiChild))
 		{
@@ -1983,7 +1985,7 @@ void UUIItem::OnChildActiveStateChanged(UUIItem* child)
 
 void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
 {
-	for (auto uiChild : cacheUIChildren)
+	for (auto uiChild : UIChildren)
 	{
 		if (IsValid(uiChild))
 		{		//state is changed
@@ -2020,9 +2022,9 @@ void UUIItem::SetUIActive(bool active)
 			//affect children
 			SetChildUIActiveRecursive(bIsUIActive);
 			//callback for parent
-			if (IsValid(cacheParentUIItem))
+			if (ParentUIItem.IsValid())
 			{
-				cacheParentUIItem->OnChildActiveStateChanged(this);
+				ParentUIItem->OnChildActiveStateChanged(this);
 			}
 		}
 		else
@@ -2127,7 +2129,7 @@ FPrimitiveSceneProxy* UUIItemEditorHelperComp::CreateSceneProxy()
 			relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
 			auto worldLocation = worldTransform.TransformPosition(relativeOffset);
 			//calculate world location
-			if (IsValid(Component->GetParentAsUIItem()))
+			if (Component->GetParentAsUIItem() != nullptr)
 			{
 				FVector relativeLocation = Component->GetRelativeLocation();
 				const auto& parentWidget = Component->GetParentAsUIItem()->GetWidget();
