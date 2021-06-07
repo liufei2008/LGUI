@@ -127,9 +127,11 @@ void ALTweenActor::OnTick(float DeltaTime)
 	for (int32 i = 0; i < count; i++)
 	{
 		auto tweener = tweenerList[i];
-		if (!tweener.IsValid())
+		if (!IsValid(tweener))
 		{
 			tweenerList.RemoveAt(i);
+			i--;
+			count--;
 		}
 		else
 		{
@@ -163,7 +165,7 @@ void ALTweenActor::KillAllTweens(bool callComplete)
 {
 	for (auto item : tweenerList)
 	{
-		if (item.IsValid())
+		if (IsValid(item))
 		{
 			item->Kill(callComplete);
 		}
