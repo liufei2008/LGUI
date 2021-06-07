@@ -108,11 +108,11 @@ public:
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
 	static ELGUIScreenSpaceUIAntiAliasing GetAntiAliasingSampleCount();
 	static float GetAutoManageDepthThreshold();
-private:
 	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
 	{
 		return FMath::Pow(2, (int32)InType) * 256;
 	}
+private:
 	FORCEINLINE static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);
 };
 

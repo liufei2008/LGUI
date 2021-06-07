@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "RHI.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
+#include "Core/LGUISettings.h"
 #include "LGUIFontData.generated.h"
 
 
@@ -106,6 +107,8 @@ public:
 	/** Texture of this font */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 		UTexture2D* texture;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		ELGUIAtlasTextureSizeType initialSize = ELGUIAtlasTextureSizeType::SIZE_256x256;
 
 	void InitFreeType();
 	void DeinitFreeType();
@@ -137,6 +140,7 @@ private:
 
 	/** for rect packing */
 	rbp::MaxRectsBinPack binPack;
+	TArray<rbp::Rect> freeRects;
 	/** current texture size */
 	int32 textureSize;
 	/** 1.0 / textureSize */

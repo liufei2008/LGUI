@@ -142,11 +142,17 @@ void ULGUIFontData::InitFreeType()
 		else
 		{
 			texture = nullptr;
+
 			textureSize = 256;//default font texture size is 256
-			fullTextureSizeReciprocal = 1.0f / textureSize;
-			CreateFontTexture(0, textureSize);
-			charDataMap.Empty();
 			binPack = rbp::MaxRectsBinPack(textureSize, textureSize);
+			if (initialSize != ELGUIAtlasTextureSizeType::SIZE_256x256)
+			{
+				textureSize = ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize);
+				binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects);
+			}
+			CreateFontTexture(0, textureSize);
+			fullTextureSizeReciprocal = 1.0f / textureSize;
+			charDataMap.Empty();
 		}
 	}
 }
@@ -173,6 +179,8 @@ void ULGUIFontData::DeinitFreeType()
 			UE_LOG(LGUI, Log, TEXT("[DeintFreeType]success, font:%s"), *(this->GetName()));
 		}
 	}
+	freeRects.Empty();
+	binPack = rbp::MaxRectsBinPack(256, 256);
 }
 void ULGUIFontData::AddUIText(UUIText* InText)
 {
@@ -241,29 +249,40 @@ PACK_AND_INSERT:
 		}
 		else
 		{
-			newTextureSize = textureSize + textureSize;
-			UE_LOG(LGUI, Log, TEXT("[PushCharIntoFont]Expend font texture size to:%d"), newTextureSize);
-			//expend by multiply 2
-			calcBinpack.ExpendSizeForText(newTextureSize, newTextureSize);
-			CreateFontTexture(textureSize, newTextureSize);
-			textureSize = newTextureSize;
-			fullTextureSizeReciprocal = 1.0f / textureSize;
-
-			//scale down uv of prev chars
-			for (auto& charDataItem : charDataMap)
+			if (freeRects.Num() > 0)
 			{
-				auto& mapValue = charDataItem.Value;
-				mapValue.uv0X *= 0.5f;
-				mapValue.uv0Y *= 0.5f;
-				mapValue.uv3X *= 0.5f;
-				mapValue.uv3Y *= 0.5f;
+				calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
+				freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
 			}
-			//tell UIText to scale down uv
-			for (auto textItem : renderTextArray)
+			else
 			{
-				if (textItem.IsValid())
+				newTextureSize = textureSize + textureSize;
+				UE_LOG(LGUI, Log, TEXT("[PushCharIntoFont]Expend font texture size to:%d"), newTextureSize);
+				//expend by multiply 2
+				calcBinpack.PrepareExpendSizeForText(newTextureSize, newTextureSize, freeRects);
+				calcBinpack.DoExpendSizeForText(freeRects[freeRects.Num() - 1]);
+				freeRects.RemoveAt(freeRects.Num() - 1, 1, false);
+
+				CreateFontTexture(textureSize, newTextureSize);
+				textureSize = newTextureSize;
+				fullTextureSizeReciprocal = 1.0f / textureSize;
+
+				//scale down uv of prev chars
+				for (auto& charDataItem : charDataMap)
 				{
-					textItem->ApplyFontTextureScaleUp();
+					auto& mapValue = charDataItem.Value;
+					mapValue.uv0X *= 0.5f;
+					mapValue.uv0Y *= 0.5f;
+					mapValue.uv3X *= 0.5f;
+					mapValue.uv3Y *= 0.5f;
+				}
+				//tell UIText to scale down uv
+				for (auto textItem : renderTextArray)
+				{
+					if (textItem.IsValid())
+					{
+						textItem->ApplyFontTextureScaleUp();
+					}
 				}
 			}
 		}
@@ -361,19 +380,18 @@ void ULGUIFontData::UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureR
 			uint32 SrcBpp;
 			uint8* SrcData;
 		};
-
 		FUpdateTextureRegionsData* RegionData = new FUpdateTextureRegionsData;
 
-		RegionData->Texture2DResource = (FTexture2DResource*)Texture->Resource;
+		auto Texture2DRes = (FTexture2DResource*)Texture->Resource;
 		RegionData->Region = Region;
 		RegionData->SrcPitch = SrcPitch;
 		RegionData->SrcBpp = SrcBpp;
 		RegionData->SrcData = SrcData;
 		ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateFontTextureRegionData)(
-			[RegionData](FRHICommandListImmediate& RHICmdList)
+			[RegionData, Texture2DRes](FRHICommandListImmediate& RHICmdList)
 			{
 				RHICmdList.UpdateTexture2D(
-					RegionData->Texture2DResource->GetTexture2DRHI(),
+					Texture2DRes->GetTexture2DRHI(),
 					0,
 					*RegionData->Region,
 					RegionData->SrcPitch,
@@ -403,21 +421,23 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	if (IsValid(oldTexture) && oldTextureSize > 0)
 	{
 		auto newTexture = texture;
-		if (oldTexture->Resource != nullptr && newTexture->Resource != nullptr)
+		auto oldTextureRes = (FTexture2DResource*)oldTexture->Resource;
+		auto newTextureRes = (FTexture2DResource*)newTexture->Resource;
+		if (oldTextureRes != nullptr && newTextureRes != nullptr)
 		{
 			ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateAndCopyFontTexture)(
-				[oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
+				[oldTextureRes, newTextureRes, oldTextureSize](FRHICommandListImmediate& RHICmdList)
 			{
 				//copy old texture pixels
-				if (oldTextureSize != 0 && oldTexture != nullptr)
+				if (oldTextureSize != 0)
 				{
 					FRHICopyTextureInfo CopyInfo;
 					CopyInfo.SourcePosition = FIntVector(0, 0, 0);
 					CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
 					CopyInfo.DestPosition = FIntVector(0, 0, 0);
 					RHICmdList.CopyTexture(
-						((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
-						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
+						oldTextureRes->GetTexture2DRHI(),
+						newTextureRes->GetTexture2DRHI(),
 						CopyInfo
 					);
 					RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);//if remove this line, then texture will go wrong if expand texture size and write font pixels, looks like copy-pixels hanppens after write-font-pixels.
