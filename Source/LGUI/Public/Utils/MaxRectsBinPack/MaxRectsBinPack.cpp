@@ -58,9 +58,9 @@ namespace rbp {
 		n.width = width;
 		n.height = height;
 
-		usedRectangles.Empty();
+		usedRectangles.Reset();
 
-		freeRectangles.Empty();
+		freeRectangles.Reset();
 		freeRectangles.Add(n);
 	}
 
@@ -152,44 +152,39 @@ namespace rbp {
 		binWidth = newWidth;
 		binHeight = newHeight;
 	}
-	void MaxRectsBinPack::ExpendSizeForText(int newWidth, int newHeight)
+	void MaxRectsBinPack::PrepareExpendSizeForText(int newWidth, int newHeight, TArray<Rect>& outFreeRectangles)
 	{
 		if (binWidth > newWidth || binHeight > newHeight)//new size is smaller
 			return;
 
+		freeRectangles.Reset();
+		usedRectangles.Reset();
 #if 0
-		//for freeRectangles, add extended size as new rects, just two new rects, one is long horizontal, another is square
-		freeRectangles.Empty();
-		usedRectangles.Empty();
-		int extraWidth = newWidth - binWidth;
-		int extraHeight = newHeight - binHeight;
-		Rect longRect;
-		longRect.width = newWidth;
-		longRect.height = extraHeight;
-		longRect.x = 0;
-		longRect.y = binHeight;
-		freeRectangles.Add(longRect);
-		Rect squareRect;
-		squareRect.width = extraWidth;
-		squareRect.height = binHeight;
-		squareRect.x = binWidth;
-		squareRect.y = 0;
-		freeRectangles.Add(squareRect);
-#else
-		freeRectangles.Empty();
-		usedRectangles.Empty();
-		for (int x = 0; x < binWidth; x += 256)
+		for (int x = newWidth - 256; x >= binWidth; x -= 256)
 		{
-			for (int y = binHeight; y < newHeight; y += 256)
+			for (int y = newHeight - 256; y >= 0; y -= 256)
 			{
 				Rect item;
 				item.width = 256;
 				item.height = 256;
 				item.x = x;
 				item.y = y;
-				freeRectangles.Add(item);
+				outFreeRectangles.Add(item);
 			}
 		}
+		for (int x = binWidth - 256; x >= 0; x -= 256)
+		{
+			for (int y = newHeight - 256; y >= binHeight; y -= 256)
+			{
+				Rect item;
+				item.width = 256;
+				item.height = 256;
+				item.x = x;
+				item.y = y;
+				outFreeRectangles.Add(item);
+			}
+		}
+#else
 		for (int x = binWidth; x < newWidth; x += 256)
 		{
 			for (int y = 0; y < newHeight; y += 256)
@@ -199,14 +194,31 @@ namespace rbp {
 				item.height = 256;
 				item.x = x;
 				item.y = y;
-				freeRectangles.Add(item);
+				outFreeRectangles.Add(item);
+			}
+		}
+		for (int x = 0; x < binWidth; x += 256)
+		{
+			for (int y = binHeight; y < newHeight; y += 256)
+			{
+				Rect item;
+				item.width = 256;
+				item.height = 256;
+				item.x = x;
+				item.y = y;
+				outFreeRectangles.Add(item);
 			}
 		}
 #endif
 
-
 		binWidth = newWidth;
 		binHeight = newHeight;
+	}
+	void MaxRectsBinPack::DoExpendSizeForText(Rect rect)
+	{
+		usedRectangles.Reset();
+		freeRectangles.Reset();
+		freeRectangles.Add(rect);
 	}
 #define MAXINT32       2147483647
 	Rect MaxRectsBinPack::Insert(int width, int height, FreeRectChoiceHeuristic method)

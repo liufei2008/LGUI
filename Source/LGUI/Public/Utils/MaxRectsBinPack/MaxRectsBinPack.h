@@ -57,7 +57,8 @@ namespace rbp {
 		/// add by lexliu to expend the binpack size
 		void ExpendSize(int newWidth, int newHeight);
 		/// add by lexliu to expend the binpack size, for uitext, prevent too many small rects
-		void ExpendSizeForText(int newWidth, int newHeight);
+		void PrepareExpendSizeForText(int newWidth, int newHeight, TArray<Rect>& outFreeRectangles);
+		void DoExpendSizeForText(Rect rect);
 
 		/// Specifies the different heuristic rules that can be used when deciding where to place a new rectangle.
 		enum FreeRectChoiceHeuristic
