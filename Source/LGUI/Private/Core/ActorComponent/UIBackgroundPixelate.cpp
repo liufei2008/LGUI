@@ -44,7 +44,7 @@ void UUIBackgroundPixelate::MarkAllDirtyRecursive()
 {
 	Super::MarkAllDirtyRecursive();
 
-	if (IsValid(this->RenderCanvas))
+	if (this->RenderCanvas.IsValid())
 	{
 		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
@@ -165,7 +165,7 @@ TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
 	if (!RenderProxy.IsValid())
 	{
 		RenderProxy = TSharedPtr<FUIBackgroundPixelateRenderProxy>(new FUIBackgroundPixelateRenderProxy());
-		if (IsValid(this->RenderCanvas))
+		if (this->RenderCanvas.IsValid())
 		{
 			auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 			auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();

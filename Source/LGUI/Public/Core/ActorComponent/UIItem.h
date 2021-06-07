@@ -127,9 +127,9 @@ protected:
 	/** parent's final alpha value, multiplyed by parent's parent's parent's... alpha value */
 	float calculatedParentAlpha = 1.0f;
 	/** parent in hierarchy */
-	UPROPERTY(Transient) mutable UUIItem* cacheParentUIItem = nullptr;
+	mutable TWeakObjectPtr<UUIItem> ParentUIItem = nullptr;
 	/** UI children array, sorted by hierarchy index */
-	UPROPERTY(Transient) TArray<UUIItem*> cacheUIChildren;
+	UPROPERTY(Transient) TArray<UUIItem*> UIChildren;
 	/** check valid, incase unnormally deleting actor, like undo */
 	void CheckCacheUIChildren();
 	void SortCacheUIChildren();
@@ -265,7 +265,7 @@ public:
 		UUIItem* GetParentAsUIItem()const;
 	/** get UI children array, sorted by hierarchy index */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const TArray<UUIItem*>& GetAttachUIChildren()const { return cacheUIChildren; }
+		const TArray<UUIItem*>& GetAttachUIChildren()const { return UIChildren; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIItem* GetAttachUIChild(int index)const;
 	/** Get root canvas of hierarchy */
@@ -337,10 +337,6 @@ private:
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetHierarchyIndex() const { return hierarchyIndex; }
-	/** Get hierarchy index, add parent's hierarchy index and parent's parent's hierarchy index... */
-	UE_DEPRECATED(4.24, "This node is not valuable, and will be deprecated in future release. Another node \"GetFlattenHierarchyIndex\" is more usefull.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valuable, and will be deprecated in future release. Another node \"GetFlattenHierarchyIndex\" is more usefull."))
-		int32 GetHierarchyIndexWithAllParent()const;
 	/** Get flatten hierarchy index, calculate from the first top most UIItem. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetFlattenHierarchyIndex()const { return flattenHierarchyIndex; }
@@ -408,7 +404,7 @@ public:
 #pragma endregion
 	/** Get the canvas that render and update this UI element */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		ULGUICanvas* GetRenderCanvas() const { return RenderCanvas; }
+		ULGUICanvas* GetRenderCanvas() const;
 	/** Is this UI element render to screen space overlay? */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool IsScreenSpaceOverlayUI()const;
@@ -428,7 +424,7 @@ protected:
 	friend class ULGUICanvas;
 	UIItemType itemType = UIItemType::None;
 	/** LGUICanvas which render this UI element */
-	UPROPERTY(Transient) ULGUICanvas* RenderCanvas = nullptr;
+	TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	/** is this UIItem's actor have LGUICanvas component */
 	uint8 isCanvasUIItem:1;
 	uint8 bCanSetAnchorFromTransform : 1;
