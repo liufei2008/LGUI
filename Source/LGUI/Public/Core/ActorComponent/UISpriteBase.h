@@ -2,9 +2,10 @@
 
 #pragma once
 
-#include "Core/LGUISpriteData.h"
 #include "UIRenderable.h"
 #include "UISpriteBase.generated.h"
+
+class ULGUISpriteData_BaseObject;
 
 /**
  * This is base class for create custom mesh based on UISprite.
@@ -37,7 +38,7 @@ protected:
 
 	/** sprite may override by UISelectable(UIButton, UIToggle, UISlider ...) */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		ULGUISpriteData* sprite;
+		ULGUISpriteData_BaseObject* sprite;
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual UTexture* GetTextureToCreateGeometry()override;
@@ -45,10 +46,10 @@ protected:
 public:
 	void ApplyAtlasTextureScaleUp();
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUISpriteData* GetSprite()const { return sprite; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUISpriteData_BaseObject* GetSprite()const { return sprite; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetSprite(ULGUISpriteData* newSprite, bool setSize = true);
+		void SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSize = true);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSizeFromSpriteData();
 };

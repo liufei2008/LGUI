@@ -7,61 +7,9 @@
 #include "RHI.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "Core/LGUISettings.h"
+#include "Core/LGUIFontDataBaseObject.h"
 #include "LGUIFontData.generated.h"
 
-
-struct FLGUIFontKeyData
-{
-public:
-	FLGUIFontKeyData() {}
-	FLGUIFontKeyData(const TCHAR& inCharIndex, const uint16& inCharSize)
-	{
-		this->charIndex = inCharIndex;
-		this->charSize = inCharSize;
-	}
-	TCHAR charIndex = 0;
-	uint16 charSize = 0;
-	bool operator==(const FLGUIFontKeyData& other)const
-	{
-		return this->charIndex == other.charIndex && this->charSize == other.charSize;
-	}
-	friend FORCEINLINE uint32 GetTypeHash(const FLGUIFontKeyData& other)
-	{
-		return HashCombine(GetTypeHash(other.charIndex), GetTypeHash(other.charSize));
-	}
-};
-
-struct FLGUICharData
-{
-public:
-	uint16 width = 0;
-	uint16 height = 0;
-	int16 xoffset = 0;
-	int16 yoffset = 0;
-	float xadvance = 0;
-	float horizontalBearingY = 0;
-	float uv0X = 0;
-	float uv0Y = 0;
-	float uv3X = 0;
-	float uv3Y = 0;
-
-	FVector2D GetUV0()
-	{
-		return FVector2D(uv0X, uv0Y);
-	}
-	FVector2D GetUV3()
-	{
-		return FVector2D(uv3X, uv3Y);
-	}
-	FVector2D GetUV2()
-	{
-		return FVector2D(uv0X, uv3Y);
-	}
-	FVector2D GetUV1()
-	{
-		return FVector2D(uv3X, uv0Y);
-	}
-};
 
 class UTexture2D;
 class UUIText;
@@ -73,7 +21,7 @@ struct FT_FaceRec_;
  * font asset for UIText to render
  */
 UCLASS(BlueprintType)
-class LGUI_API ULGUIFontData : public UObject
+class LGUI_API ULGUIFontData : public ULGUIFontData_BaseObject
 {
 	GENERATED_BODY()
 public:
@@ -121,8 +69,16 @@ public:
 	const int32 SPACE_BETWEEN_GLYPH = SPACE_NEED_EXPEND + 1;
 	const int32 SPACE_BETWEEN_GLYPHx2 = SPACE_BETWEEN_GLYPH * 2;
 
-	FORCEINLINE void AddUIText(UUIText* InText);
-	FORCEINLINE void RemoveUIText(UUIText* InText);
+	//Begin ULGUIFontDataBaseObject interface
+	virtual UTexture2D* GetFontTexture()override;
+	virtual FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
+	virtual float GetBoldRatio() override{ return boldRatio; }
+	virtual float GetItalicAngle()override { return italicAngle; }
+	virtual float GetFixedVerticalOffset()override { return fixedVerticalOffset - 0.25f; }//-0.25 is a common number for most fonts
+	virtual void InitFont()override;
+	virtual void AddUIText(UUIText* InText)override;
+	virtual void RemoveUIText(UUIText* InText)override;
+	//End ULGUIFontDataBaseObject interface
 private:
 	/** Collection of UIText which use this font to render. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
@@ -164,7 +120,6 @@ private:
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
 	void ApplyPackingAtlasTextureExpand(UTexture2D* newTexture, int newTextureSize);
 public:
-	FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize);
 #if WITH_EDITOR
 	void ReloadFont();
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

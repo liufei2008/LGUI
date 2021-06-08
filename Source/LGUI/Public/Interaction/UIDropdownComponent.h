@@ -11,6 +11,8 @@
 #include "Event/LGUIDelegateDeclaration.h"
 #include "UIDropdownComponent.generated.h"
 
+class ULGUISpriteData_BaseObject;
+
 /**
  * @param InSelectIndex Selected item index
  * @param InSelectItem Selected item string
@@ -44,7 +46,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		FString Text;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", meta = (DisplayThumbnail = false))
-		ULGUISpriteData* Sprite;
+		ULGUISpriteData_BaseObject* Sprite;
 };
 
 UCLASS( ClassGroup=(LGUI), Blueprintable, meta=(BlueprintSpawnableComponent) )
