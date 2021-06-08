@@ -16,7 +16,7 @@ void UUIPolygon::OnCreateGeometry()
 	UIGeometry::FromUIPolygon(widget.width, widget.height, widget.pivot
 		, StartAngle, EndAngle, Sides, UVType
 		, VertexOffsetArray, FullCycle
-		, GetFinalColor(), geometry, sprite->InitAndGetSpriteInfo()
+		, GetFinalColor(), geometry, sprite->GetSpriteInfo()
 		, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
 }
 void UUIPolygon::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
@@ -25,7 +25,7 @@ void UUIPolygon::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 	{
 		UIGeometry::UpdateUIPolygonUV(StartAngle, EndAngle, Sides, UVType
 			, FullCycle
-			, geometry, sprite->InitAndGetSpriteInfo());
+			, geometry, sprite->GetSpriteInfo());
 	}
 	if (InVertexColorChanged)
 	{

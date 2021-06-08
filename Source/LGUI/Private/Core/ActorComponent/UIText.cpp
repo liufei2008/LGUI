@@ -6,10 +6,11 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Materials/MaterialInterface.h"
 #include "Core/LGUIFontData.h"
+#include "Core/LGUIFontDataBaseObject.h"
 
 
 #if WITH_EDITORONLY_DATA
-TWeakObjectPtr<ULGUIFontData> UUIText::CurrentUsingFontData = nullptr;
+TWeakObjectPtr<ULGUIFontData_BaseObject> UUIText::CurrentUsingFontData = nullptr;
 #endif
 UUIText::UUIText(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
@@ -33,7 +34,7 @@ void UUIText::ApplyFontTextureScaleUp()
 		}
 		MarkUVDirty();
 	}
-	geometry->texture = font->texture;
+	geometry->texture = font->GetFontTexture();
 	if (CheckRenderCanvas())
 	{
 		//RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
@@ -50,10 +51,10 @@ void UUIText::ApplyFontTextureChange()
 		cacheCharPropertyArray.Reset();
 		MarkTriangleDirty();
 		MarkTextureDirty();
-		geometry->texture = font->texture;
+		geometry->texture = font->GetFontTexture();
 		if (CheckRenderCanvas())
 		{
-			RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture);
+			RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->GetFontTexture());
 		}
 	}
 }
@@ -73,7 +74,7 @@ void UUIText::BeginPlay()
 	Super::BeginPlay();
 	if (IsValid(font))
 	{
-		font->InitFreeType();
+		font->InitFont();
 		font->AddUIText(this);
 	}
 	visibleCharCount = VisibleCharCountInString(text);
@@ -145,8 +146,8 @@ UTexture* UUIText::GetTextureToCreateGeometry()
 	{
 		font = ULGUIFontData::GetDefaultFont();
 	}
-	font->InitFreeType();
-	return font->texture;
+	font->InitFont();
+	return font->GetFontTexture();
 }
 bool UUIText::HaveDataToCreateGeometry()
 {
@@ -267,7 +268,7 @@ FVector2D UUIText::GetRealSize()
 
 
 
-void UUIText::SetFont(ULGUIFontData* newFont) {
+void UUIText::SetFont(ULGUIFontData_BaseObject* newFont) {
 	if (font != newFont)
 	{
 		//remove from old

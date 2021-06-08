@@ -6,86 +6,9 @@
 #include "Engine/DataAsset.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "Engine/Texture2D.h"
+#include "LGUISpriteDataBaseObject.h"
 #include "LGUISpriteData.generated.h"
 
-
-/**
- * SpriteInfo contains information for render a sprite
- */
-USTRUCT(BlueprintType)
-struct LGUI_API FLGUISpriteInfo
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		uint16 width = 0;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		uint16 height = 0;
-
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		uint16 borderLeft = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		uint16 borderRight = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		uint16 borderTop = 0;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		uint16 borderBottom = 0;
-
-	float uv0X = 0;
-	float uv0Y = 1;
-	float uv3X = 1;
-	float uv3Y = 0;
-
-	float buv0X = 0;
-	float buv0Y = 1;
-	float buv3X = 1;
-	float buv3Y = 0;
-
-public:
-	FVector2D GetUV0()const { return FVector2D(uv0X, uv0Y); }
-	FVector2D GetUV1()const { return FVector2D(uv3X, uv0Y); }
-	FVector2D GetUV2()const { return FVector2D(uv0X, uv3Y); }
-	FVector2D GetUV3()const { return FVector2D(uv3X, uv3Y); }
-	
-	bool HasBorder()const;
-	void ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal);
-	void ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal, const FVector4& uvRect);
-	void ApplyBorderUV(float texFullWidthReciprocal, float texFullHeightReciprocal);
-	void ScaleUV(float InMultiply)
-	{
-		uv0X *= InMultiply;
-		uv0Y *= InMultiply;
-		uv3X *= InMultiply;
-		uv3Y *= InMultiply;
-
-		buv0X *= InMultiply;
-		buv3X *= InMultiply;
-		buv0Y *= InMultiply;
-		buv3Y *= InMultiply;
-	}
-
-	bool operator == (const FLGUISpriteInfo& Other)const
-	{
-		return width == Other.width 
-			&& height == Other.height 
-			&& borderLeft == Other.borderLeft
-			&& borderRight == Other.borderRight 
-			&& borderTop == Other.borderTop
-			&& borderBottom == Other.borderBottom
-			;
-	}
-	bool operator != (const FLGUISpriteInfo& Other)const
-	{
-		return width != Other.width
-			|| height != Other.height
-			|| borderLeft != Other.borderLeft
-			|| borderRight != Other.borderRight
-			|| borderTop != Other.borderTop
-			|| borderBottom != Other.borderBottom
-			;
-	}
-};
 
 class ULGUISpriteData;
 class UUISpriteBase;
@@ -95,10 +18,10 @@ class ULGUIAtlas;
 #define WARNING_ATLAS_SIZE 4096
 
 /**
- * A sprite contains a texture and a spritedata
+ * A sprite-data type that can do automatic packing
  */
 UCLASS(BlueprintType)
-class LGUI_API ULGUISpriteData :public UObject
+class LGUI_API ULGUISpriteData :public ULGUISpriteData_BaseObject
 {
 	GENERATED_BODY()
 private:
@@ -126,26 +49,18 @@ private:
 	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);
 	void ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRect, float InAtlasTextureSizeInv, UTexture2D* InAtlasTexture);
 public:
-	/** initialize sprite data, only need to call once */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void InitSpriteData();
+	//Begin ULGUISpriteDataBaseObject interface
+	virtual UTexture2D * GetAtlasTexture()override;
+	virtual FLGUISpriteInfo GetSpriteInfo()override;
+	virtual bool IsIndividual()const override;
+	virtual void AddUISprite(UUISpriteBase* InUISprite)override;
+	virtual void RemoveUISprite(UUISpriteBase* InUISprite)override;
+	//End ULGUISpriteDataBaseObject interface
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D * InitAndGetAtlasTexture();
-	UFUNCTION(BlueprintCallable, Category = "LGUI") const FLGUISpriteInfo& InitAndGetSpriteInfo();
+	/** initialize sprite data */
+	void InitSpriteData();
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool HavePackingTag()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI") const FName& GetPackingTag()const;
-
-	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D * GetAtlasTexture()const;
-	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") const FLGUISpriteInfo& GetSpriteInfo()const;
-	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteSize(int32& width, int32& height)const;
-	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderSize(int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom)const;
-	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteUV(float& UV0X, float& UV0Y, float& UV3X, float& UV3Y)const;
-	/** always remember to call InitSpriteData() before this function to initialize this SpriteData */
-	UFUNCTION(BlueprintCallable, Category = "LGUI") void GetSpriteBorderUV(float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y)const;
 
 	/**
 	 * Create a LGUIspriteData with provided parameter. This can use at runtime
@@ -159,8 +74,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
 		static ULGUISpriteData* CreateLGUISpriteData(UObject* Outer, UTexture2D* inSpriteTexture, FVector2D inHorizontalBorder = FVector2D::ZeroVector, FVector2D inVerticalBorder = FVector2D::ZeroVector, FName inPackingTag = TEXT("Main"));
 
-	void AddUISprite(UUISpriteBase* InUISprite);
-	void RemoveUISprite(UUISpriteBase* InUISprite);
 	/** if texture is changed, use this to reload texture */
 	void ReloadTexture();
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture2D* GetSpriteTexture()const { return spriteTexture; }

@@ -352,7 +352,7 @@ void UUISelectableComponent::SetTransitionTarget(class AUIBaseActor* value)
 		ApplySelectionState(false);
 	}
 }
-void UUISelectableComponent::SetNormalSprite(ULGUISpriteData* NewSprite)
+void UUISelectableComponent::SetNormalSprite(ULGUISpriteData_BaseObject* NewSprite)
 {
 	if (NormalSprite != NewSprite)
 	{
@@ -374,7 +374,7 @@ void UUISelectableComponent::SetNormalColor(FColor NewColor)
 		}
 	}
 }
-void UUISelectableComponent::SetHighlightedSprite(ULGUISpriteData* NewSprite)
+void UUISelectableComponent::SetHighlightedSprite(ULGUISpriteData_BaseObject* NewSprite)
 {
 	if (HighlightedSprite != NewSprite)
 	{
@@ -396,7 +396,7 @@ void UUISelectableComponent::SetHighlightedColor(FColor NewColor)
 		}
 	}
 }
-void UUISelectableComponent::SetPressedSprite(ULGUISpriteData* NewSprite)
+void UUISelectableComponent::SetPressedSprite(ULGUISpriteData_BaseObject* NewSprite)
 {
 	if (PressedSprite != NewSprite)
 	{

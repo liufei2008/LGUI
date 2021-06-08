@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISpriteData.h"
-#include "Core/LGUIFontData.h"
+#include "Core/LGUIFontDataBaseObject.h"
 #include "RichTextParser.h"
 
 
@@ -2294,7 +2294,7 @@ void UIGeometry::FromUIText(const FString& content, int32 visibleCharCount, floa
 	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
-	, ULGUIFontData* font, bool richText)
+	, ULGUIFontData_BaseObject* font, bool richText)
 {
 	//vertex and triangle
 	UpdateUIText(content, visibleCharCount, width, height, pivot, color, fontSpace, uiGeo, fontSize, paragraphHAlign, paragraphVAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, renderCanvas, uiComp, cacheTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
@@ -2363,7 +2363,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	, UITextFontStyle fontStyle, FVector2D& textRealSize
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp
 	, TArray<FUITextLineProperty>& cacheTextPropertyArray, TArray<FUITextCharProperty>& cacheCharPropertyArray, TArray<FUIText_RichTextCustomTag>& cacheRichTextCustomTagArray
-	, ULGUIFontData* font, bool richText)
+	, ULGUIFontData_BaseObject* font, bool richText)
 {
 	FString content = text;
 
@@ -2374,9 +2374,9 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
-	float boldSize = fontSize * font->boldRatio;
+	float boldSize = fontSize * font->GetBoldRatio();
 	bool italic = fontStyle == UITextFontStyle::Italic || fontStyle == UITextFontStyle::BoldAndItalic;
-	float italicSlop = FMath::Tan(FMath::DegreesToRadians(font->italicAngle));
+	float italicSlop = FMath::Tan(FMath::DegreesToRadians(font->GetItalicAngle()));
 
 	//rich text
 	using namespace LGUIRichTextParser;
@@ -2390,7 +2390,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 	auto GetCharFixedOffset = [font](float inFontSize)
 	{
-		return inFontSize * (font->fixedVerticalOffset - 0.25f);//-0.25 is a common number for most fonts
+		return inFontSize * (font->GetFixedVerticalOffset());
 	};
 	float charFixedOffset = GetCharFixedOffset(fontSize);//some font may not render at vertical center, use this to mofidy it. 0.25 * size is tested value for most fonts
 
