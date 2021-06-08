@@ -87,7 +87,7 @@ struct FUIText_RichTextCustomTag
 	int32 CharIndexEnd;
 };
 
-class ULGUIFontData;
+class ULGUIFontData_BaseObject;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUIText : public UUIRenderable
@@ -113,13 +113,13 @@ protected:
 #endif
 #if WITH_EDITORONLY_DATA
 	/** current using font. the default font when creating new UIText */
-	static TWeakObjectPtr<ULGUIFontData> CurrentUsingFontData;
+	static TWeakObjectPtr<ULGUIFontData_BaseObject> CurrentUsingFontData;
 #endif
 
 protected:
 	friend class FUITextCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
-		ULGUIFontData* font;
+		ULGUIFontData_BaseObject* font;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FString text = TEXT("New Text");
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "2", ClampMax = "200"))
@@ -198,7 +198,7 @@ public:
 	/** count visible char count of the string */
 	static int VisibleCharCountInString(const FString& srcStr);
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIFontData* GetFont()const { return font; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIFontData_BaseObject* GetFont()const { return font; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	const FString& GetText()const { return text; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetSize()const { return size; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetFontSpace()const { return space; }
@@ -211,7 +211,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetRealSize();
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetFont(ULGUIFontData* newFont);
+		void SetFont(ULGUIFontData_BaseObject* newFont);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetText(const FString& newText);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

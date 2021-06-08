@@ -31,7 +31,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseUV(const TArray<FVector2D>& 
 		}
 		vertices.AddDefaulted(vertexCount);
 	}
-	const auto& spriteInfo = sprite->InitAndGetSpriteInfo();
+	const auto& spriteInfo = sprite->GetSpriteInfo();
 	float uvY = (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f;
 	int i = 0; 
 	for (; i < pointCount; i++)
@@ -131,7 +131,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		if (EndType == EUI2DLineRenderer_EndType::Cap)
 		{	
 			//start point cap
-			auto spriteInfo = sprite->InitAndGetSpriteInfo();
+			auto spriteInfo = sprite->GetSpriteInfo();
 			auto capPoint = v0 - dir * (spriteInfo.HasBorder() ? spriteInfo.borderBottom : spriteInfo.height * 0.5f);
 
 			pos0 = capPoint + lineLeftWidth * widthDir;
@@ -203,7 +203,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 			if (EndType == EUI2DLineRenderer_EndType::Cap)
 			{
 				//end point cap
-				auto spriteInfo = sprite->InitAndGetSpriteInfo();
+				auto spriteInfo = sprite->GetSpriteInfo();
 				auto capPoint = vEnd1 + dir * (spriteInfo.HasBorder() ? spriteInfo.borderTop : spriteInfo.height * 0.5f);
 
 				pos0 = capPoint + lineLeftWidth * widthDir;

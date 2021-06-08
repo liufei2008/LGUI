@@ -182,6 +182,14 @@ void ULGUIFontData::DeinitFreeType()
 	freeRects.Empty();
 	binPack = rbp::MaxRectsBinPack(256, 256);
 }
+UTexture2D* ULGUIFontData::GetFontTexture()
+{
+	return texture;
+}
+void ULGUIFontData::InitFont()
+{
+	InitFreeType();
+}
 void ULGUIFontData::AddUIText(UUIText* InText)
 {
 	renderTextArray.AddUnique(InText);

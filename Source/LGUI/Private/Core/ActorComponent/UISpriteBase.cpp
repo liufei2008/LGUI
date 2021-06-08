@@ -4,7 +4,8 @@
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-
+#include "Core/LGUISpriteData.h"
+#include "Core/LGUISpriteDataBaseObject.h"
 
 UUISpriteBase::UUISpriteBase(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
@@ -42,19 +43,19 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 		}
 		MarkUVDirty();
 	}
-	geometry->texture = sprite->InitAndGetAtlasTexture();
+	geometry->texture = sprite->GetAtlasTexture();
 	if (CheckRenderCanvas())
 	{
-		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, sprite->InitAndGetAtlasTexture());
+		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, sprite->GetAtlasTexture());
 	}
 }
 
-void UUISpriteBase::SetSprite(ULGUISpriteData* newSprite, bool setSize)
+void UUISpriteBase::SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSize)
 {
 	if (sprite != newSprite)
 	{
 		if((!IsValid(sprite) || !IsValid(newSprite))
-			|| (sprite->InitAndGetAtlasTexture() != newSprite->InitAndGetAtlasTexture()))
+			|| (sprite->GetAtlasTexture() != newSprite->GetAtlasTexture()))
 		{
 			MarkTextureDirty();
 			//remove from old
@@ -77,8 +78,8 @@ void UUISpriteBase::SetSizeFromSpriteData()
 {
 	if (IsValid(sprite))
 	{
-		SetWidth(sprite->InitAndGetSpriteInfo().width);
-		SetHeight(sprite->InitAndGetSpriteInfo().height);
+		SetWidth(sprite->GetSpriteInfo().width);
+		SetHeight(sprite->GetSpriteInfo().height);
 	}
 	else
 	{
@@ -151,9 +152,9 @@ UTexture* UUISpriteBase::GetTextureToCreateGeometry()
 	{
 		sprite = ULGUISpriteData::GetDefaultWhiteSolid();
 	}
-	if (IsValid(sprite) && IsValid(sprite->InitAndGetAtlasTexture()))
+	if (IsValid(sprite) && IsValid(sprite->GetAtlasTexture()))
 	{
-		return sprite->InitAndGetAtlasTexture();
+		return sprite->GetAtlasTexture();
 	}
 	return nullptr;
 }

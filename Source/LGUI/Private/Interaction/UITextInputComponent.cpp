@@ -14,6 +14,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SWindow.h"
 #include "Core/LGUIFontData.h"
+#include "Core/LGUISpriteData.h"
 
 void UUITextInputComponent::Awake()
 {
@@ -1059,7 +1060,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 			//all above step will break if out-of-range
 
 			//same as UIGeometry's function "UpdateUIText"
-			auto GetCharGeoXAdv = [](TCHAR charCode, ULGUIFontData* font, int overrideFontSize)
+			auto GetCharGeoXAdv = [](TCHAR charCode, ULGUIFontData_BaseObject* font, int overrideFontSize)
 			{
 				if (charCode == ' ')
 				{
