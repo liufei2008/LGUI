@@ -40,6 +40,57 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 
 	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0].Get());
 
+	auto renderModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
+	renderModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
+
+	if (TargetScriptArray[0]->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+	{
+		if (auto world = TargetScriptArray[0]->GetWorld())
+		{
+			TArray<TWeakObjectPtr<ULGUICanvas>> allCanvasArray;
+			if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
+			{
+				if (ULGUIEditorManagerObject::Instance != nullptr)
+				{
+					allCanvasArray = ULGUIEditorManagerObject::Instance->GetCanvasArray();
+				}
+			}
+			else
+			{
+				if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
+				{
+					allCanvasArray = LGUIManagerActor->GetCanvasArray();
+				}
+			}
+			int screenSpaceCanvasCount = 1;
+			for (auto item : allCanvasArray)
+			{
+				if (item != TargetScriptArray[0])
+				{
+					if (item.IsValid())
+					{
+						if (item->IsRootCanvas())
+						{
+							if (item->GetWorld() == world)
+							{
+								if (item->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+								{
+									screenSpaceCanvasCount++;
+								}
+							}
+						}
+					}
+				}
+			}
+			if (screenSpaceCanvasCount > 1)
+			{
+				auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
+				LGUIEditorUtils::ShowError(&DetailBuilder, errMsg);
+				return;
+			}
+		}
+	}
+
 	if (TargetScriptArray[0]->GetWorld())
 	{
 		if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
@@ -53,8 +104,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	TArray<FName> needToHidePropertyNames;
 	if (TargetScriptArray[0]->IsRootCanvas())
 	{
-		auto renderModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
-		renderModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
 		switch (TargetScriptArray[0]->renderMode)
 		{
 		case ELGUIRenderMode::ScreenSpaceOverlay:

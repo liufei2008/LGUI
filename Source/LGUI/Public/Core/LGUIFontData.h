@@ -25,8 +25,6 @@ class LGUI_API ULGUIFontData : public ULGUIFontData_BaseObject
 {
 	GENERATED_BODY()
 public:
-	ULGUIFontData();
-	~ULGUIFontData();
 
 	/** Font file path, absolute path or relative to ProjectDir */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -71,7 +69,7 @@ public:
 
 	//Begin ULGUIFontDataBaseObject interface
 	virtual UTexture2D* GetFontTexture()override;
-	virtual FLGUICharData* GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
+	virtual FLGUICharData GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
 	virtual float GetBoldRatio() override{ return boldRatio; }
 	virtual float GetItalicAngle()override { return italicAngle; }
 	virtual float GetFixedVerticalOffset()override { return fixedVerticalOffset - 0.25f; }//-0.25 is a common number for most fonts
