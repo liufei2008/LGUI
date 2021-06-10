@@ -94,13 +94,11 @@ private:
 	void OnPathTextChanged(const FText& InText)
 	{
 		auto FilePathStr = InText.ToString();
-		FolderPathTextBox->SetText(FText::FromString(FilePathStr));
 		OnFilePathChanged.ExecuteIfBound(FilePathStr);
 	}
 	void OnPathTextCommited(const FText& NewText, ETextCommit::Type CommitInfo)
 	{
 		auto FilePathStr = NewText.ToString();
-		FolderPathTextBox->SetText(FText::FromString(FilePathStr));
 		OnFilePathCommitted.ExecuteIfBound(FilePathStr);
 	}
 private:

@@ -15,14 +15,6 @@
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
 
-ULGUIFontData::ULGUIFontData()
-{
-	
-}
-ULGUIFontData::~ULGUIFontData()
-{
-	
-}
 void ULGUIFontData::FinishDestroy()
 {
 	DeinitFreeType();
@@ -342,7 +334,6 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, FT_GlyphSlotRec_* 
 		cacheCharData.xoffset = InSlot->bitmap_left - SPACE_NEED_EXPEND;
 		cacheCharData.yoffset = InSlot->bitmap_top + SPACE_NEED_EXPEND;
 		cacheCharData.xadvance = InSlot->metrics.horiAdvance >> 6;
-		cacheCharData.horizontalBearingY = InSlot->metrics.horiBearingY >> 6;
 		cacheCharData.uv0X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND);
 		cacheCharData.uv0Y = fullTextureSizeReciprocal * (packedRect.y + cacheCharData.height - SPACE_NEED_EXPEND);
 		cacheCharData.uv3X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND + cacheCharData.width);
@@ -455,18 +446,18 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	}
 }
 
-FLGUICharData* ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize)
+FLGUICharData ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize)
 {
 	cacheFontKey = FLGUIFontKeyData(charIndex, charSize);
 	if (auto charData = charDataMap.Find(cacheFontKey))
 	{
-		return charData;
+		return *charData;
 	}
 	else
 	{
-		return PushCharIntoFont(charIndex, charSize);
+		return *PushCharIntoFont(charIndex, charSize);
 	}
-	return nullptr;
+	return FLGUICharData();
 }
 #if WITH_EDITOR
 void ULGUIFontData::ReloadFont()

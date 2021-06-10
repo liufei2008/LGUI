@@ -1073,7 +1073,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 				else
 				{
 					auto charData = font->GetCharData(charCode, (uint16)overrideFontSize);
-					return charData->xadvance;
+					return charData.xadvance;
 				}
 			};
 
