@@ -56,7 +56,10 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		if (item.IsValid())
 		{
-			item->ConditionalRebuildLayout();
+			if (item->GetIsActiveAndEnable())
+			{
+				item->ConditionalRebuildLayout();
+			}
 		}
 	}
 	
