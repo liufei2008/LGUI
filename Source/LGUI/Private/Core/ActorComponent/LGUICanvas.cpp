@@ -231,9 +231,18 @@ void ULGUICanvas::CheckRenderMode()
 }
 void ULGUICanvas::OnUIHierarchyChanged()
 {
-	//recheck top most canvas
+	//remove from old
+	if (RootCanvas.IsValid())
+	{
+		RootCanvas->manageCanvasArray.Remove(this);
+	}
 	RootCanvas = nullptr;
 	CheckRootCanvas();
+	//add to new
+	if (RootCanvas.IsValid())
+	{
+		RootCanvas->manageCanvasArray.Add(this);
+	}
 	CheckRenderMode();
 
 	ParentCanvas = nullptr;
@@ -599,7 +608,7 @@ void ULGUICanvas::RemoveFromDrawcall(UUIRenderable* item)
 
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
-void ULGUICanvas::UpdateChildRecursive(TArray<TWeakObjectPtr<ULGUICanvas>>& collection, UUIItem* target, bool parentLayoutChanged)
+void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged)
 {
 	const auto& childrenList = target->GetAttachUIChildren();
 	for (auto uiChild : childrenList)
@@ -608,18 +617,18 @@ void ULGUICanvas::UpdateChildRecursive(TArray<TWeakObjectPtr<ULGUICanvas>>& coll
 		{
 			if (uiChild->IsCanvasUIItem() && uiChild->GetRenderCanvas() != nullptr && uiChild->GetRenderCanvas() != this)
 			{
-				uiChild->GetRenderCanvas()->UpdateCanvasLayout(collection, parentLayoutChanged);
+				uiChild->GetRenderCanvas()->UpdateCanvasLayout(parentLayoutChanged);
 			}
 			else
 			{
 				auto layoutChanged = parentLayoutChanged;
 				uiChild->UpdateLayoutAndGeometry(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
-				UpdateChildRecursive(collection, uiChild, layoutChanged);
+				UpdateChildRecursive(uiChild, layoutChanged);
 			}
 		}
 	}
 }
-void ULGUICanvas::UpdateCanvasLayout(TArray<TWeakObjectPtr<ULGUICanvas>>& collection, bool parentLayoutChanged)
+void ULGUICanvas::UpdateCanvasLayout(bool parentLayoutChanged)
 {
 	cacheForThisUpdate_ShouldRebuildAllDrawcall = bShouldRebuildAllDrawcall;
 	cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout || parentLayoutChanged;
@@ -636,11 +645,10 @@ void ULGUICanvas::UpdateCanvasLayout(TArray<TWeakObjectPtr<ULGUICanvas>>& collec
 	bRectClipParameterChanged = false;
 	bTextureClipParameterChanged = false;
 
-	collection.Add(this);
 	//update layout and geometry
 	UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
 
-	UpdateChildRecursive(collection, UIItem.Get(), UIItem->cacheForThisUpdate_LayoutChanged);
+	UpdateChildRecursive(UIItem.Get(), UIItem->cacheForThisUpdate_LayoutChanged);
 
 	if (bShouldRebuildAllDrawcall)
 	{
@@ -658,8 +666,7 @@ void ULGUICanvas::UpdateRootCanvas()
 	}
 
 	CacheUIItemToCanvasTransformMap.Reset();
-	manageCanvasArray.Reset();
-	UpdateCanvasLayout(manageCanvasArray, false);
+	UpdateCanvasLayout(false);
 	if (prevFrameNumber != GFrameNumber)//ignore if not at new render frame
 	{
 		prevFrameNumber = GFrameNumber;
@@ -1116,6 +1123,7 @@ const TArray<TWeakObjectPtr<ULGUICanvas>>& ULGUICanvas::GetAllCanvasArray()
 
 void ULGUICanvas::SortDrawcallRenderPriorityForRootCanvas()
 {
+	if (manageCanvasArray.Num() == 0)return;
 	//sort
 	manageCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 		{
@@ -2082,7 +2090,7 @@ void ULGUICanvas::ApplyOwnerSeeRecursive()
 
 	for (auto item : manageCanvasArray)
 	{
-		if (item.IsValid())
+		if (item.IsValid() && item != this)
 		{
 			item->ApplyOwnerSeeRecursive();
 		}

@@ -118,11 +118,11 @@ public:
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 private:
 	/** canvas array belong to this canvas, include self. for update children's geometry */
-	TArray<TWeakObjectPtr<ULGUICanvas>> manageCanvasArray;//@todo: collect this when needed
+	UPROPERTY(VisibleAnywhere) TArray<TWeakObjectPtr<ULGUICanvas>> manageCanvasArray;
 	/** for top most canvas only */
 	void UpdateRootCanvas();
 	/** update canvas's layout */
-	void UpdateCanvasLayout(TArray<TWeakObjectPtr<ULGUICanvas>>& collection, bool parentLayoutChanged);
+	void UpdateCanvasLayout(bool parentLayoutChanged);
 	/** update Canvas's geometry */
 	void UpdateCanvasGeometry();
 	void UpdateCanvasGeometryForAutoManageDepth();
@@ -475,7 +475,7 @@ private:
 	void CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
 	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
 private:
-	void UpdateChildRecursive(TArray<TWeakObjectPtr<ULGUICanvas>>& collection, UUIItem* target, bool parentLayoutChanged);
+	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();
 	void SetParameterForStandard(int drawcallCount);
 	void SetParameterForRectClip(int drawcallCount);
