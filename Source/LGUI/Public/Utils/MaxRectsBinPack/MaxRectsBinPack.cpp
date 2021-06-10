@@ -152,13 +152,16 @@ namespace rbp {
 		binWidth = newWidth;
 		binHeight = newHeight;
 	}
-	void MaxRectsBinPack::PrepareExpendSizeForText(int newWidth, int newHeight, TArray<Rect>& outFreeRectangles)
+	void MaxRectsBinPack::PrepareExpendSizeForText(int newWidth, int newHeight, TArray<Rect>& outFreeRectangles, bool resetFreeAndUsedRects)
 	{
 		if (binWidth > newWidth || binHeight > newHeight)//new size is smaller
 			return;
 
-		freeRectangles.Reset();
-		usedRectangles.Reset();
+		if (resetFreeAndUsedRects)
+		{
+			freeRectangles.Reset();
+			usedRectangles.Reset();
+		}
 #if 0
 		for (int x = newWidth - 256; x >= binWidth; x -= 256)
 		{
