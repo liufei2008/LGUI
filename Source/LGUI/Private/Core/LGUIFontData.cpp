@@ -409,23 +409,22 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	//store old texutre pointer
 	auto oldTexture = texture;
 	//create new texture
-	texture = LGUIUtils::CreateTexture(newTextureSize, FColor(255, 255, 255, 0), this);
+	texture = LGUIUtils::CreateTexture(newTextureSize, FColor(255, 255, 255, 0));
 	texture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
 	texture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
 	texture->SRGB = true;
 	texture->Filter = TextureFilter::TF_Trilinear;
 	texture->UpdateResource();
+	texture->AddToRoot();
 
 	//copy old texture to new one
 	if (IsValid(oldTexture) && oldTextureSize > 0)
 	{
 		auto newTexture = texture;
-		auto oldTextureRes = (FTexture2DResource*)oldTexture->Resource;
-		auto newTextureRes = (FTexture2DResource*)newTexture->Resource;
-		if (oldTextureRes != nullptr && newTextureRes != nullptr)
+		if (oldTexture->Resource != nullptr && newTexture->Resource != nullptr)
 		{
 			ENQUEUE_RENDER_COMMAND(FLGUIFontUpdateAndCopyFontTexture)(
-				[oldTextureRes, newTextureRes, oldTextureSize](FRHICommandListImmediate& RHICmdList)
+				[oldTexture, newTexture, oldTextureSize](FRHICommandListImmediate& RHICmdList)
 			{
 				//copy old texture pixels
 				if (oldTextureSize != 0)
@@ -435,11 +434,12 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 					CopyInfo.Size = FIntVector(oldTextureSize, oldTextureSize, 0);
 					CopyInfo.DestPosition = FIntVector(0, 0, 0);
 					RHICmdList.CopyTexture(
-						oldTextureRes->GetTexture2DRHI(),
-						newTextureRes->GetTexture2DRHI(),
+						((FTexture2DResource*)oldTexture->Resource)->GetTexture2DRHI(),
+						((FTexture2DResource*)newTexture->Resource)->GetTexture2DRHI(),
 						CopyInfo
 					);
 					RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);//if remove this line, then texture will go wrong if expand texture size and write font pixels, looks like copy-pixels hanppens after write-font-pixels.
+					oldTexture->RemoveFromRoot();//ready for gc
 				}
 			});
 		}
