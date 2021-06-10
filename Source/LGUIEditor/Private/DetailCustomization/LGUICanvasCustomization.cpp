@@ -62,21 +62,18 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 					allCanvasArray = LGUIManagerActor->GetCanvasArray();
 				}
 			}
-			int screenSpaceCanvasCount = 1;
+			int screenSpaceCanvasCount = 0;
 			for (auto item : allCanvasArray)
 			{
-				if (item != TargetScriptArray[0])
+				if (item.IsValid())
 				{
-					if (item.IsValid())
+					if (item->IsRootCanvas())
 					{
-						if (item->IsRootCanvas())
+						if (item->GetWorld() == world)
 						{
-							if (item->GetWorld() == world)
+							if (item->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 							{
-								if (item->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
-								{
-									screenSpaceCanvasCount++;
-								}
+								screenSpaceCanvasCount++;
 							}
 						}
 					}
@@ -86,7 +83,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			{
 				auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
 				LGUIEditorUtils::ShowError(&DetailBuilder, errMsg);
-				return;
 			}
 		}
 	}
