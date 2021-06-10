@@ -140,7 +140,7 @@ void ULGUIFontData::InitFreeType()
 			if (initialSize != ELGUIAtlasTextureSizeType::SIZE_256x256)
 			{
 				textureSize = ULGUISettings::ConvertAtlasTextureSizeTypeToSize(initialSize);
-				binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects);
+				binPack.PrepareExpendSizeForText(textureSize, textureSize, freeRects, false);
 			}
 			CreateFontTexture(0, textureSize);
 			fullTextureSizeReciprocal = 1.0f / textureSize;
