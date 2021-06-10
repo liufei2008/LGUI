@@ -43,6 +43,7 @@ public:
 private:
 	TMap<int32, uint32> EditorViewportIndexToKeyMap;
 	int32 PrevEditorViewportCount = 0;
+	int32 PrevScreenSpaceOverlayCanvasCount = 1;
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
@@ -149,8 +150,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForUpdate;
-
-	bool firstAwakeExecuted = false;
+#if WITH_EDITORONLY_DATA
+	int32 PrevScreenSpaceOverlayCanvasCount = 1;
+#endif
 private:
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 public:
