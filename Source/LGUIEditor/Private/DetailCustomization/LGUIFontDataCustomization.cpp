@@ -93,8 +93,11 @@ void FLGUIFontDataCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 }
 void FLGUIFontDataCustomization::OnPathTextChanged(const FString& InString)
 {
-	TargetScriptPtr->fontFilePath = InString;
-	TargetScriptPtr->MarkPackageDirty();
+	if (TargetScriptPtr->fontFilePath != InString)
+	{
+		TargetScriptPtr->fontFilePath = InString;
+		TargetScriptPtr->MarkPackageDirty();
+	}
 }
 void FLGUIFontDataCustomization::OnPathTextCommitted(const FString& InString)
 {
@@ -106,10 +109,11 @@ void FLGUIFontDataCustomization::OnPathTextCommitted(const FString& InString)
 			pathString.RemoveFromStart(FPaths::ProjectDir(), ESearchCase::CaseSensitive);
 		}
 	}
-	TargetScriptPtr->fontFilePath = pathString;
-	TargetScriptPtr->MarkPackageDirty();
-	TargetScriptPtr->DeinitFreeType();
-	ForceRefresh();
+	if (TargetScriptPtr->fontFilePath != pathString)
+	{
+		TargetScriptPtr->fontFilePath = pathString;
+		TargetScriptPtr->MarkPackageDirty();
+	}
 }
 FReply FLGUIFontDataCustomization::OnReloadButtonClicked()
 {
