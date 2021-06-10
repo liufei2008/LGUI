@@ -2346,7 +2346,6 @@ struct FUITextCharGeometry
 	float geoWidth = 0;
 	float geoHeight = 0;
 	float xadvance = 0;
-	float horizontalBearingY = 0;
 	float xoffset = 0;
 	float yoffset = 0;
 
@@ -2523,12 +2522,11 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in extream large texture
 					overrideCharData = font->GetCharData(charCode, inFontSize);
 
-					charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
-					charGeo.geoHeight = overrideCharData->height * oneDivideRootCanvasScale;
-					charGeo.xadvance = charData->xadvance;
-					charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideRootCanvasScale;
-					charGeo.xoffset = overrideCharData->xoffset * oneDivideRootCanvasScale;
-					charGeo.yoffset = overrideCharData->yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
+					charGeo.geoWidth = overrideCharData.width * oneDivideRootCanvasScale;
+					charGeo.geoHeight = overrideCharData.height * oneDivideRootCanvasScale;
+					charGeo.xadvance = charData.xadvance;
+					charGeo.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
+					charGeo.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
 				}
 				else if (dynamicPixelsPerUnit != 1.0f)
 				{
@@ -2536,12 +2534,11 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in extream large texture
 					overrideCharData = font->GetCharData(charCode, inFontSize);
 
-					charGeo.geoWidth = overrideCharData->width * oneDivideDynamicPixelsPerUnit;
-					charGeo.geoHeight = overrideCharData->height * oneDivideDynamicPixelsPerUnit;
-					charGeo.xadvance = overrideCharData->xadvance * oneDivideDynamicPixelsPerUnit;
-					charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideDynamicPixelsPerUnit;
-					charGeo.xoffset = overrideCharData->xoffset * oneDivideDynamicPixelsPerUnit;
-					charGeo.yoffset = overrideCharData->yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
+					charGeo.geoWidth = overrideCharData.width * oneDivideDynamicPixelsPerUnit;
+					charGeo.geoHeight = overrideCharData.height * oneDivideDynamicPixelsPerUnit;
+					charGeo.xadvance = overrideCharData.xadvance * oneDivideDynamicPixelsPerUnit;
+					charGeo.xoffset = overrideCharData.xoffset * oneDivideDynamicPixelsPerUnit;
+					charGeo.yoffset = overrideCharData.yoffset * oneDivideDynamicPixelsPerUnit + calculatedCharFixedOffset;
 				}
 				else
 				{
@@ -2549,28 +2546,26 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					inFontSize = FMath::Clamp(inFontSize, 0, 200);//limit font size to 200. too large font size will result in large texture
 					overrideCharData = font->GetCharData(charCode, inFontSize);
 
-					charGeo.geoWidth = overrideCharData->width * oneDivideRootCanvasScale;
-					charGeo.geoHeight = overrideCharData->height * oneDivideRootCanvasScale;
-					charGeo.xadvance = charData->xadvance;
-					charGeo.horizontalBearingY = charData->horizontalBearingY * oneDivideRootCanvasScale;
-					charGeo.xoffset = overrideCharData->xoffset * oneDivideRootCanvasScale;
-					charGeo.yoffset = overrideCharData->yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
+					charGeo.geoWidth = overrideCharData.width * oneDivideRootCanvasScale;
+					charGeo.geoHeight = overrideCharData.height * oneDivideRootCanvasScale;
+					charGeo.xadvance = charData.xadvance;
+					charGeo.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
+					charGeo.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
 				}
 			}
 			else
 			{
-				charGeo.geoWidth = charData->width;
-				charGeo.geoHeight = charData->height;
-				charGeo.xadvance = charData->xadvance;
-				charGeo.horizontalBearingY = charData->horizontalBearingY;
-				charGeo.xoffset = charData->xoffset;
-				charGeo.yoffset = charData->yoffset + calculatedCharFixedOffset;
+				charGeo.geoWidth = charData.width;
+				charGeo.geoHeight = charData.height;
+				charGeo.xadvance = charData.xadvance;
+				charGeo.xoffset = charData.xoffset;
+				charGeo.yoffset = charData.yoffset + calculatedCharFixedOffset;
 			}
 
-			charGeo.uv0 = overrideCharData->GetUV0();
-			charGeo.uv1 = overrideCharData->GetUV1();
-			charGeo.uv2 = overrideCharData->GetUV2();
-			charGeo.uv3 = overrideCharData->GetUV3();
+			charGeo.uv0 = overrideCharData.GetUV0();
+			charGeo.uv1 = overrideCharData.GetUV1();
+			charGeo.uv2 = overrideCharData.GetUV2();
+			charGeo.uv3 = overrideCharData.GetUV3();
 		}
 		return charGeo;
 	};
@@ -2587,7 +2582,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		else
 		{
 			auto charData = font->GetCharData(charCode, overrideFontSize);
-			return charData->xadvance;
+			return charData.xadvance;
 		}
 	};
 	auto GetUnderlineOrStrikethroughCharGeo = [&](TCHAR charCode, int overrideFontSize)
@@ -2595,13 +2590,13 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		FUITextCharGeometry charGeo;
 		{
 			auto charData = font->GetCharData(charCode, (uint16)overrideFontSize);
-			charGeo.geoHeight = charData->height;
-			charGeo.xoffset = charData->xoffset;
-			charGeo.yoffset = charData->yoffset + GetCharFixedOffset(overrideFontSize);
+			charGeo.geoHeight = charData.height;
+			charGeo.xoffset = charData.xoffset;
+			charGeo.yoffset = charData.yoffset + GetCharFixedOffset(overrideFontSize);
 
-			float uvX = (charData->uv3X - charData->uv0X) * 0.5f + charData->uv0X;
-			charGeo.uv0 = charGeo.uv1 = FVector2D(uvX, charData->uv0Y);
-			charGeo.uv2 = charGeo.uv3 = FVector2D(uvX, charData->uv3Y);
+			float uvX = (charData.uv3X - charData.uv0X) * 0.5f + charData.uv0X;
+			charGeo.uv0 = charGeo.uv1 = FVector2D(uvX, charData.uv0Y);
+			charGeo.uv2 = charGeo.uv3 = FVector2D(uvX, charData.uv3Y);
 		}
 		return charGeo;
 	};
@@ -2795,10 +2790,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						auto vert3 = FVector(x, y, 0);
 						if (richTextParseResult.italic)
 						{
-							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.horizontalBearingY) * italicSlop;
+							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.yoffset) * italicSlop;
 							vert0.X -= vert01ItalicOffset;
 							vert1.X -= vert01ItalicOffset;
-							auto vert23ItalicOffset = charGeo.horizontalBearingY * italicSlop;
+							auto vert23ItalicOffset = charGeo.yoffset * italicSlop;
 							vert2.X += vert23ItalicOffset;
 							vert3.X += vert23ItalicOffset;
 						}
@@ -2843,10 +2838,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						vert3 = FVector(x, y, 0);
 						if (richTextParseResult.italic)
 						{
-							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.horizontalBearingY) * italicSlop;
+							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.yoffset) * italicSlop;
 							vert0.X -= vert01ItalicOffset;
 							vert1.X -= vert01ItalicOffset;
-							auto vert23ItalicOffset = charGeo.horizontalBearingY * italicSlop;
+							auto vert23ItalicOffset = charGeo.yoffset * italicSlop;
 							vert2.X += vert23ItalicOffset;
 							vert3.X += vert23ItalicOffset;
 						}
@@ -3121,10 +3116,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						auto vert3 = FVector(x, y, 0);
 						if (italic)
 						{
-							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.horizontalBearingY) * italicSlop;
+							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.yoffset) * italicSlop;
 							vert0.X -= vert01ItalicOffset;
 							vert1.X -= vert01ItalicOffset;
-							auto vert23ItalicOffset = charGeo.horizontalBearingY * italicSlop;
+							auto vert23ItalicOffset = charGeo.yoffset * italicSlop;
 							vert2.X += vert23ItalicOffset;
 							vert3.X += vert23ItalicOffset;
 						}
@@ -3167,10 +3162,10 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						vert3 = FVector(x, y, 0);
 						if (italic)
 						{
-							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.horizontalBearingY) * italicSlop;
+							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.yoffset) * italicSlop;
 							vert0.X -= vert01ItalicOffset;
 							vert1.X -= vert01ItalicOffset;
-							auto vert23ItalicOffset = charGeo.horizontalBearingY * italicSlop;
+							auto vert23ItalicOffset = charGeo.yoffset * italicSlop;
 							vert2.X += vert23ItalicOffset;
 							vert3.X += vert23ItalicOffset;
 						}
