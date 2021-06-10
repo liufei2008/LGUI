@@ -118,7 +118,7 @@ public:
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 private:
 	/** canvas array belong to this canvas, include self. for update children's geometry */
-	UPROPERTY(VisibleAnywhere) TArray<TWeakObjectPtr<ULGUICanvas>> manageCanvasArray;
+	TArray<TWeakObjectPtr<ULGUICanvas>> manageCanvasArray;
 	/** for top most canvas only */
 	void UpdateRootCanvas();
 	/** update canvas's layout */
