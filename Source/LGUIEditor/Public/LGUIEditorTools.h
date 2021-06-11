@@ -9,6 +9,8 @@
 
 class LGUIEDITOR_API LGUIEditorTools
 {
+private:
+	static FString PrevSavePrafabFolder;
 public:
 	static AActor * GetFirstSelectedActor();
 	template<class T>
