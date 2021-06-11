@@ -13,7 +13,6 @@
 class ULGUISpriteData;
 class UUISpriteBase;
 struct FLGUIAtlasData;
-class ULGUIAtlas;
 
 #define WARNING_ATLAS_SIZE 4096
 

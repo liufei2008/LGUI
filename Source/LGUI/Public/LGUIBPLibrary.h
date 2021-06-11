@@ -8,6 +8,7 @@
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDrawableEvent_PresetParameter.h"
 #include "LTweener.h"
+#include "Core/LGUISpriteDataBaseObject.h"
 #include "LGUIBPLibrary.generated.h"
 
 class UUIItem;
@@ -330,5 +331,13 @@ public:
 		static void LGUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease);
 
 #pragma endregion
+	UFUNCTION(BlueprintPure, Category = LGUI)
+		static void GetSpriteSize(const FLGUISpriteInfo& SpriteInfo, int32& width, int32& height);
+	UFUNCTION(BlueprintPure, Category = LGUI)
+		static void GetSpriteBorderSize(const FLGUISpriteInfo& SpriteInfo, int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom);
+	UFUNCTION(BlueprintPure, Category = LGUI)
+		static void GetSpriteUV(const FLGUISpriteInfo& SpriteInfo, float& UV0X, float& UV0Y, float& UV3X, float& UV3Y);
+	UFUNCTION(BlueprintPure, Category = LGUI)
+		static void GetSpriteBorderUV(const FLGUISpriteInfo& SpriteInfo, float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y);
 
 };

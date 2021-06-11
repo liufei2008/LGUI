@@ -685,13 +685,16 @@ void ULGUICanvas::UpdateCanvasGeometry()
 	for (auto item : manageCanvasArray)
 	{
 		if (item == this)continue;//skip self
-		if (item->autoManageDepth)
+		if (item.IsValid() && item->GetIsUIActive())
 		{
-			item->UpdateCanvasGeometryForAutoManageDepth();
-		}
-		else
-		{
-			item->UpdateCanvasGeometry();
+			if (item->autoManageDepth)
+			{
+				item->UpdateCanvasGeometryForAutoManageDepth();
+			}
+			else
+			{
+				item->UpdateCanvasGeometry();
+			}
 		}
 	}
 
