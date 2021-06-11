@@ -55,6 +55,7 @@ public:
 	static void SelectPrefabAsset();
 	static class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
+	static void ClearPrefabActor(UWorld* World);
 	static bool IsSelectUIActor();
 	static bool IsCanvasActor(AActor* InActor);
 	static int GetDrawcallCount(AActor* InActor);

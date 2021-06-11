@@ -784,18 +784,35 @@ ALGUIPrefabActor* LGUIEditorTools::GetPrefabActor_WhichManageThisActor(AActor* I
 	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
 	{
 		auto prefabActor = *ActorItr;
-		if (prefabActor->GetPrefabComponent()->AllLoadedActorArray.Contains(InActor))
+		if (IsValid(prefabActor))
 		{
-			if (auto loadedRootActor = prefabActor->GetPrefabComponent()->LoadedRootActor)
+			if (prefabActor->GetPrefabComponent()->AllLoadedActorArray.Contains(InActor))
 			{
-				if (InActor->IsAttachedTo(loadedRootActor) || InActor == loadedRootActor)
+				if (auto loadedRootActor = prefabActor->GetPrefabComponent()->LoadedRootActor)
 				{
-					return prefabActor;
+					if (InActor->IsAttachedTo(loadedRootActor) || InActor == loadedRootActor)
+					{
+						return prefabActor;
+					}
 				}
 			}
 		}
 	}
 	return nullptr;
+}
+void LGUIEditorTools::ClearPrefabActor(UWorld* World)
+{
+	for (TActorIterator<ALGUIPrefabActor> ActorItr(World); ActorItr; ++ActorItr)
+	{
+		auto prefabActor = *ActorItr;
+		if (IsValid(prefabActor))
+		{
+			if (!IsValid(prefabActor->GetPrefabComponent()->GetLoadedRootActor()))
+			{
+				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
+			}
+		}
+	}
 }
 void LGUIEditorTools::SaveAsset(UObject* InObject, UPackage* InPackage)
 {
