@@ -45,7 +45,7 @@ FLGUIHudRenderer::FLGUIHudRenderer(const FAutoRegister& AutoRegister, ULGUICanva
 	CustomRenderTarget = InCustomRenderTarget;
 
 #if WITH_EDITORONLY_DATA
-	IsEditorPreview = !UICanvas->GetWorld()->IsGameWorld();
+	bIsEditorPreview = !UICanvas->GetWorld()->IsGameWorld();
 #endif
 }
 FLGUIHudRenderer::~FLGUIHudRenderer()
@@ -205,7 +205,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	if (!World.IsValid())return;
 	if (!UICanvas.IsValid())return;
 #if WITH_EDITOR
-	if (ALGUIManagerActor::IsPlaying == IsEditorPreview)return;
+	if (ALGUIManagerActor::IsPlaying == bIsEditorPreview)return;
 	if (ALGUIManagerActor::IsPlaying)
 	{
 		if (!InView.bIsGameView)return;
@@ -245,7 +245,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	}
 	else
 	{
-		if (MultiSampleCount > 1)
+		if (bHasPostProcess)
 		{
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.UnscaledViewRect.Size(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = MultiSampleCount;
@@ -350,7 +350,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	}
 	else
 	{
-		if (MultiSampleCount > 1)
+		if (bHasPostProcess)
 		{
 #if PLATFORM_WINDOWS
 			RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
@@ -376,6 +376,8 @@ void FLGUIHudRenderer::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimiti
 	{
 		HudPrimitiveArray.AddUnique(InPrimitive);
 		SortRenderPriority_RenderThread();//I don't know which time the primitive is added, because I don't know when SceneProxy or RenderProxy is created, so I need to sort it every time a new one added.
+		//check if we have postprocess
+		CheckHasPostProcess();
 	}
 	else
 	{
@@ -387,10 +389,24 @@ void FLGUIHudRenderer::RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrim
 	if (InPrimitive != nullptr)
 	{
 		HudPrimitiveArray.RemoveSingle(InPrimitive);
+		//check if we have postprocess
+		CheckHasPostProcess();
 	}
 	else
 	{
 		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::RemoveHudPrimitive]Remove nullptr as ILGUIHudPrimitive!"));
+	}
+}
+void FLGUIHudRenderer::CheckHasPostProcess()
+{
+	bHasPostProcess = false;
+	for (auto item : HudPrimitiveArray)
+	{
+		if (item->CanRender() && item->GetIsPostProcess())
+		{
+			bHasPostProcess = true;
+			break;
+		}
 	}
 }
 
