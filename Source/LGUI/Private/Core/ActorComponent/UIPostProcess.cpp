@@ -5,6 +5,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/UIGeometry.h"
 #include "Core/UIPostProcessRenderProxy.h"
+#include "Core/LGUISpriteDataBaseObject.h"
 
 UUIPostProcess::UUIPostProcess(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
