@@ -522,6 +522,13 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 				SetAnchorVAlign(newAlign);
 				prevAnchorVAlign = newAlign;
 			}
+
+			else if (propetyName == TEXT("X") || propetyName == TEXT("Y"))
+			{
+				auto newPivot = widget.pivot;
+				widget.pivot += FVector2D(1, 1);
+				SetPivot(newPivot);
+			}
 		}
 
 		MarkAllDirtyRecursive();
@@ -1398,6 +1405,17 @@ void UUIItem::SetHeight(float newHeight)
 		MarkLayoutDirty(true);
 	}
 }
+void UUIItem::SetPivot(FVector2D pivot) 
+{
+	if (!widget.pivot.Equals(pivot))
+	{
+		//@todo: keep relative to parent
+		widget.pivot = pivot;
+		PivotChanged();
+		MarkLayoutDirty(false);
+	}
+}
+
 void UUIItem::WidthChanged()
 {
 
@@ -1617,16 +1635,6 @@ void UUIItem::SetVerticalStretch(FVector2D newStretch)
 	}
 }
 
-void UUIItem::SetPivot(FVector2D pivot) {
-	if (!widget.pivot.Equals(pivot))
-	{
-		//@todo: keep relative to parent
-		widget.pivot = pivot;
-		PivotChanged();
-		MarkLayoutDirty(false);
-		CalculateTransformFromAnchor();
-	}
-}
 void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align)
 {
 	if (widget.anchorHAlign != align)
