@@ -48,7 +48,6 @@ public:
 		uint16 EngineMinorVersion;
 	/** 
 	 * serialized data for publish, not contain property name and editor only property. much more faster than BinaryData when deserialize
-	 * @todo: remove this, because new serialization system don't need this
 	 */
 	UPROPERTY()
 		TArray<uint8> BinaryDataForBuild;
