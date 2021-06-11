@@ -470,8 +470,8 @@ public:
 	}
 
 private:
-	FLGUIMeshProxySection* Section;
-	UBodySetup* BodySetup;
+	FLGUIMeshProxySection* Section = nullptr;
+	UBodySetup* BodySetup = nullptr;
 
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;

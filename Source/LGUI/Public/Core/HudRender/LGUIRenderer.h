@@ -62,6 +62,8 @@ private:
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
 	uint16 MultiSampleCount = 0;
+	bool bHasPostProcess = false;
+	void CheckHasPostProcess();
 
 	FVector ViewLocation;
 	FMatrix ViewRotationMatrix;
@@ -70,7 +72,7 @@ private:
 public:
 #if WITH_EDITORONLY_DATA
 	static uint32 EditorPreview_ViewKey;
-	bool IsEditorPreview = false;
+	bool bIsEditorPreview = false;
 #endif
 };
 
