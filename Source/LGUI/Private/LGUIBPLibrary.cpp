@@ -458,3 +458,30 @@ IMPLEMENT_DRAWABLEEVENT_BP(Class, UClass*);
 IMPLEMENT_DRAWABLEEVENT_BP(Rotator, FRotator);
 
 #pragma endregion
+
+void ULGUIBPLibrary::GetSpriteSize(const FLGUISpriteInfo& SpriteInfo, int32& width, int32& height)
+{
+	width = SpriteInfo.width;
+	height = SpriteInfo.height;
+}
+void ULGUIBPLibrary::GetSpriteBorderSize(const FLGUISpriteInfo& SpriteInfo, int32& borderLeft, int32& borderRight, int32& borderTop, int32& borderBottom)
+{
+	borderLeft = SpriteInfo.borderLeft;
+	borderRight = SpriteInfo.borderRight;
+	borderTop = SpriteInfo.borderTop;
+	borderBottom = SpriteInfo.borderBottom;
+}
+void ULGUIBPLibrary::GetSpriteUV(const FLGUISpriteInfo& SpriteInfo, float& UV0X, float& UV0Y, float& UV3X, float& UV3Y)
+{
+	UV0X = SpriteInfo.uv0X;
+	UV0Y = SpriteInfo.uv0Y;
+	UV3X = SpriteInfo.uv3X;
+	UV3Y = SpriteInfo.uv3Y;
+}
+void ULGUIBPLibrary::GetSpriteBorderUV(const FLGUISpriteInfo& SpriteInfo, float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y)
+{
+	borderUV0X = SpriteInfo.uv0X;
+	borderUV0Y = SpriteInfo.uv0Y;
+	borderUV3X = SpriteInfo.uv3X;
+	borderUV3Y = SpriteInfo.uv3Y;
+}
