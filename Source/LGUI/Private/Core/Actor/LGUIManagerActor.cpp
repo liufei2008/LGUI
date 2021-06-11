@@ -21,6 +21,8 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/Selection.h"
 #include "EditorViewportClient.h"
+#include "PrefabSystem/LGUIPrefabActor.h"
+#include "EngineUtils.h"
 #endif
 
 
@@ -43,6 +45,10 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	if (OnActorLabelChangedDelegateHandle.IsValid())
 	{
 		FCoreDelegates::OnActorLabelChanged.Remove(OnActorLabelChangedDelegateHandle);
+	}
+	if (OnActorDeletedDelegateHandle.IsValid())
+	{
+		FEditorDelegates::OnDeleteActorsEnd.Remove(OnActorDeletedDelegateHandle);
 	}
 #endif
 	Instance = nullptr;
@@ -136,6 +142,8 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
 			//reimport asset
 			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
+			//delete actor
+			Instance->OnActorDeletedDelegateHandle = FEditorDelegates::OnDeleteActorsEnd.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorDeleted);
 		}
 		else
 		{
@@ -171,6 +179,22 @@ void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
 			if (needToRebuildUI)
 			{
 				RefreshAllUI();
+			}
+		}
+	}
+}
+
+void ULGUIEditorManagerObject::OnActorDeleted()
+{
+	if (GWorld == nullptr)return;
+	for (TActorIterator<ALGUIPrefabActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	{
+		auto prefabActor = *ActorItr;
+		if (IsValid(prefabActor))
+		{
+			if (!IsValid(prefabActor->GetPrefabComponent()->GetLoadedRootActor()))
+			{
+				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
 		}
 	}

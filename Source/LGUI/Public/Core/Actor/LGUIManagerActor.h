@@ -102,6 +102,8 @@ private:
 	void OnAssetReimport(UObject* asset);
 	FDelegateHandle OnActorLabelChangedDelegateHandle;
 	void OnActorLabelChanged(AActor* actor);
+	FDelegateHandle OnActorDeletedDelegateHandle;
+	void OnActorDeleted();
 #if 0
 	void LogObjectFlags(UObject* obj);
 #endif
