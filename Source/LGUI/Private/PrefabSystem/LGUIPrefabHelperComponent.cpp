@@ -56,6 +56,11 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 		GEditor->SelectActor(LoadedRootActor, true, false);
 
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
+
+		if (ULGUIEditorManagerObject::Instance != nullptr)
+		{
+			EditorTickDelegateHandle = ULGUIEditorManagerObject::Instance->EditorTick.AddUObject(this, &ULGUIPrefabHelperComponent::EditorTick);
+		}
 	}
 }
 void ULGUIPrefabHelperComponent::SavePrefab()
@@ -148,5 +153,21 @@ void ULGUIPrefabHelperComponent::DeleteThisInstance()
 	{
 		UE_LOG(LGUI, Error, TEXT("This actor is not a prefab, ignore this action"));
 	}
+}
+
+void ULGUIPrefabHelperComponent::RemoveEditorTickDelegate()
+{
+	if (ULGUIEditorManagerObject::Instance != nullptr)
+	{
+		if (EditorTickDelegateHandle.IsValid())
+		{
+			ULGUIEditorManagerObject::Instance->EditorTick.Remove(EditorTickDelegateHandle);
+		}
+	}
+}
+void ULGUIPrefabHelperComponent::EditorTick(float DeltaTime)
+{
+	GEditor->SelectActor(this->GetOwner(), false, true);
+	RemoveEditorTickDelegate();
 }
 #endif

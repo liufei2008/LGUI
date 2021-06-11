@@ -45,6 +45,9 @@ public:
 		return LoadedRootActor;
 	}
 	void MoveActorToPrefabFolder();
+
+	void RemoveEditorTickDelegate();
+	void EditorTick(float DeltaTime);
 #endif
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Transient)AActor* ParentActorForEditor;
@@ -57,6 +60,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllLoadedActorArray;
 	FColor IdentityColor;
+
+	FDelegateHandle EditorTickDelegateHandle;
 private:
 	static FName PrefabFolderName;
 #endif

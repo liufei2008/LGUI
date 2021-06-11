@@ -62,3 +62,4 @@
 #include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
 
 #include "LGUIHeaders.h"
+#include "Core/Actor/LGUIManagerActor.h"
