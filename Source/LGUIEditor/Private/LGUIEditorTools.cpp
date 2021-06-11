@@ -633,6 +633,7 @@ bool LGUIEditorTools::HaveValidCopiedComponent()
 	return copiedComponent.IsValid();
 }
 
+FString LGUIEditorTools::PrevSavePrafabFolder = TEXT("");
 void LGUIEditorTools::CreatePrefabAsset()
 {
 	auto selectedActor = GetFirstSelectedActor();
@@ -648,7 +649,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 		DesktopPlatform->SaveFileDialog(
 			FSlateApplication::Get().FindBestParentWindowHandleForDialogs(FSlateApplication::Get().GetGameViewport()),
 			TEXT("Choose a path to save prefab asset, must inside Content folder"),
-			FPaths::ProjectContentDir(),
+			PrevSavePrafabFolder.IsEmpty() ? FPaths::ProjectContentDir() : PrevSavePrafabFolder,
 			selectedActor->GetActorLabel() + TEXT("_Prefab"),
 			TEXT("*.*"),
 			EFileDialogFlags::None,
@@ -659,6 +660,15 @@ void LGUIEditorTools::CreatePrefabAsset()
 			FString selectedFilePath = OutFileNames[0];
 			if (selectedFilePath.StartsWith(FPaths::ProjectContentDir()))
 			{
+				PrevSavePrafabFolder = FPaths::GetPath(selectedFilePath);
+				if (FPaths::FileExists(selectedFilePath + TEXT(".uasset")))
+				{
+					auto returnValue = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(FString::Printf(TEXT("Asset already exist at path: \"%s\" !\nReplace it?"), *(selectedFilePath))));
+					if (returnValue == EAppReturnType::No)
+					{
+						return;
+					}
+				}
 				selectedFilePath.RemoveFromStart(FPaths::ProjectContentDir(), ESearchCase::CaseSensitive);
 				FString packageName = TEXT("/Game/") + selectedFilePath;
 				UPackage* package = CreatePackage(*packageName);
@@ -670,11 +680,14 @@ void LGUIEditorTools::CreatePrefabAsset()
 				}
 				package->FullyLoad();
 				FString fileName = FPaths::GetBaseFilename(selectedFilePath);
-				auto OutPrefab = NewObject<ULGUIPrefab>((UObject*)package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
-				FAssetRegistryModule::AssetCreated((UObject*)OutPrefab);
-				FString packageSavePath = FString::Printf(TEXT("/Game/%s%s"), *selectedFilePath, *FPackageName::GetAssetPackageExtension());
-				UPackage::SavePackage(package, OutPrefab, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *packageSavePath);//@todo: this will create a "Game" folder at D: drive, fix it!
+				auto OutPrefab = NewObject<ULGUIPrefab>(package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
+				FAssetRegistryModule::AssetCreated(OutPrefab);
 
+				auto oldPrefabActor = GetPrefabActor_WhichManageThisActor(selectedActor);
+				if (IsValid(oldPrefabActor))
+				{
+					LGUIUtils::DestroyActorWithHierarchy(oldPrefabActor, false);
+				}
 				auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabActor>(ALGUIPrefabActor::StaticClass(), FTransform::Identity);
 				if (IsValid(prefabActor))
 				{
