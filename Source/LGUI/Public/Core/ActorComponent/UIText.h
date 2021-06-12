@@ -237,6 +237,9 @@ public:
 	virtual void UpdateCachedData()override;
 	virtual void WidthChanged()override;
 	virtual void HeightChanged()override;
+
+	virtual void GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const override;
+
 #pragma region UITextInputComponent
 	/** get caret position and line index */
 	void FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex);
