@@ -1777,6 +1777,12 @@ FVector2D UUIItem::GetLocalSpaceCenter()const
 	return FVector2D(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y));
 }
 
+void UUIItem::GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const
+{
+	min = GetLocalSpaceLeftBottomPoint();
+	max = GetLocalSpaceRightTopPoint();
+}
+
 float UUIItem::GetLocalSpaceLeft()const
 {
 	return widget.width * -widget.pivot.X;

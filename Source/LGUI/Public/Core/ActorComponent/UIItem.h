@@ -275,6 +275,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class ULGUICanvasScaler* GetCanvasScaler()const;
 
+	/** For autoManageDepth, return bounds min max point in self local space */
+	virtual void GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const;
+	
 	void MarkLayoutDirty(bool sizeChange);
 	void MarkColorDirty();
 

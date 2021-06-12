@@ -2154,8 +2154,8 @@ FTransform2D ULGUICanvas::ConvertTo2DTransform(const FTransform& Transform)
 }
 void ULGUICanvas::CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max)
 {
-	auto localPoint1 = item->GetLocalSpaceLeftBottomPoint();
-	auto localPoint2 = item->GetLocalSpaceRightTopPoint();
+	FVector2D localPoint1, localPoint2;
+	item->GetLocalSpaceMinMaxPoint_ForAutoManageDepth(localPoint1, localPoint2);
 	auto point1 = transform.TransformPoint(localPoint1);
 	auto point2 = transform.TransformPoint(localPoint2);
 	auto point3 = transform.TransformPoint(FVector2D(localPoint2.X, localPoint1.Y));
