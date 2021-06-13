@@ -4,7 +4,7 @@
 #include "LGUIImageSequencePlayer.h"
 #include "UISpriteSequencePlayer.generated.h"
 
-class ULGUISpriteData;
+class ULGUISpriteData_BaseObject;
 
 /** Play sprite sequence, need UISprite component. */
 UCLASS(ClassGroup = (LGUI), meta = (BlueprintSpawnableComponent))
@@ -23,7 +23,7 @@ protected:
 	UPROPERTY(Transient)
 		TWeakObjectPtr<class UUISpriteBase> sprite;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<ULGUISpriteData*> spriteSequence;
+		TArray<ULGUISpriteData_BaseObject*> spriteSequence;
 
 	virtual bool CanPlay()override;
 	virtual float GetDuration()const override;
@@ -31,7 +31,7 @@ protected:
 	virtual void OnUpdateAnimation(int frameNumber)override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const TArray<ULGUISpriteData*> GetSpriteSequence()const { return spriteSequence; }
+		const TArray<ULGUISpriteData_BaseObject*> GetSpriteSequence()const { return spriteSequence; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetSpriteSequence(TArray<ULGUISpriteData*> value);
+		void SetSpriteSequence(TArray<ULGUISpriteData_BaseObject*> value);
 };

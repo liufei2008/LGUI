@@ -7,7 +7,7 @@
 #include "RHI.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "Core/LGUISettings.h"
-#include "Core/LGUIFontDataBaseObject.h"
+#include "Core/LGUIFontData_BaseObject.h"
 #include "LGUIFontData.generated.h"
 
 
@@ -67,7 +67,7 @@ public:
 	const int32 SPACE_BETWEEN_GLYPH = SPACE_NEED_EXPEND + 1;
 	const int32 SPACE_BETWEEN_GLYPHx2 = SPACE_BETWEEN_GLYPH * 2;
 
-	//Begin ULGUIFontDataBaseObject interface
+	//Begin ULGUIFontData_BaseObject interface
 	virtual UTexture2D* GetFontTexture()override;
 	virtual FLGUICharData GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
 	virtual float GetBoldRatio() override{ return boldRatio; }
@@ -76,7 +76,7 @@ public:
 	virtual void InitFont()override;
 	virtual void AddUIText(UUIText* InText)override;
 	virtual void RemoveUIText(UUIText* InText)override;
-	//End ULGUIFontDataBaseObject interface
+	//End ULGUIFontData_BaseObject interface
 private:
 	/** Collection of UIText which use this font to render. */
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")

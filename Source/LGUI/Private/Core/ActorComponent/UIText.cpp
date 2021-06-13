@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Materials/MaterialInterface.h"
 #include "Core/LGUIFontData.h"
-#include "Core/LGUIFontDataBaseObject.h"
+#include "Core/LGUIFontData_BaseObject.h"
 
 
 #if WITH_EDITORONLY_DATA
