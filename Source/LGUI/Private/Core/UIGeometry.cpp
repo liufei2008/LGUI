@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISpriteData.h"
-#include "Core/LGUIFontDataBaseObject.h"
+#include "Core/LGUIFontData_BaseObject.h"
 #include "RichTextParser.h"
 
 

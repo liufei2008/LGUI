@@ -5,7 +5,7 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISpriteData.h"
-#include "Core/LGUISpriteDataBaseObject.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 
 UUISpriteBase::UUISpriteBase(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {

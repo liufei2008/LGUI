@@ -6,7 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "Engine/Texture2D.h"
-#include "LGUISpriteDataBaseObject.generated.h"
+#include "LGUISpriteData_BaseObject.generated.h"
 
 
 /**

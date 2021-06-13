@@ -2,7 +2,7 @@
 
 #include "Extensions/UISpriteSequencePlayer.h"
 #include "LTweenBPLibrary.h"
-#include "Core/LGUISpriteData.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 #include "Core/ActorComponent/UISpriteBase.h"
 
 #if WITH_EDITOR
@@ -62,7 +62,7 @@ void UUISpriteSequencePlayer::OnUpdateAnimation(int frameNumber)
 	sprite->SetSprite(spriteSequence[frameNumber]);
 }
 
-void UUISpriteSequencePlayer::SetSpriteSequence(TArray<ULGUISpriteData*> value)
+void UUISpriteSequencePlayer::SetSpriteSequence(TArray<ULGUISpriteData_BaseObject*> value)
 {
 	spriteSequence = value;
 }

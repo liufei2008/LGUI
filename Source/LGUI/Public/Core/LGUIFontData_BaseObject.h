@@ -7,7 +7,7 @@
 #include "RHI.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "Core/LGUISettings.h"
-#include "LGUIFontDataBaseObject.generated.h"
+#include "LGUIFontData_BaseObject.generated.h"
 
 
 struct FLGUIFontKeyData
