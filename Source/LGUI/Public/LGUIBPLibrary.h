@@ -8,7 +8,7 @@
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDrawableEvent_PresetParameter.h"
 #include "LTweener.h"
-#include "Core/LGUISpriteDataBaseObject.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 #include "LGUIBPLibrary.generated.h"
 
 class UUIItem;

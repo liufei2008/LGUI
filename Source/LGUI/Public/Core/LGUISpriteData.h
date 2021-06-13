@@ -6,7 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "Utils/MaxRectsBinPack/MaxRectsBinPack.h"
 #include "Engine/Texture2D.h"
-#include "LGUISpriteDataBaseObject.h"
+#include "LGUISpriteData_BaseObject.h"
 #include "LGUISpriteData.generated.h"
 
 
@@ -48,13 +48,13 @@ private:
 	void CopySpriteTextureToAtlas(rbp::Rect InPackedRect, int32 InAtlasTexturePadding);
 	void ApplySpriteInfoAfterStaticPack(const rbp::Rect& InPackedRect, float InAtlasTextureSizeInv, UTexture2D* InAtlasTexture);
 public:
-	//Begin ULGUISpriteDataBaseObject interface
+	//Begin ULGUISpriteData_BaseObject interface
 	virtual UTexture2D * GetAtlasTexture()override;
 	virtual FLGUISpriteInfo GetSpriteInfo()override;
 	virtual bool IsIndividual()const override;
 	virtual void AddUISprite(UUISpriteBase* InUISprite)override;
 	virtual void RemoveUISprite(UUISpriteBase* InUISprite)override;
-	//End ULGUISpriteDataBaseObject interface
+	//End ULGUISpriteData_BaseObject interface
 
 	/** initialize sprite data */
 	void InitSpriteData();
