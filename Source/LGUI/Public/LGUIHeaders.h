@@ -18,8 +18,10 @@
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
 
 #include "Core/LGUIFontData.h"
+#include "Core/LGUIFontData_BaseObject.h"
 #include "Core/LGUIAtlasData.h"
 #include "Core/LGUISpriteData.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/Actor/UIContainerActor.h"
