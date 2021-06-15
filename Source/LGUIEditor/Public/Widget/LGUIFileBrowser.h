@@ -19,7 +19,7 @@ public:
 		//, _LabelBackgroundBrush(FEditorStyle::GetBrush("WhiteBrush"))
 	{}
 	/** Attribute specifying the text to display in the folder input */
-	SLATE_ATTRIBUTE(FString, FolderPath)
+	SLATE_ATTRIBUTE(FText, FolderPath)
 	SLATE_ATTRIBUTE(FString, DialogTitle)
 	SLATE_ATTRIBUTE(FString, DefaultFileName)
 	SLATE_ATTRIBUTE(FString, Filter)
@@ -38,7 +38,7 @@ public:
 				+SOverlay::Slot()
 				[
 					SAssignNew(FolderPathTextBox, SEditableTextBox)
-					.Text(FText::FromString(InArgs._FolderPath.Get()))
+					.Text(InArgs._FolderPath)
 					.Padding(FMargin(5,3,25,3))
 					.OnTextCommitted(this, &SLGUIFileBrowser::OnPathTextCommited)
 					.OnTextChanged(this, &SLGUIFileBrowser::OnPathTextChanged)
@@ -65,7 +65,7 @@ public:
 	}
 
 private:
-	FReply OnBrowseButtonClicked(TAttribute<FString> DialogTitle, TAttribute<FString> FilePath, TAttribute<FString> DefaultFileName, TAttribute<FString> Filter)
+	FReply OnBrowseButtonClicked(TAttribute<FString> DialogTitle, TAttribute<FText> FilePath, TAttribute<FString> DefaultFileName, TAttribute<FString> Filter)
 	{
 		IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
 		if (DesktopPlatform)
@@ -74,7 +74,7 @@ private:
 			auto fileSelected = DesktopPlatform->OpenFileDialog(
 				FSlateApplication::Get().FindBestParentWindowHandleForDialogs(AsShared()),
 				DialogTitle.Get(),
-				FilePath.Get(),
+				FilePath.Get().ToString(),
 				DefaultFileName.Get(),
 				Filter.Get(),
 				EFileDialogFlags::None,

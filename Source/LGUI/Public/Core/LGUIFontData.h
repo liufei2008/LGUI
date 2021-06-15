@@ -17,6 +17,18 @@ struct FT_GlyphSlotRec_;
 struct FT_LibraryRec_;
 struct FT_FaceRec_;
 
+UENUM(BlueprintType)
+enum class ELGUIDynamicFontDataType :uint8
+{
+	/** Use custom external font file */
+	CustomFontFile,
+	/**
+	 * Use existing UMG font.
+	 * Note: if UMG font use 'Lazy Load' loading policy, then LGUI will load target font file by itself.
+	 */
+	UnrealFont,
+};
+
 /**
  * font asset for UIText to render
  */
@@ -24,8 +36,11 @@ UCLASS(BlueprintType)
 class LGUI_API ULGUIFontData : public ULGUIFontData_BaseObject
 {
 	GENERATED_BODY()
-public:
+private:
+	friend class FLGUIFontDataCustomization;
 
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		ELGUIDynamicFontDataType fontType = ELGUIDynamicFontDataType::CustomFontFile;
 	/** Font file path, absolute path or relative to ProjectDir */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FString fontFilePath;
@@ -35,6 +50,18 @@ public:
 	/** When in build, use external file or embed into uasset. But in editor, will always load from fontFilePath. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool useExternalFileOrEmbedInToUAsset = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		class UFontFace* unrealFont;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		int fontFace = 0;
+	//UPROPERTY(EditAnywhere, Category = "LGUI")
+	//	TScriptInterface<class UFontFaceInterface> test;
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		TArray<FString> subFaces;
+	TArray<FString> CacheSubFaces(FT_LibraryRec_* InFTLibrary, const TArray<uint8>& InMemory);
+#endif
+
 	/** Some font text may not renderred at vertical center, use this to offset */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float fixedVerticalOffset = 0.0f;
@@ -44,6 +71,7 @@ public:
 	/** bold size radio for bold style, large number create more bold effect */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		float boldRatio = 0.015f;
+	
 	/**
 	 * Packing tag of this font. If packingTag is not none, then LGUI will search UISprite's atlas packingTag, and pack font texture into sprite atlas's texture.
 	 * This can be very useful to reduce drawcall.
@@ -67,6 +95,7 @@ public:
 	const int32 SPACE_BETWEEN_GLYPH = SPACE_NEED_EXPEND + 1;
 	const int32 SPACE_BETWEEN_GLYPHx2 = SPACE_BETWEEN_GLYPH * 2;
 
+public:
 	//Begin ULGUIFontData_BaseObject interface
 	virtual UTexture2D* GetFontTexture()override;
 	virtual FLGUICharData GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
