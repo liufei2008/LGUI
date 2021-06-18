@@ -134,4 +134,11 @@ public:
 		void SetOnlyOneDirection(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetCanScrollInSmallSize(bool value);
+
+	/** Mannually scroll it with delta value. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetScrollDelta(FVector2D value);
+	/** Mannually scroll it with absolute value. The value will be applyed to Content's relative location. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetScrollValue(FVector2D value);
 };
