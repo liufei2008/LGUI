@@ -4,20 +4,20 @@
 
 #include "ThumbnailRendering/DefaultSizedThumbnailRenderer.h"
 #include "ThumbnailHelpers.h"
-#include "LGUISpriteThumbnailRenderer.generated.h"
+#include "LGUISpriteDataBaseObjectThumbnailRenderer.generated.h"
 
 UCLASS()
-class ULGUISpriteThumbnailRenderer :public UDefaultSizedThumbnailRenderer
+class ULGUISpriteDataBaseObjectThumbnailRenderer :public UDefaultSizedThumbnailRenderer
 {
 	GENERATED_BODY()
 public:
-	ULGUISpriteThumbnailRenderer();
+	ULGUISpriteDataBaseObjectThumbnailRenderer();
 
 	virtual void Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget*, FCanvas* Canvas)override;
 
 	virtual void BeginDestroy()override;
 
 protected:
-	void DrawFrame(class ULGUISpriteData* Sprite, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget*, FCanvas* Canvas, FBoxSphereBounds* OverrideRenderBounds);
+	void DrawFrame(class ULGUISpriteData_BaseObject* Sprite, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget*, FCanvas* Canvas, FBoxSphereBounds* OverrideRenderBounds);
 	void DrawGrid(int32 X, int32 Y, uint32 Width, uint32 Height, FCanvas* Canvas);
 };

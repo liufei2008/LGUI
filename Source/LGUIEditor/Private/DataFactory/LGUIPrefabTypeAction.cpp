@@ -28,7 +28,7 @@ uint32 FLGUIPrefabTypeAction::GetCategories()
 
 FText FLGUIPrefabTypeAction::GetName()const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_PrefabDataAsset", "LGUIPrefab");
+	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUIPrefabDataAsset", "LGUI Prefab");
 }
 
 UClass* FLGUIPrefabTypeAction::GetSupportedClass()const

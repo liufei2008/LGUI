@@ -32,15 +32,23 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		uint16 borderBottom = 0;
 
-	float uv0X = 0;
-	float uv0Y = 1;
-	float uv3X = 1;
-	float uv3Y = 0;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		float uv0X = 0;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		float uv0Y = 1;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		float uv3X = 1;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		float uv3Y = 0;
 
-	float buv0X = 0;
-	float buv0Y = 1;
-	float buv3X = 1;
-	float buv3Y = 0;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		float buv0X = 0;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		float buv0Y = 1;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		float buv3X = 1;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+		float buv3Y = 0;
 
 public:
 	FVector2D GetUV0()const { return FVector2D(uv0X, uv0Y); }

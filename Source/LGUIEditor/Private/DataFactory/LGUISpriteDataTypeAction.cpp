@@ -29,7 +29,7 @@ uint32 FLGUISpriteDataTypeAction::GetCategories()
 
 FText FLGUISpriteDataTypeAction::GetName()const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_SpriteDataAsset", "LGUISprite");
+	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUISpriteDataAsset", "LGUI Sprite");
 }
 
 UClass* FLGUISpriteDataTypeAction::GetSupportedClass()const
