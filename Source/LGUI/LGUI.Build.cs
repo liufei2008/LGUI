@@ -64,6 +64,6 @@ public class LGUI : ModuleRules
             );
         }
 
-        PublicDefinitions.Add("LGUI_USE_32BIT_INDEXBUFFER=0");
+        //PublicDefinitions.Add("LGUI_USE_32BIT_INDEXBUFFER");
     }
 }

@@ -141,7 +141,7 @@ private:
 	 * Insert rect into area, assign pixel if succeed
 	 * return: if can fit in rect area return true, else false
 	 */
-	bool PackRectAndInsertChar(int32 InExtraSpace, FT_GlyphSlotRec_* InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
+	bool PackRectAndInsertChar(FT_GlyphSlotRec_* InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture);
 	void UpdateFontTextureRegion(UTexture2D* Texture, FUpdateTextureRegion2D* Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData);
 
 	void CreateFontTexture(int oldTextureSize, int newTextureSize);
