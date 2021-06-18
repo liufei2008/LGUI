@@ -160,7 +160,6 @@ void UUIText::OnBeforeCreateOrUpdateGeometry()
 }
 void UUIText::OnCreateGeometry()
 {
-	geometry->isFontTexture = true;
 	float width = widget.width;
 	float height = widget.height;
 	UIGeometry::FromUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);

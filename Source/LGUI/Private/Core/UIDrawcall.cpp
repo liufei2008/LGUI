@@ -9,8 +9,7 @@
 #include "Core/ActorComponent/UIRenderable.h"
 #include "Core/LGUISettings.h"
 
-
-void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)const
+void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const
 {
 	int count = geometryList.Num();
 	if (count == 1)
@@ -40,14 +39,15 @@ void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint1
 			vertices.Append(geometry->vertices);
 			for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
 			{
-				triangles[triangleIndicesIndex++] = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
+				auto triangleIndex = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
+				triangles[triangleIndicesIndex++] = triangleIndex;
 			}
 
 			prevVertexCount += geometry->vertices.Num();
 		}
 	}
 }
-void UUIDrawcall::UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)
+void UUIDrawcall::UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)
 {
 	int count = geometryList.Num();
 	if (count == 1)

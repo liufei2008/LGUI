@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Engine/Texture.h"
+#include "Core/LGUIIndexBuffer.h"
 
 class UUIPostProcess;
 class UIGeometry;
@@ -17,6 +18,7 @@ enum class EUIDrawcallType :uint8
 	Geometry = 1,
 	PostProcess,
 };
+
 class LGUI_API UUIDrawcall
 {
 public:
@@ -40,8 +42,8 @@ public:
 	bool is3DDrawcall = false;//transform relative to canvas is 3d or not? only 2d drawcall can batch
 #pragma endregion
 public:
-	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles)const;
-	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<uint16>& triangles);
+	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
+	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles);
 	//update the max and min depth
 	void UpdateDepthRange();
 	
