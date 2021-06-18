@@ -294,14 +294,8 @@ FLGUICharData* ULGUIFontData::PushCharIntoFont(const TCHAR& charIndex, const uin
 
 	auto& calcBinpack = usePackingTag ? packingAtlasData->atlasBinPack : this->binPack;
 	auto& calcTexture = usePackingTag ? packingAtlasData->atlasTexture : this->texture;
-#if WITH_EDITOR
-	int32 spaceBetweenSprites = ULGUISettings::GetAtlasTexturePadding(packingTag);
-#else
-	static int32 spaceBetweenSprites = ULGUISettings::GetAtlasTexturePadding(packingTag);
-#endif
-	int32 extraSpace = usePackingTag ? spaceBetweenSprites : 0;
 PACK_AND_INSERT:
-	if (PackRectAndInsertChar(extraSpace, slot, calcBinpack, calcTexture))
+	if (PackRectAndInsertChar(slot, calcBinpack, calcTexture))
 	{
 
 	}
@@ -363,11 +357,11 @@ PACK_AND_INSERT:
 
 	return &cacheCharData;
 }
-bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, FT_GlyphSlotRec_* InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
+bool ULGUIFontData::PackRectAndInsertChar(FT_GlyphSlotRec_* InSlot, rbp::MaxRectsBinPack& InOutBinpack, UTexture2D* InTexture)
 {
 	const auto& charBitmap = InSlot->bitmap;
-	int charRectWidth = charBitmap.width + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
-	int charRectHeight = charBitmap.rows + SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
+	int charRectWidth = charBitmap.width + SPACE_BETWEEN_GLYPHx2;
+	int charRectHeight = charBitmap.rows + SPACE_BETWEEN_GLYPHx2;
 	auto method = rbp::MaxRectsBinPack::RectBestAreaFit;
 
 	auto packedRect = InOutBinpack.Insert(charRectWidth, charRectHeight, method);
@@ -378,17 +372,13 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, FT_GlyphSlotRec_* 
 	else//this area can fit the char, so copy pixel color into texture
 	{
 		//remove space
-		packedRect.x += SPACE_BETWEEN_GLYPH + InExtraSpace;
-		packedRect.y += SPACE_BETWEEN_GLYPH + InExtraSpace;
-		packedRect.width -= SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
-		packedRect.height -= SPACE_BETWEEN_GLYPHx2 + InExtraSpace + InExtraSpace;
+		packedRect.x += SPACE_BETWEEN_GLYPH;
+		packedRect.y += SPACE_BETWEEN_GLYPH;
+		packedRect.width -= SPACE_BETWEEN_GLYPHx2;
+		packedRect.height -= SPACE_BETWEEN_GLYPHx2;
 
 		//pixel color
-		int32 sourceTexturePixelIndexY = packedRect.y;
-		int32 sourceTextureCharStartPixelXWithSpace = packedRect.x + SPACE_BETWEEN_GLYPH;
-		auto region = new FUpdateTextureRegion2D(sourceTextureCharStartPixelXWithSpace, sourceTexturePixelIndexY, 0, 0, packedRect.width, packedRect.height);
-
-		int pixelCount = packedRect.width * packedRect.height;
+		int pixelCount = charBitmap.width * charBitmap.rows;
 		FColor* regionColor = new FColor[pixelCount];
 		for (int i = 0; i < pixelCount; i++)
 		{
@@ -396,18 +386,18 @@ bool ULGUIFontData::PackRectAndInsertChar(int32 InExtraSpace, FT_GlyphSlotRec_* 
 			pixelColor.R = pixelColor.G = pixelColor.B = 255;
 			pixelColor.A = charBitmap.buffer[i];
 		}
+		auto region = new FUpdateTextureRegion2D(packedRect.x, packedRect.y, 0, 0, charBitmap.width, charBitmap.rows);
 		UpdateFontTextureRegion(InTexture, region, packedRect.width * 4, 4, (uint8*)regionColor);
 
 		cacheCharData.width = charBitmap.width + SPACE_NEED_EXPENDx2;
 		cacheCharData.height = charBitmap.rows + SPACE_NEED_EXPENDx2;
 		cacheCharData.xoffset = InSlot->bitmap_left - SPACE_NEED_EXPEND;
-		cacheCharData.yoffset = InSlot->bitmap_top + SPACE_NEED_EXPEND;
+		cacheCharData.yoffset = InSlot->bitmap_top - SPACE_NEED_EXPEND;
 		cacheCharData.xadvance = InSlot->metrics.horiAdvance >> 6;
-		cacheCharData.uv0X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND);
-		cacheCharData.uv0Y = fullTextureSizeReciprocal * (packedRect.y + cacheCharData.height - SPACE_NEED_EXPEND);
-		cacheCharData.uv3X = fullTextureSizeReciprocal * (sourceTextureCharStartPixelXWithSpace - SPACE_NEED_EXPEND + cacheCharData.width);
+		cacheCharData.uv0X = fullTextureSizeReciprocal * (packedRect.x - SPACE_NEED_EXPEND);
+		cacheCharData.uv0Y = fullTextureSizeReciprocal * (packedRect.y - SPACE_NEED_EXPEND + cacheCharData.height);
+		cacheCharData.uv3X = fullTextureSizeReciprocal * (packedRect.x - SPACE_NEED_EXPEND + cacheCharData.width);
 		cacheCharData.uv3Y = fullTextureSizeReciprocal * (packedRect.y - SPACE_NEED_EXPEND);
-
 		return true;
 	}
 	return false;
@@ -515,7 +505,7 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	}
 }
 
-FLGUICharData ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize)
+FLGUICharData_HighPrecision ULGUIFontData::GetCharData(const TCHAR& charIndex, const uint16& charSize)
 {
 	cacheFontKey = FLGUIFontKeyData(charIndex, charSize);
 	if (auto charData = charDataMap.Find(cacheFontKey))

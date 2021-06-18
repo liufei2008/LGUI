@@ -162,51 +162,52 @@ namespace rbp {
 			freeRectangles.Reset();
 			usedRectangles.Reset();
 		}
-#if 0
-		for (int x = newWidth - 256; x >= binWidth; x -= 256)
+		const int cellSize = 256;
+#if 1
+		for (int x = newWidth - cellSize; x >= binWidth; x -= cellSize)
 		{
-			for (int y = newHeight - 256; y >= 0; y -= 256)
+			for (int y = newHeight - cellSize; y >= 0; y -= cellSize)
 			{
 				Rect item;
-				item.width = 256;
-				item.height = 256;
+				item.width = cellSize;
+				item.height = cellSize;
 				item.x = x;
 				item.y = y;
 				outFreeRectangles.Add(item);
 			}
 		}
-		for (int x = binWidth - 256; x >= 0; x -= 256)
+		for (int x = binWidth - cellSize; x >= 0; x -= cellSize)
 		{
-			for (int y = newHeight - 256; y >= binHeight; y -= 256)
+			for (int y = newHeight - cellSize; y >= binHeight; y -= cellSize)
 			{
 				Rect item;
-				item.width = 256;
-				item.height = 256;
+				item.width = cellSize;
+				item.height = cellSize;
 				item.x = x;
 				item.y = y;
 				outFreeRectangles.Add(item);
 			}
 		}
 #else
-		for (int x = binWidth; x < newWidth; x += 256)
+		for (int x = binWidth; x < newWidth; x += cellSize)
 		{
-			for (int y = 0; y < newHeight; y += 256)
+			for (int y = 0; y < newHeight; y += cellSize)
 			{
 				Rect item;
-				item.width = 256;
-				item.height = 256;
+				item.width = cellSize;
+				item.height = cellSize;
 				item.x = x;
 				item.y = y;
 				outFreeRectangles.Add(item);
 			}
 		}
-		for (int x = 0; x < binWidth; x += 256)
+		for (int x = 0; x < binWidth; x += cellSize)
 		{
-			for (int y = binHeight; y < newHeight; y += 256)
+			for (int y = binHeight; y < newHeight; y += cellSize)
 			{
 				Rect item;
-				item.width = 256;
-				item.height = 256;
+				item.width = cellSize;
+				item.height = cellSize;
 				item.x = x;
 				item.y = y;
 				outFreeRectangles.Add(item);
