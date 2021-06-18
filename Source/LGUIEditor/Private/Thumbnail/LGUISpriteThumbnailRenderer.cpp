@@ -7,6 +7,8 @@
 #include "Engine/EngineTypes.h"
 #include "Core/LGUISpriteData.h"
 #include "CanvasItem.h"
+#include "EditorStyleSet.h"
+#include "CanvasTypes.h"
 
 ULGUISpriteThumbnailRenderer::ULGUISpriteThumbnailRenderer()
 {

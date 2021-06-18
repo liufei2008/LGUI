@@ -29,7 +29,7 @@ uint32 FLGUIFontDataTypeAction::GetCategories()
 
 FText FLGUIFontDataTypeAction::GetName()const
 {
-	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_FontDataAsset", "LGUIFont");
+	return NSLOCTEXT("AssetTypeActions", "AssetTypeActions_LGUIFontDataAsset", "LGUI Font");
 }
 
 UClass* FLGUIFontDataTypeAction::GetSupportedClass()const

@@ -20,6 +20,7 @@
 #include "LGUIEditorCommands.h"
 #include "Thumbnail/LGUIPrefabThumbnailRenderer.h"
 #include "Thumbnail/LGUISpriteThumbnailRenderer.h"
+#include "Thumbnail/LGUISpriteDataBaseObjectThumbnailRenderer.h"
 #include "ContentBrowserExtensions/LGUIContentBrowserExtensions.h"
 #include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
 #include "Window/LGUIAtlasViewer.h"
