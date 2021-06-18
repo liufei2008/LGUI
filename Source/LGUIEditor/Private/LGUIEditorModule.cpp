@@ -198,6 +198,7 @@ void FLGUIEditorModule::StartupModule()
 	{
 		UThumbnailManager::Get().RegisterCustomRenderer(ULGUIPrefab::StaticClass(), ULGUIPrefabThumbnailRenderer::StaticClass());
 		UThumbnailManager::Get().RegisterCustomRenderer(ULGUISpriteData::StaticClass(), ULGUISpriteThumbnailRenderer::StaticClass());
+		UThumbnailManager::Get().RegisterCustomRenderer(ULGUISpriteData_BaseObject::StaticClass(), ULGUISpriteDataBaseObjectThumbnailRenderer::StaticClass());
 	}
 	//register right mouse button in content browser
 	{
@@ -338,6 +339,7 @@ void FLGUIEditorModule::ShutdownModule()
 	{
 		UThumbnailManager::Get().UnregisterCustomRenderer(ULGUIPrefab::StaticClass());
 		UThumbnailManager::Get().UnregisterCustomRenderer(ULGUISpriteData::StaticClass());
+		UThumbnailManager::Get().UnregisterCustomRenderer(ULGUISpriteData_BaseObject::StaticClass());
 	}
 	//unregister right mouse button in content browser
 	{

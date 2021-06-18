@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "LGUIPrefabThumbnailScene.h"
+#include "ThumbnailRendering/DefaultSizedThumbnailRenderer.h"
+#include "ThumbnailHelpers.h"
 #include "LGUISpriteThumbnailRenderer.generated.h"
 
 UCLASS()
