@@ -286,6 +286,69 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
     }
     return AllowEventBubbleUp;
 }
+
+void UUIScrollViewComponent::SetScrollDelta(FVector2D value)
+{
+    if (CheckParameters())
+    {
+        auto delta = value;
+		if (Horizontal)
+		{
+			AllowHorizontalScroll = true;
+			CanUpdateAfterDrag = true;
+			if (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y)
+			{
+				Position.X += delta.X * 0.5f;
+				DragSpeed.X = delta.X * 0.5f;
+			}
+			else
+			{
+				Position.X += delta.X;
+				DragSpeed.X = delta.X;
+			}
+			ContentUIItem->SetRelativeLocation(Position);
+		}
+		if (Vertical)
+		{
+			AllowVerticalScroll = true;
+			CanUpdateAfterDrag = true;
+			if (Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)
+			{
+				Position.Y += delta.Y * 0.5f;
+				DragSpeed.Y = delta.Y * 0.5f;
+			}
+			else
+			{
+				Position.Y += delta.Y;
+				DragSpeed.Y = delta.Y;
+			}
+			ContentUIItem->SetRelativeLocation(Position);
+		}
+    }
+}
+void UUIScrollViewComponent::SetScrollValue(FVector2D value)
+{
+    if (CheckParameters())
+    {
+		if (Horizontal)
+		{
+			AllowHorizontalScroll = true;
+			CanUpdateAfterDrag = true;
+			Position.X = value.X;
+			DragSpeed.X = 0;
+			ContentUIItem->SetRelativeLocation(Position);
+		}
+		if (Vertical)
+		{
+			AllowVerticalScroll = true;
+			CanUpdateAfterDrag = true;
+			Position.Y = value.Y;
+			DragSpeed.Y = 0;
+			ContentUIItem->SetRelativeLocation(Position);
+		}
+    }
+}
+
 #define POSITION_THRESHOLD 0.001f
 void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 {
