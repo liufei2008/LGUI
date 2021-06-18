@@ -98,7 +98,7 @@ private:
 public:
 	//Begin ULGUIFontData_BaseObject interface
 	virtual UTexture2D* GetFontTexture()override;
-	virtual FLGUICharData GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
+	virtual FLGUICharData_HighPrecision GetCharData(const TCHAR& charIndex, const uint16& charSize)override;
 	virtual float GetBoldRatio() override{ return boldRatio; }
 	virtual float GetItalicAngle()override { return italicAngle; }
 	virtual float GetFixedVerticalOffset()override { return fixedVerticalOffset - 0.25f; }//-0.25 is a common number for most fonts
