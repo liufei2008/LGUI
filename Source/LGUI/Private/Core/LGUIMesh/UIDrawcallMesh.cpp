@@ -2,7 +2,8 @@
 
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
 #include "LGUI.h"
-
+#include "Utils/LGUIUtils.h"
+#include "Core/LGUIIndexBuffer.h"
 
 UUIDrawcallMesh::UUIDrawcallMesh()
 {
@@ -30,6 +31,14 @@ void UUIDrawcallMesh::GenerateOrUpdateMesh(bool vertexPositionChanged, int8 Addi
 	}
 	else
 	{
+#if WITH_EDITOR
+		if (indexCount >= MAX_TRIANGLE_COUNT)
+		{
+			auto errorMsg = FString::Printf(TEXT("[LGUIDrwcall] Too many triangles in single drawcall! This will cause issue!"));
+			LGUIUtils::EditorNotification(FText::FromString(errorMsg), 10);
+			UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg);
+		}
+#endif
 		CreateMeshSection();
 	}
 

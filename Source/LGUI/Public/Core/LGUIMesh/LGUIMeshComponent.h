@@ -3,11 +3,12 @@
 #pragma once
 
 #include "Components/MeshComponent.h"
+#include "Core/LGUIIndexBuffer.h"
 #include "LGUIMeshComponent.generated.h"
 
 struct FLGUIMeshSection
 {
-	TArray<uint16> triangles;
+	TArray<FLGUIIndexType> triangles;
 	TArray<FDynamicMeshVertex> vertices;
 
 	bool bSectionVisible;
