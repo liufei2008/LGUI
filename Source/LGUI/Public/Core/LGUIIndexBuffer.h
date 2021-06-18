@@ -2,6 +2,7 @@
 
 #pragma once
 #include "CoreMinimal.h"
+#include "DynamicMeshBuilder.h"
 
 #ifdef LGUI_USE_32BIT_INDEXBUFFER
 typedef uint32 FLGUIIndexType;
