@@ -45,7 +45,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	int16 yoffset = 0;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-	float xadvance = 0;
+	int16 xadvance = 0;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	float uv0X = 0;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -53,6 +53,31 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 	float uv3X = 0;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+	float uv3Y = 0;
+};
+struct FLGUICharData_HighPrecision
+{
+	FLGUICharData_HighPrecision() {}
+	FLGUICharData_HighPrecision(FLGUICharData charData)
+	{
+		width = charData.width;
+		height = charData.height;
+		xoffset = charData.xoffset;
+		yoffset = charData.yoffset;
+		xadvance = charData.xadvance;
+		uv0X = charData.uv0X;
+		uv0Y = charData.uv0Y;
+		uv3X = charData.uv3X;
+		uv3Y = charData.uv3Y;
+	}
+	float width = 0;
+	float height = 0;
+	float xoffset = 0;
+	float yoffset = 0;
+	float xadvance = 0;
+	float uv0X = 0;
+	float uv0Y = 0;
+	float uv3X = 0;
 	float uv3Y = 0;
 
 	FVector2D GetUV0()
@@ -85,7 +110,7 @@ class LGUI_API ULGUIFontData_BaseObject : public UObject
 	GENERATED_BODY()
 public:
 	virtual UTexture2D* GetFontTexture()PURE_VIRTUAL(ULGUISpriteData_BaseObject::GetFontTexture, return nullptr;);
-	virtual FLGUICharData GetCharData(const TCHAR& charIndex, const uint16& charSize) PURE_VIRTUAL(ULGUIFontData_BaseObject::GetCharData, return FLGUICharData(););
+	virtual FLGUICharData_HighPrecision GetCharData(const TCHAR& charIndex, const uint16& charSize) PURE_VIRTUAL(ULGUIFontData_BaseObject::GetCharData, return FLGUICharData_HighPrecision(););
 	virtual float GetBoldRatio() { return 0.015f; }
 	virtual float GetItalicAngle() { return 15.0f; }
 	virtual float GetFixedVerticalOffset() { return 0.0f; }
