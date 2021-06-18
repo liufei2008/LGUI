@@ -5,6 +5,7 @@
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Extensions/UIPolygon.h"
+#include "Core/LGUIIndexBuffer.h"
 
 struct FLGUISpriteInfo;
 struct FUITextLineProperty;
@@ -28,13 +29,12 @@ public:
 	//vertex buffer, position/normal/tangent is stored as transformed space(Canvas space), origin position/normal/tangent is stored in originPositions/originNormals/originTangents
 	TArray<FDynamicMeshVertex> vertices;
 	//triangle indices
-	TArray<uint16> triangles;
+	TArray<FLGUIIndexType> triangles;
 
 	TWeakObjectPtr<UTexture> texture = nullptr;
 	TWeakObjectPtr<UMaterialInterface> material = nullptr;
 	int depth;//depth of this UIRenderable
 	int drawcallIndex = -1;//index of drawcall(which collect this geometry for render) in drawcall list, -1 means not add to drawcall yet
-	bool isFontTexture = false;//the texture of this geometry is font texture or not
 
 	void Clear()
 	{
