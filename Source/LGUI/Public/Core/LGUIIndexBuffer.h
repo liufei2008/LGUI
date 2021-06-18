@@ -3,7 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 
-#if LGUI_USE_32BIT_INDEXBUFFER
+#ifdef LGUI_USE_32BIT_INDEXBUFFER
 typedef uint32 FLGUIIndexType;
 const int MAX_TRIANGLE_COUNT = 2147483647;
 typedef FDynamicMeshIndexBuffer32 FLGUIMeshIndexBuffer;
