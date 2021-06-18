@@ -30,7 +30,7 @@ enum class ELGUIDynamicFontDataType :uint8
 };
 
 /**
- * font asset for UIText to render
+ * Font asset for UIText to render
  */
 UCLASS(BlueprintType)
 class LGUI_API ULGUIFontData : public ULGUIFontData_BaseObject
