@@ -87,14 +87,22 @@ public:
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 		if (sourceType == EUICustomDepthMaskSourceType::CustomDepth)
 		{
+#if !(PLATFORM_ANDROID || PLATFORM_IOS)
 			if (!SceneContext.CustomDepth.IsValid())
+#else
+			if (!SceneContext.MobileCustomDepth.IsValid())
+#endif
 			{
 				return;
 			}
 		}
 		else
 		{
+#if !(PLATFORM_ANDROID || PLATFORM_IOS)
 			if (!SceneContext.CustomStencilSRV.IsValid())
+#else
+			if (!SceneContext.MobileCustomStencil.IsValid())
+#endif
 			{
 				return;
 			}
@@ -150,14 +158,22 @@ public:
 					PixelShader->SetParameters(RHICmdList
 						, ScreenTarget_ProcessRenderTargetTexture, samplerState
 						, OriginScreenTargetTexture, samplerState
+#if !(PLATFORM_ANDROID || PLATFORM_IOS)
 						, SceneContext.CustomDepth->GetRenderTargetItem().TargetableTexture, samplerState
+#else
+						, SceneContext.MobileCustomDepth->GetRenderTargetItem().TargetableTexture, samplerState
+#endif
 						, maskStrength
 					);
 				}
 				else
 				{
 					TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+#if !(PLATFORM_ANDROID || PLATFORM_IOS)
 					TShaderMapRef<FLGUIPostProcessCustomDepthStencilMaskPS> PixelShader(GlobalShaderMap);
+#else
+					TShaderMapRef<FLGUIPostProcessMobileCustomDepthStencilMaskPS> PixelShader(GlobalShaderMap);
+#endif
 
 					FGraphicsPipelineStateInitializer GraphicsPSOInit;
 					RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
@@ -175,9 +191,14 @@ public:
 					PixelShader->SetParameters(RHICmdList
 						, ScreenTarget_ProcessRenderTargetTexture, samplerState
 						, OriginScreenTargetTexture, samplerState
+#if !(PLATFORM_ANDROID || PLATFORM_IOS)
 						, SceneContext.CustomStencilSRV
 						, stencilValue
 						, ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y
+#else
+						, SceneContext.MobileCustomStencil->GetRenderTargetItem().TargetableTexture, samplerState
+						, stencilValue
+#endif
 					);
 				}
 
@@ -230,7 +251,13 @@ public:
 				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetImage, ScreenTarget_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 			}
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, OriginScreenTargetTexture, OriginScreenTarget_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, SceneContext.CustomDepth->GetRenderTargetItem().TargetableTexture, DepthTexture_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap
+#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+				, SceneContext.CustomDepth->GetRenderTargetItem().TargetableTexture
+#else
+				, SceneContext.MobileCustomDepth->GetRenderTargetItem().TargetableTexture
+#endif
+				, DepthTexture_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 
 			//do depth mask
 			{
@@ -262,7 +289,11 @@ public:
 				else
 				{
 					TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+#if !(PLATFORM_ANDROID || PLATFORM_IOS)
 					TShaderMapRef<FLGUIPostProcessCustomDepthStencilMaskPS> PixelShader(GlobalShaderMap);
+#else
+					TShaderMapRef<FLGUIPostProcessMobileCustomDepthStencilMaskPS> PixelShader(GlobalShaderMap);
+#endif
 
 					FGraphicsPipelineStateInitializer GraphicsPSOInit;
 					RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
@@ -280,9 +311,14 @@ public:
 					PixelShader->SetParameters(RHICmdList
 						, ScreenTarget_ProcessRenderTargetTexture, samplerState
 						, OriginScreenTarget_ProcessRenderTargetTexture, samplerState
+#if !(PLATFORM_ANDROID || PLATFORM_IOS)
 						, SceneContext.CustomStencilSRV
 						, stencilValue
 						, ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y
+#else
+						, SceneContext.MobileCustomStencil->GetRenderTargetItem().TargetableTexture, samplerState
+						, stencilValue
+#endif
 					);
 				}
 

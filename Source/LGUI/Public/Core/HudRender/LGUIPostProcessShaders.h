@@ -268,6 +268,59 @@ private:
 	FShaderParameter _StencilValue;
 	FShaderParameter _TextureSize;
 };
+class FLGUIPostProcessMobileCustomDepthStencilMaskPS :public FLGUIPostProcessShader
+{
+	DECLARE_SHADER_TYPE(FLGUIPostProcessMobileCustomDepthStencilMaskPS, Global);
+public:
+	FLGUIPostProcessMobileCustomDepthStencilMaskPS() {}
+	FLGUIPostProcessMobileCustomDepthStencilMaskPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIPostProcessShader(Initializer)
+	{
+		_ScreenTex.Bind(Initializer.ParameterMap, TEXT("_ScreenTex"));
+		_ScreenTexSampler.Bind(Initializer.ParameterMap, TEXT("_ScreenTexSampler"));
+		_OriginScreenTex.Bind(Initializer.ParameterMap, TEXT("_OriginScreenTex"));
+		_OriginScreenTexSampler.Bind(Initializer.ParameterMap, TEXT("_OriginScreenTexSampler"));
+		_MobileCustomStencilTex.Bind(Initializer.ParameterMap, TEXT("_MobileCustomStencilTex"));
+		_MobileCustomStencilTexSampler.Bind(Initializer.ParameterMap, TEXT("_MobileCustomStencilTexSampler"));
+		_StencilValue.Bind(Initializer.ParameterMap, TEXT("_StencilValue"));
+	}
+	void SetParameters(FRHICommandListImmediate& RHICmdList
+		, FTextureRHIRef ScreenTexture, FRHISamplerState* ScreenTextureSampler
+		, FTextureRHIRef OriginScreenTexture, FRHISamplerState* OriginScreenTextureSampler
+		, FTextureRHIRef CustomDepthTexture, FRHISamplerState* CustomDepthTextureSampler
+		, int StencilValue
+	)
+	{
+		SetTextureParameter(RHICmdList, GetPixelShader(), _ScreenTex, _ScreenTexSampler, ScreenTextureSampler, ScreenTexture);
+		SetTextureParameter(RHICmdList, GetPixelShader(), _OriginScreenTex, _OriginScreenTexSampler, OriginScreenTextureSampler, OriginScreenTexture);
+		SetTextureParameter(RHICmdList, GetPixelShader(), _MobileCustomStencilTex, _MobileCustomStencilTexSampler, CustomDepthTextureSampler, CustomDepthTexture);
+		SetShaderValue(RHICmdList, GetPixelShader(), _StencilValue, StencilValue);
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		FLGUIPostProcessShader::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	virtual bool Serialize(FArchive& Ar)override
+	{
+		bool bShaderHasOutdatedParameters = FLGUIPostProcessShader::Serialize(Ar);
+		Ar << _ScreenTex;
+		Ar << _ScreenTexSampler;
+		Ar << _OriginScreenTex;
+		Ar << _OriginScreenTexSampler;
+		Ar << _MobileCustomStencilTex;
+		Ar << _MobileCustomStencilTexSampler;
+		Ar << _StencilValue;
+		return bShaderHasOutdatedParameters;
+	}
+private:
+	FShaderResourceParameter _ScreenTex;
+	FShaderResourceParameter _ScreenTexSampler;
+	FShaderResourceParameter _OriginScreenTex;
+	FShaderResourceParameter _OriginScreenTexSampler;
+	FShaderResourceParameter _MobileCustomStencilTex;
+	FShaderResourceParameter _MobileCustomStencilTexSampler;
+	FShaderParameter _StencilValue;
+};
 
 
 
