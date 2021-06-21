@@ -10,6 +10,7 @@ IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessGaussianBlurWithStrengthTexturePS, TEXT(
 IMPLEMENT_SHADER_TYPE(, FLGUISimpleCopyTargetPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessPixelShader.usf"), TEXT("SimpleCopyTargetPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessCustomDepthMaskPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessCustomDepthMask.usf"), TEXT("CustomDepthMaskPS"), SF_Pixel)
 IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessCustomDepthStencilMaskPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessCustomDepthMask.usf"), TEXT("CustomDepthStencilMaskPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FLGUIPostProcessMobileCustomDepthStencilMaskPS, TEXT("/Plugin/LGUI/Private/PostProcess/LGUIPostProcessCustomDepthMask.usf"), TEXT("MobileCustomDepthStencilMaskPS"), SF_Pixel)
 
 
 
