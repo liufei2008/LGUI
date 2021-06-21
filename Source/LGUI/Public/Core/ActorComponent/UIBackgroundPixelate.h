@@ -11,7 +11,7 @@
  * Use it on ScreenSpaceUI.
  * May have issue when MSAA is on.
  */
-UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent), Experimental)
 class LGUI_API UUIBackgroundPixelate : public UUIPostProcess
 {
 	GENERATED_BODY()

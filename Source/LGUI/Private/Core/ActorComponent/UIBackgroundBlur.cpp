@@ -82,8 +82,9 @@ public:
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
 		FLGUIHudRenderer* Renderer,
-		FTextureRHIRef ScreenImage,
-		FTextureRHIRef ScreenResolveImage,
+		FTextureRHIRef OriginScreenTargetTexture,
+		FTextureRHIRef ScreenTargetTexture,
+		FTextureRHIRef ScreenTargetResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix
 	) override
@@ -100,7 +101,7 @@ public:
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget1;
 		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
 		{
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = 1;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget1, TEXT("LGUIBlurEffectRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget2, TEXT("LGUIBlurEffectRenderTarget2"));
@@ -112,14 +113,14 @@ public:
 		auto BlurEffectRenderTexture1 = BlurEffectRenderTarget1->GetRenderTargetItem().TargetableTexture;
 		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
 
-		if (ScreenImage->IsMultisampled())
+		if (ScreenTargetTexture->IsMultisampled())
 		{
-			RHICmdList.CopyToResolveTarget(ScreenImage, ScreenResolveImage, FResolveParams());
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenResolveImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetResolveImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 		}
 		else
 		{
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetTexture, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 		}
 		//do the blur process on the area
 		{
@@ -241,7 +242,7 @@ public:
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenImage, GlobalShaderMap, BlurEffectRenderTexture1);
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();

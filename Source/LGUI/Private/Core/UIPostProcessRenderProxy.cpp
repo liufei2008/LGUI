@@ -97,7 +97,7 @@ GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;\
 SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListImmediate& RHICmdList
-	, FTextureRHIRef ScreenImage
+	, FTextureRHIRef ScreenTargetTexture
 	, FGlobalShaderMap* GlobalShaderMap
 	, FTextureRHIRef ResultTexture
 	, FRHISamplerState* ResultTextureSamplerState
@@ -105,8 +105,8 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 {
 	if (maskTexture != nullptr)
 	{
-		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
-		RHICmdList.SetViewport(0, 0, 0.0f, ScreenImage->GetSizeXYZ().X, ScreenImage->GetSizeXYZ().Y, 1.0f);
+		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
+		RHICmdList.SetViewport(0, 0, 0.0f, ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y, 1.0f);
 
 		switch (clipType)
 		{
@@ -156,8 +156,8 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 	}
 	else
 	{
-		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenImage, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
-		RHICmdList.SetViewport(0, 0, 0.0f, ScreenImage->GetSizeXYZ().X, ScreenImage->GetSizeXYZ().Y, 1.0f);
+		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
+		RHICmdList.SetViewport(0, 0, 0.0f, ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y, 1.0f);
 
 		switch (clipType)
 		{
