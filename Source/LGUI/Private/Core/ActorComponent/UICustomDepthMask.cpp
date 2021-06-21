@@ -199,6 +199,7 @@ public:
 						, SceneContext.MobileCustomStencil->GetRenderTargetItem().TargetableTexture, samplerState
 						, stencilValue
 #endif
+						, maskStrength
 					);
 				}
 
@@ -319,6 +320,7 @@ public:
 						, SceneContext.MobileCustomStencil->GetRenderTargetItem().TargetableTexture, samplerState
 						, stencilValue
 #endif
+						, maskStrength
 					);
 				}
 
