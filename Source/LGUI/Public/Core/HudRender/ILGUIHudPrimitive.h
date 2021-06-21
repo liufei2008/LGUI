@@ -33,8 +33,9 @@ public:
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
 		FLGUIHudRenderer* Renderer,
-		FTextureRHIRef ScreenImage,
-		FTextureRHIRef ScreenResolveImage,
+		FTextureRHIRef OriginScreenTargetTexture,
+		FTextureRHIRef ScreenTargetTexture,
+		FTextureRHIRef ScreenTargetResolveTexture,
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix
 	) {};
