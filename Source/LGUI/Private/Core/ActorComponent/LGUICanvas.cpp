@@ -802,8 +802,25 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				case EUIDrawcallType::PostProcess:
 				{
 					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessObject->GetRenderProxy();
-					uiPostProcessPrimitive.Pin()->AddToHudRenderer(RootCanvas->GetViewExtension());
-					uiPostProcessPrimitive.Pin()->SetVisibility(true);
+#if WITH_EDITOR
+					if (!GetWorld()->IsGameWorld())
+					{
+						if (currentIsRenderToRenderTargetOrWorld)
+						{
+							if (RootCanvas->GetViewExtension())
+							{
+								uiPostProcessPrimitive.Pin()->AddToHudRenderer(RootCanvas->GetViewExtension());
+								uiPostProcessPrimitive.Pin()->SetVisibility(true);
+							}
+						}
+					}
+					else
+#endif
+					if (currentIsRenderToRenderTargetOrWorld)
+					{
+						uiPostProcessPrimitive.Pin()->AddToHudRenderer(RootCanvas->GetViewExtension());
+						uiPostProcessPrimitive.Pin()->SetVisibility(true);
+					}
 
 					UIDrawcallPrimitiveList[i].UIPostProcess = uiPostProcessPrimitive;
 
