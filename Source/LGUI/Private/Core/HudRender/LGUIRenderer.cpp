@@ -305,6 +305,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 					hudPrimitive->OnRenderPostProcess_RenderThread(
 						RHICmdList,
 						this,
+						(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
 						ScreenColorRenderTargetTexture,
 						ScreenColorRenderTargetResolveTexture,
 						GlobalShaderMap,

@@ -70,7 +70,7 @@ public:
 	FTexture2DResource* maskTexture = nullptr;
 
 	void RenderMeshOnScreen_RenderThread(FRHICommandListImmediate& RHICmdList
-		, FTextureRHIRef ScreenImage
+		, FTextureRHIRef ScreenTargetTexture
 		, FGlobalShaderMap* GlobalShaderMap
 		, FTextureRHIRef ResultTexture
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
