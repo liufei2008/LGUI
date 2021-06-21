@@ -30,3 +30,16 @@ float4 CustomDepthStencilMaskPS(SimpleVSToPS input) : SV_Target0
     float4 color = lerp(_ScreenTex.Sample(_ScreenTexSampler, input.uv), _OriginScreenTex.Sample(_OriginScreenTexSampler, input.uv), lerpValue);
     return color;
 }
+
+Texture2D _MobileCustomStencilTex;
+SamplerState _MobileCustomStencilTexSampler;
+float4 MobileCustomDepthStencilMaskPS(SimpleVSToPS input) : SV_Target0
+{
+    int3 location = (int3) (input.uv * _TextureSize.xy, 0);
+    float stencilFloat = _MobileCustomStencilTex.Sample(_MobileCustomStencilTexSampler, input.uv).r * 255.0;
+    int stencil = floor(stencilFloat + 0.5);
+    float lerpValue = _StencilValue == stencil ? 1 : 0;
+    float4 color = lerp(_ScreenTex.Sample(_ScreenTexSampler, input.uv), _OriginScreenTex.Sample(_OriginScreenTexSampler, input.uv), lerpValue);
+    color.rgb = stencil;
+    return color;
+}
