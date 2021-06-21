@@ -228,6 +228,7 @@ public:
 		_CustomStencilTex.Bind(Initializer.ParameterMap, TEXT("_CustomStencilTex"));
 		_StencilValue.Bind(Initializer.ParameterMap, TEXT("_StencilValue"));
 		_TextureSize.Bind(Initializer.ParameterMap, TEXT("_TextureSize"));
+		_MaskStrength.Bind(Initializer.ParameterMap, TEXT("_MaskStrength"));
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList
 		, FTextureRHIRef ScreenTexture, FRHISamplerState* ScreenTextureSampler
@@ -235,6 +236,7 @@ public:
 		, FRHIShaderResourceView* StencilResourceView
 		, int StencilValue
 		, int screenWidth, int screenHeight
+		, float MaskStrength
 	)
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), _ScreenTex, _ScreenTexSampler, ScreenTextureSampler, ScreenTexture);
@@ -242,6 +244,7 @@ public:
 		SetSRVParameter(RHICmdList, GetPixelShader(), _CustomStencilTex, StencilResourceView);
 		SetShaderValue(RHICmdList, GetPixelShader(), _StencilValue, StencilValue);
 		SetShaderValue(RHICmdList, GetPixelShader(), _TextureSize, FIntVector(screenWidth, screenHeight, 0));
+		SetShaderValue(RHICmdList, GetPixelShader(), _MaskStrength, MaskStrength);
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
@@ -257,6 +260,7 @@ public:
 		Ar << _CustomStencilTex;
 		Ar << _StencilValue;
 		Ar << _TextureSize;
+		Ar << _MaskStrength;
 		return bShaderHasOutdatedParameters;
 	}
 private:
@@ -267,6 +271,7 @@ private:
 	FShaderResourceParameter _CustomStencilTex;
 	FShaderParameter _StencilValue;
 	FShaderParameter _TextureSize;
+	FShaderParameter _MaskStrength;
 };
 class FLGUIPostProcessMobileCustomDepthStencilMaskPS :public FLGUIPostProcessShader
 {
@@ -283,18 +288,21 @@ public:
 		_MobileCustomStencilTex.Bind(Initializer.ParameterMap, TEXT("_MobileCustomStencilTex"));
 		_MobileCustomStencilTexSampler.Bind(Initializer.ParameterMap, TEXT("_MobileCustomStencilTexSampler"));
 		_StencilValue.Bind(Initializer.ParameterMap, TEXT("_StencilValue"));
+		_MaskStrength.Bind(Initializer.ParameterMap, TEXT("_MaskStrength"));
 	}
 	void SetParameters(FRHICommandListImmediate& RHICmdList
 		, FTextureRHIRef ScreenTexture, FRHISamplerState* ScreenTextureSampler
 		, FTextureRHIRef OriginScreenTexture, FRHISamplerState* OriginScreenTextureSampler
 		, FTextureRHIRef CustomDepthTexture, FRHISamplerState* CustomDepthTextureSampler
 		, int StencilValue
+		, float MaskStrength
 	)
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), _ScreenTex, _ScreenTexSampler, ScreenTextureSampler, ScreenTexture);
 		SetTextureParameter(RHICmdList, GetPixelShader(), _OriginScreenTex, _OriginScreenTexSampler, OriginScreenTextureSampler, OriginScreenTexture);
 		SetTextureParameter(RHICmdList, GetPixelShader(), _MobileCustomStencilTex, _MobileCustomStencilTexSampler, CustomDepthTextureSampler, CustomDepthTexture);
 		SetShaderValue(RHICmdList, GetPixelShader(), _StencilValue, StencilValue);
+		SetShaderValue(RHICmdList, GetPixelShader(), _MaskStrength, MaskStrength);
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
 	{
@@ -310,6 +318,7 @@ public:
 		Ar << _MobileCustomStencilTex;
 		Ar << _MobileCustomStencilTexSampler;
 		Ar << _StencilValue;
+		Ar << _MaskStrength;
 		return bShaderHasOutdatedParameters;
 	}
 private:
@@ -320,6 +329,7 @@ private:
 	FShaderResourceParameter _MobileCustomStencilTex;
 	FShaderResourceParameter _MobileCustomStencilTexSampler;
 	FShaderParameter _StencilValue;
+	FShaderParameter _MaskStrength;
 };
 
 
