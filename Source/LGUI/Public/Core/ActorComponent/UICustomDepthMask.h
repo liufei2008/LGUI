@@ -17,7 +17,7 @@ enum class EUICustomDepthMaskSourceType :uint8
 
 /** 
  * Use CustomDepth or CustomDepthStencil as mask, so specified object can render on top of screen-space-UI.
- * Not support mobile platform yet.
+ * Android: CustomDepth mode not supported yet.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API UUICustomDepthMask : public UUIPostProcess
@@ -37,7 +37,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition="sourceType==EUICustomDepthMaskSourceType::CustomDepth"))
 		bool bFullScreen = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = 1.0f))
-		EUICustomDepthMaskSourceType sourceType = EUICustomDepthMaskSourceType::CustomDepth;
+		EUICustomDepthMaskSourceType sourceType = EUICustomDepthMaskSourceType::CustomStencil;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition="sourceType==EUICustomDepthMaskSourceType::CustomStencil"))
 		int stencilValue = 0;
 public:
