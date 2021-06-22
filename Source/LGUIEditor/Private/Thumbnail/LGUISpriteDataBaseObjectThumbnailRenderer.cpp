@@ -14,7 +14,7 @@ ULGUISpriteDataBaseObjectThumbnailRenderer::ULGUISpriteDataBaseObjectThumbnailRe
 {
 
 }
-void ULGUISpriteDataBaseObjectThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* RenderTarget, FCanvas* Canvas)
+void ULGUISpriteDataBaseObjectThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* RenderTarget, FCanvas* Canvas, bool bAdditionalViewFamily)
 {
 	if (auto sprite = Cast<ULGUISpriteData_BaseObject>(Object))
 	{
