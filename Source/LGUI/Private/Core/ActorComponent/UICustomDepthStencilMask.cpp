@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Core/ActorComponent/UICustomDepthMask.h"
+#include "Core/ActorComponent/UICustomDepthStencilMask.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
 #include "Core/LGUISpriteData.h"
@@ -16,24 +16,24 @@
 #include "PostProcess/SceneRenderTargets.h"
 #include "RenderGraphBuilder.h"
 
-UUICustomDepthMask::UUICustomDepthMask(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+UUICustomDepthStencilMask::UUICustomDepthStencilMask(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUICustomDepthMask::BeginPlay()
+void UUICustomDepthStencilMask::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void UUICustomDepthMask::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
+void UUICustomDepthStencilMask::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 }
 
 
 #if WITH_EDITOR
-void UUICustomDepthMask::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UUICustomDepthStencilMask::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
@@ -42,7 +42,7 @@ void UUICustomDepthMask::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 	}
 }
 #endif
-void UUICustomDepthMask::MarkAllDirtyRecursive()
+void UUICustomDepthStencilMask::MarkAllDirtyRecursive()
 {
 	Super::MarkAllDirtyRecursive();
 
@@ -59,16 +59,16 @@ void UUICustomDepthMask::MarkAllDirtyRecursive()
 #define PLATFORM_MOBILE 1
 #endif
 
-DECLARE_CYCLE_STAT(TEXT("PostProcess_CustomDepthmask"), STAT_CustomDepthmask, STATGROUP_LGUI);
-class FUICustomDepthMaskRenderProxy :public FUIPostProcessRenderProxy
+DECLARE_CYCLE_STAT(TEXT("PostProcess_CustomDepthStencilMask"), STAT_CustomDepthStencilMask, STATGROUP_LGUI);
+class FUICustomDepthStencilMaskRenderProxy :public FUIPostProcessRenderProxy
 {
 public:
 	float maskStrength = 0.0f;
-	EUICustomDepthMaskSourceType sourceType = EUICustomDepthMaskSourceType::CustomDepth;
+	EUICustomDepthStencilMaskSourceType sourceType = EUICustomDepthStencilMaskSourceType::CustomDepth;
 	int stencilValue = 0.0f;
 	bool bFullScreen = false;
 public:
-	FUICustomDepthMaskRenderProxy()
+	FUICustomDepthStencilMaskRenderProxy()
 		:FUIPostProcessRenderProxy()
 	{
 
@@ -83,11 +83,11 @@ public:
 		const FMatrix& ViewProjectionMatrix
 	)override
 	{
-		SCOPE_CYCLE_COUNTER(STAT_CustomDepthmask);
+		SCOPE_CYCLE_COUNTER(STAT_CustomDepthStencilMask);
 		if (maskStrength <= 0.0f)return;
 
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
-		if (sourceType == EUICustomDepthMaskSourceType::CustomDepth)
+		if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
 		{
 #if !PLATFORM_MOBILE
 			if (!SceneContext.CustomDepth.IsValid())
@@ -119,14 +119,14 @@ public:
 
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = 1;
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget1"));
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget1"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
 			if (!ScreenTarget_ProcessRenderTarget.IsValid())return;
 			if (!OriginScreenTarget_ProcessRenderTarget.IsValid())return;
 			auto ScreenTarget_ProcessRenderTargetTexture = ScreenTarget_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
 			auto OriginScreenTarget_ProcessRenderTargetTexture = OriginScreenTarget_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
 #if PLATFORM_MOBILE
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, DepthTexture_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget3"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, DepthTexture_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget3"));
 			if (!DepthTexture_ProcessRenderTarget.IsValid())return;
 			auto DepthTexture_ProcessRenderTargetTexture = DepthTexture_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
 			RHICmdList.CopyToResolveTarget(SceneContext.MobileCustomDepth->GetRenderTargetItem().TargetableTexture, DepthTexture_ProcessRenderTargetTexture, FResolveParams());
@@ -150,7 +150,7 @@ public:
 			}
 			//do depth mask
 			{
-				if (sourceType == EUICustomDepthMaskSourceType::CustomDepth)
+				if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
 				{
 					TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
 					TShaderMapRef<FLGUIPostProcessCustomDepthMaskPS> PixelShader(GlobalShaderMap);
@@ -241,10 +241,10 @@ public:
 
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = 1;
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget1"));
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget2"));
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, DepthTexture_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget3"));
-			GRenderTargetPool.FindFreeElement(RHICmdList, desc, Result_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget4"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget2"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, DepthTexture_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget3"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, Result_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget4"));
 			if (!ScreenTarget_ProcessRenderTarget.IsValid())return;
 			if (!OriginScreenTarget_ProcessRenderTarget.IsValid())return;
 			if (!DepthTexture_ProcessRenderTarget.IsValid())return;
@@ -276,7 +276,7 @@ public:
 
 			//do depth mask
 			{
-				if (sourceType == EUICustomDepthMaskSourceType::CustomDepth)
+				if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
 				{
 					TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
 					TShaderMapRef<FLGUIPostProcessCustomDepthMaskPS> PixelShader(GlobalShaderMap);
@@ -360,17 +360,17 @@ public:
 	}
 };
 
-void UUICustomDepthMask::SendOthersDataToRenderProxy()
+void UUICustomDepthStencilMask::SendOthersDataToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
-		auto TempRenderProxy = (FUICustomDepthMaskRenderProxy*)(RenderProxy.Get());
+		auto TempRenderProxy = (FUICustomDepthStencilMaskRenderProxy*)(RenderProxy.Get());
 		float tempMaskStrength = this->GetFinalAlpha01();
 		bool tempFullScreen = this->bFullScreen;
-		if (this->sourceType == EUICustomDepthMaskSourceType::CustomStencil)tempFullScreen = true;
+		if (this->sourceType == EUICustomDepthStencilMaskSourceType::CustomStencil)tempFullScreen = true;
 		int tempStencilValue = this->stencilValue;
-		EUICustomDepthMaskSourceType tempSourceType = this->sourceType;
-		ENQUEUE_RENDER_COMMAND(FUICustomDepthMask_UpdateData)
+		EUICustomDepthStencilMaskSourceType tempSourceType = this->sourceType;
+		ENQUEUE_RENDER_COMMAND(FUICustomDepthStencilMask_UpdateData)
 			([TempRenderProxy, tempMaskStrength, tempFullScreen, tempSourceType, tempStencilValue](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->maskStrength = tempMaskStrength;
@@ -381,11 +381,11 @@ void UUICustomDepthMask::SendOthersDataToRenderProxy()
 	}
 }
 
-TWeakPtr<FUIPostProcessRenderProxy> UUICustomDepthMask::GetRenderProxy()
+TWeakPtr<FUIPostProcessRenderProxy> UUICustomDepthStencilMask::GetRenderProxy()
 {
 	if (!RenderProxy.IsValid())
 	{
-		RenderProxy = TSharedPtr<FUICustomDepthMaskRenderProxy>(new FUICustomDepthMaskRenderProxy());
+		RenderProxy = TSharedPtr<FUICustomDepthStencilMaskRenderProxy>(new FUICustomDepthStencilMaskRenderProxy());
 		if (this->RenderCanvas.IsValid())
 		{
 			auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
@@ -397,13 +397,13 @@ TWeakPtr<FUIPostProcessRenderProxy> UUICustomDepthMask::GetRenderProxy()
 	return RenderProxy;
 }
 
-void UUICustomDepthMask::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+void UUICustomDepthStencilMask::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
 {
 	Super::SendRegionVertexDataToRenderProxy(InModelViewProjectionMatrix);
 	SendOthersDataToRenderProxy();
 }
 
-void UUICustomDepthMask::SetFullScreen(bool value)
+void UUICustomDepthStencilMask::SetFullScreen(bool value)
 {
 	if (bFullScreen != value)
 	{
@@ -411,7 +411,7 @@ void UUICustomDepthMask::SetFullScreen(bool value)
 		SendOthersDataToRenderProxy();
 	}
 }
-void UUICustomDepthMask::SetSourceType(EUICustomDepthMaskSourceType value)
+void UUICustomDepthStencilMask::SetSourceType(EUICustomDepthStencilMaskSourceType value)
 {
 	if (sourceType != value)
 	{
@@ -419,7 +419,7 @@ void UUICustomDepthMask::SetSourceType(EUICustomDepthMaskSourceType value)
 		SendOthersDataToRenderProxy();
 	}
 }
-void UUICustomDepthMask::SetStencilValue(int value)
+void UUICustomDepthStencilMask::SetStencilValue(int value)
 {
 	if (stencilValue != value)
 	{
