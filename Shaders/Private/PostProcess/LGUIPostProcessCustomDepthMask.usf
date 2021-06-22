@@ -12,8 +12,8 @@ SamplerState _CustomDepthTexSampler;
 float _MaskStrength;
 float4 CustomDepthMaskPS(SimpleVSToPS input) : SV_Target0
 {
-    float4 maskColor = _CustomDepthTex.Sample(_CustomDepthTexSampler, input.uv);
-    float lerpValue = saturate(maskColor.r * 999999);
+    float4 depthColor = _CustomDepthTex.Sample(_CustomDepthTexSampler, input.uv);
+    float lerpValue = saturate(depthColor.r * 999999);
     lerpValue *= _MaskStrength;
     float4 color = lerp(_ScreenTex.Sample(_ScreenTexSampler, input.uv), _OriginScreenTex.Sample(_OriginScreenTexSampler, input.uv), lerpValue);
     return color;
@@ -36,8 +36,11 @@ Texture2D _MobileCustomStencilTex;
 SamplerState _MobileCustomStencilTexSampler;
 float4 MobileCustomDepthStencilMaskPS(SimpleVSToPS input) : SV_Target0
 {
-    int3 location = (int3) (input.uv * _TextureSize.xy, 0);
-    float stencilFloat = _MobileCustomStencilTex.Sample(_MobileCustomStencilTexSampler, input.uv).r * 255.0;
+    float2 stencilUV = input.uv;
+#if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
+	stencilUV.y = 1.0 - stencilUV.y;
+#endif
+    float stencilFloat = _MobileCustomStencilTex.Sample(_MobileCustomStencilTexSampler, stencilUV).r * 255.0;
     int stencil = floor(stencilFloat + 0.5);
     float lerpValue = _StencilValue == stencil ? 1 : 0;
     lerpValue *= _MaskStrength;
