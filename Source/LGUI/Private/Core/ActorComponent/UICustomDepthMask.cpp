@@ -55,7 +55,9 @@ void UUICustomDepthMask::MarkAllDirtyRecursive()
 	}
 }
 
-
+#if PLATFORM_ANDROID || PLATFORM_IOS
+#define PLATFORM_MOBILE 1
+#endif
 
 DECLARE_CYCLE_STAT(TEXT("PostProcess_CustomDepthmask"), STAT_CustomDepthmask, STATGROUP_LGUI);
 class FUICustomDepthMaskRenderProxy :public FUIPostProcessRenderProxy
@@ -87,7 +89,7 @@ public:
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 		if (sourceType == EUICustomDepthMaskSourceType::CustomDepth)
 		{
-#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+#if !PLATFORM_MOBILE
 			if (!SceneContext.CustomDepth.IsValid())
 #else
 			if (!SceneContext.MobileCustomDepth.IsValid())
@@ -98,7 +100,7 @@ public:
 		}
 		else
 		{
-#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+#if !PLATFORM_MOBILE
 			if (!SceneContext.CustomStencilSRV.IsValid())
 #else
 			if (!SceneContext.MobileCustomStencil.IsValid())
@@ -112,13 +114,23 @@ public:
 		{
 			//get render target
 			TRefCountPtr<IPooledRenderTarget> ScreenTarget_ProcessRenderTarget;
-			{
-				FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-				desc.NumSamples = 1;
-				GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget1"));
-				if (!ScreenTarget_ProcessRenderTarget.IsValid())return;
-			}
+			TRefCountPtr<IPooledRenderTarget> OriginScreenTarget_ProcessRenderTarget;
+			TRefCountPtr<IPooledRenderTarget> DepthTexture_ProcessRenderTarget;
+
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			desc.NumSamples = 1;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget1"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget1"));
+			if (!ScreenTarget_ProcessRenderTarget.IsValid())return;
+			if (!OriginScreenTarget_ProcessRenderTarget.IsValid())return;
 			auto ScreenTarget_ProcessRenderTargetTexture = ScreenTarget_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
+			auto OriginScreenTarget_ProcessRenderTargetTexture = OriginScreenTarget_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
+#if PLATFORM_MOBILE
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, DepthTexture_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget3"));
+			if (!DepthTexture_ProcessRenderTarget.IsValid())return;
+			auto DepthTexture_ProcessRenderTargetTexture = DepthTexture_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
+			RHICmdList.CopyToResolveTarget(SceneContext.MobileCustomDepth->GetRenderTargetItem().TargetableTexture, DepthTexture_ProcessRenderTargetTexture, FResolveParams());
+#endif
 
 			//copy render target
 			if (ScreenTargetImage->IsMultisampled())
@@ -130,6 +142,7 @@ public:
 			{
 				Renderer->CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenTargetImage, ScreenTarget_ProcessRenderTargetTexture);
 			}
+			RHICmdList.CopyToResolveTarget(OriginScreenTargetTexture, OriginScreenTarget_ProcessRenderTargetTexture, FResolveParams());
 			//@todo: dont't konw why below two line is needed; if remove them, then OriginScreenTargetTexture seems black
 			{
 				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetImage, ERenderTargetActions::Load_Store), TEXT("LGUICopyRenderTarget"));
@@ -157,11 +170,11 @@ public:
 					auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 					PixelShader->SetParameters(RHICmdList
 						, ScreenTarget_ProcessRenderTargetTexture, samplerState
-						, OriginScreenTargetTexture, samplerState
-#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+						, OriginScreenTarget_ProcessRenderTargetTexture, samplerState
+#if !PLATFORM_MOBILE
 						, SceneContext.CustomDepth->GetRenderTargetItem().TargetableTexture, samplerState
 #else
-						, SceneContext.MobileCustomDepth->GetRenderTargetItem().TargetableTexture, samplerState
+						, DepthTexture_ProcessRenderTargetTexture, samplerState
 #endif
 						, maskStrength
 					);
@@ -169,7 +182,7 @@ public:
 				else
 				{
 					TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+#if !PLATFORM_MOBILE
 					TShaderMapRef<FLGUIPostProcessCustomDepthStencilMaskPS> PixelShader(GlobalShaderMap);
 #else
 					TShaderMapRef<FLGUIPostProcessMobileCustomDepthStencilMaskPS> PixelShader(GlobalShaderMap);
@@ -190,8 +203,8 @@ public:
 					auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 					PixelShader->SetParameters(RHICmdList
 						, ScreenTarget_ProcessRenderTargetTexture, samplerState
-						, OriginScreenTargetTexture, samplerState
-#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+						, OriginScreenTarget_ProcessRenderTargetTexture, samplerState
+#if !PLATFORM_MOBILE
 						, SceneContext.CustomStencilSRV
 						, stencilValue
 						, ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y
@@ -209,8 +222,9 @@ public:
 				RHICmdList.EndRenderPass();
 			}
 			//release render target
-			if (ScreenTarget_ProcessRenderTarget.IsValid())
-				ScreenTarget_ProcessRenderTarget.SafeRelease();
+			if (ScreenTarget_ProcessRenderTarget.IsValid())ScreenTarget_ProcessRenderTarget.SafeRelease();
+			if (OriginScreenTarget_ProcessRenderTarget.IsValid())OriginScreenTarget_ProcessRenderTarget.SafeRelease();
+			if (DepthTexture_ProcessRenderTarget.IsValid())DepthTexture_ProcessRenderTarget.SafeRelease();
 		}
 		else
 		{
@@ -224,18 +238,18 @@ public:
 			TRefCountPtr<IPooledRenderTarget> OriginScreenTarget_ProcessRenderTarget;
 			TRefCountPtr<IPooledRenderTarget> DepthTexture_ProcessRenderTarget;
 			TRefCountPtr<IPooledRenderTarget> Result_ProcessRenderTarget;
-			{
-				FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
-				desc.NumSamples = 1;
-				GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget1"));
-				GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget2"));
-				GRenderTargetPool.FindFreeElement(RHICmdList, desc, DepthTexture_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget3"));
-				GRenderTargetPool.FindFreeElement(RHICmdList, desc, Result_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget4"));
-				if (!ScreenTarget_ProcessRenderTarget.IsValid())return;
-				if (!OriginScreenTarget_ProcessRenderTarget.IsValid())return;
-				if (!DepthTexture_ProcessRenderTarget.IsValid())return;
-				if (!Result_ProcessRenderTarget.IsValid())return;
-			}
+
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			desc.NumSamples = 1;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget1"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget2"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, DepthTexture_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget3"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, Result_ProcessRenderTarget, TEXT("LGUICustomDepthMaskRenderTarget4"));
+			if (!ScreenTarget_ProcessRenderTarget.IsValid())return;
+			if (!OriginScreenTarget_ProcessRenderTarget.IsValid())return;
+			if (!DepthTexture_ProcessRenderTarget.IsValid())return;
+			if (!Result_ProcessRenderTarget.IsValid())return;
+
 			auto ScreenTarget_ProcessRenderTargetTexture = ScreenTarget_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
 			auto OriginScreenTarget_ProcessRenderTargetTexture = OriginScreenTarget_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
 			auto DepthTexture_ProcessRenderTargetTexture = DepthTexture_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
@@ -253,7 +267,7 @@ public:
 			}
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, OriginScreenTargetTexture, OriginScreenTarget_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap
-#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+#if !PLATFORM_MOBILE
 				, SceneContext.CustomDepth->GetRenderTargetItem().TargetableTexture
 #else
 				, SceneContext.MobileCustomDepth->GetRenderTargetItem().TargetableTexture
@@ -290,7 +304,7 @@ public:
 				else
 				{
 					TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
-#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+#if !PLATFORM_MOBILE
 					TShaderMapRef<FLGUIPostProcessCustomDepthStencilMaskPS> PixelShader(GlobalShaderMap);
 #else
 					TShaderMapRef<FLGUIPostProcessMobileCustomDepthStencilMaskPS> PixelShader(GlobalShaderMap);
@@ -312,7 +326,7 @@ public:
 					PixelShader->SetParameters(RHICmdList
 						, ScreenTarget_ProcessRenderTargetTexture, samplerState
 						, OriginScreenTarget_ProcessRenderTargetTexture, samplerState
-#if !(PLATFORM_ANDROID || PLATFORM_IOS)
+#if !PLATFORM_MOBILE
 						, SceneContext.CustomStencilSRV
 						, stencilValue
 						, ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y
