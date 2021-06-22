@@ -13,7 +13,7 @@ class ULGUISpriteDataBaseObjectThumbnailRenderer :public UDefaultSizedThumbnailR
 public:
 	ULGUISpriteDataBaseObjectThumbnailRenderer();
 
-	virtual void Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget*, FCanvas* Canvas)override;
+	virtual void Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget*, FCanvas* Canvas, bool bAdditionalViewFamily)override;
 
 	virtual void BeginDestroy()override;
 
