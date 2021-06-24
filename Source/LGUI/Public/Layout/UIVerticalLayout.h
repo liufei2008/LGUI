@@ -18,19 +18,19 @@ public:
 	virtual void OnRebuildLayout()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FMargin GetPadding() { return Padding; }
+		FMargin GetPadding()const { return Padding; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		float GetSpacing() { return Spacing; }
+		float GetSpacing()const { return Spacing; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		ELGUILayoutAlignmentType GetAlign() { return Align; }
+		ELGUILayoutAlignmentType GetAlign()const { return Align; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetExpendChildrenWidth() { return ExpendChildrenWidth; }
+		bool GetExpendChildrenWidth()const { return ExpendChildrenWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetExpendChildrenHeight() { return ExpendChildrenHeight; }
+		bool GetExpendChildrenHeight()const { return ExpendChildrenHeight; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetHeightFitToChildren() { return HeightFitToChildren; }
+		bool GetHeightFitToChildren()const { return HeightFitToChildren; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		float GetActuralRange() { return ActuralRange; }
+		float GetActuralRange()const { return ActuralRange; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetPadding(FMargin value);

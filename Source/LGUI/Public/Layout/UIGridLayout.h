@@ -28,30 +28,41 @@ public:
 	virtual void OnRebuildLayout()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FMargin GetPadding() { return Padding; }
+		FMargin GetPadding()const { return Padding; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FVector2D GetSpacing() { return Spacing; }
+		FVector2D GetSpacing()const { return Spacing; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetHorizontalOrVertical() { return HorizontalOrVertical; }
+		ELGUILayoutAlignmentType GetAlign()const { return Align; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetDependOnSizeOrCount() { return DependOnSizeOrCount; }
+		bool GetLastLineCanAlign()const { return LastLineCanAlign; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetExpendChildSize() { return ExpendChildSize; }
+		bool GetHorizontalOrVertical()const { return HorizontalOrVertical; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FVector2D GetCellSize() { return CellSize; }
+		bool GetDependOnSizeOrCount()const { return DependOnSizeOrCount; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		int GetLineCount() { return LineCount; }
+		bool GetExpendChildSize()const { return ExpendChildSize; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetWidthFitToChildren() { return WidthFitToChildren; }
+		FVector2D GetCellSize()const { return CellSize; }
+	UE_DEPRECATED(4.23, "This node is not valid any more. Use GetMaxItemCountInOneLine instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use GetMaxItemCountInOneLine instead"))
+		int GetLineCount()const { return GetMaxItemCountInOneLine(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetHeightFitToChildren() { return HeightFitToChildren; }
+		int GetMaxItemCountInOneLine()const { return LineCount; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FVector2D GetActuralRange() { return ActuralRange; }
+		bool GetWidthFitToChildren()const { return WidthFitToChildren; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		bool GetHeightFitToChildren()const { return HeightFitToChildren; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FVector2D GetActuralRange()const { return ActuralRange; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetPadding(FMargin value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetSpacing(FVector2D value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetAlign(ELGUILayoutAlignmentType value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetLastLineCanAlign(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetHorizontalOrVertical(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -60,8 +71,11 @@ public:
 		void SetExpendChildSize(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCellSize(FVector2D value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	UE_DEPRECATED(4.23, "This node is not valid any more. Use SetMaxItemCountInOneLine instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use SetMaxItemCountInOneLine instead"))
 		void SetLineCount(int value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetMaxItemCountInOneLine(int value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetWidthFitToChildren(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -87,18 +101,23 @@ protected:
 		FMargin Padding;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FVector2D Spacing;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		ELGUILayoutAlignmentType Align = ELGUILayoutAlignmentType::UpperLeft;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool LastLineCanAlign = true;
 	/** Which direction to tile children, true for horizontal, false for vertical. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool HorizontalOrVertical = true;
-	/** Arrange by size(CellSize) or by count(LineCount), true for size, false for count. */
+	/** Arrange by size(CellSize) or by count(MaxItemCountInOneLine), true for size, false for count. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool DependOnSizeOrCount = true;
 	/** If depend on count, then expend cell size to fill. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool ExpendChildSize = false;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition="DependOnSizeOrCount==true || ExpendChildSize==false"))
 		FVector2D CellSize = FVector2D(100, 100);
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	/** Max item count in one line. */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "MaxItemCountInOneLine", ClampMin="1"))
 		uint32 LineCount = 5;
 
 	UPROPERTY(EditAnywhere, Category = "LGUI")
