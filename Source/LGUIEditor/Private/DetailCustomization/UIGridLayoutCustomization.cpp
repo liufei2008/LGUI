@@ -45,7 +45,6 @@ void FUIGridLayoutCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	{
 		if (expendChildSize)
 		{
-			DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIGridLayout, CellSize));
 			DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIGridLayout, WidthFitToChildren));
 			DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIGridLayout, HeightFitToChildren));
 		}

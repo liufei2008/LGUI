@@ -35,16 +35,16 @@ public:
 #endif
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ELayoutElementType GetLayoutType() { return LayoutElementType; }
+		ELayoutElementType GetLayoutType()const { return LayoutElementType; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetIgnoreLayout() { return LayoutElementType == ELayoutElementType::IgnoreLayout; }
+		bool GetIgnoreLayout()const { return LayoutElementType == ELayoutElementType::IgnoreLayout; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetConstantSize()const { return ConstantSize; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetRatioSize()const { return RatioSize; }
+
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetLayoutType(ELayoutElementType InType);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetConstantSize() { return ConstantSize; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetRatioSize() { return RatioSize; }
-
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetConstantSize(float value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)

@@ -31,15 +31,15 @@ public:
 	virtual void Awake()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		class AUIBaseActor* GetTargetActor() { return TargetActor.Get(); }
+		class AUIBaseActor* GetTargetActor()const { return TargetActor.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetControlWidth() { return ControlWidth; }
+		bool GetControlWidth()const { return ControlWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		float GetAdditionalWidth() { return AdditionalWidth; }
+		float GetAdditionalWidth()const { return AdditionalWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetControlHeight() { return ControlHeight; }
+		bool GetControlHeight()const { return ControlHeight; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		float GetAdditionalHeight() { return AdditionalHeight; }
+		float GetAdditionalHeight()const { return AdditionalHeight; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetControlWidth(bool value);
