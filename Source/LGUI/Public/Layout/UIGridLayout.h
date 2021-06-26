@@ -111,7 +111,11 @@ protected:
 	/** Arrange by size(CellSize) or by count(MaxItemCountInOneLine), true for size, false for count. */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool DependOnSizeOrCount = true;
-	/** If depend on count, then expend cell size to fill. */
+	/** 
+	 * If depend on count:
+	 *	If Horizontal then expend cell height to fill.
+	 *	If Vertical then expend cell width to fill.
+	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool ExpendChildSize = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition="DependOnSizeOrCount==true || ExpendChildSize==false"))
