@@ -237,7 +237,7 @@ void ULGUICanvasScaler::OnUnregister()
 	//reset the canvasScale to default
 	if (IsValid(Canvas))
 	{
-		Canvas->canvasScale = -1.0f;
+		Canvas->canvasScale = 1.0f;
 	}
 }
 

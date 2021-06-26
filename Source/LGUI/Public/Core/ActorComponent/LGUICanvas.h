@@ -163,7 +163,7 @@ public:
 	FORCEINLINE float GetCanvasScale()const { return canvasScale; }
 private:
 	friend class ULGUICanvasScaler;
-	float canvasScale = -1.0f;//for screen space UI, screen size / root canvas size
+	float canvasScale = 1.0f;//for screen space UI, screen size / root canvas size
 public:
 	/** get root LGUICanvas on hierarchy */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
