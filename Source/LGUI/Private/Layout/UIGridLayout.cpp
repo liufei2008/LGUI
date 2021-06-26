@@ -149,18 +149,18 @@ void UUIGridLayout::OnRebuildLayout()
 	{
 		if (HorizontalOrVertical)
 		{
+			childWidth = (rectSize.X - Spacing.X * (maxItemCountInOneLine - 1)) / maxItemCountInOneLine;
 			if (ExpendChildSize)//expend height to fill
 			{
-				childWidth = (rectSize.X - Spacing.X * (maxItemCountInOneLine - 1)) / maxItemCountInOneLine;
 				int verticalCount = FMath::CeilToInt((float)childrenCount / maxItemCountInOneLine);
 				childHeight = (rectSize.Y - Spacing.Y * (verticalCount - 1)) / verticalCount;
 			}
 		}
 		else
 		{
+			childHeight = (rectSize.Y - Spacing.Y * (maxItemCountInOneLine - 1)) / maxItemCountInOneLine;
 			if (ExpendChildSize)//expend width to fill
 			{
-				childHeight = (rectSize.Y - Spacing.Y * (maxItemCountInOneLine - 1)) / maxItemCountInOneLine;
 				int horizontalCount = FMath::CeilToInt((float)childrenCount / maxItemCountInOneLine);
 				childWidth = (rectSize.X - Spacing.X * (horizontalCount - 1)) / horizontalCount;
 			}
