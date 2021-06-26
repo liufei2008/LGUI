@@ -75,7 +75,11 @@ void UUIText::BeginPlay()
 	if (IsValid(font))
 	{
 		font->InitFont();
-		font->AddUIText(this);
+		if (!bHasAddToFont)
+		{
+			font->AddUIText(this);
+			bHasAddToFont = true;
+		}
 	}
 	visibleCharCount = VisibleCharCountInString(text);
 }
@@ -91,6 +95,7 @@ void UUIText::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (IsValid(font))
 	{
 		font->RemoveUIText(this);
+		bHasAddToFont = false;
 	}
 }
 
@@ -100,9 +105,13 @@ void UUIText::OnRegister()
 #if WITH_EDITOR
 	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
-		if (IsValid(font))
+		if (!bHasAddToFont)
 		{
-			font->AddUIText(this);
+			if (IsValid(font))
+			{
+				font->AddUIText(this);
+				bHasAddToFont = true;
+			}
 		}
 	}
 #endif
@@ -116,6 +125,7 @@ void UUIText::OnUnregister()
 		if (IsValid(font))
 		{
 			font->RemoveUIText(this);
+			bHasAddToFont = false;
 		}
 	}
 #endif
@@ -156,6 +166,14 @@ bool UUIText::HaveDataToCreateGeometry()
 
 void UUIText::OnBeforeCreateOrUpdateGeometry()
 {
+	if (!bHasAddToFont)
+	{
+		if (IsValid(font))
+		{
+			font->AddUIText(this);
+			bHasAddToFont = true;
+		}
+	}
 	CacheTextGeometry();
 }
 void UUIText::OnCreateGeometry()
@@ -216,6 +234,7 @@ void UUIText::EditorForceUpdateImmediately()
 		if (IsValid(font))
 		{
 			font->AddUIText(this);
+			bHasAddToFont = true;
 		}
 	}
 	cachedTextPropertyArray.Reset();
@@ -226,6 +245,7 @@ void UUIText::OnPreChangeFontProperty()
 	if (IsValid(font))
 	{
 		font->RemoveUIText(this);
+		bHasAddToFont = false;
 	}
 }
 void UUIText::OnPostChangeFontProperty()
@@ -233,6 +253,7 @@ void UUIText::OnPostChangeFontProperty()
 	if (IsValid(font))
 	{
 		font->AddUIText(this);
+		bHasAddToFont = true;
 	}
 }
 #endif
@@ -274,6 +295,7 @@ void UUIText::SetFont(ULGUIFontData_BaseObject* newFont) {
 		if (IsValid(font))
 		{
 			font->RemoveUIText(this);
+			bHasAddToFont = false;
 		}
 		font = newFont;
 		cachedTextPropertyArray.Reset();
@@ -283,6 +305,7 @@ void UUIText::SetFont(ULGUIFontData_BaseObject* newFont) {
 		if (IsValid(font))
 		{
 			font->AddUIText(this);
+			bHasAddToFont = true;
 		}
 	}
 }
