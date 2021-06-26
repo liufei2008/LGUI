@@ -158,6 +158,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool richText = false;
 private:
+	bool bHasAddToFont = false;
 	/** visible/renderable char count of current text. -1 means not set yet */
 	int visibleCharCount = -1;
 	/** real size of this UIText, not the widget's width and height */
