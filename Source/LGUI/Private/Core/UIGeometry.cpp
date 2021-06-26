@@ -2371,6 +2371,30 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float dynamicPixelsPerUnit = renderCanvas->GetActualDynamicPixelsPerUnit() * rootCanvasScale;
 	float oneDivideRootCanvasScale = 1.0f / rootCanvasScale;
 	float oneDivideDynamicPixelsPerUnit = 1.0f / dynamicPixelsPerUnit;
+	bool shouldScaleFontSizeWithRootCanvas = false;
+	bool isWorldSpace = renderCanvas->GetRootCanvas()->IsRenderToWorldSpace();
+	if (isWorldSpace)
+	{
+		pixelPerfect = false;
+		if (dynamicPixelsPerUnit != 1.0f)
+		{
+			shouldScaleFontSizeWithRootCanvas = true;
+		}
+	}
+	else
+	{
+		if (rootCanvasScale != 1.0f)
+		{
+			shouldScaleFontSizeWithRootCanvas = true;
+		}
+		else
+		{
+			if (dynamicPixelsPerUnit != 1.0f)
+			{
+				shouldScaleFontSizeWithRootCanvas = true;
+			}
+		}
+	}
 
 	bool bold = fontStyle == UITextFontStyle::Bold || fontStyle == UITextFontStyle::BoldAndItalic;
 	float boldSize = fontSize * font->GetBoldRatio();
@@ -2514,7 +2538,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 			float calculatedCharFixedOffset = richText ? GetCharFixedOffset(inFontSize) : charFixedOffset;
 
 			auto overrideCharData = charData;
-			if (rootCanvasScale != -1.0f)
+			if (shouldScaleFontSizeWithRootCanvas)
 			{
 				if (pixelPerfect)
 				{
