@@ -176,11 +176,11 @@ public:
 
 	void SetDefaultMaterials(UMaterialInterface* InMaterials[3]);
 
-	FORCEINLINE bool IsRenderToScreenSpace();
-	FORCEINLINE bool IsRenderToScreenSpaceOrRenderTarget();
-	FORCEINLINE bool IsRenderToRenderTarget();
-	FORCEINLINE bool IsRenderToWorldSpace();
-	FORCEINLINE TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension();
+	bool IsRenderToScreenSpace();
+	bool IsRenderToScreenSpaceOrRenderTarget();
+	bool IsRenderToRenderTarget();
+	bool IsRenderToWorldSpace();
+	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension();
 
 	FORCEINLINE TWeakObjectPtr<UUIItem> GetUIItem()const { CheckUIItem(); return UIItem; }
 	bool GetIsUIActive()const;

@@ -40,9 +40,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		ULGUISpriteData_BaseObject* sprite;
 
-	virtual void OnBeforeCreateOrUpdateGeometry()override {}
+	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
 	virtual bool NeedTextureToCreateGeometry()override { return true; }
+
+	bool bHasAddToSprite = false;
 public:
 	void ApplyAtlasTextureScaleUp();
 

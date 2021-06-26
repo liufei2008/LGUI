@@ -15,9 +15,13 @@ UUISpriteBase::UUISpriteBase(const FObjectInitializer& ObjectInitializer):Super(
 void UUISpriteBase::BeginPlay()
 {
 	Super::BeginPlay();
-	if (IsValid(sprite))
+	if (!bHasAddToSprite)
 	{
-		sprite->AddUISprite(this);
+		if (IsValid(sprite))
+		{
+			sprite->AddUISprite(this);
+			bHasAddToSprite = true;
+		}
 	}
 }
 
@@ -27,6 +31,7 @@ void UUISpriteBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (IsValid(sprite))
 	{
 		sprite->RemoveUISprite(this);
+		bHasAddToSprite = false;
 	}
 }
 
@@ -62,11 +67,13 @@ void UUISpriteBase::SetSprite(ULGUISpriteData_BaseObject* newSprite, bool setSiz
 			if (IsValid(sprite))
 			{
 				sprite->RemoveUISprite(this);
+				bHasAddToSprite = false;
 			}
 			//add to new
 			if (IsValid(newSprite))
 			{
 				newSprite->AddUISprite(this);
+				bHasAddToSprite = true;
 			}
 		}
 		sprite = newSprite;
@@ -93,9 +100,13 @@ void UUISpriteBase::OnRegister()
 #if WITH_EDITOR
 	if (this->GetWorld() && this->GetWorld()->WorldType == EWorldType::Editor)
 	{
-		if (IsValid(sprite))
+		if (!bHasAddToSprite)
 		{
-			sprite->AddUISprite(this);
+			if (IsValid(sprite))
+			{
+				sprite->AddUISprite(this);
+				bHasAddToSprite = true;
+			}
 		}
 	}
 #endif
@@ -109,6 +120,7 @@ void UUISpriteBase::OnUnregister()
 		if (IsValid(sprite))
 		{
 			sprite->RemoveUISprite(this);
+			bHasAddToSprite = false;
 		}
 	}
 #endif
@@ -135,6 +147,7 @@ void UUISpriteBase::OnPreChangeSpriteProperty()
 	if (IsValid(sprite))
 	{
 		sprite->RemoveUISprite(this);
+		bHasAddToSprite = false;
 	}
 }
 void UUISpriteBase::OnPostChangeSpriteProperty()
@@ -142,9 +155,22 @@ void UUISpriteBase::OnPostChangeSpriteProperty()
 	if (IsValid(sprite))
 	{
 		sprite->AddUISprite(this);
+		bHasAddToSprite = true;
 	}
 }
 #endif
+
+void UUISpriteBase::OnBeforeCreateOrUpdateGeometry()
+{
+	if (!bHasAddToSprite)
+	{
+		if (IsValid(sprite))
+		{
+			sprite->AddUISprite(this);
+			bHasAddToSprite = true;
+		}
+	}
+}
 
 UTexture* UUISpriteBase::GetTextureToCreateGeometry()
 {
