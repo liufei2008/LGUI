@@ -182,7 +182,11 @@ void FLGUIEditorModule::StartupModule()
 	{
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 		//register AssetCategory
-		EAssetTypeCategories::Type LGUIAssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("LGUI")), LOCTEXT("LGUIAssetCategory", "LGUI"));
+		EAssetTypeCategories::Type LGUIAssetCategoryBit = AssetTools.FindAdvancedAssetCategory(FName(TEXT("LGUI")));
+		if (LGUIAssetCategoryBit == EAssetTypeCategories::Misc)
+		{
+			LGUIAssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("LGUI")), LOCTEXT("LGUIAssetCategory", "LGUI"));
+		}
 
 		TSharedPtr<FAssetTypeActions_Base> spriteDataAction = MakeShareable(new FLGUISpriteDataTypeAction(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> fontDataAction = MakeShareable(new FLGUIFontDataTypeAction(LGUIAssetCategoryBit));
