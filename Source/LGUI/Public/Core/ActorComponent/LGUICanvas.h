@@ -185,6 +185,9 @@ public:
 	FORCEINLINE TWeakObjectPtr<UUIItem> GetUIItem()const { CheckUIItem(); return UIItem; }
 	bool GetIsUIActive()const;
 	TWeakObjectPtr<ULGUICanvas> GetParentCanvas() { CheckParentCanvas(); return ParentCanvas; }
+
+	/** @return	drawcall count */
+	int32 SortDrawcall(int32 InStartRenderPriority);
 protected:
 	/** consider this as a cache to IsRenderToScreenSpaceOrRenderTarget(). eg: when attach to other canvas, this will tell which render mode in old canvas */
 	bool currentIsRenderToRenderTargetOrWorld = false;
@@ -198,10 +201,6 @@ protected:
 	/** check parent Canvas. search for it if not valid */
 	bool CheckParentCanvas();
 	const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray();
-	/** sort drawcall */
-	void SortDrawcallRenderPriorityForRootCanvas();
-	/** @return	drawcall count */
-	int32 SortDrawcall(int32 InStartRenderPriority);
 	
 	UMaterialInterface** GetMaterials();
 
