@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "Components/ActorComponent.h"
 #include "Core/LGUISpriteData.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Tickable.h"
 #include "LGUIManagerActor.generated.h"
 
@@ -56,10 +57,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUILayoutBase>> allLayoutArray;
 	TArray<UUIItem*> tempUIItemArray;
+
+	bool bShouldSortScreenSpaceCanvas = true;
+	bool bShouldSortWorldSpaceCanvas = true;
+	bool bShouldSortRenderTargetSpaceCanvas = true;
+
 #endif
 #if WITH_EDITOR
 private:
 	static bool InitCheck(UWorld* InWorld);
+	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, ULGUICanvas*& OutCanvas);
 public:
 	static ULGUIEditorManagerObject* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	static bool IsSelected(AActor* InObject);
@@ -74,6 +81,9 @@ public:
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return allCanvas; };
+	void MarkSortScreenSpaceCanvas();
+	void MarkSortWorldSpaceCanvas();
+	void MarkSortRenderTargetSpaceCanvas();
 
 	static void AddLayout(UUILayoutBase* InLayout);
 	static void RemoveLayout(UUILayoutBase* InLayout);
@@ -150,6 +160,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUILayoutBase*> allLayoutArray;
 
+	bool bShouldSortScreenSpaceCanvas = true;
+	bool bShouldSortWorldSpaceCanvas = true;
+	bool bShouldSortRenderTargetSpaceCanvas = true;
+
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForUpdate;
 #if WITH_EDITORONLY_DATA
@@ -157,6 +171,7 @@ protected:
 #endif
 private:
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
+	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, ULGUICanvas*& OutCanvas);
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
@@ -165,6 +180,9 @@ public:
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return allCanvas; };
+	void MarkSortScreenSpaceCanvas();
+	void MarkSortWorldSpaceCanvas();
+	void MarkSortRenderTargetSpaceCanvas();
 
 	const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
 	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);

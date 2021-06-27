@@ -16,6 +16,7 @@
 #include "Core/ActorComponent/UIPostProcess.h"
 #include "Engine/Engine.h"
 #include "Layout/UILayoutBase.h"
+#include "Core/HudRender/LGUIRenderer.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -106,6 +107,46 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		EditorTick.Broadcast(DeltaTime);
 	}
+
+	if (allCanvas.Num() > 0)
+	{
+		if (bShouldSortScreenSpaceCanvas || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
+		{
+			allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
+				{
+					return A->GetSortOrder() < B->GetSortOrder();
+				});
+		}
+		if (bShouldSortScreenSpaceCanvas)
+		{
+			ULGUICanvas* canvasItem = nullptr;
+			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, canvasItem);
+			if (canvasItem != nullptr)
+			{
+				if (canvasItem->GetRootCanvas() != nullptr)
+				{
+					canvasItem->GetRootCanvas()->GetViewExtension()->SortRenderPriority();
+				}
+			}
+		}
+		if (bShouldSortWorldSpaceCanvas)
+		{
+			ULGUICanvas* canvasItem = nullptr;
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, canvasItem);
+		}
+		if (bShouldSortRenderTargetSpaceCanvas)
+		{
+			ULGUICanvas* canvasItem = nullptr;
+			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, canvasItem);
+			if (canvasItem != nullptr)
+			{
+				if (canvasItem->GetRootCanvas() != nullptr)
+				{
+					canvasItem->GetRootCanvas()->GetViewExtension()->SortRenderPriority();
+				}
+			}
+		}
+	}
 #endif
 #if WITH_EDITOR
 	CheckEditorViewportIndexAndKey();
@@ -151,6 +192,55 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 		}
 	}
 	return true;
+}
+
+void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, ULGUICanvas*& OutCanvas)
+{
+	int32 startRenderPriority = 0;
+	int32 prevSortOrder = INT_MIN;
+	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
+	for (int i = 0; i < allCanvas.Num(); i++)
+	{
+		auto canvasItem = this->allCanvas[i];
+		if (canvasItem.IsValid())
+		{
+			if (canvasItem->GetActualRenderMode() == InRenderMode)
+			{
+				OutCanvas = canvasItem.Get();
+				auto canvasItemSortOrder = canvasItem->GetSortOrder();
+				if (canvasItemSortOrder != prevSortOrder)
+				{
+					prevSortOrder = canvasItemSortOrder;
+					startRenderPriority += prevCanvasDrawcallCount;
+				}
+				int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
+
+				if (canvasItemSortOrder == prevSortOrder)//if Canvas's depth is equal, then take the max drawcall count
+				{
+					if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
+					{
+						prevCanvasDrawcallCount = canvasItemDrawcallCount;
+					}
+				}
+				else
+				{
+					prevCanvasDrawcallCount = canvasItemDrawcallCount;
+				}
+			}
+		}
+	}
+}
+void ULGUIEditorManagerObject::MarkSortScreenSpaceCanvas()
+{
+	bShouldSortScreenSpaceCanvas = true;
+}
+void ULGUIEditorManagerObject::MarkSortWorldSpaceCanvas()
+{
+	bShouldSortWorldSpaceCanvas = true;
+}
+void ULGUIEditorManagerObject::MarkSortRenderTargetSpaceCanvas()
+{
+	bShouldSortRenderTargetSpaceCanvas = true;
 }
 
 void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
@@ -800,6 +890,88 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 	}
 #endif
+	if (allCanvas.Num() > 0)
+	{
+		if (bShouldSortScreenSpaceCanvas || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
+		{
+			//@todo: no need to sort all canvas
+			allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
+				{
+					return A->GetSortOrder() < B->GetSortOrder();
+				});
+		}
+		if (bShouldSortScreenSpaceCanvas)
+		{
+			ULGUICanvas* canvasItem = nullptr;
+			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, canvasItem);
+			if (canvasItem != nullptr)
+			{
+				if (canvasItem->GetRootCanvas() != nullptr)
+				{
+					canvasItem->GetRootCanvas()->GetViewExtension()->SortRenderPriority();
+				}
+			}
+		}
+		if (bShouldSortWorldSpaceCanvas)
+		{
+			ULGUICanvas* canvasItem = nullptr;
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, canvasItem);
+		}
+		if (bShouldSortRenderTargetSpaceCanvas)
+		{
+			ULGUICanvas* canvasItem = nullptr;
+			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, canvasItem);
+			if (canvasItem != nullptr)
+			{
+				if (canvasItem->GetRootCanvas() != nullptr)
+				{
+					canvasItem->GetRootCanvas()->GetViewExtension()->SortRenderPriority();
+				}
+			}
+		}
+
+		bShouldSortScreenSpaceCanvas = false;
+		bShouldSortWorldSpaceCanvas = false;
+		bShouldSortRenderTargetSpaceCanvas = false;
+	}
+}
+
+void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, ULGUICanvas*& OutCanvas)
+{
+	int32 startRenderPriority = 0;
+	int32 prevSortOrder = INT_MIN;
+	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
+	for (int i = 0; i < allCanvas.Num(); i++)
+	{
+		auto canvasItem = this->allCanvas[i];
+		if (canvasItem.IsValid())
+		{
+			if (canvasItem->GetActualRenderMode() == InRenderMode)
+			{
+				OutCanvas = canvasItem.Get();
+				auto canvasItemSortOrder = canvasItem->GetSortOrder();
+				bool sameSortOrder = canvasItemSortOrder == prevSortOrder;
+				if (!sameSortOrder)
+				{
+					prevSortOrder = canvasItemSortOrder;
+					startRenderPriority += prevCanvasDrawcallCount;
+				}
+				int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
+
+				if (sameSortOrder)//if Canvas's sortOrder is equal, then take the max drawcall count
+				{
+					if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
+					{
+						prevCanvasDrawcallCount = canvasItemDrawcallCount;
+					}
+				}
+				else
+				{
+					prevCanvasDrawcallCount = canvasItemDrawcallCount;
+				}
+			}
+		}
+	}
 }
 
 void ALGUIManagerActor::AddLGUIComponentForLifecycleEvent(ULGUIBehaviour* InComp)
@@ -917,6 +1089,18 @@ void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 		auto& canvasArray = Instance->allCanvas;
 		canvasArray.AddUnique(InCanvas);
 	}
+}
+void ALGUIManagerActor::MarkSortScreenSpaceCanvas()
+{
+	bShouldSortScreenSpaceCanvas = true;
+}
+void ALGUIManagerActor::MarkSortWorldSpaceCanvas()
+{
+	bShouldSortWorldSpaceCanvas = true;
+}
+void ALGUIManagerActor::MarkSortRenderTargetSpaceCanvas()
+{
+	bShouldSortRenderTargetSpaceCanvas = true;
 }
 
 void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
