@@ -515,7 +515,7 @@ bool ULGUICanvas::GetIsUIActive()const
 
 void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
-	if (!autoManageDepth && InUIRenderable->GetUIRenderableType() == EUIRenderableType::UIGeometryRenderable)
+	if (!autoManageDepth && InUIRenderable->GetUIRenderableType() == EUIRenderableType::UIBatchGeometryRenderable)
 	{
 		InsertIntoDrawcall((UUIRenderable*)InUIRenderable);
 	}
@@ -530,7 +530,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 }
 void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
-	if (!autoManageDepth && InUIRenderable->GetUIRenderableType() == EUIRenderableType::UIGeometryRenderable)
+	if (!autoManageDepth && InUIRenderable->GetUIRenderableType() == EUIRenderableType::UIBatchGeometryRenderable)
 	{
 		RemoveFromDrawcall((UUIRenderable*)InUIRenderable);
 	}
@@ -552,7 +552,7 @@ void ULGUICanvas::InsertIntoDrawcall(UUIRenderable* item)
 	for (int i = 0; i < drawcallCount; i++)
 	{
 		auto drawcallItem = UIDrawcallList[i];
-		if (drawcallItem->type != EUIDrawcallType::Geometry)continue;//can only inser into geometry drawcall
+		if (drawcallItem->type != EUIDrawcallType::BatchGeometry)continue;//can only inser into geometry drawcall
 		if (drawcallItem->texture == itemTexture && drawcallItem->IsDepthInsideDrawcall(itemDepth))//if texture is equal and depth can insert into drawcall
 		{
 			drawcallItem->geometryList.Add(item->GetGeometry());
@@ -740,7 +740,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				switch (UIDrawcallList[i]->type)
 				{
 				default:
-				case EUIDrawcallType::Geometry:
+				case EUIDrawcallType::BatchGeometry:
 				{
 					UUIDrawcallMesh* uiMesh = nullptr;
 					if (meshIndex < CacheUIMeshList.Num())//get mesh from exist
@@ -853,7 +853,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				{
 					auto uiDrawcall = UIDrawcallList[i];
 					if (!uiDrawcall.IsValid())continue;
-					if (uiDrawcall->type == EUIDrawcallType::Geometry)
+					if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
 					{
 						auto uiMesh = UIDrawcallPrimitiveList[i].UIDrawcallMesh;
 						if (!uiMesh.IsValid())continue;
@@ -1007,7 +1007,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 				switch (UIDrawcallList[i]->type)
 				{
 				default:
-				case EUIDrawcallType::Geometry:
+				case EUIDrawcallType::BatchGeometry:
 				{
 					UUIDrawcallMesh* uiMesh = nullptr;
 					if (meshIndex < CacheUIMeshList.Num())//get mesh from exist
@@ -1101,7 +1101,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 			{
 				auto uiDrawcall = UIDrawcallList[i];
 				if (!uiDrawcall.IsValid())continue;
-				if (uiDrawcall->type == EUIDrawcallType::Geometry)
+				if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
 				{
 					auto uiMesh = UIDrawcallPrimitiveList[i].UIDrawcallMesh;
 					if (!uiMesh.IsValid())continue;
@@ -1260,7 +1260,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 		for (int i = materialCount; i < drawcallCount; i++)
 		{
 			auto uiDrawcall = UIDrawcallList[i];
-			if (uiDrawcall->type == EUIDrawcallType::Geometry)
+			if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
 			{
 				UMaterialInstanceDynamic* uiMat = nullptr;
 				if (uiDrawcall->material.IsValid())//custom material
@@ -1299,7 +1299,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 		for (int i = 0; i < drawcallCount; i++)//set material property
 		{
 			auto uiDrawcall = UIDrawcallList[i];
-			if (uiDrawcall->type == EUIDrawcallType::Geometry)
+			if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
 			{
 				auto uiMat = UIMaterialList[i];
 				if (IsValid(uiMat))
@@ -1393,7 +1393,7 @@ void ULGUICanvas::SetParameterForRectClip(int drawcallCount)
 	for (int i = 0; i < drawcallCount; i++)
 	{
 		auto uiDrawcall = UIDrawcallList[i];
-		if (uiDrawcall->type == EUIDrawcallType::Geometry)
+		if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
 		{
 			auto uiMat = UIMaterialList[i];
 			if (IsValid(uiMat))
@@ -1417,7 +1417,7 @@ void ULGUICanvas::SetParameterForTextureClip(int drawcallCount)
 	for (int i = 0; i < drawcallCount; i++)
 	{
 		auto uiDrawcall = UIDrawcallList[i];
-		if (uiDrawcall->type == EUIDrawcallType::Geometry)
+		if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
 		{
 			auto uiMat = UIMaterialList[i];
 			if (IsValid(uiMat))

@@ -565,9 +565,12 @@ void ULGUIMeshComponent::SetUITranslucentSortPriority(int32 NewTranslucentSortPr
 
 void ULGUIMeshComponent::UpdateLocalBounds()
 {
-	UpdateBounds();// Update global bounds
-	// Need to send to render thread
-	MarkRenderTransformDirty();
+	if (IsSupportWorldSpace)//screen space UI no need to update bounds
+	{
+		UpdateBounds();// Update global bounds
+		// Need to send to render thread
+		MarkRenderTransformDirty();
+	}
 }
 
 FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()

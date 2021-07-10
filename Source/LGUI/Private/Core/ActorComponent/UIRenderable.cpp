@@ -13,7 +13,7 @@ DECLARE_CYCLE_STAT(TEXT("UIRenderable ApplyModifier"), STAT_ApplyModifier, STATG
 UUIRenderable::UUIRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	uiRenderableType = EUIRenderableType::UIGeometryRenderable;
+	uiRenderableType = EUIRenderableType::UIBatchGeometryRenderable;
 	geometry = TSharedPtr<UIGeometry>(new UIGeometry);
 
 	bLocalVertexPositionChanged = true;
