@@ -13,7 +13,7 @@ UENUM(BlueprintType, Category = LGUI)
 enum class EUIRenderableType :uint8
 {
 	None,
-	UIGeometryRenderable,
+	UIBatchGeometryRenderable,
 	UIPostProcessRenderable,
 };
 /** UI element which have render geometry, and can be renderred by LGUICanvas */
