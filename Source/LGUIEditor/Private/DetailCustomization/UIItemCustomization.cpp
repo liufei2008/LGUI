@@ -977,7 +977,7 @@ FText FUIItemCustomization::GetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScr
 						{
 							if (item->GetRenderCanvas() == renderCanvas)
 							{
-								if (TargetScript->GetUIItemType() == UIItemType::UIRenderable && item->GetUIItemType() == UIItemType::UIRenderable)
+								if (TargetScript->GetUIItemType() == UIItemType::UIBatchGeometryRenderable && item->GetUIItemType() == UIItemType::UIBatchGeometryRenderable)
 								{
 									if (item->widget.depth == TargetScript->widget.depth)
 										renderDepthCount++;

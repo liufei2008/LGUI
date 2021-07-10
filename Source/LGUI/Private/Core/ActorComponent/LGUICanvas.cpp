@@ -16,8 +16,8 @@
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
 #include "Core/UIDrawcall.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
-#include "Core/ActorComponent/UIRenderable.h"
-#include "Core/ActorComponent/UIPostProcess.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "GameFramework/PlayerController.h"
@@ -139,9 +139,9 @@ void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 		{
 			item.UIDrawcallMesh->DestroyComponent();
 		}
-		if (item.UIPostProcess.IsValid())
+		if (item.UIPostProcessRenderable.IsValid())
 		{
-			item.UIPostProcess.Pin()->RemoveFromHudRenderer();
+			item.UIPostProcessRenderable.Pin()->RemoveFromHudRenderer();
 		}
 	}
 	UIDrawcallPrimitiveList.Empty();
@@ -156,9 +156,9 @@ void ULGUICanvas::OnUIActiveStateChanged(bool active)
 		{
 			item.UIDrawcallMesh->SetUIMeshVisibility(active);
 		}
-		if (item.UIPostProcess.IsValid())
+		if (item.UIPostProcessRenderable.IsValid())
 		{
-			item.UIPostProcess.Pin()->SetVisibility(active);
+			item.UIPostProcessRenderable.Pin()->SetVisibility(active);
 		}
 	}
 }
@@ -220,9 +220,9 @@ void ULGUICanvas::CheckRenderMode()
 			{
 				item.UIDrawcallMesh->DestroyComponent();
 			}
-			if (item.UIPostProcess.IsValid())
+			if (item.UIPostProcessRenderable.IsValid())
 			{
-				item.UIPostProcess.Pin()->RemoveFromHudRenderer();
+				item.UIPostProcessRenderable.Pin()->RemoveFromHudRenderer();
 			}
 		}
 		UIDrawcallPrimitiveList.Reset();
@@ -456,7 +456,7 @@ void ULGUICanvas::MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool verte
 	uiDrawcall->needToUpdateVertex = true;
 	if (vertexPositionChanged)uiDrawcall->vertexPositionChanged = vertexPositionChanged;
 }
-void ULGUICanvas::OnUIElementDepthChange(UUIRenderable* item)
+void ULGUICanvas::OnUIElementDepthChange(UUIBatchGeometryRenderable* item)
 {
 	auto drawcallIndex = item->GetGeometry()->drawcallIndex;
 	if (drawcallIndex == -1)return;//-1 means not add to render yet
@@ -517,7 +517,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
 	if (!autoManageDepth && InUIRenderable->GetUIRenderableType() == EUIRenderableType::UIBatchGeometryRenderable)
 	{
-		InsertIntoDrawcall((UUIRenderable*)InUIRenderable);
+		InsertIntoDrawcall((UUIBatchGeometryRenderable*)InUIRenderable);
 	}
 	else
 	{
@@ -532,7 +532,7 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
 	if (!autoManageDepth && InUIRenderable->GetUIRenderableType() == EUIRenderableType::UIBatchGeometryRenderable)
 	{
-		RemoveFromDrawcall((UUIRenderable*)InUIRenderable);
+		RemoveFromDrawcall((UUIBatchGeometryRenderable*)InUIRenderable);
 	}
 	else
 	{
@@ -543,7 +543,7 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 	}
 	UIRenderableItemList.Remove(InUIRenderable);
 }
-void ULGUICanvas::InsertIntoDrawcall(UUIRenderable* item)
+void ULGUICanvas::InsertIntoDrawcall(UUIBatchGeometryRenderable* item)
 {
 	bool accommodate = false;//can this item fit into list?
 	auto itemDepth = item->GetDepth();
@@ -571,7 +571,7 @@ void ULGUICanvas::InsertIntoDrawcall(UUIRenderable* item)
 		bShouldRebuildAllDrawcall = true;
 	}
 }
-void ULGUICanvas::RemoveFromDrawcall(UUIRenderable* item)
+void ULGUICanvas::RemoveFromDrawcall(UUIBatchGeometryRenderable* item)
 {
 	auto drawcallIndex = item->GetGeometry()->drawcallIndex;
 	if (drawcallIndex == -1)return;//-1 means not add to render yet
@@ -727,10 +727,10 @@ void ULGUICanvas::UpdateCanvasGeometry()
 			int drawcallCount = UIDrawcallList.Num();
 			for (auto item : UIDrawcallPrimitiveList)
 			{
-				if (item.UIPostProcess.IsValid())
+				if (item.UIPostProcessRenderable.IsValid())
 				{
-					item.UIPostProcess.Pin()->RemoveFromHudRenderer();
-					item.UIPostProcess.Reset();
+					item.UIPostProcessRenderable.Pin()->RemoveFromHudRenderer();
+					item.UIPostProcessRenderable.Reset();
 				}
 			}
 			UIDrawcallPrimitiveList.SetNum(drawcallCount);
@@ -794,7 +794,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 
 					UIDrawcallPrimitiveList[i].UIDrawcallMesh = uiMesh;
 
-					UIDrawcallPrimitiveList[i].UIPostProcess = nullptr;
+					UIDrawcallPrimitiveList[i].UIPostProcessRenderable = nullptr;
 
 					meshIndex++;
 				}
@@ -822,7 +822,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						uiPostProcessPrimitive.Pin()->SetVisibility(true);
 					}
 
-					UIDrawcallPrimitiveList[i].UIPostProcess = uiPostProcessPrimitive;
+					UIDrawcallPrimitiveList[i].UIPostProcessRenderable = uiPostProcessPrimitive;
 
 					UIDrawcallPrimitiveList[i].UIDrawcallMesh = nullptr;
 				}
@@ -994,10 +994,10 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 			int drawcallCount = UIDrawcallList.Num();
 			for (auto item : UIDrawcallPrimitiveList)
 			{
-				if (item.UIPostProcess.IsValid())
+				if (item.UIPostProcessRenderable.IsValid())
 				{
-					item.UIPostProcess.Pin()->RemoveFromHudRenderer();
-					item.UIPostProcess.Reset();
+					item.UIPostProcessRenderable.Pin()->RemoveFromHudRenderer();
+					item.UIPostProcessRenderable.Reset();
 				}
 			}
 			UIDrawcallPrimitiveList.SetNum(drawcallCount);
@@ -1061,7 +1061,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 
 					UIDrawcallPrimitiveList[i].UIDrawcallMesh = uiMesh;
 
-					UIDrawcallPrimitiveList[i].UIPostProcess = nullptr;
+					UIDrawcallPrimitiveList[i].UIPostProcessRenderable = nullptr;
 
 					meshIndex++;
 				}
@@ -1072,7 +1072,7 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 					uiPostProcessPrimitive.Pin()->AddToHudRenderer(RootCanvas->GetViewExtension());
 					uiPostProcessPrimitive.Pin()->SetVisibility(true);
 
-					UIDrawcallPrimitiveList[i].UIPostProcess = uiPostProcessPrimitive;
+					UIDrawcallPrimitiveList[i].UIPostProcessRenderable = uiPostProcessPrimitive;
 
 					UIDrawcallPrimitiveList[i].UIDrawcallMesh = nullptr;
 				}
@@ -1227,9 +1227,9 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 		{
 			UIDrawcallPrimitiveList[i].UIDrawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
 		}
-		if (UIDrawcallPrimitiveList[i].UIPostProcess.IsValid())
+		if (UIDrawcallPrimitiveList[i].UIPostProcessRenderable.IsValid())
 		{
-			UIDrawcallPrimitiveList[i].UIPostProcess.Pin()->SetUITranslucentSortPriority(InStartRenderPriority++);
+			UIDrawcallPrimitiveList[i].UIPostProcessRenderable.Pin()->SetUITranslucentSortPriority(InStartRenderPriority++);
 		}
 	}
 	return UIDrawcallPrimitiveList.Num();

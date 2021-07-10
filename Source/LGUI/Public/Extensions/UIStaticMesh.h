@@ -20,7 +20,7 @@ enum class UIStaticMeshVertexColorType :uint8
  * render a StaticMesh as UI element
  */
 UCLASS(ClassGroup = (LGUI), Blueprintable, Experimental, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIStaticMesh : public UUIRenderable
+class LGUI_API UUIStaticMesh : public UUIBatchGeometryRenderable
 {
 	GENERATED_BODY()
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UIPostProcess.h"
+#include "UIPostProcessRenderable.h"
 #include "Core/HudRender/LGUIHudVertex.h"
 #include "UIBackgroundPixelate.generated.h"
 
@@ -12,7 +12,7 @@
  * May have issue when MSAA is on.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent), Experimental)
-class LGUI_API UUIBackgroundPixelate : public UUIPostProcess
+class LGUI_API UUIBackgroundPixelate : public UUIPostProcessRenderable
 {
 	GENERATED_BODY()
 

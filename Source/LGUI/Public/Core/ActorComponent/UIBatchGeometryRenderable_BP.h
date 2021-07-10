@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "UIRenderable.h"
-#include "UIRenderable_BP.generated.h"
+#include "UIBatchGeometryRenderable.h"
+#include "UIBatchGeometryRenderable_BP.generated.h"
 
 class UIGeometry;
 
@@ -64,12 +64,12 @@ public:
 
 /** a wrapper class, blueprint can use this to create custom UI type */
 UCLASS(ClassGroup = (LGUI), Abstract, Blueprintable)
-class LGUI_API UUIRenderable_BP : public UUIRenderable
+class LGUI_API UUIBatchGeometryRenderable_BP : public UUIBatchGeometryRenderable
 {
 	GENERATED_BODY()
 
 public:	
-	UUIRenderable_BP(const FObjectInitializer& ObjectInitializer);
+	UUIBatchGeometryRenderable_BP(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;

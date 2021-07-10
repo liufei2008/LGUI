@@ -15,7 +15,7 @@ enum class UIItemType :uint8
 {
 	None,
 	UIItem,
-	UIRenderable,
+	UIBatchGeometryRenderable,
 };
 
 /**

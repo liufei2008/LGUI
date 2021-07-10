@@ -3,7 +3,7 @@
 #pragma once
 
 #include "UIBaseRenderable.h"
-#include "UIRenderable.generated.h"
+#include "UIBatchGeometryRenderable.generated.h"
 
 class UIGeometry;
 class UMaterialInterface;
@@ -11,12 +11,12 @@ class ULGUICanvas;
 class UUIDrawcallMesh;
 /** UI element which have render geometry, and can be renderred by LGUICanvas */
 UCLASS(Abstract, NotBlueprintable)
-class LGUI_API UUIRenderable : public UUIBaseRenderable
+class LGUI_API UUIBatchGeometryRenderable : public UUIBaseRenderable
 {
 	GENERATED_BODY()
 
 public:	
-	UUIRenderable(const FObjectInitializer& ObjectInitializer);
+	UUIBatchGeometryRenderable(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;
@@ -107,11 +107,11 @@ protected:
 	virtual UTexture* GetTextureToCreateGeometry() { return nullptr; }
 
 	/** do anything before acturally create or update geometry */
-	virtual void OnBeforeCreateOrUpdateGeometry()PURE_VIRTUAL(UUIRenderable::OnBeforeCreateOrUpdateGeometry, );
+	virtual void OnBeforeCreateOrUpdateGeometry()PURE_VIRTUAL(UUIBatchGeometryRenderable::OnBeforeCreateOrUpdateGeometry, );
 	/** create ui geometry */
-	virtual void OnCreateGeometry()PURE_VIRTUAL(UUIRenderable::OnCreateGeometry, );
+	virtual void OnCreateGeometry()PURE_VIRTUAL(UUIBatchGeometryRenderable::OnCreateGeometry, );
 	/** update ui geometry */
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIRenderable::OnUpdateGeometry, );
+	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIBatchGeometryRenderable::OnUpdateGeometry, );
 
 	void CreateGeometry();
 	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;

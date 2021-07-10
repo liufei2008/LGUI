@@ -5,13 +5,13 @@
 #include "Engine/Texture.h"
 #include "Core/LGUIIndexBuffer.h"
 
-class UUIPostProcess;
+class UUIPostProcessRenderable;
 class UIGeometry;
 struct FDynamicMeshVertex;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class UUIItem;
-class UUIRenderable;
+class UUIBatchGeometryRenderable;
 
 enum class EUIDrawcallType :uint8
 {
@@ -33,12 +33,12 @@ public:
 	bool needToUpdateVertex = false;//update only if need to
 	bool vertexPositionChanged = false;//if vertex position changed? use for update bounds
 
-	TWeakObjectPtr<UUIPostProcess> postProcessObject;//post process object
+	TWeakObjectPtr<UUIPostProcessRenderable> postProcessObject;//post process object
 
 	int depthMin = 0;//min depth of all geometries
 	int depthMax = 0;//max depth of all geometries
 #pragma region AutoManageDepth
-	TArray<TWeakObjectPtr<UUIRenderable>> renderObjectList;//render object collections belong to this drawcall
+	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall
 	bool is3DDrawcall = false;//transform relative to canvas is 3d or not? only 2d drawcall can batch
 #pragma endregion
 public:

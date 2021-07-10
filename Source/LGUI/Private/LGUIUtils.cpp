@@ -7,8 +7,8 @@
 #include "Core/UIDrawcall.h"
 #include "Sound/SoundBase.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
-#include "Core/ActorComponent/UIPostProcess.h"
-#include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorStyleSet.h"

@@ -5,7 +5,7 @@
 #include "UIBaseRenderable.h"
 #include "Core/HudRender/LGUIHudVertex.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "UIPostProcess.generated.h"
+#include "UIPostProcessRenderable.generated.h"
 
 class FUIPostProcessRenderProxy;
 struct FLGUIPostProcessVertex;
@@ -14,12 +14,12 @@ struct FLGUIPostProcessVertex;
  * Only valid on ScreenSpaceUI
  */
 UCLASS(Abstract, NotBlueprintable)
-class LGUI_API UUIPostProcess : public UUIBaseRenderable
+class LGUI_API UUIPostProcessRenderable : public UUIBaseRenderable
 {
 	GENERATED_BODY()
 
 public:	
-	UUIPostProcess(const FObjectInitializer& ObjectInitializer);
+	UUIPostProcessRenderable(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;
@@ -57,7 +57,7 @@ public:
 	void MarkUVDirty();
 	TSharedPtr<UIGeometry> GetGeometry() { return geometry; }
 public:
-	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcess::GetRenderProxy, return 0;);
+	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcessRenderable::GetRenderProxy, return 0;);
 	void SetClipType(ELGUICanvasClipType clipType);
 	void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather);
 	void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize);
