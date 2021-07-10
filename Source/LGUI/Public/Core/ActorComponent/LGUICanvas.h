@@ -86,7 +86,7 @@ public:
 
 class UUIItem;
 class UUIBaseRenderable;
-class UUIRenderable;
+class UUIBatchGeometryRenderable;
 class UUIDrawcallMesh;
 class UUIDrawcall;
 class FUIPostProcessRenderProxy;
@@ -141,7 +141,7 @@ public:
 	/** mark update specific drawcall vertex, when vertex position/uv/color etc change */
 	void MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged = true);
 	/** UI element's depth change */
-	void OnUIElementDepthChange(UUIRenderable* item);
+	void OnUIElementDepthChange(UUIBatchGeometryRenderable* item);
 	/** @return created MaterialInstanceDynamic for target drawcall, return nullptr if drawcallIndex is -1 */
 	UMaterialInstanceDynamic* GetMaterialInstanceDynamicForDrawcall(int drawcallIndex);
 	
@@ -423,9 +423,9 @@ public:
 	FORCEINLINE void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
 private:
 	/** insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall. */
-	void InsertIntoDrawcall(UUIRenderable* item);
+	void InsertIntoDrawcall(UUIBatchGeometryRenderable* item);
 	/** remove a UI element from drawcall list */
-	void RemoveFromDrawcall(UUIRenderable* item);
+	void RemoveFromDrawcall(UUIBatchGeometryRenderable* item);
 
 	void ApplyOwnerSeeRecursive();
 private:
@@ -450,7 +450,7 @@ private:
 	struct FLGUIDrawcallPrimitive
 	{
 		TWeakObjectPtr<UUIDrawcallMesh> UIDrawcallMesh = nullptr;
-		TWeakPtr<FUIPostProcessRenderProxy> UIPostProcess = nullptr;
+		TWeakPtr<FUIPostProcessRenderProxy> UIPostProcessRenderable = nullptr;
 	};
 	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIBaseRenderable>> UIRenderableItemList;//all renderable UI element collection
 	TArray<FLGUIDrawcallPrimitive> UIDrawcallPrimitiveList;//UIDrawcallPrimitive collection of this Canvas

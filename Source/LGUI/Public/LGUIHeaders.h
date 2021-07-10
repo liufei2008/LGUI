@@ -4,8 +4,8 @@
 
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
-#include "Core/ActorComponent/UIRenderable.h"
-#include "Core/ActorComponent/UIPostProcess.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Core/ActorComponent/UITextureBase.h"

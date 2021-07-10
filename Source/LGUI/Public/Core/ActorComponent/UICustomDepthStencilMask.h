@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UIPostProcess.h"
+#include "UIPostProcessRenderable.h"
 #include "Core/HudRender/LGUIHudVertex.h"
 #include "UICustomDepthStencilMask.generated.h"
 
@@ -20,7 +20,7 @@ enum class EUICustomDepthStencilMaskSourceType :uint8
  * Android: CustomDepth mode not supported yet.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUICustomDepthStencilMask : public UUIPostProcess
+class LGUI_API UUICustomDepthStencilMask : public UUIPostProcessRenderable
 {
 	GENERATED_BODY()
 

@@ -10,7 +10,7 @@
 #include "LGUIManagerActor.generated.h"
 
 class UUIItem;
-class UUIRenderable;
+class UUIBatchGeometryRenderable;
 class ULGUICanvas;
 class ULGUIBaseRaycaster;
 class UUISelectableComponent;
@@ -105,7 +105,7 @@ private:
 	bool IsCalculatingSelection = false;
 	FDelegateHandle OnSelectionChangedDelegateHandle;
 	TArray<FHitResult> CacheHitResultArray;
-	TWeakObjectPtr<UUIRenderable> LastSelectTarget;
+	TWeakObjectPtr<UUIBatchGeometryRenderable> LastSelectTarget;
 	TWeakObjectPtr<AActor> LastSelectedActor;
 	void OnSelectionChanged(UObject* newSelection);
 	FDelegateHandle OnAssetReimportDelegateHandle;

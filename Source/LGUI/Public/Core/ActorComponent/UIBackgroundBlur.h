@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UIPostProcess.h"
+#include "UIPostProcessRenderable.h"
 #include "UIBackgroundBlur.generated.h"
 
 /** 
@@ -11,7 +11,7 @@
  * May have issue when MSAA is on.
  */
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIBackgroundBlur : public UUIPostProcess
+class LGUI_API UUIBackgroundBlur : public UUIPostProcessRenderable
 {
 	GENERATED_BODY()
 

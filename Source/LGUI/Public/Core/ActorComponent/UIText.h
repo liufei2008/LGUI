@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "UIRenderable.h"
+#include "UIBatchGeometryRenderable.h"
 #include "UIText.generated.h"
 
 
@@ -90,7 +90,7 @@ struct FUIText_RichTextCustomTag
 class ULGUIFontData_BaseObject;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIText : public UUIRenderable
+class LGUI_API UUIText : public UUIBatchGeometryRenderable
 {
 	GENERATED_BODY()
 

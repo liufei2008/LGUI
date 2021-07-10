@@ -2,7 +2,7 @@
 
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 
 UUIGeometryModifierBase::UUIGeometryModifierBase()
 {
@@ -19,13 +19,13 @@ void UUIGeometryModifierBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 	
 }
-UUIRenderable* UUIGeometryModifierBase::GetRenderableUIItem()
+UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetRenderableUIItem()
 {
 	if(!IsValid(renderableUIItem))
 	{
 		if (auto actor = GetOwner())
 		{
-			renderableUIItem = GetOwner()->FindComponentByClass<UUIRenderable>();
+			renderableUIItem = GetOwner()->FindComponentByClass<UUIBatchGeometryRenderable>();
 		}
 	}
 	return renderableUIItem;
@@ -38,7 +38,7 @@ void UUIGeometryModifierBase::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	{
 		if (auto rootComp = GetOwner()->GetRootComponent())
 		{
-			if (auto uiRenderable = Cast<UUIRenderable>(rootComp))
+			if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(rootComp))
 			{
 				uiRenderable->EditorForceUpdateImmediately();
 			}
