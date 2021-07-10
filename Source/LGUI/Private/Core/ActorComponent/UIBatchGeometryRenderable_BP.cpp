@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Core/ActorComponent/UIRenderable_BP.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable_BP.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
 
@@ -125,12 +125,12 @@ void ULGUIUpdateGeometryHelper::EndUpdateVertices()
 
 
 
-UUIRenderable_BP::UUIRenderable_BP(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
+UUIBatchGeometryRenderable_BP::UUIBatchGeometryRenderable_BP(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUIRenderable_BP::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UUIBatchGeometryRenderable_BP::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (IsValid(createGeometryHelper))
 	{
@@ -144,11 +144,11 @@ void UUIRenderable_BP::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void UUIRenderable_BP::OnBeforeCreateOrUpdateGeometry()
+void UUIBatchGeometryRenderable_BP::OnBeforeCreateOrUpdateGeometry()
 {
 	OnBeforeCreateOrUpdateGeometry_BP();
 }
-void UUIRenderable_BP::OnCreateGeometry()
+void UUIBatchGeometryRenderable_BP::OnCreateGeometry()
 {
 	if (!IsValid(createGeometryHelper))
 	{
@@ -157,7 +157,7 @@ void UUIRenderable_BP::OnCreateGeometry()
 	}
 	OnCreateGeometry_BP(createGeometryHelper);
 }
-void UUIRenderable_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UUIBatchGeometryRenderable_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (!IsValid(updateGeometryHelper))
 	{
@@ -166,13 +166,13 @@ void UUIRenderable_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVer
 	}
 	OnUpdateGeometry_BP(updateGeometryHelper, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
 }
-void UUIRenderable_BP::MarkVertexChanged_BP()
+void UUIBatchGeometryRenderable_BP::MarkVertexChanged_BP()
 {
 	MarkVertexPositionDirty();
 	MarkColorDirty();
 	MarkUVDirty();
 }
-void UUIRenderable_BP::MarkRebuildGeometry_BP()
+void UUIBatchGeometryRenderable_BP::MarkRebuildGeometry_BP()
 {
 	MarkTriangleDirty();
 }

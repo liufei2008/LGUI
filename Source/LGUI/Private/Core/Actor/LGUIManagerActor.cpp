@@ -12,8 +12,8 @@
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "PrefabSystem/ActorSerializer.h"
 #include "Core/Actor/UIBaseActor.h"
-#include "Core/ActorComponent/UIRenderable.h"
-#include "Core/ActorComponent/UIPostProcess.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Engine/Engine.h"
 #include "Layout/UILayoutBase.h"
 #include "Core/HudRender/LGUIRenderer.h"
@@ -540,7 +540,7 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 								auto client = (FEditorViewportClient*)viewport->GetClient();
 								FSceneView::DeprojectScreenToWorld(FVector2D(mouseX, mouseY), UUIItemEditorHelperComp::viewRect, UUIItemEditorHelperComp::viewMatrices.GetInvViewMatrix(), UUIItemEditorHelperComp::viewMatrices.GetInvProjectionMatrix(), rayOrigin, rayDirection);
 								float lineTraceLength = 10000;
-								//find hit UIRenderable
+								//find hit UIBatchGeometryRenderable
 								auto lineStart = rayOrigin;
 								auto lineEnd = rayOrigin + rayDirection * lineTraceLength;
 								CacheHitResultArray.Reset();
@@ -548,7 +548,7 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 								{
 									if (uiItem->GetWorld() == world)
 									{
-										if (auto uiRenderable = Cast<UUIRenderable>(uiItem))
+										if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(uiItem))
 										{
 											FHitResult hitInfo;
 											auto originRaycastComplex = uiRenderable->GetRaycastComplex();
@@ -571,8 +571,8 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 								{
 									CacheHitResultArray.Sort([](const FHitResult& A, const FHitResult& B)
 										{
-											auto AUIRenderable = (UUIRenderable*)(A.Component.Get());
-											auto BUIRenderable = (UUIRenderable*)(B.Component.Get());
+											auto AUIRenderable = (UUIBatchGeometryRenderable*)(A.Component.Get());
+											auto BUIRenderable = (UUIBatchGeometryRenderable*)(B.Component.Get());
 											if (AUIRenderable->GetRenderCanvas() == BUIRenderable->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
 											{
 												if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())//if item's depth is equal then sort on distance
@@ -587,7 +587,7 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 												return AUIRenderable->GetRenderCanvas()->GetSortOrder() > BUIRenderable->GetRenderCanvas()->GetSortOrder();
 											}
 										});
-									if (auto uiRenderableComp = Cast<UUIRenderable>(CacheHitResultArray[0].Component.Get()))//target need to select
+									if (auto uiRenderableComp = Cast<UUIBatchGeometryRenderable>(CacheHitResultArray[0].Component.Get()))//target need to select
 									{
 										if (LastSelectTarget.Get() == uiRenderableComp)//if selection not change, then select hierarchy up
 										{

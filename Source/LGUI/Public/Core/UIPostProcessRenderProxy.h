@@ -6,10 +6,10 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/HudRender/ILGUIHudPrimitive.h"
 
-class UUIPostProcess;
+class UUIPostProcessRenderable;
 
 /**
- * UIPostProcessRenderProxy is an render agent for UIPostProcess in render thread, act as a SceneProxy.
+ * UIPostProcessRenderProxy is an render agent for UIPostProcessRenderable in render thread, act as a SceneProxy.
  */
 class LGUI_API FUIPostProcessRenderProxy: public ILGUIHudPrimitive
 {

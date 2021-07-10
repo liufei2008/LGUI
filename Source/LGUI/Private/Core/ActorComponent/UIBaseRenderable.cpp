@@ -10,7 +10,7 @@
 UUIBaseRenderable::UUIBaseRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	itemType = UIItemType::UIRenderable;
+	itemType = UIItemType::UIBatchGeometryRenderable;
 	uiRenderableType = EUIRenderableType::None;
 }
 

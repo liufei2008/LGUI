@@ -1,13 +1,13 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Core/ActorComponent/UIPostProcess.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/UIGeometry.h"
 #include "Core/UIPostProcessRenderProxy.h"
 #include "Core/LGUISpriteData_BaseObject.h"
 
-UUIPostProcess::UUIPostProcess(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+UUIPostProcessRenderable::UUIPostProcessRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	uiRenderableType = EUIRenderableType::UIPostProcessRenderable;
@@ -17,7 +17,7 @@ UUIPostProcess::UUIPostProcess(const FObjectInitializer& ObjectInitializer) :Sup
 	bUVChanged = true;
 }
 
-void UUIPostProcess::BeginPlay()
+void UUIPostProcessRenderable::BeginPlay()
 {
 	Super::BeginPlay();
 	if (CheckRenderCanvas())
@@ -30,14 +30,14 @@ void UUIPostProcess::BeginPlay()
 	bUVChanged = true;
 }
 
-void UUIPostProcess::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
+void UUIPostProcessRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 }
 
 
 #if WITH_EDITOR
-void UUIPostProcess::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UUIPostProcessRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	bUVChanged = true;
 	bLocalVertexPositionChanged = true;
@@ -45,7 +45,7 @@ void UUIPostProcess::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 }
 #endif
 
-void UUIPostProcess::OnUnregister()
+void UUIPostProcessRenderable::OnUnregister()
 {
 	Super::OnUnregister();
 	if (RenderProxy.IsValid())
@@ -59,7 +59,7 @@ void UUIPostProcess::OnUnregister()
 	}
 }
 
-void UUIPostProcess::ApplyUIActiveState()
+void UUIPostProcessRenderable::ApplyUIActiveState()
 {
 	bUVChanged = true;
 	if (IsUIActiveInHierarchy() == false)
@@ -76,7 +76,7 @@ void UUIPostProcess::ApplyUIActiveState()
 	Super::ApplyUIActiveState();
 }
 
-void UUIPostProcess::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
+void UUIPostProcessRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
 	if (IsValid(OldCanvas))
 	{
@@ -89,56 +89,56 @@ void UUIPostProcess::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* 
 		NewCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
 	}
 }
-void UUIPostProcess::WidthChanged()
+void UUIPostProcessRenderable::WidthChanged()
 {
 	MarkVertexPositionDirty();
 }
-void UUIPostProcess::HeightChanged()
+void UUIPostProcessRenderable::HeightChanged()
 {
 	MarkVertexPositionDirty();
 }
-void UUIPostProcess::PivotChanged()
+void UUIPostProcessRenderable::PivotChanged()
 {
 	MarkVertexPositionDirty();
 }
 
-void UUIPostProcess::MarkVertexPositionDirty()
+void UUIPostProcessRenderable::MarkVertexPositionDirty()
 {
 	bLocalVertexPositionChanged = true;
 	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
-void UUIPostProcess::MarkUVDirty()
+void UUIPostProcessRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
 	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 
-void UUIPostProcess::UpdateCachedData()
+void UUIPostProcessRenderable::UpdateCachedData()
 {
 	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
 	cacheForThisUpdate_UVChanged = bUVChanged;
 	Super::UpdateCachedData();
 }
-void UUIPostProcess::UpdateCachedDataBeforeGeometry()
+void UUIPostProcessRenderable::UpdateCachedDataBeforeGeometry()
 {
 	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
 	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
 	Super::UpdateCachedDataBeforeGeometry();
 }
-void UUIPostProcess::UpdateBasePrevData()
+void UUIPostProcessRenderable::UpdateBasePrevData()
 {
 	bLocalVertexPositionChanged = false;
 	bUVChanged = false;
 	Super::UpdateBasePrevData();
 }
-void UUIPostProcess::MarkAllDirtyRecursive()
+void UUIPostProcessRenderable::MarkAllDirtyRecursive()
 {
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	Super::MarkAllDirtyRecursive();
 }
 
-void UUIPostProcess::CreateGeometry()
+void UUIPostProcessRenderable::CreateGeometry()
 {
 	geometry->Clear();
 	OnCreateGeometry();
@@ -147,7 +147,7 @@ void UUIPostProcess::CreateGeometry()
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateRenderable"), STAT_UIPostProcessRenderableUpdate, STATGROUP_LGUI);
-void UUIPostProcess::UpdateGeometry(const bool& parentLayoutChanged)
+void UUIPostProcessRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIPostProcessRenderableUpdate);
 	if (IsUIActiveInHierarchy() == false)return;
@@ -182,11 +182,11 @@ void UUIPostProcess::UpdateGeometry(const bool& parentLayoutChanged)
 COMPLETE:
 	;
 }
-void UUIPostProcess::OnCreateGeometry()
+void UUIPostProcessRenderable::OnCreateGeometry()
 {
 	UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas.Get(), this);
 }
-void UUIPostProcess::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UUIPostProcessRenderable::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (InVertexPositionChanged)
 	{
@@ -201,7 +201,7 @@ void UUIPostProcess::OnUpdateGeometry(bool InVertexPositionChanged, bool InVerte
 		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
 	}
 }
-void UUIPostProcess::UpdateRegionVertex()
+void UUIPostProcessRenderable::UpdateRegionVertex()
 {
 	auto& vertices = geometry->vertices;
 	if (vertices.Num() <= 0)return;
@@ -239,7 +239,7 @@ void UUIPostProcess::UpdateRegionVertex()
 	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
 }
 
-void UUIPostProcess::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
 {
 	if (RenderProxy.IsValid())
 	{
@@ -268,7 +268,7 @@ void UUIPostProcess::SendRegionVertexDataToRenderProxy(const FMatrix& InModelVie
 	}
 }
 
-void UUIPostProcess::SetMaskTexture(UTexture2D* newValue)
+void UUIPostProcessRenderable::SetMaskTexture(UTexture2D* newValue)
 {
 	if (maskTexture != newValue)
 	{
@@ -276,7 +276,7 @@ void UUIPostProcess::SetMaskTexture(UTexture2D* newValue)
 		SendMaskTextureToRenderProxy();
 	}
 }
-void UUIPostProcess::SendMaskTextureToRenderProxy()
+void UUIPostProcessRenderable::SendMaskTextureToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
@@ -294,7 +294,7 @@ void UUIPostProcess::SendMaskTextureToRenderProxy()
 	}
 }
 
-void UUIPostProcess::SetClipType(ELGUICanvasClipType clipType)
+void UUIPostProcessRenderable::SetClipType(ELGUICanvasClipType clipType)
 {
 	if (RenderProxy.IsValid())
 	{
@@ -307,7 +307,7 @@ void UUIPostProcess::SetClipType(ELGUICanvasClipType clipType)
 				});
 	}
 }
-void UUIPostProcess::SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather)
+void UUIPostProcessRenderable::SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather)
 {
 	if (RenderProxy.IsValid())
 	{
@@ -322,7 +322,7 @@ void UUIPostProcess::SetRectClipParameter(const FVector4& OffsetAndSize, const F
 				});
 	}
 }
-void UUIPostProcess::SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize)
+void UUIPostProcessRenderable::SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize)
 {
 	if (RenderProxy.IsValid())
 	{
