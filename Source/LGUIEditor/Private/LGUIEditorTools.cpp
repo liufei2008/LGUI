@@ -863,7 +863,7 @@ bool LGUIEditorTools::IsSelfRenderActor(AActor* InActor)
 {
 	if (auto rootComp = InActor->GetRootComponent())
 	{
-		if (auto uiRenderable = Cast<UUIRenderable>(rootComp))
+		if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(rootComp))
 		{
 			if (uiRenderable->GetIsSelfRender())
 			{
@@ -883,7 +883,7 @@ int LGUIEditorTools::GetDrawcallCount(AActor* InActor)
 			{
 				return rootUIItem->GetRenderCanvas()->GetDrawcallCount();
 			}
-			if (auto uiRenderable = Cast<UUIRenderable>(rootComp))
+			if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(rootComp))
 			{
 				return (uiRenderable->GetIsSelfRender() && uiRenderable->IsUIActiveInHierarchy()) ? 1 : 0;
 			}

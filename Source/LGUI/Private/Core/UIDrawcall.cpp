@@ -5,8 +5,8 @@
 #include "LGUI.h"
 #include "DynamicMeshBuilder.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "Core/ActorComponent/UIPostProcess.h"
-#include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIPostProcessRenderable.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 #include "Core/LGUISettings.h"
 
 void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const
@@ -183,7 +183,7 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 		default:
 		case EUIRenderableType::UIBatchGeometryRenderable:
 		{
-			auto sortedItem = (UUIRenderable*)sortedList[i].Get();
+			auto sortedItem = (UUIBatchGeometryRenderable*)sortedList[i].Get();
 			auto itemGeo = sortedItem->GetGeometry();
 			if (itemGeo.IsValid() == false)continue;
 			if (itemGeo->vertices.Num() == 0)continue;
@@ -228,7 +228,7 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 		break;
 		case EUIRenderableType::UIPostProcessRenderable:
 		{
-			auto sortedItem = (UUIPostProcess*)sortedList[i].Get();
+			auto sortedItem = (UUIPostProcessRenderable*)sortedList[i].Get();
 			auto itemGeo = sortedItem->GetGeometry();
 			if (itemGeo.IsValid() == false)continue;
 			if (itemGeo->vertices.Num() == 0)continue;
@@ -258,7 +258,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 			|| bMin.Y >= aMax.Y
 			);
 	};
-	auto OverlapWithOtherDrawcall = [IntersectBounds](UUIRenderable* item, const FLGUICacheTransformContainer& itemToCanvasTf, TSharedPtr<UUIDrawcall> drawcallItem) {
+	auto OverlapWithOtherDrawcall = [IntersectBounds](UUIBatchGeometryRenderable* item, const FLGUICacheTransformContainer& itemToCanvasTf, TSharedPtr<UUIDrawcall> drawcallItem) {
 		//calculate drawcall item's bounds
 		for (auto otherItem : drawcallItem->renderObjectList)
 		{
@@ -273,7 +273,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 
 		return false;
 	};
-	auto CanFitInDrawcall = [OverlapWithOtherDrawcall](UUIRenderable* item, TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int drawcallCount, int& resultDrawcallIndex, bool& is3DUIItem) {
+	auto CanFitInDrawcall = [OverlapWithOtherDrawcall](UUIBatchGeometryRenderable* item, TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int drawcallCount, int& resultDrawcallIndex, bool& is3DUIItem) {
 		for (int i = drawcallCount - 1; i >= 0; i--)
 		{
 			auto drawcallItem = drawcallList[i];
@@ -314,7 +314,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 		default:
 		case EUIRenderableType::UIBatchGeometryRenderable:
 		{
-			auto sortedItem = (UUIRenderable*)sortedList[i].Get();
+			auto sortedItem = (UUIBatchGeometryRenderable*)sortedList[i].Get();
 			auto itemGeo = sortedItem->GetGeometry();
 			if (itemGeo.IsValid() == false)continue;
 			if (itemGeo->vertices.Num() == 0)continue;
@@ -357,7 +357,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 		break;
 		case EUIRenderableType::UIPostProcessRenderable:
 		{
-			auto sortedItem = (UUIPostProcess*)sortedList[i].Get();
+			auto sortedItem = (UUIPostProcessRenderable*)sortedList[i].Get();
 			auto itemGeo = sortedItem->GetGeometry();
 			if (itemGeo.IsValid() == false)continue;
 			if (itemGeo->vertices.Num() == 0)continue;

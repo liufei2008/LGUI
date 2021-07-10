@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Utils/LGUIUtils.h"
@@ -8,9 +8,9 @@
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
-DECLARE_CYCLE_STAT(TEXT("UIRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
-UUIRenderable::UUIRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+UUIBatchGeometryRenderable::UUIBatchGeometryRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	uiRenderableType = EUIRenderableType::UIBatchGeometryRenderable;
@@ -23,7 +23,7 @@ UUIRenderable::UUIRenderable(const FObjectInitializer& ObjectInitializer) :Super
 	bMaterialChanged = true;
 }
 
-void UUIRenderable::BeginPlay()
+void UUIBatchGeometryRenderable::BeginPlay()
 {
 	Super::BeginPlay();
 	if (CheckRenderCanvas())
@@ -42,12 +42,12 @@ void UUIRenderable::BeginPlay()
 	bMaterialChanged = true;
 }
 
-void UUIRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
+void UUIBatchGeometryRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 }
 
-void UUIRenderable::ApplyUIActiveState()
+void UUIBatchGeometryRenderable::ApplyUIActiveState()
 {
 	bUVChanged = true;
 	bTriangleChanged = true;
@@ -74,7 +74,7 @@ void UUIRenderable::ApplyUIActiveState()
 	Super::ApplyUIActiveState();
 }
 #if WITH_EDITOR
-void UUIRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	bUVChanged = true;
 	bTriangleChanged = true;
@@ -108,7 +108,7 @@ void UUIRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	}
 }
 #endif
-void UUIRenderable::OnUnregister()
+void UUIBatchGeometryRenderable::OnUnregister()
 {
 	Super::OnUnregister();
 	if (uiMesh.IsValid())//delete ui mesh when this component is delete
@@ -118,7 +118,7 @@ void UUIRenderable::OnUnregister()
 	}
 }
 
-void UUIRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
+void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
 	if (IsValid(OldCanvas))
 	{
@@ -150,46 +150,46 @@ void UUIRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* N
 	}
 }
 
-void UUIRenderable::WidthChanged()
+void UUIBatchGeometryRenderable::WidthChanged()
 {
 	MarkVertexPositionDirty();
 }
-void UUIRenderable::HeightChanged()
+void UUIBatchGeometryRenderable::HeightChanged()
 {
 	MarkVertexPositionDirty();
 }
-void UUIRenderable::PivotChanged()
+void UUIBatchGeometryRenderable::PivotChanged()
 {
 	MarkVertexPositionDirty();
 }
 
-void UUIRenderable::MarkVertexPositionDirty()
+void UUIBatchGeometryRenderable::MarkVertexPositionDirty()
 {
 	bLocalVertexPositionChanged = true;
 	MarkCanvasUpdate();
 }
-void UUIRenderable::MarkUVDirty()
+void UUIBatchGeometryRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
 	MarkCanvasUpdate();
 }
-void UUIRenderable::MarkTriangleDirty()
+void UUIBatchGeometryRenderable::MarkTriangleDirty()
 {
 	bTriangleChanged = true;
 	MarkCanvasUpdate();
 }
-void UUIRenderable::MarkTextureDirty()
+void UUIBatchGeometryRenderable::MarkTextureDirty()
 {
 	bTextureChanged = true;
 	MarkCanvasUpdate();
 }
-void UUIRenderable::MarkMaterialDirty()
+void UUIBatchGeometryRenderable::MarkMaterialDirty()
 {
 	bMaterialChanged = true;
 	MarkCanvasUpdate();
 }
 
-void UUIRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)
+void UUIBatchGeometryRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)
 {
 	int count = GeometryModifierComponentArray.Num();
 	if (count > 0)
@@ -208,12 +208,12 @@ void UUIRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifie
 		GeometryModifierComponentArray.Add(InModifier);
 	}
 }
-void UUIRenderable::RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier)
+void UUIBatchGeometryRenderable::RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier)
 {
 	GeometryModifierComponentArray.Remove(InModifier);
 }
 
-void UUIRenderable::UpdateCachedData()
+void UUIBatchGeometryRenderable::UpdateCachedData()
 {
 	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
 	cacheForThisUpdate_UVChanged = bUVChanged;
@@ -222,7 +222,7 @@ void UUIRenderable::UpdateCachedData()
 	cacheForThisUpdate_MaterialChanged = bMaterialChanged;
 	Super::UpdateCachedData();
 }
-void UUIRenderable::UpdateCachedDataBeforeGeometry()
+void UUIBatchGeometryRenderable::UpdateCachedDataBeforeGeometry()
 {
 	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
 	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
@@ -231,7 +231,7 @@ void UUIRenderable::UpdateCachedDataBeforeGeometry()
 	if (bMaterialChanged)cacheForThisUpdate_MaterialChanged = true;
 	Super::UpdateCachedDataBeforeGeometry();
 }
-void UUIRenderable::UpdateBasePrevData()
+void UUIBatchGeometryRenderable::UpdateBasePrevData()
 {
 	bLocalVertexPositionChanged = false;
 	bUVChanged = false;
@@ -240,7 +240,7 @@ void UUIRenderable::UpdateBasePrevData()
 	bMaterialChanged = false;
 	Super::UpdateBasePrevData();
 }
-void UUIRenderable::MarkAllDirtyRecursive()
+void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
 {
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
@@ -249,7 +249,7 @@ void UUIRenderable::MarkAllDirtyRecursive()
 	bMaterialChanged = true;
 	Super::MarkAllDirtyRecursive();
 }
-void UUIRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
+void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 {
 	if (CustomUIMaterial != inMat)
 	{
@@ -257,7 +257,7 @@ void UUIRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 		bMaterialChanged = true;
 	}
 }
-void UUIRenderable::SetIsSelfRender(bool value)
+void UUIBatchGeometryRenderable::SetIsSelfRender(bool value)
 {
 	if (bIsSelfRender != value)
 	{
@@ -285,7 +285,7 @@ void UUIRenderable::SetIsSelfRender(bool value)
 		MarkCanvasUpdate();
 	}
 }
-UMaterialInstanceDynamic* UUIRenderable::GetMaterialInstanceDynamic()
+UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic()
 {
 	if (bIsSelfRender)
 	{
@@ -297,7 +297,7 @@ UMaterialInstanceDynamic* UUIRenderable::GetMaterialInstanceDynamic()
 	}
 	return nullptr;
 }
-bool UUIRenderable::HaveGeometryModifier()
+bool UUIBatchGeometryRenderable::HaveGeometryModifier()
 {
 #if WITH_EDITOR
 	if (GetWorld()->WorldType == EWorldType::Editor || GetWorld()->WorldType == EWorldType::EditorPreview)
@@ -314,7 +314,7 @@ bool UUIRenderable::HaveGeometryModifier()
 	}
 	return false;
 }
-bool UUIRenderable::ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged)
+bool UUIBatchGeometryRenderable::ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ApplyModifier);
 #if WITH_EDITOR
@@ -346,7 +346,7 @@ bool UUIRenderable::ApplyGeometryModifier(bool uvChanged, bool colorChanged, boo
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometryRenderable UpdateRenderable"), STAT_UIGeometryRenderableUpdate, STATGROUP_LGUI);
-void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
+void UUIBatchGeometryRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIGeometryRenderableUpdate);
 	if (IsUIActiveInHierarchy() == false)return;
@@ -369,7 +369,7 @@ void UUIRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 	}
 }
 
-void UUIRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
+void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
 {
 	OnBeforeCreateOrUpdateGeometry();
 	if (geometry->vertices.Num() == 0//if geometry not created yet
@@ -436,7 +436,7 @@ void UUIRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
 COMPLETE:
 	;
 }
-void UUIRenderable::UpdateGeometry_ImplementForAutoManageDepth(const bool& parentLayoutChanged)
+void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForAutoManageDepth(const bool& parentLayoutChanged)
 {
 	OnBeforeCreateOrUpdateGeometry();
 	if (geometry->vertices.Num() == 0//if geometry not created yet
@@ -489,7 +489,7 @@ void UUIRenderable::UpdateGeometry_ImplementForAutoManageDepth(const bool& paren
 COMPLETE:
 	;
 }
-void UUIRenderable::UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged)
+void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged)
 {
 	OnBeforeCreateOrUpdateGeometry();
 	if (geometry->vertices.Num() == 0//if geometry not created yet
@@ -559,7 +559,7 @@ COMPLETE:
 	;
 }
 
-void UUIRenderable::CreateGeometry()
+void UUIBatchGeometryRenderable::CreateGeometry()
 {
 	if (HaveDataToCreateGeometry())
 	{
@@ -599,7 +599,7 @@ void UUIRenderable::CreateGeometry()
 }
 
 //set, create, update, destroy
-void UUIRenderable::UpdateSelfRenderDrawcall()
+void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 {
 	if (geometry->vertices.Num() == 0)
 	{
@@ -646,7 +646,7 @@ void UUIRenderable::UpdateSelfRenderDrawcall()
 		}
 	}
 }
-void UUIRenderable::UpdateSelfRenderMaterial(bool textureChange, bool materialChange)
+void UUIBatchGeometryRenderable::UpdateSelfRenderMaterial(bool textureChange, bool materialChange)
 {
 	if (uiMesh.IsValid())
 	{
@@ -679,7 +679,7 @@ void UUIRenderable::UpdateSelfRenderMaterial(bool textureChange, bool materialCh
 		}
 	}
 }
-void UUIRenderable::ClearSelfRenderMaterial()
+void UUIBatchGeometryRenderable::ClearSelfRenderMaterial()
 {
 	if (uiMaterial.IsValid())
 	{
@@ -688,7 +688,7 @@ void UUIRenderable::ClearSelfRenderMaterial()
 	}
 }
 
-bool UUIRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
+bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	if (bRaycastComplex)
 	{

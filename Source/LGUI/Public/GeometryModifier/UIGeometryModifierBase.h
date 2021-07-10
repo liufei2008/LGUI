@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Core/UIGeometry.h"
-#include "Core/ActorComponent/UIRenderable.h"
+#include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 #include "Components/ActorComponent.h"
 #include "UIGeometryModifierBase.generated.h"
 
@@ -30,9 +30,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int executeOrder = 0;
 
-	class UUIRenderable* GetRenderableUIItem();
+	class UUIBatchGeometryRenderable* GetRenderableUIItem();
 private:
-	UPROPERTY(Transient) class UUIRenderable* renderableUIItem = nullptr;
+	UPROPERTY(Transient) class UUIBatchGeometryRenderable* renderableUIItem = nullptr;
 	
 public:
 	FORCEINLINE int GetExecuteOrder()const { return executeOrder; }

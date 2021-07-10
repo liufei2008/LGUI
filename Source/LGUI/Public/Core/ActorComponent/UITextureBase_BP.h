@@ -3,7 +3,7 @@
 #pragma once
 
 #include "UITextureBase.h"
-#include "UIRenderable_BP.h"
+#include "UIBatchGeometryRenderable_BP.h"
 #include "UITextureBase_BP.generated.h"
 
 /** 

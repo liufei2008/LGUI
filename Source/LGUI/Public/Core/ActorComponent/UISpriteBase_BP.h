@@ -4,7 +4,7 @@
 
 #include "Core/LGUISpriteData.h"
 #include "UISpriteBase.h"
-#include "UIRenderable_BP.h"
+#include "UIBatchGeometryRenderable_BP.h"
 #include "UISpriteBase_BP.generated.h"
 
 /** 

@@ -7,7 +7,7 @@
 #include "Core/HudRender/LGUIRenderer.h"
 
 class FLGUIHudRenderer;
-class UUIPostProcess;
+class UUIPostProcessRenderable;
 
 class ILGUIHudPrimitive
 {

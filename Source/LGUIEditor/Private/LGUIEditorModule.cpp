@@ -661,7 +661,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 		}
 	};
 
-	MenuBuilder.BeginSection("UIPostProcess");
+	MenuBuilder.BeginSection("UIPostProcessRenderable");
 	{
 		for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
 		{

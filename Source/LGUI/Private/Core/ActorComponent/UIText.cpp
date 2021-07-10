@@ -276,7 +276,7 @@ FVector2D UUIText::GetRealSize()
 			UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
 			if (adjustWidth) SetWidth(width);
 			if (adjustHeight) SetHeight(height);
-			geometry->Clear();//@todo: clear it because UIRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
+			geometry->Clear();//@todo: clear it because UIBatchGeometryRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
 		}
 		return textRealSize;
 	}
@@ -483,7 +483,7 @@ void UUIText::CheckCachedTextPropertyList()
 		UIGeometry::UpdateUIText(text, visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
 		if (adjustWidth) SetWidth(width);
 		if (adjustHeight) SetHeight(height);
-		geometry->Clear();//@todo: clear it because UIRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
+		geometry->Clear();//@todo: clear it because UIBatchGeometryRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
 	}
 }
 FString UUIText::GetSubStringByLine(const FString& inString, int32& inOutLineStartIndex, int32& inOutLineEndIndex, int32& inOutCharStartIndex, int32& inOutCharEndIndex)
