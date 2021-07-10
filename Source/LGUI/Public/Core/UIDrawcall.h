@@ -15,7 +15,7 @@ class UUIRenderable;
 
 enum class EUIDrawcallType :uint8
 {
-	Geometry = 1,
+	BatchGeometry = 1,
 	PostProcess,
 };
 

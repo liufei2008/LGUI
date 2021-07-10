@@ -181,7 +181,7 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 		switch (sortedList[i]->GetUIRenderableType())
 		{
 		default:
-		case EUIRenderableType::UIGeometryRenderable:
+		case EUIRenderableType::UIBatchGeometryRenderable:
 		{
 			auto sortedItem = (UUIRenderable*)sortedList[i].Get();
 			auto itemGeo = sortedItem->GetGeometry();
@@ -194,7 +194,7 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 				prevUIDrawcall->texture = itemGeo->texture;
 				prevUIDrawcall->material = itemGeo->material;
 				prevUIDrawcall->geometryList.Add(itemGeo);
-				prevUIDrawcall->type = EUIDrawcallType::Geometry;
+				prevUIDrawcall->type = EUIDrawcallType::BatchGeometry;
 				prevTex = nullptr;
 			}
 			else//batch elements into drawcall by comparing their texture
@@ -205,7 +205,7 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 					prevUIDrawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 					prevUIDrawcall->texture = itemTex;
 					prevUIDrawcall->geometryList.Add(itemGeo);
-					prevUIDrawcall->type = EUIDrawcallType::Geometry;
+					prevUIDrawcall->type = EUIDrawcallType::BatchGeometry;
 				}
 				else//same texture means same drawcall
 				{
@@ -219,7 +219,7 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 					{
 						prevUIDrawcall->geometryList.Add(itemGeo);
 					}
-					prevUIDrawcall->type = EUIDrawcallType::Geometry;
+					prevUIDrawcall->type = EUIDrawcallType::BatchGeometry;
 				}
 				prevTex = itemTex.Get();
 			}
@@ -312,7 +312,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 		switch (sortedList[i]->GetUIRenderableType())
 		{
 		default:
-		case EUIRenderableType::UIGeometryRenderable:
+		case EUIRenderableType::UIBatchGeometryRenderable:
 		{
 			auto sortedItem = (UUIRenderable*)sortedList[i].Get();
 			auto itemGeo = sortedItem->GetGeometry();
@@ -324,7 +324,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 				auto drawcallItem = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 				drawcallItem->texture = itemGeo->texture;
 				drawcallItem->material = itemGeo->material;
-				drawcallItem->type = EUIDrawcallType::Geometry;
+				drawcallItem->type = EUIDrawcallType::BatchGeometry;
 				drawcallItem->geometryList.Add(itemGeo);
 				drawcallItem->renderObjectList.Add(sortedItem);
 				itemGeo->drawcallIndex = drawcallCount - 1;
@@ -349,7 +349,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 					drawcallItem->renderObjectList.Add(sortedItem);
 
 					drawcallItem->texture = itemGeo->texture;
-					drawcallItem->type = EUIDrawcallType::Geometry;
+					drawcallItem->type = EUIDrawcallType::BatchGeometry;
 					itemGeo->drawcallIndex = drawcallCount - 1;
 				}
 			}
