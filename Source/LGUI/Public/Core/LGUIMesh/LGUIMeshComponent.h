@@ -20,8 +20,8 @@ struct FLGUIMeshSection
 	/** Reset this section, clear all mesh info. */
 	void Reset()
 	{
-		vertices.Empty();
-		triangles.Empty();
+		vertices.Reset();
+		triangles.Reset();
 
 		bSectionVisible = true;
 	}

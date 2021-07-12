@@ -115,7 +115,7 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 				)
 			{
 				auto canvasUIItem = Canvas->GetUIItem();
-				if (canvasUIItem.IsValid())
+				if (canvasUIItem != nullptr)
 				{
 					float canvasScale = 1.0f;
 					//adjust size

@@ -5,6 +5,71 @@
 #include "/Engine/Private/LocalVertexFactoryCommon.ush"
 
 
+struct FLGUIVertexFactoryInterpolantsVSToPS
+{
+	float4	Color				: TEXCOORD1;
+
+#if NUM_TEX_COORD_INTERPOLATORS
+	float4	TexCoords[(NUM_TEX_COORD_INTERPOLATORS + 1) / 2]	: TEXCOORD3;
+#endif
+
+#if USE_PARTICLE_SUBUVS
+	float4 ParticleSubUVs : PARTICLE_SUBUVS;
+#endif
+
+#if USE_PARTICLE_POSITION
+	/** Cam-relative (translated) particle center and radius */
+	float4 ParticleTranslatedWorldPositionAndSize	: PARTICLE_POSITION;
+#endif
+
+#if USE_PARTICLE_VELOCITY
+	float4 ParticleVelocity : PARTICLE_VELOCITY;
+#endif
+
+#if USE_PARTICLE_TIME
+	float ParticleTime : PARTICLE_TIME;
+#endif
+
+#if USE_PARTICLE_LIGHTING_OFFSET
+	float3 LightingPositionOffset : PARTICLE_LIGHTING_OFFSET;
+#endif
+
+#if USE_PARTICLE_SIZE
+	float2 ParticleSize : PARTICLE_SIZE;
+#endif
+};
+
+#if NUM_TEX_COORD_INTERPOLATORS || USE_PARTICLE_SUBUVS
+float2 GetUV(FLGUIVertexFactoryInterpolantsVSToPS Interpolants, int UVIndex)
+{
+	float4 UVVector = Interpolants.TexCoords[UVIndex / 2];
+	return UVIndex % 2 ? UVVector.zw : UVVector.xy;
+}
+
+void SetUV(inout FLGUIVertexFactoryInterpolantsVSToPS Interpolants, int UVIndex, float2 InValue)
+{
+	FLATTEN
+	if (UVIndex % 2)
+	{
+		Interpolants.TexCoords[UVIndex / 2].zw = InValue;
+	}
+	else
+	{
+		Interpolants.TexCoords[UVIndex / 2].xy = InValue;
+	}
+}
+#endif
+
+float4 GetColor(FLGUIVertexFactoryInterpolantsVSToPS Interpolants)
+{
+	return Interpolants.Color;
+}
+
+void SetColor(inout FLGUIVertexFactoryInterpolantsVSToPS Interpolants, float4 InValue)
+{
+	Interpolants.Color = InValue;
+}
+
 struct FLGUIBasePassInterpolants
 {
 	float4 PixelPosition	: TEXCOORD8; // xyz = world position, w = clip z
@@ -16,18 +81,18 @@ struct FLGUIBasePassInterpolants
 
 struct FLGUIBasePassVSToPS
 {
-	FVertexFactoryInterpolantsVSToPS FactoryInterpolants;
+    FLGUIVertexFactoryInterpolantsVSToPS FactoryInterpolants;
 	FLGUIBasePassInterpolants BasePassInterpolants;
 	float4 Position : SV_POSITION;
 };
 
-FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(FMaterialVertexParameters VertexParameters, half4 VertexColor)
+FLGUIVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(float2 TexCoord0, float2 TexCoord1, FMaterialVertexParameters VertexParameters, half4 VertexColor)
 {
-	FVertexFactoryInterpolantsVSToPS Interpolants;
+    FLGUIVertexFactoryInterpolantsVSToPS Interpolants;
 
 	// Initialize the whole struct to 0
 	// Really only the last two components of the packed UVs have the opportunity to be uninitialized
-	Interpolants = (FVertexFactoryInterpolantsVSToPS)0;
+    Interpolants = (FLGUIVertexFactoryInterpolantsVSToPS) 0;
 
 #if NUM_TEX_COORD_INTERPOLATORS
 	float2 CustomizedUVs[NUM_TEX_COORD_INTERPOLATORS];
@@ -39,6 +104,11 @@ FVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(FMaterialVer
 	{
 		SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
 	}
+#endif
+	
+#if USE_PARTICLE_SUBUVS
+	Interpolants.ParticleSubUVs.xy = TexCoord0;
+	Interpolants.ParticleSubUVs.zw = TexCoord1;
 #endif
 
 	//SetTangents(Interpolants, Intermediates.TangentToWorld[0], Intermediates.TangentToWorld[2], Intermediates.TangentToWorldSign);
@@ -56,6 +126,7 @@ FMaterialVertexParameters GetMaterialVertexParameters(half4 VertexColor, float3 
     FMaterialVertexParameters Result = (FMaterialVertexParameters) 0;
     Result.WorldPosition = WorldPosition;
     Result.VertexColor = VertexColor;
+    Result.Particle.Color = VertexColor;
 	
 #if NUM_MATERIAL_TEXCOORDS_VERTEX
 	int MaxCount = min(NUM_MATERIAL_TEXCOORDS_VERTEX, 4);
@@ -64,6 +135,11 @@ FMaterialVertexParameters GetMaterialVertexParameters(half4 VertexColor, float3 
     {
         Result.TexCoords[CoordinateIndex] = UVs[CoordinateIndex].xy;
     }
+#endif
+	
+#if USE_PARTICLE_SUBUVS
+	Result.Particle.SubUVCoords[0] = UVs[0].xy;
+	Result.Particle.SubUVCoords[1] = UVs[1].xy;
 #endif
 	
     return Result;
@@ -107,7 +183,7 @@ void MainVS(
 	Output.BasePassInterpolants.PixelPositionExcludingWPO = WorldPosition.xyz;
 #endif
 
-	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(VertexParameters, Color);
+	Output.FactoryInterpolants = VertexFactoryGetInterpolantsVSToPS(TextureCoord0, TextureCoord1, VertexParameters, Color);
 
 	Output.BasePassInterpolants.PixelPosition.w = Output.Position.w;
 
@@ -118,7 +194,7 @@ void MainVS(
 
 
 
-FMaterialPixelParameters GetMaterialPixelParameters(FVertexFactoryInterpolantsVSToPS Interpolants, float4 SvPosition)
+FMaterialPixelParameters GetMaterialPixelParameters(FLGUIVertexFactoryInterpolantsVSToPS Interpolants, float4 SvPosition)
 {
 	// GetMaterialPixelParameters is responsible for fully initializing the result
 	FMaterialPixelParameters Result = MakeInitializedMaterialPixelParameters();
@@ -130,7 +206,15 @@ FMaterialPixelParameters GetMaterialPixelParameters(FVertexFactoryInterpolantsVS
 		Result.TexCoords[CoordinateIndex] = GetUV(Interpolants, CoordinateIndex);
 	}
 #endif
+	
+#if USE_PARTICLE_SUBUVS
+	// Output TexCoord0 for when previewing materials that use ParticleSubUV.
+	Result.Particle.SubUVCoords[0] = GetUV(Interpolants, 0);
+	Result.Particle.SubUVCoords[1] = GetUV(Interpolants, 1);
+#endif	// USE_PARTICLE_SUBUVS
+	
 	Result.VertexColor = GetColor(Interpolants);
+    Result.Particle.Color = Interpolants.Color;
 	return Result;
 }
 
@@ -140,7 +224,7 @@ void ApplyPixelDepthOffsetForLGUIBasePass(inout FMaterialPixelParameters Materia
 }
 
 void MainPS(
-	FVertexFactoryInterpolantsVSToPS Interpolants
+	FLGUIVertexFactoryInterpolantsVSToPS Interpolants
 	, FLGUIBasePassInterpolants BasePassInterpolants
 	, in float4 SvPosition : SV_Position
 	OPTIONAL_IsFrontFace
