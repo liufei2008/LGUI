@@ -18,6 +18,7 @@
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
+#include "Core/ActorComponent/UIDirectMeshRenderable.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "GameFramework/PlayerController.h"
@@ -741,6 +742,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				{
 				default:
 				case EUIDrawcallType::BatchGeometry:
+				case EUIDrawcallType::DirectMesh:
 				{
 					UUIDrawcallMesh* uiMesh = nullptr;
 					if (meshIndex < CacheUIMeshList.Num())//get mesh from exist
@@ -786,10 +788,17 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					if (uiMesh != nullptr)
 					{
 						uiMesh->SetUIMeshVisibility(true);//some UIMesh may set to invisible on prev frame, set to visible
-						auto& meshSection = uiMesh->MeshSection;
-						meshSection.Reset();
-						UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
-						uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
+						if (UIDrawcallList[i]->type == EUIDrawcallType::BatchGeometry)
+						{
+							auto& meshSection = uiMesh->MeshSection;
+							meshSection.Reset();
+							UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
+							uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
+						}
+						else//direct mesh
+						{
+							UIDrawcallList[i]->directMeshRenderableObject->SetDrawcallMesh(uiMesh);
+						}
 					}
 
 					UIDrawcallPrimitiveList[i].UIDrawcallMesh = uiMesh;
@@ -853,7 +862,9 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				{
 					auto uiDrawcall = UIDrawcallList[i];
 					if (!uiDrawcall.IsValid())continue;
-					if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
+					switch (uiDrawcall->type)
+					{
+					case EUIDrawcallType::BatchGeometry:
 					{
 						auto uiMesh = UIDrawcallPrimitiveList[i].UIDrawcallMesh;
 						if (!uiMesh.IsValid())continue;
@@ -883,9 +894,12 @@ void ULGUICanvas::UpdateCanvasGeometry()
 							uiDrawcall->vertexPositionChanged = false;
 						}
 					}
-					else if (uiDrawcall->type == EUIDrawcallType::PostProcess)
+					break;
+					case EUIDrawcallType::PostProcess:
 					{
 						//post process cannot update spicific drawcall, because every post process is a drawcall
+					}
+					break;
 					}
 				}
 			}
@@ -1291,6 +1305,10 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 				{
 					uiDrawcall->postProcessObject->SetClipType(tempClipType);
 				}
+			}
+			else if (uiDrawcall->type == EUIDrawcallType::DirectMesh)
+			{
+				UIMaterialList[i] = nullptr;
 			}
 		}
 	}

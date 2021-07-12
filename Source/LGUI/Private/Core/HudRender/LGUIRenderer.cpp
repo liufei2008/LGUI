@@ -156,7 +156,8 @@ void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStat
 		break;
 	case BLEND_Additive:
 		// Add to the existing scene color
-		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_One, BO_Add, BF_One, BF_One>::GetRHI();
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_One, BO_Add, BF_Zero, BF_InverseSourceAlpha>::GetRHI();
+		//GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_One, BO_Add, BF_One, BF_One>::GetRHI();
 		break;
 	case BLEND_Modulate:
 		// Modulate with the existing scene color

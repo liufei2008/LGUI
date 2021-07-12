@@ -15,8 +15,9 @@ enum class EUIRenderableType :uint8
 	None,
 	UIBatchGeometryRenderable,
 	UIPostProcessRenderable,
+	UIDirectMeshRenderable,
 };
-/** UI element which have render geometry, and can be renderred by LGUICanvas */
+/** Base class of UI element that can be renderred by LGUICanvas */
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIBaseRenderable : public UUIItem
 {

@@ -453,7 +453,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 		if (isScreenSpaceUI)
 		{
 			auto rootCanvasUIItem = RootUIComp->GetRootCanvas()->GetUIItem();
-			return FindSelectable(InDirection, rootCanvasUIItem.Get());
+			return FindSelectable(InDirection, rootCanvasUIItem);
 		}
 		else
 		{
