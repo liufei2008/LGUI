@@ -279,7 +279,7 @@ void UUIDropdownComponent::CreateBlocker()
 	auto blockerUIItem = blocker->GetUIItem();
 	blockerUIItem->SetRaycastTarget(true);
 	blockerUIItem->SetTraceChannel(this->GetRootComponent()->GetTraceChannel());
-	blockerUIItem->AttachToComponent(this->GetRootComponent()->GetRootCanvas()->GetUIItem().Get(), FAttachmentTransformRules::KeepRelativeTransform);
+	blockerUIItem->AttachToComponent(this->GetRootComponent()->GetRootCanvas()->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
 	blockerUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
 	blockerUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
 	blockerUIItem->SetHorizontalStretch(FVector2D::ZeroVector);

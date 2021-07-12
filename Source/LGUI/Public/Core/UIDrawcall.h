@@ -12,11 +12,13 @@ class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class UUIItem;
 class UUIBatchGeometryRenderable;
+class UUIDirectMeshRenderable;
 
 enum class EUIDrawcallType :uint8
 {
 	BatchGeometry = 1,
 	PostProcess,
+	DirectMesh,
 };
 
 class LGUI_API UUIDrawcall
@@ -34,6 +36,8 @@ public:
 	bool vertexPositionChanged = false;//if vertex position changed? use for update bounds
 
 	TWeakObjectPtr<UUIPostProcessRenderable> postProcessObject;//post process object
+
+	TWeakObjectPtr<UUIDirectMeshRenderable> directMeshRenderableObject;
 
 	int depthMin = 0;//min depth of all geometries
 	int depthMax = 0;//max depth of all geometries

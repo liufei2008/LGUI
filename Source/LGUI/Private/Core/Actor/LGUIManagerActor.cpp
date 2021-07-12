@@ -315,7 +315,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 			if (itemCanvas.IsValid())
 			{
 				auto uiItem = itemCanvas->GetUIItem();
-				if (uiItem.IsValid())
+				if (uiItem != nullptr)
 				{
 					uiItem->MarkAllDirtyRecursive();
 					uiItem->EditorForceUpdateImmediately();

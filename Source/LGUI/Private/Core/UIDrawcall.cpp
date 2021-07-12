@@ -7,6 +7,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIDirectMeshRenderable.h"
 #include "Core/LGUISettings.h"
 
 void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const
@@ -240,6 +241,17 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 			prevTex = nullptr;
 		}
 		break;
+		case EUIRenderableType::UIDirectMeshRenderable:
+		{
+			auto sortedItem = (UUIDirectMeshRenderable*)sortedList[i].Get();
+			//every direct mesh is a drawcall
+			prevUIDrawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
+			prevUIDrawcall->directMeshRenderableObject = sortedItem;
+			prevUIDrawcall->type = EUIDrawcallType::DirectMesh;
+			prevUIDrawcall = nullptr;
+			prevTex = nullptr;
+		}
+		break;
 		}
 	}
 	while (prevDrawcallListCount > drawcallCount)//delete needless drawcall
@@ -365,6 +377,15 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 			auto drawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
 			drawcall->postProcessObject = sortedItem;
 			drawcall->type = EUIDrawcallType::PostProcess;
+		}
+		break;
+		case EUIRenderableType::UIDirectMeshRenderable:
+		{
+			auto sortedItem = (UUIDirectMeshRenderable*)sortedList[i].Get();
+			//every direct mesh is a drawcall
+			auto drawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
+			drawcall->directMeshRenderableObject = sortedItem;
+			drawcall->type = EUIDrawcallType::DirectMesh;
 		}
 		break;
 		}
