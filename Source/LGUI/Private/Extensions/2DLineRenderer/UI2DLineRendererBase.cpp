@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 
 DECLARE_CYCLE_STAT(TEXT("UI2DLine Update"), STAT_2DLineUpdate, STATGROUP_LGUI);
 

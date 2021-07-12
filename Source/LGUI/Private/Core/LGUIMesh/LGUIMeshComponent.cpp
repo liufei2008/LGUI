@@ -70,6 +70,7 @@ public:
 	{}
 };
 
+DECLARE_CYCLE_STAT(TEXT("LGUIMesh CreateMeshSection"), STAT_CreateMeshSection, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("LGUIMesh UpdateMeshSection_RT"), STAT_UpdateMeshSectionRT, STATGROUP_LGUI);
 /** LGUI mesh scene proxy */
 class FLGUIMeshSceneProxy : public FPrimitiveSceneProxy, public ILGUIHudPrimitive
@@ -86,6 +87,7 @@ public:
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
+		SCOPE_CYCLE_COUNTER(STAT_CreateMeshSection);
 		LGUIRenderer = InComponent->LGUIRenderer;
 		if (LGUIRenderer.IsValid())
 		{
@@ -200,12 +202,12 @@ public:
 			//vertex buffer
 			if (IsSupportScreenSpace)
 			{
-				FLGUIHudVertex* HudVertexBufferData = new FLGUIHudVertex[NumVerts];
+				HudVertexUpdateData.SetNumUninitialized(NumVerts, false);
 				if (AdditionalChannelFlags == 0)
 				{
 					for (int i = 0; i < NumVerts; i++)
 					{
-						FLGUIHudVertex& HudVert = HudVertexBufferData[i];
+						FLGUIHudVertex& HudVert = HudVertexUpdateData[i];
 						auto& Vert = MeshVertexData[i];
 						HudVert.Position = Vert.Position;
 						HudVert.Color = Vert.Color;
@@ -216,7 +218,7 @@ public:
 				{
 					for (int i = 0; i < NumVerts; i++)
 					{
-						FLGUIHudVertex& HudVert = HudVertexBufferData[i];
+						FLGUIHudVertex& HudVert = HudVertexUpdateData[i];
 						auto& Vert = MeshVertexData[i];
 						HudVert.Position = Vert.Position;
 						HudVert.Color = Vert.Color;
@@ -229,9 +231,8 @@ public:
 
 				uint32 vertexDataLength = NumVerts * sizeof(FLGUIHudVertex);
 				void* VertexBufferData = RHILockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, vertexDataLength, RLM_WriteOnly);
-				FMemory::Memcpy(VertexBufferData, HudVertexBufferData, vertexDataLength);
+				FMemory::Memcpy(VertexBufferData, HudVertexUpdateData.GetData(), vertexDataLength);
 				RHIUnlockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI);
-				delete[] HudVertexBufferData;
 			}
 			if(IsSupportWorldSpace)
 			{
@@ -479,6 +480,7 @@ private:
 	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
 	bool IsSupportScreenSpace = false;
 	bool IsSupportWorldSpace = true;
+	TArray<FLGUIHudVertex> HudVertexUpdateData;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -565,9 +567,9 @@ void ULGUIMeshComponent::SetUITranslucentSortPriority(int32 NewTranslucentSortPr
 
 void ULGUIMeshComponent::UpdateLocalBounds()
 {
+	UpdateBounds();// Update global bounds
 	if (IsSupportWorldSpace)//screen space UI no need to update bounds
 	{
-		UpdateBounds();// Update global bounds
 		// Need to send to render thread
 		MarkRenderTransformDirty();
 	}
@@ -609,30 +611,37 @@ int32 ULGUIMeshComponent::GetNumMaterials() const
 
 FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
-	const auto& vertices = MeshSection.vertices;
-	int vertCount = vertices.Num();
-	if (vertCount < 2)return Super::CalcBounds(LocalToWorld);
-
-	FVector vecMin = vertices[0].Position;
-	FVector vecMax = vecMin;
-
-	// Get maximum and minimum X, Y and Z positions of vectors
-	for (int32 i = 1; i < vertCount; i++)
+	if (IsSupportWorldSpace)
 	{
-		auto vertPos = vertices[i].Position;
-		vecMin.X = (vecMin.X > vertPos.X) ? vertPos.X : vecMin.X;
-		vecMin.Y = (vecMin.Y > vertPos.Y) ? vertPos.Y : vecMin.Y;
-		vecMin.Z = (vecMin.Z > vertPos.Z) ? vertPos.Z : vecMin.Z;
+		const auto& vertices = MeshSection.vertices;
+		int vertCount = vertices.Num();
+		if (vertCount < 2)return Super::CalcBounds(LocalToWorld);
 
-		vecMax.X = (vecMax.X < vertPos.X) ? vertPos.X : vecMax.X;
-		vecMax.Y = (vecMax.Y < vertPos.Y) ? vertPos.Y : vecMax.Y;
-		vecMax.Z = (vecMax.Z < vertPos.Z) ? vertPos.Z : vecMax.Z;
+		FVector vecMin = vertices[0].Position;
+		FVector vecMax = vecMin;
+
+		// Get maximum and minimum X, Y and Z positions of vectors
+		for (int32 i = 1; i < vertCount; i++)
+		{
+			auto vertPos = vertices[i].Position;
+			vecMin.X = (vecMin.X > vertPos.X) ? vertPos.X : vecMin.X;
+			vecMin.Y = (vecMin.Y > vertPos.Y) ? vertPos.Y : vecMin.Y;
+			vecMin.Z = (vecMin.Z > vertPos.Z) ? vertPos.Z : vecMin.Z;
+
+			vecMax.X = (vecMax.X < vertPos.X) ? vertPos.X : vecMax.X;
+			vecMax.Y = (vecMax.Y < vertPos.Y) ? vertPos.Y : vecMax.Y;
+			vecMax.Z = (vecMax.Z < vertPos.Z) ? vertPos.Z : vecMax.Z;
+		}
+
+		FVector vecOrigin = ((vecMax - vecMin) / 2) + vecMin;	/* Origin = ((Max Vertex's Vector - Min Vertex's Vector) / 2 ) + Min Vertex's Vector */
+		FVector BoxPoint = vecMax - vecMin;			/* The difference between the "Maximum Vertex" and the "Minimum Vertex" is our actual Bounds Box */
+
+		return FBoxSphereBounds(vecOrigin, BoxPoint, BoxPoint.Size()).TransformBy(LocalToWorld);
 	}
-
-	FVector vecOrigin = ((vecMax - vecMin) / 2) + vecMin;	/* Origin = ((Max Vertex's Vector - Min Vertex's Vector) / 2 ) + Min Vertex's Vector */
-	FVector BoxPoint = vecMax - vecMin;			/* The difference between the "Maximum Vertex" and the "Minimum Vertex" is our actual Bounds Box */
-
-	return FBoxSphereBounds(vecOrigin, BoxPoint, BoxPoint.Size()).TransformBy(LocalToWorld);
+	else
+	{
+		return FBoxSphereBounds(EForceInit::ForceInitToZero);
+	}
 }
 
 void ULGUIMeshComponent::SetColor(FColor InColor)

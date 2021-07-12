@@ -9,7 +9,7 @@ class UIGeometry;
 class UMaterialInterface;
 class ULGUICanvas;
 class UUIDrawcallMesh;
-/** UI element which have render geometry, and can be renderred by LGUICanvas */
+/** UI element which have render geometry, and can be batched and renderred by LGUICanvas */
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIBatchGeometryRenderable : public UUIBaseRenderable
 {

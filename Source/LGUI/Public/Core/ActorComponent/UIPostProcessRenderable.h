@@ -10,8 +10,8 @@
 class FUIPostProcessRenderProxy;
 struct FLGUIPostProcessVertex;
 /** 
- * UI element that can add post processing effect
- * Only valid on ScreenSpaceUI
+ * UI element that can do post processing effect on screen space.
+ * Only valid on ScreenSpaceUI.
  */
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIPostProcessRenderable : public UUIBaseRenderable

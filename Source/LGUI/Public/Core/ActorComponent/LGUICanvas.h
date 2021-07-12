@@ -182,7 +182,7 @@ public:
 	bool IsRenderToWorldSpace();
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension();
 
-	FORCEINLINE TWeakObjectPtr<UUIItem> GetUIItem()const { CheckUIItem(); return UIItem; }
+	FORCEINLINE UUIItem* GetUIItem()const { CheckUIItem(); return UIItem.Get(); }
 	bool GetIsUIActive()const;
 	TWeakObjectPtr<ULGUICanvas> GetParentCanvas() { CheckParentCanvas(); return ParentCanvas; }
 
