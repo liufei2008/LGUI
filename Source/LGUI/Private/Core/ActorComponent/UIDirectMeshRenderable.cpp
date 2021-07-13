@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 UUIDirectMeshRenderable::UUIDirectMeshRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
