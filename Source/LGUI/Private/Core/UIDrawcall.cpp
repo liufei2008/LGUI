@@ -108,7 +108,7 @@ void UUIDrawcall::Clear()
 	material = nullptr;
 	materialInstanceDynamic = nullptr;
 
-	postProcessObject = nullptr;
+	postProcessRenderableObject = nullptr;
 
 	renderObjectList.Empty();
 	is3DDrawcall = false;
@@ -119,7 +119,7 @@ bool UUIDrawcall::Equals(UUIDrawcall* Other)
 		this->type == Other->type
 		&& this->texture == Other->texture
 		&& this->material == Other->material
-		&& this->postProcessObject == Other->postProcessObject
+		&& this->postProcessRenderableObject == Other->postProcessRenderableObject
 		&& this->geometryList == Other->geometryList
 		;
 }
@@ -158,7 +158,7 @@ void UUIDrawcall::CopyDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& From, 
 		drawcall->material = fromDrawcall->material;
 		drawcall->materialInstanceDynamic = fromDrawcall->materialInstanceDynamic;
 
-		drawcall->postProcessObject = fromDrawcall->postProcessObject;
+		drawcall->postProcessRenderableObject = fromDrawcall->postProcessRenderableObject;
 
 		drawcall->renderObjectList = fromDrawcall->renderObjectList;
 		drawcall->is3DDrawcall = fromDrawcall->is3DDrawcall;
@@ -235,7 +235,7 @@ void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sort
 			if (itemGeo->vertices.Num() == 0)continue;
 			//every postprocess is a drawcall
 			prevUIDrawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-			prevUIDrawcall->postProcessObject = sortedItem;
+			prevUIDrawcall->postProcessRenderableObject = sortedItem;
 			prevUIDrawcall->type = EUIDrawcallType::PostProcess;
 			prevUIDrawcall = nullptr;
 			prevTex = nullptr;
@@ -375,7 +375,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 			if (itemGeo->vertices.Num() == 0)continue;
 			//every postprocess is a drawcall
 			auto drawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-			drawcall->postProcessObject = sortedItem;
+			drawcall->postProcessRenderableObject = sortedItem;
 			drawcall->type = EUIDrawcallType::PostProcess;
 		}
 		break;
