@@ -29,6 +29,8 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Math/TransformCalculus2D.h"
 
+//PRAGMA_DISABLE_OPTIMIZATION
+
 ULGUICanvas::ULGUICanvas()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -136,13 +138,20 @@ void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 	}
 	for (auto item : UIDrawcallPrimitiveList)
 	{
-		if (item.UIDrawcallMesh.IsValid())
+		if (item.UIBatchedDrawcallMesh.IsValid())
 		{
-			item.UIDrawcallMesh->DestroyComponent();
+			item.UIBatchedDrawcallMesh->DestroyComponent();
 		}
 		if (item.UIPostProcessRenderable.IsValid())
 		{
 			item.UIPostProcessRenderable.Pin()->RemoveFromHudRenderer();
+		}
+		if (item.UIDirectMeshRenderable.IsValid())
+		{
+			if (item.UIDirectMeshRenderable->GetDrawcallMesh() != nullptr)
+			{
+				item.UIDirectMeshRenderable->GetDrawcallMesh()->DestroyComponent();
+			}
 		}
 	}
 	UIDrawcallPrimitiveList.Empty();
@@ -153,13 +162,20 @@ void ULGUICanvas::OnUIActiveStateChanged(bool active)
 {
 	for (auto item : UIDrawcallPrimitiveList)
 	{
-		if (item.UIDrawcallMesh.IsValid())
+		if (item.UIBatchedDrawcallMesh.IsValid())
 		{
-			item.UIDrawcallMesh->SetUIMeshVisibility(active);
+			item.UIBatchedDrawcallMesh->SetUIMeshVisibility(active);
 		}
 		if (item.UIPostProcessRenderable.IsValid())
 		{
 			item.UIPostProcessRenderable.Pin()->SetVisibility(active);
+		}
+		if (item.UIDirectMeshRenderable.IsValid())
+		{
+			if (item.UIDirectMeshRenderable->GetDrawcallMesh() != nullptr)
+			{
+				item.UIDirectMeshRenderable->GetDrawcallMesh()->SetUIMeshVisibility(active);
+			}
 		}
 	}
 }
@@ -217,13 +233,20 @@ void ULGUICanvas::CheckRenderMode()
 		//clear UIMeshList and delete mesh components, so new mesh will be created. because hud and world mesh not compatible
 		for (auto item : UIDrawcallPrimitiveList)
 		{
-			if (item.UIDrawcallMesh.IsValid())
+			if (item.UIBatchedDrawcallMesh.IsValid())
 			{
-				item.UIDrawcallMesh->DestroyComponent();
+				item.UIBatchedDrawcallMesh->DestroyComponent();
 			}
 			if (item.UIPostProcessRenderable.IsValid())
 			{
 				item.UIPostProcessRenderable.Pin()->RemoveFromHudRenderer();
+			}
+			if (item.UIDirectMeshRenderable.IsValid())
+			{
+				if (item.UIDirectMeshRenderable->GetDrawcallMesh() != nullptr)
+				{
+					item.UIDirectMeshRenderable->GetDrawcallMesh()->DestroyComponent();
+				}
 			}
 		}
 		UIDrawcallPrimitiveList.Reset();
@@ -733,11 +756,20 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					item.UIPostProcessRenderable.Pin()->RemoveFromHudRenderer();
 					item.UIPostProcessRenderable.Reset();
 				}
+				if (item.UIDirectMeshRenderable.IsValid())
+				{
+					item.UIDirectMeshRenderable->ClearDrawcallMesh();
+					item.UIDirectMeshRenderable.Reset();
+				}
 			}
 			UIDrawcallPrimitiveList.SetNum(drawcallCount);
 			int meshIndex = 0;
 			for (int i = 0; i < drawcallCount; i++)
 			{
+				UIDrawcallPrimitiveList[i].UIPostProcessRenderable = nullptr;
+				UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh = nullptr;
+				UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = nullptr;
+
 				switch (UIDrawcallList[i]->type)
 				{
 				default:
@@ -794,23 +826,21 @@ void ULGUICanvas::UpdateCanvasGeometry()
 							meshSection.Reset();
 							UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
 							uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
+							UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh = uiMesh;
 						}
 						else//direct mesh
 						{
 							UIDrawcallList[i]->directMeshRenderableObject->SetDrawcallMesh(uiMesh);
+							UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = UIDrawcallList[i]->directMeshRenderableObject;
 						}
 					}
-
-					UIDrawcallPrimitiveList[i].UIDrawcallMesh = uiMesh;
-
-					UIDrawcallPrimitiveList[i].UIPostProcessRenderable = nullptr;
 
 					meshIndex++;
 				}
 				break;
 				case EUIDrawcallType::PostProcess:
 				{
-					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessObject->GetRenderProxy();
+					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessRenderableObject->GetRenderProxy();
 #if WITH_EDITOR
 					if (!GetWorld()->IsGameWorld())
 					{
@@ -832,8 +862,6 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					}
 
 					UIDrawcallPrimitiveList[i].UIPostProcessRenderable = uiPostProcessPrimitive;
-
-					UIDrawcallPrimitiveList[i].UIDrawcallMesh = nullptr;
 				}
 				break;
 				}
@@ -866,7 +894,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					{
 					case EUIDrawcallType::BatchGeometry:
 					{
-						auto uiMesh = UIDrawcallPrimitiveList[i].UIDrawcallMesh;
+						auto uiMesh = UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh;
 						if (!uiMesh.IsValid())continue;
 						if (uiDrawcall->needToBeRebuild)
 						{
@@ -898,6 +926,11 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					case EUIDrawcallType::PostProcess:
 					{
 						//post process cannot update spicific drawcall, because every post process is a drawcall
+					}
+					break;
+					case EUIDrawcallType::DirectMesh:
+					{
+						//Direct mesh should update by itself
 					}
 					break;
 					}
@@ -1013,15 +1046,24 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 					item.UIPostProcessRenderable.Pin()->RemoveFromHudRenderer();
 					item.UIPostProcessRenderable.Reset();
 				}
+				if (item.UIDirectMeshRenderable.IsValid())
+				{
+					item.UIDirectMeshRenderable->ClearDrawcallMesh();
+					item.UIDirectMeshRenderable.Reset();
+				}
 			}
 			UIDrawcallPrimitiveList.SetNum(drawcallCount);
 			int meshIndex = 0;
 			for (int i = 0; i < drawcallCount; i++)
 			{
+				UIDrawcallPrimitiveList[i].UIPostProcessRenderable = nullptr;
+				UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh = nullptr;
+				UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = nullptr;
 				switch (UIDrawcallList[i]->type)
 				{
 				default:
 				case EUIDrawcallType::BatchGeometry:
+				case EUIDrawcallType::DirectMesh:
 				{
 					UUIDrawcallMesh* uiMesh = nullptr;
 					if (meshIndex < CacheUIMeshList.Num())//get mesh from exist
@@ -1067,28 +1109,31 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 					if (uiMesh != nullptr)
 					{
 						uiMesh->SetUIMeshVisibility(true);//some UIMesh may set to invisible on prev frame, set to visible
-						auto& meshSection = uiMesh->MeshSection;
-						meshSection.Reset();
-						UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
-						uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
+						if (UIDrawcallList[i]->type == EUIDrawcallType::BatchGeometry)
+						{
+							auto& meshSection = uiMesh->MeshSection;
+							meshSection.Reset();
+							UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
+							uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
+							UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh = uiMesh;
+						}
+						else//direct mesh
+						{
+							UIDrawcallList[i]->directMeshRenderableObject->SetDrawcallMesh(uiMesh);
+							UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = UIDrawcallList[i]->directMeshRenderableObject;
+						}
 					}
-
-					UIDrawcallPrimitiveList[i].UIDrawcallMesh = uiMesh;
-
-					UIDrawcallPrimitiveList[i].UIPostProcessRenderable = nullptr;
 
 					meshIndex++;
 				}
 				break;
 				case EUIDrawcallType::PostProcess:
 				{
-					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessObject->GetRenderProxy();
+					auto uiPostProcessPrimitive = UIDrawcallList[i]->postProcessRenderableObject->GetRenderProxy();
 					uiPostProcessPrimitive.Pin()->AddToHudRenderer(RootCanvas->GetViewExtension());
 					uiPostProcessPrimitive.Pin()->SetVisibility(true);
 
 					UIDrawcallPrimitiveList[i].UIPostProcessRenderable = uiPostProcessPrimitive;
-
-					UIDrawcallPrimitiveList[i].UIDrawcallMesh = nullptr;
 				}
 				break;
 				}
@@ -1115,9 +1160,11 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 			{
 				auto uiDrawcall = UIDrawcallList[i];
 				if (!uiDrawcall.IsValid())continue;
-				if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
+				switch (uiDrawcall->type)
 				{
-					auto uiMesh = UIDrawcallPrimitiveList[i].UIDrawcallMesh;
+				case EUIDrawcallType::BatchGeometry:
+				{
+					auto uiMesh = UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh;
 					if (!uiMesh.IsValid())continue;
 					if (uiDrawcall->needToBeRebuild)
 					{
@@ -1143,9 +1190,17 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 						uiDrawcall->vertexPositionChanged = false;
 					}
 				}
-				else if (uiDrawcall->type == EUIDrawcallType::PostProcess)
+				break;
+				case EUIDrawcallType::PostProcess:
 				{
 					//post process cannot update spicific drawcall, because every post process is a drawcall
+				}
+				break;
+				case EUIDrawcallType::DirectMesh:
+				{
+					//Direct mesh should update by itself
+				}
+				break;
 				}
 			}
 		}
@@ -1237,13 +1292,21 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 {
 	for (int i = 0; i < UIDrawcallPrimitiveList.Num(); i++)
 	{
-		if (UIDrawcallPrimitiveList[i].UIDrawcallMesh.IsValid())
+		auto item = UIDrawcallPrimitiveList[i];
+		if (item.UIBatchedDrawcallMesh.IsValid())
 		{
-			UIDrawcallPrimitiveList[i].UIDrawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
+			item.UIBatchedDrawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
 		}
-		if (UIDrawcallPrimitiveList[i].UIPostProcessRenderable.IsValid())
+		if (item.UIPostProcessRenderable.IsValid())
 		{
-			UIDrawcallPrimitiveList[i].UIPostProcessRenderable.Pin()->SetUITranslucentSortPriority(InStartRenderPriority++);
+			item.UIPostProcessRenderable.Pin()->SetUITranslucentSortPriority(InStartRenderPriority++);
+		}
+		if (item.UIDirectMeshRenderable.IsValid())
+		{
+			if (item.UIDirectMeshRenderable->GetDrawcallMesh() != nullptr)
+			{
+				item.UIDirectMeshRenderable->GetDrawcallMesh()->SetUITranslucentSortPriority(InStartRenderPriority++);
+			}
 		}
 	}
 	return UIDrawcallPrimitiveList.Num();
@@ -1301,14 +1364,18 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 			else if (uiDrawcall->type == EUIDrawcallType::PostProcess)
 			{
 				UIMaterialList[i] = nullptr;
-				if (uiDrawcall->postProcessObject.IsValid())
+				if (uiDrawcall->postProcessRenderableObject.IsValid())
 				{
-					uiDrawcall->postProcessObject->SetClipType(tempClipType);
+					uiDrawcall->postProcessRenderableObject->SetClipType(tempClipType);
 				}
 			}
 			else if (uiDrawcall->type == EUIDrawcallType::DirectMesh)
 			{
 				UIMaterialList[i] = nullptr;
+				if (uiDrawcall->directMeshRenderableObject.IsValid())
+				{
+					uiDrawcall->directMeshRenderableObject->SetClipType(tempClipType);
+				}
 			}
 		}
 	}
@@ -1323,7 +1390,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 				if (IsValid(uiMat))
 				{
 					uiMat->SetTextureParameterValue(FName("MainTexture"), uiDrawcall->texture.Get());
-					auto uiMesh = UIDrawcallPrimitiveList[i].UIDrawcallMesh;
+					auto uiMesh = UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh;
 					if (!uiMesh.IsValid())continue;
 					uiMesh->SetMaterial(0, uiMat);
 				}
@@ -1411,7 +1478,10 @@ void ULGUICanvas::SetParameterForRectClip(int drawcallCount)
 	for (int i = 0; i < drawcallCount; i++)
 	{
 		auto uiDrawcall = UIDrawcallList[i];
-		if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
+		switch (uiDrawcall->type)
+		{
+		default:
+		case EUIDrawcallType::BatchGeometry:
 		{
 			auto uiMat = UIMaterialList[i];
 			if (IsValid(uiMat))
@@ -1420,12 +1490,23 @@ void ULGUICanvas::SetParameterForRectClip(int drawcallCount)
 				uiMat->SetVectorParameterValue(FName("RectClipFeather"), rectClipFeather);
 			}
 		}
-		else if(uiDrawcall->type == EUIDrawcallType::PostProcess)
+		break;
+		case EUIDrawcallType::PostProcess:
 		{
-			if (uiDrawcall->postProcessObject.IsValid())
+			if (uiDrawcall->postProcessRenderableObject.IsValid())
 			{
-				uiDrawcall->postProcessObject->SetRectClipParameter(rectClipOffsetAndSize, rectClipFeather);
+				uiDrawcall->postProcessRenderableObject->SetRectClipParameter(rectClipOffsetAndSize, rectClipFeather);
 			}
+		}
+		break;
+		case EUIDrawcallType::DirectMesh:
+		{
+			if (uiDrawcall->directMeshRenderableObject.IsValid())
+			{
+				uiDrawcall->directMeshRenderableObject->SetRectClipParameter(rectClipOffsetAndSize, rectClipFeather);
+			}
+		}
+		break;
 		}
 	}
 }
@@ -1435,7 +1516,10 @@ void ULGUICanvas::SetParameterForTextureClip(int drawcallCount)
 	for (int i = 0; i < drawcallCount; i++)
 	{
 		auto uiDrawcall = UIDrawcallList[i];
-		if (uiDrawcall->type == EUIDrawcallType::BatchGeometry)
+		switch (uiDrawcall->type)
+		{
+		default:
+		case EUIDrawcallType::BatchGeometry:
 		{
 			auto uiMat = UIMaterialList[i];
 			if (IsValid(uiMat))
@@ -1444,12 +1528,23 @@ void ULGUICanvas::SetParameterForTextureClip(int drawcallCount)
 				uiMat->SetVectorParameterValue(FName("TextureClipOffsetAndSize"), textureClipOffsetAndSize);
 			}
 		}
-		else if (uiDrawcall->type == EUIDrawcallType::PostProcess)
+		break;
+		case EUIDrawcallType::PostProcess:
 		{
-			if (uiDrawcall->postProcessObject.IsValid())
+			if (uiDrawcall->postProcessRenderableObject.IsValid())
 			{
-				uiDrawcall->postProcessObject->SetTextureClipParameter(clipTexture, textureClipOffsetAndSize);
+				uiDrawcall->postProcessRenderableObject->SetTextureClipParameter(clipTexture, textureClipOffsetAndSize);
 			}
+		}
+		break;
+		case EUIDrawcallType::DirectMesh:
+		{
+			if (uiDrawcall->directMeshRenderableObject.IsValid())
+			{
+				uiDrawcall->directMeshRenderableObject->SetTextureClipParameter(clipTexture, textureClipOffsetAndSize);
+			}
+		}
+		break;
 		}
 	}
 }
@@ -2280,3 +2375,5 @@ void ULGUICanvas::GetMinMax(float a, float b, float c, float d, float& min, floa
 	min = FMath::Min(abMin, cdMin);
 	max = FMath::Max(abMax, cdMax);
 }
+
+//PRAGMA_ENABLE_OPTIMIZATION

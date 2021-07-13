@@ -58,9 +58,9 @@ public:
 	TSharedPtr<UIGeometry> GetGeometry() { return geometry; }
 public:
 	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcessRenderable::GetRenderProxy, return 0;);
-	void SetClipType(ELGUICanvasClipType clipType);
-	void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather);
-	void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize);
+	virtual void SetClipType(ELGUICanvasClipType clipType);
+	virtual void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather);
+	virtual void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize);
 private:
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;

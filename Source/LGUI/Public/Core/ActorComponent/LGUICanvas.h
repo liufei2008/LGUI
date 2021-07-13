@@ -87,6 +87,7 @@ public:
 class UUIItem;
 class UUIBaseRenderable;
 class UUIBatchGeometryRenderable;
+class UUIDirectMeshRenderable;
 class UUIDrawcallMesh;
 class UUIDrawcall;
 class FUIPostProcessRenderProxy;
@@ -449,8 +450,9 @@ private:
 
 	struct FLGUIDrawcallPrimitive
 	{
-		TWeakObjectPtr<UUIDrawcallMesh> UIDrawcallMesh = nullptr;
+		TWeakObjectPtr<UUIDrawcallMesh> UIBatchedDrawcallMesh = nullptr;//drawcall mesh for batched geometry
 		TWeakPtr<FUIPostProcessRenderProxy> UIPostProcessRenderable = nullptr;
+		TWeakObjectPtr<UUIDirectMeshRenderable> UIDirectMeshRenderable = nullptr;
 	};
 	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIBaseRenderable>> UIRenderableItemList;//all renderable UI element collection
 	TArray<FLGUIDrawcallPrimitive> UIDrawcallPrimitiveList;//UIDrawcallPrimitive collection of this Canvas
