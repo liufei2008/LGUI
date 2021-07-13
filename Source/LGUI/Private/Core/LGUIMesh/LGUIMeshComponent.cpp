@@ -446,19 +446,33 @@ public:
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const
 	{
 		FPrimitiveViewRelevance Result;
-		Result.bDrawRelevance = IsShown(View);
-		Result.bShadowRelevance = IsShadowCast(View);
-		Result.bDynamicRelevance = true;
-		Result.bRenderInMainPass = ShouldRenderInMainPass();
-		Result.bUsesLightingChannels = GetLightingChannelMask() != GetDefaultLightingChannelMask();
-		Result.bRenderCustomDepth = ShouldRenderCustomDepth();
+		if (IsSupportWorldSpace)
+		{
+			Result.bDrawRelevance = IsShown(View);
+			Result.bShadowRelevance = IsShadowCast(View);
+			Result.bDynamicRelevance = true;
+			Result.bStaticRelevance = false;
+			Result.bRenderInMainPass = ShouldRenderInMainPass();
+			Result.bUsesLightingChannels = GetLightingChannelMask() != GetDefaultLightingChannelMask();
+			Result.bRenderCustomDepth = ShouldRenderCustomDepth();
+		}
+		else
+		{
+			Result.bDrawRelevance = false;
+			Result.bShadowRelevance = false;
+			Result.bDynamicRelevance = false;
+			Result.bStaticRelevance = false;
+			Result.bRenderInMainPass = false;
+			Result.bUsesLightingChannels = false;
+			Result.bRenderCustomDepth = false;
+		}
 		MaterialRelevance.SetPrimitiveViewRelevance(Result);
 		return Result;
 	}
 
 	virtual bool CanBeOccluded() const override
 	{
-		return !MaterialRelevance.bDisableDepthTest;
+		return IsSupportWorldSpace && !MaterialRelevance.bDisableDepthTest;
 	}
 
 	virtual uint32 GetMemoryFootprint(void) const
