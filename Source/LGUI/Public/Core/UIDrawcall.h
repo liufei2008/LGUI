@@ -35,7 +35,7 @@ public:
 	bool needToUpdateVertex = false;//update only if need to
 	bool vertexPositionChanged = false;//if vertex position changed? use for update bounds
 
-	TWeakObjectPtr<UUIPostProcessRenderable> postProcessObject;//post process object
+	TWeakObjectPtr<UUIPostProcessRenderable> postProcessRenderableObject;//post process object
 
 	TWeakObjectPtr<UUIDirectMeshRenderable> directMeshRenderableObject;
 

@@ -3,6 +3,7 @@
 #include "Core/ActorComponent/UIDirectMeshRenderable.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUIMesh/UIDrawcallMesh.h"
 
 UUIDirectMeshRenderable::UUIDirectMeshRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -40,6 +41,10 @@ void UUIDirectMeshRenderable::OnUnregister()
 
 void UUIDirectMeshRenderable::ApplyUIActiveState()
 {
+	if (UIDrawcallMesh.IsValid())
+	{
+		UIDrawcallMesh->SetUIMeshVisibility(this->IsUIActiveInHierarchy());
+	}
 	Super::ApplyUIActiveState();
 }
 
@@ -48,12 +53,12 @@ void UUIDirectMeshRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGU
 	if (IsValid(OldCanvas))
 	{
 		OldCanvas->RemoveUIRenderable(this);
-		OldCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
+		OldCanvas->MarkRebuildAllDrawcall();
 	}
 	if (IsValid(NewCanvas))
 	{
 		NewCanvas->AddUIRenderable(this);
-		NewCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
+		NewCanvas->MarkRebuildAllDrawcall();
 	}
 }
 
@@ -64,3 +69,32 @@ void UUIDirectMeshRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 	
 }
 
+
+UUIDrawcallMesh* UUIDirectMeshRenderable::GetDrawcallMesh()const 
+{
+	return UIDrawcallMesh.Get();
+}
+void UUIDirectMeshRenderable::ClearDrawcallMesh()
+{
+	UIDrawcallMesh.Reset(); 
+}
+void UUIDirectMeshRenderable::SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)
+{
+	UIDrawcallMesh = InUIDrawcallMesh;
+	if (UIDrawcallMesh.IsValid())
+	{
+		UIDrawcallMesh->SetUIMeshVisibility(this->IsUIActiveInHierarchy());
+	}
+	if (UIDrawcallMesh.IsValid() && Material.IsValid())
+	{
+		UIDrawcallMesh->SetMaterial(0, Material.Get());
+	}
+}
+void UUIDirectMeshRenderable::SetMaterial(UMaterialInterface* InMaterial)
+{
+	Material = InMaterial;
+	if (UIDrawcallMesh.IsValid() && Material.IsValid())
+	{
+		UIDrawcallMesh->SetMaterial(0, Material.Get());
+	}
+}
