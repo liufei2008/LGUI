@@ -1904,9 +1904,9 @@ void UUITextInputComponent::FTextInputMethodContext::Dispose()
 {
 	if (CachedWindow.IsValid())
 	{
-		if (GEngine->IsValidLowLevelFast())
+		if (IsValid(GEngine))
 		{
-			if (GEngine->GameViewport->IsValidLowLevelFast())
+			if (IsValid(GEngine->GameViewport))
 			{
 				GEngine->GameViewport->RemoveViewportWidgetContent(CachedWindow.ToSharedRef());
 			}
