@@ -246,7 +246,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	}
 	else
 	{
-		if (bHasPostProcess)
+		if (bHasPostProcess || MultiSampleCount > 1)
 		{
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.UnscaledViewRect.Size(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = MultiSampleCount;
@@ -352,7 +352,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	}
 	else
 	{
-		if (bHasPostProcess)
+		if (bHasPostProcess || MultiSampleCount > 1)
 		{
 #if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC || PLATFORM_PS4 || PLATFORM_LINUX
 			RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
