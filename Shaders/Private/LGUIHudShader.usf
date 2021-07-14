@@ -2,72 +2,8 @@
 
 #include "/Engine/Private/Common.ush"
 #include "/Engine/Generated/Material.ush"
+#include "LGUIHudVertexFactory.ush"
 
-
-struct FLGUIVertexFactoryInterpolantsVSToPS
-{
-	float4	Color				: TEXCOORD1;
-
-#if NUM_TEX_COORD_INTERPOLATORS
-	float4	TexCoords[(NUM_TEX_COORD_INTERPOLATORS + 1) / 2]	: TEXCOORD3;
-#endif
-
-#if USE_PARTICLE_SUBUVS
-	float4 ParticleSubUVs : PARTICLE_SUBUVS;
-#endif
-
-#if USE_PARTICLE_POSITION
-	/** Cam-relative (translated) particle center and radius */
-	float4 ParticleTranslatedWorldPositionAndSize	: PARTICLE_POSITION;
-#endif
-
-#if USE_PARTICLE_VELOCITY
-	float4 ParticleVelocity : PARTICLE_VELOCITY;
-#endif
-
-#if USE_PARTICLE_TIME
-	float ParticleTime : PARTICLE_TIME;
-#endif
-
-#if USE_PARTICLE_LIGHTING_OFFSET
-	float3 LightingPositionOffset : PARTICLE_LIGHTING_OFFSET;
-#endif
-
-#if USE_PARTICLE_SIZE
-	float2 ParticleSize : PARTICLE_SIZE;
-#endif
-};
-
-#if NUM_TEX_COORD_INTERPOLATORS || USE_PARTICLE_SUBUVS
-float2 GetUV(FLGUIVertexFactoryInterpolantsVSToPS Interpolants, int UVIndex)
-{
-	float4 UVVector = Interpolants.TexCoords[UVIndex / 2];
-	return UVIndex % 2 ? UVVector.zw : UVVector.xy;
-}
-
-void SetUV(inout FLGUIVertexFactoryInterpolantsVSToPS Interpolants, int UVIndex, float2 InValue)
-{
-	FLATTEN
-	if (UVIndex % 2)
-	{
-		Interpolants.TexCoords[UVIndex / 2].zw = InValue;
-	}
-	else
-	{
-		Interpolants.TexCoords[UVIndex / 2].xy = InValue;
-	}
-}
-#endif
-
-float4 GetColor(FLGUIVertexFactoryInterpolantsVSToPS Interpolants)
-{
-	return Interpolants.Color;
-}
-
-void SetColor(inout FLGUIVertexFactoryInterpolantsVSToPS Interpolants, float4 InValue)
-{
-	Interpolants.Color = InValue;
-}
 
 struct FLGUIBasePassInterpolants
 {
