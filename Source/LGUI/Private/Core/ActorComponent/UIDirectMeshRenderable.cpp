@@ -75,9 +75,16 @@ UUIDrawcallMesh* UUIDirectMeshRenderable::GetDrawcallMesh()const
 {
 	return UIDrawcallMesh.Get();
 }
-void UUIDirectMeshRenderable::ClearDrawcallMesh()
+void UUIDirectMeshRenderable::ClearDrawcallMesh(bool InDestroyMesh)
 {
-	UIDrawcallMesh.Reset(); 
+	if (InDestroyMesh)
+	{
+		if (UIDrawcallMesh.IsValid())
+		{
+			UIDrawcallMesh->DestroyComponent();
+		}
+	}
+	UIDrawcallMesh.Reset();
 }
 void UUIDirectMeshRenderable::SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)
 {

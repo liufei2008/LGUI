@@ -148,10 +148,7 @@ void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 		}
 		if (item.UIDirectMeshRenderable.IsValid())
 		{
-			if (item.UIDirectMeshRenderable->GetDrawcallMesh() != nullptr)
-			{
-				item.UIDirectMeshRenderable->GetDrawcallMesh()->DestroyComponent();
-			}
+			item.UIDirectMeshRenderable->ClearDrawcallMesh(true);
 		}
 	}
 	UIDrawcallPrimitiveList.Empty();
@@ -243,10 +240,7 @@ void ULGUICanvas::CheckRenderMode()
 			}
 			if (item.UIDirectMeshRenderable.IsValid())
 			{
-				if (item.UIDirectMeshRenderable->GetDrawcallMesh() != nullptr)
-				{
-					item.UIDirectMeshRenderable->GetDrawcallMesh()->DestroyComponent();
-				}
+				item.UIDirectMeshRenderable->ClearDrawcallMesh(true);
 			}
 		}
 		UIDrawcallPrimitiveList.Reset();
@@ -758,7 +752,6 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				}
 				if (item.UIDirectMeshRenderable.IsValid())
 				{
-					item.UIDirectMeshRenderable->ClearDrawcallMesh();
 					item.UIDirectMeshRenderable.Reset();
 				}
 			}
@@ -772,9 +765,39 @@ void ULGUICanvas::UpdateCanvasGeometry()
 
 				switch (UIDrawcallList[i]->type)
 				{
-				default:
-				case EUIDrawcallType::BatchGeometry:
 				case EUIDrawcallType::DirectMesh:
+				{
+					auto uiMesh = UIDrawcallList[i]->directMeshRenderableObject->GetDrawcallMesh();
+					if (uiMesh == nullptr)
+					{
+						uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), NAME_None, RF_Transient);
+						uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
+						uiMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
+						uiMesh->RegisterComponent();
+						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+						uiMesh->SetRelativeTransform(FTransform::Identity);
+#if WITH_EDITOR
+						if (!GetWorld()->IsGameWorld())
+						{
+							if (currentIsRenderToRenderTargetOrWorld)
+							{
+								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+							}
+							uiMesh->SetSupportWorldSpace(true);
+						}
+						else
+#endif
+							if (currentIsRenderToRenderTargetOrWorld)
+							{
+								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+								uiMesh->SetSupportWorldSpace(false);
+							}
+					}
+					UIDrawcallList[i]->directMeshRenderableObject->SetDrawcallMesh(uiMesh);
+					UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = UIDrawcallList[i]->directMeshRenderableObject;
+				}
+				break;
+				case EUIDrawcallType::BatchGeometry:
 				{
 					UUIDrawcallMesh* uiMesh = nullptr;
 					if (meshIndex < CacheUIMeshList.Num())//get mesh from exist
@@ -795,10 +818,12 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
 						uiMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
 						uiMesh->RegisterComponent();
-						//this->GetOwner()->AddInstanceComponent(uiMesh);
 						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 						uiMesh->SetRelativeTransform(FTransform::Identity);
-						CacheUIMeshList.Add(uiMesh);
+						if (UIDrawcallList[i]->type == EUIDrawcallType::BatchGeometry)
+						{
+							CacheUIMeshList.Add(uiMesh);//only collect batch geometry
+						}
 #if WITH_EDITOR
 						if (!GetWorld()->IsGameWorld())
 						{
@@ -817,23 +842,12 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						}
 					}
 					//set data for mesh
-					if (uiMesh != nullptr)
-					{
-						uiMesh->SetUIMeshVisibility(true);//some UIMesh may set to invisible on prev frame, set to visible
-						if (UIDrawcallList[i]->type == EUIDrawcallType::BatchGeometry)
-						{
-							auto& meshSection = uiMesh->MeshSection;
-							meshSection.Reset();
-							UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
-							uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
-							UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh = uiMesh;
-						}
-						else//direct mesh
-						{
-							UIDrawcallList[i]->directMeshRenderableObject->SetDrawcallMesh(uiMesh);
-							UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = UIDrawcallList[i]->directMeshRenderableObject;
-						}
-					}
+					uiMesh->SetUIMeshVisibility(true);//some UIMesh may set to invisible on prev frame, set to visible
+					auto& meshSection = uiMesh->MeshSection;
+					meshSection.Reset();
+					UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
+					uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
+					UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh = uiMesh;
 
 					meshIndex++;
 				}
@@ -1048,7 +1062,6 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 				}
 				if (item.UIDirectMeshRenderable.IsValid())
 				{
-					item.UIDirectMeshRenderable->ClearDrawcallMesh();
 					item.UIDirectMeshRenderable.Reset();
 				}
 			}
@@ -1061,9 +1074,39 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 				UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = nullptr;
 				switch (UIDrawcallList[i]->type)
 				{
-				default:
-				case EUIDrawcallType::BatchGeometry:
 				case EUIDrawcallType::DirectMesh:
+				{
+					auto uiMesh = UIDrawcallList[i]->directMeshRenderableObject->GetDrawcallMesh();
+					if (uiMesh == nullptr)
+					{
+						uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), NAME_None, RF_Transient);
+						uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
+						uiMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
+						uiMesh->RegisterComponent();
+						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+						uiMesh->SetRelativeTransform(FTransform::Identity);
+#if WITH_EDITOR
+						if (!GetWorld()->IsGameWorld())
+						{
+							if (currentIsRenderToRenderTargetOrWorld)
+							{
+								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+							}
+							uiMesh->SetSupportWorldSpace(true);
+						}
+						else
+#endif
+							if (currentIsRenderToRenderTargetOrWorld)
+							{
+								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+								uiMesh->SetSupportWorldSpace(false);
+							}
+					}
+					UIDrawcallList[i]->directMeshRenderableObject->SetDrawcallMesh(uiMesh);
+					UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = UIDrawcallList[i]->directMeshRenderableObject;
+				}
+				break;
+				case EUIDrawcallType::BatchGeometry:
 				{
 					UUIDrawcallMesh* uiMesh = nullptr;
 					if (meshIndex < CacheUIMeshList.Num())//get mesh from exist
@@ -1087,7 +1130,10 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 						//this->GetOwner()->AddInstanceComponent(uiMesh);
 						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 						uiMesh->SetRelativeTransform(FTransform::Identity);
-						CacheUIMeshList.Add(uiMesh);
+						if (UIDrawcallList[i]->type == EUIDrawcallType::BatchGeometry)
+						{
+							CacheUIMeshList.Add(uiMesh);//only collect batch geometry
+						}
 #if WITH_EDITOR
 						if (!GetWorld()->IsGameWorld())
 						{
@@ -1099,30 +1145,19 @@ void ULGUICanvas::UpdateCanvasGeometryForAutoManageDepth()
 						}
 						else
 #endif
-						if (currentIsRenderToRenderTargetOrWorld)
-						{
-							uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
-							uiMesh->SetSupportWorldSpace(false);
-						}
+							if (currentIsRenderToRenderTargetOrWorld)
+							{
+								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+								uiMesh->SetSupportWorldSpace(false);
+							}
 					}
 					//set data for mesh
-					if (uiMesh != nullptr)
-					{
-						uiMesh->SetUIMeshVisibility(true);//some UIMesh may set to invisible on prev frame, set to visible
-						if (UIDrawcallList[i]->type == EUIDrawcallType::BatchGeometry)
-						{
-							auto& meshSection = uiMesh->MeshSection;
-							meshSection.Reset();
-							UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
-							uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
-							UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh = uiMesh;
-						}
-						else//direct mesh
-						{
-							UIDrawcallList[i]->directMeshRenderableObject->SetDrawcallMesh(uiMesh);
-							UIDrawcallPrimitiveList[i].UIDirectMeshRenderable = UIDrawcallList[i]->directMeshRenderableObject;
-						}
-					}
+					uiMesh->SetUIMeshVisibility(true);//some UIMesh may set to invisible on prev frame, set to visible
+					auto& meshSection = uiMesh->MeshSection;
+					meshSection.Reset();
+					UIDrawcallList[i]->GetCombined(meshSection.vertices, meshSection.triangles);
+					uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
+					UIDrawcallPrimitiveList[i].UIBatchedDrawcallMesh = uiMesh;
 
 					meshIndex++;
 				}
@@ -2289,6 +2324,22 @@ void ULGUICanvas::ApplyOwnerSeeRecursive()
 		{
 			uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
 			uiMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
+		}
+	}
+	for (auto item : UIDrawcallPrimitiveList)
+	{
+		if (item.UIBatchedDrawcallMesh.IsValid())
+		{
+			item.UIBatchedDrawcallMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
+			item.UIBatchedDrawcallMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
+		}
+		if (item.UIDirectMeshRenderable.IsValid())
+		{
+			if (item.UIDirectMeshRenderable->GetDrawcallMesh() != nullptr)
+			{
+				item.UIDirectMeshRenderable->GetDrawcallMesh()->SetOwnerNoSee(this->GetActualOwnerNoSee());
+				item.UIDirectMeshRenderable->GetDrawcallMesh()->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
+			}
 		}
 	}
 
