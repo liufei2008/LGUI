@@ -497,7 +497,7 @@ void ULGUICanvas::OnUIElementDepthChange(UUIBatchGeometryRenderable* item)
 		InsertIntoDrawcall(item);
 	}
 }
-UMaterialInstanceDynamic* ULGUICanvas::GetMaterialInstanceDynamicForDrawcall(int drawcallIndex)
+UMaterialInstanceDynamic* ULGUICanvas::GetMaterialInstanceDynamicForDrawcall(int drawcallIndex)const
 {
 	if (drawcallIndex == -1 || drawcallIndex >= UIDrawcallList.Num())return nullptr;
 	return UIDrawcallList[drawcallIndex]->materialInstanceDynamic.Get();
