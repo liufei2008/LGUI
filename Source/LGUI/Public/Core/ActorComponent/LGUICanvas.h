@@ -144,7 +144,7 @@ public:
 	/** UI element's depth change */
 	void OnUIElementDepthChange(UUIBatchGeometryRenderable* item);
 	/** @return created MaterialInstanceDynamic for target drawcall, return nullptr if drawcallIndex is -1 */
-	UMaterialInstanceDynamic* GetMaterialInstanceDynamicForDrawcall(int drawcallIndex);
+	UMaterialInstanceDynamic* GetMaterialInstanceDynamicForDrawcall(int drawcallIndex)const;
 	
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
