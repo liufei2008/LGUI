@@ -37,7 +37,7 @@ public:
 	/** Canvas will create a UIDrawcallMesh for this UI element. */
 	virtual void SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh);
 	virtual UUIDrawcallMesh* GetDrawcallMesh()const;
-	virtual void ClearDrawcallMesh();
+	virtual void ClearDrawcallMesh(bool InDestroyMesh);
 	virtual void SetMaterial(UMaterialInterface* InMaterial);
 
 	virtual void SetClipType(ELGUICanvasClipType clipType) {};
