@@ -427,9 +427,9 @@ protected:
 	friend class ULGUICanvas;
 	UIItemType itemType = UIItemType::None;
 	/** LGUICanvas which render this UI element */
-	TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
+	mutable TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	/** is this UIItem's actor have LGUICanvas component */
-	uint8 isCanvasUIItem:1;
+	mutable uint8 isCanvasUIItem:1;
 	uint8 bCanSetAnchorFromTransform : 1;
 
 	uint8 bDepthChanged:1;//depth changed
@@ -445,7 +445,7 @@ protected:
 	virtual void UpdateCachedDataBeforeGeometry();
 
 	/** find LGUICanvas which render this UI element */
-	bool CheckRenderCanvas();
+	bool CheckRenderCanvas()const;
 public:
 	uint8 GetFinalAlpha()const;
 	float GetFinalAlpha01()const;

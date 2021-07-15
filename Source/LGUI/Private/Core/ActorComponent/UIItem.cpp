@@ -1134,7 +1134,7 @@ void UUIItem::UnregisterLayoutChange(const FSimpleDelegate& InDelegate)
 }
 #pragma endregion VertexPositionChangeCallback
 
-bool UUIItem::CheckRenderCanvas()
+bool UUIItem::CheckRenderCanvas()const
 {
 	if (RenderCanvas.IsValid())return true;
 	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner(), false);

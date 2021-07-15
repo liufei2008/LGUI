@@ -60,7 +60,7 @@ public:
 	 * if not, then return a created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UMaterialInstanceDynamic* GetMaterialInstanceDynamic();
+		UMaterialInstanceDynamic* GetMaterialInstanceDynamic()const;
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void WidthChanged()override;
