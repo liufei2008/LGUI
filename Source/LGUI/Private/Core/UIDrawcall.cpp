@@ -162,6 +162,8 @@ void UUIDrawcall::CopyDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& From, 
 
 		drawcall->renderObjectList = fromDrawcall->renderObjectList;
 		drawcall->is3DDrawcall = fromDrawcall->is3DDrawcall;
+
+		drawcall->directMeshRenderableObject = fromDrawcall->directMeshRenderableObject;
 	}
 	while (prevDrawcallListCount > drawcallCount)//delete needless drawcall
 	{
@@ -302,6 +304,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 			}
 			if (drawcallItem->material.IsValid()
 				|| drawcallItem->type == EUIDrawcallType::PostProcess
+				|| drawcallItem->type == EUIDrawcallType::DirectMesh
 				|| drawcallItem->texture != item->GetGeometry()->texture
 				)
 			{
