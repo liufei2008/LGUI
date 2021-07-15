@@ -285,7 +285,7 @@ void UUIBatchGeometryRenderable::SetIsSelfRender(bool value)
 		MarkCanvasUpdate();
 	}
 }
-UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic()
+UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic()const
 {
 	if (bIsSelfRender)
 	{
