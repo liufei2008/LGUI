@@ -117,9 +117,9 @@ protected:
 	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;
 
 	/** created drawcall mesh */
-	TWeakObjectPtr<UUIDrawcallMesh> uiMesh;
+	UPROPERTY(Transient) UUIDrawcallMesh* uiMesh = nullptr;
 	/** created material */
-	TWeakObjectPtr<UMaterialInstanceDynamic> uiMaterial;
+	UPROPERTY(Transient) UMaterialInstanceDynamic* uiMaterial = nullptr;
 	void UpdateSelfRenderDrawcall();
 	virtual void UpdateSelfRenderMaterial(bool textureChange, bool materialChange);
 	void ClearSelfRenderMaterial();

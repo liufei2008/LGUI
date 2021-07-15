@@ -98,10 +98,10 @@ void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& P
 				{
 					RenderCanvas->AddUIRenderable(this);
 				}
-				if (uiMesh.IsValid())//delete ui mesh when not self render
+				if (IsValid(uiMesh))//delete ui mesh when not self render
 				{
 					uiMesh->DestroyComponent();
-					uiMesh.Reset();
+					uiMesh = nullptr;
 				}
 			}
 		}
@@ -111,10 +111,10 @@ void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& P
 void UUIBatchGeometryRenderable::OnUnregister()
 {
 	Super::OnUnregister();
-	if (uiMesh.IsValid())//delete ui mesh when this component is delete
+	if (IsValid(uiMesh))//delete ui mesh when this component is delete
 	{
 		uiMesh->DestroyComponent();
-		uiMesh.Reset();
+		uiMesh = nullptr;
 	}
 }
 
@@ -138,10 +138,10 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 				if (OldCanvas->IsRenderToScreenSpaceOrRenderTarget() != NewCanvas->IsRenderToScreenSpaceOrRenderTarget())//is render to screen or world changed, then uimesh need to be recreate
 				{
 					geometry->Clear();
-					if (uiMesh.IsValid())
+					if (IsValid(uiMesh))
 					{
 						uiMesh->DestroyComponent();
-						uiMesh.Reset();
+						uiMesh = nullptr;
 					}
 				}
 			}
@@ -276,10 +276,10 @@ void UUIBatchGeometryRenderable::SetIsSelfRender(bool value)
 				RenderCanvas->AddUIRenderable(this);
 			}
 			//destroy mesh if not selfrender, because canvas will render it
-			if (uiMesh.IsValid())
+			if (IsValid(uiMesh))
 			{
 				uiMesh->DestroyComponent();
-				uiMesh.Reset();
+				uiMesh = nullptr;
 			}
 		}
 		MarkCanvasUpdate();
@@ -289,7 +289,7 @@ UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic
 {
 	if (bIsSelfRender)
 	{
-		return uiMaterial.Get();
+		return uiMaterial;
 	}
 	if (CheckRenderCanvas())
 	{
@@ -603,14 +603,14 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 {
 	if (geometry->vertices.Num() == 0)
 	{
-		if (uiMesh.IsValid())
+		if (IsValid(uiMesh))
 		{
 			uiMesh->SetUIMeshVisibility(false);
 		}
 	}
 	else
 	{
-		if (!uiMesh.IsValid())
+		if (!IsValid(uiMesh))
 		{
 			uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), NAME_None, RF_Transient);
 			uiMesh->RegisterComponent();
@@ -648,7 +648,7 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 }
 void UUIBatchGeometryRenderable::UpdateSelfRenderMaterial(bool textureChange, bool materialChange)
 {
-	if (uiMesh.IsValid())
+	if (IsValid(uiMesh))
 	{
 		if (materialChange)
 		{
@@ -672,7 +672,7 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderMaterial(bool textureChange, bo
 		}
 		if (textureChange)
 		{
-			if (uiMaterial.IsValid())
+			if (IsValid(uiMaterial))
 			{
 				uiMaterial->SetTextureParameterValue(FName("MainTexture"), GetTextureToCreateGeometry());
 			}
@@ -681,10 +681,10 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderMaterial(bool textureChange, bo
 }
 void UUIBatchGeometryRenderable::ClearSelfRenderMaterial()
 {
-	if (uiMaterial.IsValid())
+	if (IsValid(uiMaterial))
 	{
 		uiMaterial->ConditionalBeginDestroy();
-		uiMaterial.Reset();
+		uiMaterial = nullptr;
 	}
 }
 
