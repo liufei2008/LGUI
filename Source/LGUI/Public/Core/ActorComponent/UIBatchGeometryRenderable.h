@@ -113,7 +113,7 @@ protected:
 	/** update ui geometry */
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIBatchGeometryRenderable::OnUpdateGeometry, );
 
-	void CreateGeometry();
+	bool CreateGeometry();
 	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;
 
 	/** created drawcall mesh */
@@ -123,6 +123,7 @@ protected:
 	void UpdateSelfRenderDrawcall();
 	virtual void UpdateSelfRenderMaterial(bool textureChange, bool materialChange);
 	void ClearSelfRenderMaterial();
+	virtual void DepthChanged()override;
 private:
 	void UpdateGeometry_Implement(const bool& parentLayoutChanged);
 	void UpdateGeometry_ImplementForAutoManageDepth(const bool& parentLayoutChanged);

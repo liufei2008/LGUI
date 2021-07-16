@@ -141,11 +141,6 @@ void UUIPostProcessRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 	}
 	else//if already renderred, update data
 	{
-		if (cacheForThisUpdate_DepthChanged)
-		{
-			RenderCanvas->SetUIElementDepthChange(this);
-			goto COMPLETE;
-		}
 		//update geometry
 		{
 			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);

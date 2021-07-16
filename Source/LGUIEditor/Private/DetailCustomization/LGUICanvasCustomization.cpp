@@ -92,7 +92,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
 		{
 			TargetScriptArray[0]->MarkCanvasUpdate();
-			TargetScriptArray[0]->MarkRebuildAllDrawcall();
 		}
 	}
 	

@@ -43,5 +43,5 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		EUIRenderableType GetUIRenderableType()const { return uiRenderableType; }
 
-	TSharedPtr<UUIDrawcall> drawcall = nullptr;//drawcall that response for this UI
+	TSharedPtr<UUIDrawcall> drawcall = nullptr;//drawcall that response for this UI. @todo: use TWeakPtr
 };

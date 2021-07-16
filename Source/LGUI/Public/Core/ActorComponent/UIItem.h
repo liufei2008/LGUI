@@ -432,7 +432,6 @@ protected:
 	mutable uint8 isCanvasUIItem:1;
 	uint8 bCanSetAnchorFromTransform : 1;
 
-	uint8 bDepthChanged:1;//depth changed
 	uint8 bColorChanged:1;//vertex color chnaged
 	uint8 bLayoutChanged:1;//layout changed
 	uint8 bSizeChanged : 1;//rect size changed
@@ -440,7 +439,7 @@ protected:
 	virtual void UpdateBasePrevData();
 
 	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
-	uint8 cacheForThisUpdate_DepthChanged:1, cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1;
+	uint8 cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 
