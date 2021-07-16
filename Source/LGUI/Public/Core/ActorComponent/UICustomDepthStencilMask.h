@@ -41,7 +41,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition="sourceType==EUICustomDepthStencilMaskSourceType::CustomStencil"))
 		int stencilValue = 0;
 public:
-	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
+	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
 	virtual void MarkAllDirtyRecursive()override;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

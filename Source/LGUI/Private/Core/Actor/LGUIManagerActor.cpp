@@ -146,6 +146,10 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 				}
 			}
 		}
+
+		bShouldSortScreenSpaceCanvas = false;
+		bShouldSortWorldSpaceCanvas = false;
+		bShouldSortRenderTargetSpaceCanvas = false;
 	}
 #endif
 #if WITH_EDITOR

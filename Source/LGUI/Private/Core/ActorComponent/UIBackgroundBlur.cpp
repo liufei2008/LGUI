@@ -78,6 +78,10 @@ public:
 	{
 
 	}
+	virtual bool CanRender()const override
+	{
+		return FUIPostProcessRenderProxy::CanRender() && blurStrength > 0.0f;
+	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
 		FLGUIHudRenderer* Renderer,
@@ -339,7 +343,7 @@ float UUIBackgroundBlur::GetBlurStrengthInternal()
 	return blurStrength;
 }
 
-TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
+TSharedPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
 {
 	if (!RenderProxy.IsValid())
 	{

@@ -84,18 +84,25 @@ void UUIDrawcall::UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUII
 //update the max and min depth
 void UUIDrawcall::UpdateDepthRange()
 {
-	depthMin = INT32_MAX;
-	depthMax = INT32_MIN;
-	for (auto item : geometryList)
+	if (renderObjectList.Num() == 1)
 	{
-		auto itemDepth = item->depth;
-		if (depthMin > itemDepth)
+		depthMin = depthMax = renderObjectList[0]->GetDepth();
+	}
+	else
+	{
+		depthMin = INT32_MAX;
+		depthMax = INT32_MIN;
+		for (auto item : renderObjectList)
 		{
-			depthMin = itemDepth;
-		}
-		if (depthMax < itemDepth)
-		{
-			depthMax = itemDepth;
+			auto itemDepth = item->GetDepth();
+			if (depthMin > itemDepth)
+			{
+				depthMin = itemDepth;
+			}
+			if (depthMax < itemDepth)
+			{
+				depthMax = itemDepth;
+			}
 		}
 	}
 }
@@ -103,14 +110,14 @@ void UUIDrawcall::UpdateDepthRange()
 
 void UUIDrawcall::Clear()
 {
-	geometryList.Empty();
+	geometryList.Reset();
 	texture = nullptr;
 	material = nullptr;
 	materialInstanceDynamic = nullptr;
 
 	postProcessRenderableObject = nullptr;
 
-	renderObjectList.Empty();
+	renderObjectList.Reset();
 	is3DDrawcall = false;
 }
 bool UUIDrawcall::Equals(UUIDrawcall* Other)
@@ -172,7 +179,7 @@ void UUIDrawcall::CopyDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& From, 
 	}
 }
 
-
+#if 0
 void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
 {
 	UTexture* prevTex = nullptr;
@@ -399,6 +406,7 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 		prevDrawcallListCount--;
 	}
 }
+#endif
 
 TSharedPtr<class UUIDrawcall> UUIDrawcall::GetAvailableDrawcall(TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount)
 {

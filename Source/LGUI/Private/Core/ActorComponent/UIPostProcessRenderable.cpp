@@ -22,7 +22,6 @@ void UUIPostProcessRenderable::BeginPlay()
 	Super::BeginPlay();
 	if (CheckRenderCanvas())
 	{
-		RenderCanvas->MarkRebuildAllDrawcall();
 		RenderCanvas->MarkCanvasUpdate();
 	}
 
@@ -62,32 +61,12 @@ void UUIPostProcessRenderable::OnUnregister()
 void UUIPostProcessRenderable::ApplyUIActiveState()
 {
 	bUVChanged = true;
-	if (IsUIActiveInHierarchy() == false)
-	{
-		if (geometry->vertices.Num() != 0)
-		{
-			geometry->Clear();
-			if (CheckRenderCanvas())
-			{
-				RenderCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
-			}
-		}
-	}
 	Super::ApplyUIActiveState();
 }
 
 void UUIPostProcessRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
-	if (IsValid(OldCanvas))
-	{
-		OldCanvas->RemoveUIRenderable(this);
-		OldCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
-	}
-	if (IsValid(NewCanvas))
-	{
-		NewCanvas->AddUIRenderable(this);
-		NewCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
-	}
+	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
 void UUIPostProcessRenderable::WidthChanged()
 {
@@ -153,19 +132,18 @@ void UUIPostProcessRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 	if (IsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
-	if (geometry->vertices.Num() == 0//if geometry not created yet
+	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
 		CreateGeometry();
-		RenderCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
+		RenderCanvas->AddUIRenderable(this);
 		goto COMPLETE;
 	}
-	else//if geometry is created, update data
+	else//if already renderred, update data
 	{
 		if (cacheForThisUpdate_DepthChanged)
 		{
-			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();//@todo: noneed to rebuild all drawcall, still have some room to optimize
+			RenderCanvas->SetUIElementDepthChange(this);
 			goto COMPLETE;
 		}
 		//update geometry
@@ -294,6 +272,10 @@ void UUIPostProcessRenderable::SendMaskTextureToRenderProxy()
 	}
 }
 
+bool UUIPostProcessRenderable::IsRenderProxyValid()const
+{
+	return RenderProxy.IsValid();
+}
 void UUIPostProcessRenderable::SetClipType(ELGUICanvasClipType clipType)
 {
 	if (RenderProxy.IsValid())

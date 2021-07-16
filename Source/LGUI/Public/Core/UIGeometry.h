@@ -33,8 +33,6 @@ public:
 
 	TWeakObjectPtr<UTexture> texture = nullptr;
 	TWeakObjectPtr<UMaterialInterface> material = nullptr;
-	int depth;//depth of this UIBatchGeometryRenderable
-	int drawcallIndex = -1;//index of drawcall(which collect this geometry for render) in drawcall list, -1 means not add to drawcall yet
 
 	void Clear()
 	{

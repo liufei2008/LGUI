@@ -57,7 +57,8 @@ public:
 	void MarkUVDirty();
 	TSharedPtr<UIGeometry> GetGeometry() { return geometry; }
 public:
-	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcessRenderable::GetRenderProxy, return 0;);
+	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()PURE_VIRTUAL(UUIPostProcessRenderable::GetRenderProxy, return 0;);
+	virtual bool IsRenderProxyValid()const;
 	virtual void SetClipType(ELGUICanvasClipType clipType);
 	virtual void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather);
 	virtual void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize);
