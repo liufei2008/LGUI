@@ -160,7 +160,6 @@ void UUIDrawcall::CopyDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& From, 
 		auto drawcall = GetAvailableDrawcall(To, prevDrawcallListCount, drawcallCount);
 		auto fromDrawcall = From[i];
 
-
 		drawcall->type = fromDrawcall->type;
 		drawcall->texture = fromDrawcall->texture;
 		drawcall->material = fromDrawcall->material;
@@ -180,96 +179,6 @@ void UUIDrawcall::CopyDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& From, 
 	}
 }
 
-#if 0
-void UUIDrawcall::CreateDrawcall(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
-{
-	UTexture* prevTex = nullptr;
-	TSharedPtr<UUIDrawcall> prevUIDrawcall = nullptr;
-	int drawcallCount = 0;
-	int prevDrawcallListCount = drawcallList.Num();
-	for (int i = 0; i < sortedList.Num(); i++)
-	{
-		switch (sortedList[i]->GetUIRenderableType())
-		{
-		default:
-		case EUIRenderableType::UIBatchGeometryRenderable:
-		{
-			auto sortedItem = (UUIBatchGeometryRenderable*)sortedList[i].Get();
-			auto itemGeo = sortedItem->GetGeometry();
-			if (itemGeo.IsValid() == false)continue;
-			if (itemGeo->vertices.Num() == 0)continue;
-
-			if (itemGeo->material.IsValid())//consider every custom material as a drawcall
-			{
-				prevUIDrawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-				prevUIDrawcall->texture = itemGeo->texture;
-				prevUIDrawcall->material = itemGeo->material;
-				prevUIDrawcall->geometryList.Add(itemGeo);
-				prevUIDrawcall->type = EUIDrawcallType::BatchGeometry;
-				prevTex = nullptr;
-			}
-			else//batch elements into drawcall by comparing their texture
-			{
-				auto itemTex = itemGeo->texture;
-				if (itemTex.Get() != prevTex)//this ui element's texture is different from previous one
-				{
-					prevUIDrawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-					prevUIDrawcall->texture = itemTex;
-					prevUIDrawcall->geometryList.Add(itemGeo);
-					prevUIDrawcall->type = EUIDrawcallType::BatchGeometry;
-				}
-				else//same texture means same drawcall
-				{
-					if (!prevUIDrawcall.IsValid())//if first is null
-					{
-						prevUIDrawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-						prevUIDrawcall->texture = itemTex;
-						prevUIDrawcall->geometryList.Add(itemGeo);
-					}
-					else
-					{
-						prevUIDrawcall->geometryList.Add(itemGeo);
-					}
-					prevUIDrawcall->type = EUIDrawcallType::BatchGeometry;
-				}
-				prevTex = itemTex.Get();
-			}
-			itemGeo->drawcallIndex = drawcallCount - 1;
-		}
-		break;
-		case EUIRenderableType::UIPostProcessRenderable:
-		{
-			auto sortedItem = (UUIPostProcessRenderable*)sortedList[i].Get();
-			auto itemGeo = sortedItem->GetGeometry();
-			if (itemGeo.IsValid() == false)continue;
-			if (itemGeo->vertices.Num() == 0)continue;
-			//every postprocess is a drawcall
-			prevUIDrawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-			prevUIDrawcall->postProcessRenderableObject = sortedItem;
-			prevUIDrawcall->type = EUIDrawcallType::PostProcess;
-			prevUIDrawcall = nullptr;
-			prevTex = nullptr;
-		}
-		break;
-		case EUIRenderableType::UIDirectMeshRenderable:
-		{
-			auto sortedItem = (UUIDirectMeshRenderable*)sortedList[i].Get();
-			//every direct mesh is a drawcall
-			prevUIDrawcall = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-			prevUIDrawcall->directMeshRenderableObject = sortedItem;
-			prevUIDrawcall->type = EUIDrawcallType::DirectMesh;
-			prevUIDrawcall = nullptr;
-			prevTex = nullptr;
-		}
-		break;
-		}
-	}
-	while (prevDrawcallListCount > drawcallCount)//delete needless drawcall
-	{
-		drawcallList.RemoveAt(prevDrawcallListCount - 1);
-		prevDrawcallListCount--;
-	}
-}
 
 void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<UUIDrawcall>>& drawcallList)
 {
@@ -348,9 +257,8 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 				drawcallItem->texture = itemGeo->texture;
 				drawcallItem->material = itemGeo->material;
 				drawcallItem->type = EUIDrawcallType::BatchGeometry;
-				drawcallItem->geometryList.Add(itemGeo);
 				drawcallItem->renderObjectList.Add(sortedItem);
-				itemGeo->drawcallIndex = drawcallCount - 1;
+				sortedItem->drawcall = drawcallItem;
 			}
 			else//batch elements into drawcall
 			{
@@ -359,21 +267,19 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 				{
 					auto drawcallItem = drawcallList[drawcallIndexToFitin];
 
-					drawcallItem->geometryList.Add(itemGeo);
 					drawcallItem->is3DDrawcall = false;
 					drawcallItem->renderObjectList.Add(sortedItem);
-					itemGeo->drawcallIndex = drawcallIndexToFitin;
+					sortedItem->drawcall = drawcallItem;
 				}
 				else
 				{
 					auto drawcallItem = GetAvailableDrawcall(drawcallList, prevDrawcallListCount, drawcallCount);
-					drawcallItem->geometryList.Add(itemGeo);
 					drawcallItem->is3DDrawcall = is3DUIItem;
 					drawcallItem->renderObjectList.Add(sortedItem);
 
 					drawcallItem->texture = itemGeo->texture;
 					drawcallItem->type = EUIDrawcallType::BatchGeometry;
-					itemGeo->drawcallIndex = drawcallCount - 1;
+					sortedItem->drawcall = drawcallItem;
 				}
 			}
 		}
@@ -407,7 +313,6 @@ void UUIDrawcall::CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<UUIBase
 		prevDrawcallListCount--;
 	}
 }
-#endif
 
 TSharedPtr<class UUIDrawcall> UUIDrawcall::GetAvailableDrawcall(TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount)
 {
