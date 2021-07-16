@@ -12,11 +12,12 @@
 
 void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const
 {
-	int count = geometryList.Num();
+	int count = renderObjectList.Num();
 	if (count == 1)
 	{
-		vertices = geometryList[0]->vertices;
-		triangles = geometryList[0]->triangles;
+		auto uiGeo = renderObjectList[0]->GetGeometry();
+		vertices = uiGeo->vertices;
+		triangles = uiGeo->triangles;
 	}
 	else
 	{
@@ -24,8 +25,9 @@ void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUI
 		int totalTriangleIndicesCount = 0;
 		for (int i = 0; i < count; i++)
 		{
-			totalVertCount += geometryList[i]->vertices.Num();
-			totalTriangleIndicesCount += geometryList[i]->triangles.Num();
+			auto uiGeo = renderObjectList[i]->GetGeometry();
+			totalVertCount += uiGeo->vertices.Num();
+			totalTriangleIndicesCount += uiGeo->triangles.Num();
 		}
 		int prevVertexCount = 0;
 		int triangleIndicesIndex = 0;
@@ -33,28 +35,29 @@ void UUIDrawcall::GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUI
 		triangles.SetNumUninitialized(totalTriangleIndicesCount);
 		for (int geoIndex = 0; geoIndex < count; geoIndex++)
 		{
-			auto& geometry = geometryList[geoIndex];
-			auto& geomTriangles = geometry->triangles;
+			auto uiGeo = renderObjectList[geoIndex]->GetGeometry();
+			auto& geomTriangles = uiGeo->triangles;
 			int triangleCount = geomTriangles.Num();
 			if (triangleCount <= 0)continue;
-			vertices.Append(geometry->vertices);
+			vertices.Append(uiGeo->vertices);
 			for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
 			{
 				auto triangleIndex = geomTriangles[geomTriangleIndicesIndex] + prevVertexCount;
 				triangles[triangleIndicesIndex++] = triangleIndex;
 			}
 
-			prevVertexCount += geometry->vertices.Num();
+			prevVertexCount += uiGeo->vertices.Num();
 		}
 	}
 }
 void UUIDrawcall::UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)
 {
-	int count = geometryList.Num();
+	int count = renderObjectList.Num();
 	if (count == 1)
 	{
-		FMemory::Memcpy((uint8*)vertices.GetData(), geometryList[0]->vertices.GetData(), vertices.Num() * sizeof(FDynamicMeshVertex));
-		FMemory::Memcpy((uint8*)triangles.GetData(), geometryList[0]->triangles.GetData(), triangles.Num() * sizeof(uint16));
+		auto uiGeo = renderObjectList[0]->GetGeometry();
+		FMemory::Memcpy((uint8*)vertices.GetData(), uiGeo->vertices.GetData(), vertices.Num() * sizeof(FDynamicMeshVertex));
+		FMemory::Memcpy((uint8*)triangles.GetData(), uiGeo->triangles.GetData(), triangles.Num() * sizeof(uint16));
 	}
 	else
 	{
@@ -63,13 +66,13 @@ void UUIDrawcall::UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUII
 		int vertBufferOffset = 0;
 		for (int geoIndex = 0; geoIndex < count; geoIndex++)
 		{
-			auto& geometry = geometryList[geoIndex];
-			auto& geomTriangles = geometry->triangles;
+			auto uiGeo = renderObjectList[geoIndex]->GetGeometry();
+			auto& geomTriangles = uiGeo->triangles;
 			int triangleCount = geomTriangles.Num();
 			if (triangleCount <= 0)continue;
-			int vertCount = geometry->vertices.Num();
+			int vertCount = uiGeo->vertices.Num();
 			int bufferSize = vertCount * sizeof(FDynamicMeshVertex);
-			FMemory::Memcpy((uint8*)vertices.GetData() + vertBufferOffset, (uint8*)geometry->vertices.GetData(), bufferSize);
+			FMemory::Memcpy((uint8*)vertices.GetData() + vertBufferOffset, (uint8*)uiGeo->vertices.GetData(), bufferSize);
 			vertBufferOffset += bufferSize;
 
 			for (int geomTriangleIndicesIndex = 0; geomTriangleIndicesIndex < triangleCount; geomTriangleIndicesIndex++)
@@ -110,7 +113,6 @@ void UUIDrawcall::UpdateDepthRange()
 
 void UUIDrawcall::Clear()
 {
-	geometryList.Reset();
 	texture = nullptr;
 	material = nullptr;
 	materialInstanceDynamic = nullptr;
@@ -127,7 +129,7 @@ bool UUIDrawcall::Equals(UUIDrawcall* Other)
 		&& this->texture == Other->texture
 		&& this->material == Other->material
 		&& this->postProcessRenderableObject == Other->postProcessRenderableObject
-		&& this->geometryList == Other->geometryList
+		&& this->renderObjectList == Other->renderObjectList
 		;
 }
 
@@ -160,7 +162,6 @@ void UUIDrawcall::CopyDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& From, 
 
 
 		drawcall->type = fromDrawcall->type;
-		drawcall->geometryList = fromDrawcall->geometryList;
 		drawcall->texture = fromDrawcall->texture;
 		drawcall->material = fromDrawcall->material;
 		drawcall->materialInstanceDynamic = fromDrawcall->materialInstanceDynamic;

@@ -17,6 +17,7 @@ class UUIDrawcallMesh;
 
 enum class EUIDrawcallType :uint8
 {
+	None,
 	BatchGeometry = 1,
 	PostProcess,
 	DirectMesh,
@@ -25,9 +26,8 @@ enum class EUIDrawcallType :uint8
 class LGUI_API UUIDrawcall
 {
 public:
-	EUIDrawcallType type;
+	EUIDrawcallType type = EUIDrawcallType::None;
 
-	TArray<TSharedPtr<UIGeometry>> geometryList;//UI geometries that construct this drawcall
 	TWeakObjectPtr<UTexture> texture = nullptr;//drawcall used this texture to render
 	TWeakObjectPtr<UMaterialInterface> material = nullptr;//drawcall use this material to render, can be null to use default material
 	TWeakObjectPtr<UMaterialInstanceDynamic> materialInstanceDynamic = nullptr;//created MaterialInstanceDynamic that render this drawcall
