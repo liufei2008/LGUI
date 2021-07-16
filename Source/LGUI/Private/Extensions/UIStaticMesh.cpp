@@ -14,19 +14,18 @@
 UUIStaticMesh::UUIStaticMesh(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	bIsSelfRender = true;
 }
 
-bool UUIStaticMesh::HaveDataToCreateGeometry()
+bool UUIStaticMesh::CanCreateGeometry()
 {
 	if (IsValid(mesh))
 	{
-		if (mesh->GetRenderData() != nullptr)
+		if (mesh->RenderData.IsValid())
 		{
-			if (mesh->GetRenderData()->LODResources.Num() > 0)
+			if (mesh->RenderData->LODResources.Num() > 0)
 			{
-				FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
-				FRawStaticIndexBuffer& indicesBuffers = mesh->GetRenderData()->LODResources[0].IndexBuffer;
+				FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
+				FRawStaticIndexBuffer& indicesBuffers = mesh->RenderData->LODResources[0].IndexBuffer;
 				auto numVertices = vertexBuffers.PositionVertexBuffer.GetNumVertices();
 				auto numIndices = indicesBuffers.GetNumIndices();
 				if (numVertices > 0 && numIndices > 0)
@@ -39,31 +38,22 @@ bool UUIStaticMesh::HaveDataToCreateGeometry()
 	return false;
 }
 #define ONE_DIVIDE_255 0.0039215686274509803921568627451f
-void UUIStaticMesh::OnCreateGeometry()
+void UUIStaticMesh::CreateGeometry()
 {
-	FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
-	FRawStaticIndexBuffer& indicesBuffers = mesh->GetRenderData()->LODResources[0].IndexBuffer;
+	FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
+	FRawStaticIndexBuffer& indicesBuffers = mesh->RenderData->LODResources[0].IndexBuffer;
 	auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
 	auto numIndices = indicesBuffers.GetNumIndices();
 	if (numVertices > 0 && numIndices > 0)
 	{
 		FPositionVertexBuffer& positionBuffer = vertexBuffers.PositionVertexBuffer;
 		FStaticMeshVertexBuffer& staticMeshVertexBuffer = vertexBuffers.StaticMeshVertexBuffer;
-
 		{
-			geometry->originVerticesCount = numVertices;
-			geometry->originPositions.SetNumUninitialized(geometry->originVerticesCount);
-			geometry->vertices.SetNumUninitialized(geometry->originVerticesCount);
+			auto& VertexData = UIDrawcallMesh->MeshSection.vertices;
+
+			VertexData.SetNumUninitialized(numVertices);
 			bool needNormal = RenderCanvas->GetRequireNormal();
 			bool needTangent = RenderCanvas->GetRequireTangent();
-			if (needNormal)
-			{
-				geometry->originNormals.SetNumUninitialized(geometry->originVerticesCount);
-			}
-			if (needTangent)
-			{
-				geometry->originTangents.SetNumUninitialized(geometry->originVerticesCount);
-			}
 			auto numTexCoords = staticMeshVertexBuffer.GetNumTexCoords();
 			bool needUV1 = RenderCanvas->GetRequireUV1();
 			bool needUV2 = RenderCanvas->GetRequireUV2();
@@ -73,10 +63,11 @@ void UUIStaticMesh::OnCreateGeometry()
 			{
 				tempVertexColorType = UIStaticMeshVertexColorType::ReplaceByUIColor;
 			}
-			FMemory::Memcpy(geometry->originPositions.GetData(), positionBuffer.GetVertexData(), numVertices * positionBuffer.GetStride());
+
 			for (int i = 0; i < numVertices; i++)
 			{
-				auto& vert = geometry->vertices[i];
+				auto& vert = VertexData[i];
+				vert.Position = positionBuffer.VertexPosition(i);
 				switch (tempVertexColorType)
 				{
 				case UIStaticMeshVertexColorType::MultiplyWithUIColor:
@@ -120,115 +111,40 @@ void UUIStaticMesh::OnCreateGeometry()
 
 				if (needNormal)
 				{
-					geometry->originNormals[i] = staticMeshVertexBuffer.VertexTangentZ(i);
+					vert.TangentZ = staticMeshVertexBuffer.VertexTangentZ(i);
 				}
 				if (needTangent)
 				{
-					geometry->originTangents[i] = staticMeshVertexBuffer.VertexTangentX(i);
+					vert.TangentX = staticMeshVertexBuffer.VertexTangentX(i);
 				}
 			}
 		}
 		{
-			geometry->originTriangleCount = numIndices;
-			geometry->triangles.SetNumUninitialized(numIndices);
+			auto& IndexData = UIDrawcallMesh->MeshSection.triangles;
+			IndexData.SetNumUninitialized(numIndices);
 			for (int i = 0; i < numIndices; i++)
 			{
-				geometry->triangles[i] = indicesBuffers.GetIndex(i);
+				IndexData[i] = indicesBuffers.GetIndex(i);
 			}
 		}
 	}
-	if (CustomUIMaterial)
+	UIDrawcallMesh->GenerateOrUpdateMesh();
+	if (Material.IsValid())
 	{
-		geometry->material = CustomUIMaterial;
+		UIDrawcallMesh->SetMaterial(0, Material.Get());
 	}
 	else
 	{
-		geometry->material = mesh->GetMaterial(0);
-	}
-}
-void UUIStaticMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	if (InVertexUVChanged)
-	{
-		//UIGeometry::UpdateUIMeshUV(geometry, (uint8)uvType, startAngle, endAngle, segment, sprite->InitAndGetSpriteInfo());
-	}
-	if (InVertexColorChanged)
-	{
-		FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
-		auto tempVertexColorType = vertexColorType;
-		if (vertexBuffers.ColorVertexBuffer.VertexBufferRHI == nullptr)
-		{
-			tempVertexColorType = UIStaticMeshVertexColorType::ReplaceByUIColor;
-		}
-
-		switch (tempVertexColorType)
-		{
-		case UIStaticMeshVertexColorType::MultiplyWithUIColor:
-		{
-			auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
-			if (numVertices > 0)
-			{
-				auto& vertices = geometry->vertices;
-				for (int i = 0; i < vertices.Num(); i++)
-				{
-					auto& vert = vertices[i];
-					vert.Color = vertexBuffers.ColorVertexBuffer.VertexColor(i);
-					auto uiFinalColor = GetFinalColor();
-					vert.Color.R = (uint8)((float)vert.Color.R * uiFinalColor.R * ONE_DIVIDE_255);
-					vert.Color.G = (uint8)((float)vert.Color.G * uiFinalColor.G * ONE_DIVIDE_255);
-					vert.Color.B = (uint8)((float)vert.Color.B * uiFinalColor.B * ONE_DIVIDE_255);
-					vert.Color.A = (uint8)((float)vert.Color.A * uiFinalColor.A * ONE_DIVIDE_255);
-				}
-			}
-		}
-		break;
-		case UIStaticMeshVertexColorType::NotAffectByUIColor:
-		{
-			auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
-			if (numVertices > 0)
-			{
-				FPositionVertexBuffer& positionBuffer = vertexBuffers.PositionVertexBuffer;
-				FStaticMeshVertexBuffer& staticMeshVertexBuffer = vertexBuffers.StaticMeshVertexBuffer;
-
-				auto& vertices = geometry->vertices;
-				for (int i = 0; i < vertices.Num(); i++)
-				{
-					auto& vert = vertices[i];
-					vert.Color = vertexBuffers.ColorVertexBuffer.VertexColor(i);
-				}
-			}
-		}
-		break;
-		case UIStaticMeshVertexColorType::ReplaceByUIColor:
-		{
-			UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-		}
-		break;
-		}
-	}
-	if (InVertexPositionChanged)
-	{
-		//UIGeometry::UpdateUIMeshVertex(geometry, widget.width, widget.height, widget.pivot, startAngle, endAngle, segment);
+		UIDrawcallMesh->SetMaterial(0, mesh->GetMaterial(0));
 	}
 }
 
-void UUIStaticMesh::UpdateSelfRenderMaterial(bool textureChange, bool materialChange)
+void UUIStaticMesh::SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)
 {
-	if (IsValid(uiMesh))
+	Super::SetDrawcallMesh(InUIDrawcallMesh);
+	if (CanCreateGeometry())
 	{
-		if (materialChange)
-		{
-			UMaterialInterface* SrcMaterial = CustomUIMaterial;
-			if (!IsValid(SrcMaterial))
-			{
-				SrcMaterial = mesh->GetMaterial(0);
-				if (!IsValid(SrcMaterial))
-				{
-					SrcMaterial = LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/LGUI_Standard"));
-				}
-			}
-			uiMesh->SetMaterial(0, SrcMaterial);
-		}
+		CreateGeometry();
 	}
 }
 
@@ -237,8 +153,13 @@ void UUIStaticMesh::SetMesh(UStaticMesh* value)
 	if (mesh != value)
 	{
 		mesh = value;
-		MarkTriangleDirty();
-		MarkMaterialDirty();
+		if (UIDrawcallMesh.IsValid())
+		{
+			if (CanCreateGeometry())
+			{
+				CreateGeometry();
+			}
+		}
 	}
 }
 void UUIStaticMesh::SetVertexColorType(UIStaticMeshVertexColorType value)
