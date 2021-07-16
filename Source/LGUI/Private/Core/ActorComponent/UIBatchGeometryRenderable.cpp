@@ -7,6 +7,7 @@
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Core/UIDrawcall.h"
 
 DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
@@ -28,10 +29,6 @@ void UUIBatchGeometryRenderable::BeginPlay()
 	Super::BeginPlay();
 	if (CheckRenderCanvas())
 	{
-		if (!bIsSelfRender)
-		{
-			RenderCanvas->MarkRebuildAllDrawcall();
-		}
 		RenderCanvas->MarkCanvasUpdate();
 	}
 
@@ -53,25 +50,21 @@ void UUIBatchGeometryRenderable::ApplyUIActiveState()
 	bTriangleChanged = true;
 	bTextureChanged = true;
 	bMaterialChanged = true;
-	if (IsUIActiveInHierarchy() == false)
+	if (!IsUIActiveInHierarchy())
 	{
-		if (geometry->vertices.Num() != 0)
+		if (bIsSelfRender)
 		{
-			geometry->Clear();
-			if (CheckRenderCanvas())
+			UpdateSelfRenderDrawcall();
+		}
+		else
+		{
+			if (RenderCanvas.IsValid() && drawcall.IsValid())
 			{
-				if (bIsSelfRender)
-				{
-					UpdateSelfRenderDrawcall();
-				}
-				else
-				{
-					RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-				}
+				RenderCanvas->RemoveUIRenderable(this);
 			}
 		}
 	}
-	Super::ApplyUIActiveState();
+	UUIItem::ApplyUIActiveState();
 }
 #if WITH_EDITOR
 void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -87,17 +80,13 @@ void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& P
 		{
 			if (bIsSelfRender)//prev is not self renderer, then remove this from canvas
 			{
-				if (RenderCanvas.IsValid())
+				if (RenderCanvas.IsValid() && drawcall.IsValid())
 				{
 					RenderCanvas->RemoveUIRenderable(this);
 				}
 			}
 			else//prev is self renderer, then ui mesh
 			{
-				if (RenderCanvas.IsValid())
-				{
-					RenderCanvas->AddUIRenderable(this);
-				}
 				if (IsValid(uiMesh))//delete ui mesh when not self render
 				{
 					uiMesh->DestroyComponent();
@@ -124,7 +113,10 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 	{
 		if (!bIsSelfRender)
 		{
-			OldCanvas->RemoveUIRenderable(this);
+			if (drawcall.IsValid())
+			{
+				OldCanvas->RemoveUIRenderable(this);
+			}
 		}
 		OldCanvas->MarkCanvasUpdate();
 	}
@@ -132,7 +124,6 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 	{
 		if (!bIsSelfRender)
 		{
-			NewCanvas->AddUIRenderable(this);
 			if (IsValid(OldCanvas))
 			{
 				if (OldCanvas->IsRenderToScreenSpaceOrRenderTarget() != NewCanvas->IsRenderToScreenSpaceOrRenderTarget())//is render to screen or world changed, then uimesh need to be recreate
@@ -264,17 +255,13 @@ void UUIBatchGeometryRenderable::SetIsSelfRender(bool value)
 		bIsSelfRender = value;
 		if (bIsSelfRender)
 		{
-			if (RenderCanvas.IsValid())
+			if (RenderCanvas.IsValid() && drawcall.IsValid())
 			{
 				RenderCanvas->RemoveUIRenderable(this);
 			}
 		}
 		else
 		{
-			if (RenderCanvas.IsValid())
-			{
-				RenderCanvas->AddUIRenderable(this);
-			}
 			//destroy mesh if not selfrender, because canvas will render it
 			if (IsValid(uiMesh))
 			{
@@ -291,9 +278,9 @@ UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic
 	{
 		return uiMaterial;
 	}
-	if (CheckRenderCanvas())
+	if (drawcall.IsValid())
 	{
-		return RenderCanvas->GetMaterialInstanceDynamicForDrawcall(geometry->drawcallIndex);
+		return drawcall->materialInstanceDynamic.Get();
 	}
 	return nullptr;
 }
@@ -372,46 +359,34 @@ void UUIBatchGeometryRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
 {
 	OnBeforeCreateOrUpdateGeometry();
-	if (geometry->vertices.Num() == 0//if geometry not created yet
-		|| geometry->drawcallIndex == -1//if geometry not rendered yet
+	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
 		CreateGeometry();
-		RenderCanvas->MarkRebuildAllDrawcall();
+		RenderCanvas->AddUIRenderable(this);
 		goto COMPLETE;
 	}
 	else//if geometry is created, update data
 	{
+		if (cacheForThisUpdate_DepthChanged)
+		{
+			RenderCanvas->SetUIElementDepthChange(this);
+		}
+
 		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
 		{
 			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
 			{
-				geometry->Clear();
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				RenderCanvas->RemoveUIRenderable(this);
 				goto COMPLETE;
 			}
-			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();
-			goto COMPLETE;
-		}
-		if (cacheForThisUpdate_DepthChanged)
-		{
-			if (IsValid(CustomUIMaterial))
-			{
-				CreateGeometry();
-				RenderCanvas->MarkRebuildAllDrawcall();
-				goto COMPLETE;
-			}
-			else
-			{
-				geometry->depth = widget.depth;
-				RenderCanvas->OnUIElementDepthChange(this);
-			}
+			drawcall->textureChanged = cacheForThisUpdate_TextureChanged;
+			drawcall->materialChanged = cacheForThisUpdate_MaterialChanged;
 		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{
 			CreateGeometry();
-			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+			drawcall->needToRebuildMesh = true;
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -421,11 +396,11 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayo
 
 			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
 			{
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				drawcall->needToUpdateVertex = true;
 			}
 			else
 			{
-				RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged);
+				drawcall->needToRebuildMesh = true;
 			}
 			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
 			{
@@ -439,32 +414,29 @@ COMPLETE:
 void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForAutoManageDepth(const bool& parentLayoutChanged)
 {
 	OnBeforeCreateOrUpdateGeometry();
-	if (geometry->vertices.Num() == 0//if geometry not created yet
-		|| geometry->drawcallIndex == -1//if geometry not rendered yet
+	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
 		CreateGeometry();
-		RenderCanvas->MarkRebuildAllDrawcall();
+		RenderCanvas->AddUIRenderable(this);
 		goto COMPLETE;
 	}
-	else//if geometry is created, update data
+	else//already add to render, update data
 	{
 		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
 		{
 			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
 			{
-				geometry->Clear();
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				RenderCanvas->RemoveUIRenderable(this);
 				goto COMPLETE;
 			}
-			CreateGeometry();
-			RenderCanvas->MarkRebuildAllDrawcall();
-			goto COMPLETE;
+			drawcall->textureChanged = cacheForThisUpdate_TextureChanged;
+			drawcall->materialChanged = cacheForThisUpdate_MaterialChanged;
 		}
-		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
+		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate it, and mark update the specific drawcall
 		{
 			CreateGeometry();
-			RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+			drawcall->needToRebuildMesh = true;
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -474,11 +446,11 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForAutoManageDepth(cons
 
 			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
 			{
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
+				drawcall->needToUpdateVertex = true;
 			}
 			else
 			{
-				RenderCanvas->MarkUpdateSpecificDrawcallVertex(geometry->drawcallIndex, cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged);
+				drawcall->needToRebuildMesh = true;
 			}
 			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
 			{
@@ -493,7 +465,6 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const boo
 {
 	OnBeforeCreateOrUpdateGeometry();
 	if (geometry->vertices.Num() == 0//if geometry not created yet
-		|| geometry->drawcallIndex == -1//if geometry not rendered yet
 		)
 	{
 		CreateGeometry();
@@ -527,7 +498,6 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const boo
 			}
 			else
 			{
-				geometry->depth = widget.depth;
 				UpdateSelfRenderDrawcall();
 			}
 		}
@@ -573,7 +543,6 @@ void UUIBatchGeometryRenderable::CreateGeometry()
 			}
 		}
 		geometry->material = CustomUIMaterial;
-		geometry->depth = widget.depth;
 		OnCreateGeometry();
 		ApplyGeometryModifier(true, true, true, true);
 		if (bIsSelfRender)
@@ -587,13 +556,9 @@ void UUIBatchGeometryRenderable::CreateGeometry()
 	}
 	else
 	{
-		if (geometry->vertices.Num() > 0)
+		if (!bIsSelfRender && drawcall.IsValid())
 		{
-			geometry->Clear();
-			if (!bIsSelfRender)
-			{
-				RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-			}
+			RenderCanvas->RemoveUIRenderable(this);
 		}
 	}
 }

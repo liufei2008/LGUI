@@ -214,7 +214,7 @@ void UUIStaticMesh::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertex
 
 void UUIStaticMesh::UpdateSelfRenderMaterial(bool textureChange, bool materialChange)
 {
-	if (uiMesh.IsValid())
+	if (IsValid(uiMesh))
 	{
 		if (materialChange)
 		{

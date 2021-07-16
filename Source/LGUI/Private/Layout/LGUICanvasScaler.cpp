@@ -195,7 +195,6 @@ void ULGUICanvasScaler::OnViewportParameterChanged()
 					}
 					Canvas->canvasScale = canvasScale;
 
-					Canvas->MarkRebuildAllDrawcall();
 					canvasUIItem->MarkAllDirtyRecursive();
 					Canvas->MarkCanvasUpdate();
 				}

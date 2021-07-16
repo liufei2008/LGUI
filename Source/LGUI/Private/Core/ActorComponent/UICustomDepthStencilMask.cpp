@@ -73,6 +73,10 @@ public:
 	{
 
 	}
+	virtual bool CanRender()const override
+	{
+		return FUIPostProcessRenderProxy::CanRender() && maskStrength > 0.0f;
+	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
 		FLGUIHudRenderer* Renderer,
@@ -381,7 +385,7 @@ void UUICustomDepthStencilMask::SendOthersDataToRenderProxy()
 	}
 }
 
-TWeakPtr<FUIPostProcessRenderProxy> UUICustomDepthStencilMask::GetRenderProxy()
+TSharedPtr<FUIPostProcessRenderProxy> UUICustomDepthStencilMask::GetRenderProxy()
 {
 	if (!RenderProxy.IsValid())
 	{

@@ -17,7 +17,6 @@ void UUIDirectMeshRenderable::BeginPlay()
 	Super::BeginPlay();
 	if (CheckRenderCanvas())
 	{
-		RenderCanvas->MarkRebuildAllDrawcall();
 		RenderCanvas->MarkCanvasUpdate();
 	}
 }
@@ -42,32 +41,26 @@ void UUIDirectMeshRenderable::OnUnregister()
 
 void UUIDirectMeshRenderable::ApplyUIActiveState()
 {
-	if (UIDrawcallMesh.IsValid())
-	{
-		UIDrawcallMesh->SetUIMeshVisibility(this->IsUIActiveInHierarchy());
-	}
 	Super::ApplyUIActiveState();
 }
 
 void UUIDirectMeshRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
-	if (IsValid(OldCanvas))
-	{
-		OldCanvas->RemoveUIRenderable(this);
-		OldCanvas->MarkRebuildAllDrawcall();
-	}
-	if (IsValid(NewCanvas))
-	{
-		NewCanvas->AddUIRenderable(this);
-		NewCanvas->MarkRebuildAllDrawcall();
-	}
+	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
 
 
 
 void UUIDirectMeshRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 {
-	
+	if (IsUIActiveInHierarchy() == false)return;
+	if (!CheckRenderCanvas())return;
+
+	if (!drawcall.IsValid()//not add to render yet
+		)
+	{
+		RenderCanvas->AddUIRenderable(this);
+	}
 }
 
 

@@ -288,7 +288,7 @@ protected:
 	virtual void WidthChanged();
 	virtual void HeightChanged();	
 	virtual void PivotChanged();
-
+	virtual void DepthChanged();
 
 #pragma region InteractionGroup
 protected:
