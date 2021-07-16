@@ -7,6 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Core/LGUIFontData.h"
 #include "Core/LGUIFontData_BaseObject.h"
+#include "Core/UIDrawcall.h"
 
 
 #if WITH_EDITORONLY_DATA
@@ -37,9 +38,12 @@ void UUIText::ApplyFontTextureScaleUp()
 	geometry->texture = font->GetFontTexture();
 	if (CheckRenderCanvas())
 	{
-		//RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->texture, true);
-		//RenderCanvas->MarkRebuildSpecificDrawcall(geometry->drawcallIndex);
-		RenderCanvas->MarkRebuildAllDrawcall();
+		if (drawcall.IsValid())
+		{
+			drawcall->texture = geometry->texture;
+			drawcall->textureChanged = true;
+		}
+		RenderCanvas->MarkCanvasUpdate();
 	}
 }
 
@@ -54,7 +58,11 @@ void UUIText::ApplyFontTextureChange()
 		geometry->texture = font->GetFontTexture();
 		if (CheckRenderCanvas())
 		{
-			RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, font->GetFontTexture());
+			if (drawcall.IsValid())
+			{
+				drawcall->texture = geometry->texture;
+				drawcall->textureChanged = true;
+			}
 		}
 	}
 }

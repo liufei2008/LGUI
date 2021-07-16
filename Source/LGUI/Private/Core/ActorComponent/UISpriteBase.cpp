@@ -6,6 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUISpriteData_BaseObject.h"
+#include "Core/UIDrawcall.h"
 
 UUISpriteBase::UUISpriteBase(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {
@@ -51,7 +52,11 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 	geometry->texture = sprite->GetAtlasTexture();
 	if (CheckRenderCanvas())
 	{
-		RenderCanvas->SetDrawcallTexture(geometry->drawcallIndex, sprite->GetAtlasTexture());
+		if (drawcall.IsValid())
+		{
+			drawcall->texture = geometry->texture;
+			drawcall->textureChanged = true;
+		}
 	}
 }
 

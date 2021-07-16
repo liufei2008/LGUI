@@ -54,7 +54,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetStrengthTexture(UTexture2D* newValue);
 
-	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
+	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
 	virtual void MarkAllDirtyRecursive()override;
 protected:
 	float inv_SampleLevelInterval = 1.0f;

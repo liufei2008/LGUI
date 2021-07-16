@@ -41,7 +41,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetApplyAlphaToStrength(bool newValue);
 
-	virtual TWeakPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
+	virtual TSharedPtr<FUIPostProcessRenderProxy> GetRenderProxy()override;
 	virtual void MarkAllDirtyRecursive()override;
 protected:
 	FORCEINLINE float GetStrengthInternal();

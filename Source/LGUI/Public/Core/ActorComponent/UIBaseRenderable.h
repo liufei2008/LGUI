@@ -8,6 +8,7 @@
 class UIGeometry;
 class UMaterialInterface;
 class ULGUICanvas;
+class UUIDrawcall;
 
 UENUM(BlueprintType, Category = LGUI)
 enum class EUIRenderableType :uint8
@@ -35,10 +36,12 @@ protected:
 	EUIRenderableType uiRenderableType = EUIRenderableType::None;
 public:
 
+	virtual void ApplyUIActiveState() override;
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
-
+	virtual void DepthChanged()override;
 	/** get UI renderable type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		EUIRenderableType GetUIRenderableType()const { return uiRenderableType; }
-protected:
+
+	TSharedPtr<UUIDrawcall> drawcall = nullptr;//drawcall that response for this UI
 };

@@ -97,6 +97,10 @@ public:
 	{
 
 	}
+	virtual bool CanRender()const override
+	{
+		return FUIPostProcessRenderProxy::CanRender() && pixelateStrength > 0.0f;
+	}
 	virtual void OnRenderPostProcess_RenderThread(
 		FRHICommandListImmediate& RHICmdList,
 		FLGUIHudRenderer* Renderer,
@@ -161,7 +165,7 @@ void UUIBackgroundPixelate::SendOthersDataToRenderProxy()
 	}
 }
 
-TWeakPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
+TSharedPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
 {
 	if (!RenderProxy.IsValid())
 	{
