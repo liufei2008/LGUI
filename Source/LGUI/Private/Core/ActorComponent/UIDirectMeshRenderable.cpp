@@ -41,6 +41,10 @@ void UUIDirectMeshRenderable::OnUnregister()
 
 void UUIDirectMeshRenderable::ApplyUIActiveState()
 {
+	if (UIDrawcallMesh.IsValid())
+	{
+		UIDrawcallMesh->SetUIMeshVisibility(this->IsUIActiveInHierarchy());
+	}
 	Super::ApplyUIActiveState();
 }
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Core/ActorComponent/UISpriteBase.h"
+#include "Core/ActorComponent/UIDirectMeshRenderable.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "UIStaticMesh.generated.h"
 
@@ -20,7 +20,7 @@ enum class UIStaticMeshVertexColorType :uint8
  * render a StaticMesh as UI element
  */
 UCLASS(ClassGroup = (LGUI), Blueprintable, Experimental, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIStaticMesh : public UUIBatchGeometryRenderable
+class LGUI_API UUIStaticMesh : public UUIDirectMeshRenderable
 {
 	GENERATED_BODY()
 
@@ -33,12 +33,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UIStaticMeshVertexColorType vertexColorType = UIStaticMeshVertexColorType::NotAffectByUIColor;
 	
-	virtual bool HaveDataToCreateGeometry()override;
-	virtual bool NeedTextureToCreateGeometry()override { return false; }
-	virtual void OnBeforeCreateOrUpdateGeometry()override {}
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
-	virtual void UpdateSelfRenderMaterial(bool textureChange, bool materialChange)override;
+	virtual void SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)override;
+	bool CanCreateGeometry();
+	void CreateGeometry();
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 
 		UStaticMesh* GetMesh()const { return mesh; }
