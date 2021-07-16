@@ -222,9 +222,6 @@ protected:
 	/** This can avoid half-pixel render */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
-	/** For future use */
-	UPROPERTY()
-		bool overrideSortOrder = false;
 	/** Canvas with larger order will render on top of lower one */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int32 sortOrder = 0;
@@ -266,13 +263,14 @@ protected:
 		bool onlyOwnerSee = false;
 
 	/**
+	 * !!!This parameter will be removed in future release! So keep the value as false!
 	 * When use auto manage depth, only 2D elements can be batched.
 	 * Ruls for telling if a UI element is 2D (convert the UI element in Canvas's relative space):
 	 * * Relative location.Z less than threshold.
 	 * * Relative rotation.X/Y less than threshold.
 	 * We can change the threshold in Edit/ProjectSettings/Plugins/LGUI/AutoManageDepthThreshold.
 	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
 		bool autoManageDepth = false;
 
 	/** For not root canvas, inherit or override parent canvas parameters. */
