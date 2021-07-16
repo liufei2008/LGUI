@@ -126,14 +126,16 @@ private:
 	void UpdateCanvasLayout(bool parentLayoutChanged);
 	/** update Canvas's geometry */
 	void UpdateCanvasGeometry();
+	/** clear drawcalls */
+	void ClearDrawcall();
 public:
 	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
 	/** mark any child's layout change */
 	void MarkCanvasUpdateLayout();
+	/** mark sort render priority when next frame update */
+	void MarkSortRenderPriority();
 
-	/** mark need to rebuild all drawcall */
-	void MarkRebuildAllDrawcall();
 	/** UI element's depth change */
 	void SetUIElementDepthChange(UUIBaseRenderable* item);
 
@@ -412,7 +414,7 @@ public:
 	void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
 	void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
 private:
-
+	void CombineDrawcall();
 	void ApplyOwnerSeeRecursive();
 private:
 	uint8 bClipTypeChanged:1;
@@ -433,8 +435,7 @@ private:
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
 	TArray<TWeakObjectPtr<UUIDrawcallMesh>> PooledUIMeshList;//UIDrawcallMesh pool
-	UPROPERTY(Transient) TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//pool it
-
+	UPROPERTY(Transient) TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool
 	TDoubleLinkedList<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 
 	/** rect clip's min position */
@@ -457,4 +458,5 @@ private:
 	void SetParameterForTextureClip();
 	UMaterialInstanceDynamic* GetUIMaterialFromPool(ELGUICanvasClipType inClipType);
 	void AddUIMaterialToPool(UMaterialInstanceDynamic* uiMat);
+	void AddUIMeshToPool(UUIDrawcallMesh* uiMesh);
 };

@@ -362,31 +362,35 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayo
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
-		CreateGeometry();
-		RenderCanvas->AddUIRenderable(this);
+		if (CreateGeometry())
+		{
+			RenderCanvas->AddUIRenderable(this);
+		}
 		goto COMPLETE;
 	}
 	else//if geometry is created, update data
 	{
-		if (cacheForThisUpdate_DepthChanged)
-		{
-			RenderCanvas->SetUIElementDepthChange(this);
-		}
-
 		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
 		{
 			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
 			{
+				UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
 				RenderCanvas->RemoveUIRenderable(this);
 				goto COMPLETE;
 			}
 			drawcall->textureChanged = cacheForThisUpdate_TextureChanged;
 			drawcall->materialChanged = cacheForThisUpdate_MaterialChanged;
 		}
-		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
+		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to recreate geometry
 		{
-			CreateGeometry();
-			drawcall->needToRebuildMesh = true;
+			if (CreateGeometry())
+			{
+				drawcall->needToRebuildMesh = true;
+			}
+			else
+			{
+				RenderCanvas->RemoveUIRenderable(this);
+			}
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -417,8 +421,10 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForAutoManageDepth(cons
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
-		CreateGeometry();
-		RenderCanvas->AddUIRenderable(this);
+		if (CreateGeometry())
+		{
+			RenderCanvas->AddUIRenderable(this);
+		}
 		goto COMPLETE;
 	}
 	else//already add to render, update data
@@ -427,7 +433,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForAutoManageDepth(cons
 		{
 			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
 			{
-				RenderCanvas->RemoveUIRenderable(this);
+				UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
 				goto COMPLETE;
 			}
 			drawcall->textureChanged = cacheForThisUpdate_TextureChanged;
@@ -435,8 +441,14 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForAutoManageDepth(cons
 		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate it, and mark update the specific drawcall
 		{
-			CreateGeometry();
-			drawcall->needToRebuildMesh = true;
+			if (CreateGeometry())
+			{
+				drawcall->needToRebuildMesh = true;
+			}
+			else
+			{
+				RenderCanvas->RemoveUIRenderable(this);
+			}
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -478,6 +490,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const boo
 		{
 			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
 			{
+				UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
 				geometry->Clear();
 				UpdateSelfRenderDrawcall();
 				ClearSelfRenderMaterial();
@@ -487,19 +500,6 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const boo
 			UpdateSelfRenderDrawcall();
 			UpdateSelfRenderMaterial(cacheForThisUpdate_TextureChanged, cacheForThisUpdate_MaterialChanged);
 			goto COMPLETE;
-		}
-		if (cacheForThisUpdate_DepthChanged)
-		{
-			if (IsValid(CustomUIMaterial))
-			{
-				CreateGeometry();
-				UpdateSelfRenderDrawcall();
-				goto COMPLETE;
-			}
-			else
-			{
-				UpdateSelfRenderDrawcall();
-			}
 		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{
@@ -529,19 +529,17 @@ COMPLETE:
 	;
 }
 
-void UUIBatchGeometryRenderable::CreateGeometry()
+bool UUIBatchGeometryRenderable::CreateGeometry()
 {
 	if (HaveDataToCreateGeometry())
 	{
-		geometry->Clear();
-		if (NeedTextureToCreateGeometry())
+		if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))
 		{
-			geometry->texture = GetTextureToCreateGeometry();
-			if (!geometry->texture.IsValid())
-			{
-				UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but provided texture is no valid!"));
-			}
+			UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
+			return false;
 		}
+		geometry->Clear();
+		geometry->texture = GetTextureToCreateGeometry();
 		geometry->material = CustomUIMaterial;
 		OnCreateGeometry();
 		ApplyGeometryModifier(true, true, true, true);
@@ -553,13 +551,11 @@ void UUIBatchGeometryRenderable::CreateGeometry()
 		{
 			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 		}
+		return true;
 	}
 	else
 	{
-		if (!bIsSelfRender && drawcall.IsValid())
-		{
-			RenderCanvas->RemoveUIRenderable(this);
-		}
+		return false;
 	}
 }
 
@@ -650,6 +646,18 @@ void UUIBatchGeometryRenderable::ClearSelfRenderMaterial()
 	{
 		uiMaterial->ConditionalBeginDestroy();
 		uiMaterial = nullptr;
+	}
+}
+
+void UUIBatchGeometryRenderable::DepthChanged()
+{
+	if (bIsSelfRender)
+	{
+		UpdateSelfRenderDrawcall();
+	}
+	else
+	{
+		Super::DepthChanged();
 	}
 }
 

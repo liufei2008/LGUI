@@ -54,7 +54,6 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 		{
 			if (auto rootCanvas = rootActor->FindComponentByClass<ULGUICanvas>())
 			{
-				rootCanvas->MarkRebuildAllDrawcall();
 				rootCanvas->MarkCanvasUpdate();
 				rootCanvas->UpdateCanvas(0.16f);
 				IsLGUIPrefab = true;
@@ -64,7 +63,6 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 				rootCanvas = NewObject<ULGUICanvas>(rootActor);
 				rootCanvas->RegisterComponent();
 				rootActor->AddInstanceComponent(rootCanvas);
-				rootCanvas->MarkRebuildAllDrawcall();
 				rootCanvas->MarkCanvasUpdate();
 				rootCanvas->UpdateCanvas(0.16f);
 				IsLGUIPrefab = true;

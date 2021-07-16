@@ -29,7 +29,6 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	itemType = UIItemType::UIItem;
 
 	bColorChanged = true;
-	bDepthChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 
@@ -47,7 +46,6 @@ void UUIItem::BeginPlay()
 	CheckRenderCanvas();
 
 	bColorChanged = true;
-	bDepthChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 	MarkLayoutDirty(true);
@@ -412,7 +410,6 @@ void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& In
 void UUIItem::MarkAllDirtyRecursive()
 {
 	bColorChanged = true;
-	bDepthChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 
@@ -799,7 +796,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 
 		CallUIComponentsChildAttachmentChanged(childUIItem, true);
 	}
-	MarkCanvasUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 {
@@ -821,7 +818,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 
 		CallUIComponentsChildAttachmentChanged(childUIItem, false);
 	}
-	MarkCanvasUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 void UUIItem::OnRegister()
 {
@@ -1275,14 +1272,12 @@ void UUIItem::CalculateTransformFromAnchor()
 }
 void UUIItem::UpdateCachedData()
 {
-	this->cacheForThisUpdate_DepthChanged = bDepthChanged;
 	this->cacheForThisUpdate_ColorChanged = bColorChanged;
 	this->cacheForThisUpdate_LayoutChanged = bLayoutChanged;
 	this->cacheForThisUpdate_SizeChanged = bSizeChanged;
 }
 void UUIItem::UpdateCachedDataBeforeGeometry()
 {
-	if (bDepthChanged)cacheForThisUpdate_DepthChanged = true;
 	if (bColorChanged)cacheForThisUpdate_ColorChanged = true;
 	if (bLayoutChanged)cacheForThisUpdate_LayoutChanged = true;
 	if (bSizeChanged)cacheForThisUpdate_SizeChanged = true;
@@ -1290,7 +1285,6 @@ void UUIItem::UpdateCachedDataBeforeGeometry()
 void UUIItem::UpdateBasePrevData()
 {
 	bColorChanged = false;
-	bDepthChanged = false;
 	bLayoutChanged = false;
 	bSizeChanged = false;
 }
@@ -1335,7 +1329,6 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 	if (widget.depth != depth)
 	{
-		bDepthChanged = true;
 		int32 diff = depth - widget.depth;
 		widget.depth = depth;
 		if (propagateToChildren)
@@ -1351,7 +1344,11 @@ void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 			}
 		}
 		DepthChanged();
-		MarkCanvasUpdate();
+		if (CheckRenderCanvas())
+		{
+			RenderCanvas->MarkCanvasUpdate();
+			RenderCanvas->MarkSortRenderPriority();
+		}
 	}
 }
 void UUIItem::SetColor(FColor color) {
@@ -1825,7 +1822,7 @@ void UUIItem::MarkLayoutDirty(bool sizeChange)
 void UUIItem::MarkColorDirty() 
 { 
 	bColorChanged = true;
-	MarkCanvasUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 }
 void UUIItem::MarkCanvasUpdate()
 {
@@ -2070,10 +2067,9 @@ void UUIItem::ApplyUIActiveState()
 #endif
 	if (isCanvasUIItem)RenderCanvas->OnUIActiveStateChanged(IsUIActiveInHierarchy());
 	bColorChanged = true;
-	bDepthChanged = true;
 	bLayoutChanged = true;
 	//canvas update
-	MarkCanvasUpdate();
+	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
 	//callback
 	CallUIComponentsActiveInHierarchyStateChanged();
 }
