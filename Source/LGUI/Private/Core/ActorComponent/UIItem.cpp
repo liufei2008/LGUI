@@ -220,13 +220,6 @@ void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarc
 	if (this->flattenHierarchyIndex != parentFlattenHierarchyIndex)
 	{
 		this->flattenHierarchyIndex = parentFlattenHierarchyIndex;
-		if (RenderCanvas.IsValid())
-		{
-			if (RenderCanvas->GetAutoManageDepth())
-			{
-				RenderCanvas->MarkRebuildAllDrawcall();
-			}
-		}
 		if (this->isCanvasUIItem)
 		{
 			RenderCanvas->OnUIHierarchyIndexChanged();
@@ -556,7 +549,6 @@ void UUIItem::EditorForceUpdateImmediately()
 	RenderCanvas = nullptr;//force check
 	if (CheckRenderCanvas())
 	{
-		RenderCanvas->MarkRebuildAllDrawcall();
 		if (RenderCanvas->GetRootCanvas())
 		{
 			RenderCanvas->GetRootCanvas()->MarkCanvasUpdate();
@@ -1339,11 +1331,11 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 		SetHeight(inWidget.height);
 	}
 }
+
 void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 	if (widget.depth != depth)
 	{
 		bDepthChanged = true;
-		MarkCanvasUpdate();
 		int32 diff = depth - widget.depth;
 		widget.depth = depth;
 		if (propagateToChildren)
@@ -1358,6 +1350,8 @@ void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 				}
 			}
 		}
+		DepthChanged();
+		MarkCanvasUpdate();
 	}
 }
 void UUIItem::SetColor(FColor color) {
@@ -1425,6 +1419,10 @@ void UUIItem::HeightChanged()
 
 }
 void UUIItem::PivotChanged()
+{
+
+}
+void UUIItem::DepthChanged()
 {
 
 }

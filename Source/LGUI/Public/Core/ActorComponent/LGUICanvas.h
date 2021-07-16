@@ -126,7 +126,6 @@ private:
 	void UpdateCanvasLayout(bool parentLayoutChanged);
 	/** update Canvas's geometry */
 	void UpdateCanvasGeometry();
-	void UpdateCanvasGeometryForAutoManageDepth();
 public:
 	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
@@ -135,17 +134,9 @@ public:
 
 	/** mark need to rebuild all drawcall */
 	void MarkRebuildAllDrawcall();
-	/** mark specific drawcall need to rebuild */
-	void MarkRebuildSpecificDrawcall(int drawcallIndex);
-	/** set specific drawcall's texture. eg when UIText's texture expend, just need to change the texture */
-	void SetDrawcallTexture(int drawcallIndex, UTexture* drawcallTexture);
-	/** mark update specific drawcall vertex, when vertex position/uv/color etc change */
-	void MarkUpdateSpecificDrawcallVertex(int drawcallIndex, bool vertexPositionChanged = true);
 	/** UI element's depth change */
-	void OnUIElementDepthChange(UUIBatchGeometryRenderable* item);
-	/** @return created MaterialInstanceDynamic for target drawcall, return nullptr if drawcallIndex is -1 */
-	UMaterialInstanceDynamic* GetMaterialInstanceDynamicForDrawcall(int drawcallIndex)const;
-	
+	void SetUIElementDepthChange(UUIBaseRenderable* item);
+
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
 	/** calculate rect clip range */
@@ -416,17 +407,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetDynamicPixelsPerUnit(float newValue);
 
-	/** return UIRenderables that belong to this canvas */
-	const TArray<TWeakObjectPtr<UUIBaseRenderable>>& GetUIRenderables()const { return UIRenderableItemList; }
 	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
 
-	FORCEINLINE void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
-	FORCEINLINE void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
+	void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
+	void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
 private:
-	/** insert a UI element into an existing drawcall. if all existing drawcall cannot fit in the element, create new drawcall. */
-	void InsertIntoDrawcall(UUIBatchGeometryRenderable* item);
-	/** remove a UI element from drawcall list */
-	void RemoveFromDrawcall(UUIBatchGeometryRenderable* item);
 
 	void ApplyOwnerSeeRecursive();
 private:
@@ -436,11 +421,10 @@ private:
 
 	uint8 bCanTickUpdate:1;//if Canvas can update from tick
 	uint8 bShouldUpdateLayout:1;//if any child layout changed
-	uint8 bShouldRebuildAllDrawcall:1;//if Canvas need to rebuild all drawcall
 	uint8 bRectRangeCalculated:1;
 	uint8 bNeedToSortRenderPriority : 1;
 
-	uint8 cacheForThisUpdate_ShouldRebuildAllDrawcall : 1, cacheForThisUpdate_ShouldUpdateLayout:1
+	uint8 cacheForThisUpdate_ShouldUpdateLayout:1
 		, cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
 	/** prev frame number, we can tell if we enter to a new render frame */
 	uint32 prevFrameNumber = 0;
@@ -448,21 +432,10 @@ private:
 	mutable uint32 cacheViewProjectionMatrixFrameNumber = 0;
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
-	struct FLGUIDrawcallPrimitive
-	{
-		TWeakObjectPtr<UUIDrawcallMesh> UIBatchedDrawcallMesh = nullptr;//drawcall mesh for batched geometry
-		TWeakPtr<FUIPostProcessRenderProxy> UIPostProcessRenderable = nullptr;
-		TWeakObjectPtr<UUIDirectMeshRenderable> UIDirectMeshRenderable = nullptr;
-	};
-	UPROPERTY(Transient)TArray<TWeakObjectPtr<UUIBaseRenderable>> UIRenderableItemList;//all renderable UI element collection
-	TArray<FLGUIDrawcallPrimitive> UIDrawcallPrimitiveList;//UIDrawcallPrimitive collection of this Canvas
-	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
-	TArray<TSharedPtr<UUIDrawcall>> TempUIDrawcallList;//for temperal create drawcall list, to compare the actual drawcall
-	TArray<TWeakObjectPtr<UUIDrawcallMesh>> CacheUIMeshList;//UIDrawcallMesh pool
-	UPROPERTY(Transient)TArray<UMaterialInstanceDynamic*> UIMaterialList;//material collection for UIDrawcallMesh
-	//UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)
-	UPROPERTY(Transient)
-		TArray<FLGUIMaterialArrayContainer> CacheUIMaterialList;//pool it
+	TArray<TWeakObjectPtr<UUIDrawcallMesh>> PooledUIMeshList;//UIDrawcallMesh pool
+	UPROPERTY(Transient) TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//pool it
+
+	TDoubleLinkedList<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);
@@ -479,9 +452,9 @@ private:
 private:
 	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();
-	void SetParameterForStandard(int drawcallCount);
-	void SetParameterForRectClip(int drawcallCount);
-	void SetParameterForTextureClip(int drawcallCount);
-	UMaterialInstanceDynamic* GetUIMaterialFromCache(ELGUICanvasClipType inClipType);
-	void AddUIMaterialToCache(UMaterialInstanceDynamic* uiMat);
+	void SetParameterForStandard();
+	void SetParameterForRectClip();
+	void SetParameterForTextureClip();
+	UMaterialInstanceDynamic* GetUIMaterialFromPool(ELGUICanvasClipType inClipType);
+	void AddUIMaterialToPool(UMaterialInstanceDynamic* uiMat);
 };
