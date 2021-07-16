@@ -89,6 +89,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* CustomUIMaterial = nullptr;
 	/** 
+	 * !!!This parameter will be removed in future release! So keep the value as false!
 	 * Render by self or by LGUICanvas.
 	 * true: Generate UIDrawcallMesh by it self, so every object is a drawcall. In this mode, depth acturally controls the "Transparent Sort Priority". But not support canvas clip.
 	 * false: Render by LGUICanvas, so drawcall can be combined.
