@@ -64,7 +64,9 @@ void UUIBaseRenderable::DepthChanged()
 	{
 		if (drawcall.IsValid())
 		{
-			RenderCanvas->SetUIElementDepthChange(this);
+			//Remove from old drawcall, then add to new drawcall.
+			RenderCanvas->RemoveUIRenderable(this);
+			RenderCanvas->AddUIRenderable(this);
 		}
 	}
 }

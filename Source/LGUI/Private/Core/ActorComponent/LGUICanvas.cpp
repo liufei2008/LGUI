@@ -401,12 +401,6 @@ bool ULGUICanvas::IsRootCanvas()const
 	return RootCanvas == this;
 }
 
-void ULGUICanvas::SetUIElementDepthChange(UUIBaseRenderable* item)
-{
-	RemoveUIRenderable(item);
-	AddUIRenderable(item);
-}
-
 TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetViewExtension()
 {
 	if (!ViewExtension.IsValid())
@@ -439,52 +433,58 @@ bool ULGUICanvas::GetIsUIActive()const
 void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
 	//SCOPE_CYCLE_COUNTER(STAT_DrawcallBatch);
-	auto SplitDrawcall = [&](TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* nodePtrToInsert
+	auto SplitDrawcall = [&](TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* drawcallNodePtr
 		, int32 uiElementDepth
-		, TSharedPtr<UUIDrawcall> prevNodeDrawcall
 		, TFunction<TSharedPtr<UUIDrawcall>(UMaterialInterface*)> NewDrawcall
 		)
 	{
+		TSharedPtr<UUIDrawcall> drawcallToSplit = drawcallNodePtr->GetValue();
 		//split first drawcall: from depthMin to split point depth(include).
 		//split second drawcall: from split point depth(no include) to depthMax.
 
 		auto firstDrawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
 		firstDrawcall->type = EUIDrawcallType::BatchGeometry;
-		firstDrawcall->texture = prevNodeDrawcall->texture;
+		firstDrawcall->texture = drawcallToSplit->texture;
 		auto secondDrawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
 		secondDrawcall->type = EUIDrawcallType::BatchGeometry;
-		secondDrawcall->texture = prevNodeDrawcall->texture;
+		secondDrawcall->texture = drawcallToSplit->texture;
 
-		int32 firstDrawcallDepthMin = prevNodeDrawcall->depthMin;
+		int32 firstDrawcallDepthMin = drawcallToSplit->depthMin;
 		int32 firstDrawcallDepthMax = uiElementDepth;
 		//int32 secondDrawcallDepthMin = uiElementDepth + 1;
-		//int32 secondDrawcallDepthMax = prevNodeDrawcall->depthMax;
-		for (int i = 0; i < prevNodeDrawcall->renderObjectList.Num(); i++)
+		//int32 secondDrawcallDepthMax = drawcallToSplit->depthMax;
+		for (int i = 0; i < drawcallToSplit->renderObjectList.Num(); i++)
 		{
-			auto renderObject = prevNodeDrawcall->renderObjectList[i];
+			auto renderObject = drawcallToSplit->renderObjectList[i];
 			if (renderObject->GetDepth() >= firstDrawcallDepthMin && renderObject->GetDepth() <= firstDrawcallDepthMax)
 			{
-				firstDrawcall->renderObjectList.Add(prevNodeDrawcall->renderObjectList[i]);
-				prevNodeDrawcall->renderObjectList[i]->drawcall = firstDrawcall;
+				firstDrawcall->renderObjectList.Add(renderObject);
+				renderObject->drawcall = firstDrawcall;
 			}
 			else
 			{
-				secondDrawcall->renderObjectList.Add(prevNodeDrawcall->renderObjectList[i]);
-				prevNodeDrawcall->renderObjectList[i]->drawcall = secondDrawcall;
+				secondDrawcall->renderObjectList.Add(renderObject);
+				renderObject->drawcall = secondDrawcall;
 			}
 		}
 
 		auto middleDrawcall = NewDrawcall(nullptr);
-		InUIRenderable->drawcall = middleDrawcall;
 
-		UIDrawcallList.InsertNode(firstDrawcall, nodePtrToInsert);
-		UIDrawcallList.InsertNode(middleDrawcall, nodePtrToInsert);
-		UIDrawcallList.InsertNode(secondDrawcall, nodePtrToInsert);
-		UIDrawcallList.RemoveNode(nodePtrToInsert);
+		UIDrawcallList.InsertNode(firstDrawcall, drawcallNodePtr);
+		UIDrawcallList.InsertNode(middleDrawcall, drawcallNodePtr);
+		UIDrawcallList.InsertNode(secondDrawcall, drawcallNodePtr);
+		if (drawcallToSplit->drawcallMesh.IsValid())
+		{
+			AddUIMeshToPool(drawcallToSplit->drawcallMesh.Get());
+		}
+		if (drawcallToSplit->materialInstanceDynamic.IsValid())
+		{
+			AddUIMaterialToPool(drawcallToSplit->materialInstanceDynamic.Get());
+		}
+		UIDrawcallList.RemoveNode(drawcallNodePtr);
 	};
 	check(InUIRenderable->drawcall == nullptr);
 	bool hasAddNewDrawcall = false;
-	
 	switch (InUIRenderable->GetUIRenderableType())
 	{
 	case EUIRenderableType::UIBatchGeometryRenderable:
@@ -492,7 +492,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 		auto batchGeometryRenderable = (UUIBatchGeometryRenderable*)InUIRenderable;
 		auto uiGeo = batchGeometryRenderable->GetGeometry();
 		check(uiGeo.IsValid());
-
 		auto NewDrawcall = [&](UMaterialInterface* mat)
 		{
 			hasAddNewDrawcall = true;
@@ -502,6 +501,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 			drawcall->renderObjectList.Add(batchGeometryRenderable);
 			drawcall->type = EUIDrawcallType::BatchGeometry;
 			drawcall->UpdateDepthRange();
+			InUIRenderable->drawcall = drawcall;
 			return drawcall;
 		};
 		auto InsertIntoRenderObjectList = [](TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>>& list, UUIBatchGeometryRenderable* item)
@@ -526,7 +526,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 		{
 			auto drawcall = NewDrawcall(uiGeo->material.IsValid() ? uiGeo->material.Get() : nullptr);
 			UIDrawcallList.AddHead(drawcall);
-			InUIRenderable->drawcall = drawcall;
 		}
 		else
 		{
@@ -549,7 +548,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 				{
 					UIDrawcallList.AddTail(drawcall);
 				}
-				InUIRenderable->drawcall = drawcall;
 			}
 			else//batch elements into drawcall by comparing depth and texture
 			{
@@ -580,7 +578,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 					{
 						auto drawcall = NewDrawcall(nullptr);
 						UIDrawcallList.AddTail(drawcall);
-						InUIRenderable->drawcall = drawcall;
 					}
 				}
 				else//not tail, maybe head or middle
@@ -600,7 +597,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 						{
 							auto drawcall = NewDrawcall(nullptr);
 							UIDrawcallList.AddHead(drawcall);
-							InUIRenderable->drawcall = drawcall;
 						}
 					}
 					else//middle
@@ -629,11 +625,10 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 								{
 									auto drawcall = NewDrawcall(nullptr);
 									UIDrawcallList.InsertNode(drawcall, nodePtrToInsert);
-									InUIRenderable->drawcall = drawcall;
 								}
 								else//inside depth range, must split drawcall
 								{
-									SplitDrawcall(nodePtrToInsert, uiElementDepth, prevNodeDrawcall, NewDrawcall);
+									SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
 								}
 							}
 						}
@@ -652,6 +647,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 			auto drawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
 			drawcall->postProcessRenderableObject = postProcessRenderable;
 			drawcall->type = EUIDrawcallType::PostProcess;
+			InUIRenderable->drawcall = drawcall;
 			return drawcall;
 		};
 
@@ -659,7 +655,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 		{
 			auto drawcall = NewDrawcall(nullptr);
 			UIDrawcallList.AddHead(drawcall);
-			InUIRenderable->drawcall = drawcall;
 		}
 		else//find a place to insert this drawcall
 		{
@@ -679,7 +674,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 			{
 				auto drawcall = NewDrawcall(nullptr);
 				UIDrawcallList.AddTail(drawcall);
-				InUIRenderable->drawcall = drawcall;
 			}
 			else//not tail, maybe head or middle
 			{
@@ -688,7 +682,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 				{
 					auto drawcall = NewDrawcall(nullptr);
 					UIDrawcallList.AddHead(drawcall);
-					InUIRenderable->drawcall = drawcall;
 				}
 				else//middle
 				{
@@ -697,11 +690,10 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 					{
 						auto drawcall = NewDrawcall(nullptr);
 						UIDrawcallList.InsertNode(drawcall, nodePtrToInsert);
-						InUIRenderable->drawcall = drawcall;
 					}
 					else//inside depth range, must split drawcall
 					{
-						SplitDrawcall(nodePtrToInsert, uiElementDepth, prevNodeDrawcall, NewDrawcall);
+						SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
 					}
 				}
 			}
@@ -717,6 +709,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 			auto drawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
 			drawcall->directMeshRenderableObject = directMeshRenderable;
 			drawcall->type = EUIDrawcallType::DirectMesh;
+			InUIRenderable->drawcall = drawcall;
 			return drawcall;
 		};
 
@@ -724,7 +717,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 		{
 			auto drawcall = NewDrawcall(nullptr);
 			UIDrawcallList.AddHead(drawcall);
-			InUIRenderable->drawcall = drawcall;
 		}
 		else//find a place to insert this drawcall
 		{
@@ -744,7 +736,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 			{
 				auto drawcall = NewDrawcall(nullptr);
 				UIDrawcallList.AddTail(drawcall);
-				InUIRenderable->drawcall = drawcall;
 			}
 			else//not tail, maybe head or middle
 			{
@@ -753,7 +744,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 				{
 					auto drawcall = NewDrawcall(nullptr);
 					UIDrawcallList.AddHead(drawcall);
-					InUIRenderable->drawcall = drawcall;
 				}
 				else//middle
 				{
@@ -762,11 +752,10 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 					{
 						auto drawcall = NewDrawcall(nullptr);
 						UIDrawcallList.InsertNode(drawcall, nodePtrToInsert);
-						InUIRenderable->drawcall = drawcall;
 					}
 					else//inside depth range, must split drawcall
 					{
-						SplitDrawcall(nodePtrToInsert, uiElementDepth, prevNodeDrawcall, NewDrawcall);
+						SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
 					}
 				}
 			}
@@ -799,7 +788,7 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 		drawcall->renderObjectList.RemoveAt(index);
 		drawcall->UpdateDepthRange();
 		drawcall->needToRebuildMesh = true;
-		batchGeometryRenderable->drawcall = nullptr;
+		InUIRenderable->drawcall = nullptr;
 		if (drawcall->renderObjectList.Num() == 0)
 		{
 			if (drawcall->drawcallMesh.IsValid())
@@ -866,7 +855,6 @@ void ULGUICanvas::CombineDrawcall()
 					//combine prev drawcall to current
 					auto prevNode = iter->GetPrevNode();
 					auto prevDrawcall = prevNode->GetValue();
-					UIDrawcallList.RemoveNode(prevNode);
 					auto currentDrawcall = drawcallItem;
 					int additionalSize = prevDrawcall->renderObjectList.Num();
 					currentDrawcall->renderObjectList.Reserve(currentDrawcall->renderObjectList.Num() + additionalSize);
@@ -884,6 +872,7 @@ void ULGUICanvas::CombineDrawcall()
 					{
 						AddUIMaterialToPool(prevDrawcall->materialInstanceDynamic.Get());
 					}
+					UIDrawcallList.RemoveNode(prevNode);
 				}
 			}
 		}

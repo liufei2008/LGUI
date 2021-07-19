@@ -135,10 +135,6 @@ private:
 	uint8 bUVChanged:1;
 	/** triangle index change */
 	uint8 bTriangleChanged:1;
-	/** texture change */
-	uint8 bTextureChanged:1;
-	/** custom material change */
-	uint8 bMaterialChanged:1;
 
-	uint8 cacheForThisUpdate_LocalVertexPositionChanged:1, cacheForThisUpdate_UVChanged:1, cacheForThisUpdate_TriangleChanged:1, cacheForThisUpdate_TextureChanged:1, cacheForThisUpdate_MaterialChanged:1;
+	uint8 cacheForThisUpdate_LocalVertexPositionChanged:1, cacheForThisUpdate_UVChanged:1, cacheForThisUpdate_TriangleChanged:1;
 };
