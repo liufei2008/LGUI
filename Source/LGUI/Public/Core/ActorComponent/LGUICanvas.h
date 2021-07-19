@@ -136,9 +136,6 @@ public:
 	/** mark sort render priority when next frame update */
 	void MarkSortRenderPriority();
 
-	/** UI element's depth change */
-	void SetUIElementDepthChange(UUIBaseRenderable* item);
-
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
 	/** calculate rect clip range */

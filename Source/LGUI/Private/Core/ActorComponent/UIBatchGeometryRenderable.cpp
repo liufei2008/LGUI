@@ -20,8 +20,6 @@ UUIBatchGeometryRenderable::UUIBatchGeometryRenderable(const FObjectInitializer&
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
-	bTextureChanged = true;
-	bMaterialChanged = true;
 }
 
 void UUIBatchGeometryRenderable::BeginPlay()
@@ -35,8 +33,6 @@ void UUIBatchGeometryRenderable::BeginPlay()
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
-	bTextureChanged = true;
-	bMaterialChanged = true;
 }
 
 void UUIBatchGeometryRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -46,10 +42,6 @@ void UUIBatchGeometryRenderable::TickComponent( float DeltaTime, ELevelTick Tick
 
 void UUIBatchGeometryRenderable::ApplyUIActiveState()
 {
-	bUVChanged = true;
-	bTriangleChanged = true;
-	bTextureChanged = true;
-	bMaterialChanged = true;
 	if (!IsUIActiveInHierarchy())
 	{
 		if (bIsSelfRender)
@@ -69,10 +61,6 @@ void UUIBatchGeometryRenderable::ApplyUIActiveState()
 #if WITH_EDITOR
 void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	bUVChanged = true;
-	bTriangleChanged = true;
-	bTextureChanged = true;
-	bMaterialChanged = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
@@ -171,12 +159,60 @@ void UUIBatchGeometryRenderable::MarkTriangleDirty()
 }
 void UUIBatchGeometryRenderable::MarkTextureDirty()
 {
-	bTextureChanged = true;
+	if (bIsSelfRender)
+	{
+		UpdateSelfRenderMaterial(true, false);
+	}
+	else
+	{
+		if (CheckRenderCanvas())
+		{
+			if (drawcall.IsValid())
+			{
+				if (NeedTextureToCreateGeometry())
+				{
+					if (!IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
+					{
+						UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
+						RenderCanvas->RemoveUIRenderable(this);
+					}
+					else
+					{
+						geometry->texture = GetTextureToCreateGeometry();
+						//Remove from old drawcall, then add to new drawcall.
+						RenderCanvas->RemoveUIRenderable(this);
+						RenderCanvas->AddUIRenderable(this);
+					}
+				}
+				else
+				{
+					//Remove from old drawcall, then add to new drawcall.
+					RenderCanvas->RemoveUIRenderable(this);
+					RenderCanvas->AddUIRenderable(this);
+				}
+			}
+		}
+	}
 	MarkCanvasUpdate();
 }
 void UUIBatchGeometryRenderable::MarkMaterialDirty()
 {
-	bMaterialChanged = true;
+	if (bIsSelfRender)
+	{
+		UpdateSelfRenderMaterial(false, true);
+	}
+	else
+	{
+		if (CheckRenderCanvas())
+		{
+			if (drawcall.IsValid())
+			{
+				//Remove from old drawcall, then add to new drawcall.
+				RenderCanvas->RemoveUIRenderable(this);
+				RenderCanvas->AddUIRenderable(this);
+			}
+		}
+	}
 	MarkCanvasUpdate();
 }
 
@@ -209,8 +245,6 @@ void UUIBatchGeometryRenderable::UpdateCachedData()
 	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
 	cacheForThisUpdate_UVChanged = bUVChanged;
 	cacheForThisUpdate_TriangleChanged = bTriangleChanged;
-	cacheForThisUpdate_TextureChanged = bTextureChanged ;
-	cacheForThisUpdate_MaterialChanged = bMaterialChanged;
 	Super::UpdateCachedData();
 }
 void UUIBatchGeometryRenderable::UpdateCachedDataBeforeGeometry()
@@ -218,8 +252,6 @@ void UUIBatchGeometryRenderable::UpdateCachedDataBeforeGeometry()
 	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
 	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
 	if (bTriangleChanged)cacheForThisUpdate_TriangleChanged = true;
-	if (bTextureChanged)cacheForThisUpdate_TextureChanged = true;
-	if (bMaterialChanged)cacheForThisUpdate_MaterialChanged = true;
 	Super::UpdateCachedDataBeforeGeometry();
 }
 void UUIBatchGeometryRenderable::UpdateBasePrevData()
@@ -227,8 +259,6 @@ void UUIBatchGeometryRenderable::UpdateBasePrevData()
 	bLocalVertexPositionChanged = false;
 	bUVChanged = false;
 	bTriangleChanged = false;
-	bTextureChanged = false;
-	bMaterialChanged = false;
 	Super::UpdateBasePrevData();
 }
 void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
@@ -236,8 +266,6 @@ void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
-	bTextureChanged = true;
-	bMaterialChanged = true;
 	Super::MarkAllDirtyRecursive();
 }
 void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
@@ -245,7 +273,7 @@ void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 	if (CustomUIMaterial != inMat)
 	{
 		CustomUIMaterial = inMat;
-		bMaterialChanged = true;
+		MarkMaterialDirty();
 	}
 }
 void UUIBatchGeometryRenderable::SetIsSelfRender(bool value)
@@ -370,17 +398,6 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayo
 	}
 	else//if geometry is created, update data
 	{
-		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
-		{
-			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
-			{
-				UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
-				RenderCanvas->RemoveUIRenderable(this);
-				goto COMPLETE;
-			}
-			drawcall->textureChanged = cacheForThisUpdate_TextureChanged;
-			drawcall->materialChanged = cacheForThisUpdate_MaterialChanged;
-		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to recreate geometry
 		{
 			if (CreateGeometry())
@@ -429,16 +446,6 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForAutoManageDepth(cons
 	}
 	else//already add to render, update data
 	{
-		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
-		{
-			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
-			{
-				UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
-				goto COMPLETE;
-			}
-			drawcall->textureChanged = cacheForThisUpdate_TextureChanged;
-			drawcall->materialChanged = cacheForThisUpdate_MaterialChanged;
-		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate it, and mark update the specific drawcall
 		{
 			if (CreateGeometry())
@@ -486,21 +493,6 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const boo
 	}
 	else//if geometry is created, update data
 	{
-		if (cacheForThisUpdate_TextureChanged || cacheForThisUpdate_MaterialChanged)//texture change or material change, need to recreate drawcall
-		{
-			if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
-			{
-				UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
-				geometry->Clear();
-				UpdateSelfRenderDrawcall();
-				ClearSelfRenderMaterial();
-				goto COMPLETE;
-			}
-			CreateGeometry();
-			UpdateSelfRenderDrawcall();
-			UpdateSelfRenderMaterial(cacheForThisUpdate_TextureChanged, cacheForThisUpdate_MaterialChanged);
-			goto COMPLETE;
-		}
 		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
 		{
 			CreateGeometry();
@@ -531,6 +523,7 @@ COMPLETE:
 
 bool UUIBatchGeometryRenderable::CreateGeometry()
 {
+	geometry->Clear();
 	if (HaveDataToCreateGeometry())
 	{
 		if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))
@@ -538,7 +531,6 @@ bool UUIBatchGeometryRenderable::CreateGeometry()
 			UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
 			return false;
 		}
-		geometry->Clear();
 		geometry->texture = GetTextureToCreateGeometry();
 		geometry->material = CustomUIMaterial;
 		OnCreateGeometry();
