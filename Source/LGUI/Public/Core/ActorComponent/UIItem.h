@@ -274,10 +274,10 @@ public:
 	/** Get LGUICanvasScaler from root canvas, return null if not have one */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class ULGUICanvasScaler* GetCanvasScaler()const;
-
+#ifdef LGUI_DRAWCALLMODE_AUTO
 	/** For autoManageDepth, return bounds min max point in self local space */
 	virtual void GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const;
-	
+#endif
 	void MarkLayoutDirty(bool sizeChange);
 	void MarkColorDirty();
 

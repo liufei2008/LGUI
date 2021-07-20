@@ -768,6 +768,7 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 	}
 }
 
+#ifdef LGUI_DRAWCALLMODE_AUTO
 void UUIText::GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const
 {
 	switch (overflowType)
@@ -950,3 +951,4 @@ void UUIText::GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVecto
 		break;
 	}
 }
+#endif

@@ -2232,6 +2232,7 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 	return nullptr;
 }
 
+#ifdef LGUI_DRAWCALLMODE_AUTO
 bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult)
 {
 	if (auto tfPtr = this->CacheUIItemToCanvasTransformMap.Find(item))
@@ -2289,5 +2290,6 @@ void ULGUICanvas::GetMinMax(float a, float b, float c, float d, float& min, floa
 	min = FMath::Min(abMin, cdMin);
 	max = FMath::Max(abMax, cdMax);
 }
+#endif
 
 //PRAGMA_ENABLE_OPTIMIZATION
