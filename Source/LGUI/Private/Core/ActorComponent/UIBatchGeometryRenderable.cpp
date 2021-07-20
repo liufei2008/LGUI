@@ -93,6 +93,13 @@ void UUIBatchGeometryRenderable::OnUnregister()
 		uiMesh->DestroyComponent();
 		uiMesh = nullptr;
 	}
+	if (!bIsSelfRender)
+	{
+		if (RenderCanvas.IsValid() && drawcall.IsValid())
+		{
+			RenderCanvas->RemoveUIRenderable(this);
+		}
+	}
 }
 
 void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)

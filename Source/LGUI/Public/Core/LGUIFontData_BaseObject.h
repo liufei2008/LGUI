@@ -104,7 +104,7 @@ class UUIText;
 /**
  * font asset for UIText to render
  */
-UCLASS(Abstract)
+UCLASS(Abstract, BlueprintType)
 class LGUI_API ULGUIFontData_BaseObject : public UObject
 {
 	GENERATED_BODY()
