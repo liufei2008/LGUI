@@ -1772,11 +1772,13 @@ FVector2D UUIItem::GetLocalSpaceCenter()const
 	return FVector2D(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y));
 }
 
+#ifdef LGUI_DRAWCALLMODE_AUTO
 void UUIItem::GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const
 {
 	min = GetLocalSpaceLeftBottomPoint();
 	max = GetLocalSpaceRightTopPoint();
 }
+#endif
 
 float UUIItem::GetLocalSpaceLeft()const
 {

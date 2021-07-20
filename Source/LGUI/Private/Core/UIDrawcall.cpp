@@ -120,8 +120,12 @@ void UUIDrawcall::Clear()
 	postProcessRenderableObject = nullptr;
 
 	renderObjectList.Reset();
+#ifdef LGUI_DRAWCALLMODE_AUTO
 	is3DDrawcall = false;
+#endif
 }
+
+#ifdef LGUI_DRAWCALLMODE_AUTO
 bool UUIDrawcall::Equals(UUIDrawcall* Other)
 {
 	return
@@ -350,3 +354,4 @@ bool UUIDrawcall::Is2DUITransform(const FTransform& Transform)
 	}
 	return true;
 }
+#endif

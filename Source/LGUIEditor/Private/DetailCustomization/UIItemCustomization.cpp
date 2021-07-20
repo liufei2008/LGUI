@@ -106,6 +106,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	//depth
 	{
 		auto depthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.depth));
+#ifdef LGUI_DRAWCALLMODE_AUTO
 		if (TargetScriptArray[0]->GetRenderCanvas() != nullptr && TargetScriptArray[0]->GetRenderCanvas()->GetAutoManageDepth())
 		{
 			IDetailPropertyRow& depthProperty = lguiCategory.AddProperty(depthHandle, EPropertyLocation::Advanced);
@@ -114,6 +115,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			depthProperty.ToolTip(FText::FromString(disabledByParentLayoutToolTip));
 		}
 		else
+#endif
 		{
 			DetailBuilder.HideProperty(depthHandle);
 			depthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {

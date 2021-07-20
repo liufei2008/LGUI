@@ -111,6 +111,7 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 
 						if (AUIItem->GetRenderCanvas() == BUIItem->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
 						{
+							#ifdef LGUI_DRAWCALLMODE_AUTO
 							if (AUIItem->GetRenderCanvas()->GetAutoManageDepth())
 							{
 								if (AUIItem->GetFlattenHierarchyIndex() == BUIItem->GetFlattenHierarchyIndex())//if item's flattenHierarchyIndex is equal then sort on distance
@@ -123,6 +124,7 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 								}
 							}
 							else
+							#endif
 							{
 								if (AUIItem->GetDepth() == BUIItem->GetDepth())//if item's depth is equal then sort on distance
 								{

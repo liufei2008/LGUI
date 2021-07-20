@@ -65,5 +65,7 @@ public class LGUI : ModuleRules
         }
 
         //PublicDefinitions.Add("LGUI_USE_32BIT_INDEXBUFFER");//uncommet this line to use 32-bit index buffer
+
+        //PublicDefinitions.Add("LGUI_DRAWCALLMODE_AUTO");//don't uncommet this! because not valid yet!
     }
 }
