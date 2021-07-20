@@ -259,17 +259,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool onlyOwnerSee = false;
 
-	/**
-	 * !!!This parameter will be removed in future release! So keep the value as false!
-	 * When use auto manage depth, only 2D elements can be batched.
-	 * Ruls for telling if a UI element is 2D (convert the UI element in Canvas's relative space):
-	 * * Relative location.Z less than threshold.
-	 * * Relative rotation.X/Y less than threshold.
-	 * We can change the threshold in Edit/ProjectSettings/Plugins/LGUI/AutoManageDepthThreshold.
-	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
-		bool autoManageDepth = false;
-
 	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
@@ -365,9 +354,6 @@ public:
 		void SetOnlyOwnerSee(bool value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetAutoManageDepth()const { return autoManageDepth; }
-
-	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return sortOrder; }
 	/** Get clip type of canvas. Actually canvas's clip type property is inherit from root canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -439,12 +425,14 @@ private:
 	FVector2D clipRectMax = FVector2D(0, 0);
 
 	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
+#ifdef LGUI_DRAWCALLMODE_AUTO
 public:
 	bool GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
 private:
 	FTransform2D ConvertTo2DTransform(const FTransform& Transform);
 	void CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
 	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
+#endif
 private:
 	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateAndApplyMaterial();

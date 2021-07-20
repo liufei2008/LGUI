@@ -49,18 +49,21 @@ public:
 	int depthMax = 0;//max depth of all geometries
 
 	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall
+#ifdef LGUI_DRAWCALLMODE_AUTO
 	bool is3DDrawcall = false;//transform relative to canvas is 3d or not? only 2d drawcall can batch
+#endif
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
 	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles);
 	//update the max and min depth
 	void UpdateDepthRange();
+	void Clear();
 	
+#ifdef LGUI_DRAWCALLMODE_AUTO
 	bool IsDepthInsideDrawcall(int depth)
 	{
 		return depth >= depthMin && depth < depthMax;
 	}
-	void Clear();
 	bool Equals(UUIDrawcall* Other);
 
 	static bool CompareDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& A, const TArray<TSharedPtr<UUIDrawcall>>& B);
@@ -70,4 +73,5 @@ public:
 private:
 	static TSharedPtr<class UUIDrawcall> GetAvailableDrawcall(TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
 	static bool Is2DUITransform(const FTransform& Transform);
+#endif
 };

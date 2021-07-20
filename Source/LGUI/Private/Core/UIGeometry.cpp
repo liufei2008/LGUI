@@ -3840,6 +3840,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPt
 	}
 	
 	FTransform itemToCanvasTf;
+#ifdef LGUI_DRAWCALLMODE_AUTO
 	if (canvas->GetAutoManageDepth())
 	{
 		FLGUICacheTransformContainer tempTf;
@@ -3847,6 +3848,7 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPt
 		itemToCanvasTf = tempTf.Transform;
 	}
 	else
+#endif
 	{
 		auto canvasUIItem = canvas->GetUIItem();
 		auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
