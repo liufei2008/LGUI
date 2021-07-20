@@ -127,7 +127,6 @@ protected:
 	virtual void DepthChanged()override;
 private:
 	void UpdateGeometry_Implement(const bool& parentLayoutChanged);
-	void UpdateGeometry_ImplementForAutoManageDepth(const bool& parentLayoutChanged);
 	void UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged);
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
