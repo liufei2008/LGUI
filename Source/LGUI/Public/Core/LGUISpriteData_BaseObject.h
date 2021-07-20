@@ -101,7 +101,7 @@ class UUISpriteBase;
  * Base class for sprite data.
  * A sprite is a small area renderred in a big atlas texture.
  */
-UCLASS(Abstract)
+UCLASS(Abstract, BlueprintType)
 class LGUI_API ULGUISpriteData_BaseObject :public UObject
 {
 	GENERATED_BODY()
