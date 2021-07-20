@@ -292,7 +292,6 @@ bool ULGUICanvas::IsRenderToWorldSpace()
 
 void ULGUICanvas::MarkCanvasUpdate()
 {
-	this->bCanTickUpdate = true;
 	if (CheckRootCanvas())
 	{
 		RootCanvas->bCanTickUpdate = true;//incase this Canvas's parent have layout component, so mark TopMostCanvas to update
@@ -930,10 +929,7 @@ void ULGUICanvas::UpdateRootCanvas()
 	SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
 	if (this != RootCanvas) return;
 	//update first Canvas
-	if (RootCanvas == this)
-	{
-		UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
-	}
+	UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
 
 	CacheUIItemToCanvasTransformMap.Reset();
 	UpdateCanvasLayout(false);
@@ -1206,6 +1202,7 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 void ULGUICanvas::UpdateAndApplyMaterial()
 {
 	auto tempClipType = GetActualClipType();
+	bool needToSetClipParameter = false;
 	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
 	{
 		auto drawcallItem = iter->GetValue();
@@ -1236,6 +1233,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 				drawcallItem->materialChanged = false;
 				uiMat->SetTextureParameterValue(FName("MainTexture"), drawcallItem->texture.Get());
 				drawcallItem->textureChanged = false;
+				needToSetClipParameter = true;
 			}
 			else if (drawcallItem->textureChanged)
 			{
@@ -1254,6 +1252,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 					drawcallItem->postProcessRenderableObject->SetClipType(tempClipType);
 					drawcallItem->materialChanged = false;
 				}
+				needToSetClipParameter = true;
 			}
 		}
 		else if (drawcallItem->type == EUIDrawcallType::DirectMesh)
@@ -1267,6 +1266,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 					drawcallItem->directMeshRenderableObject->SetClipType(tempClipType);
 					drawcallItem->materialChanged = false;
 				}
+				needToSetClipParameter = true;
 			}
 		}
 	}
@@ -1282,7 +1282,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 	break;
 	case ELGUICanvasClipType::Rect:
 	{
-		if (cacheForThisUpdate_ClipTypeChanged || cacheForThisUpdate_RectClipParameterChanged)
+		if (needToSetClipParameter || cacheForThisUpdate_ClipTypeChanged || cacheForThisUpdate_RectClipParameterChanged)
 		{
 			SetParameterForRectClip();
 		}
@@ -1290,7 +1290,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 	break;
 	case ELGUICanvasClipType::Texture:
 	{
-		if (cacheForThisUpdate_ClipTypeChanged || cacheForThisUpdate_TextureClipParameterChanged)
+		if (needToSetClipParameter || cacheForThisUpdate_ClipTypeChanged || cacheForThisUpdate_TextureClipParameterChanged)
 		{
 			SetParameterForTextureClip();
 		}
