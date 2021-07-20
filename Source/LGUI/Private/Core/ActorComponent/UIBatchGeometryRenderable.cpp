@@ -64,7 +64,7 @@ void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& P
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-		if (Property->GetName() == TEXT("bIsSelfRender"))
+		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(UUIBatchGeometryRenderable, bIsSelfRender))
 		{
 			if (bIsSelfRender)//prev is not self renderer, then remove this from canvas
 			{
@@ -373,14 +373,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 	}
 	else
 	{
-		if (RenderCanvas->GetAutoManageDepth())
-		{
-			UpdateGeometry_ImplementForAutoManageDepth(parentLayoutChanged);
-		}
-		else
-		{
-			UpdateGeometry_Implement(parentLayoutChanged);
-		}
+		UpdateGeometry_Implement(parentLayoutChanged);
 	}
 }
 
@@ -417,6 +410,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayo
 
 			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
 			{
+				drawcall->needToRebuildMesh = true;
 				drawcall->needToUpdateVertex = true;
 			}
 			else
@@ -432,54 +426,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayo
 COMPLETE:
 	;
 }
-void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForAutoManageDepth(const bool& parentLayoutChanged)
-{
-	OnBeforeCreateOrUpdateGeometry();
-	if (!drawcall.IsValid()//not add to render yet
-		)
-	{
-		if (CreateGeometry())
-		{
-			RenderCanvas->AddUIRenderable(this);
-		}
-		goto COMPLETE;
-	}
-	else//already add to render, update data
-	{
-		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate it, and mark update the specific drawcall
-		{
-			if (CreateGeometry())
-			{
-				drawcall->needToRebuildMesh = true;
-			}
-			else
-			{
-				RenderCanvas->RemoveUIRenderable(this);
-			}
-			goto COMPLETE;
-		}
-		else//update geometry
-		{
-			bool pixelPerfect = RenderCanvas->GetActualPixelPerfect();
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || (parentLayoutChanged && pixelPerfect), cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
-			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
-			{
-				drawcall->needToUpdateVertex = true;
-			}
-			else
-			{
-				drawcall->needToRebuildMesh = true;
-			}
-			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
-			{
-				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-			}
-		}
-	}
-COMPLETE:
-	;
-}
 void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged)
 {
 	OnBeforeCreateOrUpdateGeometry();
