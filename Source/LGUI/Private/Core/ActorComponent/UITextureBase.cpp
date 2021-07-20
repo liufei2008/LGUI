@@ -20,6 +20,13 @@ void UUITextureBase::BeginPlay()
 void UUITextureBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (auto Property = PropertyChangedEvent.Property)
+	{
+		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(UUITextureBase, texture))
+		{
+			MarkTextureDirty();
+		}
+	}
 }
 void UUITextureBase::EditorForceUpdateImmediately()
 {
