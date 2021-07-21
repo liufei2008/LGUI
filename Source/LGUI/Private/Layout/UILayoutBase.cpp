@@ -78,6 +78,7 @@ void UUILayoutBase::RebuildChildrenList()
         {
             if (uiItem->IsUIActiveInHierarchy())
             {
+                if (uiItem->GetOwner()->GetRootComponent() != uiItem)continue;//only use root component
                 UUILayoutElement* layoutElement = GetLayoutElement(uiItem->GetOwner());
                 if (layoutElement)
                 {

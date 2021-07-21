@@ -7,8 +7,12 @@
 #include "Components/ActorComponent.h"
 #include "UIGeometryModifierBase.generated.h"
 
+class UUIBatchGeometryRenderable;
 
-//For modify ui geometry, act like a filter
+/** 
+ * For modify ui geometry, act like a filter.
+ * Need UIBatchGeometryRenderable component.
+ */
 UCLASS(Abstract)
 class LGUI_API UUIGeometryModifierBase : public UActorComponent
 {
@@ -26,14 +30,21 @@ protected:
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 
-	//Execute order of this effect in actor. The greater executeOrder is the later this effect execute
+	/** Execute order of this effect in actor.The greater executeOrder is the later this effect execute */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int executeOrder = 0;
+	/** 
+	 * If there are multiple UIBatchGeometryRenderable components, then select one of them by name
+	 * Leave it empty if only one UIBatchGeometryRenderable component.
+	 */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FName componentName;
 
-	class UUIBatchGeometryRenderable* GetRenderableUIItem();
+	UUIBatchGeometryRenderable* GetRenderableUIItem();
 private:
-	UPROPERTY(Transient) class UUIBatchGeometryRenderable* renderableUIItem = nullptr;
-	
+	TWeakObjectPtr<UUIBatchGeometryRenderable> renderableUIItem;
+	void RemoveFromUIBatchGeometry();
+	void AddToUIBatchGeometry();
 public:
 	FORCEINLINE int GetExecuteOrder()const { return executeOrder; }
 	/*
