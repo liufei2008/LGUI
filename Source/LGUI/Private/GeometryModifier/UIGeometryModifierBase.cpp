@@ -21,14 +21,35 @@ void UUIGeometryModifierBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetRenderableUIItem()
 {
-	if(!IsValid(renderableUIItem))
+	if(!renderableUIItem.IsValid())
 	{
 		if (auto actor = GetOwner())
 		{
-			renderableUIItem = GetOwner()->FindComponentByClass<UUIBatchGeometryRenderable>();
+			TInlineComponentArray<class UUIBatchGeometryRenderable*> components;
+			actor->GetComponents(components);
+			if (components.Num() > 1)
+			{
+				for (auto comp : components)
+				{
+					if (comp->GetFName() == componentName)
+					{
+						renderableUIItem = (UUIBatchGeometryRenderable*)comp;
+						break;
+					}
+				}
+				if (!renderableUIItem.IsValid())
+				{
+					UE_LOG(LGUI, Warning, TEXT("[UUIGeometryModifierBase::GetRenderableUIItem]Cannot find component of name:%s, will use first one."), *(componentName.ToString()));
+					renderableUIItem = (UUIBatchGeometryRenderable*)components[0];
+				}
+			}
+			else
+			{
+				renderableUIItem = (UUIBatchGeometryRenderable*)components[0];
+			}
 		}
 	}
-	return renderableUIItem;
+	return renderableUIItem.Get();
 }
 #if WITH_EDITOR
 void UUIGeometryModifierBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -38,10 +59,21 @@ void UUIGeometryModifierBase::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	{
 		if (auto rootComp = GetOwner()->GetRootComponent())
 		{
-			if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(rootComp))
+			if (auto uiRenderable = Cast<UUIItem>(rootComp))
 			{
 				uiRenderable->EditorForceUpdateImmediately();
 			}
+		}
+	}
+	if (auto Property = PropertyChangedEvent.Property)
+	{
+		auto PropertyName = Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIGeometryModifierBase, componentName))
+		{
+			//remove from old
+			RemoveFromUIBatchGeometry();
+			//add to new
+			AddToUIBatchGeometry();
 		}
 	}
 }
@@ -50,19 +82,28 @@ void UUIGeometryModifierBase::PostEditChangeProperty(FPropertyChangedEvent& Prop
 void UUIGeometryModifierBase::OnRegister()
 {
 	Super::OnRegister();
-	if (IsValid(GetRenderableUIItem()))
+	AddToUIBatchGeometry();
+}
+void UUIGeometryModifierBase::OnUnregister()
+{
+	Super::OnUnregister();
+	RemoveFromUIBatchGeometry();
+}
+
+void UUIGeometryModifierBase::RemoveFromUIBatchGeometry()
+{
+	if (renderableUIItem.IsValid())
+	{
+		renderableUIItem->RemoveGeometryModifier(this);
+		renderableUIItem->MarkTriangleDirty();
+		renderableUIItem = nullptr;
+	}
+}
+void UUIGeometryModifierBase::AddToUIBatchGeometry()
+{
+	if (GetRenderableUIItem() != nullptr)
 	{
 		renderableUIItem->AddGeometryModifier(this);
 		renderableUIItem->MarkTriangleDirty();
 	}
 }
-void UUIGeometryModifierBase::OnUnregister()
-{
-	Super::OnUnregister();
-	if (IsValid(GetRenderableUIItem()))
-	{
-		renderableUIItem->RemoveGeometryModifier(this);
-		renderableUIItem->MarkTriangleDirty();
-	}
-}
-
