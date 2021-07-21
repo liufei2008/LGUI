@@ -67,9 +67,9 @@ void ULGUIBehaviour::OnRegister()
 void ULGUIBehaviour::OnUnregister()
 {
 	Super::OnUnregister();
-	if (CheckRootUIComponent())
+	if (RootUIComp.IsValid())
 	{
-		RootUIComp->AddLGUIBehaviourComponent(this);
+		RootUIComp->RemoveLGUIBehaviourComponent(this);
 	}
 #if WITH_EDITOR
 	if (this->GetWorld())

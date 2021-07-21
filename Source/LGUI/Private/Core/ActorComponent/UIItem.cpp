@@ -67,6 +67,7 @@ void UUIItem::CallUIComponentsActiveInHierarchyStateChanged()
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
 	OnUIActiveInHierachy(IsUIActiveInHierarchy());
+	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
@@ -84,6 +85,7 @@ void UUIItem::CallUIComponentsChildDimensionsChanged(UUIItem* child, bool positi
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
 	OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
@@ -101,6 +103,7 @@ void UUIItem::CallUIComponentsChildActiveInHierarchyStateChanged(UUIItem* child,
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
 	OnUIChildAcitveInHierarchy(child, activeOrInactive);
+	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
@@ -118,6 +121,7 @@ void UUIItem::CallUIComponentsDimensionsChanged(bool positionChanged, bool sizeC
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
 	OnUIDimensionsChanged(positionChanged, sizeChanged);
+	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
@@ -141,6 +145,7 @@ void UUIItem::CallUIComponentsAttachmentChanged()
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
 	OnUIAttachmentChanged();
+	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
@@ -158,6 +163,7 @@ void UUIItem::CallUIComponentsChildAttachmentChanged(UUIItem* child, bool attach
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
 	OnUIChildAttachmentChanged(child, attachOrDettach);
+	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
@@ -176,6 +182,7 @@ void UUIItem::CallUIComponentsInteractionStateChanged()
 	if (this->GetWorld() == nullptr)return;
 	auto interactable = this->IsGroupAllowInteraction();
 	OnUIInteractionStateChanged(interactable);
+	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
@@ -193,6 +200,7 @@ void UUIItem::CallUIComponentsChildHierarchyIndexChanged(UUIItem* child)
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
 	OnUIChildHierarchyIndexChanged(child);
+	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
@@ -1852,6 +1860,8 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 	if (!bRaycastTarget)return false;
 	if (!IsUIActiveInHierarchy())return false;
 	if (!RenderCanvas.IsValid())return false;
+	if (!GetOwner())return false;
+	if (GetOwner()->GetRootComponent() != this)return false;//only root component can do line trace hit
 	auto inverseTf = GetComponentTransform().Inverse();
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 	auto localSpaceRayEnd = inverseTf.TransformPosition(End);

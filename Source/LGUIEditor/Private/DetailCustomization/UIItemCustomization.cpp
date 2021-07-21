@@ -38,7 +38,10 @@ void FUIItemCustomization::ForceUpdateUI()
 {
 	for (auto item : TargetScriptArray)
 	{
-		item->EditorForceUpdateImmediately();
+		if (item.IsValid())
+		{
+			item->EditorForceUpdateImmediately();
+		}
 	}
 }
 void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
@@ -66,7 +69,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		return;
 	}
 
-	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0].Get());
+	//LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0].Get());
 
 	if (TargetScriptArray[0]->GetWorld()->WorldType == EWorldType::Editor)
 	{

@@ -80,7 +80,7 @@ protected://these funcions are same as UIBehaviour's, for easier use
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child) { }
 public:
 	void AddLGUIBehaviourComponent(class ULGUIBehaviour* InComp) { LGUIBehaviourArray.AddUnique(InComp); }
-	void RemoveLGUIBehaviourComponent(class ULGUIBehaviour* InComp) { LGUIBehaviourArray.RemoveSingle(InComp); }
+	void RemoveLGUIBehaviourComponent(class ULGUIBehaviour* InComp) { LGUIBehaviourArray.RemoveSingleSwap(InComp); }
 #pragma endregion LGUIBehaviour
 protected:
 	virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit /* = NULL */, EMoveComponentFlags MoveFlags /* = MOVECOMP_NoFlags */, ETeleportType Teleport /* = ETeleportType::None */)override;
@@ -388,7 +388,10 @@ private:
 
 #pragma region Collider
 protected:
-	/** if this is a raycastTarget? means LineTrace can hit this or not. for EventSystem interaction */
+	/**
+	 * If this is a raycastTarget? Means LineTrace can hit this or not, for EventSystem interaction.
+	 * Note this parameter only valid when this UI element is root component of actor.
+	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastTarget = false;
 	/** traceChannel for line trace of EventSystem interaction */
