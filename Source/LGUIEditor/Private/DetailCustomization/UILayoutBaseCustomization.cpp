@@ -16,9 +16,12 @@ void FUILayoutBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	TargetScriptPtr = Cast<UUILayoutBase>(targetObjects[0].Get());
 	if (TargetScriptPtr != nullptr)
 	{
-		if (TargetScriptPtr->GetWorld()->WorldType == EWorldType::Editor)
+		if (auto world = TargetScriptPtr->GetWorld())
 		{
-			TargetScriptPtr->OnRebuildLayout();
+			if (world->WorldType == EWorldType::Editor)
+			{
+				TargetScriptPtr->OnRebuildLayout();
+			}
 		}
 	}
 	else
