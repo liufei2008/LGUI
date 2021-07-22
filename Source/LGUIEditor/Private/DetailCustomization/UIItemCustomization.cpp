@@ -53,9 +53,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	{
 		if (auto validItem = Cast<UUIItem>(item.Get()))
 		{
+			TargetScriptArray.Add(validItem);
 			if (validItem->GetWorld() != nullptr)
 			{
-				TargetScriptArray.Add(validItem);
 				if (validItem->GetWorld()->WorldType == EWorldType::Editor)
 				{
 					validItem->EditorForceUpdateImmediately();
@@ -71,19 +71,22 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 	//LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptArray[0].Get());
 
-	if (TargetScriptArray[0]->GetWorld()->WorldType == EWorldType::Editor)
+	if (auto world = TargetScriptArray[0]->GetWorld())
 	{
-		//something weird may happen if not realtime edit
-		if (GEditor)
+		if (world->WorldType == EWorldType::Editor)
 		{
-			if (auto viewport = GEditor->GetActiveViewport())
+			//something weird may happen if not realtime edit
+			if (GEditor)
 			{
-				if (auto viewportClient = (FEditorViewportClient*)viewport->GetClient())
+				if (auto viewport = GEditor->GetActiveViewport())
 				{
-					if (!viewportClient->IsRealtime())
+					if (auto viewportClient = (FEditorViewportClient*)viewport->GetClient())
 					{
-						viewportClient->SetRealtime(true);
-						UE_LOG(LGUIEditor, Warning, TEXT("[UIItemCustomization]Editor viewport set to realtime.(Something weird may happen if not realtime edit)"));
+						if (!viewportClient->IsRealtime())
+						{
+							viewportClient->SetRealtime(true);
+							UE_LOG(LGUIEditor, Warning, TEXT("[UIItemCustomization]Editor viewport set to realtime.(Something weird may happen if not realtime edit)"));
+						}
 					}
 				}
 			}
@@ -250,7 +253,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 			//depth info
 			{
-				lguiCategory.AddCustomRow(LOCTEXT("DepthInfo", "DepthInfo"))
+				if (TargetScriptArray[0]->GetWorld())
+				{
+					lguiCategory.AddCustomRow(LOCTEXT("DepthInfo", "DepthInfo"))
 					.WholeRowContent()
 					.MinDesiredWidth(500)
 					[
@@ -260,6 +265,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 						.AutoWrapText(true)
 						.ToolTipText(FText::FromString(FString(TEXT("The same depth count shared by UI elements in same canvas"))))
 					];
+				}
 			}
 		}
 	}
@@ -296,37 +302,40 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		bool stretchBottomControlledBySelfLayout = false;
 		if (auto thisActor = TargetScriptArray[0]->GetOwner())
 		{
-			if (auto parentActor = thisActor->GetAttachParentActor())
+			if (thisActor->GetRootComponent() == TargetScriptArray[0].Get())
 			{
-				bool ignoreParentLayout = false;
-				if (auto thisLayoutElement = thisActor->FindComponentByClass<UUILayoutElement>())
+				if (auto parentActor = thisActor->GetAttachParentActor())
 				{
-					ignoreParentLayout = thisLayoutElement->GetIgnoreLayout();
-				}
-				if (!ignoreParentLayout)
-				{
-					if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
+					bool ignoreParentLayout = false;
+					if (auto thisLayoutElement = thisActor->FindComponentByClass<UUILayoutElement>())
 					{
-						anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
-						widthControlledByParentLayout = parentLayout->CanControlChildWidth();
-						heightControlledByParentLayout = parentLayout->CanControlChildHeight();
-						anchorOffsetXControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetX();
-						anchorOffsetYControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetY();
+						ignoreParentLayout = thisLayoutElement->GetIgnoreLayout();
+					}
+					if (!ignoreParentLayout)
+					{
+						if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
+						{
+							anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
+							widthControlledByParentLayout = parentLayout->CanControlChildWidth();
+							heightControlledByParentLayout = parentLayout->CanControlChildHeight();
+							anchorOffsetXControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetX();
+							anchorOffsetYControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetY();
+						}
 					}
 				}
-			}
-			if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
-			{
-				anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
-				anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
-				anchorOffsetXControlledBySelfLayout = thisLayout->CanControlSelfAnchorOffsetX();
-				anchorOffsetYControlledBySelfLayout = thisLayout->CanControlSelfAnchorOffsetY();
-				widthControlledBySelfLayout = thisLayout->CanControlSelfWidth();
-				heightControlledBySelfLayout = thisLayout->CanControlSelfHeight();
-				stretchLeftControlledBySelfLayout = thisLayout->CanControlSelfStrengthLeft();
-				stretchRightControlledBySelfLayout = thisLayout->CanControlSelfStrengthRight();
-				stretchTopControlledBySelfLayout = thisLayout->CanControlSelfStrengthTop();
-				stretchBottomControlledBySelfLayout = thisLayout->CanControlSelfStrengthBottom();
+				if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
+				{
+					anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
+					anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
+					anchorOffsetXControlledBySelfLayout = thisLayout->CanControlSelfAnchorOffsetX();
+					anchorOffsetYControlledBySelfLayout = thisLayout->CanControlSelfAnchorOffsetY();
+					widthControlledBySelfLayout = thisLayout->CanControlSelfWidth();
+					heightControlledBySelfLayout = thisLayout->CanControlSelfHeight();
+					stretchLeftControlledBySelfLayout = thisLayout->CanControlSelfStrengthLeft();
+					stretchRightControlledBySelfLayout = thisLayout->CanControlSelfStrengthRight();
+					stretchTopControlledBySelfLayout = thisLayout->CanControlSelfStrengthTop();
+					stretchBottomControlledBySelfLayout = thisLayout->CanControlSelfStrengthBottom();
+				}
 			}
 		}
 
@@ -1021,25 +1030,28 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 	bool anchorVControlledBySelfLayout = false;
 	if (auto thisActor = TargetScriptArray[0]->GetOwner())
 	{
-		if (auto parentActor = thisActor->GetAttachParentActor())
+		if (thisActor->GetRootComponent() == TargetScriptArray[0].Get())
 		{
-			bool ignoreParentLayout = false;
-			if (auto thisLayoutElement = thisActor->FindComponentByClass<UUILayoutElement>())
+			if (auto parentActor = thisActor->GetAttachParentActor())
 			{
-				ignoreParentLayout = thisLayoutElement->GetIgnoreLayout();
-			}
-			if (!ignoreParentLayout)
-			{
-				if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
+				bool ignoreParentLayout = false;
+				if (auto thisLayoutElement = thisActor->FindComponentByClass<UUILayoutElement>())
 				{
-					anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
+					ignoreParentLayout = thisLayoutElement->GetIgnoreLayout();
+				}
+				if (!ignoreParentLayout)
+				{
+					if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
+					{
+						anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
+					}
 				}
 			}
-		}
-		if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
-		{
-			anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
-			anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
+			if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
+			{
+				anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
+				anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
+			}
 		}
 	}
 

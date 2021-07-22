@@ -19,6 +19,7 @@
 UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 	SetMobility(EComponentMobility::Movable);
 	SetUsingAbsoluteLocation(false);
 	SetUsingAbsoluteRotation(false);
