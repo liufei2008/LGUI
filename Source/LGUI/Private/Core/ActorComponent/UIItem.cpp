@@ -847,12 +847,19 @@ void UUIItem::OnRegister()
 				HelperComp->SetupAttachment(this);
 			}
 			//display name
-			auto actorLabel = this->GetOwner()->GetActorLabel();
-			if (actorLabel.StartsWith("//"))
+			if (this->GetOwner()->GetRootComponent() == this)
 			{
-				actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+				auto actorLabel = this->GetOwner()->GetActorLabel();
+				if (actorLabel.StartsWith("//"))
+				{
+					actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+				}
+				this->displayName = actorLabel;
 			}
-			this->displayName = actorLabel;
+			else
+			{
+				this->displayName = this->GetName();
+			}
 		}
 		else
 #endif
@@ -860,6 +867,12 @@ void UUIItem::OnRegister()
 			ALGUIManagerActor::AddUIItem(this);
 		}
 	}
+#if WITH_EDITOR
+	else
+	{
+		this->displayName = this->GetName();
+	}
+#endif
 
 #if WITH_EDITOR
 	//apply inactive actor's visibility state in editor scene outliner

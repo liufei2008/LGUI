@@ -39,11 +39,9 @@ FLGUIVertexFactoryInterpolantsVSToPS VertexFactoryGetInterpolantsVSToPS(float2 T
 	{
 		SetUV(Interpolants, CoordinateIndex, CustomizedUVs[CoordinateIndex]);
 	}
-#endif
-	
-#if USE_PARTICLE_SUBUVS
-	Interpolants.ParticleSubUVs.xy = TexCoord0;
-	Interpolants.ParticleSubUVs.zw = TexCoord1;
+#elif USE_PARTICLE_SUBUVS
+	Interpolants.TexCoords[0].xy = TexCoord0;
+	Interpolants.TexCoords[0].zw = TexCoord1;
 #endif
 
 	//SetTangents(Interpolants, Intermediates.TangentToWorld[0], Intermediates.TangentToWorld[2], Intermediates.TangentToWorldSign);
