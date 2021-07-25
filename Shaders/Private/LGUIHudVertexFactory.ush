@@ -3,14 +3,12 @@
 
 struct FLGUIVertexFactoryInterpolantsVSToPS
 {
-	float4	Color				: TEXCOORD1;
+    float4 Color : COLOR0;
 
 #if NUM_TEX_COORD_INTERPOLATORS
-	float4	TexCoords[(NUM_TEX_COORD_INTERPOLATORS + 1) / 2]	: TEXCOORD3;
-#endif
-
-#if USE_PARTICLE_SUBUVS
-	float4 ParticleSubUVs : PARTICLE_SUBUVS;
+	float4	TexCoords[(NUM_TEX_COORD_INTERPOLATORS + 1) / 2]	: TEXCOORD0;
+#elif USE_PARTICLE_SUBUVS
+	float4	TexCoords[1] : TEXCOORD0;
 #endif
 
 #if USE_PARTICLE_POSITION
