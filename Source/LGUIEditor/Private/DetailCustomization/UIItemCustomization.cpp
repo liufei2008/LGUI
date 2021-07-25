@@ -922,35 +922,86 @@ EVisibility FUIItemCustomization::GetDisplayNameWarningVisibility()const
 {
 	if (TargetScriptArray[0].IsValid())
 	{
-		auto actorLabel = TargetScriptArray[0]->GetOwner()->GetActorLabel();
-		if (actorLabel.StartsWith("//"))
+		if (auto actor = TargetScriptArray[0]->GetOwner())
 		{
-			actorLabel = actorLabel.Right(actorLabel.Len() - 2);
-		}
-		if (TargetScriptArray[0]->GetDisplayName() == actorLabel)
-		{
-			return EVisibility::Hidden;
+			if (TargetScriptArray[0] == actor->GetRootComponent())
+			{
+				auto actorLabel = actor->GetActorLabel();
+				if (actorLabel.StartsWith("//"))
+				{
+					actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+				}
+				if (TargetScriptArray[0]->GetDisplayName() == actorLabel)
+				{
+					return EVisibility::Hidden;
+				}
+				else
+				{
+					return EVisibility::Visible;
+				}
+			}
+			else
+			{
+				if (TargetScriptArray[0]->GetName() == TargetScriptArray[0]->GetDisplayName())
+				{
+					return EVisibility::Hidden;
+				}
+				else
+				{
+					return EVisibility::Visible;
+				}
+			}
 		}
 		else
 		{
-			return EVisibility::Visible;
+			auto name = TargetScriptArray[0]->GetName();
+			auto genVarSuffix = FString(TEXT("_GEN_VARIABLE"));
+			if (name.EndsWith(genVarSuffix))
+			{
+				name.RemoveAt(name.Len() - genVarSuffix.Len(), genVarSuffix.Len());
+			}
+			if (TargetScriptArray[0]->GetDisplayName() == name)
+			{
+				return EVisibility::Hidden;
+			}
+			else
+			{
+				return EVisibility::Visible;
+			}
 		}
 	}
-	else
-	{
-		return EVisibility::Hidden;
-	}
+	return EVisibility::Hidden;
 }
 FReply FUIItemCustomization::OnClickFixButton()
 {
 	if (TargetScriptArray[0].IsValid())
 	{
-		auto actorLabel = TargetScriptArray[0]->GetOwner()->GetActorLabel();
-		if (actorLabel.StartsWith("//"))
+		if (auto actor = TargetScriptArray[0]->GetOwner())
 		{
-			actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+			if (TargetScriptArray[0] == actor->GetRootComponent())
+			{
+				auto actorLabel = TargetScriptArray[0]->GetOwner()->GetActorLabel();
+				if (actorLabel.StartsWith("//"))
+				{
+					actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+				}
+				TargetScriptArray[0]->SetDisplayName(actorLabel);
+			}
+			else
+			{
+				TargetScriptArray[0]->SetDisplayName(TargetScriptArray[0]->GetName());
+			}
 		}
-		TargetScriptArray[0]->SetDisplayName(actorLabel);
+		else
+		{
+			auto name = TargetScriptArray[0]->GetName();
+			auto genVarSuffix = FString(TEXT("_GEN_VARIABLE"));
+			if (name.EndsWith(genVarSuffix))
+			{
+				name.RemoveAt(name.Len() - genVarSuffix.Len(), genVarSuffix.Len());
+			}
+			TargetScriptArray[0]->SetDisplayName(name);
+		}
 	}
 	return FReply::Handled();
 }
