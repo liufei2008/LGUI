@@ -390,7 +390,6 @@ private:
 protected:
 	/**
 	 * If this is a raycastTarget? Means LineTrace can hit this or not, for EventSystem interaction.
-	 * Note this parameter only valid when this UI element is root component of actor.
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastTarget = false;
