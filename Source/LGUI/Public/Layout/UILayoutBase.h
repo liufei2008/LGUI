@@ -43,7 +43,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
 	/**
-	 * Called by LGUIManager. Will check "bNeedRebuildLayout" then decide if we rebuild
+	 * Called by LGUIManager. Will check "bNeedRebuildLayout" then decide if we need rebuild
 	 */
 	void ConditionalRebuildLayout();
 	/**

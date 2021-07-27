@@ -50,7 +50,7 @@ void UUILayoutWithAnimation::ApplyAnchorOffsetWithAnimation(EUILayoutChangePosit
 	{
 		if (target->GetAnchorOffset() != offset)
 		{
-			auto tweener = ALTweenActor::To(this, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffset), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffset), offset, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener = ALTweenActor::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffset), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffset), offset, AnimationDuration)->SetEase(LTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
 		}
 	}
@@ -72,7 +72,7 @@ void UUILayoutWithAnimation::ApplyWidthWithAnimation(EUILayoutChangePositionAnim
 	{
 		if (target->GetWidth() != width)
 		{
-			auto tweener = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetWidth), width, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener = ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetWidth), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetWidth), width, AnimationDuration)->SetEase(LTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
 		}
 	}
@@ -94,7 +94,7 @@ void UUILayoutWithAnimation::ApplyHeightWithAnimation(EUILayoutChangePositionAni
 	{
 		if (target->GetHeight() != height)
 		{
-			auto tweener = ALTweenActor::To(this, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHeight), height, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener = ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHeight), height, AnimationDuration)->SetEase(LTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
 		}
 	}
