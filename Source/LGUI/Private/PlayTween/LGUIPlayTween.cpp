@@ -10,7 +10,7 @@ void ULGUIPlayTween::Stop()
 }
 void ULGUIPlayTween::Start()
 {
-	tweener = ALTweenActor::To(this->GetWorld()
+	tweener = ALTweenActor::To(this
 		, FLTweenFloatGetterFunction::CreateLambda([] { return 0.0f; })
 		, FLTweenFloatSetterFunction::CreateUObject(this, &ULGUIPlayTween::OnUpdate)
 		, 1.0f, duration)
