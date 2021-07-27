@@ -1015,7 +1015,7 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 
 void UUIItem::CalculateHorizontalStretchFromAnchorAndSize()
 {
-	float parentWidthMultiply = 0.0f;
+	float parentWidthMultiply = 0.5f;
 	switch (widget.anchorHAlign)
 	{
 	case UIAnchorHorizontalAlign::Left:
@@ -1024,6 +1024,7 @@ void UUIItem::CalculateHorizontalStretchFromAnchorAndSize()
 	}
 	break;
 	case UIAnchorHorizontalAlign::Center:
+	case UIAnchorHorizontalAlign::Stretch:
 	{
 		parentWidthMultiply = 0.5f;
 	}
@@ -1040,7 +1041,7 @@ void UUIItem::CalculateHorizontalStretchFromAnchorAndSize()
 }
 void UUIItem::CalculateVerticalStretchFromAnchorAndSize()
 {
-	float parentHeightMultiply = 0.0f;
+	float parentHeightMultiply = 0.5f;
 	switch (widget.anchorVAlign)
 	{
 	case UIAnchorVerticalAlign::Bottom:
@@ -1049,6 +1050,7 @@ void UUIItem::CalculateVerticalStretchFromAnchorAndSize()
 	}
 	break;
 	case UIAnchorVerticalAlign::Middle:
+	case UIAnchorVerticalAlign::Stretch:
 	{
 		parentHeightMultiply = 0.5f;
 	}
@@ -1075,7 +1077,7 @@ bool UUIItem::CalculateHorizontalAnchorAndSizeFromStretch()
 		sizeChanged = true;
 	}
 
-	float parentWidthMultiply = 0.0f;
+	float parentWidthMultiply = 0.5f;
 	switch (widget.anchorHAlign)
 	{
 	case UIAnchorHorizontalAlign::Left:
@@ -1110,7 +1112,7 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 		sizeChanged = true;
 	}
 
-	float parentHeightMultiply = 0.0f;
+	float parentHeightMultiply = 0.5f;
 	switch (widget.anchorVAlign)
 	{
 	case UIAnchorVerticalAlign::Bottom:
