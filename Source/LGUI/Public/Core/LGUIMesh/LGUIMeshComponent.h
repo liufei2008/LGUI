@@ -29,6 +29,7 @@ struct FLGUIMeshSection
 
 class FLGUIHudRenderer;
 class ILGUIHudPrimitive;
+class ULGUICanvas;
 
 //Generate dynamic mesh
 UCLASS(ClassGroup = (LGUI), NotBlueprintable, Abstract)
@@ -47,7 +48,7 @@ public:
 	void SetColor(FColor InColor);
 	FColor GetColor()const;
 
-	void SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer);
+	void SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas);
 	void SetSupportWorldSpace(bool supportOrNot);
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
@@ -73,6 +74,7 @@ private:
 
 protected:
 	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
+	TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	bool IsSupportWorldSpace = true;
 };
 

@@ -1371,7 +1371,6 @@ void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 		if (CheckRenderCanvas())
 		{
 			RenderCanvas->MarkCanvasUpdate();
-			RenderCanvas->MarkSortRenderPriority();
 		}
 	}
 }
