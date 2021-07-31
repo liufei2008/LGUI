@@ -117,34 +117,17 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 					return A->GetSortOrder() < B->GetSortOrder();
 				});
 		}
-		if (bShouldSortScreenSpaceCanvas)
+		if (bShouldSortScreenSpaceCanvas)//@TODO: screen space don't need to sort, because it already did when add. Test and delete it
 		{
-			ULGUICanvas* canvasItem = nullptr;
-			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, canvasItem);
-			if (canvasItem != nullptr)
-			{
-				if (canvasItem->GetRootCanvas() != nullptr)
-				{
-					canvasItem->GetRootCanvas()->GetViewExtension()->SortRenderPriority();
-				}
-			}
+			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay);
 		}
 		if (bShouldSortWorldSpaceCanvas)
 		{
-			ULGUICanvas* canvasItem = nullptr;
-			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, canvasItem);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace);
 		}
 		if (bShouldSortRenderTargetSpaceCanvas)
 		{
-			ULGUICanvas* canvasItem = nullptr;
-			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, canvasItem);
-			if (canvasItem != nullptr)
-			{
-				if (canvasItem->GetRootCanvas() != nullptr)
-				{
-					canvasItem->GetRootCanvas()->GetViewExtension()->SortRenderPriority();
-				}
-			}
+			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget);
 		}
 
 		bShouldSortScreenSpaceCanvas = false;
@@ -198,7 +181,7 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 	return true;
 }
 
-void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, ULGUICanvas*& OutCanvas)
+void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
 {
 	int32 startRenderPriority = 0;
 	int32 prevSortOrder = INT_MIN;
@@ -210,7 +193,6 @@ void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRender
 		{
 			if (canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				OutCanvas = canvasItem.Get();
 				auto canvasItemSortOrder = canvasItem->GetSortOrder();
 				if (canvasItemSortOrder != prevSortOrder)
 				{
@@ -245,6 +227,19 @@ void ULGUIEditorManagerObject::MarkSortWorldSpaceCanvas()
 void ULGUIEditorManagerObject::MarkSortRenderTargetSpaceCanvas()
 {
 	bShouldSortRenderTargetSpaceCanvas = true;
+}
+
+TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUIEditorManagerObject::GetViewExtension(ULGUICanvas* InCanvas)
+{
+	if (Instance != nullptr)
+	{
+		if (!Instance->ScreenSpaceOverlayViewExtension.IsValid())
+		{
+			Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InCanvas->GetWorld(), nullptr);
+		}
+		return Instance->ScreenSpaceOverlayViewExtension;
+	}
+	return nullptr;
 }
 
 void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
@@ -779,6 +774,10 @@ void ALGUIManagerActor::BeginDestroy()
 	{
 		UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::BeginDestroy]All instance removed."));
 	}
+	if (ScreenSpaceOverlayViewExtension.IsValid())
+	{
+		ScreenSpaceOverlayViewExtension.Reset();
+	}
 	Super::BeginDestroy();
 #if WITH_EDITORONLY_DATA
 	IsPlaying = false;
@@ -904,34 +903,17 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 					return A->GetSortOrder() < B->GetSortOrder();
 				});
 		}
-		if (bShouldSortScreenSpaceCanvas)
+		if (bShouldSortScreenSpaceCanvas)//@TODO: screen space don't need to sort, because it already did when add. Test and delete it
 		{
-			ULGUICanvas* canvasItem = nullptr;
-			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay, canvasItem);
-			if (canvasItem != nullptr)
-			{
-				if (canvasItem->GetRootCanvas() != nullptr)
-				{
-					canvasItem->GetRootCanvas()->GetViewExtension()->SortRenderPriority();
-				}
-			}
+			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay);
 		}
 		if (bShouldSortWorldSpaceCanvas)
 		{
-			ULGUICanvas* canvasItem = nullptr;
-			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace, canvasItem);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace);
 		}
 		if (bShouldSortRenderTargetSpaceCanvas)
 		{
-			ULGUICanvas* canvasItem = nullptr;
-			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget, canvasItem);
-			if (canvasItem != nullptr)
-			{
-				if (canvasItem->GetRootCanvas() != nullptr)
-				{
-					canvasItem->GetRootCanvas()->GetViewExtension()->SortRenderPriority();
-				}
-			}
+			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget);
 		}
 
 		bShouldSortScreenSpaceCanvas = false;
@@ -940,7 +922,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	}
 }
 
-void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, ULGUICanvas*& OutCanvas)
+void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
 {
 	int32 startRenderPriority = 0;
 	int32 prevSortOrder = INT_MIN;
@@ -952,7 +934,6 @@ void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, U
 		{
 			if (canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				OutCanvas = canvasItem.Get();
 				auto canvasItemSortOrder = canvasItem->GetSortOrder();
 				bool sameSortOrder = canvasItemSortOrder == prevSortOrder;
 				if (!sameSortOrder)
@@ -1105,6 +1086,19 @@ void ALGUIManagerActor::MarkSortWorldSpaceCanvas()
 void ALGUIManagerActor::MarkSortRenderTargetSpaceCanvas()
 {
 	bShouldSortRenderTargetSpaceCanvas = true;
+}
+
+TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetViewExtension(ULGUICanvas* InCanvas)
+{
+	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
+	{
+		if (!Instance->ScreenSpaceOverlayViewExtension.IsValid())
+		{
+			Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InCanvas->GetWorld(), nullptr);
+		}
+		return Instance->ScreenSpaceOverlayViewExtension;
+	}
+	return nullptr;
 }
 
 void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)

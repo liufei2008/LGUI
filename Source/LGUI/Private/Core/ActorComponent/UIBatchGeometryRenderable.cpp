@@ -8,6 +8,7 @@
 #include "Core/LGUIMesh/UIDrawcallMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
@@ -529,7 +530,7 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 			{
 				if (RenderCanvas->GetRootCanvas()->IsRenderToScreenSpaceOrRenderTarget())
 				{
-					uiMesh->SetSupportScreenSpace(true, RenderCanvas->GetRootCanvas()->GetViewExtension());
+					uiMesh->SetSupportScreenSpace(true, ULGUIEditorManagerObject::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas());
 				}
 				uiMesh->SetSupportWorldSpace(true);
 			}
@@ -537,7 +538,7 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 #endif
 			if (RenderCanvas->GetRootCanvas()->IsRenderToScreenSpaceOrRenderTarget())
 			{
-				uiMesh->SetSupportScreenSpace(true, RenderCanvas->GetRootCanvas()->GetViewExtension());
+				uiMesh->SetSupportScreenSpace(true, ALGUIManagerActor::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas());
 				uiMesh->SetSupportWorldSpace(false);
 			}
 		}

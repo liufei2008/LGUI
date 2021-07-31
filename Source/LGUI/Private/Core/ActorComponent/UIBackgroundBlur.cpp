@@ -53,9 +53,7 @@ void UUIBackgroundBlur::MarkAllDirtyRecursive()
 
 	if (this->RenderCanvas.IsValid())
 	{
-		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+		SendRegionVertexDataToRenderProxy();
 		SendStrengthTextureToRenderProxy();
 		SendMaskTextureToRenderProxy();
 		SendOthersDataToRenderProxy();
@@ -117,6 +115,7 @@ public:
 		auto BlurEffectRenderTexture1 = BlurEffectRenderTarget1->GetRenderTargetItem().TargetableTexture;
 		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
 
+		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
 		if (ScreenTargetTexture->IsMultisampled())
 		{
 			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
@@ -246,7 +245,7 @@ public:
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1);
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();
@@ -352,9 +351,7 @@ TSharedPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
 		if (this->RenderCanvas.IsValid())
 		{
 			inv_SampleLevelInterval = 1.0f / MAX_BlurStrength * maxDownSampleLevel;
-			auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-			auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-			SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+			SendRegionVertexDataToRenderProxy();
 			SendStrengthTextureToRenderProxy();
 			SendMaskTextureToRenderProxy();
 			SendOthersDataToRenderProxy();
@@ -363,9 +360,9 @@ TSharedPtr<FUIPostProcessRenderProxy> UUIBackgroundBlur::GetRenderProxy()
 	return RenderProxy;
 }
 
-void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+void UUIBackgroundBlur::SendRegionVertexDataToRenderProxy()
 {
-	Super::SendRegionVertexDataToRenderProxy(InModelViewProjectionMatrix);
+	Super::SendRegionVertexDataToRenderProxy();
 	if (RenderProxy.IsValid())
 	{
 		auto BackgroundBlurRenderProxy = (FUIBackgroundBlurRenderProxy*)(RenderProxy.Get());

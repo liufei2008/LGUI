@@ -18,7 +18,7 @@ class FGlobalShaderMap;
 class LGUI_API FLGUIHudRenderer : public FSceneViewExtensionBase
 {
 public:
-	FLGUIHudRenderer(const FAutoRegister&, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget);
+	FLGUIHudRenderer(const FAutoRegister&, UWorld* InWorld, UTextureRenderTarget2D* InCustomRenderTarget);
 	virtual ~FLGUIHudRenderer();
 
 	//begin ISceneViewExtension interfaces
@@ -33,11 +33,14 @@ public:
 	virtual void PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)override;
 	virtual void PostRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)override {};
 	//end ISceneViewExtension interfaces
-	void SortRenderPriority();
 
 	//
-	void AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
-	void RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
+	void AddHudPrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive);
+	void RemoveHudPrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive);
+	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
+
+	void AddRenderCanvas(ULGUICanvas* InCanvas);
+	void RemoveRenderCanvas(ULGUICanvas* InCanvas);
 
 	void CopyRenderTarget(
 		FRHICommandListImmediate& RHICmdList, 
@@ -57,19 +60,32 @@ public:
 	uint16 GetMultiSampleCount()const { return MultiSampleCount; }
 private:
 	void SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material);
-	void SortRenderPriority_RenderThread();
-	TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
-	TWeakObjectPtr<ULGUICanvas> UICanvas;
+	struct FRenderCanvasParameter
+	{
+		/*
+		 * CAUTION! use this uobject pointer only in game-thread!
+		 * I use it in render-thread just as a pointer or a key, so it is safe here.
+		 */
+		ULGUICanvas* RenderCanvas;
+
+		int32 RenderCanvasSortOrder;
+
+		FVector ViewLocation;
+		FMatrix ViewRotationMatrix;
+		FMatrix ProjectionMatrix;
+		FMatrix ViewProjectionMatrix;
+
+		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
+	};
+	TArray<FRenderCanvasParameter> RenderCanvasParameterArray;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
 	uint16 MultiSampleCount = 0;
-	bool bHasPostProcess = false;
-	void CheckHasPostProcess();
-
-	FVector ViewLocation;
-	FMatrix ViewRotationMatrix;
-	FMatrix ProjectionMatrix;
-	FMatrix ViewProjectionMatrix;
+	bool bContainsPostProcess = false;
+	FCriticalSection RenderCanvasParameterArray_Mutex;//Lock for RenderCanvasParameterArray
+	void CheckContainsPostProcess_RenderThread();	
+	void AddRootCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
+	void RemoveRootCanvas_RenderThread(ULGUICanvas* InCanvas);
 public:
 #if WITH_EDITORONLY_DATA
 	static uint32 EditorPreview_ViewKey;

@@ -128,13 +128,12 @@ private:
 	void UpdateCanvasGeometry();
 	/** clear drawcalls */
 	void ClearDrawcall();
+	void RemoveFromViewExtension();
 public:
 	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
 	/** mark any child's layout change */
 	void MarkCanvasUpdateLayout();
-	/** mark sort render priority when next frame update */
-	void MarkSortRenderPriority();
 
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
@@ -143,7 +142,7 @@ public:
 	FVector2D GetClipRectMin()const { return clipRectMin; }
 	FVector2D GetClipRectMax()const { return clipRectMax; }
 
-	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix)const;
+	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, FMatrix& OutProjectionMatrix)const;
 	FMatrix GetViewProjectionMatrix()const;
 	FMatrix GetProjectionMatrix()const;
 	FVector GetViewLocation()const;
@@ -171,7 +170,6 @@ public:
 	bool IsRenderToScreenSpaceOrRenderTarget();
 	bool IsRenderToRenderTarget();
 	bool IsRenderToWorldSpace();
-	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension();
 
 	FORCEINLINE UUIItem* GetUIItem()const { CheckUIItem(); return UIItem.Get(); }
 	bool GetIsUIActive()const;
@@ -197,8 +195,6 @@ protected:
 
 	mutable TWeakObjectPtr<UUIItem> UIItem = nullptr;
 	bool CheckUIItem()const;
-
-	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension;
 protected:
 	friend class FLGUICanvasCustomization;
 	friend class FUIItemCustomization;
@@ -392,6 +388,25 @@ public:
 
 	int GetDrawcallCount()const { return UIDrawcallList.Num(); }
 
+	/** Override LGUI's screen space UI render's camera location. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetOverrideViewLoation(bool InOverride, FVector InValue);
+	/** Override LGUI's screen space UI render's camera rotation. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetOverrideViewRotation(bool InOverride, FRotator InValue);
+	/**
+	 * Override LGUI's screen space UI render's camera's fov in degree, will affect projection matrix.
+	 * If SetOverrideProjectionMatrix is true, then this will not take effect.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetOverrideFovAngle(bool InOverride, float InValue);
+	/**
+	 * Override LGUI's screen space UI render's camera's projection matrix.
+	 * If this is set to true, then SetOverrideFovAngle will not take effect.
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue);
+
 	void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
 	void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
 private:
@@ -406,6 +421,7 @@ private:
 	uint8 bShouldUpdateLayout:1;//if any child layout changed
 	uint8 bRectRangeCalculated:1;
 	uint8 bNeedToSortRenderPriority : 1;
+	uint8 bHasAddToViewExtension : 1;//is this canvas added to hud renderer view extension
 
 	uint8 cacheForThisUpdate_ShouldUpdateLayout:1
 		, cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
@@ -414,6 +430,12 @@ private:
 
 	mutable uint32 cacheViewProjectionMatrixFrameNumber = 0;
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
+
+	uint8 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
+	FVector OverrideViewLocation;
+	FRotator OverrideViewRotation;
+	float OverrideFovAngle;
+	FMatrix OverrideProjectionMatrix;
 
 	TArray<TWeakObjectPtr<UUIDrawcallMesh>> PooledUIMeshList;//UIDrawcallMesh pool
 	UPROPERTY(Transient) TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool

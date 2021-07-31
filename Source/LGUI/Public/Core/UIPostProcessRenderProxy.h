@@ -26,11 +26,12 @@ private:
 	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIHudRenderer;
 	int32 RenderPriority = 0;
 	bool bIsVisible = true;
+	void* RenderCanvasPtr = nullptr;
 public:
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 	void SetVisibility(bool value);
-	void AddToHudRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer);
-	void AddToHudRenderer_RenderThread(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer);
+	void AddToHudRenderer(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer);
+	void AddToHudRenderer_RenderThread(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer);
 	void RemoveFromHudRenderer();
 	void RemoveFromHudRenderer_RenderThread();
 
@@ -63,7 +64,7 @@ public:
 	FTexture2DResource* clipTexture;
 	FVector4 textureClipOffsetAndSize;
 
-	FMatrix modelViewProjectionMatrix = FMatrix::Identity;
+	FMatrix objectToWorldMatrix = FMatrix::Identity;
 	TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 	FUIWidget widget;
@@ -73,6 +74,7 @@ public:
 		, FTextureRHIRef ScreenTargetTexture
 		, FGlobalShaderMap* GlobalShaderMap
 		, FTextureRHIRef ResultTexture
+		, const FMatrix & ModelViewProjectionMatrix
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
 };

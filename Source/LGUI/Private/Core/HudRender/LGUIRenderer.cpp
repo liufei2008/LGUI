@@ -37,15 +37,14 @@ public:
 #if WITH_EDITORONLY_DATA
 uint32 FLGUIHudRenderer::EditorPreview_ViewKey = 0;
 #endif
-FLGUIHudRenderer::FLGUIHudRenderer(const FAutoRegister& AutoRegister, ULGUICanvas* InLGUICanvas, UTextureRenderTarget2D* InCustomRenderTarget)
+FLGUIHudRenderer::FLGUIHudRenderer(const FAutoRegister& AutoRegister, UWorld* InWorld, UTextureRenderTarget2D* InCustomRenderTarget)
 	:FSceneViewExtensionBase(AutoRegister)
 {
-	UICanvas = InLGUICanvas;
-	World = UICanvas->GetWorld();
+	World = InWorld;
 	CustomRenderTarget = InCustomRenderTarget;
 
 #if WITH_EDITORONLY_DATA
-	bIsEditorPreview = !UICanvas->GetWorld()->IsGameWorld();
+	bIsEditorPreview = !World->IsGameWorld();
 #endif
 }
 FLGUIHudRenderer::~FLGUIHudRenderer()
@@ -55,12 +54,19 @@ FLGUIHudRenderer::~FLGUIHudRenderer()
 
 void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	if (!UICanvas.IsValid())return;
-
-	ViewLocation = UICanvas->GetViewLocation();
-	ViewRotationMatrix = UICanvas->GetViewRotationMatrix();
-	ProjectionMatrix = UICanvas->GetProjectionMatrix();
-	ViewProjectionMatrix = UICanvas->GetViewProjectionMatrix();
+	{
+		FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
+		for (auto& canvasItem : RenderCanvasParameterArray)
+		{
+			if (IsValid(canvasItem.RenderCanvas))
+			{
+				canvasItem.ViewLocation = canvasItem.RenderCanvas->GetViewLocation();
+				canvasItem.ViewRotationMatrix = canvasItem.RenderCanvas->GetViewRotationMatrix().InverseFast();
+				canvasItem.ProjectionMatrix = canvasItem.RenderCanvas->GetProjectionMatrix();
+				canvasItem.ViewProjectionMatrix = canvasItem.RenderCanvas->GetViewProjectionMatrix();
+			}
+		}
+	}
 	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
 }
 void FLGUIHudRenderer::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
@@ -204,7 +210,6 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
 	if (!World.IsValid())return;
-	if (!UICanvas.IsValid())return;
 #if WITH_EDITOR
 	if (ALGUIManagerActor::IsPlaying == bIsEditorPreview)return;
 	if (ALGUIManagerActor::IsPlaying)
@@ -246,7 +251,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	}
 	else
 	{
-		if (bHasPostProcess || MultiSampleCount > 1)
+		if (bContainsPostProcess || MultiSampleCount > 1)
 		{
 			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.UnscaledViewRect.Size(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = MultiSampleCount;
@@ -272,73 +277,79 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 	RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
 
-	RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
-	RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
-	RenderView.UpdateProjectionMatrix(ProjectionMatrix);
-
-	FViewUniformShaderParameters viewUniformShaderParameters;
-	RenderView.SetupCommonViewUniformBufferParameters(
-		viewUniformShaderParameters,
-		RenderView.UnscaledViewRect.Size(),
-		MultiSampleCount,
-		RenderView.UnscaledViewRect,
-		RenderView.ViewMatrices,
-		FViewMatrices()
-	);
-
-	RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
-
-	FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
-	FGraphicsPipelineStateInitializer GraphicsPSOInit;
-	RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-	GraphicsPSOInit.NumSamples = MultiSampleCount;
-
-	for (int i = 0; i < HudPrimitiveArray.Num(); i++)
+	for (int canvasIndex = 0; canvasIndex < RenderCanvasParameterArray.Num(); canvasIndex++)
 	{
-		auto hudPrimitive = HudPrimitiveArray[i];
-		if (hudPrimitive != nullptr)
+		auto& canvasParamItem = RenderCanvasParameterArray[canvasIndex];
+
+		RenderView.SceneViewInitOptions.ViewOrigin = canvasParamItem.ViewLocation;
+		RenderView.SceneViewInitOptions.ViewRotationMatrix = canvasParamItem.ViewRotationMatrix;
+		RenderView.UpdateProjectionMatrix(canvasParamItem.ProjectionMatrix);
+
+		FViewUniformShaderParameters viewUniformShaderParameters;
+		RenderView.SetupCommonViewUniformBufferParameters(
+			viewUniformShaderParameters,
+			RenderView.UnscaledViewRect.Size(),
+			MultiSampleCount,
+			RenderView.UnscaledViewRect,
+			RenderView.ViewMatrices,
+			FViewMatrices()
+		);
+
+		RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
+
+		FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+		GraphicsPSOInit.NumSamples = MultiSampleCount;
+
+
+		for (int primitiveIndex = 0; primitiveIndex < canvasParamItem.HudPrimitiveArray.Num(); primitiveIndex++)
 		{
-			if (hudPrimitive->CanRender())
+			auto hudPrimitive = canvasParamItem.HudPrimitiveArray[primitiveIndex];
+			if (hudPrimitive != nullptr)
 			{
-				if (hudPrimitive->GetIsPostProcess())//render post process
+				if (hudPrimitive->CanRender())
 				{
-					RHICmdList.EndRenderPass();
-					hudPrimitive->OnRenderPostProcess_RenderThread(
-						RHICmdList,
-						this,
-						(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
-						ScreenColorRenderTargetTexture,
-						ScreenColorRenderTargetResolveTexture,
-						GlobalShaderMap,
-						ViewProjectionMatrix
-					);
-					RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-					RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
-					GraphicsPSOInit.NumSamples = MultiSampleCount;
-				}
-				else//render mesh
-				{
-					const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-					auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
-					const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-					auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-					auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
-					if (VertexShader.IsValid() && PixelShader.IsValid())
+					if (hudPrimitive->GetIsPostProcess())//render post process
 					{
-						SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
-
-						GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
-						GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-						GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-						GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+						RHICmdList.EndRenderPass();
+						hudPrimitive->OnRenderPostProcess_RenderThread(
+							RHICmdList,
+							this,
+							(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
+							ScreenColorRenderTargetTexture,
+							ScreenColorRenderTargetResolveTexture,
+							GlobalShaderMap,
+							canvasParamItem.ViewProjectionMatrix
+						);
+						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
+						RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
 						GraphicsPSOInit.NumSamples = MultiSampleCount;
-						SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+					}
+					else//render mesh
+					{
+						const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
+						auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
+						const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+						auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
+						auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
+						if (VertexShader.IsValid() && PixelShader.IsValid())
+						{
+							SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
 
-						VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-						PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+							GraphicsPSOInit.NumSamples = MultiSampleCount;
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-						RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-						RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+							VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+							PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+
+							RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+						}
 					}
 				}
 			}
@@ -352,7 +363,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	}
 	else
 	{
-		if (bHasPostProcess || MultiSampleCount > 1)
+		if (bContainsPostProcess || MultiSampleCount > 1)
 		{
 #if PLATFORM_WINDOWS || PLATFORM_XBOXONE || PLATFORM_MAC || PLATFORM_PS4 || PLATFORM_LINUX
 			RHICmdList.CopyToResolveTarget(ScreenColorRenderTargetTexture, (FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(), FResolveParams());
@@ -372,64 +383,151 @@ void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHIC
 
 }
 
-void FLGUIHudRenderer::AddHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
+void FLGUIHudRenderer::AddHudPrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
-		HudPrimitiveArray.AddUnique(InPrimitive);
-		SortRenderPriority_RenderThread();//I don't know which time the primitive is added, because I don't know when SceneProxy or RenderProxy is created, so I need to sort it every time a new one added.
-		//check if we have postprocess
-		CheckHasPostProcess();
+		int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
+			return item.RenderCanvas == InCanvas;
+			});
+		if (existIndex == INDEX_NONE)
+		{
+			UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::AddHudPrimitive_RenderThread]Canvas not exist!"));
+		}
+		else
+		{
+			auto& item = RenderCanvasParameterArray[existIndex];
+			item.HudPrimitiveArray.AddUnique(InPrimitive);
+			item.HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
+			{
+				return A.GetRenderPriority() < B.GetRenderPriority();
+			});
+			//check if we have postprocess
+			CheckContainsPostProcess_RenderThread();
+		}
 	}
 	else
 	{
 		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::AddHudPrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
 	}
 }
-void FLGUIHudRenderer::RemoveHudPrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
+void FLGUIHudRenderer::RemoveHudPrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
-		HudPrimitiveArray.RemoveSingle(InPrimitive);
-		//check if we have postprocess
-		CheckHasPostProcess();
+		int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
+			return item.RenderCanvas == InCanvas;
+			});
+		if (existIndex == INDEX_NONE)
+		{
+			UE_LOG(LGUI, Log, TEXT("[FLGUIHudRenderer::RemoveHudPrimitive]Canvas already removed."));
+		}
+		else
+		{
+			auto& item = RenderCanvasParameterArray[existIndex];
+			item.HudPrimitiveArray.RemoveSingle(InPrimitive);
+			//check if we have postprocess
+			CheckContainsPostProcess_RenderThread();
+		}
 	}
 	else
 	{
 		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::RemoveHudPrimitive]Remove nullptr as ILGUIHudPrimitive!"));
 	}
 }
-void FLGUIHudRenderer::CheckHasPostProcess()
+void FLGUIHudRenderer::SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder)
 {
-	bHasPostProcess = false;
-	for (auto item : HudPrimitiveArray)
+	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
+	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InRenderCanvas](const FRenderCanvasParameter& item) {
+		return item.RenderCanvas == InRenderCanvas;
+		});
+	if (existIndex == INDEX_NONE)
 	{
-		if (item->CanRender() && item->GetIsPostProcess())
-		{
-			bHasPostProcess = true;
-			break;
-		}
+		UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::RemoveHudPrimitive]Canvas not exist!"));
+	}
+	else
+	{
+		RenderCanvasParameterArray[existIndex].RenderCanvasSortOrder = InSortOrder;
+		RenderCanvasParameterArray.Sort([](const FRenderCanvasParameter& A, const FRenderCanvasParameter& B) {
+			return A.RenderCanvasSortOrder < B.RenderCanvasSortOrder;
+			});
 	}
 }
+void FLGUIHudRenderer::AddRenderCanvas(ULGUICanvas* InCanvas)
+{
+	FRenderCanvasParameter canvasItem;
+	canvasItem.RenderCanvas = InCanvas;
+	canvasItem.RenderCanvasSortOrder = InCanvas->GetSortOrder();
+	canvasItem.ViewLocation = canvasItem.RenderCanvas->GetViewLocation();
+	canvasItem.ViewRotationMatrix = canvasItem.RenderCanvas->GetViewRotationMatrix().InverseFast();
+	canvasItem.ProjectionMatrix = canvasItem.RenderCanvas->GetProjectionMatrix();
+	canvasItem.ViewProjectionMatrix = canvasItem.RenderCanvas->GetViewProjectionMatrix();
 
-void FLGUIHudRenderer::SortRenderPriority_RenderThread()
-{
-	HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
-	{
-		return A.GetRenderPriority() < B.GetRenderPriority();
-	});
-}
-void FLGUIHudRenderer::SortRenderPriority()
-{
-	FLGUIHudRenderer* viewExtension = this;
+	auto viewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
-		[viewExtension](FRHICommandListImmediate& RHICmdList)
+		[viewExtension, canvasItem](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->SortRenderPriority_RenderThread();
+			viewExtension->AddRootCanvas_RenderThread(canvasItem);
+		}
+	);
+}
+void FLGUIHudRenderer::RemoveRenderCanvas(ULGUICanvas* InCanvas)
+{
+	auto viewExtension = this;
+	auto canvas = InCanvas;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
+		[viewExtension, canvas](FRHICommandListImmediate& RHICmdList)
+		{
+			viewExtension->RemoveRootCanvas_RenderThread(canvas);
 		}
 	);
 }
 
+void FLGUIHudRenderer::AddRootCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter)
+{
+	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
+	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([&InCanvasParameter](const FRenderCanvasParameter& item) {
+		return item.RenderCanvas == InCanvasParameter.RenderCanvas;
+		});
+	if (existIndex != INDEX_NONE)
+	{
+		UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::AddRootCanvas_RenderThread]Canvas already exist!"));
+		return;
+	}
+	RenderCanvasParameterArray.Add(InCanvasParameter);
+	RenderCanvasParameterArray.Sort([](const FRenderCanvasParameter& A, const FRenderCanvasParameter& B) {
+		return A.RenderCanvasSortOrder < B.RenderCanvasSortOrder;
+		});
+}
+void FLGUIHudRenderer::RemoveRootCanvas_RenderThread(ULGUICanvas* InCanvas)
+{
+	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
+	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
+		return item.RenderCanvas == InCanvas;
+		});
+	if (existIndex == INDEX_NONE)
+	{
+		UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::RemoveRootCanvas_RenderThread]Canvas not exist!"));
+		return;
+	}
+	RenderCanvasParameterArray.RemoveAt(existIndex);
+}
+
+void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
+{
+	bContainsPostProcess = false;
+	for (auto& renderItem : RenderCanvasParameterArray)
+	{
+		for (auto& item : renderItem.HudPrimitiveArray)
+		{
+			if (item->CanRender() && item->GetIsPostProcess())
+			{
+				bContainsPostProcess = true;
+				return;
+			}
+		}
+	}
+}
 
 void FLGUIFullScreenQuadVertexBuffer::InitRHI()
 {

@@ -11,6 +11,7 @@
 #include "Engine/Engine.h"
 #include "LGUI.h"
 #include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 
 
 class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
@@ -81,7 +82,7 @@ public:
 		static size_t UniquePointer;
 		return reinterpret_cast<size_t>(&UniquePointer);
 	}
-	FLGUIMeshSceneProxy(ULGUIMeshComponent* InComponent)
+	FLGUIMeshSceneProxy(ULGUIMeshComponent* InComponent, void* InCanvasPtr, int32 InCanvasSortOrder)
 		: FPrimitiveSceneProxy(InComponent)
 		, BodySetup(InComponent->GetBodySetup())
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
@@ -89,16 +90,17 @@ public:
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CreateMeshSection);
 		LGUIRenderer = InComponent->LGUIRenderer;
+		RenderCanvasPtr = InCanvasPtr;
 		if (LGUIRenderer.IsValid())
 		{
 			auto TempRenderer = LGUIRenderer;
 			auto HudPrimitive = this;
 			ENQUEUE_RENDER_COMMAND(FLGUIMeshSceneProxy_AddHudPrimitive)(
-				[TempRenderer, HudPrimitive](FRHICommandListImmediate& RHICmdList)
+				[TempRenderer, HudPrimitive, InCanvasPtr, InCanvasSortOrder](FRHICommandListImmediate& RHICmdList)
 				{
 					if (TempRenderer.IsValid())
 					{
-						TempRenderer.Pin()->AddHudPrimitive_RenderThread(HudPrimitive);
+						TempRenderer.Pin()->AddHudPrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, InCanvasSortOrder, HudPrimitive);
 					}
 				}
 			);
@@ -183,7 +185,7 @@ public:
 		}
 		if (LGUIRenderer.IsValid())
 		{
-			LGUIRenderer.Pin()->RemoveHudPrimitive_RenderThread(this);
+			LGUIRenderer.Pin()->RemoveHudPrimitive_RenderThread((ULGUICanvas*)RenderCanvasPtr, this);
 			LGUIRenderer.Reset();
 		}
 	}
@@ -495,6 +497,7 @@ private:
 	bool IsSupportScreenSpace = false;
 	bool IsSupportWorldSpace = true;
 	TArray<FLGUIHudVertex> HudVertexUpdateData;
+	void* RenderCanvasPtr = nullptr;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -596,16 +599,17 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	FLGUIMeshSceneProxy* Proxy = NULL;
 	if (MeshSection.vertices.Num() > 0)
 	{
-		Proxy = new FLGUIMeshSceneProxy(this);
+		Proxy = new FLGUIMeshSceneProxy(this, RenderCanvas.Get(), RenderCanvas.IsValid() ? RenderCanvas->GetSortOrder() : 0);
 	}
 	return Proxy;
 }
 
-void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer)
+void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas)
 {
 	if (supportOrNot)
 	{
 		LGUIRenderer = HudRenderer;
+		RenderCanvas = InCanvas;
 	}
 	else
 	{

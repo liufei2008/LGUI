@@ -41,6 +41,12 @@ ULGUICanvas::ULGUICanvas()
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;
 	bShouldUpdateLayout = true;
+
+	bHasAddToViewExtension = false;
+	bOverrideViewLocation = false;
+	bOverrideViewRotation = false;
+	bOverrideProjectionMatrix = false;
+	bOverrideFovAngle = false;
 }
 
 void ULGUICanvas::BeginPlay()
@@ -128,16 +134,15 @@ void ULGUICanvas::OnUnregister()
 	{
 		UIItem->UIHierarchyChanged();
 	}
+
+	//clear and delete mesh components
+	ClearDrawcall();
+
+	RemoveFromViewExtension();
 }
 void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
 	Super::OnComponentDestroyed(bDestroyingHierarchy);
-	if (ViewExtension.IsValid())
-	{
-		ViewExtension.Reset();
-	}
-	//clear and delete mesh components
-	ClearDrawcall();
 }
 
 void ULGUICanvas::ClearDrawcall()
@@ -171,6 +176,29 @@ void ULGUICanvas::ClearDrawcall()
 	}
 	UIDrawcallList.Empty();
 	PooledUIMeshList.Empty();
+}
+
+void ULGUICanvas::RemoveFromViewExtension()
+{
+	if (bHasAddToViewExtension)
+	{
+		bHasAddToViewExtension = false;
+		TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> viewExtension = nullptr;
+#if WITH_EDITOR
+		if (!GetWorld()->IsGameWorld())
+		{
+			viewExtension = ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get());
+		}
+		else
+#endif
+		{
+			viewExtension = ALGUIManagerActor::GetViewExtension(RootCanvas.Get());
+		}
+		if (viewExtension.IsValid())
+		{
+			viewExtension->RemoveRenderCanvas(this);
+		}
+	}
 }
 
 void ULGUICanvas::OnUIActiveStateChanged(bool active)
@@ -231,6 +259,8 @@ void ULGUICanvas::CheckRenderMode()
 		//clear and delete mesh components, so new mesh will be created. because hud and world mesh not compatible
 		ClearDrawcall();
 	}
+
+	RemoveFromViewExtension();
 }
 void ULGUICanvas::OnUIHierarchyChanged()
 {
@@ -300,13 +330,6 @@ void ULGUICanvas::MarkCanvasUpdate()
 void ULGUICanvas::MarkCanvasUpdateLayout()
 {
 	this->bShouldUpdateLayout = true;
-}
-void ULGUICanvas::MarkSortRenderPriority()
-{
-	if (CheckRootCanvas())
-	{
-		RootCanvas->bNeedToSortRenderPriority = true;
-	}
 }
 #if WITH_EDITOR
 void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -398,25 +421,6 @@ ULGUICanvas* ULGUICanvas::GetRootCanvas() const
 bool ULGUICanvas::IsRootCanvas()const
 {
 	return RootCanvas == this;
-}
-
-TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUICanvas::GetViewExtension()
-{
-	if (!ViewExtension.IsValid())
-	{
-		if (GEngine)
-		{
-			if (renderMode == ELGUIRenderMode::ScreenSpaceOverlay)
-			{
-				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(this, nullptr);
-			}
-			else if (renderMode == ELGUIRenderMode::RenderTarget && IsValid(renderTarget))
-			{
-				ViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(this, renderTarget);
-			}
-		}
-	}
-	return ViewExtension;
 }
 
 bool ULGUICanvas::GetIsUIActive()const
@@ -881,6 +885,26 @@ void ULGUICanvas::CombineDrawcall()
 	}
 }
 
+void ULGUICanvas::SetOverrideViewLoation(bool InOverride, FVector InValue)
+{
+	bOverrideViewLocation = InOverride;
+	OverrideViewLocation = InValue;
+}
+void ULGUICanvas::SetOverrideViewRotation(bool InOverride, FRotator InValue)
+{
+	bOverrideViewRotation = InOverride;
+	OverrideViewRotation = InValue;
+}
+void ULGUICanvas::SetOverrideFovAngle(bool InOverride, float InValue)
+{
+	bOverrideFovAngle = InOverride;
+	OverrideFovAngle = InValue;
+}
+void ULGUICanvas::SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue)
+{
+	bOverrideProjectionMatrix = InOverride;
+	OverrideProjectionMatrix = InValue;
+}
 
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
@@ -928,6 +952,30 @@ void ULGUICanvas::UpdateRootCanvas()
 {
 	SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
 	if (this != RootCanvas) return;
+
+	if (!bHasAddToViewExtension)
+	{
+		if (currentIsRenderToRenderTargetOrWorld)
+		{
+			if (RootCanvas == this)
+			{
+				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> viewExtension = nullptr;
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld())
+				{
+					viewExtension = ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get());
+				}
+				else
+#endif
+				{
+					viewExtension = ALGUIManagerActor::GetViewExtension(RootCanvas.Get());
+				}
+
+				viewExtension->AddRenderCanvas(this);
+				bHasAddToViewExtension = true;
+			}
+		}
+	}
 	//update first Canvas
 	UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
 
@@ -974,7 +1022,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					{
 						if (currentIsRenderToRenderTargetOrWorld)
 						{
-							uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+							uiMesh->SetSupportScreenSpace(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
 						}
 						uiMesh->SetSupportWorldSpace(true);
 					}
@@ -982,7 +1030,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #endif
 						if (currentIsRenderToRenderTargetOrWorld)
 						{
-							uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+							uiMesh->SetSupportScreenSpace(true, ALGUIManagerActor::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
 							uiMesh->SetSupportWorldSpace(false);
 						}
 					drawcallItem->drawcallMesh = uiMesh;
@@ -1016,7 +1064,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 						{
 							if (currentIsRenderToRenderTargetOrWorld)
 							{
-								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+								uiMesh->SetSupportScreenSpace(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
 							}
 							uiMesh->SetSupportWorldSpace(true);
 						}
@@ -1024,7 +1072,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #endif
 							if (currentIsRenderToRenderTargetOrWorld)
 							{
-								uiMesh->SetSupportScreenSpace(true, RootCanvas->GetViewExtension());
+								uiMesh->SetSupportScreenSpace(true, ALGUIManagerActor::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
 								uiMesh->SetSupportWorldSpace(false);
 							}
 					}
@@ -1068,18 +1116,15 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					{
 						if (currentIsRenderToRenderTargetOrWorld)
 						{
-							if (RootCanvas->GetViewExtension())
-							{
-								uiPostProcessPrimitive->AddToHudRenderer(RootCanvas->GetViewExtension());
-								uiPostProcessPrimitive->SetVisibility(true);
-							}
+							uiPostProcessPrimitive->AddToHudRenderer(RootCanvas.Get(), RootCanvas->GetSortOrder(), ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()));
+							uiPostProcessPrimitive->SetVisibility(true);
 						}
 					}
 					else
 #endif
 						if (currentIsRenderToRenderTargetOrWorld)
 						{
-							uiPostProcessPrimitive->AddToHudRenderer(RootCanvas->GetViewExtension());
+							uiPostProcessPrimitive->AddToHudRenderer(RootCanvas.Get(), RootCanvas->GetSortOrder(), ALGUIManagerActor::GetViewExtension(RootCanvas.Get()));
 							uiPostProcessPrimitive->SetVisibility(true);
 						}
 				}
@@ -1585,6 +1630,30 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 				}
 			}
 		}
+		if (this == RootCanvas)
+		{
+			if (currentIsRenderToRenderTargetOrWorld)
+			{
+				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld())
+				{
+					ViewExtension = ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get());
+				}
+				else
+#endif
+				{
+					ViewExtension = ALGUIManagerActor::GetViewExtension(RootCanvas.Get());
+				}
+				auto canvas = this;
+				auto tempSortOrder = this->sortOrder;
+				ENQUEUE_RENDER_COMMAND(FLGUICanvas_SetCanvasSortOrder)(
+					[ViewExtension, canvas, tempSortOrder](FRHICommandListImmediate& RHICmdList)
+					{
+						ViewExtension->SetRenderCanvasSortOrder_RenderThread(canvas, tempSortOrder);
+					});
+			}
+		}
 #if WITH_EDITOR
 		if (!GetWorld()->IsGameWorld())
 		{
@@ -1877,7 +1946,7 @@ bool ULGUICanvas::GetRequireUV3()const
 }
 
 
-void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, float InOrthoWidth, float InOrthoHeight, FMatrix& OutProjectionMatrix)const
+void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float InFOV, FMatrix& OutProjectionMatrix)const
 {
 	if (InViewportSize.X == 0 || InViewportSize.Y == 0)//in DebugCamera mode(toggle in editor by press ';'), viewport size is 0
 	{
@@ -1886,8 +1955,8 @@ void ULGUICanvas::BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProject
 	if (InProjectionType == ECameraProjectionMode::Orthographic)
 	{
 		check((int32)ERHIZBuffer::IsInverted);
-		const float tempOrthoWidth = InOrthoWidth / 2.0f;
-		const float tempOrthoHeight = InOrthoHeight / 2.0f;
+		const float tempOrthoWidth = InViewportSize.X * 0.5f;
+		const float tempOrthoHeight = InViewportSize.Y * 0.5f;
 
 		const float ZScale = 1.0f / (FarClipPlane - NearClipPlane);
 		const float ZOffset = -NearClipPlane;
@@ -1954,40 +2023,48 @@ FMatrix ULGUICanvas::GetViewProjectionMatrix()const
 		cacheViewProjectionMatrixFrameNumber = GFrameNumber;
 
 		FVector ViewLocation = GetViewLocation();
-		auto Transform = UIItem->GetComponentToWorld();
-		Transform.SetTranslation(FVector::ZeroVector);
-		Transform.SetScale3D(FVector::OneVector);
-		FMatrix ViewRotationMatrix = Transform.ToInverseMatrixWithScale();
-
-		const float FOV = FOVAngle * (float)PI / 360.0f;
-
-		FMatrix ProjectionMatrix;
-		BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, UIItem->GetWidth(), UIItem->GetHeight(), ProjectionMatrix);
+		FMatrix ViewRotationMatrix = GetViewRotationMatrix().InverseFast();
+		FMatrix ProjectionMatrix = GetProjectionMatrix();
 		cacheViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
 	}
 	return cacheViewProjectionMatrix;
 }
 FMatrix ULGUICanvas::GetProjectionMatrix()const
 {
+	if (bOverrideProjectionMatrix)
+		return OverrideProjectionMatrix;
+
 	FMatrix ProjectionMatrix = FMatrix::Identity;
-	const float FOV = FOVAngle * (float)PI / 360.0f;
-	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, UIItem->GetWidth(), UIItem->GetHeight(), ProjectionMatrix);
+	const float FOV = (bOverrideFovAngle ? OverrideFovAngle : FOVAngle) * (float)PI / 360.0f;
+	BuildProjectionMatrix(GetViewportSize(), ProjectionType, FOV, ProjectionMatrix);
 	return ProjectionMatrix;
 }
 FVector ULGUICanvas::GetViewLocation()const
 {
+	if (bOverrideViewLocation)
+		return OverrideViewLocation;
+
 	return UIItem->GetComponentLocation() - UIItem->GetUpVector() * CalculateDistanceToCamera();
 }
 FMatrix ULGUICanvas::GetViewRotationMatrix()const
 {
+	if (bOverrideViewRotation)
+	{
+		auto rotator = (OverrideViewRotation.Quaternion() * FQuat::MakeFromEuler(FVector(-90, 0, 90))).Rotator();
+		return FRotationMatrix(rotator);
+	}
+
 	auto Transform = UIItem->GetComponentToWorld();
 	Transform.SetTranslation(FVector::ZeroVector);
 	Transform.SetScale3D(FVector::OneVector);
-	return Transform.ToInverseMatrixWithScale();
+	return Transform.ToMatrixWithScale();
 }
 FRotator ULGUICanvas::GetViewRotator()const
 {
-	return (UIItem->GetComponentQuat() * FQuat::MakeFromEuler(FVector(90, 90, 0))).Rotator();
+	if (bOverrideViewRotation)
+		return OverrideViewRotation;
+
+	return UIItem->GetComponentRotation();
 }
 FIntPoint ULGUICanvas::GetViewportSize()const
 {
@@ -2028,13 +2105,6 @@ void ULGUICanvas::SetRenderMode(ELGUIRenderMode value)
 	if (renderMode != value)
 	{
 		renderMode = value;
-		if (renderMode == ELGUIRenderMode::WorldSpace)
-		{
-			if (ViewExtension.IsValid())
-			{
-				ViewExtension.Reset();
-			}
-		}
 
 		CheckRenderMode();
 	}
@@ -2075,10 +2145,10 @@ void ULGUICanvas::SetRenderTarget(UTextureRenderTarget2D* value)
 		{
 			if (IsValid(renderTarget))
 			{
-				if (ViewExtension.IsValid())
+				/*if (ViewExtension.IsValid())
 				{
 					ViewExtension.Reset();
-				}
+				}*/
 			}
 		}
 	}
