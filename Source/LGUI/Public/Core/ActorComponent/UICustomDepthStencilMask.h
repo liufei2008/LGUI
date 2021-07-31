@@ -58,6 +58,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetStencilValue(int value);
 protected:
-	virtual void SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)override;
+	virtual void SendRegionVertexDataToRenderProxy()override;
 	void SendOthersDataToRenderProxy();
 };

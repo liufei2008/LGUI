@@ -193,8 +193,7 @@ void UUIPostProcessRenderable::UpdateRegionVertex()
 	{
 		renderMeshRegionToScreenVertexArray.AddUninitialized(4);
 	}
-	auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-	auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
+
 	{
 		for (int i = 0; i < 4; i++)
 		{
@@ -209,10 +208,10 @@ void UUIPostProcessRenderable::UpdateRegionVertex()
 			copyVert.TextureCoordinate0 = vertices[i].TextureCoordinate[0];
 		}
 	}
-	SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+	SendRegionVertexDataToRenderProxy();
 }
 
-void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy()
 {
 	if (RenderProxy.IsValid())
 	{
@@ -222,20 +221,20 @@ void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy(const FMatrix& 
 			TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 			FUIWidget widget;
-			FMatrix modelViewProjectionMatrix;
+			FMatrix objectToWorldMatrix;
 		};
 		auto updateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->widget = this->widget;
-		updateData->modelViewProjectionMatrix = InModelViewProjectionMatrix;
+		updateData->objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateData)
 			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->renderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
 					TempRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
 					TempRenderProxy->widget = updateData->widget;
-					TempRenderProxy->modelViewProjectionMatrix = updateData->modelViewProjectionMatrix;
+					TempRenderProxy->objectToWorldMatrix = updateData->objectToWorldMatrix;
 					delete updateData;
 				});
 	}

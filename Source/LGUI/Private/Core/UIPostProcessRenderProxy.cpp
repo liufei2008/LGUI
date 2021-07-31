@@ -5,18 +5,20 @@
 #include "LGUI.h"
 #include "Core/HudRender/LGUIPostProcessShaders.h"
 #include "Core/HudRender/LGUIHudVertex.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Rendering/Texture2DResource.h"
 
-void FUIPostProcessRenderProxy::AddToHudRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer)
+void FUIPostProcessRenderProxy::AddToHudRenderer(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer)
 {
+	this->RenderCanvasPtr = InCanvasPtr;
 	auto renderProxy = this;
 	ENQUEUE_RENDER_COMMAND(FUIPostProcessRenderProxy_AddToHudRenderer)(
-		[renderProxy, InLGUIHudRenderer](FRHICommandListImmediate& RHICmdList)
+		[renderProxy, InCanvasPtr, InCanvasSortOrder, InLGUIHudRenderer](FRHICommandListImmediate& RHICmdList)
 		{
-			renderProxy->AddToHudRenderer_RenderThread(InLGUIHudRenderer);
+			renderProxy->AddToHudRenderer_RenderThread(InCanvasPtr, InCanvasSortOrder, InLGUIHudRenderer);
 		});
 }
-void FUIPostProcessRenderProxy::AddToHudRenderer_RenderThread(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer)
+void FUIPostProcessRenderProxy::AddToHudRenderer_RenderThread(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer)
 {
 	if (LGUIHudRenderer == InLGUIHudRenderer)
 	{
@@ -31,13 +33,13 @@ void FUIPostProcessRenderProxy::AddToHudRenderer_RenderThread(TWeakPtr<FLGUIHudR
 		//remove from old
 		if (LGUIHudRenderer.IsValid())
 		{
-			LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread(this);
+			LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, this);
 		}
 	}
 	LGUIHudRenderer = InLGUIHudRenderer;
 	if (LGUIHudRenderer.IsValid())
 	{
-		LGUIHudRenderer.Pin()->AddHudPrimitive_RenderThread(this);
+		LGUIHudRenderer.Pin()->AddHudPrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, InCanvasSortOrder, this);
 	}
 	else
 	{
@@ -61,7 +63,7 @@ void FUIPostProcessRenderProxy::RemoveFromHudRenderer_RenderThread()
 	}
 	if (LGUIHudRenderer.IsValid())
 	{
-		LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread(this);
+		LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread((ULGUICanvas*)RenderCanvasPtr, this);
 	}
 	LGUIHudRenderer.Reset();
 }
@@ -100,6 +102,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 	, FTextureRHIRef ScreenTargetTexture
 	, FGlobalShaderMap* GlobalShaderMap
 	, FTextureRHIRef ResultTexture
+	, const FMatrix& ModelViewProjectionMatrix
 	, FRHISamplerState* ResultTextureSamplerState
 )
 {
@@ -116,7 +119,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 			TShaderMapRef<FLGUIRenderMeshWithMaskPS> PixelShader(GlobalShaderMap);
 			SET_PIPELINE_STATE_FOR_CLIP();
-			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, ResultTexture, maskTexture->TextureRHI
 				, ResultTextureSamplerState
 				, maskTexture->SamplerStateRHI
@@ -128,7 +131,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 			TShaderMapRef<FLGUIRenderMeshWithMaskPS_RectClip> PixelShader(GlobalShaderMap);
 			SET_PIPELINE_STATE_FOR_CLIP();
-			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, ResultTexture, maskTexture->TextureRHI
 				, ResultTextureSamplerState
 				, maskTexture->SamplerStateRHI
@@ -141,7 +144,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 			TShaderMapRef<FLGUIRenderMeshWithMaskPS_TextureClip> PixelShader(GlobalShaderMap);
 			SET_PIPELINE_STATE_FOR_CLIP();
-			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, ResultTexture, maskTexture->TextureRHI
 				, ResultTextureSamplerState
 				, maskTexture->SamplerStateRHI
@@ -167,7 +170,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 			TShaderMapRef<FLGUIRenderMeshPS> PixelShader(GlobalShaderMap);
 			SET_PIPELINE_STATE_FOR_CLIP();
-			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, ResultTexture, ResultTextureSamplerState);
 		}
 		break;
@@ -176,7 +179,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 			TShaderMapRef<FLGUIRenderMeshPS_RectClip> PixelShader(GlobalShaderMap);
 			SET_PIPELINE_STATE_FOR_CLIP();
-			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, ResultTexture, ResultTextureSamplerState);
 			PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
 		}
@@ -186,7 +189,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 			TShaderMapRef<FLGUIRenderMeshVS> VertexShader(GlobalShaderMap);
 			TShaderMapRef<FLGUIRenderMeshPS_TextureClip> PixelShader(GlobalShaderMap);
 			SET_PIPELINE_STATE_FOR_CLIP();
-			VertexShader->SetParameters(RHICmdList, modelViewProjectionMatrix);
+			VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 			PixelShader->SetParameters(RHICmdList, ResultTexture, ResultTextureSamplerState);
 			if (clipTexture != nullptr)
 			{

@@ -66,7 +66,8 @@ protected:
 #if WITH_EDITOR
 private:
 	static bool InitCheck(UWorld* InWorld);
-	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, ULGUICanvas*& OutCanvas);
+	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);
+	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 public:
 	static ULGUIEditorManagerObject* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	static bool IsSelected(AActor* InObject);
@@ -84,6 +85,8 @@ public:
 	void MarkSortScreenSpaceCanvas();
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
+
+	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(ULGUICanvas* InCanvas);
 
 	static void AddLayout(UUILayoutBase* InLayout);
 	static void RemoveLayout(UUILayoutBase* InLayout);
@@ -160,6 +163,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUILayoutBase*> allLayoutArray;
 
+	TArray<ULGUICanvas*> screenOverlayCanvasArray;
+
 	bool bShouldSortScreenSpaceCanvas = true;
 	bool bShouldSortWorldSpaceCanvas = true;
 	bool bShouldSortRenderTargetSpaceCanvas = true;
@@ -171,7 +176,8 @@ protected:
 #endif
 private:
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
-	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode, ULGUICanvas*& OutCanvas);
+	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);
+	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
@@ -183,6 +189,8 @@ public:
 	void MarkSortScreenSpaceCanvas();
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
+
+	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(ULGUICanvas* InCanvas);
 
 	const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
 	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
