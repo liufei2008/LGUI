@@ -48,9 +48,7 @@ void UUICustomDepthStencilMask::MarkAllDirtyRecursive()
 
 	if (this->RenderCanvas.IsValid())
 	{
-		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+		SendRegionVertexDataToRenderProxy();
 		SendMaskTextureToRenderProxy();
 	}
 }
@@ -260,6 +258,7 @@ public:
 			auto Result_ProcessRenderTargetTexture = Result_ProcessRenderTarget->GetRenderTargetItem().TargetableTexture;
 
 			//copy rect area from screen image to render target, so we can just process this area
+			auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
 			if (ScreenTargetImage->IsMultisampled())
 			{
 				RHICmdList.CopyToResolveTarget(ScreenTargetImage, ScreenTargetResolveImage, FResolveParams());
@@ -349,7 +348,7 @@ public:
 			}
 
 			//after pixelate process, copy the area back to screen image
-			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture);
+			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix);
 
 			//release render target
 			if (ScreenTarget_ProcessRenderTarget.IsValid())
@@ -392,18 +391,16 @@ TSharedPtr<FUIPostProcessRenderProxy> UUICustomDepthStencilMask::GetRenderProxy(
 		RenderProxy = TSharedPtr<FUICustomDepthStencilMaskRenderProxy>(new FUICustomDepthStencilMaskRenderProxy());
 		if (this->RenderCanvas.IsValid())
 		{
-			auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-			auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-			SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+			SendRegionVertexDataToRenderProxy();
 			SendMaskTextureToRenderProxy();
 		}
 	}
 	return RenderProxy;
 }
 
-void UUICustomDepthStencilMask::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+void UUICustomDepthStencilMask::SendRegionVertexDataToRenderProxy()
 {
-	Super::SendRegionVertexDataToRenderProxy(InModelViewProjectionMatrix);
+	Super::SendRegionVertexDataToRenderProxy();
 	SendOthersDataToRenderProxy();
 }
 

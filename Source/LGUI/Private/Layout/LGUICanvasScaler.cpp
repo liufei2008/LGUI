@@ -387,7 +387,11 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 		DrawDebugLine(this->GetWorld(), rightTopEnd, rightBottomEnd, lineColor);
 		DrawDebugLine(this->GetWorld(), rightTopEnd, leftTopEnd, lineColor);
 
-		DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), Canvas->GetViewRotator(), FOVAngle, Canvas->GetUIItem()->GetComponentScale().X * 3.0f, FColor::Green);
+		if (Canvas->UIItem.IsValid())
+		{
+			auto ViewRotator = (Canvas->UIItem->GetComponentQuat() * FQuat::MakeFromEuler(FVector(90, 90, 0))).Rotator();
+			DrawDebugCamera(this->GetWorld(), Canvas->GetViewLocation(), ViewRotator, FOVAngle, Canvas->GetUIItem()->GetComponentScale().X * 3.0f, FColor::Green);
+		}
 	}
 }
 #endif

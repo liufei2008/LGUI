@@ -46,9 +46,7 @@ void UUIBackgroundPixelate::MarkAllDirtyRecursive()
 
 	if (this->RenderCanvas.IsValid())
 	{
-		auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-		auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-		SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+		SendRegionVertexDataToRenderProxy();
 		SendMaskTextureToRenderProxy();
 	}
 }
@@ -134,6 +132,7 @@ public:
 		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
 
 		//copy rect area from screen image to a render target, so we can just process this area
+		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
 		if (ScreenTargetImage->IsMultisampled())
 		{
 			RHICmdList.CopyToResolveTarget(ScreenTargetImage, ScreenTargetResolveImage, FResolveParams());
@@ -144,7 +143,7 @@ public:
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 		}
 		//after pixelate process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
 		//release render target
 		PixelateEffectRenderTarget.SafeRelease();
@@ -172,17 +171,15 @@ TSharedPtr<FUIPostProcessRenderProxy> UUIBackgroundPixelate::GetRenderProxy()
 		RenderProxy = TSharedPtr<FUIBackgroundPixelateRenderProxy>(new FUIBackgroundPixelateRenderProxy());
 		if (this->RenderCanvas.IsValid())
 		{
-			auto objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
-			auto modelViewPrjectionMatrix = objectToWorldMatrix * RenderCanvas->GetRootCanvas()->GetViewProjectionMatrix();
-			SendRegionVertexDataToRenderProxy(modelViewPrjectionMatrix);
+			SendRegionVertexDataToRenderProxy();
 			SendMaskTextureToRenderProxy();
 		}
 	}
 	return RenderProxy;
 }
 
-void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy(const FMatrix& InModelViewProjectionMatrix)
+void UUIBackgroundPixelate::SendRegionVertexDataToRenderProxy()
 {
-	Super::SendRegionVertexDataToRenderProxy(InModelViewProjectionMatrix);
+	Super::SendRegionVertexDataToRenderProxy();
 	SendOthersDataToRenderProxy();
 }
