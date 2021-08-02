@@ -60,10 +60,6 @@ TextureFilter ULGUISettings::GetAtlasTextureFilter(const FName& InPackingTag)
 {
 	return GetAtlasSettings(InPackingTag).atlasTextureFilter;
 }
-//ELGUIAtlasPackingType ULGUISettings::GetAtlasPackingType(const FName& InPackingTag)
-//{
-//	return GetAtlasSettings(InPackingTag).packingType;
-//}
 const TMap<FName, FLGUIAtlasSettings>& ULGUISettings::GetAllAtlasSettings()
 {
 	return GetDefault<ULGUISettings>()->atlasSettingForSpecificPackingTag;

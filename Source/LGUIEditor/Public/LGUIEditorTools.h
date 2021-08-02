@@ -72,6 +72,8 @@ public:
 	static void RefreshSceneOutliner();
 
 	static void MakeCurrentLevel(AActor* InActor);
+	static void SetTraceChannelToParent(AActor* InActor);
+	static void SetTraceChannelToParent_Recursive(AActor* InActor);
 
 	static void SpawnPrefabForEdit(ULGUIPrefab* InPrefab);
 };
