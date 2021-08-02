@@ -18,14 +18,7 @@ enum class ELGUIAtlasTextureSizeType :uint8
 	SIZE_4096x4096			UMETA(DisplayName = "4096x4096"),
 	SIZE_8192x8192			UMETA(DisplayName = "8192x8192"),
 };
-UENUM(BlueprintType, Category = LGUI)
-enum class ELGUIAtlasPackingType :uint8
-{
-	/** dynamic pack, without mipmap */
-	Dynamic,
-	/** pack atlas when first time the game start */
-	Static,
-};
+
 /**
  * Aniti Aliasing(MSAA) for LGUI screen space UI renderring
  */
@@ -59,8 +52,6 @@ public:
 	/** space between two sprites when package into atlas */
 	UPROPERTY(EditAnywhere, config, Category = Sprite)
 		int32 spaceBetweenSprites = 2;
-	//UPROPERTY(EditAnywhere, config, Category = Sprite)
-	//	ELGUIAtlasPackingType packingType = ELGUIAtlasPackingType::Dynamic;
 };
 
 class ULGUIBehaviour;
@@ -76,7 +67,9 @@ public:
 	/** override atlasSettings for your packingTag, otherwise use defaultAtlasSettings */
 	UPROPERTY(EditAnywhere, config, Category = Sprite)
 		TMap<FName, FLGUIAtlasSettings> atlasSettingForSpecificPackingTag;
-	/** new created uiitem will use this trace channel; */
+	/**
+	 * For new created UIItem: if parent is a UIItem then it will inherit parent's trace channel; otherwise it will use this trace channel.
+	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI")
 		TEnumAsByte<ETraceTypeQuery> defaultTraceChannel = TraceTypeQuery3;
 
@@ -105,7 +98,6 @@ public:
 	static bool GetAtlasTextureSRGB(const FName& InPackingTag);
 	static int32 GetAtlasTexturePadding(const FName& InPackingTag);
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
-	//static ELGUIAtlasPackingType GetAtlasPackingType(const FName& InPackingTag);
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
 	static ELGUIScreenSpaceUIAntiAliasing GetAntiAliasingSampleCount();
 #ifdef LGUI_DRAWCALLMODE_AUTO
