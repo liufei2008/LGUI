@@ -193,6 +193,8 @@ void LGUIEditorTools::CreateUIItemActor(UClass* ActorClass)
 			GEditor->SelectActor(selectedActor, false, true);
 		}
 		GEditor->SelectActor(newActor, true, true);
+
+		SetTraceChannelToParent(newActor);
 	}
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
@@ -256,6 +258,8 @@ void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 			, selectedActor == nullptr ? nullptr : selectedActor->GetRootComponent());
 		GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
+
+		SetTraceChannelToParent_Recursive(actor);
 	}
 	else
 	{
@@ -910,6 +914,35 @@ void LGUIEditorTools::MakeCurrentLevel(AActor* InActor)
 				LGUIUtils::EditorNotification(FText::FromString(FString::Printf(TEXT("The level of selected actor:%s is locked!"), *(InActor->GetActorLabel()))));
 			}
 		}
+	}
+}
+void LGUIEditorTools::SetTraceChannelToParent(AActor* InActor)
+{
+	//change trace channel to same as parent
+	if (auto parentActor = InActor->GetAttachParentActor())
+	{
+		if (auto parentComp = parentActor->GetRootComponent())
+		{
+			if (auto parentUIComp = Cast<UUIItem>(parentComp))
+			{
+				TArray<UUIItem*> components;
+				InActor->GetComponents<UUIItem>(components);
+				for (auto compItem : components)
+				{
+					compItem->SetTraceChannel(parentUIComp->GetTraceChannel());
+				}
+			}
+		}
+	}
+}
+void LGUIEditorTools::SetTraceChannelToParent_Recursive(AActor* InActor)
+{
+	SetTraceChannelToParent(InActor);
+	TArray<AActor*> childrenActors;
+	InActor->GetAttachedActors(childrenActors);
+	for (auto itemActor : childrenActors)
+	{
+		SetTraceChannelToParent_Recursive(itemActor);
 	}
 }
 void LGUIEditorTools::SpawnPrefabForEdit(ULGUIPrefab* InPrefab)
