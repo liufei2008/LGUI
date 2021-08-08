@@ -8,6 +8,7 @@
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
+#include "EditorViewportClient.h"
 #endif
 #include "Utils/LGUIUtils.h"
 #include "Core/LGUISettings.h"
@@ -54,7 +55,7 @@ void ULGUICanvas::BeginPlay()
 	Super::BeginPlay();
 	RootCanvas = nullptr;
 	CheckRootCanvas();
-	currentIsRenderToRenderTargetOrWorld = IsRenderToScreenSpaceOrRenderTarget();
+	currentIsLGUIRendererOrUERenderer = IsRenderByLGUIRendererOrUERenderer();
 	ParentCanvas = nullptr;
 	CheckParentCanvas();
 	CheckUIItem();
@@ -243,14 +244,14 @@ bool ULGUICanvas::CheckUIItem()const
 }
 void ULGUICanvas::CheckRenderMode()
 {
-	bool oldIsRenderToRenderTargetOrWorld = currentIsRenderToRenderTargetOrWorld;
+	bool oldIsRenderToRenderTargetOrWorld = currentIsLGUIRendererOrUERenderer;
 	if (RootCanvas.IsValid())
 	{
-		currentIsRenderToRenderTargetOrWorld = RootCanvas->IsRenderToScreenSpaceOrRenderTarget();
+		currentIsLGUIRendererOrUERenderer = RootCanvas->IsRenderByLGUIRendererOrUERenderer();
 	}
 
 	//if hierarchy changed from World/Hud to Hud/World, then we need to recreate all
-	if (currentIsRenderToRenderTargetOrWorld != oldIsRenderToRenderTargetOrWorld)
+	if (currentIsLGUIRendererOrUERenderer != oldIsRenderToRenderTargetOrWorld)
 	{
 		if (CheckUIItem())
 		{
@@ -293,16 +294,6 @@ bool ULGUICanvas::IsRenderToScreenSpace()
 	}
 	return false;
 }
-bool ULGUICanvas::IsRenderToScreenSpaceOrRenderTarget()
-{
-	if (RootCanvas.IsValid())
-	{
-		return RootCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay
-			|| (RootCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(RootCanvas->renderTarget))
-				;
-	}
-	return false;
-}
 bool ULGUICanvas::IsRenderToRenderTarget()
 {
 	if (RootCanvas.IsValid())
@@ -315,7 +306,21 @@ bool ULGUICanvas::IsRenderToWorldSpace()
 {
 	if (RootCanvas.IsValid())
 	{
-		return RootCanvas->renderMode == ELGUIRenderMode::WorldSpace;
+		return RootCanvas->renderMode == ELGUIRenderMode::WorldSpace
+			|| RootCanvas->renderMode == ELGUIRenderMode::WorldSpace_LGUI
+			;
+	}
+	return false;
+}
+
+bool ULGUICanvas::IsRenderByLGUIRendererOrUERenderer()
+{
+	if (RootCanvas.IsValid())
+	{
+		return RootCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay
+			|| (RootCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(RootCanvas->renderTarget))
+			|| RootCanvas->renderMode == ELGUIRenderMode::WorldSpace_LGUI
+			;
 	}
 	return false;
 }
@@ -955,7 +960,7 @@ void ULGUICanvas::UpdateRootCanvas()
 
 	if (!bHasAddToViewExtension)
 	{
-		if (currentIsRenderToRenderTargetOrWorld)
+		if (currentIsLGUIRendererOrUERenderer)
 		{
 			if (RootCanvas == this)
 			{
@@ -1020,18 +1025,18 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #if WITH_EDITOR
 					if (!GetWorld()->IsGameWorld())
 					{
-						if (currentIsRenderToRenderTargetOrWorld)
+						if (currentIsLGUIRendererOrUERenderer)
 						{
-							uiMesh->SetSupportScreenSpace(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
+							uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
 						}
-						uiMesh->SetSupportWorldSpace(true);
+						uiMesh->SetSupportUERenderer(true);
 					}
 					else
 #endif
-						if (currentIsRenderToRenderTargetOrWorld)
+						if (currentIsLGUIRendererOrUERenderer)
 						{
-							uiMesh->SetSupportScreenSpace(true, ALGUIManagerActor::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
-							uiMesh->SetSupportWorldSpace(false);
+							uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
+							uiMesh->SetSupportUERenderer(false);
 						}
 					drawcallItem->drawcallMesh = uiMesh;
 					drawcallItem->directMeshRenderableObject->SetDrawcallMesh(uiMesh.Get());
@@ -1062,18 +1067,18 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #if WITH_EDITOR
 						if (!GetWorld()->IsGameWorld())
 						{
-							if (currentIsRenderToRenderTargetOrWorld)
+							if (currentIsLGUIRendererOrUERenderer)
 							{
-								uiMesh->SetSupportScreenSpace(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
+								uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
 							}
-							uiMesh->SetSupportWorldSpace(true);
+							uiMesh->SetSupportUERenderer(true);
 						}
 						else
 #endif
-							if (currentIsRenderToRenderTargetOrWorld)
+							if (currentIsLGUIRendererOrUERenderer)
 							{
-								uiMesh->SetSupportScreenSpace(true, ALGUIManagerActor::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
-								uiMesh->SetSupportWorldSpace(false);
+								uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(RootCanvas.Get()), RootCanvas.Get());
+								uiMesh->SetSupportUERenderer(false);
 							}
 					}
 					uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
@@ -1114,7 +1119,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #if WITH_EDITOR
 					if (!GetWorld()->IsGameWorld())
 					{
-						if (currentIsRenderToRenderTargetOrWorld)
+						if (currentIsLGUIRendererOrUERenderer)
 						{
 							uiPostProcessPrimitive->AddToHudRenderer(RootCanvas.Get(), RootCanvas->GetSortOrder(), ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()));
 							uiPostProcessPrimitive->SetVisibility(true);
@@ -1122,7 +1127,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					}
 					else
 #endif
-						if (currentIsRenderToRenderTargetOrWorld)
+						if (currentIsLGUIRendererOrUERenderer)
 						{
 							uiPostProcessPrimitive->AddToHudRenderer(RootCanvas.Get(), RootCanvas->GetSortOrder(), ALGUIManagerActor::GetViewExtension(RootCanvas.Get()));
 							uiPostProcessPrimitive->SetVisibility(true);
@@ -1149,7 +1154,8 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					{
 					default:
 					case ELGUIRenderMode::ScreenSpaceOverlay:
-						ULGUIEditorManagerObject::Instance->MarkSortScreenSpaceCanvas();
+					case ELGUIRenderMode::WorldSpace_LGUI:
+						ULGUIEditorManagerObject::Instance->MarkSortLGUIRenderer();
 						break;
 					case ELGUIRenderMode::WorldSpace:
 						ULGUIEditorManagerObject::Instance->MarkSortWorldSpaceCanvas();
@@ -1169,7 +1175,8 @@ void ULGUICanvas::UpdateCanvasGeometry()
 					{
 					default:
 					case ELGUIRenderMode::ScreenSpaceOverlay:
-						Instance->MarkSortScreenSpaceCanvas();
+					case ELGUIRenderMode::WorldSpace_LGUI:
+						Instance->MarkSortLGUIRenderer();
 						break;
 					case ELGUIRenderMode::WorldSpace:
 						Instance->MarkSortWorldSpaceCanvas();
@@ -1632,7 +1639,7 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 		}
 		if (this == RootCanvas)
 		{
-			if (currentIsRenderToRenderTargetOrWorld)
+			if (currentIsLGUIRendererOrUERenderer)
 			{
 				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
@@ -1663,7 +1670,8 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 				{
 				default:
 				case ELGUIRenderMode::ScreenSpaceOverlay:
-					ULGUIEditorManagerObject::Instance->MarkSortScreenSpaceCanvas();
+				case ELGUIRenderMode::WorldSpace_LGUI:
+					ULGUIEditorManagerObject::Instance->MarkSortLGUIRenderer();
 					break;
 				case ELGUIRenderMode::WorldSpace:
 					ULGUIEditorManagerObject::Instance->MarkSortWorldSpaceCanvas();
@@ -1683,7 +1691,8 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 				{
 				default:
 				case ELGUIRenderMode::ScreenSpaceOverlay:
-					Instance->MarkSortScreenSpaceCanvas();
+				case ELGUIRenderMode::WorldSpace_LGUI:
+					Instance->MarkSortLGUIRenderer();
 					break;
 				case ELGUIRenderMode::WorldSpace:
 					Instance->MarkSortWorldSpaceCanvas();
@@ -2173,7 +2182,7 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 {
 	if (IsRootCanvas())
 	{
-		return this->currentIsRenderToRenderTargetOrWorld
+		return this->currentIsLGUIRendererOrUERenderer
 			&& pixelPerfect;
 	}
 	else
@@ -2182,14 +2191,14 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 		{
 			if (GetOverridePixelPerfect())
 			{
-				return RootCanvas->currentIsRenderToRenderTargetOrWorld
+				return RootCanvas->currentIsLGUIRendererOrUERenderer
 					&& this->pixelPerfect;
 			}
 			else
 			{
 				if (ParentCanvas.IsValid())
 				{
-					return RootCanvas->currentIsRenderToRenderTargetOrWorld
+					return RootCanvas->currentIsLGUIRendererOrUERenderer
 						&& ParentCanvas->GetActualPixelPerfect();
 				}
 			}
@@ -2255,6 +2264,13 @@ void ULGUICanvas::SetOnlyOwnerSee(bool value)
 	{
 		onlyOwnerSee = value;
 		ApplyOwnerSeeRecursive();
+	}
+}
+void ULGUICanvas::SetBlendDepth(float value)
+{
+	if (blendDepth != value)
+	{
+		blendDepth = value;
 	}
 }
 void ULGUICanvas::ApplyOwnerSeeRecursive()
