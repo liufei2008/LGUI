@@ -11,20 +11,25 @@ UENUM(BlueprintType, Category = LGUI)
 enum class ELGUIRenderMode :uint8
 {
 	/**
-	 * Render in screen space. There should be only one screen-space-ui-root in world.
+	 * Render in screen space. If there are multiple screen-space-ui-root in world, they will be sort by SortOrder property.
 	 * This mode use LGUI's custom render pipeline.
 	 * This mode need a LGUICanvasScaler to control the size and scale.
 	 */
-	ScreenSpaceOverlay,
+	ScreenSpaceOverlay = 0,
 	/**
 	 * Render in world space.
 	 * This mode use engine's default render pieple, so post process will affect ui.
 	 */
-	WorldSpace,
+	WorldSpace=1			UMETA(DisplayName = "World Space - UE Renderer"),
 	/**
-	 * Render to a custom render target
+	 * Render in world space with LGUI's custom render pipeline, 
+	 * This mode use LGUI's custom render pipeline, will not be affected by post process.
 	 */
-	RenderTarget		UMETA(DisplayName = "RenderTarget(Experimental)"),
+	WorldSpace_LGUI = 3		UMETA(DisplayName = "World Space - LGUI Renderer"),
+	/**
+	 * Render to a custom render target.
+	 */
+	RenderTarget=2		UMETA(DisplayName = "Render Target (Experimental)"),
 };
 
 UENUM(BlueprintType, Category = LGUI)
@@ -167,9 +172,9 @@ public:
 	void SetDefaultMaterials(UMaterialInterface* InMaterials[3]);
 
 	bool IsRenderToScreenSpace();
-	bool IsRenderToScreenSpaceOrRenderTarget();
 	bool IsRenderToRenderTarget();
 	bool IsRenderToWorldSpace();
+	bool IsRenderByLGUIRendererOrUERenderer();
 
 	FORCEINLINE UUIItem* GetUIItem()const { CheckUIItem(); return UIItem.Get(); }
 	bool GetIsUIActive()const;
@@ -178,8 +183,11 @@ public:
 	/** @return	drawcall count */
 	int32 SortDrawcall(int32 InStartRenderPriority);
 protected:
-	/** consider this as a cache to IsRenderToScreenSpaceOrRenderTarget(). eg: when attach to other canvas, this will tell which render mode in old canvas */
-	bool currentIsRenderToRenderTargetOrWorld = false;
+	/**
+	 * RenderMode can affect UI's renderer, basically WorldSpace use UE's buildin renderer, others use LGUI's renderer. Different renderers cannot share render data.
+	 * eg: when attach to other canvas, this will tell which render mode in old canvas, and if not compatible then recreate render data.
+	 */
+	bool currentIsLGUIRendererOrUERenderer = false;
 	/** Root LGUICanvas on hierarchy. LGUI's update start from the RootCanvas, and goes all down to every UI elements under it */
 	mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
 	void CheckRenderMode();
@@ -248,12 +256,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* DefaultMaterials[3];
 
-	/** Just like StaticMesh's OwnerNoSee property, only valid on world space UI. */
+	/** Just like StaticMesh's OwnerNoSee property, only valid for "World Space - UE Renderer". */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool ownerNoSee = false;
-	/** Just like StaticMesh's OnlyOwnerSee property, only valid on world space UI. */
+	/** Just like StaticMesh's OnlyOwnerSee property, only valid for "World Space - UE Renderer". */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool onlyOwnerSee = false;
+
+	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible. */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+		float blendDepth = 0.0f;
 
 	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
@@ -348,6 +360,11 @@ public:
 		void SetOwnerNoSee(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetOnlyOwnerSee(bool value);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetBlendDepth()const { return blendDepth; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetBlendDepth(float value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return sortOrder; }

@@ -408,6 +408,28 @@ public:
 private:
 	FShaderParameter MVPParameter;
 };
+class FLGUIRenderMeshWorldVS : public FLGUIRenderMeshVS
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWorldVS, Global);
+
+	FLGUIRenderMeshWorldVS() {}
+	FLGUIRenderMeshWorldVS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshVS(Initializer)
+	{
+
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
+		FLGUIRenderMeshVS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+private:
+};
+
+
+
+
 //render mesh pixel shader
 class FLGUIRenderMeshPS :public FLGUIPostProcessShader
 {
@@ -439,6 +461,42 @@ public:
 private:
 	FShaderResourceParameter MainTextureParameter;
 	FShaderResourceParameter MainTextureSamplerParameter;
+};
+class FLGUIRenderMeshWorldPS : public FLGUIRenderMeshPS
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWorldPS, Global);
+
+	FLGUIRenderMeshWorldPS() {}
+	FLGUIRenderMeshWorldPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshPS(Initializer)
+	{
+		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
+		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
+		FLGUIRenderMeshPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	{
+		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+	}
+	virtual bool Serialize(FArchive& Ar)override
+	{
+		bool bShaderHasOutdatedParameters = FLGUIRenderMeshPS::Serialize(Ar);
+		Ar << SceneDepthTextureParameter;
+		Ar << SceneDepthTextureSamplerParameter;
+		Ar << SceneDepthBlendParameter;
+		return bShaderHasOutdatedParameters;
+	}
+private:
+	FShaderResourceParameter SceneDepthTextureParameter;
+	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthBlendParameter;
 };
 //render mesh pixel shader, use a mask texture
 class FLGUIRenderMeshWithMaskPS :public FLGUIPostProcessShader
@@ -484,6 +542,42 @@ private:
 	FShaderResourceParameter MaskTextureParameter;
 	FShaderResourceParameter MaskTextureSamplerParameter;
 };
+class FLGUIRenderMeshWithMaskWorldPS : public FLGUIRenderMeshWithMaskPS
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWithMaskWorldPS, Global);
+
+	FLGUIRenderMeshWithMaskWorldPS() {}
+	FLGUIRenderMeshWithMaskWorldPS(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWithMaskPS(Initializer)
+	{
+		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
+		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
+		FLGUIRenderMeshWithMaskPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	{
+		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+	}
+	virtual bool Serialize(FArchive& Ar)override
+	{
+		bool bShaderHasOutdatedParameters = FLGUIRenderMeshWithMaskPS::Serialize(Ar);
+		Ar << SceneDepthTextureParameter;
+		Ar << SceneDepthTextureSamplerParameter;
+		Ar << SceneDepthBlendParameter;
+		return bShaderHasOutdatedParameters;
+	}
+private:
+	FShaderResourceParameter SceneDepthTextureParameter;
+	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthBlendParameter;
+};
 
 #pragma region RectClip
 //render mesh pixel shader
@@ -519,6 +613,42 @@ private:
 	FShaderParameter OffsetAndSizeParameter;
 	FShaderParameter FeatherParameter;
 };
+class FLGUIRenderMeshWorldPS_RectClip : public FLGUIRenderMeshPS_RectClip
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWorldPS_RectClip, Global);
+
+	FLGUIRenderMeshWorldPS_RectClip() {}
+	FLGUIRenderMeshWorldPS_RectClip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshPS_RectClip(Initializer)
+	{
+		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
+		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
+		FLGUIRenderMeshPS_RectClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	{
+		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+	}
+	virtual bool Serialize(FArchive& Ar)override
+	{
+		bool bShaderHasOutdatedParameters = FLGUIRenderMeshPS_RectClip::Serialize(Ar);
+		Ar << SceneDepthTextureParameter;
+		Ar << SceneDepthTextureSamplerParameter;
+		Ar << SceneDepthBlendParameter;
+		return bShaderHasOutdatedParameters;
+	}
+private:
+	FShaderResourceParameter SceneDepthTextureParameter;
+	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthBlendParameter;
+};
 //render mesh pixel shader, use a mask texture
 class FLGUIRenderMeshWithMaskPS_RectClip :public FLGUIRenderMeshWithMaskPS
 {
@@ -551,6 +681,42 @@ public:
 private:
 	FShaderParameter OffsetAndSizeParameter;
 	FShaderParameter FeatherParameter;
+};
+class FLGUIRenderMeshWithMaskWorldPS_RectClip : public FLGUIRenderMeshWithMaskPS_RectClip
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWithMaskWorldPS_RectClip, Global);
+
+	FLGUIRenderMeshWithMaskWorldPS_RectClip() {}
+	FLGUIRenderMeshWithMaskWorldPS_RectClip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWithMaskPS_RectClip(Initializer)
+	{
+		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
+		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
+		FLGUIRenderMeshWithMaskPS_RectClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	{
+		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+	}
+	virtual bool Serialize(FArchive& Ar)override
+	{
+		bool bShaderHasOutdatedParameters = FLGUIRenderMeshWithMaskPS_RectClip::Serialize(Ar);
+		Ar << SceneDepthTextureParameter;
+		Ar << SceneDepthTextureSamplerParameter;
+		Ar << SceneDepthBlendParameter;
+		return bShaderHasOutdatedParameters;
+	}
+private:
+	FShaderResourceParameter SceneDepthTextureParameter;
+	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthBlendParameter;
 };
 #pragma endregion
 
@@ -593,6 +759,42 @@ private:
 	FShaderResourceParameter ClipTextureParameter;
 	FShaderResourceParameter ClipTextureSamplerParameter;
 };
+class FLGUIRenderMeshWorldPS_TextureClip : public FLGUIRenderMeshPS_TextureClip
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWorldPS_TextureClip, Global);
+
+	FLGUIRenderMeshWorldPS_TextureClip() {}
+	FLGUIRenderMeshWorldPS_TextureClip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshPS_TextureClip(Initializer)
+	{
+		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
+		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
+		FLGUIRenderMeshPS_TextureClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	{
+		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+	}
+	virtual bool Serialize(FArchive& Ar)override
+	{
+		bool bShaderHasOutdatedParameters = FLGUIRenderMeshPS_TextureClip::Serialize(Ar);
+		Ar << SceneDepthTextureParameter;
+		Ar << SceneDepthTextureSamplerParameter;
+		Ar << SceneDepthBlendParameter;
+		return bShaderHasOutdatedParameters;
+	}
+private:
+	FShaderResourceParameter SceneDepthTextureParameter;
+	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthBlendParameter;
+};
 //render mesh pixel shader, use a mask texture
 class FLGUIRenderMeshWithMaskPS_TextureClip :public FLGUIRenderMeshWithMaskPS
 {
@@ -630,5 +832,41 @@ private:
 	FShaderParameter OffsetAndSizeParameter;
 	FShaderResourceParameter ClipTextureParameter;
 	FShaderResourceParameter ClipTextureSamplerParameter;
+};
+class FLGUIRenderMeshWithMaskWorldPS_TextureClip : public FLGUIRenderMeshWithMaskPS_TextureClip
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIRenderMeshWithMaskWorldPS_TextureClip, Global);
+
+	FLGUIRenderMeshWithMaskWorldPS_TextureClip() {}
+	FLGUIRenderMeshWithMaskWorldPS_TextureClip(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
+		: FLGUIRenderMeshWithMaskPS_TextureClip(Initializer)
+	{
+		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
+		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
+	}
+	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+	{
+		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
+		FLGUIRenderMeshWithMaskPS_TextureClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+	}
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	{
+		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+	}
+	virtual bool Serialize(FArchive& Ar)override
+	{
+		bool bShaderHasOutdatedParameters = FLGUIRenderMeshWithMaskPS_TextureClip::Serialize(Ar);
+		Ar << SceneDepthTextureParameter;
+		Ar << SceneDepthTextureSamplerParameter;
+		Ar << SceneDepthBlendParameter;
+		return bShaderHasOutdatedParameters;
+	}
+private:
+	FShaderResourceParameter SceneDepthTextureParameter;
+	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthBlendParameter;
 };
 #pragma endregion

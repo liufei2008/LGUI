@@ -70,37 +70,12 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		}
 	}
 	
-	int ScreenSpaceOverlayCanvasCount = 0;
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
 		{
-			if (item->IsRootCanvas())
-			{
-				if (item->GetWorld() == GWorld)
-				{
-					if (item->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
-					{
-						ScreenSpaceOverlayCanvasCount++;
-					}
-				}
-			}
 			item->UpdateCanvas(DeltaTime);
 		}
-	}
-	if (ScreenSpaceOverlayCanvasCount > 1)
-	{
-		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
-		{
-			PrevScreenSpaceOverlayCanvasCount = ScreenSpaceOverlayCanvasCount;
-			auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
-			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
-			LGUIUtils::EditorNotification(FText::FromString(errMsg), 10.0f);
-		}
-	}
-	else
-	{
-		PrevScreenSpaceOverlayCanvasCount = 0;
 	}
 
 	if (EditorTick.IsBound())
@@ -110,16 +85,21 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 
 	if (allCanvas.Num() > 0)
 	{
-		if (bShouldSortScreenSpaceCanvas || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
+		if (bShouldSortLGUIRenderer || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
 		{
 			allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 				{
 					return A->GetSortOrder() < B->GetSortOrder();
 				});
 		}
-		if (bShouldSortScreenSpaceCanvas)//@TODO: screen space don't need to sort, because it already did when add. Test and delete it
+		if (bShouldSortLGUIRenderer)
 		{
 			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI);
+			if (ScreenSpaceOverlayViewExtension.IsValid())
+			{
+				ScreenSpaceOverlayViewExtension->SortPrimitiveRenderPriority();
+			}
 		}
 		if (bShouldSortWorldSpaceCanvas)
 		{
@@ -130,7 +110,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget);
 		}
 
-		bShouldSortScreenSpaceCanvas = false;
+		bShouldSortLGUIRenderer = false;
 		bShouldSortWorldSpaceCanvas = false;
 		bShouldSortRenderTargetSpaceCanvas = false;
 	}
@@ -216,9 +196,9 @@ void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRender
 		}
 	}
 }
-void ULGUIEditorManagerObject::MarkSortScreenSpaceCanvas()
+void ULGUIEditorManagerObject::MarkSortLGUIRenderer()
 {
-	bShouldSortScreenSpaceCanvas = true;
+	bShouldSortLGUIRenderer = true;
 }
 void ULGUIEditorManagerObject::MarkSortWorldSpaceCanvas()
 {
@@ -854,37 +834,6 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 	}
 	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
-#if WITH_EDITOR
-	int ScreenSpaceOverlayCanvasCount = 0;
-	for (auto item : allCanvas)
-	{
-		if (item.IsValid())
-		{
-			if (item->IsRootCanvas())
-			{
-				if (item->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
-				{
-					ScreenSpaceOverlayCanvasCount++;
-				}
-			}
-			item->UpdateCanvas(DeltaTime);
-		}
-	}
-	if (ScreenSpaceOverlayCanvasCount > 1)
-	{
-		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
-		{
-			PrevScreenSpaceOverlayCanvasCount = ScreenSpaceOverlayCanvasCount;
-			auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
-			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
-			LGUIUtils::EditorNotification(FText::FromString(errMsg), 10.0f);
-		}
-	}
-	else
-	{
-		PrevScreenSpaceOverlayCanvasCount = 0;
-	}
-#else
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
@@ -892,10 +841,10 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			item->UpdateCanvas(DeltaTime);
 		}
 	}
-#endif
+
 	if (allCanvas.Num() > 0)
 	{
-		if (bShouldSortScreenSpaceCanvas || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
+		if (bShouldSortLGUIRenderer || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
 		{
 			//@todo: no need to sort all canvas
 			allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
@@ -903,9 +852,14 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 					return A->GetSortOrder() < B->GetSortOrder();
 				});
 		}
-		if (bShouldSortScreenSpaceCanvas)//@TODO: screen space don't need to sort, because it already did when add. Test and delete it
+		if (bShouldSortLGUIRenderer)
 		{
 			SortDrawcallOnRenderMode(ELGUIRenderMode::ScreenSpaceOverlay);
+			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace_LGUI);
+			if (ScreenSpaceOverlayViewExtension.IsValid())
+			{
+				ScreenSpaceOverlayViewExtension->SortPrimitiveRenderPriority();
+			}
 		}
 		if (bShouldSortWorldSpaceCanvas)
 		{
@@ -916,7 +870,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget);
 		}
 
-		bShouldSortScreenSpaceCanvas = false;
+		bShouldSortLGUIRenderer = false;
 		bShouldSortWorldSpaceCanvas = false;
 		bShouldSortRenderTargetSpaceCanvas = false;
 	}
@@ -1075,9 +1029,9 @@ void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 		canvasArray.AddUnique(InCanvas);
 	}
 }
-void ALGUIManagerActor::MarkSortScreenSpaceCanvas()
+void ALGUIManagerActor::MarkSortLGUIRenderer()
 {
-	bShouldSortScreenSpaceCanvas = true;
+	bShouldSortLGUIRenderer = true;
 }
 void ALGUIManagerActor::MarkSortWorldSpaceCanvas()
 {

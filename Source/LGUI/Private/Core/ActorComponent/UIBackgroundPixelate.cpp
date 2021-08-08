@@ -106,7 +106,9 @@ public:
 		FTextureRHIRef ScreenTargetImage,
 		FTextureRHIRef ScreenTargetResolveImage,
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
-		const FMatrix& ViewProjectionMatrix
+		const FMatrix& ViewProjectionMatrix,
+		bool IsWorldSpace,
+		float BlendDepthForWorld
 	)override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundPixelate);
@@ -143,7 +145,7 @@ public:
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
 		}
 		//after pixelate process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
 		//release render target
 		PixelateEffectRenderTarget.SafeRelease();

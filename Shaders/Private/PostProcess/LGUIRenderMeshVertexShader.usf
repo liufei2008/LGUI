@@ -7,6 +7,9 @@ struct RenderMeshVSToPS
     float4 position : SV_Position;
     float2 uv : TEXCOORD0;
     float3 localPosition : TEXCOORD1;
+#if LGUI_BLEND_DEPTH
+    float4 screenPosition : TEXCOORD2;
+#endif
 };
 
 void RenderMeshVS(
@@ -18,6 +21,9 @@ void RenderMeshVS(
     v2p.position = mul(float4(Position.xyz, 1.0), _MVP);
     v2p.localPosition = Position.xyz;
     v2p.uv = TextureCoord0;
+#if LGUI_BLEND_DEPTH
+    v2p.screenPosition = v2p.position;
+#endif
 #if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
 	v2p.uv.y = 1.0f - v2p.uv.y;
     v2p.position.y *= -1.0f;

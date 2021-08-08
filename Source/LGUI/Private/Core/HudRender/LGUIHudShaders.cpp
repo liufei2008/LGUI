@@ -10,6 +10,7 @@
 
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderVS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainVS"), SF_Vertex);
 IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIHudRenderPS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainPS"), SF_Pixel);
+IMPLEMENT_MATERIAL_SHADER_TYPE(, FLGUIWorldRenderPS, TEXT("/Plugin/LGUI/Private/LGUIHudShader.usf"), TEXT("MainPS"), SF_Pixel);
 
 
 FLGUIHudRenderVS::FLGUIHudRenderVS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
@@ -68,5 +69,32 @@ void FLGUIHudRenderPS::SetMaterialShaderParameters(FRHICommandList& RHICmdList, 
 bool FLGUIHudRenderPS::Serialize(FArchive& Ar)
 {
 	bool bShaderHasOutdatedParameters = FMaterialShader::Serialize(Ar);
+	return bShaderHasOutdatedParameters;
+}
+
+
+FLGUIWorldRenderPS::FLGUIWorldRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer)
+	:FLGUIHudRenderPS(Initializer)
+{
+	SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
+	SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+	SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
+}
+void FLGUIWorldRenderPS::ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
+{
+	OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
+	FLGUIHudRenderPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+}
+void FLGUIWorldRenderPS::SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler)
+{
+	SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
+	SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+}
+bool FLGUIWorldRenderPS::Serialize(FArchive& Ar)
+{
+	bool bShaderHasOutdatedParameters = FLGUIHudRenderPS::Serialize(Ar);
+	Ar << SceneDepthTextureParameter;
+	Ar << SceneDepthTextureSamplerParameter;
+	Ar << SceneDepthBlendParameter;
 	return bShaderHasOutdatedParameters;
 }

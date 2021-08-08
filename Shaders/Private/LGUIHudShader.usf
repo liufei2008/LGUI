@@ -156,6 +156,12 @@ void ApplyPixelDepthOffsetForLGUIBasePass(inout FMaterialPixelParameters Materia
     float PixelDepthOffset = ApplyPixelDepthOffsetToMaterialParameters(MaterialParameters, PixelMaterialInputs, OutDepth);
 }
 
+#if LGUI_BLEND_DEPTH
+Texture2D _SceneDepthTex;
+SamplerState _SceneDepthTexSampler;
+float _SceneDepthBlend;
+#endif
+
 void MainPS(
 	FLGUIVertexFactoryInterpolantsVSToPS Interpolants
 	, FLGUIBasePassInterpolants BasePassInterpolants
@@ -195,5 +201,14 @@ void MainPS(
 	
 #if MATERIALBLENDING_MASKED
     clip(GetMaterialMask(PixelMaterialInputs));
+#endif
+	
+#if LGUI_BLEND_DEPTH
+    float PixelDepth = min(MaterialParameters.ScreenPosition.z / MaterialParameters.ScreenPosition.w, MaterialParameters.SvPosition.z);
+	float2 ScreenUV = MaterialParameters.ScreenPosition.xy / MaterialParameters.ScreenPosition.w;
+	ScreenUV = ScreenUV * 0.5f + float2(0.5f, 0.5f);
+	ScreenUV.y = 1.0f - ScreenUV.y;
+    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV).x;
+	OutColor.a = lerp(_SceneDepthBlend * OutColor.a, OutColor.a, step(ExistDepth, PixelDepth));
 #endif
 }

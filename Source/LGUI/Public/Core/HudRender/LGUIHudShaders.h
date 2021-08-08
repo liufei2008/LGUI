@@ -36,3 +36,20 @@ public:
 
 	virtual bool Serialize(FArchive& Ar) override;
 };
+
+class FLGUIWorldRenderPS : public FLGUIHudRenderPS
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIWorldRenderPS, Material);
+
+	FLGUIWorldRenderPS() {}
+	FLGUIWorldRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
+	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
+
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+	virtual bool Serialize(FArchive& Ar) override;
+private:
+	FShaderResourceParameter SceneDepthTextureParameter;
+	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthBlendParameter;
+};

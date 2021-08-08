@@ -37,7 +37,9 @@ public:
 		FTextureRHIRef ScreenTargetTexture,
 		FTextureRHIRef ScreenTargetResolveTexture,
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
-		const FMatrix& ViewProjectionMatrix
+		const FMatrix& ViewProjectionMatrix,
+		bool IsWorldSpace,
+		float BlendDepthForWorld
 	) {};
 	//end post process interface
 };
