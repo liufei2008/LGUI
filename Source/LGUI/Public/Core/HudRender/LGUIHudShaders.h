@@ -33,3 +33,19 @@ public:
 
 	void SetMaterialShaderParameters(FRHICommandList& RHICmdList, const FSceneView& View, const FMaterialRenderProxy* MaterialRenderProxy, const FMaterial* Material, const FMeshBatch& Mesh);
 };
+
+class FLGUIWorldRenderPS : public FLGUIHudRenderPS
+{
+public:
+	DECLARE_SHADER_TYPE(FLGUIWorldRenderPS, Material);
+
+	FLGUIWorldRenderPS() {}
+	FLGUIWorldRenderPS(const FMaterialShaderType::CompiledShaderInitializerType& Initializer);
+	static void ModifyCompilationEnvironment(const FMaterialShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment);
+
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+private:
+	LAYOUT_FIELD(FShaderResourceParameter, SceneDepthTextureParameter);
+	LAYOUT_FIELD(FShaderResourceParameter, SceneDepthTextureSamplerParameter);
+	LAYOUT_FIELD(FShaderParameter, SceneDepthBlendParameter);
+};

@@ -39,6 +39,8 @@ public:
 	void RemoveHudPrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive);
 	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
 
+	void SortPrimitiveRenderPriority();
+
 	void AddRenderCanvas(ULGUICanvas* InCanvas);
 	void RemoveRenderCanvas(ULGUICanvas* InCanvas);
 
@@ -70,6 +72,10 @@ private:
 
 		int32 RenderCanvasSortOrder;
 
+		bool IsWorldSpace;
+		//blend depth, 0-occlude by depth, 1-all visible
+		float BlendDepth;
+
 		FVector ViewLocation;
 		FMatrix ViewRotationMatrix;
 		FMatrix ProjectionMatrix;
@@ -86,6 +92,7 @@ private:
 	void CheckContainsPostProcess_RenderThread();	
 	void AddRootCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
 	void RemoveRootCanvas_RenderThread(ULGUICanvas* InCanvas);
+	void SortPrimitiveRenderPriority_RenderThread();
 public:
 #if WITH_EDITORONLY_DATA
 	static uint32 EditorPreview_ViewKey;
