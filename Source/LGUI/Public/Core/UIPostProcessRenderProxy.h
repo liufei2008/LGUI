@@ -75,6 +75,8 @@ public:
 		, FGlobalShaderMap* GlobalShaderMap
 		, FTextureRHIRef ResultTexture
 		, const FMatrix & ModelViewProjectionMatrix
+		, bool IsWorldSpace
+		, float BlendDepthForWorld
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
 };

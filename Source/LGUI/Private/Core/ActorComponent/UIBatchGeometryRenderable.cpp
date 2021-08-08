@@ -122,7 +122,7 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 		{
 			if (IsValid(OldCanvas))
 			{
-				if (OldCanvas->IsRenderToScreenSpaceOrRenderTarget() != NewCanvas->IsRenderToScreenSpaceOrRenderTarget())//is render to screen or world changed, then uimesh need to be recreate
+				if (OldCanvas->IsRenderByLGUIRendererOrUERenderer() != NewCanvas->IsRenderByLGUIRendererOrUERenderer())//is render to screen or world changed, then uimesh need to be recreate
 				{
 					geometry->Clear();
 					if (IsValid(uiMesh))
@@ -528,18 +528,18 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 #if WITH_EDITOR
 			if (!GetWorld()->IsGameWorld())
 			{
-				if (RenderCanvas->GetRootCanvas()->IsRenderToScreenSpaceOrRenderTarget())
+				if (RenderCanvas->GetRootCanvas()->IsRenderByLGUIRendererOrUERenderer())
 				{
-					uiMesh->SetSupportScreenSpace(true, ULGUIEditorManagerObject::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas());
+					uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas());
 				}
-				uiMesh->SetSupportWorldSpace(true);
+				uiMesh->SetSupportUERenderer(true);
 			}
 			else
 #endif
-			if (RenderCanvas->GetRootCanvas()->IsRenderToScreenSpaceOrRenderTarget())
+			if (RenderCanvas->GetRootCanvas()->IsRenderByLGUIRendererOrUERenderer())
 			{
-				uiMesh->SetSupportScreenSpace(true, ALGUIManagerActor::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas());
-				uiMesh->SetSupportWorldSpace(false);
+				uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas());
+				uiMesh->SetSupportUERenderer(false);
 			}
 		}
 

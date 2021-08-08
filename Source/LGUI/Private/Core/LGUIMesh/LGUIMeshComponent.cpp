@@ -104,9 +104,9 @@ public:
 					}
 				}
 			);
-			IsSupportScreenSpace = true;
+			IsSupportLGUIRenderer = true;
 		}
-		IsSupportWorldSpace = InComponent->IsSupportWorldSpace;
+		IsSupportUERenderer = InComponent->IsSupportUERenderer;
 
 		FLGUIMeshSection& SrcSection = InComponent->MeshSection;
 		if (SrcSection.vertices.Num() > 0)
@@ -115,7 +115,7 @@ public:
 			// vertex and index buffer
 			const auto& SrcVertices = SrcSection.vertices;
 			int NumVerts = SrcVertices.Num();
-			if (IsSupportScreenSpace)
+			if (IsSupportLGUIRenderer)
 			{
 				auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
 				HudVertices.SetNumUninitialized(NumVerts);
@@ -136,7 +136,7 @@ public:
 				BeginInitResource(&NewSection->IndexBuffer);
 				BeginInitResource(&NewSection->HudVertexBuffers);
 			}
-			if (IsSupportWorldSpace)
+			if (IsSupportUERenderer)
 			{
 				NewSection->IndexBuffer.Indices = SrcSection.triangles;
 				NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection.vertices, 4);
@@ -168,12 +168,12 @@ public:
 	{
 		if (Section != nullptr)
 		{
-			if (IsSupportScreenSpace)
+			if (IsSupportLGUIRenderer)
 			{
 				Section->IndexBuffer.ReleaseResource();
 				Section->HudVertexBuffers.ReleaseResource();
 			}
-			if (IsSupportWorldSpace)
+			if (IsSupportUERenderer)
 			{
 				Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
 				Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
@@ -202,7 +202,7 @@ public:
 		if (Section != nullptr)
 		{
 			//vertex buffer
-			if (IsSupportScreenSpace)
+			if (IsSupportLGUIRenderer)
 			{
 				HudVertexUpdateData.SetNumUninitialized(NumVerts, false);
 				if (AdditionalChannelFlags == 0)
@@ -236,7 +236,7 @@ public:
 				FMemory::Memcpy(VertexBufferData, HudVertexUpdateData.GetData(), vertexDataLength);
 				RHIUnlockBuffer(Section->HudVertexBuffers.VertexBufferRHI);
 			}
-			if(IsSupportWorldSpace)
+			if(IsSupportUERenderer)
 			{
 				int meshNumVert = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices();
 				if (meshNumVert != NumVerts)//for some unknown reason, in mobile platform, VertexBuffers.PositionVertexBuffer/StaticMeshVertexBuffer/ColorVertexBuffer 's vertex count changed
@@ -335,7 +335,7 @@ public:
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_GetMeshElements);
-		if (!IsSupportWorldSpace) return;
+		if (!IsSupportUERenderer) return;
 		// Set up wireframe material (if needed)
 		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
 
@@ -396,7 +396,7 @@ public:
 	virtual FMeshBatch GetMeshElement(FMeshElementCollector* Collector) override
 	{
 		//if (Section != nullptr && Section->bSectionVisible)//check CanRender before call GetMeshElement, so this line is not necessary
-		if (IsSupportScreenSpace)
+		if (IsSupportLGUIRenderer)
 		{
 			FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy();
 
@@ -448,7 +448,7 @@ public:
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const
 	{
 		FPrimitiveViewRelevance Result;
-		if (IsSupportWorldSpace)
+		if (IsSupportUERenderer)
 		{
 			Result.bDrawRelevance = IsShown(View);
 			Result.bShadowRelevance = IsShadowCast(View);
@@ -474,7 +474,7 @@ public:
 
 	virtual bool CanBeOccluded() const override
 	{
-		return IsSupportWorldSpace && !MaterialRelevance.bDisableDepthTest;
+		return IsSupportUERenderer && !MaterialRelevance.bDisableDepthTest;
 	}
 
 	virtual uint32 GetMemoryFootprint(void) const
@@ -494,8 +494,8 @@ private:
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;
 	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
-	bool IsSupportScreenSpace = false;
-	bool IsSupportWorldSpace = true;
+	bool IsSupportLGUIRenderer = false;
+	bool IsSupportUERenderer = true;
 	TArray<FLGUIHudVertex> HudVertexUpdateData;
 	void* RenderCanvasPtr = nullptr;
 };
@@ -585,7 +585,7 @@ void ULGUIMeshComponent::SetUITranslucentSortPriority(int32 NewTranslucentSortPr
 void ULGUIMeshComponent::UpdateLocalBounds()
 {
 	UpdateBounds();// Update global bounds
-	if (IsSupportWorldSpace)//screen space UI no need to update bounds
+	if (IsSupportUERenderer)//screen space UI no need to update bounds
 	{
 		// Need to send to render thread
 		MarkRenderTransformDirty();
@@ -604,7 +604,7 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	return Proxy;
 }
 
-void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas)
+void ULGUIMeshComponent::SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas)
 {
 	if (supportOrNot)
 	{
@@ -617,9 +617,9 @@ void ULGUIMeshComponent::SetSupportScreenSpace(bool supportOrNot, TWeakPtr<FLGUI
 	}
 }
 
-void ULGUIMeshComponent::SetSupportWorldSpace(bool supportOrNot)
+void ULGUIMeshComponent::SetSupportUERenderer(bool supportOrNot)
 {
-	IsSupportWorldSpace = supportOrNot;
+	IsSupportUERenderer = supportOrNot;
 }
 
 int32 ULGUIMeshComponent::GetNumMaterials() const
@@ -629,7 +629,7 @@ int32 ULGUIMeshComponent::GetNumMaterials() const
 
 FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
-	if (IsSupportWorldSpace)
+	if (IsSupportUERenderer)
 	{
 		const auto& vertices = MeshSection.vertices;
 		int vertCount = vertices.Num();

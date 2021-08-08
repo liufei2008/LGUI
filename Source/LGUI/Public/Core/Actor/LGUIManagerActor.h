@@ -44,7 +44,6 @@ public:
 private:
 	TMap<int32, uint32> EditorViewportIndexToKeyMap;
 	int32 PrevEditorViewportCount = 0;
-	int32 PrevScreenSpaceOverlayCanvasCount = 1;
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
@@ -58,7 +57,7 @@ protected:
 		TArray<TWeakObjectPtr<UUILayoutBase>> allLayoutArray;
 	TArray<UUIItem*> tempUIItemArray;
 
-	bool bShouldSortScreenSpaceCanvas = true;
+	bool bShouldSortLGUIRenderer = true;
 	bool bShouldSortWorldSpaceCanvas = true;
 	bool bShouldSortRenderTargetSpaceCanvas = true;
 
@@ -82,7 +81,7 @@ public:
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return allCanvas; };
-	void MarkSortScreenSpaceCanvas();
+	void MarkSortLGUIRenderer();
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
 
@@ -165,15 +164,12 @@ protected:
 
 	TArray<ULGUICanvas*> screenOverlayCanvasArray;
 
-	bool bShouldSortScreenSpaceCanvas = true;
+	bool bShouldSortLGUIRenderer = true;
 	bool bShouldSortWorldSpaceCanvas = true;
 	bool bShouldSortRenderTargetSpaceCanvas = true;
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForUpdate;
-#if WITH_EDITORONLY_DATA
-	int32 PrevScreenSpaceOverlayCanvasCount = 1;
-#endif
 private:
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);
@@ -186,7 +182,7 @@ public:
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
 	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return allCanvas; };
-	void MarkSortScreenSpaceCanvas();
+	void MarkSortLGUIRenderer();
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
 

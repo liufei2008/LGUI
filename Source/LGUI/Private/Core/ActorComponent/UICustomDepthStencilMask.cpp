@@ -82,35 +82,37 @@ public:
 		FTextureRHIRef ScreenTargetImage,
 		FTextureRHIRef ScreenTargetResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
-		const FMatrix& ViewProjectionMatrix
+		const FMatrix& ViewProjectionMatrix,
+		bool IsWorldSpace,
+		float BlendDepthForWorld
 	)override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CustomDepthStencilMask);
 		if (maskStrength <= 0.0f)return;
 
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
-		if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
-		{
-#if !PLATFORM_MOBILE
-			if (!SceneContext.CustomDepth.IsValid())
-#else
-			if (!SceneContext.MobileCustomDepth.IsValid())
-#endif
-			{
-				return;
-			}
-		}
-		else
-		{
-#if !PLATFORM_MOBILE
-			if (!SceneContext.CustomStencilSRV.IsValid())
-#else
-			if (!SceneContext.MobileCustomStencil.IsValid())
-#endif
-			{
-				return;
-			}
-		}
+//		if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
+//		{
+//#if !PLATFORM_MOBILE
+//			if (!SceneContext.CustomDepth.IsValid())
+//#else
+//			if (!SceneContext.MobileCustomDepth.IsValid())
+//#endif
+//			{
+//				return;
+//			}
+//		}
+//		else
+//		{
+//#if !PLATFORM_MOBILE
+//			if (!SceneContext.CustomStencilSRV.IsValid())
+//#else
+//			if (!SceneContext.MobileCustomStencil.IsValid())
+//#endif
+//			{
+//				return;
+//			}
+//		}
 
 		if (bFullScreen)
 		{
@@ -174,7 +176,7 @@ public:
 						, ScreenTarget_ProcessRenderTargetTexture, samplerState
 						, OriginScreenTarget_ProcessRenderTargetTexture, samplerState
 #if !PLATFORM_MOBILE
-						, SceneContext.CustomDepth->GetRenderTargetItem().TargetableTexture, samplerState
+						, SceneContext.SceneDepthZ->GetRenderTargetItem().ShaderResourceTexture, samplerState
 #else
 						, DepthTexture_ProcessRenderTargetTexture, samplerState
 #endif
@@ -348,7 +350,7 @@ public:
 			}
 
 			//after pixelate process, copy the area back to screen image
-			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix);
+			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld);
 
 			//release render target
 			if (ScreenTarget_ProcessRenderTarget.IsValid())
