@@ -43,7 +43,7 @@ UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetRenderableUIItem()
 					renderableUIItem = (UUIBatchGeometryRenderable*)components[0];
 				}
 			}
-			else
+			else if(components.Num() == 1)
 			{
 				renderableUIItem = (UUIBatchGeometryRenderable*)components[0];
 			}
