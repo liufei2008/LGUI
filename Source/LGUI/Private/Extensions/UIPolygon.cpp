@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/LGUICanvas.h"
+#include "Core/LGUISpriteData_BaseObject.h"
 
 UUIPolygon::UUIPolygon(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
 {

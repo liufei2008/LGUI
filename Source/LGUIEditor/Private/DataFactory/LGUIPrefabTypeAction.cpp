@@ -2,6 +2,7 @@
 
 #include "DataFactory/LGUIPrefabTypeAction.h"
 #include "ContentBrowserModule.h"
+#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabTypeAction"
 
