@@ -533,6 +533,17 @@ FString UUITextInputComponent::PasteResultString()
 }
 bool UUITextInputComponent::IsValidChar(char c)
 {
+	auto OriginHaveChar = [](char testChar, const FString& string, int stringLength)
+	{
+		for (int i = 0; i < stringLength; i++)
+		{
+			if (string[i] == testChar)
+			{
+				return true;
+			}
+		}
+		return false;
+	};
 	//delete key on mac
 	if ((int)c == 127)
 		return false;
@@ -544,36 +555,65 @@ bool UUITextInputComponent::IsValidChar(char c)
 		break;
 	case ELGUITextInputType::IntegerNumber:
 	{
-		if (c >= 48 && c <= 57)//0-9
+		if (c >= '0' && c <= '9')
 		{
+			if (CaretPositionIndex == 0)
+			{
+				if (OriginHaveChar('-', Text, Text.Len()))
+				{
+					return false;
+				}
+			}
 			return true;
+		}
+		if (c == '-')
+		{
+			if (CaretPositionIndex == 0 && !OriginHaveChar('-', Text, Text.Len()))
+			{
+				return true;
+			}
 		}
 		return false;
 	}
 		break;
 	case ELGUITextInputType::DecimalNumber:
 	{
-		bool originHasDot = false;
-		int32 textLength = Text.Len();
-		for (int i = 0; i < textLength; i++)
+		if (c >= '0' && c <= '9')
 		{
-			if (Text[i] == 46)//.(dot)
+			if (CaretPositionIndex == 0)
 			{
-				originHasDot = true;
-				break;
+				if (OriginHaveChar('-', Text, Text.Len()))
+				{
+					return false;
+				}
 			}
+			return true;
 		}
-		if (originHasDot)
+		if (c == '.')
 		{
-			if (c >= 48 && c <= 57)//0-9
+			if (OriginHaveChar('.', Text, Text.Len()))
 			{
+				return false;
+			}
+			else
+			{
+				if (CaretPositionIndex == 0)
+				{
+					if (!OriginHaveChar('-', Text, Text.Len()))
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
 				return true;
 			}
 		}
-		else
+		if (c == '-')
 		{
-			if ((c >= 48 && c <= 57)//0-9
-				|| c == 46)//.(dot)
+			if (CaretPositionIndex == 0 && !OriginHaveChar('-', Text, Text.Len()))
 			{
 				return true;
 			}
@@ -628,9 +668,19 @@ bool UUITextInputComponent::IsValidString(const FString& InString)
 		for (int i = 0; i < textLength; i++)
 		{
 			TCHAR c = InString[i];
-			if (c < 48 || c > 57)//0-9
+			if (c == '-')
 			{
-				return false;
+				if (i != 0)
+				{
+					return false;
+				}
+			}
+			else
+			{
+				if (c < '0' || c > '9')
+				{
+					return false;
+				}
 			}
 		}
 		return true;
@@ -644,17 +694,27 @@ bool UUITextInputComponent::IsValidString(const FString& InString)
 		for (int i = 0; i < textLength; i++)
 		{
 			TCHAR c = InString[i];
-			if (c == 46)//.(dot)
+			if (c == '-')
 			{
-				dotCount++;
-				if (dotCount > 1)
+				if (i != 0)
 				{
 					return false;
 				}
 			}
-			else if (c < 48 || c > 57)//0-9
+			else
 			{
-				return false;
+				if (c == '.')
+				{
+					dotCount++;
+					if (dotCount > 1)
+					{
+						return false;
+					}
+				}
+				else if (c < '0' || c > '9')
+				{
+					return false;
+				}
 			}
 		}
 		return true;
