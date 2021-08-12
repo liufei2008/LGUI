@@ -12,6 +12,7 @@
 #include "TextureResource.h"
 #include "Engine/Texture2D.h"
 #include "Engine/FontFace.h"
+#include "Rendering/Texture2DResource.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
