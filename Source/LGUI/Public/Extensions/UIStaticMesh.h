@@ -32,10 +32,18 @@ protected:
 		UStaticMesh* mesh;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UIStaticMeshVertexColorType vertexColorType = UIStaticMeshVertexColorType::NotAffectByUIColor;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		UMaterialInterface* replaceMat;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
+#endif
 	
 	virtual void SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)override;
 	bool CanCreateGeometry();
 	void CreateGeometry();
+	virtual void UpdateGeometry(const bool& parentLayoutChanged)override;
+	void UpdateMeshTransform();
+	void UpdateMeshColor();
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 
 		UStaticMesh* GetMesh()const { return mesh; }
