@@ -9,16 +9,15 @@
 UUIDirectMeshRenderable::UUIDirectMeshRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bLocalVertexPositionChanged = true;
 	uiRenderableType = EUIRenderableType::UIDirectMeshRenderable;
 }
 
 void UUIDirectMeshRenderable::BeginPlay()
 {
 	Super::BeginPlay();
-	if (CheckRenderCanvas())
-	{
-		RenderCanvas->MarkCanvasUpdate();
-	}
+	MarkCanvasUpdate();
+	bLocalVertexPositionChanged = true;
 }
 
 void UUIDirectMeshRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -55,6 +54,48 @@ void UUIDirectMeshRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGU
 
 
 
+
+void UUIDirectMeshRenderable::UpdateCachedData()
+{
+	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
+	Super::UpdateCachedData();
+}
+void UUIDirectMeshRenderable::UpdateCachedDataBeforeGeometry()
+{
+	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
+	Super::UpdateCachedDataBeforeGeometry();
+}
+void UUIDirectMeshRenderable::UpdateBasePrevData()
+{
+	bLocalVertexPositionChanged = false;
+	Super::UpdateBasePrevData();
+}
+void UUIDirectMeshRenderable::MarkAllDirtyRecursive()
+{
+	bLocalVertexPositionChanged = true;
+	Super::MarkAllDirtyRecursive();
+}
+
+
+
+void UUIDirectMeshRenderable::WidthChanged()
+{
+	MarkVertexPositionDirty();
+}
+void UUIDirectMeshRenderable::HeightChanged()
+{
+	MarkVertexPositionDirty();
+}
+void UUIDirectMeshRenderable::PivotChanged()
+{
+	MarkVertexPositionDirty();
+}
+
+void UUIDirectMeshRenderable::MarkVertexPositionDirty()
+{
+	bLocalVertexPositionChanged = true;
+	MarkCanvasUpdate();
+}
 void UUIDirectMeshRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 {
 	if (IsUIActiveInHierarchy() == false)return;
@@ -89,17 +130,5 @@ void UUIDirectMeshRenderable::SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)
 	if (UIDrawcallMesh.IsValid())
 	{
 		UIDrawcallMesh->SetUIMeshVisibility(this->IsUIActiveInHierarchy());
-	}
-	if (UIDrawcallMesh.IsValid() && Material.IsValid())
-	{
-		UIDrawcallMesh->SetMaterial(0, Material.Get());
-	}
-}
-void UUIDirectMeshRenderable::SetMaterial(UMaterialInterface* InMaterial)
-{
-	Material = InMaterial;
-	if (UIDrawcallMesh.IsValid() && Material.IsValid())
-	{
-		UIDrawcallMesh->SetMaterial(0, Material.Get());
 	}
 }
