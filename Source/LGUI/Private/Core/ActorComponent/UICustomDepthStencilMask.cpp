@@ -91,28 +91,28 @@ public:
 		if (maskStrength <= 0.0f)return;
 
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
-//		if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
-//		{
-//#if !PLATFORM_MOBILE
-//			if (!SceneContext.CustomDepth.IsValid())
-//#else
-//			if (!SceneContext.MobileCustomDepth.IsValid())
-//#endif
-//			{
-//				return;
-//			}
-//		}
-//		else
-//		{
-//#if !PLATFORM_MOBILE
-//			if (!SceneContext.CustomStencilSRV.IsValid())
-//#else
-//			if (!SceneContext.MobileCustomStencil.IsValid())
-//#endif
-//			{
-//				return;
-//			}
-//		}
+		if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
+		{
+#if !PLATFORM_MOBILE
+			if (!SceneContext.CustomDepth.IsValid())
+#else
+			if (!SceneContext.MobileCustomDepth.IsValid())
+#endif
+			{
+				return;
+			}
+		}
+		else
+		{
+#if !PLATFORM_MOBILE
+			if (!SceneContext.CustomStencilSRV.IsValid())
+#else
+			if (!SceneContext.MobileCustomStencil.IsValid())
+#endif
+			{
+				return;
+			}
+		}
 
 		if (bFullScreen)
 		{
