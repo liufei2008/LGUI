@@ -1251,6 +1251,13 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 	return UIDrawcallList.Num();
 }
 
+FName ULGUICanvas::LGUI_MainTextureMaterialParameterName = FName(TEXT("MainTexture"));
+FName ULGUICanvas::LGUI_RectClipOffsetAndSize_MaterialParameterName = FName(TEXT("RectClipOffsetAndSize"));
+FName ULGUICanvas::LGUI_RectClipFeather_MaterialParameterName = FName(TEXT("RectClipFeather"));
+FName ULGUICanvas::LGUI_TextureClip_MaterialParameterName = FName(TEXT("ClipTexture"));
+FName ULGUICanvas::LGUI_TextureClipOffsetAndSize_MaterialParameterName = FName(TEXT("TextureClipOffsetAndSize"));
+#define LGUI_CHECK_MATERIAL_BEFORE_CREATE 0
+
 void ULGUICanvas::UpdateAndApplyMaterial()
 {
 	auto tempClipType = GetActualClipType();
@@ -1269,27 +1276,89 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 					if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
 					{
 						uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
+						drawcallItem->drawcallMesh->SetMaterial(0, uiMat.Get());
 					}
 					else
 					{
-						uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
-						uiMat->SetFlags(RF_Transient);
+#if LGUI_CHECK_MATERIAL_BEFORE_CREATE
+						static TArray<FMaterialParameterInfo> parameterInfos;
+						static TArray<FGuid> parameterIds;
+						SrcMaterial->GetAllTextureParameterInfo(parameterInfos, parameterIds);
+						int mainTextureParamIndex = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
+							{
+								return item.Name == LGUI_MainTextureMaterialParameterName;
+							});
+						bool containsLGUIParam = mainTextureParamIndex != INDEX_NONE;
+						if (!containsLGUIParam)
+						{
+							switch (clipType)
+							{
+							case ELGUICanvasClipType::Rect:
+							{
+								SrcMaterial->GetAllVectorParameterInfo(parameterInfos, parameterIds);
+								int foundIndex = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
+									{
+										return item.Name == LGUI_RectClipFeather_MaterialParameterName || item.Name == LGUI_RectClipOffsetAndSize_MaterialParameterName;
+									});
+								containsLGUIParam = foundIndex != INDEX_NONE;
+							}
+							break;
+							case ELGUICanvasClipType::Texture:
+							{
+								int foundIndex1 = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
+									{
+										return item.Name == LGUI_TextureClip_MaterialParameterName;
+									});
+								if (foundIndex1 == INDEX_NONE)
+								{
+									SrcMaterial->GetAllVectorParameterInfo(parameterInfos, parameterIds);
+									int foundIndex2 = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
+										{
+											return item.Name == LGUI_TextureClipOffsetAndSize_MaterialParameterName;
+										});
+									containsLGUIParam = foundIndex2 != INDEX_NONE;
+								}
+								else
+								{
+									containsLGUIParam = true;
+								}
+							}
+							break;
+							}
+						}
+						
+						if (containsLGUIParam)
+#endif
+						{
+							uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
+							uiMat->SetFlags(RF_Transient);
+							drawcallItem->drawcallMesh->SetMaterial(0, uiMat.Get());
+						}
+#if LGUI_CHECK_MATERIAL_BEFORE_CREATE
+						else
+						{
+							drawcallItem->drawcallMesh->SetMaterial(0, SrcMaterial);
+						}
+#endif
 					}
 				}
 				else
 				{
 					uiMat = GetUIMaterialFromPool(clipType);
+					drawcallItem->drawcallMesh->SetMaterial(0, uiMat.Get());
 				}
-				drawcallItem->drawcallMesh->SetMaterial(0, uiMat.Get());
 				drawcallItem->materialInstanceDynamic = uiMat;
 				drawcallItem->materialChanged = false;
-				uiMat->SetTextureParameterValue(FName("MainTexture"), drawcallItem->texture.Get());
+				if (uiMat.IsValid())
+				{
+					uiMat->SetTextureParameterValue(LGUI_MainTextureMaterialParameterName, drawcallItem->texture.Get());
+				}
 				drawcallItem->textureChanged = false;
 				needToSetClipParameter = true;
 			}
 			else if (drawcallItem->textureChanged)
 			{
-				uiMat->SetTextureParameterValue(FName("MainTexture"), drawcallItem->texture.Get());
+				uiMat->SetTextureParameterValue(LGUI_MainTextureMaterialParameterName, drawcallItem->texture.Get());
 				drawcallItem->textureChanged = false;
 			}
 		}
@@ -1417,8 +1486,8 @@ void ULGUICanvas::SetParameterForRectClip()
 			auto uiMat = drawcallItem->materialInstanceDynamic;
 			if (uiMat.IsValid())
 			{
-				uiMat->SetVectorParameterValue(FName("RectClipOffsetAndSize"), rectClipOffsetAndSize);
-				uiMat->SetVectorParameterValue(FName("RectClipFeather"), rectClipFeather);
+				uiMat->SetVectorParameterValue(LGUI_RectClipOffsetAndSize_MaterialParameterName, rectClipOffsetAndSize);
+				uiMat->SetVectorParameterValue(LGUI_RectClipFeather_MaterialParameterName, rectClipFeather);
 			}
 		}
 		break;
@@ -1455,8 +1524,8 @@ void ULGUICanvas::SetParameterForTextureClip()
 			auto uiMat = drawcallItem->materialInstanceDynamic;
 			if (uiMat.IsValid())
 			{
-				uiMat->SetTextureParameterValue(FName("ClipTexture"), clipTexture);
-				uiMat->SetVectorParameterValue(FName("TextureClipOffsetAndSize"), textureClipOffsetAndSize);
+				uiMat->SetTextureParameterValue(LGUI_TextureClip_MaterialParameterName, clipTexture);
+				uiMat->SetVectorParameterValue(LGUI_TextureClipOffsetAndSize_MaterialParameterName, textureClipOffsetAndSize);
 			}
 		}
 		break;

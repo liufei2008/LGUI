@@ -426,6 +426,12 @@ public:
 
 	void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
 	void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
+
+	static FName LGUI_MainTextureMaterialParameterName;
+	static FName LGUI_RectClipOffsetAndSize_MaterialParameterName;
+	static FName LGUI_RectClipFeather_MaterialParameterName;
+	static FName LGUI_TextureClip_MaterialParameterName;
+	static FName LGUI_TextureClipOffsetAndSize_MaterialParameterName;
 private:
 	void CombineDrawcall();
 	void ApplyOwnerSeeRecursive();

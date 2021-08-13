@@ -31,16 +31,28 @@ protected:
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void UpdateGeometry(const bool& parentLayoutChanged)override;
 
+	virtual void WidthChanged()override;
+	virtual void HeightChanged()override;
+	virtual void PivotChanged()override;
+
+	void MarkVertexPositionDirty();
+
+	virtual void UpdateBasePrevData()override;
+	virtual void UpdateCachedData()override;
+	virtual void UpdateCachedDataBeforeGeometry()override;
+	virtual void MarkAllDirtyRecursive()override;
+
 	TWeakObjectPtr<UUIDrawcallMesh> UIDrawcallMesh = nullptr;
-	TWeakObjectPtr<UMaterialInterface> Material = nullptr;
 public:
 	/** Canvas will create a UIDrawcallMesh for this UI element. */
 	virtual void SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh);
 	virtual UUIDrawcallMesh* GetDrawcallMesh()const;
 	virtual void ClearDrawcallMesh(bool InDestroyMesh);
-	virtual void SetMaterial(UMaterialInterface* InMaterial);
 
 	virtual void SetClipType(ELGUICanvasClipType clipType) {};
 	virtual void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather) {};
 	virtual void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize) {};
+protected:
+	uint8 bLocalVertexPositionChanged : 1;
+	uint8 cacheForThisUpdate_LocalVertexPositionChanged : 1;
 };
