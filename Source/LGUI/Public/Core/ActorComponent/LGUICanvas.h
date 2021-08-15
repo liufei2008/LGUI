@@ -183,11 +183,6 @@ public:
 	/** @return	drawcall count */
 	int32 SortDrawcall(int32 InStartRenderPriority);
 protected:
-	/**
-	 * RenderMode can affect UI's renderer, basically WorldSpace use UE's buildin renderer, others use LGUI's renderer. Different renderers cannot share render data.
-	 * eg: when attach to other canvas, this will tell which render mode in old canvas, and if not compatible then recreate render data.
-	 */
-	bool currentIsLGUIRendererOrUERenderer = false;
 	/** Root LGUICanvas on hierarchy. LGUI's update start from the RootCanvas, and goes all down to every UI elements under it */
 	mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
 	void CheckRenderMode();
@@ -436,25 +431,31 @@ private:
 	void CombineDrawcall();
 	void ApplyOwnerSeeRecursive();
 private:
-	uint8 bClipTypeChanged:1;
-	uint8 bRectClipParameterChanged:1;
-	uint8 bTextureClipParameterChanged:1;
+	uint16 bClipTypeChanged:1;
+	uint16 bRectClipParameterChanged:1;
+	uint16 bTextureClipParameterChanged:1;
 
-	uint8 bCanTickUpdate:1;//if Canvas can update from tick
-	uint8 bShouldUpdateLayout:1;//if any child layout changed
-	uint8 bRectRangeCalculated:1;
-	uint8 bNeedToSortRenderPriority : 1;
-	uint8 bHasAddToViewExtension : 1;//is this canvas added to hud renderer view extension
+	uint16 bCanTickUpdate:1;//if Canvas can update from tick
+	uint16 bShouldUpdateLayout:1;//if any child layout changed
+	uint16 bRectRangeCalculated:1;
+	uint16 bNeedToSortRenderPriority : 1;
+	uint16 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
+	uint16 bHasAddToLGUIWorldSpaceRenderer : 1;//is this canvas added to LGUI world space renderer
+	/**
+	 * RenderMode can affect UI's renderer, basically WorldSpace use UE's buildin renderer, others use LGUI's renderer. Different renderers cannot share render data.
+	 * eg: when attach to other canvas, this will tell which render mode in old canvas, and if not compatible then recreate render data.
+	 */
+	uint16 bCurrentIsLGUIRendererOrUERenderer : 1;
 
-	uint8 cacheForThisUpdate_ShouldUpdateLayout:1
+	uint16 cacheForThisUpdate_ShouldUpdateLayout:1
 		, cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
+	uint16 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
+
 	/** prev frame number, we can tell if we enter to a new render frame */
 	uint32 prevFrameNumber = 0;
-
 	mutable uint32 cacheViewProjectionMatrixFrameNumber = 0;
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
-	uint8 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
 	FVector OverrideViewLocation;
 	FRotator OverrideViewRotation;
 	float OverrideFovAngle;

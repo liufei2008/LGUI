@@ -49,12 +49,7 @@ void UUIPostProcessRenderable::OnUnregister()
 	Super::OnUnregister();
 	if (RenderProxy.IsValid())
 	{
-		auto tempRenderProxy = RenderProxy;
-		ENQUEUE_RENDER_COMMAND(FUIPostProcess_RemoveRenderProxy)(
-			[tempRenderProxy](FRHICommandListImmediate& RHICmdList)
-			{
-				tempRenderProxy->RemoveFromHudRenderer_RenderThread();
-			});
+		RenderProxy->RemoveFromLGUIRenderer();
 	}
 }
 
