@@ -17,12 +17,12 @@ enum class ELGUIRenderMode :uint8
 	 */
 	ScreenSpaceOverlay = 0,
 	/**
-	 * Render in world space.
+	 * Render in world space by UE default render pipeline.
 	 * This mode use engine's default render pieple, so post process will affect ui.
 	 */
 	WorldSpace=1			UMETA(DisplayName = "World Space - UE Renderer"),
 	/**
-	 * Render in world space with LGUI's custom render pipeline, 
+	 * Render in world space by LGUI's custom render pipeline, 
 	 * This mode use LGUI's custom render pipeline, will not be affected by post process.
 	 */
 	WorldSpace_LGUI = 3		UMETA(DisplayName = "World Space - LGUI Renderer"),
