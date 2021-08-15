@@ -43,6 +43,50 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	auto renderModeHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));
 	renderModeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
 
+	if (TargetScriptArray[0]->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+	{
+		if (auto world = TargetScriptArray[0]->GetWorld())
+		{
+			TArray<TWeakObjectPtr<ULGUICanvas>> allCanvasArray;
+			if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
+			{
+				if (ULGUIEditorManagerObject::Instance != nullptr)
+				{
+					allCanvasArray = ULGUIEditorManagerObject::Instance->GetCanvasArray();
+				}
+			}
+			else
+			{
+				if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
+				{
+					allCanvasArray = LGUIManagerActor->GetCanvasArray();
+				}
+			}
+			int screenSpaceCanvasCount = 0;
+			for (auto item : allCanvasArray)
+			{
+				if (item.IsValid())
+				{
+					if (item->IsRootCanvas())
+					{
+						if (item->GetWorld() == world)
+						{
+							if (item->GetRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+							{
+								screenSpaceCanvasCount++;
+							}
+						}
+					}
+				}
+			}
+			if (screenSpaceCanvasCount > 1)
+			{
+				auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
+				LGUIEditorUtils::ShowError(&DetailBuilder, errMsg);
+			}
+		}
+	}
+
 	if (TargetScriptArray[0]->GetWorld())
 	{
 		if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
