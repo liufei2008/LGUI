@@ -48,7 +48,7 @@ public:
 	void SetColor(FColor InColor);
 	FColor GetColor()const;
 
-	void SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas);
+	void SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas, bool InIsRenderToWorld);
 	void SetSupportUERenderer(bool supportOrNot);
 
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
@@ -74,6 +74,7 @@ private:
 
 protected:
 	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
+	bool IsLGUIRenderToWorld = false;//LGUI renderer render to world or screen
 	TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	bool IsSupportUERenderer = true;
 };
