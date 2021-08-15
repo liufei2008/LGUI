@@ -91,16 +91,25 @@ public:
 		SCOPE_CYCLE_COUNTER(STAT_CreateMeshSection);
 		LGUIRenderer = InComponent->LGUIRenderer;
 		RenderCanvasPtr = InCanvasPtr;
+		IsLGUIRenderToWorld = InComponent->IsLGUIRenderToWorld;
 		if (LGUIRenderer.IsValid())
 		{
 			auto TempRenderer = LGUIRenderer;
 			auto HudPrimitive = this;
+			auto IsRenderToWorld = IsLGUIRenderToWorld;
 			ENQUEUE_RENDER_COMMAND(FLGUIMeshSceneProxy_AddHudPrimitive)(
-				[TempRenderer, HudPrimitive, InCanvasPtr, InCanvasSortOrder](FRHICommandListImmediate& RHICmdList)
+				[TempRenderer, HudPrimitive, InCanvasPtr, InCanvasSortOrder, IsRenderToWorld](FRHICommandListImmediate& RHICmdList)
 				{
 					if (TempRenderer.IsValid())
 					{
-						TempRenderer.Pin()->AddHudPrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, InCanvasSortOrder, HudPrimitive);
+						if (IsRenderToWorld)
+						{
+							TempRenderer.Pin()->AddWorldSpacePrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, InCanvasSortOrder, HudPrimitive);
+						}
+						else
+						{
+							TempRenderer.Pin()->AddScreenSpacePrimitive_RenderThread(HudPrimitive);
+						}
 					}
 				}
 			);
@@ -185,7 +194,14 @@ public:
 		}
 		if (LGUIRenderer.IsValid())
 		{
-			LGUIRenderer.Pin()->RemoveHudPrimitive_RenderThread((ULGUICanvas*)RenderCanvasPtr, this);
+			if (IsLGUIRenderToWorld)
+			{
+				LGUIRenderer.Pin()->RemoveWorldSpacePrimitive_RenderThread((ULGUICanvas*)RenderCanvasPtr, this);
+			}
+			else
+			{
+				LGUIRenderer.Pin()->RemoveScreenSpacePrimitive_RenderThread(this);
+			}
 			LGUIRenderer.Reset();
 		}
 	}
@@ -495,6 +511,7 @@ private:
 	int32 RenderPriority = 0;
 	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
 	bool IsSupportLGUIRenderer = false;
+	bool IsLGUIRenderToWorld = false;
 	bool IsSupportUERenderer = true;
 	TArray<FLGUIHudVertex> HudVertexUpdateData;
 	void* RenderCanvasPtr = nullptr;
@@ -604,12 +621,13 @@ FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 	return Proxy;
 }
 
-void ULGUIMeshComponent::SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas)
+void ULGUIMeshComponent::SetSupportLGUIRenderer(bool supportOrNot, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> HudRenderer, ULGUICanvas* InCanvas, bool InIsRenderToWorld)
 {
 	if (supportOrNot)
 	{
 		LGUIRenderer = HudRenderer;
 		RenderCanvas = InCanvas;
+		IsLGUIRenderToWorld = InIsRenderToWorld;
 	}
 	else
 	{

@@ -530,15 +530,23 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 			{
 				if (RenderCanvas->GetRootCanvas()->IsRenderByLGUIRendererOrUERenderer())
 				{
-					uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas());
+					uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas(), RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace());
+					uiMesh->SetSupportUERenderer(!RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace());//screen space UI should appear in editor's viewport
 				}
-				uiMesh->SetSupportUERenderer(true);
+				else
+				{
+					uiMesh->SetSupportUERenderer(true);
+				}
 			}
 			else
 #endif
 			if (RenderCanvas->GetRootCanvas()->IsRenderByLGUIRendererOrUERenderer())
 			{
-				uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas());
+				uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas(), RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace());
+				uiMesh->SetSupportUERenderer(false);
+			}
+			else
+			{
 				uiMesh->SetSupportUERenderer(false);
 			}
 		}

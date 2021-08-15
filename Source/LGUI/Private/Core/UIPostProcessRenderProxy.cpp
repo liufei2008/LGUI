@@ -9,64 +9,79 @@
 #include "Rendering/Texture2DResource.h"
 #include "PostProcess/SceneRenderTargets.h"
 
-void FUIPostProcessRenderProxy::AddToHudRenderer(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer)
+void FUIPostProcessRenderProxy::AddToLGUIScreenSpaceRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
 {
-	this->RenderCanvasPtr = InCanvasPtr;
+	this->bIsWorld = false;
 	auto renderProxy = this;
-	ENQUEUE_RENDER_COMMAND(FUIPostProcessRenderProxy_AddToHudRenderer)(
-		[renderProxy, InCanvasPtr, InCanvasSortOrder, InLGUIHudRenderer](FRHICommandListImmediate& RHICmdList)
+	ENQUEUE_RENDER_COMMAND(FUIPostProcessRenderProxy_AddToLGUIScreenSpaceRenderer)(
+		[renderProxy, InLGUIRenderer](FRHICommandListImmediate& RHICmdList)
 		{
-			renderProxy->AddToHudRenderer_RenderThread(InCanvasPtr, InCanvasSortOrder, InLGUIHudRenderer);
+			renderProxy->AddToLGUIScreenSpaceRenderer_RenderThread(InLGUIRenderer);
 		});
 }
-void FUIPostProcessRenderProxy::AddToHudRenderer_RenderThread(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer)
+void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
 {
-	if (LGUIHudRenderer == InLGUIHudRenderer)
-	{
-		if (!LGUIHudRenderer.IsValid())
+	this->bIsWorld = true;
+	this->RenderCanvasPtr = InCanvasPtr;
+	auto renderProxy = this;
+	ENQUEUE_RENDER_COMMAND(FUIPostProcessRenderProxy_AddToLGUIScreenSpaceRenderer)(
+		[renderProxy, InCanvasPtr, InCanvasSortOrder, InLGUIRenderer](FRHICommandListImmediate& RHICmdList)
 		{
-			UE_LOG(LGUI, Log, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]0Trying add to LGUIRenderer but the LGUIRenderer is not valid."));
-		}
-		return;
-	}
-	else
+			renderProxy->AddToLGUIWorldSpaceRenderer_RenderThread(InCanvasPtr, InCanvasSortOrder, InLGUIRenderer);
+		});
+}
+void FUIPostProcessRenderProxy::AddToLGUIScreenSpaceRenderer_RenderThread(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
+{
+	LGUIRenderer = InLGUIRenderer;
+	if (LGUIRenderer.IsValid())
 	{
-		//remove from old
-		if (LGUIHudRenderer.IsValid())
-		{
-			LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, this);
-		}
-	}
-	LGUIHudRenderer = InLGUIHudRenderer;
-	if (LGUIHudRenderer.IsValid())
-	{
-		LGUIHudRenderer.Pin()->AddHudPrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, InCanvasSortOrder, this);
+		LGUIRenderer.Pin()->AddScreenSpacePrimitive_RenderThread(this);
 	}
 	else
 	{
 		UE_LOG(LGUI, Log, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]1Trying add to LGUIRenderer but the LGUIRenderer is not valid."));
 	}
 }
-void FUIPostProcessRenderProxy::RemoveFromHudRenderer()
+void FUIPostProcessRenderProxy::AddToLGUIWorldSpaceRenderer_RenderThread(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer)
+{
+	LGUIRenderer = InLGUIRenderer;
+	if (LGUIRenderer.IsValid())
+	{
+		LGUIRenderer.Pin()->AddWorldSpacePrimitive_RenderThread((ULGUICanvas*)InCanvasPtr, InCanvasSortOrder, this);
+	}
+	else
+	{
+		UE_LOG(LGUI, Log, TEXT("[FUIPostProcessRenderProxy::AddToHudRenderer]1Trying add to LGUIRenderer but the LGUIRenderer is not valid."));
+	}
+}
+void FUIPostProcessRenderProxy::RemoveFromLGUIRenderer()
 {
 	auto renderProxy = this;
+	bool isWorld = this->bIsWorld;
 	ENQUEUE_RENDER_COMMAND(FUIPostProcessRenderProxy_RemoveFromHudRenderer)(
-		[renderProxy](FRHICommandListImmediate& RHICmdList)
+		[renderProxy, isWorld](FRHICommandListImmediate& RHICmdList)
 		{
-			renderProxy->RemoveFromHudRenderer_RenderThread();
+			renderProxy->RemoveFromLGUIRenderer_RenderThread(isWorld);
 		});
 }
-void FUIPostProcessRenderProxy::RemoveFromHudRenderer_RenderThread()
+void FUIPostProcessRenderProxy::RemoveFromLGUIRenderer_RenderThread(bool isWorld)
 {
-	if (!LGUIHudRenderer.IsValid())
+	if (!LGUIRenderer.IsValid())
 	{
 		return;
 	}
-	if (LGUIHudRenderer.IsValid())
+	if (LGUIRenderer.IsValid())
 	{
-		LGUIHudRenderer.Pin()->RemoveHudPrimitive_RenderThread((ULGUICanvas*)RenderCanvasPtr, this);
+		if (isWorld)
+		{
+			LGUIRenderer.Pin()->RemoveWorldSpacePrimitive_RenderThread((ULGUICanvas*)RenderCanvasPtr, this);
+		}
+		else
+		{
+			LGUIRenderer.Pin()->RemoveScreenSpacePrimitive_RenderThread(this);
+		}
 	}
-	LGUIHudRenderer.Reset();
+	LGUIRenderer.Reset();
 }
 void FUIPostProcessRenderProxy::SetUITranslucentSortPriority(int32 NewTranslucentSortPriority)
 {

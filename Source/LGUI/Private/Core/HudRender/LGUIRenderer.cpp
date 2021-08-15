@@ -54,32 +54,34 @@ FLGUIHudRenderer::~FLGUIHudRenderer()
 
 void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
+	//world space
 	{
 		FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
 		for (auto& canvasItem : RenderCanvasParameterArray)
 		{
 			if (IsValid(canvasItem.RenderCanvas))
 			{
-				if (canvasItem.RenderCanvas->IsRenderToWorldSpace())
-				{
-					canvasItem.IsWorldSpace = true;
-					canvasItem.ViewLocation = InView.SceneViewInitOptions.ViewOrigin;
-					canvasItem.ViewRotationMatrix = InView.SceneViewInitOptions.ViewRotationMatrix;
-					canvasItem.ProjectionMatrix = InView.SceneViewInitOptions.ProjectionMatrix;
-					canvasItem.BlendDepth = canvasItem.RenderCanvas->GetBlendDepth();
-					//canvasItem.ProjectionMatrix = InView.ViewMatrices.GetProjectionNoAAMatrix();
-					canvasItem.ViewProjectionMatrix = FTranslationMatrix(-canvasItem.ViewLocation) * (canvasItem.ViewRotationMatrix.InverseFast()) * canvasItem.ProjectionMatrix;
-				}
-				else
-				{
-					canvasItem.IsWorldSpace = false;
-					canvasItem.ViewLocation = canvasItem.RenderCanvas->GetViewLocation();
-					canvasItem.ViewRotationMatrix = canvasItem.RenderCanvas->GetViewRotationMatrix().InverseFast();
-					canvasItem.ProjectionMatrix = canvasItem.RenderCanvas->GetProjectionMatrix();
-					canvasItem.ViewProjectionMatrix = canvasItem.RenderCanvas->GetViewProjectionMatrix();
-				}
+				canvasItem.ViewLocation = InView.SceneViewInitOptions.ViewOrigin;
+				canvasItem.ViewRotationMatrix = InView.SceneViewInitOptions.ViewRotationMatrix;
+				canvasItem.ProjectionMatrix = InView.SceneViewInitOptions.ProjectionMatrix;
+				canvasItem.ViewProjectionMatrix = FTranslationMatrix(-canvasItem.ViewLocation) * (canvasItem.ViewRotationMatrix) * canvasItem.ProjectionMatrix;
+				canvasItem.BlendDepth = canvasItem.RenderCanvas->GetBlendDepth();
+
+				//canvasItem.ViewLocation = canvasItem.RenderCanvas->GetViewLocation();
+				//canvasItem.ViewRotationMatrix = canvasItem.RenderCanvas->GetViewRotationMatrix().InverseFast();
+				//canvasItem.ProjectionMatrix = canvasItem.RenderCanvas->GetProjectionMatrix();
+				//canvasItem.ViewProjectionMatrix = canvasItem.RenderCanvas->GetViewProjectionMatrix();
+				//canvasItem.BlendDepth = canvasItem.RenderCanvas->GetBlendDepth();
 			}
 		}
+	}
+	//screen space
+	if (ScreenSpaceRenderParameter.RenderCanvas.IsValid())
+	{
+		ScreenSpaceRenderParameter.ViewLocation = ScreenSpaceRenderParameter.RenderCanvas->GetViewLocation();
+		ScreenSpaceRenderParameter.ViewRotationMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewRotationMatrix().InverseFast();
+		ScreenSpaceRenderParameter.ProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetProjectionMatrix();
+		ScreenSpaceRenderParameter.ViewProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewProjectionMatrix();
 	}
 	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
 }
@@ -225,16 +227,6 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	check(IsInRenderingThread());
 	if (!World.IsValid())return;
 #if WITH_EDITOR
-	if (ALGUIManagerActor::IsPlaying == bIsEditorPreview)return;
-	if (ALGUIManagerActor::IsPlaying)
-	{
-		if (!InView.bIsGameView)return;
-		//if (InView.State->GetViewKey() == EditorPreview_ViewKey)return;
-	}
-	else//editor viewport preview
-	{
-		if (InView.GetViewKey() != EditorPreview_ViewKey)return;//only preview in specific viewport in editor
-	}
 	//check if simulation
 	if (GEngine == nullptr)return;
 	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
@@ -291,16 +283,15 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 	RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
-
+	UE_LOG(LGUI, Error, TEXT("LGUIHudRender, 000, RenderTargetSize:(%d, %d), DepthTargetSize:(%d, %d), ColorTargetSize:(%d, %d)")
+		, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y
+		, SceneContext.GetSceneDepthSurface()->GetSizeX(), SceneContext.GetSceneDepthSurface()->GetSizeY()
+		, SceneContext.GetBufferSizeXY().X, SceneContext.GetBufferSizeXY().Y
+	);
+	//Render world space
 	for (int canvasIndex = 0; canvasIndex < RenderCanvasParameterArray.Num(); canvasIndex++)
 	{
 		auto& canvasParamItem = RenderCanvasParameterArray[canvasIndex];
-#if WITH_EDITOR
-		if (!ALGUIManagerActor::IsPlaying)//editor viewport preview
-		{
-			if (!canvasParamItem.IsWorldSpace)continue;//only preview screen space UI
-		}
-#endif
 
 		RenderView.SceneViewInitOptions.ViewOrigin = canvasParamItem.ViewLocation;
 		RenderView.SceneViewInitOptions.ViewRotationMatrix = canvasParamItem.ViewRotationMatrix;
@@ -342,7 +333,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 							ScreenColorRenderTargetResolveTexture,
 							GlobalShaderMap,
 							canvasParamItem.ViewProjectionMatrix,
-							canvasParamItem.IsWorldSpace,
+							true,
 							canvasParamItem.BlendDepth
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
@@ -355,54 +346,124 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 						auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
 						const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 						auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-						if (canvasParamItem.IsWorldSpace)
+
+						auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
+						if (VertexShader.IsValid() && PixelShader.IsValid())
 						{
-							auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
-							if (VertexShader.IsValid() && PixelShader.IsValid())
-							{
-								SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
+							SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
 
-								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
-								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-								GraphicsPSOInit.NumSamples = MultiSampleCount;
-								SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+							GraphicsPSOInit.NumSamples = MultiSampleCount;
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-								PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-								PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, SceneContext.GetSceneDepthSurface());
+							VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+							PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+							PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, SceneContext.GetSceneDepthSurface());
 
-								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
-							}
-						}
-						else
-						{
-							auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
-							if (VertexShader.IsValid() && PixelShader.IsValid())
-							{
-								SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
-
-								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
-								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-								GraphicsPSOInit.NumSamples = MultiSampleCount;
-								SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-
-								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-								PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-
-								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
-							}
+							RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
 						}
 					}
 				}
 			}
 		}
 	}
+	//Render screen space
+	if (ScreenSpaceRenderParameter.RenderCanvas.IsValid())
+	{
+#if WITH_EDITOR
+		if (ALGUIManagerActor::IsPlaying == bIsEditorPreview)goto END_LGUI_RENDER;
+		if (ALGUIManagerActor::IsPlaying)
+		{
+			if (!InView.bIsGameView)goto END_LGUI_RENDER;
+		}
+		else//editor viewport preview
+		{
+			if (InView.GetViewKey() != EditorPreview_ViewKey)goto END_LGUI_RENDER;//only preview in specific viewport in editor
+		}
+#endif
+
+		RenderView.SceneViewInitOptions.ViewOrigin = ScreenSpaceRenderParameter.ViewLocation;
+		RenderView.SceneViewInitOptions.ViewRotationMatrix = ScreenSpaceRenderParameter.ViewRotationMatrix;
+		RenderView.UpdateProjectionMatrix(ScreenSpaceRenderParameter.ProjectionMatrix);
+
+		FViewUniformShaderParameters viewUniformShaderParameters;
+		RenderView.SetupCommonViewUniformBufferParameters(
+			viewUniformShaderParameters,
+			RenderView.UnscaledViewRect.Size(),
+			MultiSampleCount,
+			RenderView.UnscaledViewRect,
+			RenderView.ViewMatrices,
+			FViewMatrices()
+		);
+
+		RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
+
+		FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+		GraphicsPSOInit.NumSamples = MultiSampleCount;
+
+		for (int primitiveIndex = 0; primitiveIndex < ScreenSpaceRenderParameter.HudPrimitiveArray.Num(); primitiveIndex++)
+		{
+			auto hudPrimitive = ScreenSpaceRenderParameter.HudPrimitiveArray[primitiveIndex];
+			if (hudPrimitive != nullptr)
+			{
+				if (hudPrimitive->CanRender())
+				{
+					if (hudPrimitive->GetIsPostProcess())//render post process
+					{
+						RHICmdList.EndRenderPass();
+						hudPrimitive->OnRenderPostProcess_RenderThread(
+							RHICmdList,
+							this,
+							(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
+							ScreenColorRenderTargetTexture,
+							ScreenColorRenderTargetResolveTexture,
+							GlobalShaderMap,
+							ScreenSpaceRenderParameter.ViewProjectionMatrix,
+							false,
+							0.0f
+						);
+						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
+						RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
+						GraphicsPSOInit.NumSamples = MultiSampleCount;
+					}
+					else//render mesh
+					{
+						const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
+						auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
+						const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+						auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
+
+						auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
+						if (VertexShader.IsValid() && PixelShader.IsValid())
+						{
+							SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
+
+							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+							GraphicsPSOInit.NumSamples = MultiSampleCount;
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+
+							VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+							PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+
+							RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+						}
+					}
+				}
+			}
+		}
+	}
+	END_LGUI_RENDER:
+
 	RHICmdList.EndRenderPass();
 	//copy back to screen
 	if (CustomRenderTarget.IsValid())
@@ -431,7 +492,7 @@ void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHIC
 
 }
 
-void FLGUIHudRenderer::AddHudPrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive)
+void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
@@ -440,7 +501,7 @@ void FLGUIHudRenderer::AddHudPrimitive_RenderThread(ULGUICanvas* InCanvas, int32
 			});
 		if (existIndex == INDEX_NONE)
 		{
-			UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::AddHudPrimitive_RenderThread]Canvas not exist!"));
+			UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread]Canvas not exist!"));
 		}
 		else
 		{
@@ -456,10 +517,10 @@ void FLGUIHudRenderer::AddHudPrimitive_RenderThread(ULGUICanvas* InCanvas, int32
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::AddHudPrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
 	}
 }
-void FLGUIHudRenderer::RemoveHudPrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive)
+void FLGUIHudRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive)
 {
 	if (InPrimitive != nullptr)
 	{
@@ -480,8 +541,40 @@ void FLGUIHudRenderer::RemoveHudPrimitive_RenderThread(ULGUICanvas* InCanvas, IL
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::RemoveHudPrimitive]Remove nullptr as ILGUIHudPrimitive!"));
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::RemoveWorldSpacePrimitive_RenderThread]Remove nullptr as ILGUIHudPrimitive!"));
 	}
+}
+void FLGUIHudRenderer::AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
+{
+	if (InPrimitive != nullptr)
+	{
+		ScreenSpaceRenderParameter.HudPrimitiveArray.AddUnique(InPrimitive);
+		SortScreenSpacePrimitiveRenderPriority_RenderThread();
+		CheckContainsPostProcess_RenderThread();
+	}
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::AddScreenSpacePrimitive_RenderThread]Add nullptr as ILGUIHudPrimitive!"));
+	}
+}
+void FLGUIHudRenderer::RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive)
+{
+	if (InPrimitive != nullptr)
+	{
+		ScreenSpaceRenderParameter.HudPrimitiveArray.RemoveSingle(InPrimitive);
+		CheckContainsPostProcess_RenderThread();
+	}
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIHudRenderer::RemoveScreenSpacePrimitive_RenderThread]Remove nullptr as ILGUIHudPrimitive!"));
+	}
+}
+void FLGUIHudRenderer::SortScreenSpacePrimitiveRenderPriority_RenderThread()
+{
+	ScreenSpaceRenderParameter.HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
+		{
+			return A.GetRenderPriority() < B.GetRenderPriority();
+		});
 }
 void FLGUIHudRenderer::SortPrimitiveRenderPriority_RenderThread()
 {
@@ -521,7 +614,7 @@ void FLGUIHudRenderer::SortPrimitiveRenderPriority()
 		}
 	);
 }
-void FLGUIHudRenderer::AddRenderCanvas(ULGUICanvas* InCanvas)
+void FLGUIHudRenderer::AddWorldSpaceRenderCanvas(ULGUICanvas* InCanvas)
 {
 	FRenderCanvasParameter canvasItem;
 	canvasItem.RenderCanvas = InCanvas;
@@ -535,23 +628,32 @@ void FLGUIHudRenderer::AddRenderCanvas(ULGUICanvas* InCanvas)
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
 		[viewExtension, canvasItem](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->AddRootCanvas_RenderThread(canvasItem);
+			viewExtension->AddWorldSpaceRenderCanvas_RenderThread(canvasItem);
 		}
 	);
 }
-void FLGUIHudRenderer::RemoveRenderCanvas(ULGUICanvas* InCanvas)
+void FLGUIHudRenderer::RemoveWorldSpaceRenderCanvas(ULGUICanvas* InCanvas)
 {
 	auto viewExtension = this;
 	auto canvas = InCanvas;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
 		[viewExtension, canvas](FRHICommandListImmediate& RHICmdList)
 		{
-			viewExtension->RemoveRootCanvas_RenderThread(canvas);
+			viewExtension->RemoveWorldSpaceRenderCanvas_RenderThread(canvas);
 		}
 	);
 }
 
-void FLGUIHudRenderer::AddRootCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter)
+void FLGUIHudRenderer::SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas)
+{
+	ScreenSpaceRenderParameter.RenderCanvas = InCanvas;
+}
+void FLGUIHudRenderer::ClearScreenSpaceRenderCanvas()
+{
+	ScreenSpaceRenderParameter.RenderCanvas = nullptr;
+}
+
+void FLGUIHudRenderer::AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter)
 {
 	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
 	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([&InCanvasParameter](const FRenderCanvasParameter& item) {
@@ -567,7 +669,7 @@ void FLGUIHudRenderer::AddRootCanvas_RenderThread(FRenderCanvasParameter InCanva
 		return A.RenderCanvasSortOrder < B.RenderCanvasSortOrder;
 		});
 }
-void FLGUIHudRenderer::RemoveRootCanvas_RenderThread(ULGUICanvas* InCanvas)
+void FLGUIHudRenderer::RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas)
 {
 	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
 	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
@@ -584,11 +686,19 @@ void FLGUIHudRenderer::RemoveRootCanvas_RenderThread(ULGUICanvas* InCanvas)
 void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 {
 	bContainsPostProcess = false;
+	for (auto& item : ScreenSpaceRenderParameter.HudPrimitiveArray)
+	{
+		if (item->GetIsPostProcess())
+		{
+			bContainsPostProcess = true;
+			return;
+		}
+	}
 	for (auto& renderItem : RenderCanvasParameterArray)
 	{
 		for (auto& item : renderItem.HudPrimitiveArray)
 		{
-			if (item->CanRender() && item->GetIsPostProcess())
+			if (item->GetIsPostProcess())
 			{
 				bContainsPostProcess = true;
 				return;

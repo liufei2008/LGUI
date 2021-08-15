@@ -23,17 +23,20 @@ public:
 		
 	}
 private:
-	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIHudRenderer;
+	TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> LGUIRenderer;
 	int32 RenderPriority = 0;
 	bool bIsVisible = true;
+	bool bIsWorld = false;//is world space or screen space
 	void* RenderCanvasPtr = nullptr;
 public:
 	void SetUITranslucentSortPriority(int32 NewTranslucentSortPriority);
 	void SetVisibility(bool value);
-	void AddToHudRenderer(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer);
-	void AddToHudRenderer_RenderThread(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIHudRenderer);
-	void RemoveFromHudRenderer();
-	void RemoveFromHudRenderer_RenderThread();
+	void AddToLGUIScreenSpaceRenderer(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
+	void AddToLGUIWorldSpaceRenderer(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
+	void AddToLGUIScreenSpaceRenderer_RenderThread(TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
+	void AddToLGUIWorldSpaceRenderer_RenderThread(void* InCanvasPtr, int32 InCanvasSortOrder, TWeakPtr<FLGUIHudRenderer, ESPMode::ThreadSafe> InLGUIRenderer);
+	void RemoveFromLGUIRenderer();
+	void RemoveFromLGUIRenderer_RenderThread(bool isWorld);
 
 	//begin ILGUIHudPrimitive interface
 	virtual bool CanRender() const { return bIsVisible; };

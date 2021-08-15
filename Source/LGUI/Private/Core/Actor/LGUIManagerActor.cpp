@@ -217,6 +217,13 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUIEditorManagerObject
 		{
 			Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InCanvas->GetWorld(), nullptr);
 		}
+		else
+		{
+			if (!Instance->ScreenSpaceOverlayViewExtension->GetWorld().IsValid())
+			{
+				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InCanvas->GetWorld(), nullptr);
+			}
+		}
 		return Instance->ScreenSpaceOverlayViewExtension;
 	}
 	return nullptr;
