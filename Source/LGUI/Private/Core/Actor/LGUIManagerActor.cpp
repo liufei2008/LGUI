@@ -70,12 +70,37 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		}
 	}
 	
+	int ScreenSpaceOverlayCanvasCount = 0;
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
 		{
+			if (item->IsRootCanvas())
+			{
+				if (item->GetWorld() == GWorld)
+				{
+					if (item->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+					{
+						ScreenSpaceOverlayCanvasCount++;
+					}
+				}
+			}
 			item->UpdateCanvas(DeltaTime);
 		}
+	}
+	if (ScreenSpaceOverlayCanvasCount > 1)
+	{
+		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
+		{
+			PrevScreenSpaceOverlayCanvasCount = ScreenSpaceOverlayCanvasCount;
+			auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
+			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
+			LGUIUtils::EditorNotification(FText::FromString(errMsg), 10.0f);
+		}
+	}
+	else
+	{
+		PrevScreenSpaceOverlayCanvasCount = 0;
 	}
 
 	if (EditorTick.IsBound())
@@ -841,6 +866,37 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 	}
 	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
+#if WITH_EDITOR
+	int ScreenSpaceOverlayCanvasCount = 0;
+	for (auto item : allCanvas)
+	{
+		if (item.IsValid())
+		{
+			if (item->IsRootCanvas())
+			{
+				if (item->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+				{
+					ScreenSpaceOverlayCanvasCount++;
+				}
+			}
+			item->UpdateCanvas(DeltaTime);
+		}
+	}
+	if (ScreenSpaceOverlayCanvasCount > 1)
+	{
+		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
+		{
+			PrevScreenSpaceOverlayCanvasCount = ScreenSpaceOverlayCanvasCount;
+			auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
+			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
+			LGUIUtils::EditorNotification(FText::FromString(errMsg), 10.0f);
+		}
+	}
+	else
+	{
+		PrevScreenSpaceOverlayCanvasCount = 0;
+	}
+#else
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
@@ -848,6 +904,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			item->UpdateCanvas(DeltaTime);
 		}
 	}
+#endif
 
 	if (allCanvas.Num() > 0)
 	{
