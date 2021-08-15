@@ -35,14 +35,22 @@ public:
 	//end ISceneViewExtension interfaces
 
 	//
-	void AddHudPrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive);
-	void RemoveHudPrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive);
-	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
+	void AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive);
+	void RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, ILGUIHudPrimitive* InPrimitive);
 
+	void AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
+	void RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
+
+	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
 	void SortPrimitiveRenderPriority();
 
-	void AddRenderCanvas(ULGUICanvas* InCanvas);
-	void RemoveRenderCanvas(ULGUICanvas* InCanvas);
+	void AddWorldSpaceRenderCanvas(ULGUICanvas* InCanvas);
+	void RemoveWorldSpaceRenderCanvas(ULGUICanvas* InCanvas);
+
+	void SetScreenSpaceRenderCanvas(ULGUICanvas* InCanvas);
+	void ClearScreenSpaceRenderCanvas();
+
+	TWeakObjectPtr<UWorld> GetWorld() { return World; }
 
 	void CopyRenderTarget(
 		FRHICommandListImmediate& RHICmdList, 
@@ -71,8 +79,6 @@ private:
 		ULGUICanvas* RenderCanvas;
 
 		int32 RenderCanvasSortOrder;
-
-		bool IsWorldSpace;
 		//blend depth, 0-occlude by depth, 1-all visible
 		float BlendDepth;
 
@@ -83,15 +89,27 @@ private:
 
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
+	struct FScreenSpaceRenderParameter
+	{
+		FVector ViewLocation;
+		FMatrix ViewRotationMatrix;
+		FMatrix ProjectionMatrix;
+		FMatrix ViewProjectionMatrix;
+
+		TWeakObjectPtr<ULGUICanvas> RenderCanvas;
+		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
+	};
 	TArray<FRenderCanvasParameter> RenderCanvasParameterArray;
+	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
 	uint16 MultiSampleCount = 0;
 	bool bContainsPostProcess = false;
 	FCriticalSection RenderCanvasParameterArray_Mutex;//Lock for RenderCanvasParameterArray
 	void CheckContainsPostProcess_RenderThread();	
-	void AddRootCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
-	void RemoveRootCanvas_RenderThread(ULGUICanvas* InCanvas);
+	void AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
+	void RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas);
+	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SortPrimitiveRenderPriority_RenderThread();
 public:
 #if WITH_EDITORONLY_DATA
