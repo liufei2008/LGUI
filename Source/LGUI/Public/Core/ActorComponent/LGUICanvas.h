@@ -66,6 +66,7 @@ enum class ELGUICanvasOverrideParameters :uint8
 	AdditionalShaderChannels,
 	OnlyOwnerSee,
 	OwnerNoSee,
+	BlendDepth,
 };
 ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
 
@@ -277,6 +278,7 @@ protected:
 	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << 4); }
 	FORCEINLINE bool GetOverrideOwnerNoSee()const					{ return overrideParameters & (1 << 5); }
 	FORCEINLINE bool GetOverrideOnlyOwnerSee()const					{ return overrideParameters & (1 << 6); }
+	FORCEINLINE bool GetOverrideBlendDepth()const					{ return overrideParameters & (1 << 7); }
 public:
 	/** Set render mode of this canvas. This may not take effect if the canvas is not a root cnavas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -320,13 +322,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas = true);
 
-	/** Get actural render mode of canvas. Actually canvas's render mode property is inherit from root canvas. */
+	/** Get actural render mode of canvas. Actually canvas's render mode property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUIRenderMode GetActualRenderMode()const;
 	/** Get render mode of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUIRenderMode GetRenderMode()const { return renderMode; }
-	/** Get pixel perfect of canvas. Actually canvas's pixel perfect property is inherit from root canvas. */
+	/** Get pixel perfect of canvas. Actually canvas's pixel perfect property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetActualPixelPerfect()const;
 	/** Get pixel perfect of this canvas. */
@@ -345,10 +347,10 @@ public:
 	/** Get OnlyOwnerSee of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetOnlyOwnerSee()const { return onlyOwnerSee; }
-	/** Get OwnerNoSee of this canvas. Actually canvas's OwnerNoSee property is inherit from root canvas. */
+	/** Get OwnerNoSee of this canvas. Actually canvas's OwnerNoSee property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetActualOwnerNoSee()const;
-	/** Get OnlyOwnerSee of this canvas. Actually canvas's OnlyOwnerSee property is inherit from root canvas. */
+	/** Get OnlyOwnerSee of this canvas. Actually canvas's OnlyOwnerSee property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetActualOnlyOwnerSee()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -356,6 +358,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetOnlyOwnerSee(bool value);
 
+	/** Get blendDepth value of canvas. Actually canvas's blendDepth property is inherit from parent canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		float GetActualBlendDepth()const;
+	/** Get blendDepth value of this canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetBlendDepth()const { return blendDepth; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -363,7 +369,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return sortOrder; }
-	/** Get clip type of canvas. Actually canvas's clip type property is inherit from root canvas. */
+	/** Get clip type of canvas. Actually canvas's clip type property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUICanvasClipType GetActualClipType()const;
 	/** Get clip type of this canvas. */
@@ -386,7 +392,7 @@ public:
 		bool GetRequireUV2()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetRequireUV3()const;
-	/** Get the shader channel flags of canvas. Actually canvas's additional shader channel flags property is inherit from root canvas. */
+	/** Get the shader channel flags of canvas. Actually canvas's additional shader channel flags property is inherit from parent canvas. */
 	int8 GetActualAdditionalShaderChannelFlags()const;
 	/** return calculated additional-shaderchannel-flags, not just the property value, but take consider the overrideParameters */
 	int8 GetAdditionalShaderChannelFlags()const { return additionalShaderChannels; }

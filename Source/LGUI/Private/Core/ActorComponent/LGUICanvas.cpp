@@ -1071,14 +1071,21 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #if WITH_EDITOR
 					if (!GetWorld()->IsGameWorld())
 					{
-						if (bCurrentIsLGUIRendererOrUERenderer)
+						if (GetWorld()->WorldType == EWorldType::EditorPreview)
 						{
-							uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get(), this->IsRenderToWorldSpace());
-							uiMesh->SetSupportUERenderer(!this->IsRenderToWorldSpace());//screen space UI should appear in editor's viewport
+							uiMesh->SetSupportUERenderer(true);
 						}
 						else
 						{
-							uiMesh->SetSupportUERenderer(true);
+							if (bCurrentIsLGUIRendererOrUERenderer)
+							{
+								uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get(), this->IsRenderToWorldSpace());
+								uiMesh->SetSupportUERenderer(!this->IsRenderToWorldSpace());//screen space UI should appear in editor's viewport
+							}
+							else
+							{
+								uiMesh->SetSupportUERenderer(true);
+							}
 						}
 					}
 					else
@@ -1123,14 +1130,21 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #if WITH_EDITOR
 						if (!GetWorld()->IsGameWorld())
 						{
-							if (bCurrentIsLGUIRendererOrUERenderer)
+							if (GetWorld()->WorldType == EWorldType::EditorPreview)
 							{
-								uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get(), this->IsRenderToWorldSpace());
-								uiMesh->SetSupportUERenderer(!this->IsRenderToWorldSpace());//screen space UI should appear in editor's viewport
+								uiMesh->SetSupportUERenderer(true);
 							}
 							else
 							{
-								uiMesh->SetSupportUERenderer(true);
+								if (bCurrentIsLGUIRendererOrUERenderer)
+								{
+									uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()), RootCanvas.Get(), this->IsRenderToWorldSpace());
+									uiMesh->SetSupportUERenderer(!this->IsRenderToWorldSpace());//screen space UI should appear in editor's viewport
+								}
+								else
+								{
+									uiMesh->SetSupportUERenderer(true);
+								}
 							}
 						}
 						else
@@ -1185,17 +1199,27 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #if WITH_EDITOR
 					if (!GetWorld()->IsGameWorld())
 					{
-						if (bCurrentIsLGUIRendererOrUERenderer)
+						if (GetWorld()->WorldType == EWorldType::EditorPreview)
 						{
-							if (this->IsRenderToWorldSpace())
+							//no post process in EditorPreview
+						}
+						else
+						{
+							if (bCurrentIsLGUIRendererOrUERenderer)
 							{
-								uiPostProcessPrimitive->AddToLGUIWorldSpaceRenderer(this, this->GetSortOrder(), ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()));
+								if (this->IsRenderToWorldSpace())
+								{
+									if (GetWorld()->WorldType != EWorldType::EditorPreview)
+									{
+										uiPostProcessPrimitive->AddToLGUIWorldSpaceRenderer(this, this->GetSortOrder(), ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()));
+									}
+								}
+								else
+								{
+									uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()));
+								}
+								uiPostProcessPrimitive->SetVisibility(true);
 							}
-							else
-							{
-								uiPostProcessPrimitive->AddToLGUIScreenSpaceRenderer(ULGUIEditorManagerObject::GetViewExtension(RootCanvas.Get()));
-							}
-							uiPostProcessPrimitive->SetVisibility(true);
 						}
 					}
 					else
@@ -2039,6 +2063,30 @@ float ULGUICanvas::GetActualDynamicPixelsPerUnit()const
 	}
 	return dynamicPixelsPerUnit;
 }
+
+float ULGUICanvas::GetActualBlendDepth()const
+{
+	if (IsRootCanvas())
+	{
+		return blendDepth;
+	}
+	else
+	{
+		if (GetOverrideBlendDepth())
+		{
+			return blendDepth;
+		}
+		else
+		{
+			if (ParentCanvas.IsValid())
+			{
+				return ParentCanvas->GetActualBlendDepth();
+			}
+		}
+	}
+	return blendDepth;
+}
+
 ELGUICanvasClipType ULGUICanvas::GetActualClipType()const
 {
 	if (IsRootCanvas())
@@ -2220,16 +2268,7 @@ FVector ULGUICanvas::GetViewLocation()const
 }
 FMatrix ULGUICanvas::GetViewRotationMatrix()const
 {
-	if (bOverrideViewRotation)
-	{
-		auto rotator = (OverrideViewRotation.Quaternion() * FQuat::MakeFromEuler(FVector(-90, 0, 90))).Rotator();
-		return FRotationMatrix(rotator);
-	}
-
-	auto Transform = UIItem->GetComponentToWorld();
-	Transform.SetTranslation(FVector::ZeroVector);
-	Transform.SetScale3D(FVector::OneVector);
-	return Transform.ToMatrixWithScale();
+	return FRotationMatrix(this->GetViewRotator());
 }
 FRotator ULGUICanvas::GetViewRotator()const
 {

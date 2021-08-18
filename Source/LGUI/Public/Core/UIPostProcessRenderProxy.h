@@ -80,6 +80,7 @@ public:
 		, const FMatrix & ModelViewProjectionMatrix
 		, bool IsWorldSpace
 		, float BlendDepthForWorld
+		, const FVector4 DepthTextureScaleOffset
 		, FRHISamplerState* ResultTextureSamplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI()
 	);
 };

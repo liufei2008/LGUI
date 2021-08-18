@@ -473,6 +473,7 @@ public:
 	{
 		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
 		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
@@ -480,10 +481,11 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 	}
 	virtual bool Serialize(FArchive& Ar)override
 	{
@@ -496,6 +498,7 @@ public:
 private:
 	FShaderResourceParameter SceneDepthTextureParameter;
 	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthTextureScaleOffsetParameter;
 	FShaderParameter SceneDepthBlendParameter;
 };
 //render mesh pixel shader, use a mask texture
@@ -553,6 +556,7 @@ public:
 	{
 		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
 		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
@@ -560,10 +564,11 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshWithMaskPS::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 	}
 	virtual bool Serialize(FArchive& Ar)override
 	{
@@ -576,6 +581,7 @@ public:
 private:
 	FShaderResourceParameter SceneDepthTextureParameter;
 	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthTextureScaleOffsetParameter;
 	FShaderParameter SceneDepthBlendParameter;
 };
 
@@ -624,6 +630,7 @@ public:
 	{
 		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
 		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
@@ -631,10 +638,11 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshPS_RectClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 	}
 	virtual bool Serialize(FArchive& Ar)override
 	{
@@ -647,6 +655,7 @@ public:
 private:
 	FShaderResourceParameter SceneDepthTextureParameter;
 	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthTextureScaleOffsetParameter;
 	FShaderParameter SceneDepthBlendParameter;
 };
 //render mesh pixel shader, use a mask texture
@@ -693,6 +702,7 @@ public:
 	{
 		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
 		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
@@ -700,10 +710,11 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshWithMaskPS_RectClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 	}
 	virtual bool Serialize(FArchive& Ar)override
 	{
@@ -716,6 +727,7 @@ public:
 private:
 	FShaderResourceParameter SceneDepthTextureParameter;
 	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthTextureScaleOffsetParameter;
 	FShaderParameter SceneDepthBlendParameter;
 };
 #pragma endregion
@@ -770,6 +782,7 @@ public:
 	{
 		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
 		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
@@ -777,10 +790,11 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshPS_TextureClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 	}
 	virtual bool Serialize(FArchive& Ar)override
 	{
@@ -793,6 +807,7 @@ public:
 private:
 	FShaderResourceParameter SceneDepthTextureParameter;
 	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthTextureScaleOffsetParameter;
 	FShaderParameter SceneDepthBlendParameter;
 };
 //render mesh pixel shader, use a mask texture
@@ -844,6 +859,7 @@ public:
 	{
 		SceneDepthTextureParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTex"));
 		SceneDepthTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTexSampler"));
+		SceneDepthTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthTextureScaleOffset"));
 		SceneDepthBlendParameter.Bind(Initializer.ParameterMap, TEXT("_SceneDepthBlend"));
 	}
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)
@@ -851,10 +867,11 @@ public:
 		OutEnvironment.SetDefine(TEXT("LGUI_BLEND_DEPTH"), true);
 		FLGUIRenderMeshWithMaskPS_TextureClip::ModifyCompilationEnvironment(Parameters, OutEnvironment);
 	}
-	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetDepthBlendParameter(FRHICommandList& RHICmdList, float DepthBlend, const FVector4& DepthTextureScaleOffset, const FTexture2DRHIRef& DepthTexture, FRHISamplerState* DepthTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, GetPixelShader(), SceneDepthTextureParameter, SceneDepthTextureSamplerParameter, DepthTextureSampler, DepthTexture);
 		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthBlendParameter, DepthBlend);
+		SetShaderValue(RHICmdList, GetPixelShader(), SceneDepthTextureScaleOffsetParameter, DepthTextureScaleOffset);
 	}
 	virtual bool Serialize(FArchive& Ar)override
 	{
@@ -867,6 +884,7 @@ public:
 private:
 	FShaderResourceParameter SceneDepthTextureParameter;
 	FShaderResourceParameter SceneDepthTextureSamplerParameter;
+	FShaderParameter SceneDepthTextureScaleOffsetParameter;
 	FShaderParameter SceneDepthBlendParameter;
 };
 #pragma endregion

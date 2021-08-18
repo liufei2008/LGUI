@@ -84,7 +84,8 @@ public:
 		TShaderMap<FGlobalShaderType>* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
-		float BlendDepthForWorld
+		float BlendDepthForWorld,
+		const FVector4 DepthTextureScaleOffset
 	)override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CustomDepthStencilMask);
@@ -350,7 +351,7 @@ public:
 			}
 
 			//after pixelate process, copy the area back to screen image
-			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld);
+			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset);
 
 			//release render target
 			if (ScreenTarget_ProcessRenderTarget.IsValid())
