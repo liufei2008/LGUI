@@ -103,14 +103,20 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		{
 		case ELGUIRenderMode::ScreenSpaceOverlay:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, onlyOwnerSee));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, ownerNoSee));
 			break;
 		case ELGUIRenderMode::WorldSpace:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
 			break;
 		case ELGUIRenderMode::WorldSpace_LGUI:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, onlyOwnerSee));
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, ownerNoSee));
 			break;
 		case ELGUIRenderMode::RenderTarget:
 			break;
@@ -214,11 +220,10 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		{
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, onlyOwnerSee));
 		}
-	}
-
-	if (TargetScriptArray[0]->GetActualRenderMode() != ELGUIRenderMode::WorldSpace_LGUI)
-	{
-		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
+		if (!TargetScriptArray[0]->GetOverrideBlendDepth())
+		{
+			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
+		}
 	}
 
 	if (TargetScriptArray[0]->GetWorld() != nullptr)
@@ -365,11 +370,11 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 			{
 				if (TargetScript->IsRenderByLGUIRendererOrUERenderer())
 				{
-					spaceText = TEXT("World Space - UE Renderer");
+					spaceText = TEXT("World Space - LGUI Renderer");
 				}
 				else
 				{
-					spaceText = TEXT("World Space - LGUI Renderer");
+					spaceText = TEXT("World Space - UE Renderer");
 				}
 			}
 			else if (TargetScript->IsRenderToRenderTarget())

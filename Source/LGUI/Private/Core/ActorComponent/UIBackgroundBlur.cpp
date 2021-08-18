@@ -90,7 +90,8 @@ public:
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
-		float BlendDepthForWorld
+		float BlendDepthForWorld,
+		const FVector4 DepthTextureScaleOffset
 	) override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);
@@ -247,7 +248,7 @@ public:
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld);
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();

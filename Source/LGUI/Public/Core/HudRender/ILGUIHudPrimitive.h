@@ -39,7 +39,8 @@ public:
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
-		float BlendDepthForWorld
+		float BlendDepthForWorld,
+		const FVector4 DepthTextureScaleOffset
 	) {};
 	//end post process interface
 };
