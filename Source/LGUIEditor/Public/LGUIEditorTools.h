@@ -43,8 +43,9 @@ public:
 	static void PasteComponentValues_Impl();
 	static void OpenAtlasViewer_Impl();
 	static void ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery);
-	static void CreateScreenSpaceUIBasicSetup();
-	static void CreateWorldSpaceUIBasicSetup();
+	static void CreateScreenSpaceUI_BasicSetup();
+	static void CreateWorldSpaceUIUERenderer_BasicSetup();
+	static void CreateWorldSpaceUILGUIRenderer_BasicSetup();
 	static void AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass);
 	static UWorld* GetWorldFromSelection();
 	static void CreatePrefabAsset();

@@ -745,13 +745,19 @@ void FLGUIEditorModule::BasicSetupSubMenu(FMenuBuilder& MenuBuilder)
 			FText::FromString(TEXT("Screen Space UI")),
 			FText::FromString(FString::Printf(TEXT("Create Screen Space UI"))),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateScreenSpaceUIBasicSetup))
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateScreenSpaceUI_BasicSetup))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("World Space UI")),
-			FText::FromString(FString::Printf(TEXT("Create World Space UI"))),
+			FText::FromString(TEXT("World Space UI - UE Renderer")),
+			FText::FromString(FString::Printf(TEXT("Render in world space by UE default render pipeline.\n This mode use engine's default render pieple, so post process will affect ui."))),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateWorldSpaceUIBasicSetup))
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup))
+		);
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(TEXT("World Space UI - LGUI Renderer")),
+			FText::FromString(FString::Printf(TEXT("Render in world space by LGUI's custom render pipeline.\n This mode use LGUI's custom render pipeline, will not be affected by post process."))),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup))
 		);
 	}
 	MenuBuilder.EndSection();
