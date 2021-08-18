@@ -503,7 +503,7 @@ void LGUIEditorTools::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 	}
 	GEditor->EndTransaction();
 }
-void LGUIEditorTools::CreateScreenSpaceUIBasicSetup()
+void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create Screen Space UI")));
@@ -533,23 +533,23 @@ void LGUIEditorTools::CreateScreenSpaceUIBasicSetup()
 			}
 			else
 			{
-				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
 			}
 		}
 	}
 	else
 	{
-		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateScreenSpaceUIBasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
+		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
 	}
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 }
-void LGUIEditorTools::CreateWorldSpaceUIBasicSetup()
+void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI")));
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI - UE Renderer")));
 	auto selectedActor = GetFirstSelectedActor();
-	FString prefabPath(TEXT("/LGUI/Prefabs/WorldSpaceUI"));
+	FString prefabPath(TEXT("/LGUI/Prefabs/WorldSpaceUI_UERenderer"));
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
@@ -574,13 +574,54 @@ void LGUIEditorTools::CreateWorldSpaceUIBasicSetup()
 			}
 			else
 			{
-				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
 			}
 		}
 	}
 	else
 	{
-		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUIBasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
+		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
+	}
+	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
+}
+void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
+{
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI - LGUI Renderer")));
+	auto selectedActor = GetFirstSelectedActor();
+	FString prefabPath(TEXT("/LGUI/Prefabs/WorldSpaceUI_LGUIRenderer"));
+	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
+	if (prefab)
+	{
+		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, nullptr, true);
+		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
+		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(-90, 0, 0)));
+		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
+		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
+		GEditor->SelectActor(actor, true, true);
+
+		bool haveEventSystem = false;
+		for (TActorIterator<ALGUIEventSystemActor> eventSysActorItr(GetWorldFromSelection()); eventSysActorItr; ++eventSysActorItr)
+		{
+			haveEventSystem = true;
+			break;
+		}
+		if (!haveEventSystem)
+		{
+			if (auto presetEventSystemActorClass = LoadObject<UClass>(NULL, TEXT("/LGUI/Blueprints/PresetEventSystemActor.PresetEventSystemActor_C")))
+			{
+				GetWorldFromSelection()->SpawnActor<AActor>(presetEventSystemActorClass);
+			}
+			else
+			{
+				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
 	}
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
