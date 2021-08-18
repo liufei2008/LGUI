@@ -159,6 +159,7 @@ void ApplyPixelDepthOffsetForLGUIBasePass(inout FMaterialPixelParameters Materia
 #if LGUI_BLEND_DEPTH
 Texture2D _SceneDepthTex;
 SamplerState _SceneDepthTexSampler;
+float4 _SceneDepthTextureScaleOffset;
 float _SceneDepthBlend;
 #endif
 
@@ -208,7 +209,7 @@ void MainPS(
 	float2 ScreenUV = MaterialParameters.ScreenPosition.xy / MaterialParameters.ScreenPosition.w;
 	ScreenUV = ScreenUV * 0.5f + float2(0.5f, 0.5f);
 	ScreenUV.y = 1.0f - ScreenUV.y;
-    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV).x;
+    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
 	OutColor.a = lerp(_SceneDepthBlend * OutColor.a, OutColor.a, step(ExistDepth, PixelDepth));
 #endif
 }

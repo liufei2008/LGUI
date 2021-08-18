@@ -54,6 +54,8 @@ FLGUIHudRenderer::~FLGUIHudRenderer()
 
 void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
+	if (!World.IsValid())return;
+	if (World.Get() != InView.Family->Scene->GetWorld())return;
 	//world space
 	{
 		FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
@@ -65,13 +67,13 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 				canvasItem.ViewRotationMatrix = InView.SceneViewInitOptions.ViewRotationMatrix;
 				canvasItem.ProjectionMatrix = InView.SceneViewInitOptions.ProjectionMatrix;
 				canvasItem.ViewProjectionMatrix = FTranslationMatrix(-canvasItem.ViewLocation) * (canvasItem.ViewRotationMatrix) * canvasItem.ProjectionMatrix;
-				canvasItem.BlendDepth = canvasItem.RenderCanvas->GetBlendDepth();
+				canvasItem.BlendDepth = canvasItem.RenderCanvas->GetActualBlendDepth();
 
 				//canvasItem.ViewLocation = canvasItem.RenderCanvas->GetViewLocation();
-				//canvasItem.ViewRotationMatrix = canvasItem.RenderCanvas->GetViewRotationMatrix().InverseFast();
+				//canvasItem.ViewRotationMatrix = canvasItem.RenderCanvas->GetViewRotationMatrix();
 				//canvasItem.ProjectionMatrix = canvasItem.RenderCanvas->GetProjectionMatrix();
 				//canvasItem.ViewProjectionMatrix = canvasItem.RenderCanvas->GetViewProjectionMatrix();
-				//canvasItem.BlendDepth = canvasItem.RenderCanvas->GetBlendDepth();
+				//canvasItem.BlendDepth = canvasItem.RenderCanvas->GetActualBlendDepth();
 			}
 		}
 	}
@@ -226,6 +228,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
 	if (!World.IsValid())return;
+	if (World.Get() != InView.Family->Scene->GetWorld())return;
 #if WITH_EDITOR
 	//check if simulation
 	if (GEngine == nullptr)return;
@@ -237,7 +240,6 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	//the following two lines can prevent duplicated ui in viewport when "Number of Players" > 1
 #if WITH_EDITOR
 	if (InView.Family == nullptr || InView.Family->Scene == nullptr || InView.Family->Scene->GetWorld() == nullptr)return;
-	if (World.Get() != InView.Family->Scene->GetWorld())return;
 #endif
 
 	FSceneView RenderView(InView);//use a copied view
@@ -278,16 +280,17 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 		}
 	}
 
-	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
+	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
+	FVector4 DepthTextureScaleOffset = FVector4(
+		(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+		(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+		0, 0
+	);
 
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 	RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
-	UE_LOG(LGUI, Error, TEXT("LGUIHudRender, 000, RenderTargetSize:(%d, %d), DepthTargetSize:(%d, %d), ColorTargetSize:(%d, %d)")
-		, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y
-		, SceneContext.GetSceneDepthSurface()->GetSizeX(), SceneContext.GetSceneDepthSurface()->GetSizeY()
-		, SceneContext.GetBufferSizeXY().X, SceneContext.GetBufferSizeXY().Y
-	);
+
 	//Render world space
 	for (int canvasIndex = 0; canvasIndex < RenderCanvasParameterArray.Num(); canvasIndex++)
 	{
@@ -334,7 +337,8 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 							GlobalShaderMap,
 							canvasParamItem.ViewProjectionMatrix,
 							true,
-							canvasParamItem.BlendDepth
+							canvasParamItem.BlendDepth,
+							DepthTextureScaleOffset
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 						RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
@@ -361,7 +365,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 
 							VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 							PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-							PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, SceneContext.GetSceneDepthSurface());
+							PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
 
 							RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
 							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
@@ -426,7 +430,8 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 							GlobalShaderMap,
 							ScreenSpaceRenderParameter.ViewProjectionMatrix,
 							false,
-							0.0f
+							0.0f,
+							DepthTextureScaleOffset
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 						RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
