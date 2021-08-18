@@ -23,6 +23,7 @@ float TextureClip(float3 pos, float2 offset, float2 size)
 #if LGUI_BLEND_DEPTH
 Texture2D _SceneDepthTex;
 SamplerState _SceneDepthTexSampler;
+float4 _SceneDepthTextureScaleOffset;
 float _SceneDepthBlend;
 #endif
 
@@ -55,7 +56,7 @@ void RenderMeshPS(
 	float2 ScreenUV = input.screenPosition.xy / input.screenPosition.w;
 	ScreenUV = ScreenUV * 0.5f + float2(0.5f, 0.5f);
 	ScreenUV.y = 1.0f - ScreenUV.y;
-    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV).x;
+    float ExistDepth = _SceneDepthTex.Sample(_SceneDepthTexSampler, ScreenUV * _SceneDepthTextureScaleOffset.xy + _SceneDepthTextureScaleOffset.zw).x;
 	OutColor.a = lerp(_SceneDepthBlend * OutColor.a, OutColor.a, step(ExistDepth, PixelDepth));
 #endif
 }
