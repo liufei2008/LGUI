@@ -91,6 +91,7 @@ public:
 	static void AddLayout(UUILayoutBase* InLayout);
 	static void RemoveLayout(UUILayoutBase* InLayout);
 
+	static void DrawFrameOnUIItem(UUIItem* InItem);
 private:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
