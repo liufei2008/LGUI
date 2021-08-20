@@ -470,6 +470,7 @@ private:
 
 //Editor only
 //This component is only a helper component for UIItem! Don't use this!
+//For UIItem's bounds, so we can double click a UIItem and focus on it.
 UCLASS(HideCategories = (LOD, Physics, Collision, Activation, Cooking, Rendering, Actor, Input, Lighting, Mobile), NotBlueprintable, NotBlueprintType, Transient)
 class LGUI_API UUIItemEditorHelperComp : public UPrimitiveComponent
 {
