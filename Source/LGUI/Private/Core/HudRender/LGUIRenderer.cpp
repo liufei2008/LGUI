@@ -211,20 +211,12 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	check(IsInRenderingThread());
-	if (!World.IsValid())return;
-	if (World.Get() != InView.Family->Scene->GetWorld())return;
-#if WITH_EDITOR
-	//check if simulation
-	if (GEngine == nullptr)return;
-	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
-	{
-		if (editor->bIsSimulatingInEditor)return;
-	}
-#endif
+
 	//the following two lines can prevent duplicated ui in viewport when "Number of Players" > 1
 #if WITH_EDITOR
 	if (InView.Family == nullptr || InView.Family->Scene == nullptr || InView.Family->Scene->GetWorld() == nullptr)return;
 #endif
+	if (World.Get() != InView.Family->Scene->GetWorld())return;
 
 	FSceneView RenderView(InView);//use a copied view
 	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
@@ -364,9 +356,15 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 		}
 	}
 	//Render screen space
-	if (ScreenSpaceRenderParameter.RenderCanvas.IsValid())
 	{
 #if WITH_EDITOR
+		//check if simulation
+		if (GEngine == nullptr)goto END_LGUI_RENDER;
+		if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
+		{
+			if (editor->bIsSimulatingInEditor)goto END_LGUI_RENDER;
+		}
+
 		if (ALGUIManagerActor::IsPlaying == bIsEditorPreview)goto END_LGUI_RENDER;
 		if (ALGUIManagerActor::IsPlaying)
 		{
