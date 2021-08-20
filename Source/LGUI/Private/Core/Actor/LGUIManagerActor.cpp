@@ -59,6 +59,158 @@ void ULGUIEditorManagerObject::BeginDestroy()
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
 #if WITH_EDITORONLY_DATA
+	//draw frame
+	for (auto item : allUIItem)
+	{
+		if (!item.IsValid())continue;
+		if (!IsValid(item->GetWorld()))continue;
+		if (
+			item->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode UIItem, so only this Editor condition will trigger.
+															//so only Editor mode will draw frame. the two modes below will not work, just leave it as a reference.
+			&& item->GetWorld()->WorldType != EWorldType::Game
+			&& item->GetWorld()->WorldType != EWorldType::PIE
+			)continue;
+
+		const auto& widget = item->GetWidget();
+		auto worldTransform = item->GetComponentTransform();
+		FVector relativeOffset(0, 0, 0);
+		relativeOffset.X = (0.5f - widget.pivot.X) * widget.width;
+		relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
+		auto worldLocation = worldTransform.TransformPosition(relativeOffset);
+		//calculate world location
+		if (item->GetParentAsUIItem() != nullptr)
+		{
+			FVector relativeLocation = item->GetRelativeLocation();
+			const auto& parentWidget = item->GetParentAsUIItem()->GetWidget();
+			switch (widget.anchorHAlign)
+			{
+			case UIAnchorHorizontalAlign::Left:
+			{
+				relativeLocation.X = parentWidget.width * (-parentWidget.pivot.X);
+				relativeLocation.X += widget.anchorOffsetX;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Center:
+			{
+				relativeLocation.X = parentWidget.width * (0.5f - parentWidget.pivot.X);
+				relativeLocation.X += widget.anchorOffsetX;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Right:
+			{
+				relativeLocation.X = parentWidget.width * (1 - parentWidget.pivot.X);
+				relativeLocation.X += widget.anchorOffsetX;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Stretch:
+			{
+				relativeLocation.X = -parentWidget.pivot.X * parentWidget.width;
+				relativeLocation.X += widget.stretchLeft;
+				relativeLocation.X += widget.pivot.X * widget.width;
+			}
+			break;
+			}
+			switch (widget.anchorVAlign)
+			{
+			case UIAnchorVerticalAlign::Top:
+			{
+				relativeLocation.Y = parentWidget.height * (1 - parentWidget.pivot.Y);
+				relativeLocation.Y += widget.anchorOffsetY;
+			}
+			break;
+			case UIAnchorVerticalAlign::Middle:
+			{
+				relativeLocation.Y = parentWidget.height * (0.5f - parentWidget.pivot.Y);
+				relativeLocation.Y += widget.anchorOffsetY;
+			}
+			break;
+			case UIAnchorVerticalAlign::Bottom:
+			{
+				relativeLocation.Y = parentWidget.height * (-parentWidget.pivot.Y);
+				relativeLocation.Y += widget.anchorOffsetY;
+			}
+			break;
+			case UIAnchorVerticalAlign::Stretch:
+			{
+				relativeLocation.Y = -parentWidget.pivot.Y * parentWidget.height;
+				relativeLocation.Y += widget.stretchBottom;
+				relativeLocation.Y += widget.pivot.Y * widget.height;
+			}
+			break;
+			}
+			auto relativeTf = item->GetRelativeTransform();
+			relativeTf.SetLocation(relativeLocation);
+			FTransform calculatedWorldTf;
+			FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(item->GetParentAsUIItem()->GetComponentTransform()));
+			worldLocation = calculatedWorldTf.TransformPosition(relativeOffset);
+		}
+
+		auto extends = FVector(widget.width, widget.height, 0.1) * 0.5f;
+
+		bool canDraw = false;
+		auto DrawColor = FColor(128, 128, 128, 128);//gray means normal object
+		if (ULGUIEditorManagerObject::IsSelected(item->GetOwner()))//select self
+		{
+			DrawColor = FColor(0, 255, 0, 255);//green means selected object
+			extends += FVector(0, 0, 1);
+			canDraw = true;
+		}
+		else
+		{
+			//parent selected
+			if (IsValid(item->GetParentAsUIItem()))
+			{
+				if (ULGUIEditorManagerObject::IsSelected(item->GetParentAsUIItem()->GetOwner()))
+				{
+					canDraw = true;
+				}
+			}
+			//child selected
+			const auto childrenCompArray = item->GetAttachUIChildren();
+			for (auto uiComp : childrenCompArray)
+			{
+				if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
+				{
+					canDraw = true;
+					break;
+				}
+			}
+			//other object of same hierarchy is selected
+			if (IsValid(item->GetParentAsUIItem()))
+			{
+				const auto& sameLevelCompArray = item->GetParentAsUIItem()->GetAttachUIChildren();
+				for (auto uiComp : sameLevelCompArray)
+				{
+					if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
+					{
+						canDraw = true;
+						break;
+					}
+				}
+			}
+		}
+		//canvas scaler
+		if (!canDraw)
+		{
+			if (item->IsCanvasUIItem())
+			{
+				if (auto canvasScaler = item->GetOwner()->FindComponentByClass<ULGUICanvasScaler>())
+				{
+					if (ULGUIEditorManagerObject::AnySelectedIsChildOf(item->GetOwner()))
+					{
+						canDraw = true;
+						DrawColor = FColor(255, 227, 124);
+					}
+				}
+			}
+		}
+
+		if (canDraw)
+		{
+			DrawDebugBox(item->GetWorld(), worldLocation, extends * worldTransform.GetScale3D(), worldTransform.GetRotation(), DrawColor);
+		}
+	}
+
 	for (auto item : allLayoutArray)
 	{
 		if (item.IsValid())
