@@ -41,8 +41,9 @@ public:
 	void AddScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 	void RemoveScreenSpacePrimitive_RenderThread(ILGUIHudPrimitive* InPrimitive);
 
-	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
+	void SetRenderCanvasSortOrder(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
 	void SortPrimitiveRenderPriority();
+	void SetRenderCanvasBlendDepth(ULGUICanvas* InRenderCanvas, float InBlendDepth);
 
 	void AddWorldSpaceRenderCanvas(ULGUICanvas* InCanvas);
 	void RemoveWorldSpaceRenderCanvas(ULGUICanvas* InCanvas);
@@ -82,11 +83,6 @@ private:
 		//blend depth, 0-occlude by depth, 1-all visible
 		float BlendDepth;
 
-		FVector ViewLocation;
-		FMatrix ViewRotationMatrix;
-		FMatrix ProjectionMatrix;
-		FMatrix ViewProjectionMatrix;
-
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
 	struct FScreenSpaceRenderParameter
@@ -105,12 +101,13 @@ private:
 	TWeakObjectPtr<UWorld> World;
 	uint16 MultiSampleCount = 0;
 	bool bContainsPostProcess = false;
-	FCriticalSection RenderCanvasParameterArray_Mutex;//Lock for RenderCanvasParameterArray
 	void CheckContainsPostProcess_RenderThread();	
 	void AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
 	void RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas);
 	void SortScreenSpacePrimitiveRenderPriority_RenderThread();
 	void SortPrimitiveRenderPriority_RenderThread();
+	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
+	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
 public:
 #if WITH_EDITORONLY_DATA
 	static uint32 EditorPreview_ViewKey;

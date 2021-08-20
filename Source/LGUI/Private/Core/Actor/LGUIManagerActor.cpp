@@ -234,19 +234,26 @@ void ULGUIEditorManagerObject::MarkSortRenderTargetSpaceCanvas()
 	bShouldSortRenderTargetSpaceCanvas = true;
 }
 
-TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUIEditorManagerObject::GetViewExtension(ULGUICanvas* InCanvas)
+TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ULGUIEditorManagerObject::GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist)
 {
 	if (Instance != nullptr)
 	{
 		if (!Instance->ScreenSpaceOverlayViewExtension.IsValid())
 		{
-			Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InCanvas->GetWorld(), nullptr);
+			if (InCreateIfNotExist)
+			{
+				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld, nullptr);
+			}
 		}
 		else
 		{
 			if (!Instance->ScreenSpaceOverlayViewExtension->GetWorld().IsValid())
 			{
-				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InCanvas->GetWorld(), nullptr);
+				Instance->ScreenSpaceOverlayViewExtension.Reset();
+				if (InCreateIfNotExist)
+				{
+					Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld, nullptr);
+				}
 			}
 		}
 		return Instance->ScreenSpaceOverlayViewExtension;
@@ -1106,13 +1113,16 @@ void ALGUIManagerActor::MarkSortRenderTargetSpaceCanvas()
 	bShouldSortRenderTargetSpaceCanvas = true;
 }
 
-TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetViewExtension(ULGUICanvas* InCanvas)
+TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist)
 {
-	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
+	if (auto Instance = GetInstance(InWorld, true))
 	{
 		if (!Instance->ScreenSpaceOverlayViewExtension.IsValid())
 		{
-			Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InCanvas->GetWorld(), nullptr);
+			if (InCreateIfNotExist)
+			{
+				Instance->ScreenSpaceOverlayViewExtension = FSceneViewExtensions::NewExtension<FLGUIHudRenderer>(InWorld, nullptr);
+			}
 		}
 		return Instance->ScreenSpaceOverlayViewExtension;
 	}

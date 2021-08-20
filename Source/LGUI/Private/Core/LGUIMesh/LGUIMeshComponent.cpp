@@ -676,7 +676,7 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 	}
 	else
 	{
-		return FBoxSphereBounds(EForceInit::ForceInitToZero);
+		return FBoxSphereBounds(FSphere(FVector::ZeroVector, 1.0f));
 	}
 }
 
