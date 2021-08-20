@@ -86,7 +86,7 @@ public:
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
 
-	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(ULGUICanvas* InCanvas);
+	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist);
 
 	static void AddLayout(UUILayoutBase* InLayout);
 	static void RemoveLayout(UUILayoutBase* InLayout);
@@ -190,7 +190,7 @@ public:
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
 
-	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(ULGUICanvas* InCanvas);
+	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist);
 
 	const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
 	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
