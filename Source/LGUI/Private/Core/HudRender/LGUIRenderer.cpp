@@ -58,28 +58,12 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
 	//world space
 	{
-		FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
-		for (auto& canvasItem : RenderCanvasParameterArray)
-		{
-			if (IsValid(canvasItem.RenderCanvas))
-			{
-				canvasItem.ViewLocation = InView.SceneViewInitOptions.ViewOrigin;
-				canvasItem.ViewRotationMatrix = InView.SceneViewInitOptions.ViewRotationMatrix;
-				canvasItem.ProjectionMatrix = InView.SceneViewInitOptions.ProjectionMatrix;
-				canvasItem.ViewProjectionMatrix = FTranslationMatrix(-canvasItem.ViewLocation) * (canvasItem.ViewRotationMatrix) * canvasItem.ProjectionMatrix;
-				canvasItem.BlendDepth = canvasItem.RenderCanvas->GetActualBlendDepth();
 
-				//canvasItem.ViewLocation = canvasItem.RenderCanvas->GetViewLocation();
-				//canvasItem.ViewRotationMatrix = canvasItem.RenderCanvas->GetViewRotationMatrix();
-				//canvasItem.ProjectionMatrix = canvasItem.RenderCanvas->GetProjectionMatrix();
-				//canvasItem.ViewProjectionMatrix = canvasItem.RenderCanvas->GetViewProjectionMatrix();
-				//canvasItem.BlendDepth = canvasItem.RenderCanvas->GetActualBlendDepth();
-			}
-		}
 	}
 	//screen space
 	if (ScreenSpaceRenderParameter.RenderCanvas.IsValid())
 	{
+		//@todo: these parameters should use ENQUE_RENDER_COMMAND to pass to render thread
 		ScreenSpaceRenderParameter.ViewLocation = ScreenSpaceRenderParameter.RenderCanvas->GetViewLocation();
 		ScreenSpaceRenderParameter.ViewRotationMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewRotationMatrix().InverseFast();
 		ScreenSpaceRenderParameter.ProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetProjectionMatrix();
@@ -292,13 +276,17 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
 
 	//Render world space
+	auto ViewLocation = InView.SceneViewInitOptions.ViewOrigin;
+	auto ViewRotationMatrix = InView.SceneViewInitOptions.ViewRotationMatrix;
+	auto ProjectionMatrix = InView.SceneViewInitOptions.ProjectionMatrix;
+	auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * (ViewRotationMatrix) * ProjectionMatrix;
 	for (int canvasIndex = 0; canvasIndex < RenderCanvasParameterArray.Num(); canvasIndex++)
 	{
 		auto& canvasParamItem = RenderCanvasParameterArray[canvasIndex];
 
-		RenderView.SceneViewInitOptions.ViewOrigin = canvasParamItem.ViewLocation;
-		RenderView.SceneViewInitOptions.ViewRotationMatrix = canvasParamItem.ViewRotationMatrix;
-		RenderView.UpdateProjectionMatrix(canvasParamItem.ProjectionMatrix);
+		RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
+		RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
+		RenderView.UpdateProjectionMatrix(ProjectionMatrix);
 
 		FViewUniformShaderParameters viewUniformShaderParameters;
 		RenderView.SetupCommonViewUniformBufferParameters(
@@ -335,7 +323,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 							ScreenColorRenderTargetTexture,
 							ScreenColorRenderTargetResolveTexture,
 							GlobalShaderMap,
-							canvasParamItem.ViewProjectionMatrix,
+							ViewProjectionMatrix,
 							true,
 							canvasParamItem.BlendDepth,
 							DepthTextureScaleOffset
@@ -467,7 +455,9 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 			}
 		}
 	}
-	END_LGUI_RENDER:
+#if WITH_EDITOR
+	END_LGUI_RENDER :
+#endif
 
 	RHICmdList.EndRenderPass();
 	//copy back to screen
@@ -583,7 +573,6 @@ void FLGUIHudRenderer::SortScreenSpacePrimitiveRenderPriority_RenderThread()
 }
 void FLGUIHudRenderer::SortPrimitiveRenderPriority_RenderThread()
 {
-	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
 	for (auto& item : RenderCanvasParameterArray)
 	{
 		item.HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B) {
@@ -591,9 +580,17 @@ void FLGUIHudRenderer::SortPrimitiveRenderPriority_RenderThread()
 			});
 	}
 }
+void FLGUIHudRenderer::SetRenderCanvasSortOrder(ULGUICanvas* InRenderCanvas, int32 InSortOrder)
+{
+	auto viewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUICanvas_SetCanvasSortOrder)(
+		[viewExtension, InRenderCanvas, InSortOrder](FRHICommandListImmediate& RHICmdList)
+		{
+			viewExtension->SetRenderCanvasSortOrder_RenderThread(InRenderCanvas, InSortOrder);
+		});
+}
 void FLGUIHudRenderer::SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder)
 {
-	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
 	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InRenderCanvas](const FRenderCanvasParameter& item) {
 		return item.RenderCanvas == InRenderCanvas;
 		});
@@ -619,15 +616,38 @@ void FLGUIHudRenderer::SortPrimitiveRenderPriority()
 		}
 	);
 }
+void FLGUIHudRenderer::SetRenderCanvasBlendDepth(ULGUICanvas* InRenderCanvas, float InBlendDepth)
+{
+	auto viewExtension = this;
+	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
+		[viewExtension, InRenderCanvas, InBlendDepth](FRHICommandListImmediate& RHICmdList)
+		{
+			viewExtension->SetRenderCanvasBlendDepth_RenderThread(InRenderCanvas, InBlendDepth);
+		}
+	);
+}
+void FLGUIHudRenderer::SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth)
+{
+	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InRenderCanvas](const FRenderCanvasParameter& item) {
+		return item.RenderCanvas == InRenderCanvas;
+		});
+	if (existIndex == INDEX_NONE)
+	{
+		UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::RemoveHudPrimitive]Canvas not exist!"));
+	}
+	else
+	{
+		//RenderCanvasParameterArray[existIndex].BlendDepth = FMath::Pow(InBlendDepth, 2.2f);
+		RenderCanvasParameterArray[existIndex].BlendDepth = InBlendDepth;
+	}
+}
 void FLGUIHudRenderer::AddWorldSpaceRenderCanvas(ULGUICanvas* InCanvas)
 {
 	FRenderCanvasParameter canvasItem;
 	canvasItem.RenderCanvas = InCanvas;
 	canvasItem.RenderCanvasSortOrder = InCanvas->GetSortOrder();
-	canvasItem.ViewLocation = canvasItem.RenderCanvas->GetViewLocation();
-	canvasItem.ViewRotationMatrix = canvasItem.RenderCanvas->GetViewRotationMatrix().InverseFast();
-	canvasItem.ProjectionMatrix = canvasItem.RenderCanvas->GetProjectionMatrix();
-	canvasItem.ViewProjectionMatrix = canvasItem.RenderCanvas->GetViewProjectionMatrix();
+	//canvasItem.BlendDepth = FMath::Pow(InCanvas->GetActualBlendDepth(), 2.2f);
+	canvasItem.BlendDepth = InCanvas->GetActualBlendDepth();
 
 	auto viewExtension = this;
 	ENQUEUE_RENDER_COMMAND(FLGUIRender_SortRenderPriority)(
@@ -660,7 +680,6 @@ void FLGUIHudRenderer::ClearScreenSpaceRenderCanvas()
 
 void FLGUIHudRenderer::AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter)
 {
-	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
 	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([&InCanvasParameter](const FRenderCanvasParameter& item) {
 		return item.RenderCanvas == InCanvasParameter.RenderCanvas;
 		});
@@ -676,7 +695,6 @@ void FLGUIHudRenderer::AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParam
 }
 void FLGUIHudRenderer::RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas)
 {
-	FScopeLock scopeLock(&RenderCanvasParameterArray_Mutex);
 	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
 		return item.RenderCanvas == InCanvas;
 		});

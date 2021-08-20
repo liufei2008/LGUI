@@ -530,8 +530,16 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 			{
 				if (RenderCanvas->GetRootCanvas()->IsRenderByLGUIRendererOrUERenderer())
 				{
-					uiMesh->SetSupportLGUIRenderer(true, ULGUIEditorManagerObject::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas(), RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace());
-					uiMesh->SetSupportUERenderer(!RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace());//screen space UI should appear in editor's viewport
+					if(RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace())
+					{
+						uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RenderCanvas.Get(), true);
+						uiMesh->SetSupportUERenderer(GetWorld()->WorldType == EWorldType::EditorPreview);//screen space UI can appear in editor preview
+					}
+					else
+					{
+						uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RenderCanvas->GetRootCanvas(), false);
+						uiMesh->SetSupportUERenderer(true);//screen space UI should appear in editor's viewport
+					}
 				}
 				else
 				{
@@ -542,12 +550,20 @@ void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
 #endif
 			if (RenderCanvas->GetRootCanvas()->IsRenderByLGUIRendererOrUERenderer())
 			{
-				uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(RenderCanvas->GetRootCanvas()), RenderCanvas->GetRootCanvas(), RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace());
+				if (RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace())
+				{
+					uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RenderCanvas.Get(), true);
+				}
+				else
+				{
+					uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RenderCanvas->GetRootCanvas(), false);
+				}
 				uiMesh->SetSupportUERenderer(false);
 			}
 			else
 			{
-				uiMesh->SetSupportUERenderer(false);
+				uiMesh->SetSupportLGUIRenderer(false, nullptr, nullptr, false);
+				uiMesh->SetSupportUERenderer(true);
 			}
 		}
 
