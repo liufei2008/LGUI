@@ -84,7 +84,6 @@ public:
 	}
 	FLGUIMeshSceneProxy(ULGUIMeshComponent* InComponent, void* InCanvasPtr, int32 InCanvasSortOrder)
 		: FPrimitiveSceneProxy(InComponent)
-		, BodySetup(InComponent->GetBodySetup())
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 		, RenderPriority(InComponent->TranslucencySortPriority)
 	{
@@ -505,7 +504,6 @@ public:
 
 private:
 	FLGUIMeshProxySection* Section = nullptr;
-	UBodySetup* BodySetup = nullptr;
 
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;
@@ -676,7 +674,7 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 	}
 	else
 	{
-		return FBoxSphereBounds(FSphere(FVector::ZeroVector, 1.0f));
+		return FBoxSphereBounds(FSphere(FVector::ZeroVector, 1.0f)).TransformBy(LocalToWorld);
 	}
 }
 
