@@ -326,8 +326,6 @@ namespace LGUIPrefabSystem
 
 		TWeakObjectPtr<ULGUIPrefab> Prefab = nullptr;
 
-		TArray<AActor*> DeserializingActorCollection;//collect for deserializing actor
-
 #if WITH_EDITORONLY_DATA
 		bool IsEditMode = false;
 #endif
@@ -343,7 +341,7 @@ namespace LGUIPrefabSystem
 			int32 cppArrayIndex = 0;//if is c++ array's element
 		};
 		TArray<UPropertyMapStruct> ObjectMapStructList;
-		TArray<AActor*> CreatedActors;
+		TArray<AActor*> CreatedActors;//collect for created actors
 
 		//SceneComponent that belong to same actor, use this struct to store parent's name and then reparent it
 		struct SceneComponentToParentIDStruct
