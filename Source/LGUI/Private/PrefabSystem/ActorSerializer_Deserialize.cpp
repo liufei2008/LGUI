@@ -24,7 +24,6 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-		DeserializingActorCollection.Add(NewActor);
 #if WITH_EDITORONLY_DATA
 		if (IsEditMode)
 		{

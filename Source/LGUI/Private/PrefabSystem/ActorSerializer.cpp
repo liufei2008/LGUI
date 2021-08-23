@@ -121,19 +121,19 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
 	}
 	int32 id = 0;
-	AActor* CreatedActor = nullptr;
+	AActor* CreatedRootActor = nullptr;
 #if WITH_EDITORONLY_DATA
 	{
-		CreatedActor = DeserializeActorRecursive(Parent, SaveData.SavedActor, id);
+		CreatedRootActor = DeserializeActorRecursive(Parent, SaveData.SavedActor, id);
 	}
 #else
 	{
-		CreatedActor = DeserializeActorRecursiveForBuild(Parent, SaveDataForBuild, id);
+		CreatedRootActor = DeserializeActorRecursiveForBuild(Parent, SaveDataForBuild, id);
 	}
 #endif
-	if (CreatedActor != nullptr)
+	if (CreatedRootActor != nullptr)
 	{
-		if (USceneComponent* rootComp = CreatedActor->GetRootComponent())
+		if (USceneComponent* rootComp = CreatedRootActor->GetRootComponent())
 		{
 			rootComp->UpdateComponentToWorld();
 			if (ReplaceTransform)
@@ -179,7 +179,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 #if WITH_EDITORONLY_DATA
 	if (IsEditMode)
 	{
-		for (auto item : DeserializingActorCollection)
+		for (auto item : CreatedActors)
 		{
 			ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
 		}
@@ -188,14 +188,14 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	else
 #endif
 	{
-		for (auto item : DeserializingActorCollection)
+		for (auto item : CreatedActors)
 		{
 			ALGUIManagerActor::RemoveActorForPrefabSystem(item);
 		}
 		ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get());
 	}
 	//UE_LOG(LGUI, Display, TEXT("Dserialize Prefab Duration:%s"), *((FDateTime::Now() - StartTime).ToString()));
-	return CreatedActor;
+	return CreatedRootActor;
 }
 
 void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint8* Dest, TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
