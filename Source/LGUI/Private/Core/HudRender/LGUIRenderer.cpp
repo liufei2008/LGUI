@@ -327,7 +327,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 					else//render mesh
 					{
 						const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-						auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
+						auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
 						const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 						auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 
@@ -426,7 +426,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 					else//render mesh
 					{
 						const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-						auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
+						auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
 						const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 						auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 
