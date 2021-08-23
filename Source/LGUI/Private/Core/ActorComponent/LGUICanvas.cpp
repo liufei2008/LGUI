@@ -997,7 +997,10 @@ void ULGUICanvas::UpdateRootCanvas()
 #if WITH_EDITOR
 			if (!GetWorld()->IsGameWorld())
 			{
-				ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
+				if (GetWorld()->WorldType != EWorldType::EditorPreview)
+				{
+					ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
+				}
 			}
 			else
 #endif
@@ -1005,7 +1008,7 @@ void ULGUICanvas::UpdateRootCanvas()
 				ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
 			}
 
-			if (GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+			if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
 				ViewExtension->SetScreenSpaceRenderCanvas(this);
 				bHasAddToLGUIScreenSpaceRenderer = true;
@@ -1034,7 +1037,10 @@ void ULGUICanvas::UpdateCanvasGeometry()
 #if WITH_EDITOR
 			if (!GetWorld()->IsGameWorld())
 			{
-				ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
+				if (GetWorld()->WorldType != EWorldType::EditorPreview)
+				{
+					ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
+				}
 			}
 			else
 #endif
@@ -1042,7 +1048,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
 			}
 
-			if (GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
+			if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
 			{
 				ViewExtension->AddWorldSpaceRenderCanvas(this);
 				bHasAddToLGUIWorldSpaceRenderer = true;
