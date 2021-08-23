@@ -86,12 +86,12 @@ private:
 	};
 	struct FScreenSpaceRenderParameter
 	{
-		FVector ViewLocation;
-		FMatrix ViewRotationMatrix;
-		FMatrix ProjectionMatrix;
-		FMatrix ViewProjectionMatrix;
+		FVector ViewLocation = FVector::ZeroVector;
+		FMatrix ViewRotationMatrix = FMatrix::Identity;
+		FMatrix ProjectionMatrix = FMatrix::Identity;
+		FMatrix ViewProjectionMatrix = FMatrix::Identity;
 
-		TWeakObjectPtr<ULGUICanvas> RenderCanvas;
+		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
 	TArray<FRenderCanvasParameter> RenderCanvasParameterArray;
