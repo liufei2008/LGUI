@@ -35,15 +35,9 @@ public:
 		PrefabAsset = InPrefab;
 	}
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUIPrefab* GetPrefabAsset()
-	{
-		return PrefabAsset;
-	}
+		ULGUIPrefab* GetPrefabAsset()const { return PrefabAsset; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		AActor* GetLoadedRootActor()
-	{
-		return LoadedRootActor;
-	}
+		AActor* GetLoadedRootActor()const { return LoadedRootActor; }
 	void MoveActorToPrefabFolder();
 
 	void RemoveEditorTickDelegate();
@@ -59,6 +53,10 @@ public:
 		AActor* LoadedRootActor;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllLoadedActorArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<FGuid> AllLoadedActorsGuidArrayInPrefab;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI", Instanced)
+		ULGUIPrefab* PrefabInstance;
 	FColor IdentityColor;
 
 	FDelegateHandle EditorTickDelegateHandle;

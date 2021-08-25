@@ -4,13 +4,13 @@
 
 #include "LGUIPrefab.generated.h"
 
-#define LGUI_PREFAB_VERSION 1
+#define LGUI_PREFAB_VERSION 2
 
 /**
  * similar to Unity3D's Prefab. store actor and it's hierarchy and serailize to asset, deserialize and restore when need.
  * See property "UseBuildData" to get more information. 
  */
-UCLASS(BlueprintType)
+UCLASS(ClassGroup = (LGUI), BlueprintType, EditInlineNew)
 class LGUI_API ULGUIPrefab : public UObject
 {
 	GENERATED_BODY()
@@ -64,5 +64,6 @@ public:
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
+	void CopyTo(ULGUIPrefab* Other);
 #endif
 };

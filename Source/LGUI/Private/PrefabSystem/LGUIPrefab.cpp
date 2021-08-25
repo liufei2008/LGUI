@@ -22,4 +22,17 @@ void ULGUIPrefab::PreSave(const ITargetPlatform* TargetPlatform)
 {
 	Super::PreSave(TargetPlatform);
 }
+void ULGUIPrefab::CopyTo(ULGUIPrefab* Other)
+{
+	Other->ReferenceAssetList = this->ReferenceAssetList;
+	Other->ReferenceStringList = this->ReferenceStringList;
+	Other->ReferenceNameList = this->ReferenceNameList;
+	Other->ReferenceTextList = this->ReferenceTextList;
+	Other->ReferenceClassList = this->ReferenceClassList;
+
+	Other->BinaryData = this->BinaryData;
+	Other->PrefabVersion = this->PrefabVersion;
+	Other->EngineMajorVersion = this->EngineMajorVersion;
+	Other->EngineMinorVersion = this->EngineMinorVersion;
+}
 #endif

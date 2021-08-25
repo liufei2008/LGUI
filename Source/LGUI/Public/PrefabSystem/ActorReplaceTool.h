@@ -42,8 +42,5 @@ namespace LGUIPrefabSystem
 		bool CheckCommonProperty(FProperty* Property, uint8* Src, int cppArrayIndex = 0, bool isInsideCppArray = false);
 		void CheckProperty(UObject* Origin, TArray<FName> ExcludeProperties);
 		void CheckPropertyForActor(UObject* Origin, TArray<FName> ExcludeProperties);
-
-		TArray<FName> GetActorExcludeProperties();
-		TArray<FName> GetComponentExcludeProperties();
 	};
 }

@@ -50,7 +50,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 {
 	if (CurrentPrefab.IsValid())
 	{
-		if (auto rootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorld(), CurrentPrefab.Get(), nullptr))
+		if (auto rootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorld(), CurrentPrefab.Get(), nullptr))
 		{
 			if (auto rootCanvas = rootActor->FindComponentByClass<ULGUICanvas>())
 			{
