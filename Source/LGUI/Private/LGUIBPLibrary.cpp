@@ -34,7 +34,7 @@ void ULGUIBPLibrary::SetUIActive(AActor* Target, bool Acitve)
 	}
 	if (auto uiItem = Cast<UUIItem>(Target->GetRootComponent()))
 	{
-		uiItem->SetUIActive(Acitve);
+		uiItem->SetIsUIActive(Acitve);
 	}
 }
 void ULGUIBPLibrary::SetUIHierarchyIndex(AActor* Target, int32 index)

@@ -42,7 +42,7 @@ void UUIDirectMeshRenderable::ApplyUIActiveState()
 {
 	if (UIDrawcallMesh.IsValid())
 	{
-		UIDrawcallMesh->SetUIMeshVisibility(this->IsUIActiveInHierarchy());
+		UIDrawcallMesh->SetUIMeshVisibility(this->GetIsUIActiveInHierarchy());
 	}
 	Super::ApplyUIActiveState();
 }
@@ -98,7 +98,7 @@ void UUIDirectMeshRenderable::MarkVertexPositionDirty()
 }
 void UUIDirectMeshRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 {
-	if (IsUIActiveInHierarchy() == false)return;
+	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
 	if (!drawcall.IsValid()//not add to render yet
@@ -129,6 +129,6 @@ void UUIDirectMeshRenderable::SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)
 	UIDrawcallMesh = InUIDrawcallMesh;
 	if (UIDrawcallMesh.IsValid())
 	{
-		UIDrawcallMesh->SetUIMeshVisibility(this->IsUIActiveInHierarchy());
+		UIDrawcallMesh->SetUIMeshVisibility(this->GetIsUIActiveInHierarchy());
 	}
 }

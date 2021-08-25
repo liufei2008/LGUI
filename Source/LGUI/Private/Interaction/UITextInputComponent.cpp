@@ -1212,14 +1212,14 @@ void UUITextInputComponent::UpdatePlaceHolderComponent()
 	{
 		if (PlaceHolderActor.IsValid())
 		{
-			PlaceHolderActor->GetUIItem()->SetUIActive(false);
+			PlaceHolderActor->GetUIItem()->SetIsUIActive(false);
 		}
 	}
 	else
 	{
 		if (PlaceHolderActor.IsValid())
 		{
-			PlaceHolderActor->GetUIItem()->SetUIActive(true);
+			PlaceHolderActor->GetUIItem()->SetIsUIActive(true);
 		}
 	}
 }
@@ -1230,7 +1230,7 @@ void UUITextInputComponent::UpdateCaretPosition(bool InHideSelection)
 	{
 		if (CaretObject.IsValid())
 		{
-			CaretObject->SetUIActive(false);
+			CaretObject->SetIsUIActive(false);
 		}
 	}
 	else
@@ -1264,7 +1264,7 @@ void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool 
 		CaretObject->SetSprite(ULGUISpriteData::GetDefaultWhiteSolid(), false);
 	}
 	CaretObject->SetRelativeLocation(FVector(InCaretPosition, 0));
-	CaretObject->SetUIActive(true);
+	CaretObject->SetIsUIActive(true);
 	
 	//force display caret
 	NextCaretBlinkTime = 0.8f;
@@ -1307,7 +1307,7 @@ void UUITextInputComponent::UpdateSelection()
 			auto uiSprite = SelectionMaskObjectArray[i + SelectionPropertyArray.Num()];
 			if (uiSprite.IsValid())
 			{
-				uiSprite->SetUIActive(false);
+				uiSprite->SetIsUIActive(false);
 			}
 		}
 	}
@@ -1317,7 +1317,7 @@ void UUITextInputComponent::UpdateSelection()
 		auto uiSprite = SelectionMaskObjectArray[i];
 		if (uiSprite.IsValid())
 		{
-			uiSprite->SetUIActive(true);
+			uiSprite->SetIsUIActive(true);
 			auto& selectionProperty = SelectionPropertyArray[i];
 			uiSprite->SetRelativeLocation(FVector(selectionProperty.Pos, 0.0f));
 			uiSprite->SetWidth(selectionProperty.Size);
@@ -1331,7 +1331,7 @@ void UUITextInputComponent::HideSelectionMask()
 		auto uiSprite = SelectionMaskObjectArray[i];
 		if (uiSprite.IsValid())
 		{
-			SelectionMaskObjectArray[i]->SetUIActive(false);
+			SelectionMaskObjectArray[i]->SetIsUIActive(false);
 		}
 	}
 	SelectionPropertyArray.Empty();//clear selection mask
@@ -1748,7 +1748,7 @@ void UUITextInputComponent::DeactivateInput(bool InFireEvent)
 	//hide caret
 	if (CaretObject.IsValid())
 	{
-		CaretObject->SetUIActive(false);
+		CaretObject->SetIsUIActive(false);
 	}
 	//hide selection
 	HideSelectionMask();

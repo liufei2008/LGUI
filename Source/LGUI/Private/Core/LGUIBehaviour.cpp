@@ -133,7 +133,7 @@ bool ULGUIBehaviour::GetIsActiveAndEnable()const
 {
 	if (CheckRootUIComponent())
 	{
-		return RootUIComp->IsUIActiveInHierarchy() && enable;
+		return RootUIComp->GetIsUIActiveInHierarchy() && enable;
 	}
 	else
 	{
@@ -144,7 +144,7 @@ bool ULGUIBehaviour::GetIsRootComponentActive()const
 {
 	if (CheckRootUIComponent())
 	{
-		return RootUIComp->IsUIActiveInHierarchy();
+		return RootUIComp->GetIsUIActiveInHierarchy();
 	}
 	else
 	{

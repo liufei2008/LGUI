@@ -1452,7 +1452,7 @@ void ALGUIManagerActor::ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InCom
 	{
 		if (auto rootComp = InComp->GetRootComponent())
 		{
-			if (rootComp->IsUIActiveInHierarchy())
+			if (rootComp->GetIsUIActiveInHierarchy())
 			{
 				if (!InComp->isAwakeCalled)
 				{
