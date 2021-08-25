@@ -51,6 +51,10 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	{
 		FEditorDelegates::OnDeleteActorsEnd.Remove(OnActorDeletedDelegateHandle);
 	}
+	if (OnMapOpenedDelegateHandle.IsValid())
+	{
+		FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
+	}
 #endif
 	Instance = nullptr;
 	Super::BeginDestroy();
@@ -192,6 +196,8 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
 			//delete actor
 			Instance->OnActorDeletedDelegateHandle = FEditorDelegates::OnDeleteActorsEnd.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorDeleted);
+			//open map
+			Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
 		}
 		else
 		{
@@ -318,6 +324,25 @@ void ULGUIEditorManagerObject::OnActorDeleted()
 			if (!IsValid(prefabActor->GetPrefabComponent()->GetLoadedRootActor()))
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
+			}
+		}
+	}
+}
+void ULGUIEditorManagerObject::OnMapOpened(const FString& FileName, bool AsTemplate)
+{
+	//Restore prefabs
+	if (GWorld == nullptr)return;
+	for (TActorIterator<ALGUIPrefabActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	{
+		auto prefabActor = *ActorItr;
+		if (IsValid(prefabActor))
+		{
+			if (IsValid(prefabActor->GetPrefabComponent()->PrefabAsset))
+			{
+				if (IsValid(prefabActor->GetPrefabComponent()->GetLoadedRootActor()))
+				{
+					
+				}
 			}
 		}
 	}

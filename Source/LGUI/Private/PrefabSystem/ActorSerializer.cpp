@@ -22,16 +22,21 @@ ActorSerializer::ActorSerializer(UWorld* InTargetWorld)
 	TargetWorld = TWeakObjectPtr<UWorld>(InTargetWorld);
 }
 #if WITH_EDITOR
-AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& AllLoadedActorArray)
+AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid> &InExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid)
 {
 	ActorSerializer serializer(InWorld);
+	serializer.editMode = EPrefabEditMode::EditInLevel;
+	serializer.ExistingActors = InExistingActorArray;
+	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
 	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
-	AllLoadedActorArray = serializer.CreatedActors;
+	OutCreatedActors = serializer.CreatedActors;
+	OutActorsGuid = serializer.CreatedActorsGuid;
 	return rootActor;
 }
-AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
+AActor* ActorSerializer::LoadPrefabInEditor(UWorld *InWorld, ULGUIPrefab *InPrefab, USceneComponent *Parent, bool SetRelativeTransformToIdentity)
 {
 	ActorSerializer serializer(InWorld);
+	serializer.editMode = EPrefabEditMode::NotEditable;
 	if (SetRelativeTransformToIdentity)
 	{
 		return serializer.DeserializeActor(Parent, InPrefab, true, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
@@ -40,6 +45,13 @@ AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefa
 	{
 		return serializer.DeserializeActor(Parent, InPrefab);
 	}
+}
+AActor* ActorSerializer::LoadPrefabForRecreate(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent)
+{
+	ActorSerializer serializer(InWorld);
+	serializer.editMode = EPrefabEditMode::Recreate;
+	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+	return rootActor;
 }
 #endif
 AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
@@ -92,6 +104,23 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		FromBinary.Close();
 		LoadedData.Empty();
 	}
+
+	FLGUIPrefabSaveData InstanceSaveData;
+	if (PrefabDataInstanceInWorld != nullptr)
+	{
+		auto LoadedData = PrefabDataInstanceInWorld->BinaryData;
+		if (LoadedData.Num() <= 0)
+		{
+			UE_LOG(LGUI, Warning, TEXT("Loaded data is empty!"));
+			return nullptr;
+		}
+		auto FromBinary = FMemoryReader(LoadedData, true);
+		FromBinary.Seek(0);
+		FromBinary << SaveData;
+		FromBinary.FlushCache();
+		FromBinary.Close();
+		LoadedData.Empty();
+	}
 #else
 	FLGUIActorSaveDataForBuild SaveDataForBuild;
 	{
@@ -110,8 +139,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 #endif
 	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
 #if WITH_EDITOR
-	IsEditMode = !TargetWorld->IsGameWorld();
-	if (IsEditMode)
+	if (!TargetWorld->IsGameWorld())
 	{
 		ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get());
 	}
@@ -121,8 +149,34 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
 	}
 	int32 id = 0;
-	AActor* CreatedRootActor = nullptr;
-#if WITH_EDITORONLY_DATA
+	AActor *CreatedRootActor = nullptr;
+#if WITH_EDITOR
+	if (editMode == EPrefabEditMode::EditInLevel)
+	{
+		CreatedRootActor = DeserializeActorRecursiveForEdit(Parent, SaveData.SavedActor, id);
+		//clear excess actors
+		for (auto item : ExistingActors)
+		{
+			if (TargetWorld->WorldType == EWorldType::Editor || TargetWorld->WorldType == EWorldType::EditorPreview)
+			{
+				TargetWorld->EditorDestroyActor(item, true);
+			}
+			else
+			{
+				item->Destroy();
+			}
+		}
+		ExistingActors.Empty();
+	}
+	else if (editMode == EPrefabEditMode::Recreate)
+	{
+		CreatedRootActor = DeserializeActorRecursiveForRecreate(Parent, SaveData.SavedActor, id);
+	}
+	else if (editMode == EPrefabEditMode::AutoRevert)
+	{
+		//CreatedRootActor = DeserializeActorRecursiveForAutoRevert(Parent, SaveData.SavedActor, InstanceSaveData.SavedActor, id);
+	}
+	else
 	{
 		CreatedRootActor = DeserializeActorRecursive(Parent, SaveData.SavedActor, id);
 	}
@@ -154,19 +208,35 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 	//finish Actor Spawn
-	for (auto Actor : CreatedActors)
+#if WITH_EDITOR
+	if (editMode == EPrefabEditMode::EditInLevel || editMode == EPrefabEditMode::AutoRevert)
 	{
-		if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destroyed by other actor when BeginPlay
+		for (auto Actor : CreatedActorsNeedToFinishSpawn)
 		{
-#if WITH_EDITORONLY_DATA
-			if (!IsEditMode)
+			if (IsValid(Actor))
 			{
-				Actor->bIsEditorPreviewActor = false;//make this to false, or BeginPlay won't be called
+				Actor->FinishSpawning(FTransform::Identity, true);
 			}
-#endif
-			Actor->FinishSpawning(FTransform::Identity, true);//BeginPlay is called at this point
 		}
 	}
+	else
+#else
+	{
+		for (auto Actor : CreatedActors)
+		{
+			if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destroyed by other actor when BeginPlay
+			{
+#if WITH_EDITOR
+				if (TargetWorld->IsGameWorld())
+				{
+					Actor->bIsEditorPreviewActor = false;//make this to false, or BeginPlay won't be called
+				}
+#endif
+				Actor->FinishSpawning(FTransform::Identity, true);//BeginPlay is called at this point
+			}
+		}
+	}
+#endif
 	//assign parent for blueprint actor after actor spawn, otherwise blueprint actor will attach to world root
 	for (auto item : BlueprintAndParentArray)
 	{
@@ -176,8 +246,8 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 
-#if WITH_EDITORONLY_DATA
-	if (IsEditMode)
+#if WITH_EDITOR
+	if (!TargetWorld->IsGameWorld())
 	{
 		for (auto item : CreatedActors)
 		{
@@ -291,7 +361,7 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 				PropertyData.Add(ItemPropertyData);
 			}
 		}
-		
+
 		else if (auto interfaceProperty = CastField<FInterfaceProperty>(Property))
 		{
 			//UE_LOG(LGUI, Error, TEXT("[ActorSerializerNotHandled]FInterfaceProperty:%s"), *(Property->GetFName().ToString()));
@@ -503,7 +573,7 @@ void ActorSerializer::SaveProperty(UObject* Target, TArray<FLGUIPropertyData>& P
 			int32 index;
 			if (ExcludeProperties.Find(propertyName, index))
 			{
-				ExcludeProperties.RemoveAt(index);
+				ExcludeProperties.RemoveAtSwap(index);
 				excludePropertyCount--;
 				continue;
 			}
@@ -517,8 +587,19 @@ FLGUIActorSaveData ActorSerializer::SerializeSingleActor(AActor* Actor)
 	FLGUIActorSaveData ActorRecord;
 	ActorRecord.ActorClass = FindOrAddClassFromList(Actor->GetClass());
 
-	SaveProperty(Actor, ActorRecord.ActorPropertyData, GetActorExcludeProperties());
-	auto& Components = Actor->GetComponents();
+	SaveProperty(Actor, ActorRecord.ActorPropertyData, GetActorExcludeProperties(true, false));
+#if WITH_EDITOR
+	//replace guid
+	int foundActorIndex = ExistingActors.Find(Actor);
+	if (foundActorIndex != INDEX_NONE)
+	{
+		auto guid = ExistingActorsGuid[foundActorIndex];
+		ExistingActors.RemoveAtSwap(foundActorIndex);
+		ExistingActorsGuid.RemoveAtSwap(foundActorIndex);
+		ActorRecord.SetActorGuid(guid);
+	}
+#endif
+	auto &Components = Actor->GetComponents();
 
 	TArray<USceneComponent*> AllSceneComponentOfThisActor;
 	auto RootComp = Actor->GetRootComponent();
@@ -593,7 +674,7 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 	}
 	ActorSaveData.ChildActorData = ChildSaveDataList;
 }
-void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab)
+void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab)
 {
 	if (!RootActor || !InPrefab)
 	{
@@ -606,6 +687,8 @@ void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab)
 		return;
 	}
 	ActorSerializer serializer(RootActor->GetWorld());
+	serializer.ExistingActors = InExistingActorArray;
+	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
 	serializer.SerializeActor(RootActor, InPrefab);
 }
 void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
@@ -650,7 +733,7 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 	Prefab->PrefabVersion = LGUI_PREFAB_VERSION;
 
 	Prefab->MarkPackageDirty();
-	UE_LOG(LGUI, Log, TEXT("SerializeActor, prefab:%s duration:%s"), *(Prefab->GetPathName()), *((FDateTime::Now() - StartTime).ToString()));
+	UE_LOG(LGUI, Log, TEXT("[ActorSerializer::SerializeActor] prefab:%s duration:%s"), *(Prefab->GetPathName()), *((FDateTime::Now() - StartTime).ToString()));
 }
 #if WITH_EDITOR
 FLGUIActorSaveData ActorSerializer::CreateActorSaveData(ULGUIPrefab* InPrefab)
@@ -686,25 +769,33 @@ void ActorSerializer::LogForBitConvertFail(bool success, FProperty* Property)
 	}
 }
 
-TArray<FName> ActorSerializer::GetActorExcludeProperties()
+TArray<FName> ActorSerializer::GetActorExcludeProperties(bool instigator, bool actorGuid)
 {
-	return {
-		"Instigator",
-		"RootComponent",//this will result in the copied actor have same RootComponent to original actor, and crash. so we need to skip it
-		"BlueprintCreatedComponents",
-		"InstanceComponents",
+	TArray<FName> result;
+	result.Reserve(6);
+	if (instigator)
+	{
+		result.Add("Instigator");
+	}
+	result.Add("RootComponent"); //this will result in the copied actor have same RootComponent to original actor, and crash. so we need to skip it
+	result.Add("BlueprintCreatedComponents");
+	result.Add("InstanceComponents");
 #if WITH_EDITORONLY_DATA
-		"FolderPath",
+	result.Add("InstanceComponents");
+	if (actorGuid)
+	{
+		result.Add("ActorGuid"); //ActorGuid is generated when spawn in world, should be unique
+	}
 #endif
-	};
+	return result;
 }
 TArray<FName> ActorSerializer::GetComponentExcludeProperties()
 {
-	return {
-		"AttachParent",
-	};
+	TArray<FName> result;
+	result.Reserve(1);
+	result.Add("AttachParent");
+	return result;
 }
-
 
 int32 ActorSerializer::FindAssetIdFromList(UObject* AssetObject)
 {
@@ -780,9 +871,9 @@ int32 ActorSerializer::FindOrAddClassFromList(UClass* uclass)
 	}
 }
 
-UObject* ActorSerializer::FindAssetFromListByIndex(int32 Id)
+UObject* ActorSerializer::FindAssetFromListByIndex(int32 Id, ULGUIPrefab* InPrefab)
 {
-	auto& ReferenceAssetList = Prefab->ReferenceAssetList;
+	auto& ReferenceAssetList = InPrefab->ReferenceAssetList;
 	int32 count = ReferenceAssetList.Num();
 	if (Id >= count || Id < 0)
 	{
@@ -790,9 +881,9 @@ UObject* ActorSerializer::FindAssetFromListByIndex(int32 Id)
 	}
 	return ReferenceAssetList[Id];
 }
-FString ActorSerializer::FindStringFromListByIndex(int32 Id)
+FString ActorSerializer::FindStringFromListByIndex(int32 Id, ULGUIPrefab* InPrefab)
 {
-	auto& ReferenceStringList = Prefab->ReferenceStringList;
+	auto& ReferenceStringList = InPrefab->ReferenceStringList;
 	int32 count = ReferenceStringList.Num();
 	if (Id >= count || Id < 0)
 	{
@@ -800,9 +891,9 @@ FString ActorSerializer::FindStringFromListByIndex(int32 Id)
 	}
 	return ReferenceStringList[Id];
 }
-FName ActorSerializer::FindNameFromListByIndex(int32 Id)
+FName ActorSerializer::FindNameFromListByIndex(int32 Id, ULGUIPrefab* InPrefab)
 {
-	auto& ReferenceNameList = Prefab->ReferenceNameList;
+	auto& ReferenceNameList = InPrefab->ReferenceNameList;
 	int32 count = ReferenceNameList.Num();
 	if (Id >= count || Id < 0)
 	{
@@ -810,9 +901,9 @@ FName ActorSerializer::FindNameFromListByIndex(int32 Id)
 	}
 	return ReferenceNameList[Id];
 }
-FText ActorSerializer::FindTextFromListByIndex(int32 Id)
+FText ActorSerializer::FindTextFromListByIndex(int32 Id, ULGUIPrefab* InPrefab)
 {
-	auto& ReferenceTextList = Prefab->ReferenceTextList;
+	auto& ReferenceTextList = InPrefab->ReferenceTextList;
 	int32 count = ReferenceTextList.Num();
 	if (Id >= count || Id < 0)
 	{
@@ -820,9 +911,9 @@ FText ActorSerializer::FindTextFromListByIndex(int32 Id)
 	}
 	return ReferenceTextList[Id];
 }
-UClass* ActorSerializer::FindClassFromListByIndex(int32 Id)
+UClass* ActorSerializer::FindClassFromListByIndex(int32 Id, ULGUIPrefab* InPrefab)
 {
-	auto& ReferenceClassList = Prefab->ReferenceClassList;
+	auto& ReferenceClassList = InPrefab->ReferenceClassList;
 	int32 count = ReferenceClassList.Num();
 	if (Id >= count || Id < 0)
 	{
@@ -851,7 +942,19 @@ void ActorSerializer::RegisterComponent(AActor* Actor, UActorComponent* Comp)
 	}
 }
 
-FString ActorSerializer::GetValueAsString(const FLGUIPropertyData& ItemPropertyData)
+void ActorSerializer::SetActorGUIDNew(AActor *Actor)
+{
+	auto guidProp = FindFieldChecked<FStructProperty>(AActor::StaticClass(), TEXT("ActorGuid"));
+	auto newGuid = FGuid::NewGuid();
+	guidProp->CopyCompleteValue(guidProp->ContainerPtrToValuePtr<void>(Actor), &newGuid);
+}
+void ActorSerializer::SetActorGUID(AActor *Actor, FGuid Guid)
+{
+	auto guidProp = FindFieldChecked<FStructProperty>(AActor::StaticClass(), TEXT("ActorGuid"));
+	guidProp->CopyCompleteValue(guidProp->ContainerPtrToValuePtr<void>(Actor), &Guid);
+}
+
+FString ActorSerializer::GetValueAsString(const FLGUIPropertyData &ItemPropertyData)
 {
 	bool bitConvertSuccess;
 	switch (ItemPropertyData.PropertyType)
@@ -975,7 +1078,7 @@ FString ActorSerializer::GetValueAsString(const FLGUIPropertyData& ItemPropertyD
 		if (ItemPropertyData.Data.Num() == 4)
 		{
 			auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
-			return FindNameFromListByIndex(index).ToString();
+			return FindNameFromListByIndex(index, Prefab.Get()).ToString();
 		}
 	}
 	break;
@@ -984,7 +1087,7 @@ FString ActorSerializer::GetValueAsString(const FLGUIPropertyData& ItemPropertyD
 		if (ItemPropertyData.Data.Num() == 4)
 		{
 			auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
-			return FindStringFromListByIndex(index);
+			return FindStringFromListByIndex(index, Prefab.Get());
 		}
 	}
 	break;
@@ -993,7 +1096,7 @@ FString ActorSerializer::GetValueAsString(const FLGUIPropertyData& ItemPropertyD
 		if (ItemPropertyData.Data.Num() == 4)
 		{
 			auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
-			return FindTextFromListByIndex(index).ToString();
+			return FindTextFromListByIndex(index, Prefab.Get()).ToString();
 		}
 	}
 	break;
@@ -1003,3 +1106,53 @@ FString ActorSerializer::GetValueAsString(const FLGUIPropertyData& ItemPropertyD
 	}
 	return FString();
 }
+
+#if WITH_EDITOR
+FGuid FLGUIActorSaveData::GetActorGuid() const
+{
+	FGuid guid;
+	FLGUIPropertyData guidData;
+	if (FLGUIPropertyData::GetPropertyDataFromArray(FName(TEXT("ActorGuid")), ActorPropertyData, guidData))
+	{
+		if (guidData.ContainerData.Num() == 4)
+		{
+			bool succeedA, succeedB, succeedC, succeedD;
+			uint32 A = BitConverter::ToUInt32(guidData.ContainerData[0].Data, succeedA);
+			uint32 B = BitConverter::ToUInt32(guidData.ContainerData[1].Data, succeedB);
+			uint32 C = BitConverter::ToUInt32(guidData.ContainerData[2].Data, succeedC);
+			uint32 D = BitConverter::ToUInt32(guidData.ContainerData[3].Data, succeedD);
+			if (succeedA && succeedB && succeedC && succeedD)
+			{
+				guid = FGuid(A, B, C, D);
+				return guid;
+			}
+		}
+	}
+	UE_LOG(LGUI, Error, TEXT("[FLGUIActorSaveData::GetActorGuid] Failed to get ActorGuid!"));
+	check(0);
+	guid = FGuid::NewGuid();
+	return guid;
+}
+void FLGUIActorSaveData::SetActorGuid(FGuid guid)
+{
+	for (int i = 0; i < ActorPropertyData.Num(); i++)
+	{
+		if (ActorPropertyData[i].Name == FName(TEXT("ActorGuid")))
+		{
+			FLGUIPropertyData& guidData = ActorPropertyData[i];
+			if (guidData.ContainerData.Num() == 4
+				&& guidData.ContainerData[0].Name == FName(TEXT("A"))
+				&& guidData.ContainerData[1].Name == FName(TEXT("B"))
+				&& guidData.ContainerData[2].Name == FName(TEXT("C"))
+				&& guidData.ContainerData[3].Name == FName(TEXT("D"))
+				)
+			{
+				guidData.ContainerData[0].Data = BitConverter::GetBytes(guid.A);
+				guidData.ContainerData[1].Data = BitConverter::GetBytes(guid.B);
+				guidData.ContainerData[2].Data = BitConverter::GetBytes(guid.C);
+				guidData.ContainerData[3].Data = BitConverter::GetBytes(guid.D);
+			}
+		}
+	}
+}
+#endif

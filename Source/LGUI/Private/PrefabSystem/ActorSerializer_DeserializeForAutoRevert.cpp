@@ -12,27 +12,43 @@
 #include "Core/Actor/LGUIManagerActor.h"
 
 using namespace LGUIPrefabSystem;
-
-AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id)
+#if 0
+AActor* ActorSerializer::DeserializeActorRecursiveForAutoRevert(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, const FLGUIActorSaveData& InstanceSaveData, int32& id)
 {
 	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForAutoRevert]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
-		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
+		AActor* NewActor = nullptr;
+		auto guidInPrefab = SaveData.GetActorGuid();
+		int foundActorIndex = ExistingActorsGuid.Find(guidInPrefab);
+		bool useExistActor = foundActorIndex != INDEX_NONE;
+		if (useExistActor)
+		{
+			NewActor = ExistingActors[foundActorIndex];
+			ExistingActors.RemoveAtSwap(foundActorIndex);
+			ExistingActorsGuid.RemoveAtSwap(foundActorIndex);
+		}
+		else
+		{
+			NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
+			CreatedActorsNeedToFinishSpawn.Add(NewActor);
+		}
 		ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
-		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
+		CreatedActors.Add(NewActor);
+		CreatedActorsGuid.Add(guidInPrefab);
+		LoadPropertyForAutoRevert(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];
 		auto RootComp = NewActor->GetRootComponent();
 		if (RootComp)//if this actor have default root component
 		{
 			//actor's default root component dont need mannually register
-			LoadProperty(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
+			LoadPropertyForAutoRevert(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 		}
 		else
 		{
@@ -43,11 +59,11 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 					if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 					{
 						CompClass = USceneComponent::StaticClass();
-						UE_LOG(LGUI, Error, TEXT("Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForAutoRevert]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
 					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
-					LoadProperty(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
+					LoadPropertyForAutoRevert(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 					if (!RootComp->IsDefaultSubobject())
 					{
 						RegisterComponent(NewActor, RootComp);
@@ -69,6 +85,16 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 
 		TArray<SceneComponentToParentIDStruct> NeedReparent_SceneComponents;//SceneComponent collection of this actor that need to reattach to parent
 		int ComponentCount = SaveData.ComponentPropertyData.Num();
+		TInlineComponentArray<UActorComponent*> tempCompArray;
+		if (useExistActor)
+		{
+			NewActor->GetComponents(tempCompArray);
+			auto rootCompIndex = tempCompArray.IndexOfByKey(RootComp);
+			if (rootCompIndex != INDEX_NONE)
+			{
+				tempCompArray.RemoveAt(rootCompIndex);
+			}
+		}
 		for (int i = 1; i < ComponentCount; i++)//start from 1, skip RootComponent
 		{
 			auto CompData = SaveData.ComponentPropertyData[i];
@@ -77,13 +103,34 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForAutoRevert]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
-				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
-				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
-				if (!Comp->IsDefaultSubobject())
+
+				UActorComponent* Comp = nullptr;
+				bool useExistComponent = false;
+				if (useExistActor)
 				{
-					RegisterComponent(NewActor, Comp);
+					int foundCompIndex = tempCompArray.IndexOfByPredicate([CompClass, CompData](const UActorComponent* Item) {
+						return Item->GetClass() == CompClass && Item->GetFName() == CompData.ComponentName;
+						});
+					if (foundCompIndex != INDEX_NONE)
+					{
+						useExistComponent = true;
+						Comp = tempCompArray[foundCompIndex];
+						tempCompArray.RemoveAtSwap(foundCompIndex);
+					}
+				}
+				if (!useExistComponent)
+				{
+					Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
+				}
+				LoadPropertyForAutoRevert(Comp, CompData.PropertyData, GetComponentExcludeProperties());
+				if (!useExistComponent)
+				{
+					if (!Comp->IsDefaultSubobject())
+					{
+						RegisterComponent(NewActor, Comp);
+					}
 				}
 
 				if (auto PrimitiveComp = Cast<UPrimitiveComponent>(Comp))
@@ -104,9 +151,10 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[DeserializeActorRecursive]Component Class of index:%d not found!"), (CompData.ComponentClass));
+				UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForAutoRevert]Component Class of index:%d not found!"), (CompData.ComponentClass));
 			}
 		}
+
 		//SceneComponent reattach to parent
 		for (int i = 0, count = NeedReparent_SceneComponents.Num(); i < count; i++)
 		{
@@ -137,18 +185,18 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{
-			DeserializeActorRecursive(RootComp, ChildSaveData, id);
+			DeserializeActorRecursiveForAutoRevert(RootComp, ChildSaveData, id);
 		}
 		return NewActor;
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[DeserializeActorRecursive]Actor Class of index:%d not found!"), (SaveData.ActorClass));
+		UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForAutoRevert]Actor Class of index:%d not found!"), (SaveData.ActorClass));
 		return nullptr;
 	}
 }
 
-void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties)
+void ActorSerializer::LoadPropertyForAutoRevert(UObject* Target, const TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties)
 {
 	OutterArray.Add(Target);
 	Outter = Target;
@@ -176,7 +224,7 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 				continue;
 			}
 		}
-		if (LoadCommonProperty(propertyItem, ItemType_Normal, propertyIndex, (uint8*)Target, PropertyData))
+		if (LoadCommonPropertyForAutoRevert(propertyItem, ItemType_Normal, propertyIndex, (uint8*)Target, PropertyData))
 		{
 			propertyIndex++;
 		}
@@ -193,7 +241,7 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 	}
 }
 
-bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int itemPropertyIndex, uint8* Dest, const TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
+bool ActorSerializer::LoadCommonPropertyForAutoRevert(FProperty* Property, int itemType, int itemPropertyIndex, uint8* Dest, const TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return false;//skip property with these flags
 	FLGUIPropertyData ItemPropertyData;
@@ -230,7 +278,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 		{
 			for (int i = 0; i < Property->ArrayDim; i++)
 			{
-				LoadCommonProperty(Property, ItemType_Array, i, Dest, ItemPropertyData.ContainerData, i, true);
+				LoadCommonPropertyForAutoRevert(Property, ItemType_Array, i, Dest, ItemPropertyData.ContainerData, i, true);
 			}
 			return true;
 		}
@@ -292,7 +340,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 						}
 						if (newObj != nullptr)
 						{
-							LoadProperty(newObj, ItemPropertyData.ContainerData, {});
+							LoadPropertyForAutoRevert(newObj, ItemPropertyData.ContainerData, {});
 							objProperty->SetObjectPropertyValue_InContainer(Dest, newObj, cppArrayIndex);
 						}
 					}
@@ -324,7 +372,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				ArrayHelper.Resize(ArrayCount);
 				for (int i = 0; i < ArrayCount; i++)
 				{
-					LoadCommonProperty(arrProperty->Inner, ItemType_Array, i, ArrayHelper.GetRawPtr(i), ItemPropertyData.ContainerData);
+					LoadCommonPropertyForAutoRevert(arrProperty->Inner, ItemType_Array, i, ArrayHelper.GetRawPtr(i), ItemPropertyData.ContainerData);
 				}
 				return true;
 			}
@@ -336,9 +384,9 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				for (int i = 0; i < count; i++)
 				{
 					MapHelper.AddDefaultValue_Invalid_NeedsRehash();
-					LoadCommonProperty(mapProperty->KeyProp, ItemType_Map, i, MapHelper.GetKeyPtr(mapIndex), ItemPropertyData.ContainerData);//key
+					LoadCommonPropertyForAutoRevert(mapProperty->KeyProp, ItemType_Map, i, MapHelper.GetKeyPtr(mapIndex), ItemPropertyData.ContainerData);//key
 					i++;
-					LoadCommonProperty(mapProperty->ValueProp, ItemType_Map, i, MapHelper.GetPairPtr(mapIndex), ItemPropertyData.ContainerData);//value. PairPtr of map is the real ptr of value
+					LoadCommonPropertyForAutoRevert(mapProperty->ValueProp, ItemType_Map, i, MapHelper.GetPairPtr(mapIndex), ItemPropertyData.ContainerData);//value. PairPtr of map is the real ptr of value
 					mapIndex++;
 				}
 				MapHelper.Rehash();
@@ -351,7 +399,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				for (int i = 0; i < count; i++)
 				{
 					SetHelper.AddDefaultValue_Invalid_NeedsRehash();
-					LoadCommonProperty(setProperty->ElementProp, ItemType_Set, i, SetHelper.GetElementPtr(i), ItemPropertyData.ContainerData);
+					LoadCommonPropertyForAutoRevert(setProperty->ElementProp, ItemType_Set, i, SetHelper.GetElementPtr(i), ItemPropertyData.ContainerData);
 				}
 				SetHelper.Rehash();
 				return true;
@@ -380,7 +428,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 					int propertyIndex = 0;
 					for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 					{
-						if (LoadCommonProperty(*It, ItemType_Normal, propertyIndex, structPtr, ItemPropertyData.ContainerData))
+						if (LoadCommonPropertyForAutoRevert(*It, ItemType_Normal, propertyIndex, structPtr, ItemPropertyData.ContainerData))
 						{
 							propertyIndex++;
 						}
@@ -468,7 +516,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				{
 					if (Property->GetSize() != ItemPropertyData.Data.Num())
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer/LoadCommonProperty]Load value of Property:%s, but size not match, PropertySize:%d, dataSize:%d.\
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer/LoadCommonPropertyForAutoRevert]Load value of Property:%s, but size not match, PropertySize:%d, dataSize:%d.\
  Try rebuild this prefab, and if this problem still exist, please contact the plugin author.")
 							, *(Property->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
 						return false;
@@ -482,3 +530,4 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 	}
 	return false;
 }
+#endif

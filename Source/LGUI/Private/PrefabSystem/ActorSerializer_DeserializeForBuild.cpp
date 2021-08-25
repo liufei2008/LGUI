@@ -15,27 +15,17 @@ using namespace LGUIPrefabSystem;
 
 AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Parent, const FLGUIActorSaveDataForBuild& SaveData, int32& id)
 {
-	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass))
+	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForRecreate]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-#if WITH_EDITORONLY_DATA
-		if (IsEditMode)
-		{
-			ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
-		}
-		else
-#endif
-		{
-			ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
-		}
-		LoadPropertyForBuild(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties());
-		CreatedActors.Add(NewActor);
+		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+		LoadPropertyForBuild(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];
 		auto RootComp = NewActor->GetRootComponent();
@@ -48,12 +38,12 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 		{
 			if (RootCompSaveData.ComponentClass != -1)//have RootComponent data
 			{
-				if (auto CompClass = FindClassFromListByIndex(RootCompSaveData.ComponentClass))
+				if (auto CompClass = FindClassFromListByIndex(RootCompSaveData.ComponentClass, Prefab.Get()))
 				{
 					if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 					{
 						CompClass = USceneComponent::StaticClass();
-						UE_LOG(LGUI, Error, TEXT("Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForRecreate]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
 					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
@@ -82,12 +72,12 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 		for (int i = 1; i < ComponentCount; i++)//start from 1, skip RootComponent
 		{
 			auto CompData = SaveData.ComponentPropertyData[i];
-			if (auto CompClass = FindClassFromListByIndex(CompData.ComponentClass))
+			if (auto CompClass = FindClassFromListByIndex(CompData.ComponentClass, Prefab.Get()))
 			{
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForRecreate]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
 				LoadPropertyForBuild(Comp, CompData.PropertyData, GetComponentExcludeProperties());
@@ -114,7 +104,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 			}
 			else
 			{
-				auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/DeserializeActorRecursiveForBuild]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
+				auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer::DeserializeActorRecursiveForBuild]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg); 
 #if WITH_EDITOR
 				LGUIUtils::EditorNotification(FText::FromString(ErrorMsg)); 
@@ -157,7 +147,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 	}
 	else
 	{
-		auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/DeserializeActorRecursiveForBuild]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
+		auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer::DeserializeActorRecursiveForBuild]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
 		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
 #if WITH_EDITOR
 		LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
@@ -287,7 +277,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 					LogForBitConvertFail(bitConvertSuccess, Property);
 				}
 				if (index <= -1)return true;
-				if (auto asset = FindClassFromListByIndex(index))
+				if (auto asset = FindClassFromListByIndex(index, Prefab.Get()))
 				{
 					auto classProperty = (FObjectPropertyBase*)Property;
 					classProperty->SetObjectPropertyValue_InContainer(Dest, asset, cppArrayIndex);
@@ -327,7 +317,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 						UObject* newObj = objProperty->GetObjectPropertyValue_InContainer(Dest, cppArrayIndex);
 						if (newObj == nullptr)
 						{
-							if (auto newObjClass = FindClassFromListByIndex(index))
+							if (auto newObjClass = FindClassFromListByIndex(index, Prefab.Get()))
 							{
 								newObj = NewObject<UObject>(Outter, newObjClass);
 							}
@@ -338,7 +328,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 							objProperty->SetObjectPropertyValue_InContainer(Dest, newObj, cppArrayIndex);
 						}
 					}
-					else if (auto asset = FindAssetFromListByIndex(index))//is asset
+					else if (auto asset = FindAssetFromListByIndex(index, Prefab.Get()))//is asset
 					{
 						objProperty->SetObjectPropertyValue_InContainer(Dest, asset, cppArrayIndex);
 					}
@@ -439,7 +429,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				{
 					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 					LogForBitConvertFail(bitConvertSuccess, Property);
-					auto stringValue = FindStringFromListByIndex(index);
+					auto stringValue = FindStringFromListByIndex(index, Prefab.Get());
 					strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
 				}
 				return true;
@@ -450,7 +440,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				{
 					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 					LogForBitConvertFail(bitConvertSuccess, Property);
-					auto nameValue = FindNameFromListByIndex(index);
+					auto nameValue = FindNameFromListByIndex(index, Prefab.Get());
 					nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
 				}
 				return true;
@@ -461,7 +451,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				{
 					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 					LogForBitConvertFail(bitConvertSuccess, Property);
-					auto textValue = FindTextFromListByIndex(index);
+					auto textValue = FindTextFromListByIndex(index, Prefab.Get());
 					textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
 				}
 				return true;

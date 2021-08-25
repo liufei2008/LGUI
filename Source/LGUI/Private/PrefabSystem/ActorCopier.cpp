@@ -42,7 +42,7 @@ bool ActorCopier::CopyCommonProperty(FProperty* Property, uint8* Src, uint8* Des
 					}
 					if (object->GetClass()->IsChildOf(USceneComponent::StaticClass()))
 					{
-						CopyProperty(object, targetObject, GetComponentExcludeProperties());
+						CopyProperty(object, targetObject, ActorSerializer::GetComponentExcludeProperties());
 					}
 					else
 					{
@@ -284,7 +284,7 @@ void ActorCopier::CopyPropertyForActor(UObject* Origin, UObject* Target, TArray<
 			int32 index;
 			if (ExcludeProperties.Find(propertyName, index))
 			{
-				ExcludeProperties.RemoveAt(index);
+				ExcludeProperties.RemoveAtSwap(index);
 				excludePropertyCount--;
 				continue;
 			}
@@ -307,8 +307,8 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 {
 	TArray<FName>EmptyExcludeProperties;
 
-	auto ActorExcludeProperties = GetActorExcludeProperties();	
-	auto SceneComponentExcludeProperties = GetComponentExcludeProperties();
+	auto ActorExcludeProperties = ActorSerializer::GetActorExcludeProperties(false, true);
+	auto SceneComponentExcludeProperties = ActorSerializer::GetComponentExcludeProperties();
 
 	auto CopiedActor = TargetWorld->SpawnActorDeferred<AActor>(OriginActor->GetClass(), FTransform::Identity);
 	DuplicatingActorCollection.Add(CopiedActor);
@@ -501,7 +501,7 @@ void ActorCopier::CopyComponentValue(UActorComponent* SrcComp, UActorComponent* 
 }
 void ActorCopier::CopyComponentValueInternal(UActorComponent* SrcComp, UActorComponent* TargetComp)
 {
-	auto SceneComponentExcludeProperties = GetComponentExcludeProperties();
+	auto SceneComponentExcludeProperties = ActorSerializer::GetComponentExcludeProperties();
 	SceneComponentExcludeProperties.Add(TEXT("CreationMethod"));
 	if (SrcComp->GetClass() == TargetComp->GetClass())//copy for same type
 	{
@@ -523,22 +523,4 @@ void ActorCopier::GenerateActorIDRecursive(AActor* Actor, int32& id)
 	{
 		GenerateActorIDRecursive(ChildActor, id);
 	}
-}
-TArray<FName> ActorCopier::GetActorExcludeProperties()
-{
-	return {
-		//"Instigator",
-		"RootComponent",//this will result in the copied actor have same RootComponent to original actor, and crash. so we need to skip it
-		"BlueprintCreatedComponents",
-		"InstanceComponents",
-#if WITH_EDITORONLY_DATA
-		"FolderPath",
-#endif
-	};
-}
-TArray<FName> ActorCopier::GetComponentExcludeProperties()
-{
-	return {
-		"AttachParent",
-	};
 }
