@@ -35,7 +35,7 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 		auto& parentWidget = ContentParentUIItem->GetWidget();
 		auto& contentWidget = ContentUIItem->GetWidget();
 		auto contentLocation = ContentUIItem->GetRelativeLocation();
-		if (AllowHorizontalScroll && !ValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->IsUIActiveInHierarchy())
+		if (AllowHorizontalScroll && !ValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.X > 1.0f)
 			{
@@ -51,7 +51,7 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 			}
 			ValueIsSetFromHorizontalScrollbar = false;
 		}
-		if (AllowVerticalScroll && !ValueIsSetFromVerticalScrollbar && VerticalScrollbar->GetUIItem()->IsUIActiveInHierarchy())
+		if (AllowVerticalScroll && !ValueIsSetFromVerticalScrollbar && VerticalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.Y > 1.0f)
 			{
@@ -125,7 +125,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 			{
 				if (HorizontalScrollbar.IsValid())
 				{
-					HorizontalScrollbar->GetUIItem()->SetUIActive(false);
+					HorizontalScrollbar->GetUIItem()->SetIsUIActive(false);
 					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
 						Viewport->GetUIItem()->SetStretchBottom(0);
@@ -139,7 +139,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 			{
 				if (HorizontalScrollbar.IsValid())
 				{
-					HorizontalScrollbar->GetUIItem()->SetUIActive(true);
+					HorizontalScrollbar->GetUIItem()->SetIsUIActive(true);
 					HorizontalScrollbarComp->SetValueAndSize(Progress.X, parentWidth / contentWidth, false);
 					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
@@ -163,7 +163,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 			{
 				if (VerticalScrollbar.IsValid())
 				{
-					VerticalScrollbar->GetUIItem()->SetUIActive(false);
+					VerticalScrollbar->GetUIItem()->SetIsUIActive(false);
 					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
 						Viewport->GetUIItem()->SetStretchRight(0);
@@ -177,7 +177,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 			{
 				if (VerticalScrollbar.IsValid())
 				{
-					VerticalScrollbar->GetUIItem()->SetUIActive(true);
+					VerticalScrollbar->GetUIItem()->SetIsUIActive(true);
 					VerticalScrollbarComp->SetValueAndSize(Progress.Y, parentHeight / contentHeight, false);
 					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{

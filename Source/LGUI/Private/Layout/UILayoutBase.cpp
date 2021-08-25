@@ -76,7 +76,7 @@ void UUILayoutBase::RebuildChildrenList()
         const auto& children = RootUIComp->GetAttachUIChildren();
         for (auto uiItem : children)
         {
-            if (uiItem->IsUIActiveInHierarchy())
+            if (uiItem->GetIsUIActiveInHierarchy())
             {
                 if (uiItem->GetOwner()->GetRootComponent() != uiItem)continue;//only use root component
                 UUILayoutElement* layoutElement = GetLayoutElement(uiItem->GetOwner());
@@ -162,7 +162,7 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
     int32 index;
     FAvaliableChild childData;
     childData.uiItem = InChild;
-    if (attachOrDetach && InChild->IsUIActiveInHierarchy())
+    if (attachOrDetach && InChild->GetIsUIActiveInHierarchy())
     {
         if (!availableChildrenArray.Find(childData, index))
         {

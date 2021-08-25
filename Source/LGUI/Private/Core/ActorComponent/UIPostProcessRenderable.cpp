@@ -124,7 +124,7 @@ DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateRenderable"), STAT_UIPost
 void UUIPostProcessRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIPostProcessRenderableUpdate);
-	if (IsUIActiveInHierarchy() == false)return;
+	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
 	if (!drawcall.IsValid()//not add to render yet
