@@ -67,7 +67,7 @@ void UUIItem::CallUIComponentsActiveInHierarchyStateChanged()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
-	OnUIActiveInHierachy(IsUIActiveInHierarchy());
+	OnUIActiveInHierachy(GetIsUIActiveInHierarchy());
 	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
@@ -78,7 +78,7 @@ void UUIItem::CallUIComponentsActiveInHierarchyStateChanged()
 	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUIBehaviourArray[i];
-		CompItem->OnUIActiveInHierachy(IsUIActiveInHierarchy());
+		CompItem->OnUIActiveInHierachy(GetIsUIActiveInHierarchy());
 	}
 }
 void UUIItem::CallUIComponentsChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
@@ -448,7 +448,7 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 		if (propetyName == GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive))
 		{
 			bIsUIActive = !bIsUIActive;//make it work
-			SetUIActive(!bIsUIActive);
+			SetIsUIActive(!bIsUIActive);
 		}
 
 		else if (propetyName == GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex))
@@ -799,8 +799,8 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		childUIItem->allUpParentGroupAllowInteraction = this->IsGroupAllowInteraction();
 		childUIItem->SetInteractionGroupStateChange();
 		//active
-		childUIItem->allUpParentUIActive = this->IsUIActiveInHierarchy();
-		bool parentUIActive = childUIItem->IsUIActiveInHierarchy();
+		childUIItem->allUpParentUIActive = this->GetIsUIActiveInHierarchy();
+		bool parentUIActive = childUIItem->GetIsUIActiveInHierarchy();
 		childUIItem->SetChildUIActiveRecursive(parentUIActive);
 
 		CallUIComponentsChildAttachmentChanged(childUIItem, true);
@@ -878,7 +878,7 @@ void UUIItem::OnRegister()
 	//apply inactive actor's visibility state in editor scene outliner
 	if (auto ownerActor = GetOwner())
 	{
-		if (!IsUIActiveInHierarchy())
+		if (!GetIsUIActiveInHierarchy())
 		{
 			ownerActor->SetIsTemporarilyHiddenInEditor(true);
 		}
@@ -1873,7 +1873,7 @@ void UUIItem::SetTraceChannel(TEnumAsByte<ETraceTypeQuery> InTraceChannel)
 bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	if (!bRaycastTarget)return false;
-	if (!IsUIActiveInHierarchy())return false;
+	if (!GetIsUIActiveInHierarchy())return false;
 	if (!RenderCanvas.IsValid())return false;
 	if (!GetOwner())return false;
 	auto inverseTf = GetComponentTransform().Inverse();
@@ -2015,7 +2015,7 @@ void UUIItem::SetInteractionGroupStateChange()
 
 void UUIItem::OnChildActiveStateChanged(UUIItem* child)
 {
-	CallUIComponentsChildActiveInHierarchyStateChanged(child, child->IsUIActiveInHierarchy());
+	CallUIComponentsChildActiveInHierarchyStateChanged(child, child->GetIsUIActiveInHierarchy());
 }
 
 void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
@@ -2032,7 +2032,7 @@ void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
 				//apply for state change
 				uiChild->ApplyUIActiveState();
 				//affect children
-				uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
+				uiChild->SetChildUIActiveRecursive(uiChild->GetIsUIActiveInHierarchy());
 				//callback for parent
 				this->OnChildActiveStateChanged(uiChild);
 			}
@@ -2041,12 +2041,12 @@ void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
 			{
 				uiChild->allUpParentUIActive = InUpParentUIActive;
 				//affect children
-				uiChild->SetChildUIActiveRecursive(uiChild->IsUIActiveInHierarchy());
+				uiChild->SetChildUIActiveRecursive(uiChild->GetIsUIActiveInHierarchy());
 			}
 		}
 	}
 }
-void UUIItem::SetUIActive(bool active)
+void UUIItem::SetIsUIActive(bool active)
 {
 	if (bIsUIActive != active)
 	{
@@ -2068,6 +2068,10 @@ void UUIItem::SetUIActive(bool active)
 		}
 	}
 }
+void UUIItem::SetUIActive(bool active)
+{
+	SetIsUIActive(active);
+}
 
 void UUIItem::ApplyUIActiveState()
 {
@@ -2077,13 +2081,13 @@ void UUIItem::ApplyUIActiveState()
 	{
 		auto actorLabel = ownerActor->GetActorLabel();
 		FString prefix("//");
-		if (IsUIActiveInHierarchy() && actorLabel.StartsWith(prefix))
+		if (GetIsUIActiveInHierarchy() && actorLabel.StartsWith(prefix))
 		{
 			actorLabel = actorLabel.Right(actorLabel.Len() - prefix.Len());
 			ownerActor->SetActorLabel(actorLabel);
 			ownerActor->SetIsTemporarilyHiddenInEditor(false);
 		}
-		else if (!IsUIActiveInHierarchy() && !actorLabel.StartsWith(prefix))
+		else if (!GetIsUIActiveInHierarchy() && !actorLabel.StartsWith(prefix))
 		{
 			actorLabel = prefix.Append(actorLabel);
 			ownerActor->SetActorLabel(actorLabel);
@@ -2091,7 +2095,7 @@ void UUIItem::ApplyUIActiveState()
 		}
 	}
 #endif
-	if (isCanvasUIItem)RenderCanvas->OnUIActiveStateChanged(IsUIActiveInHierarchy());
+	if (isCanvasUIItem)RenderCanvas->OnUIActiveStateChanged(GetIsUIActiveInHierarchy());
 	bColorChanged = true;
 	bLayoutChanged = true;
 	//canvas update

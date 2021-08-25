@@ -14,7 +14,7 @@ void UUIGridLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positionChan
 {
 	Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
 #if WITH_EDITOR
-	if (child->IsUIActiveInHierarchy())
+	if (child->GetIsUIActiveInHierarchy())
 	{
 		if (this->GetWorld() == nullptr)return;
 		if (!this->GetWorld()->IsGameWorld())

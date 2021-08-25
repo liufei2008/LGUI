@@ -43,7 +43,7 @@ void UUIBatchGeometryRenderable::TickComponent( float DeltaTime, ELevelTick Tick
 
 void UUIBatchGeometryRenderable::ApplyUIActiveState()
 {
-	if (!IsUIActiveInHierarchy())
+	if (!GetIsUIActiveInHierarchy())
 	{
 		if (bIsSelfRender)
 		{
@@ -372,7 +372,7 @@ DECLARE_CYCLE_STAT(TEXT("UIGeometryRenderable UpdateRenderable"), STAT_UIGeometr
 void UUIBatchGeometryRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIGeometryRenderableUpdate);
-	if (IsUIActiveInHierarchy() == false)return;
+	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
 	if (bIsSelfRender)
@@ -637,7 +637,7 @@ bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& 
 	if (bRaycastComplex)
 	{
 		if (!bRaycastTarget)return false;
-		if (!IsUIActiveInHierarchy())return false;
+		if (!GetIsUIActiveInHierarchy())return false;
 		if (!RenderCanvas.IsValid())return false;
 		if (!GetOwner())return false;
 		if (GetOwner()->GetRootComponent() != this)return false;//only root component can do line trace hit

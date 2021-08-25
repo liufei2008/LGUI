@@ -84,7 +84,7 @@ void ULGUICanvas::UpdateCanvas(float DeltaTime)
 	if (bCanTickUpdate)
 	{
 		bCanTickUpdate = false;
-		if (CheckUIItem() && UIItem->IsUIActiveInHierarchy())
+		if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
 		{
 			this->UpdateRootCanvas();
 		}
@@ -463,7 +463,7 @@ bool ULGUICanvas::GetIsUIActive()const
 {
 	if (UIItem.IsValid())
 	{
-		return UIItem->IsUIActiveInHierarchy();
+		return UIItem->GetIsUIActiveInHierarchy();
 	}
 	return false;
 }
@@ -949,7 +949,7 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged
 	const auto& childrenList = target->GetAttachUIChildren();
 	for (auto uiChild : childrenList)
 	{
-		if (IsValid(uiChild) && uiChild->IsUIActiveInHierarchy())
+		if (IsValid(uiChild) && uiChild->GetIsUIActiveInHierarchy())
 		{
 			if (uiChild->IsCanvasUIItem() && uiChild->GetRenderCanvas() != nullptr && uiChild->GetRenderCanvas() != this)
 			{

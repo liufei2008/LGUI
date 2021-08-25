@@ -41,7 +41,7 @@ bool UUIStaticMesh::CanCreateGeometry()
 }
 void UUIStaticMesh::UpdateGeometry(const bool& parentLayoutChanged)
 {
-	if (IsUIActiveInHierarchy() == false)return;
+	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 	if (!IsValid(mesh))return;
 

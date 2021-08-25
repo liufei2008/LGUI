@@ -929,7 +929,7 @@ int LGUIEditorTools::GetDrawcallCount(AActor* InActor)
 			}
 			if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(rootComp))
 			{
-				return (uiRenderable->GetIsSelfRender() && uiRenderable->IsUIActiveInHierarchy()) ? 1 : 0;
+				return (uiRenderable->GetIsSelfRender() && uiRenderable->GetIsUIActiveInHierarchy()) ? 1 : 0;
 			}
 		}
 	}

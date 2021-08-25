@@ -33,7 +33,7 @@ void UUIBaseRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 void UUIBaseRenderable::ApplyUIActiveState()
 {
-	if (!IsUIActiveInHierarchy())
+	if (!GetIsUIActiveInHierarchy())
 	{
 		if (RenderCanvas.IsValid() && drawcall.IsValid())
 		{

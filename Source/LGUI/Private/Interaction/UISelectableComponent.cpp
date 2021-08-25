@@ -489,7 +489,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 			if (!sel->IsInteractable())
 				continue;
 
-			if(!sel->GetRootComponent()->IsUIActiveInHierarchy())
+			if(!sel->GetRootComponent()->GetIsUIActiveInHierarchy())
 				continue;
 
 			FVector selCenter = sel->CheckRootUIComponent() ? FVector(sel->GetRootComponent()->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;

@@ -309,7 +309,7 @@ protected:
 	 * Active ui is visible and interactable.
 	 * If parent or parent's parent... IsUIActive is false, then this ui is not visible and not interactable.
 	 */
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayName = "Is UI Active"))
 		bool bIsUIActive = true;
 	/** apply IsUIActive state */
 	virtual void ApplyUIActiveState();
@@ -317,12 +317,21 @@ protected:
 public:
 	/** Set this UI element's bIsUIActive */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-	virtual void SetUIActive(bool active);
+		virtual void SetIsUIActive(bool active);
+	UE_DEPRECATED(4.24, "Use SetIsUIActive instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use SetIsUIActive instead."))
+		virtual void SetUIActive(bool active);
 	/** is UI active itself, parent not count */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetIsUIActiveSelf()const { return bIsUIActive; }
+	UE_DEPRECATED(4.24, "Use GetIsUIActiveSelf instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use GetIsUIActiveSelf instead."))
 		bool IsUIActiveSelf()const { return bIsUIActive; }
 	/** is UI active hierarchy. if all up parent of this ui item is active then return this->IsUIActive. if any up parent ui item is not active then return false */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetIsUIActiveInHierarchy()const { return bIsUIActive && allUpParentUIActive; };
+	UE_DEPRECATED(4.24, "Use GetIsUIActiveInHierarchy instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use GetIsUIActiveInHierarchy instead."))
 		bool IsUIActiveInHierarchy()const { return bIsUIActive && allUpParentUIActive; };
 #pragma endregion UIActive
 

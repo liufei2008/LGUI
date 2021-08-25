@@ -13,7 +13,7 @@ DECLARE_CYCLE_STAT(TEXT("UILayout HorizontalRebuildLayout"), STAT_HorizontalLayo
 void UUIHorizontalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
 {
     Super::OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
-    if (child->IsUIActiveInHierarchy())
+    if (child->GetIsUIActiveInHierarchy())
     {
         if (this->GetWorld() == nullptr)return;
         if (!ExpendChildrenWidth)

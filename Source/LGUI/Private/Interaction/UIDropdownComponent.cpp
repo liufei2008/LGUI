@@ -26,7 +26,7 @@ void UUIDropdownComponent::Awake()
 	Super::Awake();
 	if (ListRoot.IsValid())
 	{
-		ListRoot->GetUIItem()->SetUIActive(false);
+		ListRoot->GetUIItem()->SetIsUIActive(false);
 		ListRoot->GetUIItem()->SetAlpha(0);
 		MaxHeight = ListRoot->GetUIItem()->GetHeight();
 	}
@@ -69,7 +69,7 @@ void UUIDropdownComponent::Show()
 	//create blocker
 	CreateBlocker();
 	//show list
-	ListRoot->GetUIItem()->SetUIActive(true);
+	ListRoot->GetUIItem()->SetIsUIActive(true);
 	auto listRootUIItem = ListRoot->GetUIItem();
 	ShowOrHideTweener = ULGUIBPLibrary::AlphaTo(listRootUIItem, 1, 0.3f, 0, LTweenEase::OutCubic);
 	auto canvasOnListRoot = ListRoot->FindComponentByClass<ULGUICanvas>();
@@ -261,7 +261,7 @@ void UUIDropdownComponent::Hide()
 
 	auto listRootUIItem = ListRoot->GetUIItem();
 	ShowOrHideTweener = ULGUIBPLibrary::AlphaTo(listRootUIItem, 0, 0.3f, 0, LTweenEase::InCubic)->OnComplete(FSimpleDelegate::CreateWeakLambda(listRootUIItem, [listRootUIItem] {
-		listRootUIItem->SetUIActive(false);
+		listRootUIItem->SetIsUIActive(false);
 		}));
 
 	if (BlockerActor.IsValid())
@@ -304,7 +304,7 @@ void UUIDropdownComponent::CreateListItems()
 		UE_LOG(LGUI, Error, TEXT("[UUIDropdownComponent::Show]ItemTemplate must be a UIItem!"));
 		return;
 	}
-	templateUIItem->SetUIActive(true);
+	templateUIItem->SetIsUIActive(true);
 	auto contentUIItem = templateUIItem->GetParentAsUIItem();
 	for (int i = 0, count = Options.Num(); i < count; i++)
 	{
@@ -320,7 +320,7 @@ void UUIDropdownComponent::CreateListItems()
 		script->SetSelectionState(i == Value);
 		CreatedItemArray.Add(script);
 	}
-	templateUIItem->SetUIActive(false);
+	templateUIItem->SetIsUIActive(false);
 	if (auto contentLayout = contentUIItem->GetOwner()->FindComponentByClass<UUILayoutBase>())
 	{
 		contentLayout->OnRebuildLayout();

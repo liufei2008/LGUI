@@ -13,7 +13,7 @@ ULGUI_UIRaycaster::ULGUI_UIRaycaster()
 
 bool ULGUI_UIRaycaster::IsHitVisibleUI(UUIItem* HitUI, const FVector& HitPoint)
 {
-	if (HitUI->IsUIActiveInHierarchy())
+	if (HitUI->GetIsUIActiveInHierarchy())
 	{
 		auto renderCanvas = HitUI->GetRenderCanvas();
 		if (renderCanvas)
