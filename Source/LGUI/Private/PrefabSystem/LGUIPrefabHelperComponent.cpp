@@ -41,19 +41,23 @@ void ULGUIPrefabHelperComponent::MoveActorToPrefabFolder()
 }
 void ULGUIPrefabHelperComponent::LoadPrefab()
 {
-	if (!LoadedRootActor)
+	if (!IsValid(LoadedRootActor))
 	{
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 
+		auto ExistingActors = AllLoadedActorArray;
+		auto ExistingActorsGuid = AllLoadedActorsGuidArrayInPrefab;
 		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
-			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() 
-			: nullptr, AllLoadedActorArray);
+			, IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent()
+			: nullptr, ExistingActors, ExistingActorsGuid, AllLoadedActorArray, AllLoadedActorsGuidArrayInPrefab);
 		ParentActorForEditor = nullptr;
 
 		FActorFolders::Get().CreateFolder(*this->GetWorld(), PrefabFolderName);
 		this->GetOwner()->SetFolderPath(PrefabFolderName);
 		GEditor->SelectNone(false, true);
 		GEditor->SelectActor(LoadedRootActor, true, false);
+		PrefabInstance = NewObject<ULGUIPrefab>(this);
+		PrefabAsset->CopyTo(PrefabInstance);
 
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 
@@ -76,11 +80,15 @@ void ULGUIPrefabHelperComponent::SavePrefab()
 		{
 			Target = GetOwner();
 		}
-		LGUIPrefabSystem::ActorSerializer serializer(this->GetWorld());
-		serializer.SerializeActor(Target, PrefabAsset);
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(Target, PrefabAsset, {}, {});
 
 		AllLoadedActorArray.Empty();
+		AllLoadedActorsGuidArrayInPrefab.Empty();
 		LGUIUtils::CollectChildrenActors(Target, AllLoadedActorArray);
+		for (int i = 0; i < AllLoadedActorArray.Num(); i++)
+		{
+			AllLoadedActorsGuidArrayInPrefab.Add(AllLoadedActorArray[i]->GetActorGuid());
+		}
 	}
 	else
 	{
@@ -90,13 +98,13 @@ void ULGUIPrefabHelperComponent::SavePrefab()
 
 void ULGUIPrefabHelperComponent::RevertPrefab()
 {
-	if (PrefabAsset)
+	if (IsValid(PrefabAsset))
 	{
 		AActor* OldParentActor = nullptr;
 		bool haveRootTransform = true;
 		FTransform OldTransform;
 		FUIWidget OldWidget;
-		//delete loaded actor
+		//store root transform
 		if (IsValid(LoadedRootActor))
 		{
 			OldParentActor = LoadedRootActor->GetAttachParentActor();
@@ -109,11 +117,27 @@ void ULGUIPrefabHelperComponent::RevertPrefab()
 					OldWidget = RootUIComp->GetWidget();
 				}
 			}
-			LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
-			LoadedRootActor = nullptr;
 		}
 		//create new actor
-		LoadPrefab();
+		{
+			//Clear AllLoadedActorArray, remove it if not under root actor
+			if (AllLoadedActorArray.Num() == AllLoadedActorsGuidArrayInPrefab.Num())
+			{
+				for (int i = AllLoadedActorArray.Num() - 1; i >= 0; i--)
+				{
+					if (!IsValid(AllLoadedActorArray[i])
+						|| (!AllLoadedActorArray[i]->IsAttachedTo(LoadedRootActor) && AllLoadedActorArray[i] != LoadedRootActor)
+						)
+					{
+						AllLoadedActorArray.RemoveAt(i);
+						AllLoadedActorsGuidArrayInPrefab.RemoveAt(i);
+					}
+				}
+			}
+			LoadedRootActor = nullptr;
+			LoadPrefab();
+		}
+
 		if (IsValid(LoadedRootActor))
 		{
 			LoadedRootActor->AttachToActor(OldParentActor, FAttachmentTransformRules::KeepRelativeTransform);

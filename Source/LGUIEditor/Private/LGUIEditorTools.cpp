@@ -254,7 +254,7 @@ void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *InPrefabPath);
 	if (prefab)
 	{
-		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab
+		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab
 			, selectedActor == nullptr ? nullptr : selectedActor->GetRootComponent());
 		GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
@@ -345,7 +345,7 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab);
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, {}, {});
 		copiedActorPrefabList.Add(prefab);
 	}
 }
@@ -371,7 +371,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	{
 		if (prefab.IsValid())
 		{
-			auto copiedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab.Get(), parentComp, false);
+			auto copiedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab.Get(), parentComp, false);
 			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
 			copiedActor->SetActorLabel(copiedActorLabel);
 			GEditor->SelectActor(copiedActor, true, true);
@@ -512,7 +512,7 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, nullptr, true);
+		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetRelativeScale3D(FVector::OneVector);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(0, 180, 0)));
@@ -553,7 +553,7 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, nullptr, true);
+		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(-90, 0, 0)));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
@@ -594,7 +594,7 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(GetWorldFromSelection(), prefab, nullptr, true);
+		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(-90, 0, 0)));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
@@ -740,7 +740,6 @@ void LGUIEditorTools::CreatePrefabAsset()
 					auto prefabComp = prefabActor->GetPrefabComponent();
 					prefabComp->PrefabAsset = OutPrefab;
 					prefabComp->LoadedRootActor = selectedActor;
-					LGUIUtils::CollectChildrenActors(selectedActor, prefabComp->AllLoadedActorArray);
 					prefabActor->FinishSpawning(FTransform::Identity, true);
 					prefabComp->SavePrefab();
 
@@ -986,38 +985,7 @@ void LGUIEditorTools::SetTraceChannelToParent_Recursive(AActor* InActor)
 		SetTraceChannelToParent_Recursive(itemActor);
 	}
 }
-void LGUIEditorTools::SpawnPrefabForEdit(ULGUIPrefab* InPrefab)
-{
-	if (!IsValid(InPrefab))return;
 
-	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
-	GEditor->BeginTransaction(LOCTEXT("CreateUIControl", "LGUI Create UI Control"));
-	auto selectedActor = GetFirstSelectedActor();
-	MakeCurrentLevel(selectedActor);
-	
-
-	auto PrefabActor = GetWorldFromSelection()->SpawnActorDeferred<ALGUIPrefabActor>(ALGUIPrefabActor::StaticClass(), FTransform::Identity);
-	auto prefabComp = PrefabActor->GetPrefabComponent();
-	prefabComp->PrefabAsset = InPrefab;
-
-	//prefabComp->SetRelativeRotation(FQuat::MakeFromEuler(FVector(-90, 0, 90)));
-	prefabComp->ParentActorForEditor = selectedActor;
-	PrefabActor->FinishSpawning(FTransform::Identity, true);
-
-	prefabComp->LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(prefabComp->GetWorld(), InPrefab
-		, IsValid(prefabComp->ParentActorForEditor) ? prefabComp->ParentActorForEditor->GetRootComponent()
-		: nullptr, prefabComp->AllLoadedActorArray);
-	prefabComp->ParentActorForEditor = nullptr;
-
-	prefabComp->MoveActorToPrefabFolder();
-	prefabComp->LoadPrefab();
-	GEditor->SelectNone(true, true);
-	GEditor->SelectActor(prefabComp->LoadedRootActor, true, true, false, true);
-
-
-	GEditor->EndTransaction();
-	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
-}
 void LGUIEditorTools::RefreshSceneOutliner()
 {
 	GEngine->BroadcastLevelActorListChanged();

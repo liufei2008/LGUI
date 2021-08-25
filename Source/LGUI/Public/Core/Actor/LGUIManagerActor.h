@@ -118,6 +118,8 @@ private:
 	void OnActorLabelChanged(AActor* actor);
 	FDelegateHandle OnActorDeletedDelegateHandle;
 	void OnActorDeleted();
+	FDelegateHandle OnMapOpenedDelegateHandle;
+	void OnMapOpened(const FString& FileName, bool AsTemplate);
 #if 0
 	void LogObjectFlags(UObject* obj);
 #endif

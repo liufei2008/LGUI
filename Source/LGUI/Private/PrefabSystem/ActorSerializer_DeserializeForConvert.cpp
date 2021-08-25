@@ -16,27 +16,27 @@ using namespace LGUIPrefabSystem;
 void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData, int32& id)
 {
 	ResultSaveData.InitFromActorSaveData(SaveData);
-	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass))
+	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
-		LoadPropertyForConvert(ActorClass, SaveData.ActorPropertyData, ResultSaveData.ActorPropertyData, GetActorExcludeProperties());
+		LoadPropertyForConvert(ActorClass, SaveData.ActorPropertyData, ResultSaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];
 		FLGUIComponentSaveDataForBuild RootCompSaveDataForBuild;
 		RootCompSaveDataForBuild.InitFromComponentSaveData(RootCompSaveData);
 		if (RootCompSaveData.ComponentClass != -1)//have RootComponent data
 		{
-			if (auto CompClass = FindClassFromListByIndex(RootCompSaveData.ComponentClass))
+			if (auto CompClass = FindClassFromListByIndex(RootCompSaveData.ComponentClass, Prefab.Get()))
 			{
 				if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = USceneComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				LoadPropertyForConvert(CompClass, RootCompSaveData.PropertyData, RootCompSaveDataForBuild.PropertyData, GetComponentExcludeProperties());
 				ResultSaveData.ComponentPropertyData.Add(RootCompSaveDataForBuild);
@@ -49,19 +49,19 @@ void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveDa
 			auto CompData = SaveData.ComponentPropertyData[i];
 			FLGUIComponentSaveDataForBuild CompDataForBuild;
 			CompDataForBuild.InitFromComponentSaveData(CompData);
-			if (auto CompClass = FindClassFromListByIndex(CompData.ComponentClass))
+			if (auto CompClass = FindClassFromListByIndex(CompData.ComponentClass, Prefab.Get()))
 			{
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				LoadPropertyForConvert(CompClass, CompData.PropertyData, CompDataForBuild.PropertyData, GetComponentExcludeProperties());
 				ResultSaveData.ComponentPropertyData.Add(CompDataForBuild);
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[DeserializeActorRecursive]Component Class of index:%d not found!"), (CompData.ComponentClass));
+				UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Component Class of index:%d not found!"), (CompData.ComponentClass));
 			}
 		}
 
@@ -76,7 +76,7 @@ void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveDa
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[DeserializeActorRecursive]Actor Class of index:%d not found!"), (SaveData.ActorClass));
+		UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Actor Class of index:%d not found!"), (SaveData.ActorClass));
 	}
 }
 
@@ -194,7 +194,7 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 				{
 					if (Property->HasAnyPropertyFlags(CPF_InstancedReference))//is instanced object
 					{
-						if (auto newObjClass = FindClassFromListByIndex(index))
+						if (auto newObjClass = FindClassFromListByIndex(index, Prefab.Get()))
 						{
 							LoadPropertyForConvert(newObjClass, ItemPropertyData.ContainerData, ItemPropertyDataForBuild.ContainerData, {});
 						}

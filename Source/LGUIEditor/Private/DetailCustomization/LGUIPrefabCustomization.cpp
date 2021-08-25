@@ -270,9 +270,8 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 		}
 		if (IsValid(world))
 		{
-			LGUIPrefabSystem::ActorSerializer serializer(world);
-			auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(world, script, nullptr);
-			serializer.SerializeActor(loadedActor, script);
+			auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForRecreate(world, script, nullptr);
+			LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, script, {}, {});
 			LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
 		}
 		else
@@ -325,9 +324,8 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 						|| prefab->PrefabVersion != LGUI_PREFAB_VERSION
 						)
 					{
-						LGUIPrefabSystem::ActorSerializer serializer(world);
-						auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(world, prefab, nullptr);
-						serializer.SerializeActor(loadedActor, prefab);
+						auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForRecreate(world, prefab, nullptr);
+						LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, prefab, {}, {});
 						LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
 					}
 				}
@@ -338,7 +336,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 }
 FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 {
-	LGUIEditorTools::SpawnPrefabForEdit(TargetScriptPtr.Get());
+	//LGUIEditorTools::SpawnPrefabForEdit(TargetScriptPtr.Get());
 	return FReply::Handled();
 }
 #undef LOCTEXT_NAMESPACE

@@ -43,7 +43,7 @@ bool ActorReplaceTool::CopyCommonProperty(FProperty* Property, uint8* Src, uint8
 					}
 					if (object->GetClass()->IsChildOf(USceneComponent::StaticClass()))
 					{
-						CopyProperty(object, targetObject, GetComponentExcludeProperties());
+						CopyProperty(object, targetObject, ActorSerializer::GetComponentExcludeProperties());
 					}
 					else
 					{
@@ -220,7 +220,7 @@ void ActorReplaceTool::CopyPropertyForActorChecked(UObject* Origin, UObject* Tar
 			int32 index;
 			if (ExcludeProperties.Find(propertyName, index))
 			{
-				ExcludeProperties.RemoveAt(index);
+				ExcludeProperties.RemoveAtSwap(index);
 				excludePropertyCount--;
 				continue;
 			}
@@ -265,24 +265,6 @@ void ActorReplaceTool::CopyPropertyForActorChecked(UObject* Origin, UObject* Tar
 	}
 }
 
-TArray<FName> ActorReplaceTool::GetActorExcludeProperties()
-{
-	return {
-		//"Instigator",
-		"RootComponent",//this will result in the copied actor have same RootComponent to original actor, and crash. so we need to skip it
-		"BlueprintCreatedComponents",
-		"InstanceComponents",
-#if WITH_EDITORONLY_DATA
-		"FolderPath",
-#endif
-	};
-}
-TArray<FName> ActorReplaceTool::GetComponentExcludeProperties()
-{
-	return {
-		"AttachParent",
-	};
-}
 
 
 
@@ -317,8 +299,8 @@ AActor* ActorReplaceTool::ReplaceActorClassInternal(AActor* TargetActor, TSubcla
 	auto Result = CopySingleActorAndReplaceClass(TargetActor, NewActorClass);
 	Result->FinishSpawning(FTransform::Identity, true);
 
-	auto ActorExcludeProperties = GetActorExcludeProperties();
-	auto SceneComponentExcludeProperties = GetComponentExcludeProperties();
+	auto ActorExcludeProperties = ActorSerializer::GetActorExcludeProperties(false, true);
+	auto SceneComponentExcludeProperties = ActorSerializer::GetComponentExcludeProperties();
 	//iterate all actors in world and replace actor referece
 	for (TActorIterator<AActor> ActorItr(TargetActor->GetWorld()); ActorItr; ++ActorItr)
 	{
@@ -338,8 +320,8 @@ AActor* ActorReplaceTool::CopySingleActorAndReplaceClass(AActor* TargetActor, TS
 {
 	TArray<FName>EmptyExcludeProperties;
 
-	auto ActorExcludeProperties = GetActorExcludeProperties();
-	auto SceneComponentExcludeProperties = GetComponentExcludeProperties();
+	auto ActorExcludeProperties = ActorSerializer::GetActorExcludeProperties(false, true);
+	auto SceneComponentExcludeProperties = ActorSerializer::GetComponentExcludeProperties();
 
 	CopiedActor = TargetActor->GetWorld()->SpawnActorDeferred<AActor>(NewActorClass, FTransform::Identity);
 	CopyPropertyForActorChecked(TargetActor, CopiedActor, ActorExcludeProperties);
@@ -428,7 +410,7 @@ void ActorReplaceTool::CheckPropertyForActor(UObject* Origin, TArray<FName> Excl
 			int32 index;
 			if (ExcludeProperties.Find(propertyName, index))
 			{
-				ExcludeProperties.RemoveAt(index);
+				ExcludeProperties.RemoveAtSwap(index);
 				excludePropertyCount--;
 				continue;
 			}
@@ -485,7 +467,7 @@ bool ActorReplaceTool::CheckCommonProperty(FProperty* Property, uint8* Src, int 
 				{
 					if (object->GetClass()->IsChildOf(USceneComponent::StaticClass()))
 					{
-						CheckProperty(object, GetComponentExcludeProperties());
+						CheckProperty(object, ActorSerializer::GetComponentExcludeProperties());
 					}
 					else
 					{

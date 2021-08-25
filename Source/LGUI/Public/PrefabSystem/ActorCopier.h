@@ -72,8 +72,5 @@ namespace LGUIPrefabSystem
 		//@param	return	true-for cpp array, if need to loop for next, false otherwise
 		bool CopyCommonProperty(FProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex = 0, bool isInsideCppArray = false);
 		void CopyCommonPropertyForChecked(FProperty* Property, uint8* Src, uint8* Dest);
-
-		TArray<FName> GetActorExcludeProperties();
-		TArray<FName> GetComponentExcludeProperties();
 	};
 }
