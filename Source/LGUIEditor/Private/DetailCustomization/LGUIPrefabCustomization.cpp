@@ -271,7 +271,9 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 		if (IsValid(world))
 		{
 			auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForRecreate(world, script, nullptr);
-			LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, script, {}, {});
+			TArray<AActor*> Actors;
+			TArray<FGuid> ActorsGuid;
+			LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, script, {}, {}, Actors, ActorsGuid);
 			LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
 		}
 		else
@@ -325,7 +327,9 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 						)
 					{
 						auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForRecreate(world, prefab, nullptr);
-						LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, prefab, {}, {});
+						TArray<AActor*> Actors;
+						TArray<FGuid> ActorsGuid;
+						LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, prefab, {}, {}, Actors, ActorsGuid);
 						LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
 					}
 				}

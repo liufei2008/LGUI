@@ -314,7 +314,7 @@ namespace LGUIPrefabSystem
 	public:
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale);
-		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab);
+		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid);
 #if WITH_EDITOR
 		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
 		static AActor* LoadPrefabInEditor(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
@@ -363,6 +363,9 @@ namespace LGUIPrefabSystem
 		TArray<FGuid> CreatedActorsGuid;//collect for created actors
 		TArray<AActor*> ExistingActors;//prefab instance actors in level
 		TArray<FGuid> ExistingActorsGuid;//prefab instance actor's guid in level
+
+		TArray<AActor*> SerializedActors;//collect for created actors
+		TArray<FGuid> SerializedActorsGuid;//collect for created actors
 #endif
 
 		//SceneComponent that belong to same actor, use this struct to store parent's name and then reparent it

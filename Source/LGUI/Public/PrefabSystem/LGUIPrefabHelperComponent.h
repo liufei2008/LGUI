@@ -42,8 +42,12 @@ public:
 
 	void RemoveEditorTickDelegate();
 	void EditorTick(float DeltaTime);
+private:
+	//Clear AllLoadedActorArray, remove it if not under root actor
+	void ClearAllLoadedActors();
 #endif
 #if WITH_EDITORONLY_DATA
+public:
 	UPROPERTY(Transient)AActor* ParentActorForEditor;
 	//Donot change this unless you know what you doing
 	UPROPERTY(EditAnywhere, Category = "LGUI")

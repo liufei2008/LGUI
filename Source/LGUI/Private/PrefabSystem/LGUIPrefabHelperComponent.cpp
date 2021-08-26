@@ -80,11 +80,12 @@ void ULGUIPrefabHelperComponent::SavePrefab()
 		{
 			Target = GetOwner();
 		}
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(Target, PrefabAsset, {}, {});
 
-		AllLoadedActorArray.Empty();
-		AllLoadedActorsGuidArrayInPrefab.Empty();
-		LGUIUtils::CollectChildrenActors(Target, AllLoadedActorArray);
+		ClearAllLoadedActors();
+		auto ExistingActors = AllLoadedActorArray;
+		auto ExistingActorsGuid = AllLoadedActorsGuidArrayInPrefab;
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(Target, PrefabAsset, ExistingActors, ExistingActorsGuid, AllLoadedActorArray, AllLoadedActorsGuidArrayInPrefab);
+
 		for (int i = 0; i < AllLoadedActorArray.Num(); i++)
 		{
 			AllLoadedActorsGuidArrayInPrefab.Add(AllLoadedActorArray[i]->GetActorGuid());
@@ -120,20 +121,7 @@ void ULGUIPrefabHelperComponent::RevertPrefab()
 		}
 		//create new actor
 		{
-			//Clear AllLoadedActorArray, remove it if not under root actor
-			if (AllLoadedActorArray.Num() == AllLoadedActorsGuidArrayInPrefab.Num())
-			{
-				for (int i = AllLoadedActorArray.Num() - 1; i >= 0; i--)
-				{
-					if (!IsValid(AllLoadedActorArray[i])
-						|| (!AllLoadedActorArray[i]->IsAttachedTo(LoadedRootActor) && AllLoadedActorArray[i] != LoadedRootActor)
-						)
-					{
-						AllLoadedActorArray.RemoveAt(i);
-						AllLoadedActorsGuidArrayInPrefab.RemoveAt(i);
-					}
-				}
-			}
+			ClearAllLoadedActors();
 			LoadedRootActor = nullptr;
 			LoadPrefab();
 		}
@@ -193,5 +181,27 @@ void ULGUIPrefabHelperComponent::EditorTick(float DeltaTime)
 {
 	GEditor->SelectActor(this->GetOwner(), false, true);
 	RemoveEditorTickDelegate();
+}
+void ULGUIPrefabHelperComponent::ClearAllLoadedActors()
+{
+	//Clear AllLoadedActorArray, remove it if not under root actor
+	if (AllLoadedActorArray.Num() == AllLoadedActorsGuidArrayInPrefab.Num())
+	{
+		for (int i = AllLoadedActorArray.Num() - 1; i >= 0; i--)
+		{
+			if (!IsValid(AllLoadedActorArray[i])
+				|| (!AllLoadedActorArray[i]->IsAttachedTo(LoadedRootActor) && AllLoadedActorArray[i] != LoadedRootActor)
+				)
+			{
+				AllLoadedActorArray.RemoveAt(i);
+				AllLoadedActorsGuidArrayInPrefab.RemoveAt(i);
+			}
+		}
+	}
+	else
+	{
+		AllLoadedActorArray.Empty();
+		AllLoadedActorsGuidArrayInPrefab.Empty();
+	}
 }
 #endif

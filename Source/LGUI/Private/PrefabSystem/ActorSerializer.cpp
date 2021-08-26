@@ -598,6 +598,8 @@ FLGUIActorSaveData ActorSerializer::SerializeSingleActor(AActor* Actor)
 		ExistingActorsGuid.RemoveAtSwap(foundActorIndex);
 		ActorRecord.SetActorGuid(guid);
 	}
+	SerializedActors.Add(Actor);
+	SerializedActorsGuid.Add(ActorRecord.GetActorGuid());
 #endif
 	auto &Components = Actor->GetComponents();
 
@@ -674,7 +676,7 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 	}
 	ActorSaveData.ChildActorData = ChildSaveDataList;
 }
-void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab)
+void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid)
 {
 	if (!RootActor || !InPrefab)
 	{
@@ -690,6 +692,8 @@ void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, const
 	serializer.ExistingActors = InExistingActorArray;
 	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
 	serializer.SerializeActor(RootActor, InPrefab);
+	OutSerializedActors = serializer.SerializedActors;
+	OutSerializedActorsGuid = serializer.SerializedActorsGuid;
 }
 void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 {
