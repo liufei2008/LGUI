@@ -185,6 +185,13 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 	{
 		if (IsValid(InWorld))
 		{
+			if (InWorld->IsGameWorld())
+			{
+				auto msg = FString(TEXT("[ULGUIEditorManagerObject::InitCheck]Trying to create a LGUIEditorManagerObject in game mode, this is not allowed!"));
+				UE_LOG(LGUI, Error, TEXT("%s"), *msg);
+				LGUIUtils::EditorNotification(FText::FromString(msg));
+				return nullptr;
+			}
 			Instance = NewObject<ULGUIEditorManagerObject>();
 			Instance->AddToRoot();
 			UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));

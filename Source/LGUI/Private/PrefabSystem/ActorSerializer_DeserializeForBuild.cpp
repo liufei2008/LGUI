@@ -25,6 +25,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
 		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+		CreatedActors.Add(NewActor);
 		LoadPropertyForBuild(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];

@@ -25,7 +25,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 		}
 
 		AActor* NewActor = nullptr;
-		auto guidInPrefab = SaveData.GetActorGuid();
+		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
 		int foundActorIndex = ExistingActorsGuid.Find(guidInPrefab);
 		bool useExistActor = foundActorIndex != INDEX_NONE;
 		if (useExistActor)
