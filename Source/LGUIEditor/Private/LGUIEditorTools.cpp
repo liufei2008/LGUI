@@ -345,7 +345,9 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, {}, {});
+		TArray<AActor*> Actors;
+		TArray<FGuid> ActorsGuid;
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, {}, {}, Actors, ActorsGuid);
 		copiedActorPrefabList.Add(prefab);
 	}
 }
