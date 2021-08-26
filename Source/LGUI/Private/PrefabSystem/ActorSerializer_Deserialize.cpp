@@ -13,6 +13,7 @@
 
 using namespace LGUIPrefabSystem;
 
+#if WITH_EDITOR
 AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id)
 {
 	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
@@ -24,7 +25,15 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-		ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
+		if (!TargetWorld->IsGameWorld())
+		{
+			ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
+		}
+		else
+		{
+			ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+		}
+		CreatedActors.Add(NewActor);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];
@@ -482,3 +491,4 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 	}
 	return false;
 }
+#endif

@@ -25,7 +25,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForRecreate(USceneComponent* P
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-		auto guidInPrefab = SaveData.GetActorGuid();
+		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
 		bool skipGuid = false;
 		if (CreatedActorsGuid.Contains(guidInPrefab))
 		{
@@ -34,7 +34,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForRecreate(USceneComponent* P
 		}
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, skipGuid));
 		CreatedActorsGuid.Add(NewActor->GetActorGuid());
-		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+		ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];
 		auto RootComp = NewActor->GetRootComponent();

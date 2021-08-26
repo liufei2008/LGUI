@@ -44,7 +44,7 @@ void FLGUIPrefabHelperComponentCustomization::CustomizeDetails(IDetailLayoutBuil
 		.VAlign(VAlign_Center)
 		.Text(LOCTEXT("Apply", "Apply"))
 		.ToolTipText(LOCTEXT("ApplyButtonToolTip","Apply changes to prefab asset"))
-		.OnClicked_Lambda([&]() { TargetScriptPtr->SavePrefab(); return FReply::Handled(); })
+		.OnClicked_Lambda([&]() { TargetScriptPtr->SavePrefab(false); return FReply::Handled(); })
 		];
 	if (TargetScriptPtr->LoadedRootActor != nullptr)
 	{
