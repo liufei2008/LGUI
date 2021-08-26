@@ -23,7 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void LoadPrefab();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SavePrefab();
+		void SavePrefab(bool InCreateOrApply);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void RevertPrefab();
 	//delete this prefab actor
@@ -44,7 +44,7 @@ public:
 	void EditorTick(float DeltaTime);
 private:
 	//Clear AllLoadedActorArray, remove it if not under root actor
-	void ClearAllLoadedActors();
+	void CleanupLoadedActors();
 #endif
 #if WITH_EDITORONLY_DATA
 public:

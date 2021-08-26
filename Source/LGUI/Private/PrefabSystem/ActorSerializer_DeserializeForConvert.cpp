@@ -13,6 +13,7 @@
 
 using namespace LGUIPrefabSystem;
 
+#if WITH_EDITOR
 void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData, int32& id)
 {
 	ResultSaveData.InitFromActorSaveData(SaveData);
@@ -342,7 +343,6 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 	return false;
 }
 
-#if WITH_EDITOR
 void ActorSerializer::ConvertForBuildData(ULGUIPrefab* InPrefab)
 {
 	FLGUIPrefabSaveData SaveData;

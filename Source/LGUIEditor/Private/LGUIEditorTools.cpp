@@ -346,7 +346,7 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		prefab->AddToRoot();
 		TArray<AActor*> Actors;
 		TArray<FGuid> ActorsGuid;
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, {}, {}, Actors, ActorsGuid);
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::CreateNew, {}, {}, Actors, ActorsGuid);
 		copiedActorPrefabList.Add(prefab);
 	}
 }
@@ -742,7 +742,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 					prefabComp->PrefabAsset = OutPrefab;
 					prefabComp->LoadedRootActor = selectedActor;
 					prefabActor->FinishSpawning(FTransform::Identity, true);
-					prefabComp->SavePrefab();
+					prefabComp->SavePrefab(true);
 
 					prefabComp->MoveActorToPrefabFolder();
 				}
@@ -767,7 +767,7 @@ void LGUIEditorTools::ApplyPrefab()
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
-		prefabActor->GetPrefabComponent()->SavePrefab();
+		prefabActor->GetPrefabComponent()->SavePrefab(false);
 	}
 	GEditor->EndTransaction();
 }

@@ -220,11 +220,10 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 	}
 	else
-#else
 	{
 		for (auto Actor : CreatedActors)
 		{
-			if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destroyed by other actor when BeginPlay
+			if (IsValid(Actor))
 			{
 #if WITH_EDITOR
 				if (TargetWorld->IsGameWorld())
@@ -232,6 +231,16 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 					Actor->bIsEditorPreviewActor = false;//make this to false, or BeginPlay won't be called
 				}
 #endif
+				Actor->FinishSpawning(FTransform::Identity, true);
+			}
+		}
+	}
+#else
+	{
+		for (auto Actor : CreatedActors)
+		{
+			if (Actor->IsValidLowLevel() && !Actor->IsPendingKill())//check, incase some actor is destroyed by other actor when BeginPlay
+			{
 				Actor->FinishSpawning(FTransform::Identity, true);//BeginPlay is called at this point
 			}
 		}
@@ -589,17 +598,27 @@ FLGUIActorSaveData ActorSerializer::SerializeSingleActor(AActor* Actor)
 
 	SaveProperty(Actor, ActorRecord.ActorPropertyData, GetActorExcludeProperties(true, false));
 #if WITH_EDITOR
-	//replace guid
-	int foundActorIndex = ExistingActors.Find(Actor);
-	if (foundActorIndex != INDEX_NONE)
+	if (serializeMode == EPrefabSerializeMode::RecreateFromExisting)//no need to replace guid
 	{
-		auto guid = ExistingActorsGuid[foundActorIndex];
-		ExistingActors.RemoveAtSwap(foundActorIndex);
-		ExistingActorsGuid.RemoveAtSwap(foundActorIndex);
-		ActorRecord.SetActorGuid(guid);
+	}
+	else if (serializeMode == EPrefabSerializeMode::CreateNew)
+	{
+		ActorRecord.SetActorGuid(FGuid::NewGuid());//create mode use new guid
+	}
+	else if (serializeMode == EPrefabSerializeMode::Apply)//apply mode use existing guid
+	{
+		//replace guid
+		int foundActorIndex = ExistingActors.Find(Actor);
+		if (foundActorIndex != INDEX_NONE)
+		{
+			auto guid = ExistingActorsGuid[foundActorIndex];
+			ExistingActors.RemoveAtSwap(foundActorIndex);
+			ExistingActorsGuid.RemoveAtSwap(foundActorIndex);
+			ActorRecord.SetActorGuid(guid);
+		}
 	}
 	SerializedActors.Add(Actor);
-	SerializedActorsGuid.Add(ActorRecord.GetActorGuid());
+	SerializedActorsGuid.Add(ActorRecord.GetActorGuid(Actor->GetActorGuid()));
 #endif
 	auto &Components = Actor->GetComponents();
 
@@ -676,7 +695,8 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 	}
 	ActorSaveData.ChildActorData = ChildSaveDataList;
 }
-void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid)
+#if WITH_EDITOR
+void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPrefabSerializeMode InSerializeMode, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid)
 {
 	if (!RootActor || !InPrefab)
 	{
@@ -689,12 +709,14 @@ void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, const
 		return;
 	}
 	ActorSerializer serializer(RootActor->GetWorld());
+	serializer.serializeMode = InSerializeMode;
 	serializer.ExistingActors = InExistingActorArray;
 	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
 	serializer.SerializeActor(RootActor, InPrefab);
 	OutSerializedActors = serializer.SerializedActors;
 	OutSerializedActorsGuid = serializer.SerializedActorsGuid;
 }
+#endif
 void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 {
 	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
@@ -1112,7 +1134,7 @@ FString ActorSerializer::GetValueAsString(const FLGUIPropertyData &ItemPropertyD
 }
 
 #if WITH_EDITOR
-FGuid FLGUIActorSaveData::GetActorGuid() const
+FGuid FLGUIActorSaveData::GetActorGuid(FGuid fallbackGuid) const
 {
 	FGuid guid;
 	FLGUIPropertyData guidData;
@@ -1132,9 +1154,8 @@ FGuid FLGUIActorSaveData::GetActorGuid() const
 			}
 		}
 	}
-	UE_LOG(LGUI, Error, TEXT("[FLGUIActorSaveData::GetActorGuid] Failed to get ActorGuid!"));
-	check(0);
-	guid = FGuid::NewGuid();
+	UE_LOG(LGUI, Warning, TEXT("[FLGUIActorSaveData::GetActorGuid] Failed to get ActorGuid, maybe this actor is created by previous UE version."));
+	guid = fallbackGuid;
 	return guid;
 }
 void FLGUIActorSaveData::SetActorGuid(FGuid guid)

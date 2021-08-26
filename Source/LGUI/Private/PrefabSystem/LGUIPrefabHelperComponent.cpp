@@ -67,7 +67,7 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 		}
 	}
 }
-void ULGUIPrefabHelperComponent::SavePrefab()
+void ULGUIPrefabHelperComponent::SavePrefab(bool InCreateOrApply)
 {
 	if (PrefabAsset)
 	{
@@ -81,10 +81,12 @@ void ULGUIPrefabHelperComponent::SavePrefab()
 			Target = GetOwner();
 		}
 
-		ClearAllLoadedActors();
+		CleanupLoadedActors();
 		auto ExistingActors = AllLoadedActorArray;
 		auto ExistingActorsGuid = AllLoadedActorsGuidArrayInPrefab;
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(Target, PrefabAsset, ExistingActors, ExistingActorsGuid, AllLoadedActorArray, AllLoadedActorsGuidArrayInPrefab);
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(Target, PrefabAsset
+			, InCreateOrApply ? LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::CreateNew : LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::Apply
+			, ExistingActors, ExistingActorsGuid, AllLoadedActorArray, AllLoadedActorsGuidArrayInPrefab);
 
 		for (int i = 0; i < AllLoadedActorArray.Num(); i++)
 		{
@@ -121,7 +123,7 @@ void ULGUIPrefabHelperComponent::RevertPrefab()
 		}
 		//create new actor
 		{
-			ClearAllLoadedActors();
+			CleanupLoadedActors();
 			LoadedRootActor = nullptr;
 			LoadPrefab();
 		}
@@ -182,7 +184,7 @@ void ULGUIPrefabHelperComponent::EditorTick(float DeltaTime)
 	GEditor->SelectActor(this->GetOwner(), false, true);
 	RemoveEditorTickDelegate();
 }
-void ULGUIPrefabHelperComponent::ClearAllLoadedActors()
+void ULGUIPrefabHelperComponent::CleanupLoadedActors()
 {
 	//Clear AllLoadedActorArray, remove it if not under root actor
 	if (AllLoadedActorArray.Num() == AllLoadedActorsGuidArrayInPrefab.Num())
