@@ -336,7 +336,7 @@ namespace LGUIPrefabSystem
 		static void SetActorGUID(AActor* Actor, FGuid Guid);
 
 	private:
-		TWeakObjectPtr<UWorld> TargetWorld = nullptr;
+		TWeakObjectPtr<UWorld> TargetWorld = nullptr;//world that need to spawn actor
 
 		TWeakObjectPtr<ULGUIPrefab> Prefab = nullptr;
 
@@ -353,12 +353,20 @@ namespace LGUIPrefabSystem
 #endif
 
 		TMap<AActor*, int32> MapActorToID;
-		void GenerateActorIDRecursive(AActor* Actor, int32& id);
 		TMap<int32, AActor*> MapIDToActor;
+		void GenerateActorIDRecursive(AActor* Actor, int32& id);
+#if WITH_EDITOR
+		class ULGUIPrefab* GetPrefabThatUseTheActorAsRoot(AActor* Actor);
+#endif
+#if WITH_EDITORONLY_DATA
+		TMap<FGuid, AActor*> MapGuidToActor;
+		TMap<AActor*, FGuid> MapActorToGuid;
+#endif
 		struct UPropertyMapStruct
 		{
 			FProperty* ObjProperty;//FObjectProperty
 			int32 id;//property's UObject's id
+			FGuid guid;//actor's guid
 			uint8* Dest;//FObjectProperty's container address
 			int32 cppArrayIndex = 0;//if is c++ array's element
 		};
@@ -393,7 +401,6 @@ namespace LGUIPrefabSystem
 		TArray<UObject*> OutterArray;
 		UObject* Outter = nullptr;
 
-		FLGUIActorSaveData SerializeSingleActor(AActor* Actor);
 		//serialize actor
 		void SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& SavedActors);
 		//serialize and save FProperty
@@ -445,6 +452,8 @@ namespace LGUIPrefabSystem
 		static const int ItemType_Set = 3;
 
 	public:
+		static FName Name_ActorGuid;
+
 		static TArray<FName> GetActorExcludeProperties(bool instigator, bool actorGuid);
 		static TArray<FName> GetComponentExcludeProperties();
 	};

@@ -143,6 +143,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForRecreate(USceneComponent* P
 
 		id++;
 		MapIDToActor.Add(id, NewActor);
+		MapGuidToActor.Add(NewActor->GetActorGuid(), NewActor);
 
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{

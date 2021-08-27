@@ -4,6 +4,7 @@
 
 #include "LGUIPrefab.generated.h"
 
+//Version 2: Support ActorGuid (start from 4.26), nested prefab
 #define LGUI_PREFAB_VERSION 2
 
 /**
@@ -26,14 +27,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FName> ReferenceNameList;
 	/** put actural FText in this array, and store index in prefab */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FText> ReferenceTextList;
 	/** put actural UClass in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UClass*> ReferenceClassList;
-
 #if WITH_EDITORONLY_DATA
-	/** serialized data for editor use, this data contains property's name, will compare property name when deserialize form this */
+	/** map actor guid to sub prefabs, actor as parent node to the sub prefab. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		TMap<FGuid, ULGUIPrefab*> SubPrefabs;
+	/** serialized data for editor use, this data contains editor-only property include property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
 #endif
@@ -51,6 +54,9 @@ public:
 	 */
 	UPROPERTY()
 		TArray<uint8> BinaryDataForBuild;
+	/** map actor index to sub prefabs, actor as parent node to the sub prefab. */
+	UPROPERTY()
+		TMap<int32, ULGUIPrefab*> SubPrefabsForBuild;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Instanced, Transient)
 		class UThumbnailInfo* ThumbnailInfo;

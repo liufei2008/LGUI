@@ -59,8 +59,6 @@ public:
 		TArray<AActor*> AllLoadedActorArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<FGuid> AllLoadedActorsGuidArrayInPrefab;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI", Instanced)
-		ULGUIPrefab* PrefabInstance;
 	FColor IdentityColor;
 
 	FDelegateHandle EditorTickDelegateHandle;
