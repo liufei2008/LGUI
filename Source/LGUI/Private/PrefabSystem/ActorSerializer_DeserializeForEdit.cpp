@@ -24,8 +24,8 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForEdit]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
-		AActor* NewActor = nullptr;
 		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
+		AActor* NewActor = nullptr;
 		int foundActorIndex = ExistingActorsGuid.Find(guidInPrefab);
 		bool useExistActor = foundActorIndex != INDEX_NONE;
 		if (useExistActor)
@@ -191,6 +191,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 
 		id++;
 		MapIDToActor.Add(id, NewActor);
+		MapGuidToActor.Add(guidInPrefab, NewActor);
 
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{

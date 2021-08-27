@@ -56,8 +56,6 @@ void ULGUIPrefabHelperComponent::LoadPrefab()
 		this->GetOwner()->SetFolderPath(PrefabFolderName);
 		GEditor->SelectNone(false, true);
 		GEditor->SelectActor(LoadedRootActor, true, false);
-		PrefabInstance = NewObject<ULGUIPrefab>(this);
-		PrefabAsset->CopyTo(PrefabInstance);
 
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 
@@ -87,11 +85,6 @@ void ULGUIPrefabHelperComponent::SavePrefab(bool InCreateOrApply)
 		LGUIPrefabSystem::ActorSerializer::SavePrefab(Target, PrefabAsset
 			, InCreateOrApply ? LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::CreateNew : LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::Apply
 			, ExistingActors, ExistingActorsGuid, AllLoadedActorArray, AllLoadedActorsGuidArrayInPrefab);
-
-		for (int i = 0; i < AllLoadedActorArray.Num(); i++)
-		{
-			AllLoadedActorsGuidArrayInPrefab.Add(AllLoadedActorArray[i]->GetActorGuid());
-		}
 	}
 	else
 	{

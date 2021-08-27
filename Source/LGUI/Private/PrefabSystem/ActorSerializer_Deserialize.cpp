@@ -24,6 +24,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 			UE_LOG(LGUI, Error, TEXT("Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
+		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
 		if (!TargetWorld->IsGameWorld())
 		{
@@ -143,6 +144,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 
 		id++;
 		MapIDToActor.Add(id, NewActor);
+		MapGuidToActor.Add(guidInPrefab, NewActor);
 
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{
@@ -268,19 +270,27 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				{
 					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 					LogForBitConvertFail(bitConvertSuccess, Property);
-				}
-				if (index <= -1) 
-				{
-					if (!objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//if this property is ActorComponent, if clear the value then it will become ineditable
+
+					if (index <= -1)
 					{
-						objProperty->ClearValue_InContainer(Dest, cppArrayIndex);
+						if (!objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//if this property is ActorComponent, if clear the value then it will become ineditable
+						{
+							objProperty->ClearValue_InContainer(Dest, cppArrayIndex);
+						}
+						return true;
 					}
-					return true;
 				}
 				if (objProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
 				{
+					FGuid guid = FGuid();
+					if (ItemPropertyData.Data.Num() == 16)
+					{
+						guid = BitConverter::ToGuid(ItemPropertyData.Data, bitConvertSuccess);
+						LogForBitConvertFail(bitConvertSuccess, Property);
+					}
 					UPropertyMapStruct mapStruct;//store these data, after all actor created, reassign actor reference
 					mapStruct.id = index;
+					mapStruct.guid = guid;
 					mapStruct.Dest = Dest;
 					mapStruct.ObjProperty = objProperty;
 					mapStruct.cppArrayIndex = cppArrayIndex;

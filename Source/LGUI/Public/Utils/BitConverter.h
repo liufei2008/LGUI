@@ -160,6 +160,14 @@ public:
 		outSucceed = true;
 		return result;
 	}
+	static FGuid ToGuid(const TArray<uint8>& bytes, bool& outSucceed)
+	{
+		BITCONVERTER_ERRORCHECK(BitConverter::ToGuid, bytes, 16, FGuid())
+		FGuid result;
+		FMemory::Memcpy(&result, bytes.GetData(), 16);
+		outSucceed = true;
+		return result;
+	}
 
 
 	static TArray<uint8> GetBytes(bool InBool)
@@ -235,6 +243,10 @@ public:
 	static TArray<uint8> GetBytes(FRotator InValue)
 	{
 		return GetBytes((uint8*)&InValue, 12);
+	}
+	static TArray<uint8> GetBytes(FGuid InValue)
+	{
+		return GetBytes((uint8*)&InValue, 16);
 	}
 private:
 	FORCEINLINE static TArray<uint8> GetBytes(uint8* InData, uint32 count)
