@@ -39,6 +39,9 @@ public:
 	/** serialized data for editor use, this data contains editor-only property include property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
+	/** The time point when create this prefab. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		FDateTime CreateTime;
 #endif
 	/** Prefab system's version when creating this prefab */
 	UPROPERTY()
@@ -54,9 +57,6 @@ public:
 	 */
 	UPROPERTY()
 		TArray<uint8> BinaryDataForBuild;
-	/** map actor index to sub prefabs, actor as parent node to the sub prefab. */
-	UPROPERTY()
-		TMap<int32, ULGUIPrefab*> SubPrefabsForBuild;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Instanced, Transient)
 		class UThumbnailInfo* ThumbnailInfo;

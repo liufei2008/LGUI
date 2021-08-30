@@ -115,7 +115,7 @@ public:
 	//nodify some informations in editor
 	static void EditorNotification(FText NofityText, float ExpireDuration = 5.0f);
 #endif
-	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors);
+	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors, AActor* IgnoreRootActor = nullptr);
 
 	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, class UObject* InOuter = GetTransientPackage(), FName InDefaultName = NAME_None);
 private:

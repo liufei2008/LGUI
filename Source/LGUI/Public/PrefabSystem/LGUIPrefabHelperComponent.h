@@ -8,6 +8,8 @@
 #include "LGUIPrefabHelperComponent.generated.h"
 
 
+class ALGUIPrefabActor;
+
 //helper component for PrefabSystem. for manage a prefab actor in level. only use this in editor
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input), ClassGroup = (LGUI), NotBlueprintType, NotBlueprintable, meta = (BlueprintSpawnableComponent))
 class LGUI_API ULGUIPrefabHelperComponent : public USceneComponent
@@ -23,7 +25,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void LoadPrefab();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SavePrefab(bool InCreateOrApply);
+		void SavePrefab(bool InCreateOrApply, bool InIncludeOtherPrefabAsSubPrefab);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void RevertPrefab();
 	//delete this prefab actor
@@ -39,6 +41,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		AActor* GetLoadedRootActor()const { return LoadedRootActor; }
 	void MoveActorToPrefabFolder();
+	bool IsRootPrefab()const;
+	void RestoreSubPrefabs();
+	FGuid GetGuidByActor(AActor* InActor, bool InIncludeSubPrefabs);
+	int32 GetActorIndexFromCreatedActors(AActor* InActor, bool InIncludeSubPrefabs);
+	bool GetActorAndGuidsFromCreatedActors(AActor* InActor, bool InRemoveFromList, bool InIncludeSubPrefabs, FGuid& OutRemovedActorGuid);
+	bool IsInsideSubPrefab(AActor* InActor);
 
 	void RemoveEditorTickDelegate();
 	void EditorTick(float DeltaTime);
@@ -48,17 +56,20 @@ private:
 #endif
 #if WITH_EDITORONLY_DATA
 public:
-	UPROPERTY(Transient)AActor* ParentActorForEditor;
-	//Donot change this unless you know what you doing
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(Transient)AActor* ParentActorForEditor;//@todo: remove this
+
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset;
-	//Donot change this unless you know what you doing
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		AActor* LoadedRootActor;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllLoadedActorArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<FGuid> AllLoadedActorsGuidArrayInPrefab;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		ALGUIPrefabActor* ParentPrefab;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<ALGUIPrefabActor*> SubPrefabs;
 	FColor IdentityColor;
 
 	FDelegateHandle EditorTickDelegateHandle;

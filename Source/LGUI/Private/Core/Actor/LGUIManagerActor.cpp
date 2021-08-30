@@ -23,6 +23,7 @@
 #include "Engine/Selection.h"
 #include "EditorViewportClient.h"
 #include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "EngineUtils.h"
 #endif
 
