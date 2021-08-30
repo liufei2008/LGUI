@@ -14,7 +14,7 @@
 using namespace LGUIPrefabSystem;
 
 #if WITH_EDITOR
-void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData, int32& id)
+void ActorSerializer::DeserializeActorRecursiveForConvertToRuntime(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData, int32& id)
 {
 	ResultSaveData.InitFromActorSaveData(SaveData);
 	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
@@ -22,7 +22,7 @@ void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveDa
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
 		LoadPropertyForConvert(ActorClass, SaveData.ActorPropertyData, ResultSaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
@@ -37,7 +37,7 @@ void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveDa
 				if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = USceneComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				LoadPropertyForConvert(CompClass, RootCompSaveData.PropertyData, RootCompSaveDataForBuild.PropertyData, GetComponentExcludeProperties());
 				ResultSaveData.ComponentPropertyData.Add(RootCompSaveDataForBuild);
@@ -55,14 +55,14 @@ void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveDa
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				LoadPropertyForConvert(CompClass, CompData.PropertyData, CompDataForBuild.PropertyData, GetComponentExcludeProperties());
 				ResultSaveData.ComponentPropertyData.Add(CompDataForBuild);
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Component Class of index:%d not found!"), (CompData.ComponentClass));
+				UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Component Class of index:%d not found!"), (CompData.ComponentClass));
 			}
 		}
 
@@ -71,13 +71,13 @@ void ActorSerializer::DeserializeActorRecursiveForConvert(const FLGUIActorSaveDa
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{
 			FLGUIActorSaveDataForBuild ChildSaveDataForBuild;
-			DeserializeActorRecursiveForConvert(ChildSaveData, ChildSaveDataForBuild, id);
+			DeserializeActorRecursiveForConvertToRuntime(ChildSaveData, ChildSaveDataForBuild, id);
 			ResultSaveData.ChildActorData.Add(ChildSaveDataForBuild);
 		}
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvert]Actor Class of index:%d not found!"), (SaveData.ActorClass));
+		UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForConvertToRuntime]Actor Class of index:%d not found!"), (SaveData.ActorClass));
 	}
 }
 
@@ -355,7 +355,7 @@ void ActorSerializer::ConvertForBuildData(ULGUIPrefab* InPrefab)
 	FLGUIActorSaveDataForBuild ActorSaveDataForBuild;
 	int32 id = 0;
 	ActorSerializer serializer(InPrefab);
-	serializer.DeserializeActorRecursiveForConvert(SaveData.SavedActor, ActorSaveDataForBuild, id);
+	serializer.DeserializeActorRecursiveForConvertToRuntime(SaveData.SavedActor, ActorSaveDataForBuild, id);
 
 	FBufferArchive ToBinaryForBuild;
 	ToBinaryForBuild << ActorSaveDataForBuild;

@@ -347,7 +347,9 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		prefab->AddToRoot();
 		TArray<AActor*> Actors;
 		TArray<FGuid> ActorsGuid;
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::CreateNew, {}, {}, Actors, ActorsGuid);
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::CreateNew, true
+			, nullptr
+			, {}, {}, Actors, ActorsGuid);
 		copiedActorPrefabList.Add(prefab);
 	}
 }
@@ -743,7 +745,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 					prefabComp->PrefabAsset = OutPrefab;
 					prefabComp->LoadedRootActor = selectedActor;
 					prefabActor->FinishSpawning(FTransform::Identity, true);
-					prefabComp->SavePrefab(true);
+					CreateOrApplyPrefab(prefabComp, true);
 
 					prefabComp->MoveActorToPrefabFolder();
 				}
@@ -763,14 +765,76 @@ void LGUIEditorTools::CreatePrefabAsset()
 }
 void LGUIEditorTools::ApplyPrefab()
 {
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
 	auto selectedActor = GetFirstSelectedActor();
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
-		prefabActor->GetPrefabComponent()->SavePrefab(false);
+		if (auto thisPrefabComp = prefabActor->GetPrefabComponent())
+		{
+			CreateOrApplyPrefab(thisPrefabComp, false);
+		}
 	}
-	GEditor->EndTransaction();
+}
+void LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabComp, bool InCreateOrApply)
+{
+	if (auto rootActor = InPrefabComp->GetLoadedRootActor())
+	{
+		if (auto thisPrefabAsset = InPrefabComp->GetPrefabAsset())
+		{
+			auto existSubPrefabList = thisPrefabAsset->SubPrefabs;
+			TArray<AActor*> allChildrenActors;
+			LGUIUtils::CollectChildrenActors(rootActor, allChildrenActors);
+			TMap<AActor*, ULGUIPrefab*> extraPrefabs;
+			TArray<ULGUIPrefabHelperComponent*> extraPrefabsHelperComp;
+			for (auto itemActor : allChildrenActors)
+			{
+				if (!InPrefabComp->AllLoadedActorArray.Contains(itemActor))
+				{
+					if (auto itemPrefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(itemActor))
+					{
+						auto itemPrefabAsset = itemPrefabActor->GetPrefabComponent()->GetPrefabAsset();
+						if (itemPrefabAsset != thisPrefabAsset)
+						{
+							if (!extraPrefabs.Contains(itemPrefabActor->GetPrefabComponent()->GetLoadedRootActor()))
+							{
+								if (itemPrefabActor->GetPrefabComponent()->IsRootPrefab())
+								{
+									extraPrefabs.Add(itemPrefabActor->GetPrefabComponent()->GetLoadedRootActor(), itemPrefabAsset);
+									extraPrefabsHelperComp.Add(itemPrefabActor->GetPrefabComponent());
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (extraPrefabs.Num() > 0)
+			{
+				auto msg = FString(TEXT("Detect other prefabs under this prefab, do you want to make them as sub-prefab?\nOther prefabs:"));
+				for (auto itemActorAndPrefab : extraPrefabs)
+				{
+					msg += FString::Printf(TEXT("\n		Actor: %s, Prefab: %s"), *(itemActorAndPrefab.Key->GetActorLabel()), *(itemActorAndPrefab.Value->GetName()));
+				}
+				auto msgResult = FMessageDialog::Open(EAppMsgType::YesNoCancel, FText::FromString(msg));
+				if (msgResult == EAppReturnType::Cancel)
+				{
+					return;
+				}
+				else
+				{
+					GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
+					InPrefabComp->SavePrefab(InCreateOrApply, msgResult == EAppReturnType::Yes);
+					GEditor->EndTransaction();
+				}
+			}
+			else
+			{
+				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
+				InPrefabComp->SavePrefab(InCreateOrApply, false);
+				GEditor->EndTransaction();
+			}
+		}
+	}
 }
 void LGUIEditorTools::RevertPrefab()
 {
@@ -840,6 +904,27 @@ ALGUIPrefabActor* LGUIEditorTools::GetPrefabActor_WhichManageThisActor(AActor* I
 					if (InActor->IsAttachedTo(loadedRootActor) || InActor == loadedRootActor)
 					{
 						return prefabActor;
+					}
+				}
+			}
+		}
+	}
+	return nullptr;
+}
+ULGUIPrefab* GetPrefabAsset_WhichManageThisActor(AActor* InActor)
+{
+	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
+	{
+		auto prefabActor = *ActorItr;
+		if (IsValid(prefabActor))
+		{
+			if (prefabActor->GetPrefabComponent()->AllLoadedActorArray.Contains(InActor))
+			{
+				if (auto loadedRootActor = prefabActor->GetPrefabComponent()->LoadedRootActor)
+				{
+					if (InActor->IsAttachedTo(loadedRootActor) || InActor == loadedRootActor)
+					{
+						return prefabActor->GetPrefabComponent()->GetPrefabAsset();
 					}
 				}
 			}

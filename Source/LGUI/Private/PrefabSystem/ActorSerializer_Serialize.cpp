@@ -19,27 +19,27 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 
 	SaveProperty(Actor, OutActorSaveData.ActorPropertyData, GetActorExcludeProperties(true, false));
 #if WITH_EDITOR
+	FGuid actorGuid;
 	if (serializeMode == EPrefabSerializeMode::RecreateFromExisting)//no need to replace guid
 	{
+		actorGuid = Actor->GetActorGuid();
 	}
-	else if (serializeMode == EPrefabSerializeMode::CreateNew)
+	else if (serializeMode == EPrefabSerializeMode::CreateNew
+		|| serializeMode == EPrefabSerializeMode::Apply
+		)
 	{
-		OutActorSaveData.SetActorGuid(FGuid::NewGuid());//create mode use new guid
-	}
-	else if (serializeMode == EPrefabSerializeMode::Apply)//apply mode use existing guid
-	{
-		//replace guid
-		int foundActorIndex = ExistingActors.Find(Actor);
-		if (foundActorIndex != INDEX_NONE)
+		//replace guid with existing. If not present then create new guid.
+		if (!HelperComp->GetActorAndGuidsFromCreatedActors(Actor, true, false, actorGuid))
 		{
-			auto guid = ExistingActorsGuid[foundActorIndex];
-			ExistingActors.RemoveAtSwap(foundActorIndex);
-			ExistingActorsGuid.RemoveAtSwap(foundActorIndex);
-			OutActorSaveData.SetActorGuid(guid);
+			check(0);
 		}
+		OutActorSaveData.SetActorGuid(actorGuid);
 	}
-	SerializedActors.Add(Actor);
-	SerializedActorsGuid.Add(OutActorSaveData.GetActorGuid(Actor->GetActorGuid()));
+	if (!HelperComp->IsInsideSubPrefab(Actor))
+	{
+		SerializedActors.Add(Actor);
+		SerializedActorsGuid.Add(actorGuid);
+	}
 #endif
 	auto& Components = Actor->GetComponents();
 
@@ -93,9 +93,12 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 	TArray<FLGUIActorSaveData> ChildSaveDataList;
 	for (auto ChildActor : ChildrenActors)
 	{
-		FLGUIActorSaveData ChildActorSaveData;
-		SerializeActorRecursive(ChildActor, ChildActorSaveData);
-		ChildSaveDataList.Add(ChildActorSaveData);
+		if (!SkippingActors.Contains(ChildActor))
+		{
+			FLGUIActorSaveData ChildActorSaveData;
+			SerializeActorRecursive(ChildActor, ChildActorSaveData);
+			ChildSaveDataList.Add(ChildActorSaveData);
+		}
 	}
 	OutActorSaveData.ChildActorData = ChildSaveDataList;
 }
@@ -174,7 +177,7 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 			{
 				if (object->IsAsset() || object->IsA(UClass::StaticClass()))
 				{
-					auto id = FindAssetIdFromList(object);
+					auto id = FindOrAddAssetIdFromList(object);
 					ItemPropertyData.Data = BitConverter::GetBytes(id);
 					PropertyData.Add(ItemPropertyData);
 				}

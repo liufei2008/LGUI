@@ -13,14 +13,14 @@
 
 using namespace LGUIPrefabSystem;
 
-AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Parent, const FLGUIActorSaveDataForBuild& SaveData, int32& id)
+AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponent* Parent, const FLGUIActorSaveDataForBuild& SaveData, int32& id)
 {
 	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForRecreate]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
@@ -44,7 +44,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 					if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 					{
 						CompClass = USceneComponent::StaticClass();
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForRecreate]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
 					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
@@ -78,7 +78,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForRecreate]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
 				LoadPropertyForBuild(Comp, CompData.PropertyData, GetComponentExcludeProperties());
@@ -105,7 +105,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 			}
 			else
 			{
-				auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer::DeserializeActorRecursiveForBuild]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
+				auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
 				UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg); 
 #if WITH_EDITOR
 				LGUIUtils::EditorNotification(FText::FromString(ErrorMsg)); 
@@ -142,13 +142,13 @@ AActor* ActorSerializer::DeserializeActorRecursiveForBuild(USceneComponent* Pare
 
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{
-			DeserializeActorRecursiveForBuild(RootComp, ChildSaveData, id);
+			DeserializeActorRecursiveForUseInRuntime(RootComp, ChildSaveData, id);
 		}
 		return NewActor;
 	}
 	else
 	{
-		auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer::DeserializeActorRecursiveForBuild]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
+		auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
 		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
 #if WITH_EDITOR
 		LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));

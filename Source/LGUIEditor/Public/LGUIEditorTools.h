@@ -6,6 +6,9 @@
 #include "Engine/EngineTypes.h"
 
 #pragma once
+class ALGUIPrefabActor;
+class ULGUIPrefabHelperComponent;
+class ULGUIPrefab;
 
 class LGUIEDITOR_API LGUIEditorTools
 {
@@ -50,11 +53,13 @@ public:
 	static UWorld* GetWorldFromSelection();
 	static void CreatePrefabAsset();
 	static void ApplyPrefab();
+	static void CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabComp, bool InCreateOrApply);
 	static void RevertPrefab();
 	static void DeletePrefab();
 	static void UnlinkPrefab();
 	static void SelectPrefabAsset();
-	static class ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
+	static ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
+	static ULGUIPrefab* GetPrefabAsset_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
 	static void ClearPrefabActor(UWorld* World);
 	static bool IsSelectUIActor();

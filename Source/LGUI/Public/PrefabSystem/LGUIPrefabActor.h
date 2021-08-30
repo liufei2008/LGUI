@@ -3,8 +3,9 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "LGUIPrefabHelperComponent.h"
 #include "LGUIPrefabActor.generated.h"
+
+class ULGUIPrefabHelperComponent;
 
 UCLASS(ConversionRoot, ComponentWrapperClass, NotBlueprintable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
 class LGUI_API ALGUIPrefabActor : public AActor
@@ -27,5 +28,5 @@ public:
 	ULGUIPrefabHelperComponent* GetPrefabComponent(){return PrefabComponent;}
 private:
 	UPROPERTY(Category = LGUIPrefab, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class ULGUIPrefabHelperComponent* PrefabComponent;
+		ULGUIPrefabHelperComponent* PrefabComponent;
 };

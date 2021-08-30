@@ -273,7 +273,11 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 			auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForRecreate(world, script, nullptr);
 			TArray<AActor*> Actors;
 			TArray<FGuid> ActorsGuid;
-			LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, script, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::RecreateFromExisting, {}, {}, Actors, ActorsGuid);
+			check(0);
+			LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, script, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::RecreateFromExisting
+				, false
+				, nullptr
+				, {}, {}, Actors, ActorsGuid);
 			LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
 		}
 		else
@@ -329,7 +333,11 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 						auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForRecreate(world, prefab, nullptr);
 						TArray<AActor*> Actors;
 						TArray<FGuid> ActorsGuid;
-						LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, prefab, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::RecreateFromExisting, {}, {}, Actors, ActorsGuid);
+						check(0);
+						LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, prefab, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::RecreateFromExisting
+							, false
+							, nullptr
+							, {}, {}, Actors, ActorsGuid);
 						LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
 					}
 				}
