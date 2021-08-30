@@ -23,13 +23,15 @@ ActorSerializer::ActorSerializer(UWorld* InTargetWorld)
 	TargetWorld = TWeakObjectPtr<UWorld>(InTargetWorld);
 }
 #if WITH_EDITOR
-AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid> &InExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid)
+AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& InOutExistingActorArray, TArray<FGuid> &InOutExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid)
 {
 	ActorSerializer serializer(InWorld);
 	serializer.editMode = EPrefabEditMode::EditInLevel;
-	serializer.ExistingActors = InExistingActorArray;
-	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
+	serializer.ExistingActors = InOutExistingActorArray;
+	serializer.ExistingActorsGuid = InOutExistingActorGuidInPrefab;
 	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+	InOutExistingActorArray = serializer.ExistingActors;
+	InOutExistingActorGuidInPrefab = serializer.ExistingActorsGuid;
 	OutCreatedActors = serializer.CreatedActors;
 	OutActorsGuid = serializer.CreatedActorsGuid;
 	return rootActor;
@@ -90,6 +92,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 
 	//auto StartTime = FDateTime::Now();
 #if WITH_EDITORONLY_DATA
+	LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = InPrefab->PrefabVersion;
 	FLGUIPrefabSaveData SaveData;
 	{
 		auto LoadedData = InPrefab->BinaryData;
@@ -155,19 +158,6 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	if (editMode == EPrefabEditMode::EditInLevel)
 	{
 		CreatedRootActor = DeserializeActorRecursiveForEdit(Parent, SaveData.SavedActor, id);
-		//clear excess actors
-		for (auto item : ExistingActors)
-		{
-			if (TargetWorld->WorldType == EWorldType::Editor || TargetWorld->WorldType == EWorldType::EditorPreview)
-			{
-				TargetWorld->EditorDestroyActor(item, true);
-			}
-			else
-			{
-				item->Destroy();
-			}
-		}
-		ExistingActors.Empty();
 	}
 	else if (editMode == EPrefabEditMode::Recreate)
 	{
@@ -179,7 +169,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 	else
 	{
-		CreatedRootActor = DeserializeActorRecursive(Parent, SaveData.SavedActor, id);
+		CreatedRootActor = DeserializeActorRecursiveForUseInEditor(Parent, SaveData.SavedActor, id);
 	}
 #else
 	{
@@ -298,7 +288,10 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 }
 
 #if WITH_EDITOR
-void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPrefabSerializeMode InSerializeMode, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid)
+void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPrefabSerializeMode InSerializeMode, bool InIncludeOtherPrefabAsSubPrefab
+	, ULGUIPrefabHelperComponent* InHelperComp
+	, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
+	, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid)
 {
 	if (!RootActor || !InPrefab)
 	{
@@ -314,6 +307,8 @@ void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPref
 	serializer.serializeMode = InSerializeMode;
 	serializer.ExistingActors = InExistingActorArray;
 	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
+	serializer.IncludeOtherPrefabAsSubPrefab = InIncludeOtherPrefabAsSubPrefab;
+	serializer.HelperComp = InHelperComp;
 	serializer.SerializeActor(RootActor, InPrefab);
 	OutSerializedActors = serializer.SerializedActors;
 	OutSerializedActorsGuid = serializer.SerializedActorsGuid;
@@ -328,8 +323,11 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 	Prefab->ReferenceNameList.Empty();
 	Prefab->ReferenceTextList.Empty();
 	Prefab->ReferenceClassList.Empty();
+	LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = LGUI_PREFAB_VERSION;
 
 	auto StartTime = FDateTime::Now();
+
+	CollectSubPrefabsAndSkippingActorsRecursive(RootActor);
 
 	int32 id = 0;
 	GenerateActorIDRecursive(RootActor, id);
@@ -359,6 +357,7 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 	Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 	Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 	Prefab->PrefabVersion = LGUI_PREFAB_VERSION;
+	Prefab->CreateTime = FDateTime::Now();
 
 	Prefab->MarkPackageDirty();
 	UE_LOG(LGUI, Log, TEXT("[ActorSerializer::SerializeActor] prefab:%s duration:%s"), *(Prefab->GetPathName()), *((FDateTime::Now() - StartTime).ToString()));
@@ -430,17 +429,79 @@ void ActorSerializer::GenerateActorIDRecursive(AActor* Actor, int32& id)
 	id += 1;
 	MapActorToID.Add(Actor, id);
 #if WITH_EDITOR
-	MapActorToGuid.Add(Actor, Actor->GetActorGuid());
+	if (HelperComp)
+	{
+		FGuid actorGuid;
+		if (!HelperComp->GetActorAndGuidsFromCreatedActors(Actor, true, false, actorGuid))
+		{
+			HelperComp->AllLoadedActorArray.Add(Actor);
+			actorGuid = FGuid::NewGuid();
+			HelperComp->AllLoadedActorsGuidArrayInPrefab.Add(actorGuid);
+		}
+		MapActorToGuid.Add(Actor, actorGuid);
+	}
+	else
+	{
+		MapActorToGuid.Add(Actor, Actor->GetActorGuid());
+	}
 #endif
 
 	TArray<AActor*> ChildrenActors;
 	Actor->GetAttachedActors(ChildrenActors);
 	for (auto ChildActor : ChildrenActors)
 	{
-		GenerateActorIDRecursive(ChildActor, id);
+		if (!SkippingActors.Contains(ChildActor))
+		{
+			GenerateActorIDRecursive(ChildActor, id);
+		}
 	}
 }
-ULGUIPrefab* ActorSerializer::GetPrefabThatUseTheActorAsRoot(AActor* InActor)
+void ActorSerializer::CollectSubPrefabsAndSkippingActorsRecursive(AActor* Actor)
+{
+	TArray<AActor*> ChildrenActors;
+	Actor->GetAttachedActors(ChildrenActors);
+	for (auto ChildActor : ChildrenActors)
+	{
+		bool shouldSkipActor = false;
+		if (auto SubPrefabComp = GetPrefabComponentThatUseTheActorAsRoot(ChildActor))
+		{
+			auto childActorGuid = SubPrefabComp->GetGuidByActor(ChildActor, false);
+			if (childActorGuid.IsValid())
+			{
+				if (!Prefab->SubPrefabs.Contains(childActorGuid))
+				{
+					if (IncludeOtherPrefabAsSubPrefab)
+					{
+						if (SubPrefabComp->IsRootPrefab())
+						{
+							Prefab->SubPrefabs.Add(childActorGuid, SubPrefabComp->GetPrefabAsset());
+							if (HelperComp)
+							{
+								HelperComp->SubPrefabs.Add(Cast<ALGUIPrefabActor>(SubPrefabComp->GetOwner()));
+								SubPrefabComp->ParentPrefab = Cast<ALGUIPrefabActor>(HelperComp->GetOwner());
+								SubPrefabComp->AttachToComponent(HelperComp, FAttachmentTransformRules::KeepRelativeTransform);
+							}
+						}
+						else
+						{
+							shouldSkipActor = true;
+						}
+					}
+					else
+					{
+						shouldSkipActor = true;
+					}
+				}
+			}
+		}
+		if (!shouldSkipActor)
+		{
+			CollectSubPrefabsAndSkippingActorsRecursive(ChildActor);
+		}
+	}
+}
+
+ULGUIPrefabHelperComponent* ActorSerializer::GetPrefabComponentThatUseTheActorAsRoot(AActor* InActor)
 {
 	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
 	{
@@ -449,14 +510,14 @@ ULGUIPrefab* ActorSerializer::GetPrefabThatUseTheActorAsRoot(AActor* InActor)
 		{
 			if (prefabActor->GetPrefabComponent()->LoadedRootActor == InActor)
 			{
-				return prefabActor->GetPrefabComponent()->GetPrefabAsset();
+				return prefabActor->GetPrefabComponent();
 			}
 		}
 	}
 	return nullptr;
 }
 
-int32 ActorSerializer::FindAssetIdFromList(UObject* AssetObject)
+int32 ActorSerializer::FindOrAddAssetIdFromList(UObject* AssetObject)
 {
 	if (!AssetObject)return -1;
 	auto& ReferenceAssetList = Prefab->ReferenceAssetList;
@@ -815,4 +876,7 @@ void FLGUIActorSaveData::SetActorGuid(FGuid guid)
 }
 #endif
 
+#if WITH_EDITOR
 FName ActorSerializer::Name_ActorGuid = FName(TEXT("ActorGuid"));
+uint16 LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = 0;
+#endif

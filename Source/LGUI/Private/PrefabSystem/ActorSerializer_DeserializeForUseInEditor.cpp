@@ -14,14 +14,14 @@
 using namespace LGUIPrefabSystem;
 
 #if WITH_EDITOR
-AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id)
+AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id)
 {
 	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
 		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
@@ -53,7 +53,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 					if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 					{
 						CompClass = USceneComponent::StaticClass();
-						UE_LOG(LGUI, Error, TEXT("Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
 					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
@@ -87,7 +87,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
 				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
@@ -114,7 +114,7 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[DeserializeActorRecursive]Component Class of index:%d not found!"), (CompData.ComponentClass));
+				UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Component Class of index:%d not found!"), (CompData.ComponentClass));
 			}
 		}
 		//SceneComponent reattach to parent
@@ -148,13 +148,13 @@ AActor* ActorSerializer::DeserializeActorRecursive(USceneComponent* Parent, cons
 
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{
-			DeserializeActorRecursive(RootComp, ChildSaveData, id);
+			DeserializeActorRecursiveForUseInEditor(RootComp, ChildSaveData, id);
 		}
 		return NewActor;
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[DeserializeActorRecursive]Actor Class of index:%d not found!"), (SaveData.ActorClass));
+		UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Actor Class of index:%d not found!"), (SaveData.ActorClass));
 		return nullptr;
 	}
 }

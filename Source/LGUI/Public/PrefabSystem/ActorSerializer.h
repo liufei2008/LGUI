@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "LGUIPrefab.h"
 
+class ULGUIPrefabHelperComponent;
+
 namespace LGUIPrefabSystem
 {
 	enum class ELGUIPropertyType : uint8
@@ -51,8 +53,9 @@ namespace LGUIPrefabSystem
 		PT_None,
 	};
 
-	struct LGUIHelperFunction
+	struct LGUIPrefabSerializerHelper
 	{
+		static uint16 CurrentProcessingPrefabVersion;
 		static void SerializeToArchiveByPropertyType(FArchive& Ar, ELGUIPropertyType& PropertyType, TArray<uint8>& Data)
 		{
 			int count = 0;//if property is reference type, then count means index of the reference
@@ -134,7 +137,7 @@ namespace LGUIPrefabSystem
 			Ar << PropertyData.Name;
 			Ar << PropertyData.IsEditorOnly;
 			Ar << PropertyData.PropertyType;
-			LGUIHelperFunction::SerializeToArchiveByPropertyType(Ar, PropertyData.PropertyType, PropertyData.Data);
+			LGUIPrefabSerializerHelper::SerializeToArchiveByPropertyType(Ar, PropertyData.PropertyType, PropertyData.Data);
 			if (PropertyData.PropertyType == ELGUIPropertyType::PT_Container
 				|| PropertyData.PropertyType == ELGUIPropertyType::PT_StructContainer
 				|| PropertyData.PropertyType == ELGUIPropertyType::PT_InstancedObject
@@ -181,7 +184,6 @@ namespace LGUIPrefabSystem
 	struct FLGUIActorSaveData
 	{
 	public:
-
 		int32 ActorClass;
 		int32 ActorID;//Actor id. if some property reference actor, use id to find
 		TArray<FLGUIPropertyData> ActorPropertyData;
@@ -225,7 +227,7 @@ namespace LGUIPrefabSystem
 		friend FArchive& operator<<(FArchive& Ar, FLGUIPropertyDataForBuild& PropertyData)
 		{
 			Ar << PropertyData.PropertyType;
-			LGUIHelperFunction::SerializeToArchiveByPropertyType(Ar, PropertyData.PropertyType, PropertyData.Data);
+			LGUIPrefabSerializerHelper::SerializeToArchiveByPropertyType(Ar, PropertyData.PropertyType, PropertyData.Data);
 			if (PropertyData.PropertyType == ELGUIPropertyType::PT_Container
 				|| PropertyData.PropertyType == ELGUIPropertyType::PT_StructContainer
 				|| PropertyData.PropertyType == ELGUIPropertyType::PT_InstancedObject
@@ -307,10 +309,6 @@ namespace LGUIPrefabSystem
 	private:
 		ActorSerializer(ULGUIPrefab* InPrefab);
 		ActorSerializer(UWorld* InTargetWorld);
-		//serialize actor
-		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);
-		//deserialize actor
-		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 	public:
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale);
@@ -321,8 +319,18 @@ namespace LGUIPrefabSystem
 			CreateNew,
 			Apply,
 		};
-		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPrefabSerializeMode InSerializeMode, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid);
-		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
+		enum class EPrefabEditMode :uint8
+		{
+			NotEditable,
+			EditInLevel,
+			Recreate,
+			AutoRevert,
+		};
+		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPrefabSerializeMode InSerializeMode, bool InIncludeOtherPrefabAsSubPrefab
+			, ULGUIPrefabHelperComponent* InHelperComp
+			, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
+			, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid);
+		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& InOutExistingActorArray, TArray<FGuid>& InOutExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
 		static AActor* LoadPrefabInEditor(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
 		static AActor* LoadPrefabForRecreate(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent);
 		static AActor* LoadPrefabForAutoRevert(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, ULGUIPrefab* InPrefabInstance, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
@@ -341,22 +349,18 @@ namespace LGUIPrefabSystem
 		TWeakObjectPtr<ULGUIPrefab> Prefab = nullptr;
 
 #if WITH_EDITORONLY_DATA
-		enum class EPrefabEditMode :uint8
-		{
-			NotEditable,
-			EditInLevel,
-			Recreate,
-			AutoRevert,
-		};
 		EPrefabEditMode editMode = EPrefabEditMode::NotEditable;
 		EPrefabSerializeMode serializeMode = EPrefabSerializeMode::CreateNew;
+		bool IncludeOtherPrefabAsSubPrefab = false;
 #endif
 
 		TMap<AActor*, int32> MapActorToID;
 		TMap<int32, AActor*> MapIDToActor;
 		void GenerateActorIDRecursive(AActor* Actor, int32& id);
+		TArray<AActor*> SkippingActors;
+		void CollectSubPrefabsAndSkippingActorsRecursive(AActor* Actor);
 #if WITH_EDITOR
-		class ULGUIPrefab* GetPrefabThatUseTheActorAsRoot(AActor* Actor);
+		ULGUIPrefabHelperComponent* GetPrefabComponentThatUseTheActorAsRoot(AActor* Actor);
 #endif
 #if WITH_EDITORONLY_DATA
 		TMap<FGuid, AActor*> MapGuidToActor;
@@ -400,19 +404,22 @@ namespace LGUIPrefabSystem
 		//for create instanced object, use this as outer
 		TArray<UObject*> OutterArray;
 		UObject* Outter = nullptr;
+		ULGUIPrefabHelperComponent* HelperComp = nullptr;
 
 		//serialize actor
+		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);
 		void SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& SavedActors);
 		//serialize and save FProperty
 		void SaveProperty(UObject* Target, TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties);
 		void SaveCommonProperty(FProperty* Property, int itemType, uint8* Dest, TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
 
 		//deserialize actor
+		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 #if WITH_EDITOR
 		AActor* DeserializeActorRecursiveForEdit(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id);
 		AActor* DeserializeActorRecursiveForRecreate(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id);
-		AActor* DeserializeActorRecursive(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id);
-		void DeserializeActorRecursiveForConvert(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData, int32& id);
+		AActor* DeserializeActorRecursiveForUseInEditor(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id);
+		void DeserializeActorRecursiveForConvertToRuntime(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData, int32& id);
 
 		//load and deserialize FProperty
 		void LoadProperty(UObject* Target, const TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties);
@@ -425,12 +432,12 @@ namespace LGUIPrefabSystem
 		void LoadPropertyForAutoRevert(UObject* Target, const TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties);
 		bool LoadCommonPropertyForAutoRevert(FProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
 #endif
-		AActor* DeserializeActorRecursiveForBuild(USceneComponent* Parent, const FLGUIActorSaveDataForBuild& SaveData, int32& id);
+		AActor* DeserializeActorRecursiveForUseInRuntime(USceneComponent* Parent, const FLGUIActorSaveDataForBuild& SaveData, int32& id);
 		void LoadPropertyForBuild(UObject* Target, const TArray<FLGUIPropertyDataForBuild>& PropertyData, TArray<FName> ExcludeProperties);
 		bool LoadCommonPropertyForBuild(FProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
 
 		//find id from list, if not will create
-		int32 FindAssetIdFromList(UObject* AssetObject);
+		int32 FindOrAddAssetIdFromList(UObject* AssetObject);
 		int32 FindOrAddStringFromList(FString string);
 		int32 FindOrAddNameFromList(FName name);
 		int32 FindOrAddTextFromList(FText text);
@@ -452,7 +459,9 @@ namespace LGUIPrefabSystem
 		static const int ItemType_Set = 3;
 
 	public:
+#if WITH_EDITORONLY_DATA
 		static FName Name_ActorGuid;
+#endif
 
 		static TArray<FName> GetActorExcludeProperties(bool instigator, bool actorGuid);
 		static TArray<FName> GetComponentExcludeProperties();

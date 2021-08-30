@@ -3,6 +3,7 @@
 #include "DataFactory/LGUIPrefabActorFactory.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "LGUIEditorTools.h"
 #include "AssetData.h"
 

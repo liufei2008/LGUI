@@ -28,54 +28,6 @@ void FLGUIPrefabHelperComponentCustomization::CustomizeDetails(IDetailLayoutBuil
 		LGUIEditorTools::MakeCurrentLevel(TargetScriptPtr->ParentActorForEditor);
 	}
 	TargetScriptPtr->LoadPrefab();
-
-	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
-	auto contentWidget = SNew(SHorizontalBox);
-	category.AddCustomRow(LOCTEXT("PrefabEdit", "PrefabEdit"))
-		.WholeRowContent()
-		[
-			contentWidget
-		];
-
-	contentWidget->AddSlot()
-		[
-			SNew(SButton)
-			.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
-		.Text(LOCTEXT("Apply", "Apply"))
-		.ToolTipText(LOCTEXT("ApplyButtonToolTip","Apply changes to prefab asset"))
-		.OnClicked_Lambda([&]() { TargetScriptPtr->SavePrefab(false); return FReply::Handled(); })
-		];
-	if (TargetScriptPtr->LoadedRootActor != nullptr)
-	{
-		contentWidget->AddSlot()
-			[
-				SNew(SButton)
-				.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			.Text(LOCTEXT("Revert", "Revert"))
-			.OnClicked_Lambda([&]() { TargetScriptPtr->RevertPrefab(); return FReply::Handled(); })
-			];
-	}
-	else
-	{
-		contentWidget->AddSlot()
-			[
-				SNew(SButton)
-				.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			.Text(LOCTEXT("Load", "Load"))
-			.OnClicked_Lambda([&]() { TargetScriptPtr->LoadPrefab(); return FReply::Handled(); })
-			];
-	}
-	contentWidget->AddSlot()
-		[
-			SNew(SButton)
-			.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
-		.Text(LOCTEXT("Delete", "Delete"))
-		.OnClicked_Lambda([&]() { TargetScriptPtr->DeleteThisInstance(); return FReply::Handled(); })
-		];
 }
 void FLGUIPrefabHelperComponentCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
