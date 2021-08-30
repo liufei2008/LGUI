@@ -192,20 +192,10 @@ void ULGUIPrefabHelperComponent::SavePrefab(bool InCreateOrApply, bool InInclude
 {
 	if (PrefabAsset)
 	{
-		AActor* Target = nullptr;
-		if (GetOwner()->GetClass()->IsChildOf(ALGUIPrefabActor::StaticClass()) && this == GetOwner()->GetRootComponent())//if this component is created from LGUIPrefabActor
-		{
-			Target = LoadedRootActor;
-		}
-		else//if this component is attached to Actor, then consider that actor as prefab root
-		{
-			Target = GetOwner();
-		}
-
 		CleanupLoadedActors();
 		auto ExistingActors = AllLoadedActorArray;
 		auto ExistingActorsGuid = AllLoadedActorsGuidArrayInPrefab;
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(Target, PrefabAsset
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(LoadedRootActor, PrefabAsset
 			, InCreateOrApply ? LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::CreateNew : LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::Apply
 			, InIncludeOtherPrefabAsSubPrefab
 			, this
@@ -278,6 +268,10 @@ void ULGUIPrefabHelperComponent::DeleteThisInstance()
 #if WITH_EDITOR
 		GEditor->RedrawAllViewports();
 #endif
+		for (auto subPrefabItem : SubPrefabs)
+		{
+			subPrefabItem->GetPrefabComponent()->DeleteThisInstance();
+		}
 		LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
 		LGUIUtils::DestroyActorWithHierarchy(GetOwner(), false);
 	}

@@ -92,6 +92,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 
 	//auto StartTime = FDateTime::Now();
 #if WITH_EDITORONLY_DATA
+	auto prevProcessingPrefabVersion = LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion;
 	LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = InPrefab->PrefabVersion;
 	FLGUIPrefabSaveData SaveData;
 	{
@@ -266,6 +267,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 
 #if WITH_EDITOR
+	LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = prevProcessingPrefabVersion;
 	if (!TargetWorld->IsGameWorld())
 	{
 		for (auto item : CreatedActors)

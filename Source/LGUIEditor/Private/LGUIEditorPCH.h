@@ -33,7 +33,6 @@
 
 #include "DataFactory/LGUISpriteDataTypeAction.h"
 #include "DataFactory/LGUIFontDataTypeAction.h"
-#include "DataFactory/LGUIPrefabTypeAction.h"
 
 #include "DetailCustomization/UIItemCustomization.h"
 #include "DetailCustomization/UISpriteBaseCustomization.h"

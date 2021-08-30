@@ -421,10 +421,10 @@ void LGUIEditorTools::DeleteSelectedActors_Impl()
 				}
 			}
 		}
-		ULGUIBPLibrary::DestroyActorWithHierarchy(item);
+		LGUIUtils::DestroyActorWithHierarchy(item);
 		if (shouldDeletePrefab)
 		{
-			ULGUIBPLibrary::DestroyActorWithHierarchy(prefabActor, false);
+			prefabActor->GetPrefabComponent()->DeleteThisInstance();
 		}
 	}
 	GEditor->EndTransaction();
@@ -781,7 +781,6 @@ void LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabCo
 	{
 		if (auto thisPrefabAsset = InPrefabComp->GetPrefabAsset())
 		{
-			auto existSubPrefabList = thisPrefabAsset->SubPrefabs;
 			TArray<AActor*> allChildrenActors;
 			LGUIUtils::CollectChildrenActors(rootActor, allChildrenActors);
 			TMap<AActor*, ULGUIPrefab*> extraPrefabs;
@@ -869,7 +868,7 @@ void LGUIEditorTools::UnlinkPrefab()
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
-		ULGUIBPLibrary::DestroyActorWithHierarchy(prefabActor);
+		LGUIUtils::DestroyActorWithHierarchy(prefabActor);
 	}
 	GEditor->EndTransaction();
 }
