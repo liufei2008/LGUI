@@ -216,6 +216,7 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 			{
 				//Remove from old drawcall, then add to new drawcall.
 				RenderCanvas->RemoveUIRenderable(this);
+				geometry->material = CustomUIMaterial;
 				RenderCanvas->AddUIRenderable(this);
 			}
 		}
