@@ -87,27 +87,46 @@ void UUIDrawcall::UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUII
 //update the max and min depth
 void UUIDrawcall::UpdateDepthRange()
 {
-	if (renderObjectList.Num() == 1)
+	switch (type)
 	{
-		depthMin = depthMax = renderObjectList[0]->GetDepth();
-	}
-	else
+	default:
+	case EUIDrawcallType::BatchGeometry:
 	{
-		depthMin = INT32_MAX;
-		depthMax = INT32_MIN;
-		for (auto item : renderObjectList)
+		if (renderObjectList.Num() == 1)
 		{
-			auto itemDepth = item->GetDepth();
-			if (depthMin > itemDepth)
+			depthMin = depthMax = renderObjectList[0]->GetDepth();
+		}
+		else
+		{
+			depthMin = INT32_MAX;
+			depthMax = INT32_MIN;
+			for (auto item : renderObjectList)
 			{
-				depthMin = itemDepth;
-			}
-			if (depthMax < itemDepth)
-			{
-				depthMax = itemDepth;
+				auto itemDepth = item->GetDepth();
+				if (depthMin > itemDepth)
+				{
+					depthMin = itemDepth;
+				}
+				if (depthMax < itemDepth)
+				{
+					depthMax = itemDepth;
+				}
 			}
 		}
 	}
+	break;
+	case EUIDrawcallType::DirectMesh:
+	{
+		depthMin = depthMax = directMeshRenderableObject->GetDepth();
+	}
+	break;
+	case EUIDrawcallType::PostProcess:
+	{
+		depthMin = depthMax = postProcessRenderableObject->GetDepth();
+	}
+	break;
+	}
+	
 }
 
 
