@@ -300,6 +300,12 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	}
 	CheckRenderMode();
 
+	bClipTypeChanged = true;
+	bRectClipParameterChanged = true;
+	bTextureClipParameterChanged = true;
+	bRectRangeCalculated = false;
+	bShouldUpdateLayout = true;
+
 	ParentCanvas = nullptr;
 	CheckParentCanvas();
 }
@@ -1728,35 +1734,71 @@ void ULGUICanvas::CalculateRectRange()
 {
 	if (bRectRangeCalculated == false)//if not calculated yet
 	{
-		if (GetActualClipType() == ELGUICanvasClipType::Rect)
+		if (this->GetActualClipType() == ELGUICanvasClipType::Rect)
 		{
-			auto& widget = UIItem->widget;
-			//calculate sefl rect range
-			clipRectMin.X = -widget.pivot.X * widget.width;
-			clipRectMin.Y = -widget.pivot.Y * widget.height;
-			clipRectMax.X = (1.0f - widget.pivot.X) * widget.width;
-			clipRectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
-			//add offset
-			clipRectMin.X = clipRectMin.X - clipRectOffset.Left;
-			clipRectMax.X = clipRectMax.X + clipRectOffset.Right;
-			clipRectMin.Y = clipRectMin.Y - clipRectOffset.Bottom;
-			clipRectMax.Y = clipRectMax.Y + clipRectOffset.Top;
-			//calculate parent rect range
-			if (inheritRectClip && ParentCanvas.IsValid() && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)
+			if (this->GetOverrideClipType())//override clip parameter
 			{
-				ParentCanvas->CalculateRectRange();
-				auto parentRectMin = FVector(ParentCanvas->clipRectMin, 0);
-				auto parentRectMax = FVector(ParentCanvas->clipRectMax, 0);
-				//transform ParentCanvas's rect to this space
-				auto& parentCanvasTf = ParentCanvas->UIItem->GetComponentTransform();
-				auto thisTfInv = this->UIItem->GetComponentTransform().Inverse();
-				parentRectMin = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMin));
-				parentRectMax = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMax));
-				//inherit
-				if (clipRectMin.X < parentRectMin.X)clipRectMin.X = parentRectMin.X;
-				if (clipRectMin.Y < parentRectMin.Y)clipRectMin.Y = parentRectMin.Y;
-				if (clipRectMax.X > parentRectMax.X)clipRectMax.X = parentRectMax.X;
-				if (clipRectMax.Y > parentRectMax.Y)clipRectMax.Y = parentRectMax.Y;
+				auto& widget = UIItem->widget;
+				//calculate sefl rect range
+				clipRectMin.X = -widget.pivot.X * widget.width;
+				clipRectMin.Y = -widget.pivot.Y * widget.height;
+				clipRectMax.X = (1.0f - widget.pivot.X) * widget.width;
+				clipRectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
+				//add offset
+				clipRectMin.X = clipRectMin.X - clipRectOffset.Left;
+				clipRectMax.X = clipRectMax.X + clipRectOffset.Right;
+				clipRectMin.Y = clipRectMin.Y - clipRectOffset.Bottom;
+				clipRectMax.Y = clipRectMax.Y + clipRectOffset.Top;
+				//calculate parent rect range
+				if (inheritRectClip && ParentCanvas.IsValid() && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)
+				{
+					ParentCanvas->CalculateRectRange();
+					auto parentRectMin = FVector(ParentCanvas->clipRectMin, 0);
+					auto parentRectMax = FVector(ParentCanvas->clipRectMax, 0);
+					//transform ParentCanvas's rect to this space
+					auto& parentCanvasTf = ParentCanvas->UIItem->GetComponentTransform();
+					auto thisTfInv = this->UIItem->GetComponentTransform().Inverse();
+					parentRectMin = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMin));
+					parentRectMax = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMax));
+					//inherit
+					if (clipRectMin.X < parentRectMin.X)clipRectMin.X = parentRectMin.X;
+					if (clipRectMin.Y < parentRectMin.Y)clipRectMin.Y = parentRectMin.Y;
+					if (clipRectMax.X > parentRectMax.X)clipRectMax.X = parentRectMax.X;
+					if (clipRectMax.Y > parentRectMax.Y)clipRectMax.Y = parentRectMax.Y;
+				}
+			}
+			else//use parent clip parameter
+			{
+				if (ParentCanvas.IsValid() && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)//have parent, use parent clip parameter
+				{
+					ParentCanvas->CalculateRectRange();
+					auto parentRectMin = FVector(ParentCanvas->clipRectMin, 0);
+					auto parentRectMax = FVector(ParentCanvas->clipRectMax, 0);
+					//transform ParentCanvas's rect to this space
+					auto& parentCanvasTf = ParentCanvas->UIItem->GetComponentTransform();
+					auto thisTfInv = this->UIItem->GetComponentTransform().Inverse();
+					parentRectMin = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMin));
+					parentRectMax = thisTfInv.TransformPosition(parentCanvasTf.TransformPosition(parentRectMax));
+
+					clipRectMin.X = parentRectMin.X;
+					clipRectMin.Y = parentRectMin.Y;
+					clipRectMax.X = parentRectMax.X;
+					clipRectMax.Y = parentRectMax.Y;
+				}
+				else//no parent, use self parameter
+				{
+					auto& widget = UIItem->widget;
+					//calculate sefl rect range
+					clipRectMin.X = -widget.pivot.X * widget.width;
+					clipRectMin.Y = -widget.pivot.Y * widget.height;
+					clipRectMax.X = (1.0f - widget.pivot.X) * widget.width;
+					clipRectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
+					//add offset
+					clipRectMin.X = clipRectMin.X - clipRectOffset.Left;
+					clipRectMax.X = clipRectMax.X + clipRectOffset.Right;
+					clipRectMin.Y = clipRectMin.Y - clipRectOffset.Bottom;
+					clipRectMax.Y = clipRectMax.Y + clipRectOffset.Top;
+				}
 			}
 		}
 		else
