@@ -686,6 +686,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 			auto drawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
 			drawcall->postProcessRenderableObject = postProcessRenderable;
 			drawcall->type = EUIDrawcallType::PostProcess;
+			drawcall->UpdateDepthRange();
 			InUIRenderable->drawcall = drawcall;
 			return drawcall;
 		};
@@ -748,6 +749,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 			auto drawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
 			drawcall->directMeshRenderableObject = directMeshRenderable;
 			drawcall->type = EUIDrawcallType::DirectMesh;
+			drawcall->UpdateDepthRange();
 			InUIRenderable->drawcall = drawcall;
 			return drawcall;
 		};
@@ -1491,7 +1493,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 				}
 				else
 				{
-					uiMat = GetUIMaterialFromPool(clipType);
+					uiMat = GetUIMaterialFromPool(tempClipType);
 					drawcallItem->drawcallMesh->SetMaterial(0, uiMat.Get());
 				}
 				drawcallItem->materialInstanceDynamic = uiMat;
