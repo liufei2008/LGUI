@@ -1823,7 +1823,21 @@ FLinearColor ULGUICanvas::GetRectClipOffsetAndSize()
 }
 FLinearColor ULGUICanvas::GetRectClipFeather()
 {
-	return FLinearColor(clipFeather.X, clipFeather.Y, 0, 0);
+	if (this->GetOverrideClipType())//override clip parameter
+	{
+		return FLinearColor(clipFeather.X, clipFeather.Y, 0, 0);
+	}
+	else//use parent clip parameter
+	{
+		if (ParentCanvas.IsValid())//have parent, use parent clip parameter
+		{
+			return FLinearColor(ParentCanvas->clipFeather.X, ParentCanvas->clipFeather.Y, 0, 0);
+		}
+		else
+		{
+			return FLinearColor(clipFeather.X, clipFeather.Y, 0, 0);
+		}
+	}
 }
 FLinearColor ULGUICanvas::GetTextureClipOffsetAndSize()
 {
