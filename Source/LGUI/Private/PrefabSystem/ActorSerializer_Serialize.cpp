@@ -28,18 +28,13 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 		|| serializeMode == EPrefabSerializeMode::Apply
 		)
 	{
-		//replace guid with existing. If not present then create new guid.
-		if (!HelperComp->GetActorAndGuidsFromCreatedActors(Actor, true, false, actorGuid))
-		{
-			check(0);
-		}
+		check(MapActorToGuid.Contains(Actor));//this should not happen, because we already call GenerateActorIDRecursive
+		actorGuid = MapActorToGuid[Actor];
 		OutActorSaveData.SetActorGuid(actorGuid);
 	}
-	if (!HelperComp->IsInsideSubPrefab(Actor))
-	{
-		SerializedActors.Add(Actor);
-		SerializedActorsGuid.Add(actorGuid);
-	}
+
+	SerializedActors.Add(Actor);
+	SerializedActorsGuid.Add(actorGuid);
 #endif
 	auto& Components = Actor->GetComponents();
 

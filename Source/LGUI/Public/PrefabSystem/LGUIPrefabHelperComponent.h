@@ -23,7 +23,8 @@ public:
 	virtual void OnUnregister()override;
 #if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void LoadPrefab();
+		void LoadPrefab(USceneComponent* InParent = nullptr);
+	void LoadSubPrefab(USceneComponent* InParent, TMap<FGuid, FGuid> InGuidFromPrefabToInstance);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SavePrefab(bool InCreateOrApply, bool InIncludeOtherPrefabAsSubPrefab);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -43,10 +44,11 @@ public:
 	void MoveActorToPrefabFolder();
 	bool IsRootPrefab()const;
 	void RestoreSubPrefabs();
-	FGuid GetGuidByActor(AActor* InActor, bool InIncludeSubPrefabs);
-	int32 GetActorIndexFromCreatedActors(AActor* InActor, bool InIncludeSubPrefabs);
-	bool GetActorAndGuidsFromCreatedActors(AActor* InActor, bool InRemoveFromList, bool InIncludeSubPrefabs, FGuid& OutRemovedActorGuid);
-	bool IsInsideSubPrefab(AActor* InActor);
+	FGuid GetGuidByActor(AActor* InActor);
+	bool IsActorBelongsToSubPrefab(AActor* InActor);
+	bool IsActorBelongsToPrefab(AActor* InActor);
+	ULGUIPrefabHelperComponent* GetSubPrefabWhichManageTheActor(AActor* InActor);
+	bool IsSubPrefabRootActor(AActor* InActor);
 
 	void RemoveEditorTickDelegate();
 	void EditorTick(float DeltaTime);
@@ -56,20 +58,23 @@ private:
 #endif
 #if WITH_EDITORONLY_DATA
 public:
-	UPROPERTY(Transient)AActor* ParentActorForEditor;//@todo: remove this
+	UPROPERTY(Transient)AActor* ParentActorForEditor;//When drag a prefab from content browser, this is the selected parent
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		AActor* LoadedRootActor;
+	/** All loaded actor, include sub prefab's actor */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllLoadedActorArray;
+	/** All loaded actor's guid which stored in prefab, include sub prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<FGuid> AllLoadedActorsGuidArrayInPrefab;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ALGUIPrefabActor* ParentPrefab;
+	/** SubPrefab's root actor to prefab map */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ALGUIPrefabActor*> SubPrefabs;
+		TMap<AActor*, ALGUIPrefabActor*> SubPrefabs;
 	FColor IdentityColor;
 
 	FDelegateHandle EditorTickDelegateHandle;
