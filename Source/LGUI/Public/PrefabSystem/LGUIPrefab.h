@@ -7,6 +7,18 @@
 //Version 2: Support ActorGuid (start from 4.26), nested prefab
 #define LGUI_PREFAB_VERSION 2
 
+USTRUCT()
+struct FActorGuidAndPrefabContainer
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		ULGUIPrefab* Prefab;
+	/** map from 'guid stored in sub prefab' to 'guid stored in root prefab' */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TMap<FGuid, FGuid> GuidFromPrefabToInstance;
+};
+
 /**
  * similar to Unity3D's Prefab. store actor and it's hierarchy and serailize to asset, deserialize and restore when need.
  * See property "UseBuildData" to get more information. 
@@ -33,9 +45,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UClass*> ReferenceClassList;
 #if WITH_EDITORONLY_DATA
-	/** map actor guid to sub prefabs, actor as parent node to the sub prefab. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		TMap<FGuid, ULGUIPrefab*> SubPrefabs;
+	/** The key(guid) is the subprefab's root-actor's guid stored root prefab. The value contains prefab asset and a map:  */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		TMap<FGuid, FActorGuidAndPrefabContainer> SubPrefabs;
 	/** serialized data for editor use, this data contains editor-only property include property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
@@ -70,6 +82,5 @@ public:
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
-	void CopyTo(ULGUIPrefab* Other);
 #endif
 };

@@ -330,7 +330,10 @@ namespace LGUIPrefabSystem
 			, ULGUIPrefabHelperComponent* InHelperComp
 			, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
 			, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid);
-		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& InOutExistingActorArray, TArray<FGuid>& InOutExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
+		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
+			//, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
+			, TFunction<AActor* (FGuid)> InGetExistingActorFunction
+			, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
 		static AActor* LoadPrefabInEditor(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
 		static AActor* LoadPrefabForRecreate(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent);
 		static AActor* LoadPrefabForAutoRevert(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, ULGUIPrefab* InPrefabInstance, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
@@ -354,11 +357,10 @@ namespace LGUIPrefabSystem
 		bool IncludeOtherPrefabAsSubPrefab = false;
 #endif
 
-		TMap<AActor*, int32> MapActorToID;
 		TMap<int32, AActor*> MapIDToActor;
-		void GenerateActorIDRecursive(AActor* Actor, int32& id);
+		void GenerateActorIDRecursive(AActor* Actor);
 		TArray<AActor*> SkippingActors;
-		void CollectSubPrefabsAndSkippingActorsRecursive(AActor* Actor);
+		void CollectSkippingActorsRecursive(AActor* Actor);
 #if WITH_EDITOR
 		ULGUIPrefabHelperComponent* GetPrefabComponentThatUseTheActorAsRoot(AActor* Actor);
 #endif
@@ -381,7 +383,9 @@ namespace LGUIPrefabSystem
 		TArray<AActor*> CreatedActorsNeedToFinishSpawn;
 		TArray<FGuid> CreatedActorsGuid;//collect for created actors
 		TArray<AActor*> ExistingActors;//prefab instance actors in level
-		TArray<FGuid> ExistingActorsGuid;//prefab instance actor's guid in level
+		TArray<FGuid> ExistingActorsGuid;//actor's guid 
+		TFunction<AActor*(FGuid)> GetExistingActorFunction = nullptr;
+		int32 SubPrefabGuidSearchStartIndex = 0;
 
 		TArray<AActor*> SerializedActors;//collect for created actors
 		TArray<FGuid> SerializedActorsGuid;//collect for created actors

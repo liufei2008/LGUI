@@ -25,16 +25,13 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 		}
 
 		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
-		AActor* NewActor = nullptr;
-		int foundActorIndex = ExistingActorsGuid.Find(guidInPrefab);
-		bool useExistActor = foundActorIndex != INDEX_NONE;
+		AActor* NewActor = this->GetExistingActorFunction(guidInPrefab);
+		bool useExistActor = NewActor != nullptr;
 		if (useExistActor)
 		{
-			NewActor = ExistingActors[foundActorIndex];
-			ExistingActors.RemoveAtSwap(foundActorIndex);
-			ExistingActorsGuid.RemoveAtSwap(foundActorIndex);
+			
 		}
-		else
+		else//not existing actor, create it
 		{
 			NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
 			CreatedActorsNeedToFinishSpawn.Add(NewActor);
