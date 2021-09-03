@@ -59,7 +59,6 @@ public:
 	static void UnlinkPrefab();
 	static void SelectPrefabAsset();
 	static ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
-	static ULGUIPrefab* GetPrefabAsset_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
 	static void ClearPrefabActor(UWorld* World);
 	static bool IsSelectUIActor();

@@ -11,6 +11,7 @@
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "EngineUtils.h"
 
 using namespace LGUIPrefabSystem;
 
@@ -23,19 +24,22 @@ ActorSerializer::ActorSerializer(UWorld* InTargetWorld)
 	TargetWorld = TWeakObjectPtr<UWorld>(InTargetWorld);
 }
 #if WITH_EDITOR
-AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, TArray<AActor*>& InOutExistingActorArray, TArray<FGuid> &InOutExistingActorGuidInPrefab, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid)
+AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
+	//, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid> &InExistingActorGuidInPrefab
+	, TFunction<AActor* (FGuid)> InGetExistingActorFunction
+	, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid)
 {
 	ActorSerializer serializer(InWorld);
 	serializer.editMode = EPrefabEditMode::EditInLevel;
-	serializer.ExistingActors = InOutExistingActorArray;
-	serializer.ExistingActorsGuid = InOutExistingActorGuidInPrefab;
+	//serializer.ExistingActors = InExistingActorArray;
+	//serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
+	serializer.GetExistingActorFunction = InGetExistingActorFunction;
 	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
-	InOutExistingActorArray = serializer.ExistingActors;
-	InOutExistingActorGuidInPrefab = serializer.ExistingActorsGuid;
 	OutCreatedActors = serializer.CreatedActors;
 	OutActorsGuid = serializer.CreatedActorsGuid;
 	return rootActor;
 }
+
 AActor* ActorSerializer::LoadPrefabInEditor(UWorld *InWorld, ULGUIPrefab *InPrefab, USceneComponent *Parent, bool SetRelativeTransformToIdentity)
 {
 	ActorSerializer serializer(InWorld);
@@ -329,10 +333,9 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 
 	auto StartTime = FDateTime::Now();
 
-	CollectSubPrefabsAndSkippingActorsRecursive(RootActor);
+	CollectSkippingActorsRecursive(RootActor);
 
-	int32 id = 0;
-	GenerateActorIDRecursive(RootActor, id);
+	GenerateActorIDRecursive(RootActor);
 
 	FLGUIActorSaveData ActorSaveData;
 	SerializeActorRecursive(RootActor, ActorSaveData);
@@ -426,27 +429,57 @@ TArray<FName> ActorSerializer::GetComponentExcludeProperties()
 	return result;
 }
 
-void ActorSerializer::GenerateActorIDRecursive(AActor* Actor, int32& id)
+void ActorSerializer::GenerateActorIDRecursive(AActor* Actor)
 {
-	id += 1;
-	MapActorToID.Add(Actor, id);
-#if WITH_EDITOR
 	if (HelperComp)
 	{
-		FGuid actorGuid;
-		if (!HelperComp->GetActorAndGuidsFromCreatedActors(Actor, true, false, actorGuid))
+		if (auto SubPrefabComp = GetPrefabComponentThatUseTheActorAsRoot(Actor))//if is sub prefab's root actor
 		{
-			HelperComp->AllLoadedActorArray.Add(Actor);
-			actorGuid = FGuid::NewGuid();
-			HelperComp->AllLoadedActorsGuidArrayInPrefab.Add(actorGuid);
+			if (!HelperComp->SubPrefabs.Contains(Actor))
+			{
+				SubPrefabComp->AttachToComponent(HelperComp, FAttachmentTransformRules::KeepRelativeTransform);
+				SubPrefabComp->ParentPrefab = (ALGUIPrefabActor*)HelperComp->GetOwner();
+				HelperComp->SubPrefabs.Add(Actor, (ALGUIPrefabActor*)SubPrefabComp->GetOwner());
+
+				FActorGuidAndPrefabContainer SubPrefabDataContainer;
+				SubPrefabDataContainer.Prefab = SubPrefabComp->GetPrefabAsset();
+				for (int i = 0; i < SubPrefabComp->AllLoadedActorArray.Num(); i++)
+				{
+					auto SubLoadedActor = SubPrefabComp->AllLoadedActorArray[i];
+					auto SubLoadedActorGuid = SubPrefabComp->AllLoadedActorsGuidArrayInPrefab[i];
+					FGuid NewGuid;
+					if (MapActorToGuid.Contains(SubLoadedActor))
+					{
+						NewGuid = MapActorToGuid[SubLoadedActor];
+					}
+					else
+					{
+						NewGuid = FGuid::NewGuid();
+						MapActorToGuid.Add(SubLoadedActor, NewGuid);
+					}
+					SubPrefabDataContainer.GuidFromPrefabToInstance.Add(SubLoadedActorGuid, NewGuid);
+				}
+				Prefab->SubPrefabs.Add(MapActorToGuid[Actor], SubPrefabDataContainer);
+			}
 		}
-		MapActorToGuid.Add(Actor, actorGuid);
+		if (!MapActorToGuid.Contains(Actor))//if is sub prefab's actor, then guid is already generated when add sub prefab
+		{
+			auto ActorGuid = HelperComp->GetGuidByActor(Actor);
+			if (!ActorGuid.IsValid())//not valid guid, means the actor is newly added
+			{
+				ActorGuid = FGuid::NewGuid();
+			}
+
+			MapActorToGuid.Add(Actor, ActorGuid);
+		}
 	}
 	else
 	{
-		MapActorToGuid.Add(Actor, Actor->GetActorGuid());
+		if (!MapActorToGuid.Contains(Actor))
+		{
+			MapActorToGuid.Add(Actor, Actor->GetActorGuid());
+		}
 	}
-#endif
 
 	TArray<AActor*> ChildrenActors;
 	Actor->GetAttachedActors(ChildrenActors);
@@ -454,11 +487,11 @@ void ActorSerializer::GenerateActorIDRecursive(AActor* Actor, int32& id)
 	{
 		if (!SkippingActors.Contains(ChildActor))
 		{
-			GenerateActorIDRecursive(ChildActor, id);
+			GenerateActorIDRecursive(ChildActor);
 		}
 	}
 }
-void ActorSerializer::CollectSubPrefabsAndSkippingActorsRecursive(AActor* Actor)
+void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 {
 	TArray<AActor*> ChildrenActors;
 	Actor->GetAttachedActors(ChildrenActors);
@@ -467,52 +500,44 @@ void ActorSerializer::CollectSubPrefabsAndSkippingActorsRecursive(AActor* Actor)
 		bool shouldSkipActor = false;
 		if (auto SubPrefabComp = GetPrefabComponentThatUseTheActorAsRoot(ChildActor))
 		{
-			auto childActorGuid = SubPrefabComp->GetGuidByActor(ChildActor, false);
-			if (childActorGuid.IsValid())
+			//auto SubPrefabActor = (ALGUIPrefabActor*)SubPrefabComp->GetOwner();
+			if (!HelperComp->SubPrefabs.Contains(ChildActor))//not at subprefab
 			{
-				if (!Prefab->SubPrefabs.Contains(childActorGuid))
+				if (IncludeOtherPrefabAsSubPrefab)//shoud append the prefab as sub prefab
 				{
-					if (IncludeOtherPrefabAsSubPrefab)
-					{
-						if (SubPrefabComp->IsRootPrefab())
-						{
-							Prefab->SubPrefabs.Add(childActorGuid, SubPrefabComp->GetPrefabAsset());
-							if (HelperComp)
-							{
-								HelperComp->SubPrefabs.Add(Cast<ALGUIPrefabActor>(SubPrefabComp->GetOwner()));
-								SubPrefabComp->ParentPrefab = Cast<ALGUIPrefabActor>(HelperComp->GetOwner());
-								SubPrefabComp->AttachToComponent(HelperComp, FAttachmentTransformRules::KeepRelativeTransform);
-							}
-						}
-						else
-						{
-							shouldSkipActor = true;
-						}
-					}
-					else
+					if (!SubPrefabComp->IsRootPrefab())//only concern root prefab
 					{
 						shouldSkipActor = true;
 					}
 				}
+				else
+				{
+					shouldSkipActor = true;
+				}
 			}
 		}
-		if (!shouldSkipActor)
+		if (shouldSkipActor)
 		{
-			CollectSubPrefabsAndSkippingActorsRecursive(ChildActor);
+			SkippingActors.Add(ChildActor);
+		}
+		else
+		{
+			CollectSkippingActorsRecursive(ChildActor);
 		}
 	}
 }
 
 ULGUIPrefabHelperComponent* ActorSerializer::GetPrefabComponentThatUseTheActorAsRoot(AActor* InActor)
 {
+	if (HelperComp->LoadedRootActor == InActor)return nullptr;//skip self
 	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
 	{
-		auto prefabActor = *ActorItr;
-		if (IsValid(prefabActor))
+		auto PrefabActor = *ActorItr;
+		if (IsValid(PrefabActor))
 		{
-			if (prefabActor->GetPrefabComponent()->LoadedRootActor == InActor)
+			if (PrefabActor->GetPrefabComponent()->LoadedRootActor == InActor)
 			{
-				return prefabActor->GetPrefabComponent();
+				return PrefabActor->GetPrefabComponent();
 			}
 		}
 	}
