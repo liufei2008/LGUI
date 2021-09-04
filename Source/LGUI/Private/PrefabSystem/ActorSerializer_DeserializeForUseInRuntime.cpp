@@ -26,14 +26,14 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
 		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
 		CreatedActors.Add(NewActor);
-		LoadPropertyForBuild(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
+		LoadPropertyForRuntime(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];
 		auto RootComp = NewActor->GetRootComponent();
 		if (RootComp)//if this actor have default root component
 		{
 			//actor's default root component dont need mannually register
-			LoadPropertyForBuild(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
+			LoadPropertyForRuntime(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 		}
 		else
 		{
@@ -48,7 +48,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 					}
 					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
-					LoadPropertyForBuild(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
+					LoadPropertyForRuntime(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 					if (!RootComp->IsDefaultSubobject())
 					{
 						RegisterComponent(NewActor, RootComp);
@@ -81,7 +81,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
-				LoadPropertyForBuild(Comp, CompData.PropertyData, GetComponentExcludeProperties());
+				LoadPropertyForRuntime(Comp, CompData.PropertyData, GetComponentExcludeProperties());
 				if (!Comp->IsDefaultSubobject())
 				{
 					RegisterComponent(NewActor, Comp);
@@ -157,7 +157,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 	}
 }
 
-void ActorSerializer::LoadPropertyForBuild(UObject* Target, const TArray<FLGUIPropertyDataForBuild>& PropertyData, TArray<FName> ExcludeProperties)
+void ActorSerializer::LoadPropertyForRuntime(UObject* Target, const TArray<FLGUIPropertyDataForBuild>& PropertyData, TArray<FName> ExcludeProperties)
 {
 	OutterArray.Add(Target);
 	Outter = Target;
@@ -185,7 +185,7 @@ void ActorSerializer::LoadPropertyForBuild(UObject* Target, const TArray<FLGUIPr
 				continue;
 			}
 		}
-		if (LoadCommonPropertyForBuild(propertyItem, ItemType_Normal, propertyIndex, (uint8*)Target, PropertyData))
+		if (LoadCommonPropertyForRuntime(propertyItem, ItemType_Normal, propertyIndex, (uint8*)Target, PropertyData))
 		{
 			propertyIndex++;
 		}
@@ -202,7 +202,7 @@ void ActorSerializer::LoadPropertyForBuild(UObject* Target, const TArray<FLGUIPr
 	}
 }
 
-bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemType, int itemPropertyIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
+bool ActorSerializer::LoadCommonPropertyForRuntime(FProperty* Property, int itemType, int itemPropertyIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return false;//skip property with these flags
 	if (Property->IsEditorOnlyProperty())return false;//Build data dont have EditorOnly property
@@ -263,7 +263,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 		{
 			for (int i = 0; i < Property->ArrayDim; i++)
 			{
-				LoadCommonPropertyForBuild(Property, ItemType_Array, i, Dest, ItemPropertyData.ContainerData, i, true);
+				LoadCommonPropertyForRuntime(Property, ItemType_Array, i, Dest, ItemPropertyData.ContainerData, i, true);
 			}
 			return true;
 		}
@@ -325,7 +325,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 						}
 						if (newObj != nullptr)
 						{
-							LoadPropertyForBuild(newObj, ItemPropertyData.ContainerData, {});
+							LoadPropertyForRuntime(newObj, ItemPropertyData.ContainerData, {});
 							objProperty->SetObjectPropertyValue_InContainer(Dest, newObj, cppArrayIndex);
 						}
 					}
@@ -357,7 +357,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				ArrayHelper.Resize(ArrayCount);
 				for (int i = 0; i < ArrayCount; i++)
 				{
-					LoadCommonPropertyForBuild(arrProperty->Inner, ItemType_Array, i, ArrayHelper.GetRawPtr(i), ItemPropertyData.ContainerData);
+					LoadCommonPropertyForRuntime(arrProperty->Inner, ItemType_Array, i, ArrayHelper.GetRawPtr(i), ItemPropertyData.ContainerData);
 				}
 				return true;
 			}
@@ -370,9 +370,9 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				for (int i = 0; i < count; i++)
 				{
 					MapHelper.AddDefaultValue_Invalid_NeedsRehash();
-					LoadCommonPropertyForBuild(mapProperty->KeyProp, ItemType_Map, i, MapHelper.GetKeyPtr(mapIndex), ItemPropertyData.ContainerData);//key
+					LoadCommonPropertyForRuntime(mapProperty->KeyProp, ItemType_Map, i, MapHelper.GetKeyPtr(mapIndex), ItemPropertyData.ContainerData);//key
 					i++;
-					LoadCommonPropertyForBuild(mapProperty->ValueProp, ItemType_Map, i, MapHelper.GetPairPtr(mapIndex), ItemPropertyData.ContainerData);//value. PairPtr of map is the real ptr of value
+					LoadCommonPropertyForRuntime(mapProperty->ValueProp, ItemType_Map, i, MapHelper.GetPairPtr(mapIndex), ItemPropertyData.ContainerData);//value. PairPtr of map is the real ptr of value
 					mapIndex++;
 				}
 				MapHelper.Rehash();
@@ -386,7 +386,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 				for (int i = 0; i < count; i++)
 				{
 					SetHelper.AddDefaultValue_Invalid_NeedsRehash();
-					LoadCommonPropertyForBuild(setProperty->ElementProp, ItemType_Set, i, SetHelper.GetElementPtr(i), ItemPropertyData.ContainerData);
+					LoadCommonPropertyForRuntime(setProperty->ElementProp, ItemType_Set, i, SetHelper.GetElementPtr(i), ItemPropertyData.ContainerData);
 				}
 				SetHelper.Rehash();
 				return true;
@@ -415,7 +415,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 					int propertyIndex = 0;
 					for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 					{
-						if (LoadCommonPropertyForBuild(*It, ItemType_Normal, propertyIndex, structPtr, ItemPropertyData.ContainerData))
+						if (LoadCommonPropertyForRuntime(*It, ItemType_Normal, propertyIndex, structPtr, ItemPropertyData.ContainerData))
 						{
 							propertyIndex++;
 						}

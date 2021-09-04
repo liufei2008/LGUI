@@ -325,28 +325,20 @@ namespace LGUIPrefabSystem
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale);
 #if WITH_EDITOR
-		enum class EPrefabSerializeMode :uint8
-		{
-			RecreateFromExisting,
-			CreateNew,
-			Apply,
-		};
 		enum class EPrefabEditMode :uint8
 		{
 			NotEditable,
 			EditInLevel,
-			Recreate,
 		};
-		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPrefabSerializeMode InSerializeMode, bool InIncludeOtherPrefabAsSubPrefab
+		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, bool InIncludeOtherPrefabAsSubPrefab
 			, ULGUIPrefabHelperComponent* InHelperComp
 			, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
 			, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid);
 		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			//, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
 			, TFunction<AActor* (FGuid)> InGetExistingActorFunction
+			, TFunction<void (AActor*, FGuid)> InCreateNewActorFunction
 			, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
 		static AActor* LoadPrefabInEditor(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
-		static AActor* LoadPrefabForRecreate(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent);
 		static void RenewActorGuidForDuplicate(ULGUIPrefab* InPrefab);
 
 		static FLGUIActorSaveData CreateActorSaveData(ULGUIPrefab* InPrefab);
@@ -365,7 +357,6 @@ namespace LGUIPrefabSystem
 		TMap<int32, AActor*> MapIDToActor;
 #if WITH_EDITORONLY_DATA
 		EPrefabEditMode editMode = EPrefabEditMode::NotEditable;
-		EPrefabSerializeMode serializeMode = EPrefabSerializeMode::CreateNew;
 		bool IncludeOtherPrefabAsSubPrefab = false;
 
 		TArray<AActor*> SkippingActors;
@@ -378,6 +369,7 @@ namespace LGUIPrefabSystem
 		TArray<AActor*> ExistingActors;//prefab instance actors in level
 		TArray<FGuid> ExistingActorsGuid;//actor's guid 
 		TFunction<AActor* (FGuid)> GetExistingActorFunction = nullptr;
+		TFunction<void(AActor*, FGuid)> CreateNewActorFunction = nullptr;
 		int32 SubPrefabGuidSearchStartIndex = 0;
 
 		TArray<AActor*> SerializedActors;//collect for created actors
@@ -432,7 +424,6 @@ namespace LGUIPrefabSystem
 		void SaveCommonProperty(FProperty* Property, int itemType, uint8* Dest, TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
 
 		AActor* DeserializeActorRecursiveForEdit(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id);
-		AActor* DeserializeActorRecursiveForRecreate(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id);
 		AActor* DeserializeActorRecursiveForUseInEditor(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id);
 		void DeserializeActorRecursiveForConvertToRuntime(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData);
 		void GenerateActorIDRecursiveForConvertToRuntime(const FLGUIActorSaveData& SaveData, int32& id);
@@ -451,8 +442,8 @@ namespace LGUIPrefabSystem
 		//deserialize actor
 		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 		AActor* DeserializeActorRecursiveForUseInRuntime(USceneComponent* Parent, const FLGUIActorSaveDataForBuild& SaveData, int32& id);
-		void LoadPropertyForBuild(UObject* Target, const TArray<FLGUIPropertyDataForBuild>& PropertyData, TArray<FName> ExcludeProperties);
-		bool LoadCommonPropertyForBuild(FProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
+		void LoadPropertyForRuntime(UObject* Target, const TArray<FLGUIPropertyDataForBuild>& PropertyData, TArray<FName> ExcludeProperties);
+		bool LoadCommonPropertyForRuntime(FProperty* Property, int itemType, int containerItemIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex = 0, bool isInsideCppArray = false);
 
 		//find id from list, if not will create
 		int32 FindOrAddAssetIdFromList(UObject* AssetObject);

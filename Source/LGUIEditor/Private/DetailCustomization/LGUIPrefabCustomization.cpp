@@ -261,24 +261,16 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixPrefabVersionButton()const
 }
 FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 {
-	if (auto script = TargetScriptPtr.Get())
+	if (auto Prefab = TargetScriptPtr.Get())
 	{
-		auto world = script->GetWorld();
-		if (!IsValid(world))
+		auto World = Prefab->GetWorld();
+		if (!IsValid(World))
 		{
-			world = GWorld;
+			World = GWorld;
 		}
-		if (IsValid(world))
+		if (IsValid(World))
 		{
-			auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForRecreate(world, script, nullptr);
-			TArray<AActor*> Actors;
-			TArray<FGuid> ActorsGuid;
-			check(0);
-			LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, script, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::RecreateFromExisting
-				, false
-				, nullptr
-				, {}, {}, Actors, ActorsGuid);
-			LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
+			RecreatePrefab(Prefab, World);
 		}
 		else
 		{
@@ -289,16 +281,16 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 }
 FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 {
-	UWorld* world = nullptr;
+	UWorld* World = nullptr;
 	if (auto script = TargetScriptPtr.Get())
 	{
-		world = script->GetWorld();
+		World = script->GetWorld();
 	}
-	if (!IsValid(world))
+	if (!IsValid(World))
 	{
-		world = GWorld;
+		World = GWorld;
 	}
-	if (!IsValid(world))
+	if (!IsValid(World))
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("[FLGUIPrefabCustomization::OnClickRecreteButton]Can not get World! This is wired..."));
 	}
@@ -322,23 +314,15 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 			// Gets the loaded asset, loads it if necessary
 			if (Asset.AssetClass == TEXT("LGUIPrefab"))
 			{
-				auto assetObject = Asset.GetAsset();
-				if (auto prefab = Cast<ULGUIPrefab>(assetObject))
+				auto AssetObject = Asset.GetAsset();
+				if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 				{
 					if (
-						prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
-						|| prefab->PrefabVersion != LGUI_PREFAB_VERSION
+						Prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || Prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
+						|| Prefab->PrefabVersion != LGUI_PREFAB_VERSION
 						)
 					{
-						auto loadedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForRecreate(world, prefab, nullptr);
-						TArray<AActor*> Actors;
-						TArray<FGuid> ActorsGuid;
-						check(0);
-						LGUIPrefabSystem::ActorSerializer::SavePrefab(loadedActor, prefab, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::RecreateFromExisting
-							, false
-							, nullptr
-							, {}, {}, Actors, ActorsGuid);
-						LGUIUtils::DestroyActorWithHierarchy(loadedActor, true);
+						RecreatePrefab(Prefab, World);
 					}
 				}
 			}
@@ -350,5 +334,16 @@ FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 {
 	//LGUIEditorTools::SpawnPrefabForEdit(TargetScriptPtr.Get());
 	return FReply::Handled();
+}
+void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World)
+{
+	auto PrefabActor = World->SpawnActor<ALGUIPrefabActor>();
+	auto PrefabComp = PrefabActor->GetPrefabComponent();
+	PrefabComp->SetPrefabAsset(Prefab);
+	PrefabComp->LoadPrefab();
+	PrefabComp->SavePrefab(false);
+
+	LGUIUtils::DestroyActorWithHierarchy(PrefabActor, true);
+	LGUIUtils::DestroyActorWithHierarchy(PrefabComp->LoadedRootActor, true);
 }
 #undef LOCTEXT_NAMESPACE
