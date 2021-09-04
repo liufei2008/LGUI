@@ -82,5 +82,6 @@ public:
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
+	virtual void PostDuplicate(bool bDuplicateForPIE)override;
 #endif
 };

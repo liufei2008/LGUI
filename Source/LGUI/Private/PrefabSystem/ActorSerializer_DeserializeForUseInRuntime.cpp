@@ -301,7 +301,7 @@ bool ActorSerializer::LoadCommonPropertyForBuild(FProperty* Property, int itemTy
 					}
 					return true;
 				}
-				if (objProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//is is Actor
+				if (objProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//is Actor
 				{
 					UPropertyMapStruct mapStruct;//store these data, after all actor created, reassign actor reference
 					mapStruct.id = index;

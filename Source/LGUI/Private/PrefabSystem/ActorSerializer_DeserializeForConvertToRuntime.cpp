@@ -14,7 +14,7 @@
 using namespace LGUIPrefabSystem;
 
 #if WITH_EDITOR
-void ActorSerializer::DeserializeActorRecursiveForConvertToRuntime(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData, int32& id)
+void ActorSerializer::DeserializeActorRecursiveForConvertToRuntime(const FLGUIActorSaveData& SaveData, FLGUIActorSaveDataForBuild& ResultSaveData)
 {
 	ResultSaveData.InitFromActorSaveData(SaveData);
 	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
@@ -66,12 +66,10 @@ void ActorSerializer::DeserializeActorRecursiveForConvertToRuntime(const FLGUIAc
 			}
 		}
 
-		id++;
-
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{
 			FLGUIActorSaveDataForBuild ChildSaveDataForBuild;
-			DeserializeActorRecursiveForConvertToRuntime(ChildSaveData, ChildSaveDataForBuild, id);
+			DeserializeActorRecursiveForConvertToRuntime(ChildSaveData, ChildSaveDataForBuild);
 			ResultSaveData.ChildActorData.Add(ChildSaveDataForBuild);
 		}
 	}
@@ -188,6 +186,26 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 				}
 				if (objProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
 				{
+					if (Prefab->PrefabVersion < 2)
+					{
+
+					}
+					else//convert guid to index id
+					{
+						FGuid guid = FGuid();
+						if (ItemPropertyData.Data.Num() == 16)
+						{
+							guid = BitConverter::ToGuid(ItemPropertyData.Data, bitConvertSuccess);
+							LogForBitConvertFail(bitConvertSuccess, Property);
+							check(ActorGuidToIDForConvert.Contains(guid));
+							ItemPropertyDataForBuild.Data = BitConverter::GetBytes(ActorGuidToIDForConvert[guid]);
+						}
+						else
+						{
+							UE_LOG(LGUI, Error, TEXT("*******prefab:%s"), *(Prefab->GetPathName()));
+							check(0);
+						}
+					}
 					ResultPropertyData.Add(ItemPropertyDataForBuild);
 					return true;
 				}
@@ -355,7 +373,8 @@ void ActorSerializer::ConvertForBuildData(ULGUIPrefab* InPrefab)
 	FLGUIActorSaveDataForBuild ActorSaveDataForBuild;
 	int32 id = 0;
 	ActorSerializer serializer(InPrefab);
-	serializer.DeserializeActorRecursiveForConvertToRuntime(SaveData.SavedActor, ActorSaveDataForBuild, id);
+	serializer.GenerateActorIDRecursiveForConvertToRuntime(SaveData.SavedActor, id);
+	serializer.DeserializeActorRecursiveForConvertToRuntime(SaveData.SavedActor, ActorSaveDataForBuild);
 
 	FBufferArchive ToBinaryForBuild;
 	ToBinaryForBuild << ActorSaveDataForBuild;
@@ -368,5 +387,23 @@ void ActorSerializer::ConvertForBuildData(ULGUIPrefab* InPrefab)
 
 	ToBinaryForBuild.FlushCache();
 	ToBinaryForBuild.Empty();
+}
+void ActorSerializer::GenerateActorIDRecursiveForConvertToRuntime(const FLGUIActorSaveData& SaveData, int32& id)
+{
+	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
+	{
+		id++;
+		ActorGuidToIDForConvert.Add(SaveData.GetActorGuid(FGuid()), id);
+
+		for (auto ChildSaveData : SaveData.ChildActorData)
+		{
+			FLGUIActorSaveDataForBuild ChildSaveDataForBuild;
+			GenerateActorIDRecursiveForConvertToRuntime(ChildSaveData, id);
+		}
+	}
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::GenerateActorIDRecursiveForConvertToRuntime]Actor Class of index:%d not found!"), (SaveData.ActorClass));
+	}
 }
 #endif

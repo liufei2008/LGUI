@@ -60,6 +60,47 @@ AActor* ActorSerializer::LoadPrefabForRecreate(UWorld* InWorld, ULGUIPrefab* InP
 	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 	return rootActor;
 }
+void ActorSerializer::RenewActorGuidForDuplicate(ULGUIPrefab* InPrefab)
+{
+	ActorSerializer serializer(InPrefab);
+	serializer.RenewActorGuidForDuplicate_Implement();
+}
+void ActorSerializer::RenewActorGuidForDuplicate_Implement()
+{
+	FLGUIPrefabSaveData SaveData;
+	{
+		auto LoadedData = Prefab->BinaryData;
+		if (LoadedData.Num() <= 0)
+		{
+			UE_LOG(LGUI, Warning, TEXT("Loaded data is empty!"));
+			return;
+		}
+		auto FromBinary = FMemoryReader(LoadedData, true);
+		FromBinary.Seek(0);
+		FromBinary << SaveData;
+		FromBinary.FlushCache();
+		FromBinary.Close();
+		LoadedData.Empty();
+	}
+
+	RenewActorGuidRecursiveForDuplicate(SaveData.SavedActor);
+	DeserializeActorRecursiveForDuplicate(SaveData.SavedActor);
+
+	FBufferArchive ToBinary;
+	ToBinary << SaveData;
+
+	if (ToBinary.Num() <= 0)
+	{
+		UE_LOG(LGUI, Warning, TEXT("Save binary length is 0!"));
+		return;
+	}
+
+	Prefab->BinaryData = ToBinary;
+	Prefab->ThumbnailDirty = true;
+
+	ToBinary.FlushCache();
+	ToBinary.Empty();
+}
 #endif
 AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
 {
@@ -96,28 +137,9 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 
 	//auto StartTime = FDateTime::Now();
 #if WITH_EDITORONLY_DATA
-	auto prevProcessingPrefabVersion = LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion;
-	LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = InPrefab->PrefabVersion;
 	FLGUIPrefabSaveData SaveData;
 	{
 		auto LoadedData = InPrefab->BinaryData;
-		if (LoadedData.Num() <= 0)
-		{
-			UE_LOG(LGUI, Warning, TEXT("Loaded data is empty!"));
-			return nullptr;
-		}
-		auto FromBinary = FMemoryReader(LoadedData, true);
-		FromBinary.Seek(0);
-		FromBinary << SaveData;
-		FromBinary.FlushCache();
-		FromBinary.Close();
-		LoadedData.Empty();
-	}
-
-	FLGUIPrefabSaveData InstanceSaveData;
-	if (PrefabDataInstanceInWorld != nullptr)
-	{
-		auto LoadedData = PrefabDataInstanceInWorld->BinaryData;
 		if (LoadedData.Num() <= 0)
 		{
 			UE_LOG(LGUI, Warning, TEXT("Loaded data is empty!"));
@@ -168,17 +190,13 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	{
 		CreatedRootActor = DeserializeActorRecursiveForRecreate(Parent, SaveData.SavedActor, id);
 	}
-	else if (editMode == EPrefabEditMode::AutoRevert)
-	{
-		//CreatedRootActor = DeserializeActorRecursiveForAutoRevert(Parent, SaveData.SavedActor, InstanceSaveData.SavedActor, id);
-	}
 	else
 	{
 		CreatedRootActor = DeserializeActorRecursiveForUseInEditor(Parent, SaveData.SavedActor, id);
 	}
 #else
 	{
-		CreatedRootActor = DeserializeActorRecursiveForBuild(Parent, SaveDataForBuild, id);
+		CreatedRootActor = DeserializeActorRecursiveForUseInRuntime(Parent, SaveDataForBuild, id);
 	}
 #endif
 	if (CreatedRootActor != nullptr)
@@ -224,7 +242,7 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 	//finish Actor Spawn
 #if WITH_EDITOR
-	if (editMode == EPrefabEditMode::EditInLevel || editMode == EPrefabEditMode::AutoRevert)
+	if (editMode == EPrefabEditMode::EditInLevel)
 	{
 		for (auto Actor : CreatedActorsNeedToFinishSpawn)
 		{
@@ -271,7 +289,6 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	}
 
 #if WITH_EDITOR
-	LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = prevProcessingPrefabVersion;
 	if (!TargetWorld->IsGameWorld())
 	{
 		for (auto item : CreatedActors)
@@ -319,7 +336,6 @@ void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPref
 	OutSerializedActors = serializer.SerializedActors;
 	OutSerializedActorsGuid = serializer.SerializedActorsGuid;
 }
-#endif
 void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 {
 	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
@@ -329,7 +345,6 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 	Prefab->ReferenceNameList.Empty();
 	Prefab->ReferenceTextList.Empty();
 	Prefab->ReferenceClassList.Empty();
-	LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = LGUI_PREFAB_VERSION;
 
 	auto StartTime = FDateTime::Now();
 
@@ -343,7 +358,6 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 	FLGUIPrefabSaveData SaveData;
 	SaveData.SavedActor = ActorSaveData;
 
-#if WITH_EDITORONLY_DATA
 	FBufferArchive ToBinary;
 	ToBinary << SaveData;
 
@@ -358,7 +372,6 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 
 	ToBinary.FlushCache();
 	ToBinary.Empty();
-#endif
 	Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 	Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 	Prefab->PrefabVersion = LGUI_PREFAB_VERSION;
@@ -367,7 +380,7 @@ void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 	Prefab->MarkPackageDirty();
 	UE_LOG(LGUI, Log, TEXT("[ActorSerializer::SerializeActor] prefab:%s duration:%s"), *(Prefab->GetPathName()), *((FDateTime::Now() - StartTime).ToString()));
 }
-#if WITH_EDITOR
+
 FLGUIActorSaveData ActorSerializer::CreateActorSaveData(ULGUIPrefab* InPrefab)
 {
 	FLGUIPrefabSaveData SaveData;
@@ -384,49 +397,6 @@ FLGUIActorSaveData ActorSerializer::CreateActorSaveData(ULGUIPrefab* InPrefab)
 	FromBinary.Close();
 	LoadedData.Empty();
 	return SaveData.SavedActor;
-}
-#endif
-
-#include "Engine/Engine.h"
-void ActorSerializer::LogForBitConvertFail(bool success, FProperty* Property)
-{
-	if (!success)
-	{
-		auto msg = FString::Printf(TEXT("bitconvert fail, property:%s, propertyType:%s, prefab:%s"), *(Property->GetPathName()), *(Property->GetClass()->GetName()), *Prefab->GetPathName());
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, msg);
-		}
-		UE_LOG(LGUI, Error, TEXT("%s"), *msg);
-	}
-}
-
-TArray<FName> ActorSerializer::GetActorExcludeProperties(bool instigator, bool actorGuid)
-{
-	TArray<FName> result;
-	result.Reserve(6);
-	if (instigator)
-	{
-		result.Add("Instigator");
-	}
-	result.Add("RootComponent"); //this will result in the copied actor have same RootComponent to original actor, and crash. so we need to skip it
-	result.Add("BlueprintCreatedComponents");
-	result.Add("InstanceComponents");
-#if WITH_EDITORONLY_DATA
-	result.Add("InstanceComponents");
-	if (actorGuid)
-	{
-		result.Add(Name_ActorGuid); //ActorGuid is generated when spawn in world, should be unique
-	}
-#endif
-	return result;
-}
-TArray<FName> ActorSerializer::GetComponentExcludeProperties()
-{
-	TArray<FName> result;
-	result.Reserve(1);
-	result.Add("AttachParent");
-	return result;
 }
 
 void ActorSerializer::GenerateActorIDRecursive(AActor* Actor)
@@ -446,7 +416,7 @@ void ActorSerializer::GenerateActorIDRecursive(AActor* Actor)
 				for (int i = 0; i < SubPrefabComp->AllLoadedActorArray.Num(); i++)
 				{
 					auto SubLoadedActor = SubPrefabComp->AllLoadedActorArray[i];
-					auto SubLoadedActorGuid = SubPrefabComp->AllLoadedActorsGuidArrayInPrefab[i];
+					auto SubLoadedActorGuid = SubPrefabComp->AllLoadedActorGuidArrayInPrefab[i];
 					FGuid NewGuid;
 					if (MapActorToGuid.Contains(SubLoadedActor))
 					{
@@ -543,6 +513,62 @@ ULGUIPrefabHelperComponent* ActorSerializer::GetPrefabComponentThatUseTheActorAs
 	}
 	return nullptr;
 }
+
+void ActorSerializer::SetActorGUIDNew(AActor* Actor)
+{
+	auto guidProp = FindFieldChecked<FStructProperty>(AActor::StaticClass(), Name_ActorGuid);
+	auto newGuid = FGuid::NewGuid();
+	guidProp->CopyCompleteValue(guidProp->ContainerPtrToValuePtr<void>(Actor), &newGuid);
+}
+void ActorSerializer::SetActorGUID(AActor* Actor, FGuid Guid)
+{
+	auto guidProp = FindFieldChecked<FStructProperty>(AActor::StaticClass(), Name_ActorGuid);
+	guidProp->CopyCompleteValue(guidProp->ContainerPtrToValuePtr<void>(Actor), &Guid);
+}
+#endif
+
+#include "Engine/Engine.h"
+void ActorSerializer::LogForBitConvertFail(bool success, FProperty* Property)
+{
+	if (!success)
+	{
+		auto msg = FString::Printf(TEXT("bitconvert fail, property:%s, propertyType:%s, prefab:%s"), *(Property->GetPathName()), *(Property->GetClass()->GetName()), *Prefab->GetPathName());
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, msg);
+		}
+		UE_LOG(LGUI, Error, TEXT("%s"), *msg);
+	}
+}
+
+TArray<FName> ActorSerializer::GetActorExcludeProperties(bool instigator, bool actorGuid)
+{
+	TArray<FName> result;
+	result.Reserve(6);
+	if (instigator)
+	{
+		result.Add("Instigator");
+	}
+	result.Add("RootComponent"); //this will result in the copied actor have same RootComponent to original actor, and crash. so we need to skip it
+	result.Add("BlueprintCreatedComponents");
+	result.Add("InstanceComponents");
+#if WITH_EDITORONLY_DATA
+	result.Add("InstanceComponents");
+	if (actorGuid)
+	{
+		result.Add(Name_ActorGuid); //ActorGuid is generated when spawn in world, should be unique
+	}
+#endif
+	return result;
+}
+TArray<FName> ActorSerializer::GetComponentExcludeProperties()
+{
+	TArray<FName> result;
+	result.Reserve(1);
+	result.Add("AttachParent");
+	return result;
+}
+
 
 int32 ActorSerializer::FindOrAddAssetIdFromList(UObject* AssetObject)
 {
@@ -687,18 +713,6 @@ void ActorSerializer::RegisterComponent(AActor* Actor, UActorComponent* Comp)
 	break;
 	//@todo: should also consider EComponentCreationMethod::Native
 	}
-}
-
-void ActorSerializer::SetActorGUIDNew(AActor *Actor)
-{
-	auto guidProp = FindFieldChecked<FStructProperty>(AActor::StaticClass(), Name_ActorGuid);
-	auto newGuid = FGuid::NewGuid();
-	guidProp->CopyCompleteValue(guidProp->ContainerPtrToValuePtr<void>(Actor), &newGuid);
-}
-void ActorSerializer::SetActorGUID(AActor *Actor, FGuid Guid)
-{
-	auto guidProp = FindFieldChecked<FStructProperty>(AActor::StaticClass(), Name_ActorGuid);
-	guidProp->CopyCompleteValue(guidProp->ContainerPtrToValuePtr<void>(Actor), &Guid);
 }
 
 FString ActorSerializer::GetValueAsString(const FLGUIPropertyData &ItemPropertyData)
@@ -875,7 +889,7 @@ FGuid FLGUIActorSaveData::GetActorGuid(FGuid fallbackGuid) const
 			}
 		}
 	}
-	UE_LOG(LGUI, Warning, TEXT("[FLGUIActorSaveData::GetActorGuid] Failed to get ActorGuid, maybe this actor is created by previous UE version."));
+	UE_LOG(LGUI, Warning, TEXT("[FLGUIActorSaveData::GetActorGuid] Failed to get ActorGuid, maybe this Prefab is created by previous UE version."));
 	guid = fallbackGuid;
 	return guid;
 }
@@ -905,5 +919,4 @@ void FLGUIActorSaveData::SetActorGuid(FGuid guid)
 
 #if WITH_EDITOR
 FName ActorSerializer::Name_ActorGuid = FName(TEXT("ActorGuid"));
-uint16 LGUIPrefabSerializerHelper::CurrentProcessingPrefabVersion = 0;
 #endif
