@@ -346,7 +346,7 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		prefab->AddToRoot();
 		TArray<AActor*> Actors;
 		TArray<FGuid> ActorsGuid;
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::CreateNew, true
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, true
 			, nullptr
 			, {}, {}, Actors, ActorsGuid);
 		copiedActorPrefabList.Add(prefab);
@@ -749,7 +749,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 					prefabComp->PrefabAsset = OutPrefab;
 					prefabComp->LoadedRootActor = selectedActor;
 					prefabActor->FinishSpawning(FTransform::Identity, true);
-					auto createSuccess = CreateOrApplyPrefab(prefabComp, true);
+					auto createSuccess = CreateOrApplyPrefab(prefabComp);
 					if (createSuccess)
 					{
 						prefabComp->MoveActorToPrefabFolder();
@@ -797,13 +797,13 @@ void LGUIEditorTools::ApplyPrefab()
 	{
 		if (auto thisPrefabComp = prefabActor->GetPrefabComponent())
 		{
-			CreateOrApplyPrefab(thisPrefabComp, false);
+			CreateOrApplyPrefab(thisPrefabComp);
 		}
 	}
 	CleanupPrefabsInWorld(selectedActor->GetWorld());
 	GEditor->EndTransaction();
 }
-bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabComp, bool InCreateOrApply)
+bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabComp)
 {
 	if (auto rootActor = InPrefabComp->GetLoadedRootActor())
 	{
@@ -853,7 +853,7 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabCo
 				else
 				{
 					GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
-					InPrefabComp->SavePrefab(InCreateOrApply, msgResult == EAppReturnType::Yes);
+					InPrefabComp->SavePrefab(msgResult == EAppReturnType::Yes);
 					GEditor->EndTransaction();
 					return true;
 				}
@@ -861,7 +861,7 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabCo
 			else
 			{
 				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
-				InPrefabComp->SavePrefab(InCreateOrApply, false);
+				InPrefabComp->SavePrefab(false);
 				GEditor->EndTransaction();
 				return true;
 			}

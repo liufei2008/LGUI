@@ -14,5 +14,4 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
 	TWeakObjectPtr<class ULGUIPrefabHelperComponent> TargetScriptPtr;
-	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
 };

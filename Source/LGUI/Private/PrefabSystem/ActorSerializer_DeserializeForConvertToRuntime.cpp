@@ -200,11 +200,6 @@ bool ActorSerializer::LoadCommonPropertyForConvert(FProperty* Property, int item
 							check(ActorGuidToIDForConvert.Contains(guid));
 							ItemPropertyDataForBuild.Data = BitConverter::GetBytes(ActorGuidToIDForConvert[guid]);
 						}
-						else
-						{
-							UE_LOG(LGUI, Error, TEXT("*******prefab:%s"), *(Prefab->GetPathName()));
-							check(0);
-						}
 					}
 					ResultPropertyData.Add(ItemPropertyDataForBuild);
 					return true;

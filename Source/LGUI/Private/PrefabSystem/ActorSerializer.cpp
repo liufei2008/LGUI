@@ -11,7 +11,6 @@
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "EngineUtils.h"
 
 using namespace LGUIPrefabSystem;
 
@@ -25,15 +24,14 @@ ActorSerializer::ActorSerializer(UWorld* InTargetWorld)
 }
 #if WITH_EDITOR
 AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-	//, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid> &InExistingActorGuidInPrefab
 	, TFunction<AActor* (FGuid)> InGetExistingActorFunction
+	, TFunction<void(AActor*, FGuid)> InCreateNewActorFunction
 	, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid)
 {
 	ActorSerializer serializer(InWorld);
 	serializer.editMode = EPrefabEditMode::EditInLevel;
-	//serializer.ExistingActors = InExistingActorArray;
-	//serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
 	serializer.GetExistingActorFunction = InGetExistingActorFunction;
+	serializer.CreateNewActorFunction = InCreateNewActorFunction;
 	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 	OutCreatedActors = serializer.CreatedActors;
 	OutActorsGuid = serializer.CreatedActorsGuid;
@@ -53,13 +51,7 @@ AActor* ActorSerializer::LoadPrefabInEditor(UWorld *InWorld, ULGUIPrefab *InPref
 		return serializer.DeserializeActor(Parent, InPrefab);
 	}
 }
-AActor* ActorSerializer::LoadPrefabForRecreate(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent)
-{
-	ActorSerializer serializer(InWorld);
-	serializer.editMode = EPrefabEditMode::Recreate;
-	auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
-	return rootActor;
-}
+
 void ActorSerializer::RenewActorGuidForDuplicate(ULGUIPrefab* InPrefab)
 {
 	ActorSerializer serializer(InPrefab);
@@ -186,10 +178,6 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	{
 		CreatedRootActor = DeserializeActorRecursiveForEdit(Parent, SaveData.SavedActor, id);
 	}
-	else if (editMode == EPrefabEditMode::Recreate)
-	{
-		CreatedRootActor = DeserializeActorRecursiveForRecreate(Parent, SaveData.SavedActor, id);
-	}
 	else
 	{
 		CreatedRootActor = DeserializeActorRecursiveForUseInEditor(Parent, SaveData.SavedActor, id);
@@ -310,222 +298,6 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 	return CreatedRootActor;
 }
 
-#if WITH_EDITOR
-void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, EPrefabSerializeMode InSerializeMode, bool InIncludeOtherPrefabAsSubPrefab
-	, ULGUIPrefabHelperComponent* InHelperComp
-	, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
-	, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid)
-{
-	if (!RootActor || !InPrefab)
-	{
-		UE_LOG(LGUI, Error, TEXT("[ActorSerializer::SerializeActor]RootActor Or InPrefab is null!"));
-		return;
-	}
-	if (!RootActor->GetWorld())
-	{
-		UE_LOG(LGUI, Error, TEXT("[ActorSerializer::SerializeActor]Cannot get World from RootActor!"));
-		return;
-	}
-	ActorSerializer serializer(RootActor->GetWorld());
-	serializer.serializeMode = InSerializeMode;
-	serializer.ExistingActors = InExistingActorArray;
-	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
-	serializer.IncludeOtherPrefabAsSubPrefab = InIncludeOtherPrefabAsSubPrefab;
-	serializer.HelperComp = InHelperComp;
-	serializer.SerializeActor(RootActor, InPrefab);
-	OutSerializedActors = serializer.SerializedActors;
-	OutSerializedActorsGuid = serializer.SerializedActorsGuid;
-}
-void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
-{
-	Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
-	//clear old reference data
-	Prefab->ReferenceAssetList.Empty();
-	Prefab->ReferenceStringList.Empty();
-	Prefab->ReferenceNameList.Empty();
-	Prefab->ReferenceTextList.Empty();
-	Prefab->ReferenceClassList.Empty();
-
-	auto StartTime = FDateTime::Now();
-
-	CollectSkippingActorsRecursive(RootActor);
-
-	GenerateActorIDRecursive(RootActor);
-
-	FLGUIActorSaveData ActorSaveData;
-	SerializeActorRecursive(RootActor, ActorSaveData);
-
-	FLGUIPrefabSaveData SaveData;
-	SaveData.SavedActor = ActorSaveData;
-
-	FBufferArchive ToBinary;
-	ToBinary << SaveData;
-
-	if (ToBinary.Num() <= 0)
-	{
-		UE_LOG(LGUI, Warning, TEXT("Save binary length is 0!"));
-		return;
-	}
-
-	Prefab->BinaryData = ToBinary;
-	Prefab->ThumbnailDirty = true;
-
-	ToBinary.FlushCache();
-	ToBinary.Empty();
-	Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
-	Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
-	Prefab->PrefabVersion = LGUI_PREFAB_VERSION;
-	Prefab->CreateTime = FDateTime::Now();
-
-	Prefab->MarkPackageDirty();
-	UE_LOG(LGUI, Log, TEXT("[ActorSerializer::SerializeActor] prefab:%s duration:%s"), *(Prefab->GetPathName()), *((FDateTime::Now() - StartTime).ToString()));
-}
-
-FLGUIActorSaveData ActorSerializer::CreateActorSaveData(ULGUIPrefab* InPrefab)
-{
-	FLGUIPrefabSaveData SaveData;
-	auto LoadedData = InPrefab->BinaryData;
-	if (LoadedData.Num() <= 0)
-	{
-		UE_LOG(LGUI, Warning, TEXT("Loaded data is empty!"));
-		return SaveData.SavedActor;
-	}
-	auto FromBinary = FMemoryReader(LoadedData, true);
-	FromBinary.Seek(0);
-	FromBinary << SaveData;
-	FromBinary.FlushCache();
-	FromBinary.Close();
-	LoadedData.Empty();
-	return SaveData.SavedActor;
-}
-
-void ActorSerializer::GenerateActorIDRecursive(AActor* Actor)
-{
-	if (HelperComp)
-	{
-		if (auto SubPrefabComp = GetPrefabComponentThatUseTheActorAsRoot(Actor))//if is sub prefab's root actor
-		{
-			if (!HelperComp->SubPrefabs.Contains(Actor))
-			{
-				SubPrefabComp->AttachToComponent(HelperComp, FAttachmentTransformRules::KeepRelativeTransform);
-				SubPrefabComp->ParentPrefab = (ALGUIPrefabActor*)HelperComp->GetOwner();
-				HelperComp->SubPrefabs.Add(Actor, (ALGUIPrefabActor*)SubPrefabComp->GetOwner());
-
-				FActorGuidAndPrefabContainer SubPrefabDataContainer;
-				SubPrefabDataContainer.Prefab = SubPrefabComp->GetPrefabAsset();
-				for (int i = 0; i < SubPrefabComp->AllLoadedActorArray.Num(); i++)
-				{
-					auto SubLoadedActor = SubPrefabComp->AllLoadedActorArray[i];
-					auto SubLoadedActorGuid = SubPrefabComp->AllLoadedActorGuidArrayInPrefab[i];
-					FGuid NewGuid;
-					if (MapActorToGuid.Contains(SubLoadedActor))
-					{
-						NewGuid = MapActorToGuid[SubLoadedActor];
-					}
-					else
-					{
-						NewGuid = FGuid::NewGuid();
-						MapActorToGuid.Add(SubLoadedActor, NewGuid);
-					}
-					SubPrefabDataContainer.GuidFromPrefabToInstance.Add(SubLoadedActorGuid, NewGuid);
-				}
-				Prefab->SubPrefabs.Add(MapActorToGuid[Actor], SubPrefabDataContainer);
-			}
-		}
-		if (!MapActorToGuid.Contains(Actor))//if is sub prefab's actor, then guid is already generated when add sub prefab
-		{
-			auto ActorGuid = HelperComp->GetGuidByActor(Actor);
-			if (!ActorGuid.IsValid())//not valid guid, means the actor is newly added
-			{
-				ActorGuid = FGuid::NewGuid();
-			}
-
-			MapActorToGuid.Add(Actor, ActorGuid);
-		}
-	}
-	else
-	{
-		if (!MapActorToGuid.Contains(Actor))
-		{
-			MapActorToGuid.Add(Actor, Actor->GetActorGuid());
-		}
-	}
-
-	TArray<AActor*> ChildrenActors;
-	Actor->GetAttachedActors(ChildrenActors);
-	for (auto ChildActor : ChildrenActors)
-	{
-		if (!SkippingActors.Contains(ChildActor))
-		{
-			GenerateActorIDRecursive(ChildActor);
-		}
-	}
-}
-void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
-{
-	TArray<AActor*> ChildrenActors;
-	Actor->GetAttachedActors(ChildrenActors);
-	for (auto ChildActor : ChildrenActors)
-	{
-		bool shouldSkipActor = false;
-		if (auto SubPrefabComp = GetPrefabComponentThatUseTheActorAsRoot(ChildActor))
-		{
-			//auto SubPrefabActor = (ALGUIPrefabActor*)SubPrefabComp->GetOwner();
-			if (!HelperComp->SubPrefabs.Contains(ChildActor))//not at subprefab
-			{
-				if (IncludeOtherPrefabAsSubPrefab)//shoud append the prefab as sub prefab
-				{
-					if (!SubPrefabComp->IsRootPrefab())//only concern root prefab
-					{
-						shouldSkipActor = true;
-					}
-				}
-				else
-				{
-					shouldSkipActor = true;
-				}
-			}
-		}
-		if (shouldSkipActor)
-		{
-			SkippingActors.Add(ChildActor);
-		}
-		else
-		{
-			CollectSkippingActorsRecursive(ChildActor);
-		}
-	}
-}
-
-ULGUIPrefabHelperComponent* ActorSerializer::GetPrefabComponentThatUseTheActorAsRoot(AActor* InActor)
-{
-	if (HelperComp->LoadedRootActor == InActor)return nullptr;//skip self
-	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
-	{
-		auto PrefabActor = *ActorItr;
-		if (IsValid(PrefabActor))
-		{
-			if (PrefabActor->GetPrefabComponent()->LoadedRootActor == InActor)
-			{
-				return PrefabActor->GetPrefabComponent();
-			}
-		}
-	}
-	return nullptr;
-}
-
-void ActorSerializer::SetActorGUIDNew(AActor* Actor)
-{
-	auto guidProp = FindFieldChecked<FStructProperty>(AActor::StaticClass(), Name_ActorGuid);
-	auto newGuid = FGuid::NewGuid();
-	guidProp->CopyCompleteValue(guidProp->ContainerPtrToValuePtr<void>(Actor), &newGuid);
-}
-void ActorSerializer::SetActorGUID(AActor* Actor, FGuid Guid)
-{
-	auto guidProp = FindFieldChecked<FStructProperty>(AActor::StaticClass(), Name_ActorGuid);
-	guidProp->CopyCompleteValue(guidProp->ContainerPtrToValuePtr<void>(Actor), &Guid);
-}
-#endif
 
 #include "Engine/Engine.h"
 void ActorSerializer::LogForBitConvertFail(bool success, FProperty* Property)
