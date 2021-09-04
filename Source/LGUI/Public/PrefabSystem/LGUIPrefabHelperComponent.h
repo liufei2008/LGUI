@@ -49,12 +49,11 @@ public:
 	bool IsActorBelongsToPrefab(AActor* InActor);
 	ULGUIPrefabHelperComponent* GetSubPrefabWhichManageTheActor(AActor* InActor);
 	bool IsSubPrefabRootActor(AActor* InActor);
+	void CleanupPrefabAndActor();
 
 	void RemoveEditorTickDelegate();
 	void EditorTick(float DeltaTime);
 private:
-	//Clear AllLoadedActorArray, remove it if not under root actor
-	void CleanupLoadedActors();
 #endif
 #if WITH_EDITORONLY_DATA
 public:
@@ -69,7 +68,7 @@ public:
 		TArray<AActor*> AllLoadedActorArray;
 	/** All loaded actor's guid which stored in prefab, include sub prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<FGuid> AllLoadedActorsGuidArrayInPrefab;
+		TArray<FGuid> AllLoadedActorGuidArrayInPrefab;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ALGUIPrefabActor* ParentPrefab;
 	/** SubPrefab's root actor to prefab map */

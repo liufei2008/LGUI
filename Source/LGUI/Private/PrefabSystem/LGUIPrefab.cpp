@@ -22,5 +22,11 @@ void ULGUIPrefab::PreSave(const ITargetPlatform* TargetPlatform)
 {
 	Super::PreSave(TargetPlatform);
 }
+void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
+{
+	//generate new guid for actor data
+	//@todo: support nested prefab
+	LGUIPrefabSystem::ActorSerializer::RenewActorGuidForDuplicate(this);
+}
 
 #endif
