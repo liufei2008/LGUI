@@ -53,14 +53,15 @@ public:
 	static UWorld* GetWorldFromSelection();
 	static void CreatePrefabAsset();
 	static void ApplyPrefab();
-	static void CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabComp, bool InCreateOrApply);
+	static bool CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabComp, bool InCreateOrApply);
 	static void RevertPrefab();
 	static void DeletePrefab();
 	static void UnlinkPrefab();
 	static void SelectPrefabAsset();
+	static void CleanupPrefabsInWorld(UWorld* World);
 	static ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
-	static void ClearPrefabActor(UWorld* World);
+	static void ClearInvalidPrefabActor(UWorld* World);
 	static bool IsSelectUIActor();
 	static bool IsCanvasActor(AActor* InActor);
 	static int GetDrawcallCount(AActor* InActor);

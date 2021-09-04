@@ -13,12 +13,12 @@
 
 using namespace LGUIPrefabSystem;
 
+#if WITH_EDITOR
 void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData)
 {
 	OutActorSaveData.ActorClass = FindOrAddClassFromList(Actor->GetClass());
 
 	SaveProperty(Actor, OutActorSaveData.ActorPropertyData, GetActorExcludeProperties(true, false));
-#if WITH_EDITOR
 	FGuid actorGuid;
 	if (serializeMode == EPrefabSerializeMode::RecreateFromExisting)//no need to replace guid
 	{
@@ -35,7 +35,6 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 
 	SerializedActors.Add(Actor);
 	SerializedActorsGuid.Add(actorGuid);
-#endif
 	auto& Components = Actor->GetComponents();
 
 	TArray<USceneComponent*> AllSceneComponentOfThisActor;
@@ -411,4 +410,5 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 		}
 	}
 }
+#endif
 
