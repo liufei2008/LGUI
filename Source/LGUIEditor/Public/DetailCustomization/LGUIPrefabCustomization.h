@@ -25,4 +25,6 @@ private:
 	FReply OnClickRecreteButton();
 	FReply OnClickRecreteAllButton();
 	FReply OnClickEditPrefabButton();
+
+	void RecreatePrefab(class ULGUIPrefab* Prefab, class UWorld* World);
 };

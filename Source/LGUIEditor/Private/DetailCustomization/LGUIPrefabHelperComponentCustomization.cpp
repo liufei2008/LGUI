@@ -29,11 +29,4 @@ void FLGUIPrefabHelperComponentCustomization::CustomizeDetails(IDetailLayoutBuil
 	}
 	TargetScriptPtr->LoadPrefab();
 }
-void FLGUIPrefabHelperComponentCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
-{
-	if (auto Script = TargetScriptPtr.Get())
-	{
-		DetailBuilder->ForceRefreshDetails();
-	}
-}
 #undef LOCTEXT_NAMESPACE

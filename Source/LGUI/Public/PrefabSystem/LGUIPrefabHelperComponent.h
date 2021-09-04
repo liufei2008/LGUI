@@ -26,7 +26,7 @@ public:
 		void LoadPrefab(USceneComponent* InParent = nullptr);
 	void LoadSubPrefab(USceneComponent* InParent, TMap<FGuid, FGuid> InGuidFromPrefabToInstance);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SavePrefab(bool InCreateOrApply, bool InIncludeOtherPrefabAsSubPrefab);
+		void SavePrefab(bool InIncludeOtherPrefabAsSubPrefab);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void RevertPrefab();
 	//delete this prefab actor

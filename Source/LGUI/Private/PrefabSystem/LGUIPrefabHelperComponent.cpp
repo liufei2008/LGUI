@@ -115,11 +115,8 @@ void ULGUIPrefabHelperComponent::LoadPrefab(USceneComponent* InParent)
 	{
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 
-		auto ExistingActors = AllLoadedActorArray;
-		auto ExistingActorsGuid = AllLoadedActorGuidArrayInPrefab;
 		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
 			, InParent ? InParent : (IsValid(ParentActorForEditor) ? ParentActorForEditor->GetRootComponent() : nullptr)
-			//, ExistingActors, ExistingActorsGuid
 			, [=](FGuid guid) 
 			{
 				int FoundActorIndex = AllLoadedActorGuidArrayInPrefab.Find(guid);
@@ -129,6 +126,7 @@ void ULGUIPrefabHelperComponent::LoadPrefab(USceneComponent* InParent)
 				}
 				return (AActor*)nullptr;
 			}
+			, nullptr
 			, AllLoadedActorArray, AllLoadedActorGuidArrayInPrefab);
 
 		RestoreSubPrefabs();
@@ -180,43 +178,45 @@ void ULGUIPrefabHelperComponent::RestoreSubPrefabs()
 
 void ULGUIPrefabHelperComponent::LoadSubPrefab(USceneComponent* InParent, TMap<FGuid, FGuid> InGuidFromPrefabToInstance)
 {
-	if (!IsValid(LoadedRootActor))
-	{
-		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 
-		check(ParentPrefab);
-		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
-			, InParent
-			//, ParentPrefab->GetPrefabComponent()->AllLoadedActorArray, ParentPrefab->GetPrefabComponent()->AllLoadedActorsGuidArrayInPrefab
-			, [=](FGuid guid)
+	check(ParentPrefab);
+	LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(this->GetWorld(), PrefabAsset
+		, InParent
+		, [=](FGuid guid)
+		{
+			if (auto InstanceGuidPtr = InGuidFromPrefabToInstance.Find(guid))
 			{
-				if (auto InstanceGuidPtr = InGuidFromPrefabToInstance.Find(guid))
+				int FoundActorIndex = ParentPrefab->GetPrefabComponent()->AllLoadedActorGuidArrayInPrefab.Find(*InstanceGuidPtr);
+				if (FoundActorIndex != INDEX_NONE)
 				{
-					int FoundActorIndex = ParentPrefab->GetPrefabComponent()->AllLoadedActorGuidArrayInPrefab.Find(*InstanceGuidPtr);
-					if (FoundActorIndex != INDEX_NONE)
-					{
-						return ParentPrefab->GetPrefabComponent()->AllLoadedActorArray[FoundActorIndex];
-					}
+					return ParentPrefab->GetPrefabComponent()->AllLoadedActorArray[FoundActorIndex];
 				}
-				check(0);
-				return (AActor*)nullptr;
 			}
+			return (AActor*)nullptr;
+		}
+		, [this](AActor* NewActor, FGuid GuidInPrefab)
+		{
+			check(!ParentPrefab->GetPrefabComponent()->AllLoadedActorArray.Contains(NewActor));
+			check(!ParentPrefab->GetPrefabComponent()->AllLoadedActorGuidArrayInPrefab.Contains(GuidInPrefab));
+			ParentPrefab->GetPrefabComponent()->AllLoadedActorArray.Add(NewActor);
+			ParentPrefab->GetPrefabComponent()->AllLoadedActorGuidArrayInPrefab.Add(GuidInPrefab);
+		}
 		, AllLoadedActorArray, AllLoadedActorGuidArrayInPrefab);
 
-		FActorFolders::Get().CreateFolder(*this->GetWorld(), PrefabFolderName);
-		this->GetOwner()->SetFolderPath(PrefabFolderName);
-		GEditor->SelectNone(false, true);
-		GEditor->SelectActor(LoadedRootActor, true, false);
+	FActorFolders::Get().CreateFolder(*this->GetWorld(), PrefabFolderName);
+	this->GetOwner()->SetFolderPath(PrefabFolderName);
+	GEditor->SelectNone(false, true);
+	GEditor->SelectActor(LoadedRootActor, true, false);
 
-		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
+	ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 
-		if (ULGUIEditorManagerObject::Instance != nullptr)
-		{
-			EditorTickDelegateHandle = ULGUIEditorManagerObject::Instance->EditorTick.AddUObject(this, &ULGUIPrefabHelperComponent::EditorTick);
-		}
+	if (ULGUIEditorManagerObject::Instance != nullptr)
+	{
+		EditorTickDelegateHandle = ULGUIEditorManagerObject::Instance->EditorTick.AddUObject(this, &ULGUIPrefabHelperComponent::EditorTick);
 	}
 }
-void ULGUIPrefabHelperComponent::SavePrefab(bool InCreateOrApply, bool InIncludeOtherPrefabAsSubPrefab)
+void ULGUIPrefabHelperComponent::SavePrefab(bool InIncludeOtherPrefabAsSubPrefab)
 {
 	if (PrefabAsset)
 	{
@@ -224,7 +224,6 @@ void ULGUIPrefabHelperComponent::SavePrefab(bool InCreateOrApply, bool InInclude
 		auto ExistingActors = AllLoadedActorArray;
 		auto ExistingActorsGuid = AllLoadedActorGuidArrayInPrefab;
 		LGUIPrefabSystem::ActorSerializer::SavePrefab(LoadedRootActor, PrefabAsset
-			, InCreateOrApply ? LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::CreateNew : LGUIPrefabSystem::ActorSerializer::EPrefabSerializeMode::Apply
 			, InIncludeOtherPrefabAsSubPrefab
 			, this
 			, ExistingActors, ExistingActorsGuid, AllLoadedActorArray, AllLoadedActorGuidArrayInPrefab);

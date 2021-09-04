@@ -24,10 +24,10 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForEdit]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
-		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
-		AActor* NewActor = this->GetExistingActorFunction(guidInPrefab);
-		bool useExistActor = NewActor != nullptr;
-		if (useExistActor)
+		auto ActorGuidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
+		AActor* NewActor = this->GetExistingActorFunction(ActorGuidInPrefab);
+		bool UseExistingActor = NewActor != nullptr;
+		if (UseExistingActor)
 		{
 			
 		}
@@ -35,10 +35,14 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 		{
 			NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
 			CreatedActorsNeedToFinishSpawn.Add(NewActor);
+			if (CreateNewActorFunction != nullptr)
+			{
+				CreateNewActorFunction(NewActor, ActorGuidInPrefab);
+			}
 		}
 		ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
 		CreatedActors.Add(NewActor);
-		CreatedActorsGuid.Add(guidInPrefab);
+		CreatedActorsGuid.Add(ActorGuidInPrefab);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];
@@ -83,14 +87,14 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 
 		TArray<SceneComponentToParentIDStruct> NeedReparent_SceneComponents;//SceneComponent collection of this actor that need to reattach to parent
 		int ComponentCount = SaveData.ComponentPropertyData.Num();
-		TInlineComponentArray<UActorComponent*> tempCompArray;
-		if (useExistActor)
+		TInlineComponentArray<UActorComponent*> TempCompArray;
+		if (UseExistingActor)
 		{
-			NewActor->GetComponents(tempCompArray);
-			auto rootCompIndex = tempCompArray.IndexOfByKey(RootComp);
+			NewActor->GetComponents(TempCompArray);
+			auto rootCompIndex = TempCompArray.IndexOfByKey(RootComp);
 			if (rootCompIndex != INDEX_NONE)
 			{
-				tempCompArray.RemoveAt(rootCompIndex);
+				TempCompArray.RemoveAt(rootCompIndex);
 			}
 		}
 		for (int i = 1; i < ComponentCount; i++)//start from 1, skip RootComponent
@@ -105,25 +109,25 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 				}
 				
 				UActorComponent* Comp = nullptr;
-				bool useExistComponent = false;
-				if (useExistActor)
+				bool UseExistingComponent = false;
+				if (UseExistingActor)
 				{
-					int foundCompIndex = tempCompArray.IndexOfByPredicate([CompClass, CompData](const UActorComponent* Item) {
+					int foundCompIndex = TempCompArray.IndexOfByPredicate([CompClass, CompData](const UActorComponent* Item) {
 						return Item->GetClass() == CompClass && Item->GetFName() == CompData.ComponentName;
 						});
 					if (foundCompIndex != INDEX_NONE)
 					{
-						useExistComponent = true;
-						Comp = tempCompArray[foundCompIndex];
-						tempCompArray.RemoveAtSwap(foundCompIndex);
+						UseExistingComponent = true;
+						Comp = TempCompArray[foundCompIndex];
+						TempCompArray.RemoveAtSwap(foundCompIndex);
 					}
 				}
-				if (!useExistComponent)
+				if (!UseExistingComponent)
 				{
 					Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
 				}
 				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
-				if (!useExistComponent)
+				if (!UseExistingComponent)
 				{
 					if (!Comp->IsDefaultSubobject())
 					{
@@ -153,16 +157,16 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 			}
 		}
 		//clear excess components
-		if (useExistActor)
+		if (UseExistingActor)
 		{
-			for (auto item : tempCompArray)
+			for (auto item : TempCompArray)
 			{
 				item->ConditionalBeginDestroy();
 			}
-			tempCompArray.Empty();
+			TempCompArray.Empty();
 		}
 		//SceneComponent reattach to parent
-		for (int i = 0, count = NeedReparent_SceneComponents.Num(); i < count; i++)
+		for (int i = 0; i < NeedReparent_SceneComponents.Num(); i++)
 		{
 			auto& SceneCompStructData = NeedReparent_SceneComponents[i];
 			if (SceneCompStructData.ParentCompID != -1)
@@ -175,10 +179,10 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 		{
 			if (NewActor->GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || Parent->GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint))//for blueprint actor, we need to attach parent after actor finish spawn
 			{
-				BlueprintActorToParentActorStruct itemStruct;
-				itemStruct.BlueprintActor = NewActor;
-				itemStruct.ParentActor = Parent;
-				BlueprintAndParentArray.Add(itemStruct);
+				BlueprintActorToParentActorStruct ItemStruct;
+				ItemStruct.BlueprintActor = NewActor;
+				ItemStruct.ParentActor = Parent;
+				BlueprintAndParentArray.Add(ItemStruct);
 			}
 			if (RootComp)
 			{
@@ -188,7 +192,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 
 		id++;
 		MapIDToActor.Add(id, NewActor);
-		MapGuidToActor.Add(guidInPrefab, NewActor);
+		MapGuidToActor.Add(ActorGuidInPrefab, NewActor);
 
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{
