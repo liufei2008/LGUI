@@ -45,9 +45,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UClass*> ReferenceClassList;
 #if WITH_EDITORONLY_DATA
-	/** The key(guid) is the subprefab's root-actor's guid stored root prefab. The value contains prefab asset and a map:  */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TMap<FGuid, FActorGuidAndPrefabContainer> SubPrefabs;
 	/** serialized data for editor use, this data contains editor-only property include property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
@@ -83,7 +80,5 @@ public:
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
 	virtual void PostDuplicate(bool bDuplicateForPIE)override;
-
-	bool ContainsSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive, int32& OutDepth);
 #endif
 };

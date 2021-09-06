@@ -426,21 +426,6 @@ void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, bool 
 	serializer.SerializeActor(RootActor, InPrefab);
 	OutSerializedActors = serializer.SerializedActors;
 	OutSerializedActorsGuid = serializer.SerializedActorsGuid;
-
-	//check sub prefabs, remove excess
-	TArray<FGuid> ExcessSubPrefabKeys;
-	for (auto SubPrefaKeyValue : InPrefab->SubPrefabs)
-	{
-		if (!InHelperComp->AllLoadedActorGuidArrayInPrefab.Contains(SubPrefaKeyValue.Key))
-		{
-			ExcessSubPrefabKeys.Add(SubPrefaKeyValue.Key);
-		}
-	}
-	for (auto Item : ExcessSubPrefabKeys)
-	{
-		UE_LOG(LGUI, Log, TEXT("Remove sub prefab: %s"), *(InPrefab->SubPrefabs[Item].Prefab->GetPathName()));
-		InPrefab->SubPrefabs.Remove(Item);
-	}
 }
 void ActorSerializer::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 {
@@ -509,72 +494,6 @@ void ActorSerializer::GenerateActorIDRecursive(AActor* Actor)
 {
 	if (HelperComp)
 	{
-		if (auto SubPrefabComp = GetPrefabComponentThatUseTheActorAsRoot(Actor))//if is sub prefab's root actor
-		{
-			if (!HelperComp->IsActorBelongsToSubPrefab(Actor))//actor not belong to sub prefab, should collect all
-			{
-				SubPrefabComp->AttachToComponent(HelperComp, FAttachmentTransformRules::KeepRelativeTransform);
-				SubPrefabComp->ParentPrefab = (ALGUIPrefabActor*)HelperComp->GetOwner();
-				HelperComp->SubPrefabs.Add(Actor, (ALGUIPrefabActor*)SubPrefabComp->GetOwner());
-
-				FActorGuidAndPrefabContainer SubPrefabDataContainer;
-				SubPrefabDataContainer.Prefab = SubPrefabComp->GetPrefabAsset();
-				for (int i = 0; i < SubPrefabComp->AllLoadedActorArray.Num(); i++)
-				{
-					auto SubLoadedActor = SubPrefabComp->AllLoadedActorArray[i];
-					auto SubLoadedActorGuid = SubPrefabComp->AllLoadedActorGuidArrayInPrefab[i];
-					FGuid NewGuid;
-					if (MapActorToGuid.Contains(SubLoadedActor))
-					{
-						NewGuid = MapActorToGuid[SubLoadedActor];
-					}
-					else
-					{
-						NewGuid = FGuid::NewGuid();
-						MapActorToGuid.Add(SubLoadedActor, NewGuid);
-					}
-					SubPrefabDataContainer.GuidFromPrefabToInstance.Add(SubLoadedActorGuid, NewGuid);
-				}
-				Prefab->SubPrefabs.Add(MapActorToGuid[Actor], SubPrefabDataContainer);
-			}
-			//else//already added to sub prefab, then add new and clear excess
-			//{
-			//	auto RootGuid = HelperComp->GetGuidByActor(Actor);//because already added, this guid should exist
-			//	check(RootGuid.IsValid());
-			//	check(Prefab->SubPrefabs.Contains(RootGuid));
-			//	auto SubPrefabDataContainer = Prefab->SubPrefabs.Find(RootGuid);
-			//	//add new
-			//	for (int i = 0; i < SubPrefabComp->AllLoadedActorArray.Num(); i++)
-			//	{
-			//		auto SubLoadedActor = SubPrefabComp->AllLoadedActorArray[i];
-			//		auto SubLoadedActorGuid = SubPrefabComp->AllLoadedActorGuidArrayInPrefab[i];
-			//		FGuid NewGuid = HelperComp->GetGuidByActor(SubLoadedActor);
-			//		if (!MapActorToGuid.Contains(SubLoadedActor))
-			//		{
-			//			MapActorToGuid.Add(SubLoadedActor, NewGuid);
-			//		}
-			//		if (!SubPrefabDataContainer->GuidFromPrefabToInstance.Contains(SubLoadedActorGuid))
-			//		{
-			//			SubPrefabDataContainer->GuidFromPrefabToInstance.Add(SubLoadedActorGuid, NewGuid);
-			//		}
-			//	}
-			//	//clear excess
-			//	{
-			//		TArray<FGuid> ExcessGuids;
-			//		for (auto KeyValue : SubPrefabDataContainer->GuidFromPrefabToInstance)
-			//		{
-			//			if (!SubPrefabComp->AllLoadedActorGuidArrayInPrefab.Contains(KeyValue.Key))
-			//			{
-			//				ExcessGuids.Add(KeyValue.Key);
-			//			}
-			//		}
-			//		for (auto ExcessGuidItem : ExcessGuids)
-			//		{
-			//			SubPrefabDataContainer->GuidFromPrefabToInstance.Remove(ExcessGuidItem);
-			//		}
-			//	}
-			//}
-		}
 		if (!MapActorToGuid.Contains(Actor))//if is sub prefab's actor, then guid is already generated when add sub prefab
 		{
 			auto ActorGuid = HelperComp->GetGuidByActor(Actor);
@@ -617,21 +536,7 @@ void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 		{
 			if (SubPrefabComp != HelperComp)
 			{
-				//auto SubPrefabActor = (ALGUIPrefabActor*)SubPrefabComp->GetOwner();
-				if (!HelperComp->SubPrefabs.Contains(ChildActor))//not at subprefab
-				{
-					if (IncludeOtherPrefabAsSubPrefab)//shoud append the prefab as sub prefab
-					{
-						//if (!SubPrefabComp->IsRootPrefab())//only concern root prefab
-						//{
-						//	shouldSkipActor = true;
-						//}
-					}
-					else
-					{
-						shouldSkipActor = true;
-					}
-				}
+				shouldSkipActor = true;
 			}
 		}
 		if (shouldSkipActor)

@@ -25,31 +25,7 @@ void ULGUIPrefab::PreSave(const ITargetPlatform* TargetPlatform)
 void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 {
 	//generate new guid for actor data
-	//@todo: support nested prefab
 	LGUIPrefabSystem::ActorSerializer::RenewActorGuidForDuplicate(this);
 }
 
-bool ULGUIPrefab::ContainsSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive, int32& OutDepth)
-{
-	OutDepth++;
-	for (auto SubPrefabKeyValue : SubPrefabs)
-	{
-		if (SubPrefabKeyValue.Value.Prefab == InPrefab)
-		{
-			return true;
-		}
-	}
-	if (InRecursive)
-	{
-		for (auto SubPrefabKeyValue : SubPrefabs)
-		{
-			if (SubPrefabKeyValue.Value.Prefab->ContainsSubPrefab(InPrefab, InRecursive, OutDepth))
-			{
-				return true;
-			}
-		}
-	}
-	OutDepth--;
-	return false;
-}
 #endif

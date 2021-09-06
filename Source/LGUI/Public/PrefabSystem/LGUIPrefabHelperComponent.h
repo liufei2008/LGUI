@@ -24,7 +24,6 @@ public:
 #if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void LoadPrefab(USceneComponent* InParent = nullptr);
-	void LoadSubPrefab(USceneComponent* InParent, TMap<FGuid, FGuid> InGuidFromPrefabToInstance);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SavePrefab(bool InIncludeOtherPrefabAsSubPrefab);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -42,13 +41,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		AActor* GetLoadedRootActor()const { return LoadedRootActor; }
 	void MoveActorToPrefabFolder();
-	bool IsRootPrefab()const;
-	void RestoreSubPrefabs();
 	FGuid GetGuidByActor(AActor* InActor);
-	bool IsActorBelongsToSubPrefab(AActor* InActor);
 	bool IsActorBelongsToPrefab(AActor* InActor);
-	ULGUIPrefabHelperComponent* GetSubPrefabWhichManageTheActor(AActor* InActor);
-	bool IsSubPrefabRootActor(AActor* InActor);
 	void CleanupPrefabAndActor();
 
 	void RemoveEditorTickDelegate();
@@ -69,11 +63,6 @@ public:
 	/** All loaded actor's guid which stored in prefab, include sub prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<FGuid> AllLoadedActorGuidArrayInPrefab;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ALGUIPrefabActor* ParentPrefab;
-	/** SubPrefab's root actor to prefab map */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<AActor*, ALGUIPrefabActor*> SubPrefabs;
 	FColor IdentityColor = FColor::Black;
 	bool IsRandomColor = true;
 	static TArray<FColor> AllColors;
