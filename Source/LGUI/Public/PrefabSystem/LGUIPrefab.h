@@ -83,5 +83,7 @@ public:
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
 	virtual void PostDuplicate(bool bDuplicateForPIE)override;
+
+	bool ContainsSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive, int32& OutDepth);
 #endif
 };
