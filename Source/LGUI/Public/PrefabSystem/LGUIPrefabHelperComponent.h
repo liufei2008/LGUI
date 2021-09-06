@@ -74,7 +74,9 @@ public:
 	/** SubPrefab's root actor to prefab map */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<AActor*, ALGUIPrefabActor*> SubPrefabs;
-	FColor IdentityColor;
+	FColor IdentityColor = FColor::Black;
+	bool IsRandomColor = true;
+	static TArray<FColor> AllColors;
 
 	FDelegateHandle EditorTickDelegateHandle;
 private:

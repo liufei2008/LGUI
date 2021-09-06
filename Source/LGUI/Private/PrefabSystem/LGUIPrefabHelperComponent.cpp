@@ -19,18 +19,60 @@ FName ULGUIPrefabHelperComponent::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
 ULGUIPrefabHelperComponent::ULGUIPrefabHelperComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-#if WITH_EDITORONLY_DATA
-	IdentityColor = FColor::MakeRandomColor();
-#endif
 }
+
+TArray<FColor> ULGUIPrefabHelperComponent::AllColors;
 
 void ULGUIPrefabHelperComponent::OnRegister()
 {
 	Super::OnRegister();
+#if WITH_EDITORONLY_DATA
+	if (AllColors.Num() == 0)
+	{
+		int ColorCount = 10;
+		float Interval = 1.0f / ColorCount;
+		float StartHue01 = 0;
+		for (int i = 0; i < ColorCount; i++)
+		{
+			auto Hue = (uint8)(StartHue01 * 255);
+			auto Color1 = FLinearColor::MakeFromHSV8(Hue, 255, 255).ToFColor(false);
+			AllColors.Add(Color1);
+			auto Color2 = FLinearColor::MakeFromHSV8(Hue, 255, 128).ToFColor(false);
+			AllColors.Add(Color2);
+			StartHue01 += Interval;
+		}
+	}
+
+	{
+		if (AllColors.Num() == 0)
+		{
+			IdentityColor = FColor::MakeRandomColor();
+			IsRandomColor = true;
+		}
+		else
+		{
+			int RandomIndex = FMath::RandRange(0, AllColors.Num() - 1);
+			IdentityColor = AllColors[RandomIndex];
+			AllColors.RemoveAt(RandomIndex);
+			IsRandomColor = false;
+		}
+	}
+#endif
 }
 void ULGUIPrefabHelperComponent::OnUnregister()
 {
 	Super::OnUnregister();
+#if WITH_EDITORONLY_DATA
+	{
+		if (!IsRandomColor)
+		{
+			if (!AllColors.Contains(IdentityColor))
+			{
+				AllColors.Add(IdentityColor);
+			}
+		}
+	}
+#endif
 }
 
 #if WITH_EDITOR
@@ -176,6 +218,7 @@ void ULGUIPrefabHelperComponent::RestoreSubPrefabs()
 	}
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
 void ULGUIPrefabHelperComponent::LoadSubPrefab(USceneComponent* InParent, TMap<FGuid, FGuid> InGuidFromPrefabToInstance)
 {
 	ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
@@ -216,6 +259,8 @@ void ULGUIPrefabHelperComponent::LoadSubPrefab(USceneComponent* InParent, TMap<F
 		EditorTickDelegateHandle = ULGUIEditorManagerObject::Instance->EditorTick.AddUObject(this, &ULGUIPrefabHelperComponent::EditorTick);
 	}
 }
+PRAGMA_ENABLE_OPTIMIZATION
+
 void ULGUIPrefabHelperComponent::SavePrefab(bool InIncludeOtherPrefabAsSubPrefab)
 {
 	if (PrefabAsset)
