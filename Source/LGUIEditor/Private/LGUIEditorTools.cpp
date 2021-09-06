@@ -753,7 +753,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 					if (createSuccess)
 					{
 						prefabComp->MoveActorToPrefabFolder();
-						//remove actors from other prefab
+						//remove actors from other prefab. @todo: should be multiple
 						if (otherPrefabAcotrWhichHaveThisActor != nullptr)
 						{
 							for (auto actorItem : prefabComp->AllLoadedActorArray)
@@ -855,7 +855,6 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabCo
 					GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
 					InPrefabComp->SavePrefab(msgResult == EAppReturnType::Yes);
 					GEditor->EndTransaction();
-					return true;
 				}
 			}
 			else
@@ -863,6 +862,62 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabCo
 				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
 				InPrefabComp->SavePrefab(false);
 				GEditor->EndTransaction();
+			}
+			//search all prefabs that use this prefab as sub prefab, and recreate them
+			{
+				auto RecreatePrefab = [](ULGUIPrefab* Prefab, UWorld* World)
+				{
+					auto PrefabActor = World->SpawnActor<ALGUIPrefabActor>();
+					auto PrefabComp = PrefabActor->GetPrefabComponent();
+					PrefabComp->SetPrefabAsset(Prefab);
+					PrefabComp->LoadPrefab();
+					PrefabComp->SavePrefab(false);
+
+					LGUIUtils::DestroyActorWithHierarchy(PrefabActor, true);
+					LGUIUtils::DestroyActorWithHierarchy(PrefabComp->LoadedRootActor, true);
+				};
+
+				FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+				IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+				TArray<FString> PathsToScan;
+				PathsToScan.Add(TEXT("/Game/"));
+				AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+				// Get asset in path
+				TArray<FAssetData> ScriptAssetList;
+				AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
+
+				//Collect all prefabs that need to recreate, and sort by depth. depth is prefab's subPrefab's subPrefab... count
+				TArray<TTuple<int32, ULGUIPrefab*>> AllPrefabsNeedToRecreate;
+				// Ensure all assets are loaded
+				for (const FAssetData& Asset : ScriptAssetList)
+				{
+					// Gets the loaded asset, loads it if necessary
+					if (Asset.AssetClass == TEXT("LGUIPrefab"))
+					{
+						auto AssetObject = Asset.GetAsset();
+						if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
+						{
+							int32 Depth = 0;
+							if (Prefab->ContainsSubPrefab(InPrefabComp->GetPrefabAsset(), true, Depth))
+							{
+								AllPrefabsNeedToRecreate.Add(TTuple<int32, ULGUIPrefab*>(Depth, Prefab));
+							}
+						}
+					}
+				}
+				//Sort on depth
+				AllPrefabsNeedToRecreate.Sort([](const TTuple<int32, ULGUIPrefab*>& A, const TTuple<int32, ULGUIPrefab*>& B) 
+					{
+						return A.Get<0>() < B.Get<0>();
+					});
+				for (auto PrefabTupple : AllPrefabsNeedToRecreate)
+				{
+					UE_LOG(LGUIEditor, Log, TEXT("Recreate prefab:%s, depth:%d"), *PrefabTupple.Get<1>()->GetPathName(), PrefabTupple.Get<0>());
+					RecreatePrefab(PrefabTupple.Get<1>(), GWorld);
+				}
+
 				return true;
 			}
 		}
