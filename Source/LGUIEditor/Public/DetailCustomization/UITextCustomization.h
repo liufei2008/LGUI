@@ -19,15 +19,10 @@ public:
 private:
 	TWeakObjectPtr<class UUIText> TargetScriptPtr;
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
-	FText GetText()const;
-	void OnTextChanged(const FText& InText);
 	void HandleHorizontalAlignmentCheckStateChanged(ECheckBoxState InCheckboxState, TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphHorizontalAlign ToAlignment);
 	ECheckBoxState GetHorizontalAlignmentCheckState(TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphHorizontalAlign ForAlignment) const;
 	void HandleVerticalAlignmentCheckStateChanged(ECheckBoxState InCheckboxState, TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphVerticalAlign ToAlignment);
 	ECheckBoxState GetVerticalAlignmentCheckState(TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphVerticalAlign ForAlignment) const;
-
-	void OnCopyText();
-	void OnPasteText(TSharedRef<IPropertyHandle> PropertyHandle);
 
 	void OnCopyAlignment();
 	void OnPasteAlignment(TSharedRef<IPropertyHandle> HAlignPropertyHandle, TSharedRef<IPropertyHandle> VAlignPropertyHandle);

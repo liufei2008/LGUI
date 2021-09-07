@@ -114,14 +114,15 @@ protected:
 #if WITH_EDITORONLY_DATA
 	/** current using font. the default font when creating new UIText */
 	static TWeakObjectPtr<ULGUIFontData_BaseObject> CurrentUsingFontData;
+	static float CurrentFontSize;
 #endif
 
 protected:
 	friend class FUITextCustomization;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		ULGUIFontData_BaseObject* font;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FString text = TEXT("New Text");
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (MultiLine="true"))
+		FText text = FText::FromString(TEXT("New Text"));
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "2", ClampMax = "200"))
 		float size = 16;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -192,6 +193,8 @@ public:
 	void ApplyFontTextureChange();
 	void ApplyRecreateText();
 
+	void ForceUpdateText();
+
 	FORCEINLINE static bool IsVisibleChar(TCHAR character)
 	{
 		return (character != '\n' && character != '\r' && character != ' ' && character != '\t');
@@ -200,7 +203,7 @@ public:
 	static int VisibleCharCountInString(const FString& srcStr);
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIFontData_BaseObject* GetFont()const { return font; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")	const FString& GetText()const { return text; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")	const FText& GetText()const { return text; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetSize()const { return size; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetFontSpace()const { return space; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextOverflowType GetOverflowType()const { return overflowType; }
@@ -214,7 +217,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFont(ULGUIFontData_BaseObject* newFont);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetText(const FString& newText);
+		void SetText(const FText& newText);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFontSize(float newSize);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

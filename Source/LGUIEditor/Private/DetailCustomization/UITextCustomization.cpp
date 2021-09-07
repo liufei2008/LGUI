@@ -3,7 +3,6 @@
 #include "DetailCustomization/UITextCustomization.h"
 #include "LGUIEditorPCH.h"
 #include "HAL/PlatformApplicationMisc.h"
-#include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "UITextComponentDetails"
@@ -32,27 +31,7 @@ void FUITextCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIText, font));
-	auto textHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIText, text));
-	DetailBuilder.HideProperty(textHandle);
-	category.AddCustomRow(LOCTEXT("Text", "Text"))
-	.CopyAction(FUIAction(
-		FExecuteAction::CreateSP(this, &FUITextCustomization::OnCopyText)
-	))
-	.PasteAction(FUIAction(
-		FExecuteAction::CreateSP(this, &FUITextCustomization::OnPasteText, textHandle)
-	))
-	.NameContent()
-	[
-		textHandle->CreatePropertyNameWidget()
-	]
-	.ValueContent()
-	.MinDesiredWidth(500)
-	[
-		SNew(SMultiLineEditableTextBox)
-		.Text(this, &FUITextCustomization::GetText)
-		.OnTextChanged(this, &FUITextCustomization::OnTextChanged)
-	]
-	;
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIText, text));
 
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIText, size));
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUIText, space));
@@ -241,15 +220,6 @@ void FUITextCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 		DetailBuilder->ForceRefreshDetails();
 	}
 }
-FText FUITextCustomization::GetText()const
-{
-	return FText::FromString(TargetScriptPtr->text);
-}
-void FUITextCustomization::OnTextChanged(const FText& InText)
-{
-	TargetScriptPtr->SetText(InText.ToString());
-	TargetScriptPtr->EditorForceUpdateImmediately();
-}
 void FUITextCustomization::HandleHorizontalAlignmentCheckStateChanged(ECheckBoxState InCheckboxState, TSharedRef<IPropertyHandle> PropertyHandle, UITextParagraphHorizontalAlign ToAlignment)
 {
 	PropertyHandle->SetValue((uint8)ToAlignment);
@@ -277,20 +247,6 @@ ECheckBoxState FUITextCustomization::GetVerticalAlignmentCheckState(TSharedRef<I
 	}
 
 	return ECheckBoxState::Unchecked;
-}
-
-void FUITextCustomization::OnCopyText()
-{
-	if (TargetScriptPtr.IsValid())
-	{
-		FPlatformApplicationMisc::ClipboardCopy(*TargetScriptPtr->GetText());
-	}
-}
-void FUITextCustomization::OnPasteText(TSharedRef<IPropertyHandle> PropertyHandle)
-{
-	FString PastedText;
-	FPlatformApplicationMisc::ClipboardPaste(PastedText);
-	PropertyHandle->SetValue(*PastedText);
 }
 
 #define BEGIN_ALIGNMENT_CLIPBOARD TEXT("Begin LGUI UIWidget")

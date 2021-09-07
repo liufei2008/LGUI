@@ -10,6 +10,7 @@
 #include "LGUIManagerActor.generated.h"
 
 class UUIItem;
+class UUIText;
 class UUIBatchGeometryRenderable;
 class ULGUICanvas;
 class ULGUIBaseRaycaster;
@@ -151,10 +152,12 @@ public:
 	virtual void BeginPlay()override;
 	virtual void BeginDestroy()override;
 	virtual void Tick(float DeltaTime)override;
-protected:
+private:
 	//collection of all UIItem from current level
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUIItem*> allUIItem;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<UUIText*> allUIText;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -177,7 +180,10 @@ protected:
 #if WITH_EDITORONLY_DATA
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
 #endif
-private:
+	void OnCultureChanged();
+	bool bShouldUpdateTextOnCultureChanged = false;
+	FDelegateHandle onCultureChangedDelegateHandle;
+
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
@@ -185,6 +191,9 @@ public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
 	const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
+
+	static void AddUIText(UUIText* InItem);
+	static void RemoveUIText(UUIText* InItem);
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
