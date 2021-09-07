@@ -18,6 +18,4 @@ public:
 private:
 	TWeakObjectPtr<class UUITextInputComponent> TargetScriptPtr;
 	void ForceRefresh(IDetailLayoutBuilder* DetailBuilder);
-	FText GetText(TSharedRef<IPropertyHandle> Property)const;
-	void OnTextChanged(const FText& InText, TSharedRef<IPropertyHandle> Property);
 };

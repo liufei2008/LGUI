@@ -10,6 +10,7 @@
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Core/ActorComponent/UIText.h"
 
 using namespace LGUIPrefabSystem;
 
@@ -450,20 +451,37 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			}
 			else if (auto textProperty = CastField<FTextProperty>(Property))
 			{
-				if (ItemPropertyData.PropertyType == ELGUIPropertyType::PT_Text//prev property is not text
-					&& Prefab->PrefabVersion >= 1//text type is not valid in version below 1
-					)
+				if (Prefab->PrefabVersion < 1)
 				{
-					auto textValue = FText::FromString(GetValueAsString(ItemPropertyData));
-					textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
+					if (Property->GetFName() == TEXT("text")//specific for UIText's text property, to convert from FString to FText
+						&& Outter->GetClass() == UUIText::StaticClass()
+						)
+					{
+						if (ItemPropertyData.Data.Num() == 4)
+						{
+							auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+							auto stringValue = FindStringFromListByIndex(index, Prefab.Get());
+							auto textValue = FText::FromString(stringValue);
+							textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
+						}
+					}
 				}
 				else
 				{
-					if (ItemPropertyData.Data.Num() == 4)
+					if (ItemPropertyData.PropertyType != ELGUIPropertyType::PT_Text//prev property is not text
+						)
 					{
-						auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
-						auto textValue = FindTextFromListByIndex(index, Prefab.Get());
+						auto textValue = FText::FromString(GetValueAsString(ItemPropertyData));
 						textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
+					}
+					else
+					{
+						if (ItemPropertyData.Data.Num() == 4)
+						{
+							auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+							auto textValue = FindTextFromListByIndex(index, Prefab.Get());
+							textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
+						}
 					}
 				}
 				return true;

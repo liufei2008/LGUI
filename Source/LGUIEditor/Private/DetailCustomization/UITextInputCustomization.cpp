@@ -52,20 +52,7 @@ void FUITextInputCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBui
 	}
 
 	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, TextActor));
-	auto textHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, Text));
-	DetailBuilder.HideProperty(textHandle);
-	category.AddCustomRow(LOCTEXT("Text", "Text"))
-		.NameContent()
-		[
-			textHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		.MinDesiredWidth(500)
-		[
-			SNew(SEditableTextBox)
-			.Text(this, &FUITextInputCustomization::GetText, textHandle)
-			.OnTextChanged(this, &FUITextInputCustomization::OnTextChanged, textHandle)
-		];
+	category.AddProperty(GET_MEMBER_NAME_CHECKED(UUITextInputComponent, Text));
 }
 void FUITextInputCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder)
 {
@@ -73,15 +60,5 @@ void FUITextInputCustomization::ForceRefresh(IDetailLayoutBuilder* DetailBuilder
 	{
 		DetailBuilder->ForceRefreshDetails();
 	}
-}
-FText FUITextInputCustomization::GetText(TSharedRef<IPropertyHandle> Property)const
-{
-	FString text;
-	Property->GetValue(text);
-	return FText::FromString(text);
-}
-void FUITextInputCustomization::OnTextChanged(const FText& InText, TSharedRef<IPropertyHandle> Property)
-{
-	Property->SetValue(InText.ToString());
 }
 #undef LOCTEXT_NAMESPACE
