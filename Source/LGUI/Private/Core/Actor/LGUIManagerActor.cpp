@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Event/Raycaster/LGUIBaseRaycaster.h"
 #include "Engine/World.h"
@@ -393,6 +394,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 
 bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
 {
+	if (!IsValid(GEditor))return false;
 	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator()); itr; ++itr)
 	{
 		if (*itr != nullptr)
@@ -409,6 +411,7 @@ bool ULGUIEditorManagerObject::IsSelected(AActor* InObject)
 
 bool ULGUIEditorManagerObject::AnySelectedIsChildOf(AActor* InObject)
 {
+	if (!IsValid(GEditor))return false;
 	for (FSelectionIterator itr(GEditor->GetSelectedActorIterator()); itr; ++itr)
 	{
 		auto itrActor = Cast<AActor>(*itr);
@@ -625,6 +628,7 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 
 void ULGUIEditorManagerObject::CheckEditorViewportIndexAndKey()
 {
+	if (!IsValid(GEditor))return;
 	auto& viewportClients = GEditor->GetAllViewportClients();
 	if (PrevEditorViewportCount != viewportClients.Num())
 	{
@@ -704,6 +708,7 @@ bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
 }
 void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 {
+	if (!IsValid(GEditor))return;
 	if (!ULGUIEditorManagerObject::CanExecuteSelectionConvert)return;
 	if (IsCalculatingSelection)return;//incase infinite recursive, because selection can change inside this function
 	IsCalculatingSelection = true;
@@ -940,6 +945,8 @@ void ALGUIManagerActor::BeginPlay()
 #if WITH_EDITORONLY_DATA
 	IsPlaying = true;
 #endif
+	//localization
+	onCultureChangedDelegateHandle = FInternationalization::Get().OnCultureChanged().AddUObject(this, &ALGUIManagerActor::OnCultureChanged);
 }
 void ALGUIManagerActor::BeginDestroy()
 {
@@ -988,6 +995,15 @@ void ALGUIManagerActor::BeginDestroy()
 #if WITH_EDITORONLY_DATA
 	IsPlaying = false;
 #endif
+	if (onCultureChangedDelegateHandle.IsValid())
+	{
+		FInternationalization::Get().OnCultureChanged().Remove(onCultureChangedDelegateHandle);
+	}
+}
+
+void ALGUIManagerActor::OnCultureChanged()
+{
+	bShouldUpdateTextOnCultureChanged = true;
 }
 
 ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
@@ -1052,6 +1068,18 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 	}
 #endif
+
+	//Update UIText
+	{
+		if (bShouldUpdateTextOnCultureChanged)
+		{
+			bShouldUpdateTextOnCultureChanged = false;
+			for (auto item : allUIText)
+			{
+				item->ForceUpdateText();
+			}
+		}
+	}
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourUpdate);
@@ -1286,6 +1314,21 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 	if (auto Instance = GetInstance(InItem->GetWorld()))
 	{
 		Instance->allUIItem.RemoveSingle(InItem);
+	}
+}
+
+void ALGUIManagerActor::AddUIText(UUIText* InItem)
+{
+	if (auto Instance = GetInstance(InItem->GetWorld(), true))
+	{
+		Instance->allUIText.Add(InItem);
+	}
+}
+void ALGUIManagerActor::RemoveUIText(UUIText* InItem)
+{
+	if (auto Instance = GetInstance(InItem->GetWorld()))
+	{
+		Instance->allUIText.RemoveSingle(InItem);
 	}
 }
 

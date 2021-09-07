@@ -86,6 +86,11 @@ void UUITextInputComponent::PostEditChangeProperty(FPropertyChangedEvent& Proper
 			TextActor->GetUIText()->SetRichText(false);//rich text not support input
 			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::PostEditChangeProperty]RichText not support with TextInput! Set it to false."));
 		}
+		if (!TextActor->GetUIText()->GetText().IsCultureInvariant())
+		{
+			TextActor->GetUIText()->SetText(FText::AsCultureInvariant(Text));
+			UE_LOG(LGUI, Error, TEXT("[UUITextInputComponent::PostEditChangeProperty]Input text should not change by culture, set it to not localizable."));
+		}
 	}
 	UpdateUITextComponent();
 	UpdatePlaceHolderComponent();
@@ -880,7 +885,7 @@ void UUITextInputComponent::Cut()
 void UUITextInputComponent::SelectAll()
 {
 	//update selection
-	TextActor->GetUIText()->GetSelectionProperty(0, TextActor->GetUIText()->GetText().Len(), SelectionPropertyArray);
+	TextActor->GetUIText()->GetSelectionProperty(0, TextActor->GetUIText()->GetText().ToString().Len(), SelectionPropertyArray);
 	CaretPositionIndex = Text.Len();
 	PressCaretPositionIndex = 0;
 	UpdateUITextComponent();
@@ -894,7 +899,7 @@ void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
 		if (TextActor != nullptr)
 		{
 			//set to full text, and find CaretPositionLineIndex
-			TextActor->GetUIText()->SetText(Text);
+			TextActor->GetUIText()->SetText(FText::FromString(Text));
 			FVector2D caretPosition;
 			TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex);
 			//calculate MaxVisibleLineCount
@@ -938,7 +943,7 @@ void UUITextInputComponent::MoveLeft(bool withSelection)
 		if (withSelection)
 		{
 			int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().Len());
+			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().ToString().Len());
 			TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 			UpdateSelection();
 		}
@@ -955,9 +960,9 @@ void UUITextInputComponent::MoveRight(bool withSelection)
 		CaretPositionIndex++;
 		if (bAllowMultiLine)//multiline should check vertical range
 		{
-			if (CaretPositionIndex - VisibleCharStartIndex > TextActor->GetUIText()->GetText().Len())//if caret is more than visible text
+			if (CaretPositionIndex - VisibleCharStartIndex > TextActor->GetUIText()->GetText().ToString().Len())//if caret is more than visible text
 			{
-				if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().Len() < Text.Len())//if have more lines
+				if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().ToString().Len() < Text.Len())//if have more lines
 				{
 					CaretPositionLineIndex++;
 				}
@@ -970,7 +975,7 @@ void UUITextInputComponent::MoveRight(bool withSelection)
 		if (withSelection)
 		{
 			int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().Len());
+			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().ToString().Len());
 			TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 			UpdateSelection();
 		}
@@ -998,7 +1003,7 @@ void UUITextInputComponent::MoveUp(bool withSelection)
 		if (withSelection)
 		{
 			int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().Len());
+			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().ToString().Len());
 			TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 			UpdateSelection();
 		}
@@ -1013,7 +1018,7 @@ void UUITextInputComponent::MoveDown(bool withSelection)
 	if (TextActor != nullptr)
 	{
 		if (!bAllowMultiLine)return;
-		if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().Len() >= Text.Len()//no more invisible line
+		if (VisibleCharStartIndex + TextActor->GetUIText()->GetText().ToString().Len() >= Text.Len()//no more invisible line
 			&& CaretPositionLineIndex + 1 == MaxVisibleLineCount + VisibleCharStartLineIndex//and caret is at last line
 			)//move caret to last
 		{
@@ -1038,7 +1043,7 @@ void UUITextInputComponent::MoveDown(bool withSelection)
 		if (withSelection)
 		{
 			int tempStartCaretPositionIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().Len());
+			tempStartCaretPositionIndex = FMath::Clamp(tempStartCaretPositionIndex, 0, TextActor->GetUIText()->GetText().ToString().Len());
 			TextActor->GetUIText()->GetSelectionProperty(tempStartCaretPositionIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 			UpdateSelection();
 		}
@@ -1085,7 +1090,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 				VisibleCharStartLineIndex--;
 				CaretPositionLineIndex--;
 			}
-			if (CaretPositionIndex - VisibleCharStartIndex > uiText->GetText().Len())//caret position move right and out of current range, then do move down
+			if (CaretPositionIndex - VisibleCharStartIndex > uiText->GetText().ToString().Len())//caret position move right and out of current range, then do move down
 			{
 				VisibleCharStartLineIndex++;
 				CaretPositionLineIndex++;
@@ -1193,7 +1198,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 				replaceText = replaceText.Mid(VisibleCharStartIndex, VisibleCharEndIndex - VisibleCharStartIndex);
 			}
 		}
-		uiText->SetText(replaceText);
+		uiText->SetText(FText::FromString(replaceText));
 		
 #if WITH_EDITOR
 		if (auto world = this->GetWorld())
@@ -1428,7 +1433,7 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* 
 			FVector2D caretPosition;
 			int tempCaretPositionLineIndex;
 			TextActor->GetUIText()->FindCaretByPosition(eventData->GetWorldPointInPlane(), caretPosition, tempCaretPositionLineIndex, CaretPositionIndex);
-			int displayTextLength = TextActor->GetUIText()->GetText().Len();//visible text length
+			int displayTextLength = TextActor->GetUIText()->GetText().ToString().Len();//visible text length
 
 			//@todo:caret move speed depend on drag distance
 			if (CaretPositionIndex == 0)//caret position at left most
@@ -1459,7 +1464,7 @@ bool UUITextInputComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* 
 			UpdateUITextComponent();
 			//selectionStartCaretIndex may out of range, need clamp.
 			int selectionStartCaretIndex = PressCaretPositionIndex - VisibleCharStartIndex;
-			selectionStartCaretIndex = FMath::Clamp(selectionStartCaretIndex, 0, TextActor->GetUIText()->GetText().Len());
+			selectionStartCaretIndex = FMath::Clamp(selectionStartCaretIndex, 0, TextActor->GetUIText()->GetText().ToString().Len());
 			TextActor->GetUIText()->GetSelectionProperty(selectionStartCaretIndex, CaretPositionIndex - VisibleCharStartIndex, SelectionPropertyArray);
 			UpdateSelection();
 			UpdateCaretPosition(false);
@@ -1937,7 +1942,7 @@ FText UUITextInputComponent::FVirtualKeyboardEntry::GetHintText() const
 	{
 		if (auto uiText = Cast<UUIText>(InputComp->PlaceHolderActor->GetUIItem()))
 		{
-			return FText::FromString(uiText->GetText());
+			return uiText->GetText();
 		}
 	}
 	return FText::FromString(TEXT(""));

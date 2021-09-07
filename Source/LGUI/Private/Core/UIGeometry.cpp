@@ -2426,7 +2426,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 	float firstLineHeight = fontSize;//first line height
 	float maxLineWidth = 0;//if have multiple line
 	int lineUIGeoVertStart = 0;//vertex index in originPositions of current line
-	int visibleCharIndex = 0;//visible char index, skip invisible char(\n,\t)
+	int visibleCharIndex = 0;//visible char index, skip invisible char(\r,\n,\t)
 	FUITextLineProperty sentenceProperty;
 	FVector2D caretPosition(0, 0);
 	float halfFontSize = fontSize * 0.5f;
@@ -2682,6 +2682,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		if (charCode == '\n' || charCode == '\r')//10 -- \n, 13 -- \r
 		{
 			NewLine(charIndex);
+			if (charIndex + 1 < contentLength)
+			{
+				auto nextCharCode = content[charIndex + 1];
+				if ((charCode == '\r' && nextCharCode == '\n') || (charCode == '\n' && nextCharCode == '\r'))
+				{
+					charIndex++;//\n\r or \r\n
+				}
+			}
 			newLineMode = NewLineMode::LineBreak;
 			continue;
 		}
