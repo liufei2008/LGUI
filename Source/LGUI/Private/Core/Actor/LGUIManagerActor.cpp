@@ -1306,7 +1306,7 @@ void ALGUIManagerActor::AddUIItem(UUIItem* InItem)
 {
 	if (auto Instance = GetInstance(InItem->GetWorld(), true))
 	{
-		Instance->allUIItem.Add(InItem);
+		Instance->allUIItem.AddUnique(InItem);
 	}
 }
 void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
@@ -1321,7 +1321,7 @@ void ALGUIManagerActor::AddUIText(UUIText* InItem)
 {
 	if (auto Instance = GetInstance(InItem->GetWorld(), true))
 	{
-		Instance->allUIText.Add(InItem);
+		Instance->allUIText.AddUnique(InItem);
 	}
 }
 void ALGUIManagerActor::RemoveUIText(UUIText* InItem)
