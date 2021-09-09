@@ -256,25 +256,52 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 		}
 	}
 
+	auto ViewRect = RenderView.CameraConstrainedViewRect;
 	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
 	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
-	FVector4 DepthTextureScaleOffset = FVector4(
-		(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-		(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-		0, 0
-	);
+	FVector4 DepthTextureScaleOffset;
+	switch (RenderView.StereoPass)
+	{
+	case EStereoscopicPass::eSSP_FULL:
+	{
+		DepthTextureScaleOffset = FVector4(
+			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+			0, 0
+		);
+	}
+	break;
+	case EStereoscopicPass::eSSP_LEFT_EYE:
+	{
+		DepthTextureScaleOffset = FVector4(
+			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+			0.5f, 1.0f,
+			-0.0f, 0
+		);
+	}
+	break;
+	case EStereoscopicPass::eSSP_RIGHT_EYE:
+	{
+		DepthTextureScaleOffset = FVector4(
+			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
+			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+			0.5f, 1.0f,
+			0.5f, 0
+		);
+	}
+	break;
+	}
 
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-	RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
+	RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
 	//Render world space
-	auto ViewLocation = InView.SceneViewInitOptions.ViewOrigin;
-	auto ViewRotationMatrix = InView.SceneViewInitOptions.ViewRotationMatrix;
-	auto ProjectionMatrix = InView.SceneViewInitOptions.ProjectionMatrix;
-	auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * (ViewRotationMatrix) * ProjectionMatrix;
-	for (int canvasIndex = 0; canvasIndex < RenderCanvasParameterArray.Num(); canvasIndex++)
 	{
-		auto& canvasParamItem = RenderCanvasParameterArray[canvasIndex];
+		auto ViewLocation = RenderView.SceneViewInitOptions.ViewOrigin;
+		auto ViewRotationMatrix = RenderView.SceneViewInitOptions.ViewRotationMatrix;
+		auto ProjectionMatrix = RenderView.SceneViewInitOptions.ProjectionMatrix;
+		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * (ViewRotationMatrix)*ProjectionMatrix;
 
 		RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
 		RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
@@ -297,58 +324,62 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		GraphicsPSOInit.NumSamples = MultiSampleCount;
 
-
-		for (int primitiveIndex = 0; primitiveIndex < canvasParamItem.HudPrimitiveArray.Num(); primitiveIndex++)
+		for (int canvasIndex = 0; canvasIndex < RenderCanvasParameterArray.Num(); canvasIndex++)
 		{
-			auto hudPrimitive = canvasParamItem.HudPrimitiveArray[primitiveIndex];
-			if (hudPrimitive != nullptr)
+			auto& canvasParamItem = RenderCanvasParameterArray[canvasIndex];
+
+			for (int primitiveIndex = 0; primitiveIndex < canvasParamItem.HudPrimitiveArray.Num(); primitiveIndex++)
 			{
-				if (hudPrimitive->CanRender())
+				auto hudPrimitive = canvasParamItem.HudPrimitiveArray[primitiveIndex];
+				if (hudPrimitive != nullptr)
 				{
-					if (hudPrimitive->GetIsPostProcess())//render post process
+					if (hudPrimitive->CanRender())
 					{
-						RHICmdList.EndRenderPass();
-						hudPrimitive->OnRenderPostProcess_RenderThread(
-							RHICmdList,
-							this,
-							(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
-							ScreenColorRenderTargetTexture,
-							ScreenColorRenderTargetResolveTexture,
-							GlobalShaderMap,
-							ViewProjectionMatrix,
-							true,
-							canvasParamItem.BlendDepth,
-							DepthTextureScaleOffset
-						);
-						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-						RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
-						GraphicsPSOInit.NumSamples = MultiSampleCount;
-					}
-					else//render mesh
-					{
-						const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-						auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
-						const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-						auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-
-						auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
-						if (VertexShader.IsValid() && PixelShader.IsValid())
+						if (hudPrimitive->GetIsPostProcess())//render post process
 						{
-							SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
-
-							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
-							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+							RHICmdList.EndRenderPass();
+							hudPrimitive->OnRenderPostProcess_RenderThread(
+								RHICmdList,
+								this,
+								(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
+								ScreenColorRenderTargetTexture,
+								ScreenColorRenderTargetResolveTexture,
+								GlobalShaderMap,
+								ViewProjectionMatrix,
+								true,
+								canvasParamItem.BlendDepth,
+								DepthTextureScaleOffset
+							);
+							RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
+							RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 							GraphicsPSOInit.NumSamples = MultiSampleCount;
-							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+						}
+						else//render mesh
+						{
+							const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
+							auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
+							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 
-							VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-							PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-							PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+							auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
+							if (VertexShader.IsValid() && PixelShader.IsValid())
+							{
+								SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
 
-							RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+								GraphicsPSOInit.NumSamples = MultiSampleCount;
+								SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+
+								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+								PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+								PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+
+								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
+								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+							}
 						}
 					}
 				}
@@ -420,7 +451,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 							DepthTextureScaleOffset
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-						RHICmdList.SetViewport(0, 0, 0.0f, ScreenColorRenderTargetTexture->GetSizeXYZ().X, ScreenColorRenderTargetTexture->GetSizeXYZ().Y, 1.0f);
+						RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 						GraphicsPSOInit.NumSamples = MultiSampleCount;
 					}
 					else//render mesh
