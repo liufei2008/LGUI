@@ -21,14 +21,14 @@ void ULGUIWorldSpaceInteractionForNoneUI::CheckRayemitter()
 			default:
 			case ELGUIWorldSpaceInteractionSource::World:
 			{
-				auto emitter = NewObject<ULGUI_SceneComponentRayEmitter>(actor);
+				auto emitter = NewObject<ULGUI_SceneComponentRayemitter>(actor);
 				emitter->SetTargetSceneComponent(this);
 				rayEmitter = emitter;
 			}
 			break;
 			case ELGUIWorldSpaceInteractionSource::Mouse:
 			{
-				rayEmitter = NewObject<ULGUI_MainViewportMouseRayEmitter>(actor);
+				rayEmitter = NewObject<ULGUI_MainViewportMouseRayemitter>(actor);
 			}
 			break;
 			case ELGUIWorldSpaceInteractionSource::CenterScreen:

@@ -1,12 +1,12 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Event/Rayemitter/LGUI_MainViewportMouseRayEmitter.h"
+#include "Event/Rayemitter/LGUI_MainViewportMouseRayemitter.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
 
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
-void MainViewportMouseRayEmitter_BuildProjectionMatrix(FIntPoint RenderTargetSize, ECameraProjectionMode::Type ProjectionType, float FOV, float InOrthoWidth, FMatrix& ProjectionMatrix)
+void MainViewportMouseRayemitter_BuildProjectionMatrix(FIntPoint RenderTargetSize, ECameraProjectionMode::Type ProjectionType, float FOV, float InOrthoWidth, FMatrix& ProjectionMatrix)
 {
 	float XAxisMultiplier;
 	float YAxisMultiplier;
@@ -69,7 +69,7 @@ void MainViewportMouseRayEmitter_BuildProjectionMatrix(FIntPoint RenderTargetSiz
 		}
 	}
 }
-FMatrix ULGUI_MainViewportMouseRayEmitter::ComputeViewProjectionMatrix(APlayerCameraManager* CameraManager, const FIntPoint& ScreenSize)
+FMatrix ULGUI_MainViewportMouseRayemitter::ComputeViewProjectionMatrix(APlayerCameraManager* CameraManager, const FIntPoint& ScreenSize)
 {
 	FMatrix viewProjectionMatrix = FMatrix::Identity;
 	if (CameraManager == nullptr)return viewProjectionMatrix;
@@ -91,7 +91,7 @@ FMatrix ULGUI_MainViewportMouseRayEmitter::ComputeViewProjectionMatrix(APlayerCa
 	const float FOV = CameraManager->GetFOVAngle() * (float)PI / 360.0f;
 
 	FMatrix ProjectionMatrix;
-	MainViewportMouseRayEmitter_BuildProjectionMatrix(ScreenSize
+	MainViewportMouseRayemitter_BuildProjectionMatrix(ScreenSize
 		, CameraManager->IsOrthographic() ? ECameraProjectionMode::Orthographic : ECameraProjectionMode::Perspective
 		, FOV, CameraManager->GetOrthoWidth(), ProjectionMatrix);
 
@@ -99,7 +99,7 @@ FMatrix ULGUI_MainViewportMouseRayEmitter::ComputeViewProjectionMatrix(APlayerCa
 	return viewProjectionMatrix;
 }
 
-void ULGUI_MainViewportMouseRayEmitter::DeprojectViewPointToWorldForMainViewport(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
+void ULGUI_MainViewportMouseRayemitter::DeprojectViewPointToWorldForMainViewport(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
 {
 	FMatrix InvViewProjMatrix = InViewProjectionMatrix.InverseFast();
 
@@ -135,7 +135,7 @@ void ULGUI_MainViewportMouseRayEmitter::DeprojectViewPointToWorldForMainViewport
 #endif
 
 
-bool ULGUI_MainViewportMouseRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
+bool ULGUI_MainViewportMouseRayemitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
 	if (auto pc = GetWorld()->GetFirstPlayerController())
@@ -175,13 +175,13 @@ bool ULGUI_MainViewportMouseRayEmitter::EmitRay(ULGUIPointerEventData* InPointer
 #endif
 	return false;
 }
-bool ULGUI_MainViewportMouseRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUI_MainViewportMouseRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
 	FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
 	return FVector2D::DistSquared(pressMousePos, mousePos) > clickTresholdSquare;
 }
-void ULGUI_MainViewportMouseRayEmitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
+void ULGUI_MainViewportMouseRayemitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
 	pressMousePos = FVector2D(InPointerEventData->pointerPosition);
 }

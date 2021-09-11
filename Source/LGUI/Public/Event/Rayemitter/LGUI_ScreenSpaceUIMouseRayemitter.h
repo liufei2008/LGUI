@@ -11,7 +11,7 @@ class ULGUICanvas;
  * For screen space UI mouse input. This component should only attached on a actor which have a LGUICanvas, and RenderMode of LGUICanvas should set to ScreenSpace
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUI_ScreenSpaceUIMouseRayemitter : public ULGUIBaseRayEmitter
+class LGUI_API ULGUI_ScreenSpaceUIMouseRayemitter : public ULGUIBaseRayemitter
 {
 	GENERATED_BODY()
 

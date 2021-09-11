@@ -16,7 +16,7 @@ enum class EUIRaycastSortType :uint8
 };
 
 /**
- * RayEmitter must be set for raycaster, or it will not work
+ * Rayemitter must be set for raycaster, or it will not work
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
 class LGUI_API ULGUI_UIRaycaster : public ULGUIBaseRaycaster

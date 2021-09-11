@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "LGUIBaseRayemitter.h"
-#include "LGUI_SceneComponentRayEmitter.generated.h"
+#include "LGUI_SceneComponentRayemitter.generated.h"
 
 
 UENUM(BlueprintType, Category = LGUI)
@@ -21,7 +21,7 @@ enum class ESceneComponentRayDirection :uint8
  * If VR mode, you can use this component to emit ray from hand controller
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUI_SceneComponentRayEmitter : public ULGUIBaseRayEmitter
+class LGUI_API ULGUI_SceneComponentRayemitter : public ULGUIBaseRayemitter
 {
 	GENERATED_BODY()
 protected:

@@ -10,7 +10,7 @@
  * Sends trace from the center of the first local player's screen
  */
 UCLASS(ClassGroup = LGUI, Blueprintable)
-class LGUI_API ULGUI_CenterScreenRayemitter : public ULGUIBaseRayEmitter
+class LGUI_API ULGUI_CenterScreenRayemitter : public ULGUIBaseRayemitter
 {
 	GENERATED_BODY()
 
