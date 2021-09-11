@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Event/LGUIPointerEventData.h"
-#include "LGUIBaseRayEmitter.generated.h"
+#include "LGUIBaseRayemitter.generated.h"
 
 /**
- * RayEmitter for raycaster
+ * Rayemitter for raycaster
  */
 UCLASS(Abstract)
-class LGUI_API ULGUIBaseRayEmitter : public UActorComponent
+class LGUI_API ULGUIBaseRayemitter : public UActorComponent
 {
 	GENERATED_BODY()
 public:

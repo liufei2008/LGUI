@@ -1,10 +1,10 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Event/Rayemitter/LGUI_SceneComponentRayEmitter.h"
+#include "Event/Rayemitter/LGUI_SceneComponentRayemitter.h"
 #include "LGUI.h"
 #include "GameFramework/Actor.h"
 
-bool ULGUI_SceneComponentRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
+bool ULGUI_SceneComponentRayemitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (CacheTargetSceneComponent == nullptr)
 	{
@@ -42,7 +42,7 @@ bool ULGUI_SceneComponentRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEve
 	currentRayDirection = OutRayDirection;
 	return true;
 }
-bool ULGUI_SceneComponentRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUI_SceneComponentRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
 	auto calculatedThreshold = clickTresholdSquare;
@@ -52,7 +52,7 @@ bool ULGUI_SceneComponentRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPo
 	}
 	return (InPointerEventData->GetWorldPointSpherical() - InPointerEventData->pressWorldPoint).SizeSquared() > calculatedThreshold;
 }
-void ULGUI_SceneComponentRayEmitter::SetTargetActor(AActor* InActor)
+void ULGUI_SceneComponentRayemitter::SetTargetActor(AActor* InActor)
 {
 	TargetActor = InActor;
 	if (TargetActor != nullptr)

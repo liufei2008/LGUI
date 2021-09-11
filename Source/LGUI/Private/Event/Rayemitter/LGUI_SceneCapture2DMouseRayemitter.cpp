@@ -1,11 +1,11 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Event/Rayemitter/LGUI_SceneCapture2DMouseRayEmitter.h"
+#include "Event/Rayemitter/LGUI_SceneCapture2DMouseRayemitter.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/SceneCapture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 
-USceneCaptureComponent2D* ULGUI_SceneCapture2DMouseRayEmitter::GetSceneCapture2DComponent()
+USceneCaptureComponent2D* ULGUI_SceneCapture2DMouseRayemitter::GetSceneCapture2DComponent()
 {
 	if (!IsValid(sceneCaptureComp))
 	{
@@ -17,7 +17,7 @@ USceneCaptureComponent2D* ULGUI_SceneCapture2DMouseRayEmitter::GetSceneCapture2D
 	}
 	return sceneCaptureComp;
 }
-bool ULGUI_SceneCapture2DMouseRayEmitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
+bool ULGUI_SceneCapture2DMouseRayemitter::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors)
 {
 	if (!IsValid(sceneCaptureComp))
 	{
@@ -112,7 +112,7 @@ void SceneCapture2DViewport_BuildProjectionMatrix(FIntPoint RenderTargetSize, EC
 		}
 	}
 }
-FMatrix ULGUI_SceneCapture2DMouseRayEmitter::ComputeViewProjectionMatrix(USceneCaptureComponent2D* InSceneCapture2D, bool InWithViewLocation)
+FMatrix ULGUI_SceneCapture2DMouseRayemitter::ComputeViewProjectionMatrix(USceneCaptureComponent2D* InSceneCapture2D, bool InWithViewLocation)
 {
 	FMatrix viewProjectionMatrix = FMatrix::Identity;
 	if (InSceneCapture2D == nullptr)return viewProjectionMatrix;
@@ -154,13 +154,13 @@ FMatrix ULGUI_SceneCapture2DMouseRayEmitter::ComputeViewProjectionMatrix(USceneC
 	}
 	return viewProjectionMatrix;
 }
-void ULGUI_SceneCapture2DMouseRayEmitter::DeprojectViewPointToWorldForSceneCapture2D(USceneCaptureComponent2D* InSceneCapture2D, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
+void ULGUI_SceneCapture2DMouseRayemitter::DeprojectViewPointToWorldForSceneCapture2D(USceneCaptureComponent2D* InSceneCapture2D, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
 {
 	FMatrix viewProjectionMatrix = ComputeViewProjectionMatrix(InSceneCapture2D);
 	DeprojectViewPointToWorldForSceneCapture2D(viewProjectionMatrix, InViewPoint01, OutWorldLocation, OutWorldDirection);
 	OutWorldLocation += InSceneCapture2D->GetComponentLocation();//take position out from ViewProjectionMatrix, after deproject calculation, add position to result, this can avoid float precition issue. otherwise result ray will have some obvious bias
 }
-void ULGUI_SceneCapture2DMouseRayEmitter::DeprojectViewPointToWorldForSceneCapture2D(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
+void ULGUI_SceneCapture2DMouseRayemitter::DeprojectViewPointToWorldForSceneCapture2D(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
 {
 	FMatrix InvViewProjMatrix = InViewProjectionMatrix.InverseFast();
 
@@ -194,12 +194,12 @@ void ULGUI_SceneCapture2DMouseRayEmitter::DeprojectViewPointToWorldForSceneCaptu
 	OutWorldDirection = RayDirWorldSpace;
 }
 
-bool ULGUI_SceneCapture2DMouseRayEmitter::ProjectWorldToViewPointForSceneCapture2D(USceneCaptureComponent2D* InSceneCapture2D, const FVector& InWorldPosition, FVector2D& OutViewPoint)
+bool ULGUI_SceneCapture2DMouseRayemitter::ProjectWorldToViewPointForSceneCapture2D(USceneCaptureComponent2D* InSceneCapture2D, const FVector& InWorldPosition, FVector2D& OutViewPoint)
 {
 	FMatrix viewProjectionMatrix = ComputeViewProjectionMatrix(InSceneCapture2D);
 	return ProjectWorldToViewPointForSceneCapture2D(viewProjectionMatrix, InWorldPosition, OutViewPoint);
 }
-bool ULGUI_SceneCapture2DMouseRayEmitter::ProjectWorldToViewPointForSceneCapture2D(const FMatrix& InViewProjectionMatrix, const FVector& InWorldPosition, FVector2D& OutViewPoint)
+bool ULGUI_SceneCapture2DMouseRayemitter::ProjectWorldToViewPointForSceneCapture2D(const FMatrix& InViewProjectionMatrix, const FVector& InWorldPosition, FVector2D& OutViewPoint)
 {
 	auto result = InViewProjectionMatrix.TransformFVector4(FVector4(InWorldPosition, 1.0f));
 	if (result.W > 0.0f)
@@ -216,7 +216,7 @@ bool ULGUI_SceneCapture2DMouseRayEmitter::ProjectWorldToViewPointForSceneCapture
 	}
 	return false;
 }
-bool ULGUI_SceneCapture2DMouseRayEmitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUI_SceneCapture2DMouseRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
 	FVector2D mousePos;
@@ -226,7 +226,7 @@ bool ULGUI_SceneCapture2DMouseRayEmitter::ShouldStartDrag(ULGUIPointerEventData*
 	}
 	return false;
 }
-void ULGUI_SceneCapture2DMouseRayEmitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
+void ULGUI_SceneCapture2DMouseRayemitter::MarkPress(ULGUIPointerEventData* InPointerEventData)
 {
 	this->GetWorld()->GetGameViewport()->GetMousePosition(pressMountPos);
 }
