@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "LGUIBaseRayemitter.h"
-#include "LGUI_MainViewportMouseRayEmitter.generated.h"
+#include "LGUI_MainViewportMouseRayemitter.generated.h"
 
 #define BUILD_VP_MATRIX_FROM_CAMERA_MANAGER 0
 
@@ -12,7 +12,7 @@
  * This is for standalone mouse input, it will emit a ray from main viewport mouse position
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUI_MainViewportMouseRayEmitter : public ULGUIBaseRayEmitter
+class LGUI_API ULGUI_MainViewportMouseRayemitter : public ULGUIBaseRayemitter
 {
 	GENERATED_BODY()
 public:

@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "LGUIBaseRayemitter.h"
-#include "LGUI_SceneCapture2DMouseRayEmitter.generated.h"
+#include "LGUI_SceneCapture2DMouseRayemitter.generated.h"
 
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUI_SceneCapture2DMouseRayEmitter : public ULGUIBaseRayEmitter
+class LGUI_API ULGUI_SceneCapture2DMouseRayemitter : public ULGUIBaseRayemitter
 {
 	GENERATED_BODY()
 protected:

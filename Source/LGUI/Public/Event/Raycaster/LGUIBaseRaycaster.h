@@ -9,7 +9,7 @@
 #include "LGUIBaseRaycaster.generated.h"
 
 /** 
- * RayEmitter must be set for raycaster, or it will not work
+ * Rayemitter must be set for raycaster, or it will not work
  */
 UCLASS(Abstract)
 class LGUI_API ULGUIBaseRaycaster : public USceneComponent
@@ -48,7 +48,7 @@ public:
 
 	/** use ray emitter to emit a ray and use that ray to do linecast */
 	UPROPERTY(BlueprintReadWrite, Category = LGUI)
-		class ULGUIBaseRayEmitter* rayEmitter;
+		class ULGUIBaseRayemitter* rayEmitter;
 	
 	bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& OutTraceOnlyActors, TArray<AActor*>& OutTraceIgnoreActors);
 	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray) PURE_VIRTUAL(ULGUIBaseRaycaster::Raycast, return false;);
