@@ -53,7 +53,6 @@
 #include "Event/InputModule/LGUI_StandaloneInputModule.h"
 #include "Event/InputModule/LGUI_TouchInputModule.h"
 
-#include "Extensions/ViewportUITexture.h"
 #include "Extensions/UIRing.h"
 #include "Extensions/UIPolygon.h"
 #include "Extensions/UIPolygonLine.h"
