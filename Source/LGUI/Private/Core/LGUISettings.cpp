@@ -82,6 +82,10 @@ float ULGUISettings::GetAutoManageDepthThreshold()
 #endif
 }
 #endif
+int32 ULGUISettings::GetPriorityInSceneViewExtension()
+{
+	return GetDefault<ULGUISettings>()->PriorityInSceneViewExtension;
+}
 
 
 #if WITH_EDITOR
