@@ -76,6 +76,12 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Rendering")
 		ELGUIScreenSpaceUIAntiAliasing antiAliasing = ELGUIScreenSpaceUIAntiAliasing::Disabled;
 
+	/**
+	 * LGUI renderer use ISceneViewExtension to render, so this value can sort with other view extensions, higher comes first.
+	 */
+	UPROPERTY(EditAnywhere, config, Category = "Rendering")
+		int32 PriorityInSceneViewExtension = 0;
+
 	/** 
 	 * When use auto manage depth, only 2D elements can be batched.
 	 * Ruls for telling if a UI element is 2D (convert the UI element in Canvas's relative space):
@@ -107,6 +113,7 @@ public:
 	{
 		return FMath::Pow(2, (int32)InType) * 256;
 	}
+	static int32 GetPriorityInSceneViewExtension();
 private:
 	FORCEINLINE static const FLGUIAtlasSettings& GetAtlasSettings(const FName& InPackingTag);
 };

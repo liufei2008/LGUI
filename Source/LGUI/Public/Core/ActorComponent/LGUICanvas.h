@@ -25,7 +25,7 @@ enum class ELGUIRenderMode :uint8
 	 * Render in world space by LGUI's custom render pipeline, 
 	 * This mode use LGUI's custom render pipeline, will not be affected by post process.
 	 */
-	WorldSpace_LGUI = 3		UMETA(DisplayName = "World Space - LGUI Renderer"),
+	WorldSpace_LGUI = 3		UMETA(DisplayName = "World Space - LGUI Renderer (Experimental)"),
 	/**
 	 * Render to a custom render target.
 	 */
