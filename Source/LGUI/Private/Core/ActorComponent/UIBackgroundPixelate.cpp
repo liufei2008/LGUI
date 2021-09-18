@@ -109,7 +109,9 @@ public:
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
-		const FVector4 DepthTextureScaleOffset
+		const FIntRect& ViewRect,
+		const FVector4& DepthTextureScaleOffset,
+		const FVector4& ViewTextureScaleOffset
 	)override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundPixelate);
@@ -139,14 +141,30 @@ public:
 		if (ScreenTargetImage->IsMultisampled())
 		{
 			RHICmdList.CopyToResolveTarget(ScreenTargetImage, ScreenTargetResolveImage, FResolveParams());
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetResolveImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+				, GlobalShaderMap
+				, ScreenTargetResolveImage
+				, PixelateEffectRenderTargetTexture
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
+				, ViewTextureScaleOffset
+			);
 		}
 		else
 		{
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetImage, PixelateEffectRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+				, GlobalShaderMap
+				, ScreenTargetImage
+				, PixelateEffectRenderTargetTexture
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
+				, ViewTextureScaleOffset
+			);
 		}
 		//after pixelate process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
 		//release render target
 		PixelateEffectRenderTarget.SafeRelease();

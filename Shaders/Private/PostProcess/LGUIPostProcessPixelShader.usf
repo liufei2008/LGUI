@@ -13,6 +13,7 @@ void SimpleCopyTargetPS(
 }
 
 
+float4 _MainTextureScaleOffset;
 
 void CopyMeshRegionPS(
     CopyMeshRegionVSToPS input,
@@ -22,6 +23,7 @@ void CopyMeshRegionPS(
     float4 clipSpacePos = mul(float4(input.localPosition.xyz, 1.0), _MVP);
     float inv_W = 1.0f / clipSpacePos.w;
     float2 uv = float2(clipSpacePos.x * inv_W, clipSpacePos.y * inv_W) * 0.5f + float2(0.5f, 0.5f);
+    uv.xy = uv.xy * _MainTextureScaleOffset.xy + _MainTextureScaleOffset.zw;
     uv.y = 1.0f - uv.y;
 #if !OUTPUT_MOBILE_HDR && (COMPILER_GLSL_ES2 || COMPILER_GLSL_ES3_1 || COMPILER_GLSL_ES3_1_EXT)
 	uv.y = 1.0f - uv.y;

@@ -294,16 +294,19 @@ public:
 	{
 		MainTextureParameter.Bind(Initializer.ParameterMap, TEXT("_MainTex"));
 		MainTextureSamplerParameter.Bind(Initializer.ParameterMap, TEXT("_MainTexSampler"));
+		MainTextureScaleOffsetParameter.Bind(Initializer.ParameterMap, TEXT("_MainTextureScaleOffset"));
 		MVPParameter.Bind(Initializer.ParameterMap, TEXT("_MVP"));
 	}
-	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& MVP, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
+	void SetParameters(FRHICommandListImmediate& RHICmdList, const FMatrix& MVP, const FVector4& MainTextureScaleOffset, FTextureRHIRef MainTexture, FRHISamplerState* MainTextureSampler = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI())
 	{
 		SetTextureParameter(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureParameter, MainTextureSamplerParameter, MainTextureSampler, MainTexture);
 		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), MVPParameter, MVP);
+		SetShaderValue(RHICmdList, RHICmdList.GetBoundPixelShader(), MainTextureScaleOffsetParameter, MainTextureScaleOffset);
 	}
 private:
 	LAYOUT_FIELD(FShaderResourceParameter, MainTextureParameter);
 	LAYOUT_FIELD(FShaderResourceParameter, MainTextureSamplerParameter);
+	LAYOUT_FIELD(FShaderParameter, MainTextureScaleOffsetParameter);
 	LAYOUT_FIELD(FShaderParameter, MVPParameter);
 };
 
