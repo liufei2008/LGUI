@@ -24,6 +24,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/LGUISettings.h"
 #include "Engine/TextureRenderTarget2D.h"
+
 class FLGUIMeshElementCollector : FMeshElementCollector
 {
 public:
@@ -58,8 +59,7 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
 	//world space
 	{
-		WorldSpaceRenderParams.ViewOrigin = InView.SceneViewInitOptions.ViewOrigin;
-		WorldSpaceRenderParams.ViewRotationMatrix = InView.SceneViewInitOptions.ViewRotationMatrix;
+
 	}
 	//screen space
 	if (ScreenSpaceRenderParameter.RenderCanvas.IsValid())
@@ -240,6 +240,7 @@ void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStat
 		}
 	}
 }
+
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
 void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
@@ -332,24 +333,23 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 
 	//Render world space
 	{
-		auto ViewLocation = WorldSpaceRenderParams.ViewOrigin;
-		auto ViewRotationMatrix = WorldSpaceRenderParams.ViewRotationMatrix;
+		auto ViewLocation = RenderView.ViewLocation;
+		auto ViewRotationMatrix = FInverseRotationMatrix(RenderView.ViewRotation) * FMatrix(
+			FPlane(0, 0, 1, 0),
+			FPlane(1, 0, 0, 0),
+			FPlane(0, 1, 0, 0),
+			FPlane(0, 0, 0, 1));
 		
-		//auto ViewLocation = RenderView.SceneViewInitOptions.ViewOrigin;
-		//auto ViewRotationMatrix = RenderView.SceneViewInitOptions.ViewRotationMatrix;
 		auto ProjectionMatrix = RenderView.SceneViewInitOptions.ProjectionMatrix;
 		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * (ViewRotationMatrix)*ProjectionMatrix;
 
 		RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
 		RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
-		RenderView.ViewLocation = ViewLocation;
-		RenderView.ViewRotation = ViewRotationMatrix.Rotator();
-		RenderView.UpdateViewMatrix();
 		RenderView.UpdateProjectionMatrix(ProjectionMatrix);
 
-		FViewUniformShaderParameters viewUniformShaderParameters;
+		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView.SetupCommonViewUniformBufferParameters(
-			viewUniformShaderParameters,
+			ViewUniformShaderParameters,
 			RenderView.UnscaledViewRect.Size(),
 			MultiSampleCount,
 			RenderView.UnscaledViewRect,
@@ -357,7 +357,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 			FViewMatrices()
 		);
 
-		RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
+		RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(ViewUniformShaderParameters, UniformBuffer_SingleFrame);
 
 		FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
@@ -451,9 +451,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 		RenderView.SceneViewInitOptions.ViewRotationMatrix = ScreenSpaceRenderParameter.ViewRotationMatrix;
 		RenderView.UpdateProjectionMatrix(ScreenSpaceRenderParameter.ProjectionMatrix);
 
-		FViewUniformShaderParameters viewUniformShaderParameters;
+		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView.SetupCommonViewUniformBufferParameters(
-			viewUniformShaderParameters,
+			ViewUniformShaderParameters,
 			RenderView.UnscaledViewRect.Size(),
 			MultiSampleCount,
 			RenderView.UnscaledViewRect,
@@ -461,7 +461,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 			FViewMatrices()
 		);
 
-		RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(viewUniformShaderParameters, UniformBuffer_SingleFrame);
+		RenderView.ViewUniformBuffer = TUniformBufferRef<FViewUniformShaderParameters>::CreateUniformBufferImmediate(ViewUniformShaderParameters, UniformBuffer_SingleFrame);
 
 		FLGUIMeshElementCollector meshCollector(RenderView.GetFeatureLevel());
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
