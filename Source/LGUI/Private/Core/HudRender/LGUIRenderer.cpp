@@ -91,18 +91,18 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 int32 FLGUIHudRenderer::GetPriority() const
 {
 #if WITH_EDITOR
-	static auto priority = ULGUISettings::GetPriorityInSceneViewExtension();
+	auto Priority = ULGUISettings::GetPriorityInSceneViewExtension();
 #else
-	auto priority = ULGUISettings::GetPriorityInSceneViewExtension();
+	static auto Priority = ULGUISettings::GetPriorityInSceneViewExtension();
 #endif
-	return priority;
+	return Priority;
 }
 bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
 {
 	if (!World.IsValid())return false;
 	if (InViewport == nullptr)return false;
 	if (InViewport->GetClient() == nullptr)return false;
-	if (World.Get() != InViewport->GetClient()->GetWorld())return false;
+	if (World.Get() != InViewport->GetClient()->GetWorld())return false;//only render self world
 	return true;
 }
 void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
@@ -245,13 +245,6 @@ DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
 void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
-
-	//the following two lines can prevent duplicated ui in viewport when "Number of Players" > 1
-	//@todo: should check in IsActiveThisFrame
-#if WITH_EDITOR
-	if (InView.Family == nullptr || InView.Family->Scene == nullptr || InView.Family->Scene->GetWorld() == nullptr)return;
-#endif
-	if (World.Get() != InView.Family->Scene->GetWorld())return;
 
 	FSceneView RenderView(InView);//use a copied view
 	auto GlobalShaderMap = GetGlobalShaderMap(RenderView.GetFeatureLevel());
