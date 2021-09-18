@@ -121,7 +121,8 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 	, const FMatrix& ModelViewProjectionMatrix
 	, bool IsWorldSpace
 	, float BlendDepthForWorld
-	, const FVector4 DepthTextureScaleOffset
+	, const FVector4& DepthTextureScaleOffset
+	, const FIntRect& ViewRect
 	, FRHISamplerState* ResultTextureSamplerState
 )
 {
@@ -129,7 +130,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 	if (maskTexture != nullptr)
 	{
 		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
-		RHICmdList.SetViewport(0, 0, 0.0f, ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y, 1.0f);
+		RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
 		switch (clipType)
 		{
@@ -230,7 +231,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 	else
 	{
 		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
-		RHICmdList.SetViewport(0, 0, 0.0f, ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y, 1.0f);
+		RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
 		switch (clipType)
 		{

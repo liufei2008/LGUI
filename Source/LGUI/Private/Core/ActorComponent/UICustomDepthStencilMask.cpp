@@ -85,7 +85,9 @@ public:
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
-		const FVector4 DepthTextureScaleOffset
+		const FIntRect& ViewRect,
+		const FVector4& DepthTextureScaleOffset,
+		const FVector4& ViewTextureScaleOffset
 	)override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CustomDepthStencilMask);
@@ -265,20 +267,48 @@ public:
 			if (ScreenTargetImage->IsMultisampled())
 			{
 				RHICmdList.CopyToResolveTarget(ScreenTargetImage, ScreenTargetResolveImage, FResolveParams());
-				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetResolveImage, ScreenTarget_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+					, GlobalShaderMap
+					, ScreenTargetResolveImage
+					, ScreenTarget_ProcessRenderTargetTexture
+					, renderScreenToMeshRegionVertexArray
+					, modelViewProjectionMatrix
+					, ViewRect
+					, ViewTextureScaleOffset
+				);
 			}
 			else
 			{
-				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetImage, ScreenTarget_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+					, GlobalShaderMap
+					, ScreenTargetImage
+					, ScreenTarget_ProcessRenderTargetTexture
+					, renderScreenToMeshRegionVertexArray
+					, modelViewProjectionMatrix
+					, ViewRect
+					, ViewTextureScaleOffset
+				);
 			}
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, OriginScreenTargetTexture, OriginScreenTarget_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap
+				, OriginScreenTargetTexture
+				, OriginScreenTarget_ProcessRenderTargetTexture
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, ViewRect
+				, ViewTextureScaleOffset
+			);
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap
 #if !PLATFORM_MOBILE
 				, SceneContext.CustomDepth->GetRenderTargetItem().TargetableTexture
 #else
 				, SceneContext.MobileCustomDepth->GetRenderTargetItem().TargetableTexture
 #endif
-				, DepthTexture_ProcessRenderTargetTexture, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+				, DepthTexture_ProcessRenderTargetTexture
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, ViewRect
+				, ViewTextureScaleOffset
+			);
 
 			//do depth mask
 			{
@@ -351,7 +381,7 @@ public:
 			}
 
 			//after pixelate process, copy the area back to screen image
-			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset);
+			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 			//release render target
 			if (ScreenTarget_ProcessRenderTarget.IsValid())

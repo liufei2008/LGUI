@@ -140,10 +140,18 @@ void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FG
 
 	RHICmdList.EndRenderPass();
 }
-void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst, const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData, const FMatrix& MVP)
+void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList
+	, FGlobalShaderMap* GlobalShaderMap
+	, FTextureRHIRef Src
+	, FTextureRHIRef Dst
+	, const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData
+	, const FMatrix& MVP
+	, const FIntRect& ViewRect
+	, const FVector4& SrcTextureScaleOffset
+)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Clear_DontStore), TEXT("LGUICopyRenderTargetOnMeshRegion"));
-	RHICmdList.SetViewport(0, 0, 0, Dst->GetSizeXYZ().X, Dst->GetSizeXYZ().Y, 1.0f);
+	RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
 	TShaderMapRef<FLGUICopyMeshRegionVS> VertexShader(GlobalShaderMap);
 	TShaderMapRef<FLGUICopyMeshRegionPS> PixelShader(GlobalShaderMap);
@@ -160,7 +168,7 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RH
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 	//VertexShader->SetParameters(RHICmdList);
-	PixelShader->SetParameters(RHICmdList, MVP, Src);
+	PixelShader->SetParameters(RHICmdList, MVP, SrcTextureScaleOffset, Src);
 
 	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessCopyMeshRegionVertex);
 	FRHIResourceCreateInfo CreateInfo(TEXT("CopyRenderTargetOnMeshRegion"));
@@ -254,6 +262,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	FTextureRHIRef ScreenColorRenderTargetResolveTexture = nullptr;
 	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
 
+	auto ViewRect = RenderView.UnscaledViewRect;
 	if (CustomRenderTarget.IsValid())
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
@@ -265,7 +274,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	{
 		if (bContainsPostProcess || MultiSampleCount > 1)
 		{
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.UnscaledViewRect.Size(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetSizeXY(), RenderView.Family->RenderTarget->GetRenderTargetTexture()->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = MultiSampleCount;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenColorRenderTarget, TEXT("LGUISceneColorRenderTarget"));
 			if (!ScreenColorRenderTarget.IsValid())
@@ -284,10 +293,10 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 		}
 	}
 
-	auto ViewRect = RenderView.CameraConstrainedViewRect;
 	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
 	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 	FVector4 DepthTextureScaleOffset;
+	FVector4 ViewTextureScaleOffset;
 	switch (RenderView.StereoPass)
 	{
 	case EStereoscopicPass::eSSP_FULL:
@@ -297,6 +306,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
 			0, 0
 		);
+		ViewTextureScaleOffset = FVector4(1, 1, 0, 0);
 	}
 	break;
 	case EStereoscopicPass::eSSP_LEFT_EYE:
@@ -305,8 +315,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 			//(float)ViewRect.Width() / SceneContext.GetSceneDepthSurface()->GetSizeX(),
 			//(float)ViewRect.Height() / SceneContext.GetSceneDepthSurface()->GetSizeY(),
 			0.5f, 1.0f,
-			-0.0f, 0
+			0, 0
 		);
+		ViewTextureScaleOffset = DepthTextureScaleOffset;
 	}
 	break;
 	case EStereoscopicPass::eSSP_RIGHT_EYE:
@@ -317,6 +328,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 			0.5f, 1.0f,
 			0.5f, 0
 		);
+		ViewTextureScaleOffset = DepthTextureScaleOffset;
 	}
 	break;
 	}
@@ -343,9 +355,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView.SetupCommonViewUniformBufferParameters(
 			ViewUniformShaderParameters,
-			RenderView.UnscaledViewRect.Size(),
+			ViewRect.Size(),
 			MultiSampleCount,
-			RenderView.UnscaledViewRect,
+			ViewRect,
 			RenderView.ViewMatrices,
 			FViewMatrices()
 		);
@@ -381,7 +393,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 								ViewProjectionMatrix,
 								true,
 								canvasParamItem.BlendDepth,
-								DepthTextureScaleOffset
+								ViewRect,
+								DepthTextureScaleOffset,
+								ViewTextureScaleOffset
 							);
 							RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 							RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
@@ -447,9 +461,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 		FViewUniformShaderParameters ViewUniformShaderParameters;
 		RenderView.SetupCommonViewUniformBufferParameters(
 			ViewUniformShaderParameters,
-			RenderView.UnscaledViewRect.Size(),
+			ViewRect.Size(),
 			MultiSampleCount,
-			RenderView.UnscaledViewRect,
+			ViewRect,
 			RenderView.ViewMatrices,
 			FViewMatrices()
 		);
@@ -481,7 +495,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 							ScreenSpaceRenderParameter.ViewProjectionMatrix,
 							false,
 							0.0f,
-							DepthTextureScaleOffset
+							ViewRect,
+							DepthTextureScaleOffset,
+							ViewTextureScaleOffset
 						);
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 						RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);

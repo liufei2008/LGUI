@@ -40,7 +40,9 @@ public:
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
-		const FVector4 DepthTextureScaleOffset
+		const FIntRect& ViewRect,
+		const FVector4& DepthTextureScaleOffset, 
+		const FVector4& ViewTextureScaleOffset
 	) {};
 	//end post process interface
 };
