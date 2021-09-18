@@ -104,19 +104,12 @@ private:
 		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
-	struct FWorldSpaceRenderParameter
-	{
-		FVector ViewOrigin = FVector::ZeroVector;
-		FMatrix ViewRotationMatrix = FMatrix::Identity;
-	};
 	TArray<FRenderCanvasParameter> RenderCanvasParameterArray;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
 	uint16 MultiSampleCount = 0;
 	bool bContainsPostProcess = false;
-	FWorldSpaceRenderParameter WorldSpaceRenderParams;
-	FViewMatrices PrevViewMatrices;
 	void CheckContainsPostProcess_RenderThread();	
 	void AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
 	void RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas);
