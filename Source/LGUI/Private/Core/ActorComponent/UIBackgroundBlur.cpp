@@ -91,7 +91,9 @@ public:
 		const FMatrix& ViewProjectionMatrix,
 		bool IsWorldSpace,
 		float BlendDepthForWorld,
-		const FVector4 DepthTextureScaleOffset
+		const FIntRect& ViewRect,
+		const FVector4& DepthTextureScaleOffset,
+		const FVector4& ViewTextureScaleOffset
 	) override
 	{
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);
@@ -122,11 +124,27 @@ public:
 		if (ScreenTargetTexture->IsMultisampled())
 		{
 			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetResolveImage, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+				, GlobalShaderMap
+				, ScreenTargetResolveImage
+				, BlurEffectRenderTexture1
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
+				, ViewTextureScaleOffset
+			);
 		}
 		else
 		{
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap, ScreenTargetTexture, BlurEffectRenderTexture1, renderScreenToMeshRegionVertexArray, modelViewProjectionMatrix);
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+				, GlobalShaderMap
+				, ScreenTargetTexture
+				, BlurEffectRenderTexture1
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
+				, ViewTextureScaleOffset
+			);
 		}
 		//do the blur process on the area
 		{
@@ -248,7 +266,7 @@ public:
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset);
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();

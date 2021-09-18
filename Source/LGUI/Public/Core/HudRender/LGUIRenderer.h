@@ -72,7 +72,9 @@ public:
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst,
 		const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData,
-		const FMatrix& MVP
+		const FMatrix& MVP,
+		const FIntRect& ViewRect,
+		const FVector4& SrcTextureScaleOffset
 	);
 	void DrawFullScreenQuad(
 		FRHICommandListImmediate& RHICmdList
