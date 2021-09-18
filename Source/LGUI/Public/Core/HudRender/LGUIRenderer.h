@@ -26,12 +26,21 @@ public:
 	virtual void SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)override;
 	virtual void SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)override;
 	virtual void SetupViewProjectionMatrix(FSceneViewProjectionData& InOutProjectionData)override;
-	virtual void BeginRenderViewFamily(FSceneViewFamily& InViewFamily)override {};
+	virtual void BeginRenderViewFamily(FSceneViewFamily& InViewFamily)override;
+
 	virtual void PreRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)override {};
 	virtual void PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)override;
 
+	virtual void PostRenderBasePass_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)override;
+	virtual void PrePostProcessPass_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& View, const FPostProcessingInputs& Inputs)override {};
+	virtual void SubscribeToPostProcessingPass(EPostProcessingPass Pass, FAfterPassCallbackDelegateArray& InOutPassCallbacks, bool bIsPassEnabled)override {};
+
 	virtual void PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)override;
 	virtual void PostRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)override {};
+
+	virtual int32 GetPriority() const;
+	virtual bool IsActiveThisFrame(class FViewport* InViewport) const override;
+	virtual bool IsActiveThisFrameInContext(FSceneViewExtensionContext& Context) const { return IsActiveThisFrame(Context.Viewport); }
 	//end ISceneViewExtension interfaces
 
 	//
@@ -87,7 +96,7 @@ private:
 	};
 	struct FScreenSpaceRenderParameter
 	{
-		FVector ViewLocation = FVector::ZeroVector;
+		FVector ViewOrigin = FVector::ZeroVector;
 		FMatrix ViewRotationMatrix = FMatrix::Identity;
 		FMatrix ProjectionMatrix = FMatrix::Identity;
 		FMatrix ViewProjectionMatrix = FMatrix::Identity;
@@ -95,12 +104,19 @@ private:
 		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
+	struct FWorldSpaceRenderParameter
+	{
+		FVector ViewOrigin = FVector::ZeroVector;
+		FMatrix ViewRotationMatrix = FMatrix::Identity;
+	};
 	TArray<FRenderCanvasParameter> RenderCanvasParameterArray;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
 	uint16 MultiSampleCount = 0;
 	bool bContainsPostProcess = false;
+	FWorldSpaceRenderParameter WorldSpaceRenderParams;
+	FViewMatrices PrevViewMatrices;
 	void CheckContainsPostProcess_RenderThread();	
 	void AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter);
 	void RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas);
@@ -108,6 +124,8 @@ private:
 	void SortPrimitiveRenderPriority_RenderThread();
 	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
 	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
+
+	void RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView);
 public:
 #if WITH_EDITORONLY_DATA
 	static uint32 EditorPreview_ViewKey;

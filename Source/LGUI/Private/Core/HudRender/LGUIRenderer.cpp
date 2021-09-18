@@ -58,13 +58,14 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 	if (World.Get() != InView.Family->Scene->GetWorld())return;
 	//world space
 	{
-
+		WorldSpaceRenderParams.ViewOrigin = InView.SceneViewInitOptions.ViewOrigin;
+		WorldSpaceRenderParams.ViewRotationMatrix = InView.SceneViewInitOptions.ViewRotationMatrix;
 	}
 	//screen space
 	if (ScreenSpaceRenderParameter.RenderCanvas.IsValid())
 	{
 		//@todo: these parameters should use ENQUE_RENDER_COMMAND to pass to render thread
-		ScreenSpaceRenderParameter.ViewLocation = ScreenSpaceRenderParameter.RenderCanvas->GetViewLocation();
+		ScreenSpaceRenderParameter.ViewOrigin = ScreenSpaceRenderParameter.RenderCanvas->GetViewLocation();
 		ScreenSpaceRenderParameter.ViewRotationMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewRotationMatrix().InverseFast();
 		ScreenSpaceRenderParameter.ProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetProjectionMatrix();
 		ScreenSpaceRenderParameter.ViewProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewProjectionMatrix();
@@ -73,11 +74,44 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 }
 void FLGUIHudRenderer::SetupViewPoint(APlayerController* Player, FMinimalViewInfo& InViewInfo)
 {
-	
+
 }
 void FLGUIHudRenderer::SetupViewProjectionMatrix(FSceneViewProjectionData& InOutProjectionData)
 {
 	
+}
+void FLGUIHudRenderer::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
+{
+
+}
+void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
+{
+	RenderLGUI_RenderThread(RHICmdList, InView);
+}
+int32 FLGUIHudRenderer::GetPriority() const
+{
+#if WITH_EDITOR
+	static auto priority = ULGUISettings::GetPriorityInSceneViewExtension();
+#else
+	auto priority = ULGUISettings::GetPriorityInSceneViewExtension();
+#endif
+	return priority;
+}
+bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
+{
+	if (!World.IsValid())return false;
+	if (InViewport == nullptr)return false;
+	if (InViewport->GetClient() == nullptr)return false;
+	if (World.Get() != InViewport->GetClient()->GetWorld())return false;
+	return true;
+}
+void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
+{
+	
+}
+void FLGUIHudRenderer::PostRenderBasePass_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
+{
+
 }
 
 void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
@@ -207,12 +241,12 @@ void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStat
 	}
 }
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
-void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
+void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
-	check(IsInRenderingThread());
 
 	//the following two lines can prevent duplicated ui in viewport when "Number of Players" > 1
+	//@todo: should check in IsActiveThisFrame
 #if WITH_EDITOR
 	if (InView.Family == nullptr || InView.Family->Scene == nullptr || InView.Family->Scene->GetWorld() == nullptr)return;
 #endif
@@ -298,13 +332,19 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 
 	//Render world space
 	{
-		auto ViewLocation = RenderView.SceneViewInitOptions.ViewOrigin;
-		auto ViewRotationMatrix = RenderView.SceneViewInitOptions.ViewRotationMatrix;
+		auto ViewLocation = WorldSpaceRenderParams.ViewOrigin;
+		auto ViewRotationMatrix = WorldSpaceRenderParams.ViewRotationMatrix;
+		
+		//auto ViewLocation = RenderView.SceneViewInitOptions.ViewOrigin;
+		//auto ViewRotationMatrix = RenderView.SceneViewInitOptions.ViewRotationMatrix;
 		auto ProjectionMatrix = RenderView.SceneViewInitOptions.ProjectionMatrix;
 		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * (ViewRotationMatrix)*ProjectionMatrix;
 
 		RenderView.SceneViewInitOptions.ViewOrigin = ViewLocation;
 		RenderView.SceneViewInitOptions.ViewRotationMatrix = ViewRotationMatrix;
+		RenderView.ViewLocation = ViewLocation;
+		RenderView.ViewRotation = ViewRotationMatrix.Rotator();
+		RenderView.UpdateViewMatrix();
 		RenderView.UpdateProjectionMatrix(ProjectionMatrix);
 
 		FViewUniformShaderParameters viewUniformShaderParameters;
@@ -407,7 +447,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 		}
 #endif
 
-		RenderView.SceneViewInitOptions.ViewOrigin = ScreenSpaceRenderParameter.ViewLocation;
+		RenderView.SceneViewInitOptions.ViewOrigin = ScreenSpaceRenderParameter.ViewOrigin;
 		RenderView.SceneViewInitOptions.ViewRotationMatrix = ScreenSpaceRenderParameter.ViewRotationMatrix;
 		RenderView.UpdateProjectionMatrix(ScreenSpaceRenderParameter.ProjectionMatrix);
 
@@ -510,10 +550,6 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 	{
 		ScreenColorRenderTarget.SafeRelease();
 	}
-}
-void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
-{
-
 }
 
 void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive)
