@@ -38,9 +38,8 @@ public:
 	virtual void PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)override;
 	virtual void PostRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)override {};
 
-	virtual int32 GetPriority() const;
+	virtual int32 GetPriority() const override;
 	virtual bool IsActiveThisFrame(class FViewport* InViewport) const override;
-	virtual bool IsActiveThisFrameInContext(FSceneViewExtensionContext& Context) const { return IsActiveThisFrame(Context.Viewport); }
 	//end ISceneViewExtension interfaces
 
 	//
