@@ -97,12 +97,10 @@ int32 FLGUIHudRenderer::GetPriority() const
 #endif
 	return Priority;
 }
-bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
+bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext& Context) const
 {
 	if (!World.IsValid())return false;
-	if (InViewport == nullptr)return false;
-	if (InViewport->GetClient() == nullptr)return false;
-	if (World.Get() != InViewport->GetClient()->GetWorld())return false;//only render self world
+	if (World.Get() != Context.GetWorld())return false;//only render self world
 	return true;
 }
 void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
