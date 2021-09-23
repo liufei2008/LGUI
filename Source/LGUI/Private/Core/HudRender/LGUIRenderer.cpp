@@ -335,6 +335,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 
 	//Render world space
+	if (WorldSpaceRenderCanvasParameterArray.Num() > 0)
 	{
 		auto ViewLocation = RenderView.ViewLocation;
 		auto ViewRotationMatrix = FInverseRotationMatrix(RenderView.ViewRotation) * FMatrix(
@@ -367,9 +368,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		GraphicsPSOInit.NumSamples = MultiSampleCount;
 
-		for (int canvasIndex = 0; canvasIndex < RenderCanvasParameterArray.Num(); canvasIndex++)
+		for (int canvasIndex = 0; canvasIndex < WorldSpaceRenderCanvasParameterArray.Num(); canvasIndex++)
 		{
-			auto& canvasParamItem = RenderCanvasParameterArray[canvasIndex];
+			auto& canvasParamItem = WorldSpaceRenderCanvasParameterArray[canvasIndex];
 
 			for (int primitiveIndex = 0; primitiveIndex < canvasParamItem.HudPrimitiveArray.Num(); primitiveIndex++)
 			{
@@ -432,6 +433,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 		}
 	}
 	//Render screen space
+	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() > 0)
 	{
 #if WITH_EDITOR
 		//check if simulation
@@ -563,7 +565,7 @@ void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 {
 	if (InPrimitive != nullptr)
 	{
-		int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
+		int existIndex = WorldSpaceRenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
 			return item.RenderCanvas == InCanvas;
 			});
 		if (existIndex == INDEX_NONE)
@@ -572,7 +574,7 @@ void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas
 		}
 		else
 		{
-			auto& item = RenderCanvasParameterArray[existIndex];
+			auto& item = WorldSpaceRenderCanvasParameterArray[existIndex];
 			item.HudPrimitiveArray.AddUnique(InPrimitive);
 			item.HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B)
 			{
@@ -591,7 +593,7 @@ void FLGUIHudRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCan
 {
 	if (InPrimitive != nullptr)
 	{
-		int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
+		int existIndex = WorldSpaceRenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
 			return item.RenderCanvas == InCanvas;
 			});
 		if (existIndex == INDEX_NONE)
@@ -600,7 +602,7 @@ void FLGUIHudRenderer::RemoveWorldSpacePrimitive_RenderThread(ULGUICanvas* InCan
 		}
 		else
 		{
-			auto& item = RenderCanvasParameterArray[existIndex];
+			auto& item = WorldSpaceRenderCanvasParameterArray[existIndex];
 			item.HudPrimitiveArray.RemoveSingle(InPrimitive);
 			//check if we have postprocess
 			CheckContainsPostProcess_RenderThread();
@@ -645,7 +647,7 @@ void FLGUIHudRenderer::SortScreenSpacePrimitiveRenderPriority_RenderThread()
 }
 void FLGUIHudRenderer::SortPrimitiveRenderPriority_RenderThread()
 {
-	for (auto& item : RenderCanvasParameterArray)
+	for (auto& item : WorldSpaceRenderCanvasParameterArray)
 	{
 		item.HudPrimitiveArray.Sort([](ILGUIHudPrimitive& A, ILGUIHudPrimitive& B) {
 			return A.GetRenderPriority() < B.GetRenderPriority();
@@ -663,7 +665,7 @@ void FLGUIHudRenderer::SetRenderCanvasSortOrder(ULGUICanvas* InRenderCanvas, int
 }
 void FLGUIHudRenderer::SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder)
 {
-	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InRenderCanvas](const FRenderCanvasParameter& item) {
+	int existIndex = WorldSpaceRenderCanvasParameterArray.IndexOfByPredicate([InRenderCanvas](const FRenderCanvasParameter& item) {
 		return item.RenderCanvas == InRenderCanvas;
 		});
 	if (existIndex == INDEX_NONE)
@@ -672,8 +674,8 @@ void FLGUIHudRenderer::SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRend
 	}
 	else
 	{
-		RenderCanvasParameterArray[existIndex].RenderCanvasSortOrder = InSortOrder;
-		RenderCanvasParameterArray.Sort([](const FRenderCanvasParameter& A, const FRenderCanvasParameter& B) {
+		WorldSpaceRenderCanvasParameterArray[existIndex].RenderCanvasSortOrder = InSortOrder;
+		WorldSpaceRenderCanvasParameterArray.Sort([](const FRenderCanvasParameter& A, const FRenderCanvasParameter& B) {
 			return A.RenderCanvasSortOrder < B.RenderCanvasSortOrder;
 			});
 	}
@@ -700,7 +702,7 @@ void FLGUIHudRenderer::SetRenderCanvasBlendDepth(ULGUICanvas* InRenderCanvas, fl
 }
 void FLGUIHudRenderer::SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth)
 {
-	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InRenderCanvas](const FRenderCanvasParameter& item) {
+	int existIndex = WorldSpaceRenderCanvasParameterArray.IndexOfByPredicate([InRenderCanvas](const FRenderCanvasParameter& item) {
 		return item.RenderCanvas == InRenderCanvas;
 		});
 	if (existIndex == INDEX_NONE)
@@ -709,8 +711,8 @@ void FLGUIHudRenderer::SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRen
 	}
 	else
 	{
-		//RenderCanvasParameterArray[existIndex].BlendDepth = FMath::Pow(InBlendDepth, 2.2f);
-		RenderCanvasParameterArray[existIndex].BlendDepth = InBlendDepth;
+		//WorldSpaceRenderCanvasParameterArray[existIndex].BlendDepth = FMath::Pow(InBlendDepth, 2.2f);
+		WorldSpaceRenderCanvasParameterArray[existIndex].BlendDepth = InBlendDepth;
 	}
 }
 void FLGUIHudRenderer::AddWorldSpaceRenderCanvas(ULGUICanvas* InCanvas)
@@ -752,7 +754,7 @@ void FLGUIHudRenderer::ClearScreenSpaceRenderCanvas()
 
 void FLGUIHudRenderer::AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParameter InCanvasParameter)
 {
-	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([&InCanvasParameter](const FRenderCanvasParameter& item) {
+	int existIndex = WorldSpaceRenderCanvasParameterArray.IndexOfByPredicate([&InCanvasParameter](const FRenderCanvasParameter& item) {
 		return item.RenderCanvas == InCanvasParameter.RenderCanvas;
 		});
 	if (existIndex != INDEX_NONE)
@@ -760,14 +762,14 @@ void FLGUIHudRenderer::AddWorldSpaceRenderCanvas_RenderThread(FRenderCanvasParam
 		UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::AddRootCanvas_RenderThread]Canvas already exist!"));
 		return;
 	}
-	RenderCanvasParameterArray.Add(InCanvasParameter);
-	RenderCanvasParameterArray.Sort([](const FRenderCanvasParameter& A, const FRenderCanvasParameter& B) {
+	WorldSpaceRenderCanvasParameterArray.Add(InCanvasParameter);
+	WorldSpaceRenderCanvasParameterArray.Sort([](const FRenderCanvasParameter& A, const FRenderCanvasParameter& B) {
 		return A.RenderCanvasSortOrder < B.RenderCanvasSortOrder;
 		});
 }
 void FLGUIHudRenderer::RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* InCanvas)
 {
-	int existIndex = RenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
+	int existIndex = WorldSpaceRenderCanvasParameterArray.IndexOfByPredicate([InCanvas](const FRenderCanvasParameter& item) {
 		return item.RenderCanvas == InCanvas;
 		});
 	if (existIndex == INDEX_NONE)
@@ -775,7 +777,7 @@ void FLGUIHudRenderer::RemoveWorldSpaceRenderCanvas_RenderThread(ULGUICanvas* In
 		UE_LOG(LGUI, Error, TEXT("[FLGUIHudRenderer::RemoveRootCanvas_RenderThread]Canvas not exist!"));
 		return;
 	}
-	RenderCanvasParameterArray.RemoveAt(existIndex);
+	WorldSpaceRenderCanvasParameterArray.RemoveAt(existIndex);
 }
 
 void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
@@ -789,7 +791,7 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 			return;
 		}
 	}
-	for (auto& renderItem : RenderCanvasParameterArray)
+	for (auto& renderItem : WorldSpaceRenderCanvasParameterArray)
 	{
 		for (auto& item : renderItem.HudPrimitiveArray)
 		{
