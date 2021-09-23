@@ -105,7 +105,7 @@ private:
 		TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
-	TArray<FRenderCanvasParameter> RenderCanvasParameterArray;
+	TArray<FRenderCanvasParameter> WorldSpaceRenderCanvasParameterArray;
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
