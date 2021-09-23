@@ -52,7 +52,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		}
 		else
 		{
-			if (canvas->GetRenderMode() == ELGUIRenderMode::WorldSpace)
+			if (canvas->GetRenderMode() == ELGUIRenderMode::WorldSpace || canvas->GetRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
 			{
 				lguiCategory.AddCustomRow(LOCTEXT("WorldSpaceUIInfo", "WorldSpaceUIInfo"))
 					.WholeRowContent()
