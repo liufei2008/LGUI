@@ -2100,7 +2100,11 @@ void UUIItem::ApplyUIActiveState()
 	bColorChanged = true;
 	bLayoutChanged = true;
 	//canvas update
-	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+	if (CheckRenderCanvas())
+	{
+		RenderCanvas->MarkCanvasUpdate();
+		RenderCanvas->MarkCanvasUpdateLayout();
+	}	
 	//callback
 	CallUIComponentsActiveInHierarchyStateChanged();
 }
