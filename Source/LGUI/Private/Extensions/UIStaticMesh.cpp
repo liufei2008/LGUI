@@ -22,12 +22,12 @@ bool UUIStaticMesh::CanCreateGeometry()
 {
 	if (IsValid(mesh))
 	{
-		if (mesh->RenderData.IsValid())
+		if (mesh->GetRenderData() != nullptr)
 		{
-			if (mesh->RenderData->LODResources.Num() > 0)
+			if (mesh->GetRenderData()->LODResources.Num() > 0)
 			{
-				FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
-				FRawStaticIndexBuffer& indicesBuffers = mesh->RenderData->LODResources[0].IndexBuffer;
+				FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
+				FRawStaticIndexBuffer& indicesBuffers = mesh->GetRenderData()->LODResources[0].IndexBuffer;
 				auto numVertices = vertexBuffers.PositionVertexBuffer.GetNumVertices();
 				auto numIndices = indicesBuffers.GetNumIndices();
 				if (numVertices > 0 && numIndices > 0)
@@ -67,8 +67,8 @@ void UUIStaticMesh::UpdateGeometry(const bool& parentLayoutChanged)
 void UUIStaticMesh::UpdateMeshColor()
 {
 	if (vertexColorType == UIStaticMeshVertexColorType::NotAffectByUIColor)return;
-	FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
-	FRawStaticIndexBuffer& indicesBuffers = mesh->RenderData->LODResources[0].IndexBuffer;
+	FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
+	FRawStaticIndexBuffer& indicesBuffers = mesh->GetRenderData()->LODResources[0].IndexBuffer;
 	auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
 	auto numIndices = indicesBuffers.GetNumIndices();
 	if (numVertices > 0 && numIndices > 0)
@@ -119,8 +119,8 @@ void UUIStaticMesh::UpdateMeshColor()
 }
 void UUIStaticMesh::CreateGeometry()
 {
-	FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
-	FRawStaticIndexBuffer& indicesBuffers = mesh->RenderData->LODResources[0].IndexBuffer;
+	FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
+	FRawStaticIndexBuffer& indicesBuffers = mesh->GetRenderData()->LODResources[0].IndexBuffer;
 	auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
 	auto numIndices = indicesBuffers.GetNumIndices();
 	if (numVertices > 0 && numIndices > 0)

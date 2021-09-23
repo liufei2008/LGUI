@@ -76,7 +76,7 @@ public:
 		return FUIPostProcessRenderProxy::CanRender() && maskStrength > 0.0f;
 	}
 	virtual void OnRenderPostProcess_RenderThread(
-		FRHICommandListImmediate& RHICmdList,
+		FRDGBuilder& GraphBuilder,
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenTargetTexture,
 		FTextureRHIRef ScreenTargetImage,
@@ -93,6 +93,7 @@ public:
 		SCOPE_CYCLE_COUNTER(STAT_CustomDepthStencilMask);
 		if (maskStrength <= 0.0f)return;
 
+		FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 		if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
 		{
@@ -381,7 +382,7 @@ public:
 			}
 
 			//after pixelate process, copy the area back to screen image
-			RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
+			RenderMeshOnScreen_RenderThread(GraphBuilder, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 			//release render target
 			if (ScreenTarget_ProcessRenderTarget.IsValid())

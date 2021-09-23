@@ -86,7 +86,14 @@ void FLGUIHudRenderer::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 }
 void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
-	RenderLGUI_RenderThread(RHICmdList, InView);
+	
+}
+void FLGUIHudRenderer::PostRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)
+{
+	AddPass(GraphBuilder, [this, &GraphBuilder, &InView](FRHICommandListImmediate& RHICmdList)
+		{
+			RenderLGUI_RenderThread(GraphBuilder, InView);
+		});
 }
 int32 FLGUIHudRenderer::GetPriority() const
 {
@@ -248,7 +255,7 @@ void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStat
 }
 
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
-void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
+void FLGUIHudRenderer::RenderLGUI_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 
@@ -261,6 +268,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
 
 	auto ViewRect = RenderView.UnscaledViewRect;
+	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
 	if (CustomRenderTarget.IsValid())
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
@@ -292,7 +300,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	}
 
 	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
-	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
+	const FSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
 	FVector4 DepthTextureScaleOffset;
 	FVector4 ViewTextureScaleOffset;
 	switch (RenderView.StereoPass)
@@ -300,8 +308,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	case EStereoscopicPass::eSSP_FULL:
 	{
 		DepthTextureScaleOffset = FVector4(
-			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
-			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Target->Desc.GetSize().X,
+			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Target->Desc.GetSize().Y,
 			0, 0
 		);
 		ViewTextureScaleOffset = FVector4(1, 1, 0, 0);
@@ -383,7 +391,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 						{
 							RHICmdList.EndRenderPass();
 							hudPrimitive->OnRenderPostProcess_RenderThread(
-								RHICmdList,
+								GraphBuilder,
 								this,
 								(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
 								ScreenColorRenderTargetTexture,
@@ -421,7 +429,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 
 								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 								PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-								PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+								PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, (FRHITexture2D*)(SceneTextures.Depth.Target->GetRHI()));
 
 								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
 								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
@@ -486,7 +494,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 					{
 						RHICmdList.EndRenderPass();
 						hudPrimitive->OnRenderPostProcess_RenderThread(
-							RHICmdList,
+							GraphBuilder,
 							this,
 							(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
 							ScreenColorRenderTargetTexture,
@@ -506,7 +514,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 					else//render mesh
 					{
 						const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-						auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
+						auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
 						const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 						auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 

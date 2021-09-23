@@ -114,7 +114,7 @@ GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();\
 GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;\
 SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListImmediate& RHICmdList
+void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRDGBuilder& GraphBuilder
 	, FTextureRHIRef ScreenTargetTexture
 	, FGlobalShaderMap* GlobalShaderMap
 	, FTextureRHIRef ResultTexture
@@ -126,7 +126,8 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 	, FRHISamplerState* ResultTextureSamplerState
 )
 {
-	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
+	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
+	const FSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
 	if (maskTexture != nullptr)
 	{
 		RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_DontStore), TEXT("RenderMeshToScreen"));
@@ -147,7 +148,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 					, ResultTextureSamplerState
 					, maskTexture->SamplerStateRHI
 				);
-				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, (FRHITexture2D*)SceneTextures.Depth.Target->GetRHI());
 			}
 			else
 			{
@@ -175,7 +176,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 					, maskTexture->SamplerStateRHI
 				);
 				PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
-				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, (FRHITexture2D*)SceneTextures.Depth.Target->GetRHI());
 			}
 			else
 			{
@@ -207,7 +208,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 				{
 					PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
 				}
-				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, (FRHITexture2D*)SceneTextures.Depth.Target->GetRHI());
 			}
 			else
 			{
@@ -245,7 +246,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 				SET_PIPELINE_STATE_FOR_CLIP();
 				VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 				PixelShader->SetParameters(RHICmdList, ResultTexture, ResultTextureSamplerState);
-				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, (FRHITexture2D*)SceneTextures.Depth.Target->GetRHI());
 			}
 			else
 			{
@@ -267,7 +268,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 				VertexShader->SetParameters(RHICmdList, ModelViewProjectionMatrix);
 				PixelShader->SetParameters(RHICmdList, ResultTexture, ResultTextureSamplerState);
 				PixelShader->SetClipParameters(RHICmdList, rectClipOffsetAndSize, rectClipFeather);
-				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, (FRHITexture2D*)SceneTextures.Depth.Target->GetRHI());
 			}
 			else
 			{
@@ -293,7 +294,7 @@ void FUIPostProcessRenderProxy::RenderMeshOnScreen_RenderThread(FRHICommandListI
 				{
 					PixelShader->SetClipParameters(RHICmdList, textureClipOffsetAndSize, clipTexture->TextureRHI, clipTexture->SamplerStateRHI);
 				}
-				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+				PixelShader->SetDepthBlendParameter(RHICmdList, BlendDepthForWorld, DepthTextureScaleOffset, (FRHITexture2D*)SceneTextures.Depth.Target->GetRHI());
 			}
 			else
 			{

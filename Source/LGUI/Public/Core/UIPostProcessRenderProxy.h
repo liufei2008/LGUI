@@ -73,7 +73,7 @@ public:
 	FUIWidget widget;
 	FTexture2DResource* maskTexture = nullptr;
 
-	void RenderMeshOnScreen_RenderThread(FRHICommandListImmediate& RHICmdList
+	void RenderMeshOnScreen_RenderThread(FRDGBuilder& GraphBuilder
 		, FTextureRHIRef ScreenTargetTexture
 		, FGlobalShaderMap* GlobalShaderMap
 		, FTextureRHIRef ResultTexture
