@@ -46,8 +46,12 @@ private:
 	bool CanEditActorForPrefab();
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
+
+	void ToggleLGUIColumnInfo();
+	bool LGUIColumnInfoChecked();
+	void ApplyLGUIColumnInfo(bool value, bool refreshSceneOutliner);
 private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
-	class FLGUINativeSceneOutlinerExtension* SceneOutlinerExtensionObject = nullptr;
+	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
 };

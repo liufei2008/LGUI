@@ -148,5 +148,8 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI Editor")
 		float DelayRestoreHierarchyTime = 0.2f;
+
+	UPROPERTY(config)
+		bool ShowLGUIColumnInSceneOutliner = true;
 #endif
 };

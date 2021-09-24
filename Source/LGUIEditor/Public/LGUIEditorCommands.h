@@ -24,4 +24,6 @@ public:
 	TSharedPtr<FUICommandInfo> ActiveViewportAsLGUIPreview;
 	TSharedPtr<FUICommandInfo> FocusToScreenSpaceUI;
 	TSharedPtr<FUICommandInfo> FocusToSelectedUI;
+
+	TSharedPtr<FUICommandInfo> ToggleLGUIInfoColume;
 };
