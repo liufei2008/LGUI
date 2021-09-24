@@ -94,6 +94,12 @@ void FLGUIEditorModule::StartupModule()
 			FCanExecuteAction(),
 			FIsActionChecked::CreateLambda([this] {return this->bActiveViewportAsPreview; })
 		);
+		PluginCommands->MapAction(
+			editorCommand.ToggleLGUIInfoColume,
+			FExecuteAction::CreateRaw(this, &FLGUIEditorModule::ToggleLGUIColumnInfo),
+			FCanExecuteAction(),
+			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::LGUIColumnInfoChecked)
+		);
 
 		TSharedPtr<FExtender> toolbarExtender = MakeShareable(new FExtender);
 		toolbarExtender->AddToolBarExtension("Game", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FLGUIEditorModule::AddEditorToolsToToolbarExtension));
@@ -102,11 +108,9 @@ void FLGUIEditorModule::StartupModule()
 	}
 	//register SceneOutliner ColumnInfo
 	{
-		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
-		SceneOutliner::FColumnInfo ColumnInfo(SceneOutliner::EColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
-		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(SceneOutliner::FDefaultColumnInfo(ColumnInfo));
+		ApplyLGUIColumnInfo(LGUIColumnInfoChecked(), false);
 		//SceneOutliner extension
-		SceneOutlinerExtensionObject = new FLGUINativeSceneOutlinerExtension();
+		NativeSceneOutlinerExtension = new FLGUINativeSceneOutlinerExtension();
 	}
 	//register window
 	{
@@ -252,8 +256,8 @@ void FLGUIEditorModule::ShutdownModule()
 	{
 		FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
 		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
-		delete SceneOutlinerExtensionObject;
-		SceneOutlinerExtensionObject = nullptr;
+		delete NativeSceneOutlinerExtension;
+		NativeSceneOutlinerExtension = nullptr;
 	}
 	//unregister window
 	{
@@ -550,6 +554,12 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			MenuBuilder.AddMenuEntry(commandList.FocusToSelectedUI);
 		}
 		MenuBuilder.EndSection();
+
+		MenuBuilder.BeginSection("Others", LOCTEXT("Others", "Others"));
+		{
+			MenuBuilder.AddMenuEntry(commandList.ToggleLGUIInfoColume);
+		}
+		MenuBuilder.EndSection();
 	}
 	return MenuBuilder.MakeWidget();
 }
@@ -633,6 +643,58 @@ void FLGUIEditorModule::ToggleActiveViewportAsPreview()
 	else
 	{
 		ClearViewportPreview();
+	}
+}
+
+void FLGUIEditorModule::ToggleLGUIColumnInfo()
+{
+	auto LGUIEditorSettings = GetMutableDefault<ULGUIEditorSettings>();
+	LGUIEditorSettings->ShowLGUIColumnInSceneOutliner = !LGUIEditorSettings->ShowLGUIColumnInSceneOutliner;
+	LGUIEditorSettings->SaveConfig();
+
+	ApplyLGUIColumnInfo(LGUIEditorSettings->ShowLGUIColumnInSceneOutliner, true);
+}
+bool FLGUIEditorModule::LGUIColumnInfoChecked()
+{
+	return GetDefault<ULGUIEditorSettings>()->ShowLGUIColumnInSceneOutliner;
+}
+void FLGUIEditorModule::ApplyLGUIColumnInfo(bool value, bool refreshSceneOutliner)
+{
+	FSceneOutlinerModule& SceneOutlinerModule = FModuleManager::LoadModuleChecked< FSceneOutlinerModule >("SceneOutliner");
+	if (value)
+	{
+		SceneOutliner::FColumnInfo ColumnInfo(SceneOutliner::EColumnVisibility::Visible, 15, FCreateSceneOutlinerColumn::CreateStatic(&LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::MakeInstance));
+		SceneOutlinerModule.RegisterDefaultColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>(SceneOutliner::FDefaultColumnInfo(ColumnInfo));
+	}
+	else
+	{
+		SceneOutlinerModule.UnRegisterColumnType<LGUISceneOutliner::FLGUISceneOutlinerInfoColumn>();
+	}
+
+	//refresh scene outliner
+	if (refreshSceneOutliner)
+	{
+		FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+
+		TSharedPtr<FTabManager> LevelEditorTabManager = LevelEditorModule.GetLevelEditorTabManager();
+		if (LevelEditorTabManager->FindExistingLiveTab(FName("LevelEditorSceneOutliner")).IsValid())
+		{
+			if (LevelEditorTabManager.IsValid() && LevelEditorTabManager.Get())
+			{
+				if (LevelEditorTabManager->GetOwnerTab().IsValid())
+				{
+					LevelEditorTabManager->TryInvokeTab(FName("LevelEditorSceneOutliner"))->RequestCloseTab();
+				}
+			}
+
+			if (LevelEditorTabManager.IsValid() && LevelEditorTabManager.Get())
+			{
+				if (LevelEditorTabManager->GetOwnerTab().IsValid())
+				{
+					LevelEditorTabManager->TryInvokeTab(FName("LevelEditorSceneOutliner"));
+				}
+			}
+		}
 	}
 }
 
