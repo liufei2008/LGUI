@@ -15,7 +15,8 @@
 #include "Widgets/Colors/SColorPicker.h"
 #include "EdGraphNode_Comment.h"
 #include "Math/UnitConversion.h"
-
+#include "STextPropertyEditableTextBox.h"
+#include "TextCustomization.cpp"
 #pragma once
 
 #define LOCTEXT_NAMESPACE "LGUIDrawableEventCustomization"
@@ -1050,6 +1051,7 @@ protected:
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
 					.FillWidth(1.0f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SLGUIVectorInputBox)
 						.AllowSpin(false)
@@ -1077,6 +1079,7 @@ protected:
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
 					.FillWidth(1.0f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SLGUIVectorInputBox)
 						.AllowSpin(false)
@@ -1108,6 +1111,7 @@ protected:
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
 					.FillWidth(1.0f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SLGUIVectorInputBox)
 						.AllowSpin(false)
@@ -1213,6 +1217,7 @@ protected:
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
 					.FillWidth(1.0f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SLGUIVectorInputBox)
 						.AllowSpin(false)
@@ -1244,10 +1249,52 @@ protected:
 				ClearObjectValue(InDataContainerHandle);
 				ClearActorValue(InDataContainerHandle);
 				ClearClassValue(InDataContainerHandle);
+				ClearNameValue(InDataContainerHandle);
+				ClearTextValue(InDataContainerHandle);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceString));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
+			case LGUIDrawableEventParameterType::Name:
+			{
+				ClearNumericValueBuffer(InDataContainerHandle);
+				ClearObjectValue(InDataContainerHandle);
+				ClearActorValue(InDataContainerHandle);
+				ClearClassValue(InDataContainerHandle);
+				ClearStringValue(InDataContainerHandle);
+				ClearTextValue(InDataContainerHandle);
+				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceName));
+				return valueHandle->CreatePropertyValueWidget();
+			}
+			case LGUIDrawableEventParameterType::Text:
+			{
+				ClearNumericValueBuffer(InDataContainerHandle);
+				ClearObjectValue(InDataContainerHandle);
+				ClearActorValue(InDataContainerHandle);
+				ClearClassValue(InDataContainerHandle);
+				ClearStringValue(InDataContainerHandle);
+				ClearNameValue(InDataContainerHandle);
+				auto PropertyHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceText));
+				TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FEditableTextPropertyHandle(PropertyHandle.ToSharedRef(), PropertyUtilites));
+				const bool bIsMultiLine = EditableTextProperty->IsMultiLineText();
+				return 
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.VAlign(VAlign_Center)
+					.FillWidth(1.0f)
+					.Padding(0.0f, 2.0f)
+					[
+						SNew(SBox)
+						.MinDesiredWidth(bIsMultiLine ? 250.f : 125.f)
+						.MaxDesiredWidth(600)
+						[
+							SNew(STextPropertyEditableTextBox, EditableTextProperty)
+							.Font(FEditorStyle::GetFontStyle("PropertyWindow.NormalFont"))
+							.AutoWrapText(true)
+						]
+					]
+					;
+			}
 			case LGUIDrawableEventParameterType::PointerEvent:
 			{
 				ClearNumericValueBuffer(InDataContainerHandle);
@@ -1292,6 +1339,7 @@ protected:
 					+ SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
 					.FillWidth(1.0f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SRotatorInputBox)
 						.AllowSpin(false)
@@ -1324,6 +1372,10 @@ protected:
 	{
 		auto paramBufferHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ParamBuffer));
 
+		ClearStringValue(InDataContainerHandle);
+		ClearNameValue(InDataContainerHandle);
+		ClearTextValue(InDataContainerHandle);
+
 		TSharedPtr<SWidget> ParameterContent;
 		switch (FunctionParameterType)
 		{
@@ -1332,7 +1384,6 @@ protected:
 		case LGUIDrawableEventParameterType::Object:
 		{
 			ClearNumericValueBuffer(InDataContainerHandle);
-			ClearStringValue(InDataContainerHandle);
 			ClearActorValue(InDataContainerHandle);
 			ClearClassValue(InDataContainerHandle);
 			return SNew(SObjectPropertyEntryBox)
@@ -1348,7 +1399,6 @@ protected:
 		{
 			ClearNumericValueBuffer(InDataContainerHandle);
 			ClearClassValue(InDataContainerHandle);
-			ClearStringValue(InDataContainerHandle);
 			ClearObjectValue(InDataContainerHandle);
 			return SNew(SObjectPropertyEntryBox)
 				.IsEnabled(true)
@@ -1363,7 +1413,6 @@ protected:
 			auto metaClass = ULGUIDrawableEventParameterHelper::GetClassParameterClass(InFunction);
 			auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceClass));
 			ClearNumericValueBuffer(InDataContainerHandle);
-			ClearStringValue(InDataContainerHandle);
 			ClearObjectValue(InDataContainerHandle);
 			ClearActorValue(InDataContainerHandle);
 			return SNew(SClassPropertyEntryBox)
@@ -1655,12 +1704,10 @@ protected:
 		}
 		else
 		{
-			FString printString = TEXT("SetBufferValue");
 			for (int i = 0; i < bufferCount; i++)
 			{
 				auto bufferHandle = BufferArrayHandle->GetElement(i);
 				auto buffer = BufferArray[i];
-				printString.AppendInt(buffer);
 				bufferHandle->SetValue(buffer);
 			}
 		}
@@ -1726,10 +1773,20 @@ protected:
 		ValueHandle->GetValue(Value);
 		return Value;
 	}
+	FText GetTextValue(TSharedPtr<IPropertyHandle> ValueHandle)const
+	{
+		FText Value;
+		ValueHandle->GetValue(Value);
+		return Value;
+	}
+	void SetTextValue(const FText& InText, ETextCommit::Type InCommitType, TSharedPtr<IPropertyHandle> ValueHandle)
+	{
+		ValueHandle->SetValue(InText);
+	}
 
 	void ClearNumericValueBuffer(TSharedPtr<IPropertyHandle> PropertyHandle)
 	{
-		auto handle = PropertyHandle->GetChildHandle("ParamBuffer")->AsArray();
+		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ParamBuffer))->AsArray();
 		handle->EmptyArray();
 	}
 	void ClearReferenceValue(TSharedPtr<IPropertyHandle> PropertyHandle)
@@ -1738,29 +1795,38 @@ protected:
 		ClearActorValue(PropertyHandle);
 		ClearClassValue(PropertyHandle);
 		ClearStringValue(PropertyHandle);
+		ClearNameValue(PropertyHandle);
+		ClearTextValue(PropertyHandle);
 	}
 	void ClearStringValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 	{
-		auto handle = PropertyHandle->GetChildHandle("ReferenceString");
-		handle->SetValue(FString(""));
+		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceString));
+		handle->ResetToDefault();
+	}
+	void ClearNameValue(TSharedPtr<IPropertyHandle> PropertyHandle)
+	{
+		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceName));
+		handle->ResetToDefault();
+	}
+	void ClearTextValue(TSharedPtr<IPropertyHandle> PropertyHandle)
+	{
+		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceText));
+		handle->ResetToDefault();
 	}
 	void ClearObjectValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 	{
-		auto handle = PropertyHandle->GetChildHandle("ReferenceObject");
-		UObject* EmptyObj = nullptr;
-		handle->SetValue(EmptyObj);
+		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceObject));
+		handle->ResetToDefault();
 	}
 	void ClearActorValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 	{
-		auto handle = PropertyHandle->GetChildHandle("ReferenceActor");
-		UObject* EmptyObj = nullptr;
-		handle->SetValue(EmptyObj);
+		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceActor));
+		handle->ResetToDefault();
 	}
 	void ClearClassValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 	{
-		auto handle = PropertyHandle->GetChildHandle("ReferenceClass");
-		UObject* EmptyObj = nullptr;
-		handle->SetValue(EmptyObj);
+		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceClass));
+		handle->ResetToDefault();
 	}
 
 	void OnParameterTypeChange(TSharedRef<IPropertyHandle> InDataContainerHandle)
