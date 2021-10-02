@@ -16,7 +16,7 @@
 #include "Math/UnitConversion.h"
 #include "STextPropertyEditableTextBox.h"
 #include "TextCustomization.cpp"
-#include "SEnumCombobox.h"
+#include "SEnumCombo.h"
 #pragma once
 
 #define LOCTEXT_NAMESPACE "LGUIDrawableEventCustomization"
