@@ -8,7 +8,6 @@
 #include "IPropertyUtilities.h"
 #include "IPropertyTypeCustomization.h"
 #include "Utils/BitConverter.h"
-#include "Widget/LGUIEnumComboBox.h"
 #include "Widget/LGUIVectorInputBox.h"
 #include "Widgets/Input/SRotatorInputBox.h"
 #include "Widgets/Colors/SColorBlock.h"
@@ -17,6 +16,7 @@
 #include "Math/UnitConversion.h"
 #include "STextPropertyEditableTextBox.h"
 #include "TextCustomization.cpp"
+#include "SEnumCombobox.h"
 #pragma once
 
 #define LOCTEXT_NAMESPACE "LGUIDrawableEventCustomization"
@@ -965,12 +965,19 @@ protected:
 				if (auto enumValue = ULGUIDrawableEventParameterHelper::GetEnumParameter(InFunction))
 				{
 					return
-						SNew(SBox)
-						.MinDesiredWidth(500)
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.VAlign(VAlign_Center)
+						.FillWidth(1.0f)
+						.Padding(0.0f, 2.0f)
 						[
-							SNew(SEnumCombobox, enumValue)
-							.CurrentValue(this, &FLGUIDrawableEventCustomization::GetEnumValue, valueHandle)
-							.OnEnumSelectionChanged(this, &FLGUIDrawableEventCustomization::EnumValueChange, valueHandle, paramBufferHandle)
+							SNew(SBox)
+							.MinDesiredWidth(500)
+							[
+								SNew(SEnumComboBox, enumValue)
+								.CurrentValue(this, &FLGUIDrawableEventCustomization::GetEnumValue, valueHandle)
+								.OnEnumSelectionChanged(this, &FLGUIDrawableEventCustomization::EnumValueChange, valueHandle, paramBufferHandle)
+							]
 						]
 					;
 				}
@@ -1476,7 +1483,7 @@ protected:
 	{
 		ClassReferenceHandle->SetValue(InClass);
 	}
-	void EnumValueChange(int32 InValue, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	void EnumValueChange(int32 InValue, ESelectInfo::Type SelectionType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
 	{
 		uint8 Value = (uint8)InValue;
 		ValueHandle->SetValue(Value);
