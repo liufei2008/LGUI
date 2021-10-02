@@ -4,6 +4,7 @@
 #include "Utils/BitConverter.h"
 #include "LGUI.h"
 
+PRAGMA_DISABLE_OPTIMIZATION
 
 bool ULGUIDrawableEventParameterHelper::IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIDrawableEventParameterType>& OutParameterTypeArray)
 {
@@ -159,6 +160,16 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* In
 	else if (auto strProperty = CastField<FStrProperty>(InFunctionProperty))
 	{
 		OutParameterType = LGUIDrawableEventParameterType::String;
+		return true;
+	}
+	else if (auto nameProperty = CastField<FNameProperty>(InFunctionProperty))
+	{
+		OutParameterType = LGUIDrawableEventParameterType::Name;
+		return true;
+	}
+	else if (auto textProperty = CastField<FTextProperty>(InFunctionProperty))
+	{
+		OutParameterType = LGUIDrawableEventParameterType::Text;
 		return true;
 	}
 
@@ -348,6 +359,12 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 	case LGUIDrawableEventParameterType::Rotator:
 		ParamTypeString = "Rotator";
 		break;
+	case LGUIDrawableEventParameterType::Name:
+		ParamTypeString = "Name";
+		break;
+	case LGUIDrawableEventParameterType::Text:
+		ParamTypeString = "Text";
+		break;
 	default:
 		break;
 	}
@@ -522,6 +539,21 @@ void FLGUIDrawableEventData::ExecuteTargetFunction(UObject* Target, UFunction* F
 	case LGUIDrawableEventParameterType::Actor:
 	{
 		Target->ProcessEvent(Func, &ReferenceActor);
+	}
+	break;
+	case LGUIDrawableEventParameterType::Class:
+	{
+		Target->ProcessEvent(Func, &ReferenceClass);
+	}
+	break;
+	case LGUIDrawableEventParameterType::Name:
+	{
+		Target->ProcessEvent(Func, &ReferenceName);
+	}
+	break;
+	case LGUIDrawableEventParameterType::Text:
+	{
+		Target->ProcessEvent(Func, &ReferenceText);
 	}
 	break;
 	default:
@@ -728,12 +760,12 @@ void FLGUIDrawableEvent::FireEvent(FQuat InParam)const
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(FString InParam)const
+void FLGUIDrawableEvent::FireEvent(const FString& InParam)const
 {
 	if (eventList.Num() == 0)return;
 	if (supportParameterType == LGUIDrawableEventParameterType::String)
 	{
-		FireEvent(&InParam);
+		FireEvent((void*)&InParam);
 	}
 	else LogParameterError();
 }
@@ -773,3 +805,23 @@ void FLGUIDrawableEvent::FireEvent(FRotator InParam)const
 	}
 	else LogParameterError();
 }
+void FLGUIDrawableEvent::FireEvent(const FName& InParam)const
+{
+	if (eventList.Num() == 0)return;
+	if (supportParameterType == LGUIDrawableEventParameterType::Name)
+	{
+		FireEvent((void*)&InParam);
+	}
+	else LogParameterError();
+}
+void FLGUIDrawableEvent::FireEvent(const FText& InParam)const
+{
+	if (eventList.Num() == 0)return;
+	if (supportParameterType == LGUIDrawableEventParameterType::Text)
+	{
+		FireEvent((void*)&InParam);
+	}
+	else LogParameterError();
+}
+
+PRAGMA_ENABLE_OPTIMIZATION
