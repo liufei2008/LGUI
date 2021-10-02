@@ -7,6 +7,13 @@ public class LGUIEditor : ModuleRules
 	public LGUIEditor(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+
+        string EnginSourceFolder = EngineDirectory + "/Source/";
+        PrivateIncludePaths.AddRange(
+                new string[] {
+                    EnginSourceFolder + "/Editor/DetailCustomizations/Private",
+                });
+
         PublicDependencyModuleNames.AddRange(
 			new string[]
 			{

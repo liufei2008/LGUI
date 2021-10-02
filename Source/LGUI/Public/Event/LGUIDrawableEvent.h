@@ -42,6 +42,9 @@ enum class LGUIDrawableEventParameterType :uint8
 	Class,
 	
 	Rotator,
+
+	Name,
+	Text,
 };
 /** helper class for finding function */
 class LGUI_API ULGUIDrawableEventParameterHelper
@@ -119,9 +122,15 @@ public:
 	/** UClass reference */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UClass* ReferenceClass;
-	/** string reference */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	/** FString reference */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (MultiLine = "true"))
 		FString ReferenceString;
+	/** FName reference */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FName ReferenceName;
+	/** FText reference */
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (MultiLine = "true"))
+		FText ReferenceText;
 
 	/** use the function's native parameter? */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -181,11 +190,13 @@ public:
 	void FireEvent(FColor InParam)const;
 	void FireEvent(FLinearColor InParam)const;
 	void FireEvent(FQuat InParam)const; 
-	void FireEvent(FString InParam)const;
+	void FireEvent(const FString& InParam)const;
 	void FireEvent(UObject* InParam)const;
 	void FireEvent(AActor* InParam)const;
 	void FireEvent(ULGUIPointerEventData* InParam)const;
 	void FireEvent(FRotator InParam)const;
+	void FireEvent(const FName& InParam)const;
+	void FireEvent(const FText& InParam)const;
 };
 
 
