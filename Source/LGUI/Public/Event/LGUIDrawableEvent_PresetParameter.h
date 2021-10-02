@@ -274,3 +274,21 @@ struct LGUI_API FLGUIDrawableEvent_Rotator : public FLGUIDrawableEvent
 	GENERATED_BODY()
 		MAKE_DRAWABLEEVENT_PRESETPARAM(Rotator, FRotator);
 };
+
+MAKE_DRAWABLEEVENT_PRESETPARAM_DELEGATE(Text, FText);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIDrawableEvent_Text_DynamicDelegate, FText, value);
+USTRUCT(BlueprintType)
+struct LGUI_API FLGUIDrawableEvent_Text : public FLGUIDrawableEvent
+{
+	GENERATED_BODY()
+		MAKE_DRAWABLEEVENT_PRESETPARAM(Text, FText);
+};
+
+MAKE_DRAWABLEEVENT_PRESETPARAM_DELEGATE(Name, FName);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIDrawableEvent_Name_DynamicDelegate, FName, value);
+USTRUCT(BlueprintType)
+struct LGUI_API FLGUIDrawableEvent_Name : public FLGUIDrawableEvent
+{
+	GENERATED_BODY()
+		MAKE_DRAWABLEEVENT_PRESETPARAM(Name, FName);
+};

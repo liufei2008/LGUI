@@ -179,6 +179,8 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_PointerEvent::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Class::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Rotator::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Text::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIDrawableEvent_Name::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIDrawableEventOnePresetParamCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIComponentRefereceCustomization::MakeInstance));
 	}

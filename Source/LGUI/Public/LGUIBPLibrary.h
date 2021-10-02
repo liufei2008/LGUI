@@ -92,6 +92,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteClass(const FLGUIDrawableEvent& InEvent, UClass* InParameter) { InEvent.FireEvent(InParameter); }
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecutePointerEvent(const FLGUIDrawableEvent& InEvent, ULGUIPointerEventData* InParameter) { InEvent.FireEvent(InParameter); }
 	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteRotator(const FLGUIDrawableEvent& InEvent, const FRotator& InParameter) { InEvent.FireEvent(InParameter); }
+	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteText(const FLGUIDrawableEvent& InEvent, const FText& InParameter) { InEvent.FireEvent(InParameter); }
+	UFUNCTION(BlueprintCallable, Category = LGUI)static void LGUIDrawableEventExecuteName(const FLGUIDrawableEvent& InEvent, const FName& InParameter) { InEvent.FireEvent(InParameter); }
 
 
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Execute"))
@@ -261,6 +263,20 @@ public:
 		static FLGUIDelegateHandleWrapper LGUIDrawableEvent_Rotator_Register(const FLGUIDrawableEvent_Rotator& InEvent, FLGUIDrawableEvent_Rotator_DynamicDelegate InDelegate);
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Unregister"))
 		static void LGUIDrawableEvent_Rotator_Unregister(const FLGUIDrawableEvent_Rotator& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Execute"))
+		static void LGUIDrawableEvent_Text_Execute(const FLGUIDrawableEvent_Text& InEvent, FText InParameter) { InEvent(InParameter); }
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Register"))
+		static FLGUIDelegateHandleWrapper LGUIDrawableEvent_Text_Register(const FLGUIDrawableEvent_Text& InEvent, FLGUIDrawableEvent_Text_DynamicDelegate InDelegate);
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Unregister"))
+		static void LGUIDrawableEvent_Text_Unregister(const FLGUIDrawableEvent_Text& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Execute"))
+		static void LGUIDrawableEvent_Name_Execute(const FLGUIDrawableEvent_Name& InEvent, FName InParameter) { InEvent(InParameter); }
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Register"))
+		static FLGUIDelegateHandleWrapper LGUIDrawableEvent_Name_Register(const FLGUIDrawableEvent_Name& InEvent, FLGUIDrawableEvent_Name_DynamicDelegate InDelegate);
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DisplayName = "Unregister"))
+		static void LGUIDrawableEvent_Name_Unregister(const FLGUIDrawableEvent_Name& InEvent, const FLGUIDelegateHandleWrapper& InDelegateHandle);
 #pragma endregion DrawableEvent
 
 	/** InComponentType must be the same as InLGUIComponentReference's component type */
