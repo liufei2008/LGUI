@@ -33,6 +33,7 @@ protected:
 	static TArray<FString> CopySourceData;
 	TArray<LGUIDrawableEventParameterType> EventParameterTypeArray;
 	TSharedPtr<SWidget> ColorPickerParentWidget;
+	TArray<TSharedRef<SWidget>> EventParameterWidgetArray;
 private:
 	int32 ParameterCount = 1;
 	bool CanChangeParameterType = true;
@@ -160,12 +161,11 @@ public:
 					titleWidget
 				]
 			];
-		const int eventItemHeight = 84;
 		uint32 arrayCount;
 		EventListHandle->GetNumElements(arrayCount);
-		for (int32 i = 0; i < (int32)arrayCount; i++)
+		for (int32 eventItemIndex = 0; eventItemIndex < (int32)arrayCount; eventItemIndex++)
 		{
-			auto itemHandle = EventListHandle->GetElement(i);
+			auto itemHandle = EventListHandle->GetElement(eventItemIndex);
 			auto targetActorHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, targetActor));
 			AActor* actor = nullptr;
 			UObject* actorObject = nullptr;
@@ -317,7 +317,7 @@ public:
 					{
 						for (int paramIndex = 1; paramIndex < ParameterCount; paramIndex++)
 						{
-							auto dataContainerHandle = GetAdditionalParameterContainer(itemHandle, i);
+							auto dataContainerHandle = GetAdditionalParameterContainer(itemHandle, eventItemIndex);
 							ClearNumericValueBuffer(dataContainerHandle);
 							ClearReferenceValue(dataContainerHandle);
 						}
@@ -340,7 +340,7 @@ public:
 					{
 						for (int paramIndex = 1; paramIndex < ParameterCount; paramIndex++)
 						{
-							parameterWidget = DrawFunctionParameter(GetAdditionalParameterContainer(itemHandle, i), functionParameterTypeArray, paramIndex, eventFunction);
+							parameterWidget = DrawFunctionParameter(GetAdditionalParameterContainer(itemHandle, eventItemIndex), functionParameterTypeArray, paramIndex, eventFunction);
 						}
 					}
 				}
@@ -358,6 +358,7 @@ public:
 					;
 			}
 			parameterWidget->SetToolTipText(LOCTEXT("Parameter", "Set parameter for the function of this event"));
+			EventParameterWidgetArray.Add(parameterWidget);
 
 			//additional button
 			int additionalButtonHeight = 20;
@@ -384,7 +385,7 @@ public:
 								.HAlign(HAlign_Center)
 								.VAlign(VAlign_Center)
 								.Text(LOCTEXT("C", "C"))
-								.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, true, i)
+								.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, true, eventItemIndex)
 								.ToolTipText(LOCTEXT("Copy", "Copy this function"))
 							]
 						]
@@ -403,7 +404,7 @@ public:
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("P", "P"))
-							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, false, i)
+							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, false, eventItemIndex)
 							.ToolTipText(LOCTEXT("Paste", "Paste copied function to this function"))
 						]
 						]
@@ -422,7 +423,7 @@ public:
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("+", "+"))
-							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickAddRemove, true, i, (int32)arrayCount)
+							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickAddRemove, true, eventItemIndex, (int32)arrayCount)
 							.ToolTipText(LOCTEXT("Add", "Add new one"))
 						]
 						]
@@ -441,7 +442,7 @@ public:
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("-", "-"))
-							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickAddRemove, false, i, (int32)arrayCount)
+							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickAddRemove, false, eventItemIndex, (int32)arrayCount)
 							.ToolTipText(LOCTEXT("Delete", "Delete this one"))
 						]
 						]
@@ -451,6 +452,7 @@ public:
 
 
 			verticalLayout->AddSlot()
+				.AutoHeight()
 				[
 					SNew(SBox)
 					.Padding(FMargin(2, 0))
@@ -466,7 +468,7 @@ public:
 							[
 								SNew(SBox)
 								.WidthOverride(1000)
-								.HeightOverride(eventItemHeight)
+								.HeightOverride(this, &FLGUIDrawableEventCustomization::GetEventItemHeight, eventItemIndex)
 								[
 									SNew(SImage)
 									.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.EventItem"))
@@ -504,7 +506,7 @@ public:
 												//component
 												SNew(SComboButton)
 												.HasDownArrow(true)
-												.IsEnabled(this, &FLGUIDrawableEventCustomization::IsComponentSelectorMenuEnabled, i)
+												.IsEnabled(this, &FLGUIDrawableEventCustomization::IsComponentSelectorMenuEnabled, eventItemIndex)
 												.ToolTipText(LOCTEXT("Component", "Pick component for target actor of this event"))
 												.ButtonContent()
 												[
@@ -514,7 +516,7 @@ public:
 												]
 												.MenuContent()
 												[
-													MakeComponentSelectorMenu(i)
+													MakeComponentSelectorMenu(eventItemIndex)
 												]
 											]
 										]
@@ -538,7 +540,7 @@ public:
 													//function
 													SNew(SComboButton)
 													.HasDownArrow(true)
-													.IsEnabled(this, &FLGUIDrawableEventCustomization::IsFunctionSelectorMenuEnabled, i)
+													.IsEnabled(this, &FLGUIDrawableEventCustomization::IsFunctionSelectorMenuEnabled, eventItemIndex)
 													.ToolTipText(LOCTEXT("Function", "Pick a function to execute of this event"))
 													.ButtonContent()
 													[
@@ -548,7 +550,7 @@ public:
 													]
 													.MenuContent()
 													[
-														MakeFunctionSelectorMenu(i)
+														MakeFunctionSelectorMenu(eventItemIndex)
 													]
 												]
 											]
@@ -585,7 +587,7 @@ public:
 						[
 							SNew(SBox)
 							.WidthOverride(1000)
-							.HeightOverride(eventItemHeight * (int32)arrayCount + 40)
+							.HeightOverride(this, &FLGUIDrawableEventCustomization::GetEventTotalHeight)
 							[
 								SNew(SImage)
 								.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.EventGroup"))
@@ -605,6 +607,19 @@ public:
 
 	virtual void SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, TArray<LGUIDrawableEventParameterType> ParameterTypeArray) = 0;
 protected:
+	FOptionalSize GetEventItemHeight(int itemIndex)const
+	{
+		return EventParameterWidgetArray[itemIndex]->GetCachedGeometry().Size.Y + 60;//60 is other's size
+	}
+	FOptionalSize GetEventTotalHeight()const
+	{
+		float result = EventParameterWidgetArray.Num() > 0 ? 32 : 40;//32 & 40 is the header and tail size
+		for (int i = 0; i < EventParameterWidgetArray.Num(); i++)
+		{
+			result += GetEventItemHeight(i).Get();
+		}
+		return result;
+	}
 	void OnSelectComponent(FName CompName, int32 itemIndex)
 	{
 		auto itemHandle = EventListHandle->GetElement(itemIndex);
