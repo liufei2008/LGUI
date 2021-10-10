@@ -18,6 +18,7 @@
 #include "Engine/Engine.h"
 #include "Layout/UILayoutBase.h"
 #include "Core/HudRender/LGUIRenderer.h"
+#include "Core/ILGUICultureChangedInterface.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -1050,7 +1051,7 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
-	//draw frame
+	//editor draw helper frame
 #if WITH_EDITOR
 	if (this->GetWorld())
 	{
@@ -1069,14 +1070,14 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	}
 #endif
 
-	//Update UIText
+	//Update culture
 	{
 		if (bShouldUpdateTextOnCultureChanged)
 		{
 			bShouldUpdateTextOnCultureChanged = false;
-			for (auto item : allUIText)
+			for (auto item : cultureChanged)
 			{
-				item->ForceUpdateText();
+				ILGUICultureChangedInterface::Execute_OnCultureChanged(item.GetObject());
 			}
 		}
 	}
@@ -1168,19 +1169,18 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			{
 				ScreenSpaceOverlayViewExtension->SortPrimitiveRenderPriority();
 			}
+			bShouldSortLGUIRenderer = false;
 		}
 		if (bShouldSortWorldSpaceCanvas)
 		{
 			SortDrawcallOnRenderMode(ELGUIRenderMode::WorldSpace);
+			bShouldSortWorldSpaceCanvas = false;
 		}
 		if (bShouldSortRenderTargetSpaceCanvas)
 		{
 			SortDrawcallOnRenderMode(ELGUIRenderMode::RenderTarget);
+			bShouldSortRenderTargetSpaceCanvas = false;
 		}
-
-		bShouldSortLGUIRenderer = false;
-		bShouldSortWorldSpaceCanvas = false;
-		bShouldSortRenderTargetSpaceCanvas = false;
 	}
 }
 
@@ -1317,18 +1317,18 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 	}
 }
 
-void ALGUIManagerActor::AddUIText(UUIText* InItem)
+void ALGUIManagerActor::RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
 {
-	if (auto Instance = GetInstance(InItem->GetWorld(), true))
+	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
 	{
-		Instance->allUIText.AddUnique(InItem);
+		Instance->cultureChanged.AddUnique(InItem);
 	}
 }
-void ALGUIManagerActor::RemoveUIText(UUIText* InItem)
+void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
 {
-	if (auto Instance = GetInstance(InItem->GetWorld()))
+	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
-		Instance->allUIText.RemoveSingle(InItem);
+		Instance->cultureChanged.RemoveSingle(InItem);
 	}
 }
 

@@ -136,6 +136,8 @@ public:
 		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehaviourArray;
 };
 
+class ILGUICultureChangedInterface;
+
 UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
 class LGUI_API ALGUIManagerActor : public AActor
 {
@@ -157,8 +159,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUIText*> allUIText;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
@@ -168,6 +168,8 @@ private:
 		TArray<UUISelectableComponent*> allSelectableArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUILayoutBase*> allLayoutArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TScriptInterface<ILGUICultureChangedInterface>> cultureChanged;
 
 	TArray<ULGUICanvas*> screenOverlayCanvasArray;
 
@@ -192,8 +194,10 @@ public:
 	static void RemoveUIItem(UUIItem* InItem);
 	const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
 
-	static void AddUIText(UUIText* InItem);
-	static void RemoveUIText(UUIText* InItem);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	static void RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	static void UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
