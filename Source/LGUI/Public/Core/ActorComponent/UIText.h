@@ -3,6 +3,7 @@
 #pragma once
 
 #include "UIBatchGeometryRenderable.h"
+#include "Core/ILGUICultureChangedInterface.h"
 #include "UIText.generated.h"
 
 
@@ -90,7 +91,7 @@ struct FUIText_RichTextCustomTag
 class ULGUIFontData_BaseObject;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIText : public UUIBatchGeometryRenderable
+class LGUI_API UUIText : public UUIBatchGeometryRenderable, public ILGUICultureChangedInterface
 {
 	GENERATED_BODY()
 
@@ -188,12 +189,11 @@ protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual void OnCultureChanged_Implementation()override;
 public:
 	void ApplyFontTextureScaleUp();
 	void ApplyFontTextureChange();
 	void ApplyRecreateText();
-
-	void ForceUpdateText();
 
 	FORCEINLINE static bool IsVisibleChar(TCHAR character)
 	{

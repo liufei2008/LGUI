@@ -133,7 +133,7 @@ void UUIText::OnRegister()
 		if (world->IsGameWorld())
 #endif
 		{
-			ALGUIManagerActor::AddUIText(this);
+			ALGUIManagerActor::RegisterLGUICultureChangedEvent(this);
 		}
 	}
 }
@@ -157,17 +157,9 @@ void UUIText::OnUnregister()
 		if (world->IsGameWorld())
 #endif
 		{
-			ALGUIManagerActor::AddUIText(this);
+			ALGUIManagerActor::UnregisterLGUICultureChangedEvent(this);
 		}
 	}
-}
-
-void UUIText::ForceUpdateText()
-{
-	static auto emptyText = FText();
-	auto originText = text;
-	text = emptyText;//just make it work, because SetText will compare text value
-	SetText(originText);
 }
 
 void UUIText::WidthChanged()
@@ -220,8 +212,14 @@ void UUIText::OnCreateGeometry()
 	float width = widget.width;
 	float height = widget.height;
 	UIGeometry::FromUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
-	if (adjustWidth) SetWidth(width);
-	if (adjustHeight) SetHeight(height);
+	if (overflowType == UITextOverflowType::HorizontalOverflow)
+	{
+		if (adjustWidth) SetWidth(width);
+	}
+	else if (overflowType == UITextOverflowType::VerticalOverflow)
+	{
+		if (adjustHeight) SetHeight(height);
+	}
 }
 void UUIText::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
@@ -232,8 +230,14 @@ void UUIText::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 			float width = widget.width;
 			float height = widget.height;
 			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
-			if (adjustWidth) SetWidth(width);
-			if (adjustHeight) SetHeight(height);
+			if (overflowType == UITextOverflowType::HorizontalOverflow)
+			{
+				if (adjustWidth) SetWidth(width);
+			}
+			else if (overflowType == UITextOverflowType::VerticalOverflow)
+			{
+				if (adjustHeight) SetHeight(height);
+			}
 		}
 	}
 	else
@@ -247,10 +251,23 @@ void UUIText::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 			float width = widget.width;
 			float height = widget.height;
 			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
-			if (adjustWidth) SetWidth(width);
-			if (adjustHeight) SetHeight(height);
+			if (overflowType == UITextOverflowType::HorizontalOverflow)
+			{
+				if (adjustWidth) SetWidth(width);
+			}
+			else if (overflowType == UITextOverflowType::VerticalOverflow)
+			{
+				if (adjustHeight) SetHeight(height);
+			}
 		}
 	}
+}
+void UUIText::OnCultureChanged_Implementation()
+{
+	static auto emptyText = FText();
+	auto originText = text;
+	text = emptyText;//just make it work, because SetText will compare text value
+	SetText(originText);
 }
 
 
@@ -326,8 +343,6 @@ FVector2D UUIText::GetRealSize()
 			float width = widget.width;
 			float height = widget.height;
 			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
-			if (adjustWidth) SetWidth(width);
-			if (adjustHeight) SetHeight(height);
 			geometry->Clear();//@todo: clear it because UIBatchGeometryRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
 		}
 		return textRealSize;
@@ -535,8 +550,6 @@ void UUIText::CheckCachedTextPropertyList()
 		float width = widget.width;
 		float height = widget.height;
 		UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
-		if (adjustWidth) SetWidth(width);
-		if (adjustHeight) SetHeight(height);
 		geometry->Clear();//@todo: clear it because UIBatchGeometryRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
 	}
 }
