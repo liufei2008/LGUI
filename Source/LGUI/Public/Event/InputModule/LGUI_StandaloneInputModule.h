@@ -34,4 +34,16 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		bool bOverrideMousePosition = false;
+protected:
+	FVector2D overrideMousePosition;
+	struct StandaloneInputData
+	{
+		bool triggerPress;
+		float pressTime;
+		float releaseTime;
+		EMouseButtonType mouseButtonType;
+		FVector2D mousePosition;
+	};
+	TArray<StandaloneInputData> standaloneInputDataArray;//collect input data into array in input event, and process these input data in ProcessInput. This can solve the condition: multiple mouse button input in one frame
+	FORCEINLINE bool GetMousePosition(FVector2D& OutMousePos);
 };

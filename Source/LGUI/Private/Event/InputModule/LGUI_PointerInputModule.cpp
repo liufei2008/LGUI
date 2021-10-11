@@ -333,7 +333,6 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 					eventData->pressWorldToLocalTransform = eventData->enterComponent->GetComponentTransform().Inverse();
 					eventData->pressComponent = eventData->enterComponent;
 					eventData->pressComponentEventFireType = eventData->enterComponentEventFireType;
-					eventData->pressTime = GetWorld()->TimeSeconds;
 					DeselectIfSelectionChanged(eventData->pressComponent, eventData);
 					eventSystem->CallOnPointerDown(eventData->pressComponent, eventData, eventData->enterComponentEventFireType);
 				}
@@ -461,6 +460,7 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 	}
 	return false;
 }
+
 void ULGUI_PointerInputModule::ProcessInputForNavigation()
 {
 	if (this->GetWorld()->GetTimeSeconds() > navigatePressTime)
@@ -522,6 +522,7 @@ void ULGUI_PointerInputModule::InputTriggerForNavigation(bool inTriggerPress)
 	eventData->nowIsTriggerPressed = inTriggerPress;
 	navigatePressTime = 0.0f;
 }
+
 void ULGUI_PointerInputModule::ClearEventByID(int pointerID)
 {
 	auto eventData = eventSystem->GetPointerEventData(pointerID, false);
