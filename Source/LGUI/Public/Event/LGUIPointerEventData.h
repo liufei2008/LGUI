@@ -118,7 +118,10 @@ public:
 	/** the last time when trigger click(get time from GetWorld()->TimeSeconds), can be used to tell double click */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float clickTime;
-	/** the last time when trigger press. */
+	/** the last time when trigger release(get time from GetWorld()->TimeSeconds). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+		float releaseTime;
+	/** the last time when trigger press(get time from GetWorld()->TimeSeconds). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float pressTime;
 

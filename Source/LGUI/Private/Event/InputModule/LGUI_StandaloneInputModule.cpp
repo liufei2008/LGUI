@@ -16,23 +16,50 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 	default:
 	case ELGUIPointerInputType::Pointer:
 	{
-		if (!bOverrideMousePosition)
+		if (standaloneInputDataArray.Num() == 0)
 		{
-			auto viewport = this->GetWorld()->GetGameViewport();
-			if (viewport == nullptr)return;
 			FVector2D mousePos;
-			viewport->GetMousePosition(mousePos);
-			leftButtonEventData->pointerPosition = FVector(mousePos, 0);
+			if (GetMousePosition(mousePos))
+			{
+				leftButtonEventData->pointerPosition = FVector(mousePos, 0);
+
+				FHitResultContainerStruct hitResultContainer;
+				bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
+				bool resultHitSomething = false;
+				FHitResult hitResult;
+				ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
+
+				auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+				eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
+			}
 		}
+		else
+		{
+			for (auto inputData : standaloneInputDataArray)//handle multiple click in one frame
+			{
+				leftButtonEventData->pointerPosition = FVector(inputData.mousePosition, 0);
+				leftButtonEventData->nowIsTriggerPressed = inputData.triggerPress;
+				if (inputData.triggerPress)
+				{
+					leftButtonEventData->pressTime = inputData.pressTime;
+				}
+				else
+				{
+					leftButtonEventData->releaseTime = inputData.releaseTime;
+				}
+				leftButtonEventData->mouseButtonType = inputData.mouseButtonType;
 
-		FHitResultContainerStruct hitResultContainer;
-		bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
-		bool resultHitSomething = false;
-		FHitResult hitResult;
-		ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
+				FHitResultContainerStruct hitResultContainer;
+				bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
+				bool resultHitSomething = false;
+				FHitResult hitResult;
+				ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
 
-		auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
-		eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
+				auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+				eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
+			}
+			standaloneInputDataArray.Reset();
+		}
 	}
 	break;
 	case ELGUIPointerInputType::Navigation:
@@ -68,13 +95,46 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 	if (eventData->inputType != ELGUIPointerInputType::Pointer)
 	{
 		eventData->inputType = ELGUIPointerInputType::Pointer;
+		standaloneInputDataArray.Reset();//input type change, clear cached input data
 		if (inputChangeDelegate.IsBound())
 		{
 			inputChangeDelegate.Broadcast(eventData->inputType);
 		}
 	}
-	eventData->nowIsTriggerPressed = inTriggerPress;
-	eventData->mouseButtonType = inMouseButtonType;
+
+	StandaloneInputData inputData;
+	inputData.mouseButtonType = inMouseButtonType;
+	inputData.triggerPress = inTriggerPress;
+	if (inTriggerPress)
+	{
+		inputData.pressTime = GetWorld()->TimeSeconds;
+	}
+	else
+	{
+		inputData.releaseTime = GetWorld()->TimeSeconds;
+	}
+	if (bOverrideMousePosition)
+	{
+		inputData.mousePosition = overrideMousePosition;
+		standaloneInputDataArray.Add(inputData);
+	}
+	else
+	{
+		FVector2D mousePos;
+		if (GetMousePosition(mousePos))
+		{
+			inputData.mousePosition = mousePos;
+			standaloneInputDataArray.Add(inputData);
+		}
+	}
+}
+bool ULGUI_StandaloneInputModule::GetMousePosition(FVector2D& OutMousePos)
+{
+	if (auto viewport = this->GetWorld()->GetGameViewport())
+	{
+		return viewport->GetMousePosition(OutMousePos);
+	}
+	return false;
 }
 
 void ULGUI_StandaloneInputModule::InputOverrideMousePosition(const FVector2D& inMousePosition)
@@ -86,6 +146,5 @@ void ULGUI_StandaloneInputModule::InputOverrideMousePosition(const FVector2D& in
 	}
 	if (!CheckEventSystem())return;
 
-	auto eventData = eventSystem->GetPointerEventData(0, true);
-	eventData->pointerPosition = FVector(inMousePosition, 0);
+	overrideMousePosition = inMousePosition;
 }
