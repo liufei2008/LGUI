@@ -1855,7 +1855,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(float& width, float& height, co
 	float uvHalfX = (uvMinX + uvMaxX) * 0.5f;
 	float uvHalfY = (uvMinY + uvMaxY) * 0.5f;
 
-	if (updatePosition)
+	//reset position
 	{
 		originPositions[0] = FVector(posMinX, posMinY, 0);
 		originPositions[2] = FVector(posMaxX, posMinY, 0);
@@ -1880,7 +1880,7 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(float& width, float& height, co
 		originPositions[5] = FVector(posMaxX, posHalfY, 0);
 		originPositions[7] = FVector(posHalfX, posMaxY, 0);
 	}
-	if (updateUV)
+	//reset uv
 	{
 		vertices[0].TextureCoordinate[0] = FVector2D(uvMinX, uvMinY);
 		vertices[1].TextureCoordinate[0] = FVector2D(uvHalfX, uvMinY);
