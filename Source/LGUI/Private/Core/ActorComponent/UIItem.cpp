@@ -1161,7 +1161,7 @@ bool UUIItem::CheckRenderCanvas()const
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
-void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpdateLayout)
+void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayoutAndGeometry);
 	UpdateCachedData();
@@ -1172,8 +1172,12 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpda
 		if (cacheForThisUpdate_LayoutChanged)
 			parentLayoutChanged = true;
 	}
+	else
+	{
+		cacheForThisUpdate_LayoutChanged = true;
+	}
 	//if parent layout change or self layout change, then update layout
-	if (parentLayoutChanged && shouldUpdateLayout)
+	if (cacheForThisUpdate_LayoutChanged && shouldUpdateLayout)
 	{
 		bCanSetAnchorFromTransform = false;
 		CalculateTransformFromAnchor();
@@ -1183,6 +1187,16 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpda
 
 	//update cache data
 	UpdateCachedDataBeforeGeometry();
+
+	//callback
+	if (cacheForThisUpdate_LayoutChanged && layoutChangeCallback.IsBound())
+	{
+		layoutChangeCallback.Broadcast();
+	}
+}
+
+void UUIItem::UpdateGeometry()
+{
 	//alpha
 	if (this->inheritAlpha)
 	{
@@ -1191,19 +1205,14 @@ void UUIItem::UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpda
 			auto tempAlpha = ParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[ParentUIItem->widget.color.A]);
 			this->SetCalculatedParentAlpha(tempAlpha);
 		}
+		else
+		{
+			this->SetCalculatedParentAlpha(1.0f);
+		}
 	}
 	else
 	{
 		this->SetCalculatedParentAlpha(1.0f);
-	}
-	//update geometry
-	UpdateGeometry(parentLayoutChanged);
-	//post update geometry
-
-	//callback
-	if (parentLayoutChanged && layoutChangeCallback.IsBound())
-	{
-		layoutChangeCallback.Broadcast();
 	}
 }
 

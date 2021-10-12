@@ -554,7 +554,7 @@ PRAGMA_ENABLE_OPTIMIZATION
 #include "EngineUtils.h"
 ULGUIPrefabHelperComponent* ActorSerializer::GetPrefabComponentThatUseTheActorAsRoot(AActor* InActor)
 {
-	if (HelperComp->LoadedRootActor == InActor)return nullptr;//skip self
+	if (HelperComp != nullptr && HelperComp->LoadedRootActor == InActor)return nullptr;//skip self
 	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
 	{
 		auto PrefabActor = *ActorItr;

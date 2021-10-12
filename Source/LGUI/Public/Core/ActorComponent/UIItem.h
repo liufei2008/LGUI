@@ -110,13 +110,13 @@ public:
 	void UnregisterLayoutChange(const FSimpleDelegate& InDelegate);
 #pragma endregion LayoutChangeCallback
 public:
-	/** update layout and geometry */
-	virtual void UpdateLayoutAndGeometry(bool& parentLayoutChanged, bool shouldUpdateLayout);
+	/** update layout */
+	virtual void UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout);
+	virtual void UpdateGeometry();
 protected:
 	/** UIItem's hierarchy changed */
 	virtual void UIHierarchyChanged();
 	/** update render geometry */
-	virtual void UpdateGeometry(const bool& parentLayoutChanged) {};
 	/** called when attach to a new RenderCanvas. */
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
 

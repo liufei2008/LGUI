@@ -29,7 +29,7 @@ protected:
 	virtual void ApplyUIActiveState() override;
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
-	virtual void UpdateGeometry(const bool& parentLayoutChanged)override;
+	virtual void UpdateGeometry()override;
 
 	virtual void WidthChanged()override;
 	virtual void HeightChanged()override;

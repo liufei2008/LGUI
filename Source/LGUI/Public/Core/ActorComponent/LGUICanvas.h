@@ -109,8 +109,6 @@ class LGUI_API ULGUICanvas : public UActorComponent
 
 public:	
 	ULGUICanvas();
-	/** Called from LGUIManagerActor */
-	void UpdateCanvas(float DeltaTime);
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
@@ -126,12 +124,12 @@ public:
 private:
 	/** canvas array belong to this canvas, include self. for update children's geometry */
 	TArray<TWeakObjectPtr<ULGUICanvas>> manageCanvasArray;
-	/** for top most canvas only */
-	void UpdateRootCanvas();
 	/** update canvas's layout */
 	void UpdateCanvasLayout(bool parentLayoutChanged);
 	/** update Canvas's geometry */
 	void UpdateCanvasGeometry();
+	/** update Canvas's drawcall */
+	void UpdateCanvasDrawcall();
 	/** clear drawcalls */
 	void ClearDrawcall();
 	void RemoveFromViewExtension();
@@ -436,29 +434,41 @@ public:
 private:
 	void CombineDrawcall();
 	void ApplyOwnerSeeRecursive();
-private:
-	uint16 bClipTypeChanged:1;
-	uint16 bRectClipParameterChanged:1;
-	uint16 bTextureClipParameterChanged:1;
+public:
+	/** Called from LGUIManagerActor */
+	void PrepareUpdate();
+	/** Called from LGUIManagerActor */
+	void UpdateRootCanvasLayout();
+	/** Called from LGUIManagerActor */
+	void UpdateRootCanvasGeometry();
+	/** Called from LGUIManagerActor */
+	void UpdateRootCanvasDrawcall();
 
-	uint16 bCanTickUpdate:1;//if Canvas can update from tick
-	uint16 bShouldUpdateLayout:1;//if any child layout changed
-	uint16 bRectRangeCalculated:1;
-	uint16 bNeedToSortRenderPriority : 1;
-	uint16 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
-	uint16 bHasAddToLGUIWorldSpaceRenderer : 1;//is this canvas added to LGUI world space renderer
+private:
+	uint32 bClipTypeChanged:1;
+	uint32 bRectClipParameterChanged:1;
+	uint32 bTextureClipParameterChanged:1;
+
+	uint32 bCanTickUpdate:1;//if Canvas can update from tick
+	uint32 bShouldUpdateLayout:1;//if any child layout changed
+	uint32 bRectRangeCalculated:1;
+	uint32 bNeedToSortRenderPriority : 1;
+	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
+	uint32 bHasAddToLGUIWorldSpaceRenderer : 1;//is this canvas added to LGUI world space renderer
 	/**
 	 * RenderMode can affect UI's renderer, basically WorldSpace use UE's buildin renderer, others use LGUI's renderer. Different renderers cannot share render data.
 	 * eg: when attach to other canvas, this will tell which render mode in old canvas, and if not compatible then recreate render data.
 	 */
-	uint16 bCurrentIsLGUIRendererOrUERenderer : 1;
+	uint32 bCurrentIsLGUIRendererOrUERenderer : 1;
 
-	uint16 cacheForThisUpdate_ShouldUpdateLayout:1
+	uint32 cacheForThisUpdate_ShouldUpdateLayout:1
 		, cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
-	uint16 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
+	uint32 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
 
-	/** prev frame number, we can tell if we enter to a new render frame */
-	uint32 prevFrameNumber = 0;
+	uint32 cacheForThisUpdate_CanUpdateForLayout : 1;
+	uint32 cacheForThisUpdate_CanUpdateForGeometry : 1;
+	uint32 cacheForThisUpdate_CanUpdateForDrawcall : 1;
+
 	mutable uint32 cacheViewProjectionMatrixFrameNumber = 0;
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
 
@@ -476,8 +486,8 @@ private:
 	/** rect clip's max position */
 	FVector2D clipRectMax = FVector2D(0, 0);
 
-	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
 #ifdef LGUI_DRAWCALLMODE_AUTO
+	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
 public:
 	bool GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
 private:
@@ -486,7 +496,8 @@ private:
 	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
 #endif
 private:
-	void UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged);
+	void UpdateChildLayoutRecursive(UUIItem* target, bool parentLayoutChanged);
+	void UpdateChildGeometryRecursive(UUIItem* target);
 	void UpdateAndApplyMaterial();
 	void SetParameterForStandard();
 	void SetParameterForRectClip();

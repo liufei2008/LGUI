@@ -55,7 +55,12 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			if (auto rootCanvas = rootActor->FindComponentByClass<ULGUICanvas>())
 			{
 				rootCanvas->MarkCanvasUpdate();
-				rootCanvas->UpdateCanvas(0.16f);
+
+				rootCanvas->PrepareUpdate();
+				rootCanvas->UpdateRootCanvasLayout();
+				rootCanvas->UpdateRootCanvasGeometry();
+				rootCanvas->UpdateRootCanvasDrawcall();
+
 				IsLGUIPrefab = true;
 			}
 			else if (auto rootUIItem = Cast<UUIItem>(rootActor->GetRootComponent()))
@@ -64,7 +69,12 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 				rootCanvas->RegisterComponent();
 				rootActor->AddInstanceComponent(rootCanvas);
 				rootCanvas->MarkCanvasUpdate();
-				rootCanvas->UpdateCanvas(0.16f);
+
+				rootCanvas->PrepareUpdate();
+				rootCanvas->UpdateRootCanvasLayout();
+				rootCanvas->UpdateRootCanvasGeometry();
+				rootCanvas->UpdateRootCanvasDrawcall();
+
 				IsLGUIPrefab = true;
 			}
 			else
