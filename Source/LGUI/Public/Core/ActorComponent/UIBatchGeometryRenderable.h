@@ -115,7 +115,8 @@ protected:
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIBatchGeometryRenderable::OnUpdateGeometry, );
 
 	bool CreateGeometry();
-	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;
+	virtual void UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)override;
+	virtual void UpdateGeometry()override final;
 
 	/** created drawcall mesh */
 	UPROPERTY(Transient) UUIDrawcallMesh* uiMesh = nullptr;
@@ -126,8 +127,8 @@ protected:
 	void ClearSelfRenderMaterial();
 	virtual void DepthChanged()override;
 private:
-	void UpdateGeometry_Implement(const bool& parentLayoutChanged);
-	void UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged);
+	void UpdateGeometry_Implement();
+	void UpdateGeometry_ImplementForSelfRender();
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
 	/** vertex's uv change */

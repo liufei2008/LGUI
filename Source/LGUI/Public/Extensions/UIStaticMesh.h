@@ -41,7 +41,7 @@ protected:
 	virtual void SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)override;
 	bool CanCreateGeometry();
 	void CreateGeometry();
-	virtual void UpdateGeometry(const bool& parentLayoutChanged)override;
+	virtual void UpdateGeometry()override;
 	void UpdateMeshTransform();
 	void UpdateMeshColor();
 public:

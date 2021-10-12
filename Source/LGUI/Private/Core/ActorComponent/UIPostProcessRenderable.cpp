@@ -121,12 +121,13 @@ void UUIPostProcessRenderable::CreateGeometry()
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIPostProcessRenderable UpdateRenderable"), STAT_UIPostProcessRenderableUpdate, STATGROUP_LGUI);
-void UUIPostProcessRenderable::UpdateGeometry(const bool& parentLayoutChanged)
+void UUIPostProcessRenderable::UpdateGeometry()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIPostProcessRenderableUpdate);
 	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
+	Super::UpdateGeometry();
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
@@ -140,7 +141,7 @@ void UUIPostProcessRenderable::UpdateGeometry(const bool& parentLayoutChanged)
 		{
 			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
-			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
+			if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
 			{
 				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}

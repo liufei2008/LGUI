@@ -39,12 +39,13 @@ bool UUIStaticMesh::CanCreateGeometry()
 	}
 	return false;
 }
-void UUIStaticMesh::UpdateGeometry(const bool& parentLayoutChanged)
+void UUIStaticMesh::UpdateGeometry()
 {
 	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 	if (!IsValid(mesh))return;
 
+	Super::UpdateGeometry();
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
@@ -55,7 +56,7 @@ void UUIStaticMesh::UpdateGeometry(const bool& parentLayoutChanged)
 	{
 		UpdateMeshColor();
 	}
-	if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
+	if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
 	{
 		if (UIDrawcallMesh.IsValid())
 		{
