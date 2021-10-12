@@ -524,7 +524,7 @@ void ActorSerializer::GenerateActorIDRecursive(AActor* Actor)
 	}
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
+//PRAGMA_DISABLE_OPTIMIZATION
 void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 {
 	TArray<AActor*> ChildrenActors;
@@ -549,7 +549,7 @@ void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 		}
 	}
 }
-PRAGMA_ENABLE_OPTIMIZATION
+//PRAGMA_ENABLE_OPTIMIZATION
 
 #include "EngineUtils.h"
 ULGUIPrefabHelperComponent* ActorSerializer::GetPrefabComponentThatUseTheActorAsRoot(AActor* InActor)

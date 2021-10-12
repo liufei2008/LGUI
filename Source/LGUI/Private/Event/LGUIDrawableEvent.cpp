@@ -4,7 +4,7 @@
 #include "Utils/BitConverter.h"
 #include "LGUI.h"
 
-PRAGMA_DISABLE_OPTIMIZATION
+//PRAGMA_DISABLE_OPTIMIZATION
 
 bool ULGUIDrawableEventParameterHelper::IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIDrawableEventParameterType>& OutParameterTypeArray)
 {
@@ -824,4 +824,4 @@ void FLGUIDrawableEvent::FireEvent(const FText& InParam)const
 	else LogParameterError();
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
+//PRAGMA_ENABLE_OPTIMIZATION
