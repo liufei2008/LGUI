@@ -96,11 +96,12 @@ void UUIDirectMeshRenderable::MarkVertexPositionDirty()
 	bLocalVertexPositionChanged = true;
 	MarkCanvasUpdate();
 }
-void UUIDirectMeshRenderable::UpdateGeometry(const bool& parentLayoutChanged)
+void UUIDirectMeshRenderable::UpdateGeometry()
 {
 	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
+	Super::UpdateGeometry();
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{

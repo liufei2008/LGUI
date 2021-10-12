@@ -79,14 +79,86 @@ void ULGUICanvas::TickComponent( float DeltaTime, ELevelTick TickType, FActorCom
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void ULGUICanvas::UpdateCanvas(float DeltaTime)
+void ULGUICanvas::PrepareUpdate()
 {
 	if (bCanTickUpdate)
 	{
 		bCanTickUpdate = false;
+
+		cacheForThisUpdate_CanUpdateForLayout = true;
+		cacheForThisUpdate_CanUpdateForGeometry = true;
+		cacheForThisUpdate_CanUpdateForDrawcall = true;
+	}
+}
+
+void ULGUICanvas::UpdateRootCanvasLayout()
+{
+	if (cacheForThisUpdate_CanUpdateForLayout)
+	{
+		cacheForThisUpdate_CanUpdateForLayout = false;
+		if (this != RootCanvas) return;
+
 		if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
 		{
-			this->UpdateRootCanvas();
+			UpdateCanvasLayout(false);
+		}
+	}
+}
+
+void ULGUICanvas::UpdateRootCanvasGeometry()
+{
+	if (cacheForThisUpdate_CanUpdateForGeometry)
+	{
+		cacheForThisUpdate_CanUpdateForGeometry = false;
+		if (this != RootCanvas) return;
+
+		if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
+		{
+			UpdateCanvasGeometry();
+		}
+	}
+}
+
+void ULGUICanvas::UpdateRootCanvasDrawcall()
+{
+	if (cacheForThisUpdate_CanUpdateForDrawcall)
+	{
+		cacheForThisUpdate_CanUpdateForDrawcall = false;
+		if (this != RootCanvas) return;
+
+		if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
+		{
+#ifdef LGUI_DRAWCALLMODE_AUTO
+			CacheUIItemToCanvasTransformMap.Reset();
+#endif
+			if (bCurrentIsLGUIRendererOrUERenderer)
+			{
+				if (!bHasAddToLGUIScreenSpaceRenderer)
+				{
+					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+#if WITH_EDITOR
+					if (!GetWorld()->IsGameWorld())
+					{
+						if (GetWorld()->WorldType != EWorldType::EditorPreview)
+						{
+							ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
+						}
+					}
+					else
+#endif
+					{
+						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+					}
+
+					if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)//only root canvas can add screen space UI to LGUIRenderer
+					{
+						ViewExtension->SetScreenSpaceRenderCanvas(this);
+						bHasAddToLGUIScreenSpaceRenderer = true;
+					}
+				}
+			}
+
+			UpdateCanvasDrawcall();
 		}
 	}
 }
@@ -951,8 +1023,7 @@ void ULGUICanvas::SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue)
 }
 
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("Canvas TotalUpdate"), STAT_TotalUpdate, STATGROUP_LGUI);
-void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged)
+void ULGUICanvas::UpdateChildLayoutRecursive(UUIItem* target, bool parentLayoutChanged)
 {
 	const auto& childrenList = target->GetAttachUIChildren();
 	for (auto uiChild : childrenList)
@@ -966,8 +1037,8 @@ void ULGUICanvas::UpdateChildRecursive(UUIItem* target, bool parentLayoutChanged
 			else
 			{
 				auto layoutChanged = parentLayoutChanged;
-				uiChild->UpdateLayoutAndGeometry(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
-				UpdateChildRecursive(uiChild, layoutChanged);
+				uiChild->UpdateLayout(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
+				UpdateChildLayoutRecursive(uiChild, layoutChanged);
 			}
 		}
 	}
@@ -987,55 +1058,33 @@ void ULGUICanvas::UpdateCanvasLayout(bool parentLayoutChanged)
 	bRectClipParameterChanged = false;
 	bTextureClipParameterChanged = false;
 
-	//update layout and geometry
-	UIItem->UpdateLayoutAndGeometry(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
+	//update layout
+	UIItem->UpdateLayout(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
 
-	UpdateChildRecursive(UIItem.Get(), UIItem->cacheForThisUpdate_LayoutChanged);
+	UpdateChildLayoutRecursive(UIItem.Get(), UIItem->cacheForThisUpdate_LayoutChanged);
 }
-void ULGUICanvas::UpdateRootCanvas()
+
+void ULGUICanvas::UpdateChildGeometryRecursive(UUIItem* target)
 {
-	SCOPE_CYCLE_COUNTER(STAT_TotalUpdate);
-	if (this != RootCanvas) return;
-
-	if (bCurrentIsLGUIRendererOrUERenderer)
+	const auto& childrenList = target->GetAttachUIChildren();
+	for (auto uiChild : childrenList)
 	{
-		if (!bHasAddToLGUIScreenSpaceRenderer)
+		if (IsValid(uiChild) && uiChild->GetIsUIActiveInHierarchy())
 		{
-			TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
-#if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())
-			{
-				if (GetWorld()->WorldType != EWorldType::EditorPreview)
-				{
-					ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
-				}
-			}
-			else
-#endif
-			{
-				ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-			}
-
-			if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
-			{
-				ViewExtension->SetScreenSpaceRenderCanvas(this);
-				bHasAddToLGUIScreenSpaceRenderer = true;
-			}
+			uiChild->UpdateGeometry();
+			UpdateChildGeometryRecursive(uiChild);
 		}
-	}
-
-	//update first Canvas
-	UIItem->calculatedParentAlpha = UUIItem::Color255To1_Table[UIItem->widget.color.A];
-
-	CacheUIItemToCanvasTransformMap.Reset();
-	UpdateCanvasLayout(false);
-	if (prevFrameNumber != GFrameNumber)//ignore if not at new render frame
-	{
-		prevFrameNumber = GFrameNumber;
-		UpdateCanvasGeometry();
 	}
 }
 void ULGUICanvas::UpdateCanvasGeometry()
+{
+	//update geometry
+	UIItem->UpdateGeometry();
+
+	UpdateChildGeometryRecursive(UIItem.Get());
+}
+
+void ULGUICanvas::UpdateCanvasDrawcall()
 {
 	if (bCurrentIsLGUIRendererOrUERenderer)
 	{
@@ -1056,7 +1105,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 				ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
 			}
 
-			if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
+			if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)//all WorldSpace_LGUI canvas should add to LGUIRenderer
 			{
 				ViewExtension->AddWorldSpaceRenderCanvas(this);
 				bHasAddToLGUIWorldSpaceRenderer = true;
@@ -1069,7 +1118,7 @@ void ULGUICanvas::UpdateCanvasGeometry()
 		if (item == this)continue;//skip self
 		if (item.IsValid() && item->GetIsUIActive())
 		{
-			item->UpdateCanvasGeometry();
+			item->UpdateCanvasDrawcall();
 		}
 	}
 

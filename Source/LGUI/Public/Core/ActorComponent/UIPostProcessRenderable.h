@@ -30,7 +30,7 @@ protected:
 	virtual void OnUnregister()override;
 	virtual void ApplyUIActiveState() override;
 	TSharedPtr<UIGeometry> geometry = nullptr;
-	virtual void UpdateGeometry(const bool& parentLayoutChanged)override final;
+	virtual void UpdateGeometry()override final;
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void WidthChanged()override;

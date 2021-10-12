@@ -369,24 +369,39 @@ bool UUIBatchGeometryRenderable::ApplyGeometryModifier(bool uvChanged, bool colo
 	return false;
 }
 
+void UUIBatchGeometryRenderable::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
+{
+	Super::UpdateLayout(parentLayoutChanged, shouldUpdateLayout);
+	if (!cacheForThisUpdate_LocalVertexPositionChanged)
+	{
+		if (parentLayoutChanged
+			&& RenderCanvas->GetActualPixelPerfect()//@todo: review this line, is this necessary? (old commit: fix pixel perfect update.)
+			)
+		{
+			cacheForThisUpdate_LocalVertexPositionChanged = true;
+		}
+	}
+}
+
 DECLARE_CYCLE_STAT(TEXT("UIGeometryRenderable UpdateRenderable"), STAT_UIGeometryRenderableUpdate, STATGROUP_LGUI);
-void UUIBatchGeometryRenderable::UpdateGeometry(const bool& parentLayoutChanged)
+void UUIBatchGeometryRenderable::UpdateGeometry()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIGeometryRenderableUpdate);
 	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
+	Super::UpdateGeometry();
 	if (bIsSelfRender)
 	{
-		UpdateGeometry_ImplementForSelfRender(parentLayoutChanged);
+		UpdateGeometry_ImplementForSelfRender();
 	}
 	else
 	{
-		UpdateGeometry_Implement(parentLayoutChanged);
+		UpdateGeometry_Implement();
 	}
 }
 
-void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayoutChanged)
+void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
 {
 	OnBeforeCreateOrUpdateGeometry();
 	if (!drawcall.IsValid()//not add to render yet
@@ -414,10 +429,9 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayo
 		}
 		else//update geometry
 		{
-			bool pixelPerfect = RenderCanvas->GetActualPixelPerfect();
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || (parentLayoutChanged && pixelPerfect), cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
-			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
+			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_LayoutChanged))//vertex data change, need to update geometry's vertex
 			{
 				drawcall->needToRebuildMesh = true;
 				drawcall->needToUpdateVertex = true;
@@ -426,7 +440,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement(const bool& parentLayo
 			{
 				drawcall->needToRebuildMesh = true;
 			}
-			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
+			if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
 			{
 				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}
@@ -436,7 +450,7 @@ COMPLETE:
 	;
 }
 
-void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const bool& parentLayoutChanged)
+void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender()
 {
 	OnBeforeCreateOrUpdateGeometry();
 	if (geometry->vertices.Num() == 0//if geometry not created yet
@@ -457,16 +471,15 @@ void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender(const boo
 		}
 		else//update geometry
 		{
-			bool pixelPerfect = RenderCanvas->GetActualPixelPerfect();
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || (parentLayoutChanged && pixelPerfect), cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
 
-			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, parentLayoutChanged))//vertex data change, need to update geometry's vertex
+			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_LayoutChanged))//vertex data change, need to update geometry's vertex
 			{
 			}
 			else
 			{
 			}
-			if (cacheForThisUpdate_LocalVertexPositionChanged || parentLayoutChanged)
+			if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
 			{
 				UIGeometry::TransformVerticesForSelfRender(RenderCanvas.Get(), geometry);
 				UpdateSelfRenderDrawcall();

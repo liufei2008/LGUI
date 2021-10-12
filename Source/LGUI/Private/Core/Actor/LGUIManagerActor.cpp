@@ -107,9 +107,25 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 					}
 				}
 			}
-			item->UpdateCanvas(DeltaTime);
+			item->PrepareUpdate();
 		}
 	}
+	for (auto item : allCanvas)
+	{
+		if (item.IsValid())
+		{
+			item->UpdateRootCanvasLayout();
+		}
+	}
+	for (auto item : allCanvas)
+	{
+		if (item.IsValid())
+		{
+			item->UpdateRootCanvasGeometry();
+			item->UpdateRootCanvasDrawcall();
+		}
+	}
+
 	if (ScreenSpaceOverlayCanvasCount > 1)
 	{
 		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
@@ -1004,7 +1020,7 @@ void ALGUIManagerActor::BeginDestroy()
 
 void ALGUIManagerActor::OnCultureChanged()
 {
-	bShouldUpdateTextOnCultureChanged = true;
+	bShouldUpdateOnCultureChanged = true;
 }
 
 ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
@@ -1072,9 +1088,9 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 	//Update culture
 	{
-		if (bShouldUpdateTextOnCultureChanged)
+		if (bShouldUpdateOnCultureChanged)
 		{
-			bShouldUpdateTextOnCultureChanged = false;
+			bShouldUpdateOnCultureChanged = false;
 			for (auto item : cultureChanged)
 			{
 				ILGUICultureChangedInterface::Execute_OnCultureChanged(item.GetObject());
@@ -1099,18 +1115,6 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 	}
 
-	//update Layout
-	for (auto item : allLayoutArray)
-	{
-		if (IsValid(item))
-		{
-			if (item->GetIsActiveAndEnable())
-			{
-				item->ConditionalRebuildLayout();
-			}
-		}
-	}
-	//SCOPE_CYCLE_COUNTER(STAT_LGUIManagerTick);
 #if WITH_EDITOR
 	int ScreenSpaceOverlayCanvasCount = 0;
 	for (auto item : allCanvas)
@@ -1124,7 +1128,6 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 					ScreenSpaceOverlayCanvasCount++;
 				}
 			}
-			item->UpdateCanvas(DeltaTime);
 		}
 	}
 	if (ScreenSpaceOverlayCanvasCount > 1)
@@ -1141,16 +1144,19 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	{
 		PrevScreenSpaceOverlayCanvasCount = 0;
 	}
-#else
+#endif
+
+	UpdateLayout();
+
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
 		{
-			item->UpdateCanvas(DeltaTime);
+			item->UpdateRootCanvasDrawcall();
 		}
 	}
-#endif
 
+	//sort render order
 	if (allCanvas.Num() > 0)
 	{
 		if (bShouldSortLGUIRenderer || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
@@ -1329,6 +1335,55 @@ void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUI
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
 		Instance->cultureChanged.RemoveSingle(InItem);
+	}
+}
+
+void ALGUIManagerActor::UpdateLayout()
+{
+	//update Layout
+	for (auto item : allLayoutArray)
+	{
+		if (IsValid(item))
+		{
+			if (item->GetIsActiveAndEnable())
+			{
+				item->ConditionalRebuildLayout();
+			}
+		}
+	}
+
+	for (auto item : allCanvas)
+	{
+		if (item.IsValid())
+		{
+			item->PrepareUpdate();
+		}
+	}
+
+	for (auto item : allCanvas)
+	{
+		if (item.IsValid())
+		{
+			item->UpdateRootCanvasLayout();
+		}
+	}
+
+	for (auto item : allCanvas)
+	{
+		if (item.IsValid())
+		{
+			item->UpdateRootCanvasGeometry();
+		}
+	}
+}
+void ALGUIManagerActor::ForceUpdateLayout(UObject* WorldContextObject)
+{
+	if (auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		if (auto Instance = GetInstance(world, false))
+		{
+			Instance->UpdateLayout();
+		}
 	}
 }
 

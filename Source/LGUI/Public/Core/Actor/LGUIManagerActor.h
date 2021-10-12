@@ -183,12 +183,14 @@ private:
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
 #endif
 	void OnCultureChanged();
-	bool bShouldUpdateTextOnCultureChanged = false;
+	bool bShouldUpdateOnCultureChanged = false;
 	FDelegateHandle onCultureChangedDelegateHandle;
 
 	static ALGUIManagerActor* GetInstance(UWorld* InWorld, bool CreateIfNotValid = false);
 	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);
 	TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ScreenSpaceOverlayViewExtension;
+
+	void UpdateLayout();
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
@@ -198,6 +200,10 @@ public:
 	static void RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static void UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);
+
+	/** Force LGUI to update layout immediately */
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta=(WorldContext = "WorldContextObject"))
+	static void ForceUpdateLayout(UObject* WorldContextObject);
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
