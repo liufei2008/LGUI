@@ -3,9 +3,8 @@
 #include "DetailCustomization/UITextCustomization.h"
 #include "LGUIEditorPCH.h"
 #include "HAL/PlatformApplicationMisc.h"
-#include "LGUIEditorPCH.h"
 
-#define LOCTEXT_NAMESPACE "UITextComponentDetails"
+#define LOCTEXT_NAMESPACE "UITextCustomization"
 FUITextCustomization::FUITextCustomization()
 {
 }
