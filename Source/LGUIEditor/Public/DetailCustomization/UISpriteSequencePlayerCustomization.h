@@ -6,12 +6,12 @@
 /**
  * 
  */
-class FUISpriteSheetTexturePlayerCustomization : public IDetailCustomization
+class FUISpriteSequencePlayerCustomization : public IDetailCustomization
 {
 public:
 	static TSharedRef<IDetailCustomization> MakeInstance();
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
-	TWeakObjectPtr<class UUISpriteSheetTexturePlayer> TargetScriptPtr;
+	TWeakObjectPtr<class UUISpriteSequencePlayer> TargetScriptPtr;
 };
