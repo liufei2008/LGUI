@@ -1,6 +1,7 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "LGUI.h"
 
 

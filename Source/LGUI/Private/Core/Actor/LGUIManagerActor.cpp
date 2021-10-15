@@ -27,6 +27,7 @@
 #include "PrefabSystem/LGUIPrefabActor.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "EngineUtils.h"
+#include "Layout/LGUICanvasScaler.h"
 #endif
 
 
