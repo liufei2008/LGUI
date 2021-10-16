@@ -70,8 +70,10 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 {
 	int pointCount = InPointArray.Num();
 	//pivot offset
-	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	UIGeometry::CalculatePivotOffset(widget.width, widget.height, widget.pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	float pivotOffsetX = 0, pivotOffsetY = 0;
+	UIGeometry::CalculatePivotOffset(widget.width, widget.height, widget.pivot, pivotOffsetX, pivotOffsetY);
+	float halfW = widget.width * 0.5f;
+	float halfH = widget.height * 0.5f;
 	//positions
 	auto& originPositions = geometry->originPositions;
 	if (originPositions.Num() == 0)
