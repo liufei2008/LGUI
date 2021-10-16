@@ -32,6 +32,15 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		uint16 borderBottom = 0;
 
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		int16 paddingLeft = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		int16 paddingRight = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		int16 paddingTop = 0;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		int16 paddingBottom = 0;
+
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 		float uv0X = 0;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
@@ -55,8 +64,12 @@ public:
 	FVector2D GetUV1()const { return FVector2D(uv3X, uv0Y); }
 	FVector2D GetUV2()const { return FVector2D(uv0X, uv3Y); }
 	FVector2D GetUV3()const { return FVector2D(uv3X, uv3Y); }
+
+	uint16 GetSourceWidth()const { return width + paddingLeft + paddingRight; }
+	uint16 GetSourceHeight()const { return height + paddingTop + paddingBottom; }
 	
 	bool HasBorder()const;
+	bool HasPadding()const;
 	void ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal);
 	void ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeight, float texFullWidthReciprocal, float texFullHeightReciprocal, const FVector4& uvRect);
 	void ApplyBorderUV(float texFullWidthReciprocal, float texFullHeightReciprocal);
@@ -75,12 +88,16 @@ public:
 
 	bool operator == (const FLGUISpriteInfo& Other)const
 	{
-		return width == Other.width 
-			&& height == Other.height 
+		return width == Other.width
+			&& height == Other.height
 			&& borderLeft == Other.borderLeft
-			&& borderRight == Other.borderRight 
+			&& borderRight == Other.borderRight
 			&& borderTop == Other.borderTop
 			&& borderBottom == Other.borderBottom
+			&& paddingLeft == Other.paddingLeft
+			&& paddingRight == Other.paddingRight
+			&& paddingTop == Other.paddingTop
+			&& paddingBottom == Other.paddingBottom
 			;
 	}
 	bool operator != (const FLGUISpriteInfo& Other)const
@@ -91,6 +108,10 @@ public:
 			|| borderRight != Other.borderRight
 			|| borderTop != Other.borderTop
 			|| borderBottom != Other.borderBottom
+			|| paddingLeft != Other.paddingLeft
+			|| paddingRight != Other.paddingRight
+			|| paddingTop != Other.paddingTop
+			|| paddingBottom != Other.paddingBottom
 			;
 	}
 };

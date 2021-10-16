@@ -47,16 +47,16 @@ public:
 
 #pragma region UISprite_UITexture_Simple
 public:
-	static void FromUIRectSimple(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+	static void FromUIRectSimple(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp);
 	static void UpdateUIRectSimpleUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo);
-	static void UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+	static void UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp);
 #pragma endregion
 #pragma region UISprite_UITexture_Border
 public:
-	static void FromUIRectBorder(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp
+	static void FromUIRectBorder(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp
 		, bool fillCenter);
 	static void UpdateUIRectBorderUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo);
-	static void UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp);
+	static void UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp);
 #pragma endregion
 #pragma region UISprite_Tiled
 public:
@@ -67,40 +67,40 @@ public:
 #pragma endregion
 #pragma region UISprite_Fill_Horizontal_Vertical
 public:
-	static void FromUIRectFillHorizontalVertical(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+	static void FromUIRectFillHorizontalVertical(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, bool horizontalOrVertical
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
-	static void UpdateUIRectFillHorizontalVerticalVertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+	static void UpdateUIRectFillHorizontalVerticalVertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount
 		, bool horizontalOrVertical, bool updatePosition, bool updateUV
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
 #pragma endregion
 #pragma region UISprite_Fill_Radial90
 public:
-	static void FromUIRectFillRadial90(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+	static void FromUIRectFillRadial90(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
-	static void UpdateUIRectFillRadial90Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+	static void UpdateUIRectFillRadial90Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
 		, bool updatePosition, bool updateUV
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
 #pragma endregion
 #pragma region UISprite_Fill_Radial180
 public:
-	static void FromUIRectFillRadial180(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+	static void FromUIRectFillRadial180(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
-	static void UpdateUIRectFillRadial180Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+	static void UpdateUIRectFillRadial180Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
 		, bool updatePosition, bool updateUV
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
 #pragma endregion
 #pragma region UISprite_Fill_Radial360
 public:
-	static void FromUIRectFillRadial360(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+	static void FromUIRectFillRadial360(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
-	static void UpdateUIRectFillRadial360Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+	static void UpdateUIRectFillRadial360Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 		, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
 		, bool updatePosition, bool updateUV
 		, ULGUICanvas* renderCanvas, UUIItem* uiComp);
@@ -133,25 +133,32 @@ private:
 
 #pragma region UIPolygon
 public:
-	static void FromUIPolygon(float& width, float& height, const FVector2D& pivot
+	static void FromUIPolygon(const float& width, const float& height, const FVector2D& pivot
 		, float startAngle, float endAngle, int sides, UIPolygonUVType uvType
 		, TArray<float>& vertexOffsetArray, bool fullCycle
-		, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
+		, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
 		, bool requireNormal, bool requireTangent, bool requireUV1);
 	static void UpdateUIPolygonUV(float startAngle, float endAngle, int sides, UIPolygonUVType uvType
 		, bool fullCycle
 		, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo);
-	static void UpdateUIPolygonVertex(float& width, float& height, const FVector2D& pivot
+	static void UpdateUIPolygonVertex(const float& width, const float& height, const FVector2D& pivot
 		, float startAngle, float endAngle, int sides
 		, const TArray<float>& vertexOffsetArray, bool fullCycle
 		, TSharedPtr<UIGeometry> uiGeo);
 #pragma endregion
 
 public:
-	static void UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, FColor color);
+	static void UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, const FColor& color);
 	static void TransformVertices(class ULGUICanvas* canvas, class UUIItem* item, TSharedPtr<UIGeometry> uiGeo);
 	static void TransformVerticesForSelfRender(class ULGUICanvas* canvas, TSharedPtr<UIGeometry> uiGeo);
-	static void CalculatePivotOffset(const float& width, const float& height, const FVector2D& pivot, float& pivotOffsetX, float& pivotOffsetY, float& halfW, float& halfH);
+	inline static void CalculatePivotOffset(
+		const float& width, const float& height, const FVector2D& pivot
+		, float& pivotOffsetX, float& pivotOffsetY
+	);
+	inline static void CalculateOffsetAndSize(
+		const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo
+		, float& pivotOffsetX, float& pivotOffsetY, float& halfWidth, float& halfHeight
+	);
 private:
 	static void OffsetVertices(TArray<FVector>& vertices, int count, float offsetX, float offsetY);
 };

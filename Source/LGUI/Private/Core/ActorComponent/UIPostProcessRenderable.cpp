@@ -159,7 +159,7 @@ void UUIPostProcessRenderable::OnUpdateGeometry(bool InVertexPositionChanged, bo
 {
 	if (InVertexPositionChanged)
 	{
-		UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas.Get(), this);
+		UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, FLGUISpriteInfo(), RenderCanvas.Get(), this);
 	}
 	if (InVertexUVChanged)
 	{

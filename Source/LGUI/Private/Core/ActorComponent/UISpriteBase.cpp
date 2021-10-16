@@ -90,8 +90,8 @@ void UUISpriteBase::SetSizeFromSpriteData()
 {
 	if (IsValid(sprite))
 	{
-		SetWidth(sprite->GetSpriteInfo().width);
-		SetHeight(sprite->GetSpriteInfo().height);
+		SetWidth(sprite->GetSpriteInfo().GetSourceWidth());
+		SetHeight(sprite->GetSpriteInfo().GetSourceHeight());
 	}
 	else
 	{

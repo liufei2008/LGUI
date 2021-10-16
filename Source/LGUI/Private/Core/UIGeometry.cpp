@@ -130,7 +130,7 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TA
 }
 
 #pragma region UISprite_UITexture_Simple
-void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void UIGeometry::FromUIRectSimple(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
@@ -158,7 +158,7 @@ void UIGeometry::FromUIRectSimple(float& width, float& height, const FVector2D& 
 	{
 		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
 	}
-	UpdateUIRectSimpleVertex(uiGeo, width, height, pivot, renderCanvas, uiComp);
+	UpdateUIRectSimpleVertex(uiGeo, width, height, pivot, spriteInfo, renderCanvas, uiComp);
 	//uvs
 	UpdateUIRectSimpleUV(uiGeo, spriteInfo);
 	//colors
@@ -208,11 +208,11 @@ void UIGeometry::UpdateUIRectSimpleUV(TSharedPtr<UIGeometry> uiGeo, const FLGUIS
 	vertices[2].TextureCoordinate[0] = spriteInfo.GetUV2();
 	vertices[3].TextureCoordinate[0] = spriteInfo.GetUV3();
 }
-void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
-	//pivot offset
+	//offset and size
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//positions
 	auto& originPositions = uiGeo->originPositions;
 	float minX = -halfW + pivotOffsetX;
@@ -231,7 +231,7 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, float& w
 }
 #pragma endregion
 #pragma region UISprite_UITexture_Border
-void UIGeometry::FromUIRectBorder(float& width, float& height, const FVector2D& pivot, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp
+void UIGeometry::FromUIRectBorder(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp
 	, bool fillCenter)
 {
 	//triangles
@@ -368,17 +368,19 @@ void UIGeometry::UpdateUIRectBorderUV(TSharedPtr<UIGeometry> uiGeo, const FLGUIS
 	vertices[14].TextureCoordinate[0] = FVector2D(spriteInfo.buv3X, spriteInfo.uv3Y);
 	vertices[15].TextureCoordinate[0] = FVector2D(spriteInfo.uv3X, spriteInfo.uv3Y);
 }
-void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, float& width, float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	float geoWidth = halfW * 2;
+	float geoHeight = halfH * 2;
 	//vertices
 	float x0, x1, x2, x3, y0, y1, y2, y3;
 	int widthBorder = spriteInfo.borderLeft + spriteInfo.borderRight;
 	int heightBorder = spriteInfo.borderTop + spriteInfo.borderBottom;
-	float widthScale = width < widthBorder ? width / widthBorder : 1.0f;
-	float heightScale = height < heightBorder ? height / heightBorder : 1.0f;
+	float widthScale = geoWidth < widthBorder ? geoWidth / widthBorder : 1.0f;
+	float heightScale = geoHeight < heightBorder ? geoHeight / heightBorder : 1.0f;
 	x0 = (-halfW + pivotOffsetX);
 	x1 = (x0 + spriteInfo.borderLeft * widthScale);
 	x3 = (halfW + pivotOffsetX);
@@ -520,7 +522,7 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//vertices
 	int rectangleCount = widthRectCount * heightRectCount;
 	auto& originPositions = uiGeo->originPositions;
@@ -553,7 +555,7 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 #pragma endregion
 
 #pragma region UISprite_Fill_Horizontal_Vertial
-void UIGeometry::FromUIRectFillHorizontalVertical(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+void UIGeometry::FromUIRectFillHorizontalVertical(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, bool horizontalOrVertical
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
@@ -623,14 +625,14 @@ void UIGeometry::FromUIRectFillHorizontalVertical(float& width, float& height, c
 		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
 	}
 }
-void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount
 	, bool horizontalOrVertical, bool updatePosition, bool updateUV
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//positions
 	auto& originPositions = uiGeo->originPositions;
 	float posMinX = -halfW + pivotOffsetX;
@@ -735,7 +737,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(float& width, float& h
 }
 #pragma endregion
 #pragma region UISprite_Fill_Radial90
-void UIGeometry::FromUIRectFillRadial90(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType, ULGUICanvas* renderCanvas, UUIItem* uiComp)
+void UIGeometry::FromUIRectFillRadial90(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//triangles
 	auto& triangles = uiGeo->triangles;
@@ -803,14 +805,14 @@ void UIGeometry::FromUIRectFillRadial90(float& width, float& height, const FVect
 		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
 	}
 }
-void UIGeometry::UpdateUIRectFillRadial90Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
 	, bool updatePosition, bool updateUV
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//positions
 	auto& originPositions = uiGeo->originPositions;
 	float posMinX = -halfW + pivotOffsetX;
@@ -1119,7 +1121,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(float& width, float& height, con
 }
 #pragma endregion
 #pragma region UISprite_Fill_Radial180
-void UIGeometry::FromUIRectFillRadial180(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+void UIGeometry::FromUIRectFillRadial180(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
@@ -1249,14 +1251,14 @@ void UIGeometry::FromUIRectFillRadial180(float& width, float& height, const FVec
 		vertices[4].TextureCoordinate[1] = FVector2D(1, 0);
 	}
 }
-void UIGeometry::UpdateUIRectFillRadial180Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial180 originType
 	, bool updatePosition, bool updateUV
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//positions
 	auto& originPositions = uiGeo->originPositions;
 	float posMinX = -halfW + pivotOffsetX;
@@ -1718,7 +1720,7 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(float& width, float& height, co
 }
 #pragma endregion
 #pragma region UISprite_Fill_Radial360
-void UIGeometry::FromUIRectFillRadial360(float& width, float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
+void UIGeometry::FromUIRectFillRadial360(const float& width, const float& height, const FVector2D& pivot, const FColor& color, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
@@ -1830,14 +1832,14 @@ void UIGeometry::FromUIRectFillRadial360(float& width, float& height, const FVec
 		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
 	}
 }
-void UIGeometry::UpdateUIRectFillRadial360Vertex(float& width, float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
+void UIGeometry::UpdateUIRectFillRadial360Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial360 originType
 	, bool updatePosition, bool updateUV
 	, ULGUICanvas* renderCanvas, UUIItem* uiComp)
 {
 	//pivot offset
 	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	CalculateOffsetAndSize(width, height, pivot, spriteInfo, pivotOffsetX, pivotOffsetY, halfW, halfH);
 	//positions
 	auto& originPositions = uiGeo->originPositions;
 	float posMinX = -halfW + pivotOffsetX;
@@ -3582,10 +3584,10 @@ void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign
 #pragma endregion
 
 #pragma region UIPolygon
-void UIGeometry::FromUIPolygon(float& width, float& height, const FVector2D& pivot
+void UIGeometry::FromUIPolygon(const float& width, const float& height, const FVector2D& pivot
 	, float startAngle, float endAngle, int sides, UIPolygonUVType uvType
 	, TArray<float>& vertexOffsetArray, bool fullCycle
-	, FColor color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
+	, const FColor& color, TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo
 	, bool requireNormal, bool requireTangent, bool requireUV1)
 {
 	//triangles
@@ -3754,14 +3756,16 @@ void UIGeometry::UpdateUIPolygonUV(float startAngle, float endAngle, int sides, 
 	break;
 	}
 }
-void UIGeometry::UpdateUIPolygonVertex(float& width, float& height, const FVector2D& pivot
+void UIGeometry::UpdateUIPolygonVertex(const float& width, const float& height, const FVector2D& pivot
 	, float startAngle, float endAngle, int sides
 	, const TArray<float>& vertexOffsetArray, bool fullCycle
 	, TSharedPtr<UIGeometry> uiGeo)
 {
 	//pivot offset
-	float pivotOffsetX = 0, pivotOffsetY = 0, halfW = 0, halfH = 0;
-	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY, halfW, halfH);
+	float pivotOffsetX = 0, pivotOffsetY = 0;
+	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY);
+	float halfW = width * 0.5f;
+	float halfH = height * 0.5f;
 	//vertices
 	auto& originPositions = uiGeo->originPositions;
 	if (originPositions.Num() == 0)
@@ -3811,7 +3815,7 @@ void UIGeometry::OffsetVertices(TArray<FVector>& vertices, int count, float offs
 		vertex.Y += offsetY;
 	}
 }
-void UIGeometry::UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, FColor color)
+void UIGeometry::UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, const FColor& color)
 {
 	auto& vertices = uiGeo->vertices;
 	for (int i = 0; i < uiGeo->originVerticesCount; i++)
@@ -3820,12 +3824,38 @@ void UIGeometry::UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, FColor color)
 	}
 }
 
-void UIGeometry::CalculatePivotOffset(const float& width, const float& height, const FVector2D& pivot, float& pivotOffsetX, float& pivotOffsetY, float& halfW, float& halfH)
+void UIGeometry::CalculatePivotOffset(
+	const float& width, const float& height, const FVector2D& pivot
+	, float& pivotOffsetX, float& pivotOffsetY
+)
 {
-	halfW = width * 0.5f;
-	halfH = height * 0.5f;
 	pivotOffsetX = width * (0.5f - pivot.X);//width * 0.5f *(1 - pivot.X * 2)
 	pivotOffsetY = height * (0.5f - pivot.Y);//height * 0.5f *(1 - pivot.Y * 2)
+}
+
+void UIGeometry::CalculateOffsetAndSize(
+	const float& width, const float& height, const FVector2D& pivot, const FLGUISpriteInfo& spriteInfo
+	, float& pivotOffsetX, float& pivotOffsetY, float& halfWidth, float& halfHeight
+)
+{
+	CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY);
+
+	if (spriteInfo.HasPadding())
+	{
+		float widthScale = width / spriteInfo.GetSourceWidth();
+		float heightScale = height / spriteInfo.GetSourceHeight();
+		float geoWidth = spriteInfo.width * widthScale;
+		float geoHeight = spriteInfo.height * heightScale;
+		pivotOffsetX += (-width + geoWidth) * 0.5f + spriteInfo.paddingLeft * widthScale;
+		pivotOffsetY += (-height + geoHeight) * 0.5f + spriteInfo.paddingBottom * heightScale;
+		halfWidth = geoWidth * 0.5f;
+		halfHeight = geoHeight * 0.5f;
+	}
+	else
+	{
+		halfWidth = width * 0.5f;
+		halfHeight = height * 0.5f;
+	}
 }
 
 

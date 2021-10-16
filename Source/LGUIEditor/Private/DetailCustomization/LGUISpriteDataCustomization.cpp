@@ -85,6 +85,12 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 
 	if(TargetScriptPtr->spriteTexture != nullptr)
 	{
+		IDetailCategoryBuilder& paddingCategory = DetailBuilder.EditCategory("Padding");
+		paddingCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.paddingLeft));
+		paddingCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.paddingRight));
+		paddingCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.paddingTop));
+		paddingCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.paddingBottom));
+
 		IDetailCategoryBuilder& borderEditorCategory = DetailBuilder.EditCategory("BorderEditor");
 		spriteSlateBrush = TSharedPtr<FSlateBrush>(new FSlateBrush);
 		spriteSlateBrush->SetResourceObject(TargetScriptPtr->spriteTexture);
