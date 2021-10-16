@@ -35,7 +35,11 @@ void FLGUISpriteInfo::ApplyUV(int32 InX, int32 InY, int32 InWidth, int32 InHeigh
 }
 bool FLGUISpriteInfo::HasBorder()const
 {
-	return borderLeft != 0 || borderRight != 0 || borderTop != 0 || borderBottom != 0;
+	return (borderLeft | borderRight | borderTop | borderBottom) != 0;
+}
+bool FLGUISpriteInfo::HasPadding()const
+{
+	return (paddingLeft | paddingRight | paddingTop | paddingBottom) != 0;
 }
 void FLGUISpriteInfo::ApplyBorderUV(float texFullWidthReciprocal, float texFullHeightReciprocal)
 {

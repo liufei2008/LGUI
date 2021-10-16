@@ -128,7 +128,7 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 	{
 		if (InVertexPositionChanged)
 		{
-			UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, sprite->GetSpriteInfo(), RenderCanvas.Get(), this);
 		}
 		if (InVertexUVChanged)
 		{
@@ -159,7 +159,7 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 			}
 			else
 			{
-				UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas.Get(), this);
+				UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, sprite->GetSpriteInfo(), RenderCanvas.Get(), this);
 			}
 		}
 		if (InVertexUVChanged)

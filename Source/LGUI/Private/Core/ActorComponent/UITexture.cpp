@@ -125,7 +125,7 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 		switch (type)
 		{
 		case UITextureType::Normal:
-			UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, spriteData, RenderCanvas.Get(), this);
 			break;
 		case UITextureType::Sliced:
 		case UITextureType::SlicedFrame:
@@ -133,11 +133,11 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 			if (spriteData.HasBorder())
 				UIGeometry::UpdateUIRectBorderVertex(geometry, widget.width, widget.height, widget.pivot, spriteData, RenderCanvas.Get(), this);
 			else
-				UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas.Get(), this);
+				UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, spriteData, RenderCanvas.Get(), this);
 		}
 		break;
 		case UITextureType::Tiled:
-			UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, spriteData, RenderCanvas.Get(), this);
 			break;
 		case UITextureType::Filled:
 		{
