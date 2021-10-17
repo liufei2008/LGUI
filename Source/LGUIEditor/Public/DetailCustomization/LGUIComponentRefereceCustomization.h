@@ -1,8 +1,13 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
-#include "IDetailCustomization.h"
+#include "CoreMinimal.h"
+#include "IPropertyTypeCustomization.h"
 #include "PropertyCustomizationHelpers.h"
+#include "IPropertyUtilities.h"
+#include "Widgets/SWidget.h"
 #pragma once
 
+class UActorComponent;
+class AActor;
 
 /**
  * 

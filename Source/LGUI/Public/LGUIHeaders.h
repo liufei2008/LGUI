@@ -13,9 +13,9 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/UIInteractionGroup.h"
-#include "Core/LGUIBehaviour.h"
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
+#include "Core/LGUIBehaviour.h"
 
 #include "Core/LGUIFontData.h"
 #include "Core/LGUIFontData_BaseObject.h"
@@ -30,6 +30,7 @@
 #include "Core/Actor/UITextureActor.h"
 #include "Core/Actor/UIBackgroundBlurActor.h"
 #include "Core/Actor/UIBackgroundPixelateActor.h"
+#include "Core/Actor/LGUIManagerActor.h"
 
 #include "Event/LGUIEventSystem.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"

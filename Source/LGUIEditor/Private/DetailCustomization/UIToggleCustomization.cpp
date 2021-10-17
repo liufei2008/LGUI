@@ -8,6 +8,10 @@
 #include "Interaction/UIToggleGroupComponent.h"
 #include "Interaction/UISelectableTransitionComponent.h"
 
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
+
 #define LOCTEXT_NAMESPACE "UIToggleCustomization"
 
 TSharedRef<IDetailCustomization> FUIToggleCustomization::MakeInstance()

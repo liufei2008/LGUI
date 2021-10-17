@@ -1,7 +1,11 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
-#include "LGUIEditorPCH.h"
+#include "Extensions/UISpriteSheetTexturePlayer.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UISpriteSheetTexturePlayerCustomization"
 

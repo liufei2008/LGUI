@@ -3,8 +3,11 @@
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/ActorSerializer.h"
-#include "LGUIEditorPCH.h"
 #include "AssetRegistryModule.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabCustomization"
 

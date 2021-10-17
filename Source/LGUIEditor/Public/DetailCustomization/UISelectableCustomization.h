@@ -1,8 +1,9 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#pragma once
+#include "CoreMinimal.h"
 #include "IDetailCustomization.h"
 #include "LGUIEditorUtils.h"
+#pragma once
 
 /**
  * 

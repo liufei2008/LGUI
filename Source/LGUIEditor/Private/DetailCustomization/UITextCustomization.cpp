@@ -1,8 +1,12 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UITextCustomization.h"
-#include "LGUIEditorPCH.h"
 #include "HAL/PlatformApplicationMisc.h"
+#include "Core/ActorComponent/UIText.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UITextCustomization"
 FUITextCustomization::FUITextCustomization()

@@ -2,6 +2,11 @@
 
 #include "DetailCustomization/UISpriteCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "Core/ActorComponent/UISprite.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UISpriteCustomization"
 FUISpriteCustomization::FUISpriteCustomization()

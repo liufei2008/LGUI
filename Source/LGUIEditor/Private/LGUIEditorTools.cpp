@@ -5,7 +5,6 @@
 #include "Widgets/Docking/SDockTab.h"
 #include "Misc/FileHelper.h"
 #include "Misc/MessageDialog.h"
-#include "LGUIEditorPCH.h"
 #include "PropertyCustomizationHelpers.h"
 #include "DesktopPlatformModule.h"
 #include "AssetRegistryModule.h"
@@ -15,6 +14,10 @@
 #include "Widgets/SViewport.h"
 #include "Layout/LGUICanvasScaler.h"
 #include "EditorViewportClient.h"
+#include "Engine/Selection.h"
+#include "EngineUtils.h"
+#include "PrefabSystem/ActorSerializer.h"
+#include "LGUIEditorModule.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
