@@ -1,7 +1,11 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UISpriteSequencePlayerCustomization.h"
-#include "LGUIEditorPCH.h"
+#include "Extensions/UISpriteSequencePlayer.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UISpriteSequencePlayerCustomization"
 

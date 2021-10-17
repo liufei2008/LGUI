@@ -1,5 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
-#include "IDetailCustomization.h"
+#include "CoreMinimal.h"
+#include "IPropertyTypeCustomization.h"
 #include "PropertyCustomizationHelpers.h"
 #include "LGUIEditorUtils.h"
 #include "IDetailChildrenBuilder.h"
@@ -12,7 +13,7 @@
 #include "Widgets/Input/SRotatorInputBox.h"
 #include "Widgets/Colors/SColorBlock.h"
 #include "Widgets/Colors/SColorPicker.h"
-#include "EdGraphNode_Comment.h"
+#include "Widgets/SWidget.h"
 #include "Math/UnitConversion.h"
 #include "STextPropertyEditableTextBox.h"
 #include "TextCustomization.cpp"

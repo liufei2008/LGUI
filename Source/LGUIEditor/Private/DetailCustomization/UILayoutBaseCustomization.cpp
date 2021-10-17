@@ -1,7 +1,12 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UILayoutBaseCustomization.h"
-#include "LGUIEditorPCH.h"
+#include "LGUIEditorUtils.h"
+#include "Layout/UILayoutBase.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UILayoutBaseCustomization"
 

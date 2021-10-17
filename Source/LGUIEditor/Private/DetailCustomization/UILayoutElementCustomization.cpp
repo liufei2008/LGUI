@@ -2,6 +2,11 @@
 
 #include "DetailCustomization/UILayoutElementCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "Layout/UILayoutElement.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UILayoutElementCustomization"
 

@@ -1,7 +1,12 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/UIEffectTextAnimationCustomization.h"
-#include "LGUIEditorPCH.h"
+#include "GeometryModifier/UIEffectTextAnimation.h"
+#include "LGUIEditorUtils.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UIEffectTextAnimationCustomization"
 

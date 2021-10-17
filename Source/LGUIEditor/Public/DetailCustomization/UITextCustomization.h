@@ -1,7 +1,7 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
+#include "CoreMinimal.h"
 #include "IDetailCustomization.h"
-#include "Core/ActorComponent/UIText.h"
 #pragma once
 
 /**

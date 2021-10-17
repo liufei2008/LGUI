@@ -6,9 +6,12 @@
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Core/LGUIAtlasData.h"
-#include "LGUIEditorPCH.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Sound/SoundCue.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteDataCustomization"
 

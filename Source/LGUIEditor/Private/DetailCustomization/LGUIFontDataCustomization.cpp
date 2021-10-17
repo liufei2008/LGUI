@@ -4,7 +4,11 @@
 #include "Misc/FileHelper.h"
 #include "Core/LGUIFontData.h"
 #include "Widget/LGUIFileBrowser.h"
-#include "LGUIEditorPCH.h"
+#include "Widgets/Input/STextComboBox.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "LGUIFontDataCustomization"
 

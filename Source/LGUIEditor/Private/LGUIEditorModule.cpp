@@ -4,7 +4,7 @@
 #include "LevelEditor.h"
 #include "Modules/ModuleManager.h"
 
-#include "Core/LGUIBehaviour.h"
+#include "LGUIHeaders.h"
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
@@ -21,7 +21,47 @@
 
 #include "Engine/CollisionProfile.h"
 
-#include "LGUIEditorPCH.h"
+#include "LGUIEditorStyle.h"
+#include "LGUIEditorCommands.h"
+#include "LGUIEditorTools.h"
+
+#include "Thumbnail/LGUIPrefabThumbnailRenderer.h"
+#include "Thumbnail/LGUISpriteThumbnailRenderer.h"
+#include "Thumbnail/LGUISpriteDataBaseObjectThumbnailRenderer.h"
+#include "ContentBrowserExtensions/LGUIContentBrowserExtensions.h"
+#include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
+#include "Window/LGUIAtlasViewer.h"
+
+#include "DataFactory/LGUISpriteDataTypeAction.h"
+#include "DataFactory/LGUIFontDataTypeAction.h"
+
+#include "DetailCustomization/UIItemCustomization.h"
+#include "DetailCustomization/UISpriteBaseCustomization.h"
+#include "DetailCustomization/UISpriteCustomization.h"
+#include "DetailCustomization/UITextureCustomization.h"
+#include "DetailCustomization/LGUICanvasCustomization.h"
+#include "DetailCustomization/UITextCustomization.h"
+#include "DetailCustomization/UITextureBaseCustomization.h"
+#include "DetailCustomization/LGUISpriteDataCustomization.h"
+#include "DetailCustomization/LGUIFontDataCustomization.h"
+#include "DetailCustomization/UISelectableCustomization.h"
+#include "DetailCustomization/UIToggleCustomization.h"
+#include "DetailCustomization/UITextInputCustomization.h"
+#include "DetailCustomization/UILayoutBaseCustomization.h"
+#include "DetailCustomization/UIVerticalLayoutCustomization.h"
+#include "DetailCustomization/UIHorizontalLayoutCustomization.h"
+#include "DetailCustomization/UIGridLayoutCustomization.h"
+#include "DetailCustomization/UILayoutElementCustomization.h"
+#include "DetailCustomization/UICanvasScalerCustomization.h"
+#include "DetailCustomization/LGUIPrefabHelperComponentCustomization.h"
+#include "DetailCustomization/LGUIPrefabCustomization.h"
+#include "DetailCustomization/LGUIDrawableEventOneParamCustomization.h"
+#include "DetailCustomization/LGUIDrawableEventOnePresetParamCustomization.h"
+#include "DetailCustomization/LGUIComponentRefereceCustomization.h"
+#include "DetailCustomization/UIEffectTextAnimationCustomization.h"
+#include "DetailCustomization/UIScrollViewWithScrollBarCustomization.h"
+#include "DetailCustomization/UISpriteSequencePlayerCustomization.h"
+#include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
 
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
 

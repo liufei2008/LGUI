@@ -2,6 +2,11 @@
 
 #include "DetailCustomization/UITextureBaseCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "Core/ActorComponent/UITextureBase.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UITextureBaseCustomization"
 FUITextureBaseCustomization::FUITextureBaseCustomization()
