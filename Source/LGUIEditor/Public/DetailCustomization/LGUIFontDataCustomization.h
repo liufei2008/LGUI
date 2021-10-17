@@ -1,5 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
+#include "CoreMinimal.h"
 #include "IDetailCustomization.h"
 #pragma once
 

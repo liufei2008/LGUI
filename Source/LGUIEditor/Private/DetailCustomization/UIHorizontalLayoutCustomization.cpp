@@ -2,7 +2,11 @@
 
 #include "DetailCustomization/UIHorizontalLayoutCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "Layout/UIHorizontalLayout.h"
+
 #include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UIHorizontalLayoutCustomization"
 

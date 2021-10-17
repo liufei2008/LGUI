@@ -13,7 +13,6 @@
 #include "SceneOutliner/LGUISceneOutlinerButton.h"
 #include "LGUIEditorTools.h"
 #include "SortHelper.h"
-#include "LGUIEditorPCH.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 

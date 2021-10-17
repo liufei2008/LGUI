@@ -2,10 +2,14 @@
 
 #include "DetailCustomization/LGUICanvasCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "Engine/TextureRenderTarget2D.h"
-#include "LGUIEditorPCH.H"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "LGUICanvasCustomization"
 FLGUICanvasCustomization::FLGUICanvasCustomization()

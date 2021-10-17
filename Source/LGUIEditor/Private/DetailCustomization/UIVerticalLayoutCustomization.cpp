@@ -2,7 +2,11 @@
 
 #include "DetailCustomization/UIVerticalLayoutCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "Layout/UIVerticalLayout.h"
+
 #include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UIVerticalLayoutCustomization"
 

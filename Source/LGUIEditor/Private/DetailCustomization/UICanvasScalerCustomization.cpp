@@ -4,7 +4,10 @@
 #include "Layout/LGUICanvasScaler.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Input/SSlider.h"
-#include "LGUIEditorPCH.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UICanvasScalarCustomization"
 

@@ -5,6 +5,11 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "IDetailGroup.h"
+#include "Interaction/UISelectableComponent.h"
+
+#include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UISelectableCustomization"
 

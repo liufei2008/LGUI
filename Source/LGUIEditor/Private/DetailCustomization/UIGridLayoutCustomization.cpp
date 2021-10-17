@@ -2,7 +2,11 @@
 
 #include "DetailCustomization/UIGridLayoutCustomization.h"
 #include "LGUIEditorUtils.h"
+#include "Layout/UIGridLayout.h"
+
 #include "LGUIEditorModule.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 
 #define LOCTEXT_NAMESPACE "UIGridLayoutCustomization"
 

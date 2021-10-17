@@ -1,7 +1,7 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #pragma once
-
+#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/ActorComponent.h"
 #include "Core/LGUISpriteData.h"

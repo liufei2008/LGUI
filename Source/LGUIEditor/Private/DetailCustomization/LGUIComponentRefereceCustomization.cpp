@@ -1,9 +1,12 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LGUIComponentRefereceCustomization.h"
-#include "LGUIEditorPCH.h"
 #include "EdGraphNode_Comment.h"
-
+#include "GameFramework/Actor.h"
+#include "Components/ActorComponent.h"
+#include "LGUIComponentReference.h"
+#include "DetailLayoutBuilder.h"
+#include "IDetailChildrenBuilder.h"
 
 #define LOCTEXT_NAMESPACE "LGUIComponentRefereceHelperCustomization"
 
