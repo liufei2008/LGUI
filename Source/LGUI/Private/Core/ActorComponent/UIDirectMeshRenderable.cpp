@@ -3,7 +3,7 @@
 #include "Core/ActorComponent/UIDirectMeshRenderable.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "Core/LGUIMesh/UIDrawcallMesh.h"
+#include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 UUIDirectMeshRenderable::UUIDirectMeshRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
@@ -40,10 +40,6 @@ void UUIDirectMeshRenderable::OnUnregister()
 
 void UUIDirectMeshRenderable::ApplyUIActiveState()
 {
-	if (UIDrawcallMesh.IsValid())
-	{
-		UIDrawcallMesh->SetUIMeshVisibility(this->GetIsUIActiveInHierarchy());
-	}
 	Super::ApplyUIActiveState();
 }
 
@@ -110,26 +106,21 @@ void UUIDirectMeshRenderable::UpdateGeometry()
 }
 
 
-UUIDrawcallMesh* UUIDirectMeshRenderable::GetDrawcallMesh()const 
+TWeakPtr<FLGUIMeshSection> UUIDirectMeshRenderable::GetMeshSection()const
 {
-	return UIDrawcallMesh.Get();
+	return MeshSection;
 }
-void UUIDirectMeshRenderable::ClearDrawcallMesh(bool InDestroyMesh)
+TWeakObjectPtr<ULGUIMeshComponent> UUIDirectMeshRenderable::GetUIMesh()const
 {
-	if (InDestroyMesh)
-	{
-		if (UIDrawcallMesh.IsValid())
-		{
-			UIDrawcallMesh->DestroyComponent();
-		}
-	}
-	UIDrawcallMesh.Reset();
+	return UIMesh;
 }
-void UUIDirectMeshRenderable::SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)
+void UUIDirectMeshRenderable::ClearMeshData()
 {
-	UIDrawcallMesh = InUIDrawcallMesh;
-	if (UIDrawcallMesh.IsValid())
-	{
-		UIDrawcallMesh->SetUIMeshVisibility(this->GetIsUIActiveInHierarchy());
-	}
+	UIMesh.Reset();
+	MeshSection.Reset();
+}
+void UUIDirectMeshRenderable::SetMeshData(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh, TWeakPtr<FLGUIMeshSection> InMeshSection)
+{
+	UIMesh = InUIMesh;
+	MeshSection = InMeshSection;
 }
