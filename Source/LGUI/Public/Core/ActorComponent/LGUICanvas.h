@@ -94,7 +94,7 @@ class UUIItem;
 class UUIBaseRenderable;
 class UUIBatchGeometryRenderable;
 class UUIDirectMeshRenderable;
-class UUIDrawcallMesh;
+class ULGUIMeshComponent;
 class UUIDrawcall;
 class FUIPostProcessRenderProxy;
 class UTextureRenderTarget2D;
@@ -477,7 +477,8 @@ private:
 	float OverrideFovAngle;
 	FMatrix OverrideProjectionMatrix;
 
-	TArray<TWeakObjectPtr<UUIDrawcallMesh>> PooledUIMeshList;//UIDrawcallMesh pool
+	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool
+	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list
 	UPROPERTY(Transient) TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool
 	TDoubleLinkedList<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 
@@ -504,5 +505,6 @@ private:
 	void SetParameterForTextureClip();
 	UMaterialInstanceDynamic* GetUIMaterialFromPool(ELGUICanvasClipType inClipType);
 	void AddUIMaterialToPool(UMaterialInstanceDynamic* uiMat);
-	void AddUIMeshToPool(UUIDrawcallMesh* uiMesh);
+	TWeakObjectPtr<ULGUIMeshComponent> GetUIMeshFromPool();
+	void AddUIMeshToPool(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh);
 };

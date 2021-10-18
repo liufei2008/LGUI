@@ -255,7 +255,7 @@ namespace LGUISceneOutliner
 	{
 		if (AActor* actor = GetActorFromTreeItem(TreeItem))
 		{
-			return (LGUIEditorTools::IsCanvasActor(actor) || LGUIEditorTools::IsSelfRenderActor(actor)) ? EVisibility::Visible : EVisibility::Hidden;
+			return LGUIEditorTools::IsCanvasActor(actor) ? EVisibility::Visible : EVisibility::Hidden;
 		}
 		return EVisibility::Hidden;
 	}
@@ -263,7 +263,7 @@ namespace LGUISceneOutliner
 	{
 		if (AActor* actor = GetActorFromTreeItem(TreeItem))
 		{
-			return (LGUIEditorTools::IsCanvasActor(actor) || LGUIEditorTools::IsSelfRenderActor(actor)) ? FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.4f)) : FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+			return LGUIEditorTools::IsCanvasActor(actor) ? FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.4f)) : FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 		return FSlateColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 	}

@@ -14,7 +14,7 @@
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/HudRender/LGUIRenderer.h"
-#include "Core/LGUIMesh/UIDrawcallMesh.h"
+#include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "Core/UIDrawcall.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
@@ -224,11 +224,7 @@ void ULGUICanvas::ClearDrawcall()
 	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
 	{
 		auto drawcall = iter->GetValue();
-		if (drawcall->drawcallMesh.IsValid())
-		{
-			drawcall->drawcallMesh->DestroyComponent();
-		}
-		drawcall->drawcallMesh = nullptr;
+		drawcall->drawcallMeshSection = nullptr;
 		if (drawcall->postProcessRenderableObject.IsValid())
 		{
 			if (drawcall->postProcessRenderableObject->IsRenderProxyValid())
@@ -238,7 +234,12 @@ void ULGUICanvas::ClearDrawcall()
 		}
 		if (drawcall->directMeshRenderableObject.IsValid())
 		{
-			drawcall->directMeshRenderableObject->ClearDrawcallMesh(true);
+			drawcall->directMeshRenderableObject->ClearMeshData();
+		}
+		if (drawcall->drawcallMesh.IsValid())
+		{
+			drawcall->drawcallMesh->DestroyComponent();
+			drawcall->drawcallMesh.Reset();
 		}
 		for (int i = 0; i < drawcall->renderObjectList.Num(); i++)
 		{
@@ -248,8 +249,16 @@ void ULGUICanvas::ClearDrawcall()
 			}
 		}
 	}
-	UIDrawcallList.Empty();
+	for (auto item : PooledUIMeshList)
+	{
+		if (item.IsValid())
+		{
+			item->DestroyComponent();
+		}
+	}
 	PooledUIMeshList.Empty();
+	PooledUIMaterialList.Empty();
+	UIDrawcallList.Empty();
 }
 
 void ULGUICanvas::RemoveFromViewExtension()
@@ -590,13 +599,15 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 		UIDrawcallList.InsertNode(firstDrawcall, drawcallNodePtr);
 		UIDrawcallList.InsertNode(middleDrawcall, drawcallNodePtr);
 		UIDrawcallList.InsertNode(secondDrawcall, drawcallNodePtr);
-		if (drawcallToSplit->drawcallMesh.IsValid())
+		if (drawcallToSplit->drawcallMeshSection.IsValid())
 		{
-			AddUIMeshToPool(drawcallToSplit->drawcallMesh.Get());
+			drawcallToSplit->drawcallMesh->DeleteMeshSection(drawcallToSplit->drawcallMeshSection.Pin());
+			drawcallToSplit->drawcallMeshSection.Reset();
 		}
 		if (drawcallToSplit->materialInstanceDynamic.IsValid())
 		{
 			AddUIMaterialToPool(drawcallToSplit->materialInstanceDynamic.Get());
+			drawcallToSplit->materialInstanceDynamic.Reset();
 		}
 		UIDrawcallList.RemoveNode(drawcallNodePtr);
 	};
@@ -910,13 +921,15 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 		InUIRenderable->drawcall = nullptr;
 		if (drawcall->renderObjectList.Num() == 0)
 		{
-			if (drawcall->drawcallMesh.IsValid())
+			if (drawcall->drawcallMeshSection.IsValid())
 			{
-				AddUIMeshToPool(drawcall->drawcallMesh.Get());
+				drawcall->drawcallMesh->DeleteMeshSection(drawcall->drawcallMeshSection.Pin());
+				drawcall->drawcallMeshSection.Reset();
 			}
 			if (drawcall->materialInstanceDynamic.IsValid())
 			{
 				AddUIMaterialToPool(drawcall->materialInstanceDynamic.Get());
+				drawcall->materialInstanceDynamic.Reset();
 			}
 			UIDrawcallList.RemoveNode(drawcall);
 			shouldCheckDrawcallCombine = true;
@@ -928,11 +941,11 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 	{
 		auto drawcall = InUIRenderable->drawcall;
 		UIDrawcallList.RemoveNode(drawcall);
-		if (drawcall->drawcallMesh.IsValid())
+		if (drawcall->drawcallMeshSection.IsValid())
 		{
-			drawcall->drawcallMesh->DestroyComponent();
+			drawcall->drawcallMesh->DeleteMeshSection(drawcall->drawcallMeshSection.Pin());
+			drawcall->drawcallMeshSection.Reset();
 		}
-		drawcall->drawcallMesh = nullptr;
 		if (drawcall->postProcessRenderableObject.IsValid())
 		{
 			if (drawcall->postProcessRenderableObject->IsRenderProxyValid())
@@ -942,7 +955,7 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 		}
 		if (drawcall->directMeshRenderableObject.IsValid())
 		{
-			drawcall->directMeshRenderableObject->ClearDrawcallMesh(true);
+			drawcall->directMeshRenderableObject->ClearMeshData();
 		}
 		drawcall.Reset();
 		InUIRenderable->drawcall = nullptr;
@@ -983,9 +996,10 @@ void ULGUICanvas::CombineDrawcall()
 						prevDrawcall->renderObjectList[i]->drawcall = currentDrawcall;
 					}
 					currentDrawcall->needToRebuildMesh = true;
-					if (prevDrawcall->drawcallMesh.IsValid())
+					if (prevDrawcall->drawcallMeshSection.IsValid())
 					{
-						AddUIMeshToPool(prevDrawcall->drawcallMesh.Get());
+						prevDrawcall->drawcallMesh->DeleteMeshSection(prevDrawcall->drawcallMeshSection.Pin());
+						prevDrawcall->drawcallMeshSection.Reset();
 					}
 					if (prevDrawcall->materialInstanceDynamic.IsValid())
 					{
@@ -1125,166 +1139,110 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 	//update drawcall
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
+		ULGUIMeshComponent* prevUIMesh = nullptr;
 		for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
 		{
 			auto drawcallItem = iter->GetValue();
+			//check drawcall mesh
+			switch (drawcallItem->type)
+			{
+			case EUIDrawcallType::DirectMesh:
+			case EUIDrawcallType::BatchGeometry:
+			{
+				if (!drawcallItem->drawcallMesh.IsValid())
+				{
+					if (prevUIMesh == nullptr)
+					{
+						prevUIMesh = this->GetUIMeshFromPool().Get();
+					}
+					drawcallItem->drawcallMesh = prevUIMesh;
+				}
+			}
+			break;
+			}
+
 			switch (drawcallItem->type)
 			{
 			case EUIDrawcallType::DirectMesh:
 			{
-				auto uiMesh = drawcallItem->drawcallMesh;
-				if (!uiMesh.IsValid())
+				auto MeshSection = drawcallItem->drawcallMeshSection;
+				if (!MeshSection.IsValid())
 				{
-					uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), NAME_None, RF_Transient);
-					uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
-					uiMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
-					uiMesh->RegisterComponent();
-					uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-					uiMesh->SetRelativeTransform(FTransform::Identity);
-#if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())
-					{
-						if (GetWorld()->WorldType == EWorldType::EditorPreview)
-						{
-							uiMesh->SetSupportUERenderer(true);
-						}
-						else
-						{
-							if (bCurrentIsLGUIRendererOrUERenderer)
-							{
-								if (this->IsRenderToWorldSpace())
-								{
-									uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), this, true);
-									uiMesh->SetSupportUERenderer(GetWorld()->WorldType == EWorldType::EditorPreview);//screen space UI can appear in editor preview
-								}
-								else
-								{
-									uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
-									uiMesh->SetSupportUERenderer(true);//screen space UI should appear in editor's viewport
-								}
-							}
-							else
-							{
-								uiMesh->SetSupportUERenderer(true);
-							}
-						}
-					}
-					else
-#endif
-					{
-						if (bCurrentIsLGUIRendererOrUERenderer)
-						{
-							if (this->IsRenderToWorldSpace())
-							{
-								uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), this, true);
-							}
-							else
-							{
-								uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
-							}
-							uiMesh->SetSupportUERenderer(false);
-						}
-						else
-						{
-							uiMesh->SetSupportLGUIRenderer(false, nullptr, nullptr, false);
-							uiMesh->SetSupportUERenderer(true);
-						}
-					}
-					drawcallItem->drawcallMesh = uiMesh;
-					drawcallItem->directMeshRenderableObject->SetDrawcallMesh(uiMesh.Get());
+					auto UIMesh = drawcallItem->drawcallMesh;
+					MeshSection = UIMesh->GetMeshSection();
+
+					drawcallItem->drawcallMeshSection = MeshSection;
+					drawcallItem->directMeshRenderableObject->SetMeshData(UIMesh, MeshSection);
+					UIMesh->CreateMeshSection(MeshSection.Pin());
 				}
+				prevUIMesh = drawcallItem->drawcallMesh.Get();
 			}
 			break;
 			case EUIDrawcallType::BatchGeometry:
 			{
-				auto uiMesh = drawcallItem->drawcallMesh;
-				if (!uiMesh.IsValid())
-				{
-					if (PooledUIMeshList.Num() > 0)//get mesh from exist
-					{
-						do 
-						{
-							auto lastIndex = PooledUIMeshList.Num() - 1;
-							uiMesh = PooledUIMeshList[lastIndex];
-							uiMesh->SetUIMeshVisibility(true);
-							PooledUIMeshList.RemoveAt(lastIndex);
-						} while (!uiMesh.IsValid() && PooledUIMeshList.Num() > 0);
-					}
-					if (!uiMesh.IsValid())//not valid, create it
-					{
-						uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), NAME_None, RF_Transient);
-						uiMesh->RegisterComponent();
-						uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-						uiMesh->SetRelativeTransform(FTransform::Identity);
-#if WITH_EDITOR
-						if (!GetWorld()->IsGameWorld())
-						{
-							if (GetWorld()->WorldType == EWorldType::EditorPreview)
-							{
-								uiMesh->SetSupportUERenderer(true);
-							}
-							else
-							{
-								if (bCurrentIsLGUIRendererOrUERenderer)
-								{
-									if (this->IsRenderToWorldSpace())
-									{
-										uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), this, true);
-										uiMesh->SetSupportUERenderer(GetWorld()->WorldType == EWorldType::EditorPreview);//screen space UI can appear in editor preview
-									}
-									else
-									{
-										uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
-										uiMesh->SetSupportUERenderer(true);//screen space UI should appear in editor's viewport
-									}
-								}
-								else
-								{
-									uiMesh->SetSupportUERenderer(true);
-								}
-							}
-						}
-						else
-#endif
-						{
-							if (bCurrentIsLGUIRendererOrUERenderer)
-							{
-								uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RootCanvas.Get(), this->IsRenderToWorldSpace());
-								uiMesh->SetSupportUERenderer(false);
-							}
-							else
-							{
-								uiMesh->SetSupportLGUIRenderer(false, nullptr, nullptr, false);
-								uiMesh->SetSupportUERenderer(true);
-							}
-						}
-					}
-					uiMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
-					uiMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
-					drawcallItem->drawcallMesh = uiMesh;
-				}
+				auto UIMesh = drawcallItem->drawcallMesh;
+				auto MeshSection = drawcallItem->drawcallMeshSection;
 				if (drawcallItem->needToRebuildMesh)
 				{
-					auto& meshSection = uiMesh->MeshSection;
-					meshSection.Reset();
-					drawcallItem->GetCombined(meshSection.vertices, meshSection.triangles);
-					uiMesh->GenerateOrUpdateMesh(true, GetActualAdditionalShaderChannelFlags());
+					if (!MeshSection.IsValid())
+					{
+						MeshSection = UIMesh->GetMeshSection();
+						drawcallItem->drawcallMeshSection = MeshSection;
+					}
+					auto MeshSectionPtr = MeshSection.Pin();
+					MeshSectionPtr->vertices.Reset();
+					MeshSectionPtr->triangles.Reset();
+					drawcallItem->GetCombined(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
+					MeshSectionPtr->prevVertexCount = MeshSectionPtr->vertices.Num();
+					MeshSectionPtr->prevIndexCount = MeshSectionPtr->triangles.Num();
+					UIMesh->CreateMeshSection(MeshSectionPtr);
 					drawcallItem->needToRebuildMesh = false;
 					drawcallItem->needToUpdateVertex = false;
 					drawcallItem->vertexPositionChanged = false;
 				}
 				else if (drawcallItem->needToUpdateVertex)
 				{
-					auto& meshSection = uiMesh->MeshSection;
-					drawcallItem->UpdateData(meshSection.vertices, meshSection.triangles);
-					uiMesh->GenerateOrUpdateMesh(drawcallItem->vertexPositionChanged, GetActualAdditionalShaderChannelFlags());
+					check(MeshSection.IsValid());
+					auto MeshSectionPtr = MeshSection.Pin();
+					drawcallItem->UpdateData(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
+					if (MeshSectionPtr->prevVertexCount == MeshSectionPtr->vertices.Num() && MeshSectionPtr->prevIndexCount == MeshSectionPtr->triangles.Num())
+					{
+						UIMesh->UpdateMeshSection(MeshSectionPtr, true, GetActualAdditionalShaderChannelFlags());
+					}
+					else
+					{
+						check(0);//this should not happen
+						//meshSection->prevVertexCount = meshSection->vertices.Num();
+						//meshSection->prevIndexCount = meshSection->triangles.Num();
+						//UIMesh->CreateMeshSection(meshSection);
+					}
 					drawcallItem->needToUpdateVertex = false;
 					drawcallItem->vertexPositionChanged = false;
 				}
+				prevUIMesh = drawcallItem->drawcallMesh.Get();
 			}
 			break;
 			case EUIDrawcallType::PostProcess:
 			{
+#if WITH_EDITOR
+				if (!GetWorld()->IsGameWorld())//editor world, post process not work, ignore it
+				{
+					continue;
+				}
+				else
+#endif
+				{
+					//game world, only LGUI renderer can render post process
+					if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
+					{
+						continue;
+					}
+					else//lgui renderer, create a PostProcessRenderable object to handle it. then the next UI objects should render by new mesh
+					{
+						prevUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
+					}
+				}
+
 				if (!drawcallItem->postProcessRenderableObject->IsRenderProxyValid())
 				{
 					drawcallItem->postProcessRenderableObject->GetRenderProxy();
@@ -1428,33 +1386,130 @@ const TArray<TWeakObjectPtr<ULGUICanvas>>& ULGUICanvas::GetAllCanvasArray()
 	return staticArray;
 }
 
+TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
+{
+	if (PooledUIMeshList.Num() > 0)
+	{
+		auto UIMesh = PooledUIMeshList[0];
+		PooledUIMeshList.RemoveAt(0);
+		UsingUIMeshList.Add(UIMesh);
+		return UIMesh;
+	}
+	else
+	{
+		auto UIMesh = NewObject<ULGUIMeshComponent>(this->GetOwner(), NAME_None, RF_Transient);
+		UIMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
+		UIMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
+		UIMesh->RegisterComponent();
+		UIMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		UIMesh->SetRelativeTransform(FTransform::Identity);
+
+#if WITH_EDITOR
+		if (!GetWorld()->IsGameWorld())
+		{
+			if (GetWorld()->WorldType == EWorldType::EditorPreview)
+			{
+				UIMesh->SetSupportUERenderer(true);
+			}
+			else
+			{
+				if (bCurrentIsLGUIRendererOrUERenderer)
+				{
+					if (this->IsRenderToWorldSpace())
+					{
+						UIMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), this, true);
+						UIMesh->SetSupportUERenderer(GetWorld()->WorldType == EWorldType::EditorPreview);//screen space UI can appear in editor preview
+					}
+					else
+					{
+						UIMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
+						UIMesh->SetSupportUERenderer(true);//screen space UI should appear in editor's viewport
+					}
+				}
+				else
+				{
+					UIMesh->SetSupportUERenderer(true);
+				}
+			}
+		}
+		else
+#endif
+		{
+			if (bCurrentIsLGUIRendererOrUERenderer)
+			{
+				if (this->IsRenderToWorldSpace())
+				{
+					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), this, true);
+				}
+				else
+				{
+					UIMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RootCanvas.Get(), false);
+				}
+				UIMesh->SetSupportUERenderer(false);
+			}
+			else
+			{
+				UIMesh->SetSupportLGUIRenderer(false, nullptr, nullptr, false);
+				UIMesh->SetSupportUERenderer(true);
+			}
+		}
+		UsingUIMeshList.Add(UIMesh);
+		return UIMesh;
+	}
+}
+
+void ULGUICanvas::AddUIMeshToPool(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh)
+{
+	InUIMesh->ClearAllMeshSection();
+	PooledUIMeshList.Add(InUIMesh);
+}
+
 int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 {
+	ULGUIMeshComponent* prevUIMesh = nullptr;
+	int drawcallIndex = 0;
+	int meshOrPostProcessCount = 0;
 	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
 	{
 		auto drawcallItem = iter->GetValue();
 		switch (drawcallItem->type)
 		{
 		case EUIDrawcallType::BatchGeometry:
-		{
-			drawcallItem->drawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
-		}
-		break;
 		case EUIDrawcallType::DirectMesh:
 		{
-			drawcallItem->drawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
+			if (drawcallItem->drawcallMesh != prevUIMesh)
+			{
+				meshOrPostProcessCount++;
+				if (prevUIMesh != nullptr)
+				{
+					prevUIMesh->SortMeshSectionRenderPriority();
+					drawcallIndex = 0;
+				}
+				if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
+				{
+					drawcallItem->drawcallMesh->SetUITranslucentSortPriority(this->RootCanvas->sortOrder);
+				}
+				else
+				{
+					drawcallItem->drawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
+				}
+				prevUIMesh = drawcallItem->drawcallMesh.Get();
+			}
+			drawcallItem->drawcallMesh->SetMeshSectionRenderPriority(drawcallItem->drawcallMeshSection.Pin(), drawcallIndex++);
 		}
 		break;
 		case EUIDrawcallType::PostProcess:
 		{
+			meshOrPostProcessCount++;
 			drawcallItem->postProcessRenderableObject->GetRenderProxy()->SetUITranslucentSortPriority(InStartRenderPriority++);
 		}
 		break;
 		}
 	}
-	return UIDrawcallList.Num();
+	return meshOrPostProcessCount;
 }
 
+//@todo: These parameter names should have "LGUI_" prefix
 FName ULGUICanvas::LGUI_MainTextureMaterialParameterName = FName(TEXT("MainTexture"));
 FName ULGUICanvas::LGUI_RectClipOffsetAndSize_MaterialParameterName = FName(TEXT("RectClipOffsetAndSize"));
 FName ULGUICanvas::LGUI_RectClipFeather_MaterialParameterName = FName(TEXT("RectClipFeather"));
@@ -1480,7 +1535,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 					if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
 					{
 						uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
-						drawcallItem->drawcallMesh->SetMaterial(0, uiMat.Get());
+						drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
 					}
 					else
 					{
@@ -1536,12 +1591,12 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 						{
 							uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 							uiMat->SetFlags(RF_Transient);
-							drawcallItem->drawcallMesh->SetMaterial(0, uiMat.Get());
+							drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
 						}
 #if LGUI_CHECK_MATERIAL_BEFORE_CREATE
 						else
 						{
-							drawcallItem->drawcallMesh->SetMaterial(0, SrcMaterial);
+							drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), SrcMaterial);
 						}
 #endif
 					}
@@ -1549,7 +1604,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 				else
 				{
 					uiMat = GetUIMaterialFromPool(tempClipType);
-					drawcallItem->drawcallMesh->SetMaterial(0, uiMat.Get());
+					drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
 				}
 				drawcallItem->materialInstanceDynamic = uiMat;
 				drawcallItem->materialChanged = false;
@@ -1664,11 +1719,6 @@ void ULGUICanvas::AddUIMaterialToPool(UMaterialInstanceDynamic* uiMat)
 		auto& matList = PooledUIMaterialList[cacheMatTypeIndex].MaterialList;
 		matList.Add(uiMat);
 	}
-}
-void ULGUICanvas::AddUIMeshToPool(UUIDrawcallMesh* uiMesh)
-{
-	uiMesh->SetUIMeshVisibility(false);
-	PooledUIMeshList.Add(uiMesh);
 }
 
 void ULGUICanvas::SetParameterForStandard()
@@ -2656,18 +2706,10 @@ void ULGUICanvas::ApplyOwnerSeeRecursive()
 	auto tempOwnerNoSee = this->GetActualOwnerNoSee();
 	auto tempOnlyOwnerSee = this->GetActualOnlyOwnerSee();
 
-	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+	for (auto item : UsingUIMeshList)
 	{
-		auto drawcall = iter->GetValue();
-		if (drawcall->drawcallMesh.IsValid())
-		{
-			drawcall->drawcallMesh->SetOwnerNoSee(tempOwnerNoSee);
-			drawcall->drawcallMesh->SetOnlyOwnerSee(tempOnlyOwnerSee);
-		}
-		if (drawcall->directMeshRenderableObject.IsValid())
-		{
-			drawcall->directMeshRenderableObject->ClearDrawcallMesh(true);
-		}
+		item->SetOwnerNoSee(tempOwnerNoSee);
+		item->SetOnlyOwnerSee(tempOnlyOwnerSee);
 	}
 
 	for (auto item : manageCanvasArray)

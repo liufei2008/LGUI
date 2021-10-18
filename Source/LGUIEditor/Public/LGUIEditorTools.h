@@ -65,7 +65,6 @@ public:
 	static bool IsSelectUIActor();
 	static bool IsCanvasActor(AActor* InActor);
 	static int GetDrawcallCount(AActor* InActor);
-	static bool IsSelfRenderActor(AActor* InActor);
 	static FString PrintObjectFlags(UObject* Target);
 	static void FocusToScreenSpaceUI();
 	static void FocusToSelectedUI();

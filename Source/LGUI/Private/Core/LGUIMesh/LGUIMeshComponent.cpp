@@ -14,6 +14,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 
 
+//PRAGMA_DISABLE_OPTIMIZATION
 class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
 {
 public:
@@ -53,7 +54,7 @@ class FLGUIMeshProxySection
 {
 public:
 	/** Material applied to this section */
-	UMaterialInterface* Material;
+	UMaterialInterface* Material = nullptr;
 	/** Vertex buffer for this section */
 	FStaticMeshVertexBuffers VertexBuffers;
 	FLGUIHudVertexBuffer HudVertexBuffers;
@@ -62,12 +63,12 @@ public:
 	/** Vertex factory for this section */
 	FLocalVertexFactory VertexFactory;
 	/** Whether this section is currently visible */
-	bool bSectionVisible;
+	bool bSectionVisible = true;
+
+	int RenderPriority = 0;
 
 	FLGUIMeshProxySection(ERHIFeatureLevel::Type InFeatureLevel)
-		: Material(NULL)
-		, VertexFactory(InFeatureLevel, "FLGUIMeshProxySection")
-		, bSectionVisible(true)
+		: VertexFactory(InFeatureLevel, "FLGUIMeshProxySection")
 	{}
 };
 
@@ -116,81 +117,197 @@ public:
 		}
 		IsSupportUERenderer = InComponent->IsSupportUERenderer;
 
-		FLGUIMeshSection& SrcSection = InComponent->MeshSection;
-		if (SrcSection.vertices.Num() > 0)
+		auto& SrcSections = InComponent->MeshSections;
+		Sections.SetNumZeroed(SrcSections.Num());
+		for (int SectionIndex = 0; SectionIndex < SrcSections.Num(); SectionIndex++)
 		{
-			FLGUIMeshProxySection* NewSection = new FLGUIMeshProxySection(GetScene().GetFeatureLevel());
-			// vertex and index buffer
-			const auto& SrcVertices = SrcSection.vertices;
-			int NumVerts = SrcVertices.Num();
-			if (IsSupportLGUIRenderer)
-			{
-				auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
-				HudVertices.SetNumUninitialized(NumVerts);
-				for (int i = 0; i < NumVerts; i++)
-				{
-					FLGUIHudVertex& HudVert = HudVertices[i];
-					auto& Vert = SrcVertices[i];
-					HudVert.Position = Vert.Position;
-					HudVert.Color = Vert.Color;
-					HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
-					HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
-					HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
-					HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
-				}
-				NewSection->IndexBuffer.Indices = SrcSection.triangles;
-
-				// Enqueue initialization of render resource
-				BeginInitResource(&NewSection->IndexBuffer);
-				BeginInitResource(&NewSection->HudVertexBuffers);
-			}
-			if (IsSupportUERenderer)
-			{
-				NewSection->IndexBuffer.Indices = SrcSection.triangles;
-				NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection.vertices, 4);
-
-				// Enqueue initialization of render resource
-				BeginInitResource(&NewSection->VertexBuffers.PositionVertexBuffer);
-				BeginInitResource(&NewSection->VertexBuffers.StaticMeshVertexBuffer);
-				BeginInitResource(&NewSection->VertexBuffers.ColorVertexBuffer);
-				BeginInitResource(&NewSection->IndexBuffer);
-				BeginInitResource(&NewSection->VertexFactory);
-			}
-
-			// Grab material
-			NewSection->Material = InComponent->GetMaterial(0);
-			if (NewSection->Material == NULL)
-			{
-				NewSection->Material = UMaterial::GetDefaultMaterial(MD_Surface);
-			}
-
-			// Copy visibility info
-			NewSection->bSectionVisible = SrcSection.bSectionVisible;
-
-			// Save ref to new section
-			Section = NewSection;
+			auto SrcSection = SrcSections[SectionIndex];
+			Sections[SectionIndex] = CreateSectionData(SrcSection);
 		}
+
+		auto LGUIMeshSceneProxy = this;
+		ENQUEUE_RENDER_COMMAND(FLGUIMeshSectionProxy_SortMeshSectionRenderPriority_Create)(
+			[LGUIMeshSceneProxy](FRHICommandListImmediate& RHICmdList) {
+				LGUIMeshSceneProxy->SortMeshSectionRenderPriority_RenderThread();
+			});
+	}
+
+	void AddSectionData(TSharedPtr<FLGUIMeshSection> SrcSection)
+	{
+		auto Section = CreateSectionData(SrcSection);
+		if (Section != nullptr)
+		{
+			auto RenderProxy = this;
+			ENQUEUE_RENDER_COMMAND(FLGUIMeshSceneProxy_AddSectionData)(
+				[RenderProxy, Section](FRHICommandListImmediate& RHICmdList)
+				{
+					RenderProxy->AddSectionData_RenderThread(Section);
+					RenderProxy->SortMeshSectionRenderPriority_RenderThread();
+				}
+			);
+		}
+	}
+	void AddSectionData_RenderThread(FLGUIMeshProxySection* Section)
+	{
+		Sections.Add(Section);
+	}
+
+	FLGUIMeshProxySection* CreateSectionData(TSharedPtr<FLGUIMeshSection> SrcSection)
+	{
+		if (SrcSection->vertices.Num() == 0 || SrcSection->triangles.Num() == 0)return nullptr;
+		FLGUIMeshProxySection* NewSection = new FLGUIMeshProxySection(GetScene().GetFeatureLevel());
+		// vertex and index buffer
+		const auto& SrcVertices = SrcSection->vertices;
+		int NumVerts = SrcVertices.Num();
+		if (IsSupportLGUIRenderer)
+		{
+			auto& HudVertices = NewSection->HudVertexBuffers.Vertices;
+			HudVertices.SetNumUninitialized(NumVerts);
+			for (int i = 0; i < NumVerts; i++)
+			{
+				FLGUIHudVertex& HudVert = HudVertices[i];
+				auto& Vert = SrcVertices[i];
+				HudVert.Position = Vert.Position;
+				HudVert.Color = Vert.Color;
+				HudVert.TextureCoordinate0 = Vert.TextureCoordinate[0];
+				HudVert.TextureCoordinate1 = Vert.TextureCoordinate[1];
+				HudVert.TextureCoordinate2 = Vert.TextureCoordinate[2];
+				HudVert.TextureCoordinate3 = Vert.TextureCoordinate[3];
+			}
+			NewSection->IndexBuffer.Indices = SrcSection->triangles;
+
+			// Enqueue initialization of render resource
+			BeginInitResource(&NewSection->IndexBuffer);
+			BeginInitResource(&NewSection->HudVertexBuffers);
+		}
+		if (IsSupportUERenderer)
+		{
+			NewSection->IndexBuffer.Indices = SrcSection->triangles;
+			NewSection->VertexBuffers.InitFromDynamicVertex(&NewSection->VertexFactory, SrcSection->vertices, 4);
+
+			// Enqueue initialization of render resource
+			BeginInitResource(&NewSection->VertexBuffers.PositionVertexBuffer);
+			BeginInitResource(&NewSection->VertexBuffers.StaticMeshVertexBuffer);
+			BeginInitResource(&NewSection->VertexBuffers.ColorVertexBuffer);
+			BeginInitResource(&NewSection->IndexBuffer);
+			BeginInitResource(&NewSection->VertexFactory);
+		}
+
+		// Grab material
+		NewSection->Material = SrcSection->material;
+		if (NewSection->Material == NULL)
+		{
+			NewSection->Material = UMaterial::GetDefaultMaterial(MD_Surface);
+		}
+
+		// Copy visibility info
+		NewSection->bSectionVisible = SrcSection->bSectionVisible;
+		NewSection->RenderPriority = SrcSection->renderPriority;
+		SrcSection->renderProxy = NewSection;
+
+		return NewSection;
+	}
+
+	void DeleteSectionData_RenderThread(FLGUIMeshProxySection* Section, bool RemoveFromArray)
+	{
+		if (RemoveFromArray)
+		{
+			Sections.Remove(Section);
+		}
+		if (this->IsSupportLGUIRenderer)
+		{
+			Section->IndexBuffer.ReleaseResource();
+			Section->HudVertexBuffers.ReleaseResource();
+		}
+		if (this->IsSupportUERenderer)
+		{
+			Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
+			Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
+			Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
+			Section->IndexBuffer.ReleaseResource();
+			Section->VertexFactory.ReleaseResource();
+		}
+		delete Section;
+	}
+
+	void RecreateSectionData(TSharedPtr<FLGUIMeshSection> SrcSection)
+	{
+		auto OldSection = SrcSection->renderProxy;
+		auto NewSection = CreateSectionData(SrcSection);
+		auto RenderProxy = this;
+		ENQUEUE_RENDER_COMMAND(FLGUIMeshSceneProxy_ReplaceSectionData)(
+			[RenderProxy, OldSection, NewSection](FRHICommandListImmediate& RHICmdList) {
+				RenderProxy->RecreateSectionData_RenderThread(OldSection, NewSection);
+			});
+	}
+	void RecreateSectionData_RenderThread(FLGUIMeshProxySection* OldSection, FLGUIMeshProxySection* NewSection)
+	{
+		auto SectionIndex = Sections.IndexOfByKey(OldSection);
+		DeleteSectionData_RenderThread(OldSection, false);
+		check(SectionIndex >= 0);
+		Sections[SectionIndex] = NewSection;
+	}
+
+	void SetSectionVisibility_RenderThread(bool bNewVisibility, int SectionIndex)
+	{
+		auto Section = Sections[SectionIndex];
+		if (Section != nullptr)
+		{
+			Section->bSectionVisible = bNewVisibility;
+		}
+	}
+	void SetRenderPriority_RenderThread(int32 NewPriority)
+	{
+		RenderPriority = NewPriority;
+	}
+
+	void SetMeshSectionRenderPriority_RenderThread(FLGUIMeshProxySection* Section, int32 NewPriority)
+	{
+		Section->RenderPriority = NewPriority;
+	}
+
+	void SortMeshSectionRenderPriority_RenderThread()
+	{
+		Algo::Sort(Sections, [](const FLGUIMeshProxySection* A, const FLGUIMeshProxySection* B) {
+			if (A != nullptr && B != nullptr)
+			{
+				return A->RenderPriority < B->RenderPriority;
+			}
+			else if (A == nullptr)
+			{
+				return false;
+			}
+			else if (B == nullptr)
+			{
+				return true;
+			}
+			return false;
+			});
 	}
 
 	virtual ~FLGUIMeshSceneProxy()
 	{
-		if (Section != nullptr)
+		for(auto Section : Sections)
 		{
-			if (IsSupportLGUIRenderer)
+			if (Section != nullptr)
 			{
-				Section->IndexBuffer.ReleaseResource();
-				Section->HudVertexBuffers.ReleaseResource();
+				if (IsSupportLGUIRenderer)
+				{
+					Section->IndexBuffer.ReleaseResource();
+					Section->HudVertexBuffers.ReleaseResource();
+				}
+				if (IsSupportUERenderer)
+				{
+					Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
+					Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
+					Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
+					Section->IndexBuffer.ReleaseResource();
+					Section->VertexFactory.ReleaseResource();
+				}
+				delete Section;
 			}
-			if (IsSupportUERenderer)
-			{
-				Section->VertexBuffers.PositionVertexBuffer.ReleaseResource();
-				Section->VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
-				Section->VertexBuffers.ColorVertexBuffer.ReleaseResource();
-				Section->IndexBuffer.ReleaseResource();
-				Section->VertexFactory.ReleaseResource();
-			}
-			delete Section;
 		}
+		Sections.Empty();
 		if (LGUIRenderer.IsValid())
 		{
 			if (IsLGUIRenderToWorld)
@@ -206,8 +323,10 @@ public:
 	}
 
 	/** Called on render thread to assign new dynamic data */
-	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts, FLGUIIndexType* MeshIndexData
-		, uint32 IndexDataLength, int8 AdditionalChannelFlags)
+	void UpdateSection_RenderThread(FDynamicMeshVertex* MeshVertexData, int32 NumVerts
+		, FLGUIIndexType* MeshIndexData, uint32 IndexDataLength
+		, int8 AdditionalChannelFlags
+		, FLGUIMeshProxySection* Section)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionRT);
 
@@ -333,20 +452,6 @@ public:
 		delete[]MeshIndexData;
 	}
 
-	void SetSectionVisibility_RenderThread(bool bNewVisibility)
-	{
-		check(IsInRenderingThread());
-
-		if (Section != nullptr)
-		{
-			Section->bSectionVisible = bNewVisibility;
-		}
-	}
-	void SetRenderPriority_RenderThread(int32 NewPriority)
-	{
-		RenderPriority = NewPriority;
-	}
-
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView*>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, FMeshElementCollector& Collector) const override
 	{
 		//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_GetMeshElements);
@@ -365,81 +470,96 @@ public:
 			Collector.RegisterOneFrameMaterialProxy(WireframeMaterialInstance);
 		}
 
-		if (Section != nullptr && Section->bSectionVisible)
+		for (int i = 0; i < Sections.Num(); i++)
 		{
-			FMaterialRenderProxy* MaterialProxy = bWireframe ? WireframeMaterialInstance : Section->Material->GetRenderProxy();
-
-			// For each view..
-			for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
+			auto Section = Sections[i];
+			if (Section != nullptr && Section->bSectionVisible)
 			{
-				if (VisibilityMap & (1 << ViewIndex))
+				FMaterialRenderProxy* MaterialProxy = bWireframe ? WireframeMaterialInstance : Section->Material->GetRenderProxy();
+
+				// For each view..
+				for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
 				{
-					const FSceneView* View = Views[ViewIndex];
-					// Draw the mesh.
-					FMeshBatch& Mesh = Collector.AllocateMesh();
-					FMeshBatchElement& BatchElement = Mesh.Elements[0];
-					BatchElement.IndexBuffer = &Section->IndexBuffer;
-					Mesh.bWireframe = bWireframe;
-					Mesh.VertexFactory = &Section->VertexFactory;
-					Mesh.MaterialRenderProxy = MaterialProxy;
+					if (VisibilityMap & (1 << ViewIndex))
+					{
+						const FSceneView* View = Views[ViewIndex];
+						// Draw the mesh.
+						FMeshBatch& Mesh = Collector.AllocateMesh();
+						FMeshBatchElement& BatchElement = Mesh.Elements[0];
+						BatchElement.IndexBuffer = &Section->IndexBuffer;
+						Mesh.bWireframe = bWireframe;
+						Mesh.VertexFactory = &Section->VertexFactory;
+						Mesh.MaterialRenderProxy = MaterialProxy;
 
-					bool bHasPrecomputedVolumetricLightmap;
-					FMatrix PreviousLocalToWorld;
-					int32 SingleCaptureIndex;
-					bool bOutputVelocity;
-					GetScene().GetPrimitiveUniformShaderParameters_RenderThread(GetPrimitiveSceneInfo(), bHasPrecomputedVolumetricLightmap, PreviousLocalToWorld, SingleCaptureIndex, bOutputVelocity);
+						bool bHasPrecomputedVolumetricLightmap;
+						FMatrix PreviousLocalToWorld;
+						int32 SingleCaptureIndex;
+						bool bOutputVelocity;
+						GetScene().GetPrimitiveUniformShaderParameters_RenderThread(GetPrimitiveSceneInfo(), bHasPrecomputedVolumetricLightmap, PreviousLocalToWorld, SingleCaptureIndex, bOutputVelocity);
 
-					FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
-					DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, DrawsVelocity(), bOutputVelocity);
-					BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
+						FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector.AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+						DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), PreviousLocalToWorld, GetBounds(), GetLocalBounds(), true, bHasPrecomputedVolumetricLightmap, DrawsVelocity(), bOutputVelocity);
+						BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
 
-					BatchElement.FirstIndex = 0;
-					BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
-					BatchElement.MinVertexIndex = 0;
-					BatchElement.MaxVertexIndex = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices() - 1;
-					Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
-					Mesh.Type = PT_TriangleList;
-					Mesh.DepthPriorityGroup = SDPG_World;
-					Mesh.bCanApplyViewModeOverrides = false;
-					Collector.AddMesh(ViewIndex, Mesh);
+						BatchElement.FirstIndex = 0;
+						BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
+						BatchElement.MinVertexIndex = 0;
+						BatchElement.MaxVertexIndex = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices() - 1;
+						Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
+						Mesh.Type = PT_TriangleList;
+						Mesh.DepthPriorityGroup = SDPG_World;
+						Mesh.bCanApplyViewModeOverrides = false;
+						Collector.AddMesh(ViewIndex, Mesh);
+					}
 				}
 			}
 		}
 	}
 
 	//begin ILGUIHudPrimitive interface
-	virtual FMeshBatch GetMeshElement(FMeshElementCollector* Collector) override
+	virtual void GetMeshElement(FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) override
 	{
-		//if (Section != nullptr && Section->bSectionVisible)//check CanRender before call GetMeshElement, so this line is not necessary
 		if (IsSupportLGUIRenderer)
 		{
-			FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy();
+			ResultArray.Reserve(Sections.Num());
+			for (int i = 0; i < Sections.Num(); i++)
+			{
+				auto Section = Sections[i];
+				if (Section != nullptr && Section->bSectionVisible)
+				{
+					FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy();
 
-			// Draw the mesh.
-			FMeshBatch Mesh;
-			FMeshBatchElement& BatchElement = Mesh.Elements[0];
-			BatchElement.IndexBuffer = &Section->IndexBuffer;
-			BatchElement.PrimitiveIdMode = PrimID_ForceZero;
-			Mesh.bWireframe = false;
-			Mesh.VertexFactory = &Section->VertexFactory;
-			Mesh.MaterialRenderProxy = MaterialProxy;
+					// Draw the mesh.
+					FMeshBatch Mesh;
+					FMeshBatchElement& BatchElement = Mesh.Elements[0];
+					BatchElement.IndexBuffer = &Section->IndexBuffer;
+					BatchElement.PrimitiveIdMode = PrimID_ForceZero;
+					Mesh.bWireframe = false;
+					Mesh.VertexFactory = &Section->VertexFactory;
+					Mesh.MaterialRenderProxy = MaterialProxy;
 
-			FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector->AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
-			DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, false, false, false);
-			BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
-			//BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, UseEditorDepthTest());
+					FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector->AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+					DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, false, false, false);
+					BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
+					//BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, UseEditorDepthTest());
 
-			BatchElement.FirstIndex = 0;
-			BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
-			BatchElement.MinVertexIndex = 0;
-			BatchElement.MaxVertexIndex = Section->VertexBuffers.PositionVertexBuffer.GetNumVertices() - 1;
-			Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
-			Mesh.Type = PT_TriangleList;
-			Mesh.DepthPriorityGroup = SDPG_World;
-			Mesh.bCanApplyViewModeOverrides = false;
-			return Mesh;
+					BatchElement.FirstIndex = 0;
+					BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
+					BatchElement.MinVertexIndex = 0;
+					BatchElement.MaxVertexIndex = Section->HudVertexBuffers.Vertices.Num() - 1;
+					Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
+					Mesh.Type = PT_TriangleList;
+					Mesh.DepthPriorityGroup = SDPG_World;
+					Mesh.bCanApplyViewModeOverrides = false;
+
+					FLGUIMeshBatchContainer MeshBatchContainer;
+					MeshBatchContainer.Mesh = Mesh;
+					MeshBatchContainer.VertexBufferRHI = Section->HudVertexBuffers.VertexBufferRHI;
+					MeshBatchContainer.NumVerts = Section->HudVertexBuffers.Vertices.Num();
+					ResultArray.Add(MeshBatchContainer);
+				}
+			}
 		}
-		return FMeshBatch();
 	}
 	virtual int GetRenderPriority()const override
 	{
@@ -447,15 +567,7 @@ public:
 	}
 	virtual bool CanRender()const override
 	{
-		return Section != nullptr && Section->bSectionVisible;
-	}
-	virtual FRHIBuffer* GetVertexBufferRHI()override
-	{
-		return Section->HudVertexBuffers.VertexBufferRHI;
-	}
-	virtual uint32 GetNumVerts()override
-	{
-		return Section->HudVertexBuffers.Vertices.Num();
+		return Sections.Num() > 0;
 	}
 	virtual bool GetIsPostProcess()override { return false; }
 	//end ILGUIHudPrimitive interface
@@ -503,7 +615,7 @@ public:
 	}
 
 private:
-	FLGUIMeshProxySection* Section = nullptr;
+	TArray<FLGUIMeshProxySection*> Sections;
 
 	FMaterialRelevance MaterialRelevance;
 	int32 RenderPriority = 0;
@@ -517,14 +629,41 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-void ULGUIMeshComponent::CreateMeshSection()
+#include "Utils/LGUIUtils.h"
+void ULGUIMeshComponent::CreateMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection)
 {
+#if WITH_EDITOR
+	for (auto& MeshSection : MeshSections)
+	{
+		if (MeshSection->triangles.Num() >= MAX_TRIANGLE_COUNT)
+		{
+			auto errorMsg = FString::Printf(TEXT("[ULGUIMeshComponent] Too many triangles in single drawcall! This will cause issue!"));
+			LGUIUtils::EditorNotification(FText::FromString(errorMsg), 10);
+			UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg);
+		}
+	}
+#endif
 	UpdateLocalBounds(); // Update overall bounds
-	MarkRenderStateDirty(); // New section requires recreating scene proxy
+	if (SceneProxy)
+	{
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		if (InMeshSection->renderProxy != nullptr)
+		{
+			LGUIMeshSceneProxy->RecreateSectionData(InMeshSection);
+		}
+		else
+		{
+			LGUIMeshSceneProxy->AddSectionData(InMeshSection);
+		}
+	}
+	else
+	{
+		MarkRenderStateDirty(); // New section requires recreating scene proxy
+	}
 }
 
 DECLARE_CYCLE_STAT(TEXT("LGUIMesh UpdateMeshSection_GT"), STAT_UpdateMeshSectionGT, STATGROUP_LGUI);
-void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags)
+void ULGUIMeshComponent::UpdateMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection, bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionGT);
 	if (InVertexPositionChanged)
@@ -533,53 +672,120 @@ void ULGUIMeshComponent::UpdateMeshSection(bool InVertexPositionChanged, int8 Ad
 	}
 	if (SceneProxy)
 	{
+		auto Section = InMeshSection->renderProxy;
 		//vertex data
-		const int32 NumVerts = MeshSection.vertices.Num();
+		const int32 NumVerts = InMeshSection->vertices.Num();
 		FDynamicMeshVertex* VertexBufferData = new FDynamicMeshVertex[NumVerts];
-		FMemory::Memcpy(VertexBufferData, MeshSection.vertices.GetData(), NumVerts * sizeof(FDynamicMeshVertex));
+		FMemory::Memcpy(VertexBufferData, InMeshSection->vertices.GetData(), NumVerts * sizeof(FDynamicMeshVertex));
 		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
-		const int32 NumIndices = MeshSection.triangles.Num();
+		const int32 NumIndices = InMeshSection->triangles.Num();
 		const uint32 IndexDataLength = NumIndices * sizeof(FLGUIIndexType);
 		FLGUIIndexType* IndexBufferData = new FLGUIIndexType[NumIndices];
-		FMemory::Memcpy(IndexBufferData, MeshSection.triangles.GetData(), IndexDataLength);
+		FMemory::Memcpy(IndexBufferData, InMeshSection->triangles.GetData(), IndexDataLength);
 		//update data
 		ENQUEUE_RENDER_COMMAND(FLGUIMeshUpdate)(
-			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags](FRHICommandListImmediate& RHICmdList)
+			[LGUIMeshSceneProxy, VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags, Section](FRHICommandListImmediate& RHICmdList)
 			{
-				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags);
+				LGUIMeshSceneProxy->UpdateSection_RenderThread(VertexBufferData, NumVerts, IndexBufferData, IndexDataLength, AdditionalShaderChannelFlags, Section);
 			});
 	}
 }
 
-void ULGUIMeshComponent::ClearMesh()
+void ULGUIMeshComponent::DeleteMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection)
 {
-	MeshSection.Reset();
-	UpdateLocalBounds();
-	MarkRenderStateDirty();
+	if (SceneProxy)
+	{
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		auto Section = InMeshSection->renderProxy;
+		if (Section != nullptr)
+		{
+			ENQUEUE_RENDER_COMMAND(FLGUIMeshSceneProxy_DeleteSectionData)(
+				[LGUIMeshSceneProxy, Section](FRHICommandListImmediate& RHICmdList)
+				{
+					LGUIMeshSceneProxy->DeleteSectionData_RenderThread(Section, true);
+				}
+			);
+		}
+	}
+	InMeshSection->renderProxy = nullptr;
+	InMeshSection->material = nullptr;
+
+	auto index = MeshSections.IndexOfByKey(InMeshSection);
+	check(index >= 0);
+	MeshSections.RemoveAt(index);
+	PooledMeshSections.Add(InMeshSection);
+	//verify material
+	UMeshComponent::CleanUpOverrideMaterials();
+	for (int i = index; i < MeshSections.Num(); i++)
+	{
+		UMeshComponent::SetMaterial(i, MeshSections[i]->material);
+	}
 }
 
-void ULGUIMeshComponent::SetUIMeshVisibility(bool bNewVisibility)
+void ULGUIMeshComponent::ClearAllMeshSection()
 {
-	this->SetVisibility(bNewVisibility);
+	MeshSections.Empty();
+	PooledMeshSections.Empty();
+	UMeshComponent::CleanUpOverrideMaterials();
+}
+
+void ULGUIMeshComponent::SetMeshSectionRenderPriority(TSharedPtr<FLGUIMeshSection> InMeshSection, int32 InSortPriority)
+{
+	InMeshSection->renderPriority = InSortPriority;
+	if (SceneProxy)
+	{
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		auto Section = InMeshSection->renderProxy;
+		if (Section != nullptr)
+		{
+			auto RenderProxy = this;
+			ENQUEUE_RENDER_COMMAND(FLGUIMeshSectionProxy_SetMeshSectionRenderPriority)(
+				[LGUIMeshSceneProxy, Section, InSortPriority](FRHICommandListImmediate& RHICmdList) {
+					LGUIMeshSceneProxy->SetMeshSectionRenderPriority_RenderThread(Section, InSortPriority);
+				});
+		}
+	}
+}
+void ULGUIMeshComponent::SortMeshSectionRenderPriority()
+{
+	if (SceneProxy)
+	{
+		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
+		ENQUEUE_RENDER_COMMAND(FLGUIMeshSectionProxy_SortMeshSectionRenderPriority)(
+			[LGUIMeshSceneProxy](FRHICommandListImmediate& RHICmdList) {
+				LGUIMeshSceneProxy->SortMeshSectionRenderPriority_RenderThread();
+			});
+	}
+}
+
+void ULGUIMeshComponent::SetMeshSectionMaterial(TSharedPtr<FLGUIMeshSection> InMeshSection, UMaterialInterface* InMaterial)
+{
+	InMeshSection->material = InMaterial;
+	int index = MeshSections.IndexOfByKey(InMeshSection);
+	Super::SetMaterial(index, InMaterial);
+}
+
+void ULGUIMeshComponent::SetMeshSectionVisibility(bool bNewVisibility, int InSectionIndex)
+{
 	// Set game thread state
-	if (MeshSection.bSectionVisible == bNewVisibility)return;
-	MeshSection.bSectionVisible = bNewVisibility;
+	if (MeshSections[InSectionIndex]->bSectionVisible == bNewVisibility)return;
+	MeshSections[InSectionIndex]->bSectionVisible = bNewVisibility;
 
 	if (SceneProxy)
 	{
 		// Enqueue command to modify render thread info
 		auto LGUIMeshSceneProxy = (FLGUIMeshSceneProxy*)SceneProxy;
 		ENQUEUE_RENDER_COMMAND(FLGUIMeshVisibilityUpdate)(
-			[LGUIMeshSceneProxy, bNewVisibility](FRHICommandListImmediate& RHICmdList)
+			[LGUIMeshSceneProxy, bNewVisibility, InSectionIndex](FRHICommandListImmediate& RHICmdList)
 			{
-				LGUIMeshSceneProxy->SetSectionVisibility_RenderThread(bNewVisibility);
+				LGUIMeshSceneProxy->SetSectionVisibility_RenderThread(bNewVisibility, InSectionIndex);
 			});
 	}
 }
 
-bool ULGUIMeshComponent::IsMeshVisible() const
+bool ULGUIMeshComponent::IsMeshSectionVisible(int InSectionIndex) const
 {
-	return MeshSection.bSectionVisible;
+	return MeshSections[InSectionIndex]->bSectionVisible;
 }
 
 void ULGUIMeshComponent::SetUITranslucentSortPriority(int32 NewTranslucentSortPriority)
@@ -607,12 +813,17 @@ void ULGUIMeshComponent::UpdateLocalBounds()
 	}
 }
 
+void ULGUIMeshComponent::DestroyRenderState_Concurrent()
+{
+	Super::DestroyRenderState_Concurrent();
+}
+
 FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 {
 	//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_CreateSceneProxy);
 
 	FLGUIMeshSceneProxy* Proxy = NULL;
-	if (MeshSection.vertices.Num() > 0)
+	if (MeshSections.Num() > 0)
 	{
 		Proxy = new FLGUIMeshSceneProxy(this, RenderCanvas.Get(), RenderCanvas.IsValid() ? RenderCanvas->GetSortOrder() : 0);
 	}
@@ -640,33 +851,60 @@ void ULGUIMeshComponent::SetSupportUERenderer(bool supportOrNot)
 
 int32 ULGUIMeshComponent::GetNumMaterials() const
 {
-	return 1;
+	return MeshSections.Num();
+}
+
+TSharedPtr<FLGUIMeshSection> ULGUIMeshComponent::GetMeshSection()
+{
+	TSharedPtr<FLGUIMeshSection> Result;
+	if (PooledMeshSections.Num() == 0)
+	{
+		Result = TSharedPtr<FLGUIMeshSection>(new FLGUIMeshSection());
+	}
+	else
+	{
+		Result = PooledMeshSections[PooledMeshSections.Num() - 1];
+		PooledMeshSections.RemoveAt(PooledMeshSections.Num() - 1);
+	}
+	check(Result.IsValid());
+	MeshSections.Add(Result);
+	return Result;
 }
 
 FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
 	if (IsSupportUERenderer)
 	{
-		const auto& vertices = MeshSection.vertices;
-		int vertCount = vertices.Num();
-		if (vertCount < 2)return Super::CalcBounds(LocalToWorld);
-
-		FVector vecMin = vertices[0].Position;
-		FVector vecMax = vecMin;
-
-		// Get maximum and minimum X, Y and Z positions of vectors
-		for (int32 i = 1; i < vertCount; i++)
+		if (MeshSections.Num() <= 0)
 		{
-			auto vertPos = vertices[i].Position;
-			vecMin.X = (vecMin.X > vertPos.X) ? vertPos.X : vecMin.X;
-			vecMin.Y = (vecMin.Y > vertPos.Y) ? vertPos.Y : vecMin.Y;
-			vecMin.Z = (vecMin.Z > vertPos.Z) ? vertPos.Z : vecMin.Z;
-
-			vecMax.X = (vecMax.X < vertPos.X) ? vertPos.X : vecMax.X;
-			vecMax.Y = (vecMax.Y < vertPos.Y) ? vertPos.Y : vecMax.Y;
-			vecMax.Z = (vecMax.Z < vertPos.Z) ? vertPos.Z : vecMax.Z;
+			return FBoxSphereBounds(EForceInit::ForceInitToZero);
+		}
+		if (MeshSections[0]->vertices.Num() <= 0)
+		{
+			return FBoxSphereBounds(EForceInit::ForceInitToZero);
 		}
 
+		FVector vecMin = MeshSections[0]->vertices[0].Position;
+		FVector vecMax = vecMin;
+		for (auto& MeshSection : MeshSections)
+		{
+			const auto& vertices = MeshSection->vertices;
+			int vertCount = vertices.Num();
+			if (vertCount < 2)return Super::CalcBounds(LocalToWorld);
+
+			// Get maximum and minimum X, Y and Z positions of vectors
+			for (int32 i = 1; i < vertCount; i++)
+			{
+				auto vertPos = vertices[i].Position;
+				vecMin.X = (vecMin.X > vertPos.X) ? vertPos.X : vecMin.X;
+				vecMin.Y = (vecMin.Y > vertPos.Y) ? vertPos.Y : vecMin.Y;
+				vecMin.Z = (vecMin.Z > vertPos.Z) ? vertPos.Z : vecMin.Z;
+
+				vecMax.X = (vecMax.X < vertPos.X) ? vertPos.X : vecMax.X;
+				vecMax.Y = (vecMax.Y < vertPos.Y) ? vertPos.Y : vecMax.Y;
+				vecMax.Z = (vecMax.Z < vertPos.Z) ? vertPos.Z : vecMax.Z;
+			}
+		}
 		FVector vecOrigin = ((vecMax - vecMin) / 2) + vecMin;	/* Origin = ((Max Vertex's Vector - Min Vertex's Vector) / 2 ) + Min Vertex's Vector */
 		FVector BoxPoint = vecMax - vecMin;			/* The difference between the "Maximum Vertex" and the "Minimum Vertex" is our actual Bounds Box */
 
@@ -677,25 +915,4 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 		return FBoxSphereBounds(FSphere(FVector::ZeroVector, 1.0f)).TransformBy(LocalToWorld);
 	}
 }
-
-void ULGUIMeshComponent::SetColor(FColor InColor)
-{
-	auto& vertices = MeshSection.vertices;
-	int count = vertices.Num();
-	for (int i = 0; i < count; i++)
-	{
-		vertices[i].Color = InColor;
-	}
-	UpdateMeshSection(false);
-}
-FColor ULGUIMeshComponent::GetColor()const
-{
-	if (MeshSection.vertices.Num() > 0)
-	{
-		return MeshSection.vertices[0].Color;
-	}
-	else
-	{
-		return FColor::White;
-	}
-}
+//PRAGMA_ENABLE_OPTIMIZATION

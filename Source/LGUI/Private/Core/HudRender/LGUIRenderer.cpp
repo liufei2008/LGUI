@@ -410,29 +410,35 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRDGBuilder& GraphBuilder, FScene
 						}
 						else//render mesh
 						{
-							const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-							auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
-							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-
-							auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
-							if (VertexShader.IsValid() && PixelShader.IsValid())
+							MeshBatchArray.Reset();
+							hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector, MeshBatchArray);
+							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 							{
-								SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
+								auto MeshBatchContainer = MeshBatchArray[MeshIndex];
+								const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
+								auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
+								const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+								auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 
-								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
-								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-								GraphicsPSOInit.NumSamples = MultiSampleCount;
-								SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+								auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
+								if (VertexShader.IsValid() && PixelShader.IsValid())
+								{
+									SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
 
-								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-								PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-								PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, (FRHITexture2D*)(SceneTextures.Depth.Target->GetRHI()));
+									GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+									GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+									GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+									GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+									GraphicsPSOInit.NumSamples = MultiSampleCount;
+									SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-								RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+									VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+									PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, (FRHITexture2D*)(SceneTextures.Depth.Target->GetRHI()));
+
+									RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
+									RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+								}
 							}
 						}
 					}
@@ -513,28 +519,34 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRDGBuilder& GraphBuilder, FScene
 					}
 					else//render mesh
 					{
-						const FMeshBatch& Mesh = hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector);
-						auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
-						const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-						auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-
-						auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
-						if (VertexShader.IsValid() && PixelShader.IsValid())
+						MeshBatchArray.Reset();
+						hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector, MeshBatchArray);
+						for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 						{
-							SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
+							auto MeshBatchContainer = MeshBatchArray[MeshIndex];
+							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
+							auto Material = &(Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel()));
+							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 
-							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
-							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-							GraphicsPSOInit.NumSamples = MultiSampleCount;
-							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
+							if (VertexShader.IsValid() && PixelShader.IsValid())
+							{
+								SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
 
-							VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-							PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+								GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+								GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+								GraphicsPSOInit.NumSamples = MultiSampleCount;
+								SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
-							RHICmdList.SetStreamSource(0, hudPrimitive->GetVertexBufferRHI(), 0);
-							RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, hudPrimitive->GetNumVerts(), 0, Mesh.GetNumPrimitives(), 1);
+								VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+								PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+
+								RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
+								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+							}
 						}
 					}
 				}

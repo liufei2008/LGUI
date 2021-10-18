@@ -4,10 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "SceneManagement.h"
-#include "Core/HudRender/LGUIRenderer.h"
+#include "MeshBatch.h"
+#include "RHIResources.h"
+#include "GlobalShader.h"
 
 class FLGUIHudRenderer;
 class UUIPostProcessRenderable;
+
+struct FLGUIMeshBatchContainer
+{
+	FMeshBatch Mesh;
+	FVertexBufferRHIRef VertexBufferRHI;
+	int32 NumVerts = 0;
+
+	FLGUIMeshBatchContainer() {}
+};
 
 class ILGUIHudPrimitive
 {
@@ -18,9 +29,7 @@ public:
 	virtual int GetRenderPriority() const = 0;
 
 	//begin mesh interface
-	virtual FMeshBatch GetMeshElement(class FMeshElementCollector* Collector) = 0;
-	virtual FRHIBuffer* GetVertexBufferRHI() = 0;
-	virtual uint32 GetNumVerts() = 0;
+	virtual void GetMeshElement(class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
 	//end mesh interface
 
 	//begin post process interface

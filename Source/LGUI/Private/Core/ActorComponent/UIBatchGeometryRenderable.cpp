@@ -5,7 +5,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Utils/LGUIUtils.h"
 #include "GeometryModifier/UIGeometryModifierBase.h"
-#include "Core/LGUIMesh/UIDrawcallMesh.h"
+#include "Core/LGUIMesh/LGUIMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
@@ -45,16 +45,9 @@ void UUIBatchGeometryRenderable::ApplyUIActiveState()
 {
 	if (!GetIsUIActiveInHierarchy())
 	{
-		if (bIsSelfRender)
+		if (RenderCanvas.IsValid() && drawcall.IsValid())
 		{
-			UpdateSelfRenderDrawcall();
-		}
-		else
-		{
-			if (RenderCanvas.IsValid() && drawcall.IsValid())
-			{
-				RenderCanvas->RemoveUIRenderable(this);
-			}
+			RenderCanvas->RemoveUIRenderable(this);
 		}
 	}
 	UUIItem::ApplyUIActiveState();
@@ -65,41 +58,16 @@ void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& P
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (auto Property = PropertyChangedEvent.Property)
 	{
-		if (Property->GetFName() == GET_MEMBER_NAME_CHECKED(UUIBatchGeometryRenderable, bIsSelfRender))
-		{
-			if (bIsSelfRender)//prev is not self renderer, then remove this from canvas
-			{
-				if (RenderCanvas.IsValid() && drawcall.IsValid())
-				{
-					RenderCanvas->RemoveUIRenderable(this);
-				}
-			}
-			else//prev is self renderer, then ui mesh
-			{
-				if (IsValid(uiMesh))//delete ui mesh when not self render
-				{
-					uiMesh->DestroyComponent();
-					uiMesh = nullptr;
-				}
-			}
-		}
+
 	}
 }
 #endif
 void UUIBatchGeometryRenderable::OnUnregister()
 {
 	Super::OnUnregister();
-	if (IsValid(uiMesh))//delete ui mesh when this component is delete
+	if (RenderCanvas.IsValid() && drawcall.IsValid())
 	{
-		uiMesh->DestroyComponent();
-		uiMesh = nullptr;
-	}
-	if (!bIsSelfRender)
-	{
-		if (RenderCanvas.IsValid() && drawcall.IsValid())
-		{
-			RenderCanvas->RemoveUIRenderable(this);
-		}
+		RenderCanvas->RemoveUIRenderable(this);
 	}
 }
 
@@ -107,30 +75,19 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 {
 	if (IsValid(OldCanvas))
 	{
-		if (!bIsSelfRender)
+		if (drawcall.IsValid())
 		{
-			if (drawcall.IsValid())
-			{
-				OldCanvas->RemoveUIRenderable(this);
-			}
+			OldCanvas->RemoveUIRenderable(this);
 		}
 		OldCanvas->MarkCanvasUpdate();
 	}
 	if (IsValid(NewCanvas))
 	{
-		if (!bIsSelfRender)
+		if (IsValid(OldCanvas))
 		{
-			if (IsValid(OldCanvas))
+			if (OldCanvas->IsRenderByLGUIRendererOrUERenderer() != NewCanvas->IsRenderByLGUIRendererOrUERenderer())//is render to screen or world changed, then uimesh need to be recreate
 			{
-				if (OldCanvas->IsRenderByLGUIRendererOrUERenderer() != NewCanvas->IsRenderByLGUIRendererOrUERenderer())//is render to screen or world changed, then uimesh need to be recreate
-				{
-					geometry->Clear();
-					if (IsValid(uiMesh))
-					{
-						uiMesh->DestroyComponent();
-						uiMesh = nullptr;
-					}
-				}
+				geometry->Clear();
 			}
 		}
 		NewCanvas->MarkCanvasUpdate();
@@ -167,37 +124,30 @@ void UUIBatchGeometryRenderable::MarkTriangleDirty()
 }
 void UUIBatchGeometryRenderable::MarkTextureDirty()
 {
-	if (bIsSelfRender)
+	if (CheckRenderCanvas())
 	{
-		UpdateSelfRenderMaterial(true, false);
-	}
-	else
-	{
-		if (CheckRenderCanvas())
+		if (drawcall.IsValid())
 		{
-			if (drawcall.IsValid())
+			if (NeedTextureToCreateGeometry())
 			{
-				if (NeedTextureToCreateGeometry())
+				if (!IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
 				{
-					if (!IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
-					{
-						UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
-						RenderCanvas->RemoveUIRenderable(this);
-					}
-					else
-					{
-						geometry->texture = GetTextureToCreateGeometry();
-						//Remove from old drawcall, then add to new drawcall.
-						RenderCanvas->RemoveUIRenderable(this);
-						RenderCanvas->AddUIRenderable(this);
-					}
+					UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
+					RenderCanvas->RemoveUIRenderable(this);
 				}
 				else
 				{
+					geometry->texture = GetTextureToCreateGeometry();
 					//Remove from old drawcall, then add to new drawcall.
 					RenderCanvas->RemoveUIRenderable(this);
 					RenderCanvas->AddUIRenderable(this);
 				}
+			}
+			else
+			{
+				//Remove from old drawcall, then add to new drawcall.
+				RenderCanvas->RemoveUIRenderable(this);
+				RenderCanvas->AddUIRenderable(this);
 			}
 		}
 	}
@@ -205,21 +155,14 @@ void UUIBatchGeometryRenderable::MarkTextureDirty()
 }
 void UUIBatchGeometryRenderable::MarkMaterialDirty()
 {
-	if (bIsSelfRender)
+	if (CheckRenderCanvas())
 	{
-		UpdateSelfRenderMaterial(false, true);
-	}
-	else
-	{
-		if (CheckRenderCanvas())
+		if (drawcall.IsValid())
 		{
-			if (drawcall.IsValid())
-			{
-				//Remove from old drawcall, then add to new drawcall.
-				RenderCanvas->RemoveUIRenderable(this);
-				geometry->material = CustomUIMaterial;
-				RenderCanvas->AddUIRenderable(this);
-			}
+			//Remove from old drawcall, then add to new drawcall.
+			RenderCanvas->RemoveUIRenderable(this);
+			geometry->material = CustomUIMaterial;
+			RenderCanvas->AddUIRenderable(this);
 		}
 	}
 	MarkCanvasUpdate();
@@ -285,36 +228,9 @@ void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 		MarkMaterialDirty();
 	}
 }
-void UUIBatchGeometryRenderable::SetIsSelfRender(bool value)
-{
-	if (bIsSelfRender != value)
-	{
-		bIsSelfRender = value;
-		if (bIsSelfRender)
-		{
-			if (RenderCanvas.IsValid() && drawcall.IsValid())
-			{
-				RenderCanvas->RemoveUIRenderable(this);
-			}
-		}
-		else
-		{
-			//destroy mesh if not selfrender, because canvas will render it
-			if (IsValid(uiMesh))
-			{
-				uiMesh->DestroyComponent();
-				uiMesh = nullptr;
-			}
-		}
-		MarkCanvasUpdate();
-	}
-}
+
 UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic()const
 {
-	if (bIsSelfRender)
-	{
-		return uiMaterial;
-	}
 	if (drawcall.IsValid())
 	{
 		return drawcall->materialInstanceDynamic.Get();
@@ -391,14 +307,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	if (!CheckRenderCanvas())return;
 
 	Super::UpdateGeometry();
-	if (bIsSelfRender)
-	{
-		UpdateGeometry_ImplementForSelfRender();
-	}
-	else
-	{
-		UpdateGeometry_Implement();
-	}
+	UpdateGeometry_Implement();
 }
 
 void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
@@ -438,51 +347,11 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
 			}
 			else
 			{
-				drawcall->needToRebuildMesh = true;
+				drawcall->needToUpdateVertex = true;
 			}
 			if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
 			{
 				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-			}
-		}
-	}
-COMPLETE:
-	;
-}
-
-void UUIBatchGeometryRenderable::UpdateGeometry_ImplementForSelfRender()
-{
-	OnBeforeCreateOrUpdateGeometry();
-	if (geometry->vertices.Num() == 0//if geometry not created yet
-		)
-	{
-		CreateGeometry();
-		UpdateSelfRenderDrawcall();
-		UpdateSelfRenderMaterial(true, true);
-		goto COMPLETE;
-	}
-	else//if geometry is created, update data
-	{
-		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to clear geometry then recreate the specific drawcall
-		{
-			CreateGeometry();
-			UpdateSelfRenderDrawcall();
-			goto COMPLETE;
-		}
-		else//update geometry
-		{
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
-
-			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_LayoutChanged))//vertex data change, need to update geometry's vertex
-			{
-			}
-			else
-			{
-			}
-			if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
-			{
-				UIGeometry::TransformVerticesForSelfRender(RenderCanvas.Get(), geometry);
-				UpdateSelfRenderDrawcall();
 			}
 		}
 	}
@@ -504,145 +373,12 @@ bool UUIBatchGeometryRenderable::CreateGeometry()
 		geometry->material = CustomUIMaterial;
 		OnCreateGeometry();
 		ApplyGeometryModifier(true, true, true, true);
-		if (bIsSelfRender)
-		{
-			UIGeometry::TransformVerticesForSelfRender(RenderCanvas.Get(), geometry);
-		}
-		else
-		{
-			UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-		}
+		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 		return true;
 	}
 	else
 	{
 		return false;
-	}
-}
-
-//set, create, update, destroy
-void UUIBatchGeometryRenderable::UpdateSelfRenderDrawcall()
-{
-	if (geometry->vertices.Num() == 0)
-	{
-		if (IsValid(uiMesh))
-		{
-			uiMesh->SetUIMeshVisibility(false);
-		}
-	}
-	else
-	{
-		if (!IsValid(uiMesh))
-		{
-			uiMesh = NewObject<UUIDrawcallMesh>(this->GetOwner(), NAME_None, RF_Transient);
-			uiMesh->RegisterComponent();
-			//this->GetOwner()->AddInstanceComponent(uiMesh.Get());
-			uiMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-			uiMesh->SetRelativeTransform(FTransform::Identity);
-#if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())
-			{
-				if (RenderCanvas->GetRootCanvas()->IsRenderByLGUIRendererOrUERenderer())
-				{
-					if(RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace())
-					{
-						uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RenderCanvas.Get(), true);
-						uiMesh->SetSupportUERenderer(GetWorld()->WorldType == EWorldType::EditorPreview);//screen space UI can appear in editor preview
-					}
-					else
-					{
-						uiMesh->SetSupportLGUIRenderer(GetWorld()->WorldType != EWorldType::EditorPreview, ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true), RenderCanvas->GetRootCanvas(), false);
-						uiMesh->SetSupportUERenderer(true);//screen space UI should appear in editor's viewport
-					}
-				}
-				else
-				{
-					uiMesh->SetSupportUERenderer(true);
-				}
-			}
-			else
-#endif
-			if (RenderCanvas->GetRootCanvas()->IsRenderByLGUIRendererOrUERenderer())
-			{
-				if (RenderCanvas->GetRootCanvas()->IsRenderToWorldSpace())
-				{
-					uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RenderCanvas.Get(), true);
-				}
-				else
-				{
-					uiMesh->SetSupportLGUIRenderer(true, ALGUIManagerActor::GetViewExtension(GetWorld(), true), RenderCanvas->GetRootCanvas(), false);
-				}
-				uiMesh->SetSupportUERenderer(false);
-			}
-			else
-			{
-				uiMesh->SetSupportLGUIRenderer(false, nullptr, nullptr, false);
-				uiMesh->SetSupportUERenderer(true);
-			}
-		}
-
-		//set data for mesh
-		{
-			auto& meshSection = uiMesh->MeshSection;
-			meshSection.vertices = geometry->vertices;
-			meshSection.triangles = geometry->triangles;
-			uiMesh->SetUIMeshVisibility(true);
-			uiMesh->GenerateOrUpdateMesh(true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
-			uiMesh->SetUITranslucentSortPriority(this->widget.depth);
-		}
-	}
-}
-void UUIBatchGeometryRenderable::UpdateSelfRenderMaterial(bool textureChange, bool materialChange)
-{
-	if (IsValid(uiMesh))
-	{
-		if (materialChange)
-		{
-			UMaterialInterface* SrcMaterial = CustomUIMaterial;
-			if (!IsValid(SrcMaterial))
-			{
-				SrcMaterial = LoadObject<UMaterialInterface>(NULL, TEXT("/LGUI/LGUI_Standard"));
-			}
-			UMaterialInstanceDynamic* uiMat = nullptr;
-			if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
-			{
-				uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
-			}
-			else
-			{
-				uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
-				uiMat->SetFlags(RF_Transient);
-			}
-			uiMesh->SetMaterial(0, uiMat);
-			uiMaterial = uiMat;
-		}
-		if (textureChange)
-		{
-			if (IsValid(uiMaterial))
-			{
-				uiMaterial->SetTextureParameterValue(FName("MainTexture"), GetTextureToCreateGeometry());
-			}
-		}
-	}
-}
-void UUIBatchGeometryRenderable::ClearSelfRenderMaterial()
-{
-	if (IsValid(uiMaterial))
-	{
-		uiMaterial->ConditionalBeginDestroy();
-		uiMaterial = nullptr;
-	}
-}
-
-void UUIBatchGeometryRenderable::DepthChanged()
-{
-	if (bIsSelfRender)
-	{
-		UpdateSelfRenderDrawcall();
-	}
-	else
-	{
-		Super::DepthChanged();
 	}
 }
 

@@ -13,7 +13,8 @@ class UMaterialInstanceDynamic;
 class UUIItem;
 class UUIBatchGeometryRenderable;
 class UUIDirectMeshRenderable;
-class UUIDrawcallMesh;
+class ULGUIMeshComponent;
+struct FLGUIMeshSection;
 
 enum class EUIDrawcallType :uint8
 {
@@ -31,7 +32,8 @@ public:
 	TWeakObjectPtr<UTexture> texture = nullptr;//drawcall used this texture to render
 	TWeakObjectPtr<UMaterialInterface> material = nullptr;//drawcall use this material to render, can be null to use default material
 	TWeakObjectPtr<UMaterialInstanceDynamic> materialInstanceDynamic = nullptr;//created MaterialInstanceDynamic that render this drawcall
-	TWeakObjectPtr<UUIDrawcallMesh> drawcallMesh = nullptr;//mesh for render this drawcall
+	TWeakObjectPtr<ULGUIMeshComponent> drawcallMesh = nullptr;//mesh for render this drawcall
+	TWeakPtr<FLGUIMeshSection> drawcallMeshSection = nullptr;//section of mesh which render this drawcall
 
 	bool materialChanged = true;
 	bool textureChanged = true;
