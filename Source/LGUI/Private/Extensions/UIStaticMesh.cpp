@@ -8,7 +8,7 @@
 #include "StaticMeshResources.h"
 #include "Rendering/ColorVertexBuffer.h"
 #include "LGUI.h"
-#include "Core/LGUIMesh/UIDrawcallMesh.h"
+#include "Core/LGUIMesh/LGUIMeshComponent.h"
 
 
 UUIStaticMesh::UUIStaticMesh(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
@@ -52,13 +52,13 @@ void UUIStaticMesh::UpdateGeometry()
 		RenderCanvas->AddUIRenderable(this);
 	}
 
-	if (cacheForThisUpdate_ColorChanged)
+	if (MeshSection.IsValid())
 	{
-		UpdateMeshColor();
-	}
-	if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
-	{
-		if (UIDrawcallMesh.IsValid())
+		if (cacheForThisUpdate_ColorChanged)
+		{
+			UpdateMeshColor();
+		}
+		if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
 		{
 			UpdateMeshTransform();
 		}
@@ -77,7 +77,7 @@ void UUIStaticMesh::UpdateMeshColor()
 		FPositionVertexBuffer& positionBuffer = vertexBuffers.PositionVertexBuffer;
 		FStaticMeshVertexBuffer& staticMeshVertexBuffer = vertexBuffers.StaticMeshVertexBuffer;
 		{
-			auto& VertexData = UIDrawcallMesh->MeshSection.vertices;
+			auto& VertexData = MeshSection.Pin()->vertices;
 
 			VertexData.SetNumUninitialized(numVertices);
 			auto tempVertexColorType = vertexColorType;
@@ -116,7 +116,7 @@ void UUIStaticMesh::UpdateMeshColor()
 			}
 		}
 	}
-	UIDrawcallMesh->GenerateOrUpdateMesh();
+	UIMesh->UpdateMeshSection(MeshSection.Pin(), true, this->GetRenderCanvas()->GetActualAdditionalShaderChannelFlags());
 }
 void UUIStaticMesh::CreateGeometry()
 {
@@ -129,7 +129,7 @@ void UUIStaticMesh::CreateGeometry()
 		FPositionVertexBuffer& positionBuffer = vertexBuffers.PositionVertexBuffer;
 		FStaticMeshVertexBuffer& staticMeshVertexBuffer = vertexBuffers.StaticMeshVertexBuffer;
 		{
-			auto& VertexData = UIDrawcallMesh->MeshSection.vertices;
+			auto& VertexData = MeshSection.Pin()->vertices;
 
 			VertexData.SetNumUninitialized(numVertices);
 			bool needNormal = RenderCanvas->GetRequireNormal();
@@ -200,7 +200,7 @@ void UUIStaticMesh::CreateGeometry()
 			}
 		}
 		{
-			auto& IndexData = UIDrawcallMesh->MeshSection.triangles;
+			auto& IndexData = MeshSection.Pin()->triangles;
 			IndexData.SetNumUninitialized(numIndices);
 			for (int i = 0; i < numIndices; i++)
 			{
@@ -208,14 +208,15 @@ void UUIStaticMesh::CreateGeometry()
 			}
 		}
 	}
-	UIDrawcallMesh->GenerateOrUpdateMesh();
+	UIMesh->CreateMeshSection(MeshSection.Pin());
+
 	if (IsValid(replaceMat))
 	{
-		UIDrawcallMesh->SetMaterial(0, replaceMat);
+		UIMesh->SetMeshSectionMaterial(MeshSection.Pin(), replaceMat);
 	}
 	else
 	{
-		UIDrawcallMesh->SetMaterial(0, mesh->GetMaterial(0));
+		UIMesh->SetMeshSectionMaterial(MeshSection.Pin(), mesh->GetMaterial(0));
 	}
 
 	UpdateMeshTransform();
@@ -228,7 +229,57 @@ void UUIStaticMesh::UpdateMeshTransform()
 	auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
 	const auto& itemTf = this->GetComponentTransform();
 	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
-	UIDrawcallMesh->SetRelativeTransform(itemToCanvasTf);
+
+
+	FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
+	auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
+	FPositionVertexBuffer& positionBuffer = vertexBuffers.PositionVertexBuffer;
+	FStaticMeshVertexBuffer& staticMeshVertexBuffer = vertexBuffers.StaticMeshVertexBuffer;
+	{
+		auto& VertexData = MeshSection.Pin()->vertices;
+		VertexData.SetNumUninitialized(numVertices);
+		bool needNormal = RenderCanvas->GetRequireNormal();
+		bool needTangent = RenderCanvas->GetRequireTangent();
+		for (int i = 0; i < numVertices; i++)
+		{
+			auto& vert = VertexData[i];
+			vert.Position = positionBuffer.VertexPosition(i);
+			if (needNormal)
+			{
+				vert.TangentZ = staticMeshVertexBuffer.VertexTangentZ(i);
+			}
+			if (needTangent)
+			{
+				vert.TangentX = staticMeshVertexBuffer.VertexTangentX(i);
+			}
+		}
+	}
+
+
+	auto& vertices = MeshSection.Pin()->vertices;
+	auto vertexCount = vertices.Num();
+	for (int i = 0; i < vertexCount; i++)
+	{
+		vertices[i].Position = itemToCanvasTf.TransformPosition(vertices[i].Position);
+	}
+	if (RenderCanvas->GetRequireNormal())
+	{
+		for (int i = 0; i < vertexCount; i++)
+		{
+			vertices[i].TangentZ = itemToCanvasTf.TransformVector(vertices[i].TangentZ.ToFVector());
+			vertices[i].TangentZ.Vector.W = -127;
+		}
+	}
+	if (RenderCanvas->GetRequireTangent())
+	{
+		for (int i = 0; i < vertexCount; i++)
+		{
+			vertices[i].TangentX = itemToCanvasTf.TransformVector(vertices[i].TangentX.ToFVector());
+		}
+	}
+
+
+	UIMesh->UpdateMeshSection(MeshSection.Pin(), true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
 }
 
 #if WITH_EDITOR
@@ -243,21 +294,47 @@ void UUIStaticMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 			|| PropName == GET_MEMBER_NAME_CHECKED(UUIStaticMesh, vertexColorType)
 			)
 		{
-			if (CanCreateGeometry())
+			if (IsValid(mesh))
 			{
-				CreateGeometry();
+				if (MeshSection.IsValid())
+				{
+					if (CanCreateGeometry())
+					{
+						CreateGeometry();
+					}
+				}
+			}
+			else
+			{
+				if (drawcall.IsValid())
+				{
+					RenderCanvas->RemoveUIRenderable(this);
+				}
+			}
+		}
+		else if (PropName == GET_MEMBER_NAME_CHECKED(UUIStaticMesh, replaceMat))
+		{
+			if (MeshSection.IsValid())
+			{
+				if (CanCreateGeometry())
+				{
+					CreateGeometry();
+				}
 			}
 		}
 	}
 }
 #endif
 
-void UUIStaticMesh::SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)
+void UUIStaticMesh::SetMeshData(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh, TWeakPtr<FLGUIMeshSection> InMeshSection)
 {
-	Super::SetDrawcallMesh(InUIDrawcallMesh);
-	if (CanCreateGeometry())
+	Super::SetMeshData(InUIMesh, InMeshSection);
+	if (MeshSection.IsValid())
 	{
-		CreateGeometry();
+		if (CanCreateGeometry())
+		{
+			CreateGeometry();
+		}
 	}
 }
 
@@ -266,11 +343,21 @@ void UUIStaticMesh::SetMesh(UStaticMesh* value)
 	if (mesh != value)
 	{
 		mesh = value;
-		if (UIDrawcallMesh.IsValid())
+		if (IsValid(mesh))
 		{
-			if (CanCreateGeometry())
+			if (MeshSection.IsValid())
 			{
-				CreateGeometry();
+				if (CanCreateGeometry())
+				{
+					CreateGeometry();
+				}
+			}
+		}
+		else
+		{
+			if (drawcall.IsValid())
+			{
+				RenderCanvas->RemoveUIRenderable(this);
 			}
 		}
 	}

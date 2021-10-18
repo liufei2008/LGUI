@@ -8,7 +8,7 @@
 class UIGeometry;
 class UMaterialInterface;
 class ULGUICanvas;
-class UUIDrawcallMesh;
+class ULGUIMeshComponent;
 /** UI element which have render geometry, and can be batched and renderred by LGUICanvas */
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIBatchGeometryRenderable : public UUIBaseRenderable
@@ -33,6 +33,7 @@ protected:
 	/** 
 	 * use GeometryModifier to modify geometry 
 	 * return: true if the modifier change the triangle count, else false
+	 * @todo: return value contains triangle change and vertex change
 	 */
 	bool ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged);
 	TInlineComponentArray<class UUIGeometryModifierBase*> GeometryModifierComponentArray;
@@ -41,8 +42,6 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInterface* GetCustomUIMaterial()const { return CustomUIMaterial; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetIsSelfRender()const { return bIsSelfRender; }
 	/** 
 	 * if inMat is a UMaterialInstanceDynamic, then it will directly use for render.
 	 * if not, then a new MaterialInstanceDynamic will be created to render this UI item, and the created MaterialInstanceDynamic may shared with others UI items.
@@ -53,8 +52,6 @@ public:
 		bool GetRaycastComplex() { return bRaycastComplex; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRaycastComplex(bool newValue) { bRaycastComplex = newValue; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetIsSelfRender(bool value);
 	/** 
 	 * if CustomUIMaterial is a UMaterialInstanceDynamic, then will return it directly.
 	 * if not, then return a created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr
@@ -88,14 +85,6 @@ protected:
 	/** Use custom material to render this element */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* CustomUIMaterial = nullptr;
-	/** 
-	 * !!!This parameter will be removed in future release! So keep the value as false!
-	 * Render by self or by LGUICanvas.
-	 * true: Generate UIDrawcallMesh by it self, so every object is a drawcall. In this mode, depth acturally controls the "Transparent Sort Priority". But not support canvas clip.
-	 * false: Render by LGUICanvas, so drawcall can be combined.
-	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI", AdvancedDisplay)
-		bool bIsSelfRender = false;
 	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit widget rectangle */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastComplex = false;
@@ -117,18 +106,8 @@ protected:
 	bool CreateGeometry();
 	virtual void UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)override;
 	virtual void UpdateGeometry()override final;
-
-	/** created drawcall mesh */
-	UPROPERTY(Transient) UUIDrawcallMesh* uiMesh = nullptr;
-	/** created material */
-	UPROPERTY(Transient) UMaterialInstanceDynamic* uiMaterial = nullptr;
-	void UpdateSelfRenderDrawcall();
-	virtual void UpdateSelfRenderMaterial(bool textureChange, bool materialChange);
-	void ClearSelfRenderMaterial();
-	virtual void DepthChanged()override;
 private:
 	void UpdateGeometry_Implement();
-	void UpdateGeometry_ImplementForSelfRender();
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
 	/** vertex's uv change */

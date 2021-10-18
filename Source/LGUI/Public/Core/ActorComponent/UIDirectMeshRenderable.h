@@ -7,7 +7,8 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "UIDirectMeshRenderable.generated.h"
 
-class UUIDrawcallMesh;
+struct FLGUIMeshSection;
+class ULGUIMeshComponent;
 /** 
  * UI element that use mesh to render directly
  */
@@ -42,12 +43,14 @@ protected:
 	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;
 
-	TWeakObjectPtr<UUIDrawcallMesh> UIDrawcallMesh = nullptr;
+	TWeakObjectPtr<ULGUIMeshComponent> UIMesh = nullptr;
+	TWeakPtr<FLGUIMeshSection> MeshSection = nullptr;
 public:
 	/** Canvas will create a UIDrawcallMesh for this UI element. */
-	virtual void SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh);
-	virtual UUIDrawcallMesh* GetDrawcallMesh()const;
-	virtual void ClearDrawcallMesh(bool InDestroyMesh);
+	virtual void SetMeshData(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh, TWeakPtr<FLGUIMeshSection> InMeshSection);
+	virtual TWeakPtr<FLGUIMeshSection> GetMeshSection()const;
+	virtual TWeakObjectPtr<ULGUIMeshComponent> GetUIMesh()const;
+	virtual void ClearMeshData();
 
 	virtual void SetClipType(ELGUICanvasClipType clipType) {};
 	virtual void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather) {};

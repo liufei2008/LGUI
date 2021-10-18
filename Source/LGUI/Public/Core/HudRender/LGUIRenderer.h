@@ -5,11 +5,10 @@
 #include "CoreMinimal.h"
 #include "SceneViewExtension.h"
 #include "RendererInterface.h"
-#include "Widgets/Layout/SBox.h"
 #include "RenderResource.h"
 #include "StaticMeshVertexData.h"
+#include "Core/HudRender/ILGUIHudPrimitive.h"
 
-class ILGUIHudPrimitive;
 class ULGUICanvas;
 struct FLGUIPostProcessVertex;
 struct FLGUIPostProcessCopyMeshRegionVertex;
@@ -109,6 +108,7 @@ private:
 	FScreenSpaceRenderParameter ScreenSpaceRenderParameter;
 	TWeakObjectPtr<UTextureRenderTarget2D> CustomRenderTarget;
 	TWeakObjectPtr<UWorld> World;
+	TArray<FLGUIMeshBatchContainer> MeshBatchArray;
 	uint16 MultiSampleCount = 0;
 	bool bContainsPostProcess = false;
 	void CheckContainsPostProcess_RenderThread();	

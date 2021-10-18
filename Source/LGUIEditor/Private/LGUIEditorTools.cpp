@@ -1000,20 +1000,6 @@ bool LGUIEditorTools::IsSelectUIActor()
 	}
 	return false;
 }
-bool LGUIEditorTools::IsSelfRenderActor(AActor* InActor)
-{
-	if (auto rootComp = InActor->GetRootComponent())
-	{
-		if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(rootComp))
-		{
-			if (uiRenderable->GetIsSelfRender())
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
 int LGUIEditorTools::GetDrawcallCount(AActor* InActor)
 {
 	if (auto rootComp = InActor->GetRootComponent())
@@ -1023,10 +1009,6 @@ int LGUIEditorTools::GetDrawcallCount(AActor* InActor)
 			if (rootUIItem->IsCanvasUIItem())
 			{
 				return rootUIItem->GetRenderCanvas()->GetDrawcallCount();
-			}
-			if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(rootComp))
-			{
-				return (uiRenderable->GetIsSelfRender() && uiRenderable->GetIsUIActiveInHierarchy()) ? 1 : 0;
 			}
 		}
 	}

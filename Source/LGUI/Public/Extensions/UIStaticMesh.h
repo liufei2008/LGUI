@@ -38,7 +38,7 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
 #endif
 	
-	virtual void SetDrawcallMesh(UUIDrawcallMesh* InUIDrawcallMesh)override;
+	virtual void SetMeshData(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh, TWeakPtr<FLGUIMeshSection> InUIDrawcallMesh)override;
 	bool CanCreateGeometry();
 	void CreateGeometry();
 	virtual void UpdateGeometry()override;
