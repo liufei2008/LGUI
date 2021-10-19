@@ -33,7 +33,6 @@ protected:
 	/** 
 	 * use GeometryModifier to modify geometry 
 	 * return: true if the modifier change the triangle count, else false
-	 * @todo: return value contains triangle change and vertex change
 	 */
 	bool ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged);
 	TInlineComponentArray<class UUIGeometryModifierBase*> GeometryModifierComponentArray;
