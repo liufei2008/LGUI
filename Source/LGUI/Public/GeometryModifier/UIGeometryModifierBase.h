@@ -34,7 +34,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int executeOrder = 0;
 	/** 
-	 * If there are multiple UIBatchGeometryRenderable components, then select one of them by name
+	 * If there are multiple UIBatchGeometryRenderable components, then select one of them by name.
 	 * Leave it empty if only one UIBatchGeometryRenderable component.
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -47,12 +47,12 @@ private:
 	void AddToUIBatchGeometry();
 public:
 	FORCEINLINE int GetExecuteOrder()const { return executeOrder; }
-	/*
-	Add or modify vertex/triangle
-	InOutOriginVerticesCount:orign vertex count; after modify, new vertex count must be set to this
-	InOutOriginTriangleIndicesCount:orign triangle indices count; after modify, new triangle indices count must be set to this
-	OutTriangleChanged: if this modifier affect triangle, then set this to true
-	*/
+	/**
+	 * Modify UI geometry's vertex and triangle.
+	 * @param	InOutOriginVerticesCount: orign vertex count; after modify, new vertex count must be set to this
+	 * @param	InOutOriginTriangleIndicesCount: orign triangle indices count; after modify, new triangle indices count must be set to this
+	 * @param	OutTriangleChanged: if this modifier affect triangle, then set this to true
+	 */
 	virtual void ModifyUIGeometry(
 		TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
 		bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
