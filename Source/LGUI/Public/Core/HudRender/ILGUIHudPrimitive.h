@@ -14,7 +14,7 @@ class UUIPostProcessRenderable;
 struct FLGUIMeshBatchContainer
 {
 	FMeshBatch Mesh;
-	FVertexBufferRHIRef VertexBufferRHI;
+	FBufferRHIRef VertexBufferRHI;
 	int32 NumVerts = 0;
 
 	FLGUIMeshBatchContainer() {}

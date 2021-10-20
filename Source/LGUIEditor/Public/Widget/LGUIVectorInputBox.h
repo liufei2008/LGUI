@@ -27,8 +27,8 @@ public:
 	SLATE_BEGIN_ARGS(SLGUIVectorInputBox)
 		: _Font( FCoreStyle::Get().GetFontStyle("NormalFont") )
 		, _AllowSpin(true)
-		, _bColorAxisLabels( false )
-		, _AllowResponsiveLayout( false )
+		, _SpinDelta(1)
+		, _bColorAxisLabels(false)
 		, _ShowX(true)
 		, _ShowY(false)
 		, _ShowZ(false)
@@ -46,16 +46,16 @@ public:
 		/** Whether or not values can be spun or if they should be typed in */
 		SLATE_ARGUMENT(bool, AllowSpin)
 
+		/** The delta amount to apply, per pixel, when the spinner is dragged. */
+		SLATE_ATTRIBUTE( float, SpinDelta )
+
+		/** Should the axis labels be colored */
+		SLATE_ARGUMENT( bool, bColorAxisLabels )	
+
 		SLATE_ATTRIBUTE(bool, EnableX)
 		SLATE_ATTRIBUTE(bool, EnableY)
 		SLATE_ATTRIBUTE(bool, EnableZ)
-		SLATE_ATTRIBUTE(bool, EnableW)
-
-		/** Should the axis labels be colored */
-		SLATE_ARGUMENT( bool, bColorAxisLabels )		
-
-		/** Allow responsive layout to crush the label and margins when there is not a lot of room */
-		SLATE_ARGUMENT(bool, AllowResponsiveLayout)
+		SLATE_ATTRIBUTE(bool, EnableW)	
 
 		SLATE_ARGUMENT(bool, ShowX)
 		SLATE_ARGUMENT(bool, ShowY)
@@ -72,6 +72,24 @@ public:
 		SLATE_EVENT( FOnFloatValueCommitted, OnZCommitted )
 		SLATE_EVENT( FOnFloatValueCommitted, OnWCommitted )
 
+		/** Menu extender delegate for the X value */
+		SLATE_EVENT( FMenuExtensionDelegate, ContextMenuExtenderX )
+
+		/** Menu extender delegate for the Y value */
+		SLATE_EVENT( FMenuExtensionDelegate, ContextMenuExtenderY )
+
+		/** Menu extender delegate for the Z value */
+		SLATE_EVENT( FMenuExtensionDelegate, ContextMenuExtenderZ )
+
+		/** Menu extender delegate for the Z value */
+		SLATE_EVENT( FMenuExtensionDelegate, ContextMenuExtenderW )
+
+		/** Called right before the slider begins to move for any of the vector components */
+		SLATE_EVENT( FSimpleDelegate, OnBeginSliderMovement )
+		
+		/** Called right after the slider handle is released by the user for any of the vector components */
+		SLATE_EVENT( FOnFloatValueChanged, OnEndSliderMovement )
+
 		/** Provide custom type functionality for the vector */
 		SLATE_ARGUMENT( TSharedPtr< INumericTypeInterface<float> >, TypeInterface )
 
@@ -83,28 +101,7 @@ public:
 	 * @param	InArgs	The declaration data for this widget
 	 */
 	void Construct( const FArguments& InArgs );
-
-	// SWidget interface
-	virtual void OnArrangeChildren(const FGeometry& AllottedGeometry, FArrangedChildren& ArrangedChildren) const override;
-	// End of SWidget interface
-
 private:
-	/** Are we allowed to be crushed? */
-	bool bCanBeCrushed;
-
-	/** Are we currently being crushed? */
-	mutable bool bIsBeingCrushed;
-
-private:
-	/** Returns the index of the label widget to use (crushed or uncrushed) */
-	int32 GetLabelActiveSlot() const;
-
-	/** Returns the desired text margin for the label */
-	FMargin GetTextMargin() const;
-
-	/** Creates a decorator label (potentially adding a switcher widget if this is cruhsable) */
-	TSharedRef<SWidget> BuildDecoratorLabel(FLinearColor BackgroundColor, FLinearColor ForegroundColor, FText Label);
-
 	void ConstructX(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox);
 	void ConstructY(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox);
 	void ConstructZ(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox);

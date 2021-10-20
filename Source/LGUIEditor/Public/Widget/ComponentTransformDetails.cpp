@@ -26,6 +26,7 @@
 #include "Editor.h"
 #include "UnrealEdGlobals.h"
 #include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
 #include "Widget/LGUIVectorInputBox.h"
 #include "Widgets/Input/SRotatorInputBox.h"
 #include "ScopedTransaction.h"
@@ -34,7 +35,7 @@
 #include "Widgets/Input/NumericUnitTypeInterface.inl"
 #include "Settings/EditorProjectSettings.h"
 #include "HAL/PlatformApplicationMisc.h"
-
+#include "Algo/Transform.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 
@@ -111,9 +112,43 @@ TSharedRef<SWidget> FComponentTransformDetails::BuildTransformFieldLabel( ETrans
 		break;
 	}
 
-	return SNew(STextBlock)
+
+	TSharedRef<SWidget> NameContent =
+		SNew(STextBlock)
 		.Text(Label)
-		.Font(IDetailLayoutBuilder::GetDetailFont());
+		.Font(IDetailLayoutBuilder::GetDetailFont())
+		;
+
+	if(TransformField == ETransformField::Scale)
+	{
+		NameContent =
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.VAlign(VAlign_Center)
+			[
+				NameContent
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(FMargin(4.0f, 0.0f, 0.0f, 0.0f))
+			[
+				// Add a checkbox to toggle between preserving the ratio of x,y,z components of scale when a value is entered
+				SNew(SCheckBox)
+				.IsChecked(this, &FComponentTransformDetails::IsPreserveScaleRatioChecked)
+				.IsEnabled(this, &FComponentTransformDetails::GetIsEnabled)
+				.OnCheckStateChanged(this, &FComponentTransformDetails::OnPreserveScaleRatioToggled)
+				.Style(FEditorStyle::Get(), "TransparentCheckBox")
+				.ToolTipText(LOCTEXT("PreserveScaleToolTip", "When locked, scales uniformly based on the current xyz scale values so the object maintains its shape in each direction when scaled"))
+				[
+					SNew(SImage)
+					.Image(this, &FComponentTransformDetails::GetPreserveScaleRatioImage)
+					.ColorAndOpacity(FSlateColor::UseForeground())
+				]
+			];
+	}
+
+	return NameContent;
 }
 bool FComponentTransformDetails::OnCanCopy( ETransformField::Type TransformField ) const
 {
@@ -244,8 +279,9 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		ChildrenBuilder.AddCustomRow( LOCTEXT("LocationFilter", "Location") )
 		.CopyAction( CreateCopyAction( ETransformField::Location ) )
 		.PasteAction( CreatePasteAction( ETransformField::Location ) )
+		.OverrideResetToDefault(FResetToDefaultOverride::Create(TAttribute<bool>(this, &FComponentTransformDetails::GetLocationResetVisibility), FSimpleDelegate::CreateSP(this, &FComponentTransformDetails::OnLocationResetClicked)))
+		.PropertyHandleList({ GeneratePropertyHandle(USceneComponent::GetRelativeLocationPropertyName(), ChildrenBuilder) })
 		.NameContent()
-		.HAlign(HAlign_Left)
 		.VAlign(VAlign_Center)
 		[
 			BuildTransformFieldLabel( ETransformField::Location )
@@ -253,55 +289,32 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		.ValueContent()
 		.MinDesiredWidth(125.0f * 3.0f)
 		.MaxDesiredWidth(125.0f * 3.0f)
+		.VAlign( VAlign_Center )
 		[
-			SNew( SHorizontalBox )
-			+SHorizontalBox::Slot()
-			.FillWidth(1)
-			.VAlign( VAlign_Center )
-			[
-				SNew( SLGUIVectorInputBox )
-				.X( this, &FComponentTransformDetails::GetLocationX )
-				.Y( this, &FComponentTransformDetails::GetLocationY )
-				.Z( this, &FComponentTransformDetails::GetLocationZ )
-				.EnableX(this, &FComponentTransformDetails::IsLocationXEnable)
-				.EnableY(this, &FComponentTransformDetails::IsLocationYEnable)
-				.EnableZ(this, &FComponentTransformDetails::IsLocationZEnable)
-				.ShowX(true)
-				.ShowY(true)
-				.ShowZ(true)
-				.bColorAxisLabels( true )
-				.AllowResponsiveLayout( true )
-				.IsEnabled( this, &FComponentTransformDetails::GetIsEnabled )
-				.OnXCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Location, EAxisList::X, true )
-				.OnYCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Location, EAxisList::Y, true )
-				.OnZCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Location, EAxisList::Z, true )
-				.Font( FontInfo )
-				.TypeInterface( TypeInterface )
-				.AllowSpin(true)
-			]
-			+SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				// Just take up space for alignment
-				SNew( SBox )
-				.WidthOverride( 18.0f )
-			]
-			+SHorizontalBox::Slot()
-			.VAlign(VAlign_Center)
-			.AutoWidth()
-			[
-				SNew(SButton)
-				.OnClicked(this, &FComponentTransformDetails::OnLocationResetClicked)
-				.Visibility(this, &FComponentTransformDetails::GetLocationResetVisibility)
-				.ContentPadding(FMargin(5.f, 0.f))
-				.ToolTipText(LOCTEXT("ResetToDefaultToolTip", "Reset to Default"))
-				.ButtonStyle( FEditorStyle::Get(), "NoBorder" )
-				.Content()
-				[
-					SNew(SImage)
-					.Image( FEditorStyle::GetBrush("PropertyWindow.DiffersFromDefault") )
-				]
-			]
+			SNew( SLGUIVectorInputBox )
+			.X( this, &FComponentTransformDetails::GetLocationX )
+			.Y( this, &FComponentTransformDetails::GetLocationY )
+			.Z( this, &FComponentTransformDetails::GetLocationZ )
+			.EnableX(this, &FComponentTransformDetails::IsLocationXEnable)
+			.EnableY(this, &FComponentTransformDetails::IsLocationYEnable)
+			.EnableZ(this, &FComponentTransformDetails::IsLocationZEnable)
+			.ShowX(true)
+			.ShowY(true)
+			.ShowZ(true)
+			.bColorAxisLabels( true )
+			.IsEnabled( this, &FComponentTransformDetails::GetIsEnabled )
+			.OnXChanged(this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Location, EAxisList::X, false)
+			.OnYChanged(this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Location, EAxisList::Y, false)
+			.OnZChanged(this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Location, EAxisList::Z, false)
+			.OnXCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Location, EAxisList::X, true )
+			.OnYCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Location, EAxisList::Y, true )
+			.OnZCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Location, EAxisList::Z, true )
+			.Font( FontInfo )
+			.TypeInterface( TypeInterface )
+			.AllowSpin(SelectedObjects.Num() == 1)
+			.SpinDelta(1)
+			.OnBeginSliderMovement(this, &FComponentTransformDetails::OnBeginLocationSlider)
+			.OnEndSliderMovement(this, &FComponentTransformDetails::OnEndLocationSlider)
 		];
 	}
 	
@@ -316,8 +329,9 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		ChildrenBuilder.AddCustomRow( LOCTEXT("RotationFilter", "Rotation") )
 		.CopyAction( CreateCopyAction(ETransformField::Rotation) )
 		.PasteAction( CreatePasteAction(ETransformField::Rotation) )
+		.OverrideResetToDefault(FResetToDefaultOverride::Create(TAttribute<bool>(this, &FComponentTransformDetails::GetRotationResetVisibility), FSimpleDelegate::CreateSP(this, &FComponentTransformDetails::OnRotationResetClicked)))
+		.PropertyHandleList({ GeneratePropertyHandle(USceneComponent::GetRelativeRotationPropertyName(), ChildrenBuilder) })
 		.NameContent()
-		.HAlign(HAlign_Left)
 		.VAlign(VAlign_Center)
 		[
 			BuildTransformFieldLabel(ETransformField::Rotation)
@@ -325,53 +339,25 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		.ValueContent()
 		.MinDesiredWidth(125.0f * 3.0f)
 		.MaxDesiredWidth(125.0f * 3.0f)
+		.VAlign( VAlign_Center )
 		[
-			SNew( SHorizontalBox )
-			+SHorizontalBox::Slot()
-			.FillWidth(1)
-			.VAlign( VAlign_Center )
-			[
-				SNew( SRotatorInputBox )
-				.AllowSpin( SelectedObjects.Num() == 1 ) 
-				.Roll( this, &FComponentTransformDetails::GetRotationX )
-				.Pitch( this, &FComponentTransformDetails::GetRotationY )
-				.Yaw( this, &FComponentTransformDetails::GetRotationZ )
-				.bColorAxisLabels( true )
-				.IsEnabled( this, &FComponentTransformDetails::GetIsEnabled )
-				.OnBeginSliderMovement( this, &FComponentTransformDetails::OnBeginRotatonSlider )
-				.OnEndSliderMovement( this, &FComponentTransformDetails::OnEndRotationSlider )
-				.OnRollChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Rotation, EAxisList::X, false )
-				.OnPitchChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Rotation, EAxisList::Y, false )
-				.OnYawChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Rotation, EAxisList::Z, false )
-				.OnRollCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Rotation, EAxisList::X, true )
-				.OnPitchCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Rotation, EAxisList::Y, true )
-				.OnYawCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Rotation, EAxisList::Z, true )
-				.TypeInterface(TypeInterface)
-				.Font( FontInfo )
-			]
-			+SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				// Just take up space for alignment
-				SNew( SBox )
-				.WidthOverride( 18.0f )
-			]
-			+SHorizontalBox::Slot()
-			.VAlign(VAlign_Center)
-			.AutoWidth()
-			[
-				SNew(SButton)
-				.OnClicked(this, &FComponentTransformDetails::OnRotationResetClicked)
-				.Visibility(this, &FComponentTransformDetails::GetRotationResetVisibility)
-				.ContentPadding(FMargin(5.f, 0.f))
-				.ToolTipText(LOCTEXT("ResetToDefaultToolTip", "Reset to Default"))
-				.ButtonStyle( FEditorStyle::Get(), "NoBorder" )
-				.Content()
-				[
-					SNew(SImage)
-					.Image( FEditorStyle::GetBrush("PropertyWindow.DiffersFromDefault") )
-				]
-			]
+			SNew( SRotatorInputBox )
+			.AllowSpin( SelectedObjects.Num() == 1 ) 
+			.Roll( this, &FComponentTransformDetails::GetRotationX )
+			.Pitch( this, &FComponentTransformDetails::GetRotationY )
+			.Yaw( this, &FComponentTransformDetails::GetRotationZ )
+			.bColorAxisLabels( true )
+			.IsEnabled( this, &FComponentTransformDetails::GetIsEnabled )
+			.OnBeginSliderMovement( this, &FComponentTransformDetails::OnBeginRotationSlider )
+			.OnEndSliderMovement( this, &FComponentTransformDetails::OnEndRotationSlider )
+			.OnRollChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Rotation, EAxisList::X, false )
+			.OnPitchChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Rotation, EAxisList::Y, false )
+			.OnYawChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Rotation, EAxisList::Z, false )
+			.OnRollCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Rotation, EAxisList::X, true )
+			.OnPitchCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Rotation, EAxisList::Y, true )
+			.OnYawCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Rotation, EAxisList::Z, true )
+			.TypeInterface(TypeInterface)
+			.Font( FontInfo )
 		];
 	}
 	
@@ -380,8 +366,9 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		ChildrenBuilder.AddCustomRow( LOCTEXT("ScaleFilter", "Scale") )
 		.CopyAction( CreateCopyAction(ETransformField::Scale) )
 		.PasteAction( CreatePasteAction(ETransformField::Scale) )
+		.OverrideResetToDefault(FResetToDefaultOverride::Create(TAttribute<bool>(this, &FComponentTransformDetails::GetScaleResetVisibility), FSimpleDelegate::CreateSP(this, &FComponentTransformDetails::OnScaleResetClicked)))
+		.PropertyHandleList({ GeneratePropertyHandle(USceneComponent::GetRelativeScale3DPropertyName(), ChildrenBuilder) })
 		.NameContent()
-		.HAlign(HAlign_Left)
 		.VAlign(VAlign_Center)
 		[
 			BuildTransformFieldLabel(ETransformField::Scale)
@@ -389,57 +376,25 @@ void FComponentTransformDetails::GenerateChildContent( IDetailChildrenBuilder& C
 		.ValueContent()
 		.MinDesiredWidth(125.0f * 3.0f)
 		.MaxDesiredWidth(125.0f * 3.0f)
+		.VAlign(VAlign_Center)
 		[
-			SNew( SHorizontalBox )
-			+SHorizontalBox::Slot()
-			.VAlign( VAlign_Center )
-			.FillWidth(1.0f)
-			[
-				SNew(SVectorInputBox)
-				.X( this, &FComponentTransformDetails::GetScaleX )
-				.Y( this, &FComponentTransformDetails::GetScaleY )
-				.Z( this, &FComponentTransformDetails::GetScaleZ )
-				.bColorAxisLabels( true )
-				.IsEnabled( this, &FComponentTransformDetails::GetIsEnabled )
-				.OnXCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Scale, EAxisList::X, true )
-				.OnYCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Scale, EAxisList::Y, true )
-				.OnZCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Scale, EAxisList::Z, true )
-				.Font( FontInfo )
-				.AllowSpin(true)
-			]
-			+SHorizontalBox::Slot()
-			.AutoWidth()
-			.MaxWidth( 18.0f )
-			[
-				// Add a checkbox to toggle between preserving the ratio of x,y,z components of scale when a value is entered
-				SNew( SCheckBox )
-				.IsChecked( this, &FComponentTransformDetails::IsPreserveScaleRatioChecked )
-				.IsEnabled( this, &FComponentTransformDetails::GetIsEnabled )
-				.OnCheckStateChanged( this, &FComponentTransformDetails::OnPreserveScaleRatioToggled )
-				.Style( FEditorStyle::Get(), "TransparentCheckBox" )
-				.ToolTipText( LOCTEXT("PreserveScaleToolTip", "When locked, scales uniformly based on the current xyz scale values so the object maintains its shape in each direction when scaled" ) )
-				[
-					SNew( SImage )
-					.Image( this, &FComponentTransformDetails::GetPreserveScaleRatioImage )
-					.ColorAndOpacity( FSlateColor::UseForeground() )
-				]
-			]
-			+SHorizontalBox::Slot()
-			.VAlign(VAlign_Center)
-			.AutoWidth()
-			[
-				SNew(SButton)
-				.OnClicked(this, &FComponentTransformDetails::OnScaleResetClicked)
-				.Visibility(this, &FComponentTransformDetails::GetScaleResetVisibility)
-				.ContentPadding(FMargin(5.f, 0.f))
-				.ToolTipText(LOCTEXT("ResetToDefaultToolTip", "Reset to Default"))
-				.ButtonStyle( FEditorStyle::Get(), "NoBorder" )
-				.Content()
-				[
-					SNew(SImage)
-					.Image( FEditorStyle::GetBrush("PropertyWindow.DiffersFromDefault") )
-				]
-			]
+			SNew(SVectorInputBox)
+			.X( this, &FComponentTransformDetails::GetScaleX )
+			.Y( this, &FComponentTransformDetails::GetScaleY )
+			.Z( this, &FComponentTransformDetails::GetScaleZ )
+			.bColorAxisLabels( true )
+			.IsEnabled( this, &FComponentTransformDetails::GetIsEnabled )
+			.OnXChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Scale, EAxisList::X, false )
+			.OnYChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Scale, EAxisList::Y, false )
+			.OnZChanged( this, &FComponentTransformDetails::OnSetTransformAxis, ETextCommit::Default, ETransformField::Scale, EAxisList::Z, false )
+			.OnXCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Scale, EAxisList::X, true )
+			.OnYCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Scale, EAxisList::Y, true )
+			.OnZCommitted( this, &FComponentTransformDetails::OnSetTransformAxis, ETransformField::Scale, EAxisList::Z, true )
+			.Font( FontInfo )
+			.AllowSpin( SelectedObjects.Num() == 1 )
+			.SpinDelta( 0.0025f )
+			.OnBeginSliderMovement( this, &FComponentTransformDetails::OnBeginScaleSlider )
+			.OnEndSliderMovement(this, &FComponentTransformDetails::OnEndScaleSlider)
 		];
 	}
 }
@@ -473,6 +428,24 @@ void FComponentTransformDetails::CacheCommonLocationUnits()
 	SetupFixedDisplay(LargestValue);
 }
 
+TSharedPtr<IPropertyHandle> FComponentTransformDetails::GeneratePropertyHandle(FName PropertyName, IDetailChildrenBuilder& ChildrenBuilder)
+{
+	// Try finding the property handle in the details panel's property map first.
+	IDetailLayoutBuilder& LayoutBuilder = ChildrenBuilder.GetParentCategory().GetParentLayout();
+	TSharedPtr<IPropertyHandle> PropertyHandle = LayoutBuilder.GetProperty(PropertyName, USceneComponent::StaticClass());
+	if (!PropertyHandle || !PropertyHandle->IsValidHandle())
+	{
+		// If it wasn't found, add a collapsed row which contains the property node.
+		TArray<UObject*> SceneComponents;
+		Algo::Transform(SelectedObjects, SceneComponents, [](TWeakObjectPtr<UObject> Obj) { return GetSceneComponentFromDetailsObject(Obj.Get()); });
+		PropertyHandle = LayoutBuilder.AddObjectPropertyData(SceneComponents, PropertyName);
+		//CachedHandlesObjects.Append(SceneComponents);
+	}
+
+	//PropertyHandles.Add(PropertyHandle);
+	return PropertyHandle;
+}
+
 bool FComponentTransformDetails::GetIsEnabled() const
 {
 	return !GEditor->HasLockedActors() || SelectedActorInfo.NumSelected == 0;
@@ -480,7 +453,7 @@ bool FComponentTransformDetails::GetIsEnabled() const
 
 const FSlateBrush* FComponentTransformDetails::GetPreserveScaleRatioImage() const
 {
-	return bPreserveScaleRatio ? FEditorStyle::GetBrush( TEXT("GenericLock") ) : FEditorStyle::GetBrush( TEXT("GenericUnlock") ) ;
+	return bPreserveScaleRatio ? FEditorStyle::GetBrush(TEXT("Icons.Lock")) : FEditorStyle::GetBrush(TEXT("Icons.Unlock"));
 }
 
 ECheckBoxState FComponentTransformDetails::IsPreserveScaleRatioChecked() const
@@ -494,10 +467,10 @@ void FComponentTransformDetails::OnPreserveScaleRatioToggled( ECheckBoxState New
 	GConfig->SetBool(TEXT("SelectionDetails"), TEXT("PreserveScaleRatio"), bPreserveScaleRatio, GEditorPerProjectIni);
 }
 
-EVisibility FComponentTransformDetails::GetLocationResetVisibility() const
+bool FComponentTransformDetails::GetLocationResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
-	if (!IsValid(Archetype))return EVisibility::Hidden;
+	if (!IsValid(Archetype))return false;
 	FVector targetLocation = FVector::ZeroVector;
 	if (!IsLocationXEnable())
 	{
@@ -511,16 +484,16 @@ EVisibility FComponentTransformDetails::GetLocationResetVisibility() const
 	{
 		targetLocation.Z = Archetype->GetRelativeLocation().Z;
 	}
-	return Archetype->GetRelativeLocation() != targetLocation ? EVisibility::Visible : EVisibility::Hidden;
+	return Archetype->GetRelativeLocation() != targetLocation;
 }
 
-FReply FComponentTransformDetails::OnLocationResetClicked()
+void FComponentTransformDetails::OnLocationResetClicked()
 {
 	const FText TransactionName = LOCTEXT("ResetLocation", "Reset Location");
 	FScopedTransaction Transaction(TransactionName);
 
 	UUIItem* Archetype = SelectedObjects[0].Get();
-	if (!IsValid(Archetype))return FReply::Handled();
+	if (!IsValid(Archetype))return;
 	FVector targetLocation = FVector::ZeroVector;
 	if (!IsLocationXEnable())
 	{
@@ -536,48 +509,42 @@ FReply FComponentTransformDetails::OnLocationResetClicked()
 	}
 
 	OnSetTransform(ETransformField::Location, EAxisList::All, targetLocation, false);
-
-	return FReply::Handled();
 }
 
-EVisibility FComponentTransformDetails::GetRotationResetVisibility() const
+bool FComponentTransformDetails::GetRotationResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
-	if (!IsValid(Archetype))return EVisibility::Hidden;
-	return Archetype->GetRelativeRotation().Euler() != FVector::ZeroVector ? EVisibility::Visible : EVisibility::Hidden;
+	if (!IsValid(Archetype))return false;
+	return Archetype->GetRelativeRotation().Euler() != FVector::ZeroVector;
 }
 
-FReply FComponentTransformDetails::OnRotationResetClicked()
+void FComponentTransformDetails::OnRotationResetClicked()
 {
 	const FText TransactionName = LOCTEXT("ResetRotation", "Reset Rotation");
 	FScopedTransaction Transaction(TransactionName);
 
 	UUIItem* Archetype = SelectedObjects[0].Get();
-	if (!IsValid(Archetype))return FReply::Handled();
+	if (!IsValid(Archetype))return;
 
 	OnSetTransform(ETransformField::Rotation, EAxisList::All, FVector::ZeroVector, false);
-
-	return FReply::Handled();
 }
 
-EVisibility FComponentTransformDetails::GetScaleResetVisibility() const
+bool FComponentTransformDetails::GetScaleResetVisibility() const
 {
 	const USceneComponent* Archetype = SelectedObjects[0].Get();
-	if (!IsValid(Archetype))return EVisibility::Hidden;
-	return Archetype->GetRelativeScale3D() != FVector::OneVector ? EVisibility::Visible : EVisibility::Hidden;
+	if (!IsValid(Archetype))return false;
+	return Archetype->GetRelativeScale3D() != FVector::OneVector;
 }
 
-FReply FComponentTransformDetails::OnScaleResetClicked()
+void FComponentTransformDetails::OnScaleResetClicked()
 {
 	const FText TransactionName = LOCTEXT("ResetScale", "Reset Scale");
 	FScopedTransaction Transaction(TransactionName);
 
 	UUIItem* Archetype = SelectedObjects[0].Get();
-	if (!IsValid(Archetype))return FReply::Handled();
+	if (!IsValid(Archetype))return;
 
 	OnSetTransform(ETransformField::Scale, EAxisList::All, FVector(1.0f), false);
-
-	return FReply::Handled();
 }
 
 void FComponentTransformDetails::CacheTransform()
@@ -1060,40 +1027,37 @@ void FComponentTransformDetails::OnSetTransformAxis(float NewValue, ETextCommit:
 	}
 }
 
-void FComponentTransformDetails::OnBeginRotatonSlider()
+void FComponentTransformDetails::BeginSliderTransaction(FText ActorTransaction, FText ComponentTransaction) const
 {
-	bEditingRotationInUI = true;
-
 	bool bBeganTransaction = false;
-	for( int32 ObjectIndex = 0; ObjectIndex < SelectedObjects.Num(); ++ObjectIndex )
+	for (TWeakObjectPtr<UObject> ObjectPtr : SelectedObjects)
 	{
-		TWeakObjectPtr<UUIItem> ObjectPtr = SelectedObjects[ObjectIndex];
-		if( ObjectPtr.IsValid() )
+		if (ObjectPtr.IsValid())
 		{
-			UUIItem* Object = ObjectPtr.Get();
+			UObject* Object = ObjectPtr.Get();
 
-			// Start a new transation when a rotator slider begins to change
-			// We'll end it when the slider is release
+			// Start a new transaction when a slider begins to change
+			// We'll end it when the slider is released
 			// NOTE: One transaction per change, not per actor
-			if(!bBeganTransaction)
+			if (!bBeganTransaction)
 			{
-				if(Object->IsA<AActor>())
+				if (Object->IsA<AActor>())
 				{
-					GEditor->BeginTransaction( LOCTEXT( "OnSetRotation", "Set Rotation" ) );
+					GEditor->BeginTransaction(ActorTransaction);
 				}
 				else
 				{
-					GEditor->BeginTransaction( LOCTEXT( "OnSetRotation_ComponentDirect", "Modify Component(s)") );
+					GEditor->BeginTransaction(ComponentTransaction);
 				}
 
 				bBeganTransaction = true;
 			}
 
-			USceneComponent* SceneComponent = Object;
-			if( SceneComponent )
+			USceneComponent* SceneComponent = GetSceneComponentFromDetailsObject(Object);
+			if (SceneComponent)
 			{
-				FScopedSwitchWorldForObject WorldSwitcher( Object );
-				
+				FScopedSwitchWorldForObject WorldSwitcher(Object);
+
 				if (SceneComponent->HasAnyFlags(RF_DefaultSubObject))
 				{
 					// Default subobjects must be included in any undo/redo operations
@@ -1102,24 +1066,82 @@ void FComponentTransformDetails::OnBeginRotatonSlider()
 
 				// Call modify but not PreEdit, we don't do the proper "Edit" until it's committed
 				SceneComponent->Modify();
+			}
+		}
+	}
+
+	// Just in case we couldn't start a new transaction for some reason
+	if (!bBeganTransaction)
+	{
+		GEditor->BeginTransaction(ActorTransaction);
+	}
+}
+
+void FComponentTransformDetails::OnBeginRotationSlider()
+{
+	FText ActorTransaction = LOCTEXT("OnSetRotation", "Set Rotation");
+	FText ComponentTransaction = LOCTEXT("OnSetRotation_ComponentDirect", "Modify Component(s)");
+	BeginSliderTransaction(ActorTransaction, ComponentTransaction);
+	
+	bEditingRotationInUI = true;
+	bIsSliderTransaction = true;
+
+	for (TWeakObjectPtr<UObject> ObjectPtr : SelectedObjects)
+	{
+		if (ObjectPtr.IsValid())
+		{
+			UObject* Object = ObjectPtr.Get();
+
+			USceneComponent* SceneComponent = GetSceneComponentFromDetailsObject(Object);
+			if (SceneComponent)
+			{
+				FScopedSwitchWorldForObject WorldSwitcher(Object);
 
 				// Add/update cached rotation value prior to slider interaction
 				ObjectToRelativeRotationMap.FindOrAdd(SceneComponent) = SceneComponent->GetRelativeRotation();
 			}
 		}
 	}
-
-	// Just in case we couldn't start a new transaction for some reason
-	if(!bBeganTransaction)
-	{
-		GEditor->BeginTransaction( LOCTEXT( "OnSetRotation", "Set Rotation" ) );
-	}	
 }
 
 void FComponentTransformDetails::OnEndRotationSlider(float NewValue)
 {
 	// Commit gets called right before this, only need to end the transaction
 	bEditingRotationInUI = false;
+	bIsSliderTransaction = false;
+	GEditor->EndTransaction();
+}
+
+void FComponentTransformDetails::OnBeginLocationSlider()
+{
+	bIsSliderTransaction = true;
+	FText ActorTransaction = LOCTEXT("OnSetLocation", "Set Location");
+	FText ComponentTransaction = LOCTEXT("OnSetLocation_ComponentDirect", "Modify Component Location");
+	BeginSliderTransaction(ActorTransaction, ComponentTransaction);
+}
+
+void FComponentTransformDetails::OnEndLocationSlider(float NewValue)
+{
+	bIsSliderTransaction = false;
+	GEditor->EndTransaction();
+}
+
+void FComponentTransformDetails::OnBeginScaleSlider()
+{
+	// Assumption: slider isn't usable if multiple objects are selected
+	//SliderScaleRatio.X = CachedScale.X.GetValue();
+	//SliderScaleRatio.Y = CachedScale.Y.GetValue();
+	//SliderScaleRatio.Z = CachedScale.Z.GetValue();
+
+	bIsSliderTransaction = true;
+	FText ActorTransaction = LOCTEXT("OnSetScale", "Set Scale");
+	FText ComponentTransaction = LOCTEXT("OnSetScale_ComponentDirect", "Modify Component Scale");
+	BeginSliderTransaction(ActorTransaction, ComponentTransaction);
+}
+
+void FComponentTransformDetails::OnEndScaleSlider(float NewValue)
+{
+	bIsSliderTransaction = false;
 	GEditor->EndTransaction();
 }
 

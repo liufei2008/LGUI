@@ -77,14 +77,33 @@ private:
 	void OnSetTransformAxis(float NewValue, ETextCommit::Type CommitInfo, ETransformField::Type TransformField, EAxisList::Type Axis, bool bCommitted);
 
 	/**
+	 * Helper to begin a new transaction for a slider interaction.
+	 * @param ActorTransaction		The name to give the transaction when changing an actor transform.
+	 * @param ComponentTransaction	The name to give the transaction when directly editing a component transform.
+	 */
+	void BeginSliderTransaction(FText ActorTransaction, FText ComponentTransaction) const;
+
+	/**
 	 * Called when the one of the axis sliders for object rotation begins to change for the first time 
 	 */
-	void OnBeginRotatonSlider();
+	void OnBeginRotationSlider();
 
 	/**
 	 * Called when the one of the axis sliders for object rotation is released
 	 */
 	void OnEndRotationSlider(float NewValue);
+
+	/** Called when one of the axis sliders for object location begins to change */
+	void OnBeginLocationSlider();
+
+	/** Called when one of the axis sliders for object location is released */
+	void OnEndLocationSlider(float NewValue);
+
+	/** Called when one of the axis sliders for object scale begins to change */
+	void OnBeginScaleSlider();
+
+	/** Called when one of the axis sliders for object scale is released */
+	void OnEndScaleSlider(float NewValue);
 
 	/** @return Icon to use in the preserve scale ratio check box */
 	const FSlateBrush* GetPreserveScaleRatioImage() const;
@@ -133,13 +152,13 @@ private:
 	FUIAction CreatePasteAction( ETransformField::Type TransformField );
 
 	/** Called when the "Reset to Default" button for the location has been clicked */
-	FReply OnLocationResetClicked();
+	void OnLocationResetClicked();
 
 	/** Called when the "Reset to Default" button for the rotation has been clicked */
-	FReply OnRotationResetClicked();
+	void OnRotationResetClicked();
 
 	/** Called when the "Reset to Default" button for the scale has been clicked */
-	FReply OnScaleResetClicked();
+	void OnScaleResetClicked();
 
 	/** @return The X component of location */
 	TOptional<float> GetLocationX() const { return CachedLocation.X; }
@@ -148,7 +167,7 @@ private:
 	/** @return The Z component of location */
 	TOptional<float> GetLocationZ() const { return CachedLocation.Z; }
 	/** @return The visibility of the "Reset to Default" button for the location component */
-	EVisibility GetLocationResetVisibility() const;
+	bool GetLocationResetVisibility() const;
 
 	/** @return The X component of rotation */
 	TOptional<float> GetRotationX() const { return CachedRotation.X; }
@@ -157,7 +176,7 @@ private:
 	/** @return The Z component of rotation */
 	TOptional<float> GetRotationZ() const { return CachedRotation.Z; }
 	/** @return The visibility of the "Reset to Default" button for the rotation component */
-	EVisibility GetRotationResetVisibility() const;
+	bool GetRotationResetVisibility() const;
 
 	/** @return The X component of scale */
 	TOptional<float> GetScaleX() const { return CachedScale.X; }
@@ -166,11 +185,13 @@ private:
 	/** @return The Z component of scale */
 	TOptional<float> GetScaleZ() const { return CachedScale.Z; }
 	/** @return The visibility of the "Reset to Default" button for the scale component */
-	EVisibility GetScaleResetVisibility() const;
+	bool GetScaleResetVisibility() const;
 
 	/** Cache a single unit to display all location comonents in */
 	void CacheCommonLocationUnits();
 
+	/** Generate a property handle from a property name. */
+	TSharedPtr<IPropertyHandle> GeneratePropertyHandle(FName PropertyName, IDetailChildrenBuilder& ChildrenBuilder);
 private:
 	/** A vector where it may optionally be unset */
 	struct FOptionalVector
@@ -224,4 +245,6 @@ private:
 	TMap< UObject*, FRotator > ObjectToRelativeRotationMap;
 	/** Flag to indicate we are currently editing the rotation in the UI, so we should rely on the cached value in objectToRelativeRotationMap, not the value from the object */
 	bool bEditingRotationInUI;
+	/** Flag to indicate we are currently performing a slider transaction */
+	bool bIsSliderTransaction;
 };
