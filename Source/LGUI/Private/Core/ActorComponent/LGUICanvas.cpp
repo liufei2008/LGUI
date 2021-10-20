@@ -1509,14 +1509,62 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 	return meshOrPostProcessCount;
 }
 
-//@todo: These parameter names should have "LGUI_" prefix
 FName ULGUICanvas::LGUI_MainTextureMaterialParameterName = FName(TEXT("MainTexture"));
 FName ULGUICanvas::LGUI_RectClipOffsetAndSize_MaterialParameterName = FName(TEXT("RectClipOffsetAndSize"));
 FName ULGUICanvas::LGUI_RectClipFeather_MaterialParameterName = FName(TEXT("RectClipFeather"));
 FName ULGUICanvas::LGUI_TextureClip_MaterialParameterName = FName(TEXT("ClipTexture"));
 FName ULGUICanvas::LGUI_TextureClipOffsetAndSize_MaterialParameterName = FName(TEXT("TextureClipOffsetAndSize"));
-#define LGUI_CHECK_MATERIAL_BEFORE_CREATE 0
 
+bool ULGUICanvas::IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial)
+{
+	static TArray<FMaterialParameterInfo> parameterInfos;
+	static TArray<FGuid> parameterIds;
+	auto tempClipType = this->GetActualClipType();
+	InMaterial->GetAllTextureParameterInfo(parameterInfos, parameterIds);
+	int mainTextureParamIndex = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
+		{
+			return item.Name == LGUI_MainTextureMaterialParameterName;
+		});
+	bool containsLGUIParam = mainTextureParamIndex != INDEX_NONE;
+	if (!containsLGUIParam)
+	{
+		switch (tempClipType)
+		{
+		case ELGUICanvasClipType::Rect:
+		{
+			InMaterial->GetAllVectorParameterInfo(parameterInfos, parameterIds);
+			int foundIndex = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
+				{
+					return item.Name == LGUI_RectClipFeather_MaterialParameterName || item.Name == LGUI_RectClipOffsetAndSize_MaterialParameterName;
+				});
+			containsLGUIParam = foundIndex != INDEX_NONE;
+		}
+		break;
+		case ELGUICanvasClipType::Texture:
+		{
+			int foundIndex1 = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
+				{
+					return item.Name == LGUI_TextureClip_MaterialParameterName;
+				});
+			if (foundIndex1 == INDEX_NONE)
+			{
+				InMaterial->GetAllVectorParameterInfo(parameterInfos, parameterIds);
+				int foundIndex2 = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
+					{
+						return item.Name == LGUI_TextureClipOffsetAndSize_MaterialParameterName;
+					});
+				containsLGUIParam = foundIndex2 != INDEX_NONE;
+			}
+			else
+			{
+				containsLGUIParam = true;
+			}
+		}
+		break;
+		}
+	}
+	return containsLGUIParam;
+}
 void ULGUICanvas::UpdateAndApplyMaterial()
 {
 	auto tempClipType = GetActualClipType();
@@ -1534,71 +1582,26 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 					auto SrcMaterial = drawcallItem->material.Get();
 					if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
 					{
-						uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
-						drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
+						auto containsLGUIParam = IsMaterialContainsLGUIParameter(SrcMaterial);
+						if (containsLGUIParam)
+						{
+							uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
+						}
+						drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), SrcMaterial);
 					}
 					else
 					{
-#if LGUI_CHECK_MATERIAL_BEFORE_CREATE
-						static TArray<FMaterialParameterInfo> parameterInfos;
-						static TArray<FGuid> parameterIds;
-						SrcMaterial->GetAllTextureParameterInfo(parameterInfos, parameterIds);
-						int mainTextureParamIndex = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
-							{
-								return item.Name == LGUI_MainTextureMaterialParameterName;
-							});
-						bool containsLGUIParam = mainTextureParamIndex != INDEX_NONE;
-						if (!containsLGUIParam)
-						{
-							switch (clipType)
-							{
-							case ELGUICanvasClipType::Rect:
-							{
-								SrcMaterial->GetAllVectorParameterInfo(parameterInfos, parameterIds);
-								int foundIndex = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
-									{
-										return item.Name == LGUI_RectClipFeather_MaterialParameterName || item.Name == LGUI_RectClipOffsetAndSize_MaterialParameterName;
-									});
-								containsLGUIParam = foundIndex != INDEX_NONE;
-							}
-							break;
-							case ELGUICanvasClipType::Texture:
-							{
-								int foundIndex1 = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
-									{
-										return item.Name == LGUI_TextureClip_MaterialParameterName;
-									});
-								if (foundIndex1 == INDEX_NONE)
-								{
-									SrcMaterial->GetAllVectorParameterInfo(parameterInfos, parameterIds);
-									int foundIndex2 = parameterInfos.IndexOfByPredicate([](const FMaterialParameterInfo& item)
-										{
-											return item.Name == LGUI_TextureClipOffsetAndSize_MaterialParameterName;
-										});
-									containsLGUIParam = foundIndex2 != INDEX_NONE;
-								}
-								else
-								{
-									containsLGUIParam = true;
-								}
-							}
-							break;
-							}
-						}
-						
+						auto containsLGUIParam = IsMaterialContainsLGUIParameter(SrcMaterial);
 						if (containsLGUIParam)
-#endif
 						{
 							uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 							uiMat->SetFlags(RF_Transient);
 							drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
 						}
-#if LGUI_CHECK_MATERIAL_BEFORE_CREATE
 						else
 						{
 							drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), SrcMaterial);
 						}
-#endif
 					}
 				}
 				else
