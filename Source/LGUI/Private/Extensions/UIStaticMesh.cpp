@@ -231,7 +231,7 @@ void UUIStaticMesh::UpdateMeshTransform()
 	FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
 
 
-	FStaticMeshVertexBuffers& vertexBuffers = mesh->RenderData->LODResources[0].VertexBuffers;
+	FStaticMeshVertexBuffers& vertexBuffers = mesh->GetRenderData()->LODResources[0].VertexBuffers;
 	auto numVertices = (int32)vertexBuffers.PositionVertexBuffer.GetNumVertices();
 	FPositionVertexBuffer& positionBuffer = vertexBuffers.PositionVertexBuffer;
 	FStaticMeshVertexBuffer& staticMeshVertexBuffer = vertexBuffers.StaticMeshVertexBuffer;
