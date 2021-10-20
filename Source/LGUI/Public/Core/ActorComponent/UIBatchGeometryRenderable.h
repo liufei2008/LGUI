@@ -32,7 +32,7 @@ protected:
 	bool HaveGeometryModifier();
 	/** 
 	 * use GeometryModifier to modify geometry 
-	 * return: true if the modifier change the triangle count, else false
+	 * @return	true if the modifier change the triangle count, else false
 	 */
 	bool ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged);
 	TInlineComponentArray<class UUIGeometryModifierBase*> GeometryModifierComponentArray;
@@ -52,8 +52,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRaycastComplex(bool newValue) { bRaycastComplex = newValue; }
 	/** 
-	 * if CustomUIMaterial is a UMaterialInstanceDynamic, then will return it directly.
-	 * if not, then return a created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr
+	 * If CustomUIMaterial is a UMaterialInstanceDynamic, then will return it directly.
+	 * If not, then return a created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr.
+	 * LGUI only create MaterialInstanceDynamic when specified material have one of these LGUI material parameter: [MainTexture, RectClipOffsetAndSize, RectClipFeather, ClipTexture, TextureClipOffsetAndSize].
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic()const;

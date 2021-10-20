@@ -431,6 +431,7 @@ public:
 	static FName LGUI_RectClipFeather_MaterialParameterName;
 	static FName LGUI_TextureClip_MaterialParameterName;
 	static FName LGUI_TextureClipOffsetAndSize_MaterialParameterName;
+	bool IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial);
 private:
 	void CombineDrawcall();
 	void ApplyOwnerSeeRecursive();
