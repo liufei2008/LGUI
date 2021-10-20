@@ -231,6 +231,13 @@ void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
 
 UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic()const
 {
+	if (IsValid(CustomUIMaterial))
+	{
+		if (CustomUIMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
+		{
+			return (UMaterialInstanceDynamic*)CustomUIMaterial;//if CustomUIMaterial is a MaterialInstanceDynamic then just return it directly
+		}
+	}
 	if (drawcall.IsValid())
 	{
 		return drawcall->materialInstanceDynamic.Get();
