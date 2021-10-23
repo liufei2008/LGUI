@@ -56,6 +56,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<UUIItem>> rootUIItems;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUILayoutBase>> allLayoutArray;
 	TArray<UUIItem*> tempUIItemArray;
 
@@ -79,6 +81,9 @@ public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
 	const TArray<UUIItem*>& GetAllUIItem();
+
+	static void AddRootUIItem(UUIItem* InItem);
+	static void RemoveRootUIItem(UUIItem* InItem);
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
@@ -159,6 +164,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUIItem*> allUIItem;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<UUIItem>> rootUIItems;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<ULGUIBaseRaycaster*> raycasterArray;
@@ -195,6 +202,9 @@ public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
 	const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
+
+	static void AddRootUIItem(UUIItem* InItem);
+	static void RemoveRootUIItem(UUIItem* InItem);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static void RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem);

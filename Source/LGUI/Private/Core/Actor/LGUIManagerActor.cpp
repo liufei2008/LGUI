@@ -92,6 +92,11 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			}
 		}
 	}
+
+	for (auto item : rootUIItems)
+	{
+		item->UpdateRootUIItemLayout();
+	}
 	
 	int ScreenSpaceOverlayCanvasCount = 0;
 	for (auto item : allCanvas)
@@ -109,13 +114,6 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 				}
 			}
 			item->PrepareUpdate();
-		}
-	}
-	for (auto item : allCanvas)
-	{
-		if (item.IsValid())
-		{
-			item->UpdateRootCanvasLayout();
 		}
 	}
 	for (auto item : allCanvas)
@@ -487,6 +485,21 @@ const TArray<UUIItem*>& ULGUIEditorManagerObject::GetAllUIItem()
 		}
 	}
 	return tempUIItemArray;
+}
+
+void ULGUIEditorManagerObject::AddRootUIItem(UUIItem* InItem)
+{
+	if (GetInstance(InItem->GetWorld(), true))
+	{
+		Instance->rootUIItems.AddUnique(InItem);
+	}
+}
+void ULGUIEditorManagerObject::RemoveRootUIItem(UUIItem* InItem)
+{
+	if (Instance != nullptr)
+	{
+		Instance->rootUIItems.RemoveSingle(InItem);
+	}
 }
 
 void ULGUIEditorManagerObject::AddLayout(UUILayoutBase* InLayout)
@@ -1066,6 +1079,7 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 }
 
 DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayout"), STAT_UIItemUpdateLayout, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	//editor draw helper frame
@@ -1324,6 +1338,21 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 	}
 }
 
+void ALGUIManagerActor::AddRootUIItem(UUIItem* InItem)
+{
+	if (auto Instance = GetInstance(InItem->GetWorld(), true))
+	{
+		Instance->rootUIItems.AddUnique(InItem);
+	}
+}
+void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
+{
+	if (auto Instance = GetInstance(InItem->GetWorld()))
+	{
+		Instance->rootUIItems.RemoveSingle(InItem);
+	}
+}
+
 void ALGUIManagerActor::RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
@@ -1341,6 +1370,8 @@ void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUI
 
 void ALGUIManagerActor::UpdateLayout()
 {
+	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayout);
+
 	//update Layout
 	for (auto item : allLayoutArray)
 	{
@@ -1353,19 +1384,17 @@ void ALGUIManagerActor::UpdateLayout()
 		}
 	}
 
-	for (auto item : allCanvas)
+
+	for (auto item : rootUIItems)
 	{
-		if (item.IsValid())
-		{
-			item->PrepareUpdate();
-		}
+		item->UpdateRootUIItemLayout();
 	}
 
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
 		{
-			item->UpdateRootCanvasLayout();
+			item->PrepareUpdate();
 		}
 	}
 
