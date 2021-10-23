@@ -26,10 +26,7 @@ UUIBatchGeometryRenderable::UUIBatchGeometryRenderable(const FObjectInitializer&
 void UUIBatchGeometryRenderable::BeginPlay()
 {
 	Super::BeginPlay();
-	if (CheckRenderCanvas())
-	{
-		RenderCanvas->MarkCanvasUpdate();
-	}
+	MarkCanvasUpdate();
 
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
@@ -298,7 +295,7 @@ void UUIBatchGeometryRenderable::UpdateLayout(bool& parentLayoutChanged, bool sh
 	if (!cacheForThisUpdate_LocalVertexPositionChanged)
 	{
 		if (parentLayoutChanged
-			&& RenderCanvas->GetActualPixelPerfect()//@todo: review this line, is this necessary? (old commit: fix pixel perfect update.)
+			&& (RenderCanvas.IsValid() && RenderCanvas->GetActualPixelPerfect())//@todo: review this line, is this necessary? (old commit: fix pixel perfect update.)
 			)
 		{
 			cacheForThisUpdate_LocalVertexPositionChanged = true;

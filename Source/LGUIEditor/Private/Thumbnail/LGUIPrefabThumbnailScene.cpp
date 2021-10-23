@@ -57,7 +57,6 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 				rootCanvas->MarkCanvasUpdate();
 
 				rootCanvas->PrepareUpdate();
-				rootCanvas->UpdateRootCanvasLayout();
 				rootCanvas->UpdateRootCanvasGeometry();
 				rootCanvas->UpdateRootCanvasDrawcall();
 
@@ -71,7 +70,6 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 				rootCanvas->MarkCanvasUpdate();
 
 				rootCanvas->PrepareUpdate();
-				rootCanvas->UpdateRootCanvasLayout();
 				rootCanvas->UpdateRootCanvasGeometry();
 				rootCanvas->UpdateRootCanvasDrawcall();
 

@@ -46,8 +46,8 @@ void UUIText::ApplyFontTextureScaleUp()
 			drawcall->texture = geometry->texture;
 			drawcall->textureChanged = true;
 		}
-		RenderCanvas->MarkCanvasUpdate();
 	}
+	MarkCanvasUpdate();
 }
 
 void UUIText::ApplyFontTextureChange()
@@ -381,7 +381,7 @@ void UUIText::SetText(const FText& newText) {
 	{
 		text = newText;
 
-		if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+		MarkCanvasUpdate();
 		cachedTextPropertyArray.Reset();
 		cacheCharPropertyArray.Reset();
 

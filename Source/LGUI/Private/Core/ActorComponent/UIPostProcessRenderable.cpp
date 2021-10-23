@@ -20,10 +20,7 @@ UUIPostProcessRenderable::UUIPostProcessRenderable(const FObjectInitializer& Obj
 void UUIPostProcessRenderable::BeginPlay()
 {
 	Super::BeginPlay();
-	if (CheckRenderCanvas())
-	{
-		RenderCanvas->MarkCanvasUpdate();
-	}
+	MarkCanvasUpdate();
 
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
@@ -79,12 +76,12 @@ void UUIPostProcessRenderable::PivotChanged()
 void UUIPostProcessRenderable::MarkVertexPositionDirty()
 {
 	bLocalVertexPositionChanged = true;
-	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+	MarkCanvasUpdate();
 }
 void UUIPostProcessRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
-	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+	MarkCanvasUpdate();
 }
 
 void UUIPostProcessRenderable::UpdateCachedData()

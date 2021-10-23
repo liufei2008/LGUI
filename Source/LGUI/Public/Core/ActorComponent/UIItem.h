@@ -37,7 +37,7 @@ public:
 	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditComponentMove(bool bFinished) override;
-	/** USceneComponent Interface.Only needed for show rect range in editor */
+	/** USceneComponent Interface. Only needed for show rect range in editor */
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	/** update UI immediately in edit mode */
 	virtual void EditorForceUpdateImmediately();
@@ -102,13 +102,6 @@ private:
 	FORCEINLINE bool CalculateHorizontalAnchorAndSizeFromStretch();
 	/** @return		true if size changed, else false */
 	FORCEINLINE bool CalculateVerticalAnchorAndSizeFromStretch();
-#pragma region LayoutChangeCallback
-private:
-	FSimpleMulticastDelegate layoutChangeCallback;
-public:
-	void RegisterLayoutChange(const FSimpleDelegate& InDelegate);
-	void UnregisterLayoutChange(const FSimpleDelegate& InDelegate);
-#pragma endregion LayoutChangeCallback
 public:
 	/** update layout */
 	virtual void UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout);
@@ -120,6 +113,11 @@ protected:
 	/** called when attach to a new RenderCanvas. */
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
 
+	/** Called when a new LGUICanvas is registerred on self/parent's actor */
+	void RegisterRenderCanvas();
+	/** Called when LGUICanvas is unregisterred on self/parent's actor */
+	void UnregisterRenderCanvas();
+
 protected:
 	/** widget contains rect transform and color */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
@@ -128,6 +126,8 @@ protected:
 	float calculatedParentAlpha = 1.0f;
 	/** parent in hierarchy */
 	mutable TWeakObjectPtr<UUIItem> ParentUIItem = nullptr;
+	/** root in hierarchy */
+	mutable TWeakObjectPtr<UUIItem> RootUIItem = nullptr;
 	/** UI children array, sorted by hierarchy index */
 	UPROPERTY(Transient) TArray<UUIItem*> UIChildren;
 	/** check valid, incase unnormally deleting actor, like undo */
@@ -337,7 +337,7 @@ public:
 
 #pragma region HierarchyIndex
 protected:
-	/** hierarchy index, for layout to sort order */
+	/** hierarchy index */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 hierarchyIndex = INDEX_NONE;
 	int32 flattenHierarchyIndex = 0;
@@ -432,7 +432,7 @@ public:
 	/** get UI element type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UIItemType GetUIItemType()const { return itemType; }
-	bool IsCanvasUIItem() { return isCanvasUIItem; }
+	bool IsCanvasUIItem() { return bIsCanvasUIItem; }
 protected:
 	friend class FUIItemCustomization;
 	friend class ULGUICanvas;
@@ -440,22 +440,33 @@ protected:
 	/** LGUICanvas which render this UI element */
 	mutable TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	/** is this UIItem's actor have LGUICanvas component */
-	mutable uint8 isCanvasUIItem:1;
-	uint8 bCanSetAnchorFromTransform : 1;
+	mutable uint16 bIsCanvasUIItem:1;
+	uint16 bCanSetAnchorFromTransform : 1;
 
-	uint8 bColorChanged:1;//vertex color chnaged
-	uint8 bLayoutChanged:1;//layout changed
-	uint8 bSizeChanged : 1;//rect size changed
+	uint16 bColorChanged:1;//vertex color chnaged
+	uint16 bLayoutChanged:1;//layout changed
+	uint16 bSizeChanged : 1;//rect size changed
+	uint16 bShouldUpdateLayout : 1;//if any child layout changed
 	/** update prev frame's data */
 	virtual void UpdateBasePrevData();
 
 	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
-	uint8 cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1;
+	uint16 cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1, cacheForThisUpdate_ShouldUpdateLayout:1;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 
 	/** find LGUICanvas which render this UI element */
 	bool CheckRenderCanvas()const;
+	/** find root UIItem of hierarchy */
+	void CheckRootUIItem();
+
+	/** mark any child's layout change, only for RootUIItem */
+	void MarkUpdateLayout();
+
+	void UpdateChildLayoutRecursive(UUIItem* target, bool parentLayoutChanged);
+public:
+	/** Called from LGUIManagerActor */
+	void UpdateRootUIItemLayout();
 public:
 	uint8 GetFinalAlpha()const;
 	float GetFinalAlpha01()const;
