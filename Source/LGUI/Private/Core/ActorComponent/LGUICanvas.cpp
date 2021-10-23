@@ -30,7 +30,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Math/TransformCalculus2D.h"
 
-PRAGMA_DISABLE_OPTIMIZATION
+//PRAGMA_DISABLE_OPTIMIZATION
 
 ULGUICanvas::ULGUICanvas()
 {
@@ -2752,4 +2752,4 @@ void ULGUICanvas::GetMinMax(float a, float b, float c, float d, float& min, floa
 }
 #endif
 
-PRAGMA_ENABLE_OPTIMIZATION
+//PRAGMA_ENABLE_OPTIMIZATION

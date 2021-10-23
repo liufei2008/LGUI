@@ -194,6 +194,9 @@ void UUIBatchGeometryRenderable::UpdateCachedData()
 	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
 	cacheForThisUpdate_UVChanged = bUVChanged;
 	cacheForThisUpdate_TriangleChanged = bTriangleChanged;
+	bLocalVertexPositionChanged = false;
+	bUVChanged = false;
+	bTriangleChanged = false;
 	Super::UpdateCachedData();
 }
 void UUIBatchGeometryRenderable::UpdateCachedDataBeforeGeometry()
@@ -202,13 +205,6 @@ void UUIBatchGeometryRenderable::UpdateCachedDataBeforeGeometry()
 	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
 	if (bTriangleChanged)cacheForThisUpdate_TriangleChanged = true;
 	Super::UpdateCachedDataBeforeGeometry();
-}
-void UUIBatchGeometryRenderable::UpdateBasePrevData()
-{
-	bLocalVertexPositionChanged = false;
-	bUVChanged = false;
-	bTriangleChanged = false;
-	Super::UpdateBasePrevData();
 }
 void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
 {
