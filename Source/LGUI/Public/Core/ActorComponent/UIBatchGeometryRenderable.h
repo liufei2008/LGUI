@@ -73,7 +73,6 @@ public:
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);
 
-	virtual void UpdateBasePrevData()override;
 	virtual void UpdateCachedData()override;
 	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;

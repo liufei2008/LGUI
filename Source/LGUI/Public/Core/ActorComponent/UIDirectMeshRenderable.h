@@ -38,7 +38,6 @@ protected:
 
 	void MarkVertexPositionDirty();
 
-	virtual void UpdateBasePrevData()override;
 	virtual void UpdateCachedData()override;
 	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;

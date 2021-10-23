@@ -54,17 +54,13 @@ void UUIDirectMeshRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGU
 void UUIDirectMeshRenderable::UpdateCachedData()
 {
 	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
+	bLocalVertexPositionChanged = false;
 	Super::UpdateCachedData();
 }
 void UUIDirectMeshRenderable::UpdateCachedDataBeforeGeometry()
 {
 	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
 	Super::UpdateCachedDataBeforeGeometry();
-}
-void UUIDirectMeshRenderable::UpdateBasePrevData()
-{
-	bLocalVertexPositionChanged = false;
-	Super::UpdateBasePrevData();
 }
 void UUIDirectMeshRenderable::MarkAllDirtyRecursive()
 {
