@@ -88,6 +88,8 @@ void UUIPostProcessRenderable::UpdateCachedData()
 {
 	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
 	cacheForThisUpdate_UVChanged = bUVChanged;
+	bLocalVertexPositionChanged = false;
+	bUVChanged = false;
 	Super::UpdateCachedData();
 }
 void UUIPostProcessRenderable::UpdateCachedDataBeforeGeometry()
@@ -96,12 +98,7 @@ void UUIPostProcessRenderable::UpdateCachedDataBeforeGeometry()
 	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
 	Super::UpdateCachedDataBeforeGeometry();
 }
-void UUIPostProcessRenderable::UpdateBasePrevData()
-{
-	bLocalVertexPositionChanged = false;
-	bUVChanged = false;
-	Super::UpdateBasePrevData();
-}
+
 void UUIPostProcessRenderable::MarkAllDirtyRecursive()
 {
 	bLocalVertexPositionChanged = true;

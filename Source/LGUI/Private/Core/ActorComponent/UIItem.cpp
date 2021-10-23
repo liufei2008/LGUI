@@ -1262,12 +1262,9 @@ void UUIItem::UpdateRootUIItemLayout()
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
 void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 {
-	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayoutAndGeometry);
 	UpdateCachedData();
-	UpdateBasePrevData();
 	//update layout
 	if (parentLayoutChanged == false)
 	{
@@ -1287,7 +1284,7 @@ void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 		bCanSetAnchorFromTransform = true;
 	}
 
-	//update cache data
+	//data may change after layout calculation, so check it again
 	UpdateCachedDataBeforeGeometry();
 }
 
@@ -1404,18 +1401,15 @@ void UUIItem::UpdateCachedData()
 	this->cacheForThisUpdate_ColorChanged = bColorChanged;
 	this->cacheForThisUpdate_LayoutChanged = bLayoutChanged;
 	this->cacheForThisUpdate_SizeChanged = bSizeChanged;
+	bColorChanged = false;
+	bLayoutChanged = false;
+	bSizeChanged = false;
 }
 void UUIItem::UpdateCachedDataBeforeGeometry()
 {
 	if (bColorChanged)cacheForThisUpdate_ColorChanged = true;
 	if (bLayoutChanged)cacheForThisUpdate_LayoutChanged = true;
 	if (bSizeChanged)cacheForThisUpdate_SizeChanged = true;
-}
-void UUIItem::UpdateBasePrevData()
-{
-	bColorChanged = false;
-	bLayoutChanged = false;
-	bSizeChanged = false;
 }
 
 void UUIItem::SetWidget(const FUIWidget& inWidget)

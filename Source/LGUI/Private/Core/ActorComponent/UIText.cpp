@@ -172,14 +172,6 @@ void UUIText::HeightChanged()
 	MarkVertexPositionDirty();
 	MarkUVDirty();
 }
-void UUIText::UpdateCachedData()
-{
-	Super::UpdateCachedData();
-}
-void UUIText::UpdateBasePrevData()
-{
-	Super::UpdateBasePrevData();
-}
 
 UTexture* UUIText::GetTextureToCreateGeometry()
 {

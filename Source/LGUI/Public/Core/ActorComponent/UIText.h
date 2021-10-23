@@ -237,8 +237,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichText(bool newRichText);
 
-	virtual void UpdateBasePrevData()override;
-	virtual void UpdateCachedData()override;
 	virtual void WidthChanged()override;
 	virtual void HeightChanged()override;
 #ifdef LGUI_DRAWCALLMODE_AUTO

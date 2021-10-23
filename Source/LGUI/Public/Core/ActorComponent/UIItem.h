@@ -447,8 +447,6 @@ protected:
 	uint16 bLayoutChanged:1;//layout changed
 	uint16 bSizeChanged : 1;//rect size changed
 	uint16 bShouldUpdateLayout : 1;//if any child layout changed
-	/** update prev frame's data */
-	virtual void UpdateBasePrevData();
 
 	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
 	uint16 cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1, cacheForThisUpdate_ShouldUpdateLayout:1;
