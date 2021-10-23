@@ -124,8 +124,6 @@ public:
 private:
 	/** canvas array belong to this canvas, include self. for update children's geometry */
 	TArray<TWeakObjectPtr<ULGUICanvas>> manageCanvasArray;
-	/** update canvas's layout */
-	void UpdateCanvasLayout(bool parentLayoutChanged);
 	/** update Canvas's geometry */
 	void UpdateCanvasGeometry();
 	/** update Canvas's drawcall */
@@ -134,10 +132,10 @@ private:
 	void ClearDrawcall();
 	void RemoveFromViewExtension();
 public:
+	/** update canvas's layout */
+	void UpdateCanvasLayout(bool layoutChanged);
 	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
-	/** mark any child's layout change */
-	void MarkCanvasUpdateLayout();
 
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
@@ -439,8 +437,6 @@ public:
 	/** Called from LGUIManagerActor */
 	void PrepareUpdate();
 	/** Called from LGUIManagerActor */
-	void UpdateRootCanvasLayout();
-	/** Called from LGUIManagerActor */
 	void UpdateRootCanvasGeometry();
 	/** Called from LGUIManagerActor */
 	void UpdateRootCanvasDrawcall();
@@ -451,7 +447,6 @@ private:
 	uint32 bTextureClipParameterChanged:1;
 
 	uint32 bCanTickUpdate:1;//if Canvas can update from tick
-	uint32 bShouldUpdateLayout:1;//if any child layout changed
 	uint32 bRectRangeCalculated:1;
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
@@ -462,11 +457,9 @@ private:
 	 */
 	uint32 bCurrentIsLGUIRendererOrUERenderer : 1;
 
-	uint32 cacheForThisUpdate_ShouldUpdateLayout:1
-		, cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
+	uint32 cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
 	uint32 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
 
-	uint32 cacheForThisUpdate_CanUpdateForLayout : 1;
 	uint32 cacheForThisUpdate_CanUpdateForGeometry : 1;
 	uint32 cacheForThisUpdate_CanUpdateForDrawcall : 1;
 
@@ -498,7 +491,6 @@ private:
 	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
 #endif
 private:
-	void UpdateChildLayoutRecursive(UUIItem* target, bool parentLayoutChanged);
 	void UpdateChildGeometryRecursive(UUIItem* target);
 	void UpdateAndApplyMaterial();
 	void SetParameterForStandard();

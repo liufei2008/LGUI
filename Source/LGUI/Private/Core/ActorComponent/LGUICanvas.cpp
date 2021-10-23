@@ -30,7 +30,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Math/TransformCalculus2D.h"
 
-//PRAGMA_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
 
 ULGUICanvas::ULGUICanvas()
 {
@@ -41,7 +41,6 @@ ULGUICanvas::ULGUICanvas()
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;
-	bShouldUpdateLayout = true;
 
 	bHasAddToLGUIScreenSpaceRenderer = false;
 	bHasAddToLGUIWorldSpaceRenderer = false;
@@ -66,7 +65,6 @@ void ULGUICanvas::BeginPlay()
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;	
-	bShouldUpdateLayout = true;
 	bNeedToSortRenderPriority = true;
 }
 void ULGUICanvas::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -85,23 +83,8 @@ void ULGUICanvas::PrepareUpdate()
 	{
 		bCanTickUpdate = false;
 
-		cacheForThisUpdate_CanUpdateForLayout = true;
 		cacheForThisUpdate_CanUpdateForGeometry = true;
 		cacheForThisUpdate_CanUpdateForDrawcall = true;
-	}
-}
-
-void ULGUICanvas::UpdateRootCanvasLayout()
-{
-	if (cacheForThisUpdate_CanUpdateForLayout)
-	{
-		cacheForThisUpdate_CanUpdateForLayout = false;
-		if (this != RootCanvas) return;
-
-		if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
-		{
-			UpdateCanvasLayout(false);
-		}
 	}
 }
 
@@ -179,11 +162,11 @@ void ULGUICanvas::OnRegister()
 			ALGUIManagerActor::AddCanvas(this);
 		}
 	}
-	//OnUIHierarchyChanged();
+	OnUIHierarchyChanged();
 	//tell UIItem
 	if (CheckUIItem())
 	{
-		UIItem->UIHierarchyChanged();
+		UIItem->RegisterRenderCanvas();
 	}
 }
 void ULGUICanvas::OnUnregister()
@@ -202,11 +185,11 @@ void ULGUICanvas::OnUnregister()
 			ALGUIManagerActor::RemoveCanvas(this);
 		}
 	}
-	//OnUIHierarchyChanged();
+	OnUIHierarchyChanged();
 	//tell UIItem
 	if (UIItem.IsValid())
 	{
-		UIItem->UIHierarchyChanged();
+		UIItem->UnregisterRenderCanvas();
 	}
 
 	//clear and delete mesh components
@@ -385,7 +368,6 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;
-	bShouldUpdateLayout = true;
 
 	ParentCanvas = nullptr;
 	CheckParentCanvas();
@@ -440,10 +422,7 @@ void ULGUICanvas::MarkCanvasUpdate()
 		RootCanvas->bCanTickUpdate = true;//incase this Canvas's parent have layout component, so mark TopMostCanvas to update
 	}
 }
-void ULGUICanvas::MarkCanvasUpdateLayout()
-{
-	this->bShouldUpdateLayout = true;
-}
+
 #if WITH_EDITOR
 void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -451,7 +430,6 @@ void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
 	bRectRangeCalculated = false;
-	bShouldUpdateLayout = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	if (CheckUIItem())
@@ -1037,45 +1015,18 @@ void ULGUICanvas::SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue)
 }
 
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
-void ULGUICanvas::UpdateChildLayoutRecursive(UUIItem* target, bool parentLayoutChanged)
+void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
 {
-	const auto& childrenList = target->GetAttachUIChildren();
-	for (auto uiChild : childrenList)
-	{
-		if (IsValid(uiChild) && uiChild->GetIsUIActiveInHierarchy())
-		{
-			if (uiChild->IsCanvasUIItem() && uiChild->GetRenderCanvas() != nullptr && uiChild->GetRenderCanvas() != this)
-			{
-				uiChild->GetRenderCanvas()->UpdateCanvasLayout(parentLayoutChanged);
-			}
-			else
-			{
-				auto layoutChanged = parentLayoutChanged;
-				uiChild->UpdateLayout(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
-				UpdateChildLayoutRecursive(uiChild, layoutChanged);
-			}
-		}
-	}
-}
-void ULGUICanvas::UpdateCanvasLayout(bool parentLayoutChanged)
-{
-	cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout || parentLayoutChanged;
 	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
-	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged || bShouldUpdateLayout || parentLayoutChanged;
+	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged || layoutChanged;
 	if (bRectRangeCalculated)
 	{
 		if (cacheForThisUpdate_RectClipParameterChanged)bRectRangeCalculated = false;
 	}
 	cacheForThisUpdate_TextureClipParameterChanged = bTextureClipParameterChanged;
-	bShouldUpdateLayout = false;
 	bClipTypeChanged = false;
 	bRectClipParameterChanged = false;
 	bTextureClipParameterChanged = false;
-
-	//update layout
-	UIItem->UpdateLayout(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
-
-	UpdateChildLayoutRecursive(UIItem.Get(), UIItem->cacheForThisUpdate_LayoutChanged);
 }
 
 void ULGUICanvas::UpdateChildGeometryRecursive(UUIItem* target)
@@ -1487,7 +1438,7 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 				}
 				if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
 				{
-					drawcallItem->drawcallMesh->SetUITranslucentSortPriority(this->RootCanvas->sortOrder);
+					drawcallItem->drawcallMesh->SetUITranslucentSortPriority(this->sortOrder);
 				}
 				else
 				{
@@ -2801,4 +2752,4 @@ void ULGUICanvas::GetMinMax(float a, float b, float c, float d, float& min, floa
 }
 #endif
 
-//PRAGMA_ENABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION

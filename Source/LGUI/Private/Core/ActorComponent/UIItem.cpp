@@ -32,8 +32,9 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bColorChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
+	bShouldUpdateLayout = true;
 
-	isCanvasUIItem = false;
+	bIsCanvasUIItem = false;
 
 	traceChannel = GetDefault<ULGUISettings>()->defaultTraceChannel;
 }
@@ -44,6 +45,8 @@ void UUIItem::BeginPlay()
 
 	ParentUIItem = nullptr;
 	GetParentAsUIItem();
+	CheckRootUIItem();
+
 	CheckRenderCanvas();
 
 	bColorChanged = true;
@@ -227,7 +230,7 @@ void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarc
 	if (this->flattenHierarchyIndex != parentFlattenHierarchyIndex)
 	{
 		this->flattenHierarchyIndex = parentFlattenHierarchyIndex;
-		if (this->isCanvasUIItem)
+		if (this->bIsCanvasUIItem)
 		{
 			RenderCanvas->OnUIHierarchyIndexChanged();
 		}
@@ -243,18 +246,14 @@ void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarc
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIItem CalculateFlattenHierarchyIndex"), STAT_UIItemCalculateFlattenHierarchyIndex, STATGROUP_LGUI);
-void UUIItem::RecalculateFlattenHierarchyIndex()
+void UUIItem::RecalculateFlattenHierarchyIndex()//@todo: No need to recalculate all, optimize this!
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIItemCalculateFlattenHierarchyIndex);
-	UUIItem* topUIItem = this;
-	UUIItem* rootUIItem = nullptr;
-	while (topUIItem != nullptr)
+	if (RootUIItem.IsValid())
 	{
-		rootUIItem = topUIItem;
-		topUIItem = Cast<UUIItem>(topUIItem->GetAttachParent());
+		int tempIndex = RootUIItem->flattenHierarchyIndex;
+		RootUIItem->CalculateFlattenHierarchyIndex_Recursive(tempIndex);
 	}
-	int tempIndex = rootUIItem->flattenHierarchyIndex;
-	rootUIItem->CalculateFlattenHierarchyIndex_Recursive(tempIndex);
 }
 
 void UUIItem::SetHierarchyIndex(int32 InInt) 
@@ -553,19 +552,8 @@ void UUIItem::EditorForceUpdateImmediately()
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
 	RenderCanvas = nullptr;//force check
-	if (CheckRenderCanvas())
-	{
-		if (RenderCanvas->GetRootCanvas())
-		{
-			RenderCanvas->GetRootCanvas()->MarkCanvasUpdate();
-			RenderCanvas->GetRootCanvas()->MarkCanvasUpdateLayout();
-		}
-		else
-		{
-			RenderCanvas->MarkCanvasUpdate();
-			RenderCanvas->MarkCanvasUpdateLayout();
-		}
-	}
+	MarkCanvasUpdate();
+	MarkUpdateLayout();
 }
 #endif
 void UUIItem::OnAttachmentChanged()
@@ -805,7 +793,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 
 		CallUIComponentsChildAttachmentChanged(childUIItem, true);
 	}
-	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+	MarkCanvasUpdate();
 }
 void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 {
@@ -827,7 +815,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 
 		CallUIComponentsChildAttachmentChanged(childUIItem, false);
 	}
-	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+	MarkCanvasUpdate();
 }
 void UUIItem::OnRegister()
 {
@@ -884,6 +872,8 @@ void UUIItem::OnRegister()
 		}
 	}
 #endif
+
+	CheckRootUIItem();
 }
 void UUIItem::OnUnregister()
 {
@@ -908,6 +898,8 @@ void UUIItem::OnUnregister()
 		HelperComp = nullptr;
 	}
 #endif
+
+	CheckRootUIItem();
 }
 
 void UUIItem::CheckCacheUIChildren()
@@ -931,12 +923,49 @@ void UUIItem::SortCacheUIChildren()
 	});
 }
 
+void UUIItem::RegisterRenderCanvas()
+{
+	auto oldRenderCanvas = RenderCanvas;
+	RenderCanvas = nullptr;//force find new
+	CheckRenderCanvas();
+	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
+	{
+		OnRenderCanvasChanged(oldRenderCanvas.Get(), RenderCanvas.Get());
+	}
+
+	for (auto uiItem : UIChildren)
+	{
+		if (IsValid(uiItem) && !uiItem->bIsCanvasUIItem)
+		{
+			uiItem->RegisterRenderCanvas();
+		}
+	}
+}
+void UUIItem::UnregisterRenderCanvas()
+{
+	auto oldRenderCanvas = RenderCanvas;
+	RenderCanvas = nullptr;//force find new
+	CheckRenderCanvas();
+	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
+	{
+		OnRenderCanvasChanged(oldRenderCanvas.Get(), RenderCanvas.Get());
+	}
+
+	for (auto uiItem : UIChildren)
+	{
+		if (IsValid(uiItem) && !uiItem->bIsCanvasUIItem)
+		{
+			uiItem->UnregisterRenderCanvas();
+		}
+	}
+}
+
 void UUIItem::UIHierarchyChanged()
 {
 	auto oldRenderCanvas = RenderCanvas;
 	RenderCanvas = nullptr;//force find new
 	CheckRenderCanvas();
-	if (isCanvasUIItem)RenderCanvas->OnUIHierarchyChanged();
+	if (bIsCanvasUIItem)RenderCanvas->OnUIHierarchyChanged();
 	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
 	{
 		OnRenderCanvasChanged(oldRenderCanvas.Get(), RenderCanvas.Get());
@@ -954,6 +983,8 @@ void UUIItem::UIHierarchyChanged()
 
 	ParentUIItem = nullptr;
 	GetParentAsUIItem();
+
+	CheckRootUIItem();
 	if (ParentUIItem.IsValid())
 	{
 		if (this->IsRegistered())//not registerd, could be load from level
@@ -1004,12 +1035,12 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 	}
 	if (IsValid(NewCanvas))
 	{
-		isCanvasUIItem = (this->GetOwner() == NewCanvas->GetOwner());
+		bIsCanvasUIItem = (this->GetOwner() == NewCanvas->GetOwner());
 		NewCanvas->MarkCanvasUpdate();
 	}
 	else
 	{
-		isCanvasUIItem = false;
+		bIsCanvasUIItem = false;
 	}
 }
 
@@ -1136,28 +1167,99 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 	return sizeChanged;
 }
 
-#pragma region VertexPositionChangeCallback
-void UUIItem::RegisterLayoutChange(const FSimpleDelegate& InDelegate)
-{
-	layoutChangeCallback.Add(InDelegate);
-}
-void UUIItem::UnregisterLayoutChange(const FSimpleDelegate& InDelegate)
-{
-	layoutChangeCallback.Remove(InDelegate.GetHandle());
-}
-#pragma endregion VertexPositionChangeCallback
-
 bool UUIItem::CheckRenderCanvas()const
 {
 	if (RenderCanvas.IsValid())return true;
 	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner(), false);
 	if (RenderCanvas.IsValid())
 	{
-		isCanvasUIItem = (this->GetOwner() == RenderCanvas->GetOwner());
+		bIsCanvasUIItem = (this->GetOwner() == RenderCanvas->GetOwner());
 		return true;
 	}
-	isCanvasUIItem = false;
+	bIsCanvasUIItem = false;
 	return false;
+}
+
+void UUIItem::CheckRootUIItem()
+{
+	auto oldRootUIItem = RootUIItem;
+	if (oldRootUIItem == this && oldRootUIItem != nullptr)
+	{
+#if WITH_EDITOR
+		if (!this->GetWorld()->IsGameWorld())
+		{
+			ULGUIEditorManagerObject::RemoveRootUIItem(this);
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::RemoveRootUIItem(this);
+		}
+	}
+
+	UUIItem* topUIItem = this;
+	UUIItem* tempRootUIItem = nullptr;
+	while (topUIItem != nullptr && topUIItem->IsRegistered())
+	{
+		tempRootUIItem = topUIItem;
+		topUIItem = Cast<UUIItem>(topUIItem->GetAttachParent());
+	}
+	RootUIItem = tempRootUIItem;
+
+	if (RootUIItem == this && RootUIItem != nullptr)
+	{
+#if WITH_EDITOR
+		if (!this->GetWorld()->IsGameWorld())
+		{
+			ULGUIEditorManagerObject::AddRootUIItem(this);
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::AddRootUIItem(this);
+		}
+	}
+}
+
+void UUIItem::MarkUpdateLayout()
+{
+	if (this->RootUIItem.IsValid())
+	{
+		this->RootUIItem->bShouldUpdateLayout = true;
+	}
+}
+
+void UUIItem::UpdateChildLayoutRecursive(UUIItem* target, bool parentLayoutChanged)
+{
+	const auto& childrenList = target->GetAttachUIChildren();
+	for (auto uiChild : childrenList)
+	{
+		if (IsValid(uiChild))
+		{
+			auto layoutChanged = parentLayoutChanged;
+			uiChild->UpdateLayout(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
+			UpdateChildLayoutRecursive(uiChild, layoutChanged);
+		}
+	}
+}
+void UUIItem::UpdateRootUIItemLayout()
+{
+	if (bShouldUpdateLayout)
+	{
+		cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout;
+		bShouldUpdateLayout = false;
+
+		//update layout
+		bool parentLayoutChanged = false;
+		this->UpdateLayout(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
+
+		if (this->IsCanvasUIItem() && this->GetRenderCanvas() != nullptr)
+		{
+			this->GetRenderCanvas()->UpdateCanvasLayout(cacheForThisUpdate_ShouldUpdateLayout);
+		}
+
+		UpdateChildLayoutRecursive(this, this->cacheForThisUpdate_LayoutChanged);
+	}
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
@@ -1187,12 +1289,6 @@ void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 
 	//update cache data
 	UpdateCachedDataBeforeGeometry();
-
-	//callback
-	if (cacheForThisUpdate_LayoutChanged && layoutChangeCallback.IsBound())
-	{
-		layoutChangeCallback.Broadcast();
-	}
 }
 
 void UUIItem::UpdateGeometry()
@@ -1377,10 +1473,7 @@ void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 			}
 		}
 		DepthChanged();
-		if (CheckRenderCanvas())
-		{
-			RenderCanvas->MarkCanvasUpdate();
-		}
+		MarkCanvasUpdate();
 	}
 }
 void UUIItem::SetColor(FColor color) {
@@ -1847,16 +1940,15 @@ void UUIItem::MarkLayoutDirty(bool sizeChange)
 	{
 		bSizeChanged = true;
 	}
-	if (CheckRenderCanvas())
-	{
-		RenderCanvas->MarkCanvasUpdate();
-		RenderCanvas->MarkCanvasUpdateLayout();
-	}
+	MarkCanvasUpdate();
+	MarkUpdateLayout();
 }
 void UUIItem::MarkColorDirty() 
 { 
 	bColorChanged = true;
-	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+	MarkCanvasUpdate();
+	MarkUpdateLayout();//bacause color is stored in UIItem and bColorChange is handled in UpdateLayout, so we need to make it update, the only way is MarkUpdateLayout
+						//@todo: move color property to other place
 }
 void UUIItem::MarkCanvasUpdate()
 {
@@ -2104,15 +2196,13 @@ void UUIItem::ApplyUIActiveState()
 		}
 	}
 #endif
-	if (isCanvasUIItem)RenderCanvas->OnUIActiveStateChanged(GetIsUIActiveInHierarchy());
+	if (bIsCanvasUIItem)RenderCanvas->OnUIActiveStateChanged(GetIsUIActiveInHierarchy());
 	bColorChanged = true;
 	bLayoutChanged = true;
 	//canvas update
-	if (CheckRenderCanvas())
-	{
-		RenderCanvas->MarkCanvasUpdate();
-		RenderCanvas->MarkCanvasUpdateLayout();
-	}	
+	MarkCanvasUpdate();
+	//layout update
+	MarkUpdateLayout();
 	//callback
 	CallUIComponentsActiveInHierarchyStateChanged();
 }

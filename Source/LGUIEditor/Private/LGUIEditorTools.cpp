@@ -1150,8 +1150,9 @@ void LGUIEditorTools::FocusToScreenSpaceUI()
 						auto viewDistance = FVector::Distance(canvas->GetViewLocation(), canvas->GetUIItem()->GetComponentLocation());
 						auto halfViewWidth = viewDistance * FMath::Tan(FMath::DegreesToRadians(canvasScaler->GetFovAngle() * 0.5f));
 						auto editorViewDistance = halfViewWidth / FMath::Tan(FMath::DegreesToRadians(editorViewportClient->FOVAngle * 0.5f));
-						editorViewportClient->SetViewLocation(canvas->GetUIItem()->GetComponentLocation() - canvas->GetViewRotator().Quaternion().GetForwardVector() * editorViewDistance);
-						editorViewportClient->SetViewRotation(canvas->GetViewRotator());
+						auto viewRotation = canvas->GetViewRotator().Quaternion() * FQuat::MakeFromEuler(FVector(90, 90, 0));
+						editorViewportClient->SetViewLocation(canvas->GetUIItem()->GetComponentLocation() - viewRotation.GetForwardVector() * editorViewDistance);
+						editorViewportClient->SetViewRotation(viewRotation.Rotator());
 						editorViewportClient->SetLookAtLocation(canvas->GetUIItem()->GetComponentLocation());
 						break;
 					}
@@ -1178,7 +1179,8 @@ void LGUIEditorTools::FocusToSelectedUI()
 						if (canvas != nullptr)
 						{
 							editorViewportClient->SetViewLocation(canvas->GetViewLocation());
-							editorViewportClient->SetViewRotation(canvas->GetViewRotator());
+							auto viewRotation = canvas->GetViewRotator().Quaternion() * FQuat::MakeFromEuler(FVector(90, 90, 0));
+							editorViewportClient->SetViewRotation(viewRotation.Rotator());
 							editorViewportClient->SetLookAtLocation(canvas->GetUIItem()->GetComponentLocation());
 						}
 					}
