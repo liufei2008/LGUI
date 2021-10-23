@@ -715,8 +715,8 @@ void ULGUIMeshComponent::DeleteMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSe
 	MeshSections.RemoveAt(index);
 	PooledMeshSections.Add(InMeshSection);
 	//verify material
-	UMeshComponent::CleanUpOverrideMaterials();
-	for (int i = index; i < MeshSections.Num(); i++)
+	UMeshComponent::EmptyOverrideMaterials();
+	for (int i = 0; i < MeshSections.Num(); i++)
 	{
 		UMeshComponent::SetMaterial(i, MeshSections[i]->material);
 	}
@@ -726,7 +726,7 @@ void ULGUIMeshComponent::ClearAllMeshSection()
 {
 	MeshSections.Empty();
 	PooledMeshSections.Empty();
-	UMeshComponent::CleanUpOverrideMaterials();
+	UMeshComponent::EmptyOverrideMaterials();
 }
 
 void ULGUIMeshComponent::SetMeshSectionRenderPriority(TSharedPtr<FLGUIMeshSection> InMeshSection, int32 InSortPriority)
