@@ -126,6 +126,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetScreenMatchMode(LGUIScreenMatchMode value);
 
+	/** By default, LGUICanvasScaler only update when needed(eg. viewport size change). Use this function to force update. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void ForceUpdate();
+
 	/**
 	 * Convert position from viewport to LGUICanvas space.
 	 * @param position The point's pixel position on viewport.
