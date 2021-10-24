@@ -446,7 +446,8 @@ protected:
 	uint16 bColorChanged:1;//vertex color chnaged
 	uint16 bLayoutChanged:1;//layout changed
 	uint16 bSizeChanged : 1;//rect size changed
-	uint16 bShouldUpdateLayout : 1;//if any child layout changed
+	uint16 bShouldUpdateRootUIItemLayout : 1;//if any child layout changed
+	uint16 bNeedUpdateRootUIItem : 1;//any data change and need update
 
 	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
 	uint16 cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1, cacheForThisUpdate_ShouldUpdateLayout:1;
@@ -461,10 +462,10 @@ protected:
 	/** mark any child's layout change, only for RootUIItem */
 	void MarkUpdateLayout();
 
-	void UpdateChildLayoutRecursive(UUIItem* target, bool parentLayoutChanged);
+	void UpdateChildUIItemRecursive(UUIItem* target, bool parentLayoutChanged);
 public:
 	/** Called from LGUIManagerActor */
-	void UpdateRootUIItemLayout();
+	void UpdateRootUIItem();
 public:
 	uint8 GetFinalAlpha()const;
 	float GetFinalAlpha01()const;

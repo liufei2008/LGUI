@@ -95,7 +95,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 
 	for (auto item : rootUIItems)
 	{
-		item->UpdateRootUIItemLayout();
+		item->UpdateRootUIItem();
 	}
 	
 	int ScreenSpaceOverlayCanvasCount = 0;
@@ -1387,7 +1387,7 @@ void ALGUIManagerActor::UpdateLayout()
 
 	for (auto item : rootUIItems)
 	{
-		item->UpdateRootUIItemLayout();
+		item->UpdateRootUIItem();
 	}
 
 	for (auto item : allCanvas)
