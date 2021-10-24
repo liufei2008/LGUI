@@ -129,6 +129,7 @@ private:
 	/** clear drawcalls */
 	void ClearDrawcall();
 	void RemoveFromViewExtension();
+	ULGUIMeshComponent* FindNextValidMeshInDrawcallList(TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* InNode);
 public:
 	/** update canvas's layout */
 	void UpdateCanvasLayout(bool layoutChanged);
