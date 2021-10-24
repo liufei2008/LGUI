@@ -124,8 +124,6 @@ public:
 private:
 	/** canvas array belong to this canvas, include self. for update children's geometry */
 	TArray<TWeakObjectPtr<ULGUICanvas>> manageCanvasArray;
-	/** update Canvas's geometry */
-	void UpdateCanvasGeometry();
 	/** update Canvas's drawcall */
 	void UpdateCanvasDrawcall();
 	/** clear drawcalls */
@@ -435,10 +433,6 @@ private:
 	void ApplyOwnerSeeRecursive();
 public:
 	/** Called from LGUIManagerActor */
-	void PrepareUpdate();
-	/** Called from LGUIManagerActor */
-	void UpdateRootCanvasGeometry();
-	/** Called from LGUIManagerActor */
 	void UpdateRootCanvasDrawcall();
 
 private:
@@ -459,9 +453,6 @@ private:
 
 	uint32 cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
 	uint32 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
-
-	uint32 cacheForThisUpdate_CanUpdateForGeometry : 1;
-	uint32 cacheForThisUpdate_CanUpdateForDrawcall : 1;
 
 	mutable uint32 cacheViewProjectionMatrixFrameNumber = 0;
 	mutable FMatrix cacheViewProjectionMatrix = FMatrix::Identity;//cache to prevent multiple calculation in same frame
@@ -491,7 +482,6 @@ private:
 	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
 #endif
 private:
-	void UpdateChildGeometryRecursive(UUIItem* target);
 	void UpdateAndApplyMaterial();
 	void SetParameterForStandard();
 	void SetParameterForRectClip();
