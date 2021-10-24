@@ -214,6 +214,7 @@ void ULGUICanvas::ClearDrawcall()
 		}
 	}
 	PooledUIMeshList.Empty();
+	UsingUIMeshList.Empty();
 	PooledUIMaterialList.Empty();
 	UIDrawcallList.Empty();
 }
@@ -1002,6 +1003,32 @@ void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
 	bTextureClipParameterChanged = false;
 }
 
+ULGUIMeshComponent* ULGUICanvas::FindNextValidMeshInDrawcallList(TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* InNode)
+{
+	for (auto searchItr = InNode; searchItr != nullptr; searchItr = searchItr->GetNextNode())
+	{
+		auto searchDrawcallItem = searchItr->GetValue();
+		switch (searchDrawcallItem->type)
+		{
+		case EUIDrawcallType::DirectMesh:
+		case EUIDrawcallType::BatchGeometry:
+		{
+			if (searchDrawcallItem->drawcallMesh.IsValid())
+			{
+				return searchDrawcallItem->drawcallMesh.Get();
+			}
+		}
+		break;
+		case EUIDrawcallType::PostProcess:
+		{
+			return nullptr;
+		}
+		break;
+		}
+	}
+	return nullptr;
+}
+
 void ULGUICanvas::UpdateCanvasDrawcall()
 {
 	if (bCurrentIsLGUIRendererOrUERenderer)
@@ -1043,10 +1070,24 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 	//update drawcall
 	{
 		ULGUIMeshComponent* prevUIMesh = nullptr;
+		if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)//WorldSpace-UE-Renderer only have one drawcall mesh, so we just get the first one
+		{
+			check(UsingUIMeshList.Num() <= 1);
+			if (UsingUIMeshList.Num() == 1)
+			{
+				prevUIMesh = UsingUIMeshList[0].Get();
+			}
+			else
+			{
+				prevUIMesh = this->GetUIMeshFromPool().Get();
+			}
+		}
+
+
 		for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
 		{
 			auto drawcallItem = iter->GetValue();
-			//check drawcall mesh
+			//check drawcall mesh first
 			switch (drawcallItem->type)
 			{
 			case EUIDrawcallType::DirectMesh:
@@ -1056,13 +1097,22 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 				{
 					if (prevUIMesh == nullptr)
 					{
-						prevUIMesh = this->GetUIMeshFromPool().Get();
+						//if drawcall mesh is not valid, we need to search in next drawcalls and find mesh drawcall object (not post process drawcall)
+						if (auto foundMesh = FindNextValidMeshInDrawcallList(iter->GetNextNode()))
+						{
+							prevUIMesh = foundMesh;
+						}
+						else//not find valid mesh, then get from existing
+						{
+							prevUIMesh = this->GetUIMeshFromPool().Get();
+						}
 					}
 					drawcallItem->drawcallMesh = prevUIMesh;
 				}
 			}
 			break;
 			}
+
 
 			switch (drawcallItem->type)
 			{
