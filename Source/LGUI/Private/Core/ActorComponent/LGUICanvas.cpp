@@ -77,72 +77,46 @@ void ULGUICanvas::TickComponent( float DeltaTime, ELevelTick TickType, FActorCom
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void ULGUICanvas::PrepareUpdate()
-{
-	if (bCanTickUpdate)
-	{
-		bCanTickUpdate = false;
-
-		cacheForThisUpdate_CanUpdateForGeometry = true;
-		cacheForThisUpdate_CanUpdateForDrawcall = true;
-	}
-}
-
-void ULGUICanvas::UpdateRootCanvasGeometry()
-{
-	if (cacheForThisUpdate_CanUpdateForGeometry)
-	{
-		cacheForThisUpdate_CanUpdateForGeometry = false;
-		if (this != RootCanvas) return;
-
-		if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
-		{
-			UpdateCanvasGeometry();
-		}
-	}
-}
-
 void ULGUICanvas::UpdateRootCanvasDrawcall()
 {
-	if (cacheForThisUpdate_CanUpdateForDrawcall)
+	if (!bCanTickUpdate)return;
+	bCanTickUpdate = false;
+
+	if (this != RootCanvas) return;
+
+	if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
 	{
-		cacheForThisUpdate_CanUpdateForDrawcall = false;
-		if (this != RootCanvas) return;
-
-		if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
-		{
 #ifdef LGUI_DRAWCALLMODE_AUTO
-			CacheUIItemToCanvasTransformMap.Reset();
+		CacheUIItemToCanvasTransformMap.Reset();
 #endif
-			if (bCurrentIsLGUIRendererOrUERenderer)
+		if (bCurrentIsLGUIRendererOrUERenderer)
+		{
+			if (!bHasAddToLGUIScreenSpaceRenderer)
 			{
-				if (!bHasAddToLGUIScreenSpaceRenderer)
-				{
-					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())
+				if (!GetWorld()->IsGameWorld())
+				{
+					if (GetWorld()->WorldType != EWorldType::EditorPreview)
 					{
-						if (GetWorld()->WorldType != EWorldType::EditorPreview)
-						{
-							ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
-						}
-					}
-					else
-#endif
-					{
-						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-					}
-
-					if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)//only root canvas can add screen space UI to LGUIRenderer
-					{
-						ViewExtension->SetScreenSpaceRenderCanvas(this);
-						bHasAddToLGUIScreenSpaceRenderer = true;
+						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
 					}
 				}
-			}
+				else
+#endif
+				{
+					ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+				}
 
-			UpdateCanvasDrawcall();
+				if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)//only root canvas can add screen space UI to LGUIRenderer
+				{
+					ViewExtension->SetScreenSpaceRenderCanvas(this);
+					bHasAddToLGUIScreenSpaceRenderer = true;
+				}
+			}
 		}
+
+		UpdateCanvasDrawcall();
 	}
 }
 
@@ -1014,7 +988,6 @@ void ULGUICanvas::SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue)
 	OverrideProjectionMatrix = InValue;
 }
 
-DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
 {
 	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
@@ -1027,26 +1000,6 @@ void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
 	bClipTypeChanged = false;
 	bRectClipParameterChanged = false;
 	bTextureClipParameterChanged = false;
-}
-
-void ULGUICanvas::UpdateChildGeometryRecursive(UUIItem* target)
-{
-	const auto& childrenList = target->GetAttachUIChildren();
-	for (auto uiChild : childrenList)
-	{
-		if (IsValid(uiChild) && uiChild->GetIsUIActiveInHierarchy())
-		{
-			uiChild->UpdateGeometry();
-			UpdateChildGeometryRecursive(uiChild);
-		}
-	}
-}
-void ULGUICanvas::UpdateCanvasGeometry()
-{
-	//update geometry
-	UIItem->UpdateGeometry();
-
-	UpdateChildGeometryRecursive(UIItem.Get());
 }
 
 void ULGUICanvas::UpdateCanvasDrawcall()
@@ -1089,7 +1042,6 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 
 	//update drawcall
 	{
-		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
 		ULGUIMeshComponent* prevUIMesh = nullptr;
 		for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
 		{

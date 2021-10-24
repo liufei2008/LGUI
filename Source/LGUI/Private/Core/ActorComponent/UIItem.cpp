@@ -1244,6 +1244,7 @@ void UUIItem::UpdateChildUIItemRecursive(UUIItem* target, bool parentLayoutChang
 			//update layout
 			auto layoutChanged = parentLayoutChanged;
 			uiChild->UpdateLayout(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
+			uiChild->UpdateGeometry();
 
 			UpdateChildUIItemRecursive(uiChild, layoutChanged);
 		}
@@ -1261,6 +1262,7 @@ void UUIItem::UpdateRootUIItem()
 		//update layout
 		bool parentLayoutChanged = false;
 		this->UpdateLayout(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
+		this->UpdateGeometry();
 
 		UpdateChildUIItemRecursive(this, this->cacheForThisUpdate_LayoutChanged);
 	}

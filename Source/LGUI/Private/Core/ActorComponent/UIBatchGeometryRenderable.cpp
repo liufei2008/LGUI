@@ -299,10 +299,8 @@ void UUIBatchGeometryRenderable::UpdateLayout(bool& parentLayoutChanged, bool sh
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("UIGeometryRenderable UpdateRenderable"), STAT_UIGeometryRenderableUpdate, STATGROUP_LGUI);
 void UUIBatchGeometryRenderable::UpdateGeometry()
 {
-	SCOPE_CYCLE_COUNTER(STAT_UIGeometryRenderableUpdate);
 	if (GetIsUIActiveInHierarchy() == false)return;
 	if (!CheckRenderCanvas())return;
 
