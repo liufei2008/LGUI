@@ -32,7 +32,8 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bColorChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
-	bShouldUpdateLayout = true;
+	bShouldUpdateRootUIItemLayout = true;
+	bNeedUpdateRootUIItem = true;
 
 	bIsCanvasUIItem = false;
 
@@ -45,13 +46,16 @@ void UUIItem::BeginPlay()
 
 	ParentUIItem = nullptr;
 	GetParentAsUIItem();
+	RootUIItem = nullptr;
 	CheckRootUIItem();
-
+	RenderCanvas = nullptr;
 	CheckRenderCanvas();
 
 	bColorChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
+	bShouldUpdateRootUIItemLayout = true;
+	bNeedUpdateRootUIItem = true;
 	MarkLayoutDirty(true);
 }
 
@@ -1225,46 +1229,48 @@ void UUIItem::MarkUpdateLayout()
 {
 	if (this->RootUIItem.IsValid())
 	{
-		this->RootUIItem->bShouldUpdateLayout = true;
+		this->RootUIItem->bShouldUpdateRootUIItemLayout = true;
+		this->RootUIItem->bNeedUpdateRootUIItem = true;
 	}
 }
 
-void UUIItem::UpdateChildLayoutRecursive(UUIItem* target, bool parentLayoutChanged)
+void UUIItem::UpdateChildUIItemRecursive(UUIItem* target, bool parentLayoutChanged)
 {
 	const auto& childrenList = target->GetAttachUIChildren();
 	for (auto uiChild : childrenList)
 	{
 		if (IsValid(uiChild))
 		{
+			//update layout
 			auto layoutChanged = parentLayoutChanged;
 			uiChild->UpdateLayout(layoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
-			UpdateChildLayoutRecursive(uiChild, layoutChanged);
+
+			UpdateChildUIItemRecursive(uiChild, layoutChanged);
 		}
 	}
 }
-void UUIItem::UpdateRootUIItemLayout()
+void UUIItem::UpdateRootUIItem()
 {
-	if (bShouldUpdateLayout)
+	if (bNeedUpdateRootUIItem)
 	{
-		cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateLayout;
-		bShouldUpdateLayout = false;
+		bNeedUpdateRootUIItem = false;
+
+		cacheForThisUpdate_ShouldUpdateLayout = bShouldUpdateRootUIItemLayout;
+		bShouldUpdateRootUIItemLayout = false;
 
 		//update layout
 		bool parentLayoutChanged = false;
 		this->UpdateLayout(parentLayoutChanged, cacheForThisUpdate_ShouldUpdateLayout);
 
-		if (this->IsCanvasUIItem() && this->GetRenderCanvas() != nullptr)
-		{
-			this->GetRenderCanvas()->UpdateCanvasLayout(cacheForThisUpdate_ShouldUpdateLayout);
-		}
-
-		UpdateChildLayoutRecursive(this, this->cacheForThisUpdate_LayoutChanged);
+		UpdateChildUIItemRecursive(this, this->cacheForThisUpdate_LayoutChanged);
 	}
 }
 
 void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 {
+	//update data change mark
 	UpdateCachedData();
+
 	//update layout
 	if (parentLayoutChanged == false)
 	{
@@ -1282,6 +1288,12 @@ void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 		CalculateTransformFromAnchor();
 		CallUIComponentsDimensionsChanged(true, cacheForThisUpdate_SizeChanged);
 		bCanSetAnchorFromTransform = true;
+	}
+
+	//Update canvas layout
+	if (this->IsCanvasUIItem() && this->GetRenderCanvas() != nullptr)
+	{
+		this->GetRenderCanvas()->UpdateCanvasLayout(cacheForThisUpdate_ShouldUpdateLayout);
 	}
 
 	//data may change after layout calculation, so check it again
@@ -1946,7 +1958,14 @@ void UUIItem::MarkColorDirty()
 }
 void UUIItem::MarkCanvasUpdate()
 {
-	if (CheckRenderCanvas()) RenderCanvas->MarkCanvasUpdate();
+	if (CheckRenderCanvas())
+	{
+		RenderCanvas->MarkCanvasUpdate();
+	}
+	if (this->RootUIItem.IsValid())
+	{
+		this->RootUIItem->bNeedUpdateRootUIItem = true;
+	}
 }
 
 void UUIItem::SetRaycastTarget(bool NewBool)
