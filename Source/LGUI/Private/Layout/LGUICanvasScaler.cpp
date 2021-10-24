@@ -77,6 +77,11 @@ void ULGUICanvasScaler::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
+void ULGUICanvasScaler::ForceUpdate()
+{
+	CheckAndApplyViewportParameter();
+}
+
 
 void ULGUICanvasScaler::CheckAndApplyViewportParameter()
 {
