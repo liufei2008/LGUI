@@ -56,10 +56,6 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			{
 				rootCanvas->MarkCanvasUpdate();
 
-				rootCanvas->PrepareUpdate();
-				rootCanvas->UpdateRootCanvasGeometry();
-				rootCanvas->UpdateRootCanvasDrawcall();
-
 				IsLGUIPrefab = true;
 			}
 			else if (auto rootUIItem = Cast<UUIItem>(rootActor->GetRootComponent()))
@@ -68,10 +64,6 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 				rootCanvas->RegisterComponent();
 				rootActor->AddInstanceComponent(rootCanvas);
 				rootCanvas->MarkCanvasUpdate();
-
-				rootCanvas->PrepareUpdate();
-				rootCanvas->UpdateRootCanvasGeometry();
-				rootCanvas->UpdateRootCanvasDrawcall();
 
 				IsLGUIPrefab = true;
 			}

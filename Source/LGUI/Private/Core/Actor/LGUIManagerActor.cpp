@@ -113,14 +113,12 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 					}
 				}
 			}
-			item->PrepareUpdate();
 		}
 	}
 	for (auto item : allCanvas)
 	{
 		if (item.IsValid())
 		{
-			item->UpdateRootCanvasGeometry();
 			item->UpdateRootCanvasDrawcall();
 		}
 	}
@@ -1079,7 +1077,8 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 }
 
 DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayout"), STAT_UIItemUpdateLayout, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	//editor draw helper frame
@@ -1163,11 +1162,15 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 	UpdateLayout();
 
-	for (auto item : allCanvas)
+	//update drawcall
 	{
-		if (item.IsValid())
+		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
+		for (auto item : allCanvas)
 		{
-			item->UpdateRootCanvasDrawcall();
+			if (item.IsValid())
+			{
+				item->UpdateRootCanvasDrawcall();
+			}
 		}
 	}
 
@@ -1370,7 +1373,7 @@ void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUI
 
 void ALGUIManagerActor::UpdateLayout()
 {
-	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayout);
+	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayoutAndGeometry);
 
 	//update Layout
 	for (auto item : allLayoutArray)
@@ -1388,22 +1391,6 @@ void ALGUIManagerActor::UpdateLayout()
 	for (auto item : rootUIItems)
 	{
 		item->UpdateRootUIItem();
-	}
-
-	for (auto item : allCanvas)
-	{
-		if (item.IsValid())
-		{
-			item->PrepareUpdate();
-		}
-	}
-
-	for (auto item : allCanvas)
-	{
-		if (item.IsValid())
-		{
-			item->UpdateRootCanvasGeometry();
-		}
 	}
 }
 void ALGUIManagerActor::ForceUpdateLayout(UObject* WorldContextObject)
