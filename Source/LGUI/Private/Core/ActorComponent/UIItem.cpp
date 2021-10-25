@@ -34,6 +34,7 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bSizeChanged = true;
 	bShouldUpdateRootUIItemLayout = true;
 	bNeedUpdateRootUIItem = true;
+	bFlattenHierarchyIndexDirty = true;
 
 	bIsCanvasUIItem = false;
 
@@ -229,34 +230,49 @@ void UUIItem::OnChildHierarchyIndexChanged(UUIItem* child)
 	CallUIComponentsChildHierarchyIndexChanged(child);
 }
 
-void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarchyIndex)
+void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& index)const
 {
-	if (this->flattenHierarchyIndex != parentFlattenHierarchyIndex)
+	if (this->flattenHierarchyIndex != index)
 	{
-		this->flattenHierarchyIndex = parentFlattenHierarchyIndex;
-		if (this->bIsCanvasUIItem)
-		{
-			RenderCanvas->OnUIHierarchyIndexChanged();
-		}
+		this->flattenHierarchyIndex = index;
 	}
 	for (auto child : UIChildren)
 	{
 		if (IsValid(child))
 		{
-			parentFlattenHierarchyIndex++;
-			child->CalculateFlattenHierarchyIndex_Recursive(parentFlattenHierarchyIndex);
+			index++;
+			child->CalculateFlattenHierarchyIndex_Recursive(index);
 		}
 	}
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIItem CalculateFlattenHierarchyIndex"), STAT_UIItemCalculateFlattenHierarchyIndex, STATGROUP_LGUI);
-void UUIItem::RecalculateFlattenHierarchyIndex()//@todo: No need to recalculate all, optimize this!
+void UUIItem::RecalculateFlattenHierarchyIndex()const
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIItemCalculateFlattenHierarchyIndex);
+	check(this == RootUIItem.Get());
+	this->bFlattenHierarchyIndexDirty = false;
+	int tempIndex = this->flattenHierarchyIndex;
+	this->CalculateFlattenHierarchyIndex_Recursive(tempIndex);
+}
+
+int32 UUIItem::GetFlattenHierarchyIndex()const
+{
 	if (RootUIItem.IsValid())
 	{
-		int tempIndex = RootUIItem->flattenHierarchyIndex;
-		RootUIItem->CalculateFlattenHierarchyIndex_Recursive(tempIndex);
+		if (RootUIItem->bFlattenHierarchyIndexDirty)
+		{
+			RootUIItem->RecalculateFlattenHierarchyIndex();
+		}
+	}
+	return this->flattenHierarchyIndex;
+}
+
+void UUIItem::MarkFlattenHierarchyIndexDirty()
+{
+	if (RootUIItem.IsValid())
+	{
+		RootUIItem->bFlattenHierarchyIndexDirty = true;
 	}
 }
 
@@ -300,7 +316,7 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 				ParentUIItem->UIChildren[i]->hierarchyIndex = i;
 			}
 			//flatten hierarchy index
-			RecalculateFlattenHierarchyIndex();
+			MarkFlattenHierarchyIndexDirty();
 
 			ParentUIItem->OnChildHierarchyIndexChanged(this);
 		}
@@ -786,7 +802,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		UIChildren.Add(childUIItem);
 		SortCacheUIChildren();
 		//flatten hierarchy index
-		RecalculateFlattenHierarchyIndex();
+		MarkFlattenHierarchyIndexDirty();
 		//interaction group
 		childUIItem->allUpParentGroupAllowInteraction = this->IsGroupAllowInteraction();
 		childUIItem->SetInteractionGroupStateChange();
@@ -815,7 +831,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 			UIChildren[i]->hierarchyIndex = i;
 		}
 		//flatten hierarchy index
-		RecalculateFlattenHierarchyIndex();
+		MarkFlattenHierarchyIndexDirty();
 
 		CallUIComponentsChildAttachmentChanged(childUIItem, false);
 	}
@@ -1252,6 +1268,10 @@ void UUIItem::UpdateChildUIItemRecursive(UUIItem* target, bool parentLayoutChang
 }
 void UUIItem::UpdateRootUIItem()
 {
+	if (this->bFlattenHierarchyIndexDirty)
+	{
+		this->RecalculateFlattenHierarchyIndex();
+	}
 	if (bNeedUpdateRootUIItem)
 	{
 		bNeedUpdateRootUIItem = false;
