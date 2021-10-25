@@ -347,10 +347,6 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	ParentCanvas = nullptr;
 	CheckParentCanvas();
 }
-void ULGUICanvas::OnUIHierarchyIndexChanged()
-{
-	
-}
 bool ULGUICanvas::IsRenderToScreenSpace()
 {
 	if (RootCanvas.IsValid())

@@ -162,7 +162,6 @@ public:
 	bool IsRootCanvas()const;
 	/** hierarchy changed */
 	void OnUIHierarchyChanged();
-	void OnUIHierarchyIndexChanged();
 	void OnUIActiveStateChanged(bool active);
 
 	void SetDefaultMaterials(UMaterialInterface* InMaterials[3]);

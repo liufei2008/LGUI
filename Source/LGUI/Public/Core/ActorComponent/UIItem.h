@@ -340,18 +340,20 @@ protected:
 	/** hierarchy index */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 hierarchyIndex = INDEX_NONE;
-	int32 flattenHierarchyIndex = 0;
+	UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)
+	mutable int32 flattenHierarchyIndex = 0;
 	void OnChildHierarchyIndexChanged(UUIItem* child);
+	void MarkFlattenHierarchyIndexDirty();
 private:
-	//@todo: optimize this calculation
-	void RecalculateFlattenHierarchyIndex();
-	void CalculateFlattenHierarchyIndex_Recursive(int& parentFlattenHierarchyIndex);
+	/** Only for RootUIItem */
+	void RecalculateFlattenHierarchyIndex()const;
+	void CalculateFlattenHierarchyIndex_Recursive(int& index)const;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetHierarchyIndex() const { return hierarchyIndex; }
 	/** Get flatten hierarchy index, calculate from the first top most UIItem. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		int32 GetFlattenHierarchyIndex()const { return flattenHierarchyIndex; }
+		int32 GetFlattenHierarchyIndex()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetHierarchyIndex(int32 InInt);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -446,8 +448,10 @@ protected:
 	uint16 bColorChanged:1;//vertex color chnaged
 	uint16 bLayoutChanged:1;//layout changed
 	uint16 bSizeChanged : 1;//rect size changed
-	uint16 bShouldUpdateRootUIItemLayout : 1;//if any child layout changed
-	uint16 bNeedUpdateRootUIItem : 1;//any data change and need update
+	uint16 bShouldUpdateRootUIItemLayout : 1;//Only for RootUIItem, if any child layout changed
+	uint16 bNeedUpdateRootUIItem : 1;//Only for RootUIItem, any data change and need update
+	/** Only for RootUIItem, if dirty then we need to recalculate it */
+	mutable uint16 bFlattenHierarchyIndexDirty : 1;
 
 	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
 	uint16 cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1, cacheForThisUpdate_ShouldUpdateLayout:1;
