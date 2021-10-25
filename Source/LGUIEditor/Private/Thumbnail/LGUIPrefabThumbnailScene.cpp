@@ -89,7 +89,7 @@ void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FB
 	if (!IsValid(RootComp))return;
 	if (IsFirstPrimitive)
 	{
-		OutBounds = RootComp->Bounds;
+		OutBounds = RootComp->CalcBounds(RootComp->GetComponentTransform());
 		IsFirstPrimitive = false;
 	}
 	else
@@ -132,11 +132,10 @@ bool FLGUIPrefabThumbnailScene::IsValidForVisualization()
 void FLGUIPrefabThumbnailScene::GetViewMatrixParameters(const float InFOVDegrees, FVector& OutOrigin, float& OutOrbitPitch, float& OutOrbitYaw, float& OutOrbitZoom)const
 {
 	const float HalfFOVRadians = FMath::DegreesToRadians<float>(InFOVDegrees) * 0.5f;
-	// Add extra size to view slightly outside of the sphere to compensate for perspective
 
-	const float HalfMeshSize = PreviewActorsBound.SphereRadius * 0.5;
+	const float PreviewSize = PreviewActorsBound.SphereRadius * 0.8;
 	const float BoundsZOffset = GetBoundsZOffset(PreviewActorsBound);
-	const float TargetDistance = HalfMeshSize / FMath::Tan(HalfFOVRadians);
+	const float TargetDistance = PreviewSize / FMath::Tan(HalfFOVRadians);
 
 	USceneThumbnailInfo* ThumbnailInfo = GetSceneThumbnailInfo(TargetDistance);
 	check(ThumbnailInfo);
