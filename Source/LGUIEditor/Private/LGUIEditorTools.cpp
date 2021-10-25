@@ -563,7 +563,7 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(-90, 0, 0)));
-		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
+		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
 		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
 		
@@ -604,7 +604,7 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab, nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(-90, 0, 0)));
-		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector * 0.3f);
+		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
 		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
 
