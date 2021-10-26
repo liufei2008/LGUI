@@ -3,19 +3,19 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "LGUIPrefabActor.generated.h"
+#include "LGUIPrefabHelperActor.generated.h"
 
 class ULGUIPrefabHelperComponent;
 
 UCLASS(ConversionRoot, ComponentWrapperClass, NotBlueprintable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
-class LGUI_API ALGUIPrefabActor : public AActor
+class LGUI_API ALGUIPrefabHelperActor : public AActor
 {
 	GENERATED_BODY()
 	
 	
 public:	
 	// Sets default values for this actor's properties
-	ALGUIPrefabActor();
+	ALGUIPrefabHelperActor();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

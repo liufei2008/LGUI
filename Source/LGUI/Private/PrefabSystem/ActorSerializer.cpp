@@ -2,7 +2,7 @@
 
 #include "PrefabSystem/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
-#include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "Utils/BitConverter.h"
 #include "Engine/World.h"
 #include "Serialization/MemoryReader.h"

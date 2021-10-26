@@ -2,7 +2,7 @@
 
 #include "DataFactory/LGUIPrefabActorFactory.h"
 #include "PrefabSystem/LGUIPrefab.h"
-#include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "LGUIEditorTools.h"
 #include "AssetData.h"
@@ -13,7 +13,7 @@
 ULGUIPrefabActorFactory::ULGUIPrefabActorFactory()
 {
 	DisplayName = LOCTEXT("PrefabDisplayName", "Prefab");
-	NewActorClass = ALGUIPrefabActor::StaticClass();
+	NewActorClass = ALGUIPrefabHelperActor::StaticClass();
 	bShowInEditorQuickMenu = false;
 	bUseSurfaceOrientation = false;
 }
@@ -45,7 +45,7 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 
 	ULGUIPrefab* Prefab = CastChecked<ULGUIPrefab>(Asset);
 
-	auto PrefabActor = CastChecked<ALGUIPrefabActor>(InNewActor);
+	auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(InNewActor);
 	auto PrefabComponent = PrefabActor->GetPrefabComponent();
 	check(PrefabComponent);
 
@@ -62,7 +62,7 @@ void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
 	if (Asset != NULL && CDO != NULL)
 	{
 		auto Prefab = CastChecked<ULGUIPrefab>(Asset);
-		auto PrefabActor = CastChecked<ALGUIPrefabActor>(CDO);
+		auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(CDO);
 		auto PrefabComponent = PrefabActor->GetPrefabComponent();
 
 		PrefabComponent->SetPrefabAsset(Prefab);
@@ -72,7 +72,7 @@ void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
 UObject* ULGUIPrefabActorFactory::GetAssetFromActorInstance(AActor* ActorInstance)
 {
 	check(ActorInstance->IsA(NewActorClass));
-	auto PrefabActor = CastChecked<ALGUIPrefabActor>(ActorInstance);
+	auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(ActorInstance);
 	check(PrefabActor->GetPrefabComponent());
 	return PrefabActor->GetPrefabComponent()->GetPrefabAsset();
 }

@@ -690,7 +690,7 @@ FString LGUIEditorTools::PrevSavePrafabFolder = TEXT("");
 void LGUIEditorTools::CreatePrefabAsset()
 {
 	auto selectedActor = GetFirstSelectedActor();
-	if (Cast<ALGUIPrefabActor>(selectedActor) != nullptr)
+	if (Cast<ALGUIPrefabHelperActor>(selectedActor) != nullptr)
 	{
 		FMessageDialog::Open(EAppMsgType::Ok
 			, FText::FromString(FString::Printf(TEXT("Cannot create prefab on a PrefabActor!"))));
@@ -745,7 +745,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 				FAssetRegistryModule::AssetCreated(OutPrefab);
 
 				auto otherPrefabAcotrWhichHaveThisActor = GetPrefabActor_WhichManageThisActor(selectedActor);
-				auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabActor>(ALGUIPrefabActor::StaticClass(), FTransform::Identity);
+				auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabHelperActor>(ALGUIPrefabHelperActor::StaticClass(), FTransform::Identity);
 				if (IsValid(prefabActor))
 				{
 					prefabActor->SetActorLabel(fileName);
@@ -824,7 +824,7 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabCo
 			{
 				auto RecreatePrefab = [](ULGUIPrefab* Prefab, UWorld* World)
 				{
-					auto PrefabActor = World->SpawnActor<ALGUIPrefabActor>();
+					auto PrefabActor = World->SpawnActor<ALGUIPrefabHelperActor>();
 					auto PrefabComp = PrefabActor->GetPrefabComponent();
 					PrefabComp->SetPrefabAsset(Prefab);
 					PrefabComp->LoadPrefab();
@@ -897,11 +897,11 @@ void LGUIEditorTools::SelectPrefabAsset()
 	GEditor->EndTransaction();
 }
 
-ALGUIPrefabActor* LGUIEditorTools::GetPrefabActor_WhichManageThisActor(AActor* InActor)
+ALGUIPrefabHelperActor* LGUIEditorTools::GetPrefabActor_WhichManageThisActor(AActor* InActor)
 {
-	ALGUIPrefabActor* ResultPrefabActor = nullptr;
+	ALGUIPrefabHelperActor* ResultPrefabActor = nullptr;
 	int MinLoadedActorCount = MAX_int32;
-	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
+	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
 	{
 		auto PrefabActor = *ActorItr;
 		if (IsValid(PrefabActor))
@@ -927,7 +927,7 @@ ALGUIPrefabActor* LGUIEditorTools::GetPrefabActor_WhichManageThisActor(AActor* I
 
 void LGUIEditorTools::CleanupPrefabsInWorld(UWorld* World)
 {
-	for (TActorIterator<ALGUIPrefabActor> ActorItr(World); ActorItr; ++ActorItr)
+	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(World); ActorItr; ++ActorItr)
 	{
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
@@ -943,7 +943,7 @@ void LGUIEditorTools::CleanupPrefabsInWorld(UWorld* World)
 
 void LGUIEditorTools::ClearInvalidPrefabActor(UWorld* World)
 {
-	for (TActorIterator<ALGUIPrefabActor> ActorItr(World); ActorItr; ++ActorItr)
+	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(World); ActorItr; ++ActorItr)
 	{
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))

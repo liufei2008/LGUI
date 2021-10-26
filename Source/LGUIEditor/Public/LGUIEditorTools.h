@@ -6,7 +6,7 @@
 #include "Engine/EngineTypes.h"
 
 #pragma once
-class ALGUIPrefabActor;
+class ALGUIPrefabHelperActor;
 class ULGUIPrefabHelperComponent;
 class ULGUIPrefab;
 
@@ -59,7 +59,7 @@ public:
 	static void UnlinkPrefab();
 	static void SelectPrefabAsset();
 	static void CleanupPrefabsInWorld(UWorld* World);
-	static ALGUIPrefabActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
+	static ALGUIPrefabHelperActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
 	static void ClearInvalidPrefabActor(UWorld* World);
 	static bool IsSelectUIActor();

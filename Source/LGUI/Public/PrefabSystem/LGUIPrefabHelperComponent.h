@@ -8,7 +8,7 @@
 #include "LGUIPrefabHelperComponent.generated.h"
 
 
-class ALGUIPrefabActor;
+class ALGUIPrefabHelperActor;
 
 //helper component for PrefabSystem. for manage a prefab actor in level. only use this in editor
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input), ClassGroup = (LGUI), NotBlueprintType, NotBlueprintable)
