@@ -24,7 +24,7 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/Selection.h"
 #include "EditorViewportClient.h"
-#include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "EngineUtils.h"
 #include "Layout/LGUICanvasScaler.h"
@@ -339,7 +339,7 @@ void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
 void ULGUIEditorManagerObject::OnActorDeleted()
 {
 	if (GWorld == nullptr)return;
-	for (TActorIterator<ALGUIPrefabActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(GWorld); ActorItr; ++ActorItr)
 	{
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
@@ -355,7 +355,7 @@ void ULGUIEditorManagerObject::OnMapOpened(const FString& FileName, bool AsTempl
 {
 	//Restore prefabs
 	if (GWorld == nullptr)return;
-	for (TActorIterator<ALGUIPrefabActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(GWorld); ActorItr; ++ActorItr)
 	{
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))

@@ -2,7 +2,7 @@
 
 #include "PrefabSystem/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
-#include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "Utils/BitConverter.h"
 #include "Engine/World.h"
 #include "Serialization/MemoryReader.h"
@@ -555,7 +555,7 @@ void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 ULGUIPrefabHelperComponent* ActorSerializer::GetPrefabComponentThatUseTheActorAsRoot(AActor* InActor)
 {
 	if (HelperComp != nullptr && HelperComp->LoadedRootActor == InActor)return nullptr;//skip self
-	for (TActorIterator<ALGUIPrefabActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
+	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
 	{
 		auto PrefabActor = *ActorItr;
 		if (IsValid(PrefabActor))

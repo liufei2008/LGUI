@@ -102,8 +102,6 @@
 #include "PrefabSystem/ActorSerializer.h"
 #include "PrefabSystem/ActorReplaceTool.h"
 #include "PrefabSystem/LGUIPrefab.h"
-#include "PrefabSystem/LGUIPrefabActor.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 
 #include "Utils/BitConverter.h"
 #include "Utils/LGUIUtils.h"

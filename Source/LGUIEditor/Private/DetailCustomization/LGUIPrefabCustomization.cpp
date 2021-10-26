@@ -340,7 +340,7 @@ FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 }
 void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World)
 {
-	auto PrefabActor = World->SpawnActor<ALGUIPrefabActor>();
+	auto PrefabActor = World->SpawnActor<ALGUIPrefabHelperActor>();
 	auto PrefabComp = PrefabActor->GetPrefabComponent();
 	PrefabComp->SetPrefabAsset(Prefab);
 	PrefabComp->LoadPrefab();

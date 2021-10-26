@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "PrefabSystem/ActorSerializer.h"
 #include "Utils/LGUIUtils.h"
-#include "PrefabSystem/LGUIPrefabActor.h"
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "Core/ActorComponent/UIItem.h"
 #if WITH_EDITOR
 #include "Editor.h"
@@ -20,6 +20,8 @@ TArray<FColor> ULGUIPrefabHelperComponent::AllColors;
 ULGUIPrefabHelperComponent::ULGUIPrefabHelperComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	bIsEditorOnly = true;
 }
 
 
