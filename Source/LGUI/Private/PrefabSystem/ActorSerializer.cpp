@@ -94,9 +94,10 @@ void ActorSerializer::RenewActorGuidForDuplicate_Implement()
 	ToBinary.Empty();
 }
 #endif
-AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
+AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity, TFunction<void(AActor*)> CallbackBeforeAwake)
 {
 	ActorSerializer serializer(InWorld);
+	serializer.CallbackBeforeAwake = CallbackBeforeAwake;
 	AActor* result = nullptr;
 	if (SetRelativeTransformToIdentity)
 	{
@@ -108,9 +109,10 @@ AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USce
 	}
 	return result;
 }
-AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale)
+AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(AActor*)> CallbackBeforeAwake)
 {
 	ActorSerializer serializer(InWorld);
+	serializer.CallbackBeforeAwake = CallbackBeforeAwake;
 	return serializer.DeserializeActor(Parent, InPrefab, true, RelativeLocation, RelativeRotation, RelativeScale);
 }
 
@@ -274,6 +276,11 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		{
 			item.BlueprintActor->GetRootComponent()->AttachToComponent(item.ParentActor, FAttachmentTransformRules::KeepRelativeTransform);
 		}
+	}
+
+	if (CallbackBeforeAwake != nullptr)
+	{
+		CallbackBeforeAwake(CreatedRootActor);
 	}
 
 #if WITH_EDITOR

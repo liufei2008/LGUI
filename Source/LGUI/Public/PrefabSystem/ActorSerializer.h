@@ -304,8 +304,6 @@ namespace LGUIPrefabSystem
 	};
 
 
-	DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIPrefabSystem_DeserializeActorDelegate, bool);
-
 	/*
 	serialize/deserialize actor, include hierarchy, property, reference
 	not yet supported property type:
@@ -322,8 +320,14 @@ namespace LGUIPrefabSystem
 		ActorSerializer(ULGUIPrefab* InPrefab);
 		ActorSerializer(UWorld* InTargetWorld);
 	public:
-		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
-		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale);
+		/**
+		 * @param CallbackBeforeAwake	This callback function will execute before Awake event, parameter "Actor" is the loaded root actor.
+		 */
+		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true, TFunction<void(AActor*)> CallbackBeforeAwake = nullptr);
+		/**
+		 * @param CallbackBeforeAwake	This callback function will execute before Awake event, parameter "Actor" is the loaded root actor.
+		 */
+		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(AActor*)> CallbackBeforeAwake = nullptr);
 #if WITH_EDITOR
 		enum class EPrefabEditMode :uint8
 		{
@@ -334,10 +338,16 @@ namespace LGUIPrefabSystem
 			, ULGUIPrefabHelperComponent* InHelperComp
 			, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
 			, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid);
+		/**
+		 * LoadPrefab for edit/modify, will keep reference of source prefab.
+		 */
 		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, TFunction<AActor* (FGuid)> InGetExistingActorFunction
 			, TFunction<void (AActor*, FGuid)> InCreateNewActorFunction
 			, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid);
+		/**
+		 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.
+		 */
 		static AActor* LoadPrefabInEditor(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
 		static void RenewActorGuidForDuplicate(ULGUIPrefab* InPrefab);
 
@@ -466,6 +476,8 @@ namespace LGUIPrefabSystem
 		static const int ItemType_Array = 1;
 		static const int ItemType_Map = 2;
 		static const int ItemType_Set = 3;
+
+		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;
 
 	public:
 #if WITH_EDITORONLY_DATA
