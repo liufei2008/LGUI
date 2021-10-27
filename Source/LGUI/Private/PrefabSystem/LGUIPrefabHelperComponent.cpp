@@ -138,7 +138,7 @@ void ULGUIPrefabHelperComponent::LoadPrefab(USceneComponent* InParent)
 	}
 }
 
-void ULGUIPrefabHelperComponent::SavePrefab(bool InIncludeOtherPrefabAsSubPrefab)
+void ULGUIPrefabHelperComponent::SavePrefab()
 {
 	if (PrefabAsset)
 	{
@@ -146,7 +146,6 @@ void ULGUIPrefabHelperComponent::SavePrefab(bool InIncludeOtherPrefabAsSubPrefab
 		auto ExistingActors = AllLoadedActorArray;
 		auto ExistingActorsGuid = AllLoadedActorGuidArrayInPrefab;
 		LGUIPrefabSystem::ActorSerializer::SavePrefab(LoadedRootActor, PrefabAsset
-			, InIncludeOtherPrefabAsSubPrefab
 			, this
 			, ExistingActors, ExistingActorsGuid, AllLoadedActorArray, AllLoadedActorGuidArrayInPrefab);
 	}

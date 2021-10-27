@@ -403,7 +403,7 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 }
 
 
-void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, bool InIncludeOtherPrefabAsSubPrefab
+void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 	, ULGUIPrefabHelperComponent* InHelperComp
 	, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
 	, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid)
@@ -421,7 +421,6 @@ void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, bool 
 	ActorSerializer serializer(RootActor->GetWorld());
 	serializer.ExistingActors = InExistingActorArray;
 	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
-	serializer.IncludeOtherPrefabAsSubPrefab = InIncludeOtherPrefabAsSubPrefab;
 	serializer.HelperComp = InHelperComp;
 	serializer.SerializeActor(RootActor, InPrefab);
 	OutSerializedActors = serializer.SerializedActors;

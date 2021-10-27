@@ -25,7 +25,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void LoadPrefab(USceneComponent* InParent = nullptr);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SavePrefab(bool InIncludeOtherPrefabAsSubPrefab);
+		void SavePrefab();
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void RevertPrefab();
 	//delete this prefab actor

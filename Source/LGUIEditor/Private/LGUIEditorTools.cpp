@@ -17,6 +17,8 @@
 #include "Engine/Selection.h"
 #include "EngineUtils.h"
 #include "PrefabSystem/ActorSerializer.h"
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
+#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "LGUIEditorModule.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
@@ -350,7 +352,7 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		prefab->AddToRoot();
 		TArray<AActor*> Actors;
 		TArray<FGuid> ActorsGuid;
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab, true
+		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab
 			, nullptr
 			, {}, {}, Actors, ActorsGuid);
 		copiedActorPrefabList.Add(prefab);
@@ -817,7 +819,7 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabCo
 			LGUIUtils::CollectChildrenActors(rootActor, allChildrenActors);
 			{
 				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
-				InPrefabComp->SavePrefab(false);
+				InPrefabComp->SavePrefab();
 				GEditor->EndTransaction();
 			}
 			//search all prefabs that use this prefab as sub prefab, and recreate them
@@ -828,7 +830,7 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabCo
 					auto PrefabComp = PrefabActor->GetPrefabComponent();
 					PrefabComp->SetPrefabAsset(Prefab);
 					PrefabComp->LoadPrefab();
-					PrefabComp->SavePrefab(false);
+					PrefabComp->SavePrefab();
 
 					LGUIUtils::DestroyActorWithHierarchy(PrefabActor, true);
 					LGUIUtils::DestroyActorWithHierarchy(PrefabComp->LoadedRootActor, true);
