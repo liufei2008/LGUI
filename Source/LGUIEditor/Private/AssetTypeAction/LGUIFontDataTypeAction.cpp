@@ -1,6 +1,6 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "DataFactory/LGUIFontDataTypeAction.h"
+#include "AssetTypeAction/LGUIFontDataTypeAction.h"
 #include "ContentBrowserModule.h"
 #include "Core/LGUIFontData.h"
 

@@ -7,6 +7,7 @@
 #include "LGUIHeaders.h"
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
@@ -32,8 +33,8 @@
 #include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
 #include "Window/LGUIAtlasViewer.h"
 
-#include "DataFactory/LGUISpriteDataTypeAction.h"
-#include "DataFactory/LGUIFontDataTypeAction.h"
+#include "AssetTypeAction/LGUISpriteDataTypeAction.h"
+#include "AssetTypeAction/LGUIFontDataTypeAction.h"
 
 #include "DetailCustomization/UIItemCustomization.h"
 #include "DetailCustomization/UISpriteBaseCustomization.h"
