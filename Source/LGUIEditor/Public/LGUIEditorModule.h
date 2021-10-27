@@ -22,11 +22,11 @@ public:
 
 	static const FName LGUIAtlasViewerName;
 
-	static FLGUIEditorModule* Instance;
-
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+	static FLGUIEditorModule& Get();
 	
 	TSharedRef<SWidget> MakeEditorToolsMenu(bool IsSceneOutlineMenu);
 	TSharedPtr<class FUICommandList> PluginCommands;
