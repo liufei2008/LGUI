@@ -1,6 +1,6 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "DataFactory/LGUISpriteDataTypeAction.h"
+#include "AssetTypeAction/LGUISpriteDataTypeAction.h"
 #include "ContentBrowserModule.h"
 #include "Core/LGUISpriteData.h"
 
