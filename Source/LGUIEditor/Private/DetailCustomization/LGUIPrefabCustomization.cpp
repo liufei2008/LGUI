@@ -344,7 +344,7 @@ void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World
 	auto PrefabComp = PrefabActor->GetPrefabComponent();
 	PrefabComp->SetPrefabAsset(Prefab);
 	PrefabComp->LoadPrefab();
-	PrefabComp->SavePrefab(false);
+	PrefabComp->SavePrefab();
 
 	LGUIUtils::DestroyActorWithHierarchy(PrefabActor, true);
 	LGUIUtils::DestroyActorWithHierarchy(PrefabComp->LoadedRootActor, true);

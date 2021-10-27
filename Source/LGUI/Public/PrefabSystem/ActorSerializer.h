@@ -334,7 +334,7 @@ namespace LGUIPrefabSystem
 			NotEditable,
 			EditInLevel,
 		};
-		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab, bool InIncludeOtherPrefabAsSubPrefab
+		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 			, ULGUIPrefabHelperComponent* InHelperComp
 			, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
 			, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid);
@@ -367,7 +367,6 @@ namespace LGUIPrefabSystem
 		TMap<int32, AActor*> MapIDToActor;
 #if WITH_EDITORONLY_DATA
 		EPrefabEditMode editMode = EPrefabEditMode::NotEditable;
-		bool IncludeOtherPrefabAsSubPrefab = false;
 
 		TArray<AActor*> SkippingActors;
 
