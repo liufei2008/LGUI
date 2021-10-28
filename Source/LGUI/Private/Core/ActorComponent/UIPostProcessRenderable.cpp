@@ -44,9 +44,9 @@ void UUIPostProcessRenderable::PostEditChangeProperty(FPropertyChangedEvent& Pro
 void UUIPostProcessRenderable::OnUnregister()
 {
 	Super::OnUnregister();
-	if (RenderProxy.IsValid())
+	if (RenderCanvas.IsValid() && drawcall.IsValid())
 	{
-		RenderProxy->RemoveFromLGUIRenderer();
+		RenderCanvas->RemoveUIRenderable(this);
 	}
 }
 
