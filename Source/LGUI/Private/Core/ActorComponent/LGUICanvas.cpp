@@ -91,16 +91,13 @@ void ULGUICanvas::UpdateRootCanvasDrawcall()
 #endif
 		if (bCurrentIsLGUIRendererOrUERenderer)
 		{
-			if (!bHasAddToLGUIScreenSpaceRenderer)
+			if (!bHasAddToLGUIScreenSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
 			{
 				TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
-				if (!GetWorld()->IsGameWorld())
+				if (!GetWorld()->IsGameWorld())//editor world, screen space UI not need to add to ViewExtension
 				{
-					if (GetWorld()->WorldType != EWorldType::EditorPreview)
-					{
-						ViewExtension = ULGUIEditorManagerObject::GetViewExtension(GetWorld(), true);
-					}
+					
 				}
 				else
 #endif
@@ -108,7 +105,7 @@ void ULGUICanvas::UpdateRootCanvasDrawcall()
 					ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
 				}
 
-				if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)//only root canvas can add screen space UI to LGUIRenderer
+				if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
 				{
 					ViewExtension->SetScreenSpaceRenderCanvas(this);
 					bHasAddToLGUIScreenSpaceRenderer = true;
@@ -325,17 +322,21 @@ void ULGUICanvas::CheckRenderMode()
 }
 void ULGUICanvas::OnUIHierarchyChanged()
 {
-	//remove from old
 	if (RootCanvas.IsValid())
 	{
+		//remove from old
 		RootCanvas->manageCanvasArray.Remove(this);
+		//mark old RootCanvas update
+		RootCanvas->bCanTickUpdate = true;
 	}
 	RootCanvas = nullptr;
 	CheckRootCanvas();
-	//add to new
 	if (RootCanvas.IsValid())
 	{
+		//add to new
 		RootCanvas->manageCanvasArray.Add(this);
+		//mark new RootCanvas update
+		RootCanvas->bCanTickUpdate = true;
 	}
 	CheckRenderMode();
 
@@ -1029,11 +1030,11 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 {
 	if (bCurrentIsLGUIRendererOrUERenderer)
 	{
-		if (!bHasAddToLGUIWorldSpaceRenderer)
+		if (!bHasAddToLGUIWorldSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)
 		{
 			TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
-			if (!GetWorld()->IsGameWorld())
+			if (!GetWorld()->IsGameWorld())//editor world
 			{
 				if (GetWorld()->WorldType != EWorldType::EditorPreview)
 				{
@@ -1046,7 +1047,7 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 				ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
 			}
 
-			if (ViewExtension.IsValid() && GetActualRenderMode() == ELGUIRenderMode::WorldSpace_LGUI)//all WorldSpace_LGUI canvas should add to LGUIRenderer
+			if (ViewExtension.IsValid())//all WorldSpace_LGUI canvas should add to LGUIRenderer
 			{
 				ViewExtension->AddWorldSpaceRenderCanvas(this);
 				bHasAddToLGUIWorldSpaceRenderer = true;
@@ -1174,9 +1175,17 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 			case EUIDrawcallType::PostProcess:
 			{
 #if WITH_EDITOR
-				if (!GetWorld()->IsGameWorld())//editor world, post process not work, ignore it
+				if (!GetWorld()->IsGameWorld())
 				{
-					continue;
+					//editor world, post process not work with WorldSpace-UERenderer and ScreenSpace, ignore it
+					if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace || this->GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+					{
+						continue;
+					}
+					else//lgui renderer, create a PostProcessRenderable object to handle it. then the next UI objects should render by new mesh
+					{
+						prevUIMesh = nullptr;//set to null so a new mesh will be created for next drawcall
+					}
 				}
 				else
 #endif

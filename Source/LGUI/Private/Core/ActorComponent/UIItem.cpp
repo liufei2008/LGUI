@@ -1049,6 +1049,12 @@ void UUIItem::UIHierarchyChanged()
 }
 void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
+	//mark UIItem update geometry
+	if (this->RootUIItem.IsValid())
+	{
+		this->RootUIItem->bNeedUpdateRootUIItem = true;
+	}
+	//mark canvas update drawcall
 	if (IsValid(OldCanvas))
 	{
 		OldCanvas->MarkCanvasUpdate();
