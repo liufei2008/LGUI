@@ -14,6 +14,7 @@
 #include "PrefabSystem/ActorSerializer.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Engine/Engine.h"
 #include "Layout/UILayoutBase.h"
@@ -77,6 +78,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 															//so only Editor mode will draw frame. the two modes below will not work, just leave it as a reference.
 			&& item->GetWorld()->WorldType != EWorldType::Game
 			&& item->GetWorld()->WorldType != EWorldType::PIE
+			&& item->GetWorld()->WorldType != EWorldType::EditorPreview
 			)continue;
 
 		ULGUIEditorManagerObject::DrawFrameOnUIItem(item.Get());
@@ -735,6 +737,79 @@ bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
 	}
 	return false;
 }
+
+bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
+	, TWeakObjectPtr<UUIBaseRenderable> PrevSelectTarget, TWeakObjectPtr<AActor> PrevSelectedActor
+	, TWeakObjectPtr<UUIBaseRenderable>& ResultSelectTarget, TWeakObjectPtr<AActor>& ResultSelectedActor
+)
+{
+	TArray<FHitResult> HitResultArray;
+	for (auto uiItem : InUIItems)
+	{
+		if (uiItem->GetWorld() == InWorld)
+		{
+			if (auto uiRenderable = Cast<UUIBaseRenderable>(uiItem))
+			{
+				FHitResult hitInfo;
+				auto originRaycastComplex = uiRenderable->GetRaycastComplex();
+				auto originRaycastTarget = uiRenderable->IsRaycastTarget();
+				uiRenderable->SetRaycastComplex(true);//in editor selection, make the ray hit actural triangle
+				uiRenderable->SetRaycastTarget(true);
+				if (uiRenderable->LineTraceUI(hitInfo, LineStart, LineEnd))
+				{
+					if (uiRenderable->GetRenderCanvas()->IsPointVisible(hitInfo.Location))
+					{
+						HitResultArray.Add(hitInfo);
+					}
+				}
+				uiRenderable->SetRaycastComplex(originRaycastComplex);
+				uiRenderable->SetRaycastTarget(originRaycastTarget);
+			}
+		}
+	}
+	if (HitResultArray.Num() > 0)//hit something
+	{
+		HitResultArray.Sort([](const FHitResult& A, const FHitResult& B)
+			{
+				auto AUIRenderable = (UUIBaseRenderable*)(A.Component.Get());
+				auto BUIRenderable = (UUIBaseRenderable*)(B.Component.Get());
+				if (AUIRenderable->GetRenderCanvas() == BUIRenderable->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
+				{
+					if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())//if item's depth is equal then sort on distance
+					{
+						return A.Distance < B.Distance;
+					}
+					else
+						return AUIRenderable->GetDepth() > BUIRenderable->GetDepth();
+				}
+				else//if Canvas's depth not equal then sort on Canvas's SortOrder
+				{
+					return AUIRenderable->GetRenderCanvas()->GetSortOrder() > BUIRenderable->GetRenderCanvas()->GetSortOrder();
+				}
+			});
+		if (auto uiRenderableComp = Cast<UUIBaseRenderable>(HitResultArray[0].Component.Get()))//target need to select
+		{
+			if (PrevSelectTarget.Get() == uiRenderableComp)//if selection not change, then select hierarchy up
+			{
+				if (auto parentActor = PrevSelectedActor->GetAttachParentActor())
+				{
+					ResultSelectedActor = parentActor;
+				}
+				else//not have parent, loop back to origin
+				{
+					ResultSelectedActor = uiRenderableComp->GetOwner();
+				}
+			}
+			else
+			{
+				ResultSelectedActor = uiRenderableComp->GetOwner();
+			}
+			ResultSelectTarget = uiRenderableComp;
+			return true;
+		}
+	}
+	return false;
+}
 void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 {
 	if (!IsValid(GEditor))return;
@@ -782,72 +857,13 @@ void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
 								//find hit UIBatchGeometryRenderable
 								auto lineStart = rayOrigin;
 								auto lineEnd = rayOrigin + rayDirection * lineTraceLength;
-								CacheHitResultArray.Reset();
-								for (auto uiItem : allUIItems)
+								auto prevSelectTarget = LastSelectTarget;
+								auto prevSelectActor = LastSelectedActor;
+								if (RaycastHitUI(world, allUIItems, lineStart, lineEnd, prevSelectTarget, prevSelectActor, LastSelectTarget, LastSelectedActor))
 								{
-									if (uiItem->GetWorld() == world)
-									{
-										if (auto uiRenderable = Cast<UUIBatchGeometryRenderable>(uiItem))
-										{
-											FHitResult hitInfo;
-											auto originRaycastComplex = uiRenderable->GetRaycastComplex();
-											auto originRaycastTarget = uiRenderable->IsRaycastTarget();
-											uiRenderable->SetRaycastComplex(true);//in editor selection, make the ray hit actural triangle
-											uiRenderable->SetRaycastTarget(true);
-											if (uiRenderable->LineTraceUI(hitInfo, lineStart, lineEnd))
-											{
-												if (uiRenderable->GetRenderCanvas()->IsPointVisible(hitInfo.Location))
-												{
-													CacheHitResultArray.Add(hitInfo);
-												}
-											}
-											uiRenderable->SetRaycastComplex(originRaycastComplex);
-											uiRenderable->SetRaycastTarget(originRaycastTarget);
-										}
-									}
-								}
-								if (CacheHitResultArray.Num() > 0)//hit something
-								{
-									CacheHitResultArray.Sort([](const FHitResult& A, const FHitResult& B)
-										{
-											auto AUIRenderable = (UUIBatchGeometryRenderable*)(A.Component.Get());
-											auto BUIRenderable = (UUIBatchGeometryRenderable*)(B.Component.Get());
-											if (AUIRenderable->GetRenderCanvas() == BUIRenderable->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
-											{
-												if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())//if item's depth is equal then sort on distance
-												{
-													return A.Distance < B.Distance;
-												}
-												else
-													return AUIRenderable->GetDepth() > BUIRenderable->GetDepth();
-											}
-											else//if Canvas's depth not equal then sort on Canvas's SortOrder
-											{
-												return AUIRenderable->GetRenderCanvas()->GetSortOrder() > BUIRenderable->GetRenderCanvas()->GetSortOrder();
-											}
-										});
-									if (auto uiRenderableComp = Cast<UUIBatchGeometryRenderable>(CacheHitResultArray[0].Component.Get()))//target need to select
-									{
-										if (LastSelectTarget.Get() == uiRenderableComp)//if selection not change, then select hierarchy up
-										{
-											if (auto parentActor = LastSelectedActor->GetAttachParentActor())
-											{
-												LastSelectedActor = parentActor;
-											}
-											else//not have parent, loop back to origin
-											{
-												LastSelectedActor = uiRenderableComp->GetOwner();
-											}
-										}
-										else
-										{
-											LastSelectedActor = uiRenderableComp->GetOwner();
-										}
-										GEditor->SelectNone(true, true);
-										GEditor->SelectActor(LastSelectedActor.Get(), true, true);
-										LastSelectTarget = uiRenderableComp;
-										goto END;
-									}
+									GEditor->SelectNone(true, true);
+									GEditor->SelectActor(LastSelectedActor.Get(), true, true);
+									goto END;
 								}
 							}
 						}

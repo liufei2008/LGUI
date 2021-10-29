@@ -57,10 +57,10 @@ public:
 		ULGUIPrefab* PrefabAsset;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		AActor* LoadedRootActor;
-	/** All loaded actor, include sub prefab's actor */
+	/** All loaded actor */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllLoadedActorArray;
-	/** All loaded actor's guid which stored in prefab, include sub prefab */
+	/** All loaded actor's guid which stored in prefab */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<FGuid> AllLoadedActorGuidArrayInPrefab;
 	FColor IdentityColor = FColor::Black;
