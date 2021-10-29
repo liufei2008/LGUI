@@ -61,6 +61,8 @@ public:
 	virtual void SetClipType(ELGUICanvasClipType clipType);
 	virtual void SetRectClipParameter(const FVector4& OffsetAndSize, const FVector4& Feather);
 	virtual void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize);
+
+	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
 private:
 	/** local vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;

@@ -307,3 +307,8 @@ void UUIPostProcessRenderable::SetTextureClipParameter(UTexture* ClipTex, const 
 				});
 	}
 }
+
+bool UUIPostProcessRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
+{
+	return UUIBaseRenderable::LineTraceUIGeometry(geometry, OutHit, Start, End);
+}

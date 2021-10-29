@@ -239,9 +239,7 @@ void ULGUIPrefabHelperComponent::EditorTick(float DeltaTime)
 }
 void ULGUIPrefabHelperComponent::CleanupPrefabAndActor()
 {
-	//Clear sub prefabs
-	TArray<AActor*> NeedToDelete;
-	//Cleanup AllLoadedActorArray, remove it if not under root actor, remove it if not belong to prefab or sub prefab
+	//Cleanup AllLoadedActorArray, remove it if not under root actor
 	if (AllLoadedActorArray.Num() == AllLoadedActorGuidArrayInPrefab.Num())
 	{
 		for (int i = AllLoadedActorArray.Num() - 1; i >= 0; i--)

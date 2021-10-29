@@ -12,6 +12,7 @@
 class UUIItem;
 class UUIText;
 class UUIBatchGeometryRenderable;
+class UUIBaseRenderable;
 class ULGUICanvas;
 class ULGUIBaseRaycaster;
 class UUISelectableComponent;
@@ -98,6 +99,11 @@ public:
 	static void RemoveLayout(UUILayoutBase* InLayout);
 
 	static void DrawFrameOnUIItem(UUIItem* InItem);
+
+	static bool RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
+		, TWeakObjectPtr<UUIBaseRenderable> PrevSelectTarget, TWeakObjectPtr<AActor> PrevSelectedActor
+		, TWeakObjectPtr<UUIBaseRenderable>& ResultSelectTarget, TWeakObjectPtr<AActor>& ResultSelectedActor
+	);
 private:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -114,8 +120,7 @@ public:
 private:
 	bool IsCalculatingSelection = false;
 	FDelegateHandle OnSelectionChangedDelegateHandle;
-	TArray<FHitResult> CacheHitResultArray;
-	TWeakObjectPtr<UUIBatchGeometryRenderable> LastSelectTarget;
+	TWeakObjectPtr<UUIBaseRenderable> LastSelectTarget;
 	TWeakObjectPtr<AActor> LastSelectedActor;
 	void OnSelectionChanged(UObject* newSelection);
 	FDelegateHandle OnAssetReimportDelegateHandle;

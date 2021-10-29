@@ -42,6 +42,8 @@ protected:
 	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;
 
+	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
+
 	TWeakObjectPtr<ULGUIMeshComponent> UIMesh = nullptr;
 	TWeakPtr<FLGUIMeshSection> MeshSection = nullptr;
 public:

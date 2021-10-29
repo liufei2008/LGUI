@@ -47,10 +47,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCustomUIMaterial(UMaterialInterface* inMat);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetRaycastComplex() { return bRaycastComplex; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetRaycastComplex(bool newValue) { bRaycastComplex = newValue; }
 	/** 
 	 * If CustomUIMaterial is a UMaterialInstanceDynamic, then will return it directly.
 	 * If not, then return a created MaterialInstanceDynamic that renderring this UI item, may shared by other UI item. if this UI item is not renderred yet, then return nullptr.
@@ -84,9 +80,6 @@ protected:
 	/** Use custom material to render this element */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayThumbnail = "false"))
 		UMaterialInterface* CustomUIMaterial = nullptr;
-	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit widget rectangle */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
-		bool bRaycastComplex = false;
 
 	/** do we have valid data to create geometry? */
 	virtual bool HaveDataToCreateGeometry() { return true; }
