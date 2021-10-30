@@ -4,20 +4,8 @@
 
 #include "LGUIPrefab.generated.h"
 
-//Version 2: Support ActorGuid (start from 4.26), nested prefab
+//Version 2: Support ActorGuid (start from 4.26)
 #define LGUI_PREFAB_VERSION 2
-
-USTRUCT()
-struct FActorGuidAndPrefabContainer
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefab* Prefab;
-	/** map from 'guid stored in sub prefab' to 'guid stored in root prefab' */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<FGuid, FGuid> GuidFromPrefabToInstance;
-};
 
 /**
  * similar to Unity3D's Prefab. store actor and it's hierarchy and serailize to asset, deserialize and restore when need.
