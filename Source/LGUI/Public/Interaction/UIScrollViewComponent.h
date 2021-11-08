@@ -52,7 +52,7 @@ protected:
 		bool Horizontal = true;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool Vertical = true;
-	/** If Horizontal and Vertical, only allow one direction drag at the same time. Not valid when use scroll(Mouse wheel), because scroll only have one direction. */ 
+	/** If allow Horizontal and Vertical both, then only allow one direction drag at the same time. Not valid when use scroll(Mouse wheel), because scroll only have one direction. */ 
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool OnlyOneDirection = true;
 	/** Sensitivity when use mouse scroll wheel input */ 
