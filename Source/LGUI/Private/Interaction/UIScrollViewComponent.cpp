@@ -77,7 +77,10 @@ void UUIScrollViewComponent::RecalculateRange()
             AllowVerticalScroll = false;
         }
         Position = ContentUIItem->GetRelativeLocation();
-        if (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y || Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)
+        if (
+            (AllowHorizontalScroll && (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y))
+            || (AllowVerticalScroll && (Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y))
+            )
         {
             CanUpdateAfterDrag = true;
         }
