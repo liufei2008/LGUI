@@ -818,9 +818,10 @@ void ULGUIMeshComponent::DestroyRenderState_Concurrent()
 	Super::DestroyRenderState_Concurrent();
 }
 
+DECLARE_CYCLE_STAT(TEXT("LGUIMesh CreateSceneProxy"), STAT_LGUIMesh_CreateSceneProxy, STATGROUP_LGUI);
 FPrimitiveSceneProxy* ULGUIMeshComponent::CreateSceneProxy()
 {
-	//SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_CreateSceneProxy);
+	SCOPE_CYCLE_COUNTER(STAT_LGUIMesh_CreateSceneProxy);
 
 	FLGUIMeshSceneProxy* Proxy = NULL;
 	if (MeshSections.Num() > 0)
