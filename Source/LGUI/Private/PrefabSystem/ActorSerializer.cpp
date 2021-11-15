@@ -332,7 +332,6 @@ TArray<FName> ActorSerializer::GetActorExcludeProperties(bool instigator, bool a
 	result.Add("BlueprintCreatedComponents");
 	result.Add("InstanceComponents");
 #if WITH_EDITORONLY_DATA
-	result.Add("InstanceComponents");
 	if (actorGuid)
 	{
 		result.Add(Name_ActorGuid); //ActorGuid is generated when spawn in world, should be unique
