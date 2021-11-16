@@ -66,7 +66,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
 		bool AllowEventBubbleUp = false;
 
-	bool AllowHorizontalScroll, AllowVerticalScroll;
+	uint8 AllowHorizontalScroll: 1, AllowVerticalScroll: 1;
+	uint8 CanUpdateAfterDrag: 1;
+	uint8 bRangeCalculated: 1;
+
 	virtual void CalculateHorizontalRange();
 	virtual void CalculateVerticalRange();
 	bool CheckParameters();
@@ -79,7 +82,6 @@ protected:
 	FVector2D DragSpeed = FVector2D(0, 0);//drag speed
 	FVector2D HorizontalRange;//horizontal scroll range, x--min, y--max
 	FVector2D VerticalRange;//vertical scroll range, x--min, y--max
-	bool CanUpdateAfterDrag = false;
 	FVector PrevWorldPoint;
 private:
 	void UpdateAfterDrag(float deltaTime);
@@ -141,4 +143,7 @@ public:
 	/** Mannually scroll it with absolute value. The value will be applyed to Content's relative location. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
 		void SetScrollValue(FVector2D value);
+	/** Mannually scroll it with progress value (from 0 to 1). The value will be applyed to Content's relative location. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollView")
+		void SetScrollProgress(FVector2D value);
 };
