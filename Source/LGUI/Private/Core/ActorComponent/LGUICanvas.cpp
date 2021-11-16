@@ -641,21 +641,28 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 					}
 				}
 				
-				if (nodePtrToInsert == nullptr)//at tail
+				if (nodePtrToInsert == nullptr)//at tail, check: (batch, new dracall, new drawcall and split)
 				{
 					auto tailNode = UIDrawcallList.GetTail();
-					auto nodeDrawcall = tailNode->GetValue();
-					if (uiGeo->texture == nodeDrawcall->texture)//same texture, can batch
+					auto tailNodeDrawcall = tailNode->GetValue();
+					if (uiGeo->texture == tailNodeDrawcall->texture)//same texture, can batch
 					{
-						InsertIntoRenderObjectList(nodeDrawcall->renderObjectList, batchGeometryRenderable);
-						nodeDrawcall->needToRebuildMesh = true;
-						nodeDrawcall->UpdateDepthRange();
-						InUIRenderable->drawcall = nodeDrawcall;
+						InsertIntoRenderObjectList(tailNodeDrawcall->renderObjectList, batchGeometryRenderable);
+						tailNodeDrawcall->needToRebuildMesh = true;
+						tailNodeDrawcall->UpdateDepthRange();
+						InUIRenderable->drawcall = tailNodeDrawcall;
 					}
-					else//different texture, cannot batch. create new drawcall
+					else//different texture, cannot batch. but may split the exist drawcall node
 					{
-						auto drawcall = NewDrawcall(nullptr);
-						UIDrawcallList.AddTail(drawcall);
+						if (uiElementDepth >= tailNodeDrawcall->depthMax)//not in depth range, no need to split drawcall
+						{
+							auto drawcall = NewDrawcall(nullptr);
+							UIDrawcallList.AddTail(drawcall);
+						}
+						else//inside depth range, must split drawcall
+						{
+							SplitDrawcall(tailNode, uiElementDepth, NewDrawcall);
+						}
 					}
 				}
 				else//not tail, maybe head or middle
@@ -697,7 +704,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 								prevNodeDrawcall->UpdateDepthRange();
 								InUIRenderable->drawcall = prevNodeDrawcall;
 							}
-							else//different texture, cannot batch. but may split the exist drawcall node
+							else//different texture, cannot batch. but may split the existing drawcall node
 							{
 								if (uiElementDepth >= prevNodeDrawcall->depthMax)//not in depth range, no need to split drawcall
 								{
@@ -925,7 +932,7 @@ void ULGUICanvas::CombineDrawcall()
 	EUIDrawcallType prevDrwacallType = EUIDrawcallType::None;
 	UMaterialInterface* prevMaterial = nullptr;
 	UTexture* prevTexture = nullptr;
-	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+	for (auto iter = UIDrawcallList.GetTail(); iter != nullptr; iter = iter->GetPrevNode())//from tail to head; so when add renderObjectList, prev obj line after
 	{
 		auto drawcallItem = iter->GetValue();
 		if (drawcallItem->type == EUIDrawcallType::BatchGeometry && prevDrwacallType == EUIDrawcallType::BatchGeometry)//only batch geometry can be combined
@@ -934,8 +941,8 @@ void ULGUICanvas::CombineDrawcall()
 			{
 				if (drawcallItem->texture == prevTexture)//same texture, can combine
 				{
-					//combine prev drawcall to current
-					auto prevNode = iter->GetPrevNode();
+					//combine next-node drawcall into current
+					auto prevNode = iter->GetNextNode();
 					auto prevDrawcall = prevNode->GetValue();
 					auto currentDrawcall = drawcallItem;
 					int additionalSize = prevDrawcall->renderObjectList.Num();
@@ -946,6 +953,7 @@ void ULGUICanvas::CombineDrawcall()
 						prevDrawcall->renderObjectList[i]->drawcall = currentDrawcall;
 					}
 					currentDrawcall->needToRebuildMesh = true;
+					currentDrawcall->UpdateDepthRange();
 					if (prevDrawcall->drawcallMeshSection.IsValid())
 					{
 						prevDrawcall->drawcallMesh->DeleteMeshSection(prevDrawcall->drawcallMeshSection.Pin());
