@@ -16,7 +16,10 @@ void UUIScrollViewHelper::OnUIDimensionsChanged(bool positionChanged, bool sizeC
     else
     {
         if (sizeChanged)
+        {
+            TargetComp->bRangeCalculated = false;
             TargetComp->RecalculateRange();
+        }
     }
 }
 void UUIScrollViewHelper::OnUIChildDimensionsChanged(UUIItem *child, bool positionChanged, bool sizeChanged)
@@ -29,13 +32,17 @@ void UUIScrollViewHelper::OnUIChildDimensionsChanged(UUIItem *child, bool positi
     else
     {
         if (sizeChanged)
+        {
+            TargetComp->bRangeCalculated = false;
             TargetComp->RecalculateRange();
+        }
     }
 }
 
 void UUIScrollViewComponent::Awake()
 {
     Super::Awake();
+    bRangeCalculated = false;
     RecalculateRange();
 }
 
@@ -50,12 +57,14 @@ void UUIScrollViewComponent::Update(float DeltaTime)
 void UUIScrollViewComponent::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
+    bRangeCalculated = false;
     RecalculateRange();
 }
 #endif
 
 void UUIScrollViewComponent::RecalculateRange()
 {
+    if (bRangeCalculated)return;
     if (CheckParameters())
     {
         if (Horizontal)
@@ -95,6 +104,7 @@ void UUIScrollViewComponent::OnUIActiveInHierachy(bool ativeOrInactive)
     Super::OnUIActiveInHierachy(ativeOrInactive);
     if (ativeOrInactive)
     {
+        bRangeCalculated = false;
         RecalculateRange();
     }
 }
@@ -102,7 +112,10 @@ void UUIScrollViewComponent::OnUIDimensionsChanged(bool positionChanged, bool si
 {
     Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
     if (sizeChanged)
+    {
+        bRangeCalculated = false;
         RecalculateRange();
+    }
 }
 
 bool UUIScrollViewComponent::CheckParameters()
@@ -340,7 +353,8 @@ void UUIScrollViewComponent::SetScrollValue(FVector2D value)
 			Position.X = value.X;
 			DragSpeed.X = 0;
 			ContentUIItem->SetRelativeLocation(Position);
-		}
+            UpdateProgress();
+        }
 		if (Vertical)
 		{
 			AllowVerticalScroll = true;
@@ -348,7 +362,37 @@ void UUIScrollViewComponent::SetScrollValue(FVector2D value)
 			Position.Y = value.Y;
 			DragSpeed.Y = 0;
 			ContentUIItem->SetRelativeLocation(Position);
+            UpdateProgress();
 		}
+    }
+}
+
+void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
+{
+    if (CheckParameters())
+    {
+        if (Horizontal)
+        {
+            CanUpdateAfterDrag = true;
+            AllowHorizontalScroll = true;
+
+            RecalculateRange();
+            value.X = FMath::Clamp(value.X, 0.0f, 1.0f);
+            Position.X = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, value.X);
+            ContentUIItem->SetRelativeLocation(Position);
+            UpdateProgress();
+        }
+        if (Vertical)
+        {
+            CanUpdateAfterDrag = true;
+            AllowVerticalScroll = true;
+
+            RecalculateRange();
+            value.Y = FMath::Clamp(value.Y, 0.0f, 1.0f);
+            Position.Y = FMath::Lerp(VerticalRange.X, VerticalRange.Y, value.Y);
+            ContentUIItem->SetRelativeLocation(Position);
+            UpdateProgress();
+        }
     }
 }
 
@@ -384,7 +428,8 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
                     }
                     else
                     {
-                        Position.X = FMath::Lerp(Position.X, HorizontalRange.X, positionLerpTimeMultiply * deltaTime);
+                        auto lerpAlpha = FMath::Clamp(positionLerpTimeMultiply * deltaTime, 0.0f, 1.0f);
+                        Position.X = FMath::Lerp(Position.X, HorizontalRange.X, lerpAlpha);
                     }
                     canMove = true;
                 }
@@ -408,7 +453,8 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
                     }
                     else
                     {
-                        Position.X = FMath::Lerp(Position.X, HorizontalRange.Y, positionLerpTimeMultiply * deltaTime);
+                        auto lerpAlpha = FMath::Clamp(positionLerpTimeMultiply * deltaTime, 0.0f, 1.0f);
+                        Position.X = FMath::Lerp(Position.X, HorizontalRange.Y, lerpAlpha);
                     }
                     canMove = true;
                 }
@@ -447,7 +493,8 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
                     }
                     else
                     {
-                        Position.Y = FMath::Lerp(Position.Y, VerticalRange.X, positionLerpTimeMultiply * deltaTime);
+                        auto lerpAlpha = FMath::Clamp(positionLerpTimeMultiply * deltaTime, 0.0f, 1.0f);
+                        Position.Y = FMath::Lerp(Position.Y, VerticalRange.X, lerpAlpha);
                     }
                     canMove = true;
                 }
@@ -471,7 +518,8 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
                     }
                     else
                     {
-                        Position.Y = FMath::Lerp(Position.Y, VerticalRange.Y, positionLerpTimeMultiply * deltaTime);
+                        auto lerpAlpha = FMath::Clamp(positionLerpTimeMultiply * deltaTime, 0.0f, 1.0f);
+                        Position.Y = FMath::Lerp(Position.Y, VerticalRange.Y, lerpAlpha);
                     }
                     canMove = true;
                 }
@@ -630,6 +678,7 @@ void UUIScrollViewComponent::SetHorizontal(bool value)
     if (Horizontal != value)
     {
         Horizontal = value;
+        bRangeCalculated = false;
         RecalculateRange();
     }
 }
@@ -638,7 +687,8 @@ void UUIScrollViewComponent::SetVertical(bool value)
 	if (Vertical != value)
 	{
         Vertical = value;
-		RecalculateRange();
+        bRangeCalculated = false;
+        RecalculateRange();
 	}
 }
 void UUIScrollViewComponent::SetOnlyOneDirection(bool value)
@@ -660,6 +710,7 @@ void UUIScrollViewComponent::SetCanScrollInSmallSize(bool value)
     if (CanScrollInSmallSize != value)
     {
         CanScrollInSmallSize = value;
+        bRangeCalculated = false;
         RecalculateRange();
     }
 }

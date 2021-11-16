@@ -15,6 +15,7 @@
 #include "EditorViewportClient.h"
 #endif
 
+//PRAGMA_DISABLE_OPTIMIZATION
 
 UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -893,6 +894,7 @@ void UUIItem::OnRegister()
 	}
 #endif
 
+	bCanSetAnchorFromTransform = true;
 	CheckRootUIItem();
 }
 void UUIItem::OnUnregister()
@@ -2369,3 +2371,5 @@ FBoxSphereBounds UUIItemEditorHelperComp::CalcBounds(const FTransform& LocalToWo
 	auto origin = FVector(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y), 0);
 	return FBoxSphereBounds(origin, FVector(widget.width * 0.5f, widget.height * 0.5f, 1), (widget.width > widget.height ? widget.width : widget.height) * 0.5f).TransformBy(LocalToWorld);
 }
+
+//PRAGMA_ENABLE_OPTIMIZATION
