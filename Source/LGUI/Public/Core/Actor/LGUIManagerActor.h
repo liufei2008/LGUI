@@ -191,6 +191,12 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForUpdate;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForStart;
+	bool bIsExecutingStart = false;
+	bool bIsExecutingUpdate = false;
+	int32 CurrentExecutingUpdateIndex = -1;
+	TArray<ULGUIBehaviour*> LGUIBehavioursNeedToRemoveFromUpdate;
 #if WITH_EDITORONLY_DATA
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
 #endif
@@ -261,5 +267,7 @@ public:
 	static void AddLGUIComponentForLifecycleEvent(ULGUIBehaviour* InComp);
 	static void AddLGUIBehavioursForUpdate(ULGUIBehaviour* InComp);
 	static void RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp);
+	static void AddLGUIBehavioursForStart(ULGUIBehaviour* InComp);
+	static void RemoveLGUIBehavioursFromStart(ULGUIBehaviour* InComp);
 	static void ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InComp);
 };

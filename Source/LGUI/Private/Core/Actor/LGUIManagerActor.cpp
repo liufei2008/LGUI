@@ -1093,6 +1093,7 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 }
 
 DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Start"), STAT_LGUIBehaviourStart, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
@@ -1128,20 +1129,49 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 	}
 
+	//LGUIBehaviour start
 	{
+		if (LGUIBehavioursForStart.Num() > 0)
+		{
+			bIsExecutingStart = true;
+			SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourStart);
+			for (int i = 0; i < LGUIBehavioursForStart.Num(); i++)
+			{
+				auto item = LGUIBehavioursForStart[i];
+				if (item.IsValid())
+				{
+					item->Start();
+					LGUIBehavioursForUpdate.Add(item);
+				}
+			}
+			LGUIBehavioursForStart.Reset();
+			bIsExecutingStart = false;
+		}
+	}
+
+	//LGUIBehaviour update
+	{
+		bIsExecutingUpdate = true;
 		SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourUpdate);
-		//LGUIBehaviour update
 		for (int i = 0; i < LGUIBehavioursForUpdate.Num(); i++)
 		{
+			CurrentExecutingUpdateIndex = i;
 			auto item = LGUIBehavioursForUpdate[i];
 			if (item.IsValid())
 			{
-				if (!item->isStartCalled)
-				{
-					item->Start();
-				}
 				item->Update(DeltaTime);
 			}
+		}
+		bIsExecutingUpdate = false;
+		CurrentExecutingUpdateIndex = -1;
+		//remove these padding things
+		if (LGUIBehavioursNeedToRemoveFromUpdate.Num() > 0)
+		{
+			for (auto item : LGUIBehavioursNeedToRemoveFromUpdate)
+			{
+				LGUIBehavioursForUpdate.Remove(item);
+			}
+			LGUIBehavioursNeedToRemoveFromUpdate.Reset();
 		}
 	}
 
@@ -1289,6 +1319,7 @@ void ALGUIManagerActor::AddLGUIComponentForLifecycleEvent(ULGUIBehaviour* InComp
 		}
 	}
 }
+
 void ALGUIManagerActor::AddLGUIBehavioursForUpdate(ULGUIBehaviour* InComp)
 {
 	if (IsValid(InComp))
@@ -1315,7 +1346,21 @@ void ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp)
 			int32 index = INDEX_NONE;
 			if (updateArray.Find(InComp, index))
 			{
-				updateArray.RemoveAt(index);
+				if (Instance->bIsExecutingUpdate)
+				{
+					if (index > Instance->CurrentExecutingUpdateIndex)//not execute it yet, save to remove
+					{
+						updateArray.RemoveAt(index);
+					}
+					else//already execute or current execute it, not safe to remove. should remove it after execute process complete
+					{
+						Instance->LGUIBehavioursNeedToRemoveFromUpdate.Add(InComp);
+					}
+				}
+				else//not executing update, safe to remove
+				{
+					updateArray.RemoveAt(index);
+				}
 			}
 			else
 			{
@@ -1334,7 +1379,68 @@ void ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp)
 			}
 			if (inValidCount > 0)
 			{
-				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate]Cleanup %d invalid LGUIBehaviour"), inValidCount);
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate]Cleanup %d invalid LGUIBehaviour"), inValidCount);
+			}
+		}
+	}
+}
+
+void ALGUIManagerActor::AddLGUIBehavioursForStart(ULGUIBehaviour* InComp)
+{
+	if (IsValid(InComp))
+	{
+		if (auto Instance = GetInstance(InComp->GetWorld(), true))
+		{
+			int32 index = INDEX_NONE;
+			if (!Instance->LGUIBehavioursForStart.Find(InComp, index))
+			{
+				Instance->LGUIBehavioursForStart.Add(InComp);
+				return;
+			}
+			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIBehavioursForStart]Already exist, comp:%s"), *(InComp->GetPathName()));
+		}
+	}
+}
+void ALGUIManagerActor::RemoveLGUIBehavioursFromStart(ULGUIBehaviour* InComp)
+{
+	if (IsValid(InComp))
+	{
+		if (auto Instance = GetInstance(InComp->GetWorld(), false))
+		{
+			auto& startArray = Instance->LGUIBehavioursForStart;
+			int32 index = INDEX_NONE;
+			if (startArray.Find(InComp, index))
+			{
+				if (Instance->bIsExecutingStart)
+				{
+					if (!InComp->isStartCalled)//if already called start then nothing to do, because start array will be cleared after execute start
+					{
+						startArray.RemoveAt(index);//not execute start yet, safe to remove
+					}
+				}
+				else
+				{
+					startArray.RemoveAt(index);//not executing start, safe to remove
+				}
+			}
+			else
+			{
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromStart]Not exist, comp:%s"), *(InComp->GetPathName()));
+			}
+
+			//cleanup array
+			int inValidCount = 0;
+			for (int i = startArray.Num() - 1; i >= 0; i--)
+			{
+				if (!startArray[i].IsValid())
+				{
+					startArray.RemoveAt(i);
+					inValidCount++;
+				}
+			}
+			if (inValidCount > 0)
+			{
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromStart]Cleanup %d invalid LGUIBehaviour"), inValidCount);
 			}
 		}
 	}

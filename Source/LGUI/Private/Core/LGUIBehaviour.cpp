@@ -100,7 +100,7 @@ void ULGUIBehaviour::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 		{
 			if (this->GetWorld())
 			{
-				if (this->GetWorld()->IsGameWorld())//only execute in edit mode
+				if (this->GetWorld()->IsGameWorld())
 				{
 					if (enable)
 					{
@@ -201,7 +201,14 @@ void ULGUIBehaviour::OnEnable()
 	else//handle update in game mode
 #endif
 	{
-		ALGUIManagerActor::AddLGUIBehavioursForUpdate(this);
+		if (!isStartCalled)
+		{
+			ALGUIManagerActor::AddLGUIBehavioursForStart(this);
+		}
+		else
+		{
+			ALGUIManagerActor::AddLGUIBehavioursForUpdate(this);
+		}
 	}
 	OnEnableBP();
 }
@@ -216,7 +223,14 @@ void ULGUIBehaviour::OnDisable()
 	else//handle update in game mode
 #endif
 	{
-		ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(this);
+		if (!isStartCalled)
+		{
+			ALGUIManagerActor::RemoveLGUIBehavioursFromStart(this);
+		}
+		else
+		{
+			ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(this);
+		}
 	}
 	OnDisableBP();
 }
