@@ -35,6 +35,7 @@
 
 #include "AssetTypeAction/LGUISpriteDataTypeAction.h"
 #include "AssetTypeAction/LGUIFontDataTypeAction.h"
+#include "AssetTypeAction/LGUIStaticMeshCacheTypeAction.h"
 
 #include "DetailCustomization/UIItemCustomization.h"
 #include "DetailCustomization/UISpriteBaseCustomization.h"
@@ -235,10 +236,13 @@ void FLGUIEditorModule::StartupModule()
 
 		TSharedPtr<FAssetTypeActions_Base> spriteDataAction = MakeShareable(new FLGUISpriteDataTypeAction(LGUIAssetCategoryBit));
 		TSharedPtr<FAssetTypeActions_Base> fontDataAction = MakeShareable(new FLGUIFontDataTypeAction(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> UIStaticMeshCacheDataAction = MakeShareable(new FLGUIStaticMeshCacheTypeAction(LGUIAssetCategoryBit));
 		AssetTools.RegisterAssetTypeActions(spriteDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(fontDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(UIStaticMeshCacheDataAction.ToSharedRef());
 		AssetTypeActionsArray.Add(spriteDataAction);
 		AssetTypeActionsArray.Add(fontDataAction);
+		AssetTypeActionsArray.Add(UIStaticMeshCacheDataAction);
 	}
 	//register Thumbnail
 	{
