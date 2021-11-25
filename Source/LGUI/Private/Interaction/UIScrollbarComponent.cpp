@@ -26,6 +26,8 @@ bool UUIScrollbarComponent::CheckHandle()
         return true;
     if (!HandleActor.IsValid())
         return false;
+    if (!HandleActor->GetAttachParentActor())
+        return false;
     Handle = HandleActor->FindComponentByClass<UUIItem>();
     HandleArea = HandleActor->GetAttachParentActor()->FindComponentByClass<UUIItem>();
     if (Handle.IsValid() && HandleArea.IsValid())
