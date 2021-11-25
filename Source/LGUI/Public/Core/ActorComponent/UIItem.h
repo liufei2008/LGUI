@@ -511,7 +511,7 @@ public:
 #endif
 	UPROPERTY(Transient)UUIItem* Parent = nullptr;
 	virtual UBodySetup* GetBodySetup()override;
-	UPROPERTY(Transient, DuplicateTransient)
+	UPROPERTY(Transient)
 		class UBodySetup* BodySetup;
 	void UpdateBodySetup();
 };

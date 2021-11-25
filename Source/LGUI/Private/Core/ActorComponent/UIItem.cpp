@@ -2347,7 +2347,7 @@ void UUIItemEditorHelperComp::UpdateBodySetup()
 	if (!IsValid(Parent))return;
 	if (!IsValid(BodySetup))
 	{
-		BodySetup = NewObject<UBodySetup>(this);
+		BodySetup = NewObject<UBodySetup>(this, NAME_None, RF_Transient);
 		BodySetup->CollisionTraceFlag = CTF_UseSimpleAsComplex;
 		FKBoxElem Box = FKBoxElem();
 		Box.SetTransform(FTransform::Identity);
