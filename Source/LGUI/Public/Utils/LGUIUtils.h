@@ -118,6 +118,8 @@ public:
 	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors, AActor* IgnoreRootActor = nullptr);
 
 	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, class UObject* InOuter = GetTransientPackage(), FName InDefaultName = NAME_None);
+
+	static void LogObjectFlags(UObject* obj);
 private:
 	template<class T>
 	static void CollectComponentsInChildrenRecursive(AActor* InActor, TArray<T*>& InOutArray)

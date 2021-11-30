@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "LGUIPrefab.h"
 
-class ULGUIPrefabHelperComponent;
+class ALGUIPrefabHelperActor;
 
 namespace LGUIPrefabSystem
 {
@@ -304,6 +304,7 @@ namespace LGUIPrefabSystem
 	};
 
 
+	/** This is just a record of old prefab system, will be removed in future release. Use LGUIPrefabSystem3::ActorSerializer3 instead. */
 	/*
 	serialize/deserialize actor, include hierarchy, property, reference
 	not yet supported property type:
@@ -335,7 +336,6 @@ namespace LGUIPrefabSystem
 			EditInLevel,
 		};
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-			, ULGUIPrefabHelperComponent* InHelperComp
 			, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
 			, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid);
 		/**
@@ -392,7 +392,7 @@ namespace LGUIPrefabSystem
 #if WITH_EDITOR
 		void GenerateActorIDRecursive(AActor* Actor);
 		void CollectSkippingActorsRecursive(AActor* Actor);
-		ULGUIPrefabHelperComponent* GetPrefabComponentThatUseTheActorAsRoot(AActor* Actor);
+		ALGUIPrefabHelperActor* GetPrefabActorThatUseTheActorAsRoot(AActor* Actor);
 #endif
 		struct UPropertyMapStruct
 		{
@@ -422,7 +422,6 @@ namespace LGUIPrefabSystem
 		//for create instanced object, use this as outer
 		TArray<UObject*> OutterArray;
 		UObject* Outter = nullptr;
-		ULGUIPrefabHelperComponent* HelperComp = nullptr;
 
 #if WITH_EDITOR
 		//serialize actor

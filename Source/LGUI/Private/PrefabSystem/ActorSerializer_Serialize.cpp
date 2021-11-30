@@ -404,7 +404,6 @@ void ActorSerializer::SaveCommonProperty(FProperty* Property, int itemType, uint
 
 
 void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-	, ULGUIPrefabHelperComponent* InHelperComp
 	, const TArray<AActor*>& InExistingActorArray, const TArray<FGuid>& InExistingActorGuidInPrefab
 	, TArray<AActor*>& OutSerializedActors, TArray<FGuid>& OutSerializedActorsGuid)
 {
@@ -421,7 +420,6 @@ void ActorSerializer::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 	ActorSerializer serializer(RootActor->GetWorld());
 	serializer.ExistingActors = InExistingActorArray;
 	serializer.ExistingActorsGuid = InExistingActorGuidInPrefab;
-	serializer.HelperComp = InHelperComp;
 	serializer.SerializeActor(RootActor, InPrefab);
 	OutSerializedActors = serializer.SerializedActors;
 	OutSerializedActorsGuid = serializer.SerializedActorsGuid;
@@ -491,26 +489,10 @@ FLGUIActorSaveData ActorSerializer::CreateActorSaveData(ULGUIPrefab* InPrefab)
 
 void ActorSerializer::GenerateActorIDRecursive(AActor* Actor)
 {
-	if (HelperComp)
-	{
-		if (!MapActorToGuid.Contains(Actor))//if is sub prefab's actor, then guid is already generated when add sub prefab
-		{
-			auto ActorGuid = HelperComp->GetGuidByActor(Actor);
-			if (!ActorGuid.IsValid())//not valid guid, means the actor is newly added
-			{
-				ActorGuid = FGuid::NewGuid();
-			}
-
-			MapActorToGuid.Add(Actor, ActorGuid);
-		}
-	}
-	else
-	{
-		if (!MapActorToGuid.Contains(Actor))
-		{
-			MapActorToGuid.Add(Actor, Actor->GetActorGuid());
-		}
-	}
+    if (!MapActorToGuid.Contains(Actor))
+    {
+        MapActorToGuid.Add(Actor, Actor->GetActorGuid());
+    }
 
 	TArray<AActor*> ChildrenActors;
 	Actor->GetAttachedActors(ChildrenActors);
@@ -531,14 +513,7 @@ void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 	for (auto ChildActor : ChildrenActors)
 	{
 		bool shouldSkipActor = false;
-		if (auto SubPrefabComp = GetPrefabComponentThatUseTheActorAsRoot(ChildActor))
-		{
-			if (SubPrefabComp != HelperComp)
-			{
-				shouldSkipActor = true;
-			}
-		}
-		if (shouldSkipActor)
+		if (GetPrefabActorThatUseTheActorAsRoot(ChildActor) != nullptr)
 		{
 			SkippingActors.Add(ChildActor);
 		}
@@ -551,17 +526,16 @@ void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 //PRAGMA_ENABLE_OPTIMIZATION
 
 #include "EngineUtils.h"
-ULGUIPrefabHelperComponent* ActorSerializer::GetPrefabComponentThatUseTheActorAsRoot(AActor* InActor)
+ALGUIPrefabHelperActor* ActorSerializer::GetPrefabActorThatUseTheActorAsRoot(AActor* InActor)
 {
-	if (HelperComp != nullptr && HelperComp->LoadedRootActor == InActor)return nullptr;//skip self
 	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
 	{
 		auto PrefabActor = *ActorItr;
 		if (IsValid(PrefabActor))
 		{
-			if (PrefabActor->GetPrefabComponent()->LoadedRootActor == InActor)
+			if (PrefabActor->LoadedRootActor == InActor)
 			{
-				return PrefabActor->GetPrefabComponent();
+				return PrefabActor;
 			}
 		}
 	}

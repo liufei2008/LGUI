@@ -53,7 +53,7 @@ public:
 	static UWorld* GetWorldFromSelection();
 	static void CreatePrefabAsset();
 	static void ApplyPrefab();
-	static bool CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabComp);
+	static bool CreateOrApplyPrefab(ALGUIPrefabHelperActor* InPrefabActor);
 	static void RevertPrefab();
 	static void DeletePrefab();
 	static void UnlinkPrefab();

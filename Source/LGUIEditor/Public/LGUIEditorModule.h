@@ -54,4 +54,5 @@ private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
 	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
+	FDelegateHandle OnPostEngineInit_DelegateHandle;
 };

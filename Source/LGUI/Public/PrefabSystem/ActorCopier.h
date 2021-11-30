@@ -8,6 +8,7 @@
 
 namespace LGUIPrefabSystem
 {
+	/** This is just a record of old prefab system, will be removed in future release. Use LGUIPrefabSystem3::ActorDuplicater instead. */
 	class LGUI_API ActorCopier
 	{
 	public:
