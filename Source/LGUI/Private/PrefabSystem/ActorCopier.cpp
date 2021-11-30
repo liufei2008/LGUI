@@ -6,6 +6,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PrefabSystem/ActorSerializer.h"
 
+PRAGMA_DISABLE_OPTIMIZATION
 using namespace LGUIPrefabSystem;
 bool ActorCopier::CopyCommonProperty(FProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex, bool isInsideCppArray)
 {
@@ -416,6 +417,7 @@ AActor* ActorCopier::CopyActorRecursive(AActor* Actor, USceneComponent* Parent, 
 }
 AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Parent)
 {
+	auto StartTime = FDateTime::Now();
 	TargetWorld = RootActor->GetWorld();
 #if WITH_EDITORONLY_DATA
 	IsEditMode = !TargetWorld->IsGameWorld();
@@ -477,6 +479,15 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 		}
 		ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get());
 	}
+
+	auto TimeSpan = FDateTime::Now() - StartTime;
+	auto Name =
+#if WITH_EDITOR
+		RootActor->GetActorLabel();
+#else
+		RootActor->GetPathName();
+#endif
+	UE_LOG(LGUI, Log, TEXT("Take %fs duplicating actor: %s"), TimeSpan.GetTotalSeconds(), *Name);
 	return Result;
 }
 AActor* ActorCopier::DuplicateActor(AActor* RootActor, USceneComponent* Parent)
@@ -524,3 +535,4 @@ void ActorCopier::GenerateActorIDRecursive(AActor* Actor, int32& id)
 		GenerateActorIDRecursive(ChildActor, id);
 	}
 }
+PRAGMA_ENABLE_OPTIMIZATION

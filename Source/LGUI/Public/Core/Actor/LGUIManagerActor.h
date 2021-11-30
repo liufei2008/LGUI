@@ -134,6 +134,10 @@ private:
 #if 0
 	void LogObjectFlags(UObject* obj);
 #endif
+	static UWorld* PreviewWorldForPrefabPackage;
+public:
+	static UWorld* GetPreviewWorldForPrefabPackage();
+	static void GeneratePrefabAgentInPreviewWorld();
 #endif
 };
 

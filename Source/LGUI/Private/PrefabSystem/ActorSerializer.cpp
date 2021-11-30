@@ -28,6 +28,7 @@ AActor* ActorSerializer::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefa
 	, TFunction<void(AActor*, FGuid)> InCreateNewActorFunction
 	, TArray<AActor*>& OutCreatedActors, TArray<FGuid>& OutActorsGuid)
 {
+	auto Time = FDateTime::Now();
 	ActorSerializer serializer(InWorld);
 	serializer.editMode = EPrefabEditMode::EditInLevel;
 	serializer.GetExistingActorFunction = InGetExistingActorFunction;
@@ -129,7 +130,8 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		return nullptr;
 	}
 
-	//auto StartTime = FDateTime::Now();
+	auto StartTime = FDateTime::Now();
+
 #if WITH_EDITORONLY_DATA
 	FLGUIPrefabSaveData SaveData;
 	{
@@ -301,7 +303,10 @@ AActor* ActorSerializer::DeserializeActor(USceneComponent* Parent, ULGUIPrefab* 
 		}
 		ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get());
 	}
-	//UE_LOG(LGUI, Display, TEXT("Dserialize Prefab Duration:%s"), *((FDateTime::Now() - StartTime).ToString()));
+
+	auto TimeSpan = FDateTime::Now() - StartTime;
+	UE_LOG(LGUI, Log, TEXT("Use %f seconds to LoadPrefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
+
 	return CreatedRootActor;
 }
 

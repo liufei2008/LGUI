@@ -259,7 +259,7 @@ void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *InPrefabPath);
 	if (prefab)
 	{
-		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab
+		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection()
 			, selectedActor == nullptr ? nullptr : selectedActor->GetRootComponent());
 		GEditor->SelectActor(selectedActor, false, true);
 		GEditor->SelectActor(actor, true, true);
@@ -350,11 +350,8 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
-		TArray<AActor*> Actors;
-		TArray<FGuid> ActorsGuid;
-		LGUIPrefabSystem::ActorSerializer::SavePrefab(copiedActor, prefab
-			, nullptr
-			, {}, {}, Actors, ActorsGuid);
+		TMap<UObject*, FGuid> MapObjectToGuid;
+		prefab->SavePrefab(copiedActor, MapObjectToGuid);
 		copiedActorPrefabList.Add(prefab);
 	}
 }
@@ -380,7 +377,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	{
 		if (prefab.IsValid())
 		{
-			auto copiedActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab.Get(), parentComp, false);
+			auto copiedActor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), parentComp, false);
 			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
 			copiedActor->SetActorLabel(copiedActorLabel);
 			GEditor->SelectActor(copiedActor, true, true);
@@ -415,21 +412,18 @@ void LGUIEditorTools::DeleteSelectedActors_Impl()
 		auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(item);
 		if (prefabActor != nullptr)
 		{
-			if (auto prefabComp = prefabActor->GetPrefabComponent())
+			if (auto loadedRootActor = prefabActor->LoadedRootActor)
 			{
-				if (auto loadedRootActor = prefabComp->LoadedRootActor)
+				if (loadedRootActor == item)
 				{
-					if (loadedRootActor == item)
-					{
-						shouldDeletePrefab = true;
-					}
+					shouldDeletePrefab = true;
 				}
 			}
 		}
 		LGUIUtils::DestroyActorWithHierarchy(item);
 		if (shouldDeletePrefab)
 		{
-			prefabActor->GetPrefabComponent()->DeleteThisInstance();
+			prefabActor->DeleteThisInstance();
 		}
 	}
 	CleanupPrefabsInWorld(rootActorList[0]->GetWorld());
@@ -522,7 +516,7 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab, nullptr, true);
+		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeScale3D(FVector::OneVector);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(0, 180, 0)));
@@ -563,7 +557,7 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab, nullptr, true);
+		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(-90, 0, 0)));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
@@ -604,7 +598,7 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
-		auto actor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(GetWorldFromSelection(), prefab, nullptr, true);
+		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetRelativeRotationExact(FRotator::MakeFromEuler(FVector(-90, 0, 0)));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
@@ -699,7 +693,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 		return;
 	}
 	auto oldPrefabActor = GetPrefabActor_WhichManageThisActor(selectedActor);
-	if (IsValid(oldPrefabActor) && oldPrefabActor->GetPrefabComponent()->LoadedRootActor == selectedActor)//If create prefab from an existing prefab's root actor, this is not allowed
+	if (IsValid(oldPrefabActor) && oldPrefabActor->LoadedRootActor == selectedActor)//If create prefab from an existing prefab's root actor, this is not allowed
 	{
 		FMessageDialog::Open(EAppMsgType::Ok
 			, FText::FromString(FString::Printf(TEXT("This actor is a root actor of another prefab, this is not allowed! Instead you can duplicate the prefab asset."))));
@@ -750,28 +744,27 @@ void LGUIEditorTools::CreatePrefabAsset()
 				auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabHelperActor>(ALGUIPrefabHelperActor::StaticClass(), FTransform::Identity);
 				if (IsValid(prefabActor))
 				{
-					prefabActor->SetActorLabel(fileName);
-					auto prefabComp = prefabActor->GetPrefabComponent();
-					prefabComp->PrefabAsset = OutPrefab;
-					prefabComp->LoadedRootActor = selectedActor;
 					prefabActor->FinishSpawning(FTransform::Identity, true);
-					auto createSuccess = CreateOrApplyPrefab(prefabComp);
+					prefabActor->SetActorLabel(fileName);
+					prefabActor->PrefabAsset = OutPrefab;
+					prefabActor->LoadedRootActor = selectedActor;
+					auto createSuccess = CreateOrApplyPrefab(prefabActor);
 					if (createSuccess)
 					{
-						prefabComp->MoveActorToPrefabFolder();
+						prefabActor->MoveActorToPrefabFolder();
 						//remove actors from other prefab. @todo: should be multiple
 						if (otherPrefabAcotrWhichHaveThisActor != nullptr)
 						{
-							for (auto actorItem : prefabComp->AllLoadedActorArray)
+							for (auto actorItem : prefabActor->AllLoadedActorArray)
 							{
-								auto foundIndex = otherPrefabAcotrWhichHaveThisActor->GetPrefabComponent()->AllLoadedActorArray.Find(actorItem);
+								auto foundIndex = otherPrefabAcotrWhichHaveThisActor->AllLoadedActorArray.Find(actorItem);
 								if (foundIndex != INDEX_NONE)
 								{
-									otherPrefabAcotrWhichHaveThisActor->GetPrefabComponent()->AllLoadedActorArray.RemoveAt(foundIndex);
-									otherPrefabAcotrWhichHaveThisActor->GetPrefabComponent()->AllLoadedActorGuidArrayInPrefab.RemoveAt(foundIndex);
+									otherPrefabAcotrWhichHaveThisActor->AllLoadedActorArray.RemoveAt(foundIndex);
 								}
 							}
 						}
+						prefabActor->PrefabAsset->MakeAgentActorsInPreviewWorld();
 					}
 					else//create fail or canceled, then delete objects
 					{
@@ -801,43 +794,27 @@ void LGUIEditorTools::ApplyPrefab()
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
-		if (auto thisPrefabComp = prefabActor->GetPrefabComponent())
-		{
-			CreateOrApplyPrefab(thisPrefabComp);
-		}
+		CreateOrApplyPrefab(prefabActor);
 	}
 	CleanupPrefabsInWorld(selectedActor->GetWorld());
 	GEditor->EndTransaction();
 }
-bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperComponent* InPrefabComp)
+bool LGUIEditorTools::CreateOrApplyPrefab(ALGUIPrefabHelperActor* InPrefabActor)
 {
-	if (auto rootActor = InPrefabComp->GetLoadedRootActor())
+	if (auto rootActor = InPrefabActor->GetLoadedRootActor())
 	{
-		if (auto thisPrefabAsset = InPrefabComp->GetPrefabAsset())
+		if (auto thisPrefabAsset = InPrefabActor->GetPrefabAsset())
 		{
 			TArray<AActor*> allChildrenActors;
 			LGUIUtils::CollectChildrenActors(rootActor, allChildrenActors);
 			{
 				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
-				InPrefabComp->SavePrefab();
+				InPrefabActor->SavePrefab();
 				GEditor->EndTransaction();
 			}
-			//search all prefabs that use this prefab as sub prefab, and recreate them
-			{
-				auto RecreatePrefab = [](ULGUIPrefab* Prefab, UWorld* World)
-				{
-					auto PrefabActor = World->SpawnActor<ALGUIPrefabHelperActor>();
-					auto PrefabComp = PrefabActor->GetPrefabComponent();
-					PrefabComp->SetPrefabAsset(Prefab);
-					PrefabComp->LoadPrefab();
-					PrefabComp->SavePrefab();
-
-					LGUIUtils::DestroyActorWithHierarchy(PrefabActor, true);
-					LGUIUtils::DestroyActorWithHierarchy(PrefabComp->LoadedRootActor, true);
-				};
-
-				return true;
-			}
+			thisPrefabAsset->ClearAgentActorsInPreviewWorld();
+			thisPrefabAsset->MakeAgentActorsInPreviewWorld();
+			return true;
 		}
 	}
 	return false;
@@ -849,7 +826,7 @@ void LGUIEditorTools::RevertPrefab()
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
-		prefabActor->GetPrefabComponent()->RevertPrefab();
+		prefabActor->RevertPrefab();
 	}
 	CleanupPrefabsInWorld(selectedActor->GetWorld());
 	GEditor->EndTransaction();
@@ -865,7 +842,7 @@ void LGUIEditorTools::DeletePrefab()
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
-		prefabActor->GetPrefabComponent()->DeleteThisInstance();
+		prefabActor->DeleteThisInstance();
 	}
 	CleanupPrefabsInWorld(selectedActor->GetWorld());
 	GEditor->EndTransaction();
@@ -877,6 +854,7 @@ void LGUIEditorTools::UnlinkPrefab()
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
+		prefabActor->LoadedRootActor = nullptr;//make it null, or loaded actors will be destroyed by LGUIPrefabHelperActor
 		LGUIUtils::DestroyActorWithHierarchy(prefabActor);
 	}
 	GEditor->EndTransaction();
@@ -888,7 +866,7 @@ void LGUIEditorTools::SelectPrefabAsset()
 	auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
-		auto prefabAsset = prefabActor->GetPrefabComponent()->PrefabAsset;
+		auto prefabAsset = prefabActor->PrefabAsset;
 		if (IsValid(prefabAsset))
 		{
 			TArray<UObject*> objectsToSync;
@@ -908,16 +886,16 @@ ALGUIPrefabHelperActor* LGUIEditorTools::GetPrefabActor_WhichManageThisActor(AAc
 		auto PrefabActor = *ActorItr;
 		if (IsValid(PrefabActor))
 		{
-			if (PrefabActor->GetPrefabComponent()->AllLoadedActorArray.Contains(InActor))
+			if (PrefabActor->AllLoadedActorArray.Contains(InActor))
 			{
-				if (auto LoadedRootActor = PrefabActor->GetPrefabComponent()->LoadedRootActor)
+				if (auto LoadedRootActor = PrefabActor->LoadedRootActor)
 				{
 					if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
 					{
-						if (PrefabActor->GetPrefabComponent()->AllLoadedActorArray.Num() < MinLoadedActorCount)
+						if (PrefabActor->AllLoadedActorArray.Num() < MinLoadedActorCount)
 						{
 							ResultPrefabActor = PrefabActor;
-							MinLoadedActorCount = PrefabActor->GetPrefabComponent()->AllLoadedActorArray.Num();
+							MinLoadedActorCount = PrefabActor->AllLoadedActorArray.Num();
 						}
 					}
 				}
@@ -934,8 +912,8 @@ void LGUIEditorTools::CleanupPrefabsInWorld(UWorld* World)
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			prefabActor->GetPrefabComponent()->CleanupPrefabAndActor();
-			if (!IsValid(prefabActor->GetPrefabComponent()->LoadedRootActor))
+			prefabActor->CleanupPrefabAndActor();
+			if (!IsValid(prefabActor->LoadedRootActor))
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -950,7 +928,7 @@ void LGUIEditorTools::ClearInvalidPrefabActor(UWorld* World)
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!IsValid(prefabActor->GetPrefabComponent()->GetLoadedRootActor()))
+			if (!IsValid(prefabActor->GetLoadedRootActor()))
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}

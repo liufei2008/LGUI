@@ -39,6 +39,11 @@ bool ULGUIPrefabActorFactory::PreSpawnActor(UObject* Asset, FTransform& InOutLoc
 	return true;
 }
 
+AActor* ULGUIPrefabActorFactory::SpawnActor(UObject* Asset, ULevel* InLevel, const FTransform& Transform, EObjectFlags InObjectFlags, const FName Name)
+{
+	return Super::SpawnActor(Asset, InLevel, Transform, InObjectFlags, Name);
+}
+
 void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 {
 	Super::PostSpawnActor(Asset, InNewActor);
@@ -46,15 +51,19 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 	ULGUIPrefab* Prefab = CastChecked<ULGUIPrefab>(Asset);
 
 	auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(InNewActor);
-	auto PrefabComponent = PrefabActor->GetPrefabComponent();
-	check(PrefabComponent);
 
-	PrefabComponent->SetPrefabAsset(Prefab);
+	PrefabActor->SetPrefabAsset(Prefab);
 	//PrefabComponent->SetRelativeRotation(FQuat::MakeFromEuler(FVector(-90, 0, 90)));
-	if (auto selectedActor = LGUIEditorTools::GetFirstSelectedActor())
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	USceneComponent* ParentComp = nullptr;
+
+	if (IsValid(SelectedActor))
 	{
-		PrefabComponent->ParentActorForEditor = selectedActor;
+		LGUIEditorTools::MakeCurrentLevel(SelectedActor);
+		ParentComp = SelectedActor->GetRootComponent();
 	}
+	PrefabActor->LoadPrefab(ParentComp);
+	PrefabActor->LoadedRootActor = PrefabActor->LoadedRootActor;
 }
 
 void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
@@ -63,9 +72,8 @@ void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
 	{
 		auto Prefab = CastChecked<ULGUIPrefab>(Asset);
 		auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(CDO);
-		auto PrefabComponent = PrefabActor->GetPrefabComponent();
 
-		PrefabComponent->SetPrefabAsset(Prefab);
+		PrefabActor->SetPrefabAsset(Prefab);
 	}
 }
 
@@ -73,8 +81,7 @@ UObject* ULGUIPrefabActorFactory::GetAssetFromActorInstance(AActor* ActorInstanc
 {
 	check(ActorInstance->IsA(NewActorClass));
 	auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(ActorInstance);
-	check(PrefabActor->GetPrefabComponent());
-	return PrefabActor->GetPrefabComponent()->GetPrefabAsset();
+	return PrefabActor->GetPrefabAsset();
 }
 
 #undef LOCTEXT_NAMESPACE

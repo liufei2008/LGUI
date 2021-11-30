@@ -133,7 +133,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			]
 		]
 		;
-	category.AddCustomRow(LOCTEXT("PrefabVersion", "Prefab Version"), true)
+	category.AddCustomRow(LOCTEXT("AdditionalButton", "Additional Button"), true)
 		.WholeRowContent()
 		[
 			SNew(SHorizontalBox)
@@ -266,11 +266,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 {
 	if (auto Prefab = TargetScriptPtr.Get())
 	{
-		auto World = Prefab->GetWorld();
-		if (!IsValid(World))
-		{
-			World = GWorld;
-		}
+		auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 		if (IsValid(World))
 		{
 			RecreatePrefab(Prefab, World);
@@ -284,15 +280,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 }
 FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 {
-	UWorld* World = nullptr;
-	if (auto script = TargetScriptPtr.Get())
-	{
-		World = script->GetWorld();
-	}
-	if (!IsValid(World))
-	{
-		World = GWorld;
-	}
+	auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 	if (!IsValid(World))
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("[FLGUIPrefabCustomization::OnClickRecreteButton]Can not get World! This is wired..."));
@@ -340,13 +328,12 @@ FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 }
 void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World)
 {
-	auto PrefabActor = World->SpawnActor<ALGUIPrefabHelperActor>();
-	auto PrefabComp = PrefabActor->GetPrefabComponent();
-	PrefabComp->SetPrefabAsset(Prefab);
-	PrefabComp->LoadPrefab();
-	PrefabComp->SavePrefab();
+	auto RootActor= Prefab->LoadPrefab(World, nullptr);
+	TMap<UObject*, FGuid> MapObjectToGuid;
+	Prefab->SavePrefab(RootActor, MapObjectToGuid);
+	Prefab->ClearAgentActorsInPreviewWorld();
+	Prefab->MakeAgentActorsInPreviewWorld();
 
-	LGUIUtils::DestroyActorWithHierarchy(PrefabActor, true);
-	LGUIUtils::DestroyActorWithHierarchy(PrefabComp->LoadedRootActor, true);
+	LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
 }
 #undef LOCTEXT_NAMESPACE

@@ -13,6 +13,7 @@
 #include "SceneOutliner/LGUISceneOutlinerButton.h"
 #include "LGUIEditorTools.h"
 #include "SortHelper.h"
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
@@ -330,7 +331,7 @@ namespace LGUISceneOutliner
 			auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(actor);
 			if (prefabActor != nullptr)
 			{
-				resultColor = prefabActor->GetPrefabComponent()->IdentityColor;
+				resultColor = prefabActor->IdentityColor;
 			}
 		}
 		return FSlateColor(resultColor);
@@ -340,8 +341,8 @@ namespace LGUISceneOutliner
 	{
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			auto prefabComp = actor->FindComponentByClass<ULGUIPrefabHelperComponent>();
-			return IsValid(prefabComp);
+			auto PrefabActor = Cast<ALGUIPrefabHelperActor>(actor);
+			return PrefabActor != nullptr;
 		}
 		else
 		{

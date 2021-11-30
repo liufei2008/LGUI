@@ -2,8 +2,7 @@
 
 #include "LGUIBPLibrary.h"
 #include "Utils/LGUIUtils.h"
-#include "PrefabSystem/ActorSerializer.h"
-#include "PrefabSystem/ActorCopier.h"
+#include "PrefabSystem/ActorSerializer3.h"
 #include "LTweenActor.h"
 #include "LTweenBPLibrary.h"
 #include "Core/ActorComponent/UIItem.h"
@@ -61,22 +60,19 @@ void ULGUIBPLibrary::DestroyActorWithHierarchy(AActor* Target, bool WithHierarch
 }
 AActor* ULGUIBPLibrary::LoadPrefab(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
-	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, InPrefab, InParent, SetRelativeTransformToIdentity);
+	return InPrefab->LoadPrefab(WorldContextObject, InParent, SetRelativeTransformToIdentity);
 }
 AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale)
 {
-	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, InPrefab, InParent, Location, Rotation.Quaternion(), Scale);
+	return InPrefab->LoadPrefabWithTransform(WorldContextObject, InParent, Location, Rotation, Scale);
 }
 AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULGUIPrefab* InPrefab, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale)
 {
-	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, InPrefab, InParent, Location, Rotation, Scale);
+	return InPrefab->LoadPrefabWithTransform(WorldContextObject, InParent, Location, Rotation, Scale);
 }
 AActor* ULGUIBPLibrary::DuplicateActor(AActor* Target, USceneComponent* Parent)
 {
-	return LGUIPrefabSystem::ActorCopier::DuplicateActor(Target, Parent);
+	return LGUIPrefabSystem3::ActorSerializer3::DuplicateActor(Target, Parent);
 }
 UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
 {

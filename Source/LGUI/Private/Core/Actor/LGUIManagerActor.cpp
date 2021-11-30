@@ -27,6 +27,7 @@
 #include "EditorViewportClient.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
+#include "PrefabSystem/LGUIPrefab.h"
 #include "EngineUtils.h"
 #include "Layout/LGUICanvasScaler.h"
 #endif
@@ -346,7 +347,7 @@ void ULGUIEditorManagerObject::OnActorDeleted()
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!IsValid(prefabActor->GetPrefabComponent()->GetLoadedRootActor()))
+			if (!IsValid(prefabActor->GetLoadedRootActor()))
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -355,19 +356,58 @@ void ULGUIEditorManagerObject::OnActorDeleted()
 }
 void ULGUIEditorManagerObject::OnMapOpened(const FString& FileName, bool AsTemplate)
 {
-	//Restore prefabs
-	if (GWorld == nullptr)return;
-	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+
+}
+
+UWorld* ULGUIEditorManagerObject::PreviewWorldForPrefabPackage = nullptr;
+UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()
+{
+	if (PreviewWorldForPrefabPackage == nullptr)
 	{
-		auto prefabActor = *ActorItr;
-		if (IsValid(prefabActor))
+		FName UniqueWorldName = MakeUniqueObjectName(GetTransientPackage(), UWorld::StaticClass(), FName("LGUI_PreviewWorldForPrefabPackage"));
+		PreviewWorldForPrefabPackage = NewObject<UWorld>(GetTransientPackage(), UniqueWorldName);
+		PreviewWorldForPrefabPackage->AddToRoot();
+		PreviewWorldForPrefabPackage->WorldType = EWorldType::EditorPreview;
+
+		PreviewWorldForPrefabPackage->InitializeNewWorld(UWorld::InitializationValues()
+			.AllowAudioPlayback(false)
+			.CreatePhysicsScene(false)
+			.RequiresHitProxies(false)
+			.CreateNavigation(false)
+			.CreateAISystem(false)
+			.ShouldSimulatePhysics(false)
+			.SetTransactional(false));
+	}
+	return PreviewWorldForPrefabPackage;
+}
+
+#include "AssetRegistryModule.h"
+void ULGUIEditorManagerObject::GeneratePrefabAgentInPreviewWorld()
+{
+	auto World = GetPreviewWorldForPrefabPackage();
+
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
+	TArray<FString> PathsToScan;
+	PathsToScan.Add(TEXT("/Game/"));
+	AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+	// Get asset in path
+	TArray<FAssetData> ScriptAssetList;
+	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
+
+	// Ensure all assets are loaded
+	for (const FAssetData& Asset : ScriptAssetList)
+	{
+		// Gets the loaded asset, loads it if necessary
+		if (Asset.AssetClass == TEXT("LGUIPrefab"))
 		{
-			if (IsValid(prefabActor->GetPrefabComponent()->PrefabAsset))
+			auto AssetObject = Asset.GetAsset();
+			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
-				if (IsValid(prefabActor->GetPrefabComponent()->GetLoadedRootActor()))
-				{
-					
-				}
+				Prefab->MakeAgentActorsInPreviewWorld();
 			}
 		}
 	}

@@ -14,7 +14,7 @@ public:
 	//~ Begin UActorFactory
 	virtual bool CanCreateActorFrom(const FAssetData& AssetData, FText& OutErrorMsg) override;
 	virtual bool PreSpawnActor(UObject* Asset, FTransform& InOutLocation) override;
-	//virtual AActor* SpawnActor(UObject* Asset, ULevel* InLevel, const FTransform& Transform, EObjectFlags InObjectFlags, const FName Name);
+	virtual AActor* SpawnActor(UObject* Asset, ULevel* InLevel, const FTransform& Transform, EObjectFlags InObjectFlags, const FName Name);
 	virtual void PostSpawnActor(UObject* Asset, AActor* NewActor) override;
 	virtual void PostCreateBlueprint(UObject* Asset, AActor* CDO) override;
 	virtual UObject* GetAssetFromActorInstance(AActor* ActorInstance) override;
