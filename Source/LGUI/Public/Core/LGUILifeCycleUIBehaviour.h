@@ -53,22 +53,22 @@ protected:
 	 * Called when RootUIComp->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
 	 * @param positionChanged	relative position
 	 */
-	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged) { OnUIDimensionsChangedBP(positionChanged, sizeChanged); }
+	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged);
 	/**
 	 * Called when RootUIComp's attachchildren->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed.
 	 * @param positionChanged	relative position
 	 */
-	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged) { OnUIChildDimensionsChangedBP(child, positionChanged, sizeChanged); }
+	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
 	/** Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed */
-	virtual void OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive) { OnUIChildAcitveInHierarchyBP(child, ativeOrInactive); }
+	virtual void OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive);
 	/** Called when RootUIComp attach to a new parent */
-	virtual void OnUIAttachmentChanged() { OnUIAttachmentChangedBP(); }
+	virtual void OnUIAttachmentChanged();
 	/** Called when RootUIComp's attachchildren is attached to RootUIComp or detached from RootUIComp  */
-	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach) { OnUIChildAttachmentChangedBP(child, attachOrDetach); }
+	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach);
 	/** Called when RootUIComp's interaction state changed(when UIInteractionGroup component allow interaction or not) */
-	virtual void OnUIInteractionStateChanged(bool interactableOrNot) { OnUIInteractionStateChangedBP(interactableOrNot); }
+	virtual void OnUIInteractionStateChanged(bool interactableOrNot);
 	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
-	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child) { OnUIChildHierarchyIndexChangedBP(child); }
+	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child);
 
 
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
