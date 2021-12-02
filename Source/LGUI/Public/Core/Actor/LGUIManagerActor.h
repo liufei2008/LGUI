@@ -16,7 +16,7 @@ class UUIBaseRenderable;
 class ULGUICanvas;
 class ULGUIBaseRaycaster;
 class UUISelectableComponent;
-class ULGUIBehaviour;
+class ULGUILifeCycleBehaviour;
 class ULGUIBaseInputModule;
 class UUILayoutBase;
 
@@ -142,12 +142,12 @@ public:
 };
 
 USTRUCT()
-struct FLGUIBehaviourArrayContainer
+struct FLGUILifeCycleBehaviourArrayContainer
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
-		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehaviourArray;
+		TArray<TWeakObjectPtr<ULGUILifeCycleBehaviour>> LGUILifeCycleBehaviourArray;
 };
 
 class ILGUICultureChangedInterface;
@@ -194,13 +194,13 @@ private:
 	bool bShouldSortRenderTargetSpaceCanvas = true;
 
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForUpdate;
+		TArray<TWeakObjectPtr<ULGUILifeCycleBehaviour>> LGUILifeCycleBehavioursForUpdate;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<ULGUIBehaviour>> LGUIBehavioursForStart;
+		TArray<TWeakObjectPtr<ULGUILifeCycleBehaviour>> LGUILifeCycleBehavioursForStart;
 	bool bIsExecutingStart = false;
 	bool bIsExecutingUpdate = false;
 	int32 CurrentExecutingUpdateIndex = -1;
-	TArray<ULGUIBehaviour*> LGUIBehavioursNeedToRemoveFromUpdate;
+	TArray<ULGUILifeCycleBehaviour*> LGUILifeCycleBehavioursNeedToRemoveFromUpdate;
 #if WITH_EDITORONLY_DATA
 	int32 PrevScreenSpaceOverlayCanvasCount = 1;
 #endif
@@ -258,7 +258,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllActors_PrefabSystemProcessing;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<FLGUIBehaviourArrayContainer> LGUIBehaviours_PrefabSystemProcessing;
+		TArray<FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
 	int PrefabSystemProcessing_CurrentArrayIndex = -1;
 	void EndPrefabSystemProcessingActor_Implement();
 public:
@@ -268,10 +268,10 @@ public:
 	static void RemoveActorForPrefabSystem(AActor* InActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
 
-	static void AddLGUIComponentForLifecycleEvent(ULGUIBehaviour* InComp);
-	static void AddLGUIBehavioursForUpdate(ULGUIBehaviour* InComp);
-	static void RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp);
-	static void AddLGUIBehavioursForStart(ULGUIBehaviour* InComp);
-	static void RemoveLGUIBehavioursFromStart(ULGUIBehaviour* InComp);
-	static void ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InComp);
+	static void AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycleBehaviour* InComp);
+	static void AddLGUILifeCycleBehavioursForUpdate(ULGUILifeCycleBehaviour* InComp);
+	static void RemoveLGUILifeCycleBehavioursFromUpdate(ULGUILifeCycleBehaviour* InComp);
+	static void AddLGUILifeCycleBehavioursForStart(ULGUILifeCycleBehaviour* InComp);
+	static void RemoveLGUILifeCycleBehavioursFromStart(ULGUILifeCycleBehaviour* InComp);
+	static void ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp);
 };

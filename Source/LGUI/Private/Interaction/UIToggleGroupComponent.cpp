@@ -24,7 +24,7 @@ void UUIToggleGroupComponent::AddToggleComponent(UUIToggleComponent* InComp)
 	}
 	ToggleCollection.Add(InComp);
 	ToggleCollection.Sort([](const TWeakObjectPtr<UUIToggleComponent>& A, const TWeakObjectPtr<UUIToggleComponent>& B) {
-		return A->GetRootComponent()->GetFlattenHierarchyIndex() < B->GetRootComponent()->GetFlattenHierarchyIndex();
+		return A->GetRootUIComponent()->GetFlattenHierarchyIndex() < B->GetRootUIComponent()->GetFlattenHierarchyIndex();
 		});
 }
 void UUIToggleGroupComponent::RemoveToggleComponent(UUIToggleComponent* InComp)

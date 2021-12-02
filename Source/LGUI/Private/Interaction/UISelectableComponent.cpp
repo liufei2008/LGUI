@@ -15,6 +15,7 @@ void UUISelectableComponent::Awake()
 	Super::Awake();
 	CheckTarget();
 	ALGUIManagerActor::AddSelectable(this);
+	this->SetCanExecuteUpdate(false);
 }
 void UUISelectableComponent::Start()
 {
@@ -67,6 +68,7 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 
 void UUISelectableComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 {
+	Super::OnUIInteractionStateChanged(interactableOrNot);
 	if (CheckRootUIComponent())
 	{
 		CurrentSelectionState = RootUIComp->IsGroupAllowInteraction()
@@ -473,7 +475,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 	{
 		const auto& uiSelectables = LGUIManagerActor->GetSelectables();
 		FVector pos = CheckRootUIComponent() ? FVector(RootUIComp->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-		pos = GetRootSceneComponent()->GetComponentTransform().TransformPosition(pos);
+		pos = GetRootComponent()->GetComponentTransform().TransformPosition(pos);
 		float maxScore = MIN_flt;
 		UUISelectableComponent* bestPick = this;
 		for (int i = 0; i < uiSelectables.Num(); ++i)
@@ -483,17 +485,17 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 			if (sel == this || !IsValid(sel))
 				continue;
 
-			if (IsValid(InParent) && !sel->GetRootSceneComponent()->IsAttachedTo(InParent))
+			if (IsValid(InParent) && !sel->GetRootComponent()->IsAttachedTo(InParent))
 				continue;
 
 			if (!sel->IsInteractable())
 				continue;
 
-			if(!sel->GetRootComponent()->GetIsUIActiveInHierarchy())
+			if(!sel->GetRootUIComponent()->GetIsUIActiveInHierarchy())
 				continue;
 
-			FVector selCenter = sel->CheckRootUIComponent() ? FVector(sel->GetRootComponent()->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-			FVector myVector = sel->GetRootSceneComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
+			FVector selCenter = sel->CheckRootUIComponent() ? FVector(sel->GetRootUIComponent()->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
+			FVector myVector = sel->GetRootComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
 
 			float dot = FVector::DotProduct(InDirection, myVector);
 			if (dot <= 0.1f)
@@ -530,7 +532,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnLeft()
 	}
 	if (NavigationLeft == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetRootSceneComponent()->GetForwardVector());
+		return FindSelectable(-GetRootComponent()->GetForwardVector());
 	}
 	return nullptr;
 }
@@ -542,7 +544,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnRight()
 	}
 	if (NavigationRight == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetRootSceneComponent()->GetForwardVector());//forward as right
+		return FindSelectable(GetRootComponent()->GetForwardVector());//forward as right
 	}
 	return nullptr;
 }
@@ -554,7 +556,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnUp()
 	}
 	if (NavigationUp == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetRootSceneComponent()->GetRightVector());//right as up 
+		return FindSelectable(GetRootComponent()->GetRightVector());//right as up 
 	}
 	return nullptr;
 }
@@ -566,7 +568,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnDown()
 	}
 	if (NavigationDown == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetRootSceneComponent()->GetRightVector());
+		return FindSelectable(-GetRootComponent()->GetRightVector());
 	}
 	return nullptr;
 }

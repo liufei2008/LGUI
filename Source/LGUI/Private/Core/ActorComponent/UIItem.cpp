@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIInteractionGroup.h"
 #include "Core/LGUISettings.h"
-#include "Core/LGUIBehaviour.h"
+#include "Core/LGUILifeCycleUIBehaviour.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "Layout/LGUICanvasScaler.h"
@@ -71,8 +71,8 @@ void UUIItem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-#pragma region LGUIBehaviour
-void UUIItem::CallUIComponentsActiveInHierarchyStateChanged()
+#pragma region LGUILifeCycleUIBehaviour
+void UUIItem::CallUILifeCycleBehavioursActiveInHierarchyStateChanged()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
@@ -81,16 +81,17 @@ void UUIItem::CallUIComponentsActiveInHierarchyStateChanged()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(LGUIBehaviourArray, false);
+		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = LGUIBehaviourArray[i];
+		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
+		//if (!CanExecuteOnUIBehaviour(CompItem))continue;//why comment this? because UIActiveInHierarchy is related to Awake
 		CompItem->OnUIActiveInHierachy(GetIsUIActiveInHierarchy());
 	}
 }
-void UUIItem::CallUIComponentsChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
+void UUIItem::CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
@@ -99,16 +100,17 @@ void UUIItem::CallUIComponentsChildDimensionsChanged(UUIItem* child, bool positi
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(LGUIBehaviourArray, false);
+		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = LGUIBehaviourArray[i];
+		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
+		if (!CanExecuteOnUIBehaviour(CompItem))continue;
 		CompItem->OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
 	}
 }
-void UUIItem::CallUIComponentsChildActiveInHierarchyStateChanged(UUIItem* child, bool activeOrInactive)
+void UUIItem::CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(UUIItem* child, bool activeOrInactive)
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
@@ -117,16 +119,17 @@ void UUIItem::CallUIComponentsChildActiveInHierarchyStateChanged(UUIItem* child,
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(LGUIBehaviourArray, false);
+		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = LGUIBehaviourArray[i];
+		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
+		if (!CanExecuteOnUIBehaviour(CompItem))continue;
 		CompItem->OnUIChildAcitveInHierarchy(child, activeOrInactive);
 	}
 }
-void UUIItem::CallUIComponentsDimensionsChanged(bool positionChanged, bool sizeChanged)
+void UUIItem::CallUILifeCycleBehavioursDimensionsChanged(bool positionChanged, bool sizeChanged)
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
@@ -135,22 +138,23 @@ void UUIItem::CallUIComponentsDimensionsChanged(bool positionChanged, bool sizeC
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(LGUIBehaviourArray, false);
+		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = LGUIBehaviourArray[i];
+		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
+		if (!CanExecuteOnUIBehaviour(CompItem))continue;
 		CompItem->OnUIDimensionsChanged(positionChanged, sizeChanged);
 	}
 
 	//call parent
 	if (ParentUIItem.IsValid())
 	{
-		ParentUIItem->CallUIComponentsChildDimensionsChanged(this, positionChanged, sizeChanged);
+		ParentUIItem->CallUILifeCycleBehavioursChildDimensionsChanged(this, positionChanged, sizeChanged);
 	}
 }
-void UUIItem::CallUIComponentsAttachmentChanged()
+void UUIItem::CallUILifeCycleBehavioursAttachmentChanged()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
@@ -159,16 +163,17 @@ void UUIItem::CallUIComponentsAttachmentChanged()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(LGUIBehaviourArray, false);
+		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = LGUIBehaviourArray[i];
+		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
+		if (!CanExecuteOnUIBehaviour(CompItem))continue;
 		CompItem->OnUIAttachmentChanged();
 	}
 }
-void UUIItem::CallUIComponentsChildAttachmentChanged(UUIItem* child, bool attachOrDettach)
+void UUIItem::CallUILifeCycleBehavioursChildAttachmentChanged(UUIItem* child, bool attachOrDettach)
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
@@ -177,16 +182,17 @@ void UUIItem::CallUIComponentsChildAttachmentChanged(UUIItem* child, bool attach
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(LGUIBehaviourArray, false);
+		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = LGUIBehaviourArray[i];
+		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
+		if (!CanExecuteOnUIBehaviour(CompItem))continue;
 		CompItem->OnUIChildAttachmentChanged(child, attachOrDettach);
 	}
 }
-void UUIItem::CallUIComponentsInteractionStateChanged()
+void UUIItem::CallUILifeCycleBehavioursInteractionStateChanged()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
@@ -196,16 +202,17 @@ void UUIItem::CallUIComponentsInteractionStateChanged()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(LGUIBehaviourArray, false);
+		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = LGUIBehaviourArray[i];
+		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
+		if (!CanExecuteOnUIBehaviour(CompItem))continue;
 		CompItem->OnUIInteractionStateChanged(interactable);
 	}
 }
-void UUIItem::CallUIComponentsChildHierarchyIndexChanged(UUIItem* child)
+void UUIItem::CallUILifeCycleBehavioursChildHierarchyIndexChanged(UUIItem* child)
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
@@ -214,21 +221,26 @@ void UUIItem::CallUIComponentsChildHierarchyIndexChanged(UUIItem* child)
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		GetOwner()->GetComponents(LGUIBehaviourArray, false);
+		GetOwner()->GetComponents(LGUILifeCycleUIBehaviourArray, false);
 	}
 #endif
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
-		auto& CompItem = LGUIBehaviourArray[i];
+		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
+		if (!CanExecuteOnUIBehaviour(CompItem))continue;
 		CompItem->OnUIChildHierarchyIndexChanged(child);
 	}
 }
-#pragma endregion LGUIBehaviour
+bool UUIItem::CanExecuteOnUIBehaviour(class ULGUILifeCycleUIBehaviour* InComp)
+{
+	return InComp->bIsAwakeCalled;//Awake not called, means not initialized yet
+}
+#pragma endregion LGUILifeCycleUIBehaviour
 
 
 void UUIItem::OnChildHierarchyIndexChanged(UUIItem* child)
 {
-	CallUIComponentsChildHierarchyIndexChanged(child);
+	CallUILifeCycleBehavioursChildHierarchyIndexChanged(child);
 }
 
 void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& index)const
@@ -586,7 +598,7 @@ void UUIItem::OnAttachmentChanged()
 	//callback. because hierarchy changed, then mark position and size as changed too
 	MarkLayoutDirty(true);
 	//callback
-	CallUIComponentsAttachmentChanged();
+	CallUILifeCycleBehavioursAttachmentChanged();
 }
 bool UUIItem::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit, EMoveComponentFlags MoveFlags, ETeleportType Teleport)
 {
@@ -804,15 +816,15 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		SortCacheUIChildren();
 		//flatten hierarchy index
 		MarkFlattenHierarchyIndexDirty();
-		//interaction group
-		childUIItem->allUpParentGroupAllowInteraction = this->IsGroupAllowInteraction();
-		childUIItem->SetInteractionGroupStateChange();
 		//active
 		childUIItem->allUpParentUIActive = this->GetIsUIActiveInHierarchy();
 		bool parentUIActive = childUIItem->GetIsUIActiveInHierarchy();
 		childUIItem->SetChildUIActiveRecursive(parentUIActive);
+		//interaction group
+		childUIItem->allUpParentGroupAllowInteraction = this->IsGroupAllowInteraction();
+		childUIItem->SetInteractionGroupStateChange();
 
-		CallUIComponentsChildAttachmentChanged(childUIItem, true);
+		CallUILifeCycleBehavioursChildAttachmentChanged(childUIItem, true);
 	}
 	MarkCanvasUpdate();
 }
@@ -834,7 +846,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 		//flatten hierarchy index
 		MarkFlattenHierarchyIndexDirty();
 
-		CallUIComponentsChildAttachmentChanged(childUIItem, false);
+		CallUILifeCycleBehavioursChildAttachmentChanged(childUIItem, false);
 	}
 	MarkCanvasUpdate();
 }
@@ -1316,7 +1328,7 @@ void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 	{
 		bCanSetAnchorFromTransform = false;
 		CalculateTransformFromAnchor();
-		CallUIComponentsDimensionsChanged(true, cacheForThisUpdate_SizeChanged);
+		CallUILifeCycleBehavioursDimensionsChanged(true, cacheForThisUpdate_SizeChanged);
 		bCanSetAnchorFromTransform = true;
 	}
 
@@ -2146,13 +2158,13 @@ void UUIItem::SetInteractionGroupStateChange(bool InInteractable, bool InIgnoreP
 		}
 	}
 	SetChildInteractionGroupStateChangeRecursive(thisGroupsAllowInteraction);
-	CallUIComponentsInteractionStateChanged();
+	CallUILifeCycleBehavioursInteractionStateChanged();
 }
 void UUIItem::SetInteractionGroupStateChange()
 {
 	auto thisGroupsAllowInteraction = IsGroupAllowInteraction();
 	SetChildInteractionGroupStateChangeRecursive(thisGroupsAllowInteraction);
-	CallUIComponentsInteractionStateChanged();
+	CallUILifeCycleBehavioursInteractionStateChanged();
 }
 #pragma endregion InteractionGroup
 
@@ -2160,7 +2172,7 @@ void UUIItem::SetInteractionGroupStateChange()
 
 void UUIItem::OnChildActiveStateChanged(UUIItem* child)
 {
-	CallUIComponentsChildActiveInHierarchyStateChanged(child, child->GetIsUIActiveInHierarchy());
+	CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(child, child->GetIsUIActiveInHierarchy());
 }
 
 void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
@@ -2248,7 +2260,7 @@ void UUIItem::ApplyUIActiveState()
 	//layout update
 	MarkUpdateLayout();
 	//callback
-	CallUIComponentsActiveInHierarchyStateChanged();
+	CallUILifeCycleBehavioursActiveInHierarchyStateChanged();
 }
 
 #pragma endregion UIActive

@@ -1,7 +1,7 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #pragma once
-#include "Core/LGUIBehaviour.h"
+#include "Core/LGUILifeCycleUIBehaviour.h"
 #include "UISelectableTransitionComponent.generated.h"
 
 class ULTweener;
@@ -9,11 +9,13 @@ class ULTweener;
  * This component is only used when UISelectableComponent's Transition = TransitionComponent
  */ 
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Abstract, Blueprintable)
-class LGUI_API UUISelectableTransitionComponent :public ULGUIBehaviour
+class LGUI_API UUISelectableTransitionComponent :public ULGUILifeCycleUIBehaviour
 {
 	GENERATED_BODY()
 
 protected:
+	virtual void Awake()override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "LGUI-Selectable")
 		TArray<ULTweener*> TweenerCollection;
 

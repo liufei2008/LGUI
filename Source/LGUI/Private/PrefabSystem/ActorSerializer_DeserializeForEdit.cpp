@@ -25,7 +25,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 		}
 
 		auto ActorGuidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
-		AActor* NewActor = this->GetExistingActorFunction(ActorGuidInPrefab);
+		AActor* NewActor = this->GetExistingActorFunction != nullptr ? this->GetExistingActorFunction(ActorGuidInPrefab) : nullptr;
 		bool UseExistingActor = NewActor != nullptr;
 		if (UseExistingActor)
 		{

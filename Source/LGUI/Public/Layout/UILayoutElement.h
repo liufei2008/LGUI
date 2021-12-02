@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/LGUIBehaviour.h"
+#include "Core/LGUILifeCycleUIBehaviour.h"
 #include "UILayoutElement.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
@@ -22,7 +22,7 @@ enum class ELayoutElementType :uint8
  * Attach to layout's child, make is specific or ignore layout
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUILayoutElement : public ULGUIBehaviour
+class LGUI_API UUILayoutElement : public ULGUILifeCycleUIBehaviour
 {
 	GENERATED_BODY()
 

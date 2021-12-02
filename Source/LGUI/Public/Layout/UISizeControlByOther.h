@@ -4,16 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "UILayoutBase.h"
-#include "Core/LGUIBehaviour.h"
+#include "Core/LGUILifeCycleUIBehaviour.h"
 #include "UISizeControlByOther.generated.h"
 
 //this is only a helper component for UISizeControlByOther, no need to be serialized
 UCLASS(Transient)
-class LGUI_API UUISizeControlByOtherHelper :public ULGUIBehaviour
+class LGUI_API UUISizeControlByOtherHelper :public ULGUILifeCycleUIBehaviour
 {
 	GENERATED_BODY()
 
 private:
+	virtual void Awake()override;
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
 	friend class UUISizeControlByOther;
 	UPROPERTY(Transient)TWeakObjectPtr<class UUISizeControlByOther> TargetComp;

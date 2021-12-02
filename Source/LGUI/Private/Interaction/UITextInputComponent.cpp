@@ -28,6 +28,7 @@ void UUITextInputComponent::Awake()
 	{
 		TextInputMethodContext = FTextInputMethodContext::Create(this);
 	}
+	this->SetCanExecuteUpdate(true);
 }
 void UUITextInputComponent::Update(float DeltaTime)
 {

@@ -6,6 +6,11 @@
 #include "Core/Actor/UIBaseActor.h"
 #include "Utils/LGUIUtils.h"
 
+void UUIScrollViewHelper::Awake()
+{
+    Super::Awake();
+    this->SetCanExecuteUpdate(false);
+}
 void UUIScrollViewHelper::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
 {
     Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
@@ -44,6 +49,7 @@ void UUIScrollViewComponent::Awake()
     Super::Awake();
     bRangeCalculated = false;
     RecalculateRange();
+    this->SetCanExecuteUpdate(true);
 }
 
 void UUIScrollViewComponent::Update(float DeltaTime)

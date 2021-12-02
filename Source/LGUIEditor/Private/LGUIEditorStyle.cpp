@@ -84,7 +84,8 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassThumbnail.UIRing", new IMAGE_BRUSH(TEXT("UIRing_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.UITextureBase", new IMAGE_BRUSH(TEXT("UITexture_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.UIPostProcessRenderable", new IMAGE_BRUSH(TEXT("UIPostProcess_40x"), Icon40x40));
-	Style->Set("ClassThumbnail.LGUIBehaviour", new IMAGE_BRUSH(TEXT("LGUIBehaviour_40x"), Icon40x40));
+	Style->Set("ClassThumbnail.LGUILifeCycleUIBehaviour", new IMAGE_BRUSH(TEXT("LGUILifeCycleBehaviour_40x"), Icon40x40));
+	Style->Set("ClassThumbnail.LGUILifeCycleBehaviour", new IMAGE_BRUSH(TEXT("LGUILifeCycleBehaviour_40x"), Icon40x40));
 
 	Style->Set("ClassIcon.LGUICanvas", new IMAGE_BRUSH(TEXT("LGUICanvas_16x"), Icon16x16));
 	Style->Set("ClassIcon.LGUICanvasScaler", new IMAGE_BRUSH(TEXT("CanvasScaler_16x"), Icon16x16));
@@ -100,7 +101,8 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("ClassIcon.UIRing", new IMAGE_BRUSH(TEXT("UIRing_16x"), Icon16x16));
 	Style->Set("ClassIcon.UITextureBase", new IMAGE_BRUSH(TEXT("UITexture_16x"), Icon16x16));
 	Style->Set("ClassIcon.UIPostProcessRenderable", new IMAGE_BRUSH(TEXT("UIPostProcess_16x"), Icon16x16));
-	Style->Set("ClassIcon.LGUIBehaviour", new IMAGE_BRUSH(TEXT("LGUIBehaviour_16x"), Icon16x16));
+	Style->Set("ClassIcon.LGUILifeCycleUIBehaviour", new IMAGE_BRUSH(TEXT("LGUILifeCycleBehaviour_16x"), Icon16x16));
+	Style->Set("ClassIcon.LGUILifeCycleBehaviour", new IMAGE_BRUSH(TEXT("LGUILifeCycleBehaviour_16x"), Icon16x16));
 
 	Style->Set("ClassThumbnail.LGUIEventSystemActor", new IMAGE_BRUSH(TEXT("EventSystem_40x"), Icon40x40));
 	Style->Set("ClassThumbnail.LGUIEventSystem", new IMAGE_BRUSH(TEXT("EventSystem_40x"), Icon40x40));

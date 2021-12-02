@@ -5,6 +5,11 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/Actor/UIBaseActor.h"
 
+void UUISizeControlByOtherHelper::Awake()
+{
+    Super::Awake();
+    this->SetCanExecuteUpdate(false);
+}
 void UUISizeControlByOtherHelper::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
 {
     Super::OnUIDimensionsChanged(positionChanged, sizeChanged);
