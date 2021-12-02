@@ -57,8 +57,8 @@ void UUIDropdownComponent::Show()
 		UE_LOG(LGUI, Error, TEXT("[UUIDropdownComponent::Show]ListRoot is not valid!"));
 		return;
 	}
-	if (!IsValid(this->GetRootComponent()))return;
-	if (!IsValid(this->GetRootComponent()->GetRootCanvas()))return;
+	if (!IsValid(this->GetRootUIComponent()))return;
+	if (!IsValid(this->GetRootUIComponent()->GetRootCanvas()))return;
 	if (IsShow)return;
 	IsShow = true;
 	if (ShowOrHideTweener.IsValid())
@@ -120,7 +120,7 @@ void UUIDropdownComponent::Show()
 		)
 	{
 		//search up til find clipped canvas, or root canvas
-		ULGUICanvas* canvas = GetRootComponent()->GetRenderCanvas();
+		ULGUICanvas* canvas = GetRootUIComponent()->GetRenderCanvas();
 		while (true)
 		{
 			if (canvas->GetActualClipType() == ELGUICanvasClipType::Rect)
@@ -152,13 +152,13 @@ void UUIDropdownComponent::Show()
 			FVector listBottomInCanvasSpace;
 			if (VerticalOverlap)
 			{
-				auto selfTop = GetRootComponent()->GetLocalSpaceTop();
+				auto selfTop = GetRootUIComponent()->GetLocalSpaceTop();
 				auto listBottomInSelfSpace = selfTop - listRootUIItem->GetHeight();
 				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, listBottomInSelfSpace, 0));
 			}
 			else
 			{
-				auto selfBottom = GetRootComponent()->GetLocalSpaceBottom();
+				auto selfBottom = GetRootUIComponent()->GetLocalSpaceBottom();
 				auto listBottomInSelfSpace = selfBottom - listRootUIItem->GetHeight();
 				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, listBottomInSelfSpace, 0));
 			}
@@ -174,7 +174,7 @@ void UUIDropdownComponent::Show()
 		}
 		if (tempHorizontalPosition == EUIDropdownHorizontalPosition::Automatic)
 		{
-			auto selfRight = GetRootComponent()->GetLocalSpaceRight();
+			auto selfRight = GetRootUIComponent()->GetLocalSpaceRight();
 			auto listRightInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(selfRight + listRootUIItem->GetWidth(), 0, 0));
 			canvas->CalculateRectRange();
 			if (listRightInCanvasSpace.X > canvas->GetClipRectMax().X)
@@ -278,8 +278,8 @@ void UUIDropdownComponent::CreateBlocker()
 #endif
 	auto blockerUIItem = blocker->GetUIItem();
 	blockerUIItem->SetRaycastTarget(true);
-	blockerUIItem->SetTraceChannel(this->GetRootComponent()->GetTraceChannel());
-	blockerUIItem->AttachToComponent(this->GetRootComponent()->GetRootCanvas()->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
+	blockerUIItem->SetTraceChannel(this->GetRootUIComponent()->GetTraceChannel());
+	blockerUIItem->AttachToComponent(this->GetRootUIComponent()->GetRootCanvas()->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
 	blockerUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
 	blockerUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
 	blockerUIItem->SetHorizontalStretch(FVector2D::ZeroVector);

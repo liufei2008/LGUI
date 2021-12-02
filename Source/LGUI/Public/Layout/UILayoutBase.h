@@ -4,7 +4,7 @@
 
 #include "Core/ActorComponent/UIItem.h"
 #include "CoreMinimal.h"
-#include "Core/LGUIBehaviour.h"
+#include "Core/LGUILifeCycleUIBehaviour.h"
 #include "UILayoutBase.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
@@ -24,7 +24,7 @@ enum class ELGUILayoutAlignmentType :uint8
 class UUILayoutElement;
 
 UCLASS(Abstract)
-class LGUI_API UUILayoutBase :public ULGUIBehaviour
+class LGUI_API UUILayoutBase :public ULGUILifeCycleUIBehaviour
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,7 @@ public:
 	 */
 	void ConditionalRebuildLayout();
 	/**
-	 * Mark this layout need to be rebuild, will do rebuild after all LGUIBehaviour's Update function.
+	 * Mark this layout need to be rebuild, will do rebuild after all LGUILifeCycleUIBehaviour's Update function.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void MarkNeedRebuildLayout() { bNeedRebuildLayout = true; }

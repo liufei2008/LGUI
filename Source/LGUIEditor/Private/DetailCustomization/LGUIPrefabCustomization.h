@@ -22,10 +22,12 @@ private:
 	FSlateColor GetEngineVersionTextColorAndOpacity()const;
 	FSlateColor GetPrefabVersionTextColorAndOpacity()const;
 	EVisibility ShouldShowFixPrefabVersionButton()const;
+	EVisibility ShouldShowFixAgentActorButton()const;
 
 	FReply OnClickRecreteButton();
 	FReply OnClickRecreteAllButton();
 	FReply OnClickEditPrefabButton();
+	FReply OnClickRecreateAgentActor();
 
 	void RecreatePrefab(class ULGUIPrefab* Prefab, class UWorld* World);
 };

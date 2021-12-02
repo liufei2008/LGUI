@@ -15,7 +15,8 @@
 #include "Core/ActorComponent/UIInteractionGroup.h"
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
-#include "Core/LGUIBehaviour.h"
+#include "Core/LGUILifeCycleBehaviour.h"
+#include "Core/LGUILifeCycleUIBehaviour.h"
 
 #include "Core/LGUIFontData.h"
 #include "Core/LGUIFontData_BaseObject.h"

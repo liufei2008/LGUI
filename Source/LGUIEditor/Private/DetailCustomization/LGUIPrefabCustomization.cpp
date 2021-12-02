@@ -73,7 +73,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			.MaxWidth(80)
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Fix it")))
+				.Text(LOCTEXT("FixEngineVersion", "Fix it"))
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteButton)
 				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixEngineVersionButton)
 			]
@@ -81,7 +81,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			.MaxWidth(80)
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Fix all")))
+				.Text(LOCTEXT("FixAllEngineVersion", "Fix all"))
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteAllButton)
 				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixEngineVersionButton)
 			]
@@ -117,7 +117,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			.MaxWidth(80)
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Fix it")))
+				.Text(LOCTEXT("FixPrefabVersion", "Fix it"))
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteButton)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixPrefabVersionButton)
@@ -126,10 +126,41 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			.MaxWidth(80)
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Fix all")))
+				.Text(LOCTEXT("FixAllPrefabVersion", "Fix all"))
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteAllButton)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixPrefabVersionButton)
+			]
+		]
+		;
+	auto AgentRootActorProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, AgentRootActor));
+	category.AddCustomRow(LOCTEXT("AgentRootActor", "AgentRootActor"))
+		.NameContent()
+		[
+			AgentRootActorProperty->CreatePropertyNameWidget()
+		]
+		.ValueContent()
+		.MinDesiredWidth(500)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SBox)
+				.VAlign(EVerticalAlignment::VAlign_Center)
+				[
+					AgentRootActorProperty->CreatePropertyValueWidget()
+				]
+			]
+			+SHorizontalBox::Slot()
+			.MaxWidth(80)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("FixAgentRootActor", "Missing AgentRootActor! This will cause cook & package fail. Click to fix it"))
+				.ToolTipText(LOCTEXT("FixAgentRootActor_Tooltip", "Because we can't fix it in cook thread, so you need to do it mannually."))
+				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreateAgentActor)
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixAgentActorButton)
 			]
 		]
 		;
@@ -140,14 +171,14 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			+ SHorizontalBox::Slot()
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Recreate this prefab")))
+				.Text(LOCTEXT("RecreateThis", "Recreate this prefab"))
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteButton)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 			]
 			+ SHorizontalBox::Slot()
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Recreate all prefabs")))
+				.Text(LOCTEXT("RecreateAll", "Recreate all prefabs"))
 				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreteAllButton)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 			]
@@ -262,6 +293,24 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixPrefabVersionButton()const
 		return EVisibility::Hidden;
 	}
 }
+EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentActorButton()const
+{
+	if (TargetScriptPtr.IsValid())
+	{
+		if (IsValid(TargetScriptPtr->AgentRootActor))
+		{
+			return EVisibility::Hidden;
+		}
+		else
+		{
+			return EVisibility::Visible;
+		}
+	}
+	else
+	{
+		return EVisibility::Hidden;
+	}
+}
 FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 {
 	if (auto Prefab = TargetScriptPtr.Get())
@@ -336,4 +385,43 @@ void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World
 
 	LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
 }
+FReply FLGUIPrefabCustomization::OnClickRecreateAgentActor()
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
+	TArray<FString> PathsToScan;
+	PathsToScan.Add(TEXT("/Game/"));
+	AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+	// Get asset in path
+	TArray<FAssetData> ScriptAssetList;
+	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
+
+	// Ensure all assets are loaded
+	for (const FAssetData& Asset : ScriptAssetList)
+	{
+		// Gets the loaded asset, loads it if necessary
+		if (Asset.AssetClass == TEXT("LGUIPrefab"))
+		{
+			auto AssetObject = Asset.GetAsset();
+			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
+			{
+				if (
+					Prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || Prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
+					|| Prefab->PrefabVersion != LGUI_PREFAB_VERSION
+					)
+				{
+					Prefab->ClearAgentActorsInPreviewWorld();
+					Prefab->MakeAgentActorsInPreviewWorld();
+				}
+			}
+		}
+	}
+
+
+	return FReply::Handled();
+}
+
 #undef LOCTEXT_NAMESPACE

@@ -274,8 +274,9 @@ namespace LGUIPrefabSystem3
 	}
 	void ActorSerializer3::SerializeObjectArray(TArray<FLGUIObjectSaveData>& ObjectSaveDataArray, TArray<FLGUIComponentSaveData>& ComponentSaveDataArray)
 	{
-		for (auto Object : WillSerailizeObjectArray)
+		for (int i = 0; i < WillSerailizeObjectArray.Num(); i++)
 		{
+			auto Object = WillSerailizeObjectArray[i];
 			auto Class = Object->GetClass();
 			if (Class->IsChildOf(UActorComponent::StaticClass()))
 			{

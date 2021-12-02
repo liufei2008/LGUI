@@ -10,17 +10,18 @@
 #include "Event/Interface/LGUIPointerDragInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
-#include "Core/LGUIBehaviour.h"
+#include "Core/LGUILifeCycleUIBehaviour.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "UIScrollViewComponent.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUIScrollViewDynamicDelegate, FVector2D, InVector2);
 
 UCLASS(ClassGroup=(LGUI), Transient)
-class LGUI_API UUIScrollViewHelper :public ULGUIBehaviour
+class LGUI_API UUIScrollViewHelper :public ULGUILifeCycleUIBehaviour
 {
 	GENERATED_BODY()
 private:
+	virtual void Awake()override;
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)override;
 	friend class UUIScrollViewComponent;
@@ -29,7 +30,7 @@ private:
 };
 //ScrollView
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIScrollViewComponent : public ULGUIBehaviour, public ILGUIPointerDragInterface, public ILGUIPointerScrollInterface, public ILGUIPointerDownUpInterface
+class LGUI_API UUIScrollViewComponent : public ULGUILifeCycleUIBehaviour, public ILGUIPointerDragInterface, public ILGUIPointerScrollInterface, public ILGUIPointerDownUpInterface
 {
 	GENERATED_BODY()
 	

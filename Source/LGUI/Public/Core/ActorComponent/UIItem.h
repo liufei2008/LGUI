@@ -44,17 +44,18 @@ public:
 #endif
 	virtual void OnAttachmentChanged() override;
 	
-#pragma region LGUIBehaviour
+#pragma region LGUILifeCycleUIBehaviour
 private:
-	TInlineComponentArray<class ULGUIBehaviour*> LGUIBehaviourArray;
-	void CallUIComponentsActiveInHierarchyStateChanged();
-	void CallUIComponentsChildActiveInHierarchyStateChanged(UUIItem* child, bool activeOrInactive);
-	void CallUIComponentsDimensionsChanged(bool positionChanged, bool sizeChanged);
-	void CallUIComponentsChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
-	void CallUIComponentsAttachmentChanged();
-	void CallUIComponentsChildAttachmentChanged(UUIItem* child, bool attachOrDettach);
-	void CallUIComponentsInteractionStateChanged();
-	void CallUIComponentsChildHierarchyIndexChanged(UUIItem* child);
+	TInlineComponentArray<class ULGUILifeCycleUIBehaviour*> LGUILifeCycleUIBehaviourArray;
+	void CallUILifeCycleBehavioursActiveInHierarchyStateChanged();
+	void CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(UUIItem* child, bool activeOrInactive);
+	void CallUILifeCycleBehavioursDimensionsChanged(bool positionChanged, bool sizeChanged);
+	void CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
+	void CallUILifeCycleBehavioursAttachmentChanged();
+	void CallUILifeCycleBehavioursChildAttachmentChanged(UUIItem* child, bool attachOrDettach);
+	void CallUILifeCycleBehavioursInteractionStateChanged();
+	void CallUILifeCycleBehavioursChildHierarchyIndexChanged(UUIItem* child);
+	FORCEINLINE bool CanExecuteOnUIBehaviour(class ULGUILifeCycleUIBehaviour* InComp);
 protected://these funcions are same as UIBehaviour's, for easier use
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive) { }
@@ -79,9 +80,9 @@ protected://these funcions are same as UIBehaviour's, for easier use
 	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child) { }
 public:
-	void AddLGUIBehaviourComponent(class ULGUIBehaviour* InComp) { LGUIBehaviourArray.AddUnique(InComp); }
-	void RemoveLGUIBehaviourComponent(class ULGUIBehaviour* InComp) { LGUIBehaviourArray.RemoveSingleSwap(InComp); }
-#pragma endregion LGUIBehaviour
+	void AddLGUILifeCycleUIBehaviourComponent(class ULGUILifeCycleUIBehaviour* InComp) { LGUILifeCycleUIBehaviourArray.AddUnique(InComp); }
+	void RemoveLGUILifeCycleUIBehaviourComponent(class ULGUILifeCycleUIBehaviour* InComp) { LGUILifeCycleUIBehaviourArray.RemoveSingleSwap(InComp); }
+#pragma endregion LGUILifeCycleUIBehaviour
 protected:
 	virtual bool MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit /* = NULL */, EMoveComponentFlags MoveFlags /* = MOVECOMP_NoFlags */, ETeleportType Teleport /* = ETeleportType::None */)override;
 	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;

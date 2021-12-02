@@ -20,6 +20,8 @@
 #include "Layout/UILayoutBase.h"
 #include "Core/HudRender/LGUIRenderer.h"
 #include "Core/ILGUICultureChangedInterface.h"
+#include "Core/LGUILifeCycleBehaviour.h"
+#include "Layout/UILayoutBase.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -32,6 +34,8 @@
 #include "Layout/LGUICanvasScaler.h"
 #endif
 
+
+PRAGMA_DISABLE_OPTIMIZATION
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::Instance = nullptr;
 ULGUIEditorManagerObject::ULGUIEditorManagerObject()
@@ -1132,8 +1136,8 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Update"), STAT_LGUIBehaviourUpdate, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("LGUIBehaviour Start"), STAT_LGUIBehaviourStart, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Update"), STAT_LGUILifeCycleBehaviourUpdate, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Start"), STAT_LGUILifeCycleBehaviourStart, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
@@ -1169,34 +1173,38 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		}
 	}
 
-	//LGUIBehaviour start
+	//LGUILifeCycleBehaviour start
 	{
-		if (LGUIBehavioursForStart.Num() > 0)
+		if (LGUILifeCycleBehavioursForStart.Num() > 0)
 		{
 			bIsExecutingStart = true;
-			SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourStart);
-			for (int i = 0; i < LGUIBehavioursForStart.Num(); i++)
+			SCOPE_CYCLE_COUNTER(STAT_LGUILifeCycleBehaviourStart);
+			for (int i = 0; i < LGUILifeCycleBehavioursForStart.Num(); i++)
 			{
-				auto item = LGUIBehavioursForStart[i];
+				auto item = LGUILifeCycleBehavioursForStart[i];
 				if (item.IsValid())
 				{
 					item->Start();
-					LGUIBehavioursForUpdate.Add(item);
+					if (item->bCanExecuteUpdate && !item->bIsAddedToUpdate)
+					{
+						item->bIsAddedToUpdate = true;
+						LGUILifeCycleBehavioursForUpdate.Add(item);
+					}
 				}
 			}
-			LGUIBehavioursForStart.Reset();
+			LGUILifeCycleBehavioursForStart.Reset();
 			bIsExecutingStart = false;
 		}
 	}
 
-	//LGUIBehaviour update
+	//LGUILifeCycleBehaviour update
 	{
 		bIsExecutingUpdate = true;
-		SCOPE_CYCLE_COUNTER(STAT_LGUIBehaviourUpdate);
-		for (int i = 0; i < LGUIBehavioursForUpdate.Num(); i++)
+		SCOPE_CYCLE_COUNTER(STAT_LGUILifeCycleBehaviourUpdate);
+		for (int i = 0; i < LGUILifeCycleBehavioursForUpdate.Num(); i++)
 		{
 			CurrentExecutingUpdateIndex = i;
-			auto item = LGUIBehavioursForUpdate[i];
+			auto item = LGUILifeCycleBehavioursForUpdate[i];
 			if (item.IsValid())
 			{
 				item->Update(DeltaTime);
@@ -1205,13 +1213,13 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		bIsExecutingUpdate = false;
 		CurrentExecutingUpdateIndex = -1;
 		//remove these padding things
-		if (LGUIBehavioursNeedToRemoveFromUpdate.Num() > 0)
+		if (LGUILifeCycleBehavioursNeedToRemoveFromUpdate.Num() > 0)
 		{
-			for (auto item : LGUIBehavioursNeedToRemoveFromUpdate)
+			for (auto item : LGUILifeCycleBehavioursNeedToRemoveFromUpdate)
 			{
-				LGUIBehavioursForUpdate.Remove(item);
+				LGUILifeCycleBehavioursForUpdate.Remove(item);
 			}
-			LGUIBehavioursNeedToRemoveFromUpdate.Reset();
+			LGUILifeCycleBehavioursNeedToRemoveFromUpdate.Reset();
 		}
 	}
 
@@ -1331,7 +1339,7 @@ void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
 	}
 }
 
-void ALGUIManagerActor::AddLGUIComponentForLifecycleEvent(ULGUIBehaviour* InComp)
+void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
@@ -1339,50 +1347,50 @@ void ALGUIManagerActor::AddLGUIComponentForLifecycleEvent(ULGUIBehaviour* InComp
 		{
 			if (IsPrefabSystemProcessingActor(InComp->GetOwner()))
 			{
-				if (Instance->PrefabSystemProcessing_CurrentArrayIndex < 0 || Instance->PrefabSystemProcessing_CurrentArrayIndex >= Instance->LGUIBehaviours_PrefabSystemProcessing.Num())
+				if (Instance->PrefabSystemProcessing_CurrentArrayIndex < 0 || Instance->PrefabSystemProcessing_CurrentArrayIndex >= Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Num())
 				{
-					UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]array out of range, index:%d, arrayCount:%d"), Instance->PrefabSystemProcessing_CurrentArrayIndex, Instance->LGUIBehaviours_PrefabSystemProcessing.Num());
+					UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent]array out of range, index:%d, arrayCount:%d"), Instance->PrefabSystemProcessing_CurrentArrayIndex, Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Num());
 					return;
 				}
-				auto& compArray = Instance->LGUIBehaviours_PrefabSystemProcessing[Instance->PrefabSystemProcessing_CurrentArrayIndex].LGUIBehaviourArray;
+				auto& compArray = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing[Instance->PrefabSystemProcessing_CurrentArrayIndex].LGUILifeCycleBehaviourArray;
 				if (compArray.Contains(InComp))
 				{
-					UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIComponent]already contains, comp:%s"), *(InComp->GetPathName()));
+					UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent]already contains, comp:%s"), *(InComp->GetPathName()));
 					return;
 				}
 				compArray.Add(InComp);
 			}
 			else
 			{
-				ProcessLGUIComponentLifecycleEvent(InComp);
+				ProcessLGUILifecycleEvent(InComp);
 			}
 		}
 	}
 }
 
-void ALGUIManagerActor::AddLGUIBehavioursForUpdate(ULGUIBehaviour* InComp)
+void ALGUIManagerActor::AddLGUILifeCycleBehavioursForUpdate(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
 		if (auto Instance = GetInstance(InComp->GetWorld(), true))
 		{
 			int32 index = INDEX_NONE;
-			if (!Instance->LGUIBehavioursForUpdate.Find(InComp, index))
+			if (!Instance->LGUILifeCycleBehavioursForUpdate.Find(InComp, index))
 			{
-				Instance->LGUIBehavioursForUpdate.Add(InComp);
+				Instance->LGUILifeCycleBehavioursForUpdate.Add(InComp);
 				return;
 			}
-			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIBehavioursForUpdate]Already exist, comp:%s"), *(InComp->GetPathName()));
+			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehavioursForUpdate]Already exist, comp:%s"), *(InComp->GetPathName()));
 		}
 	}
 }
-void ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp)
+void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
 		if (auto Instance = GetInstance(InComp->GetWorld(), false))
 		{
-			auto& updateArray = Instance->LGUIBehavioursForUpdate;
+			auto& updateArray = Instance->LGUILifeCycleBehavioursForUpdate;
 			int32 index = INDEX_NONE;
 			if (updateArray.Find(InComp, index))
 			{
@@ -1394,7 +1402,7 @@ void ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp)
 					}
 					else//already execute or current execute it, not safe to remove. should remove it after execute process complete
 					{
-						Instance->LGUIBehavioursNeedToRemoveFromUpdate.Add(InComp);
+						Instance->LGUILifeCycleBehavioursNeedToRemoveFromUpdate.Add(InComp);
 					}
 				}
 				else//not executing update, safe to remove
@@ -1404,7 +1412,7 @@ void ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp)
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate]Not exist, comp:%s"), *(InComp->GetPathName()));
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate]Not exist, comp:%s"), *(InComp->GetPathName()));
 			}
 
 			//cleanup array
@@ -1419,41 +1427,41 @@ void ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate(ULGUIBehaviour* InComp)
 			}
 			if (inValidCount > 0)
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromUpdate]Cleanup %d invalid LGUIBehaviour"), inValidCount);
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate]Cleanup %d invalid LGUILifeCycleBehaviour"), inValidCount);
 			}
 		}
 	}
 }
 
-void ALGUIManagerActor::AddLGUIBehavioursForStart(ULGUIBehaviour* InComp)
+void ALGUIManagerActor::AddLGUILifeCycleBehavioursForStart(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
 		if (auto Instance = GetInstance(InComp->GetWorld(), true))
 		{
 			int32 index = INDEX_NONE;
-			if (!Instance->LGUIBehavioursForStart.Find(InComp, index))
+			if (!Instance->LGUILifeCycleBehavioursForStart.Find(InComp, index))
 			{
-				Instance->LGUIBehavioursForStart.Add(InComp);
+				Instance->LGUILifeCycleBehavioursForStart.Add(InComp);
 				return;
 			}
-			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUIBehavioursForStart]Already exist, comp:%s"), *(InComp->GetPathName()));
+			UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehavioursForStart]Already exist, comp:%s"), *(InComp->GetPathName()));
 		}
 	}
 }
-void ALGUIManagerActor::RemoveLGUIBehavioursFromStart(ULGUIBehaviour* InComp)
+void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart(ULGUILifeCycleBehaviour* InComp)
 {
 	if (IsValid(InComp))
 	{
 		if (auto Instance = GetInstance(InComp->GetWorld(), false))
 		{
-			auto& startArray = Instance->LGUIBehavioursForStart;
+			auto& startArray = Instance->LGUILifeCycleBehavioursForStart;
 			int32 index = INDEX_NONE;
 			if (startArray.Find(InComp, index))
 			{
 				if (Instance->bIsExecutingStart)
 				{
-					if (!InComp->isStartCalled)//if already called start then nothing to do, because start array will be cleared after execute start
+					if (!InComp->bIsStartCalled)//if already called start then nothing to do, because start array will be cleared after execute start
 					{
 						startArray.RemoveAt(index);//not execute start yet, safe to remove
 					}
@@ -1465,7 +1473,7 @@ void ALGUIManagerActor::RemoveLGUIBehavioursFromStart(ULGUIBehaviour* InComp)
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromStart]Not exist, comp:%s"), *(InComp->GetPathName()));
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart]Not exist, comp:%s"), *(InComp->GetPathName()));
 			}
 
 			//cleanup array
@@ -1480,7 +1488,7 @@ void ALGUIManagerActor::RemoveLGUIBehavioursFromStart(ULGUIBehaviour* InComp)
 			}
 			if (inValidCount > 0)
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUIBehavioursFromStart]Cleanup %d invalid LGUIBehaviour"), inValidCount);
+				UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart]Cleanup %d invalid LGUILifeCycleBehaviour"), inValidCount);
 			}
 		}
 	}
@@ -1718,49 +1726,32 @@ void ALGUIManagerActor::RemoveLayout(UUILayoutBase* InLayout)
 
 void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement()
 {
-	auto LGUIBehaviourArray = LGUIBehaviours_PrefabSystemProcessing.Pop().LGUIBehaviourArray;
+	auto LGUILifeCycleBehaviourArray = LGUILifeCycleBehaviours_PrefabSystemProcessing.Pop().LGUILifeCycleBehaviourArray;
 	PrefabSystemProcessing_CurrentArrayIndex--;
 
-	for (int i = 0; i < LGUIBehaviourArray.Num(); i++)
+	for (int i = 0; i < LGUILifeCycleBehaviourArray.Num(); i++)
 	{
-		auto item = LGUIBehaviourArray[i];
+		auto item = LGUILifeCycleBehaviourArray[i];
 		if (item.IsValid())
 		{
-			ProcessLGUIComponentLifecycleEvent(item.Get());
+			ProcessLGUILifecycleEvent(item.Get());
 		}
 	}
-	LGUIBehaviourArray.Reset();
+	LGUILifeCycleBehaviourArray.Reset();
 }
-void ALGUIManagerActor::ProcessLGUIComponentLifecycleEvent(ULGUIBehaviour* InComp)
+void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp)
 {
 	if (InComp)
 	{
-		if (auto rootComp = InComp->GetRootComponent())
+		if (InComp->IsAllowedToCallAwake())
 		{
-			if (rootComp->GetIsUIActiveInHierarchy())
-			{
-				if (!InComp->isAwakeCalled)
-				{
-					InComp->Awake();
-				}
-				if (InComp->GetIsActiveAndEnable())
-				{
-					if (!InComp->isEnableCalled)
-					{
-						InComp->OnEnable();
-					}
-				}
-			}
-		}
-		else
-		{
-			if (!InComp->isAwakeCalled)
+			if (!InComp->bIsAwakeCalled)
 			{
 				InComp->Awake();
 			}
-			if (InComp->GetIsActiveAndEnable())
+			if (InComp->IsAllowedToCallOnEnable())
 			{
-				if (!InComp->isEnableCalled)
+				if (!InComp->bIsEnableCalled)
 				{
 					InComp->OnEnable();
 				}
@@ -1772,7 +1763,7 @@ void ALGUIManagerActor::BeginPrefabSystemProcessingActor(UWorld* InWorld)
 {
 	if (auto Instance = GetInstance(InWorld, true))
 	{
-		Instance->LGUIBehaviours_PrefabSystemProcessing.Add({});
+		Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Add({});
 		Instance->PrefabSystemProcessing_CurrentArrayIndex++;
 	}
 }
@@ -1805,3 +1796,4 @@ bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
 	}
 	return false;
 }
+PRAGMA_ENABLE_OPTIMIZATION

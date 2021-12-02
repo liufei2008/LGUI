@@ -445,7 +445,7 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 		}
 		if (IsValid(newSelectable))
 		{
-			hitResult.hitResult.Component = (UPrimitiveComponent*)newSelectable->GetRootSceneComponent();//this convert is incorrect, but I need this pointer
+			hitResult.hitResult.Component = (UPrimitiveComponent*)newSelectable->GetRootComponent();//this convert is incorrect, but I need this pointer
 			hitResult.hitResult.Actor = newSelectable->GetOwner();
 			hitResult.hitResult.Location = hitResult.hitResult.Component->GetComponentLocation();
 			hitResult.hitResult.Normal = hitResult.hitResult.Component->GetComponentTransform().TransformVector(FVector(0, 0, 1));
@@ -454,7 +454,7 @@ bool ULGUI_PointerInputModule::Navigate(ELGUINavigationDirection direction, ULGU
 			hitResult.raycaster = nullptr;
 			hitResult.hoverArray.Reset();
 
-			eventSystem->SetHighlightedComponentForNavigation(newSelectable->GetRootSceneComponent());
+			eventSystem->SetHighlightedComponentForNavigation(newSelectable->GetRootComponent());
 			return true;
 		}
 	}

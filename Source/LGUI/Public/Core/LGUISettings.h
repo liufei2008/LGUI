@@ -54,7 +54,6 @@ public:
 		int32 spaceBetweenSprites = 2;
 };
 
-class ULGUIBehaviour;
 /** for LGUI config */
 UCLASS(config=Engine, defaultconfig)
 class LGUI_API ULGUISettings :public UObject

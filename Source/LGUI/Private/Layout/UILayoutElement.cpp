@@ -13,6 +13,7 @@ void UUILayoutElement::Awake()
 		ParentLayout->RebuildChildrenList();
 		ParentLayout->MarkNeedRebuildLayout();
 	}
+	this->SetCanExecuteUpdate(false);
 }
 
 #if WITH_EDITOR

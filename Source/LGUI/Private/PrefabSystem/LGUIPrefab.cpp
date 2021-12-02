@@ -149,8 +149,14 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 	{
 		TArray<AActor*> OutCreatedActors;
 		TArray<FGuid> OutCreatedActorsGuid;
-		return LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(InWorld, this, InParent
+		auto ResultActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(InWorld, this, InParent
 			, nullptr, nullptr, OutCreatedActors, OutCreatedActorsGuid);
+		for (int i = 0; i < OutCreatedActors.Num(); i++)
+		{
+			UE_LOG(LGUI, Warning, TEXT("Add actor:%s"), *(OutCreatedActors[i]->GetActorLabel()));
+			InOutMapGuidToObject.Add(OutCreatedActorsGuid[i], OutCreatedActors[i]);
+		}
+		return ResultActor;
 	}
 }
 

@@ -4,7 +4,6 @@
 #include "LGUI.h"
 #include "Core/LGUISpriteData.h"
 #include "Core/LGUIAtlasData.h"
-#include "Core/LGUIBehaviour.h"
 
 #if WITH_EDITOR
 #ifdef LGUI_DRAWCALLMODE_AUTO

@@ -4,6 +4,11 @@
 #include "LTweenBPLibrary.h"
 
 
+void UUISelectableTransitionComponent::Awake()
+{
+	Super::Awake();
+	this->SetCanExecuteUpdate(false);
+}
 void UUISelectableTransitionComponent::StopTransition() 
 { 
 	for (auto tweener : TweenerCollection)

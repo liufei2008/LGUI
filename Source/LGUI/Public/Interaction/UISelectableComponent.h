@@ -6,7 +6,7 @@
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Components/ActorComponent.h"
-#include "Core/LGUIBehaviour.h"
+#include "Core/LGUILifeCycleUIBehaviour.h"
 #include "LGUIComponentReference.h"
 #include "UISelectableComponent.generated.h"
 
@@ -48,7 +48,7 @@ enum class EUISelectableNavigationMode:uint8
 class ULGUISpriteData_BaseObject;
 
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input, Lighting, Mobile), ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUISelectableComponent : public ULGUIBehaviour, public ILGUIPointerEnterExitInterface, public ILGUIPointerDownUpInterface, public ILGUIPointerSelectDeselectInterface
+class LGUI_API UUISelectableComponent : public ULGUILifeCycleUIBehaviour, public ILGUIPointerEnterExitInterface, public ILGUIPointerDownUpInterface, public ILGUIPointerSelectDeselectInterface
 {
 	GENERATED_BODY()
 	
