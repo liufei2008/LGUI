@@ -67,6 +67,7 @@ namespace LGUIPrefabSystem3
 
 		OutActorSaveData.ActorClass = FindOrAddClassFromList(Actor->GetClass());
 		OutActorSaveData.ActorGuid = ActorGuid;
+		OutActorSaveData.ObjectFlags = (uint32)Actor->GetFlags();
 		WriterOrReaderFunction(Actor, OutActorSaveData.ActorPropertyData, false);
 		if (auto RootComp = Actor->GetRootComponent())
 		{
@@ -148,7 +149,7 @@ namespace LGUIPrefabSystem3
 
 		Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 		Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
-		Prefab->PrefabVersion = LGUI_PREFAB_VERSION;
+		Prefab->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
 
 		Prefab->MarkPackageDirty();
 		auto TimeSpan = FDateTime::Now() - StartTime;
@@ -284,6 +285,7 @@ namespace LGUIPrefabSystem3
 				ComponentSaveDataItem.ComponentClass = FindOrAddClassFromList(Class);
 				ComponentSaveDataItem.ComponentName = Object->GetFName();
 				ComponentSaveDataItem.ComponentGuid = MapObjectToGuid[Object];
+				ComponentSaveDataItem.ObjectFlags = (uint32)Object->GetFlags();
 				ComponentSaveDataItem.OuterObjectGuid = MapObjectToGuid[Object->GetOuter()];
 				if (auto SceneComp = Cast<USceneComponent>(Object))
 				{
@@ -307,6 +309,7 @@ namespace LGUIPrefabSystem3
 				FLGUIObjectSaveData ObjectSaveDataItem;
 				ObjectSaveDataItem.ObjectClass = FindOrAddClassFromList(Class);
 				ObjectSaveDataItem.ObjectGuid = MapObjectToGuid[Object];
+				ObjectSaveDataItem.ObjectFlags = (uint32)Object->GetFlags();
 				ObjectSaveDataItem.OuterObjectGuid = MapObjectToGuid[Object->GetOuter()];
 				WriterOrReaderFunction(Object, ObjectSaveDataItem.PropertyData, false);
 				ObjectSaveDataArray.Add(ObjectSaveDataItem);
