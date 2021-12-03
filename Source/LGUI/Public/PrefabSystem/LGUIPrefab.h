@@ -5,12 +5,16 @@
 #include "LGUIPrefab.generated.h"
 
 /**
+ * Current prefab system version
+ */
+#define LGUI_CURRENT_PREFAB_VERSION 3
+/**
  * Version 2: Support ActorGuid (start from 4.26)
  * Version 3: Use UE's build-in FArchive to serialize/deserialize. 
 		Compare to version2: 1. About 2~3 times faster when deserialize.
 							 2. Support all object serialization, inlude blueprint's default sub object.
  */
-#define LGUI_PREFAB_VERSION 3
+#define LGUI_PREFAB_VERSION_BuildinFArchive 3
 
 /**
  * Similar to Unity3D's Prefab. store actor and it's hierarchy and serailize to asset, deserialize and restore when need.

@@ -12,7 +12,7 @@
 #if WITH_EDITOR
 void ULGUIPrefab::MakeAgentActorsInPreviewWorld()
 {
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		if (!IsValid(AgentRootActor))
 		{
@@ -34,7 +34,7 @@ void ULGUIPrefab::ClearAgentActorsInPreviewWorld()
 void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)
 {
 	BinaryDataForBuild.Empty();
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		if (!IsValid(AgentRootActor))
 		{
@@ -62,7 +62,7 @@ void ULGUIPrefab::PostSaveRoot(bool bCleanupIsRequired)
 {
 	Super::PostSaveRoot(bCleanupIsRequired);
 	//recreate AgentRootActor, because the prefab data could change.
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		//if (IsValid(AgentRootActor))
 		//{
@@ -74,7 +74,7 @@ void ULGUIPrefab::PostSaveRoot(bool bCleanupIsRequired)
 }
 void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 {
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		
 	}
@@ -87,7 +87,7 @@ void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 void ULGUIPrefab::BeginDestroy()
 {
 	Super::BeginDestroy();
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		if (IsValid(AgentRootActor))
 		{
@@ -101,7 +101,7 @@ void ULGUIPrefab::BeginDestroy()
 AActor* ULGUIPrefab::LoadPrefab(UObject* WorldContextObject, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
 	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(world, this, InParent, SetRelativeTransformToIdentity);
 	}
@@ -113,7 +113,7 @@ AActor* ULGUIPrefab::LoadPrefab(UObject* WorldContextObject, USceneComponent* In
 AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale)
 {
 	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(world, this, InParent, Location, Rotation.Quaternion(), Scale);
 	}
@@ -125,7 +125,7 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale)
 {
 	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(world, this, InParent, Location, Rotation, Scale);
 	}
@@ -140,7 +140,7 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 	, TMap<FGuid, UObject*>& InOutMapGuidToObject
 )
 {
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this, InParent
 			, InOutMapGuidToObject);
@@ -174,7 +174,7 @@ void ULGUIPrefab::SavePrefabForRuntime(AActor* RootActor)
 
 AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
 {
-	if (PrefabVersion >= 3)
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		TMap<FGuid, UObject*> MapGuidToObject;
 		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this

@@ -133,6 +133,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			]
 		]
 		;
+	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, AgentRootActor));
 	auto AgentRootActorProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, AgentRootActor));
 	category.AddCustomRow(LOCTEXT("AgentRootActor", "AgentRootActor"))
 		.NameContent()
@@ -207,7 +208,7 @@ FText FLGUIPrefabCustomization::GetPrefabVersionText()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->PrefabVersion == LGUI_PREFAB_VERSION)
+		if (TargetScriptPtr->PrefabVersion == LGUI_CURRENT_PREFAB_VERSION)
 		{
 			return FText::FromString(FString::Printf(TEXT("%d"), TargetScriptPtr->PrefabVersion));
 		}
@@ -261,7 +262,7 @@ FSlateColor FLGUIPrefabCustomization::GetPrefabVersionTextColorAndOpacity()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->PrefabVersion == LGUI_PREFAB_VERSION)
+		if (TargetScriptPtr->PrefabVersion == LGUI_CURRENT_PREFAB_VERSION)
 		{
 			return FSlateColor::UseForeground();
 		}
@@ -279,7 +280,7 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixPrefabVersionButton()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (TargetScriptPtr->PrefabVersion == LGUI_PREFAB_VERSION)
+		if (TargetScriptPtr->PrefabVersion == LGUI_CURRENT_PREFAB_VERSION)
 		{
 			return EVisibility::Hidden;
 		}
@@ -297,14 +298,13 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentActorButton()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
-		if (IsValid(TargetScriptPtr->AgentRootActor))
-		{
-			return EVisibility::Hidden;
-		}
-		else
+		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
+			&& !IsValid(TargetScriptPtr->AgentRootActor)
+			)
 		{
 			return EVisibility::Visible;
 		}
+		return EVisibility::Hidden;
 	}
 	else
 	{
@@ -359,7 +359,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 				{
 					if (
 						Prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || Prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
-						|| Prefab->PrefabVersion != LGUI_PREFAB_VERSION
+						|| Prefab->PrefabVersion != LGUI_CURRENT_PREFAB_VERSION
 						)
 					{
 						RecreatePrefab(Prefab, World);
@@ -410,7 +410,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreateAgentActor()
 			{
 				if (
 					Prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || Prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
-					|| Prefab->PrefabVersion != LGUI_PREFAB_VERSION
+					|| Prefab->PrefabVersion != LGUI_CURRENT_PREFAB_VERSION
 					)
 				{
 					Prefab->ClearAgentActorsInPreviewWorld();

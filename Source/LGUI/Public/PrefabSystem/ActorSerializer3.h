@@ -99,12 +99,14 @@ namespace LGUIPrefabSystem3
 	public:
 		int32 ObjectClass = -1;
 		FGuid ObjectGuid;//use id to find object
+		uint32 ObjectFlags;
 		TArray<uint8> PropertyData;
 		FGuid OuterObjectGuid;//outer object
 		friend FArchive& operator<<(FArchive& Ar, FLGUIObjectSaveData& ObjectData)
 		{
 			Ar << ObjectData.ObjectClass;
 			Ar << ObjectData.ObjectGuid;
+			Ar << ObjectData.ObjectFlags;
 			Ar << ObjectData.PropertyData;
 			Ar << ObjectData.OuterObjectGuid;
 			return Ar;
@@ -118,6 +120,7 @@ namespace LGUIPrefabSystem3
 		int32 ComponentClass = -1;//-1 means not exist. if RootComponent is -1 means this actor dont have RootComponent
 		FName ComponentName;
 		FGuid ComponentGuid;
+		uint32 ObjectFlags;
 		FGuid SceneComponentParentGuid = FGuid();//invalid guid means the the SceneComponent dont have parent. @todo: For BlueprintCreatedComponent, leave this to invalid, because that component is managed by blueprint
 		FGuid OuterObjectGuid;//outer object
 		TArray<uint8> PropertyData;
@@ -126,6 +129,7 @@ namespace LGUIPrefabSystem3
 			Ar << ComponentData.ComponentClass;
 			Ar << ComponentData.ComponentName;
 			Ar << ComponentData.ComponentGuid;
+			Ar << ComponentData.ObjectFlags;
 			Ar << ComponentData.SceneComponentParentGuid;
 			Ar << ComponentData.OuterObjectGuid;
 			Ar << ComponentData.PropertyData;
@@ -139,6 +143,7 @@ namespace LGUIPrefabSystem3
 	public:
 		int32 ActorClass;
 		FGuid ActorGuid;//use id to find actor
+		uint32 ObjectFlags;
 		TArray<uint8> ActorPropertyData;
 		FGuid RootComponentGuid;
 		//The following two array stores default sub objects which belong to this actor. Array must match index for specific component. When deserialize, use FName to find FGuid
@@ -151,6 +156,7 @@ namespace LGUIPrefabSystem3
 		{
 			Ar << ActorData.ActorGuid;
 			Ar << ActorData.ActorClass;
+			Ar << ActorData.ObjectFlags;
 			Ar << ActorData.ActorPropertyData;
 			Ar << ActorData.RootComponentGuid;
 			Ar << ActorData.DefaultSubObjectGuidArray;
@@ -256,8 +262,8 @@ namespace LGUIPrefabSystem3
 		//deserialize actor
 		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 		AActor* DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale);
-		AActor* DeserializeActorRecursive(FLGUIActorSaveData& SaveData);
-		void PreGenerateActorRecursive(FLGUIActorSaveData& SaveData);
+		AActor* DeserializeActorRecursive(FLGUIActorSaveData& SavedActors);
+		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors);
 		void PreGenerateObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 
 		//find id from list, if not will create

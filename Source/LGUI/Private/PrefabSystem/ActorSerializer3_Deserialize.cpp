@@ -219,7 +219,7 @@ namespace LGUIPrefabSystem3
 					}
 
 					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
-					CreatedNewComponent = NewObject<UActorComponent>(Outer, ObjectClass, ObjectData.ComponentName, RF_Transactional);//@todo: what about object flag?
+					CreatedNewComponent = NewObject<UActorComponent>(Outer, ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
 					MapGuidToObject.Add(ObjectData.ComponentGuid, CreatedNewComponent);
 				}
 			}
@@ -264,7 +264,7 @@ namespace LGUIPrefabSystem3
 
 					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
 					check(Outer != nullptr);
-					CreatedNewObject = NewObject<UObject>(Outer, ObjectClass, NAME_None, RF_Transactional);//@todo: what about object flag?
+					CreatedNewObject = NewObject<UObject>(Outer, ObjectClass, NAME_None, (EObjectFlags)ObjectData.ObjectFlags);
 					MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
 				}
 			}
@@ -275,9 +275,9 @@ namespace LGUIPrefabSystem3
 			}
 		}
 	}
-	void ActorSerializer3::PreGenerateActorRecursive(FLGUIActorSaveData& SaveData)
+	void ActorSerializer3::PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors)
 	{
-		if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass))
+		if (auto ActorClass = FindClassFromListByIndex(SavedActors.ActorClass))
 		{
 			if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 			{
@@ -286,15 +286,16 @@ namespace LGUIPrefabSystem3
 			}
 
 			AActor* NewActor = nullptr;
-			if (auto ActorPtr = MapGuidToObject.Find(SaveData.ActorGuid))//MapGuidToObject can passed from LoadPrefabForEdit, so we need to find from map first
+			if (auto ActorPtr = MapGuidToObject.Find(SavedActors.ActorGuid))//MapGuidToObject can passed from LoadPrefabForEdit, so we need to find from map first
 			{
 				NewActor = (AActor*)*ActorPtr;
 			}
 			else
 			{
-				NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-				NewActor->FinishSpawning(FTransform::Identity, false);
-				MapGuidToObject.Add(SaveData.ActorGuid, NewActor);
+				FActorSpawnParameters Spawnparameters;
+				Spawnparameters.ObjectFlags = (EObjectFlags)SavedActors.ObjectFlags;
+				NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
+				MapGuidToObject.Add(SavedActors.ActorGuid, NewActor);
 			}
 
 			//Collect default sub objects after spawn actor
@@ -302,19 +303,19 @@ namespace LGUIPrefabSystem3
 			NewActor->CollectDefaultSubobjects(DefaultSubObjects, true);
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
-				auto Index = SaveData.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
+				auto Index = SavedActors.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
 				if (Index == INDEX_NONE)
 				{
 					UE_LOG(LGUI, Warning, TEXT("[ActorSerializer3::PreGenerateActorRecursive]This blueprint (%s) seems broken"), *(NewActor->GetPathName()));
 					continue;
 				}
-				MapGuidToObject.Add(SaveData.DefaultSubObjectGuidArray[Index], DefaultSubObject);
+				MapGuidToObject.Add(SavedActors.DefaultSubObjectGuidArray[Index], DefaultSubObject);
 			}
 			if (auto RootComp = NewActor->GetRootComponent())
 			{
-				if (!MapGuidToObject.Contains(SaveData.RootComponentGuid))//RootComponent could be a BlueprintCreatedComponent, so check it
+				if (!MapGuidToObject.Contains(SavedActors.RootComponentGuid))//RootComponent could be a BlueprintCreatedComponent, so check it
 				{
-					MapGuidToObject.Add(SaveData.RootComponentGuid, RootComp);
+					MapGuidToObject.Add(SavedActors.RootComponentGuid, RootComp);
 				}
 			}
 
@@ -329,24 +330,24 @@ namespace LGUIPrefabSystem3
 				ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
 			}
 			CreatedActors.Add(NewActor);
-			CreatedActorsGuid.Add(SaveData.ActorGuid);
+			CreatedActorsGuid.Add(SavedActors.ActorGuid);
 
-			for (auto ChildSaveData : SaveData.ChildActorData)
+			for (auto ChildSaveData : SavedActors.ChildActorData)
 			{
 				PreGenerateActorRecursive(ChildSaveData);
 			}
 		}
 		else
 		{
-			UE_LOG(LGUI, Warning, TEXT("[ActorSerializer3::PreGenerateActorRecursive]Actor Class of index:%d not found!"), (SaveData.ActorClass));
+			UE_LOG(LGUI, Warning, TEXT("[ActorSerializer3::PreGenerateActorRecursive]Actor Class of index:%d not found!"), (SavedActors.ActorClass));
 		}
 	}
-	AActor* ActorSerializer3::DeserializeActorRecursive(FLGUIActorSaveData& SaveData)
+	AActor* ActorSerializer3::DeserializeActorRecursive(FLGUIActorSaveData& SavedActors)
 	{
-		auto NewActor = (AActor*)MapGuidToObject[SaveData.ActorGuid];
-		WriterOrReaderFunction(NewActor, SaveData.ActorPropertyData, false);
+		auto NewActor = (AActor*)MapGuidToObject[SavedActors.ActorGuid];
+		WriterOrReaderFunction(NewActor, SavedActors.ActorPropertyData, false);
 
-		for (auto ChildSaveData : SaveData.ChildActorData)
+		for (auto ChildSaveData : SavedActors.ChildActorData)
 		{
 			DeserializeActorRecursive(ChildSaveData);
 		}
