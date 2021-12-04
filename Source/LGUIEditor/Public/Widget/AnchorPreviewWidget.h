@@ -360,7 +360,7 @@ private:
 						}
 						else if (HorizontalAlign != UIAnchorHorizontalAlign::None)
 						{
-							item->SetAnchorOffsetX(0);
+							item->SetAnchorOffsetY(0);
 						}
 						if (VerticalAlign == UIAnchorVerticalAlign::Stretch)
 						{
@@ -369,7 +369,7 @@ private:
 						}
 						else if (VerticalAlign != UIAnchorVerticalAlign::None)
 						{
-							item->SetAnchorOffsetY(0);
+							item->SetAnchorOffsetZ(0);
 						}
 					}
 					item->EditorForceUpdateImmediately();

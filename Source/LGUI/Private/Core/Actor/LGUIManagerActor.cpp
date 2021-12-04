@@ -563,13 +563,13 @@ void ULGUIEditorManagerObject::RemoveLayout(UUILayoutBase* InLayout)
 void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 {
 	const auto& widget = item->GetWidget();
-	auto extends = FVector(widget.width, widget.height, 0.1) * 0.5f;
+	auto extends = FVector(0.1f, widget.width, widget.height) * 0.5f;
 	bool canDraw = false;
 	auto DrawColor = FColor(128, 128, 128, 128);//gray means normal object
 	if (ULGUIEditorManagerObject::IsSelected(item->GetOwner()))//select self
 	{
 		DrawColor = FColor(0, 255, 0, 255);//green means selected object
-		extends += FVector(0, 0, 1);
+		extends += FVector(1, 0, 0);
 		canDraw = true;
 	}
 	else
@@ -626,8 +626,8 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 	{
 		auto worldTransform = item->GetComponentTransform();
 		FVector relativeOffset(0, 0, 0);
-		relativeOffset.X = (0.5f - widget.pivot.X) * widget.width;
-		relativeOffset.Y = (0.5f - widget.pivot.Y) * widget.height;
+		relativeOffset.Y = (0.5f - widget.pivot.X) * widget.width;
+		relativeOffset.Z = (0.5f - widget.pivot.Y) * widget.height;
 		auto worldLocation = worldTransform.TransformPosition(relativeOffset);
 		//calculate world location
 		if (item->GetParentAsUIItem() != nullptr)
@@ -638,27 +638,27 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 			{
 			case UIAnchorHorizontalAlign::Left:
 			{
-				relativeLocation.X = parentWidget.width * (-parentWidget.pivot.X);
-				relativeLocation.X += widget.anchorOffsetX;
+				relativeLocation.Y = parentWidget.width * (-parentWidget.pivot.X);
+				relativeLocation.Y += widget.anchorOffsetX;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Center:
 			{
-				relativeLocation.X = parentWidget.width * (0.5f - parentWidget.pivot.X);
-				relativeLocation.X += widget.anchorOffsetX;
+				relativeLocation.Y = parentWidget.width * (0.5f - parentWidget.pivot.X);
+				relativeLocation.Y += widget.anchorOffsetX;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Right:
 			{
-				relativeLocation.X = parentWidget.width * (1 - parentWidget.pivot.X);
-				relativeLocation.X += widget.anchorOffsetX;
+				relativeLocation.Y = parentWidget.width * (1 - parentWidget.pivot.X);
+				relativeLocation.Y += widget.anchorOffsetX;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Stretch:
 			{
-				relativeLocation.X = -parentWidget.pivot.X * parentWidget.width;
-				relativeLocation.X += widget.stretchLeft;
-				relativeLocation.X += widget.pivot.X * widget.width;
+				relativeLocation.Y = -parentWidget.pivot.X * parentWidget.width;
+				relativeLocation.Y += widget.stretchLeft;
+				relativeLocation.Y += widget.pivot.X * widget.width;
 			}
 			break;
 			}
@@ -666,27 +666,27 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 			{
 			case UIAnchorVerticalAlign::Top:
 			{
-				relativeLocation.Y = parentWidget.height * (1 - parentWidget.pivot.Y);
-				relativeLocation.Y += widget.anchorOffsetY;
+				relativeLocation.Z = parentWidget.height * (1 - parentWidget.pivot.Y);
+				relativeLocation.Z += widget.anchorOffsetY;
 			}
 			break;
 			case UIAnchorVerticalAlign::Middle:
 			{
-				relativeLocation.Y = parentWidget.height * (0.5f - parentWidget.pivot.Y);
-				relativeLocation.Y += widget.anchorOffsetY;
+				relativeLocation.Z = parentWidget.height * (0.5f - parentWidget.pivot.Y);
+				relativeLocation.Z += widget.anchorOffsetY;
 			}
 			break;
 			case UIAnchorVerticalAlign::Bottom:
 			{
-				relativeLocation.Y = parentWidget.height * (-parentWidget.pivot.Y);
-				relativeLocation.Y += widget.anchorOffsetY;
+				relativeLocation.Z = parentWidget.height * (-parentWidget.pivot.Y);
+				relativeLocation.Z += widget.anchorOffsetY;
 			}
 			break;
 			case UIAnchorVerticalAlign::Stretch:
 			{
-				relativeLocation.Y = -parentWidget.pivot.Y * parentWidget.height;
-				relativeLocation.Y += widget.stretchBottom;
-				relativeLocation.Y += widget.pivot.Y * widget.height;
+				relativeLocation.Z = -parentWidget.pivot.Y * parentWidget.height;
+				relativeLocation.Z += widget.stretchBottom;
+				relativeLocation.Z += widget.pivot.Y * widget.height;
 			}
 			break;
 			}

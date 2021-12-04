@@ -221,7 +221,7 @@ void UUIDropdownComponent::Show()
 		}
 	}break;
 	}
-	listRootUIItem->SetAnchorOffsetY(0);
+	listRootUIItem->SetAnchorOffsetZ(0);
 
 	switch (tempHorizontalPosition)
 	{
@@ -241,7 +241,7 @@ void UUIDropdownComponent::Show()
 		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
 	}break;
 	}
-	listRootUIItem->SetAnchorOffsetX(0);
+	listRootUIItem->SetAnchorOffsetY(0);
 
 	listRootUIItem->SetPivot(pivot);
 }

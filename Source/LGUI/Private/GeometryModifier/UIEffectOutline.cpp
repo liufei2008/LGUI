@@ -148,38 +148,38 @@ void UUIEffectOutline::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int3
 			auto originVert = originPositions[channelOriginVertIndex];
 			auto& channel1Vert = originPositions[channelVertIndex1];
 			channel1Vert = originVert;
-			channel1Vert.X += outlineSize.X;
-			channel1Vert.Y += outlineSize.Y;
+			channel1Vert.Y += outlineSize.X;
+			channel1Vert.Z += outlineSize.Y;
 			auto& channel2Vert = originPositions[channelVertIndex2];
 			channel2Vert = originVert;
-			channel2Vert.X -= outlineSize.X;
-			channel2Vert.Y += outlineSize.Y;
+			channel2Vert.Y -= outlineSize.X;
+			channel2Vert.Z += outlineSize.Y;
 			auto& channel3Vert = originPositions[channelVertIndex3];
 			channel3Vert = originVert;
-			channel3Vert.X += outlineSize.X;
-			channel3Vert.Y -= outlineSize.Y;
+			channel3Vert.Y += outlineSize.X;
+			channel3Vert.Z -= outlineSize.Y;
 			auto& channel4Vert = originPositions[channelVertIndex4];
 			channel4Vert = originVert;
-			channel4Vert.X -= outlineSize.X;
-			channel4Vert.Y -= outlineSize.Y;
+			channel4Vert.Y -= outlineSize.X;
+			channel4Vert.Z -= outlineSize.Y;
 			if (use8Direction)
 			{
 				auto& channel5Vert = originPositions[channelVertIndex5];
 				channel5Vert = originVert;
-				channel5Vert.X -= outlineSize.X;
-				channel5Vert.Y += 0;
+				channel5Vert.Y -= outlineSize.X;
+				channel5Vert.Z += 0;
 				auto& channel6Vert = originPositions[channelVertIndex6];
 				channel6Vert = originVert;
-				channel6Vert.X += outlineSize.X;
-				channel6Vert.Y += 0;
+				channel6Vert.Y += outlineSize.X;
+				channel6Vert.Z += 0;
 				auto& channel7Vert = originPositions[channelVertIndex7];
 				channel7Vert = originVert;
-				channel7Vert.X += 0;
-				channel7Vert.Y += outlineSize.Y;
+				channel7Vert.Y += 0;
+				channel7Vert.Z += outlineSize.Y;
 				auto& channel8Vert = originPositions[channelVertIndex8];
 				channel8Vert = originVert;
-				channel8Vert.X += 0;
-				channel8Vert.Y -= outlineSize.Y;
+				channel8Vert.Y += 0;
+				channel8Vert.Z -= outlineSize.Y;
 			}
 
 			channelVertIndex1++, channelVertIndex2++, channelVertIndex3++, channelVertIndex4++;

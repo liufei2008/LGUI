@@ -27,7 +27,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 		for (int i = 0; i < vertexCount; i++)
 		{
 			auto& vert = originPositions[i];
-			vertices[i].TextureCoordinate[0] = FVector2D(vert.X, vert.Y);
+			vertices[i].TextureCoordinate[0] = FVector2D(vert.Y, vert.Z);
 		}
 	}
 	break;
@@ -44,7 +44,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 		for (int i = 0; i < vertexCount; i++)
 		{
 			auto& vert = originPositions[i];
-			vertices[i].TextureCoordinate[1] = FVector2D(vert.X, vert.Y);
+			vertices[i].TextureCoordinate[1] = FVector2D(vert.Y, vert.Z);
 		}
 	}
 	break;
@@ -61,7 +61,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 		for (int i = 0; i < vertexCount; i++)
 		{
 			auto& vert = originPositions[i];
-			vertices[i].TextureCoordinate[2] = FVector2D(vert.X, vert.Y);
+			vertices[i].TextureCoordinate[2] = FVector2D(vert.Y, vert.Z);
 		}
 	}
 	break;
@@ -78,7 +78,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 		for (int i = 0; i < vertexCount; i++)
 		{
 			auto& vert = originPositions[i];
-			vertices[i].TextureCoordinate[3] = FVector2D(vert.X, vert.Y);
+			vertices[i].TextureCoordinate[3] = FVector2D(vert.Y, vert.Z);
 		}
 	}
 	break;

@@ -35,14 +35,14 @@ void AdjustPixelPerfectPos(TArray<FVector>& originPositions, int startIndex, int
 		auto item = originPositions[i];
 
 		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(item);
-		canvasSpaceLocation.X += halfCanvasWidth;
-		canvasSpaceLocation.Y += halfCanvasHeight;
-		float screenSpaceLocationX = canvasSpaceLocation.X * rootCanvasScale;
+		canvasSpaceLocation.Y += halfCanvasWidth;
+		canvasSpaceLocation.Z += halfCanvasHeight;
 		float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
-		item.X = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
+		float screenSpaceLocationZ = canvasSpaceLocation.Z * rootCanvasScale;
 		item.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
-		item.X -= halfCanvasWidth;
-		item.Y -= halfCanvasHeight;
+		item.Z = RoundToFloat(screenSpaceLocationZ) * inv_RootCanvasScale;
+		item.Y -= halfCanvasWidth;
+		item.Z -= halfCanvasHeight;
 
 		originPositions[i] = canvasToComponentTransform.TransformPosition(item);
 	}
@@ -67,14 +67,14 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FVector>& originPositi
 		auto originPos = originPositions[vertIndex];
 
 		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(originPos);
-		canvasSpaceLocation.X += halfCanvasWidth;
-		canvasSpaceLocation.Y += halfCanvasHeight;
-		float screenSpaceLocationX = canvasSpaceLocation.X * rootCanvasScale;
+		canvasSpaceLocation.Y += halfCanvasWidth;
+		canvasSpaceLocation.Z += halfCanvasHeight;
 		float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
-		canvasSpaceLocation.X = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
+		float screenSpaceLocationZ = canvasSpaceLocation.Z * rootCanvasScale;
 		canvasSpaceLocation.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
-		canvasSpaceLocation.X -= halfCanvasWidth;
-		canvasSpaceLocation.Y -= halfCanvasHeight;
+		canvasSpaceLocation.Z = RoundToFloat(screenSpaceLocationZ) * inv_RootCanvasScale;
+		canvasSpaceLocation.Y -= halfCanvasWidth;
+		canvasSpaceLocation.Z -= halfCanvasHeight;
 
 		originPositions[vertIndex] = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
 	}
@@ -100,31 +100,31 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TA
 		int vertEndIndex = charProperty.StartVertIndex + charProperty.VertCount;
 
 		//calculate first vert
-		float offsetX, offsetY;
+		float offsetY, offsetZ;
 		{
 			auto originPos = originPositions[vertStartIndex];
 
 			auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(originPos);
-			canvasSpaceLocation.X += halfCanvasWidth;
-			canvasSpaceLocation.Y += halfCanvasHeight;
-			float screenSpaceLocationX = canvasSpaceLocation.X * rootCanvasScale;
-			float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
-			canvasSpaceLocation.X = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
-			canvasSpaceLocation.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
-			canvasSpaceLocation.X -= halfCanvasWidth;
-			canvasSpaceLocation.Y -= halfCanvasHeight;
+			canvasSpaceLocation.Y += halfCanvasWidth;
+			canvasSpaceLocation.Z += halfCanvasHeight;
+			float screenSpaceLocationX = canvasSpaceLocation.Y * rootCanvasScale;
+			float screenSpaceLocationY = canvasSpaceLocation.Z * rootCanvasScale;
+			canvasSpaceLocation.Y = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
+			canvasSpaceLocation.Z = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
+			canvasSpaceLocation.Y -= halfCanvasWidth;
+			canvasSpaceLocation.Z -= halfCanvasHeight;
 
 			auto newPos = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
 			originPositions[vertStartIndex] = newPos;
-			offsetX = newPos.X - originPos.X;
 			offsetY = newPos.Y - originPos.Y;
+			offsetZ = newPos.Z - originPos.Z;
 		}
 
 		for (int vertIndex = vertStartIndex + 1; vertIndex < vertEndIndex; vertIndex++)
 		{
 			auto& originPos = originPositions[vertIndex];
-			originPos.X += offsetX;
 			originPos.Y += offsetY;
+			originPos.Z += offsetZ;
 		}
 	}
 }
@@ -219,10 +219,10 @@ void UIGeometry::UpdateUIRectSimpleVertex(TSharedPtr<UIGeometry> uiGeo, const fl
 	float minY = -halfH + pivotOffsetY;
 	float maxX = halfW + pivotOffsetX;
 	float maxY = halfH + pivotOffsetY;
-	originPositions[0] = FVector(minX, minY, 0);
-	originPositions[1] = FVector(maxX, minY, 0);
-	originPositions[2] = FVector(minX, maxY, 0);
-	originPositions[3] = FVector(maxX, maxY, 0);
+	originPositions[0] = FVector(0, minX, minY);
+	originPositions[1] = FVector(0, maxX, minY);
+	originPositions[2] = FVector(0, minX, maxY);
+	originPositions[3] = FVector(0, maxX, maxY);
 	//snap pixel
 	if (renderCanvas->GetActualPixelPerfect())
 	{
@@ -391,25 +391,25 @@ void UIGeometry::UpdateUIRectBorderVertex(TSharedPtr<UIGeometry> uiGeo, const fl
 	y2 = (y3 - spriteInfo.borderTop * heightScale);
 
 	auto& originPositions = uiGeo->originPositions;
-	originPositions[0] = FVector(x0, y0, 0);
-	originPositions[1] = FVector(x1, y0, 0);
-	originPositions[2] = FVector(x2, y0, 0);
-	originPositions[3] = FVector(x3, y0, 0);
+	originPositions[0] = FVector(0, x0, y0);
+	originPositions[1] = FVector(0, x1, y0);
+	originPositions[2] = FVector(0, x2, y0);
+	originPositions[3] = FVector(0, x3, y0);
 
-	originPositions[4] = FVector(x0, y1, 0);
-	originPositions[5] = FVector(x1, y1, 0);
-	originPositions[6] = FVector(x2, y1, 0);
-	originPositions[7] = FVector(x3, y1, 0);
+	originPositions[4] = FVector(0, x0, y1);
+	originPositions[5] = FVector(0, x1, y1);
+	originPositions[6] = FVector(0, x2, y1);
+	originPositions[7] = FVector(0, x3, y1);
 
-	originPositions[8] = FVector(x0, y2, 0);
-	originPositions[9] = FVector(x1, y2, 0);
-	originPositions[10] = FVector(x2, y2, 0);
-	originPositions[11] = FVector(x3, y2, 0);
+	originPositions[8] = FVector(0, x0, y2);
+	originPositions[9] = FVector(0, x1, y2);
+	originPositions[10] = FVector(0, x2, y2);
+	originPositions[11] = FVector(0, x3, y2);
 
-	originPositions[12] = FVector(x0, y3, 0);
-	originPositions[13] = FVector(x1, y3, 0);
-	originPositions[14] = FVector(x2, y3, 0);
-	originPositions[15] = FVector(x3, y3, 0);
+	originPositions[12] = FVector(0, x0, y3);
+	originPositions[13] = FVector(0, x1, y3);
+	originPositions[14] = FVector(0, x2, y3);
+	originPositions[15] = FVector(0, x3, y3);
 
 	//snap pixel
 	if (renderCanvas->GetActualPixelPerfect())
@@ -536,10 +536,10 @@ void UIGeometry::UpdateUIRectTiledVertex(TSharedPtr<UIGeometry> uiGeo, const FLG
 		for (int widthRectIndex = 1; widthRectIndex <= widthRectCount; widthRectIndex++)
 		{
 			float realWidth = widthRectIndex == widthRectCount ? (widthRemainedRectSize) : spriteInfo.width;
-			originPositions[vertIndex++] = FVector(x, y, 0);
-			originPositions[vertIndex++] = FVector(x + realWidth, y, 0);
-			originPositions[vertIndex++] = FVector(x, y + realHeight, 0);
-			originPositions[vertIndex++] = FVector(x + realWidth, y + realHeight, 0);
+			originPositions[vertIndex++] = FVector(0, x, y);
+			originPositions[vertIndex++] = FVector(0, x + realWidth, y);
+			originPositions[vertIndex++] = FVector(0, x, y + realHeight);
+			originPositions[vertIndex++] = FVector(0, x + realWidth, y + realHeight);
 			
 			x += spriteInfo.width;
 		}
@@ -648,10 +648,10 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(const float& width, co
 
 	if (updatePosition)
 	{
-		originPositions[0] = FVector(posMinX, posMinY, 0);
-		originPositions[1] = FVector(posMaxX, posMinY, 0);
-		originPositions[2] = FVector(posMinX, posMaxY, 0);
-		originPositions[3] = FVector(posMaxX, posMaxY, 0);
+		originPositions[0] = FVector(0, posMinX, posMinY);
+		originPositions[1] = FVector(0, posMaxX, posMinY);
+		originPositions[2] = FVector(0, posMinX, posMaxY);
+		originPositions[3] = FVector(0, posMaxX, posMaxY);
 
 		//snap pixel
 		if (renderCanvas->GetActualPixelPerfect())
@@ -828,10 +828,10 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 
 	if (updatePosition)
 	{
-		originPositions[0] = FVector(posMinX, posMinY, 0);
-		originPositions[1] = FVector(posMaxX, posMinY, 0);
-		originPositions[2] = FVector(posMinX, posMaxY, 0);
-		originPositions[3] = FVector(posMaxX, posMaxY, 0);
+		originPositions[0] = FVector(0, posMinX, posMinY);
+		originPositions[1] = FVector(0, posMaxX, posMinY);
+		originPositions[2] = FVector(0, posMinX, posMaxY);
+		originPositions[3] = FVector(0, posMaxX, posMaxY);
 		//snap pixel
 		if (renderCanvas->GetActualPixelPerfect())
 		{
@@ -854,7 +854,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = (fillAmount - 0.5f) * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[1] = FVector(0, posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue));
 				}
 				if (updateUV)
 				{
@@ -869,7 +869,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = fillAmount * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
+					originPositions[1] = originPositions[3] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY);
 				}
 				if (updateUV)
 				{
@@ -886,7 +886,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = (fillAmount - 0.5f) * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
+					originPositions[2] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY);
 				}
 				if (updateUV)
 				{
@@ -901,7 +901,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = fillAmount * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[2] = originPositions[3] = FVector(0, posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue));
 				}
 				if (updateUV)
 				{
@@ -922,7 +922,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = (fillAmount - 0.5f) * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
+					originPositions[0] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY);
 				}
 				if (updateUV)
 				{
@@ -937,7 +937,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = fillAmount * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[0] = originPositions[1] = FVector(0, posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue));
 				}
 				if (updateUV)
 				{
@@ -954,7 +954,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = (fillAmount - 0.5f) * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[3] = FVector(0, posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue));
 				}
 				if (updateUV)
 				{
@@ -969,7 +969,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpVaue = fillAmount * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpVaue), posMinY, 0);
+					originPositions[3] = originPositions[1] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpVaue), posMinY);
 				}
 				if (updateUV)
 				{
@@ -990,7 +990,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = (fillAmount - 0.5f) * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[2] = FVector(0, posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue));
 				}
 				if (updateUV)
 				{
@@ -1005,7 +1005,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = fillAmount * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
+					originPositions[2] = originPositions[0] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY);
 				}
 				if (updateUV)
 				{
@@ -1022,7 +1022,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = (fillAmount - 0.5f) * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY, 0);
+					originPositions[1] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY);
 				}
 				if (updateUV)
 				{
@@ -1037,7 +1037,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = fillAmount * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[1] = originPositions[0] = FVector(0, posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue));
 				}
 				if (updateUV)
 				{
@@ -1058,7 +1058,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = (fillAmount - 0.5f) * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
+					originPositions[3] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY);
 				}
 				if (updateUV)
 				{
@@ -1073,7 +1073,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = fillAmount * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
+					originPositions[3] = originPositions[2] = FVector(0, posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue));
 				}
 				if (updateUV)
 				{
@@ -1090,7 +1090,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = (fillAmount - 0.5f) * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
+					originPositions[0] = FVector(0, posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue));
 				}
 				if (updateUV)
 				{
@@ -1105,7 +1105,7 @@ void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float&
 				float lerpValue = fillAmount * 2.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
+					originPositions[0] = originPositions[2] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY);
 				}
 				if (updateUV)
 				{
@@ -1274,10 +1274,10 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 
 	if (updatePosition)
 	{
-		originPositions[0] = FVector(posMinX, posMinY, 0);
-		originPositions[1] = FVector(posMaxX, posMinY, 0);
-		originPositions[2] = FVector(posMinX, posMaxY, 0);
-		originPositions[3] = FVector(posMaxX, posMaxY, 0);
+		originPositions[0] = FVector(0, posMinX, posMinY);
+		originPositions[1] = FVector(0, posMaxX, posMinY);
+		originPositions[2] = FVector(0, posMinX, posMaxY);
+		originPositions[3] = FVector(0, posMaxX, posMaxY);
 		//snap pixel
 		if (renderCanvas->GetActualPixelPerfect())
 		{
@@ -1300,8 +1300,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+					originPositions[1] = FVector(0, posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue));
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMinY);
 				}
 				if (updateUV)
 				{
@@ -1317,8 +1317,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+					originPositions[1] = originPositions[3] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY);
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMinY);
 				}
 				if (updateUV)
 				{
@@ -1333,8 +1333,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = fillAmount * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = originPositions[3] = originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+					originPositions[1] = originPositions[3] = originPositions[2] = FVector(0, posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue));
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMinY);
 				}
 				if (updateUV)
 				{
@@ -1351,8 +1351,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+					originPositions[0] = FVector(0, posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue));
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMinY);
 				}
 				if (updateUV)
 				{
@@ -1368,8 +1368,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+					originPositions[0] = originPositions[2] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY);
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMinY);
 				}
 				if (updateUV)
 				{
@@ -1384,8 +1384,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = fillAmount * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = originPositions[2] = originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMinY, 0);
+					originPositions[0] = originPositions[2] = originPositions[3] = FVector(0, posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue));
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMinY);
 				}
 				if (updateUV)
 				{
@@ -1406,8 +1406,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
-					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[0] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY);
+					originPositions[4] = FVector(0, posMinX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1423,8 +1423,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
-					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[0] = originPositions[1] = FVector(0, posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue));
+					originPositions[4] = FVector(0, posMinX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1439,8 +1439,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = fillAmount * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[0] = originPositions[1] = originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
-					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[0] = originPositions[1] = originPositions[3] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY);
+					originPositions[4] = FVector(0, posMinX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1457,8 +1457,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
-					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[2] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY);
+					originPositions[4] = FVector(0, posMinX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1474,8 +1474,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
-					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[2] = originPositions[3] = FVector(0, posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue));
+					originPositions[4] = FVector(0, posMinX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1490,8 +1490,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = fillAmount * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = originPositions[3] = originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY, 0);
-					originPositions[4] = FVector(posMinX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[2] = originPositions[3] = originPositions[1] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY);
+					originPositions[4] = FVector(0, posMinX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1512,8 +1512,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+					originPositions[2] = FVector(0, posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue));
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMaxY);
 				}
 				if (updateUV)
 				{
@@ -1529,8 +1529,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+					originPositions[2] = originPositions[0] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY);
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMaxY);
 				}
 				if (updateUV)
 				{
@@ -1545,8 +1545,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = fillAmount * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[2] = originPositions[0] = originPositions[1] = FVector(posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+					originPositions[2] = originPositions[0] = originPositions[1] = FVector(0, posMaxX, FMath::Lerp(posMaxY, posMinY, lerpValue));
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMaxY);
 				}
 				if (updateUV)
 				{
@@ -1563,8 +1563,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = FVector(posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+					originPositions[3] = FVector(0, posMaxX, FMath::Lerp(posMinY, posMaxY, lerpValue));
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMaxY);
 				}
 				if (updateUV)
 				{
@@ -1580,8 +1580,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY, 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+					originPositions[3] = originPositions[1] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY);
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMaxY);
 				}
 				if (updateUV)
 				{
@@ -1596,9 +1596,9 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = fillAmount * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = originPositions[1] = originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
-					originPositions[2] = FVector(posMinX, posMaxY, 0);
-					originPositions[4] = FVector((posMinX + posMaxX) * 0.5f, posMaxY, 0);
+					originPositions[3] = originPositions[1] = originPositions[0] = FVector(0, posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue));
+					originPositions[2] = FVector(0, posMinX, posMaxY);
+					originPositions[4] = FVector(0, (posMinX + posMaxX) * 0.5f, posMaxY);
 				}
 				if (updateUV)
 				{
@@ -1619,8 +1619,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY, 0);
-					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[3] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMaxY);
+					originPositions[4] = FVector(0, posMaxX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1636,8 +1636,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = originPositions[2] = FVector(posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue), 0);
-					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[3] = originPositions[2] = FVector(0, posMinX, FMath::Lerp(posMinY, posMaxY, lerpValue));
+					originPositions[4] = FVector(0, posMaxX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1652,8 +1652,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = fillAmount * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[3] = originPositions[2] = originPositions[0] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY, 0);
-					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[3] = originPositions[2] = originPositions[0] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMinY);
+					originPositions[4] = FVector(0, posMaxX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1670,8 +1670,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.666666666f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = FVector(FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY, 0);
-					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[1] = FVector(0, FMath::Lerp(posMinX, posMaxX, lerpValue), posMinY);
+					originPositions[4] = FVector(0, posMaxX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1687,8 +1687,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = (fillAmount - 0.33333333f) * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = originPositions[0] = FVector(posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue), 0);
-					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[1] = originPositions[0] = FVector(0, posMinX, FMath::Lerp(posMaxY, posMinY, lerpValue));
+					originPositions[4] = FVector(0, posMaxX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1703,8 +1703,8 @@ void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float
 				float lerpValue = fillAmount * 3.0f;
 				if (updatePosition)
 				{
-					originPositions[1] = originPositions[0] = originPositions[2] = FVector(FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY, 0);
-					originPositions[4] = FVector(posMaxX, (posMinY + posMaxY) * 0.5f, 0);
+					originPositions[1] = originPositions[0] = originPositions[2] = FVector(0, FMath::Lerp(posMaxX, posMinX, lerpValue), posMaxY);
+					originPositions[4] = FVector(0, posMaxX, (posMinY + posMaxY) * 0.5f);
 				}
 				if (updateUV)
 				{
@@ -1859,28 +1859,28 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(const float& width, const float
 
 	//reset position
 	{
-		originPositions[0] = FVector(posMinX, posMinY, 0);
-		originPositions[2] = FVector(posMaxX, posMinY, 0);
-		originPositions[6] = FVector(posMinX, posMaxY, 0);
-		originPositions[8] = FVector(posMaxX, posMaxY, 0);
+		originPositions[0] = FVector(0, posMinX, posMinY);
+		originPositions[2] = FVector(0, posMaxX, posMinY);
+		originPositions[6] = FVector(0, posMinX, posMaxY);
+		originPositions[8] = FVector(0, posMaxX, posMaxY);
 		//snap pixel
 		if (renderCanvas->GetActualPixelPerfect())
 		{
 			AdjustPixelPerfectPos_For_UIRectFillRadial360(originPositions, renderCanvas, uiComp);
 
-			posMinX = originPositions[0].X;
-			posMaxX = originPositions[2].X;
-			posMinY = originPositions[0].Y;
-			posMaxY = originPositions[6].Y;
+			posMinX = originPositions[0].Y;
+			posMaxX = originPositions[2].Y;
+			posMinY = originPositions[0].Z;
+			posMaxY = originPositions[6].Z;
 			posHalfX = (posMinX + posMaxX) * 0.5f;
 			posHalfY = (posMinY + posMaxY) * 0.5f;
 		}
 
-		originPositions[1] = FVector(posHalfX, posMinY, 0);
-		originPositions[3] = FVector(posMinX, posHalfY, 0);
-		originPositions[4] = FVector(posHalfX, posHalfY, 0);
-		originPositions[5] = FVector(posMaxX, posHalfY, 0);
-		originPositions[7] = FVector(posHalfX, posMaxY, 0);
+		originPositions[1] = FVector(0, posHalfX, posMinY);
+		originPositions[3] = FVector(0, posMinX, posHalfY);
+		originPositions[4] = FVector(0, posHalfX, posHalfY);
+		originPositions[5] = FVector(0, posMaxX, posHalfY);
+		originPositions[7] = FVector(0, posHalfX, posMaxY);
 	}
 	//reset uv
 	{
@@ -1900,12 +1900,12 @@ void UIGeometry::UpdateUIRectFillRadial360Vertex(const float& width, const float
 		auto& uv = vertices[changeIndex].TextureCoordinate[0];
 		if (xory)
 		{
-			pos.X = FMath::Lerp(posFrom, pos.X, lerpValue);
+			pos.Y = FMath::Lerp(posFrom, pos.Y, lerpValue);
 			uv.X = FMath::Lerp(uvFrom, uv.X, lerpValue);
 		}
 		else
 		{
-			pos.Y = FMath::Lerp(posFrom, pos.Y, lerpValue);
+			pos.Z = FMath::Lerp(posFrom, pos.Z, lerpValue);
 			uv.Y = FMath::Lerp(uvFrom, uv.Y, lerpValue);
 		}
 		for (int i : inVertIndexArray)
@@ -2814,43 +2814,43 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					{
 						x = offsetX;
 						y = offsetY - charGeo.geoHeight;
-						auto vert0 = FVector(x, y, 0);
+						auto vert0 = FVector(0, x, y);
 						x = charGeo.geoWidth + offsetX;
-						auto vert1 = FVector(x, y, 0);
+						auto vert1 = FVector(0, x, y);
 						x = offsetX;
 						y = offsetY;
-						auto vert2 = FVector(x, y, 0);
+						auto vert2 = FVector(0, x, y);
 						x = charGeo.geoWidth + offsetX;
-						auto vert3 = FVector(x, y, 0);
+						auto vert3 = FVector(0, x, y);
 						if (richTextParseResult.italic)
 						{
 							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.yoffset) * italicSlop;
-							vert0.X -= vert01ItalicOffset;
-							vert1.X -= vert01ItalicOffset;
+							vert0.Y -= vert01ItalicOffset;
+							vert1.Y -= vert01ItalicOffset;
 							auto vert23ItalicOffset = charGeo.yoffset * italicSlop;
-							vert2.X += vert23ItalicOffset;
-							vert3.X += vert23ItalicOffset;
+							vert2.Y += vert23ItalicOffset;
+							vert3.Y += vert23ItalicOffset;
 						}
 						//bold left
-						originPositions[verticesCount] = vert0 + FVector(-boldSize, 0, 0);
-						originPositions[verticesCount + 1] = vert1 + FVector(-boldSize, 0, 0);
-						originPositions[verticesCount + 2] = vert2 + FVector(-boldSize, 0, 0);
-						originPositions[verticesCount + 3] = vert3 + FVector(-boldSize, 0, 0);
+						originPositions[verticesCount] = vert0 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 1] = vert1 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 2] = vert2 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 3] = vert3 + FVector(0, -boldSize, 0);
 						//bold right
-						originPositions[verticesCount + 4] = vert0 + FVector(boldSize, 0, 0);
-						originPositions[verticesCount + 5] = vert1 + FVector(boldSize, 0, 0);
-						originPositions[verticesCount + 6] = vert2 + FVector(boldSize, 0, 0);
-						originPositions[verticesCount + 7] = vert3 + FVector(boldSize, 0, 0);
+						originPositions[verticesCount + 4] = vert0 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 5] = vert1 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 6] = vert2 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 7] = vert3 + FVector(0, boldSize, 0);
 						//bold top
-						originPositions[verticesCount + 8] = vert0 + FVector(0, boldSize, 0);
-						originPositions[verticesCount + 9] = vert1 + FVector(0, boldSize, 0);
-						originPositions[verticesCount + 10] = vert2 + FVector(0, boldSize, 0);
-						originPositions[verticesCount + 11] = vert3 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 8] = vert0 + FVector(0, 0, boldSize);
+						originPositions[verticesCount + 9] = vert1 + FVector(0, 0, boldSize);
+						originPositions[verticesCount + 10] = vert2 + FVector(0, 0, boldSize);
+						originPositions[verticesCount + 11] = vert3 + FVector(0, 0, boldSize);
 						//bold bottom
-						originPositions[verticesCount + 12] = vert0 + FVector(0, -boldSize, 0);
-						originPositions[verticesCount + 13] = vert1 + FVector(0, -boldSize, 0);
-						originPositions[verticesCount + 14] = vert2 + FVector(0, -boldSize, 0);
-						originPositions[verticesCount + 15] = vert3 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 12] = vert0 + FVector(0, 0, -boldSize);
+						originPositions[verticesCount + 13] = vert1 + FVector(0, 0, -boldSize);
+						originPositions[verticesCount + 14] = vert2 + FVector(0, 0, -boldSize);
+						originPositions[verticesCount + 15] = vert3 + FVector(0, 0, -boldSize);
 
 						addVertCount = 16;
 					}
@@ -2859,25 +2859,25 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						x = offsetX;
 						y = offsetY - charGeo.geoHeight;
 						auto& vert0 = originPositions[verticesCount];
-						vert0 = FVector(x, y, 0);
+						vert0 = FVector(0, x, y);
 						x = charGeo.geoWidth + offsetX;
 						auto& vert1 = originPositions[verticesCount + 1];
-						vert1 = FVector(x, y, 0);
+						vert1 = FVector(0, x, y);
 						x = offsetX;
 						y = offsetY;
 						auto& vert2 = originPositions[verticesCount + 2];
-						vert2 = FVector(x, y, 0);
+						vert2 = FVector(0, x, y);
 						x = charGeo.geoWidth + offsetX;
 						auto& vert3 = originPositions[verticesCount + 3];
-						vert3 = FVector(x, y, 0);
+						vert3 = FVector(0, x, y);
 						if (richTextParseResult.italic)
 						{
 							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.yoffset) * italicSlop;
-							vert0.X -= vert01ItalicOffset;
-							vert1.X -= vert01ItalicOffset;
+							vert0.Y -= vert01ItalicOffset;
+							vert1.Y -= vert01ItalicOffset;
 							auto vert23ItalicOffset = charGeo.yoffset * italicSlop;
-							vert2.X += vert23ItalicOffset;
-							vert3.X += vert23ItalicOffset;
+							vert2.Y += vert23ItalicOffset;
+							vert3.Y += vert23ItalicOffset;
 						}
 
 						addVertCount = 4;
@@ -2889,14 +2889,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						offsetY = lineOffset.Y + underlineCharGeo.yoffset;
 						x = offsetX;
 						y = offsetY - underlineCharGeo.geoHeight;
-						originPositions[verticesCount + addVertCount] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount] = FVector(0, x, y);
 						x = charWidth + offsetX;
-						originPositions[verticesCount + addVertCount + 1] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 1] = FVector(0, x, y);
 						x = offsetX;
 						y = offsetY;
-						originPositions[verticesCount + addVertCount + 2] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 2] = FVector(0, x, y);
 						x = charWidth + offsetX;
-						originPositions[verticesCount + addVertCount + 3] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 3] = FVector(0, x, y);
 
 						addVertCount += 4;
 					}
@@ -2906,14 +2906,14 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 						offsetY = lineOffset.Y + strikethroughCharGeo.yoffset;
 						x = offsetX;
 						y = offsetY - strikethroughCharGeo.geoHeight;
-						originPositions[verticesCount + addVertCount] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount] = FVector(0, x, y);
 						x = charWidth + offsetX;
-						originPositions[verticesCount + addVertCount + 1] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 1] = FVector(0, x, y);
 						x = offsetX;
 						y = offsetY;
-						originPositions[verticesCount + addVertCount + 2] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 2] = FVector(0, x, y);
 						x = charWidth + offsetX;
-						originPositions[verticesCount + addVertCount + 3] = FVector(x, y, 0);
+						originPositions[verticesCount + addVertCount + 3] = FVector(0, x, y);
 
 						addVertCount += 4;
 					}
@@ -3140,68 +3140,68 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 					{
 						float x = offsetX;
 						float y = offsetY - charGeo.geoHeight;
-						auto vert0 = FVector(x, y, 0);
+						auto vert0 = FVector(0, x, y);
 						x = charGeo.geoWidth + offsetX;
-						auto vert1 = FVector(x, y, 0);
+						auto vert1 = FVector(0, x, y);
 						x = offsetX;
 						y = offsetY;
-						auto vert2 = FVector(x, y, 0);
+						auto vert2 = FVector(0, x, y);
 						x = charGeo.geoWidth + offsetX;
-						auto vert3 = FVector(x, y, 0);
+						auto vert3 = FVector(0, x, y);
 						if (italic)
 						{
 							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.yoffset) * italicSlop;
-							vert0.X -= vert01ItalicOffset;
-							vert1.X -= vert01ItalicOffset;
+							vert0.Y -= vert01ItalicOffset;
+							vert1.Y -= vert01ItalicOffset;
 							auto vert23ItalicOffset = charGeo.yoffset * italicSlop;
-							vert2.X += vert23ItalicOffset;
-							vert3.X += vert23ItalicOffset;
+							vert2.Y += vert23ItalicOffset;
+							vert3.Y += vert23ItalicOffset;
 						}
 						//bold left
-						originPositions[verticesCount] = vert0 + FVector(-boldSize, 0, 0);
-						originPositions[verticesCount + 1] = vert1 + FVector(-boldSize, 0, 0);
-						originPositions[verticesCount + 2] = vert2 + FVector(-boldSize, 0, 0);
-						originPositions[verticesCount + 3] = vert3 + FVector(-boldSize, 0, 0);
+						originPositions[verticesCount] = vert0 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 1] = vert1 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 2] = vert2 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 3] = vert3 + FVector(0, -boldSize, 0);
 						//bold right
-						originPositions[verticesCount + 4] = vert0 + FVector(boldSize, 0, 0);
-						originPositions[verticesCount + 5] = vert1 + FVector(boldSize, 0, 0);
-						originPositions[verticesCount + 6] = vert2 + FVector(boldSize, 0, 0);
-						originPositions[verticesCount + 7] = vert3 + FVector(boldSize, 0, 0);
+						originPositions[verticesCount + 4] = vert0 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 5] = vert1 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 6] = vert2 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 7] = vert3 + FVector(0, boldSize, 0);
 						//bold top
-						originPositions[verticesCount + 8] = vert0 + FVector(0, boldSize, 0);
-						originPositions[verticesCount + 9] = vert1 + FVector(0, boldSize, 0);
-						originPositions[verticesCount + 10] = vert2 + FVector(0, boldSize, 0);
-						originPositions[verticesCount + 11] = vert3 + FVector(0, boldSize, 0);
+						originPositions[verticesCount + 8] = vert0 + FVector(0, 0, boldSize);
+						originPositions[verticesCount + 9] = vert1 + FVector(0, 0, boldSize);
+						originPositions[verticesCount + 10] = vert2 + FVector(0, 0, boldSize);
+						originPositions[verticesCount + 11] = vert3 + FVector(0, 0, boldSize);
 						//bold bottom
-						originPositions[verticesCount + 12] = vert0 + FVector(0, -boldSize, 0);
-						originPositions[verticesCount + 13] = vert1 + FVector(0, -boldSize, 0);
-						originPositions[verticesCount + 14] = vert2 + FVector(0, -boldSize, 0);
-						originPositions[verticesCount + 15] = vert3 + FVector(0, -boldSize, 0);
+						originPositions[verticesCount + 12] = vert0 + FVector(0, 0, -boldSize);
+						originPositions[verticesCount + 13] = vert1 + FVector(0, 0, -boldSize);
+						originPositions[verticesCount + 14] = vert2 + FVector(0, 0, -boldSize);
+						originPositions[verticesCount + 15] = vert3 + FVector(0, 0, -boldSize);
 					}
 					else
 					{
 						float x = offsetX;
 						float y = offsetY - charGeo.geoHeight;
 						auto& vert0 = originPositions[verticesCount];
-						vert0 = FVector(x, y, 0);
+						vert0 = FVector(0, x, y);
 						x = charGeo.geoWidth + offsetX;
 						auto& vert1 = originPositions[verticesCount + 1];
-						vert1 = FVector(x, y, 0);
+						vert1 = FVector(0, x, y);
 						x = offsetX;
 						y = offsetY;
 						auto& vert2 = originPositions[verticesCount + 2];
-						vert2 = FVector(x, y, 0);
+						vert2 = FVector(0, x, y);
 						x = charGeo.geoWidth + offsetX;
 						auto& vert3 = originPositions[verticesCount + 3];
-						vert3 = FVector(x, y, 0);
+						vert3 = FVector(0, x, y);
 						if (italic)
 						{
 							auto vert01ItalicOffset = (charGeo.geoHeight - charGeo.yoffset) * italicSlop;
-							vert0.X -= vert01ItalicOffset;
-							vert1.X -= vert01ItalicOffset;
+							vert0.Y -= vert01ItalicOffset;
+							vert1.Y -= vert01ItalicOffset;
 							auto vert23ItalicOffset = charGeo.yoffset * italicSlop;
-							vert2.X += vert23ItalicOffset;
-							vert3.X += vert23ItalicOffset;
+							vert2.Y += vert23ItalicOffset;
+							vert3.Y += vert23ItalicOffset;
 						}
 					}
 				}
@@ -3550,7 +3550,7 @@ void UIGeometry::AlignUITextLineVertex(UITextParagraphHorizontalAlign pivotHAlig
 	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
 	{
 		auto& vertex = vertices[i];
-		vertex.X += xOffset;
+		vertex.Y += xOffset;
 	}
 	
 	auto& charList = sentenceProperty.charPropertyList;
@@ -3576,8 +3576,8 @@ void UIGeometry::AlignUITextLineVertexForRichText(UITextParagraphHorizontalAlign
 	for (int i = lineUIGeoVertStart; i < vertices.Num(); i++)
 	{
 		auto& vertex = vertices[i];
-		vertex.X += xOffset;
-		vertex.Y += yOffset;
+		vertex.Y += xOffset;
+		vertex.Z += yOffset;
 	}
 }
 
@@ -3784,7 +3784,7 @@ void UIGeometry::UpdateUIPolygonVertex(const float& width, const float& height, 
 
 	float x = pivotOffsetX;
 	float y = pivotOffsetY;
-	originPositions[0] = FVector(x, y, 0);
+	originPositions[0] = FVector(0, x, y);
 
 	for (int i = 0, count = sides; i < count; i++)
 	{
@@ -3792,7 +3792,7 @@ void UIGeometry::UpdateUIPolygonVertex(const float& width, const float& height, 
 		cos = FMath::Cos(angle);
 		x = cos * halfW * vertexOffsetArray[i] + pivotOffsetX;
 		y = sin * halfH * vertexOffsetArray[i] + pivotOffsetY;
-		originPositions[i + 1] = FVector(x, y, 0);
+		originPositions[i + 1] = FVector(0, x, y);
 		angle += singleAngle;
 	}
 	if (!fullCycle)
@@ -3801,7 +3801,7 @@ void UIGeometry::UpdateUIPolygonVertex(const float& width, const float& height, 
 		cos = FMath::Cos(angle);
 		x = cos * halfW * vertexOffsetArray[sides] + pivotOffsetX;
 		y = sin * halfH * vertexOffsetArray[sides] + pivotOffsetY;
-		originPositions[sides + 1] = FVector(x, y, 0);
+		originPositions[sides + 1] = FVector(0, x, y);
 	}
 }
 #pragma endregion

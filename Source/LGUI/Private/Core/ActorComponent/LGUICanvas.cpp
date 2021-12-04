@@ -2407,7 +2407,11 @@ FMatrix ULGUICanvas::GetViewProjectionMatrix()const
 		cacheViewProjectionMatrixFrameNumber = GFrameNumber;
 
 		FVector ViewLocation = GetViewLocation();
-		FMatrix ViewRotationMatrix = GetViewRotationMatrix().InverseFast();
+		FMatrix ViewRotationMatrix = FInverseRotationMatrix(GetViewRotator()) * FMatrix(
+			FPlane(0, 0, 1, 0),
+			FPlane(1, 0, 0, 0),
+			FPlane(0, 1, 0, 0),
+			FPlane(0, 0, 0, 1));
 		FMatrix ProjectionMatrix = GetProjectionMatrix();
 		cacheViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
 	}
@@ -2428,7 +2432,7 @@ FVector ULGUICanvas::GetViewLocation()const
 	if (bOverrideViewLocation)
 		return OverrideViewLocation;
 
-	return UIItem->GetComponentLocation() - UIItem->GetUpVector() * CalculateDistanceToCamera();
+	return UIItem->GetComponentLocation() - UIItem->GetForwardVector() * CalculateDistanceToCamera();
 }
 FMatrix ULGUICanvas::GetViewRotationMatrix()const
 {

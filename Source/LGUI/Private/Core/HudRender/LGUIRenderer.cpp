@@ -66,7 +66,12 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 	{
 		//@todo: these parameters should use ENQUE_RENDER_COMMAND to pass to render thread
 		ScreenSpaceRenderParameter.ViewOrigin = ScreenSpaceRenderParameter.RenderCanvas->GetViewLocation();
-		ScreenSpaceRenderParameter.ViewRotationMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewRotationMatrix().InverseFast();
+		ScreenSpaceRenderParameter.ViewRotationMatrix = 
+			FInverseRotationMatrix(ScreenSpaceRenderParameter.RenderCanvas->GetViewRotator()) * FMatrix(
+				FPlane(0, 0, 1, 0),
+				FPlane(1, 0, 0, 0),
+				FPlane(0, 1, 0, 0),
+				FPlane(0, 0, 0, 1));
 		ScreenSpaceRenderParameter.ProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetProjectionMatrix();
 		ScreenSpaceRenderParameter.ViewProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewProjectionMatrix();
 	}

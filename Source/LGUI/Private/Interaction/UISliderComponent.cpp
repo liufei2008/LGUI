@@ -304,7 +304,7 @@ void UUISliderComponent::ApplyValueToUI()
                     Handle->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
                 }
                 auto anchorOffsetX = value01 * HandleArea->GetWidth();
-                Handle->SetAnchorOffsetX(anchorOffsetX);
+                Handle->SetAnchorOffsetY(anchorOffsetX);
             }
             if (CheckFill())
             {
@@ -322,7 +322,7 @@ void UUISliderComponent::ApplyValueToUI()
                     Handle->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
                 }
                 auto anchorOffsetX = -value01 * HandleArea->GetWidth();
-                Handle->SetAnchorOffsetX(anchorOffsetX);
+                Handle->SetAnchorOffsetY(anchorOffsetX);
             }
             if (CheckFill())
             {
@@ -340,7 +340,7 @@ void UUISliderComponent::ApplyValueToUI()
                     Handle->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
                 }
                 auto anchorOffsetY = value01 * HandleArea->GetHeight();
-                Handle->SetAnchorOffsetY(anchorOffsetY);
+                Handle->SetAnchorOffsetZ(anchorOffsetY);
             }
             if (CheckFill())
             {
@@ -358,7 +358,7 @@ void UUISliderComponent::ApplyValueToUI()
                     Handle->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
                 }
                 auto anchorOffsetY = -value01 * HandleArea->GetHeight();
-                Handle->SetAnchorOffsetY(anchorOffsetY);
+                Handle->SetAnchorOffsetZ(anchorOffsetY);
             }
             if (CheckFill())
             {

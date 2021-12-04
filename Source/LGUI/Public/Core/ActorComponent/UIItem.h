@@ -181,9 +181,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorVAlign(UIAnchorVerticalAlign align);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorOffsetX(float newOffset);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorOffsetY(float newOffset);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+		void SetAnchorOffsetZ(float newOffset);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorOffset(FVector2D newOffset);
 	void SetCalculatedParentAlpha(float alpha);
@@ -205,9 +205,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		UIAnchorVerticalAlign GetAnchorVAlign() const { return widget.anchorVAlign; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetAnchorOffsetX() const { return widget.anchorOffsetX; }
+		float GetAnchorOffsetY() const { return widget.anchorOffsetX; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetAnchorOffsetY() const { return widget.anchorOffsetY; }
+		float GetAnchorOffsetZ() const { return widget.anchorOffsetY; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetAnchorOffset()const { return FVector2D(widget.anchorOffsetX, widget.anchorOffsetY); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")

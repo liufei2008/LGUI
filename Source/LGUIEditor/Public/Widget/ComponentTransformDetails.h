@@ -108,9 +108,9 @@ private:
 	/** @return true of copy is enabled for the specified field */
 	bool OnCanCopy( ETransformField::Type TransformField ) const;
 
-	bool IsLocationXEnable()const;
+	bool IsLocationXEnable()const { return true; };
 	bool IsLocationYEnable()const;
-	bool IsLocationZEnable()const { return true; };
+	bool IsLocationZEnable()const;
 
 	/**
 	 * Copies the specified transform field to the clipboard

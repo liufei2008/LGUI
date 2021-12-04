@@ -644,7 +644,7 @@ void FComponentTransformDetails::CacheTransform()
 	}
 }
 
-bool FComponentTransformDetails::IsLocationXEnable()const
+bool FComponentTransformDetails::IsLocationYEnable()const
 {
 	if (SelectedObjects.Num() > 0)
 	{
@@ -660,7 +660,7 @@ bool FComponentTransformDetails::IsLocationXEnable()const
 	}
 	return false;
 }
-bool FComponentTransformDetails::IsLocationYEnable()const
+bool FComponentTransformDetails::IsLocationZEnable()const
 {
 	if (SelectedObjects.Num() > 0)
 	{

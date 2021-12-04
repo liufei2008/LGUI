@@ -61,8 +61,8 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 	for (int channelIndex1 = singleChannelVerticesCount, channelIndexOrigin = 0; channelIndex1 < vertexCount; channelIndex1++, channelIndexOrigin++)
 	{
 		auto originVertPos = originPositions[channelIndexOrigin];
-		originVertPos.X += shadowOffset.X;
-		originVertPos.Y += shadowOffset.Y;
+		originVertPos.Y += shadowOffset.X;
+		originVertPos.Z += shadowOffset.Y;
 		originPositions[channelIndex1] = originVertPos;
 
 		if (multiplySourceAlpha)

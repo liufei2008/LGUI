@@ -297,15 +297,6 @@ ULTweener* ULGUIBPLibrary::AlphaFrom(UUIItem* target, float startValue, float du
 	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
-ULTweener* ULGUIBPLibrary::AnchorOffsetXTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
-{
-	if (!IsValid(target))
-	{
-		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorOffsetXTo target is not valid:%s"), *(target->GetPathName()));
-		return nullptr;
-	}
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffsetX), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffsetX), endValue, duration)->SetEase(ease)->SetDelay(delay);
-}
 ULTweener* ULGUIBPLibrary::AnchorOffsetYTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
 {
 	if (!IsValid(target))
@@ -314,6 +305,15 @@ ULTweener* ULGUIBPLibrary::AnchorOffsetYTo(UUIItem* target, float endValue, floa
 		return nullptr;
 	}
 	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffsetY), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffsetY), endValue, duration)->SetEase(ease)->SetDelay(delay);
+}
+ULTweener* ULGUIBPLibrary::AnchorOffsetZTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorOffsetZTo target is not valid:%s"), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffsetZ), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffsetZ), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULGUIBPLibrary::AnchorOffsetTo(UUIItem* target, FVector2D endValue, float duration, float delay, LTweenEase ease)
 {
