@@ -31,14 +31,8 @@ protected:
 	FVector currentRayOrigin, currentRayDirection;
 	bool ShouldStartDrag_HoldToDrag(ULGUIPointerEventData* InPointerEventData);
 public:
-	UE_DEPRECATED(4.23, "SetClickThreshold not valid anymore, use SetInitialValue instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta=(DeprecatedFunction, DeprecationMessage = "SetClickThreshold not valid anymore, use SetInitialValue instead."))
-		void SetClickThreshold(float value) { clickThreshold = value; clickTresholdSquare = clickThreshold * clickThreshold; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetInitialValue(float InClickThreshold, bool InHoldToDrag, float InHoldToDragTime);
-	UE_DEPRECATED(4.23, "GetClickThreshold not valid anymore, use GetInitialValue instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "GetClickThreshold not valid anymore, use GetInitialValue instead."))
-		float GetClickThreshold() { return clickThreshold; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void GetInitialValue(float& OutClickThreshold, bool& OutHoldToDrag, float& OutHoldToDragTime);
 	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& InOutTraceOnlyActors, TArray<AActor*>& InOutTraceIgnoreActors);

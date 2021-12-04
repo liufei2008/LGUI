@@ -82,14 +82,8 @@ public:
 		AActor* GetToggleGroupActor()const { return UIToggleGroupActor.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		void SetToggleGroup(UUIToggleGroupComponent* InGroupComp);
-	UE_DEPRECATED(4.24, "GetState is not valid any more. Use GetValue instead")
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle", meta = (DeprecatedFunction, DeprecationMessage = "GetState is not valid any more. Use GetValue instead"))
-		bool GetState()const { return IsOn; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		bool GetValue()const { return IsOn; }
-	UE_DEPRECATED(4.24, "SetState is not valid any more. Use SetValue instead")
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle", meta = (DeprecatedFunction, DeprecationMessage = "SetState is not valid any more. Use SetValue instead"))
-		virtual void SetState(bool newState, bool fireEvent = true);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Toggle")
 		virtual void SetValue(bool newValue, bool fireEvent = true);
 	/**

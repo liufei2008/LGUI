@@ -1649,30 +1649,6 @@ void UUIItem::SetAnchorOffset(FVector2D newOffset)
 		MarkLayoutDirty(false);
 	}
 }
-void UUIItem::SetUIRelativeLocation(FVector newLocation)
-{
-	Super::SetRelativeLocation(newLocation);
-}
-void UUIItem::SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation)
-{
-	Super::SetRelativeLocationAndRotation(newLocation, newRotation);
-}
-void UUIItem::SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, const FQuat& newRotation)
-{
-	Super::SetRelativeLocationAndRotation(newLocation, newRotation);
-}
-void UUIItem::SetUIRelativeRotation(const FRotator& newRotation)
-{
-	Super::SetRelativeLocationAndRotation(GetRelativeLocation(), newRotation);
-}
-void UUIItem::SetUIRelativeRotationQuat(const FQuat& newRotation)
-{
-	Super::SetRelativeLocationAndRotation(GetRelativeLocation(), newRotation);
-}
-void UUIItem::SetUIParent(UUIItem* inParent, bool keepWorldTransform)
-{
-	Super::AttachToComponent(inParent, keepWorldTransform ? FAttachmentTransformRules::KeepWorldTransform : FAttachmentTransformRules::KeepRelativeTransform);
-}
 UUIItem* UUIItem::GetAttachUIChild(int index)const
 {
 	if (index < 0 || index >= UIChildren.Num())
@@ -2224,10 +2200,6 @@ void UUIItem::SetIsUIActive(bool active)
 			//nothing
 		}
 	}
-}
-void UUIItem::SetUIActive(bool active)
-{
-	SetIsUIActive(active);
 }
 
 void UUIItem::ApplyUIActiveState()

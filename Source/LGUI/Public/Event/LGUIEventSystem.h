@@ -53,50 +53,6 @@ protected:
 
 	void ProcessInputEvent();
 public:
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputTrigger instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType", DeprecatedFunction, DeprecationMessage="Use LGUI_StandaloneInputModule's InputTrigger instead."))
-		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left) {};
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule's InputScroll instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule's InputScroll instead."))
-		void InputScroll(const float& inAxisValue) {};
-
-	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		void InputNavigationLeft() {};
-	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		void InputNavigationRight() {};
-	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		void InputNavigationUp() {};
-	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		void InputNavigationDown() {};
-	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		void InputNavigationNext() {};
-	/** Call InputNavigationBegin to activate navigation before this function. Only the component which inherit UISelectable can be navigate to */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		void InputNavigationPrev() {};
-	/** Activate navigation */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		void InputNavigationBegin() {};
-	/** Cancel navigation */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		void InputNavigationEnd() {};
-	/** is navigation mode acivated */
-	UE_DEPRECATED(4.23, "Use LGUI_StandaloneInputModule instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use LGUI_StandaloneInputModule instead."))
-		bool IsNavigationActive()const { return false; }
-
 	/** clear event. eg when mouse is hovering a UI and highlight, and then event is disabled, we can use this to clear the hover event */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void ClearEvent();
@@ -189,8 +145,6 @@ public:
 	void BubbleOnPointerDrag(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerEndDrag(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerScroll(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDragEnter(AActor* actor, ULGUIPointerEventData* eventData);
-	void BubbleOnPointerDragExit(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* eventData);
 	void BubbleOnPointerSelect(AActor* actor, ULGUIBaseEventData* eventData);
 	void BubbleOnPointerDeselect(AActor* actor, ULGUIBaseEventData* eventData);

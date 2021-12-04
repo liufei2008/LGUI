@@ -20,24 +20,7 @@ class LGUI_API ULGUIBPLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-#pragma region QuickEntry
-	/** Set alpha if root component is a UIItem component */
-	UE_DEPRECATED(4.23, "This node is not valid any more. Use UIItem's SetAlpha instead")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetAlpha instead"))
-		static void SetUIAlpha(AActor* Target, float InAlpha);
-	/** Set UIActive if root component is a UIItem component */
-	UE_DEPRECATED(4.23, "This node is not valid any more. Use UIItem's SetUIActive instead")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetUIActive instead"))
-		static void SetUIActive(AActor* Target, bool Acitve);
-	/** Set HierarchyIndex if root component is a UIItem component */
-	UE_DEPRECATED(4.23, "This node is not valid any more. Use UIItem's SetHierarchyIndex instead")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use UIItem's SetHierarchyIndex instead"))
-		static void SetUIHierarchyIndex(AActor* Target, int32 index);
-#pragma endregion
 	/** Delete actor and all it's children actors */
-	UE_DEPRECATED(4.23, "This node is not valid any more. Use DestroyActorWithHierarchy instead")
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "WithHierarchy", UnsafeDuringActorConstruction = "true", DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use DestroyActorWithHierarchy instead"), Category = LGUI)
-		static void DeleteActor(AActor* Target, bool WithHierarchy = true);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "WithHierarchy", UnsafeDuringActorConstruction = "true"), Category = LGUI)
 		static void DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy = true);
 
@@ -293,9 +276,6 @@ public:
 #pragma region LTween
 
 #pragma region UIItem
-	UE_DEPRECATED(4.23, "Use LTween's LocalPositionTo instead.")
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "UI Local Position To", DeprecatedFunction, DeprecationMessage = "Use LTween's LocalPositionTo instead."), Category = "LTweenLGUI")
-		static ULTweener* UILocalPositionTo(UUIItem* target, FVector endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		static ULTweener* WidthTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
@@ -329,20 +309,8 @@ public:
 		static ULTweener* StretchBottomTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 #pragma endregion
 
-	UE_DEPRECATED(4.24, "This node is not valid any more. Use LGUIExecuteControllerInputAxis instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use LGUIExecuteControllerInputAxis instead"))
-		static void LGUIExecuteInputAxis(FKey inputKey, float value) 
-	{ 
-		LGUIExecuteControllerInputAxis(inputKey, value);
-	}
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void LGUIExecuteControllerInputAxis(FKey inputKey, float value);
-	UE_DEPRECATED(4.24, "This node is not valid any more. Use LGUIExecuteControllerInputAction instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use LGUIExecuteControllerInputAction instead"))
-		static void LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease)
-	{
-		LGUIExecuteControllerInputAction(inputKey, pressOrRelease);
-	}
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		static void LGUIExecuteControllerInputAction(FKey inputKey, bool pressOrRelease);
 

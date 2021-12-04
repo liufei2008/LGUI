@@ -30,10 +30,6 @@ enum class EPointerEventType :uint8
 	Drag = 6,
 	EndDrag = 7,
 	Scroll = 8,
-	/* @deprecated This was removed in LGUI version 2.10.2*/
-	DragEnter_DEPRECATED = 9,
-	/* @deprecated This was removed in LGUI version 2.10.2*/
-	DragExit_DEPRECATED = 10,
 	DragDrop = 11,
 	Select = 12,
 	Deselect = 13,

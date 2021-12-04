@@ -43,9 +43,6 @@ public:
 		bool GetExpendChildSize()const { return ExpendChildSize; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector2D GetCellSize()const { return CellSize; }
-	UE_DEPRECATED(4.23, "This node is not valid any more. Use GetMaxItemCountInOneLine instead")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use GetMaxItemCountInOneLine instead"))
-		int GetLineCount()const { return GetMaxItemCountInOneLine(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		int GetMaxItemCountInOneLine()const { return LineCount; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -71,9 +68,6 @@ public:
 		void SetExpendChildSize(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetCellSize(FVector2D value);
-	UE_DEPRECATED(4.23, "This node is not valid any more. Use SetMaxItemCountInOneLine instead")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use SetMaxItemCountInOneLine instead"))
-		void SetLineCount(int value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetMaxItemCountInOneLine(int value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

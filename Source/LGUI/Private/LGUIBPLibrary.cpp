@@ -11,49 +11,6 @@
 #include "Framework/Application/SlateApplication.h"
 #include "LGUI.h"
 
-#pragma region QuickEntry
-void ULGUIBPLibrary::SetUIAlpha(AActor* Target, float InAlpha)
-{
-	if (!IsValid(Target))
-	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::SetAlpha]Target is not valid!"));
-		return;
-	}
-	if (auto uiItem = Cast<UUIItem>(Target->GetRootComponent()))
-	{
-		uiItem->SetAlpha(InAlpha);
-	}
-}
-void ULGUIBPLibrary::SetUIActive(AActor* Target, bool Acitve)
-{
-	if (!IsValid(Target))
-	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::SetUIActive]Target is not valid!"));
-		return;
-	}
-	if (auto uiItem = Cast<UUIItem>(Target->GetRootComponent()))
-	{
-		uiItem->SetIsUIActive(Acitve);
-	}
-}
-void ULGUIBPLibrary::SetUIHierarchyIndex(AActor* Target, int32 index)
-{
-	if (!IsValid(Target))
-	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::SetHierarchyIndex]Target is not valid!"));
-		return;
-	}
-	if (auto uiItem = Cast<UUIItem>(Target->GetRootComponent()))
-	{
-		uiItem->SetHierarchyIndex(index);
-	}
-}
-#pragma endregion
-
-void ULGUIBPLibrary::DeleteActor(AActor* Target, bool WithHierarchy)
-{
-	LGUIUtils::DestroyActorWithHierarchy(Target, WithHierarchy);
-}
 void ULGUIBPLibrary::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 {
 	LGUIUtils::DestroyActorWithHierarchy(Target, WithHierarchy);
@@ -232,10 +189,6 @@ void ULGUIBPLibrary::K2_LGUICompRef_GetComponent(const FLGUIComponentReference& 
 #pragma region LTween
 
 #pragma region UIItem
-ULTweener* ULGUIBPLibrary::UILocalPositionTo(UUIItem* target, FVector endValue, float duration, float delay, LTweenEase ease)
-{
-	return ULTweenBPLibrary::LocalPositionTo(target, endValue, duration, delay, ease);
-}
 ULTweener* ULGUIBPLibrary::WidthTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
 {
 	if (!IsValid(target))

@@ -222,31 +222,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetCalculatedParentAlpha() const { return calculatedParentAlpha; }
 
-	/** This can auto calculate dimensions */
-	UE_DEPRECATED(4.23, "Use SetRelativeLocation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
-		void SetUIRelativeLocation(FVector newLocation);
-	/** This can auto calculate dimensions */
-	UE_DEPRECATED(4.23, "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
-		void SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation);
-	/** This can auto calculate dimensions */
-	UE_DEPRECATED(4.23, "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
-		void SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, const FQuat& newRotation);
-	/** This is a simple one parameter version */
-	UE_DEPRECATED(4.23, "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
-		void SetUIRelativeRotation(const FRotator& newRotation);
-	/** This is a simple one parameter version */
-	UE_DEPRECATED(4.23, "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
-		void SetUIRelativeRotationQuat(const FQuat& newRotation);
-	/** This can auto calculate dimensions */
-	UE_DEPRECATED(4.23, "Use AttachToComponent instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use AttachToComponent instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
-		void SetUIParent(UUIItem* inParent, bool keepWorldTransform = false);
-
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetLocalSpaceLeftBottomPoint()const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -319,21 +294,12 @@ public:
 	/** Set this UI element's bIsUIActive */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		virtual void SetIsUIActive(bool active);
-	UE_DEPRECATED(4.24, "Use SetIsUIActive instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use SetIsUIActive instead."))
-		virtual void SetUIActive(bool active);
 	/** is UI active itself, parent not count */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetIsUIActiveSelf()const { return bIsUIActive; }
-	UE_DEPRECATED(4.24, "Use GetIsUIActiveSelf instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use GetIsUIActiveSelf instead."))
-		bool IsUIActiveSelf()const { return bIsUIActive; }
 	/** is UI active hierarchy. if all up parent of this ui item is active then return this->IsUIActive. if any up parent ui item is not active then return false */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetIsUIActiveInHierarchy()const { return bIsUIActive && allUpParentUIActive; };
-	UE_DEPRECATED(4.24, "Use GetIsUIActiveInHierarchy instead.")
-	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use GetIsUIActiveInHierarchy instead."))
-		bool IsUIActiveInHierarchy()const { return bIsUIActive && allUpParentUIActive; };
 #pragma endregion UIActive
 
 #pragma region HierarchyIndex

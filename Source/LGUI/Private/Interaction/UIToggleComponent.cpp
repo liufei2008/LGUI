@@ -54,10 +54,6 @@ bool UUIToggleComponent::CheckTarget()
 	return false;
 }
 
-void UUIToggleComponent::SetState(bool newState, bool fireEvent)
-{
-	SetValue(newState, fireEvent);
-}
 void UUIToggleComponent::SetValue(bool newValue, bool fireEvent)
 {
 	if (IsOn != newValue)

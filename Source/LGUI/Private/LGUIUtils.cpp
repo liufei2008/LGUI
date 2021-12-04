@@ -16,10 +16,6 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #endif
 
-void LGUIUtils::DeleteActor(AActor* Target, bool WithHierarchy)
-{
-	DestroyActorWithHierarchy(Target, WithHierarchy);
-}
 void LGUIUtils::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 {
 	if (!Target->IsValidLowLevelFast())

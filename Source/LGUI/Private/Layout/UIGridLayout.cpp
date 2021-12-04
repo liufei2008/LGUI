@@ -89,10 +89,6 @@ void UUIGridLayout::SetCellSize(FVector2D value)
 		MarkNeedRebuildLayout();
 	}
 }
-void UUIGridLayout::SetLineCount(int value)
-{
-	SetMaxItemCountInOneLine(value);
-}
 void UUIGridLayout::SetMaxItemCountInOneLine(int value)
 {
 	if (LineCount != value)

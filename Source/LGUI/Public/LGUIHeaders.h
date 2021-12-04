@@ -39,7 +39,6 @@
 #include "Event/Interface/LGUIPointerEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDragInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
-#include "Event/Interface/LGUIPointerDragEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDragDropInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Event/LGUIDelegateDeclaration.h"

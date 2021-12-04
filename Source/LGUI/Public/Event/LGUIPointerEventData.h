@@ -7,10 +7,6 @@
 
 class ULGUIBaseRaycaster;
 
-#ifndef FLGUIPointerEventData
-#define FLGUIPointerEventData DEPRECATED_MACRO(4.23, "FLGUIPointerEventData has been changed to ULGUIPointerEventData which is inherited from UObject.") ULGUIPointerEventData
-#endif
-
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUINavigationDirection :uint8
 {
@@ -48,10 +44,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pointerPosition;
 
-	UE_DEPRECATED(4.23, "currentComponent not valid anymore, use enterComponent instead.")
-	UPROPERTY()
-		USceneComponent* currentComponent_DEPRECATED = nullptr;
-
 	/** enterred component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* enterComponent = nullptr;
@@ -67,13 +59,6 @@ public:
 	/** current world space hit normal */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldNormal = FVector(0, 0, 1);
-
-	/** current world space hit point delta when drag */
-	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "This property is deprecated. Use GetWorldPointSpherical() to get cumulative point and minus prev one to get delta."))
-		FVector moveDelta_DEPRECATED = FVector(0, 0, 0);
-	/** current world space hit point cumulative delta when drag */
-	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "This property is deprecated. Use GetCumulativeMoveDelta() instead."))
-		FVector cumulativeMoveDelta_DEPRECATED = FVector(0, 0, 0);
 
 	/** pointer scroll event */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
@@ -131,16 +116,6 @@ public:
 	/** current dragging component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* dragComponent = nullptr;
-	/** drag event ray emitter's ray origin */
-	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "This property is deprecated. Use GetDragRayOrigin() function instead."))
-		FVector dragRayOrigin_DEPRECATED;
-	/** drag event ray emitter's ray direction */
-	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "This property is deprecated. Use GetDragRayDirection() function instead."))
-		FVector dragRayDirection_DEPRECATED;
-
-	/** enter a component when drag anything */
-	UE_DEPRECATED(4.23, "dragEnterComponent not valid anymore, use isDragging and enterComponent to get drag and enter component.")
-		USceneComponent* dragEnterComponent = nullptr;
 
 	ELGUIEventFireType enterComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 	ELGUIEventFireType pressComponentEventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;

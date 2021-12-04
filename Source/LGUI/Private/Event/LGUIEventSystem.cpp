@@ -6,7 +6,6 @@
 #include "Event/Interface/LGUIPointerDownUpInterface.h"
 #include "Event/Interface/LGUIPointerDragInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
-#include "Event/Interface/LGUIPointerDragEnterExitInterface.h"
 #include "Event/Interface/LGUIPointerDragDropInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Core/Actor/LGUIManagerActor.h"
@@ -413,14 +412,6 @@ void ULGUIEventSystem::BubbleOnPointerScroll(AActor* actor, ULGUIPointerEventDat
 	BUBBLE_LGUIINTERFACE(actor, inEventData, Scroll, Scroll);
 }
 
-void ULGUIEventSystem::BubbleOnPointerDragEnter(AActor* actor, ULGUIPointerEventData* inEventData)
-{
-	BUBBLE_LGUIINTERFACE(actor, inEventData, DragEnterExit, DragEnter);
-}
-void ULGUIEventSystem::BubbleOnPointerDragExit(AActor* actor, ULGUIPointerEventData* inEventData)
-{
-	BUBBLE_LGUIINTERFACE(actor, inEventData, DragEnterExit, DragExit);
-}
 void ULGUIEventSystem::BubbleOnPointerDragDrop(AActor* actor, ULGUIPointerEventData* inEventData)
 {
 	BUBBLE_LGUIINTERFACE(actor, inEventData, DragDrop, DragDrop);

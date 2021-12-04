@@ -49,10 +49,6 @@ protected:
 		FLGUIDrawableEvent OnPointerDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
 		FLGUIDrawableEvent OnPointerEndDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "Drag enter/exit event is deprecated."))
-		FLGUIDrawableEvent OnPointerDragEnter_DEPRECATED = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
-	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "Drag enter/exit event is deprecated."))
-		FLGUIDrawableEvent OnPointerDragExit_DEPRECATED = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
 		FLGUIDrawableEvent OnPointerDragDrop = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
@@ -83,10 +79,6 @@ public:
 	FDelegateHandle RegisterOnPointerBeginDrag(const FLGUIPointerEventDelegate& InDelegate);
 	FDelegateHandle RegisterOnPointerDrag(const FLGUIPointerEventDelegate& InDelegate);
 	FDelegateHandle RegisterOnPointerEndDrag(const FLGUIPointerEventDelegate& InDelegate);
-	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
-	void RegisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate) {};
-	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
-	void RegisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate) {};
 	FDelegateHandle RegisterOnPointerDragDrop(const FLGUIPointerEventDelegate& InDelegate);
 	FDelegateHandle RegisterOnPointerScroll(const FLGUIPointerEventDelegate& InDelegate);
 	FDelegateHandle RegisterOnPointerSelect(const FLGUIBaseEventDelegate& InFunction);
@@ -113,10 +105,6 @@ public:
 	void UnregisterOnPointerBeginDrag(const FDelegateHandle& InHandle);
 	void UnregisterOnPointerDrag(const FDelegateHandle& InHandle);
 	void UnregisterOnPointerEndDrag(const FDelegateHandle& InHandle);
-	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
-	void UnregisterOnPointerDragEnter(const FLGUIPointerEventDelegate& InDelegate) {};
-	UE_DEPRECATED(4.24, "Drag enter/exit event is deprecated.")
-	void UnregisterOnPointerDragExit(const FLGUIPointerEventDelegate& InDelegate) {};
 	void UnregisterOnPointerDragDrop(const FDelegateHandle& InHandle);
 	void UnregisterOnPointerScroll(const FDelegateHandle& InHandle);
 	void UnregisterOnPointerSelect(const FDelegateHandle& InHandle);
@@ -138,10 +126,6 @@ public:
 		FLGUIDelegateHandleWrapper RegisterOnPointerDrag(const FLGUIPointerEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
 		FLGUIDelegateHandleWrapper RegisterOnPointerEndDrag(const FLGUIPointerEventDynamicDelegate& InDelegate);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger", meta = (DeprecatedFunction, DeprecationMessage = "Drag enter/exit event is deprecated."))
-		FLGUIDelegateHandleWrapper RegisterOnPointerDragEnter(const FLGUIPointerEventDynamicDelegate& InDelegate) { return FLGUIDelegateHandleWrapper(); };
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger", meta = (DeprecatedFunction, DeprecationMessage = "Drag enter/exit event is deprecated."))
-		FLGUIDelegateHandleWrapper RegisterOnPointerDragExit(const FLGUIPointerEventDynamicDelegate& InDelegate) { return FLGUIDelegateHandleWrapper(); };
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
 		FLGUIDelegateHandleWrapper RegisterOnPointerDragDrop(const FLGUIPointerEventDynamicDelegate& InDelegate);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
@@ -166,10 +150,6 @@ public:
 		void UnregisterOnPointerDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
 		void UnregisterOnPointerEndDrag(const FLGUIDelegateHandleWrapper& InDelegateHandle);
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger", meta = (DeprecatedFunction, DeprecationMessage = "Drag enter/exit event is deprecated."))
-		void UnregisterOnPointerDragEnter(const FLGUIDelegateHandleWrapper& InDelegateHandle) {};
-	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger", meta = (DeprecatedFunction, DeprecationMessage = "Drag enter/exit event is deprecated."))
-		void UnregisterOnPointerDragExit(const FLGUIDelegateHandleWrapper& InDelegateHandle) {};
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
 		void UnregisterOnPointerDragDrop(const FLGUIDelegateHandleWrapper& InDelegateHandle);
 	UFUNCTION(BlueprintCallable, Category = "UIEventTrigger")
