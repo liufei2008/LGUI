@@ -7,7 +7,7 @@
 #include "UIBackgroundPixelateActor.generated.h"
 
 UCLASS()
-class LGUI_API AUIBackgroundPixelateActor : public AUIPostProcessBaseActor
+class LGUI_API AUIBackgroundPixelateActor : public AUIBasePostProcessActor
 {
 	GENERATED_BODY()
 	

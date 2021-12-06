@@ -13,7 +13,7 @@ void UUIEffectGradientColor::ApplyColorAndAlpha(FColor& InOutColor, FColor InTin
 {
 	if (multiplySourceAlpha)
 	{
-		InOutColor.A = (uint8)(UUIItem::Color255To1_Table[InOutColor.A] * InTintColor.A);
+		InOutColor.A = (uint8)(UUIBaseRenderable::Color255To1_Table[InOutColor.A] * InTintColor.A);
 		InOutColor.R = InTintColor.R;
 		InOutColor.G = InTintColor.G;
 		InOutColor.B = InTintColor.B;

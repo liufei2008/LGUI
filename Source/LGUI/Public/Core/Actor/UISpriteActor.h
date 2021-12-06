@@ -7,17 +7,19 @@
 #include "UISpriteActor.generated.h"
 
 UCLASS()
-class LGUI_API AUISpriteActor : public AUIBaseActor
+class LGUI_API AUISpriteActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 	
 public:	
 	AUISpriteActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UISprite; }
-	FORCEINLINE UUISprite* GetUISprite()const { return UISprite; }
+	virtual UUIItem* GetUIItem()const override { return UISprite; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UISprite; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUISprite* GetUISprite()const { return UISprite; }
 private:
-	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "LGUI", VisibleAnywhere, Transient)
 		class UUISprite* UISprite;
 	
 };

@@ -4,7 +4,7 @@
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "Core/ActorComponent/UIInteractionGroup.h"
+#include "Core/ActorComponent/UICanvasGroup.h"
 #include "Core/LGUISettings.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
 #include "Core/Actor/LGUIManagerActor.h"
@@ -30,7 +30,6 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	bCanSetAnchorFromTransform = false;//skip construction
 	itemType = UIItemType::UIItem;
 
-	bColorChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 	bShouldUpdateRootUIItemLayout = true;
@@ -46,14 +45,9 @@ void UUIItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ParentUIItem = nullptr;
 	GetParentAsUIItem();
-	RootUIItem = nullptr;
 	CheckRootUIItem();
-	RenderCanvas = nullptr;
-	CheckRenderCanvas();
 
-	bColorChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 	bShouldUpdateRootUIItemLayout = true;
@@ -450,7 +444,6 @@ void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& In
 
 void UUIItem::MarkAllDirtyRecursive()
 {
-	bColorChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 
@@ -584,22 +577,11 @@ void UUIItem::EditorForceUpdateImmediately()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
-	RenderCanvas = nullptr;//force check
 	MarkCanvasUpdate();
 	MarkUpdateLayout();
 }
 #endif
-void UUIItem::OnAttachmentChanged()
-{
-	Super::OnAttachmentChanged();
-	if (this->IsPendingKillOrUnreachable())return;
-	if (GetWorld() == nullptr)return;
-	UIHierarchyChanged();
-	//callback. because hierarchy changed, then mark position and size as changed too
-	MarkLayoutDirty(true);
-	//callback
-	CallUILifeCycleBehavioursAttachmentChanged();
-}
+
 bool UUIItem::MoveComponentImpl(const FVector& Delta, const FQuat& NewRotation, bool bSweep, FHitResult* Hit, EMoveComponentFlags MoveFlags, ETeleportType Teleport)
 {
 	auto result = Super::MoveComponentImpl(Delta, NewRotation, bSweep, Hit, MoveFlags, Teleport);
@@ -818,16 +800,13 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		MarkFlattenHierarchyIndexDirty();
 		//active
 		childUIItem->allUpParentUIActive = this->GetIsUIActiveInHierarchy();
-		bool parentUIActive = childUIItem->GetIsUIActiveInHierarchy();
-		childUIItem->SetChildUIActiveRecursive(parentUIActive);
-		//interaction group
-		childUIItem->allUpParentGroupAllowInteraction = this->IsGroupAllowInteraction();
-		childUIItem->SetInteractionGroupStateChange();
+		childUIItem->SetUIActiveStateChange();
 
 		CallUILifeCycleBehavioursChildAttachmentChanged(childUIItem, true);
 	}
 	MarkCanvasUpdate();
 }
+
 void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 {
 	Super::OnChildDetached(ChildComponent);
@@ -845,11 +824,30 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 		}
 		//flatten hierarchy index
 		MarkFlattenHierarchyIndexDirty();
+		//active
+		childUIItem->allUpParentUIActive = true;
+		childUIItem->SetUIActiveStateChange();
 
 		CallUILifeCycleBehavioursChildAttachmentChanged(childUIItem, false);
 	}
 	MarkCanvasUpdate();
 }
+
+void UUIItem::OnAttachmentChanged()
+{
+	Super::OnAttachmentChanged();
+	if (this->IsPendingKillOrUnreachable())return;
+	if (GetWorld() == nullptr)return;
+
+	ULGUICanvas* ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
+	UUICanvasGroup* ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);
+	UIHierarchyChanged(ParentCanvas, ParentCanvasGroup);
+	//Because hierarchy changed, then mark position and size as changed too
+	MarkLayoutDirty(true);
+	//callback
+	CallUILifeCycleBehavioursAttachmentChanged();
+}
+
 void UUIItem::OnRegister()
 {
 	Super::OnRegister();
@@ -957,59 +955,143 @@ void UUIItem::SortCacheUIChildren()
 	});
 }
 
-void UUIItem::RegisterRenderCanvas()
+void UUIItem::RegisterRenderCanvas(ULGUICanvas* InRenderCanvas)
 {
-	auto oldRenderCanvas = RenderCanvas;
-	RenderCanvas = nullptr;//force find new
-	CheckRenderCanvas();
-	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
+	RenewRenderCanvasRecursive(InRenderCanvas);
+}
+void UUIItem::RenewRenderCanvasRecursive(ULGUICanvas* InParentRenderCanvas)
+{
+	auto ThisRenderCanvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
+	if (ThisRenderCanvas != nullptr)
 	{
-		OnRenderCanvasChanged(oldRenderCanvas.Get(), RenderCanvas.Get());
+		InParentRenderCanvas = ThisRenderCanvas;
+		bIsCanvasUIItem = true;
+	}
+	else
+	{
+		bIsCanvasUIItem = false;
+	}
+
+	if (RenderCanvas != InParentRenderCanvas)//if attach to new Canvas, need to remove from old and add to new
+	{
+		auto OldRenderCanvas = RenderCanvas;
+		RenderCanvas = InParentRenderCanvas;
+		OnRenderCanvasChanged(OldRenderCanvas.Get(), RenderCanvas.Get());
 	}
 
 	for (auto uiItem : UIChildren)
 	{
 		if (IsValid(uiItem) && !uiItem->bIsCanvasUIItem)
 		{
-			uiItem->RegisterRenderCanvas();
+			uiItem->RenewRenderCanvasRecursive(InParentRenderCanvas);
 		}
 	}
 }
+
 void UUIItem::UnregisterRenderCanvas()
 {
-	auto oldRenderCanvas = RenderCanvas;
-	RenderCanvas = nullptr;//force find new
-	CheckRenderCanvas();
-	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
+	ULGUICanvas* ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
+	RenewRenderCanvasRecursive(ParentCanvas);
+}
+
+void UUIItem::RegisterCanvasGroup(UUICanvasGroup* InCanvasGroup)
+{
+	RenewCanvasGroupRecursive(InCanvasGroup);
+}
+void UUIItem::UnregisterCanvasGroup()
+{
+	auto ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);
+	RenewCanvasGroupRecursive(ParentCanvasGroup);
+}
+void UUIItem::RenewCanvasGroupRecursive(UUICanvasGroup* InParentCanvasGroup)
+{
+	auto ThisCanvasGroup = GetOwner()->FindComponentByClass<UUICanvasGroup>();
+	if (ThisCanvasGroup != nullptr)
 	{
-		OnRenderCanvasChanged(oldRenderCanvas.Get(), RenderCanvas.Get());
+		InParentCanvasGroup = ThisCanvasGroup;
+	}
+
+	if (CanvasGroup != InParentCanvasGroup)//CanvasGroup changed
+	{
+		//remove from old
+		if (CanvasGroup.IsValid())
+		{
+			CanvasGroup->UnregisterAlphaChange(OnCanvasGroupAlphaChangeDelegateHandle);
+			CanvasGroup->UnregisterInteractableStateChange(OnCanvasGroupInteractableStateChangeDelegateHandle);
+			OnCanvasGroupAlphaChange();
+			OnCanvasGroupInteractableStateChange();
+		}
+		//add to new
+		CanvasGroup = InParentCanvasGroup;
+		if (CanvasGroup.IsValid())
+		{
+			OnCanvasGroupAlphaChangeDelegateHandle = CanvasGroup->RegisterAlphaChange(FSimpleDelegate::CreateUObject(this, &UUIItem::OnCanvasGroupAlphaChange));
+			OnCanvasGroupInteractableStateChangeDelegateHandle = CanvasGroup->RegisterInteractableStateChange(FSimpleDelegate::CreateUObject(this, &UUIItem::OnCanvasGroupInteractableStateChange));
+			OnCanvasGroupAlphaChange();
+			OnCanvasGroupInteractableStateChange();
+		}
 	}
 
 	for (auto uiItem : UIChildren)
 	{
 		if (IsValid(uiItem) && !uiItem->bIsCanvasUIItem)
 		{
-			uiItem->UnregisterRenderCanvas();
+			uiItem->RegisterCanvasGroup(InParentCanvasGroup);
 		}
 	}
 }
 
-void UUIItem::UIHierarchyChanged()
+void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup* ParentCanvasGroup)
 {
-	auto oldRenderCanvas = RenderCanvas;
-	RenderCanvas = nullptr;//force find new
-	CheckRenderCanvas();
-	if (bIsCanvasUIItem)RenderCanvas->OnUIHierarchyChanged();
-	if (oldRenderCanvas != RenderCanvas)//if attach to new Canvas, need to remove from old and add to new
+	auto ThisRenderCanvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
+	if (ThisRenderCanvas != nullptr)
 	{
-		OnRenderCanvasChanged(oldRenderCanvas.Get(), RenderCanvas.Get());
+		ParentRenderCanvas = ThisRenderCanvas;
+	}
+
+	if (RenderCanvas != ParentRenderCanvas)//if attach to new Canvas, need to remove from old and add to new
+	{
+		auto OldRenderCanvas = RenderCanvas;
+		RenderCanvas = ParentRenderCanvas;
+		OnRenderCanvasChanged(OldRenderCanvas.Get(), RenderCanvas.Get());
+	}
+
+	auto ThisCanvasGroup = GetOwner()->FindComponentByClass<UUICanvasGroup>();
+	if (ThisCanvasGroup != nullptr)
+	{
+		ParentCanvasGroup = ThisCanvasGroup;
+	}
+	if (CanvasGroup != ParentCanvasGroup)//CanvasGroup changed
+	{
+		//remove from old
+		if (CanvasGroup.IsValid())
+		{
+			CanvasGroup->UnregisterAlphaChange(OnCanvasGroupAlphaChangeDelegateHandle);
+			CanvasGroup->UnregisterInteractableStateChange(OnCanvasGroupInteractableStateChangeDelegateHandle);
+			OnCanvasGroupAlphaChange();
+			OnCanvasGroupInteractableStateChange();
+		}
+		//add to new
+		CanvasGroup = ParentCanvasGroup;
+		if (CanvasGroup.IsValid())
+		{
+			OnCanvasGroupAlphaChangeDelegateHandle = CanvasGroup->RegisterAlphaChange(FSimpleDelegate::CreateUObject(this, &UUIItem::OnCanvasGroupAlphaChange));
+			OnCanvasGroupInteractableStateChangeDelegateHandle = CanvasGroup->RegisterInteractableStateChange(FSimpleDelegate::CreateUObject(this, &UUIItem::OnCanvasGroupInteractableStateChange));
+			OnCanvasGroupAlphaChange();
+			OnCanvasGroupInteractableStateChange();
+		}
+	}
+
+	if (UIHierarchyChangedDelegate.IsBound())
+	{
+		UIHierarchyChangedDelegate.Broadcast();
 	}
 
 	for (auto uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))
 		{
-			uiItem->UIHierarchyChanged();
+			uiItem->UIHierarchyChanged(ParentRenderCanvas, ParentCanvasGroup);
 		}
 	}
 
@@ -1075,12 +1157,7 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 	}
 	if (IsValid(NewCanvas))
 	{
-		bIsCanvasUIItem = (this->GetOwner() == NewCanvas->GetOwner());
 		NewCanvas->MarkCanvasUpdate();
-	}
-	else
-	{
-		bIsCanvasUIItem = false;
 	}
 }
 
@@ -1210,7 +1287,7 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 bool UUIItem::CheckRenderCanvas()const
 {
 	if (RenderCanvas.IsValid())return true;
-	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner(), false);
+	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner(), true);
 	if (RenderCanvas.IsValid())
 	{
 		bIsCanvasUIItem = (this->GetOwner() == RenderCanvas->GetOwner());
@@ -1333,9 +1410,9 @@ void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 	}
 
 	//Update canvas layout
-	if (this->IsCanvasUIItem() && this->GetRenderCanvas() != nullptr)
+	if (this->IsCanvasUIItem() && this->RenderCanvas.IsValid())
 	{
-		this->GetRenderCanvas()->UpdateCanvasLayout(cacheForThisUpdate_ShouldUpdateLayout);
+		this->RenderCanvas->UpdateCanvasLayout(cacheForThisUpdate_ShouldUpdateLayout);
 	}
 
 	//data may change after layout calculation, so check it again
@@ -1344,23 +1421,16 @@ void UUIItem::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
 
 void UUIItem::UpdateGeometry()
 {
-	//alpha
-	if (this->inheritAlpha)
-	{
-		if (ParentUIItem.IsValid())
-		{
-			auto tempAlpha = ParentUIItem->GetCalculatedParentAlpha() * (Color255To1_Table[ParentUIItem->widget.color.A]);
-			this->SetCalculatedParentAlpha(tempAlpha);
-		}
-		else
-		{
-			this->SetCalculatedParentAlpha(1.0f);
-		}
-	}
-	else
-	{
-		this->SetCalculatedParentAlpha(1.0f);
-	}
+	
+}
+
+FDelegateHandle UUIItem::RegisterUIHierarchyChanged(const FSimpleDelegate& InCallback)
+{
+	return UIHierarchyChangedDelegate.Add(InCallback);
+}
+void UUIItem::UnregisterUIHierarchyChanged(const FDelegateHandle& InHandle)
+{
+	UIHierarchyChangedDelegate.Remove(InHandle);
 }
 
 void UUIItem::CalculateTransformFromAnchor()
@@ -1452,16 +1522,13 @@ void UUIItem::CalculateTransformFromAnchor()
 }
 void UUIItem::UpdateCachedData()
 {
-	this->cacheForThisUpdate_ColorChanged = bColorChanged;
 	this->cacheForThisUpdate_LayoutChanged = bLayoutChanged;
 	this->cacheForThisUpdate_SizeChanged = bSizeChanged;
-	bColorChanged = false;
 	bLayoutChanged = false;
 	bSizeChanged = false;
 }
 void UUIItem::UpdateCachedDataBeforeGeometry()
 {
-	if (bColorChanged)cacheForThisUpdate_ColorChanged = true;
 	if (bLayoutChanged)cacheForThisUpdate_LayoutChanged = true;
 	if (bSizeChanged)cacheForThisUpdate_SizeChanged = true;
 }
@@ -1469,7 +1536,6 @@ void UUIItem::UpdateCachedDataBeforeGeometry()
 void UUIItem::SetWidget(const FUIWidget& inWidget)
 {
 	SetDepth(inWidget.depth);
-	SetColor(inWidget.color);
 	SetPivot(inWidget.pivot);
 	SetAnchorHAlign(inWidget.anchorHAlign);
 	SetAnchorVAlign(inWidget.anchorVAlign);
@@ -1524,23 +1590,7 @@ void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
 		MarkCanvasUpdate();
 	}
 }
-void UUIItem::SetColor(FColor color) {
-	if (widget.color != color)
-	{
-		MarkColorDirty();
-		widget.color = color;
-	}
-}
-void UUIItem::SetAlpha(float newAlpha) {
-	newAlpha = newAlpha > 1.0f ? 1.0f : newAlpha;
-	newAlpha = newAlpha < 0.0f ? 0.0f : newAlpha;
-	auto uintAlpha = (uint8)(newAlpha * 255);
-	if (widget.color.A != uintAlpha)
-	{
-		MarkColorDirty();
-		widget.color.A = uintAlpha;
-	}
-}
+
 void UUIItem::SetWidth(float newWidth)
 {
 	if (FMath::Abs(widget.width - newWidth) > KINDA_SMALL_NUMBER)
@@ -1893,14 +1943,6 @@ void UUIItem::SetAnchorVAlign(UIAnchorVerticalAlign align)
 	prevAnchorVAlign = align;
 #endif
 }
-void UUIItem::SetCalculatedParentAlpha(float alpha)
-{
-	if (FMath::Abs(calculatedParentAlpha - alpha) > SMALL_NUMBER)
-	{
-		MarkColorDirty();
-		calculatedParentAlpha = alpha;
-	}
-}
 
 FVector2D UUIItem::GetLocalSpaceLeftBottomPoint()const
 {
@@ -1967,16 +2009,10 @@ void UUIItem::MarkLayoutDirty(bool sizeChange)
 	MarkCanvasUpdate();
 	MarkUpdateLayout();
 }
-void UUIItem::MarkColorDirty() 
-{ 
-	bColorChanged = true;
-	MarkCanvasUpdate();
-	MarkUpdateLayout();//bacause color is stored in UIItem and bColorChange is handled in UpdateLayout, so we need to make it update, the only way is MarkUpdateLayout
-						//@todo: move color property to other place
-}
+
 void UUIItem::MarkCanvasUpdate()
 {
-	if (CheckRenderCanvas())
+	if (RenderCanvas.IsValid())
 	{
 		RenderCanvas->MarkCanvasUpdate();
 	}
@@ -2012,19 +2048,20 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
 
-	//start and end point must be different side of z plane
-	if (FMath::Sign(localSpaceRayOrigin.Z) != FMath::Sign(localSpaceRayEnd.Z))
+	//DrawDebugLine(this->GetWorld(), Start, End, FColor::Red, false);//just for test
+	//start and end point must be different side of X plane
+	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
 	{
-		auto result = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(0, 0, 1));
+		auto result = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
 		//hit point inside rect area
-		if (result.X > GetLocalSpaceLeft() && result.X < GetLocalSpaceRight() && result.Y > GetLocalSpaceBottom() && result.Y < GetLocalSpaceTop())
+		if (result.Y > GetLocalSpaceLeft() && result.Y < GetLocalSpaceRight() && result.Z > GetLocalSpaceBottom() && result.Z < GetLocalSpaceTop())
 		{
 			OutHit.TraceStart = Start;
 			OutHit.TraceEnd = End;
 			OutHit.Actor = GetOwner();
 			OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
 			OutHit.Location = GetComponentTransform().TransformPosition(result);
-			OutHit.Normal = GetComponentTransform().TransformVector(FVector(0, 0, 1));
+			OutHit.Normal = GetComponentTransform().TransformVector(FVector(1, 0, 0));
 			OutHit.Normal.Normalize();
 			OutHit.Distance = FVector::Distance(Start, OutHit.Location);
 			OutHit.ImpactPoint = OutHit.Location;
@@ -2060,89 +2097,13 @@ bool UUIItem::IsWorldSpaceUI()const
 	return RenderCanvas->IsRenderToWorldSpace();
 }
 
-FColor UUIItem::GetFinalColor()const
+#pragma region UICanvasGroup
+void UUIItem::OnCanvasGroupInteractableStateChange()
 {
-	return FColor(widget.color.R, widget.color.G, widget.color.B, inheritAlpha ? widget.color.A * calculatedParentAlpha : widget.color.A);
-}
-
-uint8 UUIItem::GetFinalAlpha()const
-{
-	return inheritAlpha ? (uint8)(widget.color.A * calculatedParentAlpha) : widget.color.A;
-}
-
-float UUIItem::GetFinalAlpha01()const
-{
-	return Color255To1_Table[GetFinalAlpha()];
-}
-
-#pragma region InteractionGroup
-bool UUIItem::IsGroupAllowInteraction()const
-{
-	bool thisGroupsAllowInteraction = true;
-	if (auto interactionGroup = GetOwner()->FindComponentByClass<UUIInteractionGroup>())
-	{
-		if (interactionGroup->GetIgnoreParentGroup())
-		{
-			thisGroupsAllowInteraction = interactionGroup->GetInteractable();
-		}
-		else
-		{
-			if (allUpParentGroupAllowInteraction)
-			{
-				thisGroupsAllowInteraction = interactionGroup->GetInteractable();
-			}
-			else
-			{
-				thisGroupsAllowInteraction = false;
-			}
-		}
-	}
-	else
-	{
-		thisGroupsAllowInteraction = allUpParentGroupAllowInteraction;
-	}
-	return thisGroupsAllowInteraction;
-}
-void UUIItem::SetChildInteractionGroupStateChangeRecursive(bool InParentInteractable)
-{
-	for (auto uiChild : UIChildren)
-	{
-		if (IsValid(uiChild))
-		{
-			uiChild->allUpParentGroupAllowInteraction = InParentInteractable;
-			uiChild->SetInteractionGroupStateChange();
-		}
-	}
-}
-
-void UUIItem::SetInteractionGroupStateChange(bool InInteractable, bool InIgnoreParentGroup)
-{
-	bool thisGroupsAllowInteraction = true;
-	if (InIgnoreParentGroup)
-	{
-		thisGroupsAllowInteraction = InInteractable;
-	}
-	else
-	{
-		if (allUpParentGroupAllowInteraction)
-		{
-			thisGroupsAllowInteraction = InInteractable;
-		}
-		else
-		{
-			thisGroupsAllowInteraction = false;
-		}
-	}
-	SetChildInteractionGroupStateChangeRecursive(thisGroupsAllowInteraction);
+	bIsGroupAllowInteraction = CanvasGroup.IsValid() ? CanvasGroup->GetFinalInteractable() : true;
 	CallUILifeCycleBehavioursInteractionStateChanged();
 }
-void UUIItem::SetInteractionGroupStateChange()
-{
-	auto thisGroupsAllowInteraction = IsGroupAllowInteraction();
-	SetChildInteractionGroupStateChangeRecursive(thisGroupsAllowInteraction);
-	CallUILifeCycleBehavioursInteractionStateChanged();
-}
-#pragma endregion InteractionGroup
+#pragma endregion UICanvasGroup
 
 #pragma region UIActive
 
@@ -2151,7 +2112,13 @@ void UUIItem::OnChildActiveStateChanged(UUIItem* child)
 	CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(child, child->GetIsUIActiveInHierarchy());
 }
 
-void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
+void UUIItem::SetUIActiveStateChange()
+{
+	auto thisUIActiveState = this->GetIsUIActiveInHierarchy();
+	SetChildrenUIActiveChangeRecursive(thisUIActiveState);
+}
+
+void UUIItem::SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive)
 {
 	for (auto uiChild : UIChildren)
 	{
@@ -2165,7 +2132,7 @@ void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
 				//apply for state change
 				uiChild->ApplyUIActiveState();
 				//affect children
-				uiChild->SetChildUIActiveRecursive(uiChild->GetIsUIActiveInHierarchy());
+				uiChild->SetChildrenUIActiveChangeRecursive(uiChild->GetIsUIActiveInHierarchy());
 				//callback for parent
 				this->OnChildActiveStateChanged(uiChild);
 			}
@@ -2174,7 +2141,7 @@ void UUIItem::SetChildUIActiveRecursive(bool InUpParentUIActive)
 			{
 				uiChild->allUpParentUIActive = InUpParentUIActive;
 				//affect children
-				uiChild->SetChildUIActiveRecursive(uiChild->GetIsUIActiveInHierarchy());
+				uiChild->SetChildrenUIActiveChangeRecursive(uiChild->GetIsUIActiveInHierarchy());
 			}
 		}
 	}
@@ -2188,7 +2155,7 @@ void UUIItem::SetIsUIActive(bool active)
 		{
 			ApplyUIActiveState();
 			//affect children
-			SetChildUIActiveRecursive(bIsUIActive);
+			SetChildrenUIActiveChangeRecursive(bIsUIActive);
 			//callback for parent
 			if (ParentUIItem.IsValid())
 			{
@@ -2224,8 +2191,6 @@ void UUIItem::ApplyUIActiveState()
 		}
 	}
 #endif
-	if (bIsCanvasUIItem)RenderCanvas->OnUIActiveStateChanged(GetIsUIActiveInHierarchy());
-	bColorChanged = true;
 	bLayoutChanged = true;
 	//canvas update
 	MarkCanvasUpdate();
@@ -2236,25 +2201,6 @@ void UUIItem::ApplyUIActiveState()
 }
 
 #pragma endregion UIActive
-
-float UUIItem::Color255To1_Table[256] =
-{
-	0,0.003921569,0.007843138,0.01176471,0.01568628,0.01960784,0.02352941,0.02745098,0.03137255,0.03529412,0.03921569,0.04313726,0.04705882,0.05098039
-	,0.05490196,0.05882353,0.0627451,0.06666667,0.07058824,0.07450981,0.07843138,0.08235294,0.08627451,0.09019608,0.09411765,0.09803922,0.1019608,0.1058824
-	,0.1098039,0.1137255,0.1176471,0.1215686,0.1254902,0.1294118,0.1333333,0.1372549,0.1411765,0.145098,0.1490196,0.1529412,0.1568628,0.1607843,0.1647059,0.1686275
-	,0.172549,0.1764706,0.1803922,0.1843137,0.1882353,0.1921569,0.1960784,0.2,0.2039216,0.2078431,0.2117647,0.2156863,0.2196078,0.2235294,0.227451,0.2313726,0.2352941
-	,0.2392157,0.2431373,0.2470588,0.2509804,0.254902,0.2588235,0.2627451,0.2666667,0.2705882,0.2745098,0.2784314,0.282353,0.2862745,0.2901961,0.2941177,0.2980392,0.3019608
-	,0.3058824,0.3098039,0.3137255,0.3176471,0.3215686,0.3254902,0.3294118,0.3333333,0.3372549,0.3411765,0.345098,0.3490196,0.3529412,0.3568628,0.3607843,0.3647059,0.3686275
-	,0.372549,0.3764706,0.3803922,0.3843137,0.3882353,0.3921569,0.3960784,0.4,0.4039216,0.4078431,0.4117647,0.4156863,0.4196078,0.4235294,0.427451,0.4313726,0.4352941,0.4392157
-	,0.4431373,0.4470588,0.4509804,0.454902,0.4588235,0.4627451,0.4666667,0.4705882,0.4745098,0.4784314,0.4823529,0.4862745,0.4901961,0.4941176,0.4980392,0.5019608,0.5058824,0.509804
-	,0.5137255,0.5176471,0.5215687,0.5254902,0.5294118,0.5333334,0.5372549,0.5411765,0.5450981,0.5490196,0.5529412,0.5568628,0.5607843,0.5647059,0.5686275,0.572549,0.5764706,0.5803922
-	,0.5843138,0.5882353,0.5921569,0.5960785,0.6,0.6039216,0.6078432,0.6117647,0.6156863,0.6196079,0.6235294,0.627451,0.6313726,0.6352941,0.6392157,0.6431373,0.6470588,0.6509804,0.654902
-	,0.6588235,0.6627451,0.6666667,0.6705883,0.6745098,0.6784314,0.682353,0.6862745,0.6901961,0.6941177,0.6980392,0.7019608,0.7058824,0.7098039,0.7137255,0.7176471,0.7215686,0.7254902,0.7294118
-	,0.7333333,0.7372549,0.7411765,0.7450981,0.7490196,0.7529412,0.7568628,0.7607843,0.7647059,0.7686275,0.772549,0.7764706,0.7803922,0.7843137,0.7882353,0.7921569,0.7960784,0.8,0.8039216,0.8078431
-	,0.8117647,0.8156863,0.8196079,0.8235294,0.827451,0.8313726,0.8352941,0.8392157,0.8431373,0.8470588,0.8509804,0.854902,0.8588235,0.8627451,0.8666667,0.8705882,0.8745098,0.8784314,0.8823529,0.8862745
-	,0.8901961,0.8941177,0.8980392,0.9019608,0.9058824,0.9098039,0.9137255,0.9176471,0.9215686,0.9254902,0.9294118,0.9333333,0.9372549,0.9411765,0.945098,0.9490196,0.9529412,0.9568627,0.9607843,0.9647059
-	,0.9686275,0.972549,0.9764706,0.9803922,0.9843137,0.9882353,0.9921569,0.9960784,1
-};
 
 
 

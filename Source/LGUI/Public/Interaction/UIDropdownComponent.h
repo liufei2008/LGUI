@@ -9,6 +9,7 @@
 #include "LGUIComponentReference.h"
 #include "Event/LGUIDrawableEvent.h"
 #include "Event/LGUIDelegateDeclaration.h"
+#include "Core/ActorComponent/UICanvasGroup.h"
 #include "UIDropdownComponent.generated.h"
 
 class ULGUISpriteData_BaseObject;
@@ -65,6 +66,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		TWeakObjectPtr<class AUIBaseActor> ListRoot;
+	TWeakObjectPtr<class UUICanvasGroup> CanvasGroupOnListRoot;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
 		TWeakObjectPtr<class AUITextActor> CaptionText;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")

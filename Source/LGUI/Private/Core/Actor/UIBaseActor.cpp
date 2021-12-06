@@ -13,9 +13,18 @@ AUIBaseActor::AUIBaseActor()
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 }
 
-AUIPostProcessBaseActor::AUIPostProcessBaseActor()
+AUIBaseRenderableActor::AUIBaseRenderableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+}
+
+AUIBasePostProcessActor::AUIBasePostProcessActor()
+{
+	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 }

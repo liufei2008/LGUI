@@ -6,9 +6,11 @@
 #include "Core/UIWidget.h"
 #include "Components/SceneComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "Components/CanvasPanelSlot.h"
 #include "UIItem.generated.h"
 
 class ULGUICanvas;
+class UUICanvasGroup;
 
 UENUM(BlueprintType, Category = LGUI)
 enum class UIItemType :uint8
@@ -42,7 +44,6 @@ public:
 	/** update UI immediately in edit mode */
 	virtual void EditorForceUpdateImmediately();
 #endif
-	virtual void OnAttachmentChanged() override;
 	
 #pragma region LGUILifeCycleUIBehaviour
 private:
@@ -88,6 +89,7 @@ protected:
 	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;
 	virtual void OnChildAttached(USceneComponent* ChildComponent)override;
 	virtual void OnChildDetached(USceneComponent* ChildComponent)override;
+	virtual void OnAttachmentChanged() override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 private:
@@ -107,24 +109,28 @@ public:
 	/** update layout */
 	virtual void UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout);
 	virtual void UpdateGeometry();
+
+	FDelegateHandle RegisterUIHierarchyChanged(const FSimpleDelegate& InCallback);
+	void UnregisterUIHierarchyChanged(const FDelegateHandle& InHandle);
 protected:
 	/** UIItem's hierarchy changed */
-	virtual void UIHierarchyChanged();
-	/** update render geometry */
-	/** called when attach to a new RenderCanvas. */
+	void UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup* ParentCanvasGroup);
+	FSimpleMulticastDelegate UIHierarchyChangedDelegate;
+	/** called when RenderCanvas changed. */
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
-
-	/** Called when a new LGUICanvas is registerred on self/parent's actor */
-	void RegisterRenderCanvas();
-	/** Called when LGUICanvas is unregisterred on self/parent's actor */
+public:
+	/** Called by LGUICanvas, when a new LGUICanvas is registerred on self actor */
+	void RegisterRenderCanvas(ULGUICanvas* InRenderCanvas);
+	/** Called by LGUICanvas, when LGUICanvas is unregisterred on self actor */
 	void UnregisterRenderCanvas();
+protected:
+	void RenewCanvasGroupRecursive(UUICanvasGroup* InParentCanvasGroup);
+	void RenewRenderCanvasRecursive(ULGUICanvas* InParentRenderCanvas);
 
 protected:
 	/** widget contains rect transform and color */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
 		FUIWidget widget;
-	/** parent's final alpha value, multiplyed by parent's parent's parent's... alpha value */
-	float calculatedParentAlpha = 1.0f;
 	/** parent in hierarchy */
 	mutable TWeakObjectPtr<UUIItem> ParentUIItem = nullptr;
 	/** root in hierarchy */
@@ -134,12 +140,6 @@ protected:
 	/** check valid, incase unnormally deleting actor, like undo */
 	void CheckCacheUIChildren();
 	void SortCacheUIChildren();
-	/** alpha inherit from parent or not */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
-		bool inheritAlpha = true;
-public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		bool GetInheritAlpha()const { return inheritAlpha; }
 #pragma region Widget
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -152,10 +152,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetDepth(int32 depth, bool propagateToChildren = false);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetColor(FColor color);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAlpha(float newAlpha);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetWidth(float newWidth);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -186,14 +182,9 @@ public:
 		void SetAnchorOffsetZ(float newOffset);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorOffset(FVector2D newOffset);
-	void SetCalculatedParentAlpha(float alpha);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		int GetDepth() const { return widget.depth; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		FColor GetColor() const { return widget.color; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetAlpha() const { return ((float)widget.color.A) / 255; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetWidth() const { return widget.width; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -219,8 +210,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetStretchBottom() const { return widget.stretchBottom; }
 #pragma endregion
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetCalculatedParentAlpha() const { return calculatedParentAlpha; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetLocalSpaceLeftBottomPoint()const;
@@ -255,32 +244,40 @@ public:
 	virtual void GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const;
 #endif
 	void MarkLayoutDirty(bool sizeChange);
-	void MarkColorDirty();
 
 	/** mark all dirty for UI element to update, include all children */
 	virtual void MarkAllDirtyRecursive();
-protected:
+public:
 	virtual void MarkCanvasUpdate();
+protected:
 	virtual void WidthChanged();
 	virtual void HeightChanged();	
 	virtual void PivotChanged();
 	virtual void DepthChanged();
 
-#pragma region InteractionGroup
+#pragma region UICanvasGroup
 protected:
-	//
-	bool allUpParentGroupAllowInteraction = true;
-	void SetChildInteractionGroupStateChangeRecursive(bool InParentInteractable);
+	mutable TWeakObjectPtr<class UUICanvasGroup> CanvasGroup;
+	FDelegateHandle OnCanvasGroupAlphaChangeDelegateHandle;
+	virtual void OnCanvasGroupAlphaChange() {};
+	FDelegateHandle OnCanvasGroupInteractableStateChangeDelegateHandle;
+	void OnCanvasGroupInteractableStateChange();
+	bool bIsGroupAllowInteraction = true;
 public:
-	void SetInteractionGroupStateChange(bool InInteractable, bool InIgnoreParentGroup);
-	void SetInteractionGroupStateChange();
-	bool IsGroupAllowInteraction()const;
-#pragma endregion InteractionGroup
+	void RegisterCanvasGroup(UUICanvasGroup* InCanvasGroup);
+	void UnregisterCanvasGroup();
+
+	bool IsGroupAllowInteraction()const { return bIsGroupAllowInteraction; }
+	/** return UICanvasGroup that manager this UIItem. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		class UUICanvasGroup* GetCanvasGroup()const { return CanvasGroup.Get(); }
+#pragma endregion UICanvasGroup
 #pragma region UIActive
 protected:
 	/** all up parent IsUIActive is true, then this is true. if any up parent is false, then this is false */
 	bool allUpParentUIActive = true;
-	void SetChildUIActiveRecursive(bool InUpParentUIActive);
+	void SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive);
+	void SetUIActiveStateChange();
 	/**
 	 * Active ui is visible and interactable.
 	 * If parent or parent's parent... IsUIActive is false, then this ui is not visible and not interactable.
@@ -412,7 +409,6 @@ protected:
 	mutable uint16 bIsCanvasUIItem:1;
 	uint16 bCanSetAnchorFromTransform : 1;
 
-	uint16 bColorChanged:1;//vertex color chnaged
 	uint16 bLayoutChanged:1;//layout changed
 	uint16 bSizeChanged : 1;//rect size changed
 	uint16 bShouldUpdateRootUIItemLayout : 1;//Only for RootUIItem, if any child layout changed
@@ -421,7 +417,7 @@ protected:
 	mutable uint16 bFlattenHierarchyIndexDirty : 1;
 
 	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
-	uint16 cacheForThisUpdate_ColorChanged:1, cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1, cacheForThisUpdate_ShouldUpdateLayout:1;
+	uint16 cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1, cacheForThisUpdate_ShouldUpdateLayout:1;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 
@@ -437,13 +433,6 @@ protected:
 public:
 	/** Called from LGUIManagerActor */
 	void UpdateRootUIItem();
-public:
-	uint8 GetFinalAlpha()const;
-	float GetFinalAlpha01()const;
-	/** get final color, calculate alpha */
-	FColor GetFinalColor()const;
-	static float Color255To1_Table[256];
-
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Transient)class UUIItemEditorHelperComp* HelperComp = nullptr;
 #endif

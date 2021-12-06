@@ -48,6 +48,8 @@ ULGUICanvas::ULGUICanvas()
 	bOverrideViewRotation = false;
 	bOverrideProjectionMatrix = false;
 	bOverrideFovAngle = false;
+
+	bIsViewProjectionMatrixDirty = true;
 }
 
 void ULGUICanvas::BeginPlay()
@@ -137,7 +139,8 @@ void ULGUICanvas::OnRegister()
 	//tell UIItem
 	if (CheckUIItem())
 	{
-		UIItem->RegisterRenderCanvas();
+		UIItem->RegisterRenderCanvas(this);
+		UIHierarchyChangedDelegateHandle = UIItem->RegisterUIHierarchyChanged(FSimpleDelegate::CreateUObject(this, &ULGUICanvas::OnUIHierarchyChanged));
 	}
 }
 void ULGUICanvas::OnUnregister()
@@ -156,11 +159,12 @@ void ULGUICanvas::OnUnregister()
 			ALGUIManagerActor::RemoveCanvas(this);
 		}
 	}
-	OnUIHierarchyChanged();
+
 	//tell UIItem
 	if (UIItem.IsValid())
 	{
 		UIItem->UnregisterRenderCanvas();
+		UIItem->UnregisterUIHierarchyChanged(UIHierarchyChangedDelegateHandle);
 	}
 
 	//clear and delete mesh components
@@ -259,11 +263,6 @@ void ULGUICanvas::RemoveFromViewExtension()
 	}
 }
 
-void ULGUICanvas::OnUIActiveStateChanged(bool active)
-{
-	
-}
-
 bool ULGUICanvas::CheckRootCanvas()const
 {
 	if (RootCanvas.IsValid())return true;
@@ -325,7 +324,7 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	if (RootCanvas.IsValid())
 	{
 		//remove from old
-		RootCanvas->manageCanvasArray.Remove(this);
+		RootCanvas->ManagingCanvasArray.Remove(this);
 		//mark old RootCanvas update
 		RootCanvas->bCanTickUpdate = true;
 	}
@@ -334,7 +333,7 @@ void ULGUICanvas::OnUIHierarchyChanged()
 	if (RootCanvas.IsValid())
 	{
 		//add to new
-		RootCanvas->manageCanvasArray.Add(this);
+		RootCanvas->ManagingCanvasArray.Add(this);
 		//mark new RootCanvas update
 		RootCanvas->bCanTickUpdate = true;
 	}
@@ -1063,7 +1062,7 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 		}
 	}
 
-	for (auto item : manageCanvasArray)
+	for (auto item : ManagingCanvasArray)
 	{
 		if (item == this)continue;//skip self
 		if (item.IsValid() && item->GetIsUIActive())
@@ -2059,7 +2058,7 @@ void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanva
 				{
 					if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
 					{
-						if (this->manageCanvasArray.Contains(itemCanvas))
+						if (this->ManagingCanvasArray.Contains(itemCanvas))
 						{
 							continue;
 						}
@@ -2090,7 +2089,7 @@ void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas
 				{
 					if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
 					{
-						if (this->manageCanvasArray.Contains(itemCanvas))
+						if (this->ManagingCanvasArray.Contains(itemCanvas))
 						{
 							continue;
 						}
@@ -2119,7 +2118,7 @@ void ULGUICanvas::SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas)
 			{
 				if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
 				{
-					if (this->manageCanvasArray.Contains(itemCanvas))
+					if (this->ManagingCanvasArray.Contains(itemCanvas))
 					{
 						continue;
 					}
@@ -2147,7 +2146,7 @@ void ULGUICanvas::SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas)
 			{
 				if (propagateToChildrenCanvas)//if propergate to children, then ignore children canvas
 				{
-					if (this->manageCanvasArray.Contains(itemCanvas))
+					if (this->ManagingCanvasArray.Contains(itemCanvas))
 					{
 						continue;
 					}
@@ -2397,21 +2396,17 @@ float ULGUICanvas::CalculateDistanceToCamera()const
 }
 FMatrix ULGUICanvas::GetViewProjectionMatrix()const
 {
-	if (cacheViewProjectionMatrixFrameNumber != GFrameNumber)
+	if (bIsViewProjectionMatrixDirty)
 	{
 		if (!CheckUIItem())
 		{
 			UE_LOG(LGUI, Error, TEXT("[LGUICanvas::GetViewProjectionMatrix]UIItem not valid!"));
 			return cacheViewProjectionMatrix;
 		}
-		cacheViewProjectionMatrixFrameNumber = GFrameNumber;
+		bIsViewProjectionMatrixDirty = false;
 
 		FVector ViewLocation = GetViewLocation();
-		FMatrix ViewRotationMatrix = FInverseRotationMatrix(GetViewRotator()) * FMatrix(
-			FPlane(0, 0, 1, 0),
-			FPlane(1, 0, 0, 0),
-			FPlane(0, 1, 0, 0),
-			FPlane(0, 0, 0, 1));
+		FMatrix ViewRotationMatrix = FInverseRotationMatrix(GetViewRotator());
 		FMatrix ProjectionMatrix = GetProjectionMatrix();
 		cacheViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
 	}
@@ -2512,6 +2507,8 @@ void ULGUICanvas::SetProjectionParameters(TEnumAsByte<ECameraProjectionMode::Typ
 	FOVAngle = InFovAngle;
 	NearClipPlane = InNearClipPlane;
 	FarClipPlane = InFarClipPlane;
+
+	bIsViewProjectionMatrixDirty = true;
 }
 
 void ULGUICanvas::SetRenderTarget(UTextureRenderTarget2D* value)
@@ -2661,7 +2658,7 @@ void ULGUICanvas::SetBlendDepth(float value)
 					}
 					if (ViewExtension.IsValid())
 					{
-						for (auto canvasItem : RootCanvas->manageCanvasArray)
+						for (auto canvasItem : RootCanvas->ManagingCanvasArray)
 						{
 							if (canvasItem.IsValid())
 							{
@@ -2685,7 +2682,7 @@ void ULGUICanvas::ApplyOwnerSeeRecursive()
 		item->SetOnlyOwnerSee(tempOnlyOwnerSee);
 	}
 
-	for (auto item : manageCanvasArray)
+	for (auto item : ManagingCanvasArray)
 	{
 		if (item.IsValid() && item != this)
 		{

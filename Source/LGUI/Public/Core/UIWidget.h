@@ -34,12 +34,6 @@ struct LGUI_API FUIWidget
 	/** Higher depth render on top of lower one, and receive raycast before lower one */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		int32 depth = 0;
-	/**
-	 * Render color of UI element.
-	 * Color may be override by UISelectable(UIButton, UIToggle, UISlider ...), if UISelectable's transition set to "Color Tint".
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		FColor color = FColor::White;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		FVector2D pivot = FVector2D(0.5f, 0.5f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")

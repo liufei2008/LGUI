@@ -276,11 +276,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			}
 		}
 	}
-	//color
-	auto inheritAlphaHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, inheritAlpha));
-	auto colorHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.color));
-	lguiCategory.AddProperty(colorHandle);
-	lguiCategory.AddProperty(inheritAlphaHandle);
 	//anchor, width, height
 	{
 		auto widthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.width));
@@ -1188,7 +1183,6 @@ void FUIItemCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
 			if (item.IsValid())
 			{
 				auto itemWidget = item->GetWidget();
-				widget.color = itemWidget.color;
 				widget.depth = itemWidget.depth;
 				item->SetWidget(widget);
 				item->MarkPackageDirty();

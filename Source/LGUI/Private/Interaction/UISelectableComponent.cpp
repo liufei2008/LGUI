@@ -3,6 +3,7 @@
 #include "Interaction/UISelectableComponent.h"
 #include "LGUI.h"
 #include "Core/Actor/UIBaseActor.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LTweenActor.h"
 #include "Interaction/UISelectableTransitionComponent.h"
@@ -38,11 +39,11 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 		auto propertyName = PropertyChangedEvent.Property->GetName();
 		if (CheckTarget())
 		{
-			auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionActor->GetUIItem());
+			auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionActor->GetUIRenderable());
 			if (propertyName == TEXT("TransitionActor"))
 			{
 				if (TargetUISpriteComp) NormalSprite = TargetUISpriteComp->GetSprite();
-				NormalColor = TransitionActor->GetUIItem()->GetColor();
+				NormalColor = TransitionActor->GetUIRenderable()->GetColor();
 			}
 			else
 			{
@@ -53,12 +54,12 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 					{
 						TargetUISpriteComp->SetSprite(isGroupAllowInteraction ? NormalSprite : DisabledSprite, false);
 					}
-					TransitionActor->GetUIItem()->EditorForceUpdateImmediately();
+					TransitionActor->GetUIRenderable()->EditorForceUpdateImmediately();
 				}
 				else if (Transition == UISelectableTransitionType::ColorTint)
 				{
-					TransitionActor->GetUIItem()->SetColor(isGroupAllowInteraction ? NormalColor : DisabledColor);
-					TransitionActor->GetUIItem()->EditorForceUpdateImmediately();
+					TransitionActor->GetUIRenderable()->SetColor(isGroupAllowInteraction ? NormalColor : DisabledColor);
+					TransitionActor->GetUIRenderable()->EditorForceUpdateImmediately();
 				}
 			}
 		}
@@ -95,7 +96,7 @@ bool UUISelectableComponent::CheckTarget()
 void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 {
 	if (!CheckTarget())return;
-	auto TransitionTargetUIItemComp = TransitionActor->GetUIItem();
+	auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 	switch (CurrentSelectionState)
 	{
 	case EUISelectableSelectionState::Normal:
@@ -111,7 +112,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			else
 			{
 				if (ALTweenActor::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
-				TransitionTweener = ALTweenActor::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), NormalColor, FadeDuration);
+				TransitionTweener = ALTweenActor::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::SetColor), NormalColor, FadeDuration);
 			}
 		}
 		break;
@@ -156,7 +157,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			else
 			{
 				if (ALTweenActor::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
-				TransitionTweener = ALTweenActor::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), HighlightedColor, FadeDuration);
+				TransitionTweener = ALTweenActor::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::SetColor), HighlightedColor, FadeDuration);
 			}
 		}
 		break;
@@ -204,7 +205,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			else
 			{
 				if (ALTweenActor::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
-				TransitionTweener = ALTweenActor::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), PressedColor, FadeDuration);
+				TransitionTweener = ALTweenActor::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::SetColor), PressedColor, FadeDuration);
 			}
 		}
 		break;
@@ -252,7 +253,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			else
 			{
 				if (ALTweenActor::IsTweening(this, TransitionTweener))TransitionTweener->Kill();
-				TransitionTweener = ALTweenActor::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIItem::SetColor), DisabledColor, FadeDuration);
+				TransitionTweener = ALTweenActor::To(TransitionTargetUIItemComp, FLTweenColorGetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(TransitionTargetUIItemComp, &UUIBaseRenderable::SetColor), DisabledColor, FadeDuration);
 			}
 		}
 		break;
@@ -346,7 +347,7 @@ EUISelectableSelectionState UUISelectableComponent::GetSelectionState()const
 	return EUISelectableSelectionState::Normal;
 }
 
-void UUISelectableComponent::SetTransitionTarget(class AUIBaseActor* value)
+void UUISelectableComponent::SetTransitionTarget(class AUIBaseRenderableActor* value)
 {
 	if (TransitionActor != value)
 	{

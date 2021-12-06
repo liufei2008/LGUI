@@ -6,6 +6,7 @@
 #include "LTweenActor.h"
 #include "LTweenBPLibrary.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Engine/Engine.h"
 #include "Framework/Application/SlateApplication.h"
@@ -208,16 +209,16 @@ ULTweener* ULGUIBPLibrary::HeightTo(UUIItem* target, float endValue, float durat
 	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHeight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHeight), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
-ULTweener* ULGUIBPLibrary::ColorTo(UUIItem* target, FColor endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::ColorTo(UUIBaseRenderable* target, FColor endValue, float duration, float delay, LTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::ColorTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenColorGetterFunction::CreateUObject(target, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(target, &UUIItem::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ALTweenActor::To(target, FLTweenColorGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::ColorFrom(UUIItem* target, FColor startValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::ColorFrom(UUIBaseRenderable* target, FColor startValue, float duration, float delay, LTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -226,19 +227,19 @@ ULTweener* ULGUIBPLibrary::ColorFrom(UUIItem* target, FColor startValue, float d
 	}
 	auto endValue = target->GetColor();
 	target->SetColor(startValue);
-	return ALTweenActor::To(target, FLTweenColorGetterFunction::CreateUObject(target, &UUIItem::GetColor), FLTweenColorSetterFunction::CreateUObject(target, &UUIItem::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ALTweenActor::To(target, FLTweenColorGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetColor), FLTweenColorSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetColor), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
-ULTweener* ULGUIBPLibrary::AlphaTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AlphaTo(UUIBaseRenderable* target, float endValue, float duration, float delay, LTweenEase ease)
 {
 	if (!IsValid(target))
 	{
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AlphaTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
-ULTweener* ULGUIBPLibrary::AlphaFrom(UUIItem* target, float startValue, float duration, float delay, LTweenEase ease)
+ULTweener* ULGUIBPLibrary::AlphaFrom(UUIBaseRenderable* target, float startValue, float duration, float delay, LTweenEase ease)
 {
 	if (!IsValid(target))
 	{
@@ -247,7 +248,7 @@ ULTweener* ULGUIBPLibrary::AlphaFrom(UUIItem* target, float startValue, float du
 	}
 	auto endValue = target->GetAlpha();
 	target->SetAlpha(startValue);
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIBaseRenderable::GetAlpha), FLTweenFloatSetterFunction::CreateUObject(target, &UUIBaseRenderable::SetAlpha), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
 ULTweener* ULGUIBPLibrary::AnchorOffsetYTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)

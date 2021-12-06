@@ -7,17 +7,18 @@
 #include "UITextActor.generated.h"
 
 UCLASS()
-class LGUI_API AUITextActor : public AUIBaseActor
+class LGUI_API AUITextActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 	
 public:	
 	AUITextActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIText; }
-	FORCEINLINE UUIText* GetUIText()const { return UIText; }
+	virtual UUIItem* GetUIItem()const override { return UIText; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UIText; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUIText* GetUIText()const { return UIText; }
 private:
-	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "LGUI", VisibleAnywhere, Transient)
 		UUIText* UIText;
-	
 };

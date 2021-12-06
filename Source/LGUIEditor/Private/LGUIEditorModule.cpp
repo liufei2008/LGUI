@@ -778,7 +778,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 	{
 		for (TObjectIterator<UClass> ClassItr; ClassItr; ++ClassItr)
 		{
-			if (ClassItr->IsChildOf(AUIPostProcessBaseActor::StaticClass()))
+			if (ClassItr->IsChildOf(AUIBasePostProcessActor::StaticClass()))
 			{
 				if (
 					   !(ClassItr->HasAnyClassFlags(CLASS_Transient))
@@ -828,7 +828,7 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 					&& *ClassItr != AUISpriteActor::StaticClass()
 					&& *ClassItr != AUITextActor::StaticClass()
 					&& *ClassItr != AUITextureActor::StaticClass()
-					&& !(*ClassItr)->IsChildOf(AUIPostProcessBaseActor::StaticClass())
+					&& !(*ClassItr)->IsChildOf(AUIBasePostProcessActor::StaticClass())
 					&& !(ClassItr->HasAnyClassFlags(CLASS_Transient))
 					&& !(ClassItr->HasAnyClassFlags(CLASS_Abstract))
 					&& !(ClassItr->HasAnyClassFlags(CLASS_Deprecated))

@@ -68,7 +68,7 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 		if (multiplySourceAlpha)
 		{
 			auto& vertColor = vertices[channelIndex1].Color;
-			vertColor.A = (uint8)(UUIItem::Color255To1_Table[vertices[channelIndexOrigin].Color.A] * shadowColor.A);
+			vertColor.A = (uint8)(UUIBaseRenderable::Color255To1_Table[vertices[channelIndexOrigin].Color.A] * shadowColor.A);
 			vertColor.R = shadowColor.R;
 			vertColor.G = shadowColor.G;
 			vertColor.B = shadowColor.B;

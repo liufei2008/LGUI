@@ -12,7 +12,7 @@
 #include "Core/ActorComponent/UITexture.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/ActorComponent/UIText.h"
-#include "Core/ActorComponent/UIInteractionGroup.h"
+#include "Core/ActorComponent/UICanvasGroup.h"
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
 #include "Core/LGUILifeCycleBehaviour.h"

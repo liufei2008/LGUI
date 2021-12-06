@@ -7,17 +7,19 @@
 #include "UITextureActor.generated.h"
 
 UCLASS()
-class LGUI_API AUITextureActor : public AUIBaseActor
+class LGUI_API AUITextureActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()
 	
 public:	
 	AUITextureActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UITexture; }
-	FORCEINLINE UUITexture* GetUITexture()const { return UITexture; }
+	virtual UUIItem* GetUIItem()const override { return UITexture; }
+	virtual class UUIBaseRenderable* GetUIRenderable()const override { return UITexture; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		UUITexture* GetUITexture()const { return UITexture; }
 private:
-	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "LGUI", VisibleAnywhere, Transient)
 		class UUITexture* UITexture;
 	
 };

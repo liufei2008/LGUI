@@ -24,7 +24,7 @@ private:
 	TWeakObjectPtr<class ULGUIPrefab> CurrentPrefab;
 	FText CachedPrefabContent;
 	FBoxSphereBounds PreviewActorsBound;
-	bool IsLGUIPrefab = false;
+	bool bIsUI = false;
 };
 
 class FLGUIPrefabInstanceThumbnailScene

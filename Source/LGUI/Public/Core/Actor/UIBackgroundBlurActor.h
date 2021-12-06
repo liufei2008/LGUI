@@ -7,7 +7,7 @@
 #include "UIBackgroundBlurActor.generated.h"
 
 UCLASS()
-class LGUI_API AUIBackgroundBlurActor : public AUIPostProcessBaseActor
+class LGUI_API AUIBackgroundBlurActor : public AUIBasePostProcessActor
 {
 	GENERATED_BODY()
 	

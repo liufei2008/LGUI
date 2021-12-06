@@ -65,15 +65,19 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 	if (ScreenSpaceRenderParameter.RenderCanvas.IsValid())
 	{
 		//@todo: these parameters should use ENQUE_RENDER_COMMAND to pass to render thread
-		ScreenSpaceRenderParameter.ViewOrigin = ScreenSpaceRenderParameter.RenderCanvas->GetViewLocation();
-		ScreenSpaceRenderParameter.ViewRotationMatrix = 
-			FInverseRotationMatrix(ScreenSpaceRenderParameter.RenderCanvas->GetViewRotator()) * FMatrix(
-				FPlane(0, 0, 1, 0),
-				FPlane(1, 0, 0, 0),
-				FPlane(0, 1, 0, 0),
-				FPlane(0, 0, 0, 1));
-		ScreenSpaceRenderParameter.ProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetProjectionMatrix();
-		ScreenSpaceRenderParameter.ViewProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewProjectionMatrix();
+		auto ViewLocation = ScreenSpaceRenderParameter.RenderCanvas->GetViewLocation();
+		auto ViewRotationMatrix = FInverseRotationMatrix(ScreenSpaceRenderParameter.RenderCanvas->GetViewRotator()) * FMatrix(
+			FPlane(0, 0, 1, 0),
+			FPlane(1, 0, 0, 0),
+			FPlane(0, 1, 0, 0),
+			FPlane(0, 0, 0, 1));
+		auto ProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetProjectionMatrix();
+		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
+
+		ScreenSpaceRenderParameter.ViewOrigin = ViewLocation;
+		ScreenSpaceRenderParameter.ViewRotationMatrix = ViewRotationMatrix;
+		ScreenSpaceRenderParameter.ProjectionMatrix = ProjectionMatrix;
+		ScreenSpaceRenderParameter.ViewProjectionMatrix = ViewProjectionMatrix;
 	}
 	MultiSampleCount = (uint16)ULGUISettings::GetAntiAliasingSampleCount();
 }

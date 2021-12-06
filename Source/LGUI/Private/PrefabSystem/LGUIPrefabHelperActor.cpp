@@ -180,7 +180,6 @@ void ALGUIPrefabHelperActor::RevertPrefab()
 					if (auto RootUIItem = Cast<UUIItem>(RootComp))
 					{
 						auto newWidget = RootUIItem->GetWidget();
-						OldWidget.color = newWidget.color;
 						OldWidget.depth = newWidget.depth;
 						RootUIItem->SetWidget(OldWidget);
 					}

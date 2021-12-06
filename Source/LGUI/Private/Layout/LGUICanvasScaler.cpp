@@ -368,7 +368,16 @@ void ULGUICanvasScaler::DrawVirtualCamera()
 	if (CheckCanvas())
 	{
 		if (!ULGUIEditorManagerObject::IsSelected(this->GetOwner()))return;
-		auto ViewProjectionMatrix = Canvas->GetViewProjectionMatrix();
+
+		auto ViewLocation = Canvas->GetViewLocation();
+		auto ViewRotationMatrix = FInverseRotationMatrix(Canvas->GetViewRotator()) * FMatrix(
+			FPlane(0, 0, 1, 0),
+			FPlane(1, 0, 0, 0),
+			FPlane(0, 1, 0, 0),
+			FPlane(0, 0, 0, 1));
+		auto ProjectionMatrix = Canvas->GetProjectionMatrix();
+		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
+
 		FVector leftBottom, rightBottom, leftTop, rightTop;
 		FVector leftBottomEnd, rightBottomEnd, leftTopEnd, rightTopEnd;
 		auto lineColor = FColor::Green;

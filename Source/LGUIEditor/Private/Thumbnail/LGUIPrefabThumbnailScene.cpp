@@ -56,7 +56,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			{
 				rootCanvas->MarkCanvasUpdate();
 
-				IsLGUIPrefab = true;
+				bIsUI = true;
 			}
 			else if (auto rootUIItem = Cast<UUIItem>(rootActor->GetRootComponent()))
 			{
@@ -65,11 +65,11 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 				rootActor->AddInstanceComponent(rootCanvas);
 				rootCanvas->MarkCanvasUpdate();
 
-				IsLGUIPrefab = true;
+				bIsUI = true;
 			}
 			else
 			{
-				IsLGUIPrefab = false;
+				bIsUI = false;
 			}
 			bool isFirstBounds = true;
 			GetBoundsRecursive(rootActor->GetRootComponent(), PreviewActorsBound, isFirstBounds);
@@ -177,10 +177,10 @@ USceneThumbnailInfo* FLGUIPrefabThumbnailScene::GetSceneThumbnailInfo(const floa
 		ThumbnailInfo = NewObject<USceneThumbnailInfo>(Prefab);
 		Prefab->ThumbnailInfo = ThumbnailInfo;
 	}
-	if (IsLGUIPrefab)
+	if (bIsUI)
 	{
-		ThumbnailInfo->OrbitPitch = 90;
-		ThumbnailInfo->OrbitYaw = 180;
+		ThumbnailInfo->OrbitPitch = 0;
+		ThumbnailInfo->OrbitYaw = 90.0f;
 		ThumbnailInfo->OrbitZoom = 0;
 	}
 	else

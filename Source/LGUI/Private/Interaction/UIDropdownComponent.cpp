@@ -27,7 +27,11 @@ void UUIDropdownComponent::Awake()
 	if (ListRoot.IsValid())
 	{
 		ListRoot->GetUIItem()->SetIsUIActive(false);
-		ListRoot->GetUIItem()->SetAlpha(0);
+		CanvasGroupOnListRoot = ListRoot->GetUIItem()->GetCanvasGroup();
+		if (CanvasGroupOnListRoot != nullptr)
+		{
+			CanvasGroupOnListRoot->SetAlpha(0);
+		}
 		MaxHeight = ListRoot->GetUIItem()->GetHeight();
 	}
 }
@@ -70,8 +74,10 @@ void UUIDropdownComponent::Show()
 	CreateBlocker();
 	//show list
 	ListRoot->GetUIItem()->SetIsUIActive(true);
-	auto listRootUIItem = ListRoot->GetUIItem();
-	ShowOrHideTweener = ULGUIBPLibrary::AlphaTo(listRootUIItem, 1, 0.3f, 0, LTweenEase::OutCubic);
+	if (CanvasGroupOnListRoot.IsValid())
+	{
+		ShowOrHideTweener = CanvasGroupOnListRoot->AlphaTo(1, 0.3f, 0, LTweenEase::OutCubic);
+	}
 	auto canvasOnListRoot = ListRoot->FindComponentByClass<ULGUICanvas>();
 	if (!IsValid(canvasOnListRoot))
 	{
@@ -112,6 +118,7 @@ void UUIDropdownComponent::Show()
 		CreateListItems();
 	}
 
+	auto ListRootUIItem = ListRoot->GetUIItem();
 	//set position
 	auto tempVerticalPosition = VerticalPosition;
 	auto tempHorizontalPosition = HorizontalPosition;
@@ -153,13 +160,13 @@ void UUIDropdownComponent::Show()
 			if (VerticalOverlap)
 			{
 				auto selfTop = GetRootUIComponent()->GetLocalSpaceTop();
-				auto listBottomInSelfSpace = selfTop - listRootUIItem->GetHeight();
+				auto listBottomInSelfSpace = selfTop - ListRootUIItem->GetHeight();
 				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, listBottomInSelfSpace, 0));
 			}
 			else
 			{
 				auto selfBottom = GetRootUIComponent()->GetLocalSpaceBottom();
-				auto listBottomInSelfSpace = selfBottom - listRootUIItem->GetHeight();
+				auto listBottomInSelfSpace = selfBottom - ListRootUIItem->GetHeight();
 				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, listBottomInSelfSpace, 0));
 			}
 			canvas->CalculateRectRange();
@@ -175,7 +182,7 @@ void UUIDropdownComponent::Show()
 		if (tempHorizontalPosition == EUIDropdownHorizontalPosition::Automatic)
 		{
 			auto selfRight = GetRootUIComponent()->GetLocalSpaceRight();
-			auto listRightInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(selfRight + listRootUIItem->GetWidth(), 0, 0));
+			auto listRightInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(selfRight + ListRootUIItem->GetWidth(), 0, 0));
 			canvas->CalculateRectRange();
 			if (listRightInCanvasSpace.X > canvas->GetClipRectMax().X)
 			{
@@ -196,54 +203,54 @@ void UUIDropdownComponent::Show()
 		pivot.Y = 0.0f;
 		if (VerticalOverlap)
 		{
-			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
+			ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
 		}
 		else
 		{
-			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
+			ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
 		}
 	}break;
 	case EUIDropdownVerticalPosition::Middle:
 	{
 		pivot.Y = 0.5f;
-		listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
+		ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
 	}break;
 	case EUIDropdownVerticalPosition::Bottom:
 	{
 		pivot.Y = 1.0f;
 		if (VerticalOverlap)
 		{
-			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
+			ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
 		}
 		else
 		{
-			listRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
+			ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
 		}
 	}break;
 	}
-	listRootUIItem->SetAnchorOffsetZ(0);
+	ListRootUIItem->SetAnchorOffsetZ(0);
 
 	switch (tempHorizontalPosition)
 	{
 	case EUIDropdownHorizontalPosition::Left:
 	{
 		pivot.X = 1.0f;
-		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
+		ListRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
 	}break;
 	case EUIDropdownHorizontalPosition::Center:
 	{
 		pivot.X = 0.5f;
-		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
+		ListRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
 	}break;
 	case EUIDropdownHorizontalPosition::Right:
 	{
 		pivot.X = 0.0f;
-		listRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
+		ListRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
 	}break;
 	}
-	listRootUIItem->SetAnchorOffsetY(0);
+	ListRootUIItem->SetAnchorOffsetY(0);
 
-	listRootUIItem->SetPivot(pivot);
+	ListRootUIItem->SetPivot(pivot);
 }
 void UUIDropdownComponent::Hide()
 {
@@ -259,10 +266,13 @@ void UUIDropdownComponent::Hide()
 		ShowOrHideTweener->Kill();
 	}
 
-	auto listRootUIItem = ListRoot->GetUIItem();
-	ShowOrHideTweener = ULGUIBPLibrary::AlphaTo(listRootUIItem, 0, 0.3f, 0, LTweenEase::InCubic)->OnComplete(FSimpleDelegate::CreateWeakLambda(listRootUIItem, [listRootUIItem] {
-		listRootUIItem->SetIsUIActive(false);
-		}));
+	if (CanvasGroupOnListRoot.IsValid())
+	{
+		auto ListRootUIItem = ListRoot->GetUIItem();
+		ShowOrHideTweener = CanvasGroupOnListRoot->AlphaTo(0, 0.3f, 0, LTweenEase::InCubic)->OnComplete(FSimpleDelegate::CreateWeakLambda(CanvasGroupOnListRoot.Get(), [ListRootUIItem] {
+			ListRootUIItem->SetIsUIActive(false);
+			}));
+	}
 
 	if (BlockerActor.IsValid())
 	{
