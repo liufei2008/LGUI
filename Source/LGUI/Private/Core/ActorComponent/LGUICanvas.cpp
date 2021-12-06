@@ -511,7 +511,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 	//SCOPE_CYCLE_COUNTER(STAT_DrawcallBatch);
 	auto SplitDrawcall = [&](TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* drawcallNodePtr
 		, int32 uiElementDepth
-		, TFunction<TSharedPtr<UUIDrawcall>(UMaterialInterface*)> NewDrawcall
+		, TFunction<TSharedPtr<UUIDrawcall>(UMaterialInterface*)> NewDrawcall, UMaterialInterface* NewDrawcallMaterial
 		)
 	{
 		TSharedPtr<UUIDrawcall> drawcallToSplit = drawcallNodePtr->GetValue();
@@ -544,7 +544,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 			}
 		}
 
-		auto middleDrawcall = NewDrawcall(nullptr);
+		auto middleDrawcall = NewDrawcall(NewDrawcallMaterial);
 
 		UIDrawcallList.InsertNode(firstDrawcall, drawcallNodePtr);
 		UIDrawcallList.InsertNode(middleDrawcall, drawcallNodePtr);
@@ -607,27 +607,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 		}
 		else
 		{
-			if (uiGeo->material.IsValid())//consider every custom material as a drawcall
-			{
-				auto drawcall = NewDrawcall(uiGeo->material.Get());
-				bool haveInsert = false;
-				//find a place to insert this drawcall
-				for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
-				{
-					auto item = iter->GetValue();
-					if (drawcall->depthMin <= item->depthMin)
-					{
-						UIDrawcallList.InsertNode(drawcall, iter);
-						haveInsert = true;
-						break;
-					}
-				}
-				if (!haveInsert)
-				{
-					UIDrawcallList.AddTail(drawcall);
-				}
-			}
-			else//batch elements into drawcall by comparing depth and texture
+			//batch elements into drawcall by comparing depth and texture
 			{
 				auto uiElementDepth = InUIRenderable->GetDepth();
 				TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* nodePtrToInsert = nullptr;
@@ -645,23 +625,23 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 				{
 					auto tailNode = UIDrawcallList.GetTail();
 					auto tailNodeDrawcall = tailNode->GetValue();
-					if (uiGeo->texture == tailNodeDrawcall->texture)//same texture, can batch
+					if (!uiGeo->material.IsValid() && uiGeo->texture == tailNodeDrawcall->texture)//no material, same texture, can batch
 					{
 						InsertIntoRenderObjectList(tailNodeDrawcall->renderObjectList, batchGeometryRenderable);
 						tailNodeDrawcall->needToRebuildMesh = true;
 						tailNodeDrawcall->UpdateDepthRange();
 						InUIRenderable->drawcall = tailNodeDrawcall;
 					}
-					else//different texture, cannot batch. but may split the exist drawcall node
+					else//cannot batch. but may split the exist drawcall node
 					{
 						if (uiElementDepth >= tailNodeDrawcall->depthMax)//not in depth range, no need to split drawcall
 						{
-							auto drawcall = NewDrawcall(nullptr);
+							auto drawcall = NewDrawcall(uiGeo->material.Get());
 							UIDrawcallList.AddTail(drawcall);
 						}
 						else//inside depth range, must split drawcall
 						{
-							SplitDrawcall(tailNode, uiElementDepth, NewDrawcall);
+							SplitDrawcall(tailNode, uiElementDepth, NewDrawcall, uiGeo->material.Get());
 						}
 					}
 				}
@@ -671,49 +651,49 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 					if (nodePtrToInsert == headNode)//head
 					{
 						auto nodeDrawcall = headNode->GetValue();
-						if (uiGeo->texture == nodeDrawcall->texture)//same texture, can batch
+						if (!uiGeo->material.IsValid() && uiGeo->texture == nodeDrawcall->texture)//no material, same texture, can batch
 						{
 							InsertIntoRenderObjectList(nodeDrawcall->renderObjectList, batchGeometryRenderable);
 							nodeDrawcall->needToRebuildMesh = true;
 							nodeDrawcall->UpdateDepthRange();
 							InUIRenderable->drawcall = nodeDrawcall;
 						}
-						else//different texture, cannot batch. create new drawcall
+						else//cannot batch. create new drawcall
 						{
-							auto drawcall = NewDrawcall(nullptr);
+							auto drawcall = NewDrawcall(uiGeo->material.Get());
 							UIDrawcallList.AddHead(drawcall);
 						}
 					}
 					else//middle
 					{
 						auto currentNodeDrawcall = nodePtrToInsert->GetValue();
-						if (uiGeo->texture == currentNodeDrawcall->texture)//same texture, can batch
+						if (!uiGeo->material.IsValid() && uiGeo->texture == currentNodeDrawcall->texture)//no material, same texture, can batch
 						{
 							InsertIntoRenderObjectList(currentNodeDrawcall->renderObjectList, batchGeometryRenderable);
 							currentNodeDrawcall->needToRebuildMesh = true;
 							currentNodeDrawcall->UpdateDepthRange();
 							InUIRenderable->drawcall = currentNodeDrawcall;
 						}
-						else//different texture, try prev node
+						else//cannot batch, try prev node
 						{
 							auto prevNodeDrawcall = nodePtrToInsert->GetPrevNode()->GetValue();
-							if (uiGeo->texture == prevNodeDrawcall->texture)//same texture, can batch
+							if (!uiGeo->material.IsValid() && uiGeo->texture == prevNodeDrawcall->texture)//no material, same texture, can batch
 							{
 								InsertIntoRenderObjectList(prevNodeDrawcall->renderObjectList, batchGeometryRenderable);
 								prevNodeDrawcall->needToRebuildMesh = true;
 								prevNodeDrawcall->UpdateDepthRange();
 								InUIRenderable->drawcall = prevNodeDrawcall;
 							}
-							else//different texture, cannot batch. but may split the existing drawcall node
+							else//cannot batch. but may split the existing drawcall node
 							{
 								if (uiElementDepth >= prevNodeDrawcall->depthMax)//not in depth range, no need to split drawcall
 								{
-									auto drawcall = NewDrawcall(nullptr);
+									auto drawcall = NewDrawcall(uiGeo->material.Get());
 									UIDrawcallList.InsertNode(drawcall, nodePtrToInsert);
 								}
 								else//inside depth range, must split drawcall
 								{
-									SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
+									SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall, uiGeo->material.Get());
 								}
 							}
 						}
@@ -779,7 +759,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 					}
 					else//inside depth range, must split drawcall
 					{
-						SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
+						SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall, nullptr);
 					}
 				}
 			}
@@ -842,7 +822,7 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 					}
 					else//inside depth range, must split drawcall
 					{
-						SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
+						SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall, nullptr);
 					}
 				}
 			}
