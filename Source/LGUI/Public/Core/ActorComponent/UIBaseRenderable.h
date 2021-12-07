@@ -50,7 +50,6 @@ public:
 
 	virtual void ApplyUIActiveState() override;
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
-	virtual void DepthChanged()override;
 
 	/** get UI renderable type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -83,6 +82,8 @@ public:
 	virtual void OnCanvasGroupAlphaChange()override;
 	virtual void UpdateCachedData()override;
 	virtual void UpdateCachedDataBeforeGeometry()override;
+
+	virtual void MarkFlattenHierarchyIndexDirty()override;
 protected:
 	uint8 bColorChanged : 1;//vertex color chnaged
 	uint8 cacheForThisUpdate_ColorChanged : 1;

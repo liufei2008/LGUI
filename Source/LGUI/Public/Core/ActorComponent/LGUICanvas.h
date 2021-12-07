@@ -129,12 +129,13 @@ private:
 	/** clear drawcalls */
 	void ClearDrawcall();
 	void RemoveFromViewExtension();
-	ULGUIMeshComponent* FindNextValidMeshInDrawcallList(TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* InNode);
+	ULGUIMeshComponent* FindNextValidMeshInDrawcallList(int32 StartIndex);
 public:
 	/** update canvas's layout */
 	void UpdateCanvasLayout(bool layoutChanged);
 	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
+	void MarkUIRenderableItemHierarchyChange();
 
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
@@ -214,6 +215,8 @@ protected:
 	/** This can avoid half-pixel render */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		bool bOverrideSorting = false;
 	/** Canvas with larger order will render on top of lower one */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		int32 sortOrder = 0;
@@ -422,7 +425,7 @@ public:
 
 	void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
 	void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
-
+public:
 	static FName LGUI_MainTextureMaterialParameterName;
 	static FName LGUI_RectClipOffsetAndSize_MaterialParameterName;
 	static FName LGUI_RectClipFeather_MaterialParameterName;
@@ -430,7 +433,6 @@ public:
 	static FName LGUI_TextureClipOffsetAndSize_MaterialParameterName;
 	bool IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial);
 private:
-	void CombineDrawcall();
 	void ApplyOwnerSeeRecursive();
 public:
 	/** Called from LGUIManagerActor */
@@ -442,6 +444,8 @@ private:
 	uint32 bTextureClipParameterChanged:1;
 
 	uint32 bCanTickUpdate:1;//if Canvas can update from tick
+	uint32 bIsLayoutChanged : 1;//if any UIItem's layout change, then we need to update drawcall
+	uint32 bIsUIRenderableHierarchyChanged : 1;//if any renderable UIItem's hierarchy change, then we need to sort renderable list
 	uint32 bRectRangeCalculated:1;
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
@@ -466,14 +470,15 @@ private:
 	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool
 	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list
 	UPROPERTY(Transient) TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool
-	TDoubleLinkedList<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
+	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
+	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection
+	TArray<UUIBaseRenderable*> UIRenderableList;
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);
 	/** rect clip's max position */
 	FVector2D clipRectMax = FVector2D(0, 0);
 
-#ifdef LGUI_DRAWCALLMODE_AUTO
 	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
 public:
 	bool GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
@@ -481,7 +486,9 @@ private:
 	FTransform2D ConvertTo2DTransform(const FTransform& Transform);
 	void CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
 	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
-#endif
+
+	void UpdateDrawcall_Implement();
+	static bool Is2DUITransform(const FTransform& Transform);
 private:
 	void UpdateAndApplyMaterial();
 	void SetParameterForStandard();

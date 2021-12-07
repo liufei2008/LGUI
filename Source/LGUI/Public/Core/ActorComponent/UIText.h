@@ -239,9 +239,7 @@ public:
 
 	virtual void WidthChanged()override;
 	virtual void HeightChanged()override;
-#ifdef LGUI_DRAWCALLMODE_AUTO
-	virtual void GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const override;
-#endif
+	virtual void GetLocalSpaceMinMaxPoint(FVector2D& min, FVector2D& max)const override;
 #pragma region UITextInputComponent
 	/** get caret position and line index */
 	void FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex);

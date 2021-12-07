@@ -113,169 +113,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	}
 
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget));
-	auto uiType = TargetScriptArray[0]->GetUIItemType();
 
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive));
-	//depth
-	{
-		auto depthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.depth));
-#ifdef LGUI_DRAWCALLMODE_AUTO
-		if (TargetScriptArray[0]->GetRenderCanvas() != nullptr && TargetScriptArray[0]->GetRenderCanvas()->GetAutoManageDepth())
-		{
-			IDetailPropertyRow& depthProperty = lguiCategory.AddProperty(depthHandle, EPropertyLocation::Advanced);
-			depthProperty.IsEnabled(false);
-			auto disabledByParentLayoutToolTip = FString(TEXT("Depth not valid because Canvas use Auto-ManageDepth"));
-			depthProperty.ToolTip(FText::FromString(disabledByParentLayoutToolTip));
-		}
-		else
-#endif
-		{
-			DetailBuilder.HideProperty(depthHandle);
-			depthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-				ForceUpdateUI();
-			}));
-			auto depthWidget =
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.Padding(2, 0)
-				.FillWidth(5)
-				[
-					depthHandle->CreatePropertyValueWidget()
-				]
-				+ SHorizontalBox::Slot()
-				.Padding(1, 0)
-				.FillWidth(2)
-				[
-					SNew(SBox)
-					.HeightOverride(18)
-					[
-						SNew(SButton)
-						.Text(LOCTEXT("Forward", "+"))
-						.ToolTipText(LOCTEXT("ForwardTooltip", "Move depth forward"))
-						.HAlign(EHorizontalAlignment::HAlign_Center)
-						.OnClicked_Lambda([&]()
-						{
-							for (auto Script : TargetScriptArray)
-							{
-								Script->SetDepth(Script->GetDepth() + 1);
-							}
-							ForceUpdateUI();
-							return FReply::Handled(); 
-						})
-					]
-				]
-				+ SHorizontalBox::Slot()
-				.Padding(1, 0)
-				.FillWidth(2)
-				[
-					SNew(SBox)
-					.HeightOverride(18)
-					[
-						SNew(SButton)
-						.Text(LOCTEXT("Back", "-"))
-						.ToolTipText(LOCTEXT("BackTooltip", "Move depth backward"))
-						.HAlign(EHorizontalAlignment::HAlign_Center)
-						.OnClicked_Lambda([&]()
-						{
-							for (auto Script : TargetScriptArray)
-							{
-								Script->SetDepth(Script->GetDepth() - 1);
-							}
-							ForceUpdateUI();
-							return FReply::Handled();
-						})
-					]
-				]
 
-				+ SHorizontalBox::Slot()
-				.MaxWidth(2)
-				[
-					SNew(SBox)
-				]
-
-				+ SHorizontalBox::Slot()
-				.Padding(1, 0)
-				.FillWidth(2)
-				[
-					SNew(SBox)
-					.HeightOverride(18)
-					[
-						SNew(SButton)
-						.Text(LOCTEXT("ForwardWithChildren", "++"))
-						.ToolTipText(LOCTEXT("ForwardWithChildrenTooltip", "Move depth forward with all children"))
-						.HAlign(EHorizontalAlignment::HAlign_Center)
-						.OnClicked_Lambda([&]()
-						{
-							for (auto Script : TargetScriptArray)
-							{
-								Script->SetDepth(Script->GetDepth() + 1, true);
-							}
-							ForceUpdateUI();
-							return FReply::Handled(); 
-						})
-					]
-				]
-				+ SHorizontalBox::Slot()
-				.Padding(1, 0)
-				.FillWidth(2)
-				[
-					SNew(SBox)
-					.HeightOverride(18)
-					[
-						SNew(SButton)
-						.Text(LOCTEXT("BackWithChildren", "--"))
-						.ToolTipText(LOCTEXT("BackWithChildrenTooltip", "Move depth backward with all children"))
-						.HAlign(EHorizontalAlignment::HAlign_Center)
-						.OnClicked_Lambda([&]()
-						{
-							for (auto Script : TargetScriptArray)
-							{
-								Script->SetDepth(Script->GetDepth() - 1, true);
-							}
-							ForceUpdateUI();
-							return FReply::Handled();
-						})
-					]
-				]
-				;
-
-				lguiCategory.AddCustomRow(LOCTEXT("DepthManager", "DepthManager"))
-				.CopyAction(FUIAction(
-					FExecuteAction::CreateSP(this, &FUIItemCustomization::OnCopyDepth)
-				))
-				.PasteAction(FUIAction(
-					FExecuteAction::CreateSP(this, &FUIItemCustomization::OnPasteDepth, depthHandle)
-				))
-				.NameContent()
-				[
-					depthHandle->CreatePropertyNameWidget()
-				]
-				.ValueContent()
-				.MinDesiredWidth(200)
-				.MaxDesiredWidth(200)
-				[
-					depthWidget
-				];
-
-
-			//depth info
-			{
-				if (TargetScriptArray[0]->GetWorld())
-				{
-					lguiCategory.AddCustomRow(LOCTEXT("DepthInfo", "DepthInfo"))
-					.WholeRowContent()
-					.MinDesiredWidth(500)
-					[
-						SNew(STextBlock)
-						.Font(IDetailLayoutBuilder::GetDetailFont())
-						.Text(this, &FUIItemCustomization::GetDepthInfo, TargetScriptArray[0])
-						.AutoWrapText(true)
-						.ToolTipText(FText::FromString(FString(TEXT("The same depth count shared by UI elements in same canvas"))))
-					];
-				}
-			}
-		}
-	}
 	//anchor, width, height
 	{
 		auto widthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.width));
@@ -890,7 +730,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		transformCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, flattenHierarchyIndex)), EPropertyLocation::Advanced);
 	}
 		
-	//TSharedPtr<IPropertyHandle> widgetHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(FUIWidget, depth));
 	//displayName
 	auto displayNamePropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, displayName));
 	DetailBuilder.HideProperty(displayNamePropertyHandle);
@@ -1010,67 +849,6 @@ FReply FUIItemCustomization::OnClickFixButton()
 	return FReply::Handled();
 }
 
-FText FUIItemCustomization::GetDepthInfo(TWeakObjectPtr<class UUIItem> TargetScript)const
-{
-	if (TargetScript.IsValid())
-	{
-		if (auto world = TargetScript->GetWorld())
-		{
-			TArray<UUIItem*> itemList;
-			if (world->IsGameWorld())
-			{
-				if (auto instance = ALGUIManagerActor::GetLGUIManagerActorInstance(world))
-				{
-					itemList = instance->GetAllUIItem();
-				}
-			}
-			else
-			{
-				if (ULGUIEditorManagerObject::Instance != nullptr)
-				{
-					itemList = ULGUIEditorManagerObject::Instance->GetAllUIItem();
-				}
-			}
-
-			auto uiType = TargetScript->GetUIItemType();
-			if (uiType != UIItemType::None)
-			{
-				auto renderCanvas = TargetScript.Get()->GetRenderCanvas();
-				if (renderCanvas != nullptr)
-				{
-					int renderDepthCount = 0;
-					int raycastDepthCount = 0;
-					for (auto item : itemList)
-					{
-						if (IsValid(item))
-						{
-							if (item->GetRenderCanvas() == renderCanvas)
-							{
-								if (TargetScript->GetUIItemType() == UIItemType::UIBatchGeometryRenderable && item->GetUIItemType() == UIItemType::UIBatchGeometryRenderable)
-								{
-									if (item->widget.depth == TargetScript->widget.depth)
-										renderDepthCount++;
-								}
-								if (TargetScript->IsRaycastTarget() && item->IsRaycastTarget())
-								{
-									if (item->widget.depth == TargetScript->widget.depth)
-										raycastDepthCount++;
-								}
-							}
-						}
-					}
-					auto depthInfo = FString::Printf(TEXT("Shared Renderable depth count:%d\nShared RaycastTarget depth count:%d"), renderDepthCount, raycastDepthCount);
-					return FText::FromString(depthInfo);
-				}
-				else
-				{
-					return FText::FromString(FString::Printf(TEXT("(Need LGUI Canvas!)")));
-				}
-			}
-		}
-	}
-	return LOCTEXT("", "");
-}
 void FUIItemCustomization::ForceRefreshEditor(IDetailLayoutBuilder* DetailBuilder)
 {
 	if (DetailBuilder)
@@ -1183,7 +961,6 @@ void FUIItemCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
 			if (item.IsValid())
 			{
 				auto itemWidget = item->GetWidget();
-				widget.depth = itemWidget.depth;
 				item->SetWidget(widget);
 				item->MarkPackageDirty();
 			}
@@ -1212,24 +989,5 @@ void FUIItemCustomization::OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> Pro
 		PropertyHandle->SetValue(value);
 	}
 }
-void FUIItemCustomization::OnCopyDepth()
-{
-	if (TargetScriptArray.Num() > 0)
-	{
-		if (TargetScriptArray[0].IsValid())
-		{
-			FPlatformApplicationMisc::ClipboardCopy(*FString::Printf(TEXT("%d"), TargetScriptArray[0]->GetDepth()));
-		}
-	}
-}
-void FUIItemCustomization::OnPasteDepth(TSharedRef<IPropertyHandle> PropertyHandle)
-{
-	FString PastedText;
-	FPlatformApplicationMisc::ClipboardPaste(PastedText);
-	if (PastedText.IsNumeric())
-	{
-		int value = FCString::Atoi(*PastedText);
-		PropertyHandle->SetValue(value);
-	}
-}
+
 #undef LOCTEXT_NAMESPACE

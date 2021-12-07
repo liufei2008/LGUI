@@ -819,12 +819,7 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIIte
 				auto BUIRenderable = (UUIBaseRenderable*)(B.Component.Get());
 				if (AUIRenderable->GetRenderCanvas() == BUIRenderable->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
 				{
-					if (AUIRenderable->GetDepth() == BUIRenderable->GetDepth())//if item's depth is equal then sort on distance
-					{
-						return A.Distance < B.Distance;
-					}
-					else
-						return AUIRenderable->GetDepth() > BUIRenderable->GetDepth();
+					return AUIRenderable->GetFlattenHierarchyIndex() > BUIRenderable->GetFlattenHierarchyIndex();
 				}
 				else//if Canvas's depth not equal then sort on Canvas's SortOrder
 				{

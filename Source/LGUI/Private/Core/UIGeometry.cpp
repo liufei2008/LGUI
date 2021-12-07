@@ -3877,22 +3877,10 @@ void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPt
 		originPositions.AddDefaulted(vertexCount - originVertexCount);
 	}
 	
-	FTransform itemToCanvasTf;
-#ifdef LGUI_DRAWCALLMODE_AUTO
-	if (canvas->GetAutoManageDepth())
-	{
-		FLGUICacheTransformContainer tempTf;
-		canvas->GetCacheUIItemToCanvasTransform(item, true, tempTf);
-		itemToCanvasTf = tempTf.Transform;
-	}
-	else
-#endif
-	{
-		auto canvasUIItem = canvas->GetUIItem();
-		auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
-		const auto& itemTf = item->GetComponentTransform();
-		FTransform::Multiply(&itemToCanvasTf, &itemTf, &inverseCanvasTf);
-	}
+	FLGUICacheTransformContainer tempTf;
+	canvas->GetCacheUIItemToCanvasTransform(item, true, tempTf);
+	auto itemToCanvasTf = tempTf.Transform;
+
 
 	for (int i = 0; i < vertexCount; i++)
 	{

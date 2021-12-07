@@ -88,9 +88,6 @@ void ULGUICanvas::UpdateRootCanvasDrawcall()
 
 	if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
 	{
-#ifdef LGUI_DRAWCALLMODE_AUTO
-		CacheUIItemToCanvasTransformMap.Reset();
-#endif
 		if (bCurrentIsLGUIRendererOrUERenderer)
 		{
 			if (!bHasAddToLGUIScreenSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
@@ -179,34 +176,42 @@ void ULGUICanvas::OnComponentDestroyed(bool bDestroyingHierarchy)
 
 void ULGUICanvas::ClearDrawcall()
 {
-	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+	//clear drawcall
+	for (auto i = 0; i < UIDrawcallList.Num(); i++)
 	{
-		auto drawcall = iter->GetValue();
-		drawcall->drawcallMeshSection = nullptr;
-		if (drawcall->postProcessRenderableObject.IsValid())
+		auto DrawcallItem = UIDrawcallList[i];
+		DrawcallItem->drawcallMeshSection = nullptr;
+		if (DrawcallItem->postProcessRenderableObject.IsValid())
 		{
-			if (drawcall->postProcessRenderableObject->IsRenderProxyValid())
+			if (DrawcallItem->postProcessRenderableObject->IsRenderProxyValid())
 			{
-				drawcall->postProcessRenderableObject->GetRenderProxy()->RemoveFromLGUIRenderer();
+				DrawcallItem->postProcessRenderableObject->GetRenderProxy()->RemoveFromLGUIRenderer();
 			}
 		}
-		if (drawcall->directMeshRenderableObject.IsValid())
+		if (DrawcallItem->directMeshRenderableObject.IsValid())
 		{
-			drawcall->directMeshRenderableObject->ClearMeshData();
+			DrawcallItem->directMeshRenderableObject->ClearMeshData();
 		}
-		if (drawcall->drawcallMesh.IsValid())
+		if (DrawcallItem->drawcallMesh.IsValid())
 		{
-			drawcall->drawcallMesh->DestroyComponent();
-			drawcall->drawcallMesh.Reset();
+			DrawcallItem->drawcallMesh->DestroyComponent();
+			DrawcallItem->drawcallMesh.Reset();
 		}
-		for (int i = 0; i < drawcall->renderObjectList.Num(); i++)
+		for (auto RenderObjectItem : DrawcallItem->renderObjectList)
 		{
-			if (drawcall->renderObjectList[i].IsValid())
+			if (RenderObjectItem.IsValid())
 			{
-				drawcall->renderObjectList[i]->drawcall = nullptr;
+				RenderObjectItem->drawcall = nullptr;
 			}
 		}
 	}
+	//clear renderable's drawcall
+	for (auto item : UIRenderableList)
+	{
+		item->drawcall.Reset();
+	}
+	UIRenderableList.Empty();
+
 	for (auto item : PooledUIMeshList)
 	{
 		if (item.IsValid())
@@ -218,6 +223,7 @@ void ULGUICanvas::ClearDrawcall()
 	UsingUIMeshList.Empty();
 	PooledUIMaterialList.Empty();
 	UIDrawcallList.Empty();
+	CacheUIDrawcallList.Empty();
 }
 
 void ULGUICanvas::RemoveFromViewExtension()
@@ -394,6 +400,11 @@ void ULGUICanvas::MarkCanvasUpdate()
 	}
 }
 
+void ULGUICanvas::MarkUIRenderableItemHierarchyChange()
+{
+	this->bIsUIRenderableHierarchyChanged = true;
+}
+
 #if WITH_EDITOR
 void ULGUICanvas::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -504,472 +515,448 @@ bool ULGUICanvas::GetIsUIActive()const
 	return false;
 }
 
-//DECLARE_CYCLE_STAT(TEXT("Canvas DrawcallBatch"), STAT_DrawcallBatch, STATGROUP_LGUI);
 void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
-	//SCOPE_CYCLE_COUNTER(STAT_DrawcallBatch);
-	auto SplitDrawcall = [&](TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* drawcallNodePtr
-		, int32 uiElementDepth
-		, TFunction<TSharedPtr<UUIDrawcall>(UMaterialInterface*)> NewDrawcall
-		)
+#if WITH_EDITOR
+	check(!UIRenderableList.Contains(InUIRenderable));
+#endif
+	UIRenderableList.Add(InUIRenderable);
+	if (RootCanvas.IsValid())
 	{
-		TSharedPtr<UUIDrawcall> drawcallToSplit = drawcallNodePtr->GetValue();
-		//split first drawcall: from depthMin to split point depth(include).
-		//split second drawcall: from split point depth(no include) to depthMax.
-
-		auto firstDrawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
-		firstDrawcall->type = EUIDrawcallType::BatchGeometry;
-		firstDrawcall->texture = drawcallToSplit->texture;
-		auto secondDrawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
-		secondDrawcall->type = EUIDrawcallType::BatchGeometry;
-		secondDrawcall->texture = drawcallToSplit->texture;
-
-		int32 firstDrawcallDepthMin = drawcallToSplit->depthMin;
-		int32 firstDrawcallDepthMax = uiElementDepth;
-		//int32 secondDrawcallDepthMin = uiElementDepth + 1;
-		//int32 secondDrawcallDepthMax = drawcallToSplit->depthMax;
-		for (int i = 0; i < drawcallToSplit->renderObjectList.Num(); i++)
-		{
-			auto renderObject = drawcallToSplit->renderObjectList[i];
-			if (renderObject->GetDepth() >= firstDrawcallDepthMin && renderObject->GetDepth() <= firstDrawcallDepthMax)
-			{
-				firstDrawcall->renderObjectList.Add(renderObject);
-				renderObject->drawcall = firstDrawcall;
-			}
-			else
-			{
-				secondDrawcall->renderObjectList.Add(renderObject);
-				renderObject->drawcall = secondDrawcall;
-			}
-		}
-
-		auto middleDrawcall = NewDrawcall(nullptr);
-
-		UIDrawcallList.InsertNode(firstDrawcall, drawcallNodePtr);
-		UIDrawcallList.InsertNode(middleDrawcall, drawcallNodePtr);
-		UIDrawcallList.InsertNode(secondDrawcall, drawcallNodePtr);
-		if (drawcallToSplit->drawcallMeshSection.IsValid())
-		{
-			drawcallToSplit->drawcallMesh->DeleteMeshSection(drawcallToSplit->drawcallMeshSection.Pin());
-			drawcallToSplit->drawcallMeshSection.Reset();
-		}
-		if (drawcallToSplit->materialInstanceDynamic.IsValid())
-		{
-			AddUIMaterialToPool(drawcallToSplit->materialInstanceDynamic.Get());
-			drawcallToSplit->materialInstanceDynamic.Reset();
-		}
-		UIDrawcallList.RemoveNode(drawcallNodePtr);
-	};
-	check(InUIRenderable->drawcall == nullptr);
-	bool hasAddNewDrawcall = false;
-	switch (InUIRenderable->GetUIRenderableType())
-	{
-	case EUIRenderableType::UIBatchGeometryRenderable:
-	{
-		auto batchGeometryRenderable = (UUIBatchGeometryRenderable*)InUIRenderable;
-		auto uiGeo = batchGeometryRenderable->GetGeometry();
-		check(uiGeo.IsValid());
-		auto NewDrawcall = [&](UMaterialInterface* mat)
-		{
-			hasAddNewDrawcall = true;
-			auto drawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
-			drawcall->texture = uiGeo->texture;
-			drawcall->material = mat;
-			drawcall->renderObjectList.Add(batchGeometryRenderable);
-			drawcall->type = EUIDrawcallType::BatchGeometry;
-			drawcall->UpdateDepthRange();
-			InUIRenderable->drawcall = drawcall;
-			return drawcall;
-		};
-		auto InsertIntoRenderObjectList = [](TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>>& list, UUIBatchGeometryRenderable* item)
-		{
-			bool insertSuccess = false;
-			for (int i = 0; i < list.Num(); i++)
-			{
-				if (item->GetDepth() <= list[i]->GetDepth())
-				{
-					list.Insert(item, i);
-					insertSuccess = true;
-					break;
-				}
-			}
-			if (!insertSuccess)
-			{
-				list.Add(item);
-			}
-		};
-
-		if (UIDrawcallList.Num() == 0)
-		{
-			auto drawcall = NewDrawcall(uiGeo->material.IsValid() ? uiGeo->material.Get() : nullptr);
-			UIDrawcallList.AddHead(drawcall);
-		}
-		else
-		{
-			if (uiGeo->material.IsValid())//consider every custom material as a drawcall
-			{
-				auto drawcall = NewDrawcall(uiGeo->material.Get());
-				bool haveInsert = false;
-				//find a place to insert this drawcall
-				for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
-				{
-					auto item = iter->GetValue();
-					if (drawcall->depthMin <= item->depthMin)
-					{
-						UIDrawcallList.InsertNode(drawcall, iter);
-						haveInsert = true;
-						break;
-					}
-				}
-				if (!haveInsert)
-				{
-					UIDrawcallList.AddTail(drawcall);
-				}
-			}
-			else//batch elements into drawcall by comparing depth and texture
-			{
-				auto uiElementDepth = InUIRenderable->GetDepth();
-				TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* nodePtrToInsert = nullptr;
-				for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
-				{
-					auto item = iter->GetValue();
-					if (uiElementDepth <= item->depthMin)
-					{
-						nodePtrToInsert = iter;
-						break;
-					}
-				}
-				
-				if (nodePtrToInsert == nullptr)//at tail, check: (batch, new dracall, new drawcall and split)
-				{
-					auto tailNode = UIDrawcallList.GetTail();
-					auto tailNodeDrawcall = tailNode->GetValue();
-					if (uiGeo->texture == tailNodeDrawcall->texture)//same texture, can batch
-					{
-						InsertIntoRenderObjectList(tailNodeDrawcall->renderObjectList, batchGeometryRenderable);
-						tailNodeDrawcall->needToRebuildMesh = true;
-						tailNodeDrawcall->UpdateDepthRange();
-						InUIRenderable->drawcall = tailNodeDrawcall;
-					}
-					else//different texture, cannot batch. but may split the exist drawcall node
-					{
-						if (uiElementDepth >= tailNodeDrawcall->depthMax)//not in depth range, no need to split drawcall
-						{
-							auto drawcall = NewDrawcall(nullptr);
-							UIDrawcallList.AddTail(drawcall);
-						}
-						else//inside depth range, must split drawcall
-						{
-							SplitDrawcall(tailNode, uiElementDepth, NewDrawcall);
-						}
-					}
-				}
-				else//not tail, maybe head or middle
-				{
-					auto headNode = UIDrawcallList.GetHead();
-					if (nodePtrToInsert == headNode)//head
-					{
-						auto nodeDrawcall = headNode->GetValue();
-						if (uiGeo->texture == nodeDrawcall->texture)//same texture, can batch
-						{
-							InsertIntoRenderObjectList(nodeDrawcall->renderObjectList, batchGeometryRenderable);
-							nodeDrawcall->needToRebuildMesh = true;
-							nodeDrawcall->UpdateDepthRange();
-							InUIRenderable->drawcall = nodeDrawcall;
-						}
-						else//different texture, cannot batch. create new drawcall
-						{
-							auto drawcall = NewDrawcall(nullptr);
-							UIDrawcallList.AddHead(drawcall);
-						}
-					}
-					else//middle
-					{
-						auto currentNodeDrawcall = nodePtrToInsert->GetValue();
-						if (uiGeo->texture == currentNodeDrawcall->texture)//same texture, can batch
-						{
-							InsertIntoRenderObjectList(currentNodeDrawcall->renderObjectList, batchGeometryRenderable);
-							currentNodeDrawcall->needToRebuildMesh = true;
-							currentNodeDrawcall->UpdateDepthRange();
-							InUIRenderable->drawcall = currentNodeDrawcall;
-						}
-						else//different texture, try prev node
-						{
-							auto prevNodeDrawcall = nodePtrToInsert->GetPrevNode()->GetValue();
-							if (uiGeo->texture == prevNodeDrawcall->texture)//same texture, can batch
-							{
-								InsertIntoRenderObjectList(prevNodeDrawcall->renderObjectList, batchGeometryRenderable);
-								prevNodeDrawcall->needToRebuildMesh = true;
-								prevNodeDrawcall->UpdateDepthRange();
-								InUIRenderable->drawcall = prevNodeDrawcall;
-							}
-							else//different texture, cannot batch. but may split the existing drawcall node
-							{
-								if (uiElementDepth >= prevNodeDrawcall->depthMax)//not in depth range, no need to split drawcall
-								{
-									auto drawcall = NewDrawcall(nullptr);
-									UIDrawcallList.InsertNode(drawcall, nodePtrToInsert);
-								}
-								else//inside depth range, must split drawcall
-								{
-									SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	break;
-	case EUIRenderableType::UIPostProcessRenderable:
-	{
-		auto postProcessRenderable = (UUIPostProcessRenderable*)InUIRenderable;
-		auto NewDrawcall = [&](UMaterialInterface* mat)
-		{
-			hasAddNewDrawcall = true;
-			auto drawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
-			drawcall->postProcessRenderableObject = postProcessRenderable;
-			drawcall->type = EUIDrawcallType::PostProcess;
-			drawcall->UpdateDepthRange();
-			InUIRenderable->drawcall = drawcall;
-			return drawcall;
-		};
-
-		if (UIDrawcallList.Num() == 0)
-		{
-			auto drawcall = NewDrawcall(nullptr);
-			UIDrawcallList.AddHead(drawcall);
-		}
-		else//find a place to insert this drawcall
-		{
-			auto uiElementDepth = InUIRenderable->GetDepth();
-			TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* nodePtrToInsert = nullptr;
-			for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
-			{
-				auto item = iter->GetValue();
-				if (uiElementDepth <= item->depthMin)
-				{
-					nodePtrToInsert = iter;
-					break;
-				}
-			}
-
-			if (nodePtrToInsert == nullptr)//at tail
-			{
-				auto drawcall = NewDrawcall(nullptr);
-				UIDrawcallList.AddTail(drawcall);
-			}
-			else//not tail, maybe head or middle
-			{
-				auto headNode = UIDrawcallList.GetHead();
-				if (nodePtrToInsert == headNode)//head
-				{
-					auto drawcall = NewDrawcall(nullptr);
-					UIDrawcallList.AddHead(drawcall);
-				}
-				else//middle
-				{
-					auto prevNodeDrawcall = nodePtrToInsert->GetPrevNode()->GetValue();
-					if (uiElementDepth >= prevNodeDrawcall->depthMax)//not in depth range, no need to split drawcall
-					{
-						auto drawcall = NewDrawcall(nullptr);
-						UIDrawcallList.InsertNode(drawcall, nodePtrToInsert);
-					}
-					else//inside depth range, must split drawcall
-					{
-						SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
-					}
-				}
-			}
-		}
-	}
-	break;
-	case EUIRenderableType::UIDirectMeshRenderable:
-	{
-		auto directMeshRenderable = (UUIDirectMeshRenderable*)InUIRenderable;
-		auto NewDrawcall = [&](UMaterialInterface* mat)
-		{
-			hasAddNewDrawcall = true;
-			auto drawcall = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
-			drawcall->directMeshRenderableObject = directMeshRenderable;
-			drawcall->type = EUIDrawcallType::DirectMesh;
-			drawcall->UpdateDepthRange();
-			InUIRenderable->drawcall = drawcall;
-			return drawcall;
-		};
-
-		if (UIDrawcallList.Num() == 0)
-		{
-			auto drawcall = NewDrawcall(nullptr);
-			UIDrawcallList.AddHead(drawcall);
-		}
-		else//find a place to insert this drawcall
-		{
-			auto uiElementDepth = InUIRenderable->GetDepth();
-			TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* nodePtrToInsert = nullptr;
-			for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
-			{
-				auto item = iter->GetValue();
-				if (uiElementDepth <= item->depthMin)
-				{
-					nodePtrToInsert = iter;
-					break;
-				}
-			}
-
-			if (nodePtrToInsert == nullptr)//at tail
-			{
-				auto drawcall = NewDrawcall(nullptr);
-				UIDrawcallList.AddTail(drawcall);
-			}
-			else//not tail, maybe head or middle
-			{
-				auto headNode = UIDrawcallList.GetHead();
-				if (nodePtrToInsert == headNode)//head
-				{
-					auto drawcall = NewDrawcall(nullptr);
-					UIDrawcallList.AddHead(drawcall);
-				}
-				else//middle
-				{
-					auto prevNodeDrawcall = nodePtrToInsert->GetPrevNode()->GetValue();
-					if (uiElementDepth >= prevNodeDrawcall->depthMax)//not in depth range, no need to split drawcall
-					{
-						auto drawcall = NewDrawcall(nullptr);
-						UIDrawcallList.InsertNode(drawcall, nodePtrToInsert);
-					}
-					else//inside depth range, must split drawcall
-					{
-						SplitDrawcall(nodePtrToInsert->GetPrevNode(), uiElementDepth, NewDrawcall);
-					}
-				}
-			}
-		}
-	}
-	break;
-	}
-
-	if (hasAddNewDrawcall)
-	{
-		if (RootCanvas.IsValid())
-		{
-			RootCanvas->bNeedToSortRenderPriority = true;
-		}
+		RootCanvas->bNeedToSortRenderPriority = true;
 	}
 	MarkCanvasUpdate();
+	this->bIsLayoutChanged = true;
+	this->bIsUIRenderableHierarchyChanged = true;
 }
 void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
-	//SCOPE_CYCLE_COUNTER(STAT_DrawcallBatch);
-	bool shouldCheckDrawcallCombine = false;
+	//remove drawcall from list
 	switch (InUIRenderable->GetUIRenderableType())
 	{
 	case EUIRenderableType::UIBatchGeometryRenderable:
 	{
-		auto batchGeometryRenderable = (UUIBatchGeometryRenderable*)InUIRenderable;
-		auto drawcall = batchGeometryRenderable->drawcall;
-		auto index = drawcall->renderObjectList.IndexOfByKey(batchGeometryRenderable);
+		auto UIBatchGeometryRenderable = (UUIBatchGeometryRenderable*)InUIRenderable;
+		auto Drawcall = UIBatchGeometryRenderable->drawcall;
+		auto index = Drawcall->renderObjectList.IndexOfByKey(UIBatchGeometryRenderable);
 		check(index != INDEX_NONE);
-		drawcall->renderObjectList.RemoveAt(index);
-		drawcall->UpdateDepthRange();
-		drawcall->needToRebuildMesh = true;
-		InUIRenderable->drawcall = nullptr;
-		if (drawcall->renderObjectList.Num() == 0)
+		Drawcall->renderObjectList.RemoveAt(index);
+		Drawcall->needToRebuildMesh = true;
+		if (Drawcall->renderObjectList.Num() == 0)
 		{
-			if (drawcall->drawcallMeshSection.IsValid())
+			if (Drawcall->drawcallMeshSection.IsValid())
 			{
-				drawcall->drawcallMesh->DeleteMeshSection(drawcall->drawcallMeshSection.Pin());
-				drawcall->drawcallMeshSection.Reset();
+				Drawcall->drawcallMesh->DeleteMeshSection(Drawcall->drawcallMeshSection.Pin());
+				Drawcall->drawcallMeshSection.Reset();
 			}
-			if (drawcall->materialInstanceDynamic.IsValid())
+			if (Drawcall->materialInstanceDynamic.IsValid())
 			{
-				AddUIMaterialToPool(drawcall->materialInstanceDynamic.Get());
-				drawcall->materialInstanceDynamic.Reset();
+				AddUIMaterialToPool(Drawcall->materialInstanceDynamic.Get());
+				Drawcall->materialInstanceDynamic.Reset();
 			}
-			UIDrawcallList.RemoveNode(drawcall);
-			shouldCheckDrawcallCombine = true;
+			UIDrawcallList.Remove(Drawcall);
 		}
 	}
 	break;
 	case EUIRenderableType::UIPostProcessRenderable:
 	case EUIRenderableType::UIDirectMeshRenderable:
 	{
-		auto drawcall = InUIRenderable->drawcall;
-		UIDrawcallList.RemoveNode(drawcall);
-		if (drawcall->drawcallMeshSection.IsValid())
+		auto Drawcall = InUIRenderable->drawcall;
+		UIDrawcallList.Remove(Drawcall);
+		if (Drawcall->drawcallMeshSection.IsValid())
 		{
-			drawcall->drawcallMesh->DeleteMeshSection(drawcall->drawcallMeshSection.Pin());
-			drawcall->drawcallMeshSection.Reset();
+			Drawcall->drawcallMesh->DeleteMeshSection(Drawcall->drawcallMeshSection.Pin());
+			Drawcall->drawcallMeshSection.Reset();
 		}
-		if (drawcall->postProcessRenderableObject.IsValid())
+		if (Drawcall->postProcessRenderableObject.IsValid())
 		{
-			if (drawcall->postProcessRenderableObject->IsRenderProxyValid())
+			if (Drawcall->postProcessRenderableObject->IsRenderProxyValid())
 			{
-				drawcall->postProcessRenderableObject->GetRenderProxy()->RemoveFromLGUIRenderer();
+				Drawcall->postProcessRenderableObject->GetRenderProxy()->RemoveFromLGUIRenderer();
 			}
 		}
-		if (drawcall->directMeshRenderableObject.IsValid())
+		if (Drawcall->directMeshRenderableObject.IsValid())
 		{
-			drawcall->directMeshRenderableObject->ClearMeshData();
+			Drawcall->directMeshRenderableObject->ClearMeshData();
 		}
-		drawcall.Reset();
-		InUIRenderable->drawcall = nullptr;
-		shouldCheckDrawcallCombine = true;
 	}
 	break;
 	}
 
-	if (shouldCheckDrawcallCombine)
+	InUIRenderable->drawcall = nullptr;
+	UIRenderableList.Remove(InUIRenderable);
+	if (RootCanvas.IsValid())
 	{
-		//check drawcall to see if we can combine some
-		CombineDrawcall();
+		RootCanvas->bNeedToSortRenderPriority = true;
 	}
+	MarkCanvasUpdate();
+	this->bIsLayoutChanged = true;
+	this->bIsUIRenderableHierarchyChanged = true;
 }
-void ULGUICanvas::CombineDrawcall()
+
+bool ULGUICanvas::Is2DUITransform(const FTransform& Transform)
 {
-	EUIDrawcallType prevDrwacallType = EUIDrawcallType::None;
-	UMaterialInterface* prevMaterial = nullptr;
-	UTexture* prevTexture = nullptr;
-	for (auto iter = UIDrawcallList.GetTail(); iter != nullptr; iter = iter->GetPrevNode())//from tail to head; so when add renderObjectList, prev obj line after
+#if WITH_EDITOR
+	float threshold = ULGUISettings::GetAutoManageDepthThreshold();
+#else
+	static float threshold = ULGUISettings::GetAutoManageDepthThreshold();
+#endif
+	if (FMath::Abs(Transform.GetLocation().X) > threshold)//location X moved
 	{
-		auto drawcallItem = iter->GetValue();
-		if (drawcallItem->type == EUIDrawcallType::BatchGeometry && prevDrwacallType == EUIDrawcallType::BatchGeometry)//only batch geometry can be combined
+		return false;
+	}
+	auto rotation = Transform.GetRotation().Rotator();
+	if (FMath::Abs(rotation.Yaw) > threshold || FMath::Abs(rotation.Pitch) > threshold)//rotate
+	{
+		return false;
+	}
+	return true;
+}
+
+DECLARE_CYCLE_STAT(TEXT("Canvas DrawcallBatch"), STAT_DrawcallBatch, STATGROUP_LGUI);
+void ULGUICanvas::UpdateDrawcall_Implement()
+{
+	SCOPE_CYCLE_COUNTER(STAT_DrawcallBatch);
+
+	auto IntersectBounds = [](FVector2D aMin, FVector2D aMax, FVector2D bMin, FVector2D bMax) {
+		return !(bMin.X >= aMax.X
+			|| bMax.X <= aMin.X
+			|| bMax.Y <= aMin.Y
+			|| bMin.Y >= aMax.Y
+			);
+	};
+	auto OverlapWithOtherDrawcall = [IntersectBounds](const FLGUICacheTransformContainer& ItemToCanvasTf, TSharedPtr<UUIDrawcall> DrawcallItem) {
+		switch (DrawcallItem->type)
 		{
-			if (drawcallItem->material == nullptr && prevMaterial == nullptr)//custom material cannot combine
+		case EUIDrawcallType::BatchGeometry:
+		{
+			//compare drawcall item's bounds
+			for (auto otherItem : DrawcallItem->renderObjectList)
 			{
-				if (drawcallItem->texture == prevTexture)//same texture, can combine
+				FLGUICacheTransformContainer OtherItemToCanvasTf;
+				otherItem->GetRenderCanvas()->GetCacheUIItemToCanvasTransform(otherItem.Get(), true, OtherItemToCanvasTf);
+				//check bounds overlap
+				if (IntersectBounds(ItemToCanvasTf.BoundsMin2D, ItemToCanvasTf.BoundsMax2D, OtherItemToCanvasTf.BoundsMin2D, OtherItemToCanvasTf.BoundsMax2D))
 				{
-					//combine next-node drawcall into current
-					auto prevNode = iter->GetNextNode();
-					auto prevDrawcall = prevNode->GetValue();
-					auto currentDrawcall = drawcallItem;
-					int additionalSize = prevDrawcall->renderObjectList.Num();
-					currentDrawcall->renderObjectList.Reserve(currentDrawcall->renderObjectList.Num() + additionalSize);
-					for (int i = 0; i < additionalSize; i++)
-					{
-						currentDrawcall->renderObjectList.Add(prevDrawcall->renderObjectList[i]);
-						prevDrawcall->renderObjectList[i]->drawcall = currentDrawcall;
-					}
-					currentDrawcall->needToRebuildMesh = true;
-					currentDrawcall->UpdateDepthRange();
-					if (prevDrawcall->drawcallMeshSection.IsValid())
-					{
-						prevDrawcall->drawcallMesh->DeleteMeshSection(prevDrawcall->drawcallMeshSection.Pin());
-						prevDrawcall->drawcallMeshSection.Reset();
-					}
-					if (prevDrawcall->materialInstanceDynamic.IsValid())
-					{
-						AddUIMaterialToPool(prevDrawcall->materialInstanceDynamic.Get());
-					}
-					UIDrawcallList.RemoveNode(prevNode);
+					return true;
 				}
 			}
 		}
-		prevDrwacallType = drawcallItem->type;
-		prevTexture = drawcallItem->texture.Get();
-		prevMaterial = drawcallItem->material.Get();
+		break;
+		case EUIDrawcallType::PostProcess:
+		{
+			FLGUICacheTransformContainer OtherItemToCanvasTf;
+			DrawcallItem->postProcessRenderableObject->GetRenderCanvas()->GetCacheUIItemToCanvasTransform(DrawcallItem->postProcessRenderableObject.Get(), true, OtherItemToCanvasTf);
+			//check bounds overlap
+			if (IntersectBounds(ItemToCanvasTf.BoundsMin2D, ItemToCanvasTf.BoundsMax2D, OtherItemToCanvasTf.BoundsMin2D, OtherItemToCanvasTf.BoundsMax2D))
+			{
+				return true;
+			}
+		}
+		break;
+		case EUIDrawcallType::DirectMesh://mostly direct mesh are difficult to calculate 2d bounds, so just return true-overlap
+		{
+			return true;
+		}
+		break;
+		}
+
+		return false;
+	};
+	auto CanFitInDrawcall = [=](UUIBatchGeometryRenderable* InUIItem, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
+	{
+		for (int i = UIDrawcallList.Num() - 1; i >= 0; i--)//from tail to head
+		{
+			auto DrawcallItem = UIDrawcallList[i];
+			if (!DrawcallItem->bIs2DSpace)//drawcall is 3d, can't batch
+			{
+				return false;
+			}
+
+			if (DrawcallItem->material.IsValid()
+				|| DrawcallItem->type != EUIDrawcallType::BatchGeometry
+				|| DrawcallItem->texture != InUIItem->GetGeometry()->texture
+				)//can't fit in this drawcall, should check overlap
+			{
+				if (OverlapWithOtherDrawcall(InUIItemToCanvasTf, DrawcallItem))//overlap with other drawcall, can't batch
+				{
+					return false;
+				}
+				continue;//keep searching
+			}
+			OutDrawcallIndexToFitin = i;
+			return true;//can fit in drawcall
+		}
+		return false;
+	};
+	auto PushSingleDrawcall = [=](UUIBaseRenderable* UIBaseRenderable, TSharedPtr<UIGeometry> ItemGeo, bool Is2DSpace, EUIDrawcallType DrawcallType) {
+		TSharedPtr<UUIDrawcall> DrawcallItem = nullptr;
+		auto FoundDrawcallIndex = CacheUIDrawcallList.IndexOfByPredicate([=](const TSharedPtr<UUIDrawcall>& Item) {
+			if (Item->type == DrawcallType)
+			{
+				switch (DrawcallType)
+				{
+				case EUIDrawcallType::BatchGeometry:
+				{
+					if (Item->renderObjectList.Contains(UIBaseRenderable))
+					{
+						return true;
+					}
+				}
+					break;
+				case EUIDrawcallType::PostProcess:
+				{
+					if (Item->postProcessRenderableObject == UIBaseRenderable)
+					{
+						return true;
+					}
+				}
+					break;
+				case EUIDrawcallType::DirectMesh:
+				{
+					if (Item->directMeshRenderableObject == UIBaseRenderable)
+					{
+						return true;
+					}
+				}
+					break;
+				}
+			}
+			return false;
+			});
+		if (FoundDrawcallIndex != INDEX_NONE)
+		{
+			DrawcallItem = CacheUIDrawcallList[FoundDrawcallIndex];
+			CacheUIDrawcallList.RemoveAt(FoundDrawcallIndex);//cannot use "RemoveAtSwap" here, because we need the right order to tell if we should sort render order, see "bNeedToSortRenderPriority"
+			DrawcallItem->bIs2DSpace = Is2DSpace;
+		}
+		else
+		{
+			DrawcallItem = TSharedPtr<UUIDrawcall>(new UUIDrawcall);
+			DrawcallItem->type = DrawcallType;
+			switch (DrawcallType)
+			{
+			case EUIDrawcallType::BatchGeometry:
+			{
+				DrawcallItem->texture = ItemGeo->texture;
+				DrawcallItem->material = ItemGeo->material.Get();
+				DrawcallItem->renderObjectList.Add((UUIBatchGeometryRenderable*)UIBaseRenderable);
+			}
+				break;
+			case EUIDrawcallType::PostProcess:
+			{
+				DrawcallItem->postProcessRenderableObject = (UUIPostProcessRenderable*)UIBaseRenderable;
+			}
+				break;
+			case EUIDrawcallType::DirectMesh:
+			{
+				DrawcallItem->directMeshRenderableObject = (UUIDirectMeshRenderable*)UIBaseRenderable;
+			}
+				break;
+			}
+			
+			DrawcallItem->bIs2DSpace = Is2DSpace;
+		}
+		UIBaseRenderable->drawcall = DrawcallItem;
+		UIDrawcallList.Add(DrawcallItem);
+
+		if (FoundDrawcallIndex != 0)//if found drawcall not at head of array, 
+		{
+			bNeedToSortRenderPriority = true;
+		}
+	};
+	auto ClearDrawcallInList = [=](TSharedPtr<UUIDrawcall> InDrawcallItem, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, UUIBatchGeometryRenderable* InUIBatchGeometryRenderable) {
+		auto FoundIndex = InUIDrawcallList.IndexOfByPredicate([=](const TSharedPtr<UUIDrawcall>& Item) {
+			return Item == InDrawcallItem;
+			});
+		if (FoundIndex != INDEX_NONE)
+		{
+			auto DrawcallItem = InUIDrawcallList[FoundIndex];
+			if (DrawcallItem->drawcallMesh.IsValid())
+			{
+				if (DrawcallItem->drawcallMeshSection.IsValid())//drawcallMeshSection could be deleted by other item when "ClearDrawcallInList"
+				{
+					DrawcallItem->drawcallMesh->DeleteMeshSection(DrawcallItem->drawcallMeshSection.Pin());
+					DrawcallItem->drawcallMeshSection.Reset();
+				}
+			}
+			if (DrawcallItem->materialInstanceDynamic.IsValid())
+			{
+				AddUIMaterialToPool(DrawcallItem->materialInstanceDynamic.Get());
+				DrawcallItem->materialInstanceDynamic.Reset();
+			}
+			DrawcallItem->needToRebuildMesh = true;
+			DrawcallItem->renderObjectList.Remove(InUIBatchGeometryRenderable);
+			InUIBatchGeometryRenderable->drawcall = nullptr;
+			return true;
+		}
+		return false;
+	};
+
+	//store prev created drawcall to cache list, so when we create drawcall, we can search in the cache list and use existing one
+	for (auto Item : UIDrawcallList)
+	{
+		CacheUIDrawcallList.Add(Item);
 	}
+	UIDrawcallList.Reset();
+	//reset transform map, because transform change
+	CacheUIItemToCanvasTransformMap.Reset();
+	//hierarchy change, need to sort it
+	if (bIsUIRenderableHierarchyChanged)
+	{
+		bIsUIRenderableHierarchyChanged = false;
+		UIRenderableList.Sort([](const UUIBaseRenderable& A, const UUIBaseRenderable& B) {
+			return A.GetFlattenHierarchyIndex() < B.GetFlattenHierarchyIndex();
+			});
+	}
+	//for sorted ui items, iterate from head to tail, compare drawcall from tail to head
+	for (int i = 0; i < UIRenderableList.Num(); i++)
+	{
+		auto UIRenderableItem = UIRenderableList[i];
+		FLGUICacheTransformContainer UIItemToCanvasTf;
+		this->GetCacheUIItemToCanvasTransform(UIRenderableItem, true, UIItemToCanvasTf);
+		bool is2DUIItem = Is2DUITransform(UIItemToCanvasTf.Transform);
+		switch (UIRenderableItem->GetUIRenderableType())
+		{
+		default:
+		case EUIRenderableType::UIBatchGeometryRenderable:
+		{
+			auto UIBatchGeometryRenderableItem = (UUIBatchGeometryRenderable*)UIRenderableItem;
+			auto ItemGeo = UIBatchGeometryRenderableItem->GetGeometry();
+			if (ItemGeo.IsValid() == false)continue;
+			if (ItemGeo->vertices.Num() == 0)continue;
+
+			if (!ItemGeo->material.IsValid()//consider every custom material as a drawcall
+				&& !is2DUIItem//3d UI can't batch
+				)
+			{
+				auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
+				if (UIBatchGeometryRenderableItem->drawcall.IsValid())//maybe exist in other drawcall, should check that drawcall
+				{
+					//find the drawcall in list and remove from it, clear the mesh and material
+					if (!ClearDrawcallInList(UIBatchGeometryRenderableItem->drawcall, UIDrawcallList, UIBatchGeometryRenderableItem))
+					{
+						ClearDrawcallInList(UIBatchGeometryRenderableItem->drawcall, CacheUIDrawcallList, UIBatchGeometryRenderableItem);
+					}
+				}
+				//make a individural drawacll
+				PushSingleDrawcall(UIBatchGeometryRenderableItem, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry);
+				//copy update state from old to new
+				if (OldDrawcall.IsValid())
+				{
+					OldDrawcall->CopyUpdateState(UIBatchGeometryRenderableItem->drawcall.Get());
+				}
+			}
+			else//batch elements into drawcall
+			{
+				int DrawcallIndexToFitin;
+				if (CanFitInDrawcall(UIBatchGeometryRenderableItem, UIItemToCanvasTf, DrawcallIndexToFitin))
+				{
+					auto DrawcallItem = UIDrawcallList[DrawcallIndexToFitin];
+					if (UIBatchGeometryRenderableItem->drawcall == DrawcallItem)//already exist in this drawcall (added in prev render frame)
+					{
+						if (UIBatchGeometryRenderableItem->GetFlatternHierarchyIndexChangeAtThisRenderFrame())
+						{
+							DrawcallItem->bShouldSortRenderObjectList = true;//mark for sort the list after drawcall creation
+							DrawcallItem->needToUpdateVertex = true;//after sort the list, we should update vertex data too
+						}
+					}
+					else//not exist in this drawcall
+					{
+						auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
+						if (UIBatchGeometryRenderableItem->drawcall.IsValid())//maybe exist in other drawcall, should check that drawcall
+						{
+							//find the drawcall in list and remove from it, clear the mesh and material
+							if (!ClearDrawcallInList(UIBatchGeometryRenderableItem->drawcall, UIDrawcallList, UIBatchGeometryRenderableItem))
+							{
+								ClearDrawcallInList(UIBatchGeometryRenderableItem->drawcall, CacheUIDrawcallList, UIBatchGeometryRenderableItem);
+							}
+						}
+						//add to this drawcall
+						DrawcallItem->renderObjectList.Add(UIBatchGeometryRenderableItem);
+						DrawcallItem->needToRebuildMesh = true;
+						UIBatchGeometryRenderableItem->drawcall = DrawcallItem;
+						//copy update state from old to new
+						if (OldDrawcall.IsValid())
+						{
+							OldDrawcall->CopyUpdateState(UIBatchGeometryRenderableItem->drawcall.Get());
+						}
+					}
+				}
+				else
+				{
+					auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
+					if (UIBatchGeometryRenderableItem->drawcall.IsValid())//maybe exist in other drawcall, should check that drawcall
+					{
+						//find the drawcall in list and remove from it, clear the mesh and material
+						if (!ClearDrawcallInList(UIBatchGeometryRenderableItem->drawcall, UIDrawcallList, UIBatchGeometryRenderableItem))
+						{
+							ClearDrawcallInList(UIBatchGeometryRenderableItem->drawcall, CacheUIDrawcallList, UIBatchGeometryRenderableItem);
+						}
+					}
+					//make a individural drawacll
+					PushSingleDrawcall(UIBatchGeometryRenderableItem, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry);
+					//copy update state from old to new
+					if (OldDrawcall.IsValid())
+					{
+						OldDrawcall->CopyUpdateState(UIBatchGeometryRenderableItem->drawcall.Get());
+					}
+				}
+			}
+		}
+		break;
+		case EUIRenderableType::UIPostProcessRenderable:
+		{
+			auto UIPostProcessRenderableItem = (UUIPostProcessRenderable*)UIRenderableItem;
+			auto ItemGeo = UIPostProcessRenderableItem->GetGeometry();
+			if (ItemGeo.IsValid() == false)continue;
+			if (ItemGeo->vertices.Num() == 0)continue;
+			//every postprocess is a drawcall
+			PushSingleDrawcall(UIRenderableItem, ItemGeo, is2DUIItem, EUIDrawcallType::PostProcess);
+			//no need to copy drawcall's update data for UIPostProcessRenderable, because UIPostProcessRenderable's drawcall should be the same as previours one
+		}
+		break;
+		case EUIRenderableType::UIDirectMeshRenderable:
+		{
+			auto UIDirectMeshRenderableItem = (UUIDirectMeshRenderable*)UIRenderableItem;
+			//every direct mesh is a drawcall
+			PushSingleDrawcall(UIRenderableItem, nullptr, is2DUIItem, EUIDrawcallType::BatchGeometry);
+			//no need to copy drawcall's update data for UIDirectMeshRenderable, because UIDirectMeshRenderable's drawcall should be the same as previours one
+		}
+		break;
+		}
+	}
+
+	//for not used drawcalls, clear data
+	for (int i = 0; i < CacheUIDrawcallList.Num(); i++)
+	{
+		auto DrawcallInCache = CacheUIDrawcallList[i];
+		if (DrawcallInCache->drawcallMesh.IsValid())
+		{
+			if (DrawcallInCache->drawcallMeshSection.IsValid())//drawcallMeshSection could be deleted when "ClearDrawcallInList"
+			{
+				DrawcallInCache->drawcallMesh->DeleteMeshSection(DrawcallInCache->drawcallMeshSection.Pin());
+				DrawcallInCache->drawcallMeshSection.Reset();
+			}
+		}
+		if (DrawcallInCache->materialInstanceDynamic.IsValid())
+		{
+			AddUIMaterialToPool(DrawcallInCache->materialInstanceDynamic.Get());
+			DrawcallInCache->materialInstanceDynamic.Reset();
+		}
+		if (DrawcallInCache->postProcessRenderableObject.IsValid())
+		{
+			if (DrawcallInCache->postProcessRenderableObject->IsRenderProxyValid())
+			{
+				DrawcallInCache->postProcessRenderableObject->GetRenderProxy()->RemoveFromLGUIRenderer();
+			}
+		}
+		if (DrawcallInCache->directMeshRenderableObject.IsValid())
+		{
+			DrawcallInCache->directMeshRenderableObject->ClearMeshData();
+		}
+	}
+	CacheUIDrawcallList.Reset();
 }
 
 void ULGUICanvas::SetOverrideViewLoation(bool InOverride, FVector InValue)
@@ -995,6 +982,7 @@ void ULGUICanvas::SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue)
 
 void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
 {
+	if (!bIsLayoutChanged) bIsLayoutChanged = layoutChanged;
 	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
 	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged || layoutChanged;
 	if (bRectRangeCalculated)
@@ -1007,19 +995,19 @@ void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
 	bTextureClipParameterChanged = false;
 }
 
-ULGUIMeshComponent* ULGUICanvas::FindNextValidMeshInDrawcallList(TDoubleLinkedList<TSharedPtr<UUIDrawcall>>::TDoubleLinkedListNode* InNode)
+ULGUIMeshComponent* ULGUICanvas::FindNextValidMeshInDrawcallList(int32 InStartIndex)
 {
-	for (auto searchItr = InNode; searchItr != nullptr; searchItr = searchItr->GetNextNode())
+	for (auto i = InStartIndex; i < UIDrawcallList.Num(); i++)
 	{
-		auto searchDrawcallItem = searchItr->GetValue();
-		switch (searchDrawcallItem->type)
+		auto DrawcallItem = UIDrawcallList[i];
+		switch (DrawcallItem->type)
 		{
 		case EUIDrawcallType::DirectMesh:
 		case EUIDrawcallType::BatchGeometry:
 		{
-			if (searchDrawcallItem->drawcallMesh.IsValid())
+			if (DrawcallItem->drawcallMesh.IsValid())
 			{
-				return searchDrawcallItem->drawcallMesh.Get();
+				return DrawcallItem->drawcallMesh.Get();
 			}
 		}
 		break;
@@ -1070,8 +1058,14 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 			item->UpdateCanvasDrawcall();
 		}
 	}
-
+	
 	//update drawcall
+	if (bIsLayoutChanged || bIsUIRenderableHierarchyChanged)
+	{
+		bIsLayoutChanged = false;
+		UpdateDrawcall_Implement();
+	}
+	//update drawcall mesh
 	{
 		ULGUIMeshComponent* prevUIMesh = nullptr;
 		if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)//WorldSpace-UE-Renderer only have one drawcall mesh, so we just get the first one
@@ -1088,80 +1082,87 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 		}
 
 
-		for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+		for (int i = 0 ; i < UIDrawcallList.Num(); i++)
 		{
-			auto drawcallItem = iter->GetValue();
+			auto DrawcallItem = UIDrawcallList[i];
 			//check drawcall mesh first
-			switch (drawcallItem->type)
+			switch (DrawcallItem->type)
 			{
 			case EUIDrawcallType::DirectMesh:
 			case EUIDrawcallType::BatchGeometry:
 			{
-				if (!drawcallItem->drawcallMesh.IsValid())
+				if (!DrawcallItem->drawcallMesh.IsValid())
 				{
 					if (prevUIMesh == nullptr)
 					{
 						//if drawcall mesh is not valid, we need to search in next drawcalls and find mesh drawcall object (not post process drawcall)
-						if (auto foundMesh = FindNextValidMeshInDrawcallList(iter->GetNextNode()))
+						if (auto foundMesh = FindNextValidMeshInDrawcallList(i + 1))
 						{
 							prevUIMesh = foundMesh;
 						}
-						else//not find valid mesh, then get from existing
+						else//not find valid mesh, then get from pool
 						{
 							prevUIMesh = this->GetUIMeshFromPool().Get();
 						}
 					}
-					drawcallItem->drawcallMesh = prevUIMesh;
+					DrawcallItem->drawcallMesh = prevUIMesh;
 				}
 			}
 			break;
 			}
 
 
-			switch (drawcallItem->type)
+			switch (DrawcallItem->type)
 			{
 			case EUIDrawcallType::DirectMesh:
 			{
-				auto MeshSection = drawcallItem->drawcallMeshSection;
+				auto MeshSection = DrawcallItem->drawcallMeshSection;
 				if (!MeshSection.IsValid())
 				{
-					auto UIMesh = drawcallItem->drawcallMesh;
+					auto UIMesh = DrawcallItem->drawcallMesh;
 					MeshSection = UIMesh->GetMeshSection();
 
-					drawcallItem->drawcallMeshSection = MeshSection;
-					drawcallItem->directMeshRenderableObject->SetMeshData(UIMesh, MeshSection);
+					DrawcallItem->drawcallMeshSection = MeshSection;
+					DrawcallItem->directMeshRenderableObject->SetMeshData(UIMesh, MeshSection);
 					UIMesh->CreateMeshSection(MeshSection.Pin());
 				}
-				prevUIMesh = drawcallItem->drawcallMesh.Get();
+				prevUIMesh = DrawcallItem->drawcallMesh.Get();
 			}
 			break;
 			case EUIDrawcallType::BatchGeometry:
 			{
-				auto UIMesh = drawcallItem->drawcallMesh;
-				auto MeshSection = drawcallItem->drawcallMeshSection;
-				if (drawcallItem->needToRebuildMesh)
+				auto UIMesh = DrawcallItem->drawcallMesh;
+				auto MeshSection = DrawcallItem->drawcallMeshSection;
+				if (DrawcallItem->bShouldSortRenderObjectList)
+				{
+					DrawcallItem->bShouldSortRenderObjectList = false;
+					DrawcallItem->renderObjectList.Sort([](const TWeakObjectPtr<UUIBatchGeometryRenderable>& A, const TWeakObjectPtr<UUIBatchGeometryRenderable>& B) {
+						return A->GetFlattenHierarchyIndex() < B->GetFlattenHierarchyIndex();
+						});
+				}
+				if (DrawcallItem->needToRebuildMesh)
 				{
 					if (!MeshSection.IsValid())
 					{
 						MeshSection = UIMesh->GetMeshSection();
-						drawcallItem->drawcallMeshSection = MeshSection;
+						DrawcallItem->drawcallMeshSection = MeshSection;
 					}
 					auto MeshSectionPtr = MeshSection.Pin();
 					MeshSectionPtr->vertices.Reset();
 					MeshSectionPtr->triangles.Reset();
-					drawcallItem->GetCombined(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
+					DrawcallItem->GetCombined(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
 					MeshSectionPtr->prevVertexCount = MeshSectionPtr->vertices.Num();
 					MeshSectionPtr->prevIndexCount = MeshSectionPtr->triangles.Num();
 					UIMesh->CreateMeshSection(MeshSectionPtr);
-					drawcallItem->needToRebuildMesh = false;
-					drawcallItem->needToUpdateVertex = false;
-					drawcallItem->vertexPositionChanged = false;
+					DrawcallItem->needToRebuildMesh = false;
+					DrawcallItem->needToUpdateVertex = false;
+					DrawcallItem->vertexPositionChanged = false;
 				}
-				else if (drawcallItem->needToUpdateVertex)
+				else if (DrawcallItem->needToUpdateVertex)
 				{
 					check(MeshSection.IsValid());
 					auto MeshSectionPtr = MeshSection.Pin();
-					drawcallItem->UpdateData(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
+					DrawcallItem->UpdateData(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
 					if (MeshSectionPtr->prevVertexCount == MeshSectionPtr->vertices.Num() && MeshSectionPtr->prevIndexCount == MeshSectionPtr->triangles.Num())
 					{
 						UIMesh->UpdateMeshSection(MeshSectionPtr, true, GetActualAdditionalShaderChannelFlags());
@@ -1173,10 +1174,10 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 						//meshSection->prevIndexCount = meshSection->triangles.Num();
 						//UIMesh->CreateMeshSection(meshSection);
 					}
-					drawcallItem->needToUpdateVertex = false;
-					drawcallItem->vertexPositionChanged = false;
+					DrawcallItem->needToUpdateVertex = false;
+					DrawcallItem->vertexPositionChanged = false;
 				}
-				prevUIMesh = drawcallItem->drawcallMesh.Get();
+				prevUIMesh = DrawcallItem->drawcallMesh.Get();
 			}
 			break;
 			case EUIDrawcallType::PostProcess:
@@ -1208,15 +1209,15 @@ void ULGUICanvas::UpdateCanvasDrawcall()
 					}
 				}
 
-				if (!drawcallItem->postProcessRenderableObject->IsRenderProxyValid())
+				if (!DrawcallItem->postProcessRenderableObject->IsRenderProxyValid())
 				{
-					drawcallItem->postProcessRenderableObject->GetRenderProxy();
-					drawcallItem->needToAddPostProcessRenderProxyToRender = true;
+					DrawcallItem->postProcessRenderableObject->GetRenderProxy();
+					DrawcallItem->needToAddPostProcessRenderProxyToRender = true;
 				}
-				if (drawcallItem->needToAddPostProcessRenderProxyToRender)
+				if (DrawcallItem->needToAddPostProcessRenderProxyToRender)
 				{
-					drawcallItem->needToAddPostProcessRenderProxyToRender = false;
-					auto uiPostProcessPrimitive = drawcallItem->postProcessRenderableObject->GetRenderProxy();
+					DrawcallItem->needToAddPostProcessRenderProxyToRender = false;
+					auto uiPostProcessPrimitive = DrawcallItem->postProcessRenderableObject->GetRenderProxy();
 #if WITH_EDITOR
 					if (!GetWorld()->IsGameWorld())
 					{
@@ -1434,15 +1435,15 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 	ULGUIMeshComponent* prevUIMesh = nullptr;
 	int drawcallIndex = 0;
 	int meshOrPostProcessCount = 0;
-	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
-		auto drawcallItem = iter->GetValue();
-		switch (drawcallItem->type)
+		auto DrawcallItem = UIDrawcallList[i];
+		switch (DrawcallItem->type)
 		{
 		case EUIDrawcallType::BatchGeometry:
 		case EUIDrawcallType::DirectMesh:
 		{
-			if (drawcallItem->drawcallMesh != prevUIMesh)
+			if (DrawcallItem->drawcallMesh != prevUIMesh)
 			{
 				meshOrPostProcessCount++;
 				if (prevUIMesh != nullptr)
@@ -1452,21 +1453,21 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)
 				}
 				if (this->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
 				{
-					drawcallItem->drawcallMesh->SetUITranslucentSortPriority(this->sortOrder);
+					DrawcallItem->drawcallMesh->SetUITranslucentSortPriority(this->sortOrder);
 				}
 				else
 				{
-					drawcallItem->drawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
+					DrawcallItem->drawcallMesh->SetUITranslucentSortPriority(InStartRenderPriority++);
 				}
-				prevUIMesh = drawcallItem->drawcallMesh.Get();
+				prevUIMesh = DrawcallItem->drawcallMesh.Get();
 			}
-			drawcallItem->drawcallMesh->SetMeshSectionRenderPriority(drawcallItem->drawcallMeshSection.Pin(), drawcallIndex++);
+			DrawcallItem->drawcallMesh->SetMeshSectionRenderPriority(DrawcallItem->drawcallMeshSection.Pin(), drawcallIndex++);
 		}
 		break;
 		case EUIDrawcallType::PostProcess:
 		{
 			meshOrPostProcessCount++;
-			drawcallItem->postProcessRenderableObject->GetRenderProxy()->SetUITranslucentSortPriority(InStartRenderPriority++);
+			DrawcallItem->postProcessRenderableObject->GetRenderProxy()->SetUITranslucentSortPriority(InStartRenderPriority++);
 		}
 		break;
 		}
@@ -1534,17 +1535,17 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 {
 	auto tempClipType = GetActualClipType();
 	bool needToSetClipParameter = false;
-	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
-		auto drawcallItem = iter->GetValue();
-		if (drawcallItem->type == EUIDrawcallType::BatchGeometry)
+		auto DrawcallItem = UIDrawcallList[i];
+		if (DrawcallItem->type == EUIDrawcallType::BatchGeometry)
 		{
-			auto uiMat = drawcallItem->materialInstanceDynamic;
-			if (!uiMat.IsValid() || drawcallItem->materialChanged || cacheForThisUpdate_ClipTypeChanged)
+			auto uiMat = DrawcallItem->materialInstanceDynamic;
+			if (!uiMat.IsValid() || DrawcallItem->materialChanged || cacheForThisUpdate_ClipTypeChanged)
 			{
-				if (drawcallItem->material.IsValid())//custom material
+				if (DrawcallItem->material.IsValid())//custom material
 				{
-					auto SrcMaterial = drawcallItem->material.Get();
+					auto SrcMaterial = DrawcallItem->material.Get();
 					if (SrcMaterial->IsA(UMaterialInstanceDynamic::StaticClass()))
 					{
 						auto containsLGUIParam = IsMaterialContainsLGUIParameter(SrcMaterial);
@@ -1552,7 +1553,7 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 						{
 							uiMat = (UMaterialInstanceDynamic*)SrcMaterial;
 						}
-						drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), SrcMaterial);
+						DrawcallItem->drawcallMesh->SetMeshSectionMaterial(DrawcallItem->drawcallMeshSection.Pin(), SrcMaterial);
 					}
 					else
 					{
@@ -1561,58 +1562,58 @@ void ULGUICanvas::UpdateAndApplyMaterial()
 						{
 							uiMat = UMaterialInstanceDynamic::Create(SrcMaterial, this);
 							uiMat->SetFlags(RF_Transient);
-							drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
+							DrawcallItem->drawcallMesh->SetMeshSectionMaterial(DrawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
 						}
 						else
 						{
-							drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), SrcMaterial);
+							DrawcallItem->drawcallMesh->SetMeshSectionMaterial(DrawcallItem->drawcallMeshSection.Pin(), SrcMaterial);
 						}
 					}
 				}
 				else
 				{
 					uiMat = GetUIMaterialFromPool(tempClipType);
-					drawcallItem->drawcallMesh->SetMeshSectionMaterial(drawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
+					DrawcallItem->drawcallMesh->SetMeshSectionMaterial(DrawcallItem->drawcallMeshSection.Pin(), uiMat.Get());
 				}
-				drawcallItem->materialInstanceDynamic = uiMat;
-				drawcallItem->materialChanged = false;
+				DrawcallItem->materialInstanceDynamic = uiMat;
+				DrawcallItem->materialChanged = false;
 				if (uiMat.IsValid())
 				{
-					uiMat->SetTextureParameterValue(LGUI_MainTextureMaterialParameterName, drawcallItem->texture.Get());
+					uiMat->SetTextureParameterValue(LGUI_MainTextureMaterialParameterName, DrawcallItem->texture.Get());
 				}
-				drawcallItem->textureChanged = false;
+				DrawcallItem->textureChanged = false;
 				needToSetClipParameter = true;
 			}
-			else if (drawcallItem->textureChanged)
+			else if (DrawcallItem->textureChanged)
 			{
-				uiMat->SetTextureParameterValue(LGUI_MainTextureMaterialParameterName, drawcallItem->texture.Get());
-				drawcallItem->textureChanged = false;
+				uiMat->SetTextureParameterValue(LGUI_MainTextureMaterialParameterName, DrawcallItem->texture.Get());
+				DrawcallItem->textureChanged = false;
 			}
 		}
-		else if (drawcallItem->type == EUIDrawcallType::PostProcess)
+		else if (DrawcallItem->type == EUIDrawcallType::PostProcess)
 		{
 			if (cacheForThisUpdate_ClipTypeChanged
-				|| drawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
+				|| DrawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
 				)
 			{
-				if (drawcallItem->postProcessRenderableObject.IsValid())
+				if (DrawcallItem->postProcessRenderableObject.IsValid())
 				{
-					drawcallItem->postProcessRenderableObject->SetClipType(tempClipType);
-					drawcallItem->materialChanged = false;
+					DrawcallItem->postProcessRenderableObject->SetClipType(tempClipType);
+					DrawcallItem->materialChanged = false;
 				}
 				needToSetClipParameter = true;
 			}
 		}
-		else if (drawcallItem->type == EUIDrawcallType::DirectMesh)
+		else if (DrawcallItem->type == EUIDrawcallType::DirectMesh)
 		{
 			if (cacheForThisUpdate_ClipTypeChanged
-				|| drawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
+				|| DrawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
 				)
 			{
-				if (drawcallItem->directMeshRenderableObject.IsValid())
+				if (DrawcallItem->directMeshRenderableObject.IsValid())
 				{
-					drawcallItem->directMeshRenderableObject->SetClipType(tempClipType);
-					drawcallItem->materialChanged = false;
+					DrawcallItem->directMeshRenderableObject->SetClipType(tempClipType);
+					DrawcallItem->materialChanged = false;
 				}
 				needToSetClipParameter = true;
 			}
@@ -1697,15 +1698,15 @@ void ULGUICanvas::SetParameterForRectClip()
 {
 	auto rectClipOffsetAndSize = this->GetRectClipOffsetAndSize();
 	auto rectClipFeather = this->GetRectClipFeather();
-	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
-		auto drawcallItem = iter->GetValue();
-		switch (drawcallItem->type)
+		auto DrawcallItem = UIDrawcallList[i];
+		switch (DrawcallItem->type)
 		{
 		default:
 		case EUIDrawcallType::BatchGeometry:
 		{
-			auto uiMat = drawcallItem->materialInstanceDynamic;
+			auto uiMat = DrawcallItem->materialInstanceDynamic;
 			if (uiMat.IsValid())
 			{
 				uiMat->SetVectorParameterValue(LGUI_RectClipOffsetAndSize_MaterialParameterName, rectClipOffsetAndSize);
@@ -1715,17 +1716,17 @@ void ULGUICanvas::SetParameterForRectClip()
 		break;
 		case EUIDrawcallType::PostProcess:
 		{
-			if (drawcallItem->postProcessRenderableObject.IsValid())
+			if (DrawcallItem->postProcessRenderableObject.IsValid())
 			{
-				drawcallItem->postProcessRenderableObject->SetRectClipParameter(rectClipOffsetAndSize, rectClipFeather);
+				DrawcallItem->postProcessRenderableObject->SetRectClipParameter(rectClipOffsetAndSize, rectClipFeather);
 			}
 		}
 		break;
 		case EUIDrawcallType::DirectMesh:
 		{
-			if (drawcallItem->directMeshRenderableObject.IsValid())
+			if (DrawcallItem->directMeshRenderableObject.IsValid())
 			{
-				drawcallItem->directMeshRenderableObject->SetRectClipParameter(rectClipOffsetAndSize, rectClipFeather);
+				DrawcallItem->directMeshRenderableObject->SetRectClipParameter(rectClipOffsetAndSize, rectClipFeather);
 			}
 		}
 		break;
@@ -1735,15 +1736,15 @@ void ULGUICanvas::SetParameterForRectClip()
 void ULGUICanvas::SetParameterForTextureClip()
 {
 	auto textureClipOffsetAndSize = this->GetTextureClipOffsetAndSize();
-	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
-		auto drawcallItem = iter->GetValue();
-		switch (drawcallItem->type)
+		auto DrawcallItem = UIDrawcallList[i];
+		switch (DrawcallItem->type)
 		{
 		default:
 		case EUIDrawcallType::BatchGeometry:
 		{
-			auto uiMat = drawcallItem->materialInstanceDynamic;
+			auto uiMat = DrawcallItem->materialInstanceDynamic;
 			if (uiMat.IsValid())
 			{
 				uiMat->SetTextureParameterValue(LGUI_TextureClip_MaterialParameterName, clipTexture);
@@ -1753,17 +1754,17 @@ void ULGUICanvas::SetParameterForTextureClip()
 		break;
 		case EUIDrawcallType::PostProcess:
 		{
-			if (drawcallItem->postProcessRenderableObject.IsValid())
+			if (DrawcallItem->postProcessRenderableObject.IsValid())
 			{
-				drawcallItem->postProcessRenderableObject->SetTextureClipParameter(clipTexture, textureClipOffsetAndSize);
+				DrawcallItem->postProcessRenderableObject->SetTextureClipParameter(clipTexture, textureClipOffsetAndSize);
 			}
 		}
 		break;
 		case EUIDrawcallType::DirectMesh:
 		{
-			if (drawcallItem->directMeshRenderableObject.IsValid())
+			if (DrawcallItem->directMeshRenderableObject.IsValid())
 			{
-				drawcallItem->directMeshRenderableObject->SetTextureClipParameter(clipTexture, textureClipOffsetAndSize);
+				DrawcallItem->directMeshRenderableObject->SetTextureClipParameter(clipTexture, textureClipOffsetAndSize);
 			}
 		}
 		break;
@@ -2165,14 +2166,14 @@ void ULGUICanvas::SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas)
 
 void ULGUICanvas::SetDefaultMaterials(UMaterialInterface* InMaterials[3])
 {
-	for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
-		auto drawcallItem = iter->GetValue();
-		if (drawcallItem->type == EUIDrawcallType::BatchGeometry)
+		auto DrawcallItem = UIDrawcallList[i];
+		if (DrawcallItem->type == EUIDrawcallType::BatchGeometry)
 		{
-			if (drawcallItem->material == nullptr)
+			if (DrawcallItem->material == nullptr)
 			{
-				drawcallItem->materialChanged = true;
+				DrawcallItem->materialChanged = true;
 			}
 		}
 	}
@@ -2193,12 +2194,12 @@ void ULGUICanvas::SetDynamicPixelsPerUnit(float newValue)
 	if (dynamicPixelsPerUnit != newValue)
 	{
 		dynamicPixelsPerUnit = newValue;
-		for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+		for (int i = 0; i < UIDrawcallList.Num(); i++)
 		{
-			auto drawcallItem = iter->GetValue();
-			if (drawcallItem->type == EUIDrawcallType::BatchGeometry)
+			auto DrawcallItem = UIDrawcallList[i];
+			if (DrawcallItem->type == EUIDrawcallType::BatchGeometry)
 			{
-				drawcallItem->textureChanged = true;
+				DrawcallItem->textureChanged = true;
 			}
 		}
 		MarkCanvasUpdate();
@@ -2489,12 +2490,12 @@ void ULGUICanvas::SetPixelPerfect(bool value)
 	if (pixelPerfect != value)
 	{
 		pixelPerfect = value;
-		for (auto iter = UIDrawcallList.GetHead(); iter != nullptr; iter = iter->GetNextNode())
+		for (int i = 0; i < UIDrawcallList.Num(); i++)
 		{
-			auto drawcall = iter->GetValue();
-			if (drawcall->type == EUIDrawcallType::BatchGeometry)
+			auto DrawcallItem = UIDrawcallList[i];
+			if (DrawcallItem->type == EUIDrawcallType::BatchGeometry)
 			{
-				drawcall->needToUpdateVertex = true;
+				DrawcallItem->needToUpdateVertex = true;
 			}
 		}
 		MarkCanvasUpdate();
@@ -2708,7 +2709,7 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 	return nullptr;
 }
 
-#ifdef LGUI_DRAWCALLMODE_AUTO
+
 bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult)
 {
 	if (auto tfPtr = this->CacheUIItemToCanvasTransformMap.Find(item))
@@ -2733,6 +2734,7 @@ bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNo
 
 			outResult.BoundsMin2D = itemMin;
 			outResult.BoundsMax2D = itemMax;
+			CacheUIItemToCanvasTransformMap.Add(item, outResult);
 			return true;
 		}
 		return false;
@@ -2741,13 +2743,14 @@ bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNo
 FTransform2D ULGUICanvas::ConvertTo2DTransform(const FTransform& Transform)
 {
 	auto itemToCanvasMatrix = Transform.ToMatrixWithScale();
-	auto itemToCanvasTf2D = FTransform2D(FMatrix2x2(itemToCanvasMatrix.M[0][0], itemToCanvasMatrix.M[0][1], itemToCanvasMatrix.M[1][0], itemToCanvasMatrix.M[1][1]), FVector2D(Transform.GetLocation()));
+	auto itemLocation = Transform.GetLocation();
+	auto itemToCanvasTf2D = FTransform2D(FMatrix2x2(itemToCanvasMatrix.M[1][1], itemToCanvasMatrix.M[1][2], itemToCanvasMatrix.M[2][1], itemToCanvasMatrix.M[2][2]), FVector2D(itemLocation.Y, itemLocation.Z));
 	return itemToCanvasTf2D;
 }
 void ULGUICanvas::CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max)
 {
 	FVector2D localPoint1, localPoint2;
-	item->GetLocalSpaceMinMaxPoint_ForAutoManageDepth(localPoint1, localPoint2);
+	item->GetLocalSpaceMinMaxPoint(localPoint1, localPoint2);
 	auto point1 = transform.TransformPoint(localPoint1);
 	auto point2 = transform.TransformPoint(localPoint2);
 	auto point3 = transform.TransformPoint(FVector2D(localPoint2.X, localPoint1.Y));
@@ -2766,6 +2769,5 @@ void ULGUICanvas::GetMinMax(float a, float b, float c, float d, float& min, floa
 	min = FMath::Min(abMin, cdMin);
 	max = FMath::Max(abMax, cdMax);
 }
-#endif
 
 //PRAGMA_ENABLE_OPTIMIZATION

@@ -82,18 +82,16 @@ public:
 		int32 PriorityInSceneViewExtension = 0;
 
 	/** 
-	 * When use auto manage depth, only 2D elements can be batched.
+	 * Only 2D elements can be batched.
 	 * Ruls for telling if a UI element is 2D (convert the UI element in Canvas's relative space):
 	 *		Relative location.Z less than threshold.
 	 *		Relative rotation.X/Y less than threshold.
 	 * This is the threshold for determine if the UI element is 2D.
 	 */
-	//UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
-	//	float autoManageDepthThreshold = KINDA_SMALL_NUMBER;
-#ifdef LGUI_DRAWCALLMODE_AUTO
+	UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
+		float autoManageDepthThreshold = KINDA_SMALL_NUMBER;
 #if WITH_EDITORONLY_DATA
 	static float cacheAutoManageDepthThreshold;
-#endif
 #endif
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
@@ -105,9 +103,7 @@ public:
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
 	static ELGUIScreenSpaceUIAntiAliasing GetAntiAliasingSampleCount();
-#ifdef LGUI_DRAWCALLMODE_AUTO
 	static float GetAutoManageDepthThreshold();
-#endif
 	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
 	{
 		return FMath::Pow(2, (int32)InType) * 256;

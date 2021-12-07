@@ -18,7 +18,6 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 private:
 	TArray<TWeakObjectPtr<class UUIItem>> TargetScriptArray;
-	FText GetDepthInfo(TWeakObjectPtr<class UUIItem> InTargetScript)const;
 
 	bool GetIsAnchorsEnabled()const;
 	FText GetAnchorsTooltipText()const;
@@ -33,8 +32,6 @@ private:
 	void OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder);
 	void OnCopyHierarchyIndex();
 	void OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> PropertyHandle);
-	void OnCopyDepth();
-	void OnPasteDepth(TSharedRef<IPropertyHandle> PropertyHandle);
 
 	EVisibility GetDisplayNameWarningVisibility()const;
 	FReply OnClickFixButton();

@@ -31,9 +31,6 @@ USTRUCT(BlueprintType)
 struct LGUI_API FUIWidget
 {
 	GENERATED_BODY()
-	/** Higher depth render on top of lower one, and receive raycast before lower one */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		int32 depth = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		FVector2D pivot = FVector2D(0.5f, 0.5f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")

@@ -28,8 +28,8 @@ UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectIniti
 	SetVisibility(false);
 	bWantsOnUpdateTransform = true;
 	bCanSetAnchorFromTransform = false;//skip construction
-	itemType = UIItemType::UIItem;
 
+	bFlattenHierarchyIndexChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 	bShouldUpdateRootUIItemLayout = true;
@@ -48,6 +48,7 @@ void UUIItem::BeginPlay()
 	GetParentAsUIItem();
 	CheckRootUIItem();
 
+	bFlattenHierarchyIndexChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 	bShouldUpdateRootUIItemLayout = true;
@@ -277,6 +278,7 @@ int32 UUIItem::GetFlattenHierarchyIndex()const
 
 void UUIItem::MarkFlattenHierarchyIndexDirty()
 {
+	bFlattenHierarchyIndexChanged = true;
 	if (RootUIItem.IsValid())
 	{
 		RootUIItem->bFlattenHierarchyIndexDirty = true;
@@ -444,6 +446,7 @@ void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& In
 
 void UUIItem::MarkAllDirtyRecursive()
 {
+	bFlattenHierarchyIndexChanged = true;
 	bLayoutChanged = true;
 	bSizeChanged = true;
 
@@ -1365,10 +1368,6 @@ void UUIItem::UpdateChildUIItemRecursive(UUIItem* target, bool parentLayoutChang
 }
 void UUIItem::UpdateRootUIItem()
 {
-	if (this->bFlattenHierarchyIndexDirty)
-	{
-		this->RecalculateFlattenHierarchyIndex();
-	}
 	if (bNeedUpdateRootUIItem)
 	{
 		bNeedUpdateRootUIItem = false;
@@ -1524,18 +1523,20 @@ void UUIItem::UpdateCachedData()
 {
 	this->cacheForThisUpdate_LayoutChanged = bLayoutChanged;
 	this->cacheForThisUpdate_SizeChanged = bSizeChanged;
+	this->cacheForThisUpdate_FlattenHierarchyIndexChange = bFlattenHierarchyIndexChanged;
 	bLayoutChanged = false;
 	bSizeChanged = false;
+	bFlattenHierarchyIndexChanged = false;
 }
 void UUIItem::UpdateCachedDataBeforeGeometry()
 {
 	if (bLayoutChanged)cacheForThisUpdate_LayoutChanged = true;
 	if (bSizeChanged)cacheForThisUpdate_SizeChanged = true;
+	if (bFlattenHierarchyIndexChanged)cacheForThisUpdate_FlattenHierarchyIndexChange = true;
 }
 
 void UUIItem::SetWidget(const FUIWidget& inWidget)
 {
-	SetDepth(inWidget.depth);
 	SetPivot(inWidget.pivot);
 	SetAnchorHAlign(inWidget.anchorHAlign);
 	SetAnchorVAlign(inWidget.anchorVAlign);
@@ -1566,28 +1567,6 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 		SetStretchBottom(inWidget.stretchBottom);
 		SetAnchorOffsetZ(inWidget.anchorOffsetY);
 		SetHeight(inWidget.height);
-	}
-}
-
-void UUIItem::SetDepth(int32 depth, bool propagateToChildren) {
-	if (widget.depth != depth)
-	{
-		int32 diff = depth - widget.depth;
-		widget.depth = depth;
-		if (propagateToChildren)
-		{
-			auto children = this->UIChildren;
-			for (int i = 0; i < children.Num(); i++)
-			{
-				auto child = children[i];
-				if (IsValid(child))
-				{
-					child->SetDepth(child->widget.depth + diff, propagateToChildren);
-				}
-			}
-		}
-		DepthChanged();
-		MarkCanvasUpdate();
 	}
 }
 
@@ -1642,10 +1621,7 @@ void UUIItem::PivotChanged()
 {
 
 }
-void UUIItem::DepthChanged()
-{
 
-}
 void UUIItem::SetAnchorOffsetY(float newOffset) 
 {
 	if (FMath::Abs(widget.anchorOffsetX - newOffset) > KINDA_SMALL_NUMBER)
@@ -1963,13 +1939,11 @@ FVector2D UUIItem::GetLocalSpaceCenter()const
 	return FVector2D(widget.width * (0.5f - widget.pivot.X), widget.height * (0.5f - widget.pivot.Y));
 }
 
-#ifdef LGUI_DRAWCALLMODE_AUTO
-void UUIItem::GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const
+void UUIItem::GetLocalSpaceMinMaxPoint(FVector2D& min, FVector2D& max)const
 {
 	min = GetLocalSpaceLeftBottomPoint();
 	max = GetLocalSpaceRightTopPoint();
 }
-#endif
 
 float UUIItem::GetLocalSpaceLeft()const
 {

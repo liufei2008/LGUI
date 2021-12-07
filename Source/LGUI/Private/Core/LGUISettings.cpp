@@ -6,9 +6,7 @@
 #include "Core/LGUIAtlasData.h"
 
 #if WITH_EDITOR
-#ifdef LGUI_DRAWCALLMODE_AUTO
 float ULGUISettings::cacheAutoManageDepthThreshold = -1;
-#endif
 void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -22,12 +20,10 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
 			ULGUIAtlasManager::InitCheck();
 		}
-#ifdef LGUI_DRAWCALLMODE_AUTO
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISettings, autoManageDepthThreshold))
 		{
 			cacheAutoManageDepthThreshold = autoManageDepthThreshold;
 		}
-#endif
 	}
 }
 #endif
@@ -67,7 +63,6 @@ ELGUIScreenSpaceUIAntiAliasing ULGUISettings::GetAntiAliasingSampleCount()
 {
 	return GetDefault<ULGUISettings>()->antiAliasing;
 }
-#ifdef LGUI_DRAWCALLMODE_AUTO
 float ULGUISettings::GetAutoManageDepthThreshold()
 {
 #if WITH_EDITOR
@@ -80,7 +75,6 @@ float ULGUISettings::GetAutoManageDepthThreshold()
 	return GetDefault<ULGUISettings>()->autoManageDepthThreshold;
 #endif
 }
-#endif
 int32 ULGUISettings::GetPriorityInSceneViewExtension()
 {
 	return GetDefault<ULGUISettings>()->PriorityInSceneViewExtension;

@@ -11,7 +11,6 @@
 UUIBaseRenderable::UUIBaseRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	itemType = UIItemType::UIBatchGeometryRenderable;
 	uiRenderableType = EUIRenderableType::None;
 
 	bColorChanged = true;
@@ -63,19 +62,6 @@ void UUIBaseRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanva
 	}
 }
 
-void UUIBaseRenderable::DepthChanged()
-{
-	if (CheckRenderCanvas())
-	{
-		if (drawcall.IsValid())
-		{
-			//Remove from old drawcall, then add to new drawcall.
-			RenderCanvas->RemoveUIRenderable(this);
-			RenderCanvas->AddUIRenderable(this);
-		}
-	}
-}
-
 void UUIBaseRenderable::OnCanvasGroupAlphaChange()
 {
 	MarkColorDirty();
@@ -106,6 +92,15 @@ void UUIBaseRenderable::UpdateCachedDataBeforeGeometry()
 		cacheForThisUpdate_ColorChanged = true;
 	}
 	Super::UpdateCachedDataBeforeGeometry();
+}
+
+void UUIBaseRenderable::MarkFlattenHierarchyIndexDirty()
+{
+	Super::MarkFlattenHierarchyIndexDirty();
+	if (RenderCanvas.IsValid())
+	{
+		RenderCanvas->MarkUIRenderableItemHierarchyChange();
+	}
 }
 
 bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End)

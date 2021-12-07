@@ -12,14 +12,6 @@
 class ULGUICanvas;
 class UUICanvasGroup;
 
-UENUM(BlueprintType, Category = LGUI)
-enum class UIItemType :uint8
-{
-	None,
-	UIItem,
-	UIBatchGeometryRenderable,
-};
-
 /**
  * Base class for almost all UI related things.
  */
@@ -42,7 +34,7 @@ public:
 	/** USceneComponent Interface. Only needed for show rect range in editor */
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	/** update UI immediately in edit mode */
-	virtual void EditorForceUpdateImmediately();
+	virtual void EditorForceUpdateImmediately();//@todo: remove this
 #endif
 	
 #pragma region LGUILifeCycleUIBehaviour
@@ -146,12 +138,7 @@ public:
 		const FUIWidget& GetWidget()const { return widget; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetWidget(const FUIWidget& inWidget);
-	/**
-	 * Set UIItem depth.
-	 * @param	propagateToChildren	if true, set this UIItem's depth and all UIItems that is attached to this UIItem, not just set absolute value, but keep child's relative depth to this one.
-	 */
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetDepth(int32 depth, bool propagateToChildren = false);
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetWidth(float newWidth);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -183,8 +170,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorOffset(FVector2D newOffset);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		int GetDepth() const { return widget.depth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		float GetWidth() const { return widget.width; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -239,10 +224,8 @@ public:
 	/** Get LGUICanvasScaler from root canvas, return null if not have one */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class ULGUICanvasScaler* GetCanvasScaler()const;
-#ifdef LGUI_DRAWCALLMODE_AUTO
-	/** For autoManageDepth, return bounds min max point in self local space */
-	virtual void GetLocalSpaceMinMaxPoint_ForAutoManageDepth(FVector2D& min, FVector2D& max)const;
-#endif
+	/** return bounds min max point in self local space */
+	virtual void GetLocalSpaceMinMaxPoint(FVector2D& min, FVector2D& max)const;
 	void MarkLayoutDirty(bool sizeChange);
 
 	/** mark all dirty for UI element to update, include all children */
@@ -253,7 +236,6 @@ protected:
 	virtual void WidthChanged();
 	virtual void HeightChanged();	
 	virtual void PivotChanged();
-	virtual void DepthChanged();
 
 #pragma region UICanvasGroup
 protected:
@@ -307,7 +289,7 @@ protected:
 	UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)
 	mutable int32 flattenHierarchyIndex = 0;
 	void OnChildHierarchyIndexChanged(UUIItem* child);
-	void MarkFlattenHierarchyIndexDirty();
+	virtual void MarkFlattenHierarchyIndexDirty();
 private:
 	/** Only for RootUIItem */
 	void RecalculateFlattenHierarchyIndex()const;
@@ -395,21 +377,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool IsWorldSpaceUI()const;
 
-	/** get UI element type */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		UIItemType GetUIItemType()const { return itemType; }
 	bool IsCanvasUIItem() { return bIsCanvasUIItem; }
 protected:
 	friend class FUIItemCustomization;
 	friend class ULGUICanvas;
-	UIItemType itemType = UIItemType::None;
 	/** LGUICanvas which render this UI element */
 	mutable TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	/** is this UIItem's actor have LGUICanvas component */
 	mutable uint16 bIsCanvasUIItem:1;
 	uint16 bCanSetAnchorFromTransform : 1;
 
-	uint16 bLayoutChanged:1;//layout changed
+	uint16 bFlattenHierarchyIndexChanged : 1;//hierarchy index changed
+	uint16 bLayoutChanged : 1;//layout changed
 	uint16 bSizeChanged : 1;//rect size changed
 	uint16 bShouldUpdateRootUIItemLayout : 1;//Only for RootUIItem, if any child layout changed
 	uint16 bNeedUpdateRootUIItem : 1;//Only for RootUIItem, any data change and need update
@@ -417,7 +396,7 @@ protected:
 	mutable uint16 bFlattenHierarchyIndexDirty : 1;
 
 	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
-	uint16 cacheForThisUpdate_LayoutChanged:1, cacheForThisUpdate_SizeChanged:1, cacheForThisUpdate_ShouldUpdateLayout:1;
+	uint16 cacheForThisUpdate_LayoutChanged : 1, cacheForThisUpdate_SizeChanged : 1, cacheForThisUpdate_ShouldUpdateLayout : 1, cacheForThisUpdate_FlattenHierarchyIndexChange : 1;
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 
@@ -431,6 +410,7 @@ protected:
 
 	void UpdateChildUIItemRecursive(UUIItem* target, bool parentLayoutChanged);
 public:
+	bool GetFlatternHierarchyIndexChangeAtThisRenderFrame()const { return cacheForThisUpdate_FlattenHierarchyIndexChange; }
 	/** Called from LGUIManagerActor */
 	void UpdateRootUIItem();
 #if WITH_EDITORONLY_DATA

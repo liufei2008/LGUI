@@ -47,33 +47,12 @@ public:
 
 	TWeakObjectPtr<UUIDirectMeshRenderable> directMeshRenderableObject;
 
-	int depthMin = 0;//min depth of all geometries
-	int depthMax = 0;//max depth of all geometries
+	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
+	bool bShouldSortRenderObjectList = false;
 
-	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall
-#ifdef LGUI_DRAWCALLMODE_AUTO
-	bool is3DDrawcall = false;//transform relative to canvas is 3d or not? only 2d drawcall can batch
-#endif
+	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
 	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles);
-	//update the max and min depth
-	void UpdateDepthRange();
-	void Clear();
-	
-#ifdef LGUI_DRAWCALLMODE_AUTO
-	bool IsDepthInsideDrawcall(int depth)
-	{
-		return depth >= depthMin && depth < depthMax;
-	}
-	bool Equals(UUIDrawcall* Other);
-
-	static bool CompareDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& A, const TArray<TSharedPtr<UUIDrawcall>>& B);
-	static void CopyDrawcallList(const TArray<TSharedPtr<UUIDrawcall>>& From, TArray<TSharedPtr<UUIDrawcall>>& To);
-
-	static void CreateDrawcallForAutoManageDepth(TArray<TWeakObjectPtr<class UUIBaseRenderable>>& sortedList, TArray<TSharedPtr<class UUIDrawcall>>& drawcallList);
-private:
-	static TSharedPtr<class UUIDrawcall> GetAvailableDrawcall(TArray<TSharedPtr<UUIDrawcall>>& drawcallList, int& prevDrawcallListCount, int& drawcallCount);
-	static bool Is2DUITransform(const FTransform& Transform);
-#endif
+	void CopyUpdateState(UUIDrawcall* Target);
 };

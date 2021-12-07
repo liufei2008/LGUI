@@ -1261,7 +1261,6 @@ void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool 
 #endif
 		CaretObject = caretActor->GetUISprite();
 		auto uiText = TextActor->GetUIText();
-		CaretObject->SetDepth(uiText->GetDepth() + 1);
 		CaretObject->SetWidth(CaretWidth);
 		CaretObject->SetHeight(uiText->GetSize());
 		CaretObject->SetColor(CaretColor);
@@ -1295,7 +1294,6 @@ void UUITextInputComponent::UpdateSelection()
 #endif
 			auto uiSprite = spriteActor->GetUISprite();
 			auto uiText = TextActor->GetUIText();
-			uiSprite->SetDepth(uiText->GetDepth() + 2);
 			uiSprite->SetHeight(uiText->GetSize());
 			uiSprite->SetColor(SelectionColor);
 			uiSprite->SetAnchorHAlign(UIAnchorHorizontalAlign::None);

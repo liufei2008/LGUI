@@ -59,6 +59,10 @@ void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& P
 	}
 }
 #endif
+void UUIBatchGeometryRenderable::OnRegister()
+{
+	Super::OnRegister();
+}
 void UUIBatchGeometryRenderable::OnUnregister()
 {
 	Super::OnUnregister();
@@ -130,21 +134,11 @@ void UUIBatchGeometryRenderable::MarkTextureDirty()
 				if (!IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
 				{
 					UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
-					RenderCanvas->RemoveUIRenderable(this);
 				}
 				else
 				{
 					geometry->texture = GetTextureToCreateGeometry();
-					//Remove from old drawcall, then add to new drawcall.
-					RenderCanvas->RemoveUIRenderable(this);
-					RenderCanvas->AddUIRenderable(this);
 				}
-			}
-			else
-			{
-				//Remove from old drawcall, then add to new drawcall.
-				RenderCanvas->RemoveUIRenderable(this);
-				RenderCanvas->AddUIRenderable(this);
 			}
 		}
 	}
@@ -156,10 +150,7 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 	{
 		if (drawcall.IsValid())
 		{
-			//Remove from old drawcall, then add to new drawcall.
-			RenderCanvas->RemoveUIRenderable(this);
 			geometry->material = CustomUIMaterial;
-			RenderCanvas->AddUIRenderable(this);
 		}
 	}
 	MarkCanvasUpdate();
@@ -327,10 +318,6 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
 			if (CreateGeometry())
 			{
 				drawcall->needToRebuildMesh = true;
-			}
-			else
-			{
-				RenderCanvas->RemoveUIRenderable(this);
 			}
 			goto COMPLETE;
 		}
