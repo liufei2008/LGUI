@@ -28,7 +28,6 @@ protected:
 	void OnUnregister();
 
 	bool CheckUIItem();
-	//bool CheckParentUICanvasGroup();
 
 	FDelegateHandle UIHierarchyChangeDelegateHandle;
 	void OnUIHierarchyChanged();
@@ -72,6 +71,7 @@ public:
 	void UnregisterInteractableStateChange(const FDelegateHandle& InHandle);
 	FDelegateHandle RegisterAlphaChange(const FSimpleDelegate& InCallback);
 	void UnregisterAlphaChange(const FDelegateHandle& InHandle);
+	void SetParentCanvasGroup(UUICanvasGroup* InParentCanvasGroup);
 	/**
 	 * Return final calculated alpha, will concern parent's alpha value.
 	 */

@@ -99,7 +99,17 @@ void UUIBaseRenderable::MarkFlattenHierarchyIndexDirty()
 	Super::MarkFlattenHierarchyIndexDirty();
 	if (RenderCanvas.IsValid())
 	{
-		RenderCanvas->MarkUIRenderableItemHierarchyChange();
+		if (this->IsCanvasUIItem())
+		{
+			if (RenderCanvas->IsRenderByOtherCanvas())//if is canvas element && if render by other canvas, then we should mark that canvas. because self canvas won't affect by hierarchy-index
+			{
+				RenderCanvas->GetActualRenderCanvas()->MarkUIRenderableItemHierarchyChange();
+			}
+		}
+		else
+		{
+			RenderCanvas->MarkUIRenderableItemHierarchyChange();
+		}
 	}
 }
 

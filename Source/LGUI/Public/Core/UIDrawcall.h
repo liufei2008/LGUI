@@ -51,6 +51,8 @@ public:
 	bool bShouldSortRenderObjectList = false;
 
 	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
+
+	TWeakObjectPtr<ULGUICanvas> manageCanvas;//this drawcall's manage canvas. a canvas could render by other canvas, but this manageCanvas stores the direct manage canvas, not the actual render canvas
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
 	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles);

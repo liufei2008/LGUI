@@ -253,7 +253,7 @@ void UUIStaticMesh::UpdateMeshColor()
 			}
 		}
 	}
-	UIMesh->UpdateMeshSection(MeshSection.Pin(), true, this->GetRenderCanvas()->GetActualAdditionalShaderChannelFlags());
+	UIMesh->UpdateMeshSectionData(MeshSection.Pin(), true, this->GetRenderCanvas()->GetActualAdditionalShaderChannelFlags());
 }
 void UUIStaticMesh::CreateGeometry()
 {
@@ -333,7 +333,7 @@ void UUIStaticMesh::CreateGeometry()
 			IndexData[i] = sourceIndexData[i];
 		}
 	}
-	UIMesh->CreateMeshSection(MeshSection.Pin());
+	UIMesh->CreateMeshSectionData(MeshSection.Pin());
 
 	if (IsValid(replaceMat))
 	{
@@ -402,7 +402,7 @@ void UUIStaticMesh::UpdateMeshTransform()
 	}
 
 
-	UIMesh->UpdateMeshSection(MeshSection.Pin(), true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
+	UIMesh->UpdateMeshSectionData(MeshSection.Pin(), true, RenderCanvas->GetActualAdditionalShaderChannelFlags());
 }
 
 #if WITH_EDITOR

@@ -15,7 +15,6 @@ UUICanvasGroup::UUICanvasGroup()
 void UUICanvasGroup::BeginPlay()
 {
 	Super::BeginPlay();
-	//CheckParentUICanvasGroup();
 }
 
 void UUICanvasGroup::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -48,7 +47,6 @@ void UUICanvasGroup::OnRegister()
 	{
 		UIItem->RegisterCanvasGroup(this);
 		UIHierarchyChangeDelegateHandle = UIItem->RegisterUIHierarchyChanged(FSimpleDelegate::CreateUObject(this, &UUICanvasGroup::OnUIHierarchyChanged));
-		OnUIHierarchyChanged();
 	}
 }
 void UUICanvasGroup::OnUnregister()
@@ -58,7 +56,26 @@ void UUICanvasGroup::OnUnregister()
 	{
 		UIItem->UnregisterCanvasGroup();
 		UIItem->UnregisterUIHierarchyChanged(UIHierarchyChangeDelegateHandle);
-		OnUIHierarchyChanged();
+	}
+}
+
+void UUICanvasGroup::SetParentCanvasGroup(UUICanvasGroup* InParentCanvasGroup)
+{
+	if (ParentUICanvasGroup != InParentCanvasGroup)
+	{
+		if (ParentUICanvasGroup.IsValid())
+		{
+			ParentUICanvasGroup->UnregisterInteractableStateChange(this->ParentInteractableStateChangeDelegateHandle);
+			ParentUICanvasGroup->UnregisterAlphaChange(this->ParentAlphaChangeDelegteHandle);
+		}
+		ParentUICanvasGroup = InParentCanvasGroup;
+		if (ParentUICanvasGroup.IsValid())
+		{
+			this->ParentInteractableStateChangeDelegateHandle = ParentUICanvasGroup->RegisterInteractableStateChange(FSimpleDelegate::CreateUObject(this, &UUICanvasGroup::OnParentInteractableStateChange));
+			this->ParentAlphaChangeDelegteHandle = ParentUICanvasGroup->RegisterAlphaChange(FSimpleDelegate::CreateUObject(this, &UUICanvasGroup::OnAlphaChange));
+		}
+		OnParentInteractableStateChange();
+		OnAlphaChange();
 	}
 }
 
@@ -69,22 +86,7 @@ void UUICanvasGroup::OnUIHierarchyChanged()
 	{
 		NewParentUICanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(this->GetOwner()->GetAttachParentActor(), true);
 	}
-	if (ParentUICanvasGroup != NewParentUICanvasGroup)//UICanvasGroup change, make alpha dirty
-	{
-		if (ParentUICanvasGroup.IsValid())
-		{
-			ParentUICanvasGroup->UnregisterInteractableStateChange(this->ParentInteractableStateChangeDelegateHandle);
-			ParentUICanvasGroup->UnregisterAlphaChange(this->ParentAlphaChangeDelegteHandle);
-		}
-		ParentUICanvasGroup = NewParentUICanvasGroup;
-		if (ParentUICanvasGroup.IsValid())
-		{
-			this->ParentInteractableStateChangeDelegateHandle = ParentUICanvasGroup->RegisterInteractableStateChange(FSimpleDelegate::CreateUObject(this, &UUICanvasGroup::OnParentInteractableStateChange));
-			this->ParentAlphaChangeDelegteHandle = ParentUICanvasGroup->RegisterAlphaChange(FSimpleDelegate::CreateUObject(this, &UUICanvasGroup::OnAlphaChange));
-		}
-		OnParentInteractableStateChange();
-		OnAlphaChange();
-	}
+	SetParentCanvasGroup(NewParentUICanvasGroup);
 }
 
 bool UUICanvasGroup::CheckUIItem()
@@ -111,19 +113,6 @@ void UUICanvasGroup::OnAlphaChange()
 		AlphaChangeDelegate.Broadcast();
 	}
 }
-
-//bool UUICanvasGroup::CheckParentUICanvasGroup()
-//{
-//	if (ParentUICanvasGroup.IsValid())
-//	{
-//		return true;
-//	}
-//	else
-//	{
-//		ParentUICanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(this->GetOwner()->GetAttachParentActor(), true);
-//		return ParentUICanvasGroup.IsValid();
-//	}
-//}
 
 FDelegateHandle UUICanvasGroup::RegisterInteractableStateChange(const FSimpleDelegate& InCallback)
 {

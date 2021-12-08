@@ -960,31 +960,42 @@ void UUIItem::SortCacheUIChildren()
 
 void UUIItem::RegisterRenderCanvas(ULGUICanvas* InRenderCanvas)
 {
-	RenewRenderCanvasRecursive(InRenderCanvas);
+	bIsCanvasUIItem = true;
+	auto ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with Canvas's ParentCanvas?
+	SetRenderCanvas(InRenderCanvas);
+	InRenderCanvas->SetParentCanvas(ParentCanvas);
+	for (auto uiItem : UIChildren)
+	{
+		if (IsValid(uiItem))
+		{
+			uiItem->RenewRenderCanvasRecursive(InRenderCanvas);
+		}
+	}
 }
 void UUIItem::RenewRenderCanvasRecursive(ULGUICanvas* InParentRenderCanvas)
 {
 	auto ThisRenderCanvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
+	if (ThisRenderCanvas != nullptr && !ThisRenderCanvas->IsRegistered())//ignore unregistered
+	{
+		ThisRenderCanvas = nullptr;
+	}
 	if (ThisRenderCanvas != nullptr)
 	{
-		InParentRenderCanvas = ThisRenderCanvas;
-		bIsCanvasUIItem = true;
-	}
-	else
-	{
-		bIsCanvasUIItem = false;
+		if (InParentRenderCanvas != ThisRenderCanvas)
+		{
+			ThisRenderCanvas->SetParentCanvas(InParentRenderCanvas);//set parent Canvas for this actor's Canvas
+		}
+		return;//already have a CanvasGroup on this actor, no need to go further
 	}
 
 	if (RenderCanvas != InParentRenderCanvas)//if attach to new Canvas, need to remove from old and add to new
 	{
-		auto OldRenderCanvas = RenderCanvas;
-		RenderCanvas = InParentRenderCanvas;
-		OnRenderCanvasChanged(OldRenderCanvas.Get(), RenderCanvas.Get());
+		SetRenderCanvas(InParentRenderCanvas);
 	}
 
 	for (auto uiItem : UIChildren)
 	{
-		if (IsValid(uiItem) && !uiItem->bIsCanvasUIItem)
+		if (IsValid(uiItem))
 		{
 			uiItem->RenewRenderCanvasRecursive(InParentRenderCanvas);
 		}
@@ -993,54 +1004,99 @@ void UUIItem::RenewRenderCanvasRecursive(ULGUICanvas* InParentRenderCanvas)
 
 void UUIItem::UnregisterRenderCanvas()
 {
-	ULGUICanvas* ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
-	RenewRenderCanvasRecursive(ParentCanvas);
+	bIsCanvasUIItem = false;
+	auto ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
+	SetRenderCanvas(ParentCanvas);
+	for (auto uiItem : UIChildren)
+	{
+		if (IsValid(uiItem))
+		{
+			uiItem->RenewRenderCanvasRecursive(ParentCanvas);
+		}
+	}
+}
+
+void UUIItem::SetRenderCanvas(ULGUICanvas* InNewCanvas)
+{
+	auto OldRenderCanvas = RenderCanvas;
+	RenderCanvas = InNewCanvas;
+	OnRenderCanvasChanged(OldRenderCanvas.Get(), RenderCanvas.Get());
 }
 
 void UUIItem::RegisterCanvasGroup(UUICanvasGroup* InCanvasGroup)
 {
-	RenewCanvasGroupRecursive(InCanvasGroup);
+	auto ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with CanvasGroup's ParentCanvasGroup?
+	InCanvasGroup->SetParentCanvasGroup(ParentCanvasGroup);
+	SetCanvasGroup(InCanvasGroup);
+	for (auto uiItem : UIChildren)
+	{
+		if (IsValid(uiItem))
+		{
+			uiItem->RenewCanvasGroupRecursive(InCanvasGroup);
+		}
+	}
 }
 void UUIItem::UnregisterCanvasGroup()
 {
-	auto ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);
-	RenewCanvasGroupRecursive(ParentCanvasGroup);
+	auto ParentCanvasGroup = LGUIUtils::GetComponentInParent<UUICanvasGroup>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with CanvasGroup's ParentCanvasGroup?
+	SetCanvasGroup(ParentCanvasGroup);
+	for (auto uiItem : UIChildren)
+	{
+		if (IsValid(uiItem))
+		{
+			uiItem->RenewCanvasGroupRecursive(ParentCanvasGroup);
+		}
+	}
 }
+
 void UUIItem::RenewCanvasGroupRecursive(UUICanvasGroup* InParentCanvasGroup)
 {
 	auto ThisCanvasGroup = GetOwner()->FindComponentByClass<UUICanvasGroup>();
+	if (ThisCanvasGroup != nullptr && !ThisCanvasGroup->IsRegistered())//ignore unregistered
+	{
+		ThisCanvasGroup = nullptr;
+	}
 	if (ThisCanvasGroup != nullptr)
 	{
-		InParentCanvasGroup = ThisCanvasGroup;
+		if (InParentCanvasGroup != ThisCanvasGroup)
+		{
+			ThisCanvasGroup->SetParentCanvasGroup(InParentCanvasGroup);//set parent CanvasGroup for this actor's CanvasGroup
+		}
+		return;//already have a CanvasGroup on this actor, no need to go further
 	}
 
 	if (CanvasGroup != InParentCanvasGroup)//CanvasGroup changed
 	{
-		//remove from old
-		if (CanvasGroup.IsValid())
-		{
-			CanvasGroup->UnregisterAlphaChange(OnCanvasGroupAlphaChangeDelegateHandle);
-			CanvasGroup->UnregisterInteractableStateChange(OnCanvasGroupInteractableStateChangeDelegateHandle);
-			OnCanvasGroupAlphaChange();
-			OnCanvasGroupInteractableStateChange();
-		}
-		//add to new
-		CanvasGroup = InParentCanvasGroup;
-		if (CanvasGroup.IsValid())
-		{
-			OnCanvasGroupAlphaChangeDelegateHandle = CanvasGroup->RegisterAlphaChange(FSimpleDelegate::CreateUObject(this, &UUIItem::OnCanvasGroupAlphaChange));
-			OnCanvasGroupInteractableStateChangeDelegateHandle = CanvasGroup->RegisterInteractableStateChange(FSimpleDelegate::CreateUObject(this, &UUIItem::OnCanvasGroupInteractableStateChange));
-			OnCanvasGroupAlphaChange();
-			OnCanvasGroupInteractableStateChange();
-		}
+		SetCanvasGroup(InParentCanvasGroup);
 	}
 
 	for (auto uiItem : UIChildren)
 	{
-		if (IsValid(uiItem) && !uiItem->bIsCanvasUIItem)
+		if (IsValid(uiItem))
 		{
-			uiItem->RegisterCanvasGroup(InParentCanvasGroup);
+			uiItem->RenewCanvasGroupRecursive(InParentCanvasGroup);
 		}
+	}
+}
+
+void UUIItem::SetCanvasGroup(UUICanvasGroup* InNewCanvasGroup)
+{
+	//remove from old
+	if (CanvasGroup.IsValid())
+	{
+		CanvasGroup->UnregisterAlphaChange(OnCanvasGroupAlphaChangeDelegateHandle);
+		CanvasGroup->UnregisterInteractableStateChange(OnCanvasGroupInteractableStateChangeDelegateHandle);
+		OnCanvasGroupAlphaChange();
+		OnCanvasGroupInteractableStateChange();
+	}
+	//add to new
+	CanvasGroup = InNewCanvasGroup;
+	if (CanvasGroup.IsValid())
+	{
+		OnCanvasGroupAlphaChangeDelegateHandle = CanvasGroup->RegisterAlphaChange(FSimpleDelegate::CreateUObject(this, &UUIItem::OnCanvasGroupAlphaChange));
+		OnCanvasGroupInteractableStateChangeDelegateHandle = CanvasGroup->RegisterInteractableStateChange(FSimpleDelegate::CreateUObject(this, &UUIItem::OnCanvasGroupInteractableStateChange));
+		OnCanvasGroupAlphaChange();
+		OnCanvasGroupInteractableStateChange();
 	}
 }
 
@@ -2048,11 +2104,7 @@ bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVecto
 
 ULGUICanvas* UUIItem::GetRenderCanvas()const
 {
-	if (RenderCanvas.IsValid())
-	{
-		return RenderCanvas.Get();
-	}
-	return nullptr;
+	return RenderCanvas.Get();
 }
 
 bool UUIItem::IsScreenSpaceOverlayUI()const

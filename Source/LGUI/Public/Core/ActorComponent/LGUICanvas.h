@@ -122,10 +122,6 @@ public:
 	virtual void OnUnregister()override;
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 private:
-	/** canvas array belong to this canvas, include self. for update children's geometry */
-	TArray<TWeakObjectPtr<ULGUICanvas>> ManagingCanvasArray;
-	/** update Canvas's drawcall */
-	void UpdateCanvasDrawcall();
 	/** clear drawcalls */
 	void ClearDrawcall();
 	void RemoveFromViewExtension();
@@ -175,10 +171,12 @@ public:
 
 	FORCEINLINE UUIItem* GetUIItem()const { CheckUIItem(); return UIItem.Get(); }
 	bool GetIsUIActive()const;
-	TWeakObjectPtr<ULGUICanvas> GetParentCanvas() { CheckParentCanvas(); return ParentCanvas; }
+	TWeakObjectPtr<ULGUICanvas> GetParentCanvas() { return ParentCanvas; }
 
 	/** @return	drawcall count */
 	int32 SortDrawcall(int32 InStartRenderPriority);
+
+	void SetParentCanvas(ULGUICanvas* InParentCanvas);
 protected:
 	/** Root LGUICanvas on hierarchy. LGUI's update start from the RootCanvas, and goes all down to every UI elements under it */
 	mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
@@ -188,7 +186,6 @@ protected:
 	/** nearest up parent Canvas */
 	TWeakObjectPtr<ULGUICanvas> ParentCanvas = nullptr;
 	/** check parent Canvas. search for it if not valid */
-	bool CheckParentCanvas();
 	const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray();
 	
 	UMaterialInterface** GetMaterials();
@@ -218,10 +215,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bOverrideSorting = false;
 	/** Canvas with larger order will render on top of lower one */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="bOverrideSorting"))
 		int32 sortOrder = 0;
 
-	/** Clip content UI elements. */
+	/** 
+	 * Clip content UI elements. 
+	 * The best way to do clip is use stencil, but haven't find a way.
+	 */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		ELGUICanvasClipType clipType = ELGUICanvasClipType::None;
 	UPROPERTY(EditAnywhere, Category = LGUI)
@@ -313,12 +313,7 @@ public:
 	/** Set SortOrder to lowest, so this canvas will render behide all canvas that belong to same hierarchy. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas = true);
-	/** Set SortOrder to highest of all Canvas, so this canvas will render on top of all other canvas no matter if it belongs to different hierarchy. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetSortOrderToHighestOfAll(bool propagateToChildrenCanvas = true);
-	/** Set SortOrder to lowest of all Canvas, so this canvas will render behide all other canvas no matter if it belongs to different hierarchy. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetSortOrderToLowestOfAll(bool propagateToChildrenCanvas = true);
+	void GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax);
 
 	/** Get actural render mode of canvas. Actually canvas's render mode property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -366,7 +361,14 @@ public:
 		void SetBlendDepth(float value);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetOverrideSorting()const { return bOverrideSorting; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetOverrideSorting(bool value);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return sortOrder; }
+	/** Get SortOrder of this canvas. Actually canvas's SortOrder property is inherit from parent canvas. */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		int32 GetActualSortOrder()const;
 	/** Get clip type of canvas. Actually canvas's clip type property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ELGUICanvasClipType GetActualClipType()const;
@@ -467,12 +469,12 @@ private:
 	float OverrideFovAngle;
 	FMatrix OverrideProjectionMatrix;
 
-	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool
+	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool @todo: make it useful
 	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list
 	UPROPERTY(Transient) TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool
 	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection
-	TArray<UUIBaseRenderable*> UIRenderableList;
+	TArray<UUIItem*> UIRenderableList;
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);
@@ -482,18 +484,24 @@ private:
 	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
 public:
 	bool GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
+	/** Is this canvas renderred by other canvas? */
+	bool IsRenderByOtherCanvas()const;
+	/** If this canvas is renderred by other canvas, then use this to get that canvas. */
+	ULGUICanvas* GetActualRenderCanvas()const;
 private:
 	FTransform2D ConvertTo2DTransform(const FTransform& Transform);
 	void CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
-	void GetMinMax(float a, float b, float c, float d, float& min, float& max);
 
-	void UpdateDrawcall_Implement();
+	/** canvas array belong to this canvas in hierarchy. */
+	TArray<TWeakObjectPtr<ULGUICanvas>> ChildrenCanvasArray;
+	/** update Canvas's drawcall */
+	void UpdateCanvasDrawcallRecursive();
+
+	void UpdateDrawcall_Implement(TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList);
+	void UpdateDrawcallMesh_Implement();
+	void UpdateDrawcallMaterial_Implement();
 	static bool Is2DUITransform(const FTransform& Transform);
 private:
-	void UpdateAndApplyMaterial();
-	void SetParameterForStandard();
-	void SetParameterForRectClip();
-	void SetParameterForTextureClip();
 	UMaterialInstanceDynamic* GetUIMaterialFromPool(ELGUICanvasClipType inClipType);
 	void AddUIMaterialToPool(UMaterialInstanceDynamic* uiMat);
 	TWeakObjectPtr<ULGUIMeshComponent> GetUIMeshFromPool();

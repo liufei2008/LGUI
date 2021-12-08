@@ -630,7 +630,7 @@ private:
 //////////////////////////////////////////////////////////////////////////
 
 #include "Utils/LGUIUtils.h"
-void ULGUIMeshComponent::CreateMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection)
+void ULGUIMeshComponent::CreateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection)
 {
 #if WITH_EDITOR
 	for (auto& MeshSection : MeshSections)
@@ -663,7 +663,7 @@ void ULGUIMeshComponent::CreateMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSe
 }
 
 DECLARE_CYCLE_STAT(TEXT("LGUIMesh UpdateMeshSection_GT"), STAT_UpdateMeshSectionGT, STATGROUP_LGUI);
-void ULGUIMeshComponent::UpdateMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection, bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags)
+void ULGUIMeshComponent::UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection, bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags)
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateMeshSectionGT);
 	if (InVertexPositionChanged)

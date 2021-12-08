@@ -110,6 +110,7 @@ protected:
 	FSimpleMulticastDelegate UIHierarchyChangedDelegate;
 	/** called when RenderCanvas changed. */
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas);
+	void SetRenderCanvas(ULGUICanvas* InNewCanvas);
 public:
 	/** Called by LGUICanvas, when a new LGUICanvas is registerred on self actor */
 	void RegisterRenderCanvas(ULGUICanvas* InRenderCanvas);
@@ -239,12 +240,13 @@ protected:
 
 #pragma region UICanvasGroup
 protected:
-	mutable TWeakObjectPtr<class UUICanvasGroup> CanvasGroup;
+	mutable TWeakObjectPtr<UUICanvasGroup> CanvasGroup;
 	FDelegateHandle OnCanvasGroupAlphaChangeDelegateHandle;
 	virtual void OnCanvasGroupAlphaChange() {};
 	FDelegateHandle OnCanvasGroupInteractableStateChangeDelegateHandle;
 	void OnCanvasGroupInteractableStateChange();
 	bool bIsGroupAllowInteraction = true;
+	void SetCanvasGroup(UUICanvasGroup* InNewCanvasGroup);
 public:
 	void RegisterCanvasGroup(UUICanvasGroup* InCanvasGroup);
 	void UnregisterCanvasGroup();
@@ -252,7 +254,7 @@ public:
 	bool IsGroupAllowInteraction()const { return bIsGroupAllowInteraction; }
 	/** return UICanvasGroup that manager this UIItem. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		class UUICanvasGroup* GetCanvasGroup()const { return CanvasGroup.Get(); }
+		UUICanvasGroup* GetCanvasGroup()const { return CanvasGroup.Get(); }
 #pragma endregion UICanvasGroup
 #pragma region UIActive
 protected:

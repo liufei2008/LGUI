@@ -37,15 +37,16 @@ class FLGUIHudRenderer;
 class ILGUIHudPrimitive;
 class ULGUICanvas;
 
-//Generate dynamic mesh
+//LGUI's mesh
+//@todo: split this class to: one for UE renderer && one for LGUI renderer, will it be more efficient? or maybe a class without additional shader channels? 
 UCLASS(ClassGroup = (LGUI), NotBlueprintable)
 class LGUI_API ULGUIMeshComponent : public UMeshComponent
 {
 	GENERATED_BODY()
 
 public:
-	void CreateMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection);
-	void UpdateMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection, bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags);
+	void CreateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection);
+	void UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection, bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags);
 	void DeleteMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection);
 	void ClearAllMeshSection();
 	TSharedPtr<FLGUIMeshSection> GetMeshSection();
