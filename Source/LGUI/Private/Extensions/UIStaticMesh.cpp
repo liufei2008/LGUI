@@ -186,15 +186,10 @@ bool UUIStaticMesh::CanCreateGeometry()
 void UUIStaticMesh::UpdateGeometry()
 {
 	if (GetIsUIActiveInHierarchy() == false)return;
-	if (!CheckRenderCanvas())return;
+	if (!RenderCanvas.IsValid())return;
 	if (!IsValid(meshCache))return;
 
 	Super::UpdateGeometry();
-	if (!drawcall.IsValid()//not add to render yet
-		)
-	{
-		RenderCanvas->AddUIRenderable(this);
-	}
 
 	if (MeshSection.IsValid())
 	{
@@ -427,13 +422,6 @@ void UUIStaticMesh::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 					}
 				}
 			}
-			else
-			{
-				if (drawcall.IsValid())
-				{
-					RenderCanvas->RemoveUIRenderable(this);
-				}
-			}
 		}
 		else if (PropName == GET_MEMBER_NAME_CHECKED(UUIStaticMesh, replaceMat))
 		{
@@ -474,13 +462,6 @@ void UUIStaticMesh::SetMesh(ULGUIStaticMeshCacheData* value)
 				{
 					CreateGeometry();
 				}
-			}
-		}
-		else
-		{
-			if (drawcall.IsValid())
-			{
-				RenderCanvas->RemoveUIRenderable(this);
 			}
 		}
 	}

@@ -402,8 +402,6 @@ protected:
 	virtual void UpdateCachedData();
 	virtual void UpdateCachedDataBeforeGeometry();
 
-	/** find LGUICanvas which render this UI element */
-	bool CheckRenderCanvas()const;
 	/** find root UIItem of hierarchy */
 	void CheckRootUIItem();
 

@@ -206,9 +206,17 @@ void ULGUICanvas::ClearDrawcall()
 	//clear renderable's drawcall
 	for (auto item : UIRenderableList)
 	{
-		((UUIBaseRenderable*)item)->drawcall.Reset();
+		if (IsValid(item))
+		{
+			if (auto UIRenderableItem = Cast<UUIBaseRenderable>(item))
+			{
+				if (UIRenderableItem->drawcall.IsValid())
+				{
+					UIRenderableItem->drawcall = nullptr;
+				}
+			}
+		}
 	}
-	UIRenderableList.Empty();
 
 	for (auto item : PooledUIMeshList)
 	{
@@ -291,7 +299,7 @@ void ULGUICanvas::SetParentCanvas(ULGUICanvas* InParentCanvas)
 		ParentCanvas = InParentCanvas;
 		if (ParentCanvas.IsValid())
 		{
-#if WITH_EDITOR
+#if !UE_BUILD_SHIPPING
 			check(!ParentCanvas->ChildrenCanvasArray.Contains(this));
 			check(!ParentCanvas->UIRenderableList.Contains(this->UIItem.Get()));
 #endif
@@ -539,7 +547,7 @@ bool ULGUICanvas::GetIsUIActive()const
 
 void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
-#if WITH_EDITOR
+#if !UE_BUILD_SHIPPING
 	check(!UIRenderableList.Contains(InUIRenderable));
 #endif
 	UIRenderableList.Add(InUIRenderable);
@@ -554,59 +562,64 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 {
 	//remove drawcall from list
-	switch (InUIRenderable->GetUIRenderableType())
+	if (InUIRenderable->drawcall.IsValid())
 	{
-	case EUIRenderableType::UIBatchGeometryRenderable:
-	{
-		auto UIBatchGeometryRenderable = (UUIBatchGeometryRenderable*)InUIRenderable;
-		auto Drawcall = UIBatchGeometryRenderable->drawcall;
-		auto index = Drawcall->renderObjectList.IndexOfByKey(UIBatchGeometryRenderable);
-		check(index != INDEX_NONE);
-		Drawcall->renderObjectList.RemoveAt(index);
-		Drawcall->needToRebuildMesh = true;
-		if (Drawcall->renderObjectList.Num() == 0)
+		switch (InUIRenderable->GetUIRenderableType())
 		{
+		case EUIRenderableType::UIBatchGeometryRenderable:
+		{
+			auto UIBatchGeometryRenderable = (UUIBatchGeometryRenderable*)InUIRenderable;
+			auto Drawcall = UIBatchGeometryRenderable->drawcall;
+			auto index = Drawcall->renderObjectList.IndexOfByKey(UIBatchGeometryRenderable);
+#if !UE_BUILD_SHIPPING
+			check(index != INDEX_NONE);
+#endif
+			Drawcall->renderObjectList.RemoveAt(index);
+			Drawcall->needToRebuildMesh = true;
+			if (Drawcall->renderObjectList.Num() == 0)
+			{
+				if (Drawcall->drawcallMeshSection.IsValid())
+				{
+					Drawcall->drawcallMesh->DeleteMeshSection(Drawcall->drawcallMeshSection.Pin());
+					Drawcall->drawcallMeshSection.Reset();
+					Drawcall->drawcallMesh.Reset();
+				}
+				if (Drawcall->materialInstanceDynamic.IsValid())
+				{
+					AddUIMaterialToPool(Drawcall->materialInstanceDynamic.Get());
+					Drawcall->materialInstanceDynamic.Reset();
+				}
+				UIDrawcallList.Remove(Drawcall);
+			}
+		}
+		break;
+		case EUIRenderableType::UIPostProcessRenderable:
+		case EUIRenderableType::UIDirectMeshRenderable:
+		{
+			auto Drawcall = InUIRenderable->drawcall;
+			UIDrawcallList.Remove(Drawcall);
 			if (Drawcall->drawcallMeshSection.IsValid())
 			{
 				Drawcall->drawcallMesh->DeleteMeshSection(Drawcall->drawcallMeshSection.Pin());
 				Drawcall->drawcallMeshSection.Reset();
-				Drawcall->drawcallMesh.Reset();
 			}
-			if (Drawcall->materialInstanceDynamic.IsValid())
+			if (Drawcall->postProcessRenderableObject.IsValid())
 			{
-				AddUIMaterialToPool(Drawcall->materialInstanceDynamic.Get());
-				Drawcall->materialInstanceDynamic.Reset();
+				if (Drawcall->postProcessRenderableObject->IsRenderProxyValid())
+				{
+					Drawcall->postProcessRenderableObject->GetRenderProxy()->RemoveFromLGUIRenderer();
+				}
 			}
-			UIDrawcallList.Remove(Drawcall);
-		}
-	}
-	break;
-	case EUIRenderableType::UIPostProcessRenderable:
-	case EUIRenderableType::UIDirectMeshRenderable:
-	{
-		auto Drawcall = InUIRenderable->drawcall;
-		UIDrawcallList.Remove(Drawcall);
-		if (Drawcall->drawcallMeshSection.IsValid())
-		{
-			Drawcall->drawcallMesh->DeleteMeshSection(Drawcall->drawcallMeshSection.Pin());
-			Drawcall->drawcallMeshSection.Reset();
-		}
-		if (Drawcall->postProcessRenderableObject.IsValid())
-		{
-			if (Drawcall->postProcessRenderableObject->IsRenderProxyValid())
+			if (Drawcall->directMeshRenderableObject.IsValid())
 			{
-				Drawcall->postProcessRenderableObject->GetRenderProxy()->RemoveFromLGUIRenderer();
+				Drawcall->directMeshRenderableObject->ClearMeshData();
 			}
 		}
-		if (Drawcall->directMeshRenderableObject.IsValid())
-		{
-			Drawcall->directMeshRenderableObject->ClearMeshData();
+		break;
 		}
-	}
-	break;
+		InUIRenderable->drawcall = nullptr;
 	}
 
-	InUIRenderable->drawcall = nullptr;
 	UIRenderableList.Remove(InUIRenderable);
 	if (RootCanvas.IsValid())
 	{
@@ -1077,7 +1090,9 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 	if (bIsLayoutChanged || bIsUIRenderableHierarchyChanged)
 	{
 		bIsLayoutChanged = false;
+#if !UE_BUILD_SHIPPING
 		check(!this->IsRenderByOtherCanvas());
+#endif
 
 		//store prev created drawcall to cache list, so when we create drawcall, we can search in the cache list and use existing one
 		for (auto Item : UIDrawcallList)
@@ -1277,7 +1292,6 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 			}
 			else if (DrawcallItem->needToUpdateVertex)
 			{
-				check(MeshSection.IsValid());
 				auto MeshSectionPtr = MeshSection.Pin();
 				DrawcallItem->UpdateData(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
 				if (MeshSectionPtr->prevVertexCount == MeshSectionPtr->vertices.Num() && MeshSectionPtr->prevIndexCount == MeshSectionPtr->triangles.Num())

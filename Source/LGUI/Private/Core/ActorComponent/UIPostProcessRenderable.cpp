@@ -44,10 +44,6 @@ void UUIPostProcessRenderable::PostEditChangeProperty(FPropertyChangedEvent& Pro
 void UUIPostProcessRenderable::OnUnregister()
 {
 	Super::OnUnregister();
-	if (RenderCanvas.IsValid() && drawcall.IsValid())
-	{
-		RenderCanvas->RemoveUIRenderable(this);
-	}
 }
 
 void UUIPostProcessRenderable::ApplyUIActiveState()
@@ -119,14 +115,13 @@ void UUIPostProcessRenderable::UpdateGeometry()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIPostProcessRenderableUpdate);
 	if (GetIsUIActiveInHierarchy() == false)return;
-	if (!CheckRenderCanvas())return;
+	if (!RenderCanvas.IsValid())return;
 
 	Super::UpdateGeometry();
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
 		CreateGeometry();
-		RenderCanvas->AddUIRenderable(this);
 		goto COMPLETE;
 	}
 	else//if already renderred, update data

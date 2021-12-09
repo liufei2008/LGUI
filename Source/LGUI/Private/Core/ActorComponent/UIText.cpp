@@ -39,7 +39,7 @@ void UUIText::ApplyFontTextureScaleUp()
 		MarkUVDirty();
 	}
 	geometry->texture = font->GetFontTexture();
-	if (CheckRenderCanvas())
+	if (RenderCanvas.IsValid())
 	{
 		if (drawcall.IsValid())
 		{
@@ -59,7 +59,7 @@ void UUIText::ApplyFontTextureChange()
 		MarkTriangleDirty();
 		MarkTextureDirty();
 		geometry->texture = font->GetFontTexture();
-		if (CheckRenderCanvas())
+		if (RenderCanvas.IsValid())
 		{
 			if (drawcall.IsValid())
 			{

@@ -258,7 +258,9 @@ DECLARE_CYCLE_STAT(TEXT("UIItem CalculateFlattenHierarchyIndex"), STAT_UIItemCal
 void UUIItem::RecalculateFlattenHierarchyIndex()const
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIItemCalculateFlattenHierarchyIndex);
+#if !UE_BUILD_SHIPPING
 	check(this == RootUIItem.Get());
+#endif
 	this->bFlattenHierarchyIndexDirty = false;
 	int tempIndex = this->flattenHierarchyIndex;
 	this->CalculateFlattenHierarchyIndex_Recursive(tempIndex);
@@ -962,7 +964,10 @@ void UUIItem::RegisterRenderCanvas(ULGUICanvas* InRenderCanvas)
 {
 	bIsCanvasUIItem = true;
 	auto ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);//@todo: replace with Canvas's ParentCanvas?
-	SetRenderCanvas(InRenderCanvas);
+	if (RenderCanvas != InRenderCanvas)
+	{
+		SetRenderCanvas(InRenderCanvas);
+	}
 	InRenderCanvas->SetParentCanvas(ParentCanvas);
 	for (auto uiItem : UIChildren)
 	{
@@ -1341,19 +1346,6 @@ bool UUIItem::CalculateVerticalAnchorAndSizeFromStretch()
 	}
 	widget.anchorOffsetY = widget.stretchBottom - (parentWidget.height * parentHeightMultiply) + (widget.height * widget.pivot.Y);
 	return sizeChanged;
-}
-
-bool UUIItem::CheckRenderCanvas()const
-{
-	if (RenderCanvas.IsValid())return true;
-	RenderCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(this->GetOwner(), true);
-	if (RenderCanvas.IsValid())
-	{
-		bIsCanvasUIItem = (this->GetOwner() == RenderCanvas->GetOwner());
-		return true;
-	}
-	bIsCanvasUIItem = false;
-	return false;
 }
 
 void UUIItem::CheckRootUIItem()

@@ -50,7 +50,7 @@ void UUISpriteBase::ApplyAtlasTextureScaleUp()
 		MarkUVDirty();
 	}
 	geometry->texture = sprite->GetAtlasTexture();
-	if (CheckRenderCanvas())
+	if (RenderCanvas.IsValid())
 	{
 		if (drawcall.IsValid())
 		{

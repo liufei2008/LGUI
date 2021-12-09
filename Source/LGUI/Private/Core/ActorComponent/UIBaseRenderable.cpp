@@ -34,11 +34,27 @@ void UUIBaseRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 }
 #endif
 
+void UUIBaseRenderable::OnRegister()
+{
+	Super::OnRegister();
+}
+void UUIBaseRenderable::OnUnregister()
+{
+	Super::OnUnregister();
+}
+
 void UUIBaseRenderable::ApplyUIActiveState()
 {
-	if (!GetIsUIActiveInHierarchy())
+	if (GetIsUIActiveInHierarchy())
 	{
-		if (RenderCanvas.IsValid() && drawcall.IsValid())
+		if (RenderCanvas.IsValid())
+		{
+			RenderCanvas->AddUIRenderable(this);
+		}
+	}
+	else
+	{
+		if (RenderCanvas.IsValid())
 		{
 			RenderCanvas->RemoveUIRenderable(this);
 		}
@@ -50,15 +66,11 @@ void UUIBaseRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanva
 {
 	if (IsValid(OldCanvas))
 	{
-		if (drawcall.IsValid())
-		{
-			OldCanvas->RemoveUIRenderable(this);
-		}
-		OldCanvas->MarkCanvasUpdate();
+		OldCanvas->RemoveUIRenderable(this);
 	}
 	if (IsValid(NewCanvas))
 	{
-		NewCanvas->MarkCanvasUpdate();
+		NewCanvas->AddUIRenderable(this);
 	}
 }
 

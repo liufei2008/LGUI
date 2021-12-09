@@ -40,13 +40,6 @@ void UUIBatchGeometryRenderable::TickComponent( float DeltaTime, ELevelTick Tick
 
 void UUIBatchGeometryRenderable::ApplyUIActiveState()
 {
-	if (!GetIsUIActiveInHierarchy())
-	{
-		if (RenderCanvas.IsValid() && drawcall.IsValid())
-		{
-			RenderCanvas->RemoveUIRenderable(this);
-		}
-	}
 	UUIItem::ApplyUIActiveState();
 }
 #if WITH_EDITOR
@@ -66,33 +59,11 @@ void UUIBatchGeometryRenderable::OnRegister()
 void UUIBatchGeometryRenderable::OnUnregister()
 {
 	Super::OnUnregister();
-	if (RenderCanvas.IsValid() && drawcall.IsValid())
-	{
-		RenderCanvas->RemoveUIRenderable(this);
-	}
 }
 
 void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
-	if (IsValid(OldCanvas))
-	{
-		if (drawcall.IsValid())
-		{
-			OldCanvas->RemoveUIRenderable(this);
-		}
-		OldCanvas->MarkCanvasUpdate();
-	}
-	if (IsValid(NewCanvas))
-	{
-		if (IsValid(OldCanvas))
-		{
-			if (OldCanvas->IsRenderByLGUIRendererOrUERenderer() != NewCanvas->IsRenderByLGUIRendererOrUERenderer())//is render to screen or world changed, then uimesh need to be recreate
-			{
-				geometry->Clear();
-			}
-		}
-		NewCanvas->MarkCanvasUpdate();
-	}
+	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
 
 void UUIBatchGeometryRenderable::WidthChanged()
@@ -125,7 +96,7 @@ void UUIBatchGeometryRenderable::MarkTriangleDirty()
 }
 void UUIBatchGeometryRenderable::MarkTextureDirty()
 {
-	if (CheckRenderCanvas())
+	if (RenderCanvas.IsValid())
 	{
 		if (drawcall.IsValid())
 		{
@@ -146,7 +117,7 @@ void UUIBatchGeometryRenderable::MarkTextureDirty()
 }
 void UUIBatchGeometryRenderable::MarkMaterialDirty()
 {
-	if (CheckRenderCanvas())
+	if (RenderCanvas.IsValid())
 	{
 		if (drawcall.IsValid())
 		{
@@ -293,7 +264,7 @@ void UUIBatchGeometryRenderable::UpdateLayout(bool& parentLayoutChanged, bool sh
 void UUIBatchGeometryRenderable::UpdateGeometry()
 {
 	if (GetIsUIActiveInHierarchy() == false)return;
-	if (!CheckRenderCanvas())return;
+	if (!RenderCanvas.IsValid())return;
 
 	Super::UpdateGeometry();
 	UpdateGeometry_Implement();
@@ -305,10 +276,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
 	if (!drawcall.IsValid()//not add to render yet
 		)
 	{
-		if (CreateGeometry())
-		{
-			RenderCanvas->AddUIRenderable(this);
-		}
+		CreateGeometry();
 		goto COMPLETE;
 	}
 	else//if geometry is created, update data

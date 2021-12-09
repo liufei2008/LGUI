@@ -91,14 +91,9 @@ void UUIDirectMeshRenderable::MarkVertexPositionDirty()
 void UUIDirectMeshRenderable::UpdateGeometry()
 {
 	if (GetIsUIActiveInHierarchy() == false)return;
-	if (!CheckRenderCanvas())return;
+	if (!RenderCanvas.IsValid())return;
 
 	Super::UpdateGeometry();
-	if (!drawcall.IsValid()//not add to render yet
-		)
-	{
-		RenderCanvas->AddUIRenderable(this);
-	}
 }
 
 
