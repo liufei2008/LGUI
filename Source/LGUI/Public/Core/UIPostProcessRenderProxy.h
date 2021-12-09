@@ -42,7 +42,7 @@ public:
 	virtual bool CanRender() const { return bIsVisible; };
 	virtual int GetRenderPriority() const { return RenderPriority; };
 
-	virtual void GetMeshElement(class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& Result) {};
+	virtual void GetMeshElements(class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& Result) {};
 
 	virtual bool GetIsPostProcess() { return true; };
 	//end ILGUIHudPrimitive interface

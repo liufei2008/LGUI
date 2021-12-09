@@ -25,7 +25,7 @@
 #include "Core/LGUISettings.h"
 #include "Engine/TextureRenderTarget2D.h"
 
-class FLGUIMeshElementCollector : FMeshElementCollector
+class FLGUIMeshElementCollector : FMeshElementCollector//why use a custom collector? because default FMeshElementCollector have no public constructor
 {
 public:
 	FLGUIMeshElementCollector(ERHIFeatureLevel::Type InFeatureLevel) :FMeshElementCollector(InFeatureLevel)
@@ -415,7 +415,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 						else//render mesh
 						{
 							MeshBatchArray.Reset();
-							hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector, MeshBatchArray);
+							hudPrimitive->GetMeshElements((FMeshElementCollector*)&meshCollector, MeshBatchArray);
 							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 							{
 								auto MeshBatchContainer = MeshBatchArray[MeshIndex];
@@ -524,7 +524,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 					else//render mesh
 					{
 						MeshBatchArray.Reset();
-						hudPrimitive->GetMeshElement((FMeshElementCollector*)&meshCollector, MeshBatchArray);
+						hudPrimitive->GetMeshElements((FMeshElementCollector*)&meshCollector, MeshBatchArray);
 						for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 						{
 							auto MeshBatchContainer = MeshBatchArray[MeshIndex];

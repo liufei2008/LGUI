@@ -108,8 +108,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		case ELGUIRenderMode::ScreenSpaceOverlay:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, onlyOwnerSee));
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, ownerNoSee));
 			break;
 		case ELGUIRenderMode::WorldSpace:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
@@ -119,8 +117,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		case ELGUIRenderMode::WorldSpace_LGUI:
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, pixelPerfect));
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderTarget));
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, onlyOwnerSee));
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, ownerNoSee));
 			break;
 		case ELGUIRenderMode::RenderTarget:
 			break;
@@ -216,14 +212,6 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, inheritRectClip));
 		}
 
-		if (!TargetScriptArray[0]->GetOverrideOwnerNoSee())
-		{
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, ownerNoSee));
-		}
-		if (!TargetScriptArray[0]->GetOverrideOnlyOwnerSee())
-		{
-			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, onlyOwnerSee));
-		}
 		if (!TargetScriptArray[0]->GetOverrideBlendDepth())
 		{
 			needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, blendDepth));
@@ -255,82 +243,38 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		category.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, renderMode));//show before sortOrder
 	}
 
-	auto sortOrderHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
-	category.AddCustomRow(LOCTEXT("SortOrderManager", "SortOrderManager"))
-		.CopyAction(FUIAction(
-			FExecuteAction::CreateSP(this, &FLGUICanvasCustomization::OnCopySortOrder)
-		))
-		.PasteAction(FUIAction(
-			FExecuteAction::CreateSP(this, &FLGUICanvasCustomization::OnPasteSortOrder, sortOrderHandle)
-		))
-		.NameContent()
-		[
-			sortOrderHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		[
-			SNew(SHorizontalBox)
-			+SHorizontalBox::Slot()
-			.Padding(2, 0)
-			.FillWidth(5)
-			[
-				sortOrderHandle->CreatePropertyValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			.Padding(2, 0)
-			.FillWidth(2)
-			[
-				SNew(SBox)
-				.HeightOverride(18)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Up", "+"))
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked_Lambda([=]()
-					{
-						sortOrderHandle->SetValue(TargetScriptArray[0]->GetSortOrder() + 1);
-						return FReply::Handled(); 
-					})
-				]
-			]
-			+ SHorizontalBox::Slot()
-			.Padding(2, 0)
-			.FillWidth(2)
-			[
-				SNew(SBox)
-				.HeightOverride(18)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Down", "-"))
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked_Lambda([=]()
-					{
-						sortOrderHandle->SetValue(TargetScriptArray[0]->GetSortOrder() - 1);
-						return FReply::Handled();
-					})
-				]
-			]
-		];
+	auto OverrideSortingHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, bOverrideSorting));
+	bool bOverrideSorting;
+	OverrideSortingHandle->GetValue(bOverrideSorting);
+	category.AddProperty(OverrideSortingHandle);
+	OverrideSortingHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUICanvasCustomization::ForceRefresh, &DetailBuilder));
 
+	if (bOverrideSorting)
+	{
+		category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, SortOrder)));
 		//sortOrder info
 		{
 			category.AddCustomRow(LOCTEXT("SortOrderInfo", "SortOrderInfo"))
-			.WholeRowContent()
-			.MinDesiredWidth(500)
-			[
-				SNew(SBox)
-				.HeightOverride(20)
+				.WholeRowContent()
+				.MinDesiredWidth(500)
+				[
+					SNew(SBox)
+					.HeightOverride(20)
 				[
 					SNew(STextBlock)
 					.Font(IDetailLayoutBuilder::GetDetailFont())
-					.Text(this, &FLGUICanvasCustomization::GetSortOrderInfo, TargetScriptArray[0])
-					.AutoWrapText(true)
+				.Text(this, &FLGUICanvasCustomization::GetSortOrderInfo, TargetScriptArray[0])
+				.AutoWrapText(true)
 				]
-			]
+				]
 			;
 		}
+	}
+	else
+	{
+		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, SortOrder));
+	}
 
-	needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
 	for (auto item : needToHidePropertyNames)
 	{
 		DetailBuilder.HideProperty(item);

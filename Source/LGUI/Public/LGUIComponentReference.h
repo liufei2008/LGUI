@@ -33,7 +33,7 @@ protected:
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TWeakObjectPtr<UActorComponent> TargetComp;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(AllowAbstract="true"))
 		TSubclassOf<UActorComponent> TargetClass;
 public:
 	AActor* GetActor()const;

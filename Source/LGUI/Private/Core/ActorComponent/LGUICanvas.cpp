@@ -50,6 +50,8 @@ ULGUICanvas::ULGUICanvas()
 	bOverrideFovAngle = false;
 
 	bIsViewProjectionMatrixDirty = true;
+
+	DefaultMeshType = ULGUIMeshComponent::StaticClass();
 }
 
 void ULGUICanvas::BeginPlay()
@@ -153,6 +155,12 @@ void ULGUICanvas::OnUnregister()
 		{
 			ALGUIManagerActor::RemoveCanvas(this);
 		}
+	}
+
+	//remove from parent canvas
+	if (ParentCanvas.IsValid())
+	{
+		SetParentCanvas(nullptr);
 	}
 
 	//tell UIItem
@@ -474,7 +482,7 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 {
 	auto CheckDefaultMaterialsFunction = [=] 
 	{
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
 		{
 			if (DefaultMaterials[i] == nullptr)
 			{
@@ -586,7 +594,7 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 				}
 				if (Drawcall->materialInstanceDynamic.IsValid())
 				{
-					AddUIMaterialToPool(Drawcall->materialInstanceDynamic.Get());
+					Drawcall->manageCanvas->AddUIMaterialToPool(Drawcall->materialInstanceDynamic.Get());
 					Drawcall->materialInstanceDynamic.Reset();
 				}
 				UIDrawcallList.Remove(Drawcall);
@@ -633,9 +641,9 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 bool ULGUICanvas::Is2DUITransform(const FTransform& Transform)
 {
 #if WITH_EDITOR
-	float threshold = ULGUISettings::GetAutoManageDepthThreshold();
+	float threshold = ULGUISettings::GetOrderManagementThreshold();
 #else
-	static float threshold = ULGUISettings::GetAutoManageDepthThreshold();
+	static float threshold = ULGUISettings::GetOrderManagementThreshold();
 #endif
 	if (FMath::Abs(Transform.GetLocation().X) > threshold)//location X moved
 	{
@@ -828,7 +836,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(TArray<TSharedPtr<UUIDrawcall>>& InUI
 			}
 			if (DrawcallItem->materialInstanceDynamic.IsValid())
 			{
-				AddUIMaterialToPool(DrawcallItem->materialInstanceDynamic.Get());
+				DrawcallItem->manageCanvas->AddUIMaterialToPool(DrawcallItem->materialInstanceDynamic.Get());
 				DrawcallItem->materialInstanceDynamic.Reset();
 			}
 			DrawcallItem->needToRebuildMesh = true;
@@ -1012,6 +1020,26 @@ void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
 	bClipTypeChanged = false;
 	bRectClipParameterChanged = false;
 	bTextureClipParameterChanged = false;
+}
+
+void ULGUICanvas::SetDefaultMeshType(TSubclassOf<ULGUIMeshComponent> InValue)
+{
+	if (DefaultMeshType != InValue)
+	{
+		DefaultMeshType = InValue;
+
+		for (int i = 0; i < UIDrawcallList.Num(); i++)
+		{
+			auto DrawcallItem = UIDrawcallList[i];
+			DrawcallItem->needToRebuildMesh = true;
+			DrawcallItem->drawcallMeshSection = nullptr;
+			DrawcallItem->drawcallMesh = nullptr;
+		}
+		//clear mesh
+		PooledUIMeshList.Reset();
+		UsingUIMeshList.Reset();
+		MarkCanvasUpdate();
+	}
 }
 
 ULGUIMeshComponent* ULGUICanvas::FindNextValidMeshInDrawcallList(int32 InStartIndex)
@@ -1462,9 +1490,9 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 	}
 	else
 	{
-		auto UIMesh = NewObject<ULGUIMeshComponent>(this->GetOwner(), NAME_None, RF_Transient);
-		UIMesh->SetOwnerNoSee(this->GetActualOwnerNoSee());
-		UIMesh->SetOnlyOwnerSee(this->GetActualOnlyOwnerSee());
+		auto MeshType = DefaultMeshType.Get();
+		if (MeshType == nullptr)MeshType = ULGUIMeshComponent::StaticClass();
+		auto UIMesh = NewObject<ULGUIMeshComponent>(this->GetOwner(), MeshType, NAME_None, RF_Transient);
 		UIMesh->RegisterComponent();
 		UIMesh->AttachToComponent(this->GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		UIMesh->SetRelativeTransform(FTransform::Identity);
@@ -1837,7 +1865,7 @@ void ULGUICanvas::AddUIMaterialToPool(UMaterialInstanceDynamic* UIMat)
 {
 	int CacheMatTypeIndex = -1;
 	auto TempDefaultMaterials = GetMaterials();
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
 	{
 		if (UIMat->Parent == TempDefaultMaterials[i])
 		{
@@ -2060,26 +2088,42 @@ void ULGUICanvas::SetInheriRectClip(bool newBool)
 		MarkCanvasUpdate();
 	}
 }
-void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanvas)
+
+void ULGUICanvas::SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue)
 {
-	if (sortOrder != newSortOrder)
+	if (FMath::Abs(this->SortOrder + InAdditionalValue) > MAX_int16)
 	{
-		int32 diff = newSortOrder - sortOrder;
-		sortOrder = newSortOrder;
+		auto errorMsg = FString::Printf(TEXT("[ULGUICanvas::SetSortOrder] SortOrder out of range!\nNOTE! SortOrder value is stored with int16 type, so valid range is -32768 to 32767"));
+		LGUIUtils::EditorNotification(FText::FromString(errorMsg));
+		return;
+	}
+
+	this->SortOrder += InAdditionalValue;
+	for (auto ChildCanvas : ChildrenCanvasArray)
+	{
+		ChildCanvas->SetSortOrderAdditionalValueRecursive(InAdditionalValue);
+	}
+}
+
+void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanvas)
+{
+	if (SortOrder != InSortOrder)
+	{
 		MarkCanvasUpdate();
-		if (propagateToChildrenCanvas)
+		if (InPropagateToChildrenCanvas)
 		{
-			auto& allCanvasArray = GetAllCanvasArray();
-			for (auto itemCanvas : allCanvasArray)
+			int32 Diff = InSortOrder - SortOrder;
+			SetSortOrderAdditionalValueRecursive(Diff);
+		}
+		else
+		{
+			if (FMath::Abs(InSortOrder) > MAX_int16)
 			{
-				if (itemCanvas.IsValid())
-				{
-					if (itemCanvas->UIItem->IsAttachedTo(this->UIItem.Get()))
-					{
-						itemCanvas->sortOrder += diff;
-					}
-				}
+				auto errorMsg = FString::Printf(TEXT("[ULGUICanvas::SetSortOrder] SortOrder out of range!\nNOTE! SortOrder value is stored with int16 type, so valid range is -32768 to 32767"));
+				LGUIUtils::EditorNotification(FText::FromString(errorMsg));
+				InSortOrder = FMath::Clamp(InSortOrder, (int32)MIN_int16, (int32)MAX_int16);
 			}
+			this->SortOrder = InSortOrder;
 		}
 		if (this == RootCanvas)
 		{
@@ -2098,7 +2142,7 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 				}
 				if (ViewExtension.IsValid())
 				{
-					ViewExtension->SetRenderCanvasSortOrder(this, this->sortOrder);
+					ViewExtension->SetRenderCanvasSortOrder(this, this->SortOrder);
 				}
 			}
 		}
@@ -2146,17 +2190,17 @@ void ULGUICanvas::SetSortOrder(int32 newSortOrder, bool propagateToChildrenCanva
 		}
 	}
 }
-void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool propagateToChildrenCanvas)
+void ULGUICanvas::SetSortOrderToHighestOfHierarchy(bool InPropagateToChildrenCanvas)
 {
 	int32 Min = INT_MAX, Max = INT_MIN;
 	GetMinMaxSortOrderOfHierarchy(Min, Max);
-	SetSortOrder(Max + 1, propagateToChildrenCanvas);
+	SetSortOrder(Max + 1, InPropagateToChildrenCanvas);
 }
-void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas)
+void ULGUICanvas::SetSortOrderToLowestOfHierarchy(bool InPropagateToChildrenCanvas)
 {
 	int32 Min = INT_MAX, Max = INT_MIN;
 	GetMinMaxSortOrderOfHierarchy(Min, Max);
-	SetSortOrder(Min - 1, propagateToChildrenCanvas);
+	SetSortOrder(Min - 1, InPropagateToChildrenCanvas);
 }
 
 void ULGUICanvas::GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax)
@@ -2177,8 +2221,24 @@ void ULGUICanvas::GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax)
 }
 
 
-void ULGUICanvas::SetDefaultMaterials(UMaterialInterface* InMaterials[3])
+TArray<UMaterialInterface*> ULGUICanvas::GetDefaultMaterials()const
 {
+	TArray<UMaterialInterface*> ResultArray;
+	ResultArray.AddUninitialized(LGUI_DEFAULT_MATERIAL_COUNT);
+	for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+	{
+		ResultArray[i] = DefaultMaterials[i];
+	}
+	return ResultArray;
+}
+
+void ULGUICanvas::SetDefaultMaterials(const TArray<UMaterialInterface*>& InMaterialArray)
+{
+	if (InMaterialArray.Num() < LGUI_DEFAULT_MATERIAL_COUNT)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUICanvas::SetDefaultMaterials] InMaterialArray's count must be %d"), LGUI_DEFAULT_MATERIAL_COUNT);
+		return;
+	}
 	for (int i = 0; i < UIDrawcallList.Num(); i++)
 	{
 		auto DrawcallItem = UIDrawcallList[i];
@@ -2190,11 +2250,11 @@ void ULGUICanvas::SetDefaultMaterials(UMaterialInterface* InMaterials[3])
 			}
 		}
 	}
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
 	{
-		if (IsValid(InMaterials[i]))
+		if (IsValid(InMaterialArray[i]))
 		{
-			DefaultMaterials[i] = InMaterials[i];
+			DefaultMaterials[i] = InMaterialArray[i];
 		}
 	}
 	//clear old material
@@ -2268,13 +2328,13 @@ int32 ULGUICanvas::GetActualSortOrder()const
 {
 	if (IsRootCanvas())
 	{
-		return sortOrder;
+		return SortOrder;
 	}
 	else
 	{
 		if (bOverrideSorting)
 		{
-			return sortOrder;
+			return SortOrder;
 		}
 		else
 		{
@@ -2284,7 +2344,7 @@ int32 ULGUICanvas::GetActualSortOrder()const
 			}
 		}
 	}
-	return sortOrder;
+	return SortOrder;
 }
 
 void ULGUICanvas::SetOverrideSorting(bool value)
@@ -2619,66 +2679,7 @@ bool ULGUICanvas::GetActualPixelPerfect()const
 	}
 	return false;
 }
-bool ULGUICanvas::GetActualOwnerNoSee()const
-{
-	if (IsRootCanvas())
-	{
-		return this->ownerNoSee;
-	}
-	else
-	{
-		if (GetOverrideOwnerNoSee())
-		{
-			return this->ownerNoSee;
-		}
-		else
-		{
-			if (ParentCanvas.IsValid())
-			{
-				return ParentCanvas->GetActualOwnerNoSee();
-			}
-		}
-	}
-	return this->ownerNoSee;
-}
-bool ULGUICanvas::GetActualOnlyOwnerSee()const
-{
-	if (IsRootCanvas())
-	{
-		return this->onlyOwnerSee;
-	}
-	else
-	{
-		if (GetOverrideOnlyOwnerSee())
-		{
-			return this->onlyOwnerSee;
-		}
-		else
-		{
-			if (ParentCanvas.IsValid())
-			{
-				return ParentCanvas->GetActualOnlyOwnerSee();
-			}
-		}
-	}
-	return this->onlyOwnerSee;
-}
-void ULGUICanvas::SetOwnerNoSee(bool value)
-{
-	if (ownerNoSee != value)
-	{
-		ownerNoSee = value;
-		ApplyOwnerSeeRecursive();
-	}
-}
-void ULGUICanvas::SetOnlyOwnerSee(bool value)
-{
-	if (onlyOwnerSee != value)
-	{
-		onlyOwnerSee = value;
-		ApplyOwnerSeeRecursive();
-	}
-}
+
 void ULGUICanvas::SetBlendDepth(float value)
 {
 	if (blendDepth != value)
@@ -2708,25 +2709,6 @@ void ULGUICanvas::SetBlendDepth(float value)
 					}
 				}
 			}
-		}
-	}
-}
-void ULGUICanvas::ApplyOwnerSeeRecursive()
-{
-	auto tempOwnerNoSee = this->GetActualOwnerNoSee();
-	auto tempOnlyOwnerSee = this->GetActualOnlyOwnerSee();
-
-	for (auto item : UsingUIMeshList)
-	{
-		item->SetOwnerNoSee(tempOwnerNoSee);
-		item->SetOnlyOwnerSee(tempOnlyOwnerSee);
-	}
-
-	for (auto item : ChildrenCanvasArray)
-	{
-		if (item.IsValid() && item != this)
-		{
-			item->ApplyOwnerSeeRecursive();
 		}
 	}
 }

@@ -29,7 +29,7 @@ public:
 	virtual int GetRenderPriority() const = 0;
 
 	//begin mesh interface
-	virtual void GetMeshElement(class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
+	virtual void GetMeshElements(class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
 	//end mesh interface
 
 	//begin post process interface

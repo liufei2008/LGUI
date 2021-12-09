@@ -89,9 +89,9 @@ public:
 	 * This is the threshold for determine if the UI element is 2D.
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
-		float autoManageDepthThreshold = KINDA_SMALL_NUMBER;
+		float OrderManagementThreshold = KINDA_SMALL_NUMBER;
 #if WITH_EDITORONLY_DATA
-	static float cacheAutoManageDepthThreshold;
+	static float CacheOrderManagementThreshold;
 #endif
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)override;
@@ -103,7 +103,7 @@ public:
 	static TextureFilter GetAtlasTextureFilter(const FName& InPackingTag);
 	static const TMap<FName, FLGUIAtlasSettings>& GetAllAtlasSettings();
 	static ELGUIScreenSpaceUIAntiAliasing GetAntiAliasingSampleCount();
-	static float GetAutoManageDepthThreshold();
+	static float GetOrderManagementThreshold();
 	FORCEINLINE static int32 ConvertAtlasTextureSizeTypeToSize(const ELGUIAtlasTextureSizeType& InType)
 	{
 		return FMath::Pow(2, (int32)InType) * 256;

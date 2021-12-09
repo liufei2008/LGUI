@@ -1011,7 +1011,10 @@ void UUIItem::UnregisterRenderCanvas()
 {
 	bIsCanvasUIItem = false;
 	auto ParentCanvas = LGUIUtils::GetComponentInParent<ULGUICanvas>(GetOwner()->GetAttachParentActor(), false);
-	SetRenderCanvas(ParentCanvas);
+	if (RenderCanvas != ParentCanvas)
+	{
+		SetRenderCanvas(ParentCanvas);
+	}
 	for (auto uiItem : UIChildren)
 	{
 		if (IsValid(uiItem))

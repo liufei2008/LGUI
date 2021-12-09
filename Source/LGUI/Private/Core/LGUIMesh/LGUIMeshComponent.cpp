@@ -517,7 +517,7 @@ public:
 	}
 
 	//begin ILGUIHudPrimitive interface
-	virtual void GetMeshElement(FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) override
+	virtual void GetMeshElements(FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) override
 	{
 		if (IsSupportLGUIRenderer)
 		{
@@ -534,7 +534,7 @@ public:
 					FMeshBatchElement& BatchElement = Mesh.Elements[0];
 					BatchElement.IndexBuffer = &Section->IndexBuffer;
 					BatchElement.PrimitiveIdMode = PrimID_ForceZero;
-					Mesh.bWireframe = false;
+					Mesh.bWireframe = false;//@todo: support wireframe
 					Mesh.VertexFactory = &Section->VertexFactory;
 					Mesh.MaterialRenderProxy = MaterialProxy;
 
@@ -629,6 +629,11 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+ULGUIMeshComponent::ULGUIMeshComponent()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
 #include "Utils/LGUIUtils.h"
 void ULGUIMeshComponent::CreateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection)
 {

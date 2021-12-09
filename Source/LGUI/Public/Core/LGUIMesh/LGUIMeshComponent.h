@@ -39,12 +39,13 @@ class ULGUICanvas;
 
 //LGUI's mesh
 //@todo: split this class to: one for UE renderer && one for LGUI renderer, will it be more efficient? or maybe a class without additional shader channels? 
-UCLASS(ClassGroup = (LGUI), NotBlueprintable)
+UCLASS(ClassGroup = (LGUI), Blueprintable)
 class LGUI_API ULGUIMeshComponent : public UMeshComponent
 {
 	GENERATED_BODY()
 
 public:
+	ULGUIMeshComponent();
 	void CreateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection);
 	void UpdateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMeshSection, bool InVertexPositionChanged, int8 AdditionalShaderChannelFlags);
 	void DeleteMeshSection(TSharedPtr<FLGUIMeshSection> InMeshSection);

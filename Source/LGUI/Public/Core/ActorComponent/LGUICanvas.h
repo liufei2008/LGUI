@@ -64,8 +64,6 @@ enum class ELGUICanvasOverrideParameters :uint8
 	DynamicPixelsPerUnit,
 	ClipType,
 	AdditionalShaderChannels,
-	OnlyOwnerSee,
-	OwnerNoSee,
 	BlendDepth,
 };
 ENUM_CLASS_FLAGS(ELGUICanvasOverrideParameters);
@@ -98,6 +96,8 @@ class ULGUIMeshComponent;
 class UUIDrawcall;
 class FUIPostProcessRenderProxy;
 class UTextureRenderTarget2D;
+
+#define LGUI_DEFAULT_MATERIAL_COUNT 3
 
 /**
  * Canvas is for render and update all UI elements.
@@ -162,8 +162,6 @@ public:
 	ULGUICanvas* GetRootCanvas()const;
 	bool IsRootCanvas()const;
 
-	void SetDefaultMaterials(UMaterialInterface* InMaterials[3]);
-
 	bool IsRenderToScreenSpace();
 	bool IsRenderToRenderTarget();
 	bool IsRenderToWorldSpace();
@@ -212,11 +210,18 @@ protected:
 	/** This can avoid half-pixel render */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool pixelPerfect = false;
+	/**
+	 * true- Use custom sort order.
+	 * false- Use default sort order management, which is based on hierarchy order.
+	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		bool bOverrideSorting = false;
-	/** Canvas with larger order will render on top of lower one */
+	/**
+	 * Canvas with larger order will render on top of lower one.
+	 * NOTE! SortOrder value is stored with int16 type, so valid range is -32768 to 32767
+	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="bOverrideSorting"))
-		int32 sortOrder = 0;
+		int16 SortOrder = 0;
 
 	/** 
 	 * Clip content UI elements. 
@@ -248,14 +253,7 @@ protected:
 
 	/** Default materials, for render default UI elements. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayThumbnail = "false"))
-		UMaterialInterface* DefaultMaterials[3];
-
-	/** Just like StaticMesh's OwnerNoSee property, only valid for "World Space - UE Renderer". */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool ownerNoSee = false;
-	/** Just like StaticMesh's OnlyOwnerSee property, only valid for "World Space - UE Renderer". */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool onlyOwnerSee = false;
+		UMaterialInterface* DefaultMaterials[LGUI_DEFAULT_MATERIAL_COUNT];
 
 	/** For "World Space - LGUI Renderer" only, render with blend depth, 0-occlude by scene depth, 1-all visible. */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (ClampMin = "0.0", ClampMax = "1.0"))
@@ -264,6 +262,13 @@ protected:
 	/** For not root canvas, inherit or override parent canvas parameters. */
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (Bitmask, BitmaskEnum = "ELGUICanvasOverrideParameters"))
 		int8 overrideParameters;
+
+	/**
+	 * LGUICanvas create mesh for render UI elements, this property can give us opportunity to use custom type of mesh for render.
+	 * You can set "OwnerNoSee" "CastShadow" properties for your mesh.
+	 */
+	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay, meta = (AllowAbstract = "true"))
+		TSubclassOf<ULGUIMeshComponent> DefaultMeshType;
 
 	FORCEINLINE FLinearColor GetRectClipOffsetAndSize();
 	FORCEINLINE FLinearColor GetRectClipFeather();
@@ -274,10 +279,13 @@ protected:
 	FORCEINLINE bool GetOverrideDynamicPixelsPerUnit()const			{ return overrideParameters & (1 << 2); }
 	FORCEINLINE bool GetOverrideClipType()const						{ return overrideParameters & (1 << 3); }
 	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << 4); }
-	FORCEINLINE bool GetOverrideOwnerNoSee()const					{ return overrideParameters & (1 << 5); }
-	FORCEINLINE bool GetOverrideOnlyOwnerSee()const					{ return overrideParameters & (1 << 6); }
-	FORCEINLINE bool GetOverrideBlendDepth()const					{ return overrideParameters & (1 << 7); }
+	FORCEINLINE bool GetOverrideBlendDepth()const					{ return overrideParameters & (1 << 5); }
 public:
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		TArray<UMaterialInterface*> GetDefaultMaterials()const;
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetDefaultMaterials(const TArray<UMaterialInterface*>& InMaterialArray);
+
 	/** Set render mode of this canvas. This may not take effect if the canvas is not a root cnavas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderMode(ELGUIRenderMode value);
@@ -303,7 +311,7 @@ public:
 		void SetInheriRectClip(bool newBool);
 	/** 
 	 * Set LGUICanvas SortOrder
-	 * @param	propagateToChildrenCanvas	if true, set this Canvas's SortOrder and all Canvases that is attached to this Canvas, not just set absolute value, but keep child Canvas's relative order to this one
+	 * @param	propagateToChildrenCanvas	if true, set this Canvas's SortOrder and all children Canvas, not just set absolute value, but keep child Canvas's relative order to this one
 	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrder(int32 newValue, bool propagateToChildrenCanvas = true);
@@ -334,23 +342,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTextureRenderTarget2D* GetRenderTarget()const { return renderTarget; }
 
-	/** Get OwnerNoSee of this canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetOwnerNoSee()const { return ownerNoSee; }
-	/** Get OnlyOwnerSee of this canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetOnlyOwnerSee()const { return onlyOwnerSee; }
-	/** Get OwnerNoSee of this canvas. Actually canvas's OwnerNoSee property is inherit from parent canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetActualOwnerNoSee()const;
-	/** Get OnlyOwnerSee of this canvas. Actually canvas's OnlyOwnerSee property is inherit from parent canvas. */
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetActualOnlyOwnerSee()const;
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetOwnerNoSee(bool value);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetOnlyOwnerSee(bool value);
-
 	/** Get blendDepth value of canvas. Actually canvas's blendDepth property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetActualBlendDepth()const;
@@ -365,7 +356,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetOverrideSorting(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		int32 GetSortOrder()const { return sortOrder; }
+		int32 GetSortOrder()const { return SortOrder; }
 	/** Get SortOrder of this canvas. Actually canvas's SortOrder property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetActualSortOrder()const;
@@ -425,6 +416,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue);
 
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		TSubclassOf<ULGUIMeshComponent> GetDefaultMeshType()const { return DefaultMeshType; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetDefaultMeshType(TSubclassOf<ULGUIMeshComponent> InValue);
+
 	void AddUIRenderable(UUIBaseRenderable* InUIRenderable);
 	void RemoveUIRenderable(UUIBaseRenderable* InUIRenderable);
 public:
@@ -435,7 +431,7 @@ public:
 	static FName LGUI_TextureClipOffsetAndSize_MaterialParameterName;
 	bool IsMaterialContainsLGUIParameter(UMaterialInterface* InMaterial);
 private:
-	void ApplyOwnerSeeRecursive();
+	void SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue);
 public:
 	/** Called from LGUIManagerActor */
 	void UpdateRootCanvasDrawcall();

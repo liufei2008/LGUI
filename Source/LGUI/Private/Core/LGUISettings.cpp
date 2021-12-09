@@ -6,7 +6,7 @@
 #include "Core/LGUIAtlasData.h"
 
 #if WITH_EDITOR
-float ULGUISettings::cacheAutoManageDepthThreshold = -1;
+float ULGUISettings::CacheOrderManagementThreshold = -1;
 void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -20,9 +20,9 @@ void ULGUISettings::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 			ULGUISpriteData::MarkAllSpritesNeedToReinitialize();
 			ULGUIAtlasManager::InitCheck();
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISettings, autoManageDepthThreshold))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUISettings, OrderManagementThreshold))
 		{
-			cacheAutoManageDepthThreshold = autoManageDepthThreshold;
+			CacheOrderManagementThreshold = OrderManagementThreshold;
 		}
 	}
 }
@@ -63,16 +63,16 @@ ELGUIScreenSpaceUIAntiAliasing ULGUISettings::GetAntiAliasingSampleCount()
 {
 	return GetDefault<ULGUISettings>()->antiAliasing;
 }
-float ULGUISettings::GetAutoManageDepthThreshold()
+float ULGUISettings::GetOrderManagementThreshold()
 {
 #if WITH_EDITOR
-	if (cacheAutoManageDepthThreshold <= -0.5f)
+	if (CacheOrderManagementThreshold <= -0.5f)
 	{
-		cacheAutoManageDepthThreshold = GetDefault<ULGUISettings>()->autoManageDepthThreshold;
+		CacheOrderManagementThreshold = GetDefault<ULGUISettings>()->OrderManagementThreshold;
 	}
-	return cacheAutoManageDepthThreshold;
+	return CacheOrderManagementThreshold;
 #else
-	return GetDefault<ULGUISettings>()->autoManageDepthThreshold;
+	return GetDefault<ULGUISettings>()->OrderManagementThreshold;
 #endif
 }
 int32 ULGUISettings::GetPriorityInSceneViewExtension()
