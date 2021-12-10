@@ -22,7 +22,6 @@ public:
 
 	bool IsWorldDefaultActor(AActor* InActor)const;
 private:
-	void OnEnginePreExit();
 
 	/** Editor accessory components **/
 	UStaticMeshComponent* m_EditorFloorComp;

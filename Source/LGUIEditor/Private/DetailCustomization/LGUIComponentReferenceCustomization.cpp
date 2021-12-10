@@ -116,24 +116,29 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 				}
 				else
 				{
-					ContentWidget = SNew(SVerticalBox)
-					+SVerticalBox::Slot()
-					.AutoHeight()
+					ContentWidget = 
+					SNew(SBox)
+					.WidthOverride(500)
 					[
-						HelperActorHandle->CreatePropertyValueWidget()
-					]
-					+SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						SNew(SComboButton)
-						.ToolTipText(FText::FromString(FString::Printf(TEXT("Target actor have multiple components of type:%s, you can select one from target actor"), *TargetClass->GetName())))
-						.OnGetMenuContent(this, &FLGUIComponentReferenceCustomization::OnGetMenu, TargetCompHandle, Components)
-						.ContentPadding(FMargin(0))
-						.ButtonContent()
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.FillWidth(0.65f)
 						[
-							SNew(STextBlock)
-							.Text(this, &FLGUIComponentReferenceCustomization::GetButtonText, TargetCompHandle, Components)
-							.Font(IDetailLayoutBuilder::GetDetailFont())
+							HelperActorHandle->CreatePropertyValueWidget()
+						]
+						+ SHorizontalBox::Slot()
+						.FillWidth(0.35f)
+						[
+							SNew(SComboButton)
+							.ToolTipText(FText::FromString(FString::Printf(TEXT("Target actor have multiple components of type:%s, you must select one of them"), *TargetClass->GetName())))
+							.OnGetMenuContent(this, &FLGUIComponentReferenceCustomization::OnGetMenu, TargetCompHandle, Components)
+							.ContentPadding(FMargin(0))
+							.ButtonContent()
+							[
+								SNew(STextBlock)
+								.Text(this, &FLGUIComponentReferenceCustomization::GetButtonText, TargetCompHandle, Components)
+								.Font(IDetailLayoutBuilder::GetDetailFont())
+							]
 						]
 					]
 					;

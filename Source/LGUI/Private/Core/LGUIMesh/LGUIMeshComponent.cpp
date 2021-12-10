@@ -517,47 +517,59 @@ public:
 	}
 
 	//begin ILGUIHudPrimitive interface
-	virtual void GetMeshElements(FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) override
+	virtual void GetMeshElements(const FSceneViewFamily& ViewFamily, FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) override
 	{
-		if (IsSupportLGUIRenderer)
+		if (!IsSupportLGUIRenderer)return;
+		// Set up wireframe material (if needed)
+		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
+
+		FColoredMaterialRenderProxy* WireframeMaterialInstance = NULL;
+		if (bWireframe)
 		{
-			ResultArray.Reserve(Sections.Num());
-			for (int i = 0; i < Sections.Num(); i++)
+			WireframeMaterialInstance = new FColoredMaterialRenderProxy(
+				GEngine->WireframeMaterial ? GEngine->WireframeMaterial->GetRenderProxy() : NULL,
+				FLinearColor(0, 0.5f, 1.f)
+			);
+
+			Collector->RegisterOneFrameMaterialProxy(WireframeMaterialInstance);
+		}
+
+		ResultArray.Reserve(Sections.Num());
+		for (int i = 0; i < Sections.Num(); i++)
+		{
+			auto Section = Sections[i];
+			if (Section != nullptr && Section->bSectionVisible)
 			{
-				auto Section = Sections[i];
-				if (Section != nullptr && Section->bSectionVisible)
-				{
-					FMaterialRenderProxy* MaterialProxy = Section->Material->GetRenderProxy();
+				FMaterialRenderProxy* MaterialProxy = bWireframe ? WireframeMaterialInstance : Section->Material->GetRenderProxy();
 
-					// Draw the mesh.
-					FMeshBatch Mesh;
-					FMeshBatchElement& BatchElement = Mesh.Elements[0];
-					BatchElement.IndexBuffer = &Section->IndexBuffer;
-					BatchElement.PrimitiveIdMode = PrimID_ForceZero;
-					Mesh.bWireframe = false;//@todo: support wireframe
-					Mesh.VertexFactory = &Section->VertexFactory;
-					Mesh.MaterialRenderProxy = MaterialProxy;
+				// Draw the mesh.
+				FMeshBatch Mesh;
+				FMeshBatchElement& BatchElement = Mesh.Elements[0];
+				BatchElement.IndexBuffer = &Section->IndexBuffer;
+				BatchElement.PrimitiveIdMode = PrimID_ForceZero;
+				Mesh.bWireframe = bWireframe;//@todo: support wireframe
+				Mesh.VertexFactory = &Section->VertexFactory;
+				Mesh.MaterialRenderProxy = MaterialProxy;
 
-					FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector->AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
-					DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, false, false, false);
-					BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
-					//BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, UseEditorDepthTest());
+				FDynamicPrimitiveUniformBuffer& DynamicPrimitiveUniformBuffer = Collector->AllocateOneFrameResource<FDynamicPrimitiveUniformBuffer>();
+				DynamicPrimitiveUniformBuffer.Set(GetLocalToWorld(), GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, false, false, false);
+				BatchElement.PrimitiveUniformBufferResource = &DynamicPrimitiveUniformBuffer.UniformBuffer;
+				//BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), false, UseEditorDepthTest());
 
-					BatchElement.FirstIndex = 0;
-					BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
-					BatchElement.MinVertexIndex = 0;
-					BatchElement.MaxVertexIndex = Section->HudVertexBuffers.Vertices.Num() - 1;
-					Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
-					Mesh.Type = PT_TriangleList;
-					Mesh.DepthPriorityGroup = SDPG_World;
-					Mesh.bCanApplyViewModeOverrides = false;
+				BatchElement.FirstIndex = 0;
+				BatchElement.NumPrimitives = Section->IndexBuffer.Indices.Num() / 3;
+				BatchElement.MinVertexIndex = 0;
+				BatchElement.MaxVertexIndex = Section->HudVertexBuffers.Vertices.Num() - 1;
+				Mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
+				Mesh.Type = PT_TriangleList;
+				Mesh.DepthPriorityGroup = SDPG_World;
+				Mesh.bCanApplyViewModeOverrides = false;
 
-					FLGUIMeshBatchContainer MeshBatchContainer;
-					MeshBatchContainer.Mesh = Mesh;
-					MeshBatchContainer.VertexBufferRHI = Section->HudVertexBuffers.VertexBufferRHI;
-					MeshBatchContainer.NumVerts = Section->HudVertexBuffers.Vertices.Num();
-					ResultArray.Add(MeshBatchContainer);
-				}
+				FLGUIMeshBatchContainer MeshBatchContainer;
+				MeshBatchContainer.Mesh = Mesh;
+				MeshBatchContainer.VertexBufferRHI = Section->HudVertexBuffers.VertexBufferRHI;
+				MeshBatchContainer.NumVerts = Section->HudVertexBuffers.Vertices.Num();
+				ResultArray.Add(MeshBatchContainer);
 			}
 		}
 	}

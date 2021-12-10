@@ -90,8 +90,6 @@ FLGUIPrefabPreviewScene::FLGUIPrefabPreviewScene(ConstructionValues CVS) :FPrevi
 	m_EditorFloorComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	m_EditorFloorComp->SetCollisionObjectType(ECC_WorldStatic);
 
-	FCoreDelegates::OnEnginePreExit.AddRaw(this, &FLGUIPrefabPreviewScene::OnEnginePreExit);
-
 
 	for (TActorIterator<AActor> ActorItr(this->GetWorld()); ActorItr; ++ActorItr)
 	{
@@ -153,22 +151,6 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 bool FLGUIPrefabPreviewScene::IsWorldDefaultActor(AActor* InActor)const
 {
 	return WorldDefaultActors.Contains(InActor);
-}
-
-void FLGUIPrefabPreviewScene::OnEnginePreExit()
-{
-	if (PreviewWorld)
-	{
-		PreviewWorld->CleanupWorld();
-		GEngine->DestroyWorldContext(GetWorld());
-		// Release PhysicsScene for fixing big fbx importing bug
-		PreviewWorld->ReleasePhysicsScene();
-		PreviewWorld = nullptr;
-	}
-
-	m_EditorFloorComp = nullptr;
-	m_EditorSkyComp = nullptr;
-	m_EditorHeightFogComponent = nullptr;
 }
 
 #undef LOCTEXT_NAMESPACE

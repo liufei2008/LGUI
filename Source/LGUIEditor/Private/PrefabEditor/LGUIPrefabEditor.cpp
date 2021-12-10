@@ -313,11 +313,6 @@ void FLGUIPrefabEditor::OnOutlinerActorDoubleClick(AActor* Actor)
 	ViewportPtr->GetViewportClient()->FocusViewportOnBox(BoundingBox);
 }
 
-void FLGUIPrefabEditor::AddReferencedObjects(FReferenceCollector& Collector)
-{
-	Collector.AddReferencedObject(PrefabBeingEdited);
-}
-
 FName FLGUIPrefabEditor::GetToolkitFName() const
 {
 	return FName("LGUIPrefabEditor");

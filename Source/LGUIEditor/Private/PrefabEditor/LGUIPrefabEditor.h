@@ -17,7 +17,7 @@ class AActor;
 /**
  * 
  */
-class FLGUIPrefabEditor : public FAssetEditorToolkit, public FGCObject
+class FLGUIPrefabEditor : public FAssetEditorToolkit
 {
 public:
 	FLGUIPrefabEditor();
@@ -41,11 +41,6 @@ public:
 	// End of FAssetEditorToolkit
 
 	bool CheckBeforeSaveAsset();
-
-	// FSerializableObject interface
-	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
-	// End of FSerializableObject interface
-
 
 	void InitPrefabEditor(const EToolkitMode::Type Mode, const TSharedPtr< class IToolkitHost >& InitToolkitHost, ULGUIPrefab* InPrefab);
 

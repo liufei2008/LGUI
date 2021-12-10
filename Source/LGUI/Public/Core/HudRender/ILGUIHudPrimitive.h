@@ -10,6 +10,7 @@
 
 class FLGUIHudRenderer;
 class UUIPostProcessRenderable;
+class FSceneViewFamily;
 
 struct FLGUIMeshBatchContainer
 {
@@ -29,7 +30,7 @@ public:
 	virtual int GetRenderPriority() const = 0;
 
 	//begin mesh interface
-	virtual void GetMeshElements(class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
+	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& ResultArray) = 0;
 	//end mesh interface
 
 	//begin post process interface

@@ -415,7 +415,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 						else//render mesh
 						{
 							MeshBatchArray.Reset();
-							hudPrimitive->GetMeshElements((FMeshElementCollector*)&meshCollector, MeshBatchArray);
+							hudPrimitive->GetMeshElements(*RenderView.Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
 							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 							{
 								auto MeshBatchContainer = MeshBatchArray[MeshIndex];
@@ -524,7 +524,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 					else//render mesh
 					{
 						MeshBatchArray.Reset();
-						hudPrimitive->GetMeshElements((FMeshElementCollector*)&meshCollector, MeshBatchArray);
+						hudPrimitive->GetMeshElements(*RenderView.Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
 						for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 						{
 							auto MeshBatchContainer = MeshBatchArray[MeshIndex];
