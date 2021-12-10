@@ -4,7 +4,7 @@
 
 #include "Event/Interface/LGUIPointerClickInterface.h"
 #include "UISelectableComponent.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "UIButtonComponent.generated.h"
@@ -18,7 +18,7 @@ class LGUI_API UUIButtonComponent : public UUISelectableComponent, public ILGUIP
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "LGUI-Button")
-		FLGUIDrawableEvent OnClick = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Empty);
+		FLGUIEventDelegate OnClick = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
 	FSimpleMulticastDelegate OnClickCPP;
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;
 public:

@@ -17,7 +17,7 @@ protected:
 		float to = 1.0f;
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Float);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
 
 	virtual void OnUpdate(float progress)override
 	{
@@ -37,7 +37,7 @@ protected:
 		FColor to = FColor::Green;
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Color);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Color);
 
 	virtual void OnUpdate(float progress)override
 	{
@@ -62,7 +62,7 @@ protected:
 		int to = 100;
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Int32);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Int32);
 
 	virtual void OnUpdate(float progress)override
 	{
@@ -82,7 +82,7 @@ protected:
 		FLinearColor to = FLinearColor::Green;
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::LinearColor);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::LinearColor);
 
 	virtual void OnUpdate(float progress)override
 	{
@@ -102,7 +102,7 @@ protected:
 		FQuat to = FQuat(FVector(0.0f, 0.0f, 1.0f), HALF_PI);
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Quaternion);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Quaternion);
 
 	virtual void OnUpdate(float progress)override
 	{
@@ -122,7 +122,7 @@ protected:
 		FRotator to = FRotator(0.0f, 0.0f, 90.0f);
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Rotator);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Rotator);
 
 	virtual void OnUpdate(float progress)override
 	{
@@ -142,7 +142,7 @@ protected:
 		FVector2D to = FVector2D(1.0f, 1.0f);
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Vector2);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Vector2);
 
 	virtual void OnUpdate(float progress)override
 	{
@@ -162,7 +162,7 @@ protected:
 		FVector to = FVector::OneVector;
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Vector3);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Vector3);
 
 	virtual void OnUpdate(float progress)override
 	{
@@ -182,7 +182,7 @@ protected:
 		FVector4 to = FVector4(1.0f, 1.0f, 1.0f, 1.0f);
 	/** parameter float is interpolated value from->to */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateValue = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Vector4);
+		FLGUIEventDelegate onUpdateValue = FLGUIEventDelegate(LGUIEventDelegateParameterType::Vector4);
 
 	virtual void OnUpdate(float progress)override
 	{

@@ -7,7 +7,7 @@
 
 UUIToggleGroupComponent::UUIToggleGroupComponent()
 {
-	OnToggle = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Int32);
+	OnToggle = FLGUIEventDelegate(LGUIEventDelegateParameterType::Int32);
 }
 void UUIToggleGroupComponent::AddToggleComponent(UUIToggleComponent* InComp)
 {

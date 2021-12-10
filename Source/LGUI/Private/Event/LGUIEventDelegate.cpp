@@ -1,19 +1,19 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Utils/BitConverter.h"
 #include "LGUI.h"
 
 //PRAGMA_DISABLE_OPTIMIZATION
 
-bool ULGUIDrawableEventParameterHelper::IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIDrawableEventParameterType>& OutParameterTypeArray)
+bool ULGUIEventDelegateParameterHelper::IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIEventDelegateParameterType>& OutParameterTypeArray)
 {
 	if (InFunction->GetReturnProperty() != nullptr)return false;//not support return value for ProcessEvent
 	TFieldIterator<FProperty> IteratorA(InFunction);
 	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
 	{
 		FProperty* PropA = *IteratorA;
-		LGUIDrawableEventParameterType ParamType;
+		LGUIEventDelegateParameterType ParamType;
 		if (IsPropertyCompatible(PropA, ParamType))
 		{
 			OutParameterTypeArray.Add(ParamType);
@@ -27,7 +27,7 @@ bool ULGUIDrawableEventParameterHelper::IsFunctionCompatible(const UFunction* In
 	}
 	return true;
 }
-bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIDrawableEventParameterType& OutParameterType)
+bool ULGUIEventDelegateParameterHelper::IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIEventDelegateParameterType& OutParameterType)
 {
 	if (!InFunctionProperty )
 	{
@@ -36,62 +36,62 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* In
 
 	if (auto boolProperty = CastField<FBoolProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Bool;
+		OutParameterType = LGUIEventDelegateParameterType::Bool;
 		return true;
 	}
 	else if (auto floatProperty = CastField<FFloatProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Float;
+		OutParameterType = LGUIEventDelegateParameterType::Float;
 		return true;
 	}
 	else if (auto doubleProperty = CastField<FDoubleProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Double;
+		OutParameterType = LGUIEventDelegateParameterType::Double;
 		return true;
 	}
 	else if (auto int8Property = CastField<FInt8Property>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Int8;
+		OutParameterType = LGUIEventDelegateParameterType::Int8;
 		return true;
 	}
 	else if (auto uint8Property = CastField<FByteProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::UInt8;
+		OutParameterType = LGUIEventDelegateParameterType::UInt8;
 		return true;
 	}
 	else if (auto int16Property = CastField<FInt16Property>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Int16;
+		OutParameterType = LGUIEventDelegateParameterType::Int16;
 		return true;
 	}
 	else if (auto uint16Property = CastField<FUInt16Property>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::UInt16;
+		OutParameterType = LGUIEventDelegateParameterType::UInt16;
 		return true;
 	}
 	else if (auto int32Property = CastField<FIntProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Int32;
+		OutParameterType = LGUIEventDelegateParameterType::Int32;
 		return true;
 	}
 	else if (auto uint32Property = CastField<FUInt32Property>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::UInt32;
+		OutParameterType = LGUIEventDelegateParameterType::UInt32;
 		return true;
 	}
 	else if (auto int64Property = CastField<FInt64Property>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Int64;
+		OutParameterType = LGUIEventDelegateParameterType::Int64;
 		return true;
 	}
 	else if (auto uint64Property = CastField<FUInt64Property>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::UInt64;
+		OutParameterType = LGUIEventDelegateParameterType::UInt64;
 		return true;
 	}
 	else if (auto enumProperty = CastField<FEnumProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::UInt8;
+		OutParameterType = LGUIEventDelegateParameterType::UInt8;
 		return true;
 	}
 	else if (auto structProperty = CastField<FStructProperty>(InFunctionProperty))
@@ -99,31 +99,31 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* In
 		auto structName = structProperty->Struct->GetFName();
 		if (structName == TEXT("Vector2D"))
 		{
-			OutParameterType = LGUIDrawableEventParameterType::Vector2; return true;
+			OutParameterType = LGUIEventDelegateParameterType::Vector2; return true;
 		}
 		else if (structName == TEXT("Vector"))
 		{
-			OutParameterType = LGUIDrawableEventParameterType::Vector3; return true;
+			OutParameterType = LGUIEventDelegateParameterType::Vector3; return true;
 		}
 		else if (structName == TEXT("Vector4"))
 		{
-			OutParameterType = LGUIDrawableEventParameterType::Vector4; return true;
+			OutParameterType = LGUIEventDelegateParameterType::Vector4; return true;
 		}
 		else if (structName == TEXT("Color"))
 		{
-			OutParameterType = LGUIDrawableEventParameterType::Color; return true;
+			OutParameterType = LGUIEventDelegateParameterType::Color; return true;
 		}
 		else if (structName == TEXT("LinearColor"))
 		{
-			OutParameterType = LGUIDrawableEventParameterType::LinearColor; return true;
+			OutParameterType = LGUIEventDelegateParameterType::LinearColor; return true;
 		}
 		else if (structName == TEXT("Quat"))
 		{
-			OutParameterType = LGUIDrawableEventParameterType::Quaternion; return true;
+			OutParameterType = LGUIEventDelegateParameterType::Quaternion; return true;
 		}
 		else if (structName == TEXT("Rotator"))
 		{
-			OutParameterType = LGUIDrawableEventParameterType::Rotator; return true;
+			OutParameterType = LGUIEventDelegateParameterType::Rotator; return true;
 		}
 		else
 		{
@@ -133,18 +133,18 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* In
 
 	else if (auto classProperty = CastField<FClassProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Class;
+		OutParameterType = LGUIEventDelegateParameterType::Class;
 		return true;
 	}
 	else if (auto objectProperty = CastField<FObjectProperty>(InFunctionProperty))//if object property
 	{
 		if (objectProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
 		{
-			OutParameterType = LGUIDrawableEventParameterType::Actor;
+			OutParameterType = LGUIEventDelegateParameterType::Actor;
 		}
 		else if (objectProperty->PropertyClass->IsChildOf(ULGUIPointerEventData::StaticClass()))
 		{
-			OutParameterType = LGUIDrawableEventParameterType::PointerEvent;
+			OutParameterType = LGUIEventDelegateParameterType::PointerEvent;
 		}
 		else if (objectProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))
 		{
@@ -152,31 +152,31 @@ bool ULGUIDrawableEventParameterHelper::IsPropertyCompatible(const FProperty* In
 		}
 		else
 		{
-			OutParameterType = LGUIDrawableEventParameterType::Object;
+			OutParameterType = LGUIEventDelegateParameterType::Object;
 		}
 		return true;
 	}
 
 	else if (auto strProperty = CastField<FStrProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::String;
+		OutParameterType = LGUIEventDelegateParameterType::String;
 		return true;
 	}
 	else if (auto nameProperty = CastField<FNameProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Name;
+		OutParameterType = LGUIEventDelegateParameterType::Name;
 		return true;
 	}
 	else if (auto textProperty = CastField<FTextProperty>(InFunctionProperty))
 	{
-		OutParameterType = LGUIDrawableEventParameterType::Text;
+		OutParameterType = LGUIEventDelegateParameterType::Text;
 		return true;
 	}
 
 	return false;
 }
 
-UClass* ULGUIDrawableEventParameterHelper::GetObjectParameterClass(const UFunction* InFunction)
+UClass* ULGUIEventDelegateParameterHelper::GetObjectParameterClass(const UFunction* InFunction)
 {
 	TFieldIterator<FProperty> paramsIterator(InFunction);
 	FProperty* firstProperty = *paramsIterator;
@@ -187,7 +187,7 @@ UClass* ULGUIDrawableEventParameterHelper::GetObjectParameterClass(const UFuncti
 	return nullptr;
 }
 
-UEnum* ULGUIDrawableEventParameterHelper::GetEnumParameter(const UFunction* InFunction)
+UEnum* ULGUIEventDelegateParameterHelper::GetEnumParameter(const UFunction* InFunction)
 {
 	TFieldIterator<FProperty> paramsIterator(InFunction);
 	FProperty* firstProperty = *paramsIterator;
@@ -204,7 +204,7 @@ UEnum* ULGUIDrawableEventParameterHelper::GetEnumParameter(const UFunction* InFu
 	}
 	return nullptr;
 }
-UClass* ULGUIDrawableEventParameterHelper::GetClassParameterClass(const UFunction* InFunction)
+UClass* ULGUIEventDelegateParameterHelper::GetClassParameterClass(const UFunction* InFunction)
 {
 	TFieldIterator<FProperty> paramsIterator(InFunction);
 	FProperty* firstProperty = *paramsIterator;
@@ -215,19 +215,19 @@ UClass* ULGUIDrawableEventParameterHelper::GetClassParameterClass(const UFunctio
 	return nullptr;
 }
 
-bool ULGUIDrawableEventParameterHelper::IsSupportedFunction(UFunction* Target, TArray<LGUIDrawableEventParameterType>& OutParamTypeArray)
+bool ULGUIEventDelegateParameterHelper::IsSupportedFunction(UFunction* Target, TArray<LGUIEventDelegateParameterType>& OutParamTypeArray)
 {
 	return IsFunctionCompatible(Target, OutParamTypeArray);
 }
 
-bool ULGUIDrawableEventParameterHelper::IsStillSupported(UFunction* Target, const TArray<LGUIDrawableEventParameterType>& InParamTypeArray)
+bool ULGUIEventDelegateParameterHelper::IsStillSupported(UFunction* Target, const TArray<LGUIEventDelegateParameterType>& InParamTypeArray)
 {
-	TArray<LGUIDrawableEventParameterType> ParamTypeArray;
+	TArray<LGUIEventDelegateParameterType> ParamTypeArray;
 	if (IsSupportedFunction(Target, ParamTypeArray))
 	{
 		if (ParamTypeArray.Num() == 0)
 		{
-			ParamTypeArray.Add(LGUIDrawableEventParameterType::Empty);
+			ParamTypeArray.Add(LGUIEventDelegateParameterType::Empty);
 		}
 		if (ParamTypeArray == InParamTypeArray)
 		{
@@ -237,26 +237,26 @@ bool ULGUIDrawableEventParameterHelper::IsStillSupported(UFunction* Target, cons
 	return false;
 }
 
-FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEventParameterType paramType, const UFunction* InFunction)
+FString ULGUIEventDelegateParameterHelper::ParameterTypeToName(LGUIEventDelegateParameterType paramType, const UFunction* InFunction)
 {
 	FString ParamTypeString = "";
 	switch (paramType)
 	{
-	case LGUIDrawableEventParameterType::Empty:
+	case LGUIEventDelegateParameterType::Empty:
 		break;
-	case LGUIDrawableEventParameterType::Bool:
+	case LGUIEventDelegateParameterType::Bool:
 		ParamTypeString = "Bool";
 		break;
-	case LGUIDrawableEventParameterType::Float:
+	case LGUIEventDelegateParameterType::Float:
 		ParamTypeString = "Float";
 		break;
-	case LGUIDrawableEventParameterType::Double:
+	case LGUIEventDelegateParameterType::Double:
 		ParamTypeString = "Double";
 		break;
-	case LGUIDrawableEventParameterType::Int8:
+	case LGUIEventDelegateParameterType::Int8:
 		ParamTypeString = "Int8";
 		break;
-	case LGUIDrawableEventParameterType::UInt8:
+	case LGUIEventDelegateParameterType::UInt8:
 	{
 		if (auto enumValue = GetEnumParameter(InFunction))
 		{
@@ -268,49 +268,49 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 		}
 	}
 		break;
-	case LGUIDrawableEventParameterType::Int16:
+	case LGUIEventDelegateParameterType::Int16:
 		ParamTypeString = "Int16";
 		break;
-	case LGUIDrawableEventParameterType::UInt16:
+	case LGUIEventDelegateParameterType::UInt16:
 		ParamTypeString = "UInt16";
 		break;
-	case LGUIDrawableEventParameterType::Int32:
+	case LGUIEventDelegateParameterType::Int32:
 		ParamTypeString = "Int32";
 		break;
-	case LGUIDrawableEventParameterType::UInt32:
+	case LGUIEventDelegateParameterType::UInt32:
 		ParamTypeString = "UInt32";
 		break;
-	case LGUIDrawableEventParameterType::Int64:
+	case LGUIEventDelegateParameterType::Int64:
 		ParamTypeString = "Int64";
 		break;
-	case LGUIDrawableEventParameterType::UInt64:
+	case LGUIEventDelegateParameterType::UInt64:
 		ParamTypeString = "UInt64";
 		break;
-	case LGUIDrawableEventParameterType::Vector2:
+	case LGUIEventDelegateParameterType::Vector2:
 		ParamTypeString = "Vector2";
 		break;
-	case LGUIDrawableEventParameterType::Vector3:
+	case LGUIEventDelegateParameterType::Vector3:
 		ParamTypeString = "Vector3";
 		break;
-	case LGUIDrawableEventParameterType::Vector4:
+	case LGUIEventDelegateParameterType::Vector4:
 		ParamTypeString = "Vector4";
 		break;
-	case LGUIDrawableEventParameterType::Quaternion:
+	case LGUIEventDelegateParameterType::Quaternion:
 		ParamTypeString = "Quaternion";
 		break;
-	case LGUIDrawableEventParameterType::Color:
+	case LGUIEventDelegateParameterType::Color:
 		ParamTypeString = "Color";
 		break;
-	case LGUIDrawableEventParameterType::LinearColor:
+	case LGUIEventDelegateParameterType::LinearColor:
 		ParamTypeString = "LinearColor";
 		break;
-	case LGUIDrawableEventParameterType::String:
+	case LGUIEventDelegateParameterType::String:
 		ParamTypeString = "String";
 		break;
-		//case LGUIDrawableEventParameterType::Name:
+		//case LGUIEventDelegateParameterType::Name:
 		//	ParamTypeString = "Name";
 		//	break;
-	case LGUIDrawableEventParameterType::Object:
+	case LGUIEventDelegateParameterType::Object:
 	{
 		TFieldIterator<FProperty> ParamIterator(InFunction);
 		if (auto firstProperty = CastField<FObjectProperty>(*ParamIterator))
@@ -330,7 +330,7 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 		}
 	}
 		break;
-	case LGUIDrawableEventParameterType::Actor:
+	case LGUIEventDelegateParameterType::Actor:
 	{
 		TFieldIterator<FProperty> ParamIterator(InFunction);
 		if (auto firstProperty = CastField<FObjectProperty>(*ParamIterator))
@@ -350,19 +350,19 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 		}
 	}
 		break;
-	case LGUIDrawableEventParameterType::PointerEvent:
+	case LGUIEventDelegateParameterType::PointerEvent:
 		ParamTypeString = "PointerEvent";
 		break;
-	case LGUIDrawableEventParameterType::Class:
+	case LGUIEventDelegateParameterType::Class:
 		ParamTypeString = "Class";
 		break;
-	case LGUIDrawableEventParameterType::Rotator:
+	case LGUIEventDelegateParameterType::Rotator:
 		ParamTypeString = "Rotator";
 		break;
-	case LGUIDrawableEventParameterType::Name:
+	case LGUIEventDelegateParameterType::Name:
 		ParamTypeString = "Name";
 		break;
-	case LGUIDrawableEventParameterType::Text:
+	case LGUIEventDelegateParameterType::Text:
 		ParamTypeString = "Text";
 		break;
 	default:
@@ -373,7 +373,7 @@ FString ULGUIDrawableEventParameterHelper::ParameterTypeToName(LGUIDrawableEvent
 
 
 
-void FLGUIDrawableEventData::FindAndExecuteFromActor(void* InParam)
+void FLGUIEventDelegateData::FindAndExecuteFromActor(void* InParam)
 {
 	TArray<UActorComponent*> compArray;
 	targetActor->GetComponents(componentClass, compArray);
@@ -394,11 +394,11 @@ void FLGUIDrawableEventData::FindAndExecuteFromActor(void* InParam)
 			if (componentName.IsNone() || !componentName.IsValid())
 			{
 				FindAndExecute(compArray[0], functionName, InParam);
-				UE_LOG(LGUI, Warning, TEXT("[LGUIDrawableEventData/FindAndExecuteFromActor]Pos 0, Target component:%s with name:%s not found! will use the first compatible component."), *(componentClass->GetPathName(), *(componentName.ToString())));
+				UE_LOG(LGUI, Warning, TEXT("[LGUIEventDelegateData/FindAndExecuteFromActor]Pos 0, Target component:%s with name:%s not found! will use the first compatible component."), *(componentClass->GetPathName(), *(componentName.ToString())));
 			}
 			else
 			{
-				UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecuteFromActor]Pos 1, Target component:%s with name:%s not found! event will not execute!"), *(componentClass->GetPathName(), *(componentName.ToString())));
+				UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecuteFromActor]Pos 1, Target component:%s with name:%s not found! event will not execute!"), *(componentClass->GetPathName(), *(componentName.ToString())));
 			}
 		}
 	}
@@ -408,19 +408,19 @@ void FLGUIDrawableEventData::FindAndExecuteFromActor(void* InParam)
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecuteFromActor]Pos 2, Target component:%s not found!"), *(componentClass->GetPathName()));
+		UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecuteFromActor]Pos 2, Target component:%s not found!"), *(componentClass->GetPathName()));
 	}
 }
-void FLGUIDrawableEventData::Execute()
+void FLGUIEventDelegateData::Execute()
 {
 	if (UseNativeParameter)
 	{
-		UE_LOG(LGUI, Error, TEXT("[FLGUIDrawableEventData::Execute]If use NativeParameter, you must FireEvent with your own parameter!"));
+		UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]If use NativeParameter, you must FireEvent with your own parameter!"));
 		return;
 	}
-	if (ParamType == LGUIDrawableEventParameterType::None)
+	if (ParamType == LGUIEventDelegateParameterType::None)
 	{
-		UE_LOG(LGUI, Error, TEXT("[FLGUIDrawableEventData::Execute]Not valid event"));
+		UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]Not valid event"));
 		return;
 	}
 	if (CacheTarget != nullptr && CacheFunction != nullptr)
@@ -442,11 +442,11 @@ void FLGUIDrawableEventData::Execute()
 		}
 	}
 }
-void FLGUIDrawableEventData::Execute(void* InParam, LGUIDrawableEventParameterType InParameterType)
+void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterType InParameterType)
 {
-	if (ParamType == LGUIDrawableEventParameterType::None)
+	if (ParamType == LGUIEventDelegateParameterType::None)
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEvent]Not valid event"));
+		UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate]Not valid event"));
 		return;
 	}
 
@@ -494,15 +494,15 @@ void FLGUIDrawableEventData::Execute(void* InParam, LGUIDrawableEventParameterTy
 		}
 	}
 }
-void FLGUIDrawableEventData::FindAndExecute(UObject* Target, FName FunctionName, void* ParamData)
+void FLGUIEventDelegateData::FindAndExecute(UObject* Target, FName FunctionName, void* ParamData)
 {
 	CacheTarget = Target;
 	CacheFunction = Target->FindFunction(functionName);
 	if (CacheFunction)
 	{
-		if (!ULGUIDrawableEventParameterHelper::IsStillSupported(CacheFunction, { ParamType }))
+		if (!ULGUIEventDelegateParameterHelper::IsStillSupported(CacheFunction, { ParamType }))
 		{
-			UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 2, Target function:%s not supported!"), *(FunctionName.ToString()));
+			UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecute]Pos 2, Target function:%s not supported!"), *(FunctionName.ToString()));
 			CacheFunction = nullptr;
 		}
 		else
@@ -519,41 +519,45 @@ void FLGUIDrawableEventData::FindAndExecute(UObject* Target, FName FunctionName,
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEventData/FindAndExecute]Pos 3, Target function:%s not found!"), *(FunctionName.ToString()));
+		UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecute]Pos 3, Target function:%s not found!"), *(FunctionName.ToString()));
 	}
 }
-void FLGUIDrawableEventData::ExecuteTargetFunction(UObject* Target, UFunction* Func)
+void FLGUIEventDelegateData::ExecuteTargetFunction(UObject* Target, UFunction* Func)
 {
 	switch (ParamType)
 	{
-	case LGUIDrawableEventParameterType::String:
+	case LGUIEventDelegateParameterType::String:
 	{
-		Target->ProcessEvent(Func, &ReferenceString);
+		FString TempString;
+		auto FromBinary = FMemoryReader(ParamBuffer, false);
+		FromBinary.Seek(0);
+		FromBinary << TempString;
+		Target->ProcessEvent(Func, &TempString);
 	}
 	break;
-	case LGUIDrawableEventParameterType::Object:
+	case LGUIEventDelegateParameterType::Name:
+	{
+		FName TempName;
+		auto FromBinary = FMemoryReader(ParamBuffer, false);
+		FromBinary.Seek(0);
+		FromBinary << TempName;
+		Target->ProcessEvent(Func, &TempName);
+	}
+	break;
+	case LGUIEventDelegateParameterType::Text:
+	{
+		FText TempText;
+		auto FromBinary = FMemoryReader(ParamBuffer, false);
+		FromBinary.Seek(0);
+		FromBinary << TempText;
+		Target->ProcessEvent(Func, &TempText);
+	}
+	break;
+	case LGUIEventDelegateParameterType::Object:
+	case LGUIEventDelegateParameterType::Actor:
+	case LGUIEventDelegateParameterType::Class:
 	{
 		Target->ProcessEvent(Func, &ReferenceObject);
-	}
-	break;
-	case LGUIDrawableEventParameterType::Actor:
-	{
-		Target->ProcessEvent(Func, &ReferenceActor);
-	}
-	break;
-	case LGUIDrawableEventParameterType::Class:
-	{
-		Target->ProcessEvent(Func, &ReferenceClass);
-	}
-	break;
-	case LGUIDrawableEventParameterType::Name:
-	{
-		Target->ProcessEvent(Func, &ReferenceName);
-	}
-	break;
-	case LGUIDrawableEventParameterType::Text:
-	{
-		Target->ProcessEvent(Func, &ReferenceText);
 	}
 	break;
 	default:
@@ -563,28 +567,28 @@ void FLGUIDrawableEventData::ExecuteTargetFunction(UObject* Target, UFunction* F
 	break;
 	}
 }
-void FLGUIDrawableEventData::ExecuteTargetFunction(UObject* Target, UFunction* Func, void* ParamData)
+void FLGUIEventDelegateData::ExecuteTargetFunction(UObject* Target, UFunction* Func, void* ParamData)
 {
 	Target->ProcessEvent(Func, ParamData);
 }
 
 
-FLGUIDrawableEvent::FLGUIDrawableEvent()
+FLGUIEventDelegate::FLGUIEventDelegate()
 {
 	
 }
-FLGUIDrawableEvent::FLGUIDrawableEvent(LGUIDrawableEventParameterType InParameterType)
+FLGUIEventDelegate::FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType)
 {
 	supportParameterType = InParameterType;
 }
-bool FLGUIDrawableEvent::IsBound()const
+bool FLGUIEventDelegate::IsBound()const
 {
 	return eventList.Num() != 0;
 }
-void FLGUIDrawableEvent::FireEvent()const
+void FLGUIEventDelegate::FireEvent()const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Empty)
+	if (supportParameterType == LGUIEventDelegateParameterType::Empty)
 	{
 		for (auto item : eventList)
 		{
@@ -594,12 +598,12 @@ void FLGUIDrawableEvent::FireEvent()const
 	else
 		LogParameterError();
 }
-void FLGUIDrawableEvent::LogParameterError()const
+void FLGUIEventDelegate::LogParameterError()const
 {
-	auto enumObject = FindObject<UEnum>((UObject*)ANY_PACKAGE, TEXT("LGUIDrawableEventParameterType"), true);
-	UE_LOG(LGUI, Error, TEXT("[LGUIDrawableEvent/FireEvent]Parameter type must be the same as your declaration. NativeParameterType:%s"), *(enumObject->GetDisplayNameTextByValue((int64)supportParameterType)).ToString());
+	auto enumObject = FindObject<UEnum>((UObject*)ANY_PACKAGE, TEXT("LGUIEventDelegateParameterType"), true);
+	UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate/FireEvent]Parameter type must be the same as your declaration. NativeParameterType:%s"), *(enumObject->GetDisplayNameTextByValue((int64)supportParameterType)).ToString());
 }
-void FLGUIDrawableEvent::FireEvent(void* InParam)const
+void FLGUIEventDelegate::FireEvent(void* InParam)const
 {
 	for (auto item : eventList)
 	{
@@ -607,217 +611,217 @@ void FLGUIDrawableEvent::FireEvent(void* InParam)const
 	}
 }
 
-void FLGUIDrawableEvent::FireEvent(bool InParam)const
+void FLGUIEventDelegate::FireEvent(bool InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Bool)
+	if (supportParameterType == LGUIEventDelegateParameterType::Bool)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(float InParam)const
+void FLGUIEventDelegate::FireEvent(float InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Float)
+	if (supportParameterType == LGUIEventDelegateParameterType::Float)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(double InParam)const
+void FLGUIEventDelegate::FireEvent(double InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Double)
+	if (supportParameterType == LGUIEventDelegateParameterType::Double)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(int8 InParam)const
+void FLGUIEventDelegate::FireEvent(int8 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Int8)
+	if (supportParameterType == LGUIEventDelegateParameterType::Int8)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(uint8 InParam)const
+void FLGUIEventDelegate::FireEvent(uint8 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::UInt8)
+	if (supportParameterType == LGUIEventDelegateParameterType::UInt8)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(int16 InParam)const
+void FLGUIEventDelegate::FireEvent(int16 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Int16)
+	if (supportParameterType == LGUIEventDelegateParameterType::Int16)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(uint16 InParam)const
+void FLGUIEventDelegate::FireEvent(uint16 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::UInt16)
+	if (supportParameterType == LGUIEventDelegateParameterType::UInt16)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(int32 InParam)const
+void FLGUIEventDelegate::FireEvent(int32 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Int32)
+	if (supportParameterType == LGUIEventDelegateParameterType::Int32)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(uint32 InParam)const
+void FLGUIEventDelegate::FireEvent(uint32 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::UInt32)
+	if (supportParameterType == LGUIEventDelegateParameterType::UInt32)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(int64 InParam)const
+void FLGUIEventDelegate::FireEvent(int64 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Int64)
+	if (supportParameterType == LGUIEventDelegateParameterType::Int64)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(uint64 InParam)const
+void FLGUIEventDelegate::FireEvent(uint64 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::UInt64)
+	if (supportParameterType == LGUIEventDelegateParameterType::UInt64)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(FVector2D InParam)const
+void FLGUIEventDelegate::FireEvent(FVector2D InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Vector2)
+	if (supportParameterType == LGUIEventDelegateParameterType::Vector2)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(FVector InParam)const
+void FLGUIEventDelegate::FireEvent(FVector InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Vector3)
+	if (supportParameterType == LGUIEventDelegateParameterType::Vector3)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(FVector4 InParam)const
+void FLGUIEventDelegate::FireEvent(FVector4 InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Vector4)
+	if (supportParameterType == LGUIEventDelegateParameterType::Vector4)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(FColor InParam)const
+void FLGUIEventDelegate::FireEvent(FColor InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Color)
+	if (supportParameterType == LGUIEventDelegateParameterType::Color)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(FLinearColor InParam)const
+void FLGUIEventDelegate::FireEvent(FLinearColor InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::LinearColor)
+	if (supportParameterType == LGUIEventDelegateParameterType::LinearColor)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(FQuat InParam)const
+void FLGUIEventDelegate::FireEvent(FQuat InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Quaternion)
+	if (supportParameterType == LGUIEventDelegateParameterType::Quaternion)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(const FString& InParam)const
+void FLGUIEventDelegate::FireEvent(const FString& InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::String)
+	if (supportParameterType == LGUIEventDelegateParameterType::String)
 	{
 		FireEvent((void*)&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(UObject* InParam)const
+void FLGUIEventDelegate::FireEvent(UObject* InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Object)
+	if (supportParameterType == LGUIEventDelegateParameterType::Object)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(AActor* InParam)const
+void FLGUIEventDelegate::FireEvent(AActor* InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Actor)
+	if (supportParameterType == LGUIEventDelegateParameterType::Actor)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(ULGUIPointerEventData* InParam)const
+void FLGUIEventDelegate::FireEvent(ULGUIPointerEventData* InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::PointerEvent)
+	if (supportParameterType == LGUIEventDelegateParameterType::PointerEvent)
 	{
 		FireEvent((void*)&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(FRotator InParam)const
+void FLGUIEventDelegate::FireEvent(FRotator InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Rotator)
+	if (supportParameterType == LGUIEventDelegateParameterType::Rotator)
 	{
 		FireEvent(&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(const FName& InParam)const
+void FLGUIEventDelegate::FireEvent(const FName& InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Name)
+	if (supportParameterType == LGUIEventDelegateParameterType::Name)
 	{
 		FireEvent((void*)&InParam);
 	}
 	else LogParameterError();
 }
-void FLGUIDrawableEvent::FireEvent(const FText& InParam)const
+void FLGUIEventDelegate::FireEvent(const FText& InParam)const
 {
 	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIDrawableEventParameterType::Text)
+	if (supportParameterType == LGUIEventDelegateParameterType::Text)
 	{
 		FireEvent((void*)&InParam);
 	}

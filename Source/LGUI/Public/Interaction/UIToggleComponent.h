@@ -4,7 +4,7 @@
 
 #include "Event/Interface/LGUIPointerClickInterface.h"
 #include "UISelectableComponent.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "UIToggleComponent.generated.h"
@@ -73,7 +73,7 @@ protected:
 
 	FLGUIMulticastBoolDelegate OnToggleCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Toggle")
-		FLGUIDrawableEvent OnToggle = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Bool);
+		FLGUIEventDelegate OnToggle = FLGUIEventDelegate(LGUIEventDelegateParameterType::Bool);
 
 	void ApplyValueToUI(bool immediateSet);
 	virtual bool OnPointerClick_Implementation(ULGUIPointerEventData* eventData)override;

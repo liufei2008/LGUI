@@ -10,7 +10,7 @@
 #include "Event/Interface/LGUIPointerScrollInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "Event/LGUIEventSystem.h"
@@ -34,29 +34,29 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
 		bool AllowEventBubbleUp = false;
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerEnter = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerEnter = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerExit = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerExit = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerDown = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerDown = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerUp = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerUp = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerClick = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerClick = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerBeginDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerBeginDrag = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerDrag = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerEndDrag = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerEndDrag = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerDragDrop = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerDragDrop = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerScroll = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerScroll = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerSelect = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerSelect = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 	UPROPERTY(EditAnywhere, Category = "UIEventTrigger") 
-		FLGUIDrawableEvent OnPointerDeselect = FLGUIDrawableEvent(LGUIDrawableEventParameterType::PointerEvent);
+		FLGUIEventDelegate OnPointerDeselect = FLGUIEventDelegate(LGUIEventDelegateParameterType::PointerEvent);
 
 	FLGUIMulticastPointerEventDelegate OnPointerEnterCPP;
 	FLGUIMulticastPointerEventDelegate OnPointerExitCPP;

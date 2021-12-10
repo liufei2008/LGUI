@@ -5,7 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "Core/ActorComponent/UISprite.h"
 #include "Event/LGUIDelegateDeclaration.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "Event/Interface/LGUIPointerDragInterface.h"
 #include "Event/Interface/LGUIPointerScrollInterface.h"
@@ -89,7 +89,7 @@ private:
 
 	FLGUIMulticastVector2Delegate OnScrollCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-ScrollView")
-		FLGUIDrawableEvent OnScroll = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Vector2);
+		FLGUIEventDelegate OnScroll = FLGUIEventDelegate(LGUIEventDelegateParameterType::Vector2);
 
 public:
 	//scroll range change(eg content or content's parent size change), use this to recalculate range

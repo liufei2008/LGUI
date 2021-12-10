@@ -5,11 +5,11 @@
 #include "LGUIPointerEventData.h"
 #include "LGUIDelegateHandleWrapper.h"
 #include "LGUIDelegateDeclaration.h"
-#include "LGUIDrawableEvent.generated.h"
+#include "LGUIEventDelegate.generated.h"
 
 
 UENUM()
-enum class LGUIDrawableEventParameterType :uint8
+enum class LGUIEventDelegateParameterType :uint8
 {
 	/** not initialized */
 	None		UMETA(Hidden),
@@ -47,27 +47,27 @@ enum class LGUIDrawableEventParameterType :uint8
 	Text,
 };
 /** helper class for finding function */
-class LGUI_API ULGUIDrawableEventParameterHelper
+class LGUI_API ULGUIEventDelegateParameterHelper
 {
 public:
-	static bool IsSupportedFunction(UFunction* Target, TArray<LGUIDrawableEventParameterType>& OutParamTypeArray);
-	static bool IsStillSupported(UFunction* Target, const TArray<LGUIDrawableEventParameterType>& InParamTypeArray);
-	static FString ParameterTypeToName(LGUIDrawableEventParameterType paramType, const UFunction* InFunction = nullptr);
+	static bool IsSupportedFunction(UFunction* Target, TArray<LGUIEventDelegateParameterType>& OutParamTypeArray);
+	static bool IsStillSupported(UFunction* Target, const TArray<LGUIEventDelegateParameterType>& InParamTypeArray);
+	static FString ParameterTypeToName(LGUIEventDelegateParameterType paramType, const UFunction* InFunction = nullptr);
 	/** if first parameter is an object type, then return it's objectclass */
 	static UClass* GetObjectParameterClass(const UFunction* InFunction);
 	static UEnum* GetEnumParameter(const UFunction* InFunction);
 	static UClass* GetClassParameterClass(const UFunction* InFunction);
 private:
-	static bool IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIDrawableEventParameterType>& OutParameterTypeArray);
-	static bool IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIDrawableEventParameterType& OutParameterType);
+	static bool IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIEventDelegateParameterType>& OutParameterTypeArray);
+	static bool IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIEventDelegateParameterType& OutParameterType);
 };
 
 #define LGUIEventActorSelfName "(ActorSelf)"
 /**
- * drawable and editable event type in editor
+ * Editable event type in editor
  */
 USTRUCT()
-struct LGUI_API FLGUIDrawableEventData
+struct LGUI_API FLGUIEventDelegateData
 {
 	GENERATED_BODY()
 public:
@@ -90,6 +90,9 @@ public:
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FColor ColorValue;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FLinearColor LinearColorValue;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FRotator RotatorValue;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FString StringValue;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FName NameValue;
+	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FText TextValue;
 #endif
 	/** use actor and component class to find target object */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -108,7 +111,7 @@ public:
 		FName functionName;
 	/** target function supported parameter type */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIDrawableEventParameterType ParamType = LGUIDrawableEventParameterType::None;
+		LGUIEventDelegateParameterType ParamType = LGUIEventDelegateParameterType::None;
 
 	/** data buffer stores function's parameter */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -116,21 +119,6 @@ public:
 	/** asset reference */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UObject* ReferenceObject;
-	/** actor reference */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* ReferenceActor;
-	/** UClass reference */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UClass* ReferenceClass;
-	/** FString reference */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (MultiLine = "true"))
-		FString ReferenceString;
-	/** FName reference */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FName ReferenceName;
-	/** FText reference */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (MultiLine = "true"))
-		FText ReferenceText;
 
 	/** use the function's native parameter? */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -140,7 +128,7 @@ private:
 	UPROPERTY(Transient) UObject* CacheTarget = nullptr;
 public:
 	void Execute();
-	void Execute(void* InParam, LGUIDrawableEventParameterType InParameterType);
+	void Execute(void* InParam, LGUIEventDelegateParameterType InParameterType);
 private:
 	void FindAndExecute(UObject* Target, FName FunctionName, void* ParamData = nullptr);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func);
@@ -152,21 +140,21 @@ private:
  * event or callback that can edit inside ue4 editor
  */
 USTRUCT(BlueprintType)
-struct LGUI_API FLGUIDrawableEvent
+struct LGUI_API FLGUIEventDelegate
 {
 	GENERATED_BODY()
 
 public:
-	FLGUIDrawableEvent();
-	FLGUIDrawableEvent(LGUIDrawableEventParameterType InParameterType);
+	FLGUIEventDelegate();
+	FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType);
 public:
 	/** event list */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<FLGUIDrawableEventData> eventList;
+		TArray<FLGUIEventDelegateData> eventList;
 	/** supported parameter type of this event */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName="NativeParameterType"))
-		LGUIDrawableEventParameterType supportParameterType = LGUIDrawableEventParameterType::Empty;
-	/** Parameter type must be the same as your declaration of FLGUIDrawableEvent(LGUIDrawableEventParameterType InParameterType) */
+		LGUIEventDelegateParameterType supportParameterType = LGUIEventDelegateParameterType::Empty;
+	/** Parameter type must be the same as your declaration of FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType) */
 	void FireEvent(void* InParam)const;
 	void LogParameterError()const;
 public:
@@ -202,7 +190,7 @@ public:
 
 #if 0
 USTRUCT()
-struct LGUI_API FLGUIDrawableEventData_DataContainer
+struct LGUI_API FLGUIEventDelegateData_DataContainer
 {
 	GENERATED_BODY()
 public:
@@ -228,7 +216,7 @@ public:
 #endif
 	//target function supported parameter type
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIDrawableEventParameterType ParamType = LGUIDrawableEventParameterType::None;
+		LGUIEventDelegateParameterType ParamType = LGUIEventDelegateParameterType::None;
 	//data buffer stores function's parameter
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<uint8> ParamBuffer;
@@ -247,7 +235,7 @@ public:
 };
 
 USTRUCT()
-struct LGUI_API FLGUIDrawableEventDataTwoParam
+struct LGUI_API FLGUIEventDelegateDataTwoParam
 {
 	GENERATED_BODY()
 public:
@@ -282,7 +270,7 @@ public:
 		FName functionName;
 	//target function supported parameter type
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIDrawableEventParameterType ParamType = LGUIDrawableEventParameterType::Empty;
+		LGUIEventDelegateParameterType ParamType = LGUIEventDelegateParameterType::Empty;
 
 	//data buffer stores function's parameter
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -300,7 +288,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FString ReferenceString;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FLGUIDrawableEventData_DataContainer param2DataContainer;
+		FLGUIEventDelegateData_DataContainer param2DataContainer;
 
 	//use the function's native parameter?
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -310,13 +298,13 @@ private:
 	UObject* CacheTarget;
 };
 USTRUCT(BlueprintType)
-struct LGUI_API FLGUIDrawableEventTwoParam
+struct LGUI_API FLGUIEventDelegateTwoParam
 {
 	GENERATED_BODY()
 
 public:
-	FLGUIDrawableEventTwoParam() {}
-	FLGUIDrawableEventTwoParam(LGUIDrawableEventParameterType InParameterType1, LGUIDrawableEventParameterType InParameterType2)
+	FLGUIEventDelegateTwoParam() {}
+	FLGUIEventDelegateTwoParam(LGUIEventDelegateParameterType InParameterType1, LGUIEventDelegateParameterType InParameterType2)
 	{
 		supportParameterType1 = InParameterType1;
 		supportParameterType2 = InParameterType2;
@@ -324,13 +312,13 @@ public:
 public:
 	//event list
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<FLGUIDrawableEventDataTwoParam> eventList;
+		TArray<FLGUIEventDelegateDataTwoParam> eventList;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "CanChangeNativeParameterType?"))
 		bool canChangeSupportParameterType = true;
 	//supported parameter type of this event
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "NativeParameterType1"))
-		LGUIDrawableEventParameterType supportParameterType1 = LGUIDrawableEventParameterType::Bool;
+		LGUIEventDelegateParameterType supportParameterType1 = LGUIEventDelegateParameterType::Bool;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "NativeParameterType2"))
-		LGUIDrawableEventParameterType supportParameterType2 = LGUIDrawableEventParameterType::Bool;
+		LGUIEventDelegateParameterType supportParameterType2 = LGUIEventDelegateParameterType::Bool;
 };
 #endif

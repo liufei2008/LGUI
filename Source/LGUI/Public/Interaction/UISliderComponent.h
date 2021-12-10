@@ -4,7 +4,7 @@
 
 #include "Event/Interface/LGUIPointerDragInterface.h"
 #include "UISelectableComponent.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "UISliderComponent.generated.h"
@@ -65,7 +65,7 @@ protected:
 
 	FLGUIMulticastFloatDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Slider")
-		FLGUIDrawableEvent OnValueChange = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Float);
+		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")

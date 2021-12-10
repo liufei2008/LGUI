@@ -2,7 +2,7 @@
 
 #pragma once
 #include "CoreMinimal.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "LGUIPlayTweenSequenceComponent.generated.h"
 
 //play tween array sequentially, one after one.
@@ -17,7 +17,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI", Instanced)
 		TArray<class ULGUIPlayTween*> playTweenArray;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FLGUIDrawableEvent onComplete = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Empty);
+		FLGUIEventDelegate onComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
 
 	bool isPlaying = false;
 	int currentTweenPlayIndex = 0;

@@ -7,7 +7,7 @@
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"
 #include "LGUIComponentReference.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "UIDropdownComponent.generated.h"
@@ -101,7 +101,7 @@ protected:
 
 	FLGUIMulticastInt32Delegate OnSelectionChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Dropdown")
-		FLGUIDrawableEvent OnSelectionChange = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Int32);
+		FLGUIEventDelegate OnSelectionChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::Int32);
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Dropdown")
 		void Show();

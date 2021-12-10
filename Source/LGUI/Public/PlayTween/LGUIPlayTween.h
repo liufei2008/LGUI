@@ -2,7 +2,7 @@
 
 #pragma once
 #include "LTweener.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "LGUIPlayTween.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE(FLGUIPlayTweenCompleteDynamicDelegate);
@@ -28,12 +28,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Property")
 		float startDelay = 0.0f;
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onStart = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Empty);
+		FLGUIEventDelegate onStart = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
 	/** parameter float is the progress in range 0-1, not affected by ease type (linear on time) */
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onUpdateProgress = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Float);
+		FLGUIEventDelegate onUpdateProgress = FLGUIEventDelegate(LGUIEventDelegateParameterType::Float);
 	UPROPERTY(EditAnywhere, Category = "Event")
-		FLGUIDrawableEvent onComplete = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Empty);
+		FLGUIEventDelegate onComplete = FLGUIEventDelegate(LGUIEventDelegateParameterType::Empty);
 	UPROPERTY(Transient)
 		ULTweener* tweener;
 	FSimpleMulticastDelegate onComplete_Delegate;

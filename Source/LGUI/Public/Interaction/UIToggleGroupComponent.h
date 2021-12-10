@@ -4,7 +4,7 @@
 
 #include "Components/ActorComponent.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "UIToggleGroupComponent.generated.h"
 
 class UUIToggleComponent;
@@ -26,7 +26,7 @@ protected:
 	FLGUIToggleGroupMulticastDelegate OnToggleCPP;
 	/* Called when selection change of this toggle group. Parameter is selected toggle item's actor, or null if none selected. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-ToggleGroup")
-		FLGUIDrawableEvent OnToggle;
+		FLGUIEventDelegate OnToggle;
 public:
 	void AddToggleComponent(UUIToggleComponent* InComp);
 	void RemoveToggleComponent(UUIToggleComponent* InComp);

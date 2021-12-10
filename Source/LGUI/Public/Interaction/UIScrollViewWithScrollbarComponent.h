@@ -4,7 +4,7 @@
 
 #include "Components/ActorComponent.h"
 #include "Core/ActorComponent/UISprite.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "UIScrollViewComponent.h"
 #include "UIScrollViewWithScrollbarComponent.generated.h"
 

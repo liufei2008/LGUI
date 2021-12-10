@@ -18,50 +18,51 @@
 #include "STextPropertyEditableTextBox.h"
 #include "TextCustomization.cpp"
 #include "SEnumCombobox.h"
+#include "Serialization/BufferArchive.h"
 #pragma once
 
-#define LOCTEXT_NAMESPACE "LGUIDrawableEventCustomization"
+#define LOCTEXT_NAMESPACE "LGUIEventDelegateCustomization"
 
 /**
  * 
  */
 template<class Event, class EventData>
-class FLGUIDrawableEventCustomization : public IPropertyTypeCustomization
+class FLGUIEventDelegateCustomization : public IPropertyTypeCustomization
 {
 protected:
 	TSharedPtr<IPropertyUtilities> PropertyUtilites;
 	TSharedPtr<IPropertyHandleArray> EventListHandle;
 	static TArray<FString> CopySourceData;
-	TArray<LGUIDrawableEventParameterType> EventParameterTypeArray;
+	TArray<LGUIEventDelegateParameterType> EventParameterTypeArray;
 	TSharedPtr<SWidget> ColorPickerParentWidget;
 	TArray<TSharedRef<SWidget>> EventParameterWidgetArray;
 private:
 	int32 ParameterCount = 1;
 	bool CanChangeParameterType = true;
-	bool IsParameterTypeArrayValid(const TArray<LGUIDrawableEventParameterType> InArray)
+	bool IsParameterTypeArrayValid(const TArray<LGUIEventDelegateParameterType> InArray)
 	{
 		for (auto item : InArray)
 		{
-			if (item == LGUIDrawableEventParameterType::None)return false;
+			if (item == LGUIEventDelegateParameterType::None)return false;
 		}
 		return true;
 	}
 public:
-	FLGUIDrawableEventCustomization(int32 InParameterCount, bool InCanChangeParameterType)
+	FLGUIEventDelegateCustomization(int32 InParameterCount, bool InCanChangeParameterType)
 	{
 		ParameterCount = InParameterCount;
 		CanChangeParameterType = InCanChangeParameterType;
 	}
-	~FLGUIDrawableEventCustomization()
+	~FLGUIEventDelegateCustomization()
 	{
 		
 	}
 	/** IDetailCustomization interface */
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override {};
 
-	virtual TArray<LGUIDrawableEventParameterType> GetNativeParameterTypeArray(TSharedRef<IPropertyHandle> PropertyHandle) = 0;
+	virtual TArray<LGUIEventDelegateParameterType> GetNativeParameterTypeArray(TSharedRef<IPropertyHandle> PropertyHandle) = 0;
 	virtual void AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder) = 0;
-	virtual TArray<LGUIDrawableEventParameterType> GetEventDataParameterTypeArray(TSharedRef<IPropertyHandle> EventDataItemHandle) = 0;
+	virtual TArray<LGUIEventDelegateParameterType> GetEventDataParameterTypeArray(TSharedRef<IPropertyHandle> EventDataItemHandle) = 0;
 	virtual TSharedRef<IPropertyHandle> GetAdditionalParameterContainer(TSharedPtr<IPropertyHandle> EventDataItemHandle, int32 InAdditionalIndex = 1/*start from 1, because 0 is default one parameter*/) = 0;
 
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)override
@@ -93,7 +94,7 @@ public:
 		FString paramTypeString(TEXT(""));
 		for (auto item : EventParameterTypeArray)
 		{
-			paramTypeString += ULGUIDrawableEventParameterHelper::ParameterTypeToName(item, nullptr);
+			paramTypeString += ULGUIEventDelegateParameterHelper::ParameterTypeToName(item, nullptr);
 			paramTypeString.AppendChar(',');
 		}
 		paramTypeString.RemoveAt(paramTypeString.Len() - 1);
@@ -125,11 +126,11 @@ public:
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
-							PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::OnClickListAdd))
+							PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListAdd))
 						]
 						+ SHorizontalBox::Slot()
 						[
-							PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::OnClickListEmpty))
+							PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::OnClickListEmpty))
 						]
 					]
 				)
@@ -265,7 +266,7 @@ public:
 						eventFunction = EventTarget->FindFunction(functionFName);
 						if (eventFunction)
 						{
-							if (ULGUIDrawableEventParameterHelper::IsStillSupported(eventFunction, functionParameterTypeArray))
+							if (ULGUIEventDelegateParameterHelper::IsStillSupported(eventFunction, functionParameterTypeArray))
 							{
 								EventFunctionValid = true;
 							}
@@ -312,14 +313,14 @@ public:
 				if ((EventParameterTypeArray == functionParameterTypeArray) && useNativeParameter)//support native parameter
 				{
 					//clear buffer and value
-					ClearNumericValueBuffer(itemHandle);
+					ClearValueBuffer(itemHandle);
 					ClearReferenceValue(itemHandle);
 					if (ParameterCount > 1)
 					{
 						for (int paramIndex = 1; paramIndex < ParameterCount; paramIndex++)
 						{
 							auto dataContainerHandle = GetAdditionalParameterContainer(itemHandle, eventItemIndex);
-							ClearNumericValueBuffer(dataContainerHandle);
+							ClearValueBuffer(dataContainerHandle);
 							ClearReferenceValue(dataContainerHandle);
 						}
 					}
@@ -386,7 +387,7 @@ public:
 								.HAlign(HAlign_Center)
 								.VAlign(VAlign_Center)
 								.Text(LOCTEXT("C", "C"))
-								.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, true, eventItemIndex)
+								.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, true, eventItemIndex)
 								.ToolTipText(LOCTEXT("Copy", "Copy this function"))
 							]
 						]
@@ -405,7 +406,7 @@ public:
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("P", "P"))
-							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickCopyPaste, false, eventItemIndex)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickCopyPaste, false, eventItemIndex)
 							.ToolTipText(LOCTEXT("Paste", "Paste copied function to this function"))
 						]
 						]
@@ -424,7 +425,7 @@ public:
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("+", "+"))
-							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickAddRemove, true, eventItemIndex, (int32)arrayCount)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, true, eventItemIndex, (int32)arrayCount)
 							.ToolTipText(LOCTEXT("Add", "Add new one"))
 						]
 						]
@@ -443,7 +444,7 @@ public:
 							.HAlign(HAlign_Center)
 							.VAlign(VAlign_Center)
 							.Text(LOCTEXT("-", "-"))
-							.OnClicked(this, &FLGUIDrawableEventCustomization::OnClickAddRemove, false, eventItemIndex, (int32)arrayCount)
+							.OnClicked(this, &FLGUIEventDelegateCustomization::OnClickAddRemove, false, eventItemIndex, (int32)arrayCount)
 							.ToolTipText(LOCTEXT("Delete", "Delete this one"))
 						]
 						]
@@ -469,7 +470,7 @@ public:
 							[
 								SNew(SBox)
 								.WidthOverride(1000)
-								.HeightOverride(this, &FLGUIDrawableEventCustomization::GetEventItemHeight, eventItemIndex)
+								.HeightOverride(this, &FLGUIEventDelegateCustomization::GetEventItemHeight, eventItemIndex)
 								[
 									SNew(SImage)
 									.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.EventItem"))
@@ -507,7 +508,7 @@ public:
 												//component
 												SNew(SComboButton)
 												.HasDownArrow(true)
-												.IsEnabled(this, &FLGUIDrawableEventCustomization::IsComponentSelectorMenuEnabled, eventItemIndex)
+												.IsEnabled(this, &FLGUIEventDelegateCustomization::IsComponentSelectorMenuEnabled, eventItemIndex)
 												.ToolTipText(LOCTEXT("Component", "Pick component for target actor of this event"))
 												.ButtonContent()
 												[
@@ -541,7 +542,7 @@ public:
 													//function
 													SNew(SComboButton)
 													.HasDownArrow(true)
-													.IsEnabled(this, &FLGUIDrawableEventCustomization::IsFunctionSelectorMenuEnabled, eventItemIndex)
+													.IsEnabled(this, &FLGUIEventDelegateCustomization::IsFunctionSelectorMenuEnabled, eventItemIndex)
 													.ToolTipText(LOCTEXT("Function", "Pick a function to execute of this event"))
 													.ButtonContent()
 													[
@@ -573,7 +574,7 @@ public:
 				]
 			;
 		}
-		ChildBuilder.AddCustomRow(LOCTEXT("DrawableEvent", "DrawableEvent"))
+		ChildBuilder.AddCustomRow(LOCTEXT("EventDelegate", "EventDelegate"))
 			.WholeRowContent()
 			[
 				SNew(SBox)
@@ -588,7 +589,7 @@ public:
 						[
 							SNew(SBox)
 							.WidthOverride(1000)
-							.HeightOverride(this, &FLGUIDrawableEventCustomization::GetEventTotalHeight)
+							.HeightOverride(this, &FLGUIEventDelegateCustomization::GetEventTotalHeight)
 							[
 								SNew(SImage)
 								.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.EventGroup"))
@@ -606,7 +607,7 @@ public:
 
 	}
 
-	virtual void SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, TArray<LGUIDrawableEventParameterType> ParameterTypeArray) = 0;
+	virtual void SetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle, TArray<LGUIEventDelegateParameterType> ParameterTypeArray) = 0;
 protected:
 	FOptionalSize GetEventItemHeight(int itemIndex)const
 	{
@@ -655,7 +656,7 @@ protected:
 
 		PropertyUtilites->ForceRefresh();
 	}
-	void OnSelectFunction(FName FuncName, int32 itemIndex, TArray<LGUIDrawableEventParameterType> ParamTypeArray, bool UseNativeParameter)
+	void OnSelectFunction(FName FuncName, int32 itemIndex, TArray<LGUIEventDelegateParameterType> ParamTypeArray, bool UseNativeParameter)
 	{
 		auto itemHandle = EventListHandle->GetElement(itemIndex);
 		auto nameHandle = itemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, functionName));
@@ -703,7 +704,7 @@ protected:
 
 		auto actor = (AActor*)actorObject;
 		MenuBuilder.AddMenuEntry(
-			FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectActorSelf, itemIndex)),
+			FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectActorSelf, itemIndex)),
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
 			[
@@ -726,7 +727,7 @@ protected:
 			auto compName = comp->GetFName();
 			auto compTypeName = comp->GetClass()->GetName();
 			MenuBuilder.AddMenuEntry(
-				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectComponent, compName, itemIndex)),
+				FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectComponent, compName, itemIndex)),
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
 				.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -796,15 +797,15 @@ protected:
 		auto FunctionField = TFieldRange<UFunction>(targetObject->GetClass());
 		for (auto Func : FunctionField)
 		{
-			TArray<LGUIDrawableEventParameterType> paramTypeArray;
-			if (ULGUIDrawableEventParameterHelper::IsSupportedFunction(Func, paramTypeArray) && (paramTypeArray.Num() == EventParameterTypeArray.Num() || paramTypeArray.Num() == 0))//show only supported type
+			TArray<LGUIEventDelegateParameterType> paramTypeArray;
+			if (ULGUIEventDelegateParameterHelper::IsSupportedFunction(Func, paramTypeArray) && (paramTypeArray.Num() == EventParameterTypeArray.Num() || paramTypeArray.Num() == 0))//show only supported type
 			{
 				if (paramTypeArray.Num() == 0)//empty parameter
 				{
-					FString ParamTypeString = ULGUIDrawableEventParameterHelper::ParameterTypeToName({ }, Func);
+					FString ParamTypeString = ULGUIEventDelegateParameterHelper::ParameterTypeToName({ }, Func);
 					auto FunctionSelectorName = FString::Printf(TEXT("%s(%s)"), *Func->GetName(), *ParamTypeString);
 					MenuBuilder.AddMenuEntry(
-						FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, false)),
+						FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, false)),
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -820,13 +821,13 @@ protected:
 					FString ParamTypeString(TEXT(""));
 					for (auto item : paramTypeArray)
 					{
-						ParamTypeString += ULGUIDrawableEventParameterHelper::ParameterTypeToName(item, Func);
+						ParamTypeString += ULGUIEventDelegateParameterHelper::ParameterTypeToName(item, Func);
 						ParamTypeString.AppendChar(',');
 					}
 					ParamTypeString.RemoveAt(ParamTypeString.Len() - 1);
 					auto FunctionSelectorName = FString::Printf(TEXT("%s(%s)"), *Func->GetName(), *ParamTypeString);
 					MenuBuilder.AddMenuEntry(
-						FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, false)),
+						FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, false)),
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -840,7 +841,7 @@ protected:
 					{
 						FunctionSelectorName = FString::Printf(TEXT("%s(NativeParameter)"), *Func->GetName());
 						MenuBuilder.AddMenuEntry(
-							FUIAction(FExecuteAction::CreateRaw(this, &FLGUIDrawableEventCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, true)),
+							FUIAction(FExecuteAction::CreateRaw(this, &FLGUIEventDelegateCustomization::OnSelectFunction, Func->GetFName(), itemIndex, paramTypeArray, true)),
 							SNew(SHorizontalBox)
 							+ SHorizontalBox::Slot()
 							.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -906,19 +907,19 @@ protected:
 		return FReply::Handled();
 	}
 
-	TSharedRef<SWidget> DrawFunctionParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, TArray<LGUIDrawableEventParameterType> InFunctionParameterTypeArray, int32 InParameterIndex, UFunction* InFunction)
+	TSharedRef<SWidget> DrawFunctionParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, TArray<LGUIEventDelegateParameterType> InFunctionParameterTypeArray, int32 InParameterIndex, UFunction* InFunction)
 	{
 		auto paramBufferHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ParamBuffer));
 		auto functionParameterType = InFunctionParameterTypeArray[InParameterIndex];
-		if (functionParameterType != LGUIDrawableEventParameterType::None)//None means not select function yet
+		if (functionParameterType != LGUIEventDelegateParameterType::None)//None means not select function yet
 		{
 			bool bitConvertSuccess = false;
 			switch (functionParameterType)
 			{
 			default:
-			case LGUIDrawableEventParameterType::Empty:
+			case LGUIEventDelegateParameterType::Empty:
 			{
-				ClearNumericValueBuffer(InDataContainerHandle);
+				ClearValueBuffer(InDataContainerHandle);
 				ClearReferenceValue(InDataContainerHandle);
 				return
 					SNew(SBox)
@@ -932,53 +933,53 @@ protected:
 				;
 			}
 			break;
-			case LGUIDrawableEventParameterType::Bool:
+			case LGUIEventDelegateParameterType::Bool:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 1);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, BoolValue));
-				valueHandle->SetValue(BitConverter::ToBoolean(GetBuffer(paramBufferHandle, 1), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::BoolValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToBoolean(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::BoolValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::Float:
+			case LGUIEventDelegateParameterType::Float:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, FloatValue));
-				valueHandle->SetValue(BitConverter::ToFloat(GetBuffer(paramBufferHandle, 4), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::FloatValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToFloat(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::FloatValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::Double:
+			case LGUIEventDelegateParameterType::Double:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, DoubleValue));
-				valueHandle->SetValue(BitConverter::ToDouble(GetBuffer(paramBufferHandle, 8), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::DoubleValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToDouble(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::DoubleValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::Int8:
+			case LGUIEventDelegateParameterType::Int8:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 1);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int8Value));
-				valueHandle->SetValue(BitConverter::ToInt8(GetBuffer(paramBufferHandle, 1), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int8ValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToInt8(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::Int8ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::UInt8:
+			case LGUIEventDelegateParameterType::UInt8:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 1);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt8Value));
-				valueHandle->SetValue(BitConverter::ToUInt8(GetBuffer(paramBufferHandle, 1), bitConvertSuccess));
-				if (auto enumValue = ULGUIDrawableEventParameterHelper::GetEnumParameter(InFunction))
+				valueHandle->SetValue(BitConverter::ToUInt8(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				if (auto enumValue = ULGUIEventDelegateParameterHelper::GetEnumParameter(InFunction))
 				{
 					return
 						SNew(SHorizontalBox)
@@ -991,85 +992,85 @@ protected:
 							.MinDesiredWidth(500)
 							[
 								SNew(SEnumComboBox, enumValue)
-								.CurrentValue(this, &FLGUIDrawableEventCustomization::GetEnumValue, valueHandle)
-								.OnEnumSelectionChanged(this, &FLGUIDrawableEventCustomization::EnumValueChange, valueHandle, paramBufferHandle)
+								.CurrentValue(this, &FLGUIEventDelegateCustomization::GetEnumValue, valueHandle)
+								.OnEnumSelectionChanged(this, &FLGUIEventDelegateCustomization::EnumValueChange, valueHandle, paramBufferHandle)
 							]
 						]
 					;
 				}
 				else
 				{
-					valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt8ValueChange, valueHandle, paramBufferHandle));
+					valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::UInt8ValueChange, valueHandle, paramBufferHandle));
 					return valueHandle->CreatePropertyValueWidget();
 				}
 			}
 			break;
-			case LGUIDrawableEventParameterType::Int16:
+			case LGUIEventDelegateParameterType::Int16:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 2);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int16Value));
-				valueHandle->SetValue(BitConverter::ToInt16(GetBuffer(paramBufferHandle, 2), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int16ValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToInt16(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::Int16ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::UInt16:
+			case LGUIEventDelegateParameterType::UInt16:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 2);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt16Value));
-				valueHandle->SetValue(BitConverter::ToUInt16(GetBuffer(paramBufferHandle, 2), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt16ValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToUInt16(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::UInt16ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::Int32:
+			case LGUIEventDelegateParameterType::Int32:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int32Value));
-				valueHandle->SetValue(BitConverter::ToInt32(GetBuffer(paramBufferHandle, 4), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int32ValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToInt32(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::Int32ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::UInt32:
+			case LGUIEventDelegateParameterType::UInt32:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt32Value));
-				valueHandle->SetValue(BitConverter::ToUInt32(GetBuffer(paramBufferHandle, 4), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt32ValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToUInt32(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::UInt32ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::Int64:
+			case LGUIEventDelegateParameterType::Int64:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Int64Value));
-				valueHandle->SetValue(BitConverter::ToInt64(GetBuffer(paramBufferHandle, 8), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::Int64ValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToInt64(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::Int64ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::UInt64:
+			case LGUIEventDelegateParameterType::UInt64:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, UInt64Value));
-				valueHandle->SetValue(BitConverter::ToUInt64(GetBuffer(paramBufferHandle, 8), bitConvertSuccess));
-				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIDrawableEventCustomization::UInt64ValueChange, valueHandle, paramBufferHandle));
+				valueHandle->SetValue(BitConverter::ToUInt64(GetBuffer(paramBufferHandle), bitConvertSuccess));
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::UInt64ValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::Vector2:
+			case LGUIEventDelegateParameterType::Vector2:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 8);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector2Value));
-				valueHandle->SetValue(BitConverter::ToVector2(GetBuffer(paramBufferHandle, 8), bitConvertSuccess));
+				valueHandle->SetValue(BitConverter::ToVector2(GetBuffer(paramBufferHandle), bitConvertSuccess));
 				return SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
@@ -1084,20 +1085,20 @@ protected:
 						.EnableY(true)
 						.ShowX(true)
 						.ShowY(true)
-						.X(this, &FLGUIDrawableEventCustomization::Vector2GetItemValue, 0, valueHandle, paramBufferHandle)
-						.Y(this, &FLGUIDrawableEventCustomization::Vector2GetItemValue, 1, valueHandle, paramBufferHandle)
-						.OnXCommitted(this, &FLGUIDrawableEventCustomization::Vector2ItemValueChange, 0, valueHandle, paramBufferHandle)
-						.OnYCommitted(this, &FLGUIDrawableEventCustomization::Vector2ItemValueChange, 1, valueHandle, paramBufferHandle)
+						.X(this, &FLGUIEventDelegateCustomization::Vector2GetItemValue, 0, valueHandle, paramBufferHandle)
+						.Y(this, &FLGUIEventDelegateCustomization::Vector2GetItemValue, 1, valueHandle, paramBufferHandle)
+						.OnXCommitted(this, &FLGUIEventDelegateCustomization::Vector2ItemValueChange, 0, valueHandle, paramBufferHandle)
+						.OnYCommitted(this, &FLGUIEventDelegateCustomization::Vector2ItemValueChange, 1, valueHandle, paramBufferHandle)
 					]
 				;
 			}
 			break;
-			case LGUIDrawableEventParameterType::Vector3:
+			case LGUIEventDelegateParameterType::Vector3:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 12);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector3Value));
-				valueHandle->SetValue(BitConverter::ToVector3(GetBuffer(paramBufferHandle, 12), bitConvertSuccess));
+				valueHandle->SetValue(BitConverter::ToVector3(GetBuffer(paramBufferHandle), bitConvertSuccess));
 				return SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
@@ -1114,22 +1115,22 @@ protected:
 						.ShowX(true)
 						.ShowY(true)
 						.ShowZ(true)
-						.X(this, &FLGUIDrawableEventCustomization::Vector3GetItemValue, 0, valueHandle, paramBufferHandle)
-						.Y(this, &FLGUIDrawableEventCustomization::Vector3GetItemValue, 1, valueHandle, paramBufferHandle)
-						.Z(this, &FLGUIDrawableEventCustomization::Vector3GetItemValue, 2, valueHandle, paramBufferHandle)
-						.OnXCommitted(this, &FLGUIDrawableEventCustomization::Vector3ItemValueChange, 0, valueHandle, paramBufferHandle)
-						.OnYCommitted(this, &FLGUIDrawableEventCustomization::Vector3ItemValueChange, 1, valueHandle, paramBufferHandle)
-						.OnZCommitted(this, &FLGUIDrawableEventCustomization::Vector3ItemValueChange, 2, valueHandle, paramBufferHandle)
+						.X(this, &FLGUIEventDelegateCustomization::Vector3GetItemValue, 0, valueHandle, paramBufferHandle)
+						.Y(this, &FLGUIEventDelegateCustomization::Vector3GetItemValue, 1, valueHandle, paramBufferHandle)
+						.Z(this, &FLGUIEventDelegateCustomization::Vector3GetItemValue, 2, valueHandle, paramBufferHandle)
+						.OnXCommitted(this, &FLGUIEventDelegateCustomization::Vector3ItemValueChange, 0, valueHandle, paramBufferHandle)
+						.OnYCommitted(this, &FLGUIEventDelegateCustomization::Vector3ItemValueChange, 1, valueHandle, paramBufferHandle)
+						.OnZCommitted(this, &FLGUIEventDelegateCustomization::Vector3ItemValueChange, 2, valueHandle, paramBufferHandle)
 					]
 				;
 			}
 			break;
-			case LGUIDrawableEventParameterType::Vector4:
+			case LGUIEventDelegateParameterType::Vector4:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, Vector4Value));
-				valueHandle->SetValue(BitConverter::ToVector4(GetBuffer(paramBufferHandle, 16), bitConvertSuccess));
+				valueHandle->SetValue(BitConverter::ToVector4(GetBuffer(paramBufferHandle), bitConvertSuccess));
 				return SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
@@ -1148,24 +1149,24 @@ protected:
 						.ShowY(true)
 						.ShowZ(true)
 						.ShowW(true)
-						.X(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 0, valueHandle, paramBufferHandle)
-						.Y(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 1, valueHandle, paramBufferHandle)
-						.Z(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 2, valueHandle, paramBufferHandle)
-						.W(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 3, valueHandle, paramBufferHandle)
-						.OnXCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 0, valueHandle, paramBufferHandle)
-						.OnYCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 1, valueHandle, paramBufferHandle)
-						.OnZCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 2, valueHandle, paramBufferHandle)
-						.OnWCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 3, valueHandle, paramBufferHandle)
+						.X(this, &FLGUIEventDelegateCustomization::Vector4GetItemValue, 0, valueHandle, paramBufferHandle)
+						.Y(this, &FLGUIEventDelegateCustomization::Vector4GetItemValue, 1, valueHandle, paramBufferHandle)
+						.Z(this, &FLGUIEventDelegateCustomization::Vector4GetItemValue, 2, valueHandle, paramBufferHandle)
+						.W(this, &FLGUIEventDelegateCustomization::Vector4GetItemValue, 3, valueHandle, paramBufferHandle)
+						.OnXCommitted(this, &FLGUIEventDelegateCustomization::Vector4ItemValueChange, 0, valueHandle, paramBufferHandle)
+						.OnYCommitted(this, &FLGUIEventDelegateCustomization::Vector4ItemValueChange, 1, valueHandle, paramBufferHandle)
+						.OnZCommitted(this, &FLGUIEventDelegateCustomization::Vector4ItemValueChange, 2, valueHandle, paramBufferHandle)
+						.OnWCommitted(this, &FLGUIEventDelegateCustomization::Vector4ItemValueChange, 3, valueHandle, paramBufferHandle)
 					]
 				;
 			}
 			break;
-			case LGUIDrawableEventParameterType::Color:
+			case LGUIEventDelegateParameterType::Color:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 4);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ColorValue));
-				auto color = BitConverter::ToColor(GetBuffer(paramBufferHandle, 4), bitConvertSuccess);
+				auto color = BitConverter::ToColor(GetBuffer(paramBufferHandle), bitConvertSuccess);
 				valueHandle->SetValueFromFormattedString(color.ToString());
 				return SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
@@ -1174,10 +1175,10 @@ protected:
 					[
 						// Displays the color with alpha unless it is ignored
 						SAssignNew(ColorPickerParentWidget, SColorBlock)
-						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, false, valueHandle, paramBufferHandle)
+						.Color(this, &FLGUIEventDelegateCustomization::LinearColorGetValue, false, valueHandle, paramBufferHandle)
 						.ShowBackgroundForAlpha(true)
 						.IgnoreAlpha(false)
-						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, false, valueHandle, paramBufferHandle)
+						.OnMouseButtonDown(this, &FLGUIEventDelegateCustomization::OnMouseButtonDownColorBlock, false, valueHandle, paramBufferHandle)
 						.Size(FVector2D(35.0f, 12.0f))
 					]
 					+ SHorizontalBox::Slot()
@@ -1186,21 +1187,21 @@ protected:
 					[
 						// Displays the color without alpha
 						SNew(SColorBlock)
-						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, false, valueHandle, paramBufferHandle)
+						.Color(this, &FLGUIEventDelegateCustomization::LinearColorGetValue, false, valueHandle, paramBufferHandle)
 						.ShowBackgroundForAlpha(false)
 						.IgnoreAlpha(true)
-						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, false, valueHandle, paramBufferHandle)
+						.OnMouseButtonDown(this, &FLGUIEventDelegateCustomization::OnMouseButtonDownColorBlock, false, valueHandle, paramBufferHandle)
 						.Size(FVector2D(35.0f, 12.0f))
 					];
 				;
 			}
 			break;
-			case LGUIDrawableEventParameterType::LinearColor:
+			case LGUIEventDelegateParameterType::LinearColor:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, LinearColorValue));
-				auto color = BitConverter::ToLinearColor(GetBuffer(paramBufferHandle, 16), bitConvertSuccess);
+				auto color = BitConverter::ToLinearColor(GetBuffer(paramBufferHandle), bitConvertSuccess);
 				valueHandle->SetValueFromFormattedString(color.ToString());
 				return SNew(SHorizontalBox)
 					+ SHorizontalBox::Slot()
@@ -1209,10 +1210,10 @@ protected:
 					[
 						// Displays the color with alpha unless it is ignored
 						SAssignNew(ColorPickerParentWidget, SColorBlock)
-						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, true, valueHandle, paramBufferHandle)
+						.Color(this, &FLGUIEventDelegateCustomization::LinearColorGetValue, true, valueHandle, paramBufferHandle)
 						.ShowBackgroundForAlpha(true)
 						.IgnoreAlpha(false)
-						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, true, valueHandle, paramBufferHandle)
+						.OnMouseButtonDown(this, &FLGUIEventDelegateCustomization::OnMouseButtonDownColorBlock, true, valueHandle, paramBufferHandle)
 						.Size(FVector2D(35.0f, 12.0f))
 					]
 					+ SHorizontalBox::Slot()
@@ -1221,21 +1222,21 @@ protected:
 					[
 						// Displays the color without alpha
 						SNew(SColorBlock)
-						.Color(this, &FLGUIDrawableEventCustomization::LinearColorGetValue, true, valueHandle, paramBufferHandle)
+						.Color(this, &FLGUIEventDelegateCustomization::LinearColorGetValue, true, valueHandle, paramBufferHandle)
 						.ShowBackgroundForAlpha(false)
 						.IgnoreAlpha(true)
-						.OnMouseButtonDown(this, &FLGUIDrawableEventCustomization::OnMouseButtonDownColorBlock, true, valueHandle, paramBufferHandle)
+						.OnMouseButtonDown(this, &FLGUIEventDelegateCustomization::OnMouseButtonDownColorBlock, true, valueHandle, paramBufferHandle)
 						.Size(FVector2D(35.0f, 12.0f))
 					];
 				;
 			}
 			break;
-			case LGUIDrawableEventParameterType::Quaternion:
+			case LGUIEventDelegateParameterType::Quaternion:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 16);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, QuatValue));
-				valueHandle->SetValue(BitConverter::ToQuat(GetBuffer(paramBufferHandle, 16), bitConvertSuccess));
+				valueHandle->SetValue(BitConverter::ToQuat(GetBuffer(paramBufferHandle), bitConvertSuccess));
 				return SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
 					.VAlign(VAlign_Center)
@@ -1254,51 +1255,57 @@ protected:
 						.ShowY(true)
 						.ShowZ(true)
 						.ShowW(true)
-						.X(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 0, valueHandle, paramBufferHandle)
-						.Y(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 1, valueHandle, paramBufferHandle)
-						.Z(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 2, valueHandle, paramBufferHandle)
-						.W(this, &FLGUIDrawableEventCustomization::Vector4GetItemValue, 3, valueHandle, paramBufferHandle)
-						.OnXCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 0, valueHandle, paramBufferHandle)
-						.OnYCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 1, valueHandle, paramBufferHandle)
-						.OnZCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 2, valueHandle, paramBufferHandle)
-						.OnWCommitted(this, &FLGUIDrawableEventCustomization::Vector4ItemValueChange, 3, valueHandle, paramBufferHandle)
+						.X(this, &FLGUIEventDelegateCustomization::Vector4GetItemValue, 0, valueHandle, paramBufferHandle)
+						.Y(this, &FLGUIEventDelegateCustomization::Vector4GetItemValue, 1, valueHandle, paramBufferHandle)
+						.Z(this, &FLGUIEventDelegateCustomization::Vector4GetItemValue, 2, valueHandle, paramBufferHandle)
+						.W(this, &FLGUIEventDelegateCustomization::Vector4GetItemValue, 3, valueHandle, paramBufferHandle)
+						.OnXCommitted(this, &FLGUIEventDelegateCustomization::Vector4ItemValueChange, 0, valueHandle, paramBufferHandle)
+						.OnYCommitted(this, &FLGUIEventDelegateCustomization::Vector4ItemValueChange, 1, valueHandle, paramBufferHandle)
+						.OnZCommitted(this, &FLGUIEventDelegateCustomization::Vector4ItemValueChange, 2, valueHandle, paramBufferHandle)
+						.OnWCommitted(this, &FLGUIEventDelegateCustomization::Vector4ItemValueChange, 3, valueHandle, paramBufferHandle)
 					]
 				;
 			}
 			break;
-			case LGUIDrawableEventParameterType::String:
+			case LGUIEventDelegateParameterType::String:
 			{
-				ClearNumericValueBuffer(InDataContainerHandle);
-				ClearObjectValue(InDataContainerHandle);
-				ClearActorValue(InDataContainerHandle);
-				ClearClassValue(InDataContainerHandle);
-				ClearNameValue(InDataContainerHandle);
-				ClearTextValue(InDataContainerHandle);
-				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceString));
+				ClearReferenceValue(InDataContainerHandle);
+				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, StringValue));
+				FString StringValue;
+				auto ValueBuffer = GetBuffer(paramBufferHandle);
+				auto FromBinary = FMemoryReader(ValueBuffer, true);
+				FromBinary.Seek(0);
+				FromBinary << StringValue;
+				valueHandle->SetValue(StringValue, bitConvertSuccess);
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::StringValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
 			break;
-			case LGUIDrawableEventParameterType::Name:
+			case LGUIEventDelegateParameterType::Name:
 			{
-				ClearNumericValueBuffer(InDataContainerHandle);
-				ClearObjectValue(InDataContainerHandle);
-				ClearActorValue(InDataContainerHandle);
-				ClearClassValue(InDataContainerHandle);
-				ClearStringValue(InDataContainerHandle);
-				ClearTextValue(InDataContainerHandle);
-				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceName));
+				ClearReferenceValue(InDataContainerHandle);
+				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, NameValue));
+				FName NameValue;
+				auto ValueBuffer = GetBuffer(paramBufferHandle);
+				auto FromBinary = FMemoryReader(ValueBuffer, true);
+				FromBinary.Seek(0);
+				FromBinary << NameValue;
+				valueHandle->SetValue(NameValue, bitConvertSuccess);
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::NameValueChange, valueHandle, paramBufferHandle));
 				return valueHandle->CreatePropertyValueWidget();
 			}
-			case LGUIDrawableEventParameterType::Text:
+			case LGUIEventDelegateParameterType::Text:
 			{
-				ClearNumericValueBuffer(InDataContainerHandle);
-				ClearObjectValue(InDataContainerHandle);
-				ClearActorValue(InDataContainerHandle);
-				ClearClassValue(InDataContainerHandle);
-				ClearStringValue(InDataContainerHandle);
-				ClearNameValue(InDataContainerHandle);
-				auto PropertyHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceText));
-				TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FEditableTextPropertyHandle(PropertyHandle.ToSharedRef(), PropertyUtilites));
+				ClearReferenceValue(InDataContainerHandle);
+				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, TextValue));
+				FText TextValue;
+				auto ValueBuffer = GetBuffer(paramBufferHandle);
+				auto FromBinary = FMemoryReader(ValueBuffer, true);
+				FromBinary.Seek(0);
+				FromBinary << TextValue;
+				valueHandle->SetValue(TextValue, bitConvertSuccess);
+				valueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::TextValueChange, valueHandle, paramBufferHandle));
+				TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FEditableTextPropertyHandle(valueHandle.ToSharedRef(), PropertyUtilites));
 				const bool bIsMultiLine = EditableTextProperty->IsMultiLineText();
 				return 
 					SNew(SHorizontalBox)
@@ -1318,9 +1325,9 @@ protected:
 					]
 					;
 			}
-			case LGUIDrawableEventParameterType::PointerEvent:
+			case LGUIEventDelegateParameterType::PointerEvent:
 			{
-				ClearNumericValueBuffer(InDataContainerHandle);
+				ClearValueBuffer(InDataContainerHandle);
 				ClearReferenceValue(InDataContainerHandle);
 				return
 					SNew(SBox)
@@ -1335,9 +1342,9 @@ protected:
 					];
 			}
 			break;
-			case LGUIDrawableEventParameterType::Object:
-			case LGUIDrawableEventParameterType::Actor:
-			case LGUIDrawableEventParameterType::Class:
+			case LGUIEventDelegateParameterType::Object:
+			case LGUIEventDelegateParameterType::Actor:
+			case LGUIEventDelegateParameterType::Class:
 			{
 				return
 					SNew(SBox)
@@ -1347,12 +1354,12 @@ protected:
 					];
 			}
 			break;
-			case LGUIDrawableEventParameterType::Rotator:
+			case LGUIEventDelegateParameterType::Rotator:
 			{
 				ClearReferenceValue(InDataContainerHandle);
 				SetBufferLength(paramBufferHandle, 12);
 				auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, RotatorValue));
-				valueHandle->SetValue(BitConverter::ToRotator(GetBuffer(paramBufferHandle, 12), bitConvertSuccess));
+				valueHandle->SetValue(BitConverter::ToRotator(GetBuffer(paramBufferHandle), bitConvertSuccess));
 				TSharedPtr<INumericTypeInterface<float>> TypeInterface;
 				if (FUnitConversion::Settings().ShouldDisplayUnits())
 				{
@@ -1368,12 +1375,12 @@ protected:
 						.AllowSpin(false)
 						.bColorAxisLabels(true)
 						.AllowResponsiveLayout(true)
-						.Roll(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 0, valueHandle, paramBufferHandle)
-						.Pitch(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 1, valueHandle, paramBufferHandle)
-						.Yaw(this, &FLGUIDrawableEventCustomization::RotatorGetItemValue, 2, valueHandle, paramBufferHandle)
-						.OnRollCommitted(this, &FLGUIDrawableEventCustomization::RotatorValueChange, 0, valueHandle, paramBufferHandle)
-						.OnPitchCommitted(this, &FLGUIDrawableEventCustomization::RotatorValueChange, 1, valueHandle, paramBufferHandle)
-						.OnYawCommitted(this, &FLGUIDrawableEventCustomization::RotatorValueChange, 2, valueHandle, paramBufferHandle)
+						.Roll(this, &FLGUIEventDelegateCustomization::RotatorGetItemValue, 0, valueHandle, paramBufferHandle)
+						.Pitch(this, &FLGUIEventDelegateCustomization::RotatorGetItemValue, 1, valueHandle, paramBufferHandle)
+						.Yaw(this, &FLGUIEventDelegateCustomization::RotatorGetItemValue, 2, valueHandle, paramBufferHandle)
+						.OnRollCommitted(this, &FLGUIEventDelegateCustomization::RotatorValueChange, 0, valueHandle, paramBufferHandle)
+						.OnPitchCommitted(this, &FLGUIEventDelegateCustomization::RotatorValueChange, 1, valueHandle, paramBufferHandle)
+						.OnYawCommitted(this, &FLGUIEventDelegateCustomization::RotatorValueChange, 2, valueHandle, paramBufferHandle)
 						.TypeInterface(TypeInterface)
 					]
 				;
@@ -1383,7 +1390,7 @@ protected:
 		}
 		else
 		{
-			ClearNumericValueBuffer(InDataContainerHandle);
+			ClearValueBuffer(InDataContainerHandle);
 			ClearReferenceValue(InDataContainerHandle);
 			return
 				SNew(STextBlock)
@@ -1392,60 +1399,50 @@ protected:
 		}
 	}
 	//function's parameter editor
-	TSharedRef<SWidget> DrawFunctionReferenceParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, LGUIDrawableEventParameterType FunctionParameterType, UFunction* InFunction)
+	TSharedRef<SWidget> DrawFunctionReferenceParameter(TSharedRef<IPropertyHandle> InDataContainerHandle, LGUIEventDelegateParameterType FunctionParameterType, UFunction* InFunction)
 	{
 		auto paramBufferHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ParamBuffer));
-
-		ClearStringValue(InDataContainerHandle);
-		ClearNameValue(InDataContainerHandle);
-		ClearTextValue(InDataContainerHandle);
 
 		TSharedPtr<SWidget> ParameterContent;
 		switch (FunctionParameterType)
 		{
-			//case LGUIDrawableEventParameterType::Name:
+			//case LGUIEventDelegateParameterType::Name:
 			//	break;
-		case LGUIDrawableEventParameterType::Object:
+		case LGUIEventDelegateParameterType::Object:
 		{
-			ClearNumericValueBuffer(InDataContainerHandle);
-			ClearActorValue(InDataContainerHandle);
-			ClearClassValue(InDataContainerHandle);
+			ClearValueBuffer(InDataContainerHandle);
 			return SNew(SObjectPropertyEntryBox)
 				.IsEnabled(true)
-				.AllowedClass(ULGUIDrawableEventParameterHelper::GetObjectParameterClass(InFunction))
+				.AllowedClass(ULGUIEventDelegateParameterHelper::GetObjectParameterClass(InFunction))
 				.PropertyHandle(InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceObject)))
 				.AllowClear(true)
 				.ToolTipText(LOCTEXT("UObjectTips", "UObject only referece asset, dont use for actor"))
-				.OnObjectChanged(this, &FLGUIDrawableEventCustomization::ObjectValueChange, paramBufferHandle, InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceObject)), true);
+				.OnObjectChanged(this, &FLGUIEventDelegateCustomization::ObjectValueChange, paramBufferHandle, InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceObject)), true);
 		}
 		break;
-		case LGUIDrawableEventParameterType::Actor:
+		case LGUIEventDelegateParameterType::Actor:
 		{
-			ClearNumericValueBuffer(InDataContainerHandle);
-			ClearClassValue(InDataContainerHandle);
-			ClearObjectValue(InDataContainerHandle);
+			ClearValueBuffer(InDataContainerHandle);
 			return SNew(SObjectPropertyEntryBox)
 				.IsEnabled(true)
-				.AllowedClass(ULGUIDrawableEventParameterHelper::GetObjectParameterClass(InFunction))
-				.PropertyHandle(InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceActor)))
+				.AllowedClass(ULGUIEventDelegateParameterHelper::GetObjectParameterClass(InFunction))
+				.PropertyHandle(InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceObject)))
 				.AllowClear(true)
-				.OnObjectChanged(this, &FLGUIDrawableEventCustomization::ObjectValueChange, paramBufferHandle, InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceActor)), false);
+				.OnObjectChanged(this, &FLGUIEventDelegateCustomization::ObjectValueChange, paramBufferHandle, InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceObject)), false);
 		}
 		break;
-		case LGUIDrawableEventParameterType::Class:
+		case LGUIEventDelegateParameterType::Class:
 		{
-			auto metaClass = ULGUIDrawableEventParameterHelper::GetClassParameterClass(InFunction);
-			auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceClass));
-			ClearNumericValueBuffer(InDataContainerHandle);
-			ClearObjectValue(InDataContainerHandle);
-			ClearActorValue(InDataContainerHandle);
+			auto metaClass = ULGUIEventDelegateParameterHelper::GetClassParameterClass(InFunction);
+			auto valueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceObject));
+			ClearValueBuffer(InDataContainerHandle);
 			return SNew(SClassPropertyEntryBox)
 				.IsEnabled(true)
 				.AllowAbstract(true)
 				.AllowNone(true)
 				.MetaClass(metaClass)
-				.SelectedClass(this, &FLGUIDrawableEventCustomization::GetClassValue, valueHandle)
-				.OnSetClass(this, &FLGUIDrawableEventCustomization::ClassValueChange, valueHandle);
+				.SelectedClass(this, &FLGUIEventDelegateCustomization::GetClassValue, valueHandle)
+				.OnSetClass(this, &FLGUIEventDelegateCustomization::ClassValueChange, valueHandle);
 		}
 		break;
 		default:
@@ -1461,11 +1458,6 @@ protected:
 		bool Value;
 		ValueHandle->GetValue(Value);
 		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
-	}
-	void ClearArrayBuffer(TSharedPtr<IPropertyHandle> BufferHandle)
-	{
-		auto BufferArrayHandle = BufferHandle->AsArray();
-		BufferArrayHandle->EmptyArray();//clear buffer
 	}
 
 	void ObjectValueChange(const FAssetData& InObj, TSharedPtr<IPropertyHandle> BufferHandle, TSharedPtr<IPropertyHandle> ObjectReferenceHandle, bool ObjectOrActor)
@@ -1564,6 +1556,33 @@ protected:
 		uint64 Value;
 		ValueHandle->GetValue(Value);
 		SetBufferValue(BufferHandle, BitConverter::GetBytes(Value));
+	}
+	void StringValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	{
+		FString Value;
+		ValueHandle->GetValue(Value);
+
+		FBufferArchive ToBinary;
+		ToBinary << Value;
+		SetBufferValue(BufferHandle, ToBinary);
+	}
+	void NameValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	{
+		FName Value;
+		ValueHandle->GetValue(Value);
+
+		FBufferArchive ToBinary;
+		ToBinary << Value;
+		SetBufferValue(BufferHandle, ToBinary);
+	}
+	void TextValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
+	{
+		FText Value;
+		ValueHandle->GetValue(Value);
+
+		FBufferArchive ToBinary;
+		ToBinary << Value;
+		SetBufferValue(BufferHandle, ToBinary);
 	}
 	void Vector2ItemValueChange(float NewValue, ETextCommit::Type CommitInfo, int AxisType, TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
 	{
@@ -1723,8 +1742,13 @@ protected:
 			for (int i = 0; i < bufferCount; i++)
 			{
 				BufferArrayHandle->AddItem();
+
+				auto bufferHandle = BufferArrayHandle->GetElement(i);
+				auto buffer = BufferArray[i];
+				bufferHandle->SetValue(buffer);
 			}
-			PropertyUtilites->ForceRefresh();
+
+			//PropertyUtilites->ForceRefresh();
 		}
 		else
 		{
@@ -1752,26 +1776,19 @@ protected:
 		}
 	}
 
-	TArray<uint8> GetBuffer(TSharedPtr<IPropertyHandle> BufferHandle, int32 Count)
+	TArray<uint8> GetBuffer(TSharedPtr<IPropertyHandle> BufferHandle)
 	{
 		auto BufferArrayHandle = BufferHandle->AsArray();
-		TArray<uint8> resultBuffer;
-		resultBuffer.Reserve(Count);
 		uint32 bufferHandleCount;
 		BufferArrayHandle->GetNumElements(bufferHandleCount);
-		if (Count != bufferHandleCount)
+		TArray<uint8> resultBuffer;
+		resultBuffer.Reserve(bufferHandleCount);
+		for (uint32 i = 0; i < bufferHandleCount; i++)
 		{
-			resultBuffer.Init(0, Count);
-		}
-		else
-		{
-			for (int i = 0; i < Count; i++)
-			{
-				auto elementHandle = BufferArrayHandle->GetElement(i);
-				uint8 value;
-				elementHandle->GetValue(value);
-				resultBuffer.Add(value);
-			}
+			auto elementHandle = BufferArrayHandle->GetElement(i);
+			uint8 value;
+			elementHandle->GetValue(value);
+			resultBuffer.Add(value);
 		}
 		return resultBuffer;
 	}
@@ -1808,7 +1825,7 @@ protected:
 		ValueHandle->SetValue(InText);
 	}
 
-	void ClearNumericValueBuffer(TSharedPtr<IPropertyHandle> PropertyHandle)
+	void ClearValueBuffer(TSharedPtr<IPropertyHandle> PropertyHandle)
 	{
 		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ParamBuffer))->AsArray();
 		handle->EmptyArray();
@@ -1816,40 +1833,10 @@ protected:
 	void ClearReferenceValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 	{
 		ClearObjectValue(PropertyHandle);
-		ClearActorValue(PropertyHandle);
-		ClearClassValue(PropertyHandle);
-		ClearStringValue(PropertyHandle);
-		ClearNameValue(PropertyHandle);
-		ClearTextValue(PropertyHandle);
-	}
-	void ClearStringValue(TSharedPtr<IPropertyHandle> PropertyHandle)
-	{
-		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceString));
-		handle->ResetToDefault();
-	}
-	void ClearNameValue(TSharedPtr<IPropertyHandle> PropertyHandle)
-	{
-		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceName));
-		handle->ResetToDefault();
-	}
-	void ClearTextValue(TSharedPtr<IPropertyHandle> PropertyHandle)
-	{
-		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceText));
-		handle->ResetToDefault();
 	}
 	void ClearObjectValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 	{
 		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceObject));
-		handle->ResetToDefault();
-	}
-	void ClearActorValue(TSharedPtr<IPropertyHandle> PropertyHandle)
-	{
-		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceActor));
-		handle->ResetToDefault();
-	}
-	void ClearClassValue(TSharedPtr<IPropertyHandle> PropertyHandle)
-	{
-		auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(EventData, ReferenceClass));
 		handle->ResetToDefault();
 	}
 
@@ -1888,7 +1875,7 @@ protected:
 			PickerArgs.bOnlyRefreshOnOk = false;
 			PickerArgs.sRGBOverride = bIsLinearColor;
 			PickerArgs.DisplayGamma = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateUObject(GEngine, &UEngine::GetDisplayGamma));
-			PickerArgs.OnColorCommitted = FOnLinearColorValueChanged::CreateSP(this, &FLGUIDrawableEventCustomization::LinearColorValueChange, bIsLinearColor, ValueHandle, BufferHandle);
+			PickerArgs.OnColorCommitted = FOnLinearColorValueChanged::CreateSP(this, &FLGUIEventDelegateCustomization::LinearColorValueChange, bIsLinearColor, ValueHandle, BufferHandle);
 			//PickerArgs.OnColorPickerCancelled = FOnColorPickerCancelled::CreateSP(this, &FColorStructCustomization::OnColorPickerCancelled);
 			//PickerArgs.OnInteractivePickBegin = FSimpleDelegate::CreateSP(this, &FColorStructCustomization::OnColorPickerInteractiveBegin);
 			//PickerArgs.OnInteractivePickEnd = FSimpleDelegate::CreateSP(this, &FColorStructCustomization::OnColorPickerInteractiveEnd);

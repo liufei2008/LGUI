@@ -10,7 +10,7 @@
 #include "Event/Interface/LGUIPointerScrollInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "Components/ActorComponent.h"

@@ -4,7 +4,7 @@
 
 #include "Interaction/UISelectableComponent.h"
 #include "Components/InputComponent.h"
-#include "Event/LGUIDrawableEvent.h"
+#include "Event/LGUIEventDelegate.h"
 #include "Event/LGUIDelegateDeclaration.h"
 #include "Event/Interface/LGUIPointerClickInterface.h"
 #include "Event/Interface/LGUIPointerDragInterface.h"
@@ -80,13 +80,13 @@ protected:
 
 	FLGUIMulticastStringDelegate OnValueChangeCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		FLGUIDrawableEvent OnValueChange = FLGUIDrawableEvent(LGUIDrawableEventParameterType::String);
+		FLGUIEventDelegate OnValueChange = FLGUIEventDelegate(LGUIEventDelegateParameterType::String);
 	FLGUIMulticastStringDelegate OnSubmitCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		FLGUIDrawableEvent OnSubmit = FLGUIDrawableEvent(LGUIDrawableEventParameterType::String);
+		FLGUIEventDelegate OnSubmit = FLGUIEventDelegate(LGUIEventDelegateParameterType::String);
 	FLGUIMulticastBoolDelegate OnInputActivateCPP;
 	UPROPERTY(EditAnywhere, Category = "LGUI-Input")
-		FLGUIDrawableEvent OnInputActivate = FLGUIDrawableEvent(LGUIDrawableEventParameterType::Bool);
+		FLGUIEventDelegate OnInputActivate = FLGUIEventDelegate(LGUIEventDelegateParameterType::Bool);
 	FLGUITextInputCustomInputTypeDelegate CustomInputTypeFunction;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Input")
