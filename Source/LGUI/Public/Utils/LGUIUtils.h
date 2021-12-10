@@ -112,7 +112,13 @@ public:
 	//nodify some informations in editor
 	static void EditorNotification(FText NofityText, float ExpireDuration = 5.0f);
 #endif
-	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors, AActor* IgnoreRootActor = nullptr);
+	/**
+	 * Collect children actors reculsively.
+	 * @param	Target	Search from this actor.
+	 * @param	AllChildrenActors	Result children actor array.
+	 * @param	IncludeTarget	Should include Target actor in result array?
+	 */
+	static void CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors, bool IncludeTarget = true);
 
 	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, class UObject* InOuter = GetTransientPackage(), FName InDefaultName = NAME_None);
 

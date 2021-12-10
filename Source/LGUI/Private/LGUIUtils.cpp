@@ -65,15 +65,17 @@ void LGUIUtils::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 #endif
 	}
 }
-void LGUIUtils::CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors, AActor* IgnoreRootActor)
+void LGUIUtils::CollectChildrenActors(AActor* Target, TArray<AActor*>& AllChildrenActors, bool IncludeTarget)
 {
-	AllChildrenActors.Add(Target);
+	if (IncludeTarget)
+	{
+		AllChildrenActors.Add(Target);
+	}
 	TArray<AActor*> actorList;
 	Target->GetAttachedActors(actorList);
 	for (auto item : actorList)
 	{
-		if (item == IgnoreRootActor)continue;
-		CollectChildrenActors(item, AllChildrenActors);
+		CollectChildrenActors(item, AllChildrenActors, true);
 	}
 }
 UTexture2D* LGUIUtils::CreateTexture(int32 InSize, FColor InDefaultColor, UObject* InOuter, FName InDefaultName)

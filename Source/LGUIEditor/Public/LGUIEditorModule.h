@@ -28,7 +28,7 @@ public:
 
 	static FLGUIEditorModule& Get();
 	
-	TSharedRef<SWidget> MakeEditorToolsMenu(bool IsSceneOutlineMenu);
+	TSharedRef<SWidget> MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool PreviewInViewport, bool EditorCameraControl, bool Others);
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class FAssetTypeActions_Base>> AssetTypeActionsArray;
 private:

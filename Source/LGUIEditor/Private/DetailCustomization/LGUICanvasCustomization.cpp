@@ -355,12 +355,38 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 	}
 	return LOCTEXT("", "");
 }
+
+const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray(UWorld* InWorld)
+{
+	if (IsValid(InWorld))
+	{
+#if WITH_EDITOR
+		if (!InWorld->IsGameWorld())
+		{
+			if (ULGUIEditorManagerObject::Instance != nullptr)
+			{
+				return ULGUIEditorManagerObject::Instance->GetCanvasArray();
+			}
+		}
+		else
+#endif
+		{
+			if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(InWorld))
+			{
+				return LGUIManagerActor->GetCanvasArray();
+			}
+		}
+	}
+	static TArray<TWeakObjectPtr<ULGUICanvas>> staticArray;//just for the return value
+	return staticArray;
+}
+
 FText FLGUICanvasCustomization::GetDrawcallInfo()const
 {
 	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
 	{
 		int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
-		auto& allCanvas = TargetScriptArray[0]->GetAllCanvasArray();
+		auto& allCanvas = GetAllCanvasArray(TargetScriptArray[0]->GetWorld());
 		int allDrawcallCount = 0;
 		auto world = TargetScriptArray[0]->GetWorld();
 		for (auto canvasItem : allCanvas)
@@ -398,7 +424,7 @@ FText FLGUICanvasCustomization::GetDrawcallInfo()const
 FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 {
 	int drawcallCount = TargetScriptArray[0]->UIDrawcallList.Num();
-	auto& allCanvas = TargetScriptArray[0]->GetAllCanvasArray();
+	auto& allCanvas = GetAllCanvasArray(TargetScriptArray[0]->GetWorld());
 	int allDrawcallCount = 0;
 	FString spaceText;
 	if (TargetScriptArray[0]->IsRenderToScreenSpace())

@@ -651,7 +651,7 @@ bool FComponentTransformDetails::IsLocationYEnable()const
 		TWeakObjectPtr<UUIItem> uiItem = SelectedObjects[0];
 		if (uiItem.IsValid())
 		{
-			if (uiItem->GetParentAsUIItem() == nullptr)
+			if (uiItem->GetParentUIItem() == nullptr)
 			{
 				return true;
 			}
@@ -667,7 +667,7 @@ bool FComponentTransformDetails::IsLocationZEnable()const
 		TWeakObjectPtr<UUIItem> uiItem = SelectedObjects[0];
 		if (uiItem.IsValid())
 		{
-			if (uiItem->GetParentAsUIItem() == nullptr)
+			if (uiItem->GetParentUIItem() == nullptr)
 			{
 				return true;
 			}

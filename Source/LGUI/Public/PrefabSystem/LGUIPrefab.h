@@ -99,7 +99,7 @@ public:
 		, TMap<FGuid, UObject*>& InOutMapGuidToObject
 	);
 	void SavePrefab(AActor* RootActor
-		, TMap<UObject*, FGuid>& OutMapObjectToGuid);
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid);
 	void SavePrefabForRuntime(AActor* RootActor);
 	/**
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.

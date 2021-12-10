@@ -205,11 +205,29 @@ void ULGUILifeCycleBehaviour::SetEnable(bool value)
 			enable = value;
 			if (enable)
 			{
-				OnEnable();
+#if WITH_EDITOR
+				if (!this->GetWorld()->IsGameWorld())//edit mode
+				{
+
+				}
+				else
+#endif
+				{
+					OnEnable();
+				}
 			}
 			else
 			{
-				OnDisable();
+#if WITH_EDITOR
+				if (!this->GetWorld()->IsGameWorld())//edit mode
+				{
+
+				}
+				else
+#endif
+				{
+					OnDisable();
+				}
 			}
 		}
 		else
@@ -229,6 +247,12 @@ void ULGUILifeCycleBehaviour::SetCanExecuteUpdate(bool value)
 
 void ULGUILifeCycleBehaviour::Awake()
 {
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())//edit mode
+	{
+		check(0);
+	}
+#endif
 	bIsAwakeCalled = true;
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
@@ -263,7 +287,7 @@ void ULGUILifeCycleBehaviour::OnEnable()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-
+		check(0);
 	}
 	else//handle update in game mode
 #endif
@@ -292,7 +316,7 @@ void ULGUILifeCycleBehaviour::OnDisable()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-
+		check(0);
 	}
 	else//handle update in game mode
 #endif

@@ -15,6 +15,8 @@ class LGUIEDITOR_API LGUIEditorTools
 private:
 	static FString PrevSavePrafabFolder;
 public:
+	static FString LGUIPresetPrefabPath;
+
 	static AActor * GetFirstSelectedActor();
 	template<class T>
 	static void CreateUIItemActor()
@@ -65,7 +67,6 @@ public:
 	static bool IsSelectUIActor();
 	static bool IsCanvasActor(AActor* InActor);
 	static int GetDrawcallCount(AActor* InActor);
-	static FString PrintObjectFlags(UObject* Target);
 	static void FocusToScreenSpaceUI();
 	static void FocusToSelectedUI();
 

@@ -533,7 +533,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnLeft()
 	}
 	if (NavigationLeft == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetRootComponent()->GetForwardVector());
+		return FindSelectable(-GetRootComponent()->GetRightVector());
 	}
 	return nullptr;
 }
@@ -545,7 +545,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnRight()
 	}
 	if (NavigationRight == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetRootComponent()->GetForwardVector());//forward as right
+		return FindSelectable(GetRootComponent()->GetRightVector());
 	}
 	return nullptr;
 }
@@ -557,7 +557,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnUp()
 	}
 	if (NavigationUp == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetRootComponent()->GetRightVector());//right as up 
+		return FindSelectable(GetRootComponent()->GetUpVector());
 	}
 	return nullptr;
 }
@@ -569,7 +569,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnDown()
 	}
 	if (NavigationDown == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetRootComponent()->GetRightVector());
+		return FindSelectable(-GetRootComponent()->GetUpVector());
 	}
 	return nullptr;
 }

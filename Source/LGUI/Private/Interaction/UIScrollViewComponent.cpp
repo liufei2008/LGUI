@@ -93,8 +93,8 @@ void UUIScrollViewComponent::RecalculateRange()
         }
         Position = ContentUIItem->GetRelativeLocation();
         if (
-            (AllowHorizontalScroll && (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y))
-            || (AllowVerticalScroll && (Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y))
+            (AllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y))
+            || (AllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y))
             )
         {
             CanUpdateAfterDrag = true;
@@ -211,18 +211,18 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
     auto position = ContentUIItem->GetRelativeLocation();
     auto worldPoint = eventData->GetWorldPointInPlane();
     auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
-    localMoveDelta.Z = 0;
+    localMoveDelta.X = 0;
     PrevWorldPoint = worldPoint;
     if (AllowHorizontalScroll)
     {
-        auto predict = position.X + localMoveDelta.X;
+        auto predict = position.Y + localMoveDelta.Y;
         if (predict < HorizontalRange.X || predict > HorizontalRange.Y) //out-of-range, lower the sentitivity
         {
-            position.X += localMoveDelta.X * 0.5f;
+            position.Y += localMoveDelta.Y * 0.5f;
         }
         else
         {
-            position.X = predict;
+            position.Y = predict;
         }
         CanUpdateAfterDrag = false;
         ContentUIItem->SetRelativeLocation(position);
@@ -230,14 +230,14 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
     }
     if (AllowVerticalScroll)
     {
-        auto predict = position.Y + localMoveDelta.Y;
+        auto predict = position.Z + localMoveDelta.Z;
         if (predict < VerticalRange.X || predict > VerticalRange.Y)
         {
-            position.Y += localMoveDelta.Y * 0.5f;
+            position.Z += localMoveDelta.Y * 0.5f;
         }
         else
         {
-            position.Y = predict;
+            position.Z = predict;
         }
         CanUpdateAfterDrag = false;
         ContentUIItem->SetRelativeLocation(position);
@@ -255,13 +255,13 @@ bool UUIScrollViewComponent::OnPointerEndDrag_Implementation(ULGUIPointerEventDa
     {
         CanUpdateAfterDrag = true;
         Position = ContentUIItem->GetRelativeLocation();
-        DragSpeed.X = localMoveDelta.X;
+        DragSpeed.X = localMoveDelta.Y;
     }
     if (AllowVerticalScroll)
     {
         CanUpdateAfterDrag = true;
         Position = ContentUIItem->GetRelativeLocation();
-        DragSpeed.Y = localMoveDelta.Y;
+        DragSpeed.Y = localMoveDelta.Z;
     }
     return AllowEventBubbleUp;
 }
@@ -276,14 +276,14 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
             {
                 AllowHorizontalScroll = true;
                 CanUpdateAfterDrag = true;
-                if (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y)
+                if (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)
                 {
-                    Position.X += delta * 0.5f;
+                    Position.Y += delta * 0.5f;
                     DragSpeed.X = delta * 0.5f;
                 }
                 else
                 {
-                    Position.X += delta;
+                    Position.Y += delta;
                     DragSpeed.X = delta;
                 }
                 ContentUIItem->SetRelativeLocation(Position);
@@ -292,14 +292,14 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
             {
                 AllowVerticalScroll = true;
                 CanUpdateAfterDrag = true;
-                if (Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)
+                if (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)
                 {
-                    Position.Y += delta * 0.5f;
+                    Position.Z += delta * 0.5f;
                     DragSpeed.Y = delta * 0.5f;
                 }
                 else
                 {
-                    Position.Y += delta;
+                    Position.Z += delta;
                     DragSpeed.Y = delta;
                 }
                 ContentUIItem->SetRelativeLocation(Position);
@@ -318,14 +318,14 @@ void UUIScrollViewComponent::SetScrollDelta(FVector2D value)
 		{
 			AllowHorizontalScroll = true;
 			CanUpdateAfterDrag = true;
-			if (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y)
+			if (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)
 			{
-				Position.X += delta.X * 0.5f;
+				Position.Y += delta.X * 0.5f;
 				DragSpeed.X = delta.X * 0.5f;
 			}
 			else
 			{
-				Position.X += delta.X;
+				Position.Y += delta.X;
 				DragSpeed.X = delta.X;
 			}
 			ContentUIItem->SetRelativeLocation(Position);
@@ -334,14 +334,14 @@ void UUIScrollViewComponent::SetScrollDelta(FVector2D value)
 		{
 			AllowVerticalScroll = true;
 			CanUpdateAfterDrag = true;
-			if (Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)
+			if (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)
 			{
-				Position.Y += delta.Y * 0.5f;
+				Position.Z += delta.Y * 0.5f;
 				DragSpeed.Y = delta.Y * 0.5f;
 			}
 			else
 			{
-				Position.Y += delta.Y;
+				Position.Z += delta.Y;
 				DragSpeed.Y = delta.Y;
 			}
 			ContentUIItem->SetRelativeLocation(Position);
@@ -356,7 +356,7 @@ void UUIScrollViewComponent::SetScrollValue(FVector2D value)
 		{
 			AllowHorizontalScroll = true;
 			CanUpdateAfterDrag = true;
-			Position.X = value.X;
+			Position.Y = value.X;
 			DragSpeed.X = 0;
 			ContentUIItem->SetRelativeLocation(Position);
             UpdateProgress();
@@ -365,7 +365,7 @@ void UUIScrollViewComponent::SetScrollValue(FVector2D value)
 		{
 			AllowVerticalScroll = true;
 			CanUpdateAfterDrag = true;
-			Position.Y = value.Y;
+			Position.Z = value.Y;
 			DragSpeed.Y = 0;
 			ContentUIItem->SetRelativeLocation(Position);
             UpdateProgress();
@@ -384,7 +384,7 @@ void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
 
             RecalculateRange();
             value.X = FMath::Clamp(value.X, 0.0f, 1.0f);
-            Position.X = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, value.X);
+            Position.Y = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, value.X);
             ContentUIItem->SetRelativeLocation(Position);
             UpdateProgress();
         }
@@ -395,7 +395,7 @@ void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
 
             RecalculateRange();
             value.Y = FMath::Clamp(value.Y, 0.0f, 1.0f);
-            Position.Y = FMath::Lerp(VerticalRange.X, VerticalRange.Y, value.Y);
+            Position.Z = FMath::Lerp(VerticalRange.X, VerticalRange.Y, value.Y);
             ContentUIItem->SetRelativeLocation(Position);
             UpdateProgress();
         }
@@ -406,8 +406,8 @@ void UUIScrollViewComponent::SetScrollProgress(FVector2D value)
 void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
 {
     if (FMath::Abs(DragSpeed.X) > 0 || FMath::Abs(DragSpeed.Y) > 0                                       //speed large then threshold
-        || (AllowHorizontalScroll && (Position.X < HorizontalRange.X || Position.X > HorizontalRange.Y)) //horizontal out of range
-        || (AllowVerticalScroll && (Position.Y < VerticalRange.X || Position.Y > VerticalRange.Y)))      //vertical out of range
+        || (AllowHorizontalScroll && (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)) //horizontal out of range
+        || (AllowVerticalScroll && (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)))      //vertical out of range
     {
         bool canMove = false;
         const float positionTimeMultiply = 50.0f;
@@ -415,52 +415,52 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
         const float positionLerpTimeMultiply = 10.0f;
         if (AllowHorizontalScroll)
         {
-            if (Position.X - HorizontalRange.X < 0)
+            if (Position.Y - HorizontalRange.X < 0)
             {
                 if (DragSpeed.X < 0)
                 {
-                    float dragForce = (HorizontalRange.X - Position.X) * dragForceMulitply;
+                    float dragForce = (HorizontalRange.X - Position.Y) * dragForceMulitply;
                     DragSpeed.X += -FMath::Sign(DragSpeed.X) * dragForce * deltaTime;
 
-                    Position.X += DragSpeed.X * deltaTime * positionTimeMultiply;
+                    Position.Y += DragSpeed.X * deltaTime * positionTimeMultiply;
                     canMove = true;
                 }
                 else
                 {
                     DragSpeed.X = 0;
-                    if (FMath::Abs(HorizontalRange.X - Position.X) < POSITION_THRESHOLD)
+                    if (FMath::Abs(HorizontalRange.X - Position.Y) < POSITION_THRESHOLD)
                     {
-                        Position.X = HorizontalRange.X;
+                        Position.Y = HorizontalRange.X;
                     }
                     else
                     {
                         auto lerpAlpha = FMath::Clamp(positionLerpTimeMultiply * deltaTime, 0.0f, 1.0f);
-                        Position.X = FMath::Lerp(Position.X, HorizontalRange.X, lerpAlpha);
+                        Position.Y = FMath::Lerp(Position.Y, HorizontalRange.X, lerpAlpha);
                     }
                     canMove = true;
                 }
             }
-            else if (Position.X - HorizontalRange.Y > 0)
+            else if (Position.Y - HorizontalRange.Y > 0)
             {
                 if (DragSpeed.X > 0) //move right, use opposite force
                 {
-                    float dragForce = (Position.X - HorizontalRange.Y) * dragForceMulitply;
+                    float dragForce = (Position.Y - HorizontalRange.Y) * dragForceMulitply;
                     DragSpeed.X += -FMath::Sign(DragSpeed.X) * dragForce * deltaTime;
 
-                    Position.X += DragSpeed.X * deltaTime * positionTimeMultiply;
+                    Position.Y += DragSpeed.X * deltaTime * positionTimeMultiply;
                     canMove = true;
                 }
                 else
                 {
                     DragSpeed.X = 0;
-                    if (FMath::Abs(Position.X - HorizontalRange.Y) < POSITION_THRESHOLD)
+                    if (FMath::Abs(Position.Y - HorizontalRange.Y) < POSITION_THRESHOLD)
                     {
-                        Position.X = HorizontalRange.Y;
+                        Position.Y = HorizontalRange.Y;
                     }
                     else
                     {
                         auto lerpAlpha = FMath::Clamp(positionLerpTimeMultiply * deltaTime, 0.0f, 1.0f);
-                        Position.X = FMath::Lerp(Position.X, HorizontalRange.Y, lerpAlpha);
+                        Position.Y = FMath::Lerp(Position.Y, HorizontalRange.Y, lerpAlpha);
                     }
                     canMove = true;
                 }
@@ -474,58 +474,58 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
                 {
                     DragSpeed.X = 0;
                 }
-                Position.X += DragSpeed.X * deltaTime * positionTimeMultiply;
+                Position.Y += DragSpeed.X * deltaTime * positionTimeMultiply;
                 canMove = true;
             }
         }
         if (AllowVerticalScroll)
         {
-            if (Position.Y - VerticalRange.X < 0)
+            if (Position.Z - VerticalRange.X < 0)
             {
                 if (DragSpeed.Y < 0)
                 {
-                    float dragForce = (VerticalRange.X - Position.Y) * dragForceMulitply;
+                    float dragForce = (VerticalRange.X - Position.Z) * dragForceMulitply;
                     DragSpeed.Y += -FMath::Sign(DragSpeed.Y) * dragForce * deltaTime;
 
-                    Position.Y += DragSpeed.Y * deltaTime * positionTimeMultiply;
+                    Position.Z += DragSpeed.Y * deltaTime * positionTimeMultiply;
                     canMove = true;
                 }
                 else
                 {
                     DragSpeed.Y = 0;
-                    if (FMath::Abs(VerticalRange.X - Position.Y) < POSITION_THRESHOLD)
+                    if (FMath::Abs(VerticalRange.X - Position.Z) < POSITION_THRESHOLD)
                     {
-                        Position.Y = VerticalRange.X;
+                        Position.Z = VerticalRange.X;
                     }
                     else
                     {
                         auto lerpAlpha = FMath::Clamp(positionLerpTimeMultiply * deltaTime, 0.0f, 1.0f);
-                        Position.Y = FMath::Lerp(Position.Y, VerticalRange.X, lerpAlpha);
+                        Position.Z = FMath::Lerp(Position.Z, VerticalRange.X, lerpAlpha);
                     }
                     canMove = true;
                 }
             }
-            else if (Position.Y - VerticalRange.Y > 0)
+            else if (Position.Z - VerticalRange.Y > 0)
             {
                 if (DragSpeed.Y > 0) //move up, use opposite force
                 {
-                    float dragForce = (Position.Y - VerticalRange.Y) * dragForceMulitply;
+                    float dragForce = (Position.Z - VerticalRange.Y) * dragForceMulitply;
                     DragSpeed.Y += -FMath::Sign(DragSpeed.Y) * dragForce * deltaTime;
 
-                    Position.Y += DragSpeed.Y * deltaTime * positionTimeMultiply;
+                    Position.Z += DragSpeed.Y * deltaTime * positionTimeMultiply;
                     canMove = true;
                 }
                 else
                 {
                     DragSpeed.Y = 0;
-                    if (FMath::Abs(Position.Y - VerticalRange.Y) < POSITION_THRESHOLD)
+                    if (FMath::Abs(Position.Z - VerticalRange.Y) < POSITION_THRESHOLD)
                     {
-                        Position.Y = VerticalRange.Y;
+                        Position.Z = VerticalRange.Y;
                     }
                     else
                     {
                         auto lerpAlpha = FMath::Clamp(positionLerpTimeMultiply * deltaTime, 0.0f, 1.0f);
-                        Position.Y = FMath::Lerp(Position.Y, VerticalRange.Y, lerpAlpha);
+                        Position.Z = FMath::Lerp(Position.Z, VerticalRange.Y, lerpAlpha);
                     }
                     canMove = true;
                 }
@@ -539,7 +539,7 @@ void UUIScrollViewComponent::UpdateAfterDrag(float deltaTime)
                 {
                     DragSpeed.Y = 0;
                 }
-                Position.Y += DragSpeed.Y * deltaTime * positionTimeMultiply;
+                Position.Z += DragSpeed.Y * deltaTime * positionTimeMultiply;
                 canMove = true;
             }
         }
@@ -561,11 +561,11 @@ void UUIScrollViewComponent::UpdateProgress(bool InFireEvent)
     auto relativeLocation = ContentUIItem->GetRelativeLocation();
     if (AllowHorizontalScroll)
     {
-        Progress.X = (relativeLocation.X - HorizontalRange.X) / (HorizontalRange.Y - HorizontalRange.X);
+        Progress.X = (relativeLocation.Y - HorizontalRange.X) / (HorizontalRange.Y - HorizontalRange.X);
     }
     if (AllowVerticalScroll)
     {
-        Progress.Y = (relativeLocation.Y - VerticalRange.X) / (VerticalRange.Y - VerticalRange.X);
+        Progress.Y = (relativeLocation.Z - VerticalRange.X) / (VerticalRange.Y - VerticalRange.X);
     }
     if (InFireEvent)
     {

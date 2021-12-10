@@ -3,6 +3,7 @@
 #include "Interaction/UISliderComponent.h"
 #include "LGUI.h"
 #include "Core/Actor/UIBaseActor.h"
+#include "Core/ActorComponent/UIItem.h"
 
 void UUISliderComponent::Awake()
 {
@@ -255,25 +256,25 @@ void UUISliderComponent::CalculateInputValue(ULGUIPointerEventData *eventData)
         case UISliderDirectionType::LeftToRight:
         {
             MinPosition = -widget.pivot.X * widget.width;
-            value01 = (localPointerPosition.X - MinPosition) / widget.width;
+            value01 = (localPointerPosition.Y - MinPosition) / widget.width;
         }
         break;
         case UISliderDirectionType::RightToLeft:
         {
             MinPosition = -widget.pivot.X * widget.width;
-            value01 = 1.0f - (localPointerPosition.X - MinPosition) / widget.width;
+            value01 = 1.0f - (localPointerPosition.Y - MinPosition) / widget.width;
         }
         break;
         case UISliderDirectionType::BottomToTop:
         {
             MinPosition = -widget.pivot.Y * widget.height;
-            value01 = (localPointerPosition.Y - MinPosition) / widget.height;
+            value01 = (localPointerPosition.Z - MinPosition) / widget.height;
         }
         break;
         case UISliderDirectionType::TopToBottom:
         {
             MinPosition = -widget.pivot.Y * widget.height;
-            value01 = 1.0f - (localPointerPosition.Y - MinPosition) / widget.height;
+            value01 = 1.0f - (localPointerPosition.Z - MinPosition) / widget.height;
         }
         break;
         }
@@ -304,7 +305,7 @@ void UUISliderComponent::ApplyValueToUI()
                     Handle->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
                 }
                 auto anchorOffsetX = value01 * HandleArea->GetWidth();
-                Handle->SetAnchorOffsetY(anchorOffsetX);
+                Handle->SetAnchorOffsetHorizontal(anchorOffsetX);
             }
             if (CheckFill())
             {
@@ -322,7 +323,7 @@ void UUISliderComponent::ApplyValueToUI()
                     Handle->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
                 }
                 auto anchorOffsetX = -value01 * HandleArea->GetWidth();
-                Handle->SetAnchorOffsetY(anchorOffsetX);
+                Handle->SetAnchorOffsetHorizontal(anchorOffsetX);
             }
             if (CheckFill())
             {
@@ -340,7 +341,7 @@ void UUISliderComponent::ApplyValueToUI()
                     Handle->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
                 }
                 auto anchorOffsetY = value01 * HandleArea->GetHeight();
-                Handle->SetAnchorOffsetZ(anchorOffsetY);
+                Handle->SetAnchorOffsetVertical(anchorOffsetY);
             }
             if (CheckFill())
             {
@@ -358,7 +359,7 @@ void UUISliderComponent::ApplyValueToUI()
                     Handle->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
                 }
                 auto anchorOffsetY = -value01 * HandleArea->GetHeight();
-                Handle->SetAnchorOffsetZ(anchorOffsetY);
+                Handle->SetAnchorOffsetVertical(anchorOffsetY);
             }
             if (CheckFill())
             {

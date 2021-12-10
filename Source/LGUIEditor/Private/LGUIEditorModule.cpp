@@ -33,9 +33,10 @@
 #include "LevelEditorMenuExtensions/LGUILevelEditorExtensions.h"
 #include "Window/LGUIAtlasViewer.h"
 
-#include "AssetTypeAction/LGUISpriteDataTypeAction.h"
-#include "AssetTypeAction/LGUIFontDataTypeAction.h"
-#include "AssetTypeAction/LGUIStaticMeshCacheTypeAction.h"
+#include "AssetTypeActions/AssetTypeActions_LGUISpriteData.h"
+#include "AssetTypeActions/AssetTypeActions_LGUIFontData.h"
+#include "AssetTypeActions/AssetTypeActions_LGUIPrefab.h"
+#include "AssetTypeActions/AssetTypeActions_LGUIStaticMeshCache.h"
 
 #include "DetailCustomization/UIItemCustomization.h"
 #include "DetailCustomization/UISpriteBaseCustomization.h"
@@ -234,14 +235,17 @@ void FLGUIEditorModule::StartupModule()
 			LGUIAssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("LGUI")), LOCTEXT("LGUIAssetCategory", "LGUI"));
 		}
 
-		TSharedPtr<FAssetTypeActions_Base> spriteDataAction = MakeShareable(new FLGUISpriteDataTypeAction(LGUIAssetCategoryBit));
-		TSharedPtr<FAssetTypeActions_Base> fontDataAction = MakeShareable(new FLGUIFontDataTypeAction(LGUIAssetCategoryBit));
-		TSharedPtr<FAssetTypeActions_Base> UIStaticMeshCacheDataAction = MakeShareable(new FLGUIStaticMeshCacheTypeAction(LGUIAssetCategoryBit));
-		AssetTools.RegisterAssetTypeActions(spriteDataAction.ToSharedRef());
-		AssetTools.RegisterAssetTypeActions(fontDataAction.ToSharedRef());
+		TSharedPtr<FAssetTypeActions_Base> SpriteDataAction = MakeShareable(new FAssetTypeActions_LGUISpriteData(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> FontDataAction = MakeShareable(new FAssetTypeActions_LGUIFontData(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> PrefabDataAction = MakeShareable(new FAssetTypeActions_LGUIPrefab(LGUIAssetCategoryBit));
+		TSharedPtr<FAssetTypeActions_Base> UIStaticMeshCacheDataAction = MakeShareable(new FAssetTypeActions_LGUIStaticMeshCache(LGUIAssetCategoryBit));
+		AssetTools.RegisterAssetTypeActions(SpriteDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(FontDataAction.ToSharedRef());
+		AssetTools.RegisterAssetTypeActions(PrefabDataAction.ToSharedRef());
 		AssetTools.RegisterAssetTypeActions(UIStaticMeshCacheDataAction.ToSharedRef());
-		AssetTypeActionsArray.Add(spriteDataAction);
-		AssetTypeActionsArray.Add(fontDataAction);
+		AssetTypeActionsArray.Add(SpriteDataAction);
+		AssetTypeActionsArray.Add(FontDataAction);
+		AssetTypeActionsArray.Add(PrefabDataAction);
 		AssetTypeActionsArray.Add(UIStaticMeshCacheDataAction);
 	}
 	//register Thumbnail
@@ -441,7 +445,7 @@ void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builde
 	{
 		Builder.AddComboButton(
 			FUIAction(),
-			FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, false),
+			FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, true, true, true, true, true),
 			LOCTEXT("LGUITools", "LGUI Tools"),
 			LOCTEXT("LGUIEditorTools", "LGUI Editor Tools"),
 			FSlateIcon(FLGUIEditorStyle::GetStyleSetName(), "LGUIEditor.EditorTools")
@@ -450,7 +454,7 @@ void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builde
 	Builder.EndSection();
 }
 
-TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMenu)
+TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool PreviewInViewport, bool EditorCameraControl, bool Others)
 {
 	FMenuBuilder MenuBuilder(true, PluginCommands);
 	auto commandList = FLGUIEditorCommands::Get();
@@ -535,7 +539,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			LOCTEXT("CreateUIPostProcessSubMenu_Tooltip", "Create UI Post Process"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIPostProcessSubMenu)
 		);
-		if (!IsSceneOutlineMenu)
+		if (InitialSetup)
 		{
 			MenuBuilder.AddSubMenu(
 				LOCTEXT("BasicSetup", "Basic Setup"),
@@ -579,7 +583,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 	}
 	MenuBuilder.EndSection();
 
-	if (!IsSceneOutlineMenu)
+	if (ComponentAction)
 	{
 		MenuBuilder.BeginSection("ComponentAction", LOCTEXT("ComponentAction", "Edit Component"));
 		{
@@ -587,6 +591,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 			MenuBuilder.AddMenuEntry(commandList.PasteComponentValues);
 		}
 		MenuBuilder.EndSection();
+	}
 
 		MenuBuilder.BeginSection("OpenWindow", LOCTEXT("OpenWindow", "Open Window"));
 		{
@@ -600,21 +605,21 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool IsSceneOutlineMe
 		}
 		MenuBuilder.EndSection();
 
-		MenuBuilder.BeginSection("PreviewScreenSpaceUISelector", LOCTEXT("PreviewScreenSpaceUISelector", "Preview Viewport"));
-		{
-			MenuBuilder.AddMenuEntry(commandList.ActiveViewportAsLGUIPreview);
-		}
-		MenuBuilder.EndSection();
-
+	if (EditorCameraControl)
+	{
 		MenuBuilder.BeginSection("EditorCamera", LOCTEXT("EditorCameraControl", "EditorCameraControl"));
 		{
 			MenuBuilder.AddMenuEntry(commandList.FocusToScreenSpaceUI);
 			MenuBuilder.AddMenuEntry(commandList.FocusToSelectedUI);
 		}
 		MenuBuilder.EndSection();
+	}
 
+	if (Others)
+	{
 		MenuBuilder.BeginSection("Others", LOCTEXT("Others", "Others"));
 		{
+			MenuBuilder.AddMenuEntry(commandList.ActiveViewportAsLGUIPreview);
 			MenuBuilder.AddMenuEntry(commandList.ToggleLGUIInfoColume);
 		}
 		MenuBuilder.EndSection();
@@ -638,7 +643,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
 			);
 		}
-		static void CreateUIControlMenuEntry(FMenuBuilder& InBuilder, const FString& InControlName, const FString& InPrefabPath, FText InTooltip = FText())
+		static void CreateUIControlMenuEntry(FMenuBuilder& InBuilder, const FString& InControlName, FText InTooltip = FText())
 		{
 			if (InTooltip.IsEmpty())
 			{
@@ -648,7 +653,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 				FText::FromString(InControlName),
 				InTooltip,
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIControls, InPrefabPath))
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIControls, LGUIEditorTools::LGUIPresetPrefabPath + InControlName))
 			);
 		}
 	};
@@ -660,16 +665,16 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextActor::StaticClass());
 		FunctionContainer::CreateUIBaseElementMenuEntry(MenuBuilder, AUITextureActor::StaticClass());
 
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Button"), "/LGUI/Prefabs/DefaultButton");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Toggle"), "/LGUI/Prefabs/DefaultToggle");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("HorizontalSlider"), "/LGUI/Prefabs/DefaultHorizontalSlider");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("VerticalSlider"), "/LGUI/Prefabs/DefaultVerticalSlider");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("HorizontalScrollbar"), "/LGUI/Prefabs/DefaultHorizontalScrollbar");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("VerticalScrollbar"), "/LGUI/Prefabs/DefaultVerticalScrollbar");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Dropdown"), "/LGUI/Prefabs/DefaultDropdown");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInput"), "/LGUI/Prefabs/DefaultTextInput");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInputMultiline"), "/LGUI/Prefabs/DefaultTextInputMultiline");
-		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollView"), "/LGUI/Prefabs/DefaultScrollView");
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Button"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Toggle"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("HorizontalSlider"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("VerticalSlider"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("HorizontalScrollbar"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("VerticalScrollbar"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Dropdown"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInput"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("TextInputMultiline"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ScrollView"));
 	}
 	MenuBuilder.EndSection();
 }

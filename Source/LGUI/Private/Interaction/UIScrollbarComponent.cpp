@@ -3,6 +3,7 @@
 #include "Interaction/UIScrollbarComponent.h"
 #include "LGUI.h"
 #include "Core/Actor/UIBaseActor.h"
+#include "Core/ActorComponent/UIItem.h"
 
 UUIScrollbarComponent::UUIScrollbarComponent()
 {
@@ -270,7 +271,7 @@ void UUIScrollbarComponent::CalculateInputValue(ULGUIPointerEventData *eventData
     if (CheckHandle())
     {
         auto localCumulativeMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(eventData->GetWorldPointInPlane() - eventData->pressWorldPoint);
-        localCumulativeMoveDelta.Z = 0;
+        localCumulativeMoveDelta.X = 0;
         float slideAreaSize = 0;
         float handleSize = 0;
         float value01 = Value;
@@ -280,28 +281,28 @@ void UUIScrollbarComponent::CalculateInputValue(ULGUIPointerEventData *eventData
         {
             handleSize = HandleArea->GetWidth() * Size;
             slideAreaSize = HandleArea->GetWidth() - handleSize;
-            value01 = PressValue + localCumulativeMoveDelta.X / slideAreaSize;
+            value01 = PressValue + localCumulativeMoveDelta.Y / slideAreaSize;
         }
         break;
         case UIScrollbarDirectionType::RightToLeft:
         {
             handleSize = HandleArea->GetWidth() * Size;
             slideAreaSize = HandleArea->GetWidth() - handleSize;
-            value01 = PressValue - localCumulativeMoveDelta.X / slideAreaSize;
+            value01 = PressValue - localCumulativeMoveDelta.Y / slideAreaSize;
         }
         break;
         case UIScrollbarDirectionType::BottomToTop:
         {
             handleSize = HandleArea->GetHeight() * Size;
             slideAreaSize = HandleArea->GetHeight() - handleSize;
-            value01 = PressValue + localCumulativeMoveDelta.Y / slideAreaSize;
+            value01 = PressValue + localCumulativeMoveDelta.Z / slideAreaSize;
         }
         break;
         case UIScrollbarDirectionType::TopToBottom:
         {
             handleSize = HandleArea->GetHeight() * Size;
             slideAreaSize = HandleArea->GetHeight() - handleSize;
-            value01 = PressValue - localCumulativeMoveDelta.Y / slideAreaSize;
+            value01 = PressValue - localCumulativeMoveDelta.Z / slideAreaSize;
         }
         break;
         }

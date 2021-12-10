@@ -156,7 +156,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		{
 			allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 				{
-					return A->GetSortOrder() < B->GetSortOrder();
+					return A->GetActualSortOrder() < B->GetActualSortOrder();
 				});
 		}
 		if (bShouldSortLGUIRenderer)
@@ -245,11 +245,11 @@ void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRender
 	for (int i = 0; i < allCanvas.Num(); i++)
 	{
 		auto canvasItem = this->allCanvas[i];
-		if (canvasItem.IsValid())
+		if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && !canvasItem->IsRenderByOtherCanvas())
 		{
 			if (canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				auto canvasItemSortOrder = canvasItem->GetSortOrder();
+				auto canvasItemSortOrder = canvasItem->GetActualSortOrder();
 				if (canvasItemSortOrder != prevSortOrder)
 				{
 					prevSortOrder = canvasItemSortOrder;
@@ -575,9 +575,9 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 	else
 	{
 		//parent selected
-		if (IsValid(item->GetParentAsUIItem()))
+		if (IsValid(item->GetParentUIItem()))
 		{
-			if (ULGUIEditorManagerObject::IsSelected(item->GetParentAsUIItem()->GetOwner()))
+			if (ULGUIEditorManagerObject::IsSelected(item->GetParentUIItem()->GetOwner()))
 			{
 				canDraw = true;
 			}
@@ -593,9 +593,9 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 			}
 		}
 		//other object of same hierarchy is selected
-		if (IsValid(item->GetParentAsUIItem()))
+		if (IsValid(item->GetParentUIItem()))
 		{
-			const auto& sameLevelCompArray = item->GetParentAsUIItem()->GetAttachUIChildren();
+			const auto& sameLevelCompArray = item->GetParentUIItem()->GetAttachUIChildren();
 			for (auto uiComp : sameLevelCompArray)
 			{
 				if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
@@ -630,10 +630,10 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 		relativeOffset.Z = (0.5f - widget.pivot.Y) * widget.height;
 		auto worldLocation = worldTransform.TransformPosition(relativeOffset);
 		//calculate world location
-		if (item->GetParentAsUIItem() != nullptr)
+		if (item->GetParentUIItem() != nullptr)
 		{
 			FVector relativeLocation = item->GetRelativeLocation();
-			const auto& parentWidget = item->GetParentAsUIItem()->GetWidget();
+			const auto& parentWidget = item->GetParentUIItem()->GetWidget();
 			switch (widget.anchorHAlign)
 			{
 			case UIAnchorHorizontalAlign::Left:
@@ -693,7 +693,7 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 			auto relativeTf = item->GetRelativeTransform();
 			relativeTf.SetLocation(relativeLocation);
 			FTransform calculatedWorldTf;
-			FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(item->GetParentAsUIItem()->GetComponentTransform()));
+			FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(item->GetParentUIItem()->GetComponentTransform()));
 			worldLocation = calculatedWorldTf.TransformPosition(relativeOffset);
 		}
 		DrawDebugBox(item->GetWorld(), worldLocation, extends * worldTransform.GetScale3D(), worldTransform.GetRotation(), DrawColor);//@todo: screen-space UI should draw on screen-space, but no clue to achieve that
@@ -1271,7 +1271,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			//@todo: no need to sort all canvas
 			allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 				{
-					return A->GetSortOrder() < B->GetSortOrder();
+					return A->GetActualSortOrder() < B->GetActualSortOrder();
 				});
 		}
 		if (bShouldSortLGUIRenderer)
@@ -1297,7 +1297,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	}
 }
 
-void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
+void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)//@todo: cleanup this function
 {
 	int32 startRenderPriority = 0;
 	int32 prevSortOrder = INT_MIN;
@@ -1305,11 +1305,11 @@ void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
 	for (int i = 0; i < allCanvas.Num(); i++)
 	{
 		auto canvasItem = this->allCanvas[i];
-		if (canvasItem.IsValid())
+		if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && !canvasItem->IsRenderByOtherCanvas())
 		{
 			if (canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				auto canvasItemSortOrder = canvasItem->GetSortOrder();
+				auto canvasItemSortOrder = canvasItem->GetActualSortOrder();
 				bool sameSortOrder = canvasItemSortOrder == prevSortOrder;
 				if (!sameSortOrder)
 				{
@@ -1630,7 +1630,7 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 			if (InRaycaster->depth == item->depth && InRaycaster->traceChannel == item->traceChannel)
 			{
 				auto msg = FString(TEXT("\
-Detect multiple LGUIBaseRaycaster components with same depth and traceChannel, this may cause wrong interaction results!\
+\nDetect multiple LGUIBaseRaycaster components with same depth and traceChannel, this may cause wrong interaction results!\
 \neg: Want use mouse to click object A but get object B.\
 \nPlease note:\
 \n	For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.\

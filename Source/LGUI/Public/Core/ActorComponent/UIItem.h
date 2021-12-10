@@ -48,7 +48,6 @@ private:
 	void CallUILifeCycleBehavioursChildAttachmentChanged(UUIItem* child, bool attachOrDettach);
 	void CallUILifeCycleBehavioursInteractionStateChanged();
 	void CallUILifeCycleBehavioursChildHierarchyIndexChanged(UUIItem* child);
-	FORCEINLINE bool CanExecuteOnUIBehaviour(class ULGUILifeCycleUIBehaviour* InComp);
 protected://these funcions are same as UIBehaviour's, for easier use
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive) { }
@@ -68,7 +67,7 @@ protected://these funcions are same as UIBehaviour's, for easier use
 	virtual void OnUIAttachmentChanged() { }
 	/** Called when RootUIComp's attachchildren is attached to RootUIComp or detached from RootUIComp  */
 	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach) { }
-	/** Called when RootUIComp's interaction state changed(when UIInteractionGroup component allow interaction or not) */
+	/** Called when RootUIComp's interaction state changed(when UICanvasGroup component allow interaction or not) */
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot) { }
 	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child) { }
@@ -165,9 +164,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorVAlign(UIAnchorVerticalAlign align);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorOffsetY(float newOffset);
+		void SetAnchorOffsetHorizontal(float newOffset);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorOffsetZ(float newOffset);
+		void SetAnchorOffsetVertical(float newOffset);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		void SetAnchorOffset(FVector2D newOffset);
 
@@ -182,9 +181,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		UIAnchorVerticalAlign GetAnchorVAlign() const { return widget.anchorVAlign; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetAnchorOffsetY() const { return widget.anchorOffsetX; }
+		float GetAnchorOffsetHorizontal() const { return widget.anchorOffsetX; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetAnchorOffsetZ() const { return widget.anchorOffsetY; }
+		float GetAnchorOffsetVertical() const { return widget.anchorOffsetY; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
 		FVector2D GetAnchorOffset()const { return FVector2D(widget.anchorOffsetX, widget.anchorOffsetY); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
@@ -213,7 +212,7 @@ public:
 		float GetLocalSpaceTop()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UUIItem* GetParentAsUIItem()const;
+		UUIItem* GetParentUIItem()const;
 	/** get UI children array, sorted by hierarchy index */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TArray<UUIItem*>& GetAttachUIChildren()const { return UIChildren; }
@@ -252,14 +251,14 @@ public:
 	void UnregisterCanvasGroup();
 
 	bool IsGroupAllowInteraction()const { return bIsGroupAllowInteraction; }
-	/** return UICanvasGroup that manager this UIItem. */
+	/** return UICanvasGroup component that manager this UIItem. return null if there is no one. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUICanvasGroup* GetCanvasGroup()const { return CanvasGroup.Get(); }
 #pragma endregion UICanvasGroup
 #pragma region UIActive
 protected:
 	/** all up parent IsUIActive is true, then this is true. if any up parent is false, then this is false */
-	bool allUpParentUIActive = true;
+	bool bAllUpParentUIActive = true;
 	void SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive);
 	void SetUIActiveStateChange();
 	/**
@@ -271,7 +270,12 @@ protected:
 	/** apply IsUIActive state */
 	virtual void ApplyUIActiveState();
 	void OnChildActiveStateChanged(UUIItem* child);
+
+	FSimpleMulticastDelegate UIActiveStateChangedDelegate;
 public:
+	FDelegateHandle RegisterUIActiveStateChanged(const FSimpleDelegate& InCallback);
+	void UnregisterUIActiveStateChanged(const FDelegateHandle& InHandle);
+
 	/** Set this UI element's bIsUIActive */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		virtual void SetIsUIActive(bool active);
@@ -280,7 +284,7 @@ public:
 		bool GetIsUIActiveSelf()const { return bIsUIActive; }
 	/** is UI active hierarchy. if all up parent of this ui item is active then return this->IsUIActive. if any up parent ui item is not active then return false */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetIsUIActiveInHierarchy()const { return bIsUIActive && allUpParentUIActive; };
+		bool GetIsUIActiveInHierarchy()const { return bIsUIActive && bAllUpParentUIActive; };
 #pragma endregion UIActive
 
 #pragma region HierarchyIndex
@@ -322,7 +326,7 @@ private:
 		FString displayName;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		FString GetDisplayName()const { return displayName; }
+		const FString& GetDisplayName()const { return displayName; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetDisplayName(const FString& InName) { displayName = InName; }
 	/** 

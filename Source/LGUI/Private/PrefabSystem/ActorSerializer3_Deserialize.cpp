@@ -20,7 +20,13 @@ namespace LGUIPrefabSystem3
 	)
 	{
 		ActorSerializer3 serializer(InWorld);
-		serializer.MapGuidToObject = InOutMapGuidToObjects;
+		for (auto KeyValue : InOutMapGuidToObjects)//Preprocess the map, ignore invalid object
+		{
+			if (IsValid(KeyValue.Value))
+			{
+				serializer.MapGuidToObject.Add(KeyValue.Key, KeyValue.Value);
+			}
+		}
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
@@ -81,6 +87,7 @@ namespace LGUIPrefabSystem3
 
 		PreGenerateActorRecursive(SaveData.SavedActor);
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
+		DeserializeObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		auto CreatedRootActor = DeserializeActorRecursive(SaveData.SavedActor);
 
 		//register component
@@ -205,7 +212,7 @@ namespace LGUIPrefabSystem3
 			if (auto CompPtr = MapGuidToObject.Find(ObjectData.ComponentGuid))
 			{
 				//UE_LOG(LGUI, Log, TEXT("[ActorSerializer3::PreGenerateObjectArray]Already generated:%s!"), *(MapGuidToObject[ObjectData.ComponentGuid]->GetPathName()));
-				CreatedNewComponent = (UActorComponent*)*CompPtr;
+				CreatedNewComponent = Cast<UActorComponent>(*CompPtr);
 			}
 			else
 			{
@@ -222,23 +229,6 @@ namespace LGUIPrefabSystem3
 					CreatedNewComponent = NewObject<UActorComponent>(Outer, ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
 					MapGuidToObject.Add(ObjectData.ComponentGuid, CreatedNewComponent);
 				}
-			}
-
-			if (CreatedNewComponent)
-			{
-				if (auto SceneComp = Cast<USceneComponent>(CreatedNewComponent))
-				{
-					WriterOrReaderFunction(CreatedNewComponent, ObjectData.PropertyData, true);
-				}
-				else
-				{
-					WriterOrReaderFunction(CreatedNewComponent, ObjectData.PropertyData, false);
-				}
-
-				ComponentDataStruct CompData;
-				CompData.Component = CreatedNewComponent;
-				CompData.SceneComponentParentGuid = ObjectData.SceneComponentParentGuid;
-				CreatedComponents.Add(CompData);
 			}
 		}
 
@@ -268,13 +258,43 @@ namespace LGUIPrefabSystem3
 					MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
 				}
 			}
+		}
+	}
 
-			if (CreatedNewObject)
+	void ActorSerializer3::DeserializeObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents)
+	{
+		//create component first, because some object may use component as outer
+		for (auto ObjectData : SavedComponents)
+		{
+			if (auto CompPtr = MapGuidToObject.Find(ObjectData.ComponentGuid))
 			{
+				auto CreatedNewComponent = (UActorComponent*)*CompPtr;
+				if (auto SceneComp = Cast<USceneComponent>(CreatedNewComponent))
+				{
+					WriterOrReaderFunction(CreatedNewComponent, ObjectData.PropertyData, true);
+				}
+				else
+				{
+					WriterOrReaderFunction(CreatedNewComponent, ObjectData.PropertyData, false);
+				}
+
+				ComponentDataStruct CompData;
+				CompData.Component = CreatedNewComponent;
+				CompData.SceneComponentParentGuid = ObjectData.SceneComponentParentGuid;
+				CreatedComponents.Add(CompData);
+			}
+		}
+
+		for (auto ObjectData : SavedObjects)
+		{
+			if (auto ObjectPtr = MapGuidToObject.Find(ObjectData.ObjectGuid))
+			{
+				auto CreatedNewObject = *ObjectPtr;
 				WriterOrReaderFunction(CreatedNewObject, ObjectData.PropertyData, false);
 			}
 		}
 	}
+
 	void ActorSerializer3::PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors)
 	{
 		if (auto ActorClass = FindClassFromListByIndex(SavedActors.ActorClass))

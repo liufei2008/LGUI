@@ -175,6 +175,8 @@ public:
 TArray<TWeakObjectPtr<class ULGUIPrefab>> LGUIEditorTools::copiedActorPrefabList;
 TWeakObjectPtr<class UActorComponent> LGUIEditorTools::copiedComponent;
 
+FString LGUIEditorTools::LGUIPresetPrefabPath = TEXT("/LGUI/Prefabs/");
+
 UWorld* LGUIEditorTools::GetWorldFromSelection()
 {
 	if (auto selectedActor = GetFirstSelectedActor())
@@ -1044,68 +1046,6 @@ void LGUIEditorTools::SetTraceChannelToParent_Recursive(AActor* InActor)
 void LGUIEditorTools::RefreshSceneOutliner()
 {
 	GEngine->BroadcastLevelActorListChanged();
-}
-FString LGUIEditorTools::PrintObjectFlags(UObject* Target)
-{
-	return FString::Printf(TEXT("Flags:%d\
-, \nRF_Public:%d\
-, \nRF_Standalone:%d\
-, \nRF_MarkAsNative:%d\
-, \nRF_Transactional:%d\
-, \nRF_ClassDefaultObject:%d\
-, \nRF_ArchetypeObject:%d\
-, \nRF_Transient:%d\
-, \nRF_MarkAsRootSet:%d\
-, \nRF_TagGarbageTemp:%d\
-, \nRF_NeedInitialization:%d\
-, \nRF_NeedLoad:%d\
-, \nRF_KeepForCooker:%d\
-, \nRF_NeedPostLoad:%d\
-, \nRF_NeedPostLoadSubobjects:%d\
-, \nRF_NewerVersionExists:%d\
-, \nRF_BeginDestroyed:%d\
-, \nRF_FinishDestroyed:%d\
-, \nRF_BeingRegenerated:%d\
-, \nRF_DefaultSubObject:%d\
-, \nRF_WasLoaded:%d\
-, \nRF_TextExportTransient:%d\
-, \nRF_LoadCompleted:%d\
-, \nRF_InheritableComponentTemplate:%d\
-, \nRF_DuplicateTransient:%d\
-, \nRF_StrongRefOnFrame:%d\
-, \nRF_NonPIEDuplicateTransient:%d\
-, \nRF_Dynamic:%d\
-, \nRF_WillBeLoaded:%d\
-"), Target->GetFlags()
-, Target->HasAnyFlags(EObjectFlags::RF_Public)
-, Target->HasAnyFlags(EObjectFlags::RF_Standalone)
-, Target->HasAnyFlags(EObjectFlags::RF_MarkAsNative)
-, Target->HasAnyFlags(EObjectFlags::RF_Transactional)
-, Target->HasAnyFlags(EObjectFlags::RF_ClassDefaultObject)
-, Target->HasAnyFlags(EObjectFlags::RF_ArchetypeObject)
-, Target->HasAnyFlags(EObjectFlags::RF_Transient)
-, Target->HasAnyFlags(EObjectFlags::RF_MarkAsRootSet)
-, Target->HasAnyFlags(EObjectFlags::RF_TagGarbageTemp)
-, Target->HasAnyFlags(EObjectFlags::RF_NeedInitialization)
-, Target->HasAnyFlags(EObjectFlags::RF_NeedLoad)
-, Target->HasAnyFlags(EObjectFlags::RF_KeepForCooker)
-, Target->HasAnyFlags(EObjectFlags::RF_NeedPostLoad)
-, Target->HasAnyFlags(EObjectFlags::RF_NeedPostLoadSubobjects)
-, Target->HasAnyFlags(EObjectFlags::RF_NewerVersionExists)
-, Target->HasAnyFlags(EObjectFlags::RF_BeginDestroyed)
-, Target->HasAnyFlags(EObjectFlags::RF_FinishDestroyed)
-, Target->HasAnyFlags(EObjectFlags::RF_BeingRegenerated)
-, Target->HasAnyFlags(EObjectFlags::RF_DefaultSubObject)
-, Target->HasAnyFlags(EObjectFlags::RF_WasLoaded)
-, Target->HasAnyFlags(EObjectFlags::RF_TextExportTransient)
-, Target->HasAnyFlags(EObjectFlags::RF_LoadCompleted)
-, Target->HasAnyFlags(EObjectFlags::RF_InheritableComponentTemplate)
-, Target->HasAnyFlags(EObjectFlags::RF_DuplicateTransient)
-, Target->HasAnyFlags(EObjectFlags::RF_StrongRefOnFrame)
-, Target->HasAnyFlags(EObjectFlags::RF_NonPIEDuplicateTransient)
-, Target->HasAnyFlags(EObjectFlags::RF_Dynamic)
-, Target->HasAnyFlags(EObjectFlags::RF_WillBeLoaded)
-);
 }
 
 void LGUIEditorTools::FocusToScreenSpaceUI()

@@ -726,7 +726,7 @@ void UUIText::FindCaretByPosition(FVector inWorldPosition, FVector2D& outCaretPo
 		CheckCachedTextPropertyList();
 
 		auto localPosition = this->GetComponentTransform().InverseTransformPosition(inWorldPosition);
-		auto localPosition2D = FVector2D(localPosition);
+		auto localPosition2D = FVector2D(localPosition.Y, localPosition.Z);
 
 		float nearestDistance = MAX_FLT;
 		int lineCount = cachedTextPropertyArray.Num();

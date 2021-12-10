@@ -265,6 +265,7 @@ namespace LGUIPrefabSystem3
 		AActor* DeserializeActorRecursive(FLGUIActorSaveData& SavedActors);
 		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors);
 		void PreGenerateObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
+		void DeserializeObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 
 		//find id from list, if not will create
 		int32 FindOrAddAssetIdFromList(UObject* AssetObject);

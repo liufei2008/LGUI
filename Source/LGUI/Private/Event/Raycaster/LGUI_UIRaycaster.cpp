@@ -38,7 +38,7 @@ bool ULGUI_UIRaycaster::IsHitVisibleUI(UUIItem* HitUI, const FVector& HitPoint)
 	}
 }
 
-bool ULGUI_UIRaycaster::IsUIInteractionGroupAllowHit(UUIItem* HitUI)
+bool ULGUI_UIRaycaster::IsUICanvasGroupAllowHit(UUIItem* HitUI)
 {
 	return HitUI->IsGroupAllowInteraction();
 }
@@ -57,7 +57,7 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 		{
 			if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 			{
-				auto allUIItemArray = LGUIManagerActor->GetAllUIItem();
+				const auto& allUIItemArray = LGUIManagerActor->GetAllUIItem();
 				for (auto uiItem : allUIItemArray)
 				{
 					if (ShouldSkipUIItem(uiItem))continue;
@@ -93,68 +93,37 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 		int hitCount = multiUIHitResult.Num();
 		if (hitCount > 0)
 		{
-			EUIRaycastSortType sortType = uiSortType;
-			float threshold = uiSortDependOnDistanceThreshold;
-			multiUIHitResult.Sort([sortType, threshold](const FHitResult& A, const FHitResult& B)//sort on depth
+			multiUIHitResult.Sort([](const FHitResult& A, const FHitResult& B)
 			{
-				if (sortType == EUIRaycastSortType::DependOnUIDepth//sort on depth
-					|| FMath::Abs(A.Distance - B.Distance) < threshold//if distance less than threshold, then sort on depth too
-					)
+				auto AUIItem = (UUIItem*)(A.Component.Get());
+				auto BUIItem = (UUIItem*)(B.Component.Get());
+				if (AUIItem != nullptr && BUIItem != nullptr)
 				{
-					auto AUIItem = (UUIItem*)(A.Component.Get());
-					auto BUIItem = (UUIItem*)(B.Component.Get());
-					if (AUIItem != nullptr && BUIItem != nullptr)
-					{
-						if (AUIItem->GetRenderCanvas() == nullptr && BUIItem->GetRenderCanvas() != nullptr) return false;//if A not render yet
-						if (AUIItem->GetRenderCanvas() != nullptr && BUIItem->GetRenderCanvas() == nullptr) return true;//if B not render yet
-						if (AUIItem->GetRenderCanvas() == nullptr && BUIItem->GetRenderCanvas() == nullptr) return true;//if A and B not renderred, doesnt matter which one
+					if (AUIItem->GetRenderCanvas() == nullptr && BUIItem->GetRenderCanvas() != nullptr) return false;//if A not render yet
+					if (AUIItem->GetRenderCanvas() != nullptr && BUIItem->GetRenderCanvas() == nullptr) return true;//if B not render yet
+					if (AUIItem->GetRenderCanvas() == nullptr && BUIItem->GetRenderCanvas() == nullptr) return true;//if A and B not renderred, doesnt matter which one
 
-						if (AUIItem->GetRenderCanvas() == BUIItem->GetRenderCanvas())//if Canvas's depth is equal then sort on item's depth
-						{
-							if (AUIItem->GetFlattenHierarchyIndex() == BUIItem->GetFlattenHierarchyIndex())//if item's flattenHierarchyIndex is equal then sort on distance
-							{
-								return A.Distance < B.Distance;
-							}
-							else
-							{
-								return AUIItem->GetFlattenHierarchyIndex() > BUIItem->GetFlattenHierarchyIndex();
-							}
-						}
-						else//if Canvas's depth not equal then sort on Canvas's SortOrder
-						{
-							return AUIItem->GetRenderCanvas()->GetSortOrder() > BUIItem->GetRenderCanvas()->GetSortOrder();
-						}
-					}
-					else//if not a ui element, sort on depth
+					auto ACanvasSortOrder = AUIItem->GetRenderCanvas()->GetActualSortOrder();
+					auto BCanvasSortOrder = BUIItem->GetRenderCanvas()->GetActualSortOrder();
+					if (AUIItem->GetRenderCanvas() != BUIItem->GetRenderCanvas() && ACanvasSortOrder != BCanvasSortOrder)//not in same sort order
 					{
-						return A.Distance < B.Distance;
+						return ACanvasSortOrder > BCanvasSortOrder;
 					}
-				}
-				else//sort on distance
-				{
-					return A.Distance < B.Distance;
+					else//same Canvas, sort on item's hierarchy order
+					{
+						return AUIItem->GetFlattenHierarchyIndex() > BUIItem->GetFlattenHierarchyIndex();
+					}
 				}
 				return true;
 			});
 
-			//consider UI may not visible or InteractionGroup not allow interaction, so we cannot take first one as result, we need to check from start
+			//consider UI may not visible or CanvasGroup not allow interaction, so we cannot take first one as result, we need to check from start
 			bool haveValidHitResult = false;
 			for (int i = 0; i < hitCount; i++)
 			{
 				auto hit = multiUIHitResult[i];
-				if (auto hitUIItem = (UUIItem*)(hit.Component.Get()))
-				{
-					if (IsHitVisibleUI(hitUIItem, hit.Location) && IsUIInteractionGroupAllowHit(hitUIItem))
-					{
-						if (!haveValidHitResult)
-						{
-							OutHitResult = hit;
-							haveValidHitResult = true;
-						}
-						OutHoverArray.Add(hit.Component.Get());
-					}
-				}
-				else
+				auto hitUIItem = (UUIItem*)(hit.Component.Get());
+				if (IsHitVisibleUI(hitUIItem, hit.Location) && IsUICanvasGroupAllowHit(hitUIItem))
 				{
 					if (!haveValidHitResult)
 					{
@@ -183,7 +152,7 @@ void ULGUI_UIRaycaster::LineTraceUIHierarchy(TArray<FHitResult>& OutHitArray, bo
 	}
 	if (InSortResult)
 	{
-		OutHitArray.Sort([](const FHitResult& A, const FHitResult& B)//sort on depth
+		OutHitArray.Sort([](const FHitResult& A, const FHitResult& B)//sort on distance
 		{
 			return A.Distance < B.Distance;
 		});

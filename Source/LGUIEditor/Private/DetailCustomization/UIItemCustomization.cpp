@@ -651,9 +651,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 	//HierarchyIndex
 	{
-		auto hierarchyIndexHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex));
-		DetailBuilder.HideProperty(hierarchyIndexHandle);
-		hierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		auto HierarchyIndexHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex));
+		DetailBuilder.HideProperty(HierarchyIndexHandle);
+		HierarchyIndexHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
 			ForceUpdateUI();
 			LGUIEditorTools::RefreshSceneOutliner();
 		}));
@@ -663,7 +663,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			.Padding(2, 0)
 			.FillWidth(5)
 			[
-				hierarchyIndexHandle->CreatePropertyValueWidget()
+				HierarchyIndexHandle->CreatePropertyValueWidget()
 			]
 			+ SHorizontalBox::Slot()
 			.Padding(2, 0)
@@ -680,7 +680,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 						for (auto item : TargetScriptArray)
 						{
 							item->SetHierarchyIndex(item->hierarchyIndex + 1);
-							ForceUpdateUI();
 						}
 						LGUIEditorTools::RefreshSceneOutliner();
 						return FReply::Handled(); 
@@ -702,7 +701,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 						for (auto item : TargetScriptArray)
 						{
 							item->SetHierarchyIndex(item->hierarchyIndex - 1);
-							ForceUpdateUI();
 						}
 						LGUIEditorTools::RefreshSceneOutliner();
 						return FReply::Handled();
@@ -715,11 +713,11 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnCopyHierarchyIndex)
 		))
 		.PasteAction(FUIAction(
-			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnPasteHierarchyIndex, hierarchyIndexHandle)
+			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnPasteHierarchyIndex, HierarchyIndexHandle)
 		))
 		.NameContent()
 		[
-			hierarchyIndexHandle->CreatePropertyNameWidget()
+			HierarchyIndexHandle->CreatePropertyNameWidget()
 		]
 		.ValueContent()
 		[

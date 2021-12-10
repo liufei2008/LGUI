@@ -45,7 +45,7 @@ void UUIItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetParentAsUIItem();
+	GetParentUIItem();
 	CheckRootUIItem();
 
 	bFlattenHierarchyIndexChanged = true;
@@ -71,7 +71,8 @@ void UUIItem::CallUILifeCycleBehavioursActiveInHierarchyStateChanged()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
-	OnUIActiveInHierachy(GetIsUIActiveInHierarchy());
+	bool TempIsUIActive = GetIsUIActiveInHierarchy();
+	OnUIActiveInHierachy(TempIsUIActive);
 	if (this->GetOwner()->GetRootComponent() != this)return;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
@@ -82,8 +83,7 @@ void UUIItem::CallUILifeCycleBehavioursActiveInHierarchyStateChanged()
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		//if (!CanExecuteOnUIBehaviour(CompItem))continue;//why comment this? because UIActiveInHierarchy is related to Awake
-		CompItem->OnUIActiveInHierachy(GetIsUIActiveInHierarchy());
+		CompItem->OnUIActiveInHierachy(TempIsUIActive);
 	}
 }
 void UUIItem::CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)
@@ -101,8 +101,7 @@ void UUIItem::CallUILifeCycleBehavioursChildDimensionsChanged(UUIItem* child, bo
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		if (!CanExecuteOnUIBehaviour(CompItem))continue;
-		CompItem->OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+		CompItem->Call_OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
 	}
 }
 void UUIItem::CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(UUIItem* child, bool activeOrInactive)
@@ -120,8 +119,7 @@ void UUIItem::CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(UUIIte
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		if (!CanExecuteOnUIBehaviour(CompItem))continue;
-		CompItem->OnUIChildAcitveInHierarchy(child, activeOrInactive);
+		CompItem->Call_OnUIChildAcitveInHierarchy(child, activeOrInactive);
 	}
 }
 void UUIItem::CallUILifeCycleBehavioursDimensionsChanged(bool positionChanged, bool sizeChanged)
@@ -139,8 +137,7 @@ void UUIItem::CallUILifeCycleBehavioursDimensionsChanged(bool positionChanged, b
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		if (!CanExecuteOnUIBehaviour(CompItem))continue;
-		CompItem->OnUIDimensionsChanged(positionChanged, sizeChanged);
+		CompItem->Call_OnUIDimensionsChanged(positionChanged, sizeChanged);
 	}
 
 	//call parent
@@ -164,8 +161,7 @@ void UUIItem::CallUILifeCycleBehavioursAttachmentChanged()
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		if (!CanExecuteOnUIBehaviour(CompItem))continue;
-		CompItem->OnUIAttachmentChanged();
+		CompItem->Call_OnUIAttachmentChanged();
 	}
 }
 void UUIItem::CallUILifeCycleBehavioursChildAttachmentChanged(UUIItem* child, bool attachOrDettach)
@@ -183,8 +179,7 @@ void UUIItem::CallUILifeCycleBehavioursChildAttachmentChanged(UUIItem* child, bo
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		if (!CanExecuteOnUIBehaviour(CompItem))continue;
-		CompItem->OnUIChildAttachmentChanged(child, attachOrDettach);
+		CompItem->Call_OnUIChildAttachmentChanged(child, attachOrDettach);
 	}
 }
 void UUIItem::CallUILifeCycleBehavioursInteractionStateChanged()
@@ -203,8 +198,7 @@ void UUIItem::CallUILifeCycleBehavioursInteractionStateChanged()
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		if (!CanExecuteOnUIBehaviour(CompItem))continue;
-		CompItem->OnUIInteractionStateChanged(interactable);
+		CompItem->Call_OnUIInteractionStateChanged(interactable);
 	}
 }
 void UUIItem::CallUILifeCycleBehavioursChildHierarchyIndexChanged(UUIItem* child)
@@ -222,13 +216,8 @@ void UUIItem::CallUILifeCycleBehavioursChildHierarchyIndexChanged(UUIItem* child
 	for (int i = 0; i < LGUILifeCycleUIBehaviourArray.Num(); i++)
 	{
 		auto& CompItem = LGUILifeCycleUIBehaviourArray[i];
-		if (!CanExecuteOnUIBehaviour(CompItem))continue;
-		CompItem->OnUIChildHierarchyIndexChanged(child);
+		CompItem->Call_OnUIChildHierarchyIndexChanged(child);
 	}
-}
-bool UUIItem::CanExecuteOnUIBehaviour(class ULGUILifeCycleUIBehaviour* InComp)
-{
-	return InComp->bIsAwakeCalled;//Awake not called, means not initialized yet
 }
 #pragma endregion LGUILifeCycleUIBehaviour
 
@@ -285,6 +274,13 @@ void UUIItem::MarkFlattenHierarchyIndexDirty()
 	{
 		RootUIItem->bFlattenHierarchyIndexDirty = true;
 	}
+	//tell canvas to update
+	if (RenderCanvas.IsValid()
+		&& RenderCanvas->IsRegistered()//@todo: why need to check IsRegistered? the only way to set RenderCanvas is SetRenderCanvas function, but when I debug on SetRenderCanvas it's not called at all, so RenderCanvas should not valid here, no clue yet
+		)
+	{
+		RenderCanvas->MarkUIRenderableItemHierarchyChange();
+	}
 }
 
 void UUIItem::SetHierarchyIndex(int32 InInt) 
@@ -328,6 +324,7 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 			}
 			//flatten hierarchy index
 			MarkFlattenHierarchyIndexDirty();
+			MarkCanvasUpdate();
 
 			ParentUIItem->OnChildHierarchyIndexChanged(this);
 		}
@@ -505,13 +502,13 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 			{
 				auto originValue = widget.anchorOffsetX;
 				widget.anchorOffsetX += 1;
-				SetAnchorOffsetY(originValue);
+				SetAnchorOffsetHorizontal(originValue);
 			}
 			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, anchorOffsetY))
 			{
 				auto originValue = widget.anchorOffsetY;
 				widget.anchorOffsetY += 1;
-				SetAnchorOffsetZ(originValue);
+				SetAnchorOffsetVertical(originValue);
 			}
 			else if (propetyName == GET_MEMBER_NAME_CHECKED(FUIWidget, stretchLeft))
 			{
@@ -801,13 +798,6 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		}
 		UIChildren.Add(childUIItem);
 		SortCacheUIChildren();
-		//flatten hierarchy index
-		MarkFlattenHierarchyIndexDirty();
-		//active
-		childUIItem->allUpParentUIActive = this->GetIsUIActiveInHierarchy();
-		childUIItem->SetUIActiveStateChange();
-
-		CallUILifeCycleBehavioursChildAttachmentChanged(childUIItem, true);
 	}
 	MarkCanvasUpdate();
 }
@@ -827,13 +817,6 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 		{
 			UIChildren[i]->hierarchyIndex = i;
 		}
-		//flatten hierarchy index
-		MarkFlattenHierarchyIndexDirty();
-		//active
-		childUIItem->allUpParentUIActive = true;
-		childUIItem->SetUIActiveStateChange();
-
-		CallUILifeCycleBehavioursChildAttachmentChanged(childUIItem, false);
 	}
 	MarkCanvasUpdate();
 }
@@ -1118,9 +1101,7 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 
 	if (RenderCanvas != ParentRenderCanvas)//if attach to new Canvas, need to remove from old and add to new
 	{
-		auto OldRenderCanvas = RenderCanvas;
-		RenderCanvas = ParentRenderCanvas;
-		OnRenderCanvasChanged(OldRenderCanvas.Get(), RenderCanvas.Get());
+		SetRenderCanvas(ParentRenderCanvas);
 	}
 
 	auto ThisCanvasGroup = GetOwner()->FindComponentByClass<UUICanvasGroup>();
@@ -1164,12 +1145,24 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 
 	MarkLayoutDirty(true);
 
-	ParentUIItem = nullptr;
-	GetParentAsUIItem();
-
 	CheckRootUIItem();
+
+	//flatten hierarchy index
+	MarkFlattenHierarchyIndexDirty();
+
+	if (ParentUIItem.IsValid())//tell old parent
+	{
+		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
+	}
+	ParentUIItem = nullptr;
+	GetParentUIItem();
 	if (ParentUIItem.IsValid())
 	{
+		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
+		//active state
+		this->bAllUpParentUIActive = ParentUIItem->GetIsUIActiveInHierarchy();
+		this->SetUIActiveStateChange();
+
 		if (this->IsRegistered())//not registerd, could be load from level
 		{
 			//calculate dimensions
@@ -1593,7 +1586,7 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 	SetAnchorVAlign(inWidget.anchorVAlign);
 	if (inWidget.anchorHAlign == UIAnchorHorizontalAlign::Stretch)
 	{
-		SetAnchorOffsetY(inWidget.anchorOffsetX);
+		SetAnchorOffsetHorizontal(inWidget.anchorOffsetX);
 		SetWidth(inWidget.width);
 		SetStretchLeft(inWidget.stretchLeft);
 		SetStretchRight(inWidget.stretchRight);
@@ -1602,12 +1595,12 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 	{
 		SetStretchLeft(inWidget.stretchLeft);
 		SetStretchRight(inWidget.stretchRight);
-		SetAnchorOffsetY(inWidget.anchorOffsetX);
+		SetAnchorOffsetHorizontal(inWidget.anchorOffsetX);
 		SetWidth(inWidget.width);
 	}
 	if (inWidget.anchorVAlign == UIAnchorVerticalAlign::Stretch)
 	{
-		SetAnchorOffsetZ(inWidget.anchorOffsetY);
+		SetAnchorOffsetVertical(inWidget.anchorOffsetY);
 		SetHeight(inWidget.height);
 		SetStretchTop(inWidget.stretchTop);
 		SetStretchBottom(inWidget.stretchBottom);
@@ -1616,7 +1609,7 @@ void UUIItem::SetWidget(const FUIWidget& inWidget)
 	{
 		SetStretchTop(inWidget.stretchTop);
 		SetStretchBottom(inWidget.stretchBottom);
-		SetAnchorOffsetZ(inWidget.anchorOffsetY);
+		SetAnchorOffsetVertical(inWidget.anchorOffsetY);
 		SetHeight(inWidget.height);
 	}
 }
@@ -1673,7 +1666,7 @@ void UUIItem::PivotChanged()
 
 }
 
-void UUIItem::SetAnchorOffsetY(float newOffset) 
+void UUIItem::SetAnchorOffsetHorizontal(float newOffset) 
 {
 	if (FMath::Abs(widget.anchorOffsetX - newOffset) > KINDA_SMALL_NUMBER)
 	{
@@ -1686,7 +1679,7 @@ void UUIItem::SetAnchorOffsetY(float newOffset)
 		MarkLayoutDirty(false);
 	}
 }
-void UUIItem::SetAnchorOffsetZ(float newOffset) 
+void UUIItem::SetAnchorOffsetVertical(float newOffset) 
 {
 	if (FMath::Abs(widget.anchorOffsetY - newOffset) > KINDA_SMALL_NUMBER)
 	{
@@ -2012,7 +2005,7 @@ float UUIItem::GetLocalSpaceTop()const
 {
 	return widget.height * (1.0f - widget.pivot.Y);
 }
-UUIItem* UUIItem::GetParentAsUIItem()const
+UUIItem* UUIItem::GetParentUIItem()const
 {
 	if (!ParentUIItem.IsValid())
 	{
@@ -2146,10 +2139,10 @@ void UUIItem::SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive)
 		if (IsValid(uiChild))
 		{		//state is changed
 			if (uiChild->bIsUIActive &&//when child is active, then parent's active state can affect child
-				(uiChild->allUpParentUIActive != InUpParentUIActive)//state change
+				(uiChild->bAllUpParentUIActive != InUpParentUIActive)//state change
 				)
 			{
-				uiChild->allUpParentUIActive = InUpParentUIActive;
+				uiChild->bAllUpParentUIActive = InUpParentUIActive;
 				//apply for state change
 				uiChild->ApplyUIActiveState();
 				//affect children
@@ -2160,7 +2153,7 @@ void UUIItem::SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive)
 			//state not changed
 			else
 			{
-				uiChild->allUpParentUIActive = InUpParentUIActive;
+				uiChild->bAllUpParentUIActive = InUpParentUIActive;
 				//affect children
 				uiChild->SetChildrenUIActiveChangeRecursive(uiChild->GetIsUIActiveInHierarchy());
 			}
@@ -2172,7 +2165,7 @@ void UUIItem::SetIsUIActive(bool active)
 	if (bIsUIActive != active)
 	{
 		bIsUIActive = active;
-		if (allUpParentUIActive)//state change only happens when up parent is active
+		if (bAllUpParentUIActive)//state change only happens when up parent is active
 		{
 			ApplyUIActiveState();
 			//affect children
@@ -2213,12 +2206,22 @@ void UUIItem::ApplyUIActiveState()
 	}
 #endif
 	bLayoutChanged = true;
+	if (UIActiveStateChangedDelegate.IsBound())UIActiveStateChangedDelegate.Broadcast();
 	//canvas update
 	MarkCanvasUpdate();
 	//layout update
 	MarkUpdateLayout();
 	//callback
 	CallUILifeCycleBehavioursActiveInHierarchyStateChanged();
+}
+
+FDelegateHandle UUIItem::RegisterUIActiveStateChanged(const FSimpleDelegate& InCallback)\
+{
+	return UIActiveStateChangedDelegate.Add(InCallback);
+}
+void UUIItem::UnregisterUIActiveStateChanged(const FDelegateHandle& InHandle)
+{
+	UIActiveStateChangedDelegate.Remove(InHandle);
 }
 
 #pragma endregion UIActive

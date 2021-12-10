@@ -12,6 +12,9 @@
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FLGUISliderDynamicDelegate, float, InFloat);
 
+class AUIBaseActor;
+class UUIItem;
+
 UENUM(BlueprintType, Category = LGUI)
 enum class UISliderDirectionType:uint8
 {

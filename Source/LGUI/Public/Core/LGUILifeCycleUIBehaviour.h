@@ -46,6 +46,9 @@ protected:
 	/** Check and get RootUIItem */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool CheckRootUIComponent() const;
+	TArray<TFunction<void()>> CallbacksBeforeAwake;
+
+	virtual void Awake()override;
 	
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive);
@@ -65,10 +68,18 @@ protected:
 	virtual void OnUIAttachmentChanged();
 	/** Called when RootUIComp's attachchildren is attached to RootUIComp or detached from RootUIComp  */
 	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach);
-	/** Called when RootUIComp's interaction state changed(when UIInteractionGroup component allow interaction or not) */
+	/** Called when RootUIComp's interaction state changed(when UICanvasGroup component allow interaction or not) */
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot);
 	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child);
+
+	void Call_OnUIDimensionsChanged(bool positionChanged, bool sizeChanged);
+	void Call_OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
+	void Call_OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive);
+	void Call_OnUIAttachmentChanged();
+	void Call_OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach);
+	void Call_OnUIInteractionStateChanged(bool interactableOrNot);
+	void Call_OnUIChildHierarchyIndexChanged(UUIItem* child);
 
 
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
@@ -89,7 +100,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIAttachmentChanged"), Category = "LGUILifeCycleBehaviour") void OnUIAttachmentChangedBP();
 	/** Called when RootUIComp's attachchildren is attached to RootUIComp or detached from RootUIComp  */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildAttachmentChanged"), Category = "LGUILifeCycleBehaviour") void OnUIChildAttachmentChangedBP(UUIItem* child, bool attachOrDetach);
-	/** Called when RootUIComp's interaction state changed(when UIInteractionGroup component allow interaction or not) */
+	/** Called when RootUIComp's interaction state changed(when UICanvasGroup component allow interaction or not) */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIInteractionStateChanged"), Category = "LGUILifeCycleBehaviour") void OnUIInteractionStateChangedBP(bool interactableOrNot);
 	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildHierarchyIndexChanged"), Category = "LGUILifeCycleBehaviour") void OnUIChildHierarchyIndexChangedBP(UUIItem* child);

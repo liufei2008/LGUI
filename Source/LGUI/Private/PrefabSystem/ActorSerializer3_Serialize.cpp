@@ -19,7 +19,7 @@ PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
 	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-		, TMap<UObject*, FGuid>& OutMapObjectToGuid)
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid)
 	{
 		if (!RootActor || !InPrefab)
 		{
@@ -32,12 +32,19 @@ namespace LGUIPrefabSystem3
 			return;
 		}
 		ActorSerializer3 serializer(RootActor->GetWorld());
+		for (auto KeyValue : InOutMapObjectToGuid)//Preprocess the map, ignore invalid object
+		{
+			if (IsValid(KeyValue.Key))
+			{
+				serializer.MapObjectToGuid.Add(KeyValue.Key, KeyValue.Value);
+			}
+		}
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectWriter Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
 		};
 		serializer.SerializeActor(RootActor, InPrefab);
-		OutMapObjectToGuid = serializer.MapObjectToGuid;
+		InOutMapObjectToGuid = serializer.MapObjectToGuid;
 	}
 
 	void ActorSerializer3::SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab)
@@ -202,7 +209,10 @@ namespace LGUIPrefabSystem3
 	{
 		//collect actor and components
 		WillSerailizeActorArray.Add(Actor);
-		MapObjectToGuid.Add(Actor, FGuid::NewGuid());
+		if (!MapObjectToGuid.Contains(Actor))
+		{
+			MapObjectToGuid.Add(Actor, FGuid::NewGuid());
+		}
 
 		TArray<AActor*> ChildrenActors;
 		Actor->GetAttachedActors(ChildrenActors);
@@ -250,14 +260,28 @@ namespace LGUIPrefabSystem3
 			if (WillSerailizeActorArray.Contains(Outer))//outer is actor
 			{
 				WillSerailizeObjectArray.Add(Object);
-				OutGuid = FGuid::NewGuid();
-				MapObjectToGuid.Add(Object, OutGuid);
+				if (auto GuidPtr = MapObjectToGuid.Find(Object))
+				{
+					OutGuid = *GuidPtr;
+				}
+				else
+				{
+					OutGuid = FGuid::NewGuid();
+					MapObjectToGuid.Add(Object, OutGuid);
+				}
 				return true;
 			}
 			else//could have nested object outer
 			{
-				OutGuid = FGuid::NewGuid();
-				MapObjectToGuid.Add(Object, OutGuid);
+				if (auto GuidPtr = MapObjectToGuid.Find(Object))
+				{
+					OutGuid = *GuidPtr;
+				}
+				else
+				{
+					OutGuid = FGuid::NewGuid();
+					MapObjectToGuid.Add(Object, OutGuid);
+				}
 				auto Index = WillSerailizeObjectArray.Add(Object);
 				while (Outer != nullptr
 					&& !WillSerailizeActorArray.Contains(Outer)//Make sure Outer is not actor, because actor is created before any other objects, they will be stored in actor's data
@@ -265,7 +289,10 @@ namespace LGUIPrefabSystem3
 					)
 				{
 					WillSerailizeObjectArray.Insert(Outer, Index);//insert before object
-					MapObjectToGuid.Add(Outer, FGuid::NewGuid());
+					if (!MapObjectToGuid.Contains(Outer))
+					{
+						MapObjectToGuid.Add(Outer, FGuid::NewGuid());
+					}
 					Outer = Outer->GetOuter();
 				}
 				return true;

@@ -258,7 +258,7 @@ ULTweener* ULGUIBPLibrary::AnchorOffsetYTo(UUIItem* target, float endValue, floa
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorOffsetYTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffsetY), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffsetY), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffsetHorizontal), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffsetHorizontal), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULGUIBPLibrary::AnchorOffsetZTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
 {
@@ -267,7 +267,7 @@ ULTweener* ULGUIBPLibrary::AnchorOffsetZTo(UUIItem* target, float endValue, floa
 		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorOffsetZTo target is not valid:%s"), *(target->GetPathName()));
 		return nullptr;
 	}
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffsetZ), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffsetZ), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffsetVertical), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffsetVertical), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 ULTweener* ULGUIBPLibrary::AnchorOffsetTo(UUIItem* target, FVector2D endValue, float duration, float delay, LTweenEase ease)
 {

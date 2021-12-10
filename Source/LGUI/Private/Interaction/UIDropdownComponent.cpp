@@ -15,6 +15,8 @@
 #include "Interaction/UIButtonComponent.h"
 #include "Layout/UILayoutBase.h"
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 UUIDropdownComponent::UUIDropdownComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -88,7 +90,7 @@ void UUIDropdownComponent::Show()
 	bool sortOrderSet = false;
 	if (BlockerActor.IsValid())
 	{
-		if (auto blockerCanvas =BlockerActor->FindComponentByClass<ULGUICanvas>())
+		if (auto blockerCanvas = BlockerActor->FindComponentByClass<ULGUICanvas>())
 		{
 			canvasOnListRoot->SetSortOrder(blockerCanvas->GetSortOrder() + 1, true);
 			sortOrderSet = true;
@@ -98,6 +100,7 @@ void UUIDropdownComponent::Show()
 	{
 		canvasOnListRoot->SetSortOrderToHighestOfHierarchy(true);
 	}
+	canvasOnListRoot->SetOverrideSorting(true);
 
 	//create list item as options
 	if (!ItemTemplate.IsValid())
@@ -161,13 +164,13 @@ void UUIDropdownComponent::Show()
 			{
 				auto selfTop = GetRootUIComponent()->GetLocalSpaceTop();
 				auto listBottomInSelfSpace = selfTop - ListRootUIItem->GetHeight();
-				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, listBottomInSelfSpace, 0));
+				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, 0, listBottomInSelfSpace));
 			}
 			else
 			{
 				auto selfBottom = GetRootUIComponent()->GetLocalSpaceBottom();
 				auto listBottomInSelfSpace = selfBottom - ListRootUIItem->GetHeight();
-				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, listBottomInSelfSpace, 0));
+				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, 0, listBottomInSelfSpace));
 			}
 			canvas->CalculateRectRange();
 			if (listBottomInCanvasSpace.Y < canvas->GetClipRectMin().Y)
@@ -182,7 +185,7 @@ void UUIDropdownComponent::Show()
 		if (tempHorizontalPosition == EUIDropdownHorizontalPosition::Automatic)
 		{
 			auto selfRight = GetRootUIComponent()->GetLocalSpaceRight();
-			auto listRightInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(selfRight + ListRootUIItem->GetWidth(), 0, 0));
+			auto listRightInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, selfRight + ListRootUIItem->GetWidth(), 0));
 			canvas->CalculateRectRange();
 			if (listRightInCanvasSpace.X > canvas->GetClipRectMax().X)
 			{
@@ -228,7 +231,7 @@ void UUIDropdownComponent::Show()
 		}
 	}break;
 	}
-	ListRootUIItem->SetAnchorOffsetZ(0);
+	ListRootUIItem->SetAnchorOffsetVertical(0);
 
 	switch (tempHorizontalPosition)
 	{
@@ -248,7 +251,7 @@ void UUIDropdownComponent::Show()
 		ListRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
 	}break;
 	}
-	ListRootUIItem->SetAnchorOffsetY(0);
+	ListRootUIItem->SetAnchorOffsetHorizontal(0);
 
 	ListRootUIItem->SetPivot(pivot);
 }
@@ -297,6 +300,7 @@ void UUIDropdownComponent::CreateBlocker()
 	auto blockerCanvas = NewObject<ULGUICanvas>(blocker);
 	blockerCanvas->RegisterComponent();
 	blocker->AddInstanceComponent(blockerCanvas);
+	blockerCanvas->SetOverrideSorting(true);
 	blockerCanvas->SetSortOrderToHighestOfHierarchy();
 	auto blockerButton = NewObject<UUIButtonComponent>(blocker);
 	blockerButton->RegisterComponent();
@@ -315,7 +319,7 @@ void UUIDropdownComponent::CreateListItems()
 		return;
 	}
 	templateUIItem->SetIsUIActive(true);
-	auto contentUIItem = templateUIItem->GetParentAsUIItem();
+	auto contentUIItem = templateUIItem->GetParentUIItem();
 	for (int i = 0, count = Options.Num(); i < count; i++)
 	{
 		auto copiedItemActor = ULGUIBPLibrary::DuplicateActor(ItemTemplate.GetActor(), contentUIItem);
@@ -336,7 +340,7 @@ void UUIDropdownComponent::CreateListItems()
 		contentLayout->OnRebuildLayout();
 	}
 	float heightOffset = 0;
-	if (auto viewportUIItem = contentUIItem->GetParentAsUIItem())
+	if (auto viewportUIItem = contentUIItem->GetParentUIItem())
 	{
 		heightOffset = ListRoot->GetUIItem()->GetHeight() - viewportUIItem->GetHeight();
 	}
@@ -537,3 +541,4 @@ bool UUIDropdownItemComponent::OnPointerClick_Implementation(ULGUIPointerEventDa
 	
 	return false;
 }
+PRAGMA_ENABLE_OPTIMIZATION

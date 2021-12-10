@@ -161,10 +161,10 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 }
 
 void ULGUIPrefab::SavePrefab(AActor* RootActor
-	, TMap<UObject*, FGuid>& OutMapObjectToGuid)
+	, TMap<UObject*, FGuid>& InOutMapObjectToGuid)
 {
 	LGUIPrefabSystem3::ActorSerializer3::SavePrefab(RootActor, this
-		, OutMapObjectToGuid);
+		, InOutMapObjectToGuid);
 }
 
 void ULGUIPrefab::SavePrefabForRuntime(AActor* RootActor)

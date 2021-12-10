@@ -3811,8 +3811,8 @@ void UIGeometry::OffsetVertices(TArray<FVector>& vertices, int count, float offs
 	for (int i = 0; i < count; i++)
 	{
 		auto& vertex = vertices[i];
-		vertex.X += offsetX;
-		vertex.Y += offsetY;
+		vertex.Y += offsetX;
+		vertex.Z += offsetY;
 	}
 }
 void UIGeometry::UpdateUIColor(TSharedPtr<UIGeometry> uiGeo, const FColor& color)

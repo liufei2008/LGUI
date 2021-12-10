@@ -45,6 +45,8 @@ void UUIBaseRenderable::OnUnregister()
 
 void UUIBaseRenderable::ApplyUIActiveState()
 {
+	Super::ApplyUIActiveState();//this line must line before AddUIRenderable/RemoveUIRenderable, because UIActiveStateChangedDelegate need to call first. (UIActiveStateChangedDelegate lead to canvas: ParentCanvas->UIRenderableList.Add/Remove)
+
 	if (GetIsUIActiveInHierarchy())
 	{
 		if (RenderCanvas.IsValid())
@@ -60,7 +62,6 @@ void UUIBaseRenderable::ApplyUIActiveState()
 		}
 	}
 	bColorChanged = true;
-	Super::ApplyUIActiveState();
 }
 void UUIBaseRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
@@ -109,20 +110,6 @@ void UUIBaseRenderable::UpdateCachedDataBeforeGeometry()
 void UUIBaseRenderable::MarkFlattenHierarchyIndexDirty()
 {
 	Super::MarkFlattenHierarchyIndexDirty();
-	if (RenderCanvas.IsValid())
-	{
-		if (this->IsCanvasUIItem())
-		{
-			if (RenderCanvas->IsRenderByOtherCanvas())//if is canvas element && if render by other canvas, then we should mark that canvas. because self canvas won't affect by hierarchy-index
-			{
-				RenderCanvas->GetActualRenderCanvas()->MarkUIRenderableItemHierarchyChange();
-			}
-		}
-		else
-		{
-			RenderCanvas->MarkUIRenderableItemHierarchyChange();
-		}
-	}
 }
 
 bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End)

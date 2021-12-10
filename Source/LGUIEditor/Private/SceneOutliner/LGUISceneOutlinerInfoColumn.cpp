@@ -179,7 +179,7 @@ namespace LGUISceneOutliner
 			]
 			.MenuContent()
 			[
-				FLGUIEditorModule::Get().MakeEditorToolsMenu(true)
+				FLGUIEditorModule::Get().MakeEditorToolsMenu(false, false, false, false, false)
 			];
 
 		result->_TreeItemActor = actor;

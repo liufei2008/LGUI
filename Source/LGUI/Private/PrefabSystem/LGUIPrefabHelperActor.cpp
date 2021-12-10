@@ -122,13 +122,19 @@ void ALGUIPrefabHelperActor::SavePrefab()
 	if (PrefabAsset)
 	{
 		TMap<UObject*, FGuid> MapObjectToGuid;
+		for (auto KeyValue : MapGuidToObject)
+		{
+			if (IsValid(KeyValue.Value))
+			{
+				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+			}
+		}
 		PrefabAsset->SavePrefab(LoadedRootActor, MapObjectToGuid);
 		MapGuidToObject.Empty();
 		AllLoadedActorArray.Empty();
 		for (auto KeyValue : MapObjectToGuid)
 		{
 			MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
-
 			if (auto Actor = Cast<AActor>(KeyValue.Key))
 			{
 				AllLoadedActorArray.Add(Actor);

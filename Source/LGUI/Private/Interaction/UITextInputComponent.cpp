@@ -1268,7 +1268,7 @@ void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool 
 		CaretObject->SetAnchorVAlign(UIAnchorVerticalAlign::None);
 		CaretObject->SetSprite(ULGUISpriteData::GetDefaultWhiteSolid(), false);
 	}
-	CaretObject->SetRelativeLocation(FVector(InCaretPosition, 0));
+	CaretObject->SetRelativeLocation(FVector(0, InCaretPosition.X, InCaretPosition.Y));
 	CaretObject->SetIsUIActive(true);
 	
 	//force display caret
@@ -1323,7 +1323,7 @@ void UUITextInputComponent::UpdateSelection()
 		{
 			uiSprite->SetIsUIActive(true);
 			auto& selectionProperty = SelectionPropertyArray[i];
-			uiSprite->SetRelativeLocation(FVector(selectionProperty.Pos, 0.0f));
+			uiSprite->SetRelativeLocation(FVector(0, selectionProperty.Pos.X, selectionProperty.Pos.Y));
 			uiSprite->SetWidth(selectionProperty.Size);
 		}
 	}

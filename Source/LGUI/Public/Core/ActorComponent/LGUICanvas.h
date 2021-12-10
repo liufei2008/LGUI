@@ -156,6 +156,9 @@ private:
 	FDelegateHandle UIHierarchyChangedDelegateHandle;
 	/** hierarchy changed */
 	void OnUIHierarchyChanged();
+
+	FDelegateHandle UIActiveStateChangedDelegateHandle;
+	void OnUIActiveStateChanged();
 public:
 	/** get root LGUICanvas on hierarchy */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -183,8 +186,6 @@ protected:
 	bool CheckRootCanvas()const;
 	/** nearest up parent Canvas */
 	TWeakObjectPtr<ULGUICanvas> ParentCanvas = nullptr;
-	/** check parent Canvas. search for it if not valid */
-	const TArray<TWeakObjectPtr<ULGUICanvas>>& GetAllCanvasArray();
 	
 	UMaterialInterface** GetMaterials();
 
@@ -266,6 +267,7 @@ protected:
 	/**
 	 * LGUICanvas create mesh for render UI elements, this property can give us opportunity to use custom type of mesh for render.
 	 * You can set "OwnerNoSee" "CastShadow" properties for your mesh.
+	 * @todo: override this property from parent canvas?
 	 */
 	UPROPERTY(EditAnywhere, Category = LGUI, AdvancedDisplay, meta = (AllowAbstract = "true"))
 		TSubclassOf<ULGUIMeshComponent> DefaultMeshType;
@@ -357,7 +359,7 @@ public:
 		void SetOverrideSorting(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetSortOrder()const { return SortOrder; }
-	/** Get SortOrder of this canvas. Actually canvas's SortOrder property is inherit from parent canvas. */
+	/** Get SortOrder of this canvas. Actually canvas's SortOrder property may inherit from parent canvas depend on OverrideSorting property. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetActualSortOrder()const;
 	/** Get clip type of canvas. Actually canvas's clip type property is inherit from parent canvas. */
@@ -493,7 +495,7 @@ private:
 	/** update Canvas's drawcall */
 	void UpdateCanvasDrawcallRecursive();
 
-	void UpdateDrawcall_Implement(TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList);
+	void UpdateDrawcall_Implement(TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority);
 	void UpdateDrawcallMesh_Implement();
 	void UpdateDrawcallMaterial_Implement();
 	static bool Is2DUITransform(const FTransform& Transform);

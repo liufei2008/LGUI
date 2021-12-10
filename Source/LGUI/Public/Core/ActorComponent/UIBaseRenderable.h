@@ -44,7 +44,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FColor Color = FColor::White;
 	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit widget rectangle */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
+	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastComplex = false;
 
 	bool LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
@@ -57,15 +57,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		EUIRenderableType GetUIRenderableType()const { return uiRenderableType; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetColor() const { return Color; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetAlpha() const { return ((float)Color.A) / 255; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetRaycastComplex() { return bRaycastComplex; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetColor(FColor value);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAlpha(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRaycastComplex(bool value) { bRaycastComplex = value; }

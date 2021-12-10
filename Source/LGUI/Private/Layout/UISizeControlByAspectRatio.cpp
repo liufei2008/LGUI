@@ -33,7 +33,7 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		break;
 		case EUISizeControlByAspectRatioMode::FitInParent:
 		{
-			if (auto parent = RootUIComp->GetParentAsUIItem())
+			if (auto parent = RootUIComp->GetParentUIItem())
 			{
 				if (RootUIComp->GetAnchorHAlign() != UIAnchorHorizontalAlign::Stretch)
 				{
@@ -67,7 +67,7 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		break;
 		case EUISizeControlByAspectRatioMode::EnvelopeParent:
 		{
-			if (auto parent = RootUIComp->GetParentAsUIItem())
+			if (auto parent = RootUIComp->GetParentUIItem())
 			{
 				if (RootUIComp->GetAnchorHAlign() != UIAnchorHorizontalAlign::Stretch)
 				{

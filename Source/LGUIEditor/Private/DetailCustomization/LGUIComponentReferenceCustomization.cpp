@@ -62,12 +62,9 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 			HelperActor->GetComponents(TargetClass, Components);
 		}
 	}
-	if (!IsValid(TargetComp))//if TargetComp not valid, then clear HelperActor
+	if (!IsValid(TargetComp) && Components.Num() == 1)//if TargetComp not valid, but this type of component exist, then clear HelperActor, because we need to reassign it
 	{
-		if (Components.Num() == 0)
-		{
-			HelperActorHandle->SetValue((UObject*)nullptr);
-		}
+		HelperActorHandle->SetValue((UObject*)nullptr);
 	}
 
 	TSharedPtr<SWidget> ContentWidget;
