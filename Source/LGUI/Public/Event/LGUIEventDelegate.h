@@ -50,15 +50,15 @@ enum class LGUIEventDelegateParameterType :uint8
 class LGUI_API ULGUIEventDelegateParameterHelper
 {
 public:
-	static bool IsSupportedFunction(UFunction* Target, TArray<LGUIEventDelegateParameterType>& OutParamTypeArray);
-	static bool IsStillSupported(UFunction* Target, const TArray<LGUIEventDelegateParameterType>& InParamTypeArray);
+	static bool IsSupportedFunction(UFunction* Target, LGUIEventDelegateParameterType& OutParamType);
+	static bool IsStillSupported(UFunction* Target, LGUIEventDelegateParameterType InParamType);
 	static FString ParameterTypeToName(LGUIEventDelegateParameterType paramType, const UFunction* InFunction = nullptr);
 	/** if first parameter is an object type, then return it's objectclass */
 	static UClass* GetObjectParameterClass(const UFunction* InFunction);
 	static UEnum* GetEnumParameter(const UFunction* InFunction);
 	static UClass* GetClassParameterClass(const UFunction* InFunction);
 private:
-	static bool IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIEventDelegateParameterType>& OutParameterTypeArray);
+	static bool IsFunctionCompatible(const UFunction* InFunction, LGUIEventDelegateParameterType& OutParameterType);
 	static bool IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIEventDelegateParameterType& OutParameterType);
 };
 
@@ -70,7 +70,8 @@ USTRUCT()
 struct LGUI_API FLGUIEventDelegateData
 {
 	GENERATED_BODY()
-public:
+private:
+	friend class FLGUIEventDelegateCustomization;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")bool BoolValue;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")float FloatValue;
@@ -94,21 +95,16 @@ public:
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FName NameValue;
 	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FText TextValue;
 #endif
-	/** use actor and component class to find target object */
+#if WITH_EDITORONLY_DATA
+	/** Editor helper actor, for direct reference actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* targetActor;
-	/** component class. */
+		TWeakObjectPtr<AActor> HelperActor;
+#endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UClass* componentClass;
-	/** 
-	 * if the actor only have one component of the componentClass, then just use that one.
-	 * if the actor have multiple component of same class, then check the componentName.
-	 */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FName componentName;
+		TWeakObjectPtr<UObject> TargetObject;
 	/** target function name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FName functionName;
+		FName FunctionName;
 	/** target function supported parameter type */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		LGUIEventDelegateParameterType ParamType = LGUIEventDelegateParameterType::None;
@@ -122,7 +118,7 @@ public:
 
 	/** use the function's native parameter? */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool UseNativeParameter = false;
+		bool bUseNativeParameter = false;
 private:
 	UPROPERTY(Transient) UFunction* CacheFunction = nullptr;
 	UPROPERTY(Transient) UObject* CacheTarget = nullptr;
@@ -130,10 +126,9 @@ public:
 	void Execute();
 	void Execute(void* InParam, LGUIEventDelegateParameterType InParameterType);
 private:
-	void FindAndExecute(UObject* Target, FName FunctionName, void* ParamData = nullptr);
+	void FindAndExecute(UObject* Target, void* ParamData = nullptr);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func, void* ParamData);
-	void FindAndExecuteFromActor(void* InParam = nullptr);
 };
 
 /**
@@ -147,13 +142,14 @@ struct LGUI_API FLGUIEventDelegate
 public:
 	FLGUIEventDelegate();
 	FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType);
-public:
+private:
+	friend class FLGUIEventDelegateCustomization;
 	/** event list */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<FLGUIEventDelegateData> eventList;
+		TArray<FLGUIEventDelegateData> EventList;
 	/** supported parameter type of this event */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(DisplayName="NativeParameterType"))
-		LGUIEventDelegateParameterType supportParameterType = LGUIEventDelegateParameterType::Empty;
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		LGUIEventDelegateParameterType NativeParameterType = LGUIEventDelegateParameterType::Empty;
 	/** Parameter type must be the same as your declaration of FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType) */
 	void FireEvent(void* InParam)const;
 	void LogParameterError()const;
@@ -186,139 +182,3 @@ public:
 	void FireEvent(const FName& InParam)const;
 	void FireEvent(const FText& InParam)const;
 };
-
-
-#if 0
-USTRUCT()
-struct LGUI_API FLGUIEventDelegateData_DataContainer
-{
-	GENERATED_BODY()
-public:
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")bool BoolValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")float FloatValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")double DoubleValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int8 Int8Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint8 UInt8Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int16 Int16Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint16 UInt16Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int32 Int32Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint32 UInt32Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int64 Int64Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint64 UInt64Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector2D Vector2Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector Vector3Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector4 Vector4Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FQuat QuatValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FColor ColorValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FLinearColor LinearColorValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FRotator RotatorValue;
-#endif
-	//target function supported parameter type
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIEventDelegateParameterType ParamType = LGUIEventDelegateParameterType::None;
-	//data buffer stores function's parameter
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<uint8> ParamBuffer;
-	//asset reference
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UObject* ReferenceObject;
-	//actor reference
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* ReferenceActor;
-	//UClass reference
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UClass* ReferenceClass;
-	//string reference
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FString ReferenceString;
-};
-
-USTRUCT()
-struct LGUI_API FLGUIEventDelegateDataTwoParam
-{
-	GENERATED_BODY()
-public:
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")bool BoolValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")float FloatValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")double DoubleValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int8 Int8Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint8 UInt8Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int16 Int16Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint16 UInt16Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int32 Int32Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint32 UInt32Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")int64 Int64Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")uint64 UInt64Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector2D Vector2Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector Vector3Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FVector4 Vector4Value;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FQuat QuatValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FColor ColorValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FLinearColor LinearColorValue;
-	UPROPERTY(EditAnywhere, Transient, Category = "LGUI")FRotator RotatorValue;
-#endif
-	//use actor and component class to find target object
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* targetActor;
-	//component class. if an actor have multiple component of same class, not supported
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UClass* componentClass;
-	//target function name
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FName functionName;
-	//target function supported parameter type
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIEventDelegateParameterType ParamType = LGUIEventDelegateParameterType::Empty;
-
-	//data buffer stores function's parameter
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<uint8> ParamBuffer;
-	//asset reference
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UObject* ReferenceObject;
-	//actor reference
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		AActor* ReferenceActor;
-	//UClass reference
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UClass* ReferenceClass;
-	//string reference
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FString ReferenceString;
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FLGUIEventDelegateData_DataContainer param2DataContainer;
-
-	//use the function's native parameter?
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool UseNativeParameter = false;
-private:
-	UFunction* CacheFunction;
-	UObject* CacheTarget;
-};
-USTRUCT(BlueprintType)
-struct LGUI_API FLGUIEventDelegateTwoParam
-{
-	GENERATED_BODY()
-
-public:
-	FLGUIEventDelegateTwoParam() {}
-	FLGUIEventDelegateTwoParam(LGUIEventDelegateParameterType InParameterType1, LGUIEventDelegateParameterType InParameterType2)
-	{
-		supportParameterType1 = InParameterType1;
-		supportParameterType2 = InParameterType2;
-	}
-public:
-	//event list
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<FLGUIEventDelegateDataTwoParam> eventList;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "CanChangeNativeParameterType?"))
-		bool canChangeSupportParameterType = true;
-	//supported parameter type of this event
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "NativeParameterType1"))
-		LGUIEventDelegateParameterType supportParameterType1 = LGUIEventDelegateParameterType::Bool;
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "NativeParameterType2"))
-		LGUIEventDelegateParameterType supportParameterType2 = LGUIEventDelegateParameterType::Bool;
-};
-#endif

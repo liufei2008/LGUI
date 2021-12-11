@@ -6,17 +6,18 @@
 
 //PRAGMA_DISABLE_OPTIMIZATION
 
-bool ULGUIEventDelegateParameterHelper::IsFunctionCompatible(const UFunction* InFunction, TArray<LGUIEventDelegateParameterType>& OutParameterTypeArray)
+bool ULGUIEventDelegateParameterHelper::IsFunctionCompatible(const UFunction* InFunction, LGUIEventDelegateParameterType& OutParameterType)
 {
 	if (InFunction->GetReturnProperty() != nullptr)return false;//not support return value for ProcessEvent
 	TFieldIterator<FProperty> IteratorA(InFunction);
+	TArray<LGUIEventDelegateParameterType> ParameterTypeArray;
 	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
 	{
 		FProperty* PropA = *IteratorA;
 		LGUIEventDelegateParameterType ParamType;
 		if (IsPropertyCompatible(PropA, ParamType))
 		{
-			OutParameterTypeArray.Add(ParamType);
+			ParameterTypeArray.Add(ParamType);
 		}
 		else
 		{
@@ -25,7 +26,12 @@ bool ULGUIEventDelegateParameterHelper::IsFunctionCompatible(const UFunction* In
 		}
 		++IteratorA;
 	}
-	return true;
+	if (ParameterTypeArray.Num() == 1)
+	{
+		OutParameterType = ParameterTypeArray[0];
+		return true;
+	}
+	return false;
 }
 bool ULGUIEventDelegateParameterHelper::IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIEventDelegateParameterType& OutParameterType)
 {
@@ -215,21 +221,17 @@ UClass* ULGUIEventDelegateParameterHelper::GetClassParameterClass(const UFunctio
 	return nullptr;
 }
 
-bool ULGUIEventDelegateParameterHelper::IsSupportedFunction(UFunction* Target, TArray<LGUIEventDelegateParameterType>& OutParamTypeArray)
+bool ULGUIEventDelegateParameterHelper::IsSupportedFunction(UFunction* Target, LGUIEventDelegateParameterType& OutParamType)
 {
-	return IsFunctionCompatible(Target, OutParamTypeArray);
+	return IsFunctionCompatible(Target, OutParamType);
 }
 
-bool ULGUIEventDelegateParameterHelper::IsStillSupported(UFunction* Target, const TArray<LGUIEventDelegateParameterType>& InParamTypeArray)
+bool ULGUIEventDelegateParameterHelper::IsStillSupported(UFunction* Target, LGUIEventDelegateParameterType InParamType)
 {
-	TArray<LGUIEventDelegateParameterType> ParamTypeArray;
-	if (IsSupportedFunction(Target, ParamTypeArray))
+	LGUIEventDelegateParameterType ParamType;
+	if (IsSupportedFunction(Target, ParamType))
 	{
-		if (ParamTypeArray.Num() == 0)
-		{
-			ParamTypeArray.Add(LGUIEventDelegateParameterType::Empty);
-		}
-		if (ParamTypeArray == InParamTypeArray)
+		if (ParamType == InParamType)
 		{
 			return true;
 		}
@@ -373,47 +375,9 @@ FString ULGUIEventDelegateParameterHelper::ParameterTypeToName(LGUIEventDelegate
 
 
 
-void FLGUIEventDelegateData::FindAndExecuteFromActor(void* InParam)
-{
-	TArray<UActorComponent*> compArray;
-	targetActor->GetComponents(componentClass, compArray);
-	if (compArray.Num() > 1)
-	{
-		bool found = false;
-		for (auto comp : compArray)
-		{
-			if (comp->GetFName() == componentName)
-			{
-				FindAndExecute(comp, functionName, InParam);
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-		{
-			if (componentName.IsNone() || !componentName.IsValid())
-			{
-				FindAndExecute(compArray[0], functionName, InParam);
-				UE_LOG(LGUI, Warning, TEXT("[LGUIEventDelegateData/FindAndExecuteFromActor]Pos 0, Target component:%s with name:%s not found! will use the first compatible component."), *(componentClass->GetPathName(), *(componentName.ToString())));
-			}
-			else
-			{
-				UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecuteFromActor]Pos 1, Target component:%s with name:%s not found! event will not execute!"), *(componentClass->GetPathName(), *(componentName.ToString())));
-			}
-		}
-	}
-	else if (compArray.Num() == 1)
-	{
-		FindAndExecute(compArray[0], functionName, InParam);
-	}
-	else
-	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecuteFromActor]Pos 2, Target component:%s not found!"), *(componentClass->GetPathName()));
-	}
-}
 void FLGUIEventDelegateData::Execute()
 {
-	if (UseNativeParameter)
+	if (bUseNativeParameter)
 	{
 		UE_LOG(LGUI, Error, TEXT("[FLGUIEventDelegateData::Execute]If use NativeParameter, you must FireEvent with your own parameter!"));
 		return;
@@ -429,16 +393,9 @@ void FLGUIEventDelegateData::Execute()
 	}
 	else
 	{
-		if (targetActor)
+		if (TargetObject.IsValid())
 		{
-			if (componentClass->IsChildOf(AActor::StaticClass()))//target class is actor self
-			{
-				FindAndExecute(targetActor, functionName);
-			}
-			else//search from actor's component list
-			{
-				FindAndExecuteFromActor(nullptr);
-			}
+			FindAndExecute(TargetObject.Get());
 		}
 	}
 }
@@ -451,7 +408,7 @@ void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterTy
 	}
 
 	if (ParamType == InParameterType//function's supported parameter is equal to event's parameter
-		&& UseNativeParameter)//and use native parameter
+		&& bUseNativeParameter)//and use native parameter
 	{
 		if (CacheTarget != nullptr && CacheFunction != nullptr)
 		{
@@ -459,16 +416,9 @@ void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterTy
 		}
 		else
 		{
-			if (targetActor)
+			if (TargetObject.IsValid())
 			{
-				if (componentClass->IsChildOf(AActor::StaticClass()))//target class is actor self
-				{
-					FindAndExecute(targetActor, functionName, InParam);
-				}
-				else//search from actor's component list
-				{
-					FindAndExecuteFromActor(InParam);
-				}
+				FindAndExecute(TargetObject.Get(), InParam);
 			}
 		}
 	}
@@ -480,29 +430,22 @@ void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterTy
 		}
 		else
 		{
-			if (targetActor)
+			if (TargetObject.IsValid())
 			{
-				if (componentClass->IsChildOf(AActor::StaticClass()))//target class is actor self
-				{
-					FindAndExecute(targetActor, functionName);
-				}
-				else//search from actor's component list
-				{
-					FindAndExecuteFromActor(nullptr);
-				}
+				FindAndExecute(TargetObject.Get());
 			}
 		}
 	}
 }
-void FLGUIEventDelegateData::FindAndExecute(UObject* Target, FName FunctionName, void* ParamData)
+void FLGUIEventDelegateData::FindAndExecute(UObject* Target, void* ParamData)
 {
 	CacheTarget = Target;
-	CacheFunction = Target->FindFunction(functionName);
+	CacheFunction = Target->FindFunction(FunctionName);
 	if (CacheFunction)
 	{
 		if (!ULGUIEventDelegateParameterHelper::IsStillSupported(CacheFunction, { ParamType }))
 		{
-			UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecute]Pos 2, Target function:%s not supported!"), *(FunctionName.ToString()));
+			UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecute]Target function:%s not supported!"), *(FunctionName.ToString()));
 			CacheFunction = nullptr;
 		}
 		else
@@ -519,7 +462,7 @@ void FLGUIEventDelegateData::FindAndExecute(UObject* Target, FName FunctionName,
 	}
 	else
 	{
-		UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecute]Pos 3, Target function:%s not found!"), *(FunctionName.ToString()));
+		UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegateData/FindAndExecute]Target function:%s not found!"), *(FunctionName.ToString()));
 	}
 }
 void FLGUIEventDelegateData::ExecuteTargetFunction(UObject* Target, UFunction* Func)
@@ -579,18 +522,18 @@ FLGUIEventDelegate::FLGUIEventDelegate()
 }
 FLGUIEventDelegate::FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType)
 {
-	supportParameterType = InParameterType;
+	NativeParameterType = InParameterType;
 }
 bool FLGUIEventDelegate::IsBound()const
 {
-	return eventList.Num() != 0;
+	return EventList.Num() != 0;
 }
 void FLGUIEventDelegate::FireEvent()const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Empty)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Empty)
 	{
-		for (auto item : eventList)
+		for (auto item : EventList)
 		{
 			item.Execute();
 		}
@@ -601,20 +544,20 @@ void FLGUIEventDelegate::FireEvent()const
 void FLGUIEventDelegate::LogParameterError()const
 {
 	auto enumObject = FindObject<UEnum>((UObject*)ANY_PACKAGE, TEXT("LGUIEventDelegateParameterType"), true);
-	UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate/FireEvent]Parameter type must be the same as your declaration. NativeParameterType:%s"), *(enumObject->GetDisplayNameTextByValue((int64)supportParameterType)).ToString());
+	UE_LOG(LGUI, Error, TEXT("[LGUIEventDelegate/FireEvent]Parameter type must be the same as your declaration. NativeParameterType:%s"), *(enumObject->GetDisplayNameTextByValue((int64)NativeParameterType)).ToString());
 }
 void FLGUIEventDelegate::FireEvent(void* InParam)const
 {
-	for (auto item : eventList)
+	for (auto item : EventList)
 	{
-		item.Execute(InParam, supportParameterType);
+		item.Execute(InParam, NativeParameterType);
 	}
 }
 
 void FLGUIEventDelegate::FireEvent(bool InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Bool)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Bool)
 	{
 		FireEvent(&InParam);
 	}
@@ -622,8 +565,8 @@ void FLGUIEventDelegate::FireEvent(bool InParam)const
 }
 void FLGUIEventDelegate::FireEvent(float InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Float)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Float)
 	{
 		FireEvent(&InParam);
 	}
@@ -631,8 +574,8 @@ void FLGUIEventDelegate::FireEvent(float InParam)const
 }
 void FLGUIEventDelegate::FireEvent(double InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Double)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Double)
 	{
 		FireEvent(&InParam);
 	}
@@ -640,8 +583,8 @@ void FLGUIEventDelegate::FireEvent(double InParam)const
 }
 void FLGUIEventDelegate::FireEvent(int8 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Int8)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Int8)
 	{
 		FireEvent(&InParam);
 	}
@@ -649,8 +592,8 @@ void FLGUIEventDelegate::FireEvent(int8 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(uint8 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::UInt8)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::UInt8)
 	{
 		FireEvent(&InParam);
 	}
@@ -658,8 +601,8 @@ void FLGUIEventDelegate::FireEvent(uint8 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(int16 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Int16)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Int16)
 	{
 		FireEvent(&InParam);
 	}
@@ -667,8 +610,8 @@ void FLGUIEventDelegate::FireEvent(int16 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(uint16 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::UInt16)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::UInt16)
 	{
 		FireEvent(&InParam);
 	}
@@ -676,8 +619,8 @@ void FLGUIEventDelegate::FireEvent(uint16 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(int32 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Int32)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Int32)
 	{
 		FireEvent(&InParam);
 	}
@@ -685,8 +628,8 @@ void FLGUIEventDelegate::FireEvent(int32 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(uint32 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::UInt32)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::UInt32)
 	{
 		FireEvent(&InParam);
 	}
@@ -694,8 +637,8 @@ void FLGUIEventDelegate::FireEvent(uint32 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(int64 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Int64)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Int64)
 	{
 		FireEvent(&InParam);
 	}
@@ -703,8 +646,8 @@ void FLGUIEventDelegate::FireEvent(int64 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(uint64 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::UInt64)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::UInt64)
 	{
 		FireEvent(&InParam);
 	}
@@ -712,8 +655,8 @@ void FLGUIEventDelegate::FireEvent(uint64 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(FVector2D InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Vector2)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Vector2)
 	{
 		FireEvent(&InParam);
 	}
@@ -721,8 +664,8 @@ void FLGUIEventDelegate::FireEvent(FVector2D InParam)const
 }
 void FLGUIEventDelegate::FireEvent(FVector InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Vector3)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Vector3)
 	{
 		FireEvent(&InParam);
 	}
@@ -730,8 +673,8 @@ void FLGUIEventDelegate::FireEvent(FVector InParam)const
 }
 void FLGUIEventDelegate::FireEvent(FVector4 InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Vector4)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Vector4)
 	{
 		FireEvent(&InParam);
 	}
@@ -739,8 +682,8 @@ void FLGUIEventDelegate::FireEvent(FVector4 InParam)const
 }
 void FLGUIEventDelegate::FireEvent(FColor InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Color)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Color)
 	{
 		FireEvent(&InParam);
 	}
@@ -748,8 +691,8 @@ void FLGUIEventDelegate::FireEvent(FColor InParam)const
 }
 void FLGUIEventDelegate::FireEvent(FLinearColor InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::LinearColor)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::LinearColor)
 	{
 		FireEvent(&InParam);
 	}
@@ -757,8 +700,8 @@ void FLGUIEventDelegate::FireEvent(FLinearColor InParam)const
 }
 void FLGUIEventDelegate::FireEvent(FQuat InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Quaternion)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Quaternion)
 	{
 		FireEvent(&InParam);
 	}
@@ -766,8 +709,8 @@ void FLGUIEventDelegate::FireEvent(FQuat InParam)const
 }
 void FLGUIEventDelegate::FireEvent(const FString& InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::String)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::String)
 	{
 		FireEvent((void*)&InParam);
 	}
@@ -775,8 +718,8 @@ void FLGUIEventDelegate::FireEvent(const FString& InParam)const
 }
 void FLGUIEventDelegate::FireEvent(UObject* InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Object)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Object)
 	{
 		FireEvent(&InParam);
 	}
@@ -784,8 +727,8 @@ void FLGUIEventDelegate::FireEvent(UObject* InParam)const
 }
 void FLGUIEventDelegate::FireEvent(AActor* InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Actor)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Actor)
 	{
 		FireEvent(&InParam);
 	}
@@ -793,8 +736,8 @@ void FLGUIEventDelegate::FireEvent(AActor* InParam)const
 }
 void FLGUIEventDelegate::FireEvent(ULGUIPointerEventData* InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::PointerEvent)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::PointerEvent)
 	{
 		FireEvent((void*)&InParam);
 	}
@@ -802,8 +745,8 @@ void FLGUIEventDelegate::FireEvent(ULGUIPointerEventData* InParam)const
 }
 void FLGUIEventDelegate::FireEvent(FRotator InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Rotator)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Rotator)
 	{
 		FireEvent(&InParam);
 	}
@@ -811,8 +754,8 @@ void FLGUIEventDelegate::FireEvent(FRotator InParam)const
 }
 void FLGUIEventDelegate::FireEvent(const FName& InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Name)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Name)
 	{
 		FireEvent((void*)&InParam);
 	}
@@ -820,8 +763,8 @@ void FLGUIEventDelegate::FireEvent(const FName& InParam)const
 }
 void FLGUIEventDelegate::FireEvent(const FText& InParam)const
 {
-	if (eventList.Num() == 0)return;
-	if (supportParameterType == LGUIEventDelegateParameterType::Text)
+	if (EventList.Num() == 0)return;
+	if (NativeParameterType == LGUIEventDelegateParameterType::Text)
 	{
 		FireEvent((void*)&InParam);
 	}

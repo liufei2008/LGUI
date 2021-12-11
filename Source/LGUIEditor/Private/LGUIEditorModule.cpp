@@ -58,8 +58,8 @@
 #include "DetailCustomization/UICanvasScalerCustomization.h"
 #include "DetailCustomization/LGUIPrefabHelperComponentCustomization.h"
 #include "DetailCustomization/LGUIPrefabCustomization.h"
-#include "DetailCustomization/LGUIEventDelegateOneParamCustomization.h"
-#include "DetailCustomization/LGUIEventDelegateOnePresetParamCustomization.h"
+#include "DetailCustomization/LGUIEventDelegateCustomization.h"
+#include "DetailCustomization/LGUIEventDelegatePresetParamCustomization.h"
 #include "DetailCustomization/LGUIComponentReferenceCustomization.h"
 #include "DetailCustomization/UIEffectTextAnimationCustomization.h"
 #include "DetailCustomization/UIScrollViewWithScrollBarCustomization.h"
@@ -194,34 +194,34 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUISpriteSequencePlayer::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISpriteSequencePlayerCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(UUISpriteSheetTexturePlayer::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUISpriteSheetTexturePlayerCustomization::MakeInstance));
 
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIEventDelegateOneParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIEventDelegateCustomization::MakeInstance));
 		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegateTwoParam::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIEventDelegateTwoParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Empty::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Bool::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Float::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Double::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Int8::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_UInt8::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Int16::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_UInt16::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Int32::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_UInt32::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Int64::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_UInt64::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Vector2::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Vector3::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Vector4::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Color::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_LinearColor::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Quaternion::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_String::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Object::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Actor::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_PointerEvent::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Class::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Rotator::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Text::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Name::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegateOnePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Empty::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Bool::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Float::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Double::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Int8::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_UInt8::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Int16::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_UInt16::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Int32::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_UInt32::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Int64::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		//PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_UInt64::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Vector2::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Vector3::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Vector4::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Color::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_LinearColor::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Quaternion::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_String::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Object::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Actor::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_PointerEvent::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Class::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Rotator::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Text::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Name::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIComponentReferenceCustomization::MakeInstance));
 	}

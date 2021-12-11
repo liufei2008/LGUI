@@ -22,9 +22,9 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 {
 	PropertyUtilites = CustomizationUtils.GetPropertyUtilities();
 	bool bIsInWorld = false;
-	FCommentNodeSet nodeSet;
-	PropertyHandle->GetOuterObjects(nodeSet);
-	for (UObject* obj : nodeSet)
+	FCommentNodeSet NodeSet;
+	PropertyHandle->GetOuterObjects(NodeSet);
+	for (UObject* obj : NodeSet)
 	{
 		bIsInWorld = obj->GetWorld() != nullptr;
 		break;
