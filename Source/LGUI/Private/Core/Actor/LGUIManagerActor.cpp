@@ -748,14 +748,14 @@ void ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(UWorld* InWorld)
 {
 	if (InitCheck(InWorld))
 	{
-		Instance->AllActors_PrefabSystemProcessing.Reset();
+		//Instance->AllActors_PrefabSystemProcessing.Reset();
 	}
 }
 void ULGUIEditorManagerObject::EndPrefabSystemProcessingActor()
 {
 	if (Instance != nullptr)
 	{
-		Instance->AllActors_PrefabSystemProcessing.Reset();
+		//Instance->AllActors_PrefabSystemProcessing.Reset();
 	}
 }
 void ULGUIEditorManagerObject::AddActorForPrefabSystem(AActor* InActor)

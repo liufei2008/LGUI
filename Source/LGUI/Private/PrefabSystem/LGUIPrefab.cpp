@@ -18,7 +18,7 @@ void ULGUIPrefab::MakeAgentActorsInPreviewWorld()
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 			TMap<FGuid, UObject*> InMapGuidToObject;
-			AgentRootActor = this->LoadPrefabForEdit(World, nullptr, InMapGuidToObject);
+			AgentRootActor = this->LoadPrefabForEdit(World, nullptr, InMapGuidToObject, AgentSubPrefabmap);
 		}
 	}
 }
@@ -28,6 +28,7 @@ void ULGUIPrefab::ClearAgentActorsInPreviewWorld()
 	{
 		LGUIUtils::DestroyActorWithHierarchy(AgentRootActor);
 		AgentRootActor = nullptr;
+		AgentSubPrefabmap.Empty();
 	}
 }
 
@@ -42,7 +43,7 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 		}
 		else
 		{
-			this->SavePrefabForRuntime(AgentRootActor);
+			this->SavePrefabForRuntime(AgentRootActor, AgentSubPrefabmap);
 		}
 	}
 	else
@@ -98,6 +99,18 @@ void ULGUIPrefab::BeginDestroy()
 
 #endif
 
+AActor* ULGUIPrefab::LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
+{
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	{
+		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
+	}
+	else
+	{
+		return LGUIPrefabSystem::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
+	}
+}
+
 AActor* ULGUIPrefab::LoadPrefab(UObject* WorldContextObject, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
 	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
@@ -137,13 +150,13 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 
 #if WITH_EDITOR
 AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
-	, TMap<FGuid, UObject*>& InOutMapGuidToObject
+	, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, ULGUIPrefab*>& OutSubPrefabMap
 )
 {
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this, InParent
-			, InOutMapGuidToObject);
+			, InOutMapGuidToObject, OutSubPrefabMap);
 	}
 	else
 	{
@@ -161,15 +174,15 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 }
 
 void ULGUIPrefab::SavePrefab(AActor* RootActor
-	, TMap<UObject*, FGuid>& InOutMapObjectToGuid)
+	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap)
 {
 	LGUIPrefabSystem3::ActorSerializer3::SavePrefab(RootActor, this
-		, InOutMapObjectToGuid);
+		, InOutMapObjectToGuid, InSubPrefabMap);
 }
 
-void ULGUIPrefab::SavePrefabForRuntime(AActor* RootActor)
+void ULGUIPrefab::SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap)
 {
-	LGUIPrefabSystem3::ActorSerializer3::SavePrefabForRuntime(RootActor, this);
+	LGUIPrefabSystem3::ActorSerializer3::SavePrefabForRuntime(RootActor, this, InSubPrefabMap);
 }
 
 AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
@@ -177,8 +190,9 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		TMap<FGuid, UObject*> MapGuidToObject;
+		TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
 		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this
-			, Parent, MapGuidToObject);
+			, Parent, MapGuidToObject, SubPrefabMap);
 	}
 	else
 	{

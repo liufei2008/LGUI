@@ -53,7 +53,8 @@ public:
 
 protected:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
-	TMap<FGuid, UObject*> MapGuidToObject;
+	TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
+	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<ULGUIPrefab>> SubPrefabMap;
 	TSharedPtr<SLGUIPrefabEditorViewport> ViewportPtr;
 	TSharedPtr<SLGUIPrefabEditorDetailTab> DetailsTabPtr;
 	TSharedPtr<FLGUIPrefabEditorOutliner> OutlinerPtr;
@@ -73,7 +74,7 @@ private:
 	bool IsFilteredActor(const AActor* Actor);
 	void OnOutlinerPickedChanged(AActor* Actor);
 	void OnOutlinerActorDoubleClick(AActor* Actor);
-
+	void SetActorNotListInOutliner(AActor* Actor);
 
 	AActor* LoadedRootActor = nullptr;
 	TArray<AActor*> AllLoadedActorArray;

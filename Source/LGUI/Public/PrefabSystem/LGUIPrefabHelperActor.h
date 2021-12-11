@@ -53,6 +53,8 @@ public:
 		TArray<AActor*> AllLoadedActorArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<FGuid, UObject*> MapGuidToObject;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
 	FColor IdentityColor = FColor::Black;
 	bool IsRandomColor = true;
 	static TArray<FColor> AllColors;

@@ -376,9 +376,15 @@ FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 }
 void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World)
 {
-	auto RootActor= Prefab->LoadPrefab(World, nullptr);
+	TMap<FGuid, UObject*> MapGuidToObject;
+	TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
+	auto RootActor= Prefab->LoadPrefabForEdit(World, nullptr, MapGuidToObject, SubPrefabMap);
 	TMap<UObject*, FGuid> MapObjectToGuid;
-	Prefab->SavePrefab(RootActor, MapObjectToGuid);
+	for (auto KeyValue : MapGuidToObject)
+	{
+		MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+	}
+	Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap);
 	Prefab->ClearAgentActorsInPreviewWorld();
 	Prefab->MakeAgentActorsInPreviewWorld();
 

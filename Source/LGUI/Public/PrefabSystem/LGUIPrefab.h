@@ -72,6 +72,8 @@ public:
 		bool ThumbnailDirty = false;
 	/** This actor is an agent existing in a preview world, for cook prefab asset. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")AActor* AgentRootActor = nullptr;
+	/** This map is an agent existing in a preview world, for cook prefab asset. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<AActor*, ULGUIPrefab*> AgentSubPrefabmap;
 #endif
 public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SetRelativeTransformToIdentity", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject"), Category = LGUI)
@@ -79,6 +81,7 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject"), Category = LGUI)
 		AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale);
 	AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale);
+	AActor* LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity = false);
 
 #if WITH_EDITOR
 public:
@@ -96,11 +99,11 @@ public:
 	 * LoadPrefab for edit/modify, will keep reference of source prefab.
 	 */
 	AActor* LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
-		, TMap<FGuid, UObject*>& InOutMapGuidToObject
+		, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, ULGUIPrefab*>& OutSubPrefabMap
 	);
 	void SavePrefab(AActor* RootActor
-		, TMap<UObject*, FGuid>& InOutMapObjectToGuid);
-	void SavePrefabForRuntime(AActor* RootActor);
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap);
+	void SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap);
 	/**
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.
 	 */

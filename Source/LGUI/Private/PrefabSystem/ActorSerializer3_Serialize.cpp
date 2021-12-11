@@ -20,7 +20,7 @@ PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
 	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-		, TMap<UObject*, FGuid>& InOutMapObjectToGuid)
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap)
 	{
 		if (!RootActor || !InPrefab)
 		{
@@ -40,6 +40,14 @@ namespace LGUIPrefabSystem3
 				serializer.MapObjectToGuid.Add(KeyValue.Key, KeyValue.Value);
 			}
 		}
+		for (auto KeyValue : InSubPrefabMap)
+		{
+			if (IsValid(KeyValue.Key) && IsValid(KeyValue.Value))
+			{
+				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
+			}
+		}
+		serializer.bIsEditorOrRuntime = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectWriter Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
@@ -48,7 +56,7 @@ namespace LGUIPrefabSystem3
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;
 	}
 
-	void ActorSerializer3::SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab)
+	void ActorSerializer3::SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap)
 	{
 		if (!RootActor || !InPrefab)
 		{
@@ -61,6 +69,13 @@ namespace LGUIPrefabSystem3
 			return;
 		}
 		ActorSerializer3 serializer(RootActor->GetWorld());
+		for (auto KeyValue : InSubPrefabMap)
+		{
+			if (IsValid(KeyValue.Key) && IsValid(KeyValue.Value))
+			{
+				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
+			}
+		}
 		serializer.bIsEditorOrRuntime = false;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
@@ -94,9 +109,15 @@ namespace LGUIPrefabSystem3
 		TArray<FLGUIActorSaveData> ChildSaveDataList;
 		for (auto ChildActor : ChildrenActors)
 		{
-#if WITH_EDITOR
-			if (!SkippingActors.Contains(ChildActor))
-#endif
+			if (auto SubPrefabPtr = SubPrefabMap.Find(ChildActor))//sub prefab
+			{
+				FLGUIActorSaveData ChildActorSaveData;
+				ChildActorSaveData.bIsPrefab = true;
+				ChildActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(*SubPrefabPtr);
+				ChildActorSaveData.ActorGuid = MapObjectToGuid[ChildActor];
+				ChildSaveDataList.Add(ChildActorSaveData);
+			}
+			else
 			{
 				FLGUIActorSaveData ChildActorSaveData;
 				SerializeActorRecursive(ChildActor, ChildActorSaveData);
@@ -219,13 +240,14 @@ namespace LGUIPrefabSystem3
 		Actor->GetAttachedActors(ChildrenActors);
 		for (auto ChildActor : ChildrenActors)
 		{
-#if WITH_EDITOR//Editor have no such thing of "SubPrefab"
-			if (GetPrefabActorThatUseTheActorAsRoot(ChildActor) != nullptr)
+			if (SubPrefabMap.Contains(ChildActor))//Sub prefab only store root actor
 			{
-				SkippingActors.Add(ChildActor);
+				if (!MapObjectToGuid.Contains(ChildActor))
+				{
+					MapObjectToGuid.Add(ChildActor, FGuid::NewGuid());
+				}
 			}
 			else
-#endif
 			{
 				CollectActorAndComponentRecursive(ChildActor);
 			}
@@ -344,24 +366,5 @@ namespace LGUIPrefabSystem3
 			}
 		}
 	}
-
-#include "EngineUtils.h"
-#if WITH_EDITOR
-	ALGUIPrefabHelperActor* ActorSerializer3::GetPrefabActorThatUseTheActorAsRoot(AActor* InActor)
-	{
-		for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
-		{
-			auto PrefabActor = *ActorItr;
-			if (IsValid(PrefabActor))
-			{
-				if (PrefabActor->LoadedRootActor == InActor)
-				{
-					return PrefabActor;
-				}
-			}
-		}
-		return nullptr;
-	}
-#endif
 }
 PRAGMA_ENABLE_OPTIMIZATION

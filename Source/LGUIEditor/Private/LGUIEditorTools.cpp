@@ -354,7 +354,8 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
 		TMap<UObject*, FGuid> MapObjectToGuid;
-		prefab->SavePrefab(copiedActor, MapObjectToGuid);
+		TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
+		prefab->SavePrefab(copiedActor, MapObjectToGuid, SubPrefabMap);
 		copiedActorPrefabList.Add(prefab);
 	}
 }

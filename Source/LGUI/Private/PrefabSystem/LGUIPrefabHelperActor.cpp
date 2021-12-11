@@ -100,7 +100,7 @@ void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 
 		LoadedRootActor = PrefabAsset->LoadPrefabForEdit(this->GetWorld()
 			, InParent
-			, MapGuidToObject);
+			, MapGuidToObject, SubPrefabMap);
 		AllLoadedActorArray.Empty();
 		for (auto KeyValue : MapGuidToObject)
 		{
@@ -129,7 +129,7 @@ void ALGUIPrefabHelperActor::SavePrefab()
 				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 			}
 		}
-		PrefabAsset->SavePrefab(LoadedRootActor, MapObjectToGuid);
+		PrefabAsset->SavePrefab(LoadedRootActor, MapObjectToGuid, SubPrefabMap);
 		MapGuidToObject.Empty();
 		AllLoadedActorArray.Empty();
 		for (auto KeyValue : MapObjectToGuid)

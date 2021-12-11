@@ -72,11 +72,44 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 {
 	PrefabBeingEdited = InPrefab;
 
-	LoadedRootActor = PrefabBeingEdited->LoadPrefabForEdit(PreviewScene.GetWorld(), PreviewScene.GetParentComponentForPrefab(PrefabBeingEdited), MapGuidToObject);
+	TMap<FGuid, UObject*> TempMapGuidToObject;
+	for (auto KeyValue : MapGuidToObject)
+	{
+		if (KeyValue.Value.IsValid())
+		{
+			TempMapGuidToObject.Add(KeyValue.Key, KeyValue.Value.Get());
+		}
+	}
+	TMap<AActor*, ULGUIPrefab*> TempSubPrefabMap;
+	LoadedRootActor = PrefabBeingEdited->LoadPrefabForEdit(PreviewScene.GetWorld(), PreviewScene.GetParentComponentForPrefab(PrefabBeingEdited), TempMapGuidToObject, TempSubPrefabMap);
+	MapGuidToObject.Reset();
+	TArray<AActor*> LoadedActorArray;
+	for (auto KeyValue : TempMapGuidToObject)
+	{
+		MapGuidToObject.Add(KeyValue.Key, KeyValue.Value);
+		if (auto ActorItem = Cast<AActor>(KeyValue.Value))
+		{
+			LoadedActorArray.Add(ActorItem);
+		}
+	}
+	SubPrefabMap.Reset();
+	for (auto KeyValue : TempSubPrefabMap)
+	{
+		SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
+	}
+
+	TArray<AActor*> AllChildrenActorArray;
+	LGUIUtils::CollectChildrenActors(LoadedRootActor, AllChildrenActorArray, true);
+	for (auto ActorItem : AllChildrenActorArray)
+	{
+		if (!LoadedActorArray.Contains(ActorItem))
+		{
+			SetActorNotListInOutliner(ActorItem);
+		}
+	}
 
 	TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr = SharedThis(this);
 	ViewportPtr = SNew(SLGUIPrefabEditorViewport, PrefabEditorPtr);
-	//SpriteListPtr = SNew(SSpriteList, SpriteEditorPtr);
 
 	OutlinerPtr = MakeShared<FLGUIPrefabEditorOutliner>();
 	OutlinerPtr->ActorFilter = FOnShouldFilterActor::CreateRaw(this, &FLGUIPrefabEditor::IsFilteredActor);
@@ -133,12 +166,20 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 		TMap<UObject*, FGuid> MapObjectToGuid;
 		for (auto KeyValue : MapGuidToObject)
 		{
-			if (IsValid(KeyValue.Value))
+			if (KeyValue.Value.IsValid())
 			{
-				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+				MapObjectToGuid.Add(KeyValue.Value.Get(), KeyValue.Key);
 			}
 		}
-		PrefabBeingEdited->SavePrefab(LoadedRootActor, MapObjectToGuid);
+		TMap<AActor*, ULGUIPrefab*> TempSubPrefabMap;
+		for (auto KeyValue : SubPrefabMap)
+		{
+			if (KeyValue.Key.IsValid() && KeyValue.Value.IsValid())
+			{
+				TempSubPrefabMap.Add(KeyValue.Key.Get(), KeyValue.Value.Get());
+			}
+		}
+		PrefabBeingEdited->SavePrefab(LoadedRootActor, MapObjectToGuid, TempSubPrefabMap);
 		MapGuidToObject.Empty();
 		for (auto KeyValue : MapObjectToGuid)
 		{
@@ -382,41 +423,25 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 
 				if (auto PrefabAsset = Cast<ULGUIPrefab>(Asset))
 				{
-					TMap<FGuid, UObject*> SubMapGuidToObject;
+					TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
+					TMap<AActor*, ULGUIPrefab*> SubSubPrefabMap;
 					auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabForEdit(PreviewScene.GetWorld()
 						, CurrentSelectedActor->GetRootComponent()
-						, SubMapGuidToObject
+						, SubPrefabMapGuidToObject, SubSubPrefabMap
 						);
 
-#if 0
-					for (auto SubPrefabActor : LoadedSubPrefabActors)
+					for (auto KeyValue : SubPrefabMapGuidToObject)
 					{
-						if (LoadedSubPrefabRootActor == SubPrefabActor)
+						if (auto ActorItem = Cast<AActor>(KeyValue.Value))
 						{
-							auto HelperComp = NewObject<ULGUISubPrefabHelperComponent>(LoadedSubPrefabRootActor);
-							HelperComp->RegisterComponent();
-							LoadedSubPrefabRootActor->AddInstanceComponent(HelperComp);
-						}
-						else
-						{
-							auto bEditable_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bEditable"));
-							bEditable_Property->SetPropertyValue_InContainer(SubPrefabActor, false);
-
-							SubPrefabActor->bHiddenEd = true;
-							SubPrefabActor->bHiddenEdLayer = true;
-							SubPrefabActor->bHiddenEdLevel = true;
-							SubPrefabActor->bLockLocation = true;
-
-							auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-							bListedInSceneOutliner_Property->SetPropertyValue_InContainer(SubPrefabActor, false);
-
-							auto LoadedSubPrefabRootActorGuid = LoadedSubPrefabActorGuidInPrefab[0];
-							PrefabBeingEdited->SubPrefabMap.Add(LoadedSubPrefabRootActorGuid, PrefabAsset);
-							PrefabBeingEdited->ActorInstanceToSubPrefabMap.Add(LoadedSubPrefabRootActor, PrefabAsset);
-							PrefabBeingEdited->ActorInstanceToGuidMap.Add(LoadedSubPrefabRootActor, LoadedSubPrefabRootActorGuid);
+							if (LoadedSubPrefabRootActor != ActorItem)
+							{
+								SetActorNotListInOutliner(ActorItem);
+							}
 						}
 					}
-#endif
+
+					SubPrefabMap.Add(LoadedSubPrefabRootActor, PrefabAsset);
 				}
 			}
 
@@ -431,6 +456,20 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();
+}
+
+void FLGUIPrefabEditor::SetActorNotListInOutliner(AActor* Actor)
+{
+	auto bEditable_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bEditable"));
+	bEditable_Property->SetPropertyValue_InContainer(Actor, false);
+
+	Actor->bHiddenEd = true;
+	Actor->bHiddenEdLayer = true;
+	Actor->bHiddenEdLevel = true;
+	Actor->bLockLocation = true;
+
+	auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
+	bListedInSceneOutliner_Property->SetPropertyValue_InContainer(Actor, false);
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -8,6 +8,7 @@
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "LGUI.h"
 
 namespace LGUIPrefabSystem3
 {
@@ -62,11 +63,7 @@ namespace LGUIPrefabSystem3
 		{
 			bool canSerializaObject = false;
 			auto guidPtr = Serializer.MapObjectToGuid.Find(Object);
-			if (guidPtr != nullptr)
-			{
-				canSerializaObject = true;
-			}
-			else
+			//collect object and outer to serialize
 			{
 				FGuid guid;
 				canSerializaObject = Serializer.CollectObjectToSerailize(Object, guid);

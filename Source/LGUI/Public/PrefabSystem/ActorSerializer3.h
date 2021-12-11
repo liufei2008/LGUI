@@ -139,6 +139,9 @@ namespace LGUIPrefabSystem3
 	struct FLGUIActorSaveData
 	{
 	public:
+		bool bIsPrefab = false;
+		int32 PrefabAssetIndex;
+
 		int32 ActorClass;
 		FGuid ActorGuid;//use id to find actor
 		uint32 ObjectFlags;
@@ -155,15 +158,24 @@ namespace LGUIPrefabSystem3
 
 		friend FArchive& operator<<(FArchive& Ar, FLGUIActorSaveData& ActorData)
 		{
-			Ar << ActorData.ActorGuid;
-			Ar << ActorData.ActorClass;
-			Ar << ActorData.ObjectFlags;
-			Ar << ActorData.ActorPropertyData;
-			Ar << ActorData.RootComponentGuid;
-			Ar << ActorData.DefaultSubObjectGuidArray;
-			Ar << ActorData.DefaultSubObjectNameArray;
+			Ar << ActorData.bIsPrefab;
+			if (ActorData.bIsPrefab)
+			{
+				Ar << ActorData.PrefabAssetIndex;
+				Ar << ActorData.ActorGuid;//sub prefab's root actor's guid
+			}
+			else
+			{
+				Ar << ActorData.ActorGuid;
+				Ar << ActorData.ActorClass;
+				Ar << ActorData.ObjectFlags;
+				Ar << ActorData.ActorPropertyData;
+				Ar << ActorData.RootComponentGuid;
+				Ar << ActorData.DefaultSubObjectGuidArray;
+				Ar << ActorData.DefaultSubObjectNameArray;
 
-			Ar << ActorData.ChildActorData;
+				Ar << ActorData.ChildActorData;
+			}
 			return Ar;
 		}
 	};
@@ -209,14 +221,14 @@ namespace LGUIPrefabSystem3
 
 		/** Save prefab data for editor use. */
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-			, TMap<UObject*, FGuid>& OutMapObjectToGuid);
+			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap);
 		/** Save prefab date for runtime use. */
-		static void SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab);
+		static void SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap);
 		/**
 		 * LoadPrefab for edit/modify, will keep reference of source prefab.
 		 */
 		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, TMap<FGuid, UObject*>& InOutMapGuidToObjects
+			, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, ULGUIPrefab*>& OutSubPrefabMap
 		);
 		/**
 		 * Duplicate actor with hierarchy
@@ -226,6 +238,7 @@ namespace LGUIPrefabSystem3
 		bool bIsEditorOrRuntime = true;
 		TWeakObjectPtr<UWorld> TargetWorld = nullptr;//world that need to spawn actor
 		TWeakObjectPtr<ULGUIPrefab> Prefab = nullptr;
+		bool bIsLoadForEdit = true;
 
 		TMap<FGuid, UObject*> MapGuidToObject;
 		struct ComponentDataStruct
@@ -235,9 +248,7 @@ namespace LGUIPrefabSystem3
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
 
-#if WITH_EDITOR
-		TArray<AActor*> SkippingActors;
-#endif
+		TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
 		//Actor and ActorComponent that belongs to this prefab. All UObjects which get outer of these actor/component can be serailized
 		TArray<UObject*> WillSerailizeActorArray;
 		TArray<UObject*> WillSerailizeObjectArray;
@@ -251,9 +262,7 @@ namespace LGUIPrefabSystem3
 
 		void CollectActorAndComponentRecursive(AActor* Actor);
 		bool CollectObjectToSerailize(UObject* Object, FGuid& OutGuid);
-#if WITH_EDITOR
-		class ALGUIPrefabHelperActor* GetPrefabActorThatUseTheActorAsRoot(AActor* Actor);
-#endif
+
 		//serialize actor
 		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);
 		void SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& SavedActors);
@@ -263,7 +272,7 @@ namespace LGUIPrefabSystem3
 		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 		AActor* DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale);
 		AActor* DeserializeActorRecursive(FLGUIActorSaveData& SavedActors);
-		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors);
+		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, AActor* ParentActor);
 		void PreGenerateObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 		void DeserializeObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 
