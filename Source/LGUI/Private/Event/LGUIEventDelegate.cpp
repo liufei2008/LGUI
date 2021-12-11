@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "Event/LGUIEventDelegate.h"
-#include "Utils/BitConverter.h"
 #include "LGUI.h"
 
 //PRAGMA_DISABLE_OPTIMIZATION

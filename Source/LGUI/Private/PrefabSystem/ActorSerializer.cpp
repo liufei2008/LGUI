@@ -3,7 +3,7 @@
 #include "PrefabSystem/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
-#include "Utils/BitConverter.h"
+#include "BitConverter.h"
 #include "Engine/World.h"
 #include "Serialization/MemoryReader.h"
 #include "Serialization/BufferArchive.h"

@@ -258,3 +258,5 @@ private:
 	}
 	static const TCHAR ErrorMsgFormat[];
 };
+
+const TCHAR BitConverter::ErrorMsgFormat[] = TEXT("[BitConvert/%s]bytes.Num %d not enough!");

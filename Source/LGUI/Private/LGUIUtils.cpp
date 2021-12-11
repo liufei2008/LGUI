@@ -1,7 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "Utils/LGUIUtils.h"
-#include "Utils/BitConverter.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "Core/UIDrawcall.h"
@@ -188,7 +187,6 @@ void LGUIUtils::EditorNotification(FText NofityText, float ExpireDuration)
 }
 #endif
 
-const TCHAR BitConverter::ErrorMsgFormat[] = TEXT("[BitConvert/%s]bytes.Num %d not enough!");
 
 void LGUIUtils::LogObjectFlags(UObject* obj)
 {

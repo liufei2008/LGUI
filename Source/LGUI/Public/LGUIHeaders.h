@@ -103,7 +103,6 @@
 #include "PrefabSystem/ActorReplaceTool.h"
 #include "PrefabSystem/LGUIPrefab.h"
 
-#include "Utils/BitConverter.h"
 #include "Utils/LGUIUtils.h"
 
 #include "LGUIBPLibrary.h"
