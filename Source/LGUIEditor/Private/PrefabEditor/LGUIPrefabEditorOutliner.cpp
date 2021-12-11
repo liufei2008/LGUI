@@ -11,6 +11,7 @@
 #include "Engine/Selection.h"
 #include "Engine/World.h"
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
+#include "LGUIEditorTools.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 
@@ -30,19 +31,18 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World)
 
 	SceneOutliner::FInitializationOptions InitOptions;
 	InitOptions.bShowTransient = false;
-	InitOptions.Mode = ESceneOutlinerMode::Custom;
-	//InitOptions.Mode = ESceneOutlinerMode::ActorPicker;
+	InitOptions.Mode = ESceneOutlinerMode::ActorBrowsing;
+	InitOptions.bFocusSearchBoxWhenOpened = false;
+	InitOptions.SpecifiedWorldToDisplay = World;
+	InitOptions.bShowCreateNewFolder = false;
+	InitOptions.ColumnMap.Add(LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::GetID(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 1));
+	InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::Label(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 0));
+	InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::ActorInfo(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 10));
 	if (ActorFilter.IsBound())
 	{
 		InitOptions.Filters->AddFilterPredicate(ActorFilter);
 	}
-	InitOptions.bFocusSearchBoxWhenOpened = false;
-	InitOptions.SpecifiedWorldToDisplay = World;
-	InitOptions.bShowCreateNewFolder = false;
-
-	InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::Label(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 0));
-	InitOptions.ColumnMap.Add(LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::GetID(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 1));
-	InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::ActorInfo(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 10));
+	InitOptions.CustomDelete = FCustomSceneOutlinerDeleteDelegate::CreateRaw(this, &FLGUIPrefabEditorOutliner::OnDelete);
 
 	TSharedRef<ISceneOutliner> SceneOutlinerRef = SceneOutlinerModule.CreateSceneOutliner(InitOptions, FOnSceneOutlinerItemPicked::CreateLambda([this](TSharedRef<SceneOutliner::ITreeItem> ItemPtr)
 		{ this->OnSceneOutlinerItemPicked(ItemPtr); }));
@@ -62,6 +62,19 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World)
 
 
 	USelection::SelectionChangedEvent.AddRaw(this, &FLGUIPrefabEditorOutliner::OnEditorSelectionChanged);
+}
+
+void FLGUIPrefabEditorOutliner::OnDelete(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray)
+{
+	TArray<AActor*> SelectedActorArray;
+	for (auto Item : InSelectedActorArray)
+	{
+		if (Item.IsValid())
+		{
+			SelectedActorArray.Add(Item.Get());
+		}
+	}
+	LGUIEditorTools::DeleteActors_Impl(SelectedActorArray);
 }
 
 void FLGUIPrefabEditorOutliner::OnSceneOutlinerItemPicked(TSharedRef<SceneOutliner::ITreeItem> ItemPtr)
@@ -131,9 +144,10 @@ void FLGUIPrefabEditorOutliner::OnEditorSelectionChanged(UObject* Object)
 			{
 				return;
 			}
+			OnActorPickedDelegate.ExecuteIfBound(Actor);
 
-			SceneOutlinerPtr->ClearSelection();
-			SceneOutlinerPtr->AddObjectToSelection(Actor);
+			//SceneOutlinerPtr->ClearSelection();
+			//SceneOutlinerPtr->AddObjectToSelection(Actor);
 
 			SelectedActor = Actor;
 

@@ -53,6 +53,7 @@ public:
 
 protected:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
+	TMap<FGuid, UObject*> MapGuidToObject;
 	TSharedPtr<SLGUIPrefabEditorViewport> ViewportPtr;
 	TSharedPtr<SLGUIPrefabEditorDetailTab> DetailsTabPtr;
 	TSharedPtr<FLGUIPrefabEditorOutliner> OutlinerPtr;

@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/ActorSerializer.h"
+#include "PrefabSystem/2/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "BitConverter.h"

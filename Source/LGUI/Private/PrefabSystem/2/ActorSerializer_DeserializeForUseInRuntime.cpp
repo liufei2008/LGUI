@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/ActorSerializer.h"
+#include "PrefabSystem/2/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "BitConverter.h"
 #include "Engine/World.h"
@@ -10,40 +10,30 @@
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "Core/ActorComponent/UIText.h"
 
 using namespace LGUIPrefabSystem;
 
-#if WITH_EDITOR
-AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent* Parent, const FLGUIActorSaveData& SaveData, int32& id)
+AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponent* Parent, const FLGUIActorSaveDataForBuild& SaveData, int32& id)
 {
 	if (auto ActorClass = FindClassFromListByIndex(SaveData.ActorClass, Prefab.Get()))
 	{
 		if (!ActorClass->IsChildOf(AActor::StaticClass()))//if not the right class, use default
 		{
 			ActorClass = AActor::StaticClass();
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a Actor, use default"), *(ActorClass->GetFName().ToString()));
 		}
 
-		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
-		if (!TargetWorld->IsGameWorld())
-		{
-			ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
-		}
-		else
-		{
-			ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
-		}
+		ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
 		CreatedActors.Add(NewActor);
-		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
+		LoadPropertyForRuntime(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 
 		auto RootCompSaveData = SaveData.ComponentPropertyData[0];
 		auto RootComp = NewActor->GetRootComponent();
 		if (RootComp)//if this actor have default root component
 		{
 			//actor's default root component dont need mannually register
-			LoadProperty(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
+			LoadPropertyForRuntime(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 		}
 		else
 		{
@@ -54,11 +44,11 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent
 					if (!CompClass->IsChildOf(USceneComponent::StaticClass()))//if not the right class, use default
 					{
 						CompClass = USceneComponent::StaticClass();
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
+						UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a USceneComponent, use default"), *(CompClass->GetFName().ToString()));
 					}
 					RootComp = NewObject<USceneComponent>(NewActor, CompClass, RootCompSaveData.ComponentName, RF_Transactional);
 					NewActor->SetRootComponent(RootComp);
-					LoadProperty(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
+					LoadPropertyForRuntime(RootComp, RootCompSaveData.PropertyData, GetComponentExcludeProperties());
 					if (!RootComp->IsDefaultSubobject())
 					{
 						RegisterComponent(NewActor, RootComp);
@@ -88,10 +78,10 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent
 				if (!CompClass->IsChildOf(UActorComponent::StaticClass()))//if not the right class, use default
 				{
 					CompClass = UActorComponent::StaticClass();
-					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
+					UE_LOG(LGUI, Error, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Class:%s is not a UActorComponent, use default"), *(CompClass->GetFName().ToString()));
 				}
 				auto Comp = NewObject<UActorComponent>(NewActor, CompClass, CompData.ComponentName, RF_Transactional);
-				LoadProperty(Comp, CompData.PropertyData, GetComponentExcludeProperties());
+				LoadPropertyForRuntime(Comp, CompData.PropertyData, GetComponentExcludeProperties());
 				if (!Comp->IsDefaultSubobject())
 				{
 					RegisterComponent(NewActor, Comp);
@@ -115,7 +105,11 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Component Class of index:%d not found!"), (CompData.ComponentClass));
+				auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Error prefab:%s. \nComponent Class of index:%d not found!"), *(Prefab->GetPathName()), (CompData.ComponentClass));
+				UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg); 
+#if WITH_EDITOR
+				LGUIUtils::EditorNotification(FText::FromString(ErrorMsg)); 
+#endif
 			}
 		}
 		//SceneComponent reattach to parent
@@ -145,22 +139,25 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent
 
 		id++;
 		MapIDToActor.Add(id, NewActor);
-		MapGuidToActor.Add(guidInPrefab, NewActor);
 
 		for (auto ChildSaveData : SaveData.ChildActorData)
 		{
-			DeserializeActorRecursiveForUseInEditor(RootComp, ChildSaveData, id);
+			DeserializeActorRecursiveForUseInRuntime(RootComp, ChildSaveData, id);
 		}
 		return NewActor;
 	}
 	else
 	{
-		UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInEditor]Actor Class of index:%d not found!"), (SaveData.ActorClass));
+		auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer::DeserializeActorRecursiveForUseInRuntime]Error prefab:%s. \nActor Class of index:%d not found!"), *(Prefab->GetPathName()), (SaveData.ActorClass));
+		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
+#if WITH_EDITOR
+		LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
+#endif
 		return nullptr;
 	}
 }
 
-void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyData>& PropertyData, TArray<FName> ExcludeProperties)
+void ActorSerializer::LoadPropertyForRuntime(UObject* Target, const TArray<FLGUIPropertyDataForBuild>& PropertyData, TArray<FName> ExcludeProperties)
 {
 	OutterArray.Add(Target);
 	Outter = Target;
@@ -188,7 +185,7 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 				continue;
 			}
 		}
-		if (LoadCommonProperty(propertyItem, ItemType_Normal, propertyIndex, (uint8*)Target, PropertyData))
+		if (LoadCommonPropertyForRuntime(propertyItem, ItemType_Normal, propertyIndex, (uint8*)Target, PropertyData))
 		{
 			propertyIndex++;
 		}
@@ -205,19 +202,32 @@ void ActorSerializer::LoadProperty(UObject* Target, const TArray<FLGUIPropertyDa
 	}
 }
 
-bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int itemPropertyIndex, uint8* Dest, const TArray<FLGUIPropertyData>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
+bool ActorSerializer::LoadCommonPropertyForRuntime(FProperty* Property, int itemType, int itemPropertyIndex, uint8* Dest, const TArray<FLGUIPropertyDataForBuild>& PropertyData, int cppArrayIndex, bool isInsideCppArray)
 {
 	if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DisableEditOnInstance))return false;//skip property with these flags
-	FLGUIPropertyData ItemPropertyData;
+	if (Property->IsEditorOnlyProperty())return false;//Build data dont have EditorOnly property
+	FLGUIPropertyDataForBuild ItemPropertyData;
 	bool HaveData = false;
 
 	switch (itemType)
 	{
 	case ItemType_Normal:
 	{
-		if (FLGUIPropertyData::GetPropertyDataFromArray(Property->GetFName(), PropertyData, ItemPropertyData))
+		if (itemPropertyIndex < PropertyData.Num())
 		{
-			HaveData = true;
+			ItemPropertyData = PropertyData[itemPropertyIndex];
+			if(ItemPropertyData.PropertyType != ELGUIPropertyType::PT_None)
+			{
+				HaveData = true;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
 		}
 	}
 	break;
@@ -228,7 +238,18 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 		if (itemPropertyIndex < PropertyData.Num())
 		{
 			ItemPropertyData = PropertyData[itemPropertyIndex];
-			HaveData = true;
+			if(ItemPropertyData.PropertyType != ELGUIPropertyType::PT_None)
+			{
+				HaveData = true;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
 		}
 	}
 	break;
@@ -242,7 +263,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 		{
 			for (int i = 0; i < Property->ArrayDim; i++)
 			{
-				LoadCommonProperty(Property, ItemType_Array, i, Dest, ItemPropertyData.ContainerData, i, true);
+				LoadCommonPropertyForRuntime(Property, ItemType_Array, i, Dest, ItemPropertyData.ContainerData, i, true);
 			}
 			return true;
 		}
@@ -271,27 +292,19 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				{
 					index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
 					LogForBitConvertFail(bitConvertSuccess, Property);
-
-					if (index <= -1)
-					{
-						if (!objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//if this property is ActorComponent, if clear the value then it will become ineditable
-						{
-							objProperty->ClearValue_InContainer(Dest, cppArrayIndex);
-						}
-						return true;
-					}
 				}
-				if (objProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
+				if (index <= -1)
 				{
-					FGuid guid = FGuid();
-					if (ItemPropertyData.Data.Num() == 16)
+					if (!objProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))//if this property is ActorComponent, if clear the value then it will become ineditable
 					{
-						guid = BitConverter::ToGuid(ItemPropertyData.Data, bitConvertSuccess);
-						LogForBitConvertFail(bitConvertSuccess, Property);
+						objProperty->ClearValue_InContainer(Dest, cppArrayIndex);
 					}
+					return true;
+				}
+				if (objProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//is Actor
+				{
 					UPropertyMapStruct mapStruct;//store these data, after all actor created, reassign actor reference
 					mapStruct.id = index;
-					mapStruct.guid = guid;
 					mapStruct.Dest = Dest;
 					mapStruct.ObjProperty = objProperty;
 					mapStruct.cppArrayIndex = cppArrayIndex;
@@ -312,7 +325,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 						}
 						if (newObj != nullptr)
 						{
-							LoadProperty(newObj, ItemPropertyData.ContainerData, {});
+							LoadPropertyForRuntime(newObj, ItemPropertyData.ContainerData, {});
 							objProperty->SetObjectPropertyValue_InContainer(Dest, newObj, cppArrayIndex);
 						}
 					}
@@ -344,7 +357,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				ArrayHelper.Resize(ArrayCount);
 				for (int i = 0; i < ArrayCount; i++)
 				{
-					LoadCommonProperty(arrProperty->Inner, ItemType_Array, i, ArrayHelper.GetRawPtr(i), ItemPropertyData.ContainerData);
+					LoadCommonPropertyForRuntime(arrProperty->Inner, ItemType_Array, i, ArrayHelper.GetRawPtr(i), ItemPropertyData.ContainerData);
 				}
 				return true;
 			}
@@ -352,13 +365,14 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			{
 				FScriptMapHelper MapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess) * 2;//Map element's data is stored as key,value,key,value...
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				int mapIndex = 0;
 				for (int i = 0; i < count; i++)
 				{
 					MapHelper.AddDefaultValue_Invalid_NeedsRehash();
-					LoadCommonProperty(mapProperty->KeyProp, ItemType_Map, i, MapHelper.GetKeyPtr(mapIndex), ItemPropertyData.ContainerData);//key
+					LoadCommonPropertyForRuntime(mapProperty->KeyProp, ItemType_Map, i, MapHelper.GetKeyPtr(mapIndex), ItemPropertyData.ContainerData);//key
 					i++;
-					LoadCommonProperty(mapProperty->ValueProp, ItemType_Map, i, MapHelper.GetPairPtr(mapIndex), ItemPropertyData.ContainerData);//value. PairPtr of map is the real ptr of value
+					LoadCommonPropertyForRuntime(mapProperty->ValueProp, ItemType_Map, i, MapHelper.GetPairPtr(mapIndex), ItemPropertyData.ContainerData);//value. PairPtr of map is the real ptr of value
 					mapIndex++;
 				}
 				MapHelper.Rehash();
@@ -368,10 +382,11 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 			{
 				FScriptSetHelper SetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex));
 				auto count = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);//Set count
+				LogForBitConvertFail(bitConvertSuccess, Property);
 				for (int i = 0; i < count; i++)
 				{
 					SetHelper.AddDefaultValue_Invalid_NeedsRehash();
-					LoadCommonProperty(setProperty->ElementProp, ItemType_Set, i, SetHelper.GetElementPtr(i), ItemPropertyData.ContainerData);
+					LoadCommonPropertyForRuntime(setProperty->ElementProp, ItemType_Set, i, SetHelper.GetElementPtr(i), ItemPropertyData.ContainerData);
 				}
 				SetHelper.Rehash();
 				return true;
@@ -400,7 +415,7 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 					int propertyIndex = 0;
 					for (TFieldIterator<FProperty> It(structProperty->Struct); It; ++It)
 					{
-						if (LoadCommonProperty(*It, ItemType_Normal, propertyIndex, structPtr, ItemPropertyData.ContainerData))
+						if (LoadCommonPropertyForRuntime(*It, ItemType_Normal, propertyIndex, structPtr, ItemPropertyData.ContainerData))
 						{
 							propertyIndex++;
 						}
@@ -411,78 +426,34 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 
 			else if (auto strProperty = CastField<FStrProperty>(Property))//string store as reference
 			{
-				if (ItemPropertyData.PropertyType != ELGUIPropertyType::PT_String//prev property is not string
-					&& Prefab->PrefabVersion >= 1//string type is not valid in version below 1
-					)
+				if (ItemPropertyData.Data.Num() == 4)
 				{
-					auto stringValue = GetValueAsString(ItemPropertyData);
+					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
+					auto stringValue = FindStringFromListByIndex(index, Prefab.Get());
 					strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
-				}
-				else
-				{
-					if (ItemPropertyData.Data.Num() == 4)
-					{
-						auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
-						auto stringValue = FindStringFromListByIndex(index, Prefab.Get());
-						strProperty->SetPropertyValue_InContainer(Dest, stringValue, cppArrayIndex);
-					}
 				}
 				return true;
 			}
 			else if (auto nameProperty = CastField<FNameProperty>(Property))
 			{
-				if (ItemPropertyData.PropertyType != ELGUIPropertyType::PT_Name//prev property is not name
-					&& Prefab->PrefabVersion >= 1//name type is not valid in version below 1
-					)
+				if (ItemPropertyData.Data.Num() == 4)
 				{
-					auto nameValue = FName(*GetValueAsString(ItemPropertyData));
+					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
+					auto nameValue = FindNameFromListByIndex(index, Prefab.Get());
 					nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
-				}
-				else
-				{
-					if (ItemPropertyData.Data.Num() == 4)
-					{
-						auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
-						auto nameValue = FindNameFromListByIndex(index, Prefab.Get());
-						nameProperty->SetPropertyValue_InContainer(Dest, nameValue, cppArrayIndex);
-					}
 				}
 				return true;
 			}
 			else if (auto textProperty = CastField<FTextProperty>(Property))
 			{
-				if (Prefab->PrefabVersion < 1)
+				if (ItemPropertyData.Data.Num() == 4)
 				{
-					if (Property->GetFName() == TEXT("text")//specific for UIText's text property, to convert from FString to FText
-						&& Outter->GetClass() == UUIText::StaticClass()
-						)
-					{
-						if (ItemPropertyData.Data.Num() == 4)
-						{
-							auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
-							auto stringValue = FindStringFromListByIndex(index, Prefab.Get());
-							auto textValue = FText::FromString(stringValue);
-							textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
-						}
-					}
-				}
-				else
-				{
-					if (ItemPropertyData.PropertyType != ELGUIPropertyType::PT_Text//prev property is not text
-						)
-					{
-						auto textValue = FText::FromString(GetValueAsString(ItemPropertyData));
-						textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
-					}
-					else
-					{
-						if (ItemPropertyData.Data.Num() == 4)
-						{
-							auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
-							auto textValue = FindTextFromListByIndex(index, Prefab.Get());
-							textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
-						}
-					}
+					auto index = BitConverter::ToInt32(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
+					auto textValue = FindTextFromListByIndex(index, Prefab.Get());
+					textProperty->SetPropertyValue_InContainer(Dest, textValue, cppArrayIndex);
 				}
 				return true;
 			}
@@ -499,15 +470,19 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 				if (auto boolProperty = CastField<FBoolProperty>(Property))
 				{
 					auto value = BitConverter::ToBoolean(ItemPropertyData.Data, bitConvertSuccess);
+					LogForBitConvertFail(bitConvertSuccess, Property);
 					boolProperty->SetPropertyValue_InContainer((void*)Dest, value, cppArrayIndex);
 				}
 				else
 				{
 					if (Property->GetSize() != ItemPropertyData.Data.Num())
 					{
-						UE_LOG(LGUI, Error, TEXT("[ActorSerializer/LoadCommonProperty]Load value of Property:%s, but size not match, PropertySize:%d, dataSize:%d.\
- Try rebuild this prefab, and if this problem still exist, please contact the plugin author.")
-							, *(Property->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
+						auto ErrorMsg = FString::Printf(TEXT("[ActorSerializer/LoadCommonPropertyForBuild]Error prefab:%s. \n	Load value of Property:%s (type:%s), but size not match, PropertySize:%d, dataSize:%d.")
+							, *(Prefab->GetPathName()), *(Property->GetName()), *(Property->GetClass()->GetName()), Property->GetSize(), ItemPropertyData.Data.Num());
+						UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg);
+#if WITH_EDITOR
+						LGUIUtils::EditorNotification(FText::FromString(ErrorMsg));
+#endif
 						return false;
 					}
 					Property->CopyCompleteValue(Property->ContainerPtrToValuePtr<void>(Dest, cppArrayIndex), ItemPropertyData.Data.GetData());
@@ -519,4 +494,3 @@ bool ActorSerializer::LoadCommonProperty(FProperty* Property, int itemType, int 
 	}
 	return false;
 }
-#endif

@@ -16,7 +16,8 @@
 #include "EditorViewportClient.h"
 #include "Engine/Selection.h"
 #include "EngineUtils.h"
-#include "PrefabSystem/ActorSerializer.h"
+#include "PrefabSystem/2/ActorCopier.h"
+#include "PrefabSystem/2/ActorReplaceTool.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "LGUIEditorModule.h"
@@ -293,7 +294,7 @@ void LGUIEditorTools::ReplaceUIElementWith(UClass* ActorClass)
 	for (auto item : rootActorList)
 	{
 		MakeCurrentLevel(item);
-		auto newActor = LGUIPrefabSystem::ActorReplaceTool::ReplaceActorClass(item, ActorClass);
+		auto newActor = LGUIPrefabSystem::ActorReplaceTool::ReplaceActorClass(item, ActorClass);//@todo: use buildin replace tool
 		GEditor->SelectActor(newActor, true, true);
 	}
 	GEditor->EndTransaction();
@@ -395,7 +396,12 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 void LGUIEditorTools::DeleteSelectedActors_Impl()
 {
 	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
-	auto count = selectedActors.Num();
+	DeleteActors_Impl(selectedActors);
+}
+
+void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
+{
+	auto count = InActors.Num();
 	if (count == 0)
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("NothingSelected"));
@@ -405,7 +411,7 @@ void LGUIEditorTools::DeleteSelectedActors_Impl()
 	auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg));
 	if (confirmResult == EAppReturnType::No)return;
 
-	auto rootActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(selectedActors);
+	auto rootActorList = LGUIEditorToolsHelperFunctionHolder::GetRootActorListFromSelection(InActors);
 	GEditor->BeginTransaction(LOCTEXT("DestroyActor", "LGUI Destroy Actor"));
 	GEditor->GetSelectedActors()->DeselectAll();
 	for (auto item : rootActorList)
@@ -431,6 +437,7 @@ void LGUIEditorTools::DeleteSelectedActors_Impl()
 	CleanupPrefabsInWorld(rootActorList[0]->GetWorld());
 	GEditor->EndTransaction();
 }
+
 void LGUIEditorTools::CopyComponentValues_Impl()
 {
 	auto selectedComponents = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToComponents(GEditor->GetSelectedComponents());
@@ -461,7 +468,7 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 		GEditor->BeginTransaction(LOCTEXT("PasteComponentValues", "LGUI Paste Component Proeprties"));
 		for (UActorComponent* item : selectedComponents)
 		{
-			LGUIPrefabSystem::ActorCopier::CopyComponentValue(copiedComponent.Get(), item);
+			LGUIPrefabSystem::ActorCopier::CopyComponentValue(copiedComponent.Get(), item);//@todo: use buildin copy tool
 		}
 		GEditor->EndTransaction();
 	}

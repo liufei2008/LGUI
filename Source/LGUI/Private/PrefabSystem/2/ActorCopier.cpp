@@ -1,10 +1,10 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/ActorCopier.h"
+#include "PrefabSystem/2/ActorCopier.h"
 #include "Engine/World.h"
 #include "LGUI.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "PrefabSystem/ActorSerializer.h"
+#include "PrefabSystem/2/ActorSerializer.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 using namespace LGUIPrefabSystem;

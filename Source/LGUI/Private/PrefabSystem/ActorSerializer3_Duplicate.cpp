@@ -1,8 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/ActorSerializer3.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Serialization/MemoryReader.h"
@@ -10,6 +8,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "LGUI.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
 #include "Utils/LGUIUtils.h"

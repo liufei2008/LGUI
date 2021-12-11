@@ -10,6 +10,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "LGUI.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
 #include "Utils/LGUIUtils.h"

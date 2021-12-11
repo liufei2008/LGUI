@@ -1,8 +1,6 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/ActorSerializer3.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Serialization/MemoryReader.h"
@@ -10,6 +8,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "LGUI.h"
 
 //PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
@@ -318,7 +317,7 @@ namespace LGUIPrefabSystem3
 				MapGuidToObject.Add(SavedActors.ActorGuid, NewActor);
 			}
 
-			//Collect default sub objects after spawn actor
+			//Collect default sub objects
 			TArray<UObject*> DefaultSubObjects;
 			NewActor->CollectDefaultSubobjects(DefaultSubObjects, true);
 			for (auto DefaultSubObject : DefaultSubObjects)
@@ -326,7 +325,7 @@ namespace LGUIPrefabSystem3
 				auto Index = SavedActors.DefaultSubObjectNameArray.IndexOfByKey(DefaultSubObject->GetFName());
 				if (Index == INDEX_NONE)
 				{
-					UE_LOG(LGUI, Warning, TEXT("[ActorSerializer3::PreGenerateActorRecursive]This blueprint (%s) seems broken"), *(NewActor->GetPathName()));
+					UE_LOG(LGUI, Warning, TEXT("[ActorSerializer3::PreGenerateActorRecursive]Missing guid for default sub object: %s"), *(DefaultSubObject->GetFName().ToString()));
 					continue;
 				}
 				MapGuidToObject.Add(SavedActors.DefaultSubObjectGuidArray[Index], DefaultSubObject);

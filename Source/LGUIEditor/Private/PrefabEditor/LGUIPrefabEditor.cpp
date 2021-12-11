@@ -72,7 +72,6 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 {
 	PrefabBeingEdited = InPrefab;
 
-	TMap<FGuid, UObject*> MapGuidToObject;
 	LoadedRootActor = PrefabBeingEdited->LoadPrefabForEdit(PreviewScene.GetWorld(), PreviewScene.GetParentComponentForPrefab(PrefabBeingEdited), MapGuidToObject);
 
 	TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr = SharedThis(this);
@@ -131,8 +130,21 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 {
 	if (CheckBeforeSaveAsset())
 	{
-		TMap<UObject*, FGuid> OutMapObjectToGuid;
-		PrefabBeingEdited->SavePrefab(LoadedRootActor, OutMapObjectToGuid);
+		TMap<UObject*, FGuid> MapObjectToGuid;
+		for (auto KeyValue : MapGuidToObject)
+		{
+			if (IsValid(KeyValue.Value))
+			{
+				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+			}
+		}
+		PrefabBeingEdited->SavePrefab(LoadedRootActor, MapObjectToGuid);
+		MapGuidToObject.Empty();
+		for (auto KeyValue : MapObjectToGuid)
+		{
+			MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
+		}
+
 		FAssetEditorToolkit::SaveAsset_Execute();
 	}
 }
@@ -257,15 +269,7 @@ bool FLGUIPrefabEditor::IsFilteredActor(const AActor* Actor)
 
 void FLGUIPrefabEditor::OnOutlinerPickedChanged(AActor* Actor)
 {
-	//if (ItemDetailUI)
-	{
-		//ItemDetailUI->ShowObjectDetail(Actor);
-
-		CurrentSelectedActor = Actor;
-
-		GEditor->SelectNone(false, true, false);
-		GEditor->SelectActor(Actor, true, true, true);
-	}
+	CurrentSelectedActor = Actor;
 }
 
 void FLGUIPrefabEditor::OnOutlinerActorDoubleClick(AActor* Actor)
@@ -352,7 +356,8 @@ void FLGUIPrefabEditor::OnToolkitHostingFinished(const TSharedRef<IToolkit>& Too
 
 FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent)
 {
-#if 0
+	if (CurrentSelectedActor == nullptr)return FReply::Unhandled();//need a parent node
+
 	TSharedPtr<FDragDropOperation> Operation = DragDropEvent.GetOperation();
 	if (Operation.IsValid() && Operation->IsOfType<FAssetDragDropOp>())
 	{
@@ -377,13 +382,13 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 
 				if (auto PrefabAsset = Cast<ULGUIPrefab>(Asset))
 				{
-					TArray<AActor*> LoadedSubPrefabActors;
-					TArray<FGuid> LoadedSubPrefabActorGuidInPrefab;
-					auto LoadedSubPrefabRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(PreviewScene.GetWorld(), PrefabAsset
+					TMap<FGuid, UObject*> SubMapGuidToObject;
+					auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabForEdit(PreviewScene.GetWorld()
 						, CurrentSelectedActor->GetRootComponent()
-						, nullptr, nullptr
-						, LoadedSubPrefabActors, LoadedSubPrefabActorGuidInPrefab);
+						, SubMapGuidToObject
+						);
 
+#if 0
 					for (auto SubPrefabActor : LoadedSubPrefabActors)
 					{
 						if (LoadedSubPrefabRootActor == SubPrefabActor)
@@ -411,6 +416,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 							PrefabBeingEdited->ActorInstanceToGuidMap.Add(LoadedSubPrefabRootActor, LoadedSubPrefabRootActorGuid);
 						}
 					}
+#endif
 				}
 			}
 
@@ -424,7 +430,6 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 
 		return FReply::Handled();
 	}
-#endif
 	return FReply::Unhandled();
 }
 

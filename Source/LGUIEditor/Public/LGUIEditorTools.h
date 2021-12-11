@@ -44,6 +44,7 @@ public:
 	static void CopySelectedActors_Impl();
 	static void PasteSelectedActors_Impl();
 	static void DeleteSelectedActors_Impl();
+	static void DeleteActors_Impl(const TArray<AActor*>& InActors);
 	static void CopyComponentValues_Impl();
 	static void PasteComponentValues_Impl();
 	static void OpenAtlasViewer_Impl();

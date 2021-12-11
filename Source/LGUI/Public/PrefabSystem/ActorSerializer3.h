@@ -9,8 +9,6 @@
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h"
 
-class ULGUIPrefabHelperComponent;
-
 namespace LGUIPrefabSystem3
 {
 	class ActorSerializer3;
@@ -117,7 +115,7 @@ namespace LGUIPrefabSystem3
 	struct FLGUIComponentSaveData
 	{
 	public:
-		int32 ComponentClass = -1;//-1 means not exist. if RootComponent is -1 means this actor dont have RootComponent
+		int32 ComponentClass;
 		FName ComponentName;
 		FGuid ComponentGuid;
 		uint32 ObjectFlags;
@@ -146,7 +144,10 @@ namespace LGUIPrefabSystem3
 		uint32 ObjectFlags;
 		TArray<uint8> ActorPropertyData;
 		FGuid RootComponentGuid;
-		//The following two array stores default sub objects which belong to this actor. Array must match index for specific component. When deserialize, use FName to find FGuid
+		/**
+		 * The following two array stores default sub objects which belong to this actor. Array must match index for specific component. When deserialize, use FName to find FGuid.
+		 * Common UObject/UActorComponent don't need these, because actor use "CollectDefaultSubobjects(xxx, true)" to find default sub objects, with nested objects, that should include all created default sub objects.
+		 */
 		TArray<FGuid> DefaultSubObjectGuidArray;
 		TArray<FName> DefaultSubObjectNameArray;
 
@@ -186,7 +187,6 @@ namespace LGUIPrefabSystem3
 	/*
 	 * serialize/deserialize actor with hierarchy
 	 * Not support: LazyObject, SoftObject
-	 * @todo: object flags
 	 */
 	class LGUI_API ActorSerializer3
 	{

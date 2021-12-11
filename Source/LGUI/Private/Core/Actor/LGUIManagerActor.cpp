@@ -11,7 +11,6 @@
 #include "Interaction/UISelectableComponent.h"
 #include "Core/LGUISettings.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"
-#include "PrefabSystem/ActorSerializer.h"
 #include "Core/Actor/UIBaseActor.h"
 #include "Core/ActorComponent/UIBatchGeometryRenderable.h"
 #include "Core/ActorComponent/UIBaseRenderable.h"
@@ -45,10 +44,10 @@ ULGUIEditorManagerObject::ULGUIEditorManagerObject()
 void ULGUIEditorManagerObject::BeginDestroy()
 {
 #if WITH_EDITORONLY_DATA
-	if (OnSelectionChangedDelegateHandle.IsValid())
-	{
-		USelection::SelectObjectEvent.Remove(OnSelectionChangedDelegateHandle);
-	}
+	//if (OnSelectionChangedDelegateHandle.IsValid())
+	//{
+	//	USelection::SelectObjectEvent.Remove(OnSelectionChangedDelegateHandle);
+	//}
 	if (OnAssetReimportDelegateHandle.IsValid())
 	{
 		GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.Remove(OnAssetReimportDelegateHandle);
@@ -219,7 +218,7 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance->AddToRoot();
 			UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
 			//selection
-			Instance->OnSelectionChangedDelegateHandle = USelection::SelectionChangedEvent.AddUObject(Instance, &ULGUIEditorManagerObject::OnSelectionChanged);
+			//Instance->OnSelectionChangedDelegateHandle = USelection::SelectionChangedEvent.AddUObject(Instance, &ULGUIEditorManagerObject::OnSelectionChanged);
 			//actor label
 			Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
 			//reimport asset

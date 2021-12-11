@@ -36,6 +36,7 @@ protected:
 	void OnSceneOutlinerSelectionChanged(SceneOutliner::FTreeItemPtr ItemPtr, ESelectInfo::Type SelectionMode);
 	void OnSceneOutlinerDoubleClick(SceneOutliner::FTreeItemPtr ItemPtr);
 	void OnEditorSelectionChanged(UObject* Object);
+	void OnDelete(const TArray< TWeakObjectPtr< AActor > >& InSelectedActorArray);
 
 protected:
 	TSharedPtr<SBox> OutlinerWidget;

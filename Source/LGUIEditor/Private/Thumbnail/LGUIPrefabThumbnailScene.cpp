@@ -1,11 +1,9 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "Thumbnail/LGUIPrefabThumbnailScene.h"
-#include "PrefabSystem/ActorSerializer.h"
 #include "Components/PrimitiveComponent.h"
 #include "ThumbnailRendering/SceneThumbnailInfo.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "PrefabSystem/ActorCopier.h"
 #include "LGUIEditorModule.h"
 
 

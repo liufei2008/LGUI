@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "LGUIPrefab.h"
+#include "PrefabSystem/LGUIPrefab.h"
 
 class ALGUIPrefabHelperActor;
 

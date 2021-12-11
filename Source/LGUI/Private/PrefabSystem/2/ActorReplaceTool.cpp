@@ -1,11 +1,11 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/ActorReplaceTool.h"
+#include "PrefabSystem/2/ActorReplaceTool.h"
 #include "Engine/World.h"
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "EngineUtils.h"
-#include "PrefabSystem/ActorSerializer.h"
+#include "PrefabSystem/2/ActorSerializer.h"
 
 using namespace LGUIPrefabSystem;
 bool ActorReplaceTool::CopyCommonProperty(FProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex, bool isInsideCppArray)

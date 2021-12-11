@@ -2,7 +2,6 @@
 
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "PrefabSystem/LGUIPrefab.h"
-#include "PrefabSystem/ActorSerializer.h"
 #include "AssetRegistryModule.h"
 
 #include "LGUIEditorModule.h"
