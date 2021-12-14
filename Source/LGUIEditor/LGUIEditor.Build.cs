@@ -49,6 +49,7 @@ public class LGUIEditor : ModuleRules
 				// ... add other public dependencies that you statically link with here ...
                 
                 "Kismet",
+                "ToolMenus",//PrefabEditor
             }
 			);
 			

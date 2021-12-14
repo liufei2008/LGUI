@@ -1,11 +1,12 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorActorFolders.h"
@@ -18,8 +19,10 @@ ALGUIPrefabHelperActor::ALGUIPrefabHelperActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-
 	bIsEditorOnlyActor = true;
+
+	PrefabHelperObject = CreateDefaultSubobject<ULGUIPrefabHelperObject>(TEXT("PrefabHelper"));
+	PrefabHelperObject->bIsInsidePrefabEditor = false;
 }
 
 void ALGUIPrefabHelperActor::OnConstruction(const FTransform& Transform)
@@ -72,9 +75,9 @@ void ALGUIPrefabHelperActor::Destroyed()
 		}
 	}
 
-	if (IsValid(LoadedRootActor))
+	if (IsValid(PrefabHelperObject->LoadedRootActor))
 	{
-		LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor);
+		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor);
 	}
 #endif
 }
@@ -94,135 +97,29 @@ void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 
 void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 {
-	if (!IsValid(LoadedRootActor))
-	{
-		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
-
-		LoadedRootActor = PrefabAsset->LoadPrefabForEdit(this->GetWorld()
-			, InParent
-			, MapGuidToObject, SubPrefabMap);
-		AllLoadedActorArray.Empty();
-		for (auto KeyValue : MapGuidToObject)
-		{
-			if (auto Actor = Cast<AActor>(KeyValue.Value))
-			{
-				AllLoadedActorArray.Add(Actor);
-			}
-		}
-
-		FActorFolders::Get().CreateFolder(*this->GetWorld(), PrefabFolderName);
-		this->SetFolderPath(PrefabFolderName);
-
-		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
-	}
+	PrefabHelperObject->LoadPrefab(this->GetWorld(), InParent);
 }
 
 void ALGUIPrefabHelperActor::SavePrefab()
 {
-	if (PrefabAsset)
-	{
-		TMap<UObject*, FGuid> MapObjectToGuid;
-		for (auto KeyValue : MapGuidToObject)
-		{
-			if (IsValid(KeyValue.Value))
-			{
-				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
-			}
-		}
-		PrefabAsset->SavePrefab(LoadedRootActor, MapObjectToGuid, SubPrefabMap);
-		MapGuidToObject.Empty();
-		AllLoadedActorArray.Empty();
-		for (auto KeyValue : MapObjectToGuid)
-		{
-			MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
-			if (auto Actor = Cast<AActor>(KeyValue.Key))
-			{
-				AllLoadedActorArray.Add(Actor);
-			}
-		}
-	}
-	else
-	{
-		UE_LOG(LGUI, Error, TEXT("PrefabAsset is null, please create a LGUIPrefab asset and assign to PrefabAsset"));
-	}
+	PrefabHelperObject->SavePrefab();
 }
 
 void ALGUIPrefabHelperActor::RevertPrefab()
 {
-	if (IsValid(PrefabAsset))
-	{
-		AActor* OldParentActor = nullptr;
-		bool haveRootTransform = true;
-		FTransform OldTransform;
-		FUIWidget OldWidget;
-		//store root transform
-		if (IsValid(LoadedRootActor))
-		{
-			OldParentActor = LoadedRootActor->GetAttachParentActor();
-			if (auto RootComp = LoadedRootActor->GetRootComponent())
-			{
-				haveRootTransform = true;
-				OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
-				if (auto RootUIComp = Cast<UUIItem>(RootComp))
-				{
-					OldWidget = RootUIComp->GetWidget();
-				}
-			}
-		}
-		//Revert exsiting objects with parameters inside prefab
-		{
-			LoadedRootActor = nullptr;
-			LoadPrefab(nullptr);
-		}
-
-		if (IsValid(LoadedRootActor))
-		{
-			LoadedRootActor->AttachToActor(OldParentActor, FAttachmentTransformRules::KeepRelativeTransform);
-			if (haveRootTransform)
-			{
-				if (auto RootComp = LoadedRootActor->GetRootComponent())
-				{
-					RootComp->SetRelativeTransform(OldTransform);
-					if (auto RootUIItem = Cast<UUIItem>(RootComp))
-					{
-						auto newWidget = RootUIItem->GetWidget();
-						RootUIItem->SetWidget(OldWidget);
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		UE_LOG(LGUI, Error, TEXT("PrefabAsset is null, please create a LGUIPrefab asset and assign to PrefabAsset"));
-	}
+	PrefabHelperObject->RevertPrefab();
 }
 
 void ALGUIPrefabHelperActor::DeleteThisInstance()
 {
-	if (LoadedRootActor)
+	if (PrefabHelperObject->LoadedRootActor)
 	{
-		LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
+		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor, true);
 	}
 	else
 	{
 		UE_LOG(LGUI, Error, TEXT("This actor is not a prefab, ignore this action"));
 	}
 	LGUIUtils::DestroyActorWithHierarchy(this, false);
-}
-
-void ALGUIPrefabHelperActor::CleanupPrefabAndActor()
-{
-	//Cleanup AllLoadedActorArray, remove it if not under root actor
-	for (int i = AllLoadedActorArray.Num() - 1; i >= 0; i--)
-	{
-		auto ActorItem = AllLoadedActorArray[i];
-		if (!IsValid(ActorItem)//not valid
-			|| (!ActorItem->IsAttachedTo(LoadedRootActor) && ActorItem != LoadedRootActor)//not attached to this prefab
-			)
-		{
-			AllLoadedActorArray.RemoveAt(i);
-		}
-	}
 }
 #endif

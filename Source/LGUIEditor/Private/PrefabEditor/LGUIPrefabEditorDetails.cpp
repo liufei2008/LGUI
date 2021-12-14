@@ -101,7 +101,7 @@ void SLGUIPrefabEditorDetails::OnEditorSelectionChanged(UObject* Object)
 	{
 		if (AActor* Actor = Selection->GetTop<AActor>())
 		{
-			if (Actor->GetWorld() != PrefabEditorPtr->GetWorld())
+			if (Actor->GetWorld() != PrefabEditorPtr.Pin()->GetWorld())
 			{
 				return;
 			}
@@ -119,7 +119,7 @@ void SLGUIPrefabEditorDetails::OnEditorSelectionChanged(UObject* Object)
 			UObject* SeletedObject = Selection->GetSelectedObject(i);
 			if (SeletedObject)
 			{
-				if (SeletedObject->GetWorld() != PrefabEditorPtr->GetWorld())
+				if (SeletedObject->GetWorld() != PrefabEditorPtr.Pin()->GetWorld())
 				{
 					continue;
 				}

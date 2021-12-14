@@ -1,8 +1,8 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/2/ActorSerializer.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "BitConverter.h"
 #include "Engine/World.h"
 #include "Serialization/MemoryReader.h"
@@ -44,8 +44,7 @@ void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData&
 	{
 		if (Comp == RootComp)continue;//skip RootComponent
 		if (Comp->HasAnyFlags(EObjectFlags::RF_Transient))continue;//skip transient component
-		if (Comp->GetClass()->IsChildOf(ULGUIPrefabHelperComponent::StaticClass()))continue;//skip LGUIPrefabHelperComponent, this component is only for editor helper
-																							//if (Comp->IsInBlueprint())continue;//skip Blueprint component
+
 		FLGUIComponentSaveData CompData;
 		CompData.ComponentClass = FindOrAddClassFromList(Comp->GetClass());
 		CompData.ComponentName = Comp->GetFName();
@@ -533,7 +532,7 @@ ALGUIPrefabHelperActor* ActorSerializer::GetPrefabActorThatUseTheActorAsRoot(AAc
 		auto PrefabActor = *ActorItr;
 		if (IsValid(PrefabActor))
 		{
-			if (PrefabActor->LoadedRootActor == InActor)
+			if (PrefabActor->PrefabHelperObject->LoadedRootActor == InActor)
 			{
 				return PrefabActor;
 			}

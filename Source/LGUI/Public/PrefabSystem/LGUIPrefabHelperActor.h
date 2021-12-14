@@ -3,7 +3,10 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "PrefabSystem/LGUIPrefab.h"
 #include "LGUIPrefabHelperActor.generated.h"
+
+class ULGUIPrefabHelperObject;
 
 UCLASS(NotBlueprintable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
 class LGUI_API ALGUIPrefabHelperActor : public AActor
@@ -29,32 +32,14 @@ public:
 	//delete this prefab actor
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void DeleteThisInstance();
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SetPrefabAsset(ULGUIPrefab* InPrefab)
-	{
-		PrefabAsset = InPrefab;
-	}
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUIPrefab* GetPrefabAsset()const { return PrefabAsset; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		AActor* GetLoadedRootActor()const { return LoadedRootActor; }
 	void MoveActorToPrefabFolder();
-	void CleanupPrefabAndActor();
 private:
 #endif
 #if WITH_EDITORONLY_DATA
 public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefab* PrefabAsset;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		AActor* LoadedRootActor;
-	/** All loaded actor */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<AActor*> AllLoadedActorArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<FGuid, UObject*> MapGuidToObject;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
+		ULGUIPrefabHelperObject* PrefabHelperObject;
+
 	FColor IdentityColor = FColor::Black;
 	bool IsRandomColor = true;
 	static TArray<FColor> AllColors;

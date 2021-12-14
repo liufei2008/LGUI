@@ -42,7 +42,6 @@ public:
 	//end TickableEditorObject interface
 	FLGUIEditorTickMulticastDelegate EditorTick;
 	FSimpleMulticastDelegate EditorViewportIndexAndKeyChange;
-	static bool CanExecuteSelectionConvert;
 private:
 	TMap<int32, uint32> EditorViewportIndexToKeyMap;
 	int32 PrevEditorViewportCount = 0;
@@ -118,11 +117,6 @@ public:
 
 	static void RefreshAllUI();
 private:
-	bool IsCalculatingSelection = false;
-	FDelegateHandle OnSelectionChangedDelegateHandle;
-	TWeakObjectPtr<UUIBaseRenderable> LastSelectTarget;
-	TWeakObjectPtr<AActor> LastSelectedActor;
-	void OnSelectionChanged(UObject* newSelection);
 	FDelegateHandle OnAssetReimportDelegateHandle;
 	void OnAssetReimport(UObject* asset);
 	FDelegateHandle OnActorLabelChangedDelegateHandle;
@@ -131,9 +125,6 @@ private:
 	void OnActorDeleted();
 	FDelegateHandle OnMapOpenedDelegateHandle;
 	void OnMapOpened(const FString& FileName, bool AsTemplate);
-#if 0
-	void LogObjectFlags(UObject* obj);
-#endif
 	static UWorld* PreviewWorldForPrefabPackage;
 public:
 	static UWorld* GetPreviewWorldForPrefabPackage();

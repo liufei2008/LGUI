@@ -7,6 +7,8 @@
 #include "LGUIPrefabPreviewScene.h"
 #include "LGUIPrefabEditorDetails.h"
 #include "LGUIPrefabEditorOutliner.h"
+#include "LGUIPrefabOverrideParameterEditor.h"
+#include "LGUIPrefabRawDataViewer.h"
 #include "UnrealEdGlobals.h"
 #include "EditorModeManager.h"
 #include "EngineUtils.h"
@@ -14,6 +16,14 @@
 #include "AssetSelection.h"
 #include "DragAndDrop/AssetDragDropOp.h"
 #include "Misc/FeedbackContext.h"
+#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
+#include "LGUIPrefabEditorCommand.h"
+#include "Framework/MultiBox/MultiBoxExtender.h"
+#include "LGUIEditorTools.h"
+#include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "Engine/Selection.h"
+#include "ToolMenus.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
 
@@ -25,16 +35,36 @@ struct FLGUIPrefabEditorTabs
 	static const FName DetailsID;
 	static const FName ViewportID;
 	static const FName OutlinerID;
+	static const FName OverrideParameterID;
+	static const FName PrefabRawDataViewerID;
 };
 
 const FName FLGUIPrefabEditorTabs::DetailsID(TEXT("Details"));
 const FName FLGUIPrefabEditorTabs::ViewportID(TEXT("Viewport"));
 const FName FLGUIPrefabEditorTabs::OutlinerID(TEXT("Outliner"));
+const FName FLGUIPrefabEditorTabs::OverrideParameterID(TEXT("OverrideParameter"));
+const FName FLGUIPrefabEditorTabs::PrefabRawDataViewerID(TEXT("PrefabRawDataViewer"));
 
 FLGUIPrefabEditor::FLGUIPrefabEditor()
-	:PreviewScene(FLGUIPrefabPreviewScene::ConstructionValues().AllowAudioPlayback(false).ShouldSimulatePhysics(false).SetEditor(true))
+	:PreviewScene(FLGUIPrefabPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(false).SetEditor(true))
 {
+	PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>();
+	PrefabHelperObject->AddToRoot();
+	PrefabHelperObject->bIsInsidePrefabEditor = true;
+}
+FLGUIPrefabEditor::~FLGUIPrefabEditor()
+{
+	if (PrefabHelperObject.IsValid())
+	{
+		PrefabHelperObject->RemoveFromRoot();
+		PrefabHelperObject->ConditionalBeginDestroy();
+		PrefabHelperObject.Reset();
+	}
+}
 
+bool FLGUIPrefabEditor::OnRequestClose()
+{
+	return true;
 }
 
 void FLGUIPrefabEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -58,6 +88,15 @@ void FLGUIPrefabEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTab
 		.SetDisplayName(LOCTEXT("OutlinerTabLabel", "Outliner"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Outliner"));
+
+	InTabManager->RegisterTabSpawner(FLGUIPrefabEditorTabs::OverrideParameterID, FOnSpawnTab::CreateSP(this, &FLGUIPrefabEditor::SpawnTab_OverrideParameter))
+		.SetDisplayName(LOCTEXT("OverrideParameterTabLabel", "OverrideParameter"))
+		.SetGroup(WorkspaceMenuCategoryRef)
+		;
+	InTabManager->RegisterTabSpawner(FLGUIPrefabEditorTabs::PrefabRawDataViewerID, FOnSpawnTab::CreateSP(this, &FLGUIPrefabEditor::SpawnTab_PrefabRawDataViewer))
+		.SetDisplayName(LOCTEXT("PrefabRawDataViewerTabLabel", "PrefabRawDataViewer"))
+		.SetGroup(WorkspaceMenuCategoryRef)
+		;
 }
 void FLGUIPrefabEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
@@ -66,56 +105,39 @@ void FLGUIPrefabEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InT
 	InTabManager->UnregisterTabSpawner(FLGUIPrefabEditorTabs::ViewportID);
 	InTabManager->UnregisterTabSpawner(FLGUIPrefabEditorTabs::DetailsID);
 	InTabManager->UnregisterTabSpawner(FLGUIPrefabEditorTabs::OutlinerID);
+	InTabManager->UnregisterTabSpawner(FLGUIPrefabEditorTabs::OverrideParameterID);
+	InTabManager->UnregisterTabSpawner(FLGUIPrefabEditorTabs::PrefabRawDataViewerID);
 }
 
 void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost >& InitToolkitHost, ULGUIPrefab* InPrefab)
 {
 	PrefabBeingEdited = InPrefab;
+	PrefabHelperObject->PrefabAsset = PrefabBeingEdited;
 
-	TMap<FGuid, UObject*> TempMapGuidToObject;
-	for (auto KeyValue : MapGuidToObject)
-	{
-		if (KeyValue.Value.IsValid())
-		{
-			TempMapGuidToObject.Add(KeyValue.Key, KeyValue.Value.Get());
-		}
-	}
-	TMap<AActor*, ULGUIPrefab*> TempSubPrefabMap;
-	LoadedRootActor = PrefabBeingEdited->LoadPrefabForEdit(PreviewScene.GetWorld(), PreviewScene.GetParentComponentForPrefab(PrefabBeingEdited), TempMapGuidToObject, TempSubPrefabMap);
-	MapGuidToObject.Reset();
-	TArray<AActor*> LoadedActorArray;
-	for (auto KeyValue : TempMapGuidToObject)
-	{
-		MapGuidToObject.Add(KeyValue.Key, KeyValue.Value);
-		if (auto ActorItem = Cast<AActor>(KeyValue.Value))
-		{
-			LoadedActorArray.Add(ActorItem);
-		}
-	}
-	SubPrefabMap.Reset();
-	for (auto KeyValue : TempSubPrefabMap)
-	{
-		SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
-	}
+	FLGUIPrefabEditorCommand::Register();
 
-	TArray<AActor*> AllChildrenActorArray;
-	LGUIUtils::CollectChildrenActors(LoadedRootActor, AllChildrenActorArray, true);
-	for (auto ActorItem : AllChildrenActorArray)
-	{
-		if (!LoadedActorArray.Contains(ActorItem))
-		{
-			SetActorNotListInOutliner(ActorItem);
-		}
-	}
+	PrefabHelperObject->LoadPrefab(GetPreviewScene().GetWorld(), GetPreviewScene().GetParentComponentForPrefab(PrefabBeingEdited));
 
 	TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr = SharedThis(this);
+
 	ViewportPtr = SNew(SLGUIPrefabEditorViewport, PrefabEditorPtr);
+	
+	DetailsPtr = SNew(SLGUIPrefabEditorDetails, PrefabEditorPtr);
+
+	OverrideParameterPtr = SNew(SLGUIPrefabOverrideParameterEditor, PrefabEditorPtr);
+	OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject, PrefabHelperObject->LoadedRootActor);
+	OverrideParameterPtr->SetTipText(PrefabHelperObject->LoadedRootActor->GetActorLabel());
+
+	PrefabRawDataViewer = SNew(SLGUIPrefabRawDataViewer, PrefabEditorPtr, PrefabBeingEdited);
 
 	OutlinerPtr = MakeShared<FLGUIPrefabEditorOutliner>();
 	OutlinerPtr->ActorFilter = FOnShouldFilterActor::CreateRaw(this, &FLGUIPrefabEditor::IsFilteredActor);
 	OutlinerPtr->OnActorPickedDelegate = FOnActorPicked::CreateRaw(this, &FLGUIPrefabEditor::OnOutlinerPickedChanged);
 	OutlinerPtr->OnActorDoubleClickDelegate = FOnActorPicked::CreateRaw(this, &FLGUIPrefabEditor::OnOutlinerActorDoubleClick);
-	OutlinerPtr->InitOutliner(PreviewScene.GetWorld());
+	OutlinerPtr->InitOutliner(GetPreviewScene().GetWorld(), PrefabEditorPtr);
+
+	BindCommands();
+	ExtendToolbar();
 
 	// Default layout
 	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_LGUIPrefabEditor_Layout_v1")
@@ -159,49 +181,99 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
 }
 
+void FLGUIPrefabEditor::ApplySubPrefabParameterChange(AActor* InSubPrefabActor)
+{
+	check(PrefabHelperObject->SubPrefabMap.Contains(InSubPrefabActor));
+	//refresh data
+	auto& SubPrefabData = PrefabHelperObject->SubPrefabMap[InSubPrefabActor];
+	SubPrefabData.OverrideParameterObject->ApplyParameter();
+
+	ULGUIEditorManagerObject::RefreshAllUI();
+}
+void FLGUIPrefabEditor::RefreshSubPrefab(AActor* InSubPrefabActor)
+{
+	check(PrefabHelperObject->SubPrefabMap.Contains(InSubPrefabActor));
+	//refresh data
+	auto& SubPrefabData = PrefabHelperObject->SubPrefabMap[InSubPrefabActor];
+	SubPrefabData.OverrideParameterObject->ApplyParameter();
+}
+
+void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray)
+{
+	for (auto Item : InSelectedActorArray)
+	{
+		if (Item == PrefabHelperObject->LoadedRootActor)
+		{
+			auto WarningMsg = FString::Printf(TEXT("Cannot destroy root actor!."));
+			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(WarningMsg));
+			return;
+		}
+		if (Item == GetPreviewScene().GetRootAgentActor())
+		{
+			auto WarningMsg = FString::Printf(TEXT("Cannot destroy root agent actor!."));
+			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(WarningMsg));
+			return;
+		}
+	}
+
+	auto confirmMsg = FString::Printf(TEXT("Destroy selected actors? This will also destroy the children attached to selected actors."));
+	auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg));
+	if (confirmResult == EAppReturnType::No)return;
+
+	GEditor->BeginTransaction(LOCTEXT("DeleteActors", "FLGUIPrefabEditor DeleteActors"));
+	GEditor->GetSelectedActors()->DeselectAll();
+	TArray<AActor*> SelectedActorArray;
+	for (auto Item : InSelectedActorArray)
+	{
+		if (Item.IsValid())
+		{
+			SelectedActorArray.Add(Item.Get());
+		}
+	}
+	for (auto Item : SelectedActorArray)
+	{
+		if (PrefabHelperObject->SubPrefabMap.Contains(Item))
+		{
+			PrefabHelperObject->SubPrefabMap.Remove(Item);
+		}
+	}
+	LGUIEditorTools::GetRootActorListFromSelection(SelectedActorArray);
+	GEditor->EndTransaction();
+}
+
 void FLGUIPrefabEditor::SaveAsset_Execute()
 {
 	if (CheckBeforeSaveAsset())
 	{
-		TMap<UObject*, FGuid> MapObjectToGuid;
-		for (auto KeyValue : MapGuidToObject)
-		{
-			if (KeyValue.Value.IsValid())
-			{
-				MapObjectToGuid.Add(KeyValue.Value.Get(), KeyValue.Key);
-			}
-		}
-		TMap<AActor*, ULGUIPrefab*> TempSubPrefabMap;
-		for (auto KeyValue : SubPrefabMap)
-		{
-			if (KeyValue.Key.IsValid() && KeyValue.Value.IsValid())
-			{
-				TempSubPrefabMap.Add(KeyValue.Key.Get(), KeyValue.Value.Get());
-			}
-		}
-		PrefabBeingEdited->SavePrefab(LoadedRootActor, MapObjectToGuid, TempSubPrefabMap);
-		MapGuidToObject.Empty();
-		for (auto KeyValue : MapObjectToGuid)
-		{
-			MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
-		}
-
+		PrefabHelperObject->SavePrefab();
 		FAssetEditorToolkit::SaveAsset_Execute();
 	}
+}
+void FLGUIPrefabEditor::OnApply()
+{
+	if (CheckBeforeSaveAsset())
+	{
+		PrefabHelperObject->SavePrefab();
+	}
+}
+
+void FLGUIPrefabEditor::AddReferencedObjects(FReferenceCollector& Collector)
+{
+	Collector.AddReferencedObject(PrefabBeingEdited);
 }
 
 bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
 {
-	auto RootUIAgentActor = PreviewScene.GetRootUIAgentActor();
+	auto RootUIAgentActor = GetPreviewScene().GetRootAgentActor();
 	//All actor should attach to prefab's root actor
-	for (TActorIterator<AActor> ActorItr(PreviewScene.GetWorld()); ActorItr; ++ActorItr)
+	for (TActorIterator<AActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
 	{
 		if (AActor* ItemActor = *ActorItr)
 		{
-			if (ItemActor == LoadedRootActor)continue;
+			if (ItemActor == PrefabHelperObject->LoadedRootActor)continue;
 			if (ItemActor == RootUIAgentActor)continue;
-			if (PreviewScene.IsWorldDefaultActor(ItemActor))continue;
-			if (!ItemActor->IsAttachedTo(LoadedRootActor))
+			if (GetPreviewScene().IsWorldDefaultActor(ItemActor))continue;
+			if (!ItemActor->IsAttachedTo(PrefabHelperObject->LoadedRootActor))
 			{
 				auto MsgText = LOCTEXT("Error_AllActor", "All prefab's actors must attach to prefab's root actor!");
 				FMessageDialog::Open(EAppMsgType::Ok, MsgText);
@@ -211,9 +283,9 @@ bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
 	}
 	
 	//If is UI prefab, then root actor must be child of [UIRootAgent]
-	if (LoadedRootActor->IsA(AUIBaseActor::StaticClass()))
+	if (PrefabHelperObject->LoadedRootActor->IsA(AUIBaseActor::StaticClass()))
 	{
-		if (LoadedRootActor->GetAttachParentActor() != RootUIAgentActor)
+		if (PrefabHelperObject->LoadedRootActor->GetAttachParentActor() != RootUIAgentActor)
 		{
 			auto MsgText = LOCTEXT("Error_PrefabRootMustMustBeChildOfRootUIAgent", "Prefab's root actor must be child of [UIRootAgent]");
 			FMessageDialog::Open(EAppMsgType::Ok, MsgText);
@@ -221,20 +293,12 @@ bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
 		}
 	}
 
-	check(AllLoadedActorArray.Num() == AllLoadedActorGuidArrayInPrefab.Num());
-	for (int i = AllLoadedActorArray.Num() - 1; i >= 0; i--)
-	{
-		auto ActorItem = AllLoadedActorArray[i];
-		if (!IsValid(ActorItem)//not valid
-			|| (!ActorItem->IsAttachedTo(LoadedRootActor) && ActorItem != LoadedRootActor)//not attached to this prefab
-			)
-		{
-			AllLoadedActorArray.RemoveAt(i);
-			AllLoadedActorGuidArrayInPrefab.RemoveAt(i);
-		}
-	}
-
 	return true;
+}
+
+FLGUIPrefabPreviewScene& FLGUIPrefabEditor::GetPreviewScene()
+{ 
+	return PreviewScene;
 }
 
 UWorld* FLGUIPrefabEditor::GetWorld()
@@ -242,9 +306,29 @@ UWorld* FLGUIPrefabEditor::GetWorld()
 	return PreviewScene.GetWorld();
 }
 
+void FLGUIPrefabEditor::BindCommands()
+{
+	const FLGUIPrefabEditorCommand& PrefabEditorCommands = FLGUIPrefabEditorCommand::Get();
+	ToolkitCommands->MapAction(
+		PrefabEditorCommands.Apply,
+		FExecuteAction::CreateSP(this, &FLGUIPrefabEditor::OnApply),
+		FCanExecuteAction(),
+		FIsActionChecked()
+	);
+}
 void FLGUIPrefabEditor::ExtendToolbar()
 {
+	const FName MenuName = GetToolMenuToolbarName();
+	if (!UToolMenus::Get()->IsMenuRegistered(MenuName))
+	{
+		UToolMenu* ToolBar = UToolMenus::Get()->RegisterMenu(MenuName, "AssetEditor.DefaultToolBar", EMultiBoxType::ToolBar);
 
+		FToolMenuInsert InsertAfterAssetSection("Asset", EToolMenuInsertType::After);
+		{
+			FToolMenuSection& Section = ToolBar->AddSection("Apply", TAttribute<FText>(), InsertAfterAssetSection);
+			Section.AddEntry(FToolMenuEntry::InitToolBarButton(FLGUIPrefabEditorCommand::Get().Apply));
+		}
+	}
 }
 
 TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_Viewport(const FSpawnTabArgs& Args)
@@ -275,13 +359,11 @@ TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_Viewport(const FSpawnTabArgs& A
 }
 TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_Details(const FSpawnTabArgs& Args)
 {
-	TSharedPtr<FLGUIPrefabEditor> DetailsPtr = SharedThis(this);
-
 	// Spawn the tab
 	return SNew(SDockTab)
 		.Label(LOCTEXT("DetailsTab_Title", "Details"))
 		[
-			SNew(SLGUIPrefabEditorDetails, DetailsPtr)
+			DetailsPtr.ToSharedRef()
 		];
 }
 TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_Outliner(const FSpawnTabArgs& Args)
@@ -291,6 +373,26 @@ TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_Outliner(const FSpawnTabArgs& A
 		.Label(LOCTEXT("OutlinerTab_Title", "Outliner"))
 		[
 			OutlinerPtr->GetOutlinerWidget().ToSharedRef()
+		];
+}
+
+TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_OverrideParameter(const FSpawnTabArgs& Args)
+{
+	// Spawn the tab
+	return SNew(SDockTab)
+		.Label(LOCTEXT("OverrideParameterTab_Title", "OverrideParameter"))
+		[
+			OverrideParameterPtr.ToSharedRef()
+		];
+}
+
+TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_PrefabRawDataViewer(const FSpawnTabArgs& Args)
+{
+	// Spawn the tab
+	return SNew(SDockTab)
+		.Label(LOCTEXT("OverrideParameterTab_Title", "OverrideParameter"))
+		[
+			PrefabRawDataViewer.ToSharedRef()
 		];
 }
 
@@ -311,6 +413,20 @@ bool FLGUIPrefabEditor::IsFilteredActor(const AActor* Actor)
 void FLGUIPrefabEditor::OnOutlinerPickedChanged(AActor* Actor)
 {
 	CurrentSelectedActor = Actor;
+	if (PrefabHelperObject->SubPrefabMap.Contains(Actor))
+	{
+		PrefabHelperObject->SubPrefabMap[Actor].OverrideParameterObject->SetParameterDisplayType(false);
+		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->SubPrefabMap[Actor].OverrideParameterObject, Actor);
+		OverrideParameterPtr->SetTipText(Actor->GetActorLabel());
+		//this->InvokeTab(FLGUIPrefabEditorTabs::OverrideParameterID);
+	}
+	else if (Actor == PrefabHelperObject->LoadedRootActor)
+	{
+		PrefabHelperObject->PrefabOverrideParameterObject->SetParameterDisplayType(true);
+		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject, Actor);
+		OverrideParameterPtr->SetTipText(Actor->GetActorLabel());
+		//this->InvokeTab(FLGUIPrefabEditorTabs::OverrideParameterID);
+	}
 }
 
 void FLGUIPrefabEditor::OnOutlinerActorDoubleClick(AActor* Actor)
@@ -397,7 +513,47 @@ void FLGUIPrefabEditor::OnToolkitHostingFinished(const TSharedRef<IToolkit>& Too
 
 FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent)
 {
-	if (CurrentSelectedActor == nullptr)return FReply::Unhandled();//need a parent node
+	if (CurrentSelectedActor == nullptr)
+	{
+		auto MsgText = LOCTEXT("Error_NeedParentNode", "Please select a actor as parent actor");
+		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+		return FReply::Unhandled();
+	}
+	if (CurrentSelectedActor == GetPreviewScene().GetRootAgentActor())
+	{
+		auto Msg = FString::Printf(TEXT("%s cannot be parent actor of subprefab, please choose another actor."), *GetPreviewScene().UIRootAgentActorName);
+		auto MsgText = FText::FromString(Msg);
+		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+		return FReply::Unhandled();
+	}
+
+	struct Local
+	{
+	private:
+		static bool ContainsOtherPrefabAsSubPrefab(const TArray<UObject*>& ReferenceAssetList, ULGUIPrefab* InTestPrefab)
+		{
+			if (ReferenceAssetList.Contains(InTestPrefab))
+			{
+				return true;
+			}
+			for (auto Asset : ReferenceAssetList)
+			{
+				if (auto PrefabAsset = Cast<ULGUIPrefab>(Asset))
+				{
+					if (ContainsOtherPrefabAsSubPrefab(PrefabAsset->ReferenceAssetList, InTestPrefab))
+					{
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+	public:
+		static bool ContainsOtherPrefabAsSubPrefab(ULGUIPrefab* InPrefab, ULGUIPrefab* InTestPrefab)
+		{
+			return ContainsOtherPrefabAsSubPrefab(InPrefab->ReferenceAssetList, InTestPrefab);
+		}
+	};
 
 	TSharedPtr<FDragDropOperation> Operation = DragDropEvent.GetOperation();
 	if (Operation.IsValid() && Operation->IsOfType<FAssetDragDropOp>())
@@ -407,9 +563,8 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 
 		if (NumAssets > 0)
 		{
-			GWarn->BeginSlowTask(LOCTEXT("LoadingAssets", "Loading Asset(s)"), true);
-			bool bMarkBlueprintAsModified = false;
 
+			TArray<ULGUIPrefab*> PrefabsToLoad;
 			for (int32 DroppedAssetIdx = 0; DroppedAssetIdx < NumAssets; ++DroppedAssetIdx)
 			{
 				const FAssetData& AssetData = DroppedAssetData[DroppedAssetIdx];
@@ -420,29 +575,55 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				}
 
 				UObject* Asset = AssetData.GetAsset();
-
-				if (auto PrefabAsset = Cast<ULGUIPrefab>(Asset))
+				auto PrefabAsset = Cast<ULGUIPrefab>(Asset);
+				if (PrefabAsset)
 				{
-					TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
-					TMap<AActor*, ULGUIPrefab*> SubSubPrefabMap;
-					auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabForEdit(PreviewScene.GetWorld()
-						, CurrentSelectedActor->GetRootComponent()
-						, SubPrefabMapGuidToObject, SubSubPrefabMap
-						);
-
-					for (auto KeyValue : SubPrefabMapGuidToObject)
+					if (Local::ContainsOtherPrefabAsSubPrefab(PrefabAsset, this->PrefabBeingEdited))
 					{
-						if (auto ActorItem = Cast<AActor>(KeyValue.Value))
-						{
-							if (LoadedSubPrefabRootActor != ActorItem)
-							{
-								SetActorNotListInOutliner(ActorItem);
-							}
-						}
+						auto MsgText = LOCTEXT("Error_EndlessNestedPrefab", "Operation error! Target prefab have this prefab as child prefab, which will result in endless nested prefab!");
+						FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+						return FReply::Unhandled();
+					}
+					if (this->PrefabBeingEdited == PrefabAsset)
+					{
+						auto MsgText = LOCTEXT("Error_SelfPrefabAsSubPrefab", "Operation error! Target prefab is same of this one, self cannot be self's child!");
+						FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+						return FReply::Unhandled();
 					}
 
-					SubPrefabMap.Add(LoadedSubPrefabRootActor, PrefabAsset);
+					PrefabsToLoad.Add(PrefabAsset);
 				}
+			}
+
+			GWarn->BeginSlowTask(LOCTEXT("LoadingAssets", "Loading Asset(s)"), true);
+			for (auto& PrefabAsset : PrefabsToLoad)
+			{
+				FLGUISubPrefabData SubPrefabData;
+				SubPrefabData.PrefabAsset = PrefabAsset;
+
+				TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
+				TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
+				ULGUIPrefabOverrideParameterObject* SubPrefabOverrideParameterObject = nullptr;
+				auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabForEdit(GetPreviewScene().GetWorld()
+					, CurrentSelectedActor->GetRootComponent()
+					, SubPrefabMapGuidToObject, SubSubPrefabMap
+					, PrefabAsset->OverrideParameterData, SubPrefabOverrideParameterObject
+				);
+				SubPrefabData.OverrideParameterObject = SubPrefabOverrideParameterObject;
+				SubPrefabData.OverrideParameterData = PrefabAsset->OverrideParameterData;
+
+				for (auto KeyValue : SubPrefabMapGuidToObject)
+				{
+					if (auto ActorItem = Cast<AActor>(KeyValue.Value))
+					{
+						if (LoadedSubPrefabRootActor != ActorItem)
+						{
+							ULGUIPrefabHelperObject::SetActorPropertyInOutliner(ActorItem, false);
+						}
+					}
+				}
+
+				PrefabHelperObject->SubPrefabMap.Add(LoadedSubPrefabRootActor, SubPrefabData);
 			}
 
 			if (OutlinerPtr.IsValid())
@@ -456,20 +637,6 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();
-}
-
-void FLGUIPrefabEditor::SetActorNotListInOutliner(AActor* Actor)
-{
-	auto bEditable_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bEditable"));
-	bEditable_Property->SetPropertyValue_InContainer(Actor, false);
-
-	Actor->bHiddenEd = true;
-	Actor->bHiddenEdLayer = true;
-	Actor->bHiddenEdLevel = true;
-	Actor->bLockLocation = true;
-
-	auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-	bListedInSceneOutliner_Property->SetPropertyValue_InContainer(Actor, false);
 }
 
 #undef LOCTEXT_NAMESPACE

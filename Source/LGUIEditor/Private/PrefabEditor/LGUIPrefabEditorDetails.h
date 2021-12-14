@@ -31,10 +31,10 @@ protected:
 	void OnSCSEditorTreeViewItemDoubleClicked(const TSharedPtr<class FSCSEditorTreeNode> ClickedNode);
 
 public:
-	TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr;
+	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 
 private:
-	TSharedPtr<class IDetailsView> DetailsView;     // 属性列表              
+	TSharedPtr<class IDetailsView> DetailsView;
 	TSharedPtr<class SBox> ComponentsBox;
 	TSharedPtr<class SSCSEditor> SCSEditor;
 	TWeakObjectPtr<AActor> CachedActor;

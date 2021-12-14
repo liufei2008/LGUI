@@ -7,7 +7,7 @@
 
 #pragma once
 class ALGUIPrefabHelperActor;
-class ULGUIPrefabHelperComponent;
+class ULGUIPrefabHelperObject;
 class ULGUIPrefab;
 
 class LGUIEDITOR_API LGUIEditorTools
@@ -36,6 +36,8 @@ public:
 		GEditor->EndTransaction();
 		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 	}
+	static FString GetUniqueNumetricName(const FString& InPrefix, const TArray<FString>& InExistNames);
+	static TArray<AActor*> GetRootActorListFromSelection(const TArray<AActor*>& selectedActors);
 	static void CreateUIItemActor(UClass* ActorClass);
 	static void CreateEmptyActor();
 	static void CreateUIControls(FString InPrefabPath);
@@ -62,7 +64,8 @@ public:
 	static void UnlinkPrefab();
 	static void SelectPrefabAsset();
 	static void CleanupPrefabsInWorld(UWorld* World);
-	static ALGUIPrefabHelperActor* GetPrefabActor_WhichManageThisActor(AActor* InActor);
+	static ULGUIPrefabHelperObject* GetPrefabHelperObject_WhichManageThisActor(AActor* InActor);
+	static bool IsPrefabActor(AActor* InActor);
 	static void SaveAsset(UObject* InObject, UPackage* InPackage);
 	static void ClearInvalidPrefabActor(UWorld* World);
 	static bool IsSelectUIActor();

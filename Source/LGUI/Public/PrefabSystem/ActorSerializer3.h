@@ -9,89 +9,11 @@
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h"
 
+class ULGUIPrefabOverrideParameterObject;
+class UUIItem;
+
 namespace LGUIPrefabSystem3
 {
-	class ActorSerializer3;
-
-	enum class EObjectType :uint8
-	{
-		None,
-		/** Asset resource */
-		Asset,
-		/** UClass */
-		Class,
-		/** UObject reference(Not asset), include actor/ component/ uobject */
-		ObjectReference,
-		/** Only for duplicate, use native ObjectWriter/ObjectReader serialization method */
-		NativeSerailizeForDuplicate,
-	};
-	class FLGUIObjectWriter : public FObjectWriter
-	{
-	public:
-		FLGUIObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
-
-		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
-		virtual FArchive& operator<<(class FName& N) override;
-		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FLazyObjectPtr& LazyObjectPtr) override;
-		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
-		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
-		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject* Object);
-	private:
-		ActorSerializer3& Serializer;
-		TSet<FName> SkipPropertyNames;
-	};
-	class FLGUIObjectReader : public FObjectReader
-	{
-	public:
-		FLGUIObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
-
-		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
-		virtual FArchive& operator<<(class FName& N) override;
-		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FLazyObjectPtr& LazyObjectPtr) override;
-		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
-		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
-		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject*& Object, bool CanSerializeClass);
-	private:
-		ActorSerializer3& Serializer;
-		TSet<FName> SkipPropertyNames;
-	};
-
-	class FLGUIDuplicateObjectWriter : public FObjectWriter
-	{
-	public:
-		FLGUIDuplicateObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
-
-		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
-		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
-		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject* Object);
-	private:
-		ActorSerializer3& Serializer;
-		TSet<FName> SkipPropertyNames;
-	};
-	class FLGUIDuplicateObjectReader : public FObjectReader
-	{
-	public:
-		FLGUIDuplicateObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
-
-		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
-		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
-		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject*& Object, bool CanSerializeClass);
-	private:
-		ActorSerializer3& Serializer;
-		TSet<FName> SkipPropertyNames;
-	};
-
-
 	struct FLGUIObjectSaveData
 	{
 	public:
@@ -135,12 +57,67 @@ namespace LGUIPrefabSystem3
 		}
 	};
 
+	struct FLGUISubPrefabDefaultOverrideParameter//@todo: must be some way to automatic compare property's value, so that we can automaticlly mark changed properties
+	{
+	public:
+		FLGUISubPrefabDefaultOverrideParameter() {};
+		FLGUISubPrefabDefaultOverrideParameter(USceneComponent* RootComp);
+		void ApplyToTarget(USceneComponent* RootComp);
+
+		FString ActorLabel = TEXT("");
+		FVector Location;
+		FRotator Rotation;
+		FVector Scale;
+		bool bIsUI;
+		//for UIItem
+		FString displayName;
+		FVector2D pivot;
+		uint8 anchorHAlign;
+		uint8 anchorVAlign;
+		float anchorOffsetX;
+		float anchorOffsetY;
+		float width;
+		float height;
+		float stretchLeft;
+		float stretchRight;
+		float stretchTop;
+		float stretchBottom;
+
+		friend FArchive& operator<<(FArchive& Ar, FLGUISubPrefabDefaultOverrideParameter& Data)
+		{
+			Ar << Data.bIsUI;
+
+			Ar << Data.ActorLabel;
+			Ar << Data.Location;
+			Ar << Data.Rotation;
+			Ar << Data.Scale;
+			if (Data.bIsUI)
+			{
+				Ar << Data.displayName;
+				Ar << Data.pivot;
+				Ar << Data.anchorHAlign;
+				Ar << Data.anchorVAlign;
+				Ar << Data.anchorOffsetX;
+				Ar << Data.anchorOffsetY;
+				Ar << Data.width;
+				Ar << Data.height;
+				Ar << Data.stretchLeft;
+				Ar << Data.stretchRight;
+				Ar << Data.stretchTop;
+				Ar << Data.stretchBottom;
+			}
+			return Ar;
+		}
+	};
+
 	//Actor serialize and save data
 	struct FLGUIActorSaveData
 	{
 	public:
 		bool bIsPrefab = false;
 		int32 PrefabAssetIndex;
+		FLGUISubPrefabDefaultOverrideParameter PrefabDefaultOverrideParameter;
+		TArray<uint8> PrefabOverrideParameterData;
 
 		int32 ActorClass;
 		FGuid ActorGuid;//use id to find actor
@@ -163,6 +140,8 @@ namespace LGUIPrefabSystem3
 			{
 				Ar << ActorData.PrefabAssetIndex;
 				Ar << ActorData.ActorGuid;//sub prefab's root actor's guid
+				Ar << ActorData.PrefabDefaultOverrideParameter;//override sub prefab's root transform
+				Ar << ActorData.PrefabOverrideParameterData;//override sub prefab's parameter
 			}
 			else
 			{
@@ -196,6 +175,7 @@ namespace LGUIPrefabSystem3
 		}
 	};
 
+
 	/*
 	 * serialize/deserialize actor with hierarchy
 	 * Not support: LazyObject, SoftObject
@@ -218,27 +198,41 @@ namespace LGUIPrefabSystem3
 		 * @param CallbackBeforeAwake	This callback function will execute before Awake event, parameter "Actor" is the loaded root actor.
 		 */
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(AActor*)> CallbackBeforeAwake = nullptr);
-
-		/** Save prefab data for editor use. */
-		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap);
-		/** Save prefab date for runtime use. */
-		static void SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap);
 		/**
 		 * LoadPrefab for edit/modify, will keep reference of source prefab.
 		 */
 		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, ULGUIPrefab*>& OutSubPrefabMap
+			, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+			, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
 		);
+
+		/** Save prefab data for editor use. */
+		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
+			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+			, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		);
+		/** Save prefab date for runtime use. */
+		static void SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap);
+		
 		/**
 		 * Duplicate actor with hierarchy
 		 */
 		static AActor* DuplicateActor(AActor* RootActor, USceneComponent* Parent);
 	private:
+		static AActor* LoadSubPrefab(
+			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
+			, TMap<FGuid, UObject*>& InMapGuidToObject
+			, TFunction<ULGUIPrefabOverrideParameterObject* (AActor*)> InGetDeserializedOverrideParameterObjectFunction
+			, bool InIsLoadForEdit
+		);
+		/** For subprefab use, construct and deserialize override parameter from parent prefab. */
+		TFunction<ULGUIPrefabOverrideParameterObject*(AActor*)> GetDeserializedOverrideParameterObjectFunction = nullptr;
+
 		bool bIsEditorOrRuntime = true;
 		TWeakObjectPtr<UWorld> TargetWorld = nullptr;//world that need to spawn actor
 		TWeakObjectPtr<ULGUIPrefab> Prefab = nullptr;
 		bool bIsLoadForEdit = true;
+		bool bApplyOverrideParameters = false;
 
 		TMap<FGuid, UObject*> MapGuidToObject;
 		struct ComponentDataStruct
@@ -248,7 +242,10 @@ namespace LGUIPrefabSystem3
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
 
-		TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
+		ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+		TArray<uint8> OverrideParameterData;
+
+		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 		//Actor and ActorComponent that belongs to this prefab. All UObjects which get outer of these actor/component can be serailized
 		TArray<UObject*> WillSerailizeActorArray;
 		TArray<UObject*> WillSerailizeObjectArray;
@@ -260,7 +257,7 @@ namespace LGUIPrefabSystem3
 		TArray<AActor*> CreatedActors;//collect for created actors
 		TArray<FGuid> CreatedActorsGuid;//collect for created actor's guid
 
-		void CollectActorAndComponentRecursive(AActor* Actor);
+		void CollectActorRecursive(AActor* Actor);
 		bool CollectObjectToSerailize(UObject* Object, FGuid& OutGuid);
 
 		//serialize actor

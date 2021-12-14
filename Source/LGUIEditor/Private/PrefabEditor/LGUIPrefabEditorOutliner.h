@@ -9,13 +9,14 @@ class UWorld;
 class AActor;
 class SBox;
 class UActorComponent;
+class FLGUIPrefabEditor;
 
 class FLGUIPrefabEditorOutliner
 {
 public:
 	~FLGUIPrefabEditorOutliner();
 
-	void InitOutliner(UWorld* World);
+	void InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr);
 
 	TSharedPtr<SBox> GetOutlinerWidget() { return OutlinerWidget; }
 	
@@ -42,6 +43,7 @@ protected:
 	TSharedPtr<SBox> OutlinerWidget;
 	TSharedPtr<ICustomSceneOutliner> SceneOutlinerPtr;
 	TWeakObjectPtr<AActor> SelectedActor;
+	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 
 	TWeakObjectPtr<UWorld> CurrentWorld;
 

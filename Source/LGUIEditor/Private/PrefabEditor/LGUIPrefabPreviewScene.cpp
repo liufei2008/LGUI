@@ -104,12 +104,12 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 {
 	if (IsValid(InPrefab) && InPrefab->ReferenceClassList.Num() > 0)
 	{
-		if (InPrefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))
+		if (InPrefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))//ui
 		{
 			//create Canvas for UI
-			if (RootUICanvasActor == nullptr)
+			if (RootAgentActor == nullptr)
 			{
-				RootUICanvasActor = (AUIContainerActor*)(this->GetWorld()->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
+				auto RootUICanvasActor = (AUIContainerActor*)(this->GetWorld()->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
 				RootUICanvasActor->SetActorLabel(*UIRootAgentActorName);
 				RootUICanvasActor->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator(0, 0, 0));
 
@@ -136,13 +136,31 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 					auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
 					bActorLabelEditable_Property->SetPropertyValue_InContainer(RootUICanvasActor, false);
 				}
+				RootAgentActor = RootUICanvasActor;
 			}
-
-			if (RootUICanvasActor != nullptr)
+		}
+		else//not ui
+		{
+			AActor* CreatedActor = this->GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
+			if (IsValid(CreatedActor))
 			{
-				auto RootComp = RootUICanvasActor->GetRootComponent();
-				return RootComp;
+				//create SceneComponent
+				{
+					USceneComponent* RootComponent = NewObject<USceneComponent>(CreatedActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
+					RootComponent->Mobility = EComponentMobility::Movable;
+					RootComponent->bVisualizeComponent = false;
+
+					CreatedActor->SetRootComponent(RootComponent);
+					RootComponent->RegisterComponent();
+					CreatedActor->AddInstanceComponent(RootComponent);
+				}
 			}
+			RootAgentActor = CreatedActor;
+		}
+		if (RootAgentActor != nullptr)
+		{
+			auto RootComp = RootAgentActor->GetRootComponent();
+			return RootComp;
 		}
 	}
 	return nullptr;

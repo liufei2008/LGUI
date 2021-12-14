@@ -3,7 +3,7 @@
 #include "LGUIPrefabEditorViewport.h"
 #include "LGUIPrefabEditorViewportClient.h"
 #include "LGUIPrefabEditor.h"
-#include "SLGUIPrefabEditorViewportToolbar.h"
+#include "LGUIPrefabEditorViewportToolbar.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewport"
 

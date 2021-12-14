@@ -36,7 +36,6 @@ namespace LGUISceneOutliner
 	private:
 
 		FText GetTextForItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
-		bool CanShowPrefabIcon(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
 		AActor* GetActorFromTreeItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const;
 
 		EVisibility GetPrefabIconVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;

@@ -1,6 +1,7 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/ActorSerializer3.h"
+#include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Serialization/MemoryReader.h"

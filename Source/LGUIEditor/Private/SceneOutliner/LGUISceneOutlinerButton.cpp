@@ -11,10 +11,8 @@ FReply SLGUISceneOutlinerButton::OnButtonClicked()
 {
 	if (_TreeItemActor.IsValid(false))
 	{
-		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 		GEditor->SelectNone(true, false);
 		GEditor->SelectActor(_TreeItemActor.Get(), true, true, true);
-		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 		SetIsOpen(ShouldOpenDueToClick(), false);
 
 		// If the menu is open, execute the related delegate.

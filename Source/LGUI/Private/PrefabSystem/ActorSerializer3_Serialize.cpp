@@ -1,7 +1,7 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/ActorSerializer3.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
+#include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
@@ -11,6 +11,8 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUI.h"
+#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
+#include "Core/ActorComponent/UIItem.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
 #include "Utils/LGUIUtils.h"
@@ -20,7 +22,9 @@ PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
 	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap)
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+	)
 	{
 		if (!RootActor || !InPrefab)
 		{
@@ -40,9 +44,9 @@ namespace LGUIPrefabSystem3
 				serializer.MapObjectToGuid.Add(KeyValue.Key, KeyValue.Value);
 			}
 		}
-		for (auto KeyValue : InSubPrefabMap)
+		for (auto& KeyValue : InSubPrefabMap)
 		{
-			if (IsValid(KeyValue.Key) && IsValid(KeyValue.Value))
+			if (IsValid(KeyValue.Key) && IsValid(KeyValue.Value.OverrideParameterObject))
 			{
 				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
 			}
@@ -52,11 +56,13 @@ namespace LGUIPrefabSystem3
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectWriter Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
 		};
+		serializer.OverrideParameterObject = InOverrideParameterObject;
 		serializer.SerializeActor(RootActor, InPrefab);
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;
+		OutOverrideParameterData = serializer.OverrideParameterData;
 	}
 
-	void ActorSerializer3::SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap)
+	void ActorSerializer3::SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap)
 	{
 		if (!RootActor || !InPrefab)
 		{
@@ -69,9 +75,9 @@ namespace LGUIPrefabSystem3
 			return;
 		}
 		ActorSerializer3 serializer(RootActor->GetWorld());
-		for (auto KeyValue : InSubPrefabMap)
+		for (auto& KeyValue : InSubPrefabMap)
 		{
-			if (IsValid(KeyValue.Key) && IsValid(KeyValue.Value))
+			if (IsValid(KeyValue.Key) && IsValid(KeyValue.Value.OverrideParameterObject))
 			{
 				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
 			}
@@ -106,15 +112,31 @@ namespace LGUIPrefabSystem3
 
 		TArray<AActor*> ChildrenActors;
 		Actor->GetAttachedActors(ChildrenActors);
+		//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
+		Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
+			auto ARoot = A->GetRootComponent();
+			auto BRoot = B->GetRootComponent();
+			if (ARoot != nullptr && BRoot != nullptr)
+			{
+				auto AUIRoot = Cast<UUIItem>(ARoot);
+				auto BUIRoot = Cast<UUIItem>(BRoot);
+				return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
+			}
+			return false;
+			});
 		TArray<FLGUIActorSaveData> ChildSaveDataList;
 		for (auto ChildActor : ChildrenActors)
 		{
-			if (auto SubPrefabPtr = SubPrefabMap.Find(ChildActor))//sub prefab
+			if (auto SubPrefabDataPtr = SubPrefabMap.Find(ChildActor))//sub prefab
 			{
 				FLGUIActorSaveData ChildActorSaveData;
 				ChildActorSaveData.bIsPrefab = true;
-				ChildActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(*SubPrefabPtr);
+				ChildActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
 				ChildActorSaveData.ActorGuid = MapObjectToGuid[ChildActor];
+				ChildActorSaveData.PrefabDefaultOverrideParameter = FLGUISubPrefabDefaultOverrideParameter(ChildActor->GetRootComponent());
+				//serialize override parameter object
+				check(SubPrefabDataPtr->OverrideParameterObject != nullptr);
+				WriterOrReaderFunction(SubPrefabDataPtr->OverrideParameterObject, ChildActorSaveData.PrefabOverrideParameterData, false);
 				ChildSaveDataList.Add(ChildActorSaveData);
 			}
 			else
@@ -128,7 +150,7 @@ namespace LGUIPrefabSystem3
 	}
 	void ActorSerializer3::SerializeActorToData(AActor* RootActor, FLGUIPrefabSaveData& OutData)
 	{
-		CollectActorAndComponentRecursive(RootActor);
+		CollectActorRecursive(RootActor);
 		//serailize actor
 		SerializeActorRecursive(RootActor, OutData.SavedActor);
 		//serialize objects and components
@@ -142,6 +164,11 @@ namespace LGUIPrefabSystem3
 
 		FLGUIPrefabSaveData SaveData;
 		SerializeActorToData(RootActor, SaveData);
+		//serialize override parameter object
+		if (OverrideParameterObject != nullptr)
+		{
+			WriterOrReaderFunction(OverrideParameterObject, OverrideParameterData, false);
+		}
 
 		FBufferArchive ToBinary;
 		ToBinary << SaveData;
@@ -175,6 +202,8 @@ namespace LGUIPrefabSystem3
 		Prefab->ReferenceAssetList = this->ReferenceAssetList;
 		Prefab->ReferenceClassList = this->ReferenceClassList;
 		Prefab->ReferenceNameList = this->ReferenceNameList;
+
+		Prefab->OverrideParameterData = OverrideParameterData;
 
 		Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 		Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
@@ -227,7 +256,7 @@ namespace LGUIPrefabSystem3
 		return false;
 	}
 
-	void ActorSerializer3::CollectActorAndComponentRecursive(AActor* Actor)
+	void ActorSerializer3::CollectActorRecursive(AActor* Actor)
 	{
 		//collect actor and components
 		WillSerailizeActorArray.Add(Actor);
@@ -249,7 +278,7 @@ namespace LGUIPrefabSystem3
 			}
 			else
 			{
-				CollectActorAndComponentRecursive(ChildActor);
+				CollectActorRecursive(ChildActor);
 			}
 		}
 	}
@@ -265,7 +294,6 @@ namespace LGUIPrefabSystem3
 			&& !Object->HasAnyFlags(EObjectFlags::RF_Transient)
 			&& !WillSerailizeActorArray.Contains(Object)
 			&& !Object->GetClass()->IsChildOf(AActor::StaticClass())//skip actor
-			&& !Object->GetClass()->IsChildOf(ULGUIPrefabHelperComponent::StaticClass())//skip LGUIPrefabHelperComponent, this component is only for editor helper
 			&& ObjectBelongsToThisPrefab(Object)
 			)
 		{

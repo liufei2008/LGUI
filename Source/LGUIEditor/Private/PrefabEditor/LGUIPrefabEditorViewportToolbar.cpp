@@ -1,6 +1,6 @@
 // Copyright 2019-2021 LexLiu. All Rights Reserved.
 
-#include "SLGUIPrefabEditorViewportToolbar.h"
+#include "LGUIPrefabEditorViewportToolbar.h"
 #include "LGUIPrefabEditorViewport.h"
 
 #define LOCTEXT_NAMESPACE "SLGUIPrefabEditorViewportToolbar"

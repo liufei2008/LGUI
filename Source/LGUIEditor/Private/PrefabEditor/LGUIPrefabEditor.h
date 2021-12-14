@@ -8,19 +8,23 @@
 #pragma once
 
 class ULGUIPrefab;
-class FLGUIPrefabPreviewManager;
 class SLGUIPrefabEditorViewport;
-class SLGUIPrefabEditorDetailTab;
+class SLGUIPrefabEditorDetails;
 class FLGUIPrefabEditorOutliner;
+class SLGUIPrefabOverrideParameterEditor;
+class SLGUIPrefabRawDataViewer;
 class AActor;
+class FLGUIPrefabPreviewScene;
+class ULGUIPrefabHelperObject;
 
 /**
  * 
  */
-class FLGUIPrefabEditor : public FAssetEditorToolkit
+class FLGUIPrefabEditor : public FAssetEditorToolkit, public FGCObject
 {
 public:
 	FLGUIPrefabEditor();
+	~FLGUIPrefabEditor();
 
 	// IToolkit interface
 	virtual void RegisterTabSpawners(const TSharedRef<class FTabManager>& TabManager) override;
@@ -28,6 +32,7 @@ public:
 	// End of IToolkit interface
 
 	// FAssetEditorToolkit
+public:
 	virtual FName GetToolkitFName() const override;
 	virtual FText GetBaseToolkitName() const override;
 	virtual FText GetToolkitName() const override;
@@ -38,7 +43,12 @@ public:
 	virtual void OnToolkitHostingStarted(const TSharedRef<class IToolkit>& Toolkit) override;
 	virtual void OnToolkitHostingFinished(const TSharedRef<class IToolkit>& Toolkit) override;
 	virtual void SaveAsset_Execute()override;
+protected:
+	virtual bool OnRequestClose()override;
 	// End of FAssetEditorToolkit
+public:
+	/** FGCObject interface */
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 
 	bool CheckBeforeSaveAsset();
 
@@ -47,36 +57,41 @@ public:
 	/** Try to handle a drag-drop operation */
 	FReply TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent);
 
-	FLGUIPrefabPreviewScene& GetPreviewScene() { return PreviewScene; };
+	FLGUIPrefabPreviewScene& GetPreviewScene();
 	UWorld* GetWorld();
 	ULGUIPrefab* GetPrefabBeingEdited()const { return PrefabBeingEdited; }
 
+	void DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray);
+	void ApplySubPrefabParameterChange(AActor* InSubPrefabActor);
 protected:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
-	TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
-	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<ULGUIPrefab>> SubPrefabMap;
+	TWeakObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject = nullptr;
+
 	TSharedPtr<SLGUIPrefabEditorViewport> ViewportPtr;
-	TSharedPtr<SLGUIPrefabEditorDetailTab> DetailsTabPtr;
+	TSharedPtr<SLGUIPrefabEditorDetails> DetailsPtr;
 	TSharedPtr<FLGUIPrefabEditorOutliner> OutlinerPtr;
+	TSharedPtr<SLGUIPrefabOverrideParameterEditor> OverrideParameterPtr;
+	TSharedPtr<SLGUIPrefabRawDataViewer> PrefabRawDataViewer;
 
 	TWeakObjectPtr<AActor> CurrentSelectedActor;
 
 	FLGUIPrefabPreviewScene PreviewScene;
 private:
-	//void BindCommands();
+	void RefreshSubPrefab(AActor* InSubPrefabActor);
+
+	void BindCommands();
 	//void ExtendMenu();
 	void ExtendToolbar();
+
+	void OnApply();
 
 	TSharedRef<SDockTab> SpawnTab_Viewport(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab> SpawnTab_Details(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab> SpawnTab_Outliner(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab> SpawnTab_OverrideParameter(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab> SpawnTab_PrefabRawDataViewer(const FSpawnTabArgs& Args);
 
 	bool IsFilteredActor(const AActor* Actor);
 	void OnOutlinerPickedChanged(AActor* Actor);
 	void OnOutlinerActorDoubleClick(AActor* Actor);
-	void SetActorNotListInOutliner(AActor* Actor);
-
-	AActor* LoadedRootActor = nullptr;
-	TArray<AActor*> AllLoadedActorArray;
-	TArray<FGuid> AllLoadedActorGuidArrayInPrefab;
 };

@@ -16,13 +16,15 @@
 #include "Widgets/SWidget.h"
 #include "Math/UnitConversion.h"
 #include "STextPropertyEditableTextBox.h"
-#include "TextCustomization.cpp"
 #include "SEnumCombobox.h"
 #include "Serialization/BufferArchive.h"
+#include "LGUIEditableTextPropertyHandle.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEventDelegateCustomization"
 
 PRAGMA_DISABLE_OPTIMIZATION
+
+#define LGUIEventActorSelfName "(ActorSelf)"
 
 TArray<FString> FLGUIEventDelegateCustomization::CopySourceData;
 
@@ -1063,7 +1065,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			auto ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TextValue));
 			SET_VALUE_ON_BUFFER(FText);
 			ValueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::TextValueChange, ValueHandle, ParamBufferHandle));
-			TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FEditableTextPropertyHandle(ValueHandle.ToSharedRef(), PropertyUtilites));
+			TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FLGUIEditableTextPropertyHandle(ValueHandle.ToSharedRef(), PropertyUtilites));
 			const bool bIsMultiLine = EditableTextProperty->IsMultiLineText();
 			return 
 				SNew(SHorizontalBox)

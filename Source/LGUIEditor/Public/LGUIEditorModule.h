@@ -44,6 +44,8 @@ private:
 	void ClearViewportPreview();
 	void ToggleActiveViewportAsPreview();
 	bool CanEditActorForPrefab();
+	bool CanUnlinkActorForPrefab();
+	bool CanBrowsePrefab();
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 

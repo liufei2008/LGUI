@@ -62,7 +62,6 @@ private:
 	static bool IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIEventDelegateParameterType& OutParameterType);
 };
 
-#define LGUIEventActorSelfName "(ActorSelf)"
 /**
  * Editable event type in editor
  */
@@ -112,7 +111,7 @@ private:
 	/** data buffer stores function's parameter */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<uint8> ParamBuffer;
-	/** asset reference */
+	/** Object reference, can reference actor/class/asset */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UObject* ReferenceObject;
 

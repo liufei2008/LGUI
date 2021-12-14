@@ -7,7 +7,8 @@
 #include "LGUIHeaders.h"
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
+#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
@@ -56,7 +57,6 @@
 #include "DetailCustomization/UIGridLayoutCustomization.h"
 #include "DetailCustomization/UILayoutElementCustomization.h"
 #include "DetailCustomization/UICanvasScalerCustomization.h"
-#include "DetailCustomization/LGUIPrefabHelperComponentCustomization.h"
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "DetailCustomization/LGUIEventDelegateCustomization.h"
 #include "DetailCustomization/LGUIEventDelegatePresetParamCustomization.h"
@@ -65,6 +65,7 @@
 #include "DetailCustomization/UIScrollViewWithScrollBarCustomization.h"
 #include "DetailCustomization/UISpriteSequencePlayerCustomization.h"
 #include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
+#include "DetailCustomization/LGUIPrefabOverrideParameterCustomization.h"
 
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
 
@@ -186,7 +187,6 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomClassLayout(UUILayoutElement::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUILayoutElementCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUICanvasScaler::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUICanvasScalerCustomization::MakeInstance));
 
-		PropertyModule.RegisterCustomClassLayout(ULGUIPrefabHelperComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabHelperComponentCustomization::MakeInstance));
 		PropertyModule.RegisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomClassLayout(UUIEffectTextAnimation::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FUIEffectTextAnimationCustomization::MakeInstance));
@@ -224,6 +224,8 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Name::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIComponentReferenceCustomization::MakeInstance));
+
+		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIPrefabOverrideParameter::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIPrefabOverrideParameterCustomization::MakeInstance));
 	}
 	//register asset
 	{
@@ -345,7 +347,6 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomClassLayout(UUIGridLayout::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(UUILayoutElement::StaticClass()->GetFName());
 
-		PropertyModule.UnregisterCustomClassLayout(ULGUIPrefabHelperComponent::StaticClass()->GetFName());
 		PropertyModule.UnregisterCustomClassLayout(ULGUIPrefab::StaticClass()->GetFName());
 
 		PropertyModule.UnregisterCustomClassLayout(UUIEffectTextAnimation_Property::StaticClass()->GetFName());
@@ -436,7 +437,47 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTa
 
 bool FLGUIEditorModule::CanEditActorForPrefab()
 {
-	return GEditor->GetSelectedActorCount() == 1 && LGUIEditorTools::GetPrefabActor_WhichManageThisActor(LGUIEditorTools::GetFirstSelectedActor()) != nullptr;
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->bIsInsidePrefabEditor)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+bool FLGUIEditorModule::CanUnlinkActorForPrefab()
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->bIsInsidePrefabEditor)
+		{
+			if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
+			{
+				return true;
+			}
+			return false;
+		}
+	}
+	return true;
+}
+bool FLGUIEditorModule::CanBrowsePrefab()
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->bIsInsidePrefabEditor)
+		{
+			if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
+			{
+				return true;
+			}
+			return false;
+		}
+	}
+	return true;
 }
 
 void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder)
@@ -500,18 +541,18 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			LOCTEXT("UnlinkPrefab_Tooltip", "Unlink the actor from related prefab asset"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::UnlinkPrefab)
-				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanUnlinkActorForPrefab)
 				, FGetActionCheckState()
-				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanUnlinkActorForPrefab))
 		);
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("SelectPrefabAsset", "Browse to Prefab asset"),
 			LOCTEXT("SelectPrefabAsset_Tooltip", "Browse to Prefab asset in Content Browser"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::SelectPrefabAsset)
-				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanBrowsePrefab)
 				, FGetActionCheckState()
-				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanBrowsePrefab))
 		);
 	}
 	MenuBuilder.EndSection();
@@ -634,7 +675,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		static void CreateUIBaseElementMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
 		{
 			auto UIItemName = InClass->GetName();
-			auto ShotName = UIItemName;
+			auto ShotName = FString(*UIItemName);
 			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
 				FText::FromString(ShotName),
@@ -768,7 +809,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 		static void CreateUIBaseElementMenuEntry(FMenuBuilder& InBuilder, UClass* InClass)
 		{
 			auto UIItemName = InClass->GetName();
-			auto ShotName = UIItemName;
+			auto ShotName = FString(*UIItemName);
 			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
 				FText::FromString(ShotName),
@@ -961,7 +1002,7 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		static void ReplaceUIElement(FMenuBuilder& InBuilder, UClass* InClass)
 		{
 			auto UIItemName = InClass->GetName();
-			auto ShotName = UIItemName;
+			auto ShotName = FString(*UIItemName);
 			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
 				FText::FromString(ShotName),

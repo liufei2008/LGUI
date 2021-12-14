@@ -1592,7 +1592,7 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)//@todo: cleanup thi
 			if (DrawcallItem->drawcallMesh != prevUIMesh)
 			{
 				meshOrPostProcessCount++;
-				if (prevUIMesh != nullptr)
+				if (prevUIMesh != nullptr)//when get difference mesh, we sort last mesh, because we need to wait until mesh's all section have set render proirity in "SetMeshSectionRenderPriority"
 				{
 					prevUIMesh->SortMeshSectionRenderPriority();
 					drawcallIndex = 0;
@@ -1617,6 +1617,10 @@ int32 ULGUICanvas::SortDrawcall(int32 InStartRenderPriority)//@todo: cleanup thi
 		}
 		break;
 		}
+	}
+	if (prevUIMesh != nullptr)//since "SortMeshSectionRenderPriority" action is called when get different mesh, so the last one won't call, so do it here
+	{
+		prevUIMesh->SortMeshSectionRenderPriority();
 	}
 	return meshOrPostProcessCount;
 }

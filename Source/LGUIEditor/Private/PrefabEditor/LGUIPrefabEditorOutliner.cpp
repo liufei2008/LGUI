@@ -11,7 +11,7 @@
 #include "Engine/Selection.h"
 #include "Engine/World.h"
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
-#include "LGUIEditorTools.h"
+#include "LGUIPrefabEditor.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 
@@ -19,9 +19,10 @@ FLGUIPrefabEditorOutliner::~FLGUIPrefabEditorOutliner()
 {
 	USelection::SelectionChangedEvent.RemoveAll(this);
 }
-void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World)
+void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr)
 {
 	CurrentWorld = World;
+	PrefabEditorPtr = InPrefabEditorPtr;
 	if (CurrentWorld == nullptr)
 	{
 		return;
@@ -66,15 +67,7 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World)
 
 void FLGUIPrefabEditorOutliner::OnDelete(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray)
 {
-	TArray<AActor*> SelectedActorArray;
-	for (auto Item : InSelectedActorArray)
-	{
-		if (Item.IsValid())
-		{
-			SelectedActorArray.Add(Item.Get());
-		}
-	}
-	LGUIEditorTools::DeleteActors_Impl(SelectedActorArray);
+	PrefabEditorPtr.Pin()->DeleteActors(InSelectedActorArray);
 }
 
 void FLGUIPrefabEditorOutliner::OnSceneOutlinerItemPicked(TSharedRef<SceneOutliner::ITreeItem> ItemPtr)

@@ -6,10 +6,16 @@
 #include "PrefabSystem/ActorSerializer3.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefab"
 
 #if WITH_EDITOR
+void ULGUIPrefab::RefreshAgentActorsInPreviewWorld()
+{
+	ClearAgentActorsInPreviewWorld();
+	MakeAgentActorsInPreviewWorld();
+}
 void ULGUIPrefab::MakeAgentActorsInPreviewWorld()
 {
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
@@ -18,7 +24,12 @@ void ULGUIPrefab::MakeAgentActorsInPreviewWorld()
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 			TMap<FGuid, UObject*> InMapGuidToObject;
-			AgentRootActor = this->LoadPrefabForEdit(World, nullptr, InMapGuidToObject, AgentSubPrefabmap);
+			TArray<uint8> TempOverrideParameterData;
+			ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+			AgentRootActor = this->LoadPrefabForEdit(World, nullptr
+				, InMapGuidToObject, AgentSubPrefabmap
+				, TempOverrideParameterData, OverrideParameterObject
+			);
 		}
 	}
 }
@@ -101,104 +112,124 @@ void ULGUIPrefab::BeginDestroy()
 
 AActor* ULGUIPrefab::LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
+	AActor* LoadedRootActor = nullptr;
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
+		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
 	}
 	else
 	{
-		return LGUIPrefabSystem::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
+		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefab(InWorld, this, InParent, SetRelativeTransformToIdentity);
 	}
+	return LoadedRootActor;
 }
 
 AActor* ULGUIPrefab::LoadPrefab(UObject* WorldContextObject, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
-	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (World)
 	{
-		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(world, this, InParent, SetRelativeTransformToIdentity);
+		return LoadPrefab(World, InParent, SetRelativeTransformToIdentity);
 	}
-	else
-	{
-		return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, this, InParent, SetRelativeTransformToIdentity);
-	}
+	return nullptr;
 }
 AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale)
 {
-	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	AActor* LoadedRootActor = nullptr;
+	auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (World)
 	{
-		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(world, this, InParent, Location, Rotation.Quaternion(), Scale);
+		if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+		{
+			LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
+		}
+		else
+		{
+			LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation.Quaternion(), Scale);
+		}
 	}
-	else
-	{
-		return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, this, InParent, Location, Rotation.Quaternion(), Scale);
-	}
+	return LoadedRootActor;
 }
 AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale)
 {
-	auto world = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	AActor* LoadedRootActor = nullptr;
+	auto World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(world, this, InParent, Location, Rotation, Scale);
+		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
 	}
 	else
 	{
-		return LGUIPrefabSystem::ActorSerializer::LoadPrefab(world, this, InParent, Location, Rotation, Scale);
+		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefab(World, this, InParent, Location, Rotation, Scale);
 	}
+	return LoadedRootActor;
 }
 
 #if WITH_EDITOR
 AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
-	, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, ULGUIPrefab*>& OutSubPrefabMap
+	, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+	, const TArray<uint8>& InOverrideParameterData, class ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
 )
 {
+	AActor* LoadedRootActor = nullptr;
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this, InParent
-			, InOutMapGuidToObject, OutSubPrefabMap);
+		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this, InParent
+			, InOutMapGuidToObject, OutSubPrefabMap
+			, InOverrideParameterData, OutOverrideParameterObject
+		);
 	}
 	else
 	{
 		TArray<AActor*> OutCreatedActors;
 		TArray<FGuid> OutCreatedActorsGuid;
-		auto ResultActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(InWorld, this, InParent
+		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabForEdit(InWorld, this, InParent
 			, nullptr, nullptr, OutCreatedActors, OutCreatedActorsGuid);
 		for (int i = 0; i < OutCreatedActors.Num(); i++)
 		{
 			UE_LOG(LGUI, Warning, TEXT("Add actor:%s"), *(OutCreatedActors[i]->GetActorLabel()));
 			InOutMapGuidToObject.Add(OutCreatedActorsGuid[i], OutCreatedActors[i]);
 		}
-		return ResultActor;
 	}
+	return LoadedRootActor;
 }
 
 void ULGUIPrefab::SavePrefab(AActor* RootActor
-	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap)
+	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+	, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+)
 {
 	LGUIPrefabSystem3::ActorSerializer3::SavePrefab(RootActor, this
-		, InOutMapObjectToGuid, InSubPrefabMap);
+		, InOutMapObjectToGuid, InSubPrefabMap
+		, InOverrideParameterObject, OutOverrideParameterData
+	);
 }
 
-void ULGUIPrefab::SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, ULGUIPrefab*>& InSubPrefabMap)
+void ULGUIPrefab::SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap)
 {
 	LGUIPrefabSystem3::ActorSerializer3::SavePrefabForRuntime(RootActor, this, InSubPrefabMap);
 }
 
-AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, bool SetRelativeTransformToIdentity)
+AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
 {
+	AActor* LoadedRootActor = nullptr;
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
 		TMap<FGuid, UObject*> MapGuidToObject;
-		TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
-		return LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this
-			, Parent, MapGuidToObject, SubPrefabMap);
+		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TArray<uint8> TempOverrideParameterData;
+		ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this
+			, InParent, MapGuidToObject, SubPrefabMap
+			, TempOverrideParameterData, OverrideParameterObject
+		);
 	}
 	else
 	{
-		return LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(InWorld, this
-			, Parent);
+		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(InWorld, this
+			, InParent);
 	}
+	return LoadedRootActor;
 }
 
 #endif

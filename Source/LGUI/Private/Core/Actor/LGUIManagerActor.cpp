@@ -27,7 +27,7 @@
 #include "Engine/Selection.h"
 #include "EditorViewportClient.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "EngineUtils.h"
 #include "Layout/LGUICanvasScaler.h"
@@ -44,10 +44,6 @@ ULGUIEditorManagerObject::ULGUIEditorManagerObject()
 void ULGUIEditorManagerObject::BeginDestroy()
 {
 #if WITH_EDITORONLY_DATA
-	//if (OnSelectionChangedDelegateHandle.IsValid())
-	//{
-	//	USelection::SelectObjectEvent.Remove(OnSelectionChangedDelegateHandle);
-	//}
 	if (OnAssetReimportDelegateHandle.IsValid())
 	{
 		GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.Remove(OnAssetReimportDelegateHandle);
@@ -189,9 +185,7 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(ULGUIEditorManagerObject, STATGROUP_Tickables);
 }
-#if WITH_EDITORONLY_DATA
-bool ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
-#endif
+
 #if WITH_EDITOR
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
 {
@@ -217,9 +211,6 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance = NewObject<ULGUIEditorManagerObject>();
 			Instance->AddToRoot();
 			UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
-			//selection
-			//Instance->OnSelectionChangedDelegateHandle = USelection::SelectionChangedEvent.AddUObject(Instance, &ULGUIEditorManagerObject::OnSelectionChanged);
-			//actor label
 			Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
 			//reimport asset
 			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
@@ -227,6 +218,9 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance->OnActorDeletedDelegateHandle = FEditorDelegates::OnDeleteActorsEnd.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorDeleted);
 			//open map
 			Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
+			FEditorDelegates::ActorPropertiesChange.AddLambda([=]() {
+				UE_LOG(LGUI, Error, TEXT("ActorPropertyChange"));
+				});
 		}
 		else
 		{
@@ -350,7 +344,7 @@ void ULGUIEditorManagerObject::OnActorDeleted()
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!IsValid(prefabActor->GetLoadedRootActor()))
+			if (!IsValid(prefabActor->PrefabHelperObject->LoadedRootActor))
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -582,7 +576,7 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 			}
 		}
 		//child selected
-		const auto childrenCompArray = item->GetAttachUIChildren();
+		auto& childrenCompArray = item->GetAttachUIChildren();
 		for (auto uiComp : childrenCompArray)
 		{
 			if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
@@ -848,143 +842,7 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIIte
 	}
 	return false;
 }
-void ULGUIEditorManagerObject::OnSelectionChanged(UObject* newSelection)
-{
-	if (!IsValid(GEditor))return;
-	if (!ULGUIEditorManagerObject::CanExecuteSelectionConvert)return;
-	if (IsCalculatingSelection)return;//incase infinite recursive, because selection can change inside this function
-	IsCalculatingSelection = true;
 
-	AUIBaseActor* selectedActor = nullptr;
-	ULGUICanvas* selectedCanvas = nullptr;
-	if (USelection* selection = Cast<USelection>(newSelection))
-	{
-		for (int i = 0; i < selection->Num(); i++)
-		{
-			selectedActor = Cast<AUIBaseActor>(selection->GetSelectedObject(i));
-			if (IsValid(selectedActor))
-			{
-				selectedCanvas = selectedActor->FindComponentByClass<ULGUICanvas>();
-				if (IsValid(selectedCanvas))
-					break;
-			}
-		}
-	}
-	if (IsValid(selectedCanvas))
-	{
-		auto world = selectedCanvas->GetWorld();
-		if (!world->IsGameWorld())
-		{
-			if (ULGUIEditorManagerObject::Instance != nullptr)
-			{
-				auto& allUIItems = ULGUIEditorManagerObject::Instance->GetAllUIItem();
-				if (GEditor)
-				{
-					if (auto viewport = GEditor->GetActiveViewport())
-					{
-						if (viewport->HasMouseCapture())
-						{
-							auto mouseX = viewport->GetMouseX();
-							auto mouseY = viewport->GetMouseY();
-							if (mouseX < UUIItemEditorHelperComp::viewRect.Size().X && mouseY < UUIItemEditorHelperComp::viewRect.Size().Y)
-							{
-								FVector rayOrigin, rayDirection;
-								auto client = (FEditorViewportClient*)viewport->GetClient();
-								FSceneView::DeprojectScreenToWorld(FVector2D(mouseX, mouseY), UUIItemEditorHelperComp::viewRect, UUIItemEditorHelperComp::viewMatrices.GetInvViewMatrix(), UUIItemEditorHelperComp::viewMatrices.GetInvProjectionMatrix(), rayOrigin, rayDirection);
-								float lineTraceLength = 10000;
-								//find hit UIBatchGeometryRenderable
-								auto lineStart = rayOrigin;
-								auto lineEnd = rayOrigin + rayDirection * lineTraceLength;
-								auto prevSelectTarget = LastSelectTarget;
-								auto prevSelectActor = LastSelectedActor;
-								if (RaycastHitUI(world, allUIItems, lineStart, lineEnd, prevSelectTarget, prevSelectActor, LastSelectTarget, LastSelectedActor))
-								{
-									GEditor->SelectNone(true, true);
-									GEditor->SelectActor(LastSelectedActor.Get(), true, true);
-									goto END;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	LastSelectTarget.Reset();
-	LastSelectedActor.Reset();
-
-	END:
-	IsCalculatingSelection = false;
-}
-#if 0
-void ULGUIEditorManagerObject::LogObjectFlags(UObject* obj)
-{
-	EObjectFlags of = obj->GetFlags();
-	UE_LOG(LGUI, Log, TEXT("obj:%s\
-\n	flagValue:%d\
-\n	RF_Public:%d\
-\n	RF_Standalone:%d\
-\n	RF_MarkAsNative:%d\
-\n	RF_Transactional:%d\
-\n	RF_ClassDefaultObject:%d\
-\n	RF_ArchetypeObject:%d\
-\n	RF_Transient:%d\
-\n	RF_MarkAsRootSet:%d\
-\n	RF_TagGarbageTemp:%d\
-\n	RF_NeedInitialization:%d\
-\n	RF_NeedLoad:%d\
-\n	RF_KeepForCooker:%d\
-\n	RF_NeedPostLoad:%d\
-\n	RF_NeedPostLoadSubobjects:%d\
-\n	RF_NewerVersionExists:%d\
-\n	RF_BeginDestroyed:%d\
-\n	RF_FinishDestroyed:%d\
-\n	RF_BeingRegenerated:%d\
-\n	RF_DefaultSubObject:%d\
-\n	RF_WasLoaded:%d\
-\n	RF_TextExportTransient:%d\
-\n	RF_LoadCompleted:%d\
-\n	RF_InheritableComponentTemplate:%d\
-\n	RF_DuplicateTransient:%d\
-\n	RF_StrongRefOnFrame:%d\
-\n	RF_NonPIEDuplicateTransient:%d\
-\n	RF_Dynamic:%d\
-\n	RF_WillBeLoaded:%d\
-")
-, *obj->GetPathName()
-, obj->GetFlags()
-, obj->HasAnyFlags(EObjectFlags::RF_Public)
-, obj->HasAnyFlags(EObjectFlags::RF_Standalone)
-, obj->HasAnyFlags(EObjectFlags::RF_MarkAsNative)
-, obj->HasAnyFlags(EObjectFlags::RF_Transactional)
-, obj->HasAnyFlags(EObjectFlags::RF_ClassDefaultObject)
-, obj->HasAnyFlags(EObjectFlags::RF_ArchetypeObject)
-, obj->HasAnyFlags(EObjectFlags::RF_Transient)
-, obj->HasAnyFlags(EObjectFlags::RF_MarkAsRootSet)
-, obj->HasAnyFlags(EObjectFlags::RF_TagGarbageTemp)
-, obj->HasAnyFlags(EObjectFlags::RF_NeedInitialization)
-, obj->HasAnyFlags(EObjectFlags::RF_NeedLoad)
-, obj->HasAnyFlags(EObjectFlags::RF_KeepForCooker)
-, obj->HasAnyFlags(EObjectFlags::RF_NeedPostLoad)
-, obj->HasAnyFlags(EObjectFlags::RF_NeedPostLoadSubobjects)
-, obj->HasAnyFlags(EObjectFlags::RF_NewerVersionExists)
-, obj->HasAnyFlags(EObjectFlags::RF_BeginDestroyed)
-, obj->HasAnyFlags(EObjectFlags::RF_FinishDestroyed)
-, obj->HasAnyFlags(EObjectFlags::RF_BeingRegenerated)
-, obj->HasAnyFlags(EObjectFlags::RF_DefaultSubObject)
-, obj->HasAnyFlags(EObjectFlags::RF_WasLoaded)
-, obj->HasAnyFlags(EObjectFlags::RF_TextExportTransient)
-, obj->HasAnyFlags(EObjectFlags::RF_LoadCompleted)
-, obj->HasAnyFlags(EObjectFlags::RF_InheritableComponentTemplate)
-, obj->HasAnyFlags(EObjectFlags::RF_DuplicateTransient)
-, obj->HasAnyFlags(EObjectFlags::RF_StrongRefOnFrame)
-, obj->HasAnyFlags(EObjectFlags::RF_NonPIEDuplicateTransient)
-, obj->HasAnyFlags(EObjectFlags::RF_Dynamic)
-, obj->HasAnyFlags(EObjectFlags::RF_WillBeLoaded)
-);
-}
-#endif
 #endif
 
 

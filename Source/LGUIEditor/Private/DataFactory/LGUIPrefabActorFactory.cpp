@@ -3,7 +3,7 @@
 #include "DataFactory/LGUIPrefabActorFactory.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
-#include "PrefabSystem/LGUIPrefabHelperComponent.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "LGUIEditorTools.h"
 #include "AssetData.h"
 
@@ -52,8 +52,7 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 
 	auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(InNewActor);
 
-	PrefabActor->SetPrefabAsset(Prefab);
-	//PrefabComponent->SetRelativeRotation(FQuat::MakeFromEuler(FVector(-90, 0, 90)));
+	PrefabActor->PrefabHelperObject->PrefabAsset = Prefab;
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	USceneComponent* ParentComp = nullptr;
 
@@ -63,7 +62,7 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 		ParentComp = SelectedActor->GetRootComponent();
 	}
 	PrefabActor->LoadPrefab(ParentComp);
-	PrefabActor->LoadedRootActor = PrefabActor->LoadedRootActor;
+	PrefabActor->MoveActorToPrefabFolder();
 }
 
 void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
@@ -73,7 +72,7 @@ void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
 		auto Prefab = CastChecked<ULGUIPrefab>(Asset);
 		auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(CDO);
 
-		PrefabActor->SetPrefabAsset(Prefab);
+		PrefabActor->PrefabHelperObject->PrefabAsset = Prefab;
 	}
 }
 
@@ -81,7 +80,7 @@ UObject* ULGUIPrefabActorFactory::GetAssetFromActorInstance(AActor* ActorInstanc
 {
 	check(ActorInstance->IsA(NewActorClass));
 	auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(ActorInstance);
-	return PrefabActor->GetPrefabAsset();
+	return PrefabActor->PrefabHelperObject->PrefabAsset;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -6,7 +6,6 @@
 
 class UStaticMeshComponent;
 class UExponentialHeightFogComponent;
-class AUIContainerActor;
 class ULGUIPrefab;
 class AActor;
 
@@ -18,7 +17,7 @@ public:
 
 	static const FString UIRootAgentActorName;
 	USceneComponent* GetParentComponentForPrefab(ULGUIPrefab* InPrefab);
-	AUIContainerActor* GetRootUIAgentActor()const { return RootUICanvasActor; }
+	AActor* GetRootAgentActor()const { return RootAgentActor; }
 
 	bool IsWorldDefaultActor(AActor* InActor)const;
 private:
@@ -30,5 +29,5 @@ private:
 
 	TArray<AActor*> WorldDefaultActors;
 
-	AUIContainerActor* RootUICanvasActor = nullptr;
+	AActor* RootAgentActor = nullptr;
 };

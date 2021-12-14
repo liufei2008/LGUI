@@ -14,6 +14,7 @@
 #include "LGUIEditorTools.h"
 #include "SortHelper.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
@@ -271,19 +272,32 @@ namespace LGUISceneOutliner
 	{
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			return LGUIEditorTools::GetPrefabActor_WhichManageThisActor(actor) != nullptr ? EVisibility::Visible : EVisibility::Hidden;
+			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
+			{
+				if (PrefabHelperObject->bIsInsidePrefabEditor)
+				{
+					if (PrefabHelperObject->SubPrefabMap.Contains(actor))//is sub prefab
+					{
+						return EVisibility::Visible;
+					}
+					else
+					{
+						return EVisibility::Hidden;
+					}
+				}
+				else
+				{
+					return EVisibility::Visible;
+				}
+			}
 		}
-		else
-		{
-			return EVisibility::Hidden;
-		}
+		return EVisibility::Hidden;
 	}
 	EVisibility FLGUISceneOutlinerInfoColumn::GetDownArrowVisibility(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
 	{
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			bool isPrefab = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(actor) != nullptr;
-			return isPrefab ? EVisibility::Hidden : EVisibility::Visible;
+			return GetPrefabIconVisibility(TreeItem) == EVisibility::Visible ? EVisibility::Hidden : EVisibility::Visible;
 		}
 		else
 		{
@@ -328,26 +342,21 @@ namespace LGUISceneOutliner
 		FColor resultColor = FColor::White;
 		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
 		{
-			auto prefabActor = LGUIEditorTools::GetPrefabActor_WhichManageThisActor(actor);
-			if (prefabActor != nullptr)
+			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
 			{
-				resultColor = prefabActor->IdentityColor;
+				if (PrefabHelperObject->bIsInsidePrefabEditor)
+				{
+					return FColor::Green;
+				}
+				else
+				{
+					auto OuterActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
+					check(OuterActor != nullptr);
+					return OuterActor->IdentityColor;
+				}
 			}
 		}
 		return FSlateColor(resultColor);
-	}
-
-	bool FLGUISceneOutlinerInfoColumn::CanShowPrefabIcon(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem) const
-	{
-		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
-		{
-			auto PrefabActor = Cast<ALGUIPrefabHelperActor>(actor);
-			return PrefabActor != nullptr;
-		}
-		else
-		{
-			return false;
-		}
 	}
 
 	AActor* FLGUISceneOutlinerInfoColumn::GetActorFromTreeItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const

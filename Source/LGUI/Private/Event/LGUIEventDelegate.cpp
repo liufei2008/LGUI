@@ -308,9 +308,7 @@ FString ULGUIEventDelegateParameterHelper::ParameterTypeToName(LGUIEventDelegate
 	case LGUIEventDelegateParameterType::String:
 		ParamTypeString = "String";
 		break;
-		//case LGUIEventDelegateParameterType::Name:
-		//	ParamTypeString = "Name";
-		//	break;
+
 	case LGUIEventDelegateParameterType::Object:
 	{
 		TFieldIterator<FProperty> ParamIterator(InFunction);
@@ -472,7 +470,6 @@ void FLGUIEventDelegateData::ExecuteTargetFunction(UObject* Target, UFunction* F
 	{
 		FString TempString;
 		auto FromBinary = FMemoryReader(ParamBuffer, false);
-		FromBinary.Seek(0);
 		FromBinary << TempString;
 		Target->ProcessEvent(Func, &TempString);
 	}
@@ -481,7 +478,6 @@ void FLGUIEventDelegateData::ExecuteTargetFunction(UObject* Target, UFunction* F
 	{
 		FName TempName;
 		auto FromBinary = FMemoryReader(ParamBuffer, false);
-		FromBinary.Seek(0);
 		FromBinary << TempName;
 		Target->ProcessEvent(Func, &TempName);
 	}
@@ -490,7 +486,6 @@ void FLGUIEventDelegateData::ExecuteTargetFunction(UObject* Target, UFunction* F
 	{
 		FText TempText;
 		auto FromBinary = FMemoryReader(ParamBuffer, false);
-		FromBinary.Seek(0);
 		FromBinary << TempText;
 		Target->ProcessEvent(Func, &TempText);
 	}
