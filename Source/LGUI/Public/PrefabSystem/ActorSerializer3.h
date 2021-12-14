@@ -210,9 +210,8 @@ namespace LGUIPrefabSystem3
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 			, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+			, bool InForEditorOrRuntimeUse
 		);
-		/** Save prefab date for runtime use. */
-		static void SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap);
 		
 		/**
 		 * Duplicate actor with hierarchy

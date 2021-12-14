@@ -63,9 +63,13 @@ public:
 
 	void DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray);
 	void ApplySubPrefabParameterChange(AActor* InSubPrefabActor);
+
+	static FLGUIPrefabEditor* GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab);
+	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 protected:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	TWeakObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject = nullptr;
+	static TArray<FLGUIPrefabEditor*> LGUIPrefabEditorInstanceCollection;
 
 	TSharedPtr<SLGUIPrefabEditorViewport> ViewportPtr;
 	TSharedPtr<SLGUIPrefabEditorDetails> DetailsPtr;
@@ -77,13 +81,14 @@ protected:
 
 	FLGUIPrefabPreviewScene PreviewScene;
 private:
-	void RefreshSubPrefab(AActor* InSubPrefabActor);
 
 	void BindCommands();
 	//void ExtendMenu();
 	void ExtendToolbar();
 
 	void OnApply();
+	void OnOpenOverrideParameterPanel();
+	void OnOpenRawDataViewerPanel();
 
 	TSharedRef<SDockTab> SpawnTab_Viewport(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab> SpawnTab_Details(const FSpawnTabArgs& Args);

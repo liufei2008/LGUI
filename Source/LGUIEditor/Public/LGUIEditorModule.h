@@ -46,6 +46,7 @@ private:
 	bool CanEditActorForPrefab();
 	bool CanUnlinkActorForPrefab();
 	bool CanBrowsePrefab();
+	bool CanCreatePrefab();
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 

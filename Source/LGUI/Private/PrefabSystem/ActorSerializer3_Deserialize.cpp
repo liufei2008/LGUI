@@ -166,7 +166,7 @@ namespace LGUIPrefabSystem3
 		
 		if (GetDeserializedOverrideParameterObjectFunction != nullptr)
 		{
-			OverrideParameterObject = GetDeserializedOverrideParameterObjectFunction(CreatedRootActor);
+			OverrideParameterObject = GetDeserializedOverrideParameterObjectFunction(CreatedRootActor);//sub prefab's override parameter is store/restore from parent prefab (which is nessary), so reference object inside sub prefab will lose
 		}
 		else
 		{
@@ -180,7 +180,7 @@ namespace LGUIPrefabSystem3
 		{
 			auto TemplateOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(CreatedRootActor);//@todo could use a persistent static object for all template
 			WriterOrReaderFunction(TemplateOverrideParameterObject, Prefab->OverrideParameterData, false);
-			OverrideParameterObject->SetParameterReferenceFromTemplate(TemplateOverrideParameterObject);
+			OverrideParameterObject->SetParameterReferenceFromTemplate(TemplateOverrideParameterObject);//since sub prefab's reference object is lose, we should copy reference from template, which is created inside sub prefab so all reference is good
 			OverrideParameterObject->ApplyParameter();
 			TemplateOverrideParameterObject->ConditionalBeginDestroy();
 		}

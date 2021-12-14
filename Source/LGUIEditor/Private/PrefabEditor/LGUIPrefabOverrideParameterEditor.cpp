@@ -69,7 +69,7 @@ EVisibility SLGUIPrefabOverrideParameterEditor::ApplyChangeButtonVisibility()con
 {
 	if (TargetObject.IsValid())
 	{
-		return TargetObject->GetIsIsTemplate() ? EVisibility::Hidden : EVisibility::Visible;
+		return (TargetObject->GetIsIsTemplate() || TargetObject->GetParameterCount() <= 0) ? EVisibility::Hidden : EVisibility::Visible;
 	}
 	return EVisibility::Hidden;
 }

@@ -90,6 +90,10 @@ public:
 		bool ThumbnailDirty = false;
 	/** This actor is an agent existing in a preview world, for cook prefab asset. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")AActor* AgentRootActor = nullptr;
+	/** agent, for cook prefab asset. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, UObject*> AgentMapGuidToObject;
+	/** agent, for cook prefab asset. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefabOverrideParameterObject* AgentOverrideParameterObject = nullptr;
 	/** This map is an agent existing in a preview world, for cook prefab asset. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<AActor*, FLGUISubPrefabData> AgentSubPrefabmap;
 #endif
@@ -105,6 +109,8 @@ public:
 	void MakeAgentActorsInPreviewWorld();
 	void ClearAgentActorsInPreviewWorld();
 	void RefreshAgentActorsInPreviewWorld();
+	/** Refresh it. Note this will use agent data to serialize, so if the prefab editor is opened for this prefab, then we should not use this function, or modifyed value in prefab editor will lose */
+	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 
 	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;
@@ -123,6 +129,7 @@ public:
 	void SavePrefab(AActor* RootActor
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		, bool InForEditorOrRuntimeUse = true
 	);
 	void SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap);
 	/**

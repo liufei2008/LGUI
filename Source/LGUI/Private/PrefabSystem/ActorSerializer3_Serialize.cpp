@@ -24,6 +24,7 @@ namespace LGUIPrefabSystem3
 	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		, bool InForEditorOrRuntimeUse
 	)
 	{
 		if (!RootActor || !InPrefab)
@@ -51,7 +52,7 @@ namespace LGUIPrefabSystem3
 				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
 			}
 		}
-		serializer.bIsEditorOrRuntime = true;
+		serializer.bIsEditorOrRuntime = InForEditorOrRuntimeUse;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectWriter Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
@@ -60,34 +61,6 @@ namespace LGUIPrefabSystem3
 		serializer.SerializeActor(RootActor, InPrefab);
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;
 		OutOverrideParameterData = serializer.OverrideParameterData;
-	}
-
-	void ActorSerializer3::SavePrefabForRuntime(AActor* RootActor, ULGUIPrefab* InPrefab, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap)
-	{
-		if (!RootActor || !InPrefab)
-		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::SerializeActor]RootActor Or InPrefab is null!"));
-			return;
-		}
-		if (!RootActor->GetWorld())
-		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::SerializeActor]Cannot get World from RootActor!"));
-			return;
-		}
-		ActorSerializer3 serializer(RootActor->GetWorld());
-		for (auto& KeyValue : InSubPrefabMap)
-		{
-			if (IsValid(KeyValue.Key) && IsValid(KeyValue.Value.OverrideParameterObject))
-			{
-				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
-			}
-		}
-		serializer.bIsEditorOrRuntime = false;
-		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
-			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			FLGUIObjectWriter Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
-		};
-		serializer.SerializeActor(RootActor, InPrefab);
 	}
 
 	void ActorSerializer3::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData)

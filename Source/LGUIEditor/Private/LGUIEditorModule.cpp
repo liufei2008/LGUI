@@ -480,6 +480,28 @@ bool FLGUIEditorModule::CanBrowsePrefab()
 	return true;
 }
 
+bool FLGUIEditorModule::CanCreatePrefab()
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->bIsInsidePrefabEditor)
+		{
+			if (PrefabHelperObject->LoadedRootActor == SelectedActor)
+			{
+				return false;
+			}
+			if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
 void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder)
 {
 	Builder.BeginSection("LGUI");
@@ -507,7 +529,9 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			LOCTEXT("Create_Tooltip", "Use selected actor to create a new prefab"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreatePrefabAsset)
-				, FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; }))
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanCreatePrefab)
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreatePrefab))
 		);
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("ApplyPrefab", "Apply Prefab"),

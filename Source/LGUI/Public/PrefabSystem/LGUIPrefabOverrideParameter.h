@@ -58,6 +58,8 @@ USTRUCT()
 struct LGUI_API FLGUIPrefabOverrideParameterData
 {
 	GENERATED_BODY()
+public:
+	FLGUIPrefabOverrideParameterData();
 private:
 	friend class FLGUIPrefabOverrideParameterCustomization;
 	friend struct FLGUIPrefabOverrideParameter;
@@ -109,11 +111,18 @@ private:
 	/** Property's friendly name to display for outer prefab */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FString DisplayName;
+	/** Use Guid as unique key, so we can find the same property. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		FGuid Guid;
 #endif
 public:
 	void ApplyParameter();
+	/** Check Actorserializer3_Deserialize */
 	void SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameterData& InTemplate);
 	void SaveDefaultValue();
+	/** Check if reference parameter equal, not include value */
+	bool IsReferenceParameterEqual(const FLGUIPrefabOverrideParameterData& Other)const;
+	bool IsParameter_Type_Name_Guid_Equal(const FLGUIPrefabOverrideParameterData& Other)const;
 private:
 	bool ApplyPropertyParameter(UObject* InTarget, FProperty* InProperty);
 	bool SavePropertyParameter(UObject* InTarget, FProperty* InProperty);
@@ -144,8 +153,11 @@ private:
 public:
 	void ApplyParameter();
 	void SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameter& InTemplate);
+	/** @return	true if anything change, false nothing change */
+	bool RefreshParameterOnTemplate(const FLGUIPrefabOverrideParameter& InTemplate);
 	void SaveDefaultValue();
 	void SetListItemDefaultNameWhenAddNewToList();
+	bool HasRepeatedParameter();
 };
 
 UCLASS(NotBlueprintType)
@@ -162,10 +174,14 @@ private:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 public:
+	/** Check Actorserializer3_Deserialize */
 	void SetParameterReferenceFromTemplate(ULGUIPrefabOverrideParameterObject* InTemplate);
+	bool RefreshParameterOnTemplate(ULGUIPrefabOverrideParameterObject* InTemplate);
 	void SetParameterDisplayType(bool InIsTemplate);
 	void ApplyParameter();
 	void SaveDefaultValue();
+	bool HasRepeatedParameter();
+	int32 GetParameterCount()const;
 
 	bool GetIsIsTemplate()const { return Parameter.bIsTemplate; }
 };

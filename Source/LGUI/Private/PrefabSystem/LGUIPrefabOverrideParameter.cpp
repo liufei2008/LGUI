@@ -554,7 +554,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 
 	if (auto boolProperty = CastField<FBoolProperty>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::Bool, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::Bool))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -562,7 +562,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto floatProperty = CastField<FFloatProperty>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::Float, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::Float))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -570,7 +570,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto doubleProperty = CastField<FDoubleProperty>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::Double, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::Double))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -578,7 +578,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto int8Property = CastField<FInt8Property>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::Int8, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::Int8))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -586,7 +586,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto uint8Property = CastField<FByteProperty>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt8, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt8))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -594,7 +594,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto int16Property = CastField<FInt16Property>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::Int16, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::Int16))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -602,7 +602,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto uint16Property = CastField<FUInt16Property>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt16, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt16))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -610,7 +610,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto int32Property = CastField<FIntProperty>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::Int32, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::Int32))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -618,7 +618,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto uint32Property = CastField<FUInt32Property>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt32, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt32))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -626,7 +626,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto int64Property = CastField<FInt64Property>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::Int64, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::Int64))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -634,7 +634,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto uint64Property = CastField<FUInt64Property>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt64, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt64))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -642,7 +642,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 	else if (auto enumProperty = CastField<FEnumProperty>(InProperty))
 	{
-		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt8, InProperty))
+		if (CheckDataType(ELGUIPrefabOverrideParameterType::UInt8))
 		{
 			SET_BUFFER_ON_VALUE();
 			return true;
@@ -653,7 +653,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 		auto structName = structProperty->Struct->GetFName();
 		if (structName == TEXT("Vector2D"))
 		{
-			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector2, InProperty))
+			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector2))
 			{
 				SET_BUFFER_ON_VALUE();
 				return true;
@@ -661,7 +661,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 		}
 		else if (structName == TEXT("Vector"))
 		{
-			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector3, InProperty))
+			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector3))
 			{
 				SET_BUFFER_ON_VALUE();
 				return true;
@@ -669,7 +669,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 		}
 		else if (structName == TEXT("Vector4"))
 		{
-			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector4, InProperty))
+			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector4))
 			{
 				SET_BUFFER_ON_VALUE();
 				return true;
@@ -677,7 +677,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 		}
 		else if (structName == TEXT("Color"))
 		{
-			if (CheckDataType(ELGUIPrefabOverrideParameterType::Color, InProperty))
+			if (CheckDataType(ELGUIPrefabOverrideParameterType::Color))
 			{
 				SET_BUFFER_ON_VALUE();
 				return true;
@@ -685,7 +685,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 		}
 		else if (structName == TEXT("LinearColor"))
 		{
-			if (CheckDataType(ELGUIPrefabOverrideParameterType::LinearColor, InProperty))
+			if (CheckDataType(ELGUIPrefabOverrideParameterType::LinearColor))
 			{
 				SET_BUFFER_ON_VALUE();
 				return true;
@@ -693,7 +693,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 		}
 		else if (structName == TEXT("Quat"))
 		{
-			if (CheckDataType(ELGUIPrefabOverrideParameterType::Quaternion, InProperty))
+			if (CheckDataType(ELGUIPrefabOverrideParameterType::Quaternion))
 			{
 				SET_BUFFER_ON_VALUE();
 				return true;
@@ -701,7 +701,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 		}
 		else if (structName == TEXT("Rotator"))
 		{
-			if (CheckDataType(ELGUIPrefabOverrideParameterType::Rotator, InProperty))
+			if (CheckDataType(ELGUIPrefabOverrideParameterType::Rotator))
 			{
 				SET_BUFFER_ON_VALUE();
 				return true;
@@ -760,6 +760,11 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	}
 
 	return false;
+}
+
+FLGUIPrefabOverrideParameterData::FLGUIPrefabOverrideParameterData()
+{
+	Guid = FGuid::NewGuid();
 }
 
 void FLGUIPrefabOverrideParameterData::SaveDefaultValue()
@@ -828,11 +833,33 @@ void FLGUIPrefabOverrideParameterData::ApplyParameter()
 void FLGUIPrefabOverrideParameterData::SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameterData& InTemplate)
 {
 #if WITH_EDITORONLY_DATA
-	this->HelperActor = InTemplate.HelperActor;
+	this->HelperActor = InTemplate.HelperActor;//copy source reference from template
 #endif
-	this->TargetObject = InTemplate.TargetObject;
-	this->ReferenceObject = InTemplate.ReferenceObject;
+	this->TargetObject = InTemplate.TargetObject;//copy source reference from template
+
+	//this->ReferenceObject = InTemplate.ReferenceObject;//ReferenceObject is parameter value, which should reference current prefab's object
 }
+
+bool FLGUIPrefabOverrideParameterData::IsReferenceParameterEqual(const FLGUIPrefabOverrideParameterData& Other)const
+{
+	return
+#if WITH_EDITORONLY_DATA
+		this->HelperActor == Other.HelperActor &&
+#endif
+		this->TargetObject == Other.TargetObject &&
+		this->PropertyName == Other.PropertyName;
+}
+
+bool FLGUIPrefabOverrideParameterData::IsParameter_Type_Name_Guid_Equal(const FLGUIPrefabOverrideParameterData& Other)const
+{
+	return
+#if WITH_EDITORONLY_DATA
+		this->Guid == Other.Guid &&
+#endif
+		this->ParamType == Other.ParamType &&
+		this->PropertyName == Other.PropertyName;
+}
+
 
 void FLGUIPrefabOverrideParameter::SaveDefaultValue()
 {
@@ -858,6 +885,56 @@ void FLGUIPrefabOverrideParameter::SetParameterReferenceFromTemplate(const FLGUI
 		ParameterList[i].SetParameterReferenceFromTemplate(InTemplate.ParameterList[i]);
 	}
 }
+bool FLGUIPrefabOverrideParameter::RefreshParameterOnTemplate(const FLGUIPrefabOverrideParameter& InTemplate)
+{
+	//compare, find by key, keep original value
+	//compare first, check if order or reference change
+	bool ShouldCheck = false;
+	if (this->ParameterList.Num() != InTemplate.ParameterList.Num())
+	{
+		ShouldCheck = true;
+	}
+	if (!ShouldCheck)
+	{
+		for (int i = 0; i < this->ParameterList.Num(); i++)
+		{
+			if (!this->ParameterList[i].IsParameter_Type_Name_Guid_Equal(InTemplate.ParameterList[i]))
+			{
+				ShouldCheck = true;
+				break;
+			}
+		}
+	}
+	if (ShouldCheck)
+	{
+		auto OldThisParameterList = this->ParameterList;
+		this->ParameterList.Reset();
+		this->ParameterList.Reserve(InTemplate.ParameterList.Num());
+		for (int i = 0; i < InTemplate.ParameterList.Num(); i++)
+		{
+			auto& TemplateItem = InTemplate.ParameterList[i];
+			auto FoundIndex = OldThisParameterList.IndexOfByPredicate([&](const FLGUIPrefabOverrideParameterData& Item) {
+				return 
+					Item.Guid == TemplateItem.Guid//if guid equal then they are the same property
+					&& Item.ParamType == TemplateItem.ParamType;//but if property's value type change then consider it as new
+				});
+			if (FoundIndex != INDEX_NONE)
+			{
+				auto Item = OldThisParameterList[FoundIndex];
+#if WITH_EDITORONLY_DATA
+				Item.DisplayName = TemplateItem.DisplayName;
+#endif
+				this->ParameterList.Add(Item);
+			}
+			else
+			{
+				this->ParameterList.Add(TemplateItem);
+			}
+		}
+		return true;
+	}
+	return false;
+}
 
 void FLGUIPrefabOverrideParameter::SetListItemDefaultNameWhenAddNewToList()
 {
@@ -868,11 +945,27 @@ void FLGUIPrefabOverrideParameter::SetListItemDefaultNameWhenAddNewToList()
 		{
 			if (item.DisplayName.IsEmpty())
 			{
-				item.DisplayName = FString::Printf(TEXT("Property_%d"), index);//@todo: dealwith repeated name
+				item.DisplayName = FString::Printf(TEXT("Property_%d"), index);
 			}
 			index++;
 		}
 	}
+}
+bool FLGUIPrefabOverrideParameter::HasRepeatedParameter()
+{
+	for (int i = 0; i < ParameterList.Num() - 1; i++)
+	{
+		auto& A = ParameterList[i];
+		for (int j = i + 1; j < ParameterList.Num(); j++)
+		{
+			auto& B = ParameterList[j];
+			if (A.IsReferenceParameterEqual(B))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void ULGUIPrefabOverrideParameterObject::ApplyParameter()
@@ -898,6 +991,20 @@ void ULGUIPrefabOverrideParameterObject::PostEditChangeProperty(FPropertyChanged
 void ULGUIPrefabOverrideParameterObject::SetParameterReferenceFromTemplate(ULGUIPrefabOverrideParameterObject* InTemplate)
 {
 	Parameter.SetParameterReferenceFromTemplate(InTemplate->Parameter);
+}
+bool ULGUIPrefabOverrideParameterObject::RefreshParameterOnTemplate(ULGUIPrefabOverrideParameterObject* InTemplate)
+{
+	return Parameter.RefreshParameterOnTemplate(InTemplate->Parameter);
+}
+
+bool ULGUIPrefabOverrideParameterObject::HasRepeatedParameter()
+{
+	return Parameter.HasRepeatedParameter();
+}
+
+int32 ULGUIPrefabOverrideParameterObject::GetParameterCount()const
+{
+	return Parameter.ParameterList.Num();
 }
 
 PRAGMA_ENABLE_OPTIMIZATION

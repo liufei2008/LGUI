@@ -21,6 +21,7 @@
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "LGUIEditorModule.h"
+#include "PrefabEditor/LGUIPrefabEditor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -786,7 +787,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 					auto PrefabHelperObject = prefabActor->PrefabHelperObject;
 					PrefabHelperObject->PrefabAsset = OutPrefab;
 					PrefabHelperObject->LoadedRootActor = selectedActor;
-					auto createSuccess = CreateOrApplyPrefab(prefabActor);
+					auto createSuccess = CreateOrApplyPrefab(PrefabHelperObject);
 					if (createSuccess)
 					{
 						prefabActor->MoveActorToPrefabFolder();
@@ -833,29 +834,67 @@ void LGUIEditorTools::ApplyPrefab()
 	if (PrefabHelperObject != nullptr)
 	{
 		check(!PrefabHelperObject->bIsInsidePrefabEditor);//should already handled by button
-		auto OuterActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
-		CreateOrApplyPrefab(OuterActor);
+		CreateOrApplyPrefab(PrefabHelperObject);
 	}
 	CleanupPrefabsInWorld(selectedActor->GetWorld());
 	GEditor->EndTransaction();
 }
-bool LGUIEditorTools::CreateOrApplyPrefab(ALGUIPrefabHelperActor* InPrefabActor)
+bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperObject* InPrefabHelperObject)
 {
-	if (auto RootActor = InPrefabActor->PrefabHelperObject->LoadedRootActor)
+	if (auto RootActor = InPrefabHelperObject->LoadedRootActor)
 	{
-		if (auto PrefabAsset = InPrefabActor->PrefabHelperObject->PrefabAsset)
+		if (auto PrefabAsset = InPrefabHelperObject->PrefabAsset)
 		{
-			{
-				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
-				InPrefabActor->SavePrefab();
-				GEditor->EndTransaction();
-			}
+			GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
+			InPrefabHelperObject->SavePrefab();
+			GEditor->EndTransaction();
+
 			PrefabAsset->RefreshAgentActorsInPreviewWorld();
+
+			RefreshOnSubPrefabChange(InPrefabHelperObject->PrefabAsset);
 			return true;
 		}
 	}
 	return false;
 }
+
+void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
+	TArray<FString> PathsToScan;
+	PathsToScan.Add(TEXT("/Game/"));
+	AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+	// Get asset in path
+	TArray<FAssetData> ScriptAssetList;
+	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
+
+	// Ensure all assets are loaded
+	for (const FAssetData& Asset : ScriptAssetList)
+	{
+		// Gets the loaded asset, loads it if necessary
+		if (Asset.AssetClass == TEXT("LGUIPrefab"))
+		{
+			auto AssetObject = Asset.GetAsset();
+			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
+			{
+				//check if is opened by prefab editor
+				if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(Prefab))
+				{
+					PrefabEditor->RefreshOnSubPrefabDirty(InSubPrefab);
+				}
+				else
+				{
+					Prefab->RefreshOnSubPrefabDirty(InSubPrefab);
+				}
+			}
+		}
+	}
+}
+
 void LGUIEditorTools::RevertPrefab()
 {
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI RevertPrefab")));

@@ -23,12 +23,9 @@ void ULGUIPrefab::MakeAgentActorsInPreviewWorld()
 		if (!IsValid(AgentRootActor))
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-			TMap<FGuid, UObject*> InMapGuidToObject;
-			TArray<uint8> TempOverrideParameterData;
-			ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
 			AgentRootActor = this->LoadPrefabForEdit(World, nullptr
-				, InMapGuidToObject, AgentSubPrefabmap
-				, TempOverrideParameterData, OverrideParameterObject
+				, AgentMapGuidToObject, AgentSubPrefabmap
+				, this->OverrideParameterData, AgentOverrideParameterObject
 			);
 		}
 	}
@@ -40,6 +37,52 @@ void ULGUIPrefab::ClearAgentActorsInPreviewWorld()
 		LGUIUtils::DestroyActorWithHierarchy(AgentRootActor);
 		AgentRootActor = nullptr;
 		AgentSubPrefabmap.Empty();
+		AgentMapGuidToObject.Empty();
+		AgentOverrideParameterObject->ConditionalBeginDestroy();
+		AgentOverrideParameterObject = nullptr;
+	}
+}
+
+void ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
+{
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	{
+		bool AnythingChange = false;
+		if (ReferenceAssetList.Contains(InSubPrefab))
+		{
+			for (auto& KeyValue : AgentSubPrefabmap)
+			{
+				if (KeyValue.Value.PrefabAsset == InSubPrefab)
+				{
+					if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->AgentOverrideParameterObject))
+					{
+						AnythingChange = true;
+					}
+				}
+			}
+		}
+		if (AnythingChange)
+		{
+			TMap<UObject*, FGuid> MapObjectToGuid;
+			for (auto& KeyValue : AgentMapGuidToObject)
+			{
+				if (IsValid(KeyValue.Value))
+				{
+					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+				}
+			}
+			this->SavePrefab(AgentRootActor
+				, MapObjectToGuid, AgentSubPrefabmap
+				, AgentOverrideParameterObject, this->OverrideParameterData
+			);
+			AgentMapGuidToObject.Empty();
+			for (auto KeyValue : MapObjectToGuid)
+			{
+				AgentMapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
+			}
+
+			this->MarkPackageDirty();
+		}
 	}
 }
 
@@ -54,7 +97,38 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 		}
 		else
 		{
-			this->SavePrefabForRuntime(AgentRootActor, AgentSubPrefabmap);
+			//check override parameter. although parameter is refreshed when sub prefab change, but what if sub prefab is changed outside of editor?
+			bool AnythingChange = false;
+			for (auto& KeyValue : AgentSubPrefabmap)
+			{
+				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(KeyValue.Value.PrefabAsset->AgentOverrideParameterObject))
+				{
+					AnythingChange = true;
+				}
+			}
+			if (AnythingChange)
+			{
+				UE_LOG(LGUI, Log, TEXT("[ULGUIPrefab::BeginCacheForCookedPlatformData]Something changed in sub prefab override parameter, refresh it."));
+			}
+
+			TMap<UObject*, FGuid> MapObjectToGuid;
+			for (auto& KeyValue : AgentMapGuidToObject)
+			{
+				if (IsValid(KeyValue.Value))
+				{
+					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+				}
+			}
+			this->SavePrefab(AgentRootActor
+				, MapObjectToGuid, AgentSubPrefabmap
+				, AgentOverrideParameterObject, this->OverrideParameterData
+				, false
+			);
+			AgentMapGuidToObject.Empty();
+			for (auto KeyValue : MapObjectToGuid)
+			{
+				AgentMapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
+			}
 		}
 	}
 	else
@@ -73,22 +147,13 @@ void ULGUIPrefab::ClearCachedCookedPlatformData(const ITargetPlatform* TargetPla
 void ULGUIPrefab::PostSaveRoot(bool bCleanupIsRequired)
 {
 	Super::PostSaveRoot(bCleanupIsRequired);
-	//recreate AgentRootActor, because the prefab data could change.
-	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
-	{
-		//if (IsValid(AgentRootActor))
-		//{
-		//	LGUIUtils::DestroyActorWithHierarchy(AgentRootActor);
-		//}
-		//MakeAgentActorsInPreviewWorld();
-		//check(IsValid(AgentRootActor));
-	}
 }
 void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 {
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		
+		//(should generate new guid for all object inside prefab)
+		//previoursly I write the line upper, but after a while I realize: two prefab won't share same MapObjectToGuid, event for nested prefab( sub prefab only get root actor in parent's guid-map, and not the same guid inside sub prefab), so we don't need do the upper line.
 	}
 	else
 	{
@@ -197,17 +262,14 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 void ULGUIPrefab::SavePrefab(AActor* RootActor
 	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 	, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+	, bool InForEditorOrRuntimeUse
 )
 {
 	LGUIPrefabSystem3::ActorSerializer3::SavePrefab(RootActor, this
 		, InOutMapObjectToGuid, InSubPrefabMap
 		, InOverrideParameterObject, OutOverrideParameterData
+		, InForEditorOrRuntimeUse
 	);
-}
-
-void ULGUIPrefab::SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap)
-{
-	LGUIPrefabSystem3::ActorSerializer3::SavePrefabForRuntime(RootActor, this, InSubPrefabMap);
 }
 
 AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
