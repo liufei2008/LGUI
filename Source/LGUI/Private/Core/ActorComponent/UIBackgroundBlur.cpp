@@ -99,8 +99,8 @@ public:
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);
 		if (blurStrength <= 0.0f)return;
 
-		float width = widget.width;
-		float height = widget.height;
+		float width = RectSize.X;
+		float height = RectSize.Y;
 		width = FMath::Max(width, 1.0f);
 		height = FMath::Max(height, 1.0f);
 		FVector2D inv_TextureSize(1.0f / width, 1.0f / height);

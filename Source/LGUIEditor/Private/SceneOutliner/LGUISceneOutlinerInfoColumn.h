@@ -46,7 +46,7 @@ namespace LGUISceneOutliner
 		FSlateColor GetDrawcallIconColor(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
 		FText GetDrawcallInfo(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const;
 
-		/** Weak reference to the outliner widget that owns our list */
+		/** Weak reference to the outliner AnchorData that owns our list */
 		TWeakPtr< ISceneOutliner > WeakSceneOutliner;
 		TWeakObjectPtr<UWorld> CurrentWorld;
 	};

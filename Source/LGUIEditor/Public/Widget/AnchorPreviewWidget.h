@@ -5,6 +5,18 @@
 #pragma once
 
 #define LOCTEXT_NAMESPACE "AnchorPreviewWidget"
+
+enum class UIAnchorHorizontalAlign :uint8
+{
+	None, Left, Center, Right, Stretch
+};
+enum class UIAnchorVerticalAlign :uint8
+{
+	None, Top, Middle, Bottom, Stretch
+};
+
+DECLARE_DELEGATE_TwoParams(FOnAnchorChange, UIAnchorHorizontalAlign, UIAnchorVerticalAlign);
+
 //Anchor
 class SAnchorPreviewWidget : public SCompoundWidget
 {
@@ -12,19 +24,18 @@ public:
 
 	SLATE_BEGIN_ARGS(SAnchorPreviewWidget) {}
 	SLATE_ATTRIBUTE(float, BasePadding)
+	SLATE_ATTRIBUTE(bool, ButtonEnable)
 	SLATE_ATTRIBUTE(UIAnchorHorizontalAlign, SelectedHAlign)
 	SLATE_ATTRIBUTE(UIAnchorVerticalAlign, SelectedVAlign)
+	SLATE_ATTRIBUTE(UIAnchorHorizontalAlign, PersistentHAlign)
+	SLATE_ATTRIBUTE(UIAnchorVerticalAlign, PersistentVAlign)
+	SLATE_EVENT(FOnAnchorChange, OnAnchorChange)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, 
-		TArray<TWeakObjectPtr<UUIItem>> TargetScriptArray,
-		UIAnchorHorizontalAlign HorizontalAlign,
-		UIAnchorVerticalAlign VerticalAlign,
-		FVector2D Size,
-		FSimpleDelegate InOnClickAnchor)
+		FVector2D Size
+	)
 	{
-		OnClickAnchorDelegate = InOnClickAnchor;
-
 		auto anchorLineHorizontalWidth = Size.X;
 		auto anchorLineHorizontalHeight = 1;
 		auto anchorLineVerticalWidth = 1;
@@ -38,10 +49,10 @@ public:
 		EVerticalAlignment anchorDotLeftBottomVAlign = EVerticalAlignment::VAlign_Bottom;
 		EHorizontalAlignment anchorDotRightBottomHAlign = EHorizontalAlignment::HAlign_Right;
 		EVerticalAlignment anchorDotRightBottomVAlign = EVerticalAlignment::VAlign_Bottom;
-		int anchorDotSize = 4;
+		int anchorDotSize = 5;
 
 		EHorizontalAlignment hAlign = EHorizontalAlignment::HAlign_Center;
-		switch (HorizontalAlign)
+		switch (InArgs._PersistentHAlign.Get())
 		{
 		case UIAnchorHorizontalAlign::None:
 		{
@@ -81,7 +92,7 @@ public:
 		break;
 		}
 		EVerticalAlignment vAlign = EVerticalAlignment::VAlign_Center;
-		switch (VerticalAlign)
+		switch (InArgs._PersistentVAlign.Get())
 		{
 		case UIAnchorVerticalAlign::None:
 		{
@@ -126,12 +137,12 @@ public:
 
 		auto anchorLineBrushHorizontal = FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot");
 		auto anchorLineBrushVertical = FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot");
-		if (HorizontalAlign == UIAnchorHorizontalAlign::Stretch && VerticalAlign == UIAnchorVerticalAlign::Stretch)
+		if (InArgs._PersistentHAlign.Get() == UIAnchorHorizontalAlign::Stretch && InArgs._PersistentVAlign.Get() == UIAnchorVerticalAlign::Stretch)
 		{
 			anchorLineBrushHorizontal = FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame");
 			anchorLineBrushVertical = FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame");
 		}
-		else if (HorizontalAlign == UIAnchorHorizontalAlign::None && VerticalAlign == UIAnchorVerticalAlign::Stretch)
+		else if (InArgs._PersistentHAlign.Get() == UIAnchorHorizontalAlign::None && InArgs._PersistentVAlign.Get() == UIAnchorVerticalAlign::Stretch)
 		{
 			anchorLineBrushHorizontal = FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrameHorizontal");
 			anchorLineHorizontalWidth = Size.X;
@@ -139,7 +150,7 @@ public:
 			anchorLineVerticalWidth = 0;
 			anchorLineVerticalHeight = 0;
 		}
-		else if (HorizontalAlign == UIAnchorHorizontalAlign::Stretch && VerticalAlign == UIAnchorVerticalAlign::None)
+		else if (InArgs._PersistentHAlign.Get() == UIAnchorHorizontalAlign::Stretch && InArgs._PersistentVAlign.Get() == UIAnchorVerticalAlign::None)
 		{
 			anchorLineBrushVertical = FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrameVertical");
 			anchorLineVerticalWidth = Size.X;
@@ -160,7 +171,7 @@ public:
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
-					InArgs._SelectedHAlign.Get() == HorizontalAlign && InArgs._SelectedVAlign.Get() == VerticalAlign ?
+					InArgs._SelectedHAlign.Get() == InArgs._PersistentHAlign.Get() && InArgs._SelectedVAlign.Get() == InArgs._PersistentVAlign.Get() ?
 					(
 					SNew(SBox)
 					.WidthOverride(Size.X + 10)
@@ -177,155 +188,200 @@ public:
 			]
 			+ SOverlay::Slot()
 			[
-			SNew(SBox)
-			.Padding(InArgs._BasePadding.Get())
-			[
-				SNew(SButton)
-				.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
-				.ButtonColorAndOpacity(FLinearColor(FColor(100, 100, 100)))
-				.OnClicked(this, &SAnchorPreviewWidget::OnAnchorClicked, TargetScriptArray, HorizontalAlign, VerticalAlign)
-				.ContentPadding(FMargin(0.0f, 0.0f))
+				SNew(SOverlay)
+				//outer rect
+				+SOverlay::Slot()
 				[
-					SNew(SVerticalBox)
-
-					+ SVerticalBox::Slot()
-					.AutoHeight()
+					SNew(SBox)
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.VAlign(EVerticalAlignment::VAlign_Center)
 					[
-					
 						SNew(SBox)
+						.WidthOverride(Size.X)
+						.HeightOverride(Size.Y)
 						[
-							SNew(SOverlay)
-							//half size rect in the middle
-							+SOverlay::Slot()
-							[
+							SNew(SImage)
+							.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))
+							.ColorAndOpacity(FLinearColor(FColor(122, 122, 122, 122)))
+						]
+					]
+				]
+				+SOverlay::Slot()
+				[
+					SNew(SBox)
+					.Padding(InArgs._BasePadding.Get())
+					[
+						SNew(SOverlay)
+						+SOverlay::Slot()
+						[
+							InArgs._ButtonEnable.Get() ?
+							(
 								SNew(SBox)
-								.WidthOverride(Size.X)
-								.HeightOverride(Size.Y)
-								.Padding(this, &SAnchorPreviewWidget::GetInnerRectMargin, Size, HorizontalAlign, VerticalAlign)
-								.HAlign(EHorizontalAlignment::HAlign_Center)
-								.VAlign(EVerticalAlignment::VAlign_Center)
 								[
-									SNew(SBox)
-									.WidthOverride(this, &SAnchorPreviewWidget::GetInnerRectWidth, Size.X, HorizontalAlign)
-									.HeightOverride(this, &SAnchorPreviewWidget::GetInnerRectHeight, Size.Y, VerticalAlign)
-									[
-										SNew(SImage)
-										.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))
-										.ColorAndOpacity(FLinearColor(FColor(122, 122, 122, 255)))
-									]
+									SNew(SButton)
+									.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
+									.ButtonColorAndOpacity(FLinearColor(FColor(100, 100, 100)))
+									.OnClicked_Lambda([=](){
+										InArgs._OnAnchorChange.ExecuteIfBound(InArgs._PersistentHAlign.Get(), InArgs._PersistentVAlign.Get());
+										return FReply::Handled();
+										})
+									.ContentPadding(FMargin(0.0f, 0.0f))
 								]
-							]
-							//horizontal direction
-							+SOverlay::Slot()
+							)
+							:
+							(
+								SNew(SBox)
+							)
+						]
+						+SOverlay::Slot()
+						[
+							SNew(SVerticalBox)
+							+ SVerticalBox::Slot()
+							.AutoHeight()
 							[
 								SNew(SBox)
-								.WidthOverride(Size.X)
-								.HeightOverride(Size.Y)
-								.HAlign(hAlign)
-								.VAlign(vAlign)
 								[
-									SNew(SBox)
-									.WidthOverride(anchorLineHorizontalWidth)
-									.HeightOverride(anchorLineHorizontalHeight)
+									SNew(SOverlay)
+									//half size rect in the middle
+									+SOverlay::Slot()
 									[
-										SNew(SImage)
-										.Image(anchorLineBrushHorizontal)
-										.ColorAndOpacity(FLinearColor(FColor(170, 77, 77, 255)))
+										SNew(SBox)
+										.WidthOverride(Size.X)
+										.HeightOverride(Size.Y)
+										.Padding(this, &SAnchorPreviewWidget::GetInnerRectMargin, Size, InArgs._PersistentHAlign.Get(), InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
+										.HAlign(EHorizontalAlignment::HAlign_Center)
+										.VAlign(EVerticalAlignment::VAlign_Center)
+										[
+											SNew(SBox)
+											.WidthOverride(this, &SAnchorPreviewWidget::GetInnerRectWidth, Size.X, InArgs._PersistentHAlign.Get(), InArgs._ButtonEnable.Get())
+											.HeightOverride(this, &SAnchorPreviewWidget::GetInnerRectHeight, Size.Y, InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
+											[
+												SNew(SImage)
+												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))
+												.ColorAndOpacity(FLinearColor(FColor(122, 122, 122, 255)))
+												.Visibility(EVisibility::HitTestInvisible)
+											]
+										]
 									]
-								]
-							]
-							//vertical direction
-							+SOverlay::Slot()
-							[
-								SNew(SBox)
-								.WidthOverride(Size.X)
-								.HeightOverride(Size.Y)
-								.HAlign(hAlign)
-								.VAlign(vAlign)
-								[
-									SNew(SBox)
-									.WidthOverride(anchorLineVerticalWidth)
-									.HeightOverride(anchorLineVerticalHeight)
+									//horizontal direction
+									+SOverlay::Slot()
 									[
-										SNew(SImage)
-										.Image(anchorLineBrushVertical)
-										.ColorAndOpacity(FLinearColor(FColor(170, 77, 77, 255)))
+										SNew(SBox)
+										.WidthOverride(Size.X)
+										.HeightOverride(Size.Y)
+										.HAlign(hAlign)
+										.VAlign(vAlign)
+										[
+											SNew(SBox)
+											.WidthOverride(anchorLineHorizontalWidth)
+											.HeightOverride(anchorLineHorizontalHeight)
+											[
+												SNew(SImage)
+												.Image(anchorLineBrushHorizontal)
+												.ColorAndOpacity(FLinearColor(FColor(170, 77, 77, 255)))
+												.Visibility(EVisibility::HitTestInvisible)
+											]
+										]
 									]
-								]
-							]
-							//left top anchor point
-							+SOverlay::Slot()
-							[
-								SNew(SBox)
-								.WidthOverride(Size.X)
-								.HeightOverride(Size.Y)
-								.HAlign(anchorDotLeftTopHAlign)
-								.VAlign(anchorDotLeftTopVAlign)
-								[
-									SNew(SBox)
-									.WidthOverride(anchorDotSize)
-									.HeightOverride(anchorDotSize)
+									//vertical direction
+									+SOverlay::Slot()
 									[
-										SNew(SImage)
-										.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-										.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+										SNew(SBox)
+										.WidthOverride(Size.X)
+										.HeightOverride(Size.Y)
+										.HAlign(hAlign)
+										.VAlign(vAlign)
+										[
+											SNew(SBox)
+											.WidthOverride(anchorLineVerticalWidth)
+											.HeightOverride(anchorLineVerticalHeight)
+											[
+												SNew(SImage)
+												.Image(anchorLineBrushVertical)
+												.ColorAndOpacity(FLinearColor(FColor(170, 77, 77, 255)))
+												.Visibility(EVisibility::HitTestInvisible)
+											]
+										]
 									]
-								]
-							]
-							//right top anchor point
-							+SOverlay::Slot()
-							[
-								SNew(SBox)
-								.WidthOverride(Size.X)
-								.HeightOverride(Size.Y)
-								.HAlign(anchorDotRightTopHAlign)
-								.VAlign(anchorDotRightTopVAlign)
-								[
-									SNew(SBox)
-									.WidthOverride(anchorDotSize)
-									.HeightOverride(anchorDotSize)
+									//left top anchor point
+									+SOverlay::Slot()
 									[
-										SNew(SImage)
-										.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-										.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+										SNew(SBox)
+										.WidthOverride(Size.X)
+										.HeightOverride(Size.Y)
+										.HAlign(anchorDotLeftTopHAlign)
+										.VAlign(anchorDotLeftTopVAlign)
+										[
+											SNew(SBox)
+											.WidthOverride(anchorDotSize)
+											.HeightOverride(anchorDotSize)
+											[
+												SNew(SImage)
+												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+												.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+												.Visibility(EVisibility::HitTestInvisible)
+											]
+										]
 									]
-								]
-							]
-							//left bottom anchor point
-							+SOverlay::Slot()
-							[
-								SNew(SBox)
-								.WidthOverride(Size.X)
-								.HeightOverride(Size.Y)
-								.HAlign(anchorDotLeftBottomHAlign)
-								.VAlign(anchorDotLeftBottomVAlign)
-								[
-									SNew(SBox)
-									.WidthOverride(anchorDotSize)
-									.HeightOverride(anchorDotSize)
+									//right top anchor point
+									+SOverlay::Slot()
 									[
-										SNew(SImage)
-										.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-										.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+										SNew(SBox)
+										.WidthOverride(Size.X)
+										.HeightOverride(Size.Y)
+										.HAlign(anchorDotRightTopHAlign)
+										.VAlign(anchorDotRightTopVAlign)
+										[
+											SNew(SBox)
+											.WidthOverride(anchorDotSize)
+											.HeightOverride(anchorDotSize)
+											[
+												SNew(SImage)
+												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+												.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+												.Visibility(EVisibility::HitTestInvisible)
+											]
+										]
 									]
-								]
-							]
-							//right bottom anchor point
-							+SOverlay::Slot()
-							[
-								SNew(SBox)
-								.WidthOverride(Size.X)
-								.HeightOverride(Size.Y)
-								.HAlign(anchorDotRightBottomHAlign)
-								.VAlign(anchorDotRightBottomVAlign)
-								[
-									SNew(SBox)
-									.WidthOverride(anchorDotSize)
-									.HeightOverride(anchorDotSize)
+									//left bottom anchor point
+									+SOverlay::Slot()
 									[
-										SNew(SImage)
-										.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-										.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+										SNew(SBox)
+										.WidthOverride(Size.X)
+										.HeightOverride(Size.Y)
+										.HAlign(anchorDotLeftBottomHAlign)
+										.VAlign(anchorDotLeftBottomVAlign)
+										[
+											SNew(SBox)
+											.WidthOverride(anchorDotSize)
+											.HeightOverride(anchorDotSize)
+											[
+												SNew(SImage)
+												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+												.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+												.Visibility(EVisibility::HitTestInvisible)
+											]
+										]
+									]
+									//right bottom anchor point
+									+SOverlay::Slot()
+									[
+										SNew(SBox)
+										.WidthOverride(Size.X)
+										.HeightOverride(Size.Y)
+										.HAlign(anchorDotRightBottomHAlign)
+										.VAlign(anchorDotRightBottomVAlign)
+										[
+											SNew(SBox)
+											.WidthOverride(anchorDotSize)
+											.HeightOverride(anchorDotSize)
+											[
+												SNew(SImage)
+												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+												.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+												.Visibility(EVisibility::HitTestInvisible)
+											]
+										]
 									]
 								]
 							]
@@ -333,60 +389,15 @@ public:
 					]
 				]
 			]
-			]
 		];
 	}
 
 private:
 
-	FReply OnAnchorClicked(TArray<TWeakObjectPtr<UUIItem>> TargetScriptArray, UIAnchorHorizontalAlign HorizontalAlign,	UIAnchorVerticalAlign VerticalAlign)
+	FOptionalSize GetInnerRectWidth(float Size, UIAnchorHorizontalAlign hAlign, bool IsInteractabel) const
 	{
-		bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsControlDown();
-		if (TargetScriptArray.Num() > 0)
-		{
-			GEditor->BeginTransaction(LOCTEXT("ChangeAnchor", "Change LGUI Anchor"));
-			for (auto item : TargetScriptArray)
-			{
-				if (item.IsValid())
-				{
-					item->SetAnchorHAlign(HorizontalAlign);
-					item->SetAnchorVAlign(VerticalAlign);
-					if (snapAnchor)
-					{
-						if (HorizontalAlign == UIAnchorHorizontalAlign::Stretch)
-						{
-							item->SetStretchLeft(0);
-							item->SetStretchRight(0);
-						}
-						else if (HorizontalAlign != UIAnchorHorizontalAlign::None)
-						{
-							item->SetAnchorOffsetHorizontal(0);
-						}
-						if (VerticalAlign == UIAnchorVerticalAlign::Stretch)
-						{
-							item->SetStretchBottom(0);
-							item->SetStretchTop(0);
-						}
-						else if (VerticalAlign != UIAnchorVerticalAlign::None)
-						{
-							item->SetAnchorOffsetVertical(0);
-						}
-					}
-					item->EditorForceUpdateImmediately();
-				}
-			}
-			GEditor->EndTransaction();
-			
-			// Close the menu
-			FSlateApplication::Get().DismissAllMenus();
-			OnClickAnchorDelegate.ExecuteIfBound();
-		}
-		return FReply::Handled();
-	}
-	FOptionalSize GetInnerRectWidth(float Size, UIAnchorHorizontalAlign hAlign) const
-	{
-		bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsControlDown();
-		if (snapAnchor)
+		bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsAltDown();
+		if (snapAnchor && IsInteractabel)
 		{
 			if (hAlign == UIAnchorHorizontalAlign::Stretch)
 			{
@@ -395,10 +406,10 @@ private:
 		}
 		return Size * 0.5f;
 	}
-	FOptionalSize GetInnerRectHeight(float Size, UIAnchorVerticalAlign vAlign) const
+	FOptionalSize GetInnerRectHeight(float Size, UIAnchorVerticalAlign vAlign, bool IsInteractabel) const
 	{
-		bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsControlDown();
-		if (snapAnchor)
+		bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsAltDown();
+		if (snapAnchor && IsInteractabel)
 		{
 			if (vAlign == UIAnchorVerticalAlign::Stretch)
 			{
@@ -407,11 +418,11 @@ private:
 		}
 		return Size * 0.5f;
 	}
-	FMargin GetInnerRectMargin(FVector2D Size, UIAnchorHorizontalAlign hAlign, UIAnchorVerticalAlign vAlign)const
+	FMargin GetInnerRectMargin(FVector2D Size, UIAnchorHorizontalAlign hAlign, UIAnchorVerticalAlign vAlign, bool IsInteractabel)const
 	{
 		FMargin result(0, 0, 0, 0);
-		bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsControlDown();
-		if (snapAnchor)
+		bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsAltDown();
+		if (snapAnchor && IsInteractabel)
 		{
 			switch (hAlign)
 			{
@@ -434,7 +445,5 @@ private:
 		}
 		return result;
 	}
-
-	FSimpleDelegate OnClickAnchorDelegate;
 };
 #undef LOCTEXT_NAMESPACE

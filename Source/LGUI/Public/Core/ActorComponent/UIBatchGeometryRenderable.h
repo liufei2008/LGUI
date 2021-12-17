@@ -57,9 +57,7 @@ public:
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic()const;
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
-	virtual void WidthChanged()override;
-	virtual void HeightChanged()override;
-	virtual void PivotChanged()override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
 
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
@@ -70,8 +68,6 @@ public:
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);
 
-	virtual void UpdateCachedData()override;
-	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;
 	TSharedPtr<UIGeometry> GetGeometry()const { return geometry; }
 
@@ -97,16 +93,15 @@ protected:
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)PURE_VIRTUAL(UUIBatchGeometryRenderable::OnUpdateGeometry, );
 
 	bool CreateGeometry();
-	virtual void UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)override;
 	virtual void UpdateGeometry()override final;
+	virtual void MarkFlattenHierarchyIndexDirty()override;
+
 private:
 	void UpdateGeometry_Implement();
-	/** local vertex position changed */
+	/** local space vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
 	/** vertex's uv change */
 	uint8 bUVChanged:1;
 	/** triangle index change */
 	uint8 bTriangleChanged:1;
-
-	uint8 cacheForThisUpdate_LocalVertexPositionChanged:1, cacheForThisUpdate_UVChanged:1, cacheForThisUpdate_TriangleChanged:1;
 };

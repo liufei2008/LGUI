@@ -7,7 +7,7 @@
 #include "Widgets/SWidget.h"
 #include "SCommonEditorViewportToolbarBase.h"
 
-// In-viewport toolbar widget used in the sprite editor
+// In-viewport toolbar AnchorData used in the sprite editor
 class SLGUIPrefabEditorViewportToolbar : public SCommonEditorViewportToolbarBase
 {
 public:

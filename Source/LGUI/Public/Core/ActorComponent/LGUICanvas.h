@@ -444,7 +444,7 @@ private:
 	uint32 bTextureClipParameterChanged:1;
 
 	uint32 bCanTickUpdate:1;//if Canvas can update from tick
-	uint32 bIsLayoutChanged : 1;//if any UIItem's layout change, then we need to update drawcall
+	uint32 bRenderDataChanged : 1;
 	uint32 bIsUIRenderableHierarchyChanged : 1;//if any renderable UIItem's hierarchy change, then we need to sort renderable list
 	uint32 bRectRangeCalculated:1;
 	uint32 bNeedToSortRenderPriority : 1;
@@ -479,16 +479,16 @@ private:
 	/** rect clip's max position */
 	FVector2D clipRectMax = FVector2D(0, 0);
 
-	TMap<UUIItem*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
+	TMap<UUIBaseRenderable*, FLGUICacheTransformContainer> CacheUIItemToCanvasTransformMap;//UI element relative to canvas transform
 public:
-	bool GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
+	bool GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult);
 	/** Is this canvas renderred by other canvas? */
 	bool IsRenderByOtherCanvas()const;
 	/** If this canvas is renderred by other canvas, then use this to get that canvas. */
 	ULGUICanvas* GetActualRenderCanvas()const;
 private:
 	FTransform2D ConvertTo2DTransform(const FTransform& Transform);
-	void CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
+	void CalculateUIItem2DBounds(UUIBaseRenderable* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
 
 	/** canvas array belong to this canvas in hierarchy. */
 	TArray<TWeakObjectPtr<ULGUICanvas>> ChildrenCanvasArray;

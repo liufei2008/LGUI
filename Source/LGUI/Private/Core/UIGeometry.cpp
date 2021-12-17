@@ -3860,7 +3860,7 @@ void UIGeometry::CalculateOffsetAndSize(
 
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformVertices"), STAT_TransformVertices, STATGROUP_LGUI);
-void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIItem* item, TSharedPtr<UIGeometry> uiGeo)
+void UIGeometry::TransformVertices(ULGUICanvas* canvas, UUIBaseRenderable* item, TSharedPtr<UIGeometry> uiGeo)
 {
 	SCOPE_CYCLE_COUNTER(STAT_TransformVertices);
 

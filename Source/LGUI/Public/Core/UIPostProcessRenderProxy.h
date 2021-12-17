@@ -68,7 +68,7 @@ public:
 	FMatrix objectToWorldMatrix = FMatrix::Identity;
 	TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-	FUIWidget widget;
+	FVector2D RectSize;
 	FTexture2DResource* maskTexture = nullptr;
 
 	void RenderMeshOnScreen_RenderThread(FRHICommandListImmediate& RHICmdList

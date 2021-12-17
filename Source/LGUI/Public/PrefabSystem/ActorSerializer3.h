@@ -70,18 +70,8 @@ namespace LGUIPrefabSystem3
 		FVector Scale;
 		bool bIsUI;
 		//for UIItem
-		FString displayName;
-		FVector2D pivot;
-		uint8 anchorHAlign;
-		uint8 anchorVAlign;
-		float anchorOffsetX;
-		float anchorOffsetY;
-		float width;
-		float height;
-		float stretchLeft;
-		float stretchRight;
-		float stretchTop;
-		float stretchBottom;
+		FString DisplayName;
+		FUIAnchorData AnchorData;
 
 		friend FArchive& operator<<(FArchive& Ar, FLGUISubPrefabDefaultOverrideParameter& Data)
 		{
@@ -93,18 +83,12 @@ namespace LGUIPrefabSystem3
 			Ar << Data.Scale;
 			if (Data.bIsUI)
 			{
-				Ar << Data.displayName;
-				Ar << Data.pivot;
-				Ar << Data.anchorHAlign;
-				Ar << Data.anchorVAlign;
-				Ar << Data.anchorOffsetX;
-				Ar << Data.anchorOffsetY;
-				Ar << Data.width;
-				Ar << Data.height;
-				Ar << Data.stretchLeft;
-				Ar << Data.stretchRight;
-				Ar << Data.stretchTop;
-				Ar << Data.stretchBottom;
+				Ar << Data.DisplayName;
+				Ar << Data.AnchorData.Pivot;
+				Ar << Data.AnchorData.AnchorMin;
+				Ar << Data.AnchorData.AnchorMax;
+				Ar << Data.AnchorData.AnchoredPosition;
+				Ar << Data.AnchorData.SizeDelta;
 			}
 			return Ar;
 		}

@@ -32,14 +32,10 @@ protected:
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void UpdateGeometry()override;
 
-	virtual void WidthChanged()override;
-	virtual void HeightChanged()override;
-	virtual void PivotChanged()override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
 
 	void MarkVertexPositionDirty();
 
-	virtual void UpdateCachedData()override;
-	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;
 
 	virtual bool LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)override;
@@ -58,5 +54,4 @@ public:
 	virtual void SetTextureClipParameter(UTexture* ClipTex, const FVector4& OffsetAndSize) {};
 protected:
 	uint8 bLocalVertexPositionChanged : 1;
-	uint8 cacheForThisUpdate_LocalVertexPositionChanged : 1;
 };

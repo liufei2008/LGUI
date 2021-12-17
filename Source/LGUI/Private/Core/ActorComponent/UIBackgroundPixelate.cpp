@@ -120,10 +120,10 @@ public:
 		calculatedStrength = FMath::Clamp(calculatedStrength, 0.0f, 100.0f);
 		calculatedStrength += 1;
 
-		auto width = (int)(widget.width / calculatedStrength);
-		auto height = (int)(widget.height / calculatedStrength);
-		width = FMath::Clamp(width, 1, (int)widget.width);
-		height = FMath::Clamp(height, 1, (int)widget.height);
+		auto width = (int)(RectSize.X / calculatedStrength);
+		auto height = (int)(RectSize.Y / calculatedStrength);
+		width = FMath::Clamp(width, 1, (int)RectSize.X);
+		height = FMath::Clamp(height, 1, (int)RectSize.Y);
 
 		//get render target
 		TRefCountPtr<IPooledRenderTarget> PixelateEffectRenderTarget;

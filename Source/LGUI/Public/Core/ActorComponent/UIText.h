@@ -134,10 +134,10 @@ protected:
 		UITextParagraphVerticalAlign vAlign = UITextParagraphVerticalAlign::Middle;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		UITextOverflowType overflowType = UITextOverflowType::VerticalOverflow;
-	/** if overflowType = HorizontalOverflow then adjust widget width to true width */
+	/** if overflowType = HorizontalOverflow then adjust AnchorData width to true width */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::HorizontalOverflow"))
 		bool adjustWidth = false;
-	/** if overflowType = VerticalOverflow then adjust widget height to true height */
+	/** if overflowType = VerticalOverflow then adjust AnchorData height to true height */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (EditCondition = "overflowType==UITextOverflowType::VerticalOverflow"))
 		bool adjustHeight = false;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
@@ -163,7 +163,7 @@ private:
 	bool bHasAddToFont = false;
 	/** visible/renderable char count of current text. -1 means not set yet */
 	int visibleCharCount = -1;
-	/** real size of this UIText, not the widget's width and height */
+	/** real size of this UIText, not the AnchorData's width and height */
 	FVector2D textRealSize;
 	/** cached texture property */
 	TArray<FUITextLineProperty> cachedTextPropertyArray;
@@ -237,9 +237,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichText(bool newRichText);
 
-	virtual void WidthChanged()override;
-	virtual void HeightChanged()override;
-	virtual void GetLocalSpaceMinMaxPoint(FVector2D& min, FVector2D& max)const override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
+	virtual void GetGeometryBoundsInLocalSpace(FVector2D& min, FVector2D& max)const override;
 #pragma region UITextInputComponent
 	/** get caret position and line index */
 	void FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex);

@@ -22,19 +22,8 @@ namespace LGUIPrefabSystem3
 		this->Scale = UIItem->GetRelativeScale3D();
 		if (bIsUI)
 		{
-			this->displayName = UIItem->GetDisplayName();
-			auto widget = UIItem->GetWidget();
-			this->pivot = widget.pivot;
-			this->anchorHAlign = (uint8)widget.anchorHAlign;
-			this->anchorVAlign = (uint8)widget.anchorVAlign;
-			this->anchorOffsetX = widget.anchorOffsetX;
-			this->anchorOffsetY = widget.anchorOffsetY;
-			this->width = widget.width;
-			this->height = widget.height;
-			this->stretchLeft = widget.stretchLeft;
-			this->stretchRight = widget.stretchRight;
-			this->stretchTop = widget.stretchTop;
-			this->stretchBottom = widget.stretchBottom;
+			this->DisplayName = UIItem->GetDisplayName();
+			this->AnchorData = UIItem->GetAnchorData();
 		}
 	}
 	void FLGUISubPrefabDefaultOverrideParameter::ApplyToTarget(USceneComponent* RootComp)
@@ -47,20 +36,8 @@ namespace LGUIPrefabSystem3
 		auto UIItem = Cast<UUIItem>(RootComp);
 		if (this->bIsUI && UIItem != nullptr)
 		{
-			UIItem->SetDisplayName(this->displayName);
-			FUIWidget widget;
-			widget.pivot = this->pivot;
-			widget.anchorHAlign = (UIAnchorHorizontalAlign)this->anchorHAlign;
-			widget.anchorVAlign = (UIAnchorVerticalAlign)this->anchorVAlign;
-			widget.anchorOffsetX = this->anchorOffsetX;
-			widget.anchorOffsetY = this->anchorOffsetY;
-			widget.width = this->width;
-			widget.height = this->height;
-			widget.stretchLeft = this->stretchLeft;
-			widget.stretchRight = this->stretchRight;
-			widget.stretchTop = this->stretchTop;
-			widget.stretchBottom = this->stretchBottom;
-			UIItem->SetWidget(widget);
+			UIItem->SetDisplayName(this->DisplayName);
+			UIItem->SetAnchorData(this->AnchorData);
 		}
 	}
 

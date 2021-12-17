@@ -32,18 +32,15 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 	Super::UpdateProgress(InFireEvent);
 	if (CheckScrollbarParameter())
 	{
-		auto& parentWidget = ContentParentUIItem->GetWidget();
-		auto& contentWidget = ContentUIItem->GetWidget();
-		auto contentLocation = ContentUIItem->GetRelativeLocation();
 		if (AllowHorizontalScroll && !ValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.X > 1.0f)
 			{
-				HorizontalScrollbarComp->SetValueAndSize(1.0f, parentWidget.width / (contentWidget.width + (HorizontalRange.Y - HorizontalRange.X) * (Progress.X - 1.0f)), false);
+				HorizontalScrollbarComp->SetValueAndSize(1.0f, ContentParentUIItem->GetWidth() / (ContentUIItem->GetWidth() + (HorizontalRange.Y - HorizontalRange.X) * (Progress.X - 1.0f)), false);
 			}
 			else if (Progress.X < 0.0f)
 			{
-				HorizontalScrollbarComp->SetValueAndSize(0.0f, parentWidget.width / (contentWidget.width + (HorizontalRange.Y - HorizontalRange.X) * (0.0f - Progress.X)), false);
+				HorizontalScrollbarComp->SetValueAndSize(0.0f, ContentParentUIItem->GetWidth() / (ContentUIItem->GetWidth() + (HorizontalRange.Y - HorizontalRange.X) * (0.0f - Progress.X)), false);
 			}
 			else
 			{
@@ -55,11 +52,11 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 		{
 			if (Progress.Y > 1.0f)
 			{
-				VerticalScrollbarComp->SetValueAndSize(1.0f, parentWidget.height / (contentWidget.height + (VerticalRange.Y - VerticalRange.X) * (Progress.Y - 1.0f)), false);
+				VerticalScrollbarComp->SetValueAndSize(1.0f, ContentParentUIItem->GetHeight() / (ContentUIItem->GetHeight() + (VerticalRange.Y - VerticalRange.X) * (Progress.Y - 1.0f)), false);
 			}
 			else if (Progress.Y < 0.0f)
 			{
-				VerticalScrollbarComp->SetValueAndSize(0.0f, parentWidget.height / (contentWidget.height + (VerticalRange.Y - VerticalRange.X) * (0.0f - Progress.Y)), false);
+				VerticalScrollbarComp->SetValueAndSize(0.0f, ContentParentUIItem->GetHeight() / (ContentUIItem->GetHeight() + (VerticalRange.Y - VerticalRange.X) * (0.0f - Progress.Y)), false);
 			}
 			else
 			{
@@ -128,7 +125,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 					HorizontalScrollbar->GetUIItem()->SetIsUIActive(false);
 					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
-						Viewport->GetUIItem()->SetStretchBottom(0);
+						//Viewport->GetUIItem()->SetStretchBottom(0);
 					}
 				}
 			}
@@ -143,7 +140,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 					HorizontalScrollbarComp->SetValueAndSize(Progress.X, parentWidth / contentWidth, false);
 					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
-						Viewport->GetUIItem()->SetStretchBottom(HorizontalScrollbar->GetUIItem()->GetHeight());
+						//Viewport->GetUIItem()->SetStretchBottom(HorizontalScrollbar->GetUIItem()->GetHeight());
 					}
 				}
 			}
@@ -166,7 +163,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 					VerticalScrollbar->GetUIItem()->SetIsUIActive(false);
 					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
-						Viewport->GetUIItem()->SetStretchRight(0);
+						//Viewport->GetUIItem()->SetStretchRight(0);
 					}
 				}
 			}
@@ -181,7 +178,7 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 					VerticalScrollbarComp->SetValueAndSize(Progress.Y, parentHeight / contentHeight, false);
 					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
 					{
-						Viewport->GetUIItem()->SetStretchRight(VerticalScrollbar->GetUIItem()->GetWidth());
+						//Viewport->GetUIItem()->SetStretchRight(VerticalScrollbar->GetUIItem()->GetWidth());
 					}
 				}
 			}

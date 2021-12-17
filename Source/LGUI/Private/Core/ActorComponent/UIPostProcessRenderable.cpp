@@ -56,17 +56,13 @@ void UUIPostProcessRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULG
 {
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
-void UUIPostProcessRenderable::WidthChanged()
+void UUIPostProcessRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
 {
-	MarkVertexPositionDirty();
-}
-void UUIPostProcessRenderable::HeightChanged()
-{
-	MarkVertexPositionDirty();
-}
-void UUIPostProcessRenderable::PivotChanged()
-{
-	MarkVertexPositionDirty();
+    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
+    if (InPivotChange || InSizeChange)
+    {
+	    MarkVertexPositionDirty();
+    }
 }
 
 void UUIPostProcessRenderable::MarkVertexPositionDirty()
@@ -78,21 +74,6 @@ void UUIPostProcessRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
 	MarkCanvasUpdate();
-}
-
-void UUIPostProcessRenderable::UpdateCachedData()
-{
-	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
-	cacheForThisUpdate_UVChanged = bUVChanged;
-	bLocalVertexPositionChanged = false;
-	bUVChanged = false;
-	Super::UpdateCachedData();
-}
-void UUIPostProcessRenderable::UpdateCachedDataBeforeGeometry()
-{
-	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
-	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
-	Super::UpdateCachedDataBeforeGeometry();
 }
 
 void UUIPostProcessRenderable::MarkAllDirtyRecursive()
@@ -128,9 +109,9 @@ void UUIPostProcessRenderable::UpdateGeometry()
 	{
 		//update geometry
 		{
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+			OnUpdateGeometry(bLocalVertexPositionChanged, bUVChanged, bColorChanged);
 
-			if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
+			if (bLocalVertexPositionChanged || bTransformChanged)
 			{
 				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}
@@ -138,17 +119,21 @@ void UUIPostProcessRenderable::UpdateGeometry()
 		}
 	}
 COMPLETE:
+	bLocalVertexPositionChanged = false;
+	bUVChanged = false;
+	bColorChanged = false;
+	bTransformChanged = false;
 	;
 }
 void UUIPostProcessRenderable::OnCreateGeometry()
 {
-	UIGeometry::FromUIRectSimple(widget.width, widget.height, widget.pivot, GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas.Get(), this);
+	UIGeometry::FromUIRectSimple(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, FLGUISpriteInfo(), RenderCanvas.Get(), this);
 }
 void UUIPostProcessRenderable::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (InVertexPositionChanged)
 	{
-		UIGeometry::UpdateUIRectSimpleVertex(geometry, widget.width, widget.height, widget.pivot, FLGUISpriteInfo(), RenderCanvas.Get(), this);
+		UIGeometry::UpdateUIRectSimpleVertex(geometry, this->GetWidth(), this->GetHeight(), this->GetPivot(), FLGUISpriteInfo(), RenderCanvas.Get(), this);
 	}
 	if (InVertexUVChanged)
 	{
@@ -205,20 +190,20 @@ void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy()
 		{
 			TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 			TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
-			FUIWidget widget;
+			FVector2D RectSize;
 			FMatrix objectToWorldMatrix;
 		};
 		auto updateData = new FUIPostProcess_SendRegionVertexDataToRenderProxy();
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
-		updateData->widget = this->widget;
+		updateData->RectSize = FVector2D(this->GetWidth(), this->GetHeight());
 		updateData->objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateData)
 			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{
 					TempRenderProxy->renderScreenToMeshRegionVertexArray = updateData->renderScreenToMeshRegionVertexArray;
 					TempRenderProxy->renderMeshRegionToScreenVertexArray = updateData->renderMeshRegionToScreenVertexArray;
-					TempRenderProxy->widget = updateData->widget;
+					TempRenderProxy->RectSize = updateData->RectSize;
 					TempRenderProxy->objectToWorldMatrix = updateData->objectToWorldMatrix;
 					delete updateData;
 				});

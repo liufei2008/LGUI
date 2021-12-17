@@ -400,8 +400,8 @@ void UUIGridLayout::OnRebuildLayout()
 	for (int i = 0; i < childrenCount; i++)
 	{
 		auto uiItem = uiChildrenList[i].uiItem;
-		uiItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
-		uiItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
+		uiItem->SetAnchorMin(FVector2D(0, 1));
+		uiItem->SetAnchorMax(FVector2D(0, 1));
 
 		float anchorOffsetX, anchorOffsetY;
 		if (HorizontalOrVertical)//use horizontal

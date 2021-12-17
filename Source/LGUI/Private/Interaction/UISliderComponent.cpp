@@ -248,33 +248,33 @@ void UUISliderComponent::CalculateInputValue(ULGUIPointerEventData *eventData)
     {
         //calculate value to 0-1 range
         auto localPointerPosition = areaUIItem->GetComponentTransform().InverseTransformPosition(eventData->GetWorldPointInPlane());
-        auto widget = areaUIItem->GetWidget();
+        auto AnchorData = areaUIItem->GetAnchorData();
         float MinPosition = 0;
         float value01 = 0;
         switch (DirectionType)
         {
         case UISliderDirectionType::LeftToRight:
         {
-            MinPosition = -widget.pivot.X * widget.width;
-            value01 = (localPointerPosition.Y - MinPosition) / widget.width;
+            MinPosition = -areaUIItem->GetPivot().X * areaUIItem->GetWidth();
+            value01 = (localPointerPosition.Y - MinPosition) / areaUIItem->GetWidth();
         }
         break;
         case UISliderDirectionType::RightToLeft:
         {
-            MinPosition = -widget.pivot.X * widget.width;
-            value01 = 1.0f - (localPointerPosition.Y - MinPosition) / widget.width;
+            MinPosition = -areaUIItem->GetPivot().X * areaUIItem->GetWidth();
+            value01 = 1.0f - (localPointerPosition.Y - MinPosition) / areaUIItem->GetWidth();
         }
         break;
         case UISliderDirectionType::BottomToTop:
         {
-            MinPosition = -widget.pivot.Y * widget.height;
-            value01 = (localPointerPosition.Z - MinPosition) / widget.height;
+            MinPosition = -areaUIItem->GetPivot().Y * areaUIItem->GetHeight();
+            value01 = (localPointerPosition.Z - MinPosition) / areaUIItem->GetHeight();
         }
         break;
         case UISliderDirectionType::TopToBottom:
         {
-            MinPosition = -widget.pivot.Y * widget.height;
-            value01 = 1.0f - (localPointerPosition.Z - MinPosition) / widget.height;
+            MinPosition = -areaUIItem->GetPivot().Y * areaUIItem->GetHeight();
+            value01 = 1.0f - (localPointerPosition.Z - MinPosition) / areaUIItem->GetHeight();
         }
         break;
         }
@@ -300,17 +300,13 @@ void UUISliderComponent::ApplyValueToUI()
         {
             if (CheckHandle())
             {
-                if (Handle->GetAnchorHAlign() != UIAnchorHorizontalAlign::Stretch)
-                {
-                    Handle->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
-                }
-                auto anchorOffsetX = value01 * HandleArea->GetWidth();
-                Handle->SetAnchorOffsetHorizontal(anchorOffsetX);
+                Handle->SetHorizontalAnchorMinMax(FVector2D(value01, value01));
             }
             if (CheckFill())
             {
-                float stretch = (1.0f - value01) * FillArea->GetWidth();
-                Fill->SetHorizontalStretch(FVector2D(0, stretch));
+                auto AnchorMax = Fill->GetAnchorMax();
+                AnchorMax.X = value01;
+                Fill->SetAnchorMax(AnchorMax);
             }
         }
         break;
@@ -318,17 +314,14 @@ void UUISliderComponent::ApplyValueToUI()
         {
             if (CheckHandle())
             {
-                if (Handle->GetAnchorHAlign() != UIAnchorHorizontalAlign::Stretch)
-                {
-                    Handle->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
-                }
-                auto anchorOffsetX = -value01 * HandleArea->GetWidth();
-                Handle->SetAnchorOffsetHorizontal(anchorOffsetX);
+                float invValue01 = 1.0f - value01;
+                Handle->SetHorizontalAnchorMinMax(FVector2D(invValue01, invValue01));
             }
             if (CheckFill())
             {
-                float stretch = (1.0f - value01) * FillArea->GetWidth();
-                Fill->SetHorizontalStretch(FVector2D(stretch, 0));
+                auto AnchorMin = Fill->GetAnchorMin();
+                AnchorMin.X = 1.0f - value01;
+                Fill->SetAnchorMax(AnchorMin);
             }
         }
         break;
@@ -336,17 +329,13 @@ void UUISliderComponent::ApplyValueToUI()
         {
             if (CheckHandle())
             {
-                if (Handle->GetAnchorVAlign() != UIAnchorVerticalAlign::Stretch)
-                {
-                    Handle->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
-                }
-                auto anchorOffsetY = value01 * HandleArea->GetHeight();
-                Handle->SetAnchorOffsetVertical(anchorOffsetY);
+                Handle->SetVerticalAnchorMinMax(FVector2D(value01, value01));
             }
             if (CheckFill())
             {
-                float stretch = (1.0f - value01) * FillArea->GetHeight();
-                Fill->SetVerticalStretch(FVector2D(0, stretch));
+                auto AnchorMax = Fill->GetAnchorMax();
+                AnchorMax.Y = value01;
+                Fill->SetAnchorMax(AnchorMax);
             }
         }
         break;
@@ -354,17 +343,14 @@ void UUISliderComponent::ApplyValueToUI()
         {
             if (CheckHandle())
             {
-                if (Handle->GetAnchorVAlign() != UIAnchorVerticalAlign::Stretch)
-                {
-                    Handle->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
-                }
-                auto anchorOffsetY = -value01 * HandleArea->GetHeight();
-                Handle->SetAnchorOffsetVertical(anchorOffsetY);
+                float invValue01 = 1.0f - value01;
+                Handle->SetVerticalAnchorMinMax(FVector2D(value01, value01));
             }
             if (CheckFill())
             {
-                float stretch = (1.0f - value01) * FillArea->GetHeight();
-                Fill->SetVerticalStretch(FVector2D(stretch, 0));
+                auto AnchorMin = Fill->GetAnchorMin();
+                AnchorMin.Y = 1.0f - value01;
+                Fill->SetAnchorMax(AnchorMin);
             }
         }
         break;

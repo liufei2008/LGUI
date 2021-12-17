@@ -19,13 +19,13 @@ void UUIRoundedLayout::OnRebuildLayout()
 	for (int i = 0; i < childrenCount; i ++)
 	{
 		auto uiItem = uiChildrenList[i].uiItem;
-		uiItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
-		uiItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
+		uiItem->SetAnchorMin(FVector2D(0.5f, 0.5f));
+		uiItem->SetAnchorMax(FVector2D(0.5f, 0.5f));
 		sin = FMath::Sin(angle);
 		cos = FMath::Cos(angle);
 		x = cos * Radius;
 		y = sin * Radius;
-		uiItem->SetAnchorOffset(FVector2D(x, y));
+		uiItem->SetAnchoredPosition(FVector2D(x, y));
 		if (bSetChildAngle)
 		{
 			uiItem->SetRelativeRotation(FQuat::MakeFromEuler(FVector(0, 0, FMath::RadiansToDegrees(angle))));

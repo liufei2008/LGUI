@@ -48,39 +48,19 @@ void UUIDirectMeshRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGU
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
 
-
-
-
-void UUIDirectMeshRenderable::UpdateCachedData()
-{
-	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
-	bLocalVertexPositionChanged = false;
-	Super::UpdateCachedData();
-}
-void UUIDirectMeshRenderable::UpdateCachedDataBeforeGeometry()
-{
-	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
-	Super::UpdateCachedDataBeforeGeometry();
-}
 void UUIDirectMeshRenderable::MarkAllDirtyRecursive()
 {
 	bLocalVertexPositionChanged = true;
 	Super::MarkAllDirtyRecursive();
 }
 
-
-
-void UUIDirectMeshRenderable::WidthChanged()
+void UUIDirectMeshRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
 {
-	MarkVertexPositionDirty();
-}
-void UUIDirectMeshRenderable::HeightChanged()
-{
-	MarkVertexPositionDirty();
-}
-void UUIDirectMeshRenderable::PivotChanged()
-{
-	MarkVertexPositionDirty();
+    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange, DoPropergateLayoutChange);
+    if (InPivotChange || InSizeChange)
+    {
+        MarkVertexPositionDirty();
+    }
 }
 
 void UUIDirectMeshRenderable::MarkVertexPositionDirty()

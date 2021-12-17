@@ -93,5 +93,6 @@ void UUIDrawcall::CopyUpdateState(UUIDrawcall* Target)
 	if (needToUpdateVertex)Target->needToUpdateVertex = true;
 	if (vertexPositionChanged)Target->vertexPositionChanged = true;
 	if (needToAddPostProcessRenderProxyToRender)Target->needToAddPostProcessRenderProxyToRender = true;
+	if (bShouldSortRenderObjectList)Target->bShouldSortRenderObjectList = true;
 }
 

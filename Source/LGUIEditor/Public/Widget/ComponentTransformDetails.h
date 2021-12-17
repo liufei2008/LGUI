@@ -101,7 +101,7 @@ private:
 	 * Builds a transform field label
 	 *
 	 * @param TransformField The field to build the label for
-	 * @return The label widget
+	 * @return The label AnchorData
 	 */
 	TSharedRef<SWidget> BuildTransformFieldLabel( ETransformField::Type TransformField );
 

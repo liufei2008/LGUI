@@ -94,11 +94,6 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			}
 		}
 	}
-
-	for (auto item : rootUIItems)
-	{
-		item->UpdateRootUIItem();
-	}
 	
 	int ScreenSpaceOverlayCanvasCount = 0;
 	for (auto item : allCanvas)
@@ -555,8 +550,7 @@ void ULGUIEditorManagerObject::RemoveLayout(UUILayoutBase* InLayout)
 }
 void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 {
-	const auto& widget = item->GetWidget();
-	auto extends = FVector(0.1f, widget.width, widget.height) * 0.5f;
+	auto extends = FVector(0.1f, item->GetWidth(), item->GetHeight()) * 0.5f;
 	bool canDraw = false;
 	auto DrawColor = FColor(128, 128, 128, 128);//gray means normal object
 	if (ULGUIEditorManagerObject::IsSelected(item->GetOwner()))//select self
@@ -619,76 +613,10 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 	{
 		auto worldTransform = item->GetComponentTransform();
 		FVector relativeOffset(0, 0, 0);
-		relativeOffset.Y = (0.5f - widget.pivot.X) * widget.width;
-		relativeOffset.Z = (0.5f - widget.pivot.Y) * widget.height;
+		relativeOffset.Y = (0.5f - item->GetPivot().X) * item->GetWidth();
+		relativeOffset.Z = (0.5f - item->GetPivot().Y) * item->GetHeight();
 		auto worldLocation = worldTransform.TransformPosition(relativeOffset);
-		//calculate world location
-		if (item->GetParentUIItem() != nullptr)
-		{
-			FVector relativeLocation = item->GetRelativeLocation();
-			const auto& parentWidget = item->GetParentUIItem()->GetWidget();
-			switch (widget.anchorHAlign)
-			{
-			case UIAnchorHorizontalAlign::Left:
-			{
-				relativeLocation.Y = parentWidget.width * (-parentWidget.pivot.X);
-				relativeLocation.Y += widget.anchorOffsetX;
-			}
-			break;
-			case UIAnchorHorizontalAlign::Center:
-			{
-				relativeLocation.Y = parentWidget.width * (0.5f - parentWidget.pivot.X);
-				relativeLocation.Y += widget.anchorOffsetX;
-			}
-			break;
-			case UIAnchorHorizontalAlign::Right:
-			{
-				relativeLocation.Y = parentWidget.width * (1 - parentWidget.pivot.X);
-				relativeLocation.Y += widget.anchorOffsetX;
-			}
-			break;
-			case UIAnchorHorizontalAlign::Stretch:
-			{
-				relativeLocation.Y = -parentWidget.pivot.X * parentWidget.width;
-				relativeLocation.Y += widget.stretchLeft;
-				relativeLocation.Y += widget.pivot.X * widget.width;
-			}
-			break;
-			}
-			switch (widget.anchorVAlign)
-			{
-			case UIAnchorVerticalAlign::Top:
-			{
-				relativeLocation.Z = parentWidget.height * (1 - parentWidget.pivot.Y);
-				relativeLocation.Z += widget.anchorOffsetY;
-			}
-			break;
-			case UIAnchorVerticalAlign::Middle:
-			{
-				relativeLocation.Z = parentWidget.height * (0.5f - parentWidget.pivot.Y);
-				relativeLocation.Z += widget.anchorOffsetY;
-			}
-			break;
-			case UIAnchorVerticalAlign::Bottom:
-			{
-				relativeLocation.Z = parentWidget.height * (-parentWidget.pivot.Y);
-				relativeLocation.Z += widget.anchorOffsetY;
-			}
-			break;
-			case UIAnchorVerticalAlign::Stretch:
-			{
-				relativeLocation.Z = -parentWidget.pivot.Y * parentWidget.height;
-				relativeLocation.Z += widget.stretchBottom;
-				relativeLocation.Z += widget.pivot.Y * widget.height;
-			}
-			break;
-			}
-			auto relativeTf = item->GetRelativeTransform();
-			relativeTf.SetLocation(relativeLocation);
-			FTransform calculatedWorldTf;
-			FTransform::Multiply(&calculatedWorldTf, &relativeTf, &(item->GetParentUIItem()->GetComponentTransform()));
-			worldLocation = calculatedWorldTf.TransformPosition(relativeOffset);
-		}
+
 		DrawDebugBox(item->GetWorld(), worldLocation, extends * worldTransform.GetScale3D(), worldTransform.GetRotation(), DrawColor);//@todo: screen-space UI should draw on screen-space, but no clue to achieve that
 	}
 }
@@ -990,8 +918,8 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Update"), STAT_LGUILifeCycleBehaviourUpdate, STATGROUP_LGUI);
 DECLARE_CYCLE_STAT(TEXT("LGUILifeCycleBehaviour Start"), STAT_LGUILifeCycleBehaviourStart, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayoutAndGeometry"), STAT_UIItemUpdateLayoutAndGeometry, STATGROUP_LGUI);
-DECLARE_CYCLE_STAT(TEXT("Canvas UpdateDrawcall"), STAT_UpdateDrawcall, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIItem UpdateLayout"), STAT_UIItemUpdateLayout, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("Canvas UpdateGeometryAndDrawcall"), STAT_UpdateGeometryAndDrawcall, STATGROUP_LGUI);
 void ALGUIManagerActor::Tick(float DeltaTime)
 {
 	//editor draw helper frame
@@ -1110,7 +1038,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 	//update drawcall
 	{
-		SCOPE_CYCLE_COUNTER(STAT_UpdateDrawcall);
+		SCOPE_CYCLE_COUNTER(STAT_UpdateGeometryAndDrawcall);
 		for (auto item : allCanvas)
 		{
 			if (item.IsValid())
@@ -1395,7 +1323,7 @@ void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUI
 
 void ALGUIManagerActor::UpdateLayout()
 {
-	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayoutAndGeometry);
+	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayout);
 
 	//update Layout
 	for (auto item : allLayoutArray)
@@ -1407,12 +1335,6 @@ void ALGUIManagerActor::UpdateLayout()
 				item->ConditionalRebuildLayout();
 			}
 		}
-	}
-
-
-	for (auto item : rootUIItems)
-	{
-		item->UpdateRootUIItem();
 	}
 }
 void ALGUIManagerActor::ForceUpdateLayout(UObject* WorldContextObject)

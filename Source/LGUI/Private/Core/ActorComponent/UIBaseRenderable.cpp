@@ -14,12 +14,14 @@ UUIBaseRenderable::UUIBaseRenderable(const FObjectInitializer& ObjectInitializer
 	uiRenderableType = EUIRenderableType::None;
 
 	bColorChanged = true;
+	bTransformChanged = true;
 }
 
 void UUIBaseRenderable::BeginPlay()
 {
 	Super::BeginPlay();
 	bColorChanged = true;
+	bTransformChanged = true;
 }
 
 void UUIBaseRenderable::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -92,24 +94,16 @@ void UUIBaseRenderable::MarkAllDirtyRecursive()
 	Super::MarkAllDirtyRecursive();
 }
 
-void UUIBaseRenderable::UpdateCachedData()
+void UUIBaseRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
 {
-	this->cacheForThisUpdate_ColorChanged = bColorChanged;
-	bColorChanged = false;
-	Super::UpdateCachedData();
-}
-void UUIBaseRenderable::UpdateCachedDataBeforeGeometry()
-{
-	if (bColorChanged)
-	{
-		cacheForThisUpdate_ColorChanged = true;
-	}
-	Super::UpdateCachedDataBeforeGeometry();
+	Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange, DoPropergateLayoutChange);
+	if (InTransformChange)bTransformChanged = true;
 }
 
-void UUIBaseRenderable::MarkFlattenHierarchyIndexDirty()
+void UUIBaseRenderable::GetGeometryBoundsInLocalSpace(FVector2D& min, FVector2D& max)const//@todo: for UISprite, we should calculate with sprite's padding properties
 {
-	Super::MarkFlattenHierarchyIndexDirty();
+	min = GetLocalSpaceLeftBottomPoint();
+	max = GetLocalSpaceRightTopPoint();
 }
 
 bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End)

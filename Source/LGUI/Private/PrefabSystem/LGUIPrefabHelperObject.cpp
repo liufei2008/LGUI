@@ -137,7 +137,7 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 		AActor* OldParentActor = nullptr;
 		bool haveRootTransform = true;
 		FTransform OldTransform;
-		FUIWidget OldWidget;
+		FUIAnchorData OldAnchorData;
 		//store root transform
 		if (IsValid(LoadedRootActor))
 		{
@@ -148,7 +148,7 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 				OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
 				if (auto RootUIComp = Cast<UUIItem>(RootComp))
 				{
-					OldWidget = RootUIComp->GetWidget();
+					OldAnchorData = RootUIComp->GetAnchorData();
 				}
 			}
 		}
@@ -167,8 +167,7 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 					RootComp->SetRelativeTransform(OldTransform);
 					if (auto RootUIItem = Cast<UUIItem>(RootComp))
 					{
-						auto newWidget = RootUIItem->GetWidget();
-						RootUIItem->SetWidget(OldWidget);
+						RootUIItem->SetAnchorData(OldAnchorData);
 					}
 				}
 			}

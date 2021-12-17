@@ -14,7 +14,7 @@ UUIPolygon::UUIPolygon(const FObjectInitializer& ObjectInitializer):Super(Object
 void UUIPolygon::OnCreateGeometry()
 {
 	Sides = FMath::Max(Sides, FullCycle ? 3 : 1);
-	UIGeometry::FromUIPolygon(widget.width, widget.height, widget.pivot
+	UIGeometry::FromUIPolygon(this->GetWidth(), this->GetHeight(), this->GetPivot()
 		, StartAngle, EndAngle, Sides, UVType
 		, VertexOffsetArray, FullCycle
 		, GetFinalColor(), geometry, sprite->GetSpriteInfo()
@@ -34,7 +34,7 @@ void UUIPolygon::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 	}
 	if (InVertexPositionChanged)
 	{
-		UIGeometry::UpdateUIPolygonVertex(widget.width, widget.height, widget.pivot
+		UIGeometry::UpdateUIPolygonVertex(this->GetWidth(), this->GetHeight(), this->GetPivot()
 			, StartAngle, EndAngle, Sides
 			, VertexOffsetArray, FullCycle
 			, geometry);

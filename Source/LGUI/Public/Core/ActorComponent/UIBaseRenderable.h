@@ -43,7 +43,7 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FColor Color = FColor::White;
-	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit widget rectangle */
+	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit AnchorData rectangle */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
 		bool bRaycastComplex = false;
 
@@ -80,13 +80,15 @@ public:
 
 	void MarkColorDirty();
 	virtual void MarkAllDirtyRecursive()override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
+	/** Called by LGUICanvas when begin to collect geometry for render */
+	virtual void UpdateGeometry() {};
+
+	/** return bounds min max point in self local space, for LGUICanvas to tell if geometry overlap with each other. */
+	virtual void GetGeometryBoundsInLocalSpace(FVector2D& min, FVector2D& max)const;
 
 	virtual void OnCanvasGroupAlphaChange()override;
-	virtual void UpdateCachedData()override;
-	virtual void UpdateCachedDataBeforeGeometry()override;
-
-	virtual void MarkFlattenHierarchyIndexDirty()override;
 protected:
-	uint8 bColorChanged : 1;//vertex color chnaged
-	uint8 cacheForThisUpdate_ColorChanged : 1;
+	uint8 bColorChanged : 1;
+	uint8 bTransformChanged : 1;
 };

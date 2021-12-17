@@ -15,19 +15,11 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		{
 		case EUISizeControlByAspectRatioMode::HeightControlWidth:
 		{
-			if (RootUIComp->GetAnchorHAlign() == UIAnchorHorizontalAlign::Stretch)
-			{
-				RootUIComp->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
-			}
 			RootUIComp->SetWidth(RootUIComp->GetHeight() * AspectRatio);
 		}
 		break;
 		case EUISizeControlByAspectRatioMode::WidthControlHeight:
 		{
-			if (RootUIComp->GetAnchorVAlign() == UIAnchorVerticalAlign::Stretch)
-			{
-				RootUIComp->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
-			}
 			RootUIComp->SetHeight(RootUIComp->GetWidth() / AspectRatio);
 		}
 		break;
@@ -35,32 +27,25 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		{
 			if (auto parent = RootUIComp->GetParentUIItem())
 			{
-				if (RootUIComp->GetAnchorHAlign() != UIAnchorHorizontalAlign::Stretch)
-				{
-					RootUIComp->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
-				}
-				if (RootUIComp->GetAnchorVAlign() != UIAnchorVerticalAlign::Stretch)
-				{
-					RootUIComp->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
-				}
+				RootUIComp->SetAnchorMin(FVector2D(0, 0));
+				RootUIComp->SetAnchorMax(FVector2D(1, 1));
+
 				auto parentWidth = parent->GetWidth();
 				auto parentHeight = parent->GetHeight();
 				auto parentAspectRatio = parentWidth / parentHeight;
 				if (parentAspectRatio > AspectRatio)
 				{
-					RootUIComp->SetStretchTop(0);
-					RootUIComp->SetStretchBottom(0);
-					auto stretch = (parentWidth - parentHeight * AspectRatio) * 0.5f;
-					RootUIComp->SetStretchLeft(stretch);
-					RootUIComp->SetStretchRight(stretch);
+					auto SizeDelta = RootUIComp->GetSizeDelta();
+					SizeDelta.X = -(parentWidth - parentHeight * AspectRatio);
+					SizeDelta.Y = 0;
+					RootUIComp->SetSizeDelta(SizeDelta);
 				}
 				else
 				{
-					RootUIComp->SetStretchLeft(0);
-					RootUIComp->SetStretchRight(0);
-					auto stretch = (parentHeight - parentWidth / AspectRatio) * 0.5f;
-					RootUIComp->SetStretchTop(stretch);
-					RootUIComp->SetStretchBottom(stretch);
+					auto SizeDelta = RootUIComp->GetSizeDelta();
+					SizeDelta.Y = -(parentHeight - parentWidth / AspectRatio);
+					SizeDelta.X = 0;
+					RootUIComp->SetSizeDelta(SizeDelta);
 				}
 			}
 		}
@@ -69,32 +54,25 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		{
 			if (auto parent = RootUIComp->GetParentUIItem())
 			{
-				if (RootUIComp->GetAnchorHAlign() != UIAnchorHorizontalAlign::Stretch)
-				{
-					RootUIComp->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
-				}
-				if (RootUIComp->GetAnchorVAlign() != UIAnchorVerticalAlign::Stretch)
-				{
-					RootUIComp->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
-				}
+				RootUIComp->SetAnchorMin(FVector2D(0, 0));
+				RootUIComp->SetAnchorMax(FVector2D(1, 1));
+
 				auto parentWidth = parent->GetWidth();
 				auto parentHeight = parent->GetHeight();
 				auto parentAspectRatio = parentWidth / parentHeight;
 				if (parentAspectRatio > AspectRatio)
 				{
-					RootUIComp->SetStretchLeft(0);
-					RootUIComp->SetStretchRight(0);
-					auto stretch = (parentHeight - parentWidth / AspectRatio) * 0.5f;
-					RootUIComp->SetStretchTop(stretch);
-					RootUIComp->SetStretchBottom(stretch);
+					auto SizeDelta = RootUIComp->GetSizeDelta();
+					SizeDelta.Y = parentHeight - parentWidth / AspectRatio;
+					SizeDelta.X = 0;
+					RootUIComp->SetSizeDelta(SizeDelta);
 				}
 				else
 				{
-					RootUIComp->SetStretchTop(0);
-					RootUIComp->SetStretchBottom(0);
-					auto stretch = (parentWidth - parentHeight * AspectRatio) * 0.5f;
-					RootUIComp->SetStretchLeft(stretch);
-					RootUIComp->SetStretchRight(stretch);
+					auto SizeDelta = RootUIComp->GetSizeDelta();
+					SizeDelta.X = parentWidth - parentHeight * AspectRatio;
+					SizeDelta.Y = 0;
+					RootUIComp->SetSizeDelta(SizeDelta);
 				}
 			}
 		}

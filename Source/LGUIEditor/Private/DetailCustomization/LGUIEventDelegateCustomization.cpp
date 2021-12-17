@@ -227,7 +227,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 				//clear buffer and value
 				ClearValueBuffer(ItemHandle);
 				ClearReferenceValue(ItemHandle);
-				//native parameter widget
+				//native parameter AnchorData
 				ParameterWidget =
 					SNew(SBox)
 					.VAlign(EVerticalAlignment::VAlign_Center)

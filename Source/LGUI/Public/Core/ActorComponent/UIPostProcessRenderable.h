@@ -33,12 +33,8 @@ protected:
 	virtual void UpdateGeometry()override final;
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
-	virtual void WidthChanged()override;
-	virtual void HeightChanged()override;
-	virtual void PivotChanged()override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
 
-	virtual void UpdateCachedData()override;
-	virtual void UpdateCachedDataBeforeGeometry()override;
 	virtual void MarkAllDirtyRecursive()override;
 
 protected:
@@ -68,8 +64,6 @@ private:
 	uint8 bLocalVertexPositionChanged : 1;
 	/** vertex's uv change */
 	uint8 bUVChanged : 1;
-
-	uint8 cacheForThisUpdate_LocalVertexPositionChanged : 1, cacheForThisUpdate_UVChanged : 1;
 protected:
 	TSharedPtr<FUIPostProcessRenderProxy> RenderProxy = nullptr;
 	/** create ui geometry */

@@ -162,15 +162,14 @@ void UUIText::OnUnregister()
 	}
 }
 
-void UUIText::WidthChanged()
+void UUIText::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
 {
-	MarkVertexPositionDirty();
-	MarkUVDirty();
-}
-void UUIText::HeightChanged()
-{
-	MarkVertexPositionDirty();
-	MarkUVDirty();
+    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange, DoPropergateLayoutChange);
+    if (InPivotChange || InSizeChange)
+    {
+        MarkVertexPositionDirty();
+        MarkUVDirty();
+    }
 }
 
 UTexture* UUIText::GetTextureToCreateGeometry()
@@ -201,9 +200,9 @@ void UUIText::OnBeforeCreateOrUpdateGeometry()
 }
 void UUIText::OnCreateGeometry()
 {
-	float width = widget.width;
-	float height = widget.height;
-	UIGeometry::FromUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
+	float width = this->GetWidth();
+	float height = this->GetHeight();
+	UIGeometry::FromUIText(text.ToString(), visibleCharCount, width, height, this->GetPivot(), GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
 	if (overflowType == UITextOverflowType::HorizontalOverflow)
 	{
 		if (adjustWidth) SetWidth(width);
@@ -219,9 +218,9 @@ void UUIText::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 	{
 		if (InVertexPositionChanged || InVertexUVChanged || InVertexColorChanged)
 		{
-			float width = widget.width;
-			float height = widget.height;
-			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
+			float width = this->GetWidth();
+			float height = this->GetHeight();
+			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, this->GetPivot(), GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
 			if (overflowType == UITextOverflowType::HorizontalOverflow)
 			{
 				if (adjustWidth) SetWidth(width);
@@ -240,9 +239,9 @@ void UUIText::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChan
 		}
 		else if (InVertexPositionChanged || InVertexUVChanged)
 		{
-			float width = widget.width;
-			float height = widget.height;
-			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
+			float width = this->GetWidth();
+			float height = this->GetHeight();
+			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, this->GetPivot(), GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
 			if (overflowType == UITextOverflowType::HorizontalOverflow)
 			{
 				if (adjustWidth) SetWidth(width);
@@ -332,9 +331,9 @@ FVector2D UUIText::GetRealSize()
 		}
 		else//if geometry is created then update
 		{
-			float width = widget.width;
-			float height = widget.height;
-			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
+			float width = this->GetWidth();
+			float height = this->GetHeight();
+			UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, this->GetPivot(), GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
 			geometry->Clear();//@todo: clear it because UIBatchGeometryRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
 		}
 		return textRealSize;
@@ -539,9 +538,9 @@ void UUIText::CheckCachedTextPropertyList()
 	if (cachedTextPropertyArray.Num() == 0 || cacheCharPropertyArray.Num() == 0)//no cache yet
 	{
 		CacheTextGeometry();
-		float width = widget.width;
-		float height = widget.height;
-		UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, widget.pivot, GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
+		float width = this->GetWidth();
+		float height = this->GetHeight();
+		UIGeometry::UpdateUIText(text.ToString(), visibleCharCount, width, height, this->GetPivot(), GetFinalColor(), space, geometry, size, hAlign, vAlign, overflowType, adjustWidth, adjustHeight, fontStyle, textRealSize, RenderCanvas.Get(), this, cachedTextPropertyArray, cacheCharPropertyArray, cacheRichTextCustomTagArray, font, richText);
 		geometry->Clear();//@todo: clear it because UIBatchGeometryRenderable need to check geometry's vertices to decide if we need to render it, but this is not a good way to go
 	}
 }
@@ -580,13 +579,13 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 	outCaretPositionLineIndex = 0;
 	if (text.ToString().Len() == 0)
 	{
-		float pivotOffsetX = widget.width * (0.5f - widget.pivot.X);
-		float pivotOffsetY = widget.height * (0.5f - widget.pivot.Y);
+		float pivotOffsetX = this->GetWidth() * (0.5f - this->GetPivot().X);
+		float pivotOffsetY = this->GetHeight() * (0.5f - this->GetPivot().Y);
 		switch (hAlign)
 		{
 		case UITextParagraphHorizontalAlign::Left:
 		{
-			outCaretPosition.X = pivotOffsetX - widget.width * 0.5f;
+			outCaretPosition.X = pivotOffsetX - this->GetWidth() * 0.5f;
 		}
 			break;
 		case UITextParagraphHorizontalAlign::Center:
@@ -596,7 +595,7 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 			break;
 		case UITextParagraphHorizontalAlign::Right:
 		{
-			outCaretPosition.X = pivotOffsetX + widget.width * 0.5f;
+			outCaretPosition.X = pivotOffsetX + this->GetWidth() * 0.5f;
 		}
 			break;
 		}
@@ -604,7 +603,7 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 		{
 		case UITextParagraphVerticalAlign::Top:
 		{
-			outCaretPosition.Y = pivotOffsetY + widget.height * 0.5f - size * 0.5f;//fixed offset
+			outCaretPosition.Y = pivotOffsetY + this->GetHeight() * 0.5f - size * 0.5f;//fixed offset
 		}
 			break;
 		case UITextParagraphVerticalAlign::Middle:
@@ -614,7 +613,7 @@ void UUIText::FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosi
 			break;
 		case UITextParagraphVerticalAlign::Bottom:
 		{
-			outCaretPosition.Y = pivotOffsetY - widget.height * 0.5f + size * 0.5f;//fixed offset
+			outCaretPosition.Y = pivotOffsetY - this->GetHeight() * 0.5f + size * 0.5f;//fixed offset
 		}
 			break;
 		}
@@ -798,9 +797,9 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 		auto& firstLineCharPropertyList = cachedTextPropertyArray[startCaretPositionLineIndex].charPropertyList;
 		auto& firstLineLastCharProperty = firstLineCharPropertyList[firstLineCharPropertyList.Num() - 1];
 		selectionProperty.Size = FMath::RoundToInt(firstLineLastCharProperty.caretPosition.X - startCaretPosition.X);
-		//selectionProperty.Size = (1.0f - widget.pivot.X) * widget.width - startCaretPosition.X;
+		//selectionProperty.Size = (1.0f - this->GetPivot().X) * this->GetWidth() - startCaretPosition.X;
 		OutSelectionProeprtyArray.Add(selectionProperty);
-		//middle line, use widget.width as size
+		//middle line, use this->GetWidth() as size
 		int middleLineCount = endCaretPositionLineIndex - startCaretPositionLineIndex - 1;
 		for (int i = 0; i < middleLineCount; i++)
 		{
@@ -819,7 +818,7 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 	}
 }
 
-void UUIText::GetLocalSpaceMinMaxPoint(FVector2D& min, FVector2D& max)const
+void UUIText::GetGeometryBoundsInLocalSpace(FVector2D& min, FVector2D& max)const//@todo: optimize this!
 {
 	switch (overflowType)
 	{

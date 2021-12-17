@@ -193,12 +193,15 @@ void UUIStaticMesh::UpdateGeometry()
 
 	if (MeshSection.IsValid())
 	{
-		if (cacheForThisUpdate_ColorChanged)
+		if (bColorChanged)
 		{
+            bColorChanged = false;
 			UpdateMeshColor();
 		}
-		if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
+		if (bLocalVertexPositionChanged || bTransformChanged)
 		{
+            bLocalVertexPositionChanged = false;
+            bTransformChanged = false;
 			UpdateMeshTransform();
 		}
 	}

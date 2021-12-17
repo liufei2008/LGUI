@@ -48,7 +48,7 @@ public:
 	TWeakObjectPtr<UUIDirectMeshRenderable> directMeshRenderableObject;
 
 	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
-	bool bShouldSortRenderObjectList = false;
+	bool bShouldSortRenderObjectList = false;//should sort renderObjectList
 
 	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
 

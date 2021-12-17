@@ -78,8 +78,7 @@ protected:
 	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")UISpriteFillOriginType_Radial360 fillOriginType_Radial360;
 #endif
 
-	virtual void WidthChanged()override;
-	virtual void HeightChanged()override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
 
 	//width direction rectangel count, in tiled mode
 	int32 Tiled_WidthRectCount = 0;
@@ -89,6 +88,8 @@ protected:
 	float Tiled_WidthRemainedRectSize = 0;
 	//height direction half rectangel size, in tiled mode
 	float Tiled_HeightRemainedRectSize = 0;
+	void CalculateTiledWidth();
+	void CalculateTiledHeight();
 
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;

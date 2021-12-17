@@ -66,17 +66,13 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
 
-void UUIBatchGeometryRenderable::WidthChanged()
+void UUIBatchGeometryRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
 {
-	MarkVertexPositionDirty();
-}
-void UUIBatchGeometryRenderable::HeightChanged()
-{
-	MarkVertexPositionDirty();
-}
-void UUIBatchGeometryRenderable::PivotChanged()
-{
-	MarkVertexPositionDirty();
+    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange, DoPropergateLayoutChange);
+	if (InPivotChange || InSizeChange)
+    {
+        MarkVertexPositionDirty();
+    }
 }
 
 void UUIBatchGeometryRenderable::MarkVertexPositionDirty()
@@ -151,23 +147,6 @@ void UUIBatchGeometryRenderable::RemoveGeometryModifier(class UUIGeometryModifie
 	GeometryModifierComponentArray.Remove(InModifier);
 }
 
-void UUIBatchGeometryRenderable::UpdateCachedData()
-{
-	cacheForThisUpdate_LocalVertexPositionChanged = bLocalVertexPositionChanged;
-	cacheForThisUpdate_UVChanged = bUVChanged;
-	cacheForThisUpdate_TriangleChanged = bTriangleChanged;
-	bLocalVertexPositionChanged = false;
-	bUVChanged = false;
-	bTriangleChanged = false;
-	Super::UpdateCachedData();
-}
-void UUIBatchGeometryRenderable::UpdateCachedDataBeforeGeometry()
-{
-	if (bLocalVertexPositionChanged)cacheForThisUpdate_LocalVertexPositionChanged = true;
-	if (bUVChanged)cacheForThisUpdate_UVChanged = true;
-	if (bTriangleChanged)cacheForThisUpdate_TriangleChanged = true;
-	Super::UpdateCachedDataBeforeGeometry();
-}
 void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
 {
 	bLocalVertexPositionChanged = true;
@@ -247,25 +226,17 @@ bool UUIBatchGeometryRenderable::ApplyGeometryModifier(bool uvChanged, bool colo
 	return false;
 }
 
-void UUIBatchGeometryRenderable::UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout)
+void UUIBatchGeometryRenderable::MarkFlattenHierarchyIndexDirty()
 {
-	Super::UpdateLayout(parentLayoutChanged, shouldUpdateLayout);
-	if (!cacheForThisUpdate_LocalVertexPositionChanged)
+	Super::MarkFlattenHierarchyIndexDirty();
+	if (drawcall.IsValid())
 	{
-		if (parentLayoutChanged
-			&& (RenderCanvas.IsValid() && RenderCanvas->GetActualPixelPerfect())//@todo: review this line, is this necessary? (old commit: fix pixel perfect update.)
-			)
-		{
-			cacheForThisUpdate_LocalVertexPositionChanged = true;
-		}
+		drawcall->bShouldSortRenderObjectList = true;//hierarchy order change, should sort objects in drawcall
 	}
 }
 
 void UUIBatchGeometryRenderable::UpdateGeometry()
 {
-	if (GetIsUIActiveInHierarchy() == false)return;
-	if (!RenderCanvas.IsValid())return;
-
 	Super::UpdateGeometry();
 	UpdateGeometry_Implement();
 }
@@ -281,7 +252,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
 	}
 	else//if geometry is created, update data
 	{
-		if (cacheForThisUpdate_TriangleChanged)//triangle change, need to recreate geometry
+		if (bTriangleChanged)//triangle change, need to recreate geometry
 		{
 			if (CreateGeometry())
 			{
@@ -291,9 +262,9 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
 		}
 		else//update geometry
 		{
-			OnUpdateGeometry(cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged, cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged);
+			OnUpdateGeometry(bLocalVertexPositionChanged, bUVChanged, bColorChanged);
 
-			if (ApplyGeometryModifier(cacheForThisUpdate_UVChanged, cacheForThisUpdate_ColorChanged, cacheForThisUpdate_LocalVertexPositionChanged, cacheForThisUpdate_LayoutChanged))//vertex data change, need to update geometry's vertex
+			if (ApplyGeometryModifier(bUVChanged, bColorChanged, bLocalVertexPositionChanged, bTransformChanged))//vertex data change, need to update geometry's vertex
 			{
 				drawcall->needToRebuildMesh = true;
 				drawcall->needToUpdateVertex = true;
@@ -302,13 +273,18 @@ void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
 			{
 				drawcall->needToUpdateVertex = true;
 			}
-			if (cacheForThisUpdate_LocalVertexPositionChanged || cacheForThisUpdate_LayoutChanged)
+			if (bLocalVertexPositionChanged || bTransformChanged)
 			{
 				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}
 		}
 	}
 COMPLETE:
+	bTriangleChanged = false;
+	bLocalVertexPositionChanged = false;
+	bUVChanged = false;
+	bColorChanged = false;
+	bTransformChanged = false;
 	;
 }
 

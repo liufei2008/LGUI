@@ -29,13 +29,13 @@ FReply SLGUISceneOutlinerButton::OnButtonClicked()
 			TSharedPtr<SWidget> WidgetToFocus = WidgetToFocusPtr.Pin();
 			if (!WidgetToFocus.IsValid())
 			{
-				// no explicitly focused widget, try to focus the content
+				// no explicitly focused AnchorData, try to focus the content
 				WidgetToFocus = MenuContent;
 			}
 
 			if (!WidgetToFocus.IsValid())
 			{
-				// no content, so try to focus the original widget set on construction
+				// no content, so try to focus the original AnchorData set on construction
 				WidgetToFocus = ContentWidgetPtr.Pin();
 			}
 

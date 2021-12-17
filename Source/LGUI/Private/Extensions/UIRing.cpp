@@ -33,8 +33,8 @@ void UUIRing::CalculatePoints()
 
 	float angle = FMath::DegreesToRadians(StartAngle);
 	float angleInterval = FMath::DegreesToRadians((EndAngle - StartAngle) / (Segment + 1));
-	float halfWidth = widget.width * 0.5f;
-	float halfHeight = widget.height * 0.5f;
+	float halfWidth = this->GetWidth() * 0.5f;
+	float halfHeight = this->GetHeight() * 0.5f;
 	//points
 	for (int i = 0; i < pointCount; i++)
 	{
@@ -49,7 +49,7 @@ FVector2D UUIRing::GetStartPointTangentDirection()
 {
 	float angle = FMath::DegreesToRadians(StartAngle);
 	auto dir = FVector2D(FMath::Cos(angle), FMath::Sin(angle));
-	auto tanDir = FVector2D(-widget.width * dir.Y, widget.height * dir.X);
+	auto tanDir = FVector2D(-this->GetWidth() * dir.Y, this->GetHeight() * dir.X);
 	tanDir.Normalize();
 	return tanDir;
 }
@@ -57,7 +57,7 @@ FVector2D UUIRing::GetEndPointTangentDirection()
 {
 	float angle = FMath::DegreesToRadians(EndAngle);
 	auto dir = FVector2D(FMath::Cos(angle), FMath::Sin(angle));
-	auto tanDir = FVector2D(-widget.width * dir.Y, widget.height * dir.X);
+	auto tanDir = FVector2D(-this->GetWidth() * dir.Y, this->GetHeight() * dir.X);
 	tanDir.Normalize();
 	return tanDir;
 }

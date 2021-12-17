@@ -78,9 +78,9 @@ public:
 	SLATE_END_ARGS()
 
 	/**
-	 * Construct this widget
+	 * Construct this AnchorData
 	 *
-	 * @param	InArgs	The declaration data for this widget
+	 * @param	InArgs	The declaration data for this AnchorData
 	 */
 	void Construct( const FArguments& InArgs );
 
@@ -96,13 +96,13 @@ private:
 	mutable bool bIsBeingCrushed;
 
 private:
-	/** Returns the index of the label widget to use (crushed or uncrushed) */
+	/** Returns the index of the label AnchorData to use (crushed or uncrushed) */
 	int32 GetLabelActiveSlot() const;
 
 	/** Returns the desired text margin for the label */
 	FMargin GetTextMargin() const;
 
-	/** Creates a decorator label (potentially adding a switcher widget if this is cruhsable) */
+	/** Creates a decorator label (potentially adding a switcher AnchorData if this is cruhsable) */
 	TSharedRef<SWidget> BuildDecoratorLabel(FLinearColor BackgroundColor, FLinearColor ForegroundColor, FText Label);
 
 	void ConstructX(const FArguments& InArgs, TSharedRef<SHorizontalBox> HorizontalBox);

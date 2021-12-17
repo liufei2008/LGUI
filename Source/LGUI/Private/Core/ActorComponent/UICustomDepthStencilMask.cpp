@@ -235,8 +235,8 @@ public:
 		}
 		else
 		{
-			float width = widget.width;
-			float height = widget.height;
+			float width = RectSize.X;
+			float height = RectSize.Y;
 			width = FMath::Max(width, 1.0f);
 			height = FMath::Max(height, 1.0f);
 

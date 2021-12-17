@@ -82,9 +82,8 @@ void ULGUICanvas::TickComponent( float DeltaTime, ELevelTick TickType, FActorCom
 void ULGUICanvas::UpdateRootCanvasDrawcall()
 {
 	if (!bCanTickUpdate)return;
-	bCanTickUpdate = false;
 
-	if (this != RootCanvas) return;
+	if (this != RootCanvas) return;//update must start from root canvas down to child canvas
 
 	if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
 	{
@@ -466,7 +465,8 @@ bool ULGUICanvas::IsRenderByLGUIRendererOrUERenderer()
 
 void ULGUICanvas::MarkCanvasUpdate()
 {
-	if (CheckRootCanvas())
+	bCanTickUpdate = true;
+	if (RootCanvas.IsValid())
 	{
 		RootCanvas->bCanTickUpdate = true;//incase this Canvas's parent have layout component, so mark TopMostCanvas to update
 	}
@@ -598,7 +598,6 @@ void ULGUICanvas::AddUIRenderable(UUIBaseRenderable* InUIRenderable)
 		RootCanvas->bNeedToSortRenderPriority = true;
 	}
 	MarkCanvasUpdate();
-	this->bIsLayoutChanged = true;
 	this->bIsUIRenderableHierarchyChanged = true;
 }
 void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
@@ -674,7 +673,6 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* InUIRenderable)
 		RootCanvas->bNeedToSortRenderPriority = true;
 	}
 	MarkCanvasUpdate();
-	this->bIsLayoutChanged = true;
 	this->bIsUIRenderableHierarchyChanged = true;
 }
 
@@ -901,9 +899,11 @@ void ULGUICanvas::UpdateDrawcall_Implement(TArray<TSharedPtr<UUIDrawcall>>& InUI
 	//for sorted ui items, iterate from head to tail, compare drawcall from tail to head
 	for (int i = 0; i < UIRenderableList.Num(); i++)
 	{
-		if (UIRenderableList[i]->IsCanvasUIItem() && UIRenderableList[i]->GetRenderCanvas() != this)//is child canvas
+		auto& Item = UIRenderableList[i];
+		if (!Item->GetIsUIActiveInHierarchy())continue;
+		if (Item->IsCanvasUIItem() && Item->GetRenderCanvas() != this)//is child canvas
 		{
-			auto ChildRenderCanvas = UIRenderableList[i]->GetRenderCanvas();
+			auto ChildRenderCanvas = Item->GetRenderCanvas();
 			if (ChildRenderCanvas->IsRenderByOtherCanvas())
 			{
 				ChildRenderCanvas->UpdateDrawcall_Implement(InUIDrawcallList, InCacheUIDrawcallList, OutNeedToSortRenderPriority);
@@ -912,7 +912,8 @@ void ULGUICanvas::UpdateDrawcall_Implement(TArray<TSharedPtr<UUIDrawcall>>& InUI
 		}
 		else
 		{
-			auto UIRenderableItem = (UUIBaseRenderable*)(UIRenderableList[i]);
+			auto UIRenderableItem = (UUIBaseRenderable*)(Item);
+			UIRenderableItem->UpdateGeometry();
 			FLGUICacheTransformContainer UIItemToCanvasTf;
 			this->GetCacheUIItemToCanvasTransform(UIRenderableItem, true, UIItemToCanvasTf);
 			bool is2DUIItem = Is2DUITransform(UIItemToCanvasTf.Transform);
@@ -955,11 +956,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(TArray<TSharedPtr<UUIDrawcall>>& InUI
 						auto DrawcallItem = InUIDrawcallList[DrawcallIndexToFitin];
 						if (UIBatchGeometryRenderableItem->drawcall == DrawcallItem)//already exist in this drawcall (added in prev render frame)
 						{
-							if (UIBatchGeometryRenderableItem->GetFlatternHierarchyIndexChangeAtThisRenderFrame())
-							{
-								DrawcallItem->bShouldSortRenderObjectList = true;//mark for sort the list after drawcall creation
-								DrawcallItem->needToUpdateVertex = true;//after sort the list, we should update vertex data too
-							}
+							
 						}
 						else//not exist in this drawcall
 						{
@@ -1050,7 +1047,6 @@ void ULGUICanvas::SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue)
 
 void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
 {
-	if (!bIsLayoutChanged) bIsLayoutChanged = layoutChanged;
 	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
 	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged || layoutChanged;
 	if (bRectRangeCalculated)
@@ -1156,9 +1152,9 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 	//reset transform map, because transform change
 	CacheUIItemToCanvasTransformMap.Reset();
 	//update drawcall
-	if (bIsLayoutChanged || bIsUIRenderableHierarchyChanged)
+	if (bCanTickUpdate)
 	{
-		bIsLayoutChanged = false;
+		bCanTickUpdate = false;
 #if !UE_BUILD_SHIPPING
 		check(!this->IsRenderByOtherCanvas());
 #endif
@@ -1347,6 +1343,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				DrawcallItem->renderObjectList.Sort([](const TWeakObjectPtr<UUIBatchGeometryRenderable>& A, const TWeakObjectPtr<UUIBatchGeometryRenderable>& B) {
 					return A->GetFlattenHierarchyIndex() < B->GetFlattenHierarchyIndex();
 					});
+				DrawcallItem->needToUpdateVertex = true;
 			}
 			if (DrawcallItem->needToRebuildMesh)
 			{
@@ -1944,12 +1941,11 @@ void ULGUICanvas::CalculateRectRange()
 		{
 			if (this->GetOverrideClipType())//override clip parameter
 			{
-				auto& widget = UIItem->widget;
 				//calculate sefl rect range
-				clipRectMin.X = -widget.pivot.X * widget.width;
-				clipRectMin.Y = -widget.pivot.Y * widget.height;
-				clipRectMax.X = (1.0f - widget.pivot.X) * widget.width;
-				clipRectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
+				clipRectMin.X = -UIItem->GetPivot().X * UIItem->GetWidth();
+				clipRectMin.Y = -UIItem->GetPivot().Y * UIItem->GetHeight();
+				clipRectMax.X = (1.0f - UIItem->GetPivot().X) * UIItem->GetWidth();
+				clipRectMax.Y = (1.0f - UIItem->GetPivot().Y) * UIItem->GetHeight();
 				//add offset
 				clipRectMin.X = clipRectMin.X - clipRectOffset.Left;
 				clipRectMax.X = clipRectMax.X + clipRectOffset.Right;
@@ -1993,12 +1989,11 @@ void ULGUICanvas::CalculateRectRange()
 				}
 				else//no parent, use self parameter
 				{
-					auto& widget = UIItem->widget;
 					//calculate sefl rect range
-					clipRectMin.X = -widget.pivot.X * widget.width;
-					clipRectMin.Y = -widget.pivot.Y * widget.height;
-					clipRectMax.X = (1.0f - widget.pivot.X) * widget.width;
-					clipRectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
+					clipRectMin.X = -UIItem->GetPivot().X * UIItem->GetWidth();
+					clipRectMin.Y = -UIItem->GetPivot().Y * UIItem->GetHeight();
+					clipRectMax.X = (1.0f - UIItem->GetPivot().X) * UIItem->GetWidth();
+					clipRectMax.Y = (1.0f - UIItem->GetPivot().Y) * UIItem->GetHeight();
 					//add offset
 					clipRectMin.X = clipRectMin.X - clipRectOffset.Left;
 					clipRectMax.X = clipRectMax.X + clipRectOffset.Right;
@@ -2020,12 +2015,11 @@ void ULGUICanvas::CalculateRectRange()
 		}
 		else
 		{
-			auto& widget = UIItem->widget;
 			//calculate sefl rect range
-			clipRectMin.X = -widget.pivot.X * widget.width;
-			clipRectMin.Y = -widget.pivot.Y * widget.height;
-			clipRectMax.X = (1.0f - widget.pivot.X) * widget.width;
-			clipRectMax.Y = (1.0f - widget.pivot.Y) * widget.height;
+			clipRectMin.X = -UIItem->GetPivot().X * UIItem->GetWidth();
+			clipRectMin.Y = -UIItem->GetPivot().Y * UIItem->GetHeight();
+			clipRectMax.X = (1.0f - UIItem->GetPivot().X) * UIItem->GetWidth();
+			clipRectMax.Y = (1.0f - UIItem->GetPivot().Y) * UIItem->GetHeight();
 		}
 
 		bRectRangeCalculated = true;
@@ -2058,8 +2052,7 @@ FLinearColor ULGUICanvas::GetRectClipFeather()
 }
 FLinearColor ULGUICanvas::GetTextureClipOffsetAndSize()
 {
-	auto& widget = UIItem->widget;
-	auto Offset = FVector2D(widget.width * -widget.pivot.X, widget.height * -widget.pivot.Y);
+	auto Offset = FVector2D(UIItem->GetWidth() * -UIItem->GetPivot().X, UIItem->GetHeight() * -UIItem->GetPivot().Y);
 	//if render by other canvas, we should transform offset to that canvas space
 	if (this->IsRenderByOtherCanvas())
 	{
@@ -2069,7 +2062,7 @@ FLinearColor ULGUICanvas::GetTextureClipOffsetAndSize()
 		auto OffsetPoint = RenderCanvasTfInv.TransformPosition(ThisTf.TransformPosition(FVector(0, Offset.X, Offset.Y)));
 		Offset = FVector2D(OffsetPoint.Y, OffsetPoint.Z);
 	}
-	return FLinearColor(Offset.X, Offset.Y, widget.width, widget.height);
+	return FLinearColor(Offset.X, Offset.Y, UIItem->GetWidth(), UIItem->GetHeight());
 }
 
 void ULGUICanvas::SetClipType(ELGUICanvasClipType newClipType) 
@@ -2760,7 +2753,7 @@ UTextureRenderTarget2D* ULGUICanvas::GetActualRenderTarget()const
 }
 
 
-bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIItem* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult)
+bool ULGUICanvas::GetCacheUIItemToCanvasTransform(UUIBaseRenderable* item, bool createIfNotExist, FLGUICacheTransformContainer& outResult)
 {
 	if (this->IsRenderByOtherCanvas())
 	{
@@ -2814,10 +2807,10 @@ void GetMinMax(float a, float b, float c, float d, float& min, float& max)
 	min = FMath::Min(abMin, cdMin);
 	max = FMath::Max(abMax, cdMax);
 }
-void ULGUICanvas::CalculateUIItem2DBounds(UUIItem* item, const FTransform2D& transform, FVector2D& min, FVector2D& max)
+void ULGUICanvas::CalculateUIItem2DBounds(UUIBaseRenderable* item, const FTransform2D& transform, FVector2D& min, FVector2D& max)
 {
 	FVector2D localPoint1, localPoint2;
-	item->GetLocalSpaceMinMaxPoint(localPoint1, localPoint2);
+	item->GetGeometryBoundsInLocalSpace(localPoint1, localPoint2);
 	auto point1 = transform.TransformPoint(localPoint1);
 	auto point2 = transform.TransformPoint(localPoint2);
 	auto point3 = transform.TransformPoint(FVector2D(localPoint2.X, localPoint1.Y));

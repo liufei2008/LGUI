@@ -43,14 +43,14 @@ void UUILayoutWithAnimation::ApplyAnchorOffsetWithAnimation(EUILayoutChangePosit
 	default:
 	case EUILayoutChangePositionAnimationType::Immediately:
 	{
-		target->SetAnchorOffset(offset);
+		target->SetAnchoredPosition(offset);
 	}
 	break;
 	case EUILayoutChangePositionAnimationType::EaseAnimation:
 	{
-		if (target->GetAnchorOffset() != offset)
+		if (target->GetAnchoredPosition() != offset)
 		{
-			auto tweener = ALTweenActor::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchorOffset), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchorOffset), offset, AnimationDuration)->SetEase(LTweenEase::InOutSine);
+			auto tweener = ALTweenActor::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchoredPosition), offset, AnimationDuration)->SetEase(LTweenEase::InOutSine);
 			TweenerArray.Add(tweener);
 		}
 	}

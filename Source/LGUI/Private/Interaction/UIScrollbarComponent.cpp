@@ -319,26 +319,26 @@ void UUIScrollbarComponent::ApplyValueToUI()
         {
         case UIScrollbarDirectionType::LeftToRight:
         {
-            float validSpace = HandleArea->GetWidth() * (1.0f - Size);
-            Handle->SetHorizontalStretch(FVector2D(validSpace * value01, validSpace * (1.0f - value01)));
+            auto HorizontalMinMax = FVector2D((1.0f - Size) * value01, FMath::Lerp(Size, 1.0f, value01));
+            Handle->SetHorizontalAnchorMinMax(HorizontalMinMax);
         }
         break;
         case UIScrollbarDirectionType::RightToLeft:
         {
-            float validSpace = HandleArea->GetWidth() * (1.0f - Size);
-            Handle->SetHorizontalStretch(FVector2D(validSpace * (1.0f - value01), validSpace * value01));
+            auto HorizontalMinMax = FVector2D((1.0f - Size) * (1.0f - value01), FMath::Lerp(1.0f, Size, value01));
+            Handle->SetHorizontalAnchorMinMax(HorizontalMinMax);
         }
         break;
         case UIScrollbarDirectionType::BottomToTop:
         {
-            float validSpace = HandleArea->GetHeight() * (1.0f - Size);
-            Handle->SetVerticalStretch(FVector2D(validSpace * value01, validSpace * (1.0f - value01)));
+            auto VerticalMinMax = FVector2D((1.0f - Size) * value01, FMath::Lerp(Size, 1.0f, value01));
+            Handle->SetVerticalAnchorMinMax(VerticalMinMax);
         }
         break;
         case UIScrollbarDirectionType::TopToBottom:
         {
-            float validSpace = HandleArea->GetHeight() * (1.0f - Size);
-            Handle->SetVerticalStretch(FVector2D(validSpace * (1.0f - value01), validSpace * value01));
+            auto VerticalMinMax = FVector2D((1.0f - Size) * (1.0f - value01), FMath::Lerp(1.0f, Size, value01));
+            Handle->SetVerticalAnchorMinMax(VerticalMinMax);
         }
         break;
         }

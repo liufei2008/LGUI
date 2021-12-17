@@ -25,6 +25,8 @@
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
 
+#include "Widgets/Input/SNumericEntryBox.h"
+
 #define LOCTEXT_NAMESPACE "UIItemComponentDetails"
 
 
@@ -102,7 +104,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
 	DetailBuilder.HideCategory("TransformCommon");
-	IDetailCategoryBuilder& transformCategory = DetailBuilder.EditCategory("LGUITransform", LOCTEXT("LGUI-Transform", "LGUI-Transform"), ECategoryPriority::Transform);
+	IDetailCategoryBuilder& TransformCategory = DetailBuilder.EditCategory("LGUITransform", LOCTEXT("LGUI-Transform", "LGUI-Transform"), ECategoryPriority::Transform);
 
 	//base
 	{
@@ -112,20 +114,20 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		}));
 	}
 
-	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget));
+	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));
 
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive));
 
 	//anchor, width, height
 	{
-		auto widthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.width));
-		auto heightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.height));
-		widthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-			ForceUpdateUI();
-		}));
-		heightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-			ForceUpdateUI();
-		}));
+		//auto widthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.width));
+		//auto heightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.height));
+		//widthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		//	ForceUpdateUI();
+		//}));
+		//heightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		//	ForceUpdateUI();
+		//}));
 
 		bool anchorControlledByParentLayout = false;
 		bool anchorOffsetXControlledByParentLayout = false;
@@ -182,25 +184,66 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		}
 
 		
-		auto refreshDelegate = FSimpleDelegate::CreateSP(this, &FUIItemCustomization::ForceRefreshEditor, &DetailBuilder);
-
-		auto anchorHAlignHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorHAlign));
-		uint8 anchorHAlignUInt8;
-		anchorHAlignHandle->GetValue(anchorHAlignUInt8);
-		anchorHAlignHandle->SetOnPropertyValueChanged(refreshDelegate);
-		UIAnchorHorizontalAlign anchorHAlign = (UIAnchorHorizontalAlign)anchorHAlignUInt8;
-
-		auto anchorVAlignHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorVAlign));
-		uint8 anchorVAlignUInt8;
-		anchorVAlignHandle->GetValue(anchorVAlignUInt8);
-		anchorVAlignHandle->SetOnPropertyValueChanged(refreshDelegate);
-		UIAnchorVerticalAlign anchorVAlign = (UIAnchorVerticalAlign)anchorVAlignUInt8;
+		auto AnchorHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));
+		auto AnchorMinHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin));
+		auto AnchorMaxHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax));
+		auto AnchoredPositionHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchoredPosition));
+		auto SizeDeltaHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.SizeDelta));
+		FVector2D AnchorMin, AnchorMax;
+		AnchorMinHandle->GetValue(AnchorMin);
+		AnchorMaxHandle->GetValue(AnchorMax);
 
 		//anchors preset menu
-		FVector2D anchorItemSize(48, 48);
+		FVector2D anchorItemSize(42, 42);
 		float itemBasePadding = 8;
-		IDetailGroup& anchorGroup = transformCategory.AddGroup(FName("AnchorGroup"), LOCTEXT("AnchorGroup", "AnchorGroup"));
-		anchorGroup.HeaderRow()
+		FMargin AnchorLabelMargin = FMargin(2, 2);
+		FMargin AnchorValueMargin = FMargin(2, 2);
+
+		auto MakeAnchorLabelWidget = [&](int AnchorLabelIndex) {
+			return
+				SNew(SBox)
+				.Padding(AnchorLabelMargin)
+				[
+					SNew(STextBlock)
+					.Text(this, &FUIItemCustomization::GetAnchorLabelText, AnchorMinHandle, AnchorMaxHandle, AnchorLabelIndex)
+					.ToolTipText(this, &FUIItemCustomization::GetAnchorLabelTooltipText, AnchorMinHandle, AnchorMaxHandle, AnchorLabelIndex)
+					.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
+			;
+		};
+		auto MakeAnchorValueWidget = [=](int AnchorValueIndex) {
+			return
+				SNew(SBox)
+				.Padding(AnchorValueMargin)
+				[
+					SNew(SNumericEntryBox<float>)
+					.AllowSpin(true)
+					.MinSliderValue(-1000)
+					.MaxSliderValue(1000)
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+					.Value(this, &FUIItemCustomization::GetAnchorValue, AnchorHandle, AnchorValueIndex)
+					.OnValueChanged(this, &FUIItemCustomization::OnAnchorValueChanged, AnchorHandle, AnchorValueIndex)
+					.OnValueCommitted(this, &FUIItemCustomization::OnAnchorValueCommitted, AnchorHandle, AnchorValueIndex)
+					.OnBeginSliderMovement(this, &FUIItemCustomization::OnAnchorSliderSliderMovementBegin)
+				]
+			;
+		};
+		auto DetailBuilderPoiter = &DetailBuilder;
+		auto MakeAnchorPreviewWidget = [=](UIAnchorHorizontalAlign HAlign, UIAnchorVerticalAlign VAlign) {
+			return
+				SNew(SAnchorPreviewWidget, anchorItemSize)
+				.BasePadding(itemBasePadding)
+				.SelectedHAlign(this, &FUIItemCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
+				.SelectedVAlign(this, &FUIItemCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
+				.PersistentHAlign(HAlign)
+				.PersistentVAlign(VAlign)
+				.ButtonEnable(true)
+				.OnAnchorChange(this, &FUIItemCustomization::OnSelectAnchor, DetailBuilderPoiter)
+			;
+		};//@todo: auto refresh SAnchorPreviewWidget when change from AnchorMinMax
+
+		TransformCategory.AddCustomRow(LOCTEXT("Anchor","Anchor"))
 		.CopyAction(FUIAction
 		(
 			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnCopyAnchor),
@@ -211,311 +254,355 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnPasteAnchor, &DetailBuilder),
 			FCanExecuteAction::CreateSP(this, &FUIItemCustomization::OnCanPasteAnchor)
 		))
+		.ValueContent()
+		.MinDesiredWidth(500)
+		[
+			SNew(SVerticalBox)
+			+SVerticalBox::Slot()
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					MakeAnchorLabelWidget(0)
+				]
+				+SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					MakeAnchorLabelWidget(1)
+				]
+			]
+			+SVerticalBox::Slot()
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					MakeAnchorValueWidget(0)
+				]
+				+SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					MakeAnchorValueWidget(1)
+				]
+			]
+
+			+SVerticalBox::Slot()
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					MakeAnchorLabelWidget(2)
+				]
+				+SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					MakeAnchorLabelWidget(3)
+				]
+			]
+			+SVerticalBox::Slot()
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					MakeAnchorValueWidget(2)
+				]
+				+SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					MakeAnchorValueWidget(3)
+				]
+			]
+		]
 		.NameContent()
 		[
-			SNew(STextBlock)
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-			.Text(LOCTEXT("Anchors", "Anchors"))
-		]
-		.ValueContent()
-		[
-			SNew(SBox)
-			.Padding(2)
+			SNew(SVerticalBox)
+			//+SVerticalBox::Slot()
+			//[
+			//	SNew(SBox)
+			//	.Padding(FMargin(0, 0))
+			//	[
+			//		SNew(STextBlock)
+			//		.Font(IDetailLayoutBuilder::GetDetailFont())
+			//		.Text(LOCTEXT("AnchorPreset", "AnchorPreset"))
+			//		.Font(IDetailLayoutBuilder::GetDetailFont())
+			//	]
+			//]
+			+SVerticalBox::Slot()
 			[
-				SNew(SComboButton)
-				.HasDownArrow(false)
-				.IsEnabled(this, &FUIItemCustomization::GetIsAnchorsEnabled)
-				.ToolTipText(this, &FUIItemCustomization::GetAnchorsTooltipText)
-				.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
-				.ButtonContent()
+				SNew(SBox)
+				.Padding(2)
+				.Visibility(this, &FUIItemCustomization::GetAnchorPresetButtonVisibility)
 				[
-					SNew(SVerticalBox)
-					+SVerticalBox::Slot()
-					.AutoHeight()
+					SNew(SComboButton)
+					.HasDownArrow(false)
+					.IsEnabled(this, &FUIItemCustomization::GetIsAnchorsEnabled)
+					.ToolTipText(this, &FUIItemCustomization::GetAnchorsTooltipText)
+					.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
+					.ButtonContent()
 					[
 						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.HAlign(EHorizontalAlignment::HAlign_Left)
+						[
+							SNew(SVerticalBox)
+							+SVerticalBox::Slot()
+							.Padding(FMargin(0, 0))
+							[
+								SNew(SBox)
+								.Padding(FMargin(0, 0))
+								.HAlign(EHorizontalAlignment::HAlign_Center)
+								[
+									SNew(STextBlock)
+									.Text(this, &FUIItemCustomization::GetHAlignText, AnchorMinHandle, AnchorMaxHandle)
+									.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
+									.Font(IDetailLayoutBuilder::GetDetailFont())
+								]
+							]
+							+SVerticalBox::Slot()
+							.Padding(FMargin(0, 0))
+							.AutoHeight()
+							[
+								TargetScriptArray[0]->GetParentUIItem() != nullptr
+								?
+								SNew(SBox)
+								[
+									SNew(SAnchorPreviewWidget, FVector2D(40, 40))
+									.BasePadding(0)
+									.ButtonEnable(false)
+									.PersistentHAlign(this, &FUIItemCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
+									.PersistentVAlign(this, &FUIItemCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
+								]
+								:
+								SNew(SBox)
+							]
+						]
 						+SHorizontalBox::Slot()
 						.AutoWidth()
 						[
-							SNew(SAnchorPreviewWidget, TargetScriptArray, anchorHAlign, anchorVAlign, FVector2D(28, 28), refreshDelegate)
-							.BasePadding(0)
+							SNew(SBox)
+							.Padding(FMargin(0, 0))
+							.HAlign(EHorizontalAlignment::HAlign_Center)
+							[
+								SNew(STextBlock)
+								.Text(this, &FUIItemCustomization::GetVAlignText, AnchorMinHandle, AnchorMaxHandle)
+								.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
+								.Font(IDetailLayoutBuilder::GetDetailFont())
+								.Justification(ETextJustify::Center)
+								.RenderTransformPivot(FVector2D(0, 0.5f))
+								.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(90)), FVector2D(-12, -10)))
+							]
 						]
 					]
-				]
-				.MenuContent()
-				[
-					SNew(SBorder)
+					.MenuContent()
 					[
-						SNew(SVerticalBox)
-						+SVerticalBox::Slot()
-						.AutoHeight()
+						SNew(SBox)
 						[
-							SNew(SHorizontalBox)
-							+SHorizontalBox::Slot()
-							.AutoWidth()
+							SNew(SVerticalBox)
+							+SVerticalBox::Slot()
+							.AutoHeight()
 							[
-								SNew(SOverlay)
-								+SOverlay::Slot()
+								SNew(SHorizontalBox)
+								+SHorizontalBox::Slot()
+								.AutoWidth()
 								[
-									SNew(SUniformGridPanel)
-									//None
-									+SUniformGridPanel::Slot(0, 0)
+									SNew(SOverlay)
+									+SOverlay::Slot()
 									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::None, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
+										SNew(SUniformGridPanel)
+										//None
+										//+SUniformGridPanel::Slot(0, 0)
+										//[
+										//	SNew(SAnchorPreviewWidget, anchorItemSize)
+										//	.BasePadding(itemBasePadding)
+										//	.SelectedHAlign(this, &FUIItemCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
+										//	.SelectedVAlign(this, &FUIItemCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
+										//	.PersistentHAlign(UIAnchorHorizontalAlign::None)
+										//	.PersistentVAlign(UIAnchorVerticalAlign::None)
+										//	.ButtonEnable(false)
+										//]
+										+SUniformGridPanel::Slot(1, 0)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::None)
+										]
+										+SUniformGridPanel::Slot(2, 0) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::None)
+										]
+										+SUniformGridPanel::Slot(3, 0) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::None)
+										]
+										+SUniformGridPanel::Slot(4, 0) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::None)
+										]
+										//Top
+										+SUniformGridPanel::Slot(0, 1)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::Top)
+										]
+										+SUniformGridPanel::Slot(1, 1)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::Top)
+										]
+										+SUniformGridPanel::Slot(2, 1) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::Top)
+										]
+										+SUniformGridPanel::Slot(3, 1) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::Top)
+										]
+										+SUniformGridPanel::Slot(4, 1) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::Top)
+										]
+										//Center
+										+SUniformGridPanel::Slot(0, 2)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::Middle)
+										]
+										+SUniformGridPanel::Slot(1, 2)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::Middle)
+										]
+										+SUniformGridPanel::Slot(2, 2) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::Middle)
+										]
+										+SUniformGridPanel::Slot(3, 2) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::Middle)
+										]
+										+SUniformGridPanel::Slot(4, 2) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::Middle)
+										]
+										//Bottom
+										+SUniformGridPanel::Slot(0, 3)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::Bottom)
+										]
+										+SUniformGridPanel::Slot(1, 3)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::Bottom)
+										]
+										+SUniformGridPanel::Slot(2, 3) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::Bottom)
+										]
+										+SUniformGridPanel::Slot(3, 3) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::Bottom)
+										]
+										+SUniformGridPanel::Slot(4, 3) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::Bottom)
+										]
+										//Bottom stretch
+										+SUniformGridPanel::Slot(0, 4)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::Stretch)
+										]
+										+SUniformGridPanel::Slot(1, 4)
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::Stretch)
+										]
+										+SUniformGridPanel::Slot(2, 4) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::Stretch)
+										]
+										+SUniformGridPanel::Slot(3, 4) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::Stretch)
+										]
+										+SUniformGridPanel::Slot(4, 4) 
+										[
+											MakeAnchorPreviewWidget(UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::Stretch)
+										]
 									]
-									+SUniformGridPanel::Slot(1, 0)
+									//splite line
+									+ SOverlay::Slot()
 									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::None, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(2, 0) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::None, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(3, 0) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::None, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(4, 0) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::None, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									//Top
-									+SUniformGridPanel::Slot(0, 1)
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::Top, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(1, 1)
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::Top, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(2, 1) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::Top, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(3, 1) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::Top, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(4, 1) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::Top, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									//Center
-									+SUniformGridPanel::Slot(0, 2)
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::Middle, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(1, 2)
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::Middle, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(2, 2) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::Middle, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(3, 2) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::Middle, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(4, 2) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::Middle, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									//Bottom
-									+SUniformGridPanel::Slot(0, 3)
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::Bottom, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(1, 3)
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::Bottom, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(2, 3) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::Bottom, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(3, 3) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::Bottom, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(4, 3) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::Bottom, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									//Bottom stretch
-									+SUniformGridPanel::Slot(0, 4)
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::None, UIAnchorVerticalAlign::Stretch, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(1, 4)
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Left, UIAnchorVerticalAlign::Stretch, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(2, 4) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Center, UIAnchorVerticalAlign::Stretch, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(3, 4) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Right, UIAnchorVerticalAlign::Stretch, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-									+SUniformGridPanel::Slot(4, 4) 
-									[
-										SNew(SAnchorPreviewWidget, TargetScriptArray, UIAnchorHorizontalAlign::Stretch, UIAnchorVerticalAlign::Stretch, anchorItemSize, refreshDelegate)
-										.BasePadding(itemBasePadding)
-										.SelectedHAlign(anchorHAlign)
-										.SelectedVAlign(anchorVAlign)
-									]
-								]
-								//splite line
-								+ SOverlay::Slot()
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot()
-									.HAlign(EHorizontalAlignment::HAlign_Left)
-									[
-										SNew(SBox)
-										.WidthOverride(anchorItemSize.X + 16)
+										SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot()
+										.HAlign(EHorizontalAlignment::HAlign_Left)
 										[
 											SNew(SBox)
-											.HAlign(EHorizontalAlignment::HAlign_Right)
-											.WidthOverride(1)
+											.WidthOverride(anchorItemSize.X + 16)
 											[
-												SNew(SImage)
-												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-												.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+												SNew(SBox)
+												.HAlign(EHorizontalAlignment::HAlign_Right)
+												.WidthOverride(1)
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
+													.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+												]
 											]
 										]
 									]
-								]
-								+ SOverlay::Slot()
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot()
-									.HAlign(EHorizontalAlignment::HAlign_Right)
+									+ SOverlay::Slot()
 									[
-										SNew(SBox)
-										.WidthOverride(anchorItemSize.X + 16)
+										SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot()
+										.HAlign(EHorizontalAlignment::HAlign_Right)
 										[
 											SNew(SBox)
-											.HAlign(EHorizontalAlignment::HAlign_Left)
-											.WidthOverride(1)
+											.WidthOverride(anchorItemSize.X + 16)
 											[
-												SNew(SImage)
-												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-												.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+												SNew(SBox)
+												.HAlign(EHorizontalAlignment::HAlign_Left)
+												.WidthOverride(1)
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
+													.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+												]
 											]
 										]
 									]
-								]
-								+ SOverlay::Slot()
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot()
-									.VAlign(EVerticalAlignment::VAlign_Top)
+									+ SOverlay::Slot()
 									[
-										SNew(SBox)
-										.HeightOverride(anchorItemSize.X + 16)
+										SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot()
+										.VAlign(EVerticalAlignment::VAlign_Top)
 										[
 											SNew(SBox)
-											.VAlign(EVerticalAlignment::VAlign_Bottom)
-											.HeightOverride(1)
+											.HeightOverride(anchorItemSize.X + 16)
 											[
-												SNew(SImage)
-												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-												.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+												SNew(SBox)
+												.VAlign(EVerticalAlignment::VAlign_Bottom)
+												.HeightOverride(1)
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
+													.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+												]
 											]
 										]
 									]
-								]
-								+ SOverlay::Slot()
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot()
-									.VAlign(EVerticalAlignment::VAlign_Bottom)
+									+ SOverlay::Slot()
 									[
-										SNew(SBox)
-										.HeightOverride(anchorItemSize.X + 16)
+										SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot()
+										.VAlign(EVerticalAlignment::VAlign_Bottom)
 										[
 											SNew(SBox)
-											.VAlign(EVerticalAlignment::VAlign_Top)
-											.HeightOverride(1)
+											.HeightOverride(anchorItemSize.X + 16)
 											[
-												SNew(SImage)
-												.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-												.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+												SNew(SBox)
+												.VAlign(EVerticalAlignment::VAlign_Top)
+												.HeightOverride(1)
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
+													.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+												]
 											]
 										]
 									]
@@ -528,7 +615,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		]
 		;
 
-		IDetailPropertyRow& anchorHAlignDetailProperty = anchorGroup.AddPropertyRow(anchorHAlignHandle);
+		IDetailGroup& anchorGroup = TransformCategory.AddGroup(FName("Anchors"), LOCTEXT("AnchorsGroup", "Anchors"));
+
+		IDetailPropertyRow& anchorHAlignDetailProperty = anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin)));
 		if (anchorControlledByParentLayout)
 		{
 			LGUIEditorUtils::SetControlledByParentLayout(anchorHAlignDetailProperty, anchorControlledByParentLayout);
@@ -539,7 +628,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				LGUIEditorUtils::SetControlledBySelfLayout(anchorHAlignDetailProperty, anchorHControlledBySelfLayout);
 		}
 
-		IDetailPropertyRow& anchorVAlignDetailProperty = anchorGroup.AddPropertyRow(anchorVAlignHandle);
+		IDetailPropertyRow& anchorVAlignDetailProperty = anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax)));
 		if (anchorControlledByParentLayout)
 		{
 			LGUIEditorUtils::SetControlledByParentLayout(anchorVAlignDetailProperty, anchorControlledByParentLayout);
@@ -549,75 +638,80 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			if (anchorVControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(anchorVAlignDetailProperty, anchorVControlledBySelfLayout);
 		}
-		//stretch, anchorx, anchory
-		if (anchorHAlign == UIAnchorHorizontalAlign::None)
-		{
-			transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.width));
 
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetX))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchLeft))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchRight))).IsEnabled(false);
+		auto& AnchorRawDataGroup = TransformCategory.AddGroup(FName("AnchorsRawData"), LOCTEXT("AnchorsRawData", "AnchorsRawData"), true);
+		AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchoredPosition)));
+		AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.SizeDelta)));
+		
+		//stretch, anchorx, anchory
+		/*if (anchorHAlign == UIAnchorHorizontalAlign::None)
+		{
+			TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.width));
+
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetX))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchLeft))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchRight))).IsEnabled(false);
 		}
 		else if (anchorHAlign == UIAnchorHorizontalAlign::Stretch)
 		{
-			IDetailPropertyRow& stretchLeftProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchLeft));
+			IDetailPropertyRow& stretchLeftProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchLeft));
 			if (stretchLeftControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(stretchLeftProperty, true);
-			IDetailPropertyRow& stretchRightProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchRight));
+			IDetailPropertyRow& stretchRightProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchRight));
 			if (stretchRightControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(stretchRightProperty, true);
 
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetX))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.width))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetX))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.width))).IsEnabled(false);
 		}
 		else
 		{
-			IDetailPropertyRow& anchorOffsetXDetailProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetX));
+			IDetailPropertyRow& anchorOffsetXDetailProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetX));
 			LGUIEditorUtils::SetControlledByParentLayout(anchorOffsetXDetailProperty, anchorControlledByParentLayout);
-			IDetailPropertyRow& widthDetailProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.width));
+			IDetailPropertyRow& widthDetailProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.width));
 			if (widthControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(widthDetailProperty, widthControlledBySelfLayout);
 			else
 				if (widthControlledByParentLayout)
 					LGUIEditorUtils::SetControlledByParentLayout(widthDetailProperty, widthControlledByParentLayout);
 
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchLeft))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchRight))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchLeft))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchRight))).IsEnabled(false);
 		}
 
 		if (anchorVAlign == UIAnchorVerticalAlign::None)
 		{
-			transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.height));
+			TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.height));
 
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetY))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchTop))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetY))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchTop))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchBottom))).IsEnabled(false);
 		}
 		else if (anchorVAlign == UIAnchorVerticalAlign::Stretch)
 		{
-			IDetailPropertyRow& stretchTopProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchTop));
+			IDetailPropertyRow& stretchTopProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchTop));
 			if (stretchTopControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(stretchTopProperty, true);
-			IDetailPropertyRow& stretchBottomProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom));
+			IDetailPropertyRow& stretchBottomProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchBottom));
 			if (stretchBottomControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(stretchBottomProperty, true);
 
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetY))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.height))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetY))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.height))).IsEnabled(false);
 		}
 		else
 		{
-			IDetailPropertyRow& anchorOffsetYDetailProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.anchorOffsetY));
+			IDetailPropertyRow& anchorOffsetYDetailProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetY));
 			LGUIEditorUtils::SetControlledByParentLayout(anchorOffsetYDetailProperty, anchorControlledByParentLayout);
-			IDetailPropertyRow& heightDetailProperty = transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.height));
+			IDetailPropertyRow& heightDetailProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.height));
 			if (heightControlledBySelfLayout)
 				LGUIEditorUtils::SetControlledBySelfLayout(heightDetailProperty, heightControlledBySelfLayout);
 			else
 				if (heightControlledByParentLayout)
 					LGUIEditorUtils::SetControlledByParentLayout(heightDetailProperty, heightControlledByParentLayout);
 
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchTop))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.stretchBottom))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchTop))).IsEnabled(false);
+			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchBottom))).IsEnabled(false);
 		}
 
 		if (anchorControlledByParentLayout && (anchorHControlledBySelfLayout || anchorVControlledBySelfLayout))
@@ -639,15 +733,16 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		if (heightControlledByParentLayout && heightControlledBySelfLayout)
 		{
 			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("Height is controlled by more than one UILayout component! This may cause issue!"));
-		}
+		}*/
 	}
 	//pivot
-	transformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, widget.pivot));
+	auto PivotHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.Pivot));
+	TransformCategory.AddProperty(PivotHandle);
 
 	//location rotation scale
 	const FSelectedActorInfo& selectedActorInfo = DetailBuilder.GetDetailsView()->GetSelectedActorInfo();
 	TSharedRef<FComponentTransformDetails> transformDetails = MakeShareable(new FComponentTransformDetails(TargetScriptArray, selectedActorInfo, DetailBuilder));
-	transformCategory.AddCustomBuilder(transformDetails);
+	TransformCategory.AddCustomBuilder(transformDetails);
 
 	//HierarchyIndex
 	{
@@ -675,15 +770,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					SNew(SButton)
 					.Text(LOCTEXT("Increase", "+"))
 					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked_Lambda([&]()
-					{
-						for (auto item : TargetScriptArray)
-						{
-							item->SetHierarchyIndex(item->hierarchyIndex + 1);
-						}
-						LGUIEditorTools::RefreshSceneOutliner();
-						return FReply::Handled(); 
-					})
+					.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, true)
 				]
 			]
 			+ SHorizontalBox::Slot()
@@ -696,19 +783,11 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					SNew(SButton)
 					.Text(LOCTEXT("Decrease", "-"))
 					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked_Lambda([&]()
-					{
-						for (auto item : TargetScriptArray)
-						{
-							item->SetHierarchyIndex(item->hierarchyIndex - 1);
-						}
-						LGUIEditorTools::RefreshSceneOutliner();
-						return FReply::Handled();
-					})
+					.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, false)
 				]
 			];
 
-		transformCategory.AddCustomRow(LOCTEXT("HierarchyIndexManager", "HierarchyIndexManager"))
+		TransformCategory.AddCustomRow(LOCTEXT("HierarchyIndexManager", "HierarchyIndexManager"))
 		.CopyAction(FUIAction(
 			FExecuteAction::CreateSP(this, &FUIItemCustomization::OnCopyHierarchyIndex)
 		))
@@ -725,7 +804,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		]
 		;
 
-		transformCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, flattenHierarchyIndex)), EPropertyLocation::Advanced);
+		TransformCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, flattenHierarchyIndex)), EPropertyLocation::Advanced);
 	}
 		
 	//displayName
@@ -759,49 +838,40 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		;
 }
 
+EVisibility FUIItemCustomization::GetAnchorPresetButtonVisibility()const
+{
+	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
+	{
+		return TargetScriptArray[0]->GetParentUIItem() != nullptr ? EVisibility::Visible : EVisibility::Hidden;
+	}
+	return EVisibility::Hidden;
+}
+
 EVisibility FUIItemCustomization::GetDisplayNameWarningVisibility()const
 {
-	if (TargetScriptArray[0].IsValid())
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return EVisibility::Hidden;
+
+	if (auto actor = TargetScriptArray[0]->GetOwner())
 	{
-		if (auto actor = TargetScriptArray[0]->GetOwner())
+		if (TargetScriptArray[0] == actor->GetRootComponent())
 		{
-			if (TargetScriptArray[0] == actor->GetRootComponent())
+			auto actorLabel = actor->GetActorLabel();
+			if (actorLabel.StartsWith("//"))
 			{
-				auto actorLabel = actor->GetActorLabel();
-				if (actorLabel.StartsWith("//"))
-				{
-					actorLabel = actorLabel.Right(actorLabel.Len() - 2);
-				}
-				if (TargetScriptArray[0]->GetDisplayName() == actorLabel)
-				{
-					return EVisibility::Hidden;
-				}
-				else
-				{
-					return EVisibility::Visible;
-				}
+				actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+			}
+			if (TargetScriptArray[0]->GetDisplayName() == actorLabel)
+			{
+				return EVisibility::Hidden;
 			}
 			else
 			{
-				if (TargetScriptArray[0]->GetName() == TargetScriptArray[0]->GetDisplayName())
-				{
-					return EVisibility::Hidden;
-				}
-				else
-				{
-					return EVisibility::Visible;
-				}
+				return EVisibility::Visible;
 			}
 		}
 		else
 		{
-			auto name = TargetScriptArray[0]->GetName();
-			auto genVarSuffix = FString(TEXT("_GEN_VARIABLE"));
-			if (name.EndsWith(genVarSuffix))
-			{
-				name.RemoveAt(name.Len() - genVarSuffix.Len(), genVarSuffix.Len());
-			}
-			if (TargetScriptArray[0]->GetDisplayName() == name)
+			if (TargetScriptArray[0]->GetName() == TargetScriptArray[0]->GetDisplayName())
 			{
 				return EVisibility::Hidden;
 			}
@@ -811,39 +881,586 @@ EVisibility FUIItemCustomization::GetDisplayNameWarningVisibility()const
 			}
 		}
 	}
-	return EVisibility::Hidden;
-}
-FReply FUIItemCustomization::OnClickFixButton()
-{
-	if (TargetScriptArray[0].IsValid())
+	else
 	{
-		if (auto actor = TargetScriptArray[0]->GetOwner())
+		auto name = TargetScriptArray[0]->GetName();
+		auto genVarSuffix = FString(TEXT("_GEN_VARIABLE"));
+		if (name.EndsWith(genVarSuffix))
 		{
-			if (TargetScriptArray[0] == actor->GetRootComponent())
-			{
-				auto actorLabel = TargetScriptArray[0]->GetOwner()->GetActorLabel();
-				if (actorLabel.StartsWith("//"))
-				{
-					actorLabel = actorLabel.Right(actorLabel.Len() - 2);
-				}
-				TargetScriptArray[0]->SetDisplayName(actorLabel);
-			}
-			else
-			{
-				TargetScriptArray[0]->SetDisplayName(TargetScriptArray[0]->GetName());
-			}
+			name.RemoveAt(name.Len() - genVarSuffix.Len(), genVarSuffix.Len());
+		}
+		if (TargetScriptArray[0]->GetDisplayName() == name)
+		{
+			return EVisibility::Hidden;
 		}
 		else
 		{
-			auto name = TargetScriptArray[0]->GetName();
-			auto genVarSuffix = FString(TEXT("_GEN_VARIABLE"));
-			if (name.EndsWith(genVarSuffix))
-			{
-				name.RemoveAt(name.Len() - genVarSuffix.Len(), genVarSuffix.Len());
-			}
-			TargetScriptArray[0]->SetDisplayName(name);
+			return EVisibility::Visible;
 		}
 	}
+}
+
+FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool IncreaseOrDecrease)
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FReply::Handled();
+
+	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Hierarchy Index"));
+	TargetScriptArray[0]->Modify();
+	GEditor->EndTransaction();
+
+	TargetScriptArray[0]->SetHierarchyIndex(TargetScriptArray[0]->hierarchyIndex + (IncreaseOrDecrease ? 1 : -1));
+
+	LGUIEditorTools::RefreshSceneOutliner();
+	return FReply::Handled();
+}
+
+FText FUIItemCustomization::GetHAlignText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FText();
+
+	FVector2D AnchorMinValue;
+	AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	AnchorMaxHandle->GetValue(AnchorMaxValue);
+
+	if (AnchorMinValue.X == AnchorMaxValue.X)
+	{
+		if (AnchorMinValue.X == 0)
+		{
+			return LOCTEXT("AnchorLeft", "Left");
+		}
+		else if (AnchorMinValue.X == 0.5f)
+		{
+			return LOCTEXT("AnchorLeft", "Center");
+		}
+		else if (AnchorMinValue.X == 1.0f)
+		{
+			return LOCTEXT("AnchorLeft", "Right");
+		}
+		else
+		{
+			return LOCTEXT("AnchorCustom", "Custom");
+		}
+	}
+	else if (AnchorMinValue.X == 0.0f && AnchorMaxValue.X == 1.0f)
+	{
+		return LOCTEXT("AnchorCustom", "Stretch");
+	}
+	else
+	{
+		return LOCTEXT("AnchorCustom", "Custom");
+	}
+}
+FText FUIItemCustomization::GetVAlignText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FText();
+
+	FVector2D AnchorMinValue;
+	AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	AnchorMaxHandle->GetValue(AnchorMaxValue);
+
+	if (AnchorMinValue.Y == AnchorMaxValue.Y)
+	{
+		if (AnchorMinValue.Y == 0)
+		{
+			return LOCTEXT("AnchorCustom", "Bottom");
+		}
+		else if (AnchorMinValue.Y == 0.5f)
+		{
+			return LOCTEXT("AnchorCustom", "Middle");
+		}
+		else if (AnchorMinValue.Y == 1.0f)
+		{
+			return LOCTEXT("AnchorCustom", "Top");
+		}
+		else
+		{
+			return LOCTEXT("AnchorCustom", "Custom");
+		}
+	}
+	else if (AnchorMinValue.Y == 0.0f && AnchorMaxValue.Y == 1.0f)
+	{
+		return LOCTEXT("AnchorCustom", "Stretch");
+	}
+	else
+	{
+		return LOCTEXT("AnchorCustom", "Custom");
+	}
+}
+
+FText FUIItemCustomization::GetAnchorLabelText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int LabelIndex)const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FText();
+
+	FVector2D AnchorMinValue;
+	AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	AnchorMaxHandle->GetValue(AnchorMaxValue);
+
+	switch (LabelIndex)
+	{
+	case 0://anchored position x, stretch left
+	{
+		if (AnchorMinValue.X == AnchorMaxValue.X)
+		{
+			return LOCTEXT("AnchoredPositionX", "PosX");
+		}
+		else
+		{
+			return LOCTEXT("AnchoredLeft", "Left");
+		}
+	}
+	break;
+	case 1://anchored position y, stretch top
+	{
+		if (AnchorMinValue.Y == AnchorMaxValue.Y)
+		{
+			return LOCTEXT("AnchoredPositionY", "PosY");
+		}
+		else
+		{
+			return LOCTEXT("AnchoredTop", "Top");
+		}
+	}
+	break;
+	case 2://width, stretch right
+	{
+		if (AnchorMinValue.X == AnchorMaxValue.X)
+		{
+			return LOCTEXT("AnchoredPositionX", "Width");
+		}
+		else
+		{
+			return LOCTEXT("AnchoredRight", "Right");
+		}
+	}
+	break;
+	case 3://height, stretch bottom
+	{
+		if (AnchorMinValue.Y == AnchorMaxValue.Y)
+		{
+			return LOCTEXT("AnchoredPositionX", "Height");
+		}
+		else
+		{
+			return LOCTEXT("AnchoredBottom", "Bottom");
+		}
+	}
+	break;
+	}
+	return LOCTEXT("AnchorEroor", "Error");
+}
+
+FText FUIItemCustomization::GetAnchorLabelTooltipText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle, int LabelTooltipIndex)const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FText();
+
+	FVector2D AnchorMinValue;
+	AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	AnchorMaxHandle->GetValue(AnchorMaxValue);
+
+	switch (LabelTooltipIndex)
+	{
+	default:
+	case 0://anchored position x, stretch left
+	{
+		if (AnchorMinValue.X == AnchorMaxValue.X)
+		{
+			return FText::Format(LOCTEXT("AnchoredPositionX_Tooltip", "Horizontal anchored position. Related function: {0} / {1}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetAnchoredPosition)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetAnchoredPosition)));
+		}
+		else
+		{
+			return FText::Format(LOCTEXT("AnchoredLeft_Tooltip", "Calculated distance to parent's left anchor point. Related function: {0} / {1}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetAnchorLeft)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetAnchorLeft)));
+		}
+	}
+	break;
+	case 1://anchored position y, stretch top
+	{
+		if (AnchorMinValue.Y == AnchorMaxValue.Y)
+		{
+			return FText::Format(LOCTEXT("AnchoredPositionY_Tooltip", "Vertical anchored position. Related function: {0} / {1}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetAnchoredPosition)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetAnchoredPosition)));
+		}
+		else
+		{
+			return FText::Format(LOCTEXT("AnchoredTop_Tooltip", "Calculated distance to parent's top anchor point. Related function: {0} / {1}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetAnchorLeft)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetAnchorLeft)));
+		}
+	}
+	break;
+	case 2://width, stretch right
+	{
+		if (AnchorMinValue.X == AnchorMaxValue.X)
+		{
+			return FText::Format(LOCTEXT("AnchoredPositionX_Tooltip", "Horizontal size. Related function: {0} / {1}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetWidth)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetWidth)));
+		}
+		else
+		{
+			return FText::Format(LOCTEXT("AnchoredRight_Tooltip", "Calculated distance to parent's right anchor point. Related function: {0} / {1}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetAnchorLeft)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetAnchorLeft)));
+		}
+	}
+	break;
+	case 3://height, stretch bottom
+	{
+		if (AnchorMinValue.Y == AnchorMaxValue.Y)
+		{
+			return FText::Format(LOCTEXT("AnchoredPositionX_Tooltip", "Vertical size. Related function: {0} / {1}"), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetHeight)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetHeight)));
+		}
+		else
+		{
+			return FText::Format(LOCTEXT("AnchoredBottom_Tooltip", "Calculated distance to parent's bottom anchor point. Related function: {0} / {0}."), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, GetAnchorLeft)), FText::FromString(GET_FUNCTION_NAME_STRING_CHECKED(UUIItem, SetAnchorLeft)));
+		}
+	}
+	break;
+	}
+	return LOCTEXT("AnchorError", "Error");
+}
+
+TOptional<float> FUIItemCustomization::GetAnchorValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return 0;
+
+	auto AnchorMinHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchorMin));
+	auto AnchorMaxHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchorMax));
+	auto AnchoredPositionHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchoredPosition));
+	auto SizeDeltaHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, SizeDelta));
+
+	FVector2D AnchorMinValue;
+	AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	AnchorMaxHandle->GetValue(AnchorMaxValue);
+	FVector2D AnchoredPosition;
+	AnchoredPositionHandle->GetValue(AnchoredPosition);
+	FVector2D SizeDelta;
+	SizeDeltaHandle->GetValue(SizeDelta);
+
+	switch (AnchorValueIndex)
+	{
+	default:
+	case 0://anchored position x, stretch left
+	{
+		if (AnchorMinValue.X == AnchorMaxValue.X)
+		{
+			return AnchoredPosition.X;
+		}
+		else
+		{
+			return TargetScriptArray[0]->GetAnchorLeft();
+		}
+	}
+	break;
+	case 1://anchored position y, stretch top
+	{
+		if (AnchorMinValue.Y == AnchorMaxValue.Y)
+		{
+			return AnchoredPosition.Y;
+		}
+		else
+		{
+			return TargetScriptArray[0]->GetAnchorTop();
+		}
+	}
+	break;
+	case 2://width, stretch right
+	{
+		if (AnchorMinValue.X == AnchorMaxValue.X)
+		{
+			return SizeDelta.X;
+		}
+		else
+		{
+			return TargetScriptArray[0]->GetAnchorRight();
+		}
+	}
+	break;
+	case 3://height, stretch bottom
+	{
+		if (AnchorMinValue.Y == AnchorMaxValue.Y)
+		{
+			return SizeDelta.Y;
+		}
+		else
+		{
+			return TargetScriptArray[0]->GetAnchorBottom();
+		}
+	}
+	break;
+	}
+}
+void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
+
+	auto AnchorMinHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchorMin));
+	auto AnchorMaxHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchorMax));
+	auto AnchoredPositionHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchoredPosition));
+	auto SizeDeltaHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, SizeDelta));
+
+	FVector2D AnchorMinValue;
+	AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	AnchorMaxHandle->GetValue(AnchorMaxValue);
+	FVector2D AnchoredPosition;
+	AnchoredPositionHandle->GetValue(AnchoredPosition);
+	FVector2D SizeDelta;
+	SizeDeltaHandle->GetValue(SizeDelta);
+	
+	switch (AnchorValueIndex)
+	{
+	case 0://anchored position x, stretch left
+	{
+		if (AnchorMinValue.X == AnchorMaxValue.X)
+		{
+			AnchoredPosition.X = Value;
+			AnchoredPositionHandle->SetValue(AnchoredPosition);
+		}
+		else
+		{
+			TargetScriptArray[0]->SetAnchorLeft(Value);
+		}
+	}
+	break;
+	case 1://anchored position y, stretch top
+	{
+		if (AnchorMinValue.Y == AnchorMaxValue.Y)
+		{
+			AnchoredPosition.Y = Value;
+			AnchoredPositionHandle->SetValue(AnchoredPosition);
+		}
+		else
+		{
+			TargetScriptArray[0]->SetAnchorTop(Value);
+		}
+	}
+	break;
+	case 2://width, stretch right
+	{
+		if (AnchorMinValue.X == AnchorMaxValue.X)
+		{
+			SizeDelta.X = Value;
+			SizeDeltaHandle->SetValue(SizeDelta);
+		}
+		else
+		{
+			TargetScriptArray[0]->SetAnchorRight(Value);
+		}
+	}
+	break;
+	case 3://height, stretch bottom
+	{
+		if (AnchorMinValue.Y == AnchorMaxValue.Y)
+		{
+			SizeDelta.Y = Value;
+			SizeDeltaHandle->SetValue(SizeDelta);
+		}
+		else
+		{
+			TargetScriptArray[0]->SetAnchorBottom(Value);
+		}
+	}
+	break;
+	}
+}
+void FUIItemCustomization::OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
+{
+	//FString commitTypeString;
+	//switch (commitType)
+	//{
+	//case ETextCommit::Default:
+	//	commitTypeString = TEXT("Default");
+	//	break;
+	//case ETextCommit::OnEnter:
+	//	commitTypeString = TEXT("OnEnter");
+	//	break;
+	//case ETextCommit::OnUserMovedFocus:
+	//	commitTypeString = TEXT("OnUserMovedFocus");
+	//	break;
+	//case ETextCommit::OnCleared:
+	//	commitTypeString = TEXT("OnCleared");
+	//	break;
+	//default:
+	//	break;
+	//}
+	//UE_LOG(LogTemp, Log, TEXT("CommitType:%s"), *commitTypeString);
+	//if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
+
+	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Anchor Value"));
+	TargetScriptArray[0]->Modify();
+	GEditor->EndTransaction();
+	OnAnchorValueChanged(Value, AnchorHandle, AnchorValueIndex);
+}
+
+void FUIItemCustomization::OnAnchorSliderSliderMovementBegin()
+{
+	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Anchor Value"));
+	TargetScriptArray[0]->Modify();
+	GEditor->EndTransaction();
+}
+
+UIAnchorHorizontalAlign FUIItemCustomization::GetAnchorHAlign(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return UIAnchorHorizontalAlign::None;
+
+	FVector2D AnchorMinValue;
+	AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	AnchorMaxHandle->GetValue(AnchorMaxValue);
+
+	UIAnchorHorizontalAlign AnchorHAlign = UIAnchorHorizontalAlign::None;
+	if (AnchorMinValue.X == AnchorMaxValue.X)
+	{
+		if (AnchorMinValue.X == 0)
+		{
+			AnchorHAlign = UIAnchorHorizontalAlign::Left;
+		}
+		else if (AnchorMinValue.X == 0.5f)
+		{
+			AnchorHAlign = UIAnchorHorizontalAlign::Center;
+		}
+		else if (AnchorMinValue.X == 1.0f)
+		{
+			AnchorHAlign = UIAnchorHorizontalAlign::Right;
+		}
+	}
+	else if (AnchorMinValue.X == 0.0f && AnchorMaxValue.X == 1.0f)
+	{
+		AnchorHAlign = UIAnchorHorizontalAlign::Stretch;
+	}
+	return AnchorHAlign;
+}
+UIAnchorVerticalAlign FUIItemCustomization::GetAnchorVAlign(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return UIAnchorVerticalAlign::None;
+
+	FVector2D AnchorMinValue;
+	AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	AnchorMaxHandle->GetValue(AnchorMaxValue);
+
+	UIAnchorVerticalAlign AnchorVAlign = UIAnchorVerticalAlign::None;
+	if (AnchorMinValue.Y == AnchorMaxValue.Y)
+	{
+		if (AnchorMinValue.Y == 0)
+		{
+			AnchorVAlign = UIAnchorVerticalAlign::Bottom;
+		}
+		else if (AnchorMinValue.Y == 0.5f)
+		{
+			AnchorVAlign = UIAnchorVerticalAlign::Middle;
+		}
+		else if (AnchorMinValue.Y == 1.0f)
+		{
+			AnchorVAlign = UIAnchorVerticalAlign::Top;
+		}
+	}
+	else if (AnchorMinValue.Y == 0.0f && AnchorMaxValue.Y == 1.0f)
+	{
+		AnchorVAlign = UIAnchorVerticalAlign::Stretch;
+	}
+	return AnchorVAlign;
+}
+
+void FUIItemCustomization::OnSelectAnchor(UIAnchorHorizontalAlign HorizontalAlign, UIAnchorVerticalAlign VerticalAlign, IDetailLayoutBuilder* DetailBuilder)
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
+
+	bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsAltDown();
+
+	GEditor->BeginTransaction(LOCTEXT("ChangeAnchor", "Change LGUI Anchor"));
+	auto UIItem = TargetScriptArray[0];
+	UIItem->Modify();
+	GEditor->EndTransaction();
+	auto AnchorMin = UIItem->GetAnchorMin();
+	auto AnchorMax = UIItem->GetAnchorMax();
+	switch (HorizontalAlign)
+	{
+	case UIAnchorHorizontalAlign::None:
+		break;
+	case UIAnchorHorizontalAlign::Left:
+		AnchorMin.X = AnchorMax.X = 0;
+		break;
+	case UIAnchorHorizontalAlign::Center:
+		AnchorMin.X = AnchorMax.X = 0.5f;
+		break;
+	case UIAnchorHorizontalAlign::Right:
+		AnchorMin.X = AnchorMax.X = 1.0f;
+		break;
+	case UIAnchorHorizontalAlign::Stretch:
+	{
+		AnchorMin.X = 0;
+		AnchorMax.X = 1.0f;
+	}
+	break;
+	}
+	switch (VerticalAlign)
+	{
+	case UIAnchorVerticalAlign::None:
+		break;
+	case UIAnchorVerticalAlign::Top:
+		AnchorMin.Y = AnchorMax.Y = 1;
+		break;
+	case UIAnchorVerticalAlign::Middle:
+		AnchorMin.Y = AnchorMax.Y = 0.5f;
+		break;
+	case UIAnchorVerticalAlign::Bottom:
+		AnchorMin.Y = AnchorMax.Y = 0.0f;
+		break;
+	case UIAnchorVerticalAlign::Stretch:
+	{
+		AnchorMin.Y = 0;
+		AnchorMax.Y = 1.0f;
+	}
+	break;
+	}
+	auto PrevWidth = UIItem->GetWidth();
+	auto PrevHeight = UIItem->GetHeight();
+	UIItem->SetAnchorMin(AnchorMin);
+	UIItem->SetAnchorMax(AnchorMax);
+	UIItem->SetWidth(PrevWidth);
+	UIItem->SetHeight(PrevHeight);
+	if (snapAnchor)
+	{
+		if (HorizontalAlign == UIAnchorHorizontalAlign::Stretch && VerticalAlign == UIAnchorVerticalAlign::Stretch)
+		{
+			UIItem->SetAnchoredPosition(FVector2D::ZeroVector);
+			UIItem->SetSizeDelta(FVector2D::ZeroVector);
+		}
+	}
+	UIItem->EditorForceUpdateImmediately();
+	ForceRefreshEditor(DetailBuilder);
+}
+
+FReply FUIItemCustomization::OnClickFixButton()
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FReply::Handled();
+
+	if (auto actor = TargetScriptArray[0]->GetOwner())
+	{
+		if (TargetScriptArray[0] == actor->GetRootComponent())
+		{
+			auto actorLabel = TargetScriptArray[0]->GetOwner()->GetActorLabel();
+			if (actorLabel.StartsWith("//"))
+			{
+				actorLabel = actorLabel.Right(actorLabel.Len() - 2);
+			}
+			TargetScriptArray[0]->SetDisplayName(actorLabel);
+		}
+		else
+		{
+			TargetScriptArray[0]->SetDisplayName(TargetScriptArray[0]->GetName());
+		}
+	}
+	else
+	{
+		auto name = TargetScriptArray[0]->GetName();
+		auto genVarSuffix = FString(TEXT("_GEN_VARIABLE"));
+		if (name.EndsWith(genVarSuffix))
+		{
+			name.RemoveAt(name.Len() - genVarSuffix.Len(), genVarSuffix.Len());
+		}
+		TargetScriptArray[0]->SetDisplayName(name);
+	}
+
 	return FReply::Handled();
 }
 
@@ -856,6 +1473,8 @@ void FUIItemCustomization::ForceRefreshEditor(IDetailLayoutBuilder* DetailBuilde
 }
 bool FUIItemCustomization::GetIsAnchorsEnabled()const
 {
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return false;
+
 	bool anchorControlledByParentLayout = false;
 	bool anchorHControlledBySelfLayout = false;
 	bool anchorVControlledBySelfLayout = false;
@@ -913,22 +1532,22 @@ void FUIItemCustomization::OnCopyAnchor()
 		auto script = TargetScriptArray[0];
 		if (script.IsValid())
 		{
-			auto widget = script->GetWidget();
-			auto CopiedText = FString::Printf(TEXT("%s, pivotX=%f, pivotY=%f, anchorHAlign=%d, anchorVAlign=%d, anchorOffsetX=%f, anchorOffsetY=%f\
-, width=%f, height=%f, stretchLeft=%f, stretchRight=%f, stretchTop=%f, stretchBottom=%f")
+			auto AnchorData = script->GetAnchorData();
+			auto CopiedText = FString::Printf(TEXT("%s, PivotX=%f, PivotY=%f\
+, AnchorMinX=%f, AnchorMinY=%f, AnchorMaxX=%f, AnchorMaxY=%f\
+, AnchoredPositionX=%f, AnchoredPositionY=%f\
+, SizeDeltaX=%f, SizeDeltaY=%f")
 , BEGIN_UIWIDGET_CLIPBOARD
-, widget.pivot.X
-, widget.pivot.Y
-, (int)widget.anchorHAlign
-, (int)widget.anchorVAlign
-, widget.anchorOffsetX
-, widget.anchorOffsetY
-, widget.width
-, widget.height
-, widget.stretchLeft
-, widget.stretchRight
-, widget.stretchTop
-, widget.stretchBottom
+, AnchorData.Pivot.X
+, AnchorData.Pivot.Y
+, AnchorData.AnchorMin.X
+, AnchorData.AnchorMin.Y
+, AnchorData.AnchorMax.X
+, AnchorData.AnchorMax.Y
+, AnchorData.AnchoredPosition.X
+, AnchorData.AnchoredPosition.Y
+, AnchorData.SizeDelta.X
+, AnchorData.SizeDelta.Y
 );
 			FPlatformApplicationMisc::ClipboardCopy(*CopiedText);
 		}
@@ -940,26 +1559,23 @@ void FUIItemCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
 	FPlatformApplicationMisc::ClipboardPaste(PastedText);
 	if (PastedText.StartsWith(BEGIN_UIWIDGET_CLIPBOARD))
 	{
-		FUIWidget widget;
-		FParse::Value(*PastedText, TEXT("pivotX="), widget.pivot.X);
-		FParse::Value(*PastedText, TEXT("pivotY="), widget.pivot.Y);
-		uint8 tempUint8;
-		FParse::Value(*PastedText, TEXT("anchorHAlign="), tempUint8); widget.anchorHAlign = (UIAnchorHorizontalAlign)tempUint8;
-		FParse::Value(*PastedText, TEXT("anchorVAlign="), tempUint8); widget.anchorVAlign = (UIAnchorVerticalAlign)tempUint8;
-		FParse::Value(*PastedText, TEXT("anchorOffsetX="), widget.anchorOffsetX);
-		FParse::Value(*PastedText, TEXT("anchorOffsetY="), widget.anchorOffsetY);
-		FParse::Value(*PastedText, TEXT("width="), widget.width);
-		FParse::Value(*PastedText, TEXT("height="), widget.height);
-		FParse::Value(*PastedText, TEXT("stretchLeft="), widget.stretchLeft);
-		FParse::Value(*PastedText, TEXT("stretchRight="), widget.stretchRight);
-		FParse::Value(*PastedText, TEXT("stretchBottom="), widget.stretchBottom);
-		FParse::Value(*PastedText, TEXT("stretchTop="), widget.stretchTop);
+		FUIAnchorData AnchorData;
+		FParse::Value(*PastedText, TEXT("PivotX="), AnchorData.Pivot.X);
+		FParse::Value(*PastedText, TEXT("PivotY="), AnchorData.Pivot.Y);
+		FParse::Value(*PastedText, TEXT("AnchorMinX="), AnchorData.AnchorMin.X);
+		FParse::Value(*PastedText, TEXT("AnchorMinY="), AnchorData.AnchorMin.Y);
+		FParse::Value(*PastedText, TEXT("anchorOffsetX="), AnchorData.AnchorMax.X);
+		FParse::Value(*PastedText, TEXT("anchorOffsetY="), AnchorData.AnchorMax.Y);
+		FParse::Value(*PastedText, TEXT("width="), AnchorData.AnchoredPosition.X);
+		FParse::Value(*PastedText, TEXT("height="), AnchorData.AnchoredPosition.Y);
+		FParse::Value(*PastedText, TEXT("stretchLeft="), AnchorData.SizeDelta.X);
+		FParse::Value(*PastedText, TEXT("stretchRight="), AnchorData.SizeDelta.Y);
 		for (auto item : TargetScriptArray)
 		{
 			if (item.IsValid())
 			{
-				auto itemWidget = item->GetWidget();
-				item->SetWidget(widget);
+				auto itemWidget = item->GetAnchorData();
+				item->SetAnchorData(AnchorData);
 				item->MarkPackageDirty();
 			}
 		}

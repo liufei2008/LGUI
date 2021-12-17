@@ -55,8 +55,7 @@ protected:
 
 	void CheckSpriteData();
 
-	virtual void WidthChanged()override;
-	virtual void HeightChanged()override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
 
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
@@ -69,12 +68,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	bool GetFillDirectionFlip()const { return fillDirectionFlip; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	float GetFillAmount()const { return fillAmount; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetTextureType(UITextureType newType);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetSpriteData(FLGUISpriteInfo newSpriteData);
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetUVRect(FVector4 newUVRect);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetTextureType(UITextureType newType);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetSpriteData(FLGUISpriteInfo newSpriteData);
+	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetUVRect(FVector4 newUVRect);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillMethod(UISpriteFillMethod newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillOrigin(uint8 newValue);
 	UFUNCTION(BlueprintCallable, Category = "LGUI") void SetFillDirectionFlip(bool newValue);

@@ -131,6 +131,7 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("LGUIEditor.WhiteFrameHorizontal", new BOX_BRUSH(TEXT("WhiteFrameHorizontal_1x"), FVector2D(16, 16), 4.0f / 16.0f));
 	Style->Set("LGUIEditor.WhiteFrameVertical", new BOX_BRUSH(TEXT("WhiteFrameVertical_1x"), FVector2D(16, 16), 4.0f / 16.0f));
 	Style->Set("LGUIEditor.WhiteDot", new IMAGE_BRUSH(TEXT("WhiteDot_1x"), FVector2D(1, 1)));
+	Style->Set("LGUIEditor.AnchorData_Dot", new IMAGE_BRUSH(TEXT("AnchorData_Dot"), FVector2D(3, 3)));
 
 	Style->Set("LGUIEditor.EventGroup", new BOX_BRUSH(TEXT("EventGroup"), FMargin(15.0f / 30.0f, 34.0f / 40.0f, 15.0f / 30.0f, 6.0f / 40.0f)));
 	Style->Set("LGUIEditor.EventItem", new BOX_BRUSH(TEXT("EventItem"), FVector2D(26, 26), 12.0f / 26.0f));
@@ -138,7 +139,8 @@ TSharedRef< FSlateStyleSet > FLGUIEditorStyle::Create()
 	Style->Set("LGUIEditor.EditorTools", new IMAGE_BRUSH(TEXT("Button_Icon40"), FVector2D(40, 40)));
 
 	FButtonStyle AnchorButton = FButtonStyle()
-		.SetNormal(BOX_BRUSH(TEXT("WhiteFrame_1x"), FVector2D(16, 16), 4.0f / 16.0f))
+		.SetNormal(BOX_BRUSH(TEXT("AnchorData_Button_Normal"), FVector2D(16, 16), 4.0f / 16.0f))
+		.SetDisabled(BOX_BRUSH(TEXT("AnchorData_Button_Normal"), FVector2D(16, 16), 4.0f / 16.0f))
 		.SetHovered(BOX_BRUSH(TEXT("WhiteFrameHover_1x"), FVector2D(16, 16), 4.0f / 16.0f))
 		.SetPressed(BOX_BRUSH(TEXT("WhiteFramePress_1x"), FVector2D(16, 16), 4.0f / 16.0f));
 	Style->Set("AnchorButton", AnchorButton);

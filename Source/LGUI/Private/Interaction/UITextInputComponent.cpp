@@ -1264,8 +1264,6 @@ void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool 
 		CaretObject->SetWidth(CaretWidth);
 		CaretObject->SetHeight(uiText->GetSize());
 		CaretObject->SetColor(CaretColor);
-		CaretObject->SetAnchorHAlign(UIAnchorHorizontalAlign::None);
-		CaretObject->SetAnchorVAlign(UIAnchorVerticalAlign::None);
 		CaretObject->SetSprite(ULGUISpriteData::GetDefaultWhiteSolid(), false);
 	}
 	CaretObject->SetRelativeLocation(FVector(0, InCaretPosition.X, InCaretPosition.Y));
@@ -1296,8 +1294,6 @@ void UUITextInputComponent::UpdateSelection()
 			auto uiText = TextActor->GetUIText();
 			uiSprite->SetHeight(uiText->GetSize());
 			uiSprite->SetColor(SelectionColor);
-			uiSprite->SetAnchorHAlign(UIAnchorHorizontalAlign::None);
-			uiSprite->SetAnchorVAlign(UIAnchorVerticalAlign::None);
 			uiSprite->SetPivot(FVector2D(0, 0.5f));
 			uiSprite->SetSprite(ULGUISpriteData::GetDefaultWhiteSolid(), false);
 			SelectionMaskObjectArray.Add(uiSprite);

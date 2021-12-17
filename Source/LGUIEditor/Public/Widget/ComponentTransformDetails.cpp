@@ -655,7 +655,7 @@ bool FComponentTransformDetails::IsLocationYEnable()const
 			{
 				return true;
 			}
-			return uiItem->GetAnchorHAlign() == UIAnchorHorizontalAlign::None;
+			return false;
 		}
 	}
 	return false;
@@ -671,7 +671,7 @@ bool FComponentTransformDetails::IsLocationZEnable()const
 			{
 				return true;
 			}
-			return uiItem->GetAnchorVAlign() == UIAnchorVerticalAlign::None;
+			return false;
 		}
 	}
 	return false;

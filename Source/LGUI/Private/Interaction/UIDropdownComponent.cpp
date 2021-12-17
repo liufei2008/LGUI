@@ -199,7 +199,8 @@ void UUIDropdownComponent::Show()
 	}
 
 	FVector2D pivot(0.5f, 0);
-	switch (tempVerticalPosition)
+	//@todo
+	/*switch (tempVerticalPosition)
 	{
 	case EUIDropdownVerticalPosition::Top:
 	{
@@ -251,7 +252,7 @@ void UUIDropdownComponent::Show()
 		ListRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
 	}break;
 	}
-	ListRootUIItem->SetAnchorOffsetHorizontal(0);
+	ListRootUIItem->SetAnchorOffsetHorizontal(0);*/
 
 	ListRootUIItem->SetPivot(pivot);
 }
@@ -293,10 +294,9 @@ void UUIDropdownComponent::CreateBlocker()
 	blockerUIItem->SetRaycastTarget(true);
 	blockerUIItem->SetTraceChannel(this->GetRootUIComponent()->GetTraceChannel());
 	blockerUIItem->AttachToComponent(this->GetRootUIComponent()->GetRootCanvas()->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
-	blockerUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Stretch);
-	blockerUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Stretch);
-	blockerUIItem->SetHorizontalStretch(FVector2D::ZeroVector);
-	blockerUIItem->SetVerticalStretch(FVector2D::ZeroVector);
+	blockerUIItem->SetSizeDelta(FVector2D::ZeroVector);
+	blockerUIItem->SetAnchorMin(FVector2D::ZeroVector);
+	blockerUIItem->SetAnchorMax(FVector2D::ZeroVector);
 	auto blockerCanvas = NewObject<ULGUICanvas>(blocker);
 	blockerCanvas->RegisterComponent();
 	blocker->AddInstanceComponent(blockerCanvas);

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "LGUI.h"
-#include "Core/UIWidget.h"
+#include "Core/UIAnchorData.h"
 #include "Components/SceneComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/CanvasPanelSlot.h"
@@ -28,13 +28,16 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 #if WITH_EDITOR
-	virtual void PreEditChange(FProperty* PropertyAboutToChange)override;
+	virtual void PreEditChange(class FEditPropertyChain& PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditComponentMove(bool bFinished) override;
 	/** USceneComponent Interface. Only needed for show rect range in editor */
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	/** update UI immediately in edit mode */
 	virtual void EditorForceUpdateImmediately();//@todo: remove this
+private:
+	//bool bIsEditingAnchorEdge = false;
+	//FVector4 AnchorEdge_PrevEditChange;
 #endif
 	
 #pragma region LGUILifeCycleUIBehaviour
@@ -52,12 +55,12 @@ protected://these funcions are same as UIBehaviour's, for easier use
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive) { }
 	/** 
-	 * Called when RootUIComp->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
+	 * Called when RootUIComp->AnchorData.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
 	 * @param positionChanged	relative position
 	 */
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged) { }
 	/**
-	 * Called when RootUIComp's attachchildren->widget.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
+	 * Called when RootUIComp's attachchildren->AnchorData.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
 	 * @param positionChanged	relative position
 	 */
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged) { }
@@ -85,21 +88,8 @@ protected:
 	virtual void OnUnregister()override;
 private:
 	void CalculateAnchorFromTransform();
-	void ApplyAnchorOffsetX(float newOffset);
-	void ApplyAnchorOffsetY(float newOffset);
-	void ApplyHorizontalStretch(FVector2D newStretch);
-	void ApplyVerticalStretch(FVector2D newStretch);
 	void CalculateTransformFromAnchor();
-	FORCEINLINE void CalculateHorizontalStretchFromAnchorAndSize();
-	FORCEINLINE void CalculateVerticalStretchFromAnchorAndSize();
-	/** @return		true if size changed, else false */
-	FORCEINLINE bool CalculateHorizontalAnchorAndSizeFromStretch();
-	/** @return		true if size changed, else false */
-	FORCEINLINE bool CalculateVerticalAnchorAndSizeFromStretch();
 public:
-	/** update layout */
-	virtual void UpdateLayout(bool& parentLayoutChanged, bool shouldUpdateLayout);
-	virtual void UpdateGeometry();
 
 	FDelegateHandle RegisterUIHierarchyChanged(const FSimpleDelegate& InCallback);
 	void UnregisterUIHierarchyChanged(const FDelegateHandle& InHandle);
@@ -120,9 +110,9 @@ protected:
 	void RenewRenderCanvasRecursive(ULGUICanvas* InParentRenderCanvas);
 
 protected:
-	/** widget contains rect transform and color */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Widget")
-		FUIWidget widget;
+	/** AnchorData contains rect transform and color */
+	UPROPERTY(EditAnywhere, Category = "LGUI-AnchorData")
+		FUIAnchorData AnchorData;
 	/** parent in hierarchy */
 	mutable TWeakObjectPtr<UUIItem> ParentUIItem = nullptr;
 	/** root in hierarchy */
@@ -132,84 +122,97 @@ protected:
 	/** check valid, incase unnormally deleting actor, like undo */
 	void CheckCacheUIChildren();
 	void SortCacheUIChildren();
-#pragma region Widget
+#pragma region AnchorData
 public:
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		const FUIWidget& GetWidget()const { return widget; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetWidget(const FUIWidget& inWidget);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		const FUIAnchorData& GetAnchorData()const { return AnchorData; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetWidth(float newWidth);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetHeight(float newHeight);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		FVector2D GetPivot() const { return AnchorData.Pivot; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		FVector2D GetAnchorMin() const { return AnchorData.AnchorMin; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		FVector2D GetAnchorMax() const { return AnchorData.AnchorMax; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		FVector2D GetAnchoredPosition() const { return AnchorData.AnchoredPosition; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		FVector2D GetSizeDelta() const { return AnchorData.SizeDelta; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		float GetHorizontalAnchoredPosition() const { return AnchorData.AnchoredPosition.X; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		float GetVerticalAnchoredPosition() const { return AnchorData.AnchoredPosition.Y; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetStretchLeft(float newLeft);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetStretchRight(float newRight);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetStretchTop(float newTop);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetStretchBottom(float newBottom);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetHorizontalStretch(FVector2D newStretch);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetVerticalStretch(FVector2D newStretch);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		float GetWidth() const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		float GetHeight() const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetPivot(FVector2D pivot);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorHAlign(UIAnchorHorizontalAlign align);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorVAlign(UIAnchorVerticalAlign align);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorOffsetHorizontal(float newOffset);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorOffsetVertical(float newOffset);
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		void SetAnchorOffset(FVector2D newOffset);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		float GetAnchorLeft()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		float GetAnchorTop()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		float GetAnchorRight()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		float GetAnchorBottom()const;
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetWidth() const { return widget.width; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetHeight() const { return widget.height; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		FVector2D GetPivot() const { return widget.pivot; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		UIAnchorHorizontalAlign GetAnchorHAlign() const { return widget.anchorHAlign; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		UIAnchorVerticalAlign GetAnchorVAlign() const { return widget.anchorVAlign; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetAnchorOffsetHorizontal() const { return widget.anchorOffsetX; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetAnchorOffsetVertical() const { return widget.anchorOffsetY; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		FVector2D GetAnchorOffset()const { return FVector2D(widget.anchorOffsetX, widget.anchorOffsetY); }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetStretchLeft() const { return widget.stretchLeft; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetStretchRight() const { return widget.stretchRight; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetStretchTop() const { return widget.stretchTop; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
-		float GetStretchBottom() const { return widget.stretchBottom; }
-#pragma endregion
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetAnchorData(const FUIAnchorData& Value);
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetPivot(FVector2D Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetAnchorMin(FVector2D Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetAnchorMax(FVector2D Value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetHorizontalAnchorMinMax(FVector2D Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetVerticalAnchorMinMax(FVector2D Value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetAnchoredPosition(FVector2D Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetHorizontalAnchoredPosition(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetVerticalAnchoredPosition(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetSizeDelta(FVector2D Value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetWidth(float Value);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetHeight(float Value);
+
+	/** This function only valid if UIItem have parent */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetAnchorLeft(float Value);
+	/** This function only valid if UIItem have parent */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetAnchorTop(float Value);
+	/** This function only valid if UIItem have parent */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetAnchorRight(float Value);
+	/** This function only valid if UIItem have parent */
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetAnchorBottom(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		FVector2D GetLocalSpaceLeftBottomPoint()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		FVector2D GetLocalSpaceRightTopPoint()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		FVector2D GetLocalSpaceCenter()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		float GetLocalSpaceLeft()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		float GetLocalSpaceRight()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		float GetLocalSpaceBottom()const;
-	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		float GetLocalSpaceTop()const;
+#pragma endregion
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIItem* GetParentUIItem()const;
@@ -224,19 +227,17 @@ public:
 	/** Get LGUICanvasScaler from root canvas, return null if not have one */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class ULGUICanvasScaler* GetCanvasScaler()const;
-	/** return bounds min max point in self local space */
-	virtual void GetLocalSpaceMinMaxPoint(FVector2D& min, FVector2D& max)const;
-	void MarkLayoutDirty(bool sizeChange);
+	
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = false);
 
 	/** mark all dirty for UI element to update, include all children */
 	virtual void MarkAllDirtyRecursive();
 public:
 	virtual void MarkCanvasUpdate();
-protected:
-	virtual void WidthChanged();
-	virtual void HeightChanged();	
-	virtual void PivotChanged();
-
+private:
+	void PropergateLayoutChange();
+	mutable float CacheWidth = 0, CacheHeight = 0;
+	mutable uint8 bWidthCached : 1, bHeightCached : 1;
 #pragma region UICanvasGroup
 protected:
 	mutable TWeakObjectPtr<UUICanvasGroup> CanvasGroup;
@@ -289,7 +290,7 @@ public:
 
 #pragma region HierarchyIndex
 protected:
-	/** hierarchy index */
+	/** hierarchy index, hierarchy order, render order */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 hierarchyIndex = INDEX_NONE;
 	UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)
@@ -390,43 +391,17 @@ protected:
 	/** LGUICanvas which render this UI element */
 	mutable TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	/** is this UIItem's actor have LGUICanvas component */
-	mutable uint16 bIsCanvasUIItem:1;
-	uint16 bCanSetAnchorFromTransform : 1;
+	mutable uint8 bIsCanvasUIItem:1;
+	uint8 bCanSetAnchorFromTransform : 1;
 
-	uint16 bFlattenHierarchyIndexChanged : 1;//hierarchy index changed
-	uint16 bLayoutChanged : 1;//layout changed
-	uint16 bSizeChanged : 1;//rect size changed
-	uint16 bShouldUpdateRootUIItemLayout : 1;//Only for RootUIItem, if any child layout changed
-	uint16 bNeedUpdateRootUIItem : 1;//Only for RootUIItem, any data change and need update
 	/** Only for RootUIItem, if dirty then we need to recalculate it */
-	mutable uint16 bFlattenHierarchyIndexDirty : 1;
-
-	/** use these bool value and change origin bool value to false, so after UpdateLayout/Geometry if origin bool value changed to true again we call tell LGUICanvas to update again  */
-	uint16 cacheForThisUpdate_LayoutChanged : 1, cacheForThisUpdate_SizeChanged : 1, cacheForThisUpdate_ShouldUpdateLayout : 1, cacheForThisUpdate_FlattenHierarchyIndexChange : 1;
-	virtual void UpdateCachedData();
-	virtual void UpdateCachedDataBeforeGeometry();
+	mutable uint8 bFlattenHierarchyIndexDirty : 1;
 
 	/** find root UIItem of hierarchy */
 	void CheckRootUIItem();
-
-	/** mark any child's layout change, only for RootUIItem */
-	void MarkUpdateLayout();
-
-	void UpdateChildUIItemRecursive(UUIItem* target, bool parentLayoutChanged);
 public:
-	bool GetFlatternHierarchyIndexChangeAtThisRenderFrame()const { return cacheForThisUpdate_FlattenHierarchyIndexChange; }
-	/** Called from LGUIManagerActor */
-	void UpdateRootUIItem();
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Transient)class UUIItemEditorHelperComp* HelperComp = nullptr;
-#endif
-
-#if WITH_EDITORONLY_DATA
-private:
-	/** prev frame anchor horizontal alignment */
-	UIAnchorHorizontalAlign prevAnchorHAlign;
-	/** prev frame anchor vertical alignemnt */
-	UIAnchorVerticalAlign prevAnchorVAlign;
 #endif
 };
 
@@ -443,11 +418,6 @@ public:
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 #if WITH_EDITOR
 	virtual FPrimitiveSceneProxy* CreateSceneProxy()override;
-#endif
-#if WITH_EDITORONLY_DATA
-	//just need these view releated parameters from FSceneView(GetViewRelevance(const FSceneView* View)), but don't know how to get them at anywhere else, so just put them here.
-	static FIntRect viewRect;
-	static FViewMatrices viewMatrices;
 #endif
 	UPROPERTY(Transient)UUIItem* Parent = nullptr;
 	virtual UBodySetup* GetBodySetup()override;
