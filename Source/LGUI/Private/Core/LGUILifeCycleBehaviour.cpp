@@ -23,7 +23,7 @@ void ULGUILifeCycleBehaviour::BeginPlay()
 {
 	Super::BeginPlay();
 	ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(this);
-	if (GetRootComponent())
+	if (GetRootSceneComponent())
 	{
 		bPrevIsRootComponentVisible = RootComp->GetVisibleFlag();
 	}
@@ -143,7 +143,7 @@ bool ULGUILifeCycleBehaviour::GetIsActiveAndEnable()const
 
 bool ULGUILifeCycleBehaviour::IsAllowedToCallOnEnable()const
 {
-	if (GetRootComponent())
+	if (GetRootSceneComponent())
 	{
 		return RootComp->GetVisibleFlag();
 	}
@@ -340,7 +340,7 @@ void ULGUILifeCycleBehaviour::OnDisable()
 	}
 }
 
-USceneComponent* ULGUILifeCycleBehaviour::GetRootComponent()const
+USceneComponent* ULGUILifeCycleBehaviour::GetRootSceneComponent()const
 {
 	if (RootComp == nullptr)
 	{
@@ -352,12 +352,12 @@ USceneComponent* ULGUILifeCycleBehaviour::GetRootComponent()const
 			}
 			else
 			{
-				UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::GetRootComponent]RootComponent is not valid!"));
+				UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::GetRootSceneComponent]RootComponent is not valid!"));
 			}
 		}
 		else
 		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::GetRootComponent]Owner is not valid!"));
+			UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::GetRootSceneComponent]Owner is not valid!"));
 		}
 	}
 	return RootComp.Get();

@@ -46,7 +46,7 @@ public:
 
 	virtual void SetWidgetMode(FWidget::EWidgetMode NewMode) override;
 
-	bool FocusViewportToCasterAndTargets();
+	bool FocusViewportToTargets();
 
 private:
 

@@ -39,7 +39,7 @@ EVisibility SLGUIPrefabEditorViewport::GetTransformToolbarVisibility() const
 }
 void SLGUIPrefabEditorViewport::OnFocusViewportToSelection()
 {
-	//EditorViewportClient->RequestFocusOnSelection(/*bInstant=*/ false);
+	EditorViewportClient->FocusViewportToTargets();
 }
 
 TSharedRef<SEditorViewport> SLGUIPrefabEditorViewport::GetViewportWidget()

@@ -25,6 +25,7 @@
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
+PRAGMA_DISABLE_OPTIMIZATION
 struct LGUIEditorToolsHelperFunctionHolder
 {
 public:
@@ -393,9 +394,9 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
-		TMap<UObject*, FGuid> MapObjectToGuid;
-		TMap<AActor*, ULGUIPrefab*> SubPrefabMap;
-		//prefab->SavePrefab(copiedActor, MapObjectToGuid, SubPrefabMap);
+		TMap<UObject*, FGuid> InOutMapObjectToGuid;
+		TMap<AActor*, FLGUISubPrefabData> InSubPrefabMap;
+		prefab->SavePrefab(copiedActor, InOutMapObjectToGuid, InSubPrefabMap, nullptr, prefab->OverrideParameterData);
 		copiedActorPrefabList.Add(prefab);
 	}
 }
@@ -1216,5 +1217,642 @@ void LGUIEditorTools::FocusToSelectedUI()
 		}
 	}
 }
+
+void LGUIEditorTools::ForceGC()
+{
+	GEngine->ForceGarbageCollection();
+}
+
+#include "Core/UIWidget.h"
+void LGUIEditorTools::UpgradeLevelToLGUI3()
+{
+	auto confirmMsg = FString::Printf(TEXT("This upgrade operation cannot do every modification, so some work should do manually."));
+	if (FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg)) == EAppReturnType::No)return;
+
+	confirmMsg = FString(TEXT("Remember to backup your work. Continue?"));
+	if (FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg)) == EAppReturnType::No)return;
+
+	if (GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
+	{
+		confirmMsg = FString(TEXT("LGUIEditorSetting->AnchorControlPosition must set to false before this upgrade operation! You can set it back to true after upgrade is done."));
+		if (FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(confirmMsg)) == EAppReturnType::Ok)return;
+	}
+
+	if (!GWorld)return;
+	TArray<AActor*> ActorArray;
+	for (TActorIterator<AActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	{
+		auto Actor = *ActorItr;
+		ActorArray.Add(Actor);
+	}
+	if (ActorArray.Num() > 0) ActorArray[0]->MarkPackageDirty();
+	UpgradeActorArray(ActorArray);
+}
+
+FVector ConvertPositionFromLGUI2ToLGUI3(FVector InValue)
+{
+	return FVector(InValue.Z, InValue.X, InValue.Y);
+}
+FRotator ConvertRotatorFromLGUI2ToLGUI3(FRotator InValue)
+{
+	return FRotator(InValue.Roll, -InValue.Pitch, InValue.Yaw);
+
+	//return FRotator(InValue.Yaw, InValue.Roll, InValue.Pitch);
+
+	//return FRotator(InValue.Pitch, InValue.Yaw, InValue.Roll);
+}
+
+void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray)
+{
+	for (auto& Actor : InActorArray)
+	{
+		if (auto UIItem = Cast<UUIItem>(Actor->GetRootComponent()))
+		{
+			auto UIParent = UIItem->GetParentUIItem();
+			//color
+			auto UIRenderable = Cast<UUIBaseRenderable>(UIItem);
+			if (UIRenderable)
+			{
+				UIRenderable->SetColor(UIItem->widget.color);
+			}
+			//coordinate
+			if (UIItem->GetParentUIItem() != nullptr)//get parent
+			{
+				auto RelativeLocation = UIItem->GetRelativeLocation();
+				UIItem->SetRelativeLocation(ConvertPositionFromLGUI2ToLGUI3(RelativeLocation));
+				auto RelativeRotation = UIItem->GetRelativeRotation();
+				UIItem->SetRelativeRotation(ConvertRotatorFromLGUI2ToLGUI3(RelativeRotation));
+			}
+			else//no parent, then rotate it
+			{
+				//UIItem->SetRelativeRotation(UIItem->GetRelativeRotation().Add(0, -90, 90));
+				auto RelativeRotation = UIItem->GetRelativeRotation();
+				UIItem->SetRelativeRotation(ConvertRotatorFromLGUI2ToLGUI3(RelativeRotation));
+			}
+			//anchor
+			auto widget = UIItem->widget;
+			FUIAnchorData AnchorData;
+			switch (widget.anchorHAlign)
+			{
+			case UIAnchorHorizontalAlign::Left:
+			{
+				AnchorData.AnchorMin.X = AnchorData.AnchorMax.X = 0;
+				AnchorData.AnchoredPosition.X = widget.anchorOffsetX;
+				AnchorData.SizeDelta.X = widget.width;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Center:
+			{
+				AnchorData.AnchorMin.X = AnchorData.AnchorMax.X = 0.5f;
+				AnchorData.AnchoredPosition.X = widget.anchorOffsetX;
+				AnchorData.SizeDelta.X = widget.width;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Right:
+			{
+				AnchorData.AnchorMin.X = AnchorData.AnchorMax.X = 1.0f;
+				AnchorData.AnchoredPosition.X = widget.anchorOffsetX;
+				AnchorData.SizeDelta.X = widget.width;
+			}
+			break;
+			case UIAnchorHorizontalAlign::Stretch:
+			{
+				AnchorData.AnchorMin.X = 0; AnchorData.AnchorMax.X = 1;
+				if (UIParent != nullptr)
+				{
+					auto CalculatedWidth = UIParent->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X) - widget.stretchRight - widget.stretchLeft;
+					AnchorData.SizeDelta.X = CalculatedWidth - UIParent->GetWidth();
+					AnchorData.AnchoredPosition.X = FMath::Lerp(widget.stretchLeft, -widget.stretchRight, UIItem->GetPivot().X);
+				}
+			}
+			break;
+			}
+			switch (widget.anchorVAlign)
+			{
+			case UIAnchorVerticalAlign::Bottom:
+			{
+				AnchorData.AnchorMin.Y = AnchorData.AnchorMax.Y = 0;
+				AnchorData.AnchoredPosition.Y = widget.anchorOffsetY;
+				AnchorData.SizeDelta.Y = widget.height;
+			}
+			break;
+			case UIAnchorVerticalAlign::Middle:
+			{
+				AnchorData.AnchorMin.Y = AnchorData.AnchorMax.Y = 0.5f;
+				AnchorData.AnchoredPosition.Y = widget.anchorOffsetY;
+				AnchorData.SizeDelta.Y = widget.height;
+			}
+			break;
+			case UIAnchorVerticalAlign::Top:
+			{
+				AnchorData.AnchorMin.Y = AnchorData.AnchorMax.Y = 1.0f;
+				AnchorData.AnchoredPosition.Y = widget.anchorOffsetY;
+				AnchorData.SizeDelta.Y = widget.height;
+			}
+			break;
+			case UIAnchorVerticalAlign::Stretch:
+			{
+				AnchorData.AnchorMin.Y = 0; AnchorData.AnchorMax.Y = 1;
+				if (UIParent != nullptr)
+				{
+					auto CalculatedHeight = UIParent->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y) - widget.stretchTop - widget.stretchBottom;
+					AnchorData.SizeDelta.Y = CalculatedHeight - UIParent->GetHeight();
+					AnchorData.AnchoredPosition.Y = FMath::Lerp(widget.stretchBottom, -widget.stretchTop, UIItem->GetPivot().Y);
+				}
+			}
+			break;
+			}
+			auto ParentUIItem = UIItem->GetParentUIItem();
+			if (ParentUIItem == nullptr)
+			{
+				AnchorData.AnchoredPosition.X = UIItem->GetRelativeLocation().Y;
+				AnchorData.AnchoredPosition.Y = UIItem->GetRelativeLocation().Z;
+			}
+			AnchorData.Pivot = widget.pivot;
+			UIItem->SetAnchorData(AnchorData);
+		}
+		//UIEffectLongShadow
+		TArray<UUIEffectLongShadow*> LongShadowArray;
+		Actor->GetComponents(LongShadowArray);
+		for (auto& Item : LongShadowArray)
+		{
+			auto ShadowSize = Item->GetShadowSize();
+			Item->SetShadowSize(FVector(ShadowSize.Z, ShadowSize.X, ShadowSize.Y));
+		}
+		//Canvas
+		TArray<ULGUICanvas*> CanvasArray;
+		Actor->GetComponents(CanvasArray);
+		for (auto& Item : CanvasArray)
+		{
+			if (Item->GetSortOrder() != 0)
+			{
+				Item->SetOverrideSorting(true);
+			}
+		}
+		//
+		UpgradeObjectProperty(Actor);
+		auto& Comps = Actor->GetComponents();
+		for (auto& Comp : Comps)
+		{
+			UpgradeObjectProperty(Comp);
+		}
+	}
+
+	for (auto& Actor : InActorArray)
+	{
+		//Slider
+		{
+			TArray<UUISliderComponent*> SliderArray;
+			Actor->GetComponents(SliderArray);
+			for (auto& Item : SliderArray)
+			{
+				Item->ForUpgrade2to3_ApplyValueToUI();
+				if (auto Fill = Item->GetFillActor())
+				{
+					auto FillUIItem = Fill->GetUIItem();
+					switch (Item->GetDirectionType())
+					{
+					case UISliderDirectionType::LeftToRight:
+					case UISliderDirectionType::RightToLeft:
+					{
+						FillUIItem->SetAnchorLeft(0);
+						FillUIItem->SetAnchorRight(0);
+						FillUIItem->SetHorizontalAnchoredPosition(0);
+						auto SizeDelta = FillUIItem->GetSizeDelta();
+						SizeDelta.X = 0;
+						FillUIItem->SetSizeDelta(SizeDelta);
+					}
+					break;
+					case UISliderDirectionType::BottomToTop:
+					case UISliderDirectionType::TopToBottom:
+					{
+						FillUIItem->SetAnchorBottom(0);
+						FillUIItem->SetAnchorTop(0);
+						FillUIItem->SetVerticalAnchoredPosition(0);
+						auto SizeDelta = FillUIItem->GetSizeDelta();
+						SizeDelta.Y = 0;
+						FillUIItem->SetSizeDelta(SizeDelta);
+					}
+					break;
+					}
+				}
+				if (auto Handle = Item->GetHandleActor())
+				{
+					auto HandleUIItem = Handle->GetUIItem();
+					switch (Item->GetDirectionType())
+					{
+					case UISliderDirectionType::LeftToRight:
+					case UISliderDirectionType::RightToLeft:
+					{
+						HandleUIItem->SetHorizontalAnchoredPosition(0);
+					}
+					break;
+					case UISliderDirectionType::BottomToTop:
+					case UISliderDirectionType::TopToBottom:
+					{
+						HandleUIItem->SetVerticalAnchoredPosition(0);
+					}
+					break;
+					}
+				}
+			}
+		}
+
+		//Scrollbar
+		{
+			TArray<UUIScrollbarComponent*> ScrollbarArray;
+			Actor->GetComponents(ScrollbarArray);
+			for (auto& Item : ScrollbarArray)
+			{
+				Item->ForUpgrade2to3_ApplyValueToUI();
+				if (auto Handle = Item->GetHandleActor())
+				{
+					auto HandleUIItem = Handle->GetUIItem();
+					switch (Item->GetDirectionType())
+					{
+					case UIScrollbarDirectionType::LeftToRight:
+					case UIScrollbarDirectionType::RightToLeft:
+					{
+						HandleUIItem->SetAnchorLeft(0);
+						HandleUIItem->SetAnchorRight(0);
+						HandleUIItem->SetHorizontalAnchoredPosition(0);
+						auto SizeDelta = HandleUIItem->GetSizeDelta();
+						SizeDelta.X = 0;
+						HandleUIItem->SetSizeDelta(SizeDelta);
+					}
+					break;
+					case UIScrollbarDirectionType::BottomToTop:
+					case UIScrollbarDirectionType::TopToBottom:
+					{
+						HandleUIItem->SetAnchorBottom(0);
+						HandleUIItem->SetAnchorTop(0);
+						HandleUIItem->SetVerticalAnchoredPosition(0);
+						auto SizeDelta = HandleUIItem->GetSizeDelta();
+						SizeDelta.Y = 0;
+						HandleUIItem->SetSizeDelta(SizeDelta);
+					}
+					break;
+					}
+				}
+			}
+		}
+
+		//UIEffectTextAnimation
+		{
+			TArray<UUIEffectTextAnimation*> TextAnimationArray;
+			Actor->GetComponents(TextAnimationArray);
+			for (auto& Item : TextAnimationArray)
+			{
+				auto& Properties = Item->GetProperties();
+				for (auto& PropertyItem : Properties)
+				{
+					if (auto PositionProperty = Cast<UUIEffectTextAnimation_PositionProperty>(PropertyItem))
+					{
+						auto Position = PositionProperty->GetPosition();
+						PositionProperty->SetPosition(ConvertPositionFromLGUI2ToLGUI3(Position));
+					}
+					else if (auto PositionRandomProperty = Cast<UUIEffectTextAnimation_PositionRandomProperty>(PropertyItem))
+					{
+						auto Min = PositionRandomProperty->GetMin();
+						auto Max = PositionRandomProperty->GetMax();
+						PositionRandomProperty->SetMin(ConvertPositionFromLGUI2ToLGUI3(Min));
+						PositionRandomProperty->SetMax(ConvertPositionFromLGUI2ToLGUI3(Max));
+					}
+					else if (auto PositionWaveProperty = Cast<UUIEffectTextAnimation_PositionWaveProperty>(PropertyItem))
+					{
+						auto Value = PositionWaveProperty->GetPosition();
+						PositionWaveProperty->SetPosition(ConvertPositionFromLGUI2ToLGUI3(Value));
+					}
+
+					else if (auto RotationProperty = Cast<UUIEffectTextAnimation_RotationProperty>(PropertyItem))
+					{
+						auto Rotator = RotationProperty->GetRotator();
+						RotationProperty->SetRotator(ConvertRotatorFromLGUI2ToLGUI3(Rotator));
+					}
+					else if (auto RotationRandomProperty = Cast <UUIEffectTextAnimation_RotationRandomProperty>(PropertyItem))
+					{
+						auto Min = RotationRandomProperty->GetMin();
+						auto Max = RotationRandomProperty->GetMax();
+						RotationRandomProperty->SetMin(ConvertRotatorFromLGUI2ToLGUI3(Min));
+						RotationRandomProperty->SetMax(ConvertRotatorFromLGUI2ToLGUI3(Max));
+					}
+					else if (auto RotationWaveProperty = Cast<UUIEffectTextAnimation_RotationWaveProperty>(PropertyItem))
+					{
+						auto Value = RotationWaveProperty->GetRotator();
+						RotationWaveProperty->SetRotator(ConvertRotatorFromLGUI2ToLGUI3(Value));
+					}
+
+					else if (auto ScaleProperty = Cast<UUIEffectTextAnimation_ScaleProperty>(PropertyItem))
+					{
+						auto Value = ScaleProperty->GetScale();
+						ScaleProperty->SetScale(ConvertPositionFromLGUI2ToLGUI3(Value));
+					}
+					else if (auto ScaleRandomProperty = Cast<UUIEffectTextAnimation_ScaleRandomProperty>(PropertyItem))
+					{
+						auto Min = ScaleRandomProperty->GetMin();
+						auto Max = ScaleRandomProperty->GetMax();
+						ScaleRandomProperty->SetMin(ConvertPositionFromLGUI2ToLGUI3(Min));
+						ScaleRandomProperty->SetMax(ConvertPositionFromLGUI2ToLGUI3(Max));
+					}
+					else if (auto ScaleWaveProperty = Cast<UUIEffectTextAnimation_ScaleWaveProperty>(PropertyItem))
+					{
+						auto Value = ScaleWaveProperty->GetScale();
+						ScaleWaveProperty->SetScale(ConvertPositionFromLGUI2ToLGUI3(Value));
+					}
+				}
+			}
+		}
+	}
+}
+
+void LGUIEditorTools::UpgradeSelectedPrefabToLGUI3()
+{
+	auto Selection = GEditor->GetSelectedObjects();
+	TArray<ULGUIPrefab*> SelectedPrefabArray;
+	Selection->GetSelectedObjects(SelectedPrefabArray);
+	for (auto& Prefab : SelectedPrefabArray)
+	{
+		if (IsValid(Prefab))
+		{
+			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+			TMap<FGuid, UObject*> MapGuidToObject;
+			TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+			ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+			auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
+				, MapGuidToObject, SubPrefabMap
+				, Prefab->OverrideParameterData, OverrideParameterObject
+			);
+			TArray<AActor*> AllChildrenActorArray;
+			LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
+			UpgradeActorArray(AllChildrenActorArray);
+			TMap<UObject*, FGuid> MapObjectToGuid;
+			for (auto KeyValue : MapGuidToObject)
+			{
+				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+			}
+			Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
+
+			LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
+		}
+	}
+}
+void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
+{
+	auto confirmMsg = FString::Printf(TEXT("This upgrade operation cannot do every modification, so some work should do manually."));
+	if (FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg)) == EAppReturnType::No)return;
+
+	confirmMsg = FString(TEXT("Remember to backup your work. Continue?"));
+	if (FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg)) == EAppReturnType::No)return;
+
+	if (GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
+	{
+		confirmMsg = FString(TEXT("LGUIEditorSetting->AnchorControlPosition must set to false!"));
+		if (FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(confirmMsg)) == EAppReturnType::Ok)return;
+	}
+
+
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
+	TArray<FString> PathsToScan;
+	PathsToScan.Add(TEXT("/Game/"));
+	AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+	// Get asset in path
+	TArray<FAssetData> ScriptAssetList;
+	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
+
+	// Ensure all assets are loaded
+	for (const FAssetData& Asset : ScriptAssetList)
+	{
+		// Gets the loaded asset, loads it if necessary
+		if (Asset.AssetClass == TEXT("LGUIPrefab"))
+		{
+			auto AssetObject = Asset.GetAsset();
+			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
+			{
+				auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+				TMap<FGuid, UObject*> MapGuidToObject;
+				TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+				ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+				auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
+					, MapGuidToObject, SubPrefabMap
+					, Prefab->OverrideParameterData, OverrideParameterObject
+				);
+				TArray<AActor*> AllChildrenActorArray;
+				LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
+				UpgradeActorArray(AllChildrenActorArray);
+				TMap<UObject*, FGuid> MapObjectToGuid;
+				for (auto KeyValue : MapGuidToObject)
+				{
+					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+				}
+				Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
+
+				LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
+			}
+		}
+	}
+}
+#include "GameFramework/Actor.h"
+#include "Serialization/BufferArchive.h"
+void LGUIEditorTools::UpgradeObjectProperty(UObject* InObject)
+{
+	auto PropertyField = TFieldRange<FProperty>(InObject->GetClass());
+	for (const auto PropertyItem : PropertyField)
+	{
+		UpgradeCommonProperty(PropertyItem, (uint8*)InObject);
+	}
+}
+void LGUIEditorTools::UpgradeCommonProperty(FProperty* PropertyItem, uint8* InContainerPtr)
+{
+	if (auto StructProperty = CastField<FStructProperty>(PropertyItem))
+	{
+		auto StructName = StructProperty->Struct->GetFName();
+		if (StructName == FLGUIComponentReference::StaticStruct()->GetFName())
+		{
+			auto StructPtr = StructProperty->ContainerPtrToValuePtr<uint8>(InContainerPtr);
+
+			auto targetActorProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("targetActor"));
+			auto HelperActorProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("HelperActor"));
+			auto targetActorObject = targetActorProp->GetObjectPropertyValue_InContainer(StructPtr);
+			HelperActorProp->SetObjectPropertyValue_InContainer(StructPtr, targetActorObject);
+			auto targetComponentClassProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("targetComponentClass"));
+			auto targetComponentClassObject = targetComponentClassProp->GetObjectPropertyValue_InContainer(StructPtr);
+			auto targetComonentNameProp = FindFProperty<FNameProperty>(StructProperty->Struct, TEXT("targetComonentName"));
+			auto targetComonentName = targetComonentNameProp->GetPropertyValue_InContainer(StructPtr);
+			auto targetActor = Cast<AActor>(targetActorObject);
+			auto targetComponentClass = Cast<UClass>(targetComponentClassObject);
+			UActorComponent* ResultComp = nullptr;
+			TArray<UActorComponent*> Components;
+			if (targetActor != nullptr && targetComponentClass != nullptr)
+			{
+				targetActor->GetComponents(targetComponentClass, Components);
+				if (Components.Num() == 1)
+				{
+					ResultComp = Components[0];
+				}
+				else if (Components.Num() > 1)
+				{
+					for (auto Comp : Components)
+					{
+						if (Comp->GetFName() == targetComonentName)
+						{
+							ResultComp = Comp;
+						}
+					}
+				}
+				if (ResultComp != nullptr)
+				{
+					auto TargetCompProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("TargetComp"));
+					TargetCompProp->SetObjectPropertyValue_InContainer(StructPtr, ResultComp);
+				}
+			}
+		}
+		else if (StructName == FLGUIEventDelegateData::StaticStruct()->GetFName())
+		{
+			auto StructPtr = StructProperty->ContainerPtrToValuePtr<uint8>(InContainerPtr);
+
+			auto targetActorProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("targetActor"));
+			auto HelperActorProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("HelperActor"));
+			auto targetActorObject = targetActorProp->GetObjectPropertyValue_InContainer(StructPtr);
+			HelperActorProp->SetObjectPropertyValue_InContainer(StructPtr, targetActorObject);
+
+			auto componentClassProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("componentClass"));
+			auto componentClassObject = componentClassProp->GetObjectPropertyValue_InContainer(StructPtr);
+			auto targetComonentNameProp = FindFProperty<FNameProperty>(StructProperty->Struct, TEXT("componentName"));
+			auto comonentName = targetComonentNameProp->GetPropertyValue_InContainer(StructPtr);
+			auto targetActor = Cast<AActor>(targetActorObject);
+			auto componentClass = Cast<UClass>(componentClassObject);
+
+			auto TargetObjectProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("TargetObject"));
+
+			if (componentClass->IsChildOf(AActor::StaticClass()))//is actor self
+			{
+				TargetObjectProp->SetObjectPropertyValue_InContainer(StructPtr, targetActorObject);
+			}
+			else if(componentClass->IsChildOf(UActorComponent::StaticClass()))//is actor's component
+			{
+				UActorComponent* ResultComp = nullptr;
+				TArray<UActorComponent*> Components;
+				if (targetActor != nullptr && componentClass != nullptr)
+				{
+					targetActor->GetComponents(componentClass, Components);
+					if (Components.Num() == 1)
+					{
+						ResultComp = Components[0];
+					}
+					else if (Components.Num() > 1)
+					{
+						for (auto Comp : Components)
+						{
+							if (Comp->GetFName() == comonentName)
+							{
+								ResultComp = Comp;
+							}
+						}
+					}
+					if (ResultComp != nullptr)
+					{
+						TargetObjectProp->SetObjectPropertyValue_InContainer(StructPtr, ResultComp);
+					}
+				}
+			}
+
+			auto ParamTypeProp = FindFProperty<FEnumProperty>(StructProperty->Struct, TEXT("ParamType"));
+			auto ValuePtr = ParamTypeProp->ContainerPtrToValuePtr<uint8>(StructPtr);
+			uint8 ParamTypeUint8 = ValuePtr[0];
+			auto ParamType = (LGUIEventDelegateParameterType)ParamTypeUint8;
+			auto ParamBufferProp = FindFProperty<FArrayProperty>(StructProperty->Struct, TEXT("ParamBuffer"));
+			switch (ParamType)
+			{
+			case LGUIEventDelegateParameterType::Name:
+			{
+				auto ReferenceNameProp = FindFProperty<FNameProperty>(StructProperty->Struct, TEXT("ReferenceName"));
+				auto ReferenceName = ReferenceNameProp->GetPropertyValue_InContainer(StructPtr);
+
+				FBufferArchive ToBinary;
+				ToBinary << ReferenceName;
+				FScriptArrayHelper ArrayHelper(ParamBufferProp, ParamBufferProp->ContainerPtrToValuePtr<void>(StructPtr));
+				ArrayHelper.Resize(ToBinary.Num());
+				FMemory::Memcpy(ArrayHelper.GetRawPtr(0), ToBinary.GetData(), ToBinary.Num());
+			}
+			break;
+			case LGUIEventDelegateParameterType::Text:
+			{
+				auto ReferenceNameProp = FindFProperty<FNameProperty>(StructProperty->Struct, TEXT("ReferenceName"));
+				auto ReferenceName = ReferenceNameProp->GetPropertyValue_InContainer(StructPtr);
+
+				FBufferArchive ToBinary;
+				ToBinary << ReferenceName;
+			}
+			break;
+			case LGUIEventDelegateParameterType::String:
+			{
+				auto ReferenceStringProp = FindFProperty<FStrProperty>(StructProperty->Struct, TEXT("ReferenceString"));
+				auto ReferenceString = ReferenceStringProp->GetPropertyValue_InContainer(StructPtr);
+
+				FBufferArchive ToBinary;
+				ToBinary << ReferenceString;
+			}
+			break;
+			case LGUIEventDelegateParameterType::Actor:
+			{
+				auto ReferenceActorProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("ReferenceActor"));
+				auto ReferenceActor = ReferenceActorProp->GetObjectPropertyValue_InContainer(StructPtr);
+				auto ReferenceObjectProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("ReferenceObject"));
+				ReferenceObjectProp->SetObjectPropertyValue_InContainer(StructPtr, ReferenceActor);
+			}
+			break;
+			case LGUIEventDelegateParameterType::Class:
+			{
+				auto ReferenceClassProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("ReferenceClass"));
+				auto ReferenceClass = ReferenceClassProp->GetObjectPropertyValue_InContainer(StructPtr);
+				auto ReferenceObjectProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("ReferenceObject"));
+				ReferenceObjectProp->SetObjectPropertyValue_InContainer(StructPtr, ReferenceClass);
+			}
+			break;
+			}
+		}
+		else
+		{
+			auto structPtr = PropertyItem->ContainerPtrToValuePtr<uint8>(InContainerPtr);
+			for (TFieldIterator<FProperty> It(StructProperty->Struct); It; ++It)
+			{
+				UpgradeCommonProperty(*It, structPtr);
+			}
+		}
+	}
+	else if (auto arrProperty = CastField<FArrayProperty>(PropertyItem))
+	{
+		FScriptArrayHelper ArrayHelper(arrProperty, arrProperty->ContainerPtrToValuePtr<void>(InContainerPtr));
+		auto arrayCount = ArrayHelper.Num();
+		for (int i = 0; i < arrayCount; i++)
+		{
+			UpgradeCommonProperty(arrProperty->Inner, ArrayHelper.GetRawPtr(i));
+		}
+	}
+	else if (auto mapProperty = CastField<FMapProperty>(PropertyItem))//map element's data stored as key/value/key/value...
+	{
+		FScriptMapHelper MapHelper(mapProperty, mapProperty->ContainerPtrToValuePtr<void>(InContainerPtr));
+		auto count = MapHelper.Num();
+		for (int i = 0; i < count; i++)
+		{
+			UpgradeCommonProperty(mapProperty->KeyProp, MapHelper.GetKeyPtr(i));//key
+			UpgradeCommonProperty(mapProperty->ValueProp, MapHelper.GetPairPtr(i));//value
+		}
+	}
+	else if (auto setProperty = CastField<FSetProperty>(PropertyItem))
+	{
+		FScriptSetHelper SetHelper(setProperty, setProperty->ContainerPtrToValuePtr<void>(InContainerPtr));
+		auto count = SetHelper.Num();
+		for (int i = 0; i < count; i++)
+		{
+			UpgradeCommonProperty(setProperty->ElementProp, SetHelper.GetElementPtr(i));
+		}
+	}
+}
+PRAGMA_ENABLE_OPTIMIZATION
 
 #undef LOCTEXT_NAMESPACE

@@ -32,7 +32,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 
 	UObject* TargetClassObj = nullptr;
 	UClass* TargetClass = nullptr;
-	TSharedPtr<IPropertyHandle> TargetClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, TargetClass));
+	TSharedPtr<IPropertyHandle> TargetClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, targetComponentClass));
 	TargetClassHandle->GetValue(TargetClassObj);
 	if (TargetClassObj)
 	{

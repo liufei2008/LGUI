@@ -54,9 +54,9 @@ void UUIDirectMeshRenderable::MarkAllDirtyRecursive()
 	Super::MarkAllDirtyRecursive();
 }
 
-void UUIDirectMeshRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
+void UUIDirectMeshRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
 {
-    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange, DoPropergateLayoutChange);
+    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
     if (InPivotChange || InSizeChange)
     {
         MarkVertexPositionDirty();

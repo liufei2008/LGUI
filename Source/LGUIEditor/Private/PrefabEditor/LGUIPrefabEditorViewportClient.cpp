@@ -109,7 +109,7 @@ bool FLGUIPrefabEditorViewportClient::InputKey(FViewport* InViewport, int32 Cont
 
 	if (Key == EKeys::F && Event == IE_Pressed)
 	{
-		FocusViewportToCasterAndTargets();
+		//FocusViewportToTargets();
 	}
 
 	return Res;
@@ -300,7 +300,7 @@ void FLGUIPrefabEditorViewportClient::SetWidgetMode(FWidget::EWidgetMode NewMode
 	FEditorViewportClient::SetWidgetMode(NewMode);
 }
 
-bool FLGUIPrefabEditorViewportClient::FocusViewportToCasterAndTargets()
+bool FLGUIPrefabEditorViewportClient::FocusViewportToTargets()
 {
 	FIntPoint ViewportSize(FIntPoint::ZeroValue);
 	if (Viewport != nullptr)
@@ -311,6 +311,21 @@ bool FLGUIPrefabEditorViewportClient::FocusViewportToCasterAndTargets()
 	if (ViewportSize.SizeSquared() <= 0)
 	{
 		return false;
+	}
+
+	if (!PrefabEditorPtr.IsValid())
+	{
+		return false;
+	}
+
+	FBoxSphereBounds Bounds;
+	if (PrefabEditorPtr.Pin()->GetSelectedObjectsBounds(Bounds))
+	{
+		auto TargetLocation = Bounds.GetSphere().Center;
+		this->CenterViewportAtPoint(TargetLocation);
+		auto ViewDirection = this->GetViewRotation().RotateVector(FVector(1, 0, 0));
+		auto Distance = Bounds.GetSphere().W;
+		this->SetViewLocation(TargetLocation - ViewDirection * Distance * 1.5f);
 	}
 
 	return false;

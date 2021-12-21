@@ -53,7 +53,7 @@ protected:
 	/**
 	 * This function is always called before any Start functions and also after a prefab is instantiated.
 	 * This is a good replacement for BeginPlay in LGUI's Prefab workflow. Because Awake will execute after all prefab serialization and object reference is done.
-	 * NOTE!!! For LGUILifeCycleUIBehaviour, if UIItem is inactive during start up, then Awake is not called until it is made active.
+	 * NOTE!!! For LGUILifeCycleUIBehaviour, if UIItem is not "ActiveInHierarchy" during start up, then Awake is not called until "ActiveInHierarchy" becomes true.
 	 */
 	virtual void Awake();
 	/** Executed after Awake when GetIsActiveAndEnable is true, or when GetIsActiveAndEnable become true. */
@@ -110,7 +110,7 @@ public:
 		virtual bool GetIsActiveAndEnable() const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
-		USceneComponent* GetRootComponent() const;
+		USceneComponent* GetRootSceneComponent() const;
 
 	/** Same as DuplicateActor */
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DeterminesOutputType = "OriginObject"))

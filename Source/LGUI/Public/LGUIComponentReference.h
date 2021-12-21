@@ -17,11 +17,11 @@ struct LGUI_API FLGUIComponentReference
 	FLGUIComponentReference(){}
 	FLGUIComponentReference(TSubclassOf<UActorComponent> InCompClass)
 	{
-		TargetClass = InCompClass;
+		targetComponentClass = InCompClass;
 	}
 	FLGUIComponentReference(UActorComponent* InComp)
 	{
-		TargetClass = InComp->StaticClass();
+		targetComponentClass = InComp->StaticClass();
 		TargetComp = InComp;
 	}
 protected:
@@ -34,7 +34,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TWeakObjectPtr<UActorComponent> TargetComp;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(AllowAbstract="true"))
-		TSubclassOf<UActorComponent> TargetClass;
+		TSubclassOf<UActorComponent> targetComponentClass;
 public:
 	AActor* GetActor()const;
 	UActorComponent* GetComponent()const { return TargetComp.Get(); }
@@ -42,16 +42,24 @@ public:
 	T* GetComponent()const
 	{
 		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to GetComponent must be derived from UActorComponent");
-		if (T::StaticClass() != TargetClass.Get())
+		if (T::StaticClass() != targetComponentClass.Get())
 		{
-			UE_LOG(LogTemp, Error, TEXT("[FLGUIComponentReference::GetComponent<T>]provided parameter T must equal to TargetClass!"));
+			UE_LOG(LogTemp, Error, TEXT("[FLGUIComponentReference::GetComponent<T>]provided parameter T must equal to targetComponentClass!"));
 			return nullptr;
 		}
 		return (T*)(GetComponent());
 	}
 	TSubclassOf<UActorComponent> GetComponentClass()const
 	{
-		return TargetClass;
+		return targetComponentClass;
 	}
 	bool IsValid()const;
+
+#if WITH_EDITORONLY_DATA
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		TWeakObjectPtr<AActor> targetActor;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		FName targetComonentName;
+#endif
 };

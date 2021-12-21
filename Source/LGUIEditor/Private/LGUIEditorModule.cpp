@@ -142,6 +142,10 @@ void FLGUIEditorModule::StartupModule()
 			FCanExecuteAction(),
 			FIsActionChecked::CreateRaw(this, &FLGUIEditorModule::LGUIColumnInfoChecked)
 		);
+		PluginCommands->MapAction(
+			editorCommand.ForceGC,
+			FExecuteAction::CreateStatic(&LGUIEditorTools::ForceGC)
+		);
 
 		TSharedPtr<FExtender> toolbarExtender = MakeShareable(new FExtender);
 		toolbarExtender->AddToolBarExtension("Game", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FLGUIEditorModule::AddEditorToolsToToolbarExtension));
@@ -508,7 +512,7 @@ void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builde
 	{
 		Builder.AddComboButton(
 			FUIAction(),
-			FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, true, true, true, true, true),
+			FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, true, true, true, true, true, true),
 			LOCTEXT("LGUITools", "LGUI Tools"),
 			LOCTEXT("LGUIEditorTools", "LGUI Editor Tools"),
 			FSlateIcon(FLGUIEditorStyle::GetStyleSetName(), "LGUIEditor.EditorTools")
@@ -517,7 +521,7 @@ void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builde
 	Builder.EndSection();
 }
 
-TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool PreviewInViewport, bool EditorCameraControl, bool Others)
+TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool PreviewInViewport, bool EditorCameraControl, bool Others, bool UpgradeToLGUI3)
 {
 	FMenuBuilder MenuBuilder(true, PluginCommands);
 	auto commandList = FLGUIEditorCommands::Get();
@@ -686,9 +690,35 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 		{
 			MenuBuilder.AddMenuEntry(commandList.ActiveViewportAsLGUIPreview);
 			MenuBuilder.AddMenuEntry(commandList.ToggleLGUIInfoColume);
+			MenuBuilder.AddMenuEntry(commandList.ForceGC);
 		}
 		MenuBuilder.EndSection();
 	}
+
+	if (UpgradeToLGUI3)
+	{
+		MenuBuilder.BeginSection("LGUI3", LOCTEXT("UpgradeToLGUI3", "Upgrade To LGUI3"));
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("Upgrade_Level_to_LGUI3", "Upgrade current Level to LGUI3"),
+			LOCTEXT("Upgrade_Level_to_LGUI3_Tooltip", "Upgrade current Level to LGUI3"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::UpgradeLevelToLGUI3))
+		);
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("Upgrade_SelectedPrefabs_to_LGUI3", "Upgrade selected LGUI prefabs to LGUI3"),
+			LOCTEXT("Upgrade_SelectedPrefabs_to_LGUI3_Tooltip", "Upgrade selected LGUI prefabs to LGUI3"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::UpgradeSelectedPrefabToLGUI3))
+		);
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("Upgrade_AllPrefabs_to_LGUI3", "Upgrade all LGUI prefab to LGUI3"),
+			LOCTEXT("Upgrade_AllPrefabs_to_LGUI3_Tooltip", "Upgrade all LGUI prefab to LGUI3"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::UpgradeAllPrefabToLGUI3))
+		);
+		MenuBuilder.EndSection();
+	}
+
 	return MenuBuilder.MakeWidget();
 }
 

@@ -34,6 +34,9 @@ public:
 	 */
 	virtual bool GetIsActiveAndEnable() const override;
 
+	UE_DEPRECATED(4.24, "GetRootComponent not valid anymore, use GetRootUIComponent instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DeprecatedFunction, DeprecationMessage = "GetRootComponent not valid anymore, use GetRootUIComponent instead"))
+		UUIItem* GetRootComponent() const { return GetRootUIComponent(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
 		UUIItem* GetRootUIComponent() const;
 protected:
@@ -46,6 +49,7 @@ protected:
 	/** Check and get RootUIItem */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool CheckRootUIComponent() const;
+	/** Some UI callback functions want execute before Awake, but most behaviours should executed inside or after Awake. So use this array to cache these callbacks and execute when Awake called. */
 	TArray<TFunction<void()>> CallbacksBeforeAwake;
 
 	virtual void Awake()override;

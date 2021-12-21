@@ -13,7 +13,9 @@
  * Version 3: Use UE's build-in FArchive to serialize/deserialize. 
 		Compare to version2: 1. About 2~3 times faster when deserialize.
 							 2. Smaller disc space take.
-							 3. Support all object serialization and reference, inlude default sub object and component.
+							 3. Support CoreRedirects.
+							 4. Support object flags.
+							 5. Support all object serialization and reference, inlude default sub object and component.
  */
 #define LGUI_PREFAB_VERSION_BuildinFArchive 3
 

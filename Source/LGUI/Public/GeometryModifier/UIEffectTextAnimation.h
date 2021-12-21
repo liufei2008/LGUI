@@ -82,7 +82,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIEffectTextAnimation_Selector* GetSelector()const { return selector; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		const TArray<UUIEffectTextAnimation_Property*> GetProperties()const { return properties; }
+		const TArray<UUIEffectTextAnimation_Property*>& GetProperties()const { return properties; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIEffectTextAnimation_Property* GetProperty(int index)const;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

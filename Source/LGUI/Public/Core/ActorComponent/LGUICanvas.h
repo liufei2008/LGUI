@@ -128,7 +128,7 @@ private:
 	ULGUIMeshComponent* FindNextValidMeshInDrawcallList(int32 StartIndex);
 public:
 	/** update canvas's layout */
-	void UpdateCanvasLayout(bool layoutChanged);
+	void MarkUpdateCanvasLayout(bool layoutChanged);
 	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
 	void MarkUIRenderableItemHierarchyChange();
@@ -222,7 +222,7 @@ protected:
 	 * NOTE! SortOrder value is stored with int16 type, so valid range is -32768 to 32767
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta=(EditCondition="bOverrideSorting"))
-		int16 SortOrder = 0;
+		int16 sortOrder = 0;
 
 	/** 
 	 * Clip content UI elements. 
@@ -239,7 +239,7 @@ protected:
 
 	/** if inherit parent's rect clip value. only valid if self is RectClip */
 	UPROPERTY(EditAnywhere, Category = LGUI)
-		bool inheritRectClip = true;
+		bool bInheritRectClip = true;
 
 	/**
 	 * The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
@@ -282,6 +282,13 @@ protected:
 	FORCEINLINE bool GetOverrideClipType()const						{ return overrideParameters & (1 << 3); }
 	FORCEINLINE bool GetOverrideAddionalShaderChannel()const		{ return overrideParameters & (1 << 4); }
 	FORCEINLINE bool GetOverrideBlendDepth()const					{ return overrideParameters & (1 << 5); }
+
+public:
+#if WITH_EDITORONLY_DATA
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		bool inheritRectClip = true;
+#endif
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		TArray<UMaterialInterface*> GetDefaultMaterials()const;
@@ -358,7 +365,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetOverrideSorting(bool value);
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		int32 GetSortOrder()const { return SortOrder; }
+		int32 GetSortOrder()const { return sortOrder; }
 	/** Get SortOrder of this canvas. Actually canvas's SortOrder property may inherit from parent canvas depend on OverrideSorting property. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetActualSortOrder()const;
@@ -373,7 +380,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTexture* GetClipTexture()const { return clipTexture; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetInheritRectClip()const { return inheritRectClip; }
+		bool GetInheritRectClip()const { return bInheritRectClip; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetRequireNormal()const;

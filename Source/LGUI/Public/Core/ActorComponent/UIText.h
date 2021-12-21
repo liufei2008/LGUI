@@ -237,7 +237,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichText(bool newRichText);
 
-	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)override;
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& min, FVector2D& max)const override;
 #pragma region UITextInputComponent
 	/** get caret position and line index */

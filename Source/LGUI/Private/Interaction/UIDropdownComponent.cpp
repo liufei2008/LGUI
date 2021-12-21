@@ -155,7 +155,7 @@ void UUIDropdownComponent::Show()
 
 		FTransform selfToCanvasTf;
 		auto inverseCanvasTf = canvasUIItem->GetComponentTransform().Inverse();
-		FTransform::Multiply(&selfToCanvasTf, &GetRootComponent()->GetComponentTransform(), &inverseCanvasTf);
+		FTransform::Multiply(&selfToCanvasTf, &GetRootUIComponent()->GetComponentTransform(), &inverseCanvasTf);
 		if (tempVerticalPosition == EUIDropdownVerticalPosition::Automatic)
 		{
 			//convert top point position from dropdown's self to root ui space, and tell if it is inside root rect
@@ -460,7 +460,7 @@ bool UUIDropdownComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData* 
 {
 	if (IsValid(eventData->selectedComponent))
 	{
-		if (!eventData->selectedComponent->IsAttachedTo(this->GetRootComponent()))
+		if (!eventData->selectedComponent->IsAttachedTo(this->GetRootUIComponent()))
 		{
 			Hide();
 		}

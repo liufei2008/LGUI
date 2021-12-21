@@ -56,7 +56,7 @@ void UUIPostProcessRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULG
 {
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
-void UUIPostProcessRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
+void UUIPostProcessRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
 {
     Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
     if (InPivotChange || InSizeChange)

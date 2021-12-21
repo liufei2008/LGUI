@@ -203,9 +203,9 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 	}
 }
 
-void UUISprite::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
+void UUISprite::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
 {
-    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange, DoPropergateLayoutChange);
+    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
 	if (!IsValid(sprite))return;
 	if (type == UISpriteType::Tiled)
 	{

@@ -292,12 +292,12 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		static ULTweener* AlphaFrom(UUIBaseRenderable* target, float startValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "Anchor Offset X To"), Category = "LTweenLGUI")
-		static ULTweener* AnchorOffsetYTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "Anchor Offset Y To"), Category = "LTweenLGUI")
-		static ULTweener* AnchorOffsetZTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
-	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "Anchor Offset To"), Category = "LTweenLGUI")
-		static ULTweener* AnchorOffsetTo(UUIItem* target, FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		static ULTweener* HorizontalAnchoredPositionTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		static ULTweener* VerticalAnchoredPositionTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
+		static ULTweener* AnchoredPositionTo(UUIItem* target, FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease"), Category = "LTweenLGUI")
 		static ULTweener* PivotTo(UUIItem* target, FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 #pragma endregion
@@ -317,4 +317,30 @@ public:
 	UFUNCTION(BlueprintPure, Category = LGUI)
 		static void GetSpriteBorderUV(const FLGUISpriteInfo& SpriteInfo, float& borderUV0X, float& borderUV0Y, float& borderUV3X, float& borderUV3Y);
 
+
+
+	UE_DEPRECATED(4.23, "Use LTween's LocalPositionTo instead.")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "UI Local Position To", DeprecatedFunction, DeprecationMessage = "Use LTween's LocalPositionTo instead."), Category = "LTweenLGUI")
+		static ULTweener* UILocalPositionTo(UUIItem* target, FVector endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UE_DEPRECATED(4.24, "This node is not valid any more. Use LGUIExecuteControllerInputAxis instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use LGUIExecuteControllerInputAxis instead"))
+		static void LGUIExecuteInputAxis(FKey inputKey, float value) 
+	{ 
+		LGUIExecuteControllerInputAxis(inputKey, value);
+	}
+	UE_DEPRECATED(4.24, "This node is not valid any more. Use LGUIExecuteControllerInputAction instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "This node is not valid any more. Use LGUIExecuteControllerInputAction instead"))
+		static void LGUIExecuteInputAction(FKey inputKey, bool pressOrRelease)
+	{
+		LGUIExecuteControllerInputAction(inputKey, pressOrRelease);
+	}
+	UE_DEPRECATED(4.24, "Use HorizontalAnchoredPositionTo instead.")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "Anchor Offset X To", DeprecatedFunction, DeprecationMessage = "Use HorizontalAnchoredPositionTo instead."), Category = "LTweenLGUI")
+		static ULTweener* AnchorOffsetXTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UE_DEPRECATED(4.24, "Use VerticalAnchoredPositionTo instead.")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "Anchor Offset Y To", DeprecatedFunction, DeprecationMessage = "Use VerticalAnchoredPositionTo instead."), Category = "LTweenLGUI")
+		static ULTweener* AnchorOffsetYTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+	UE_DEPRECATED(4.24, "Use AnchoredPositionTo instead.")
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DisplayName = "Anchor Offset To", DeprecatedFunction, DeprecationMessage = "Use AnchoredPositionTo instead."), Category = "LTweenLGUI")
+		static ULTweener* AnchorOffsetTo(UUIItem* target, FVector2D endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
 };

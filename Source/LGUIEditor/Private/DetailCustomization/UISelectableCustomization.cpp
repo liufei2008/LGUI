@@ -51,8 +51,8 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	{
 		targetUIItem = transitionActor->FindComponentByClass<UUIItem>();
 		targetUISprite = transitionActor->FindComponentByClass<UUISprite>();
-		targetTweenComp = transitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
 	}
+	targetTweenComp = TargetScriptPtr->GetOwner()->FindComponentByClass<UUISelectableTransitionComponent>();
 
 	uint8 transitionType;
 	transitionHandle->GetValue(transitionType);
@@ -130,7 +130,6 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	}
 	else if (transitionType == (uint8)(UISelectableTransitionType::TransitionComponent))
 	{
-		transitionGroup.AddPropertyRow(transitionActorHandle);
 		if (!targetTweenComp)
 		{
 			transitionGroup.AddWidgetRow()
@@ -139,11 +138,13 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				[
 					SNew(STextBlock)
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TransitionActorTip", "If use TransitionComponent, Target must have UUISelectableTransitionComponent component"))
+					.Text(LOCTEXT("TransitionActorTip", "If use TransitionComponent, This actor must have UISelectableTransitionComponent"))
 					.ColorAndOpacity(FLinearColor(FColor::Red))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				];
 		}
+		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, TransitionActor));
+
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, NormalColor));
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, HighlightedColor));
 		needToHidePropertyNameForTransition.Add(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, PressedColor));

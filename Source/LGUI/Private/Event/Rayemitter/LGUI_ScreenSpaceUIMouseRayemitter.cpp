@@ -11,11 +11,13 @@ bool ULGUI_ScreenSpaceUIMouseRayemitter::EmitRay(ULGUIPointerEventData* InPointe
 		return false;
 
 	auto ViewLocation = RenderCanvas->GetViewLocation();
-	auto ViewRotationMatrix = FInverseRotationMatrix(RenderCanvas->GetViewRotator()) * FMatrix(
+	auto ViewRotationMatrix = FInverseRotationMatrix(RenderCanvas->GetViewRotator())
+		* FMatrix(
 		FPlane(0, 0, 1, 0),
 		FPlane(1, 0, 0, 0),
 		FPlane(0, 1, 0, 0),
-		FPlane(0, 0, 0, 1));
+		FPlane(0, 0, 0, 1))
+		;
 	auto ProjectionMatrix = RenderCanvas->GetProjectionMatrix();
 	auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
 	//Get mouse position, convert to range 0-1

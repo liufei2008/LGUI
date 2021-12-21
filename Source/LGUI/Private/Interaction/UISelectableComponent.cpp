@@ -14,20 +14,29 @@
 void UUISelectableComponent::Awake()
 {
 	Super::Awake();
-	CheckTarget();
-	ALGUIManagerActor::AddSelectable(this);
 	this->SetCanExecuteUpdate(false);
 }
-void UUISelectableComponent::Start()
+
+void UUISelectableComponent::OnEnable()
 {
-	Super::Start();
+	Super::OnEnable();
+	ALGUIManagerActor::AddSelectable(this);
 	ApplySelectionState(true);
 }
 
+void UUISelectableComponent::Start()
+{
+	Super::Start();
+}
+
+void UUISelectableComponent::OnDisable()
+{
+	Super::OnDisable();
+	ALGUIManagerActor::RemoveSelectable(this);
+}
 void UUISelectableComponent::OnDestroy()
 {
 	Super::OnDestroy();
-	ALGUIManagerActor::RemoveSelectable(this);
 }
 
 #if WITH_EDITOR
@@ -37,7 +46,7 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 	if (PropertyChangedEvent.Property)
 	{
 		auto propertyName = PropertyChangedEvent.Property->GetName();
-		if (CheckTarget())
+		if (TransitionActor.IsValid())
 		{
 			auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionActor->GetUIRenderable());
 			if (propertyName == TEXT("TransitionActor"))
@@ -76,27 +85,26 @@ void UUISelectableComponent::OnUIInteractionStateChanged(bool interactableOrNot)
 			? (IsPointerInsideThis ? EUISelectableSelectionState::Highlighted : EUISelectableSelectionState::Normal)
 			: EUISelectableSelectionState::Disabled;
 #if WITH_EDITOR
-		if (this->GetWorld()->IsGameWorld())//is editor, just set properties immediately
+		if (!this->GetWorld()->IsGameWorld())//is editor, just set properties immediately
 		{
-			ApplySelectionState(false);
+			ApplySelectionState(true);
 		}
 		else
 #endif
 		{
-			ApplySelectionState(true);
+			ApplySelectionState(false);
 		}
 	}
 }
 
-bool UUISelectableComponent::CheckTarget()
-{
-	if (TransitionActor.IsValid())return true;
-	return false;
-}
 void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 {
-	if (!CheckTarget())return;
-	auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
+	if (!this->GetIsActiveAndEnable())return;
+	if (Transition != UISelectableTransitionType::TransitionComponent)
+	{
+		if (!TransitionActor.IsValid())return;
+	}
+
 	switch (CurrentSelectionState)
 	{
 	case EUISelectableSelectionState::Normal:
@@ -105,6 +113,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		{
 		case UISelectableTransitionType::ColorTint:
 		{
+			auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 			if(FadeDuration <= 0.0f || immediateSet)
 			{
 				TransitionTargetUIItemComp->SetColor(NormalColor);
@@ -118,6 +127,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		break;
 		case UISelectableTransitionType::SpriteSwap:
 		{
+			auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 			if (auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionTargetUIItemComp))
 			{
 				TargetUISpriteComp->SetSprite(NormalSprite, false);
@@ -132,9 +142,9 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			{
 				if (!TransitionComp.IsValid())
 				{
-					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+					TransitionComp = this->GetOwner()->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
-				if (TransitionComp.IsValid())
+				if (TransitionComp.IsValid() && TransitionComp->GetIsActiveAndEnable())
 				{
 					TransitionComp->OnNormal(immediateSet);
 				}
@@ -150,6 +160,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		{
 		case UISelectableTransitionType::ColorTint:
 		{
+			auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 			if (FadeDuration <= 0.0f || immediateSet)
 			{
 				TransitionTargetUIItemComp->SetColor(HighlightedColor);
@@ -163,6 +174,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		break;
 		case UISelectableTransitionType::SpriteSwap:
 		{
+			auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 			if (auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionTargetUIItemComp))
 			{
 				if (IsValid(HighlightedSprite))
@@ -180,9 +192,9 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			{
 				if (!TransitionComp.IsValid())
 				{
-					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+					TransitionComp = this->GetOwner()->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
-				if (TransitionComp.IsValid())
+				if (TransitionComp.IsValid() && TransitionComp->GetIsActiveAndEnable())
 				{
 					TransitionComp->OnHighlighted(immediateSet);
 				}
@@ -198,6 +210,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		{
 		case UISelectableTransitionType::ColorTint:
 		{
+			auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 			if (FadeDuration <= 0.0f || immediateSet)
 			{
 				TransitionTargetUIItemComp->SetColor(PressedColor);
@@ -211,6 +224,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		break;
 		case UISelectableTransitionType::SpriteSwap:
 		{
+			auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 			if (auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionTargetUIItemComp))
 			{
 				if (IsValid(PressedSprite))
@@ -228,9 +242,9 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			{
 				if (!TransitionComp.IsValid())
 				{
-					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+					TransitionComp = this->GetOwner()->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
-				if (TransitionComp.IsValid())
+				if (TransitionComp.IsValid() && TransitionComp->GetIsActiveAndEnable())
 				{
 					TransitionComp->OnPressed(immediateSet);
 				}
@@ -246,6 +260,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		{
 		case UISelectableTransitionType::ColorTint:
 		{
+			auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 			if (FadeDuration <= 0.0f || immediateSet)
 			{
 				TransitionTargetUIItemComp->SetColor(DisabledColor);
@@ -259,6 +274,7 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 		break;
 		case UISelectableTransitionType::SpriteSwap:
 		{
+			auto TransitionTargetUIItemComp = TransitionActor->GetUIRenderable();
 			if (auto TargetUISpriteComp = Cast<UUISpriteBase>(TransitionTargetUIItemComp))
 			{
 				if (IsValid(DisabledSprite))
@@ -276,9 +292,9 @@ void UUISelectableComponent::ApplySelectionState(bool immediateSet)
 			{
 				if (!TransitionComp.IsValid())
 				{
-					TransitionComp = TransitionActor->FindComponentByClass<UUISelectableTransitionComponent>();
+					TransitionComp = this->GetOwner()->FindComponentByClass<UUISelectableTransitionComponent>();
 				}
-				if (TransitionComp.IsValid())
+				if (TransitionComp.IsValid() && TransitionComp->GetIsActiveAndEnable())
 				{
 					TransitionComp->OnDisabled(immediateSet);
 				}
@@ -312,7 +328,7 @@ bool UUISelectableComponent::OnPointerDown_Implementation(ULGUIPointerEventData*
 	ApplySelectionState(false);
 	if (auto eventSystemInstance = ULGUIEventSystem::GetLGUIEventSystemInstance(this))
 	{
-		eventSystemInstance->SetSelectComponent(GetRootComponent(), eventData, eventData->enterComponentEventFireType);
+		eventSystemInstance->SetSelectComponent(GetRootUIComponent(), eventData, eventData->enterComponentEventFireType);
 	}
 	return AllowEventBubbleUp;
 }
@@ -325,14 +341,10 @@ bool UUISelectableComponent::OnPointerUp_Implementation(ULGUIPointerEventData* e
 }
 bool UUISelectableComponent::OnPointerSelect_Implementation(ULGUIBaseEventData* eventData)
 {
-	//CurrentSelectionState = GetSelectionState();
-	//ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 bool UUISelectableComponent::OnPointerDeselect_Implementation(ULGUIBaseEventData* eventData)
 {
-	//CurrentSelectionState = GetSelectionState();
-	//ApplySelectionState(false);
 	return AllowEventBubbleUp;
 }
 
@@ -476,7 +488,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 	{
 		const auto& uiSelectables = LGUIManagerActor->GetSelectables();
 		FVector pos = CheckRootUIComponent() ? FVector(RootUIComp->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-		pos = GetRootComponent()->GetComponentTransform().TransformPosition(pos);
+		pos = GetRootUIComponent()->GetComponentTransform().TransformPosition(pos);
 		float maxScore = MIN_flt;
 		UUISelectableComponent* bestPick = this;
 		for (int i = 0; i < uiSelectables.Num(); ++i)
@@ -486,7 +498,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 			if (sel == this || !IsValid(sel))
 				continue;
 
-			if (IsValid(InParent) && !sel->GetRootComponent()->IsAttachedTo(InParent))
+			if (IsValid(InParent) && !sel->GetRootUIComponent()->IsAttachedTo(InParent))
 				continue;
 
 			if (!sel->IsInteractable())
@@ -496,7 +508,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 				continue;
 
 			FVector selCenter = sel->CheckRootUIComponent() ? FVector(sel->GetRootUIComponent()->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
-			FVector myVector = sel->GetRootComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
+			FVector myVector = sel->GetRootUIComponent()->GetComponentTransform().TransformPosition(selCenter) - pos;
 
 			float dot = FVector::DotProduct(InDirection, myVector);
 			if (dot <= 0.1f)
@@ -533,7 +545,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnLeft()
 	}
 	if (NavigationLeft == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetRootComponent()->GetRightVector());
+		return FindSelectable(-GetRootUIComponent()->GetRightVector());
 	}
 	return nullptr;
 }
@@ -545,7 +557,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnRight()
 	}
 	if (NavigationRight == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetRootComponent()->GetRightVector());
+		return FindSelectable(GetRootUIComponent()->GetRightVector());
 	}
 	return nullptr;
 }
@@ -557,7 +569,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnUp()
 	}
 	if (NavigationUp == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(GetRootComponent()->GetUpVector());
+		return FindSelectable(GetRootUIComponent()->GetUpVector());
 	}
 	return nullptr;
 }
@@ -569,7 +581,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectableOnDown()
 	}
 	if (NavigationDown == EUISelectableNavigationMode::Auto)
 	{
-		return FindSelectable(-GetRootComponent()->GetUpVector());
+		return FindSelectable(-GetRootUIComponent()->GetUpVector());
 	}
 	return nullptr;
 }

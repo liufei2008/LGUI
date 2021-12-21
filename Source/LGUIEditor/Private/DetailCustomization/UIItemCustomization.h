@@ -33,9 +33,9 @@ private:
 	void OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder);
 	void OnCopyHierarchyIndex();
 	void OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> PropertyHandle);
-	void OnSelectAnchor(UIAnchorHorizontalAlign HorizontalAlign, UIAnchorVerticalAlign VerticalAlign, IDetailLayoutBuilder* DetailBuilder);
-	UIAnchorHorizontalAlign GetAnchorHAlign(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;
-	UIAnchorVerticalAlign GetAnchorVAlign(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;
+	void OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign HorizontalAlign, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign VerticalAlign, IDetailLayoutBuilder* DetailBuilder);
+	LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign GetAnchorHAlign(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;
+	LGUIAnchorPreviewWidget::UIAnchorVerticalAlign GetAnchorVAlign(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;
 	FText GetHAlignText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;
 	FText GetVAlignText(TSharedRef<IPropertyHandle> AnchorMinHandle, TSharedRef<IPropertyHandle> AnchorMaxHandle)const;
 
@@ -50,5 +50,5 @@ private:
 	FReply OnClickIncreaseOrDecreaseHierarchyIndex(bool IncreaseOrDecrease);
 
 	EVisibility GetDisplayNameWarningVisibility()const;
-	FReply OnClickFixButton();
+	FReply OnClickFixDisplayNameButton();
 };

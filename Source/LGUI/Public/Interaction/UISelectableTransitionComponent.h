@@ -21,32 +21,32 @@ protected:
 
 	/** 
 	 * Called when UISelectableComponent's transition state = normal.
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnNormal"))
 		void OnNormalBP(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = highlighted.
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnHighlighted"))
 		void OnHighlightedBP(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = pressed.
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnPressed"))
 		void OnPressedBP(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = disabled.
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnDisabled"))
 		void OnDisabledBP(bool InImmediateSet);
 	/**
 	 * This gives us an opportunity to do transition on more case than just provided above
-	 * @param InTransitionName: use this to tell different event type. eg.UIToggleComponent, "On"/"Off" for toggle on/off
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InTransitionName	use this to tell different event type. eg.UIToggleComponent, "On"/"Off" for toggle on/off
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnStartCustomTransition"))
 		void OnStartCustomTransitionBP(FName InTransitionName, bool InImmediateSet);
@@ -54,25 +54,25 @@ public:
 	/**
 	 * Called when UISelectableComponent's transition state = normal.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnNormal();
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	virtual void OnNormal(bool InImmediateSet) { OnNormalBP(InImmediateSet); };
 	/**
 	 * Called when UISelectableComponent's transition state = highlighted.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnHighlighted();
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	virtual void OnHighlighted(bool InImmediateSet) { OnHighlightedBP(InImmediateSet); };
 	/**
 	 * Called when UISelectableComponent's transition state = pressed.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnPressed();
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	virtual void OnPressed(bool InImmediateSet) { OnPressedBP(InImmediateSet); };
 	/**
 	 * Called when UISelectableComponent's transition state = disabled.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnDisabled();
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	virtual void OnDisabled(bool InImmediateSet) { OnDisabledBP(InImmediateSet); };
 
@@ -80,7 +80,7 @@ public:
 	 * This gives us an opportunity to do transition on more case than just provided above.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnStartCustomTransition();
 	 * @param InTransitionName: use this to tell different event type. eg.UIToggleComponent, "On"/"Off" for toggle on/off
-	 * @param InImmediateSet: set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
+	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	virtual void OnStartCustomTransition(FName InTransitionName, bool InImmediateSet) { OnStartCustomTransitionBP(InTransitionName, InImmediateSet); };
 

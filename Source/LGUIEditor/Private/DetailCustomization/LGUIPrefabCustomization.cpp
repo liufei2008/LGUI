@@ -378,18 +378,17 @@ void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World
 {
 	TMap<FGuid, UObject*> MapGuidToObject;
 	TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-	TArray<uint8> OverrideParameterData;
 	ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
 	auto RootActor= Prefab->LoadPrefabForEdit(World, nullptr
 		, MapGuidToObject, SubPrefabMap
-		, OverrideParameterData, OverrideParameterObject
+		, Prefab->OverrideParameterData, OverrideParameterObject
 	);
 	TMap<UObject*, FGuid> MapObjectToGuid;
 	for (auto KeyValue : MapGuidToObject)
 	{
 		MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 	}
-	Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, OverrideParameterData);
+	Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
 	Prefab->RefreshAgentActorsInPreviewWorld();
 
 	LGUIUtils::DestroyActorWithHierarchy(RootActor, true);

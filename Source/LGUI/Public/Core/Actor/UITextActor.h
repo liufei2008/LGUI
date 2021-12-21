@@ -19,6 +19,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UUIText* GetUIText()const { return UIText; }
 private:
-	UPROPERTY(Category = "LGUI", VisibleAnywhere, Transient)
+	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		UUIText* UIText;
 };

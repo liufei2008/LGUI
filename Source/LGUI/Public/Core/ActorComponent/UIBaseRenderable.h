@@ -80,7 +80,7 @@ public:
 
 	void MarkColorDirty();
 	virtual void MarkAllDirtyRecursive()override;
-	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = true)override;
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)override;
 	/** Called by LGUICanvas when begin to collect geometry for render */
 	virtual void UpdateGeometry() {};
 

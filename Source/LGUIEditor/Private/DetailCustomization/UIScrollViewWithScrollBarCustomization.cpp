@@ -84,7 +84,7 @@ void FUIScrollViewWithScrollBarCustomization::CustomizeDetails(IDetailLayoutBuil
 		bool showWarning = false;
 		if (IsValid(Viewport))
 		{
-			if (Viewport->GetUIItem()->GetAttachParent() != TargetScriptPtr->GetRootComponent())
+			if (Viewport->GetUIItem()->GetAttachParent() != TargetScriptPtr->GetRootUIComponent())
 			{
 				showWarning = true;
 			}
@@ -95,7 +95,7 @@ void FUIScrollViewWithScrollBarCustomization::CustomizeDetails(IDetailLayoutBuil
 		}
 		if (IsValid(HorizontalScrollbar))
 		{
-			if (HorizontalScrollbar->GetUIItem()->GetAttachParent() != TargetScriptPtr->GetRootComponent())
+			if (HorizontalScrollbar->GetUIItem()->GetAttachParent() != TargetScriptPtr->GetRootUIComponent())
 			{
 				showWarning = true;
 			}
@@ -118,7 +118,7 @@ void FUIScrollViewWithScrollBarCustomization::CustomizeDetails(IDetailLayoutBuil
 		bool showWarning = false;
 		if (IsValid(Viewport))
 		{
-			if (Viewport->GetUIItem()->GetAttachParent() != TargetScriptPtr->GetRootComponent())
+			if (Viewport->GetUIItem()->GetAttachParent() != TargetScriptPtr->GetRootUIComponent())
 			{
 				showWarning = true;
 			}
@@ -129,7 +129,7 @@ void FUIScrollViewWithScrollBarCustomization::CustomizeDetails(IDetailLayoutBuil
 		}
 		if (IsValid(VerticalScrollbar))
 		{
-			if (VerticalScrollbar->GetUIItem()->GetAttachParent() != TargetScriptPtr->GetRootComponent())
+			if (VerticalScrollbar->GetUIItem()->GetAttachParent() != TargetScriptPtr->GetRootUIComponent())
 			{
 				showWarning = true;
 			}

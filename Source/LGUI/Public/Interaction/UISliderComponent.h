@@ -75,6 +75,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
 		float GetMaxValue()const { return MaxValue; }
 
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		bool GetWholeNumber()const { return WholeNumbers; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		AUIBaseActor* GetFillActor()const { return FillActor.Get(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		AUIBaseActor* GetHandleActor()const { return HandleActor.Get(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Slider")
+		UISliderDirectionType GetDirectionType()const { return DirectionType; }
+
 	/**
 	 * @param	InValue				New value set for Value
 	 * @param	FireEvent			Should execute callback event?
@@ -116,4 +125,9 @@ private:
 	bool CheckHandle();
 	void CalculateInputValue(ULGUIPointerEventData* eventData);
 	void ApplyValueToUI();
+#if WITH_EDITOR
+public:
+	/** This function is only for update from LGUI2 to LGUI3 */
+	void ForUpgrade2to3_ApplyValueToUI() { ApplyValueToUI(); }
+#endif
 };

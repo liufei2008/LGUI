@@ -94,9 +94,9 @@ void UUIBaseRenderable::MarkAllDirtyRecursive()
 	Super::MarkAllDirtyRecursive();
 }
 
-void UUIBaseRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
+void UUIBaseRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
 {
-	Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange, DoPropergateLayoutChange);
+	Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
 	if (InTransformChange)bTransformChanged = true;
 }
 

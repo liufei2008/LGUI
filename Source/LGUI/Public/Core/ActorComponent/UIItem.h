@@ -6,7 +6,7 @@
 #include "Core/UIAnchorData.h"
 #include "Components/SceneComponent.h"
 #include "Components/PrimitiveComponent.h"
-#include "Components/CanvasPanelSlot.h"
+#include "Core/UIWidget.h"
 #include "UIItem.generated.h"
 
 class ULGUICanvas;
@@ -228,16 +228,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class ULGUICanvasScaler* GetCanvasScaler()const;
 	
-	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange = false);
+	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange);
 
 	/** mark all dirty for UI element to update, include all children */
 	virtual void MarkAllDirtyRecursive();
 public:
 	virtual void MarkCanvasUpdate();
 private:
-	void PropergateLayoutChange();
-	mutable float CacheWidth = 0, CacheHeight = 0;
-	mutable uint8 bWidthCached : 1, bHeightCached : 1;
+	void CalculateOnLayoutChange();
+	mutable float CacheWidth = 0, CacheHeight = 0, CacheAnchorLeft = 0, CacheAnchorRight = 0, CacheAnchorTop = 0, CacheAnchorBottom = 0;
+	mutable uint8 bWidthCached : 1, bHeightCached : 1, bAnchorLeftCached : 1, bAnchorRightCached : 1, bAnchorTopCached : 1, bAnchorBottomCached : 1;
 #pragma region UICanvasGroup
 protected:
 	mutable TWeakObjectPtr<UUICanvasGroup> CanvasGroup;
@@ -403,6 +403,110 @@ public:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Transient)class UUIItemEditorHelperComp* HelperComp = nullptr;
 #endif
+
+#if WITH_EDITORONLY_DATA
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		FUIWidget widget;
+#endif
+#if WITH_EDITOR
+	UE_DEPRECATED(4.24, "Use GetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-old", meta = (DeprecatedFunction, DeprecationMessage = "Use GetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		const FUIWidget& GetWidget()const { return widget; }
+	UE_DEPRECATED(4.24, "Use SetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-old", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetWidget(const FUIWidget& inWidget) {}
+#endif
+
+	/** This can auto calculate dimensions */
+	UE_DEPRECATED(4.23, "Use SetRelativeLocation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
+		void SetUIRelativeLocation(FVector newLocation) { this->SetRelativeLocation(newLocation); }
+	/** This can auto calculate dimensions */
+	UE_DEPRECATED(4.23, "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
+		void SetUIRelativeLocationAndRotation(const FVector& newLocation, const FRotator& newRotation) { this->SetRelativeLocationAndRotation(newLocation, newRotation); }
+	/** This can auto calculate dimensions */
+	UE_DEPRECATED(4.23, "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeLocationAndRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
+		void SetUIRelativeLocationAndRotationQuat(const FVector& newLocation, const FQuat& newRotation) { this->SetRelativeLocationAndRotation(newLocation, newRotation); }
+	/** This is a simple one parameter version */
+	UE_DEPRECATED(4.23, "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
+		void SetUIRelativeRotation(const FRotator& newRotation) { this->SetRelativeRotation(newRotation); }
+	/** This is a simple one parameter version */
+	UE_DEPRECATED(4.23, "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use SetRelativeRotation instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
+		void SetUIRelativeRotationQuat(const FQuat& newRotation) { this->SetRelativeRotation(newRotation); }
+	/** This can auto calculate dimensions */
+	UE_DEPRECATED(4.23, "Use AttachToComponent instead. Because LGUI can automatically calculate anchor parameters after transform changed.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use AttachToComponent instead. Because LGUI can automatically calculate anchor parameters after transform changed."))
+		void SetUIParent(UUIItem* inParent, bool keepWorldTransform = false) { this->AttachToComponent(inParent, keepWorldTransform ? FAttachmentTransformRules::KeepWorldTransform : FAttachmentTransformRules::KeepRelativeTransform); }
+
+	UE_DEPRECATED(4.24, "Use SetIsUIActive instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use SetIsUIActive instead."))
+		void SetUIActive(bool active) { this->SetIsUIActive(active); }
+	UE_DEPRECATED(4.24, "Use GetIsUIActiveSelf instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use GetIsUIActiveSelf instead."))
+		bool IsUIActiveSelf()const { return bIsUIActive; }
+	UE_DEPRECATED(4.24, "Use GetIsUIActiveInHierarchy instead.")
+	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (DeprecatedFunction, DeprecationMessage = "Use GetIsUIActiveInHierarchy instead."))
+		bool IsUIActiveInHierarchy()const { return this->GetIsUIActiveInHierarchy(); };
+
+	UE_DEPRECATED(4.24, "Use GetHorizontalAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use GetHorizontalAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		float GetAnchorOffsetX() const { return this->GetHorizontalAnchoredPosition(); }
+	UE_DEPRECATED(4.24, "Use GetVerticalAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use GetVerticalAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		float GetAnchorOffsetY() const { return this->GetVerticalAnchoredPosition(); }
+	UE_DEPRECATED(4.24, "Use GetAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use GetAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		FVector2D GetAnchorOffset()const { return this->GetAnchoredPosition(); }
+	UE_DEPRECATED(4.24, "Use GetAnchorLeft instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use GetAnchorLeft instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		float GetStretchLeft() const { return this->GetAnchorLeft(); }
+	UE_DEPRECATED(4.24, "Use GetAnchorRight instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use GetAnchorRight instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		float GetStretchRight() const { return this->GetAnchorRight(); }
+	UE_DEPRECATED(4.24, "Use GetAnchorTop instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use GetAnchorTop instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		float GetStretchTop() const { return this->GetAnchorTop(); }
+	UE_DEPRECATED(4.24, "Use GetAnchorBottom instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use GetAnchorBottom instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		float GetStretchBottom() const { return this->GetAnchorBottom(); }
+
+	UE_DEPRECATED(4.24, "Use SetAnchorLeft instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorLeft instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetStretchLeft(float newLeft) { this->SetAnchorLeft(newLeft); }
+	UE_DEPRECATED(4.24, "Use SetAnchorRight instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorRight instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetStretchRight(float newRight) { this->SetAnchorRight(newRight); }
+	UE_DEPRECATED(4.24, "Use SetAnchorTop instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorTop instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetStretchTop(float newTop) { this->SetAnchorTop(newTop); }
+	UE_DEPRECATED(4.24, "Use SetAnchorBottom instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorBottom instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetStretchBottom(float newBottom) { this->SetAnchorBottom(newBottom); }
+	UE_DEPRECATED(4.24, "Use SetAnchorLeft/SetAnchorRight instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorLeft/SetAnchorRight instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetHorizontalStretch(FVector2D newStretch) { this->SetAnchorLeft(newStretch.X); this->SetAnchorRight(newStretch.Y); }
+	UE_DEPRECATED(4.24, "Use SetAnchorBottom/SetAnchorTop instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorBottom/SetAnchorTop instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetVerticalStretch(FVector2D newStretch) { this->SetAnchorBottom(newStretch.X); this->SetAnchorTop(newStretch.Y); }
+
+	UE_DEPRECATED(4.24, "Use SetHorizontalAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetHorizontalAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetAnchorOffsetX(float newOffset) { this->SetHorizontalAnchoredPosition(newOffset); }
+	UE_DEPRECATED(4.24, "Use SetVerticalAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetVerticalAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetAnchorOffsetY(float newOffset) { this->SetVerticalAnchoredPosition(newOffset); }
+	UE_DEPRECATED(4.24, "Use SetAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetAnchorOffset(FVector2D newOffset) { this->SetAnchoredPosition(newOffset); }
+
+	UE_DEPRECATED(4.24, "Use GetParentUIItem instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetParentUIItem instead."))
+		UUIItem* GetParentAsUIItem()const { return this->GetParentUIItem(); }
 };
 
 

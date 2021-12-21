@@ -84,13 +84,22 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		ULGUIEditorManagerObject::DrawFrameOnUIItem(item.Get());
 	}
 
-	for (auto item : allLayoutArray)
+	bool canUpdateLayout = true;
+	if (!GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
 	{
-		if (item.IsValid())
+		canUpdateLayout = false;
+	}
+
+	if (canUpdateLayout)
+	{
+		for (auto item : allLayoutArray)
 		{
-			if (item->GetIsActiveAndEnable())
+			if (item.IsValid())
 			{
-				item->ConditionalRebuildLayout();
+				if (item->GetIsActiveAndEnable())
+				{
+					item->ConditionalRebuildLayout();
+				}
 			}
 		}
 	}
@@ -360,6 +369,9 @@ UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()
 		PreviewWorldForPrefabPackage = NewObject<UWorld>(GetTransientPackage(), UniqueWorldName);
 		PreviewWorldForPrefabPackage->AddToRoot();
 		PreviewWorldForPrefabPackage->WorldType = EWorldType::EditorPreview;
+
+		FWorldContext& WorldContext = GEngine->CreateNewWorldContext(PreviewWorldForPrefabPackage->WorldType);
+		WorldContext.SetCurrentWorld(PreviewWorldForPrefabPackage);
 
 		PreviewWorldForPrefabPackage->InitializeNewWorld(UWorld::InitializationValues()
 			.AllowAudioPlayback(false)

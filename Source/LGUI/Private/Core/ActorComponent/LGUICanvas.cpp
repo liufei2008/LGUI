@@ -301,10 +301,6 @@ void ULGUICanvas::SetParentCanvas(ULGUICanvas* InParentCanvas)
 	{
 		if (ParentCanvas.IsValid())
 		{
-#if !UE_BUILD_SHIPPING
-			check(ParentCanvas->ChildrenCanvasArray.Contains(this));
-			check(ParentCanvas->UIRenderableList.Contains(this->UIItem.Get()));
-#endif
 			ParentCanvas->ChildrenCanvasArray.Remove(this);
 			ParentCanvas->UIRenderableList.Remove(this->UIItem.Get());
 			ParentCanvas->bIsUIRenderableHierarchyChanged = true;
@@ -1045,7 +1041,7 @@ void ULGUICanvas::SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue)
 	OverrideProjectionMatrix = InValue;
 }
 
-void ULGUICanvas::UpdateCanvasLayout(bool layoutChanged)
+void ULGUICanvas::MarkUpdateCanvasLayout(bool layoutChanged)
 {
 	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
 	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged || layoutChanged;
@@ -1479,7 +1475,10 @@ bool ULGUICanvas::IsRenderByOtherCanvas()const
 	}
 	else
 	{
-		return !this->GetOverrideSorting();
+		return
+			!this->GetOverrideSorting()
+			&& !this->GetOverrideAddionalShaderChannel()
+			;
 	}
 }
 
@@ -1862,9 +1861,10 @@ UMaterialInstanceDynamic* ULGUICanvas::GetUIMaterialFromPool(ELGUICanvasClipType
 {
 	if (PooledUIMaterialList.Num() == 0)
 	{
-		PooledUIMaterialList.Add({});
-		PooledUIMaterialList.Add({});
-		PooledUIMaterialList.Add({});
+		for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+		{
+			PooledUIMaterialList.Add({});
+		}
 	}
 	auto& MatList = PooledUIMaterialList[(int)InClipType].MaterialList;
 	if (MatList.Num() == 0)
@@ -1895,6 +1895,14 @@ void ULGUICanvas::AddUIMaterialToPool(UMaterialInstanceDynamic* UIMat)
 	}
 	if (CacheMatTypeIndex != -1)
 	{
+		if (PooledUIMaterialList.Num() == 0)//PooledUIMaterialList could be cleared when hierarchy change, but we still willing to pool the material, so check it again
+		{
+			for (int i = 0; i < LGUI_DEFAULT_MATERIAL_COUNT; i++)
+			{
+				PooledUIMaterialList.Add({});
+			}
+		}
+
 		auto& MatList = PooledUIMaterialList[CacheMatTypeIndex].MaterialList;
 		MatList.Add(UIMat);
 	}
@@ -2113,14 +2121,14 @@ void ULGUICanvas::SetInheriRectClip(bool newBool)
 
 void ULGUICanvas::SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue)
 {
-	if (FMath::Abs(this->SortOrder + InAdditionalValue) > MAX_int16)
+	if (FMath::Abs(this->sortOrder + InAdditionalValue) > MAX_int16)
 	{
-		auto errorMsg = FString::Printf(TEXT("[ULGUICanvas::SetSortOrder] SortOrder out of range!\nNOTE! SortOrder value is stored with int16 type, so valid range is -32768 to 32767"));
+		auto errorMsg = FString::Printf(TEXT("[ULGUICanvas::SetSortOrder] sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767"));
 		LGUIUtils::EditorNotification(FText::FromString(errorMsg));
 		return;
 	}
 
-	this->SortOrder += InAdditionalValue;
+	this->sortOrder += InAdditionalValue;
 	for (auto ChildCanvas : ChildrenCanvasArray)
 	{
 		ChildCanvas->SetSortOrderAdditionalValueRecursive(InAdditionalValue);
@@ -2129,23 +2137,23 @@ void ULGUICanvas::SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue)
 
 void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanvas)
 {
-	if (SortOrder != InSortOrder)
+	if (sortOrder != InSortOrder)
 	{
 		MarkCanvasUpdate();
 		if (InPropagateToChildrenCanvas)
 		{
-			int32 Diff = InSortOrder - SortOrder;
+			int32 Diff = InSortOrder - sortOrder;
 			SetSortOrderAdditionalValueRecursive(Diff);
 		}
 		else
 		{
 			if (FMath::Abs(InSortOrder) > MAX_int16)
 			{
-				auto errorMsg = FString::Printf(TEXT("[ULGUICanvas::SetSortOrder] SortOrder out of range!\nNOTE! SortOrder value is stored with int16 type, so valid range is -32768 to 32767"));
+				auto errorMsg = FString::Printf(TEXT("[ULGUICanvas::SetSortOrder] sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767"));
 				LGUIUtils::EditorNotification(FText::FromString(errorMsg));
 				InSortOrder = FMath::Clamp(InSortOrder, (int32)MIN_int16, (int32)MAX_int16);
 			}
-			this->SortOrder = InSortOrder;
+			this->sortOrder = InSortOrder;
 		}
 		if (this == RootCanvas)
 		{
@@ -2164,7 +2172,7 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 				}
 				if (ViewExtension.IsValid())
 				{
-					ViewExtension->SetRenderCanvasSortOrder(this, this->SortOrder);
+					ViewExtension->SetRenderCanvasSortOrder(this, this->sortOrder);
 				}
 			}
 		}
@@ -2350,13 +2358,13 @@ int32 ULGUICanvas::GetActualSortOrder()const
 {
 	if (IsRootCanvas())
 	{
-		return SortOrder;
+		return sortOrder;
 	}
 	else
 	{
 		if (bOverrideSorting)
 		{
-			return SortOrder;
+			return sortOrder;
 		}
 		else
 		{
@@ -2366,7 +2374,7 @@ int32 ULGUICanvas::GetActualSortOrder()const
 			}
 		}
 	}
-	return SortOrder;
+	return sortOrder;
 }
 
 void ULGUICanvas::SetOverrideSorting(bool value)

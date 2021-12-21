@@ -251,7 +251,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 
 	if (bOverrideSorting)
 	{
-		category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, SortOrder)));
+		category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder)));
 		//sortOrder info
 		{
 			category.AddCustomRow(LOCTEXT("SortOrderInfo", "SortOrderInfo"))
@@ -272,7 +272,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	}
 	else
 	{
-		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, SortOrder));
+		needToHidePropertyNames.Add(GET_MEMBER_NAME_CHECKED(ULGUICanvas, sortOrder));
 	}
 
 	for (auto item : needToHidePropertyNames)

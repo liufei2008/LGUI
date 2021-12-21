@@ -33,7 +33,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 	PropertyUtilites = CustomizationUtils.GetPropertyUtilities();
 
 	EventParameterType = GetNativeParameterType(PropertyHandle);
-	EventListHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, EventList))->AsArray();
+	EventListHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, eventList))->AsArray();
 
 	//add parameter type property
 	bool bIsInWorld = false;
@@ -172,7 +172,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 		}
 
 		//function
-		auto FunctionNameHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, FunctionName));
+		auto FunctionNameHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
 		FName FunctionFName;
 		FunctionNameHandle->GetValue(FunctionFName);
 		FString FunctionName = FunctionFName.ToString();
@@ -211,7 +211,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 		if (IsValid(TargetObject) && IsValid(EventFunction))
 		{
 			bool bUseNativeParameter = false;
-			auto UseNativeParameterHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, bUseNativeParameter));
+			auto UseNativeParameterHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UseNativeParameter));
 			UseNativeParameterHandle->GetValue(bUseNativeParameter);
 				
 			if (EventParameterType != FunctionParameterType)//check "bUseNativeParameter" parameter
@@ -526,10 +526,10 @@ void FLGUIEventDelegateCustomization::OnSelectActorSelf(int32 itemIndex)
 void FLGUIEventDelegateCustomization::OnSelectFunction(FName FuncName, int32 itemIndex, LGUIEventDelegateParameterType ParamType, bool UseNativeParameter)
 {
 	auto ItemHandle = EventListHandle->GetElement(itemIndex);
-	auto nameHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, FunctionName));
+	auto nameHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, functionName));
 	nameHandle->SetValue(FuncName);
 	SetEventDataParameterType(ItemHandle, ParamType);
-	auto UseNativeParameterHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, bUseNativeParameter));
+	auto UseNativeParameterHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, UseNativeParameter));
 	UseNativeParameterHandle->SetValue(UseNativeParameter);
 	PropertyUtilites->ForceRefresh();
 }
@@ -541,7 +541,7 @@ void FLGUIEventDelegateCustomization::SetEventDataParameterType(TSharedRef<IProp
 }
 LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParameterType(TSharedRef<IPropertyHandle> PropertyHandle)
 {
-	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, NativeParameterType));
+	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
 	NativeParameterTypeHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] { PropertyUtilites->ForceRefresh(); }));
 	uint8 supportParameterTypeUint8;
 	NativeParameterTypeHandle->GetValue(supportParameterTypeUint8);
@@ -550,7 +550,7 @@ LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetNativeParamet
 }
 void FLGUIEventDelegateCustomization::AddNativeParameterTypeProperty(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder)
 {
-	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, NativeParameterType));
+	auto NativeParameterTypeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegate, supportParameterType));
 	ChildBuilder.AddProperty(NativeParameterTypeHandle.ToSharedRef());
 }
 LGUIEventDelegateParameterType FLGUIEventDelegateCustomization::GetEventDataParameterType(TSharedRef<IPropertyHandle> EventDataItemHandle)

@@ -19,7 +19,7 @@ enum class UISelectableTransitionType:uint8
 	/** In this mode, TransitionActor's root component need to be a UISpriteBase. */
 	/** Target UISprite's sprite will be override by this component. */
 	SpriteSwap			UMETA(DisplayName = "SpriteSwap"),
-	/** You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to transition actor */
+	/** You can implement a UISelectableTransitionComponent in c++ or blueprint to do the transition, and add this component to this actor */
 	TransitionComponent			UMETA(DisplayName = "TransitionComponent"),
 };
 UENUM(BlueprintType, Category = LGUI)
@@ -60,11 +60,13 @@ protected:
 
 protected:
 	virtual void Awake() override;
+	virtual void OnEnable() override;
 	virtual void Start() override;
+	virtual void OnDisable()override;
 	virtual void OnDestroy()override;
 
 	friend class FUISelectableCustomization;
-	/** If not assigned, then use self. must have UIItem component */
+	/** If not assigned, then use self. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		TWeakObjectPtr<class AUIBaseRenderableActor> TransitionActor;
 	/** inherited events of this component can bubble up? */
@@ -73,8 +75,6 @@ protected:
 
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot)override;
 
-	bool CheckTarget();
-	
 #pragma region Transition
 	UPROPERTY(EditAnywhere, Category = "LGUI-Selectable")
 		UISelectableTransitionType Transition;

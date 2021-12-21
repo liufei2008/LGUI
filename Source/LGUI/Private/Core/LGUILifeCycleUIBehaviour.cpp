@@ -36,7 +36,6 @@ void ULGUILifeCycleUIBehaviour::OnUnregister()
 void ULGUILifeCycleUIBehaviour::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	RootUIComp = nullptr;
 	CheckRootUIComponent();
 }
 #endif
@@ -56,7 +55,7 @@ bool ULGUILifeCycleUIBehaviour::CheckRootUIComponent() const
 
 bool ULGUILifeCycleUIBehaviour::GetIsActiveAndEnable()const
 {
-	if (CheckRootUIComponent())
+	if (RootUIComp.IsValid())
 	{
 		return RootUIComp->GetIsUIActiveInHierarchy() && enable;
 	}
@@ -72,7 +71,7 @@ bool ULGUILifeCycleUIBehaviour::IsAllowedToCallOnEnable()const
 
 bool ULGUILifeCycleUIBehaviour::IsAllowedToCallAwake()const
 {
-	if (CheckRootUIComponent())
+	if (RootUIComp.IsValid())
 	{
 		return RootUIComp->GetIsUIActiveInHierarchy();
 	}
@@ -84,7 +83,7 @@ bool ULGUILifeCycleUIBehaviour::IsAllowedToCallAwake()const
 
 UUIItem* ULGUILifeCycleUIBehaviour::GetRootUIComponent() const
 {
-	if (CheckRootUIComponent())
+	if (RootUIComp.IsValid())
 	{
 		return RootUIComp.Get();
 	}
@@ -118,12 +117,12 @@ void ULGUILifeCycleUIBehaviour::OnUIActiveInHierachy(bool activeOrInactive)
 
 void ULGUILifeCycleUIBehaviour::Awake()
 {
-	bIsAwakeCalled = true;
+	Super::Awake();
 	for (auto CallbackFunc : CallbacksBeforeAwake)
 	{
 		CallbackFunc();
 	}
-	Super::Awake();
+	CallbacksBeforeAwake.Empty();
 }
 
 void ULGUILifeCycleUIBehaviour::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
@@ -219,10 +218,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildDimensionsChanged(UUIItem* child, 
 		else
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
+			auto ChildPtr = MakeWeakObjectPtr(child);
 			CallbacksBeforeAwake.Add([=]() {
-				if (ThisPtr.IsValid())
+				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
-					ThisPtr->OnUIChildDimensionsChanged(child, positionChanged, sizeChanged);
+					ThisPtr->OnUIChildDimensionsChanged(ChildPtr.Get(), positionChanged, sizeChanged);
 				}});
 		}
 	}
@@ -244,10 +244,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildAcitveInHierarchy(UUIItem* child, 
 		else
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
+			auto ChildPtr = MakeWeakObjectPtr(child);
 			CallbacksBeforeAwake.Add([=]() {
-				if (ThisPtr.IsValid())
+				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
-					ThisPtr->OnUIChildAcitveInHierarchy(child, ativeOrInactive);
+					ThisPtr->OnUIChildAcitveInHierarchy(ChildPtr.Get(), ativeOrInactive);
 				}});
 		}
 	}
@@ -294,10 +295,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildAttachmentChanged(UUIItem* child, 
 		else
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
+			auto ChildPtr = MakeWeakObjectPtr(child);
 			CallbacksBeforeAwake.Add([=]() {
-				if (ThisPtr.IsValid())
+				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
-					ThisPtr->OnUIChildAttachmentChanged(child, attachOrDetach);
+					ThisPtr->OnUIChildAttachmentChanged(ChildPtr.Get(), attachOrDetach);
 				}});
 		}
 	}
@@ -344,10 +346,11 @@ void ULGUILifeCycleUIBehaviour::Call_OnUIChildHierarchyIndexChanged(UUIItem* chi
 		else
 		{
 			auto ThisPtr = MakeWeakObjectPtr(this);
+			auto ChildPtr = MakeWeakObjectPtr(child);
 			CallbacksBeforeAwake.Add([=]() {
-				if (ThisPtr.IsValid())
+				if (ThisPtr.IsValid() && ChildPtr.IsValid())
 				{
-					ThisPtr->OnUIChildHierarchyIndexChanged(child);
+					ThisPtr->OnUIChildHierarchyIndexChanged(ChildPtr.Get());
 				}});
 		}
 	}

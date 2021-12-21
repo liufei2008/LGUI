@@ -66,9 +66,9 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
 
-void UUIBatchGeometryRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool DoPropergateLayoutChange)
+void UUIBatchGeometryRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
 {
-    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange, DoPropergateLayoutChange);
+    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
 	if (InPivotChange || InSizeChange)
     {
         MarkVertexPositionDirty();

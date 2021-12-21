@@ -66,6 +66,8 @@ public:
 
 	static FLGUIPrefabEditor* GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab);
 	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
+
+	bool GetSelectedObjectsBounds(FBoxSphereBounds& OutResult);
 protected:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	TWeakObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject = nullptr;

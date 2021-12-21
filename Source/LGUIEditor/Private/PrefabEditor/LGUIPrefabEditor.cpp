@@ -101,6 +101,40 @@ void FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 	}
 }
 
+bool FLGUIPrefabEditor::GetSelectedObjectsBounds(FBoxSphereBounds& OutResult)
+{
+	USelection* Selection = GEditor->GetSelectedActors();
+	TArray<AActor*> SelectedActors;
+	for (int i = 0; i < Selection->Num(); i++)
+	{
+		if (auto Actor = Cast<AActor>(Selection->GetSelectedObject(i)))
+		{
+			if (Actor->GetWorld() == this->GetWorld())//only concern actors belongs to this prefab
+			{
+				SelectedActors.Add(Actor);
+			}
+		}
+	}
+
+	FBoxSphereBounds Bounds;
+	bool IsFirstBounds = true;
+	for (auto& Actor : SelectedActors)
+	{
+		auto Box = Actor->GetComponentsBoundingBox();
+		if (IsFirstBounds)
+		{
+			IsFirstBounds = false;
+			Bounds = Box;
+		}
+		else
+		{
+			Bounds = Bounds + Box;
+		}
+	}
+	OutResult = Bounds;
+	return IsFirstBounds == false;
+}
+
 bool FLGUIPrefabEditor::OnRequestClose()
 {
 	return true;
@@ -306,7 +340,7 @@ void FLGUIPrefabEditor::OnOpenRawDataViewerPanel()
 
 void FLGUIPrefabEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObject(PrefabBeingEdited);
+	//Collector.AddReferencedObject(PrefabBeingEdited);
 }
 
 bool FLGUIPrefabEditor::CheckBeforeSaveAsset()

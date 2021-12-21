@@ -17,7 +17,7 @@ void UUIToggleGroupComponent::AddToggleComponent(UUIToggleComponent* InComp)
 		UE_LOG(LGUI, Warning, TEXT("[UUIToggleGroupComponent::AddToggleComponent]Already exist!"));
 		return;
 	}
-	if (!IsValid(InComp->GetRootComponent()))
+	if (!IsValid(InComp->GetRootUIComponent()))
 	{
 		UE_LOG(LGUI, Warning, TEXT("[UUIToggleGroupComponent::AddToggleComponent]InComp must have UIItem as root component!"));
 		return;

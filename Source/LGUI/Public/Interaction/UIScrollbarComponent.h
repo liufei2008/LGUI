@@ -71,6 +71,10 @@ public:
 		void SetSize(float InSize);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
 		void SetValueAndSize(float InValue, float InSize, bool FireEvent = true);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+		AUIBaseActor* GetHandleActor()const { return HandleActor.Get(); }
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Scrollbar")
+		UIScrollbarDirectionType GetDirectionType()const { return DirectionType; }
 
 	FDelegateHandle RegisterSlideEvent(const FLGUIFloatDelegate& InDelegate);
 	FDelegateHandle RegisterSlideEvent(const TFunction<void(float)>& InFunction);
@@ -91,4 +95,10 @@ private:
 	bool CheckHandle();
 	void CalculateInputValue(ULGUIPointerEventData* eventData);
 	void ApplyValueToUI();
+
+#if WITH_EDITOR
+public:
+	/** This function is only for update from LGUI2 to LGUI3 */
+	void ForUpgrade2to3_ApplyValueToUI() { ApplyValueToUI(); }
+#endif
 };

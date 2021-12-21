@@ -179,6 +179,7 @@ public:
 	bool RefreshParameterOnTemplate(ULGUIPrefabOverrideParameterObject* InTemplate);
 	void SetParameterDisplayType(bool InIsTemplate);
 	void ApplyParameter();
+	/** For template, when select property in editor, it will get the property's value and sotre it as default value. */
 	void SaveDefaultValue();
 	bool HasRepeatedParameter();
 	int32 GetParameterCount()const;

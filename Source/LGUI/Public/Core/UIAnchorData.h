@@ -17,7 +17,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		FVector2D AnchorMax = FVector2D(0.5f, 0.5f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		FVector2D AnchoredPosition;
+		FVector2D AnchoredPosition = FVector2D(0, 0);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		FVector2D SizeDelta = FVector2D(100, 100);
 

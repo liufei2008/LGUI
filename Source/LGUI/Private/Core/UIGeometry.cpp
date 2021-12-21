@@ -171,10 +171,10 @@ void UIGeometry::FromUIRectSimple(const float& width, const float& height, const
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(4);
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
 		}
 	}
 	//tangents
@@ -184,10 +184,10 @@ void UIGeometry::FromUIRectSimple(const float& width, const float& height, const
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(4);
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
 		}
 	}
 	//uvs1
@@ -296,7 +296,7 @@ void UIGeometry::FromUIRectBorder(const float& width, const float& height, const
 			normals.Reserve(16);
 			for (int i = 0; i < 16; i++)
 			{
-				normals.Add(FVector(0, 0, -1));
+				normals.Add(FVector(-1, 0, 0));
 			}
 		}
 	}
@@ -309,7 +309,7 @@ void UIGeometry::FromUIRectBorder(const float& width, const float& height, const
 			tangents.Reserve(16);
 			for (int i = 0; i < 16; i++)
 			{
-				tangents.Add(FVector(1, 0, 0));
+				tangents.Add(FVector(0, 1, 0));
 			}
 		}
 	}
@@ -468,7 +468,7 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 			normals.Reserve(uiGeo->originVerticesCount);
 			for (int i = 0; i < uiGeo->originVerticesCount; i++)
 			{
-				normals.Add(FVector(0, 0, -1));
+				normals.Add(FVector(-1, 0, 0));
 			}
 		}
 	}
@@ -481,7 +481,7 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 			tangents.Reserve(uiGeo->originVerticesCount);
 			for (int i = 0; i < uiGeo->originVerticesCount; i++)
 			{
-				tangents.Add(FVector(1, 0, 0));
+				tangents.Add(FVector(0, 1, 0));
 			}
 		}
 	}
@@ -597,10 +597,10 @@ void UIGeometry::FromUIRectFillHorizontalVertical(const float& width, const floa
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(4);
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
 		}
 	}
 	//tangents
@@ -610,10 +610,10 @@ void UIGeometry::FromUIRectFillHorizontalVertical(const float& width, const floa
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(4);
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
 		}
 	}
 	//uvs1
@@ -777,10 +777,10 @@ void UIGeometry::FromUIRectFillRadial90(const float& width, const float& height,
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(4);
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
 		}
 	}
 	//tangents
@@ -790,10 +790,10 @@ void UIGeometry::FromUIRectFillRadial90(const float& width, const float& height,
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(4);
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
 		}
 	}
 	//uvs1
@@ -1220,11 +1220,11 @@ void UIGeometry::FromUIRectFillRadial180(const float& width, const float& height
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(5);
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
 		}
 	}
 	//tangents
@@ -1234,11 +1234,11 @@ void UIGeometry::FromUIRectFillRadial180(const float& width, const float& height
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(5);
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
 		}
 	}
 	//uvs1
@@ -1804,10 +1804,10 @@ void UIGeometry::FromUIRectFillRadial360(const float& width, const float& height
 		if (normals.Num() == 0)
 		{
 			normals.Reserve(4);
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
-			normals.Add(FVector(0, 0, -1));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
+			normals.Add(FVector(-1, 0, 0));
 		}
 	}
 	//tangents
@@ -1817,10 +1817,10 @@ void UIGeometry::FromUIRectFillRadial360(const float& width, const float& height
 		if (tangents.Num() == 0)
 		{
 			tangents.Reserve(4);
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
-			tangents.Add(FVector(1, 0, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
+			tangents.Add(FVector(0, 1, 0));
 		}
 	}
 	//uvs1
@@ -2311,7 +2311,7 @@ void UIGeometry::FromUIText(const FString& content, int32 visibleCharCount, floa
 			normals.Reserve(vertexCount);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				normals.Add(FVector(0, 0, -1));
+				normals.Add(FVector(-1, 0, 0));
 			}
 		}
 	}
@@ -2324,7 +2324,7 @@ void UIGeometry::FromUIText(const FString& content, int32 visibleCharCount, floa
 			tangents.Reserve(vertexCount);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				tangents.Add(FVector(1, 0, 0));
+				tangents.Add(FVector(0, 1, 0));
 			}
 		}
 	}
@@ -3665,7 +3665,7 @@ void UIGeometry::FromUIPolygon(const float& width, const float& height, const FV
 			normals.Reserve(vertexCount);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				normals.Add(FVector(0, 0, -1));
+				normals.Add(FVector(-1, 0, 0));
 			}
 		}
 	}
@@ -3678,7 +3678,7 @@ void UIGeometry::FromUIPolygon(const float& width, const float& height, const FV
 			tangents.Reserve(vertexCount);
 			for (int i = 0; i < vertexCount; i++)
 			{
-				tangents.Add(FVector(1, 0, 0));
+				tangents.Add(FVector(0, 1, 0));
 			}
 		}
 	}

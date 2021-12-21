@@ -103,7 +103,7 @@ private:
 		TWeakObjectPtr<UObject> TargetObject;
 	/** target function name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		FName FunctionName;
+		FName functionName;
 	/** target function supported parameter type */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		LGUIEventDelegateParameterType ParamType = LGUIEventDelegateParameterType::None;
@@ -117,7 +117,7 @@ private:
 
 	/** use the function's native parameter? */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		bool bUseNativeParameter = false;
+		bool UseNativeParameter = false;
 private:
 	UPROPERTY(Transient) UFunction* CacheFunction = nullptr;
 	UPROPERTY(Transient) UObject* CacheTarget = nullptr;
@@ -128,6 +128,34 @@ private:
 	void FindAndExecute(UObject* Target, void* ParamData = nullptr);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func);
 	void ExecuteTargetFunction(UObject* Target, UFunction* Func, void* ParamData);
+#if WITH_EDITORONLY_DATA
+public:
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		AActor* targetActor;
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		UClass* componentClass;
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		FName componentName;
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		FName ReferenceName;
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		FString ReferenceString;
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		FText ReferenceText;
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		AActor* ReferenceActor;
+	/** old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		UClass* ReferenceClass;
+	
+#endif
 };
 
 /**
@@ -145,10 +173,10 @@ private:
 	friend class FLGUIEventDelegateCustomization;
 	/** event list */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TArray<FLGUIEventDelegateData> EventList;
+		TArray<FLGUIEventDelegateData> eventList;
 	/** supported parameter type of this event */
-	UPROPERTY(EditAnywhere, Category = "LGUI")
-		LGUIEventDelegateParameterType NativeParameterType = LGUIEventDelegateParameterType::Empty;
+	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (DisplayName = "NativeParameterType"))
+		LGUIEventDelegateParameterType supportParameterType = LGUIEventDelegateParameterType::Empty;
 	/** Parameter type must be the same as your declaration of FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType) */
 	void FireEvent(void* InParam)const;
 	void LogParameterError()const;
