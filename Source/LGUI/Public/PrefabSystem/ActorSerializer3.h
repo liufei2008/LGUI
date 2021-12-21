@@ -57,51 +57,18 @@ namespace LGUIPrefabSystem3
 		}
 	};
 
-	struct FLGUISubPrefabDefaultOverrideParameter//@todo: must be some way to automatic compare property's value, so that we can automaticlly mark changed properties
-	{
-	public:
-		FLGUISubPrefabDefaultOverrideParameter() {};
-		FLGUISubPrefabDefaultOverrideParameter(USceneComponent* RootComp);
-		void ApplyToTarget(USceneComponent* RootComp);
-
-		FString ActorLabel = TEXT("");
-		FVector Location;
-		FRotator Rotation;
-		FVector Scale;
-		bool bIsUI;
-		//for UIItem
-		FString DisplayName;
-		FUIAnchorData AnchorData;
-
-		friend FArchive& operator<<(FArchive& Ar, FLGUISubPrefabDefaultOverrideParameter& Data)
-		{
-			Ar << Data.bIsUI;
-
-			Ar << Data.ActorLabel;
-			Ar << Data.Location;
-			Ar << Data.Rotation;
-			Ar << Data.Scale;
-			if (Data.bIsUI)
-			{
-				Ar << Data.DisplayName;
-				Ar << Data.AnchorData.Pivot;
-				Ar << Data.AnchorData.AnchorMin;
-				Ar << Data.AnchorData.AnchorMax;
-				Ar << Data.AnchorData.AnchoredPosition;
-				Ar << Data.AnchorData.SizeDelta;
-			}
-			return Ar;
-		}
-	};
-
 	//Actor serialize and save data
 	struct FLGUIActorSaveData
 	{
 	public:
 		bool bIsPrefab = false;
 		int32 PrefabAssetIndex;
-		FLGUISubPrefabDefaultOverrideParameter PrefabDefaultOverrideParameter;
 		TArray<uint8> PrefabOverrideParameterData;
+		/**
+		 * The following two array stores components which belong to prefab's root actor. Array must match index for specific component. When deserialize, use FName to find FGuid.
+		 */
+		TArray<FGuid> PrefabRootActorComponentGuidArray;
+		TArray<FName> PrefabRootActorComponentNameArray;
 
 		int32 ActorClass;
 		FGuid ActorGuid;//use id to find actor
@@ -124,8 +91,9 @@ namespace LGUIPrefabSystem3
 			{
 				Ar << ActorData.PrefabAssetIndex;
 				Ar << ActorData.ActorGuid;//sub prefab's root actor's guid
-				Ar << ActorData.PrefabDefaultOverrideParameter;//override sub prefab's root transform
 				Ar << ActorData.PrefabOverrideParameterData;//override sub prefab's parameter
+				Ar << ActorData.PrefabRootActorComponentGuidArray;
+				Ar << ActorData.PrefabRootActorComponentNameArray;
 			}
 			else
 			{

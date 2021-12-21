@@ -57,6 +57,9 @@ FLGUIPrefabEditor::FLGUIPrefabEditor()
 }
 FLGUIPrefabEditor::~FLGUIPrefabEditor()
 {
+	FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(this->OnObjectPropertyChangedDelegateHandle);
+	FCoreUObjectDelegates::OnPreObjectPropertyChanged.Remove(this->OnPreObjectPropertyChangedDelegateHandle);
+
 	if (PrefabHelperObject.IsValid())
 	{
 		PrefabHelperObject->RemoveFromRoot();
@@ -88,6 +91,10 @@ void FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 			if (KeyValue.Value.PrefabAsset == InSubPrefab)
 			{
 				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->AgentOverrideParameterObject))
+				{
+					AnythingChange = true;
+				}
+				if (KeyValue.Value.OverrideParameterObject->RefreshAutomaticParameter())
 				{
 					AnythingChange = true;
 				}
@@ -137,6 +144,19 @@ bool FLGUIPrefabEditor::GetSelectedObjectsBounds(FBoxSphereBounds& OutResult)
 
 bool FLGUIPrefabEditor::OnRequestClose()
 {
+	if (bAnythingDirty)
+	{
+		auto WarningMsg = LOCTEXT("LoseDataOnCloseEditor", "Are you sure you want to close prefab editor window? Property will lose if not hit Apply!");
+		auto Result = FMessageDialog::Open(EAppMsgType::YesNo, WarningMsg);
+		if (Result == EAppReturnType::Yes)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 	return true;
 }
 
@@ -252,6 +272,9 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 		);
 
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
+
+	this->OnObjectPropertyChangedDelegateHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddRaw(this, &FLGUIPrefabEditor::OnObjectPropertyChanged);
+	this->OnPreObjectPropertyChangedDelegateHandle = FCoreUObjectDelegates::OnPreObjectPropertyChanged.AddRaw(this, &FLGUIPrefabEditor::OnPreObjectPropertyChanged);
 }
 
 void FLGUIPrefabEditor::ApplySubPrefabParameterChange(AActor* InSubPrefabActor)
@@ -318,6 +341,7 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 		PrefabHelperObject->SavePrefab();
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
 		FAssetEditorToolkit::SaveAsset_Execute();
+		bAnythingDirty = false;
 	}
 }
 void FLGUIPrefabEditor::OnApply()
@@ -326,6 +350,7 @@ void FLGUIPrefabEditor::OnApply()
 	{
 		PrefabHelperObject->SavePrefab();
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
+		bAnythingDirty = false;
 	}
 }
 
@@ -607,6 +632,46 @@ void FLGUIPrefabEditor::OnToolkitHostingStarted(const TSharedRef<IToolkit>& Tool
 
 }
 void FLGUIPrefabEditor::OnToolkitHostingFinished(const TSharedRef<IToolkit>& Toolkit)
+{
+
+}
+
+void FLGUIPrefabEditor::OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent)
+{
+	if (InObject->GetWorld() == this->GetWorld())
+	{
+		bAnythingDirty = true;
+
+		AActor* SubPrefabRootActor = nullptr;
+		if (auto Actor = Cast<AActor>(InObject))
+		{
+			if (PrefabHelperObject->SubPrefabMap.Contains(Actor))//if is subprefab's root actor
+			{
+				SubPrefabRootActor = Actor;
+			}
+		}
+		if (auto Component = Cast<UActorComponent>(InObject))
+		{
+			if (auto Actor = Component->GetOwner())
+			{
+				if (PrefabHelperObject->SubPrefabMap.Contains(Actor))//if is subprefab's root actor's component
+				{
+					SubPrefabRootActor = Actor;
+				}
+			}
+		}
+		if (SubPrefabRootActor)//automatic record root actor's property
+		{
+			auto ChangedProperty = InPropertyChangedEvent.MemberProperty;
+			ELGUIPrefabOverrideParameterType ParamType;
+			if (ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(ChangedProperty, ParamType))
+			{
+				PrefabHelperObject->PrefabOverrideParameterObject->AddOrUpdateParameterToAutomaticParameters(SubPrefabRootActor, InObject, ChangedProperty, ParamType);
+			}
+		}
+	}
+}
+void FLGUIPrefabEditor::OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain)
 {
 
 }

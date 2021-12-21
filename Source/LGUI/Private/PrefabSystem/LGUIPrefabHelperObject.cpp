@@ -80,7 +80,7 @@ void ULGUIPrefabHelperObject::SavePrefab()
 		{
 			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(LoadedRootActor);
 		}
-		PrefabOverrideParameterObject->SaveDefaultValue();
+		PrefabOverrideParameterObject->SaveCurrentValueAsDefault();
 
 		TMap<UObject*, FGuid> MapObjectToGuid;
 		for (auto KeyValue : MapGuidToObject)

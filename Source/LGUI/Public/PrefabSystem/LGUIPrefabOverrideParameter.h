@@ -54,12 +54,13 @@ private:
 
 #define LGUIActorSelfName "(ActorSelf)"
 
-USTRUCT()
+USTRUCT(NotBlueprintType)
 struct LGUI_API FLGUIPrefabOverrideParameterData
 {
 	GENERATED_BODY()
 public:
 	FLGUIPrefabOverrideParameterData();
+
 private:
 	friend class FLGUIPrefabOverrideParameterCustomization;
 	friend struct FLGUIPrefabOverrideParameter;
@@ -114,17 +115,21 @@ private:
 	/** Use Guid as unique key, so we can find the same property. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FGuid Guid;
+	//@todo: add a bool, for store if the property's value is changed
 #endif
 public:
 	void ApplyParameter();
 	/** Check Actorserializer3_Deserialize */
 	void SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameterData& InTemplate);
-	void SaveDefaultValue();
+	/** Save current value as default */
+	void SaveCurrentValueAsDefault();
 	/** Check if reference parameter equal, not include value */
 	bool IsReferenceParameterEqual(const FLGUIPrefabOverrideParameterData& Other)const;
 	bool IsParameter_Type_Name_Guid_Equal(const FLGUIPrefabOverrideParameterData& Other)const;
 private:
+	/** Apply value to property from stored data */
 	bool ApplyPropertyParameter(UObject* InTarget, FProperty* InProperty);
+	/** Store parameter value from property */
 	bool SavePropertyParameter(UObject* InTarget, FProperty* InProperty);
 	bool CheckDataType(ELGUIPrefabOverrideParameterType PropertyType);
 	bool CheckDataType(ELGUIPrefabOverrideParameterType PropertyType, FProperty* InProperty);
@@ -133,7 +138,7 @@ private:
 /**
  * Sub prefab's override parameter
  */
-USTRUCT(BlueprintType)
+USTRUCT(NotBlueprintType)
 struct LGUI_API FLGUIPrefabOverrideParameter
 {
 	GENERATED_BODY()
@@ -155,9 +160,13 @@ public:
 	void SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameter& InTemplate);
 	/** @return	true if anything change, false nothing change */
 	bool RefreshParameterOnTemplate(const FLGUIPrefabOverrideParameter& InTemplate);
-	void SaveDefaultValue();
+	bool RefreshAutomaticParameter();
+	void SaveCurrentValueAsDefault();
 	void SetListItemDefaultNameWhenAddNewToList();
 	bool HasRepeatedParameter();
+
+	/** Add parameter to list or update parameter's value */
+	void AddOrUpdateParameter(AActor* InActor, UObject* InObject, FProperty* InProperty, ELGUIPrefabOverrideParameterType InParamType);
 };
 
 UCLASS(NotBlueprintType)
@@ -167,22 +176,35 @@ class LGUI_API ULGUIPrefabOverrideParameterObject : public UObject
 public:
 	ULGUIPrefabOverrideParameterObject() {}
 private:
-	/** parameter list */
+	friend class FLGUIPrefabOverrideParameterCustomization;
+	/** override parameter that set manually */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FLGUIPrefabOverrideParameter Parameter;
+	/** override parameter that set automatically */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		FLGUIPrefabOverrideParameter AutomaticParameter;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 public:
 	/** Check Actorserializer3_Deserialize */
 	void SetParameterReferenceFromTemplate(ULGUIPrefabOverrideParameterObject* InTemplate);
+	/**
+	 * For sub prefab, refresh parameters by compare with template.
+	 * @param	InTemplate	the sub prefab's origin OverrideParameterObject
+	 */
 	bool RefreshParameterOnTemplate(ULGUIPrefabOverrideParameterObject* InTemplate);
+	/** Refresh automatic parameters, check if parameter still exist, if not then remove it. */
+	bool RefreshAutomaticParameter();
+	/** Set display type, template or editable instance */
 	void SetParameterDisplayType(bool InIsTemplate);
+	/** Apply recored data to property value */
 	void ApplyParameter();
 	/** For template, when select property in editor, it will get the property's value and sotre it as default value. */
-	void SaveDefaultValue();
+	void SaveCurrentValueAsDefault();
 	bool HasRepeatedParameter();
 	int32 GetParameterCount()const;
-
 	bool GetIsIsTemplate()const { return Parameter.bIsTemplate; }
+	/** Add or update parameter to AutomaticParameter, will record value aswell */
+	void AddOrUpdateParameterToAutomaticParameters(AActor* InActor, UObject* InObject, FProperty* InProperty, ELGUIPrefabOverrideParameterType InParamType);
 };

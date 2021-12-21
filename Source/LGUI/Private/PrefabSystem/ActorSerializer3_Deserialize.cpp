@@ -381,7 +381,23 @@ namespace LGUIPrefabSystem3
 							{
 								MapGuidToObject.Add(SavedActors.ActorGuid, SubPrefabRootActor);
 							}
-							SavedActors.PrefabDefaultOverrideParameter.ApplyToTarget(SubPrefabRootActor->GetRootComponent());
+							//map guid to components
+							for (auto& BlueprintComp : InSubPrefabRootActor->BlueprintCreatedComponents)
+							{
+								auto FoundIndex = SavedActors.PrefabRootActorComponentNameArray.IndexOfByKey(BlueprintComp->GetFName());
+								if (FoundIndex != INDEX_NONE)
+								{
+									MapGuidToObject.Add(SavedActors.PrefabRootActorComponentGuidArray[FoundIndex], BlueprintComp);
+								}
+							}
+							for (auto& InstanceComp : InSubPrefabRootActor->GetInstanceComponents())
+							{
+								auto FoundIndex = SavedActors.PrefabRootActorComponentNameArray.IndexOfByKey(InstanceComp->GetFName());
+								if (FoundIndex != INDEX_NONE)
+								{
+									MapGuidToObject.Add(SavedActors.PrefabRootActorComponentGuidArray[FoundIndex], InstanceComp);
+								}
+							}
 
 							SubOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(SubPrefabRootActor);
 							WriterOrReaderFunction(SubOverrideParameterObject, SavedActors.PrefabOverrideParameterData, false);//use WriterOrReaderFunction from parent prefab, because when serailize(save) nested prefab, the subprefab's override parameter use parent's WriterOrReaderFunction

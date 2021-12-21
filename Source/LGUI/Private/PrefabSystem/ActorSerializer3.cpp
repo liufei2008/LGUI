@@ -10,39 +10,6 @@
 
 namespace LGUIPrefabSystem3
 {
-	FLGUISubPrefabDefaultOverrideParameter::FLGUISubPrefabDefaultOverrideParameter(USceneComponent* RootComp)
-	{
-		auto UIItem = Cast<UUIItem>(RootComp);
-		this->bIsUI = UIItem != nullptr;
-#if WITH_EDITOR
-		this->ActorLabel = RootComp->GetOwner()->GetActorLabel();
-#endif
-		this->Location = UIItem->GetRelativeLocation();
-		this->Rotation = UIItem->GetRelativeRotation();
-		this->Scale = UIItem->GetRelativeScale3D();
-		if (bIsUI)
-		{
-			this->DisplayName = UIItem->GetDisplayName();
-			this->AnchorData = UIItem->GetAnchorData();
-		}
-	}
-	void FLGUISubPrefabDefaultOverrideParameter::ApplyToTarget(USceneComponent* RootComp)
-	{
-#if WITH_EDITOR
-		RootComp->GetOwner()->SetActorLabel(this->ActorLabel);
-#endif
-		RootComp->SetRelativeLocationAndRotation(this->Location, this->Rotation);
-		RootComp->SetRelativeScale3D(this->Scale);
-		auto UIItem = Cast<UUIItem>(RootComp);
-		if (this->bIsUI && UIItem != nullptr)
-		{
-			UIItem->SetDisplayName(this->DisplayName);
-			UIItem->SetAnchorData(this->AnchorData);
-		}
-	}
-
-
-
 	ActorSerializer3::ActorSerializer3(UWorld* InTargetWorld)
 	{
 		TargetWorld = TWeakObjectPtr<UWorld>(InTargetWorld);

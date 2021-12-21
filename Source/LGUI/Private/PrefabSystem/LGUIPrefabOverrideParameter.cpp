@@ -76,31 +76,31 @@ bool ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(const FProperty* In
 	else if (auto structProperty = CastField<FStructProperty>(InProperty))
 	{
 		auto structName = structProperty->Struct->GetFName();
-		if (structName == TEXT("Vector2D"))
+		if (structName == NAME_Vector2D)
 		{
 			OutParameterType = ELGUIPrefabOverrideParameterType::Vector2; return true;
 		}
-		else if (structName == TEXT("Vector"))
+		else if (structName == NAME_Vector)
 		{
 			OutParameterType = ELGUIPrefabOverrideParameterType::Vector3; return true;
 		}
-		else if (structName == TEXT("Vector4"))
+		else if (structName == NAME_Vector4)
 		{
 			OutParameterType = ELGUIPrefabOverrideParameterType::Vector4; return true;
 		}
-		else if (structName == TEXT("Color"))
+		else if (structName == NAME_Color)
 		{
 			OutParameterType = ELGUIPrefabOverrideParameterType::Color; return true;
 		}
-		else if (structName == TEXT("LinearColor"))
+		else if (structName == NAME_LinearColor)
 		{
 			OutParameterType = ELGUIPrefabOverrideParameterType::LinearColor; return true;
 		}
-		else if (structName == TEXT("Quat"))
+		else if (structName == NAME_Quat)
 		{
 			OutParameterType = ELGUIPrefabOverrideParameterType::Quaternion; return true;
 		}
-		else if (structName == TEXT("Rotator"))
+		else if (structName == NAME_Rotator)
 		{
 			OutParameterType = ELGUIPrefabOverrideParameterType::Rotator; return true;
 		}
@@ -429,7 +429,7 @@ bool FLGUIPrefabOverrideParameterData::ApplyPropertyParameter(UObject* InTarget,
 	else if (auto structProperty = CastField<FStructProperty>(InProperty))
 	{
 		auto structName = structProperty->Struct->GetFName();
-		if (structName == TEXT("Vector2D"))
+		if (structName == NAME_Vector2D)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector2, InProperty))
 			{
@@ -437,7 +437,7 @@ bool FLGUIPrefabOverrideParameterData::ApplyPropertyParameter(UObject* InTarget,
 				return true;
 			}
 		}
-		else if (structName == TEXT("Vector"))
+		else if (structName == NAME_Vector)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector3, InProperty))
 			{
@@ -445,7 +445,7 @@ bool FLGUIPrefabOverrideParameterData::ApplyPropertyParameter(UObject* InTarget,
 				return true;
 			}
 		}
-		else if (structName == TEXT("Vector4"))
+		else if (structName == NAME_Vector4)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector4, InProperty))
 			{
@@ -453,7 +453,7 @@ bool FLGUIPrefabOverrideParameterData::ApplyPropertyParameter(UObject* InTarget,
 				return true;
 			}
 		}
-		else if (structName == TEXT("Color"))
+		else if (structName == NAME_Color)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Color, InProperty))
 			{
@@ -461,7 +461,7 @@ bool FLGUIPrefabOverrideParameterData::ApplyPropertyParameter(UObject* InTarget,
 				return true;
 			}
 		}
-		else if (structName == TEXT("LinearColor"))
+		else if (structName == NAME_LinearColor)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::LinearColor, InProperty))
 			{
@@ -469,7 +469,7 @@ bool FLGUIPrefabOverrideParameterData::ApplyPropertyParameter(UObject* InTarget,
 				return true;
 			}
 		}
-		else if (structName == TEXT("Quat"))
+		else if (structName == NAME_Quat)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Quaternion, InProperty))
 			{
@@ -477,7 +477,7 @@ bool FLGUIPrefabOverrideParameterData::ApplyPropertyParameter(UObject* InTarget,
 				return true;
 			}
 		}
-		else if (structName == TEXT("Rotator"))
+		else if (structName == NAME_Rotator)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Rotator, InProperty))
 			{
@@ -651,7 +651,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	else if (auto structProperty = CastField<FStructProperty>(InProperty))
 	{
 		auto structName = structProperty->Struct->GetFName();
-		if (structName == TEXT("Vector2D"))
+		if (structName == NAME_Vector2D)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector2))
 			{
@@ -659,7 +659,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 				return true;
 			}
 		}
-		else if (structName == TEXT("Vector"))
+		else if (structName == NAME_Vector)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector3))
 			{
@@ -667,7 +667,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 				return true;
 			}
 		}
-		else if (structName == TEXT("Vector4"))
+		else if (structName == NAME_Vector4)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Vector4))
 			{
@@ -675,7 +675,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 				return true;
 			}
 		}
-		else if (structName == TEXT("Color"))
+		else if (structName == NAME_Color)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Color))
 			{
@@ -683,7 +683,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 				return true;
 			}
 		}
-		else if (structName == TEXT("LinearColor"))
+		else if (structName == NAME_LinearColor)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::LinearColor))
 			{
@@ -691,7 +691,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 				return true;
 			}
 		}
-		else if (structName == TEXT("Quat"))
+		else if (structName == NAME_Quat)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Quaternion))
 			{
@@ -699,7 +699,7 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 				return true;
 			}
 		}
-		else if (structName == TEXT("Rotator"))
+		else if (structName == NAME_Rotator)
 		{
 			if (CheckDataType(ELGUIPrefabOverrideParameterType::Rotator))
 			{
@@ -767,7 +767,7 @@ FLGUIPrefabOverrideParameterData::FLGUIPrefabOverrideParameterData()
 	Guid = FGuid::NewGuid();
 }
 
-void FLGUIPrefabOverrideParameterData::SaveDefaultValue()
+void FLGUIPrefabOverrideParameterData::SaveCurrentValueAsDefault()
 {
 	if (TargetObject.IsValid())
 	{
@@ -861,11 +861,11 @@ bool FLGUIPrefabOverrideParameterData::IsParameter_Type_Name_Guid_Equal(const FL
 }
 
 
-void FLGUIPrefabOverrideParameter::SaveDefaultValue()
+void FLGUIPrefabOverrideParameter::SaveCurrentValueAsDefault()
 {
 	for (auto& item : ParameterList)
 	{
-		item.SaveDefaultValue();
+		item.SaveCurrentValueAsDefault();
 	}
 }
 
@@ -936,6 +936,25 @@ bool FLGUIPrefabOverrideParameter::RefreshParameterOnTemplate(const FLGUIPrefabO
 	return false;
 }
 
+bool FLGUIPrefabOverrideParameter::RefreshAutomaticParameter()
+{
+	bool anythingChange = false;
+	for (int i = ParameterList.Num() - 1; i >= 0; i--)
+	{
+		auto& Item = ParameterList[i];
+		if (!Item.TargetObject.IsValid()//target object not valid, means parameter not valid, just remove it
+#if WITH_EDITORONLY_DATA
+			|| !Item.HelperActor.IsValid()
+#endif
+			)
+		{
+			ParameterList.RemoveAt(i);
+			anythingChange = true;
+		}
+	}
+	return anythingChange;
+}
+
 void FLGUIPrefabOverrideParameter::SetListItemDefaultNameWhenAddNewToList()
 {
 	if (bIsTemplate)
@@ -968,14 +987,44 @@ bool FLGUIPrefabOverrideParameter::HasRepeatedParameter()
 	return false;
 }
 
+void FLGUIPrefabOverrideParameter::AddOrUpdateParameter(AActor* InActor, UObject* InObject, FProperty* InProperty, ELGUIPrefabOverrideParameterType InParamType)
+{
+	auto FoundIndex = ParameterList.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
+		return
+#if WITH_EDITORONLY_DATA
+			Item.HelperActor == InActor &&
+#endif
+			Item.TargetObject == InObject &&
+			Item.PropertyName == InProperty->GetFName();
+		});
+	if (FoundIndex != INDEX_NONE)
+	{
+		auto& Data = ParameterList[FoundIndex];
+		Data.HelperActor = InActor;
+		Data.TargetObject = InObject;
+		Data.ParamType = InParamType;
+		Data.SaveCurrentValueAsDefault();
+	}
+	else
+	{
+		FLGUIPrefabOverrideParameterData Data;
+		Data.HelperActor = InActor;
+		Data.TargetObject = InObject;
+		Data.ParamType = InParamType;
+		Data.SaveCurrentValueAsDefault();
+		ParameterList.Add(Data);
+	}
+}
+
 void ULGUIPrefabOverrideParameterObject::ApplyParameter()
 {
 	Parameter.ApplyParameter();
+	AutomaticParameter.ApplyParameter();
 }
 
-void ULGUIPrefabOverrideParameterObject::SaveDefaultValue()
+void ULGUIPrefabOverrideParameterObject::SaveCurrentValueAsDefault()
 {
-	Parameter.SaveDefaultValue();
+	Parameter.SaveCurrentValueAsDefault();
 }
 
 void ULGUIPrefabOverrideParameterObject::SetParameterDisplayType(bool InIsTemplate)
@@ -997,6 +1046,11 @@ bool ULGUIPrefabOverrideParameterObject::RefreshParameterOnTemplate(ULGUIPrefabO
 	return Parameter.RefreshParameterOnTemplate(InTemplate->Parameter);
 }
 
+bool ULGUIPrefabOverrideParameterObject::RefreshAutomaticParameter()
+{
+	return AutomaticParameter.RefreshAutomaticParameter();
+}
+
 bool ULGUIPrefabOverrideParameterObject::HasRepeatedParameter()
 {
 	return Parameter.HasRepeatedParameter();
@@ -1005,6 +1059,11 @@ bool ULGUIPrefabOverrideParameterObject::HasRepeatedParameter()
 int32 ULGUIPrefabOverrideParameterObject::GetParameterCount()const
 {
 	return Parameter.ParameterList.Num();
+}
+
+void ULGUIPrefabOverrideParameterObject::AddOrUpdateParameterToAutomaticParameters(AActor* InActor, UObject* InObject, FProperty* InProperty, ELGUIPrefabOverrideParameterType InParamType)
+{
+	AutomaticParameter.AddOrUpdateParameter(InActor, InObject, InProperty, InParamType);
 }
 
 PRAGMA_ENABLE_OPTIMIZATION

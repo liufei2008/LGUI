@@ -34,11 +34,16 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 	PropertyUtilites = CustomizationUtils.GetPropertyUtilities();
 
 	DataListHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameter, ParameterList))->AsArray();
+	auto BasePropertyName = PropertyHandle->GetProperty()->GetFName();
+	if (BasePropertyName == GET_MEMBER_NAME_CHECKED(ULGUIPrefabOverrideParameterObject, AutomaticParameter))
+	{
+		bIsAutomaticParameter = true;
+	}
 
 	auto IsTemplateHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameter, bIsTemplate));
 	IsTemplateHandle->GetValue(bIsTemplate);
 
-	if(bIsTemplate)
+	if(bIsTemplate && !bIsAutomaticParameter)
 	{
 		ChildBuilder.AddCustomRow(LOCTEXT("Title", "Title"))
 			.NameContent()
@@ -67,8 +72,21 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 						PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIPrefabOverrideParameterCustomization::OnClickListEmpty))
 					]
 				]
-			];
-		}
+			]
+		;
+	}
+	else if (bIsAutomaticParameter)
+	{
+		ChildBuilder.AddCustomRow(LOCTEXT("Title", "Title"))
+			.NameContent()
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(TEXT("Prefab Automatic Override Parameters")))
+				.ToolTipText(PropertyHandle->GetToolTipText())
+				//.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+		;
+	}
 
 	uint32 ArrayCount;
 	DataListHandle->GetNumElements(ArrayCount);
@@ -159,6 +177,7 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 		DisplayNameHandle->GetValue(DisplayName);
 		if(bIsTemplate)
 		{
+			if (bIsAutomaticParameter)continue;//automatic parameter not visible in template
 			//DisplayNameHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] { PropertyUtilites->ForceRefresh(); }));
 			auto& ChildGroup = ChildBuilder.AddGroup(FName(*DisplayName), FText::FromString(DisplayName));
 			ChildGroup.AddPropertyRow(DisplayNameHandle.ToSharedRef());
@@ -322,40 +341,79 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 		}
 		else
 		{
-			//parameter
-			TSharedRef<SWidget> ParameterWidget = SNew(SBox);
-			if (IsValid(TargetObject) && FoundProperty != nullptr)
+			if(bIsAutomaticParameter)//automatic parameter
 			{
-				ParameterWidget = DrawPropertyParameter(DataHandle, PropertyParameterType, FoundProperty);
-			}
-			else
-			{
-				ParameterWidget =
-					SNew(SBox)
-					.VAlign(EVerticalAlignment::VAlign_Center)
+				TSharedRef<SWidget> ParameterWidget = SNew(SBox);
+				if (IsValid(TargetObject) && FoundProperty != nullptr)
+				{
+					ParameterWidget = DrawPropertyParameter(DataHandle, PropertyParameterType, FoundProperty);
+				}
+				else
+				{
+					ParameterWidget =
+						SNew(SBox)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString("(NotValid)"))
+							.ToolTipText(FText::FromString(TEXT("This property is not valid, maybe TargetObject or Property is missing.")))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					;
+				}
+				ParameterWidget->SetToolTipText(LOCTEXT("Parameter", "Default value of the property"));
+				ParameterWidget->SetEnabled(false);
+
+				ChildBuilder.AddCustomRow(LOCTEXT("Property", "Property"))
+					.NameContent()
 					[
 						SNew(STextBlock)
-						.Text(FText::FromString("(NotValid)"))
-						.ToolTipText(FText::FromString(TEXT("This property is not valid, maybe TargetObject or Property is missing.")))
+						.Text(FText::FromString(DisplayName))
 						.Font(IDetailLayoutBuilder::GetDetailFont())
+					]
+					.ValueContent()
+					[
+						//editable parameter
+						ParameterWidget
 					]
 				;
 			}
-			ParameterWidget->SetToolTipText(LOCTEXT("Parameter", "Set parameter for the property"));
+			else//common editable parameter
+			{
+				TSharedRef<SWidget> ParameterWidget = SNew(SBox);
+				if (IsValid(TargetObject) && FoundProperty != nullptr)
+				{
+					ParameterWidget = DrawPropertyParameter(DataHandle, PropertyParameterType, FoundProperty);
+				}
+				else
+				{
+					ParameterWidget =
+						SNew(SBox)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString("(NotValid)"))
+							.ToolTipText(FText::FromString(TEXT("This property is not valid, maybe TargetObject or Property is missing.")))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					;
+				}
+				ParameterWidget->SetToolTipText(LOCTEXT("Parameter", "Set parameter for the property"));
 
-			ChildBuilder.AddCustomRow(LOCTEXT("Property", "Property"))
-				.NameContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(DisplayName))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-				]
-				.ValueContent()
-				[
-					//editable parameter
-					ParameterWidget
-				]
-			;
+				ChildBuilder.AddCustomRow(LOCTEXT("Property", "Property"))
+					.NameContent()
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(DisplayName))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+					]
+					.ValueContent()
+					[
+						//editable parameter
+						ParameterWidget
+					]
+				;
+			}
 		}
 	}
 }

@@ -17,6 +17,7 @@ protected:
 	static TArray<FString> CopySourceData;
 private:
 	bool bIsTemplate = true;
+	bool bIsAutomaticParameter = false;
 public:
 	FLGUIPrefabOverrideParameterCustomization()
 	{

@@ -106,7 +106,17 @@ namespace LGUIPrefabSystem3
 				ChildActorSaveData.bIsPrefab = true;
 				ChildActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
 				ChildActorSaveData.ActorGuid = MapObjectToGuid[ChildActor];
-				ChildActorSaveData.PrefabDefaultOverrideParameter = FLGUISubPrefabDefaultOverrideParameter(ChildActor->GetRootComponent());
+				//collect subprefab's components, indexed by guid and name
+				for (auto& BlueprintComp : ChildActor->BlueprintCreatedComponents)
+				{
+					ChildActorSaveData.PrefabRootActorComponentGuidArray.Add(MapObjectToGuid[BlueprintComp]);
+					ChildActorSaveData.PrefabRootActorComponentNameArray.Add(BlueprintComp->GetFName());
+				}
+				for (auto& InstanceComp : ChildActor->GetInstanceComponents())
+				{
+					ChildActorSaveData.PrefabRootActorComponentGuidArray.Add(MapObjectToGuid[InstanceComp]);
+					ChildActorSaveData.PrefabRootActorComponentNameArray.Add(InstanceComp->GetFName());
+				}
 				//serialize override parameter object
 				check(SubPrefabDataPtr->OverrideParameterObject != nullptr);
 				WriterOrReaderFunction(SubPrefabDataPtr->OverrideParameterObject, ChildActorSaveData.PrefabOverrideParameterData, false);
@@ -231,7 +241,7 @@ namespace LGUIPrefabSystem3
 
 	void ActorSerializer3::CollectActorRecursive(AActor* Actor)
 	{
-		//collect actor and components
+		//collect actor
 		WillSerailizeActorArray.Add(Actor);
 		if (!MapObjectToGuid.Contains(Actor))
 		{
@@ -247,6 +257,21 @@ namespace LGUIPrefabSystem3
 				if (!MapObjectToGuid.Contains(ChildActor))
 				{
 					MapObjectToGuid.Add(ChildActor, FGuid::NewGuid());
+				}
+				//collect subprefab's components, so reference can find it
+				for (auto& BlueprintComp : ChildActor->BlueprintCreatedComponents)
+				{
+					if (!MapObjectToGuid.Contains(BlueprintComp))
+					{
+						MapObjectToGuid.Add(BlueprintComp, FGuid::NewGuid());
+					}
+				}
+				for (auto& InstanceComp : ChildActor->GetInstanceComponents())
+				{
+					if (!MapObjectToGuid.Contains(InstanceComp))
+					{
+						MapObjectToGuid.Add(InstanceComp, FGuid::NewGuid());
+					}
 				}
 			}
 			else

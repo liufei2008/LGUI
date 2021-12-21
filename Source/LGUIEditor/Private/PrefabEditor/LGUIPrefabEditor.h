@@ -43,7 +43,7 @@ public:
 	virtual void OnToolkitHostingStarted(const TSharedRef<class IToolkit>& Toolkit) override;
 	virtual void OnToolkitHostingFinished(const TSharedRef<class IToolkit>& Toolkit) override;
 	virtual void SaveAsset_Execute()override;
-protected:
+private:
 	virtual bool OnRequestClose()override;
 	// End of FAssetEditorToolkit
 public:
@@ -68,7 +68,7 @@ public:
 	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 
 	bool GetSelectedObjectsBounds(FBoxSphereBounds& OutResult);
-protected:
+private:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	TWeakObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject = nullptr;
 	static TArray<FLGUIPrefabEditor*> LGUIPrefabEditorInstanceCollection;
@@ -82,6 +82,10 @@ protected:
 	TWeakObjectPtr<AActor> CurrentSelectedActor;
 
 	FLGUIPrefabPreviewScene PreviewScene;
+
+	FDelegateHandle OnObjectPropertyChangedDelegateHandle;
+	FDelegateHandle OnPreObjectPropertyChangedDelegateHandle;
+	bool bAnythingDirty = false;
 private:
 
 	void BindCommands();
@@ -101,4 +105,7 @@ private:
 	bool IsFilteredActor(const AActor* Actor);
 	void OnOutlinerPickedChanged(AActor* Actor);
 	void OnOutlinerActorDoubleClick(AActor* Actor);
+
+	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
+	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
 };
