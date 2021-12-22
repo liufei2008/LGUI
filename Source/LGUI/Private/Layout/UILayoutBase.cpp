@@ -18,6 +18,34 @@ void UUILayoutBase::Awake()
     this->SetCanExecuteUpdate(false);
 }
 
+void UUILayoutBase::OnEnable()
+{
+#if WITH_EDITOR
+    if (!GetWorld()->IsGameWorld())
+    {
+        RebuildChildrenList();
+        ULGUIEditorManagerObject::RegisterLGUILayout(this);
+    }
+    else
+#endif
+    {
+        ALGUIManagerActor::RegisterLGUILayout(this);
+    }
+}
+void UUILayoutBase::OnDisable()
+{
+#if WITH_EDITOR
+    if (!GetWorld()->IsGameWorld())
+    {
+        ULGUIEditorManagerObject::UnregisterLGUILayout(this);
+    }
+    else
+#endif
+    {
+        ALGUIManagerActor::UnregisterLGUILayout(this);
+    }
+}
+
 #if WITH_EDITOR
 void UUILayoutBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -34,34 +62,13 @@ void UUILayoutBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 void UUILayoutBase::OnRegister()
 {
     Super::OnRegister();
-#if WITH_EDITOR
-    if (!GetWorld()->IsGameWorld())
-    {
-        RebuildChildrenList();
-        ULGUIEditorManagerObject::AddLayout(this);
-    }
-    else
-#endif
-    {
-        ALGUIManagerActor::AddLayout(this);
-    }
 }
 void UUILayoutBase::OnUnregister()
 {
     Super::OnUnregister();
-#if WITH_EDITOR
-	if (!GetWorld()->IsGameWorld())
-	{
-		ULGUIEditorManagerObject::RemoveLayout(this);
-	}
-	else
-#endif
-	{
-		ALGUIManagerActor::RemoveLayout(this);
-	}
 }
 
-void UUILayoutBase::ConditionalRebuildLayout()
+void UUILayoutBase::OnUpdateLayout_Implementation()
 {
     if (bNeedRebuildLayout)
     {

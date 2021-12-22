@@ -942,11 +942,26 @@ bool FLGUIPrefabOverrideParameter::RefreshAutomaticParameter()
 	for (int i = ParameterList.Num() - 1; i >= 0; i--)
 	{
 		auto& Item = ParameterList[i];
-		if (!Item.TargetObject.IsValid()//target object not valid, means parameter not valid, just remove it
+		bool bIsThisPropertyValid = false;
+		if (Item.TargetObject.IsValid()
 #if WITH_EDITORONLY_DATA
-			|| !Item.HelperActor.IsValid()
+			&& Item.HelperActor.IsValid()
 #endif
 			)
+		{
+			if (auto Property = FindFProperty<FProperty>(Item.TargetObject->StaticClass(), Item.PropertyName))
+			{
+				ELGUIPrefabOverrideParameterType ParamType;
+				if (ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(Property, ParamType))
+				{
+					if (Item.ParamType == ParamType)
+					{
+						bIsThisPropertyValid = true;
+					}
+				}
+			}
+		}
+		if (!bIsThisPropertyValid)
 		{
 			ParameterList.RemoveAt(i);
 			anythingChange = true;

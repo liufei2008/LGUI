@@ -35,9 +35,6 @@ public:
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	/** update UI immediately in edit mode */
 	virtual void EditorForceUpdateImmediately();//@todo: remove this
-private:
-	//bool bIsEditingAnchorEdge = false;
-	//FVector4 AnchorEdge_PrevEditChange;
 #endif
 	
 #pragma region LGUILifeCycleUIBehaviour
@@ -52,27 +49,27 @@ private:
 	void CallUILifeCycleBehavioursInteractionStateChanged();
 	void CallUILifeCycleBehavioursChildHierarchyIndexChanged(UUIItem* child);
 protected://these funcions are same as UIBehaviour's, for easier use
-	/** Called when RootUIComp IsActiveInHierarchy state is changed */
+	/** Called when this IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive) { }
 	/** 
-	 * Called when RootUIComp->AnchorData.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
+	 * Called when this->AnchorData is changed. 
 	 * @param positionChanged	relative position
 	 */
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged) { }
 	/**
-	 * Called when RootUIComp's attachchildren->AnchorData.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
+	 * Called when this's attachchildren->AnchorData is changed. 
 	 * @param positionChanged	relative position
 	 */
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged) { }
-	/** Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed */
+	/** Called when this's attachchildren IsActiveInHierarchy state is changed */
 	virtual void OnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive) { }
-	/** Called when RootUIComp attach to a new parent */
+	/** Called when this attach to a new parent */
 	virtual void OnUIAttachmentChanged() { }
-	/** Called when RootUIComp's attachchildren is attached to RootUIComp or detached from RootUIComp  */
+	/** Called when this's attachchildren is attached to this or detached from this  */
 	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach) { }
-	/** Called when RootUIComp's interaction state changed(when UICanvasGroup component allow interaction or not) */
+	/** Called when this's interaction state changed(when UICanvasGroup component allow interaction or not) */
 	virtual void OnUIInteractionStateChanged(bool interactableOrNot) { }
-	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
+	/** Called when this's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child) { }
 public:
 	void AddLGUILifeCycleUIBehaviourComponent(class ULGUILifeCycleUIBehaviour* InComp) { LGUILifeCycleUIBehaviourArray.AddUnique(InComp); }

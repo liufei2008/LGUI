@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Event/LGUIPointerEventData.h"
 #include "ILGUICultureChangedInterface.generated.h"
 
 

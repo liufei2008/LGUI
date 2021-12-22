@@ -57,12 +57,12 @@ protected:
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive);
 	/** 
-	 * Called when RootUIComp->AnchorData.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed. 
+	 * Called when RootUIComp->AnchorData is changed. 
 	 * @param positionChanged	relative position
 	 */
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged);
 	/**
-	 * Called when RootUIComp's attachchildren->AnchorData.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed.
+	 * Called when RootUIComp's attachchildren->AnchorData is changed.
 	 * @param positionChanged	relative position
 	 */
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
@@ -89,12 +89,12 @@ protected:
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIActiveInHierarchy"), Category = "LGUILifeCycleBehaviour") void OnUIActiveInHierarchyBP(bool activeOrInactive);
 	/** 
-	 * Called when RootUIComp->AnchorData.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed
+	 * Called when RootUIComp->AnchorData is changed
 	 * @param positionChanged	relative position
 	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void OnUIDimensionsChangedBP(bool positionChanged, bool sizeChanged);
 	/** 
-	 * Called when RootUIComp's attachchildren->AnchorData.width/height/anchorOffsetX/anchorOffsetY/stretchLeft/stretchRight/stretchBottom/stretchTop is changed.
+	 * Called when RootUIComp's attachchildren->AnchorData is changed.
 	 * @param positionChanged	relative position
 	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void OnUIChildDimensionsChangedBP(UUIItem* child, bool positionChanged, bool sizeChanged);

@@ -17,6 +17,7 @@
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
 #include "Core/LGUILifeCycleBehaviour.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
+#include "Core/ILGUICultureChangedInterface.h"
 
 #include "Core/LGUIFontData.h"
 #include "Core/LGUIFontData_BaseObject.h"
@@ -97,6 +98,7 @@
 #include "Layout/UISizeControlByAspectRatio.h"
 #include "Layout/UISizeControlByOther.h"
 #include "Layout/LGUICanvasScaler.h"
+#include "Layout/ILGUILayoutInterface.h"
 
 #include "PrefabSystem/LGUIPrefab.h"
 

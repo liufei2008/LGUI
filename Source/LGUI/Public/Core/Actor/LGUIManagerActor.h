@@ -18,7 +18,7 @@ class ULGUIBaseRaycaster;
 class UUISelectableComponent;
 class ULGUILifeCycleBehaviour;
 class ULGUIBaseInputModule;
-class UUILayoutBase;
+class ILGUILayoutInterface;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
@@ -58,7 +58,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<UUIItem>> rootUIItems;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<UUILayoutBase>> allLayoutArray;
+		TArray<TScriptInterface<ILGUILayoutInterface>> allLayoutArray;
 	TArray<UUIItem*> tempUIItemArray;
 
 	bool bShouldSortLGUIRenderer = true;
@@ -94,8 +94,8 @@ public:
 
 	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist);
 
-	static void AddLayout(UUILayoutBase* InLayout);
-	static void RemoveLayout(UUILayoutBase* InLayout);
+	static void RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
+	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 
 	static void DrawFrameOnUIItem(UUIItem* InItem);
 
@@ -174,7 +174,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<UUISelectableComponent*> allSelectableArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUILayoutBase*> allLayoutArray;
+		TArray<TScriptInterface<ILGUILayoutInterface>> allLayoutArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TScriptInterface<ILGUICultureChangedInterface>> cultureChanged;
 
@@ -242,8 +242,10 @@ public:
 	static void AddSelectable(UUISelectableComponent* InSelectable);
 	static void RemoveSelectable(UUISelectableComponent* InSelectable);
 
-	static void AddLayout(UUILayoutBase* InLayout);
-	static void RemoveLayout(UUILayoutBase* InLayout);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	static void RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")

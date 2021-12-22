@@ -445,23 +445,6 @@ void UUIItem::MarkAllDirtyRecursive()
 void UUIItem::PreEditChange(FEditPropertyChain& PropertyAboutToChange)
 {
 	UObject::PreEditChange(PropertyAboutToChange);
-	//auto CurrentNode = PropertyAboutToChange.GetActiveNode();
-	//if (CurrentNode != nullptr)
-	//{
-	//	auto PivotNode = CurrentNode->GetPrevNode();
-	//	if (PivotNode != nullptr && PivotNode->GetValue()->GetFName() == TEXT("Pivot"))
-	//	{
-	//		auto AnchorNode = PivotNode->GetPrevNode();
-	//		if (AnchorNode != nullptr && AnchorNode->GetValue()->GetFName() == TEXT("AnchorData"))
-	//		{
-	//			AnchorEdge_PrevEditChange.X = this->GetAnchorLeft();
-	//			AnchorEdge_PrevEditChange.Y = this->GetAnchorTop();
-	//			AnchorEdge_PrevEditChange.Z = this->GetAnchorRight();
-	//			AnchorEdge_PrevEditChange.W = this->GetAnchorBottom();
-	//			bIsEditingAnchorEdge = true;
-	//		}
-	//	}
-	//}
 }
 void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -482,15 +465,6 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 			hierarchyIndex = hierarchyIndex + 1;//make it work
 			SetHierarchyIndex(hierarchyIndex - 1);
 		}
-
-		//if (bIsEditingAnchorEdge)
-		//{
-		//	bIsEditingAnchorEdge = false;
-		//	this->SetAnchorLeft(AnchorEdge_PrevEditChange.X);
-		//	this->SetAnchorTop(AnchorEdge_PrevEditChange.Y);
-		//	this->SetAnchorRight(AnchorEdge_PrevEditChange.Z);
-		//	this->SetAnchorBottom(AnchorEdge_PrevEditChange.W);
-		//}
 	}
 	MarkAllDirtyRecursive();
 	EditorForceUpdateImmediately();
@@ -630,8 +604,8 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		}
 		UIChildren.Add(childUIItem);
 		SortCacheUIChildren();
+		MarkCanvasUpdate();
 	}
-	MarkCanvasUpdate();
 }
 
 void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
@@ -648,8 +622,8 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 		{
 			UIChildren[i]->hierarchyIndex = i;
 		}
+		MarkCanvasUpdate();
 	}
-	MarkCanvasUpdate();
 }
 
 void UUIItem::OnAttachmentChanged()

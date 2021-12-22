@@ -5,6 +5,9 @@
 #include "UIWidget.generated.h"
 
 
+/**
+ * NOTE! This type is not valid anymore, because LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.
+ */
 UENUM(BlueprintType, Category = LGUI)
 enum class UIAnchorHorizontalAlign :uint8
 {
@@ -15,6 +18,9 @@ enum class UIAnchorHorizontalAlign :uint8
 	Right	UMETA(DisplayName = "Right"),
 	Stretch UMETA(DisplayName = "Stretch"),
 };
+/**
+ * NOTE! This type is not valid anymore, because LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.
+ */
 UENUM(BlueprintType, Category = LGUI)
 enum class UIAnchorVerticalAlign :uint8
 {
@@ -26,7 +32,10 @@ enum class UIAnchorVerticalAlign :uint8
 	Stretch UMETA(DisplayName = "Stretch"),
 };
 
-/** UI's base data, rect transform, color */
+/**
+ * UI's base data, rect transform, color
+ * NOTE! This type is not valid anymore, because LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.
+ */
 USTRUCT(BlueprintType)
 struct LGUI_API FUIWidget
 {

@@ -120,15 +120,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 	//anchor, width, height
 	{
-		//auto widthHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.width));
-		//auto heightHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.height));
-		//widthHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-		//	ForceUpdateUI();
-		//}));
-		//heightHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
-		//	ForceUpdateUI();
-		//}));
-
 		bool anchorControlledByParentLayout = false;
 		bool anchorOffsetXControlledByParentLayout = false;
 		bool anchorOffsetYControlledByParentLayout = false;
@@ -157,8 +148,11 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					}
 					if (!ignoreParentLayout)
 					{
-						if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
+						auto LayoutControlArray = parentActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
+						if (LayoutControlArray.Num() > 0)
 						{
+							auto parentLayout = (ILGUILayoutInterface*)LayoutControlArray[0];
+
 							anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
 							widthControlledByParentLayout = parentLayout->CanControlChildWidth();
 							heightControlledByParentLayout = parentLayout->CanControlChildHeight();
@@ -167,8 +161,10 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 						}
 					}
 				}
-				if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
+				auto LayoutControlArray = thisActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
+				if (LayoutControlArray.Num() > 0)
 				{
+					auto thisLayout = (ILGUILayoutInterface*)LayoutControlArray[0];
 					anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
 					anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
 					anchorOffsetXControlledBySelfLayout = thisLayout->CanControlSelfAnchorOffsetX();
@@ -1298,27 +1294,6 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 }
 void FUIItemCustomization::OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
 {
-	//FString commitTypeString;
-	//switch (commitType)
-	//{
-	//case ETextCommit::Default:
-	//	commitTypeString = TEXT("Default");
-	//	break;
-	//case ETextCommit::OnEnter:
-	//	commitTypeString = TEXT("OnEnter");
-	//	break;
-	//case ETextCommit::OnUserMovedFocus:
-	//	commitTypeString = TEXT("OnUserMovedFocus");
-	//	break;
-	//case ETextCommit::OnCleared:
-	//	commitTypeString = TEXT("OnCleared");
-	//	break;
-	//default:
-	//	break;
-	//}
-	//UE_LOG(LogTemp, Log, TEXT("CommitType:%s"), *commitTypeString);
-	//if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
-
 	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Anchor Value"));
 	for (auto& Item : TargetScriptArray)
 	{
@@ -1548,14 +1523,18 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 				}
 				if (!ignoreParentLayout)
 				{
-					if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
+					auto LayoutControlArray = parentActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
+					if (LayoutControlArray.Num() > 0)
 					{
+						auto parentLayout = (ILGUILayoutInterface*)LayoutControlArray[0];
 						anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
 					}
 				}
 			}
-			if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
+			auto LayoutControlArray = thisActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
+			if (LayoutControlArray.Num() > 0)
 			{
+				auto thisLayout = (ILGUILayoutInterface*)LayoutControlArray[0];
 				anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
 				anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
 			}

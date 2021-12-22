@@ -16,11 +16,10 @@
 #include "Core/ActorComponent/UIBaseRenderable.h"
 #include "Core/ActorComponent/UIPostProcessRenderable.h"
 #include "Engine/Engine.h"
-#include "Layout/UILayoutBase.h"
 #include "Core/HudRender/LGUIRenderer.h"
 #include "Core/ILGUICultureChangedInterface.h"
 #include "Core/LGUILifeCycleBehaviour.h"
-#include "Layout/UILayoutBase.h"
+#include "Layout/ILGUILayoutInterface.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "DrawDebugHelpers.h"
@@ -69,7 +68,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
 #if WITH_EDITORONLY_DATA
 	//draw frame
-	for (auto item : allUIItem)
+	for (auto& item : allUIItem)
 	{
 		if (!item.IsValid())continue;
 		if (!IsValid(item->GetWorld()))continue;
@@ -92,20 +91,14 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 
 	if (canUpdateLayout)
 	{
-		for (auto item : allLayoutArray)
+		for (auto& item : allLayoutArray)
 		{
-			if (item.IsValid())
-			{
-				if (item->GetIsActiveAndEnable())
-				{
-					item->ConditionalRebuildLayout();
-				}
-			}
+			ILGUILayoutInterface::Execute_OnUpdateLayout(item.GetObject());
 		}
 	}
 	
 	int ScreenSpaceOverlayCanvasCount = 0;
-	for (auto item : allCanvas)
+	for (auto& item : allCanvas)
 	{
 		if (item.IsValid())
 		{
@@ -121,7 +114,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			}
 		}
 	}
-	for (auto item : allCanvas)
+	for (auto& item : allCanvas)
 	{
 		if (item.IsValid())
 		{
@@ -437,7 +430,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 {
 	if (Instance != nullptr)
 	{
-		for (auto itemCanvas : Instance->allCanvas)
+		for (auto& itemCanvas : Instance->allCanvas)
 		{
 			if (itemCanvas.IsValid())
 			{
@@ -521,7 +514,7 @@ void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
 const TArray<UUIItem*>& ULGUIEditorManagerObject::GetAllUIItem()
 {
 	tempUIItemArray.Reset();
-	for (auto item : allUIItem)
+	for (auto& item : allUIItem)
 	{
 		if (item.IsValid())
 		{
@@ -546,20 +539,27 @@ void ULGUIEditorManagerObject::RemoveRootUIItem(UUIItem* InItem)
 	}
 }
 
-void ULGUIEditorManagerObject::AddLayout(UUILayoutBase* InLayout)
+void ULGUIEditorManagerObject::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
 {
-	if (InitCheck(InLayout->GetWorld()))
+	if (InitCheck(InItem.GetObject()->GetWorld()))
 	{
-		Instance->allLayoutArray.Add(InLayout);
+#if !UE_BUILD_SHIPPING
+		check(!Instance->allLayoutArray.Contains(InItem));
+#endif
+		Instance->allLayoutArray.AddUnique(InItem);
 	}
 }
-void ULGUIEditorManagerObject::RemoveLayout(UUILayoutBase* InLayout)
+void ULGUIEditorManagerObject::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
 {
 	if (Instance != nullptr)
 	{
-		Instance->allLayoutArray.RemoveSingle(InLayout);
+#if !UE_BUILD_SHIPPING
+		check(Instance->allLayoutArray.Contains(InItem));
+#endif
+		Instance->allLayoutArray.RemoveSingle(InItem);
 	}
 }
+
 void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 {
 	auto extends = FVector(0.1f, item->GetWidth(), item->GetHeight()) * 0.5f;
@@ -583,7 +583,7 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 		}
 		//child selected
 		auto& childrenCompArray = item->GetAttachUIChildren();
-		for (auto uiComp : childrenCompArray)
+		for (auto& uiComp : childrenCompArray)
 		{
 			if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
 			{
@@ -595,7 +595,7 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 		if (IsValid(item->GetParentUIItem()))
 		{
 			const auto& sameLevelCompArray = item->GetParentUIItem()->GetAttachUIChildren();
-			for (auto uiComp : sameLevelCompArray)
+			for (auto& uiComp : sameLevelCompArray)
 			{
 				if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
 				{
@@ -721,7 +721,7 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIIte
 )
 {
 	TArray<FHitResult> HitResultArray;
-	for (auto uiItem : InUIItems)
+	for (auto& uiItem : InUIItems)
 	{
 		if (uiItem->GetWorld() == InWorld)
 		{
@@ -795,7 +795,7 @@ ALGUIManagerActor::ALGUIManagerActor()
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 #if WITH_EDITOR
 	FEditorDelegates::BeginPIE.AddLambda([=](const bool isSimulating) {
-		for (auto keyValue : WorldToInstanceMap)
+		for (auto& keyValue : WorldToInstanceMap)
 		{
 			if (IsValid(keyValue.Value))
 			{
@@ -842,7 +842,7 @@ void ALGUIManagerActor::BeginDestroy()
 		else
 		{
 			world = nullptr;
-			for (auto keyValue : WorldToInstanceMap)
+			for (auto& keyValue : WorldToInstanceMap)
 			{
 				if (keyValue.Value == this)
 				{
@@ -942,7 +942,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			|| this->GetWorld()->WorldType == EWorldType::PIE
 			)
 		{
-			for (auto item : allUIItem)
+			for (auto& item : allUIItem)
 			{
 				if (!IsValid(item))continue;
 				if (!IsValid(item->GetWorld()))continue;
@@ -958,7 +958,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		if (bShouldUpdateOnCultureChanged)
 		{
 			bShouldUpdateOnCultureChanged = false;
-			for (auto item : cultureChanged)
+			for (auto& item : cultureChanged)
 			{
 				ILGUICultureChangedInterface::Execute_OnCultureChanged(item.GetObject());
 			}
@@ -1007,7 +1007,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		//remove these padding things
 		if (LGUILifeCycleBehavioursNeedToRemoveFromUpdate.Num() > 0)
 		{
-			for (auto item : LGUILifeCycleBehavioursNeedToRemoveFromUpdate)
+			for (auto& item : LGUILifeCycleBehavioursNeedToRemoveFromUpdate)
 			{
 				LGUILifeCycleBehavioursForUpdate.Remove(item);
 			}
@@ -1017,7 +1017,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 #if WITH_EDITOR
 	int ScreenSpaceOverlayCanvasCount = 0;
-	for (auto item : allCanvas)
+	for (auto& item : allCanvas)
 	{
 		if (item.IsValid())
 		{
@@ -1051,7 +1051,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	//update drawcall
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateGeometryAndDrawcall);
-		for (auto item : allCanvas)
+		for (auto& item : allCanvas)
 		{
 			if (item.IsValid())
 			{
@@ -1338,15 +1338,9 @@ void ALGUIManagerActor::UpdateLayout()
 	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayout);
 
 	//update Layout
-	for (auto item : allLayoutArray)
+	for (auto& item : allLayoutArray)
 	{
-		if (IsValid(item))
-		{
-			if (item->GetIsActiveAndEnable())
-			{
-				item->ConditionalRebuildLayout();
-			}
-		}
+		ILGUILayoutInterface::Execute_OnUpdateLayout(item.GetObject());
 	}
 }
 void ALGUIManagerActor::ForceUpdateLayout(UObject* WorldContextObject)
@@ -1416,7 +1410,7 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 		auto& raycasterArray = Instance->raycasterArray;
 		if (raycasterArray.Contains(InRaycaster))return;
 		//check multiple racaster
-		for (auto item : raycasterArray)
+		for (auto& item : raycasterArray)
 		{
 			if (InRaycaster->depth == item->depth && InRaycaster->traceChannel == item->traceChannel)
 			{
@@ -1488,24 +1482,24 @@ void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
 	}
 }
 
-void ALGUIManagerActor::AddLayout(UUILayoutBase* InLayout)
+void ALGUIManagerActor::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
 {
-	if (auto Instance = GetInstance(InLayout->GetWorld(), true))
+	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
 	{
-		auto& allLayoutArray = Instance->allLayoutArray;
-		if (allLayoutArray.Contains(InLayout))return;
-		allLayoutArray.Add(InLayout);
+#if !UE_BUILD_SHIPPING
+		check(!Instance->allLayoutArray.Contains(InItem));
+#endif
+		Instance->allLayoutArray.AddUnique(InItem);
 	}
 }
-void ALGUIManagerActor::RemoveLayout(UUILayoutBase* InLayout)
+void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
 {
-	if (auto Instance = GetInstance(InLayout->GetWorld()))
+	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
-		int32 index;
-		if (Instance->allLayoutArray.Find(InLayout, index))
-		{
-			Instance->allLayoutArray.RemoveAt(index);
-		}
+#if !UE_BUILD_SHIPPING
+		check(Instance->allLayoutArray.Contains(InItem));
+#endif
+		Instance->allLayoutArray.RemoveSingle(InItem);
 	}
 }
 

@@ -238,11 +238,7 @@ void UUIBatchGeometryRenderable::MarkFlattenHierarchyIndexDirty()
 void UUIBatchGeometryRenderable::UpdateGeometry()
 {
 	Super::UpdateGeometry();
-	UpdateGeometry_Implement();
-}
 
-void UUIBatchGeometryRenderable::UpdateGeometry_Implement()
-{
 	OnBeforeCreateOrUpdateGeometry();
 	if (!drawcall.IsValid()//not add to render yet
 		)

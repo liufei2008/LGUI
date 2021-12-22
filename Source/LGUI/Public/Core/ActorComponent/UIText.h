@@ -4,94 +4,15 @@
 
 #include "UIBatchGeometryRenderable.h"
 #include "Core/ILGUICultureChangedInterface.h"
+#include "Layout/ILGUILayoutInterface.h"
+#include "Core/TextGeometryCache.h"
 #include "UIText.generated.h"
 
-
-UENUM(BlueprintType, Category = LGUI)
-enum class UITextParagraphHorizontalAlign : uint8
-{
-	Left,
-	Center,
-	Right,
-};
-UENUM(BlueprintType, Category = LGUI)
-enum class UITextParagraphVerticalAlign : uint8
-{
-	Top,
-	Middle,
-	Bottom,
-};
-UENUM(BlueprintType, Category = LGUI)
-enum class UITextFontStyle :uint8
-{
-	None,
-	Bold,
-	Italic,
-	BoldAndItalic,
-};
-
-UENUM(BlueprintType, Category = LGUI)
-enum class UITextOverflowType :uint8
-{
-	/** chars will go out of rect range horizontally */
-	HorizontalOverflow,
-	/** chars will go out of rect range vertically */
-	VerticalOverflow,
-	/** remove chars on right if out of range */
-	ClampContent,
-};
-
-/** single char property */
-struct FUITextCaretProperty
-{
-	/** caret position. caret is on left side of char */
-	FVector2D caretPosition;
-	/** char index in text */
-	int32 charIndex;
-};
-/** a line of text property */
-struct FUITextLineProperty
-{
-	TArray<FUITextCaretProperty> charPropertyList;
-};
-/** for range selection in TextInputComponent */
-struct FUITextSelectionProperty
-{
-	FVector2D Pos;
-	int32 Size;
-};
-/** char property */
-struct FUITextCharProperty
-{
-	/** char index in string */
-	int32 CharIndex;
-	/** vertex index in UIGeometry::vertices */
-	int32 StartVertIndex;
-	/** vertex count */
-	int32 VertCount;
-	/** triangle index in UIGeometry::triangles */
-	int32 StartTriangleIndex;
-	/** triangle indices count */
-	int32 IndicesCount;
-
-	/** center position of the char, in UIText's local space */
-	//FVector2D CenterPosition;
-};
-
-struct FUIText_RichTextCustomTag
-{
-	/** Tag name */
-	FName TagName;
-	/** start char index in cacheCharPropertyArray */
-	int32 CharIndexStart;
-	/** end char index in cacheCharPropertyArray */
-	int32 CharIndexEnd;
-};
 
 class ULGUIFontData_BaseObject;
 
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIText : public UUIBatchGeometryRenderable, public ILGUICultureChangedInterface
+class LGUI_API UUIText : public UUIBatchGeometryRenderable, public ILGUICultureChangedInterface, public ILGUILayoutInterface
 {
 	GENERATED_BODY()
 
@@ -163,19 +84,11 @@ private:
 	bool bHasAddToFont = false;
 	/** visible/renderable char count of current text. -1 means not set yet */
 	int visibleCharCount = -1;
-	/** real size of this UIText, not the AnchorData's width and height */
-	FVector2D textRealSize;
-	/** cached texture property */
-	TArray<FUITextLineProperty> cachedTextPropertyArray;
-	
-	void CheckCachedTextPropertyList();
+	bool bTextLayoutDirty = false;
 
-	/** calculate text geometry */
-	void CacheTextGeometry();
-
-	/** char properties, from first char to last one in array */
-	TArray<FUITextCharProperty> cacheCharPropertyArray;
-	TArray<FUIText_RichTextCustomTag> cacheRichTextCustomTagArray;
+	virtual void OnUpdateLayout_Implementation()override;
+	FTextGeometryCache CacheTextGeometryData;
+	void UpdateCacheTextGeometry();
 public:
 	const TArray<FUITextCharProperty>& GetCharPropertyArray(bool createIfNotExist = false);
 	const TArray<FUIText_RichTextCustomTag>& GetRichTextCustomTagArray(bool createIfNotExist = false);
@@ -204,15 +117,23 @@ public:
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") ULGUIFontData_BaseObject* GetFont()const { return font; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")	const FText& GetText()const { return text; }
-	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetSize()const { return size; }
+	UE_DEPRECATED(4.24, "Use GetFontSize instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetFontSize instead"))
+		float GetSize()const { return size; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") float GetFontSize()const { return size; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetFontSpace()const { return space; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextOverflowType GetOverflowType()const { return overflowType; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustWidth()const { return adjustWidth; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetAdjustHeight()const { return adjustHeight; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextFontStyle GetFontStyle()const { return fontStyle; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI") bool GetRichText()const { return richText; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphHorizontalAlign GetParagraphHorizontalAlignment()const { return hAlign; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI") UITextParagraphVerticalAlign GetParagraphVerticalAlignment()const { return vAlign; }
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetRealSize();
+	UFUNCTION(BlueprintCallable, Category = "LGUI") FVector2D GetTextRealSize();
+	UE_DEPRECATED(4.24, "Use GetTextRealSize instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetTextRealSize instead"))
+		FVector2D GetRealSize() { return GetTextRealSize(); }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetFont(ULGUIFontData_BaseObject* newFont);

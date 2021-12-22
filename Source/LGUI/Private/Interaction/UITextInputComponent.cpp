@@ -904,7 +904,7 @@ void UUITextInputComponent::UpdateAfterTextChange(bool InFireEvent)
 			FVector2D caretPosition;
 			TextActor->GetUIText()->FindCaretByIndex(CaretPositionIndex, caretPosition, CaretPositionLineIndex);
 			//calculate MaxVisibleLineCount
-			MaxVisibleLineCount = (int)((TextActor->GetUIText()->GetHeight() + TextActor->GetUIText()->GetFontSpace().Y) / (TextActor->GetUIText()->GetSize() + TextActor->GetUIText()->GetFontSpace().Y));
+			MaxVisibleLineCount = (int)((TextActor->GetUIText()->GetHeight() + TextActor->GetUIText()->GetFontSpace().Y) / (TextActor->GetUIText()->GetFontSize() + TextActor->GetUIText()->GetFontSpace().Y));
 		}
 	}
 	UpdateUITextComponent();
@@ -1143,7 +1143,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 				}
 			};
 
-			auto fontSize = uiText->GetSize();
+			auto fontSize = uiText->GetFontSize();
 			auto fontSpace = uiText->GetFontSpace();
 			auto font = uiText->GetFont();
 			auto fontStyle = uiText->GetFontStyle();
@@ -1262,7 +1262,7 @@ void UUITextInputComponent::UpdateCaretPosition(FVector2D InCaretPosition, bool 
 		CaretObject = caretActor->GetUISprite();
 		auto uiText = TextActor->GetUIText();
 		CaretObject->SetWidth(CaretWidth);
-		CaretObject->SetHeight(uiText->GetSize());
+		CaretObject->SetHeight(uiText->GetFontSize());
 		CaretObject->SetColor(CaretColor);
 		CaretObject->SetSprite(ULGUISpriteData::GetDefaultWhiteSolid(), false);
 	}
@@ -1292,7 +1292,7 @@ void UUITextInputComponent::UpdateSelection()
 #endif
 			auto uiSprite = spriteActor->GetUISprite();
 			auto uiText = TextActor->GetUIText();
-			uiSprite->SetHeight(uiText->GetSize());
+			uiSprite->SetHeight(uiText->GetFontSize());
 			uiSprite->SetColor(SelectionColor);
 			uiSprite->SetPivot(FVector2D(0, 0.5f));
 			uiSprite->SetSprite(ULGUISpriteData::GetDefaultWhiteSolid(), false);

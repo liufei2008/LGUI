@@ -97,7 +97,6 @@ protected:
 	virtual void MarkFlattenHierarchyIndexDirty()override;
 
 private:
-	void UpdateGeometry_Implement();
 	/** local space vertex position changed */
 	uint8 bLocalVertexPositionChanged : 1;
 	/** vertex's uv change */
