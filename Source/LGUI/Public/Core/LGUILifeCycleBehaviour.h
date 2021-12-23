@@ -75,20 +75,20 @@ protected:
 	 * This is a good replacement for BeginPlay in LGUI's Prefab workflow. Because Awake will execute after all prefab serialization and object reference is done.
 	 * NOTE!!! For LGUILifeCycleUIBehaviour, if UIItem is inactive during start up, then Awake is not called until it is made active.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Awake"), Category = "LGUILifeCycleBehaviour")void AwakeBP();
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Awake"), Category = "LGUILifeCycleBehaviour")void ReceiveAwake();
 	/** Executed after Awake when GetIsActiveAndEnable is true, or when GetIsActiveAndEnable become true. */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnEnable"), Category = "LGUILifeCycleBehaviour")void OnEnableBP();
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnEnable"), Category = "LGUILifeCycleBehaviour")void ReceiveOnEnable();
 	/** Start is called before the first frame update only if GetIsActiveAndEnable is true. */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Start"), Category = "LGUILifeCycleBehaviour")void StartBP();
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Start"), Category = "LGUILifeCycleBehaviour")void ReceiveStart();
 	/** Update is called once per frame if GetIsActiveAndEnable is true. */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Update"), Category = "LGUILifeCycleBehaviour")void UpdateBP(float DeltaTime);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Update"), Category = "LGUILifeCycleBehaviour")void ReceiveUpdate(float DeltaTime);
 	/** Executed when GetIsActiveAndEnable become false. */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDisable"), Category = "LGUILifeCycleBehaviour")void OnDisableBP();
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDisable"), Category = "LGUILifeCycleBehaviour")void ReceiveOnDisable();
 	/**
 	 * Executed when this behaviour is destroyed.
 	 * If Awake is not executed, then OnDestroy won't execute too.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDestroy"), Category = "LGUILifeCycleBehaviour")void OnDestroyBP();
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDestroy"), Category = "LGUILifeCycleBehaviour")void ReceiveOnDestroy();
 
 public:
 	/**

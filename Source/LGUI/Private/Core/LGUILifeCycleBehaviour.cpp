@@ -256,7 +256,7 @@ void ULGUILifeCycleBehaviour::Awake()
 	bIsAwakeCalled = true;
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		AwakeBP();
+		ReceiveAwake();
 	}
 }
 void ULGUILifeCycleBehaviour::Start()
@@ -264,21 +264,21 @@ void ULGUILifeCycleBehaviour::Start()
 	bIsStartCalled = true;
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		StartBP();
+		ReceiveStart();
 	}
 }
 void ULGUILifeCycleBehaviour::Update(float DeltaTime)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		UpdateBP(DeltaTime);
+		ReceiveUpdate(DeltaTime);
 	}
 }
 void ULGUILifeCycleBehaviour::OnDestroy()
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		OnDestroyBP();
+		ReceiveOnDestroy();
 	}
 }
 void ULGUILifeCycleBehaviour::OnEnable()
@@ -307,7 +307,7 @@ void ULGUILifeCycleBehaviour::OnEnable()
 	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		OnEnableBP();
+		ReceiveOnEnable();
 	}
 }
 void ULGUILifeCycleBehaviour::OnDisable()
@@ -336,7 +336,7 @@ void ULGUILifeCycleBehaviour::OnDisable()
 	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		OnDisableBP();
+		ReceiveOnDisable();
 	}
 }
 

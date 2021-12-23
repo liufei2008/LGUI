@@ -24,57 +24,57 @@ protected:
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnNormal"))
-		void OnNormalBP(bool InImmediateSet);
+		void ReceiveOnNormal(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = highlighted.
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnHighlighted"))
-		void OnHighlightedBP(bool InImmediateSet);
+		void ReceiveOnHighlighted(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = pressed.
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnPressed"))
-		void OnPressedBP(bool InImmediateSet);
+		void ReceiveOnPressed(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = disabled.
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnDisabled"))
-		void OnDisabledBP(bool InImmediateSet);
+		void ReceiveOnDisabled(bool InImmediateSet);
 	/**
 	 * This gives us an opportunity to do transition on more case than just provided above
 	 * @param InTransitionName	use this to tell different event type. eg.UIToggleComponent, "On"/"Off" for toggle on/off
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI-Transition", meta = (DisplayName = "OnStartCustomTransition"))
-		void OnStartCustomTransitionBP(FName InTransitionName, bool InImmediateSet);
+		void ReceiveOnStartCustomTransition(FName InTransitionName, bool InImmediateSet);
 public:
 	/**
 	 * Called when UISelectableComponent's transition state = normal.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnNormal();
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
-	virtual void OnNormal(bool InImmediateSet) { OnNormalBP(InImmediateSet); };
+	virtual void OnNormal(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = highlighted.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnHighlighted();
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
-	virtual void OnHighlighted(bool InImmediateSet) { OnHighlightedBP(InImmediateSet); };
+	virtual void OnHighlighted(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = pressed.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnPressed();
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
-	virtual void OnPressed(bool InImmediateSet) { OnPressedBP(InImmediateSet); };
+	virtual void OnPressed(bool InImmediateSet);
 	/**
 	 * Called when UISelectableComponent's transition state = disabled.
 	 * Default will call blueprint implemented function. If you dont want that, just not use Super::OnDisabled();
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
-	virtual void OnDisabled(bool InImmediateSet) { OnDisabledBP(InImmediateSet); };
+	virtual void OnDisabled(bool InImmediateSet);
 
 	/**
 	 * This gives us an opportunity to do transition on more case than just provided above.
@@ -82,7 +82,7 @@ public:
 	 * @param InTransitionName: use this to tell different event type. eg.UIToggleComponent, "On"/"Off" for toggle on/off
 	 * @param InImmediateSet	set properties immediately or use tween animation. InImmediateSet is true when set initialize state.
 	 */
-	virtual void OnStartCustomTransition(FName InTransitionName, bool InImmediateSet) { OnStartCustomTransitionBP(InTransitionName, InImmediateSet); };
+	virtual void OnStartCustomTransition(FName InTransitionName, bool InImmediateSet);
 
 	/**
 	 * Stop any transition inside TweenerCollection if is playing, so remember to collect your tweener object by calling function CollectTweener.

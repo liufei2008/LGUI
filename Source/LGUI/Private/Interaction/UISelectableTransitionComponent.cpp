@@ -29,3 +29,39 @@ void UUISelectableTransitionComponent::CollectTweeners(const TSet<ULTweener*>& I
 		TweenerCollection.Add(item);
 	}
 }
+
+void UUISelectableTransitionComponent::OnNormal(bool InImmediateSet)
+{ 
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnNormal(InImmediateSet);
+	}
+}
+void UUISelectableTransitionComponent::OnHighlighted(bool InImmediateSet)
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnHighlighted(InImmediateSet);
+	}
+}
+void UUISelectableTransitionComponent::OnPressed(bool InImmediateSet)
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnPressed(InImmediateSet);
+	}
+}
+void UUISelectableTransitionComponent::OnDisabled(bool InImmediateSet)
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnDisabled(InImmediateSet);
+	}
+}
+void UUISelectableTransitionComponent::OnStartCustomTransition(FName InTransitionName, bool InImmediateSet)
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnStartCustomTransition(InTransitionName, InImmediateSet);
+	}
+}

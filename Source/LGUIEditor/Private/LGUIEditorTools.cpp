@@ -1246,7 +1246,7 @@ void LGUIEditorTools::UpgradeLevelToLGUI3()
 		ActorArray.Add(Actor);
 	}
 	if (ActorArray.Num() > 0) ActorArray[0]->MarkPackageDirty();
-	UpgradeActorArray(ActorArray);
+	UpgradeActorArray(ActorArray, false);
 }
 
 FVector ConvertPositionFromLGUI2ToLGUI3(FVector InValue)
@@ -1262,7 +1262,7 @@ FRotator ConvertRotatorFromLGUI2ToLGUI3(FRotator InValue)
 	//return FRotator(InValue.Pitch, InValue.Yaw, InValue.Roll);
 }
 
-void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray)
+void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray, bool InIsPrefabOrWorld)
 {
 	for (auto& Actor : InActorArray)
 	{
@@ -1285,8 +1285,13 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray)
 			}
 			else//no parent, then rotate it
 			{
-				//UIItem->SetRelativeRotation(UIItem->GetRelativeRotation().Add(0, -90, 90));
+				auto RelativeLocation = UIItem->GetRelativeLocation();
 				auto RelativeRotation = UIItem->GetRelativeRotation();
+				if (InIsPrefabOrWorld)//prefab mostly be child of other UIItem, so consider it have parent
+				{
+					UIItem->SetRelativeLocation(ConvertPositionFromLGUI2ToLGUI3(RelativeLocation));
+				}
+				//UIItem->SetRelativeRotation(UIItem->GetRelativeRotation().Add(0, -90, 90));
 				UIItem->SetRelativeRotation(ConvertRotatorFromLGUI2ToLGUI3(RelativeRotation));
 			}
 			//anchor
@@ -1577,7 +1582,7 @@ void LGUIEditorTools::UpgradeSelectedPrefabToLGUI3()
 			);
 			TArray<AActor*> AllChildrenActorArray;
 			LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
-			UpgradeActorArray(AllChildrenActorArray);
+			UpgradeActorArray(AllChildrenActorArray, true);
 			TMap<UObject*, FGuid> MapObjectToGuid;
 			for (auto KeyValue : MapGuidToObject)
 			{
@@ -1635,7 +1640,7 @@ void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
 				);
 				TArray<AActor*> AllChildrenActorArray;
 				LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
-				UpgradeActorArray(AllChildrenActorArray);
+				UpgradeActorArray(AllChildrenActorArray, true);
 				TMap<UObject*, FGuid> MapObjectToGuid;
 				for (auto KeyValue : MapGuidToObject)
 				{

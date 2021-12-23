@@ -1934,7 +1934,7 @@ bool ULGUICanvas::IsPointVisible(FVector InWorldPoint)
 		if (LocalPoint.Z > clipRectMax.Y) return false;
 	}
 	break;
-	case ELGUICanvasClipType::Texture:
+	case ELGUICanvasClipType::Texture://@todo: support this!
 		return true;
 		break;
 	}

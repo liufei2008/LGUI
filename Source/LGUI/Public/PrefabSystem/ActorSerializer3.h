@@ -18,7 +18,7 @@ namespace LGUIPrefabSystem3
 	{
 	public:
 		int32 ObjectClass = -1;
-		FGuid ObjectGuid;//use id to find object
+		FGuid ObjectGuid;//use id to find object. @todo: can use integer as id, because this id don't need to be world-unique, just per-prefab-unique.
 		uint32 ObjectFlags;
 		TArray<uint8> PropertyData;
 		FGuid OuterObjectGuid;//outer object

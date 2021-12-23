@@ -92,7 +92,7 @@ public:
 	static void UpgradeAllPrefabToLGUI3();
 	static void UpgradeSelectedPrefabToLGUI3();
 private:
-	static void UpgradeActorArray(const TArray<AActor*>& InActorArray);
+	static void UpgradeActorArray(const TArray<AActor*>& InActorArray, bool InIsPrefabOrWorld);
 	static void UpgradeObjectProperty(UObject* InObject);
 	static void UpgradeCommonProperty(FProperty* Property, uint8* ContainerPtr);
 };

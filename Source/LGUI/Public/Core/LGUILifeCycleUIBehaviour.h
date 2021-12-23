@@ -87,25 +87,25 @@ protected:
 
 
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIActiveInHierarchy"), Category = "LGUILifeCycleBehaviour") void OnUIActiveInHierarchyBP(bool activeOrInactive);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIActiveInHierarchy"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIActiveInHierarchy(bool activeOrInactive);
 	/** 
 	 * Called when RootUIComp->AnchorData is changed
 	 * @param positionChanged	relative position
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void OnUIDimensionsChangedBP(bool positionChanged, bool sizeChanged);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIDimensionsChanged(bool positionChanged, bool sizeChanged);
 	/** 
 	 * Called when RootUIComp's attachchildren->AnchorData is changed.
 	 * @param positionChanged	relative position
 	 */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void OnUIChildDimensionsChangedBP(UUIItem* child, bool positionChanged, bool sizeChanged);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildDimensionsChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged);
 	/** Called when RootUIComp's attachchildren IsActiveInHierarchy state is changed */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildAcitveInHierarchy"), Category = "LGUILifeCycleBehaviour") void OnUIChildAcitveInHierarchyBP(UUIItem* child, bool ativeOrInactive);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildAcitveInHierarchy"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIChildAcitveInHierarchy(UUIItem* child, bool ativeOrInactive);
 	/** Called when RootUIComp attach to a new parent */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIAttachmentChanged"), Category = "LGUILifeCycleBehaviour") void OnUIAttachmentChangedBP();
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIAttachmentChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIAttachmentChanged();
 	/** Called when RootUIComp's attachchildren is attached to RootUIComp or detached from RootUIComp  */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildAttachmentChanged"), Category = "LGUILifeCycleBehaviour") void OnUIChildAttachmentChangedBP(UUIItem* child, bool attachOrDetach);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildAttachmentChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach);
 	/** Called when RootUIComp's interaction state changed(when UICanvasGroup component allow interaction or not) */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIInteractionStateChanged"), Category = "LGUILifeCycleBehaviour") void OnUIInteractionStateChangedBP(bool interactableOrNot);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIInteractionStateChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIInteractionStateChanged(bool interactableOrNot);
 	/** Called when RootUIComp's attachchildren->SetHierarchyIndex() is called, usually used for layout to sort children */
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildHierarchyIndexChanged"), Category = "LGUILifeCycleBehaviour") void OnUIChildHierarchyIndexChangedBP(UUIItem* child);
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnUIChildHierarchyIndexChanged"), Category = "LGUILifeCycleBehaviour") void ReceiveOnUIChildHierarchyIndexChanged(UUIItem* child);
 };
