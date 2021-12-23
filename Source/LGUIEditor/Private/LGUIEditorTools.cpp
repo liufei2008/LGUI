@@ -1276,7 +1276,7 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray)
 				UIRenderable->SetColor(UIItem->widget.color);
 			}
 			//coordinate
-			if (UIItem->GetParentUIItem() != nullptr)//get parent
+			if (UIParent != nullptr)//get parent
 			{
 				auto RelativeLocation = UIItem->GetRelativeLocation();
 				UIItem->SetRelativeLocation(ConvertPositionFromLGUI2ToLGUI3(RelativeLocation));
@@ -1318,12 +1318,8 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray)
 			case UIAnchorHorizontalAlign::Stretch:
 			{
 				AnchorData.AnchorMin.X = 0; AnchorData.AnchorMax.X = 1;
-				if (UIParent != nullptr)
-				{
-					auto CalculatedWidth = UIParent->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X) - widget.stretchRight - widget.stretchLeft;
-					AnchorData.SizeDelta.X = CalculatedWidth - UIParent->GetWidth();
-					AnchorData.AnchoredPosition.X = FMath::Lerp(widget.stretchLeft, -widget.stretchRight, UIItem->GetPivot().X);
-				}
+				AnchorData.SizeDelta.X = -(widget.stretchRight + widget.stretchLeft);
+				AnchorData.AnchoredPosition.X = FMath::Lerp(widget.stretchLeft, -widget.stretchRight, widget.pivot.X);
 			}
 			break;
 			}
@@ -1353,21 +1349,18 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray)
 			case UIAnchorVerticalAlign::Stretch:
 			{
 				AnchorData.AnchorMin.Y = 0; AnchorData.AnchorMax.Y = 1;
-				if (UIParent != nullptr)
-				{
-					auto CalculatedHeight = UIParent->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y) - widget.stretchTop - widget.stretchBottom;
-					AnchorData.SizeDelta.Y = CalculatedHeight - UIParent->GetHeight();
-					AnchorData.AnchoredPosition.Y = FMath::Lerp(widget.stretchBottom, -widget.stretchTop, UIItem->GetPivot().Y);
-				}
+				AnchorData.SizeDelta.Y = -(widget.stretchTop + widget.stretchBottom);
+				AnchorData.AnchoredPosition.Y = FMath::Lerp(widget.stretchBottom, -widget.stretchTop, widget.pivot.Y);
 			}
 			break;
 			}
-			auto ParentUIItem = UIItem->GetParentUIItem();
-			if (ParentUIItem == nullptr)
-			{
-				AnchorData.AnchoredPosition.X = UIItem->GetRelativeLocation().Y;
-				AnchorData.AnchoredPosition.Y = UIItem->GetRelativeLocation().Z;
-			}
+			//if (UIParent == nullptr)
+			//{
+			//	AnchorData.AnchoredPosition.X = UIItem->GetRelativeLocation().Y;
+			//	AnchorData.AnchoredPosition.Y = UIItem->GetRelativeLocation().Z;
+			//	AnchorData.SizeDelta.X = widget.width;
+			//	AnchorData.SizeDelta.Y = widget.height;
+			//}
 			AnchorData.Pivot = widget.pivot;
 			UIItem->SetAnchorData(AnchorData);
 		}

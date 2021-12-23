@@ -100,12 +100,6 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 {
 	if (bRaycastComplex)
 	{
-		if (!bRaycastTarget)return false;
-		if (!GetIsUIActiveInHierarchy())return false;
-		if (!RenderCanvas.IsValid())return false;
-		if (!GetOwner())return false;
-		if (GetOwner()->GetRootComponent() != this)return false;//only root component can do line trace hit
-
 		if (!MeshSection.IsValid())return false;
 
 		auto inverseTf = GetComponentTransform().Inverse();

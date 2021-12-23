@@ -52,7 +52,10 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 		targetUIItem = transitionActor->FindComponentByClass<UUIItem>();
 		targetUISprite = transitionActor->FindComponentByClass<UUISprite>();
 	}
-	targetTweenComp = TargetScriptPtr->GetOwner()->FindComponentByClass<UUISelectableTransitionComponent>();
+	if (auto Actor = TargetScriptPtr->GetOwner())
+	{
+		targetTweenComp = TargetScriptPtr->GetOwner()->FindComponentByClass<UUISelectableTransitionComponent>();
+	}
 
 	uint8 transitionType;
 	transitionHandle->GetValue(transitionType);

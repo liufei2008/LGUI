@@ -967,7 +967,7 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 
 	//if (this->IsRegistered())//not registerd means could be load from level
 	{
-		CalculateOnLayoutChange();
+		CalculateOnLayoutChange(true);
 		MarkLayoutDirty(true, false, false);
 	}
 }
@@ -1080,7 +1080,7 @@ void UUIItem::CalculateTransformFromAnchor()
 		ResultLocation.Z = this->AnchorData.AnchoredPosition.Y;
 	}
 
-	if (!this->GetRelativeLocation().Equals(ResultLocation))
+	if (!this->GetRelativeLocation().Equals(ResultLocation, 0.0f))
 	{
 		GetRelativeLocation_DirectMutable() = ResultLocation;
 		UpdateComponentToWorld();
@@ -1146,13 +1146,13 @@ void UUIItem::SetAnchorData(const FUIAnchorData& InAnchorData)
 	AnchorData.AnchoredPosition = InAnchorData.AnchoredPosition;
 	AnchorData.SizeDelta = InAnchorData.SizeDelta;
 
-	CalculateOnLayoutChange();
+	CalculateOnLayoutChange(true);
 	MarkLayoutDirty(false, true, true);
 }
 
 void UUIItem::SetPivot(FVector2D Value) 
 {
-	if (!AnchorData.Pivot.Equals(Value))
+	if (!AnchorData.Pivot.Equals(Value, 0.0f))
 	{
 		AnchorData.Pivot = Value;
 		CalculateOnLayoutChange();
@@ -1164,7 +1164,7 @@ void UUIItem::SetAnchorMin(FVector2D Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		if (!AnchorData.AnchorMin.Equals(Value))
+		if (!AnchorData.AnchorMin.Equals(Value, 0.0f))
 		{
 			auto CurrentLeft = this->GetAnchorLeft();
 			auto CurrentBottom = this->GetAnchorBottom();
@@ -1208,7 +1208,7 @@ void UUIItem::SetAnchorMax(FVector2D Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		if (!AnchorData.AnchorMax.Equals(Value))
+		if (!AnchorData.AnchorMax.Equals(Value, 0.0f))
 		{
 			auto CurrentRight = this->GetAnchorRight();
 			auto CurrentTop = this->GetAnchorTop();
@@ -1315,7 +1315,7 @@ void UUIItem::SetVerticalAnchorMinMax(FVector2D Value)
 
 void UUIItem::SetAnchoredPosition(FVector2D Value)
 {
-	if (!AnchorData.AnchoredPosition.Equals(Value))
+	if (!AnchorData.AnchoredPosition.Equals(Value, 0.0f))
 	{
 		AnchorData.AnchoredPosition = Value;
 		CalculateOnLayoutChange();
@@ -1344,7 +1344,7 @@ void UUIItem::SetVerticalAnchoredPosition(float Value)
 
 void UUIItem::SetSizeDelta(FVector2D Value)
 {
-	if (!AnchorData.SizeDelta.Equals(Value))
+	if (!AnchorData.SizeDelta.Equals(Value, 0.0f))
 	{
 		AnchorData.SizeDelta = Value;
 		CalculateOnLayoutChange();
@@ -1724,19 +1724,22 @@ void UUIItem::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool I
 	CallUILifeCycleBehavioursDimensionsChanged(InTransformChange, InSizeChange);
 }
 
-void UUIItem::CalculateOnLayoutChange()
+void UUIItem::CalculateOnLayoutChange(bool InDiscardCache)
 {
 	CalculateTransformFromAnchor();
-	bWidthCached = false;
-	bHeightCached = false;
-	bAnchorLeftCached = false;
-	bAnchorRightCached = false;
-	bAnchorBottomCached = false;
-	bAnchorTopCached = false;
+	if (InDiscardCache)
+	{
+		bWidthCached = false;
+		bHeightCached = false;
+		bAnchorLeftCached = false;
+		bAnchorRightCached = false;
+		bAnchorBottomCached = false;
+		bAnchorTopCached = false;
+	}
 	for (auto& UIChild : UIChildren)
 	{
 		//@todo: some condition may not need recalculate anchor or transform
-		UIChild->CalculateOnLayoutChange();
+		UIChild->CalculateOnLayoutChange(true);
 	}
 }
 
@@ -1766,10 +1769,6 @@ void UUIItem::SetTraceChannel(TEnumAsByte<ETraceTypeQuery> InTraceChannel)
 
 bool UUIItem::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
-	if (!bRaycastTarget)return false;
-	if (!GetIsUIActiveInHierarchy())return false;
-	if (!RenderCanvas.IsValid())return false;
-	if (!GetOwner())return false;
 	auto inverseTf = GetComponentTransform().Inverse();
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
@@ -1930,6 +1929,45 @@ void UUIItem::UnregisterUIActiveStateChanged(const FDelegateHandle& InHandle)
 }
 
 #pragma endregion UIActive
+
+void UUIItem::SetAnchorHAlign(UIAnchorHorizontalAlign align)
+{
+	switch (align)
+	{
+	default:
+	case UIAnchorHorizontalAlign::Left:
+		SetHorizontalAnchorMinMax(FVector2D(0.0f, 0.0f));
+		break;
+	case UIAnchorHorizontalAlign::Center:
+		SetHorizontalAnchorMinMax(FVector2D(0.5f, 0.5f));
+		break;
+	case UIAnchorHorizontalAlign::Right:
+		SetHorizontalAnchorMinMax(FVector2D(1.0f, 1.0f));
+		break;
+	case UIAnchorHorizontalAlign::Stretch:
+		SetHorizontalAnchorMinMax(FVector2D(0.0f, 1.0f));
+		break;
+	}
+}
+void UUIItem::SetAnchorVAlign(UIAnchorVerticalAlign align)
+{
+	switch (align)
+	{
+	default:
+	case UIAnchorVerticalAlign::Top:
+		SetVerticalAnchorMinMax(FVector2D(1.0f, 1.0f));
+		break;
+	case UIAnchorVerticalAlign::Middle:
+		SetVerticalAnchorMinMax(FVector2D(0.5f, 0.5f));
+		break;
+	case UIAnchorVerticalAlign::Bottom:
+		SetVerticalAnchorMinMax(FVector2D(0.0f, 0.0f));
+		break;
+	case UIAnchorVerticalAlign::Stretch:
+		SetVerticalAnchorMinMax(FVector2D(0.0f, 1.0f));
+		break;
+	}
+}
 
 
 

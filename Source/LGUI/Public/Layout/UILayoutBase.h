@@ -55,6 +55,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void MarkNeedRebuildLayout() { bNeedRebuildLayout = true; }
 
+#if WITH_EDITOR
+	virtual bool CanControlChildAnchor() { return false; };
+	virtual bool CanControlChildAnchorOffsetX() { return false; }
+	virtual bool CanControlChildAnchorOffsetY() { return false; }
+	virtual bool CanControlChildWidth() { return false; }
+	virtual bool CanControlChildHeight() { return false; }
+	virtual bool CanControlSelfHorizontalAnchor() { return false; }
+	virtual bool CanControlSelfVerticalAnchor() { return false; }
+	virtual bool CanControlSelfAnchorOffsetX() { return false; }
+	virtual bool CanControlSelfAnchorOffsetY() { return false; }
+	virtual bool CanControlSelfWidth() { return false; }
+	virtual bool CanControlSelfHeight() { return false; }
+	virtual bool CanControlSelfStrengthLeft() { return false; }
+	virtual bool CanControlSelfStrengthRight() { return false; }
+	virtual bool CanControlSelfStrengthTop() { return false; }
+	virtual bool CanControlSelfStrengthBottom() { return false; }
+#endif
+
 protected:
 
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;

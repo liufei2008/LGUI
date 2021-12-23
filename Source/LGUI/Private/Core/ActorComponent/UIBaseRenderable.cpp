@@ -110,11 +110,6 @@ bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitRe
 {
 	if (bRaycastComplex)
 	{
-		if (!bRaycastTarget)return false;
-		if (!GetIsUIActiveInHierarchy())return false;
-		if (!RenderCanvas.IsValid())return false;
-		if (!GetOwner())return false;
-		if (GetOwner()->GetRootComponent() != this)return false;//only root component can do line trace hit
 		auto inverseTf = GetComponentTransform().Inverse();
 		auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
 		auto localSpaceRayEnd = inverseTf.TransformPosition(End);

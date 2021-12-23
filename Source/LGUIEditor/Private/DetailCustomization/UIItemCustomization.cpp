@@ -148,11 +148,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					}
 					if (!ignoreParentLayout)
 					{
-						auto LayoutControlArray = parentActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-						if (LayoutControlArray.Num() > 0)
+						if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
 						{
-							auto parentLayout = (ILGUILayoutInterface*)LayoutControlArray[0];
-
 							anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
 							widthControlledByParentLayout = parentLayout->CanControlChildWidth();
 							heightControlledByParentLayout = parentLayout->CanControlChildHeight();
@@ -161,10 +158,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 						}
 					}
 				}
-				auto LayoutControlArray = thisActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-				if (LayoutControlArray.Num() > 0)
+				if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
 				{
-					auto thisLayout = (ILGUILayoutInterface*)LayoutControlArray[0];
 					anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
 					anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
 					anchorOffsetXControlledBySelfLayout = thisLayout->CanControlSelfAnchorOffsetX();
@@ -902,10 +897,16 @@ FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool Increa
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FReply::Handled();
 
 	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Hierarchy Index"));
-	TargetScriptArray[0]->Modify();
+	for (auto& Item : TargetScriptArray)
+	{
+		Item->Modify();
+	}
 	GEditor->EndTransaction();
 
-	TargetScriptArray[0]->SetHierarchyIndex(TargetScriptArray[0]->hierarchyIndex + (IncreaseOrDecrease ? 1 : -1));
+	for (auto& Item : TargetScriptArray)
+	{
+		Item->SetHierarchyIndex(Item->hierarchyIndex + (IncreaseOrDecrease ? 1 : -1));
+	}
 
 	LGUIEditorTools::RefreshSceneOutliner();
 	return FReply::Handled();
@@ -1245,11 +1246,17 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 		if (AnchorMinValue.X == AnchorMaxValue.X)
 		{
 			AnchoredPosition.X = Value;
-			TargetScriptArray[0]->SetAnchoredPosition(AnchoredPosition);
+			for (auto& Item : TargetScriptArray)
+			{
+				Item->SetAnchoredPosition(AnchoredPosition);
+			}
 		}
 		else
 		{
-			TargetScriptArray[0]->SetAnchorLeft(Value);
+			for (auto& Item : TargetScriptArray)
+			{
+				Item->SetAnchorLeft(Value);
+			}
 		}
 	}
 	break;
@@ -1258,11 +1265,17 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 		if (AnchorMinValue.Y == AnchorMaxValue.Y)
 		{
 			AnchoredPosition.Y = Value;
-			TargetScriptArray[0]->SetAnchoredPosition(AnchoredPosition);
+			for (auto& Item : TargetScriptArray)
+			{
+				Item->SetAnchoredPosition(AnchoredPosition);
+			}
 		}
 		else
 		{
-			TargetScriptArray[0]->SetAnchorTop(Value);
+			for (auto& Item : TargetScriptArray)
+			{
+				Item->SetAnchorTop(Value);
+			}
 		}
 	}
 	break;
@@ -1270,11 +1283,17 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 	{
 		if (AnchorMinValue.X == AnchorMaxValue.X)
 		{
-			TargetScriptArray[0]->SetWidth(Value);
+			for (auto& Item : TargetScriptArray)
+			{
+				Item->SetWidth(Value);
+			}
 		}
 		else
 		{
-			TargetScriptArray[0]->SetAnchorRight(Value);
+			for (auto& Item : TargetScriptArray)
+			{
+				Item->SetAnchorRight(Value);
+			}
 		}
 	}
 	break;
@@ -1282,11 +1301,17 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 	{
 		if (AnchorMinValue.Y == AnchorMaxValue.Y)
 		{
-			TargetScriptArray[0]->SetHeight(Value);
+			for (auto& Item : TargetScriptArray)
+			{
+				Item->SetHeight(Value);
+			}
 		}
 		else
 		{
-			TargetScriptArray[0]->SetAnchorBottom(Value);
+			for (auto& Item : TargetScriptArray)
+			{
+				Item->SetAnchorBottom(Value);
+			}
 		}
 	}
 	break;
@@ -1523,18 +1548,14 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 				}
 				if (!ignoreParentLayout)
 				{
-					auto LayoutControlArray = parentActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-					if (LayoutControlArray.Num() > 0)
+					if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
 					{
-						auto parentLayout = (ILGUILayoutInterface*)LayoutControlArray[0];
 						anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
 					}
 				}
 			}
-			auto LayoutControlArray = thisActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-			if (LayoutControlArray.Num() > 0)
+			if (auto thisLayout = thisActor->FindComponentByClass<UUILayoutBase>())
 			{
-				auto thisLayout = (ILGUILayoutInterface*)LayoutControlArray[0];
 				anchorHControlledBySelfLayout = thisLayout->CanControlSelfHorizontalAnchor();
 				anchorVControlledBySelfLayout = thisLayout->CanControlSelfVerticalAnchor();
 			}

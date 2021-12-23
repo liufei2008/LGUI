@@ -50,7 +50,7 @@ const FName FLGUIPrefabEditorTabs::PrefabRawDataViewerID(TEXT("PrefabRawDataView
 FLGUIPrefabEditor::FLGUIPrefabEditor()
 	:PreviewScene(FLGUIPrefabPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(false).SetEditor(true))
 {
-	PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>();
+	PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this->GetWorld());
 	PrefabHelperObject->AddToRoot();
 	PrefabHelperObject->bIsInsidePrefabEditor = true;
 	LGUIPrefabEditorInstanceCollection.Add(this);
@@ -60,12 +60,9 @@ FLGUIPrefabEditor::~FLGUIPrefabEditor()
 	FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(this->OnObjectPropertyChangedDelegateHandle);
 	FCoreUObjectDelegates::OnPreObjectPropertyChanged.Remove(this->OnPreObjectPropertyChangedDelegateHandle);
 
-	if (PrefabHelperObject.IsValid())
-	{
-		PrefabHelperObject->RemoveFromRoot();
-		PrefabHelperObject->ConditionalBeginDestroy();
-		PrefabHelperObject.Reset();
-	}
+	PrefabHelperObject->RemoveFromRoot();
+	PrefabHelperObject->ConditionalBeginDestroy();
+
 	LGUIPrefabEditorInstanceCollection.Remove(this);
 }
 
@@ -365,7 +362,7 @@ void FLGUIPrefabEditor::OnOpenRawDataViewerPanel()
 
 void FLGUIPrefabEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	//Collector.AddReferencedObject(PrefabBeingEdited);
+	Collector.AddReferencedObject(PrefabBeingEdited);
 }
 
 bool FLGUIPrefabEditor::CheckBeforeSaveAsset()

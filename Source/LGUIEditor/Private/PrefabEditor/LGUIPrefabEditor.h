@@ -70,7 +70,7 @@ public:
 	bool GetSelectedObjectsBounds(FBoxSphereBounds& OutResult);
 private:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
-	TWeakObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject = nullptr;
+	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 	static TArray<FLGUIPrefabEditor*> LGUIPrefabEditorInstanceCollection;
 
 	TSharedPtr<SLGUIPrefabEditorViewport> ViewportPtr;

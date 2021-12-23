@@ -73,6 +73,9 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 					FHitResult thisHit;
 					if (uiItem->IsRegistered()
 						&& uiItem->GetTraceChannel() == traceChannel
+						&& uiItem->IsRaycastTarget()
+						&& uiItem->GetIsUIActiveInHierarchy()
+						&& uiItem->GetRenderCanvas() != nullptr
 						&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
 						)
 					{

@@ -232,7 +232,7 @@ public:
 public:
 	virtual void MarkCanvasUpdate();
 private:
-	void CalculateOnLayoutChange();
+	void CalculateOnLayoutChange(bool InDiscardCache = false);
 	mutable float CacheWidth = 0, CacheHeight = 0, CacheAnchorLeft = 0, CacheAnchorRight = 0, CacheAnchorTop = 0, CacheAnchorBottom = 0;
 	mutable uint8 bWidthCached : 1, bHeightCached : 1, bAnchorLeftCached : 1, bAnchorRightCached : 1, bAnchorTopCached : 1, bAnchorBottomCached : 1;
 #pragma region UICanvasGroup
@@ -500,6 +500,13 @@ public:
 	UE_DEPRECATED(4.24, "Use SetAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchoredPosition instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
 		void SetAnchorOffset(FVector2D newOffset) { this->SetAnchoredPosition(newOffset); }
+
+	UE_DEPRECATED(4.24, "Use SetHorizontalAnchorMinMax instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetHorizontalAnchorMinMax instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetAnchorHAlign(UIAnchorHorizontalAlign align);
+	UE_DEPRECATED(4.24, "Use SetVerticalAnchorMinMax instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI-Widget", meta = (DeprecatedFunction, DeprecationMessage = "Use SetVerticalAnchorMinMax instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		void SetAnchorVAlign(UIAnchorVerticalAlign align);
 
 	UE_DEPRECATED(4.24, "Use GetParentUIItem instead.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetParentUIItem instead."))

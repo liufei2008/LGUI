@@ -480,6 +480,9 @@ void ULGUIEditorManagerObject::AddUIItem(UUIItem* InItem)
 {
 	if (InitCheck(InItem->GetWorld()))
 	{
+#if !UE_BUILD_SHIPPING
+		check(!Instance->allUIItem.Contains(InItem));
+#endif
 		Instance->allUIItem.Add(InItem);
 	}
 }
@@ -487,6 +490,9 @@ void ULGUIEditorManagerObject::RemoveUIItem(UUIItem* InItem)
 {
 	if (Instance != nullptr)
 	{
+#if !UE_BUILD_SHIPPING
+		check(Instance->allUIItem.Contains(InItem));
+#endif
 		Instance->allUIItem.RemoveSingle(InItem);
 	}
 }
@@ -495,19 +501,20 @@ void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 {
 	if (Instance != nullptr)
 	{
-		int32 foundIndex = Instance->allCanvas.IndexOfByKey(InCanvas);
-		if (foundIndex != INDEX_NONE)
-		{
-			Instance->allCanvas.RemoveAt(foundIndex);
-		}
+#if !UE_BUILD_SHIPPING
+		check(Instance->allCanvas.Contains(InCanvas));
+#endif
+		Instance->allCanvas.RemoveSingle(InCanvas);
 	}
 }
 void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
 {
 	if (GetInstance(InCanvas->GetWorld(), true))
 	{
-		auto& canvasArray = Instance->allCanvas;
-		canvasArray.AddUnique(InCanvas);
+#if !UE_BUILD_SHIPPING
+		check(!Instance->allCanvas.Contains(InCanvas));
+#endif
+		Instance->allCanvas.AddUnique(InCanvas);
 	}
 }
 
@@ -528,6 +535,9 @@ void ULGUIEditorManagerObject::AddRootUIItem(UUIItem* InItem)
 {
 	if (GetInstance(InItem->GetWorld(), true))
 	{
+#if !UE_BUILD_SHIPPING
+		check(!Instance->rootUIItems.Contains(InItem));
+#endif
 		Instance->rootUIItems.AddUnique(InItem);
 	}
 }
@@ -535,6 +545,9 @@ void ULGUIEditorManagerObject::RemoveRootUIItem(UUIItem* InItem)
 {
 	if (Instance != nullptr)
 	{
+#if !UE_BUILD_SHIPPING
+		check(Instance->rootUIItems.Contains(InItem));
+#endif
 		Instance->rootUIItems.RemoveSingle(InItem);
 	}
 }
@@ -1292,6 +1305,9 @@ void ALGUIManagerActor::AddUIItem(UUIItem* InItem)
 {
 	if (auto Instance = GetInstance(InItem->GetWorld(), true))
 	{
+#if !UE_BUILD_SHIPPING
+		check(!Instance->allUIItem.Contains(InItem));
+#endif
 		Instance->allUIItem.AddUnique(InItem);
 	}
 }
@@ -1299,6 +1315,9 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 {
 	if (auto Instance = GetInstance(InItem->GetWorld()))
 	{
+#if !UE_BUILD_SHIPPING
+		check(Instance->allUIItem.Contains(InItem));
+#endif
 		Instance->allUIItem.RemoveSingle(InItem);
 	}
 }
@@ -1307,6 +1326,9 @@ void ALGUIManagerActor::AddRootUIItem(UUIItem* InItem)
 {
 	if (auto Instance = GetInstance(InItem->GetWorld(), true))
 	{
+#if !UE_BUILD_SHIPPING
+		check(!Instance->rootUIItems.Contains(InItem));
+#endif
 		Instance->rootUIItems.AddUnique(InItem);
 	}
 }
@@ -1314,6 +1336,9 @@ void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
 {
 	if (auto Instance = GetInstance(InItem->GetWorld()))
 	{
+#if !UE_BUILD_SHIPPING
+		check(Instance->rootUIItems.Contains(InItem));
+#endif
 		Instance->rootUIItems.RemoveSingle(InItem);
 	}
 }
@@ -1358,20 +1383,20 @@ void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
 {
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
 	{
-		int32 foundIndex = Instance->allCanvas.IndexOfByKey(InCanvas);
-		if (foundIndex != INDEX_NONE)
-		{
-			Instance->allCanvas.RemoveAt(foundIndex);
-		}
+#if !UE_BUILD_SHIPPING
+		check(Instance->allCanvas.Contains(InCanvas));
+#endif
+		Instance->allCanvas.RemoveSingle(InCanvas);
 	}
 }
 void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 {
-	RemoveCanvas(InCanvas);
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
 	{
-		auto& canvasArray = Instance->allCanvas;
-		canvasArray.AddUnique(InCanvas);
+#if !UE_BUILD_SHIPPING
+		check(!Instance->allCanvas.Contains(InCanvas));
+#endif
+		Instance->allCanvas.AddUnique(InCanvas);
 	}
 }
 void ALGUIManagerActor::MarkSortLGUIRenderer()

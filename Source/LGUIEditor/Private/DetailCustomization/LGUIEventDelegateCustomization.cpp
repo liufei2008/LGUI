@@ -1567,7 +1567,11 @@ void FLGUIEventDelegateCustomization::SetTextValue(const FText& InText, ETextCom
 void FLGUIEventDelegateCustomization::ClearValueBuffer(TSharedPtr<IPropertyHandle> PropertyHandle)
 {
 	auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ParamBuffer))->AsArray();
-	handle->EmptyArray();
+	uint32 NumElements = 0;
+	if (handle->GetNumElements(NumElements) == FPropertyAccess::Result::Success && NumElements > 0)
+	{
+		handle->EmptyArray();
+	}
 }
 void FLGUIEventDelegateCustomization::ClearReferenceValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 {
@@ -1576,7 +1580,11 @@ void FLGUIEventDelegateCustomization::ClearReferenceValue(TSharedPtr<IPropertyHa
 void FLGUIEventDelegateCustomization::ClearObjectValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 {
 	auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, ReferenceObject));
-	handle->ResetToDefault();
+	UObject* Obj = nullptr;
+	if (handle->GetValue(Obj) == FPropertyAccess::Result::Success && Obj != nullptr)
+	{
+		handle->ResetToDefault();
+	}
 }
 
 void FLGUIEventDelegateCustomization::OnParameterTypeChange(TSharedRef<IPropertyHandle> InDataContainerHandle)

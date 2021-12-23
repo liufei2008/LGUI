@@ -288,6 +288,42 @@ ULTweener* ULGUIBPLibrary::PivotTo(UUIItem* target, FVector2D endValue, float du
 	return ALTweenActor::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetPivot), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetPivot), endValue, duration)->SetEase(ease)->SetDelay(delay);
 }
 
+ULTweener* ULGUIBPLibrary::AnchorLeftTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorLeftTo target is not valid:%s"), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorLeft), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorLeft), endValue, duration)->SetEase(ease)->SetDelay(delay);
+}
+ULTweener* ULGUIBPLibrary::AnchorRightTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorRightTo target is not valid:%s"), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorRight), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorRight), endValue, duration)->SetEase(ease)->SetDelay(delay);
+}
+ULTweener* ULGUIBPLibrary::AnchorTopTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorTopTo target is not valid:%s"), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorTop), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorTop), endValue, duration)->SetEase(ease)->SetDelay(delay);
+}
+ULTweener* ULGUIBPLibrary::AnchorBottomTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	if (!IsValid(target))
+	{
+		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorBottomTo target is not valid:%s"), *(target->GetPathName()));
+		return nullptr;
+	}
+	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetAnchorBottom), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetAnchorBottom), endValue, duration)->SetEase(ease)->SetDelay(delay);
+}
 #pragma endregion
 
 
@@ -411,28 +447,29 @@ ULTweener* ULGUIBPLibrary::UILocalPositionTo(UUIItem* target, FVector endValue, 
 
 ULTweener* ULGUIBPLibrary::AnchorOffsetXTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
 {
-	if (!IsValid(target))
-	{
-		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorOffsetYTo target is not valid:%s"), *(target->GetPathName()));
-		return nullptr;
-	}
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetHorizontalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetHorizontalAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return HorizontalAnchoredPositionTo(target, endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::AnchorOffsetYTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
 {
-	if (!IsValid(target))
-	{
-		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorOffsetZTo target is not valid:%s"), *(target->GetPathName()));
-		return nullptr;
-	}
-	return ALTweenActor::To(target, FLTweenFloatGetterFunction::CreateUObject(target, &UUIItem::GetVerticalAnchoredPosition), FLTweenFloatSetterFunction::CreateUObject(target, &UUIItem::SetVerticalAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return VerticalAnchoredPositionTo(target, endValue, duration, delay, ease);
 }
 ULTweener* ULGUIBPLibrary::AnchorOffsetTo(UUIItem* target, FVector2D endValue, float duration, float delay, LTweenEase ease)
 {
-	if (!IsValid(target))
-	{
-		UE_LOG(LGUI, Error, TEXT("ULGUIBPLibrary::AnchorOffsetTo target is not valid:%s"), *(target->GetPathName()));
-		return nullptr;
-	}
-	return ALTweenActor::To(target, FLTweenVector2DGetterFunction::CreateUObject(target, &UUIItem::GetAnchoredPosition), FLTweenVector2DSetterFunction::CreateUObject(target, &UUIItem::SetAnchoredPosition), endValue, duration)->SetEase(ease)->SetDelay(delay);
+	return AnchoredPositionTo(target, endValue, duration, delay, ease);
+}
+ULTweener* ULGUIBPLibrary::StretchLeftTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	return AnchorLeftTo(target, endValue, duration, delay, ease);
+}
+ULTweener* ULGUIBPLibrary::StretchRightTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	return AnchorRightTo(target, endValue, duration, delay, ease);
+}
+ULTweener* ULGUIBPLibrary::StretchTopTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	return AnchorTopTo(target, endValue, duration, delay, ease);
+}
+ULTweener* ULGUIBPLibrary::StretchBottomTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
+{
+	return AnchorBottomTo(target, endValue, duration, delay, ease);
 }
