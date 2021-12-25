@@ -10,16 +10,7 @@ bool ULGUI_ScreenSpaceUIMouseRayemitter::EmitRay(ULGUIPointerEventData* InPointe
 	if (RenderCanvas->GetActualRenderMode() == ELGUIRenderMode::WorldSpace)
 		return false;
 
-	auto ViewLocation = RenderCanvas->GetViewLocation();
-	auto ViewRotationMatrix = FInverseRotationMatrix(RenderCanvas->GetViewRotator())
-		* FMatrix(
-		FPlane(0, 0, 1, 0),
-		FPlane(1, 0, 0, 0),
-		FPlane(0, 1, 0, 0),
-		FPlane(0, 0, 0, 1))
-		;
-	auto ProjectionMatrix = RenderCanvas->GetProjectionMatrix();
-	auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
+	auto ViewProjectionMatrix = RenderCanvas->GetViewProjectionMatrix();
 	//Get mouse position, convert to range 0-1
 	FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
 	FVector2D viewportSize = RenderCanvas->GetViewportSize();

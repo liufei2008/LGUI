@@ -222,7 +222,7 @@ namespace LGUIPrefabSystem3
 			*this << guid;
 			if (auto ObjectPtr = Serializer.MapGuidToObject.Find(guid))
 			{
-				Object = *ObjectPtr;
+				Object = ObjectPtr->Get();
 				return true;
 			}
 		}
@@ -449,7 +449,7 @@ namespace LGUIPrefabSystem3
 			*this << guid;
 			if (auto ObjectPtr = Serializer.MapGuidToObject.Find(guid))
 			{
-				Object = *ObjectPtr;
+				Object = ObjectPtr->Get();
 				return true;
 			}
 		}

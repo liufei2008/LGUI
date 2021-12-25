@@ -56,9 +56,9 @@ void UUIPostProcessRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULG
 {
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
-void UUIPostProcessRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
+void UUIPostProcessRenderable::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
-    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
+    Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
     if (InPivotChange || InSizeChange)
     {
 	    MarkVertexPositionDirty();

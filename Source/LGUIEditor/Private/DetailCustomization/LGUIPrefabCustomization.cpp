@@ -153,7 +153,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 				]
 			]
 			+SHorizontalBox::Slot()
-			.MaxWidth(80)
+			.AutoWidth()
 			[
 				SNew(SButton)
 				.Text(LOCTEXT("FixAgentRootActor", "Missing AgentRootActor! This will cause cook & package fail. Click to fix it"))
@@ -298,7 +298,7 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentActorButton()const
 	if (TargetScriptPtr.IsValid())
 	{
 		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
-			&& !IsValid(TargetScriptPtr->AgentRootActor)
+			&& !TargetScriptPtr->AgentRootActor.IsValid()
 			)
 		{
 			return EVisibility::Visible;
@@ -376,14 +376,14 @@ FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 }
 void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World)
 {
-	TMap<FGuid, UObject*> MapGuidToObject;
-	TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-	ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+	TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
+	TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
+	TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
 	auto RootActor= Prefab->LoadPrefabForEdit(World, nullptr
 		, MapGuidToObject, SubPrefabMap
 		, Prefab->OverrideParameterData, OverrideParameterObject
 	);
-	TMap<UObject*, FGuid> MapObjectToGuid;
+	TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
 	for (auto KeyValue : MapGuidToObject)
 	{
 		MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
@@ -416,10 +416,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreateAgentActor()
 			auto AssetObject = Asset.GetAsset();
 			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
-				if (
-					Prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || Prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
-					|| Prefab->PrefabVersion != LGUI_CURRENT_PREFAB_VERSION
-					)
+				if (!Prefab->AgentRootActor.IsValid())
 				{
 					Prefab->RefreshAgentActorsInPreviewWorld();
 				}

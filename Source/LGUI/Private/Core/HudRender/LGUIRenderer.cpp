@@ -72,7 +72,7 @@ void FLGUIHudRenderer::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InV
 			FPlane(0, 1, 0, 0),
 			FPlane(0, 0, 0, 1));
 		auto ProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetProjectionMatrix();
-		auto ViewProjectionMatrix = FTranslationMatrix(-ViewLocation) * ViewRotationMatrix * ProjectionMatrix;
+		auto ViewProjectionMatrix = ScreenSpaceRenderParameter.RenderCanvas->GetViewProjectionMatrix();
 
 		ScreenSpaceRenderParameter.ViewOrigin = ViewLocation;
 		ScreenSpaceRenderParameter.ViewRotationMatrix = ViewRotationMatrix;
@@ -418,7 +418,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 							hudPrimitive->GetMeshElements(*RenderView.Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
 							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 							{
-								auto MeshBatchContainer = MeshBatchArray[MeshIndex];
+								auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 								const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 								auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
 								const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
@@ -527,7 +527,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 						hudPrimitive->GetMeshElements(*RenderView.Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
 						for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 						{
-							auto MeshBatchContainer = MeshBatchArray[MeshIndex];
+							auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
 							auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
 							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();

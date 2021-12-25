@@ -22,8 +22,8 @@ PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
 	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
-		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		, TMap<TWeakObjectPtr<UObject>, FGuid>& InOutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
+		, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
 		, bool InForEditorOrRuntimeUse
 	)
 	{
@@ -40,14 +40,14 @@ namespace LGUIPrefabSystem3
 		ActorSerializer3 serializer(RootActor->GetWorld());
 		for (auto KeyValue : InOutMapObjectToGuid)//Preprocess the map, ignore invalid object
 		{
-			if (IsValid(KeyValue.Key))
+			if (KeyValue.Key.IsValid())
 			{
 				serializer.MapObjectToGuid.Add(KeyValue.Key, KeyValue.Value);
 			}
 		}
 		for (auto& KeyValue : InSubPrefabMap)
 		{
-			if (IsValid(KeyValue.Key) && IsValid(KeyValue.Value.OverrideParameterObject))
+			if (KeyValue.Key.IsValid() && KeyValue.Value.OverrideParameterObject.IsValid())
 			{
 				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
 			}
@@ -118,8 +118,8 @@ namespace LGUIPrefabSystem3
 					ChildActorSaveData.PrefabRootActorComponentNameArray.Add(InstanceComp->GetFName());
 				}
 				//serialize override parameter object
-				check(SubPrefabDataPtr->OverrideParameterObject != nullptr);
-				WriterOrReaderFunction(SubPrefabDataPtr->OverrideParameterObject, ChildActorSaveData.PrefabOverrideParameterData, false);
+				check(SubPrefabDataPtr->OverrideParameterObject.IsValid());
+				WriterOrReaderFunction(SubPrefabDataPtr->OverrideParameterObject.Get(), ChildActorSaveData.PrefabOverrideParameterData, false);
 				ChildSaveDataList.Add(ChildActorSaveData);
 			}
 			else
@@ -148,9 +148,9 @@ namespace LGUIPrefabSystem3
 		FLGUIPrefabSaveData SaveData;
 		SerializeActorToData(RootActor, SaveData);
 		//serialize override parameter object
-		if (OverrideParameterObject != nullptr)
+		if (OverrideParameterObject.IsValid())
 		{
-			WriterOrReaderFunction(OverrideParameterObject, OverrideParameterData, false);
+			WriterOrReaderFunction(OverrideParameterObject.Get(), OverrideParameterData, false);
 		}
 
 		FBufferArchive ToBinary;

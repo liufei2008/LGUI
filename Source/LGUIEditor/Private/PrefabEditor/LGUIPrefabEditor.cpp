@@ -87,7 +87,7 @@ void FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 		{
 			if (KeyValue.Value.PrefabAsset == InSubPrefab)
 			{
-				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->AgentOverrideParameterObject))
+				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->AgentOverrideParameterObject.Get()))
 				{
 					AnythingChange = true;
 				}
@@ -215,7 +215,7 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	DetailsPtr = SNew(SLGUIPrefabEditorDetails, PrefabEditorPtr);
 
 	OverrideParameterPtr = SNew(SLGUIPrefabOverrideParameterEditor, PrefabEditorPtr);
-	OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject, PrefabHelperObject->LoadedRootActor);
+	OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject.Get(), PrefabHelperObject->LoadedRootActor.Get());
 	OverrideParameterPtr->SetTipText(PrefabHelperObject->LoadedRootActor->GetActorLabel());
 
 	PrefabRawDataViewer = SNew(SLGUIPrefabRawDataViewer, PrefabEditorPtr, PrefabBeingEdited);
@@ -376,7 +376,7 @@ bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
 			if (ItemActor == PrefabHelperObject->LoadedRootActor)continue;
 			if (ItemActor == RootUIAgentActor)continue;
 			if (GetPreviewScene().IsWorldDefaultActor(ItemActor))continue;
-			if (!ItemActor->IsAttachedTo(PrefabHelperObject->LoadedRootActor))
+			if (!ItemActor->IsAttachedTo(PrefabHelperObject->LoadedRootActor.Get()))
 			{
 				auto MsgText = LOCTEXT("Error_AllActor", "All prefab's actors must attach to prefab's root actor!");
 				FMessageDialog::Open(EAppMsgType::Ok, MsgText);
@@ -540,13 +540,13 @@ void FLGUIPrefabEditor::OnOutlinerPickedChanged(AActor* Actor)
 	if (PrefabHelperObject->SubPrefabMap.Contains(Actor))
 	{
 		PrefabHelperObject->SubPrefabMap[Actor].OverrideParameterObject->SetParameterDisplayType(false);
-		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->SubPrefabMap[Actor].OverrideParameterObject, Actor);
+		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->SubPrefabMap[Actor].OverrideParameterObject.Get(), Actor);
 		OverrideParameterPtr->SetTipText(Actor->GetActorLabel());
 	}
 	else if (Actor == PrefabHelperObject->LoadedRootActor)
 	{
 		PrefabHelperObject->PrefabOverrideParameterObject->SetParameterDisplayType(true);
-		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject, Actor);
+		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject.Get(), Actor);
 		OverrideParameterPtr->SetTipText(Actor->GetActorLabel());
 	}
 }
@@ -768,9 +768,9 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				FLGUISubPrefabData SubPrefabData;
 				SubPrefabData.PrefabAsset = PrefabAsset;
 
-				TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
-				TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-				ULGUIPrefabOverrideParameterObject* SubPrefabOverrideParameterObject = nullptr;
+				TMap<FGuid, TWeakObjectPtr<UObject>> SubPrefabMapGuidToObject;
+				TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubSubPrefabMap;
+				TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> SubPrefabOverrideParameterObject = nullptr;
 				auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabForEdit(GetPreviewScene().GetWorld()
 					, CurrentSelectedActor->GetRootComponent()
 					, SubPrefabMapGuidToObject, SubSubPrefabMap
@@ -781,7 +781,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 
 				for (auto KeyValue : SubPrefabMapGuidToObject)
 				{
-					if (auto ActorItem = Cast<AActor>(KeyValue.Value))
+					if (auto ActorItem = Cast<AActor>(KeyValue.Value.Get()))
 					{
 						if (LoadedSubPrefabRootActor != ActorItem)
 						{

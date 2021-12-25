@@ -171,11 +171,6 @@ UActorComponent* ULGUIBPLibrary::LGUICompRef_GetComponent(const FLGUIComponentRe
 	return comp;
 }
 
-TSubclassOf<UActorComponent> ULGUIBPLibrary::LGUICompRef_GetComponentClass(const FLGUIComponentReference& InLGUIComponentReference)
-{
-	return InLGUIComponentReference.GetComponentClass();
-}
-
 AActor* ULGUIBPLibrary::LGUICompRef_GetActor(const FLGUIComponentReference& InLGUIComponentReference)
 {
 	return InLGUIComponentReference.GetActor();
@@ -472,4 +467,14 @@ ULTweener* ULGUIBPLibrary::StretchTopTo(UUIItem* target, float endValue, float d
 ULTweener* ULGUIBPLibrary::StretchBottomTo(UUIItem* target, float endValue, float duration, float delay, LTweenEase ease)
 {
 	return AnchorBottomTo(target, endValue, duration, delay, ease);
+}
+TSubclassOf<UActorComponent> ULGUIBPLibrary::LGUICompRef_GetComponentClass(const FLGUIComponentReference& InLGUIComponentReference)
+{
+	auto comp = InLGUIComponentReference.GetComponent();
+	if (comp == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIBPLibrary::GetComponentClass]Missing component on target actor:%s"), *(InLGUIComponentReference.GetActor()->GetPathName()));
+		return nullptr;
+	}
+	return comp->GetClass();
 }

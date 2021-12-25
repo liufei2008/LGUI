@@ -120,9 +120,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 	//anchor, width, height
 	{
-		bool anchorControlledByParentLayout = false;
-		bool anchorOffsetXControlledByParentLayout = false;
-		bool anchorOffsetYControlledByParentLayout = false;
+		bool AnchorControlledByParentLayout = false;
+		bool HorizontalAnchorOffsetControlledByParentLayout = false;
+		bool VerticalAnchorOffsetControlledByParentLayout = false;
 		bool widthControlledByParentLayout = false;
 		bool heightControlledByParentLayout = false;
 		bool anchorHControlledBySelfLayout = false;
@@ -150,11 +150,11 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					{
 						if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
 						{
-							anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
+							AnchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
 							widthControlledByParentLayout = parentLayout->CanControlChildWidth();
 							heightControlledByParentLayout = parentLayout->CanControlChildHeight();
-							anchorOffsetXControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetX();
-							anchorOffsetYControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetY();
+							HorizontalAnchorOffsetControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetX();
+							VerticalAnchorOffsetControlledByParentLayout = parentLayout->CanControlSelfAnchorOffsetY();
 						}
 					}
 				}
@@ -610,9 +610,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		IDetailGroup& anchorGroup = TransformCategory.AddGroup(FName("Anchors"), LOCTEXT("AnchorsGroup", "Anchors"));
 
 		IDetailPropertyRow& anchorHAlignDetailProperty = anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin)));
-		if (anchorControlledByParentLayout)
+		if (AnchorControlledByParentLayout)
 		{
-			LGUIEditorUtils::SetControlledByParentLayout(anchorHAlignDetailProperty, anchorControlledByParentLayout);
+			LGUIEditorUtils::SetControlledByParentLayout(anchorHAlignDetailProperty, AnchorControlledByParentLayout);
 		}
 		else
 		{
@@ -621,9 +621,9 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		}
 
 		IDetailPropertyRow& anchorVAlignDetailProperty = anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax)));
-		if (anchorControlledByParentLayout)
+		if (AnchorControlledByParentLayout)
 		{
-			LGUIEditorUtils::SetControlledByParentLayout(anchorVAlignDetailProperty, anchorControlledByParentLayout);
+			LGUIEditorUtils::SetControlledByParentLayout(anchorVAlignDetailProperty, AnchorControlledByParentLayout);
 		}
 		else
 		{
@@ -634,98 +634,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		auto& AnchorRawDataGroup = TransformCategory.AddGroup(FName("AnchorsRawData"), LOCTEXT("AnchorsRawData", "AnchorsRawData"), true);
 		AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchoredPosition)));
 		AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.SizeDelta)));
-		
-		//stretch, anchorx, anchory
-		/*if (anchorHAlign == UIAnchorHorizontalAlign::None)
-		{
-			TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.width));
-
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetX))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchLeft))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchRight))).IsEnabled(false);
-		}
-		else if (anchorHAlign == UIAnchorHorizontalAlign::Stretch)
-		{
-			IDetailPropertyRow& stretchLeftProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchLeft));
-			if (stretchLeftControlledBySelfLayout)
-				LGUIEditorUtils::SetControlledBySelfLayout(stretchLeftProperty, true);
-			IDetailPropertyRow& stretchRightProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchRight));
-			if (stretchRightControlledBySelfLayout)
-				LGUIEditorUtils::SetControlledBySelfLayout(stretchRightProperty, true);
-
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetX))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.width))).IsEnabled(false);
-		}
-		else
-		{
-			IDetailPropertyRow& anchorOffsetXDetailProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetX));
-			LGUIEditorUtils::SetControlledByParentLayout(anchorOffsetXDetailProperty, anchorControlledByParentLayout);
-			IDetailPropertyRow& widthDetailProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.width));
-			if (widthControlledBySelfLayout)
-				LGUIEditorUtils::SetControlledBySelfLayout(widthDetailProperty, widthControlledBySelfLayout);
-			else
-				if (widthControlledByParentLayout)
-					LGUIEditorUtils::SetControlledByParentLayout(widthDetailProperty, widthControlledByParentLayout);
-
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchLeft))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchRight))).IsEnabled(false);
-		}
-
-		if (anchorVAlign == UIAnchorVerticalAlign::None)
-		{
-			TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.height));
-
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetY))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchTop))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchBottom))).IsEnabled(false);
-		}
-		else if (anchorVAlign == UIAnchorVerticalAlign::Stretch)
-		{
-			IDetailPropertyRow& stretchTopProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchTop));
-			if (stretchTopControlledBySelfLayout)
-				LGUIEditorUtils::SetControlledBySelfLayout(stretchTopProperty, true);
-			IDetailPropertyRow& stretchBottomProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchBottom));
-			if (stretchBottomControlledBySelfLayout)
-				LGUIEditorUtils::SetControlledBySelfLayout(stretchBottomProperty, true);
-
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetY))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.height))).IsEnabled(false);
-		}
-		else
-		{
-			IDetailPropertyRow& anchorOffsetYDetailProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.anchorOffsetY));
-			LGUIEditorUtils::SetControlledByParentLayout(anchorOffsetYDetailProperty, anchorControlledByParentLayout);
-			IDetailPropertyRow& heightDetailProperty = TransformCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.height));
-			if (heightControlledBySelfLayout)
-				LGUIEditorUtils::SetControlledBySelfLayout(heightDetailProperty, heightControlledBySelfLayout);
-			else
-				if (heightControlledByParentLayout)
-					LGUIEditorUtils::SetControlledByParentLayout(heightDetailProperty, heightControlledByParentLayout);
-
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchTop))).IsEnabled(false);
-			anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.stretchBottom))).IsEnabled(false);
-		}
-
-		if (anchorControlledByParentLayout && (anchorHControlledBySelfLayout || anchorVControlledBySelfLayout))
-		{
-			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("Anchor is controlled by more than one UILayout component! This may cause issue!"));
-		}
-		if (anchorOffsetXControlledByParentLayout && anchorOffsetXControlledBySelfLayout)
-		{
-			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("AnchorOffsetX is controlled by more than one UILayout component! This may cause issue!"));
-		}
-		if (anchorOffsetYControlledByParentLayout && anchorOffsetYControlledBySelfLayout)
-		{
-			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("AnchorOffsetY is controlled by more than one UILayout component! This may cause issue!"));
-		}
-		if (widthControlledByParentLayout && widthControlledBySelfLayout)
-		{
-			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("Width is controlled by more than one UILayout component! This may cause issue!"));
-		}
-		if (heightControlledByParentLayout && heightControlledBySelfLayout)
-		{
-			LGUIEditorUtils::ShowWarning(&DetailBuilder, FString("Height is controlled by more than one UILayout component! This may cause issue!"));
-		}*/
 	}
 	//pivot
 	auto PivotHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.Pivot));
@@ -817,11 +725,21 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				displayNamePropertyHandle->CreatePropertyValueWidget(true)
 			]
 			+SHorizontalBox::Slot()
-			.MaxWidth(80)
+			.AutoWidth()
 			[
 				SNew(SButton)
 				.Text(FText::FromString(TEXT("Fix it")))
-				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton)
+				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, true)
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.Visibility(this, &FUIItemCustomization::GetDisplayNameWarningVisibility)
+				.ToolTipText(FText::FromString(FString(TEXT("DisplayName not equal to ActorLabel."))))
+			]
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Fix all hierarchy")))
+				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, false)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FUIItemCustomization::GetDisplayNameWarningVisibility)
 				.ToolTipText(FText::FromString(FString(TEXT("DisplayName not equal to ActorLabel."))))
@@ -1477,12 +1395,42 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 	ForceRefreshEditor(DetailBuilder);
 }
 
-FReply FUIItemCustomization::OnClickFixDisplayNameButton()
+FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll)
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FReply::Handled();
 
+	TArray<TWeakObjectPtr<UUIItem>> UIItems;
+	if (singleOrAll)
+	{
+		UIItems = TargetScriptArray;
+	}
+	else
+	{
+		TArray<AActor*> SelectedActors;
+		for (auto& UIItem : TargetScriptArray)
+		{
+			if (!SelectedActors.Contains(UIItem->GetOwner()))
+			{
+				SelectedActors.Add(UIItem->GetOwner());
+			}
+		}
+		auto SelectedRootActors = LGUIEditorTools::GetRootActorListFromSelection(SelectedActors);
+		for (auto& RootActor : SelectedRootActors)
+		{
+			TArray<AActor*> ChildrenActors;
+			LGUIUtils::CollectChildrenActors(RootActor, ChildrenActors, true);
+			for (auto& Actor : ChildrenActors)
+			{
+				if (auto UIItem = Cast<UUIItem>(Actor->GetRootComponent()))
+				{
+					UIItems.Add(UIItem);
+				}
+			}
+		}
+	}
+
 	GEditor->BeginTransaction(LOCTEXT("FixDisplayName", "Fix DisplayName"));
-	for (auto& UIItem : TargetScriptArray)
+	for (auto& UIItem : UIItems)
 	{
 		UIItem->Modify();
 	}
@@ -1532,7 +1480,7 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return false;
 
-	bool anchorControlledByParentLayout = false;
+	bool AnchorControlledByParentLayout = false;
 	bool anchorHControlledBySelfLayout = false;
 	bool anchorVControlledBySelfLayout = false;
 	if (auto thisActor = TargetScriptArray[0]->GetOwner())
@@ -1550,7 +1498,7 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 				{
 					if (auto parentLayout = parentActor->FindComponentByClass<UUILayoutBase>())
 					{
-						anchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
+						AnchorControlledByParentLayout = parentLayout->CanControlChildAnchor();
 					}
 				}
 			}
@@ -1562,7 +1510,7 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 		}
 	}
 
-	if (anchorControlledByParentLayout)return false;
+	if (AnchorControlledByParentLayout)return false;
 	if (anchorHControlledBySelfLayout)return false;
 	if (anchorVControlledBySelfLayout)return false;
 	return true;

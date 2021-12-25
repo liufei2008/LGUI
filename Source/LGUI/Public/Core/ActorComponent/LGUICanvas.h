@@ -127,8 +127,8 @@ private:
 	void RemoveFromViewExtension();
 	ULGUIMeshComponent* FindNextValidMeshInDrawcallList(int32 StartIndex);
 public:
-	/** update canvas's layout */
-	void MarkUpdateCanvasLayout(bool layoutChanged);
+	/** mark canvas layout dirty */
+	void MarkCanvasLayoutDirty();
 	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
 	void MarkCanvasUpdate();
 	void MarkUIRenderableItemHierarchyChange();
@@ -144,7 +144,6 @@ public:
 	FMatrix GetViewProjectionMatrix()const;
 	FMatrix GetProjectionMatrix()const;
 	FVector GetViewLocation()const;
-	FMatrix GetViewRotationMatrix()const;
 	FRotator GetViewRotator()const;
 	FIntPoint GetViewportSize()const;
 	/** get scale value of canvas. only valid for root canvas. */
@@ -174,8 +173,7 @@ public:
 	bool GetIsUIActive()const;
 	TWeakObjectPtr<ULGUICanvas> GetParentCanvas() { return ParentCanvas; }
 
-	/** @return	drawcall count */
-	int32 SortDrawcall(int32 InStartRenderPriority);
+	void SortDrawcall(int32& InOutRenderPriority);
 
 	void SetParentCanvas(ULGUICanvas* InParentCanvas);
 protected:
@@ -239,7 +237,14 @@ protected:
 
 	/** if inherit parent's rect clip value. only valid if self is RectClip */
 	UPROPERTY(EditAnywhere, Category = LGUI)
-		bool bInheritRectClip = true;
+		bool inheritRectClip = true;
+
+	/** 
+	 * Normally LGUI will try to combine children canvas's drawcall and render in parent canvas.
+	 * You can check this value to force render in this canvas, this is useful to reduce drawcall in 3d UI.
+	 */
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool bForceSelfRender = false;
 
 	/**
 	 * The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
@@ -284,12 +289,6 @@ protected:
 	FORCEINLINE bool GetOverrideBlendDepth()const					{ return overrideParameters & (1 << 5); }
 
 public:
-#if WITH_EDITORONLY_DATA
-	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		bool inheritRectClip = true;
-#endif
-public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		TArray<UMaterialInterface*> GetDefaultMaterials()const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -331,6 +330,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas = true);
 	void GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetForceSelfRender()const { return bForceSelfRender; }//@todo: make set function
 
 	/** Get actural render mode of canvas. Actually canvas's render mode property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -380,7 +382,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		UTexture* GetClipTexture()const { return clipTexture; }
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetInheritRectClip()const { return bInheritRectClip; }
+		bool GetInheritRectClip()const { return inheritRectClip; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		bool GetRequireNormal()const;
@@ -474,9 +476,12 @@ private:
 	float OverrideFovAngle;
 	FMatrix OverrideProjectionMatrix;
 
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool @todo: make it useful
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list
-	UPROPERTY(Transient) TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
+	TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool
 	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
 	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection
 	TArray<UUIItem*> UIRenderableList;
@@ -502,7 +507,7 @@ private:
 	/** update Canvas's drawcall */
 	void UpdateCanvasDrawcallRecursive();
 
-	void UpdateDrawcall_Implement(TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority);
+	void UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority);
 	void UpdateDrawcallMesh_Implement();
 	void UpdateDrawcallMaterial_Implement();
 	static bool Is2DUITransform(const FTransform& Transform);

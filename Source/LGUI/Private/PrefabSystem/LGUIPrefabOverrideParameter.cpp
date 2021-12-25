@@ -764,7 +764,9 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 
 FLGUIPrefabOverrideParameterData::FLGUIPrefabOverrideParameterData()
 {
+#if WITH_EDITOR
 	Guid = FGuid::NewGuid();
+#endif
 }
 
 void FLGUIPrefabOverrideParameterData::SaveCurrentValueAsDefault()
@@ -861,6 +863,82 @@ bool FLGUIPrefabOverrideParameterData::IsParameter_Type_Name_Guid_Equal(const FL
 }
 
 
+#if WITH_EDITORONLY_DATA
+TArray<FLGUIPrefabOverrideParameter*> FLGUIPrefabOverrideParameter::AllLGUIPrefabOverrideParameterArray;
+#endif
+FLGUIPrefabOverrideParameter::FLGUIPrefabOverrideParameter()
+{
+#if WITH_EDITOR
+	AllLGUIPrefabOverrideParameterArray.Add(this);
+#endif
+}
+FLGUIPrefabOverrideParameter::~FLGUIPrefabOverrideParameter()
+{
+#if WITH_EDITOR
+	AllLGUIPrefabOverrideParameterArray.Remove(this);
+#endif
+}
+
+#if WITH_EDITOR
+void FLGUIPrefabOverrideParameter::RefreshOnBlueprintCompiled()
+{
+	for (auto& Item : ParameterList)
+	{
+		if (Item.TargetObject.IsStale())
+		{
+			Item.TargetObject = nullptr;
+			if (Item.HelperActor.IsValid())
+			{
+				if (Item.HelperClass->IsChildOf(AActor::StaticClass()))
+				{
+					//is HelperActor
+					if (Item.TargetObject != Item.HelperActor)
+					{
+						Item.TargetObject = Item.HelperActor;
+					}
+				}
+				else
+				{
+					if (Item.HelperClass != nullptr)
+					{
+						TArray<UActorComponent*> Components;
+						Item.HelperActor->GetComponents(Item.HelperClass, Components);
+						if (Components.Num() == 1)
+						{
+							Item.TargetObject = Components[0];
+						}
+						else
+						{
+							if (Item.HelperComponentName.IsValid())
+							{
+								for (auto& Comp : Components)
+								{
+									if (Comp->HasAnyFlags(EObjectFlags::RF_Transient))continue;
+									if (Item.HelperComponentName == Comp->GetFName())
+									{
+										Item.TargetObject = Comp;
+									}
+								}
+							}
+							else
+							{
+								Item.TargetObject = Components[0];
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+void FLGUIPrefabOverrideParameter::RefreshAll_OnBlueprintCompiled()
+{
+	for (auto& Item : AllLGUIPrefabOverrideParameterArray)
+	{
+		Item->RefreshOnBlueprintCompiled();
+	}
+}
+
 void FLGUIPrefabOverrideParameter::SaveCurrentValueAsDefault()
 {
 	for (auto& item : ParameterList)
@@ -868,6 +946,7 @@ void FLGUIPrefabOverrideParameter::SaveCurrentValueAsDefault()
 		item.SaveCurrentValueAsDefault();
 	}
 }
+#endif
 
 
 void FLGUIPrefabOverrideParameter::ApplyParameter()
@@ -885,6 +964,7 @@ void FLGUIPrefabOverrideParameter::SetParameterReferenceFromTemplate(const FLGUI
 		ParameterList[i].SetParameterReferenceFromTemplate(InTemplate.ParameterList[i]);
 	}
 }
+#if WITH_EDITOR
 bool FLGUIPrefabOverrideParameter::RefreshParameterOnTemplate(const FLGUIPrefabOverrideParameter& InTemplate)
 {
 	//compare, find by key, keep original value
@@ -1030,13 +1110,19 @@ void FLGUIPrefabOverrideParameter::AddOrUpdateParameter(AActor* InActor, UObject
 		ParameterList.Add(Data);
 	}
 }
+#endif
 
 void ULGUIPrefabOverrideParameterObject::ApplyParameter()
 {
 	Parameter.ApplyParameter();
 	AutomaticParameter.ApplyParameter();
 }
+void ULGUIPrefabOverrideParameterObject::SetParameterReferenceFromTemplate(ULGUIPrefabOverrideParameterObject* InTemplate)
+{
+	Parameter.SetParameterReferenceFromTemplate(InTemplate->Parameter);
+}
 
+#if WITH_EDITOR
 void ULGUIPrefabOverrideParameterObject::SaveCurrentValueAsDefault()
 {
 	Parameter.SaveCurrentValueAsDefault();
@@ -1052,10 +1138,7 @@ void ULGUIPrefabOverrideParameterObject::PostEditChangeProperty(FPropertyChanged
 	Parameter.SetListItemDefaultNameWhenAddNewToList();
 }
 
-void ULGUIPrefabOverrideParameterObject::SetParameterReferenceFromTemplate(ULGUIPrefabOverrideParameterObject* InTemplate)
-{
-	Parameter.SetParameterReferenceFromTemplate(InTemplate->Parameter);
-}
+
 bool ULGUIPrefabOverrideParameterObject::RefreshParameterOnTemplate(ULGUIPrefabOverrideParameterObject* InTemplate)
 {
 	return Parameter.RefreshParameterOnTemplate(InTemplate->Parameter);
@@ -1080,5 +1163,6 @@ void ULGUIPrefabOverrideParameterObject::AddOrUpdateParameterToAutomaticParamete
 {
 	AutomaticParameter.AddOrUpdateParameter(InActor, InObject, InProperty, InParamType);
 }
+#endif
 
 PRAGMA_ENABLE_OPTIMIZATION

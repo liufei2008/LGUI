@@ -154,14 +154,14 @@ namespace LGUIPrefabSystem3
 		 * LoadPrefab for edit/modify, will keep reference of source prefab.
 		 */
 		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
-			, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
+			, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
+			, const TArray<uint8>& InOverrideParameterData, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject>& OutOverrideParameterObject
 		);
 
 		/** Save prefab data for editor use. */
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
-			, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+			, TMap<TWeakObjectPtr<UObject>, FGuid>& OutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
+			, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
 			, bool InForEditorOrRuntimeUse
 		);
 		
@@ -172,7 +172,7 @@ namespace LGUIPrefabSystem3
 	private:
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, TMap<FGuid, UObject*>& InMapGuidToObject
+			, TMap<FGuid, TWeakObjectPtr<UObject>>& InMapGuidToObject
 			, TFunction<ULGUIPrefabOverrideParameterObject* (AActor*)> InGetDeserializedOverrideParameterObjectFunction
 			, bool InIsLoadForEdit
 		);
@@ -185,7 +185,7 @@ namespace LGUIPrefabSystem3
 		bool bIsLoadForEdit = true;
 		bool bApplyOverrideParameters = false;
 
-		TMap<FGuid, UObject*> MapGuidToObject;
+		TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
 		struct ComponentDataStruct
 		{
 			UActorComponent* Component;
@@ -193,17 +193,17 @@ namespace LGUIPrefabSystem3
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
 
-		ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+		TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
 		TArray<uint8> OverrideParameterData;
 
-		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 		//Actor and ActorComponent that belongs to this prefab. All UObjects which get outer of these actor/component can be serailized
 		TArray<UObject*> WillSerailizeActorArray;
 		TArray<UObject*> WillSerailizeObjectArray;
 		bool ObjectBelongsToThisPrefab(UObject* InObject);
 		//Check object and it's up outer to tell if it is trash
 		bool ObjectIsTrash(UObject* InObject);
-		TMap<UObject*, FGuid> MapObjectToGuid;
+		TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
 
 		TArray<AActor*> CreatedActors;//collect for created actors
 		TArray<FGuid> CreatedActorsGuid;//collect for created actor's guid

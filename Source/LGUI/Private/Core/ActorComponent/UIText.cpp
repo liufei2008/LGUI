@@ -158,11 +158,15 @@ void UUIText::OnUnregister()
 			ALGUIManagerActor::UnregisterLGUILayout(this);
 		}
 	}
+	else
+	{
+		check(0);
+	}
 }
 
-void UUIText::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
+void UUIText::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
-    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
+    Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
     if (InPivotChange || InSizeChange)
     {
 		bTextLayoutDirty = true;

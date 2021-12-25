@@ -91,6 +91,12 @@ private:
 	/** Editor helper actor, for direct reference actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI", DisplayName = "Target")
 		TWeakObjectPtr<AActor> HelperActor;
+	/** Editor helper, target object class. If class is actor then TargetObject is HelperActor, if class is ActorComponent then TargetObject is the component. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		UClass* HelperClass;
+	/** Editor helper, if TargetObject is actor component and HelperActor have multiple components, then select by component name. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		FName HelperComponentName;
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TWeakObjectPtr<UObject> TargetObject;
@@ -144,10 +150,19 @@ struct LGUI_API FLGUIPrefabOverrideParameter
 	GENERATED_BODY()
 
 public:
-	FLGUIPrefabOverrideParameter() {}
+	FLGUIPrefabOverrideParameter();
+	~FLGUIPrefabOverrideParameter();
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")
 		bool bIsTemplate = true;
+private:
+	static TArray<FLGUIPrefabOverrideParameter*> AllLGUIPrefabOverrideParameterArray;
+#endif
+#if WITH_EDITOR
+	/** if TargetObject is blueprint ActorComponent, when hit compile, TargetObject will become null, so get it again */
+	void RefreshOnBlueprintCompiled();
+public:
+	static void RefreshAll_OnBlueprintCompiled();
 #endif
 private:
 	friend class FLGUIPrefabOverrideParameterCustomization;
@@ -158,6 +173,7 @@ private:
 public:
 	void ApplyParameter();
 	void SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameter& InTemplate);
+#if WITH_EDITOR
 	/** @return	true if anything change, false nothing change */
 	bool RefreshParameterOnTemplate(const FLGUIPrefabOverrideParameter& InTemplate);
 	bool RefreshAutomaticParameter();
@@ -167,6 +183,7 @@ public:
 
 	/** Add parameter to list or update parameter's value */
 	void AddOrUpdateParameter(AActor* InActor, UObject* InObject, FProperty* InProperty, ELGUIPrefabOverrideParameterType InParamType);
+#endif
 };
 
 UCLASS(NotBlueprintType)
@@ -187,8 +204,11 @@ private:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 public:
+	/** Apply recored data to property value */
+	void ApplyParameter();
 	/** Check Actorserializer3_Deserialize */
 	void SetParameterReferenceFromTemplate(ULGUIPrefabOverrideParameterObject* InTemplate);
+#if WITH_EDITOR
 	/**
 	 * For sub prefab, refresh parameters by compare with template.
 	 * @param	InTemplate	the sub prefab's origin OverrideParameterObject
@@ -198,8 +218,6 @@ public:
 	bool RefreshAutomaticParameter();
 	/** Set display type, template or editable instance */
 	void SetParameterDisplayType(bool InIsTemplate);
-	/** Apply recored data to property value */
-	void ApplyParameter();
 	/** For template, when select property in editor, it will get the property's value and sotre it as default value. */
 	void SaveCurrentValueAsDefault();
 	bool HasRepeatedParameter();
@@ -207,4 +225,5 @@ public:
 	bool GetIsIsTemplate()const { return Parameter.bIsTemplate; }
 	/** Add or update parameter to AutomaticParameter, will record value aswell */
 	void AddOrUpdateParameterToAutomaticParameters(AActor* InActor, UObject* InObject, FProperty* InProperty, ELGUIPrefabOverrideParameterType InParamType);
+#endif
 };

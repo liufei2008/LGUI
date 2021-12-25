@@ -12,7 +12,7 @@
 
 TWeakObjectPtr<AActor> FLGUIComponentReferenceCustomization::CopiedHelperActor;
 TWeakObjectPtr<UActorComponent> FLGUIComponentReferenceCustomization::CopiedTargetComp;
-UClass* FLGUIComponentReferenceCustomization::CopiedTargetClass;
+UClass* FLGUIComponentReferenceCustomization::CopiedHelperClass;
 
 TSharedRef<IPropertyTypeCustomization> FLGUIComponentReferenceCustomization::MakeInstance()
 {
@@ -30,13 +30,13 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 		break;
 	}
 
-	UObject* TargetClassObj = nullptr;
-	UClass* TargetClass = nullptr;
-	TSharedPtr<IPropertyHandle> TargetClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, targetComponentClass));
-	TargetClassHandle->GetValue(TargetClassObj);
-	if (TargetClassObj)
+	UObject* HelperClassObj = nullptr;
+	UClass* HelperClass = nullptr;
+	TSharedPtr<IPropertyHandle> HelperClassHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, HelperClass));
+	HelperClassHandle->GetValue(HelperClassObj);
+	if (HelperClassObj)
 	{
-		TargetClass = Cast<UClass>(TargetClassObj);
+		HelperClass = Cast<UClass>(HelperClassObj);
 	}
 
 	UObject* TargetCompObj = nullptr;
@@ -48,8 +48,10 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 		TargetComp = Cast<UActorComponent>(TargetCompObj);
 	}
 
+	auto HelperComponentNameHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, HelperComponentName));
+
 	TSharedPtr<IPropertyHandle> HelperActorHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIComponentReference, HelperActor));
-	HelperActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=]() {OnHelperActorValueChange(HelperActorHandle, TargetCompHandle, TargetClassHandle); }));
+	HelperActorHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=]() {OnHelperActorValueChange(HelperActorHandle, TargetCompHandle, HelperClassHandle, HelperComponentNameHandle); }));
 	UObject* HelperActorObj = nullptr;
 	AActor* HelperActor = nullptr;
 	HelperActorHandle->GetValue(HelperActorObj);
@@ -57,9 +59,9 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 	if (HelperActorObj)
 	{
 		HelperActor = Cast<AActor>(HelperActorObj);
-		if (HelperActor)
+		if (HelperActor && HelperClass)
 		{
-			HelperActor->GetComponents(TargetClass, Components);
+			HelperActor->GetComponents(HelperClass, Components);
 		}
 	}
 	if (!IsValid(TargetComp) && Components.Num() == 1)//if TargetComp not valid, but this type of component exist, then clear HelperActor, because we need to reassign it
@@ -70,7 +72,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 	TSharedPtr<SWidget> ContentWidget;
 	if (bIsInWorld)
 	{
-		if (!IsValid(TargetClass))
+		if (!IsValid(HelperClass))
 		{
 			ContentWidget =
 				SNew(SBox)
@@ -106,7 +108,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 						SNew(STextBlock)
 						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
 						.AutoWrapText(true)
-						.Text(FText::FromString(FString::Printf(TEXT("Component of type: %s not found on target actor!"), *TargetClass->GetName())))
+						.Text(FText::FromString(FString::Printf(TEXT("Component of type: %s not found on target actor!"), *HelperClass->GetName())))
 						.Font(IDetailLayoutBuilder::GetDetailFont())
 					];
 				}
@@ -130,7 +132,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 						.FillWidth(0.35f)
 						[
 							SNew(SComboButton)
-							.ToolTipText(FText::FromString(FString::Printf(TEXT("Target actor have multiple components of type:%s, you must select one of them"), *TargetClass->GetName())))
+							.ToolTipText(FText::FromString(FString::Printf(TEXT("Target actor have multiple components of type:%s, you must select one of them"), *HelperClass->GetName())))
 							.OnGetMenuContent(this, &FLGUIComponentReferenceCustomization::OnGetMenu, TargetCompHandle, Components)
 							.ContentPadding(FMargin(0))
 							.ButtonContent()
@@ -148,7 +150,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 	}
 	else
 	{
-		ContentWidget = TargetClassHandle->CreatePropertyValueWidget();
+		ContentWidget = HelperClassHandle->CreatePropertyValueWidget();
 	}
 
 	ChildBuilder.AddCustomRow(FText::FromString("ActorComponent"))
@@ -163,27 +165,27 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 	]
 	.CopyAction(FUIAction
 	(
-		FExecuteAction::CreateSP(this, &FLGUIComponentReferenceCustomization::OnCopy, HelperActor, TargetComp, TargetClass),
+		FExecuteAction::CreateSP(this, &FLGUIComponentReferenceCustomization::OnCopy, HelperActor, TargetComp, HelperClass),
 		FCanExecuteAction::CreateLambda([=] {return bIsInWorld; })
 	))
 	.PasteAction(FUIAction
 	(
-		FExecuteAction::CreateSP(this, &FLGUIComponentReferenceCustomization::OnPaste, HelperActorHandle, TargetCompHandle, TargetClassHandle),
+		FExecuteAction::CreateSP(this, &FLGUIComponentReferenceCustomization::OnPaste, HelperActorHandle, TargetCompHandle, HelperClassHandle),
 		FCanExecuteAction::CreateLambda([=] {return bIsInWorld; })
 	))
 	;
 }
-void FLGUIComponentReferenceCustomization::OnCopy(AActor* HelperActor, UActorComponent* TargetComp, UClass* TargetClass)
+void FLGUIComponentReferenceCustomization::OnCopy(AActor* HelperActor, UActorComponent* TargetComp, UClass* HelperClass)
 {
 	CopiedHelperActor = HelperActor;
 	CopiedTargetComp = TargetComp;
-	CopiedTargetClass = TargetClass;
+	CopiedHelperClass = HelperClass;
 }
-void FLGUIComponentReferenceCustomization::OnPaste(TSharedPtr<IPropertyHandle> HelperActorProperty, TSharedPtr<IPropertyHandle> TargetCompProperty, TSharedPtr<IPropertyHandle> TargetClassProperty)
+void FLGUIComponentReferenceCustomization::OnPaste(TSharedPtr<IPropertyHandle> HelperActorProperty, TSharedPtr<IPropertyHandle> TargetCompProperty, TSharedPtr<IPropertyHandle> HelperClassProperty)
 {
 	HelperActorProperty->SetValue((UObject*)CopiedHelperActor.Get());
 	TargetCompProperty->SetValue((UObject*)CopiedTargetComp.Get());
-	TargetClassProperty->SetValue((UObject*)CopiedTargetClass);
+	HelperClassProperty->SetValue((UObject*)CopiedHelperClass);
 }
 TSharedRef<SWidget> FLGUIComponentReferenceCustomization::OnGetMenu(TSharedPtr<IPropertyHandle> CompProperty, TArray<UActorComponent*> Components)
 {
@@ -234,28 +236,30 @@ FText FLGUIComponentReferenceCustomization::GetButtonText(TSharedPtr<IPropertyHa
 		return FText::FromString(FString(TEXT("None")));
 	}
 }
-void FLGUIComponentReferenceCustomization::OnHelperActorValueChange(TSharedPtr<IPropertyHandle> HelperActorHandle, TSharedPtr<IPropertyHandle> TargetCompHandle, TSharedPtr<IPropertyHandle> TargetClassHandle)
+void FLGUIComponentReferenceCustomization::OnHelperActorValueChange(TSharedPtr<IPropertyHandle> HelperActorHandle, TSharedPtr<IPropertyHandle> HelperCompHandle, TSharedPtr<IPropertyHandle> HelperClassHandle, TSharedPtr<IPropertyHandle> HelperComponentNameHandle)
 {
 	UObject* HelperActorObj = nullptr;
 	HelperActorHandle->GetValue(HelperActorObj);
-	UObject* TargetClassObj = nullptr;
-	TargetClassHandle->GetValue(TargetClassObj);
-	UClass* TargetClass = Cast<UClass>(TargetClassObj);
+	UObject* HelperClassObj = nullptr;
+	HelperClassHandle->GetValue(HelperClassObj);
+	UClass* HelperClass = Cast<UClass>(HelperClassObj);
 	AActor* HelperActor = Cast<AActor>(HelperActorObj);
 	if (HelperActor)
 	{
-		if (TargetClass)
+		if (HelperClass)
 		{
 			TArray<UActorComponent*> Components;
-			HelperActor->GetComponents(TargetClass, Components);
+			HelperActor->GetComponents(HelperClass, Components);
 			if (Components.Num() == 1)
 			{
-				TargetCompHandle->SetValue(Components[0]);
+				HelperCompHandle->SetValue(Components[0]);
+				HelperComponentNameHandle->SetValue(Components[0]->GetFName());
 			}
 			else if (Components.Num() == 0)
 			{
-				TargetCompHandle->SetValue((UObject*)nullptr);
-				HelperActorHandle->SetValue((UObject*)nullptr);
+				HelperCompHandle->ResetToDefault();
+				HelperActorHandle->ResetToDefault();
+				HelperComponentNameHandle->ResetToDefault();
 			}
 			else//multiple component of the class
 			{
@@ -265,7 +269,8 @@ void FLGUIComponentReferenceCustomization::OnHelperActorValueChange(TSharedPtr<I
 	}
 	else
 	{
-		TargetCompHandle->SetValue((UObject*)nullptr);
+		HelperCompHandle->ResetToDefault();
+		HelperComponentNameHandle->ResetToDefault();
 	}
 }
 #undef LOCTEXT_NAMESPACE

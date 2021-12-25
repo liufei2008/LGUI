@@ -36,6 +36,7 @@ public:
 	TWeakPtr<FLGUIMeshSection> drawcallMeshSection = nullptr;//section of mesh which render this drawcall
 
 	bool materialChanged = true;
+	bool materialNeedToReassign = true;//once a mesh section is recreated, and the material is still valid, then we need to re-assign the material to newly created mesh section
 	bool textureChanged = true;
 
 	bool needToRebuildMesh = true;
@@ -48,7 +49,7 @@ public:
 	TWeakObjectPtr<UUIDirectMeshRenderable> directMeshRenderableObject;
 
 	TArray<TWeakObjectPtr<UUIBatchGeometryRenderable>> renderObjectList;//render object collections belong to this drawcall, must sorted on hierarchy-index
-	bool bShouldSortRenderObjectList = false;//should sort renderObjectList
+	bool shouldSortRenderObjectList = false;//should sort renderObjectList
 
 	bool bIs2DSpace = false;//transform relative to canvas is 2d or not? only 2d drawcall can batch
 

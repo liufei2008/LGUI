@@ -225,14 +225,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class ULGUICanvasScaler* GetCanvasScaler()const;
 	
-	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange);
+	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache = false);
 
 	/** mark all dirty for UI element to update, include all children */
 	virtual void MarkAllDirtyRecursive();
 public:
 	virtual void MarkCanvasUpdate();
 private:
-	void CalculateOnLayoutChange(bool InDiscardCache = false);
 	mutable float CacheWidth = 0, CacheHeight = 0, CacheAnchorLeft = 0, CacheAnchorRight = 0, CacheAnchorTop = 0, CacheAnchorBottom = 0;
 	mutable uint8 bWidthCached : 1, bHeightCached : 1, bAnchorLeftCached : 1, bAnchorRightCached : 1, bAnchorTopCached : 1, bAnchorBottomCached : 1;
 #pragma region UICanvasGroup

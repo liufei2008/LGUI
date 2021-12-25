@@ -17,23 +17,26 @@ class LGUI_API ULGUIPrefabHelperObject : public USceneComponent
 public:	
 	ULGUIPrefabHelperObject();
 
+#if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		bool bIsInsidePrefabEditor = true;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		AActor* LoadedRootActor;
+		TWeakObjectPtr<AActor> LoadedRootActor;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<AActor*> AllLoadedActorArray;
+		TArray<TWeakObjectPtr<AActor>> AllLoadedActorArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<FGuid, UObject*> MapGuidToObject;
+		TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefabOverrideParameterObject* PrefabOverrideParameterObject;
-
+		TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> PrefabOverrideParameterObject;
+#endif
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
+#if WITH_EDITOR
+	virtual void BeginDestroy()override;
 	static void SetActorPropertyInOutliner(AActor* Actor, bool InListed);
 
 	//make sub prefab's actors as normal actor
@@ -42,4 +45,5 @@ public:
 	void RevertPrefab();
 	void SavePrefab();
 	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
+#endif
 };

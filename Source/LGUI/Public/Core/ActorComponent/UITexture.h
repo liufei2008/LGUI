@@ -55,7 +55,7 @@ protected:
 
 	void CheckSpriteData();
 
-	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)override;
+	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)override;
 
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;

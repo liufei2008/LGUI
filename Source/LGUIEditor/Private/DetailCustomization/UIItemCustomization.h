@@ -50,5 +50,5 @@ private:
 	FReply OnClickIncreaseOrDecreaseHierarchyIndex(bool IncreaseOrDecrease);
 
 	EVisibility GetDisplayNameWarningVisibility()const;
-	FReply OnClickFixDisplayNameButton();
+	FReply OnClickFixDisplayNameButton(bool singleOrAll);
 };

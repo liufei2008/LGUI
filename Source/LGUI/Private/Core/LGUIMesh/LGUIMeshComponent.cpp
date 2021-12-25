@@ -777,6 +777,7 @@ void ULGUIMeshComponent::SortMeshSectionRenderPriority()
 
 void ULGUIMeshComponent::SetMeshSectionMaterial(TSharedPtr<FLGUIMeshSection> InMeshSection, UMaterialInterface* InMaterial)
 {
+	check(IsValid(InMaterial));
 	InMeshSection->material = InMaterial;
 	int index = MeshSections.IndexOfByKey(InMeshSection);
 	Super::SetMaterial(index, InMaterial);

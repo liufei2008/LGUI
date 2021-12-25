@@ -49,17 +49,16 @@ private:
 public:
 	int32 CurrentActiveViewportIndex = 0;
 	uint32 CurrentActiveViewportKey = 0;
-protected:
+private:
 	//collection of all UIItem from current level
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<UUIItem>> allUIItem;
+		TArray<TWeakObjectPtr<UUIItem>> AllUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
+		TArray<TWeakObjectPtr<ULGUICanvas>> AllCanvasArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<UUIItem>> rootUIItems;
+		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TScriptInterface<ILGUILayoutInterface>> allLayoutArray;
-	TArray<UUIItem*> tempUIItemArray;
+		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
 
 	bool bShouldSortLGUIRenderer = true;
 	bool bShouldSortWorldSpaceCanvas = true;
@@ -80,14 +79,14 @@ public:
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
-	const TArray<UUIItem*>& GetAllUIItem();
+	const TArray<TWeakObjectPtr<UUIItem>>& GetAllUIItemArray() { return AllUIItemArray; }
 
 	static void AddRootUIItem(UUIItem* InItem);
 	static void RemoveRootUIItem(UUIItem* InItem);
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
-	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return allCanvas; };
+	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return AllCanvasArray; };
 	void MarkSortLGUIRenderer();
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
@@ -99,7 +98,7 @@ public:
 
 	static void DrawFrameOnUIItem(UUIItem* InItem);
 
-	static bool RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
+	static bool RaycastHitUI(UWorld* InWorld, const TArray<TWeakObjectPtr<UUIItem>>& InUIItems, const FVector& LineStart, const FVector& LineEnd
 		, TWeakObjectPtr<UUIBaseRenderable> PrevSelectTarget, TWeakObjectPtr<AActor> PrevSelectedActor
 		, TWeakObjectPtr<UUIBaseRenderable>& ResultSelectTarget, TWeakObjectPtr<AActor>& ResultSelectedActor
 	);
@@ -107,7 +106,9 @@ private:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<AActor>> AllActors_PrefabSystemProcessing;
+	FDelegateHandle OnBlueprintCompiledDelegateHandle;
 #endif
+	void RefreshOnBlueprintCompiled();
 public:
 	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);
 	static void EndPrefabSystemProcessingActor();
@@ -162,23 +163,21 @@ public:
 private:
 	//collection of all UIItem from current level
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUIItem*> allUIItem;
+		TArray<TWeakObjectPtr<UUIItem>> AllUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<UUIItem>> rootUIItems;
+		TArray<TWeakObjectPtr<UUIItem>> AllRootUIItemArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<ULGUICanvas>> allCanvas;
+		TArray<TWeakObjectPtr<ULGUICanvas>> AllCanvasArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<ULGUIBaseRaycaster*> raycasterArray;
+		TArray<TWeakObjectPtr<ULGUIBaseRaycaster>> AllRaycasterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIBaseInputModule* currentInputModule = nullptr;
+		TWeakObjectPtr<ULGUIBaseInputModule> CurrentInputModule = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<UUISelectableComponent*> allSelectableArray;
+		TArray<TWeakObjectPtr<UUISelectableComponent>> AllSelectableArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TScriptInterface<ILGUILayoutInterface>> allLayoutArray;
+		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TScriptInterface<ILGUICultureChangedInterface>> cultureChanged;
-
-	TArray<ULGUICanvas*> screenOverlayCanvasArray;
+		TArray<TScriptInterface<ILGUICultureChangedInterface>> AllCultureChangedArray;
 
 	bool bShouldSortLGUIRenderer = true;
 	bool bShouldSortWorldSpaceCanvas = true;
@@ -207,7 +206,7 @@ private:
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
-	const TArray<UUIItem*>& GetAllUIItem(){ return allUIItem; }
+	const TArray<TWeakObjectPtr<UUIItem>>& GetAllUIItemArray(){ return AllUIItemArray; }
 
 	static void AddRootUIItem(UUIItem* InItem);
 	static void RemoveRootUIItem(UUIItem* InItem);
@@ -223,22 +222,22 @@ public:
 
 	static void AddCanvas(ULGUICanvas* InCanvas);
 	static void RemoveCanvas(ULGUICanvas* InCanvas);
-	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return allCanvas; };
+	TArray<TWeakObjectPtr<ULGUICanvas>>& GetCanvasArray() { return AllCanvasArray; };
 	void MarkSortLGUIRenderer();
 	void MarkSortWorldSpaceCanvas();
 	void MarkSortRenderTargetSpaceCanvas();
 
 	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist);
 
-	const TArray<ULGUIBaseRaycaster*>& GetRaycasters(){ return raycasterArray; }
+	const TArray<TWeakObjectPtr<ULGUIBaseRaycaster>>& GetAllRaycasterArray(){ return AllRaycasterArray; }
 	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
 	static void RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster);
 
-	ULGUIBaseInputModule* GetInputModule() { return currentInputModule; }
-	static void SetInputModule(ULGUIBaseInputModule* InInputModule);
-	static void ClearInputModule(ULGUIBaseInputModule* InInputModule);
+	TWeakObjectPtr<ULGUIBaseInputModule> GetCurrentInputModule() { return CurrentInputModule; }
+	static void SetCurrentInputModule(ULGUIBaseInputModule* InInputModule);
+	static void ClearCurrentInputModule(ULGUIBaseInputModule* InInputModule);
 
-	const TArray<UUISelectableComponent*>& GetSelectables() { return allSelectableArray; }
+	const TArray<TWeakObjectPtr<UUISelectableComponent>>& GetAllSelectableArray() { return AllSelectableArray; }
 	static void AddSelectable(UUISelectableComponent* InSelectable);
 	static void RemoveSelectable(UUISelectableComponent* InSelectable);
 

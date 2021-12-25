@@ -86,10 +86,11 @@ void ULGUIEventSystem::ProcessInputEvent()
 {
 	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		if (auto inputModule = LGUIManagerActor->GetInputModule())
+		auto CurrentInputModule = LGUIManagerActor->GetCurrentInputModule();
+		if (CurrentInputModule.IsValid())
 		{
 			SCOPE_CYCLE_COUNTER(STAT_RayAndEvent);
-			inputModule->ProcessInput();
+			CurrentInputModule->ProcessInput();
 		}
 	}
 }
@@ -155,9 +156,10 @@ void ULGUIEventSystem::ClearEvent()
 {
 	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		if (auto inputModule = LGUIManagerActor->GetInputModule())
+		auto CurrentInputModule = LGUIManagerActor->GetCurrentInputModule();
+		if (CurrentInputModule.IsValid())
 		{
-			inputModule->ClearEvent();
+			CurrentInputModule->ClearEvent();
 		}
 	}
 }
@@ -260,7 +262,7 @@ ULGUIBaseInputModule* ULGUIEventSystem::GetCurrentInputModule()
 {
 	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		return LGUIManagerActor->GetInputModule();
+		return LGUIManagerActor->GetCurrentInputModule().Get();
 	}
 	return nullptr;
 }

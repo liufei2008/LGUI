@@ -33,13 +33,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void DeleteThisInstance();
 	void MoveActorToPrefabFolder();
-private:
 #endif
+
 #if WITH_EDITORONLY_DATA
 public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefabHelperObject* PrefabHelperObject;
-
 	FColor IdentityColor = FColor::Black;
 	bool IsRandomColor = true;
 	static TArray<FColor> AllColors;

@@ -14,11 +14,11 @@ ULGUIBaseInputModule::ULGUIBaseInputModule()
 
 void ULGUIBaseInputModule::ActivateInputModule()
 {
-	ALGUIManagerActor::SetInputModule(this);
+	ALGUIManagerActor::SetCurrentInputModule(this);
 }
 void ULGUIBaseInputModule::DeactivateInputModule()
 {
-	ALGUIManagerActor::ClearInputModule(this);
+	ALGUIManagerActor::ClearCurrentInputModule(this);
 }
 void ULGUIBaseInputModule::Activate(bool bReset)
 {

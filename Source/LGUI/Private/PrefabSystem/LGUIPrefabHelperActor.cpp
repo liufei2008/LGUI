@@ -21,8 +21,10 @@ ALGUIPrefabHelperActor::ALGUIPrefabHelperActor()
 	PrimaryActorTick.bCanEverTick = false;
 	bIsEditorOnlyActor = true;
 
+#if WITH_EDITORONLY_DATA
 	PrefabHelperObject = CreateDefaultSubobject<ULGUIPrefabHelperObject>(TEXT("PrefabHelper"));
 	PrefabHelperObject->bIsInsidePrefabEditor = false;
+#endif
 }
 
 void ALGUIPrefabHelperActor::OnConstruction(const FTransform& Transform)
@@ -75,9 +77,9 @@ void ALGUIPrefabHelperActor::Destroyed()
 		}
 	}
 
-	if (IsValid(PrefabHelperObject->LoadedRootActor))
+	if (PrefabHelperObject->LoadedRootActor.IsValid())
 	{
-		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor);
+		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor.Get());
 	}
 #endif
 }
@@ -112,9 +114,9 @@ void ALGUIPrefabHelperActor::RevertPrefab()
 
 void ALGUIPrefabHelperActor::DeleteThisInstance()
 {
-	if (PrefabHelperObject->LoadedRootActor)
+	if (PrefabHelperObject->LoadedRootActor.IsValid())
 	{
-		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor, true);
+		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor.Get(), true);
 	}
 	else
 	{

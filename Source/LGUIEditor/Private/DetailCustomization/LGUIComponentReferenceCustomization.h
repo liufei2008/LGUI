@@ -28,9 +28,9 @@ private:
 	FText GetButtonText(TSharedPtr<IPropertyHandle> TargetCompHandle, TArray<UActorComponent*> Components)const;
 	void OnCopy(AActor* TargetActor, UActorComponent* TargetComp, UClass* TargetClass);
 	void OnPaste(TSharedPtr<IPropertyHandle> TargetActorProperty, TSharedPtr<IPropertyHandle> TargetCompProperty, TSharedPtr<IPropertyHandle> TargetClassProperty);
-	void OnHelperActorValueChange(TSharedPtr<IPropertyHandle> TargetActorHandle, TSharedPtr<IPropertyHandle> TargetCompHandle, TSharedPtr<IPropertyHandle> TargetClassHandle);
+	void OnHelperActorValueChange(TSharedPtr<IPropertyHandle> HelperActorHandle, TSharedPtr<IPropertyHandle> HelperCompHandle, TSharedPtr<IPropertyHandle> HelperClassHandle, TSharedPtr<IPropertyHandle> HelperComponentNameHandle);
 
 	static TWeakObjectPtr<AActor> CopiedHelperActor;
 	static TWeakObjectPtr<UActorComponent> CopiedTargetComp;
-	static UClass* CopiedTargetClass;
+	static UClass* CopiedHelperClass;
 };

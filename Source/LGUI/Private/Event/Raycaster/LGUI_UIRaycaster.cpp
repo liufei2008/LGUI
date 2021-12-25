@@ -57,10 +57,10 @@ bool ULGUI_UIRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVect
 		{
 			if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 			{
-				const auto& allUIItemArray = LGUIManagerActor->GetAllUIItem();
-				for (auto uiItem : allUIItemArray)
+				const auto& AllUIItemArray = LGUIManagerActor->GetAllUIItemArray();
+				for (auto& uiItem : AllUIItemArray)
 				{
-					if (ShouldSkipUIItem(uiItem))continue;
+					if (ShouldSkipUIItem(uiItem.Get()))continue;
 					if (traceIgnoreActorArray.Num() > 0)
 					{
 						int index;

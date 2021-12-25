@@ -22,6 +22,17 @@ void ULGUIPrefabHelperObject::OnUnregister()
 {
 	Super::OnUnregister();
 }
+
+#if WITH_EDITOR
+void ULGUIPrefabHelperObject::BeginDestroy()
+{
+	if (PrefabOverrideParameterObject.IsValid())
+	{
+		PrefabOverrideParameterObject->RemoveFromRoot();
+		PrefabOverrideParameterObject->ConditionalBeginDestroy();
+	}
+	Super::BeginDestroy();
+}
 void ULGUIPrefabHelperObject::SetActorPropertyInOutliner(AActor* Actor, bool InListed)
 {
 	auto bEditable_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bEditable"));
@@ -36,10 +47,9 @@ void ULGUIPrefabHelperObject::SetActorPropertyInOutliner(AActor* Actor, bool InL
 	bListedInSceneOutliner_Property->SetPropertyValue_InContainer(Actor, InListed);
 }
 
-
 void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InParent)
 {
-	if (!IsValid(LoadedRootActor))
+	if (!LoadedRootActor.IsValid())
 	{
 		LoadedRootActor = PrefabAsset->LoadPrefabForEdit(InWorld
 			, InParent
@@ -48,19 +58,20 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 		);
 		if (PrefabOverrideParameterObject == nullptr)//old version prefab will not create it, so make sure it is created
 		{
-			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(LoadedRootActor);
+			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(LoadedRootActor.Get());
 		}
+		PrefabOverrideParameterObject->AddToRoot();
 		AllLoadedActorArray.Empty();
 		for (auto KeyValue : MapGuidToObject)
 		{
-			if (auto Actor = Cast<AActor>(KeyValue.Value))
+			if (auto Actor = Cast<AActor>(KeyValue.Value.Get()))
 			{
 				AllLoadedActorArray.Add(Actor);
 			}
 		}
 		//Make subprefab's actor invisible
 		TArray<AActor*> AllChildrenActorArray;
-		LGUIUtils::CollectChildrenActors(LoadedRootActor, AllChildrenActorArray, true);
+		LGUIUtils::CollectChildrenActors(LoadedRootActor.Get(), AllChildrenActorArray, true);
 		for (auto ActorItem : AllChildrenActorArray)
 		{
 			if (!AllLoadedActorArray.Contains(ActorItem))
@@ -78,19 +89,20 @@ void ULGUIPrefabHelperObject::SavePrefab()
 		//fill OverrideParameterObject with default value
 		if (PrefabOverrideParameterObject == nullptr)//this could be a newly created prefab, so the PrefabOverrideParameterObject could be null
 		{
-			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(LoadedRootActor);
+			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(LoadedRootActor.Get());
 		}
+		PrefabOverrideParameterObject->AddToRoot();
 		PrefabOverrideParameterObject->SaveCurrentValueAsDefault();
 
-		TMap<UObject*, FGuid> MapObjectToGuid;
+		TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
 		for (auto KeyValue : MapGuidToObject)
 		{
-			if (IsValid(KeyValue.Value))
+			if (KeyValue.Value.IsValid())
 			{
 				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 			}
 		}
-		PrefabAsset->SavePrefab(LoadedRootActor
+		PrefabAsset->SavePrefab(LoadedRootActor.Get()
 			, MapObjectToGuid, SubPrefabMap
 			, PrefabOverrideParameterObject, PrefabAsset->OverrideParameterData
 		);
@@ -99,7 +111,7 @@ void ULGUIPrefabHelperObject::SavePrefab()
 		for (auto KeyValue : MapObjectToGuid)
 		{
 			MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
-			if (auto Actor = Cast<AActor>(KeyValue.Key))
+			if (auto Actor = Cast<AActor>(KeyValue.Key.Get()))
 			{
 				AllLoadedActorArray.Add(Actor);
 			}
@@ -139,7 +151,7 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 		FTransform OldTransform;
 		FUIAnchorData OldAnchorData;
 		//store root transform
-		if (IsValid(LoadedRootActor))
+		if (LoadedRootActor.IsValid())
 		{
 			OldParentActor = LoadedRootActor->GetAttachParentActor();
 			if (auto RootComp = LoadedRootActor->GetRootComponent())
@@ -158,7 +170,7 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 			LoadPrefab(this->GetWorld(), OldParentActor->GetRootComponent());
 		}
 
-		if (IsValid(LoadedRootActor))
+		if (LoadedRootActor.IsValid())
 		{
 			if (haveRootTransform)
 			{
@@ -178,3 +190,4 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 		UE_LOG(LGUI, Error, TEXT("PrefabAsset is null, please create a LGUIPrefab asset and assign to PrefabAsset"));
 	}
 }
+#endif

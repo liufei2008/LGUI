@@ -57,7 +57,7 @@ public:
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic()const;
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
-	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)override;
+	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)override;
 
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
@@ -95,6 +95,7 @@ protected:
 	bool CreateGeometry();
 	virtual void UpdateGeometry()override final;
 	virtual void MarkFlattenHierarchyIndexDirty()override;
+	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const override;
 
 private:
 	/** local space vertex position changed */
@@ -103,4 +104,6 @@ private:
 	uint8 bUVChanged:1;
 	/** triangle index change */
 	uint8 bTriangleChanged:1;
+	FVector2D LocalMinPoint = FVector2D(-50, -50), LocalMaxPoint = FVector2D(50, 50);
+	void CalculateLocalBounds();
 };

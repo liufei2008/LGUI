@@ -125,7 +125,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		//find hit UIBatchGeometryRenderable
 		auto LineStart = RayOrigin;
 		auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
-		auto& allUIItems = ULGUIEditorManagerObject::Instance->GetAllUIItem();
+		auto& allUIItems = ULGUIEditorManagerObject::Instance->GetAllUIItemArray();
 		auto prevSelectTarget = LastSelectTarget;
 		auto prevSelectActor = LastSelectedActor;
 		if (ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), allUIItems, LineStart, LineEnd, prevSelectTarget, prevSelectActor, LastSelectTarget, LastSelectedActor))

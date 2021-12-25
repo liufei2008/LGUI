@@ -394,8 +394,8 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
-		TMap<UObject*, FGuid> InOutMapObjectToGuid;
-		TMap<AActor*, FLGUISubPrefabData> InSubPrefabMap;
+		TMap<TWeakObjectPtr<UObject>, FGuid> InOutMapObjectToGuid;
+		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> InSubPrefabMap;
 		prefab->SavePrefab(copiedActor, InOutMapObjectToGuid, InSubPrefabMap, nullptr, prefab->OverrideParameterData);
 		copiedActorPrefabList.Add(prefab);
 	}
@@ -462,7 +462,7 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 		{
 			if (!PrefabHelperObject->bIsInsidePrefabEditor)//prefab editor should handle delete by itself
 			{
-				if (auto LoadedRootActor = PrefabHelperObject->LoadedRootActor)
+				if (auto LoadedRootActor = PrefabHelperObject->LoadedRootActor.Get())
 				{
 					if (LoadedRootActor == Actor)
 					{
@@ -842,7 +842,7 @@ void LGUIEditorTools::ApplyPrefab()
 }
 bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperObject* InPrefabHelperObject)
 {
-	if (auto RootActor = InPrefabHelperObject->LoadedRootActor)
+	if (auto RootActor = InPrefabHelperObject->LoadedRootActor.Get())
 	{
 		if (auto PrefabAsset = InPrefabHelperObject->PrefabAsset)
 		{
@@ -921,7 +921,7 @@ void LGUIEditorTools::DeletePrefab()
 	{
 		check(!PrefabHelperObject->bIsInsidePrefabEditor);
 
-		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor);
+		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor.Get());
 		auto OwnerActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
 		check(OwnerActor != nullptr);
 		LGUIUtils::DestroyActorWithHierarchy(OwnerActor);
@@ -985,7 +985,7 @@ ULGUIPrefabHelperObject* LGUIEditorTools::GetPrefabHelperObject_WhichManageThisA
 	{
 		if (Itr->AllLoadedActorArray.Contains(InActor))
 		{
-			if (auto LoadedRootActor = Itr->LoadedRootActor)
+			if (auto LoadedRootActor = Itr->LoadedRootActor.Get())
 			{
 				if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
 				{
@@ -1003,7 +1003,7 @@ bool LGUIEditorTools::IsPrefabActor(AActor* InActor)
 	{
 		if (Itr->AllLoadedActorArray.Contains(InActor))
 		{
-			if (auto LoadedRootActor = Itr->LoadedRootActor)
+			if (auto LoadedRootActor = Itr->LoadedRootActor.Get())
 			{
 				if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
 				{
@@ -1022,7 +1022,7 @@ void LGUIEditorTools::CleanupPrefabsInWorld(UWorld* World)
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!IsValid(prefabActor->PrefabHelperObject->LoadedRootActor))
+			if (!prefabActor->PrefabHelperObject->LoadedRootActor.IsValid())
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -1037,7 +1037,7 @@ void LGUIEditorTools::ClearInvalidPrefabActor(UWorld* World)
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!IsValid(prefabActor->PrefabHelperObject->LoadedRootActor))
+			if (!prefabActor->PrefabHelperObject->LoadedRootActor.IsValid())
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -1283,12 +1283,12 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray, boo
 				auto RelativeRotation = UIItem->GetRelativeRotation();
 				UIItem->SetRelativeRotation(ConvertRotatorFromLGUI2ToLGUI3(RelativeRotation));
 			}
-			else//no parent, then rotate it
+			else//no parent
 			{
-				auto RelativeLocation = UIItem->GetRelativeLocation();
 				auto RelativeRotation = UIItem->GetRelativeRotation();
-				if (InIsPrefabOrWorld)//prefab mostly be child of other UIItem, so consider it have parent
+				if (InIsPrefabOrWorld)//prefab mostly be child of other UIItem, so consider it have parent, so set relative location
 				{
+					auto RelativeLocation = UIItem->GetRelativeLocation();
 					UIItem->SetRelativeLocation(ConvertPositionFromLGUI2ToLGUI3(RelativeLocation));
 				}
 				//UIItem->SetRelativeRotation(UIItem->GetRelativeRotation().Add(0, -90, 90));
@@ -1359,13 +1359,13 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray, boo
 			}
 			break;
 			}
-			//if (UIParent == nullptr)
-			//{
-			//	AnchorData.AnchoredPosition.X = UIItem->GetRelativeLocation().Y;
-			//	AnchorData.AnchoredPosition.Y = UIItem->GetRelativeLocation().Z;
-			//	AnchorData.SizeDelta.X = widget.width;
-			//	AnchorData.SizeDelta.Y = widget.height;
-			//}
+			if (UIParent == nullptr && !InIsPrefabOrWorld)
+			{
+				AnchorData.AnchoredPosition.X = UIItem->GetRelativeLocation().Y;
+				AnchorData.AnchoredPosition.Y = UIItem->GetRelativeLocation().Z;
+				AnchorData.SizeDelta.X = widget.width;
+				AnchorData.SizeDelta.Y = widget.height;
+			}
 			AnchorData.Pivot = widget.pivot;
 			UIItem->SetAnchorData(AnchorData);
 		}
@@ -1573,9 +1573,9 @@ void LGUIEditorTools::UpgradeSelectedPrefabToLGUI3()
 		if (IsValid(Prefab))
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-			TMap<FGuid, UObject*> MapGuidToObject;
-			TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-			ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+			TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
+			TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
+			TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
 			auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
 				, MapGuidToObject, SubPrefabMap
 				, Prefab->OverrideParameterData, OverrideParameterObject
@@ -1583,7 +1583,7 @@ void LGUIEditorTools::UpgradeSelectedPrefabToLGUI3()
 			TArray<AActor*> AllChildrenActorArray;
 			LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
 			UpgradeActorArray(AllChildrenActorArray, true);
-			TMap<UObject*, FGuid> MapObjectToGuid;
+			TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
 			for (auto KeyValue : MapGuidToObject)
 			{
 				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
@@ -1631,9 +1631,9 @@ void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
 			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
 				auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-				TMap<FGuid, UObject*> MapGuidToObject;
-				TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-				ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+				TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
+				TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
+				TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
 				auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
 					, MapGuidToObject, SubPrefabMap
 					, Prefab->OverrideParameterData, OverrideParameterObject
@@ -1641,7 +1641,7 @@ void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
 				TArray<AActor*> AllChildrenActorArray;
 				LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
 				UpgradeActorArray(AllChildrenActorArray, true);
-				TMap<UObject*, FGuid> MapObjectToGuid;
+				TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
 				for (auto KeyValue : MapGuidToObject)
 				{
 					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
@@ -1682,6 +1682,30 @@ void LGUIEditorTools::UpgradeCommonProperty(FProperty* PropertyItem, uint8* InCo
 			auto targetComonentName = targetComonentNameProp->GetPropertyValue_InContainer(StructPtr);
 			auto targetActor = Cast<AActor>(targetActorObject);
 			auto targetComponentClass = Cast<UClass>(targetComponentClassObject);
+
+			auto TargetCompProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("TargetComp"));
+			auto HelperClassProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("HelperClass"));
+			auto HelperComponentNameProp = FindFProperty<FNameProperty>(StructProperty->Struct, TEXT("HelperComponentName"));
+			auto HelperClassObj = HelperClassProp->GetObjectPropertyValue_InContainer(StructPtr);
+			UE_LOG(LogTemp, Error, TEXT("HelperClass:%s"), *(HelperClassObj != nullptr ? HelperClassObj->GetName() : FString(TEXT("NotValid"))));
+			if (targetComponentClass != nullptr)
+			{
+				HelperClassProp->SetObjectPropertyValue_InContainer(StructPtr, targetComponentClass);
+			}
+			else
+			{
+				targetComponentClassObject = HelperClassProp->GetObjectPropertyValue_InContainer(StructPtr);
+				targetComponentClass = Cast<UClass>(targetComponentClassObject);
+			}
+			if (!targetComonentName.IsNone())
+			{
+				HelperComponentNameProp->SetPropertyValue_InContainer(StructPtr, targetComonentName);
+			}
+			else
+			{
+				targetComonentName = HelperComponentNameProp->GetPropertyValue_InContainer(StructPtr);
+			}
+
 			UActorComponent* ResultComp = nullptr;
 			TArray<UActorComponent*> Components;
 			if (targetActor != nullptr && targetComponentClass != nullptr)
@@ -1703,7 +1727,6 @@ void LGUIEditorTools::UpgradeCommonProperty(FProperty* PropertyItem, uint8* InCo
 				}
 				if (ResultComp != nullptr)
 				{
-					auto TargetCompProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("TargetComp"));
 					TargetCompProp->SetObjectPropertyValue_InContainer(StructPtr, ResultComp);
 				}
 			}
@@ -1725,6 +1748,25 @@ void LGUIEditorTools::UpgradeCommonProperty(FProperty* PropertyItem, uint8* InCo
 			auto componentClass = Cast<UClass>(componentClassObject);
 
 			auto TargetObjectProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("TargetObject"));
+			auto HelperClassProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("HelperClass"));
+			auto HelperComponentNameProp = FindFProperty<FNameProperty>(StructProperty->Struct, TEXT("HelperComponentName"));
+			if (componentClass != nullptr)
+			{
+				HelperClassProp->SetObjectPropertyValue_InContainer(StructPtr, componentClass);
+			}
+			else
+			{
+				componentClassObject = HelperClassProp->GetObjectPropertyValue_InContainer(StructPtr);
+				componentClass = Cast<UClass>(componentClassObject);
+			}
+			if (!comonentName.IsNone())
+			{
+				HelperComponentNameProp->SetPropertyValue_InContainer(StructPtr, comonentName);
+			}
+			else
+			{
+				comonentName = HelperComponentNameProp->GetPropertyValue_InContainer(StructPtr);
+			}
 
 			if (componentClass->IsChildOf(AActor::StaticClass()))//is actor self
 			{

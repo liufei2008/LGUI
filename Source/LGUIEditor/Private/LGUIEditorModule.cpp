@@ -492,14 +492,15 @@ bool FLGUIEditorModule::CanCreatePrefab()
 	{
 		if (PrefabHelperObject->bIsInsidePrefabEditor)
 		{
-			if (PrefabHelperObject->LoadedRootActor == SelectedActor)
-			{
-				return false;
-			}
-			if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
-			{
-				return false;
-			}
+			return false;
+			//if (PrefabHelperObject->LoadedRootActor == SelectedActor)
+			//{
+			//	return false;
+			//}
+			//if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
+			//{
+			//	return false;
+			//}
 		}
 	}
 	return true;

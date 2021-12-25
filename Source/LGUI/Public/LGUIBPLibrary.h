@@ -266,8 +266,6 @@ public:
 	/** InComponentType must be the same as InLGUIComponentReference's component type */
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get Component", CompactNodeTitle = "Component", BlueprintAutocast, DeterminesOutputType = "InComponentType"))
 		static UActorComponent* LGUICompRef_GetComponent(const FLGUIComponentReference& InLGUIComponentReference, TSubclassOf<UActorComponent> InComponentType);
-	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get Component Class", CompactNodeTitle = "Class", BlueprintAutocast))
-		static TSubclassOf<UActorComponent> LGUICompRef_GetComponentClass(const FLGUIComponentReference& InLGUIComponentReference);
 	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get Actor", CompactNodeTitle = "Actor", BlueprintAutocast))
 		static AActor* LGUICompRef_GetActor(const FLGUIComponentReference& InLGUIComponentReference);
 
@@ -363,4 +361,8 @@ public:
 	UE_DEPRECATED(4.24, "Use AnchorBottomTo instead.")
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "delay,ease", DeprecatedFunction, DeprecationMessage = "Use AnchorBottomTo instead."), Category = "LTweenLGUI")
 		static ULTweener* StretchBottomTo(UUIItem* target, float endValue, float duration = 0.5f, float delay = 0.0f, LTweenEase ease = LTweenEase::OutCubic);
+
+	UE_DEPRECATED(4.24, "LGUIComponentReference now can direct reference ActorComponent, so no need to store component class.")
+	UFUNCTION(BlueprintPure, Category = LGUI, meta = (DisplayName = "Get Component Class", CompactNodeTitle = "Class", BlueprintAutocast, DeprecatedFunction, DeprecationMessage = "LGUIComponentReference now can direct reference ActorComponent, so no need to store component class."))
+		static TSubclassOf<UActorComponent> LGUICompRef_GetComponentClass(const FLGUIComponentReference& InLGUIComponentReference);
 };

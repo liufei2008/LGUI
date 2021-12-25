@@ -20,6 +20,7 @@ void UUILayoutBase::Awake()
 
 void UUILayoutBase::OnEnable()
 {
+    Super::OnEnable();
 #if WITH_EDITOR
     if (!GetWorld()->IsGameWorld())
     {
@@ -34,6 +35,7 @@ void UUILayoutBase::OnEnable()
 }
 void UUILayoutBase::OnDisable()
 {
+    Super::OnDisable();
 #if WITH_EDITOR
     if (!GetWorld()->IsGameWorld())
     {

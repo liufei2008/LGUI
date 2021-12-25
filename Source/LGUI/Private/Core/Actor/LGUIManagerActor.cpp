@@ -59,6 +59,10 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	{
 		FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
 	}
+	if (OnBlueprintCompiledDelegateHandle.IsValid())
+	{
+		GEditor->OnBlueprintCompiled().Remove(OnBlueprintCompiledDelegateHandle);
+	}
 #endif
 	Instance = nullptr;
 	Super::BeginDestroy();
@@ -68,7 +72,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
 #if WITH_EDITORONLY_DATA
 	//draw frame
-	for (auto& item : allUIItem)
+	for (auto& item : AllUIItemArray)
 	{
 		if (!item.IsValid())continue;
 		if (!IsValid(item->GetWorld()))continue;
@@ -91,14 +95,14 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 
 	if (canUpdateLayout)
 	{
-		for (auto& item : allLayoutArray)
+		for (auto& item : AllLayoutArray)
 		{
 			ILGUILayoutInterface::Execute_OnUpdateLayout(item.GetObject());
 		}
 	}
 	
 	int ScreenSpaceOverlayCanvasCount = 0;
-	for (auto& item : allCanvas)
+	for (auto& item : AllCanvasArray)
 	{
 		if (item.IsValid())
 		{
@@ -114,7 +118,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 			}
 		}
 	}
-	for (auto& item : allCanvas)
+	for (auto& item : AllCanvasArray)
 	{
 		if (item.IsValid())
 		{
@@ -142,11 +146,11 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		EditorTick.Broadcast(DeltaTime);
 	}
 
-	if (allCanvas.Num() > 0)
+	if (AllCanvasArray.Num() > 0)
 	{
 		if (bShouldSortLGUIRenderer || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
 		{
-			allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
+			AllCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 				{
 					return A->GetActualSortOrder() < B->GetActualSortOrder();
 				});
@@ -218,6 +222,8 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			FEditorDelegates::ActorPropertiesChange.AddLambda([=]() {
 				UE_LOG(LGUI, Error, TEXT("ActorPropertyChange"));
 				});
+			//blueprint recompile
+			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
 		}
 		else
 		{
@@ -227,37 +233,36 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 	return true;
 }
 
+#include "Event/LGUIEventDelegate.h"
+#include "LGUIComponentReference.h"
+#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
+/**
+ * These LGUI data-structs reference UActorComponent by UObject property.
+ * If the UActorComponent is a blueprint, then if hit compile button, the reference UObject become STAIL and lose reference. So we need a way to re-find the UActorComponent reference:
+ *		1. Collect struct instance in an array.
+ *		2. Store component's class and name in every instance.
+ *		3. Re-find the UObject reference by actor & class & name.
+ */
+void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
+{
+	FLGUIEventDelegate::RefreshAll_OnBlueprintCompiled();
+	FLGUIComponentReference::RefreshAll_OnBlueprintCompiled();
+	FLGUIPrefabOverrideParameter::RefreshAll_OnBlueprintCompiled();
+}
+
 void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
 {
-	int32 startRenderPriority = 0;
+	int32 RenderPriority = 0;
 	int32 prevSortOrder = INT_MIN;
 	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
-	for (int i = 0; i < allCanvas.Num(); i++)
+	for (int i = 0; i < AllCanvasArray.Num(); i++)
 	{
-		auto canvasItem = this->allCanvas[i];
+		auto canvasItem = this->AllCanvasArray[i];
 		if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && !canvasItem->IsRenderByOtherCanvas())
 		{
 			if (canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				auto canvasItemSortOrder = canvasItem->GetActualSortOrder();
-				if (canvasItemSortOrder != prevSortOrder)
-				{
-					prevSortOrder = canvasItemSortOrder;
-					startRenderPriority += prevCanvasDrawcallCount;
-				}
-				int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
-
-				if (canvasItemSortOrder == prevSortOrder)//if Canvas's depth is equal, then take the max drawcall count
-				{
-					if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
-					{
-						prevCanvasDrawcallCount = canvasItemDrawcallCount;
-					}
-				}
-				else
-				{
-					prevCanvasDrawcallCount = canvasItemDrawcallCount;
-				}
+				canvasItem->SortDrawcall(RenderPriority);
 			}
 		}
 	}
@@ -341,7 +346,7 @@ void ULGUIEditorManagerObject::OnActorDeleted()
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!IsValid(prefabActor->PrefabHelperObject->LoadedRootActor))
+			if (!prefabActor->PrefabHelperObject->LoadedRootActor.IsValid())
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -430,7 +435,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 {
 	if (Instance != nullptr)
 	{
-		for (auto& itemCanvas : Instance->allCanvas)
+		for (auto& itemCanvas : Instance->AllCanvasArray)
 		{
 			if (itemCanvas.IsValid())
 			{
@@ -481,9 +486,9 @@ void ULGUIEditorManagerObject::AddUIItem(UUIItem* InItem)
 	if (InitCheck(InItem->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->allUIItem.Contains(InItem));
+		check(!Instance->AllUIItemArray.Contains(InItem));
 #endif
-		Instance->allUIItem.Add(InItem);
+		Instance->AllUIItemArray.Add(InItem);
 	}
 }
 void ULGUIEditorManagerObject::RemoveUIItem(UUIItem* InItem)
@@ -491,9 +496,9 @@ void ULGUIEditorManagerObject::RemoveUIItem(UUIItem* InItem)
 	if (Instance != nullptr)
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->allUIItem.Contains(InItem));
+		check(Instance->AllUIItemArray.Contains(InItem));
 #endif
-		Instance->allUIItem.RemoveSingle(InItem);
+		Instance->AllUIItemArray.RemoveSingle(InItem);
 	}
 }
 
@@ -502,9 +507,9 @@ void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 	if (Instance != nullptr)
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->allCanvas.Contains(InCanvas));
+		check(Instance->AllCanvasArray.Contains(InCanvas));
 #endif
-		Instance->allCanvas.RemoveSingle(InCanvas);
+		Instance->AllCanvasArray.RemoveSingle(InCanvas);
 	}
 }
 void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
@@ -512,23 +517,10 @@ void ULGUIEditorManagerObject::AddCanvas(ULGUICanvas* InCanvas)
 	if (GetInstance(InCanvas->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->allCanvas.Contains(InCanvas));
+		check(!Instance->AllCanvasArray.Contains(InCanvas));
 #endif
-		Instance->allCanvas.AddUnique(InCanvas);
+		Instance->AllCanvasArray.AddUnique(InCanvas);
 	}
-}
-
-const TArray<UUIItem*>& ULGUIEditorManagerObject::GetAllUIItem()
-{
-	tempUIItemArray.Reset();
-	for (auto& item : allUIItem)
-	{
-		if (item.IsValid())
-		{
-			tempUIItemArray.Add(item.Get());
-		}
-	}
-	return tempUIItemArray;
 }
 
 void ULGUIEditorManagerObject::AddRootUIItem(UUIItem* InItem)
@@ -536,9 +528,9 @@ void ULGUIEditorManagerObject::AddRootUIItem(UUIItem* InItem)
 	if (GetInstance(InItem->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->rootUIItems.Contains(InItem));
+		check(!Instance->AllRootUIItemArray.Contains(InItem));
 #endif
-		Instance->rootUIItems.AddUnique(InItem);
+		Instance->AllRootUIItemArray.AddUnique(InItem);
 	}
 }
 void ULGUIEditorManagerObject::RemoveRootUIItem(UUIItem* InItem)
@@ -546,9 +538,9 @@ void ULGUIEditorManagerObject::RemoveRootUIItem(UUIItem* InItem)
 	if (Instance != nullptr)
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->rootUIItems.Contains(InItem));
+		check(Instance->AllRootUIItemArray.Contains(InItem));
 #endif
-		Instance->rootUIItems.RemoveSingle(InItem);
+		Instance->AllRootUIItemArray.RemoveSingle(InItem);
 	}
 }
 
@@ -557,9 +549,9 @@ void ULGUIEditorManagerObject::RegisterLGUILayout(TScriptInterface<ILGUILayoutIn
 	if (InitCheck(InItem.GetObject()->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->allLayoutArray.Contains(InItem));
+		check(!Instance->AllLayoutArray.Contains(InItem));
 #endif
-		Instance->allLayoutArray.AddUnique(InItem);
+		Instance->AllLayoutArray.AddUnique(InItem);
 	}
 }
 void ULGUIEditorManagerObject::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
@@ -567,9 +559,9 @@ void ULGUIEditorManagerObject::UnregisterLGUILayout(TScriptInterface<ILGUILayout
 	if (Instance != nullptr)
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->allLayoutArray.Contains(InItem));
+		check(Instance->AllLayoutArray.Contains(InItem));
 #endif
-		Instance->allLayoutArray.RemoveSingle(InItem);
+		Instance->AllLayoutArray.RemoveSingle(InItem);
 	}
 }
 
@@ -728,7 +720,7 @@ bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
 	return false;
 }
 
-bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<UUIItem*>& InUIItems, const FVector& LineStart, const FVector& LineEnd
+bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakObjectPtr<UUIItem>>& InUIItems, const FVector& LineStart, const FVector& LineEnd
 	, TWeakObjectPtr<UUIBaseRenderable> PrevSelectTarget, TWeakObjectPtr<AActor> PrevSelectedActor
 	, TWeakObjectPtr<UUIBaseRenderable>& ResultSelectTarget, TWeakObjectPtr<AActor>& ResultSelectedActor
 )
@@ -955,12 +947,12 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			|| this->GetWorld()->WorldType == EWorldType::PIE
 			)
 		{
-			for (auto& item : allUIItem)
+			for (auto& item : AllUIItemArray)
 			{
-				if (!IsValid(item))continue;
+				if (!item.IsValid())continue;
 				if (!IsValid(item->GetWorld()))continue;
 
-				ULGUIEditorManagerObject::DrawFrameOnUIItem(item);
+				ULGUIEditorManagerObject::DrawFrameOnUIItem(item.Get());
 			}
 		}
 	}
@@ -971,7 +963,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		if (bShouldUpdateOnCultureChanged)
 		{
 			bShouldUpdateOnCultureChanged = false;
-			for (auto& item : cultureChanged)
+			for (auto& item : AllCultureChangedArray)
 			{
 				ILGUICultureChangedInterface::Execute_OnCultureChanged(item.GetObject());
 			}
@@ -1030,7 +1022,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 #if WITH_EDITOR
 	int ScreenSpaceOverlayCanvasCount = 0;
-	for (auto& item : allCanvas)
+	for (auto& item : AllCanvasArray)
 	{
 		if (item.IsValid())
 		{
@@ -1064,7 +1056,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	//update drawcall
 	{
 		SCOPE_CYCLE_COUNTER(STAT_UpdateGeometryAndDrawcall);
-		for (auto& item : allCanvas)
+		for (auto& item : AllCanvasArray)
 		{
 			if (item.IsValid())
 			{
@@ -1074,12 +1066,12 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 	}
 
 	//sort render order
-	if (allCanvas.Num() > 0)
+	if (AllCanvasArray.Num() > 0)
 	{
 		if (bShouldSortLGUIRenderer || bShouldSortWorldSpaceCanvas || bShouldSortRenderTargetSpaceCanvas)
 		{
 			//@todo: no need to sort all canvas
-			allCanvas.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
+			AllCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 				{
 					return A->GetActualSortOrder() < B->GetActualSortOrder();
 				});
@@ -1109,36 +1101,17 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 
 void ALGUIManagerActor::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)//@todo: cleanup this function
 {
-	int32 startRenderPriority = 0;
+	int32 RenderPriority = 0;
 	int32 prevSortOrder = INT_MIN;
 	int32 prevCanvasDrawcallCount = 0;//prev Canvas's drawcall count
-	for (int i = 0; i < allCanvas.Num(); i++)
+	for (int i = 0; i < AllCanvasArray.Num(); i++)
 	{
-		auto canvasItem = this->allCanvas[i];
+		auto canvasItem = this->AllCanvasArray[i];
 		if (canvasItem.IsValid() && canvasItem->GetIsUIActive() && !canvasItem->IsRenderByOtherCanvas())
 		{
 			if (canvasItem->GetActualRenderMode() == InRenderMode)
 			{
-				auto canvasItemSortOrder = canvasItem->GetActualSortOrder();
-				bool sameSortOrder = canvasItemSortOrder == prevSortOrder;
-				if (!sameSortOrder)
-				{
-					prevSortOrder = canvasItemSortOrder;
-					startRenderPriority += prevCanvasDrawcallCount;
-				}
-				int32 canvasItemDrawcallCount = canvasItem->SortDrawcall(startRenderPriority);
-
-				if (sameSortOrder)//if Canvas's sortOrder is equal, then take the max drawcall count
-				{
-					if (prevCanvasDrawcallCount < canvasItemDrawcallCount)
-					{
-						prevCanvasDrawcallCount = canvasItemDrawcallCount;
-					}
-				}
-				else
-				{
-					prevCanvasDrawcallCount = canvasItemDrawcallCount;
-				}
+				canvasItem->SortDrawcall(RenderPriority);
 			}
 		}
 	}
@@ -1306,9 +1279,9 @@ void ALGUIManagerActor::AddUIItem(UUIItem* InItem)
 	if (auto Instance = GetInstance(InItem->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->allUIItem.Contains(InItem));
+		check(!Instance->AllUIItemArray.Contains(InItem));
 #endif
-		Instance->allUIItem.AddUnique(InItem);
+		Instance->AllUIItemArray.AddUnique(InItem);
 	}
 }
 void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
@@ -1316,9 +1289,9 @@ void ALGUIManagerActor::RemoveUIItem(UUIItem* InItem)
 	if (auto Instance = GetInstance(InItem->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->allUIItem.Contains(InItem));
+		check(Instance->AllUIItemArray.Contains(InItem));
 #endif
-		Instance->allUIItem.RemoveSingle(InItem);
+		Instance->AllUIItemArray.RemoveSingle(InItem);
 	}
 }
 
@@ -1327,9 +1300,9 @@ void ALGUIManagerActor::AddRootUIItem(UUIItem* InItem)
 	if (auto Instance = GetInstance(InItem->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->rootUIItems.Contains(InItem));
+		check(!Instance->AllRootUIItemArray.Contains(InItem));
 #endif
-		Instance->rootUIItems.AddUnique(InItem);
+		Instance->AllRootUIItemArray.AddUnique(InItem);
 	}
 }
 void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
@@ -1337,9 +1310,9 @@ void ALGUIManagerActor::RemoveRootUIItem(UUIItem* InItem)
 	if (auto Instance = GetInstance(InItem->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->rootUIItems.Contains(InItem));
+		check(Instance->AllRootUIItemArray.Contains(InItem));
 #endif
-		Instance->rootUIItems.RemoveSingle(InItem);
+		Instance->AllRootUIItemArray.RemoveSingle(InItem);
 	}
 }
 
@@ -1347,14 +1320,14 @@ void ALGUIManagerActor::RegisterLGUICultureChangedEvent(TScriptInterface<ILGUICu
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
 	{
-		Instance->cultureChanged.AddUnique(InItem);
+		Instance->AllCultureChangedArray.AddUnique(InItem);
 	}
 }
 void ALGUIManagerActor::UnregisterLGUICultureChangedEvent(TScriptInterface<ILGUICultureChangedInterface> InItem)
 {
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
-		Instance->cultureChanged.RemoveSingle(InItem);
+		Instance->AllCultureChangedArray.RemoveSingle(InItem);
 	}
 }
 
@@ -1363,7 +1336,7 @@ void ALGUIManagerActor::UpdateLayout()
 	SCOPE_CYCLE_COUNTER(STAT_UIItemUpdateLayout);
 
 	//update Layout
-	for (auto& item : allLayoutArray)
+	for (auto& item : AllLayoutArray)
 	{
 		ILGUILayoutInterface::Execute_OnUpdateLayout(item.GetObject());
 	}
@@ -1384,9 +1357,9 @@ void ALGUIManagerActor::RemoveCanvas(ULGUICanvas* InCanvas)
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), false))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->allCanvas.Contains(InCanvas));
+		check(Instance->AllCanvasArray.Contains(InCanvas));
 #endif
-		Instance->allCanvas.RemoveSingle(InCanvas);
+		Instance->AllCanvasArray.RemoveSingle(InCanvas);
 	}
 }
 void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
@@ -1394,9 +1367,9 @@ void ALGUIManagerActor::AddCanvas(ULGUICanvas* InCanvas)
 	if (auto Instance = GetInstance(InCanvas->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->allCanvas.Contains(InCanvas));
+		check(!Instance->AllCanvasArray.Contains(InCanvas));
 #endif
-		Instance->allCanvas.AddUnique(InCanvas);
+		Instance->AllCanvasArray.AddUnique(InCanvas);
 	}
 }
 void ALGUIManagerActor::MarkSortLGUIRenderer()
@@ -1432,10 +1405,10 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 {
 	if (auto Instance = GetInstance(InRaycaster->GetWorld(), true))
 	{
-		auto& raycasterArray = Instance->raycasterArray;
-		if (raycasterArray.Contains(InRaycaster))return;
+		auto& AllRaycasterArray = Instance->AllRaycasterArray;
+		if (AllRaycasterArray.Contains(InRaycaster))return;
 		//check multiple racaster
-		for (auto& item : raycasterArray)
+		for (auto& item : AllRaycasterArray)
 		{
 			if (InRaycaster->depth == item->depth && InRaycaster->traceChannel == item->traceChannel)
 			{
@@ -1451,11 +1424,11 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 			}
 		}
 
-		raycasterArray.Add(InRaycaster);
+		AllRaycasterArray.Add(InRaycaster);
 		//sort depth
-		raycasterArray.Sort([](const ULGUIBaseRaycaster& A, const ULGUIBaseRaycaster& B)
+		AllRaycasterArray.Sort([](const TWeakObjectPtr<ULGUIBaseRaycaster>& A, const TWeakObjectPtr<ULGUIBaseRaycaster>& B)
 		{
-			return A.depth > B.depth;
+			return A->depth > B->depth;
 		});
 	}
 }
@@ -1464,25 +1437,25 @@ void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 	if (auto Instance = GetInstance(InRaycaster->GetWorld()))
 	{
 		int32 index;
-		if (Instance->raycasterArray.Find(InRaycaster, index))
+		if (Instance->AllRaycasterArray.Find(InRaycaster, index))
 		{
-			Instance->raycasterArray.RemoveAt(index);
+			Instance->AllRaycasterArray.RemoveAt(index);
 		}
 	}
 }
 
-void ALGUIManagerActor::SetInputModule(ULGUIBaseInputModule* InInputModule)
+void ALGUIManagerActor::SetCurrentInputModule(ULGUIBaseInputModule* InInputModule)
 {
 	if (auto Instance = GetInstance(InInputModule->GetWorld(), true))
 	{
-		Instance->currentInputModule = InInputModule;
+		Instance->CurrentInputModule = InInputModule;
 	}
 }
-void ALGUIManagerActor::ClearInputModule(ULGUIBaseInputModule* InInputModule)
+void ALGUIManagerActor::ClearCurrentInputModule(ULGUIBaseInputModule* InInputModule)
 {
 	if (auto Instance = GetInstance(InInputModule->GetWorld()))
 	{
-		Instance->currentInputModule = nullptr;
+		Instance->CurrentInputModule = nullptr;
 	}
 }
 
@@ -1490,9 +1463,9 @@ void ALGUIManagerActor::AddSelectable(UUISelectableComponent* InSelectable)
 {
 	if (auto Instance = GetInstance(InSelectable->GetWorld(), true))
 	{
-		auto& allSelectableArray = Instance->allSelectableArray;
-		if (allSelectableArray.Contains(InSelectable))return;
-		allSelectableArray.Add(InSelectable);
+		auto& AllSelectableArray = Instance->AllSelectableArray;
+		if (AllSelectableArray.Contains(InSelectable))return;
+		AllSelectableArray.Add(InSelectable);
 	}
 }
 void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
@@ -1500,9 +1473,9 @@ void ALGUIManagerActor::RemoveSelectable(UUISelectableComponent* InSelectable)
 	if (auto Instance = GetInstance(InSelectable->GetWorld()))
 	{
 		int32 index;
-		if (Instance->allSelectableArray.Find(InSelectable, index))
+		if (Instance->AllSelectableArray.Find(InSelectable, index))
 		{
-			Instance->allSelectableArray.RemoveAt(index);
+			Instance->AllSelectableArray.RemoveAt(index);
 		}
 	}
 }
@@ -1512,9 +1485,9 @@ void ALGUIManagerActor::RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld(), true))
 	{
 #if !UE_BUILD_SHIPPING
-		check(!Instance->allLayoutArray.Contains(InItem));
+		check(!Instance->AllLayoutArray.Contains(InItem));
 #endif
-		Instance->allLayoutArray.AddUnique(InItem);
+		Instance->AllLayoutArray.AddUnique(InItem);
 	}
 }
 void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem)
@@ -1522,9 +1495,9 @@ void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterfa
 	if (auto Instance = GetInstance(InItem.GetObject()->GetWorld()))
 	{
 #if !UE_BUILD_SHIPPING
-		check(Instance->allLayoutArray.Contains(InItem));
+		check(Instance->AllLayoutArray.Contains(InItem));
 #endif
-		Instance->allLayoutArray.RemoveSingle(InItem);
+		Instance->AllLayoutArray.RemoveSingle(InItem);
 	}
 }
 

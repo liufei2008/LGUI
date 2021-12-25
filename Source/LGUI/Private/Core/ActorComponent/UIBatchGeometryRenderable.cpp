@@ -66,9 +66,9 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
 
-void UUIBatchGeometryRenderable::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
+void UUIBatchGeometryRenderable::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
-    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
+    Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
 	if (InPivotChange || InSizeChange)
     {
         MarkVertexPositionDirty();
@@ -105,6 +105,7 @@ void UUIBatchGeometryRenderable::MarkTextureDirty()
 				else
 				{
 					geometry->texture = GetTextureToCreateGeometry();
+					drawcall->textureChanged = true;
 				}
 			}
 		}
@@ -118,6 +119,7 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 		if (drawcall.IsValid())
 		{
 			geometry->material = CustomUIMaterial;
+			drawcall->materialChanged = true;
 		}
 	}
 	MarkCanvasUpdate();
@@ -231,7 +233,7 @@ void UUIBatchGeometryRenderable::MarkFlattenHierarchyIndexDirty()
 	Super::MarkFlattenHierarchyIndexDirty();
 	if (drawcall.IsValid())
 	{
-		drawcall->bShouldSortRenderObjectList = true;//hierarchy order change, should sort objects in drawcall
+		drawcall->shouldSortRenderObjectList = true;//hierarchy order change, should sort objects in drawcall
 	}
 }
 
@@ -273,6 +275,10 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 			{
 				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}
+			if (bLocalVertexPositionChanged)
+			{
+				CalculateLocalBounds();
+			}
 		}
 	}
 COMPLETE:
@@ -299,6 +305,7 @@ bool UUIBatchGeometryRenderable::CreateGeometry()
 		OnCreateGeometry();
 		ApplyGeometryModifier(true, true, true, true);
 		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
+		CalculateLocalBounds();
 		return true;
 	}
 	else
@@ -310,4 +317,38 @@ bool UUIBatchGeometryRenderable::CreateGeometry()
 bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
 	return UUIBaseRenderable::LineTraceUIGeometry(geometry, OutHit, Start, End);
+}
+
+void UUIBatchGeometryRenderable::CalculateLocalBounds()
+{
+	auto& vertices = geometry->originPositions;
+	float horizontalMin = MAX_flt, horizontalMax = MIN_flt;
+	float verticalMin = MAX_flt, verticalMax = MIN_flt;
+	for (auto& Vert : vertices)
+	{
+		if (Vert.Y < horizontalMin)
+		{
+			horizontalMin = Vert.Y;
+		}
+		if (Vert.Y > horizontalMax)
+		{
+			horizontalMax = Vert.Y;
+		}
+		if (Vert.Z < verticalMin)
+		{
+			verticalMin = Vert.Z;
+		}
+		if (Vert.Z > verticalMax)
+		{
+			verticalMax = Vert.Z;
+		}
+	}
+	this->LocalMinPoint = FVector2D(horizontalMin, verticalMin);
+	this->LocalMaxPoint = FVector2D(horizontalMax, verticalMax);
+}
+
+void UUIBatchGeometryRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const
+{
+	OutMinPoint = this->LocalMinPoint;
+	OutMaxPoint = this->LocalMaxPoint;
 }

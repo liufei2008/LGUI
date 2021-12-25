@@ -486,16 +486,16 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 {
 	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		const auto& uiSelectables = LGUIManagerActor->GetSelectables();
+		const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
 		FVector pos = CheckRootUIComponent() ? FVector(RootUIComp->GetLocalSpaceCenter(), 0) : FVector::ZeroVector;
 		pos = GetRootUIComponent()->GetComponentTransform().TransformPosition(pos);
 		float maxScore = MIN_flt;
 		UUISelectableComponent* bestPick = this;
-		for (int i = 0; i < uiSelectables.Num(); ++i)
+		for (int i = 0; i < SelectableArray.Num(); ++i)
 		{
-			auto sel = uiSelectables[i];
+			auto sel = SelectableArray[i];
 
-			if (sel == this || !IsValid(sel))
+			if (sel == this || !sel.IsValid())
 				continue;
 
 			if (IsValid(InParent) && !sel->GetRootUIComponent()->IsAttachedTo(InParent))
@@ -518,7 +518,7 @@ UUISelectableComponent* UUISelectableComponent::FindSelectable(FVector InDirecti
 			if (score > maxScore)
 			{
 				maxScore = score;
-				bestPick = sel;
+				bestPick = sel.Get();
 			}
 		}
 		return bestPick;
@@ -529,10 +529,10 @@ UUISelectableComponent* UUISelectableComponent::FindDefaultSelectable(UObject* W
 {
 	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(WorldContextObject->GetWorld()))
 	{
-		const auto& uiSelectables = LGUIManagerActor->GetSelectables();
-		if (uiSelectables.Num() > 0)
+		const auto& SelectableArray = LGUIManagerActor->GetAllSelectableArray();
+		if (SelectableArray.Num() > 0)
 		{
-			return uiSelectables[0];
+			return SelectableArray[0].Get();
 		}
 	}
 	return nullptr;

@@ -210,9 +210,9 @@ void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVC
 	}
 }
 
-void UUITexture::MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)
+void UUITexture::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
-    Super::MarkLayoutDirty(InTransformChange, InPivotChange, InSizeChange);
+    Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
 	if (!IsValid(texture))return;
 	if (type == UITextureType::Tiled)
 	{

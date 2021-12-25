@@ -422,6 +422,13 @@ void FLGUIPrefabOverrideParameterCustomization::OnSelectComponent(UActorComponen
 {
 	auto TargetObjectHandle = DataHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameterData, TargetObject));
 	TargetObjectHandle->SetValue(Comp);
+
+	auto HelperClassHandle = DataHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameterData, HelperClass));
+	HelperClassHandle->SetValue(Comp->StaticClass());
+
+	auto HelperComponentNameHandle = DataHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameterData, HelperComponentName));
+	HelperComponentNameHandle->SetValue(Comp->GetFName());
+
 	PropertyUtilites->ForceRefresh();
 }
 void FLGUIPrefabOverrideParameterCustomization::OnSelectActorSelf(TSharedRef<IPropertyHandle> DataHandle)
@@ -432,6 +439,9 @@ void FLGUIPrefabOverrideParameterCustomization::OnSelectActorSelf(TSharedRef<IPr
 
 	auto TargetObjectHandle = DataHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameterData, TargetObject));
 	TargetObjectHandle->SetValue(HelperActorObject);
+
+	auto HelperClassHandle = DataHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameterData, HelperClass));
+	HelperClassHandle->SetValue(AActor::StaticClass());
 
 	PropertyUtilites->ForceRefresh();
 }

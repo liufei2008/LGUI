@@ -1,7 +1,7 @@
 ﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
 
 #pragma once
-
+#include "CoreMinimal.h"
 #include "LGUIPrefab.generated.h"
 
 /**
@@ -28,7 +28,7 @@ struct LGUI_API FLGUISubPrefabData
 	GENERATED_BODY()
 public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefab* PrefabAsset;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefabOverrideParameterObject* OverrideParameterObject;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<uint8> OverrideParameterData;
 };
 
@@ -81,23 +81,22 @@ public:
 	 */
 	UPROPERTY()
 		TArray<uint8> BinaryDataForBuild;
-#if WITH_EDITORONLY_DATA
 	/** This property contains this prefab's overrideable parameters data, can use LGUIObjectReader to reproduce ULGUIPrefabOverrideParameterObject. */
 	UPROPERTY()
 		TArray<uint8> OverrideParameterData;
-
+#if WITH_EDITORONLY_DATA
 	UPROPERTY(Instanced, Transient)
 		class UThumbnailInfo* ThumbnailInfo;
 	UPROPERTY(Transient)
 		bool ThumbnailDirty = false;
 	/** This actor is an agent existing in a preview world, for cook prefab asset. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")AActor* AgentRootActor = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TWeakObjectPtr<AActor> AgentRootActor = nullptr;
 	/** agent, for cook prefab asset. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, UObject*> AgentMapGuidToObject;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, TWeakObjectPtr<UObject>> AgentMapGuidToObject;
 	/** agent, for cook prefab asset. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefabOverrideParameterObject* AgentOverrideParameterObject = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> AgentOverrideParameterObject = nullptr;
 	/** This map is an agent existing in a preview world, for cook prefab asset. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<AActor*, FLGUISubPrefabData> AgentSubPrefabmap;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> AgentSubPrefabMap;
 #endif
 public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SetRelativeTransformToIdentity", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject"), Category = LGUI)
@@ -119,21 +118,22 @@ public:
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void PostSaveRoot(bool bCleanupIsRequired)override;
 	virtual void PostDuplicate(bool bDuplicateForPIE)override;
+	virtual void PostLoad()override;
 	virtual void BeginDestroy()override;
 
 	/**
 	 * LoadPrefab for edit/modify, will keep reference of source prefab.
 	 */
 	AActor* LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
-		, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
-		, const TArray<uint8>& InOverrideParameterData, class ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
+		, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
+		, const TArray<uint8>& InOverrideParameterData, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject>& OutOverrideParameterObject
 	);
 	void SavePrefab(AActor* RootActor
-		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
-		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		, TMap<TWeakObjectPtr<UObject>, FGuid>& InOutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
+		, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
 		, bool InForEditorOrRuntimeUse = true
 	);
-	void SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap);
+	void SavePrefabForRuntime(AActor* RootActor, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap);
 	/**
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.
 	 */

@@ -33,6 +33,7 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 	EUIRenderableType uiRenderableType = EUIRenderableType::None;
@@ -80,12 +81,12 @@ public:
 
 	void MarkColorDirty();
 	virtual void MarkAllDirtyRecursive()override;
-	virtual void MarkLayoutDirty(bool InTransformChange, bool InPivotChange, bool InSizeChange)override;
+	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)override;
 	/** Called by LGUICanvas when begin to collect geometry for render */
 	virtual void UpdateGeometry() {};
 
 	/** return bounds min max point in self local space, for LGUICanvas to tell if geometry overlap with each other. */
-	virtual void GetGeometryBoundsInLocalSpace(FVector2D& min, FVector2D& max)const;
+	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const;
 
 	virtual void OnCanvasGroupAlphaChange()override;
 protected:

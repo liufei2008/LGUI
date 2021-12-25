@@ -28,35 +28,35 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 	multiHitResult.Reset();
 	if (auto LGUIManagerActor = ALGUIManagerActor::GetLGUIManagerActorInstance(this->GetWorld()))
 	{
-		auto& raycasterArray = LGUIManagerActor->GetRaycasters();
+		auto& AllRaycasterArray = LGUIManagerActor->GetAllRaycasterArray();
 		InPointerEventData->hoverComponentArray.Reset();
 
 		int32 prevRaycasterDepth = 0;
-		for (int i = 0; i < raycasterArray.Num(); i++)
+		for (int i = 0; i < AllRaycasterArray.Num(); i++)
 		{
-			ULGUIBaseRaycaster* raycasterItem = raycasterArray[i];
+			auto& RaycasterItem = AllRaycasterArray[i];
 			FHitResult hitResultItem;
-			if (IsValid(raycasterItem))
+			if (RaycasterItem.IsValid())
 			{
-				if (raycasterItem->depth < prevRaycasterDepth && multiHitResult.Num() != 0)//if this raycaster's depth not equal than prev raycaster's depth, and prev hit test is true, then we dont need to raycast more, because of raycaster's depth
+				if (RaycasterItem->depth < prevRaycasterDepth && multiHitResult.Num() != 0)//if this raycaster's depth not equal than prev raycaster's depth, and prev hit test is true, then we dont need to raycast more, because of raycaster's depth
 				{
 					break;
 				}
 				FVector rayOrigin(0, 0, 0), rayDir(1, 0, 0), rayEnd(1, 0, 0);
 				TArray<USceneComponent*> hoverArray;//temp array for store hover components
-				if (raycasterItem->Raycast(InPointerEventData, rayOrigin, rayDir, rayEnd, hitResultItem, hoverArray))
+				if (RaycasterItem->Raycast(InPointerEventData, rayOrigin, rayDir, rayEnd, hitResultItem, hoverArray))
 				{
 					FHitResultContainerStruct container;
 					container.hitResult = hitResultItem;
-					container.eventFireType = raycasterItem->eventFireType;
-					container.raycaster = raycasterItem;
+					container.eventFireType = RaycasterItem->eventFireType;
+					container.raycaster = RaycasterItem.Get();
 					container.rayOrigin = rayOrigin;
 					container.rayDirection = rayDir;
 					container.rayEnd = rayEnd;
 					container.hoverArray = hoverArray;
 
 					multiHitResult.Add(container);
-					prevRaycasterDepth = raycasterItem->depth;
+					prevRaycasterDepth = RaycasterItem->depth;
 				}
 			}
 		}
@@ -71,9 +71,9 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 				{
 					return A.hitResult.Distance < B.hitResult.Distance;
 				});
-			for (auto hitResultItem : multiHitResult)
+			for (auto& hitResultItem : multiHitResult)
 			{
-				for (auto hoverItem : hitResultItem.hoverArray)
+				for (auto& hoverItem : hitResultItem.hoverArray)
 				{
 					InPointerEventData->hoverComponentArray.Add(hoverItem);
 				}

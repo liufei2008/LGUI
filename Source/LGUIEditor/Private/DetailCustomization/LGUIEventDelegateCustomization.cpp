@@ -508,6 +508,13 @@ void FLGUIEventDelegateCustomization::OnSelectComponent(UActorComponent* Comp, i
 	auto ItemHandle = EventListHandle->GetElement(itemIndex);
 	auto TargetObjectHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
 	TargetObjectHandle->SetValue(Comp);
+
+	auto HelperClassHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperClass));
+	HelperClassHandle->SetValue(Comp->StaticClass());
+
+	auto HelperComponentNameHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperComponentName));
+	HelperComponentNameHandle->SetValue(Comp->GetFName());
+
 	PropertyUtilites->ForceRefresh();
 }
 void FLGUIEventDelegateCustomization::OnSelectActorSelf(int32 itemIndex)
@@ -520,6 +527,9 @@ void FLGUIEventDelegateCustomization::OnSelectActorSelf(int32 itemIndex)
 
 	auto TargetObjectHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, TargetObject));
 	TargetObjectHandle->SetValue(HelperActorObject);
+
+	auto HelperClassHandle = ItemHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, HelperClass));
+	HelperClassHandle->SetValue(AActor::StaticClass());
 
 	PropertyUtilites->ForceRefresh();
 }

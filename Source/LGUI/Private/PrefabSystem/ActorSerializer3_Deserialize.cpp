@@ -17,14 +17,14 @@
 namespace LGUIPrefabSystem3
 {
 	AActor* ActorSerializer3::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
-		, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
+		, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
+		, const TArray<uint8>& InOverrideParameterData, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject>& OutOverrideParameterObject
 	)
 	{
 		ActorSerializer3 serializer(InWorld);
 		for (auto KeyValue : InOutMapGuidToObjects)//Preprocess the map, ignore invalid object
 		{
-			if (IsValid(KeyValue.Value))
+			if (KeyValue.Value.IsValid())
 			{
 				serializer.MapGuidToObject.Add(KeyValue.Key, KeyValue.Value);
 			}
@@ -81,7 +81,7 @@ namespace LGUIPrefabSystem3
 	}
 	AActor* ActorSerializer3::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, TMap<FGuid, UObject*>& InMapGuidToObject
+		, TMap<FGuid, TWeakObjectPtr<UObject>>& InMapGuidToObject
 		, TFunction<ULGUIPrefabOverrideParameterObject* (AActor*)> InGetDeserializedOverrideParameterObjectFunction
 		, bool InIsLoadForEdit
 	)
@@ -173,7 +173,7 @@ namespace LGUIPrefabSystem3
 			OverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(CreatedRootActor);
 			if (OverrideParameterData.Num() > 0)
 			{
-				WriterOrReaderFunction(OverrideParameterObject, OverrideParameterData, false);
+				WriterOrReaderFunction(OverrideParameterObject.Get(), OverrideParameterData, false);
 			}
 		}
 		if (bApplyOverrideParameters)
@@ -281,7 +281,7 @@ namespace LGUIPrefabSystem3
 					}
 
 					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
-					CreatedNewComponent = NewObject<UActorComponent>(Outer, ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
+					CreatedNewComponent = NewObject<UActorComponent>(Outer.Get(), ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
 					MapGuidToObject.Add(ObjectData.ComponentGuid, CreatedNewComponent);
 				}
 			}
@@ -293,7 +293,7 @@ namespace LGUIPrefabSystem3
 			if (auto ObjectPtr = MapGuidToObject.Find(ObjectData.ObjectGuid))
 			{
 				//UE_LOG(LGUI, Log, TEXT("[ActorSerializer3::PreGenerateObjectArray]Already generated:%s!"), *(MapGuidToObject[ObjectData.ObjectGuid]->GetPathName()));
-				CreatedNewObject = *ObjectPtr;
+				CreatedNewObject = ObjectPtr->Get();
 			}
 			else
 			{
@@ -308,8 +308,7 @@ namespace LGUIPrefabSystem3
 					}
 
 					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
-					check(Outer != nullptr);
-					CreatedNewObject = NewObject<UObject>(Outer, ObjectClass, NAME_None, (EObjectFlags)ObjectData.ObjectFlags);
+					CreatedNewObject = NewObject<UObject>(Outer.Get(), ObjectClass, NAME_None, (EObjectFlags)ObjectData.ObjectFlags);
 					MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
 				}
 			}
@@ -323,7 +322,7 @@ namespace LGUIPrefabSystem3
 		{
 			if (auto CompPtr = MapGuidToObject.Find(ObjectData.ComponentGuid))
 			{
-				auto CreatedNewComponent = (UActorComponent*)*CompPtr;
+				auto CreatedNewComponent = (UActorComponent*)(CompPtr->Get());
 				if (auto SceneComp = Cast<USceneComponent>(CreatedNewComponent))
 				{
 					WriterOrReaderFunction(CreatedNewComponent, ObjectData.PropertyData, true);
@@ -345,7 +344,7 @@ namespace LGUIPrefabSystem3
 			if (auto ObjectPtr = MapGuidToObject.Find(ObjectData.ObjectGuid))
 			{
 				auto CreatedNewObject = *ObjectPtr;
-				WriterOrReaderFunction(CreatedNewObject, ObjectData.PropertyData, false);
+				WriterOrReaderFunction(CreatedNewObject.Get(), ObjectData.PropertyData, false);
 			}
 		}
 	}
@@ -362,7 +361,7 @@ namespace LGUIPrefabSystem3
 					AActor* SubPrefabRootActor = nullptr;
 					FLGUISubPrefabData SubPrefabData;
 					SubPrefabData.PrefabAsset = PrefabAsset;
-					TMap<FGuid, UObject*> SubMapGuidToObject;
+					TMap<FGuid, TWeakObjectPtr<UObject>> SubMapGuidToObject;
 					if (auto ValuePtr = MapGuidToObject.Find(SavedActors.ActorGuid))
 					{
 						SubMapGuidToObject.Add(SavedActors.ActorGuid, *ValuePtr);
@@ -425,7 +424,7 @@ namespace LGUIPrefabSystem3
 				AActor* NewActor = nullptr;
 				if (auto ActorPtr = MapGuidToObject.Find(SavedActors.ActorGuid))//MapGuidToObject can passed from LoadPrefabForEdit, so we need to find from map first
 				{
-					NewActor = (AActor*)*ActorPtr;
+					NewActor = (AActor*)(ActorPtr->Get());
 				}
 				else
 				{
@@ -482,7 +481,7 @@ namespace LGUIPrefabSystem3
 	}
 	AActor* ActorSerializer3::DeserializeActorRecursive(FLGUIActorSaveData& SavedActors)
 	{
-		auto NewActor = (AActor*)MapGuidToObject[SavedActors.ActorGuid];
+		auto NewActor = (AActor*)MapGuidToObject[SavedActors.ActorGuid].Get();
 		WriterOrReaderFunction(NewActor, SavedActors.ActorPropertyData, false);
 
 		for (auto ChildSaveData : SavedActors.ChildActorData)

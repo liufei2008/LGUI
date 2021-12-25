@@ -233,7 +233,7 @@ bool UUIScrollViewComponent::OnPointerDrag_Implementation(ULGUIPointerEventData 
         auto predict = position.Z + localMoveDelta.Z;
         if (predict < VerticalRange.X || predict > VerticalRange.Y)
         {
-            position.Z += localMoveDelta.Y * 0.5f;
+            position.Z += localMoveDelta.Z * 0.5f;
         }
         else
         {
