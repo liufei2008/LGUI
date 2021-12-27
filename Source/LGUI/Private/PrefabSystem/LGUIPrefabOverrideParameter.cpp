@@ -6,7 +6,7 @@
 
 PRAGMA_DISABLE_OPTIMIZATION
 
-bool ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(const FProperty* InProperty, ELGUIPrefabOverrideParameterType& OutParameterType)
+bool ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(const FProperty* InProperty, bool IncludeDataStruct, ELGUIPrefabOverrideParameterType& OutParameterType)
 {
 	if (!InProperty)
 	{
@@ -106,6 +106,17 @@ bool ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(const FProperty* In
 		}
 		else
 		{
+			if (IncludeDataStruct)
+			{
+				TArray<const FStructProperty*> EncounteredStructProps;
+				if (!InProperty->ContainsObjectReference(EncounteredStructProps, EPropertyObjectReferenceType::Strong)
+					&& !InProperty->ContainsWeakObjectReference()
+					&& !InProperty->ContainsInstancedObjectProperty()
+					)
+				{
+					OutParameterType = ELGUIPrefabOverrideParameterType::DataStruct; return true;//only support pure data struct, not include any object type. because pure data struct can serailiza to buffer
+				}
+			}
 			return false;
 		}
 	}
@@ -184,10 +195,10 @@ UClass* ULGUIPrefabOverrideParameterHelper::GetClassParameterClass(const FProper
 	return nullptr;
 }
 
-bool ULGUIPrefabOverrideParameterHelper::IsStillSupported(const FProperty* Target, ELGUIPrefabOverrideParameterType InParamType)
+bool ULGUIPrefabOverrideParameterHelper::IsStillSupported(const FProperty* Target, bool IncludeDataStruct, ELGUIPrefabOverrideParameterType InParamType)
 {
 	ELGUIPrefabOverrideParameterType ParamType;
-	if (IsSupportedProperty(Target, ParamType))
+	if (IsSupportedProperty(Target, IncludeDataStruct, ParamType))
 	{
 		if (ParamType == InParamType)
 		{
@@ -314,6 +325,9 @@ FString ULGUIPrefabOverrideParameterHelper::ParameterTypeToName(ELGUIPrefabOverr
 		break;
 	case ELGUIPrefabOverrideParameterType::Text:
 		ParamTypeString = "Text";
+		break;
+	case ELGUIPrefabOverrideParameterType::DataStruct:
+		ParamTypeString = "DataStruct";
 		break;
 	default:
 		break;
@@ -487,6 +501,18 @@ bool FLGUIPrefabOverrideParameterData::ApplyPropertyParameter(UObject* InTarget,
 		}
 		else
 		{
+			TArray<const FStructProperty*> EncounteredStructProps;
+			if (!InProperty->ContainsObjectReference(EncounteredStructProps, EPropertyObjectReferenceType::Strong)
+				&& !InProperty->ContainsWeakObjectReference()
+				&& !InProperty->ContainsInstancedObjectProperty()
+				)
+			{
+				if (CheckDataType(ELGUIPrefabOverrideParameterType::DataStruct, InProperty))
+				{
+					InProperty->CopyCompleteValue(InProperty->ContainerPtrToValuePtr<void>(InTarget), ParamBuffer.GetData());
+					return true;
+				}
+			}
 			return false;
 		}
 	}
@@ -556,7 +582,11 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 	{
 		if (CheckDataType(ELGUIPrefabOverrideParameterType::Bool))
 		{
-			SET_BUFFER_ON_VALUE();
+			//some bool is declared as bit field, so we need to handle it specially
+			ParamBuffer.Empty();
+			ParamBuffer.AddUninitialized(InProperty->ElementSize);
+			auto Value = boolProperty->GetPropertyValue_InContainer(InTarget);
+			ParamBuffer[0] = Value ? 1 : 0;
 			return true;
 		}
 	}
@@ -709,6 +739,18 @@ bool FLGUIPrefabOverrideParameterData::SavePropertyParameter(UObject* InTarget, 
 		}
 		else
 		{
+			TArray<const FStructProperty*> EncounteredStructProps;
+			if (!InProperty->ContainsObjectReference(EncounteredStructProps, EPropertyObjectReferenceType::Strong)
+				&& !InProperty->ContainsWeakObjectReference()
+				&& !InProperty->ContainsInstancedObjectProperty()
+				)
+			{
+				if (CheckDataType(ELGUIPrefabOverrideParameterType::DataStruct))
+				{
+					SET_BUFFER_ON_VALUE();
+					return true;
+				}
+			}
 			return false;
 		}
 	}
@@ -813,23 +855,31 @@ bool FLGUIPrefabOverrideParameterData::CheckDataType(ELGUIPrefabOverrideParamete
 	return true;
 }
 
-void FLGUIPrefabOverrideParameterData::ApplyParameter()
+bool FLGUIPrefabOverrideParameterData::ApplyParameter()
 {
 	if (TargetObject.IsValid())
 	{
 		if (auto FoundProperty = FindFProperty<FProperty>(TargetObject->GetClass(), PropertyName))
 		{
-			ApplyPropertyParameter(TargetObject.Get(), FoundProperty);
+			if (ApplyPropertyParameter(TargetObject.Get(), FoundProperty))
+			{
+				return true;
+			}
+			else
+			{
+				UE_LOG(LGUI, Error, TEXT("[FLGUIPrefabOverrideParameterData::ApplyParameter]Apply property '%s' fail on object '%s'"), *(PropertyName.ToString()), *(TargetObject->GetClass()->GetPathName()));
+			}
 		}
 		else
 		{
-			UE_LOG(LGUI, Error, TEXT("[FLGUIPrefabOverrideParameterData::ApplyParameter]Property '%s' not found on object '%s"), *(PropertyName.ToString()), *(TargetObject->GetClass()->GetPathName()));
+			UE_LOG(LGUI, Error, TEXT("[FLGUIPrefabOverrideParameterData::ApplyParameter]Property '%s' not found on object '%s'"), *(PropertyName.ToString()), *(TargetObject->GetClass()->GetPathName()));
 		}
 	}
 	else
 	{
 		UE_LOG(LGUI, Error, TEXT("[FLGUIPrefabOverrideParameterData::ApplyParameter]TargetObject not valid!"));
 	}
+	return false;
 }
 
 void FLGUIPrefabOverrideParameterData::SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameterData& InTemplate)
@@ -852,11 +902,12 @@ bool FLGUIPrefabOverrideParameterData::IsReferenceParameterEqual(const FLGUIPref
 		this->PropertyName == Other.PropertyName;
 }
 
-bool FLGUIPrefabOverrideParameterData::IsParameter_Type_Name_Guid_Equal(const FLGUIPrefabOverrideParameterData& Other)const
+bool FLGUIPrefabOverrideParameterData::IsParameter_Type_Name_Guid_DisplayName_Equal(const FLGUIPrefabOverrideParameterData& Other)const
 {
 	return
 #if WITH_EDITORONLY_DATA
 		this->Guid == Other.Guid &&
+		this->DisplayName == Other.DisplayName &&
 #endif
 		this->ParamType == Other.ParamType &&
 		this->PropertyName == Other.PropertyName;
@@ -949,12 +1000,17 @@ void FLGUIPrefabOverrideParameter::SaveCurrentValueAsDefault()
 #endif
 
 
-void FLGUIPrefabOverrideParameter::ApplyParameter()
+bool FLGUIPrefabOverrideParameter::ApplyParameter()
 {
+	bool allSuccess = true;
 	for (auto& item : ParameterList)
 	{
-		item.ApplyParameter();
+		if (!item.ApplyParameter())
+		{
+			allSuccess = false;
+		}
 	}
+	return allSuccess;
 }
 
 void FLGUIPrefabOverrideParameter::SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameter& InTemplate)
@@ -978,7 +1034,7 @@ bool FLGUIPrefabOverrideParameter::RefreshParameterOnTemplate(const FLGUIPrefabO
 	{
 		for (int i = 0; i < this->ParameterList.Num(); i++)
 		{
-			if (!this->ParameterList[i].IsParameter_Type_Name_Guid_Equal(InTemplate.ParameterList[i]))
+			if (!this->ParameterList[i].IsParameter_Type_Name_Guid_DisplayName_Equal(InTemplate.ParameterList[i]))
 			{
 				ShouldCheck = true;
 				break;
@@ -1029,10 +1085,10 @@ bool FLGUIPrefabOverrideParameter::RefreshAutomaticParameter()
 #endif
 			)
 		{
-			if (auto Property = FindFProperty<FProperty>(Item.TargetObject->StaticClass(), Item.PropertyName))
+			if (auto Property = FindFProperty<FProperty>(Item.TargetObject->GetClass(), Item.PropertyName))
 			{
 				ELGUIPrefabOverrideParameterType ParamType;
-				if (ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(Property, ParamType))
+				if (ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(Property, true, ParamType))
 				{
 					if (Item.ParamType == ParamType)
 					{
@@ -1106,6 +1162,8 @@ void FLGUIPrefabOverrideParameter::AddOrUpdateParameter(AActor* InActor, UObject
 		Data.HelperActor = InActor;
 		Data.TargetObject = InObject;
 		Data.ParamType = InParamType;
+		Data.PropertyName = InProperty->GetFName();
+		Data.HelperClass = InObject->GetClass()->IsChildOf(AActor::StaticClass()) ? AActor::StaticClass() : InObject->GetClass();
 		Data.SaveCurrentValueAsDefault();
 		ParameterList.Add(Data);
 	}
@@ -1114,12 +1172,23 @@ void FLGUIPrefabOverrideParameter::AddOrUpdateParameter(AActor* InActor, UObject
 
 void ULGUIPrefabOverrideParameterObject::ApplyParameter()
 {
-	Parameter.ApplyParameter();
-	AutomaticParameter.ApplyParameter();
+	if (!Parameter.ApplyParameter())
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIPrefabOverrideParameterObject::ApplyParameter]Apply parameter fail on prefab: '%s'"), *this->GetOuter()->GetPathName());
+	}
+	if (!AutomaticParameter.ApplyParameter())
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIPrefabOverrideParameterObject::ApplyParameter]Apply automatic parameter fail on prefab: %s"), *this->GetOuter()->GetPathName());
+	}
 }
 void ULGUIPrefabOverrideParameterObject::SetParameterReferenceFromTemplate(ULGUIPrefabOverrideParameterObject* InTemplate)
 {
 	Parameter.SetParameterReferenceFromTemplate(InTemplate->Parameter);
+}
+
+void ULGUIPrefabOverrideParameterObject::BeginDestroy()
+{
+	Super::BeginDestroy();
 }
 
 #if WITH_EDITOR
@@ -1131,6 +1200,7 @@ void ULGUIPrefabOverrideParameterObject::SaveCurrentValueAsDefault()
 void ULGUIPrefabOverrideParameterObject::SetParameterDisplayType(bool InIsTemplate)
 {
 	Parameter.bIsTemplate = InIsTemplate;
+	AutomaticParameter.bIsTemplate = InIsTemplate;
 }
 void ULGUIPrefabOverrideParameterObject::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

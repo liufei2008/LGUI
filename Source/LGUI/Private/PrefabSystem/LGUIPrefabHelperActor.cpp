@@ -77,10 +77,8 @@ void ALGUIPrefabHelperActor::Destroyed()
 		}
 	}
 
-	if (PrefabHelperObject->LoadedRootActor.IsValid())
-	{
-		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor.Get());
-	}
+	PrefabHelperObject->ClearLoadedPrefab();
+	PrefabHelperObject->ConditionalBeginDestroy();
 #endif
 }
 

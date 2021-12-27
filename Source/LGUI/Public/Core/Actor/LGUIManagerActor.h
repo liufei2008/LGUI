@@ -19,6 +19,7 @@ class UUISelectableComponent;
 class ULGUILifeCycleBehaviour;
 class ULGUIBaseInputModule;
 class ILGUILayoutInterface;
+class ULGUIPrefab;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
@@ -66,6 +67,10 @@ private:
 
 #endif
 #if WITH_EDITOR
+private:
+	static TArray<TWeakObjectPtr<ULGUIPrefab>> PrefabsNeedToGenerateAgent;
+public:
+	static void AddPrefabForGenerateAgent(ULGUIPrefab* InPrefab);
 private:
 	static bool InitCheck(UWorld* InWorld);
 	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);

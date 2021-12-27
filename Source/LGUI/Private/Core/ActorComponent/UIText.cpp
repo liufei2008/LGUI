@@ -474,21 +474,25 @@ void UUIText::OnUpdateLayout_Implementation()
 
 	if (bTextLayoutDirty)
 	{
-		bTextLayoutDirty = false;
-		UpdateCacheTextGeometry();
-		if (overflowType == UITextOverflowType::HorizontalOverflow)
+		if (UpdateCacheTextGeometry())
 		{
-			if (adjustWidth) SetWidth(CacheTextGeometryData.textRealSize.X);
-		}
-		else if (overflowType == UITextOverflowType::VerticalOverflow)
-		{
-			if (adjustHeight) SetHeight(CacheTextGeometryData.textRealSize.Y);
+			bTextLayoutDirty = false;
+			if (overflowType == UITextOverflowType::HorizontalOverflow)
+			{
+				if (adjustWidth) SetWidth(CacheTextGeometryData.textRealSize.X);
+			}
+			else if (overflowType == UITextOverflowType::VerticalOverflow)
+			{
+				if (adjustHeight) SetHeight(CacheTextGeometryData.textRealSize.Y);
+			}
 		}
 	}
 }
 
-void UUIText::UpdateCacheTextGeometry()
+bool UUIText::UpdateCacheTextGeometry()
 {
+	if (!IsValid(this->GetFont()))return false;
+
 	CacheTextGeometryData.SetInputParameters(
 		this->text.ToString()
 		, this->visibleCharCount
@@ -512,6 +516,7 @@ void UUIText::UpdateCacheTextGeometry()
 		CacheTextGeometryData.MarkDirty();
 	}
 	CacheTextGeometryData.ConditaionalCalculateGeometry();
+	return true;
 }
 
 void UUIText::MarkAllDirtyRecursive()

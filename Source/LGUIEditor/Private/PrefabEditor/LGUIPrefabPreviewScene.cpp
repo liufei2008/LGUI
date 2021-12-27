@@ -70,7 +70,8 @@ FLGUIPrefabPreviewScene::FLGUIPrefabPreviewScene(ConstructionValues CVS) :FPrevi
 	AddComponent(CaptureComponent, CaptureTransform);
 	CaptureComponent->UpdateReflectionCaptureContents(GetWorld());
 
-	// now add floor
+	// add floor
+#if 0
 	UStaticMesh* FloorMesh = LoadObject<UStaticMesh>(NULL, TEXT("/Engine/EditorMeshes/PhAT_FloorBox.PhAT_FloorBox"), NULL, LOAD_None, NULL);
 	check(FloorMesh);
 
@@ -89,7 +90,7 @@ FLGUIPrefabPreviewScene::FLGUIPrefabPreviewScene(ConstructionValues CVS) :FPrevi
 	m_EditorFloorComp->SetMaterial(0, Material);
 	m_EditorFloorComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	m_EditorFloorComp->SetCollisionObjectType(ECC_WorldStatic);
-
+#endif
 
 	for (TActorIterator<AActor> ActorItr(this->GetWorld()); ActorItr; ++ActorItr)
 	{

@@ -2,6 +2,7 @@
 
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "PrefabSystem/LGUIPrefab.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "AssetRegistryModule.h"
 
 #include "LGUIEditorModule.h"
@@ -132,12 +133,15 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			]
 		]
 		;
-	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, AgentRootActor));
-	auto AgentRootActorProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, AgentRootActor));
-	category.AddCustomRow(LOCTEXT("AgentRootActor", "AgentRootActor"))
+
+	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, PrefabHelperObject));
+	auto PrefabHelperObjectProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIPrefab, PrefabHelperObject));
+	category.AddCustomRow(LOCTEXT("PrefabHelperObject", "PrefabHelperObject"))
 		.NameContent()
 		[
-			AgentRootActorProperty->CreatePropertyNameWidget()
+			SNew(STextBlock)
+			.Text(LOCTEXT("AgentObjectsWidgetName", "AgentObjects"))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		.ValueContent()
 		.MinDesiredWidth(500)
@@ -149,18 +153,20 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 				SNew(SBox)
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
-					AgentRootActorProperty->CreatePropertyValueWidget()
+					SNew(STextBlock)
+					.Text(this, &FLGUIPrefabCustomization::AgentObjectText)
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			]
 			+SHorizontalBox::Slot()
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.Text(LOCTEXT("FixAgentRootActor", "Missing AgentRootActor! This will cause cook & package fail. Click to fix it"))
-				.ToolTipText(LOCTEXT("FixAgentRootActor_Tooltip", "Because we can't fix it in cook thread, so you need to do it mannually."))
-				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreateAgentActor)
+				.Text(LOCTEXT("FixPrefabHelperObject", "Missing agent objects! This will cause cook & package fail. Click to fix it"))
+				.ToolTipText(LOCTEXT("FixAgentRootActor_Tooltip", "Because we can't fix it in cook thread, so you need to do it manually."))
+				.OnClicked(this, &FLGUIPrefabCustomization::OnClickRecreateAgentObjects)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixAgentActorButton)
+				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixAgentObjectsButton)
 			]
 		]
 		;
@@ -293,12 +299,12 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixPrefabVersionButton()const
 		return EVisibility::Hidden;
 	}
 }
-EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentActorButton()const
+EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentObjectsButton()const
 {
 	if (TargetScriptPtr.IsValid())
 	{
 		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
-			&& !TargetScriptPtr->AgentRootActor.IsValid()
+			&& (!TargetScriptPtr->PrefabHelperObject->LoadedRootActor.IsValid() || !TargetScriptPtr->PrefabHelperObject->PrefabOverrideParameterObject.IsValid())
 			)
 		{
 			return EVisibility::Visible;
@@ -310,6 +316,21 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentActorButton()const
 		return EVisibility::Hidden;
 	}
 }
+
+FText FLGUIPrefabCustomization::AgentObjectText()const
+{
+	if (TargetScriptPtr.IsValid())
+	{
+		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
+			&& (!TargetScriptPtr->PrefabHelperObject->LoadedRootActor.IsValid() || !TargetScriptPtr->PrefabHelperObject->PrefabOverrideParameterObject.IsValid())
+			)
+		{
+			return LOCTEXT("AgentObjectNotValid", "NotValid");
+		}
+	}
+	return LOCTEXT("AgentObjectValid", "Valid");
+}
+
 FReply FLGUIPrefabCustomization::OnClickRecreteButton()
 {
 	if (auto Prefab = TargetScriptPtr.Get())
@@ -389,11 +410,11 @@ void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World
 		MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 	}
 	Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
-	Prefab->RefreshAgentActorsInPreviewWorld();
+	Prefab->RefreshAgentObjectsInPreviewWorld();
 
 	LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
 }
-FReply FLGUIPrefabCustomization::OnClickRecreateAgentActor()
+FReply FLGUIPrefabCustomization::OnClickRecreateAgentObjects()
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
 	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
@@ -416,10 +437,7 @@ FReply FLGUIPrefabCustomization::OnClickRecreateAgentActor()
 			auto AssetObject = Asset.GetAsset();
 			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
-				if (!Prefab->AgentRootActor.IsValid())
-				{
-					Prefab->RefreshAgentActorsInPreviewWorld();
-				}
+				Prefab->MakeAgentObjectsInPreviewWorld();
 			}
 		}
 	}

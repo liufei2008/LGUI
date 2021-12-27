@@ -3,10 +3,12 @@
 #pragma once
 
 #include "LGUI.h"
-#include "LGUIPrefab.h"
 #include "Components/SceneComponent.h"
 #include "LGUIPrefabHelperObject.generated.h"
 
+class ULGUIPrefab;
+class ULGUIPrefabOverrideParameterObject;
+struct FLGUISubPrefabData;
 
 //helper component for Load/Edit prefab
 UCLASS(HideCategories = (Collision, LOD, Physics, Cooking, Rendering, Activation, Actor, Input), ClassGroup = (LGUI), NotBlueprintType, NotBlueprintable)
@@ -41,9 +43,11 @@ public:
 
 	//make sub prefab's actors as normal actor
 	void UnlinkSubPrefab(AActor* InSubPrefabActor);
+	void UnlinkPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetSubPrefabAsset(AActor* InSubPrefabActor);
 	void RevertPrefab();
 	void SavePrefab();
 	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
+	void ClearLoadedPrefab();
 #endif
 };

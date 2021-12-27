@@ -117,6 +117,10 @@ namespace LGUIPrefabSystem3
 					ChildActorSaveData.PrefabRootActorComponentGuidArray.Add(MapObjectToGuid[InstanceComp]);
 					ChildActorSaveData.PrefabRootActorComponentNameArray.Add(InstanceComp->GetFName());
 				}
+				if (auto RootComp = ChildActor->GetRootComponent())
+				{
+					ChildActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
+				}
 				//serialize override parameter object
 				check(SubPrefabDataPtr->OverrideParameterObject.IsValid());
 				WriterOrReaderFunction(SubPrefabDataPtr->OverrideParameterObject.Get(), ChildActorSaveData.PrefabOverrideParameterData, false);
@@ -259,6 +263,13 @@ namespace LGUIPrefabSystem3
 					MapObjectToGuid.Add(ChildActor, FGuid::NewGuid());
 				}
 				//collect subprefab's components, so reference can find it
+				if (auto RootComp = ChildActor->GetRootComponent())
+				{
+					if (!MapObjectToGuid.Contains(RootComp))
+					{
+						MapObjectToGuid.Add(RootComp, FGuid::NewGuid());
+					}
+				}
 				for (auto& BlueprintComp : ChildActor->BlueprintCreatedComponents)
 				{
 					if (!MapObjectToGuid.Contains(BlueprintComp))

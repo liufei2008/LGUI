@@ -60,6 +60,15 @@ FLGUIPrefabEditor::~FLGUIPrefabEditor()
 	FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(this->OnObjectPropertyChangedDelegateHandle);
 	FCoreUObjectDelegates::OnPreObjectPropertyChanged.Remove(this->OnPreObjectPropertyChangedDelegateHandle);
 
+	for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
+	{
+		if (KeyValue.Value.OverrideParameterObject.IsValid())
+		{
+			KeyValue.Value.OverrideParameterObject->RemoveFromRoot();
+			KeyValue.Value.OverrideParameterObject->ConditionalBeginDestroy();
+		}
+	}
+
 	PrefabHelperObject->RemoveFromRoot();
 	PrefabHelperObject->ConditionalBeginDestroy();
 
@@ -87,7 +96,7 @@ void FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 		{
 			if (KeyValue.Value.PrefabAsset == InSubPrefab)
 			{
-				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->AgentOverrideParameterObject.Get()))
+				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->PrefabHelperObject->PrefabOverrideParameterObject.Get()))
 				{
 					AnythingChange = true;
 				}
@@ -137,6 +146,26 @@ bool FLGUIPrefabEditor::GetSelectedObjectsBounds(FBoxSphereBounds& OutResult)
 	}
 	OutResult = Bounds;
 	return IsFirstBounds == false;
+}
+
+FBoxSphereBounds FLGUIPrefabEditor::GetAllObjectsBounds()
+{
+	FBoxSphereBounds Bounds;
+	bool IsFirstBounds = true;
+	for (auto& Actor : PrefabHelperObject->AllLoadedActorArray)
+	{
+		auto Box = Actor->GetComponentsBoundingBox();
+		if (IsFirstBounds)
+		{
+			IsFirstBounds = false;
+			Bounds = Box;
+		}
+		else
+		{
+			Bounds = Bounds + Box;
+		}
+	}
+	return Bounds;
 }
 
 bool FLGUIPrefabEditor::OnRequestClose()
@@ -320,6 +349,12 @@ void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSel
 	{
 		if (PrefabHelperObject->SubPrefabMap.Contains(Item))
 		{
+			auto& SubPrefabData = PrefabHelperObject->SubPrefabMap[Item];
+			if (SubPrefabData.OverrideParameterObject.IsValid())
+			{
+				SubPrefabData.OverrideParameterObject->RemoveFromRoot();
+				SubPrefabData.OverrideParameterObject->ConditionalBeginDestroy();
+			}
 			PrefabHelperObject->SubPrefabMap.Remove(Item);
 		}
 	}
@@ -335,6 +370,12 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 {
 	if (CheckBeforeSaveAsset())
 	{
+		//refresh parameter, remove invalid
+		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
+		{
+			KeyValue.Value.OverrideParameterObject->RefreshAutomaticParameter();
+		}
+
 		PrefabHelperObject->SavePrefab();
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
 		FAssetEditorToolkit::SaveAsset_Execute();
@@ -345,6 +386,12 @@ void FLGUIPrefabEditor::OnApply()
 {
 	if (CheckBeforeSaveAsset())
 	{
+		//refresh parameter, remove invalid
+		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
+		{
+			KeyValue.Value.OverrideParameterObject->RefreshAutomaticParameter();
+		}
+
 		PrefabHelperObject->SavePrefab();
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
 		bAnythingDirty = false;
@@ -514,7 +561,7 @@ TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_PrefabRawDataViewer(const FSpaw
 {
 	// Spawn the tab
 	return SNew(SDockTab)
-		.Label(LOCTEXT("OverrideParameterTab_Title", "OverrideParameter"))
+		.Label(LOCTEXT("OverrideParameterTab_Title", "PrefabRawData"))
 		[
 			PrefabRawDataViewer.ToSharedRef()
 		];
@@ -635,6 +682,9 @@ void FLGUIPrefabEditor::OnToolkitHostingFinished(const TSharedRef<IToolkit>& Too
 
 void FLGUIPrefabEditor::OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent)
 {
+	if (InPropertyChangedEvent.MemberProperty == nullptr || InPropertyChangedEvent.Property == nullptr)return;
+	if (InPropertyChangedEvent.MemberProperty->HasAnyPropertyFlags(CPF_Transient))return;
+	if (InPropertyChangedEvent.Property->HasAnyPropertyFlags(CPF_Transient))return;
 	if (InObject->GetWorld() == this->GetWorld())
 	{
 		bAnythingDirty = true;
@@ -659,11 +709,13 @@ void FLGUIPrefabEditor::OnObjectPropertyChanged(UObject* InObject, struct FPrope
 		}
 		if (SubPrefabRootActor)//automatic record root actor's property
 		{
+			auto SubPrefabOverrideParameterObject = PrefabHelperObject->SubPrefabMap[SubPrefabRootActor].OverrideParameterObject;
 			auto ChangedProperty = InPropertyChangedEvent.MemberProperty;
+			if (FindFProperty<FProperty>(InObject->GetClass(), ChangedProperty->GetFName()) == nullptr)return;
 			ELGUIPrefabOverrideParameterType ParamType;
-			if (ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(ChangedProperty, ParamType))
+			if (ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(ChangedProperty, true, ParamType))
 			{
-				PrefabHelperObject->PrefabOverrideParameterObject->AddOrUpdateParameterToAutomaticParameters(SubPrefabRootActor, InObject, ChangedProperty, ParamType);
+				SubPrefabOverrideParameterObject->AddOrUpdateParameterToAutomaticParameters(SubPrefabRootActor, InObject, ChangedProperty, ParamType);
 			}
 		}
 	}
@@ -762,12 +814,8 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				}
 			}
 
-			GWarn->BeginSlowTask(LOCTEXT("LoadingAssets", "Loading Asset(s)"), true);
 			for (auto& PrefabAsset : PrefabsToLoad)
 			{
-				FLGUISubPrefabData SubPrefabData;
-				SubPrefabData.PrefabAsset = PrefabAsset;
-
 				TMap<FGuid, TWeakObjectPtr<UObject>> SubPrefabMapGuidToObject;
 				TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubSubPrefabMap;
 				TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> SubPrefabOverrideParameterObject = nullptr;
@@ -776,34 +824,42 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					, SubPrefabMapGuidToObject, SubSubPrefabMap
 					, PrefabAsset->OverrideParameterData, SubPrefabOverrideParameterObject
 				);
-				SubPrefabData.OverrideParameterObject = SubPrefabOverrideParameterObject;
-				SubPrefabData.OverrideParameterData = PrefabAsset->OverrideParameterData;
 
-				for (auto KeyValue : SubPrefabMapGuidToObject)
-				{
-					if (auto ActorItem = Cast<AActor>(KeyValue.Value.Get()))
-					{
-						if (LoadedSubPrefabRootActor != ActorItem)
-						{
-							ULGUIPrefabHelperObject::SetActorPropertyInOutliner(ActorItem, false);
-						}
-					}
-				}
-
-				PrefabHelperObject->SubPrefabMap.Add(LoadedSubPrefabRootActor, SubPrefabData);
+				MakePrefabAsSubPrefab(PrefabAsset, LoadedSubPrefabRootActor, SubPrefabOverrideParameterObject.Get());
 			}
 
 			if (OutlinerPtr.IsValid())
 			{
 				OutlinerPtr->FullRefresh();
 			}
-
-			GWarn->EndSlowTask();
 		}
 
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();
+}
+void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject)
+{
+	FLGUISubPrefabData SubPrefabData;
+	SubPrefabData.PrefabAsset = InPrefab;
+
+	if (InOverrideParameterObject == nullptr)
+	{
+		InOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(InPrefab);
+	}
+	InOverrideParameterObject->AddToRoot();
+	SubPrefabData.OverrideParameterObject = InOverrideParameterObject;
+	SubPrefabData.OverrideParameterData = InPrefab->OverrideParameterData;
+	TArray<AActor*> ChildrenActors;
+	LGUIUtils::CollectChildrenActors(InActor, ChildrenActors, false);
+	for (auto& Actor : ChildrenActors)
+	{
+		ULGUIPrefabHelperObject::SetActorPropertyInOutliner(Actor, false);
+	}
+
+	PrefabHelperObject->SubPrefabMap.Add(InActor, SubPrefabData);
+
+	bAnythingDirty = true;
 }
 
 #undef LOCTEXT_NAMESPACE

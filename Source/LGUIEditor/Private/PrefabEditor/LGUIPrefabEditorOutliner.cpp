@@ -36,8 +36,9 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 	InitOptions.bFocusSearchBoxWhenOpened = false;
 	InitOptions.SpecifiedWorldToDisplay = World;
 	InitOptions.bShowCreateNewFolder = false;
-	InitOptions.ColumnMap.Add(LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::GetID(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 1));
-	InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::Label(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 0));
+	InitOptions.ColumnMap.Add(LGUISceneOutliner::FLGUISceneOutlinerInfoColumn::GetID(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 2));
+	InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::Gutter(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 0));
+	InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::Label(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 1));
 	InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::ActorInfo(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 10));
 	if (ActorFilter.IsBound())
 	{

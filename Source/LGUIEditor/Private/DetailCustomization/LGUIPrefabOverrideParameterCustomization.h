@@ -15,6 +15,7 @@ protected:
 	TSharedPtr<IPropertyHandleArray> DataListHandle;
 	TSharedPtr<SWidget> ColorPickerParentWidget;
 	static TArray<FString> CopySourceData;
+	static bool bShowRawData;
 private:
 	bool bIsTemplate = true;
 	bool bIsAutomaticParameter = false;

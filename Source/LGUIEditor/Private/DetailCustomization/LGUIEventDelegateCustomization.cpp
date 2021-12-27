@@ -721,7 +721,9 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 			ClearReferenceValue(InDataContainerHandle);
 			SetBufferLength(ParamBufferHandle, 1);
 			auto ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIEventDelegateData, BoolValue));
-			SET_VALUE_ON_BUFFER(bool);
+			auto ParamBuffer = GetBuffer(ParamBufferHandle);
+			bool Value = ParamBuffer[0] == 1;
+			ValueHandle->SetValue(Value);
 			ValueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIEventDelegateCustomization::BoolValueChange, ValueHandle, ParamBufferHandle));
 			return ValueHandle->CreatePropertyValueWidget();
 		}
@@ -1269,7 +1271,11 @@ SetBufferValue(BufferHandle, ToBinary);
 
 void FLGUIEventDelegateCustomization::BoolValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
 {
-	SET_BUFFER_ON_VALUE(bool);
+	bool Value; 
+	ValueHandle->GetValue(Value); 
+	TArray<uint8> Buffer;
+	Buffer.Add(Value ? 1 : 0);
+	SetBufferValue(BufferHandle, Buffer);
 }
 void FLGUIEventDelegateCustomization::FloatValueChange(TSharedPtr<IPropertyHandle> ValueHandle, TSharedPtr<IPropertyHandle> BufferHandle)
 {
@@ -1481,7 +1487,7 @@ void FLGUIEventDelegateCustomization::RotatorValueChange(float NewValue, ETextCo
 	ToBinary << Value;
 	SetBufferValue(BufferHandle, ToBinary);
 }
-void FLGUIEventDelegateCustomization::SetBufferValue(TSharedPtr<IPropertyHandle> BufferHandle, TArray<uint8> BufferArray)
+void FLGUIEventDelegateCustomization::SetBufferValue(TSharedPtr<IPropertyHandle> BufferHandle, const TArray<uint8>& BufferArray)
 {
 	auto BufferArrayHandle = BufferHandle->AsArray();
 	auto bufferCount = BufferArray.Num();

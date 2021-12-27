@@ -45,7 +45,7 @@ void SLGUIPrefabOverrideParameterEditor::Construct(const FArguments& InArgs, TSh
 			+SVerticalBox::Slot()
 			.AutoHeight()
 			[
-				DescriptorDetailView.ToSharedRef()
+				DescriptorDetailView.ToSharedRef()//@todo: how to show a scrollview of this?
 			]
 			
 		];

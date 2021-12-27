@@ -41,6 +41,7 @@ public:
 		ULGUIPrefabHelperObject* PrefabHelperObject;
 	FColor IdentityColor = FColor::Black;
 	bool IsRandomColor = true;
+	bool AutoDestroyLoadedActors = true;
 	static TArray<FColor> AllColors;
 private:
 	static FName PrefabFolderName;

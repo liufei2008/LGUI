@@ -21,6 +21,7 @@
 
 class ULGUIPrefab;
 class ULGUIPrefabOverrideParameterObject;
+class ULGUIPrefabHelperObject;
 
 USTRUCT(NotBlueprintType)
 struct LGUI_API FLGUISubPrefabData
@@ -41,6 +42,7 @@ class LGUI_API ULGUIPrefab : public UObject
 	GENERATED_BODY()
 
 public:
+	ULGUIPrefab();
 	/** put actural UObject in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UObject*> ReferenceAssetList;
@@ -89,14 +91,9 @@ public:
 		class UThumbnailInfo* ThumbnailInfo;
 	UPROPERTY(Transient)
 		bool ThumbnailDirty = false;
-	/** This actor is an agent existing in a preview world, for cook prefab asset. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TWeakObjectPtr<AActor> AgentRootActor = nullptr;
-	/** agent, for cook prefab asset. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, TWeakObjectPtr<UObject>> AgentMapGuidToObject;
-	/** agent, for cook prefab asset. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> AgentOverrideParameterObject = nullptr;
-	/** This map is an agent existing in a preview world, for cook prefab asset. */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> AgentSubPrefabMap;
+	//UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
+	UPROPERTY()
+		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 #endif
 public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SetRelativeTransformToIdentity", UnsafeDuringActorConstruction = "true", WorldContext = "WorldContextObject"), Category = LGUI)
@@ -107,19 +104,26 @@ public:
 	AActor* LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity = false);
 #if WITH_EDITOR
 public:
-	void MakeAgentActorsInPreviewWorld();
-	void ClearAgentActorsInPreviewWorld();
-	void RefreshAgentActorsInPreviewWorld();
+	void MakeAgentObjectsInPreviewWorld();
+	void ClearAgentObjectsInPreviewWorld();
+	void RefreshAgentObjectsInPreviewWorld();
 	/** Refresh it. Note this will use agent data to serialize, so if the prefab editor is opened for this prefab, then we should not use this function, or modifyed value in prefab editor will lose */
 	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 
 	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;
 	virtual void ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
+	virtual void PostInitProperties()override;
+	virtual void PostCDOContruct()override;
+	virtual bool PreSaveRoot(const TCHAR* Filename)override;
 	virtual void PostSaveRoot(bool bCleanupIsRequired)override;
+	virtual void PreSave(const class ITargetPlatform* TargetPlatform)override;
+	virtual void PostRename(UObject* OldOuter, const FName OldName)override;
+	virtual void PreDuplicate(FObjectDuplicationParameters& DupParams)override;
 	virtual void PostDuplicate(bool bDuplicateForPIE)override;
 	virtual void PostLoad()override;
 	virtual void BeginDestroy()override;
+	virtual void FinishDestroy()override;
 
 	/**
 	 * LoadPrefab for edit/modify, will keep reference of source prefab.

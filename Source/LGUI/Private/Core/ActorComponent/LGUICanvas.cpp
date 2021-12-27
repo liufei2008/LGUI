@@ -1023,7 +1023,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			{
 				auto UIDirectMeshRenderableItem = (UUIDirectMeshRenderable*)UIRenderableItem;
 				//every direct mesh is a drawcall
-				PushSingleDrawcall(UIRenderableItem, true, nullptr, is2DUIItem, EUIDrawcallType::BatchGeometry);
+				PushSingleDrawcall(UIRenderableItem, true, nullptr, is2DUIItem, EUIDrawcallType::DirectMesh);
 				//no need to copy drawcall's update data for UIDirectMeshRenderable, because UIDirectMeshRenderable's drawcall should be the same as previours one
 			}
 			break;

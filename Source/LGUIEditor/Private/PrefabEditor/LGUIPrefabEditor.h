@@ -49,6 +49,7 @@ private:
 public:
 	/** FGCObject interface */
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+	virtual FString GetReferencerName()const { return TEXT("LGUIPrefabEditor"); }
 
 	bool CheckBeforeSaveAsset();
 
@@ -56,6 +57,7 @@ public:
 
 	/** Try to handle a drag-drop operation */
 	FReply TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent);
+	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject = nullptr);
 
 	FLGUIPrefabPreviewScene& GetPreviewScene();
 	UWorld* GetWorld();
@@ -68,6 +70,7 @@ public:
 	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 
 	bool GetSelectedObjectsBounds(FBoxSphereBounds& OutResult);
+	FBoxSphereBounds GetAllObjectsBounds();
 private:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;

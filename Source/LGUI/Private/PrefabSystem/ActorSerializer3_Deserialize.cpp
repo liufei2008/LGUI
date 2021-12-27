@@ -170,7 +170,7 @@ namespace LGUIPrefabSystem3
 		}
 		else
 		{
-			OverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(CreatedRootActor);
+			OverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>((UObject*)(Prefab.IsValid() ? Prefab.Get() : (UObject*)GetTransientPackage()));//prefab is null when use duplicate
 			if (OverrideParameterData.Num() > 0)
 			{
 				WriterOrReaderFunction(OverrideParameterObject.Get(), OverrideParameterData, false);
@@ -178,9 +178,9 @@ namespace LGUIPrefabSystem3
 		}
 		if (bApplyOverrideParameters)
 		{
-			auto TemplateOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(CreatedRootActor);//@todo could use a persistent static object for all template
+			auto TemplateOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>();//@todo could use a persistent static object for all template
 			WriterOrReaderFunction(TemplateOverrideParameterObject, Prefab->OverrideParameterData, false);
-			OverrideParameterObject->SetParameterReferenceFromTemplate(TemplateOverrideParameterObject);//since sub prefab's reference object is lose, we should copy reference from template, which is created inside sub prefab so all reference is good
+			OverrideParameterObject->SetParameterReferenceFromTemplate(TemplateOverrideParameterObject);//since sub prefab's reference object is lost, we should copy reference from template, which is created inside sub prefab so all reference is good
 			OverrideParameterObject->ApplyParameter();
 			TemplateOverrideParameterObject->ConditionalBeginDestroy();
 		}
@@ -397,8 +397,13 @@ namespace LGUIPrefabSystem3
 									MapGuidToObject.Add(SavedActors.PrefabRootActorComponentGuidArray[FoundIndex], InstanceComp);
 								}
 							}
+							auto RootComp = SubPrefabRootActor->GetRootComponent();
+							if (!MapGuidToObject.Contains(SavedActors.RootComponentGuid) && RootComp != nullptr)
+							{
+								MapGuidToObject.Add(SavedActors.RootComponentGuid, RootComp);
+							}
 
-							SubOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(SubPrefabRootActor);
+							SubOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(Prefab.Get());
 							WriterOrReaderFunction(SubOverrideParameterObject, SavedActors.PrefabOverrideParameterData, false);//use WriterOrReaderFunction from parent prefab, because when serailize(save) nested prefab, the subprefab's override parameter use parent's WriterOrReaderFunction
 							return SubOverrideParameterObject;
 						}

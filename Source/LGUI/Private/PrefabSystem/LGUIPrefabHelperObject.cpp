@@ -5,6 +5,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "PrefabSystem/LGUIPrefabOverrideParameter.h"
+#include "PrefabSystem/LGUIPrefab.h"
 #include "Utils/LGUIUtils.h"
 
 ULGUIPrefabHelperObject::ULGUIPrefabHelperObject()
@@ -26,11 +27,7 @@ void ULGUIPrefabHelperObject::OnUnregister()
 #if WITH_EDITOR
 void ULGUIPrefabHelperObject::BeginDestroy()
 {
-	if (PrefabOverrideParameterObject.IsValid())
-	{
-		PrefabOverrideParameterObject->RemoveFromRoot();
-		PrefabOverrideParameterObject->ConditionalBeginDestroy();
-	}
+	ClearLoadedPrefab();
 	Super::BeginDestroy();
 }
 void ULGUIPrefabHelperObject::SetActorPropertyInOutliner(AActor* Actor, bool InListed)
@@ -49,6 +46,7 @@ void ULGUIPrefabHelperObject::SetActorPropertyInOutliner(AActor* Actor, bool InL
 
 void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InParent)
 {
+	if (!IsValid(PrefabAsset))return;
 	if (!LoadedRootActor.IsValid())
 	{
 		LoadedRootActor = PrefabAsset->LoadPrefabForEdit(InWorld
@@ -56,11 +54,19 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 			, MapGuidToObject, SubPrefabMap
 			, PrefabAsset->OverrideParameterData, PrefabOverrideParameterObject
 		);
+		if (LoadedRootActor == nullptr)return;
 		if (PrefabOverrideParameterObject == nullptr)//old version prefab will not create it, so make sure it is created
 		{
-			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(LoadedRootActor.Get());
+			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(PrefabAsset);
+			PrefabOverrideParameterObject->AddToRoot();
 		}
-		PrefabOverrideParameterObject->AddToRoot();
+		for (auto& KeyValue : SubPrefabMap)
+		{
+			if (KeyValue.Value.OverrideParameterObject.IsValid())
+			{
+				KeyValue.Value.OverrideParameterObject->AddToRoot();
+			}
+		}
 		AllLoadedActorArray.Empty();
 		for (auto KeyValue : MapGuidToObject)
 		{
@@ -82,16 +88,40 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 	}
 }
 
+void ULGUIPrefabHelperObject::ClearLoadedPrefab()
+{
+	for (auto& KeyValue : SubPrefabMap)
+	{
+		if (KeyValue.Value.OverrideParameterObject.IsValid())
+		{
+			KeyValue.Value.OverrideParameterObject->RemoveFromRoot();
+			KeyValue.Value.OverrideParameterObject->ConditionalBeginDestroy();
+		}
+	}
+	if (PrefabOverrideParameterObject.IsValid())
+	{
+		PrefabOverrideParameterObject->RemoveFromRoot();
+		PrefabOverrideParameterObject->ConditionalBeginDestroy();
+	}
+	if (LoadedRootActor.IsValid())
+	{
+		LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor.Get());
+	}
+	MapGuidToObject.Empty();
+	SubPrefabMap.Empty();
+	AllLoadedActorArray.Empty();
+}
+
 void ULGUIPrefabHelperObject::SavePrefab()
 {
-	if (PrefabAsset)
+	if (IsValid(PrefabAsset))
 	{
 		//fill OverrideParameterObject with default value
 		if (PrefabOverrideParameterObject == nullptr)//this could be a newly created prefab, so the PrefabOverrideParameterObject could be null
 		{
-			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(LoadedRootActor.Get());
+			PrefabOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(PrefabAsset);
+			PrefabOverrideParameterObject->AddToRoot();
 		}
-		PrefabOverrideParameterObject->AddToRoot();
 		PrefabOverrideParameterObject->SaveCurrentValueAsDefault();
 
 		TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
@@ -116,7 +146,7 @@ void ULGUIPrefabHelperObject::SavePrefab()
 				AllLoadedActorArray.Add(Actor);
 			}
 		}
-		PrefabAsset->RefreshAgentActorsInPreviewWorld();
+		PrefabAsset->RefreshAgentObjectsInPreviewWorld();
 	}
 	else
 	{
@@ -134,6 +164,28 @@ void ULGUIPrefabHelperObject::UnlinkSubPrefab(AActor* InSubPrefabActor)
 	{
 		SetActorPropertyInOutliner(Actor, true);
 	}
+}
+
+void ULGUIPrefabHelperObject::UnlinkPrefab(AActor* InPrefabActor)
+{
+	for (auto& KeyValue : SubPrefabMap)
+	{
+		if (KeyValue.Value.OverrideParameterObject.IsValid())
+		{
+			KeyValue.Value.OverrideParameterObject->RemoveFromRoot();
+			KeyValue.Value.OverrideParameterObject->ConditionalBeginDestroy();
+		}
+	}
+	if (PrefabOverrideParameterObject.IsValid())
+	{
+		PrefabOverrideParameterObject->RemoveFromRoot();
+		PrefabOverrideParameterObject->ConditionalBeginDestroy();
+	}
+	LoadedRootActor = nullptr;
+	PrefabAsset = nullptr;
+	MapGuidToObject.Empty();
+	SubPrefabMap.Empty();
+	AllLoadedActorArray.Empty();
 }
 
 ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor)

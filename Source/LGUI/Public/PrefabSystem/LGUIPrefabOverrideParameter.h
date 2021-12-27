@@ -35,15 +35,18 @@ enum class ELGUIPrefabOverrideParameterType :uint8
 	Object,
 	/** for actor reference in level */
 	Actor,
-	/** Class for UClass reference */
+	/** for UClass reference */
 	Class,
+
+	/** for structs that only store data, not include any uobjects */
+	DataStruct,
 };
 /** helper class for finding function */
 class LGUI_API ULGUIPrefabOverrideParameterHelper
 {
 public:
-	static bool IsSupportedProperty(const FProperty* Target, ELGUIPrefabOverrideParameterType& OutParamType);
-	static bool IsStillSupported(const FProperty* Target, ELGUIPrefabOverrideParameterType InParamType);
+	static bool IsSupportedProperty(const FProperty* Target, bool IncludeDataStruct, ELGUIPrefabOverrideParameterType& OutParamType);
+	static bool IsStillSupported(const FProperty* Target, bool IncludeDataStruct, ELGUIPrefabOverrideParameterType InParamType);
 	static FString ParameterTypeToName(ELGUIPrefabOverrideParameterType paramType, const FProperty* InProperty = nullptr);
 	/** if first parameter is an object type, then return it's objectclass */
 	static UClass* GetObjectParameterClass(const FProperty* InProperty);
@@ -65,35 +68,35 @@ private:
 	friend class FLGUIPrefabOverrideParameterCustomization;
 	friend struct FLGUIPrefabOverrideParameter;
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")bool BoolValue;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")float FloatValue;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")double DoubleValue;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")int8 Int8Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")uint8 UInt8Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")int16 Int16Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")uint16 UInt16Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")int32 Int32Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")uint32 UInt32Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")int64 Int64Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")uint64 UInt64Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FVector2D Vector2Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FVector Vector3Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FVector4 Vector4Value;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FQuat QuatValue;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FColor ColorValue;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FLinearColor LinearColorValue;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FRotator RotatorValue;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FString StringValue;
-	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FName NameValue;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")bool BoolValue = false;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")float FloatValue = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")double DoubleValue = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")int8 Int8Value = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")uint8 UInt8Value = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")int16 Int16Value = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")uint16 UInt16Value = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")int32 Int32Value = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")uint32 UInt32Value = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")int64 Int64Value = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")uint64 UInt64Value = 0;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FVector2D Vector2Value = FVector2D::ZeroVector;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FVector Vector3Value = FVector::ZeroVector;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FVector4 Vector4Value = FVector4(0, 0, 0, 0);
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FQuat QuatValue = FQuat::Identity;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FColor ColorValue = FColor::White;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FLinearColor LinearColorValue = FLinearColor::White;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FRotator RotatorValue = FRotator::ZeroRotator;
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FString StringValue = TEXT("");
+	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FName NameValue = NAME_None;
 	UPROPERTY(Transient, EditAnywhere, Category = "LGUI")FText TextValue;
 #endif
 #if WITH_EDITORONLY_DATA
 	/** Editor helper actor, for direct reference actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI", DisplayName = "Target")
-		TWeakObjectPtr<AActor> HelperActor;
+		TWeakObjectPtr<AActor> HelperActor = nullptr;
 	/** Editor helper, target object class. If class is actor then TargetObject is HelperActor, if class is ActorComponent then TargetObject is the component. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		UClass* HelperClass;
+		UClass* HelperClass = nullptr;
 	/** Editor helper, if TargetObject is actor component and HelperActor have multiple components, then select by component name. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
 		FName HelperComponentName;
@@ -112,7 +115,7 @@ private:
 		TArray<uint8> ParamBuffer;
 	/** Object reference, can reference actor/class/asset */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UObject* ReferenceObject;
+		UObject* ReferenceObject = nullptr;
 
 #if WITH_EDITORONLY_DATA
 	/** Property's friendly name to display for outer prefab */
@@ -124,14 +127,14 @@ private:
 	//@todo: add a bool, for store if the property's value is changed
 #endif
 public:
-	void ApplyParameter();
+	bool ApplyParameter();
 	/** Check Actorserializer3_Deserialize */
 	void SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameterData& InTemplate);
 	/** Save current value as default */
 	void SaveCurrentValueAsDefault();
 	/** Check if reference parameter equal, not include value */
 	bool IsReferenceParameterEqual(const FLGUIPrefabOverrideParameterData& Other)const;
-	bool IsParameter_Type_Name_Guid_Equal(const FLGUIPrefabOverrideParameterData& Other)const;
+	bool IsParameter_Type_Name_Guid_DisplayName_Equal(const FLGUIPrefabOverrideParameterData& Other)const;
 private:
 	/** Apply value to property from stored data */
 	bool ApplyPropertyParameter(UObject* InTarget, FProperty* InProperty);
@@ -171,7 +174,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		TArray<FLGUIPrefabOverrideParameterData> ParameterList;
 public:
-	void ApplyParameter();
+	bool ApplyParameter();
 	void SetParameterReferenceFromTemplate(const FLGUIPrefabOverrideParameter& InTemplate);
 #if WITH_EDITOR
 	/** @return	true if anything change, false nothing change */
@@ -208,6 +211,7 @@ public:
 	void ApplyParameter();
 	/** Check Actorserializer3_Deserialize */
 	void SetParameterReferenceFromTemplate(ULGUIPrefabOverrideParameterObject* InTemplate);
+	virtual void BeginDestroy()override;
 #if WITH_EDITOR
 	/**
 	 * For sub prefab, refresh parameters by compare with template.

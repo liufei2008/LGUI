@@ -1438,6 +1438,7 @@ FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll)
 
 	for (auto& UIItem : TargetScriptArray)
 	{
+		FString DisplayName;
 		if (auto actor = UIItem->GetOwner())
 		{
 			if (UIItem == actor->GetRootComponent())
@@ -1447,11 +1448,11 @@ FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll)
 				{
 					actorLabel = actorLabel.Right(actorLabel.Len() - 2);
 				}
-				UIItem->SetDisplayName(actorLabel);
+				DisplayName = actorLabel;
 			}
 			else
 			{
-				UIItem->SetDisplayName(UIItem->GetName());
+				DisplayName = UIItem->GetName();
 			}
 		}
 		else
@@ -1462,8 +1463,20 @@ FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll)
 			{
 				name.RemoveAt(name.Len() - genVarSuffix.Len(), genVarSuffix.Len());
 			}
-			UIItem->SetDisplayName(name);
+			DisplayName = name;
 		}
+		//UIItem->SetDisplayName(DisplayName);
+		auto DisplayNameProperty = FindFProperty<FStrProperty>(UIItem->GetClass(), TEXT("displayName"));
+		DisplayNameProperty->SetPropertyValue_InContainer(UIItem.Get(), DisplayName);
+
+		TArray<UObject*> ModifiedObjects;
+		ModifiedObjects.Add(UIItem.Get());
+		FPropertyChangedEvent PropertyChangedEvent(DisplayNameProperty, EPropertyChangeType::ValueSet, MakeArrayView(ModifiedObjects));
+		UIItem->PostEditChangeProperty(PropertyChangedEvent);
+		FEditPropertyChain PropertyChain;
+		PropertyChain.AddHead(DisplayNameProperty);
+		FPropertyChangedChainEvent PropertyChangedChainEvent(PropertyChain, PropertyChangedEvent);
+		UIItem->PostEditChangeChainProperty(PropertyChangedChainEvent);
 	}
 
 	return FReply::Handled();

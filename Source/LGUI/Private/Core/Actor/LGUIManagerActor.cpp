@@ -188,6 +188,12 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 }
 
 #if WITH_EDITOR
+TArray<TWeakObjectPtr<ULGUIPrefab>> ULGUIEditorManagerObject::PrefabsNeedToGenerateAgent;
+void ULGUIEditorManagerObject::AddPrefabForGenerateAgent(ULGUIPrefab* InPrefab)
+{
+	PrefabsNeedToGenerateAgent.Add(InPrefab);
+}
+
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
 {
 	if (CreateIfNotValid)
@@ -209,6 +215,7 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 				LGUIUtils::EditorNotification(FText::FromString(msg));
 				return nullptr;
 			}
+			
 			Instance = NewObject<ULGUIEditorManagerObject>();
 			Instance->AddToRoot();
 			UE_LOG(LGUI, Log, TEXT("[ULGUIManagerObject::InitCheck]No Instance for LGUIManagerObject, create!"));
@@ -219,11 +226,15 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance->OnActorDeletedDelegateHandle = FEditorDelegates::OnDeleteActorsEnd.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorDeleted);
 			//open map
 			Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
-			FEditorDelegates::ActorPropertiesChange.AddLambda([=]() {
-				UE_LOG(LGUI, Error, TEXT("ActorPropertyChange"));
-				});
 			//blueprint recompile
 			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
+
+			for (auto& PrefabItem : PrefabsNeedToGenerateAgent)
+			{
+				PrefabItem->RefreshAgentObjectsInPreviewWorld();
+			}
+			PrefabsNeedToGenerateAgent.Empty();
+			GeneratePrefabAgentInPreviewWorld();
 		}
 		else
 		{
@@ -386,8 +397,6 @@ UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()
 #include "AssetRegistryModule.h"
 void ULGUIEditorManagerObject::GeneratePrefabAgentInPreviewWorld()
 {
-	auto World = GetPreviewWorldForPrefabPackage();
-
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
 	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 
@@ -409,7 +418,7 @@ void ULGUIEditorManagerObject::GeneratePrefabAgentInPreviewWorld()
 			auto AssetObject = Asset.GetAsset();
 			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
-				Prefab->MakeAgentActorsInPreviewWorld();
+				Prefab->MakeAgentObjectsInPreviewWorld();
 			}
 		}
 	}

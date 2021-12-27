@@ -28,6 +28,7 @@ PRAGMA_DISABLE_OPTIMIZATION
 #define LGUIActorSelfName "(ActorSelf)"
 
 TArray<FString> FLGUIPrefabOverrideParameterCustomization::CopySourceData;
+bool FLGUIPrefabOverrideParameterCustomization::bShowRawData = false;
 
 void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
@@ -43,49 +44,86 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 	auto IsTemplateHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameter, bIsTemplate));
 	IsTemplateHandle->GetValue(bIsTemplate);
 
-	if(bIsTemplate && !bIsAutomaticParameter)
+	if (bIsTemplate)
 	{
-		ChildBuilder.AddCustomRow(LOCTEXT("Title", "Title"))
-			.NameContent()
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Prefab Override Parameters")))
-				.ToolTipText(PropertyHandle->GetToolTipText())
-				//.Font(IDetailLayoutBuilder::GetDetailFont())
-			]
-			.ValueContent()
+		if (bIsAutomaticParameter)return;//auto matic parameter not show in template
+	}
+
+	auto Title = bIsAutomaticParameter ? LOCTEXT("PrefabAutomaticParameters", "Prefab Automatic Parameters") : LOCTEXT("PrefabOverrideParameters", "Prefab Override Parameters");
+	auto& Group = ChildBuilder.AddGroup("ParameterGroup", LOCTEXT("ParameterGroup", "ParameterGroup"));
+	Group.HeaderRow()
+		.NameContent()
+		[
+			SNew(STextBlock)
+			.Text(Title)
+			.ToolTipText(PropertyHandle->GetToolTipText())
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+		]
+		.ValueContent()
+		.MinDesiredWidth(1500)//just a large value to make it align at right
+		[
+			SNew(SBox)
 			[
 				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
+				+SHorizontalBox::Slot()
 				.HAlign(HAlign_Left)
 				.VAlign(VAlign_Center)
-				.Padding(2, 0)
+				.AutoWidth()
+				[
+					bIsTemplate
+					?
+					SNew(SBox)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						[
+							PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIPrefabOverrideParameterCustomization::OnClickListAdd))
+						]
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						[
+							PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIPrefabOverrideParameterCustomization::OnClickListEmpty))
+						]
+					]
+					:
+					SNew(SBox)
+				]
+				+ SHorizontalBox::Slot()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
 				[
 					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
+					+SHorizontalBox::Slot()
+					.AutoWidth()
 					[
-						PropertyCustomizationHelpers::MakeAddButton(FSimpleDelegate::CreateSP(this, &FLGUIPrefabOverrideParameterCustomization::OnClickListAdd))
+						SNew(SBox)
+						.Padding(FMargin(0, 2))
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("ShowRawData", "ShowRawData:"))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
 					]
-					+ SHorizontalBox::Slot()
+					+SHorizontalBox::Slot()
+					.AutoWidth()
 					[
-						PropertyCustomizationHelpers::MakeEmptyButton(FSimpleDelegate::CreateSP(this, &FLGUIPrefabOverrideParameterCustomization::OnClickListEmpty))
+						SNew(SCheckBox)
+						.IsChecked(bShowRawData)
+						.OnCheckStateChanged(FOnCheckStateChanged::CreateLambda([=](ECheckBoxState State){
+							bShowRawData = State == ECheckBoxState::Checked;
+							PropertyUtilites->ForceRefresh();
+							}))
 					]
 				]
 			]
-		;
-	}
-	else if (bIsAutomaticParameter)
+		]
+	;
+	
+	if (bShowRawData)
 	{
-		ChildBuilder.AddCustomRow(LOCTEXT("Title", "Title"))
-			.NameContent()
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Prefab Automatic Override Parameters")))
-				.ToolTipText(PropertyHandle->GetToolTipText())
-				//.Font(IDetailLayoutBuilder::GetDetailFont())
-			]
-		;
+		ChildBuilder.AddProperty(PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameter, ParameterList)).ToSharedRef());
+		return;
 	}
 
 	uint32 ArrayCount;
@@ -155,7 +193,7 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 			FoundProperty = FindFProperty<FProperty>(TargetObject->GetClass(), PropertyFName);
 			if (FoundProperty)
 			{
-				if (ULGUIPrefabOverrideParameterHelper::IsStillSupported(FoundProperty, PropertyParameterType))
+				if (ULGUIPrefabOverrideParameterHelper::IsStillSupported(FoundProperty, true, PropertyParameterType))
 				{
 					bIsPropertyValid = true;
 				}
@@ -179,7 +217,7 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 		{
 			if (bIsAutomaticParameter)continue;//automatic parameter not visible in template
 			//DisplayNameHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] { PropertyUtilites->ForceRefresh(); }));
-			auto& ChildGroup = ChildBuilder.AddGroup(FName(*DisplayName), FText::FromString(DisplayName));
+			auto& ChildGroup = Group.AddGroup(FName(*DisplayName), FText::FromString(DisplayName));
 			ChildGroup.AddPropertyRow(DisplayNameHandle.ToSharedRef());
 			ChildGroup.AddWidgetRow()
 				.NameContent()
@@ -364,11 +402,11 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 				ParameterWidget->SetToolTipText(LOCTEXT("Parameter", "Default value of the property"));
 				ParameterWidget->SetEnabled(false);
 
-				ChildBuilder.AddCustomRow(LOCTEXT("Property", "Property"))
+				Group.AddWidgetRow()
 					.NameContent()
 					[
 						SNew(STextBlock)
-						.Text(FText::FromString(DisplayName))
+						.Text(FText::FromString(PropertyName))
 						.Font(IDetailLayoutBuilder::GetDetailFont())
 					]
 					.ValueContent()
@@ -400,7 +438,7 @@ void FLGUIPrefabOverrideParameterCustomization::CustomizeChildren(TSharedRef<IPr
 				}
 				ParameterWidget->SetToolTipText(LOCTEXT("Parameter", "Set parameter for the property"));
 
-				ChildBuilder.AddCustomRow(LOCTEXT("Property", "Property"))
+				Group.AddWidgetRow()
 					.NameContent()
 					[
 						SNew(STextBlock)
@@ -539,7 +577,7 @@ TSharedRef<SWidget> FLGUIPrefabOverrideParameterCustomization::MakePropertySelec
 	{
 		auto Property = *It;
 		ELGUIPrefabOverrideParameterType ParamType;
-		if (ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(Property, ParamType))//show only supported type
+		if (ULGUIPrefabOverrideParameterHelper::IsSupportedProperty(Property, false, ParamType))//show only supported type
 		{
 			FString ParamTypeString = ULGUIPrefabOverrideParameterHelper::ParameterTypeToName(ParamType, Property);
 			auto PropertySelectorName = FString::Printf(TEXT("%s(%s)"), *Property->GetName(), *ParamTypeString);
@@ -578,7 +616,9 @@ TSharedRef<SWidget> FLGUIPrefabOverrideParameterCustomization::DrawPropertyParam
 		ClearReferenceValue(InDataContainerHandle);
 		SetBufferLength(ParamBufferHandle, 1);
 		auto ValueHandle = InDataContainerHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameterData, BoolValue));
-		SET_VALUE_ON_BUFFER(bool);
+		auto ParamBuffer = GetBuffer(ParamBufferHandle);
+		bool Value = ParamBuffer[0] == 1;
+		ValueHandle->SetValue(Value);
 		ValueHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FLGUIPrefabOverrideParameterCustomization::BoolValueChange, ValueHandle, ParamBufferHandle));
 		return ValueHandle->CreatePropertyValueWidget();
 	}
@@ -1003,7 +1043,7 @@ TSharedRef<SWidget> FLGUIPrefabOverrideParameterCustomization::DrawPropertyParam
 		return
 			SNew(STextBlock)
 			.Font(IDetailLayoutBuilder::GetDetailFont())
-			.Text(FText::FromString("(Not handled)"));
+			.Text(FText::FromString("(Not support preview or edit)"));
 	}
 	}
 }
@@ -1058,7 +1098,7 @@ TSharedRef<SWidget> FLGUIPrefabOverrideParameterCustomization::DrawPropertyRefer
 	return 
 		SNew(STextBlock)
 		.Font(IDetailLayoutBuilder::GetDetailFont())
-		.Text(FText::FromString("(Not handled)"));
+		.Text(FText::FromString("(Not support preview or edit)"));
 }
 
 void FLGUIPrefabOverrideParameterCustomization::ObjectValueChange(const FAssetData& InObj, TSharedPtr<IPropertyHandle> BufferHandle, TSharedPtr<IPropertyHandle> ObjectReferenceHandle, bool ObjectOrActor)
@@ -1411,7 +1451,12 @@ int32 FLGUIPrefabOverrideParameterCustomization::GetEnumValue(TSharedPtr<IProper
 void FLGUIPrefabOverrideParameterCustomization::ClearValueBuffer(TSharedPtr<IPropertyHandle> PropertyHandle)
 {
 	auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameterData, ParamBuffer))->AsArray();
-	handle->EmptyArray();
+	uint32 NumElements = 0;
+	handle->GetNumElements(NumElements);
+	if (NumElements != 0)
+	{
+		handle->EmptyArray();
+	}
 }
 void FLGUIPrefabOverrideParameterCustomization::ClearReferenceValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 {
@@ -1420,7 +1465,12 @@ void FLGUIPrefabOverrideParameterCustomization::ClearReferenceValue(TSharedPtr<I
 void FLGUIPrefabOverrideParameterCustomization::ClearObjectValue(TSharedPtr<IPropertyHandle> PropertyHandle)
 {
 	auto handle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLGUIPrefabOverrideParameterData, ReferenceObject));
-	handle->ResetToDefault();
+	UObject* ReferenceObject = nullptr;
+	auto AccessResult = handle->GetValue(ReferenceObject);
+	if (AccessResult == FPropertyAccess::Success && IsValid(ReferenceObject))
+	{
+		handle->ResetToDefault();
+	}
 }
 
 void FLGUIPrefabOverrideParameterCustomization::OnParameterTypeChange(TSharedRef<IPropertyHandle> InDataContainerHandle)

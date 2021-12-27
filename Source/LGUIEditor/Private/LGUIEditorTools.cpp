@@ -779,45 +779,69 @@ void LGUIEditorTools::CreatePrefabAsset()
 				auto OutPrefab = NewObject<ULGUIPrefab>(package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
 				FAssetRegistryModule::AssetCreated(OutPrefab);
 
-				auto otherPrefabAcotrWhichHaveThisActor = GetPrefabHelperObject_WhichManageThisActor(selectedActor);
-				auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabHelperActor>(ALGUIPrefabHelperActor::StaticClass(), FTransform::Identity);
-				if (IsValid(prefabActor))
+				auto otherPrefabObjectWhichHaveThisActor = GetPrefabHelperObject_WhichManageThisActor(selectedActor);//@todo: could be multiple other prefabs
+				if (otherPrefabObjectWhichHaveThisActor != nullptr && otherPrefabObjectWhichHaveThisActor->bIsInsidePrefabEditor)//create sub prefab in prefab editor
 				{
-					prefabActor->FinishSpawning(FTransform::Identity, true);
-					prefabActor->SetActorLabel(fileName);
-					auto PrefabHelperObject = prefabActor->PrefabHelperObject;
+					auto PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>();
 					PrefabHelperObject->PrefabAsset = OutPrefab;
 					PrefabHelperObject->LoadedRootActor = selectedActor;
-					auto createSuccess = CreateOrApplyPrefab(PrefabHelperObject);
-					if (createSuccess)
+					PrefabHelperObject->SavePrefab();
+					OutPrefab->RefreshAgentObjectsInPreviewWorld();
+					//remove actors from other prefab.
+					if (otherPrefabObjectWhichHaveThisActor != nullptr)
 					{
+						for (auto actorItem : PrefabHelperObject->AllLoadedActorArray)
+						{
+							auto foundIndex = otherPrefabObjectWhichHaveThisActor->AllLoadedActorArray.Find(actorItem);
+							if (foundIndex != INDEX_NONE)
+							{
+								otherPrefabObjectWhichHaveThisActor->AllLoadedActorArray.RemoveAt(foundIndex);
+							}
+						}
+					}
+					//make it as subprefab
+					if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(otherPrefabObjectWhichHaveThisActor->PrefabAsset))
+					{
+						PrefabEditor->MakePrefabAsSubPrefab(OutPrefab, selectedActor);
+					}
+
+					PrefabHelperObject->PrefabAsset = nullptr;
+					PrefabHelperObject->LoadedRootActor = nullptr;
+					PrefabHelperObject->ConditionalBeginDestroy();
+				}
+				else//create prefab in level editor
+				{
+					auto prefabActor = selectedActor->GetWorld()->SpawnActorDeferred<ALGUIPrefabHelperActor>(ALGUIPrefabHelperActor::StaticClass(), FTransform::Identity);
+					if (IsValid(prefabActor))
+					{
+						prefabActor->FinishSpawning(FTransform::Identity, true);
+						prefabActor->SetActorLabel(fileName);
+						auto PrefabHelperObject = prefabActor->PrefabHelperObject;
+						PrefabHelperObject->PrefabAsset = OutPrefab;
+						PrefabHelperObject->LoadedRootActor = selectedActor;
+						PrefabHelperObject->SavePrefab();
+						OutPrefab->RefreshAgentObjectsInPreviewWorld();
 						prefabActor->MoveActorToPrefabFolder();
-						//remove actors from other prefab. @todo: should be multiple
-						if (otherPrefabAcotrWhichHaveThisActor != nullptr)
+						//remove actors from other prefab. @todo: should be multiple other prefabs
+						if (otherPrefabObjectWhichHaveThisActor != nullptr)
 						{
 							for (auto actorItem : PrefabHelperObject->AllLoadedActorArray)
 							{
-								auto foundIndex = otherPrefabAcotrWhichHaveThisActor->AllLoadedActorArray.Find(actorItem);
+								auto foundIndex = otherPrefabObjectWhichHaveThisActor->AllLoadedActorArray.Find(actorItem);
 								if (foundIndex != INDEX_NONE)
 								{
-									otherPrefabAcotrWhichHaveThisActor->AllLoadedActorArray.RemoveAt(foundIndex);
+									otherPrefabObjectWhichHaveThisActor->AllLoadedActorArray.RemoveAt(foundIndex);
 								}
 							}
 						}
-						PrefabHelperObject->PrefabAsset->MakeAgentActorsInPreviewWorld();
 					}
-					else//create fail or canceled, then delete objects
+					else
 					{
-						LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
-						OutPrefab->ConditionalBeginDestroy();
+						FMessageDialog::Open(EAppMsgType::Ok
+							, FText::FromString(FString::Printf(TEXT("Spawn helper actor failed!"))));
 					}
-					CleanupPrefabsInWorld(selectedActor->GetWorld());
 				}
-				else
-				{
-					FMessageDialog::Open(EAppMsgType::Ok
-						, FText::FromString(FString::Printf(TEXT("Prefab spawn failed! Is there any missing class referenced by prefab?"))));
-				}
+				CleanupPrefabsInWorld(selectedActor->GetWorld());
 			}
 			else
 			{
@@ -850,7 +874,7 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperObject* InPrefabHelpe
 			InPrefabHelperObject->SavePrefab();
 			GEditor->EndTransaction();
 
-			PrefabAsset->RefreshAgentActorsInPreviewWorld();
+			PrefabAsset->RefreshAgentObjectsInPreviewWorld();
 
 			RefreshOnSubPrefabChange(InPrefabHelperObject->PrefabAsset);
 			return true;
@@ -882,6 +906,7 @@ void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
 			auto AssetObject = Asset.GetAsset();
 			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
+				Prefab->MakeAgentObjectsInPreviewWorld();
 				//check if is opened by prefab editor
 				if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(Prefab))
 				{
@@ -946,6 +971,7 @@ void LGUIEditorTools::UnlinkPrefab()
 		{
 			auto OwnerActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
 			check(OwnerActor != nullptr);
+			PrefabHelperObject->UnlinkPrefab(SelectedActor);
 			LGUIUtils::DestroyActorWithHierarchy(OwnerActor);
 		}
 	}
@@ -981,6 +1007,7 @@ void LGUIEditorTools::SelectPrefabAsset()
 
 ULGUIPrefabHelperObject* LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(AActor* InActor)
 {
+	if (!IsValid(InActor))return nullptr;
 	for (TObjectIterator<ULGUIPrefabHelperObject> Itr; Itr; ++Itr)
 	{
 		if (Itr->AllLoadedActorArray.Contains(InActor))
@@ -1589,6 +1616,7 @@ void LGUIEditorTools::UpgradeSelectedPrefabToLGUI3()
 				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 			}
 			Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
+			Prefab->MakeAgentObjectsInPreviewWorld();
 
 			LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
 		}
@@ -1647,6 +1675,7 @@ void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
 					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 				}
 				Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
+				Prefab->MakeAgentObjectsInPreviewWorld();
 
 				LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
 			}

@@ -88,7 +88,7 @@ private:
 
 	virtual void OnUpdateLayout_Implementation()override;
 	FTextGeometryCache CacheTextGeometryData;
-	void UpdateCacheTextGeometry();
+	bool UpdateCacheTextGeometry();
 public:
 	const TArray<FUITextCharProperty>& GetCharPropertyArray(bool createIfNotExist = false);
 	const TArray<FUIText_RichTextCustomTag>& GetRichTextCustomTagArray(bool createIfNotExist = false);

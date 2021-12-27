@@ -18,7 +18,7 @@ namespace LGUIPrefabSystem3
 	{
 	public:
 		int32 ObjectClass = -1;
-		FGuid ObjectGuid;//use id to find object. @todo: can use integer as id, because this id don't need to be world-unique, just per-prefab-unique.
+		FGuid ObjectGuid;//use id to find object.
 		uint32 ObjectFlags;
 		TArray<uint8> PropertyData;
 		FGuid OuterObjectGuid;//outer object
@@ -41,7 +41,7 @@ namespace LGUIPrefabSystem3
 		FName ComponentName;
 		FGuid ComponentGuid;
 		uint32 ObjectFlags;
-		FGuid SceneComponentParentGuid = FGuid();//invalid guid means the the SceneComponent dont have parent. @todo: For BlueprintCreatedComponent, leave this to invalid, because that component is managed by blueprint
+		FGuid SceneComponentParentGuid = FGuid();//invalid guid means the the SceneComponent dont have parent. @todo: For Blueprint-Actor's BlueprintCreatedComponent, leave this to invalid, because that component's parent is managed by blueprint
 		FGuid OuterObjectGuid;//outer object
 		TArray<uint8> PropertyData;
 		friend FArchive& operator<<(FArchive& Ar, FLGUIComponentSaveData& ComponentData)
@@ -94,6 +94,7 @@ namespace LGUIPrefabSystem3
 				Ar << ActorData.PrefabOverrideParameterData;//override sub prefab's parameter
 				Ar << ActorData.PrefabRootActorComponentGuidArray;
 				Ar << ActorData.PrefabRootActorComponentNameArray;
+				Ar << ActorData.RootComponentGuid;
 			}
 			else
 			{
