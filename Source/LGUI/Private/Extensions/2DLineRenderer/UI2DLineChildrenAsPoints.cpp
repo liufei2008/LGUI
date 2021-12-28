@@ -46,7 +46,7 @@ void UUI2DLineChildrenAsPoints::OnUIChildHierarchyIndexChanged(UUIItem *child)
         return false;
     });
 
-    MarkCanvasUpdate();
+    MarkCanvasUpdate(false, false, false, true);
 }
 
 void UUI2DLineChildrenAsPoints::OnUIChildAttachmentChanged(UUIItem *child, bool attachOrDetach)

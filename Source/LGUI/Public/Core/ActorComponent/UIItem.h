@@ -164,9 +164,9 @@ public:
 		void SetAnchorMax(FVector2D Value);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
-		void SetHorizontalAnchorMinMax(FVector2D Value);
+		void SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize = false);
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
-		void SetVerticalAnchorMinMax(FVector2D Value);
+		void SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize = false);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		void SetAnchoredPosition(FVector2D Value);
@@ -233,7 +233,7 @@ private:
 protected:
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true);
 public:
-	virtual void MarkCanvasUpdate();
+	virtual void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false);
 private:
 	mutable float CacheWidth = 0, CacheHeight = 0, CacheAnchorLeft = 0, CacheAnchorRight = 0, CacheAnchorTop = 0, CacheAnchorBottom = 0;
 	mutable uint8 bWidthCached : 1, bHeightCached : 1, bAnchorLeftCached : 1, bAnchorRightCached : 1, bAnchorTopCached : 1, bAnchorBottomCached : 1;

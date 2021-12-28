@@ -206,28 +206,28 @@ void UUIDropdownComponent::Show()
 		pivot.Y = 0.0f;
 		if (VerticalOverlap)
 		{
-			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.0f, 0.0f));
+			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.0f, 0.0f), true);
 		}
 		else
 		{
-			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(1.0f, 1.0f));
+			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(1.0f, 1.0f), true);
 		}
 	}break;
 	case EUIDropdownVerticalPosition::Middle:
 	{
 		pivot.Y = 0.5f;
-		ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.5f, 0.5f));
+		ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.5f, 0.5f), true);
 	}break;
 	case EUIDropdownVerticalPosition::Bottom:
 	{
 		pivot.Y = 1.0f;
 		if (VerticalOverlap)
 		{
-			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(1.0f, 1.0f));
+			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(1.0f, 1.0f), true);
 		}
 		else
 		{
-			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.0f, 0.0f));
+			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.0f, 0.0f), true);
 		}
 	}break;
 	}
@@ -238,17 +238,17 @@ void UUIDropdownComponent::Show()
 	case EUIDropdownHorizontalPosition::Left:
 	{
 		pivot.X = 1.0f;
-		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(0.0f, 0.0f));
+		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(0.0f, 0.0f), true);
 	}break;
 	case EUIDropdownHorizontalPosition::Center:
 	{
 		pivot.X = 0.5f;
-		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(0.5f, 0.5f));
+		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(0.5f, 0.5f), true);
 	}break;
 	case EUIDropdownHorizontalPosition::Right:
 	{
 		pivot.X = 0.0f;
-		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(1.0f, 1.0f));
+		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(1.0f, 1.0f), true);
 	}break;
 	}
 	ListRootUIItem->SetHorizontalAnchoredPosition(0);

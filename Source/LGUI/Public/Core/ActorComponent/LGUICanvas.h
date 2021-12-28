@@ -129,9 +129,14 @@ private:
 public:
 	/** mark canvas layout dirty */
 	void MarkCanvasLayoutDirty();
-	/** mark update this Canvas. Canvas dont need to update every frame, only when need to */
-	void MarkCanvasUpdate();
-	void MarkUIRenderableItemHierarchyChange();
+	/**
+	 * Mark update this Canvas. Canvas dont need to update every frame, only update when need to.
+	 * Some rules if update could trigger drawcall's rebuild:
+	 *		1. Commonly material & texture change and UI item's active state change
+	 *		2. Transform & vertex position change, drawcall could overlap with eachother
+	 *		3. Hierarchy order change, this is directly related to render order
+	 */
+	void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false);
 
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
@@ -239,13 +244,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool inheritRectClip = true;
 
-	/** 
-	 * Normally LGUI will try to combine children canvas's drawcall and render in parent canvas.
-	 * You can check this value to force render in this canvas, this is useful to reduce drawcall in 3d UI.
-	 */
-	UPROPERTY(EditAnywhere, Category = LGUI)
-		bool bForceSelfRender = false;
-
 	/**
 	 * The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
 	 * But!!! Do not set this value too large if you already have large font size of UIText, because that will result in extreamly large texture! 
@@ -330,9 +328,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetSortOrderToLowestOfHierarchy(bool propagateToChildrenCanvas = true);
 	void GetMinMaxSortOrderOfHierarchy(int32& OutMin, int32& OutMax);
-
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetForceSelfRender()const { return bForceSelfRender; }//@todo: make set function
 
 	/** Get actural render mode of canvas. Actually canvas's render mode property is inherit from parent canvas. */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
@@ -445,7 +440,7 @@ private:
 	void SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue);
 public:
 	/** Called from LGUIManagerActor */
-	void UpdateRootCanvasDrawcall();
+	void UpdateCanvas();
 
 private:
 	uint32 bClipTypeChanged:1;
@@ -453,8 +448,8 @@ private:
 	uint32 bTextureClipParameterChanged:1;
 
 	uint32 bCanTickUpdate:1;//if Canvas can update from tick
-	uint32 bRenderDataChanged : 1;
-	uint32 bIsUIRenderableHierarchyChanged : 1;//if any renderable UIItem's hierarchy change, then we need to sort renderable list
+	uint32 bShouldRebuildDrawcall : 1;
+	uint32 bShouldSortRenderableOrder : 1;//if any renderable UIItem's hierarchy change, then we need to sort renderable list
 	uint32 bRectRangeCalculated:1;
 	uint32 bNeedToSortRenderPriority : 1;
 	uint32 bHasAddToLGUIScreenSpaceRenderer : 1;//is this canvas added to LGUI screen space renderer
@@ -507,6 +502,7 @@ private:
 	/** update Canvas's drawcall */
 	void UpdateCanvasDrawcallRecursive();
 
+	void UpdateGeometry_Implement();
 	void UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority);
 	void UpdateDrawcallMesh_Implement();
 	void UpdateDrawcallMaterial_Implement();

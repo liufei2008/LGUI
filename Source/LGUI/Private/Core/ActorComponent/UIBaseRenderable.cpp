@@ -49,7 +49,7 @@ void UUIBaseRenderable::OnUpdateTransform(EUpdateTransformFlags UpdateTransformF
 {
 	Super::OnUpdateTransform(UpdateTransformFlags, Teleport);
 	bTransformChanged = true;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, true, false);
 }
 
 void UUIBaseRenderable::ApplyUIActiveState()
@@ -92,7 +92,7 @@ void UUIBaseRenderable::OnCanvasGroupAlphaChange()
 void UUIBaseRenderable::MarkColorDirty()
 {
 	bColorChanged = true;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, false, false);
 }
 
 void UUIBaseRenderable::MarkAllDirtyRecursive()

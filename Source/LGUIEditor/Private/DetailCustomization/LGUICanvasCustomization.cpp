@@ -91,13 +91,13 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		}
 	}
 
-	if (TargetScriptArray[0]->GetWorld())
-	{
-		if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
-		{
-			TargetScriptArray[0]->MarkCanvasUpdate();
-		}
-	}
+	//if (TargetScriptArray[0]->GetWorld())
+	//{
+	//	if (!TargetScriptArray[0]->GetWorld()->IsGameWorld())
+	//	{
+	//		TargetScriptArray[0]->MarkCanvasUpdate();
+	//	}
+	//}
 	
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI");
 	TArray<FName> needToHidePropertyNames;

@@ -272,7 +272,7 @@ void UUIItem::MarkFlattenHierarchyIndexDirty()
 		&& RenderCanvas->IsRegistered()//@todo: why need to check IsRegistered? the only way to set RenderCanvas is SetRenderCanvas function, but when I debug on SetRenderCanvas it's not called at all, so RenderCanvas should not valid here, no clue yet
 		)
 	{
-		RenderCanvas->MarkUIRenderableItemHierarchyChange();
+		RenderCanvas->MarkCanvasUpdate(false, false, true);
 	}
 }
 
@@ -317,7 +317,6 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 			}
 			//flatten hierarchy index
 			MarkFlattenHierarchyIndexDirty();
-			MarkCanvasUpdate();
 
 			ParentUIItem->OnChildHierarchyIndexChanged(this);
 		}
@@ -492,7 +491,7 @@ void UUIItem::EditorForceUpdateImmediately()
 {
 	if (this->GetOwner() == nullptr)return;
 	if (this->GetWorld() == nullptr)return;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(true, true, true, true);
 }
 #endif
 
@@ -593,7 +592,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		}
 		UIChildren.Add(childUIItem);
 		SortCacheUIChildren();
-		MarkCanvasUpdate();
+		MarkCanvasUpdate(false, false, false);
 	}
 }
 
@@ -611,7 +610,7 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 		{
 			UIChildren[i]->hierarchyIndex = i;
 		}
-		MarkCanvasUpdate();
+		MarkCanvasUpdate(false, false, false);
 	}
 }
 
@@ -995,11 +994,11 @@ void UUIItem::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanv
 	//mark canvas update drawcall
 	if (IsValid(OldCanvas))
 	{
-		OldCanvas->MarkCanvasUpdate();
+		OldCanvas->MarkCanvasUpdate(false, false, false);
 	}
 	if (IsValid(NewCanvas))
 	{
-		NewCanvas->MarkCanvasUpdate();
+		NewCanvas->MarkCanvasUpdate(false, false, false);
 	}
 }
 
@@ -1273,7 +1272,7 @@ void UUIItem::SetAnchorMax(FVector2D Value)
 	}
 }
 
-void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value)
+void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize)
 {
 	if (this->ParentUIItem.IsValid())
 	{
@@ -1282,13 +1281,20 @@ void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value)
 			auto CurrentLeft = this->GetAnchorLeft();
 			auto CurrentRight = this->GetAnchorRight();
 
-			CacheWidth = this->GetWidth();
+			if (bKeepSize)
+			{
+				CacheWidth = this->GetWidth();
+			}
 
 			AnchorData.AnchorMin.X = Value.X;
 			AnchorData.AnchorMax.X = Value.Y;
 
 			//SetAnchorLeft & SetAnchorRight
 			{
+				if (!bKeepSize)//recalculate size on new anchor if not keep size
+				{
+					CacheWidth = this->ParentUIItem->GetWidth() * (this->AnchorData.AnchorMax.X - this->AnchorData.AnchorMin.X) - CurrentRight - CurrentLeft;
+				}
 				//SetWidth
 				{
 					auto CalculatedSizeDeltaX = CacheWidth - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
@@ -1305,7 +1311,7 @@ void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value)
 		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetHorizontalAnchorMinMax]This function only valid if UIItem have parent!"))
 	}
 }
-void UUIItem::SetVerticalAnchorMinMax(FVector2D Value)
+void UUIItem::SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize)
 {
 	if (this->ParentUIItem.IsValid())
 	{
@@ -1314,13 +1320,20 @@ void UUIItem::SetVerticalAnchorMinMax(FVector2D Value)
 			auto CurrentBottom = this->GetAnchorBottom();
 			auto CurrentTop = this->GetAnchorTop();
 
-			CacheHeight = this->GetHeight();
+			if (bKeepSize)
+			{
+				CacheHeight = this->GetHeight();
+			}
 
 			AnchorData.AnchorMin.Y = Value.X;
 			AnchorData.AnchorMax.Y = Value.Y;
 
 			//SetAnchorBottom && SetAnchorTop
 			{
+				if (!bKeepSize)//recalculate size on new anchor if not keep size
+				{
+					CacheHeight = this->ParentUIItem->GetHeight() * (this->AnchorData.AnchorMax.Y - this->AnchorData.AnchorMin.Y) - CurrentTop - CurrentBottom;
+				}
 				//SetHeight
 				{
 					auto CalculatedSizeDeltaY = CacheHeight - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
@@ -1730,7 +1743,7 @@ void UUIItem::SetOnTransformChange()
 {
 	if (this->RenderCanvas.IsValid())
 	{
-		this->RenderCanvas->MarkCanvasUpdate();//mark canvas to update
+		this->RenderCanvas->MarkCanvasUpdate(false, true, false);//mark canvas to update
 		if (this->IsCanvasUIItem())
 		{
 			this->RenderCanvas->MarkCanvasLayoutDirty();
@@ -1764,7 +1777,7 @@ void UUIItem::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDisca
 
 	if (this->RenderCanvas.IsValid())
 	{
-		this->RenderCanvas->MarkCanvasUpdate();//mark canvas to update
+		this->RenderCanvas->MarkCanvasUpdate(false, TransformChange, false);//mark canvas to update
 		if (this->IsCanvasUIItem())
 		{
 			this->RenderCanvas->MarkCanvasLayoutDirty();
@@ -1787,11 +1800,11 @@ void UUIItem::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDisca
 	}
 }
 
-void UUIItem::MarkCanvasUpdate()
+void UUIItem::MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall)
 {
 	if (RenderCanvas.IsValid())
 	{
-		RenderCanvas->MarkCanvasUpdate();
+		RenderCanvas->MarkCanvasUpdate(bMaterialOrTextureChanged, bTransformOrVertexPositionChanged, bHierarchyOrderChanged, bForceRebuildDrawcall);
 	}
 }
 
@@ -1958,7 +1971,7 @@ void UUIItem::ApplyUIActiveState()
 #endif
 	if (UIActiveStateChangedDelegate.IsBound())UIActiveStateChangedDelegate.Broadcast();
 	//canvas update
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, false, false, true);
 	//callback
 	CallUILifeCycleBehavioursActiveInHierarchyStateChanged();
 }

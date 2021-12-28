@@ -122,7 +122,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	{
 		if (item.IsValid())
 		{
-			item->UpdateRootCanvasDrawcall();
+			item->UpdateCanvas();
 		}
 	}
 
@@ -576,14 +576,28 @@ void ULGUIEditorManagerObject::UnregisterLGUILayout(TScriptInterface<ILGUILayout
 
 void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 {
-	auto extends = FVector(0.1f, item->GetWidth(), item->GetHeight()) * 0.5f;
-	bool canDraw = false;
-	auto DrawColor = FColor(128, 128, 128, 128);//gray means normal object
+	auto RectExtends = FVector(0.1f, item->GetWidth(), item->GetHeight()) * 0.5f;
+	auto GeometryBoundsExtends = FVector(0, 0, 0);
+	bool bCanDrawRect = false;
+	auto RectDrawColor = FColor(128, 128, 128, 128);//gray means normal object
 	if (ULGUIEditorManagerObject::IsSelected(item->GetOwner()))//select self
 	{
-		DrawColor = FColor(0, 255, 0, 255);//green means selected object
-		extends += FVector(1, 0, 0);
-		canDraw = true;
+		RectDrawColor = FColor(0, 255, 0, 255);//green means selected object
+		RectExtends.X = 1;
+		bCanDrawRect = true;
+
+		if (auto UIRenderable = Cast<UUIBaseRenderable>(item))
+		{
+			FVector2D Min, Max;
+			UIRenderable->GetGeometryBoundsInLocalSpace(Min, Max);
+			auto WorldTransform = item->GetComponentTransform();
+			FVector Center = FVector(0, (Max.X + Min.X) * 0.5f, (Max.Y + Min.Y) * 0.5f);
+			auto WorldLocation = WorldTransform.TransformPosition(Center);
+
+			auto GeometryBoundsDrawColor = FColor(255, 255, 0, 255);//yellow for geometry bounds
+			GeometryBoundsExtends = FVector(0.1f, (Max.X - Min.X) * 0.5f, (Max.Y - Min.Y) * 0.5f);
+			DrawDebugBox(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
+		}
 	}
 	else
 	{
@@ -592,7 +606,7 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 		{
 			if (ULGUIEditorManagerObject::IsSelected(item->GetParentUIItem()->GetOwner()))
 			{
-				canDraw = true;
+				bCanDrawRect = true;
 			}
 		}
 		//child selected
@@ -601,7 +615,7 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 		{
 			if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
 			{
-				canDraw = true;
+				bCanDrawRect = true;
 				break;
 			}
 		}
@@ -613,14 +627,14 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 			{
 				if (IsValid(uiComp) && IsValid(uiComp->GetOwner()) && ULGUIEditorManagerObject::IsSelected(uiComp->GetOwner()))
 				{
-					canDraw = true;
+					bCanDrawRect = true;
 					break;
 				}
 			}
 		}
 	}
 	//canvas scaler
-	if (!canDraw)
+	if (!bCanDrawRect)
 	{
 		if (item->IsCanvasUIItem())
 		{
@@ -628,22 +642,22 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 			{
 				if (ULGUIEditorManagerObject::AnySelectedIsChildOf(item->GetOwner()))
 				{
-					canDraw = true;
-					DrawColor = FColor(255, 227, 124);
+					bCanDrawRect = true;
+					RectDrawColor = FColor(255, 227, 124);
 				}
 			}
 		}
 	}
 
-	if (canDraw)
+	if (bCanDrawRect)
 	{
-		auto worldTransform = item->GetComponentTransform();
-		FVector relativeOffset(0, 0, 0);
-		relativeOffset.Y = (0.5f - item->GetPivot().X) * item->GetWidth();
-		relativeOffset.Z = (0.5f - item->GetPivot().Y) * item->GetHeight();
-		auto worldLocation = worldTransform.TransformPosition(relativeOffset);
+		auto WorldTransform = item->GetComponentTransform();
+		FVector RelativeOffset(0, 0, 0);
+		RelativeOffset.Y = (0.5f - item->GetPivot().X) * item->GetWidth();
+		RelativeOffset.Z = (0.5f - item->GetPivot().Y) * item->GetHeight();
+		auto WorldLocation = WorldTransform.TransformPosition(RelativeOffset);
 
-		DrawDebugBox(item->GetWorld(), worldLocation, extends * worldTransform.GetScale3D(), worldTransform.GetRotation(), DrawColor);//@todo: screen-space UI should draw on screen-space, but no clue to achieve that
+		DrawDebugBox(item->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);//@todo: screen-space UI should draw on screen-space, but no clue to achieve that
 	}
 }
 
@@ -1069,7 +1083,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		{
 			if (item.IsValid())
 			{
-				item->UpdateRootCanvasDrawcall();
+				item->UpdateCanvas();
 			}
 		}
 	}

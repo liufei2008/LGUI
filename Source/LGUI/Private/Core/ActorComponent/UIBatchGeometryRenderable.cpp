@@ -77,17 +77,17 @@ void UUIBatchGeometryRenderable::OnAnchorChange(bool InPivotChange, bool InSizeC
 void UUIBatchGeometryRenderable::MarkVertexPositionDirty()
 {
 	bLocalVertexPositionChanged = true;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, true, false);
 }
 void UUIBatchGeometryRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, false, false);
 }
 void UUIBatchGeometryRenderable::MarkTriangleDirty()
 {
 	bTriangleChanged = true;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, false, false, true);
 }
 void UUIBatchGeometryRenderable::MarkTextureDirty()
 {
@@ -109,7 +109,7 @@ void UUIBatchGeometryRenderable::MarkTextureDirty()
 			}
 		}
 	}
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(true, false, false);
 }
 void UUIBatchGeometryRenderable::MarkMaterialDirty()
 {
@@ -121,7 +121,7 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 			drawcall->materialChanged = true;
 		}
 	}
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(true, false, false);
 }
 
 void UUIBatchGeometryRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)
@@ -270,13 +270,13 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 			{
 				drawcall->needToUpdateVertex = true;
 			}
-			if (bLocalVertexPositionChanged || bTransformChanged)
-			{
-				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-			}
 			if (bLocalVertexPositionChanged)
 			{
 				CalculateLocalBounds();
+			}
+			if (bLocalVertexPositionChanged || bTransformChanged)
+			{
+				UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 			}
 		}
 	}
@@ -303,8 +303,8 @@ bool UUIBatchGeometryRenderable::CreateGeometry()
 		geometry->material = CustomUIMaterial;
 		OnCreateGeometry();
 		ApplyGeometryModifier(true, true, true, true);
-		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 		CalculateLocalBounds();
+		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 		return true;
 	}
 	else

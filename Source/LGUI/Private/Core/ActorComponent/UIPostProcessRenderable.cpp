@@ -20,7 +20,6 @@ UUIPostProcessRenderable::UUIPostProcessRenderable(const FObjectInitializer& Obj
 void UUIPostProcessRenderable::BeginPlay()
 {
 	Super::BeginPlay();
-	MarkCanvasUpdate();
 
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
@@ -68,12 +67,12 @@ void UUIPostProcessRenderable::OnAnchorChange(bool InPivotChange, bool InSizeCha
 void UUIPostProcessRenderable::MarkVertexPositionDirty()
 {
 	bLocalVertexPositionChanged = true;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, true, false);
 }
 void UUIPostProcessRenderable::MarkUVDirty()
 {
 	bUVChanged = true;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, false, false);
 }
 
 void UUIPostProcessRenderable::MarkAllDirtyRecursive()

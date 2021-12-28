@@ -164,7 +164,6 @@ public:
 		void SetRichText(bool newRichText);
 protected:
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
-	virtual void GetGeometryBoundsInLocalSpace(FVector2D& min, FVector2D& max)const override;
 public:
 #pragma region UITextInputComponent
 	/** get caret position and line index */

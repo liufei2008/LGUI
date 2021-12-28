@@ -52,7 +52,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 		{
 			if (auto rootCanvas = rootActor->FindComponentByClass<ULGUICanvas>())
 			{
-				rootCanvas->MarkCanvasUpdate();
+				rootCanvas->MarkCanvasUpdate(true, true, true, true);
 
 				bIsUI = true;
 			}
@@ -61,7 +61,7 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 				rootCanvas = NewObject<ULGUICanvas>(rootActor);
 				rootCanvas->RegisterComponent();
 				rootActor->AddInstanceComponent(rootCanvas);
-				rootCanvas->MarkCanvasUpdate();
+				rootCanvas->MarkCanvasUpdate(true, true, true, true);
 
 				bIsUI = true;
 			}

@@ -16,7 +16,6 @@ UUIDirectMeshRenderable::UUIDirectMeshRenderable(const FObjectInitializer& Objec
 void UUIDirectMeshRenderable::BeginPlay()
 {
 	Super::BeginPlay();
-	MarkCanvasUpdate();
 	bLocalVertexPositionChanged = true;
 }
 
@@ -66,7 +65,7 @@ void UUIDirectMeshRenderable::OnAnchorChange(bool InPivotChange, bool InSizeChan
 void UUIDirectMeshRenderable::MarkVertexPositionDirty()
 {
 	bLocalVertexPositionChanged = true;
-	MarkCanvasUpdate();
+	MarkCanvasUpdate(false, false, false);//since DirectMeshRenderable will always take a drawcall, we don't need to rebuild drawcall on it
 }
 void UUIDirectMeshRenderable::UpdateGeometry()
 {
