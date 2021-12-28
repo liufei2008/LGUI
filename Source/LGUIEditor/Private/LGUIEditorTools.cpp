@@ -1312,14 +1312,17 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray, boo
 			}
 			else//no parent
 			{
-				auto RelativeRotation = UIItem->GetRelativeRotation();
 				if (InIsPrefabOrWorld)//prefab mostly be child of other UIItem, so consider it have parent, so set relative location
 				{
 					auto RelativeLocation = UIItem->GetRelativeLocation();
 					UIItem->SetRelativeLocation(ConvertPositionFromLGUI2ToLGUI3(RelativeLocation));
+					auto RelativeRotation = UIItem->GetRelativeRotation();
+					UIItem->SetRelativeRotation(ConvertRotatorFromLGUI2ToLGUI3(RelativeRotation));
 				}
-				//UIItem->SetRelativeRotation(UIItem->GetRelativeRotation().Add(0, -90, 90));
-				UIItem->SetRelativeRotation(ConvertRotatorFromLGUI2ToLGUI3(RelativeRotation));
+				else
+				{
+					UIItem->SetRelativeRotation(UIItem->GetRelativeRotation().Add(0, -90, 90));
+				}
 			}
 			//anchor
 			auto widget = UIItem->widget;
@@ -1716,7 +1719,6 @@ void LGUIEditorTools::UpgradeCommonProperty(FProperty* PropertyItem, uint8* InCo
 			auto HelperClassProp = FindFProperty<FObjectPropertyBase>(StructProperty->Struct, TEXT("HelperClass"));
 			auto HelperComponentNameProp = FindFProperty<FNameProperty>(StructProperty->Struct, TEXT("HelperComponentName"));
 			auto HelperClassObj = HelperClassProp->GetObjectPropertyValue_InContainer(StructPtr);
-			UE_LOG(LogTemp, Error, TEXT("HelperClass:%s"), *(HelperClassObj != nullptr ? HelperClassObj->GetName() : FString(TEXT("NotValid"))));
 			if (targetComponentClass != nullptr)
 			{
 				HelperClassProp->SetObjectPropertyValue_InContainer(StructPtr, targetComponentClass);

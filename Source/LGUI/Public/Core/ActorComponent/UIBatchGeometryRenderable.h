@@ -55,16 +55,16 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInstanceDynamic* GetMaterialInstanceDynamic()const;
-
+protected:
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
-	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)override;
-
+	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
+public:
 	void MarkVertexPositionDirty();
 	void MarkUVDirty();
 	void MarkTriangleDirty();
 	void MarkTextureDirty();
 	void MarkMaterialDirty();
-
+    
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);
 

@@ -671,7 +671,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(const float& width, co
 			if (updatePosition)
 			{
 				float value = FMath::Lerp(posMinX, posMaxX, fillAmount);
-				originPositions[1].X = originPositions[3].X = value;
+				originPositions[1].Y = originPositions[3].Y = value;
 			}
 			if (updateUV)
 			{
@@ -687,7 +687,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(const float& width, co
 			if (updatePosition)
 			{
 				float value = FMath::Lerp(posMaxX, posMinX, fillAmount);
-				originPositions[0].X = originPositions[2].X = value;
+				originPositions[0].Y = originPositions[2].Y = value;
 			}
 			if (updateUV)
 			{
@@ -706,7 +706,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(const float& width, co
 			if (updatePosition)
 			{
 				float value = FMath::Lerp(posMinY, posMaxY, fillAmount);
-				originPositions[2].Y = originPositions[3].Y = value;
+				originPositions[2].Z = originPositions[3].Z = value;
 			}
 			if (updateUV)
 			{
@@ -722,7 +722,7 @@ void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(const float& width, co
 			if (updatePosition)
 			{
 				float value = FMath::Lerp(posMaxY, posMinY, fillAmount);
-				originPositions[0].Y = originPositions[1].Y = value;
+				originPositions[0].Z = originPositions[1].Z = value;
 			}
 			if (updateUV)
 			{

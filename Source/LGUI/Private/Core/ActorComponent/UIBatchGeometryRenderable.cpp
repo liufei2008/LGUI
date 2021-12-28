@@ -66,9 +66,9 @@ void UUIBatchGeometryRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, U
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
 
-void UUIBatchGeometryRenderable::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
+void UUIBatchGeometryRenderable::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
-    Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
+    Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
 	if (InPivotChange || InSizeChange)
     {
         MarkVertexPositionDirty();
@@ -261,7 +261,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 		else//update geometry
 		{
 			OnUpdateGeometry(bLocalVertexPositionChanged, bUVChanged, bColorChanged);
-
+			
 			if (ApplyGeometryModifier(bUVChanged, bColorChanged, bLocalVertexPositionChanged, bTransformChanged))//vertex data change, need to update geometry's vertex
 			{
 				drawcall->needToRebuildMesh = true;

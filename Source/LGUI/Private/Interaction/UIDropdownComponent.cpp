@@ -173,7 +173,7 @@ void UUIDropdownComponent::Show()
 				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, 0, listBottomInSelfSpace));
 			}
 			canvas->CalculateRectRange();
-			if (listBottomInCanvasSpace.Y < canvas->GetClipRectMin().Y)
+			if (listBottomInCanvasSpace.Z < canvas->GetClipRectMin().Y)
 			{
 				tempVerticalPosition = EUIDropdownVerticalPosition::Top;
 			}
@@ -187,7 +187,7 @@ void UUIDropdownComponent::Show()
 			auto selfRight = GetRootUIComponent()->GetLocalSpaceRight();
 			auto listRightInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, selfRight + ListRootUIItem->GetWidth(), 0));
 			canvas->CalculateRectRange();
-			if (listRightInCanvasSpace.X > canvas->GetClipRectMax().X)
+			if (listRightInCanvasSpace.Y > canvas->GetClipRectMax().X)
 			{
 				tempHorizontalPosition = EUIDropdownHorizontalPosition::Left;
 			}
@@ -199,60 +199,59 @@ void UUIDropdownComponent::Show()
 	}
 
 	FVector2D pivot(0.5f, 0);
-	//@todo
-	/*switch (tempVerticalPosition)
+	switch (tempVerticalPosition)
 	{
 	case EUIDropdownVerticalPosition::Top:
 	{
 		pivot.Y = 0.0f;
 		if (VerticalOverlap)
 		{
-			ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
+			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.0f, 0.0f));
 		}
 		else
 		{
-			ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
+			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(1.0f, 1.0f));
 		}
 	}break;
 	case EUIDropdownVerticalPosition::Middle:
 	{
 		pivot.Y = 0.5f;
-		ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Middle);
+		ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.5f, 0.5f));
 	}break;
 	case EUIDropdownVerticalPosition::Bottom:
 	{
 		pivot.Y = 1.0f;
 		if (VerticalOverlap)
 		{
-			ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Top);
+			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(1.0f, 1.0f));
 		}
 		else
 		{
-			ListRootUIItem->SetAnchorVAlign(UIAnchorVerticalAlign::Bottom);
+			ListRootUIItem->SetVerticalAnchorMinMax(FVector2D(0.0f, 0.0f));
 		}
 	}break;
 	}
-	ListRootUIItem->SetAnchorOffsetVertical(0);
+	ListRootUIItem->SetVerticalAnchoredPosition(0);
 
 	switch (tempHorizontalPosition)
 	{
 	case EUIDropdownHorizontalPosition::Left:
 	{
 		pivot.X = 1.0f;
-		ListRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Left);
+		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(0.0f, 0.0f));
 	}break;
 	case EUIDropdownHorizontalPosition::Center:
 	{
 		pivot.X = 0.5f;
-		ListRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Center);
+		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(0.5f, 0.5f));
 	}break;
 	case EUIDropdownHorizontalPosition::Right:
 	{
 		pivot.X = 0.0f;
-		ListRootUIItem->SetAnchorHAlign(UIAnchorHorizontalAlign::Right);
+		ListRootUIItem->SetHorizontalAnchorMinMax(FVector2D(1.0f, 1.0f));
 	}break;
 	}
-	ListRootUIItem->SetAnchorOffsetHorizontal(0);*/
+	ListRootUIItem->SetHorizontalAnchoredPosition(0);
 
 	ListRootUIItem->SetPivot(pivot);
 }
@@ -294,9 +293,11 @@ void UUIDropdownComponent::CreateBlocker()
 	blockerUIItem->SetRaycastTarget(true);
 	blockerUIItem->SetTraceChannel(this->GetRootUIComponent()->GetTraceChannel());
 	blockerUIItem->AttachToComponent(this->GetRootUIComponent()->GetRootCanvas()->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
-	blockerUIItem->SetSizeDelta(FVector2D::ZeroVector);
-	blockerUIItem->SetAnchorMin(FVector2D::ZeroVector);
-	blockerUIItem->SetAnchorMax(FVector2D::ZeroVector);
+	FUIAnchorData AnchorData;
+	AnchorData.SizeDelta = FVector2D::ZeroVector;
+	AnchorData.AnchorMin = FVector2D(0.0f, 0.0f);
+	AnchorData.AnchorMax = FVector2D(1.0f, 1.0f);
+	blockerUIItem->SetAnchorData(AnchorData);
 	auto blockerCanvas = NewObject<ULGUICanvas>(blocker);
 	blockerCanvas->RegisterComponent();
 	blocker->AddInstanceComponent(blockerCanvas);

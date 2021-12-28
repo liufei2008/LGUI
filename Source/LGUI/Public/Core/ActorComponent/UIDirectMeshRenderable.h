@@ -32,7 +32,7 @@ protected:
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void UpdateGeometry()override;
 
-	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)override;
+	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 
 	void MarkVertexPositionDirty();
 

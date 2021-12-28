@@ -56,9 +56,9 @@ void UUIPostProcessRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULG
 {
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);
 }
-void UUIPostProcessRenderable::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
+void UUIPostProcessRenderable::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
-    Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
+    Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
     if (InPivotChange || InSizeChange)
     {
 	    MarkVertexPositionDirty();
@@ -197,7 +197,7 @@ void UUIPostProcessRenderable::SendRegionVertexDataToRenderProxy()
 		updateData->renderMeshRegionToScreenVertexArray = this->renderMeshRegionToScreenVertexArray;
 		updateData->renderScreenToMeshRegionVertexArray = this->renderScreenToMeshRegionVertexArray;
 		updateData->RectSize = FVector2D(this->GetWidth(), this->GetHeight());
-		updateData->objectToWorldMatrix = this->RenderCanvas->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
+		updateData->objectToWorldMatrix = this->RenderCanvas->GetActualRenderCanvas()->GetUIItem()->GetComponentTransform().ToMatrixWithScale();
 		ENQUEUE_RENDER_COMMAND(FUIPostProcess_UpdateData)
 			([TempRenderProxy, updateData](FRHICommandListImmediate& RHICmdList)
 				{

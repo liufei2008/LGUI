@@ -48,13 +48,8 @@ void UUIBaseRenderable::OnUnregister()
 void UUIBaseRenderable::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
 	Super::OnUpdateTransform(UpdateTransformFlags, Teleport);
-	//OnUpdateTransform could be called from CalculateTransformFromAnchor, which is already call SetOnLayoutChange.
-	//OnUpdateTransform could be propergated from parent, but also bCanSetAnchorFromTransform is already propergated by SetOnLayoutChange.
-	if (bCanSetAnchorFromTransform)
-	{
-		bTransformChanged = true;
-		MarkCanvasUpdate();
-	}
+	bTransformChanged = true;
+	MarkCanvasUpdate();
 }
 
 void UUIBaseRenderable::ApplyUIActiveState()
@@ -104,12 +99,6 @@ void UUIBaseRenderable::MarkAllDirtyRecursive()
 {
 	bColorChanged = true;
 	Super::MarkAllDirtyRecursive();
-}
-
-void UUIBaseRenderable::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
-{
-	Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
-	if (InTransformChange)bTransformChanged = true;
 }
 
 void UUIBaseRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const//@todo: for UISprite, we should calculate with sprite's padding properties

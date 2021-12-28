@@ -203,9 +203,9 @@ void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVCh
 	}
 }
 
-void UUISprite::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
+void UUISprite::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
-    Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
+    Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
 	if (!IsValid(sprite))return;
 	if (type == UISpriteType::Tiled)
 	{

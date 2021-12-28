@@ -157,9 +157,10 @@ public:
 		void SetFontStyle(UITextFontStyle newFontStyle);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRichText(bool newRichText);
-
-	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)override;
+protected:
+	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& min, FVector2D& max)const override;
+public:
 #pragma region UITextInputComponent
 	/** get caret position and line index */
 	void FindCaretByIndex(int32 caretPositionIndex, FVector2D& outCaretPosition, int32& outCaretPositionLineIndex);

@@ -467,12 +467,12 @@ bool ULGUICanvas::IsRenderByLGUIRendererOrUERenderer()
 	return false;
 }
 
-void ULGUICanvas::MarkCanvasUpdate()
+void ULGUICanvas::MarkCanvasUpdate()//@todo: could be some way to mark if drawcall change, then we can decide if we need to update drawcall
 {
-	bCanTickUpdate = true;
+	this->GetActualRenderCanvas()->bCanTickUpdate = true;
 	if (RootCanvas.IsValid())
 	{
-		RootCanvas->bCanTickUpdate = true;//incase this Canvas's parent have layout component, so mark TopMostCanvas to update
+		RootCanvas->bCanTickUpdate = true;
 	}
 }
 
@@ -1516,7 +1516,9 @@ bool ULGUICanvas::IsRenderByOtherCanvas()const
 	else
 	{
 		return
-			!this->GetOverrideSorting()
+			this->ParentCanvas.IsValid()
+
+			&& !this->GetOverrideSorting()
 			&& !this->GetOverrideAddionalShaderChannel()
 			&& !this->bForceSelfRender
 			;
@@ -1771,10 +1773,10 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 				DrawcallItem->materialNeedToReassign = false;
 				bNeedToSetClipParameter = true;
 			}
-			else if (DrawcallItem->textureChanged)
+			if (DrawcallItem->textureChanged)
 			{
-				UIMat->SetTextureParameterValue(LGUI_MainTextureMaterialParameterName, DrawcallItem->texture.Get());
 				DrawcallItem->textureChanged = false;
+				UIMat->SetTextureParameterValue(LGUI_MainTextureMaterialParameterName, DrawcallItem->texture.Get());
 			}
 			if (DrawcallItem->materialNeedToReassign)
 			{

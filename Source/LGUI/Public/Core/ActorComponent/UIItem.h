@@ -85,7 +85,7 @@ protected:
 	virtual void OnUnregister()override;
 private:
 	void CalculateAnchorFromTransform();
-	void CalculateTransformFromAnchor();
+	bool CalculateTransformFromAnchor();
 public:
 
 	FDelegateHandle RegisterUIHierarchyChanged(const FSimpleDelegate& InCallback);
@@ -224,11 +224,14 @@ public:
 	/** Get LGUICanvasScaler from root canvas, return null if not have one */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		class ULGUICanvasScaler* GetCanvasScaler()const;
-	
-	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache = false);
 
 	/** mark all dirty for UI element to update, include all children */
 	virtual void MarkAllDirtyRecursive();
+private:
+	void SetOnAnchorChange(bool InPivotChange, bool InSizeChange);
+	void SetOnTransformChange();
+protected:
+	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true);
 public:
 	virtual void MarkCanvasUpdate();
 private:
@@ -405,14 +408,12 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
 		FUIWidget widget;
 #endif
-#if WITH_EDITOR
 	UE_DEPRECATED(4.24, "Use GetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI-old", meta = (DeprecatedFunction, DeprecationMessage = "Use GetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
 		const FUIWidget& GetWidget()const { return widget; }
 	UE_DEPRECATED(4.24, "Use SetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI-old", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
-		void SetWidget(const FUIWidget& inWidget) {}
-#endif
+		void SetWidget(const FUIWidget& inWidget);
 
 	/** This can auto calculate dimensions */
 	UE_DEPRECATED(4.23, "Use SetRelativeLocation instead. Because LGUI can automatically calculate anchor parameters after transform changed.")

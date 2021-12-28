@@ -137,8 +137,8 @@ public:
 	bool IsPointVisible(FVector worldPoint);
 	/** calculate rect clip range */
 	void CalculateRectRange();
-	FVector2D GetClipRectMin()const { return clipRectMin; }
-	FVector2D GetClipRectMax()const { return clipRectMax; }
+	const FVector2D& GetClipRectMin()const { return clipRectMin; }
+	const FVector2D& GetClipRectMax()const { return clipRectMax; }
 
 	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, FMatrix& OutProjectionMatrix)const;
 	FMatrix GetViewProjectionMatrix()const;

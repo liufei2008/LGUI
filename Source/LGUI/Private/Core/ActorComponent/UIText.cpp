@@ -164,9 +164,9 @@ void UUIText::OnUnregister()
 	}
 }
 
-void UUIText::SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)
+void UUIText::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache)
 {
-    Super::SetOnLayoutChange(InTransformChange, InPivotChange, InSizeChange, InDiscardCache);
+    Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
     if (InPivotChange || InSizeChange)
     {
 		bTextLayoutDirty = true;

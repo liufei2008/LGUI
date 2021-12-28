@@ -33,7 +33,7 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport = ETeleportType::None)override;
+	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 	EUIRenderableType uiRenderableType = EUIRenderableType::None;
@@ -49,11 +49,10 @@ protected:
 		bool bRaycastComplex = false;
 
 	bool LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
-public:
 
-	virtual void ApplyUIActiveState() override;
+    virtual void ApplyUIActiveState() override;
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
-
+public:
 	/** get UI renderable type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		EUIRenderableType GetUIRenderableType()const { return uiRenderableType; }
@@ -81,7 +80,6 @@ public:
 
 	void MarkColorDirty();
 	virtual void MarkAllDirtyRecursive()override;
-	virtual void SetOnLayoutChange(bool InTransformChange, bool InPivotChange, bool InSizeChange, bool InDiscardCache)override;
 	/** Called by LGUICanvas when begin to collect geometry for render */
 	virtual void UpdateGeometry() {};
 
