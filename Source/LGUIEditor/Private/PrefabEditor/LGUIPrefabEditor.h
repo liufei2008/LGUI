@@ -20,7 +20,8 @@ class ULGUIPrefabHelperObject;
 /**
  * 
  */
-class FLGUIPrefabEditor : public FAssetEditorToolkit, public FGCObject
+class FLGUIPrefabEditor : public FAssetEditorToolkit
+	, public FGCObject
 {
 public:
 	FLGUIPrefabEditor();

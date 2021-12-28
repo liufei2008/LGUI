@@ -29,14 +29,14 @@ struct LGUI_API FLGUISubPrefabData
 	GENERATED_BODY()
 public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefab* PrefabAsset;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefabOverrideParameterObject* OverrideParameterObject;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<uint8> OverrideParameterData;
 };
 
 /**
  * Similar to Unity3D's Prefab. store actor and it's hierarchy and serailize to asset, deserialize and restore when need.
  */
-UCLASS(ClassGroup = (LGUI), BlueprintType, EditInlineNew)
+UCLASS(ClassGroup = (LGUI), BlueprintType, NotBlueprintable)
 class LGUI_API ULGUIPrefab : public UObject
 {
 	GENERATED_BODY()
@@ -91,8 +91,8 @@ public:
 		class UThumbnailInfo* ThumbnailInfo;
 	UPROPERTY(Transient)
 		bool ThumbnailDirty = false;
-	//UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
+	//UPROPERTY()
 		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 #endif
 public:
@@ -130,11 +130,11 @@ public:
 	 */
 	AActor* LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
 		, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-		, const TArray<uint8>& InOverrideParameterData, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject>& OutOverrideParameterObject
+		, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
 	);
 	void SavePrefab(AActor* RootActor
 		, TMap<TWeakObjectPtr<UObject>, FGuid>& InOutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
-		, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
 		, bool InForEditorOrRuntimeUse = true
 	);
 	void SavePrefabForRuntime(AActor* RootActor, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap);

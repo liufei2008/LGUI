@@ -38,7 +38,7 @@ public:
 #if WITH_EDITORONLY_DATA
 public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefabHelperObject* PrefabHelperObject;
+		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 	FColor IdentityColor = FColor::Black;
 	bool IsRandomColor = true;
 	bool AutoDestroyLoadedActors = true;

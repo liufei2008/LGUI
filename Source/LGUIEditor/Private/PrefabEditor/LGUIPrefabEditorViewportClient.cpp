@@ -46,9 +46,9 @@ FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPrev
 	GEditor->SelectNone(true, true);
 
 	// The level editor fully supports mode tools and isn't doing any incompatible stuff with the Widget
-	ModeTools->SetWidgetMode(FWidget::WM_Translate);
-	Widget->SetUsesEditorModeTools(ModeTools);
-	((FAssetEditorModeManager*)ModeTools)->SetPreviewScene(PreviewScene);
+	//ModeTools->SetWidgetMode(FWidget::WM_Translate);
+	//Widget->SetUsesEditorModeTools(ModeTools);
+	//((FAssetEditorModeManager*)ModeTools)->SetPreviewScene(PreviewScene);
 
 	// GEditorModeTools serves as our draw helper
 	bUsesDrawHelper = false;
@@ -136,29 +136,29 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 	}
 
 
-	const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
-	if (!ModeTools->HandleClick(this, HitProxy, Click))
-	{
-		if (HitProxy == NULL)
-		{
-			GEditor->SelectNone(true, true);
-			//SetWidgetMode(FWidget::WM_None);
-			return;
-		}
-		if (HitProxy->IsA(HActor::StaticGetType()))
-		{
-			HActor* ActorHitProxy = (HActor*)HitProxy;
-			AActor* Actor = ActorHitProxy->Actor;
-			while (Actor->IsChildActor())
-			{
-				Actor = Actor->GetParentActor();
-			}
-			if (Click.GetKey() == EKeys::LeftMouseButton && Actor)
-			{
-				SetWidgetMode(FWidget::WM_Translate);
-			}
-		}
-	}
+	//const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
+	//if (!ModeTools->HandleClick(this, HitProxy, Click))
+	//{
+	//	if (HitProxy == NULL)
+	//	{
+	//		GEditor->SelectNone(true, true);
+	//		//SetWidgetMode(FWidget::WM_None);
+	//		return;
+	//	}
+	//	if (HitProxy->IsA(HActor::StaticGetType()))
+	//	{
+	//		HActor* ActorHitProxy = (HActor*)HitProxy;
+	//		AActor* Actor = ActorHitProxy->Actor;
+	//		while (Actor->IsChildActor())
+	//		{
+	//			Actor = Actor->GetParentActor();
+	//		}
+	//		if (Click.GetKey() == EKeys::LeftMouseButton && Actor)
+	//		{
+	//			SetWidgetMode(FWidget::WM_Translate);
+	//		}
+	//	}
+	//}
 
 }
 
@@ -340,24 +340,24 @@ void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventSt
 {
 	//@TODO: Should push this into FEditorViewportClient
 	// Begin transacting.  Give the current editor mode an opportunity to do the transacting.
-	const bool bTrackingHandledExternally = ModeTools->StartTracking(this, Viewport);
+	//const bool bTrackingHandledExternally = ModeTools->StartTracking(this, Viewport);
 
-	if (!bManipulating && !bTrackingHandledExternally)
-	{
-		BeginTransaction(LOCTEXT("ModificationInViewportTransaction", "Modification in Viewport"));
-		bManipulating = true;
-	}
+	//if (!bManipulating && !bTrackingHandledExternally)
+	//{
+	//	BeginTransaction(LOCTEXT("ModificationInViewportTransaction", "Modification in Viewport"));
+	//	bManipulating = true;
+	//}
 }
 void FLGUIPrefabEditorViewportClient::TrackingStopped()
 {
 	// Stop transacting.  Give the current editor mode an opportunity to do the transacting.
-	const bool bTransactingHandledByEditorMode = ModeTools->EndTracking(this, Viewport);
+	//const bool bTransactingHandledByEditorMode = ModeTools->EndTracking(this, Viewport);
 
-	if (bManipulating && !bTransactingHandledByEditorMode)
-	{
-		EndTransaction();
-		bManipulating = false;
-	}
+	//if (bManipulating && !bTransactingHandledByEditorMode)
+	//{
+	//	EndTransaction();
+	//	bManipulating = false;
+	//}
 }
 
 void FLGUIPrefabEditorViewportClient::BeginTransaction(const FText& SessionName)

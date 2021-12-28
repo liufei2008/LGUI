@@ -53,7 +53,7 @@ void ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 		{
 			if (KeyValue.Value.PrefabAsset == InSubPrefab)
 			{
-				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->PrefabHelperObject->PrefabOverrideParameterObject.Get()))
+				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->PrefabHelperObject->PrefabOverrideParameterObject))
 				{
 					AnythingChange = true;
 				}
@@ -114,7 +114,7 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 			bool AnythingChange = false;
 			for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
 			{
-				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(KeyValue.Value.PrefabAsset->PrefabHelperObject->PrefabOverrideParameterObject.Get()))
+				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(KeyValue.Value.PrefabAsset->PrefabHelperObject->PrefabOverrideParameterObject))
 				{
 					AnythingChange = true;
 				}
@@ -296,7 +296,7 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 #if WITH_EDITOR
 AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
 	, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-	, const TArray<uint8>& InOverrideParameterData, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject>& OutOverrideParameterObject
+	, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
 )
 {
 	AActor* LoadedRootActor = nullptr;
@@ -324,7 +324,7 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 
 void ULGUIPrefab::SavePrefab(AActor* RootActor
 	, TMap<TWeakObjectPtr<UObject>, FGuid>& InOutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
-	, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+	, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
 	, bool InForEditorOrRuntimeUse
 )
 {
@@ -343,7 +343,7 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 		TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
 		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
 		TArray<uint8> TempOverrideParameterData;
-		TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
+		ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
 		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this
 			, InParent, MapGuidToObject, SubPrefabMap
 			, TempOverrideParameterData, OverrideParameterObject

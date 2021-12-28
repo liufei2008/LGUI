@@ -74,7 +74,6 @@ void UUIText::ApplyRecreateText()
 {
 	if (IsValid(font))
 	{
-		bTextLayoutDirty = true;
 		CacheTextGeometryData.MarkDirty();
 		MarkVertexPositionDirty();
 	}
@@ -169,7 +168,6 @@ void UUIText::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDisca
     Super::OnAnchorChange(InPivotChange, InSizeChange, InDiscardCache);
     if (InPivotChange || InSizeChange)
     {
-		bTextLayoutDirty = true;
         MarkVertexPositionDirty();
         MarkUVDirty();
     }
@@ -293,7 +291,6 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 			UUIText::CurrentFontSize = size;
 		}
 	}
-	bTextLayoutDirty = true;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 void UUIText::EditorForceUpdateImmediately()
@@ -310,7 +307,6 @@ void UUIText::EditorForceUpdateImmediately()
 			bHasAddToFont = true;
 		}
 	}
-	bTextLayoutDirty = true;
 }
 void UUIText::OnPreChangeFontProperty()
 {
@@ -348,7 +344,7 @@ void UUIText::SetFont(ULGUIFontData_BaseObject* newFont) {
 			bHasAddToFont = false;
 		}
 		font = newFont;
-		bTextLayoutDirty = true;
+
 		MarkTextureDirty();
 		//add to new
 		if (IsValid(font))
@@ -362,9 +358,6 @@ void UUIText::SetText(const FText& newText) {
 	if (!text.EqualTo(newText))
 	{
 		text = newText;
-
-		bTextLayoutDirty = true;
-		MarkCanvasUpdate();
 
 		int newVisibleCharCount = VisibleCharCountInString(text.ToString());
 		if (newVisibleCharCount != visibleCharCount)//visible char count change
@@ -385,7 +378,6 @@ void UUIText::SetFontSize(float newSize) {
 	newSize = FMath::Clamp(newSize, 0.0f, 200.0f);
 	if (size != newSize)
 	{
-		bTextLayoutDirty = true;
 		MarkVertexPositionDirty();
 		size = newSize;
 	}
@@ -393,7 +385,6 @@ void UUIText::SetFontSize(float newSize) {
 void UUIText::SetFontSpace(FVector2D newSpace) {
 	if (space != newSpace)
 	{
-		bTextLayoutDirty = true;
 		MarkVertexPositionDirty();
 		space = newSpace;
 	}
@@ -401,7 +392,6 @@ void UUIText::SetFontSpace(FVector2D newSpace) {
 void UUIText::SetParagraphHorizontalAlignment(UITextParagraphHorizontalAlign newHAlign) {
 	if (hAlign != newHAlign)
 	{
-		bTextLayoutDirty = true;
 		MarkVertexPositionDirty();
 		hAlign = newHAlign;
 	}
@@ -409,7 +399,6 @@ void UUIText::SetParagraphHorizontalAlignment(UITextParagraphHorizontalAlign new
 void UUIText::SetParagraphVerticalAlignment(UITextParagraphVerticalAlign newVAlign) {
 	if (vAlign != newVAlign)
 	{
-		bTextLayoutDirty = true;
 		MarkVertexPositionDirty();
 		vAlign = newVAlign;
 	}
@@ -417,7 +406,6 @@ void UUIText::SetParagraphVerticalAlignment(UITextParagraphVerticalAlign newVAli
 void UUIText::SetOverflowType(UITextOverflowType newOverflowType) {
 	if (overflowType != newOverflowType)
 	{
-		bTextLayoutDirty = true;
 		if (overflowType == UITextOverflowType::ClampContent
 			|| newOverflowType == UITextOverflowType::ClampContent
 			)
@@ -430,7 +418,6 @@ void UUIText::SetOverflowType(UITextOverflowType newOverflowType) {
 void UUIText::SetAdjustWidth(bool newAdjustWidth) {
 	if (adjustWidth != newAdjustWidth)
 	{
-		bTextLayoutDirty = true;
 		adjustWidth = newAdjustWidth;
 		MarkVertexPositionDirty();
 	}
@@ -438,7 +425,6 @@ void UUIText::SetAdjustWidth(bool newAdjustWidth) {
 void UUIText::SetAdjustHeight(bool newAdjustHeight) {
 	if (adjustHeight != newAdjustHeight)
 	{
-		bTextLayoutDirty = true;
 		adjustHeight = newAdjustHeight;
 		MarkVertexPositionDirty();
 	}
@@ -462,7 +448,6 @@ void UUIText::SetRichText(bool newRichText)
 {
 	if (richText != newRichText)
 	{
-		bTextLayoutDirty = true;
 		MarkTriangleDirty();
 		richText = newRichText;
 	}
@@ -517,6 +502,31 @@ bool UUIText::UpdateCacheTextGeometry()
 	}
 	CacheTextGeometryData.ConditaionalCalculateGeometry();
 	return true;
+}
+
+void UUIText::MarkVertexPositionDirty()
+{
+	bTextLayoutDirty = true;
+	CacheTextGeometryData.MarkDirty();
+	Super::MarkVertexPositionDirty();
+}
+void UUIText::MarkUVDirty()
+{
+	bTextLayoutDirty = true;
+	CacheTextGeometryData.MarkDirty();
+	Super::MarkUVDirty();
+}
+void UUIText::MarkTriangleDirty()
+{
+	bTextLayoutDirty = true;
+	CacheTextGeometryData.MarkDirty();
+	Super::MarkTriangleDirty();
+}
+void UUIText::MarkTextureDirty()
+{
+	bTextLayoutDirty = true;
+	CacheTextGeometryData.MarkDirty();
+	Super::MarkTextureDirty();
 }
 
 void UUIText::MarkAllDirtyRecursive()

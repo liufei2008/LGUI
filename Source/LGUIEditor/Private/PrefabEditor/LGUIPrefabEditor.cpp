@@ -51,7 +51,6 @@ FLGUIPrefabEditor::FLGUIPrefabEditor()
 	:PreviewScene(FLGUIPrefabPreviewScene::ConstructionValues().AllowAudioPlayback(true).ShouldSimulatePhysics(false).SetEditor(true))
 {
 	PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this->GetWorld());
-	PrefabHelperObject->AddToRoot();
 	PrefabHelperObject->bIsInsidePrefabEditor = true;
 	LGUIPrefabEditorInstanceCollection.Add(this);
 }
@@ -60,17 +59,8 @@ FLGUIPrefabEditor::~FLGUIPrefabEditor()
 	FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(this->OnObjectPropertyChangedDelegateHandle);
 	FCoreUObjectDelegates::OnPreObjectPropertyChanged.Remove(this->OnPreObjectPropertyChangedDelegateHandle);
 
-	for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
-	{
-		if (KeyValue.Value.OverrideParameterObject.IsValid())
-		{
-			KeyValue.Value.OverrideParameterObject->RemoveFromRoot();
-			KeyValue.Value.OverrideParameterObject->ConditionalBeginDestroy();
-		}
-	}
-
-	PrefabHelperObject->RemoveFromRoot();
-	PrefabHelperObject->ConditionalBeginDestroy();
+	PrefabHelperObject->MarkPendingKill();
+	PrefabHelperObject = nullptr;
 
 	LGUIPrefabEditorInstanceCollection.Remove(this);
 }
@@ -96,7 +86,7 @@ void FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 		{
 			if (KeyValue.Value.PrefabAsset == InSubPrefab)
 			{
-				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->PrefabHelperObject->PrefabOverrideParameterObject.Get()))
+				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->PrefabHelperObject->PrefabOverrideParameterObject))
 				{
 					AnythingChange = true;
 				}
@@ -244,7 +234,7 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	DetailsPtr = SNew(SLGUIPrefabEditorDetails, PrefabEditorPtr);
 
 	OverrideParameterPtr = SNew(SLGUIPrefabOverrideParameterEditor, PrefabEditorPtr);
-	OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject.Get(), PrefabHelperObject->LoadedRootActor.Get());
+	OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject, PrefabHelperObject->LoadedRootActor.Get());
 	OverrideParameterPtr->SetTipText(PrefabHelperObject->LoadedRootActor->GetActorLabel());
 
 	PrefabRawDataViewer = SNew(SLGUIPrefabRawDataViewer, PrefabEditorPtr, PrefabBeingEdited);
@@ -350,9 +340,8 @@ void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSel
 		if (PrefabHelperObject->SubPrefabMap.Contains(Item))
 		{
 			auto& SubPrefabData = PrefabHelperObject->SubPrefabMap[Item];
-			if (SubPrefabData.OverrideParameterObject.IsValid())
+			if (IsValid(SubPrefabData.OverrideParameterObject))
 			{
-				SubPrefabData.OverrideParameterObject->RemoveFromRoot();
 				SubPrefabData.OverrideParameterObject->ConditionalBeginDestroy();
 			}
 			PrefabHelperObject->SubPrefabMap.Remove(Item);
@@ -410,6 +399,7 @@ void FLGUIPrefabEditor::OnOpenRawDataViewerPanel()
 void FLGUIPrefabEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
 	Collector.AddReferencedObject(PrefabBeingEdited);
+	Collector.AddReferencedObject(PrefabHelperObject);
 }
 
 bool FLGUIPrefabEditor::CheckBeforeSaveAsset()
@@ -587,13 +577,13 @@ void FLGUIPrefabEditor::OnOutlinerPickedChanged(AActor* Actor)
 	if (PrefabHelperObject->SubPrefabMap.Contains(Actor))
 	{
 		PrefabHelperObject->SubPrefabMap[Actor].OverrideParameterObject->SetParameterDisplayType(false);
-		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->SubPrefabMap[Actor].OverrideParameterObject.Get(), Actor);
+		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->SubPrefabMap[Actor].OverrideParameterObject, Actor);
 		OverrideParameterPtr->SetTipText(Actor->GetActorLabel());
 	}
 	else if (Actor == PrefabHelperObject->LoadedRootActor)
 	{
 		PrefabHelperObject->PrefabOverrideParameterObject->SetParameterDisplayType(true);
-		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject.Get(), Actor);
+		OverrideParameterPtr->SetTargetObject(PrefabHelperObject->PrefabOverrideParameterObject, Actor);
 		OverrideParameterPtr->SetTipText(Actor->GetActorLabel());
 	}
 }
@@ -818,14 +808,14 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 			{
 				TMap<FGuid, TWeakObjectPtr<UObject>> SubPrefabMapGuidToObject;
 				TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubSubPrefabMap;
-				TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> SubPrefabOverrideParameterObject = nullptr;
+				ULGUIPrefabOverrideParameterObject* SubPrefabOverrideParameterObject = nullptr;
 				auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabForEdit(GetPreviewScene().GetWorld()
 					, CurrentSelectedActor->GetRootComponent()
 					, SubPrefabMapGuidToObject, SubSubPrefabMap
 					, PrefabAsset->OverrideParameterData, SubPrefabOverrideParameterObject
 				);
 
-				MakePrefabAsSubPrefab(PrefabAsset, LoadedSubPrefabRootActor, SubPrefabOverrideParameterObject.Get());
+				MakePrefabAsSubPrefab(PrefabAsset, LoadedSubPrefabRootActor, SubPrefabOverrideParameterObject);
 			}
 
 			if (OutlinerPtr.IsValid())
@@ -847,7 +837,6 @@ void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InA
 	{
 		InOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(InPrefab);
 	}
-	InOverrideParameterObject->AddToRoot();
 	SubPrefabData.OverrideParameterObject = InOverrideParameterObject;
 	SubPrefabData.OverrideParameterData = InPrefab->OverrideParameterData;
 	TArray<AActor*> ChildrenActors;

@@ -23,7 +23,7 @@ namespace LGUIPrefabSystem3
 {
 	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 		, TMap<TWeakObjectPtr<UObject>, FGuid>& InOutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
-		, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
 		, bool InForEditorOrRuntimeUse
 	)
 	{
@@ -47,7 +47,7 @@ namespace LGUIPrefabSystem3
 		}
 		for (auto& KeyValue : InSubPrefabMap)
 		{
-			if (KeyValue.Key.IsValid() && KeyValue.Value.OverrideParameterObject.IsValid())
+			if (KeyValue.Key.IsValid() && IsValid(KeyValue.Value.OverrideParameterObject))
 			{
 				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
 			}
@@ -122,8 +122,7 @@ namespace LGUIPrefabSystem3
 					ChildActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
 				}
 				//serialize override parameter object
-				check(SubPrefabDataPtr->OverrideParameterObject.IsValid());
-				WriterOrReaderFunction(SubPrefabDataPtr->OverrideParameterObject.Get(), ChildActorSaveData.PrefabOverrideParameterData, false);
+				WriterOrReaderFunction(SubPrefabDataPtr->OverrideParameterObject, ChildActorSaveData.PrefabOverrideParameterData, false);
 				ChildSaveDataList.Add(ChildActorSaveData);
 			}
 			else
@@ -152,9 +151,9 @@ namespace LGUIPrefabSystem3
 		FLGUIPrefabSaveData SaveData;
 		SerializeActorToData(RootActor, SaveData);
 		//serialize override parameter object
-		if (OverrideParameterObject.IsValid())
+		if (IsValid(OverrideParameterObject))
 		{
-			WriterOrReaderFunction(OverrideParameterObject.Get(), OverrideParameterData, false);
+			WriterOrReaderFunction(OverrideParameterObject, OverrideParameterData, false);
 		}
 
 		FBufferArchive ToBinary;

@@ -3,6 +3,7 @@
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
 #include "AssetRegistryModule.h"
 
 #include "LGUIEditorModule.h"
@@ -60,6 +61,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			[
 				SNew(SBox)
 				.VAlign(EVerticalAlignment::VAlign_Center)
+				.Padding(FMargin(4, 2))
 				[
 					SNew(STextBlock)
 					.Text(this, &FLGUIPrefabCustomization::GetEngineVersionText)
@@ -104,6 +106,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			[
 				SNew(SBox)
 				.VAlign(EVerticalAlignment::VAlign_Center)
+				.Padding(FMargin(4, 2))
 				[
 					SNew(STextBlock)
 					.Text(this, &FLGUIPrefabCustomization::GetPrefabVersionText)
@@ -152,7 +155,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			[
 				SNew(SBox)
 				.VAlign(EVerticalAlignment::VAlign_Center)
-				.Padding(FMargin(2, 2))
+				.Padding(FMargin(4, 2))
 				[
 					SNew(STextBlock)
 					.Text(this, &FLGUIPrefabCustomization::AgentObjectText)
@@ -170,7 +173,7 @@ void FLGUIPrefabCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 				.Visibility(this, &FLGUIPrefabCustomization::ShouldShowFixAgentObjectsButton)
 			]
 		]
-		;
+	;
 	category.AddCustomRow(LOCTEXT("AdditionalButton", "Additional Button"), true)
 		.WholeRowContent()
 		[
@@ -305,7 +308,7 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentObjectsButton()const
 	if (TargetScriptPtr.IsValid())
 	{
 		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
-			&& (!TargetScriptPtr->PrefabHelperObject->LoadedRootActor.IsValid() || !TargetScriptPtr->PrefabHelperObject->PrefabOverrideParameterObject.IsValid())
+			&& (!TargetScriptPtr->PrefabHelperObject->LoadedRootActor.IsValid() || !IsValid(TargetScriptPtr->PrefabHelperObject->PrefabOverrideParameterObject))
 			)
 		{
 			return EVisibility::Visible;
@@ -323,7 +326,7 @@ FText FLGUIPrefabCustomization::AgentObjectText()const
 	if (TargetScriptPtr.IsValid())
 	{
 		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
-			&& (!TargetScriptPtr->PrefabHelperObject->LoadedRootActor.IsValid() || !TargetScriptPtr->PrefabHelperObject->PrefabOverrideParameterObject.IsValid())
+			&& (!TargetScriptPtr->PrefabHelperObject->LoadedRootActor.IsValid() || !IsValid(TargetScriptPtr->PrefabHelperObject->PrefabOverrideParameterObject))
 			)
 		{
 			return LOCTEXT("AgentObjectNotValid", "NotValid");
@@ -400,7 +403,7 @@ void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World
 {
 	TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
 	TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-	TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
+	ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
 	auto RootActor= Prefab->LoadPrefabForEdit(World, nullptr
 		, MapGuidToObject, SubPrefabMap
 		, Prefab->OverrideParameterData, OverrideParameterObject

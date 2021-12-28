@@ -1605,7 +1605,7 @@ void LGUIEditorTools::UpgradeSelectedPrefabToLGUI3()
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 			TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
 			TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-			TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
+			ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
 			auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
 				, MapGuidToObject, SubPrefabMap
 				, Prefab->OverrideParameterData, OverrideParameterObject
@@ -1664,7 +1664,7 @@ void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
 				auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 				TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
 				TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-				TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
+				ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
 				auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
 					, MapGuidToObject, SubPrefabMap
 					, Prefab->OverrideParameterData, OverrideParameterObject
@@ -1921,6 +1921,28 @@ void LGUIEditorTools::UpgradeCommonProperty(FProperty* PropertyItem, uint8* InCo
 		for (int i = 0; i < count; i++)
 		{
 			UpgradeCommonProperty(setProperty->ElementProp, SetHelper.GetElementPtr(i));
+		}
+	}
+	else if (CastField<FClassProperty>(PropertyItem) != nullptr || CastField<FSoftClassProperty>(PropertyItem) != nullptr)//skip class property
+	{
+		
+	}
+	else if (auto objProperty = CastField<FObjectPropertyBase>(PropertyItem))
+	{
+		if (auto object = objProperty->GetObjectPropertyValue_InContainer(InContainerPtr))
+		{
+			if (object->IsAsset() || object->IsA(UClass::StaticClass()))
+			{
+
+			}
+			else if (object->GetClass()->IsChildOf(AActor::StaticClass()) || object->GetClass()->IsChildOf(UActorComponent::StaticClass()))
+			{
+
+			}
+			else if (objProperty->HasAnyPropertyFlags(CPF_InstancedReference))
+			{
+				UpgradeObjectProperty(object);
+			}
 		}
 	}
 }

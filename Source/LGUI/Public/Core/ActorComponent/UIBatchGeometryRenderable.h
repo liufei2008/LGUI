@@ -59,11 +59,12 @@ protected:
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 public:
-	void MarkVertexPositionDirty();
-	void MarkUVDirty();
-	void MarkTriangleDirty();
-	void MarkTextureDirty();
-	void MarkMaterialDirty();
+	//@todo: these MarkXXXDirty function could be combined to single function
+	virtual void MarkVertexPositionDirty();
+	virtual void MarkUVDirty();
+	virtual void MarkTriangleDirty();
+	virtual void MarkTextureDirty();
+	virtual void MarkMaterialDirty();
     
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);

@@ -26,7 +26,6 @@ UUIBatchGeometryRenderable::UUIBatchGeometryRenderable(const FObjectInitializer&
 void UUIBatchGeometryRenderable::BeginPlay()
 {
 	Super::BeginPlay();
-	MarkCanvasUpdate();
 
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;

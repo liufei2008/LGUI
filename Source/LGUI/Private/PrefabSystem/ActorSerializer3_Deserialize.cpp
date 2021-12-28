@@ -18,7 +18,7 @@ namespace LGUIPrefabSystem3
 {
 	AActor* ActorSerializer3::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-		, const TArray<uint8>& InOverrideParameterData, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject>& OutOverrideParameterObject
+		, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
 	)
 	{
 		ActorSerializer3 serializer(InWorld);
@@ -173,7 +173,7 @@ namespace LGUIPrefabSystem3
 			OverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>((UObject*)(Prefab.IsValid() ? Prefab.Get() : (UObject*)GetTransientPackage()));//prefab is null when use duplicate
 			if (OverrideParameterData.Num() > 0)
 			{
-				WriterOrReaderFunction(OverrideParameterObject.Get(), OverrideParameterData, false);
+				WriterOrReaderFunction(OverrideParameterObject, OverrideParameterData, false);
 			}
 		}
 		if (bApplyOverrideParameters)

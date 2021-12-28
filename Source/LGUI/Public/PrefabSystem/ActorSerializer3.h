@@ -156,13 +156,13 @@ namespace LGUIPrefabSystem3
 		 */
 		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-			, const TArray<uint8>& InOverrideParameterData, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject>& OutOverrideParameterObject
+			, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
 		);
 
 		/** Save prefab data for editor use. */
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 			, TMap<TWeakObjectPtr<UObject>, FGuid>& OutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
-			, TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+			, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
 			, bool InForEditorOrRuntimeUse
 		);
 		
@@ -194,7 +194,7 @@ namespace LGUIPrefabSystem3
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
 
-		TWeakObjectPtr<ULGUIPrefabOverrideParameterObject> OverrideParameterObject = nullptr;
+		ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
 		TArray<uint8> OverrideParameterData;
 
 		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
