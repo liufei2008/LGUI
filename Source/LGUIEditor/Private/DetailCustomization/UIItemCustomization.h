@@ -46,6 +46,7 @@ private:
 	void OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex);
 	void OnAnchorSliderSliderMovementBegin();
 	EVisibility GetAnchorPresetButtonVisibility()const;
+	bool IsAnchorValueEnable(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const;
 
 	FReply OnClickIncreaseOrDecreaseHierarchyIndex(bool IncreaseOrDecrease);
 

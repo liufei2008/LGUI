@@ -276,7 +276,7 @@ namespace LGUISceneOutliner
 			{
 				if (PrefabHelperObject->bIsInsidePrefabEditor)
 				{
-					if (PrefabHelperObject->SubPrefabMap.Contains(actor))//is sub prefab
+					if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
 					{
 						return EVisibility::Visible;
 					}

@@ -58,6 +58,7 @@ FLGUIPrefabEditor::~FLGUIPrefabEditor()
 {
 	FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(this->OnObjectPropertyChangedDelegateHandle);
 	FCoreUObjectDelegates::OnPreObjectPropertyChanged.Remove(this->OnPreObjectPropertyChangedDelegateHandle);
+	FCoreUObjectDelegates::OnObjectModified.Remove(this->OnObjectModifiedDelegateHandle);
 
 	PrefabHelperObject->MarkPendingKill();
 	PrefabHelperObject = nullptr;
@@ -289,11 +290,11 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
 
-	FEditorDelegates::ActorPropertiesChange.AddLambda([] {
-		UE_LOG(LogTemp, Error, TEXT(""));
-		});
 	this->OnObjectPropertyChangedDelegateHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddRaw(this, &FLGUIPrefabEditor::OnObjectPropertyChanged);
 	this->OnPreObjectPropertyChangedDelegateHandle = FCoreUObjectDelegates::OnPreObjectPropertyChanged.AddRaw(this, &FLGUIPrefabEditor::OnPreObjectPropertyChanged);
+	this->OnObjectModifiedDelegateHandle = FCoreUObjectDelegates::OnObjectModified.AddRaw(this, &FLGUIPrefabEditor::OnObjectModified);
+	GEngine->OnLevelActorAttached().AddSP(this, &FLGUIPrefabEditor::OnLevelActorAttached);
+	GEngine->OnLevelActorDetached().AddSP(this, &FLGUIPrefabEditor::OnLevelActorDetached);
 }
 
 void FLGUIPrefabEditor::ApplySubPrefabParameterChange(AActor* InSubPrefabActor)
@@ -715,6 +716,18 @@ void FLGUIPrefabEditor::OnObjectPropertyChanged(UObject* InObject, struct FPrope
 }
 void FLGUIPrefabEditor::OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain)
 {
+	
+}
+void FLGUIPrefabEditor::OnObjectModified(UObject* InObject)
+{
+
+}
+void FLGUIPrefabEditor::OnLevelActorAttached(AActor* Actor, const AActor* AttachTo)
+{
+
+}
+void FLGUIPrefabEditor::OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom)
+{
 
 }
 
@@ -844,10 +857,10 @@ void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InA
 	SubPrefabData.OverrideParameterData = InPrefab->OverrideParameterData;
 	TArray<AActor*> ChildrenActors;
 	LGUIUtils::CollectChildrenActors(InActor, ChildrenActors, false);
-	for (auto& Actor : ChildrenActors)
-	{
-		ULGUIPrefabHelperObject::SetActorPropertyInOutliner(Actor, false);
-	}
+	//for (auto& Actor : ChildrenActors)
+	//{
+	//	ULGUIPrefabHelperObject::SetActorPropertyInOutliner(Actor, false);
+	//}
 
 	PrefabHelperObject->SubPrefabMap.Add(InActor, SubPrefabData);
 

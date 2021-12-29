@@ -58,15 +58,15 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 			}
 		}
 		//Make subprefab's actor invisible
-		TArray<AActor*> AllChildrenActorArray;
-		LGUIUtils::CollectChildrenActors(LoadedRootActor.Get(), AllChildrenActorArray, true);
-		for (auto ActorItem : AllChildrenActorArray)
-		{
-			if (!AllLoadedActorArray.Contains(ActorItem))
-			{
-				SetActorPropertyInOutliner(ActorItem, false);
-			}
-		}
+		//TArray<AActor*> AllChildrenActorArray;
+		//LGUIUtils::CollectChildrenActors(LoadedRootActor.Get(), AllChildrenActorArray, true);
+		//for (auto ActorItem : AllChildrenActorArray)
+		//{
+		//	if (!AllLoadedActorArray.Contains(ActorItem))
+		//	{
+		//		SetActorPropertyInOutliner(ActorItem, false);
+		//	}
+		//}
 	}
 }
 
@@ -90,6 +90,41 @@ void ULGUIPrefabHelperObject::ClearLoadedPrefab()
 	MapGuidToObject.Empty();
 	SubPrefabMap.Empty();
 	AllLoadedActorArray.Empty();
+}
+
+bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(AActor* InActor)
+{
+	for (auto& KeyValue : SubPrefabMap)
+	{
+		if (InActor == KeyValue.Key.Get())
+		{
+			return true;
+		}
+		if (InActor->IsAttachedTo(KeyValue.Key.Get()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ULGUIPrefabHelperObject::IsActorBelongsToThis(AActor* InActor, bool InCludeSubPrefab)
+{
+	if (this->AllLoadedActorArray.Contains(InActor))
+	{
+		if (this->LoadedRootActor.IsValid())
+		{
+			if (InActor->IsAttachedTo(LoadedRootActor.Get()) || InActor == LoadedRootActor)
+			{
+				return true;
+			}
+		}
+	}
+	if (InCludeSubPrefab)
+	{
+		return IsActorBelongsToSubPrefab(InActor);
+	}
+	return false;
 }
 
 void ULGUIPrefabHelperObject::SavePrefab()
@@ -137,12 +172,12 @@ void ULGUIPrefabHelperObject::UnlinkSubPrefab(AActor* InSubPrefabActor)
 {
 	check(SubPrefabMap.Contains(InSubPrefabActor));
 	SubPrefabMap.Remove(InSubPrefabActor);
-	TArray<AActor*> ChildrenActors;
-	LGUIUtils::CollectChildrenActors(InSubPrefabActor, ChildrenActors, false);
-	for (auto Actor : ChildrenActors)
-	{
-		SetActorPropertyInOutliner(Actor, true);
-	}
+	//TArray<AActor*> ChildrenActors;
+	//LGUIUtils::CollectChildrenActors(InSubPrefabActor, ChildrenActors, false);
+	//for (auto Actor : ChildrenActors)
+	//{
+	//	SetActorPropertyInOutliner(Actor, true);
+	//}
 }
 
 void ULGUIPrefabHelperObject::UnlinkPrefab(AActor* InPrefabActor)

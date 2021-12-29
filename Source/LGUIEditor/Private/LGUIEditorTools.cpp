@@ -1010,15 +1010,9 @@ ULGUIPrefabHelperObject* LGUIEditorTools::GetPrefabHelperObject_WhichManageThisA
 	if (!IsValid(InActor))return nullptr;
 	for (TObjectIterator<ULGUIPrefabHelperObject> Itr; Itr; ++Itr)
 	{
-		if (Itr->AllLoadedActorArray.Contains(InActor))
+		if (Itr->IsActorBelongsToThis(InActor, true))
 		{
-			if (auto LoadedRootActor = Itr->LoadedRootActor.Get())
-			{
-				if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
-				{
-					return *Itr;
-				}
-			}
+			return *Itr;
 		}
 	}
 	return nullptr;

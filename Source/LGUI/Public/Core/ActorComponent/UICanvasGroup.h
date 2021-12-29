@@ -46,7 +46,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bInteractable = true;
 	/**
-	 * Will this group also be affected by the settings in UICanvasGroup components further up in the Game Object hierarchy, or will it ignore those and hence override them?
+	 * Will this group also be affected by the settings in UICanvasGroup components further up in the Actor hierarchy, or will it ignore those and hence override them?
 	 */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		bool bIgnoreParentGroup = false;

@@ -135,6 +135,8 @@ public:
 	 *		1. Commonly material & texture change and UI item's active state change
 	 *		2. Transform & vertex position change, drawcall could overlap with eachother
 	 *		3. Hierarchy order change, this is directly related to render order
+	 * And about drawcall's rebuild, it's not actually force rebuild, it will check and reuse prev drawcall if possible.
+	 * @param	bForceRebuildDrawcall	Mark it rebuild no matter what parameter change.
 	 */
 	void MarkCanvasUpdate(bool bMaterialOrTextureChanged, bool bTransformOrVertexPositionChanged, bool bHierarchyOrderChanged, bool bForceRebuildDrawcall = false);
 
@@ -472,14 +474,14 @@ private:
 	FMatrix OverrideProjectionMatrix;
 
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool @todo: make it useful
+	TArray<TWeakObjectPtr<ULGUIMeshComponent>> PooledUIMeshList;//unuse UIMesh pool. PooledUIMeshList is managed by actual render canvas.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list
+	TArray<TWeakObjectPtr<ULGUIMeshComponent>> UsingUIMeshList;//current using UIMesh list. UsingUIMeshList is managed by actual render canvas.
 	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
-	TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool
-	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas
-	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection
-	TArray<UUIItem*> UIRenderableList;
+	TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool. PooledMaterialList is managed by self canvas, not the actual render canvas.
+	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas. UIDrawcallList is managed by actual render canvas.
+	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection. CacheUIDrawcallList is managed by actual render canvas.
+	TArray<UUIItem*> UIRenderableList;//UIRenderableList is managed by self canvas, not the actual render canvas.
 
 	/** rect clip's min position */
 	FVector2D clipRectMin = FVector2D(0, 0);

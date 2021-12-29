@@ -105,6 +105,6 @@ private:
 	uint8 bUVChanged:1;
 	/** triangle index change */
 	uint8 bTriangleChanged:1;
-	FVector2D LocalMinPoint = FVector2D(-50, -50), LocalMaxPoint = FVector2D(50, 50);
+	FVector2D LocalMinPoint = FVector2D(0, 0), LocalMaxPoint = FVector2D(0, 0);
 	void CalculateLocalBounds();
 };

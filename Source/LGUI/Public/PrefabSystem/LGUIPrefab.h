@@ -137,6 +137,9 @@ public:
 		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
 		, bool InForEditorOrRuntimeUse = true
 	);
+	/**
+	 * @todo: There is a more efficient way for dealing with sub prefab in runtime: break sub prefab and store all actors (with override parameters) in root prefab.
+	 */
 	void SavePrefabForRuntime(AActor* RootActor, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap);
 	/**
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.

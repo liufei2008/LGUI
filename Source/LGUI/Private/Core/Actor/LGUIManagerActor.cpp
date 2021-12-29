@@ -710,14 +710,14 @@ void ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(UWorld* InWorld)
 {
 	if (InitCheck(InWorld))
 	{
-		//Instance->AllActors_PrefabSystemProcessing.Reset();
+		//Instance->AllActors_PrefabSystemProcessing.Reset();//@todo: better to use a stack 
 	}
 }
 void ULGUIEditorManagerObject::EndPrefabSystemProcessingActor()
 {
 	if (Instance != nullptr)
 	{
-		//Instance->AllActors_PrefabSystemProcessing.Reset();
+		//Instance->AllActors_PrefabSystemProcessing.Reset();//@todo: better to use a stack 
 	}
 }
 void ULGUIEditorManagerObject::AddActorForPrefabSystem(AActor* InActor)
@@ -1530,7 +1530,7 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement()
 	auto LGUILifeCycleBehaviourArray = LGUILifeCycleBehaviours_PrefabSystemProcessing.Pop().LGUILifeCycleBehaviourArray;
 	PrefabSystemProcessing_CurrentArrayIndex--;
 
-	for (int i = 0; i < LGUILifeCycleBehaviourArray.Num(); i++)
+	for (int i = LGUILifeCycleBehaviourArray.Num() - 1; i >= 0; i--)//execute from tail to head, when in prefab the deeper and lower in hierarchy will execute earlier
 	{
 		auto item = LGUILifeCycleBehaviourArray[i];
 		if (item.IsValid())

@@ -157,4 +157,8 @@ public:
 				.ColorAndOpacity(FSlateColor::UseForeground())
 			];
 	}
+	static bool IsEnabledOnProperty(TSharedRef<IPropertyHandle> PropertyHandle)
+	{
+		return PropertyHandle->IsEditable();
+	}
 };

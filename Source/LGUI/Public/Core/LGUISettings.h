@@ -89,7 +89,7 @@ public:
 	 * This is the threshold for determine if the UI element is 2D.
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
-		float OrderManagementThreshold = KINDA_SMALL_NUMBER;
+		float OrderManagementThreshold = 0.001f;
 #if WITH_EDITORONLY_DATA
 	static float CacheOrderManagementThreshold;
 #endif

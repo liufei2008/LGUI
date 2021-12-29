@@ -89,6 +89,7 @@ private:
 
 	FDelegateHandle OnObjectPropertyChangedDelegateHandle;
 	FDelegateHandle OnPreObjectPropertyChangedDelegateHandle;
+	FDelegateHandle OnObjectModifiedDelegateHandle;
 	bool bAnythingDirty = false;
 private:
 
@@ -112,4 +113,7 @@ private:
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
+	void OnObjectModified(UObject* InObject);
+	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
+	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
 };

@@ -51,5 +51,7 @@ public:
 	void SavePrefab();
 	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
 	void ClearLoadedPrefab();
+	bool IsActorBelongsToSubPrefab(AActor* InActor);
+	bool IsActorBelongsToThis(AActor* InActor, bool InCludeSubPrefab);
 #endif
 };

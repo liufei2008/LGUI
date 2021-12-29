@@ -1483,24 +1483,27 @@ void UUIItem::SetAnchorLeft(float Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		bAnchorLeftCached = true;
-		CacheAnchorLeft = Value;
-		auto CurrentRight = this->GetAnchorRight();
-		CacheWidth = this->ParentUIItem->GetWidth() * (this->AnchorData.AnchorMax.X - this->AnchorData.AnchorMin.X) - CurrentRight - Value;
-		//SetWdith
+		if (CacheAnchorLeft != Value)
 		{
-			if (AnchorData.IsHorizontalStretched())
+			bAnchorLeftCached = true;
+			CacheAnchorLeft = Value;
+			auto CurrentRight = this->GetAnchorRight();
+			CacheWidth = this->ParentUIItem->GetWidth() * (this->AnchorData.AnchorMax.X - this->AnchorData.AnchorMin.X) - CurrentRight - Value;
+			//SetWdith
 			{
-				auto CalculatedSizeDeltaX = CacheWidth - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
-				AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
+				if (AnchorData.IsHorizontalStretched())
+				{
+					auto CalculatedSizeDeltaX = CacheWidth - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
+					AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
+				}
+				else
+				{
+					AnchorData.SizeDelta.X = CacheWidth;
+				}
 			}
-			else
-			{
-				AnchorData.SizeDelta.X = CacheWidth;
-			}
+			this->AnchorData.AnchoredPosition.X = FMath::Lerp(Value, -CurrentRight, this->AnchorData.Pivot.X);
+			SetOnAnchorChange(false, true);
 		}
-		this->AnchorData.AnchoredPosition.X = FMath::Lerp(Value, -CurrentRight, this->AnchorData.Pivot.X);
-		SetOnAnchorChange(false, true);
 	}
 	else
 	{
@@ -1511,24 +1514,27 @@ void UUIItem::SetAnchorTop(float Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		bAnchorTopCached = true;
-		CacheAnchorTop = Value;
-		auto CurrentBottom = this->GetAnchorBottom();
-		CacheHeight = this->ParentUIItem->GetHeight() * (this->AnchorData.AnchorMax.Y - this->AnchorData.AnchorMin.Y) - Value - CurrentBottom;
-		//SetHeight
+		if (CacheAnchorTop != Value)
 		{
-			if (AnchorData.IsVerticalStretched())
+			bAnchorTopCached = true;
+			CacheAnchorTop = Value;
+			auto CurrentBottom = this->GetAnchorBottom();
+			CacheHeight = this->ParentUIItem->GetHeight() * (this->AnchorData.AnchorMax.Y - this->AnchorData.AnchorMin.Y) - Value - CurrentBottom;
+			//SetHeight
 			{
-				auto CalculatedSizeDeltaY = CacheHeight - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
-				AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
+				if (AnchorData.IsVerticalStretched())
+				{
+					auto CalculatedSizeDeltaY = CacheHeight - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
+					AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
+				}
+				else
+				{
+					AnchorData.SizeDelta.Y = CacheHeight;
+				}
 			}
-			else
-			{
-				AnchorData.SizeDelta.Y = CacheHeight;
-			}
+			this->AnchorData.AnchoredPosition.Y = FMath::Lerp(CurrentBottom, -Value, this->AnchorData.Pivot.Y);
+			SetOnAnchorChange(false, true);
 		}
-		this->AnchorData.AnchoredPosition.Y = FMath::Lerp(CurrentBottom, -Value, this->AnchorData.Pivot.Y);
-		SetOnAnchorChange(false, true);
 	}
 	else
 	{
@@ -1539,24 +1545,27 @@ void UUIItem::SetAnchorRight(float Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		bAnchorRightCached = true;
-		CacheAnchorRight = Value;
-		auto CurrentLeft = this->GetAnchorLeft();
-		CacheWidth = this->ParentUIItem->GetWidth() * (this->AnchorData.AnchorMax.X - this->AnchorData.AnchorMin.X) - Value - CurrentLeft;
-		//SetWdith
+		if (CacheAnchorRight != Value)
 		{
-			if (AnchorData.IsHorizontalStretched())
+			bAnchorRightCached = true;
+			CacheAnchorRight = Value;
+			auto CurrentLeft = this->GetAnchorLeft();
+			CacheWidth = this->ParentUIItem->GetWidth() * (this->AnchorData.AnchorMax.X - this->AnchorData.AnchorMin.X) - Value - CurrentLeft;
+			//SetWdith
 			{
-				auto CalculatedSizeDeltaX = CacheWidth - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
-				AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
+				if (AnchorData.IsHorizontalStretched())
+				{
+					auto CalculatedSizeDeltaX = CacheWidth - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
+					AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
+				}
+				else
+				{
+					AnchorData.SizeDelta.X = CacheWidth;
+				}
 			}
-			else
-			{
-				AnchorData.SizeDelta.X = CacheWidth;
-			}
+			this->AnchorData.AnchoredPosition.X = FMath::Lerp(CurrentLeft, -Value, this->AnchorData.Pivot.X);
+			SetOnAnchorChange(false, true);
 		}
-		this->AnchorData.AnchoredPosition.X = FMath::Lerp(CurrentLeft, -Value, this->AnchorData.Pivot.X);
-		SetOnAnchorChange(false, true);
 	}
 	else
 	{
@@ -1567,24 +1576,27 @@ void UUIItem::SetAnchorBottom(float Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		bAnchorBottomCached = true;
-		CacheAnchorBottom = Value;
-		auto CurrentTop = this->GetAnchorTop();
-		CacheHeight = this->ParentUIItem->GetHeight() * (this->AnchorData.AnchorMax.Y - this->AnchorData.AnchorMin.Y) - CurrentTop - Value;
-		//SetHeight
+		if (CacheAnchorBottom != Value)
 		{
-			if (AnchorData.IsVerticalStretched())
+			bAnchorBottomCached = true;
+			CacheAnchorBottom = Value;
+			auto CurrentTop = this->GetAnchorTop();
+			CacheHeight = this->ParentUIItem->GetHeight() * (this->AnchorData.AnchorMax.Y - this->AnchorData.AnchorMin.Y) - CurrentTop - Value;
+			//SetHeight
 			{
-				auto CalculatedSizeDeltaY = CacheHeight - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
-				AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
+				if (AnchorData.IsVerticalStretched())
+				{
+					auto CalculatedSizeDeltaY = CacheHeight - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
+					AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
+				}
+				else
+				{
+					AnchorData.SizeDelta.Y = CacheHeight;
+				}
 			}
-			else
-			{
-				AnchorData.SizeDelta.Y = CacheHeight;
-			}
+			this->AnchorData.AnchoredPosition.Y = FMath::Lerp(Value, -CurrentTop, this->AnchorData.Pivot.Y);
+			SetOnAnchorChange(false, true);
 		}
-		this->AnchorData.AnchoredPosition.Y = FMath::Lerp(Value, -CurrentTop, this->AnchorData.Pivot.Y);
-		SetOnAnchorChange(false, true);
 	}
 	else
 	{
@@ -1594,17 +1606,28 @@ void UUIItem::SetAnchorBottom(float Value)
 
 void UUIItem::SetWidth(float Value)
 {
-	bWidthCached = true;
-	CacheWidth = Value;
-	if (ParentUIItem.IsValid())
+	if (CacheWidth != Value)
 	{
-		if (AnchorData.IsHorizontalStretched())
+		bWidthCached = true;
+		CacheWidth = Value;
+		if (ParentUIItem.IsValid())
 		{
-			auto CalculatedSizeDeltaX = Value - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
-			if (AnchorData.SizeDelta.X != CalculatedSizeDeltaX)
+			if (AnchorData.IsHorizontalStretched())
 			{
-				AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
-				SetOnAnchorChange(false, true);
+				auto CalculatedSizeDeltaX = Value - (ParentUIItem->GetWidth() * (AnchorData.AnchorMax.X - AnchorData.AnchorMin.X));
+				if (AnchorData.SizeDelta.X != CalculatedSizeDeltaX)
+				{
+					AnchorData.SizeDelta.X = CalculatedSizeDeltaX;
+					SetOnAnchorChange(false, true);
+				}
+			}
+			else
+			{
+				if (AnchorData.SizeDelta.X != Value)
+				{
+					AnchorData.SizeDelta.X = Value;
+					SetOnAnchorChange(false, true);
+				}
 			}
 		}
 		else
@@ -1616,28 +1639,31 @@ void UUIItem::SetWidth(float Value)
 			}
 		}
 	}
-	else
-	{
-		if (AnchorData.SizeDelta.X != Value)
-		{
-			AnchorData.SizeDelta.X = Value;
-			SetOnAnchorChange(false, true);
-		}
-	}
 }
 void UUIItem::SetHeight(float Value)
 {
-	bHeightCached = true;
-	CacheHeight = Value;
-	if (ParentUIItem.IsValid())
+	if (CacheHeight != Value)
 	{
-		if (AnchorData.IsVerticalStretched())
+		bHeightCached = true;
+		CacheHeight = Value;
+		if (ParentUIItem.IsValid())
 		{
-			auto CalculatedSizeDeltaY = Value - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
-			if (AnchorData.SizeDelta.Y != CalculatedSizeDeltaY)
+			if (AnchorData.IsVerticalStretched())
 			{
-				AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
-				SetOnAnchorChange(false, true);
+				auto CalculatedSizeDeltaY = Value - (ParentUIItem->GetHeight() * (AnchorData.AnchorMax.Y - AnchorData.AnchorMin.Y));
+				if (AnchorData.SizeDelta.Y != CalculatedSizeDeltaY)
+				{
+					AnchorData.SizeDelta.Y = CalculatedSizeDeltaY;
+					SetOnAnchorChange(false, true);
+				}
+			}
+			else
+			{
+				if (AnchorData.SizeDelta.Y != Value)
+				{
+					AnchorData.SizeDelta.Y = Value;
+					SetOnAnchorChange(false, true);
+				}
 			}
 		}
 		else
@@ -1647,14 +1673,6 @@ void UUIItem::SetHeight(float Value)
 				AnchorData.SizeDelta.Y = Value;
 				SetOnAnchorChange(false, true);
 			}
-		}
-	}
-	else
-	{
-		if (AnchorData.SizeDelta.Y != Value)
-		{
-			AnchorData.SizeDelta.Y = Value;
-			SetOnAnchorChange(false, true);
 		}
 	}
 }

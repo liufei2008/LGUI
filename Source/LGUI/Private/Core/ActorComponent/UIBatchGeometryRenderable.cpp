@@ -272,7 +272,7 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 			}
 			if (bLocalVertexPositionChanged)
 			{
-				CalculateLocalBounds();
+				CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
 			}
 			if (bLocalVertexPositionChanged || bTransformChanged)
 			{
@@ -303,12 +303,13 @@ bool UUIBatchGeometryRenderable::CreateGeometry()
 		geometry->material = CustomUIMaterial;
 		OnCreateGeometry();
 		ApplyGeometryModifier(true, true, true, true);
-		CalculateLocalBounds();
+		CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
 		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
 		return true;
 	}
 	else
 	{
+		this->LocalMinPoint = this->LocalMaxPoint = FVector2D(0, 0);
 		return false;
 	}
 }

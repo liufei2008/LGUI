@@ -34,6 +34,8 @@ public:
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 
 private:
+	bool IsPropertyReadOnly(const FPropertyAndParent& InPropertyAndParent);
+
 	TSharedPtr<class IDetailsView> DetailsView;
 	TSharedPtr<class SBox> ComponentsBox;
 	TSharedPtr<class SSCSEditor> SCSEditor;

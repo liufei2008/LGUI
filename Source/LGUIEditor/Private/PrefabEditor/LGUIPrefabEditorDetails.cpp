@@ -11,6 +11,7 @@
 #include "Editor/UnrealEdEngine.h"
 #include "Misc/NotifyHook.h"
 #include "LGUIPrefabEditor.h"
+#include "DetailLayoutBuilder.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorDetailTab"
 
@@ -40,15 +41,11 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
     //DetailsViewArgs.HostCommandList = InCommandList;
 
     DetailsView = PropPlugin.CreateDetailView(DetailsViewArgs);
-    //DetailsView->SetIsPropertyReadOnlyDelegate(FIsPropertyReadOnly::CreateSP(this, &SLGUIPrefabEditorDetails::IsPropertyReadOnly));
-
-
-	ComponentsBox = SNew(SBox)
-		.Visibility(EVisibility::Visible);
+    DetailsView->SetIsPropertyReadOnlyDelegate(FIsPropertyReadOnly::CreateSP(this, &SLGUIPrefabEditorDetails::IsPropertyReadOnly));
 
 	SCSEditor = SNew(SSCSEditor)
 		.EditorMode(EComponentEditorMode::ActorInstance)
-		.AllowEditing(true)
+		.AllowEditing(true)//@todo: not allow editing for sub prefab
 		.ActorContext(this, &SLGUIPrefabEditorDetails::GetActorContext)
 		.OnSelectionUpdated(this, &SLGUIPrefabEditorDetails::OnSCSEditorTreeViewSelectionChanged)
 		.OnItemDoubleClicked(this, &SLGUIPrefabEditorDetails::OnSCSEditorTreeViewItemDoubleClicked);
@@ -57,26 +54,39 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 	TSharedPtr<ISCSEditorUICustomization> Customization = MakeShared<LGUISCSEditorUICustomization>();
 	SCSEditor->SetUICustomization(Customization);
 
-	ComponentsBox->SetContent(SCSEditor.ToSharedRef());
-
 	ChildSlot
 		[
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
-			.Padding(0.0f, 0.0f, 0.0f, 2.0f)
+			.Padding(FMargin(2, 2))
 			.AutoHeight()
 			[
 				DetailsView->GetNameAreaWidget().ToSharedRef()
 			]
 			+ SVerticalBox::Slot()
-			.Padding(FMargin(0, 10, 0, 0))
-			.FillHeight(0.35f)
+			.Padding(FMargin(2, 2))
+			.AutoHeight()
 			[
-				ComponentsBox.ToSharedRef()
+				//@todo: only show this on sub prefab actor
+				SNew(SComboButton)
+				.HasDownArrow(true)
+				.ToolTipText(LOCTEXT("PrefabOverride", "PrefabOverrideProperties"))
+				.ButtonContent()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("OverrideButton", "Prefab Override Properties"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
 			]
 			+ SVerticalBox::Slot()
-			.Padding(FMargin(0, 10, 0, 0))
-			.FillHeight(0.65f)
+			.Padding(FMargin(0, 2))
+			.AutoHeight()
+			[
+				SCSEditor.ToSharedRef()
+			]
+			+ SVerticalBox::Slot()
+			.Padding(FMargin(0, 2))
+			.AutoHeight()
 			[
 				DetailsView.ToSharedRef()
 			]
@@ -166,6 +176,11 @@ void SLGUIPrefabEditorDetails::OnSCSEditorTreeViewSelectionChanged(const TArray<
 void SLGUIPrefabEditorDetails::OnSCSEditorTreeViewItemDoubleClicked(const TSharedPtr<class FSCSEditorTreeNode> ClickedNode)
 {
 
+}
+
+bool SLGUIPrefabEditorDetails::IsPropertyReadOnly(const FPropertyAndParent& InPropertyAndParent)
+{
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

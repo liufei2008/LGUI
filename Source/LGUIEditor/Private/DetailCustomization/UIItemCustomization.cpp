@@ -121,19 +121,19 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	//anchor, width, height
 	{
 		bool AnchorControlledByParentLayout = false;
-		bool HorizontalAnchorOffsetControlledByParentLayout = false;
-		bool VerticalAnchorOffsetControlledByParentLayout = false;
+		bool HorizontalAnchorPositionControlledByParentLayout = false;
+		bool VerticalAnchorPositionControlledByParentLayout = false;
 		bool WidthControlledByParentLayout = false;
 		bool HeightControlledByParentLayout = false;
 		bool AnchorControlledBySelfLayout = false;
-		bool anchorOffsetXControlledBySelfLayout = false;
-		bool anchorOffsetYControlledBySelfLayout = false;
+		bool HorizontalAnchoredPositionControlledBySelfLayout = false;
+		bool VerticalAnchoredPositionControlledBySelfLayout = false;
 		bool WidthControlledBySelfLayout = false;
-		bool heightControlledBySelfLayout = false;
-		bool stretchLeftControlledBySelfLayout = false;
-		bool stretchRightControlledBySelfLayout = false;
-		bool stretchTopControlledBySelfLayout = false;
-		bool stretchBottomControlledBySelfLayout = false;
+		bool HeightControlledBySelfLayout = false;
+		bool AnchorLeftControlledBySelfLayout = false;
+		bool AnchorRightControlledBySelfLayout = false;
+		bool AnchorTopControlledBySelfLayout = false;
+		bool AnchorBottomControlledBySelfLayout = false;
 		if (auto ThisActor = TargetScriptArray[0]->GetOwner())
 		{
 			if (ThisActor->GetRootComponent() == TargetScriptArray[0].Get())
@@ -163,8 +163,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 							AnchorControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildAnchor(ParentLayout);
 							WidthControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildWidth(ParentLayout);
 							HeightControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildHeight(ParentLayout);
-							HorizontalAnchorOffsetControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlSelfHorizontalAnchoredPosition(ParentLayout);
-							VerticalAnchorOffsetControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlSelfVerticalAnchoredPosition(ParentLayout);
+							HorizontalAnchorPositionControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildHorizontalAnchoredPosition(ParentLayout);
+							VerticalAnchorPositionControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildVerticalAnchoredPosition(ParentLayout);
 						}
 					}
 				}
@@ -173,14 +173,14 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				{
 					auto ThisLayout = ThisLayouts[0];
 					AnchorControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchor(ThisLayout);
-					anchorOffsetXControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHorizontalAnchoredPosition(ThisLayout);
-					anchorOffsetYControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfVerticalAnchoredPosition(ThisLayout);
+					HorizontalAnchoredPositionControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHorizontalAnchoredPosition(ThisLayout);
+					VerticalAnchoredPositionControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfVerticalAnchoredPosition(ThisLayout);
 					WidthControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfWidth(ThisLayout);
-					heightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHeight(ThisLayout);
-					stretchLeftControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorLeft(ThisLayout);
-					stretchRightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorRight(ThisLayout);
-					stretchTopControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorTop(ThisLayout);
-					stretchBottomControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorBottom(ThisLayout);
+					HeightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHeight(ThisLayout);
+					AnchorLeftControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorLeft(ThisLayout);
+					AnchorRightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorRight(ThisLayout);
+					AnchorTopControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorTop(ThisLayout);
+					AnchorBottomControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorBottom(ThisLayout);
 				}
 			}
 		}
@@ -229,6 +229,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.OnValueChanged(this, &FUIItemCustomization::OnAnchorValueChanged, AnchorHandle, AnchorValueIndex)
 					.OnValueCommitted(this, &FUIItemCustomization::OnAnchorValueCommitted, AnchorHandle, AnchorValueIndex)
 					.OnBeginSliderMovement(this, &FUIItemCustomization::OnAnchorSliderSliderMovementBegin)
+					.IsEnabled(this, &FUIItemCustomization::IsAnchorValueEnable, AnchorHandle, AnchorValueIndex)
 				]
 			;
 		};
@@ -677,6 +678,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			[
 				SNew(SBox)
 				.HeightOverride(18)
+				.IsEnabled_Static(LGUIEditorUtils::IsEnabledOnProperty, HierarchyIndexHandle)
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("Increase", "+"))
@@ -690,6 +692,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			[
 				SNew(SBox)
 				.HeightOverride(18)
+				.IsEnabled_Static(LGUIEditorUtils::IsEnabledOnProperty, HierarchyIndexHandle)
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("Decrease", "-"))
@@ -1404,6 +1407,180 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 	}
 	TargetScriptArray[0]->EditorForceUpdateImmediately();
 	ForceRefreshEditor(DetailBuilder);
+}
+
+bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return false;
+
+	auto AnchorMinHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchorMin));
+	auto AnchorMaxHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchorMax));
+	auto AnchoredPositionHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, AnchoredPosition));
+	auto SizeDeltaHandle = AnchorHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FUIAnchorData, SizeDelta));
+
+	FVector2D AnchorMinValue;
+	auto AnchorMinValueAccessResult = AnchorMinHandle->GetValue(AnchorMinValue);
+	FVector2D AnchorMaxValue;
+	auto AnchorMaxValueAccessResult = AnchorMaxHandle->GetValue(AnchorMaxValue);
+	FVector2D AnchoredPosition;
+	auto AnchoredPositionAccessResult = AnchoredPositionHandle->GetValue(AnchoredPosition);
+	FVector2D SizeDelta;
+	auto SizeDeltaAccessResult = SizeDeltaHandle->GetValue(SizeDelta);
+
+	bool AnchorControlledByParentLayout = false;
+	bool HorizontalAnchorPositionControlledByParentLayout = false;
+	bool VerticalAnchorPositionControlledByParentLayout = false;
+	bool WidthControlledByParentLayout = false;
+	bool HeightControlledByParentLayout = false;
+
+	bool AnchorControlledBySelfLayout = false;
+	bool HorizontalAnchoredPositionControlledBySelfLayout = false;
+	bool VerticalAnchoredPositionControlledBySelfLayout = false;
+	bool WidthControlledBySelfLayout = false;
+	bool HeightControlledBySelfLayout = false;
+	bool AnchorLeftControlledBySelfLayout = false;
+	bool AnchorRightControlledBySelfLayout = false;
+	bool AnchorTopControlledBySelfLayout = false;
+	bool AnchorBottomControlledBySelfLayout = false;
+	if (auto ThisActor = TargetScriptArray[0]->GetOwner())
+	{
+		if (ThisActor->GetRootComponent() == TargetScriptArray[0].Get())
+		{
+			if (auto ParentActor = ThisActor->GetAttachParentActor())
+			{
+				bool IgnoreParentLayout = false;
+				auto LayoutElements = ThisActor->GetComponentsByInterface(ULGUILayoutElementInterface::StaticClass());
+				if (LayoutElements.Num() > 1)
+				{
+					LGUIUtils::EditorNotification(LOCTEXT("MultiLayoutElementError", "Detect multiple layout elements in one actor, this is not allowed!"));
+				}
+				if (LayoutElements.Num() > 0)
+				{
+					IgnoreParentLayout = ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElements[0]);
+				}
+				if (!IgnoreParentLayout)
+				{
+					auto ParentLayouts = ParentActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
+					if (ParentLayouts.Num() > 1)
+					{
+						LGUIUtils::EditorNotification(LOCTEXT("MultiLayoutError", "Detect multiple layouts in one actor, this is not allowed!"));
+					}
+					if (ParentLayouts.Num() > 0)
+					{
+						auto ParentLayout = ParentLayouts[0];
+						AnchorControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildAnchor(ParentLayout);
+						WidthControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildWidth(ParentLayout);
+						HeightControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildHeight(ParentLayout);
+						HorizontalAnchorPositionControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildHorizontalAnchoredPosition(ParentLayout);
+						VerticalAnchorPositionControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildVerticalAnchoredPosition(ParentLayout);
+					}
+				}
+			}
+			auto ThisLayouts = ThisActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
+			if (ThisLayouts.Num() > 0)
+			{
+				auto ThisLayout = ThisLayouts[0];
+				AnchorControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchor(ThisLayout);
+				HorizontalAnchoredPositionControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHorizontalAnchoredPosition(ThisLayout);
+				VerticalAnchoredPositionControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfVerticalAnchoredPosition(ThisLayout);
+				WidthControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfWidth(ThisLayout);
+				HeightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHeight(ThisLayout);
+				AnchorLeftControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorLeft(ThisLayout);
+				AnchorRightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorRight(ThisLayout);
+				AnchorTopControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorTop(ThisLayout);
+				AnchorBottomControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorBottom(ThisLayout);
+			}
+		}
+	}
+
+	switch (AnchorValueIndex)
+	{
+	default:
+	case 0://anchored position x, stretch left
+	{
+		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success
+			&& AnchoredPositionAccessResult == FPropertyAccess::Result::Success
+			)
+		{
+			if (AnchorMinValue.X == AnchorMaxValue.X)
+			{
+				return !(HorizontalAnchoredPositionControlledBySelfLayout || HorizontalAnchorPositionControlledByParentLayout);
+			}
+			else
+			{
+				return !AnchorLeftControlledBySelfLayout;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+	break;
+	case 1://anchored position y, stretch top
+	{
+		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success
+			&& AnchoredPositionAccessResult == FPropertyAccess::Result::Success
+			)
+		{
+			if (AnchorMinValue.Y == AnchorMaxValue.Y)
+			{
+				return !(VerticalAnchoredPositionControlledBySelfLayout || VerticalAnchorPositionControlledByParentLayout);
+			}
+			else
+			{
+				return !AnchorTopControlledBySelfLayout;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+	break;
+	case 2://width, stretch right
+	{
+		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success
+			&& SizeDeltaAccessResult == FPropertyAccess::Result::Success
+			)
+		{
+			if (AnchorMinValue.X == AnchorMaxValue.X)
+			{
+				return !(WidthControlledByParentLayout || WidthControlledBySelfLayout);
+			}
+			else
+			{
+				return !AnchorRightControlledBySelfLayout;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+	break;
+	case 3://height, stretch bottom
+	{
+		if (AnchorMinValueAccessResult == FPropertyAccess::Result::Success && AnchorMaxValueAccessResult == FPropertyAccess::Result::Success
+			&& SizeDeltaAccessResult == FPropertyAccess::Result::Success
+			)
+		{
+			if (AnchorMinValue.Y == AnchorMaxValue.Y)
+			{
+				return !(HeightControlledByParentLayout || HeightControlledBySelfLayout);
+			}
+			else
+			{
+				return !AnchorBottomControlledBySelfLayout;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+	break;
+	}
 }
 
 FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll)
