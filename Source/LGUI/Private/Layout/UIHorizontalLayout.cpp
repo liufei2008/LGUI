@@ -104,19 +104,19 @@ void UUIHorizontalLayout::OnRebuildLayout()
         for (auto item : uiChildrenList)
         {
             float tempChildWidth = 0;
-            if (item.layoutElement != nullptr)
+            if (item.layoutElement.IsValid())
             {
-                auto layoutType = item.layoutElement->GetLayoutType();
+                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
                 switch (layoutType)
                 {
                 case ELayoutElementType::AutoSize:
                     autoSizeChildrenCount++;
                     break;
                 case ELayoutElementType::ConstantSize:
-                    tempChildWidth = item.layoutElement->GetConstantSize();
+                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetConstantSize(item.layoutElement.Get());
                     break;
                 case ELayoutElementType::RatioSize:
-                    tempChildWidth = item.layoutElement->GetRatioSize() * sizeWithoutSpacing;
+                    tempChildWidth = ILGUILayoutElementInterface::Execute_GetRatioSize(item.layoutElement.Get()) * sizeWithoutSpacing;
                     break;
                 }
             }
@@ -133,7 +133,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
             auto item = uiChildrenList[i];
             if (item.layoutElement != nullptr)
             {
-                auto layoutType = item.layoutElement->GetLayoutType();
+                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
                 if (layoutType == ELayoutElementType::AutoSize)
                 {
                     childrenWidthList[i] = autoSizeChildWidth;
@@ -266,49 +266,77 @@ void UUIHorizontalLayout::OnRebuildLayout()
 		SetOnCompleteTween();
 	}
 }
-#if WITH_EDITOR
-bool UUIHorizontalLayout::CanControlChildAnchor()
+
+bool UUIHorizontalLayout::CanControlChildAnchor_Implementation()const
 {
-    return true && enable;
+    return this->GetEnable();
 }
-bool UUIHorizontalLayout::CanControlChildAnchorOffsetX()
+bool UUIHorizontalLayout::CanControlChildHorizontalAnchoredPosition_Implementation()const
 {
-    return true && enable;
+    return this->GetEnable();
 }
-bool UUIHorizontalLayout::CanControlChildAnchorOffsetY()
+bool UUIHorizontalLayout::CanControlChildVerticalAnchoredPosition_Implementation()const
 {
-    return true && enable;
+    return this->GetEnable();
 }
-bool UUIHorizontalLayout::CanControlSelfAnchorOffsetX()
+bool UUIHorizontalLayout::CanControlChildWidth_Implementation()const
 {
-    return false;
+    return GetExpendChildrenWidth() && this->GetEnable();
 }
-bool UUIHorizontalLayout::CanControlSelfAnchorOffsetY()
+bool UUIHorizontalLayout::CanControlChildHeight_Implementation()const
 {
-    return false;
+    return GetExpendChildrenHeight() && this->GetEnable();
 }
-bool UUIHorizontalLayout::CanControlChildWidth()
-{
-    return GetExpendChildrenWidth() && enable;
-}
-bool UUIHorizontalLayout::CanControlChildHeight()
-{
-    return GetExpendChildrenHeight() && enable;
-}
-bool UUIHorizontalLayout::CanControlSelfHorizontalAnchor()
+bool UUIHorizontalLayout::CanControlChildAnchorLeft_Implementation()const
 {
     return false;
 }
-bool UUIHorizontalLayout::CanControlSelfVerticalAnchor()
+bool UUIHorizontalLayout::CanControlChildAnchorRight_Implementation()const
 {
     return false;
 }
-bool UUIHorizontalLayout::CanControlSelfWidth()
-{
-    return (!GetExpendChildrenWidth() && GetWidthFitToChildren()) && enable;
-}
-bool UUIHorizontalLayout::CanControlSelfHeight()
+bool UUIHorizontalLayout::CanControlChildAnchorBottom_Implementation()const
 {
     return false;
 }
-#endif
+bool UUIHorizontalLayout::CanControlChildAnchorTop_Implementation()const
+{
+    return false;
+}
+
+bool UUIHorizontalLayout::CanControlSelfAnchor_Implementation()const
+{
+    return false;
+}
+bool UUIHorizontalLayout::CanControlSelfHorizontalAnchoredPosition_Implementation()const
+{
+    return false;
+}
+bool UUIHorizontalLayout::CanControlSelfVerticalAnchoredPosition_Implementation()const
+{
+    return false;
+}
+bool UUIHorizontalLayout::CanControlSelfWidth_Implementation()const
+{
+    return (!GetExpendChildrenWidth() && GetWidthFitToChildren()) && this->GetEnable();
+}
+bool UUIHorizontalLayout::CanControlSelfHeight_Implementation()const
+{
+    return false;
+}
+bool UUIHorizontalLayout::CanControlSelfAnchorLeft_Implementation()const
+{
+    return false;
+}
+bool UUIHorizontalLayout::CanControlSelfAnchorRight_Implementation()const
+{
+    return false;
+}
+bool UUIHorizontalLayout::CanControlSelfAnchorBottom_Implementation()const
+{
+    return false;
+}
+bool UUIHorizontalLayout::CanControlSelfAnchorTop_Implementation()const
+{
+    return false;
+}

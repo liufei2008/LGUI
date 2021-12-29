@@ -50,19 +50,26 @@ public:
 		void SetControlHeight(bool value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAdditionalHeight(float value);
-#if WITH_EDITOR
-	virtual bool CanControlChildAnchor()override;
-	virtual bool CanControlChildAnchorOffsetX()override;
-	virtual bool CanControlChildAnchorOffsetY()override;
-	virtual bool CanControlChildWidth()override;
-	virtual bool CanControlChildHeight()override;
-	virtual bool CanControlSelfHorizontalAnchor()override;
-	virtual bool CanControlSelfVerticalAnchor()override;
-	virtual bool CanControlSelfAnchorOffsetX()override;
-	virtual bool CanControlSelfAnchorOffsetY()override;
-	virtual bool CanControlSelfWidth()override;
-	virtual bool CanControlSelfHeight()override;
-#endif
+
+	virtual bool CanControlChildAnchor_Implementation()const override;
+	virtual bool CanControlChildHorizontalAnchoredPosition_Implementation()const override;
+	virtual bool CanControlChildVerticalAnchoredPosition_Implementation()const override;
+	virtual bool CanControlChildWidth_Implementation()const override;
+	virtual bool CanControlChildHeight_Implementation()const override;
+	virtual bool CanControlChildAnchorLeft_Implementation()const override;
+	virtual bool CanControlChildAnchorRight_Implementation()const override;
+	virtual bool CanControlChildAnchorBottom_Implementation()const override;
+	virtual bool CanControlChildAnchorTop_Implementation()const override;
+
+	virtual bool CanControlSelfAnchor_Implementation()const override;
+	virtual bool CanControlSelfHorizontalAnchoredPosition_Implementation()const override;
+	virtual bool CanControlSelfVerticalAnchoredPosition_Implementation()const override;
+	virtual bool CanControlSelfWidth_Implementation()const override;
+	virtual bool CanControlSelfHeight_Implementation()const override;
+	virtual bool CanControlSelfAnchorLeft_Implementation()const override;
+	virtual bool CanControlSelfAnchorRight_Implementation()const override;
+	virtual bool CanControlSelfAnchorBottom_Implementation()const override;
+	virtual bool CanControlSelfAnchorTop_Implementation()const override;
 protected:
 	friend class UUISizeControlByOtherHelper;
 	virtual void OnRebuildLayout()override;

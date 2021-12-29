@@ -90,10 +90,10 @@ void UUILayoutBase::RebuildChildrenList()
             if (uiItem->GetIsUIActiveInHierarchy())
             {
                 if (uiItem->GetOwner()->GetRootComponent() != uiItem)continue;//only use root component
-                UUILayoutElement* layoutElement = GetLayoutElement(uiItem->GetOwner());
+                auto layoutElement = GetLayoutElement(uiItem->GetOwner());
                 if (layoutElement)
                 {
-                    if (layoutElement->GetIgnoreLayout())
+                    if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(layoutElement))
                     {
                         continue;
                     }
@@ -138,10 +138,10 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive
     {
         if (!availableChildrenArray.Find(childData, index))
         {
-            UUILayoutElement* layoutElement = GetLayoutElement(InChild->GetOwner());
+            auto layoutElement = GetLayoutElement(InChild->GetOwner());
             if (layoutElement)
             {
-                if (layoutElement->GetIgnoreLayout())
+                if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(layoutElement))
                 {
                     return;
                 }
@@ -177,10 +177,10 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
     {
         if (!availableChildrenArray.Find(childData, index))
         {
-            UUILayoutElement* layoutElement = GetLayoutElement(InChild->GetOwner());
+            auto layoutElement = GetLayoutElement(InChild->GetOwner());
             if (layoutElement)
             {
-                if (layoutElement->GetIgnoreLayout())
+                if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(layoutElement))
                 {
                     return;
                 }
@@ -224,7 +224,18 @@ void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
     MarkNeedRebuildLayout();
 }
 
-FORCEINLINE UUILayoutElement* UUILayoutBase::GetLayoutElement(AActor* Target)
+FORCEINLINE UActorComponent* UUILayoutBase::GetLayoutElement(AActor* Target)
 {
+    Target->GetComponentsByInterface(ULGUILayoutElementInterface::StaticClass());
     return Target->FindComponentByClass<UUILayoutElement>();
+
+    auto& Comps = Target->GetComponents();
+    for (auto& Comp : Comps)
+    {
+        if (Comp->GetClass()->ImplementsInterface(ULGUILayoutElementInterface::StaticClass()))
+        {
+            return Comp;
+        }
+    }
+    return nullptr;
 }

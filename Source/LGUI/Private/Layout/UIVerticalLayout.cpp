@@ -23,6 +23,55 @@ void UUIVerticalLayout::OnUIChildDimensionsChanged(UUIItem* child, bool position
     }
 }
 
+void UUIVerticalLayout::SetPadding(FMargin value)
+{
+    if (Padding != value)
+    {
+        Padding = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIVerticalLayout::SetSpacing(float value)
+{
+    if (Spacing != value)
+    {
+        Spacing = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIVerticalLayout::SetAlign(ELGUILayoutAlignmentType value)
+{
+    if (Align != value)
+    {
+        Align = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIVerticalLayout::SetExpendChildrenWidth(bool value)
+{
+    if (ExpendChildrenWidth != value)
+    {
+        ExpendChildrenWidth = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIVerticalLayout::SetExpendChildrenHeight(bool value)
+{
+    if (ExpendChildrenHeight != value)
+    {
+        ExpendChildrenHeight = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUIVerticalLayout::SetHeightFitToChildren(bool value)
+{
+    if (HeightFitToChildren != value)
+    {
+        HeightFitToChildren = value;
+        MarkNeedRebuildLayout();
+    }
+}
+
 void UUIVerticalLayout::OnRebuildLayout()
 {
     SCOPE_CYCLE_COUNTER(STAT_VerticalLayout);
@@ -57,17 +106,17 @@ void UUIVerticalLayout::OnRebuildLayout()
             float tempChildHeight = 0;
             if (item.layoutElement != nullptr)
             {
-                auto layoutType = item.layoutElement->GetLayoutType();
+                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
                 switch (layoutType)
                 {
                 case ELayoutElementType::AutoSize:
                     autoSizeChildrenCount++;
                     break;
                 case ELayoutElementType::ConstantSize:
-                    tempChildHeight = item.layoutElement->GetConstantSize();
+                    tempChildHeight = ILGUILayoutElementInterface::Execute_GetConstantSize(item.layoutElement.Get());
                     break;
                 case ELayoutElementType::RatioSize:
-                    tempChildHeight = item.layoutElement->GetRatioSize() * sizeWithoutSpacing;
+                    tempChildHeight = ILGUILayoutElementInterface::Execute_GetRatioSize(item.layoutElement.Get()) * sizeWithoutSpacing;
                     break;
                 }
             }
@@ -84,7 +133,7 @@ void UUIVerticalLayout::OnRebuildLayout()
             auto item = uiChildrenList[i];
             if (item.layoutElement != nullptr)
             {
-                auto layoutType = item.layoutElement->GetLayoutType();
+                auto layoutType = ILGUILayoutElementInterface::Execute_GetLayoutType(item.layoutElement.Get());
                 if (layoutType == ELayoutElementType::AutoSize)
                 {
                     childrenHeightList[i] = autoSizeChildHeight;
@@ -217,97 +266,78 @@ void UUIVerticalLayout::OnRebuildLayout()
 		SetOnCompleteTween();
 	}
 }
-#if WITH_EDITOR
-bool UUIVerticalLayout::CanControlChildAnchor()
+
+
+bool UUIVerticalLayout::CanControlChildAnchor_Implementation()const
 {
-    return true && enable;
+    return this->GetEnable();
 }
-bool UUIVerticalLayout::CanControlChildAnchorOffsetX()
+bool UUIVerticalLayout::CanControlChildHorizontalAnchoredPosition_Implementation()const
 {
-    return true && enable;
+    return this->GetEnable();
 }
-bool UUIVerticalLayout::CanControlChildAnchorOffsetY()
+bool UUIVerticalLayout::CanControlChildVerticalAnchoredPosition_Implementation()const
 {
-    return true && enable;
+    return this->GetEnable();
 }
-bool UUIVerticalLayout::CanControlSelfAnchorOffsetX()
+bool UUIVerticalLayout::CanControlChildWidth_Implementation()const
+{
+    return GetExpendChildrenWidth() && this->GetEnable();
+}
+bool UUIVerticalLayout::CanControlChildHeight_Implementation()const
+{
+    return GetExpendChildrenHeight() && this->GetEnable();
+}
+bool UUIVerticalLayout::CanControlChildAnchorLeft_Implementation()const
 {
     return false;
 }
-bool UUIVerticalLayout::CanControlSelfAnchorOffsetY()
+bool UUIVerticalLayout::CanControlChildAnchorRight_Implementation()const
 {
     return false;
 }
-bool UUIVerticalLayout::CanControlChildWidth()
-{
-    return GetExpendChildrenWidth() && enable;
-}
-bool UUIVerticalLayout::CanControlChildHeight()
-{
-    return GetExpendChildrenHeight() && enable;
-}
-bool UUIVerticalLayout::CanControlSelfHorizontalAnchor()
+bool UUIVerticalLayout::CanControlChildAnchorBottom_Implementation()const
 {
     return false;
 }
-bool UUIVerticalLayout::CanControlSelfVerticalAnchor()
+bool UUIVerticalLayout::CanControlChildAnchorTop_Implementation()const
 {
     return false;
 }
-bool UUIVerticalLayout::CanControlSelfWidth()
+
+bool UUIVerticalLayout::CanControlSelfAnchor_Implementation()const
 {
     return false;
 }
-bool UUIVerticalLayout::CanControlSelfHeight()
+bool UUIVerticalLayout::CanControlSelfHorizontalAnchoredPosition_Implementation()const
 {
-    return (!GetExpendChildrenHeight() && GetHeightFitToChildren()) && enable;
+    return false;
 }
-#endif
-void UUIVerticalLayout::SetPadding(FMargin value)
+bool UUIVerticalLayout::CanControlSelfVerticalAnchoredPosition_Implementation()const
 {
-    if (Padding != value)
-    {
-        Padding = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
 }
-void UUIVerticalLayout::SetSpacing(float value)
+bool UUIVerticalLayout::CanControlSelfWidth_Implementation()const
 {
-    if (Spacing != value)
-    {
-        Spacing = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
 }
-void UUIVerticalLayout::SetAlign(ELGUILayoutAlignmentType value)
+bool UUIVerticalLayout::CanControlSelfHeight_Implementation()const
 {
-    if (Align != value)
-    {
-        Align = value;
-        MarkNeedRebuildLayout();
-    }
+    return (!GetExpendChildrenHeight() && GetHeightFitToChildren()) && this->GetEnable();
 }
-void UUIVerticalLayout::SetExpendChildrenWidth(bool value)
+bool UUIVerticalLayout::CanControlSelfAnchorLeft_Implementation()const
 {
-    if (ExpendChildrenWidth != value)
-    {
-        ExpendChildrenWidth = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
 }
-void UUIVerticalLayout::SetExpendChildrenHeight(bool value)
+bool UUIVerticalLayout::CanControlSelfAnchorRight_Implementation()const
 {
-    if (ExpendChildrenHeight != value)
-    {
-        ExpendChildrenHeight = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
 }
-void UUIVerticalLayout::SetHeightFitToChildren(bool value)
+bool UUIVerticalLayout::CanControlSelfAnchorBottom_Implementation()const
 {
-    if (HeightFitToChildren != value)
-    {
-        HeightFitToChildren = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
+}
+bool UUIVerticalLayout::CanControlSelfAnchorTop_Implementation()const
+{
+    return false;
 }

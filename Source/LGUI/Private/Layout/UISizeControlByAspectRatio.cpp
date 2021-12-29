@@ -4,6 +4,23 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 
+void UUISizeControlByAspectRatio::SetControlMode(EUISizeControlByAspectRatioMode value)
+{
+	if (ControlMode != value)
+	{
+		ControlMode = value;
+		MarkNeedRebuildLayout();
+	}
+}
+void UUISizeControlByAspectRatio::SetAspectRatio(float value)
+{
+	if (AspectRatio != value)
+	{
+		AspectRatio = value;
+		MarkNeedRebuildLayout();
+	}
+}
+
 void UUISizeControlByAspectRatio::OnRebuildLayout()
 {
 	if (!CheckRootUIComponent())return;
@@ -80,50 +97,60 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 		}
 	}
 }
-#if WITH_EDITOR
-bool UUISizeControlByAspectRatio::CanControlChildAnchor()
+
+bool UUISizeControlByAspectRatio::CanControlChildAnchor_Implementation()const
 {
 	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlChildAnchorOffsetX()
+bool UUISizeControlByAspectRatio::CanControlChildHorizontalAnchoredPosition_Implementation()const
 {
 	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlChildAnchorOffsetY()
+bool UUISizeControlByAspectRatio::CanControlChildVerticalAnchoredPosition_Implementation()const
 {
 	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfAnchorOffsetX()
+bool UUISizeControlByAspectRatio::CanControlChildWidth_Implementation()const
 {
 	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfAnchorOffsetY()
+bool UUISizeControlByAspectRatio::CanControlChildHeight_Implementation()const
 {
 	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlChildWidth()
+bool UUISizeControlByAspectRatio::CanControlChildAnchorLeft_Implementation()const
 {
 	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlChildHeight()
+bool UUISizeControlByAspectRatio::CanControlChildAnchorRight_Implementation()const
 {
 	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfHorizontalAnchor()
+bool UUISizeControlByAspectRatio::CanControlChildAnchorBottom_Implementation()const
+{
+	return false;
+}
+bool UUISizeControlByAspectRatio::CanControlChildAnchorTop_Implementation()const
+{
+	return false;
+}
+
+bool UUISizeControlByAspectRatio::CanControlSelfAnchor_Implementation()const
 {
 	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
 		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
 		) && enable
 		;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfVerticalAnchor()
+bool UUISizeControlByAspectRatio::CanControlSelfHorizontalAnchoredPosition_Implementation()const
 {
-	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
-		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
-		) && enable
-		;
+	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfWidth()
+bool UUISizeControlByAspectRatio::CanControlSelfVerticalAnchoredPosition_Implementation()const
+{
+	return false;
+}
+bool UUISizeControlByAspectRatio::CanControlSelfWidth_Implementation()const
 {
 	return (ControlMode == EUISizeControlByAspectRatioMode::HeightControlWidth
 		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
@@ -131,7 +158,7 @@ bool UUISizeControlByAspectRatio::CanControlSelfWidth()
 		) && enable
 		;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfHeight()
+bool UUISizeControlByAspectRatio::CanControlSelfHeight_Implementation()const
 {
 	return (ControlMode == EUISizeControlByAspectRatioMode::WidthControlHeight
 		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
@@ -139,48 +166,19 @@ bool UUISizeControlByAspectRatio::CanControlSelfHeight()
 		) && enable
 		;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfStrengthLeft()
+bool UUISizeControlByAspectRatio::CanControlSelfAnchorLeft_Implementation()const
 {
-	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
-		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
-		) && enable
-		;
+	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfStrengthRight()
+bool UUISizeControlByAspectRatio::CanControlSelfAnchorRight_Implementation()const
 {
-	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
-		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
-		) && enable
-		;
+	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfStrengthTop()
+bool UUISizeControlByAspectRatio::CanControlSelfAnchorBottom_Implementation()const
 {
-	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
-		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
-		) && enable
-		;
+	return false;
 }
-bool UUISizeControlByAspectRatio::CanControlSelfStrengthBottom()
+bool UUISizeControlByAspectRatio::CanControlSelfAnchorTop_Implementation()const
 {
-	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
-		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
-		) && enable
-		;
-}
-#endif
-void UUISizeControlByAspectRatio::SetControlMode(EUISizeControlByAspectRatioMode value)
-{
-	if (ControlMode != value)
-	{
-		ControlMode = value;
-		MarkNeedRebuildLayout();
-	}
-}
-void UUISizeControlByAspectRatio::SetAspectRatio(float value)
-{
-	if (AspectRatio != value)
-	{
-		AspectRatio = value;
-		MarkNeedRebuildLayout();
-	}
+	return false;
 }

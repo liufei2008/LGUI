@@ -5,6 +5,39 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/Actor/UIBaseActor.h"
 
+void UUISizeControlByOther::SetControlWidth(bool value)
+{
+    if (ControlWidth != value)
+    {
+        ControlWidth = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUISizeControlByOther::SetAdditionalWidth(float value)
+{
+    if (AdditionalWidth != value)
+    {
+        AdditionalWidth = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUISizeControlByOther::SetControlHeight(bool value)
+{
+    if (ControlHeight != value)
+    {
+        ControlHeight = value;
+        MarkNeedRebuildLayout();
+    }
+}
+void UUISizeControlByOther::SetAdditionalHeight(float value)
+{
+    if (AdditionalHeight != value)
+    {
+        AdditionalHeight = value;
+        MarkNeedRebuildLayout();
+    }
+}
+
 void UUISizeControlByOtherHelper::Awake()
 {
     Super::Awake();
@@ -107,81 +140,77 @@ void UUISizeControlByOther::OnRebuildLayout()
         }
     }
 }
-#if WITH_EDITOR
-bool UUISizeControlByOther::CanControlChildAnchor()
+
+bool UUISizeControlByOther::CanControlChildAnchor_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlChildAnchorOffsetX()
+bool UUISizeControlByOther::CanControlChildHorizontalAnchoredPosition_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlChildAnchorOffsetY()
+bool UUISizeControlByOther::CanControlChildVerticalAnchoredPosition_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlSelfAnchorOffsetX()
+bool UUISizeControlByOther::CanControlChildWidth_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlSelfAnchorOffsetY()
+bool UUISizeControlByOther::CanControlChildHeight_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlChildWidth()
+bool UUISizeControlByOther::CanControlChildAnchorLeft_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlChildHeight()
+bool UUISizeControlByOther::CanControlChildAnchorRight_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlSelfHorizontalAnchor()
+bool UUISizeControlByOther::CanControlChildAnchorBottom_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlSelfVerticalAnchor()
+bool UUISizeControlByOther::CanControlChildAnchorTop_Implementation()const
 {
     return false;
 }
-bool UUISizeControlByOther::CanControlSelfWidth()
+
+bool UUISizeControlByOther::CanControlSelfAnchor_Implementation()const
+{
+    return false;
+}
+bool UUISizeControlByOther::CanControlSelfHorizontalAnchoredPosition_Implementation()const
+{
+    return false;
+}
+bool UUISizeControlByOther::CanControlSelfVerticalAnchoredPosition_Implementation()const
+{
+    return false;
+}
+bool UUISizeControlByOther::CanControlSelfWidth_Implementation()const
 {
     return GetControlWidth() && enable;
 }
-bool UUISizeControlByOther::CanControlSelfHeight()
+bool UUISizeControlByOther::CanControlSelfHeight_Implementation()const
 {
     return GetControlHeight() && enable;
 }
-#endif
-void UUISizeControlByOther::SetControlWidth(bool value)
+bool UUISizeControlByOther::CanControlSelfAnchorLeft_Implementation()const
 {
-    if (ControlWidth != value)
-    {
-        ControlWidth = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
 }
-void UUISizeControlByOther::SetAdditionalWidth(float value)
+bool UUISizeControlByOther::CanControlSelfAnchorRight_Implementation()const
 {
-    if (AdditionalWidth != value)
-    {
-        AdditionalWidth = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
 }
-void UUISizeControlByOther::SetControlHeight(bool value)
+bool UUISizeControlByOther::CanControlSelfAnchorBottom_Implementation()const
 {
-    if (ControlHeight != value)
-    {
-        ControlHeight = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
 }
-void UUISizeControlByOther::SetAdditionalHeight(float value)
+bool UUISizeControlByOther::CanControlSelfAnchorTop_Implementation()const
 {
-    if (AdditionalHeight != value)
-    {
-        AdditionalHeight = value;
-        MarkNeedRebuildLayout();
-    }
+    return false;
 }

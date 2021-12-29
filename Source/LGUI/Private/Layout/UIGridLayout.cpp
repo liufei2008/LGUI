@@ -490,49 +490,77 @@ void UUIGridLayout::OnRebuildLayout()
 		SetOnCompleteTween();
 	}
 }
-#if WITH_EDITOR
-bool UUIGridLayout::CanControlChildAnchor()
+
+bool UUIGridLayout::CanControlChildAnchor_Implementation()const
 {
-	return true && enable;
+	return this->GetEnable();
 }
-bool UUIGridLayout::CanControlChildAnchorOffsetX()
+bool UUIGridLayout::CanControlChildHorizontalAnchoredPosition_Implementation()const
 {
-	return true && enable;
+	return this->GetEnable();
 }
-bool UUIGridLayout::CanControlChildAnchorOffsetY()
+bool UUIGridLayout::CanControlChildVerticalAnchoredPosition_Implementation()const
 {
-	return true && enable;
+	return this->GetEnable();
 }
-bool UUIGridLayout::CanControlChildWidth()
+bool UUIGridLayout::CanControlChildWidth_Implementation()const
 {
-	return true && enable;
+	return this->GetEnable();
 }
-bool UUIGridLayout::CanControlChildHeight()
+bool UUIGridLayout::CanControlChildHeight_Implementation()const
 {
-	return true && enable;
+	return this->GetEnable();
 }
-bool UUIGridLayout::CanControlSelfHorizontalAnchor()
-{
-	return false;
-}
-bool UUIGridLayout::CanControlSelfVerticalAnchor()
+bool UUIGridLayout::CanControlChildAnchorLeft_Implementation()const
 {
 	return false;
 }
-bool UUIGridLayout::CanControlSelfAnchorOffsetX()
+bool UUIGridLayout::CanControlChildAnchorRight_Implementation()const
 {
 	return false;
 }
-bool UUIGridLayout::CanControlSelfAnchorOffsetY()
+bool UUIGridLayout::CanControlChildAnchorBottom_Implementation()const
 {
 	return false;
 }
-bool UUIGridLayout::CanControlSelfWidth()
+bool UUIGridLayout::CanControlChildAnchorTop_Implementation()const
 {
-	return (!HorizontalOrVertical && (WidthFitToChildren && (DependOnSizeOrCount || ExpendChildSize == false))) && enable;
+	return false;
 }
-bool UUIGridLayout::CanControlSelfHeight()
+
+bool UUIGridLayout::CanControlSelfAnchor_Implementation()const
 {
-	return (HorizontalOrVertical && (HeightFitToChildren && (DependOnSizeOrCount || ExpendChildSize == false))) && enable;
+	return false;
 }
-#endif
+bool UUIGridLayout::CanControlSelfHorizontalAnchoredPosition_Implementation()const
+{
+	return false;
+}
+bool UUIGridLayout::CanControlSelfVerticalAnchoredPosition_Implementation()const
+{
+	return false;
+}
+bool UUIGridLayout::CanControlSelfWidth_Implementation()const
+{
+	return (!HorizontalOrVertical && (WidthFitToChildren && (DependOnSizeOrCount || ExpendChildSize == false))) && this->GetEnable();
+}
+bool UUIGridLayout::CanControlSelfHeight_Implementation()const
+{
+	return (HorizontalOrVertical && (HeightFitToChildren && (DependOnSizeOrCount || ExpendChildSize == false))) && this->GetEnable();
+}
+bool UUIGridLayout::CanControlSelfAnchorLeft_Implementation()const
+{
+	return false;
+}
+bool UUIGridLayout::CanControlSelfAnchorRight_Implementation()const
+{
+	return false;
+}
+bool UUIGridLayout::CanControlSelfAnchorBottom_Implementation()const
+{
+	return false;
+}
+bool UUIGridLayout::CanControlSelfAnchorTop_Implementation()const
+{
+	return false;
+}

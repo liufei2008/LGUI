@@ -33,49 +33,77 @@ void UUIRoundedLayout::OnRebuildLayout()
 		angle += angleInterval;
 	}
 }
-#if WITH_EDITOR
-bool UUIRoundedLayout::CanControlChildAnchor()
+
+bool UUIRoundedLayout::CanControlChildAnchor_Implementation()const
 {
-	return true && enable;
+	return this->GetEnable();
 }
-bool UUIRoundedLayout::CanControlChildAnchorOffsetX()
+bool UUIRoundedLayout::CanControlChildHorizontalAnchoredPosition_Implementation()const
 {
-	return true && enable;
+	return this->GetEnable();
 }
-bool UUIRoundedLayout::CanControlChildAnchorOffsetY()
+bool UUIRoundedLayout::CanControlChildVerticalAnchoredPosition_Implementation()const
 {
-	return true && enable;
+	return this->GetEnable();
 }
-bool UUIRoundedLayout::CanControlSelfAnchorOffsetX()
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfAnchorOffsetY()
+bool UUIRoundedLayout::CanControlChildWidth_Implementation()const
 {
 	return false;
 }
-bool UUIRoundedLayout::CanControlChildWidth()
+bool UUIRoundedLayout::CanControlChildHeight_Implementation()const
 {
 	return false;
 }
-bool UUIRoundedLayout::CanControlChildHeight()
+bool UUIRoundedLayout::CanControlChildAnchorLeft_Implementation()const
 {
 	return false;
 }
-bool UUIRoundedLayout::CanControlSelfHorizontalAnchor()
+bool UUIRoundedLayout::CanControlChildAnchorRight_Implementation()const
 {
 	return false;
 }
-bool UUIRoundedLayout::CanControlSelfVerticalAnchor()
+bool UUIRoundedLayout::CanControlChildAnchorBottom_Implementation()const
 {
 	return false;
 }
-bool UUIRoundedLayout::CanControlSelfWidth()
+bool UUIRoundedLayout::CanControlChildAnchorTop_Implementation()const
 {
 	return false;
 }
-bool UUIRoundedLayout::CanControlSelfHeight()
+
+bool UUIRoundedLayout::CanControlSelfAnchor_Implementation()const
 {
 	return false;
 }
-#endif
+bool UUIRoundedLayout::CanControlSelfHorizontalAnchoredPosition_Implementation()const
+{
+	return false;
+}
+bool UUIRoundedLayout::CanControlSelfVerticalAnchoredPosition_Implementation()const
+{
+	return false;
+}
+bool UUIRoundedLayout::CanControlSelfWidth_Implementation()const
+{
+	return false;
+}
+bool UUIRoundedLayout::CanControlSelfHeight_Implementation()const
+{
+	return false;
+}
+bool UUIRoundedLayout::CanControlSelfAnchorLeft_Implementation()const
+{
+	return false;
+}
+bool UUIRoundedLayout::CanControlSelfAnchorRight_Implementation()const
+{
+	return false;
+}
+bool UUIRoundedLayout::CanControlSelfAnchorBottom_Implementation()const
+{
+	return false;
+}
+bool UUIRoundedLayout::CanControlSelfAnchorTop_Implementation()const
+{
+	return false;
+}

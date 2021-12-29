@@ -321,8 +321,8 @@ bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& 
 void UUIBatchGeometryRenderable::CalculateLocalBounds()
 {
 	auto& vertices = geometry->originPositions;
-	float horizontalMin = MAX_flt, horizontalMax = MIN_flt;
-	float verticalMin = MAX_flt, verticalMax = MIN_flt;
+	float horizontalMin = MAX_flt, horizontalMax = -MAX_flt;
+	float verticalMin = MAX_flt, verticalMax = -MAX_flt;
 	for (auto& Vert : vertices)
 	{
 		if (Vert.Y < horizontalMin)

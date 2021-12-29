@@ -4,25 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
+#include "ILGUILayoutElementInterface.h"
 #include "UILayoutElement.generated.h"
 
-UENUM(BlueprintType, Category = LGUI)
-enum class ELayoutElementType :uint8
-{
-	/* AutoSize, after ConstantSize and RatioSize are allocated, left size is for AutoSize. euqal to without UILayoutElement. */
-	AutoSize,
-	/* Ignore parent Layout. */
-	IgnoreLayout,
-	/* Constant size. */
-	ConstantSize,
-	/* RatioSize, set size by ratio. total size is 1.0. */
-	RatioSize,
-};
+
 /**
  * Attach to layout's child, make is specific or ignore layout
  */
 UCLASS( ClassGroup=(LGUI), meta=(BlueprintSpawnableComponent) )
-class LGUI_API UUILayoutElement : public ULGUILifeCycleUIBehaviour
+class LGUI_API UUILayoutElement : public ULGUILifeCycleUIBehaviour, public ILGUILayoutElementInterface
 {
 	GENERATED_BODY()
 
@@ -33,15 +23,12 @@ public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ELayoutElementType GetLayoutType()const { return LayoutElementType; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		bool GetIgnoreLayout()const { return LayoutElementType == ELayoutElementType::IgnoreLayout; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetConstantSize()const { return ConstantSize; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		float GetRatioSize()const { return RatioSize; }
+	//Begin LGUILayoutElement interface
+	ELayoutElementType GetLayoutType_Implementation()const { return LayoutElementType; }
+	bool GetIgnoreLayout_Implementation()const { return LayoutElementType == ELayoutElementType::IgnoreLayout; }
+	float GetConstantSize_Implementation()const { return ConstantSize; }
+	float GetRatioSize_Implementation()const { return RatioSize; }
+	//End LGUILayoutElement interface
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetLayoutType(ELayoutElementType InType);

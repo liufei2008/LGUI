@@ -110,7 +110,7 @@ public:
 	static FColor MultiplyColor(FColor A, FColor B);
 #if WITH_EDITOR
 	//nodify some informations in editor
-	static void EditorNotification(FText NofityText, float ExpireDuration = 5.0f);
+	static void EditorNotification(FText NotifyText, float ExpireDuration = 5.0f);
 #endif
 	/**
 	 * Collect children actors reculsively.
