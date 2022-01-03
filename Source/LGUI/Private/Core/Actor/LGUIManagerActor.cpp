@@ -244,21 +244,9 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 	return true;
 }
 
-#include "Event/LGUIEventDelegate.h"
-#include "LGUIComponentReference.h"
-#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
-/**
- * These LGUI data-structs reference UActorComponent by UObject property.
- * If the UActorComponent is a blueprint, then if hit compile button, the reference UObject become STAIL and lose reference. So we need a way to re-find the UActorComponent reference:
- *		1. Collect struct instance in an array.
- *		2. Store component's class and name in every instance.
- *		3. Re-find the UObject reference by actor & class & name.
- */
 void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
 {
-	FLGUIEventDelegate::RefreshAll_OnBlueprintCompiled();
-	FLGUIComponentReference::RefreshAll_OnBlueprintCompiled();
-	FLGUIPrefabOverrideParameter::RefreshAll_OnBlueprintCompiled();
+	
 }
 
 void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
@@ -357,7 +345,7 @@ void ULGUIEditorManagerObject::OnActorDeleted()
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!prefabActor->PrefabHelperObject->LoadedRootActor.IsValid())
+			if (!IsValid(prefabActor->PrefabHelperObject->LoadedRootActor))
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -436,6 +424,8 @@ void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
 				actorLabel = actorLabel.Right(actorLabel.Len() - 2);
 			}
 			rootUIComp->SetDisplayName(actorLabel);
+
+			LGUIUtils::NotifyPropertyChanged(rootUIComp, FName(TEXT("displayName")));
 		}
 	}
 }
@@ -744,8 +734,7 @@ bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
 }
 
 bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakObjectPtr<UUIItem>>& InUIItems, const FVector& LineStart, const FVector& LineEnd
-	, TWeakObjectPtr<UUIBaseRenderable> PrevSelectTarget, TWeakObjectPtr<AActor> PrevSelectedActor
-	, TWeakObjectPtr<UUIBaseRenderable>& ResultSelectTarget, TWeakObjectPtr<AActor>& ResultSelectedActor
+	, UUIBaseRenderable*& ResultSelectTarget
 )
 {
 	TArray<FHitResult> HitResultArray;
@@ -789,21 +778,6 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakO
 			});
 		if (auto uiRenderableComp = Cast<UUIBaseRenderable>(HitResultArray[0].Component.Get()))//target need to select
 		{
-			if (PrevSelectTarget.Get() == uiRenderableComp)//if selection not change, then select hierarchy up
-			{
-				if (auto parentActor = PrevSelectedActor->GetAttachParentActor())
-				{
-					ResultSelectedActor = parentActor;
-				}
-				else//not have parent, loop back to origin
-				{
-					ResultSelectedActor = uiRenderableComp->GetOwner();
-				}
-			}
-			else
-			{
-				ResultSelectedActor = uiRenderableComp->GetOwner();
-			}
 			ResultSelectTarget = uiRenderableComp;
 			return true;
 		}

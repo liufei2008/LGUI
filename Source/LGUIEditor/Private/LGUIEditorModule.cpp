@@ -7,7 +7,6 @@
 #include "LGUIHeaders.h"
 #include "Core/LGUISettings.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 
 #include "ISettingsModule.h"
@@ -65,7 +64,6 @@
 #include "DetailCustomization/UIScrollViewWithScrollBarCustomization.h"
 #include "DetailCustomization/UISpriteSequencePlayerCustomization.h"
 #include "DetailCustomization/UISpriteSheetTexturePlayerCustomization.h"
-#include "DetailCustomization/LGUIPrefabOverrideParameterCustomization.h"
 
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
 
@@ -228,8 +226,6 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Name::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIComponentReferenceCustomization::MakeInstance));
-
-		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIPrefabOverrideParameter::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIPrefabOverrideParameterCustomization::MakeInstance));
 	}
 	//register asset
 	{

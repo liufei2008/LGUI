@@ -30,7 +30,8 @@ namespace LGUIPrefabSystem3
 			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::DuplicateActor]Cannot get World from RootActor!"));
 			return nullptr;
 		}
-		ActorSerializer3 serializer(RootActor->GetWorld());
+		ActorSerializer3 serializer;
+		serializer.TargetWorld = RootActor->GetWorld();
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif

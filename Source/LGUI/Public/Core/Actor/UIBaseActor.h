@@ -17,7 +17,7 @@ public:
 		virtual class UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
 };
 
-UCLASS(Abstract, HideCategories = (Actor, Rendering))
+UCLASS(Abstract)
 class LGUI_API AUIBaseRenderableActor : public AUIBaseActor
 {
 	GENERATED_BODY()
@@ -28,7 +28,7 @@ public:
 		virtual class UUIBaseRenderable* GetUIRenderable()const PURE_VIRTUAL(AUIBaseRenderableActor::GetUIRenderable, return nullptr;);
 };
 
-UCLASS(Abstract, HideCategories = (Actor, Rendering))
+UCLASS(Abstract)
 class LGUI_API AUIBasePostProcessActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()

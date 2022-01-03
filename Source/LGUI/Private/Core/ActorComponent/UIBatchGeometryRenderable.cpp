@@ -37,10 +37,6 @@ void UUIBatchGeometryRenderable::TickComponent( float DeltaTime, ELevelTick Tick
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 }
 
-void UUIBatchGeometryRenderable::ApplyUIActiveState()
-{
-	Super::ApplyUIActiveState();
-}
 #if WITH_EDITOR
 void UUIBatchGeometryRenderable::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

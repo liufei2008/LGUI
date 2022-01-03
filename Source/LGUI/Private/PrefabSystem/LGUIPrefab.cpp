@@ -6,10 +6,99 @@
 #include "PrefabSystem/ActorSerializer3.h"
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefab"
+
+
+void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, FName InPropertyName)
+{
+	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
+		return Item.Object == InObject;
+		});
+	if (Index == INDEX_NONE)
+	{
+		FLGUIPrefabOverrideParameterData DataItem;
+		DataItem.Object = InObject;
+		DataItem.MemberPropertyName.Add(InPropertyName);
+		ObjectOverrideParameterArray.Add(DataItem);
+	}
+	else
+	{
+		auto& DataItem = ObjectOverrideParameterArray[Index];
+		if (!DataItem.MemberPropertyName.Contains(InPropertyName))
+		{
+			DataItem.MemberPropertyName.Add(InPropertyName);
+		}
+	}
+}
+void FLGUISubPrefabData::RemoveMemberProperty(UObject* InObject, FName InPropertyName)
+{
+	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
+		return Item.Object == InObject;
+		});
+	if (Index != INDEX_NONE)
+	{
+		auto& DataItem = ObjectOverrideParameterArray[Index];
+		if (DataItem.MemberPropertyName.Contains(InPropertyName))
+		{
+			DataItem.MemberPropertyName.Remove(InPropertyName);
+		}
+		if (DataItem.MemberPropertyName.Num() <= 0)
+		{
+			ObjectOverrideParameterArray.RemoveAt(Index);
+		}
+	}
+}
+
+void FLGUISubPrefabData::RemoveMemberProperty(UObject* InObject)
+{
+	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
+		return Item.Object == InObject;
+		});
+	if (Index != INDEX_NONE)
+	{
+		ObjectOverrideParameterArray.RemoveAt(Index);
+	}
+}
+
+bool FLGUISubPrefabData::CheckParameters()
+{
+	bool AnythingChanged = false;
+	TSet<int> ObjectsNeedToRemove;
+	for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
+	{
+		auto DataItem = ObjectOverrideParameterArray[i];
+		if (!DataItem.Object.IsValid())
+		{
+			ObjectsNeedToRemove.Add(i);
+		}
+		else
+		{
+			TSet<FName> PropertyNamesToRemove;
+			auto Object = DataItem.Object;
+			for (auto PropertyName : DataItem.MemberPropertyName)
+			{
+				auto Property = FindFProperty<FProperty>(Object->GetClass(), PropertyName);
+				if (Property == nullptr)
+				{
+					PropertyNamesToRemove.Add(PropertyName);
+				}
+			}
+			for (auto PropertyName : PropertyNamesToRemove)
+			{
+				DataItem.MemberPropertyName.Remove(PropertyName);
+				AnythingChanged = true;
+			}
+		}
+	}
+	for (auto Index : ObjectsNeedToRemove)
+	{
+		ObjectOverrideParameterArray.RemoveAt(Index);
+		AnythingChanged = true;
+	}
+	return AnythingChanged;
+}
 
 ULGUIPrefab::ULGUIPrefab()
 {
@@ -32,7 +121,7 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 {
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		if (!PrefabHelperObject->LoadedRootActor.IsValid())
+		if (!IsValid(PrefabHelperObject->LoadedRootActor))
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 			PrefabHelperObject->LoadPrefab(World, nullptr);
@@ -53,7 +142,7 @@ void ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 		{
 			if (KeyValue.Value.PrefabAsset == InSubPrefab)
 			{
-				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(InSubPrefab->PrefabHelperObject->PrefabOverrideParameterObject))
+				if (KeyValue.Value.CheckParameters())
 				{
 					AnythingChange = true;
 				}
@@ -61,26 +150,25 @@ void ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 		}
 		if (AnythingChange)
 		{
-			TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
+			TMap<UObject*, FGuid> MapObjectToGuid;
 			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 			{
-				if (KeyValue.Value.IsValid())
+				if (IsValid(KeyValue.Value))
 				{
-					MapObjectToGuid.Add(KeyValue.Value.Get(), KeyValue.Key);
+					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 				}
 			}
-			TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> TempAgentSubPrefabMap;
+			TMap<AActor*, FLGUISubPrefabData> TempAgentSubPrefabMap;
 			for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
 			{
-				if (KeyValue.Key.IsValid())
+				if (IsValid(KeyValue.Key))
 				{
-					TempAgentSubPrefabMap.Add(KeyValue.Key.Get(), KeyValue.Value);
+					TempAgentSubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
 				}
 			}
 
-			this->SavePrefab(PrefabHelperObject->LoadedRootActor.Get()
+			this->SavePrefab(PrefabHelperObject->LoadedRootActor
 				, MapObjectToGuid, TempAgentSubPrefabMap
-				, PrefabHelperObject->PrefabOverrideParameterObject, this->OverrideParameterData
 			);
 
 			PrefabHelperObject->MapGuidToObject.Empty();
@@ -104,7 +192,7 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 	BinaryDataForBuild.Empty();
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		if (!PrefabHelperObject->LoadedRootActor.IsValid())
+		if (!IsValid(PrefabHelperObject->LoadedRootActor))
 		{
 			UE_LOG(LGUI, Error, TEXT("AgentObjects not valid! prefab:%s"), *(this->GetPathName()));
 		}
@@ -114,7 +202,7 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 			bool AnythingChange = false;
 			for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
 			{
-				if (KeyValue.Value.OverrideParameterObject->RefreshParameterOnTemplate(KeyValue.Value.PrefabAsset->PrefabHelperObject->PrefabOverrideParameterObject))
+				if (KeyValue.Value.CheckParameters())
 				{
 					AnythingChange = true;
 				}
@@ -124,17 +212,16 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 				UE_LOG(LGUI, Log, TEXT("[ULGUIPrefab::BeginCacheForCookedPlatformData]Something changed in sub prefab override parameter, refresh it."));
 			}
 
-			TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
+			TMap<UObject*, FGuid> MapObjectToGuid;
 			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 			{
-				if (KeyValue.Value.IsValid())
+				if (IsValid(KeyValue.Value))
 				{
-					MapObjectToGuid.Add(KeyValue.Value.Get(), KeyValue.Key);
+					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 				}
 			}
-			this->SavePrefab(PrefabHelperObject->LoadedRootActor.Get()
+			this->SavePrefab(PrefabHelperObject->LoadedRootActor
 				, MapObjectToGuid, PrefabHelperObject->SubPrefabMap
-				, PrefabHelperObject->PrefabOverrideParameterObject, this->OverrideParameterData
 				, false
 			);
 			PrefabHelperObject->MapGuidToObject.Empty();
@@ -206,8 +293,7 @@ void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 	Super::PostDuplicate(bDuplicateForPIE);
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		//(should generate new guid for all object inside prefab)
-		//previoursly I write the line upper, but after a while I realize: two prefab won't share same MapObjectToGuid, even for nested prefab( sub prefab only get root actor in parent's guid-map, and not the same guid inside sub prefab), so we don't need do the upper line.
+		//@todo: should generate new guid for all objects inside prefab
 	}
 	else
 	{
@@ -219,6 +305,7 @@ void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 void ULGUIPrefab::PostLoad()
 {
 	Super::PostLoad();
+	//@todo: when reload a prefab asset, there is no agent object created
 }
 
 void ULGUIPrefab::BeginDestroy()
@@ -295,8 +382,8 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 
 #if WITH_EDITOR
 AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
-	, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-	, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
+	, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+	, bool InSetHierarchyIndexForRootComponent
 )
 {
 	AActor* LoadedRootActor = nullptr;
@@ -304,7 +391,7 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 	{
 		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this, InParent
 			, InOutMapGuidToObject, OutSubPrefabMap
-			, InOverrideParameterData, OutOverrideParameterObject
+			, InSetHierarchyIndexForRootComponent
 		);
 	}
 	else
@@ -323,14 +410,12 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 }
 
 void ULGUIPrefab::SavePrefab(AActor* RootActor
-	, TMap<TWeakObjectPtr<UObject>, FGuid>& InOutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
-	, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+	, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 	, bool InForEditorOrRuntimeUse
 )
 {
 	LGUIPrefabSystem3::ActorSerializer3::SavePrefab(RootActor, this
 		, InOutMapObjectToGuid, InSubPrefabMap
-		, InOverrideParameterObject, OutOverrideParameterData
 		, InForEditorOrRuntimeUse
 	);
 }
@@ -340,13 +425,10 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	AActor* LoadedRootActor = nullptr;
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
-		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-		TArray<uint8> TempOverrideParameterData;
-		ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+		TMap<FGuid, UObject*> MapGuidToObject;
+		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this
 			, InParent, MapGuidToObject, SubPrefabMap
-			, TempOverrideParameterData, OverrideParameterObject
 		);
 	}
 	else

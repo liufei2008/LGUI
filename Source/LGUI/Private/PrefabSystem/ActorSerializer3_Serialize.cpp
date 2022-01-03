@@ -11,7 +11,6 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUI.h"
-#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
 #include "Core/ActorComponent/UIItem.h"
 #if WITH_EDITOR
 #include "Tools/UEdMode.h"
@@ -22,8 +21,7 @@ PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
 	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-		, TMap<TWeakObjectPtr<UObject>, FGuid>& InOutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
-		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse
 	)
 	{
@@ -37,30 +35,26 @@ namespace LGUIPrefabSystem3
 			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::SerializeActor]Cannot get World from RootActor!"));
 			return;
 		}
-		ActorSerializer3 serializer(RootActor->GetWorld());
+		ActorSerializer3 serializer;
+		serializer.TargetWorld = RootActor->GetWorld();
 		for (auto KeyValue : InOutMapObjectToGuid)//Preprocess the map, ignore invalid object
 		{
-			if (KeyValue.Key.IsValid())
+			if (IsValid(KeyValue.Key))
 			{
 				serializer.MapObjectToGuid.Add(KeyValue.Key, KeyValue.Value);
 			}
 		}
-		for (auto& KeyValue : InSubPrefabMap)
-		{
-			if (KeyValue.Key.IsValid() && IsValid(KeyValue.Value.OverrideParameterObject))
-			{
-				serializer.SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
-			}
-		}
+		serializer.SubPrefabMap = InSubPrefabMap;
 		serializer.bIsEditorOrRuntime = InForEditorOrRuntimeUse;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectWriter Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
 		};
-		serializer.OverrideParameterObject = InOverrideParameterObject;
+		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
+			FLGUIOverrideParameterObjectWriter Writer(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+		};
 		serializer.SerializeActor(RootActor, InPrefab);
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;
-		OutOverrideParameterData = serializer.OverrideParameterData;
 	}
 
 	void ActorSerializer3::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData)
@@ -106,23 +100,20 @@ namespace LGUIPrefabSystem3
 				ChildActorSaveData.bIsPrefab = true;
 				ChildActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
 				ChildActorSaveData.ActorGuid = MapObjectToGuid[ChildActor];
-				//collect subprefab's components, indexed by guid and name
-				for (auto& BlueprintComp : ChildActor->BlueprintCreatedComponents)
+				ChildActorSaveData.MapObjectGuidFromParentPrefabToSubPrefab = SubPrefabDataPtr->MapObjectGuidFromParentPrefabToSubPrefab;
+
+				//serialize override parameter data
+				for (auto& DataItem : SubPrefabDataPtr->ObjectOverrideParameterArray)
 				{
-					ChildActorSaveData.PrefabRootActorComponentGuidArray.Add(MapObjectToGuid[BlueprintComp]);
-					ChildActorSaveData.PrefabRootActorComponentNameArray.Add(BlueprintComp->GetFName());
+					TArray<uint8> SubPrefabOverrideData;
+					auto SubPrefabObject = DataItem.Object.Get();
+					WriterOrReaderFunctionForSubPrefab(SubPrefabObject, SubPrefabOverrideData, DataItem.MemberPropertyName);
+					FLGUIPrefabOverrideParameterRecordData RecordDataItem;
+					RecordDataItem.ObjectGuid = MapObjectToGuid[SubPrefabObject];
+					RecordDataItem.OverrideParameterData = SubPrefabOverrideData;
+					RecordDataItem.OverrideParameterNameSet = DataItem.MemberPropertyName;
+					ChildActorSaveData.ObjectOverrideParameterArray.Add(RecordDataItem);
 				}
-				for (auto& InstanceComp : ChildActor->GetInstanceComponents())
-				{
-					ChildActorSaveData.PrefabRootActorComponentGuidArray.Add(MapObjectToGuid[InstanceComp]);
-					ChildActorSaveData.PrefabRootActorComponentNameArray.Add(InstanceComp->GetFName());
-				}
-				if (auto RootComp = ChildActor->GetRootComponent())
-				{
-					ChildActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
-				}
-				//serialize override parameter object
-				WriterOrReaderFunction(SubPrefabDataPtr->OverrideParameterObject, ChildActorSaveData.PrefabOverrideParameterData, false);
 				ChildSaveDataList.Add(ChildActorSaveData);
 			}
 			else
@@ -144,17 +135,10 @@ namespace LGUIPrefabSystem3
 	}
 	void ActorSerializer3::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
 	{
-		Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
-
 		auto StartTime = FDateTime::Now();
 
 		FLGUIPrefabSaveData SaveData;
 		SerializeActorToData(RootActor, SaveData);
-		//serialize override parameter object
-		if (IsValid(OverrideParameterObject))
-		{
-			WriterOrReaderFunction(OverrideParameterObject, OverrideParameterData, false);
-		}
 
 		FBufferArchive ToBinary;
 		ToBinary << SaveData;
@@ -168,36 +152,34 @@ namespace LGUIPrefabSystem3
 #if WITH_EDITOR
 		if (bIsEditorOrRuntime)
 		{
-			Prefab->BinaryData = ToBinary;
-			Prefab->ThumbnailDirty = true;
-			Prefab->CreateTime = FDateTime::Now();
+			InPrefab->BinaryData = ToBinary;
+			InPrefab->ThumbnailDirty = true;
+			InPrefab->CreateTime = FDateTime::Now();
 		}
 		else
 #endif
 		{
-			Prefab->BinaryDataForBuild = ToBinary;
+			InPrefab->BinaryDataForBuild = ToBinary;
 		}
 
 		//clear old reference data
-		Prefab->ReferenceAssetList.Empty();
-		Prefab->ReferenceClassList.Empty();
-		Prefab->ReferenceTextList.Empty();
-		Prefab->ReferenceNameList.Empty();
-		Prefab->ReferenceStringList.Empty();
+		InPrefab->ReferenceAssetList.Empty();
+		InPrefab->ReferenceClassList.Empty();
+		InPrefab->ReferenceTextList.Empty();
+		InPrefab->ReferenceNameList.Empty();
+		InPrefab->ReferenceStringList.Empty();
 		//fill new reference data
-		Prefab->ReferenceAssetList = this->ReferenceAssetList;
-		Prefab->ReferenceClassList = this->ReferenceClassList;
-		Prefab->ReferenceNameList = this->ReferenceNameList;
+		InPrefab->ReferenceAssetList = this->ReferenceAssetList;
+		InPrefab->ReferenceClassList = this->ReferenceClassList;
+		InPrefab->ReferenceNameList = this->ReferenceNameList;
 
-		Prefab->OverrideParameterData = OverrideParameterData;
+		InPrefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
+		InPrefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
+		InPrefab->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
 
-		Prefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
-		Prefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
-		Prefab->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
-
-		Prefab->MarkPackageDirty();
+		InPrefab->MarkPackageDirty();
 		auto TimeSpan = FDateTime::Now() - StartTime;
-		UE_LOG(LGUI, Log, TEXT("Take %fs saving prefab: %s"), TimeSpan.GetTotalSeconds(), *Prefab->GetName());
+		UE_LOG(LGUI, Log, TEXT("Take %fs saving prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
 	}
 
 	bool ActorSerializer3::ObjectBelongsToThisPrefab(UObject* InObject)
@@ -245,7 +227,10 @@ namespace LGUIPrefabSystem3
 	void ActorSerializer3::CollectActorRecursive(AActor* Actor)
 	{
 		//collect actor
-		WillSerailizeActorArray.Add(Actor);
+		if (!SubPrefabMap.Contains(Actor))//sub prefab's actor should not put to the list
+		{
+			WillSerailizeActorArray.Add(Actor);
+		}
 		if (!MapObjectToGuid.Contains(Actor))
 		{
 			MapObjectToGuid.Add(Actor, FGuid::NewGuid());
@@ -255,39 +240,7 @@ namespace LGUIPrefabSystem3
 		Actor->GetAttachedActors(ChildrenActors);
 		for (auto ChildActor : ChildrenActors)
 		{
-			if (SubPrefabMap.Contains(ChildActor))//Sub prefab only store root actor
-			{
-				if (!MapObjectToGuid.Contains(ChildActor))
-				{
-					MapObjectToGuid.Add(ChildActor, FGuid::NewGuid());
-				}
-				//collect subprefab's components, so reference can find it
-				if (auto RootComp = ChildActor->GetRootComponent())
-				{
-					if (!MapObjectToGuid.Contains(RootComp))
-					{
-						MapObjectToGuid.Add(RootComp, FGuid::NewGuid());
-					}
-				}
-				for (auto& BlueprintComp : ChildActor->BlueprintCreatedComponents)
-				{
-					if (!MapObjectToGuid.Contains(BlueprintComp))
-					{
-						MapObjectToGuid.Add(BlueprintComp, FGuid::NewGuid());
-					}
-				}
-				for (auto& InstanceComp : ChildActor->GetInstanceComponents())
-				{
-					if (!MapObjectToGuid.Contains(InstanceComp))
-					{
-						MapObjectToGuid.Add(InstanceComp, FGuid::NewGuid());
-					}
-				}
-			}
-			else
-			{
-				CollectActorRecursive(ChildActor);
-			}
+			CollectActorRecursive(ChildActor);//collect all actor, include subprefab's actor
 		}
 	}
 
@@ -298,7 +251,7 @@ namespace LGUIPrefabSystem3
 		if (ObjectIsTrash(Object))return false;
 #endif
 		if (!Object->IsAsset()//skip asset, because asset is referenced directly
-			&& Object->GetWorld() == TargetWorld.Get()
+			&& Object->GetWorld() == TargetWorld
 			&& !Object->HasAnyFlags(EObjectFlags::RF_Transient)
 			&& !WillSerailizeActorArray.Contains(Object)
 			&& !Object->GetClass()->IsChildOf(AActor::StaticClass())//skip actor

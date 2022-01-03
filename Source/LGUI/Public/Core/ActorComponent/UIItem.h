@@ -27,14 +27,21 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	virtual void PostLoad()override;
 #if WITH_EDITOR
 	virtual void PreEditChange(class FEditPropertyChain& PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditComponentMove(bool bFinished) override;
+	virtual void PostEditUndo()override;
+	//virtual void PostEditUndo(TSharedPtr<ITransactionObjectAnnotation> TransactionAnnotation)override;
+	virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent)override;
 	/** USceneComponent Interface. Only needed for show rect range in editor */
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	/** update UI immediately in edit mode */
 	virtual void EditorForceUpdateImmediately();//@todo: remove this
+#endif
+#if WITH_EDITORONLY_DATA
+	static TSet<FName> PersistentOverridePropertyNameSet;
 #endif
 	
 #pragma region LGUILifeCycleUIBehaviour
@@ -118,7 +125,6 @@ protected:
 	UPROPERTY(Transient) TArray<UUIItem*> UIChildren;
 	/** check valid, incase unnormally deleting actor, like undo */
 	void CheckCacheUIChildren();
-	void SortCacheUIChildren();
 #pragma region AnchorData
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
@@ -256,11 +262,12 @@ public:
 		UUICanvasGroup* GetCanvasGroup()const { return CanvasGroup.Get(); }
 #pragma endregion UICanvasGroup
 #pragma region UIActive
+public:
+	void CheckUIActiveState();
 protected:
 	/** all up parent IsUIActive is true, then this is true. if any up parent is false, then this is false */
 	bool bAllUpParentUIActive = true;
-	void SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive);
-	void SetUIActiveStateChange();
+	void CheckChildrenUIActiveRecursive(bool InUpParentUIActive);
 	/**
 	 * Active ui is visible and interactable.
 	 * If parent or parent's parent... IsUIActive is false, then this ui is not visible and not interactable.
@@ -268,7 +275,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI, meta = (DisplayName = "Is UI Active"))
 		bool bIsUIActive = true;
 	/** apply IsUIActive state */
-	virtual void ApplyUIActiveState();
+	virtual void ApplyUIActiveState(bool InStateChange);
 	void OnChildActiveStateChanged(UUIItem* child);
 
 	FSimpleMulticastDelegate UIActiveStateChangedDelegate;
@@ -300,6 +307,7 @@ private:
 	/** Only for RootUIItem */
 	void RecalculateFlattenHierarchyIndex()const;
 	void CalculateFlattenHierarchyIndex_Recursive(int& index)const;
+	void ApplyHierarchyIndex();
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		int32 GetHierarchyIndex() const { return hierarchyIndex; }

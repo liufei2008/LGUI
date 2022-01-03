@@ -20,8 +20,21 @@
 #define LGUI_PREFAB_VERSION_BuildinFArchive 3
 
 class ULGUIPrefab;
-class ULGUIPrefabOverrideParameterObject;
 class ULGUIPrefabHelperObject;
+
+USTRUCT(NotBlueprintType)
+struct LGUI_API FLGUIPrefabOverrideParameterData
+{
+	GENERATED_BODY()
+public:
+	FLGUIPrefabOverrideParameterData() {};
+
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		TWeakObjectPtr<UObject> Object;
+	/** UObject's member property name */
+	UPROPERTY(EditAnywhere, Category = "LGUI")
+		TSet<FName> MemberPropertyName;
+};
 
 USTRUCT(NotBlueprintType)
 struct LGUI_API FLGUISubPrefabData
@@ -29,8 +42,17 @@ struct LGUI_API FLGUISubPrefabData
 	GENERATED_BODY()
 public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefab* PrefabAsset;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefabOverrideParameterObject* OverrideParameterObject;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<uint8> OverrideParameterData;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;
+public:
+	void AddMemberProperty(UObject* InObject, FName InPropertyName);
+	void RemoveMemberProperty(UObject* InObject, FName InPropertyName);
+	void RemoveMemberProperty(UObject* InObject);
+	/** 
+	 * Check parameters, remove invalid.
+	 * @return true if anything changed.
+	 */
+	bool CheckParameters();
 };
 
 /**
@@ -83,16 +105,12 @@ public:
 	 */
 	UPROPERTY()
 		TArray<uint8> BinaryDataForBuild;
-	/** This property contains this prefab's overrideable parameters data, can use LGUIObjectReader to reproduce ULGUIPrefabOverrideParameterObject. */
-	UPROPERTY()
-		TArray<uint8> OverrideParameterData;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Instanced, Transient)
 		class UThumbnailInfo* ThumbnailInfo;
 	UPROPERTY(Transient)
 		bool ThumbnailDirty = false;
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
-	//UPROPERTY()
 		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 #endif
 public:
@@ -129,18 +147,17 @@ public:
 	 * LoadPrefab for edit/modify, will keep reference of source prefab.
 	 */
 	AActor* LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
-		, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObject, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-		, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
+		, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+		, bool InSetHierarchyIndexForRootComponent = true
 	);
 	void SavePrefab(AActor* RootActor
-		, TMap<TWeakObjectPtr<UObject>, FGuid>& InOutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
-		, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse = true
 	);
 	/**
 	 * @todo: There is a more efficient way for dealing with sub prefab in runtime: break sub prefab and store all actors (with override parameters) in root prefab.
 	 */
-	void SavePrefabForRuntime(AActor* RootActor, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap);
+	void SavePrefabForRuntime(AActor* RootActor, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap);
 	/**
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.
 	 */

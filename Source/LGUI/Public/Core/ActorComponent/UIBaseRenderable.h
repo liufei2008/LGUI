@@ -50,7 +50,7 @@ protected:
 
 	bool LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
 
-    virtual void ApplyUIActiveState() override;
+    virtual void ApplyUIActiveState(bool InStateChange) override;
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 public:
 	/** get UI renderable type */

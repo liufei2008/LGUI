@@ -247,6 +247,15 @@ protected:
 		bool inheritRectClip = true;
 
 	/**
+	 * By default canvas should render by up parent canvas (parent canvas will go up for render canvas too), if this set to true then canvas will render by itself.
+	 * So by default, if canvas A is render by canvas B, when something need to update in canvas A, it still need to start from canvas B.
+	 * This parameter is useful for the case:
+	 *		Canvas A have something that need to update very frequently, then make this to true so canvas A can update and render by itself, without bothering canvas B.
+	 */
+	UPROPERTY(EditAnywhere, Category = LGUI)
+		bool bForceSelfRender = false;
+
+	/**
 	 * The amount of pixels per unit to use for dynamically created bitmaps in the UI, such as UIText. 
 	 * But!!! Do not set this value too large if you already have large font size of UIText, because that will result in extreamly large texture! 
 	 */
@@ -306,6 +315,9 @@ public:
 	/** if renderMode is RenderTarget, then this will change the renderTarget */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetRenderTarget(UTextureRenderTarget2D* value);
+
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		bool GetForceSelfRender()const { return bForceSelfRender; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClipType(ELGUICanvasClipType newClipType);

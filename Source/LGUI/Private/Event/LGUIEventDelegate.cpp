@@ -395,9 +395,9 @@ void FLGUIEventDelegateData::Execute()
 	}
 	else
 	{
-		if (TargetObject.IsValid())
+		if (IsValid(TargetObject))
 		{
-			FindAndExecute(TargetObject.Get());
+			FindAndExecute(TargetObject);
 		}
 	}
 }
@@ -418,9 +418,9 @@ void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterTy
 		}
 		else
 		{
-			if (TargetObject.IsValid())
+			if (IsValid(TargetObject))
 			{
-				FindAndExecute(TargetObject.Get(), InParam);
+				FindAndExecute(TargetObject, InParam);
 			}
 		}
 	}
@@ -432,9 +432,9 @@ void FLGUIEventDelegateData::Execute(void* InParam, LGUIEventDelegateParameterTy
 		}
 		else
 		{
-			if (TargetObject.IsValid())
+			if (IsValid(TargetObject))
 			{
-				FindAndExecute(TargetObject.Get());
+				FindAndExecute(TargetObject);
 			}
 		}
 	}
@@ -514,89 +514,13 @@ void FLGUIEventDelegateData::ExecuteTargetFunction(UObject* Target, UFunction* F
 	Target->ProcessEvent(Func, ParamData);
 }
 
-
-#if WITH_EDITORONLY_DATA
-TArray<FLGUIEventDelegate*> FLGUIEventDelegate::AllLGUIEventDelegateArray;
-#endif
 FLGUIEventDelegate::FLGUIEventDelegate()
 {
-#if WITH_EDITOR
-	AllLGUIEventDelegateArray.Add(this);
-#endif
 }
 FLGUIEventDelegate::FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType)
 {
 	supportParameterType = InParameterType;
-#if WITH_EDITOR
-	AllLGUIEventDelegateArray.Add(this);
-#endif
 }
-FLGUIEventDelegate::~FLGUIEventDelegate()
-{
-#if WITH_EDITOR
-	AllLGUIEventDelegateArray.Remove(this);
-#endif
-}
-#if WITH_EDITOR
-void FLGUIEventDelegate::RefreshOnBlueprintCompiled()
-{
-	for (auto& Item : eventList)
-	{
-		if (Item.TargetObject.IsStale())
-		{
-			Item.TargetObject = nullptr;
-			if (Item.HelperActor.IsValid())
-			{
-				if (Item.HelperClass->IsChildOf(AActor::StaticClass()))
-				{
-					//is HelperActor
-					if (Item.TargetObject != Item.HelperActor)
-					{
-						Item.TargetObject = Item.HelperActor;
-					}
-				}
-				else
-				{
-					if (Item.HelperClass != nullptr)
-					{
-						TArray<UActorComponent*> Components;
-						Item.HelperActor->GetComponents(Item.HelperClass, Components);
-						if (Components.Num() == 1)
-						{
-							Item.TargetObject = Components[0];
-						}
-						else
-						{
-							if (Item.HelperComponentName.IsValid())
-							{
-								for (auto& Comp : Components)
-								{
-									if (Comp->HasAnyFlags(EObjectFlags::RF_Transient))continue;
-									if (Item.HelperComponentName == Comp->GetFName())
-									{
-										Item.TargetObject = Comp;
-									}
-								}
-							}
-							else
-							{
-								Item.TargetObject = Components[0];
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-void FLGUIEventDelegate::RefreshAll_OnBlueprintCompiled()
-{
-	for (auto& Item : AllLGUIEventDelegateArray)
-	{
-		Item->RefreshOnBlueprintCompiled();
-	}
-}
-#endif
 
 bool FLGUIEventDelegate::IsBound()const
 {

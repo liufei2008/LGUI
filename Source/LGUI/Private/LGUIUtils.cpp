@@ -139,6 +139,23 @@ void LGUIUtils::FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas)
 	}
 }
 
+void LGUIUtils::NotifyPropertyChanged(UObject* Object, FProperty* Property)
+{
+	TArray<UObject*> ModifiedObjects;
+	ModifiedObjects.Add(Object);
+	FPropertyChangedEvent PropertyChangedEvent(Property, EPropertyChangeType::ValueSet, MakeArrayView(ModifiedObjects));
+	Object->PostEditChangeProperty(PropertyChangedEvent);
+	FEditPropertyChain PropertyChain;
+	PropertyChain.AddHead(Property);
+	FPropertyChangedChainEvent PropertyChangedChainEvent(PropertyChain, PropertyChangedEvent);
+	Object->PostEditChangeChainProperty(PropertyChangedChainEvent);
+}
+void LGUIUtils::NotifyPropertyChanged(UObject* Object, FName PropertyName)
+{
+	auto Property = FindFProperty<FProperty>(Object->GetClass(), PropertyName);
+	NotifyPropertyChanged(Object, Property);
+}
+
 float LGUIUtils::INV_255 = 1.0f / 255.0f;
 
 FColor LGUIUtils::ColorHSVDataToColorRGB(FVector InHSVColor)

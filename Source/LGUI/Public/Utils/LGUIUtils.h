@@ -122,6 +122,9 @@ public:
 
 	static UTexture2D* CreateTexture(int32 InSize, FColor InDefaultColor = FColor::Transparent, class UObject* InOuter = GetTransientPackage(), FName InDefaultName = NAME_None);
 
+	static void NotifyPropertyChanged(UObject* Object, FProperty* Property);
+	static void NotifyPropertyChanged(UObject* Object, FName PropertyName);
+
 	static void LogObjectFlags(UObject* obj);
 private:
 	template<class T>

@@ -55,95 +55,117 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 	UObject* HelperActorObj = nullptr;
 	AActor* HelperActor = nullptr;
 	HelperActorHandle->GetValue(HelperActorObj);
-	TArray<UActorComponent*> Components;
-	if (HelperActorObj)
-	{
-		HelperActor = Cast<AActor>(HelperActorObj);
-		if (HelperActor && HelperClass)
-		{
-			HelperActor->GetComponents(HelperClass, Components);
-		}
-	}
-	if (!IsValid(TargetComp) && Components.Num() == 1)//if TargetComp not valid, but this type of component exist, then clear HelperActor, because we need to reassign it
-	{
-		HelperActorHandle->SetValue((UObject*)nullptr);
-	}
 
 	TSharedPtr<SWidget> ContentWidget;
 	if (bIsInWorld)
 	{
-		if (!IsValid(HelperClass))
+		TArray<UActorComponent*> Components;
+		if (HelperActorObj)
 		{
-			ContentWidget =
+			HelperActor = Cast<AActor>(HelperActorObj);
+			if (HelperActor && HelperClass)
+			{
+				HelperActor->GetComponents(HelperClass, Components);
+			}
+		}
+		if (!IsValid(TargetComp) && Components.Num() == 1)//if TargetComp not valid, but this type of component exist, then show a fix button to fix the reference.
+		{
+			ContentWidget = 
 				SNew(SBox)
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
-					SNew(STextBlock)
-					.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-					.AutoWrapText(true)
-					.Font(IDetailLayoutBuilder::GetDetailFont())
-					.Text(LOCTEXT("ComponnetCheckTip", "You must set your component class in variable declaration!"))
-				];
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("Missing component reference!", "Missing component reference!"))
+						.Font(IDetailLayoutBuilder::GetDetailFont())
+						.ColorAndOpacity(FSlateColor(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)))
+					]
+					+SHorizontalBox::Slot()
+					[
+						SNew(SButton)
+						.Text(LOCTEXT("FixMissingComponent", "Fix"))
+						.OnClicked(this, &FLGUIComponentReferenceCustomization::OnClickFixComponentReference, TargetCompHandle, Components[0])
+					]
+				]
+			;
 		}
 		else
 		{
-			if (!IsValid(HelperActor))
+			if (!IsValid(HelperClass))
 			{
-				ContentWidget = HelperActorHandle->CreatePropertyValueWidget();
-			}
-			else
-			{
-				
-				if (Components.Num() == 0)
-				{
-					ContentWidget = SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						HelperActorHandle->CreatePropertyValueWidget()
-					]
-					+ SVerticalBox::Slot()
-					.AutoHeight()
+				ContentWidget =
+					SNew(SBox)
+					.VAlign(EVerticalAlignment::VAlign_Center)
 					[
 						SNew(STextBlock)
 						.ColorAndOpacity(FSlateColor(FLinearColor::Red))
 						.AutoWrapText(true)
-						.Text(FText::FromString(FString::Printf(TEXT("Component of type: %s not found on target actor!"), *HelperClass->GetName())))
 						.Font(IDetailLayoutBuilder::GetDetailFont())
+						.Text(LOCTEXT("ComponnetCheckTip", "You must set your component class in variable declaration!"))
 					];
-				}
-				else if (Components.Num() == 1)
+			}
+			else
+			{
+				if (!IsValid(HelperActor))
 				{
 					ContentWidget = HelperActorHandle->CreatePropertyValueWidget();
 				}
 				else
 				{
-					ContentWidget = 
-					SNew(SBox)
-					.WidthOverride(500)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
-						.FillWidth(0.65f)
+				
+					if (Components.Num() == 0)
+					{
+						ContentWidget = SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
 						[
 							HelperActorHandle->CreatePropertyValueWidget()
 						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(0.35f)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
 						[
-							SNew(SComboButton)
-							.ToolTipText(FText::FromString(FString::Printf(TEXT("Target actor have multiple components of type:%s, you must select one of them"), *HelperClass->GetName())))
-							.OnGetMenuContent(this, &FLGUIComponentReferenceCustomization::OnGetMenu, TargetCompHandle, Components)
-							.ContentPadding(FMargin(0))
-							.ButtonContent()
+							SNew(STextBlock)
+							.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+							.AutoWrapText(true)
+							.Text(FText::FromString(FString::Printf(TEXT("Component of type: %s not found on target actor!"), *HelperClass->GetName())))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						];
+					}
+					else if (Components.Num() == 1)
+					{
+						ContentWidget = HelperActorHandle->CreatePropertyValueWidget();
+					}
+					else
+					{
+						ContentWidget = 
+						SNew(SBox)
+						.WidthOverride(500)
+						[
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot()
+							.FillWidth(0.65f)
 							[
-								SNew(STextBlock)
-								.Text(this, &FLGUIComponentReferenceCustomization::GetButtonText, TargetCompHandle, Components)
-								.Font(IDetailLayoutBuilder::GetDetailFont())
+								HelperActorHandle->CreatePropertyValueWidget()
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(0.35f)
+							[
+								SNew(SComboButton)
+								.ToolTipText(FText::FromString(FString::Printf(TEXT("Target actor have multiple components of type:%s, you must select one of them"), *HelperClass->GetName())))
+								.OnGetMenuContent(this, &FLGUIComponentReferenceCustomization::OnGetMenu, TargetCompHandle, Components)
+								.ContentPadding(FMargin(0))
+								.ButtonContent()
+								[
+									SNew(STextBlock)
+									.Text(this, &FLGUIComponentReferenceCustomization::GetButtonText, TargetCompHandle, Components)
+									.Font(IDetailLayoutBuilder::GetDetailFont())
+								]
 							]
 						]
-					]
-					;
+						;
+					}
 				}
 			}
 		}
@@ -217,6 +239,14 @@ void FLGUIComponentReferenceCustomization::OnSelectComponent(TSharedPtr<IPropert
 	CompProperty->SetValue(Comp);
 	PropertyUtilites->ForceRefresh();
 }
+
+FReply FLGUIComponentReferenceCustomization::OnClickFixComponentReference(TSharedPtr<IPropertyHandle> HelperCompHandle, UActorComponent* Target)
+{
+	HelperCompHandle->SetValue(Target);
+	PropertyUtilites->ForceRefresh();
+	return FReply::Handled();
+}
+
 FText FLGUIComponentReferenceCustomization::GetButtonText(TSharedPtr<IPropertyHandle> TargetCompHandle, TArray<UActorComponent*> Components)const
 {
 	UObject* TargetCompObj = nullptr;

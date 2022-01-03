@@ -3,7 +3,6 @@
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
-#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
 #include "AssetRegistryModule.h"
 
 #include "LGUIEditorModule.h"
@@ -308,7 +307,7 @@ EVisibility FLGUIPrefabCustomization::ShouldShowFixAgentObjectsButton()const
 	if (TargetScriptPtr.IsValid())
 	{
 		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
-			&& (!TargetScriptPtr->PrefabHelperObject->LoadedRootActor.IsValid() || !IsValid(TargetScriptPtr->PrefabHelperObject->PrefabOverrideParameterObject))
+			&& (!IsValid(TargetScriptPtr->PrefabHelperObject->LoadedRootActor))
 			)
 		{
 			return EVisibility::Visible;
@@ -326,7 +325,7 @@ FText FLGUIPrefabCustomization::AgentObjectText()const
 	if (TargetScriptPtr.IsValid())
 	{
 		if (TargetScriptPtr->PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive
-			&& (!TargetScriptPtr->PrefabHelperObject->LoadedRootActor.IsValid() || !IsValid(TargetScriptPtr->PrefabHelperObject->PrefabOverrideParameterObject))
+			&& (!IsValid(TargetScriptPtr->PrefabHelperObject->LoadedRootActor))
 			)
 		{
 			return LOCTEXT("AgentObjectNotValid", "NotValid");
@@ -396,24 +395,21 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 }
 FReply FLGUIPrefabCustomization::OnClickEditPrefabButton()
 {
-	//LGUIEditorTools::SpawnPrefabForEdit(TargetScriptPtr.Get());
 	return FReply::Handled();
 }
 void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World)
 {
-	TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
-	TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-	ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+	TMap<FGuid, UObject*> MapGuidToObject;
+	TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 	auto RootActor= Prefab->LoadPrefabForEdit(World, nullptr
 		, MapGuidToObject, SubPrefabMap
-		, Prefab->OverrideParameterData, OverrideParameterObject
 	);
-	TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
+	TMap<UObject*, FGuid> MapObjectToGuid;
 	for (auto KeyValue : MapGuidToObject)
 	{
 		MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 	}
-	Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
+	Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap);
 	Prefab->RefreshAgentObjectsInPreviewWorld();
 
 	LGUIUtils::DestroyActorWithHierarchy(RootActor, true);

@@ -12,6 +12,8 @@
 #include "Misc/NotifyHook.h"
 #include "LGUIPrefabEditor.h"
 #include "DetailLayoutBuilder.h"
+#include "LGUIPrefabOverrideDataViewer.h"
+#include "PrefabSystem/LGUIPrefab.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorDetailTab"
 
@@ -45,7 +47,7 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 
 	SCSEditor = SNew(SSCSEditor)
 		.EditorMode(EComponentEditorMode::ActorInstance)
-		.AllowEditing(true)//@todo: not allow editing for sub prefab
+		.AllowEditing(this, &SLGUIPrefabEditorDetails::IsSSCSEditorAllowEditing)
 		.ActorContext(this, &SLGUIPrefabEditorDetails::GetActorContext)
 		.OnSelectionUpdated(this, &SLGUIPrefabEditorDetails::OnSCSEditorTreeViewSelectionChanged)
 		.OnItemDoubleClicked(this, &SLGUIPrefabEditorDetails::OnSCSEditorTreeViewItemDoubleClicked);
@@ -67,15 +69,102 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 			.Padding(FMargin(2, 2))
 			.AutoHeight()
 			[
-				//@todo: only show this on sub prefab actor
-				SNew(SComboButton)
-				.HasDownArrow(true)
-				.ToolTipText(LOCTEXT("PrefabOverride", "PrefabOverrideProperties"))
-				.ButtonContent()
+				SNew(SBox)
+				.Visibility(this, &SLGUIPrefabEditorDetails::GetPrefabButtonVisibility)
+				.IsEnabled(this, &SLGUIPrefabEditorDetails::IsPrefabButtonEnable)
+				.HeightOverride(this, &SLGUIPrefabEditorDetails::GetPrefabButtonHeight)
 				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("OverrideButton", "Prefab Override Properties"))
-					.Font(IDetailLayoutBuilder::GetDetailFont())
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(FMargin(4, 0))
+					[
+						SNew(SBox)
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("PrefabFunctions", "Prefab"))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+					]
+					+SHorizontalBox::Slot()
+					.FillWidth(0.2f)
+					.Padding(FMargin(2, 0))
+					[
+						SNew(SButton)
+						.OnClicked_Lambda([=]() {
+							PrefabEditorPtr.Pin()->OpenSubPrefab(CachedActor.Get());
+							return FReply::Handled();
+						})
+						[
+							SNew(SBox)
+							.HAlign(EHorizontalAlignment::HAlign_Center)
+							.VAlign(EVerticalAlignment::VAlign_Center)
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("OpenPrefab", "Open"))
+								.Font(IDetailLayoutBuilder::GetDetailFont())
+							]
+						]
+					]
+					+SHorizontalBox::Slot()
+					.FillWidth(0.2f)
+					.Padding(FMargin(2, 0))
+					[
+						SNew(SButton)
+						.OnClicked_Lambda([=]() {
+							PrefabEditorPtr.Pin()->SelectSubPrefab(CachedActor.Get());
+							return FReply::Handled();
+						})
+						[
+							SNew(SBox)
+							.HAlign(EHorizontalAlignment::HAlign_Center)
+							.VAlign(EVerticalAlignment::VAlign_Center)
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("SelectPrefab", "Select"))
+								.Font(IDetailLayoutBuilder::GetDetailFont())
+							]
+						]
+					]
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					.Padding(FMargin(2, 0))
+					[
+						SNew(SComboButton)
+						.HasDownArrow(true)
+						.ToolTipText(LOCTEXT("PrefabOverride", "Edit override parameters for this prefab"))
+						.ButtonContent()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("OverrideButton", "Prefab Override Properties"))
+							.Font(IDetailLayoutBuilder::GetDetailFont())
+						]
+						.MenuContent()
+						[
+							SNew(SBox)
+							.Padding(FMargin(4, 4))
+							[
+								SNew(SHorizontalBox)
+								+SHorizontalBox::Slot()
+								.AutoWidth()
+								[
+									SNew(SVerticalBox)
+									+SVerticalBox::Slot()
+									.AutoHeight()
+									[
+										SNew(SHorizontalBox)
+										+SHorizontalBox::Slot()
+										.AutoWidth()
+										[
+											SAssignNew(OverrideParameterEditor, SLGUIPrefabOverrideDataViewer, PrefabEditorPtr.Pin())
+										]
+									]
+								]
+							]
+						]
+					]
 				]
 			]
 			+ SVerticalBox::Slot()
@@ -86,7 +175,6 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 			]
 			+ SVerticalBox::Slot()
 			.Padding(FMargin(0, 2))
-			.AutoHeight()
 			[
 				DetailsView.ToSharedRef()
 			]
@@ -96,6 +184,39 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 SLGUIPrefabEditorDetails::~SLGUIPrefabEditorDetails()
 {
 	USelection::SelectionChangedEvent.RemoveAll(this);
+}
+
+bool SLGUIPrefabEditorDetails::IsPrefabButtonEnable()const
+{
+	if (PrefabEditorPtr.IsValid() && CachedActor.IsValid())
+	{
+		return PrefabEditorPtr.Pin()->ActorIsSubPrefabRoot(CachedActor.Get());
+	}
+	return false;
+}
+
+FOptionalSize SLGUIPrefabEditorDetails::GetPrefabButtonHeight()const
+{
+	return IsPrefabButtonEnable() ? 26 : 0;
+}
+
+EVisibility SLGUIPrefabEditorDetails::GetPrefabButtonVisibility()const
+{
+	return IsPrefabButtonEnable() ? EVisibility::Visible : EVisibility::Hidden;
+}
+
+bool SLGUIPrefabEditorDetails::IsSSCSEditorAllowEditing()const
+{
+	if (PrefabEditorPtr.IsValid() && CachedActor.IsValid())
+	{
+		return !PrefabEditorPtr.Pin()->ActorBelongsToSubPrefab(CachedActor.Get());
+	}
+	return true;
+}
+
+void SLGUIPrefabEditorDetails::RefreshOverrideParameter()
+{
+	OverrideParameterEditor->RefreshDataContent(CachedActor.Get());
 }
 
 AActor* SLGUIPrefabEditorDetails::GetActorContext() const
@@ -117,6 +238,7 @@ void SLGUIPrefabEditorDetails::OnEditorSelectionChanged(UObject* Object)
 			}
 
 			CachedActor = Actor;
+			OverrideParameterEditor->RefreshDataContent(Actor);
 			if (SCSEditor)
 			{
 				SCSEditor->UpdateTree();

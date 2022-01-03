@@ -57,18 +57,29 @@ namespace LGUIPrefabSystem3
 		}
 	};
 
+	struct FLGUIPrefabOverrideParameterRecordData
+	{
+	public:
+		FGuid ObjectGuid;
+		TArray<uint8> OverrideParameterData;
+		TSet<FName> OverrideParameterNameSet;
+		friend FArchive& operator<<(FArchive& Ar, FLGUIPrefabOverrideParameterRecordData& Data)
+		{
+			Ar << Data.ObjectGuid;
+			Ar << Data.OverrideParameterData;
+			Ar << Data.OverrideParameterNameSet;
+			return Ar;
+		}
+	};
+
 	//Actor serialize and save data
 	struct FLGUIActorSaveData
 	{
 	public:
 		bool bIsPrefab = false;
 		int32 PrefabAssetIndex;
-		TArray<uint8> PrefabOverrideParameterData;
-		/**
-		 * The following two array stores components which belong to prefab's root actor. Array must match index for specific component. When deserialize, use FName to find FGuid.
-		 */
-		TArray<FGuid> PrefabRootActorComponentGuidArray;
-		TArray<FName> PrefabRootActorComponentNameArray;
+		TArray<FLGUIPrefabOverrideParameterRecordData> ObjectOverrideParameterArray;//override sub prefab's parameter
+		TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;//sub prefab's object use a different guid in parent prefab. So multiple same sub prefab can exist in same parent prefab.
 
 		int32 ActorClass;
 		FGuid ActorGuid;//use id to find actor
@@ -91,10 +102,8 @@ namespace LGUIPrefabSystem3
 			{
 				Ar << ActorData.PrefabAssetIndex;
 				Ar << ActorData.ActorGuid;//sub prefab's root actor's guid
-				Ar << ActorData.PrefabOverrideParameterData;//override sub prefab's parameter
-				Ar << ActorData.PrefabRootActorComponentGuidArray;
-				Ar << ActorData.PrefabRootActorComponentNameArray;
-				Ar << ActorData.RootComponentGuid;
+				Ar << ActorData.ObjectOverrideParameterArray;
+				Ar << ActorData.MapObjectGuidFromParentPrefabToSubPrefab;
 			}
 			else
 			{
@@ -140,9 +149,11 @@ namespace LGUIPrefabSystem3
 		friend class FLGUIObjectWriter;
 		friend class FLGUIDuplicateObjectReader;
 		friend class FLGUIDuplicateObjectWriter;
+		friend class FLGUIOverrideParameterObjectWriter;
+		friend class FLGUIOverrideParameterObjectReader;
 
-		ActorSerializer3(UWorld* InTargetWorld);
 	public:
+		ActorSerializer3();
 		/**
 		 * @param CallbackBeforeAwake	This callback function will execute before Awake event, parameter "Actor" is the loaded root actor.
 		 */
@@ -155,14 +166,13 @@ namespace LGUIPrefabSystem3
 		 * LoadPrefab for edit/modify, will keep reference of source prefab.
 		 */
 		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-			, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
+			, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+			, bool InSetHierarchyIndexForRootComponent = true
 		);
 
 		/** Save prefab data for editor use. */
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
-			, TMap<TWeakObjectPtr<UObject>, FGuid>& OutMapObjectToGuid, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& InSubPrefabMap
-			, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject, TArray<uint8>& OutOverrideParameterData
+			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 			, bool InForEditorOrRuntimeUse
 		);
 		
@@ -170,23 +180,23 @@ namespace LGUIPrefabSystem3
 		 * Duplicate actor with hierarchy
 		 */
 		static AActor* DuplicateActor(AActor* RootActor, USceneComponent* Parent);
+
+		TMap<UObject*, TArray<uint8>> SaveOverrideParameterToData(TArray<FLGUIPrefabOverrideParameterData> InData);
+		void RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, TArray<FLGUIPrefabOverrideParameterData> InNameSetData);
 	private:
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-			, TMap<FGuid, TWeakObjectPtr<UObject>>& InMapGuidToObject
-			, TFunction<ULGUIPrefabOverrideParameterObject* (AActor*)> InGetDeserializedOverrideParameterObjectFunction
+			, TMap<FGuid, UObject*>& InMapGuidToObject
+			, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
 			, bool InIsLoadForEdit
 		);
-		/** For subprefab use, construct and deserialize override parameter from parent prefab. */
-		TFunction<ULGUIPrefabOverrideParameterObject*(AActor*)> GetDeserializedOverrideParameterObjectFunction = nullptr;
 
-		bool bIsEditorOrRuntime = true;
-		TWeakObjectPtr<UWorld> TargetWorld = nullptr;//world that need to spawn actor
-		TWeakObjectPtr<ULGUIPrefab> Prefab = nullptr;
+		UWorld* TargetWorld = nullptr;//world that need to spawn actor
 		bool bIsLoadForEdit = true;
-		bool bApplyOverrideParameters = false;
+		bool bIsEditorOrRuntime = true;
+		bool bSetHierarchyIndexForRootComponent = false;//need to set hierarchyindex to last for root component?
 
-		TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
+		TMap<FGuid, UObject*> MapGuidToObject;
 		struct ComponentDataStruct
 		{
 			UActorComponent* Component;
@@ -194,17 +204,14 @@ namespace LGUIPrefabSystem3
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
 
-		ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
-		TArray<uint8> OverrideParameterData;
-
-		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
+		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 		//Actor and ActorComponent that belongs to this prefab. All UObjects which get outer of these actor/component can be serailized
 		TArray<UObject*> WillSerailizeActorArray;
 		TArray<UObject*> WillSerailizeObjectArray;
 		bool ObjectBelongsToThisPrefab(UObject* InObject);
 		//Check object and it's up outer to tell if it is trash
 		bool ObjectIsTrash(UObject* InObject);
-		TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
+		TMap<UObject*, FGuid> MapObjectToGuid;
 
 		TArray<AActor*> CreatedActors;//collect for created actors
 		TArray<FGuid> CreatedActorsGuid;//collect for created actor's guid
@@ -241,13 +248,22 @@ namespace LGUIPrefabSystem3
 
 		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;
 
+		TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> CallbackBeforeAwakeForSubPrefab = nullptr;
+
 		/**
-		 * get Writer and Reader for serialize or deserialize
+		 * Writer and Reader for serialize or deserialize
 		 * @param	UObject*	Object to serialize/deserialize
 		 * @param	TArray<uint8>&	Data buffer
 		 * @param	bool	is SceneComponent
 		 */
 		TFunction<void(UObject*, TArray<uint8>&, bool)> WriterOrReaderFunction = nullptr;
+		/**
+		 * Writer and Reader for serialize or deserialize
+		 * @param	UObject*	Object to serialize/deserialize
+		 * @param	TArray<uint8>&	Data buffer
+		 * @param	TSet<FName>&	Member properties to filter
+		 */
+		TFunction<void(UObject*, TArray<uint8>&, const TSet<FName>&)> WriterOrReaderFunctionForSubPrefab = nullptr;
 		//duplicate actor
 		AActor* SerializeActor_ForDuplicate(AActor* RootActor, USceneComponent* Parent);
 

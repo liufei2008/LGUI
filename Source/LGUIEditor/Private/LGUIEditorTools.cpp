@@ -394,9 +394,9 @@ void LGUIEditorTools::CopySelectedActors_Impl()
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
-		TMap<TWeakObjectPtr<UObject>, FGuid> InOutMapObjectToGuid;
-		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> InSubPrefabMap;
-		prefab->SavePrefab(copiedActor, InOutMapObjectToGuid, InSubPrefabMap, nullptr, prefab->OverrideParameterData);
+		TMap<UObject*, FGuid> InOutMapObjectToGuid;
+		TMap<AActor*, FLGUISubPrefabData> InSubPrefabMap;
+		prefab->SavePrefab(copiedActor, InOutMapObjectToGuid, InSubPrefabMap);
 		copiedActorPrefabList.Add(prefab);
 	}
 }
@@ -462,14 +462,11 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 		{
 			if (!PrefabHelperObject->bIsInsidePrefabEditor)//prefab editor should handle delete by itself
 			{
-				if (auto LoadedRootActor = PrefabHelperObject->LoadedRootActor.Get())
+				if (PrefabHelperObject->LoadedRootActor == Actor)
 				{
-					if (LoadedRootActor == Actor)
-					{
-						auto OwnerActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
-						check(OwnerActor != nullptr);
-						LGUIUtils::DestroyActorWithHierarchy(OwnerActor);
-					}
+					auto OwnerActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
+					check(OwnerActor != nullptr);
+					LGUIUtils::DestroyActorWithHierarchy(OwnerActor);
 				}
 			}
 		}
@@ -802,7 +799,7 @@ void LGUIEditorTools::CreatePrefabAsset()
 					//make it as subprefab
 					if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(otherPrefabObjectWhichHaveThisActor->PrefabAsset))
 					{
-						PrefabEditor->MakePrefabAsSubPrefab(OutPrefab, selectedActor);
+						PrefabEditor->MakePrefabAsSubPrefab(OutPrefab, selectedActor, PrefabHelperObject->MapGuidToObject);
 					}
 
 					PrefabHelperObject->PrefabAsset = nullptr;
@@ -866,7 +863,7 @@ void LGUIEditorTools::ApplyPrefab()
 }
 bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperObject* InPrefabHelperObject)
 {
-	if (auto RootActor = InPrefabHelperObject->LoadedRootActor.Get())
+	if (InPrefabHelperObject->LoadedRootActor)
 	{
 		if (auto PrefabAsset = InPrefabHelperObject->PrefabAsset)
 		{
@@ -946,7 +943,7 @@ void LGUIEditorTools::DeletePrefab()
 	{
 		check(!PrefabHelperObject->bIsInsidePrefabEditor);
 
-		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor.Get());
+		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor);
 		auto OwnerActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
 		check(OwnerActor != nullptr);
 		LGUIUtils::DestroyActorWithHierarchy(OwnerActor);
@@ -1024,7 +1021,7 @@ bool LGUIEditorTools::IsPrefabActor(AActor* InActor)
 	{
 		if (Itr->AllLoadedActorArray.Contains(InActor))
 		{
-			if (auto LoadedRootActor = Itr->LoadedRootActor.Get())
+			if (auto LoadedRootActor = Itr->LoadedRootActor)
 			{
 				if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
 				{
@@ -1043,7 +1040,7 @@ void LGUIEditorTools::CleanupPrefabsInWorld(UWorld* World)
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!prefabActor->PrefabHelperObject->LoadedRootActor.IsValid())
+			if (!IsValid(prefabActor->PrefabHelperObject->LoadedRootActor))
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -1058,7 +1055,7 @@ void LGUIEditorTools::ClearInvalidPrefabActor(UWorld* World)
 		auto prefabActor = *ActorItr;
 		if (IsValid(prefabActor))
 		{
-			if (!prefabActor->PrefabHelperObject->LoadedRootActor.IsValid())
+			if (!IsValid(prefabActor->PrefabHelperObject->LoadedRootActor))
 			{
 				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
 			}
@@ -1289,6 +1286,13 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray, boo
 	{
 		if (auto UIItem = Cast<UUIItem>(Actor->GetRootComponent()))
 		{
+			auto ActorLabel = Actor->GetActorLabel();
+			if (ActorLabel.StartsWith(TEXT("//")))
+			{
+				ActorLabel = ActorLabel.Right(ActorLabel.Len() - 2);
+			}
+			Actor->SetActorLabel(ActorLabel);
+
 			auto UIParent = UIItem->GetParentUIItem();
 			//color
 			auto UIRenderable = Cast<UUIBaseRenderable>(UIItem);
@@ -1597,22 +1601,20 @@ void LGUIEditorTools::UpgradeSelectedPrefabToLGUI3()
 		if (IsValid(Prefab))
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-			TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
-			TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-			ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+			TMap<FGuid, UObject*> MapGuidToObject;
+			TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 			auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
 				, MapGuidToObject, SubPrefabMap
-				, Prefab->OverrideParameterData, OverrideParameterObject
 			);
 			TArray<AActor*> AllChildrenActorArray;
 			LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
 			UpgradeActorArray(AllChildrenActorArray, true);
-			TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
+			TMap<UObject*, FGuid> MapObjectToGuid;
 			for (auto KeyValue : MapGuidToObject)
 			{
 				MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 			}
-			Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
+			Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap);
 			Prefab->MakeAgentObjectsInPreviewWorld();
 
 			LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
@@ -1656,22 +1658,20 @@ void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
 			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
 				auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-				TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
-				TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-				ULGUIPrefabOverrideParameterObject* OverrideParameterObject = nullptr;
+				TMap<FGuid, UObject*> MapGuidToObject;
+				TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 				auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
 					, MapGuidToObject, SubPrefabMap
-					, Prefab->OverrideParameterData, OverrideParameterObject
 				);
 				TArray<AActor*> AllChildrenActorArray;
 				LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
 				UpgradeActorArray(AllChildrenActorArray, true);
-				TMap<TWeakObjectPtr<UObject>, FGuid> MapObjectToGuid;
+				TMap<UObject*, FGuid> MapObjectToGuid;
 				for (auto KeyValue : MapGuidToObject)
 				{
 					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 				}
-				Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap, OverrideParameterObject, Prefab->OverrideParameterData);
+				Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap);
 				Prefab->MakeAgentObjectsInPreviewWorld();
 
 				LGUIUtils::DestroyActorWithHierarchy(RootActor, true);

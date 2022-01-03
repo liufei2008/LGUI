@@ -10,21 +10,21 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUI.h"
-#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
 #include "Core/ActorComponent/UIItem.h"
 
 //PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
 	AActor* ActorSerializer3::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, TMap<FGuid, TWeakObjectPtr<UObject>>& InOutMapGuidToObjects, TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData>& OutSubPrefabMap
-		, const TArray<uint8>& InOverrideParameterData, ULGUIPrefabOverrideParameterObject*& OutOverrideParameterObject
+		, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+		, bool InSetHierarchyIndexForRootComponent
 	)
 	{
-		ActorSerializer3 serializer(InWorld);
+		ActorSerializer3 serializer;
+		serializer.TargetWorld = InWorld;
 		for (auto KeyValue : InOutMapGuidToObjects)//Preprocess the map, ignore invalid object
 		{
-			if (KeyValue.Value.IsValid())
+			if (IsValid(KeyValue.Value))
 			{
 				serializer.MapGuidToObject.Add(KeyValue.Key, KeyValue.Value);
 			}
@@ -33,18 +33,21 @@ namespace LGUIPrefabSystem3
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
 		};
+		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
+			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+		};
 		serializer.bIsLoadForEdit = true;
-		serializer.OverrideParameterData = InOverrideParameterData;
+		serializer.bSetHierarchyIndexForRootComponent = InSetHierarchyIndexForRootComponent;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		InOutMapGuidToObjects = serializer.MapGuidToObject;
 		OutSubPrefabMap = serializer.SubPrefabMap;
-		OutOverrideParameterObject = serializer.OverrideParameterObject;
 		return rootActor;
 	}
 
 	AActor* ActorSerializer3::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, bool SetRelativeTransformToIdentity, TFunction<void(AActor*)> CallbackBeforeAwake)
 	{
-		ActorSerializer3 serializer(InWorld);
+		ActorSerializer3 serializer;
+		serializer.TargetWorld = InWorld;
 		serializer.CallbackBeforeAwake = CallbackBeforeAwake;
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
@@ -53,6 +56,9 @@ namespace LGUIPrefabSystem3
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
+		};
+		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
+			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
 		};
 		AActor* result = nullptr;
 		if (SetRelativeTransformToIdentity)
@@ -67,7 +73,8 @@ namespace LGUIPrefabSystem3
 	}
 	AActor* ActorSerializer3::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(AActor*)> CallbackBeforeAwake)
 	{
-		ActorSerializer3 serializer(InWorld);
+		ActorSerializer3 serializer;
+		serializer.TargetWorld = InWorld;
 		serializer.CallbackBeforeAwake = CallbackBeforeAwake;
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
@@ -77,24 +84,34 @@ namespace LGUIPrefabSystem3
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
 		};
+		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
+			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+		};
 		return serializer.DeserializeActor(Parent, InPrefab, true, RelativeLocation, RelativeRotation, RelativeScale);
 	}
 	AActor* ActorSerializer3::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
-		, TMap<FGuid, TWeakObjectPtr<UObject>>& InMapGuidToObject
-		, TFunction<ULGUIPrefabOverrideParameterObject* (AActor*)> InGetDeserializedOverrideParameterObjectFunction
+		, TMap<FGuid, UObject*>& InMapGuidToObject
+		, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
 		, bool InIsLoadForEdit
 	)
 	{
-		ActorSerializer3 serializer(InWorld);
-		serializer.bApplyOverrideParameters = true;
+		ActorSerializer3 serializer;
+		serializer.TargetWorld = InWorld;
+#if !WITH_EDITOR
+		serializer.bIsEditorOrRuntime = false;
+#endif
 		serializer.bIsLoadForEdit = InIsLoadForEdit;
+		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
 		};
-		serializer.GetDeserializedOverrideParameterObjectFunction = InGetDeserializedOverrideParameterObjectFunction;
+		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
+			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+		};
+		serializer.CallbackBeforeAwakeForSubPrefab = InOnSubPrefabFinishDeserializeFunction;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		return rootActor;
 	}
@@ -104,12 +121,12 @@ namespace LGUIPrefabSystem3
 #if WITH_EDITOR
 		if (!TargetWorld->IsGameWorld())
 		{
-			ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get());
+			ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld);
 		}
 		else
 #endif
 		{
-			ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
+			ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld);
 		}
 
 		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);
@@ -146,13 +163,21 @@ namespace LGUIPrefabSystem3
 		{
 			if (USceneComponent* RootComp = CreatedRootActor->GetRootComponent())
 			{
-				if (Parent)
+				auto RootUIComp = Cast<UUIItem>(RootComp);
+				if (Parent)//if UIItem have parent, CheckUIActiveState will becalled when attach
 				{
 					RootComp->AttachToComponent(Parent, FAttachmentTransformRules::KeepRelativeTransform);
-					//recreate hierarchy index, for sub prefab root UIItem, with sorted hierarchy order when serialize
-					if (auto RootUIComp = Cast<UUIItem>(RootComp))
+					//recreate hierarchy index
+					if (RootUIComp && bSetHierarchyIndexForRootComponent)
 					{
 						RootUIComp->SetAsLastHierarchy();
+					}
+				}
+				else
+				{
+					if (RootUIComp)//for UIItem not have parent, need to CheckUIActiveState
+					{
+						RootUIComp->CheckUIActiveState();
 					}
 				}
 				RootComp->UpdateComponentToWorld();
@@ -163,28 +188,11 @@ namespace LGUIPrefabSystem3
 				}
 			}
 		}
-		
-		if (GetDeserializedOverrideParameterObjectFunction != nullptr)
-		{
-			OverrideParameterObject = GetDeserializedOverrideParameterObjectFunction(CreatedRootActor);//sub prefab's override parameter is store/restore from parent prefab (which is nessary), so reference object inside sub prefab will lose
-		}
-		else
-		{
-			OverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>((UObject*)(Prefab.IsValid() ? Prefab.Get() : (UObject*)GetTransientPackage()));//prefab is null when use duplicate
-			if (OverrideParameterData.Num() > 0)
-			{
-				WriterOrReaderFunction(OverrideParameterObject, OverrideParameterData, false);
-			}
-		}
-		if (bApplyOverrideParameters)
-		{
-			auto TemplateOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>();//@todo could use a persistent static object for all template
-			WriterOrReaderFunction(TemplateOverrideParameterObject, Prefab->OverrideParameterData, false);
-			OverrideParameterObject->SetParameterReferenceFromTemplate(TemplateOverrideParameterObject);//since sub prefab's reference object is lost, we should copy reference from template, which is created inside sub prefab so all reference is good
-			OverrideParameterObject->ApplyParameter();
-			TemplateOverrideParameterObject->ConditionalBeginDestroy();
-		}
 
+		if (CallbackBeforeAwakeForSubPrefab != nullptr)
+		{
+			CallbackBeforeAwakeForSubPrefab(CreatedRootActor, MapGuidToObject);
+		}
 		if (CallbackBeforeAwake != nullptr)
 		{
 			CallbackBeforeAwake(CreatedRootActor);
@@ -206,7 +214,7 @@ namespace LGUIPrefabSystem3
 			{
 				ALGUIManagerActor::RemoveActorForPrefabSystem(item);
 			}
-			ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get());
+			ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld);
 		}
 
 		return CreatedRootActor;
@@ -218,7 +226,7 @@ namespace LGUIPrefabSystem3
 			UE_LOG(LGUI, Error, TEXT("Load Prefab, InPrefab is null!"));
 			return nullptr;
 		}
-		if (!TargetWorld.IsValid())
+		if (!TargetWorld)
 		{
 			UE_LOG(LGUI, Error, TEXT("Load Prefab, World is null!"));
 			return nullptr;
@@ -226,19 +234,18 @@ namespace LGUIPrefabSystem3
 
 		auto StartTime = FDateTime::Now();
 
-		Prefab = TWeakObjectPtr<ULGUIPrefab>(InPrefab);
 		//fill new reference data
-		this->ReferenceAssetList = Prefab->ReferenceAssetList;
-		this->ReferenceClassList = Prefab->ReferenceClassList;
-		this->ReferenceNameList = Prefab->ReferenceNameList;
+		this->ReferenceAssetList = InPrefab->ReferenceAssetList;
+		this->ReferenceClassList = InPrefab->ReferenceClassList;
+		this->ReferenceNameList = InPrefab->ReferenceNameList;
 
 		FLGUIPrefabSaveData SaveData;
 		{
 			auto LoadedData =
 #if WITH_EDITOR
-				bIsEditorOrRuntime ? Prefab->BinaryData :
+				bIsEditorOrRuntime ? InPrefab->BinaryData :
 #endif
-				Prefab->BinaryDataForBuild;
+				InPrefab->BinaryDataForBuild;
 			if (LoadedData.Num() <= 0)
 			{
 				UE_LOG(LGUI, Warning, TEXT("Loaded data is empty!"));
@@ -250,7 +257,7 @@ namespace LGUIPrefabSystem3
 		auto CreatedRootActor = DeserializeActorFromData(SaveData, Parent, ReplaceTransform, InLocation, InRotation, InScale);
 		
 		auto TimeSpan = FDateTime::Now() - StartTime;
-		UE_LOG(LGUI, Log, TEXT("Take %fs loading prefab: %s"), TimeSpan.GetTotalSeconds(), *Prefab->GetName());
+		UE_LOG(LGUI, Log, TEXT("Take %fs loading prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
 
 		return CreatedRootActor;
 	}
@@ -261,7 +268,7 @@ namespace LGUIPrefabSystem3
 	void ActorSerializer3::PreGenerateObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents)
 	{
 		//create component first, because some object may use component as outer
-		for (auto ObjectData : SavedComponents)
+		for (auto& ObjectData : SavedComponents)
 		{
 			UActorComponent* CreatedNewComponent = nullptr;
 			if (auto CompPtr = MapGuidToObject.Find(ObjectData.ComponentGuid))
@@ -281,19 +288,19 @@ namespace LGUIPrefabSystem3
 					}
 
 					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
-					CreatedNewComponent = NewObject<UActorComponent>(Outer.Get(), ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
+					CreatedNewComponent = NewObject<UActorComponent>(Outer, ObjectClass, ObjectData.ComponentName, (EObjectFlags)ObjectData.ObjectFlags);
 					MapGuidToObject.Add(ObjectData.ComponentGuid, CreatedNewComponent);
 				}
 			}
 		}
 
-		for (auto ObjectData : SavedObjects)
+		for (auto& ObjectData : SavedObjects)
 		{
 			UObject* CreatedNewObject = nullptr;
 			if (auto ObjectPtr = MapGuidToObject.Find(ObjectData.ObjectGuid))
 			{
 				//UE_LOG(LGUI, Log, TEXT("[ActorSerializer3::PreGenerateObjectArray]Already generated:%s!"), *(MapGuidToObject[ObjectData.ObjectGuid]->GetPathName()));
-				CreatedNewObject = ObjectPtr->Get();
+				CreatedNewObject = *ObjectPtr;
 			}
 			else
 			{
@@ -308,7 +315,7 @@ namespace LGUIPrefabSystem3
 					}
 
 					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
-					CreatedNewObject = NewObject<UObject>(Outer.Get(), ObjectClass, NAME_None, (EObjectFlags)ObjectData.ObjectFlags);
+					CreatedNewObject = NewObject<UObject>(Outer, ObjectClass, NAME_None, (EObjectFlags)ObjectData.ObjectFlags);
 					MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
 				}
 			}
@@ -322,7 +329,7 @@ namespace LGUIPrefabSystem3
 		{
 			if (auto CompPtr = MapGuidToObject.Find(ObjectData.ComponentGuid))
 			{
-				auto CreatedNewComponent = (UActorComponent*)(CompPtr->Get());
+				auto CreatedNewComponent = (UActorComponent*)(*CompPtr);
 				if (auto SceneComp = Cast<USceneComponent>(CreatedNewComponent))
 				{
 					WriterOrReaderFunction(CreatedNewComponent, ObjectData.PropertyData, true);
@@ -344,7 +351,7 @@ namespace LGUIPrefabSystem3
 			if (auto ObjectPtr = MapGuidToObject.Find(ObjectData.ObjectGuid))
 			{
 				auto CreatedNewObject = *ObjectPtr;
-				WriterOrReaderFunction(CreatedNewObject.Get(), ObjectData.PropertyData, false);
+				WriterOrReaderFunction(CreatedNewObject, ObjectData.PropertyData, false);
 			}
 		}
 	}
@@ -356,61 +363,66 @@ namespace LGUIPrefabSystem3
 			auto PrefabIndex = SavedActors.PrefabAssetIndex;
 			if (auto PrefabAssetObject = FindAssetFromListByIndex(PrefabIndex))
 			{
-				if (auto PrefabAsset = Cast<ULGUIPrefab>(PrefabAssetObject))
+				if (auto SubPrefabAsset = Cast<ULGUIPrefab>(PrefabAssetObject))
 				{
 					AActor* SubPrefabRootActor = nullptr;
 					FLGUISubPrefabData SubPrefabData;
-					SubPrefabData.PrefabAsset = PrefabAsset;
-					TMap<FGuid, TWeakObjectPtr<UObject>> SubMapGuidToObject;
+					SubPrefabData.PrefabAsset = SubPrefabAsset;
+					TMap<FGuid, UObject*> SubMapGuidToObject;
 					if (auto ValuePtr = MapGuidToObject.Find(SavedActors.ActorGuid))
 					{
-						SubMapGuidToObject.Add(SavedActors.ActorGuid, *ValuePtr);
+						auto SubPrefabRootActorGuid = SavedActors.MapObjectGuidFromParentPrefabToSubPrefab[SavedActors.ActorGuid];
+						SubMapGuidToObject.Add(SubPrefabRootActorGuid, *ValuePtr);
 					}
-					ULGUIPrefabOverrideParameterObject* SubOverrideParameterObject = nullptr;
-					SubPrefabRootActor = ActorSerializer3::LoadSubPrefab(this->TargetWorld.Get(), PrefabAsset, ParentActor->GetRootComponent()
+					TMap<FGuid, FGuid> MapObjectGuidFromSubPrefabToParentPrefab;
+					for (auto& KeyValue : SavedActors.MapObjectGuidFromParentPrefabToSubPrefab)
+					{
+						MapObjectGuidFromSubPrefabToParentPrefab.Add(KeyValue.Value, KeyValue.Key);
+					}
+					SubPrefabRootActor = ActorSerializer3::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent()
 						, SubMapGuidToObject
-						, [&](AActor* InSubPrefabRootActor) {
-							SubPrefabRootActor = InSubPrefabRootActor;
-							//set MapGuidToObject before overrideParameter, or the actor reference will not be found
-							if (MapGuidToObject.Contains(SavedActors.ActorGuid))
+						, [&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject) {
+							//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
+							for (auto& KeyValue : InSubMapGuidToObject)
 							{
-								MapGuidToObject[SavedActors.ActorGuid] = SubPrefabRootActor;
-							}
-							else
-							{
-								MapGuidToObject.Add(SavedActors.ActorGuid, SubPrefabRootActor);
-							}
-							//map guid to components
-							for (auto& BlueprintComp : InSubPrefabRootActor->BlueprintCreatedComponents)
-							{
-								auto FoundIndex = SavedActors.PrefabRootActorComponentNameArray.IndexOfByKey(BlueprintComp->GetFName());
-								if (FoundIndex != INDEX_NONE)
+								auto GuidInSubPrefab = KeyValue.Key;
+								auto ObjectInSubPrefab = KeyValue.Value;
+
+								FGuid ObjectGuidInParentPrefab;
+								auto ObjectGuidInParentPrefabPtr = MapObjectGuidFromSubPrefabToParentPrefab.Find(GuidInSubPrefab);
+								if (ObjectGuidInParentPrefabPtr == nullptr)
 								{
-									MapGuidToObject.Add(SavedActors.PrefabRootActorComponentGuidArray[FoundIndex], BlueprintComp);
+									ObjectGuidInParentPrefab = FGuid::NewGuid();
+									MapObjectGuidFromSubPrefabToParentPrefab.Add(GuidInSubPrefab, ObjectGuidInParentPrefab);
 								}
-							}
-							for (auto& InstanceComp : InSubPrefabRootActor->GetInstanceComponents())
-							{
-								auto FoundIndex = SavedActors.PrefabRootActorComponentNameArray.IndexOfByKey(InstanceComp->GetFName());
-								if (FoundIndex != INDEX_NONE)
+								else
 								{
-									MapGuidToObject.Add(SavedActors.PrefabRootActorComponentGuidArray[FoundIndex], InstanceComp);
+									ObjectGuidInParentPrefab = *ObjectGuidInParentPrefabPtr;
 								}
-							}
-							auto RootComp = SubPrefabRootActor->GetRootComponent();
-							if (!MapGuidToObject.Contains(SavedActors.RootComponentGuid) && RootComp != nullptr)
-							{
-								MapGuidToObject.Add(SavedActors.RootComponentGuid, RootComp);
+								SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, GuidInSubPrefab);
+
+								if (!MapGuidToObject.Contains(ObjectGuidInParentPrefab))
+								{
+									MapGuidToObject.Add(ObjectGuidInParentPrefab, ObjectInSubPrefab);
+								}
 							}
 
-							SubOverrideParameterObject = NewObject<ULGUIPrefabOverrideParameterObject>(Prefab.Get());
-							WriterOrReaderFunction(SubOverrideParameterObject, SavedActors.PrefabOverrideParameterData, false);//use WriterOrReaderFunction from parent prefab, because when serailize(save) nested prefab, the subprefab's override parameter use parent's WriterOrReaderFunction
-							return SubOverrideParameterObject;
+							for (auto& RecordData : SavedActors.ObjectOverrideParameterArray)
+							{
+								auto ObjectPtr = MapGuidToObject.Find(RecordData.ObjectGuid);
+								if (ObjectPtr != nullptr)
+								{
+									auto NameSet = RecordData.OverrideParameterNameSet;
+									WriterOrReaderFunctionForSubPrefab(*ObjectPtr, RecordData.OverrideParameterData, NameSet);
+									FLGUIPrefabOverrideParameterData OverrideDataItem;
+									OverrideDataItem.MemberPropertyName = NameSet;
+									OverrideDataItem.Object = *ObjectPtr;
+									SubPrefabData.ObjectOverrideParameterArray.Add(OverrideDataItem);
+								}
+							}
 						}
 						, bIsLoadForEdit
 					);
-					SubPrefabData.OverrideParameterObject = SubOverrideParameterObject;
-					SubPrefabData.OverrideParameterData = SavedActors.PrefabOverrideParameterData;
 
 					SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
 				}
@@ -429,7 +441,7 @@ namespace LGUIPrefabSystem3
 				AActor* NewActor = nullptr;
 				if (auto ActorPtr = MapGuidToObject.Find(SavedActors.ActorGuid))//MapGuidToObject can passed from LoadPrefabForEdit, so we need to find from map first
 				{
-					NewActor = (AActor*)(ActorPtr->Get());
+					NewActor = (AActor*)(*ActorPtr);
 				}
 				else
 				{
@@ -473,7 +485,7 @@ namespace LGUIPrefabSystem3
 				CreatedActors.Add(NewActor);
 				CreatedActorsGuid.Add(SavedActors.ActorGuid);
 
-				for (auto ChildSaveData : SavedActors.ChildActorData)
+				for (auto& ChildSaveData : SavedActors.ChildActorData)
 				{
 					PreGenerateActorRecursive(ChildSaveData, NewActor);
 				}
@@ -486,10 +498,10 @@ namespace LGUIPrefabSystem3
 	}
 	AActor* ActorSerializer3::DeserializeActorRecursive(FLGUIActorSaveData& SavedActors)
 	{
-		auto NewActor = (AActor*)MapGuidToObject[SavedActors.ActorGuid].Get();
+		auto NewActor = (AActor*)MapGuidToObject[SavedActors.ActorGuid];
 		WriterOrReaderFunction(NewActor, SavedActors.ActorPropertyData, false);
 
-		for (auto ChildSaveData : SavedActors.ChildActorData)
+		for (auto& ChildSaveData : SavedActors.ChildActorData)
 		{
 			DeserializeActorRecursive(ChildSaveData);
 		}

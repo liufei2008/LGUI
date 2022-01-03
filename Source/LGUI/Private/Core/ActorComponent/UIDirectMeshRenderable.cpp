@@ -37,11 +37,6 @@ void UUIDirectMeshRenderable::OnUnregister()
 	Super::OnUnregister();
 }
 
-void UUIDirectMeshRenderable::ApplyUIActiveState()
-{
-	Super::ApplyUIActiveState();
-}
-
 void UUIDirectMeshRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);

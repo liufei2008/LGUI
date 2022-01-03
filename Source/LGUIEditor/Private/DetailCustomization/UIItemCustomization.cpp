@@ -683,7 +683,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					SNew(SButton)
 					.Text(LOCTEXT("Increase", "+"))
 					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, true)
+					.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, true, HierarchyIndexHandle)
 				]
 			]
 			+ SHorizontalBox::Slot()
@@ -697,7 +697,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					SNew(SButton)
 					.Text(LOCTEXT("Decrease", "-"))
 					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, false)
+					.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, false, HierarchyIndexHandle)
 				]
 			];
 
@@ -743,7 +743,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			[
 				SNew(SButton)
 				.Text(FText::FromString(TEXT("Fix it")))
-				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, true)
+				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, true, displayNamePropertyHandle)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FUIItemCustomization::GetDisplayNameWarningVisibility)
 				.ToolTipText(FText::FromString(FString(TEXT("DisplayName not equal to ActorLabel."))))
@@ -753,7 +753,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			[
 				SNew(SButton)
 				.Text(FText::FromString(TEXT("Fix all hierarchy")))
-				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, false)
+				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, false, displayNamePropertyHandle)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FUIItemCustomization::GetDisplayNameWarningVisibility)
 				.ToolTipText(FText::FromString(FString(TEXT("DisplayName not equal to ActorLabel."))))
@@ -824,20 +824,38 @@ EVisibility FUIItemCustomization::GetDisplayNameWarningVisibility()const
 	}
 }
 
-FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool IncreaseOrDecrease)
+FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool IncreaseOrDecrease, TSharedRef<IPropertyHandle> HierarchyIndexHandle)
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FReply::Handled();
 
-	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Hierarchy Index"));
+	//hierarchy index could affect other items
+	GEditor->BeginTransaction(LOCTEXT("ChangeHierarchyIndex", "Change LGUI Hierarchy Index"));
 	for (auto& Item : TargetScriptArray)
 	{
 		Item->Modify();
+		if (auto Parent = Item->GetParentUIItem())
+		{
+			for (auto Child : Parent->UIChildren)
+			{
+				Child->Modify();
+			}
+		}
 	}
 	GEditor->EndTransaction();
 
 	for (auto& Item : TargetScriptArray)
 	{
-		Item->SetHierarchyIndex(Item->hierarchyIndex + (IncreaseOrDecrease ? 1 : -1));
+		HierarchyIndexHandle->SetValue(Item->hierarchyIndex + (IncreaseOrDecrease ? 1 : -1));
+		//notify others
+		if (auto Parent = Item->GetParentUIItem())
+		{
+			for (auto Child : Parent->UIChildren)
+			{
+				auto HierarchyIndexProperty = FindFProperty<FIntProperty>(UUIItem::StaticClass(), GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex));
+				check(HierarchyIndexProperty != nullptr);
+				LGUIUtils::NotifyPropertyChanged(Child, HierarchyIndexProperty);
+			}
+		}
 	}
 
 	LGUIEditorTools::RefreshSceneOutliner();
@@ -1248,6 +1266,14 @@ void FUIItemCustomization::OnAnchorValueChanged(float Value, TSharedRef<IPropert
 	}
 	break;
 	}
+
+	auto AnchorProperty = FindFProperty<FProperty>(UUIItem::StaticClass(), GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));
+	auto RelativeLocationProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), FName(TEXT("RelativeLocation")));
+	for (auto& Item : TargetScriptArray)
+	{
+		LGUIUtils::NotifyPropertyChanged(Item.Get(), AnchorProperty);
+		LGUIUtils::NotifyPropertyChanged(Item.Get(), RelativeLocationProperty);
+	}
 }
 void FUIItemCustomization::OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)
 {
@@ -1404,6 +1430,8 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 				UIItem->SetSizeDelta(FVector2D::ZeroVector);
 			}
 		}
+
+		LGUIUtils::NotifyPropertyChanged(UIItem.Get(), GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));
 	}
 	TargetScriptArray[0]->EditorForceUpdateImmediately();
 	ForceRefreshEditor(DetailBuilder);
@@ -1583,7 +1611,7 @@ bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> Ancho
 	}
 }
 
-FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll)
+FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll, TSharedRef<IPropertyHandle> DisplayNameHandle)
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return FReply::Handled();
 
@@ -1617,12 +1645,12 @@ FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll)
 		}
 	}
 
-	GEditor->BeginTransaction(LOCTEXT("FixDisplayName", "Fix DisplayName"));
-	for (auto& UIItem : UIItems)
-	{
-		UIItem->Modify();
-	}
-	GEditor->EndTransaction();
+	//GEditor->BeginTransaction(LOCTEXT("FixDisplayName", "Fix DisplayName"));
+	//for (auto& UIItem : UIItems)
+	//{
+	//	UIItem->Modify();
+	//}
+	//GEditor->EndTransaction();
 
 	for (auto& UIItem : TargetScriptArray)
 	{
@@ -1653,18 +1681,9 @@ FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll)
 			}
 			DisplayName = name;
 		}
-		//UIItem->SetDisplayName(DisplayName);
-		auto DisplayNameProperty = FindFProperty<FStrProperty>(UIItem->GetClass(), TEXT("displayName"));
-		DisplayNameProperty->SetPropertyValue_InContainer(UIItem.Get(), DisplayName);
+		DisplayNameHandle->SetValue(DisplayName);
 
-		TArray<UObject*> ModifiedObjects;
-		ModifiedObjects.Add(UIItem.Get());
-		FPropertyChangedEvent PropertyChangedEvent(DisplayNameProperty, EPropertyChangeType::ValueSet, MakeArrayView(ModifiedObjects));
-		UIItem->PostEditChangeProperty(PropertyChangedEvent);
-		FEditPropertyChain PropertyChain;
-		PropertyChain.AddHead(DisplayNameProperty);
-		FPropertyChangedChainEvent PropertyChangedChainEvent(PropertyChain, PropertyChangedEvent);
-		UIItem->PostEditChangeChainProperty(PropertyChangedChainEvent);
+		LGUIUtils::NotifyPropertyChanged(UIItem.Get(), GET_MEMBER_NAME_CHECKED(UUIItem, displayName));
 	}
 
 	return FReply::Handled();

@@ -6,15 +6,43 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUI.h"
-#include "Core/ActorComponent/UIItem.h"
+#include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 
 namespace LGUIPrefabSystem3
 {
-	ActorSerializer3::ActorSerializer3(UWorld* InTargetWorld)
+	ActorSerializer3::ActorSerializer3()
 	{
-		TargetWorld = TWeakObjectPtr<UWorld>(InTargetWorld);
+		
 	}
 
+	TMap<UObject*, TArray<uint8>> ActorSerializer3::SaveOverrideParameterToData(TArray<FLGUIPrefabOverrideParameterData> InData)
+	{
+		TMap<UObject*, TArray<uint8>> MapObjectToOverrideDatas;
+		for (auto& DataItem : InData)
+		{
+			TArray<uint8> ObjectOverrideData;
+			FLGUIImmediateOverrideParameterObjectWriter Writer(DataItem.Object.Get(), ObjectOverrideData, DataItem.MemberPropertyName);
+			MapObjectToOverrideDatas.Add(DataItem.Object.Get(), ObjectOverrideData);
+		}
+		return MapObjectToOverrideDatas;
+	}
+
+	void ActorSerializer3::RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, TArray<FLGUIPrefabOverrideParameterData> InNameSetData)
+	{
+		for (auto& KeyValue : InData)
+		{
+			if (IsValid(KeyValue.Key))
+			{
+				auto Index = InNameSetData.IndexOfByPredicate([&](const FLGUIPrefabOverrideParameterData& Item) {
+					return Item.Object.Get() == KeyValue.Key;
+					});
+				if (Index != INDEX_NONE)
+				{
+					FLGUIImmediateOverrideParameterObjectReader Reader(KeyValue.Key, KeyValue.Value, InNameSetData[Index].MemberPropertyName);
+				}
+			}
+		}
+	}
 
 	int32 ActorSerializer3::FindOrAddAssetIdFromList(UObject* AssetObject)
 	{

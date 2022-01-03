@@ -27,7 +27,6 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	virtual void OnUnregister()override;
-	virtual void ApplyUIActiveState() override;
 
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void UpdateGeometry()override;

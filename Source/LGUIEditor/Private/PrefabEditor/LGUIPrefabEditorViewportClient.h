@@ -6,6 +6,7 @@
 #include "PreviewScene.h"
 #include "EditorViewportClient.h"
 #include "Animation/AnimInstance.h"
+#include "LevelEditorViewport.h"
 
 class FLGUIPrefabPreviewManager;
 class FLGUIPrefabPreviewScene;
@@ -55,13 +56,22 @@ private:
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 	// Are we currently manipulating something?
 	bool bManipulating = false;
+	FTrackingTransaction TrackingTransaction;
 
 	ULGUIPrefab* GetPrefabBeingEdited()const;
+	/**
+	 * Collects the set of components and actors on which to apply move operations during or after drag operations.
+	 */
+	void GetSelectedActorsAndComponentsForMove(TArray<AActor*>& OutActorsToMove, TArray<USceneComponent*>& OutComponentsToMove) const;
+	/**
+	 * Determines if it is valid to move an actor in this viewport.
+	 *
+	 * @param InActor - the actor that the viewport may be interested in moving.
+	 * @returns true if it is valid for this viewport to update the given actor's transform.
+	 */
+	bool CanMoveActorInViewport(const AActor* InActor) const;
 
 	bool LastCameraAutoFocus;
 	bool LastAutoFocusRes;
-
-	TWeakObjectPtr<UUIBaseRenderable> LastSelectTarget;
-	TWeakObjectPtr<AActor> LastSelectedActor;
 
 };

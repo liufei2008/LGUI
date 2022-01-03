@@ -98,7 +98,7 @@ private:
 #if WITH_EDITORONLY_DATA
 	/** Editor helper actor, for direct reference actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TWeakObjectPtr<AActor> HelperActor;
+		AActor* HelperActor;
 	/** Editor helper, target object class. If class is actor then TargetObject is HelperActor, if class is ActorComponent then TargetObject is the component. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
 		UClass* HelperClass;
@@ -107,7 +107,7 @@ private:
 		FName HelperComponentName;
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TWeakObjectPtr<UObject> TargetObject;
+		UObject* TargetObject;
 	/** target function name */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FName functionName;
@@ -176,7 +176,6 @@ struct LGUI_API FLGUIEventDelegate
 public:
 	FLGUIEventDelegate();
 	FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType);
-	~FLGUIEventDelegate();
 private:
 	friend class FLGUIEventDelegateCustomization;
 	/** event list */
@@ -188,15 +187,7 @@ private:
 	/** Parameter type must be the same as your declaration of FLGUIEventDelegate(LGUIEventDelegateParameterType InParameterType) */
 	void FireEvent(void* InParam)const;
 	void LogParameterError()const;
-#if WITH_EDITORONLY_DATA
-	static TArray<FLGUIEventDelegate*> AllLGUIEventDelegateArray;
-#endif
 public:
-#if WITH_EDITOR
-	/** if TargetObject is blueprint ActorComponent, when hit compile, TargetObject will become null, so get it again */
-	void RefreshOnBlueprintCompiled();
-	static void RefreshAll_OnBlueprintCompiled();
-#endif
 	bool IsBound()const;
 public:
 	void FireEvent()const;

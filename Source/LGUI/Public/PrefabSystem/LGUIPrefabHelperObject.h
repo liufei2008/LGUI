@@ -29,18 +29,18 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TWeakObjectPtr<AActor> LoadedRootActor;
+		AActor* LoadedRootActor;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<AActor>> AllLoadedActorArray;
+		TArray<AActor*> AllLoadedActorArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<FGuid, TWeakObjectPtr<UObject>> MapGuidToObject;
+		TMap<FGuid, UObject*> MapGuidToObject;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<TWeakObjectPtr<AActor>, FLGUISubPrefabData> SubPrefabMap;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefabOverrideParameterObject* PrefabOverrideParameterObject = nullptr;
+		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 #endif
 #if WITH_EDITOR
 	virtual void BeginDestroy()override;
+	virtual void PostEditUndo()override;
+
 	static void SetActorPropertyInOutliner(AActor* Actor, bool InListed);
 
 	//make sub prefab's actors as normal actor
@@ -53,5 +53,9 @@ public:
 	void ClearLoadedPrefab();
 	bool IsActorBelongsToSubPrefab(AActor* InActor);
 	bool IsActorBelongsToThis(AActor* InActor, bool InCludeSubPrefab);
+	void AddMemberPropertyToSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
+	void RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
+	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject);
+	FLGUISubPrefabData GetSubPrefabData(AActor* InSubPrefabActor);
 #endif
 };

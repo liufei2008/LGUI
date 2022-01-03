@@ -29,6 +29,7 @@ private:
 	void OnCopy(AActor* TargetActor, UActorComponent* TargetComp, UClass* TargetClass);
 	void OnPaste(TSharedPtr<IPropertyHandle> TargetActorProperty, TSharedPtr<IPropertyHandle> TargetCompProperty, TSharedPtr<IPropertyHandle> TargetClassProperty);
 	void OnHelperActorValueChange(TSharedPtr<IPropertyHandle> HelperActorHandle, TSharedPtr<IPropertyHandle> HelperCompHandle, TSharedPtr<IPropertyHandle> HelperClassHandle, TSharedPtr<IPropertyHandle> HelperComponentNameHandle);
+	FReply OnClickFixComponentReference(TSharedPtr<IPropertyHandle> HelperCompHandle, UActorComponent* Target);
 
 	static TWeakObjectPtr<AActor> CopiedHelperActor;
 	static TWeakObjectPtr<UActorComponent> CopiedTargetComp;

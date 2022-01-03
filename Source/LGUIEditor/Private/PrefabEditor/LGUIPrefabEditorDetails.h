@@ -23,19 +23,23 @@ public:
     void Construct(const FArguments& Args, TSharedPtr<FLGUIPrefabEditor> InPrefabEditor);
 
 	virtual ~SLGUIPrefabEditorDetails();
-
-protected:
+public:
+	void RefreshOverrideParameter();
+private:
 	AActor* GetActorContext() const;
 	void OnEditorSelectionChanged(UObject* Object);
 	void OnSCSEditorTreeViewSelectionChanged(const TArray<TSharedPtr<class FSCSEditorTreeNode> >& SelectedNodes);
 	void OnSCSEditorTreeViewItemDoubleClicked(const TSharedPtr<class FSCSEditorTreeNode> ClickedNode);
 
-public:
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 
-private:
 	bool IsPropertyReadOnly(const FPropertyAndParent& InPropertyAndParent);
+	bool IsPrefabButtonEnable()const;
+	FOptionalSize GetPrefabButtonHeight()const;
+	EVisibility GetPrefabButtonVisibility()const;
+	bool IsSSCSEditorAllowEditing()const;
 
+	TSharedPtr<class SLGUIPrefabOverrideDataViewer> OverrideParameterEditor;
 	TSharedPtr<class IDetailsView> DetailsView;
 	TSharedPtr<class SBox> ComponentsBox;
 	TSharedPtr<class SSCSEditor> SCSEditor;

@@ -26,6 +26,5 @@ public:
 
 public:
 	TSharedPtr<FUICommandInfo> Apply;
-	TSharedPtr<FUICommandInfo> OverrideParameter;
 	TSharedPtr<FUICommandInfo> RawDataViewer;
 };

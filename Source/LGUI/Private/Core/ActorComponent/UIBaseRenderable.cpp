@@ -52,9 +52,9 @@ void UUIBaseRenderable::OnUpdateTransform(EUpdateTransformFlags UpdateTransformF
 	MarkCanvasUpdate(false, true, false);
 }
 
-void UUIBaseRenderable::ApplyUIActiveState()
+void UUIBaseRenderable::ApplyUIActiveState(bool InStateChange)
 {
-	Super::ApplyUIActiveState();//this line must line before AddUIRenderable/RemoveUIRenderable, because UIActiveStateChangedDelegate need to call first. (UIActiveStateChangedDelegate lead to canvas: ParentCanvas->UIRenderableList.Add/Remove)
+	Super::ApplyUIActiveState(InStateChange);//this line must line before AddUIRenderable/RemoveUIRenderable, because UIActiveStateChangedDelegate need to call first. (UIActiveStateChangedDelegate lead to canvas: ParentCanvas->UIRenderableList.Add/Remove)
 
 	if (GetIsUIActiveInHierarchy())
 	{
@@ -78,7 +78,7 @@ void UUIBaseRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanva
 	{
 		OldCanvas->RemoveUIRenderable(this);
 	}
-	if (IsValid(NewCanvas))
+	if (IsValid(NewCanvas) && GetIsUIActiveInHierarchy())
 	{
 		NewCanvas->AddUIRenderable(this);
 	}

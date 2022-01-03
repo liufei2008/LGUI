@@ -37,8 +37,6 @@ protected:
 	 */
 	bool ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged);
 	TInlineComponentArray<class UUIGeometryModifierBase*> GeometryModifierComponentArray;
-
-	virtual void ApplyUIActiveState() override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		UMaterialInterface* GetCustomUIMaterial()const { return CustomUIMaterial; }

@@ -5,7 +5,6 @@
 #include "Utils/LGUIUtils.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "Core/ActorComponent/UIItem.h"
-#include "PrefabSystem/LGUIPrefabOverrideParameter.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #if WITH_EDITOR
 #include "Editor.h"
@@ -112,14 +111,7 @@ void ALGUIPrefabHelperActor::RevertPrefab()
 
 void ALGUIPrefabHelperActor::DeleteThisInstance()
 {
-	if (PrefabHelperObject->LoadedRootActor.IsValid())
-	{
-		LGUIUtils::DestroyActorWithHierarchy(PrefabHelperObject->LoadedRootActor.Get(), true);
-	}
-	else
-	{
-		UE_LOG(LGUI, Error, TEXT("This actor is not a prefab, ignore this action"));
-	}
+	PrefabHelperObject->ClearLoadedPrefab();
 	LGUIUtils::DestroyActorWithHierarchy(this, false);
 }
 #endif

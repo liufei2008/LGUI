@@ -48,8 +48,8 @@ private:
 	EVisibility GetAnchorPresetButtonVisibility()const;
 	bool IsAnchorValueEnable(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const;
 
-	FReply OnClickIncreaseOrDecreaseHierarchyIndex(bool IncreaseOrDecrease);
+	FReply OnClickIncreaseOrDecreaseHierarchyIndex(bool IncreaseOrDecrease, TSharedRef<IPropertyHandle> HierarchyIndexHandle);
 
 	EVisibility GetDisplayNameWarningVisibility()const;
-	FReply OnClickFixDisplayNameButton(bool singleOrAll);
+	FReply OnClickFixDisplayNameButton(bool singleOrAll, TSharedRef<IPropertyHandle> DisplayNameHandle);
 };

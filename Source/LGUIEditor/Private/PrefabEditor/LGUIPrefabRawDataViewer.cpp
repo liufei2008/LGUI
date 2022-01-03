@@ -6,7 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabRawDataViewer"
 
-void SLGUIPrefabRawDataViewer::Construct(const FArguments& InArgs, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr, ULGUIPrefab* InPrefab)
+void SLGUIPrefabRawDataViewer::Construct(const FArguments& InArgs, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr, UObject* InObject)
 {
 	PrefabEditorPtr = InPrefabEditorPtr;
 	FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
@@ -20,7 +20,7 @@ void SLGUIPrefabRawDataViewer::Construct(const FArguments& InArgs, TSharedPtr<FL
 		DetailsViewArgs.bHideSelectionTip = true;
 	}
 	DescriptorDetailView = EditModule.CreateDetailView(DetailsViewArgs);
-	DescriptorDetailView->SetObject(InPrefab);
+	DescriptorDetailView->SetObject(InObject);
 	ChildSlot
 		[
 			DescriptorDetailView.ToSharedRef()

@@ -104,8 +104,7 @@ public:
 	static void DrawFrameOnUIItem(UUIItem* InItem);
 
 	static bool RaycastHitUI(UWorld* InWorld, const TArray<TWeakObjectPtr<UUIItem>>& InUIItems, const FVector& LineStart, const FVector& LineEnd
-		, TWeakObjectPtr<UUIBaseRenderable> PrevSelectTarget, TWeakObjectPtr<AActor> PrevSelectedActor
-		, TWeakObjectPtr<UUIBaseRenderable>& ResultSelectTarget, TWeakObjectPtr<AActor>& ResultSelectedActor
+		, UUIBaseRenderable*& ResultSelectTarget
 	);
 private:
 #if WITH_EDITORONLY_DATA

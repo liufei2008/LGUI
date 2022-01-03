@@ -28,7 +28,6 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	virtual void OnUnregister()override;
-	virtual void ApplyUIActiveState() override;
 	TSharedPtr<UIGeometry> geometry = nullptr;
 	virtual void UpdateGeometry()override final;
 

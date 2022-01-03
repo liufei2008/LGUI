@@ -31,7 +31,9 @@ namespace LGUIPrefabSystem3
 		{
 			return true;
 		}
-		if (SkipPropertyNames.Contains(InProperty->GetFName()))
+		if (SkipPropertyNames.Contains(InProperty->GetFName())
+			&& CurrentIsMemberProperty(*this)//Skip property only support UObject's member property
+			)
 		{
 			return true;
 		}
@@ -175,7 +177,9 @@ namespace LGUIPrefabSystem3
 		{
 			return true;
 		}
-		if (SkipPropertyNames.Contains(InProperty->GetFName()))
+		if (SkipPropertyNames.Contains(InProperty->GetFName())
+			&& CurrentIsMemberProperty(*this)//Skip property only support UObject's member property
+			)
 		{
 			return true;
 		}
@@ -222,7 +226,7 @@ namespace LGUIPrefabSystem3
 			*this << guid;
 			if (auto ObjectPtr = Serializer.MapGuidToObject.Find(guid))
 			{
-				Object = ObjectPtr->Get();
+				Object = *ObjectPtr;
 				return true;
 			}
 		}
@@ -287,7 +291,9 @@ namespace LGUIPrefabSystem3
 		{
 			return true;
 		}
-		if (SkipPropertyNames.Contains(InProperty->GetFName()))
+		if (SkipPropertyNames.Contains(InProperty->GetFName())
+			&& CurrentIsMemberProperty(*this)//Skip property only support UObject's member property
+			)
 		{
 			return true;
 		}
@@ -410,7 +416,9 @@ namespace LGUIPrefabSystem3
 		{
 			return true;
 		}
-		if (SkipPropertyNames.Contains(InProperty->GetFName()))
+		if (SkipPropertyNames.Contains(InProperty->GetFName())
+			&& CurrentIsMemberProperty(*this)//Skip property only support UObject's member property
+			)
 		{
 			return true;
 		}
@@ -449,7 +457,7 @@ namespace LGUIPrefabSystem3
 			*this << guid;
 			if (auto ObjectPtr = Serializer.MapGuidToObject.Find(guid))
 			{
-				Object = ObjectPtr->Get();
+				Object = *ObjectPtr;
 				return true;
 			}
 		}

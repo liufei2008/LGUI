@@ -45,12 +45,6 @@ void UUIPostProcessRenderable::OnUnregister()
 	Super::OnUnregister();
 }
 
-void UUIPostProcessRenderable::ApplyUIActiveState()
-{
-	bUVChanged = true;
-	Super::ApplyUIActiveState();
-}
-
 void UUIPostProcessRenderable::OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)
 {
 	Super::OnRenderCanvasChanged(OldCanvas, NewCanvas);

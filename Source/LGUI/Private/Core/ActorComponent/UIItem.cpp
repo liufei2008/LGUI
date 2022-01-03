@@ -18,6 +18,13 @@
 
 PRAGMA_DISABLE_OPTIMIZATION
 
+#if WITH_EDITORONLY_DATA
+TSet<FName> UUIItem::PersistentOverridePropertyNameSet =
+{
+	GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex)
+};
+#endif
+
 UUIItem::UUIItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -280,48 +287,49 @@ void UUIItem::SetHierarchyIndex(int32 InInt)
 { 
 	if (InInt != hierarchyIndex)
 	{
-		if (ParentUIItem.IsValid())
-		{
-			ParentUIItem->CheckCacheUIChildren();
-			UUIItem* existChildOfIndex = nullptr;
-			for (int i = 0; i < ParentUIItem->UIChildren.Num(); i++)
-			{
-				if (ParentUIItem->UIChildren[i]->hierarchyIndex == InInt)
-				{
-					existChildOfIndex = ParentUIItem->UIChildren[i];
-					break;
-				}
-			}
-			if (existChildOfIndex != nullptr)//already exist
-			{
-				if (InInt < hierarchyIndex)//move to prev
-				{
-					for (int i = InInt; i < ParentUIItem->UIChildren.Num(); i++)
-					{
-						ParentUIItem->UIChildren[i]->hierarchyIndex++;
-					}
-				}
-				else//move to next
-				{
-					for (int i = 0; i <= InInt; i++)
-					{
-						ParentUIItem->UIChildren[i]->hierarchyIndex--;
-					}
-				}
-			}
-			hierarchyIndex = InInt;
-			ParentUIItem->SortCacheUIChildren();
-			for (int i = 0; i < ParentUIItem->UIChildren.Num(); i++)
-			{
-				ParentUIItem->UIChildren[i]->hierarchyIndex = i;
-			}
-			//flatten hierarchy index
-			MarkFlattenHierarchyIndexDirty();
-
-			ParentUIItem->OnChildHierarchyIndexChanged(this);
-		}
+		hierarchyIndex = InInt;
+		ApplyHierarchyIndex();
 	}
 }
+
+void UUIItem::ApplyHierarchyIndex()
+{
+	if (ParentUIItem.IsValid())
+	{
+		if (ParentUIItem->UIChildren.Num() == 0)
+		{
+			ParentUIItem->UIChildren.Add(this);
+			this->hierarchyIndex = 0;
+		}
+		else
+		{
+			ParentUIItem->CheckCacheUIChildren();
+			hierarchyIndex = FMath::Clamp(hierarchyIndex, 0, ParentUIItem->UIChildren.Num() - 1);
+			ParentUIItem->UIChildren.Remove(this);
+			ParentUIItem->UIChildren.Insert(this, hierarchyIndex);
+			bool anythingChange = false;
+			for (int i = 0; i < ParentUIItem->UIChildren.Num(); i++)
+			{
+				if (ParentUIItem->UIChildren[i]->hierarchyIndex != i)
+				{
+					ParentUIItem->UIChildren[i]->hierarchyIndex = i;
+					anythingChange = true;
+				}
+			}
+			//flatten hierarchy index
+			if (anythingChange)
+			{
+				MarkFlattenHierarchyIndexDirty();
+				ParentUIItem->OnChildHierarchyIndexChanged(this);
+			}
+		}
+	}
+	else
+	{
+		hierarchyIndex = 0;
+	}
+}
+
 void UUIItem::SetAsFirstHierarchy()
 {
 	SetHierarchyIndex(-1);
@@ -437,6 +445,14 @@ void UUIItem::FindChildArrayByDisplayNameWithChildren_Internal(const FString& In
 
 void UUIItem::MarkAllDirtyRecursive()
 {
+	bFlattenHierarchyIndexDirty = true;
+	bWidthCached = false;
+	bHeightCached = false;
+	bAnchorLeftCached = false;
+	bAnchorRightCached = false;
+	bAnchorTopCached = false;
+	bAnchorBottomCached = false;
+	
 	for (auto uiChild : UIChildren)
 	{
 		if (IsValid(uiChild))
@@ -444,6 +460,11 @@ void UUIItem::MarkAllDirtyRecursive()
 			uiChild->MarkAllDirtyRecursive();
 		}
 	}
+}
+
+void UUIItem::PostLoad()
+{
+	Super::PostLoad();
 }
 
 #if WITH_EDITOR
@@ -457,20 +478,29 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 
 	if (PropertyChangedEvent.Property != nullptr)
 	{
-		auto propetyName = PropertyChangedEvent.Property->GetFName();
-		if (propetyName == GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive))
+		MarkAllDirtyRecursive();
+		auto PropertyName = PropertyChangedEvent.Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIItem, bIsUIActive))
 		{
 			bIsUIActive = !bIsUIActive;//make it work
 			SetIsUIActive(!bIsUIActive);
 		}
 
-		else if (propetyName == GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex))
 		{
-			hierarchyIndex = hierarchyIndex + 1;//make it work
-			SetHierarchyIndex(hierarchyIndex - 1);
+			ApplyHierarchyIndex();
+		}
+		else if (PropertyName == FName(TEXT("RelativeLocation")))
+		{
+			CalculateAnchorFromTransform();
+			UpdateComponentToWorld();
+		}
+		else if (PropertyName == FName(TEXT("AnchorData")))
+		{
+			CalculateTransformFromAnchor();
+			UpdateComponentToWorld();
 		}
 	}
-	MarkAllDirtyRecursive();
 	EditorForceUpdateImmediately();
 	UpdateBounds();
 }
@@ -479,6 +509,27 @@ void UUIItem::PostEditComponentMove(bool bFinished)
 {
 	Super::PostEditComponentMove(bFinished);
 	EditorForceUpdateImmediately();
+}
+
+void UUIItem::PostEditUndo()
+{
+	Super::PostEditUndo();
+	ApplyHierarchyIndex();
+	CheckUIActiveState();
+	MarkAllDirtyRecursive();
+	CalculateTransformFromAnchor();
+	EditorForceUpdateImmediately();
+}
+
+//void UUIItem::PostEditUndo(TSharedPtr<ITransactionObjectAnnotation> TransactionAnnotation)
+//{
+//	Super::PostEditUndo(TransactionAnnotation);
+//	EditorForceUpdateImmediately();
+//}
+
+void UUIItem::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
+{
+	Super::PostTransacted(TransactionEvent);
 }
 
 FBoxSphereBounds UUIItem::CalcBounds(const FTransform& LocalToWorld) const
@@ -571,27 +622,57 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 #if WITH_EDITORONLY_DATA
 		if (!GetWorld()->IsGameWorld())
 		{
-			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+			if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 			{
-				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+
+			}
+			else
+			{
+				if (childUIItem->IsRegistered())
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
+				}
+				else//when load from level, then not set hierarchy index
+				{
+
 				}
 			}
 		}
 		else
 #endif
 		{
-			if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, then not set hierarchy index
+			if (ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//load from prefab or duplicated by LGUI PrefabSystem, then not set hierarchy index
 			{
-				if (childUIItem->IsRegistered())//when load from level, then not set hierarchy index
+
+			}
+			else
+			{
+				if (childUIItem->IsRegistered())
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
+				}
+				else//when load from level, then not set hierarchy index
+				{
+
 				}
 			}
 		}
 		UIChildren.Add(childUIItem);
-		SortCacheUIChildren();
+		//make sure hierarchyindex all good
+		if (childUIItem->hierarchyIndex == INDEX_NONE)
+		{
+			for (int i = 0; i < UIChildren.Num(); i++)
+			{
+				UIChildren[i]->hierarchyIndex = i;
+			}
+		}
+
+		UIChildren.Sort([](const UUIItem& A, const UUIItem& B)
+			{
+				if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
+					return true;
+				return false;
+			});
 		MarkCanvasUpdate(false, false, false);
 	}
 }
@@ -745,16 +826,6 @@ void UUIItem::CheckCacheUIChildren()
 			UIChildren.RemoveAt(i);
 		}
 	}
-}
-
-void UUIItem::SortCacheUIChildren()
-{
-	UIChildren.Sort([](const UUIItem& A, const UUIItem& B)
-	{
-		if (A.GetHierarchyIndex() < B.GetHierarchyIndex())
-			return true;
-		return false;
-	});
 }
 
 void UUIItem::RegisterRenderCanvas(ULGUICanvas* InRenderCanvas)
@@ -973,7 +1044,7 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
 		//active state
 		this->bAllUpParentUIActive = ParentUIItem->GetIsUIActiveInHierarchy();
-		this->SetUIActiveStateChange();
+		this->CheckUIActiveState();
 	}
 
 	//if (this->IsRegistered())//not registerd means could be load from level
@@ -1908,13 +1979,13 @@ void UUIItem::OnChildActiveStateChanged(UUIItem* child)
 	CallUILifeCycleBehavioursChildActiveInHierarchyStateChanged(child, child->GetIsUIActiveInHierarchy());
 }
 
-void UUIItem::SetUIActiveStateChange()
+void UUIItem::CheckUIActiveState()
 {
 	auto thisUIActiveState = this->GetIsUIActiveInHierarchy();
-	SetChildrenUIActiveChangeRecursive(thisUIActiveState);
+	CheckChildrenUIActiveRecursive(thisUIActiveState);
 }
 
-void UUIItem::SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive)
+void UUIItem::CheckChildrenUIActiveRecursive(bool InUpParentUIActive)
 {
 	for (auto uiChild : UIChildren)
 	{
@@ -1926,9 +1997,9 @@ void UUIItem::SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive)
 			{
 				uiChild->bAllUpParentUIActive = InUpParentUIActive;
 				//apply for state change
-				uiChild->ApplyUIActiveState();
+				uiChild->ApplyUIActiveState(true);
 				//affect children
-				uiChild->SetChildrenUIActiveChangeRecursive(uiChild->GetIsUIActiveInHierarchy());
+				uiChild->CheckChildrenUIActiveRecursive(uiChild->GetIsUIActiveInHierarchy());
 				//callback for parent
 				this->OnChildActiveStateChanged(uiChild);
 			}
@@ -1937,7 +2008,7 @@ void UUIItem::SetChildrenUIActiveChangeRecursive(bool InUpParentUIActive)
 			{
 				uiChild->bAllUpParentUIActive = InUpParentUIActive;
 				//affect children
-				uiChild->SetChildrenUIActiveChangeRecursive(uiChild->GetIsUIActiveInHierarchy());
+				uiChild->CheckChildrenUIActiveRecursive(uiChild->GetIsUIActiveInHierarchy());
 			}
 		}
 	}
@@ -1949,9 +2020,9 @@ void UUIItem::SetIsUIActive(bool active)
 		bIsUIActive = active;
 		if (bAllUpParentUIActive)//state change only happens when up parent is active
 		{
-			ApplyUIActiveState();
+			ApplyUIActiveState(true);
 			//affect children
-			SetChildrenUIActiveChangeRecursive(bIsUIActive);
+			CheckChildrenUIActiveRecursive(bIsUIActive);
 			//callback for parent
 			if (ParentUIItem.IsValid())
 			{
@@ -1965,33 +2036,24 @@ void UUIItem::SetIsUIActive(bool active)
 	}
 }
 
-void UUIItem::ApplyUIActiveState()
+void UUIItem::ApplyUIActiveState(bool InStateChange)
 {
 #if WITH_EDITOR
 	//modify inactive actor's name
-	if (auto Actor = GetOwner())
+	auto Actor = GetOwner();
+	if (Actor != nullptr && this == Actor->GetRootComponent())
 	{
-		auto actorLabel = FString(*Actor->GetActorLabel());
-		FString prefix("//");
-		if (GetIsUIActiveInHierarchy() && actorLabel.StartsWith(prefix))
-		{
-			actorLabel = actorLabel.Right(actorLabel.Len() - prefix.Len());
-			Actor->SetActorLabel(actorLabel);
-			Actor->SetIsTemporarilyHiddenInEditor(false);
-		}
-		else if (!GetIsUIActiveInHierarchy() && !actorLabel.StartsWith(prefix))
-		{
-			actorLabel = prefix.Append(actorLabel);
-			Actor->SetActorLabel(actorLabel);
-			Actor->SetIsTemporarilyHiddenInEditor(true);
-		}
+		Actor->SetIsTemporarilyHiddenInEditor(!GetIsUIActiveInHierarchy());
 	}
 #endif
-	if (UIActiveStateChangedDelegate.IsBound())UIActiveStateChangedDelegate.Broadcast();
-	//canvas update
-	MarkCanvasUpdate(false, false, false, true);
-	//callback
-	CallUILifeCycleBehavioursActiveInHierarchyStateChanged();
+	if (InStateChange)
+	{
+		if (UIActiveStateChangedDelegate.IsBound())UIActiveStateChangedDelegate.Broadcast();
+		//canvas update
+		MarkCanvasUpdate(false, false, false, true);
+		//callback
+		CallUILifeCycleBehavioursActiveInHierarchyStateChanged();
+	}
 }
 
 FDelegateHandle UUIItem::RegisterUIActiveStateChanged(const FSimpleDelegate& InCallback)\

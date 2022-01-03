@@ -1473,6 +1473,7 @@ bool ULGUICanvas::IsRenderByOtherCanvas()const
 		return
 			this->ParentCanvas.IsValid()
 
+			&& !this->GetForceSelfRender()
 			&& !this->GetOverrideSorting()
 			&& !this->GetOverrideAddionalShaderChannel()
 			;

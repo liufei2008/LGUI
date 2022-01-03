@@ -16,6 +16,9 @@ class SLGUIPrefabRawDataViewer;
 class AActor;
 class FLGUIPrefabPreviewScene;
 class ULGUIPrefabHelperObject;
+class ULGUIPrefabOverrideParameterHelperObject;
+class ULGUIPrefabOverrideHelperObject;
+struct FLGUISubPrefabData;
 
 /**
  * 
@@ -58,20 +61,30 @@ public:
 
 	/** Try to handle a drag-drop operation */
 	FReply TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent);
-	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, ULGUIPrefabOverrideParameterObject* InOverrideParameterObject = nullptr);
+	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject);
 
 	FLGUIPrefabPreviewScene& GetPreviewScene();
 	UWorld* GetWorld();
 	ULGUIPrefab* GetPrefabBeingEdited()const { return PrefabBeingEdited; }
 
 	void DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray);
-	void ApplySubPrefabParameterChange(AActor* InSubPrefabActor);
 
 	static FLGUIPrefabEditor* GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab);
 	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 
 	bool GetSelectedObjectsBounds(FBoxSphereBounds& OutResult);
 	FBoxSphereBounds GetAllObjectsBounds();
+	bool ActorBelongsToSubPrefab(AActor* InSubPrefabActor);
+	bool ActorIsSubPrefabRoot(AActor* InSubPrefabRootActor);
+	FLGUISubPrefabData GetSubPrefabDataForActor(AActor* InSubPrefabActor);
+	/** Clear all override property in Object, and reset to prefab's default. */
+	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	/** Clear specific override property in object, and reset to prefab's default */
+	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);
+	void RevertAllPrefabOverride(AActor* InSubPrefabActor);
+	void ApplyAllOverrideToPrefab(AActor* InSubPrefabActor);
+	void OpenSubPrefab(AActor* InSubPrefabActor);
+	void SelectSubPrefab(AActor* InSubPrefabActor);
 private:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
@@ -80,7 +93,6 @@ private:
 	TSharedPtr<SLGUIPrefabEditorViewport> ViewportPtr;
 	TSharedPtr<SLGUIPrefabEditorDetails> DetailsPtr;
 	TSharedPtr<FLGUIPrefabEditorOutliner> OutlinerPtr;
-	TSharedPtr<SLGUIPrefabOverrideParameterEditor> OverrideParameterPtr;
 	TSharedPtr<SLGUIPrefabRawDataViewer> PrefabRawDataViewer;
 
 	TWeakObjectPtr<AActor> CurrentSelectedActor;
@@ -91,6 +103,8 @@ private:
 	FDelegateHandle OnPreObjectPropertyChangedDelegateHandle;
 	FDelegateHandle OnObjectModifiedDelegateHandle;
 	bool bAnythingDirty = false;
+	bool bCanCollectProperty = true;
+	bool bCanNotifyDetachment = true;
 private:
 
 	void BindCommands();
@@ -98,13 +112,11 @@ private:
 	void ExtendToolbar();
 
 	void OnApply();
-	void OnOpenOverrideParameterPanel();
 	void OnOpenRawDataViewerPanel();
 
 	TSharedRef<SDockTab> SpawnTab_Viewport(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab> SpawnTab_Details(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab> SpawnTab_Outliner(const FSpawnTabArgs& Args);
-	TSharedRef<SDockTab> SpawnTab_OverrideParameter(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab> SpawnTab_PrefabRawDataViewer(const FSpawnTabArgs& Args);
 
 	bool IsFilteredActor(const AActor* Actor);
@@ -113,7 +125,10 @@ private:
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
+	void OnComponentTransformChanged(USceneComponent* InComponent, ETeleportType TeleportType);
 	void OnObjectModified(UObject* InObject);
 	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
 	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
+	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty);
+private:
 };

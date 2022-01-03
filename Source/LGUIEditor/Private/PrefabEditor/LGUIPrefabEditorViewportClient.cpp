@@ -32,6 +32,7 @@
 #include "LGUIHeaders.h"
 #include "ScopedTransaction.h"
 #include "LGUIPrefabEditor.h"
+#include "MouseDeltaTracker.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorViewportClient"
 
@@ -40,6 +41,7 @@ FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPrev
 	, TWeakPtr<FLGUIPrefabEditor> InPrefabEditorPtr
 	, const TSharedRef<SLGUIPrefabEditorViewport>& InEditorViewportPtr)
 	: FEditorViewportClient(&GLevelEditorModeTools(), &InPreviewScene, StaticCastSharedRef<SEditorViewport>(InEditorViewportPtr))
+	, TrackingTransaction()
 {
 	this->PrefabEditorPtr = InPrefabEditorPtr;
 
@@ -117,6 +119,7 @@ bool FLGUIPrefabEditorViewportClient::InputKey(FViewport* InViewport, int32 Cont
 
 void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY)
 {
+	UUIBaseRenderable* LastSelectTarget = nullptr;
 	if (ULGUIEditorManagerObject::Instance != nullptr)
 	{
 		FVector RayOrigin, RayDirection;
@@ -126,13 +129,26 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		auto LineStart = RayOrigin;
 		auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
 		auto& allUIItems = ULGUIEditorManagerObject::Instance->GetAllUIItemArray();
-		auto prevSelectTarget = LastSelectTarget;
-		auto prevSelectActor = LastSelectedActor;
-		if (ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), allUIItems, LineStart, LineEnd, prevSelectTarget, prevSelectActor, LastSelectTarget, LastSelectedActor))
+		ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), allUIItems, LineStart, LineEnd, LastSelectTarget);
+	}
+
+	{
+		const FScopedTransaction Transaction(LOCTEXT("ClickToPickActor", "Click to pick UI item"));
+		GEditor->GetSelectedActors()->Modify();
+
+		// Clear the selection.
+		GEditor->SelectNone(false, true, true);
+
+		// We'll batch selection changes instead by using BeginBatchSelectOperation()
+		GEditor->GetSelectedActors()->BeginBatchSelectOperation();
+
+		if (LastSelectTarget != nullptr)
 		{
-			GEditor->SelectNone(true, true);
-			GEditor->SelectActor(LastSelectedActor.Get(), true, true);
+			GEditor->SelectActor(LastSelectTarget->GetOwner(), true, true);
 		}
+
+		// Commit selection changes
+		GEditor->GetSelectedActors()->EndBatchSelectOperation(/*bNotify*/false);
 	}
 
 
@@ -336,28 +352,319 @@ ULGUIPrefab* FLGUIPrefabEditorViewportClient::GetPrefabBeingEdited()const
 	return PrefabEditorPtr.Pin()->GetPrefabBeingEdited();
 }
 
-void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventState& InInputState, bool bIsDragging, bool bNudge)
+namespace LevelEditorViewportClientHelper
 {
-	//@TODO: Should push this into FEditorViewportClient
-	// Begin transacting.  Give the current editor mode an opportunity to do the transacting.
-	//const bool bTrackingHandledExternally = ModeTools->StartTracking(this, Viewport);
+	FProperty* GetEditTransformProperty(FWidget::EWidgetMode WidgetMode)
+	{
+		FProperty* ValueProperty = nullptr;
+		switch (WidgetMode)
+		{
+		case FWidget::WM_Translate:
+			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeLocationPropertyName());
+			break;
+		case FWidget::WM_Rotate:
+			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeRotationPropertyName());
+			break;
+		case FWidget::WM_Scale:
+			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeScale3DPropertyName());
+			break;
+		case FWidget::WM_TranslateRotateZ:
+			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeLocationPropertyName());
+			break;
+		case FWidget::WM_2D:
+			ValueProperty = FindFProperty<FProperty>(USceneComponent::StaticClass(), USceneComponent::GetRelativeLocationPropertyName());
+			break;
+		default:
+			break;
+		}
+		return ValueProperty;
+	}
+}
 
-	//if (!bManipulating && !bTrackingHandledExternally)
-	//{
-	//	BeginTransaction(LOCTEXT("ModificationInViewportTransaction", "Modification in Viewport"));
-	//	bManipulating = true;
-	//}
+void FLGUIPrefabEditorViewportClient::GetSelectedActorsAndComponentsForMove(TArray<AActor*>& OutActorsToMove, TArray<USceneComponent*>& OutComponentsToMove) const
+{
+	OutActorsToMove.Reset();
+	OutComponentsToMove.Reset();
+
+	// Get the list of parent-most component(s) that are selected
+	if (GEditor->GetSelectedComponentCount() > 0)
+	{
+		// Otherwise, if both a parent and child are selected and the delta is applied to both, the child will actually move 2x delta
+		for (FSelectedEditableComponentIterator EditableComponentIt(GEditor->GetSelectedEditableComponentIterator()); EditableComponentIt; ++EditableComponentIt)
+		{
+			USceneComponent* SceneComponent = Cast<USceneComponent>(*EditableComponentIt);
+			if (!SceneComponent)
+			{
+				continue;
+			}
+
+			// Check to see if any parent is selected
+			bool bParentAlsoSelected = false;
+			USceneComponent* Parent = SceneComponent->GetAttachParent();
+			while (Parent != nullptr)
+			{
+				if (Parent->IsSelected())
+				{
+					bParentAlsoSelected = true;
+					break;
+				}
+
+				Parent = Parent->GetAttachParent();
+			}
+
+			AActor* ComponentOwner = SceneComponent->GetOwner();
+			if (!CanMoveActorInViewport(ComponentOwner))
+			{
+				continue;
+			}
+
+			const bool bIsRootComponent = (ComponentOwner && (ComponentOwner->GetRootComponent() == SceneComponent));
+			if (bIsRootComponent)
+			{
+				// If it is a root component, use the parent actor instead
+				OutActorsToMove.Add(ComponentOwner);
+			}
+			else if (!bParentAlsoSelected)
+			{
+				// If no parent of this component is also in the selection set, move it
+				OutComponentsToMove.Add(SceneComponent);
+			}
+		}
+	}
+
+	// Skip gathering selected actors if we had a valid component selection
+	if (OutComponentsToMove.Num() || OutActorsToMove.Num())
+	{
+		return;
+	}
+
+	for (FSelectionIterator It(GEditor->GetSelectedActorIterator()); It; ++It)
+	{
+		AActor* Actor = CastChecked<AActor>(*It);
+
+		// If the root component was selected, this actor is already accounted for
+		USceneComponent* RootComponent = Actor->GetRootComponent();
+		if (RootComponent && RootComponent->IsSelected())
+		{
+			continue;
+		}
+
+		if (!CanMoveActorInViewport(Actor))
+		{
+			continue;
+		}
+
+		OutActorsToMove.Add(Actor);
+	}
+}
+
+bool FLGUIPrefabEditorViewportClient::CanMoveActorInViewport(const AActor* InActor) const
+{
+	if (!GEditor || !InActor)
+	{
+		return false;
+	}
+
+	// The actor cannot be location locked
+	if (InActor->bLockLocation)
+	{
+		return false;
+	}
+
+	// The actor needs to be in the current viewport world
+	if (GEditor->PlayWorld)
+	{
+		if (bIsSimulateInEditorViewport)
+		{
+			// If the Actor's outer (level) outer (world) is not the PlayWorld then it cannot be moved in this viewport.
+			if (!(GEditor->PlayWorld == InActor->GetOuter()->GetOuter()))
+			{
+				return false;
+			}
+		}
+		else if (!(GEditor->EditorWorld == InActor->GetOuter()->GetOuter()))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge)
+{
+	// Begin transacting.  Give the current editor mode an opportunity to do the transacting.
+	const bool bTrackingHandledExternally = ModeTools->StartTracking(this, Viewport);
+
+	TrackingTransaction.End();
+
+	const bool bIsDraggingComponents = GEditor->GetSelectedComponentCount() > 0;
+
+	// Create edit property event
+	FEditPropertyChain PropertyChain;
+	FProperty* TransformProperty = LevelEditorViewportClientHelper::GetEditTransformProperty(GetWidgetMode());
+	if (TransformProperty)
+	{
+		PropertyChain.AddHead(TransformProperty);
+	}
+
+	if (bIsDraggingComponents)
+	{
+		if (bIsDraggingWidget)
+		{
+			Widget->SetSnapEnabled(true);
+
+			for (FSelectedEditableComponentIterator It(GEditor->GetSelectedEditableComponentIterator()); It; ++It)
+			{
+				USceneComponent* SceneComponent = Cast<USceneComponent>(*It);
+				if (SceneComponent)
+				{
+					// Notify that this component is beginning to move
+					GEditor->BroadcastBeginObjectMovement(*SceneComponent);
+
+					// Broadcast Pre Edit change notification, we can't call PreEditChange directly on Actor or ActorComponent from here since it will unregister the components until PostEditChange
+					if (TransformProperty)
+					{
+						FCoreUObjectDelegates::OnPreObjectPropertyChanged.Broadcast(SceneComponent, PropertyChain);
+					}
+				}
+			}
+		}
+	}
+
+	// Start a transformation transaction if required
+	if (!bTrackingHandledExternally)
+	{
+		if (bIsDraggingWidget)
+		{
+			TrackingTransaction.TransCount++;
+
+			FText ObjectTypeBeingTracked = bIsDraggingComponents ? LOCTEXT("TransactionFocus_Components", "Components") : LOCTEXT("TransactionFocus_Actors", "Actors");
+			FText TrackingDescription;
+
+			switch (GetWidgetMode())
+			{
+			case FWidget::WM_Translate:
+				TrackingDescription = FText::Format(LOCTEXT("MoveTransaction", "Move {0}"), ObjectTypeBeingTracked);
+				break;
+			case FWidget::WM_Rotate:
+				TrackingDescription = FText::Format(LOCTEXT("RotateTransaction", "Rotate {0}"), ObjectTypeBeingTracked);
+				break;
+			case FWidget::WM_Scale:
+				TrackingDescription = FText::Format(LOCTEXT("ScaleTransaction", "Scale {0}"), ObjectTypeBeingTracked);
+				break;
+			case FWidget::WM_TranslateRotateZ:
+				TrackingDescription = FText::Format(LOCTEXT("TranslateRotateZTransaction", "Translate/RotateZ {0}"), ObjectTypeBeingTracked);
+				break;
+			case FWidget::WM_2D:
+				TrackingDescription = FText::Format(LOCTEXT("TranslateRotate2D", "Translate/Rotate2D {0}"), ObjectTypeBeingTracked);
+				break;
+			default:
+				if (bNudge)
+				{
+					TrackingDescription = FText::Format(LOCTEXT("NudgeTransaction", "Nudge {0}"), ObjectTypeBeingTracked);
+				}
+			}
+
+			if (!TrackingDescription.IsEmpty())
+			{
+				if (bNudge)
+				{
+					TrackingTransaction.Begin(TrackingDescription);
+				}
+				else
+				{
+					// If this hasn't begun due to a nudge, start it as a pending transaction so that it only really begins when the mouse is moved
+					TrackingTransaction.BeginPending(TrackingDescription);
+				}
+			}
+		}
+
+		if (TrackingTransaction.IsActive() || TrackingTransaction.IsPending())
+		{
+			// Suspend actor/component modification during each delta step to avoid recording unnecessary overhead into the transaction buffer
+			GEditor->DisableDeltaModification(true);
+		}
+	}
 }
 void FLGUIPrefabEditorViewportClient::TrackingStopped()
 {
-	// Stop transacting.  Give the current editor mode an opportunity to do the transacting.
-	//const bool bTransactingHandledByEditorMode = ModeTools->EndTracking(this, Viewport);
+	const bool AltDown = IsAltPressed();
+	const bool ShiftDown = IsShiftPressed();
+	const bool ControlDown = IsCtrlPressed();
+	const bool LeftMouseButtonDown = Viewport->KeyState(EKeys::LeftMouseButton);
+	const bool RightMouseButtonDown = Viewport->KeyState(EKeys::RightMouseButton);
+	const bool MiddleMouseButtonDown = Viewport->KeyState(EKeys::MiddleMouseButton);
 
-	//if (bManipulating && !bTransactingHandledByEditorMode)
-	//{
-	//	EndTransaction();
-	//	bManipulating = false;
-	//}
+	// here we check to see if anything of worth actually changed when ending our MouseMovement
+	// If the TransCount > 0 (we changed something of value) so we need to call PostEditMove() on stuff
+	// if we didn't change anything then don't call PostEditMove()
+	bool bDidAnythingActuallyChange = false;
+
+	// Stop transacting.  Give the current editor mode an opportunity to do the transacting.
+	const bool bTransactingHandledByEditorMode = ModeTools->EndTracking(this, Viewport);
+	if (!bTransactingHandledByEditorMode)
+	{
+		if (TrackingTransaction.TransCount > 0)
+		{
+			bDidAnythingActuallyChange = true;
+			TrackingTransaction.TransCount--;
+		}
+	}
+
+	// Notify the selected actors that they have been moved.
+	// Don't do this if AddDelta was never called.
+	if (bDidAnythingActuallyChange && MouseDeltaTracker->HasReceivedDelta())
+	{
+		// Create post edit property change event
+		FProperty* TransformProperty = LevelEditorViewportClientHelper::GetEditTransformProperty(GetWidgetMode());
+		FPropertyChangedEvent PropertyChangedEvent(TransformProperty, EPropertyChangeType::ValueSet);
+
+		// Move components and actors
+		{
+			TArray<USceneComponent*> ComponentsToMove;
+			TArray<AActor*> ActorsToMove;
+			GetSelectedActorsAndComponentsForMove(ActorsToMove, ComponentsToMove);
+
+			for (USceneComponent* Component : ComponentsToMove)
+			{
+				// Broadcast Post Edit change notification, we can't call PostEditChangeProperty directly on Actor or ActorComponent from here since it wasn't pair with a proper PreEditChange
+				FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(Component, PropertyChangedEvent);
+				
+				Component->PostEditComponentMove(true);
+				GEditor->BroadcastEndObjectMovement(*Component);
+			}
+
+			for (AActor* Actor : ActorsToMove)
+			{
+				// Broadcast Post Edit change notification, we can't call PostEditChangeProperty directly on Actor or ActorComponent from here since it wasn't pair with a proper PreEditChange
+				FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(Actor, PropertyChangedEvent);
+				Actor->PostEditMove(true);
+				GEditor->BroadcastEndObjectMovement(*Actor);
+			}
+
+			GEditor->BroadcastActorsMoved(ActorsToMove);
+		}
+	}
+
+	// End the transaction here if one was started in StartTransaction()
+	if (TrackingTransaction.IsActive() || TrackingTransaction.IsPending())
+	{
+		TrackingTransaction.End();
+
+		// Restore actor/component delta modification
+		GEditor->DisableDeltaModification(false);
+	}
+
+	ModeTools->ActorMoveNotify();
+
+	if (bDidAnythingActuallyChange)
+	{
+		FScopedLevelDirtied LevelDirtyCallback;
+		LevelDirtyCallback.Request();
+
+		RedrawAllViewportsIntoThisScene();
+	}
 }
 
 void FLGUIPrefabEditorViewportClient::BeginTransaction(const FText& SessionName)

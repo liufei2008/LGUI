@@ -8,37 +8,32 @@
 
 /**
  * For direct reference a ActorComponent
- * Update in LGUI3: directly reference the ActorComponent object instead of component's name, so the reference will not lose after component name changes.
+ * Update in LGUI3: Directly reference the ActorComponent object instead of component's name, so the reference will not lose after component name changes.
+ *					But this result in an issue: BlueprintCreatedComponents will not be saved, so only use this for InstancedComponents.
  */ 
 USTRUCT(BlueprintType)
 struct LGUI_API FLGUIComponentReference
 {
 	GENERATED_BODY()
-	FLGUIComponentReference();
 	FLGUIComponentReference(TSubclassOf<UActorComponent> InCompClass);
 	FLGUIComponentReference(UActorComponent* InComp);
-	~FLGUIComponentReference();
+	FLGUIComponentReference() {}
 protected:
 	friend class FLGUIComponentReferenceCustomization;
 #if WITH_EDITORONLY_DATA
 	/** Editor helper actor */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TWeakObjectPtr<AActor> HelperActor;
+		AActor* HelperActor = nullptr;
 	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (AllowAbstract = "true"))
 		TSubclassOf<UActorComponent> HelperClass;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FName HelperComponentName;
-	static TArray<FLGUIComponentReference*> AllLGUIComponentReferenceArray;
-	void RefreshOnBlueprintCompiled();
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		TWeakObjectPtr<UActorComponent> TargetComp;
+		UActorComponent* TargetComp = nullptr;//If use TWeakObjectPtr here, then this pointer will become STALE when recompile the component from blueprint (not sure about c++ hot compile).
 public:
-#if WITH_EDITOR
-	static void RefreshAll_OnBlueprintCompiled();
-#endif
 	AActor* GetActor()const;
-	UActorComponent* GetComponent()const { return TargetComp.Get(); }
+	UActorComponent* GetComponent()const { return TargetComp; }
 	template<class T>
 	T* GetComponent()const
 	{
@@ -68,7 +63,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
 		FName targetComonentName;
 	/** old data */
-	UPROPERTY(EditAnywhere, Category = "LGUI", meta = (AllowAbstract = "true"))
+	UPROPERTY(EditAnywhere, Category = "LGUI-old", meta = (AllowAbstract = "true"))
 		TSubclassOf<UActorComponent> targetComponentClass;
 #endif
 };
