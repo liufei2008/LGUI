@@ -120,6 +120,8 @@ public:
 		AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale);
 	AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale);
 	AActor* LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity = false);
+private:
+	void CheckHelperObject();
 #if WITH_EDITOR
 public:
 	void MakeAgentObjectsInPreviewWorld();

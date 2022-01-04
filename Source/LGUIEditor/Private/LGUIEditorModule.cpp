@@ -771,6 +771,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Button"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("Toggle"));
+		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("ToggleGroup"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("HorizontalSlider"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("VerticalSlider"));
 		FunctionContainer::CreateUIControlMenuEntry(MenuBuilder, TEXT("HorizontalScrollbar"));

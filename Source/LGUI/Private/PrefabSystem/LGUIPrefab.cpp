@@ -102,16 +102,20 @@ bool FLGUISubPrefabData::CheckParameters()
 
 ULGUIPrefab::ULGUIPrefab()
 {
-#if WITH_EDITORONLY_DATA
-	if (this != GetDefault<ULGUIPrefab>())
+
+}
+#if WITH_EDITOR
+
+void ULGUIPrefab::CheckHelperObject()
+{
+	if (PrefabHelperObject == nullptr)
 	{
-		PrefabHelperObject = CreateDefaultSubobject<ULGUIPrefabHelperObject>("PrefabHelper");
+		PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this, "PrefabHelper");
 		PrefabHelperObject->bIsInsidePrefabEditor = false;
 		PrefabHelperObject->PrefabAsset = this;
 	}
-#endif
 }
-#if WITH_EDITOR
+
 void ULGUIPrefab::RefreshAgentObjectsInPreviewWorld()
 {
 	ClearAgentObjectsInPreviewWorld();
@@ -121,6 +125,7 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 {
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
+		CheckHelperObject();
 		if (!IsValid(PrefabHelperObject->LoadedRootActor))
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
@@ -130,7 +135,10 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 }
 void ULGUIPrefab::ClearAgentObjectsInPreviewWorld()
 {
-	PrefabHelperObject->ClearLoadedPrefab();
+	if (PrefabHelperObject != nullptr)
+	{
+		PrefabHelperObject->ClearLoadedPrefab();
+	}
 }
 
 void ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
@@ -251,14 +259,7 @@ void ULGUIPrefab::PostInitProperties()
 #if WITH_EDITOR
 	if (this != GetDefault<ULGUIPrefab>())
 	{
-		if (ULGUIEditorManagerObject::Instance == nullptr)//if LGUIEditorManager is not valid, means engine could be not valid too, so add to a temporary list, wait for it valid and do the stuff
-		{
-			ULGUIEditorManagerObject::AddPrefabForGenerateAgent(this);
-		}
-		else//LGUIEditorManager is valid, means everything is good to make the agent objects
-		{
-			MakeAgentObjectsInPreviewWorld();
-		}
+		ULGUIEditorManagerObject::AddPrefabForGenerateAgent(this);
 	}
 #endif
 }
@@ -282,6 +283,12 @@ void ULGUIPrefab::PreSave(const class ITargetPlatform* TargetPlatform)
 void ULGUIPrefab::PostRename(UObject* OldOuter, const FName OldName)
 {
 	Super::PostRename(OldOuter, OldName);
+#if WITH_EDITOR
+	if (this != GetDefault<ULGUIPrefab>())
+	{
+		ULGUIEditorManagerObject::AddPrefabForGenerateAgent(this);
+	}
+#endif
 }
 void ULGUIPrefab::PreDuplicate(FObjectDuplicationParameters& DupParams)
 {
@@ -293,7 +300,12 @@ void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 	Super::PostDuplicate(bDuplicateForPIE);
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		//@todo: should generate new guid for all objects inside prefab
+#if WITH_EDITOR
+		if (this != GetDefault<ULGUIPrefab>())
+		{
+			ULGUIEditorManagerObject::AddPrefabForGenerateAgent(this);
+		}
+#endif
 	}
 	else
 	{
@@ -305,16 +317,17 @@ void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 void ULGUIPrefab::PostLoad()
 {
 	Super::PostLoad();
-	//@todo: when reload a prefab asset, there is no agent object created
 }
 
 void ULGUIPrefab::BeginDestroy()
 {
+#if WITH_EDITOR
 	if (IsValid(PrefabHelperObject))
 	{
 		ClearAgentObjectsInPreviewWorld();
 		PrefabHelperObject->ConditionalBeginDestroy();
 	}
+#endif
 	Super::BeginDestroy();
 }
 

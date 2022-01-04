@@ -277,7 +277,7 @@ bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem
     }
     else
     {
-        if (!InUIItem->IsAttachedTo(this->GetRootUIComponent()))return false;
+        if (InUIItem->GetAttachParent() != this->GetRootUIComponent())return false;
         if (auto LayoutElement = GetLayoutElement(InUIItem->GetOwner()))
         {
             if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElement))

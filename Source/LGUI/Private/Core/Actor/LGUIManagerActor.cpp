@@ -70,6 +70,15 @@ void ULGUIEditorManagerObject::BeginDestroy()
 
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
+	if (PrefabsNeedToGenerateAgent.Num() > 0)
+	{
+		for (auto& PrefabItem : PrefabsNeedToGenerateAgent)
+		{
+			PrefabItem->RefreshAgentObjectsInPreviewWorld();
+		}
+		PrefabsNeedToGenerateAgent.Empty();
+	}
+
 #if WITH_EDITORONLY_DATA
 	//draw frame
 	for (auto& item : AllUIItemArray)
@@ -229,11 +238,6 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			//blueprint recompile
 			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
 
-			for (auto& PrefabItem : PrefabsNeedToGenerateAgent)
-			{
-				PrefabItem->RefreshAgentObjectsInPreviewWorld();
-			}
-			PrefabsNeedToGenerateAgent.Empty();
 			GeneratePrefabAgentInPreviewWorld();
 		}
 		else

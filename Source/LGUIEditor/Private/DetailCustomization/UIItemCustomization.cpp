@@ -29,6 +29,7 @@
 
 #define LOCTEXT_NAMESPACE "UIItemComponentDetails"
 
+PRAGMA_DISABLE_OPTIMIZATION
 
 FUIItemCustomization::FUIItemCustomization()
 {
@@ -1787,4 +1788,5 @@ bool FUIItemCustomization::GetLayoutControlVerticalSizeDelta()const
 	return GetLayoutControlAnchorValue().bCanControlVerticalSizeDelta;
 }
 
+PRAGMA_ENABLE_OPTIMIZATION
 #undef LOCTEXT_NAMESPACE

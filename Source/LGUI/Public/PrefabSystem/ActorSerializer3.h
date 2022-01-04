@@ -14,6 +14,8 @@ class UUIItem;
 
 namespace LGUIPrefabSystem3
 {
+	//@todo: could use int as object's id instead of FGuid, because object's id only need to be unique inside single prefab, not even in nested prefab.
+
 	struct FLGUIObjectSaveData
 	{
 	public:
