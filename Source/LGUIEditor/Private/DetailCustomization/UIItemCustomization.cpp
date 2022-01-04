@@ -326,6 +326,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 									.ButtonEnable(false)
 									.PersistentHAlign(this, &FUIItemCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
 									.PersistentVAlign(this, &FUIItemCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
+									//.SelectedHAlign(this, &FUIItemCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
+									//.SelectedVAlign(this, &FUIItemCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
 								]
 								:
 								SNew(SBox)
@@ -1364,18 +1366,25 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 		}
 		break;
 		}
+		auto PrevRelativeLocation = UIItem->GetRelativeLocation();
 		auto PrevWidth = UIItem->GetWidth();
 		auto PrevHeight = UIItem->GetHeight();
 		UIItem->SetAnchorMin(AnchorMin);
 		UIItem->SetAnchorMax(AnchorMax);
 		UIItem->SetWidth(PrevWidth);
 		UIItem->SetHeight(PrevHeight);
+		UIItem->SetRelativeLocation(PrevRelativeLocation);
 		if (snapAnchor)
 		{
-			if (HorizontalAlign == LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Stretch && VerticalAlign == LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Stretch)
+			if (HorizontalAlign == LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Stretch)
 			{
-				UIItem->SetAnchoredPosition(FVector2D::ZeroVector);
-				UIItem->SetSizeDelta(FVector2D::ZeroVector);
+				UIItem->SetAnchorLeft(0);
+				UIItem->SetAnchorRight(0);
+			}
+			if (VerticalAlign == LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Stretch)
+			{
+				UIItem->SetAnchorBottom(0);
+				UIItem->SetAnchorTop(0);
 			}
 		}
 

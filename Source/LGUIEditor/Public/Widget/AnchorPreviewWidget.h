@@ -162,19 +162,19 @@ namespace LGUIAnchorPreviewWidget
 			}
 
 			ChildSlot
-				[
-					SNew(SOverlay)
-					//highlight selected
+			[
+				SNew(SOverlay)
+				//highlight selected
 				+ SOverlay::Slot()
 				[
 					SNew(SBox)
 					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.VAlign(EVerticalAlignment::VAlign_Center)
-				[
-					InArgs._SelectedHAlign.Get() == InArgs._PersistentHAlign.Get() && InArgs._SelectedVAlign.Get() == InArgs._PersistentVAlign.Get() ?
-					(
+					.HeightOverride(Size.Y)
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					[
+						InArgs._SelectedHAlign.Get() == InArgs._PersistentHAlign.Get() && InArgs._SelectedVAlign.Get() == InArgs._PersistentVAlign.Get() ?
+						(
 						SNew(SBox)
 						.WidthOverride(Size.X + 10)
 						.HeightOverride(Size.Y + 10)
@@ -183,215 +183,215 @@ namespace LGUIAnchorPreviewWidget
 							.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))
 						.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
 						]
-			)
-				:
-				(SNew(SBox))
+						)
+						:
+						(SNew(SBox))
+					]
 				]
-				]
-			+ SOverlay::Slot()
+				+ SOverlay::Slot()
 				[
 					SNew(SOverlay)
 					//outer rect
-				+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-				.VAlign(EVerticalAlignment::VAlign_Center)
-				[
-					SNew(SBox)
-					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				[
-					SNew(SImage)
-					.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))
-				.ColorAndOpacity(FLinearColor(FColor(122, 122, 122, 122)))
-				]
-				]
-				]
-			+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.Padding(InArgs._BasePadding.Get())
-				[
-					SNew(SOverlay)
 					+ SOverlay::Slot()
-				[
-					InArgs._ButtonEnable.Get() ?
-					(
-						SNew(SBox)
-						[
-							SNew(SButton)
-							.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
-						.ButtonColorAndOpacity(FLinearColor(FColor(100, 100, 100)))
-						.OnClicked_Lambda([=]() {
-							InArgs._OnAnchorChange.ExecuteIfBound(InArgs._PersistentHAlign.Get(), InArgs._PersistentVAlign.Get());
-							return FReply::Handled();
-							})
-						.ContentPadding(FMargin(0.0f, 0.0f))
-						]
-			)
-				:
-				(
-					SNew(SBox)
-					)
-				]
-			+ SOverlay::Slot()
-				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
-				.AutoHeight()
-				[
-					SNew(SBox)
 					[
-						SNew(SOverlay)
-						//half size rect in the middle
-				+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				.Padding(this, &SAnchorPreviewWidget::GetInnerRectMargin, Size, InArgs._PersistentHAlign.Get(), InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.VAlign(EVerticalAlignment::VAlign_Center)
-				[
-					SNew(SBox)
-					.WidthOverride(this, &SAnchorPreviewWidget::GetInnerRectWidth, Size.X, InArgs._PersistentHAlign.Get(), InArgs._ButtonEnable.Get())
-				.HeightOverride(this, &SAnchorPreviewWidget::GetInnerRectHeight, Size.Y, InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
-				[
-					SNew(SImage)
-					.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))
-				.ColorAndOpacity(FLinearColor(FColor(122, 122, 122, 255)))
-				.Visibility(EVisibility::HitTestInvisible)
-				]
-				]
-				]
-			//horizontal direction
-			+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				.HAlign(hAlign)
-				.VAlign(vAlign)
-				[
-					SNew(SBox)
-					.WidthOverride(anchorLineHorizontalWidth)
-				.HeightOverride(anchorLineHorizontalHeight)
-				[
-					SNew(SImage)
-					.Image(anchorLineBrushHorizontal)
-				.ColorAndOpacity(FLinearColor(FColor(170, 77, 77, 255)))
-				.Visibility(EVisibility::HitTestInvisible)
-				]
-				]
-				]
-			//vertical direction
-			+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				.HAlign(hAlign)
-				.VAlign(vAlign)
-				[
-					SNew(SBox)
-					.WidthOverride(anchorLineVerticalWidth)
-				.HeightOverride(anchorLineVerticalHeight)
-				[
-					SNew(SImage)
-					.Image(anchorLineBrushVertical)
-				.ColorAndOpacity(FLinearColor(FColor(170, 77, 77, 255)))
-				.Visibility(EVisibility::HitTestInvisible)
-				]
-				]
-				]
-			//left top anchor point
-			+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				.HAlign(anchorDotLeftTopHAlign)
-				.VAlign(anchorDotLeftTopVAlign)
-				[
-					SNew(SBox)
-					.WidthOverride(anchorDotSize)
-				.HeightOverride(anchorDotSize)
-				[
-					SNew(SImage)
-					.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
-				.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
-				.Visibility(EVisibility::HitTestInvisible)
-				]
-				]
-				]
-			//right top anchor point
-			+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				.HAlign(anchorDotRightTopHAlign)
-				.VAlign(anchorDotRightTopVAlign)
-				[
-					SNew(SBox)
-					.WidthOverride(anchorDotSize)
-				.HeightOverride(anchorDotSize)
-				[
-					SNew(SImage)
-					.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
-				.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
-				.Visibility(EVisibility::HitTestInvisible)
-				]
-				]
-				]
-			//left bottom anchor point
-			+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				.HAlign(anchorDotLeftBottomHAlign)
-				.VAlign(anchorDotLeftBottomVAlign)
-				[
-					SNew(SBox)
-					.WidthOverride(anchorDotSize)
-				.HeightOverride(anchorDotSize)
-				[
-					SNew(SImage)
-					.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
-				.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
-				.Visibility(EVisibility::HitTestInvisible)
-				]
-				]
-				]
-			//right bottom anchor point
-			+ SOverlay::Slot()
-				[
-					SNew(SBox)
-					.WidthOverride(Size.X)
-				.HeightOverride(Size.Y)
-				.HAlign(anchorDotRightBottomHAlign)
-				.VAlign(anchorDotRightBottomVAlign)
-				[
-					SNew(SBox)
-					.WidthOverride(anchorDotSize)
-				.HeightOverride(anchorDotSize)
-				[
-					SNew(SImage)
-					.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
-				.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
-				.Visibility(EVisibility::HitTestInvisible)
-				]
-				]
-				]
+						SNew(SBox)
+						.HAlign(EHorizontalAlignment::HAlign_Center)
+						.VAlign(EVerticalAlignment::VAlign_Center)
+						[
+							SNew(SBox)
+							.WidthOverride(Size.X)
+							.HeightOverride(Size.Y)
+							[
+								SNew(SImage)
+								.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))
+								.ColorAndOpacity(FLinearColor(FColor(122, 122, 122, 122)))
+							]
+						]
+					]
+					+ SOverlay::Slot()
+					[
+						SNew(SBox)
+						.Padding(InArgs._BasePadding.Get())
+						[
+							SNew(SOverlay)
+							+ SOverlay::Slot()
+							[
+								InArgs._ButtonEnable.Get() ?
+								(
+								SNew(SBox)
+								[
+									SNew(SButton)
+									.ButtonStyle(FLGUIEditorStyle::Get(), "AnchorButton")
+									.ButtonColorAndOpacity(FLinearColor(FColor(100, 100, 100)))
+									.OnClicked_Lambda([=]() {
+										InArgs._OnAnchorChange.ExecuteIfBound(InArgs._PersistentHAlign.Get(), InArgs._PersistentVAlign.Get());
+										return FReply::Handled();
+										})
+									.ContentPadding(FMargin(0.0f, 0.0f))
+								]
+								)
+								:
+								(
+								SNew(SBox)
+								)
+							]
+							+ SOverlay::Slot()
+							[
+								SNew(SVerticalBox)
+								+ SVerticalBox::Slot()
+								.AutoHeight()
+								[
+									SNew(SBox)
+									[
+										SNew(SOverlay)
+										//half size rect in the middle
+										+ SOverlay::Slot()
+										[
+											SNew(SBox)
+											.WidthOverride(Size.X)
+											.HeightOverride(Size.Y)
+											.Padding(this, &SAnchorPreviewWidget::GetInnerRectMargin, Size, InArgs._PersistentHAlign.Get(), InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
+											.HAlign(EHorizontalAlignment::HAlign_Center)
+											.VAlign(EVerticalAlignment::VAlign_Center)
+											[
+												SNew(SBox)
+												.WidthOverride(this, &SAnchorPreviewWidget::GetInnerRectWidth, Size.X, InArgs._PersistentHAlign.Get(), InArgs._ButtonEnable.Get())
+												.HeightOverride(this, &SAnchorPreviewWidget::GetInnerRectHeight, Size.Y, InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteFrame"))
+													.ColorAndOpacity(FLinearColor(FColor(122, 122, 122, 255)))
+													.Visibility(EVisibility::HitTestInvisible)
+												]
+											]
+										]
+										//horizontal direction
+										+ SOverlay::Slot()
+										[
+											SNew(SBox)
+											.WidthOverride(Size.X)
+											.HeightOverride(Size.Y)
+											.HAlign(hAlign)
+											.VAlign(vAlign)
+											[
+												SNew(SBox)
+												.WidthOverride(anchorLineHorizontalWidth)
+												.HeightOverride(anchorLineHorizontalHeight)
+												[
+													SNew(SImage)
+													.Image(anchorLineBrushHorizontal)
+													.ColorAndOpacity(FLinearColor(FColor(170, 77, 77, 255)))
+													.Visibility(EVisibility::HitTestInvisible)
+												]
+											]
+										]
+										//vertical direction
+										+ SOverlay::Slot()
+										[
+											SNew(SBox)
+											.WidthOverride(Size.X)
+											.HeightOverride(Size.Y)
+											.HAlign(hAlign)
+											.VAlign(vAlign)
+											[
+												SNew(SBox)
+												.WidthOverride(anchorLineVerticalWidth)
+												.HeightOverride(anchorLineVerticalHeight)
+												[
+													SNew(SImage)
+													.Image(anchorLineBrushVertical)
+													.ColorAndOpacity(FLinearColor(FColor(170, 77, 77, 255)))
+													.Visibility(EVisibility::HitTestInvisible)
+												]
+											]
+										]
+										//left top anchor point
+										+ SOverlay::Slot()
+										[
+											SNew(SBox)
+											.WidthOverride(Size.X)
+											.HeightOverride(Size.Y)
+											.HAlign(anchorDotLeftTopHAlign)
+											.VAlign(anchorDotLeftTopVAlign)
+											[
+												SNew(SBox)
+												.WidthOverride(anchorDotSize)
+												.HeightOverride(anchorDotSize)
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+													.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+													.Visibility(EVisibility::HitTestInvisible)
+												]
+											]
+										]
+										//right top anchor point
+										+ SOverlay::Slot()
+										[
+											SNew(SBox)
+											.WidthOverride(Size.X)
+											.HeightOverride(Size.Y)
+											.HAlign(anchorDotRightTopHAlign)
+											.VAlign(anchorDotRightTopVAlign)
+											[
+												SNew(SBox)
+												.WidthOverride(anchorDotSize)
+												.HeightOverride(anchorDotSize)
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+													.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+													.Visibility(EVisibility::HitTestInvisible)
+												]
+											]
+										]
+										//left bottom anchor point
+										+ SOverlay::Slot()
+										[
+											SNew(SBox)
+											.WidthOverride(Size.X)
+											.HeightOverride(Size.Y)
+											.HAlign(anchorDotLeftBottomHAlign)
+											.VAlign(anchorDotLeftBottomVAlign)
+											[
+												SNew(SBox)
+												.WidthOverride(anchorDotSize)
+												.HeightOverride(anchorDotSize)
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+													.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+													.Visibility(EVisibility::HitTestInvisible)
+												]
+											]
+										]
+										//right bottom anchor point
+										+ SOverlay::Slot()
+										[
+											SNew(SBox)
+											.WidthOverride(Size.X)
+											.HeightOverride(Size.Y)
+											.HAlign(anchorDotRightBottomHAlign)
+											.VAlign(anchorDotRightBottomVAlign)
+											[
+												SNew(SBox)
+												.WidthOverride(anchorDotSize)
+												.HeightOverride(anchorDotSize)
+												[
+													SNew(SImage)
+													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+													.ColorAndOpacity(FLinearColor(FColor(201, 146, 7, 255)))
+													.Visibility(EVisibility::HitTestInvisible)
+												]
+											]
+										]
+									]
+								]
+							]
+						]
 					]
 				]
-				]
-				]
-				]
-				]
-				];
+			];
 		}
 
 	private:
