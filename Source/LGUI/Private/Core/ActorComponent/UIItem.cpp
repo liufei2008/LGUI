@@ -701,6 +701,16 @@ void UUIItem::OnAttachmentChanged()
 	if (this->IsPendingKillOrUnreachable())return;
 	if (GetWorld() == nullptr)return;
 
+	if (ParentUIItem.IsValid())//tell old parent
+	{
+		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
+	}
+	ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+	if (ParentUIItem.IsValid())
+	{
+		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
+	}
+
 #if WITH_EDITORONLY_DATA
 	if (!GetWorld()->IsGameWorld())
 	{
@@ -738,15 +748,18 @@ void UUIItem::OnRegister()
 	if (auto world = this->GetWorld())
 	{
 #if WITH_EDITOR
-		if (!world->IsGameWorld())
+		if (!world->IsGameWorld() && GetOwner())
 		{
 			ULGUIEditorManagerObject::AddUIItem(this);
 			//create helper
-			if (!IsValid(HelperComp))
+			if (!HelperComp)
 			{
-				HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner());
+				HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner(), NAME_None, RF_Transactional | RF_Transient | RF_TextExportTransient);
 				HelperComp->Parent = this;
+				HelperComp->Mobility = EComponentMobility::Movable;
+				HelperComp->SetIsVisualizationComponent(true);
 				HelperComp->SetupAttachment(this);
+				HelperComp->RegisterComponent();
 			}
 			//display name
 			if (this->GetOwner()->GetRootComponent() == this)
@@ -806,15 +819,19 @@ void UUIItem::OnUnregister()
 			ALGUIManagerActor::RemoveUIItem(this);
 		}
 	}
-#if WITH_EDITOR
-	if (IsValid(HelperComp))
-	{
-		HelperComp->DestroyComponent();
-		HelperComp = nullptr;
-	}
-#endif
 
 	CheckRootUIItem();
+}
+
+void UUIItem::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+#if WITH_EDITORONLY_DATA
+	if (HelperComp)
+	{
+		HelperComp->DestroyComponent();
+	}
+#endif
 }
 
 void UUIItem::CheckCacheUIChildren()
@@ -1033,17 +1050,15 @@ void UUIItem::UIHierarchyChanged(ULGUICanvas* ParentRenderCanvas, UUICanvasGroup
 	//flatten hierarchy index
 	MarkFlattenHierarchyIndexDirty();
 
-	if (ParentUIItem.IsValid())//tell old parent
-	{
-		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
-	}
-	ParentUIItem = nullptr;
-	GetParentUIItem();
 	if (ParentUIItem.IsValid())
 	{
-		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
 		//active state
 		this->bAllUpParentUIActive = ParentUIItem->GetIsUIActiveInHierarchy();
+		this->CheckUIActiveState();
+	}
+	else
+	{
+		this->bAllUpParentUIActive = true;
 		this->CheckUIActiveState();
 	}
 
@@ -1811,17 +1826,6 @@ float UUIItem::GetLocalSpaceTop()const
 {
 	return this->GetHeight() * (1.0f - AnchorData.Pivot.Y);
 }
-UUIItem* UUIItem::GetParentUIItem()const
-{
-	if (!ParentUIItem.IsValid())
-	{
-		if (auto parent = GetAttachParent())
-		{
-			ParentUIItem = Cast<UUIItem>(parent);
-		}
-	}
-	return ParentUIItem.Get();
-}
 
 void UUIItem::SetOnAnchorChange(bool InPivotChange, bool InSizeChange)
 {
@@ -2007,6 +2011,8 @@ void UUIItem::CheckChildrenUIActiveRecursive(bool InUpParentUIActive)
 			else
 			{
 				uiChild->bAllUpParentUIActive = InUpParentUIActive;
+				//apply for state change
+				uiChild->ApplyUIActiveState(false);
 				//affect children
 				uiChild->CheckChildrenUIActiveRecursive(uiChild->GetIsUIActiveInHierarchy());
 			}

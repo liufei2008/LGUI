@@ -7,6 +7,7 @@
 #include "LTweenActor.h"
 #include "LTweenBPLibrary.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Layout/ILGUILayoutElementInterface.h"
 
 DECLARE_CYCLE_STAT(TEXT("UILayout HorizontalRebuildLayout"), STAT_HorizontalLayout, STATGROUP_LGUI);
 
@@ -267,76 +268,29 @@ void UUIHorizontalLayout::OnRebuildLayout()
 	}
 }
 
-bool UUIHorizontalLayout::CanControlChildAnchor_Implementation()const
+bool UUIHorizontalLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
 {
-    return this->GetEnable();
-}
-bool UUIHorizontalLayout::CanControlChildHorizontalAnchoredPosition_Implementation()const
-{
-    return this->GetEnable();
-}
-bool UUIHorizontalLayout::CanControlChildVerticalAnchoredPosition_Implementation()const
-{
-    return this->GetEnable();
-}
-bool UUIHorizontalLayout::CanControlChildWidth_Implementation()const
-{
-    return GetExpendChildrenWidth() && this->GetEnable();
-}
-bool UUIHorizontalLayout::CanControlChildHeight_Implementation()const
-{
-    return GetExpendChildrenHeight() && this->GetEnable();
-}
-bool UUIHorizontalLayout::CanControlChildAnchorLeft_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlChildAnchorRight_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlChildAnchorBottom_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlChildAnchorTop_Implementation()const
-{
-    return false;
-}
-
-bool UUIHorizontalLayout::CanControlSelfAnchor_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlSelfHorizontalAnchoredPosition_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlSelfVerticalAnchoredPosition_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlSelfWidth_Implementation()const
-{
-    return (!GetExpendChildrenWidth() && GetWidthFitToChildren()) && this->GetEnable();
-}
-bool UUIHorizontalLayout::CanControlSelfHeight_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlSelfAnchorLeft_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlSelfAnchorRight_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlSelfAnchorBottom_Implementation()const
-{
-    return false;
-}
-bool UUIHorizontalLayout::CanControlSelfAnchorTop_Implementation()const
-{
-    return false;
+    if (this->GetRootUIComponent() == InUIItem)
+    {
+        OutResult.bCanControlHorizontalSizeDelta = (!GetExpendChildrenWidth() && GetWidthFitToChildren()) && this->GetEnable();
+        return true;
+    }
+    else
+    {
+        if (!InUIItem->IsAttachedTo(this->GetRootUIComponent()))return false;
+        if (auto LayoutElement = GetLayoutElement(InUIItem->GetOwner()))
+        {
+            if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElement))
+            {
+                return true;
+            }
+        }
+        OutResult.bCanControlHorizontalAnchor = this->GetEnable();
+        OutResult.bCanControlVerticalAnchor = this->GetEnable();
+        OutResult.bCanControlHorizontalAnchoredPosition = this->GetEnable();
+        OutResult.bCanControlVerticalAnchoredPosition = this->GetEnable();
+        OutResult.bCanControlHorizontalSizeDelta = GetExpendChildrenWidth() && this->GetEnable();
+        OutResult.bCanControlVerticalSizeDelta = GetExpendChildrenHeight() && this->GetEnable();
+        return true;
+    }
 }

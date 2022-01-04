@@ -54,14 +54,21 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 
 	PrefabActor->PrefabHelperObject->PrefabAsset = Prefab;
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	USceneComponent* ParentComp = nullptr;
-
-	if (IsValid(SelectedActor))
+	if (PrefabActor->GetWorld() == SelectedActor->GetWorld())
 	{
-		LGUIEditorTools::MakeCurrentLevel(SelectedActor);
-		ParentComp = SelectedActor->GetRootComponent();
+		USceneComponent* ParentComp = nullptr;
+
+		if (IsValid(SelectedActor))
+		{
+			LGUIEditorTools::MakeCurrentLevel(SelectedActor);
+			ParentComp = SelectedActor->GetRootComponent();
+		}
+		PrefabActor->LoadPrefab(ParentComp);
 	}
-	PrefabActor->LoadPrefab(ParentComp);
+	else
+	{
+		PrefabActor->LoadPrefab(nullptr);
+	}
 	PrefabActor->MoveActorToPrefabFolder();
 }
 

@@ -4,6 +4,7 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
+#include "Layout/ILGUILayoutElementInterface.h"
 
 void UUIRoundedLayout::OnRebuildLayout()
 {
@@ -34,76 +35,26 @@ void UUIRoundedLayout::OnRebuildLayout()
 	}
 }
 
-bool UUIRoundedLayout::CanControlChildAnchor_Implementation()const
+bool UUIRoundedLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
 {
-	return this->GetEnable();
-}
-bool UUIRoundedLayout::CanControlChildHorizontalAnchoredPosition_Implementation()const
-{
-	return this->GetEnable();
-}
-bool UUIRoundedLayout::CanControlChildVerticalAnchoredPosition_Implementation()const
-{
-	return this->GetEnable();
-}
-bool UUIRoundedLayout::CanControlChildWidth_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlChildHeight_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlChildAnchorLeft_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlChildAnchorRight_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlChildAnchorBottom_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlChildAnchorTop_Implementation()const
-{
-	return false;
-}
-
-bool UUIRoundedLayout::CanControlSelfAnchor_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfHorizontalAnchoredPosition_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfVerticalAnchoredPosition_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfWidth_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfHeight_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfAnchorLeft_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfAnchorRight_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfAnchorBottom_Implementation()const
-{
-	return false;
-}
-bool UUIRoundedLayout::CanControlSelfAnchorTop_Implementation()const
-{
-	return false;
+	if (this->GetRootUIComponent() == InUIItem)
+	{
+		return true;
+	}
+	else
+	{
+		if (!InUIItem->IsAttachedTo(this->GetRootUIComponent()))return false;
+		if (auto LayoutElement = GetLayoutElement(InUIItem->GetOwner()))
+		{
+			if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElement))
+			{
+				return true;
+			}
+		}
+		OutResult.bCanControlHorizontalAnchor = this->GetEnable();
+		OutResult.bCanControlVerticalAnchor = this->GetEnable();
+		OutResult.bCanControlHorizontalAnchoredPosition = this->GetEnable();
+		OutResult.bCanControlVerticalAnchoredPosition = this->GetEnable();
+		return true;
+	}
 }

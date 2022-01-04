@@ -98,87 +98,28 @@ void UUISizeControlByAspectRatio::OnRebuildLayout()
 	}
 }
 
-bool UUISizeControlByAspectRatio::CanControlChildAnchor_Implementation()const
+bool UUISizeControlByAspectRatio::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
 {
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlChildHorizontalAnchoredPosition_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlChildVerticalAnchoredPosition_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlChildWidth_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlChildHeight_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlChildAnchorLeft_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlChildAnchorRight_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlChildAnchorBottom_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlChildAnchorTop_Implementation()const
-{
-	return false;
-}
-
-bool UUISizeControlByAspectRatio::CanControlSelfAnchor_Implementation()const
-{
-	return (ControlMode == EUISizeControlByAspectRatioMode::FitInParent
-		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
-		) && enable
-		;
-}
-bool UUISizeControlByAspectRatio::CanControlSelfHorizontalAnchoredPosition_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlSelfVerticalAnchoredPosition_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlSelfWidth_Implementation()const
-{
-	return (ControlMode == EUISizeControlByAspectRatioMode::HeightControlWidth
-		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
-		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
-		) && enable
-		;
-}
-bool UUISizeControlByAspectRatio::CanControlSelfHeight_Implementation()const
-{
-	return (ControlMode == EUISizeControlByAspectRatioMode::WidthControlHeight
-		|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
-		|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
-		) && enable
-		;
-}
-bool UUISizeControlByAspectRatio::CanControlSelfAnchorLeft_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlSelfAnchorRight_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlSelfAnchorBottom_Implementation()const
-{
-	return false;
-}
-bool UUISizeControlByAspectRatio::CanControlSelfAnchorTop_Implementation()const
-{
-	return false;
+	if (this->GetRootUIComponent() == InUIItem)
+	{
+		OutResult.bCanControlHorizontalAnchor = OutResult.bCanControlVerticalAnchor =
+			(ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+				|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+				) && this->GetEnable();
+		OutResult.bCanControlHorizontalSizeDelta =
+			(ControlMode == EUISizeControlByAspectRatioMode::HeightControlWidth
+				|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+				|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+				) && this->GetEnable();
+		OutResult.bCanControlVerticalSizeDelta =
+			(ControlMode == EUISizeControlByAspectRatioMode::WidthControlHeight
+				|| ControlMode == EUISizeControlByAspectRatioMode::FitInParent
+				|| ControlMode == EUISizeControlByAspectRatioMode::EnvelopeParent
+				) && this->GetEnable();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }

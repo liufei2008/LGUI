@@ -7,6 +7,7 @@
 #include "LTweenActor.h"
 #include "LTweenBPLibrary.h"
 #include "Core/Actor/LGUIManagerActor.h"
+#include "Layout/ILGUILayoutElementInterface.h"
 
 DECLARE_CYCLE_STAT(TEXT("UILayout GridRebuildLayout"), STAT_GridLayout, STATGROUP_LGUI);
 
@@ -491,76 +492,30 @@ void UUIGridLayout::OnRebuildLayout()
 	}
 }
 
-bool UUIGridLayout::CanControlChildAnchor_Implementation()const
+bool UUIGridLayout::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
 {
-	return this->GetEnable();
-}
-bool UUIGridLayout::CanControlChildHorizontalAnchoredPosition_Implementation()const
-{
-	return this->GetEnable();
-}
-bool UUIGridLayout::CanControlChildVerticalAnchoredPosition_Implementation()const
-{
-	return this->GetEnable();
-}
-bool UUIGridLayout::CanControlChildWidth_Implementation()const
-{
-	return this->GetEnable();
-}
-bool UUIGridLayout::CanControlChildHeight_Implementation()const
-{
-	return this->GetEnable();
-}
-bool UUIGridLayout::CanControlChildAnchorLeft_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlChildAnchorRight_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlChildAnchorBottom_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlChildAnchorTop_Implementation()const
-{
-	return false;
-}
-
-bool UUIGridLayout::CanControlSelfAnchor_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlSelfHorizontalAnchoredPosition_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlSelfVerticalAnchoredPosition_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlSelfWidth_Implementation()const
-{
-	return (!HorizontalOrVertical && (WidthFitToChildren && (DependOnSizeOrCount || ExpendChildSize == false))) && this->GetEnable();
-}
-bool UUIGridLayout::CanControlSelfHeight_Implementation()const
-{
-	return (HorizontalOrVertical && (HeightFitToChildren && (DependOnSizeOrCount || ExpendChildSize == false))) && this->GetEnable();
-}
-bool UUIGridLayout::CanControlSelfAnchorLeft_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlSelfAnchorRight_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlSelfAnchorBottom_Implementation()const
-{
-	return false;
-}
-bool UUIGridLayout::CanControlSelfAnchorTop_Implementation()const
-{
-	return false;
+	if (this->GetRootUIComponent() == InUIItem)
+	{
+		OutResult.bCanControlHorizontalSizeDelta = (!HorizontalOrVertical && (WidthFitToChildren && (DependOnSizeOrCount || ExpendChildSize == false))) && this->GetEnable();
+		OutResult.bCanControlVerticalSizeDelta = (HorizontalOrVertical && (HeightFitToChildren && (DependOnSizeOrCount || ExpendChildSize == false))) && this->GetEnable();
+		return true;
+	}
+	else
+	{
+		if (!InUIItem->IsAttachedTo(this->GetRootUIComponent()))return false;
+		if (auto LayoutElement = GetLayoutElement(InUIItem->GetOwner()))
+		{
+			if (ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElement))
+			{
+				return true;
+			}
+		}
+		OutResult.bCanControlHorizontalAnchor = this->GetEnable();
+		OutResult.bCanControlVerticalAnchor = this->GetEnable();
+		OutResult.bCanControlHorizontalAnchoredPosition = this->GetEnable();
+		OutResult.bCanControlVerticalAnchoredPosition = this->GetEnable();
+		OutResult.bCanControlHorizontalSizeDelta = this->GetEnable();
+		OutResult.bCanControlVerticalSizeDelta = this->GetEnable();
+		return true;
+	}
 }

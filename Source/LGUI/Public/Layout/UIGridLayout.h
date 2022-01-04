@@ -75,25 +75,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetHeightFitToChildren(bool value);
 
-	virtual bool CanControlChildAnchor_Implementation()const override;
-	virtual bool CanControlChildHorizontalAnchoredPosition_Implementation()const override;
-	virtual bool CanControlChildVerticalAnchoredPosition_Implementation()const override;
-	virtual bool CanControlChildWidth_Implementation()const override;
-	virtual bool CanControlChildHeight_Implementation()const override;
-	virtual bool CanControlChildAnchorLeft_Implementation()const override;
-	virtual bool CanControlChildAnchorRight_Implementation()const override;
-	virtual bool CanControlChildAnchorBottom_Implementation()const override;
-	virtual bool CanControlChildAnchorTop_Implementation()const override;
-
-	virtual bool CanControlSelfAnchor_Implementation()const override;
-	virtual bool CanControlSelfHorizontalAnchoredPosition_Implementation()const override;
-	virtual bool CanControlSelfVerticalAnchoredPosition_Implementation()const override;
-	virtual bool CanControlSelfWidth_Implementation()const override;
-	virtual bool CanControlSelfHeight_Implementation()const override;
-	virtual bool CanControlSelfAnchorLeft_Implementation()const override;
-	virtual bool CanControlSelfAnchorRight_Implementation()const override;
-	virtual bool CanControlSelfAnchorBottom_Implementation()const override;
-	virtual bool CanControlSelfAnchorTop_Implementation()const override;
+	virtual bool GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const override;
 protected:
 	virtual void OnUIChildDimensionsChanged(UUIItem* child, bool positionChanged, bool sizeChanged)override;
 

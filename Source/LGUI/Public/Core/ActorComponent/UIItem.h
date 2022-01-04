@@ -90,6 +90,7 @@ protected:
 	virtual void OnAttachmentChanged() override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
 private:
 	void CalculateAnchorFromTransform();
 	bool CalculateTransformFromAnchor();
@@ -118,9 +119,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "LGUI-AnchorData")
 		FUIAnchorData AnchorData;
 	/** parent in hierarchy */
-	mutable TWeakObjectPtr<UUIItem> ParentUIItem = nullptr;
+	UPROPERTY(Transient) mutable TWeakObjectPtr<UUIItem> ParentUIItem = nullptr;
 	/** root in hierarchy */
-	mutable TWeakObjectPtr<UUIItem> RootUIItem = nullptr;
+	mutable TWeakObjectPtr<UUIItem> RootUIItem = nullptr;//don't mark this Transactional, because undo or redo will call register/unregister, which will trigger check RootUIItem
 	/** UI children array, sorted by hierarchy index */
 	UPROPERTY(Transient) TArray<UUIItem*> UIChildren;
 	/** check valid, incase unnormally deleting actor, like undo */
@@ -218,7 +219,7 @@ public:
 #pragma endregion
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UUIItem* GetParentUIItem()const;
+		UUIItem* GetParentUIItem()const{ return ParentUIItem.Get(); }
 	/** get UI children array, sorted by hierarchy index */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		const TArray<UUIItem*>& GetAttachUIChildren()const { return UIChildren; }
@@ -245,7 +246,7 @@ private:
 	mutable uint8 bWidthCached : 1, bHeightCached : 1, bAnchorLeftCached : 1, bAnchorRightCached : 1, bAnchorTopCached : 1, bAnchorBottomCached : 1;
 #pragma region UICanvasGroup
 protected:
-	mutable TWeakObjectPtr<UUICanvasGroup> CanvasGroup;
+	UPROPERTY(Transient) mutable TWeakObjectPtr<UUICanvasGroup> CanvasGroup;
 	FDelegateHandle OnCanvasGroupAlphaChangeDelegateHandle;
 	virtual void OnCanvasGroupAlphaChange() {};
 	FDelegateHandle OnCanvasGroupInteractableStateChangeDelegateHandle;
@@ -396,9 +397,9 @@ protected:
 	friend class FUIItemCustomization;
 	friend class ULGUICanvas;
 	/** LGUICanvas which render this UI element */
-	mutable TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
+	UPROPERTY(Transient) mutable TWeakObjectPtr<ULGUICanvas> RenderCanvas = nullptr;
 	/** is this UIItem's actor have LGUICanvas component */
-	mutable uint8 bIsCanvasUIItem:1;
+	UPROPERTY(Transient) mutable uint8 bIsCanvasUIItem:1;
 	uint8 bCanSetAnchorFromTransform : 1;
 
 	/** Only for RootUIItem, if dirty then we need to recalculate it */

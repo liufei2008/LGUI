@@ -6,6 +6,7 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "Event/LGUIEventDelegate.h"
 #include "UIScrollViewComponent.h"
+#include "Layout/ILGUILayoutInterface.h"
 #include "UIScrollViewWithScrollbarComponent.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)
@@ -16,18 +17,22 @@ enum class EScrollViewScrollbarVisibility :uint8
 	//Auto hide scrollbar when content's size less than viewport's size.
 	AutoHide,
 	//Same like AutoHide, but also expand viewport size when hide scrollbar.
-	//For this mode, viewport and scrollbar must be a child of ScrollViewWithScrollBar.
+	//For this mode, viewport and scrollbar must directly attach to ScrollViewWithScrollBar.
 	AutoHideAndExpandViewport,
 };
 
 //ScrollView with scrollbars
 UCLASS(ClassGroup = (LGUI), Blueprintable, meta = (BlueprintSpawnableComponent))
-class LGUI_API UUIScrollViewWithScrollbarComponent : public UUIScrollViewComponent
+class LGUI_API UUIScrollViewWithScrollbarComponent : public UUIScrollViewComponent, public ILGUILayoutInterface
 {
 	GENERATED_BODY()
 
+public:
+	UUIScrollViewWithScrollbarComponent();
 protected:
 	virtual void OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)override;
+	virtual void OnRegister()override;
+	virtual void OnUnregister()override;
 protected:
 	friend class FUIScrollViewWithScrollBarCustomization;
 	//For scrollbars to expand or shrink viewport
@@ -53,9 +58,25 @@ protected:
 	bool CheckScrollbarParameter();
 	void OnHorizontalScrollbar(float InScrollValue);
 	void OnVerticalScrollbar(float InScrollValue);
-	bool ValueIsSetFromHorizontalScrollbar = false;
-	bool ValueIsSetFromVerticalScrollbar = false;
+	uint8 bValueIsSetFromHorizontalScrollbar : 1;
+	uint8 bValueIsSetFromVerticalScrollbar : 1;
+	uint8 bLayoutDirty : 1;
+	enum class EScrollbarLayoutAction :uint8
+	{
+		None,
+		NeedToShow,
+		NeedToHide,
+	};
+	EScrollbarLayoutAction HorizontalScrollbarLayoutActionType = EScrollbarLayoutAction::None;
+	EScrollbarLayoutAction VerticalScrollbarLayoutActionType = EScrollbarLayoutAction::None;
+
+	virtual void OnUIChildHierarchyIndexChanged(UUIItem* child)override;
+	virtual void OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)override;
+	// Begin LGUILayout interface
+	virtual void OnUpdateLayout_Implementation()override;
+	virtual bool GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const override;
 public:
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")
 		AUIBaseActor* GetViewport()const { return Viewport.Get(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")

@@ -433,8 +433,15 @@ bool FLGUIEditorModule::CanEditActorForPrefab()
 		{
 			return false;
 		}
+		else 
+		{
+			return true;
+		}
 	}
-	return true;
+	else
+	{
+		return false;
+	}
 }
 bool FLGUIEditorModule::CanUnlinkActorForPrefab()
 {
@@ -449,8 +456,15 @@ bool FLGUIEditorModule::CanUnlinkActorForPrefab()
 			}
 			return false;
 		}
+		else
+		{
+			return true;
+		}
 	}
-	return true;
+	else
+	{
+		return false;
+	}
 }
 bool FLGUIEditorModule::CanBrowsePrefab()
 {
@@ -465,8 +479,15 @@ bool FLGUIEditorModule::CanBrowsePrefab()
 			}
 			return false;
 		}
+		else
+		{
+			return true;
+		}
 	}
-	return true;
+	else
+	{
+		return false;
+	}
 }
 
 bool FLGUIEditorModule::CanCreatePrefab()
@@ -511,11 +532,7 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 	FMenuBuilder MenuBuilder(true, PluginCommands);
 	auto commandList = FLGUIEditorCommands::Get();
 
-	if (this->CanCreatePrefab()
-		|| this->CanEditActorForPrefab()
-		|| this->CanUnlinkActorForPrefab()
-		|| this->CanBrowsePrefab()
-		)
+	//prefab
 	{
 		MenuBuilder.BeginSection("Prefab", LOCTEXT("Prefab", "Prefab"));
 		{

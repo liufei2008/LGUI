@@ -5,6 +5,44 @@
 #include "Interaction/UIScrollbarComponent.h"
 #include "LTweenActor.h"
 #include "Core/Actor/UIBaseActor.h"
+#include "Core/Actor/LGUIManagerActor.h"
+
+
+UUIScrollViewWithScrollbarComponent::UUIScrollViewWithScrollbarComponent()
+{
+	bValueIsSetFromHorizontalScrollbar = false;
+	bValueIsSetFromVerticalScrollbar = false;
+	bLayoutDirty = false;
+}
+
+void UUIScrollViewWithScrollbarComponent::OnRegister()
+{
+	Super::OnRegister();
+#if WITH_EDITOR
+	if (!GetWorld()->IsGameWorld())
+	{
+		ULGUIEditorManagerObject::RegisterLGUILayout(this);
+	}
+	else
+#endif
+	{
+		ALGUIManagerActor::RegisterLGUILayout(this);
+	}
+}
+void UUIScrollViewWithScrollbarComponent::OnUnregister()
+{
+	Super::OnUnregister();
+#if WITH_EDITOR
+	if (!GetWorld()->IsGameWorld())
+	{
+		ULGUIEditorManagerObject::UnregisterLGUILayout(this);
+	}
+	else
+#endif
+	{
+		ALGUIManagerActor::UnregisterLGUILayout(this);
+	}
+}
 
 void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool positionChanged, bool sizeChanged)
 {
@@ -12,19 +50,18 @@ void UUIScrollViewWithScrollbarComponent::OnUIDimensionsChanged(bool positionCha
 	CheckScrollbarParameter();//Check and register scrollbar event
 }
 
-
 bool UUIScrollViewWithScrollbarComponent::OnPointerDrag_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerDrag_Implementation(eventData);
-	ValueIsSetFromHorizontalScrollbar = false;
-	ValueIsSetFromVerticalScrollbar = false;
+	bValueIsSetFromHorizontalScrollbar = false;
+	bValueIsSetFromVerticalScrollbar = false;
 	return AllowEventBubbleUp;
 }
 bool UUIScrollViewWithScrollbarComponent::OnPointerScroll_Implementation(ULGUIPointerEventData* eventData)
 {
 	Super::OnPointerScroll_Implementation(eventData);
-	ValueIsSetFromHorizontalScrollbar = false;
-	ValueIsSetFromVerticalScrollbar = false;
+	bValueIsSetFromHorizontalScrollbar = false;
+	bValueIsSetFromVerticalScrollbar = false;
 	return AllowEventBubbleUp;
 }
 void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
@@ -32,7 +69,7 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 	Super::UpdateProgress(InFireEvent);
 	if (CheckScrollbarParameter())
 	{
-		if (AllowHorizontalScroll && !ValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
+		if (AllowHorizontalScroll && !bValueIsSetFromHorizontalScrollbar && HorizontalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.X > 1.0f)
 			{
@@ -46,9 +83,9 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 			{
 				HorizontalScrollbarComp->SetValue(Progress.X, false);
 			}
-			ValueIsSetFromHorizontalScrollbar = false;
+			bValueIsSetFromHorizontalScrollbar = false;
 		}
-		if (AllowVerticalScroll && !ValueIsSetFromVerticalScrollbar && VerticalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
+		if (AllowVerticalScroll && !bValueIsSetFromVerticalScrollbar && VerticalScrollbar->GetUIItem()->GetIsUIActiveInHierarchy())
 		{
 			if (Progress.Y > 1.0f)
 			{
@@ -62,44 +99,40 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 			{
 				VerticalScrollbarComp->SetValue(Progress.Y, false);
 			}
-			ValueIsSetFromVerticalScrollbar = false;
+			bValueIsSetFromVerticalScrollbar = false;
 		}
 	}
 }
 bool UUIScrollViewWithScrollbarComponent::CheckScrollbarParameter()
 {
-	if (Horizontal)
+	if (!HorizontalScrollbarComp.IsValid())
 	{
-		if (!HorizontalScrollbarComp.IsValid())
+		if (!HorizontalScrollbar.IsValid())return false;
+		HorizontalScrollbarComp = HorizontalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
+		if (HorizontalScrollbarComp.IsValid())
 		{
-			if (!HorizontalScrollbar.IsValid())return false;
-			HorizontalScrollbarComp = HorizontalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
-			if (HorizontalScrollbarComp.IsValid())
-			{
-				HorizontalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar));
-			}
-			else
-			{
-				return false;
-			}
+			HorizontalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar));
+		}
+		else
+		{
+			return false;
 		}
 	}
-	if (Vertical)
+
+	if (!VerticalScrollbarComp.IsValid())
 	{
-		if (!VerticalScrollbarComp.IsValid())
+		if (!VerticalScrollbar.IsValid())return false;
+		VerticalScrollbarComp = VerticalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
+		if (VerticalScrollbarComp.IsValid())
 		{
-			if (!VerticalScrollbar.IsValid())return false;
-			VerticalScrollbarComp = VerticalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
-			if (VerticalScrollbarComp.IsValid())
-			{
-				VerticalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar));
-			}
-			else
-			{
-				return false;
-			}
+			VerticalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar));
+		}
+		else
+		{
+			return false;
 		}
 	}
+
 	return true;
 }
 bool UUIScrollViewWithScrollbarComponent::CheckValidHit(USceneComponent* InHitComp)
@@ -120,29 +153,16 @@ void UUIScrollViewWithScrollbarComponent::CalculateHorizontalRange()
 		{
 			if (HorizontalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
-				if (HorizontalScrollbar.IsValid())
-				{
-					HorizontalScrollbar->GetUIItem()->SetIsUIActive(false);
-					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
-					{
-						Viewport->GetUIItem()->SetAnchorBottom(0);
-					}
-				}
+				HorizontalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToHide;
+				bLayoutDirty = true;
 			}
 		}
 		else
 		{
 			if (HorizontalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
-				if (HorizontalScrollbar.IsValid())
-				{
-					HorizontalScrollbar->GetUIItem()->SetIsUIActive(true);
-					HorizontalScrollbarComp->SetValueAndSize(Progress.X, parentWidth / contentWidth, false);
-					if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
-					{
-						Viewport->GetUIItem()->SetAnchorBottom(HorizontalScrollbar->GetUIItem()->GetHeight());
-					}
-				}
+				HorizontalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToShow;
+				bLayoutDirty = true;
 			}
 		}
 	}
@@ -158,38 +178,204 @@ void UUIScrollViewWithScrollbarComponent::CalculateVerticalRange()
 		{
 			if (VerticalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
-				if (VerticalScrollbar.IsValid())
-				{
-					VerticalScrollbar->GetUIItem()->SetIsUIActive(false);
-					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
-					{
-						Viewport->GetUIItem()->SetAnchorRight(0);
-					}
-				}
+				VerticalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToHide;
+				bLayoutDirty = true;
 			}
 		}
 		else
 		{
 			if (VerticalScrollbarVisibility != EScrollViewScrollbarVisibility::Permanent)
 			{
-				if (VerticalScrollbar.IsValid())
-				{
-					VerticalScrollbar->GetUIItem()->SetIsUIActive(true);
-					VerticalScrollbarComp->SetValueAndSize(Progress.Y, parentHeight / contentHeight, false);
-					if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport && Viewport.IsValid())
-					{
-						Viewport->GetUIItem()->SetAnchorRight(VerticalScrollbar->GetUIItem()->GetWidth());
-					}
-				}
+				VerticalScrollbarLayoutActionType = EScrollbarLayoutAction::NeedToShow;
+				bLayoutDirty = true;
 			}
 		}
 	}
 }
+
+void UUIScrollViewWithScrollbarComponent::OnUIChildHierarchyIndexChanged(UUIItem* child)
+{
+	Super::OnUIChildHierarchyIndexChanged(child);
+	bLayoutDirty = true;
+}
+void UUIScrollViewWithScrollbarComponent::OnUIChildAttachmentChanged(UUIItem* child, bool attachOrDetach)
+{
+	Super::OnUIChildAttachmentChanged(child, attachOrDetach);
+	bLayoutDirty = true;
+}
+
+bool UUIScrollViewWithScrollbarComponent::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
+{
+	if (Viewport.IsValid())
+	{
+		if (InUIItem == Viewport->GetUIItem())
+		{
+			OutResult.bCanControlHorizontalAnchor = OutResult.bCanControlVerticalAnchor = true;
+			OutResult.bCanControlHorizontalAnchoredPosition = OutResult.bCanControlVerticalAnchoredPosition = true;
+			OutResult.bCanControlHorizontalSizeDelta = OutResult.bCanControlVerticalSizeDelta = true;
+			return true;
+		}
+	}
+	if (HorizontalScrollbar.IsValid())
+	{
+		if (InUIItem == HorizontalScrollbar->GetUIItem())
+		{
+			OutResult.bCanControlVerticalAnchor = true;
+			OutResult.bCanControlVerticalAnchoredPosition = true;
+			return true;
+		}
+	}
+	if (VerticalScrollbar.IsValid())
+	{
+		if (InUIItem == VerticalScrollbar->GetUIItem())
+		{
+			OutResult.bCanControlHorizontalAnchor = true;
+			OutResult.bCanControlHorizontalAnchoredPosition = true;
+			return true;
+		}
+	}
+	return false;
+}
+
+void UUIScrollViewWithScrollbarComponent::OnUpdateLayout_Implementation()
+{
+	if (bLayoutDirty)
+	{
+		if (!Viewport.IsValid())return;
+		if (!CheckParameters())return;
+		if (!CheckScrollbarParameter())return;
+
+		bLayoutDirty = false;
+
+		auto ViewportUIItem = Viewport->GetUIItem();
+		if (!ViewportUIItem->IsAttachedTo(this->GetRootUIComponent()))
+		{
+			ViewportUIItem->AttachToComponent(this->GetRootUIComponent(), FAttachmentTransformRules::KeepWorldTransform);
+		}
+
+		if (VerticalScrollbar.IsValid())
+		{
+			auto VerticalScrollbarUIItem = VerticalScrollbar->GetUIItem();
+			if (!VerticalScrollbarUIItem->IsAttachedTo(this->GetRootUIComponent()))
+			{
+				VerticalScrollbarUIItem->AttachToComponent(this->GetRootUIComponent(), FAttachmentTransformRules::KeepWorldTransform);
+			}
+			auto parentHeight = ContentParentUIItem->GetHeight();
+			auto contentHeight = ContentUIItem->GetHeight();
+			switch (VerticalScrollbarLayoutActionType)
+			{
+			case UUIScrollViewWithScrollbarComponent::EScrollbarLayoutAction::NeedToShow:
+			{
+				VerticalScrollbarUIItem->SetIsUIActive(true);
+			}
+			break;
+			case UUIScrollViewWithScrollbarComponent::EScrollbarLayoutAction::NeedToHide:
+			{
+				VerticalScrollbarUIItem->SetIsUIActive(false);
+			}
+			break;
+			}
+			if (VerticalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport)
+			{
+				if (VerticalScrollbarUIItem->GetIsUIActiveInHierarchy())
+				{
+					if (VerticalScrollbarUIItem->GetFlattenHierarchyIndex() > ViewportUIItem->GetFlattenHierarchyIndex())
+					{
+						ViewportUIItem->SetAnchorRight(VerticalScrollbarUIItem->GetWidth());
+						ViewportUIItem->SetAnchorLeft(0);
+
+						VerticalScrollbarUIItem->SetHorizontalAnchorMinMax(FVector2D(1, 1), true);
+						float AnchorOffset = (VerticalScrollbarUIItem->GetPivot().X - 1.0f) * VerticalScrollbarUIItem->GetWidth();
+						VerticalScrollbarUIItem->SetHorizontalAnchoredPosition(AnchorOffset);
+					}
+					else
+					{
+						ViewportUIItem->SetAnchorLeft(VerticalScrollbarUIItem->GetWidth());
+						ViewportUIItem->SetAnchorRight(0);
+
+						VerticalScrollbarUIItem->SetHorizontalAnchorMinMax(FVector2D(0, 0), true);
+						float AnchorOffset = VerticalScrollbarUIItem->GetPivot().X * VerticalScrollbarUIItem->GetWidth();
+						VerticalScrollbarUIItem->SetHorizontalAnchoredPosition(AnchorOffset);
+					}
+				}
+				else
+				{
+					ViewportUIItem->SetAnchorLeft(0);
+					ViewportUIItem->SetAnchorRight(0);
+				}
+			}
+			if (VerticalScrollbarComp.IsValid())
+			{
+				VerticalScrollbarComp->SetValueAndSize(Progress.Y, parentHeight / contentHeight, false);
+			}
+			VerticalScrollbarLayoutActionType = EScrollbarLayoutAction::None;
+		}
+
+		if (HorizontalScrollbar.IsValid())
+		{
+			auto HorizontalScrollbarUIItem = HorizontalScrollbar->GetUIItem();
+			if (!HorizontalScrollbarUIItem->IsAttachedTo(this->GetRootUIComponent()))
+			{
+				HorizontalScrollbarUIItem->AttachToComponent(this->GetRootUIComponent(), FAttachmentTransformRules::KeepWorldTransform);
+			}
+			auto parentWidth = ContentParentUIItem->GetWidth();
+			auto contentWidth = ContentUIItem->GetWidth();
+			switch (HorizontalScrollbarLayoutActionType)
+			{
+			case UUIScrollViewWithScrollbarComponent::EScrollbarLayoutAction::NeedToShow:
+			{
+				HorizontalScrollbarUIItem->SetIsUIActive(true);
+			}
+			break;
+			case UUIScrollViewWithScrollbarComponent::EScrollbarLayoutAction::NeedToHide:
+			{
+				HorizontalScrollbar->GetUIItem()->SetIsUIActive(false);
+			}
+			break;
+			}
+			if (HorizontalScrollbarVisibility == EScrollViewScrollbarVisibility::AutoHideAndExpandViewport)
+			{
+				if (HorizontalScrollbarUIItem->GetIsUIActiveInHierarchy())
+				{
+					if (HorizontalScrollbarUIItem->GetFlattenHierarchyIndex() > ViewportUIItem->GetFlattenHierarchyIndex())
+					{
+						ViewportUIItem->SetAnchorBottom(HorizontalScrollbarUIItem->GetHeight());
+						ViewportUIItem->SetAnchorTop(0);
+
+						HorizontalScrollbarUIItem->SetVerticalAnchorMinMax(FVector2D(0, 0), true);
+						float AnchorOffset = HorizontalScrollbarUIItem->GetPivot().Y * HorizontalScrollbarUIItem->GetHeight();
+						HorizontalScrollbarUIItem->SetVerticalAnchoredPosition(AnchorOffset);
+					}
+					else
+					{
+						ViewportUIItem->SetAnchorTop(HorizontalScrollbarUIItem->GetHeight());
+						ViewportUIItem->SetAnchorBottom(0);
+
+						HorizontalScrollbarUIItem->SetVerticalAnchorMinMax(FVector2D(1, 1), true);
+						float AnchorOffset = (HorizontalScrollbarUIItem->GetPivot().Y - 1.0f) * HorizontalScrollbarUIItem->GetHeight();
+						HorizontalScrollbarUIItem->SetVerticalAnchoredPosition(AnchorOffset);
+					}
+				}
+				else
+				{
+					ViewportUIItem->SetAnchorTop(0);
+					ViewportUIItem->SetAnchorBottom(0);
+				}
+			}
+			if (HorizontalScrollbarComp.IsValid())
+			{
+				HorizontalScrollbarComp->SetValueAndSize(Progress.X, parentWidth / contentWidth, false);
+			}
+			HorizontalScrollbarLayoutActionType = EScrollbarLayoutAction::None;
+		}
+	}
+}
+
 void UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar(float InScrollValue)
 {
 	if (!ContentUIItem.IsValid())return;
 	CanUpdateAfterDrag = false;
-	ValueIsSetFromHorizontalScrollbar = true;
+	bValueIsSetFromHorizontalScrollbar = true;
 	AllowHorizontalScroll = true;
 
 	Position.X = FMath::Lerp(HorizontalRange.X, HorizontalRange.Y, InScrollValue);
@@ -200,7 +386,7 @@ void UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar(float InScrollValu
 {
 	if (!ContentUIItem.IsValid())return;
 	CanUpdateAfterDrag = false;
-	ValueIsSetFromVerticalScrollbar = true;
+	bValueIsSetFromVerticalScrollbar = true;
 	AllowVerticalScroll = true;
 
 	Position.Y = FMath::Lerp(VerticalRange.X, VerticalRange.Y, InScrollValue);

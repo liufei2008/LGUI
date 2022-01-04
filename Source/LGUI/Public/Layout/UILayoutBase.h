@@ -64,7 +64,7 @@ protected:
 	virtual void OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDetach)override;
 	virtual void OnUIChildHierarchyIndexChanged(UUIItem* InChild)override;
 
-	UActorComponent* GetLayoutElement(AActor* Target);
+	UActorComponent* GetLayoutElement(AActor* Target)const;
 	struct FAvaliableChild
 	{
 		TWeakObjectPtr<UUIItem> uiItem;

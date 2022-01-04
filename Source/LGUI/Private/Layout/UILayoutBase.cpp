@@ -224,7 +224,7 @@ void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
     MarkNeedRebuildLayout();
 }
 
-FORCEINLINE UActorComponent* UUILayoutBase::GetLayoutElement(AActor* Target)
+FORCEINLINE UActorComponent* UUILayoutBase::GetLayoutElement(AActor* Target)const
 {
     Target->GetComponentsByInterface(ULGUILayoutElementInterface::StaticClass());
     return Target->FindComponentByClass<UUILayoutElement>();

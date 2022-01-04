@@ -120,72 +120,18 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 
 	//anchor, width, height
 	{
-		bool AnchorControlledByParentLayout = false;
-		bool HorizontalAnchorPositionControlledByParentLayout = false;
-		bool VerticalAnchorPositionControlledByParentLayout = false;
-		bool WidthControlledByParentLayout = false;
-		bool HeightControlledByParentLayout = false;
-		bool AnchorControlledBySelfLayout = false;
-		bool HorizontalAnchoredPositionControlledBySelfLayout = false;
-		bool VerticalAnchoredPositionControlledBySelfLayout = false;
-		bool WidthControlledBySelfLayout = false;
-		bool HeightControlledBySelfLayout = false;
-		bool AnchorLeftControlledBySelfLayout = false;
-		bool AnchorRightControlledBySelfLayout = false;
-		bool AnchorTopControlledBySelfLayout = false;
-		bool AnchorBottomControlledBySelfLayout = false;
-		if (auto ThisActor = TargetScriptArray[0]->GetOwner())
+		if (IsAnchorControlledByMultipleLayout())
 		{
-			if (ThisActor->GetRootComponent() == TargetScriptArray[0].Get())
-			{
-				if (auto ParentActor = ThisActor->GetAttachParentActor())
-				{
-					bool IgnoreParentLayout = false;
-					auto LayoutElements = ThisActor->GetComponentsByInterface(ULGUILayoutElementInterface::StaticClass());
-					if (LayoutElements.Num() > 1)
-					{
-						LGUIUtils::EditorNotification(LOCTEXT("MultiLayoutElementError", "Detect multiple layout elements in one actor, this is not allowed!"));
-					}
-					if (LayoutElements.Num() > 0)
-					{
-						IgnoreParentLayout = ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElements[0]);
-					}
-					if (!IgnoreParentLayout)
-					{
-						auto ParentLayouts = ParentActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-						if (ParentLayouts.Num() > 1)
-						{
-							LGUIUtils::EditorNotification(LOCTEXT("MultiLayoutError", "Detect multiple layouts in one actor, this is not allowed!"));
-						}
-						if (ParentLayouts.Num() > 0)
-						{
-							auto ParentLayout = ParentLayouts[0];
-							AnchorControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildAnchor(ParentLayout);
-							WidthControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildWidth(ParentLayout);
-							HeightControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildHeight(ParentLayout);
-							HorizontalAnchorPositionControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildHorizontalAnchoredPosition(ParentLayout);
-							VerticalAnchorPositionControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildVerticalAnchoredPosition(ParentLayout);
-						}
-					}
-				}
-				auto ThisLayouts = ThisActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-				if (ThisLayouts.Num() > 0)
-				{
-					auto ThisLayout = ThisLayouts[0];
-					AnchorControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchor(ThisLayout);
-					HorizontalAnchoredPositionControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHorizontalAnchoredPosition(ThisLayout);
-					VerticalAnchoredPositionControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfVerticalAnchoredPosition(ThisLayout);
-					WidthControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfWidth(ThisLayout);
-					HeightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHeight(ThisLayout);
-					AnchorLeftControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorLeft(ThisLayout);
-					AnchorRightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorRight(ThisLayout);
-					AnchorTopControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorTop(ThisLayout);
-					AnchorBottomControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorBottom(ThisLayout);
-				}
-			}
+			TransformCategory.AddCustomRow(LOCTEXT("MultiLayoutControlAnchorError", "MultiLayoutControlAnchorError"))
+				.WholeRowContent()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("MultiLayoutControlAnchorInfoText", "Detech multiple layout control this UI's anchor, this may cause issue!"))
+					.ColorAndOpacity(FLinearColor(FColor::Yellow))
+					.AutoWrapText(true)
+				]
+			;
 		}
-
-		
 		auto AnchorHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));
 		auto AnchorMinHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin));
 		auto AnchorMaxHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax));
@@ -619,31 +565,32 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		]
 		;
 
-		IDetailGroup& anchorGroup = TransformCategory.AddGroup(FName("Anchors"), LOCTEXT("AnchorsGroup", "Anchors"));
+		IDetailGroup& AnchorGroup = TransformCategory.AddGroup(FName("Anchors"), LOCTEXT("AnchorsGroup", "Anchors"));
 
-		IDetailPropertyRow& anchorHAlignDetailProperty = anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin)));
-		if (AnchorControlledByParentLayout)
+		auto AnchorControlledByLayout = GetLayoutControlHorizontalAnchor() || GetLayoutControlVerticalAnchor();
+		IDetailPropertyRow& anchorHAlignDetailProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin)));
+		if (AnchorControlledByLayout)
 		{
-			LGUIEditorUtils::SetControlledByParentLayout(anchorHAlignDetailProperty, AnchorControlledByParentLayout);
-		}
-		else
-		{
-			if (AnchorControlledBySelfLayout)
-				LGUIEditorUtils::SetControlledBySelfLayout(anchorHAlignDetailProperty, AnchorControlledBySelfLayout);
+			LGUIEditorUtils::SetControlledByLayout(anchorHAlignDetailProperty, AnchorControlledByLayout);
 		}
 
-		IDetailPropertyRow& anchorVAlignDetailProperty = anchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax)));
-		if (AnchorControlledByParentLayout)
+		IDetailPropertyRow& anchorVAlignDetailProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax)));
+		if (AnchorControlledByLayout)
 		{
-			LGUIEditorUtils::SetControlledByParentLayout(anchorVAlignDetailProperty, AnchorControlledByParentLayout);
-		}
-		else
-		{
-			if (AnchorControlledBySelfLayout)
-				LGUIEditorUtils::SetControlledBySelfLayout(anchorVAlignDetailProperty, AnchorControlledBySelfLayout);
+			LGUIEditorUtils::SetControlledByLayout(anchorVAlignDetailProperty, AnchorControlledByLayout);
 		}
 
 		auto& AnchorRawDataGroup = TransformCategory.AddGroup(FName("AnchorsRawData"), LOCTEXT("AnchorsRawData", "AnchorsRawData"), true);
+		AnchorRawDataGroup.AddWidgetRow()
+		.WholeRowContent()
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("AnchorRawDataWarning", "Don't edit these unless you know what you doing!"))
+			.ColorAndOpacity(FLinearColor(FColor::Yellow))
+			.AutoWrapText(true)
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+		]
+		;
 		AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchoredPosition)));
 		AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.SizeDelta)));
 	}
@@ -1455,72 +1402,6 @@ bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> Ancho
 	FVector2D SizeDelta;
 	auto SizeDeltaAccessResult = SizeDeltaHandle->GetValue(SizeDelta);
 
-	bool AnchorControlledByParentLayout = false;
-	bool HorizontalAnchorPositionControlledByParentLayout = false;
-	bool VerticalAnchorPositionControlledByParentLayout = false;
-	bool WidthControlledByParentLayout = false;
-	bool HeightControlledByParentLayout = false;
-
-	bool AnchorControlledBySelfLayout = false;
-	bool HorizontalAnchoredPositionControlledBySelfLayout = false;
-	bool VerticalAnchoredPositionControlledBySelfLayout = false;
-	bool WidthControlledBySelfLayout = false;
-	bool HeightControlledBySelfLayout = false;
-	bool AnchorLeftControlledBySelfLayout = false;
-	bool AnchorRightControlledBySelfLayout = false;
-	bool AnchorTopControlledBySelfLayout = false;
-	bool AnchorBottomControlledBySelfLayout = false;
-	if (auto ThisActor = TargetScriptArray[0]->GetOwner())
-	{
-		if (ThisActor->GetRootComponent() == TargetScriptArray[0].Get())
-		{
-			if (auto ParentActor = ThisActor->GetAttachParentActor())
-			{
-				bool IgnoreParentLayout = false;
-				auto LayoutElements = ThisActor->GetComponentsByInterface(ULGUILayoutElementInterface::StaticClass());
-				if (LayoutElements.Num() > 1)
-				{
-					LGUIUtils::EditorNotification(LOCTEXT("MultiLayoutElementError", "Detect multiple layout elements in one actor, this is not allowed!"));
-				}
-				if (LayoutElements.Num() > 0)
-				{
-					IgnoreParentLayout = ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElements[0]);
-				}
-				if (!IgnoreParentLayout)
-				{
-					auto ParentLayouts = ParentActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-					if (ParentLayouts.Num() > 1)
-					{
-						LGUIUtils::EditorNotification(LOCTEXT("MultiLayoutError", "Detect multiple layouts in one actor, this is not allowed!"));
-					}
-					if (ParentLayouts.Num() > 0)
-					{
-						auto ParentLayout = ParentLayouts[0];
-						AnchorControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildAnchor(ParentLayout);
-						WidthControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildWidth(ParentLayout);
-						HeightControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildHeight(ParentLayout);
-						HorizontalAnchorPositionControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildHorizontalAnchoredPosition(ParentLayout);
-						VerticalAnchorPositionControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildVerticalAnchoredPosition(ParentLayout);
-					}
-				}
-			}
-			auto ThisLayouts = ThisActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-			if (ThisLayouts.Num() > 0)
-			{
-				auto ThisLayout = ThisLayouts[0];
-				AnchorControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchor(ThisLayout);
-				HorizontalAnchoredPositionControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHorizontalAnchoredPosition(ThisLayout);
-				VerticalAnchoredPositionControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfVerticalAnchoredPosition(ThisLayout);
-				WidthControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfWidth(ThisLayout);
-				HeightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfHeight(ThisLayout);
-				AnchorLeftControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorLeft(ThisLayout);
-				AnchorRightControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorRight(ThisLayout);
-				AnchorTopControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorTop(ThisLayout);
-				AnchorBottomControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchorBottom(ThisLayout);
-			}
-		}
-	}
-
 	switch (AnchorValueIndex)
 	{
 	default:
@@ -1532,11 +1413,11 @@ bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> Ancho
 		{
 			if (AnchorMinValue.X == AnchorMaxValue.X)
 			{
-				return !(HorizontalAnchoredPositionControlledBySelfLayout || HorizontalAnchorPositionControlledByParentLayout);
+				return !GetLayoutControlHorizontalAnchoredPosition();
 			}
 			else
 			{
-				return !AnchorLeftControlledBySelfLayout;
+				return !GetLayoutControlHorizontalAnchoredPosition() && !GetLayoutControlHorizontalSizeDelta();
 			}
 		}
 		else
@@ -1553,11 +1434,11 @@ bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> Ancho
 		{
 			if (AnchorMinValue.Y == AnchorMaxValue.Y)
 			{
-				return !(VerticalAnchoredPositionControlledBySelfLayout || VerticalAnchorPositionControlledByParentLayout);
+				return !GetLayoutControlVerticalAnchoredPosition();
 			}
 			else
 			{
-				return !AnchorTopControlledBySelfLayout;
+				return !GetLayoutControlVerticalAnchoredPosition() && !GetLayoutControlVerticalSizeDelta();
 			}
 		}
 		else
@@ -1574,11 +1455,11 @@ bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> Ancho
 		{
 			if (AnchorMinValue.X == AnchorMaxValue.X)
 			{
-				return !(WidthControlledByParentLayout || WidthControlledBySelfLayout);
+				return !GetLayoutControlHorizontalAnchoredPosition();
 			}
 			else
 			{
-				return !AnchorRightControlledBySelfLayout;
+				return !GetLayoutControlHorizontalAnchoredPosition() && !GetLayoutControlHorizontalSizeDelta();
 			}
 		}
 		else
@@ -1595,11 +1476,11 @@ bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> Ancho
 		{
 			if (AnchorMinValue.Y == AnchorMaxValue.Y)
 			{
-				return !(HeightControlledByParentLayout || HeightControlledBySelfLayout);
+				return !GetLayoutControlVerticalAnchoredPosition();
 			}
 			else
 			{
-				return !AnchorBottomControlledBySelfLayout;
+				return !GetLayoutControlVerticalAnchoredPosition() && !GetLayoutControlVerticalSizeDelta();
 			}
 		}
 		else
@@ -1698,42 +1579,7 @@ void FUIItemCustomization::ForceRefreshEditor(IDetailLayoutBuilder* DetailBuilde
 }
 bool FUIItemCustomization::GetIsAnchorsEnabled()const
 {
-	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return false;
-
-	bool AnchorControlledByParentLayout = false;
-	bool AnchorControlledBySelfLayout = false;
-	if (auto ThisActor = TargetScriptArray[0]->GetOwner())
-	{
-		if (ThisActor->GetRootComponent() == TargetScriptArray[0].Get())
-		{
-			if (auto ParentActor = ThisActor->GetAttachParentActor())
-			{
-				bool IgnoreParentLayout = false;
-				auto LayoutElements = ThisActor->GetComponentsByInterface(ULGUILayoutElementInterface::StaticClass());
-				if (LayoutElements.Num() > 0)
-				{
-					IgnoreParentLayout = ILGUILayoutElementInterface::Execute_GetIgnoreLayout(LayoutElements[0]);
-				}
-				if (!IgnoreParentLayout)
-				{
-					auto ParentLayouts = ParentActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-					if (ParentLayouts.Num() > 0)
-					{
-						AnchorControlledByParentLayout = ILGUILayoutInterface::Execute_CanControlChildAnchor(ParentLayouts[0]);
-					}
-				}
-			}
-			auto ThisLayouts = ThisActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
-			if (ThisLayouts.Num() > 0)
-			{
-				AnchorControlledBySelfLayout = ILGUILayoutInterface::Execute_CanControlSelfAnchor(ThisLayouts[0]);
-			}
-		}
-	}
-
-	if (AnchorControlledByParentLayout)return false;
-	if (AnchorControlledBySelfLayout)return false;
-	return true;
+	return !GetLayoutControlHorizontalAnchor() || !GetLayoutControlVerticalAnchor();
 }
 FText FUIItemCustomization::GetAnchorsTooltipText()const
 {
@@ -1827,6 +1673,118 @@ void FUIItemCustomization::OnPasteHierarchyIndex(TSharedRef<IPropertyHandle> Pro
 		int value = FCString::Atoi(*PastedText);
 		PropertyHandle->SetValue(value);
 	}
+}
+
+FLGUICanLayoutControlAnchor FUIItemCustomization::GetLayoutControlAnchorValue()const
+{
+	FLGUICanLayoutControlAnchor Result;
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return Result;
+
+	auto Actor = TargetScriptArray[0]->GetOwner();
+	auto World = TargetScriptArray[0]->GetWorld();
+	if (Actor && World)
+	{
+		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
+		if (World->IsGameWorld())
+		{
+			if (auto Manager = ALGUIManagerActor::GetLGUIManagerActorInstance(Actor))
+			{
+				AllLayoutArray = Manager->GetAllLayoutArray();
+			}
+		}
+		else
+		{
+			if (ULGUIEditorManagerObject::Instance != nullptr)
+			{
+				AllLayoutArray = ULGUIEditorManagerObject::Instance->GetAllLayoutArray();
+			}
+		}
+
+		if (AllLayoutArray.Num() > 0)
+		{
+			for (auto& Item : AllLayoutArray)
+			{
+				FLGUICanLayoutControlAnchor ItemResult;
+				if (ILGUILayoutInterface::Execute_GetCanLayoutControlAnchor(Item.GetObject(), TargetScriptArray[0].Get(), ItemResult))
+				{
+					Result.Or(ItemResult);
+				}
+			}
+		}
+	}
+	return Result;
+}
+
+bool FUIItemCustomization::IsAnchorControlledByMultipleLayout()const
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return false;
+
+	auto Actor = TargetScriptArray[0]->GetOwner();
+	auto World = TargetScriptArray[0]->GetWorld();
+	if (Actor && World)
+	{
+		TArray<TScriptInterface<ILGUILayoutInterface>> AllLayoutArray;
+		if (World->IsGameWorld())
+		{
+			if (auto Manager = ALGUIManagerActor::GetLGUIManagerActorInstance(Actor))
+			{
+				AllLayoutArray = Manager->GetAllLayoutArray();
+			}
+		}
+		else
+		{
+			if (ULGUIEditorManagerObject::Instance != nullptr)
+			{
+				AllLayoutArray = ULGUIEditorManagerObject::Instance->GetAllLayoutArray();
+			}
+		}
+
+		if (AllLayoutArray.Num() > 0)
+		{
+			FLGUICanLayoutControlAnchor Result;
+			for (auto& Item : AllLayoutArray)
+			{
+				FLGUICanLayoutControlAnchor ItemResult;
+				if (ILGUILayoutInterface::Execute_GetCanLayoutControlAnchor(Item.GetObject(), TargetScriptArray[0].Get(), ItemResult))
+				{
+					if (Result.HaveRepeatedControl(ItemResult))
+					{
+						return true;
+					}
+					else
+					{
+						Result.Or(ItemResult);
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool FUIItemCustomization::GetLayoutControlHorizontalAnchor()const
+{
+	return GetLayoutControlAnchorValue().bCanControlHorizontalAnchor;
+}
+bool FUIItemCustomization::GetLayoutControlVerticalAnchor()const
+{
+	return GetLayoutControlAnchorValue().bCanControlVerticalAnchor;
+}
+bool FUIItemCustomization::GetLayoutControlHorizontalAnchoredPosition()const
+{
+	return GetLayoutControlAnchorValue().bCanControlHorizontalAnchoredPosition;
+}
+bool FUIItemCustomization::GetLayoutControlVerticalAnchoredPosition()const
+{
+	return GetLayoutControlAnchorValue().bCanControlVerticalAnchoredPosition;
+}
+bool FUIItemCustomization::GetLayoutControlHorizontalSizeDelta()const
+{
+	return GetLayoutControlAnchorValue().bCanControlHorizontalSizeDelta;
+}
+bool FUIItemCustomization::GetLayoutControlVerticalSizeDelta()const
+{
+	return GetLayoutControlAnchorValue().bCanControlVerticalSizeDelta;
 }
 
 #undef LOCTEXT_NAMESPACE

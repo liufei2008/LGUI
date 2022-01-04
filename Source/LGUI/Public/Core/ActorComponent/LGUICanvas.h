@@ -185,16 +185,16 @@ public:
 	void SetParentCanvas(ULGUICanvas* InParentCanvas);
 protected:
 	/** Root LGUICanvas on hierarchy. LGUI's update start from the RootCanvas, and goes all down to every UI elements under it */
-	mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
+	UPROPERTY(Transient) mutable TWeakObjectPtr<ULGUICanvas> RootCanvas = nullptr;
 	void CheckRenderMode();
 	/** chekc RootCanvas. search for it if not valid */
 	bool CheckRootCanvas()const;
 	/** nearest up parent Canvas */
-	TWeakObjectPtr<ULGUICanvas> ParentCanvas = nullptr;
+	UPROPERTY(Transient) TWeakObjectPtr<ULGUICanvas> ParentCanvas = nullptr;
 	
 	UMaterialInterface** GetMaterials();
 
-	mutable TWeakObjectPtr<UUIItem> UIItem = nullptr;
+	UPROPERTY(Transient) mutable TWeakObjectPtr<UUIItem> UIItem = nullptr;
 	bool CheckUIItem()const;
 protected:
 	friend class FLGUICanvasCustomization;
@@ -512,7 +512,7 @@ private:
 	void CalculateUIItem2DBounds(UUIBaseRenderable* item, const FTransform2D& transform, FVector2D& min, FVector2D& max);
 
 	/** canvas array belong to this canvas in hierarchy. */
-	TArray<TWeakObjectPtr<ULGUICanvas>> ChildrenCanvasArray;
+	UPROPERTY(Transient) TArray<TWeakObjectPtr<ULGUICanvas>> ChildrenCanvasArray;
 	/** update Canvas's drawcall */
 	void UpdateCanvasDrawcallRecursive();
 

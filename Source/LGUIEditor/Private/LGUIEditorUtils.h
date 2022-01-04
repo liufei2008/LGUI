@@ -113,6 +113,12 @@ public:
 		auto disabledByParentLayoutToolTip = FString(TEXT("This property is controlled by self layout"));
 		if (controlledByThisLayout) prop.ToolTip(FText::FromString(disabledByParentLayoutToolTip));
 	}
+	static void SetControlledByLayout(IDetailPropertyRow& prop, bool controlledByLayout)
+	{
+		prop.IsEnabled(!controlledByLayout);
+		auto disabledByParentLayoutToolTip = FString(TEXT("This property is controlled by layout"));
+		if (controlledByLayout) prop.ToolTip(FText::FromString(disabledByParentLayoutToolTip));
+	}
 	static TSharedRef<SWidget> GenerateArrowButtonContent(FText textContent)
 	{
 		return SNew(SHorizontalBox)

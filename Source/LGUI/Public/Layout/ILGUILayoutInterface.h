@@ -5,6 +5,43 @@
 #include "CoreMinimal.h"
 #include "ILGUILayoutInterface.generated.h"
 
+USTRUCT(BlueprintType)
+struct FLGUICanLayoutControlAnchor
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Category = "LGUI Layout") bool bCanControlHorizontalAnchor = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI Layout") bool bCanControlVerticalAnchor = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI Layout") bool bCanControlHorizontalAnchoredPosition = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI Layout") bool bCanControlVerticalAnchoredPosition = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI Layout") bool bCanControlHorizontalSizeDelta = false;
+	UPROPERTY(EditAnywhere, Category = "LGUI Layout") bool bCanControlVerticalSizeDelta = false;
+
+	bool HaveRepeatedControl(const FLGUICanLayoutControlAnchor& Other)
+	{
+		if (
+			(bCanControlHorizontalAnchor && Other.bCanControlHorizontalAnchor)
+			|| (bCanControlVerticalAnchor && Other.bCanControlVerticalAnchor)
+			|| (bCanControlHorizontalAnchoredPosition && Other.bCanControlHorizontalAnchoredPosition)
+			|| (bCanControlVerticalAnchoredPosition && Other.bCanControlVerticalAnchoredPosition)
+			|| (bCanControlHorizontalSizeDelta && Other.bCanControlHorizontalSizeDelta)
+			|| (bCanControlVerticalSizeDelta && Other.bCanControlVerticalSizeDelta)
+			)
+		{
+			return true;
+		}
+		return false;
+	}
+	void Or(const FLGUICanLayoutControlAnchor& Other)
+	{
+		bCanControlHorizontalAnchor |= Other.bCanControlHorizontalAnchor;
+		bCanControlVerticalAnchor |= Other.bCanControlVerticalAnchor;
+		bCanControlHorizontalAnchoredPosition |= Other.bCanControlHorizontalAnchoredPosition;
+		bCanControlVerticalAnchoredPosition |= Other.bCanControlVerticalAnchoredPosition;
+		bCanControlHorizontalSizeDelta |= Other.bCanControlHorizontalSizeDelta;
+		bCanControlVerticalSizeDelta |= Other.bCanControlVerticalSizeDelta;
+	}
+};
 
 /**
  * Interface for handling LGUI's layout update.
@@ -29,59 +66,12 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
 		void OnUpdateLayout();
 
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
+	/**
+	 * Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint
+	 * @param	InUIItem	Target to check
+	 * @param	OutResult	Result
+	 * @return	true if the layout take care of the InUIItem.
+	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildAnchor()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildHorizontalAnchoredPosition()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildVerticalAnchoredPosition()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildWidth()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildHeight()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildAnchorLeft()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildAnchorRight()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildAnchorBottom()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlChildAnchorTop()const;
-
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfAnchor()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfHorizontalAnchoredPosition()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfVerticalAnchoredPosition()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfWidth()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfHeight()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfAnchorLeft()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfAnchorRight()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfAnchorBottom()const;
-	/** Editor helper function, should be "EditorOnly", but there is no "EditorOnly" interface for blueprint */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
-		bool CanControlSelfAnchorTop()const;
+		bool GetCanLayoutControlAnchor(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const;
 };

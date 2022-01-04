@@ -141,76 +141,16 @@ void UUISizeControlByOther::OnRebuildLayout()
     }
 }
 
-bool UUISizeControlByOther::CanControlChildAnchor_Implementation()const
+bool UUISizeControlByOther::GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const
 {
-    return false;
-}
-bool UUISizeControlByOther::CanControlChildHorizontalAnchoredPosition_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlChildVerticalAnchoredPosition_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlChildWidth_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlChildHeight_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlChildAnchorLeft_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlChildAnchorRight_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlChildAnchorBottom_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlChildAnchorTop_Implementation()const
-{
-    return false;
-}
-
-bool UUISizeControlByOther::CanControlSelfAnchor_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlSelfHorizontalAnchoredPosition_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlSelfVerticalAnchoredPosition_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlSelfWidth_Implementation()const
-{
-    return GetControlWidth() && enable;
-}
-bool UUISizeControlByOther::CanControlSelfHeight_Implementation()const
-{
-    return GetControlHeight() && enable;
-}
-bool UUISizeControlByOther::CanControlSelfAnchorLeft_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlSelfAnchorRight_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlSelfAnchorBottom_Implementation()const
-{
-    return false;
-}
-bool UUISizeControlByOther::CanControlSelfAnchorTop_Implementation()const
-{
-    return false;
+    if (this->GetRootUIComponent() == InUIItem)
+    {
+        OutResult.bCanControlHorizontalSizeDelta = GetControlWidth() && enable;
+        OutResult.bCanControlVerticalSizeDelta = GetControlHeight() && enable;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

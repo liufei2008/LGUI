@@ -52,4 +52,13 @@ private:
 
 	EVisibility GetDisplayNameWarningVisibility()const;
 	FReply OnClickFixDisplayNameButton(bool singleOrAll, TSharedRef<IPropertyHandle> DisplayNameHandle);
+
+	FLGUICanLayoutControlAnchor GetLayoutControlAnchorValue()const;
+	bool IsAnchorControlledByMultipleLayout()const;
+	bool GetLayoutControlHorizontalAnchor()const;
+	bool GetLayoutControlVerticalAnchor()const;
+	bool GetLayoutControlHorizontalAnchoredPosition()const;
+	bool GetLayoutControlVerticalAnchoredPosition()const;
+	bool GetLayoutControlHorizontalSizeDelta()const;
+	bool GetLayoutControlVerticalSizeDelta()const;
 };
