@@ -24,9 +24,9 @@ void UUISizeControlByAspectRatio::SetAspectRatio(float value)
 void UUISizeControlByAspectRatio::OnRebuildLayout()
 {
 	if (!CheckRootUIComponent())return;
-	if (!enable)return;
+	if (!GetEnable())return;
 
-	if (CheckRootUIComponent() && enable)
+	if (CheckRootUIComponent() && GetEnable())
 	{
 		switch (ControlMode)
 		{

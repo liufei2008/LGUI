@@ -77,7 +77,7 @@ void UUIVerticalLayout::OnRebuildLayout()
 {
     SCOPE_CYCLE_COUNTER(STAT_VerticalLayout);
     if (!CheckRootUIComponent())return;
-    if (!enable)return;
+    if (!GetEnable())return;
 	if (bIsAnimationPlaying)
 	{
 		bShouldRebuildLayoutAfterAnimation = true;

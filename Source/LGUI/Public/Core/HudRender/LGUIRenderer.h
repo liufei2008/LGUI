@@ -35,10 +35,17 @@ public:
 	virtual void SubscribeToPostProcessingPass(EPostProcessingPass Pass, FAfterPassCallbackDelegateArray& InOutPassCallbacks, bool bIsPassEnabled)override {};
 
 	virtual void PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)override;
+#if ENGINE_MAJOR_VERSION >= 5
+	virtual void PostRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)override;
+#endif
 	virtual void PostRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)override {};
 
 	virtual int32 GetPriority() const override;
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
 	virtual bool IsActiveThisFrame(class FViewport* InViewport) const override;
+#else
+	virtual bool IsActiveThisFrame_Internal(const FSceneViewExtensionContext& Context) const override;
+#endif
 	//end ISceneViewExtension interfaces
 
 	//
@@ -119,7 +126,13 @@ private:
 	void SetRenderCanvasSortOrder_RenderThread(ULGUICanvas* InRenderCanvas, int32 InSortOrder);
 	void SetRenderCanvasBlendDepth_RenderThread(ULGUICanvas* InRenderCanvas, float InBlendDepth);
 
-	void RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView);
+	void RenderLGUI_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+		FRDGBuilder& GraphBuilder
+#else
+		FRHICommandListImmediate& RHICmdList
+#endif
+		, FSceneView& InView);
 public:
 #if WITH_EDITORONLY_DATA
 	static uint32 EditorPreview_ViewKey;

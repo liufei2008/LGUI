@@ -58,7 +58,11 @@ private:
 
 	void SaveSceneOutlinerState();
 	void RestoreSceneOutlinerState();
+#if ENGINE_MAJOR_VERSION >= 5
+	void RestoreSceneOutlinerStateForTreeItem(FSceneOutlinerTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
+#else
 	void RestoreSceneOutlinerStateForTreeItem(SceneOutliner::FTreeItemPtr& Item, ALGUIEditorLevelDataStorageActor* storageActor);
+#endif
 	void SetDelayRestore(bool RestoreTemporarilyHidden, bool RestoreUseFName);
 	float delayRestoreTime = 0;
 	bool needToRestore = false;

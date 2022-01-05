@@ -119,7 +119,7 @@ void UUIGridLayout::OnRebuildLayout()
 {
 	SCOPE_CYCLE_COUNTER(STAT_GridLayout);
 	if (!CheckRootUIComponent())return;
-	if (!enable)return;
+	if (!GetEnable())return;
 	if (bIsAnimationPlaying)
 	{
 		bShouldRebuildLayoutAfterAnimation = true;

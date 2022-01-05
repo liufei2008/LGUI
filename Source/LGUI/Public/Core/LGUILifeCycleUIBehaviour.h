@@ -39,6 +39,9 @@ public:
 		UUIItem* GetRootComponent() const { return GetRootUIComponent(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
 		UUIItem* GetRootUIComponent() const;
+private:
+	/** Some UI callback functions want execute before Awake, but most behaviours should executed inside or after Awake. So use this array to cache these callbacks and execute when Awake called. */
+	TArray<TFunction<void()>> CallbacksBeforeAwake;
 protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -49,8 +52,6 @@ protected:
 	/** Check and get RootUIItem */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool CheckRootUIComponent() const;
-	/** Some UI callback functions want execute before Awake, but most behaviours should executed inside or after Awake. So use this array to cache these callbacks and execute when Awake called. */
-	TArray<TFunction<void()>> CallbacksBeforeAwake;
 
 	virtual void Awake()override;
 	

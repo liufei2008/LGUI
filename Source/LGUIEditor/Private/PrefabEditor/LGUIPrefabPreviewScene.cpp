@@ -129,7 +129,11 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 					//RootUICanvasActor->bHiddenEd = true;
 					//RootUICanvasActor->bHiddenEdLayer = true;
 					//RootUICanvasActor->bHiddenEdLevel = true;
+#if ENGINE_MAJOR_VERSION >= 5
+					RootUICanvasActor->SetLockLocation(true);
+#else
 					RootUICanvasActor->bLockLocation = true;
+#endif
 
 					//auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
 					//bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootUICanvasActor, false);

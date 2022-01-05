@@ -13,7 +13,11 @@
 
 static void StaticMeshToLGUIMeshRenderData(const UStaticMesh& DataSource, TArray<FLGUIStaticMeshVertex>& OutVerts, TArray<uint32>& OutIndexes)
 {
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
 	const FStaticMeshLODResources& LOD = DataSource.RenderData->LODResources[0];
+#else
+	const FStaticMeshLODResources& LOD = DataSource.GetRenderData()->LODResources[0];
+#endif
 	const int32 NumSections = LOD.Sections.Num();
 	if (NumSections > 1)
 	{

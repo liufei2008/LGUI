@@ -105,31 +105,37 @@ void UUIScrollViewWithScrollbarComponent::UpdateProgress(bool InFireEvent)
 }
 bool UUIScrollViewWithScrollbarComponent::CheckScrollbarParameter()
 {
-	if (!HorizontalScrollbarComp.IsValid())
+	if (Horizontal)
 	{
-		if (!HorizontalScrollbar.IsValid())return false;
-		HorizontalScrollbarComp = HorizontalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
-		if (HorizontalScrollbarComp.IsValid())
+		if (!HorizontalScrollbarComp.IsValid())
 		{
-			HorizontalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar));
-		}
-		else
-		{
-			return false;
+			if (!HorizontalScrollbar.IsValid())return false;
+			HorizontalScrollbarComp = HorizontalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
+			if (HorizontalScrollbarComp.IsValid())
+			{
+				HorizontalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnHorizontalScrollbar));
+			}
+			else
+			{
+				return false;
+			}
 		}
 	}
 
-	if (!VerticalScrollbarComp.IsValid())
+	if (Vertical)
 	{
-		if (!VerticalScrollbar.IsValid())return false;
-		VerticalScrollbarComp = VerticalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
-		if (VerticalScrollbarComp.IsValid())
+		if (!VerticalScrollbarComp.IsValid())
 		{
-			VerticalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar));
-		}
-		else
-		{
-			return false;
+			if (!VerticalScrollbar.IsValid())return false;
+			VerticalScrollbarComp = VerticalScrollbar->FindComponentByClass<UUIScrollbarComponent>();
+			if (VerticalScrollbarComp.IsValid())
+			{
+				VerticalScrollbarComp->RegisterSlideEvent(FLGUIFloatDelegate::CreateUObject(this, &UUIScrollViewWithScrollbarComponent::OnVerticalScrollbar));
+			}
+			else
+			{
+				return false;
+			}
 		}
 	}
 
@@ -248,7 +254,7 @@ void UUIScrollViewWithScrollbarComponent::OnUpdateLayout_Implementation()
 		bLayoutDirty = false;
 
 		auto ViewportUIItem = Viewport->GetUIItem();
-		if (!ViewportUIItem->IsAttachedTo(this->GetRootUIComponent()))
+		if (ViewportUIItem->GetAttachParent() != this->GetRootUIComponent())
 		{
 			ViewportUIItem->AttachToComponent(this->GetRootUIComponent(), FAttachmentTransformRules::KeepWorldTransform);
 		}
@@ -256,7 +262,7 @@ void UUIScrollViewWithScrollbarComponent::OnUpdateLayout_Implementation()
 		if (VerticalScrollbar.IsValid())
 		{
 			auto VerticalScrollbarUIItem = VerticalScrollbar->GetUIItem();
-			if (!VerticalScrollbarUIItem->IsAttachedTo(this->GetRootUIComponent()))
+			if (VerticalScrollbarUIItem->GetAttachParent() != this->GetRootUIComponent())
 			{
 				VerticalScrollbarUIItem->AttachToComponent(this->GetRootUIComponent(), FAttachmentTransformRules::KeepWorldTransform);
 			}
@@ -314,7 +320,7 @@ void UUIScrollViewWithScrollbarComponent::OnUpdateLayout_Implementation()
 		if (HorizontalScrollbar.IsValid())
 		{
 			auto HorizontalScrollbarUIItem = HorizontalScrollbar->GetUIItem();
-			if (!HorizontalScrollbarUIItem->IsAttachedTo(this->GetRootUIComponent()))
+			if (HorizontalScrollbarUIItem->GetAttachParent() != this->GetRootUIComponent())
 			{
 				HorizontalScrollbarUIItem->AttachToComponent(this->GetRootUIComponent(), FAttachmentTransformRules::KeepWorldTransform);
 			}

@@ -59,11 +59,11 @@ namespace LGUIPrefabSystem3
 		}
 		else
 		{
-			bool canSerializaObject = false;
+			bool canSerializeObject = false;
 			auto guidPtr = Serializer.MapObjectToGuid.Find(Object);
 			if (guidPtr != nullptr)
 			{
-				canSerializaObject = true;
+				canSerializeObject = true;
 				//MapObjectToGuid could be passed-in, so we still need to collect objects to serialize
 				FGuid guid;
 				Serializer.CollectObjectToSerailize(Object, guid);
@@ -71,14 +71,14 @@ namespace LGUIPrefabSystem3
 			else
 			{
 				FGuid guid;
-				canSerializaObject = Serializer.CollectObjectToSerailize(Object, guid);
-				if (canSerializaObject)
+				canSerializeObject = Serializer.CollectObjectToSerailize(Object, guid);
+				if (canSerializeObject)
 				{
 					guidPtr = &guid;
 				}
 			}
 
-			if (canSerializaObject)
+			if (canSerializeObject)
 			{
 				auto type = (uint8)EObjectType::ObjectReference;
 				*this << type;
@@ -118,6 +118,36 @@ namespace LGUIPrefabSystem3
 
 		return *this;
 	}
+#if ENGINE_MAJOR_VERSION >= 5
+	FArchive& FLGUIObjectWriter::operator<<(FObjectPtr& Value)
+	{
+		auto Res = Value.Get();
+		if (Res != nullptr)
+		{
+			auto Property = this->GetSerializedProperty();
+			if (CastField<FClassProperty>(Property) != nullptr)//class property
+			{
+				auto id = Serializer.FindOrAddClassFromList((UClass*)Res);
+				auto type = (uint8)EObjectType::Class;
+				*this << type;
+				*this << id;
+				return *this;
+			}
+			else
+			{
+				if (SerializeObject(Value.Get()))
+				{
+					return *this;
+				}
+			}
+		}
+
+		auto noneType = (uint8)EObjectType::None;
+		*this << noneType;
+
+		return *this;
+	}
+#endif
 	FArchive& FLGUIObjectWriter::operator<<(FWeakObjectPtr& Value)
 	{
 		if (Value.IsValid())
@@ -133,9 +163,9 @@ namespace LGUIPrefabSystem3
 
 		return *this;
 	}
-	FArchive& FLGUIObjectWriter::operator<<(FLazyObjectPtr& LazyObjectPtr)
+	FArchive& FLGUIObjectWriter::operator<<(FLazyObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectWriter]Detect LazyObjectPtr property, which is not supported by LGUIPrefab!"));
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectWriter]Detect Value property, which is not supported by LGUIPrefab!"));
 		return *this;
 	}
 	FArchive& FLGUIObjectWriter::operator<<(FSoftObjectPtr& Value)
@@ -239,6 +269,15 @@ namespace LGUIPrefabSystem3
 		SerializeObject(Res, true);
 		return *this;
 	}
+#if ENGINE_MAJOR_VERSION >= 5
+	FArchive& FLGUIObjectReader::operator<<(FObjectPtr& Value)
+	{
+		UObject* Res = nullptr;
+		SerializeObject(Res, true);
+		Value = Res;
+		return *this;
+	}
+#endif
 	FArchive& FLGUIObjectReader::operator<<(FWeakObjectPtr& Value)
 	{
 		UObject* Res = nullptr;
@@ -246,9 +285,9 @@ namespace LGUIPrefabSystem3
 		Value = Res;
 		return *this;
 	}
-	FArchive& FLGUIObjectReader::operator<<(FLazyObjectPtr& LazyObjectPtr)
+	FArchive& FLGUIObjectReader::operator<<(FLazyObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectReader]Detect LazyObjectPtr property, which is not supported by LGUIPrefab!"));
+		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectReader]Detect Value property, which is not supported by LGUIPrefab!"));
 		return *this;
 	}
 	FArchive& FLGUIObjectReader::operator<<(FSoftObjectPtr& Value)
@@ -312,23 +351,23 @@ namespace LGUIPrefabSystem3
 		}
 		else
 		{
-			bool canSerializaObject = false;
+			bool canSerializeObject = false;
 			auto guidPtr = Serializer.MapObjectToGuid.Find(Object);
 			if (guidPtr != nullptr)
 			{
-				canSerializaObject = true;
+				canSerializeObject = true;
 			}
 			else
 			{
 				FGuid guid;
-				canSerializaObject = Serializer.CollectObjectToSerailize(Object, guid);
-				if (canSerializaObject)
+				canSerializeObject = Serializer.CollectObjectToSerailize(Object, guid);
+				if (canSerializeObject)
 				{
 					guidPtr = &guid;
 				}
 			}
 
-			if (canSerializaObject)//object belongs to this actor hierarchy
+			if (canSerializeObject)//object belongs to this actor hierarchy
 			{
 				auto type = (uint8)EObjectType::ObjectReference;
 				*this << type;
@@ -371,6 +410,36 @@ namespace LGUIPrefabSystem3
 
 		return *this;
 	}
+#if ENGINE_MAJOR_VERSION >= 5
+	FArchive& FLGUIDuplicateObjectWriter::operator<<(FObjectPtr& Value)
+	{
+		auto Res = Value.Get();
+		if (Res != nullptr)
+		{
+			auto Property = this->GetSerializedProperty();
+			if (CastField<FClassProperty>(Property) != nullptr)//class property
+			{
+				auto id = Serializer.FindOrAddClassFromList((UClass*)Res);
+				auto type = (uint8)EObjectType::Class;
+				*this << type;
+				*this << id;
+				return *this;
+			}
+			else
+			{
+				if (SerializeObject(Res))
+				{
+					return *this;
+				}
+			}
+		}
+
+		auto noneType = (uint8)EObjectType::None;
+		*this << noneType;
+
+		return *this;
+	}
+#endif
 	FArchive& FLGUIDuplicateObjectWriter::operator<<(FWeakObjectPtr& Value)
 	{
 		if (Value.IsValid())
@@ -476,6 +545,15 @@ namespace LGUIPrefabSystem3
 		SerializeObject(Res, true);
 		return *this;
 	}
+#if ENGINE_MAJOR_VERSION >= 5
+	FArchive& FLGUIDuplicateObjectReader::operator<<(FObjectPtr& Value)
+	{
+		UObject* Res = nullptr;
+		SerializeObject(Res, false);
+		Value = Res;
+		return *this;
+	}
+#endif
 	FArchive& FLGUIDuplicateObjectReader::operator<<(FWeakObjectPtr& Value)
 	{
 		UObject* Res = nullptr;

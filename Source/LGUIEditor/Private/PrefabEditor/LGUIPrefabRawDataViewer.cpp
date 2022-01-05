@@ -16,7 +16,6 @@ void SLGUIPrefabRawDataViewer::Construct(const FArguments& InArgs, TSharedPtr<FL
 		DetailsViewArgs.bShowOptions = false;
 		DetailsViewArgs.bAllowMultipleTopLevelObjects = false;
 		DetailsViewArgs.bAllowFavoriteSystem = false;
-		DetailsViewArgs.bShowActorLabel = false;
 		DetailsViewArgs.bHideSelectionTip = true;
 	}
 	DescriptorDetailView = EditModule.CreateDetailView(DetailsViewArgs);

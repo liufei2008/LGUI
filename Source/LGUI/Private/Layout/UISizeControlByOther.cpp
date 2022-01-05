@@ -126,9 +126,9 @@ bool UUISizeControlByOther::CheckTargetUIItem()
 void UUISizeControlByOther::OnRebuildLayout()
 {
 	if (!CheckRootUIComponent())return;
-	if (!enable)return;
+	if (!GetEnable())return;
 
-    if (CheckTargetUIItem() && CheckRootUIComponent() && enable)
+    if (CheckTargetUIItem() && CheckRootUIComponent() && GetEnable())
     {
         if (ControlWidth)
         {
@@ -145,8 +145,8 @@ bool UUISizeControlByOther::GetCanLayoutControlAnchor_Implementation(class UUIIt
 {
     if (this->GetRootUIComponent() == InUIItem)
     {
-        OutResult.bCanControlHorizontalSizeDelta = GetControlWidth() && enable;
-        OutResult.bCanControlVerticalSizeDelta = GetControlHeight() && enable;
+        OutResult.bCanControlHorizontalSizeDelta = GetControlWidth() && GetEnable();
+        OutResult.bCanControlVerticalSizeDelta = GetControlHeight() && GetEnable();
         return true;
     }
     else

@@ -43,7 +43,11 @@ public:
 		const uint32 SizeInBytes = Vertices.Num() * sizeof(FLGUIHudVertex);
 
 		FLGUIHudMeshVertexResourceArray ResourceArray(Vertices.GetData(), SizeInBytes);
+#if ENGINE_MAJOR_VERSION >= 5
+		FRHIResourceCreateInfo CreateInfo(TEXT("LGUIHudVertexBuffer"), &ResourceArray);
+#else
 		FRHIResourceCreateInfo CreateInfo(&ResourceArray);
+#endif
 		VertexBufferRHI = RHICreateVertexBuffer(SizeInBytes, BUF_Static, CreateInfo);
 	}
 };
@@ -366,9 +370,15 @@ public:
 				}
 
 				uint32 vertexDataLength = NumVerts * sizeof(FLGUIHudVertex);
+#if ENGINE_MAJOR_VERSION >= 5
+				void* VertexBufferData = RHILockBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, vertexDataLength, RLM_WriteOnly);
+				FMemory::Memcpy(VertexBufferData, HudVertexUpdateData.GetData(), vertexDataLength);
+				RHIUnlockBuffer(Section->HudVertexBuffers.VertexBufferRHI);
+#else
 				void* VertexBufferData = RHILockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI, 0, vertexDataLength, RLM_WriteOnly);
 				FMemory::Memcpy(VertexBufferData, HudVertexUpdateData.GetData(), vertexDataLength);
 				RHIUnlockVertexBuffer(Section->HudVertexBuffers.VertexBufferRHI);
+#endif
 			}
 			if(IsSupportUERenderer)
 			{
@@ -413,6 +423,35 @@ public:
 					}
 				}
 
+#if ENGINE_MAJOR_VERSION >= 5
+				{
+					auto& VertexBuffer = Section->VertexBuffers.PositionVertexBuffer;
+					void* VertexBufferData = RHILockBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
+					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
+					RHIUnlockBuffer(VertexBuffer.VertexBufferRHI);
+				}
+
+				{
+					auto& VertexBuffer = Section->VertexBuffers.ColorVertexBuffer;
+					void* VertexBufferData = RHILockBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
+					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetVertexData(), VertexBuffer.GetNumVertices() * VertexBuffer.GetStride());
+					RHIUnlockBuffer(VertexBuffer.VertexBufferRHI);
+				}
+
+				{
+					auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
+					void* VertexBufferData = RHILockBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTangentSize(), RLM_WriteOnly);
+					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTangentData(), VertexBuffer.GetTangentSize());
+					RHIUnlockBuffer(VertexBuffer.TangentsVertexBuffer.VertexBufferRHI);
+				}
+
+				{
+					auto& VertexBuffer = Section->VertexBuffers.StaticMeshVertexBuffer;
+					void* VertexBufferData = RHILockBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetTexCoordSize(), RLM_WriteOnly);
+					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTexCoordData(), VertexBuffer.GetTexCoordSize());
+					RHIUnlockBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
+				}
+#else
 				{
 					auto& VertexBuffer = Section->VertexBuffers.PositionVertexBuffer;
 					void* VertexBufferData = RHILockVertexBuffer(VertexBuffer.VertexBufferRHI, 0, VertexBuffer.GetNumVertices() * VertexBuffer.GetStride(), RLM_WriteOnly);
@@ -440,13 +479,20 @@ public:
 					FMemory::Memcpy(VertexBufferData, VertexBuffer.GetTexCoordData(), VertexBuffer.GetTexCoordSize());
 					RHIUnlockVertexBuffer(VertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
 				}
+#endif
 			}
 
 
 			// Lock index buffer
+#if ENGINE_MAJOR_VERSION >= 5
+			auto IndexBufferData = RHILockBuffer(Section->IndexBuffer.IndexBufferRHI, 0, IndexDataLength, RLM_WriteOnly);
+			FMemory::Memcpy(IndexBufferData, (void*)MeshIndexData, IndexDataLength);
+			RHIUnlockBuffer(Section->IndexBuffer.IndexBufferRHI);
+#else
 			auto IndexBufferData = RHILockIndexBuffer(Section->IndexBuffer.IndexBufferRHI, 0, IndexDataLength, RLM_WriteOnly);
 			FMemory::Memcpy(IndexBufferData, (void*)MeshIndexData, IndexDataLength);
 			RHIUnlockIndexBuffer(Section->IndexBuffer.IndexBufferRHI);
+#endif
 		}
 		delete[]MeshVertexData;
 		delete[]MeshIndexData;

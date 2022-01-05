@@ -100,7 +100,11 @@ public:
 		return FUIPostProcessRenderProxy::CanRender() && pixelateStrength > 0.0f;
 	}
 	virtual void OnRenderPostProcess_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+		FRDGBuilder& GraphBuilder,
+#else
 		FRHICommandListImmediate& RHICmdList,
+#endif
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenTargetTexture,
 		FTextureRHIRef ScreenTargetImage,
@@ -116,6 +120,9 @@ public:
 	{
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundPixelate);
 		if (pixelateStrength <= 0.0f)return;
+#if ENGINE_MAJOR_VERSION >= 5
+		FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
+#endif
 		float calculatedStrength = FMath::Pow(pixelateStrength * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
 		calculatedStrength = FMath::Clamp(calculatedStrength, 0.0f, 100.0f);
 		calculatedStrength += 1;
@@ -164,7 +171,13 @@ public:
 			);
 		}
 		//after pixelate process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+		RenderMeshOnScreen_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+			GraphBuilder
+#else
+			RHICmdList
+#endif
+			, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
 		//release render target
 		PixelateEffectRenderTarget.SafeRelease();

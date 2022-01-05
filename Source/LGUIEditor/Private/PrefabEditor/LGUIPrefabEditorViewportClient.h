@@ -45,8 +45,6 @@ public:
 
 	void TickWorld(float DeltaSeconds);
 
-	virtual void SetWidgetMode(FWidget::EWidgetMode NewMode) override;
-
 	bool FocusViewportToTargets();
 
 private:

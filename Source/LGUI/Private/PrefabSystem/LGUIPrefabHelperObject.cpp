@@ -33,7 +33,11 @@ void ULGUIPrefabHelperObject::SetActorPropertyInOutliner(AActor* Actor, bool InL
 	Actor->bHiddenEd = !InListed;
 	Actor->bHiddenEdLayer = !InListed;
 	Actor->bHiddenEdLevel = !InListed;
+#if ENGINE_MAJOR_VERSION >= 5
+	Actor->SetLockLocation(!InListed);
+#else
 	Actor->bLockLocation = !InListed;
+#endif
 
 	auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
 	bListedInSceneOutliner_Property->SetPropertyValue_InContainer(Actor, InListed);

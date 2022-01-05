@@ -71,7 +71,12 @@ public:
 	FVector2D RectSize;
 	FTexture2DResource* maskTexture = nullptr;
 
-	void RenderMeshOnScreen_RenderThread(FRHICommandListImmediate& RHICmdList
+	void RenderMeshOnScreen_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+		FRDGBuilder& GraphBuilder
+#else
+		FRHICommandListImmediate& RHICmdList
+#endif
 		, FTextureRHIRef ScreenTargetTexture
 		, FGlobalShaderMap* GlobalShaderMap
 		, FTextureRHIRef ResultTexture

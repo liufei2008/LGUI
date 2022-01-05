@@ -39,148 +39,142 @@ bool ULGUIEventDelegateParameterHelper::IsFunctionCompatible(const UFunction* In
 }
 bool ULGUIEventDelegateParameterHelper::IsPropertyCompatible(const FProperty* InFunctionProperty, LGUIEventDelegateParameterType& OutParameterType)
 {
-	if (!InFunctionProperty )
+	if (!InFunctionProperty)
 	{
 		return false;
 	}
 
-	if (auto boolProperty = CastField<FBoolProperty>(InFunctionProperty))
+	auto PropertyID = InFunctionProperty->GetID();
+	switch (*PropertyID.ToEName())
+	{
+	case NAME_BoolProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Bool;
 		return true;
 	}
-	else if (auto floatProperty = CastField<FFloatProperty>(InFunctionProperty))
+	case NAME_FloatProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Float;
 		return true;
 	}
-	else if (auto doubleProperty = CastField<FDoubleProperty>(InFunctionProperty))
+	case NAME_DoubleProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Double;
 		return true;
 	}
-	else if (auto int8Property = CastField<FInt8Property>(InFunctionProperty))
+	case NAME_Int8Property:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Int8;
 		return true;
 	}
-	else if (auto uint8Property = CastField<FByteProperty>(InFunctionProperty))
+	case NAME_ByteProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::UInt8;
 		return true;
 	}
-	else if (auto int16Property = CastField<FInt16Property>(InFunctionProperty))
+	case NAME_Int16Property:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Int16;
 		return true;
 	}
-	else if (auto uint16Property = CastField<FUInt16Property>(InFunctionProperty))
+	case NAME_UInt16Property:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::UInt16;
 		return true;
 	}
-	else if (auto int32Property = CastField<FIntProperty>(InFunctionProperty))
+	case NAME_IntProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Int32;
 		return true;
 	}
-	else if (auto uint32Property = CastField<FUInt32Property>(InFunctionProperty))
+	case NAME_UInt32Property:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::UInt32;
 		return true;
 	}
-	else if (auto int64Property = CastField<FInt64Property>(InFunctionProperty))
+	case NAME_Int64Property:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Int64;
 		return true;
 	}
-	else if (auto uint64Property = CastField<FUInt64Property>(InFunctionProperty))
+	case NAME_UInt64Property:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::UInt64;
 		return true;
 	}
-	else if (auto enumProperty = CastField<FEnumProperty>(InFunctionProperty))
+	case NAME_EnumProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::UInt8;
 		return true;
 	}
-	else if (auto structProperty = CastField<FStructProperty>(InFunctionProperty))
+	case NAME_StructProperty:
 	{
+		auto structProperty = (FStructProperty*)InFunctionProperty;
 		auto structName = structProperty->Struct->GetFName();
-		if (structName == NAME_Vector2D)
+		switch (*structName.ToEName())
 		{
+		case NAME_Vector2D:
 			OutParameterType = LGUIEventDelegateParameterType::Vector2; return true;
-		}
-		else if (structName == NAME_Vector)
-		{
+		case NAME_Vector:
 			OutParameterType = LGUIEventDelegateParameterType::Vector3; return true;
-		}
-		else if (structName == NAME_Vector4)
-		{
+		case NAME_Vector4:
 			OutParameterType = LGUIEventDelegateParameterType::Vector4; return true;
-		}
-		else if (structName == NAME_Color)
-		{
+		case NAME_Color:
 			OutParameterType = LGUIEventDelegateParameterType::Color; return true;
-		}
-		else if (structName == NAME_LinearColor)
-		{
+		case NAME_LinearColor:
 			OutParameterType = LGUIEventDelegateParameterType::LinearColor; return true;
-		}
-		else if (structName == NAME_Quat)
-		{
+		case NAME_Quat:
 			OutParameterType = LGUIEventDelegateParameterType::Quaternion; return true;
-		}
-		else if (structName == NAME_Rotator)
-		{
+		case NAME_Rotator:
 			OutParameterType = LGUIEventDelegateParameterType::Rotator; return true;
 		}
-		else
+		return false;
+	}
+
+	case NAME_ObjectProperty:
+	{
+		if (auto classProperty = CastField<FClassProperty>(InFunctionProperty))
 		{
-			return false;
+			OutParameterType = LGUIEventDelegateParameterType::Class;
+			return true;
+		}
+		else if (auto objectProperty = CastField<FObjectProperty>(InFunctionProperty))//if object property
+		{
+			if (objectProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
+			{
+				OutParameterType = LGUIEventDelegateParameterType::Actor;
+			}
+			else if (objectProperty->PropertyClass->IsChildOf(ULGUIPointerEventData::StaticClass()))
+			{
+				OutParameterType = LGUIEventDelegateParameterType::PointerEvent;
+			}
+			else if (objectProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))
+			{
+				return false;
+			}
+			else
+			{
+				OutParameterType = LGUIEventDelegateParameterType::Object;
+			}
+			return true;
 		}
 	}
 
-	else if (auto classProperty = CastField<FClassProperty>(InFunctionProperty))
-	{
-		OutParameterType = LGUIEventDelegateParameterType::Class;
-		return true;
-	}
-	else if (auto objectProperty = CastField<FObjectProperty>(InFunctionProperty))//if object property
-	{
-		if (objectProperty->PropertyClass->IsChildOf(AActor::StaticClass()))//if is Actor
-		{
-			OutParameterType = LGUIEventDelegateParameterType::Actor;
-		}
-		else if (objectProperty->PropertyClass->IsChildOf(ULGUIPointerEventData::StaticClass()))
-		{
-			OutParameterType = LGUIEventDelegateParameterType::PointerEvent;
-		}
-		else if (objectProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))
-		{
-			return false;
-		}
-		else
-		{
-			OutParameterType = LGUIEventDelegateParameterType::Object;
-		}
-		return true;
-	}
-
-	else if (auto strProperty = CastField<FStrProperty>(InFunctionProperty))
+	case NAME_StrProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::String;
 		return true;
 	}
-	else if (auto nameProperty = CastField<FNameProperty>(InFunctionProperty))
+	case NAME_NameProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Name;
 		return true;
 	}
-	else if (auto textProperty = CastField<FTextProperty>(InFunctionProperty))
+	case NAME_TextProperty:
 	{
 		OutParameterType = LGUIEventDelegateParameterType::Text;
 		return true;
+	}
 	}
 
 	return false;

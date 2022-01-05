@@ -82,7 +82,11 @@ public:
 		return FUIPostProcessRenderProxy::CanRender() && blurStrength > 0.0f;
 	}
 	virtual void OnRenderPostProcess_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+		FRDGBuilder& GraphBuilder,
+#else
 		FRHICommandListImmediate& RHICmdList,
+#endif
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenTargetTexture,
 		FTextureRHIRef ScreenTargetTexture,
@@ -99,6 +103,9 @@ public:
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundBlur);
 		if (blurStrength <= 0.0f)return;
 
+#if ENGINE_MAJOR_VERSION >= 5
+		FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
+#endif
 		float width = RectSize.X;
 		float height = RectSize.Y;
 		width = FMath::Max(width, 1.0f);
@@ -266,7 +273,13 @@ public:
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
-		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
+		RenderMeshOnScreen_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+			GraphBuilder
+#else
+			RHICmdList
+#endif
+			, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();

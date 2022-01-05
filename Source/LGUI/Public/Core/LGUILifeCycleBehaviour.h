@@ -27,7 +27,7 @@ protected:
 
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
-
+private:
 	UPROPERTY(EditAnywhere, Category = "LGUILifeCycleBehaviour")
 		bool enable = true;
 #if WITH_EDITORONLY_DATA
@@ -47,7 +47,7 @@ protected:
 	uint8 bPrevIsRootComponentVisible : 1;
 protected:
 	friend class ALGUIManagerActor;
-
+	mutable TWeakObjectPtr<USceneComponent> RootComp;
 	virtual bool IsAllowedToCallAwake()const { return true; }
 	virtual bool IsAllowedToCallOnEnable()const;
 	virtual void SetActiveStateForEnableAndDisable(bool activeOrInactive);
@@ -125,7 +125,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour")
 		AActor* InstantiatePrefabWithTransform(class ULGUIPrefab* OriginObject, USceneComponent* Parent, FVector Location, FRotator Rotation, FVector Scale);
 protected:
-	mutable TWeakObjectPtr<USceneComponent> RootComp;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

@@ -415,7 +415,6 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 			, nullptr, nullptr, OutCreatedActors, OutCreatedActorsGuid);
 		for (int i = 0; i < OutCreatedActors.Num(); i++)
 		{
-			UE_LOG(LGUI, Warning, TEXT("Add actor:%s"), *(OutCreatedActors[i]->GetActorLabel()));
 			InOutMapGuidToObject.Add(OutCreatedActorsGuid[i], OutCreatedActors[i]);
 		}
 	}

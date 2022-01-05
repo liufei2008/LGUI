@@ -77,7 +77,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
 {
     SCOPE_CYCLE_COUNTER(STAT_HorizontalLayout);
     if (!CheckRootUIComponent())return;
-    if (!enable)return;
+    if (!GetEnable())return;
 	if (bIsAnimationPlaying)
 	{
 		bShouldRebuildLayoutAfterAnimation = true;

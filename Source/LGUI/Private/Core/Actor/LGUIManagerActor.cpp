@@ -113,6 +113,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 	int ScreenSpaceOverlayCanvasCount = 0;
 	for (auto& item : AllCanvasArray)
 	{
+		check(item.IsValid());
 		if (item.IsValid())
 		{
 			if (item->IsRootCanvas())

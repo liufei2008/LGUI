@@ -95,8 +95,19 @@ void FLGUIHudRenderer::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
 }
 void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
+#if ENGINE_MAJOR_VERSION < 5
 	RenderLGUI_RenderThread(RHICmdList, InView);
+#endif
 }
+#if ENGINE_MAJOR_VERSION >= 5
+void FLGUIHudRenderer::PostRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)
+{
+	AddPass(GraphBuilder, [this, &GraphBuilder, &InView](FRHICommandListImmediate& RHICmdList)
+		{
+			RenderLGUI_RenderThread(GraphBuilder, InView);
+		});
+}
+#endif
 int32 FLGUIHudRenderer::GetPriority() const
 {
 #if WITH_EDITOR
@@ -106,6 +117,7 @@ int32 FLGUIHudRenderer::GetPriority() const
 #endif
 	return Priority;
 }
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
 bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
 {
 	if (!World.IsValid())return false;
@@ -114,6 +126,14 @@ bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
 	if (World.Get() != InViewport->GetClient()->GetWorld())return false;//only render self world
 	return true;
 }
+#else
+bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext& Context) const
+{
+	if (!World.IsValid())return false;
+	if (World.Get() != Context.GetWorld())return false;//only render self world
+	return true;
+}
+#endif
 void FLGUIHudRenderer::PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
 {
 	
@@ -180,11 +200,19 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RH
 	PixelShader->SetParameters(RHICmdList, MVP, SrcTextureScaleOffset, Src);
 
 	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessCopyMeshRegionVertex);
+#if ENGINE_MAJOR_VERSION >= 5
+	FRHIResourceCreateInfo CreateInfo(TEXT("CopyRenderTargetOnMeshRegion"));
+	FBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
+	void* VoidPtr = RHILockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
+	FPlatformMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
+	RHIUnlockBuffer(VertexBufferRHI);
+#else
 	FRHIResourceCreateInfo CreateInfo;
 	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
 	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
 	FPlatformMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
 	RHIUnlockVertexBuffer(VertexBufferRHI);
+#endif
 
 	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
@@ -259,7 +287,13 @@ void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStat
 }
 
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
-void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView)
+void FLGUIHudRenderer::RenderLGUI_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+	FRDGBuilder& GraphBuilder
+#else
+	FRHICommandListImmediate& RHICmdList
+#endif
+	, FSceneView& InView)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
 	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() <= 0 && WorldSpaceRenderCanvasParameterArray.Num() <= 0)return;//nothing to render
@@ -273,6 +307,9 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
 
 	auto ViewRect = RenderView.UnscaledViewRect;
+#if ENGINE_MAJOR_VERSION >= 5
+	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
+#endif
 	if (CustomRenderTarget.IsValid())
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
@@ -304,7 +341,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	}
 
 	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
+#if ENGINE_MAJOR_VERSION >= 5
+	const FSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
+#else
 	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
+#endif
 	FVector4 DepthTextureScaleOffset;
 	FVector4 ViewTextureScaleOffset;
 	switch (RenderView.StereoPass)
@@ -312,8 +353,13 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 	case EStereoscopicPass::eSSP_FULL:
 	{
 		DepthTextureScaleOffset = FVector4(
+#if ENGINE_MAJOR_VERSION >= 5
+			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Target->Desc.GetSize().X,
+			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Target->Desc.GetSize().Y,
+#else
 			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
 			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
+#endif
 			0, 0
 		);
 		ViewTextureScaleOffset = FVector4(1, 1, 0, 0);
@@ -395,7 +441,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 						{
 							RHICmdList.EndRenderPass();
 							hudPrimitive->OnRenderPostProcess_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+								GraphBuilder,
+#else
 								RHICmdList,
+#endif
 								this,
 								(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
 								ScreenColorRenderTargetTexture,
@@ -420,7 +470,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 							{
 								auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 								const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
 								auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
+#else
+								auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
+#endif
 								const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 								auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 
@@ -438,7 +492,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 
 									VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
 									PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+#if ENGINE_MAJOR_VERSION >= 5
+									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, (FRHITexture2D*)(SceneTextures.Depth.Target->GetRHI()));
+#else
 									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+#endif
 
 									RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
 									RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
@@ -504,7 +562,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 					{
 						RHICmdList.EndRenderPass();
 						hudPrimitive->OnRenderPostProcess_RenderThread(
+#if ENGINE_MAJOR_VERSION >= 5
+							GraphBuilder,
+#else
 							RHICmdList,
+#endif
 							this,
 							(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
 							ScreenColorRenderTargetTexture,
@@ -529,7 +591,11 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(FRHICommandListImmediate& RHICmdL
 						{
 							auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
 							const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
 							auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
+#else
+							auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
+#endif
 							const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
 							auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 
@@ -838,7 +904,11 @@ void FLGUIFullScreenQuadVertexBuffer::InitRHI()
 	Vertices[2] = FLGUIPostProcessVertex(FVector(-1, 1, 0), FVector2D(0.0f, 0.0f));
 	Vertices[3] = FLGUIPostProcessVertex(FVector(1, 1, 0), FVector2D(1.0f, 0.0f));
 
+#if ENGINE_MAJOR_VERSION >= 5
+	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadVertexBuffer"), &Vertices);
+#else
 	FRHIResourceCreateInfo CreateInfo(&Vertices);
+#endif
 	VertexBufferRHI = RHICreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static, CreateInfo);
 }
 void FLGUIFullScreenQuadIndexBuffer::InitRHI()
@@ -854,6 +924,10 @@ void FLGUIFullScreenQuadIndexBuffer::InitRHI()
 	IndexBuffer.AddUninitialized(NumIndices);
 	FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
 
+#if ENGINE_MAJOR_VERSION >= 5
+	FRHIResourceCreateInfo CreateInfo(TEXT("LGUIFullScreenQuadIndexBuffer"), &IndexBuffer);
+#else
 	FRHIResourceCreateInfo CreateInfo(&IndexBuffer);
+#endif
 	IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, CreateInfo);
 }

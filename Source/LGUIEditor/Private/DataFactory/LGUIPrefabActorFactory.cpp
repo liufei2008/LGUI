@@ -39,11 +39,6 @@ bool ULGUIPrefabActorFactory::PreSpawnActor(UObject* Asset, FTransform& InOutLoc
 	return true;
 }
 
-AActor* ULGUIPrefabActorFactory::SpawnActor(UObject* Asset, ULevel* InLevel, const FTransform& Transform, EObjectFlags InObjectFlags, const FName Name)
-{
-	return Super::SpawnActor(Asset, InLevel, Transform, InObjectFlags, Name);
-}
-
 void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 {
 	Super::PostSpawnActor(Asset, InNewActor);

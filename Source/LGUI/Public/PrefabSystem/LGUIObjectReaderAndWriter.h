@@ -47,7 +47,10 @@ namespace LGUIPrefabSystem3
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
 		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FLazyObjectPtr& LazyObjectPtr) override;
+#if ENGINE_MAJOR_VERSION >= 5
+		virtual FArchive& operator<<(FObjectPtr& Value) override;
+#endif
+		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
@@ -65,7 +68,10 @@ namespace LGUIPrefabSystem3
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
 		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FLazyObjectPtr& LazyObjectPtr) override;
+#if ENGINE_MAJOR_VERSION >= 5
+		virtual FArchive& operator<<(FObjectPtr& Value) override;
+#endif
+		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
@@ -83,6 +89,9 @@ namespace LGUIPrefabSystem3
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(UObject*& Res) override;
+#if ENGINE_MAJOR_VERSION >= 5
+		virtual FArchive& operator<<(FObjectPtr& Value) override;
+#endif
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FString GetArchiveName() const override;
 		bool SerializeObject(UObject* Object);
@@ -97,6 +106,9 @@ namespace LGUIPrefabSystem3
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(UObject*& Res) override;
+#if ENGINE_MAJOR_VERSION >= 5
+		virtual FArchive& operator<<(FObjectPtr& Value) override;
+#endif
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FString GetArchiveName() const override;
 		bool SerializeObject(UObject*& Object, bool CanSerializeClass);
@@ -115,7 +127,10 @@ namespace LGUIPrefabSystem3
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
 		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FLazyObjectPtr& LazyObjectPtr) override;
+#if ENGINE_MAJOR_VERSION >= 5
+		virtual FArchive& operator<<(FObjectPtr& Value) override;
+#endif
+		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
@@ -133,7 +148,10 @@ namespace LGUIPrefabSystem3
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
 		virtual FArchive& operator<<(UObject*& Res) override;
-		virtual FArchive& operator<<(FLazyObjectPtr& LazyObjectPtr) override;
+#if ENGINE_MAJOR_VERSION >= 5
+		virtual FArchive& operator<<(FObjectPtr& Value) override;
+#endif
+		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
 		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;

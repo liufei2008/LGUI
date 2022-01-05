@@ -42,8 +42,8 @@ void ULGUILifeCycleUIBehaviour::PostEditChangeProperty(FPropertyChangedEvent& Pr
 
 bool ULGUILifeCycleUIBehaviour::CheckRootUIComponent() const
 {
-	if (this->GetWorld() == nullptr)return false;
 	if (RootUIComp.IsValid())return true;
+	if (this->GetWorld() == nullptr)return false;
 	if (auto Owner = GetOwner())
 	{
 		RootUIComp = Cast<UUIItem>(Owner->GetRootComponent());
@@ -57,11 +57,11 @@ bool ULGUILifeCycleUIBehaviour::GetIsActiveAndEnable()const
 {
 	if (RootUIComp.IsValid())
 	{
-		return RootUIComp->GetIsUIActiveInHierarchy() && enable;
+		return RootUIComp->GetIsUIActiveInHierarchy() && this->GetEnable();
 	}
 	else
 	{
-		return enable;
+		return this->GetEnable();
 	}
 }
 bool ULGUILifeCycleUIBehaviour::IsAllowedToCallOnEnable()const

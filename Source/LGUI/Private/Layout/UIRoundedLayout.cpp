@@ -9,7 +9,7 @@
 void UUIRoundedLayout::OnRebuildLayout()
 {
 	if (!CheckRootUIComponent())return;
-	if (!enable)return;
+	if (!GetEnable())return;
 
 	const auto& uiChildrenList = GetAvailableChildren();
 	int childrenCount = uiChildrenList.Num();
