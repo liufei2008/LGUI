@@ -517,7 +517,7 @@ void UUIItem::PostEditUndo()
 	ApplyHierarchyIndex();
 	CheckUIActiveState();
 	MarkAllDirtyRecursive();
-	CalculateTransformFromAnchor();
+	SetOnAnchorChange(true, true);
 	EditorForceUpdateImmediately();
 }
 
@@ -1268,6 +1268,10 @@ void UUIItem::SetPivot(FVector2D Value)
 	if (!AnchorData.Pivot.Equals(Value, 0.0f))
 	{
 		AnchorData.Pivot = Value;
+		bAnchorLeftCached = false;
+		bAnchorRightCached = false;
+		bAnchorBottomCached = false;
+		bAnchorTopCached = false;
 		SetOnAnchorChange(true, false);
 	}
 }
@@ -1569,7 +1573,7 @@ void UUIItem::SetAnchorLeft(float Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		if (CacheAnchorLeft != Value)
+		if (CacheAnchorLeft != Value || !bAnchorLeftCached)
 		{
 			bAnchorLeftCached = true;
 			CacheAnchorLeft = Value;
@@ -1600,7 +1604,7 @@ void UUIItem::SetAnchorTop(float Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		if (CacheAnchorTop != Value)
+		if (CacheAnchorTop != Value || !bAnchorTopCached)
 		{
 			bAnchorTopCached = true;
 			CacheAnchorTop = Value;
@@ -1631,7 +1635,7 @@ void UUIItem::SetAnchorRight(float Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		if (CacheAnchorRight != Value)
+		if (CacheAnchorRight != Value || !bAnchorRightCached)
 		{
 			bAnchorRightCached = true;
 			CacheAnchorRight = Value;
@@ -1662,7 +1666,7 @@ void UUIItem::SetAnchorBottom(float Value)
 {
 	if (this->ParentUIItem.IsValid())
 	{
-		if (CacheAnchorBottom != Value)
+		if (CacheAnchorBottom != Value || !bAnchorBottomCached)
 		{
 			bAnchorBottomCached = true;
 			CacheAnchorBottom = Value;
@@ -1692,7 +1696,7 @@ void UUIItem::SetAnchorBottom(float Value)
 
 void UUIItem::SetWidth(float Value)
 {
-	if (CacheWidth != Value)
+	if (CacheWidth != Value || !bWidthCached)
 	{
 		bWidthCached = true;
 		CacheWidth = Value;
@@ -1728,7 +1732,7 @@ void UUIItem::SetWidth(float Value)
 }
 void UUIItem::SetHeight(float Value)
 {
-	if (CacheHeight != Value)
+	if (CacheHeight != Value || !bHeightCached)
 	{
 		bHeightCached = true;
 		CacheHeight = Value;

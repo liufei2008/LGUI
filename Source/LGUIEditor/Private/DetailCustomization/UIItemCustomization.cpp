@@ -145,13 +145,14 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		//anchors preset menu
 		FVector2D anchorItemSize(42, 42);
 		float itemBasePadding = 8;
-		FMargin AnchorLabelMargin = FMargin(2, 2);
+		FMargin AnchorLabelMargin = FMargin(4, 2);
 		FMargin AnchorValueMargin = FMargin(2, 2);
 
 		auto MakeAnchorLabelWidget = [&](int AnchorLabelIndex) {
 			return
 				SNew(SBox)
 				.Padding(AnchorLabelMargin)
+				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
 					SNew(STextBlock)
 					.Text(this, &FUIItemCustomization::GetAnchorLabelText, AnchorMinHandle, AnchorMaxHandle, AnchorLabelIndex)
@@ -165,6 +166,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			return
 				SNew(SBox)
 				.Padding(AnchorValueMargin)
+				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
 					SNew(SNumericEntryBox<float>)
 					.AllowSpin(true)
@@ -175,7 +177,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					.Value(this, &FUIItemCustomization::GetAnchorValue, AnchorHandle, AnchorValueIndex)
 					.OnValueChanged(this, &FUIItemCustomization::OnAnchorValueChanged, AnchorHandle, AnchorValueIndex)
 					.OnValueCommitted(this, &FUIItemCustomization::OnAnchorValueCommitted, AnchorHandle, AnchorValueIndex)
-					.OnBeginSliderMovement(this, &FUIItemCustomization::OnAnchorSliderSliderMovementBegin)
+					.OnBeginSliderMovement(this, &FUIItemCustomization::OnAnchorValueSliderMovementBegin)
+					.OnEndSliderMovement(this, &FUIItemCustomization::OnAnchorValueSliderMovementEnd)
 					.IsEnabled(this, &FUIItemCustomization::IsAnchorValueEnable, AnchorHandle, AnchorValueIndex)
 				]
 			;
@@ -210,6 +213,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		[
 			SNew(SVerticalBox)
 			+SVerticalBox::Slot()
+			.AutoHeight()
 			[
 				SNew(SHorizontalBox)
 				+SHorizontalBox::Slot()
@@ -224,6 +228,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				]
 			]
 			+SVerticalBox::Slot()
+			.AutoHeight()
 			[
 				SNew(SHorizontalBox)
 				+SHorizontalBox::Slot()
@@ -239,6 +244,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			]
 
 			+SVerticalBox::Slot()
+			.AutoHeight()
 			[
 				SNew(SHorizontalBox)
 				+SHorizontalBox::Slot()
@@ -253,6 +259,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				]
 			]
 			+SVerticalBox::Slot()
+			.AutoHeight()
 			[
 				SNew(SHorizontalBox)
 				+SHorizontalBox::Slot()
@@ -588,7 +595,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		.WholeRowContent()
 		[
 			SNew(STextBlock)
-			.Text(LOCTEXT("AnchorRawDataWarning", "Don't edit these unless you know what you doing!"))
+			.Text(LOCTEXT("AnchorRawDataWarning", "Normally do not edit these!"))
 			.ColorAndOpacity(FLinearColor(FColor::Yellow))
 			.AutoWrapText(true)
 			.Font(IDetailLayoutBuilder::GetDetailFont())
@@ -600,6 +607,18 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	//pivot
 	auto PivotHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.Pivot));
 	TransformCategory.AddProperty(PivotHandle);
+	PivotHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+		this->OnPrePivotChange();
+		}));
+	PivotHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		this->OnPivotChanged();
+		}));
+	PivotHandle->SetOnChildPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
+		this->OnPrePivotChange();
+		}));
+	PivotHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateLambda([=] {
+		this->OnPivotChanged();
+		}));
 
 	//location rotation scale
 	const FSelectedActorInfo& selectedActorInfo = DetailBuilder.GetDetailsView()->GetSelectedActorInfo();
@@ -618,37 +637,33 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
 			.Padding(2, 0)
-			.FillWidth(5)
+			.AutoWidth()
 			[
 				HierarchyIndexHandle->CreatePropertyValueWidget()
 			]
 			+ SHorizontalBox::Slot()
 			.Padding(2, 0)
-			.FillWidth(2)
+			.AutoWidth()
 			[
-				SNew(SBox)
-				.HeightOverride(18)
+				SNew(SButton)
+				.Text(LOCTEXT("IncreaseHierarchyOrder", "+"))
+				.ToolTipText(LOCTEXT("IncreaseHierarchyOrder_Tooltip", "Move order up"))
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.VAlign(EVerticalAlignment::VAlign_Center)
 				.IsEnabled_Static(LGUIEditorUtils::IsEnabledOnProperty, HierarchyIndexHandle)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Increase", "+"))
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, true, HierarchyIndexHandle)
-				]
+				.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, true, HierarchyIndexHandle)
 			]
 			+ SHorizontalBox::Slot()
 			.Padding(2, 0)
-			.FillWidth(2)
+			.AutoWidth()
 			[
-				SNew(SBox)
-				.HeightOverride(18)
+				SNew(SButton)
+				.Text(LOCTEXT("DecreaseHierarchyOrder", "-"))
+				.ToolTipText(LOCTEXT("IncreaseHierarchyOrder_Tooltip", "Move order down"))
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.VAlign(EVerticalAlignment::VAlign_Center)
 				.IsEnabled_Static(LGUIEditorUtils::IsEnabledOnProperty, HierarchyIndexHandle)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Decrease", "-"))
-					.HAlign(EHorizontalAlignment::HAlign_Center)
-					.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, false, HierarchyIndexHandle)
-				]
+				.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, false, HierarchyIndexHandle)
 			];
 
 		TransformCategory.AddCustomRow(LOCTEXT("HierarchyIndexManager", "HierarchyIndexManager"))
@@ -721,6 +736,42 @@ EVisibility FUIItemCustomization::GetAnchorPresetButtonVisibility()const
 	return EVisibility::Hidden;
 }
 
+void FUIItemCustomization::OnPrePivotChange()
+{
+	AnchorAsMarginArray.Empty();
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
+	for (auto& Item : TargetScriptArray)
+	{
+		FMargin AnchorAsMargin;
+		if (Item.IsValid())
+		{
+			AnchorAsMargin.Left = Item->GetAnchorLeft();
+			AnchorAsMargin.Right = Item->GetAnchorRight();
+			AnchorAsMargin.Bottom = Item->GetAnchorBottom();
+			AnchorAsMargin.Top = Item->GetAnchorTop();
+		}
+		AnchorAsMarginArray.Add(AnchorAsMargin);
+	}
+}
+void FUIItemCustomization::OnPivotChanged()
+{
+	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
+	for (int i = 0; i < TargetScriptArray.Num(); i++)
+	{
+		auto& Item = TargetScriptArray[i];
+		auto& AnchorAsMargin = AnchorAsMarginArray[i];
+		if (Item.IsValid())
+		{
+			Item->MarkAllDirtyRecursive();
+			//set anchors to make it stay as relative to parent
+			Item->SetAnchorLeft(AnchorAsMargin.Left);
+			Item->SetAnchorRight(AnchorAsMargin.Right);
+			Item->SetAnchorBottom(AnchorAsMargin.Bottom);
+			Item->SetAnchorTop(AnchorAsMargin.Top);
+		}
+	}
+}
+
 EVisibility FUIItemCustomization::GetDisplayNameWarningVisibility()const
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return EVisibility::Hidden;
@@ -791,7 +842,6 @@ FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool Increa
 			}
 		}
 	}
-	GEditor->EndTransaction();
 
 	for (auto& Item : TargetScriptArray)
 	{
@@ -807,6 +857,7 @@ FReply FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex(bool Increa
 			}
 		}
 	}
+	GEditor->EndTransaction();
 
 	LGUIEditorTools::RefreshSceneOutliner();
 	return FReply::Handled();
@@ -1232,17 +1283,21 @@ void FUIItemCustomization::OnAnchorValueCommitted(float Value, ETextCommit::Type
 	{
 		Item->Modify();
 	}
-	GEditor->EndTransaction();
 	OnAnchorValueChanged(Value, AnchorHandle, AnchorValueIndex);
+	GEditor->EndTransaction();
 }
 
-void FUIItemCustomization::OnAnchorSliderSliderMovementBegin()
+void FUIItemCustomization::OnAnchorValueSliderMovementBegin()
 {
 	GEditor->BeginTransaction(LOCTEXT("ChangeAnchorValue", "Change LGUI Anchor Value"));
 	for (auto& Item : TargetScriptArray)
 	{
 		Item->Modify();
 	}
+}
+
+void FUIItemCustomization::OnAnchorValueSliderMovementEnd(float Value)
+{
 	GEditor->EndTransaction();
 }
 
@@ -1320,7 +1375,6 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 	{
 		UIItem->Modify();
 	}
-	GEditor->EndTransaction();
 
 	for (auto& UIItem : TargetScriptArray)
 	{
@@ -1376,15 +1430,53 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 		UIItem->SetRelativeLocation(PrevRelativeLocation);
 		if (snapAnchor)
 		{
-			if (HorizontalAlign == LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Stretch)
+			switch (HorizontalAlign)
+			{
+			case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Left:
+			{
+				UIItem->SetHorizontalAnchoredPosition(-UIItem->GetLocalSpaceLeft());
+			}
+				break;
+			case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Center:
+			{
+				UIItem->SetHorizontalAnchoredPosition(-(UIItem->GetLocalSpaceRight() - UIItem->GetLocalSpaceLeft()) * 0.5f);
+			}
+				break;
+			case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Right:
+			{
+				UIItem->SetHorizontalAnchoredPosition(-UIItem->GetLocalSpaceRight());
+			}
+				break;
+			case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Stretch:
 			{
 				UIItem->SetAnchorLeft(0);
 				UIItem->SetAnchorRight(0);
 			}
-			if (VerticalAlign == LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Stretch)
+				break;
+			}
+			switch (VerticalAlign)
+			{
+			case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Top:
+			{
+				UIItem->SetVerticalAnchoredPosition(-UIItem->GetLocalSpaceTop());
+			}
+				break;
+			case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Middle:
+			{
+				UIItem->SetVerticalAnchoredPosition(-(UIItem->GetLocalSpaceTop() - UIItem->GetLocalSpaceBottom()) * 0.5f);
+			}
+				break;
+			case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Bottom:
+			{
+				UIItem->SetVerticalAnchoredPosition(-UIItem->GetLocalSpaceBottom());
+			}
+				break;
+			case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Stretch:
 			{
 				UIItem->SetAnchorBottom(0);
 				UIItem->SetAnchorTop(0);
+			}
+				break;
 			}
 		}
 
@@ -1392,6 +1484,7 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 	}
 	TargetScriptArray[0]->EditorForceUpdateImmediately();
 	ForceRefreshEditor(DetailBuilder);
+	GEditor->EndTransaction();
 }
 
 bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const
@@ -1536,12 +1629,11 @@ FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll, TShar
 		}
 	}
 
-	//GEditor->BeginTransaction(LOCTEXT("FixDisplayName", "Fix DisplayName"));
-	//for (auto& UIItem : UIItems)
-	//{
-	//	UIItem->Modify();
-	//}
-	//GEditor->EndTransaction();
+	GEditor->BeginTransaction(LOCTEXT("FixDisplayName", "Fix DisplayName"));
+	for (auto& UIItem : UIItems)
+	{
+		UIItem->Modify();
+	}
 
 	for (auto& UIItem : TargetScriptArray)
 	{
@@ -1576,6 +1668,7 @@ FReply FUIItemCustomization::OnClickFixDisplayNameButton(bool singleOrAll, TShar
 
 		LGUIUtils::NotifyPropertyChanged(UIItem.Get(), GET_MEMBER_NAME_CHECKED(UUIItem, displayName));
 	}
+	GEditor->EndTransaction();
 
 	return FReply::Handled();
 }

@@ -21,7 +21,6 @@ public:
 	template<class T>
 	static void CreateUIItemActor()
 	{
-		ULGUIEditorManagerObject::CanExecuteSelectionConvert = false;
 		static_assert(TPointerIsConvertibleFromTo<T, const AActor>::Value, "'T' template parameter to CreateUIItemActor must be derived from AActor");
 		auto selectedActor = GetFirstSelectedActor();
 		AActor* newActor = nullptr;
@@ -34,7 +33,6 @@ public:
 			GEditor->SelectActor(newActor, true, true);
 		}
 		GEditor->EndTransaction();
-		ULGUIEditorManagerObject::CanExecuteSelectionConvert = true;
 	}
 	static FString GetUniqueNumetricName(const FString& InPrefix, const TArray<FString>& InExistNames);
 	static TArray<AActor*> GetRootActorListFromSelection(const TArray<AActor*>& selectedActors);

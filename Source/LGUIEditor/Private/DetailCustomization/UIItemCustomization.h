@@ -44,7 +44,8 @@ private:
 	TOptional<float> GetAnchorValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const;
 	void OnAnchorValueChanged(float Value, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex);
 	void OnAnchorValueCommitted(float Value, ETextCommit::Type commitType, TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex);
-	void OnAnchorSliderSliderMovementBegin();
+	void OnAnchorValueSliderMovementBegin();
+	void OnAnchorValueSliderMovementEnd(float Value);
 	EVisibility GetAnchorPresetButtonVisibility()const;
 	bool IsAnchorValueEnable(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const;
 
@@ -52,6 +53,10 @@ private:
 
 	EVisibility GetDisplayNameWarningVisibility()const;
 	FReply OnClickFixDisplayNameButton(bool singleOrAll, TSharedRef<IPropertyHandle> DisplayNameHandle);
+
+	TArray<FMargin> AnchorAsMarginArray;
+	void OnPrePivotChange();
+	void OnPivotChanged();
 
 	FLGUICanLayoutControlAnchor GetLayoutControlAnchorValue()const;
 	bool IsAnchorControlledByMultipleLayout()const;
