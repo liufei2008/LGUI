@@ -10,7 +10,7 @@ UUIDirectMeshRenderable::UUIDirectMeshRenderable(const FObjectInitializer& Objec
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	bLocalVertexPositionChanged = true;
-	uiRenderableType = EUIRenderableType::UIDirectMeshRenderable;
+	UIRenderableType = EUIRenderableType::UIDirectMeshRenderable;
 }
 
 void UUIDirectMeshRenderable::BeginPlay()
@@ -92,7 +92,11 @@ void UUIDirectMeshRenderable::SetMeshData(TWeakObjectPtr<ULGUIMeshComponent> InU
 
 bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
-	if (bRaycastComplex)
+	if (RaycastType == EUIRenderableRaycastType::Rect)
+	{
+		return Super::LineTraceUI(OutHit, Start, End);
+	}
+	else if (RaycastType == EUIRenderableRaycastType::Geometry)
 	{
 		if (!MeshSection.IsValid())return false;
 
@@ -105,9 +109,9 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 		//start and end point must be different side of X plane
 		if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
 		{
-			auto result = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
+			auto IntersectionPoint = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
 			//hit point inside rect area
-			if (result.Y > GetLocalSpaceLeft() && result.Y < GetLocalSpaceRight() && result.Z > GetLocalSpaceBottom() && result.Z < GetLocalSpaceTop())
+			if (IntersectionPoint.Y > GetLocalSpaceLeft() && IntersectionPoint.Y < GetLocalSpaceRight() && IntersectionPoint.Z > GetLocalSpaceBottom() && IntersectionPoint.Z < GetLocalSpaceTop())
 			{
 				//triangle hit test
 				auto& vertices = MeshSection.Pin()->vertices;
@@ -119,8 +123,8 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 					auto point0 = (vertices[triangleIndices[index++]].Position);
 					auto point1 = (vertices[triangleIndices[index++]].Position);
 					auto point2 = (vertices[triangleIndices[index++]].Position);
-					FVector hitPoint, hitNormal;
-					if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
+					FVector HitPoint, HitNormal;
+					if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, HitPoint, HitNormal))
 					{
 						OutHit.TraceStart = Start;
 						OutHit.TraceEnd = End;
@@ -128,8 +132,8 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 						OutHit.Actor = GetOwner();
 #endif
 						OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
-						OutHit.Location = GetComponentTransform().TransformPosition(hitPoint);
-						OutHit.Normal = GetComponentTransform().TransformVector(hitNormal);
+						OutHit.Location = GetComponentTransform().TransformPosition(HitPoint);
+						OutHit.Normal = GetComponentTransform().TransformVector(HitNormal);
 						OutHit.Normal.Normalize();
 						OutHit.Distance = FVector::Distance(Start, OutHit.Location);
 						OutHit.ImpactPoint = OutHit.Location;
@@ -143,6 +147,6 @@ bool UUIDirectMeshRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Sta
 	}
 	else
 	{
-		return Super::LineTraceUI(OutHit, Start, End);
+		return LineTraceUICustom(OutHit, Start, End);
 	}
 }

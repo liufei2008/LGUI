@@ -6,12 +6,13 @@
 #include "Utils/LGUIUtils.h"
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
+#include "Core/ActorComponent/UIRenderableCustomRaycast.h"
 
 
 UUIBaseRenderable::UUIBaseRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	uiRenderableType = EUIRenderableType::None;
+	UIRenderableType = EUIRenderableType::None;
 
 	bColorChanged = true;
 	bTransformChanged = true;
@@ -109,57 +110,89 @@ void UUIBaseRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FV
 
 bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
-	if (bRaycastComplex)
-	{
-		auto inverseTf = GetComponentTransform().Inverse();
-		auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
-		auto localSpaceRayEnd = inverseTf.TransformPosition(End);
+	auto inverseTf = GetComponentTransform().Inverse();
+	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
+	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
 
-		//DrawDebugLine(this->GetWorld(), Start, End, FColor::Red, false, 5.0f);//just for test
-		//check Line-Plane intersection first, then check Line-Triangle
-		//start and end point must be different side of X plane
-		if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
+	//DrawDebugLine(this->GetWorld(), Start, End, FColor::Red, false, 5.0f);//just for test
+	//check Line-Plane intersection first, then check Line-Triangle
+	//start and end point must be different side of X plane
+	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
+	{
+		auto IntersectionPoint = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
+		//hit point inside rect area
+		if (IntersectionPoint.Y > GetLocalSpaceLeft() && IntersectionPoint.Y < GetLocalSpaceRight() && IntersectionPoint.Z > GetLocalSpaceBottom() && IntersectionPoint.Z < GetLocalSpaceTop())
 		{
-			auto result = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
-			//hit point inside rect area
-			if (result.Y > GetLocalSpaceLeft() && result.Y < GetLocalSpaceRight() && result.Z > GetLocalSpaceBottom() && result.Z < GetLocalSpaceTop())
+			//triangle hit test
+			auto& vertices = InGeo->originPositions;
+			auto& triangleIndices = InGeo->triangles;
+			int triangleCount = triangleIndices.Num() / 3;
+			int index = 0;
+			for (int i = 0; i < triangleCount; i++)
 			{
-				//triangle hit test
-				auto& vertices = InGeo->originPositions;
-				auto& triangleIndices = InGeo->triangles;
-				int triangleCount = triangleIndices.Num() / 3;
-				int index = 0;
-				for (int i = 0; i < triangleCount; i++)
+				auto point0 = (vertices[triangleIndices[index++]]);
+				auto point1 = (vertices[triangleIndices[index++]]);
+				auto point2 = (vertices[triangleIndices[index++]]);
+				FVector hitPoint, hitNormal;
+				if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
 				{
-					auto point0 = (vertices[triangleIndices[index++]]);
-					auto point1 = (vertices[triangleIndices[index++]]);
-					auto point2 = (vertices[triangleIndices[index++]]);
-					FVector hitPoint, hitNormal;
-					if (FMath::SegmentTriangleIntersection(localSpaceRayOrigin, localSpaceRayEnd, point0, point1, point2, hitPoint, hitNormal))
-					{
-						OutHit.TraceStart = Start;
-						OutHit.TraceEnd = End;
+					OutHit.TraceStart = Start;
+					OutHit.TraceEnd = End;
 #if ENGINE_MAJOR_VERSION < 5
-						OutHit.Actor = GetOwner();
+					OutHit.Actor = GetOwner();
 #endif
-						OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
-						OutHit.Location = GetComponentTransform().TransformPosition(hitPoint);
-						OutHit.Normal = GetComponentTransform().TransformVector(hitNormal);
-						OutHit.Normal.Normalize();
-						OutHit.Distance = FVector::Distance(Start, OutHit.Location);
-						OutHit.ImpactPoint = OutHit.Location;
-						OutHit.ImpactNormal = OutHit.Normal;
-						return true;
-					}
+					OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
+					OutHit.Location = GetComponentTransform().TransformPosition(hitPoint);
+					OutHit.Normal = GetComponentTransform().TransformVector(hitNormal);
+					OutHit.Normal.Normalize();
+					OutHit.Distance = FVector::Distance(Start, OutHit.Location);
+					OutHit.ImpactPoint = OutHit.Location;
+					OutHit.ImpactNormal = OutHit.Normal;
+					return true;
 				}
 			}
 		}
-		return false;
 	}
-	else
+	return false;
+}
+
+bool UUIBaseRenderable::LineTraceUICustom(FHitResult& OutHit, const FVector& Start, const FVector& End)
+{
+	if (!CustomRaycastComponent.IsValid())
 	{
-		return Super::LineTraceUI(OutHit, Start, End);
+		CustomRaycastComponent = GetOwner()->FindComponentByClass<UUIRenderableCustomRaycast>();
+		if (!CustomRaycastComponent.IsValid())
+		{
+			UE_LOG(LGUI, Error, TEXT("[UUIBaseRenderable::LineTraceUIGeometry]EUIRenderableRaycastType::Custom need a UUIRenderableCustomRaycast component on this actor!"));
+			return false;
+		}
 	}
+	auto inverseTf = GetComponentTransform().Inverse();
+	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
+	auto localSpaceRayEnd = inverseTf.TransformPosition(End);
+
+	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
+	{
+		auto IntersectionPoint = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
+		FVector HitPoint, HitNormal;
+		if (CustomRaycastComponent->OnRaycast(localSpaceRayOrigin, localSpaceRayEnd, FVector2D(IntersectionPoint.Y, IntersectionPoint.Z), HitPoint, HitNormal))
+		{
+			OutHit.TraceStart = Start;
+			OutHit.TraceEnd = End;
+#if ENGINE_MAJOR_VERSION < 5
+			OutHit.Actor = GetOwner();
+#endif
+			OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
+			OutHit.Location = GetComponentTransform().TransformPosition(HitPoint);
+			OutHit.Normal = GetComponentTransform().TransformVector(HitNormal);
+			OutHit.Normal.Normalize();
+			OutHit.Distance = FVector::Distance(Start, OutHit.Location);
+			OutHit.ImpactPoint = OutHit.Location;
+			OutHit.ImpactNormal = OutHit.Normal;
+			return true;
+		}
+	}
+	return false;
 }
 
 void UUIBaseRenderable::SetColor(FColor value)

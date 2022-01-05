@@ -146,7 +146,10 @@ void UUIBatchGeometryRenderable_BP::EndPlay(const EEndPlayReason::Type EndPlayRe
 
 void UUIBatchGeometryRenderable_BP::OnBeforeCreateOrUpdateGeometry()
 {
-	OnBeforeCreateOrUpdateGeometry_BP();
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnBeforeCreateOrUpdateGeometry();
+	}
 }
 void UUIBatchGeometryRenderable_BP::OnCreateGeometry()
 {
@@ -155,7 +158,10 @@ void UUIBatchGeometryRenderable_BP::OnCreateGeometry()
 		createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
 		createGeometryHelper->uiGeometry = geometry;
 	}
-	OnCreateGeometry_BP(createGeometryHelper);
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnCreateGeometry(createGeometryHelper);
+	}
 }
 void UUIBatchGeometryRenderable_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
@@ -164,15 +170,18 @@ void UUIBatchGeometryRenderable_BP::OnUpdateGeometry(bool InVertexPositionChange
 		updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
 		updateGeometryHelper->uiGeometry = geometry;
 	}
-	OnUpdateGeometry_BP(updateGeometryHelper, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnUpdateGeometry(updateGeometryHelper, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+	}
 }
-void UUIBatchGeometryRenderable_BP::MarkVertexChanged_BP()
+void UUIBatchGeometryRenderable_BP::ReceiveMarkVertexChanged()
 {
 	MarkVertexPositionDirty();
 	MarkColorDirty();
 	MarkUVDirty();
 }
-void UUIBatchGeometryRenderable_BP::MarkRebuildGeometry_BP()
+void UUIBatchGeometryRenderable_BP::ReceiveMarkRebuildGeometry()
 {
 	MarkTriangleDirty();
 }

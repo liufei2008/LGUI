@@ -39,7 +39,7 @@ void FLGUIAtlasData::CreateAtlasTexture(const FName& packingTag, int oldTextureS
 	texture->SRGB = atlasSRGB;
 	texture->Filter = filter;
 	texture->UpdateResource();
-	texture->AddToRoot();
+	texture->AddToRoot();//@todo: is this really need to AddToRoot?
 	auto oldTexture = this->atlasTexture;
 	this->atlasTexture = texture;
 

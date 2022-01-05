@@ -9,6 +9,7 @@ class UIGeometry;
 class UMaterialInterface;
 class ULGUICanvas;
 class UUIDrawcall;
+class UUIRenderableCustomRaycast;
 
 UENUM(BlueprintType, Category = LGUI)
 enum class EUIRenderableType :uint8
@@ -18,6 +19,18 @@ enum class EUIRenderableType :uint8
 	UIPostProcessRenderable,
 	UIDirectMeshRenderable,
 };
+
+UENUM(BlueprintType, Category = LGUI)
+enum class EUIRenderableRaycastType :uint8
+{
+	/** Hit on rect range */
+	Rect,
+	/** Hit on actual triangle geometry */
+	Geometry,
+	/** Use a user defined UIRenderableCustomRaycast component to process the raycast hit. Put a UIRenderableCustomRaycast component at this actor and it will work. */
+	Custom,
+};
+
 /** Base class of UI element that can be renderred by LGUICanvas */
 UCLASS(Abstract, NotBlueprintable)
 class LGUI_API UUIBaseRenderable : public UUIItem
@@ -36,7 +49,7 @@ protected:
 	virtual void OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)override;
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
-	EUIRenderableType uiRenderableType = EUIRenderableType::None;
+	EUIRenderableType UIRenderableType = EUIRenderableType::None;
 
 	/**
 	 * Render color of UI element.
@@ -44,31 +57,34 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		FColor Color = FColor::White;
-	/** Only valid if RaycastTarget is true. true - linetrace hit real mesh triangles, false - linetrace hit AnchorData rectangle */
-	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast")
-		bool bRaycastComplex = false;
+	/** Only valid if RaycastTarget is true. */
+	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true"))
+		EUIRenderableRaycastType RaycastType = EUIRenderableRaycastType::Rect;
 
 	bool LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
+	bool LineTraceUICustom(FHitResult& OutHit, const FVector& Start, const FVector& End);
+	TWeakObjectPtr<UUIRenderableCustomRaycast> CustomRaycastComponent;
 
     virtual void ApplyUIActiveState(bool InStateChange) override;
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 public:
 	/** get UI renderable type */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		EUIRenderableType GetUIRenderableType()const { return uiRenderableType; }
+		EUIRenderableType GetUIRenderableType()const { return UIRenderableType; }
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FColor GetColor() const { return Color; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float GetAlpha() const { return ((float)Color.A) / 255; }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		bool GetRaycastComplex() { return bRaycastComplex; }
+		EUIRenderableRaycastType GetRaycastType()const { return RaycastType; }
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetColor(FColor value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetAlpha(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void SetRaycastComplex(bool value) { bRaycastComplex = value; }
+		void SetRaycastType(EUIRenderableRaycastType Value) { RaycastType = Value; }
 
 	uint8 GetFinalAlpha()const;
 	float GetFinalAlpha01()const;
@@ -76,7 +92,7 @@ public:
 	FColor GetFinalColor()const;
 	static float Color255To1_Table[256];
 
-	TSharedPtr<UUIDrawcall> drawcall = nullptr;//drawcall that response for this UI. @todo: use TWeakPtr
+	TSharedPtr<UUIDrawcall> drawcall = nullptr;//drawcall that response for this UI.
 
 	void MarkColorDirty();
 	virtual void MarkAllDirtyRecursive()override;
@@ -90,4 +106,17 @@ public:
 protected:
 	uint8 bColorChanged : 1;
 	uint8 bTransformChanged : 1;
+public:
+#if WITH_EDITOR
+	/** Old data */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
+		bool bRaycastComplex = false;
+#endif
+public:
+	UE_DEPRECATED(4.24, "Use GetRaycastType instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DePrecatedFunction, DeprecationMessage = "Use GetRaycastType instead."))
+		bool GetRaycastComplex() { return RaycastType == EUIRenderableRaycastType::Geometry; }
+	UE_DEPRECATED(4.24, "Use SetRaycastType instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DePrecatedFunction, DeprecationMessage = "Use SetRaycastType instead."))
+		void SetRaycastComplex(bool value) { RaycastType = bRaycastComplex ? EUIRenderableRaycastType::Geometry : EUIRenderableRaycastType::Rect; }
 };

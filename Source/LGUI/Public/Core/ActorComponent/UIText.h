@@ -107,6 +107,7 @@ public:
 	void ApplyFontTextureScaleUp();
 	void ApplyFontTextureChange();
 	void ApplyRecreateText();
+	FColor GetPixelAtPoint(const FVector2D& InPoint)const;
 
 	virtual void MarkVertexPositionDirty()override;
 	virtual void MarkUVDirty()override;

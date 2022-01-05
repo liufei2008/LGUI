@@ -25,7 +25,10 @@ void UUISpriteBase_BP::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UUISpriteBase_BP::OnBeforeCreateOrUpdateGeometry()
 {
-	OnBeforeCreateOrUpdateGeometry_BP();
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnBeforeCreateOrUpdateGeometry();
+	}
 }
 void UUISpriteBase_BP::OnCreateGeometry()
 {
@@ -34,7 +37,10 @@ void UUISpriteBase_BP::OnCreateGeometry()
 		createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
 		createGeometryHelper->uiGeometry = geometry;
 	}
-	OnCreateGeometry_BP(createGeometryHelper, sprite);
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnCreateGeometry(createGeometryHelper, sprite);
+	}
 }
 void UUISpriteBase_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
@@ -43,15 +49,18 @@ void UUISpriteBase_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVer
 		updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
 		updateGeometryHelper->uiGeometry = geometry;
 	}
-	OnUpdateGeometry_BP(updateGeometryHelper, sprite, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnUpdateGeometry(updateGeometryHelper, sprite, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+	}
 }
-void UUISpriteBase_BP::MarkVertexChanged_BP()
+void UUISpriteBase_BP::ReceiveMarkVertexChanged()
 {
 	MarkVertexPositionDirty();
 	MarkColorDirty();
 	MarkUVDirty();
 }
-void UUISpriteBase_BP::MarkRebuildGeometry_BP()
+void UUISpriteBase_BP::ReceiveMarkRebuildGeometry()
 {
 	MarkTriangleDirty();
 }

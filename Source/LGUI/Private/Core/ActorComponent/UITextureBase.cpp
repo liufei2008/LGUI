@@ -44,6 +44,7 @@ void UUITextureBase::CheckTexture()
 	}
 }
 #endif
+
 UTexture* UUITextureBase::GetDefaultWhiteTexture()
 {
 	auto defaultWhiteSolid = LoadObject<UTexture2D>(NULL, TEXT("/LGUI/Textures/LGUIPreset_WhiteSolid"));

@@ -1241,6 +1241,7 @@ void LGUIEditorTools::ForceGC()
 }
 
 #include "Core/UIWidget.h"
+#include "Core/ActorComponent/UIBaseRenderable.h"
 void LGUIEditorTools::UpgradeLevelToLGUI3()
 {
 	auto confirmMsg = FString::Printf(TEXT("This upgrade operation cannot do every modification, so some work should do manually."));
@@ -1395,6 +1396,18 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray, boo
 			}
 			AnchorData.Pivot = widget.pivot;
 			UIItem->SetAnchorData(AnchorData);
+			//raycast complex
+			if (UIRenderable)
+			{
+				if (UIRenderable->bRaycastComplex)
+				{
+					UIRenderable->SetRaycastType(EUIRenderableRaycastType::Geometry);
+				}
+				else
+				{
+					UIRenderable->SetRaycastType(EUIRenderableRaycastType::Rect);
+				}
+			}
 		}
 		//UIEffectLongShadow
 		TArray<UUIEffectLongShadow*> LongShadowArray;

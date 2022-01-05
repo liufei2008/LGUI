@@ -25,19 +25,19 @@ protected:
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
-		void OnBeforeCreateOrUpdateGeometry_BP();
+		void ReceiveOnBeforeCreateOrUpdateGeometry();
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnCreateGeometry"))
-		void OnCreateGeometry_BP(ULGUICreateGeometryHelper* InCreateGeometryHelper, ULGUISpriteData_BaseObject* InSpriteData);
+		void ReceiveOnCreateGeometry(ULGUICreateGeometryHelper* InCreateGeometryHelper, ULGUISpriteData_BaseObject* InSpriteData);
 	/** update geometry data. Do Not add or remove any vertex or triangles in this function */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
-		void OnUpdateGeometry_BP(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, ULGUISpriteData_BaseObject* InSpriteData, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+		void ReceiveOnUpdateGeometry(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, ULGUISpriteData_BaseObject* InSpriteData, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 public:
 	/** if vertex data change and vertex count not change. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkVertexChanged"))
-		void MarkVertexChanged_BP();
+		void ReceiveMarkVertexChanged();
 	/** if vertex count change or triangle count change, call this */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkRebuildGeometry"))
-		void MarkRebuildGeometry_BP();
+		void ReceiveMarkRebuildGeometry();
 private:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;
 	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper;

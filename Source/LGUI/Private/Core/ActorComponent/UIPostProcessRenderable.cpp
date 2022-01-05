@@ -10,7 +10,7 @@
 UUIPostProcessRenderable::UUIPostProcessRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	uiRenderableType = EUIRenderableType::UIPostProcessRenderable;
+	UIRenderableType = EUIRenderableType::UIPostProcessRenderable;
 	geometry = TSharedPtr<UIGeometry>(new UIGeometry);
 
 	bLocalVertexPositionChanged = true;
@@ -283,5 +283,16 @@ void UUIPostProcessRenderable::SetTextureClipParameter(UTexture* ClipTex, const 
 
 bool UUIPostProcessRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
-	return UUIBaseRenderable::LineTraceUIGeometry(geometry, OutHit, Start, End);
+	if (RaycastType == EUIRenderableRaycastType::Rect)
+	{
+		return Super::LineTraceUI(OutHit, Start, End);
+	}
+	else if (RaycastType == EUIRenderableRaycastType::Geometry)
+	{
+		return LineTraceUIGeometry(geometry, OutHit, Start, End);
+	}
+	else
+	{
+		return LineTraceUICustom(OutHit, Start, End);
+	}
 }

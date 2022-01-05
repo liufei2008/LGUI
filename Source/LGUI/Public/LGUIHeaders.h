@@ -15,6 +15,7 @@
 #include "Core/ActorComponent/UICanvasGroup.h"
 #include "Core/ActorComponent/UIBackgroundBlur.h"
 #include "Core/ActorComponent/UIBackgroundPixelate.h"
+#include "Core/ActorComponent/UIRenderableCustomRaycast.h"
 #include "Core/LGUILifeCycleBehaviour.h"
 #include "Core/LGUILifeCycleUIBehaviour.h"
 #include "Core/ILGUICultureChangedInterface.h"

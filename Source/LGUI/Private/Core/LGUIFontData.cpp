@@ -475,7 +475,7 @@ void ULGUIFontData::CreateFontTexture(int oldTextureSize, int newTextureSize)
 	texture->SRGB = true;
 	texture->Filter = TextureFilter::TF_Trilinear;
 	texture->UpdateResource();
-	texture->AddToRoot();
+	texture->AddToRoot();//@todo: is this really need to AddToRoot?
 
 	//copy old texture to new one
 	if (IsValid(oldTexture) && oldTextureSize > 0)

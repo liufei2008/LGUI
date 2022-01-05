@@ -750,9 +750,9 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakO
 			if (auto uiRenderable = Cast<UUIBaseRenderable>(uiItem))
 			{
 				FHitResult hitInfo;
-				auto originRaycastComplex = uiRenderable->GetRaycastComplex();
-				auto originRaycastTarget = uiRenderable->IsRaycastTarget();
-				uiRenderable->SetRaycastComplex(true);//in editor selection, make the ray hit actural triangle
+				auto OriginRaycastType = uiRenderable->GetRaycastType();
+				auto OriginRaycastTarget = uiRenderable->IsRaycastTarget();
+				uiRenderable->SetRaycastType(EUIRenderableRaycastType::Geometry);//in editor selection, make the ray hit actural triangle
 				uiRenderable->SetRaycastTarget(true);
 				if (uiRenderable->LineTraceUI(hitInfo, LineStart, LineEnd))
 				{
@@ -761,8 +761,8 @@ bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakO
 						HitResultArray.Add(hitInfo);
 					}
 				}
-				uiRenderable->SetRaycastComplex(originRaycastComplex);
-				uiRenderable->SetRaycastTarget(originRaycastTarget);
+				uiRenderable->SetRaycastType(OriginRaycastType);
+				uiRenderable->SetRaycastTarget(OriginRaycastTarget);
 			}
 		}
 	}

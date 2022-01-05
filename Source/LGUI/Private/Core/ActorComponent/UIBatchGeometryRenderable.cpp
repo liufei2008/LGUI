@@ -15,7 +15,7 @@ DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable ApplyModifier"), STAT_ApplyMo
 UUIBatchGeometryRenderable::UUIBatchGeometryRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	uiRenderableType = EUIRenderableType::UIBatchGeometryRenderable;
+	UIRenderableType = EUIRenderableType::UIBatchGeometryRenderable;
 	geometry = TSharedPtr<UIGeometry>(new UIGeometry);
 
 	bLocalVertexPositionChanged = true;
@@ -312,7 +312,18 @@ bool UUIBatchGeometryRenderable::CreateGeometry()
 
 bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
-	return UUIBaseRenderable::LineTraceUIGeometry(geometry, OutHit, Start, End);
+	if (RaycastType == EUIRenderableRaycastType::Rect)
+	{
+		return Super::LineTraceUI(OutHit, Start, End);
+	}
+	else if (RaycastType == EUIRenderableRaycastType::Geometry)
+	{
+		return LineTraceUIGeometry(geometry, OutHit, Start, End);
+	}
+	else
+	{
+		return LineTraceUICustom(OutHit, Start, End);
+	}
 }
 
 void UUIBatchGeometryRenderable::CalculateLocalBounds()
