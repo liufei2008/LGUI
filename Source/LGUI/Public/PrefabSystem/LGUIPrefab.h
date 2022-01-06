@@ -65,6 +65,9 @@ class LGUI_API ULGUIPrefab : public UObject
 
 public:
 	ULGUIPrefab();
+
+	//@todo: the following list should be marked as editor only, but since old prefab system needs them so keep it here for a while
+
 	/** put actural UObject in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UObject*> ReferenceAssetList;
@@ -100,7 +103,17 @@ public:
 	/** Engine's minor version when creating this prefab */
 	UPROPERTY()
 		uint16 EngineMinorVersion;
-	/** 
+
+	/** build version for ReferenceAssetList */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		TArray<UObject*> ReferenceAssetListForBuild;
+	/** build version for ReferenceClassList */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		TArray<UClass*> ReferenceClassListForBuild;
+	/** build version for ReferenceNameList */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
+		TArray<FName> ReferenceNameListForBuild;
+	/**
 	 * serialized data for publish, not contain property name and editor only property. much more faster than BinaryData when deserialize
 	 */
 	UPROPERTY()

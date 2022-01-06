@@ -197,14 +197,15 @@ void ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 
 void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)
 {
-	BinaryDataForBuild.Empty();
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		if (!IsValid(PrefabHelperObject->LoadedRootActor))
+		BinaryDataForBuild.Empty();
+		if (!IsValid(PrefabHelperObject) || !IsValid(PrefabHelperObject->LoadedRootActor))
 		{
-			UE_LOG(LGUI, Error, TEXT("AgentObjects not valid! prefab:%s"), *(this->GetPathName()));
+			UE_LOG(LGUI, Warning, TEXT("AgentObjects not valid, recreate it! prefab: '%s'"), *(this->GetPathName()));
+			MakeAgentObjectsInPreviewWorld();
 		}
-		else
+		//serialize to runtime data
 		{
 			//check override parameter. although parameter is refreshed when sub prefab change, but what if sub prefab is changed outside of editor?
 			bool AnythingChange = false;
@@ -217,7 +218,7 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 			}
 			if (AnythingChange)
 			{
-				UE_LOG(LGUI, Log, TEXT("[ULGUIPrefab::BeginCacheForCookedPlatformData]Something changed in sub prefab override parameter, refresh it."));
+				UE_LOG(LGUI, Log, TEXT("[ULGUIPrefab::BeginCacheForCookedPlatformData]Something changed in sub prefab override parameter, refresh it. prefab: '%s'."), *(this->GetPathName()));
 			}
 
 			TMap<UObject*, FGuid> MapObjectToGuid;
@@ -246,11 +247,23 @@ void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 }
 void ULGUIPrefab::WillNeverCacheCookedPlatformDataAgain()
 {
-	BinaryDataForBuild.Empty();
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	{
+		BinaryDataForBuild.Empty();
+		ReferenceAssetListForBuild.Empty();
+		ReferenceClassListForBuild.Empty();
+		ReferenceNameListForBuild.Empty();
+	}
 }
 void ULGUIPrefab::ClearCachedCookedPlatformData(const ITargetPlatform* TargetPlatform)
 {
-	BinaryDataForBuild.Empty();
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	{
+		BinaryDataForBuild.Empty();
+		ReferenceAssetListForBuild.Empty();
+		ReferenceClassListForBuild.Empty();
+		ReferenceNameListForBuild.Empty();
+	}
 }
 
 void ULGUIPrefab::PostInitProperties()

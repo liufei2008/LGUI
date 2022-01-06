@@ -70,6 +70,7 @@ void ULGUIEditorManagerObject::BeginDestroy()
 
 void ULGUIEditorManagerObject::Tick(float DeltaTime)
 {
+#if WITH_EDITORONLY_DATA
 	if (PrefabsNeedToGenerateAgent.Num() > 0)
 	{
 		for (auto& PrefabItem : PrefabsNeedToGenerateAgent)
@@ -79,7 +80,6 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		PrefabsNeedToGenerateAgent.Empty();
 	}
 
-#if WITH_EDITORONLY_DATA
 	//draw frame
 	for (auto& item : AllUIItemArray)
 	{
@@ -87,7 +87,7 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		if (!IsValid(item->GetWorld()))continue;
 		if (
 			item->GetWorld()->WorldType != EWorldType::Editor//actually, ULGUIEditorManagerObject only collect editor mode UIItem, so only this Editor condition will trigger.
-															//so only Editor mode will draw frame. the two modes below will not work, just leave it as a reference.
+															//so only Editor mode will draw frame. the modes below will not work, just leave it as a reference.
 			&& item->GetWorld()->WorldType != EWorldType::Game
 			&& item->GetWorld()->WorldType != EWorldType::PIE
 			&& item->GetWorld()->WorldType != EWorldType::EditorPreview

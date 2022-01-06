@@ -6,6 +6,7 @@
 #include "Serialization/BufferArchive.h"
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h"
+#include "Serialization/ArchiveSerializedPropertyChain.h"
 
 namespace LGUIPrefabSystem3
 {

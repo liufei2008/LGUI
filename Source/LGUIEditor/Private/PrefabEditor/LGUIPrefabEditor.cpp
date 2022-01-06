@@ -994,17 +994,8 @@ void FLGUIPrefabEditor::OnLevelActorDetached(AActor* Actor, const AActor* Detach
 	if (!bCanNotifyDetachment)return;
 	if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor) && !PrefabHelperObject->SubPrefabMap.Contains(Actor))//allow sub prefab's root actor detach, but not sub prefab's children actor
 	{
-		FNotificationInfo Info(LOCTEXT("NotAllowSubPrefabDetach", "Trying to change hierarchy of sub prefab's actor, this is not allowed! Sub prefab only allowed to change member property's value!"));
-		Info.bUseLargeFont = false;
-		Info.bFireAndForget = true;
-		Info.ExpireDuration = 12.0f;
-		Info.FadeOutDuration = 0.3f;
-		auto DetachActorNotification = FSlateNotificationManager::Get().AddNotification(Info);
-		DetachActorNotification->SetCompletionState(SNotificationItem::CS_Fail);
-		UE_LOG(LGUIEditor, Error, TEXT("%s"), *Info.Text.ToString());
-
-		auto CompileFailSound = LoadObject<USoundBase>(NULL, TEXT("/Engine/EditorSounds/Notifications/CompileFailed_Cue.CompileFailed_Cue"));
-		GEditor->PlayEditorSound(CompileFailSound);
+		auto InfoText = LOCTEXT("NotAllowSubPrefabDetach", "Trying to change hierarchy of sub prefab's actor, this is not allowed! Please undo this operation!");
+		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
 	}
 }
 

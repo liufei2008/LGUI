@@ -80,7 +80,8 @@ FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPrev
 		PreviewWorld->bAllowAudioPlayback = false;
 	}
 
-	SetViewLocation(FVector(-300, 0, 0));
+	auto SceneBounds = InPrefabEditorPtr.Pin()->GetAllObjectsBounds();
+	SetViewLocation(FVector(-SceneBounds.SphereRadius, 0, 0));//@todo: seems not working?
 	SetViewRotation(FRotator::ZeroRotator);
 }
 

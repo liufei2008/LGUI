@@ -234,10 +234,22 @@ namespace LGUIPrefabSystem3
 
 		auto StartTime = FDateTime::Now();
 
-		//fill new reference data
-		this->ReferenceAssetList = InPrefab->ReferenceAssetList;
-		this->ReferenceClassList = InPrefab->ReferenceClassList;
-		this->ReferenceNameList = InPrefab->ReferenceNameList;
+#if WITH_EDITOR
+		if (bIsEditorOrRuntime)
+		{
+			//fill new reference data
+			this->ReferenceAssetList = InPrefab->ReferenceAssetList;
+			this->ReferenceClassList = InPrefab->ReferenceClassList;
+			this->ReferenceNameList = InPrefab->ReferenceNameList;
+		}
+		else
+#endif
+		{
+			//fill new reference data
+			this->ReferenceAssetList = InPrefab->ReferenceAssetListForBuild;
+			this->ReferenceClassList = InPrefab->ReferenceClassListForBuild;
+			this->ReferenceNameList = InPrefab->ReferenceNameListForBuild;
+		}
 
 		FLGUIPrefabSaveData SaveData;
 		{

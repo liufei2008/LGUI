@@ -234,6 +234,9 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 	SceneOutliner::FInitializationOptions InitOptions;
 	InitOptions.bShowTransient = false;
 	InitOptions.Mode = ESceneOutlinerMode::ActorBrowsing;
+	InitOptions.ModifyContextMenu = FSceneOutlinerModifyContextMenu::CreateLambda([](FName& MenuName, FToolMenuContext& MenuContext) {
+
+		});
 	InitOptions.bFocusSearchBoxWhenOpened = false;
 	InitOptions.SpecifiedWorldToDisplay = World;
 	InitOptions.bShowCreateNewFolder = false;

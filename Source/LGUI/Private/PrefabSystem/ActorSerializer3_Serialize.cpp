@@ -155,23 +155,28 @@ namespace LGUIPrefabSystem3
 			InPrefab->BinaryData = ToBinary;
 			InPrefab->ThumbnailDirty = true;
 			InPrefab->CreateTime = FDateTime::Now();
+
+			//clear old reference data
+			InPrefab->ReferenceAssetList.Empty();
+			InPrefab->ReferenceClassList.Empty();
+			InPrefab->ReferenceNameList.Empty();
+			InPrefab->ReferenceTextList.Empty();
+			InPrefab->ReferenceStringList.Empty();
+			//fill new reference data
+			InPrefab->ReferenceAssetList = this->ReferenceAssetList;
+			InPrefab->ReferenceClassList = this->ReferenceClassList;
+			InPrefab->ReferenceNameList = this->ReferenceNameList;
 		}
 		else
 #endif
 		{
 			InPrefab->BinaryDataForBuild = ToBinary;
-		}
 
-		//clear old reference data
-		InPrefab->ReferenceAssetList.Empty();
-		InPrefab->ReferenceClassList.Empty();
-		InPrefab->ReferenceTextList.Empty();
-		InPrefab->ReferenceNameList.Empty();
-		InPrefab->ReferenceStringList.Empty();
-		//fill new reference data
-		InPrefab->ReferenceAssetList = this->ReferenceAssetList;
-		InPrefab->ReferenceClassList = this->ReferenceClassList;
-		InPrefab->ReferenceNameList = this->ReferenceNameList;
+			//fill new reference data
+			InPrefab->ReferenceAssetListForBuild = this->ReferenceAssetList;
+			InPrefab->ReferenceClassListForBuild = this->ReferenceClassList;
+			InPrefab->ReferenceNameListForBuild = this->ReferenceNameList;
+		}
 
 		InPrefab->EngineMajorVersion = ENGINE_MAJOR_VERSION;
 		InPrefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
