@@ -1,4 +1,4 @@
-// Copyright 2019-2021 LexLiu. All Rights Reserved.
+// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "AssetTypeActions/AssetTypeActions_LGUIStaticMeshCache.h"
 #include "ContentBrowserModule.h"

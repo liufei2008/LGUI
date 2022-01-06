@@ -1,4 +1,4 @@
-﻿// Copyright 2019-2021 LexLiu. All Rights Reserved.
+﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "DetailCustomization/LGUIFontDataCustomization.h"
 #include "Misc/FileHelper.h"
