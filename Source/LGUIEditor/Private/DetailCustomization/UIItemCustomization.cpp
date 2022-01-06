@@ -157,7 +157,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					SNew(STextBlock)
 					.Text(this, &FUIItemCustomization::GetAnchorLabelText, AnchorMinHandle, AnchorMaxHandle, AnchorLabelIndex)
 					.ToolTipText(this, &FUIItemCustomization::GetAnchorLabelTooltipText, AnchorMinHandle, AnchorMaxHandle, AnchorLabelIndex)
-					.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			;
@@ -197,6 +196,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			;
 		};//@todo: auto refresh SAnchorPreviewWidget when change from AnchorMinMax
 
+		auto SplitLineColor = FLinearColor(0.5f, 0.5f, 0.5f);
 		TransformCategory.AddCustomRow(LOCTEXT("Anchor","Anchor"))
 		.CopyAction(FUIAction
 		(
@@ -277,17 +277,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		.NameContent()
 		[
 			SNew(SVerticalBox)
-			//+SVerticalBox::Slot()
-			//[
-			//	SNew(SBox)
-			//	.Padding(FMargin(0, 0))
-			//	[
-			//		SNew(STextBlock)
-			//		.Font(IDetailLayoutBuilder::GetDetailFont())
-			//		.Text(LOCTEXT("AnchorPreset", "AnchorPreset"))
-			//		.Font(IDetailLayoutBuilder::GetDetailFont())
-			//	]
-			//]
 			+SVerticalBox::Slot()
 			[
 				SNew(SBox)
@@ -316,7 +305,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 								[
 									SNew(STextBlock)
 									.Text(this, &FUIItemCustomization::GetHAlignText, AnchorMinHandle, AnchorMaxHandle)
-									.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
 									.Font(IDetailLayoutBuilder::GetDetailFont())
 								]
 							]
@@ -349,7 +337,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 							[
 								SNew(STextBlock)
 								.Text(this, &FUIItemCustomization::GetVAlignText, AnchorMinHandle, AnchorMaxHandle)
-								.ColorAndOpacity(FLinearColor(FColor(255, 255, 255, 255)))
 								.Font(IDetailLayoutBuilder::GetDetailFont())
 								.Justification(ETextJustify::Center)
 								.RenderTransformPivot(FVector2D(0, 0.5f))
@@ -359,7 +346,30 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 					]
 					.MenuContent()
 					[
-						SNew(SBox)
+						SNew(SVerticalBox)
+						+SVerticalBox::Slot()
+						.AutoHeight()
+						[
+							SNew(SBorder)
+							.Padding(4)
+							[
+								SNew(SVerticalBox)
+								+SVerticalBox::Slot()
+								[
+									SNew(STextBlock)
+									.Text(LOCTEXT("AnchorPresets", "Anchor Presets"))
+								]
+								+SVerticalBox::Slot()
+								[
+									SNew(STextBlock)
+									.Text(LOCTEXT("AnchorPresetsHelperKeys", "Shift: Also set pivot		Alt: Also set position"))
+									.Font(IDetailLayoutBuilder::GetDetailFont())
+								]
+							]
+						]
+						+SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(4)
 						[
 							SNew(SVerticalBox)
 							+SVerticalBox::Slot()
@@ -373,17 +383,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 									+SOverlay::Slot()
 									[
 										SNew(SUniformGridPanel)
-										//None
-										//+SUniformGridPanel::Slot(0, 0)
-										//[
-										//	SNew(SAnchorPreviewWidget, anchorItemSize)
-										//	.BasePadding(itemBasePadding)
-										//	.SelectedHAlign(this, &FUIItemCustomization::GetAnchorHAlign, AnchorMinHandle, AnchorMaxHandle)
-										//	.SelectedVAlign(this, &FUIItemCustomization::GetAnchorVAlign, AnchorMinHandle, AnchorMaxHandle)
-										//	.PersistentHAlign(UIAnchorHorizontalAlign::None)
-										//	.PersistentVAlign(UIAnchorVerticalAlign::None)
-										//	.ButtonEnable(false)
-										//]
 										+SUniformGridPanel::Slot(1, 0)
 										[
 											MakeAnchorPreviewWidget(LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Left, LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::None)
@@ -501,7 +500,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 												[
 													SNew(SImage)
 													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-													.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+													.ColorAndOpacity(SplitLineColor)
 												]
 											]
 										]
@@ -521,7 +520,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 												[
 													SNew(SImage)
 													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-													.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+													.ColorAndOpacity(SplitLineColor)
 												]
 											]
 										]
@@ -541,7 +540,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 												[
 													SNew(SImage)
 													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-													.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+													.ColorAndOpacity(SplitLineColor)
 												]
 											]
 										]
@@ -561,7 +560,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 												[
 													SNew(SImage)
 													.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.WhiteDot"))
-													.ColorAndOpacity(FLinearColor(FColor(0, 255, 255, 255)))
+													.ColorAndOpacity(SplitLineColor)
 												]
 											]
 										]
@@ -637,7 +636,6 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
 			.Padding(2, 0)
-			.AutoWidth()
 			[
 				HierarchyIndexHandle->CreatePropertyValueWidget()
 			]
@@ -646,24 +644,32 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.Text(LOCTEXT("IncreaseHierarchyOrder", "+"))
 				.ToolTipText(LOCTEXT("IncreaseHierarchyOrder_Tooltip", "Move order up"))
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				.IsEnabled_Static(LGUIEditorUtils::IsEnabledOnProperty, HierarchyIndexHandle)
 				.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, true, HierarchyIndexHandle)
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("IncreaseHierarchyOrder", "+"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
 			]
 			+ SHorizontalBox::Slot()
 			.Padding(2, 0)
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.Text(LOCTEXT("DecreaseHierarchyOrder", "-"))
 				.ToolTipText(LOCTEXT("IncreaseHierarchyOrder_Tooltip", "Move order down"))
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				.IsEnabled_Static(LGUIEditorUtils::IsEnabledOnProperty, HierarchyIndexHandle)
 				.OnClicked(this, &FUIItemCustomization::OnClickIncreaseOrDecreaseHierarchyIndex, false, HierarchyIndexHandle)
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("DecreaseHierarchyOrder", "-"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
 			];
 
 		TransformCategory.AddCustomRow(LOCTEXT("HierarchyIndexManager", "HierarchyIndexManager"))
@@ -1368,7 +1374,8 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 {
 	if (TargetScriptArray.Num() == 0 || !TargetScriptArray[0].IsValid())return;
 
-	bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsAltDown();
+	bool ShiftPressed = FSlateApplication::Get().GetModifierKeys().IsShiftDown();
+	bool AltPressed = FSlateApplication::Get().GetModifierKeys().IsAltDown();
 
 	GEditor->BeginTransaction(LOCTEXT("ChangeAnchor", "Change LGUI Anchor"));
 	for (auto& UIItem : TargetScriptArray)
@@ -1378,6 +1385,7 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 
 	for (auto& UIItem : TargetScriptArray)
 	{
+		FVector2D DesiredPivot = UIItem->GetPivot();
 		auto AnchorMin = UIItem->GetAnchorMin();
 		auto AnchorMax = UIItem->GetAnchorMax();
 		switch (HorizontalAlign)
@@ -1385,16 +1393,26 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 		case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::None:
 			break;
 		case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Left:
+		{
+			DesiredPivot.X = 0;
 			AnchorMin.X = AnchorMax.X = 0;
+		}
 			break;
 		case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Center:
+		{
+			DesiredPivot.X = 0.5f;
 			AnchorMin.X = AnchorMax.X = 0.5f;
+		}
 			break;
 		case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Right:
+		{
+			DesiredPivot.X = 1.0f;
 			AnchorMin.X = AnchorMax.X = 1.0f;
+		}
 			break;
 		case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Stretch:
 		{
+			DesiredPivot.X = 0.5f;
 			AnchorMin.X = 0;
 			AnchorMax.X = 1.0f;
 		}
@@ -1405,16 +1423,26 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 		case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::None:
 			break;
 		case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Top:
+		{
+			DesiredPivot.Y = 1.0f;
 			AnchorMin.Y = AnchorMax.Y = 1;
+		}
 			break;
 		case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Middle:
+		{
+			DesiredPivot.Y = 0.5f;
 			AnchorMin.Y = AnchorMax.Y = 0.5f;
+		}
 			break;
 		case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Bottom:
+		{
+			DesiredPivot.Y = 0.0f;
 			AnchorMin.Y = AnchorMax.Y = 0.0f;
+		}
 			break;
 		case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Stretch:
 		{
+			DesiredPivot.Y = 0.5f;
 			AnchorMin.Y = 0;
 			AnchorMax.Y = 1.0f;
 		}
@@ -1428,7 +1456,7 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 		UIItem->SetWidth(PrevWidth);
 		UIItem->SetHeight(PrevHeight);
 		UIItem->SetRelativeLocation(PrevRelativeLocation);
-		if (snapAnchor)
+		if (AltPressed)
 		{
 			switch (HorizontalAlign)
 			{
@@ -1478,6 +1506,15 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 			}
 				break;
 			}
+		}
+		if (ShiftPressed)
+		{
+			FMargin PrevAnchorAsMargin(UIItem->GetAnchorLeft(), UIItem->GetAnchorTop(), UIItem->GetAnchorRight(), UIItem->GetAnchorBottom());
+			UIItem->SetPivot(DesiredPivot);
+			UIItem->SetAnchorLeft(PrevAnchorAsMargin.Left);
+			UIItem->SetAnchorRight(PrevAnchorAsMargin.Right);
+			UIItem->SetAnchorBottom(PrevAnchorAsMargin.Bottom);
+			UIItem->SetAnchorTop(PrevAnchorAsMargin.Top);
 		}
 
 		LGUIUtils::NotifyPropertyChanged(UIItem.Get(), GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));

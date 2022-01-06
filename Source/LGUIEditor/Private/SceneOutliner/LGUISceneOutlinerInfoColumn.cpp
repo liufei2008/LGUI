@@ -55,7 +55,6 @@ namespace LGUISceneOutliner
 			.DefaultLabel(LOCTEXT("LGUIColumeHeader", "LGUI"))
 			.DefaultTooltip(LOCTEXT("LGUIColumeHeader_Tooltip", "LGUI functions"))
 			.HAlignHeader(EHorizontalAlignment::HAlign_Center)
-			.FixedWidth(40)
 			;
 	}
 

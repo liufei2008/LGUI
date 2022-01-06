@@ -68,10 +68,10 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	{
 		category.AddCustomRow(LOCTEXT("AdditionalButton", "AdditionalButton"))
 		.ValueContent()
-		.MinDesiredWidth(160)
 		[
 			SNew(SButton)
-			.Text(LOCTEXT("MakePixelPerfectButton", "Snap Size"))
+			.HAlign(EHorizontalAlignment::HAlign_Center)
+			.VAlign(EVerticalAlignment::VAlign_Center)
 			.OnClicked_Lambda([=]()
 			{
 				for (auto item : TargetScriptArray)
@@ -81,6 +81,11 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				}
 				return FReply::Handled();
 			})
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("MakePixelPerfectButton", "Snap Size"))
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
 		];
 	}
 }
