@@ -36,7 +36,9 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 		{
 			auto& RaycasterItem = AllRaycasterArray[i];
 			FHitResult hitResultItem;
-			if (RaycasterItem.IsValid())
+			if (RaycasterItem.IsValid()
+				&& (RaycasterItem->pointerID == InPointerEventData->pointerID || RaycasterItem->pointerID == INDEX_NONE)
+				)
 			{
 				if (RaycasterItem->depth < prevRaycasterDepth && multiHitResult.Num() != 0)//if this raycaster's depth not equal than prev raycaster's depth, and prev hit test is true, then we dont need to raycast more, because of raycaster's depth
 				{

@@ -40,17 +40,17 @@ public:
 	/** id of the pointer (touch id) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		int pointerID = 0;
-	/** current pointer position (mouse positin or touch point position in screen space) */
+	/** current pointer position (mouse position or touch point position in screen space) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pointerPosition;
 
 	/** enterred component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		USceneComponent* enterComponent = nullptr;
-	/** a stack list for store enterred component. the latest enter actor stay at num-1, first stay at 0 */
+	/** a stack list for store enterred component. the latest enter one stay at num-1, first stay at 0. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		TArray<USceneComponent*> enterComponentStack;
-	/** a collection that current pointer hoverring objects */
+	/** a collection that current pointer hoverring objects. the top most one stay at index 0 in array. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		TArray<USceneComponent*> hoverComponentArray;
 	/** current world space hit point */

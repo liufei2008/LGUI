@@ -72,8 +72,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		ULGUIBaseInputModule* GetCurrentInputModule();
 
-	UPROPERTY(VisibleAnywhere, Category = LGUI)TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
-	ULGUIPointerEventData* GetPointerEventData(int pointerID, bool createIfNotExist = false);
+	UPROPERTY(VisibleAnywhere, Category = LGUI)
+		TMap<int, ULGUIPointerEventData*> pointerEventDataMap;
+	/**
+	 * Get PointerEventData by given pointerID.
+	 * @param	pointerID	0 for mouse input, touch id for touch input
+	 */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		ULGUIPointerEventData* GetPointerEventData(int pointerID = 0, bool createIfNotExist = false);
 protected:
 	/** call back for hit event */
 	FLGUIMulticastHitDelegate hitEvent;

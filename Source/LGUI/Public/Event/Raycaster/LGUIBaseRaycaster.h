@@ -32,6 +32,12 @@ protected:
 	/** line trace multi for specific actors */
 	void ActorLineTraceMulti(TArray<FHitResult>& OutHitArray, bool InSortResult, const TArray<AActor*>& InActorArray, const FVector& InRayOrign, const FVector& InRayEnd, ECollisionChannel InTraceChannel, const struct FCollisionQueryParams& InParams = FCollisionQueryParams::DefaultQueryParam);
 public:
+	/**
+	 * Link pointerID, limit this raycaster to work on specific pointer. This is useful when multiple pointer interact in same level.
+	 * Default is -1, means this raycaster will work on all pointers.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
+		int32 pointerID = INDEX_NONE;
 	/** 
 	 * For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.
 	 * For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.
