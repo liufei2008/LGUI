@@ -90,7 +90,7 @@ public:
 	/** serialized data for editor use, this data contains editor-only property include property's name, will compare property name when deserialize form this */
 	UPROPERTY()
 		TArray<uint8> BinaryData;
-	/** The time point when create this prefab. */
+	/** The time point when create/save this prefab. */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FDateTime CreateTime;
 #endif
@@ -133,6 +133,13 @@ public:
 		AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FRotator Rotation, FVector Scale);
 	AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale);
 	AActor* LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity = false);
+	/**
+ * LoadPrefab and keep reference of source objects.
+ */
+	AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, USceneComponent* InParent
+		, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
+		, bool InSetHierarchyIndexForRootComponent = true
+	);
 private:
 	void CheckHelperObject();
 #if WITH_EDITOR
@@ -158,13 +165,6 @@ public:
 	virtual void BeginDestroy()override;
 	virtual void FinishDestroy()override;
 
-	/**
-	 * LoadPrefab for edit/modify, will keep reference of source prefab.
-	 */
-	AActor* LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
-		, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
-		, bool InSetHierarchyIndexForRootComponent = true
-	);
 	void SavePrefab(AActor* RootActor
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse = true

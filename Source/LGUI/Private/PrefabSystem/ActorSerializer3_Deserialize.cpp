@@ -15,7 +15,7 @@
 //PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
-	AActor* ActorSerializer3::LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
+	AActor* ActorSerializer3::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
 		, bool InSetHierarchyIndexForRootComponent
 	)
@@ -29,6 +29,9 @@ namespace LGUIPrefabSystem3
 				serializer.MapGuidToObject.Add(KeyValue.Key, KeyValue.Value);
 			}
 		}
+#if !WITH_EDITOR
+		serializer.bIsEditorOrRuntime = false;
+#endif
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
@@ -36,7 +39,6 @@ namespace LGUIPrefabSystem3
 		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
 			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
 		};
-		serializer.bIsLoadForEdit = true;
 		serializer.bSetHierarchyIndexForRootComponent = InSetHierarchyIndexForRootComponent;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
 		InOutMapGuidToObjects = serializer.MapGuidToObject;
@@ -52,7 +54,6 @@ namespace LGUIPrefabSystem3
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
-		serializer.bIsLoadForEdit = false;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
@@ -79,7 +80,6 @@ namespace LGUIPrefabSystem3
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
-		serializer.bIsLoadForEdit = false;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
@@ -93,7 +93,6 @@ namespace LGUIPrefabSystem3
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, TMap<FGuid, UObject*>& InMapGuidToObject
 		, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
-		, bool InIsLoadForEdit
 	)
 	{
 		ActorSerializer3 serializer;
@@ -101,7 +100,6 @@ namespace LGUIPrefabSystem3
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
-		serializer.bIsLoadForEdit = InIsLoadForEdit;
 		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
@@ -433,7 +431,6 @@ namespace LGUIPrefabSystem3
 								}
 							}
 						}
-						, bIsLoadForEdit
 					);
 
 					SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);

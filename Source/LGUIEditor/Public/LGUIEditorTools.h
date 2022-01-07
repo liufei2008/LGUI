@@ -57,6 +57,7 @@ public:
 	static void CreatePrefabAsset();
 	static void ApplyPrefab();
 	static bool CreateOrApplyPrefab(ULGUIPrefabHelperObject* InPrefabHelperObject);
+	static void RefreshLevelLoadedPrefab(ULGUIPrefab* InPrefab);
 	static void RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab);
 	static void RevertPrefab();
 	static void DeletePrefab();

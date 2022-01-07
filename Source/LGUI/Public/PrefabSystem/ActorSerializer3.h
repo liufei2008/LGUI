@@ -165,9 +165,9 @@ namespace LGUIPrefabSystem3
 		 */
 		static AActor* LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(AActor*)> CallbackBeforeAwake = nullptr);
 		/**
-		 * LoadPrefab for edit/modify, will keep reference of source prefab.
+		 * LoadPrefab and keep reference of objects.
 		 */
-		static AActor* LoadPrefabForEdit(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
+		static AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
 			, bool InSetHierarchyIndexForRootComponent = true
 		);
@@ -190,11 +190,9 @@ namespace LGUIPrefabSystem3
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, TMap<FGuid, UObject*>& InMapGuidToObject
 			, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
-			, bool InIsLoadForEdit
 		);
 
 		UWorld* TargetWorld = nullptr;//world that need to spawn actor
-		bool bIsLoadForEdit = true;
 		bool bIsEditorOrRuntime = true;
 		bool bSetHierarchyIndexForRootComponent = false;//need to set hierarchyindex to last for root component?
 

@@ -401,7 +401,7 @@ void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World
 {
 	TMap<FGuid, UObject*> MapGuidToObject;
 	TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-	auto RootActor= Prefab->LoadPrefabForEdit(World, nullptr
+	auto RootActor= Prefab->LoadPrefabWithExistingObjects(World, nullptr
 		, MapGuidToObject, SubPrefabMap
 	);
 	TMap<UObject*, FGuid> MapObjectToGuid;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Interface.h"
 #include "ILGUILayoutElementInterface.generated.h"
 
 UENUM(BlueprintType, Category = LGUI)

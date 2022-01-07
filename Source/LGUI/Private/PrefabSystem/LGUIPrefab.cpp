@@ -407,7 +407,7 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 }
 
 #if WITH_EDITOR
-AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParent
+AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneComponent* InParent
 	, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
 	, bool InSetHierarchyIndexForRootComponent
 )
@@ -415,7 +415,7 @@ AActor* ULGUIPrefab::LoadPrefabForEdit(UWorld* InWorld, USceneComponent* InParen
 	AActor* LoadedRootActor = nullptr;
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this, InParent
+		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabWithExistingObjects(InWorld, this, InParent
 			, InOutMapGuidToObject, OutSubPrefabMap
 			, InSetHierarchyIndexForRootComponent
 		);
@@ -452,7 +452,7 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	{
 		TMap<FGuid, UObject*> MapGuidToObject;
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabForEdit(InWorld, this
+		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabWithExistingObjects(InWorld, this
 			, InParent, MapGuidToObject, SubPrefabMap
 		);
 	}

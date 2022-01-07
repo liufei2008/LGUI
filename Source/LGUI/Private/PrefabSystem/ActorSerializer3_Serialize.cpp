@@ -166,6 +166,8 @@ namespace LGUIPrefabSystem3
 			InPrefab->ReferenceAssetList = this->ReferenceAssetList;
 			InPrefab->ReferenceClassList = this->ReferenceClassList;
 			InPrefab->ReferenceNameList = this->ReferenceNameList;
+
+			InPrefab->MarkPackageDirty();
 		}
 		else
 #endif
@@ -182,7 +184,6 @@ namespace LGUIPrefabSystem3
 		InPrefab->EngineMinorVersion = ENGINE_MINOR_VERSION;
 		InPrefab->PrefabVersion = LGUI_CURRENT_PREFAB_VERSION;
 
-		InPrefab->MarkPackageDirty();
 		auto TimeSpan = FDateTime::Now() - StartTime;
 		UE_LOG(LGUI, Log, TEXT("Take %fs saving prefab: %s"), TimeSpan.GetTotalSeconds(), *InPrefab->GetName());
 	}

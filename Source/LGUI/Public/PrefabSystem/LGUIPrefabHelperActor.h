@@ -7,6 +7,7 @@
 #include "LGUIPrefabHelperActor.generated.h"
 
 class ULGUIPrefabHelperObject;
+struct FLGUIPrefabOverrideParameterData;
 
 UCLASS(NotBlueprintable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
 class LGUI_API ALGUIPrefabHelperActor : public AActor
@@ -18,32 +19,35 @@ public:
 	// Sets default values for this actor's properties
 	ALGUIPrefabHelperActor();
 
+	virtual void BeginPlay()override;
+	virtual void PostInitProperties()override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Destroyed() override;
 
 public:
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
+	void RevertPrefab();
 #if WITH_EDITOR
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void LoadPrefab(USceneComponent* InParent);
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void SavePrefab();
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void RevertPrefab();
+	//UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;//@todo: auto revert with override parameters
+	void LoadPrefab(USceneComponent* InParent);
+	void SavePrefab();
 	//delete this prefab actor
-	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void DeleteThisInstance();
+	void DeleteThisInstance();
 	void MoveActorToPrefabFolder();
+	void CheckPrefabVersion();
 #endif
 
 #if WITH_EDITORONLY_DATA
 public:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 	FColor IdentityColor = FColor::Black;
 	bool IsRandomColor = true;
 	bool AutoDestroyLoadedActors = true;
 	static TArray<FColor> AllColors;
 private:
 	static FName PrefabFolderName;
+	TWeakPtr<SNotificationItem> NewVersionPrefabNotification;
+	void OnNewVersionRevertPrefabClicked();
+	void OnNewVersionDismissClicked();
 #endif
 };

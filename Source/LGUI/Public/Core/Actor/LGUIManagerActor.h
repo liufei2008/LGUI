@@ -68,9 +68,10 @@ private:
 #endif
 #if WITH_EDITOR
 private:
-	static TArray<TWeakObjectPtr<ULGUIPrefab>> PrefabsNeedToGenerateAgent;
+	static TArray<TFunction<void()>> OneShotFunctionsToExecuteInTick;
 public:
 	static void AddPrefabForGenerateAgent(ULGUIPrefab* InPrefab);
+	static void AddOneShotTickFunction(TFunction<void()> InFunction);
 private:
 	static bool InitCheck(UWorld* InWorld);
 	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);

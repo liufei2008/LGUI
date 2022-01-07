@@ -120,7 +120,7 @@ void FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 				}
 
 				TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-				InSubPrefab->LoadPrefabForEdit(GetPreviewScene().GetWorld()
+				InSubPrefab->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
 					, SubPrefabRootActor->GetAttachParentActor()->GetRootComponent()
 					, SubPrefabMapGuidToObject, SubSubPrefabMap
 					, false
@@ -627,6 +627,7 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 		}
 
 		PrefabHelperObject->SavePrefab();
+		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabHelperObject->PrefabAsset);
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
 		FAssetEditorToolkit::SaveAsset_Execute();
 		bAnythingDirty = false;
@@ -643,6 +644,7 @@ void FLGUIPrefabEditor::OnApply()
 		}
 
 		PrefabHelperObject->SavePrefab();
+		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabHelperObject->PrefabAsset);
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
 		bAnythingDirty = false;
 	}
@@ -1092,7 +1094,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 			{
 				TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
 				TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-				auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabForEdit(GetPreviewScene().GetWorld()
+				auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
 					, CurrentSelectedActor->GetRootComponent()
 					, SubPrefabMapGuidToObject, SubSubPrefabMap
 				);

@@ -117,20 +117,20 @@ int32 FLGUIHudRenderer::GetPriority() const
 #endif
 	return Priority;
 }
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
+#if ENGINE_MAJOR_VERSION >= 5 || (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 26)
+bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext& Context) const
+{
+	if (!World.IsValid())return false;
+	if (World.Get() != Context.GetWorld())return false;//only render self world
+	return true;
+}
+#else
 bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
 {
 	if (!World.IsValid())return false;
 	if (InViewport == nullptr)return false;
 	if (InViewport->GetClient() == nullptr)return false;
 	if (World.Get() != InViewport->GetClient()->GetWorld())return false;//only render self world
-	return true;
-}
-#else
-bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext& Context) const
-{
-	if (!World.IsValid())return false;
-	if (World.Get() != Context.GetWorld())return false;//only render self world
 	return true;
 }
 #endif

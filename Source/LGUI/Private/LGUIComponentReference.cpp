@@ -21,7 +21,7 @@ AActor* FLGUIComponentReference::GetActor()const
 {
 	if (TargetComp && !TargetComp->IsPendingKill())
 	{
-		return TargetComp->GetOwner();
+		return ((UActorComponent*)TargetComp)->GetOwner();
 	}
 	return nullptr;
 }

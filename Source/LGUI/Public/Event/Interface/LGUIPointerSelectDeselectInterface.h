@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Interface.h"
 #include "Event/LGUIPointerEventData.h"
 #include "LGUIPointerSelectDeselectInterface.generated.h"
 

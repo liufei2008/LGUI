@@ -30,10 +30,11 @@ protected:
 		FName HelperComponentName;
 #endif
 	UPROPERTY(EditAnywhere, Category = "LGUI")
-		UActorComponent* TargetComp = nullptr;//If use TWeakObjectPtr here, then this pointer will become STALE when recompile the component from blueprint (not sure about c++ hot compile).
+		UObject* TargetComp = nullptr;//If use TWeakObjectPtr here, then this pointer will become STALE when recompile the component from blueprint (not sure about c++ hot compile).
+										//And, if use UActorComponent here, then reference just missing
 public:
 	AActor* GetActor()const;
-	UActorComponent* GetComponent()const { return TargetComp; }
+	UActorComponent* GetComponent()const { return (UActorComponent*)TargetComp; }
 	template<class T>
 	T* GetComponent()const
 	{

@@ -879,6 +879,14 @@ bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperObject* InPrefabHelpe
 	return false;
 }
 
+void LGUIEditorTools::RefreshLevelLoadedPrefab(ULGUIPrefab* InPrefab)
+{
+	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	{
+		ActorItr->CheckPrefabVersion();
+	}
+}
+
 void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
@@ -1615,7 +1623,7 @@ void LGUIEditorTools::UpgradeSelectedPrefabToLGUI3()
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 			TMap<FGuid, UObject*> MapGuidToObject;
 			TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-			auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
+			auto RootActor = Prefab->LoadPrefabWithExistingObjects(World, nullptr
 				, MapGuidToObject, SubPrefabMap
 			);
 			TArray<AActor*> AllChildrenActorArray;
@@ -1672,7 +1680,7 @@ void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
 				auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
 				TMap<FGuid, UObject*> MapGuidToObject;
 				TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-				auto RootActor = Prefab->LoadPrefabForEdit(World, nullptr
+				auto RootActor = Prefab->LoadPrefabWithExistingObjects(World, nullptr
 					, MapGuidToObject, SubPrefabMap
 				);
 				TArray<AActor*> AllChildrenActorArray;

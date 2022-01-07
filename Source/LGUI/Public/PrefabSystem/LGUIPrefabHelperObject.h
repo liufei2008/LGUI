@@ -9,8 +9,11 @@
 class ULGUIPrefab;
 class ULGUIPrefabOverrideParameterObject;
 struct FLGUISubPrefabData;
+class AActor;
 
-//helper object for manage prefab's load/save
+/**
+ * helper object for manage prefab's load/save
+ */
 UCLASS(ClassGroup = (LGUI), NotBlueprintType, NotBlueprintable)
 class LGUI_API ULGUIPrefabHelperObject : public UObject
 {
@@ -19,13 +22,9 @@ class LGUI_API ULGUIPrefabHelperObject : public UObject
 public:	
 	ULGUIPrefabHelperObject();
 
-	virtual bool IsEditorOnly() const
-	{
-		return true;
-	}
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		bool bIsInsidePrefabEditor = true;
+	virtual void PostInitProperties()override;
+	virtual bool IsEditorOnly() const { return false; }
+
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -36,7 +35,14 @@ public:
 		TMap<FGuid, UObject*> MapGuidToObject;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		FDateTime TimePointWhenSavePrefab;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		bool bIsInsidePrefabEditor = true;
 #endif
+	void RevertPrefab();
+	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
 #if WITH_EDITOR
 	virtual void BeginDestroy()override;
 	virtual void PostEditUndo()override;
@@ -47,9 +53,7 @@ public:
 	void UnlinkSubPrefab(AActor* InSubPrefabActor);
 	void UnlinkPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetSubPrefabAsset(AActor* InSubPrefabActor);
-	void RevertPrefab();
 	void SavePrefab();
-	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
 	void ClearLoadedPrefab();
 	bool IsActorBelongsToSubPrefab(AActor* InActor);
 	bool IsActorBelongsToThis(AActor* InActor, bool InCludeSubPrefab);

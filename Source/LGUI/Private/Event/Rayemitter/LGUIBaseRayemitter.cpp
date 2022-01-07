@@ -2,6 +2,7 @@
 
 #include "Event/Rayemitter/LGUIBaseRayemitter.h"
 #include "LGUI.h"
+#include "Engine/World.h"
 
 void ULGUIBaseRayemitter::BeginPlay()
 {

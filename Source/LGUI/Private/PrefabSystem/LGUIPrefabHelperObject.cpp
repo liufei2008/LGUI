@@ -6,12 +6,94 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "Utils/LGUIUtils.h"
+#include "GameFramework/Actor.h"
 
 ULGUIPrefabHelperObject::ULGUIPrefabHelperObject()
 {
 	
 }
 
+void ULGUIPrefabHelperObject::PostInitProperties()
+{
+	Super::PostInitProperties();
+}
+
+void ULGUIPrefabHelperObject::RevertPrefab()
+{
+	if (IsValid(PrefabAsset))
+	{
+		AActor* OldParentActor = nullptr;
+		bool haveRootTransform = true;
+		FTransform OldTransform;
+		FUIAnchorData OldAnchorData;
+		//store root transform
+		if (IsValid(LoadedRootActor))
+		{
+			OldParentActor = LoadedRootActor->GetAttachParentActor();
+			if (auto RootComp = LoadedRootActor->GetRootComponent())
+			{
+				haveRootTransform = true;
+				OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
+				if (auto RootUIComp = Cast<UUIItem>(RootComp))
+				{
+					OldAnchorData = RootUIComp->GetAnchorData();
+				}
+			}
+		}
+		//Revert exsiting objects with parameters inside prefab
+		{
+			LoadedRootActor = nullptr;
+			LoadPrefab(this->GetWorld(), OldParentActor->GetRootComponent());
+		}
+
+		if (IsValid(LoadedRootActor))
+		{
+			if (haveRootTransform)
+			{
+				if (auto RootComp = LoadedRootActor->GetRootComponent())
+				{
+					RootComp->SetRelativeTransform(OldTransform);
+					if (auto RootUIItem = Cast<UUIItem>(RootComp))
+					{
+						RootUIItem->SetAnchorData(OldAnchorData);
+					}
+				}
+			}
+		}
+#if WITH_EDITOR
+		ULGUIEditorManagerObject::RefreshAllUI();
+#endif
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("PrefabAsset is null, please create a LGUIPrefab asset and assign to PrefabAsset"));
+	}
+}
+
+void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InParent)
+{
+	if (!IsValid(PrefabAsset))return;
+	if (!IsValid(LoadedRootActor))
+	{
+		LoadedRootActor = PrefabAsset->LoadPrefabWithExistingObjects(InWorld
+			, InParent
+			, MapGuidToObject, SubPrefabMap
+		);
+		if (LoadedRootActor == nullptr)return;
+		AllLoadedActorArray.Empty();
+		for (auto KeyValue : MapGuidToObject)
+		{
+			if (auto Actor = Cast<AActor>(KeyValue.Value))
+			{
+				AllLoadedActorArray.Add(Actor);
+			}
+		}
+
+#if WITH_EDITOR
+		TimePointWhenSavePrefab = PrefabAsset->CreateTime;
+#endif
+	}
+}
 
 #if WITH_EDITOR
 void ULGUIPrefabHelperObject::BeginDestroy()
@@ -41,37 +123,6 @@ void ULGUIPrefabHelperObject::SetActorPropertyInOutliner(AActor* Actor, bool InL
 
 	auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AActor::StaticClass(), TEXT("bListedInSceneOutliner"));
 	bListedInSceneOutliner_Property->SetPropertyValue_InContainer(Actor, InListed);
-}
-
-void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InParent)
-{
-	if (!IsValid(PrefabAsset))return;
-	if (!IsValid(LoadedRootActor))
-	{
-		LoadedRootActor = PrefabAsset->LoadPrefabForEdit(InWorld
-			, InParent
-			, MapGuidToObject, SubPrefabMap
-		);
-		if (LoadedRootActor == nullptr)return;
-		AllLoadedActorArray.Empty();
-		for (auto KeyValue : MapGuidToObject)
-		{
-			if (auto Actor = Cast<AActor>(KeyValue.Value))
-			{
-				AllLoadedActorArray.Add(Actor);
-			}
-		}
-		//Make subprefab's actor invisible
-		//TArray<AActor*> AllChildrenActorArray;
-		//LGUIUtils::CollectChildrenActors(LoadedRootActor.Get(), AllChildrenActorArray, true);
-		//for (auto ActorItem : AllChildrenActorArray)
-		//{
-		//	if (!AllLoadedActorArray.Contains(ActorItem))
-		//	{
-		//		SetActorPropertyInOutliner(ActorItem, false);
-		//	}
-		//}
-	}
 }
 
 void ULGUIPrefabHelperObject::ClearLoadedPrefab()
@@ -207,12 +258,6 @@ void ULGUIPrefabHelperObject::UnlinkSubPrefab(AActor* InSubPrefabActor)
 {
 	check(SubPrefabMap.Contains(InSubPrefabActor));
 	SubPrefabMap.Remove(InSubPrefabActor);
-	//TArray<AActor*> ChildrenActors;
-	//LGUIUtils::CollectChildrenActors(InSubPrefabActor, ChildrenActors, false);
-	//for (auto Actor : ChildrenActors)
-	//{
-	//	SetActorPropertyInOutliner(Actor, true);
-	//}
 }
 
 void ULGUIPrefabHelperObject::UnlinkPrefab(AActor* InPrefabActor)
@@ -235,54 +280,5 @@ ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor
 		}
 	}
 	return nullptr;
-}
-
-void ULGUIPrefabHelperObject::RevertPrefab()
-{
-	if (IsValid(PrefabAsset))
-	{
-		AActor* OldParentActor = nullptr;
-		bool haveRootTransform = true;
-		FTransform OldTransform;
-		FUIAnchorData OldAnchorData;
-		//store root transform
-		if (IsValid(LoadedRootActor))
-		{
-			OldParentActor = LoadedRootActor->GetAttachParentActor();
-			if (auto RootComp = LoadedRootActor->GetRootComponent())
-			{
-				haveRootTransform = true;
-				OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
-				if (auto RootUIComp = Cast<UUIItem>(RootComp))
-				{
-					OldAnchorData = RootUIComp->GetAnchorData();
-				}
-			}
-		}
-		//Revert exsiting objects with parameters inside prefab
-		{
-			LoadedRootActor = nullptr;
-			LoadPrefab(this->GetWorld(), OldParentActor->GetRootComponent());
-		}
-
-		if (IsValid(LoadedRootActor))
-		{
-			if (haveRootTransform)
-			{
-				if (auto RootComp = LoadedRootActor->GetRootComponent())
-				{
-					RootComp->SetRelativeTransform(OldTransform);
-					if (auto RootUIItem = Cast<UUIItem>(RootComp))
-					{
-						RootUIItem->SetAnchorData(OldAnchorData);
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		UE_LOG(LGUI, Error, TEXT("PrefabAsset is null, please create a LGUIPrefab asset and assign to PrefabAsset"));
-	}
 }
 #endif

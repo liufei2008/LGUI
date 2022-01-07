@@ -56,6 +56,8 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 	AActor* HelperActor = nullptr;
 	HelperActorHandle->GetValue(HelperActorObj);
 
+	//ChildBuilder.AddProperty(TargetCompHandle.ToSharedRef());
+	//ChildBuilder.AddProperty(HelperActorHandle.ToSharedRef());
 	TSharedPtr<SWidget> ContentWidget;
 	if (bIsInWorld)
 	{
@@ -76,6 +78,10 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 				[
 					SNew(SHorizontalBox)
 					+SHorizontalBox::Slot()
+					.AutoWidth()
+					.HAlign(EHorizontalAlignment::HAlign_Center)
+					.VAlign(EVerticalAlignment::VAlign_Center)
+					.Padding(FMargin(4, 2))
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("Missing component reference!", "Missing component reference!"))
@@ -83,6 +89,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 						.ColorAndOpacity(FSlateColor(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)))
 					]
 					+SHorizontalBox::Slot()
+					.AutoWidth()
 					[
 						SNew(SButton)
 						.Text(LOCTEXT("FixMissingComponent", "Fix"))
@@ -242,7 +249,7 @@ void FLGUIComponentReferenceCustomization::OnSelectComponent(TSharedPtr<IPropert
 
 FReply FLGUIComponentReferenceCustomization::OnClickFixComponentReference(TSharedPtr<IPropertyHandle> HelperCompHandle, UActorComponent* Target)
 {
-	HelperCompHandle->SetValue(Target);
+	HelperCompHandle->SetValue((UObject*)Target);
 	PropertyUtilites->ForceRefresh();
 	return FReply::Handled();
 }
@@ -282,7 +289,7 @@ void FLGUIComponentReferenceCustomization::OnHelperActorValueChange(TSharedPtr<I
 			HelperActor->GetComponents(HelperClass, Components);
 			if (Components.Num() == 1)
 			{
-				HelperCompHandle->SetValue(Components[0]);
+				HelperCompHandle->SetValue((UObject*)Components[0]);
 				HelperComponentNameHandle->SetValue(Components[0]->GetFName());
 			}
 			else if (Components.Num() == 0)
