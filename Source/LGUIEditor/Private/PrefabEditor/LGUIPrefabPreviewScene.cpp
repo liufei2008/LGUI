@@ -135,8 +135,8 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 					RootUICanvasActor->bLockLocation = true;
 #endif
 
-					//auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-					//bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootUICanvasActor, false);
+					auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
+					bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootUICanvasActor, false);
 
 					auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
 					bActorLabelEditable_Property->SetPropertyValue_InContainer(RootUICanvasActor, false);

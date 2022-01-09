@@ -17,6 +17,7 @@
 #include "SortHelper.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "PrefabEditor/LGUIPrefabEditor.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
@@ -65,6 +66,10 @@ namespace LGUISceneOutliner
 
 		AActor* actor = GetActorFromTreeItem(TreeItem);
 		if (actor == nullptr)
+		{
+			return SNew(SBox);
+		}
+		if (FLGUIPrefabEditor::ActorIsRootAgent(actor))
 		{
 			return SNew(SBox);
 		}
@@ -390,6 +395,10 @@ namespace LGUISceneOutliner
 		auto weakTreeItem = TWeakPtr<SceneOutliner::ITreeItem>(TreeItem);
 		AActor* actor = GetActorFromTreeItem(weakTreeItem);
 		if (actor == nullptr)
+		{
+			return SNew(SBox);
+		}
+		if (FLGUIPrefabEditor::ActorIsRootAgent(actor))
 		{
 			return SNew(SBox);
 		}

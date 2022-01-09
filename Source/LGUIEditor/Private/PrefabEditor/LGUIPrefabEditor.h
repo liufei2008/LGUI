@@ -61,7 +61,7 @@ public:
 
 	/** Try to handle a drag-drop operation */
 	FReply TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent);
-	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject);
+	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject, bool InApplyChanges = true);
 
 	FLGUIPrefabPreviewScene& GetPreviewScene();
 	UWorld* GetWorld();
@@ -70,7 +70,9 @@ public:
 	void DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray);
 
 	static FLGUIPrefabEditor* GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab);
-	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
+	static ULGUIPrefabHelperObject* GetEditorPrefabHelperObjectForActor(AActor* InActor);
+	static bool ActorIsRootAgent(AActor* InActor);
+	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 
 	bool GetSelectedObjectsBounds(FBoxSphereBounds& OutResult);
 	FBoxSphereBounds GetAllObjectsBounds();

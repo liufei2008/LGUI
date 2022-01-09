@@ -388,6 +388,11 @@ namespace LGUIPrefabSystem3
 					for (auto& KeyValue : SavedActors.MapObjectGuidFromParentPrefabToSubPrefab)
 					{
 						MapObjectGuidFromSubPrefabToParentPrefab.Add(KeyValue.Value, KeyValue.Key);
+						auto ObjectPtr = MapGuidToObject.Find(KeyValue.Key);
+						if (!SubMapGuidToObject.Contains(KeyValue.Value) && ObjectPtr != nullptr)
+						{
+							SubMapGuidToObject.Add(KeyValue.Value, *ObjectPtr);
+						}
 					}
 					SubPrefabRootActor = ActorSerializer3::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent()
 						, SubMapGuidToObject

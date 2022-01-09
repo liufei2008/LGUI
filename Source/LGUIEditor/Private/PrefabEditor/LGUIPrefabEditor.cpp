@@ -80,101 +80,127 @@ FLGUIPrefabEditor* FLGUIPrefabEditor::GetEditorForPrefabIfValid(ULGUIPrefab* InP
 	return nullptr;
 }
 
-void FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
+ULGUIPrefabHelperObject* FLGUIPrefabEditor::GetEditorPrefabHelperObjectForActor(AActor* InActor)
+{
+	for (auto Instance : LGUIPrefabEditorInstanceCollection)
+	{
+		if (InActor->GetWorld() == Instance->GetWorld())
+		{
+			return Instance->PrefabHelperObject;
+		}
+	}
+	return nullptr;
+}
+
+bool FLGUIPrefabEditor::ActorIsRootAgent(AActor* InActor)
+{
+	for (auto Instance : LGUIPrefabEditorInstanceCollection)
+	{
+		if (InActor == Instance->GetPreviewScene().GetRootAgentActor())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 {
 	bCanNotifyDetachment = false;
 	bool AnythingChange = false;
-	if (PrefabHelperObject->PrefabAsset->ReferenceAssetList.Contains(InSubPrefab))
-	{
-		auto OriginObjectContainsInSourcePrefabByGuid = [=](UObject* InObject, FLGUISubPrefabData& SubPrefabData) {
-			FGuid ObjectGuid;
-			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+
+	auto OriginObjectContainsInSourcePrefabByGuid = [=](UObject* InObject, FLGUISubPrefabData& SubPrefabData) {
+		FGuid ObjectGuid;
+		for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+		{
+			if (KeyValue.Value == InObject)
 			{
-				if (KeyValue.Value == InObject)
+				ObjectGuid = KeyValue.Key;
+			}
+		}
+		FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
+		return SubPrefabData.PrefabAsset->PrefabHelperObject->MapGuidToObject.Contains(ObjectGuidInSubPrefab);
+	};
+	for (auto& SubPrefabKeyValue : PrefabHelperObject->SubPrefabMap)
+	{
+		auto SubPrefabRootActor = SubPrefabKeyValue.Key;
+		auto& SubPrefabData = SubPrefabKeyValue.Value;
+		if (SubPrefabData.PrefabAsset == InSubPrefab)
+		{
+			//store override parameter to data
+			LGUIPrefabSystem3::ActorSerializer3 serailizer;
+			auto OverrideData = serailizer.SaveOverrideParameterToData(SubPrefabData.ObjectOverrideParameterArray);
+
+			TArray<AActor*> ChildrenActors;
+			LGUIUtils::CollectChildrenActors(SubPrefabRootActor, ChildrenActors);
+
+			TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
+			for (auto& GuidToObject : PrefabHelperObject->MapGuidToObject)
+			{
+				if (auto ObjectGuidInSubPrefabPtr = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Find(GuidToObject.Key))
 				{
-					ObjectGuid = KeyValue.Key;
+					SubPrefabMapGuidToObject.Add(*ObjectGuidInSubPrefabPtr, GuidToObject.Value);
 				}
 			}
-			FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
-			return SubPrefabData.PrefabAsset->PrefabHelperObject->MapGuidToObject.Contains(ObjectGuidInSubPrefab);
-		};
-		for (auto& SubPrefabKeyValue : PrefabHelperObject->SubPrefabMap)
-		{
-			auto SubPrefabRootActor = SubPrefabKeyValue.Key;
-			auto& SubPrefabData = SubPrefabKeyValue.Value;
-			if (SubPrefabData.PrefabAsset == InSubPrefab)
+
+			TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
+			InSubPrefab->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
+				, SubPrefabRootActor->GetAttachParentActor()->GetRootComponent()
+				, SubPrefabMapGuidToObject, SubSubPrefabMap
+				, false
+			);
+
+			//delete extra actors
+			for (auto& OldChild : ChildrenActors)
 			{
-				//store override parameter to data
-				LGUIPrefabSystem3::ActorSerializer3 serailizer;
-				auto OverrideData = serailizer.SaveOverrideParameterToData(SubPrefabData.ObjectOverrideParameterArray);
-
-				TArray<AActor*> ChildrenActors;
-				LGUIUtils::CollectChildrenActors(SubPrefabRootActor, ChildrenActors);
-				TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
-				for (auto& GuidToObject : PrefabHelperObject->MapGuidToObject)
+				if (!OriginObjectContainsInSourcePrefabByGuid(OldChild, SubPrefabData))
 				{
-					if (auto ObjectGuidInSubPrefabPtr = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Find(GuidToObject.Key))
-					{
-						SubPrefabMapGuidToObject.Add(*ObjectGuidInSubPrefabPtr, GuidToObject.Value);
-					}
-				}
-
-				TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-				InSubPrefab->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
-					, SubPrefabRootActor->GetAttachParentActor()->GetRootComponent()
-					, SubPrefabMapGuidToObject, SubSubPrefabMap
-					, false
-				);
-
-				//delete extra actors
-				for (auto& OldChild : ChildrenActors)
-				{
-					if (!OriginObjectContainsInSourcePrefabByGuid(OldChild, SubPrefabData))
-					{
-						LGUIUtils::DestroyActorWithHierarchy(OldChild, false);
-						AnythingChange = true;
-					}
-				}
-				//collect added object and guid
-				auto FindOrAddSubPrefabObjectGuidInParentPrefab = [&](UObject* InObject) {
-					for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-					{
-						if (KeyValue.Value == InObject)
-						{
-							return KeyValue.Key;
-						}
-					}
-					auto NewGuid = FGuid::NewGuid();
-					PrefabHelperObject->MapGuidToObject.Add(NewGuid, InObject);
-					AnythingChange = true;
-					return NewGuid;
-				};
-				for (auto& SubPrefabGuidToObject : SubPrefabMapGuidToObject)
-				{
-					auto ObjectGuidInParentPrefab = FindOrAddSubPrefabObjectGuidInParentPrefab(SubPrefabGuidToObject.Value);
-					if (!SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Contains(ObjectGuidInParentPrefab))
-					{
-						SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, SubPrefabGuidToObject.Key);
-						AnythingChange = true;
-					}
-				}
-				//no need to clear invalid objects, because when SavePrefab it will do the clear work
-				//apply override parameter. 
-				serailizer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
-
-				if (SubPrefabData.CheckParameters())
-				{
+					LGUIUtils::DestroyActorWithHierarchy(OldChild, false);
 					AnythingChange = true;
 				}
+			}
+			//collect added object and guid
+			auto FindOrAddSubPrefabObjectGuidInParentPrefab = [&](UObject* InObject) {
+				for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+				{
+					if (KeyValue.Value == InObject)
+					{
+						return KeyValue.Key;
+					}
+				}
+				auto NewGuid = FGuid::NewGuid();
+				PrefabHelperObject->MapGuidToObject.Add(NewGuid, InObject);
+				AnythingChange = true;
+				return NewGuid;
+			};
+			for (auto& SubPrefabGuidToObject : SubPrefabMapGuidToObject)
+			{
+				auto ObjectGuidInParentPrefab = FindOrAddSubPrefabObjectGuidInParentPrefab(SubPrefabGuidToObject.Value);
+				if (!SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Contains(ObjectGuidInParentPrefab))
+				{
+					SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Add(ObjectGuidInParentPrefab, SubPrefabGuidToObject.Key);
+					AnythingChange = true;
+				}
+			}
+			//no need to clear invalid objects, because when SavePrefab it will do the clear work
+			//apply override parameter. 
+			serailizer.RestoreOverrideParameterFromData(OverrideData, SubPrefabData.ObjectOverrideParameterArray);
+
+			if (SubPrefabData.CheckParameters())
+			{
+				AnythingChange = true;
 			}
 		}
 	}
+
 	if (AnythingChange)
 	{
 		PrefabHelperObject->SavePrefab();
 		PrefabHelperObject->PrefabAsset->MarkPackageDirty();
 	}
+	ULGUIEditorManagerObject::RefreshAllUI();
 	bCanNotifyDetachment = true;
+	return AnythingChange;
 }
 
 bool FLGUIPrefabEditor::GetSelectedObjectsBounds(FBoxSphereBounds& OutResult)
@@ -989,67 +1015,33 @@ void FLGUIPrefabEditor::OnObjectModified(UObject* InObject)
 }
 void FLGUIPrefabEditor::OnLevelActorAttached(AActor* Actor, const AActor* AttachTo)
 {
+	if (!bCanNotifyDetachment)return;
 
+	if (PrefabHelperObject->SubPrefabMap.Contains(AttachTo))//not allowed attach to sub prefab's root actor
+	{
+		auto InfoText = LOCTEXT("NotAllowAttachToSubPrefab", "Trying to change hierarchy of sub prefab's actor, this is not allowed! Please undo this operation!");
+		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+	}
+
+	if (AttachTo == GetPreviewScene().GetRootAgentActor())
+	{
+		auto InfoText = LOCTEXT("NotAllowAttachToRootAgent", "Trying to attach actor to UIRootAgent, this is not allowed! Please undo this operation!");
+		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+	}
 }
 void FLGUIPrefabEditor::OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom)
 {
 	if (!bCanNotifyDetachment)return;
+
 	if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor) && !PrefabHelperObject->SubPrefabMap.Contains(Actor))//allow sub prefab's root actor detach, but not sub prefab's children actor
 	{
-		auto InfoText = LOCTEXT("NotAllowSubPrefabDetach", "Trying to change hierarchy of sub prefab's actor, this is not allowed! Please undo this operation!");
+		auto InfoText = LOCTEXT("NotAllowDetachFromSubPrefab", "Trying to change hierarchy of sub prefab's actor, this is not allowed! Please undo this operation!");
 		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
 	}
 }
 
 FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent)
 {
-	if (CurrentSelectedActor == nullptr)
-	{
-		auto MsgText = LOCTEXT("Error_NeedParentNode", "Please select a actor as parent actor");
-		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
-		return FReply::Unhandled();
-	}
-	if (CurrentSelectedActor == GetPreviewScene().GetRootAgentActor())
-	{
-		auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "{0} cannot be parent actor of child prefab, please choose another actor."), FText::FromString(GetPreviewScene().UIRootAgentActorName));
-		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
-		return FReply::Unhandled();
-	}
-	if (PrefabHelperObject->SubPrefabMap.Contains(CurrentSelectedActor.Get()))
-	{
-		auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "Selected actor belongs to child prefab, which cannot be parent of other child prefab, please choose another actor."), FText::FromString(GetPreviewScene().UIRootAgentActorName));
-		FMessageDialog::Open(EAppMsgType::Ok, MsgText);
-		return FReply::Unhandled();
-	}
-
-	struct Local
-	{
-	private:
-		static bool ContainsOtherPrefabAsSubPrefab(const TArray<UObject*>& ReferenceAssetList, ULGUIPrefab* InTestPrefab)
-		{
-			if (ReferenceAssetList.Contains(InTestPrefab))
-			{
-				return true;
-			}
-			for (auto Asset : ReferenceAssetList)
-			{
-				if (auto PrefabAsset = Cast<ULGUIPrefab>(Asset))
-				{
-					if (ContainsOtherPrefabAsSubPrefab(PrefabAsset->ReferenceAssetList, InTestPrefab))
-					{
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-	public:
-		static bool ContainsOtherPrefabAsSubPrefab(ULGUIPrefab* InPrefab, ULGUIPrefab* InTestPrefab)
-		{
-			return ContainsOtherPrefabAsSubPrefab(InPrefab->ReferenceAssetList, InTestPrefab);
-		}
-	};
-
 	TSharedPtr<FDragDropOperation> Operation = DragDropEvent.GetOperation();
 	if (Operation.IsValid() && Operation->IsOfType<FAssetDragDropOp>())
 	{
@@ -1058,7 +1050,6 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 
 		if (NumAssets > 0)
 		{
-
 			TArray<ULGUIPrefab*> PrefabsToLoad;
 			for (int32 DroppedAssetIdx = 0; DroppedAssetIdx < NumAssets; ++DroppedAssetIdx)
 			{
@@ -1073,9 +1064,9 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				auto PrefabAsset = Cast<ULGUIPrefab>(Asset);
 				if (PrefabAsset)
 				{
-					if (Local::ContainsOtherPrefabAsSubPrefab(PrefabAsset, this->PrefabBeingEdited))
+					if (PrefabAsset->IsPrefabBelongsToThisSubPrefab(this->PrefabBeingEdited, true))
 					{
-						auto MsgText = LOCTEXT("Error_EndlessNestedPrefab", "Operation error! Target prefab have this prefab as child prefab, which will result in endless nested prefab!");
+						auto MsgText = LOCTEXT("Error_EndlessNestedPrefab", "Operation error! Target prefab have this prefab as child prefab, which will result in cyclic nested prefab!");
 						FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 						return FReply::Unhandled();
 					}
@@ -1090,21 +1081,44 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				}
 			}
 
-			for (auto& PrefabAsset : PrefabsToLoad)
+			if (PrefabsToLoad.Num() > 0)
 			{
-				TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
-				TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-				auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
-					, CurrentSelectedActor->GetRootComponent()
-					, SubPrefabMapGuidToObject, SubSubPrefabMap
-				);
+				if (CurrentSelectedActor == nullptr)
+				{
+					auto MsgText = LOCTEXT("Error_NeedParentNode", "Please select a actor as parent actor");
+					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+					return FReply::Unhandled();
+				}
+				if (CurrentSelectedActor == GetPreviewScene().GetRootAgentActor())
+				{
+					auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "{0} cannot be parent actor of child prefab, please choose another actor."), FText::FromString(GetPreviewScene().UIRootAgentActorName));
+					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+					return FReply::Unhandled();
+				}
+				if (PrefabHelperObject->SubPrefabMap.Contains(CurrentSelectedActor.Get()))
+				{
+					auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "Selected actor belongs to child prefab, which cannot be parent of other child prefab, please choose another actor."), FText::FromString(GetPreviewScene().UIRootAgentActorName));
+					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
+					return FReply::Unhandled();
+				}
 
-				MakePrefabAsSubPrefab(PrefabAsset, LoadedSubPrefabRootActor, SubPrefabMapGuidToObject);
-			}
+				for (auto& PrefabAsset : PrefabsToLoad)
+				{
+					TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
+					TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
+					auto LoadedSubPrefabRootActor = PrefabAsset->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
+						, CurrentSelectedActor->GetRootComponent()
+						, SubPrefabMapGuidToObject, SubSubPrefabMap
+					);
 
-			if (OutlinerPtr.IsValid())
-			{
-				OutlinerPtr->FullRefresh();
+					MakePrefabAsSubPrefab(PrefabAsset, LoadedSubPrefabRootActor, SubPrefabMapGuidToObject, false);
+				}
+				OnApply();
+
+				if (OutlinerPtr.IsValid())
+				{
+					OutlinerPtr->FullRefresh();
+				}
 			}
 		}
 
@@ -1112,7 +1126,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 	}
 	return FReply::Unhandled();
 }
-void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject)
+void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject, bool InApplyChanges)
 {
 	FLGUISubPrefabData SubPrefabData;
 	SubPrefabData.PrefabAsset = InPrefab;
@@ -1153,6 +1167,11 @@ void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InA
 	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, FName(TEXT("RelativeRotation")));
 
 	bAnythingDirty = true;
+	if (InApplyChanges)
+	{
+		//apply prefab immediatelly
+		OnApply();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

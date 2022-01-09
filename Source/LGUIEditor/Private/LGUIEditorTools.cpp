@@ -775,8 +775,8 @@ void LGUIEditorTools::CreatePrefabAsset()
 				auto OutPrefab = NewObject<ULGUIPrefab>(package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
 				FAssetRegistryModule::AssetCreated(OutPrefab);
 
-				auto otherPrefabObjectWhichHaveThisActor = GetPrefabHelperObject_WhichManageThisActor(selectedActor);//@todo: could be multiple other prefabs
-				if (otherPrefabObjectWhichHaveThisActor != nullptr && otherPrefabObjectWhichHaveThisActor->bIsInsidePrefabEditor)//create sub prefab in prefab editor
+				auto otherPrefabObjectWhichHaveThisActor = FLGUIPrefabEditor::GetEditorPrefabHelperObjectForActor(selectedActor);//@todo: could be multiple other prefabs
+				if (otherPrefabObjectWhichHaveThisActor != nullptr)//create sub prefab in prefab editor
 				{
 					auto PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>();
 					PrefabHelperObject->PrefabAsset = OutPrefab;
@@ -847,36 +847,49 @@ void LGUIEditorTools::CreatePrefabAsset()
 		}
 	}
 }
-void LGUIEditorTools::ApplyPrefab()
+
+void LGUIEditorTools::ApplyPrefabInLevelEditor()
 {
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
 	auto selectedActor = GetFirstSelectedActor();
 	auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(selectedActor);
 	if (PrefabHelperObject != nullptr)
 	{
-		check(!PrefabHelperObject->bIsInsidePrefabEditor);//should already handled by button
-		CreateOrApplyPrefab(PrefabHelperObject);
-	}
-	CleanupPrefabsInWorld(selectedActor->GetWorld());
-	GEditor->EndTransaction();
-}
-bool LGUIEditorTools::CreateOrApplyPrefab(ULGUIPrefabHelperObject* InPrefabHelperObject)
-{
-	if (InPrefabHelperObject->LoadedRootActor)
-	{
-		if (auto PrefabAsset = InPrefabHelperObject->PrefabAsset)
+		check(!PrefabHelperObject->bIsInsidePrefabEditor);//not allowed in prefab editor. should already handled by menu
+		if (PrefabHelperObject->LoadedRootActor)
 		{
-			GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
-			InPrefabHelperObject->SavePrefab();
-			GEditor->EndTransaction();
+			bool ContainsOtherPrefab = false;
+			//check if other prefab under this
+			for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+			{
+				if (ActorItr->PrefabHelperObject != nullptr)
+				{
+					if (ActorItr->PrefabHelperObject->LoadedRootActor->IsAttachedTo(PrefabHelperObject->LoadedRootActor))
+					{
+						ContainsOtherPrefab = true;
+						break;
+					}
+				}
+			}
+			if (ContainsOtherPrefab)
+			{
+				auto ConfirmMsg = LOCTEXT("DetectOtherPrefabInside", "Detect other prefab inside this prefab! Nested prefab is only allowed in prefab editor, not level editor!");
+				FMessageDialog::Open(EAppMsgType::Ok, ConfirmMsg);
+				return;
+			}
 
-			PrefabAsset->RefreshAgentObjectsInPreviewWorld();
+			if (auto PrefabAsset = PrefabHelperObject->PrefabAsset)
+			{
+				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));//@todo: make it work
+				PrefabHelperObject->SavePrefab();
 
-			RefreshOnSubPrefabChange(InPrefabHelperObject->PrefabAsset);
-			return true;
+				PrefabAsset->RefreshAgentObjectsInPreviewWorld();
+
+				RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
+				GEditor->EndTransaction();
+			}
 		}
 	}
-	return false;
+	CleanupPrefabsInWorld(selectedActor->GetWorld());
 }
 
 void LGUIEditorTools::RefreshLevelLoadedPrefab(ULGUIPrefab* InPrefab)
@@ -901,6 +914,7 @@ void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
 	TArray<FAssetData> ScriptAssetList;
 	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
 
+	TArray<ULGUIPrefab*> AllPrefabs;
 	// Ensure all assets are loaded
 	for (const FAssetData& Asset : ScriptAssetList)
 	{
@@ -911,25 +925,49 @@ void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
 			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
 			{
 				Prefab->MakeAgentObjectsInPreviewWorld();
-				//check if is opened by prefab editor
-				if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(Prefab))
-				{
-					PrefabEditor->RefreshOnSubPrefabDirty(InSubPrefab);
-				}
-				else
-				{
-					Prefab->RefreshOnSubPrefabDirty(InSubPrefab);
-				}
+				AllPrefabs.Add(Prefab);
 			}
 		}
 	}
+
+	struct Local
+	{
+	public:
+		static void RefreshAllPrefabsOnSubPrefabChange(const TArray<ULGUIPrefab*>& InPrefabs, ULGUIPrefab* InSubPrefab)
+		{
+			for (auto& Prefab : InPrefabs)
+			{
+				if (Prefab->IsPrefabBelongsToThisSubPrefab(InSubPrefab, false))
+				{
+					//check if is opened by prefab editor
+					if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(Prefab))//refresh opened prefab
+					{
+						if (PrefabEditor->RefreshOnSubPrefabDirty(InSubPrefab))
+						{
+							RefreshAllPrefabsOnSubPrefabChange(InPrefabs, Prefab);
+						}
+					}
+					else
+					{
+						//Why comment this? Because we don't need to refresh un-opened prefab, because prefab will reload all sub prefab when open
+						//if (Prefab->RefreshOnSubPrefabDirty(InSubPrefab))
+						//{
+						//	RefreshAllPrefabsOnSubPrefabChange(InPrefabs, Prefab);
+						//}
+					}
+				}
+			}
+		}
+	};
+
+	Local::RefreshAllPrefabsOnSubPrefabChange(AllPrefabs, InSubPrefab);
 }
 
-void LGUIEditorTools::RevertPrefab()
+void LGUIEditorTools::RevertPrefabInLevelEditor()
 {
 	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI RevertPrefab")));
 	auto selectedActor = GetFirstSelectedActor();
-	auto prefabActor = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(selectedActor);
+	auto prefabActor = LGUIEditorTools::GetPrefabHelperActor_WhichManageThisActor(selectedActor);
 	if (prefabActor != nullptr)
 	{
 		prefabActor->RevertPrefab();
@@ -937,7 +975,7 @@ void LGUIEditorTools::RevertPrefab()
 	CleanupPrefabsInWorld(selectedActor->GetWorld());
 	GEditor->EndTransaction();
 }
-void LGUIEditorTools::DeletePrefab()
+void LGUIEditorTools::DeletePrefabInLevelEditor()
 {
 	auto confirmMsg = FString::Printf(TEXT("Delete selected prefab instance?"));
 	auto confirmResult = FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString(confirmMsg));
@@ -1009,6 +1047,30 @@ void LGUIEditorTools::SelectPrefabAsset()
 	GEditor->EndTransaction();
 }
 
+void LGUIEditorTools::OpenPrefabAsset()
+{
+	auto SelectedActor = GetFirstSelectedActor();
+	auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor);
+	if (PrefabHelperObject != nullptr)
+	{
+		ULGUIPrefab* PrefabAsset = nullptr;
+		if (PrefabHelperObject->bIsInsidePrefabEditor)//prefab editor only allow operate on sub prefab
+		{
+			check(PrefabHelperObject->SubPrefabMap.Contains(SelectedActor));//should have being check in Browse button
+			PrefabAsset = PrefabHelperObject->GetSubPrefabAsset(SelectedActor);
+		}
+		else
+		{
+			PrefabAsset = PrefabHelperObject->PrefabAsset;
+		}
+		if (IsValid(PrefabAsset))
+		{
+			TSharedRef<FLGUIPrefabEditor> NewPrefabEditor(new FLGUIPrefabEditor());
+			NewPrefabEditor->InitPrefabEditor(EToolkitMode::Standalone, TSharedPtr<IToolkitHost>(), PrefabAsset);
+		}
+	}
+}
+
 ULGUIPrefabHelperObject* LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(AActor* InActor)
 {
 	if (!IsValid(InActor))return nullptr;
@@ -1017,6 +1079,21 @@ ULGUIPrefabHelperObject* LGUIEditorTools::GetPrefabHelperObject_WhichManageThisA
 		if (Itr->IsActorBelongsToThis(InActor, true))
 		{
 			return *Itr;
+		}
+	}
+	return nullptr;
+}
+
+ALGUIPrefabHelperActor* LGUIEditorTools::GetPrefabHelperActor_WhichManageThisActor(AActor* InActor)
+{
+	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	{
+		if (ActorItr->PrefabHelperObject != nullptr)
+		{
+			if (ActorItr->PrefabHelperObject->AllLoadedActorArray.Contains(InActor))
+			{
+				return *ActorItr;
+			}
 		}
 	}
 	return nullptr;

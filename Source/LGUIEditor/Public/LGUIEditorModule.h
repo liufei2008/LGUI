@@ -27,6 +27,7 @@ public:
 	virtual void ShutdownModule() override;
 
 	static FLGUIEditorModule& Get();
+	void RefreshPrefabOverrideParameterViewerOnLevelEditor(const TArray<FLGUIPrefabOverrideParameterData>& ObjectOverrideParameterArray);
 	
 	TSharedRef<SWidget> MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool PreviewInViewport, bool EditorCameraControl, bool Others, bool UpgradeToLGUI3);
 	TSharedPtr<class FUICommandList> PluginCommands;
@@ -47,6 +48,7 @@ private:
 	bool CanUnlinkActorForPrefab();
 	bool CanBrowsePrefab();
 	bool CanCreatePrefab();
+	bool CanCheckPrefabOverrideParameter()const;
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 
@@ -57,4 +59,5 @@ private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
 	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
+	TSharedPtr<class SLGUIPrefabOverrideDataViewer> PrefabOverrideDataViewer;
 };

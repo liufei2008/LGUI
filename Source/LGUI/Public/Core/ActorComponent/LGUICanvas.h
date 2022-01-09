@@ -493,6 +493,7 @@ private:
 	TArray<FLGUIMaterialArrayContainer> PooledUIMaterialList;//Default material pool. PooledMaterialList is managed by self canvas, not the actual render canvas.
 	TArray<TSharedPtr<UUIDrawcall>> UIDrawcallList;//Drawcall collection of this Canvas. UIDrawcallList is managed by actual render canvas.
 	TArray<TSharedPtr<UUIDrawcall>> CacheUIDrawcallList;//Cached Drawcall collection. CacheUIDrawcallList is managed by actual render canvas.
+	UPROPERTY(Transient, VisibleAnywhere, Category = "LGUI", AdvancedDisplay)
 	TArray<UUIItem*> UIRenderableList;//UIRenderableList is managed by self canvas, not the actual render canvas.
 
 	/** rect clip's min position */

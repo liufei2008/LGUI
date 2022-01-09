@@ -8,9 +8,13 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabOverrideDataViewer"
 
-void SLGUIPrefabOverrideDataViewer::Construct(const FArguments& InArgs, TSharedPtr<FLGUIPrefabEditor> InPrefabEditorPtr)
+void SLGUIPrefabOverrideDataViewer::Construct(const FArguments& InArgs)
 {
-	PrefabEditorPtr = InPrefabEditorPtr;
+	RevertPrefabWithParameterSet = InArgs._RevertPrefabWithParameterSet;
+	RevertPrefabWithParameter = InArgs._RevertPrefabWithParameter;
+	RevertPrefabAllParameters = InArgs._RevertPrefabAllParameters;
+	ApplyPrefabAllParameters = InArgs._ApplyPrefabAllParameters;
+
 	RootContentVerticalBox = SNew(SVerticalBox);
 	ChildSlot
 	[
@@ -18,14 +22,13 @@ void SLGUIPrefabOverrideDataViewer::Construct(const FArguments& InArgs, TSharedP
 	]
 	;
 }
-void SLGUIPrefabOverrideDataViewer::RefreshDataContent(AActor* InSubPrefabActor)
+void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabOverrideParameterData>& ObjectOverrideParameterArray)
 {
-	FLGUISubPrefabData SubPrefabData = PrefabEditorPtr.Pin()->GetSubPrefabDataForActor(InSubPrefabActor);
 	RootContentVerticalBox->ClearChildren();
 	const float ButtonHeight = 32;
-	for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
+	for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
 	{
-		auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
+		auto& DataItem = ObjectOverrideParameterArray[i];
 		FString DisplayName;
 		AActor* Actor = Cast<AActor>(DataItem.Object.Get());
 		UActorComponent* Component = Cast<UActorComponent>(DataItem.Object.Get());
@@ -44,7 +47,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(AActor* InSubPrefabActor)
 		{
 			if (auto UIItem = Cast<UUIItem>(DataItem.Object.Get()))
 			{
-				for (auto Name : UUIItem::PersistentOverridePropertyNameSet)
+				for (auto& Name : UUIItem::PersistentOverridePropertyNameSet)
 				{
 					FilteredMemeberPropertyNameSet.Remove(Name);
 				}
@@ -87,7 +90,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(AActor* InSubPrefabActor)
 				[
 					PropertyCustomizationHelpers::MakeResetButton(
 						FSimpleDelegate::CreateLambda([=]() {
-							PrefabEditorPtr.Pin()->RevertPrefabOverride(DataItem.Object.Get(), FilteredMemeberPropertyNameSet);
+							RevertPrefabWithParameterSet.ExecuteIfBound(DataItem.Object.Get(), FilteredMemeberPropertyNameSet);
 						})
 						, LOCTEXT("ResetAllParameters", "Click to revert all parameters of this object to prefab's default value.")
 					)
@@ -135,7 +138,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(AActor* InSubPrefabActor)
 					[
 						PropertyCustomizationHelpers::MakeResetButton(
 							FSimpleDelegate::CreateLambda([=]() {
-								PrefabEditorPtr.Pin()->RevertPrefabOverride(DataItem.Object.Get(), PropertyName);
+								RevertPrefabWithParameter.ExecuteIfBound(DataItem.Object.Get(), PropertyName);
 							})
 							, LOCTEXT("ResetThisParameter", "Click to revert this parameter to prefab's default value.")
 						)
@@ -151,7 +154,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(AActor* InSubPrefabActor)
 		}
 	}
 	//revert all, apply all
-	if(SubPrefabData.ObjectOverrideParameterArray.Num() > 0)
+	if(ObjectOverrideParameterArray.Num() > 0)
 	{
 		RootContentVerticalBox->AddSlot()
 		.AutoHeight()
@@ -169,7 +172,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(AActor* InSubPrefabActor)
 					.Text(LOCTEXT("RevertAll", "Revert All"))
 					.ToolTipText(LOCTEXT("RevertAll_Tooltip", "Revert all overrides"))
 					.OnClicked_Lambda([=](){
-						PrefabEditorPtr.Pin()->RevertAllPrefabOverride(InSubPrefabActor);
+						RevertPrefabAllParameters.ExecuteIfBound();
 						return FReply::Handled();
 					})
 				]
@@ -187,7 +190,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(AActor* InSubPrefabActor)
 					.ToolTipText(LOCTEXT("ApplyAll_Tooltip", "(Future support) Apply all overrides to source prefab"))
 					.IsEnabled(false)
 					.OnClicked_Lambda([=](){
-						PrefabEditorPtr.Pin()->ApplyAllOverrideToPrefab(InSubPrefabActor);
+						ApplyPrefabAllParameters.ExecuteIfBound();
 						return FReply::Handled();
 					})
 				]

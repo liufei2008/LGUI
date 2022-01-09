@@ -134,12 +134,13 @@ public:
 	AActor* LoadPrefabWithTransform(UObject* WorldContextObject, USceneComponent* InParent, FVector Location, FQuat Rotation, FVector Scale);
 	AActor* LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity = false);
 	/**
- * LoadPrefab and keep reference of source objects.
- */
+	 * LoadPrefab and keep reference of source objects.
+	 */
 	AActor* LoadPrefabWithExistingObjects(UWorld* InWorld, USceneComponent* InParent
 		, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
 		, bool InSetHierarchyIndexForRootComponent = true
 	);
+	bool IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive);
 private:
 	void CheckHelperObject();
 #if WITH_EDITOR
@@ -148,7 +149,7 @@ public:
 	void ClearAgentObjectsInPreviewWorld();
 	void RefreshAgentObjectsInPreviewWorld();
 	/** Refresh it. Note this will use agent data to serialize, so if the prefab editor is opened for this prefab, then we should not use this function, or modifyed value in prefab editor will lose */
-	void RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
+	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 
 	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;

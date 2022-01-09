@@ -55,8 +55,8 @@ public:
 	ULGUIPrefab* GetSubPrefabAsset(AActor* InSubPrefabActor);
 	void SavePrefab();
 	void ClearLoadedPrefab();
-	bool IsActorBelongsToSubPrefab(AActor* InActor);
-	bool IsActorBelongsToThis(AActor* InActor, bool InCludeSubPrefab);
+	bool IsActorBelongsToSubPrefab(const AActor* InActor);
+	bool IsActorBelongsToThis(const AActor* InActor, bool InCludeSubPrefab);
 	void AddMemberPropertyToSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject);

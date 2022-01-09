@@ -40,10 +40,21 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 				}
 			}
 		}
+		//collect current children
+		TArray<AActor*> ChildrenActors;
+		LGUIUtils::CollectChildrenActors(LoadedRootActor, ChildrenActors);
 		//Revert exsiting objects with parameters inside prefab
 		{
 			LoadedRootActor = nullptr;
 			LoadPrefab(this->GetWorld(), OldParentActor->GetRootComponent());
+		}
+		//delete extra actors
+		for (auto& OldChild : ChildrenActors)
+		{
+			if (!AllLoadedActorArray.Contains(OldChild))
+			{
+				LGUIUtils::DestroyActorWithHierarchy(OldChild, false);
+			}
 		}
 
 		if (IsValid(LoadedRootActor))
@@ -80,6 +91,19 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 			, MapGuidToObject, SubPrefabMap
 		);
 		if (LoadedRootActor == nullptr)return;
+		//remove extra objects
+		TSet<FGuid> ObjectsToIgnore;
+		for (auto KeyValue : MapGuidToObject)
+		{
+			if (!PrefabAsset->PrefabHelperObject->MapGuidToObject.Contains(KeyValue.Key))//Prefab's agent object is clean, so compare with it
+			{
+				ObjectsToIgnore.Add(KeyValue.Key);
+			}
+		}
+		for (auto ObjectGuid : ObjectsToIgnore)
+		{
+			MapGuidToObject.Remove(ObjectGuid);
+		}
 		AllLoadedActorArray.Empty();
 		for (auto KeyValue : MapGuidToObject)
 		{
@@ -136,7 +160,7 @@ void ULGUIPrefabHelperObject::ClearLoadedPrefab()
 	AllLoadedActorArray.Empty();
 }
 
-bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(AActor* InActor)
+bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(const AActor* InActor)
 {
 	if (!IsValid(InActor))return false;
 	for (auto& KeyValue : SubPrefabMap)
@@ -153,7 +177,7 @@ bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(AActor* InActor)
 	return false;
 }
 
-bool ULGUIPrefabHelperObject::IsActorBelongsToThis(AActor* InActor, bool InCludeSubPrefab)
+bool ULGUIPrefabHelperObject::IsActorBelongsToThis(const AActor* InActor, bool InCludeSubPrefab)
 {
 	if (this->AllLoadedActorArray.Contains(InActor))
 	{

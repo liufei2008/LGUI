@@ -49,7 +49,7 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 
 	PrefabActor->PrefabHelperObject->PrefabAsset = Prefab;
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (PrefabActor->GetWorld() == SelectedActor->GetWorld())
+	if (SelectedActor != nullptr && PrefabActor->GetWorld() == SelectedActor->GetWorld())
 	{
 		USceneComponent* ParentComp = nullptr;
 

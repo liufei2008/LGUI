@@ -158,7 +158,19 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 										+SHorizontalBox::Slot()
 										.AutoWidth()
 										[
-											SAssignNew(OverrideParameterEditor, SLGUIPrefabOverrideDataViewer, PrefabEditorPtr.Pin())
+											SAssignNew(OverrideParameterEditor, SLGUIPrefabOverrideDataViewer)
+											.RevertPrefabWithParameterSet_Lambda([=](UObject* Object, const TSet<FName>& Parameters) {
+												PrefabEditorPtr.Pin()->RevertPrefabOverride(Object, Parameters);
+												})
+											.RevertPrefabWithParameter_Lambda([=](UObject* Object, const FName& Parameter){
+												PrefabEditorPtr.Pin()->RevertPrefabOverride(Object, Parameter);
+												})
+											.RevertPrefabAllParameters_Lambda([=](){
+												PrefabEditorPtr.Pin()->RevertAllPrefabOverride(CachedActor.Get());
+												})
+											.ApplyPrefabAllParameters_Lambda([=](){
+												PrefabEditorPtr.Pin()->ApplyAllOverrideToPrefab(CachedActor.Get());
+												})
 										]
 									]
 								]
@@ -216,7 +228,8 @@ bool SLGUIPrefabEditorDetails::IsSSCSEditorAllowEditing()const
 
 void SLGUIPrefabEditorDetails::RefreshOverrideParameter()
 {
-	OverrideParameterEditor->RefreshDataContent(CachedActor.Get());
+	FLGUISubPrefabData SubPrefabData = PrefabEditorPtr.Pin()->GetSubPrefabDataForActor(CachedActor.Get());
+	OverrideParameterEditor->RefreshDataContent(SubPrefabData.ObjectOverrideParameterArray);
 }
 
 AActor* SLGUIPrefabEditorDetails::GetActorContext() const
@@ -238,7 +251,7 @@ void SLGUIPrefabEditorDetails::OnEditorSelectionChanged(UObject* Object)
 			}
 
 			CachedActor = Actor;
-			OverrideParameterEditor->RefreshDataContent(Actor);
+			RefreshOverrideParameter();
 			if (SCSEditor)
 			{
 				SCSEditor->UpdateTree();

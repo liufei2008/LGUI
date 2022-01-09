@@ -141,11 +141,11 @@ void ULGUIPrefab::ClearAgentObjectsInPreviewWorld()
 	}
 }
 
-void ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
+bool ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 {
+	bool AnythingChange = false;
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		bool AnythingChange = false;
 		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
 		{
 			if (KeyValue.Value.PrefabAsset == InSubPrefab)
@@ -193,6 +193,7 @@ void ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 			this->MarkPackageDirty();
 		}
 	}
+	return AnythingChange;
 }
 
 void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)
@@ -432,6 +433,29 @@ AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneCompon
 		}
 	}
 	return LoadedRootActor;
+}
+
+bool ULGUIPrefab::IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive)
+{
+	MakeAgentObjectsInPreviewWorld();
+	for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
+	{
+		if (KeyValue.Value.PrefabAsset == InPrefab)
+		{
+			return true;
+		}
+	}
+	if (InRecursive)
+	{
+		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
+		{
+			if (KeyValue.Value.PrefabAsset->IsPrefabBelongsToThisSubPrefab(InPrefab, InRecursive))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void ULGUIPrefab::SavePrefab(AActor* RootActor
