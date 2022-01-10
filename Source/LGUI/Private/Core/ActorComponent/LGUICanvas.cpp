@@ -119,6 +119,37 @@ void ULGUICanvas::UpdateCanvas()
 	}
 }
 
+void ULGUICanvas::EnsureDrawcallObjectReference()
+{
+	for (int i = 0; i < UIRenderableList.Num(); i++)
+	{
+		if (!IsValid(UIRenderableList[i]))
+		{
+			UIRenderableList.RemoveAt(i);
+			i--;
+		}
+	}
+
+	for (auto& item : UIDrawcallList)
+	{
+		switch (item->type)
+		{
+		case EUIDrawcallType::BatchGeometry:
+		{
+			for (int i = 0; i < item->renderObjectList.Num(); i++)
+			{
+				if (!item->renderObjectList[i].IsValid())
+				{
+					item->renderObjectList.RemoveAt(i);
+					i--;
+				}
+			}
+		}
+		break;
+		}
+	}
+}
+
 void ULGUICanvas::OnRegister()
 {
 	Super::OnRegister();
@@ -637,6 +668,7 @@ void ULGUICanvas::UpdateGeometry_Implement()
 		auto& Item = UIRenderableList[i];
 		//check(Item->GetIsUIActiveInHierarchy());
 		if (!Item->GetIsUIActiveInHierarchy())continue;
+		if (!Item->GetRenderCanvas())continue;
 
 		if (Item->IsCanvasUIItem() && Item->GetRenderCanvas() != this)//is child canvas
 		{

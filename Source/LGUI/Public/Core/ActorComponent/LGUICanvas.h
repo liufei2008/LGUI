@@ -455,7 +455,8 @@ private:
 public:
 	/** Called from LGUIManagerActor */
 	void UpdateCanvas();
-
+	/** Check if any invalid in list. Currently use in editor after undo check. */
+	void EnsureDrawcallObjectReference();
 private:
 	uint32 bClipTypeChanged:1;
 	uint32 bRectClipParameterChanged:1;

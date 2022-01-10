@@ -44,6 +44,13 @@ public:
 	void DeleteThisInstance();
 	void MoveActorToPrefabFolder();
 	void CheckPrefabVersion();
+
+	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);
+	void RevertAllPrefabOverride();
+	void ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
+	void ApplyAllOverrideToPrefab();
 #endif
 
 #if WITH_EDITORONLY_DATA

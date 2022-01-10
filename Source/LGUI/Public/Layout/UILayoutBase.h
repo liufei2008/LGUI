@@ -36,6 +36,7 @@ protected:
 	virtual void OnDisable()override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void PostEditUndo()override;
 #endif
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
@@ -48,7 +49,7 @@ public:
 	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
 	// Begin LGUILayout interface
 	virtual void OnUpdateLayout_Implementation()override;
-	virtual void MarkRebuildLayout_Implementation()override { bNeedRebuildLayout = true; }
+	virtual void MarkRebuildLayout_Implementation()override { bNeedRebuildLayout = true; RebuildChildrenList(); }
 	// End LGUILayout interface
 
 	/**
@@ -76,9 +77,10 @@ protected:
 			return uiItem.Get() == Other.uiItem.Get();
 		}
 	};
-	const TArray<FAvaliableChild>& GetAvailableChildren()const { return availableChildrenArray; }
+	const TArray<FAvaliableChild>& GetLayoutUIItemChildren()const { return LayoutUIItemChildrenArray; }
+	void EnsureChildValid();
 
 	bool bNeedRebuildLayout = false;
 private:
-	TArray<FAvaliableChild> availableChildrenArray;
+	TArray<FAvaliableChild> LayoutUIItemChildrenArray;
 };

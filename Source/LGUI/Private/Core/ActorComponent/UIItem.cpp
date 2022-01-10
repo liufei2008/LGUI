@@ -516,9 +516,11 @@ void UUIItem::PostEditUndo()
 	Super::PostEditUndo();
 	ApplyHierarchyIndex();
 	CheckUIActiveState();
-	MarkAllDirtyRecursive();
+
 	SetOnAnchorChange(true, true);
-	EditorForceUpdateImmediately();
+#if WITH_EDITOR
+	ULGUIEditorManagerObject::RefreshAllUI();
+#endif
 }
 
 //void UUIItem::PostEditUndo(TSharedPtr<ITransactionObjectAnnotation> TransactionAnnotation)

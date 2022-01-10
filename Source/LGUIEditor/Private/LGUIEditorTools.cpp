@@ -372,6 +372,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 		GEditor->SelectActor(copiedActor, true, true);
 	}
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::RefreshAllUI();
 }
 void LGUIEditorTools::CopySelectedActors_Impl()
 {
@@ -431,6 +432,7 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 		}
 	}
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::RefreshAllUI();
 }
 void LGUIEditorTools::DeleteSelectedActors_Impl()
 {
@@ -508,6 +510,7 @@ void LGUIEditorTools::PasteComponentValues_Impl()
 			LGUIPrefabSystem::ActorCopier::CopyComponentValue(copiedComponent.Get(), item);//@todo: use buildin copy tool
 		}
 		GEditor->EndTransaction();
+		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 	else
 	{
@@ -897,6 +900,32 @@ void LGUIEditorTools::RefreshLevelLoadedPrefab(ULGUIPrefab* InPrefab)
 	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(GWorld); ActorItr; ++ActorItr)
 	{
 		ActorItr->CheckPrefabVersion();
+	}
+}
+
+void LGUIEditorTools::RefreshOpenPrefabEditor(ULGUIPrefab* InPrefab)
+{
+	if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(InPrefab))//refresh opened prefab
+	{
+		if (PrefabEditor->GetAnythingDirty())
+		{
+			auto Msg = LOCTEXT("PrefabEditorChangedDataWillLose", "Prefab editor will automaticallly refresh changed prefab, but detect some data changed in prefab editor, refresh the prefab editor will lose these data, do you want to continue?");
+			auto Result = FMessageDialog::Open(EAppMsgType::YesNo, Msg);
+			if (Result == EAppReturnType::Yes)
+			{
+				//reopen this prefab editor
+				PrefabEditor->CloseWithoutCheckDataDirty();
+				UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+				AssetEditorSubsystem->OpenEditorForAsset(InPrefab);
+			}
+		}
+		else
+		{
+			//reopen this prefab editor
+			PrefabEditor->CloseWithoutCheckDataDirty();
+			UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+			AssetEditorSubsystem->OpenEditorForAsset(InPrefab);
+		}
 	}
 }
 

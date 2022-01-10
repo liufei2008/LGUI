@@ -11,7 +11,7 @@ void UUIRoundedLayout::OnRebuildLayout()
 	if (!CheckRootUIComponent())return;
 	if (!GetEnable())return;
 
-	const auto& uiChildrenList = GetAvailableChildren();
+	const auto& uiChildrenList = GetLayoutUIItemChildren();
 	int childrenCount = uiChildrenList.Num();
 	float angleInterval = (EndAngle - StartAngle) / childrenCount;
 	angleInterval = FMath::DegreesToRadians(angleInterval);

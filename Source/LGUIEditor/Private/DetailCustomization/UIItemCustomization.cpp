@@ -1473,7 +1473,7 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 				break;
 			case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Center:
 			{
-				UIItem->SetHorizontalAnchoredPosition(-(UIItem->GetLocalSpaceRight() - UIItem->GetLocalSpaceLeft()) * 0.5f);
+				UIItem->SetHorizontalAnchoredPosition(UIItem->GetWidth() * (UIItem->GetPivot().X - 0.5f));
 			}
 				break;
 			case LGUIAnchorPreviewWidget::UIAnchorHorizontalAlign::Right:
@@ -1497,7 +1497,7 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 				break;
 			case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Middle:
 			{
-				UIItem->SetVerticalAnchoredPosition(-(UIItem->GetLocalSpaceTop() - UIItem->GetLocalSpaceBottom()) * 0.5f);
+				UIItem->SetVerticalAnchoredPosition(UIItem->GetHeight() * (UIItem->GetPivot().Y - 0.5f));
 			}
 				break;
 			case LGUIAnchorPreviewWidget::UIAnchorVerticalAlign::Bottom:

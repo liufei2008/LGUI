@@ -23,23 +23,11 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 {
 	if (IsValid(PrefabAsset))
 	{
-		AActor* OldParentActor = nullptr;
-		bool haveRootTransform = true;
-		FTransform OldTransform;
-		FUIAnchorData OldAnchorData;
+		USceneComponent* OldParent = nullptr;
 		//store root transform
 		if (IsValid(LoadedRootActor))
 		{
-			OldParentActor = LoadedRootActor->GetAttachParentActor();
-			if (auto RootComp = LoadedRootActor->GetRootComponent())
-			{
-				haveRootTransform = true;
-				OldTransform = LoadedRootActor->GetRootComponent()->GetRelativeTransform();
-				if (auto RootUIComp = Cast<UUIItem>(RootComp))
-				{
-					OldAnchorData = RootUIComp->GetAnchorData();
-				}
-			}
+			OldParent = LoadedRootActor->GetAttachParentActor()->GetRootComponent();
 		}
 		//collect current children
 		TArray<AActor*> ChildrenActors;
@@ -47,7 +35,7 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 		//Revert exsiting objects with parameters inside prefab
 		{
 			LoadedRootActor = nullptr;
-			LoadPrefab(this->GetWorld(), OldParentActor->GetRootComponent());
+			LoadPrefab(this->GetWorld(), OldParent);
 		}
 		//delete extra actors
 		for (auto& OldChild : ChildrenActors)
@@ -58,20 +46,6 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 			}
 		}
 
-		if (IsValid(LoadedRootActor))
-		{
-			if (haveRootTransform)
-			{
-				if (auto RootComp = LoadedRootActor->GetRootComponent())
-				{
-					RootComp->SetRelativeTransform(OldTransform);
-					if (auto RootUIItem = Cast<UUIItem>(RootComp))
-					{
-						RootUIItem->SetAnchorData(OldAnchorData);
-					}
-				}
-			}
-		}
 		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 	else

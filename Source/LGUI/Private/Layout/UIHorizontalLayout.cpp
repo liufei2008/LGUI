@@ -92,7 +92,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
     rectSize.X = RootUIComp->GetWidth() - Padding.Left - Padding.Right;
     rectSize.Y = RootUIComp->GetHeight() - Padding.Top - Padding.Bottom;
 
-    const auto& uiChildrenList = GetAvailableChildren();
+    const auto& uiChildrenList = GetLayoutUIItemChildren();
     int childrenCount = uiChildrenList.Num();
     float childHeight = rectSize.Y;
     childrenWidthList.Reset(childrenCount);

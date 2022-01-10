@@ -166,6 +166,7 @@ void ALGUIPrefabHelperActor::AddMemberProperty(UObject* InObject, FName InProper
 			DataItem.MemberPropertyName.Add(InPropertyName);
 		}
 	}
+	this->MarkPackageDirty();
 }
 void ALGUIPrefabHelperActor::RemoveMemberProperty(UObject* InObject, FName InPropertyName)
 {
@@ -184,6 +185,7 @@ void ALGUIPrefabHelperActor::RemoveMemberProperty(UObject* InObject, FName InPro
 			ObjectOverrideParameterArray.RemoveAt(Index);
 		}
 	}
+	this->MarkPackageDirty();
 }
 
 void ALGUIPrefabHelperActor::RemoveMemberProperty(UObject* InObject)
@@ -195,6 +197,7 @@ void ALGUIPrefabHelperActor::RemoveMemberProperty(UObject* InObject)
 	{
 		ObjectOverrideParameterArray.RemoveAt(Index);
 	}
+	this->MarkPackageDirty();
 }
 
 bool ALGUIPrefabHelperActor::CheckParameters()
@@ -230,6 +233,7 @@ bool ALGUIPrefabHelperActor::CheckParameters()
 	for (auto Index : ObjectsNeedToRemove)
 	{
 		ObjectOverrideParameterArray.RemoveAt(Index);
+		this->MarkPackageDirty();
 		AnythingChanged = true;
 	}
 	return AnythingChanged;
@@ -396,6 +400,336 @@ void ALGUIPrefabHelperActor::OnNewVersionDismissClicked()
 	NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 	NewVersionPrefabNotification.Pin()->ExpireAndFadeout();
 	NewVersionPrefabNotification = nullptr;
+}
+
+void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+{
+	GEditor->BeginTransaction(FText::Format(LOCTEXT("RevertPrefabOnObjectProperties", "Revert Prefab Override: {0}"), FText::FromString(InObject->GetName())));
+	InObject->Modify();
+	this->Modify();
+
+	AActor* Actor = Cast<AActor>(InObject);
+	UActorComponent* Component = Cast<UActorComponent>(InObject);
+	if (Actor)
+	{
+	}
+	else if (Component)
+	{
+		Actor = Component->GetOwner();
+	}
+	FGuid ObjectGuid;
+	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+	{
+		if (KeyValue.Value == InObject)
+		{
+			ObjectGuid = KeyValue.Key;
+		}
+	}
+	auto OriginObject = PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+
+	bCanCollectProperty = false;
+	{
+		for (auto& PropertyName : InPropertyNameSet)
+		{
+			if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
+			{
+				//set to default value
+				Property->CopyCompleteValue_InContainer(InObject, OriginObject);
+				//delete item
+				this->RemoveMemberProperty(InObject, PropertyName);
+				//notify
+				LGUIUtils::NotifyPropertyChanged(InObject, Property);
+
+				bAnythingDirty = true;
+			}
+		}
+	}
+	bCanCollectProperty = true;
+	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::RefreshAllUI();
+}
+void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, FName InPropertyName)
+{
+	AActor* Actor = Cast<AActor>(InObject);
+	UActorComponent* Component = Cast<UActorComponent>(InObject);
+	if (Actor)
+	{
+	}
+	else if (Component)
+	{
+		Actor = Component->GetOwner();
+	}
+	FGuid ObjectGuid;
+	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+	{
+		if (KeyValue.Value == InObject)
+		{
+			ObjectGuid = KeyValue.Key;
+		}
+	}
+	auto OriginObject = PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+
+	bCanCollectProperty = false;
+	{
+		GEditor->BeginTransaction(FText::Format(LOCTEXT("RevertPrefabOnObjectProperty", "Revert Prefab Override: {0}.{1}"), FText::FromString(InObject->GetName()), FText::FromName(InPropertyName)));
+		InObject->Modify();
+		this->Modify();
+
+		if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), InPropertyName))
+		{
+			//set to default value
+			Property->CopyCompleteValue_InContainer(InObject, OriginObject);
+			//delete item
+			this->RemoveMemberProperty(InObject, InPropertyName);
+			//notify
+			LGUIUtils::NotifyPropertyChanged(InObject, Property);
+			bAnythingDirty = true;
+		}
+
+		GEditor->EndTransaction();
+	}
+	bCanCollectProperty = true;
+	ULGUIEditorManagerObject::RefreshAllUI();
+}
+void ALGUIPrefabHelperActor::RevertAllPrefabOverride()
+{
+	bCanCollectProperty = false;
+	{
+		GEditor->BeginTransaction(LOCTEXT("RevertPrefabOnAll", "Revert Prefab Override"));
+		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
+		{
+			auto& DataItem = ObjectOverrideParameterArray[i];
+			DataItem.Object->Modify();
+		}
+		this->Modify();
+
+		auto FindOriginObjectInSourcePrefab = [&](UObject* InObject) {
+			FGuid ObjectGuid;
+			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+			{
+				if (KeyValue.Value == InObject)
+				{
+					ObjectGuid = KeyValue.Key;
+				}
+			}
+			return PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+		};
+		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
+		{
+			auto& DataItem = ObjectOverrideParameterArray[i];
+			auto SourceObject = DataItem.Object.Get();
+			TSet<FName> FilterNameSet;
+			if (i == 0)
+			{
+				if (auto UIItem = Cast<UUIItem>(SourceObject))
+				{
+					FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
+				}
+			}
+			auto OriginObject = FindOriginObjectInSourcePrefab(SourceObject);
+			TSet<FName> NamesToClear;
+			for (auto& PropertyName : DataItem.MemberPropertyName)
+			{
+				if (FilterNameSet.Contains(PropertyName))continue;
+				NamesToClear.Add(PropertyName);
+				if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
+				{
+					//set to default value
+					Property->CopyCompleteValue_InContainer(SourceObject, OriginObject);
+					//notify
+					LGUIUtils::NotifyPropertyChanged(SourceObject, Property);
+				}
+			}
+			for (auto& PropertyName : NamesToClear)
+			{
+				DataItem.MemberPropertyName.Remove(PropertyName);
+			}
+		}
+		for (int i = ObjectOverrideParameterArray.Num() - 1; i > 0; i--)//Remove all but remain root component
+		{
+			ObjectOverrideParameterArray.RemoveAt(i);
+		}
+
+		bAnythingDirty = true;
+		GEditor->EndTransaction();
+	}
+	bCanCollectProperty = true;
+	ULGUIEditorManagerObject::RefreshAllUI();
+}
+
+void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+{
+	GEditor->BeginTransaction(FText::Format(LOCTEXT("ApplyPrefabOnObjectProperties", "Apply Prefab Override: {0}"), FText::FromString(InObject->GetName())));
+	InObject->Modify();
+	PrefabHelperObject->Modify();
+
+	AActor* Actor = Cast<AActor>(InObject);
+	UActorComponent* Component = Cast<UActorComponent>(InObject);
+	if (Actor)
+	{
+	}
+	else if (Component)
+	{
+		Actor = Component->GetOwner();
+	}
+	FGuid ObjectGuid;
+	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+	{
+		if (KeyValue.Value == InObject)
+		{
+			ObjectGuid = KeyValue.Key;
+		}
+	}
+	auto OriginObject = PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+
+	bCanCollectProperty = false;
+	{
+		for (auto& PropertyName : InPropertyNameSet)
+		{
+			if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
+			{
+				//set to default value
+				Property->CopyCompleteValue_InContainer(OriginObject, InObject);
+				//delete item
+				RemoveMemberProperty(InObject, PropertyName);
+				//notify
+				LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
+
+				bAnythingDirty = true;
+			}
+		}
+		//save origin prefab
+		if (bAnythingDirty)
+		{
+			PrefabHelperObject->PrefabAsset->Modify();
+			PrefabHelperObject->PrefabAsset->PrefabHelperObject->SavePrefab();
+			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->PrefabHelperObject->TimePointWhenSavePrefab;
+		}
+	}
+	bCanCollectProperty = true;
+	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::RefreshAllUI();
+}
+void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, FName InPropertyName)
+{
+	AActor* Actor = Cast<AActor>(InObject);
+	UActorComponent* Component = Cast<UActorComponent>(InObject);
+	if (Actor)
+	{
+	}
+	else if (Component)
+	{
+		Actor = Component->GetOwner();
+	}
+	FGuid ObjectGuid;
+	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+	{
+		if (KeyValue.Value == InObject)
+		{
+			ObjectGuid = KeyValue.Key;
+		}
+	}
+	auto OriginObject = PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+
+	bCanCollectProperty = false;
+	{
+		GEditor->BeginTransaction(FText::Format(LOCTEXT("ApplyPrefabOnObjectProperty", "Apply Prefab Override: {0}.{1}"), FText::FromString(InObject->GetName()), FText::FromName(InPropertyName)));
+		InObject->Modify();
+		PrefabHelperObject->Modify();
+
+		if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), InPropertyName))
+		{
+			//set to default value
+			Property->CopyCompleteValue_InContainer(OriginObject, InObject);
+			//delete item
+			RemoveMemberProperty(InObject, InPropertyName);
+			//notify
+			LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
+			bAnythingDirty = true;
+		}
+		//save origin prefab
+		if (bAnythingDirty)
+		{
+			PrefabHelperObject->PrefabAsset->Modify();
+			PrefabHelperObject->PrefabAsset->PrefabHelperObject->SavePrefab();
+			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->PrefabHelperObject->TimePointWhenSavePrefab;
+		}
+
+		GEditor->EndTransaction();
+	}
+	bCanCollectProperty = true;
+	ULGUIEditorManagerObject::RefreshAllUI();
+}
+void ALGUIPrefabHelperActor::ApplyAllOverrideToPrefab()
+{
+	bCanCollectProperty = false;
+	{
+		GEditor->BeginTransaction(LOCTEXT("ApplyPrefabOnAll", "Apply Prefab Override"));
+		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
+		{
+			auto& DataItem = ObjectOverrideParameterArray[i];
+			DataItem.Object->Modify();
+		}
+		PrefabHelperObject->Modify();
+
+		auto FindOriginObjectInSourcePrefab = [&](UObject* InObject) {
+			FGuid ObjectGuid;
+			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
+			{
+				if (KeyValue.Value == InObject)
+				{
+					ObjectGuid = KeyValue.Key;
+				}
+			}
+			return PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+		};
+		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
+		{
+			auto& DataItem = ObjectOverrideParameterArray[i];
+			auto SourceObject = DataItem.Object.Get();
+			TSet<FName> FilterNameSet;
+			if (i == 0)
+			{
+				if (auto UIItem = Cast<UUIItem>(SourceObject))
+				{
+					FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
+				}
+			}
+			auto OriginObject = FindOriginObjectInSourcePrefab(SourceObject);
+			TSet<FName> NamesToClear;
+			for (auto& PropertyName : DataItem.MemberPropertyName)
+			{
+				if (FilterNameSet.Contains(PropertyName))continue;
+				NamesToClear.Add(PropertyName);
+				if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
+				{
+					//set to default value
+					Property->CopyCompleteValue_InContainer(OriginObject, SourceObject);
+					//notify
+					LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
+				}
+			}
+			for (auto& PropertyName : NamesToClear)
+			{
+				DataItem.MemberPropertyName.Remove(PropertyName);
+			}
+		}
+		for (int i = ObjectOverrideParameterArray.Num() - 1; i > 0; i--)//Remove all but remain root component
+		{
+			ObjectOverrideParameterArray.RemoveAt(i);
+		}
+		//save origin prefab
+		{
+			PrefabHelperObject->PrefabAsset->Modify();
+			PrefabHelperObject->PrefabAsset->PrefabHelperObject->SavePrefab();
+			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->PrefabHelperObject->TimePointWhenSavePrefab;
+		}
+
+		bAnythingDirty = true;
+		GEditor->EndTransaction();
+	}
+	bCanCollectProperty = true;
+	ULGUIEditorManagerObject::RefreshAllUI();
 }
 #endif
 

@@ -11,7 +11,9 @@ struct FLGUIPrefabOverrideParameterData;
 DECLARE_DELEGATE_TwoParams(FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameterSet, UObject*, const TSet<FName>&);
 DECLARE_DELEGATE_TwoParams(FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameter, UObject*, const FName&);
 DECLARE_DELEGATE(FLGUIPrefabOverrideDataViewer_RevertPrefabAllParameters);
-//@todo: Apply single parameter
+
+DECLARE_DELEGATE_TwoParams(FLGUIPrefabOverrideDataViewer_ApplePrefabParameterSet, UObject*, const TSet<FName>&);
+DECLARE_DELEGATE_TwoParams(FLGUIPrefabOverrideDataViewer_ApplePrefabParameter, UObject*, const FName&);
 DECLARE_DELEGATE(FLGUIPrefabOverrideDataViewer_ApplyPrefabAllParameters);
 
 class SLGUIPrefabOverrideDataViewer : public SCompoundWidget
@@ -21,6 +23,9 @@ public:
 		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameterSet, RevertPrefabWithParameterSet)
 		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameter, RevertPrefabWithParameter)
 		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_RevertPrefabAllParameters, RevertPrefabAllParameters)
+
+		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_ApplePrefabParameterSet, ApplyPrefabParameterSet)
+		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_ApplePrefabParameter, ApplyPrefabParameter)
 		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_ApplyPrefabAllParameters, ApplyPrefabAllParameters)
 	SLATE_END_ARGS()
 
@@ -30,7 +35,9 @@ private:
 	FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameterSet RevertPrefabWithParameterSet;
 	FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameter RevertPrefabWithParameter;
 	FLGUIPrefabOverrideDataViewer_RevertPrefabAllParameters RevertPrefabAllParameters;
-	FLGUIPrefabOverrideDataViewer_ApplyPrefabAllParameters ApplyPrefabAllParameters;
+	FLGUIPrefabOverrideDataViewer_ApplePrefabParameterSet ApplyPrefabParameterSet;//@todo: apply parameter
+	FLGUIPrefabOverrideDataViewer_ApplePrefabParameter ApplyPrefabParameter;//@todo: apply parameter
+	FLGUIPrefabOverrideDataViewer_ApplyPrefabAllParameters ApplyPrefabAllParameters;//@todo: apply parameter
 
 	TSharedPtr<SVerticalBox> RootContentVerticalBox;
 };

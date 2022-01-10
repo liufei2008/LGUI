@@ -456,13 +456,17 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 				ILGUILayoutInterface::Execute_MarkRebuildLayout(Layout.GetObject());
 			}
 		}
-		for (auto& RootUIItems : Instance->AllRootUIItemArray)
+		for (auto& RootUIItem : Instance->AllRootUIItemArray)
 		{
-			if (RootUIItems.IsValid())
+			if (RootUIItem.IsValid())
 			{
-				RootUIItems->MarkAllDirtyRecursive();
-				RootUIItems->EditorForceUpdateImmediately();
+				RootUIItem->MarkAllDirtyRecursive();
+				RootUIItem->EditorForceUpdateImmediately();
 			}
+		}
+		for (auto& CanvasItem : Instance->AllCanvasArray)
+		{
+			CanvasItem->EnsureDrawcallObjectReference();
 		}
 	}
 }

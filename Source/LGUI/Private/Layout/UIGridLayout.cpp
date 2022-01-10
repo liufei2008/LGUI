@@ -137,7 +137,7 @@ void UUIGridLayout::OnRebuildLayout()
 	float endPosX = startPosition.X + rectSize.X;
 	float endPosY = startPosition.Y - rectSize.Y;
 
-	const auto& uiChildrenList = GetAvailableChildren();
+	const auto& uiChildrenList = GetLayoutUIItemChildren();
 	int childrenCount = uiChildrenList.Num();
 	float childWidth = CellSize.X, childHeight = CellSize.Y;
 

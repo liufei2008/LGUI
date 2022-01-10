@@ -15,6 +15,7 @@
 #include "LGUIPrefabEditor.h"
 #include "LGUIEditorModule.h"
 #include "SceneOutlinerStandaloneTypes.h"
+#include "SceneoutlinerDragDrop.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 
@@ -266,7 +267,7 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 
 	SceneOutliner::FInitializationOptions InitOptions;
 	InitOptions.bShowTransient = false;
-	InitOptions.Mode = ESceneOutlinerMode::Custom;
+	InitOptions.Mode = ESceneOutlinerMode::ActorBrowsing;
 	InitOptions.ModifyContextMenu = FSceneOutlinerModifyContextMenu::CreateLambda([](FName& MenuName, FToolMenuContext& MenuContext) {
 
 		});
@@ -289,6 +290,14 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 
 	SceneOutlinerPtr->GetOnItemSelectionChanged().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerSelectionChanged);
 	SceneOutlinerPtr->GetDoubleClickEvent().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerDoubleClick);
+	//SceneOutlinerPtr->SetOnItemDragDetected([=](const SceneOutliner::ITreeItem& TreeItem) {
+	//	auto Operation = SceneOutliner::CreateDragDropOperation(SceneOutlinerPtr->GetTree().GetSelectedItems());
+	//	return FReply::Handled().BeginDragDrop(Operation.ToSharedRef());
+	//	});
+	//SceneOutlinerPtr->SetOnDropOnItem([=](const FDragDropEvent& DragDropEvent, const SceneOutliner::ITreeItem& TreeItem) {
+	//	UE_LOG(LGUIEditor, Error, TEXT(""));
+	//	return FReply::Handled();
+	//	});
 	SceneOutlinerPtr->SetSelectionMode(ESelectionMode::Multi);
 
 	OutlinerWidget =

@@ -19,6 +19,7 @@
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
 #include "SceneOutlinerStandaloneTypes.h"
+#include "LGUIEditorModule.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
@@ -408,6 +409,9 @@ namespace LGUISceneOutliner
 			.ButtonStyle(FLGUIEditorStyle::Get(), "EmptyButton")
 			.ContentPadding(FMargin(0))
 			.HasDownArrow(false)
+			.OnComboBoxOpened(FOnComboBoxOpened::CreateLambda([=]() {//@todo: make it a callback
+				FLGUIEditorModule::Get().OnOutlinerSelectionChange();
+				}))
 			.ButtonContent()
 			[
 				SNew(SHorizontalBox)

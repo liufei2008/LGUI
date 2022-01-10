@@ -27,11 +27,11 @@ public:
 	virtual void ShutdownModule() override;
 
 	static FLGUIEditorModule& Get();
-	void RefreshPrefabOverrideParameterViewerOnLevelEditor(const TArray<FLGUIPrefabOverrideParameterData>& ObjectOverrideParameterArray);
-	
+
 	TSharedRef<SWidget> MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool PreviewInViewport, bool EditorCameraControl, bool Others, bool UpgradeToLGUI3);
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class FAssetTypeActions_Base>> AssetTypeActionsArray;
+	void OnOutlinerSelectionChange();
 private:
 
 	void CreateUIElementSubMenu(FMenuBuilder& MenuBuilder);
@@ -46,6 +46,8 @@ private:
 	void ToggleActiveViewportAsPreview();
 	bool CanEditActorForPrefab();
 	bool CanUnlinkActorForPrefab();
+	bool CanDuplicateActor();
+	bool CanPasteActor();
 	bool CanBrowsePrefab();
 	bool CanCreatePrefab();
 	bool CanCheckPrefabOverrideParameter()const;
@@ -55,9 +57,11 @@ private:
 	void ToggleLGUIColumnInfo();
 	bool LGUIColumnInfoChecked();
 	void ApplyLGUIColumnInfo(bool value, bool refreshSceneOutliner);
+	TWeakObjectPtr<class ALGUIPrefabHelperActor> CurrentPrefabHelperActor;
 private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
 	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
+	TSharedPtr<class SComboButton> PrefabOverrideDataViewerEntry;
 	TSharedPtr<class SLGUIPrefabOverrideDataViewer> PrefabOverrideDataViewer;
 };

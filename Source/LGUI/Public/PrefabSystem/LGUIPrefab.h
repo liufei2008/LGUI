@@ -165,6 +165,7 @@ public:
 	virtual void PostLoad()override;
 	virtual void BeginDestroy()override;
 	virtual void FinishDestroy()override;
+	virtual void PostEditUndo()override;
 
 	void SavePrefab(AActor* RootActor
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap

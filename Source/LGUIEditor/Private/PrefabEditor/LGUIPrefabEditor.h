@@ -79,14 +79,20 @@ public:
 	bool ActorBelongsToSubPrefab(AActor* InSubPrefabActor);
 	bool ActorIsSubPrefabRoot(AActor* InSubPrefabRootActor);
 	FLGUISubPrefabData GetSubPrefabDataForActor(AActor* InSubPrefabActor);
-	/** Clear all override property in Object, and reset to prefab's default. */
+
+	/** Clear properties in Object, and reset to prefab's default. */
 	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	/** Clear specific override property in object, and reset to prefab's default */
 	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);
 	void RevertAllPrefabOverride(AActor* InSubPrefabActor);
+	void ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
 	void ApplyAllOverrideToPrefab(AActor* InSubPrefabActor);
+
 	void OpenSubPrefab(AActor* InSubPrefabActor);
 	void SelectSubPrefab(AActor* InSubPrefabActor);
+	bool GetAnythingDirty()const { return bAnythingDirty; }
+	void CloseWithoutCheckDataDirty();
 private:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;

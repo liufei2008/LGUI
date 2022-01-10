@@ -38,6 +38,10 @@ void UUILayoutBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
         RootUIComp->EditorForceUpdateImmediately();
     }
 }
+void UUILayoutBase::PostEditUndo()
+{
+    Super::PostEditUndo();
+}
 #endif
 
 void UUILayoutBase::OnRegister()
@@ -79,14 +83,27 @@ void UUILayoutBase::OnUpdateLayout_Implementation()
     }
 }
 
+void UUILayoutBase::EnsureChildValid()
+{
+    for (int i = 0; i < LayoutUIItemChildrenArray.Num(); i++)
+    {
+        if (!LayoutUIItemChildrenArray[i].uiItem.IsValid())
+        {
+            LayoutUIItemChildrenArray.RemoveAt(i);
+            i--;
+        }
+    }
+}
+
 void UUILayoutBase::RebuildChildrenList()
 {
     if (CheckRootUIComponent())
     {
-        availableChildrenArray.Reset();
+        LayoutUIItemChildrenArray.Reset();
         const auto& children = RootUIComp->GetAttachUIChildren();
         for (auto uiItem : children)
         {
+            if (!IsValid(uiItem))continue;
             if (uiItem->GetIsUIActiveInHierarchy())
             {
                 if (uiItem->GetOwner()->GetRootComponent() != uiItem)continue;//only use root component
@@ -101,10 +118,10 @@ void UUILayoutBase::RebuildChildrenList()
                 FAvaliableChild child;
                 child.uiItem = uiItem;
                 child.layoutElement = layoutElement;
-                availableChildrenArray.Add(child);
+                LayoutUIItemChildrenArray.Add(child);
             }
         }
-        availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
+        LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
             {
                 if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
                     return true;
@@ -136,7 +153,8 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive
     childData.uiItem = InChild;
     if (InUIActive)
     {
-        if (!availableChildrenArray.Find(childData, index))
+        EnsureChildValid();
+        if (!LayoutUIItemChildrenArray.Find(childData, index))
         {
             auto layoutElement = GetLayoutElement(InChild->GetOwner());
             if (layoutElement)
@@ -147,9 +165,9 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive
                 }
             }
             childData.layoutElement = layoutElement;
-            availableChildrenArray.Add(childData);
+            LayoutUIItemChildrenArray.Add(childData);
 
-            availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
+            LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
                 {
                     if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
                         return true;
@@ -159,9 +177,10 @@ void UUILayoutBase::OnUIChildAcitveInHierarchy(UUIItem* InChild, bool InUIActive
     }
     else
     {
-        if (availableChildrenArray.Find(childData, index))
+        EnsureChildValid();
+        if (LayoutUIItemChildrenArray.Find(childData, index))
         {
-            availableChildrenArray.RemoveAt(index);
+            LayoutUIItemChildrenArray.RemoveAt(index);
         }
     }
 
@@ -175,7 +194,8 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
     childData.uiItem = InChild;
     if (attachOrDetach && InChild->GetIsUIActiveInHierarchy())
     {
-        if (!availableChildrenArray.Find(childData, index))
+        EnsureChildValid();
+        if (!LayoutUIItemChildrenArray.Find(childData, index))
         {
             auto layoutElement = GetLayoutElement(InChild->GetOwner());
             if (layoutElement)
@@ -186,9 +206,9 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
                 }
             }
             childData.layoutElement = layoutElement;
-            availableChildrenArray.Add(childData);
+            LayoutUIItemChildrenArray.Add(childData);
             //sort by hierarchy index
-            availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
+            LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
                 {
                     if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
                         return true;
@@ -198,9 +218,9 @@ void UUILayoutBase::OnUIChildAttachmentChanged(UUIItem* InChild, bool attachOrDe
     }
     else
     {
-        if (availableChildrenArray.Find(childData, index))
+        if (LayoutUIItemChildrenArray.Find(childData, index))
         {
-            availableChildrenArray.RemoveAt(index);
+            LayoutUIItemChildrenArray.RemoveAt(index);
         }
     }
 
@@ -211,9 +231,10 @@ void UUILayoutBase::OnUIChildHierarchyIndexChanged(UUIItem* InChild)
     int32 index;
     FAvaliableChild childData;
     childData.uiItem = InChild;
-    if (availableChildrenArray.Find(childData, index))
+    EnsureChildValid();
+    if (LayoutUIItemChildrenArray.Find(childData, index))
     {
-        availableChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
+        LayoutUIItemChildrenArray.Sort([](FAvaliableChild A, FAvaliableChild B) //sort children by HierarchyIndex
             {
                 if (A.uiItem->GetHierarchyIndex() < B.uiItem->GetHierarchyIndex())
                     return true;

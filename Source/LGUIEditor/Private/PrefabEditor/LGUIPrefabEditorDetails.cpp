@@ -168,6 +168,12 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 											.RevertPrefabAllParameters_Lambda([=](){
 												PrefabEditorPtr.Pin()->RevertAllPrefabOverride(CachedActor.Get());
 												})
+											.ApplyPrefabParameterSet_Lambda([=](UObject* Object, const TSet<FName>& Parameters){
+												PrefabEditorPtr.Pin()->ApplyPrefabOverride(Object, Parameters);
+												})
+											.ApplyPrefabParameter_Lambda([=](UObject* Object, const FName& Parameter){
+												PrefabEditorPtr.Pin()->ApplyPrefabOverride(Object, Parameter);
+												})
 											.ApplyPrefabAllParameters_Lambda([=](){
 												PrefabEditorPtr.Pin()->ApplyAllOverrideToPrefab(CachedActor.Get());
 												})

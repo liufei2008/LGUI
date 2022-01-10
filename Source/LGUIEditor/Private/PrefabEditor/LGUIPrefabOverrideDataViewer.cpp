@@ -13,6 +13,8 @@ void SLGUIPrefabOverrideDataViewer::Construct(const FArguments& InArgs)
 	RevertPrefabWithParameterSet = InArgs._RevertPrefabWithParameterSet;
 	RevertPrefabWithParameter = InArgs._RevertPrefabWithParameter;
 	RevertPrefabAllParameters = InArgs._RevertPrefabAllParameters;
+	ApplyPrefabParameterSet = InArgs._ApplyPrefabParameterSet;
+	ApplyPrefabParameter = InArgs._ApplyPrefabParameter;
 	ApplyPrefabAllParameters = InArgs._ApplyPrefabAllParameters;
 
 	RootContentVerticalBox = SNew(SVerticalBox);
@@ -29,6 +31,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 	for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
 	{
 		auto& DataItem = ObjectOverrideParameterArray[i];
+		if (!DataItem.Object.IsValid())continue;
 		FString DisplayName;
 		AActor* Actor = Cast<AActor>(DataItem.Object.Get());
 		UActorComponent* Component = Cast<UActorComponent>(DataItem.Object.Get());
@@ -92,7 +95,24 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 						FSimpleDelegate::CreateLambda([=]() {
 							RevertPrefabWithParameterSet.ExecuteIfBound(DataItem.Object.Get(), FilteredMemeberPropertyNameSet);
 						})
-						, LOCTEXT("ResetAllParameters", "Click to revert all parameters of this object to prefab's default value.")
+						, LOCTEXT("RevertObjectAllParameterSet", "Click to revert all parameters of this object to prefab's default value.")
+					)
+				]
+			]
+			+SHorizontalBox::Slot()
+			.Padding(FMargin(6, 0, 0, 0))
+			.AutoWidth()
+			.HAlign(EHorizontalAlignment::HAlign_Left)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			[
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				[
+					PropertyCustomizationHelpers::MakeUseSelectedButton(
+						FSimpleDelegate::CreateLambda([=]() {
+							ApplyPrefabParameterSet.ExecuteIfBound(DataItem.Object.Get(), FilteredMemeberPropertyNameSet);
+						})
+						, LOCTEXT("ApplyObjectParameterSet", "Click to apply all parameters of this object to prefab's default value.")
 					)
 				]
 			]
@@ -130,7 +150,10 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 			if (bCanDrawReset)
 			{
 				HorizontalBox->AddSlot()
+				.Padding(FMargin(6, 0, 0, 0))
 				.AutoWidth()
+				.HAlign(EHorizontalAlignment::HAlign_Left)
+				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
 					SNew(SVerticalBox)
 					+SVerticalBox::Slot()
@@ -141,6 +164,25 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 								RevertPrefabWithParameter.ExecuteIfBound(DataItem.Object.Get(), PropertyName);
 							})
 							, LOCTEXT("ResetThisParameter", "Click to revert this parameter to prefab's default value.")
+						)
+					]
+				]
+				;
+				HorizontalBox->AddSlot()
+				.Padding(FMargin(6, 0, 0, 0))
+				.AutoWidth()
+				.HAlign(EHorizontalAlignment::HAlign_Left)
+				.VAlign(EVerticalAlignment::VAlign_Center)
+				[
+					SNew(SVerticalBox)
+					+SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						PropertyCustomizationHelpers::MakeUseSelectedButton(
+							FSimpleDelegate::CreateLambda([=]() {
+								ApplyPrefabParameter.ExecuteIfBound(DataItem.Object.Get(), PropertyName);
+							})
+							, LOCTEXT("ApplyThisParameter", "Click to apply this parameter to origin prefab.")
 						)
 					]
 				]
@@ -187,8 +229,7 @@ void SLGUIPrefabOverrideDataViewer::RefreshDataContent(const TArray<FLGUIPrefabO
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("ApplyAll", "Apply All"))
-					.ToolTipText(LOCTEXT("ApplyAll_Tooltip", "(Future support) Apply all overrides to source prefab"))
-					.IsEnabled(false)
+					.ToolTipText(LOCTEXT("ApplyAll_Tooltip", "Apply all overrides to source prefab"))
 					.OnClicked_Lambda([=](){
 						ApplyPrefabAllParameters.ExecuteIfBound();
 						return FReply::Handled();

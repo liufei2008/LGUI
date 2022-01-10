@@ -350,6 +350,12 @@ void ULGUIPrefab::FinishDestroy()
 	Super::FinishDestroy();
 }
 
+void ULGUIPrefab::PostEditUndo()
+{
+	Super::PostEditUndo();
+	RefreshAgentObjectsInPreviewWorld();
+}
+
 #endif
 
 AActor* ULGUIPrefab::LoadPrefab(UWorld* InWorld, USceneComponent* InParent, bool SetRelativeTransformToIdentity)
