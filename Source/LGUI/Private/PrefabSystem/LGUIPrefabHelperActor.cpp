@@ -6,6 +6,7 @@
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "PrefabSystem/ActorSerializer3.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorActorFolders.h"
@@ -139,12 +140,12 @@ FName ALGUIPrefabHelperActor::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
 TArray<FColor> ALGUIPrefabHelperActor::AllColors;
 #endif
 
+#if WITH_EDITOR
 void ALGUIPrefabHelperActor::RevertPrefab()
 {
 	PrefabHelperObject->RevertPrefab();
 }
 
-#if WITH_EDITOR
 void ALGUIPrefabHelperActor::AddMemberProperty(UObject* InObject, FName InPropertyName)
 {
 	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
@@ -303,13 +304,13 @@ void ALGUIPrefabHelperActor::TryCollectPropertyToOverride(UObject* InObject, FPr
 				AddMemberProperty(InObject, PropertyName);
 				if (auto UIItem = Cast<UUIItem>(InObject))
 				{
-					if (PropertyName == FName(TEXT("RelativeLocation")))//if UI's relative location change, then record anchor data too
+					if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())//if UI's relative location change, then record anchor data too
 					{
-						AddMemberProperty(InObject, FName(TEXT("AnchorData")));
+						AddMemberProperty(InObject, UUIItem::GetAnchorDataPropertyName());
 					}
-					else if (PropertyName == FName(TEXT("AnchorData")))//if UI's anchor data change, then record relative location too
+					else if (PropertyName == UUIItem::GetAnchorDataPropertyName())//if UI's anchor data change, then record relative location too
 					{
-						AddMemberProperty(InObject, FName(TEXT("RelativeLocation")));
+						AddMemberProperty(InObject, USceneComponent::GetRelativeLocationPropertyName());
 					}
 				}
 			}
@@ -375,7 +376,16 @@ void ALGUIPrefabHelperActor::OnNewVersionRevertPrefabClicked()
 	}
 	else
 	{
+		//store override parameter to data
+		LGUIPrefabSystem3::ActorSerializer3 serailizer;
+		auto OverrideData = serailizer.SaveOverrideParameterToData(ObjectOverrideParameterArray);
+
 		PrefabHelperObject->RevertPrefab();
+
+		//apply override parameter. 
+		serailizer.RestoreOverrideParameterFromData(OverrideData, ObjectOverrideParameterArray);
+		//mark package dirty
+		this->MarkPackageDirty();
 	}
 	NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 	NewVersionPrefabNotification.Pin()->ExpireAndFadeout();

@@ -320,6 +320,7 @@ void FLGUIPrefabEditor::RevertPrefabOverride(UObject* InObject, const TSet<FName
 	}
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
+	ULGUIEditorManagerObject::RefreshAllUI();
 }
 void FLGUIPrefabEditor::RevertPrefabOverride(UObject* InObject, FName InPropertyName)
 {
@@ -366,6 +367,7 @@ void FLGUIPrefabEditor::RevertPrefabOverride(UObject* InObject, FName InProperty
 		bAnythingDirty = true;
 	}
 	bCanCollectProperty = true;
+	ULGUIEditorManagerObject::RefreshAllUI();
 }
 
 void FLGUIPrefabEditor::RevertAllPrefabOverride(AActor* InSubPrefabRootActor)
@@ -436,6 +438,7 @@ void FLGUIPrefabEditor::RevertAllPrefabOverride(AActor* InSubPrefabRootActor)
 		DetailsPtr->RefreshOverrideParameter();
 	}
 	bCanCollectProperty = true;
+	ULGUIEditorManagerObject::RefreshAllUI();
 }
 void FLGUIPrefabEditor::ApplyAllOverrideToPrefab(AActor* InSubPrefabRootActor)
 {
@@ -445,8 +448,12 @@ void FLGUIPrefabEditor::OpenSubPrefab(AActor* InSubPrefabActor)
 {
 	if (auto SubPrefabAsset = PrefabHelperObject->GetSubPrefabAsset(InSubPrefabActor))
 	{
-		TSharedRef<FLGUIPrefabEditor> NewPrefabEditor(new FLGUIPrefabEditor());
-		NewPrefabEditor->InitPrefabEditor(EToolkitMode::Standalone, TSharedPtr<IToolkitHost>(), SubPrefabAsset);
+		auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(SubPrefabAsset);
+		if (!PrefabEditor)
+		{
+			UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+			AssetEditorSubsystem->OpenEditorForAsset(SubPrefabAsset);
+		}
 	}
 }
 void FLGUIPrefabEditor::SelectSubPrefab(AActor* InSubPrefabActor)
@@ -835,7 +842,6 @@ bool FLGUIPrefabEditor::IsFilteredActor(const AActor* Actor)
 void FLGUIPrefabEditor::OnOutlinerPickedChanged(AActor* Actor)
 {
 	CurrentSelectedActor = Actor;
-	GEditor->SelectActor(Actor, true, true);
 }
 
 void FLGUIPrefabEditor::OnOutlinerActorDoubleClick(AActor* Actor)
@@ -989,13 +995,13 @@ void FLGUIPrefabEditor::TryCollectPropertyToOverride(UObject* InObject, FPropert
 				PrefabHelperObject->AddMemberPropertyToSubPrefab(PropertyActor, InObject, PropertyName);
 				if (auto UIItem = Cast<UUIItem>(InObject))
 				{
-					if (PropertyName == FName(TEXT("RelativeLocation")))//if UI's relative location change, then record anchor data too
+					if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())//if UI's relative location change, then record anchor data too
 					{
-						PrefabHelperObject->AddMemberPropertyToSubPrefab(PropertyActor, InObject, FName(TEXT("AnchorData")));
+						PrefabHelperObject->AddMemberPropertyToSubPrefab(PropertyActor, InObject, UUIItem::GetAnchorDataPropertyName());
 					}
-					else if (PropertyName == FName(TEXT("AnchorData")))//if UI's anchor data change, then record relative location too
+					else if (PropertyName == UUIItem::GetAnchorDataPropertyName())//if UI's anchor data change, then record relative location too
 					{
-						PrefabHelperObject->AddMemberPropertyToSubPrefab(PropertyActor, InObject, FName(TEXT("RelativeLocation")));
+						PrefabHelperObject->AddMemberPropertyToSubPrefab(PropertyActor, InObject, USceneComponent::GetRelativeLocationPropertyName());
 					}
 				}
 				//refresh override parameter
@@ -1160,11 +1166,11 @@ void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InA
 	auto RootUIComp = Cast<UUIItem>(RootComp);
 	if (RootUIComp)
 	{
-		PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootUIComp, FName(TEXT("hierarchyIndex")));
-		PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootUIComp, FName(TEXT("AnchorData")));
+		PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootUIComp, UUIItem::GetHierarchyIndexPropertyName());
+		PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootUIComp, UUIItem::GetAnchorDataPropertyName());
 	}
-	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, FName(TEXT("RelativeLocation")));
-	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, FName(TEXT("RelativeRotation")));
+	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, USceneComponent::GetRelativeLocationPropertyName());
+	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, USceneComponent::GetRelativeRotationPropertyName());
 
 	bAnythingDirty = true;
 	if (InApplyChanges)

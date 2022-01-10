@@ -43,6 +43,14 @@ public:
 #if WITH_EDITORONLY_DATA
 	static TSet<FName> PersistentOverridePropertyNameSet;
 #endif
+	static const FName GetAnchorDataPropertyName()
+	{
+		return GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData);
+	}
+	static const FName GetHierarchyIndexPropertyName()
+	{
+		return GET_MEMBER_NAME_CHECKED(UUIItem, hierarchyIndex);
+	}
 	
 #pragma region LGUILifeCycleUIBehaviour
 private:

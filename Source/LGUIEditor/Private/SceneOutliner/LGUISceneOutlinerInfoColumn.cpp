@@ -18,6 +18,7 @@
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
+#include "SceneOutlinerStandaloneTypes.h"
 
 #define LOCTEXT_NAMESPACE "LGUISceneOutlinerInfoColumn"
 
@@ -666,14 +667,20 @@ namespace LGUISceneOutliner
 		auto Item = TreeItem.Pin();
 		if (Item.IsValid())
 		{
-			TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
-
-			if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid() && !ActorTreeItem->Actor->IsPendingKillPending())
+			switch (Item->GetTypeSortPriority())
 			{
-				if (ActorTreeItem->Actor->GetWorld())
+			case SceneOutliner::ETreeItemSortOrder::Actor:
+			{
+				TSharedPtr<SceneOutliner::FActorTreeItem> ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
+				if (ActorTreeItem.IsValid() && ActorTreeItem->Actor.IsValid() && !ActorTreeItem->Actor->IsPendingKillPending())
 				{
-					return Cast<AActor>(ActorTreeItem->Actor.Get());
+					if (ActorTreeItem->Actor->GetWorld())
+					{
+						return Cast<AActor>(ActorTreeItem->Actor.Get());
+					}
 				}
+			}
+			break;
 			}
 		}
 		return nullptr;

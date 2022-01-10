@@ -81,7 +81,7 @@ FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPrev
 	}
 
 	auto SceneBounds = InPrefabEditorPtr.Pin()->GetAllObjectsBounds();
-	SetViewLocation(FVector(-SceneBounds.SphereRadius, 0, 0));//@todo: seems not working?
+	SetViewLocation(FVector(-SceneBounds.SphereRadius, SceneBounds.Origin.Y, SceneBounds.Origin.Z));//@todo: seems not working?
 	SetViewRotation(FRotator::ZeroRotator);
 }
 
@@ -145,11 +145,13 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 
 		if (LastSelectTarget != nullptr)
 		{
-			GEditor->SelectActor(LastSelectTarget->GetOwner(), true, true);
+			GEditor->SelectActor(LastSelectTarget->GetOwner(), true, false);
 		}
 
 		// Commit selection changes
 		GEditor->GetSelectedActors()->EndBatchSelectOperation(/*bNotify*/false);
+		// Fire selection changed event
+		GEditor->NoteSelectionChange();
 	}
 
 

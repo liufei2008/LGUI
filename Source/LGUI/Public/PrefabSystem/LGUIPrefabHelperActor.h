@@ -30,9 +30,10 @@ public:
 		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 	void RevertPrefab();
 
-#if WITH_EDITOR
+#if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;//@todo: auto revert with override parameters
-
+#endif
+#if WITH_EDITOR
 	void AddMemberProperty(UObject* InObject, FName InPropertyName);
 	void RemoveMemberProperty(UObject* InObject, FName InPropertyName);
 	void RemoveMemberProperty(UObject* InObject);

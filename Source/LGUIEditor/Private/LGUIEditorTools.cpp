@@ -1056,7 +1056,7 @@ void LGUIEditorTools::OpenPrefabAsset()
 		ULGUIPrefab* PrefabAsset = nullptr;
 		if (PrefabHelperObject->bIsInsidePrefabEditor)//prefab editor only allow operate on sub prefab
 		{
-			check(PrefabHelperObject->SubPrefabMap.Contains(SelectedActor));//should have being check in Browse button
+			check(PrefabHelperObject->SubPrefabMap.Contains(SelectedActor));//should have being check in menu
 			PrefabAsset = PrefabHelperObject->GetSubPrefabAsset(SelectedActor);
 		}
 		else
@@ -1065,8 +1065,8 @@ void LGUIEditorTools::OpenPrefabAsset()
 		}
 		if (IsValid(PrefabAsset))
 		{
-			TSharedRef<FLGUIPrefabEditor> NewPrefabEditor(new FLGUIPrefabEditor());
-			NewPrefabEditor->InitPrefabEditor(EToolkitMode::Standalone, TSharedPtr<IToolkitHost>(), PrefabAsset);
+			UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+			AssetEditorSubsystem->OpenEditorForAsset(PrefabAsset);
 		}
 	}
 }

@@ -21,8 +21,6 @@ TSharedRef<FEditorViewportClient> SLGUIPrefabEditorViewport::MakeEditorViewportC
 	EditorViewportClient = MakeShareable(new FLGUIPrefabEditorViewportClient(this->PrefabEditorPtr.Pin()->GetPreviewScene(), this->PrefabEditorPtr, SharedThis(this)));
 	EditorViewportClient->ViewportType = LVT_Perspective;
 	EditorViewportClient->bSetListenerPosition = false;
-	EditorViewportClient->SetViewLocation(FVector(-1024.0f, 0.0f, 0.0f));
-	EditorViewportClient->SetViewRotation(FRotator::ZeroRotator);
 	EditorViewportClient->SetRealtime(true);
 	EditorViewportClient->SetShowStats(true);
 	EditorViewportClient->VisibilityDelegate.BindLambda([]() {return true; });

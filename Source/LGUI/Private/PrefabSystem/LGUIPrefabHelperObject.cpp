@@ -18,6 +18,7 @@ void ULGUIPrefabHelperObject::PostInitProperties()
 	Super::PostInitProperties();
 }
 
+#if WITH_EDITOR
 void ULGUIPrefabHelperObject::RevertPrefab()
 {
 	if (IsValid(PrefabAsset))
@@ -71,9 +72,7 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 				}
 			}
 		}
-#if WITH_EDITOR
 		ULGUIEditorManagerObject::RefreshAllUI();
-#endif
 	}
 	else
 	{
@@ -113,11 +112,10 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 			}
 		}
 
-#if WITH_EDITOR
 		TimePointWhenSavePrefab = PrefabAsset->CreateTime;
-#endif
 	}
 }
+#endif
 
 #if WITH_EDITOR
 void ULGUIPrefabHelperObject::BeginDestroy()

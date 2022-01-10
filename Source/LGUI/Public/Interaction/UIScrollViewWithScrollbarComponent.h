@@ -75,6 +75,8 @@ protected:
 	// Begin LGUILayout interface
 	virtual void OnUpdateLayout_Implementation()override;
 	virtual bool GetCanLayoutControlAnchor_Implementation(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const override;
+	virtual void MarkRebuildLayout_Implementation()override { bLayoutDirty = true; }
+	// End LGUILayout interface
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-ScrollViewWithScrollbar")

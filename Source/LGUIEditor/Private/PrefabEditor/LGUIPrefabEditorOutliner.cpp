@@ -10,7 +10,11 @@
 #include "Engine/Selection.h"
 #include "Engine/World.h"
 #include "SceneOutliner/LGUISceneOutlinerInfoColumn.h"
+#include "SOutlinerTreeView.h"
+#include "Editor/GroupActor.h"
 #include "LGUIPrefabEditor.h"
+#include "LGUIEditorModule.h"
+#include "SceneOutlinerStandaloneTypes.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 
@@ -29,7 +33,7 @@ public:
 		, PrefabEditorOutlinerPtr(InPrefabEditorOutlinerPtr)
 	{}
 
-	virtual bool CanRenameItem(const ISceneOutlinerTreeItem& Item) const override { return false; }
+	virtual bool CanRenameItem(const ISceneOutlinerTreeItem& Item) const override { return true; }
 	virtual ESelectionMode::Type GetSelectionMode() const override { return ESelectionMode::Multi; }
 
 	virtual void OnItemSelectionChanged(FSceneOutlinerTreeItemPtr Item, ESelectInfo::Type SelectionType, const FSceneOutlinerItemSelection& Selection) override
@@ -119,15 +123,42 @@ AActor* FLGUIPrefabEditorOutliner::GetActorFromTreeItem(FSceneOutlinerTreeItemPt
 
 void FLGUIPrefabEditorOutliner::OnSceneOutlinerSelectionChanged(FSceneOutlinerTreeItemPtr ItemPtr, ESelectInfo::Type SelectionMode)
 {
-	CachedItemPtr = ItemPtr;
+	if (bIsReentrant)return;
+	TGuardValue<bool> ReentrantGuard(bIsReentrant, true);
 
-	if (OnActorPickedDelegate.IsBound())
+	CachedItemPtr = ItemPtr;
+	auto SelectedTreeItems = SceneOutlinerPtr->GetTree().GetSelectedItems();
+
+	const FScopedTransaction Transaction(NSLOCTEXT("UnrealEd", "ClickingOnActors", "Clicking on Actors"));
+	GEditor->GetSelectedActors()->Modify();
+
+	if (SelectedTreeItems.Num() > 0)
 	{
-		FActorTreeItem* ActorTreeItem = (FActorTreeItem*)ItemPtr.Get();
-		if (ActorTreeItem)
+		// Clear the selection.
+		GEditor->SelectNone(false, true, true);
+
+		if (auto ActorTree = CachedItemPtr->CastTo<FActorTreeItem>())
 		{
-			OnActorPickedDelegate.ExecuteIfBound(ActorTreeItem->Actor.Get());
+			SelectedActor = ActorTree->Actor;
+			OnActorPickedDelegate.ExecuteIfBound(SelectedActor.Get());
 		}
+
+		GEditor->GetSelectedActors()->BeginBatchSelectOperation();
+		for (auto& Item : SelectedTreeItems)
+		{
+			auto ActorTreeItem = Item->CastTo<FActorTreeItem>();
+
+			GEditor->SelectActor(ActorTreeItem->Actor.Get(), true, false);
+		}
+
+		// Commit selection changes
+		GEditor->GetSelectedActors()->EndBatchSelectOperation(/*bNotify*/false);
+		// Fire selection changed event
+		GEditor->NoteSelectionChange();
+	}
+	else
+	{
+		GEditor->SelectNone(false, true, true);
 	}
 }
 
@@ -156,33 +187,35 @@ void FLGUIPrefabEditorOutliner::RenameSelectedActor()
 
 void FLGUIPrefabEditorOutliner::OnEditorSelectionChanged(UObject* Object)
 {
+	if (bIsReentrant)
+	{
+		return;
+	}
 	if (!SceneOutlinerPtr.IsValid())
 	{
 		return;
 	}
-
-
 
 	USelection* Selection = Cast<USelection>(Object);
 	if (Selection)
 	{
 		if (AActor* Actor = Selection->GetTop<AActor>())
 		{
-			// zachma todo:
-			//UE_LOG(LGUI, Log, TEXT("LGUIPreivewOutliner::OnEditorSelectionChanged, Actor=%s"), *GetNameSafe(Actor));
-
 			if (Actor->GetWorld() != CurrentWorld.Get())
 			{
 				return;
 			}
 			OnActorPickedDelegate.ExecuteIfBound(Actor);
 
-			//SceneOutlinerPtr->ClearSelection();
-			//SceneOutlinerPtr->AddObjectToSelection(Actor);
+			SceneOutlinerPtr->SetSelection([=](ISceneOutlinerTreeItem& TreeItem) {
+				if (auto ActorTree = TreeItem.CastTo<FActorTreeItem>())
+				{
+					return ActorTree->Actor.Get() == Actor;
+				}
+				return false;
+				});
 
 			SelectedActor = Actor;
-
-			//SceneOutlinerPtr	
 		}
 		else
 		{
@@ -233,7 +266,7 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 
 	SceneOutliner::FInitializationOptions InitOptions;
 	InitOptions.bShowTransient = false;
-	InitOptions.Mode = ESceneOutlinerMode::ActorBrowsing;
+	InitOptions.Mode = ESceneOutlinerMode::Custom;
 	InitOptions.ModifyContextMenu = FSceneOutlinerModifyContextMenu::CreateLambda([](FName& MenuName, FToolMenuContext& MenuContext) {
 
 		});
@@ -256,6 +289,7 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 
 	SceneOutlinerPtr->GetOnItemSelectionChanged().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerSelectionChanged);
 	SceneOutlinerPtr->GetDoubleClickEvent().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerDoubleClick);
+	SceneOutlinerPtr->SetSelectionMode(ESelectionMode::Multi);
 
 	OutlinerWidget =
 		SNew(SBox)
@@ -286,27 +320,56 @@ void FLGUIPrefabEditorOutliner::OnSceneOutlinerItemPicked(TSharedRef<SceneOutlin
 
 void FLGUIPrefabEditorOutliner::OnSceneOutlinerSelectionChanged(SceneOutliner::FTreeItemPtr ItemPtr, ESelectInfo::Type SelectionMode)
 {
-	CachedItemPtr = ItemPtr;
+	if (bIsReentrant)return;
+	TGuardValue<bool> ReentrantGuard(bIsReentrant, true);
 
-	if (OnActorPickedDelegate.IsBound())
+	CachedItemPtr = ItemPtr;
+	auto SelectedTreeItems = SceneOutlinerPtr->GetTree().GetSelectedItems();
+
+	const FScopedTransaction Transaction(NSLOCTEXT("UnrealEd", "ClickingOnActors", "Clicking on Actors"));
+	GEditor->GetSelectedActors()->Modify();
+
+	if (SelectedTreeItems.Num() > 0)
 	{
-		SceneOutliner::FActorTreeItem* ActorTreeItem = (SceneOutliner::FActorTreeItem*)ItemPtr.Get();
-		if (ActorTreeItem)
+		// Clear the selection.
+		GEditor->SelectNone(false, true, true);
+
+		if (ItemPtr->GetTypeSortPriority() == SceneOutliner::ETreeItemSortOrder::Actor)
 		{
-			OnActorPickedDelegate.ExecuteIfBound(ActorTreeItem->Actor.Get());
+			auto ActorTree = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(CachedItemPtr);
+			if (ActorTree.IsValid() && ActorTree->Actor.IsValid())
+			{
+				SelectedActor = ActorTree->Actor;
+				OnActorPickedDelegate.ExecuteIfBound(SelectedActor.Get());
+			}
+			GEditor->GetSelectedActors()->BeginBatchSelectOperation();
+			for (auto& Item : SelectedTreeItems)
+			{
+				if (Item->GetTypeSortPriority() == SceneOutliner::ETreeItemSortOrder::Actor)
+				{
+					auto ActorTreeItem = StaticCastSharedPtr<SceneOutliner::FActorTreeItem>(Item);
+					GEditor->SelectActor(ActorTreeItem->Actor.Get(), true, false);
+				}
+			}
+
+			// Commit selection changes
+			GEditor->GetSelectedActors()->EndBatchSelectOperation(/*bNotify*/false);
+			// Fire selection changed event
+			GEditor->NoteSelectionChange();
 		}
+	}
+	else
+	{
+		GEditor->SelectNone(false, true, true);
 	}
 }
 
 void FLGUIPrefabEditorOutliner::OnSceneOutlinerDoubleClick(SceneOutliner::FTreeItemPtr ItemPtr)
 {
-	if (OnActorDoubleClickDelegate.IsBound())
+	SceneOutliner::FActorTreeItem* ActorTreeItem = (SceneOutliner::FActorTreeItem*)ItemPtr.Get();
+	if (ActorTreeItem)
 	{
-		SceneOutliner::FActorTreeItem* ActorTreeItem = (SceneOutliner::FActorTreeItem*)ItemPtr.Get();
-		if (ActorTreeItem)
-		{
-			OnActorDoubleClickDelegate.ExecuteIfBound(ActorTreeItem->Actor.Get());
-		}
+		OnActorDoubleClickDelegate.ExecuteIfBound(ActorTreeItem->Actor.Get());
 	}
 }
 
@@ -323,33 +386,30 @@ void FLGUIPrefabEditorOutliner::RenameSelectedActor()
 
 void FLGUIPrefabEditorOutliner::OnEditorSelectionChanged(UObject* Object)
 {
+	if (bIsReentrant)
+	{
+		return;
+	}
 	if (!SceneOutlinerPtr.IsValid())
 	{
 		return;
 	}
-
-
 
 	USelection* Selection = Cast<USelection>(Object);
 	if (Selection)
 	{
 		if (AActor* Actor = Selection->GetTop<AActor>())
 		{
-			// zachma todo:
-			//UE_LOG(LGUI, Log, TEXT("LGUIPreivewOutliner::OnEditorSelectionChanged, Actor=%s"), *GetNameSafe(Actor));
-
 			if (Actor->GetWorld() != CurrentWorld.Get())
 			{
 				return;
 			}
 			OnActorPickedDelegate.ExecuteIfBound(Actor);
 
-			//SceneOutlinerPtr->ClearSelection();
-			//SceneOutlinerPtr->AddObjectToSelection(Actor);
+			SceneOutlinerPtr->ClearSelection();
+			SceneOutlinerPtr->AddObjectToSelection(Actor);
 
 			SelectedActor = Actor;
-
-			//SceneOutlinerPtr	
 		}
 		else
 		{

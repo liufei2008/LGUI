@@ -41,9 +41,11 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		bool bIsInsidePrefabEditor = true;
 #endif
+
+#if WITH_EDITOR
 	void RevertPrefab();
 	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
-#if WITH_EDITOR
+
 	virtual void BeginDestroy()override;
 	virtual void PostEditUndo()override;
 

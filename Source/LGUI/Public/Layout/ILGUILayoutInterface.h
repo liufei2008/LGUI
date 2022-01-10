@@ -75,4 +75,10 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
 		bool GetCanLayoutControlAnchor(class UUIItem* InUIItem, FLGUICanLayoutControlAnchor& OutResult)const;
+
+	/**
+	 * Mark this layout need to be rebuild.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI Layout")
+		void MarkRebuildLayout();
 };

@@ -50,6 +50,8 @@ private:
 	TSharedPtr<SSceneOutliner> SceneOutlinerPtr;
 	TWeakObjectPtr<AActor> SelectedActor;
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
+	/** Reentrancy guard */
+	bool bIsReentrant = false;
 
 	TWeakObjectPtr<UWorld> CurrentWorld;
 
@@ -85,7 +87,10 @@ private:
 	TSharedPtr<SBox> OutlinerWidget;
 	TSharedPtr<ICustomSceneOutliner> SceneOutlinerPtr;
 	TWeakObjectPtr<AActor> SelectedActor;
+	TArray<TWeakObjectPtr<AActor>> SelectedActorArray;
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
+	/** Reentrancy guard */
+	bool bIsReentrant = false;
 
 	TWeakObjectPtr<UWorld> CurrentWorld;
 

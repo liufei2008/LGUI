@@ -449,16 +449,19 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 {
 	if (Instance != nullptr)
 	{
-		for (auto& itemCanvas : Instance->AllCanvasArray)
+		for (auto& Layout : Instance->AllLayoutArray)
 		{
-			if (itemCanvas.IsValid())
+			if (Layout.GetObject() != nullptr)
 			{
-				auto uiItem = itemCanvas->GetUIItem();
-				if (uiItem != nullptr)
-				{
-					uiItem->MarkAllDirtyRecursive();
-					uiItem->EditorForceUpdateImmediately();
-				}
+				ILGUILayoutInterface::Execute_MarkRebuildLayout(Layout.GetObject());
+			}
+		}
+		for (auto& RootUIItems : Instance->AllRootUIItemArray)
+		{
+			if (RootUIItems.IsValid())
+			{
+				RootUIItems->MarkAllDirtyRecursive();
+				RootUIItems->EditorForceUpdateImmediately();
 			}
 		}
 	}

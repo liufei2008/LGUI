@@ -48,9 +48,11 @@ public:
 	virtual void OnRebuildLayout()PURE_VIRTUAL(UUILayoutBase::OnRebuildLayout, );
 	// Begin LGUILayout interface
 	virtual void OnUpdateLayout_Implementation()override;
+	virtual void MarkRebuildLayout_Implementation()override { bNeedRebuildLayout = true; }
 	// End LGUILayout interface
+
 	/**
-	 * Mark this layout need to be rebuild, will do rebuild after all LGUILifeCycleUIBehaviour's Update function.
+	 * Mark this layout need to be rebuild. Same as MarkRebuildLayout(Interface call).
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	void MarkNeedRebuildLayout() { bNeedRebuildLayout = true; }

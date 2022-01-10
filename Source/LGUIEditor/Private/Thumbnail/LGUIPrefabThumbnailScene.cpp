@@ -58,8 +58,11 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 			}
 			else if (auto rootUIItem = Cast<UUIItem>(rootActor->GetRootComponent()))
 			{
-				rootCanvas = NewObject<ULGUICanvas>(rootActor);
+				auto AgentRootActor = GetWorld()->SpawnActor<AUIContainerActor>();
+				AgentRootActor->GetUIItem()->SetSizeDelta(FVector2D(1920, 1080));
+				rootCanvas = NewObject<ULGUICanvas>(AgentRootActor);
 				rootCanvas->RegisterComponent();
+				rootActor->AttachToComponent(AgentRootActor->GetUIItem(), FAttachmentTransformRules::KeepRelativeTransform);
 				rootActor->AddInstanceComponent(rootCanvas);
 				rootCanvas->MarkCanvasUpdate(true, true, true, true);
 
