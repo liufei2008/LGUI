@@ -1523,18 +1523,25 @@ void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterfa
 
 void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement()
 {
-	auto LGUILifeCycleBehaviourArray = LGUILifeCycleBehaviours_PrefabSystemProcessing.Pop().LGUILifeCycleBehaviourArray;
 	PrefabSystemProcessing_CurrentArrayIndex--;
-
-	for (int i = LGUILifeCycleBehaviourArray.Num() - 1; i >= 0; i--)//execute from tail to head, when in prefab the deeper and lower in hierarchy will execute earlier
+	check(PrefabSystemProcessing_CurrentArrayIndex >= 0);
+	if (PrefabSystemProcessing_CurrentArrayIndex == 0)//wait all prefab serialization ready then do Awake
 	{
-		auto item = LGUILifeCycleBehaviourArray[i];
-		if (item.IsValid())
+		for (int j = LGUILifeCycleBehaviours_PrefabSystemProcessing.Num() - 1; j >= 0; j--)
 		{
-			ProcessLGUILifecycleEvent(item.Get());
+			auto& LGUILifeCycleBehaviourArray = LGUILifeCycleBehaviours_PrefabSystemProcessing[j].LGUILifeCycleBehaviourArray;
+
+			for (int i = LGUILifeCycleBehaviourArray.Num() - 1; i >= 0; i--)//execute from tail to head, when in prefab the deeper in hierarchy will execute earlier
+			{
+				auto item = LGUILifeCycleBehaviourArray[i];
+				if (item.IsValid())
+				{
+					ProcessLGUILifecycleEvent(item.Get());
+				}
+			}
 		}
+		LGUILifeCycleBehaviours_PrefabSystemProcessing.Reset();
 	}
-	LGUILifeCycleBehaviourArray.Reset();
 }
 void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp)
 {

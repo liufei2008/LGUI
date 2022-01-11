@@ -52,6 +52,9 @@ namespace LGUIAnchorPreviewWidget
 			EHorizontalAlignment anchorDotRightBottomHAlign = EHorizontalAlignment::HAlign_Right;
 			EVerticalAlignment anchorDotRightBottomVAlign = EVerticalAlignment::VAlign_Bottom;
 			int anchorDotSize = 5;
+			EHorizontalAlignment pivotDotHAlign = EHorizontalAlignment::HAlign_Left;
+			EVerticalAlignment pivotDotVAlign = EVerticalAlignment::VAlign_Top;
+			int pivotDotSize = 5;
 
 			EHorizontalAlignment hAlign = EHorizontalAlignment::HAlign_Center;
 			switch (InArgs._PersistentHAlign.Get())
@@ -60,6 +63,7 @@ namespace LGUIAnchorPreviewWidget
 			{
 				anchorDotSize = 0;
 				anchorLineVerticalHeight = 0;
+				pivotDotHAlign = EHorizontalAlignment::HAlign_Center;
 			}
 			break;
 			case UIAnchorHorizontalAlign::Left:
@@ -69,6 +73,7 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomHAlign = hAlign;
 				anchorDotRightTopHAlign = hAlign;
 				anchorDotRightBottomHAlign = hAlign;
+				pivotDotHAlign = hAlign;
 			}break;
 			case UIAnchorHorizontalAlign::Center:
 			{
@@ -77,6 +82,7 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomHAlign = hAlign;
 				anchorDotRightTopHAlign = hAlign;
 				anchorDotRightBottomHAlign = hAlign;
+				pivotDotHAlign = hAlign;
 			} break;
 			case UIAnchorHorizontalAlign::Right:
 			{
@@ -85,11 +91,13 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomHAlign = hAlign;
 				anchorDotRightTopHAlign = hAlign;
 				anchorDotRightBottomHAlign = hAlign;
+				pivotDotHAlign = hAlign;
 			} break;
 			case UIAnchorHorizontalAlign::Stretch:
 			{
 				hAlign = EHorizontalAlignment::HAlign_Fill;
 				anchorLineVerticalHeight = 1;
+				pivotDotHAlign = EHorizontalAlignment::HAlign_Center;
 			}
 			break;
 			}
@@ -100,6 +108,7 @@ namespace LGUIAnchorPreviewWidget
 			{
 				anchorDotSize = 0;
 				anchorLineHorizontalWidth = 0;
+				pivotDotVAlign = EVerticalAlignment::VAlign_Center;
 			}
 			break;
 			case UIAnchorVerticalAlign::Top:
@@ -109,6 +118,7 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomVAlign = vAlign;
 				anchorDotRightTopVAlign = vAlign;
 				anchorDotRightBottomVAlign = vAlign;
+				pivotDotVAlign = vAlign;
 			}
 			break;
 			case UIAnchorVerticalAlign::Middle:
@@ -118,6 +128,7 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomVAlign = vAlign;
 				anchorDotRightTopVAlign = vAlign;
 				anchorDotRightBottomVAlign = vAlign;
+				pivotDotVAlign = vAlign;
 			}
 			break;
 			case UIAnchorVerticalAlign::Bottom:
@@ -127,12 +138,14 @@ namespace LGUIAnchorPreviewWidget
 				anchorDotLeftBottomVAlign = vAlign;
 				anchorDotRightTopVAlign = vAlign;
 				anchorDotRightBottomVAlign = vAlign;
+				pivotDotVAlign = vAlign;
 			}
 			break;
 			case UIAnchorVerticalAlign::Stretch:
 			{
 				vAlign = EVerticalAlignment::VAlign_Fill;
 				anchorLineHorizontalWidth = 1;
+				pivotDotVAlign = EVerticalAlignment::VAlign_Center;
 			}
 			break;
 			}
@@ -305,6 +318,36 @@ namespace LGUIAnchorPreviewWidget
 												]
 											]
 										]
+										//pivot point//@todo: why commet? because not the desired behaviour i want
+										//+ SOverlay::Slot()
+										//[
+										//	SNew(SBox)
+										//	.WidthOverride(Size.X)
+										//	.HeightOverride(Size.Y)
+										//	.Padding(this, &SAnchorPreviewWidget::GetInnerRectMargin, Size, InArgs._PersistentHAlign.Get(), InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
+										//	.Visibility(this, &SAnchorPreviewWidget::GetPivotDotVisibility, InArgs._PersistentHAlign.Get(), InArgs._PersistentVAlign.Get(), InArgs._ButtonEnable.Get())
+										//	[
+										//		SNew(SBox)
+										//		.WidthOverride(Size.X * 0.5f)
+										//		.HeightOverride(Size.Y * 0.5f)
+										//		[
+										//			SNew(SBox)
+										//			.HAlign(pivotDotHAlign)
+										//			.VAlign(pivotDotVAlign)
+										//			[
+										//				SNew(SBox)
+										//				.WidthOverride(pivotDotSize)
+										//				.HeightOverride(pivotDotSize)
+										//				[
+										//					SNew(SImage)
+										//					.Image(FLGUIEditorStyle::Get().GetBrush("LGUIEditor.AnchorData_Dot"))
+										//					.ColorAndOpacity(FLinearColor(FColor(50, 255, 200, 128)))
+										//					.Visibility(EVisibility::HitTestInvisible)
+										//				]
+										//			]
+										//		]
+										//	]
+										//]
 										//left top anchor point
 										+ SOverlay::Slot()
 										[
@@ -396,10 +439,17 @@ namespace LGUIAnchorPreviewWidget
 
 	private:
 
-		FOptionalSize GetInnerRectWidth(float Size, UIAnchorHorizontalAlign hAlign, bool IsInteractabel) const
+		EVisibility GetPivotDotVisibility(UIAnchorHorizontalAlign PivotHAlign, UIAnchorVerticalAlign PivotVAlign, bool IsInteractable)const
+		{
+			return (
+				IsInteractable && FSlateApplication::Get().GetModifierKeys().IsShiftDown()
+				&& PivotHAlign != UIAnchorHorizontalAlign::None && PivotVAlign != UIAnchorVerticalAlign::None
+				) ? EVisibility::HitTestInvisible : EVisibility::Hidden;
+		}
+		FOptionalSize GetInnerRectWidth(float Size, UIAnchorHorizontalAlign hAlign, bool IsInteractable) const
 		{
 			bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsAltDown();
-			if (snapAnchor && IsInteractabel)
+			if (snapAnchor && IsInteractable)
 			{
 				if (hAlign == UIAnchorHorizontalAlign::Stretch)
 				{
@@ -408,10 +458,10 @@ namespace LGUIAnchorPreviewWidget
 			}
 			return Size * 0.5f;
 		}
-		FOptionalSize GetInnerRectHeight(float Size, UIAnchorVerticalAlign vAlign, bool IsInteractabel) const
+		FOptionalSize GetInnerRectHeight(float Size, UIAnchorVerticalAlign vAlign, bool IsInteractable) const
 		{
 			bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsAltDown();
-			if (snapAnchor && IsInteractabel)
+			if (snapAnchor && IsInteractable)
 			{
 				if (vAlign == UIAnchorVerticalAlign::Stretch)
 				{
@@ -420,11 +470,11 @@ namespace LGUIAnchorPreviewWidget
 			}
 			return Size * 0.5f;
 		}
-		FMargin GetInnerRectMargin(FVector2D Size, UIAnchorHorizontalAlign hAlign, UIAnchorVerticalAlign vAlign, bool IsInteractabel)const
+		FMargin GetInnerRectMargin(FVector2D Size, UIAnchorHorizontalAlign hAlign, UIAnchorVerticalAlign vAlign, bool IsInteractable)const
 		{
 			FMargin result(0, 0, 0, 0);
 			bool snapAnchor = FSlateApplication::Get().GetModifierKeys().IsAltDown();
-			if (snapAnchor && IsInteractabel)
+			if (snapAnchor && IsInteractable)
 			{
 				switch (hAlign)
 				{
