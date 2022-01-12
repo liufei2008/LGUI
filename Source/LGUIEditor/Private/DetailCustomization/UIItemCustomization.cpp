@@ -1601,7 +1601,7 @@ bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> Ancho
 		{
 			if (AnchorMinValue.X == AnchorMaxValue.X)
 			{
-				return !GetLayoutControlHorizontalAnchoredPosition();
+				return !GetLayoutControlHorizontalSizeDelta();
 			}
 			else
 			{
@@ -1622,7 +1622,7 @@ bool FUIItemCustomization::IsAnchorValueEnable(TSharedRef<IPropertyHandle> Ancho
 		{
 			if (AnchorMinValue.Y == AnchorMaxValue.Y)
 			{
-				return !GetLayoutControlVerticalAnchoredPosition();
+				return !GetLayoutControlVerticalSizeDelta();
 			}
 			else
 			{

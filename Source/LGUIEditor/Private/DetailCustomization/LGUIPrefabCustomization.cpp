@@ -3,11 +3,11 @@
 #include "DetailCustomization/LGUIPrefabCustomization.h"
 #include "PrefabSystem/LGUIPrefab.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
-#include "AssetRegistryModule.h"
 
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
+#include "LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabCustomization"
 
@@ -359,35 +359,15 @@ FReply FLGUIPrefabCustomization::OnClickRecreteAllButton()
 	}
 	else
 	{
-		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
-		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-		// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
-		TArray<FString> PathsToScan;
-		PathsToScan.Add(TEXT("/Game/"));
-		AssetRegistry.ScanPathsSynchronous(PathsToScan);
-
-		// Get asset in path
-		TArray<FAssetData> ScriptAssetList;
-		AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
-
-		// Ensure all assets are loaded
-		for (const FAssetData& Asset : ScriptAssetList)
+		auto AllPrefabs = LGUIEditorTools::GetAllPrefabArray();
+		for (auto Prefab : AllPrefabs)
 		{
-			// Gets the loaded asset, loads it if necessary
-			if (Asset.AssetClass == TEXT("LGUIPrefab"))
+			if (
+				Prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || Prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
+				|| Prefab->PrefabVersion != LGUI_CURRENT_PREFAB_VERSION
+				)
 			{
-				auto AssetObject = Asset.GetAsset();
-				if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
-				{
-					if (
-						Prefab->EngineMajorVersion != ENGINE_MAJOR_VERSION || Prefab->EngineMinorVersion != ENGINE_MINOR_VERSION
-						|| Prefab->PrefabVersion != LGUI_CURRENT_PREFAB_VERSION
-						)
-					{
-						RecreatePrefab(Prefab, World);
-					}
-				}
+				RecreatePrefab(Prefab, World);
 			}
 		}
 	}
@@ -416,33 +396,11 @@ void FLGUIPrefabCustomization::RecreatePrefab(ULGUIPrefab* Prefab, UWorld* World
 }
 FReply FLGUIPrefabCustomization::OnClickRecreateAgentObjects()
 {
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
-	TArray<FString> PathsToScan;
-	PathsToScan.Add(TEXT("/Game/"));
-	AssetRegistry.ScanPathsSynchronous(PathsToScan);
-
-	// Get asset in path
-	TArray<FAssetData> ScriptAssetList;
-	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
-
-	// Ensure all assets are loaded
-	for (const FAssetData& Asset : ScriptAssetList)
+	auto AllPrefabs = LGUIEditorTools::GetAllPrefabArray();
+	for (auto Prefab : AllPrefabs)
 	{
-		// Gets the loaded asset, loads it if necessary
-		if (Asset.AssetClass == TEXT("LGUIPrefab"))
-		{
-			auto AssetObject = Asset.GetAsset();
-			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
-			{
-				Prefab->MakeAgentObjectsInPreviewWorld();
-			}
-		}
+		Prefab->MakeAgentObjectsInPreviewWorld();
 	}
-
-
 	return FReply::Handled();
 }
 

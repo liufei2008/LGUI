@@ -475,7 +475,6 @@ private:
 	 */
 	uint32 bCurrentIsLGUIRendererOrUERenderer : 1;
 
-	uint32 cacheForThisUpdate_ClipTypeChanged:1, cacheForThisUpdate_RectClipParameterChanged:1, cacheForThisUpdate_TextureClipParameterChanged:1;
 	uint32 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
 
 	mutable uint32 bIsViewProjectionMatrixDirty : 1;
@@ -517,6 +516,8 @@ private:
 	UPROPERTY(Transient) TArray<TWeakObjectPtr<ULGUICanvas>> ChildrenCanvasArray;
 	/** update Canvas's drawcall */
 	void UpdateCanvasDrawcallRecursive();
+	/** mark render finish */
+	void MarkFinishRenderFrameRecursive();
 
 	void UpdateGeometry_Implement();
 	void UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<TSharedPtr<UUIDrawcall>>& InUIDrawcallList, TArray<TSharedPtr<UUIDrawcall>>& InCacheUIDrawcallList, bool& OutNeedToSortRenderPriority);

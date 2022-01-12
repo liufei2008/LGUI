@@ -27,7 +27,7 @@ void ULGUIPrefabHelperObject::RevertPrefab()
 		//store root transform
 		if (IsValid(LoadedRootActor))
 		{
-			OldParent = LoadedRootActor->GetAttachParentActor()->GetRootComponent();
+			OldParent = LoadedRootActor->GetAttachParentActor() != nullptr ? LoadedRootActor->GetAttachParentActor()->GetRootComponent() : nullptr;
 		}
 		//collect current children
 		TArray<AActor*> ChildrenActors;
@@ -68,7 +68,7 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 		TSet<FGuid> ObjectsToIgnore;
 		for (auto KeyValue : MapGuidToObject)
 		{
-			if (!PrefabAsset->PrefabHelperObject->MapGuidToObject.Contains(KeyValue.Key))//Prefab's agent object is clean, so compare with it
+			if (!PrefabAsset->GetPrefabHelperObject()->MapGuidToObject.Contains(KeyValue.Key))//Prefab's agent object is clean, so compare with it
 			{
 				ObjectsToIgnore.Add(KeyValue.Key);
 			}
@@ -87,6 +87,7 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 		}
 
 		TimePointWhenSavePrefab = PrefabAsset->CreateTime;
+		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 }
 #endif
@@ -243,6 +244,8 @@ void ULGUIPrefabHelperObject::SavePrefab()
 			}
 		}
 		PrefabAsset->RefreshAgentObjectsInPreviewWorld();
+
+		TimePointWhenSavePrefab = PrefabAsset->CreateTime;
 	}
 	else
 	{

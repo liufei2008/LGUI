@@ -115,7 +115,11 @@ void ULGUICanvas::UpdateCanvas()
 			}
 		}
 
-		UpdateCanvasDrawcallRecursive();
+		if (!this->IsRenderByOtherCanvas())//if is render by other canvas then skip update
+		{
+			UpdateCanvasDrawcallRecursive();
+			MarkFinishRenderFrameRecursive();
+		}
 	}
 }
 
@@ -1038,16 +1042,20 @@ void ULGUICanvas::SetOverrideProjectionMatrix(bool InOverride, FMatrix InValue)
 void ULGUICanvas::MarkCanvasLayoutDirty()
 {
 	bIsViewProjectionMatrixDirty = true;
-	cacheForThisUpdate_ClipTypeChanged = bClipTypeChanged;
-	cacheForThisUpdate_RectClipParameterChanged = bRectClipParameterChanged;
-	if (bRectRangeCalculated)
+	switch (GetActualClipType())
 	{
-		if (cacheForThisUpdate_RectClipParameterChanged)bRectRangeCalculated = false;
+	default:
+		break;
+	case ELGUICanvasClipType::Rect:
+	{
+		bRectClipParameterChanged = true;
+		bRectRangeCalculated = false;
 	}
-	cacheForThisUpdate_TextureClipParameterChanged = bTextureClipParameterChanged;
-	bClipTypeChanged = false;
-	bRectClipParameterChanged = false;
-	bTextureClipParameterChanged = false;
+		break;
+	case ELGUICanvasClipType::Texture:
+		bTextureClipParameterChanged = true;
+		break;
+	}
 }
 
 void ULGUICanvas::SetDefaultMeshType(TSubclassOf<ULGUIMeshComponent> InValue)
@@ -1107,6 +1115,24 @@ ULGUIMeshComponent* ULGUICanvas::FindNextValidMeshInDrawcallList(int32 InStartIn
 	return nullptr;
 }
 
+void ULGUICanvas::MarkFinishRenderFrameRecursive()
+{
+	//mark children canvas
+	for (auto item : ChildrenCanvasArray)
+	{
+		if (item.IsValid() && item->GetIsUIActive())
+		{
+			item->MarkFinishRenderFrameRecursive();
+		}
+	}
+
+	bShouldRebuildDrawcall = false;
+	bClipTypeChanged = false;
+	bRectClipParameterChanged = false;
+	bRectRangeCalculated = true;
+	bTextureClipParameterChanged = false;
+}
+
 void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 {
 	//update children canvas
@@ -1123,7 +1149,7 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 
 	if (this->IsRenderByOtherCanvas())//if is render by other canvas then skip drawcall creation
 	{
-		goto RENDER_FRAME_COMPLETE;
+		return;
 	}
 
 	//check if add to renderer
@@ -1287,10 +1313,6 @@ void ULGUICanvas::UpdateCanvasDrawcallRecursive()
 			}
 		}
 	}
-
-RENDER_FRAME_COMPLETE:
-	//this render frame is complete
-	bShouldRebuildDrawcall = false;
 }
 
 void ULGUICanvas::UpdateDrawcallMesh_Implement()
@@ -1717,7 +1739,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		if (DrawcallItem->type == EUIDrawcallType::BatchGeometry)
 		{
 			auto UIMat = DrawcallItem->materialInstanceDynamic;
-			if (!UIMat.IsValid() || DrawcallItem->materialChanged || DrawcallItem->manageCanvas->cacheForThisUpdate_ClipTypeChanged)
+			if (!UIMat.IsValid() || DrawcallItem->materialChanged || DrawcallItem->manageCanvas->bClipTypeChanged)
 			{
 				if (DrawcallItem->material.IsValid())//custom material
 				{
@@ -1773,7 +1795,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		}
 		else if (DrawcallItem->type == EUIDrawcallType::PostProcess)
 		{
-			if (DrawcallItem->manageCanvas->cacheForThisUpdate_ClipTypeChanged
+			if (DrawcallItem->manageCanvas->bClipTypeChanged
 				|| DrawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
 				)
 			{
@@ -1787,7 +1809,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		}
 		else if (DrawcallItem->type == EUIDrawcallType::DirectMesh)
 		{
-			if (DrawcallItem->manageCanvas->cacheForThisUpdate_ClipTypeChanged
+			if (DrawcallItem->manageCanvas->bClipTypeChanged
 				|| DrawcallItem->materialChanged//maybe it is newly created, so check the materialChanged parameter
 				)
 			{
@@ -1808,8 +1830,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		case ELGUICanvasClipType::Rect:
 		{
 			if (bNeedToSetClipParameter
-				//|| DrawcallItem->manageCanvas->cacheForThisUpdate_ClipTypeChanged//this is already tested when check "needToSetClipParameter"
-				|| DrawcallItem->manageCanvas->cacheForThisUpdate_RectClipParameterChanged)
+				|| DrawcallItem->manageCanvas->bRectClipParameterChanged)
 			{
 				auto TempRectClipOffsetAndSize = DrawcallItem->manageCanvas->GetRectClipOffsetAndSize();
 				auto TempRectClipFeather = DrawcallItem->manageCanvas->GetRectClipFeather();
@@ -1850,8 +1871,7 @@ void ULGUICanvas::UpdateDrawcallMaterial_Implement()
 		case ELGUICanvasClipType::Texture:
 		{
 			if (bNeedToSetClipParameter
-				//|| DrawcallItem->manageCanvas->cacheForThisUpdate_ClipTypeChanged//this is already tested when check "needToSetClipParameter"
-				|| DrawcallItem->manageCanvas->cacheForThisUpdate_TextureClipParameterChanged)
+				|| DrawcallItem->manageCanvas->bTextureClipParameterChanged)
 			{
 				auto TempTextureClipOffsetAndSize = DrawcallItem->manageCanvas->GetTextureClipOffsetAndSize();
 				auto TempClipTexture = DrawcallItem->manageCanvas->GetClipTexture();

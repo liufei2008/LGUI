@@ -65,6 +65,7 @@ class LGUI_API ULGUIPrefab : public UObject
 
 public:
 	ULGUIPrefab();
+	friend class FLGUIPrefabCustomization;
 
 	//@todo: the following list should be marked as editor only, but since old prefab system needs them so keep it here for a while
 
@@ -123,6 +124,7 @@ public:
 		class UThumbnailInfo* ThumbnailInfo;
 	UPROPERTY(Transient)
 		bool ThumbnailDirty = false;
+private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 #endif
@@ -142,7 +144,6 @@ public:
 	);
 	bool IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive);
 private:
-	void CheckHelperObject();
 #if WITH_EDITOR
 public:
 	void MakeAgentObjectsInPreviewWorld();
@@ -150,6 +151,7 @@ public:
 	void RefreshAgentObjectsInPreviewWorld();
 	/** Refresh it. Note this will use agent data to serialize, so if the prefab editor is opened for this prefab, then we should not use this function, or modifyed value in prefab editor will lose */
 	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
+	ULGUIPrefabHelperObject* GetPrefabHelperObject();
 
 	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;
 	virtual void WillNeverCacheCookedPlatformDataAgain()override;

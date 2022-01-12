@@ -636,6 +636,37 @@ bool FLGUIEditorModule::CanCheckPrefabOverrideParameter()const
 	}
 }
 
+bool FLGUIEditorModule::CanReplaceUIElement()
+{
+	if (LGUIEditorTools::IsSelectUIActor())//only allow replace UI element
+	{
+		auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+		{
+			if (PrefabHelperObject->LoadedRootActor == SelectedActor)//not allow prefab's root object
+			{
+				return false;
+			}
+			if (PrefabHelperObject->bIsInsidePrefabEditor)
+			{
+				if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's actor not allow replace
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return false;//prefabs inside level editor not allow replace
+			}
+		}
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool FLGUIEditorModule::CanCreatePrefab()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
@@ -805,7 +836,10 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			LOCTEXT("ReplaceUIElement", "Replace this by..."),
 			LOCTEXT("ReplaceUIElement_Tooltip", "Replace UI Element with..."),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::ReplaceUIElementSubMenu),
-			FUIAction(FExecuteAction(), FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })),
+			FUIAction(FExecuteAction()
+				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanReplaceUIElement)
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanReplaceUIElement)),
 			NAME_None,
 			EUserInterfaceActionType::Button
 		);

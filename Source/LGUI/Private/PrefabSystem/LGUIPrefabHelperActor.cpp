@@ -425,7 +425,7 @@ void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, const TSet<
 			ObjectGuid = KeyValue.Key;
 		}
 	}
-	auto OriginObject = PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
 
 	bCanCollectProperty = false;
 	{
@@ -467,7 +467,7 @@ void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, FName InPro
 			ObjectGuid = KeyValue.Key;
 		}
 	}
-	auto OriginObject = PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
 
 	bCanCollectProperty = false;
 	{
@@ -512,7 +512,7 @@ void ALGUIPrefabHelperActor::RevertAllPrefabOverride()
 					ObjectGuid = KeyValue.Key;
 				}
 			}
-			return PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+			return PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
 		};
 		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
 		{
@@ -580,7 +580,7 @@ void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, const TSet<F
 			ObjectGuid = KeyValue.Key;
 		}
 	}
-	auto OriginObject = PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
 
 	bCanCollectProperty = false;
 	{
@@ -602,8 +602,8 @@ void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, const TSet<F
 		if (bAnythingDirty)
 		{
 			PrefabHelperObject->PrefabAsset->Modify();
-			PrefabHelperObject->PrefabAsset->PrefabHelperObject->SavePrefab();
-			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->PrefabHelperObject->TimePointWhenSavePrefab;
+			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
+			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->TimePointWhenSavePrefab;
 		}
 	}
 	bCanCollectProperty = true;
@@ -629,7 +629,7 @@ void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, FName InProp
 			ObjectGuid = KeyValue.Key;
 		}
 	}
-	auto OriginObject = PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
 
 	bCanCollectProperty = false;
 	{
@@ -651,8 +651,8 @@ void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, FName InProp
 		if (bAnythingDirty)
 		{
 			PrefabHelperObject->PrefabAsset->Modify();
-			PrefabHelperObject->PrefabAsset->PrefabHelperObject->SavePrefab();
-			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->PrefabHelperObject->TimePointWhenSavePrefab;
+			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
+			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->TimePointWhenSavePrefab;
 		}
 
 		GEditor->EndTransaction();
@@ -681,7 +681,7 @@ void ALGUIPrefabHelperActor::ApplyAllOverrideToPrefab()
 					ObjectGuid = KeyValue.Key;
 				}
 			}
-			return PrefabHelperObject->PrefabAsset->PrefabHelperObject->MapGuidToObject[ObjectGuid];
+			return PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
 		};
 		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
 		{
@@ -721,8 +721,8 @@ void ALGUIPrefabHelperActor::ApplyAllOverrideToPrefab()
 		//save origin prefab
 		{
 			PrefabHelperObject->PrefabAsset->Modify();
-			PrefabHelperObject->PrefabAsset->PrefabHelperObject->SavePrefab();
-			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->PrefabHelperObject->TimePointWhenSavePrefab;
+			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
+			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->TimePointWhenSavePrefab;
 		}
 
 		bAnythingDirty = true;

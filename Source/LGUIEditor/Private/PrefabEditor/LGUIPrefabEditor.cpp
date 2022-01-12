@@ -119,7 +119,7 @@ bool FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 			}
 		}
 		FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
-		return SubPrefabData.PrefabAsset->PrefabHelperObject->MapGuidToObject.Contains(ObjectGuidInSubPrefab);
+		return SubPrefabData.PrefabAsset->GetPrefabHelperObject()->MapGuidToObject.Contains(ObjectGuidInSubPrefab);
 	};
 	for (auto& SubPrefabKeyValue : PrefabHelperObject->SubPrefabMap)
 	{
@@ -291,7 +291,7 @@ void FLGUIPrefabEditor::RevertPrefabOverride(UObject* InObject, const TSet<FName
 	}
 	auto SubPrefabData = PrefabHelperObject->GetSubPrefabData(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
-	auto SubPrefabHelperObject = SubPrefabAsset->PrefabHelperObject;
+	auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
 	FGuid ObjectGuid;
 	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 	{
@@ -338,7 +338,7 @@ void FLGUIPrefabEditor::RevertPrefabOverride(UObject* InObject, FName InProperty
 	}
 	auto SubPrefabData = PrefabHelperObject->GetSubPrefabData(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
-	auto SubPrefabHelperObject = SubPrefabAsset->PrefabHelperObject;
+	auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
 	FGuid ObjectGuid;
 	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 	{
@@ -389,7 +389,7 @@ void FLGUIPrefabEditor::RevertAllPrefabOverride(AActor* InSubPrefabRootActor)
 		PrefabHelperObject->Modify();
 
 		auto SubPrefabAsset = SubPrefabData.PrefabAsset;
-		auto SubPrefabHelperObject = SubPrefabAsset->PrefabHelperObject;
+		auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
 		auto FindOriginObjectInSourcePrefab = [&](UObject* InObject) {
 			FGuid ObjectGuid;
 			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
@@ -463,7 +463,7 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, const TSet<FName>
 	}
 	auto SubPrefabData = PrefabHelperObject->GetSubPrefabData(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
-	auto SubPrefabHelperObject = SubPrefabAsset->PrefabHelperObject;
+	auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
 	FGuid ObjectGuid;
 	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 	{
@@ -495,7 +495,7 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, const TSet<FName>
 		if (bAnythingDirty)
 		{
 			SubPrefabAsset->Modify();
-			SubPrefabAsset->PrefabHelperObject->SavePrefab();
+			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}
@@ -519,7 +519,7 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, FName InPropertyN
 	}
 	auto SubPrefabData = PrefabHelperObject->GetSubPrefabData(Actor);
 	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
-	auto SubPrefabHelperObject = SubPrefabAsset->PrefabHelperObject;
+	auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
 	FGuid ObjectGuid;
 	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 	{
@@ -552,7 +552,7 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, FName InPropertyN
 		if (bAnythingDirty)
 		{
 			SubPrefabAsset->Modify();
-			SubPrefabAsset->PrefabHelperObject->SavePrefab();
+			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}
@@ -577,7 +577,7 @@ void FLGUIPrefabEditor::ApplyAllOverrideToPrefab(AActor* InSubPrefabRootActor)
 		PrefabHelperObject->Modify();
 
 		auto SubPrefabAsset = SubPrefabData.PrefabAsset;
-		auto SubPrefabHelperObject = SubPrefabAsset->PrefabHelperObject;
+		auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
 		auto FindOriginObjectInSourcePrefab = [&](UObject* InObject) {
 			FGuid ObjectGuid;
 			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
@@ -628,7 +628,7 @@ void FLGUIPrefabEditor::ApplyAllOverrideToPrefab(AActor* InSubPrefabRootActor)
 		//save origin prefab
 		{
 			SubPrefabAsset->Modify();
-			SubPrefabAsset->PrefabHelperObject->SavePrefab();
+			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}

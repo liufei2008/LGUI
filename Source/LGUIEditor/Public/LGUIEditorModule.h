@@ -51,6 +51,7 @@ private:
 	bool CanBrowsePrefab();
 	bool CanCreatePrefab();
 	bool CanCheckPrefabOverrideParameter()const;
+	bool CanReplaceUIElement();
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 

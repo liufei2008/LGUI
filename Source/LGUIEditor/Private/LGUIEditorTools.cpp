@@ -931,33 +931,7 @@ void LGUIEditorTools::RefreshOpenPrefabEditor(ULGUIPrefab* InPrefab)
 
 void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
 {
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
-	TArray<FString> PathsToScan;
-	PathsToScan.Add(TEXT("/Game/"));
-	AssetRegistry.ScanPathsSynchronous(PathsToScan);
-
-	// Get asset in path
-	TArray<FAssetData> ScriptAssetList;
-	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
-
-	TArray<ULGUIPrefab*> AllPrefabs;
-	// Ensure all assets are loaded
-	for (const FAssetData& Asset : ScriptAssetList)
-	{
-		// Gets the loaded asset, loads it if necessary
-		if (Asset.AssetClass == TEXT("LGUIPrefab"))
-		{
-			auto AssetObject = Asset.GetAsset();
-			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
-			{
-				Prefab->MakeAgentObjectsInPreviewWorld();
-				AllPrefabs.Add(Prefab);
-			}
-		}
-	}
+	auto AllPrefabs = GetAllPrefabArray();
 
 	struct Local
 	{
@@ -990,6 +964,46 @@ void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
 	};
 
 	Local::RefreshAllPrefabsOnSubPrefabChange(AllPrefabs, InSubPrefab);
+}
+
+TArray<ULGUIPrefab*> LGUIEditorTools::GetAllPrefabArray()
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
+	TArray<FString> PathsToScan;
+	PathsToScan.Add(TEXT("/Game/"));
+	AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+	// Get asset in path
+	TArray<FAssetData> ScriptAssetList;
+	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
+
+	TArray<ULGUIPrefab*> AllPrefabs;
+	// Ensure all assets are loaded
+	for (const FAssetData& Asset : ScriptAssetList)
+	{
+		// Gets the loaded asset, loads it if necessary
+		if (Asset.AssetClass == TEXT("LGUIPrefab"))
+		{
+			auto AssetObject = Asset.GetAsset();
+			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
+			{
+				Prefab->MakeAgentObjectsInPreviewWorld();
+				AllPrefabs.Add(Prefab);
+			}
+		}
+	}
+	//collect prefabs that are not saved to disc yet
+	for (TObjectIterator<ULGUIPrefab> Itr; Itr; ++Itr)
+	{
+		if (!AllPrefabs.Contains(*Itr))
+		{
+			AllPrefabs.Add(*Itr);
+		}
+	}
+	return AllPrefabs;
 }
 
 void LGUIEditorTools::RevertPrefabInLevelEditor()
@@ -1761,48 +1775,27 @@ void LGUIEditorTools::UpgradeAllPrefabToLGUI3()
 		if (FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(confirmMsg)) == EAppReturnType::Ok)return;
 	}
 
-
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
-	TArray<FString> PathsToScan;
-	PathsToScan.Add(TEXT("/Game/"));
-	AssetRegistry.ScanPathsSynchronous(PathsToScan);
-
-	// Get asset in path
-	TArray<FAssetData> ScriptAssetList;
-	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
-
-	// Ensure all assets are loaded
-	for (const FAssetData& Asset : ScriptAssetList)
+	auto AllPrefabs = GetAllPrefabArray();
+	for (auto Prefab : AllPrefabs)
 	{
-		// Gets the loaded asset, loads it if necessary
-		if (Asset.AssetClass == TEXT("LGUIPrefab"))
+		auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+		TMap<FGuid, UObject*> MapGuidToObject;
+		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+		auto RootActor = Prefab->LoadPrefabWithExistingObjects(World, nullptr
+			, MapGuidToObject, SubPrefabMap
+		);
+		TArray<AActor*> AllChildrenActorArray;
+		LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
+		UpgradeActorArray(AllChildrenActorArray, true);
+		TMap<UObject*, FGuid> MapObjectToGuid;
+		for (auto KeyValue : MapGuidToObject)
 		{
-			auto AssetObject = Asset.GetAsset();
-			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
-			{
-				auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-				TMap<FGuid, UObject*> MapGuidToObject;
-				TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-				auto RootActor = Prefab->LoadPrefabWithExistingObjects(World, nullptr
-					, MapGuidToObject, SubPrefabMap
-				);
-				TArray<AActor*> AllChildrenActorArray;
-				LGUIUtils::CollectChildrenActors(RootActor, AllChildrenActorArray, true);
-				UpgradeActorArray(AllChildrenActorArray, true);
-				TMap<UObject*, FGuid> MapObjectToGuid;
-				for (auto KeyValue : MapGuidToObject)
-				{
-					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
-				}
-				Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap);
-				Prefab->MakeAgentObjectsInPreviewWorld();
-
-				LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
-			}
+			MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 		}
+		Prefab->SavePrefab(RootActor, MapObjectToGuid, SubPrefabMap);
+		Prefab->MakeAgentObjectsInPreviewWorld();
+
+		LGUIUtils::DestroyActorWithHierarchy(RootActor, true);
 	}
 }
 #include "GameFramework/Actor.h"

@@ -86,7 +86,7 @@ private:
 	int visibleCharCount = -1;
 	bool bTextLayoutDirty = false;
 
-	virtual void OnUpdateLayout_Implementation()override;
+	virtual void OnUpdateLayout_Implementation()override;//@todo: should we implement ILayoutElement for AdjustWidth/AdjustHeight?
 	FTextGeometryCache CacheTextGeometryData;
 	bool UpdateCacheTextGeometry();
 public:

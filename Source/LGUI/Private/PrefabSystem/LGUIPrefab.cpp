@@ -105,17 +105,6 @@ ULGUIPrefab::ULGUIPrefab()
 
 }
 #if WITH_EDITOR
-
-void ULGUIPrefab::CheckHelperObject()
-{
-	if (PrefabHelperObject == nullptr)
-	{
-		PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this, "PrefabHelper");
-		PrefabHelperObject->bIsInsidePrefabEditor = false;
-		PrefabHelperObject->PrefabAsset = this;
-	}
-}
-
 void ULGUIPrefab::RefreshAgentObjectsInPreviewWorld()
 {
 	ClearAgentObjectsInPreviewWorld();
@@ -125,7 +114,12 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 {
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-		CheckHelperObject();
+		if (PrefabHelperObject == nullptr)
+		{
+			PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this, "PrefabHelper");
+			PrefabHelperObject->bIsInsidePrefabEditor = false;
+			PrefabHelperObject->PrefabAsset = this;
+		}
 		if (!IsValid(PrefabHelperObject->LoadedRootActor))
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
@@ -139,6 +133,22 @@ void ULGUIPrefab::ClearAgentObjectsInPreviewWorld()
 	{
 		PrefabHelperObject->ClearLoadedPrefab();
 	}
+}
+
+ULGUIPrefabHelperObject* ULGUIPrefab::GetPrefabHelperObject()
+{
+	if (PrefabHelperObject == nullptr)
+	{
+		PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this, "PrefabHelper");
+		PrefabHelperObject->bIsInsidePrefabEditor = false;
+		PrefabHelperObject->PrefabAsset = this;
+	}
+	if (!IsValid(PrefabHelperObject->LoadedRootActor))
+	{
+		auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+		PrefabHelperObject->LoadPrefab(World, nullptr);
+	}
+	return PrefabHelperObject;
 }
 
 bool ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
@@ -444,6 +454,8 @@ AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneCompon
 bool ULGUIPrefab::IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive)
 {
 	MakeAgentObjectsInPreviewWorld();
+	if (!PrefabHelperObject)return false;
+	if (this == InPrefab)return false;
 	for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
 	{
 		if (KeyValue.Value.PrefabAsset == InPrefab)
