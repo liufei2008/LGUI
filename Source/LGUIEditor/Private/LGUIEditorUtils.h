@@ -5,13 +5,20 @@
 #include "LGUIEditorModule.h"
 #include "IDetailPropertyRow.h"
 
+#define LOCTEXT_NAMESPACE "LGUIEditorUtils"
 DECLARE_DELEGATE_RetVal(FText, FLGUIArrowButtonDelegate);
 class LGUIEditorUtils
 {
 #define ErrorInfoCategory TEXT("Error")
 public:
 	template<class T>
-	static void ShowError_MultiComponentNotAllowed(IDetailLayoutBuilder* DetailBuilder, T* Component, const FString& ErrorMessage = "")
+	static void ShowError_MultiComponentNotAllowed(IDetailLayoutBuilder* DetailBuilder, T* Component)
+	{
+		auto ErrorMessage = FText::Format(LOCTEXT("MultipleComponentInOneActorNotAllowed", "Multiple {0} component in one actor is not allowed!"), FText::FromName(T::StaticClass()->GetFName()));
+		ShowError_MultiComponentNotAllowed(DetailBuilder, Component, ErrorMessage);
+	}
+	template<class T>
+	static void ShowError_MultiComponentNotAllowed(IDetailLayoutBuilder* DetailBuilder, T* Component, const FText& ErrorMessage)
 	{
 		static_assert(TPointerIsConvertibleFromTo<T, const UActorComponent>::Value, "'T' template parameter to ShowWarning_MultiComponentNotAllowed must be derived from UActorComponent");
 		if (auto actor = Component->GetOwner())
@@ -21,13 +28,13 @@ public:
 			if (components.Num() > 1)
 			{
 				IDetailCategoryBuilder& lguiCategory = DetailBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
-				lguiCategory.AddCustomRow(FText::FromString(FString(TEXT("MultiComponentNotAllowed_Tips"))))
+				lguiCategory.AddCustomRow(LOCTEXT("MultiComponentNotAllowed_Tips", "MultiComponentNotAllowed_Tips"))
 					.WholeRowContent()
 					[
 						SNew(STextBlock)
-						.Text(FText::FromString(ErrorMessage.Len() == 0 ? FString::Printf(TEXT("Multiple %s component in one actor is not allowed!"), *(T::StaticClass()->GetName())) : ErrorMessage))
-					.ColorAndOpacity(FLinearColor(FColor::Red))
-					.AutoWrapText(true)
+						.Text(ErrorMessage)
+						.ColorAndOpacity(FLinearColor(FColor::Red))
+						.AutoWrapText(true)
 					]
 				;
 			}
@@ -42,53 +49,53 @@ public:
 			if (Components.Num() == 0)
 			{
 				IDetailCategoryBuilder& lguiCategory = DetailBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
-				lguiCategory.AddCustomRow(FText::FromString(FString(TEXT("RequireComponent_Tips"))))
+				lguiCategory.AddCustomRow(LOCTEXT("RequireComponentRow", "RequireComponent"))
 					.WholeRowContent()
 					[
 						SNew(STextBlock)
-						.Text(FText::FromString(FString::Printf(TEXT("This component require %s component on actor!"), *(RequireComponentType->GetName()))))
-					.ColorAndOpacity(FLinearColor(FColor::Red))
-					.AutoWrapText(true)
+						.Text(FText::Format(LOCTEXT("RequireComponentTip", "This component require {0} component on actor!"), FText::FromName(RequireComponentType->GetFName())))
+						.ColorAndOpacity(FLinearColor(FColor::Red))
+						.AutoWrapText(true)
 					]
 				;
 			}
 		}
 	}
-	static void ShowError(IDetailLayoutBuilder* LayoutBuilder, const FString& ErrorMessage)
+	static void ShowError(IDetailLayoutBuilder* LayoutBuilder, const FText& ErrorMessage)
 	{
 		IDetailCategoryBuilder& category = LayoutBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
-		category.AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
+		category.AddCustomRow(LOCTEXT("ErrorInfoTextRow", "ErrorInfoText"))
 		.WholeRowContent()
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(ErrorMessage))
+			.Text(ErrorMessage)
 			.ColorAndOpacity(FLinearColor(FColor::Red))
 			.AutoWrapText(true)
 		]
 		;
 	}
-	static void ShowWarning(IDetailLayoutBuilder* LayoutBuilder, const FString& ErrorMessage)
+	static void ShowWarning(IDetailLayoutBuilder* LayoutBuilder, const FText& ErrorMessage)
 	{
 		IDetailCategoryBuilder& category = LayoutBuilder->EditCategory(ErrorInfoCategory, FText::GetEmpty(), ECategoryPriority::Variable);
-		category.AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
+		category.AddCustomRow(LOCTEXT("WarningInfoTextRow", "WarningInfoText"))
 			.WholeRowContent()
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(ErrorMessage))
-			.ColorAndOpacity(FLinearColor(FColor::Yellow))
-			.AutoWrapText(true)
+				.Text(ErrorMessage)
+				.ColorAndOpacity(FLinearColor(FColor::Yellow))
+				.AutoWrapText(true)
 			]
 		;
 	}
-	static void ShowError(IDetailCategoryBuilder* CategoryBuilder, const FString& ErrorMessage)
+	static void ShowError(IDetailCategoryBuilder* CategoryBuilder, const FText& ErrorMessage)
 	{
-		CategoryBuilder->AddCustomRow(FText::FromString(FString(TEXT("ErrorInfoText"))))
+		CategoryBuilder->AddCustomRow(LOCTEXT("ErrorInfoTextRow", "ErrorInfoText"))
 			.WholeRowContent()
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(ErrorMessage))
-			.ColorAndOpacity(FLinearColor(FColor::Red))
-			.AutoWrapText(true)
+				.Text(ErrorMessage)
+				.ColorAndOpacity(FLinearColor(FColor::Red))
+				.AutoWrapText(true)
 			]
 		;
 	}
@@ -101,23 +108,10 @@ public:
 		prop.DisplayName(FText::FromString(name));
 		return prop;
 	}
-	static void SetControlledByParentLayout(IDetailPropertyRow& prop, bool controlledByParentLayout)
-	{
-		prop.IsEnabled(!controlledByParentLayout);
-		auto disabledByParentLayoutToolTip = FString(TEXT("This property is controlled by parent layout"));
-		if (controlledByParentLayout) prop.ToolTip(FText::FromString(disabledByParentLayoutToolTip));
-	}
-	static void SetControlledBySelfLayout(IDetailPropertyRow& prop, bool controlledByThisLayout)
-	{
-		prop.IsEnabled(!controlledByThisLayout);
-		auto disabledByParentLayoutToolTip = FString(TEXT("This property is controlled by self layout"));
-		if (controlledByThisLayout) prop.ToolTip(FText::FromString(disabledByParentLayoutToolTip));
-	}
 	static void SetControlledByLayout(IDetailPropertyRow& prop, bool controlledByLayout)
 	{
 		prop.IsEnabled(!controlledByLayout);
-		auto disabledByParentLayoutToolTip = FString(TEXT("This property is controlled by layout"));
-		if (controlledByLayout) prop.ToolTip(FText::FromString(disabledByParentLayoutToolTip));
+		if (controlledByLayout) prop.ToolTip(LOCTEXT("ControlledByLayoutTip", "This property is controlled by layout"));
 	}
 	static TSharedRef<SWidget> GenerateArrowButtonContent(FText textContent)
 	{
@@ -168,3 +162,4 @@ public:
 		return PropertyHandle->IsEditable();
 	}
 };
+#undef LOCTEXT_NAMESPACE

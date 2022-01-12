@@ -33,11 +33,11 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	DetailBuilder.HideProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo));
 	IDetailCategoryBuilder& lguiCategory = DetailBuilder.EditCategory("LGUI");
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteTexture));
-	lguiCategory.AddCustomRow(LOCTEXT("ReloadTexture", "ReloadTexture"))
+	lguiCategory.AddCustomRow(LOCTEXT("ReloadTexture_Row", "ReloadTexture"))
 		.ValueContent()
 		[
 			SNew(SButton)
-			.Text(FText::FromString("ReloadTexture"))
+			.Text(LOCTEXT("ReloadTexture_Button", "ReloadTexture"))
 			.HAlign(EHorizontalAlignment::HAlign_Center)
 			.OnClicked_Lambda([=]{
 				TargetScriptPtr->ReloadTexture();

@@ -85,7 +85,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 			}
 			if (screenSpaceCanvasCount > 1)
 			{
-				auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
+				auto errMsg = LOCTEXT("MultipleScreenSpaceLGUICanvasError", "Detect multiple LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!");
 				LGUIEditorUtils::ShowError(&DetailBuilder, errMsg);
 			}
 		}
@@ -224,7 +224,7 @@ void FLGUICanvasCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 		.NameContent()
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(TEXT("DrawcallCount")))
+			.Text(LOCTEXT("DrawcallCountLabel", "DrawcallCount"))
 			.Font(IDetailLayoutBuilder::GetDetailFont())
 			.ColorAndOpacity(FLinearColor(FColor::Green))
 		]
@@ -349,8 +349,8 @@ FText FLGUICanvasCustomization::GetSortOrderInfo(TWeakObjectPtr<ULGUICanvas> Tar
 				if (item->GetSortOrder() == TargetScript->GetSortOrder())
 					sortOrderCount++;
 			}
-			auto depthInfo = FString::Printf(TEXT("All LGUICanvas of %s with same SortOrder count:%d\n"), *spaceText, sortOrderCount);
-			return FText::FromString(depthInfo);
+			auto depthInfo = FText::Format(LOCTEXT("CanvasSortOrderTip", "All LGUICanvas of {0} with same SortOrder count: {1}\n"), FText::FromString(spaceText), sortOrderCount);
+			return depthInfo;
 		}
 	}
 	return LOCTEXT("", "");
@@ -476,8 +476,8 @@ FText FLGUICanvasCustomization::GetDrawcallInfoTooltip()const
 			}
 		}
 	}
-	FString tooltipStr = FString::Printf(TEXT("This canvas's drawcall count:%d, all canvas of %s drawcall count:%d"), drawcallCount, *spaceText, allDrawcallCount);
-	return FText::FromString(tooltipStr);
+	auto tooltipStr = FText::Format(LOCTEXT("DrawcallInfoTooltip", "This canvas's drawcall count:%d, all canvas of %s drawcall count:%d"), drawcallCount, FText::FromString(spaceText), allDrawcallCount);
+	return tooltipStr;
 }
 void FLGUICanvasCustomization::OnCopySortOrder()
 {

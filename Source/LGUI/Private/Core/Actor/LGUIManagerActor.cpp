@@ -32,6 +32,7 @@
 #include "Layout/LGUICanvasScaler.h"
 #endif
 
+#define LOCTEXT_NAMESPACE "LGUIManagerObject"
 
 PRAGMA_DISABLE_OPTIMIZATION
 
@@ -141,9 +142,9 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
 		{
 			PrevScreenSpaceOverlayCanvasCount = ScreenSpaceOverlayCanvasCount;
-			auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
-			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
-			LGUIUtils::EditorNotification(FText::FromString(errMsg), 10.0f);
+			auto errMsg = LOCTEXT("MultipleLGUICanvasRenderScreenSpaceOverlay", "Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!");
+			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
+			LGUIUtils::EditorNotification(errMsg, 10.0f);
 		}
 	}
 	else
@@ -230,9 +231,9 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 		{
 			if (InWorld->IsGameWorld())
 			{
-				auto msg = FString(TEXT("[ULGUIEditorManagerObject::InitCheck]Trying to create a LGUIEditorManagerObject in game mode, this is not allowed!"));
-				UE_LOG(LGUI, Error, TEXT("%s"), *msg);
-				LGUIUtils::EditorNotification(FText::FromString(msg));
+				auto msg = LOCTEXT("CreateLGUIEditorManagerObjectInGameMode", "[ULGUIEditorManagerObject::InitCheck]Trying to create a LGUIEditorManagerObject in game mode, this is not allowed!");
+				UE_LOG(LGUI, Error, TEXT("%s"), *msg.ToString());
+				LGUIUtils::EditorNotification(msg);
 				return nullptr;
 			}
 			
@@ -926,9 +927,9 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 #if WITH_EDITOR
 				if (!InWorld->IsGameWorld())
 				{
-					auto msg = FString(TEXT("[ALGUIManagerActor::GetInstance]Trying to create a LGUIManagerActor in edit mode, this is not allowed!"));
-					UE_LOG(LGUI, Error, TEXT("%s"), *msg);
-					LGUIUtils::EditorNotification(FText::FromString(msg));
+					auto msg = LOCTEXT("TryToCreateLGUIManagerActorInEditMode", "[ALGUIManagerActor::GetInstance]Trying to create a LGUIManagerActor in edit mode, this is not allowed!");
+					UE_LOG(LGUI, Error, TEXT("%s"), *msg.ToString());
+					LGUIUtils::EditorNotification(msg);
 					return nullptr;
 				}
 #endif
@@ -1059,9 +1060,9 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 		if (PrevScreenSpaceOverlayCanvasCount != ScreenSpaceOverlayCanvasCount)//only show message when change
 		{
 			PrevScreenSpaceOverlayCanvasCount = ScreenSpaceOverlayCanvasCount;
-			auto errMsg = FString::Printf(TEXT("Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!"));
-			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
-			LGUIUtils::EditorNotification(FText::FromString(errMsg), 10.0f);
+			auto errMsg = LOCTEXT("MultipleLGUICanvasRenderScreenSpaceOverlay", "Detect multiply LGUICanvas renderred with ScreenSpaceOverlay mode, this is not allowed! There should be only one ScreenSpace UI in a world!");
+			UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
+			LGUIUtils::EditorNotification(errMsg, 10.0f);
 		}
 	}
 	else
@@ -1601,3 +1602,4 @@ bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
 	return false;
 }
 PRAGMA_ENABLE_OPTIMIZATION
+#undef LOCTEXT_NAMESPACE

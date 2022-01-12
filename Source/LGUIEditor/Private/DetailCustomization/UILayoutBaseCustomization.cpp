@@ -33,6 +33,6 @@ void FUILayoutBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	{
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 	}
-	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptPtr.Get(), TEXT("Multiple layout components in one actor is not allowed!"));
+	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptPtr.Get(), LOCTEXT("MultipleLayoutComponentError", "Multiple layout components in one actor is not allowed!"));
 }
 #undef LOCTEXT_NAMESPACE

@@ -136,7 +136,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 							SNew(STextBlock)
 							.ColorAndOpacity(FSlateColor(FLinearColor::Red))
 							.AutoWrapText(true)
-							.Text(FText::FromString(FString::Printf(TEXT("Component of type: %s not found on target actor!"), *HelperClass->GetName())))
+							.Text(FText::Format(LOCTEXT("ComponentOfTypeNotFound", "Component of type: {0} not found on target actor!"), FText::FromName(HelperClass->GetFName())))
 							.Font(IDetailLayoutBuilder::GetDetailFont())
 						];
 					}
@@ -160,7 +160,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 							.FillWidth(0.35f)
 							[
 								SNew(SComboButton)
-								.ToolTipText(FText::FromString(FString::Printf(TEXT("Target actor have multiple components of type:%s, you must select one of them"), *HelperClass->GetName())))
+								.ToolTipText(FText::Format(LOCTEXT("TargetActorHaveMultipleComponent_YouMustSelectOne", "Target actor have multiple components of type: {0}, you must select one of them"), FText::FromName(HelperClass->GetFName())))
 								.OnGetMenuContent(this, &FLGUIComponentReferenceCustomization::OnGetMenu, TargetCompHandle, Components)
 								.ContentPadding(FMargin(0))
 								.ButtonContent()
@@ -182,7 +182,7 @@ void FLGUIComponentReferenceCustomization::CustomizeChildren(TSharedRef<IPropert
 		ContentWidget = HelperClassHandle->CreatePropertyValueWidget();
 	}
 
-	ChildBuilder.AddCustomRow(FText::FromString("ActorComponent"))
+	ChildBuilder.AddCustomRow(LOCTEXT("ActorComponent", "ActorComponent"))
 	.NameContent()
 	[
 		PropertyHandle->CreatePropertyNameWidget()
@@ -270,7 +270,7 @@ FText FLGUIComponentReferenceCustomization::GetButtonText(TSharedPtr<IPropertyHa
 	}
 	else
 	{
-		return FText::FromString(FString(TEXT("None")));
+		return LOCTEXT("ComponentButtonNone", "None");
 	}
 }
 void FLGUIComponentReferenceCustomization::OnHelperActorValueChange(TSharedPtr<IPropertyHandle> HelperActorHandle, TSharedPtr<IPropertyHandle> HelperCompHandle, TSharedPtr<IPropertyHandle> HelperClassHandle, TSharedPtr<IPropertyHandle> HelperComponentNameHandle)

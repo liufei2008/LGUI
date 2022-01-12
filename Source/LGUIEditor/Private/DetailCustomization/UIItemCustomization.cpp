@@ -719,21 +719,21 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Fix it")))
+				.Text(LOCTEXT("FixDisplayName", "Fix it"))
 				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, true, displayNamePropertyHandle)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FUIItemCustomization::GetDisplayNameWarningVisibility)
-				.ToolTipText(FText::FromString(FString(TEXT("DisplayName not equal to ActorLabel."))))
+				.ToolTipText(LOCTEXT("FixDisplayName_Tooltip", "DisplayName not equal to ActorLabel."))
 			]
 			+SHorizontalBox::Slot()
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.Text(FText::FromString(TEXT("Fix all hierarchy")))
+				.Text(LOCTEXT("FixDisplayNameOnHierarchy", "Fix all hierarchy"))
 				.OnClicked(this, &FUIItemCustomization::OnClickFixDisplayNameButton, false, displayNamePropertyHandle)
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Visibility(this, &FUIItemCustomization::GetDisplayNameWarningVisibility)
-				.ToolTipText(FText::FromString(FString(TEXT("DisplayName not equal to ActorLabel."))))
+				.ToolTipText(LOCTEXT("FixDisplayName_Tooltip", "DisplayName not equal to ActorLabel."))
 			]
 		]
 		;
@@ -1729,18 +1729,18 @@ bool FUIItemCustomization::GetIsAnchorsEnabled()const
 }
 FText FUIItemCustomization::GetAnchorsTooltipText()const
 {
-	return FText::FromString(FString(GetIsAnchorsEnabled() ? TEXT("Change anchor") : TEXT("Anchor is controlled by layout")));
+	return GetIsAnchorsEnabled() ? LOCTEXT("ChangeAnchor", "Change anchor") : LOCTEXT("AnchorIsControlledByLayout", "Anchor is controlled by layout");
 }
 bool FUIItemCustomization::OnCanCopyAnchor()const
 {
 	return TargetScriptArray.Num() == 1;
 }
-#define BEGIN_UIWIDGET_CLIPBOARD TEXT("Begin LGUI UIWidget")
+#define BEGIN_LGUI_AnchorData_CLIPBOARD TEXT("Begin LGUI AnchorData")
 bool FUIItemCustomization::OnCanPasteAnchor()const
 {
 	FString PastedText;
 	FPlatformApplicationMisc::ClipboardPaste(PastedText);
-	return PastedText.StartsWith(BEGIN_UIWIDGET_CLIPBOARD);
+	return PastedText.StartsWith(BEGIN_LGUI_AnchorData_CLIPBOARD);
 }
 void FUIItemCustomization::OnCopyAnchor()
 {
@@ -1754,7 +1754,7 @@ void FUIItemCustomization::OnCopyAnchor()
 , AnchorMinX=%f, AnchorMinY=%f, AnchorMaxX=%f, AnchorMaxY=%f\
 , AnchoredPositionX=%f, AnchoredPositionY=%f\
 , SizeDeltaX=%f, SizeDeltaY=%f")
-, BEGIN_UIWIDGET_CLIPBOARD
+, BEGIN_LGUI_AnchorData_CLIPBOARD
 , AnchorData.Pivot.X
 , AnchorData.Pivot.Y
 , AnchorData.AnchorMin.X
@@ -1774,7 +1774,7 @@ void FUIItemCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
 {
 	FString PastedText;
 	FPlatformApplicationMisc::ClipboardPaste(PastedText);
-	if (PastedText.StartsWith(BEGIN_UIWIDGET_CLIPBOARD))
+	if (PastedText.StartsWith(BEGIN_LGUI_AnchorData_CLIPBOARD))
 	{
 		FUIAnchorData AnchorData;
 		FParse::Value(*PastedText, TEXT("PivotX="), AnchorData.Pivot.X);

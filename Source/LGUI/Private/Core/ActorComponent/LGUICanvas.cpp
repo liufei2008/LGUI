@@ -30,6 +30,8 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Math/TransformCalculus2D.h"
 
+#define LOCTEXT_NAMESPACE "LGUICanvas"
+
 PRAGMA_DISABLE_OPTIMIZATION
 
 ULGUICanvas::ULGUICanvas()
@@ -506,10 +508,10 @@ UMaterialInterface** ULGUICanvas::GetMaterials()
 				auto mat = LoadObject<UMaterialInterface>(NULL, *matPath);
 				if (mat == nullptr)
 				{
-					FString errMsg = FString::Printf(TEXT("[ULGUICanvas/CheckMaterials]Assign material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
-					UE_LOG(LGUI, Error, TEXT("%s"), *errMsg);
+					auto errMsg = LOCTEXT("AssignMaterialError_MissingSourceMaterial", "[ULGUICanvas/CheckMaterials]Assign material error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure.");
+					UE_LOG(LGUI, Error, TEXT("%s"), *errMsg.ToString());
 #if WITH_EDITOR
-					LGUIUtils::EditorNotification(FText::FromString(errMsg), 10);
+					LGUIUtils::EditorNotification(errMsg, 10);
 #endif
 					continue;
 				}
@@ -2179,11 +2181,10 @@ void ULGUICanvas::SetSortOrderAdditionalValueRecursive(int32 InAdditionalValue)
 {
 	if (FMath::Abs(this->sortOrder + InAdditionalValue) > MAX_int16)
 	{
-		auto errorMsg = FString::Printf(TEXT("[ULGUICanvas::SetSortOrder] sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767"));
+		auto errorMsg = LOCTEXT("SortOrderOutOfRange", "[ULGUICanvas::SetSortOrder] sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767");
+		UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
 #if WITH_EDITOR
-		LGUIUtils::EditorNotification(FText::FromString(errorMsg));
-#else
-		UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg);
+		LGUIUtils::EditorNotification(errorMsg);
 #endif
 		return;
 	}
@@ -2213,11 +2214,10 @@ void ULGUICanvas::SetSortOrder(int32 InSortOrder, bool InPropagateToChildrenCanv
 		{
 			if (FMath::Abs(InSortOrder) > MAX_int16)
 			{
-				auto errorMsg = FString::Printf(TEXT("[ULGUICanvas::SetSortOrder] sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767"));
+				auto errorMsg = LOCTEXT("SortOrderOutOfRange", "[ULGUICanvas::SetSortOrder] sortOrder out of range!\nNOTE! sortOrder value is stored with int16 type, so valid range is -32768 to 32767");
+				UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
 #if WITH_EDITOR
-				LGUIUtils::EditorNotification(FText::FromString(errorMsg));
-#else
-				UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg);
+				LGUIUtils::EditorNotification(errorMsg);
 #endif
 				InSortOrder = FMath::Clamp(InSortOrder, (int32)MIN_int16, (int32)MAX_int16);
 			}
@@ -2897,5 +2897,7 @@ void ULGUICanvas::CalculateUIItem2DBounds(UUIBaseRenderable* item, const FTransf
 	GetMinMax(point1.X, point2.X, point3.X, point4.X, min.X, max.X);
 	GetMinMax(point1.Y, point2.Y, point3.Y, point4.Y, min.Y, max.Y);
 }
+
+#undef LOCTEXT_NAMESPACE
 
 PRAGMA_ENABLE_OPTIMIZATION

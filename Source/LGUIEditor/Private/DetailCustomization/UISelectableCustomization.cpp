@@ -35,7 +35,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 		UE_LOG(LGUIEditor, Log, TEXT("Get TargetScript is null"));
 	}
 
-	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptPtr.Get(), TEXT("Multiple UISelectable component in one actor is not allowed!"));
+	LGUIEditorUtils::ShowError_MultiComponentNotAllowed(&DetailBuilder, TargetScriptPtr.Get(), LOCTEXT("MultipleUISelectableComponentError", "Multiple UISelectable component in one actor is not allowed!"));
 
 	IDetailCategoryBuilder& category = DetailBuilder.EditCategory("LGUI-Selectable");
 	auto transitionHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISelectableComponent, Transition));
@@ -60,7 +60,7 @@ void FUISelectableCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	uint8 transitionType;
 	transitionHandle->GetValue(transitionType);
 	TArray<FName> needToHidePropertyNameForTransition;
-	IDetailGroup& transitionGroup = category.AddGroup(FName("Transition"), FText::FromString("Transition"));
+	IDetailGroup& transitionGroup = category.AddGroup(FName("Transition"), LOCTEXT("Transition", "Transition"));
 	transitionGroup.HeaderProperty(transitionHandle);
 	if (transitionType == (uint8)(UISelectableTransitionType::None))
 	{

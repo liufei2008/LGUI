@@ -106,7 +106,7 @@ void FUIScrollViewWithScrollBarCustomization::CustomizeDetails(IDetailLayoutBuil
 		}
 		if (showWarning)
 		{
-			LGUIEditorUtils::ShowError(&category, TEXT("For this visibility mode, Viewport and HorizontalScrollbar must be a child of ScrollViewWithScrollBar"));
+			LGUIEditorUtils::ShowError(&category, LOCTEXT("ViewportOrScrollbarAttachError", "For this visibility mode, Viewport and HorizontalScrollbar must be a child of ScrollViewWithScrollBar"));
 		}
 	}
 
@@ -140,7 +140,7 @@ void FUIScrollViewWithScrollBarCustomization::CustomizeDetails(IDetailLayoutBuil
 		}
 		if (showWarning)
 		{
-			LGUIEditorUtils::ShowError(&category, TEXT("For this visibility mode, Viewport and HorizontalScrollbar must be a child of ScrollViewWithScrollBar"));
+			LGUIEditorUtils::ShowError(&category, LOCTEXT("ViewportOrScrollbarAttachError", "For this visibility mode, Viewport and HorizontalScrollbar must be a child of ScrollViewWithScrollBar"));
 		}
 	}
 

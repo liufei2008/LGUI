@@ -20,6 +20,7 @@
 #include "GameFramework/Actor.h"
 #include "EngineUtils.h"
 
+#define LOCTEXT_NAMESPACE "LGUINativeSceneOutlinerExtension"
 FLGUINativeSceneOutlinerExtension::FLGUINativeSceneOutlinerExtension()
 {
 	OnPreSaveWorldDelegateHandle = FEditorDelegates::PreSaveWorld.AddRaw(this, &FLGUINativeSceneOutlinerExtension::OnPreSaveWorld);
@@ -185,9 +186,9 @@ ALGUIEditorLevelDataStorageActor* FLGUINativeSceneOutlinerExtension::FindOrCreat
 		}
 		if (needToDelete.Num() > 1)
 		{
-			auto msg = FString::Printf(TEXT("[ULGUINativeSceneOutlinerExtension::FindOrCreateDataStorageActor]There are %d count of LGUIEditorLevelDataStorageActor, this is weird..."), needToDelete.Num());
-			UE_LOG(LGUIEditor, Error, TEXT("%s"), *msg);
-			LGUIUtils::EditorNotification(FText::FromString(msg));
+			auto msg = FText::Format(LOCTEXT("MultipleDataStorageActorError", "[ULGUINativeSceneOutlinerExtension::FindOrCreateDataStorageActor]There are {0} count of LGUIEditorLevelDataStorageActor, this is weird..."), needToDelete.Num());
+			UE_LOG(LGUIEditor, Error, TEXT("%s"), *msg.ToString());
+			LGUIUtils::EditorNotification(msg);
 			for (auto item : needToDelete)
 			{
 				item->Destroy();
@@ -411,9 +412,9 @@ ALGUIEditorLevelDataStorageActor* FLGUINativeSceneOutlinerExtension::FindOrCreat
 		}
 		if (needToDelete.Num() > 1)
 		{
-			auto msg = FString::Printf(TEXT("[ULGUINativeSceneOutlinerExtension::FindOrCreateDataStorageActor]There are %d count of LGUIEditorLevelDataStorageActor, this is weird..."), needToDelete.Num());
-			UE_LOG(LGUIEditor, Error, TEXT("%s"), *msg);
-			LGUIUtils::EditorNotification(FText::FromString(msg));
+			auto msg = FText::Format(LOCTEXT("MultipleDataStorageActorError", "[ULGUINativeSceneOutlinerExtension::FindOrCreateDataStorageActor]There are {0} count of LGUIEditorLevelDataStorageActor, this is weird..."), needToDelete.Num());
+			UE_LOG(LGUIEditor, Error, TEXT("%s"), *msg.ToString());
+			LGUIUtils::EditorNotification(msg);
 			for (auto item : needToDelete)
 			{
 				item->Destroy();
@@ -535,3 +536,4 @@ void FLGUINativeSceneOutlinerExtension::RestoreSceneOutlinerState()
 	}
 }
 #endif
+#undef LOCTEXT_NAMESPACE

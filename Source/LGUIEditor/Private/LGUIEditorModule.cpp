@@ -952,7 +952,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
 				FText::FromString(ShotName),
-				FText::FromString(FString::Printf(TEXT("Create %s"), *(UIItemName))),
+				FText::Format(LOCTEXT("CreateUIElementTitle", "Create {0}"), FText::FromString(UIItemName)),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
 			);
@@ -961,7 +961,7 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 		{
 			if (InTooltip.IsEmpty())
 			{
-				InTooltip = FText::FromString(FString::Printf(TEXT("Create %s"), *InControlName));
+				InTooltip = FText::Format(LOCTEXT("CreateUIElementTitle", "Create {0}"), FText::FromString(InControlName));
 			}
 			InBuilder.AddMenuEntry(
 				FText::FromString(InControlName),
@@ -1092,7 +1092,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
 				FText::FromString(ShotName),
-				FText::FromString(FString::Printf(TEXT("Create %s"), *(UIItemName))),
+				FText::Format(LOCTEXT("CreateUIPoseProcessElement", "Create %s"), FText::FromString(UIItemName)),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateUIItemActor, InClass))
 			);
@@ -1180,20 +1180,20 @@ void FLGUIEditorModule::BasicSetupSubMenu(FMenuBuilder& MenuBuilder)
 	MenuBuilder.BeginSection("UIBasicSetup");
 	{
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("Screen Space UI")),
-			FText::FromString(FString::Printf(TEXT("Create Screen Space UI"))),
+			LOCTEXT("BasicSetup_ScreenSpaceUI", "Screen Space UI"),
+			LOCTEXT("BasicSetup_ScreenSpaceUI_Tooltip", "Create Screen Space UI"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateScreenSpaceUI_BasicSetup))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("World Space UI - UE Renderer")),
-			FText::FromString(FString::Printf(TEXT("Render in world space by UE default render pipeline.\n This mode use engine's default render pieple, so post process will affect ui."))),
+			LOCTEXT("BasicSetup_WorldSpaceUERenderer", "World Space UI - UE Renderer"),
+			LOCTEXT("BasicSetup_WorldSpaceUERenderer_Tooltip", "Render in world space by UE default render pipeline.\n This mode use engine's default render pieple, so post process will affect ui."),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("World Space UI - LGUI Renderer")),
-			FText::FromString(FString::Printf(TEXT("Render in world space by LGUI's custom render pipeline.\n This mode use LGUI's custom render pipeline, will not be affected by post process."))),
+			LOCTEXT("BasicSetup_WorldSpaceLGUIRenderer", "World Space UI - LGUI Renderer"),
+			LOCTEXT("BasicSetup_WorldSpaceLGUIRenderer_Tooltip", "Render in world space by LGUI's custom render pipeline.\n This mode use LGUI's custom render pipeline, will not be affected by post process."),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup))
 		);
@@ -1209,12 +1209,12 @@ void FLGUIEditorModule::ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder)
 		for (int i = 0, count = (int)ETraceTypeQuery::TraceTypeQuery_MAX; i < count; i++)
 		{
 			auto collisionChannel = UEngineTypes::ConvertToCollisionChannel((ETraceTypeQuery)i);
-			auto channelName = CollisionProfile->ReturnChannelNameFromContainerIndex(collisionChannel).ToString();
+			auto channelName = CollisionProfile->ReturnChannelNameFromContainerIndex(collisionChannel);
 			if (channelName != TEXT("MAX"))
 			{
 				MenuBuilder.AddMenuEntry(
-					FText::FromString(channelName),
-					FText::FromString(FString::Printf(TEXT("Change selected UI item actor's trace channel to %s"), *channelName)),
+					FText::FromName(channelName),
+					FText::Format(LOCTEXT("ChangeTraceChannel_Tooltip", "Change selected UI item actor's trace channel to {0}"), FText::FromName(channelName)),
 					FSlateIcon(),
 					FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ChangeTraceChannel_Impl, (ETraceTypeQuery)i))
 				);
@@ -1229,44 +1229,44 @@ void FLGUIEditorModule::AttachLayout(FMenuBuilder& MenuBuilder)
 	MenuBuilder.BeginSection("Layout");
 	{
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("Horizontal Layout")),
-			FText::FromString(FString::Printf(TEXT("Layout child elements side by side horizontally"))),
+			LOCTEXT("AttachLayout_HorizontalLayout", "Horizontal Layout"),
+			LOCTEXT("AttachLayout_HorizontalLayout_Tooltip", "Layout child elements side by side horizontally"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUIHorizontalLayout::StaticClass())))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("Vertical Layout")),
-			FText::FromString(FString::Printf(TEXT("Layout child elements side by side vertically"))),
+			LOCTEXT("AttachLayout_VerticalLayout", "Vertical Layout"),
+			LOCTEXT("AttachLayout_VerticalLayout_Tooltip", "Layout child elements side by side vertically"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUIVerticalLayout::StaticClass())))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("Grid Layout")),
-			FText::FromString(FString::Printf(TEXT("Layout child elements in grid"))),
+			LOCTEXT("AttachLayout_GridLayout", "Grid Layout"),
+			LOCTEXT("AttachLayout_GridLayout_Tooltip", "Layout child elements in grid"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUIGridLayout::StaticClass())))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("Rounded Layout")),
-			FText::FromString(FString::Printf(TEXT("Rounded layout, only affect children's position and angle, not affect size"))),
+			LOCTEXT("AttachLayout_RoundedLayout", "Rounded Layout"),
+			LOCTEXT("AttachLayout_RoundedLayout_Tooltip", "Rounded layout, only affect children's position and angle, not affect size"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUIRoundedLayout::StaticClass())))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("Layout Element")),
-			FText::FromString(FString::Printf(TEXT("Attach to layout's child, make is specific or ignore layout"))),
+			LOCTEXT("AttachLayout_LayoutElement", "Layout Element"),
+			LOCTEXT("AttachLayout_LayoutElement_Tooltip", "Attach to layout's child, make is specific or ignore layout"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUILayoutElement::StaticClass())))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("Size Control by Aspect Ratio")),
-			FText::FromString(FString::Printf(TEXT("Use aspect ratio to control with and height"))),
+			LOCTEXT("AttachLayout_SizeControlByAspectRatio", "Size Control by Aspect Ratio"),
+			LOCTEXT("AttachLayout_SizeControlByAspectRatio_Tooltip", "Use aspect ratio to control with and height"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUISizeControlByAspectRatio::StaticClass())))
 		);
 		MenuBuilder.AddMenuEntry(
-			FText::FromString(TEXT("Size Control by Other")),
-			FText::FromString(FString::Printf(TEXT("Use other UI element to control the size of this one"))),
+			LOCTEXT("AttachLayout_SizeControlByOther", "Size Control by Other"),
+			LOCTEXT("AttachLayout_SizeControlByOther_Tooltip", "Use other UI element to control the size of this one"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::AttachComponentToSelectedActor, TSubclassOf<UActorComponent>(UUISizeControlByOther::StaticClass())))
 		);
@@ -1285,7 +1285,7 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 			ShotName.RemoveFromEnd(TEXT("Actor"));
 			InBuilder.AddMenuEntry(
 				FText::FromString(ShotName),
-				FText::FromString(FString::Printf(TEXT("ReplaceWith:%s"), *UIItemName)),
+				FText::Format(LOCTEXT("ReplaceUIElement", "ReplaceWith {0}"), FText::FromString(UIItemName)),
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::ReplaceUIElementWith, InClass))
 			);

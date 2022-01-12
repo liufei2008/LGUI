@@ -8,6 +8,7 @@
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
+#include "LGUIEditorUtils.h"
 
 #define LOCTEXT_NAMESPACE "UICanvasScalarCustomization"
 
@@ -51,7 +52,8 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		auto canvas = TargetScriptPtr->Canvas;
 		if (!canvas->IsRootCanvas())
 		{
-			LGUIEditorUtils::ShowError(&lguiCategory, FString(TEXT("This component is only valid for root LGUICanvas")));
+			auto Msg = LOCTEXT("OnlyForRootLGUICanvas", "This component is only valid for root LGUICanvas");
+			LGUIEditorUtils::ShowError(&lguiCategory, Msg);
 		}
 		else
 		{
@@ -63,7 +65,7 @@ void FUICanvasScalerCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 					[
 						SNew(STextBlock)
 						.Font(IDetailLayoutBuilder::GetDetailFont())
-						.Text(FText::FromString(TEXT("Nothing here for WorldSpaceUI")))
+						.Text(LOCTEXT("NothingHereForWorldSpaceUI", "Nothing here for WorldSpaceUI"))
 						.AutoWrapText(true)
 					];
 			}

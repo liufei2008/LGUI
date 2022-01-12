@@ -204,7 +204,7 @@ FText FLGUIPrefabCustomization::GetEngineVersionText()const
 		}
 		else
 		{
-			return FText::FromString(FString::Printf(TEXT("%d.%d (This prefab is made by a different engine version.)"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion));
+			return FText::Format(LOCTEXT("PrefabEngineVersionError", "{0}.{1} (This prefab is made by a different engine version.)"), TargetScriptPtr->EngineMajorVersion, TargetScriptPtr->EngineMinorVersion);
 		}
 	}
 	else
@@ -222,7 +222,7 @@ FText FLGUIPrefabCustomization::GetPrefabVersionText()const
 		}
 		else
 		{
-			return FText::FromString(FString::Printf(TEXT("%d (This prefab is made by a different prefab system version.)"), TargetScriptPtr->PrefabVersion));
+			return FText::Format(LOCTEXT("PrefabSystemVersionError", "%d (This prefab is made by a different prefab system version.)"), TargetScriptPtr->PrefabVersion);
 		}
 	}
 	else

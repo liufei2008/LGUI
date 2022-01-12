@@ -80,7 +80,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 		{
 			TargetScriptPtr->fillOriginType_Radial90 = (UISpriteFillOriginType_Radial90)TargetScriptPtr->fillOrigin;
 			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial90));
-			originTypeRadialProperty->SetPropertyDisplayName(FText::FromString(TEXT("    Fill Origin")));
+			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
 		}
 			break;
@@ -88,7 +88,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 		{
 			TargetScriptPtr->fillOriginType_Radial180 = (UISpriteFillOriginType_Radial180)TargetScriptPtr->fillOrigin;
 			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial180));
-			originTypeRadialProperty->SetPropertyDisplayName(FText::FromString(TEXT("    Fill Origin")));
+			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
 		}
 			break;
@@ -96,7 +96,7 @@ void FUISpriteCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 		{
 			TargetScriptPtr->fillOriginType_Radial360 = (UISpriteFillOriginType_Radial360)TargetScriptPtr->fillOrigin;
 			auto originTypeRadialProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUISprite, fillOriginType_Radial360));
-			originTypeRadialProperty->SetPropertyDisplayName(FText::FromString(TEXT("    Fill Origin")));
+			originTypeRadialProperty->SetPropertyDisplayName(LOCTEXT("FillOrigin", "    Fill Origin"));
 			category.AddProperty(originTypeRadialProperty);
 		}
 			break;

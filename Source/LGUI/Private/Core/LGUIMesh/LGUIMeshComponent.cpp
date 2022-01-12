@@ -14,6 +14,7 @@
 #include "Core/ActorComponent/LGUICanvas.h"
 
 
+#define LOCTEXT_NAMESPACE "LGUIMeshComponent"
 //PRAGMA_DISABLE_OPTIMIZATION
 class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
 {
@@ -700,9 +701,9 @@ void ULGUIMeshComponent::CreateMeshSectionData(TSharedPtr<FLGUIMeshSection> InMe
 	{
 		if (MeshSection->triangles.Num() >= MAX_TRIANGLE_COUNT)
 		{
-			auto errorMsg = FString::Printf(TEXT("[ULGUIMeshComponent] Too many triangles in single drawcall! This will cause issue!"));
-			LGUIUtils::EditorNotification(FText::FromString(errorMsg), 10);
-			UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg);
+			auto errorMsg = LOCTEXT("TooManyTrianglesInSingleDdrawcall", "[ULGUIMeshComponent] Too many triangles in single drawcall! This will cause issue!");
+			LGUIUtils::EditorNotification(errorMsg, 10);
+			UE_LOG(LGUI, Error, TEXT("%s"), *errorMsg.ToString());
 		}
 	}
 #endif
@@ -980,4 +981,5 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 		return FBoxSphereBounds(FSphere(FVector::ZeroVector, 1.0f)).TransformBy(LocalToWorld);
 	}
 }
+#undef LOCTEXT_NAMESPACE
 //PRAGMA_ENABLE_OPTIMIZATION

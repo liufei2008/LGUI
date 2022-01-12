@@ -52,7 +52,7 @@ void FUIToggleCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilde
 	uint8 transitionType;
 	transitionHandle->GetValue(transitionType);
 	TArray<FName> needToHidePropertyNameForTransition;
-	IDetailGroup& transitionGroup = category.AddGroup(FName("Transition"), FText::FromString("Transition"));
+	IDetailGroup& transitionGroup = category.AddGroup(FName("Transition"), LOCTEXT("Transition", "Transition"));
 	transitionGroup.HeaderProperty(transitionHandle);
 	if (transitionType == (uint8)(UIToggleTransitionType::None))
 	{

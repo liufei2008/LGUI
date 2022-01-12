@@ -106,7 +106,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 					SNew(STextBlock)
 					.AutoWrapText(true)
 					.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-					.Text(FText::FromString("Parameter type is wrong!"))
+					.Text(LOCTEXT("ParameterTypeWrong", "Parameter type is wrong!"))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			)
@@ -237,7 +237,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 					.VAlign(EVerticalAlignment::VAlign_Center)
 					[
 						SNew(STextBlock)
-						.Text(FText::FromString("(NativeParameter)"))
+						.Text(LOCTEXT("(NativeParameter)", "(NativeParameter)"))
 						.Font(IDetailLayoutBuilder::GetDetailFont())
 					]
 					;
@@ -254,7 +254,7 @@ void FLGUIEventDelegateCustomization::CustomizeChildren(TSharedRef<IPropertyHand
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
 					SNew(STextBlock)
-					.Text(FText::FromString("(NotValid)"))
+					.Text(LOCTEXT("(NotValid)", "(NotValid)"))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				;
@@ -714,7 +714,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 				.VAlign(EVerticalAlignment::VAlign_Center)
 				[
 					SNew(STextBlock)
-					.Text(FText::FromString("(No parameter)"))
+					.Text(LOCTEXT("(No parameter)", "(No parameter)"))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 			;
@@ -1134,7 +1134,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 				.MinDesiredWidth(500)
 				[
 					SNew(STextBlock)
-					.Text(FText::FromString(TEXT("(PointerEventData not editable! You can only pass native parameter!)")))
+					.Text(LOCTEXT("PointerEventDataNotEditableError", "(PointerEventData not editable! You can only pass native parameter!)"))
 					.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
 					.AutoWrapText(true)
 					.ColorAndOpacity(FLinearColor(FColor(255, 0, 0, 255)))
@@ -1197,7 +1197,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionParameter(TShar
 		return
 			SNew(STextBlock)
 			.Font(IDetailLayoutBuilder::GetDetailFont())
-			.Text(FText::FromString("(Not handled)"));
+			.Text(LOCTEXT("(Not handled)", "(Not handled)"));
 	}
 }
 //function's parameter editor
@@ -1251,7 +1251,7 @@ TSharedRef<SWidget> FLGUIEventDelegateCustomization::DrawFunctionReferenceParame
 	return 
 		SNew(STextBlock)
 		.Font(IDetailLayoutBuilder::GetDetailFont())
-		.Text(FText::FromString("(Not handled)"));
+		.Text(LOCTEXT("(Not handled)", "(Not handled)"));
 }
 
 void FLGUIEventDelegateCustomization::ObjectValueChange(const FAssetData& InObj, TSharedPtr<IPropertyHandle> BufferHandle, TSharedPtr<IPropertyHandle> ObjectReferenceHandle, bool ObjectOrActor)

@@ -100,7 +100,7 @@ void FLGUIFontDataCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			.WholeRowContent()
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Initialize font fail, check outputlog for detail")))
+				.Text(LOCTEXT("InitializeFontFail", "Initialize font fail, check outputlog for detail"))
 				.ColorAndOpacity(FSlateColor(FLinearColor::Yellow))
 				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]

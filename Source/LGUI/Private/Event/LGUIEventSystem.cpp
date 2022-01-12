@@ -16,6 +16,8 @@
 #include "Event/InputModule/LGUIBaseInputModule.h"
 #include "Utils/LGUIUtils.h"
 
+#define LOCTEXT_NAMESPACE "LGUIEventSystemActor"
+
 ALGUIEventSystemActor::ALGUIEventSystemActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -490,3 +492,5 @@ void ULGUIEventSystem::CallOnPointerDeselect(USceneComponent* component, ULGUIBa
 	CALL_LGUIINTERFACE(component, inEventData, eventFireType, SelectDeselect, Deselect, false);
 }
 #pragma endregion
+
+#undef LOCTEXT_NAMESPACE
