@@ -688,7 +688,6 @@ void LGUIEditorTools::AttachComponentToSelectedActor(TSubclassOf<UActorComponent
 		{
 			auto comp = NewObject<UActorComponent>(actor, InComponentClass, *FComponentEditorUtils::GenerateValidVariableName(InComponentClass, actor), RF_Transactional);
 			actor->AddInstanceComponent(comp);
-			comp->OnComponentCreated();
 			comp->RegisterComponent();
 			lastCreatedComponent = comp;
 		}

@@ -68,10 +68,10 @@ private:
 #endif
 #if WITH_EDITOR
 private:
-	static TArray<TFunction<void()>> OneShotFunctionsToExecuteInTick;
+	static TArray<TTuple<int, TFunction<void()>>> OneShotFunctionsToExecuteInTick;
 public:
 	static void AddPrefabForGenerateAgent(ULGUIPrefab* InPrefab);
-	static void AddOneShotTickFunction(TFunction<void()> InFunction);
+	static void AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount = 0);
 private:
 	static bool InitCheck(UWorld* InWorld);
 	void SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode);

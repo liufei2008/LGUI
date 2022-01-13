@@ -500,9 +500,9 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 			CalculateTransformFromAnchor();
 			UpdateComponentToWorld();
 		}
+		EditorForceUpdateImmediately();
+		UpdateBounds();
 	}
-	EditorForceUpdateImmediately();
-	UpdateBounds();
 }
 
 void UUIItem::PostEditComponentMove(bool bFinished)

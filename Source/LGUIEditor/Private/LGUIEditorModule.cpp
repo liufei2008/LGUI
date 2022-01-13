@@ -833,8 +833,8 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			);
 		}
 		MenuBuilder.AddSubMenu(
-			LOCTEXT("ReplaceUIElement", "Replace this by..."),
-			LOCTEXT("ReplaceUIElement_Tooltip", "Replace UI Element with..."),
+			LOCTEXT("ReplaceUIElementMenu", "Replace this by..."),
+			LOCTEXT("ReplaceUIElementMenu_Tooltip", "Replace UI Element with..."),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::ReplaceUIElementSubMenu),
 			FUIAction(FExecuteAction()
 				, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanReplaceUIElement)

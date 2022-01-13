@@ -497,6 +497,7 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, const TSet<FName>
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
+			LGUIEditorTools::RefreshOpenPrefabEditor(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}
 
@@ -554,6 +555,7 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, FName InPropertyN
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
+			LGUIEditorTools::RefreshOpenPrefabEditor(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}
 
@@ -630,6 +632,7 @@ void FLGUIPrefabEditor::ApplyAllOverrideToPrefab(AActor* InSubPrefabRootActor)
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
+			LGUIEditorTools::RefreshOpenPrefabEditor(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}
 
@@ -868,6 +871,7 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
 		FAssetEditorToolkit::SaveAsset_Execute();
 		bAnythingDirty = false;
+		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 }
 void FLGUIPrefabEditor::OnApply()
@@ -884,6 +888,7 @@ void FLGUIPrefabEditor::OnApply()
 		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabHelperObject->PrefabAsset);
 		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabHelperObject->PrefabAsset);
 		bAnythingDirty = false;
+		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 }
 
@@ -1365,7 +1370,7 @@ void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InA
 		}
 	}
 	PrefabHelperObject->SubPrefabMap.Add(InActor, SubPrefabData);
-	//mark AnchorData, RelativeLocation, RelativeRotation to default override parameter
+	//mark AnchorData, RelativeLocation to default override parameter
 	auto RootComp = InActor->GetRootComponent();
 	auto RootUIComp = Cast<UUIItem>(RootComp);
 	if (RootUIComp)
@@ -1374,7 +1379,6 @@ void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InA
 		PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootUIComp, UUIItem::GetAnchorDataPropertyName());
 	}
 	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, USceneComponent::GetRelativeLocationPropertyName());
-	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, USceneComponent::GetRelativeRotationPropertyName());
 
 	bAnythingDirty = true;
 	if (InApplyChanges)

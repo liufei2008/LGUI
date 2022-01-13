@@ -74,11 +74,20 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 #if WITH_EDITORONLY_DATA
 	if (OneShotFunctionsToExecuteInTick.Num() > 0)
 	{
-		for (auto& Func : OneShotFunctionsToExecuteInTick)
+		for (int i = 0; i < OneShotFunctionsToExecuteInTick.Num(); i++)
 		{
-			Func();
+			auto& Item = OneShotFunctionsToExecuteInTick[i];
+			if (Item.Key <= 0)
+			{
+				Item.Value();
+				OneShotFunctionsToExecuteInTick.RemoveAt(i);
+				i--;
+			}
+			else
+			{
+				Item.Key--;
+			}
 		}
-		OneShotFunctionsToExecuteInTick.Empty();
 	}
 
 	//draw frame
@@ -199,20 +208,26 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 }
 
 #if WITH_EDITOR
-TArray<TFunction<void()>> ULGUIEditorManagerObject::OneShotFunctionsToExecuteInTick;
+TArray<TTuple<int, TFunction<void()>>> ULGUIEditorManagerObject::OneShotFunctionsToExecuteInTick;
 void ULGUIEditorManagerObject::AddPrefabForGenerateAgent(ULGUIPrefab* InPrefab)
 {
-	OneShotFunctionsToExecuteInTick.Add([Prefab = MakeWeakObjectPtr(InPrefab)]() {
+	TTuple<int, TFunction<void()>> Item;
+	Item.Key = 0;
+	Item.Value = [Prefab = MakeWeakObjectPtr(InPrefab)]() {
 		if (Prefab.IsValid())
 		{
 			Prefab->RefreshAgentObjectsInPreviewWorld();
 		}
-	});
+	};
+	OneShotFunctionsToExecuteInTick.Add(Item);
 }
 
-void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFunction)
+void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount)
 {
-	OneShotFunctionsToExecuteInTick.Add(InFunction);
+	TTuple<int, TFunction<void()>> Item;
+	Item.Key = InDelayFrameCount;
+	Item.Value = InFunction;
+	OneShotFunctionsToExecuteInTick.Add(Item);
 }
 
 ULGUIEditorManagerObject* ULGUIEditorManagerObject::GetInstance(UWorld* InWorld, bool CreateIfNotValid)
