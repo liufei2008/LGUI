@@ -30,7 +30,6 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUIPrefabPreviewScene.h"
 #include "LGUIHeaders.h"
-#include "ScopedTransaction.h"
 #include "LGUIPrefabEditor.h"
 #include "MouseDeltaTracker.h"
 
@@ -134,7 +133,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 	}
 
 	{
-		const FScopedTransaction Transaction(LOCTEXT("ClickToPickActor", "Click to pick UI item"));
+		GEditor->BeginTransaction(LOCTEXT("ClickToPickActor", "Click to pick UI item"));
 		GEditor->GetSelectedActors()->Modify();
 
 		// Clear the selection.
@@ -152,6 +151,7 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		GEditor->GetSelectedActors()->EndBatchSelectOperation(/*bNotify*/false);
 		// Fire selection changed event
 		GEditor->NoteSelectionChange();
+		GEditor->EndTransaction();
 	}
 
 
@@ -526,6 +526,14 @@ bool FLGUIPrefabEditorViewportClient::CanMoveActorInViewport(const AActor* InAct
 #include "UnrealWidget.h"
 #endif
 
+void FLGUIPrefabEditorViewportClient::CapturedMouseMove(FViewport* InViewport, int32 InMouseX, int32 InMouseY)
+{
+	// Commit to any pending transactions now
+	TrackingTransaction.PromotePendingToActive();
+
+	FEditorViewportClient::CapturedMouseMove(InViewport, InMouseX, InMouseY);
+}
+
 void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge)
 {
 	// Begin transacting.  Give the current editor mode an opportunity to do the transacting.
@@ -564,6 +572,27 @@ void FLGUIPrefabEditorViewportClient::TrackingStarted(const struct FInputEventSt
 					}
 				}
 			}
+		}
+	}
+	else
+	{
+		for (FSelectionIterator It(GEditor->GetSelectedActorIterator()); It && !bIsTrackingBrushModification; ++It)
+		{
+			AActor* Actor = CastChecked<AActor>(*It);
+
+			if (bIsDraggingWidget)
+			{
+				// Notify that this actor is beginning to move
+				GEditor->BroadcastBeginObjectMovement(*Actor);
+
+				// Broadcast Pre Edit change notification, we can't call PreEditChange directly on Actor or ActorComponent from here since it will unregister the components until PostEditChange
+				if (TransformProperty)
+				{
+					FCoreUObjectDelegates::OnPreObjectPropertyChanged.Broadcast(Actor, PropertyChain);
+				}
+			}
+
+			Widget->SetSnapEnabled(true);
 		}
 	}
 
@@ -711,7 +740,14 @@ void FLGUIPrefabEditorViewportClient::TrackingStopped()
 	// End the transaction here if one was started in StartTransaction()
 	if (TrackingTransaction.IsActive() || TrackingTransaction.IsPending())
 	{
-		TrackingTransaction.End();
+		if (!HaveSelectedObjectsBeenChanged())
+		{
+			TrackingTransaction.Cancel();
+		}
+		else
+		{
+			TrackingTransaction.End();
+		}
 
 		// Restore actor/component delta modification
 		GEditor->DisableDeltaModification(false);
@@ -728,32 +764,24 @@ void FLGUIPrefabEditorViewportClient::TrackingStopped()
 	}
 }
 
-void FLGUIPrefabEditorViewportClient::BeginTransaction(const FText& SessionName)
+void FLGUIPrefabEditorViewportClient::AbortTracking()
 {
-	if (ScopedTransaction == nullptr)
+	if (TrackingTransaction.IsActive())
 	{
-		ScopedTransaction = new FScopedTransaction(SessionName);
-
-		//auto Prefab = GetPrefabBeingEdited();
-		//Prefab->Modify();
+		// Applying the global undo here will reset the drag operation
+		if (GUndo)
+		{
+			GUndo->Apply();
+		}
+		TrackingTransaction.Cancel();
+		StopTracking();
 	}
 }
-void FLGUIPrefabEditorViewportClient::MarkTransactionAsDirty()
-{
-	Invalidate();
-	//@TODO: Can add a call to Sprite->PostEditChange here if we want to update the baked sprite data during a drag operation
-	// (maybe passing in Interactive - if so, the EndTransaction PostEditChange needs to be a ValueSet)
-}
-void FLGUIPrefabEditorViewportClient::EndTransaction()
-{
-	//auto Prefab = GetPrefabBeingEdited();
-	//Prefab->PostEditChange();
 
-	if (ScopedTransaction != nullptr)
-	{
-		delete ScopedTransaction;
-		ScopedTransaction = nullptr;
-	}
+bool FLGUIPrefabEditorViewportClient::HaveSelectedObjectsBeenChanged() const
+{
+	return (TrackingTransaction.TransCount > 0 || TrackingTransaction.IsActive()) && (MouseDeltaTracker->HasReceivedDelta() || MouseDeltaTracker->WasExternalMovement());
 }
+
 
 #undef LOCTEXT_NAMESPACE

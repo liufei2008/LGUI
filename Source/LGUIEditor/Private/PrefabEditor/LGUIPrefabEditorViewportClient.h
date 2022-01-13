@@ -32,13 +32,11 @@ public:
 	virtual bool InputKey(FViewport* Viewport, int32 ControllerId, FKey Key, EInputEvent Event, float AmountDepressed = 1.f, bool bGamepad = false) override;
 	virtual void TrackingStarted(const struct FInputEventState& InInputState, bool bIsDragging, bool bNudge) override;
 	virtual void TrackingStopped() override;
-	// End of FEditorViewportClient interface
+	virtual void AbortTracking() override;
 
-	void BeginTransaction(const FText& SessionName);
-	void MarkTransactionAsDirty();
-	void EndTransaction();
-
+	virtual void CapturedMouseMove(FViewport* InViewport, int32 InMouseX, int32 InMouseY) override;
 	virtual bool InputWidgetDelta(FViewport* InViewport, EAxisList::Type InCurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale) override;
+	// End of FEditorViewportClient interface
 
 	void ApplyDeltaToActors(const FVector& InDrag, const FRotator& InRot, const FVector& InScale);
 	void ApplyDeltaToActor(AActor* InActor, const FVector& InDeltaDrag, const FRotator& InDeltaRot, const FVector& InDeltaScale);
@@ -49,12 +47,14 @@ public:
 
 private:
 
-	// The current transaction for undo/redo
-	class FScopedTransaction* ScopedTransaction = nullptr;
 	TWeakPtr<FLGUIPrefabEditor> PrefabEditorPtr;
 	// Are we currently manipulating something?
 	bool bManipulating = false;
 	FTrackingTransaction TrackingTransaction;
+	/**
+	 * true when a brush is being transformed by its Widget
+	 */
+	bool					bIsTrackingBrushModification;
 
 	ULGUIPrefab* GetPrefabBeingEdited()const;
 	/**
@@ -69,7 +69,6 @@ private:
 	 */
 	bool CanMoveActorInViewport(const AActor* InActor) const;
 
-	bool LastCameraAutoFocus;
-	bool LastAutoFocusRes;
-
+	/** @return	Returns true if the delta tracker was used to modify any selected actors or BSP.  Must be called before EndTracking(). */
+	bool HaveSelectedObjectsBeenChanged() const;
 };
