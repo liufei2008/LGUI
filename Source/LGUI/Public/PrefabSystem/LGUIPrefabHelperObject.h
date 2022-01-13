@@ -58,6 +58,7 @@ public:
 	void SavePrefab();
 	void ClearLoadedPrefab();
 	bool IsActorBelongsToSubPrefab(const AActor* InActor);
+	bool ActorIsSubPrefabRootActor(const AActor* InActor);
 	bool IsActorBelongsToThis(const AActor* InActor, bool InCludeSubPrefab);
 	void AddMemberPropertyToSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);

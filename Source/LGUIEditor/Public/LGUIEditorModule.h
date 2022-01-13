@@ -28,7 +28,7 @@ public:
 
 	static FLGUIEditorModule& Get();
 
-	TSharedRef<SWidget> MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool PreviewInViewport, bool EditorCameraControl, bool Others, bool UpgradeToLGUI3);
+	TSharedRef<SWidget> MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool OpenWindow, bool PreviewInViewport, bool EditorCameraControl, bool Others, bool UpgradeToLGUI3);
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class FAssetTypeActions_Base>> AssetTypeActionsArray;
 	void OnOutlinerSelectionChange();
@@ -52,6 +52,8 @@ private:
 	bool CanCreatePrefab();
 	bool CanCheckPrefabOverrideParameter()const;
 	bool CanReplaceUIElement();
+	bool CanCreateActor();
+	bool CanDeleteActor();
 
 	void AddEditorToolsToToolbarExtension(FToolBarBuilder& Builder);
 

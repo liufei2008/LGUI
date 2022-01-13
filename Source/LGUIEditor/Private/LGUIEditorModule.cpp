@@ -100,17 +100,23 @@ void FLGUIEditorModule::StartupModule()
 		PluginCommands->MapAction(
 			editorCommand.PasteActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::PasteSelectedActors_Impl),
-			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanPasteActor)
+			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanPasteActor),
+			FGetActionCheckState(),
+			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanPasteActor)
 		);
 		PluginCommands->MapAction(
 			editorCommand.DuplicateActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::DuplicateSelectedActors_Impl),
-			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanDuplicateActor)
+			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanDuplicateActor),
+			FGetActionCheckState(),
+			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanDuplicateActor)
 		);
 		PluginCommands->MapAction(
 			editorCommand.DestroyActor,
 			FExecuteAction::CreateStatic(&LGUIEditorTools::DeleteSelectedActors_Impl),
-			FCanExecuteAction::CreateLambda([] {return GEditor->GetSelectedActorCount() > 0; })
+			FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanDeleteActor),
+			FGetActionCheckState(),
+			FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanDeleteActor)
 		);
 
 		//component action
@@ -354,7 +360,7 @@ void FLGUIEditorModule::StartupModule()
 									CurrentPrefabHelperActor->ApplyPrefabOverride(Object, Parameters);
 									OnOutlinerSelectionChange();//force refresh
 									LGUIEditorTools::RefreshOnSubPrefabChange(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-									LGUIEditorTools::RefreshOpenPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
+									LGUIEditorTools::RefreshOpenedPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
 								}
 								})
 							.ApplyPrefabParameter_Lambda([=](UObject* Object, const FName& Parameter){
@@ -363,7 +369,7 @@ void FLGUIEditorModule::StartupModule()
 									CurrentPrefabHelperActor->ApplyPrefabOverride(Object, Parameter);
 									OnOutlinerSelectionChange();//force refresh
 									LGUIEditorTools::RefreshOnSubPrefabChange(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-									LGUIEditorTools::RefreshOpenPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
+									LGUIEditorTools::RefreshOpenedPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
 								}
 								})
 							.ApplyPrefabAllParameters_Lambda([=](){
@@ -372,7 +378,7 @@ void FLGUIEditorModule::StartupModule()
 									CurrentPrefabHelperActor->ApplyAllOverrideToPrefab();
 									OnOutlinerSelectionChange();//force refresh
 									LGUIEditorTools::RefreshOnSubPrefabChange(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-									LGUIEditorTools::RefreshOpenPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
+									LGUIEditorTools::RefreshOpenedPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
 								}
 								})
 						]
@@ -622,6 +628,51 @@ bool FLGUIEditorModule::CanPasteActor()
 	return CanDuplicateActor();
 }
 
+bool FLGUIEditorModule::CanCreateActor()
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->bIsInsidePrefabEditor)
+		{
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//not allowd to create actor on sub prefab's actor
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+	return true;
+}
+
+bool FLGUIEditorModule::CanDeleteActor()
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->bIsInsidePrefabEditor)
+		{
+			if (PrefabHelperObject->ActorIsSubPrefabRootActor(SelectedActor))//allowed to delete sub prefab's root actor, it will handled in prefab editor
+			{
+				return true;
+			}
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
+			{
+				return false;
+			}
+			return true;//allowed to delete common prefab
+		}
+		else
+		{
+			return true;
+		}
+	}
+	return true;
+}
+
 bool FLGUIEditorModule::CanCheckPrefabOverrideParameter()const
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
@@ -709,7 +760,7 @@ void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builde
 	{
 		Builder.AddComboButton(
 			FUIAction(),
-			FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, true, true, true, true, true, true),
+			FOnGetContent::CreateRaw(this, &FLGUIEditorModule::MakeEditorToolsMenu, true, true, true, true, true, true, true),
 			LOCTEXT("LGUITools", "LGUI Tools"),
 			LOCTEXT("LGUIEditorTools", "LGUI Editor Tools"),
 			FSlateIcon(FLGUIEditorStyle::GetStyleSetName(), "LGUIEditor.EditorTools")
@@ -718,7 +769,7 @@ void FLGUIEditorModule::AddEditorToolsToToolbarExtension(FToolBarBuilder& Builde
 	Builder.EndSection();
 }
 
-TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool PreviewInViewport, bool EditorCameraControl, bool Others, bool UpgradeToLGUI3)
+TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bool ComponentAction, bool OpenWindow, bool PreviewInViewport, bool EditorCameraControl, bool Others, bool UpgradeToLGUI3)
 {
 	FMenuBuilder MenuBuilder(true, PluginCommands);
 	auto commandList = FLGUIEditorCommands::Get();
@@ -807,22 +858,40 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 			LOCTEXT("EmptyActor", "Empty Actor"),
 			LOCTEXT("EmptyActor_Tooltip", "Create an empty actor"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateEmptyActor))
+			FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::CreateEmptyActor)
+				, FCanExecuteAction()
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor))
 		);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("CreateUIElementSubMenu", "Create UI Element"),
 			LOCTEXT("CreateUIElementSubMenu_Tooltip", "Create UI Element"),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIElementSubMenu)
+			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIElementSubMenu),
+			FUIAction(FExecuteAction()
+				, FCanExecuteAction()
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor)),
+			NAME_None, EUserInterfaceActionType::None
 		);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("CreateUIExtensionSubMenu", "Create UI Extension Element"),
 			LOCTEXT("CreateUIExtensionSubMenu_Tooltip", "Create UI Extension Element"),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIExtensionSubMenu)
+			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIExtensionSubMenu),
+			FUIAction(FExecuteAction()
+				, FCanExecuteAction()
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor)),
+			NAME_None, EUserInterfaceActionType::None
 		);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("CreateUIPostProcessSubMenu", "Create UI Post Process"),
 			LOCTEXT("CreateUIPostProcessSubMenu_Tooltip", "Create UI Post Process"),
-			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIPostProcessSubMenu)
+			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::CreateUIPostProcessSubMenu),
+			FUIAction(FExecuteAction()
+				, FCanExecuteAction()
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor)),
+			NAME_None, EUserInterfaceActionType::None
 		);
 		if (InitialSetup)
 		{
@@ -841,15 +910,17 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 				, FGetActionCheckState()
 				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanReplaceUIElement)),
 			NAME_None,
-			EUserInterfaceActionType::Button
+			EUserInterfaceActionType::None
 		);
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("Layout", "Attach Layout"),
 			LOCTEXT("Layout_Tooltip", "Attach Layout to selected UI Element"),
 			FNewMenuDelegate::CreateRaw(this, &FLGUIEditorModule::AttachLayout),
-			FUIAction(FExecuteAction(), FCanExecuteAction::CreateStatic(&LGUIEditorTools::IsSelectUIActor)),
-			NAME_None,
-			EUserInterfaceActionType::Button
+			FUIAction(FExecuteAction()
+				, FCanExecuteAction()
+				, FGetActionCheckState()
+				, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreateActor)),
+			NAME_None, EUserInterfaceActionType::None
 		);
 	}
 	MenuBuilder.EndSection();
@@ -881,6 +952,8 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 		MenuBuilder.EndSection();
 	}
 
+	if (OpenWindow)
+	{
 		MenuBuilder.BeginSection("OpenWindow", LOCTEXT("OpenWindow", "Open Window"));
 		{
 			MenuBuilder.AddMenuEntry(
@@ -889,9 +962,9 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 				FSlateIcon(),
 				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::OpenAtlasViewer_Impl))
 			);
-			//MenuBuilder.AddMenuEntry(FLGUIEditorCommands::Get().OpenScreenSpaceUIViewer);
 		}
 		MenuBuilder.EndSection();
+	}
 
 	if (EditorCameraControl)
 	{

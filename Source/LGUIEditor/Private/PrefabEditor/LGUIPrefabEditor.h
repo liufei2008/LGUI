@@ -68,6 +68,7 @@ public:
 	ULGUIPrefab* GetPrefabBeingEdited()const { return PrefabBeingEdited; }
 
 	void DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray);
+	void DeleteActor(AActor* InActor);
 
 	static FLGUIPrefabEditor* GetEditorForPrefabIfValid(ULGUIPrefab* InPrefab);
 	static ULGUIPrefabHelperObject* GetEditorPrefabHelperObjectForActor(AActor* InActor);

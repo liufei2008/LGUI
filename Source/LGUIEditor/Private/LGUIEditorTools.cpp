@@ -458,20 +458,26 @@ void LGUIEditorTools::DeleteActors_Impl(const TArray<AActor*>& InActors)
 	for (auto Actor : RootActorList)
 	{
 		bool shouldDeletePrefab = false;
-		auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor);
-		if (PrefabHelperObject != nullptr)
+		auto PrefabHelperActor = LGUIEditorTools::GetPrefabHelperActor_WhichManageThisActor(Actor);
+		if (PrefabHelperActor != nullptr)//inside level editor prefab
 		{
-			if (!PrefabHelperObject->bIsInsidePrefabEditor)//prefab editor should handle delete by itself
+			LGUIUtils::DestroyActorWithHierarchy(PrefabHelperActor);
+			LGUIUtils::DestroyActorWithHierarchy(Actor);
+		}
+		else
+		{
+			auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor);
+			if (PrefabHelperObject != nullptr)//inside prefab editor
 			{
-				if (PrefabHelperObject->LoadedRootActor == Actor)
-				{
-					auto OwnerActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
-					check(OwnerActor != nullptr);
-					LGUIUtils::DestroyActorWithHierarchy(OwnerActor);
-				}
+				check(PrefabHelperObject->bIsInsidePrefabEditor);
+				auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(PrefabHelperObject->PrefabAsset);
+				PrefabEditor->DeleteActor(Actor);
+			}
+			else//common actor
+			{
+				LGUIUtils::DestroyActorWithHierarchy(Actor);
 			}
 		}
-		LGUIUtils::DestroyActorWithHierarchy(Actor);
 	}
 	CleanupPrefabsInWorld(RootActorList[0]->GetWorld());
 	GEditor->EndTransaction();
@@ -881,7 +887,7 @@ void LGUIEditorTools::ApplyPrefabInLevelEditor()
 
 			if (auto PrefabAsset = PrefabHelperObject->PrefabAsset)
 			{
-				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));//@todo: make it work
+				GEditor->BeginTransaction(FText::FromString(TEXT("LGUI ApplyPrefab")));
 				PrefabHelperObject->SavePrefab();
 
 				PrefabAsset->RefreshAgentObjectsInPreviewWorld();
@@ -902,7 +908,7 @@ void LGUIEditorTools::RefreshLevelLoadedPrefab(ULGUIPrefab* InPrefab)
 	}
 }
 
-void LGUIEditorTools::RefreshOpenPrefabEditor(ULGUIPrefab* InPrefab)
+void LGUIEditorTools::RefreshOpenedPrefabEditor(ULGUIPrefab* InPrefab)
 {
 	if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(InPrefab))//refresh opened prefab
 	{

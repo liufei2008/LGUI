@@ -71,15 +71,16 @@ namespace LGUISceneOutliner
 		{
 			return SNew(SBox);
 		}
-		if (FLGUIPrefabEditor::ActorIsRootAgent(actor))
-		{
-			return SNew(SBox);
-		}
 
+		auto bIsRootAgentActor = FLGUIPrefabEditor::ActorIsRootAgent(actor);
 		TSharedRef<SLGUISceneOutlinerButton> result = SNew(SLGUISceneOutlinerButton)
 			.ButtonStyle(FLGUIEditorStyle::Get(), "EmptyButton")
 			.ContentPadding(FMargin(0))
 			.HasDownArrow(false)
+			.OnComboBoxOpened(FOnComboBoxOpened::CreateLambda([=]() {//@todo: make it a callback
+				FLGUIEditorModule::Get().OnOutlinerSelectionChange();
+				}))
+			.Visibility(bIsRootAgentActor ? EVisibility::HitTestInvisible : EVisibility::Visible)
 			.ButtonContent()
 			[
 				SNew(SHorizontalBox)
@@ -128,6 +129,7 @@ namespace LGUISceneOutliner
 					+SOverlay::Slot()//down arrow
 					[
 						SNew(SBox)
+						.Visibility(bIsRootAgentActor ? EVisibility::Hidden : EVisibility::Visible)
 						.WidthOverride(8)
 						.HeightOverride(8)
 						.Padding(FMargin(0))
@@ -160,7 +162,7 @@ namespace LGUISceneOutliner
 			]
 			.MenuContent()
 			[
-				FLGUIEditorModule::Get().MakeEditorToolsMenu(false, false, false, false, false, false)
+				FLGUIEditorModule::Get().MakeEditorToolsMenu(false, false, false, false, false, false, false)
 			];
 
 		result->_TreeItemActor = actor;
@@ -491,7 +493,7 @@ namespace LGUISceneOutliner
 			]
 			.MenuContent()
 			[
-				FLGUIEditorModule::Get().MakeEditorToolsMenu(false, false, false, false, false, false)
+				FLGUIEditorModule::Get().MakeEditorToolsMenu(false, false, false, false, false, false, false)
 			];
 
 		result->_TreeItemActor = actor;

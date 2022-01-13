@@ -57,7 +57,7 @@ public:
 	static void CreatePrefabAsset();
 	static void ApplyPrefabInLevelEditor();
 	static void RefreshLevelLoadedPrefab(ULGUIPrefab* InPrefab);
-	static void RefreshOpenPrefabEditor(ULGUIPrefab* InPrefab);
+	static void RefreshOpenedPrefabEditor(ULGUIPrefab* InPrefab);
 	static void RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab);
 	static TArray<ULGUIPrefab*> GetAllPrefabArray();
 	static void RevertPrefabInLevelEditor();

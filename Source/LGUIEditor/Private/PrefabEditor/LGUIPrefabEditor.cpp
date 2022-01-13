@@ -497,7 +497,7 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, const TSet<FName>
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
-			LGUIEditorTools::RefreshOpenPrefabEditor(SubPrefabAsset);
+			LGUIEditorTools::RefreshOpenedPrefabEditor(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}
 
@@ -555,7 +555,7 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, FName InPropertyN
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
-			LGUIEditorTools::RefreshOpenPrefabEditor(SubPrefabAsset);
+			LGUIEditorTools::RefreshOpenedPrefabEditor(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}
 
@@ -632,7 +632,7 @@ void FLGUIPrefabEditor::ApplyAllOverrideToPrefab(AActor* InSubPrefabRootActor)
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
-			LGUIEditorTools::RefreshOpenPrefabEditor(SubPrefabAsset);
+			LGUIEditorTools::RefreshOpenedPrefabEditor(SubPrefabAsset);
 			LGUIEditorTools::RefreshOnSubPrefabChange(SubPrefabAsset);
 		}
 
@@ -854,6 +854,15 @@ void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSel
 		LGUIUtils::DestroyActorWithHierarchy(Item);
 	}
 	GEditor->EndTransaction();
+}
+
+void FLGUIPrefabEditor::DeleteActor(AActor* InActor)
+{
+	if (PrefabHelperObject->SubPrefabMap.Contains(InActor))
+	{
+		PrefabHelperObject->SubPrefabMap.Remove(InActor);
+	}
+	LGUIUtils::DestroyActorWithHierarchy(InActor);
 }
 
 void FLGUIPrefabEditor::SaveAsset_Execute()

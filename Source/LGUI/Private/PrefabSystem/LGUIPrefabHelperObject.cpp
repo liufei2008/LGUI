@@ -150,6 +150,12 @@ bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(const AActor* InActor)
 	return false;
 }
 
+bool ULGUIPrefabHelperObject::ActorIsSubPrefabRootActor(const AActor* InActor)
+{
+	if (!IsValid(InActor))return false;
+	return SubPrefabMap.Contains(InActor);
+}
+
 bool ULGUIPrefabHelperObject::IsActorBelongsToThis(const AActor* InActor, bool InCludeSubPrefab)
 {
 	if (this->AllLoadedActorArray.Contains(InActor))
