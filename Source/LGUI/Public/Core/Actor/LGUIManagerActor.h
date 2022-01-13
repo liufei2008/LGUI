@@ -260,7 +260,8 @@ private:
 		TArray<AActor*> AllActors_PrefabSystemProcessing;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
-	int PrefabSystemProcessing_CurrentArrayIndex = -1;
+	const int PrefabSystemProcessing_MinArrayIndex = -1;
+	int PrefabSystemProcessing_CurrentArrayIndex = PrefabSystemProcessing_MinArrayIndex;
 	void EndPrefabSystemProcessingActor_Implement();
 public:
 	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);

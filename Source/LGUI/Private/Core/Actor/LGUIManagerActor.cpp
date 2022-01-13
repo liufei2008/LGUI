@@ -1540,8 +1540,8 @@ void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterfa
 void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement()
 {
 	PrefabSystemProcessing_CurrentArrayIndex--;
-	check(PrefabSystemProcessing_CurrentArrayIndex >= 0);
-	if (PrefabSystemProcessing_CurrentArrayIndex == 0)//wait all prefab serialization ready then do Awake
+	check(PrefabSystemProcessing_CurrentArrayIndex >= PrefabSystemProcessing_MinArrayIndex);
+	if (PrefabSystemProcessing_CurrentArrayIndex == PrefabSystemProcessing_MinArrayIndex)//wait all prefab serialization ready then do Awake
 	{
 		for (int j = LGUILifeCycleBehaviours_PrefabSystemProcessing.Num() - 1; j >= 0; j--)
 		{
