@@ -18,7 +18,6 @@ public:
 	UUITextureBase(const FObjectInitializer& ObjectInitializer);
 
 #if WITH_EDITOR
-	virtual void EditorForceUpdateImmediately() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void CheckTexture();
 #endif

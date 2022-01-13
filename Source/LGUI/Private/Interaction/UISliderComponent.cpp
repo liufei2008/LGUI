@@ -61,13 +61,13 @@ void UUISliderComponent::PostEditChangeProperty(FPropertyChangedEvent &PropertyC
     HandleArea = nullptr;
     if (CheckHandle())
     {
-        Handle->EditorForceUpdateImmediately();
+        Handle->EditorForceUpdate();
     }
     Fill = nullptr;
     FillArea = nullptr;
     if (CheckFill())
     {
-        Fill->EditorForceUpdateImmediately();
+        Fill->EditorForceUpdate();
     }
     Value = FMath::Clamp(Value, MinValue, MaxValue);
 }

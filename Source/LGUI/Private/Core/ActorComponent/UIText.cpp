@@ -293,9 +293,9 @@ void UUIText::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 	}
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
-void UUIText::EditorForceUpdateImmediately()
+void UUIText::EditorForceUpdate()
 {
-	Super::EditorForceUpdateImmediately();
+	Super::EditorForceUpdate();
 
 	visibleCharCount = VisibleCharCountInString(text.ToString());
 	if (!IsValid(font))

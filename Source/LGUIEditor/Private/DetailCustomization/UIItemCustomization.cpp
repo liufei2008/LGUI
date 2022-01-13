@@ -50,7 +50,7 @@ void FUIItemCustomization::ForceUpdateUI()
 	{
 		if (item.IsValid())
 		{
-			item->EditorForceUpdateImmediately();
+			item->EditorForceUpdate();
 		}
 	}
 }
@@ -68,7 +68,7 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			{
 				if (validItem->GetWorld()->WorldType == EWorldType::Editor)
 				{
-					validItem->EditorForceUpdateImmediately();
+					validItem->EditorForceUpdate();
 				}
 			}
 		}
@@ -1525,7 +1525,7 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 
 		LGUIUtils::NotifyPropertyChanged(UIItem.Get(), GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData));
 	}
-	TargetScriptArray[0]->EditorForceUpdateImmediately();
+	TargetScriptArray[0]->EditorForceUpdate();
 	ForceRefreshEditor(DetailBuilder);
 	GEditor->EndTransaction();
 }

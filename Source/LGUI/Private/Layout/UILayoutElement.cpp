@@ -31,7 +31,7 @@ void UUILayoutElement::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	{
 		if (auto uiItem = owner->FindComponentByClass<UUIItem>())
 		{
-			uiItem->EditorForceUpdateImmediately();
+			uiItem->EditorForceUpdate();
 		}
 	}
 }

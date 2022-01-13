@@ -45,7 +45,7 @@ void UUIScrollbarComponent::PostEditChangeProperty(FPropertyChangedEvent &Proper
     HandleArea = nullptr;
     if (CheckHandle())
     {
-        Handle->EditorForceUpdateImmediately();
+        Handle->EditorForceUpdate();
     }
 }
 #endif

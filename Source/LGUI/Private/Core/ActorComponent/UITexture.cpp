@@ -43,9 +43,9 @@ void UUITexture::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 		}
 	}
 }
-void UUITexture::EditorForceUpdateImmediately()
+void UUITexture::EditorForceUpdate()
 {
-	Super::EditorForceUpdateImmediately();
+	Super::EditorForceUpdate();
 	CheckSpriteData();
 }
 #endif

@@ -131,10 +131,6 @@ void UUISpriteBase::OnUnregister()
 #endif
 }
 #if WITH_EDITOR
-void UUISpriteBase::EditorForceUpdateImmediately()
-{
-	Super::EditorForceUpdateImmediately();
-}
 void UUISpriteBase::CheckSpriteData()
 {
 	if (!IsValid(sprite))

@@ -56,10 +56,6 @@ void UUISprite::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
 		}
 	}
 }
-void UUISprite::EditorForceUpdateImmediately()
-{
-	Super::EditorForceUpdateImmediately();
-}
 #endif
 void UUISprite::OnCreateGeometry()
 {

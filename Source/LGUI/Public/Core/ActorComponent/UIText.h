@@ -28,7 +28,7 @@ protected:
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)override;
-	virtual void EditorForceUpdateImmediately() override;
+	virtual void EditorForceUpdate() override;
 protected:
 	virtual void OnPreChangeFontProperty();
 	virtual void OnPostChangeFontProperty();

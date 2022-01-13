@@ -58,7 +58,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 #if WITH_EDITOR
-	virtual void EditorForceUpdateImmediately() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	friend class FUISpriteCustomization;

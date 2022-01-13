@@ -38,7 +38,7 @@ public:
 	/** USceneComponent Interface. Only needed for show rect range in editor */
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	/** update UI immediately in edit mode */
-	virtual void EditorForceUpdateImmediately();//@todo: remove this
+	virtual void EditorForceUpdate();//@todo: remove this
 #endif
 #if WITH_EDITORONLY_DATA
 	static TSet<FName> PersistentOverridePropertyNameSet;

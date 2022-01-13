@@ -35,7 +35,7 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			if (validItem->GetWorld() && validItem->GetWorld()->WorldType == EWorldType::Editor)
 			{
 				validItem->CheckSpriteData();
-				validItem->EditorForceUpdateImmediately();
+				validItem->EditorForceUpdate();
 			}
 		}
 	}
@@ -77,7 +77,7 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 				for (auto item : TargetScriptArray)
 				{
 					item->SetSizeFromSpriteData();
-					item->EditorForceUpdateImmediately();
+					item->EditorForceUpdate();
 				}
 				return FReply::Handled();
 			})

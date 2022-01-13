@@ -35,7 +35,7 @@ void UUILayoutBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
     MarkNeedRebuildLayout();
     if (CheckRootUIComponent())
     {
-        RootUIComp->EditorForceUpdateImmediately();
+        RootUIComp->EditorForceUpdate();
     }
 }
 void UUILayoutBase::PostEditUndo()

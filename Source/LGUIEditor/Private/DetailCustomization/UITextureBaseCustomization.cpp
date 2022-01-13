@@ -35,7 +35,7 @@ void FUITextureBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailB
 			if (validItem->GetWorld() && validItem->GetWorld()->WorldType == EWorldType::Editor)
 			{
 				validItem->CheckTexture();
-				validItem->EditorForceUpdateImmediately();
+				validItem->EditorForceUpdate();
 			}
 		}
 	}
@@ -62,7 +62,7 @@ void FUITextureBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailB
 				if (item.IsValid())
 				{
 					item->SetSizeFromTexture();
-					item->EditorForceUpdateImmediately();
+					item->EditorForceUpdate();
 				}
 			}
 			return FReply::Handled();

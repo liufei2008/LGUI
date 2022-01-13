@@ -500,7 +500,7 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 			CalculateTransformFromAnchor();
 			UpdateComponentToWorld();
 		}
-		EditorForceUpdateImmediately();
+		EditorForceUpdate();
 		UpdateBounds();
 	}
 }
@@ -508,7 +508,7 @@ void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
 void UUIItem::PostEditComponentMove(bool bFinished)
 {
 	Super::PostEditComponentMove(bFinished);
-	EditorForceUpdateImmediately();
+	EditorForceUpdate();
 }
 
 void UUIItem::PostEditUndo()
@@ -526,7 +526,7 @@ void UUIItem::PostEditUndo()
 //void UUIItem::PostEditUndo(TSharedPtr<ITransactionObjectAnnotation> TransactionAnnotation)
 //{
 //	Super::PostEditUndo(TransactionAnnotation);
-//	EditorForceUpdateImmediately();
+//	EditorForceUpdate();
 //}
 
 void UUIItem::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
@@ -540,10 +540,8 @@ FBoxSphereBounds UUIItem::CalcBounds(const FTransform& LocalToWorld) const
 	auto Origin = FVector(0, Center.X, Center.Y);
 	return FBoxSphereBounds(Origin, FVector(1, this->GetWidth() * 0.5f, this->GetHeight() * 0.5f), (this->GetWidth() > this->GetHeight() ? this->GetWidth() : this->GetHeight()) * 0.5f).TransformBy(LocalToWorld);
 }
-void UUIItem::EditorForceUpdateImmediately()
+void UUIItem::EditorForceUpdate()
 {
-	if (this->GetOwner() == nullptr)return;
-	if (this->GetWorld() == nullptr)return;
 	MarkCanvasUpdate(true, true, true, true);
 }
 #endif

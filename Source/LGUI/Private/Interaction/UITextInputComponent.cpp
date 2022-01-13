@@ -1206,7 +1206,7 @@ void UUITextInputComponent::UpdateUITextComponent()
 		{
 			if (world->WorldType == EWorldType::Editor || world->WorldType == EWorldType::EditorPreview)
 			{
-				uiText->EditorForceUpdateImmediately();
+				uiText->EditorForceUpdate();
 			}
 		}
 #endif

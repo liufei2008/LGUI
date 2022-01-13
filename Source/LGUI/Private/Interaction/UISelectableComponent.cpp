@@ -63,12 +63,12 @@ void UUISelectableComponent::PostEditChangeProperty(FPropertyChangedEvent& Prope
 					{
 						TargetUISpriteComp->SetSprite(isGroupAllowInteraction ? NormalSprite : DisabledSprite, false);
 					}
-					TransitionActor->GetUIRenderable()->EditorForceUpdateImmediately();
+					TransitionActor->GetUIRenderable()->EditorForceUpdate();
 				}
 				else if (Transition == UISelectableTransitionType::ColorTint)
 				{
 					TransitionActor->GetUIRenderable()->SetColor(isGroupAllowInteraction ? NormalColor : DisabledColor);
-					TransitionActor->GetUIRenderable()->EditorForceUpdateImmediately();
+					TransitionActor->GetUIRenderable()->EditorForceUpdate();
 				}
 			}
 		}

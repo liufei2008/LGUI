@@ -25,7 +25,7 @@ public:
 	UUITexture(const FObjectInitializer& ObjectInitializer);
 
 #if WITH_EDITOR
-	virtual void EditorForceUpdateImmediately() override;
+	virtual void EditorForceUpdate() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 protected:

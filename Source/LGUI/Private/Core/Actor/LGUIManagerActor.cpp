@@ -477,7 +477,8 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 			if (RootUIItem.IsValid())
 			{
 				RootUIItem->MarkAllDirtyRecursive();
-				RootUIItem->EditorForceUpdateImmediately();
+				RootUIItem->UpdateComponentToWorld();
+				RootUIItem->EditorForceUpdate();
 			}
 		}
 		for (auto& CanvasItem : Instance->AllCanvasArray)

@@ -28,10 +28,6 @@ void UUITextureBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 		}
 	}
 }
-void UUITextureBase::EditorForceUpdateImmediately()
-{
-	Super::EditorForceUpdateImmediately();
-}
 void UUITextureBase::CheckTexture()
 {
 	if (!IsValid(texture))

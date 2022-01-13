@@ -61,7 +61,7 @@ void UUIGeometryModifierBase::PostEditChangeProperty(FPropertyChangedEvent& Prop
 		{
 			if (auto uiRenderable = Cast<UUIItem>(rootComp))
 			{
-				uiRenderable->EditorForceUpdateImmediately();
+				uiRenderable->EditorForceUpdate();
 			}
 		}
 	}
