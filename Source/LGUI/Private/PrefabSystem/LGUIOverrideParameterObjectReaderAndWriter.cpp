@@ -13,8 +13,6 @@ namespace LGUIPrefabSystem3
 		, Serializer(InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
-		this->Reset();
-
 		SetIsLoading(false);
 		SetIsSaving(true);
 
@@ -178,8 +176,6 @@ namespace LGUIPrefabSystem3
 		, Serializer(InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
-		this->Reset();
-
 		SetIsLoading(true);
 		SetIsSaving(false);
 
@@ -308,8 +304,6 @@ namespace LGUIPrefabSystem3
 		: FObjectWriter(Bytes)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
-		this->Reset();
-
 		SetIsLoading(false);
 		SetIsSaving(true);
 
@@ -349,8 +343,6 @@ namespace LGUIPrefabSystem3
 		: FObjectReader(Bytes)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
-		this->Reset();
-
 		SetIsLoading(true);
 		SetIsSaving(false);
 

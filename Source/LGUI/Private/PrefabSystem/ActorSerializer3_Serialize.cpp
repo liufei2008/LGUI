@@ -22,7 +22,7 @@ namespace LGUIPrefabSystem3
 {
 	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
-		, bool InForEditorOrRuntimeUse
+		, bool InForEditorOrRuntimeUse, bool InUseDeltaSerialization
 	)
 	{
 		if (!RootActor || !InPrefab)
@@ -46,6 +46,9 @@ namespace LGUIPrefabSystem3
 		}
 		serializer.SubPrefabMap = InSubPrefabMap;
 		serializer.bIsEditorOrRuntime = InForEditorOrRuntimeUse;
+#if WITH_EDITOR
+		serializer.bUseDeltaSerialization = InUseDeltaSerialization;
+#endif
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectWriter Writer(InObject, InOutBuffer, serializer, ExcludeProperties);

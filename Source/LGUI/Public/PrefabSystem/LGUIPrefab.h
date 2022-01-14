@@ -181,5 +181,8 @@ public:
 	 * LoadPrefab in editor, will not keep reference of source prefab, So we can't apply changes after modify it.
 	 */
 	AActor* LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
+
+	/** By default prefab only serialize delta property (value not equal to default), but sometimes we need all property to be serialized. */
+	ULGUIPrefab* MakeAgentFullSerializedPrefab();
 #endif
 };

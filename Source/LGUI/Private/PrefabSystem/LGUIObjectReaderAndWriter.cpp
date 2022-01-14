@@ -13,8 +13,6 @@ namespace LGUIPrefabSystem3
 		, Serializer(InSerializer)
 		, SkipPropertyNames(InSkipPropertyNames)
 	{
-		this->Reset();
-
 		SetIsLoading(false);
 		SetIsSaving(true);
 
@@ -189,8 +187,6 @@ namespace LGUIPrefabSystem3
 		, Serializer(InSerializer)
 		, SkipPropertyNames(InSkipPropertyNames)
 	{
-		this->Reset();
-
 		SetIsLoading(true);
 		SetIsSaving(false);
 
@@ -312,8 +308,6 @@ namespace LGUIPrefabSystem3
 		, Serializer(InSerializer)
 		, SkipPropertyNames(InSkipPropertyNames)
 	{
-		this->Reset();
-
 		SetIsLoading(false);
 		SetIsSaving(true);
 
@@ -467,8 +461,6 @@ namespace LGUIPrefabSystem3
 		, Serializer(InSerializer)
 		, SkipPropertyNames(InSkipPropertyNames)
 	{
-		this->Reset();
-
 		SetIsLoading(true);
 		SetIsSaving(false);
 

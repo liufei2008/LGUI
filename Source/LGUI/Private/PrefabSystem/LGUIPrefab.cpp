@@ -506,6 +506,25 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	return LoadedRootActor;
 }
 
+ULGUIPrefab* ULGUIPrefab::MakeAgentFullSerializedPrefab()
+{
+	auto CreatedPrefab = NewObject<ULGUIPrefab>();
+	TMap<UObject*, FGuid> InOutMapObjectToGuid;
+	for (auto& KeyValue : this->PrefabHelperObject->MapGuidToObject)
+	{
+		InOutMapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
+	}
+	TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap = this->PrefabHelperObject->SubPrefabMap;
+	LGUIPrefabSystem3::ActorSerializer3::SavePrefab(this->PrefabHelperObject->LoadedRootActor, CreatedPrefab
+		, InOutMapObjectToGuid, InSubPrefabMap
+		, true, false
+	);
+	//make sure helper object created
+	CreatedPrefab->GetPrefabHelperObject();
+
+	return CreatedPrefab;
+}
+
 #endif
 
 #undef LOCTEXT_NAMESPACE

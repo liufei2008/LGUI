@@ -143,8 +143,10 @@ bool FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 				}
 			}
 
+			//Because prefab serailize with delta, so if use InSubPrefab then default value will not be set in parent prefab. So we need to make a agent prefab with fully serialized properties include default value.
+			auto AgentSubPrefab = InSubPrefab->MakeAgentFullSerializedPrefab();
 			TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-			InSubPrefab->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
+			AgentSubPrefab->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
 				, SubPrefabRootActor->GetAttachParentActor()->GetRootComponent()
 				, SubPrefabMapGuidToObject, SubSubPrefabMap
 				, false

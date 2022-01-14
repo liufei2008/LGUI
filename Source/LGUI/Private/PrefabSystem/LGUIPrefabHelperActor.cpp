@@ -143,7 +143,7 @@ TArray<FColor> ALGUIPrefabHelperActor::AllColors;
 #if WITH_EDITOR
 void ALGUIPrefabHelperActor::RevertPrefab()
 {
-	PrefabHelperObject->RevertPrefab();
+	PrefabHelperObject->RevertPrefab();//@todo: revert in level editor could have a issue: property with default value could be ignored
 }
 
 void ALGUIPrefabHelperActor::AddMemberProperty(UObject* InObject, FName InPropertyName)

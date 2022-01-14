@@ -138,5 +138,8 @@ namespace LGUIPrefabSystem3
 		}
 		InArchive.SetFilterEditorOnly(!bIsEditorOrRuntime);
 		InArchive.SetWantBinaryPropertySerialization(!bIsEditorOrRuntime);
+
+		InArchive.ArNoDelta = !bUseDeltaSerialization;
+		InArchive.ArNoIntraPropertyDelta = !bUseDeltaSerialization;
 	}
 }
