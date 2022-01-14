@@ -28,14 +28,14 @@ void ULGUI_TouchInputModule::ProcessInput()
 		}
 	}
 }
-void ULGUI_TouchInputModule::InputScroll(const float& inAxisValue)
+void ULGUI_TouchInputModule::InputScroll(const FVector2D& inAxisValue)
 {
 	if (!CheckEventSystem())return;
 
 	auto eventData = eventSystem->GetPointerEventData(0, true);
 	if (IsValid(eventData->enterComponent))
 	{
-		if (inAxisValue != 0 || eventData->scrollAxisValue != inAxisValue)
+		if (inAxisValue != FVector2D::ZeroVector || eventData->scrollAxisValue != inAxisValue)
 		{
 			eventData->scrollAxisValue = inAxisValue;
 			if (CheckEventSystem())

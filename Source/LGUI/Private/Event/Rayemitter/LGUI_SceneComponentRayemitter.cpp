@@ -48,9 +48,12 @@ bool ULGUI_SceneComponentRayemitter::ShouldStartDrag(ULGUIPointerEventData* InPo
 	auto calculatedThreshold = clickTresholdSquare;
 	if (clickThresholdRelateToRayDistance)
 	{
-		calculatedThreshold *= InPointerEventData->pressDistance;
+		calculatedThreshold *=
+			InPointerEventData->pressDistance
+			* 0.01f;//1% of pressDistance
 	}
-	return (InPointerEventData->GetWorldPointSpherical() - InPointerEventData->pressWorldPoint).SizeSquared() > calculatedThreshold;
+	auto dragDistance = (InPointerEventData->GetWorldPointSpherical() - InPointerEventData->pressWorldPoint).Size();
+	return dragDistance > calculatedThreshold;
 }
 void ULGUI_SceneComponentRayemitter::SetTargetActor(AActor* InActor)
 {

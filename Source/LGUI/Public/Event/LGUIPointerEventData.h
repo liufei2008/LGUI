@@ -40,7 +40,7 @@ public:
 	/** id of the pointer (touch id) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		int pointerID = 0;
-	/** current pointer position (mouse position or touch point position in screen space) */
+	/** current pointer position (mouse position or touch point position in screen space. X&Y for mouse position) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector pointerPosition;
 
@@ -60,9 +60,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector worldNormal = FVector(0, 0, 1);
 
-	/** pointer scroll event */
+	/** pointer scroll event. X for horizontal, Y for vertical */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		float scrollAxisValue = 0;
+		FVector2D scrollAxisValue = FVector2D::ZeroVector;
 	/** current ray origin */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector rayOrigin;

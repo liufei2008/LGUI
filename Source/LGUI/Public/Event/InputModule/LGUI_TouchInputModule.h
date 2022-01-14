@@ -24,5 +24,5 @@ public:
 		void InputTouchMoved(int inTouchID, const FVector& inTouchPointPosition);
 	/** input for scroll */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputScroll(const float& inAxisValue);
+		void InputScroll(const FVector2D& inAxisValue);
 };

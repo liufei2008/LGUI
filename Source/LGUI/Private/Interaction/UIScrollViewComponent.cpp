@@ -269,11 +269,11 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
 {
     if (CheckParameters() && CheckValidHit(eventData->enterComponent))
     {
-        if (eventData->scrollAxisValue != 0)
+        if (eventData->scrollAxisValue != FVector2D::ZeroVector)
         {
-            auto delta = eventData->scrollAxisValue * -ScrollSensitivity;
             if (Horizontal)
             {
+                auto delta = eventData->scrollAxisValue.X * -ScrollSensitivity;
                 AllowHorizontalScroll = true;
                 CanUpdateAfterDrag = true;
                 if (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)
@@ -290,6 +290,7 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
             }
             if (Vertical)
             {
+                auto delta = eventData->scrollAxisValue.Y * -ScrollSensitivity;
                 AllowVerticalScroll = true;
                 CanUpdateAfterDrag = true;
                 if (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)

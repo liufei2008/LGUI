@@ -9,27 +9,16 @@
 
 FVector ULGUIPointerEventData::GetWorldPointInPlane()const
 {
-	switch (eventType)
-	{
-	default:
-		return worldPoint;
-		break;
-	case EPointerEventType::Down:
-		return pressWorldPoint;
-		break;
-	case EPointerEventType::Up:
-	case EPointerEventType::Click:
-	case EPointerEventType::BeginDrag:
-	case EPointerEventType::Drag:
-	case EPointerEventType::EndDrag:
+	if (IsValid(pressRaycaster))
 	{
 		auto dragRayOrigin = GetDragRayOrigin();
 		auto dragRayDirection = GetDragRayDirection();
 		return FMath::LinePlaneIntersection(dragRayOrigin, dragRayOrigin + dragRayDirection * pressRaycaster->rayLength, pressWorldPoint, pressWorldNormal);
 	}
-		break;
+	else
+	{
+		return worldPoint;
 	}
-
 }
 FVector ULGUIPointerEventData::GetLocalPointInPlane()const
 {
@@ -37,59 +26,35 @@ FVector ULGUIPointerEventData::GetLocalPointInPlane()const
 }
 FVector ULGUIPointerEventData::GetWorldPointSpherical()const
 {
-	switch (eventType)
+	if (IsValid(pressRaycaster) && IsValid(pressRaycaster->rayEmitter))
 	{
-	default:
-		return worldPoint;
-		break;
-	case EPointerEventType::Down:
-		return pressWorldPoint;
-		break;
-	case EPointerEventType::Up:
-	case EPointerEventType::Click:
-	case EPointerEventType::BeginDrag:
-	case EPointerEventType::Drag:
-	case EPointerEventType::EndDrag:
 		return pressRaycaster->rayEmitter->GetCurrentRayOrigin() + pressRaycaster->rayEmitter->GetCurrentRayDirection() * pressDistance;//calculated approximate hit position
-		break;
+	}
+	else
+	{
+		return worldPoint;
 	}
 }
 FVector ULGUIPointerEventData::GetDragRayOrigin()const
 {
-	switch (eventType)
+	if (IsValid(pressRaycaster) && IsValid(pressRaycaster->rayEmitter))
 	{
-	default:
-		return worldPoint;
-		break;
-	case EPointerEventType::Down:
-		return pressWorldPoint;
-		break;
-	case EPointerEventType::Up:
-	case EPointerEventType::Click:
-	case EPointerEventType::BeginDrag:
-	case EPointerEventType::Drag:
-	case EPointerEventType::EndDrag:
 		return pressRaycaster->rayEmitter->GetCurrentRayOrigin();
-		break;
+	}
+	else
+	{
+		return worldPoint;
 	}
 }
 FVector ULGUIPointerEventData::GetDragRayDirection()const
 {
-	switch (eventType)
+	if (IsValid(pressRaycaster) && IsValid(pressRaycaster->rayEmitter))
 	{
-	default:
-		return worldPoint;
-		break;
-	case EPointerEventType::Down:
-		return pressWorldPoint;
-		break;
-	case EPointerEventType::Up:
-	case EPointerEventType::Click:
-	case EPointerEventType::BeginDrag:
-	case EPointerEventType::Drag:
-	case EPointerEventType::EndDrag:
 		return pressRaycaster->rayEmitter->GetCurrentRayDirection();
-		break;
+	}
+	else
+	{
+		return worldPoint;
 	}
 }
 FVector ULGUIPointerEventData::GetCumulativeMoveDelta()const
@@ -139,7 +104,7 @@ FString ULGUIPointerEventData::ToString()const
 	result += FString::Printf(TEXT("\n		worldPoint:%s"), *(worldPoint.ToString()));
 	result += FString::Printf(TEXT("\n		moveDelta:%s"), *(worldNormal.ToString()));
 
-	result += FString::Printf(TEXT("\n		scrollAxisValue:%f"), scrollAxisValue);
+	result += FString::Printf(TEXT("\n		scrollAxisValue:%s"), *scrollAxisValue.ToString());
 
 	result += FString::Printf(TEXT("\n		rayOrigin:%s"), *(rayOrigin.ToString()));
 	result += FString::Printf(TEXT("\n		rayDirection:%s"), *(rayDirection.ToString()));

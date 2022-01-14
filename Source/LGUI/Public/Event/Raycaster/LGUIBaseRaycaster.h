@@ -53,7 +53,7 @@ public:
 		ELGUIEventFireType eventFireType = ELGUIEventFireType::TargetActorAndAllItsComponents;
 
 	/** use ray emitter to emit a ray and use that ray to do linecast */
-	UPROPERTY(BlueprintReadWrite, Category = LGUI)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		class ULGUIBaseRayemitter* rayEmitter;
 	
 	bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, TArray<AActor*>& OutTraceOnlyActors, TArray<AActor*>& OutTraceIgnoreActors);

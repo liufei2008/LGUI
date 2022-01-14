@@ -18,20 +18,18 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 	{
 		if (standaloneInputDataArray.Num() == 0)
 		{
-			FVector2D mousePos;
-			if (GetMousePosition(mousePos))
-			{
-				leftButtonEventData->pointerPosition = FVector(mousePos, 0);
+			FVector2D mousePos = FVector2D::ZeroVector;
+			GetMousePosition(mousePos);
+			leftButtonEventData->pointerPosition = FVector(mousePos, 0);
 
-				FHitResultContainerStruct hitResultContainer;
-				bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
-				bool resultHitSomething = false;
-				FHitResult hitResult;
-				ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
+			FHitResultContainerStruct hitResultContainer;
+			bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
+			bool resultHitSomething = false;
+			FHitResult hitResult;
+			ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
 
-				auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
-				eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
-			}
+			auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
+			eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
 		}
 		else
 		{
@@ -69,14 +67,14 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 	break;
 	}
 }
-void ULGUI_StandaloneInputModule::InputScroll(const float& inAxisValue)
+void ULGUI_StandaloneInputModule::InputScroll(const FVector2D& inAxisValue)
 {
 	if (!CheckEventSystem())return;
 
 	auto eventData = eventSystem->GetPointerEventData(0, true);
 	if (IsValid(eventData->enterComponent))
 	{
-		if (inAxisValue != 0 || eventData->scrollAxisValue != inAxisValue)
+		if (inAxisValue != FVector2D::ZeroVector || eventData->scrollAxisValue != inAxisValue)
 		{
 			eventData->scrollAxisValue = inAxisValue;
 			if (CheckEventSystem())
@@ -120,12 +118,10 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 	}
 	else
 	{
-		FVector2D mousePos;
-		if (GetMousePosition(mousePos))
-		{
-			inputData.mousePosition = mousePos;
-			standaloneInputDataArray.Add(inputData);
-		}
+		FVector2D mousePos = FVector2D::ZeroVector;
+		GetMousePosition(mousePos);
+		inputData.mousePosition = mousePos;
+		standaloneInputDataArray.Add(inputData);
 	}
 }
 bool ULGUI_StandaloneInputModule::GetMousePosition(FVector2D& OutMousePos)

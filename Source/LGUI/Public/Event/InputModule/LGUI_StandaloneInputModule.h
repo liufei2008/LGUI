@@ -20,9 +20,12 @@ public:
 	/** input for mouse press and release */
 	UFUNCTION(BlueprintCallable, Category = LGUI, meta = (AdvancedDisplay = "inMouseButtonType"))
 		void InputTrigger(bool inTriggerPress, EMouseButtonType inMouseButtonType = EMouseButtonType::Left);
-	/** input for scroll */
+	/**
+	 * input for scroll
+	 * @param	inAxisValue		Use a 2d vector for scroll value. For mouse scroll just fill X&Y with mouse scroll value; For touchpad input use X for horizontal and Y for vertical.
+	 */
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		void InputScroll(const float& inAxisValue);
+		void InputScroll(const FVector2D& inAxisValue);
 	/**
 	 * see "bOverrideMousePosition" property
 	 */
