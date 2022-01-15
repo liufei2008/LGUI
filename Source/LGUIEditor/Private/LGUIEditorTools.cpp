@@ -564,12 +564,12 @@ void LGUIEditorTools::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 }
 void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 {
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create Screen Space UI")));
 	auto selectedActor = GetFirstSelectedActor();
 	FString prefabPath(TEXT("/LGUI/Prefabs/ScreenSpaceUI"));
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
+		GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create Screen Space UI")));
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeScale3D(FVector::OneVector);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
@@ -593,21 +593,22 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
 			}
 		}
+		GEditor->EndTransaction();
+		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 	else
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateScreenSpaceUI_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
 	}
-	GEditor->EndTransaction();
 }
 void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 {
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI - UE Renderer")));
 	auto selectedActor = GetFirstSelectedActor();
 	FString prefabPath(TEXT("/LGUI/Prefabs/WorldSpaceUI_UERenderer"));
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
+		GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI - UE Renderer")));
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
@@ -631,21 +632,22 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
 			}
 		}
+		GEditor->EndTransaction();
+		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 	else
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUIUERenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
 	}
-	GEditor->EndTransaction();
 }
 void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 {
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI - LGUI Renderer")));
 	auto selectedActor = GetFirstSelectedActor();
 	FString prefabPath(TEXT("/LGUI/Prefabs/WorldSpaceUI_LGUIRenderer"));
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
 	{
+		GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create World Space UI - LGUI Renderer")));
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
@@ -669,12 +671,13 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 				UE_LOG(LGUIEditor, Error, TEXT("[ULGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load PresetEventSystemActor error! Missing some content of LGUI plugin, reinstall this plugin may fix the issure."));
 			}
 		}
+		GEditor->EndTransaction();
+		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 	else
 	{
 		UE_LOG(LGUIEditor, Error, TEXT("[LGUIEditorToolsAgentObject::CreateWorldSpaceUILGUIRenderer_BasicSetup]Load control prefab error! Path:%s. Missing some content of LGUI plugin, reinstall this plugin may fix the issure."), *prefabPath);
 	}
-	GEditor->EndTransaction();
 }
 void LGUIEditorTools::AttachComponentToSelectedActor(TSubclassOf<UActorComponent> InComponentClass)
 {
@@ -950,10 +953,7 @@ void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
 					//check if is opened by prefab editor
 					if (auto PrefabEditor = FLGUIPrefabEditor::GetEditorForPrefabIfValid(Prefab))//refresh opened prefab
 					{
-						if (PrefabEditor->RefreshOnSubPrefabDirty(InSubPrefab))
-						{
-							RefreshAllPrefabsOnSubPrefabChange(InPrefabs, Prefab);
-						}
+						PrefabEditor->RefreshOnSubPrefabDirty(InSubPrefab);
 					}
 					else
 					{
@@ -963,6 +963,7 @@ void LGUIEditorTools::RefreshOnSubPrefabChange(ULGUIPrefab* InSubPrefab)
 						//	RefreshAllPrefabsOnSubPrefabChange(InPrefabs, Prefab);
 						//}
 					}
+					RefreshAllPrefabsOnSubPrefabChange(InPrefabs, Prefab);
 				}
 			}
 		}

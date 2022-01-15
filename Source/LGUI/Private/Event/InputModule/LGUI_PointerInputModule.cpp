@@ -5,8 +5,7 @@
 #include "Event/LGUIPointerEventData.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Event/LGUIEventSystem.h"
-#include "Event/Raycaster/LGUIBaseRaycaster.h"
-#include "Event/Rayemitter/LGUIBaseRayemitter.h"
+#include "Event/LGUIBaseInteractionComponent.h"
 #include "Interaction/UISelectableComponent.h"
 #include "Utils/LGUIUtils.h"
 
@@ -31,26 +30,26 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 		auto& AllRaycasterArray = LGUIManagerActor->GetAllRaycasterArray();
 		InPointerEventData->hoverComponentArray.Reset();
 
+		FVector rayOrigin(0, 0, 0), rayDir(1, 0, 0), rayEnd(1, 0, 0);
 		int32 prevRaycasterDepth = 0;
 		for (int i = 0; i < AllRaycasterArray.Num(); i++)
 		{
 			auto& RaycasterItem = AllRaycasterArray[i];
 			FHitResult hitResultItem;
 			if (RaycasterItem.IsValid()
-				&& (RaycasterItem->pointerID == InPointerEventData->pointerID || RaycasterItem->pointerID == INDEX_NONE)
+				&& (RaycasterItem->GetPointerID() == InPointerEventData->pointerID || RaycasterItem->GetPointerID() == INDEX_NONE)
 				)
 			{
-				if (RaycasterItem->depth < prevRaycasterDepth && multiHitResult.Num() != 0)//if this raycaster's depth not equal than prev raycaster's depth, and prev hit test is true, then we dont need to raycast more, because of raycaster's depth
+				if (RaycasterItem->GetDepth() < prevRaycasterDepth && multiHitResult.Num() != 0)//if this raycaster's depth not equal than prev raycaster's depth, and prev hit test is true, then we dont need to raycast more, because of raycaster's depth
 				{
 					break;
 				}
-				FVector rayOrigin(0, 0, 0), rayDir(1, 0, 0), rayEnd(1, 0, 0);
 				TArray<USceneComponent*> hoverArray;//temp array for store hover components
 				if (RaycasterItem->Raycast(InPointerEventData, rayOrigin, rayDir, rayEnd, hitResultItem, hoverArray))
 				{
 					FHitResultContainerStruct container;
 					container.hitResult = hitResultItem;
-					container.eventFireType = RaycasterItem->eventFireType;
+					container.eventFireType = RaycasterItem->GetEventFireType();
 					container.raycaster = RaycasterItem.Get();
 					container.rayOrigin = rayOrigin;
 					container.rayDirection = rayDir;
@@ -58,12 +57,14 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 					container.hoverArray = hoverArray;
 
 					multiHitResult.Add(container);
-					prevRaycasterDepth = RaycasterItem->depth;
+					prevRaycasterDepth = RaycasterItem->GetDepth();
 				}
 			}
 		}
-		if (multiHitResult.Num() == 0)//no hit result
+		if (multiHitResult.Num() == 0)//no hit result, just fill rayOrigin and rayDirection. rayOrigin and rayDirection should be set when there is a valid raycaster object, so the value should be good to use
 		{
+			InPointerEventData->rayOrigin = rayOrigin;
+			InPointerEventData->rayDirection = rayDir;
 			return false;
 		}
 		else if (multiHitResult.Num() > 1)
@@ -294,7 +295,7 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 			{
 				if (IsValid(eventData->pressRaycaster))
 				{
-					if (eventData->pressRaycaster->rayEmitter->ShouldStartDrag(eventData))
+					if (eventData->pressRaycaster->ShouldStartDrag(eventData))
 					{
 						eventData->isDragging = true;
 						eventData->dragComponent = eventData->pressComponent;
@@ -319,11 +320,6 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 			{
 				if (IsValid(eventData->enterComponent))//now object
 				{
-					if (hitResultContainer.raycaster)
-					{
-						hitResultContainer.raycaster->rayEmitter->MarkPress(eventData);
-					}
-
 					eventData->worldPoint = outHitResult.Location;
 					eventData->worldNormal = outHitResult.Normal;
 					eventData->pressDistance = outHitResult.Distance;

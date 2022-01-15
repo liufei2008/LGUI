@@ -1,8 +1,7 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "Event/LGUIPointerEventData.h"
-#include "Event/Raycaster/LGUIBaseRaycaster.h"
-#include "Event/Rayemitter/LGUIBaseRayemitter.h"
+#include "Event/LGUIBaseInteractionComponent.h"
 #include "LGUI.h"
 #include "GameFramework/Actor.h"
 
@@ -11,9 +10,7 @@ FVector ULGUIPointerEventData::GetWorldPointInPlane()const
 {
 	if (IsValid(pressRaycaster))
 	{
-		auto dragRayOrigin = GetDragRayOrigin();
-		auto dragRayDirection = GetDragRayDirection();
-		return FMath::LinePlaneIntersection(dragRayOrigin, dragRayOrigin + dragRayDirection * pressRaycaster->rayLength, pressWorldPoint, pressWorldNormal);
+		return FMath::LinePlaneIntersection(rayOrigin, rayOrigin + rayDirection * pressRaycaster->GetRayLength(), pressWorldPoint, pressWorldNormal);
 	}
 	else
 	{
@@ -26,36 +23,7 @@ FVector ULGUIPointerEventData::GetLocalPointInPlane()const
 }
 FVector ULGUIPointerEventData::GetWorldPointSpherical()const
 {
-	if (IsValid(pressRaycaster) && IsValid(pressRaycaster->rayEmitter))
-	{
-		return pressRaycaster->rayEmitter->GetCurrentRayOrigin() + pressRaycaster->rayEmitter->GetCurrentRayDirection() * pressDistance;//calculated approximate hit position
-	}
-	else
-	{
-		return worldPoint;
-	}
-}
-FVector ULGUIPointerEventData::GetDragRayOrigin()const
-{
-	if (IsValid(pressRaycaster) && IsValid(pressRaycaster->rayEmitter))
-	{
-		return pressRaycaster->rayEmitter->GetCurrentRayOrigin();
-	}
-	else
-	{
-		return worldPoint;
-	}
-}
-FVector ULGUIPointerEventData::GetDragRayDirection()const
-{
-	if (IsValid(pressRaycaster) && IsValid(pressRaycaster->rayEmitter))
-	{
-		return pressRaycaster->rayEmitter->GetCurrentRayDirection();
-	}
-	else
-	{
-		return worldPoint;
-	}
+	return rayOrigin + rayDirection * pressDistance;
 }
 FVector ULGUIPointerEventData::GetCumulativeMoveDelta()const
 {

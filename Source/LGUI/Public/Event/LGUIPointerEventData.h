@@ -5,7 +5,7 @@
 #include "LGUIBaseEventData.h"
 #include "LGUIPointerEventData.generated.h"
 
-class ULGUIBaseRaycaster;
+class ULGUIBaseInteractionComponent;
 
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUINavigationDirection :uint8
@@ -42,7 +42,10 @@ public:
 		int pointerID = 0;
 	/** current pointer position (mouse position or touch point position in screen space. X&Y for mouse position) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		FVector pointerPosition;
+		FVector pointerPosition = FVector::ZeroVector;
+	/** pointer position when press (mouse position or touch point position in screen space. X&Y for mouse position) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
+		FVector pressPointerPosition = FVector::ZeroVector;
 
 	/** enterred component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
@@ -71,7 +74,7 @@ public:
 		FVector rayDirection;
 	/** current raycaster */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		ULGUIBaseRaycaster* raycaster;
+		ULGUIBaseInteractionComponent* raycaster;
 	/** mouse input type */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		EMouseButtonType mouseButtonType = EMouseButtonType::Left;
@@ -99,7 +102,7 @@ public:
 		FTransform pressWorldToLocalTransform;
 	/** raycaster when press */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		ULGUIBaseRaycaster* pressRaycaster;
+		ULGUIBaseInteractionComponent* pressRaycaster;
 	/** the last time when trigger click(get time from GetWorld()->TimeSeconds), can be used to tell double click */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float clickTime;
@@ -138,12 +141,14 @@ public:
 	/** Use (ray direction) * (press line distance) + (ray origin) to calculated world point, so the result is a sphere with (ray origin) as center point. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetWorldPointSpherical()const;
-	/** Get ray origin of drag */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FVector GetDragRayOrigin()const;
-	/** Get ray direction of drag */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		FVector GetDragRayDirection()const;
+
+	UE_DEPRECATED(4.24, "Use rayOrigin parameter instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use rayOrigin parameter instead"))
+		FVector GetDragRayOrigin()const { return rayOrigin; }
+	UE_DEPRECATED(4.24, "Use rayDirection parameter instead")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use rayDirection parameter instead"))
+		FVector GetDragRayDirection()const { return rayDirection; }
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetCumulativeMoveDelta()const;
 };

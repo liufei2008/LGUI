@@ -10,8 +10,8 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 {
 	if (!CheckEventSystem())return;
 
-	auto leftButtonEventData = eventSystem->GetPointerEventData(0, true);
-	switch (leftButtonEventData->inputType)
+	auto eventData = eventSystem->GetPointerEventData(0, true);
+	switch (eventData->inputType)
 	{
 	default:
 	case ELGUIPointerInputType::Pointer:
@@ -20,13 +20,13 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 		{
 			FVector2D mousePos = FVector2D::ZeroVector;
 			GetMousePosition(mousePos);
-			leftButtonEventData->pointerPosition = FVector(mousePos, 0);
+			eventData->pointerPosition = FVector(mousePos, 0);
 
 			FHitResultContainerStruct hitResultContainer;
-			bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
+			bool lineTraceHitSomething = LineTrace(eventData, hitResultContainer);
 			bool resultHitSomething = false;
 			FHitResult hitResult;
-			ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
+			ProcessPointerEvent(eventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
 
 			auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
 			eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
@@ -35,23 +35,23 @@ void ULGUI_StandaloneInputModule::ProcessInput()
 		{
 			for (auto inputData : standaloneInputDataArray)//handle multiple click in one frame
 			{
-				leftButtonEventData->pointerPosition = FVector(inputData.mousePosition, 0);
-				leftButtonEventData->nowIsTriggerPressed = inputData.triggerPress;
+				eventData->pointerPosition = FVector(inputData.mousePosition, 0);
+				eventData->nowIsTriggerPressed = inputData.triggerPress;
 				if (inputData.triggerPress)
 				{
-					leftButtonEventData->pressTime = inputData.pressTime;
+					eventData->pressTime = inputData.pressTime;
 				}
 				else
 				{
-					leftButtonEventData->releaseTime = inputData.releaseTime;
+					eventData->releaseTime = inputData.releaseTime;
 				}
-				leftButtonEventData->mouseButtonType = inputData.mouseButtonType;
+				eventData->mouseButtonType = inputData.mouseButtonType;
 
 				FHitResultContainerStruct hitResultContainer;
-				bool lineTraceHitSomething = LineTrace(leftButtonEventData, hitResultContainer);
+				bool lineTraceHitSomething = LineTrace(eventData, hitResultContainer);
 				bool resultHitSomething = false;
 				FHitResult hitResult;
-				ProcessPointerEvent(leftButtonEventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
+				ProcessPointerEvent(eventData, lineTraceHitSomething, hitResultContainer, resultHitSomething, hitResult);
 
 				auto tempHitComp = (USceneComponent*)hitResult.Component.Get();
 				eventSystem->RaiseHitEvent(resultHitSomething, hitResult, tempHitComp);
@@ -103,14 +103,7 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 	StandaloneInputData inputData;
 	inputData.mouseButtonType = inMouseButtonType;
 	inputData.triggerPress = inTriggerPress;
-	if (inTriggerPress)
-	{
-		inputData.pressTime = GetWorld()->TimeSeconds;
-	}
-	else
-	{
-		inputData.releaseTime = GetWorld()->TimeSeconds;
-	}
+
 	if (bOverrideMousePosition)
 	{
 		inputData.mousePosition = overrideMousePosition;
@@ -122,6 +115,16 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 		GetMousePosition(mousePos);
 		inputData.mousePosition = mousePos;
 		standaloneInputDataArray.Add(inputData);
+	}
+
+	if (inTriggerPress)
+	{
+		inputData.pressTime = GetWorld()->TimeSeconds;
+		eventData->pressPointerPosition = eventData->pointerPosition;
+	}
+	else
+	{
+		inputData.releaseTime = GetWorld()->TimeSeconds;
 	}
 }
 bool ULGUI_StandaloneInputModule::GetMousePosition(FVector2D& OutMousePos)

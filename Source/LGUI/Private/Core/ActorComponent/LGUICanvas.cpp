@@ -642,9 +642,9 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* UIRenderableItem)
 bool ULGUICanvas::Is2DUITransform(const FTransform& Transform)
 {
 #if WITH_EDITOR
-	float threshold = ULGUISettings::GetOrderManagementThreshold();
+	float threshold = ULGUISettings::GetAutoBatchThreshold();
 #else
-	static float threshold = ULGUISettings::GetOrderManagementThreshold();
+	static float threshold = ULGUISettings::GetAutoBatchThreshold();
 #endif
 	if (FMath::Abs(Transform.GetLocation().X) > threshold)//location X moved
 	{

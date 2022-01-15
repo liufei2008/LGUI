@@ -151,6 +151,7 @@ bool FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 				, SubPrefabMapGuidToObject, SubSubPrefabMap
 				, false
 			);
+			AgentSubPrefab->ConditionalBeginDestroy();
 
 			//delete extra actors
 			for (auto& OldChild : ChildrenActors)

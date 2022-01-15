@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "Event/Raycaster/LGUIBaseRaycaster.h"
+#include "Event/LGUIBaseInteractionComponent.h"
 #include "Engine/World.h"
 #include "Interaction/UISelectableComponent.h"
 #include "Core/LGUISettings.h"
@@ -463,6 +463,20 @@ void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
 
 void ULGUIEditorManagerObject::RefreshAllUI()
 {
+	struct Local
+	{
+		static void UpdateComponentToWorldRecursive(UUIItem* UIItem)
+		{
+			UIItem->CalculateTransformFromAnchor();
+			UIItem->UpdateComponentToWorld();
+			auto& Children = UIItem->GetAttachUIChildren();
+			for (auto& Child : Children)
+			{
+				UpdateComponentToWorldRecursive(Child);
+			}
+		}
+	};
+
 	if (Instance != nullptr)
 	{
 		for (auto& Layout : Instance->AllLayoutArray)
@@ -477,7 +491,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 			if (RootUIItem.IsValid())
 			{
 				RootUIItem->MarkAllDirtyRecursive();
-				RootUIItem->UpdateComponentToWorld();
+				Local::UpdateComponentToWorldRecursive(RootUIItem.Get());
 				RootUIItem->EditorForceUpdate();
 			}
 		}
@@ -1437,7 +1451,7 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetVi
 	return nullptr;
 }
 
-void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
+void ALGUIManagerActor::AddRaycaster(ULGUIBaseInteractionComponent* InRaycaster)
 {
 	if (auto Instance = GetInstance(InRaycaster->GetWorld(), true))
 	{
@@ -1446,15 +1460,15 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 		//check multiple racaster
 		for (auto& item : AllRaycasterArray)
 		{
-			if (InRaycaster->depth == item->depth && InRaycaster->traceChannel == item->traceChannel)
+			if (InRaycaster->GetDepth() == item->GetDepth() && InRaycaster->GetTraceChannel() == item->GetTraceChannel())
 			{
 				auto msg = FString(TEXT("\
-\nDetect multiple LGUIBaseRaycaster components with same depth and traceChannel, this may cause wrong interaction results!\
+\nDetect multiple LGUIBaseInteractionComponent components with same depth and traceChannel, this may cause wrong interaction results!\
 \neg: Want use mouse to click object A but get object B.\
 \nPlease note:\
-\n	For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.\
-\n	For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.\
-\nLGUIXXXSpaceInteractionXXX is also a LGUIBaseRaycaster component."));
+\n	For LGUIBaseInteractionComponents with same depth, LGUI will line trace them all and sort result on hit distance.\
+\n	For LGUIBaseInteractionComponents with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.\
+\nLGUIXXXSpaceInteractionXXX is also a ULGUIBaseInteractionComponent component."));
 				UE_LOG(LGUI, Warning, TEXT("\n%s"), *msg);
 				break;
 			}
@@ -1462,13 +1476,13 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 
 		AllRaycasterArray.Add(InRaycaster);
 		//sort depth
-		AllRaycasterArray.Sort([](const TWeakObjectPtr<ULGUIBaseRaycaster>& A, const TWeakObjectPtr<ULGUIBaseRaycaster>& B)
+		AllRaycasterArray.Sort([](const TWeakObjectPtr<ULGUIBaseInteractionComponent>& A, const TWeakObjectPtr<ULGUIBaseInteractionComponent>& B)
 		{
-			return A->depth > B->depth;
+			return A->GetDepth() > B->GetDepth();
 		});
 	}
 }
-void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
+void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseInteractionComponent* InRaycaster)
 {
 	if (auto Instance = GetInstance(InRaycaster->GetWorld()))
 	{

@@ -99,7 +99,7 @@ protected:
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy)override;
-private:
+public:
 	void CalculateAnchorFromTransform();
 	bool CalculateTransformFromAnchor();
 public:

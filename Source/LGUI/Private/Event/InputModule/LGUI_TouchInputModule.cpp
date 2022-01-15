@@ -53,6 +53,10 @@ void ULGUI_TouchInputModule::InputTouchTrigger(bool inTouchPress, int inTouchID,
 	auto eventData = eventSystem->GetPointerEventData(inTouchID, true);
 	eventData->nowIsTriggerPressed = inTouchPress;
 	eventData->pointerPosition = inTouchPointPosition;
+	if (inTouchPress)
+	{
+		eventData->pressPointerPosition = eventData->pointerPosition;
+	}
 }
 
 void ULGUI_TouchInputModule::InputTouchMoved(int inTouchID, const FVector& inTouchPointPosition)
