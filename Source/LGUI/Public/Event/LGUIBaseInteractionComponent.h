@@ -58,6 +58,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		float holdToDragTime = 0.5f;
 	float clickThresholdSquare = 0;
+	FVector CurrentRayOrigin = FVector::ZeroVector, CurrentRayDirection = FVector(1, 0, 0);
 public:
 	/** Called by raycaster to get ray */
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection) PURE_VIRTUAL(ULGUIBaseInteractionComponent::GenerateRay, return false;);
@@ -86,6 +87,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetHoldToDragTime()const { return holdToDragTime; }
 	float GetClickThresholdSquare()const { return clickThresholdSquare; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FVector GetRayOrigin()const { return CurrentRayOrigin; }
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		FVector GetRayDirection()const { return CurrentRayDirection; }
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		void SetClickThreshold(float value);

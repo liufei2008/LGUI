@@ -63,6 +63,8 @@ bool ULGUIBaseInteractionComponent::RaycastUI(ULGUIPointerEventData* InPointerEv
 	OutHoverArray.Reset();
 	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection))
 	{
+		CurrentRayOrigin = OutRayOrigin;
+		CurrentRayDirection = OutRayDirection;
 		//UI element need to check if hit visible
 		multiHitResult.Reset();
 		OutRayEnd = OutRayDirection * rayLength + OutRayOrigin;

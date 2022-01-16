@@ -10,7 +10,7 @@ FVector ULGUIPointerEventData::GetWorldPointInPlane()const
 {
 	if (IsValid(pressRaycaster))
 	{
-		return FMath::LinePlaneIntersection(rayOrigin, rayOrigin + rayDirection * pressRaycaster->GetRayLength(), pressWorldPoint, pressWorldNormal);
+		return FMath::LinePlaneIntersection(pressRaycaster->GetRayOrigin(), pressRaycaster->GetRayOrigin() + pressRaycaster->GetRayDirection() * pressRaycaster->GetRayLength(), pressWorldPoint, pressWorldNormal);
 	}
 	else
 	{
@@ -23,7 +23,36 @@ FVector ULGUIPointerEventData::GetLocalPointInPlane()const
 }
 FVector ULGUIPointerEventData::GetWorldPointSpherical()const
 {
-	return rayOrigin + rayDirection * pressDistance;
+	if (IsValid(pressRaycaster))
+	{
+		return pressRaycaster->GetRayOrigin() + pressRaycaster->GetRayDirection() * pressDistance;
+	}
+	else
+	{
+		return worldPoint;
+	}
+}
+FVector ULGUIPointerEventData::GetDragRayOrigin()const
+{
+	if (IsValid(pressRaycaster))
+	{
+		return pressRaycaster->GetRayOrigin();
+	}
+	else
+	{
+		return FVector::ZeroVector;
+	}
+}
+FVector ULGUIPointerEventData::GetDragRayDirection()const
+{
+	if (IsValid(pressRaycaster))
+	{
+		return pressRaycaster->GetRayDirection();
+	}
+	else
+	{
+		return FVector(1, 0, 0);
+	}
 }
 FVector ULGUIPointerEventData::GetCumulativeMoveDelta()const
 {
@@ -74,8 +103,6 @@ FString ULGUIPointerEventData::ToString()const
 
 	result += FString::Printf(TEXT("\n		scrollAxisValue:%s"), *scrollAxisValue.ToString());
 
-	result += FString::Printf(TEXT("\n		rayOrigin:%s"), *(rayOrigin.ToString()));
-	result += FString::Printf(TEXT("\n		rayDirection:%s"), *(rayDirection.ToString()));
 	result += FString::Printf(TEXT("\n		raycaster:%s"), *(IsValid(raycaster) ? raycaster->GetName() : TEXT("null")));
 	switch (mouseButtonType)
 	{

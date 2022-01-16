@@ -61,10 +61,8 @@ bool ULGUI_PointerInputModule::LineTrace(ULGUIPointerEventData* InPointerEventDa
 				}
 			}
 		}
-		if (multiHitResult.Num() == 0)//no hit result, just fill rayOrigin and rayDirection. rayOrigin and rayDirection should be set when there is a valid raycaster object, so the value should be good to use
+		if (multiHitResult.Num() == 0)
 		{
-			InPointerEventData->rayOrigin = rayOrigin;
-			InPointerEventData->rayDirection = rayDir;
 			return false;
 		}
 		else if (multiHitResult.Num() > 1)
@@ -248,8 +246,6 @@ void ULGUI_PointerInputModule::ProcessPointerEvent(ULGUIPointerEventData* eventD
 	eventData->isEndDragFiredAtCurrentFrame = false;
 
 	eventData->raycaster = hitResultContainer.raycaster;
-	eventData->rayOrigin = hitResultContainer.rayOrigin;
-	eventData->rayDirection = hitResultContainer.rayDirection;
 	outHitResult = hitResultContainer.hitResult;
 	outIsHitSomething = lineTraceHitSomething;
 

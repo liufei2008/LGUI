@@ -66,12 +66,6 @@ public:
 	/** pointer scroll event. X for horizontal, Y for vertical */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		FVector2D scrollAxisValue = FVector2D::ZeroVector;
-	/** current ray origin */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		FVector rayOrigin;
-	/** current ray direction */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		FVector rayDirection;
 	/** current raycaster */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		ULGUIBaseInteractionComponent* raycaster;
@@ -142,12 +136,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetWorldPointSpherical()const;
 
-	UE_DEPRECATED(4.24, "Use rayOrigin parameter instead")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use rayOrigin parameter instead"))
-		FVector GetDragRayOrigin()const { return rayOrigin; }
-	UE_DEPRECATED(4.24, "Use rayDirection parameter instead")
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use rayDirection parameter instead"))
-		FVector GetDragRayDirection()const { return rayDirection; }
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FVector GetDragRayOrigin()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FVector GetDragRayDirection()const;
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		FVector GetCumulativeMoveDelta()const;

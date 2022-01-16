@@ -107,14 +107,12 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 	if (bOverrideMousePosition)
 	{
 		inputData.mousePosition = overrideMousePosition;
-		standaloneInputDataArray.Add(inputData);
 	}
 	else
 	{
 		FVector2D mousePos = FVector2D::ZeroVector;
 		GetMousePosition(mousePos);
 		inputData.mousePosition = mousePos;
-		standaloneInputDataArray.Add(inputData);
 	}
 
 	if (inTriggerPress)
@@ -126,6 +124,7 @@ void ULGUI_StandaloneInputModule::InputTrigger(bool inTriggerPress, EMouseButton
 	{
 		inputData.releaseTime = GetWorld()->TimeSeconds;
 	}
+	standaloneInputDataArray.Add(inputData);
 }
 bool ULGUI_StandaloneInputModule::GetMousePosition(FVector2D& OutMousePos)
 {
