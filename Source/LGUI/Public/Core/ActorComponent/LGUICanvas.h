@@ -143,9 +143,9 @@ public:
 	/** is point visible in Canvas. may not visible if use clip. texture clip just return true. rect clip will ignore feather value */
 	bool IsPointVisible(FVector worldPoint);
 	/** calculate rect clip range */
-	void CalculateRectRange();
-	const FVector2D& GetClipRectMin()const { return clipRectMin; }
-	const FVector2D& GetClipRectMax()const { return clipRectMax; }
+	void ConditionalCalculateRectRange();
+	const FVector2D& GetClipRectMin() { ConditionalCalculateRectRange(); return clipRectMin; }
+	const FVector2D& GetClipRectMax() { ConditionalCalculateRectRange(); return clipRectMax; }
 
 	void BuildProjectionMatrix(FIntPoint InViewportSize, ECameraProjectionMode::Type InProjectionType, float FOV, FMatrix& OutProjectionMatrix)const;
 	FMatrix GetViewProjectionMatrix()const;

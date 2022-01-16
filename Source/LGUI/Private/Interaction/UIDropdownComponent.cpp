@@ -172,7 +172,6 @@ void UUIDropdownComponent::Show()
 				auto listBottomInSelfSpace = selfBottom - ListRootUIItem->GetHeight();
 				listBottomInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, 0, listBottomInSelfSpace));
 			}
-			canvas->CalculateRectRange();
 			if (listBottomInCanvasSpace.Z < canvas->GetClipRectMin().Y)
 			{
 				tempVerticalPosition = EUIDropdownVerticalPosition::Top;
@@ -186,7 +185,6 @@ void UUIDropdownComponent::Show()
 		{
 			auto selfRight = GetRootUIComponent()->GetLocalSpaceRight();
 			auto listRightInCanvasSpace = selfToCanvasTf.TransformPosition(FVector(0, selfRight + ListRootUIItem->GetWidth(), 0));
-			canvas->CalculateRectRange();
 			if (listRightInCanvasSpace.Y > canvas->GetClipRectMax().X)
 			{
 				tempHorizontalPosition = EUIDropdownHorizontalPosition::Left;
