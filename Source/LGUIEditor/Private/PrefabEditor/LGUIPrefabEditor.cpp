@@ -31,6 +31,8 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 const FName PrefabEditorAppName = FName(TEXT("LGUIPrefabEditorApp"));
 
 TArray<FLGUIPrefabEditor*> FLGUIPrefabEditor::LGUIPrefabEditorInstanceCollection;
@@ -58,10 +60,6 @@ FLGUIPrefabEditor::FLGUIPrefabEditor()
 }
 FLGUIPrefabEditor::~FLGUIPrefabEditor()
 {
-	FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(this->OnObjectPropertyChangedDelegateHandle);
-	FCoreUObjectDelegates::OnPreObjectPropertyChanged.Remove(this->OnPreObjectPropertyChangedDelegateHandle);
-	FCoreUObjectDelegates::OnObjectModified.Remove(this->OnObjectModifiedDelegateHandle);
-
 	PrefabHelperObject->MarkPendingKill();
 	PrefabHelperObject = nullptr;
 
@@ -497,6 +495,9 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, const TSet<FName>
 		//save origin prefab
 		if (bAnythingDirty)
 		{
+			//mark on sub prefab, because the object could belongs to subprefab's subprefab.
+			SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(OriginObject, InPropertyNameSet);
+
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
@@ -555,6 +556,9 @@ void FLGUIPrefabEditor::ApplyPrefabOverride(UObject* InObject, FName InPropertyN
 		//save origin prefab
 		if (bAnythingDirty)
 		{
+			//mark on sub prefab, because the object could belongs to subprefab's subprefab.
+			SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(OriginObject, InPropertyName);
+
 			SubPrefabAsset->Modify();
 			SubPrefabAsset->GetPrefabHelperObject()->SavePrefab();
 			LGUIEditorTools::RefreshLevelLoadedPrefab(SubPrefabAsset);
@@ -621,6 +625,9 @@ void FLGUIPrefabEditor::ApplyAllOverrideToPrefab(AActor* InSubPrefabRootActor)
 					LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
 				}
 			}
+			//mark on sub prefab, because the object could belongs to subprefab's subprefab.
+			SubPrefabAsset->GetPrefabHelperObject()->MarkOverrideParameterFromParentPrefab(OriginObject, DataItem.MemberPropertyName);
+
 			for (auto& PropertyName : NamesToClear)
 			{
 				DataItem.MemberPropertyName.Remove(PropertyName);
@@ -740,6 +747,8 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 
 	PrefabHelperObject->LoadPrefab(GetPreviewScene().GetWorld(), GetPreviewScene().GetParentComponentForPrefab(PrefabBeingEdited));
 
+	bCanNotifyDetachment = true;
+
 	TSharedPtr<FLGUIPrefabEditor> PrefabEditorPtr = SharedThis(this);
 
 	ViewportPtr = SNew(SLGUIPrefabEditorViewport, PrefabEditorPtr);
@@ -798,9 +807,9 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
 
-	this->OnObjectPropertyChangedDelegateHandle = FCoreUObjectDelegates::OnObjectPropertyChanged.AddRaw(this, &FLGUIPrefabEditor::OnObjectPropertyChanged);
-	this->OnPreObjectPropertyChangedDelegateHandle = FCoreUObjectDelegates::OnPreObjectPropertyChanged.AddRaw(this, &FLGUIPrefabEditor::OnPreObjectPropertyChanged);
-	this->OnObjectModifiedDelegateHandle = FCoreUObjectDelegates::OnObjectModified.AddRaw(this, &FLGUIPrefabEditor::OnObjectModified);
+	FCoreUObjectDelegates::OnObjectPropertyChanged.AddSP(this, &FLGUIPrefabEditor::OnObjectPropertyChanged);
+	FCoreUObjectDelegates::OnPreObjectPropertyChanged.AddSP(this, &FLGUIPrefabEditor::OnPreObjectPropertyChanged);
+	FCoreUObjectDelegates::OnObjectModified.AddSP(this, &FLGUIPrefabEditor::OnObjectModified);
 	GEditor->OnLevelActorAttached().AddSP(this, &FLGUIPrefabEditor::OnLevelActorAttached);
 	GEditor->OnLevelActorDetached().AddSP(this, &FLGUIPrefabEditor::OnLevelActorDetached);
 	GEditor->OnComponentTransformChanged().AddSP(this, &FLGUIPrefabEditor::OnComponentTransformChanged);
@@ -1240,30 +1249,99 @@ void FLGUIPrefabEditor::OnObjectModified(UObject* InObject)
 {
 
 }
+
 void FLGUIPrefabEditor::OnLevelActorAttached(AActor* Actor, const AActor* AttachTo)
 {
 	if (!bCanNotifyDetachment)return;
+	if (Actor->GetWorld() != GetWorld())return;
 
-	if (PrefabHelperObject->SubPrefabMap.Contains(AttachTo))//not allowed attach to sub prefab's root actor
+	if (AttachmentActor.Actor == Actor)
 	{
-		auto InfoText = LOCTEXT("NotAllowAttachToSubPrefab", "Trying to change hierarchy of sub prefab's actor, this is not allowed! Please undo this operation!");
-		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+		AttachmentActor.AttachTo = (AActor*)AttachTo;
 	}
-
-	if (AttachTo == GetPreviewScene().GetRootAgentActor())
+	else
 	{
-		auto InfoText = LOCTEXT("NotAllowAttachToRootAgent", "Trying to attach actor to UIRootAgent, this is not allowed! Please undo this operation!");
-		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+		if (AttachmentActor.Actor == nullptr)
+		{
+			AttachmentActor.Actor = Actor;
+			AttachmentActor.AttachTo = (AActor*)AttachTo;
+			AttachmentActor.DetachFrom = nullptr;
+			ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+				CheckAttachment();
+				}, 1);
+		}
+		else
+		{
+			check(0);//why this happed?
+		}
 	}
 }
 void FLGUIPrefabEditor::OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom)
 {
 	if (!bCanNotifyDetachment)return;
+	if (Actor->GetWorld() != GetWorld())return;
 
-	if (PrefabHelperObject->IsActorBelongsToSubPrefab(Actor) && !PrefabHelperObject->SubPrefabMap.Contains(Actor))//allow sub prefab's root actor detach, but not sub prefab's children actor
+	AttachmentActor.Actor = Actor;
+	AttachmentActor.AttachTo = nullptr;
+	AttachmentActor.DetachFrom = (AActor*)DetachFrom;
+
+	ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+		CheckAttachment();
+		}, 1);
+}
+
+void FLGUIPrefabEditor::CheckAttachment()
+{
+	if (AttachmentActor.Actor == nullptr)return;
+	enum class EAttachementError
 	{
-		auto InfoText = LOCTEXT("NotAllowDetachFromSubPrefab", "Trying to change hierarchy of sub prefab's actor, this is not allowed! Please undo this operation!");
+		None,
+		ActorMustBelongToRoot,
+		CannotRestructurePrefabInstance,
+	};
+	EAttachementError AttachementError = EAttachementError::None;
+	if (PrefabHelperObject->SubPrefabMap.Contains(AttachmentActor.Actor))//is sub prefab root actor
+	{
+		if (AttachmentActor.AttachTo == nullptr || AttachmentActor.AttachTo == GetPreviewScene().GetRootAgentActor())//sub prefab root actor cannot attach to world or root agent
+		{
+			AttachementError = EAttachementError::CannotRestructurePrefabInstance;
+		}
+	}
+	if (PrefabHelperObject->IsActorBelongsToSubPrefab(AttachmentActor.DetachFrom)//why use DetachFrom(not Actor)? because Actor is already dettached
+		&& !PrefabHelperObject->SubPrefabMap.Contains(AttachmentActor.Actor))//is sub prefab's children actor
+	{
+		AttachementError = EAttachementError::CannotRestructurePrefabInstance;
+	}
+	if (AttachmentActor.AttachTo == nullptr)//cannot attach to world
+	{
+		AttachementError = EAttachementError::ActorMustBelongToRoot;
+	}
+	if (AttachmentActor.AttachTo == GetPreviewScene().GetRootAgentActor())//cannot attach actor to root agent
+	{
+		AttachementError = EAttachementError::ActorMustBelongToRoot;
+	}
+	switch (AttachementError)
+	{
+	default:
+	case EAttachementError::None:
+		break;
+	case EAttachementError::ActorMustBelongToRoot:
+	{
+		auto InfoText = FText::Format(LOCTEXT("ActorMustBelongToRoot", "All actor must be child of {0}."), FText::FromString(FLGUIPrefabPreviewScene::RootAgentActorName));
 		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+		GEditor->UndoTransaction(false);
+		AttachmentActor = FAttachmentActorStruct();
+	}
+		break;
+	case EAttachementError::CannotRestructurePrefabInstance:
+	{
+		auto InfoText = LOCTEXT("CannotRestructurePrefaInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
+\n\nYou can open the prefab in prefab editor to restructure the prefab asset itself, or unpack the prefab instance to remove its prefab connection.");
+		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+		GEditor->UndoTransaction(false);
+		AttachmentActor = FAttachmentActorStruct();
+	}
+		break;
 	}
 }
 
@@ -1318,13 +1396,13 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 				}
 				if (CurrentSelectedActor == GetPreviewScene().GetRootAgentActor())
 				{
-					auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "{0} cannot be parent actor of child prefab, please choose another actor."), FText::FromString(GetPreviewScene().UIRootAgentActorName));
+					auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "{0} cannot be parent actor of child prefab, please choose another actor."), FText::FromString(FLGUIPrefabPreviewScene::RootAgentActorName));
 					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 					return FReply::Unhandled();
 				}
 				if (PrefabHelperObject->SubPrefabMap.Contains(CurrentSelectedActor.Get()))
 				{
-					auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "Selected actor belongs to child prefab, which cannot be parent of other child prefab, please choose another actor."), FText::FromString(GetPreviewScene().UIRootAgentActorName));
+					auto MsgText = FText::Format(LOCTEXT("Error_RootCannotBeParentNode", "Selected actor belongs to child prefab, which cannot be parent of other child prefab, please choose another actor."), FText::FromString(FLGUIPrefabPreviewScene::RootAgentActorName));
 					FMessageDialog::Open(EAppMsgType::Ok, MsgText);
 					return FReply::Unhandled();
 				}
@@ -1399,5 +1477,7 @@ void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InA
 		OnApply();
 	}
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 #undef LOCTEXT_NAMESPACE

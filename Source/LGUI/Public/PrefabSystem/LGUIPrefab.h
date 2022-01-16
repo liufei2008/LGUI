@@ -46,6 +46,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;
 public:
 	void AddMemberProperty(UObject* InObject, FName InPropertyName);
+	void AddMemberProperty(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	void RemoveMemberProperty(UObject* InObject, FName InPropertyName);
 	void RemoveMemberProperty(UObject* InObject);
 	/** 
@@ -54,6 +55,8 @@ public:
 	 */
 	bool CheckParameters();
 };
+
+//@todo: prefab variant
 
 /**
  * Similar to Unity3D's Prefab. store actor and it's hierarchy and serailize to asset, deserialize and restore when need.

@@ -67,8 +67,22 @@ private:
 
 	bool bAnythingDirty = false;
 	bool bCanCollectProperty = true;
+	bool bCanNotifyDetachment = false;
+
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
 	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty);
+
+	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
+	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
+
+	struct FAttachmentActorStruct
+	{
+		AActor* Actor = nullptr;
+		AActor* DetachFrom = nullptr;
+		AActor* AttachTo = nullptr;
+	};
+	FAttachmentActorStruct AttachmentActor;
+	void CheckAttachment();
 #endif
 };

@@ -15,7 +15,7 @@ class FLGUIPrefabPreviewScene : public FPreviewScene
 public:
 	FLGUIPrefabPreviewScene(ConstructionValues CVS);
 
-	static const FString UIRootAgentActorName;
+	static const FString RootAgentActorName;
 	USceneComponent* GetParentComponentForPrefab(ULGUIPrefab* InPrefab);
 	AActor* GetRootAgentActor()const { return RootAgentActor; }
 

@@ -259,13 +259,13 @@ void ULGUIPrefabHelperObject::SavePrefab()
 	}
 }
 
-void ULGUIPrefabHelperObject::UnlinkSubPrefab(AActor* InSubPrefabActor)
+void ULGUIPrefabHelperObject::UnpackSubPrefab(AActor* InSubPrefabActor)
 {
 	check(SubPrefabMap.Contains(InSubPrefabActor));
 	SubPrefabMap.Remove(InSubPrefabActor);
 }
 
-void ULGUIPrefabHelperObject::UnlinkPrefab(AActor* InPrefabActor)
+void ULGUIPrefabHelperObject::UnpackPrefab(AActor* InPrefabActor)
 {
 	LoadedRootActor = nullptr;
 	PrefabAsset = nullptr;
@@ -285,5 +285,47 @@ ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor
 		}
 	}
 	return nullptr;
+}
+
+void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+{
+	AActor* Actor = Cast<AActor>(InObject);
+	UActorComponent* Component = Cast<UActorComponent>(InObject);
+	if (Actor)
+	{
+	}
+	else if (Component)
+	{
+		Actor = Component->GetOwner();
+	}
+
+	for (auto& KeyValue : SubPrefabMap)
+	{
+		if (Actor == KeyValue.Key || Actor->IsAttachedTo(KeyValue.Key))
+		{
+			KeyValue.Value.AddMemberProperty(InObject, InPropertyNameSet);
+		}
+	}
+}
+void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InObject, FName InPropertyName)
+{
+	AActor* Actor = Cast<AActor>(InObject);
+	UActorComponent* Component = Cast<UActorComponent>(InObject);
+	if (Actor)
+	{
+	}
+	else if (Component)
+	{
+		Actor = Component->GetOwner();
+	}
+
+	for (auto& KeyValue : SubPrefabMap)
+	{
+		if (Actor == KeyValue.Key || Actor->IsAttachedTo(KeyValue.Key))
+		{
+			KeyValue.Value.AddMemberProperty(InObject, InPropertyName);
+			break;
+		}
+	}
 }
 #endif

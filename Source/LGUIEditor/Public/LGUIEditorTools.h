@@ -62,7 +62,7 @@ public:
 	static TArray<ULGUIPrefab*> GetAllPrefabArray();
 	static void RevertPrefabInLevelEditor();
 	static void DeletePrefabInLevelEditor();
-	static void UnlinkPrefab();
+	static void UnpackPrefab();
 	static void SelectPrefabAsset();
 	static void OpenPrefabAsset();
 	static void CleanupPrefabsInWorld(UWorld* World);

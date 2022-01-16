@@ -52,8 +52,8 @@ public:
 	static void SetActorPropertyInOutliner(AActor* Actor, bool InListed);
 
 	//make sub prefab's actors as normal actor
-	void UnlinkSubPrefab(AActor* InSubPrefabActor);
-	void UnlinkPrefab(AActor* InPrefabActor);
+	void UnpackSubPrefab(AActor* InSubPrefabActor);
+	void UnpackPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetSubPrefabAsset(AActor* InSubPrefabActor);
 	void SavePrefab();
 	void ClearLoadedPrefab();
@@ -64,5 +64,8 @@ public:
 	void RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject);
 	FLGUISubPrefabData GetSubPrefabData(AActor* InSubPrefabActor);
+	/** For parent prefab. When parent prefab want to apply override parameter to subprefab, but the parameter belongs to subprefab's subprefab, then we need to mark override parameter for subprefab. */
+	void MarkOverrideParameterFromParentPrefab(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void MarkOverrideParameterFromParentPrefab(UObject* InObject, FName InPropertyName);
 #endif
 };

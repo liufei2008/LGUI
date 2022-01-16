@@ -1046,23 +1046,23 @@ void LGUIEditorTools::DeletePrefabInLevelEditor()
 	GEditor->EndTransaction();
 }
 
-void LGUIEditorTools::UnlinkPrefab()
+void LGUIEditorTools::UnpackPrefab()
 {
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI UnlinkPrefab")));
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI UnpackPrefab")));
 	auto SelectedActor = GetFirstSelectedActor();
 	auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor);
 	if (PrefabHelperObject != nullptr)
 	{
 		if (PrefabHelperObject->bIsInsidePrefabEditor)//prefab editor only allow operate on sub prefab
 		{
-			check(PrefabHelperObject->SubPrefabMap.Contains(SelectedActor));//should have being check in Unlink button
-			PrefabHelperObject->UnlinkSubPrefab(SelectedActor);
+			check(PrefabHelperObject->SubPrefabMap.Contains(SelectedActor));//should have being check in Unpack button
+			PrefabHelperObject->UnpackSubPrefab(SelectedActor);
 		}
 		else
 		{
 			auto OwnerActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
 			check(OwnerActor != nullptr);
-			PrefabHelperObject->UnlinkPrefab(SelectedActor);
+			PrefabHelperObject->UnpackPrefab(SelectedActor);
 			LGUIUtils::DestroyActorWithHierarchy(OwnerActor);
 		}
 	}

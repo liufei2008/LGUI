@@ -108,12 +108,9 @@ private:
 
 	FLGUIPrefabPreviewScene PreviewScene;
 
-	FDelegateHandle OnObjectPropertyChangedDelegateHandle;
-	FDelegateHandle OnPreObjectPropertyChangedDelegateHandle;
-	FDelegateHandle OnObjectModifiedDelegateHandle;
 	bool bAnythingDirty = false;
 	bool bCanCollectProperty = true;
-	bool bCanNotifyDetachment = true;
+	bool bCanNotifyDetachment = false;
 private:
 
 	void BindCommands();
@@ -139,5 +136,13 @@ private:
 	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
 	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
 	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty);
-private:
+
+	struct FAttachmentActorStruct
+	{
+		AActor* Actor = nullptr;
+		AActor* DetachFrom = nullptr;
+		AActor* AttachTo = nullptr;
+	};
+	FAttachmentActorStruct AttachmentActor;
+	void CheckAttachment();
 };

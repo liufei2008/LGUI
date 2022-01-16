@@ -44,14 +44,19 @@ void ALGUIPrefabHelperActor::PostInitProperties()
 			if (Actor.IsValid())
 			{
 				Actor->CheckPrefabVersion();
+
+				GEditor->OnLevelActorAttached().AddUObject(Actor.Get(), &ALGUIPrefabHelperActor::OnLevelActorAttached);
+				GEditor->OnLevelActorDetached().AddUObject(Actor.Get(), &ALGUIPrefabHelperActor::OnLevelActorDetached);
+				Actor->bCanNotifyDetachment = true;
 			}
-			});
+			}, 1);
 
 		FCoreUObjectDelegates::OnObjectPropertyChanged.AddUObject(this, &ALGUIPrefabHelperActor::OnObjectPropertyChanged);
 		FCoreUObjectDelegates::OnPreObjectPropertyChanged.AddUObject(this, &ALGUIPrefabHelperActor::OnPreObjectPropertyChanged);
 	}
 #endif
 }
+
 void ALGUIPrefabHelperActor::OnConstruction(const FTransform& Transform)
 {
 #if WITH_EDITORONLY_DATA
@@ -102,6 +107,7 @@ void ALGUIPrefabHelperActor::Destroyed()
 		}
 	}
 
+	bCanNotifyDetachment = false;
 	if (AutoDestroyLoadedActors)
 	{
 		PrefabHelperObject->ClearLoadedPrefab();
@@ -128,6 +134,7 @@ void ALGUIPrefabHelperActor::BeginDestroy()
 		}
 	}
 
+	bCanNotifyDetachment = false;
 	if (NewVersionPrefabNotification.IsValid())
 	{
 		OnNewVersionDismissClicked();
@@ -143,7 +150,9 @@ TArray<FColor> ALGUIPrefabHelperActor::AllColors;
 #if WITH_EDITOR
 void ALGUIPrefabHelperActor::RevertPrefab()
 {
+	bCanNotifyDetachment = false;
 	PrefabHelperObject->RevertPrefab();//@todo: revert in level editor could have a issue: property with default value could be ignored
+	bCanNotifyDetachment = true;
 }
 
 void ALGUIPrefabHelperActor::AddMemberProperty(UObject* InObject, FName InPropertyName)
@@ -322,6 +331,67 @@ void ALGUIPrefabHelperActor::TryCollectPropertyToOverride(UObject* InObject, FPr
 	}
 }
 
+void ALGUIPrefabHelperActor::OnLevelActorAttached(AActor* Actor, const AActor* AttachTo)
+{
+	if (!bCanNotifyDetachment)return;
+	if (Actor->GetWorld() != GetWorld())return;
+
+	if (AttachmentActor.Actor == Actor)
+	{
+		AttachmentActor.AttachTo = (AActor*)AttachTo;
+	}
+	else
+	{
+		if (AttachmentActor.Actor == nullptr)
+		{
+			AttachmentActor.Actor = Actor;
+			AttachmentActor.AttachTo = (AActor*)AttachTo;
+			AttachmentActor.DetachFrom = nullptr;
+			ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+				CheckAttachment();
+				}, 1);
+		}
+		else
+		{
+			check(0);//why this happed?
+		}
+	}
+}
+void ALGUIPrefabHelperActor::OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom)
+{
+	if (!bCanNotifyDetachment)return;
+	if (Actor->GetWorld() != GetWorld())return;
+
+	AttachmentActor.Actor = Actor;
+	AttachmentActor.AttachTo = nullptr;
+	AttachmentActor.DetachFrom = (AActor*)DetachFrom;
+
+	ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
+		CheckAttachment();
+		}, 1);
+}
+
+void ALGUIPrefabHelperActor::CheckAttachment()
+{
+	if (AttachmentActor.Actor == nullptr)return;
+	bool bAttachementError = false;
+	if (PrefabHelperObject->IsActorBelongsToThis(AttachmentActor.Actor, true) && PrefabHelperObject->LoadedRootActor != AttachmentActor.Actor)
+	{
+		bAttachementError = true;
+	}
+	if (PrefabHelperObject->IsActorBelongsToThis(AttachmentActor.AttachTo, true))
+	{
+		bAttachementError = true;
+	}
+	if (bAttachementError)
+	{
+		auto InfoText = LOCTEXT("CannotRestructurePrefaInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
+\n\nYou can open the prefab in prefab editor to restructure the prefab asset itself, or unpack the prefab instance to remove its prefab connection.");
+		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
+		GEditor->UndoTransaction(false);
+		AttachmentActor = FAttachmentActorStruct();
+	}
+}
 
 void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 {

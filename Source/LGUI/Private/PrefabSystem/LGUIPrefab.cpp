@@ -32,6 +32,32 @@ void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, FName InPropertyNa
 		}
 	}
 }
+
+void FLGUISubPrefabData::AddMemberProperty(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+{
+	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
+		return Item.Object == InObject;
+		});
+	if (Index == INDEX_NONE)
+	{
+		FLGUIPrefabOverrideParameterData DataItem;
+		DataItem.Object = InObject;
+		DataItem.MemberPropertyName = InPropertyNameSet;
+		ObjectOverrideParameterArray.Add(DataItem);
+	}
+	else
+	{
+		auto& DataItem = ObjectOverrideParameterArray[Index];
+		for (auto& NameItem : InPropertyNameSet)
+		{
+			if (!DataItem.MemberPropertyName.Contains(NameItem))
+			{
+				DataItem.MemberPropertyName.Add(NameItem);
+			}
+		}
+	}
+}
+
 void FLGUISubPrefabData::RemoveMemberProperty(UObject* InObject, FName InPropertyName)
 {
 	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {

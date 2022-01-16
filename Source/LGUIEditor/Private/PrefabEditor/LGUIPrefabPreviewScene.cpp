@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabPreviewScene"
 
-const FString FLGUIPrefabPreviewScene::UIRootAgentActorName = TEXT("[UIRootAgent]");
+const FString FLGUIPrefabPreviewScene::RootAgentActorName = TEXT("[RootAgent]");
 
 FLGUIPrefabPreviewScene::FLGUIPrefabPreviewScene(ConstructionValues CVS) :FPreviewScene(CVS)
 {
@@ -103,70 +103,69 @@ FLGUIPrefabPreviewScene::FLGUIPrefabPreviewScene(ConstructionValues CVS) :FPrevi
 
 USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefab* InPrefab)
 {
+	if (RootAgentActor != nullptr)
+	{
+		return RootAgentActor->GetRootComponent();
+	}
 	if (IsValid(InPrefab) && InPrefab->ReferenceClassList.Num() > 0)
 	{
 		if (InPrefab->ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))//ui
 		{
 			//create Canvas for UI
-			if (RootAgentActor == nullptr)
-			{
-				auto RootUICanvasActor = (AUIContainerActor*)(this->GetWorld()->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
-				RootUICanvasActor->SetActorLabel(*UIRootAgentActorName);
-				RootUICanvasActor->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator(0, 0, 0));
+			auto RootUICanvasActor = (AUIContainerActor*)(this->GetWorld()->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
+			RootUICanvasActor->SetActorLabel(*RootAgentActorName);
+			RootUICanvasActor->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator(0, 0, 0));
 
-				auto CanvasComp = NewObject<ULGUICanvas>(RootUICanvasActor);
-				CanvasComp->RegisterComponent();
-				RootUICanvasActor->AddInstanceComponent(CanvasComp);
+			auto CanvasComp = NewObject<ULGUICanvas>(RootUICanvasActor);
+			CanvasComp->RegisterComponent();
+			RootUICanvasActor->AddInstanceComponent(CanvasComp);
 
-				RootUICanvasActor->GetUIItem()->SetWidth(1920);
-				RootUICanvasActor->GetUIItem()->SetHeight(1080);
+			RootUICanvasActor->GetUIItem()->SetWidth(1920);
+			RootUICanvasActor->GetUIItem()->SetHeight(1080);
 
-				//set properties
-				{
-					//auto bEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bEditable"));
-					//bEditable_Property->SetPropertyValue_InContainer(RootUICanvasActor, false);
-
-					//RootUICanvasActor->bHiddenEd = true;
-					//RootUICanvasActor->bHiddenEdLayer = true;
-					//RootUICanvasActor->bHiddenEdLevel = true;
-#if ENGINE_MAJOR_VERSION >= 5
-					RootUICanvasActor->SetLockLocation(true);
-#else
-					RootUICanvasActor->bLockLocation = true;
-#endif
-
-					auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-					bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootUICanvasActor, false);
-
-					auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
-					bActorLabelEditable_Property->SetPropertyValue_InContainer(RootUICanvasActor, false);
-				}
-				RootAgentActor = RootUICanvasActor;
-			}
+			RootAgentActor = RootUICanvasActor;
 		}
 		else//not ui
 		{
-			AActor* CreatedActor = this->GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
-			if (IsValid(CreatedActor))
+			auto CreatedActor = this->GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, FActorSpawnParameters());
+			//create SceneComponent
 			{
-				//create SceneComponent
-				{
-					USceneComponent* RootComponent = NewObject<USceneComponent>(CreatedActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
-					RootComponent->Mobility = EComponentMobility::Movable;
-					RootComponent->bVisualizeComponent = false;
+				USceneComponent* RootComponent = NewObject<USceneComponent>(CreatedActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
+				RootComponent->Mobility = EComponentMobility::Movable;
+				RootComponent->bVisualizeComponent = false;
 
-					CreatedActor->SetRootComponent(RootComponent);
-					RootComponent->RegisterComponent();
-					CreatedActor->AddInstanceComponent(RootComponent);
-				}
+				CreatedActor->SetRootComponent(RootComponent);
+				RootComponent->RegisterComponent();
+				CreatedActor->AddInstanceComponent(RootComponent);
 			}
 			RootAgentActor = CreatedActor;
 		}
-		if (RootAgentActor != nullptr)
+
+		//set properties
 		{
-			auto RootComp = RootAgentActor->GetRootComponent();
-			return RootComp;
+			//auto bEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bEditable"));
+			//bEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
+
+			//RootAgentActor->bHiddenEd = true;
+			//RootAgentActor->bHiddenEdLayer = true;
+			//RootAgentActor->bHiddenEdLevel = true;
+#if ENGINE_MAJOR_VERSION >= 5
+			RootAgentActor->SetLockLocation(true);
+#else
+			RootAgentActor->bLockLocation = true;
+#endif
+
+			auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
+			bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootAgentActor, false);
+
+			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
+			bActorLabelEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
 		}
+
+		RootAgentActor->SetActorLabel(*RootAgentActorName);
+		RootAgentActor->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator(0, 0, 0));
+
+		return RootAgentActor->GetRootComponent();
 	}
 	return nullptr;
 }

@@ -45,7 +45,7 @@ private:
 	void ClearViewportPreview();
 	void ToggleActiveViewportAsPreview();
 	bool CanEditActorForPrefab();
-	bool CanUnlinkActorForPrefab();
+	bool CanUnpackActorForPrefab();
 	bool CanDuplicateActor();
 	bool CanPasteActor();
 	bool CanBrowsePrefab();
@@ -65,6 +65,6 @@ private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
 	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
-	TSharedPtr<class SComboButton> PrefabOverrideDataViewerEntry;
-	TSharedPtr<class SLGUIPrefabOverrideDataViewer> PrefabOverrideDataViewer;
+	TSharedPtr<class SLGUIPrefabOverrideDataViewer> PrefabOverrideDataViewer = nullptr;
+	void CheckPrefabOverrideDataViewerEntry();
 };

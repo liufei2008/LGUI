@@ -248,9 +248,7 @@ DECLARE_CYCLE_STAT(TEXT("UIItem CalculateFlattenHierarchyIndex"), STAT_UIItemCal
 void UUIItem::RecalculateFlattenHierarchyIndex()const
 {
 	SCOPE_CYCLE_COUNTER(STAT_UIItemCalculateFlattenHierarchyIndex);
-#if !UE_BUILD_SHIPPING
-	check(this == RootUIItem.Get());
-#endif
+
 	this->bFlattenHierarchyIndexDirty = false;
 	int tempIndex = this->flattenHierarchyIndex;
 	this->CalculateFlattenHierarchyIndex_Recursive(tempIndex);
