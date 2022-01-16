@@ -5,7 +5,7 @@
 #include "LGUIBaseEventData.h"
 #include "LGUIPointerEventData.generated.h"
 
-class ULGUIBaseInteractionComponent;
+class ULGUIBaseRaycaster;
 
 UENUM(BlueprintType, Category = LGUI)
 enum class ELGUINavigationDirection :uint8
@@ -68,7 +68,7 @@ public:
 		FVector2D scrollAxisValue = FVector2D::ZeroVector;
 	/** current raycaster */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		ULGUIBaseInteractionComponent* raycaster;
+		ULGUIBaseRaycaster* raycaster;
 	/** mouse input type */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		EMouseButtonType mouseButtonType = EMouseButtonType::Left;
@@ -96,7 +96,7 @@ public:
 		FTransform pressWorldToLocalTransform;
 	/** raycaster when press */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
-		ULGUIBaseInteractionComponent* pressRaycaster;
+		ULGUIBaseRaycaster* pressRaycaster;
 	/** the last time when trigger click(get time from GetWorld()->TimeSeconds), can be used to tell double click */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LGUI")
 		float clickTime;

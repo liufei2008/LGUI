@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "LGUIBaseInteractionComponent.h"
-#include "LGUIScreenSpaceInteraction.generated.h"
+#include "LGUIBaseRaycaster.h"
+#include "LGUIScreenSpaceRaycaster.generated.h"
 
 class ULGUICanvas;
 
@@ -13,12 +13,12 @@ class ULGUICanvas;
  * This component should be placed on a actor which have a LGUICanvas, and RenderMode of LGUICanvas should set to ScreenSpace.
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUIScreenSpaceInteraction : public ULGUIBaseInteractionComponent
+class LGUI_API ULGUIScreenSpaceRaycaster : public ULGUIBaseRaycaster
 {
 	GENERATED_BODY()
 	
 public:	
-	ULGUIScreenSpaceInteraction();
+	ULGUIScreenSpaceRaycaster();
 	virtual void BeginPlay()override;
 protected:
 	

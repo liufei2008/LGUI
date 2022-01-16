@@ -1,10 +1,10 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Event/InteractionSource/LGUIWorldSpaceInteractionSource_World.h"
+#include "Event/RaycasterSource/LGUIWorldSpaceRaycasterSource_World.h"
 #include "LGUI.h"
 #include "GameFramework/Actor.h"
 
-bool ULGUIWorldSpaceInteractionSource_World::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIWorldSpaceRaycasterSource_World::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 	if (!CacheTargetSceneComponent.IsValid())
 	{
@@ -35,7 +35,7 @@ bool ULGUIWorldSpaceInteractionSource_World::EmitRay(ULGUIPointerEventData* InPo
 	}
 	return true;
 }
-bool ULGUIWorldSpaceInteractionSource_World::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUIWorldSpaceRaycasterSource_World::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (auto IterObj = GetInteractionObject())
 	{

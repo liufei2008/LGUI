@@ -9,7 +9,7 @@
 #include "Event/Interface/LGUIPointerDragDropInterface.h"
 #include "Event/Interface/LGUIPointerSelectDeselectInterface.h"
 #include "Core/Actor/LGUIManagerActor.h"
-#include "Event/LGUIBaseInteractionComponent.h"
+#include "Event/LGUIBaseRaycaster.h"
 #include "Event/LGUIPointerEventData.h"
 #include "Interaction/UISelectableComponent.h"
 #include "Event/InputModule/LGUIBaseInputModule.h"

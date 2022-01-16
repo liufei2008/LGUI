@@ -8,7 +8,7 @@
 #include "Event/LGUIDelegateHandleWrapper.h"
 #include "LGUI_PointerInputModule.generated.h"
 
-class ULGUIBaseInteractionComponent;
+class ULGUIBaseRaycaster;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIPointerInputChange_MulticastDelegate, ELGUIPointerInputType);
 DECLARE_DELEGATE_OneParam(FLGUIPointerInputChange_Delegate, ELGUIPointerInputType);
@@ -29,7 +29,7 @@ protected:
 
 		FVector rayOrigin = FVector(0, 0, 0), rayDirection = FVector(1, 0, 0), rayEnd = FVector(1, 0, 0);
 
-		ULGUIBaseInteractionComponent* raycaster = nullptr;
+		ULGUIBaseRaycaster* raycaster = nullptr;
 
 		TArray<USceneComponent*> hoverArray;
 	};

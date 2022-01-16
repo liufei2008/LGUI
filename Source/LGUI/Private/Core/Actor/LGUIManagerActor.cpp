@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/UIText.h"
 #include "Core/ActorComponent/LGUICanvas.h"
-#include "Event/LGUIBaseInteractionComponent.h"
+#include "Event/LGUIBaseRaycaster.h"
 #include "Engine/World.h"
 #include "Interaction/UISelectableComponent.h"
 #include "Core/LGUISettings.h"
@@ -1451,7 +1451,7 @@ TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ALGUIManagerActor::GetVi
 	return nullptr;
 }
 
-void ALGUIManagerActor::AddRaycaster(ULGUIBaseInteractionComponent* InRaycaster)
+void ALGUIManagerActor::AddRaycaster(ULGUIBaseRaycaster* InRaycaster)
 {
 	if (auto Instance = GetInstance(InRaycaster->GetWorld(), true))
 	{
@@ -1463,12 +1463,11 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseInteractionComponent* InRaycaster)
 			if (InRaycaster->GetDepth() == item->GetDepth() && InRaycaster->GetTraceChannel() == item->GetTraceChannel())
 			{
 				auto msg = FString(TEXT("\
-\nDetect multiple LGUIBaseInteractionComponent components with same depth and traceChannel, this may cause wrong interaction results!\
+\nDetect multiple LGUIBaseRaycaster components with same depth and traceChannel, this may cause wrong interaction results!\
 \neg: Want use mouse to click object A but get object B.\
 \nPlease note:\
-\n	For LGUIBaseInteractionComponents with same depth, LGUI will line trace them all and sort result on hit distance.\
-\n	For LGUIBaseInteractionComponents with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.\
-\nLGUIXXXSpaceInteractionXXX is also a ULGUIBaseInteractionComponent component."));
+\n	For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.\
+\n	For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace."));
 				UE_LOG(LGUI, Warning, TEXT("\n%s"), *msg);
 				break;
 			}
@@ -1476,13 +1475,13 @@ void ALGUIManagerActor::AddRaycaster(ULGUIBaseInteractionComponent* InRaycaster)
 
 		AllRaycasterArray.Add(InRaycaster);
 		//sort depth
-		AllRaycasterArray.Sort([](const TWeakObjectPtr<ULGUIBaseInteractionComponent>& A, const TWeakObjectPtr<ULGUIBaseInteractionComponent>& B)
+		AllRaycasterArray.Sort([](const TWeakObjectPtr<ULGUIBaseRaycaster>& A, const TWeakObjectPtr<ULGUIBaseRaycaster>& B)
 		{
 			return A->GetDepth() > B->GetDepth();
 		});
 	}
 }
-void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseInteractionComponent* InRaycaster)
+void ALGUIManagerActor::RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster)
 {
 	if (auto Instance = GetInstance(InRaycaster->GetWorld()))
 	{

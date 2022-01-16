@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Event/LGUIWorldSpaceInteraction.h"
-#include "LGUIWorldSpaceInteractionSource_Mouse.generated.h"
+#include "Event/LGUIWorldSpaceRaycaster.h"
+#include "LGUIWorldSpaceRaycasterSource_Mouse.generated.h"
 
 #define BUILD_VP_MATRIX_FROM_CAMERA_MANAGER 0
 
@@ -12,7 +12,7 @@
  * This is for standalone mouse input, it will emit a ray from main viewport mouse position
  */
 UCLASS(ClassGroup = LGUI, Blueprintable, meta = (DisplayName = "Mouse"))
-class LGUI_API ULGUIWorldSpaceInteractionSource_Mouse : public ULGUIWorldSpaceInteractionSource
+class LGUI_API ULGUIWorldSpaceRaycasterSource_Mouse : public ULGUIWorldSpaceRaycasterSource
 {
 	GENERATED_BODY()
 public:

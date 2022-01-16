@@ -1,11 +1,11 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Event/LGUIBaseInteractionComponent.h"
+#include "Event/LGUIBaseRaycaster.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Engine/SceneCapture2D.h"
 #include "Core/ActorComponent/UIItem.h"
 
-ULGUIBaseInteractionComponent::ULGUIBaseInteractionComponent()
+ULGUIBaseRaycaster::ULGUIBaseRaycaster()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
@@ -13,13 +13,13 @@ ULGUIBaseInteractionComponent::ULGUIBaseInteractionComponent()
 	traceChannel = ETraceTypeQuery::TraceTypeQuery3;
 }
 
-void ULGUIBaseInteractionComponent::BeginPlay()
+void ULGUIBaseRaycaster::BeginPlay()
 {
 	Super::BeginPlay();
 	clickThresholdSquare = clickThreshold * clickThreshold;
 }
 
-void ULGUIBaseInteractionComponent::Activate(bool bReset)
+void ULGUIBaseRaycaster::Activate(bool bReset)
 {
 	Super::Activate(bReset);
 	if (this->GetWorld() == nullptr)return;
@@ -30,26 +30,26 @@ void ULGUIBaseInteractionComponent::Activate(bool bReset)
 		ActivateRaycaster();
 	}
 }
-void ULGUIBaseInteractionComponent::Deactivate()
+void ULGUIBaseRaycaster::Deactivate()
 {
 	Super::Deactivate();
 	DeactivateRaycaster();
 }
-void ULGUIBaseInteractionComponent::ActivateRaycaster()
+void ULGUIBaseRaycaster::ActivateRaycaster()
 {
 	ALGUIManagerActor::AddRaycaster(this);
 }
-void ULGUIBaseInteractionComponent::DeactivateRaycaster()
+void ULGUIBaseRaycaster::DeactivateRaycaster()
 {
 	ALGUIManagerActor::RemoveRaycaster(this);
 }
-void ULGUIBaseInteractionComponent::OnUnregister()
+void ULGUIBaseRaycaster::OnUnregister()
 {
 	Super::OnUnregister();
 	DeactivateRaycaster();
 }
 
-bool ULGUIBaseInteractionComponent::ShouldStartDrag_HoldToDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUIBaseRaycaster::ShouldStartDrag_HoldToDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (holdToDrag)
 	{
@@ -58,7 +58,7 @@ bool ULGUIBaseInteractionComponent::ShouldStartDrag_HoldToDrag(ULGUIPointerEvent
 	return false;
 }
 
-bool ULGUIBaseInteractionComponent::RaycastUI(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
+bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	OutHoverArray.Reset();
 	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection))
@@ -145,7 +145,7 @@ bool ULGUIBaseInteractionComponent::RaycastUI(ULGUIPointerEventData* InPointerEv
 	return false;
 }
 
-bool ULGUIBaseInteractionComponent::RaycastWorld(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
+bool ULGUIBaseRaycaster::RaycastWorld(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	OutHoverArray.Reset();
 	if (GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection))
@@ -176,16 +176,16 @@ bool ULGUIBaseInteractionComponent::RaycastWorld(ULGUIPointerEventData* InPointe
 }
 
 
-void ULGUIBaseInteractionComponent::SetClickThreshold(float value)
+void ULGUIBaseRaycaster::SetClickThreshold(float value)
 {
 	clickThreshold = value;
 	clickThresholdSquare = clickThreshold * clickThreshold;
 }
-void ULGUIBaseInteractionComponent::SetHoldToDrag(bool value)
+void ULGUIBaseRaycaster::SetHoldToDrag(bool value)
 {
 	holdToDrag = value;
 }
-void ULGUIBaseInteractionComponent::SetHoldToDragTime(float value)
+void ULGUIBaseRaycaster::SetHoldToDragTime(float value)
 {
 	holdToDragTime = value;
 }

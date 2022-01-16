@@ -6,18 +6,18 @@
 #include "Components/SceneComponent.h"
 #include "CollisionQueryParams.h"
 #include "Event/LGUIPointerEventData.h"
-#include "LGUIBaseInteractionComponent.generated.h"
+#include "LGUIBaseRaycaster.generated.h"
 
 /** 
  * Base interaction component that perform a raycast hit test
  */
 UCLASS(Abstract)
-class LGUI_API ULGUIBaseInteractionComponent : public USceneComponent
+class LGUI_API ULGUIBaseRaycaster : public USceneComponent
 {
 	GENERATED_BODY()
 	
 public:	
-	ULGUIBaseInteractionComponent();
+	ULGUIBaseRaycaster();
 protected:
 	virtual void BeginPlay()override;
 	virtual void Activate(bool bReset = false)override;
@@ -36,8 +36,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 pointerID = INDEX_NONE;
 	/** 
-	 * For LGUIBaseInteractionComponents with same depth, LGUI will line trace them all and sort result on hit distance.
-	 * For LGUIBaseInteractionComponents with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.
+	 * For LGUIBaseRaycasters with same depth, LGUI will line trace them all and sort result on hit distance.
+	 * For LGUIBaseRaycasters with different depth, LGUI will sort raycasters on depth, and line trace from highest depth to lowest, if hit anything then stop line trace.
 	 */
 	UPROPERTY(EditAnywhere, Category = LGUI)
 		int32 depth = 0;
@@ -61,11 +61,11 @@ protected:
 	FVector CurrentRayOrigin = FVector::ZeroVector, CurrentRayDirection = FVector(1, 0, 0);
 public:
 	/** Called by raycaster to get ray */
-	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection) PURE_VIRTUAL(ULGUIBaseInteractionComponent::GenerateRay, return false;);
+	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection) PURE_VIRTUAL(ULGUIBaseRaycaster::GenerateRay, return false;);
 	/** Called by InputModule to raycast hit test */
-	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray) PURE_VIRTUAL(ULGUIBaseInteractionComponent::Raycast, return false;);
+	virtual bool Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray) PURE_VIRTUAL(ULGUIBaseRaycaster::Raycast, return false;);
 	/** Called by InputModule to decide if current trigger press need to convert to drag */
-	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) PURE_VIRTUAL(ULGUIBaseInteractionComponent::ShouldStartDrag, return false;);
+	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) PURE_VIRTUAL(ULGUIBaseRaycaster::ShouldStartDrag, return false;);
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)void ActivateRaycaster();
 	UFUNCTION(BlueprintCallable, Category = LGUI)void DeactivateRaycaster();

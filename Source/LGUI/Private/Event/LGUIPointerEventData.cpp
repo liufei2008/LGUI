@@ -1,7 +1,7 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "Event/LGUIPointerEventData.h"
-#include "Event/LGUIBaseInteractionComponent.h"
+#include "Event/LGUIBaseRaycaster.h"
 #include "LGUI.h"
 #include "GameFramework/Actor.h"
 

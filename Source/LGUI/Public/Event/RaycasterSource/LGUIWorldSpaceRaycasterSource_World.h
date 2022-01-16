@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Event/LGUIWorldSpaceInteraction.h"
-#include "LGUIWorldSpaceInteractionSource_World.generated.h"
+#include "Event/LGUIWorldSpaceRaycaster.h"
+#include "LGUIWorldSpaceRaycasterSource_World.generated.h"
 
 
 
@@ -23,7 +23,7 @@ enum class ELGUISceneComponentDirection :uint8
  * If VR mode, you can use this component to emit ray from hand controller
  */
 UCLASS(ClassGroup = LGUI, Blueprintable, meta=(DisplayName="World"))
-class LGUI_API ULGUIWorldSpaceInteractionSource_World : public ULGUIWorldSpaceInteractionSource
+class LGUI_API ULGUIWorldSpaceRaycasterSource_World : public ULGUIWorldSpaceRaycasterSource
 {
 	GENERATED_BODY()
 protected:

@@ -14,7 +14,7 @@ class UUIText;
 class UUIBatchGeometryRenderable;
 class UUIBaseRenderable;
 class ULGUICanvas;
-class ULGUIBaseInteractionComponent;
+class ULGUIBaseRaycaster;
 class UUISelectableComponent;
 class ULGUILifeCycleBehaviour;
 class ULGUIBaseInputModule;
@@ -176,7 +176,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<ULGUICanvas>> AllCanvasArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<TWeakObjectPtr<ULGUIBaseInteractionComponent>> AllRaycasterArray;
+		TArray<TWeakObjectPtr<ULGUIBaseRaycaster>> AllRaycasterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TWeakObjectPtr<ULGUIBaseInputModule> CurrentInputModule = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -238,9 +238,9 @@ public:
 
 	static TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> GetViewExtension(UWorld* InWorld, bool InCreateIfNotExist);
 
-	const TArray<TWeakObjectPtr<ULGUIBaseInteractionComponent>>& GetAllRaycasterArray(){ return AllRaycasterArray; }
-	static void AddRaycaster(ULGUIBaseInteractionComponent* InRaycaster);
-	static void RemoveRaycaster(ULGUIBaseInteractionComponent* InRaycaster);
+	const TArray<TWeakObjectPtr<ULGUIBaseRaycaster>>& GetAllRaycasterArray(){ return AllRaycasterArray; }
+	static void AddRaycaster(ULGUIBaseRaycaster* InRaycaster);
+	static void RemoveRaycaster(ULGUIBaseRaycaster* InRaycaster);
 
 	TWeakObjectPtr<ULGUIBaseInputModule> GetCurrentInputModule() { return CurrentInputModule; }
 	static void SetCurrentInputModule(ULGUIBaseInputModule* InInputModule);

@@ -3,17 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "LGUIBaseInteractionComponent.h"
-#include "LGUIWorldSpaceInteraction.generated.h"
+#include "LGUIBaseRaycaster.h"
+#include "LGUIWorldSpaceRaycaster.generated.h"
 
-class ULGUIWorldSpaceInteraction;
+class ULGUIWorldSpaceRaycaster;
 
 /**
  * NOTE! This type is not valid anymore
  * The interaction source for world space UI, actually the ray emitter object.
  */
 UENUM(BlueprintType, Category = LGUI)
-enum class ELGUIWorldSpaceInteractionSource :uint8
+enum class ELGUIWorldSpaceRaycasterSource :uint8
 {
 	/** Sends traces from the world location and orientation of the interaction component. */
 	World,
@@ -41,18 +41,18 @@ enum class ELGUIInteractionTarget :uint8
 };
 
 /**
- * Interaction source for LGUIWorldSpaceInteraction
+ * Interaction source for LGUIWorldSpaceRaycaster
  */
 UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
-class LGUI_API ULGUIWorldSpaceInteractionSource : public UObject
+class LGUI_API ULGUIWorldSpaceRaycasterSource : public UObject
 {
 	GENERATED_BODY()
 private:
-	TWeakObjectPtr<ULGUIWorldSpaceInteraction> InteractionObject = nullptr;
+	TWeakObjectPtr<ULGUIWorldSpaceRaycaster> InteractionObject = nullptr;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUIWorldSpaceInteraction* GetInteractionObject();
-	void SetInteractionObject(ULGUIWorldSpaceInteraction* InObj) { InteractionObject = InObj; }
+		ULGUIWorldSpaceRaycaster* GetInteractionObject();
+	void SetInteractionObject(ULGUIWorldSpaceRaycaster* InObj) { InteractionObject = InObj; }
 	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection);
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData);
 protected:
@@ -64,23 +64,23 @@ protected:
  * Perform a raycaster interaction for WorldSpaceUI and common world space objects.
  */
 UCLASS(ClassGroup = LGUI, meta = (BlueprintSpawnableComponent), Blueprintable)
-class LGUI_API ULGUIWorldSpaceInteraction : public ULGUIBaseInteractionComponent
+class LGUI_API ULGUIWorldSpaceRaycaster : public ULGUIBaseRaycaster
 {
 	GENERATED_BODY()
 	
 public:	
-	ULGUIWorldSpaceInteraction();
+	ULGUIWorldSpaceRaycaster();
 	virtual void BeginPlay()override;
 	virtual void OnRegister()override;
 protected:
 	/** Old data */
 	UPROPERTY(EditAnywhere, Category = "LGUI-old", AdvancedDisplay)
-		ELGUIWorldSpaceInteractionSource interactionSource = ELGUIWorldSpaceInteractionSource::Mouse;
+		ELGUIWorldSpaceRaycasterSource interactionSource = ELGUIWorldSpaceRaycasterSource::Mouse;
 	UPROPERTY(EditAnywhere, Category = "LGUI")
 		ELGUIInteractionTarget interactionTarget = ELGUIInteractionTarget::UIAndWorld;
 
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI")
-		ULGUIWorldSpaceInteractionSource* InteractionSourceObject = nullptr;
+		ULGUIWorldSpaceRaycasterSource* InteractionSourceObject = nullptr;
 	virtual bool ShouldSkipUIItem(class UUIItem* UIItem)override;
 public:
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection) override;
@@ -88,5 +88,5 @@ public:
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) override;
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUIWorldSpaceInteractionSource* GetInteractionSourceObject()const { return InteractionSourceObject; }
+		ULGUIWorldSpaceRaycasterSource* GetInteractionSourceObject()const { return InteractionSourceObject; }
 };

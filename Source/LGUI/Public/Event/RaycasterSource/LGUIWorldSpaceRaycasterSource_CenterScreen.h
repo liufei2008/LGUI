@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Event/LGUIWorldSpaceInteraction.h"
-#include "LGUIWorldSpaceInteractionSource_CenterScreen.generated.h"
+#include "Event/LGUIWorldSpaceRaycaster.h"
+#include "LGUIWorldSpaceRaycasterSource_CenterScreen.generated.h"
 
 /** 
  * Sends trace from the center of the first local player's screen
  */
 UCLASS(ClassGroup = LGUI, Blueprintable, meta = (DisplayName = "Center Screen"))
-class LGUI_API ULGUIWorldSpaceInteractionSource_CenterScreen : public ULGUIWorldSpaceInteractionSource
+class LGUI_API ULGUIWorldSpaceRaycasterSource_CenterScreen : public ULGUIWorldSpaceRaycasterSource
 {
 	GENERATED_BODY()
 

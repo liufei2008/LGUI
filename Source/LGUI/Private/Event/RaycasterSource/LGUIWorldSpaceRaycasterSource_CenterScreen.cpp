@@ -1,11 +1,11 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Event/InteractionSource/LGUIWorldSpaceInteractionSource_CenterScreen.h"
+#include "Event/RaycasterSource/LGUIWorldSpaceRaycasterSource_CenterScreen.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
 
-bool ULGUIWorldSpaceInteractionSource_CenterScreen::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIWorldSpaceRaycasterSource_CenterScreen::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 	if (auto playerController = this->GetWorld()->GetFirstPlayerController())
 	{
@@ -28,7 +28,7 @@ bool ULGUIWorldSpaceInteractionSource_CenterScreen::EmitRay(ULGUIPointerEventDat
 	}
 	return false;
 }
-bool ULGUIWorldSpaceInteractionSource_CenterScreen::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUIWorldSpaceRaycasterSource_CenterScreen::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (auto IterObj = GetInteractionObject())
 	{

@@ -1,26 +1,26 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Event/LGUIScreenSpaceInteraction.h"
+#include "Event/LGUIScreenSpaceRaycaster.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Core/ActorComponent/LGUICanvas.h"
 #include "LGUI.h"
 #include "Utils/LGUIUtils.h"
 
-#define LOCTEXT_NAMESPACE "LGUIScreenSpaceInteraction"
+#define LOCTEXT_NAMESPACE "LGUIScreenSpaceRaycaster"
 
-ULGUIScreenSpaceInteraction::ULGUIScreenSpaceInteraction()
+ULGUIScreenSpaceRaycaster::ULGUIScreenSpaceRaycaster()
 {
 	
 }
 
-void ULGUIScreenSpaceInteraction::BeginPlay()
+void ULGUIScreenSpaceRaycaster::BeginPlay()
 {
 	Super::BeginPlay();
 	FText ErrorMsg;
 	auto Canvas = GetOwner()->FindComponentByClass<ULGUICanvas>();
 	if (!IsValid(Canvas) || !Canvas->IsRootCanvas())
 	{
-		ErrorMsg = LOCTEXT("CanvasNotValid", "[ULGUIScreenSpaceInteraction::BeginPlay]Canvas is not valid! LGUIScreenSpaceInteraction can only attach to ScreenSpaceUIRoot!");
+		ErrorMsg = LOCTEXT("CanvasNotValid", "[ULGUIScreenSpaceRaycaster::BeginPlay]Canvas is not valid! LGUIScreenSpaceRaycaster can only attach to ScreenSpaceUIRoot!");
 		UE_LOG(LGUI, Error, TEXT("%s"), *ErrorMsg.ToString());
 #if WITH_EDITOR
 		LGUIUtils::EditorNotification(ErrorMsg);
@@ -32,7 +32,7 @@ void ULGUIScreenSpaceInteraction::BeginPlay()
 	}
 }
 
-bool ULGUIScreenSpaceInteraction::ShouldSkipUIItem(UUIItem* UIItem)
+bool ULGUIScreenSpaceRaycaster::ShouldSkipUIItem(UUIItem* UIItem)
 {
 	if (UIItem != nullptr)
 	{
@@ -41,14 +41,14 @@ bool ULGUIScreenSpaceInteraction::ShouldSkipUIItem(UUIItem* UIItem)
 	return true;
 }
 
-bool ULGUIScreenSpaceInteraction::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUIScreenSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
 	FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
 	FVector2D pressMousePos = FVector2D(InPointerEventData->pressPointerPosition);
 	return FVector2D::DistSquared(pressMousePos, mousePos) > clickThresholdSquare;
 }
-bool ULGUIScreenSpaceInteraction::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIScreenSpaceRaycaster::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 	if (!RootCanvas.IsValid())
 		return false;
@@ -66,12 +66,12 @@ bool ULGUIScreenSpaceInteraction::GenerateRay(ULGUIPointerEventData* InPointerEv
 	return true;
 }
 
-bool ULGUIScreenSpaceInteraction::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
+bool ULGUIScreenSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	return Super::RaycastUI(InPointerEventData, OutRayOrigin, OutRayDirection, OutRayEnd, OutHitResult, OutHoverArray);
 }
 
-void ULGUIScreenSpaceInteraction::DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
+void ULGUIScreenSpaceRaycaster::DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
 {
 	FMatrix InvViewProjMatrix = InViewProjectionMatrix.InverseFast();
 

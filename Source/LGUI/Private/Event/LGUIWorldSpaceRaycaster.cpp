@@ -1,19 +1,19 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Event/LGUIWorldSpaceInteraction.h"
-#include "Event/InteractionSource/LGUIWorldSpaceInteractionSource_Mouse.h"
+#include "Event/LGUIWorldSpaceRaycaster.h"
+#include "Event/RaycasterSource/LGUIWorldSpaceRaycasterSource_Mouse.h"
 #include "Core/ActorComponent/UIItem.h"
 
 
-ULGUIWorldSpaceInteraction* ULGUIWorldSpaceInteractionSource::GetInteractionObject()
+ULGUIWorldSpaceRaycaster* ULGUIWorldSpaceRaycasterSource::GetInteractionObject()
 {
 	if (!InteractionObject.IsValid())
 	{
-		InteractionObject = Cast<ULGUIWorldSpaceInteraction>(GetOuter());
+		InteractionObject = Cast<ULGUIWorldSpaceRaycaster>(GetOuter());
 	}
 	return InteractionObject.Get();
 }
-bool ULGUIWorldSpaceInteractionSource::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIWorldSpaceRaycasterSource::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
@@ -21,7 +21,7 @@ bool ULGUIWorldSpaceInteractionSource::EmitRay(ULGUIPointerEventData* InPointerE
 	}
 	return false;
 }
-bool ULGUIWorldSpaceInteractionSource::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUIWorldSpaceRaycasterSource::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
@@ -32,27 +32,27 @@ bool ULGUIWorldSpaceInteractionSource::ShouldStartDrag(ULGUIPointerEventData* In
 
 
 
-ULGUIWorldSpaceInteraction::ULGUIWorldSpaceInteraction()
+ULGUIWorldSpaceRaycaster::ULGUIWorldSpaceRaycaster()
 {
 	
 }
 
-void ULGUIWorldSpaceInteraction::BeginPlay()
+void ULGUIWorldSpaceRaycaster::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void ULGUIWorldSpaceInteraction::OnRegister()
+void ULGUIWorldSpaceRaycaster::OnRegister()
 {
 	Super::OnRegister();
 	if (InteractionSourceObject == nullptr)
 	{
-		InteractionSourceObject = NewObject<ULGUIWorldSpaceInteractionSource_Mouse>(this);
+		InteractionSourceObject = NewObject<ULGUIWorldSpaceRaycasterSource_Mouse>(this);
 	}
 	InteractionSourceObject->SetInteractionObject(this);
 }
 
-bool ULGUIWorldSpaceInteraction::ShouldSkipUIItem(class UUIItem* UIItem)
+bool ULGUIWorldSpaceRaycaster::ShouldSkipUIItem(class UUIItem* UIItem)
 {
 	if (UIItem != nullptr)
 	{
@@ -61,7 +61,7 @@ bool ULGUIWorldSpaceInteraction::ShouldSkipUIItem(class UUIItem* UIItem)
 	return true;
 }
 
-bool ULGUIWorldSpaceInteraction::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
+bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection, FVector& OutRayEnd, FHitResult& OutHitResult, TArray<USceneComponent*>& OutHoverArray)
 {
 	switch (interactionTarget)
 	{
@@ -123,13 +123,13 @@ bool ULGUIWorldSpaceInteraction::Raycast(ULGUIPointerEventData* InPointerEventDa
 	return false;
 }
 
-bool ULGUIWorldSpaceInteraction::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIWorldSpaceRaycaster::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 	if (!IsValid(InteractionSourceObject))return false;
 	return InteractionSourceObject->EmitRay(InPointerEventData, OutRayOrigin, OutRayDirection);
 }
 
-bool ULGUIWorldSpaceInteraction::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) 
+bool ULGUIWorldSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) 
 {
 	if (!IsValid(InteractionSourceObject))return false;
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;

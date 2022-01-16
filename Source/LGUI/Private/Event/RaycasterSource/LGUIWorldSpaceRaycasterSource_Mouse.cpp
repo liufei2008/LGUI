@@ -1,12 +1,12 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "Event/InteractionSource/LGUIWorldSpaceInteractionSource_Mouse.h"
+#include "Event/RaycasterSource/LGUIWorldSpaceRaycasterSource_Mouse.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
 
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
-void LGUIWorldSpaceInteractionSource_Mouse_BuildProjectionMatrix(FIntPoint RenderTargetSize, ECameraProjectionMode::Type ProjectionType, float FOV, float InOrthoWidth, FMatrix& ProjectionMatrix)
+void LGUIWorldSpaceRaycasterSource_Mouse_BuildProjectionMatrix(FIntPoint RenderTargetSize, ECameraProjectionMode::Type ProjectionType, float FOV, float InOrthoWidth, FMatrix& ProjectionMatrix)
 {
 	float XAxisMultiplier;
 	float YAxisMultiplier;
@@ -69,7 +69,7 @@ void LGUIWorldSpaceInteractionSource_Mouse_BuildProjectionMatrix(FIntPoint Rende
 		}
 	}
 }
-FMatrix ULGUIWorldSpaceInteractionSource_Mouse::ComputeViewProjectionMatrix(APlayerCameraManager* CameraManager, const FIntPoint& ScreenSize)
+FMatrix ULGUIWorldSpaceRaycasterSource_Mouse::ComputeViewProjectionMatrix(APlayerCameraManager* CameraManager, const FIntPoint& ScreenSize)
 {
 	FMatrix viewProjectionMatrix = FMatrix::Identity;
 	if (CameraManager == nullptr)return viewProjectionMatrix;
@@ -91,7 +91,7 @@ FMatrix ULGUIWorldSpaceInteractionSource_Mouse::ComputeViewProjectionMatrix(APla
 	const float FOV = CameraManager->GetFOVAngle() * (float)PI / 360.0f;
 
 	FMatrix ProjectionMatrix;
-	LGUIWorldSpaceInteractionSource_Mouse_BuildProjectionMatrix(ScreenSize
+	LGUIWorldSpaceRaycasterSource_Mouse_BuildProjectionMatrix(ScreenSize
 		, CameraManager->IsOrthographic() ? ECameraProjectionMode::Orthographic : ECameraProjectionMode::Perspective
 		, FOV, CameraManager->GetOrthoWidth(), ProjectionMatrix);
 
@@ -99,7 +99,7 @@ FMatrix ULGUIWorldSpaceInteractionSource_Mouse::ComputeViewProjectionMatrix(APla
 	return viewProjectionMatrix;
 }
 
-void ULGUIWorldSpaceInteractionSource_Mouse::DeprojectViewPointToWorldForMainViewport(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
+void ULGUIWorldSpaceRaycasterSource_Mouse::DeprojectViewPointToWorldForMainViewport(const FMatrix& InViewProjectionMatrix, const FVector2D& InViewPoint01, FVector& OutWorldLocation, FVector& OutWorldDirection)
 {
 	FMatrix InvViewProjMatrix = InViewProjectionMatrix.InverseFast();
 
@@ -135,7 +135,7 @@ void ULGUIWorldSpaceInteractionSource_Mouse::DeprojectViewPointToWorldForMainVie
 #endif
 
 
-bool ULGUIWorldSpaceInteractionSource_Mouse::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIWorldSpaceRaycasterSource_Mouse::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
 	if (auto pc = GetWorld()->GetFirstPlayerController())
@@ -173,7 +173,7 @@ bool ULGUIWorldSpaceInteractionSource_Mouse::EmitRay(ULGUIPointerEventData* InPo
 #endif
 	return false;
 }
-bool ULGUIWorldSpaceInteractionSource_Mouse::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
+bool ULGUIWorldSpaceRaycasterSource_Mouse::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
 	if (auto IterObj = GetInteractionObject())
 	{

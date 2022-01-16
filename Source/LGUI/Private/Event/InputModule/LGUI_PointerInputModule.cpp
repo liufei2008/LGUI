@@ -5,7 +5,7 @@
 #include "Event/LGUIPointerEventData.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "Event/LGUIEventSystem.h"
-#include "Event/LGUIBaseInteractionComponent.h"
+#include "Event/LGUIBaseRaycaster.h"
 #include "Interaction/UISelectableComponent.h"
 #include "Utils/LGUIUtils.h"
 
