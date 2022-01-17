@@ -48,16 +48,26 @@ class LGUI_API ULGUIWorldSpaceRaycasterSource : public UObject
 {
 	GENERATED_BODY()
 private:
-	TWeakObjectPtr<ULGUIWorldSpaceRaycaster> InteractionObject = nullptr;
+	TWeakObjectPtr<ULGUIWorldSpaceRaycaster> RaycasterObject = nullptr;
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUIWorldSpaceRaycaster* GetInteractionObject();
-	void SetInteractionObject(ULGUIWorldSpaceRaycaster* InObj) { InteractionObject = InObj; }
-	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection);
+		ULGUIWorldSpaceRaycaster* GetRaycasterObject()const;
+	/** Called by LGUIWorldSpaceRaycaster when register, use as initialize. */
+	virtual void Init(ULGUIWorldSpaceRaycaster* InRaycaster);
+	/** Generate ray for raycast hit test */
+	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection);
+	/** Should convert press event to drag event? */
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData);
 protected:
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "EmitRay"), Category = "LGUI")bool ReceiveEmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection);
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ShouldStartDrag"), Category = "LGUI")bool ReceiveShouldStartDrag(ULGUIPointerEventData* InPointerEventData);
+	/** Called by LGUIWorldSpaceRaycaster when register, use as initialize. */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Init"), Category = "LGUI")
+		void ReceiveInit(ULGUIWorldSpaceRaycaster* InRaycaster);
+	/** Generate ray for raycast hit test */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "EmitRay"), Category = "LGUI")
+		bool ReceiveGenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection);
+	/** Should convert press event to drag event? */
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "ShouldStartDrag"), Category = "LGUI")
+		bool ReceiveShouldStartDrag(ULGUIPointerEventData* InPointerEventData);
 };
 
 /**
@@ -80,7 +90,7 @@ protected:
 		ELGUIInteractionTarget interactionTarget = ELGUIInteractionTarget::UIAndWorld;
 
 	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI")
-		ULGUIWorldSpaceRaycasterSource* InteractionSourceObject = nullptr;
+		ULGUIWorldSpaceRaycasterSource* RaycasterSourceObject = nullptr;
 	virtual bool ShouldSkipUIItem(class UUIItem* UIItem)override;
 public:
 	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection) override;
@@ -88,5 +98,5 @@ public:
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) override;
 
 	UFUNCTION(BlueprintCallable, Category = LGUI)
-		ULGUIWorldSpaceRaycasterSource* GetInteractionSourceObject()const { return InteractionSourceObject; }
+		ULGUIWorldSpaceRaycasterSource* GetRaycasterSourceObject()const { return RaycasterSourceObject; }
 };

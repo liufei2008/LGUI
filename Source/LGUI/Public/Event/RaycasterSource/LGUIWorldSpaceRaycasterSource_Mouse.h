@@ -16,7 +16,7 @@ class LGUI_API ULGUIWorldSpaceRaycasterSource_Mouse : public ULGUIWorldSpaceRayc
 {
 	GENERATED_BODY()
 public:
-	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override;
+	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
 private:

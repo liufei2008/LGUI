@@ -5,19 +5,23 @@
 #include "Core/ActorComponent/UIItem.h"
 
 
-ULGUIWorldSpaceRaycaster* ULGUIWorldSpaceRaycasterSource::GetInteractionObject()
+ULGUIWorldSpaceRaycaster* ULGUIWorldSpaceRaycasterSource::GetRaycasterObject()const
 {
-	if (!InteractionObject.IsValid())
-	{
-		InteractionObject = Cast<ULGUIWorldSpaceRaycaster>(GetOuter());
-	}
-	return InteractionObject.Get();
+	return RaycasterObject.Get();
 }
-bool ULGUIWorldSpaceRaycasterSource::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+void ULGUIWorldSpaceRaycasterSource::Init(ULGUIWorldSpaceRaycaster* InRaycaster)
+{
+	RaycasterObject = InRaycaster;
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveInit(InRaycaster);
+	}
+}
+bool ULGUIWorldSpaceRaycasterSource::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		return ReceiveEmitRay(InPointerEventData, OutRayOrigin, OutRayDirection);
+		return ReceiveGenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection);
 	}
 	return false;
 }
@@ -45,11 +49,11 @@ void ULGUIWorldSpaceRaycaster::BeginPlay()
 void ULGUIWorldSpaceRaycaster::OnRegister()
 {
 	Super::OnRegister();
-	if (InteractionSourceObject == nullptr)
+	if (RaycasterSourceObject == nullptr)
 	{
-		InteractionSourceObject = NewObject<ULGUIWorldSpaceRaycasterSource_Mouse>(this);
+		RaycasterSourceObject = NewObject<ULGUIWorldSpaceRaycasterSource_Mouse>(this);
 	}
-	InteractionSourceObject->SetInteractionObject(this);
+	RaycasterSourceObject->Init(this);
 }
 
 bool ULGUIWorldSpaceRaycaster::ShouldSkipUIItem(class UUIItem* UIItem)
@@ -125,14 +129,14 @@ bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData
 
 bool ULGUIWorldSpaceRaycaster::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
-	if (!IsValid(InteractionSourceObject))return false;
-	return InteractionSourceObject->EmitRay(InPointerEventData, OutRayOrigin, OutRayDirection);
+	if (!IsValid(RaycasterSourceObject))return false;
+	return RaycasterSourceObject->GenerateRay(InPointerEventData, OutRayOrigin, OutRayDirection);
 }
 
 bool ULGUIWorldSpaceRaycaster::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData) 
 {
-	if (!IsValid(InteractionSourceObject))return false;
+	if (!IsValid(RaycasterSourceObject))return false;
 	if (ShouldStartDrag_HoldToDrag(InPointerEventData))return true;
-	return InteractionSourceObject->ShouldStartDrag(InPointerEventData);
+	return RaycasterSourceObject->ShouldStartDrag(InPointerEventData);
 }
 

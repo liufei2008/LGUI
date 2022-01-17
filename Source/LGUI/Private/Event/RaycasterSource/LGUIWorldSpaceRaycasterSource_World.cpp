@@ -4,40 +4,39 @@
 #include "LGUI.h"
 #include "GameFramework/Actor.h"
 
-bool ULGUIWorldSpaceRaycasterSource_World::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIWorldSpaceRaycasterSource_World::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
-	if (!CacheTargetSceneComponent.IsValid())
+	if (auto IterObj = GetRaycasterObject())
 	{
-		return false;
+		OutRayOrigin = IterObj->GetComponentLocation();
+		switch (RayDirectionType)
+		{
+		case ELGUISceneComponentDirection::PositiveX:
+			OutRayDirection = IterObj->GetForwardVector();
+			break;
+		case ELGUISceneComponentDirection::NagtiveX:
+			OutRayDirection = -IterObj->GetForwardVector();
+			break;
+		case ELGUISceneComponentDirection::PositiveY:
+			OutRayDirection = IterObj->GetRightVector();
+			break;
+		case ELGUISceneComponentDirection::NagtiveY:
+			OutRayDirection = -IterObj->GetRightVector();
+			break;
+		case ELGUISceneComponentDirection::PositiveZ:
+			OutRayDirection = IterObj->GetUpVector();
+			break;
+		case ELGUISceneComponentDirection::NagtiveZ:
+			OutRayDirection = -IterObj->GetUpVector();
+			break;
+		}
+		return true;
 	}
-
-	OutRayOrigin = CacheTargetSceneComponent->GetComponentLocation();
-	switch (RayDirectionType)
-	{
-	case ELGUISceneComponentDirection::PositiveX:
-		OutRayDirection = CacheTargetSceneComponent->GetForwardVector();
-		break;
-	case ELGUISceneComponentDirection::NagtiveX:
-		OutRayDirection = -CacheTargetSceneComponent->GetForwardVector();
-		break;
-	case ELGUISceneComponentDirection::PositiveY:
-		OutRayDirection = CacheTargetSceneComponent->GetRightVector();
-		break;
-	case ELGUISceneComponentDirection::NagtiveY:
-		OutRayDirection = -CacheTargetSceneComponent->GetRightVector();
-		break;
-	case ELGUISceneComponentDirection::PositiveZ:
-		OutRayDirection = CacheTargetSceneComponent->GetUpVector();
-		break;
-	case ELGUISceneComponentDirection::NagtiveZ:
-		OutRayDirection = -CacheTargetSceneComponent->GetUpVector();
-		break;
-	}
-	return true;
+	return false;
 }
 bool ULGUIWorldSpaceRaycasterSource_World::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
-	if (auto IterObj = GetInteractionObject())
+	if (auto IterObj = GetRaycasterObject())
 	{
 		auto calculatedThreshold = IterObj->GetClickThresholdSquare();
 		if (clickThresholdRelateToRayDistance)

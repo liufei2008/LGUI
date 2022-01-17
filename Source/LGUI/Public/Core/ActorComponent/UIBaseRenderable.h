@@ -10,6 +10,41 @@ class UMaterialInterface;
 class ULGUICanvas;
 class UUIDrawcall;
 class UUIRenderableCustomRaycast;
+class UUIBaseRenderable;
+
+/**
+ * This component is only used when UIBaseRenderable's RaycastType = Custom
+ */
+UCLASS(BlueprintType, Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
+class LGUI_API UUIRenderableCustomRaycast :public UObject
+{
+	GENERATED_BODY()
+
+protected:
+	/** Called by owner UIRenderable object when register, use it as initialize */
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "Init"))
+		void ReceiveInit(UUIBaseRenderable* InUIRenderable);
+	/**
+	 * Called by UIBaseRenderable when do raycast hit test.
+	 * @param	InLocalSpaceRayStart	Ray start point in this UI's local space
+	 * @param	InLocalSpaceRayEnd		Ray end point in this UI's local space
+	 * @param	InHitPointOnPlane		Ray-Plane hit point in this UI's local space, relative to UI's pivot point
+	 * @return	true if hit this UI object
+	 */
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "Raycast"))
+		bool ReceiveRaycast(const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, const FVector2D& InHitPointOnPlane);
+public:
+	/** Called by owner UIRenderable object when register, use it as initialize */
+	virtual void Init(UUIBaseRenderable* InUIRenderable);
+	/**
+	 * Called by UIBaseRenderable when do raycast hit test.
+	 * @param	InLocalSpaceRayStart	Ray start point in this UI's local space
+	 * @param	InLocalSpaceRayEnd		Ray end point in this UI's local space
+	 * @param	InHitPointOnPlane		Ray-Plane hit point in this UI's local space, relative to UI's pivot point
+	 * @return	true if hit this UI object
+	 */
+	virtual bool Raycast(const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, const FVector2D& InHitPointOnPlane);
+};
 
 UENUM(BlueprintType, Category = LGUI)
 enum class EUIRenderableType :uint8
@@ -27,7 +62,7 @@ enum class EUIRenderableRaycastType :uint8
 	Rect,
 	/** Hit on actual triangle geometry */
 	Geometry,
-	/** Use a user defined UIRenderableCustomRaycast component to process the raycast hit. Put a UIRenderableCustomRaycast component at this actor and it will work. */
+	/** Use a user defined UIRenderableCustomRaycast to process the raycast hit. */
 	Custom,
 };
 
@@ -60,10 +95,12 @@ protected:
 	/** Only valid if RaycastTarget is true. */
 	UPROPERTY(EditAnywhere, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true"))
 		EUIRenderableRaycastType RaycastType = EUIRenderableRaycastType::Rect;
+	/** Custom raycast object to handle raycast behaviour when LGUI do raycast hit test, Only valid if RaycastTarget is true and RaycastType is Custom. */
+	UPROPERTY(EditAnywhere, Instanced, Category = "LGUI-Raycast", meta = (EditCondition = "bRaycastTarget==true&&RaycastType==EUIRenderableRaycastType::Custom"))
+		UUIRenderableCustomRaycast* CustomRaycastObject;
 
 	bool LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End);
 	bool LineTraceUICustom(FHitResult& OutHit, const FVector& Start, const FVector& End);
-	TWeakObjectPtr<UUIRenderableCustomRaycast> CustomRaycastComponent;
 
     virtual void ApplyUIActiveState(bool InStateChange) override;
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
@@ -85,6 +122,9 @@ public:
 		void SetAlpha(float value);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void SetRaycastType(EUIRenderableRaycastType Value) { RaycastType = Value; }
+	/** Set custom raycast object to handle raycast behaviour, only valid if RaycastType is Custom */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetCustomRaycastObject(UUIRenderableCustomRaycast* Value);
 
 	uint8 GetFinalAlpha()const;
 	float GetFinalAlpha01()const;

@@ -27,19 +27,15 @@ class LGUI_API ULGUIWorldSpaceRaycasterSource_World : public ULGUIWorldSpaceRayc
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(Transient) TWeakObjectPtr<USceneComponent> CacheTargetSceneComponent = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		ELGUISceneComponentDirection RayDirectionType = ELGUISceneComponentDirection::PositiveX;
 	/** if click/drag threshold relate to line trace distance ? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
 		bool clickThresholdRelateToRayDistance = true;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
-		float rayDistanceMultiply = 0.01f;
+		float rayDistanceMultiply = 0.003f;
 
 public:
-	UFUNCTION(BlueprintCallable, Category = LGUI)void SetTargetSceneComponent(USceneComponent* InSceneComp) { CacheTargetSceneComponent = InSceneComp; }
-	UFUNCTION(BlueprintCallable, Category = LGUI)USceneComponent* GetTargetSceneComponent()const { return CacheTargetSceneComponent.Get(); }
-	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override;
+	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 };

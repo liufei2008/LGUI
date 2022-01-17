@@ -15,6 +15,6 @@ class LGUI_API ULGUIWorldSpaceRaycasterSource_CenterScreen : public ULGUIWorldSp
 	GENERATED_BODY()
 
 public:
-	virtual bool EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override;
+	virtual bool GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)override;
 	virtual bool ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)override;
 };

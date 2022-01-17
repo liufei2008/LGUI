@@ -135,7 +135,7 @@ void ULGUIWorldSpaceRaycasterSource_Mouse::DeprojectViewPointToWorldForMainViewp
 #endif
 
 
-bool ULGUIWorldSpaceRaycasterSource_Mouse::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIWorldSpaceRaycasterSource_Mouse::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 #if BUILD_VP_MATRIX_FROM_CAMERA_MANAGER
 	if (auto pc = GetWorld()->GetFirstPlayerController())
@@ -175,7 +175,7 @@ bool ULGUIWorldSpaceRaycasterSource_Mouse::EmitRay(ULGUIPointerEventData* InPoin
 }
 bool ULGUIWorldSpaceRaycasterSource_Mouse::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
-	if (auto IterObj = GetInteractionObject())
+	if (auto IterObj = GetRaycasterObject())
 	{
 		FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
 		FVector2D pressMousePos = FVector2D(InPointerEventData->pressPointerPosition);

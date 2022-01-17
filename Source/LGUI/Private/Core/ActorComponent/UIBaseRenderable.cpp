@@ -6,7 +6,25 @@
 #include "Utils/LGUIUtils.h"
 #include "GeometryModifier/UIGeometryModifierBase.h"
 #include "Core/ActorComponent/UICanvasGroup.h"
-#include "Core/ActorComponent/UIRenderableCustomRaycast.h"
+
+
+
+void UUIRenderableCustomRaycast::Init(UUIBaseRenderable* InUIRenderable)
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveInit(InUIRenderable);
+	}
+}
+
+bool UUIRenderableCustomRaycast::Raycast(const FVector& InLocalSpaceRayStart, const FVector& InLocalSpaceRayEnd, const FVector2D& InHitPointOnPlane)
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		return ReceiveRaycast(InLocalSpaceRayStart, InLocalSpaceRayEnd, InHitPointOnPlane);
+	}
+	return false;
+}
 
 
 UUIBaseRenderable::UUIBaseRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
@@ -44,6 +62,10 @@ void UUIBaseRenderable::OnRegister()
 void UUIBaseRenderable::OnUnregister()
 {
 	Super::OnUnregister();
+	if (IsValid(CustomRaycastObject))
+	{
+		CustomRaycastObject->Init(this);
+	}
 }
 
 void UUIBaseRenderable::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
@@ -158,14 +180,10 @@ bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitRe
 
 bool UUIBaseRenderable::LineTraceUICustom(FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
-	if (!CustomRaycastComponent.IsValid())
+	if (!IsValid(CustomRaycastObject))
 	{
-		CustomRaycastComponent = GetOwner()->FindComponentByClass<UUIRenderableCustomRaycast>();
-		if (!CustomRaycastComponent.IsValid())
-		{
-			UE_LOG(LGUI, Error, TEXT("[UUIBaseRenderable::LineTraceUIGeometry]EUIRenderableRaycastType::Custom need a UUIRenderableCustomRaycast component on this actor!"));
-			return false;
-		}
+		UE_LOG(LGUI, Error, TEXT("[UUIBaseRenderable::LineTraceUIGeometry]EUIRenderableRaycastType::Custom need a UUIRenderableCustomRaycast component on this actor!"));
+		return false;
 	}
 	auto inverseTf = GetComponentTransform().Inverse();
 	auto localSpaceRayOrigin = inverseTf.TransformPosition(Start);
@@ -174,22 +192,25 @@ bool UUIBaseRenderable::LineTraceUICustom(FHitResult& OutHit, const FVector& Sta
 	if (FMath::Sign(localSpaceRayOrigin.X) != FMath::Sign(localSpaceRayEnd.X))
 	{
 		auto IntersectionPoint = FMath::LinePlaneIntersection(localSpaceRayOrigin, localSpaceRayEnd, FVector::ZeroVector, FVector(1, 0, 0));
-		FVector HitPoint, HitNormal;
-		if (CustomRaycastComponent->OnRaycast(localSpaceRayOrigin, localSpaceRayEnd, FVector2D(IntersectionPoint.Y, IntersectionPoint.Z), HitPoint, HitNormal))
+		//hit point inside rect area
+		if (IntersectionPoint.Y > GetLocalSpaceLeft() && IntersectionPoint.Y < GetLocalSpaceRight() && IntersectionPoint.Z > GetLocalSpaceBottom() && IntersectionPoint.Z < GetLocalSpaceTop())
 		{
-			OutHit.TraceStart = Start;
-			OutHit.TraceEnd = End;
+			if (CustomRaycastObject->Raycast(localSpaceRayOrigin, localSpaceRayEnd, FVector2D(IntersectionPoint.Y, IntersectionPoint.Z)))
+			{
+				OutHit.TraceStart = Start;
+				OutHit.TraceEnd = End;
 #if ENGINE_MAJOR_VERSION < 5
-			OutHit.Actor = GetOwner();
+				OutHit.Actor = GetOwner();
 #endif
-			OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
-			OutHit.Location = GetComponentTransform().TransformPosition(HitPoint);
-			OutHit.Normal = GetComponentTransform().TransformVector(HitNormal);
-			OutHit.Normal.Normalize();
-			OutHit.Distance = FVector::Distance(Start, OutHit.Location);
-			OutHit.ImpactPoint = OutHit.Location;
-			OutHit.ImpactNormal = OutHit.Normal;
-			return true;
+				OutHit.Component = (UPrimitiveComponent*)this;//acturally this convert is incorrect, but I need this pointer
+				OutHit.Location = GetComponentTransform().TransformPosition(IntersectionPoint);
+				OutHit.Normal = GetComponentTransform().TransformVector(FVector(-1, 0, 0));
+				OutHit.Normal.Normalize();
+				OutHit.Distance = FVector::Distance(Start, OutHit.Location);
+				OutHit.ImpactPoint = OutHit.Location;
+				OutHit.ImpactNormal = OutHit.Normal;
+				return true;
+			}
 		}
 	}
 	return false;
@@ -212,6 +233,11 @@ void UUIBaseRenderable::SetAlpha(float value)
 		MarkColorDirty();
 		Color.A = uintAlpha;
 	}
+}
+
+void UUIBaseRenderable::SetCustomRaycastObject(UUIRenderableCustomRaycast* Value)
+{
+	CustomRaycastObject = Value;
 }
 
 FColor UUIBaseRenderable::GetFinalColor()const

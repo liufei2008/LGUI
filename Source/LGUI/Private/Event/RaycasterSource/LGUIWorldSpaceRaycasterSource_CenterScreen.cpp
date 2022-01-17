@@ -5,7 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "SceneView.h"
 
-bool ULGUIWorldSpaceRaycasterSource_CenterScreen::EmitRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
+bool ULGUIWorldSpaceRaycasterSource_CenterScreen::GenerateRay(ULGUIPointerEventData* InPointerEventData, FVector& OutRayOrigin, FVector& OutRayDirection)
 {
 	if (auto playerController = this->GetWorld()->GetFirstPlayerController())
 	{
@@ -30,7 +30,7 @@ bool ULGUIWorldSpaceRaycasterSource_CenterScreen::EmitRay(ULGUIPointerEventData*
 }
 bool ULGUIWorldSpaceRaycasterSource_CenterScreen::ShouldStartDrag(ULGUIPointerEventData* InPointerEventData)
 {
-	if (auto IterObj = GetInteractionObject())
+	if (auto IterObj = GetRaycasterObject())
 	{
 		FVector2D mousePos = FVector2D(InPointerEventData->pointerPosition);
 		FVector2D pressMousePos = FVector2D(InPointerEventData->pressPointerPosition);
