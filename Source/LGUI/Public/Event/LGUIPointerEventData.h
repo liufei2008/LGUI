@@ -126,10 +126,10 @@ public:
 	bool prevIsTriggerPressed = false;
 
 	virtual FString ToString()const override;
-	/** Use a line-plane intersection to get world point. The plane is pressComponent's z-axis plane. */
+	/** Use a line-plane intersection to get world point. The plane is pressComponent's x-axis plane. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 
 		FVector GetWorldPointInPlane()const;
-	/** Use a line-plane intersection to get world point, and convert to pressComponent's local space. The plane is pressComponent's z-axis plane.  */
+	/** Use a line-plane intersection to get world point, and convert to pressComponent's local space. The plane is pressComponent's x-axis plane.  */
 	UFUNCTION(BlueprintCallable, Category = "LGUI") 
 		FVector GetLocalPointInPlane()const;
 	/** Use (ray direction) * (press line distance) + (ray origin) to calculated world point, so the result is a sphere with (ray origin) as center point. */

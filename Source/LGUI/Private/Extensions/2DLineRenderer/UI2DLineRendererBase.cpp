@@ -90,7 +90,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	FVector2D pos0, pos1;
 	float lineLeftWidth = LineWidth * LineWidthOffset;
 	float lineRightWidth = LineWidth * (1.0f - LineWidthOffset);
-	FVector2D prevLineDir = CacheStartPointDirection;
+	FVector2D prevLineDir = FVector2D(1, 0);
 	
 	if (CanConnectStartEndPoint(pointCount))
 	{
@@ -115,11 +115,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 			v0to1.ToDirectionAndLength(dir, magnitude);
 			if (magnitude < KINDA_SMALL_NUMBER)//the two points are too close
 			{
-				dir = CacheStartPointDirection;
-			}
-			else
-			{
-				CacheStartPointDirection = dir;
+				dir = FVector2D(1, 0);
 			}
 		}
 		prevLineDir = dir;

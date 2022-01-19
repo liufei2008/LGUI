@@ -17,11 +17,13 @@ namespace LGUIPrefabSystem3
 
 	TMap<UObject*, TArray<uint8>> ActorSerializer3::SaveOverrideParameterToData(TArray<FLGUIPrefabOverrideParameterData> InData)
 	{
+		this->bIsEditorOrRuntime = true;
+		this->bUseDeltaSerialization = false;
 		TMap<UObject*, TArray<uint8>> MapObjectToOverrideDatas;
 		for (auto& DataItem : InData)
 		{
 			TArray<uint8> ObjectOverrideData;
-			FLGUIImmediateOverrideParameterObjectWriter Writer(DataItem.Object.Get(), ObjectOverrideData, DataItem.MemberPropertyName);
+			FLGUIImmediateOverrideParameterObjectWriter Writer(DataItem.Object.Get(), ObjectOverrideData, *this, DataItem.MemberPropertyName);
 			MapObjectToOverrideDatas.Add(DataItem.Object.Get(), ObjectOverrideData);
 		}
 		return MapObjectToOverrideDatas;
@@ -29,6 +31,8 @@ namespace LGUIPrefabSystem3
 
 	void ActorSerializer3::RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, TArray<FLGUIPrefabOverrideParameterData> InNameSetData)
 	{
+		this->bIsEditorOrRuntime = true;
+		this->bUseDeltaSerialization = false;
 		for (auto& KeyValue : InData)
 		{
 			if (IsValid(KeyValue.Key))
@@ -38,7 +42,7 @@ namespace LGUIPrefabSystem3
 					});
 				if (Index != INDEX_NONE)
 				{
-					FLGUIImmediateOverrideParameterObjectReader Reader(KeyValue.Key, KeyValue.Value, InNameSetData[Index].MemberPropertyName);
+					FLGUIImmediateOverrideParameterObjectReader Reader(KeyValue.Key, KeyValue.Value, *this, InNameSetData[Index].MemberPropertyName);
 				}
 			}
 		}

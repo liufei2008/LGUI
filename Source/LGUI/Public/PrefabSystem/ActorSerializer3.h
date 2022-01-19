@@ -185,6 +185,7 @@ namespace LGUIPrefabSystem3
 
 		TMap<UObject*, TArray<uint8>> SaveOverrideParameterToData(TArray<FLGUIPrefabOverrideParameterData> InData);
 		void RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, TArray<FLGUIPrefabOverrideParameterData> InNameSetData);
+		void SetupArchive(FArchive& InArchive);
 	private:
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
@@ -267,7 +268,5 @@ namespace LGUIPrefabSystem3
 		TFunction<void(UObject*, TArray<uint8>&, const TSet<FName>&)> WriterOrReaderFunctionForSubPrefab = nullptr;
 		//duplicate actor
 		AActor* SerializeActor_ForDuplicate(AActor* RootActor, USceneComponent* Parent);
-
-		void SetupArchive(FArchive& InArchive);
 	};
 }

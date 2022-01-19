@@ -77,12 +77,12 @@ bool ULGUIBaseRaycaster::RaycastUI(ULGUIPointerEventData* InPointerEventData, FV
 				if (ShouldSkipUIItem(uiItem.Get()))continue;
 
 				FHitResult thisHit;
-				if (uiItem->IsRegistered()
+				if (
+					uiItem->IsRaycastTarget()
+					&& uiItem->IsGroupAllowInteraction()
 					&& uiItem->GetTraceChannel() == traceChannel
-					&& uiItem->IsRaycastTarget()
 					&& uiItem->GetIsUIActiveInHierarchy()
 					&& uiItem->GetRenderCanvas() != nullptr
-					&& uiItem->IsGroupAllowInteraction()
 					&& uiItem->LineTraceUI(thisHit, OutRayOrigin, OutRayEnd)
 					)
 				{

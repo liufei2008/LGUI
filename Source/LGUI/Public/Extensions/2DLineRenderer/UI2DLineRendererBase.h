@@ -71,9 +71,6 @@ protected:
 	FORCEINLINE bool CanConnectStartEndPoint(int InPointCount) { return EndType == EUI2DLineRenderer_EndType::ConnectStartAndEnd && InPointCount >= 3; }
 	void Update2DLineRendererBaseUV(const TArray<FVector2D>& InPointArray);
 	void Update2DLineRendererBaseVertex(const TArray<FVector2D>& InPointArray);
-
-	//for start point when grow value == 0, that means not possible to calculate direction because two points are too close.
-	FVector2D CacheStartPointDirection = FVector2D(1, 0);
 public:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		float GetLineWidth()const { return LineWidth; }

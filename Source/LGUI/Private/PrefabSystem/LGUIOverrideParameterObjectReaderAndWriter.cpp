@@ -300,12 +300,14 @@ namespace LGUIPrefabSystem3
 
 
 
-	FLGUIImmediateOverrideParameterObjectWriter::FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, const TSet<FName>& InOverridePropertyNames)
+	FLGUIImmediateOverrideParameterObjectWriter::FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& Serializer, const TSet<FName>& InOverridePropertyNames)
 		: FObjectWriter(Bytes)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
 		SetIsLoading(false);
 		SetIsSaving(true);
+
+		Serializer.SetupArchive(*this);
 
 		Object->Serialize(*this);
 	}
@@ -339,12 +341,14 @@ namespace LGUIPrefabSystem3
 	}
 
 
-	FLGUIImmediateOverrideParameterObjectReader::FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, const TSet<FName>& InOverridePropertyNames)
+	FLGUIImmediateOverrideParameterObjectReader::FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& Serializer, const TSet<FName>& InOverridePropertyNames)
 		: FObjectReader(Bytes)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
 		SetIsLoading(true);
 		SetIsSaving(false);
+
+		Serializer.SetupArchive(*this);
 
 		Object->Serialize(*this);
 	}

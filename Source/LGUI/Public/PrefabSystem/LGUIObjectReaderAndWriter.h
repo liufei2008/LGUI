@@ -166,7 +166,7 @@ namespace LGUIPrefabSystem3
 	class FLGUIImmediateOverrideParameterObjectWriter : public FObjectWriter
 	{
 	public:
-		FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, const TSet<FName>& InOverridePropertyNames);
+		FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;
@@ -176,7 +176,7 @@ namespace LGUIPrefabSystem3
 	class FLGUIImmediateOverrideParameterObjectReader : public FObjectReader
 	{
 	public:
-		FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, const TSet<FName>& InOverridePropertyNames);
+		FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FString GetArchiveName() const override;
