@@ -19,40 +19,6 @@ void ULGUIPrefabHelperObject::PostInitProperties()
 }
 
 #if WITH_EDITOR
-void ULGUIPrefabHelperObject::RevertPrefab()
-{
-	if (IsValid(PrefabAsset))
-	{
-		USceneComponent* OldParent = nullptr;
-		//store root transform
-		if (IsValid(LoadedRootActor))
-		{
-			OldParent = LoadedRootActor->GetAttachParentActor() != nullptr ? LoadedRootActor->GetAttachParentActor()->GetRootComponent() : nullptr;
-		}
-		//collect current children
-		TArray<AActor*> ChildrenActors;
-		LGUIUtils::CollectChildrenActors(LoadedRootActor, ChildrenActors);
-		//Revert exsiting objects with parameters inside prefab
-		{
-			LoadedRootActor = nullptr;
-			LoadPrefab(this->GetWorld(), OldParent);
-		}
-		//delete extra actors
-		for (auto& OldChild : ChildrenActors)
-		{
-			if (!AllLoadedActorArray.Contains(OldChild))
-			{
-				LGUIUtils::DestroyActorWithHierarchy(OldChild, false);
-			}
-		}
-
-		ULGUIEditorManagerObject::RefreshAllUI();
-	}
-	else
-	{
-		UE_LOG(LGUI, Error, TEXT("PrefabAsset is null, please create a LGUIPrefab asset and assign to PrefabAsset"));
-	}
-}
 
 void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InParent)
 {
@@ -63,6 +29,7 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 			, InParent
 			, MapGuidToObject, SubPrefabMap
 		);
+
 		if (LoadedRootActor == nullptr)return;
 		//remove extra objects
 		TSet<FGuid> ObjectsToIgnore;
@@ -73,7 +40,7 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 				ObjectsToIgnore.Add(KeyValue.Key);
 			}
 		}
-		for (auto ObjectGuid : ObjectsToIgnore)
+		for (auto& ObjectGuid : ObjectsToIgnore)
 		{
 			MapGuidToObject.Remove(ObjectGuid);
 		}

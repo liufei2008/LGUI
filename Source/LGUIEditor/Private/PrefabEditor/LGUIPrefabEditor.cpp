@@ -141,7 +141,7 @@ bool FLGUIPrefabEditor::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
 				}
 			}
 
-			//Because prefab serailize with delta, so if use InSubPrefab then default value will not be set in parent prefab. So we need to make a agent prefab with fully serialized properties include default value.
+			//Because prefab serailize with delta, so if use prefab's default serialized data then default value will not be set in parent prefab. So we need to make a agent prefab with fully serialized properties include default value.
 			auto AgentSubPrefab = InSubPrefab->MakeAgentFullSerializedPrefab();
 			TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
 			AgentSubPrefab->LoadPrefabWithExistingObjects(GetPreviewScene().GetWorld()
@@ -275,6 +275,28 @@ FLGUISubPrefabData FLGUIPrefabEditor::GetSubPrefabDataForActor(AActor* InSubPref
 
 //@todo: cleanup these revert and apply code. is undo good?
 #pragma region RevertAndApply
+void FLGUIPrefabEditor::CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject)
+{
+	if (InObject == PrefabHelperObject->LoadedRootActor->GetRootComponent())//if is prefab's root component
+	{
+		auto InObjectUIItem = Cast<UUIItem>(InObject);
+		auto OriginObjectUIItem = Cast<UUIItem>(OriginObject);
+		if (InObjectUIItem != nullptr && OriginObjectUIItem != nullptr)//if is UI item, we need to copy parent's property to origin object's parent property, to make anchor & location calculation right
+		{
+			auto InObjectParent = InObjectUIItem->GetParentUIItem();
+			auto OriginObjectParent = OriginObjectUIItem->GetParentUIItem();
+			//copy relative location
+			auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
+			RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+			LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
+			//copy anchor data
+			auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
+			AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+			LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
+		}
+	}
+}
+
 void FLGUIPrefabEditor::RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
 {
 	GEditor->BeginTransaction(FText::Format(LOCTEXT("RevertPrefabOnObjectProperties", "Revert Prefab Override: {0}"), FText::FromString(InObject->GetName())));
@@ -303,7 +325,8 @@ void FLGUIPrefabEditor::RevertPrefabOverride(UObject* InObject, const TSet<FName
 	}
 	FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
 	auto OriginObject = SubPrefabHelperObject->MapGuidToObject[ObjectGuidInSubPrefab];
-	
+	CopyRootObjectParentAnchorData(InObject, OriginObject);
+
 	bCanCollectProperty = false;
 	{
 		for (auto& PropertyName : InPropertyNameSet)
@@ -350,6 +373,7 @@ void FLGUIPrefabEditor::RevertPrefabOverride(UObject* InObject, FName InProperty
 	}
 	FGuid ObjectGuidInSubPrefab = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab[ObjectGuid];
 	auto OriginObject = SubPrefabHelperObject->MapGuidToObject[ObjectGuidInSubPrefab];
+	CopyRootObjectParentAnchorData(InObject, OriginObject);
 
 	bCanCollectProperty = false;
 	{
@@ -416,6 +440,8 @@ void FLGUIPrefabEditor::RevertAllPrefabOverride(AActor* InSubPrefabRootActor)
 				}
 			}
 			auto OriginObject = FindOriginObjectInSourcePrefab(SourceObject);
+			CopyRootObjectParentAnchorData(SourceObject, OriginObject);
+
 			TSet<FName> NamesToClear;
 			for (auto& PropertyName : DataItem.MemberPropertyName)
 			{
@@ -1254,6 +1280,7 @@ void FLGUIPrefabEditor::OnLevelActorAttached(AActor* Actor, const AActor* Attach
 {
 	if (!bCanNotifyDetachment)return;
 	if (Actor->GetWorld() != GetWorld())return;
+	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
 
 	if (AttachmentActor.Actor == Actor)
 	{
@@ -1280,6 +1307,7 @@ void FLGUIPrefabEditor::OnLevelActorDetached(AActor* Actor, const AActor* Detach
 {
 	if (!bCanNotifyDetachment)return;
 	if (Actor->GetWorld() != GetWorld())return;
+	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
 
 	AttachmentActor.Actor = Actor;
 	AttachmentActor.AttachTo = nullptr;
@@ -1463,12 +1491,12 @@ void FLGUIPrefabEditor::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InA
 	//mark AnchorData, RelativeLocation to default override parameter
 	auto RootComp = InActor->GetRootComponent();
 	auto RootUIComp = Cast<UUIItem>(RootComp);
+	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, USceneComponent::GetRelativeLocationPropertyName());
 	if (RootUIComp)
 	{
 		PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootUIComp, UUIItem::GetHierarchyIndexPropertyName());
 		PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootUIComp, UUIItem::GetAnchorDataPropertyName());
 	}
-	PrefabHelperObject->AddMemberPropertyToSubPrefab(InActor, RootComp, USceneComponent::GetRelativeLocationPropertyName());
 
 	bAnythingDirty = true;
 	if (InApplyChanges)

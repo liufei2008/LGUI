@@ -624,7 +624,7 @@ bool FLGUIEditorModule::CanCreateActor()
 		}
 		else
 		{
-			return true;
+			return false;
 		}
 	}
 	return true;

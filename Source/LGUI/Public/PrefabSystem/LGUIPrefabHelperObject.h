@@ -43,7 +43,6 @@ public:
 #endif
 
 #if WITH_EDITOR
-	void RevertPrefab();
 	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
 
 	virtual void BeginDestroy()override;

@@ -148,6 +148,8 @@ public:
 	bool IsPrefabBelongsToThisSubPrefab(ULGUIPrefab* InPrefab, bool InRecursive);
 private:
 #if WITH_EDITOR
+	TWeakObjectPtr<AActor> ContainerActor;//container actor for UI or common actor
+	AActor* GetContainerActor();
 public:
 	void MakeAgentObjectsInPreviewWorld();
 	void ClearAgentObjectsInPreviewWorld();

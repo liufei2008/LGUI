@@ -31,7 +31,7 @@ public:
 	void RevertPrefab();
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;//@todo: auto revert with override parameters
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
 #endif
 #if WITH_EDITOR
 	void AddMemberProperty(UObject* InObject, FName InPropertyName);
@@ -44,6 +44,8 @@ public:
 	void DeleteThisInstance();
 	void MoveActorToPrefabFolder();
 	void CheckPrefabVersion();
+
+	void CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject);
 
 	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);

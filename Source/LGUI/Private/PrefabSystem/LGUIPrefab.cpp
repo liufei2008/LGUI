@@ -7,6 +7,8 @@
 #include "Utils/LGUIUtils.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
+#include "Core/Actor/UIBaseActor.h"
+#include "Core/Actor/UIContainerActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefab"
 
@@ -131,6 +133,26 @@ ULGUIPrefab::ULGUIPrefab()
 
 }
 #if WITH_EDITOR
+AActor* ULGUIPrefab::GetContainerActor()
+{
+	if (ContainerActor.IsValid())return ContainerActor.Get();
+	auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
+	if (ReferenceClassList.Num() > 0 && ReferenceClassList[0]->IsChildOf(AUIBaseActor::StaticClass()))
+	{
+		auto RootUICanvasActor = (AUIContainerActor*)(World->SpawnActor<AActor>(AUIContainerActor::StaticClass(), FTransform::Identity));
+		RootUICanvasActor->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(FVector::ZeroVector, FRotator(0, 0, 0));
+
+		RootUICanvasActor->GetUIItem()->SetWidth(1920);
+		RootUICanvasActor->GetUIItem()->SetHeight(1080);
+		ContainerActor = RootUICanvasActor;
+	}
+	else
+	{
+		auto RootUICanvasActor = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity);
+		ContainerActor = RootUICanvasActor;
+	}
+	return ContainerActor.Get();
+}
 void ULGUIPrefab::RefreshAgentObjectsInPreviewWorld()
 {
 	ClearAgentObjectsInPreviewWorld();
@@ -149,7 +171,7 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 		if (!IsValid(PrefabHelperObject->LoadedRootActor))
 		{
 			auto World = ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage();
-			PrefabHelperObject->LoadPrefab(World, nullptr);
+			PrefabHelperObject->LoadPrefab(World, GetContainerActor()->GetRootComponent());
 		}
 	}
 }

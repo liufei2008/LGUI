@@ -151,7 +151,71 @@ TArray<FColor> ALGUIPrefabHelperActor::AllColors;
 void ALGUIPrefabHelperActor::RevertPrefab()
 {
 	bCanNotifyDetachment = false;
-	PrefabHelperObject->RevertPrefab();//@todo: revert in level editor could have a issue: property with default value could be ignored
+	
+	if (IsValid(PrefabHelperObject->PrefabAsset))
+	{
+		USceneComponent* OldParent = nullptr;
+		if (IsValid(PrefabHelperObject->LoadedRootActor))
+		{
+			OldParent = PrefabHelperObject->LoadedRootActor->GetAttachParentActor() != nullptr ? PrefabHelperObject->LoadedRootActor->GetAttachParentActor()->GetRootComponent() : nullptr;
+		}
+		//collect current children
+		TArray<AActor*> ChildrenActors;
+		LGUIUtils::CollectChildrenActors(PrefabHelperObject->LoadedRootActor, ChildrenActors);
+
+		//Because prefab serailize with delta, so if use prefab's default serialized data then default value will not be set in parent prefab. So we need to make a agent prefab with fully serialized properties include default value.
+		auto AgentSubPrefab = PrefabHelperObject->PrefabAsset->MakeAgentFullSerializedPrefab();
+		TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
+		AgentSubPrefab->LoadPrefabWithExistingObjects(this->GetWorld()
+			, OldParent
+			, PrefabHelperObject->MapGuidToObject, SubSubPrefabMap
+			, false
+		);
+		AgentSubPrefab->ConditionalBeginDestroy();
+
+		//remove extra objects
+		TSet<FGuid> ObjectsToIgnore;
+		for (auto KeyValue : PrefabHelperObject->MapGuidToObject)
+		{
+			if (!PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject.Contains(KeyValue.Key))//Prefab's agent object is clean, so compare with it
+			{
+				ObjectsToIgnore.Add(KeyValue.Key);
+			}
+		}
+		for (auto& ObjectGuid : ObjectsToIgnore)
+		{
+			PrefabHelperObject->MapGuidToObject.Remove(ObjectGuid);
+		}
+		PrefabHelperObject->AllLoadedActorArray.Empty();
+		for (auto KeyValue : PrefabHelperObject->MapGuidToObject)
+		{
+			if (auto Actor = Cast<AActor>(KeyValue.Value))
+			{
+				PrefabHelperObject->AllLoadedActorArray.Add(Actor);
+			}
+		}
+
+		PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
+
+		//delete extra actors
+		for (auto& OldChild : ChildrenActors)
+		{
+			if (!PrefabHelperObject->AllLoadedActorArray.Contains(OldChild))
+			{
+				LGUIUtils::DestroyActorWithHierarchy(OldChild, false);
+			}
+		}
+
+		ULGUIEditorManagerObject::RefreshAllUI();
+
+		//mark package dirty
+		this->MarkPackageDirty();
+	}
+	else
+	{
+		UE_LOG(LGUI, Error, TEXT("PrefabAsset is null, please create a LGUIPrefab asset and assign to PrefabAsset"));
+	}
+
 	bCanNotifyDetachment = true;
 }
 
@@ -314,17 +378,22 @@ void ALGUIPrefabHelperActor::TryCollectPropertyToOverride(UObject* InObject, FPr
 			auto Property = FindFProperty<FProperty>(InObject->GetClass(), PropertyName);
 			if (Property != nullptr)
 			{
-				AddMemberProperty(InObject, PropertyName);
 				if (auto UIItem = Cast<UUIItem>(InObject))
 				{
 					if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())//if UI's relative location change, then record anchor data too
 					{
+						AddMemberProperty(InObject, PropertyName);
 						AddMemberProperty(InObject, UUIItem::GetAnchorDataPropertyName());
 					}
 					else if (PropertyName == UUIItem::GetAnchorDataPropertyName())//if UI's anchor data change, then record relative location too
 					{
 						AddMemberProperty(InObject, USceneComponent::GetRelativeLocationPropertyName());
+						AddMemberProperty(InObject, PropertyName);
 					}
+				}
+				else
+				{
+					AddMemberProperty(InObject, PropertyName);
 				}
 			}
 		}
@@ -335,6 +404,7 @@ void ALGUIPrefabHelperActor::OnLevelActorAttached(AActor* Actor, const AActor* A
 {
 	if (!bCanNotifyDetachment)return;
 	if (Actor->GetWorld() != GetWorld())return;
+	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
 
 	if (AttachmentActor.Actor == Actor)
 	{
@@ -361,6 +431,7 @@ void ALGUIPrefabHelperActor::OnLevelActorDetached(AActor* Actor, const AActor* D
 {
 	if (!bCanNotifyDetachment)return;
 	if (Actor->GetWorld() != GetWorld())return;
+	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
 
 	AttachmentActor.Actor = Actor;
 	AttachmentActor.AttachTo = nullptr;
@@ -454,12 +525,10 @@ void ALGUIPrefabHelperActor::OnNewVersionRevertPrefabClicked()
 		LGUIPrefabSystem3::ActorSerializer3 serailizer;
 		auto OverrideData = serailizer.SaveOverrideParameterToData(ObjectOverrideParameterArray);
 
-		PrefabHelperObject->RevertPrefab();
+		RevertPrefab();
 
 		//apply override parameter. 
 		serailizer.RestoreOverrideParameterFromData(OverrideData, ObjectOverrideParameterArray);
-		//mark package dirty
-		this->MarkPackageDirty();
 	}
 	NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 	NewVersionPrefabNotification.Pin()->ExpireAndFadeout();
@@ -470,6 +539,28 @@ void ALGUIPrefabHelperActor::OnNewVersionDismissClicked()
 	NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 	NewVersionPrefabNotification.Pin()->ExpireAndFadeout();
 	NewVersionPrefabNotification = nullptr;
+}
+
+void ALGUIPrefabHelperActor::CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject)
+{
+	if (InObject == PrefabHelperObject->LoadedRootActor->GetRootComponent())//if is prefab's root component
+	{
+		auto InObjectUIItem = Cast<UUIItem>(InObject);
+		auto OriginObjectUIItem = Cast<UUIItem>(OriginObject);
+		if (InObjectUIItem != nullptr && OriginObjectUIItem != nullptr)//if is UI item, we need to copy parent's property to origin object's parent property, to make anchor & location calculation right
+		{
+			auto InObjectParent = InObjectUIItem->GetParentUIItem();
+			auto OriginObjectParent = OriginObjectUIItem->GetParentUIItem();
+			//copy relative location
+			auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
+			RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+			LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
+			//copy anchor data
+			auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
+			AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+			LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
+		}
+	}
 }
 
 void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
@@ -496,6 +587,7 @@ void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, const TSet<
 		}
 	}
 	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
+	CopyRootObjectParentAnchorData(InObject, OriginObject);
 
 	bCanCollectProperty = false;
 	{
@@ -509,7 +601,14 @@ void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, const TSet<
 				this->RemoveMemberProperty(InObject, PropertyName);
 				//notify
 				LGUIUtils::NotifyPropertyChanged(InObject, Property);
-
+				//for relative location property, should notify AnchorData too, or anchor will be set by relative location which maybe not correct
+				if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())
+				{
+					if (auto UISourceObject = Cast<UUIItem>(InObject))
+					{
+						LGUIUtils::NotifyPropertyChanged(InObject, UUIItem::GetAnchorDataPropertyName());
+					}
+				}
 				bAnythingDirty = true;
 			}
 		}
@@ -538,6 +637,7 @@ void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, FName InPro
 		}
 	}
 	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
+	CopyRootObjectParentAnchorData(InObject, OriginObject);
 
 	bCanCollectProperty = false;
 	{
@@ -553,6 +653,14 @@ void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, FName InPro
 			this->RemoveMemberProperty(InObject, InPropertyName);
 			//notify
 			LGUIUtils::NotifyPropertyChanged(InObject, Property);
+			//for relative location property, should notify AnchorData too, or anchor will be set by relative location which maybe not correct
+			if (InPropertyName == USceneComponent::GetRelativeLocationPropertyName())
+			{
+				if (auto UISourceObject = Cast<UUIItem>(InObject))
+				{
+					LGUIUtils::NotifyPropertyChanged(InObject, UUIItem::GetAnchorDataPropertyName());
+				}
+			}
 			bAnythingDirty = true;
 		}
 
@@ -597,6 +705,8 @@ void ALGUIPrefabHelperActor::RevertAllPrefabOverride()
 				}
 			}
 			auto OriginObject = FindOriginObjectInSourcePrefab(SourceObject);
+			CopyRootObjectParentAnchorData(SourceObject, OriginObject);
+
 			TSet<FName> NamesToClear;
 			for (auto& PropertyName : DataItem.MemberPropertyName)
 			{
@@ -608,6 +718,14 @@ void ALGUIPrefabHelperActor::RevertAllPrefabOverride()
 					Property->CopyCompleteValue_InContainer(SourceObject, OriginObject);
 					//notify
 					LGUIUtils::NotifyPropertyChanged(SourceObject, Property);
+					//for relative location property, should notify AnchorData too, or anchor will be set by relative location which maybe not correct
+					if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())
+					{
+						if (auto UISourceObject = Cast<UUIItem>(SourceObject))
+						{
+							LGUIUtils::NotifyPropertyChanged(SourceObject, UUIItem::GetAnchorDataPropertyName());
+						}
+					}
 				}
 			}
 			for (auto& PropertyName : NamesToClear)

@@ -81,6 +81,8 @@ public:
 	bool ActorIsSubPrefabRoot(AActor* InSubPrefabRootActor);
 	FLGUISubPrefabData GetSubPrefabDataForActor(AActor* InSubPrefabActor);
 
+	void CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject);
+
 	/** Clear properties in Object, and reset to prefab's default. */
 	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	/** Clear specific override property in object, and reset to prefab's default */
