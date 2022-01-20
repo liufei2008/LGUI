@@ -59,54 +59,13 @@ void ALGUIPrefabHelperActor::PostInitProperties()
 
 void ALGUIPrefabHelperActor::OnConstruction(const FTransform& Transform)
 {
-#if WITH_EDITORONLY_DATA
-	if (AllColors.Num() == 0)
-	{
-		int ColorCount = 10;
-		float Interval = 1.0f / ColorCount;
-		float StartHue01 = 0;
-		for (int i = 0; i < ColorCount; i++)
-		{
-			auto Hue = (uint8)(StartHue01 * 255);
-			auto Color1 = FLinearColor::MakeFromHSV8(Hue, 255, 255).ToFColor(false);
-			AllColors.Add(Color1);
-			auto Color2 = FLinearColor::MakeFromHSV8(Hue, 255, 128).ToFColor(false);
-			AllColors.Add(Color2);
-			StartHue01 += Interval;
-		}
-	}
-
-	{
-		if (AllColors.Num() == 0)
-		{
-			IdentityColor = FColor::MakeRandomColor();
-			IsRandomColor = true;
-		}
-		else
-		{
-			int RandomIndex = FMath::RandRange(0, AllColors.Num() - 1);
-			IdentityColor = AllColors[RandomIndex];
-			AllColors.RemoveAt(RandomIndex);
-			IsRandomColor = false;
-		}
-	}
-#endif
+	Super::OnConstruction(Transform);
 }
 
 void ALGUIPrefabHelperActor::Destroyed()
 {
 	Super::Destroyed();
 #if WITH_EDITORONLY_DATA
-	{
-		if (!IsRandomColor)
-		{
-			if (!AllColors.Contains(IdentityColor))
-			{
-				AllColors.Add(IdentityColor);
-			}
-		}
-	}
-
 	bCanNotifyDetachment = false;
 	if (AutoDestroyLoadedActors)
 	{
@@ -124,16 +83,6 @@ void ALGUIPrefabHelperActor::BeginDestroy()
 {
 	Super::BeginDestroy();
 #if WITH_EDITORONLY_DATA
-	{
-		if (!IsRandomColor)
-		{
-			if (!AllColors.Contains(IdentityColor))
-			{
-				AllColors.Add(IdentityColor);
-			}
-		}
-	}
-
 	bCanNotifyDetachment = false;
 	if (NewVersionPrefabNotification.IsValid())
 	{
@@ -144,7 +93,6 @@ void ALGUIPrefabHelperActor::BeginDestroy()
 
 #if WITH_EDITORONLY_DATA
 FName ALGUIPrefabHelperActor::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
-TArray<FColor> ALGUIPrefabHelperActor::AllColors;
 #endif
 
 #if WITH_EDITOR
@@ -195,7 +143,7 @@ void ALGUIPrefabHelperActor::RevertPrefab()
 			}
 		}
 
-		PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
+		TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
 
 		//delete extra actors
 		for (auto& OldChild : ChildrenActors)
@@ -473,11 +421,13 @@ void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 {
 	PrefabHelperObject->LoadPrefab(this->GetWorld(), InParent);
+	TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
 }
 
 void ALGUIPrefabHelperActor::SavePrefab()
 {
 	PrefabHelperObject->SavePrefab();
+	TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
 }
 
 void ALGUIPrefabHelperActor::DeleteThisInstance()
@@ -490,7 +440,7 @@ void ALGUIPrefabHelperActor::CheckPrefabVersion()
 {
 	if (IsValid(PrefabHelperObject) && PrefabHelperObject->PrefabAsset != nullptr)
 	{
-		if (PrefabHelperObject->TimePointWhenSavePrefab != PrefabHelperObject->PrefabAsset->CreateTime)
+		if (TimePointWhenSavePrefab != PrefabHelperObject->PrefabAsset->CreateTime)
 		{
 			if (NewVersionPrefabNotification.IsValid())
 			{
@@ -515,7 +465,7 @@ void ALGUIPrefabHelperActor::CheckPrefabVersion()
 }
 void ALGUIPrefabHelperActor::OnNewVersionRevertPrefabClicked()
 {
-	if (PrefabHelperObject->TimePointWhenSavePrefab == PrefabHelperObject->PrefabAsset->CreateTime)
+	if (TimePointWhenSavePrefab == PrefabHelperObject->PrefabAsset->CreateTime)
 	{
 		NewVersionPrefabNotification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
 	}
@@ -791,7 +741,7 @@ void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, const TSet<F
 		{
 			PrefabHelperObject->PrefabAsset->Modify();
 			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
-			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->TimePointWhenSavePrefab;
+			TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
 		}
 	}
 	bCanCollectProperty = true;
@@ -840,7 +790,7 @@ void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, FName InProp
 		{
 			PrefabHelperObject->PrefabAsset->Modify();
 			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
-			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->TimePointWhenSavePrefab;
+			TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
 		}
 
 		GEditor->EndTransaction();
@@ -910,7 +860,7 @@ void ALGUIPrefabHelperActor::ApplyAllOverrideToPrefab()
 		{
 			PrefabHelperObject->PrefabAsset->Modify();
 			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
-			PrefabHelperObject->TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->TimePointWhenSavePrefab;
+			TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
 		}
 
 		bAnythingDirty = true;

@@ -37,8 +37,6 @@ public:
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		FDateTime TimePointWhenSavePrefab;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		bool bIsInsidePrefabEditor = true;
 #endif
 

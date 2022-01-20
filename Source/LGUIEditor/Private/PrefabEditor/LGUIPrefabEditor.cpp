@@ -277,22 +277,25 @@ FLGUISubPrefabData FLGUIPrefabEditor::GetSubPrefabDataForActor(AActor* InSubPref
 #pragma region RevertAndApply
 void FLGUIPrefabEditor::CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject)
 {
-	if (InObject == PrefabHelperObject->LoadedRootActor->GetRootComponent())//if is prefab's root component
+	if (auto SceneComp = Cast<USceneComponent>(InObject))
 	{
-		auto InObjectUIItem = Cast<UUIItem>(InObject);
-		auto OriginObjectUIItem = Cast<UUIItem>(OriginObject);
-		if (InObjectUIItem != nullptr && OriginObjectUIItem != nullptr)//if is UI item, we need to copy parent's property to origin object's parent property, to make anchor & location calculation right
+		if (PrefabHelperObject->SubPrefabMap.Contains(SceneComp->GetOwner()))//if is sub prefab's root component
 		{
-			auto InObjectParent = InObjectUIItem->GetParentUIItem();
-			auto OriginObjectParent = OriginObjectUIItem->GetParentUIItem();
-			//copy relative location
-			auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
-			RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
-			LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
-			//copy anchor data
-			auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
-			AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
-			LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
+			auto InObjectUIItem = Cast<UUIItem>(InObject);
+			auto OriginObjectUIItem = Cast<UUIItem>(OriginObject);
+			if (InObjectUIItem != nullptr && OriginObjectUIItem != nullptr)//if is UI item, we need to copy parent's property to origin object's parent property, to make anchor & location calculation right
+			{
+				auto InObjectParent = InObjectUIItem->GetParentUIItem();
+				auto OriginObjectParent = OriginObjectUIItem->GetParentUIItem();
+				//copy relative location
+				auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
+				RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+				LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
+				//copy anchor data
+				auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
+				AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+				LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
+			}
 		}
 	}
 }
@@ -1282,7 +1285,7 @@ void FLGUIPrefabEditor::OnLevelActorAttached(AActor* Actor, const AActor* Attach
 	if (Actor->GetWorld() != GetWorld())return;
 	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
 
-	if (AttachmentActor.Actor == Actor)
+	if (AttachmentActor.Actor == Actor)//Equal to detach actor, no need to add CheckAttachment because already did in detach, so just modify AttachTo
 	{
 		AttachmentActor.AttachTo = (AActor*)AttachTo;
 	}
@@ -1335,8 +1338,11 @@ void FLGUIPrefabEditor::CheckAttachment()
 			AttachementError = EAttachementError::CannotRestructurePrefabInstance;
 		}
 	}
-	if (PrefabHelperObject->IsActorBelongsToSubPrefab(AttachmentActor.DetachFrom)//why use DetachFrom(not Actor)? because Actor is already dettached
+	if (
+		(PrefabHelperObject->IsActorBelongsToSubPrefab(AttachmentActor.DetachFrom)//why use DetachFrom(not Actor)? because Actor is already dettached
 		&& !PrefabHelperObject->SubPrefabMap.Contains(AttachmentActor.Actor))//is sub prefab's children actor
+		|| PrefabHelperObject->IsActorBelongsToSubPrefab(AttachmentActor.AttachTo)//attach to sub prefab
+		)
 	{
 		AttachementError = EAttachementError::CannotRestructurePrefabInstance;
 	}

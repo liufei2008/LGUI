@@ -32,6 +32,8 @@ public:
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		FDateTime TimePointWhenSavePrefab;
 #endif
 #if WITH_EDITOR
 	void AddMemberProperty(UObject* InObject, FName InPropertyName);
@@ -57,10 +59,7 @@ public:
 
 #if WITH_EDITORONLY_DATA
 public:
-	FColor IdentityColor = FColor::Black;
-	bool IsRandomColor = true;
 	bool AutoDestroyLoadedActors = true;
-	static TArray<FColor> AllColors;
 private:
 	static FName PrefabFolderName;
 	TWeakPtr<SNotificationItem> NewVersionPrefabNotification;

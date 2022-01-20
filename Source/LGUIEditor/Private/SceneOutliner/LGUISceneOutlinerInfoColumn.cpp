@@ -647,24 +647,7 @@ namespace LGUISceneOutliner
 	}
 	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const
 	{
-		FColor resultColor = FColor::White;
-		if (AActor* actor = GetActorFromTreeItem(TWeakPtr<SceneOutliner::ITreeItem>(TreeItem)))
-		{
-			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
-			{
-				if (PrefabHelperObject->bIsInsidePrefabEditor)
-				{
-					return FColor::Green;
-				}
-				else
-				{
-					auto OuterActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
-					check(OuterActor != nullptr);
-					return OuterActor->IdentityColor;
-				}
-			}
-		}
-		return FSlateColor(resultColor);
+		return FSlateColor(FColor::Green);
 	}
 
 	AActor* FLGUISceneOutlinerInfoColumn::GetActorFromTreeItem(const TWeakPtr<SceneOutliner::ITreeItem> TreeItem)const

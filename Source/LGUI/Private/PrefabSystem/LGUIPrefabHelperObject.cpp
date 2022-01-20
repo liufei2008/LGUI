@@ -53,7 +53,6 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 			}
 		}
 
-		TimePointWhenSavePrefab = PrefabAsset->CreateTime;
 		ULGUIEditorManagerObject::RefreshAllUI();
 	}
 }
@@ -217,8 +216,6 @@ void ULGUIPrefabHelperObject::SavePrefab()
 			}
 		}
 		PrefabAsset->RefreshAgentObjectsInPreviewWorld();
-
-		TimePointWhenSavePrefab = PrefabAsset->CreateTime;
 	}
 	else
 	{
