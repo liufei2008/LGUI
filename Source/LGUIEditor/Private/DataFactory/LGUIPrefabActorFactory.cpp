@@ -20,6 +20,23 @@ ULGUIPrefabActorFactory::ULGUIPrefabActorFactory()
 
 bool ULGUIPrefabActorFactory::CanCreateActorFrom(const FAssetData& AssetData, FText& OutErrorMsg)
 {
+	bool bCanLoadPrefab = true;
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor != nullptr)
+	{
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+		{
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
+			{
+				bCanLoadPrefab = false;
+			}
+		}
+	}
+	if (!bCanLoadPrefab)
+	{
+		return false;
+	}
+
 	if (AssetData.IsValid() && AssetData.GetClass()->IsChildOf(ULGUIPrefab::StaticClass()))
 	{
 		return true;
@@ -47,17 +64,12 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 
 	auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(InNewActor);
 
-	PrefabActor->PrefabHelperObject->PrefabAsset = Prefab;
+	PrefabActor->PrefabAsset = Prefab;
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (SelectedActor != nullptr && PrefabActor->GetWorld() == SelectedActor->GetWorld())
 	{
-		USceneComponent* ParentComp = nullptr;
-
-		if (IsValid(SelectedActor))
-		{
-			LGUIEditorTools::MakeCurrentLevel(SelectedActor);
-			ParentComp = SelectedActor->GetRootComponent();
-		}
+		LGUIEditorTools::MakeCurrentLevel(SelectedActor);
+		auto ParentComp = SelectedActor->GetRootComponent();
 		PrefabActor->LoadPrefab(ParentComp);
 	}
 	else
@@ -74,7 +86,7 @@ void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)
 		auto Prefab = CastChecked<ULGUIPrefab>(Asset);
 		auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(CDO);
 
-		PrefabActor->PrefabHelperObject->PrefabAsset = Prefab;
+		PrefabActor->PrefabAsset = Prefab;
 	}
 }
 
@@ -82,7 +94,7 @@ UObject* ULGUIPrefabActorFactory::GetAssetFromActorInstance(AActor* ActorInstanc
 {
 	check(ActorInstance->IsA(NewActorClass));
 	auto PrefabActor = CastChecked<ALGUIPrefabHelperActor>(ActorInstance);
-	return PrefabActor->PrefabHelperObject->PrefabAsset;
+	return PrefabActor->PrefabAsset;
 }
 
 #undef LOCTEXT_NAMESPACE

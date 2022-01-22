@@ -22,9 +22,6 @@ class LGUI_API ULGUIPrefabHelperObject : public UObject
 public:	
 	ULGUIPrefabHelperObject();
 
-	virtual void PostInitProperties()override;
-	virtual bool IsEditorOnly() const { return false; }
-
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
@@ -35,16 +32,13 @@ public:
 		TMap<FGuid, UObject*> MapGuidToObject;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		bool bIsInsidePrefabEditor = true;
-#endif
 
 #if WITH_EDITOR
-	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
-
 	virtual void BeginDestroy()override;
-	virtual void PostEditUndo()override;
+	/** Make this prefab as manager object, will register some editor callbacks */
+	void MarkAsManagerObject();
+
+	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
 
 	static void SetActorPropertyInOutliner(AActor* Actor, bool InListed);
 
@@ -57,12 +51,59 @@ public:
 	bool IsActorBelongsToSubPrefab(const AActor* InActor);
 	bool ActorIsSubPrefabRootActor(const AActor* InActor);
 	bool IsActorBelongsToThis(const AActor* InActor, bool InCludeSubPrefab);
+	void ClearInvalidObjectAndGuid();
 	void AddMemberPropertyToSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject);
+	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor);
 	FLGUISubPrefabData GetSubPrefabData(AActor* InSubPrefabActor);
+	AActor* GetSubPrefabRootActor(AActor* InSubPrefabActor);
 	/** For parent prefab. When parent prefab want to apply override parameter to subprefab, but the parameter belongs to subprefab's subprefab, then we need to mark override parameter for subprefab. */
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, FName InPropertyName);
+
+
+	TWeakObjectPtr<AActor> RootAgentActorForPrefabEditor = nullptr;
+	bool IsInsidePrefabEditor() { return RootAgentActorForPrefabEditor.IsValid(); }
+	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, AActor* InSubPrefabRootActor = nullptr);
+
+	void CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject);
+
+	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);
+	void RevertAllPrefabOverride(UObject* InObject);
+	void ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
+	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
+	void ApplyAllOverrideToPrefab(UObject* InObject);
+
+	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject);
+	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);
+	void RemoveSubPrefab(AActor* InPrefabActor);
+	ULGUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);
+	bool GetAnythingDirty()const { return bAnythingDirty; }
+	void SetNothingDirty() { bAnythingDirty = false; }
+private:
+	bool bIsMarkedAsManagerObject = false;
+	bool bAnythingDirty = false;
+	bool bCanCollectProperty = true;
+	bool bCanNotifyDetachment = false;
+
+	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
+	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
+	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty);
+
+	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
+	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
+	void OnLevelActorDeleted(AActor* Actor);
+
+	struct FAttachmentActorStruct
+	{
+		TWeakObjectPtr<AActor> Actor = nullptr;
+		TWeakObjectPtr<AActor> DetachFrom = nullptr;
+		TWeakObjectPtr<AActor> AttachTo = nullptr;
+	};
+	FAttachmentActorStruct AttachmentActor;
+	void CheckAttachment();
+	UWorld* GetPrefabWorld()const;
 #endif
 };

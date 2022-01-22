@@ -165,7 +165,6 @@ void ULGUIPrefab::MakeAgentObjectsInPreviewWorld()
 		if (PrefabHelperObject == nullptr)
 		{
 			PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this, "PrefabHelper");
-			PrefabHelperObject->bIsInsidePrefabEditor = false;
 			PrefabHelperObject->PrefabAsset = this;
 		}
 		if (!IsValid(PrefabHelperObject->LoadedRootActor))
@@ -188,7 +187,6 @@ ULGUIPrefabHelperObject* ULGUIPrefab::GetPrefabHelperObject()
 	if (PrefabHelperObject == nullptr)
 	{
 		PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>(this, "PrefabHelper");
-		PrefabHelperObject->bIsInsidePrefabEditor = false;
 		PrefabHelperObject->PrefabAsset = this;
 	}
 	if (!IsValid(PrefabHelperObject->LoadedRootActor))
@@ -197,61 +195,6 @@ ULGUIPrefabHelperObject* ULGUIPrefab::GetPrefabHelperObject()
 		PrefabHelperObject->LoadPrefab(World, nullptr);
 	}
 	return PrefabHelperObject;
-}
-
-bool ULGUIPrefab::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab)
-{
-	bool AnythingChange = false;
-	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
-	{
-		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
-		{
-			if (KeyValue.Value.PrefabAsset == InSubPrefab)
-			{
-				if (KeyValue.Value.CheckParameters())
-				{
-					AnythingChange = true;
-				}
-			}
-		}
-		if (AnythingChange)
-		{
-			TMap<UObject*, FGuid> MapObjectToGuid;
-			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-			{
-				if (IsValid(KeyValue.Value))
-				{
-					MapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
-				}
-			}
-			TMap<AActor*, FLGUISubPrefabData> TempAgentSubPrefabMap;
-			for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
-			{
-				if (IsValid(KeyValue.Key))
-				{
-					TempAgentSubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
-				}
-			}
-
-			this->SavePrefab(PrefabHelperObject->LoadedRootActor
-				, MapObjectToGuid, TempAgentSubPrefabMap
-			);
-
-			PrefabHelperObject->MapGuidToObject.Empty();
-			for (auto KeyValue : MapObjectToGuid)
-			{
-				PrefabHelperObject->MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
-			}
-			PrefabHelperObject->SubPrefabMap.Empty();
-			for (auto& KeyValue : TempAgentSubPrefabMap)
-			{
-				PrefabHelperObject->SubPrefabMap.Add(KeyValue.Key, KeyValue.Value);
-			}
-
-			this->MarkPackageDirty();
-		}
-	}
-	return AnythingChange;
 }
 
 void ULGUIPrefab::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)

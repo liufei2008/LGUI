@@ -154,8 +154,6 @@ public:
 	void MakeAgentObjectsInPreviewWorld();
 	void ClearAgentObjectsInPreviewWorld();
 	void RefreshAgentObjectsInPreviewWorld();
-	/** Refresh it. Note this will use agent data to serialize, so if the prefab editor is opened for this prefab, then we should not use this function, or modifyed value in prefab editor will lose */
-	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab);
 	ULGUIPrefabHelperObject* GetPrefabHelperObject();
 
 	virtual void BeginCacheForCookedPlatformData(const ITargetPlatform* TargetPlatform)override;

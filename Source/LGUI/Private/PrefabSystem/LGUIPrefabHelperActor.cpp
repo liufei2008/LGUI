@@ -22,12 +22,7 @@ ALGUIPrefabHelperActor::ALGUIPrefabHelperActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	bIsEditorOnlyActor = false;
-
-#if WITH_EDITORONLY_DATA
-	PrefabHelperObject = CreateDefaultSubobject<ULGUIPrefabHelperObject>(TEXT("PrefabHelper"));
-	PrefabHelperObject->bIsInsidePrefabEditor = false;
-#endif
+	bIsEditorOnlyActor = true;
 }
 
 void ALGUIPrefabHelperActor::BeginPlay()
@@ -43,16 +38,16 @@ void ALGUIPrefabHelperActor::PostInitProperties()
 		ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = MakeWeakObjectPtr(this)]{
 			if (Actor.IsValid())
 			{
-				Actor->CheckPrefabVersion();
-
-				GEditor->OnLevelActorAttached().AddUObject(Actor.Get(), &ALGUIPrefabHelperActor::OnLevelActorAttached);
-				GEditor->OnLevelActorDetached().AddUObject(Actor.Get(), &ALGUIPrefabHelperActor::OnLevelActorDetached);
-				Actor->bCanNotifyDetachment = true;
+				if (auto World = Actor->GetWorld())
+				{
+					if (!World->IsGameWorld())
+					{
+						ALGUIPrefabManagerActor::GetPrefabManagerActor(Actor->GetLevel());
+						Actor->CheckPrefabVersion();
+					}
+				}
 			}
 			}, 1);
-
-		FCoreUObjectDelegates::OnObjectPropertyChanged.AddUObject(this, &ALGUIPrefabHelperActor::OnObjectPropertyChanged);
-		FCoreUObjectDelegates::OnPreObjectPropertyChanged.AddUObject(this, &ALGUIPrefabHelperActor::OnPreObjectPropertyChanged);
 	}
 #endif
 }
@@ -66,11 +61,16 @@ void ALGUIPrefabHelperActor::Destroyed()
 {
 	Super::Destroyed();
 #if WITH_EDITORONLY_DATA
-	bCanNotifyDetachment = false;
-	if (AutoDestroyLoadedActors)
+	if (bAutoDestroyLoadedActors)
 	{
-		PrefabHelperObject->ClearLoadedPrefab();
-		PrefabHelperObject->ConditionalBeginDestroy();
+		if (IsValid(LoadedRootActor))
+		{
+			if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
+			{
+				PrefabManagerActor->PrefabHelperObject->RemoveSubPrefab(LoadedRootActor);
+				LGUIUtils::DestroyActorWithHierarchy(LoadedRootActor, true);
+			}
+		}
 	}
 
 	if (NewVersionPrefabNotification.IsValid())
@@ -83,7 +83,6 @@ void ALGUIPrefabHelperActor::BeginDestroy()
 {
 	Super::BeginDestroy();
 #if WITH_EDITORONLY_DATA
-	bCanNotifyDetachment = false;
 	if (NewVersionPrefabNotification.IsValid())
 	{
 		OnNewVersionDismissClicked();
@@ -96,322 +95,6 @@ FName ALGUIPrefabHelperActor::PrefabFolderName(TEXT("--LGUIPrefabActor--"));
 #endif
 
 #if WITH_EDITOR
-void ALGUIPrefabHelperActor::RevertPrefab()
-{
-	bCanNotifyDetachment = false;
-	
-	if (IsValid(PrefabHelperObject->PrefabAsset))
-	{
-		USceneComponent* OldParent = nullptr;
-		if (IsValid(PrefabHelperObject->LoadedRootActor))
-		{
-			OldParent = PrefabHelperObject->LoadedRootActor->GetAttachParentActor() != nullptr ? PrefabHelperObject->LoadedRootActor->GetAttachParentActor()->GetRootComponent() : nullptr;
-		}
-		//collect current children
-		TArray<AActor*> ChildrenActors;
-		LGUIUtils::CollectChildrenActors(PrefabHelperObject->LoadedRootActor, ChildrenActors);
-
-		//Because prefab serailize with delta, so if use prefab's default serialized data then default value will not be set in parent prefab. So we need to make a agent prefab with fully serialized properties include default value.
-		auto AgentSubPrefab = PrefabHelperObject->PrefabAsset->MakeAgentFullSerializedPrefab();
-		TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-		AgentSubPrefab->LoadPrefabWithExistingObjects(this->GetWorld()
-			, OldParent
-			, PrefabHelperObject->MapGuidToObject, SubSubPrefabMap
-			, false
-		);
-		AgentSubPrefab->ConditionalBeginDestroy();
-
-		//remove extra objects
-		TSet<FGuid> ObjectsToIgnore;
-		for (auto KeyValue : PrefabHelperObject->MapGuidToObject)
-		{
-			if (!PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject.Contains(KeyValue.Key))//Prefab's agent object is clean, so compare with it
-			{
-				ObjectsToIgnore.Add(KeyValue.Key);
-			}
-		}
-		for (auto& ObjectGuid : ObjectsToIgnore)
-		{
-			PrefabHelperObject->MapGuidToObject.Remove(ObjectGuid);
-		}
-		PrefabHelperObject->AllLoadedActorArray.Empty();
-		for (auto KeyValue : PrefabHelperObject->MapGuidToObject)
-		{
-			if (auto Actor = Cast<AActor>(KeyValue.Value))
-			{
-				PrefabHelperObject->AllLoadedActorArray.Add(Actor);
-			}
-		}
-
-		TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
-
-		//delete extra actors
-		for (auto& OldChild : ChildrenActors)
-		{
-			if (!PrefabHelperObject->AllLoadedActorArray.Contains(OldChild))
-			{
-				LGUIUtils::DestroyActorWithHierarchy(OldChild, false);
-			}
-		}
-
-		ULGUIEditorManagerObject::RefreshAllUI();
-
-		//mark package dirty
-		this->MarkPackageDirty();
-	}
-	else
-	{
-		UE_LOG(LGUI, Error, TEXT("PrefabAsset is null, please create a LGUIPrefab asset and assign to PrefabAsset"));
-	}
-
-	bCanNotifyDetachment = true;
-}
-
-void ALGUIPrefabHelperActor::AddMemberProperty(UObject* InObject, FName InPropertyName)
-{
-	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
-		return Item.Object == InObject;
-		});
-	if (Index == INDEX_NONE)
-	{
-		FLGUIPrefabOverrideParameterData DataItem;
-		DataItem.Object = InObject;
-		DataItem.MemberPropertyName.Add(InPropertyName);
-		ObjectOverrideParameterArray.Add(DataItem);
-	}
-	else
-	{
-		auto& DataItem = ObjectOverrideParameterArray[Index];
-		if (!DataItem.MemberPropertyName.Contains(InPropertyName))
-		{
-			DataItem.MemberPropertyName.Add(InPropertyName);
-		}
-	}
-	this->MarkPackageDirty();
-}
-void ALGUIPrefabHelperActor::RemoveMemberProperty(UObject* InObject, FName InPropertyName)
-{
-	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
-		return Item.Object == InObject;
-		});
-	if (Index != INDEX_NONE)
-	{
-		auto& DataItem = ObjectOverrideParameterArray[Index];
-		if (DataItem.MemberPropertyName.Contains(InPropertyName))
-		{
-			DataItem.MemberPropertyName.Remove(InPropertyName);
-		}
-		if (DataItem.MemberPropertyName.Num() <= 0)
-		{
-			ObjectOverrideParameterArray.RemoveAt(Index);
-		}
-	}
-	this->MarkPackageDirty();
-}
-
-void ALGUIPrefabHelperActor::RemoveMemberProperty(UObject* InObject)
-{
-	auto Index = ObjectOverrideParameterArray.IndexOfByPredicate([=](const FLGUIPrefabOverrideParameterData& Item) {
-		return Item.Object == InObject;
-		});
-	if (Index != INDEX_NONE)
-	{
-		ObjectOverrideParameterArray.RemoveAt(Index);
-	}
-	this->MarkPackageDirty();
-}
-
-bool ALGUIPrefabHelperActor::CheckParameters()
-{
-	bool AnythingChanged = false;
-	TSet<int> ObjectsNeedToRemove;
-	for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
-	{
-		auto DataItem = ObjectOverrideParameterArray[i];
-		if (!DataItem.Object.IsValid())
-		{
-			ObjectsNeedToRemove.Add(i);
-		}
-		else
-		{
-			TSet<FName> PropertyNamesToRemove;
-			auto Object = DataItem.Object;
-			for (auto PropertyName : DataItem.MemberPropertyName)
-			{
-				auto Property = FindFProperty<FProperty>(Object->GetClass(), PropertyName);
-				if (Property == nullptr)
-				{
-					PropertyNamesToRemove.Add(PropertyName);
-				}
-			}
-			for (auto PropertyName : PropertyNamesToRemove)
-			{
-				DataItem.MemberPropertyName.Remove(PropertyName);
-				AnythingChanged = true;
-			}
-		}
-	}
-	for (auto Index : ObjectsNeedToRemove)
-	{
-		ObjectOverrideParameterArray.RemoveAt(Index);
-		this->MarkPackageDirty();
-		AnythingChanged = true;
-	}
-	return AnythingChanged;
-}
-
-void ALGUIPrefabHelperActor::OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent)
-{
-	if (!IsValid(InObject))return;
-	if (InPropertyChangedEvent.MemberProperty == nullptr || InPropertyChangedEvent.Property == nullptr)return;
-	if (InPropertyChangedEvent.MemberProperty->HasAnyPropertyFlags(CPF_Transient))return;
-	if (InPropertyChangedEvent.Property->HasAnyPropertyFlags(CPF_Transient))return;
-
-	TryCollectPropertyToOverride(InObject, InPropertyChangedEvent.MemberProperty);
-}
-void ALGUIPrefabHelperActor::OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain)
-{
-	if (!IsValid(InObject))return;
-	auto ActiveMemberNode = InEditPropertyChain.GetActiveMemberNode();
-	if (ActiveMemberNode == nullptr)return;
-	auto MemberProperty = ActiveMemberNode->GetValue();
-	if (MemberProperty == nullptr)return;
-	if (MemberProperty->HasAnyPropertyFlags(CPF_Transient))return;
-	auto ActiveNode = InEditPropertyChain.GetActiveNode();
-	if (ActiveNode != ActiveMemberNode)
-	{
-		auto Property = ActiveNode->GetValue();
-		if (Property == nullptr)return;
-		if (Property->HasAnyPropertyFlags(CPF_Transient))return;
-	}
-
-	TryCollectPropertyToOverride(InObject, MemberProperty);
-}
-
-void ALGUIPrefabHelperActor::TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty)
-{
-	if (!bCanCollectProperty)return;
-	if (InObject->GetWorld() == this->GetWorld())
-	{
-		bAnythingDirty = true;
-
-		AActor* PropertyActor = nullptr;
-		if (auto Actor = Cast<AActor>(InObject))
-		{
-			if (auto ObjectProperty = CastField<FObjectPropertyBase>(InMemberProperty))
-			{
-				if (ObjectProperty->PropertyClass->IsChildOf(UActorComponent::StaticClass()))
-				{
-					return;//property change is propergated from ActorComponent to Actor, ignore it
-				}
-			}
-			if (PrefabHelperObject->AllLoadedActorArray.Contains(Actor))
-			{
-				PropertyActor = Actor;
-			}
-		}
-		if (auto Component = Cast<UActorComponent>(InObject))
-		{
-			if (auto Actor = Component->GetOwner())
-			{
-				if (PrefabHelperObject->AllLoadedActorArray.Contains(Actor))
-				{
-					PropertyActor = Actor;
-				}
-			}
-		}
-		if (PropertyActor)//only allow actor or component's member property
-		{
-			auto PropertyName = InMemberProperty->GetFName();
-			auto Property = FindFProperty<FProperty>(InObject->GetClass(), PropertyName);
-			if (Property != nullptr)
-			{
-				if (auto UIItem = Cast<UUIItem>(InObject))
-				{
-					if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())//if UI's relative location change, then record anchor data too
-					{
-						AddMemberProperty(InObject, PropertyName);
-						AddMemberProperty(InObject, UUIItem::GetAnchorDataPropertyName());
-					}
-					else if (PropertyName == UUIItem::GetAnchorDataPropertyName())//if UI's anchor data change, then record relative location too
-					{
-						AddMemberProperty(InObject, USceneComponent::GetRelativeLocationPropertyName());
-						AddMemberProperty(InObject, PropertyName);
-					}
-				}
-				else
-				{
-					AddMemberProperty(InObject, PropertyName);
-				}
-			}
-		}
-	}
-}
-
-void ALGUIPrefabHelperActor::OnLevelActorAttached(AActor* Actor, const AActor* AttachTo)
-{
-	if (!bCanNotifyDetachment)return;
-	if (Actor->GetWorld() != GetWorld())return;
-	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
-
-	if (AttachmentActor.Actor == Actor)
-	{
-		AttachmentActor.AttachTo = (AActor*)AttachTo;
-	}
-	else
-	{
-		if (AttachmentActor.Actor == nullptr)
-		{
-			AttachmentActor.Actor = Actor;
-			AttachmentActor.AttachTo = (AActor*)AttachTo;
-			AttachmentActor.DetachFrom = nullptr;
-			ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
-				CheckAttachment();
-				}, 1);
-		}
-		else
-		{
-			check(0);//why this happed?
-		}
-	}
-}
-void ALGUIPrefabHelperActor::OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom)
-{
-	if (!bCanNotifyDetachment)return;
-	if (Actor->GetWorld() != GetWorld())return;
-	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
-
-	AttachmentActor.Actor = Actor;
-	AttachmentActor.AttachTo = nullptr;
-	AttachmentActor.DetachFrom = (AActor*)DetachFrom;
-
-	ULGUIEditorManagerObject::AddOneShotTickFunction([=]() {
-		CheckAttachment();
-		}, 1);
-}
-
-void ALGUIPrefabHelperActor::CheckAttachment()
-{
-	if (AttachmentActor.Actor == nullptr)return;
-	bool bAttachementError = false;
-	if (PrefabHelperObject->IsActorBelongsToThis(AttachmentActor.Actor, true) && PrefabHelperObject->LoadedRootActor != AttachmentActor.Actor)
-	{
-		bAttachementError = true;
-	}
-	if (PrefabHelperObject->IsActorBelongsToThis(AttachmentActor.AttachTo, true))
-	{
-		bAttachementError = true;
-	}
-	if (bAttachementError)
-	{
-		auto InfoText = LOCTEXT("CannotRestructurePrefaInstance", "Children of a Prefab instance cannot be deleted or moved, and cannot add or remove component.\
-\n\nYou can open the prefab in prefab editor to restructure the prefab asset itself, or unpack the prefab instance to remove its prefab connection.");
-		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
-		GEditor->UndoTransaction(false);
-		AttachmentActor = FAttachmentActorStruct();
-	}
-}
-
 void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 {
 	FActorFolders::Get().CreateFolder(*this->GetWorld(), PrefabFolderName);
@@ -420,27 +103,34 @@ void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 
 void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 {
-	PrefabHelperObject->LoadPrefab(this->GetWorld(), InParent);
-	TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
+	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return;
+	TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
+	TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
+	LoadedRootActor = PrefabAsset->LoadPrefabWithExistingObjects(this->GetWorld()
+		, InParent
+		, SubPrefabMapGuidToObject, SubSubPrefabMap
+	);
+	ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedRootActor, SubPrefabMapGuidToObject);
+
+	TimePointWhenSavePrefab = PrefabAsset->CreateTime;
+	bLoadPrefabSuccess = true;
 }
 
-void ALGUIPrefabHelperActor::SavePrefab()
+bool ALGUIPrefabHelperActor::IsValidPrefabHelperActor()
 {
-	PrefabHelperObject->SavePrefab();
-	TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
-}
-
-void ALGUIPrefabHelperActor::DeleteThisInstance()
-{
-	PrefabHelperObject->ClearLoadedPrefab();
-	LGUIUtils::DestroyActorWithHierarchy(this, false);
+	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return false;
+	if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
+	{
+		return PrefabManagerActor->PrefabHelperObject->LoadedRootActor != nullptr;
+	}
+	return false;
 }
 
 void ALGUIPrefabHelperActor::CheckPrefabVersion()
 {
-	if (IsValid(PrefabHelperObject) && PrefabHelperObject->PrefabAsset != nullptr)
+	if (PrefabAsset != nullptr)
 	{
-		if (TimePointWhenSavePrefab != PrefabHelperObject->PrefabAsset->CreateTime)
+		if (TimePointWhenSavePrefab != PrefabAsset->CreateTime)
 		{
 			if (NewVersionPrefabNotification.IsValid())
 			{
@@ -465,20 +155,20 @@ void ALGUIPrefabHelperActor::CheckPrefabVersion()
 }
 void ALGUIPrefabHelperActor::OnNewVersionRevertPrefabClicked()
 {
-	if (TimePointWhenSavePrefab == PrefabHelperObject->PrefabAsset->CreateTime)
+	if (!this->GetWorld()->IsGameWorld())
 	{
-		NewVersionPrefabNotification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
-	}
-	else
-	{
-		//store override parameter to data
-		LGUIPrefabSystem3::ActorSerializer3 serailizer;
-		auto OverrideData = serailizer.SaveOverrideParameterToData(ObjectOverrideParameterArray);
-
-		RevertPrefab();
-
-		//apply override parameter. 
-		serailizer.RestoreOverrideParameterFromData(OverrideData, ObjectOverrideParameterArray);
+		if (TimePointWhenSavePrefab == PrefabAsset->CreateTime)
+		{
+			NewVersionPrefabNotification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
+		}
+		else
+		{
+			if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
+			{
+				auto PrefabHelperObject = PrefabManagerActor->PrefabHelperObject;
+				PrefabHelperObject->RefreshOnSubPrefabDirty(PrefabAsset, LoadedRootActor);
+			}
+		}
 	}
 	NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 	NewVersionPrefabNotification.Pin()->ExpireAndFadeout();
@@ -491,383 +181,64 @@ void ALGUIPrefabHelperActor::OnNewVersionDismissClicked()
 	NewVersionPrefabNotification = nullptr;
 }
 
-void ALGUIPrefabHelperActor::CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject)
+#endif
+
+
+ALGUIPrefabManagerActor::ALGUIPrefabManagerActor()
 {
-	if (InObject == PrefabHelperObject->LoadedRootActor->GetRootComponent())//if is prefab's root component
+	PrimaryActorTick.bCanEverTick = false;
+	bIsEditorOnlyActor = true;
+
+#if WITH_EDITORONLY_DATA
+	PrefabHelperObject = CreateDefaultSubobject<ULGUIPrefabHelperObject>(TEXT("PrefabHelper"));
+#endif
+}
+
+#if WITH_EDITOR
+
+TMap<ULevel*, ALGUIPrefabManagerActor*> ALGUIPrefabManagerActor::MapLevelToManagerActor;
+
+ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* InLevel)
+{
+	if (!InLevel->GetWorld()->IsGameWorld())
 	{
-		auto InObjectUIItem = Cast<UUIItem>(InObject);
-		auto OriginObjectUIItem = Cast<UUIItem>(OriginObject);
-		if (InObjectUIItem != nullptr && OriginObjectUIItem != nullptr)//if is UI item, we need to copy parent's property to origin object's parent property, to make anchor & location calculation right
+		if (!MapLevelToManagerActor.Contains(InLevel))
 		{
-			auto InObjectParent = InObjectUIItem->GetParentUIItem();
-			auto OriginObjectParent = OriginObjectUIItem->GetParentUIItem();
-			//copy relative location
-			auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
-			RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
-			LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
-			//copy anchor data
-			auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
-			AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
-			LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
+			auto PrefabManagerActor = InLevel->GetWorld()->SpawnActor<ALGUIPrefabManagerActor>();
+			MapLevelToManagerActor.Add(InLevel, PrefabManagerActor);
+			InLevel->MarkPackageDirty();
+			FActorFolders::Get().CreateFolder(*PrefabManagerActor->GetWorld(), ALGUIPrefabHelperActor::PrefabFolderName);
+			PrefabManagerActor->SetFolderPath(ALGUIPrefabHelperActor::PrefabFolderName);
 		}
+		auto Result = MapLevelToManagerActor[InLevel];
+		Result->PrefabHelperObject->MarkAsManagerObject();
+		return Result;
+	}
+	else
+	{
+		checkf(0, TEXT("This should only be called in editor world!"));
+		return nullptr;
 	}
 }
 
-void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
+void ALGUIPrefabManagerActor::BeginDestroy()
 {
-	GEditor->BeginTransaction(FText::Format(LOCTEXT("RevertPrefabOnObjectProperties", "Revert Prefab Override: {0}"), FText::FromString(InObject->GetName())));
-	InObject->Modify();
-	this->Modify();
-
-	AActor* Actor = Cast<AActor>(InObject);
-	UActorComponent* Component = Cast<UActorComponent>(InObject);
-	if (Actor)
+	Super::BeginDestroy();
+	if (this != GetDefault<ALGUIPrefabManagerActor>())
 	{
-	}
-	else if (Component)
-	{
-		Actor = Component->GetOwner();
-	}
-	FGuid ObjectGuid;
-	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-	{
-		if (KeyValue.Value == InObject)
+		if (this->GetWorld() != nullptr && !this->GetWorld()->IsGameWorld())
 		{
-			ObjectGuid = KeyValue.Key;
-		}
-	}
-	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
-	CopyRootObjectParentAnchorData(InObject, OriginObject);
-
-	bCanCollectProperty = false;
-	{
-		for (auto& PropertyName : InPropertyNameSet)
-		{
-			if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
+			auto Level = this->GetLevel();
+			if (MapLevelToManagerActor.Contains(Level))
 			{
-				//set to default value
-				Property->CopyCompleteValue_InContainer(InObject, OriginObject);
-				//delete item
-				this->RemoveMemberProperty(InObject, PropertyName);
-				//notify
-				LGUIUtils::NotifyPropertyChanged(InObject, Property);
-				//for relative location property, should notify AnchorData too, or anchor will be set by relative location which maybe not correct
-				if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())
-				{
-					if (auto UISourceObject = Cast<UUIItem>(InObject))
-					{
-						LGUIUtils::NotifyPropertyChanged(InObject, UUIItem::GetAnchorDataPropertyName());
-					}
-				}
-				bAnythingDirty = true;
+				MapLevelToManagerActor.Remove(Level);
+			}
+			else
+			{
+				check(0);
 			}
 		}
 	}
-	bCanCollectProperty = true;
-	GEditor->EndTransaction();
-	ULGUIEditorManagerObject::RefreshAllUI();
-}
-void ALGUIPrefabHelperActor::RevertPrefabOverride(UObject* InObject, FName InPropertyName)
-{
-	AActor* Actor = Cast<AActor>(InObject);
-	UActorComponent* Component = Cast<UActorComponent>(InObject);
-	if (Actor)
-	{
-	}
-	else if (Component)
-	{
-		Actor = Component->GetOwner();
-	}
-	FGuid ObjectGuid;
-	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-	{
-		if (KeyValue.Value == InObject)
-		{
-			ObjectGuid = KeyValue.Key;
-		}
-	}
-	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
-	CopyRootObjectParentAnchorData(InObject, OriginObject);
-
-	bCanCollectProperty = false;
-	{
-		GEditor->BeginTransaction(FText::Format(LOCTEXT("RevertPrefabOnObjectProperty", "Revert Prefab Override: {0}.{1}"), FText::FromString(InObject->GetName()), FText::FromName(InPropertyName)));
-		InObject->Modify();
-		this->Modify();
-
-		if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), InPropertyName))
-		{
-			//set to default value
-			Property->CopyCompleteValue_InContainer(InObject, OriginObject);
-			//delete item
-			this->RemoveMemberProperty(InObject, InPropertyName);
-			//notify
-			LGUIUtils::NotifyPropertyChanged(InObject, Property);
-			//for relative location property, should notify AnchorData too, or anchor will be set by relative location which maybe not correct
-			if (InPropertyName == USceneComponent::GetRelativeLocationPropertyName())
-			{
-				if (auto UISourceObject = Cast<UUIItem>(InObject))
-				{
-					LGUIUtils::NotifyPropertyChanged(InObject, UUIItem::GetAnchorDataPropertyName());
-				}
-			}
-			bAnythingDirty = true;
-		}
-
-		GEditor->EndTransaction();
-	}
-	bCanCollectProperty = true;
-	ULGUIEditorManagerObject::RefreshAllUI();
-}
-void ALGUIPrefabHelperActor::RevertAllPrefabOverride()
-{
-	bCanCollectProperty = false;
-	{
-		GEditor->BeginTransaction(LOCTEXT("RevertPrefabOnAll", "Revert Prefab Override"));
-		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
-		{
-			auto& DataItem = ObjectOverrideParameterArray[i];
-			DataItem.Object->Modify();
-		}
-		this->Modify();
-
-		auto FindOriginObjectInSourcePrefab = [&](UObject* InObject) {
-			FGuid ObjectGuid;
-			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-			{
-				if (KeyValue.Value == InObject)
-				{
-					ObjectGuid = KeyValue.Key;
-				}
-			}
-			return PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
-		};
-		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
-		{
-			auto& DataItem = ObjectOverrideParameterArray[i];
-			auto SourceObject = DataItem.Object.Get();
-			TSet<FName> FilterNameSet;
-			if (i == 0)
-			{
-				if (auto UIItem = Cast<UUIItem>(SourceObject))
-				{
-					FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
-				}
-			}
-			auto OriginObject = FindOriginObjectInSourcePrefab(SourceObject);
-			CopyRootObjectParentAnchorData(SourceObject, OriginObject);
-
-			TSet<FName> NamesToClear;
-			for (auto& PropertyName : DataItem.MemberPropertyName)
-			{
-				if (FilterNameSet.Contains(PropertyName))continue;
-				NamesToClear.Add(PropertyName);
-				if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
-				{
-					//set to default value
-					Property->CopyCompleteValue_InContainer(SourceObject, OriginObject);
-					//notify
-					LGUIUtils::NotifyPropertyChanged(SourceObject, Property);
-					//for relative location property, should notify AnchorData too, or anchor will be set by relative location which maybe not correct
-					if (PropertyName == USceneComponent::GetRelativeLocationPropertyName())
-					{
-						if (auto UISourceObject = Cast<UUIItem>(SourceObject))
-						{
-							LGUIUtils::NotifyPropertyChanged(SourceObject, UUIItem::GetAnchorDataPropertyName());
-						}
-					}
-				}
-			}
-			for (auto& PropertyName : NamesToClear)
-			{
-				DataItem.MemberPropertyName.Remove(PropertyName);
-			}
-		}
-		for (int i = ObjectOverrideParameterArray.Num() - 1; i > 0; i--)//Remove all but remain root component
-		{
-			ObjectOverrideParameterArray.RemoveAt(i);
-		}
-
-		bAnythingDirty = true;
-		GEditor->EndTransaction();
-	}
-	bCanCollectProperty = true;
-	ULGUIEditorManagerObject::RefreshAllUI();
-}
-
-void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet)
-{
-	GEditor->BeginTransaction(FText::Format(LOCTEXT("ApplyPrefabOnObjectProperties", "Apply Prefab Override: {0}"), FText::FromString(InObject->GetName())));
-	InObject->Modify();
-	PrefabHelperObject->Modify();
-
-	AActor* Actor = Cast<AActor>(InObject);
-	UActorComponent* Component = Cast<UActorComponent>(InObject);
-	if (Actor)
-	{
-	}
-	else if (Component)
-	{
-		Actor = Component->GetOwner();
-	}
-	FGuid ObjectGuid;
-	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-	{
-		if (KeyValue.Value == InObject)
-		{
-			ObjectGuid = KeyValue.Key;
-		}
-	}
-	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
-
-	bCanCollectProperty = false;
-	{
-		for (auto& PropertyName : InPropertyNameSet)
-		{
-			if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
-			{
-				//set to default value
-				Property->CopyCompleteValue_InContainer(OriginObject, InObject);
-				//delete item
-				RemoveMemberProperty(InObject, PropertyName);
-				//notify
-				LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
-
-				bAnythingDirty = true;
-			}
-		}
-		//save origin prefab
-		if (bAnythingDirty)
-		{
-			PrefabHelperObject->PrefabAsset->Modify();
-			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
-			TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
-		}
-	}
-	bCanCollectProperty = true;
-	GEditor->EndTransaction();
-	ULGUIEditorManagerObject::RefreshAllUI();
-}
-void ALGUIPrefabHelperActor::ApplyPrefabOverride(UObject* InObject, FName InPropertyName)
-{
-	AActor* Actor = Cast<AActor>(InObject);
-	UActorComponent* Component = Cast<UActorComponent>(InObject);
-	if (Actor)
-	{
-	}
-	else if (Component)
-	{
-		Actor = Component->GetOwner();
-	}
-	FGuid ObjectGuid;
-	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-	{
-		if (KeyValue.Value == InObject)
-		{
-			ObjectGuid = KeyValue.Key;
-		}
-	}
-	auto OriginObject = PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
-
-	bCanCollectProperty = false;
-	{
-		GEditor->BeginTransaction(FText::Format(LOCTEXT("ApplyPrefabOnObjectProperty", "Apply Prefab Override: {0}.{1}"), FText::FromString(InObject->GetName()), FText::FromName(InPropertyName)));
-		InObject->Modify();
-		PrefabHelperObject->Modify();
-
-		if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), InPropertyName))
-		{
-			//set to default value
-			Property->CopyCompleteValue_InContainer(OriginObject, InObject);
-			//delete item
-			RemoveMemberProperty(InObject, InPropertyName);
-			//notify
-			LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
-			bAnythingDirty = true;
-		}
-		//save origin prefab
-		if (bAnythingDirty)
-		{
-			PrefabHelperObject->PrefabAsset->Modify();
-			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
-			TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
-		}
-
-		GEditor->EndTransaction();
-	}
-	bCanCollectProperty = true;
-	ULGUIEditorManagerObject::RefreshAllUI();
-}
-void ALGUIPrefabHelperActor::ApplyAllOverrideToPrefab()
-{
-	bCanCollectProperty = false;
-	{
-		GEditor->BeginTransaction(LOCTEXT("ApplyPrefabOnAll", "Apply Prefab Override"));
-		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
-		{
-			auto& DataItem = ObjectOverrideParameterArray[i];
-			DataItem.Object->Modify();
-		}
-		PrefabHelperObject->Modify();
-
-		auto FindOriginObjectInSourcePrefab = [&](UObject* InObject) {
-			FGuid ObjectGuid;
-			for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
-			{
-				if (KeyValue.Value == InObject)
-				{
-					ObjectGuid = KeyValue.Key;
-				}
-			}
-			return PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->MapGuidToObject[ObjectGuid];
-		};
-		for (int i = 0; i < ObjectOverrideParameterArray.Num(); i++)
-		{
-			auto& DataItem = ObjectOverrideParameterArray[i];
-			auto SourceObject = DataItem.Object.Get();
-			TSet<FName> FilterNameSet;
-			if (i == 0)
-			{
-				if (auto UIItem = Cast<UUIItem>(SourceObject))
-				{
-					FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
-				}
-			}
-			auto OriginObject = FindOriginObjectInSourcePrefab(SourceObject);
-			TSet<FName> NamesToClear;
-			for (auto& PropertyName : DataItem.MemberPropertyName)
-			{
-				if (FilterNameSet.Contains(PropertyName))continue;
-				NamesToClear.Add(PropertyName);
-				if (auto Property = FindFProperty<FProperty>(OriginObject->GetClass(), PropertyName))
-				{
-					//set to default value
-					Property->CopyCompleteValue_InContainer(OriginObject, SourceObject);
-					//notify
-					LGUIUtils::NotifyPropertyChanged(OriginObject, Property);
-				}
-			}
-			for (auto& PropertyName : NamesToClear)
-			{
-				DataItem.MemberPropertyName.Remove(PropertyName);
-			}
-		}
-		for (int i = ObjectOverrideParameterArray.Num() - 1; i > 0; i--)//Remove all but remain root component
-		{
-			ObjectOverrideParameterArray.RemoveAt(i);
-		}
-		//save origin prefab
-		{
-			PrefabHelperObject->PrefabAsset->Modify();
-			PrefabHelperObject->PrefabAsset->GetPrefabHelperObject()->SavePrefab();
-			TimePointWhenSavePrefab = PrefabHelperObject->PrefabAsset->CreateTime;
-		}
-
-		bAnythingDirty = true;
-		GEditor->EndTransaction();
-	}
-	bCanCollectProperty = true;
-	ULGUIEditorManagerObject::RefreshAllUI();
 }
 #endif
 

@@ -7,37 +7,28 @@
 
 class FLGUIPrefabEditor;
 struct FLGUIPrefabOverrideParameterData;
+class ULGUIPrefabHelperObject;
+class AActor;
+class ULGUIPrefab;
 
-DECLARE_DELEGATE_TwoParams(FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameterSet, UObject*, const TSet<FName>&);
-DECLARE_DELEGATE_TwoParams(FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameter, UObject*, const FName&);
-DECLARE_DELEGATE(FLGUIPrefabOverrideDataViewer_RevertPrefabAllParameters);
-
-DECLARE_DELEGATE_TwoParams(FLGUIPrefabOverrideDataViewer_ApplePrefabParameterSet, UObject*, const TSet<FName>&);
-DECLARE_DELEGATE_TwoParams(FLGUIPrefabOverrideDataViewer_ApplePrefabParameter, UObject*, const FName&);
-DECLARE_DELEGATE(FLGUIPrefabOverrideDataViewer_ApplyPrefabAllParameters);
+DECLARE_DELEGATE_OneParam(FLGUIPrefabOverrideDataViewer_AfterRevertPrefab, ULGUIPrefab*);
+DECLARE_DELEGATE_OneParam(FLGUIPrefabOverrideDataViewer_AfterApplyPrefab, ULGUIPrefab*);
 
 class SLGUIPrefabOverrideDataViewer : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SLGUIPrefabOverrideDataViewer) {}
-		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameterSet, RevertPrefabWithParameterSet)
-		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameter, RevertPrefabWithParameter)
-		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_RevertPrefabAllParameters, RevertPrefabAllParameters)
-
-		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_ApplePrefabParameterSet, ApplyPrefabParameterSet)
-		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_ApplePrefabParameter, ApplyPrefabParameter)
-		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_ApplyPrefabAllParameters, ApplyPrefabAllParameters)
+		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_AfterRevertPrefab, AfterRevertPrefab)
+		SLATE_EVENT(FLGUIPrefabOverrideDataViewer_AfterApplyPrefab, AfterApplyPrefab)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs);
+	void Construct(const FArguments& InArgs, ULGUIPrefabHelperObject* InPrefabHelperObject);
 	void RefreshDataContent(const TArray<FLGUIPrefabOverrideParameterData>& ObjectOverrideParameterArray);
+	void SetPrefabHelperObject(ULGUIPrefabHelperObject* InPrefabHelperObject) { PrefabHelperObject = InPrefabHelperObject; }
 private:
-	FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameterSet RevertPrefabWithParameterSet;
-	FLGUIPrefabOverrideDataViewer_RevertPrefabWithParameter RevertPrefabWithParameter;
-	FLGUIPrefabOverrideDataViewer_RevertPrefabAllParameters RevertPrefabAllParameters;
-	FLGUIPrefabOverrideDataViewer_ApplePrefabParameterSet ApplyPrefabParameterSet;//@todo: apply parameter
-	FLGUIPrefabOverrideDataViewer_ApplePrefabParameter ApplyPrefabParameter;//@todo: apply parameter
-	FLGUIPrefabOverrideDataViewer_ApplyPrefabAllParameters ApplyPrefabAllParameters;//@todo: apply parameter
+	FLGUIPrefabOverrideDataViewer_AfterRevertPrefab AfterRevertPrefab;
+	FLGUIPrefabOverrideDataViewer_AfterApplyPrefab AfterApplyPrefab;
 
 	TSharedPtr<SVerticalBox> RootContentVerticalBox;
+	TWeakObjectPtr<ULGUIPrefabHelperObject> PrefabHelperObject;
 };

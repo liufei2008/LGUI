@@ -61,7 +61,6 @@ public:
 
 	/** Try to handle a drag-drop operation */
 	FReply TryHandleAssetDragDropOperation(const FDragDropEvent& DragDropEvent);
-	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject, bool InApplyChanges = true);
 
 	FLGUIPrefabPreviewScene& GetPreviewScene();
 	UWorld* GetWorld();
@@ -81,21 +80,12 @@ public:
 	bool ActorIsSubPrefabRoot(AActor* InSubPrefabRootActor);
 	FLGUISubPrefabData GetSubPrefabDataForActor(AActor* InSubPrefabActor);
 
-	void CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject);
-
-	/** Clear properties in Object, and reset to prefab's default. */
-	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
-	/** Clear specific override property in object, and reset to prefab's default */
-	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);
-	void RevertAllPrefabOverride(AActor* InSubPrefabActor);
-	void ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
-	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
-	void ApplyAllOverrideToPrefab(AActor* InSubPrefabActor);
-
 	void OpenSubPrefab(AActor* InSubPrefabActor);
 	void SelectSubPrefab(AActor* InSubPrefabActor);
-	bool GetAnythingDirty()const { return bAnythingDirty; }
+	bool GetAnythingDirty()const;
 	void CloseWithoutCheckDataDirty();
+
+	ULGUIPrefabHelperObject* GetPrefabManagerObject()const { return PrefabHelperObject; }
 private:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
@@ -109,10 +99,6 @@ private:
 	TWeakObjectPtr<AActor> CurrentSelectedActor;
 
 	FLGUIPrefabPreviewScene PreviewScene;
-
-	bool bAnythingDirty = false;
-	bool bCanCollectProperty = true;
-	bool bCanNotifyDetachment = false;
 private:
 
 	void BindCommands();
@@ -130,21 +116,4 @@ private:
 	bool IsFilteredActor(const AActor* Actor);
 	void OnOutlinerPickedChanged(AActor* Actor);
 	void OnOutlinerActorDoubleClick(AActor* Actor);
-
-	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
-	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
-	void OnComponentTransformChanged(USceneComponent* InComponent, ETeleportType TeleportType);
-	void OnObjectModified(UObject* InObject);
-	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
-	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
-	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty);
-
-	struct FAttachmentActorStruct
-	{
-		AActor* Actor = nullptr;
-		AActor* DetachFrom = nullptr;
-		AActor* AttachTo = nullptr;
-	};
-	FAttachmentActorStruct AttachmentActor;
-	void CheckAttachment();
 };

@@ -7,6 +7,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUI.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
+#include "Misc/ConfigCacheIni.h"
 
 namespace LGUIPrefabSystem3
 {

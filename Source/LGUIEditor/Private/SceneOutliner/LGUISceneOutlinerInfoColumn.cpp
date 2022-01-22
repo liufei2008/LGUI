@@ -232,7 +232,7 @@ namespace LGUISceneOutliner
 		{
 			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
 			{
-				if (PrefabHelperObject->bIsInsidePrefabEditor)
+				if (PrefabHelperObject->IsInsidePrefabEditor())
 				{
 					if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
 					{
@@ -297,24 +297,7 @@ namespace LGUISceneOutliner
 	}
 	FSlateColor FLGUISceneOutlinerInfoColumn::GetPrefabIconColor(FSceneOutlinerTreeItemRef TreeItem)const
 	{
-		FColor resultColor = FColor::White;
-		if (AActor* actor = GetActorFromTreeItem(TreeItem))
-		{
-			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
-			{
-				if (PrefabHelperObject->bIsInsidePrefabEditor)
-				{
-					return FColor::Green;
-				}
-				else
-				{
-					auto OuterActor = Cast<ALGUIPrefabHelperActor>(PrefabHelperObject->GetOuter());
-					check(OuterActor != nullptr);
-					return OuterActor->IdentityColor;
-				}
-			}
-		}
-		return FSlateColor(resultColor);
+		return FSlateColor(FColor::Green);
 	}
 
 	AActor* FLGUISceneOutlinerInfoColumn::GetActorFromTreeItem(FSceneOutlinerTreeItemRef TreeItem)const
@@ -582,7 +565,7 @@ namespace LGUISceneOutliner
 		{
 			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
 			{
-				if (PrefabHelperObject->bIsInsidePrefabEditor)
+				if (PrefabHelperObject->IsInsidePrefabEditor())
 				{
 					if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
 					{

@@ -52,10 +52,6 @@ void ULGUIEditorManagerObject::BeginDestroy()
 	{
 		FCoreDelegates::OnActorLabelChanged.Remove(OnActorLabelChangedDelegateHandle);
 	}
-	if (OnActorDeletedDelegateHandle.IsValid())
-	{
-		FEditorDelegates::OnDeleteActorsEnd.Remove(OnActorDeletedDelegateHandle);
-	}
 	if (OnMapOpenedDelegateHandle.IsValid())
 	{
 		FEditorDelegates::OnMapOpened.Remove(OnMapOpenedDelegateHandle);
@@ -224,6 +220,7 @@ void ULGUIEditorManagerObject::AddPrefabForGenerateAgent(ULGUIPrefab* InPrefab)
 
 void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount)
 {
+	check(InDelayFrameCount >= 0);
 	TTuple<int, TFunction<void()>> Item;
 	Item.Key = InDelayFrameCount;
 	Item.Value = InFunction;
@@ -258,8 +255,6 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance->OnActorLabelChangedDelegateHandle = FCoreDelegates::OnActorLabelChanged.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorLabelChanged);
 			//reimport asset
 			Instance->OnAssetReimportDelegateHandle = GEditor->GetEditorSubsystem<UImportSubsystem>()->OnAssetReimport.AddUObject(Instance, &ULGUIEditorManagerObject::OnAssetReimport);
-			//delete actor
-			Instance->OnActorDeletedDelegateHandle = FEditorDelegates::OnDeleteActorsEnd.AddUObject(Instance, &ULGUIEditorManagerObject::OnActorDeleted);
 			//open map
 			Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
 			//blueprint recompile
@@ -368,21 +363,6 @@ void ULGUIEditorManagerObject::OnAssetReimport(UObject* asset)
 	}
 }
 
-void ULGUIEditorManagerObject::OnActorDeleted()
-{
-	if (GWorld == nullptr)return;
-	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(GWorld); ActorItr; ++ActorItr)
-	{
-		auto prefabActor = *ActorItr;
-		if (IsValid(prefabActor))
-		{
-			if (!IsValid(prefabActor->PrefabHelperObject->LoadedRootActor))
-			{
-				LGUIUtils::DestroyActorWithHierarchy(prefabActor, false);
-			}
-		}
-	}
-}
 void ULGUIEditorManagerObject::OnMapOpened(const FString& FileName, bool AsTemplate)
 {
 

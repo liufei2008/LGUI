@@ -392,7 +392,6 @@ namespace LGUIPrefabSystem
 #if WITH_EDITOR
 		void GenerateActorIDRecursive(AActor* Actor);
 		void CollectSkippingActorsRecursive(AActor* Actor);
-		ALGUIPrefabHelperActor* GetPrefabActorThatUseTheActorAsRoot(AActor* Actor);
 #endif
 		struct UPropertyMapStruct
 		{

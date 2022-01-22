@@ -445,54 +445,15 @@ void FLGUIEditorModule::CheckPrefabOverrideDataViewerEntry()
 {
 	if (PrefabOverrideDataViewer != nullptr && PrefabOverrideDataViewer.IsValid())return;
 	PrefabOverrideDataViewer = 
-	SNew(SLGUIPrefabOverrideDataViewer)
-	.RevertPrefabWithParameterSet_Lambda([=](UObject* Object, const TSet<FName>& Parameters) {
-		if(CurrentPrefabHelperActor.IsValid())
-		{
-			CurrentPrefabHelperActor->RevertPrefabOverride(Object, Parameters);
-			OnOutlinerSelectionChange();//force refresh
-		}
+	SNew(SLGUIPrefabOverrideDataViewer, nullptr)
+	.AfterRevertPrefab_Lambda([=](ULGUIPrefab* PrefabAsset) {
+		OnOutlinerSelectionChange();//force refresh
 		})
-	.RevertPrefabWithParameter_Lambda([=](UObject* Object, const FName& Parameter){
-		if(CurrentPrefabHelperActor.IsValid())
-		{
-			CurrentPrefabHelperActor->RevertPrefabOverride(Object, Parameter);
-			OnOutlinerSelectionChange();//force refresh
-		}
-		})
-	.RevertPrefabAllParameters_Lambda([=](){
-		if(CurrentPrefabHelperActor.IsValid())
-		{
-			CurrentPrefabHelperActor->RevertAllPrefabOverride();
-			OnOutlinerSelectionChange();//force refresh
-		}
-		})
-	.ApplyPrefabParameterSet_Lambda([=](UObject* Object, const TSet<FName>& Parameters){
-		if(CurrentPrefabHelperActor.IsValid())
-		{
-			CurrentPrefabHelperActor->ApplyPrefabOverride(Object, Parameters);
-			OnOutlinerSelectionChange();//force refresh
-			LGUIEditorTools::RefreshOnSubPrefabChange(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-			LGUIEditorTools::RefreshOpenedPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-		}
-		})
-	.ApplyPrefabParameter_Lambda([=](UObject* Object, const FName& Parameter){
-		if(CurrentPrefabHelperActor.IsValid())
-		{
-			CurrentPrefabHelperActor->ApplyPrefabOverride(Object, Parameter);
-			OnOutlinerSelectionChange();//force refresh
-			LGUIEditorTools::RefreshOnSubPrefabChange(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-			LGUIEditorTools::RefreshOpenedPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-		}
-		})
-	.ApplyPrefabAllParameters_Lambda([=](){
-		if(CurrentPrefabHelperActor.IsValid())
-		{
-			CurrentPrefabHelperActor->ApplyAllOverrideToPrefab();
-			OnOutlinerSelectionChange();//force refresh
-			LGUIEditorTools::RefreshOnSubPrefabChange(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-			LGUIEditorTools::RefreshOpenedPrefabEditor(CurrentPrefabHelperActor->PrefabHelperObject->PrefabAsset);
-		}
+	.AfterApplyPrefab_Lambda([=](ULGUIPrefab* PrefabAsset) {
+		OnOutlinerSelectionChange();//force refresh
+		LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabAsset);
+		LGUIEditorTools::RefreshOnSubPrefabChange(PrefabAsset);
+		LGUIEditorTools::RefreshOpenedPrefabEditor(PrefabAsset);
 		})
 	;
 }
@@ -505,42 +466,16 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTa
 	return ResultTab;
 }
 
-bool FLGUIEditorModule::CanEditActorForPrefab()
-{
-	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
-	{
-		if (PrefabHelperObject->bIsInsidePrefabEditor)
-		{
-			return false;
-		}
-		else 
-		{
-			return true;
-		}
-	}
-	else
-	{
-		return false;
-	}
-}
 bool FLGUIEditorModule::CanUnpackActorForPrefab()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
-		if (PrefabHelperObject->bIsInsidePrefabEditor)
-		{
-			if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
-			{
-				return true;
-			}
-			return false;
-		}
-		else
+		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
 		{
 			return true;
 		}
+		return false;
 	}
 	else
 	{
@@ -552,18 +487,11 @@ bool FLGUIEditorModule::CanBrowsePrefab()
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
-		if (PrefabHelperObject->bIsInsidePrefabEditor)
-		{
-			if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
-			{
-				return true;
-			}
-			return false;
-		}
-		else
+		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
 		{
 			return true;
 		}
+		return false;
 	}
 	else
 	{
@@ -578,20 +506,13 @@ bool FLGUIEditorModule::CanDuplicateActor()
 	{
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 		{
-			if (PrefabHelperObject->bIsInsidePrefabEditor)
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
 			{
-				if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
+				return false;
 			}
 			else
 			{
-				return false;
+				return true;
 			}
 		}
 		else
@@ -615,14 +536,7 @@ bool FLGUIEditorModule::CanCreateActor()
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
-		if (PrefabHelperObject->bIsInsidePrefabEditor)
-		{
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//not allowd to create actor on sub prefab's actor
-			{
-				return false;
-			}
-		}
-		else
+		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//not allowd to create actor on sub prefab's actor
 		{
 			return false;
 		}
@@ -635,22 +549,15 @@ bool FLGUIEditorModule::CanDeleteActor()
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
-		if (PrefabHelperObject->bIsInsidePrefabEditor)
-		{
-			if (PrefabHelperObject->ActorIsSubPrefabRootActor(SelectedActor))//allowed to delete sub prefab's root actor, it will handled in prefab editor
-			{
-				return true;
-			}
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
-			{
-				return false;
-			}
-			return true;//allowed to delete common prefab
-		}
-		else
+		if (PrefabHelperObject->ActorIsSubPrefabRootActor(SelectedActor))//allowed to delete sub prefab's root actor, it will handled in prefab editor
 		{
 			return true;
 		}
+		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//not allowed to delete sub prefab's actor
+		{
+			return false;
+		}
+		return true;//allowed to delete common prefab
 	}
 	return true;
 }
@@ -658,10 +565,9 @@ bool FLGUIEditorModule::CanDeleteActor()
 bool FLGUIEditorModule::CanCheckPrefabOverrideParameter()const
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (auto PrefabHelperActor = LGUIEditorTools::GetPrefabHelperActor_WhichManageThisActor(SelectedActor))
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
-		if (PrefabHelperActor->PrefabHelperObject->LoadedRootActor != SelectedActor)return false;
-		return true;
+		return PrefabHelperObject->SubPrefabMap.Contains(SelectedActor);
 	}
 	else
 	{
@@ -680,16 +586,9 @@ bool FLGUIEditorModule::CanReplaceUIElement()
 			{
 				return false;
 			}
-			if (PrefabHelperObject->bIsInsidePrefabEditor)
+			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's actor not allow replace
 			{
-				if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's actor not allow replace
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;//prefabs inside level editor not allow replace
+				return false;
 			}
 		}
 		return true;
@@ -706,18 +605,11 @@ bool FLGUIEditorModule::CanCreatePrefab()
 	if (SelectedActor == nullptr)return false;
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
-		if (PrefabHelperObject->bIsInsidePrefabEditor)
+		if (PrefabHelperObject->LoadedRootActor == SelectedActor)
 		{
-			if (PrefabHelperObject->LoadedRootActor == SelectedActor)
-			{
-				return false;
-			}
-			if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
-			{
-				return false;
-			}
+			return false;
 		}
-		else
+		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))
 		{
 			return false;
 		}
@@ -729,10 +621,18 @@ void FLGUIEditorModule::OnOutlinerSelectionChange()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (SelectedActor == nullptr)return;
-	CurrentPrefabHelperActor = LGUIEditorTools::GetPrefabHelperActor_WhichManageThisActor(SelectedActor);
-	if (CurrentPrefabHelperActor.IsValid())
+	auto NewPrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor);
+	if (CurrentPrefabHelperObject != NewPrefabHelperObject)
 	{
-		PrefabOverrideDataViewer->RefreshDataContent(CurrentPrefabHelperActor->ObjectOverrideParameterArray);
+		CurrentPrefabHelperObject = NewPrefabHelperObject;
+		if (CurrentPrefabHelperObject != nullptr)
+		{
+			PrefabOverrideDataViewer->SetPrefabHelperObject(CurrentPrefabHelperObject.Get());
+		}
+	}
+	if (CurrentPrefabHelperObject != nullptr)
+	{
+		PrefabOverrideDataViewer->RefreshDataContent(CurrentPrefabHelperObject->GetSubPrefabData(SelectedActor).ObjectOverrideParameterArray);
 	}
 }
 
@@ -768,24 +668,6 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanCreatePrefab)
 					, FGetActionCheckState()
 					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCreatePrefab))
-			);
-			MenuBuilder.AddMenuEntry(
-				LOCTEXT("RevertPrefab", "Revert Prefab"),
-				LOCTEXT("Revert_Tooltip", "Revert any changes"),
-				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::RevertPrefabInLevelEditor)
-					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
-					, FGetActionCheckState()
-					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
-			);
-			MenuBuilder.AddMenuEntry(
-				LOCTEXT("DeletePrefab", "Delete this Prefab instance"),
-				LOCTEXT("Delete_Tooltip", "Delete actors created by this prefab with hierarchy"),
-				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::DeletePrefabInLevelEditor)
-					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab)
-					, FGetActionCheckState()
-					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanEditActorForPrefab))
 			);
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("UnpackPrefab", "Unpack this Prefab"),

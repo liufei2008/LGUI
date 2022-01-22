@@ -44,7 +44,6 @@ private:
 	void UseActiveViewportAsPreview();
 	void ClearViewportPreview();
 	void ToggleActiveViewportAsPreview();
-	bool CanEditActorForPrefab();
 	bool CanUnpackActorForPrefab();
 	bool CanDuplicateActor();
 	bool CanPasteActor();
@@ -60,7 +59,7 @@ private:
 	void ToggleLGUIColumnInfo();
 	bool LGUIColumnInfoChecked();
 	void ApplyLGUIColumnInfo(bool value, bool refreshSceneOutliner);
-	TWeakObjectPtr<class ALGUIPrefabHelperActor> CurrentPrefabHelperActor;
+	TWeakObjectPtr<class ULGUIPrefabHelperObject> CurrentPrefabHelperObject;
 private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;

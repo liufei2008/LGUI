@@ -129,8 +129,6 @@ private:
 	void OnAssetReimport(UObject* asset);
 	FDelegateHandle OnActorLabelChangedDelegateHandle;
 	void OnActorLabelChanged(AActor* actor);
-	FDelegateHandle OnActorDeletedDelegateHandle;
-	void OnActorDeleted();
 	FDelegateHandle OnMapOpenedDelegateHandle;
 	void OnMapOpened(const FString& FileName, bool AsTemplate);
 	static UWorld* PreviewWorldForPrefabPackage;

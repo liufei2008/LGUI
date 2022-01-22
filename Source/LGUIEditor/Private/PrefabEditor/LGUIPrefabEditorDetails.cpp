@@ -14,6 +14,7 @@
 #include "DetailLayoutBuilder.h"
 #include "LGUIPrefabOverrideDataViewer.h"
 #include "PrefabSystem/LGUIPrefab.h"
+#include "LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditorDetailTab"
 
@@ -158,24 +159,15 @@ void SLGUIPrefabEditorDetails::Construct(const FArguments& Args, TSharedPtr<FLGU
 										+SHorizontalBox::Slot()
 										.AutoWidth()
 										[
-											SAssignNew(OverrideParameterEditor, SLGUIPrefabOverrideDataViewer)
-											.RevertPrefabWithParameterSet_Lambda([=](UObject* Object, const TSet<FName>& Parameters) {
-												PrefabEditorPtr.Pin()->RevertPrefabOverride(Object, Parameters);
+											SAssignNew(OverrideParameterEditor, SLGUIPrefabOverrideDataViewer, PrefabEditorPtr.Pin()->GetPrefabManagerObject())
+											.AfterRevertPrefab_Lambda([=](ULGUIPrefab* PrefabAsset) {
+												RefreshOverrideParameter();
 												})
-											.RevertPrefabWithParameter_Lambda([=](UObject* Object, const FName& Parameter){
-												PrefabEditorPtr.Pin()->RevertPrefabOverride(Object, Parameter);
-												})
-											.RevertPrefabAllParameters_Lambda([=](){
-												PrefabEditorPtr.Pin()->RevertAllPrefabOverride(CachedActor.Get());
-												})
-											.ApplyPrefabParameterSet_Lambda([=](UObject* Object, const TSet<FName>& Parameters){
-												PrefabEditorPtr.Pin()->ApplyPrefabOverride(Object, Parameters);
-												})
-											.ApplyPrefabParameter_Lambda([=](UObject* Object, const FName& Parameter){
-												PrefabEditorPtr.Pin()->ApplyPrefabOverride(Object, Parameter);
-												})
-											.ApplyPrefabAllParameters_Lambda([=](){
-												PrefabEditorPtr.Pin()->ApplyAllOverrideToPrefab(CachedActor.Get());
+											.AfterApplyPrefab_Lambda([=](ULGUIPrefab* PrefabAsset){
+												RefreshOverrideParameter();
+												LGUIEditorTools::RefreshLevelLoadedPrefab(PrefabAsset);
+												LGUIEditorTools::RefreshOnSubPrefabChange(PrefabAsset);
+												LGUIEditorTools::RefreshOpenedPrefabEditor(PrefabAsset);
 												})
 										]
 									]

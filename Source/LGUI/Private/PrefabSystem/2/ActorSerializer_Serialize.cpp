@@ -511,35 +511,10 @@ void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 	Actor->GetAttachedActors(ChildrenActors);
 	for (auto ChildActor : ChildrenActors)
 	{
-		bool shouldSkipActor = false;
-		if (GetPrefabActorThatUseTheActorAsRoot(ChildActor) != nullptr)
-		{
-			SkippingActors.Add(ChildActor);
-		}
-		else
-		{
-			CollectSkippingActorsRecursive(ChildActor);
-		}
+		CollectSkippingActorsRecursive(ChildActor);
 	}
 }
 //PRAGMA_ENABLE_OPTIMIZATION
-
-#include "EngineUtils.h"
-ALGUIPrefabHelperActor* ActorSerializer::GetPrefabActorThatUseTheActorAsRoot(AActor* InActor)
-{
-	for (TActorIterator<ALGUIPrefabHelperActor> ActorItr(InActor->GetWorld()); ActorItr; ++ActorItr)
-	{
-		auto PrefabActor = *ActorItr;
-		if (IsValid(PrefabActor))
-		{
-			if (PrefabActor->PrefabHelperObject->LoadedRootActor == InActor)
-			{
-				return PrefabActor;
-			}
-		}
-	}
-	return nullptr;
-}
 
 void ActorSerializer::SetActorGUIDNew(AActor* Actor)
 {

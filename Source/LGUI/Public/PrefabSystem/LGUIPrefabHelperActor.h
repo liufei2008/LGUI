@@ -26,64 +26,57 @@ public:
 	virtual void BeginDestroy() override;
 
 public:
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
-	void RevertPrefab();
-
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		FDateTime TimePointWhenSavePrefab;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		ULGUIPrefab* PrefabAsset = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		AActor* LoadedRootActor = nullptr;
+	UPROPERTY()
+		bool bLoadPrefabSuccess = false;
 #endif
 #if WITH_EDITOR
-	void AddMemberProperty(UObject* InObject, FName InPropertyName);
-	void RemoveMemberProperty(UObject* InObject, FName InPropertyName);
-	void RemoveMemberProperty(UObject* InObject);
-	bool CheckParameters();
 	void LoadPrefab(USceneComponent* InParent);
-	void SavePrefab();
-	//delete this prefab actor
-	void DeleteThisInstance();
+	bool IsValidPrefabHelperActor();
 	void MoveActorToPrefabFolder();
 	void CheckPrefabVersion();
-
-	void CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject);
-
-	void RevertPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
-	void RevertPrefabOverride(UObject* InObject, FName InPropertyName);
-	void RevertAllPrefabOverride();
-	void ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
-	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
-	void ApplyAllOverrideToPrefab();
 #endif
 
 #if WITH_EDITORONLY_DATA
 public:
-	bool AutoDestroyLoadedActors = true;
-private:
+	bool bAutoDestroyLoadedActors = true;
 	static FName PrefabFolderName;
+private:
 	TWeakPtr<SNotificationItem> NewVersionPrefabNotification;
 	void OnNewVersionRevertPrefabClicked();
 	void OnNewVersionDismissClicked();
+#endif
+};
 
-	bool bAnythingDirty = false;
-	bool bCanCollectProperty = true;
-	bool bCanNotifyDetachment = false;
+/**
+ * Wraper or container for ULGUIPrefabHelperObject. One level should only have one LGUIPrefabManagerActor.
+ * @todo: check if there are multiple LGUIPrefabManagerActor in one level
+ */
+UCLASS(NotBlueprintable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
+class LGUI_API ALGUIPrefabManagerActor : public AActor
+{
+	GENERATED_BODY()
 
-	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
-	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);
-	void TryCollectPropertyToOverride(UObject* InObject, FProperty* InMemberProperty);
 
-	void OnLevelActorAttached(AActor* Actor, const AActor* AttachTo);
-	void OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom);
+public:
+	// Sets default values for this actor's properties
+	ALGUIPrefabManagerActor();
 
-	struct FAttachmentActorStruct
-	{
-		AActor* Actor = nullptr;
-		AActor* DetachFrom = nullptr;
-		AActor* AttachTo = nullptr;
-	};
-	FAttachmentActorStruct AttachmentActor;
-	void CheckAttachment();
+#if WITH_EDITOR
+	virtual void BeginDestroy() override;
+private:
+	static TMap<ULevel*, ALGUIPrefabManagerActor*> MapLevelToManagerActor;
+public:
+	static ALGUIPrefabManagerActor* GetPrefabManagerActor(ULevel* InLevel);
+#endif
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")
+		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
 #endif
 };
