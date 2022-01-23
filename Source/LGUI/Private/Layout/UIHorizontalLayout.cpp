@@ -4,9 +4,6 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 #include "Layout/UILayoutElement.h"
-#include "LTweenActor.h"
-#include "LTweenBPLibrary.h"
-#include "Core/Actor/LGUIManagerActor.h"
 #include "Layout/ILGUILayoutElementInterface.h"
 
 DECLARE_CYCLE_STAT(TEXT("UILayout HorizontalRebuildLayout"), STAT_HorizontalLayout, STATGROUP_LGUI);
@@ -189,7 +186,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
 
 	EUILayoutChangePositionAnimationType tempAnimationType = AnimationType;
 #if WITH_EDITOR
-	if (!ALGUIManagerActor::IsPlaying)
+    if (!this->GetWorld()->IsGameWorld())
 	{
 		tempAnimationType = EUILayoutChangePositionAnimationType::Immediately;
 	}

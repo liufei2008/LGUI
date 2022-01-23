@@ -120,6 +120,20 @@ int32 FLGUIHudRenderer::GetPriority() const
 #if ENGINE_MAJOR_VERSION >= 5 || (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION > 26)
 bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionContext& Context) const
 {
+#if WITH_EDITOR
+	if (GEngine == nullptr) return false;
+	bCanRenderScreenSpace = true;
+	bIsPlaying = ALGUIManagerActor::GetIsPlaying(World.Get());
+	//check if simulation
+	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
+	{
+		if (editor->bIsSimulatingInEditor)bCanRenderScreenSpace = false;
+	}
+
+	if (bIsPlaying == bIsEditorPreview)bCanRenderScreenSpace = false;
+#endif
+
+
 	if (!World.IsValid())return false;
 	if (World.Get() != Context.GetWorld())return false;//only render self world
 	return true;
@@ -127,6 +141,20 @@ bool FLGUIHudRenderer::IsActiveThisFrame_Internal(const FSceneViewExtensionConte
 #else
 bool FLGUIHudRenderer::IsActiveThisFrame(class FViewport* InViewport) const
 {
+#if WITH_EDITOR
+	if (GEngine == nullptr) return false;
+	bCanRenderScreenSpace = true;
+	bIsPlaying = ALGUIManagerActor::GetIsPlaying(World.Get());
+	//check if simulation
+	if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
+	{
+		if (editor->bIsSimulatingInEditor)bCanRenderScreenSpace = false;
+	}
+
+	if (bIsPlaying == bIsEditorPreview)bCanRenderScreenSpace = false;
+#endif
+
+
 	if (!World.IsValid())return false;
 	if (InViewport == nullptr)return false;
 	if (InViewport->GetClient() == nullptr)return false;
@@ -512,15 +540,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	if (ScreenSpaceRenderParameter.HudPrimitiveArray.Num() > 0)
 	{
 #if WITH_EDITOR
-		//check if simulation
-		if (GEngine == nullptr)goto END_LGUI_RENDER;
-		if (UEditorEngine* editor = Cast<UEditorEngine>(GEngine))
-		{
-			if (editor->bIsSimulatingInEditor)goto END_LGUI_RENDER;
-		}
-
-		if (ALGUIManagerActor::IsPlaying == bIsEditorPreview)goto END_LGUI_RENDER;
-		if (ALGUIManagerActor::IsPlaying)
+		if (!bCanRenderScreenSpace)goto END_LGUI_RENDER;
+		if (bIsPlaying)
 		{
 			if (!InView.bIsGameView)goto END_LGUI_RENDER;
 		}

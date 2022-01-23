@@ -594,7 +594,7 @@ public:
 				FMeshBatchElement& BatchElement = Mesh.Elements[0];
 				BatchElement.IndexBuffer = &Section->IndexBuffer;
 				BatchElement.PrimitiveIdMode = PrimID_ForceZero;
-				Mesh.bWireframe = bWireframe;//@todo: support wireframe
+				Mesh.bWireframe = bWireframe;
 				Mesh.VertexFactory = &Section->VertexFactory;
 				Mesh.MaterialRenderProxy = MaterialProxy;
 

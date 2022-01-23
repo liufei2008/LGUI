@@ -155,12 +155,12 @@ class LGUI_API ALGUIManagerActor : public AActor
 	GENERATED_BODY()
 private:
 	static TMap<UWorld*, ALGUIManagerActor*> WorldToInstanceMap;
-	bool existInInstanceMap = false;
+	bool bExistInInstanceMap = false;
+#if WITH_EDITORONLY_DATA
+	bool bIsPlaying = false;
+#endif
 public:	
 	static ALGUIManagerActor* GetLGUIManagerActorInstance(UObject* WorldContextObject);
-#if WITH_EDITORONLY_DATA
-	static bool IsPlaying;//@todo: this should relate to world
-#endif
 	ALGUIManagerActor();
 	virtual void BeginPlay()override;
 	virtual void BeginDestroy()override;
@@ -252,7 +252,9 @@ public:
 	static void RegisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 	static void UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterface> InItem);
-
+#if WITH_EDITOR
+	static bool GetIsPlaying(UWorld* InWorld);
+#endif
 private:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<AActor*> AllActors_PrefabSystemProcessing;

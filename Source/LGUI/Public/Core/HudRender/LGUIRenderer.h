@@ -133,10 +133,13 @@ private:
 		FRHICommandListImmediate& RHICmdList
 #endif
 		, FSceneView& InView);
-public:
 #if WITH_EDITORONLY_DATA
+public:
 	static uint32 EditorPreview_ViewKey;
+private:
 	bool bIsEditorPreview = false;
+	mutable bool bCanRenderScreenSpace = true;
+	mutable bool bIsPlaying = false;
 #endif
 };
 

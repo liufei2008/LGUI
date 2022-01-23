@@ -564,7 +564,7 @@ void UUIItem::CalculateAnchorFromTransform()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		if (!ALGUIManagerActor::IsPlaying)
+		if (!ALGUIManagerActor::GetIsPlaying(this->GetWorld()))
 		{
 			if (!GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
 			{
@@ -1141,7 +1141,7 @@ bool UUIItem::CalculateTransformFromAnchor()
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
-		if (!ALGUIManagerActor::IsPlaying)
+		if (!ALGUIManagerActor::GetIsPlaying(this->GetWorld()))
 		{
 			if (!GetDefault<ULGUIEditorSettings>()->AnchorControlPosition)
 			{

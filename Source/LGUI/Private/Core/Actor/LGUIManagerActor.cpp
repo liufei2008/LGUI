@@ -852,21 +852,18 @@ ALGUIManagerActor* ALGUIManagerActor::GetLGUIManagerActorInstance(UObject* World
 		return nullptr;
 	}
 }
-#if WITH_EDITORONLY_DATA
-bool ALGUIManagerActor::IsPlaying = false;
-#endif
 void ALGUIManagerActor::BeginPlay()
 {
 	Super::BeginPlay();
 #if WITH_EDITORONLY_DATA
-	IsPlaying = true;
+	bIsPlaying = true;
 #endif
 	//localization
 	onCultureChangedDelegateHandle = FInternationalization::Get().OnCultureChanged().AddUObject(this, &ALGUIManagerActor::OnCultureChanged);
 }
 void ALGUIManagerActor::BeginDestroy()
 {
-	if (WorldToInstanceMap.Num() > 0 && existInInstanceMap)
+	if (WorldToInstanceMap.Num() > 0 && bExistInInstanceMap)
 	{
 		bool removed = false;
 		if (auto world = this->GetWorld())
@@ -892,7 +889,7 @@ void ALGUIManagerActor::BeginDestroy()
 		}
 		if (removed)
 		{
-			existInInstanceMap = false;
+			bExistInInstanceMap = false;
 		}
 		else
 		{
@@ -909,7 +906,7 @@ void ALGUIManagerActor::BeginDestroy()
 	}
 	Super::BeginDestroy();
 #if WITH_EDITORONLY_DATA
-	IsPlaying = false;
+	bIsPlaying = false;
 #endif
 	if (onCultureChangedDelegateHandle.IsValid())
 	{
@@ -948,7 +945,7 @@ ALGUIManagerActor* ALGUIManagerActor::GetInstance(UWorld* InWorld, bool CreateIf
 				auto newInstance = InWorld->SpawnActor<ALGUIManagerActor>(param);
 				WorldToInstanceMap.Add(InWorld, newInstance);
 				UE_LOG(LGUI, Log, TEXT("[ALGUIManagerActor::GetInstance]No Instance for LGUIManagerActor, create!"));
-				newInstance->existInInstanceMap = true;
+				newInstance->bExistInInstanceMap = true;
 				return newInstance;
 			}
 			else
@@ -1529,6 +1526,17 @@ void ALGUIManagerActor::UnregisterLGUILayout(TScriptInterface<ILGUILayoutInterfa
 		Instance->AllLayoutArray.RemoveSingle(InItem);
 	}
 }
+
+#if WITH_EDITOR
+bool ALGUIManagerActor::GetIsPlaying(UWorld* InWorld)
+{
+	if (auto Instance = GetInstance(InWorld, false))
+	{
+		return Instance->bIsPlaying;
+	}
+	return false;
+}
+#endif
 
 
 void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement()
