@@ -34,10 +34,10 @@ protected:
 public:
 	/** if vertex data change and vertex count not change. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkVertexChanged"))
-		void ReceiveMarkVertexChanged();
+		void MarkVertexChanged();
 	/** if vertex count change or triangle count change, call this */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkRebuildGeometry"))
-		void ReceiveMarkRebuildGeometry();
+		void MarkRebuildGeometry();
 private:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;
 	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper;

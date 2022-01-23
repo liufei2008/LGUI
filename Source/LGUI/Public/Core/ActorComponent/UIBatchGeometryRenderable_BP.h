@@ -56,10 +56,15 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "LGUI")
 		TArray<FLGUIGeometryVertex> cacheVertices;
 	/** do not midify this vertices array's size!!! */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void BeginUpdateVertices();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void EndUpdateVertices();
+	void BeginUpdateVertices();
+	void EndUpdateVertices();
+
+	UE_DEPRECATED(4.24, "No need to call this anymore.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "BeginUpdateVertices", DeprecatedFunction, DeprecationMessage = "No need to call this anymore."))
+		void BeginUpdateVertices_BP() {};
+	UE_DEPRECATED(4.24, "No need to call this anymore.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "EndUpdateVertices", DeprecatedFunction, DeprecationMessage = "No need to call this anymore."))
+		void EndUpdateVertices_BP() {};
 };
 
 /** a wrapper class, blueprint can use this to create custom UI type */
@@ -75,8 +80,13 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 protected:
 	virtual bool HaveDataToCreateGeometry()override { return true; }
-	virtual bool NeedTextureToCreateGeometry()override { return false; }
-	virtual UTexture* GetTextureToCreateGeometry()override { return nullptr; }
+	virtual bool NeedTextureToCreateGeometry()override;
+	virtual UTexture* GetTextureToCreateGeometry()override;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "NeedTextureToCreateGeometry"))
+		bool ReceiveNeedTextureToCreateGeometry();
+	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetTextureToCreateGeometry"))
+		UTexture* ReceiveGetTextureToCreateGeometry();
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual void OnCreateGeometry()override;
@@ -92,11 +102,11 @@ protected:
 public:
 	/** if vertex data change and vertex count not change. */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkVertexChanged"))
-		void ReceiveMarkVertexChanged();
+		void MarkVertexChanged();
 	/** if vertex count change or triangle count change, call this */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkRebuildGeometry"))
-		void ReceiveMarkRebuildGeometry();
+		void MarkRebuildGeometry();
 private:
-	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;
-	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper;
+	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper = nullptr;
+	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper = nullptr;
 };

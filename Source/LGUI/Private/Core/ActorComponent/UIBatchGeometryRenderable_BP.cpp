@@ -144,6 +144,23 @@ void UUIBatchGeometryRenderable_BP::EndPlay(const EEndPlayReason::Type EndPlayRe
 	Super::EndPlay(EndPlayReason);
 }
 
+bool UUIBatchGeometryRenderable_BP::NeedTextureToCreateGeometry()
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		return ReceiveNeedTextureToCreateGeometry();
+	}
+	return false;
+}
+UTexture* UUIBatchGeometryRenderable_BP::GetTextureToCreateGeometry()
+{
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		return ReceiveGetTextureToCreateGeometry();
+	}
+	return nullptr;
+}
+
 void UUIBatchGeometryRenderable_BP::OnBeforeCreateOrUpdateGeometry()
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
@@ -153,35 +170,37 @@ void UUIBatchGeometryRenderable_BP::OnBeforeCreateOrUpdateGeometry()
 }
 void UUIBatchGeometryRenderable_BP::OnCreateGeometry()
 {
-	if (!IsValid(createGeometryHelper))
-	{
-		createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
-		createGeometryHelper->uiGeometry = geometry;
-	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
+		if (!IsValid(createGeometryHelper))
+		{
+			createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
+			createGeometryHelper->uiGeometry = geometry;
+		}
 		ReceiveOnCreateGeometry(createGeometryHelper);
 	}
 }
 void UUIBatchGeometryRenderable_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	if (!IsValid(updateGeometryHelper))
-	{
-		updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
-		updateGeometryHelper->uiGeometry = geometry;
-	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
+		if (!IsValid(updateGeometryHelper))
+		{
+			updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
+			updateGeometryHelper->uiGeometry = geometry;
+		}
+		updateGeometryHelper->BeginUpdateVertices();
 		ReceiveOnUpdateGeometry(updateGeometryHelper, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+		updateGeometryHelper->EndUpdateVertices();
 	}
 }
-void UUIBatchGeometryRenderable_BP::ReceiveMarkVertexChanged()
+void UUIBatchGeometryRenderable_BP::MarkVertexChanged()
 {
 	MarkVertexPositionDirty();
 	MarkColorDirty();
 	MarkUVDirty();
 }
-void UUIBatchGeometryRenderable_BP::ReceiveMarkRebuildGeometry()
+void UUIBatchGeometryRenderable_BP::MarkRebuildGeometry()
 {
 	MarkTriangleDirty();
 }

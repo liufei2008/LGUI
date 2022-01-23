@@ -33,35 +33,37 @@ void UUITextureBase_BP::OnBeforeCreateOrUpdateGeometry()
 }
 void UUITextureBase_BP::OnCreateGeometry()
 {
-	if (!IsValid(createGeometryHelper))
-	{
-		createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
-		createGeometryHelper->uiGeometry = geometry;
-	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
+		if (!IsValid(createGeometryHelper))
+		{
+			createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
+			createGeometryHelper->uiGeometry = geometry;
+		}
 		ReceiveOnCreateGeometry(createGeometryHelper);
 	}
 }
 void UUITextureBase_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
-	if (!IsValid(updateGeometryHelper))
-	{
-		updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
-		updateGeometryHelper->uiGeometry = geometry;
-	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
+		if (!IsValid(updateGeometryHelper))
+		{
+			updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
+			updateGeometryHelper->uiGeometry = geometry;
+		}
+		updateGeometryHelper->BeginUpdateVertices();
 		ReceiveOnUpdateGeometry(updateGeometryHelper, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+		updateGeometryHelper->EndUpdateVertices();
 	}
 }
-void UUITextureBase_BP::ReceiveMarkVertexChanged()
+void UUITextureBase_BP::MarkVertexChanged()
 {
 	MarkVertexPositionDirty();
 	MarkColorDirty();
 	MarkUVDirty();
 }
-void UUITextureBase_BP::ReceiveMarkRebuildGeometry()
+void UUITextureBase_BP::MarkRebuildGeometry()
 {
 	MarkTriangleDirty();
 }
