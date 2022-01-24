@@ -19,7 +19,6 @@ class UUISelectableComponent;
 class ULGUILifeCycleBehaviour;
 class ULGUIBaseInputModule;
 class ILGUILayoutInterface;
-class ULGUIPrefab;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
@@ -70,7 +69,6 @@ private:
 private:
 	static TArray<TTuple<int, TFunction<void()>>> OneShotFunctionsToExecuteInTick;
 public:
-	static void AddPrefabForGenerateAgent(ULGUIPrefab* InPrefab);
 	static void AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount = 0);
 private:
 	static bool InitCheck(UWorld* InWorld);
@@ -134,7 +132,6 @@ private:
 	static UWorld* PreviewWorldForPrefabPackage;
 public:
 	static UWorld* GetPreviewWorldForPrefabPackage();
-	static void GeneratePrefabAgentInPreviewWorld();
 #endif
 };
 

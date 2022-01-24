@@ -271,12 +271,6 @@ void ULGUIPrefab::ClearCachedCookedPlatformData(const ITargetPlatform* TargetPla
 void ULGUIPrefab::PostInitProperties()
 {
 	Super::PostInitProperties();
-#if WITH_EDITOR
-	if (this != GetDefault<ULGUIPrefab>())
-	{
-		ULGUIEditorManagerObject::AddPrefabForGenerateAgent(this);
-	}
-#endif
 }
 void ULGUIPrefab::PostCDOContruct()
 {
@@ -298,12 +292,6 @@ void ULGUIPrefab::PreSave(const class ITargetPlatform* TargetPlatform)
 void ULGUIPrefab::PostRename(UObject* OldOuter, const FName OldName)
 {
 	Super::PostRename(OldOuter, OldName);
-#if WITH_EDITOR
-	if (this != GetDefault<ULGUIPrefab>())
-	{
-		ULGUIEditorManagerObject::AddPrefabForGenerateAgent(this);
-	}
-#endif
 }
 void ULGUIPrefab::PreDuplicate(FObjectDuplicationParameters& DupParams)
 {
@@ -315,12 +303,7 @@ void ULGUIPrefab::PostDuplicate(bool bDuplicateForPIE)
 	Super::PostDuplicate(bDuplicateForPIE);
 	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
 	{
-#if WITH_EDITOR
-		if (this != GetDefault<ULGUIPrefab>())
-		{
-			ULGUIEditorManagerObject::AddPrefabForGenerateAgent(this);
-		}
-#endif
+
 	}
 	else
 	{

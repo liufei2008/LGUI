@@ -205,18 +205,6 @@ TStatId ULGUIEditorManagerObject::GetStatId() const
 
 #if WITH_EDITOR
 TArray<TTuple<int, TFunction<void()>>> ULGUIEditorManagerObject::OneShotFunctionsToExecuteInTick;
-void ULGUIEditorManagerObject::AddPrefabForGenerateAgent(ULGUIPrefab* InPrefab)
-{
-	TTuple<int, TFunction<void()>> Item;
-	Item.Key = 0;
-	Item.Value = [Prefab = MakeWeakObjectPtr(InPrefab)]() {
-		if (Prefab.IsValid())
-		{
-			Prefab->RefreshAgentObjectsInPreviewWorld();
-		}
-	};
-	OneShotFunctionsToExecuteInTick.Add(Item);
-}
 
 void ULGUIEditorManagerObject::AddOneShotTickFunction(TFunction<void()> InFunction, int InDelayFrameCount)
 {
@@ -259,8 +247,6 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 			Instance->OnMapOpenedDelegateHandle = FEditorDelegates::OnMapOpened.AddUObject(Instance, &ULGUIEditorManagerObject::OnMapOpened);
 			//blueprint recompile
 			Instance->OnBlueprintCompiledDelegateHandle = GEditor->OnBlueprintCompiled().AddUObject(Instance, &ULGUIEditorManagerObject::RefreshOnBlueprintCompiled);
-
-			GeneratePrefabAgentInPreviewWorld();
 		}
 		else
 		{
@@ -391,36 +377,6 @@ UWorld* ULGUIEditorManagerObject::GetPreviewWorldForPrefabPackage()
 			.SetTransactional(false));
 	}
 	return PreviewWorldForPrefabPackage;
-}
-
-#include "AssetRegistryModule.h"
-void ULGUIEditorManagerObject::GeneratePrefabAgentInPreviewWorld()
-{
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
-	TArray<FString> PathsToScan;
-	PathsToScan.Add(TEXT("/Game/"));
-	AssetRegistry.ScanPathsSynchronous(PathsToScan);
-
-	// Get asset in path
-	TArray<FAssetData> ScriptAssetList;
-	AssetRegistry.GetAssetsByPath(FName("/Game/"), ScriptAssetList, /*bRecursive=*/true);
-
-	// Ensure all assets are loaded
-	for (const FAssetData& Asset : ScriptAssetList)
-	{
-		// Gets the loaded asset, loads it if necessary
-		if (Asset.AssetClass == TEXT("LGUIPrefab"))
-		{
-			auto AssetObject = Asset.GetAsset();
-			if (auto Prefab = Cast<ULGUIPrefab>(AssetObject))
-			{
-				Prefab->MakeAgentObjectsInPreviewWorld();
-			}
-		}
-	}
 }
 
 void ULGUIEditorManagerObject::OnActorLabelChanged(AActor* actor)
