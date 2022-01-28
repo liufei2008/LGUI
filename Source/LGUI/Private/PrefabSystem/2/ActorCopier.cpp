@@ -313,6 +313,20 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 
 	auto CopiedActor = TargetWorld->SpawnActorDeferred<AActor>(OriginActor->GetClass(), FTransform::Identity);
 	DuplicatingActorCollection.Add(CopiedActor);
+	if (CopiedRootActor == nullptr)
+	{
+		CopiedRootActor = CopiedActor;
+#if WITH_EDITORONLY_DATA
+		if (IsEditMode)
+		{
+			ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get(), CopiedRootActor);
+		}
+		else
+#endif
+		{
+			ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get(), CopiedRootActor);
+		}
+	}
 #if WITH_EDITORONLY_DATA
 	if (IsEditMode)
 	{
@@ -321,7 +335,7 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 	else
 #endif
 	{
-		ALGUIManagerActor::AddActorForPrefabSystem(CopiedActor);
+		ALGUIManagerActor::AddActorForPrefabSystem(CopiedActor, CopiedRootActor);
 	}
 	CopyPropertyForActor(OriginActor, CopiedActor, ActorExcludeProperties);
 	const auto& OriginComponents = OriginActor->GetComponents();
@@ -421,15 +435,7 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 	TargetWorld = RootActor->GetWorld();
 #if WITH_EDITORONLY_DATA
 	IsEditMode = !TargetWorld->IsGameWorld();
-	if (IsEditMode)
-	{
-		ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get());
-	}
-	else
 #endif
-	{
-		ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get());
-	}
 	
 	int32 originActorId = 0, copiedActorId = 0;
 	GenerateActorIDRecursive(RootActor, originActorId);
@@ -468,16 +474,22 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 		{
 			ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
 		}
-		ULGUIEditorManagerObject::EndPrefabSystemProcessingActor();
+		if (CopiedRootActor != nullptr)//if any error hanppens then CopiedRootActor could be nullptr, so check it
+		{
+			ULGUIEditorManagerObject::EndPrefabSystemProcessingActor(TargetWorld.Get(), CopiedRootActor);
+		}
 	}
 	else
 #endif
 	{
 		for (auto item : DuplicatingActorCollection)
 		{
-			ALGUIManagerActor::RemoveActorForPrefabSystem(item);
+			ALGUIManagerActor::RemoveActorForPrefabSystem(item, CopiedRootActor);
 		}
-		ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get());
+		if (CopiedRootActor != nullptr)//if any error hanppens then CopiedRootActor could be nullptr, so check it
+		{
+			ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld.Get(), CopiedRootActor);
+		}
 	}
 
 	auto TimeSpan = FDateTime::Now() - StartTime;

@@ -39,6 +39,13 @@ AActor* ActorSerializer::DeserializeActorRecursiveForEdit(USceneComponent* Paren
 				CreateNewActorFunction(NewActor, ActorGuidInPrefab);
 			}
 		}
+		if (LoadedRootActor == nullptr)
+		{
+			LoadedRootActor = NewActor;
+#if WITH_EDITOR
+			ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get(), LoadedRootActor);
+#endif
+		}
 		ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
 		CreatedActors.Add(NewActor);
 		CreatedActorsGuid.Add(ActorGuidInPrefab);

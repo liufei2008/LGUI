@@ -14,7 +14,8 @@ class LGUI_API AUIBackgroundBlurActor : public AUIBasePostProcessActor
 public:	
 	AUIBackgroundBlurActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIBackgroundBlur; }
+	virtual UUIItem* GetUIItem()const override { return UIBackgroundBlur; }
+	virtual class UUIPostProcessRenderable* GetUIPostProcessRenderable()const override { return UIBackgroundBlur; }
 	FORCEINLINE UUIBackgroundBlur* GetUIBackgroundBlur()const { return UIBackgroundBlur; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))

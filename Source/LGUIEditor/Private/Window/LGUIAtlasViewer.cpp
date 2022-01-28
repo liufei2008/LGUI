@@ -5,6 +5,7 @@
 #include "Core/ActorComponent/UISpriteBase.h"
 #include "Core/LGUIAtlasData.h"
 #include "LGUIEditorModule.h"
+#include "ISinglePropertyView.h"
 
 #define LOCTEXT_NAMESPACE "LGUIAtlasViewer"
 
@@ -22,6 +23,10 @@ void SLGUIAtlasViewer::Construct(const FArguments& Args, TSharedPtr<SDockTab> In
 			DetailsViewArgs.bAllowFavoriteSystem = false;
 			DetailsViewArgs.bHideSelectionTip = true;
 		}
+		//FSinglePropertyParams SinglePropertyParams;
+		//TSharedPtr<ISinglePropertyView> Property = EditModule.CreateSingleProperty(ULGUIAtlasManager::Instance, TEXT("atlasMap"), SinglePropertyParams);
+		//Property->SetObject(ULGUIAtlasManager::Instance);
+
 		TSharedPtr<IDetailsView> DescriptorDetailView = EditModule.CreateDetailView(DetailsViewArgs);
 		DescriptorDetailView->SetObject(ULGUIAtlasManager::Instance);
 

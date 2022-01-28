@@ -33,10 +33,10 @@ protected:
 		void ReceiveOnUpdateGeometry(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, ULGUISpriteData_BaseObject* InSpriteData, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 public:
 	/** if vertex data change and vertex count not change. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkVertexChanged"))
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void MarkVertexChanged();
 	/** if vertex count change or triangle count change, call this */
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkRebuildGeometry"))
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void MarkRebuildGeometry();
 private:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;

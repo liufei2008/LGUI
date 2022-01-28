@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "UIBaseActor.generated.h"
 
+class UUIItem;
 UCLASS(Abstract)
 class LGUI_API AUIBaseActor : public AActor
 {
@@ -13,10 +14,14 @@ class LGUI_API AUIBaseActor : public AActor
 public:	
 	AUIBaseActor();
 
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		virtual class UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName="GetUIItem"))
+		UUIItem* GetUIItem_BP()const;
+	virtual UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
+private:
+	UUIItem* GetUIItem_BP_Implementation()const { return GetUIItem(); }
 };
 
+class UUIBaseRenderable;
 UCLASS(Abstract)
 class LGUI_API AUIBaseRenderableActor : public AUIBaseActor
 {
@@ -24,10 +29,14 @@ class LGUI_API AUIBaseRenderableActor : public AUIBaseActor
 
 public:
 	AUIBaseRenderableActor();
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		virtual class UUIBaseRenderable* GetUIRenderable()const PURE_VIRTUAL(AUIBaseRenderableActor::GetUIRenderable, return nullptr;);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName = "GetUIRenderable"))
+		UUIBaseRenderable* GetUIRenderable_BP()const;
+	virtual UUIBaseRenderable* GetUIRenderable()const PURE_VIRTUAL(AUIBaseRenderableActor::GetUIRenderable, return nullptr;);
+private:
+	UUIBaseRenderable* GetUIRenderable_BP_Implementation()const { return GetUIRenderable(); }
 };
 
+class UUIPostProcessRenderable;
 UCLASS(Abstract)
 class LGUI_API AUIBasePostProcessActor : public AUIBaseRenderableActor
 {
@@ -35,4 +44,9 @@ class LGUI_API AUIBasePostProcessActor : public AUIBaseRenderableActor
 
 public:
 	AUIBasePostProcessActor();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName = "GetUIPostProcessRenderable"))
+		UUIPostProcessRenderable* GetUIPostProcessRenderable_BP()const;
+	virtual UUIPostProcessRenderable* GetUIPostProcessRenderable()const PURE_VIRTUAL(AUIBasePostProcessActor::GetUIPostProcessRenderable, return nullptr;);
+private:
+	UUIPostProcessRenderable* GetUIPostProcessRenderable_BP_Implementation()const { return GetUIPostProcessRenderable(); }
 };

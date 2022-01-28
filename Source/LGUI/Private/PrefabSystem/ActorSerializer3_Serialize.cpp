@@ -20,23 +20,23 @@
 PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
-	void ActorSerializer3::SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
+	void ActorSerializer3::SavePrefab(AActor* OriginRootActor, ULGUIPrefab* InPrefab
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
 		, bool InForEditorOrRuntimeUse, bool InUseDeltaSerialization
 	)
 	{
-		if (!RootActor || !InPrefab)
+		if (!OriginRootActor || !InPrefab)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::SerializeActor]RootActor Or InPrefab is null!"));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::SerializeActor]OriginRootActor Or InPrefab is null!"));
 			return;
 		}
-		if (!RootActor->GetWorld())
+		if (!OriginRootActor->GetWorld())
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::SerializeActor]Cannot get World from RootActor!"));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::SerializeActor]Cannot get World from OriginRootActor!"));
 			return;
 		}
 		ActorSerializer3 serializer;
-		serializer.TargetWorld = RootActor->GetWorld();
+		serializer.TargetWorld = OriginRootActor->GetWorld();
 		for (auto KeyValue : InOutMapObjectToGuid)//Preprocess the map, ignore invalid object
 		{
 			if (IsValid(KeyValue.Key))
@@ -56,7 +56,7 @@ namespace LGUIPrefabSystem3
 		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
 			FLGUIOverrideParameterObjectWriter Writer(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
 		};
-		serializer.SerializeActor(RootActor, InPrefab);
+		serializer.SerializeActor(OriginRootActor, InPrefab);
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;
 	}
 
@@ -128,20 +128,20 @@ namespace LGUIPrefabSystem3
 		}
 		OutActorSaveData.ChildActorData = ChildSaveDataList;
 	}
-	void ActorSerializer3::SerializeActorToData(AActor* RootActor, FLGUIPrefabSaveData& OutData)
+	void ActorSerializer3::SerializeActorToData(AActor* OriginRootActor, FLGUIPrefabSaveData& OutData)
 	{
-		CollectActorRecursive(RootActor);
+		CollectActorRecursive(OriginRootActor);
 		//serailize actor
-		SerializeActorRecursive(RootActor, OutData.SavedActor);
+		SerializeActorRecursive(OriginRootActor, OutData.SavedActor);
 		//serialize objects and components
 		SerializeObjectArray(OutData.SavedObjects, OutData.SavedComponents);
 	}
-	void ActorSerializer3::SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab)
+	void ActorSerializer3::SerializeActor(AActor* OriginRootActor, ULGUIPrefab* InPrefab)
 	{
 		auto StartTime = FDateTime::Now();
 
 		FLGUIPrefabSaveData SaveData;
-		SerializeActorToData(RootActor, SaveData);
+		SerializeActorToData(OriginRootActor, SaveData);
 
 		FBufferArchive ToBinary;
 		ToBinary << SaveData;

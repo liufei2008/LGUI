@@ -189,6 +189,7 @@ namespace LGUIPrefabSystem3
 	private:
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
+			, AActor* InParentRootActor
 			, TMap<FGuid, UObject*>& InMapGuidToObject
 			, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
 		);
@@ -245,6 +246,9 @@ namespace LGUIPrefabSystem3
 		TArray<UObject*> ReferenceAssetList;
 		TArray<UClass*> ReferenceClassList;
 		TArray<FName> ReferenceNameList;
+		/** Loaded root actor when deserialize. If nested prefab, this is still the parent prefab's root actor */
+		AActor* LoadedRootActor = nullptr;
+		bool bIsSubPrefab = false;
 
 		const TSet<FName>& GetSceneComponentExcludeProperties();
 

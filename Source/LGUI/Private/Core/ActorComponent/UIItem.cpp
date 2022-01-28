@@ -223,11 +223,6 @@ void UUIItem::CallUILifeCycleBehavioursChildHierarchyIndexChanged(UUIItem* child
 #pragma endregion LGUILifeCycleUIBehaviour
 
 
-void UUIItem::OnChildHierarchyIndexChanged(UUIItem* child)
-{
-	CallUILifeCycleBehavioursChildHierarchyIndexChanged(child);
-}
-
 void UUIItem::CalculateFlattenHierarchyIndex_Recursive(int& index)const
 {
 	if (this->flattenHierarchyIndex != index)
@@ -318,7 +313,7 @@ void UUIItem::ApplyHierarchyIndex()
 			if (anythingChange)
 			{
 				MarkFlattenHierarchyIndexDirty();
-				ParentUIItem->OnChildHierarchyIndexChanged(this);
+				ParentUIItem->CallUILifeCycleBehavioursChildHierarchyIndexChanged(this);
 			}
 		}
 	}
@@ -699,19 +694,19 @@ void UUIItem::OnAttachmentChanged()
 	if (this->IsPendingKillOrUnreachable())return;
 	if (GetWorld() == nullptr)return;
 
-	if (ParentUIItem.IsValid())//tell old parent
-	{
-		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
-	}
-	ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-	if (ParentUIItem.IsValid())
-	{
-		ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
-	}
-
 #if WITH_EDITORONLY_DATA
 	if (!GetWorld()->IsGameWorld())
 	{
+		if (ParentUIItem.IsValid())//tell old parent
+		{
+			ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
+		}
+		ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+		if (ParentUIItem.IsValid())
+		{
+			ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
+		}
+
 		if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))
 		{
 			if (this->IsRegistered())//when load from level
@@ -723,8 +718,38 @@ void UUIItem::OnAttachmentChanged()
 	else
 #endif
 	{
-		if (!ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier
+		if (ALGUIManagerActor::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
 		{
+			if (ParentUIItem.IsValid())//tell old parent
+			{
+				ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+					if (Child.IsValid() && Parent.IsValid())
+					{
+						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
+					}});
+			}
+			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+			if (ParentUIItem.IsValid())
+			{
+				ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+					if (Child.IsValid() && Parent.IsValid())
+					{
+						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
+					}});
+			}
+		}
+		else
+		{
+			if (ParentUIItem.IsValid())//tell old parent
+			{
+				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
+			}
+			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+			if (ParentUIItem.IsValid())
+			{
+				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
+			}
+
 			if (this->IsRegistered())//load from level
 			{
 				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
@@ -749,24 +774,23 @@ void UUIItem::OnRegister()
 		if (!world->IsGameWorld() && GetOwner())
 		{
 			ULGUIEditorManagerObject::AddUIItem(this);
-			//create helper
-			if (!HelperComp)
+			//create helper for root component
+			if (this->GetOwner()->GetRootComponent() == this)
 			{
-				HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner(), NAME_None, RF_Transactional | RF_Transient | RF_TextExportTransient);
-				HelperComp->Parent = this;
-				HelperComp->Mobility = EComponentMobility::Movable;
-				HelperComp->SetIsVisualizationComponent(true);
-				HelperComp->SetupAttachment(this);
-				HelperComp->RegisterComponent();
+				if (!HelperComp)
+				{
+					HelperComp = NewObject<UUIItemEditorHelperComp>(GetOwner(), NAME_None, RF_Transient | RF_TextExportTransient);
+					HelperComp->Parent = this;
+					HelperComp->Mobility = EComponentMobility::Movable;
+					HelperComp->SetIsVisualizationComponent(true);
+					HelperComp->SetupAttachment(this);
+					HelperComp->RegisterComponent();
+				}
 			}
 			//display name
 			if (this->GetOwner()->GetRootComponent() == this)
 			{
 				auto actorLabel = FString(*this->GetOwner()->GetActorLabel());
-				if (actorLabel.StartsWith("//"))
-				{
-					actorLabel = actorLabel.Right(actorLabel.Len() - 2);
-				}
 				this->displayName = actorLabel;
 			}
 			else
@@ -1975,8 +1999,12 @@ bool UUIItem::IsWorldSpaceUI()const
 #pragma region UICanvasGroup
 void UUIItem::OnCanvasGroupInteractableStateChange()
 {
-	bIsGroupAllowInteraction = CanvasGroup.IsValid() ? CanvasGroup->GetFinalInteractable() : true;
-	CallUILifeCycleBehavioursInteractionStateChanged();
+	auto NewInteractable = CanvasGroup.IsValid() ? CanvasGroup->GetFinalInteractable() : true;
+	if (bIsGroupAllowInteraction != NewInteractable)
+	{
+		bIsGroupAllowInteraction = NewInteractable;
+		CallUILifeCycleBehavioursInteractionStateChanged();
+	}
 }
 #pragma endregion UICanvasGroup
 

@@ -26,13 +26,27 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent
 
 		auto guidInPrefab = SaveData.GetActorGuid(FGuid::NewGuid());
 		auto NewActor = TargetWorld->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity);
+		if (LoadedRootActor == nullptr)
+		{
+			LoadedRootActor = NewActor;
+#if WITH_EDITOR
+			if (!TargetWorld->IsGameWorld())
+			{
+				ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld.Get(), LoadedRootActor);
+			}
+			else
+#endif
+			{
+				ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get(), LoadedRootActor);
+			}
+		}
 		if (!TargetWorld->IsGameWorld())
 		{
 			ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
 		}
 		else
 		{
-			ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
+			ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor);
 		}
 		CreatedActors.Add(NewActor);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));

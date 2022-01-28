@@ -25,4 +25,10 @@ private:
 	FOptionalSize GetBorderRightSize()const;
 	FOptionalSize GetBorderTopSize()const;
 	FOptionalSize GetBorderBottomSize()const;
+
+	void OnPackingTagTextCommited(const FText& InText, ETextCommit::Type CommitType, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
+	FText GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const;
+	TSharedRef<ITableRow> GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable);
+	void HandleRequiredParamComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
+	TArray<TSharedPtr<FName>> NameList;
 };

@@ -52,14 +52,20 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 	spriteHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([=, &DetailBuilder] {
 		for (auto item : TargetScriptArray)
 		{
-			item->OnPostChangeSpriteProperty();
+			if (item.IsValid())
+			{
+				item->OnPostChangeSpriteProperty();
+			}
 		}
 		DetailBuilder.ForceRefreshDetails();
 	}));
 	spriteHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
 		for (auto item : TargetScriptArray)
 		{
-			item->OnPreChangeSpriteProperty();
+			if (item.IsValid())
+			{
+				item->OnPreChangeSpriteProperty();
+			}
 		}
 	}));
 	UObject* spriteObject;
@@ -76,8 +82,11 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			{
 				for (auto item : TargetScriptArray)
 				{
-					item->SetSizeFromSpriteData();
-					item->EditorForceUpdate();
+					if (item.IsValid())
+					{
+						item->SetSizeFromSpriteData();
+						item->EditorForceUpdate();
+					}
 				}
 				return FReply::Handled();
 			})

@@ -168,7 +168,16 @@ void ULGUIEditorManagerObject::Tick(float DeltaTime)
 		{
 			AllCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 				{
-					return A->GetActualSortOrder() < B->GetActualSortOrder();
+					auto ASortOrder = A->GetActualSortOrder();
+					auto BSortOrder = B->GetActualSortOrder();
+					if (ASortOrder == BSortOrder)
+					{
+						if (A->GetUIItem() != nullptr && B->GetUIItem() != nullptr)
+						{
+							return A->GetUIItem()->GetFlattenHierarchyIndex() < B->GetUIItem()->GetFlattenHierarchyIndex();
+						}
+					}
+					return ASortOrder < BSortOrder;
 				});
 		}
 		if (bShouldSortLGUIRenderer)
@@ -683,20 +692,18 @@ uint32 ULGUIEditorManagerObject::GetViewportKeyFromIndex(int32 InViewportIndex)
 	return 0;
 }
 
-
-
-void ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(UWorld* InWorld)
+void ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor)
 {
 	if (InitCheck(InWorld))
 	{
-		//Instance->AllActors_PrefabSystemProcessing.Reset();//@todo: better to use a stack 
+		//nothing for edit mode
 	}
 }
-void ULGUIEditorManagerObject::EndPrefabSystemProcessingActor()
+void ULGUIEditorManagerObject::EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor)
 {
 	if (Instance != nullptr)
 	{
-		//Instance->AllActors_PrefabSystemProcessing.Reset();//@todo: better to use a stack 
+		//nothing for edit mode
 	}
 }
 void ULGUIEditorManagerObject::AddActorForPrefabSystem(AActor* InActor)
@@ -934,7 +941,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			{
 				if (!item.IsValid())continue;
 				if (!IsValid(item->GetWorld()))continue;
-
+				if (item->IsScreenSpaceOverlayUI())continue;
 				ULGUIEditorManagerObject::DrawFrameOnUIItem(item.Get());
 			}
 		}
@@ -1056,7 +1063,16 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 			//@todo: no need to sort all canvas
 			AllCanvasArray.Sort([](const TWeakObjectPtr<ULGUICanvas>& A, const TWeakObjectPtr<ULGUICanvas>& B)
 				{
-					return A->GetActualSortOrder() < B->GetActualSortOrder();
+					auto ASortOrder = A->GetActualSortOrder();
+					auto BSortOrder = B->GetActualSortOrder();
+					if (ASortOrder == BSortOrder)
+					{
+						if (A->GetUIItem() != nullptr && B->GetUIItem() != nullptr)
+						{
+							return A->GetUIItem()->GetFlattenHierarchyIndex() < B->GetUIItem()->GetFlattenHierarchyIndex();
+						}
+					}
+					return ASortOrder < BSortOrder;
 				});
 		}
 		if (bShouldSortLGUIRenderer)
@@ -1106,22 +1122,20 @@ void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycl
 	{
 		if (auto Instance = GetInstance(InComp->GetWorld(), true))
 		{
-			if (IsPrefabSystemProcessingActor(InComp->GetOwner()))
+			if (auto RootActor = Instance->AllActors_PrefabSystemProcessing.Find(InComp->GetOwner()))//processing by prefab system, collect for further operation
 			{
-				if (Instance->PrefabSystemProcessing_CurrentArrayIndex < 0 || Instance->PrefabSystemProcessing_CurrentArrayIndex >= Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Num())
+				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(*RootActor))
 				{
-					UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent]array out of range, index:%d, arrayCount:%d"), Instance->PrefabSystemProcessing_CurrentArrayIndex, Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Num());
-					return;
+					auto& CompArray = ArrayPtr->LGUILifeCycleBehaviourArray;
+					if (CompArray.Contains(InComp))
+					{
+						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent]already contains, comp:%s"), *(InComp->GetPathName()));
+						return;
+					}
+					CompArray.Add(InComp);
 				}
-				auto& compArray = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing[Instance->PrefabSystemProcessing_CurrentArrayIndex].LGUILifeCycleBehaviourArray;
-				if (compArray.Contains(InComp))
-				{
-					UE_LOG(LGUI, Warning, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent]already contains, comp:%s"), *(InComp->GetPathName()));
-					return;
-				}
-				compArray.Add(InComp);
 			}
-			else
+			else//not processed by prefab system, just do immediately
 			{
 				ProcessLGUILifecycleEvent(InComp);
 			}
@@ -1495,26 +1509,31 @@ bool ALGUIManagerActor::GetIsPlaying(UWorld* InWorld)
 #endif
 
 
-void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement()
+void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement(AActor* InRootActor)
 {
-	PrefabSystemProcessing_CurrentArrayIndex--;
-	check(PrefabSystemProcessing_CurrentArrayIndex >= PrefabSystemProcessing_MinArrayIndex);
-	if (PrefabSystemProcessing_CurrentArrayIndex == PrefabSystemProcessing_MinArrayIndex)//wait all prefab serialization ready then do Awake
+	if (auto ArrayPtr = LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(InRootActor))
 	{
-		for (int j = LGUILifeCycleBehaviours_PrefabSystemProcessing.Num() - 1; j >= 0; j--)
+		auto& LateFunctions = ArrayPtr->Functions;
+		for (auto& Function : LateFunctions)
 		{
-			auto& LGUILifeCycleBehaviourArray = LGUILifeCycleBehaviours_PrefabSystemProcessing[j].LGUILifeCycleBehaviourArray;
-
-			for (int i = LGUILifeCycleBehaviourArray.Num() - 1; i >= 0; i--)//execute from tail to head, when in prefab the deeper in hierarchy will execute earlier
-			{
-				auto item = LGUILifeCycleBehaviourArray[i];
-				if (item.IsValid())
-				{
-					ProcessLGUILifecycleEvent(item.Get());
-				}
-			}
+			Function();
 		}
-		LGUILifeCycleBehaviours_PrefabSystemProcessing.Reset();
+
+		auto& LGUILifeCycleBehaviourArray = ArrayPtr->LGUILifeCycleBehaviourArray;
+		auto Count = LGUILifeCycleBehaviourArray.Num();
+		for (int i = Count - 1; i >= 0; i--)//execute from tail to head, when in prefab the deeper in hierarchy will execute earlier
+		{
+			auto item = LGUILifeCycleBehaviourArray[i];
+			if (item.IsValid())
+			{
+				ProcessLGUILifecycleEvent(item.Get());
+			}
+#if !UE_BUILD_SHIPPING
+			check(LGUILifeCycleBehaviourArray.Num() == Count);
+#endif
+		}
+		
+		LGUILifeCycleBehaviours_PrefabSystemProcessing.Remove(InRootActor);
 	}
 }
 void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InComp)
@@ -1537,33 +1556,33 @@ void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InCom
 		}
 	}
 }
-void ALGUIManagerActor::BeginPrefabSystemProcessingActor(UWorld* InWorld)
+void ALGUIManagerActor::BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor)
 {
 	if (auto Instance = GetInstance(InWorld, true))
 	{
-		Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Add({});
-		Instance->PrefabSystemProcessing_CurrentArrayIndex++;
+		FLGUILifeCycleBehaviourArrayContainer Container;
+		Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Add(InRootActor, Container);
 	}
 }
-void ALGUIManagerActor::EndPrefabSystemProcessingActor(UWorld* InWorld)
+void ALGUIManagerActor::EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor)
 {
 	if (auto Instance = GetInstance(InWorld, false))
 	{
-		Instance->EndPrefabSystemProcessingActor_Implement();
+		Instance->EndPrefabSystemProcessingActor_Implement(InRootActor);
 	}
 }
-void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor)
+void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor)
 {
 	if (auto Instance = GetInstance(InActor->GetWorld(), true))
 	{
-		Instance->AllActors_PrefabSystemProcessing.AddUnique(InActor);
+		Instance->AllActors_PrefabSystemProcessing.Add(InActor, InRootActor);
 	}
 }
-void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor)
+void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor)
 {
 	if (auto Instance = GetInstance(InActor->GetWorld()))
 	{
-		Instance->AllActors_PrefabSystemProcessing.RemoveSingle(InActor);
+		Instance->AllActors_PrefabSystemProcessing.Remove(InActor);
 	}
 }
 bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
@@ -1573,6 +1592,17 @@ bool ALGUIManagerActor::IsPrefabSystemProcessingActor(AActor* InActor)
 		return Instance->AllActors_PrefabSystemProcessing.Contains(InActor);
 	}
 	return false;
+}
+void ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction)
+{
+	if (auto Instance = GetInstance(InPrefabActor->GetWorld()))
+	{
+		if (auto RootActorPtr = Instance->AllActors_PrefabSystemProcessing.Find(InPrefabActor))
+		{
+			auto& Container = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing[*RootActorPtr];
+			Container.Functions.Add(InFunction);
+		}
+	}
 }
 PRAGMA_ENABLE_OPTIMIZATION
 #undef LOCTEXT_NAMESPACE

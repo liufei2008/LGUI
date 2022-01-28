@@ -18,27 +18,27 @@
 PRAGMA_DISABLE_OPTIMIZATION
 namespace LGUIPrefabSystem3
 {
-	AActor* ActorSerializer3::DuplicateActor(AActor* RootActor, USceneComponent* Parent)
+	AActor* ActorSerializer3::DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent)
 	{
-		if (!RootActor)
+		if (!OriginRootActor)
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::DuplicateActor]RootActor Or InPrefab is null!"));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::DuplicateActor]OriginRootActor Or InPrefab is null!"));
 			return nullptr;
 		}
-		if (!RootActor->GetWorld())
+		if (!OriginRootActor->GetWorld())
 		{
-			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::DuplicateActor]Cannot get World from RootActor!"));
+			UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::DuplicateActor]Cannot get World from OriginRootActor!"));
 			return nullptr;
 		}
 		ActorSerializer3 serializer;
-		serializer.TargetWorld = RootActor->GetWorld();
+		serializer.TargetWorld = OriginRootActor->GetWorld();
 #if !WITH_EDITOR
 		serializer.bIsEditorOrRuntime = false;
 #endif
-		return serializer.SerializeActor_ForDuplicate(RootActor, Parent);
+		return serializer.SerializeActor_ForDuplicate(OriginRootActor, Parent);
 	}
 
-	AActor* ActorSerializer3::SerializeActor_ForDuplicate(AActor* RootActor, USceneComponent* Parent)
+	AActor* ActorSerializer3::SerializeActor_ForDuplicate(AActor* OriginRootActor, USceneComponent* Parent)
 	{
 		auto StartTime = FDateTime::Now();
 
@@ -48,7 +48,7 @@ namespace LGUIPrefabSystem3
 			FLGUIDuplicateObjectWriter Writer(InObject, InOutBuffer, *this, ExcludeProperties);
 		};
 		FLGUIPrefabSaveData SaveData;
-		SerializeActorToData(RootActor, SaveData);
+		SerializeActorToData(OriginRootActor, SaveData);
 
 		//deserialize
 		WriterOrReaderFunction = [this](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
@@ -60,9 +60,9 @@ namespace LGUIPrefabSystem3
 		auto TimeSpan = FDateTime::Now() - StartTime;
 		auto Name =
 #if WITH_EDITOR
-			RootActor->GetActorLabel();
+			OriginRootActor->GetActorLabel();
 #else
-			RootActor->GetPathName();
+			OriginRootActor->GetPathName();
 #endif
 		UE_LOG(LGUI, Log, TEXT("Take %fs duplicating actor: %s"), TimeSpan.GetTotalSeconds(), *Name);
 		return CreatedRootActor;

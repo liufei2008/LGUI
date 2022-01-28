@@ -422,6 +422,8 @@ namespace LGUIPrefabSystem
 		TArray<UObject*> OutterArray;
 		UObject* Outter = nullptr;
 
+		/** Prefab's loaded root actor */
+		AActor* LoadedRootActor = nullptr;
 #if WITH_EDITOR
 		//serialize actor
 		void SerializeActor(AActor* RootActor, ULGUIPrefab* InPrefab);

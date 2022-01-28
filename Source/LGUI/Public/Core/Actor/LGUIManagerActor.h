@@ -115,8 +115,8 @@ private:
 #endif
 	void RefreshOnBlueprintCompiled();
 public:
-	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);
-	static void EndPrefabSystemProcessingActor();
+	static void BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
+	static void EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
 	static void AddActorForPrefabSystem(AActor* InActor);
 	static void RemoveActorForPrefabSystem(AActor* InActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
@@ -142,6 +142,8 @@ struct FLGUILifeCycleBehaviourArrayContainer
 public:
 	UPROPERTY(VisibleAnywhere, Category = LGUI)
 		TArray<TWeakObjectPtr<ULGUILifeCycleBehaviour>> LGUILifeCycleBehaviourArray;
+	/** Functions that wait for prefab serialization complete then execute */
+	TArray<TFunction<void()>> Functions;
 };
 
 class ILGUICultureChangedInterface;
@@ -253,19 +255,25 @@ public:
 	static bool GetIsPlaying(UWorld* InWorld);
 #endif
 private:
+	/** Map actor to prefab's root actor */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<AActor*> AllActors_PrefabSystemProcessing;
+		TMap<AActor*, AActor*> AllActors_PrefabSystemProcessing;
+	/** Map root actor to LGUILifeCycleBehaviour array */
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
-	const int PrefabSystemProcessing_MinArrayIndex = -1;
-	int PrefabSystemProcessing_CurrentArrayIndex = PrefabSystemProcessing_MinArrayIndex;
-	void EndPrefabSystemProcessingActor_Implement();
+		TMap<AActor*, FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
+	void EndPrefabSystemProcessingActor_Implement(AActor* InRootActor);
 public:
-	static void BeginPrefabSystemProcessingActor(UWorld* InWorld);
-	static void EndPrefabSystemProcessingActor(UWorld* InWorld);
-	static void AddActorForPrefabSystem(AActor* InActor);
-	static void RemoveActorForPrefabSystem(AActor* InActor);
+	static void BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
+	static void EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
+	static void AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor);
+	static void RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
+	/**
+	 * Add a function that execute after prefab system serialization and before Awake called
+	 * @param	InPrefabActor	Current prefab system processing actor
+	 * @param	InFunction		Function to call after prefab system serialization complete and before Awake called
+	 */
+	static void AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction);
 
 	static void AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycleBehaviour* InComp);
 	static void AddLGUILifeCycleBehavioursForUpdate(ULGUILifeCycleBehaviour* InComp);

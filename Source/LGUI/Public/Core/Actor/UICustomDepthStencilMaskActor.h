@@ -14,7 +14,8 @@ class LGUI_API AUICustomDepthStencilMaskActor : public AUIBasePostProcessActor
 public:	
 	AUICustomDepthStencilMaskActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UICustomDepthStencilMask; }
+	virtual UUIItem* GetUIItem()const override { return UICustomDepthStencilMask; }
+	virtual class UUIPostProcessRenderable* GetUIPostProcessRenderable()const override { return UICustomDepthStencilMask; }
 	FORCEINLINE UUICustomDepthStencilMask* GetUICustomDepthMask()const { return UICustomDepthStencilMask; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))

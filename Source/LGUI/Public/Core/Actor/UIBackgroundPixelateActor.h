@@ -14,7 +14,8 @@ class LGUI_API AUIBackgroundPixelateActor : public AUIBasePostProcessActor
 public:	
 	AUIBackgroundPixelateActor();
 
-	FORCEINLINE virtual UUIItem* GetUIItem()const override { return UIBackgroundPixelate; }
+	virtual UUIItem* GetUIItem()const override { return UIBackgroundPixelate; }
+	virtual class UUIPostProcessRenderable* GetUIPostProcessRenderable()const override { return UIBackgroundPixelate; }
 	FORCEINLINE UUIBackgroundPixelate* GetUIBackgroundPixelate()const { return UIBackgroundPixelate; }
 private:
 	UPROPERTY(Category = "LGUI", VisibleAnywhere, BlueprintReadOnly, Transient, meta = (AllowPrivateAccess = "true"))

@@ -39,6 +39,7 @@ ULGUICanvas::ULGUICanvas()
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 
+	bHasAddToLGUIManager = false;
 	bClipTypeChanged = true;
 	bRectClipParameterChanged = true;
 	bTextureClipParameterChanged = true;
@@ -159,42 +160,51 @@ void ULGUICanvas::EnsureDrawcallObjectReference()
 void ULGUICanvas::OnRegister()
 {
 	Super::OnRegister();
-	if (auto world = this->GetWorld())
-	{
-#if WITH_EDITOR
-		if (!world->IsGameWorld())
-		{
-			ULGUIEditorManagerObject::AddCanvas(this);
-		}
-		else
-#endif
-		{
-			ALGUIManagerActor::AddCanvas(this);
-		}
-	}
-	//tell UIItem
 	if (CheckUIItem())
 	{
+		if (auto world = this->GetWorld())
+		{
+			if (!bHasAddToLGUIManager)
+			{
+				bHasAddToLGUIManager = true;
+#if WITH_EDITOR
+				if (!world->IsGameWorld())
+				{
+					ULGUIEditorManagerObject::AddCanvas(this);
+				}
+				else
+#endif
+				{
+					ALGUIManagerActor::AddCanvas(this);
+				}
+			}
+		}
+		//tell UIItem
 		UIItem->RegisterRenderCanvas(this);
 		UIHierarchyChangedDelegateHandle = UIItem->RegisterUIHierarchyChanged(FSimpleDelegate::CreateUObject(this, &ULGUICanvas::OnUIHierarchyChanged));
 		UIActiveStateChangedDelegateHandle = UIItem->RegisterUIActiveStateChanged(FSimpleDelegate::CreateUObject(this, &ULGUICanvas::OnUIActiveStateChanged));
+
+		OnUIHierarchyChanged();
 	}
-	OnUIHierarchyChanged();
 }
 void ULGUICanvas::OnUnregister()
 {
 	Super::OnUnregister();
 	if (auto world = this->GetWorld())
 	{
+		if (bHasAddToLGUIManager)
+		{
+			bHasAddToLGUIManager = false;
 #if WITH_EDITOR
-		if (!world->IsGameWorld())
-		{
-			ULGUIEditorManagerObject::RemoveCanvas(this);
-		}
-		else
+			if (!world->IsGameWorld())
+			{
+				ULGUIEditorManagerObject::RemoveCanvas(this);
+			}
+			else
 #endif
-		{
-			ALGUIManagerActor::RemoveCanvas(this);
+			{
+				ALGUIManagerActor::RemoveCanvas(this);
+			}
 		}
 	}
 
@@ -588,21 +598,6 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* UIRenderableItem)
 				{
 					Drawcall->renderObjectList.RemoveAt(index);
 					Drawcall->needToRebuildMesh = true;
-					if (Drawcall->renderObjectList.Num() == 0)
-					{
-						if (Drawcall->drawcallMeshSection.IsValid() && Drawcall->drawcallMesh.IsValid())
-						{
-							Drawcall->drawcallMesh->DeleteMeshSection(Drawcall->drawcallMeshSection.Pin());
-							Drawcall->drawcallMeshSection.Reset();
-							Drawcall->drawcallMesh.Reset();
-						}
-						if (Drawcall->materialInstanceDynamic.IsValid() && Drawcall->manageCanvas.IsValid())
-						{
-							Drawcall->manageCanvas->AddUIMaterialToPool(Drawcall->materialInstanceDynamic.Get());
-							Drawcall->materialInstanceDynamic.Reset();
-						}
-						ActualUIDrawcallList.Remove(Drawcall);
-					}
 				}
 			}
 			break;
@@ -615,21 +610,14 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* UIRenderableItem)
 						Drawcall->postProcessRenderableObject->GetRenderProxy()->RemoveFromLGUIRenderer();
 					}
 				}
-				ActualUIDrawcallList.Remove(Drawcall);
 			}
 			break;
 			case EUIRenderableType::UIDirectMeshRenderable:
 			{
-				if (Drawcall->drawcallMeshSection.IsValid() && Drawcall->drawcallMesh.IsValid())
-				{
-					Drawcall->drawcallMesh->DeleteMeshSection(Drawcall->drawcallMeshSection.Pin());
-					Drawcall->drawcallMeshSection.Reset();
-				}
 				if (Drawcall->directMeshRenderableObject.IsValid())
 				{
 					Drawcall->directMeshRenderableObject->ClearMeshData();
 				}
-				ActualUIDrawcallList.Remove(Drawcall);
 			}
 			break;
 			}
@@ -1553,6 +1541,7 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 	{
 		auto UIMesh = PooledUIMeshList[0];
 		PooledUIMeshList.RemoveAt(0);
+		check(UIMesh.IsValid());
 		UsingUIMeshList.Add(UIMesh);
 		return UIMesh;
 	}
@@ -1621,6 +1610,7 @@ TWeakObjectPtr<ULGUIMeshComponent> ULGUICanvas::GetUIMeshFromPool()
 
 void ULGUICanvas::AddUIMeshToPool(TWeakObjectPtr<ULGUIMeshComponent> InUIMesh)
 {
+	if (!InUIMesh.IsValid())return;
 	if (!PooledUIMeshList.Contains(InUIMesh))
 	{
 		InUIMesh->ClearAllMeshSection();
@@ -2040,8 +2030,8 @@ void ULGUICanvas::ConditionalCalculateRectRange()
 			if (ParentCanvas.IsValid() && ParentCanvas->GetActualClipType() == ELGUICanvasClipType::Rect)//have parent, use parent clip parameter
 			{
 				ParentCanvas->ConditionalCalculateRectRange();
-				auto parentRectMin = FVector(ParentCanvas->clipRectMin, 0);
-				auto parentRectMax = FVector(ParentCanvas->clipRectMax, 0);
+				auto parentRectMin = FVector(0, ParentCanvas->clipRectMin.X, ParentCanvas->clipRectMin.Y);
+				auto parentRectMax = FVector(0, ParentCanvas->clipRectMax.X, ParentCanvas->clipRectMax.Y);
 				//transform ParentCanvas's rect to this space
 				auto& parentCanvasTf = ParentCanvas->UIItem->GetComponentTransform();
 				auto thisTfInv = this->UIItem->GetComponentTransform().Inverse();
@@ -2081,7 +2071,7 @@ void ULGUICanvas::ConditionalCalculateRectRange()
 	}
 	else
 	{
-		//calculate sefl rect range
+		//calculate self rect range
 		clipRectMin.X = -UIItem->GetPivot().X * UIItem->GetWidth();
 		clipRectMin.Y = -UIItem->GetPivot().Y * UIItem->GetHeight();
 		clipRectMax.X = (1.0f - UIItem->GetPivot().X) * UIItem->GetWidth();

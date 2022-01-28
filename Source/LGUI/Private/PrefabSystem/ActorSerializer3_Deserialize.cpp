@@ -91,6 +91,7 @@ namespace LGUIPrefabSystem3
 	}
 	AActor* ActorSerializer3::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
+		, AActor* InParentLoadedRootActor
 		, TMap<FGuid, UObject*>& InMapGuidToObject
 		, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
 	)
@@ -102,6 +103,8 @@ namespace LGUIPrefabSystem3
 #endif
 		serializer.bSetHierarchyIndexForRootComponent = false;
 		serializer.MapGuidToObject = InMapGuidToObject;
+		serializer.LoadedRootActor = InParentLoadedRootActor;
+		serializer.bIsSubPrefab = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
@@ -116,17 +119,6 @@ namespace LGUIPrefabSystem3
 
 	AActor* ActorSerializer3::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
-#if WITH_EDITOR
-		if (!TargetWorld->IsGameWorld())
-		{
-			ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld);
-		}
-		else
-#endif
-		{
-			ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld);
-		}
-
 		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		DeserializeObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
@@ -203,16 +195,28 @@ namespace LGUIPrefabSystem3
 			{
 				ULGUIEditorManagerObject::RemoveActorForPrefabSystem(item);
 			}
-			ULGUIEditorManagerObject::EndPrefabSystemProcessingActor();
+			if (!bIsSubPrefab)
+			{
+				if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
+				{
+					ULGUIEditorManagerObject::EndPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
+				}
+			}
 		}
 		else
 #endif
 		{
 			for (auto item : CreatedActors)
 			{
-				ALGUIManagerActor::RemoveActorForPrefabSystem(item);
+				ALGUIManagerActor::RemoveActorForPrefabSystem(item, LoadedRootActor);
 			}
-			ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld);
+			if (!bIsSubPrefab)
+			{
+				if (LoadedRootActor != nullptr)//if any error hanppens then LoadedRootActor could be nullptr, so check it
+				{
+					ALGUIManagerActor::EndPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
+				}
+			}
 		}
 
 		return CreatedRootActor;
@@ -395,6 +399,7 @@ namespace LGUIPrefabSystem3
 						}
 					}
 					SubPrefabRootActor = ActorSerializer3::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent()
+						, LoadedRootActor
 						, SubMapGuidToObject
 						, [&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject) {
 							//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
@@ -453,6 +458,7 @@ namespace LGUIPrefabSystem3
 				}
 
 				AActor* NewActor = nullptr;
+				bool bNeedFinishSpawn = false;
 				if (auto ActorPtr = MapGuidToObject.Find(SavedActors.ActorGuid))//MapGuidToObject can passed from LoadPrefabForEdit, so we need to find from map first
 				{
 					NewActor = (AActor*)(*ActorPtr);
@@ -461,8 +467,41 @@ namespace LGUIPrefabSystem3
 				{
 					FActorSpawnParameters Spawnparameters;
 					Spawnparameters.ObjectFlags = (EObjectFlags)SavedActors.ObjectFlags;
+					Spawnparameters.bDeferConstruction = true;
+					Spawnparameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 					NewActor = TargetWorld->SpawnActor<AActor>(ActorClass, Spawnparameters);
+					bNeedFinishSpawn = true;
 					MapGuidToObject.Add(SavedActors.ActorGuid, NewActor);
+				}
+
+				if (LoadedRootActor == nullptr)
+				{
+					LoadedRootActor = NewActor;
+#if WITH_EDITOR
+					if (!TargetWorld->IsGameWorld())
+					{
+						ULGUIEditorManagerObject::BeginPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
+					}
+					else
+#endif
+					{
+						ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld, LoadedRootActor);
+					}
+				}
+
+#if WITH_EDITOR
+				if (!TargetWorld->IsGameWorld())
+				{
+					ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
+				}
+				else
+#endif
+				{
+					ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor);
+				}
+				if (bNeedFinishSpawn)
+				{
+					NewActor->FinishSpawning(FTransform::Identity);
 				}
 
 				//Collect default sub objects
@@ -486,16 +525,6 @@ namespace LGUIPrefabSystem3
 					}
 				}
 
-#if WITH_EDITOR
-				if (!TargetWorld->IsGameWorld())
-				{
-					ULGUIEditorManagerObject::AddActorForPrefabSystem(NewActor);
-				}
-				else
-#endif
-				{
-					ALGUIManagerActor::AddActorForPrefabSystem(NewActor);
-				}
 				CreatedActors.Add(NewActor);
 				CreatedActorsGuid.Add(SavedActors.ActorGuid);
 
@@ -506,7 +535,7 @@ namespace LGUIPrefabSystem3
 			}
 			else
 			{
-				UE_LOG(LGUI, Warning, TEXT("[ActorSerializer3::PreGenerateActorRecursive]Actor Class of index:%d not found!"), (SavedActors.ActorClass));
+				UE_LOG(LGUI, Error, TEXT("[ActorSerializer3::PreGenerateActorRecursive]Actor Class of index:%d not found!"), (SavedActors.ActorClass));
 			}
 		}
 	}

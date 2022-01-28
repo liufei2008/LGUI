@@ -27,7 +27,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
 		FVector normal;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
-		FVector tagent;
+		FVector tangent;
 };
 /** a helper class for create LGUI geometry */
 UCLASS(BlueprintType)
@@ -44,6 +44,9 @@ public:
 		void AddVertexStruct(FLGUIGeometryVertex vertex);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void AddTriangle(int index0, int index1, int index2);
+
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void SetGeometry(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices);
 };
 /** a helper class for update LGUI geometry */
 UCLASS(BlueprintType)
@@ -101,10 +104,10 @@ protected:
 		void ReceiveOnUpdateGeometry(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 public:
 	/** if vertex data change and vertex count not change. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkVertexChanged"))
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void MarkVertexChanged();
-	/** if vertex count change or triangle count change, call this */
-	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DisplayName = "MarkRebuildGeometry"))
+	/** if vertex count change or triangle count change or texture change, call this */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void MarkRebuildGeometry();
 private:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper = nullptr;

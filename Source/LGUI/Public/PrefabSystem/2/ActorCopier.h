@@ -61,6 +61,9 @@ namespace LGUIPrefabSystem
 		TArray<UObject*> OutterArray;
 		UObject* Outter = nullptr;
 
+		/** Root actor */
+		AActor* CopiedRootActor = nullptr;
+
 		AActor* CopySingleActor(AActor* Actor, USceneComponent* Parent);
 		//copy Actor with all children
 		AActor* CopyActorRecursive(AActor* Actor, USceneComponent* Parent, int32& copiedActorId);

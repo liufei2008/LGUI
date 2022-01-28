@@ -458,6 +458,7 @@ public:
 	/** Check if any invalid in list. Currently use in editor after undo check. */
 	void EnsureDrawcallObjectReference();
 private:
+	uint32 bHasAddToLGUIManager : 1;
 	uint32 bClipTypeChanged:1;
 	uint32 bRectClipParameterChanged:1;
 	uint32 bTextureClipParameterChanged:1;

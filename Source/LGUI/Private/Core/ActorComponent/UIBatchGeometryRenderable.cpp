@@ -149,6 +149,7 @@ void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
+	MarkTextureDirty();
 	Super::MarkAllDirtyRecursive();
 }
 void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)

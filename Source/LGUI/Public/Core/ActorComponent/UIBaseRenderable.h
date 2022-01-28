@@ -127,9 +127,12 @@ public:
 		void SetCustomRaycastObject(UUIRenderableCustomRaycast* Value);
 
 	uint8 GetFinalAlpha()const;
-	float GetFinalAlpha01()const;
-	/** get final color, calculate alpha */
-	FColor GetFinalColor()const;
+	/** get final alpha, calculated with CanvasGroup's alpha */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		float GetFinalAlpha01()const;
+	/** get final color, calculated with CanvasGroup's alpha */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		FColor GetFinalColor()const;
 	static float Color255To1_Table[256];
 
 	TSharedPtr<UUIDrawcall> drawcall = nullptr;//drawcall that response for this UI.

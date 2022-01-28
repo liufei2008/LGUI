@@ -3,10 +3,20 @@
 #include "Core/ActorComponent/UIBatchGeometryRenderable_BP.h"
 #include "LGUI.h"
 #include "Core/UIGeometry.h"
+#include "Core/LGUISpriteData.h"
 
 
 void ULGUICreateGeometryHelper::AddVertexSimple(FVector position, FColor color, FVector2D uv0)
 {
+#if !UE_BUILD_SHIPPING
+	if (position.ContainsNaN()
+		|| uv0.ContainsNaN()
+		)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexFull]Vertex data contains NaN!."));
+		return;
+	}
+#endif
 	uiGeometry->originVerticesCount += 1;
 	auto& originPositions = uiGeometry->originPositions;
 	originPositions.Add(position);
@@ -20,6 +30,20 @@ void ULGUICreateGeometryHelper::AddVertexSimple(FVector position, FColor color, 
 }
 void ULGUICreateGeometryHelper::AddVertexFull(FVector position, FColor color, FVector2D uv0, FVector2D uv1, FVector2D uv2, FVector2D uv3, FVector normal, FVector tangent)
 {
+#if !UE_BUILD_SHIPPING
+	if (position.ContainsNaN()
+		|| normal.ContainsNaN()
+		|| tangent.ContainsNaN()
+		|| uv0.ContainsNaN()
+		|| uv1.ContainsNaN()
+		|| uv2.ContainsNaN()
+		|| uv3.ContainsNaN()
+		)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexFull]Vertex data contains NaN!."));
+		return;
+	}
+#endif
 	uiGeometry->originVerticesCount += 1;
 	auto& originPositions = uiGeometry->originPositions;
 	originPositions.Add(position);
@@ -36,6 +60,20 @@ void ULGUICreateGeometryHelper::AddVertexFull(FVector position, FColor color, FV
 }
 void ULGUICreateGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
 {
+#if !UE_BUILD_SHIPPING
+	if (vertex.position.ContainsNaN()
+		|| vertex.normal.ContainsNaN() 
+		|| vertex.tangent.ContainsNaN()
+		|| vertex.uv0.ContainsNaN() 
+		|| vertex.uv1.ContainsNaN()
+		|| vertex.uv2.ContainsNaN()
+		|| vertex.uv3.ContainsNaN()
+		)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexStruct]Vertex data contains NaN!."));
+		return;
+	}
+#endif
 	uiGeometry->originVerticesCount += 1;
 	auto& originPositions = uiGeometry->originPositions;
 	originPositions.Add(vertex.position);
@@ -48,15 +86,15 @@ void ULGUICreateGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
 	vert.TextureCoordinate[3] = vertex.uv3;
 	vertices.Add(vert);
 	uiGeometry->originNormals.Add(vertex.normal);
-	uiGeometry->originTangents.Add(vertex.tagent);
+	uiGeometry->originTangents.Add(vertex.tangent);
 }
 void ULGUICreateGeometryHelper::AddTriangle(int index0, int index1, int index2)
 {
-#if WITH_EDITOR
+#if !UE_BUILD_SHIPPING
 	int vertCount = uiGeometry->originVerticesCount;
 	if (index0 >= vertCount || index1 >= vertCount || index2 >= vertCount)
 	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddTriangle]Triangle index reference out of range vertex."));
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddTriangle]Triangle index reference out of vertex range."));
 		return;
 	}
 #endif
@@ -66,6 +104,86 @@ void ULGUICreateGeometryHelper::AddTriangle(int index0, int index1, int index2)
 	triangles.Add(index0);
 	triangles.Add(index1);
 	triangles.Add(index2);
+}
+void ULGUICreateGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& InVertices, const TArray<int>& InIndices)
+{
+	int vertCount = InVertices.Num();
+#if !UE_BUILD_SHIPPING
+	for(auto i : InIndices)
+	{
+		if (i >= vertCount)
+		{
+			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::SetGeometry]Triangle index reference out of vertex range."));
+			return;
+		}
+	}
+	if ((InIndices.Num() % 3) != 0)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::SetGeometry]Indices count must be multiple of 3."));
+		return;
+	}
+	for (auto vertex : InVertices)
+	{
+		if (vertex.position.ContainsNaN()
+			|| vertex.normal.ContainsNaN()
+			|| vertex.tangent.ContainsNaN()
+			|| vertex.uv0.ContainsNaN()
+			|| vertex.uv1.ContainsNaN()
+			|| vertex.uv2.ContainsNaN()
+			|| vertex.uv3.ContainsNaN()
+			)
+		{
+			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::SetGeometry]Vertex position contains NaN!."));
+			return;
+		}
+	}
+#endif
+	auto& triangles = uiGeometry->triangles;
+	if (triangles.Num() < InIndices.Num())
+	{
+		triangles.SetNumUninitialized(InIndices.Num());
+	}
+	for (int i = 0; i < InIndices.Num(); i++)
+	{
+		triangles[i] = InIndices[i];
+	}
+	uiGeometry->originTriangleCount = InIndices.Num();
+
+	auto& vertices = uiGeometry->vertices;
+	auto& originPositions = uiGeometry->originPositions;
+	auto& originNormals = uiGeometry->originNormals;
+	auto& originTangents = uiGeometry->originTangents;
+	if (vertices.Num() < vertCount)
+	{
+		vertices.SetNumUninitialized(vertCount);
+	}
+	if (originPositions.Num() < vertCount)
+	{
+		originPositions.SetNumUninitialized(vertCount);
+	}
+	if (originNormals.Num() < vertCount)
+	{
+		originNormals.SetNumUninitialized(vertCount);
+	}
+	if (originTangents.Num() < vertCount)
+	{
+		originTangents.SetNumUninitialized(vertCount);
+	}
+	uiGeometry->originVerticesCount = vertCount;
+
+	for (int i = 0; i < vertCount; i++)
+	{
+		auto& originVert = InVertices[i];
+		originPositions[i] = originVert.position;
+		originNormals[i] = originVert.normal;
+		originTangents[i] = originVert.tangent;
+		auto& vert = vertices[i];
+		vert.Color = originVert.color;
+		vert.TextureCoordinate[0] = originVert.uv0;
+		vert.TextureCoordinate[1] = originVert.uv1;
+		vert.TextureCoordinate[2] = originVert.uv2;
+		vert.TextureCoordinate[3] = originVert.uv3;
+	}
 }
 
 void ULGUIUpdateGeometryHelper::BeginUpdateVertices()
@@ -88,8 +206,7 @@ void ULGUIUpdateGeometryHelper::BeginUpdateVertices()
 		vert.uv2 = originVert.TextureCoordinate[2];
 		vert.uv3 = originVert.TextureCoordinate[3];
 		vert.normal = originNormals[i];
-		vert.tagent = originTangents[i];
-		vert.uv0 = vertices[i].TextureCoordinate[0];
+		vert.tangent = originTangents[i];
 	}
 }
 void ULGUIUpdateGeometryHelper::EndUpdateVertices()
@@ -117,8 +234,7 @@ void ULGUIUpdateGeometryHelper::EndUpdateVertices()
 		originVert.TextureCoordinate[2] = vert.uv2;
 		originVert.TextureCoordinate[3] = vert.uv3;
 		originNormals[i] = vert.normal;
-		originTangents[i] = vert.tagent;
-		vertices[i].TextureCoordinate[0] = vert.uv0;
+		originTangents[i] = vert.tangent;
 	}
 }
 

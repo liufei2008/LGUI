@@ -51,6 +51,7 @@ private:
 	bool CanCreatePrefab();
 	bool CanCheckPrefabOverrideParameter()const;
 	bool CanReplaceUIElement();
+	bool CanAttachLayout();
 	bool CanCreateActor();
 	bool CanDeleteActor();
 

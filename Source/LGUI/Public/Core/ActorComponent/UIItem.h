@@ -310,7 +310,6 @@ protected:
 		int32 hierarchyIndex = INDEX_NONE;
 	UPROPERTY(Transient, VisibleAnywhere, Category = LGUI, AdvancedDisplay)
 	mutable int32 flattenHierarchyIndex = 0;
-	void OnChildHierarchyIndexChanged(UUIItem* child);
 	virtual void MarkFlattenHierarchyIndexDirty();
 private:
 	/** Only for RootUIItem */

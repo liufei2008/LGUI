@@ -12,6 +12,7 @@
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
+#include "LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "LGUISpriteDataCustomization"
 
@@ -48,7 +49,73 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 		];
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.width));
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.height));
-	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
+	auto PackingTagProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
+	DetailBuilder.HideProperty(PackingTagProperty);
+	NameList.Empty();
+	NameList.Add(MakeShareable(new FName(NAME_None)));
+	if (ULGUIAtlasManager::Instance != nullptr)
+	{
+		for (auto KeyValue : ULGUIAtlasManager::Instance->GetAtlasMap())
+		{
+			NameList.Add(TSharedPtr<FName>(new FName(KeyValue.Key)));
+		}
+	}
+	lguiCategory.AddCustomRow(LOCTEXT("PackingTag", "Packing Tag"))
+	.NameContent()
+	[
+		PackingTagProperty->CreatePropertyNameWidget()
+	]
+	.ValueContent()
+	[
+		SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(SBox)
+			.MinDesiredWidth(120)
+			.Padding(FMargin(0, 2, 0, 2))
+			[
+				//PackingTagProperty->CreatePropertyValueWidget()
+				SNew(SComboButton)
+				.HasDownArrow(true)
+				.ButtonContent()
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					[
+						SNew(SEditableText)
+						.OnTextCommitted(this, &FLGUISpriteDataCustomization::OnPackingTagTextCommited, PackingTagProperty, &DetailBuilder)
+						.Text(this, &FLGUISpriteDataCustomization::GetPackingTagText, PackingTagProperty)
+					]
+				]
+				.MenuContent()
+				[
+					SNew(SVerticalBox)
+					+SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SListView<TSharedPtr<FName>>)
+						.ListItemsSource(&NameList)
+						.OnGenerateRow(this, &FLGUISpriteDataCustomization::GenerateComboItem)
+						.OnSelectionChanged(this, &FLGUISpriteDataCustomization::HandleRequiredParamComboChanged, PackingTagProperty, &DetailBuilder)
+					]
+				]
+			]
+		]
+		+SHorizontalBox::Slot()
+		.Padding(FMargin(2))
+		.AutoWidth()
+		[
+			SNew(SButton)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			.Text(LOCTEXT("OpenAtals", "Open Atals Viewer"))
+			.OnClicked_Lambda([]() {
+			LGUIEditorTools::OpenAtlasViewer_Impl();
+			return FReply::Handled();
+				})
+		]
+	]
+	;
 	
 	//if change packingTag, clear all sprites and repack
 	auto packingTagHangle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
@@ -231,6 +298,33 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	}
 }
 
+void FLGUISpriteDataCustomization::OnPackingTagTextCommited(const FText& InText, ETextCommit::Type CommitType, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
+{
+	FName packingTag = FName(InText.ToString());
+	InProperty->SetValue(packingTag);
+	DetailBuilder->ForceRefreshDetails();
+}
+
+TSharedRef<ITableRow> FLGUISpriteDataCustomization::GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable)
+{
+	return SNew(STableRow<TSharedPtr<FName>>, OwnerTable)
+		[
+			SNew(STextBlock).Text(FText::FromName(*InItem))
+		];
+}
+
+void FLGUISpriteDataCustomization::HandleRequiredParamComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
+{
+	InProperty->SetValue(*Item.Get());
+	DetailBuilder->ForceRefreshDetails();
+}
+
+FText FLGUISpriteDataCustomization::GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const
+{
+	FName packingTag;
+	InProperty->GetValue(packingTag);
+	return FText::FromName(packingTag);
+}
 FOptionalSize FLGUISpriteDataCustomization::GetImageWidth()const
 {
 	float imageAspect = (float)(TargetScriptPtr->spriteTexture->GetSurfaceWidth()) / TargetScriptPtr->spriteTexture->GetSurfaceHeight();
