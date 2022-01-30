@@ -27,8 +27,6 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		AActor* LoadedRootActor;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TArray<AActor*> AllLoadedActorArray;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<FGuid, UObject*> MapGuidToObject;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
@@ -63,7 +61,7 @@ public:
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, FName InPropertyName);
 
 
-	TWeakObjectPtr<AActor> RootAgentActorForPrefabEditor = nullptr;
+	UPROPERTY(Transient)TWeakObjectPtr<AActor> RootAgentActorForPrefabEditor = nullptr;
 	bool IsInsidePrefabEditor() { return RootAgentActorForPrefabEditor.IsValid(); }
 	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, AActor* InSubPrefabRootActor = nullptr);
 
@@ -75,6 +73,8 @@ public:
 	void ApplyPrefabOverride(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
 	void ApplyAllOverrideToPrefab(UObject* InObject);
+
+	void CheckPrefabHelperActor(AActor* InSubPrefabRootActor, ULGUIPrefab* InPrefabAsset);
 
 	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject);
 	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);

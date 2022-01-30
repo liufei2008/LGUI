@@ -69,14 +69,6 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 		{
 			MapGuidToObject.Remove(ObjectGuid);
 		}
-		AllLoadedActorArray.Empty();
-		for (auto KeyValue : MapGuidToObject)
-		{
-			if (auto Actor = Cast<AActor>(KeyValue.Value))
-			{
-				AllLoadedActorArray.Add(Actor);
-			}
-		}
 
 		ULGUIEditorManagerObject::RefreshAllUI();
 	}
@@ -111,7 +103,6 @@ void ULGUIPrefabHelperObject::ClearLoadedPrefab()
 	}
 	MapGuidToObject.Empty();
 	SubPrefabMap.Empty();
-	AllLoadedActorArray.Empty();
 }
 
 bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(const AActor* InActor)
@@ -139,14 +130,11 @@ bool ULGUIPrefabHelperObject::ActorIsSubPrefabRootActor(const AActor* InActor)
 
 bool ULGUIPrefabHelperObject::IsActorBelongsToThis(const AActor* InActor, bool InCludeSubPrefab)
 {
-	if (this->AllLoadedActorArray.Contains(InActor))
+	if (IsValid(this->LoadedRootActor))
 	{
-		if (IsValid(this->LoadedRootActor))
+		if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
 		{
-			if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 	if (InCludeSubPrefab)
@@ -267,14 +255,9 @@ void ULGUIPrefabHelperObject::SavePrefab()
 			, MapObjectToGuid, SubPrefabMap
 		);
 		MapGuidToObject.Empty();
-		AllLoadedActorArray.Empty();
 		for (auto KeyValue : MapObjectToGuid)
 		{
 			MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
-			if (auto Actor = Cast<AActor>(KeyValue.Key))
-			{
-				AllLoadedActorArray.Add(Actor);
-			}
 		}
 		PrefabAsset->RefreshAgentObjectsInPreviewWorld();
 		bAnythingDirty = false;
@@ -297,7 +280,6 @@ void ULGUIPrefabHelperObject::UnpackPrefab(AActor* InPrefabActor)
 	PrefabAsset = nullptr;
 	MapGuidToObject.Empty();
 	SubPrefabMap.Empty();
-	AllLoadedActorArray.Empty();
 }
 
 ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor)
@@ -458,9 +440,13 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 		{
 			this->SavePrefab();
 		}
-		this->PrefabAsset->MarkPackageDirty();
+		if (this->PrefabAsset != nullptr)//could be null in level editor
+		{
+			this->PrefabAsset->MarkPackageDirty();
+		}
 	}
 	ULGUIEditorManagerObject::RefreshAllUI();
+	CheckPrefabHelperActor(InSubPrefabRootActor, InSubPrefab);
 	bCanNotifyDetachment = true;
 	return AnythingChange;
 }
@@ -599,15 +585,19 @@ void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* 
 
 void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 {
+	if (this->IsInsidePrefabEditor())return;
+
 	auto ActorBelongsToPrefab = false;
 	for (auto& KeyValue : MapGuidToObject)
 	{
 		if (KeyValue.Value == Actor)
 		{
 			ActorBelongsToPrefab = true;
+			break;
 		}
 	}
-	if (ActorBelongsToPrefab//Cannot delete sub prefab's actor
+
+	if (ActorBelongsToPrefab//Cannot delete sub prefab's actor. Why cannot use IsActorBelongsToSubPrefab()? Because already dettached when deleted
 		&& !this->SubPrefabMap.Contains(Actor)//But sub prefab's root actor is good to delete
 		)
 	{
@@ -671,7 +661,6 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 		auto InfoText = LOCTEXT("ActorMustBelongToRoot", "All actor must attach to root actor.");
 		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
 		GEditor->UndoTransaction(false);
-		AttachmentActor = FAttachmentActorStruct();
 	}
 	break;
 	case EAttachementError::CannotRestructurePrefabInstance:
@@ -680,10 +669,10 @@ void ULGUIPrefabHelperObject::CheckAttachment()
 \n\nYou can open the prefab in prefab editor to restructure the prefab asset itself, or unpack the prefab instance to remove its prefab connection.");
 		FMessageDialog::Open(EAppMsgType::Ok, InfoText);
 		GEditor->UndoTransaction(false);
-		AttachmentActor = FAttachmentActorStruct();
 	}
 	break;
 	}
+	AttachmentActor = FAttachmentActorStruct();
 }
 
 UWorld* ULGUIPrefabHelperObject::GetPrefabWorld() const
@@ -774,6 +763,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::RefreshAllUI();
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
 }
 void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPropertyName)
 {
@@ -822,6 +812,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
 }
 
 void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
@@ -898,6 +889,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 
 		bAnythingDirty = true;
 		GEditor->EndTransaction();
+		CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
@@ -961,6 +953,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::RefreshAllUI();
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
 }
 void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPropertyName)
 {
@@ -1017,22 +1010,24 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
 }
 void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 {
+	AActor* Actor = Cast<AActor>(InObject);
+	UActorComponent* Component = Cast<UActorComponent>(InObject);
+	if (Actor)
+	{
+	}
+	else if (Component)
+	{
+		Actor = Component->GetOwner();
+	}
+	auto SubPrefabData = GetSubPrefabData(Actor);
+	auto SubPrefabAsset = SubPrefabData.PrefabAsset;
+
 	bCanCollectProperty = false;
 	{
-		AActor* Actor = Cast<AActor>(InObject);
-		UActorComponent* Component = Cast<UActorComponent>(InObject);
-		if (Actor)
-		{
-		}
-		else if (Component)
-		{
-			Actor = Component->GetOwner();
-		}
-		auto SubPrefabData = GetSubPrefabData(Actor);
-
 		GEditor->BeginTransaction(LOCTEXT("ApplyPrefabOnAll", "Apply Prefab Override"));
 		for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
 		{
@@ -1041,7 +1036,6 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 		}
 		this->Modify();
 
-		auto SubPrefabAsset = SubPrefabData.PrefabAsset;
 		auto SubPrefabHelperObject = SubPrefabAsset->GetPrefabHelperObject();
 		auto FindOriginObjectInSourcePrefab = [&](UObject* InObject) {
 			FGuid ObjectGuid;
@@ -1101,8 +1095,25 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
 }
 #pragma endregion RevertAndApply
+
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
+#include "EngineUtils.h"
+void ULGUIPrefabHelperObject::CheckPrefabHelperActor(AActor* InSubPrefabRootActor, ULGUIPrefab* InPrefabAsset)
+{
+	if (IsInsidePrefabEditor())return;
+	auto World = InSubPrefabRootActor->GetWorld();
+	if (!IsValid(World))return;
+	for (TActorIterator<ALGUIPrefabHelperActor> Itr(World); Itr; ++Itr)
+	{
+		if (Itr->LoadedRootActor == InSubPrefabRootActor && Itr->PrefabAsset == InPrefabAsset)
+		{
+			Itr->MarkPrefabVersionAsLatest();
+		}
+	}
+}
 
 void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject)
 {

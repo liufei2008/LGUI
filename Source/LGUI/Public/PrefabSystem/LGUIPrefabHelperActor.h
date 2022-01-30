@@ -33,14 +33,14 @@ public:
 		ULGUIPrefab* PrefabAsset = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		AActor* LoadedRootActor = nullptr;
-	UPROPERTY()
-		bool bLoadPrefabSuccess = false;
 #endif
 #if WITH_EDITOR
+	void MarkPrefabVersionAsLatest();
 	void LoadPrefab(USceneComponent* InParent);
 	bool IsValidPrefabHelperActor();
 	void MoveActorToPrefabFolder();
 	void CheckPrefabVersion();
+	void RevertPrefab();
 #endif
 
 #if WITH_EDITORONLY_DATA
@@ -69,6 +69,7 @@ public:
 	ALGUIPrefabManagerActor();
 
 #if WITH_EDITOR
+	virtual void PostInitProperties()override;
 	virtual void BeginDestroy() override;
 private:
 	static TMap<ULevel*, ALGUIPrefabManagerActor*> MapLevelToManagerActor;

@@ -293,6 +293,7 @@ void UUIItem::ApplyHierarchyIndex()
 		{
 			ParentUIItem->UIChildren.Add(this);
 			this->hierarchyIndex = 0;
+			ParentUIItem->CallUILifeCycleBehavioursChildHierarchyIndexChanged(this);
 		}
 		else
 		{
@@ -624,6 +625,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 				if (childUIItem->IsRegistered())
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
+					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
 				}
 				else//when load from level, then not set hierarchy index
 				{
@@ -643,6 +645,7 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 				if (childUIItem->IsRegistered())
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
+					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
 				}
 				else//when load from level, then not set hierarchy index
 				{
@@ -656,7 +659,12 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 		{
 			for (int i = 0; i < UIChildren.Num(); i++)
 			{
-				UIChildren[i]->hierarchyIndex = i;
+				auto& UIChild = UIChildren[i];
+				if (UIChild->hierarchyIndex != i)
+				{
+					UIChild->hierarchyIndex = i;
+					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(UIChild);
+				}
 			}
 		}
 
@@ -682,7 +690,12 @@ void UUIItem::OnChildDetached(USceneComponent* ChildComponent)
 		UIChildren.Remove(childUIItem);
 		for (int i = 0; i < UIChildren.Num(); i++)
 		{
-			UIChildren[i]->hierarchyIndex = i;
+			auto& UIChild = UIChildren[i];
+			if (UIChild->hierarchyIndex != i)
+			{
+				UIChild->hierarchyIndex = i;
+				this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(UIChild);
+			}
 		}
 		MarkCanvasUpdate(false, false, false);
 	}
@@ -697,18 +710,46 @@ void UUIItem::OnAttachmentChanged()
 #if WITH_EDITORONLY_DATA
 	if (!GetWorld()->IsGameWorld())
 	{
-		if (ParentUIItem.IsValid())//tell old parent
-		{
-			ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
-		}
-		ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
-		if (ParentUIItem.IsValid())
-		{
-			ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
-		}
+		if(ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))//when load from prefab or duplicate from LGUICopier, the ChildAttachmentChanged callback should execute til prefab serialization ready
+		{ 
+			if (ParentUIItem.IsValid())//tell old parent
+			{
+				ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+					if (Child.IsValid() && Parent.IsValid())
+					{
+						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), false);
+					}});
+			}
+			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+			if (ParentUIItem.IsValid())
+			{
+				ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(this->GetOwner(), [Child = MakeWeakObjectPtr(this), Parent = ParentUIItem]() {
+					if (Child.IsValid() && Parent.IsValid())
+					{
+						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
+					}});
+			}
 
-		if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))
+			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))
+			{
+				if (this->IsRegistered())//when load from level
+				{
+					this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
+				}
+			}
+		}
+		else
 		{
+			if (ParentUIItem.IsValid())//tell old parent
+			{
+				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, false);
+			}
+			ParentUIItem = Cast<UUIItem>(this->GetAttachParent());
+			if (ParentUIItem.IsValid())
+			{
+				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
+			}
+
 			if (this->IsRegistered())//when load from level
 			{
 				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job

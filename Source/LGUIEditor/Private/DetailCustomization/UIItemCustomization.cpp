@@ -1781,12 +1781,12 @@ void FUIItemCustomization::OnPasteAnchor(IDetailLayoutBuilder* DetailBuilder)
 		FParse::Value(*PastedText, TEXT("PivotY="), AnchorData.Pivot.Y);
 		FParse::Value(*PastedText, TEXT("AnchorMinX="), AnchorData.AnchorMin.X);
 		FParse::Value(*PastedText, TEXT("AnchorMinY="), AnchorData.AnchorMin.Y);
-		FParse::Value(*PastedText, TEXT("anchorOffsetX="), AnchorData.AnchorMax.X);
-		FParse::Value(*PastedText, TEXT("anchorOffsetY="), AnchorData.AnchorMax.Y);
-		FParse::Value(*PastedText, TEXT("width="), AnchorData.AnchoredPosition.X);
-		FParse::Value(*PastedText, TEXT("height="), AnchorData.AnchoredPosition.Y);
-		FParse::Value(*PastedText, TEXT("stretchLeft="), AnchorData.SizeDelta.X);
-		FParse::Value(*PastedText, TEXT("stretchRight="), AnchorData.SizeDelta.Y);
+		FParse::Value(*PastedText, TEXT("AnchorMaxX="), AnchorData.AnchorMax.X);
+		FParse::Value(*PastedText, TEXT("AnchorMaxY="), AnchorData.AnchorMax.Y);
+		FParse::Value(*PastedText, TEXT("AnchoredPositionX="), AnchorData.AnchoredPosition.X);
+		FParse::Value(*PastedText, TEXT("AnchoredPositionY="), AnchorData.AnchoredPosition.Y);
+		FParse::Value(*PastedText, TEXT("SizeDeltaX="), AnchorData.SizeDelta.X);
+		FParse::Value(*PastedText, TEXT("SizeDeltaY="), AnchorData.SizeDelta.Y);
 		for (auto item : TargetScriptArray)
 		{
 			if (item.IsValid())

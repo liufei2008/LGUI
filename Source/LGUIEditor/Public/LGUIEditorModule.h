@@ -48,6 +48,7 @@ private:
 	bool CanDuplicateActor();
 	bool CanPasteActor();
 	bool CanBrowsePrefab();
+	bool CanRevertPrefab();
 	bool CanCreatePrefab();
 	bool CanCheckPrefabOverrideParameter()const;
 	bool CanReplaceUIElement();

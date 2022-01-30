@@ -515,6 +515,11 @@ bool FLGUIEditorModule::CanBrowsePrefab()
 	}
 }
 
+bool FLGUIEditorModule::CanRevertPrefab()
+{
+	return CanBrowsePrefab();
+}
+
 bool FLGUIEditorModule::CanDuplicateActor()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
@@ -723,6 +728,15 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 					, FGetActionCheckState()
 					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanBrowsePrefab))
 			);
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("RevertPrefab", "Revert Prefab"),
+				LOCTEXT("RevertPrefab_Tooltip", "Revert this prefab to latest version"),
+				FSlateIcon(),
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::RevertPrefab)
+					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanRevertPrefab)
+					, FGetActionCheckState()
+					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanRevertPrefab))
+			);
 			CheckPrefabOverrideDataViewerEntry();
 			MenuBuilder.AddMenuEntry(
 				FUIAction(FExecuteAction()
@@ -731,37 +745,37 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanCheckPrefabOverrideParameter))
 				, 
 				SNew(SComboButton)
-		.HasDownArrow(true)
-		.ToolTipText(LOCTEXT("PrefabOverride", "Edit override parameters for this prefab"))
-		.ButtonContent()
-		[
-			SNew(STextBlock)
-			.Text(LOCTEXT("OverrideButton", "Prefab Override Properties"))
-			.Font(IDetailLayoutBuilder::GetDetailFont())
-		]
-		.MenuContent()
-		[
-			SNew(SBox)
-			.Padding(FMargin(4, 4))
-			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				.AutoWidth()
+				.HasDownArrow(true)
+				.ToolTipText(LOCTEXT("PrefabOverride", "Edit override parameters for this prefab"))
+				.ButtonContent()
 				[
-					SNew(SVerticalBox)
-					+SVerticalBox::Slot()
-					.AutoHeight()
+					SNew(STextBlock)
+					.Text(LOCTEXT("OverrideButton", "Prefab Override Properties"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
+				.MenuContent()
+				[
+					SNew(SBox)
+					.Padding(FMargin(4, 4))
 					[
 						SNew(SHorizontalBox)
 						+SHorizontalBox::Slot()
 						.AutoWidth()
 						[
-							PrefabOverrideDataViewer.ToSharedRef()
+							SNew(SVerticalBox)
+							+SVerticalBox::Slot()
+							.AutoHeight()
+							[
+								SNew(SHorizontalBox)
+								+SHorizontalBox::Slot()
+								.AutoWidth()
+								[
+									PrefabOverrideDataViewer.ToSharedRef()
+								]
+							]
 						]
 					]
 				]
-			]
-		]
 			);
 		}
 		MenuBuilder.EndSection();

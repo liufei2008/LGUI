@@ -703,7 +703,11 @@ void ULGUIEditorManagerObject::EndPrefabSystemProcessingActor(UWorld* InWorld, A
 {
 	if (Instance != nullptr)
 	{
-		//nothing for edit mode
+		auto& LateFunctions = Instance->LateFunctionsAfterPrefabSerialization;
+		for (auto& Function : LateFunctions)
+		{
+			Function();
+		}
 	}
 }
 void ULGUIEditorManagerObject::AddActorForPrefabSystem(AActor* InActor)
@@ -727,6 +731,14 @@ bool ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(AActor* InActor)
 		return Instance->AllActors_PrefabSystemProcessing.Contains(InActor);
 	}
 	return false;
+}
+
+void ULGUIEditorManagerObject::AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction)
+{
+	if (Instance != nullptr)
+	{
+		Instance->LateFunctionsAfterPrefabSerialization.Add(InFunction);
+	}
 }
 
 bool ULGUIEditorManagerObject::RaycastHitUI(UWorld* InWorld, const TArray<TWeakObjectPtr<UUIItem>>& InUIItems, const FVector& LineStart, const FVector& LineEnd

@@ -484,12 +484,12 @@ ULGUIPrefab* ULGUIPrefab::MakeAgentFullSerializedPrefab()
 {
 	auto CreatedPrefab = NewObject<ULGUIPrefab>();
 	TMap<UObject*, FGuid> InOutMapObjectToGuid;
-	for (auto& KeyValue : this->PrefabHelperObject->MapGuidToObject)
+	for (auto& KeyValue : this->GetPrefabHelperObject()->MapGuidToObject)
 	{
 		InOutMapObjectToGuid.Add(KeyValue.Value, KeyValue.Key);
 	}
-	TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap = this->PrefabHelperObject->SubPrefabMap;
-	LGUIPrefabSystem3::ActorSerializer3::SavePrefab(this->PrefabHelperObject->LoadedRootActor, CreatedPrefab
+	TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap = this->GetPrefabHelperObject()->SubPrefabMap;
+	LGUIPrefabSystem3::ActorSerializer3::SavePrefab(this->GetPrefabHelperObject()->LoadedRootActor, CreatedPrefab
 		, InOutMapObjectToGuid, InSubPrefabMap
 		, true, false
 	);

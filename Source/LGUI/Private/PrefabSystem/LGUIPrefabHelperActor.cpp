@@ -101,6 +101,15 @@ void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 	this->SetFolderPath(PrefabFolderName);
 }
 
+void ALGUIPrefabHelperActor::MarkPrefabVersionAsLatest()
+{
+	if (TimePointWhenSavePrefab != PrefabAsset->CreateTime)
+	{
+		TimePointWhenSavePrefab = PrefabAsset->CreateTime;
+		this->MarkPackageDirty();
+	}
+}
+
 void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 {
 	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return;
@@ -113,7 +122,6 @@ void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 	ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedRootActor, SubPrefabMapGuidToObject);
 
 	TimePointWhenSavePrefab = PrefabAsset->CreateTime;
-	bLoadPrefabSuccess = true;
 }
 
 bool ALGUIPrefabHelperActor::IsValidPrefabHelperActor()
@@ -153,6 +161,7 @@ void ALGUIPrefabHelperActor::CheckPrefabVersion()
 		}
 	}
 }
+
 void ALGUIPrefabHelperActor::OnNewVersionRevertPrefabClicked()
 {
 	if (!this->GetWorld()->IsGameWorld())
@@ -179,6 +188,14 @@ void ALGUIPrefabHelperActor::OnNewVersionDismissClicked()
 	NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 	NewVersionPrefabNotification.Pin()->ExpireAndFadeout();
 	NewVersionPrefabNotification = nullptr;
+}
+void ALGUIPrefabHelperActor::RevertPrefab()
+{
+	if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
+	{
+		auto PrefabHelperObject = PrefabManagerActor->PrefabHelperObject;
+		PrefabHelperObject->RefreshOnSubPrefabDirty(PrefabAsset, LoadedRootActor);
+	}
 }
 
 #endif
@@ -218,6 +235,21 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* 
 	{
 		checkf(0, TEXT("This should only be called in editor world!"));
 		return nullptr;
+	}
+}
+
+void ALGUIPrefabManagerActor::PostInitProperties()
+{
+	Super::PostInitProperties();
+	if (this != GetDefault<ALGUIPrefabManagerActor>())
+	{
+		if (this->GetLevel() != nullptr)
+		{
+			if (!MapLevelToManagerActor.Contains(this->GetLevel()))
+			{
+				MapLevelToManagerActor.Add(this->GetLevel(), this);
+			}
+		}
 	}
 }
 

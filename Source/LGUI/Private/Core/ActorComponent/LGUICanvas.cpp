@@ -2642,7 +2642,7 @@ FRotator ULGUICanvas::GetViewRotator()const
 }
 FIntPoint ULGUICanvas::GetViewportSize()const
 {
-	FIntPoint viewportSize = FIntPoint(2, 2);
+	FIntPoint ViewportSize = FIntPoint(2, 2);
 	if (auto world = this->GetWorld())
 	{
 #if WITH_EDITOR
@@ -2650,8 +2650,8 @@ FIntPoint ULGUICanvas::GetViewportSize()const
 		{
 			if (CheckUIItem())
 			{
-				viewportSize.X = UIItem->GetWidth();
-				viewportSize.Y = UIItem->GetHeight();
+				ViewportSize.X = UIItem->GetWidth();
+				ViewportSize.Y = UIItem->GetHeight();
 			}
 		}
 		else
@@ -2661,17 +2661,17 @@ FIntPoint ULGUICanvas::GetViewportSize()const
 			{
 				if (auto pc = world->GetFirstPlayerController())
 				{
-					pc->GetViewportSize(viewportSize.X, viewportSize.Y);
+					pc->GetViewportSize(ViewportSize.X, ViewportSize.Y);
 				}
 			}
 			else if (renderMode == ELGUIRenderMode::RenderTarget && IsValid(renderTarget))
 			{
-				viewportSize.X = renderTarget->SizeX;
-				viewportSize.Y = renderTarget->SizeY;
+				ViewportSize.X = renderTarget->SizeX;
+				ViewportSize.Y = renderTarget->SizeY;
 			}
 		}
 	}
-	return viewportSize;
+	return ViewportSize;
 }
 
 void ULGUICanvas::SetRenderMode(ELGUIRenderMode value)

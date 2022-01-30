@@ -144,17 +144,20 @@ FBoxSphereBounds FLGUIPrefabEditor::GetAllObjectsBounds()
 {
 	FBoxSphereBounds Bounds;
 	bool IsFirstBounds = true;
-	for (auto& Actor : PrefabHelperObject->AllLoadedActorArray)
+	for (auto& KeyValue : PrefabHelperObject->MapGuidToObject)
 	{
-		auto Box = Actor->GetComponentsBoundingBox();
-		if (IsFirstBounds)
+		if (auto Actor = Cast<AActor>(KeyValue.Value))
 		{
-			IsFirstBounds = false;
-			Bounds = Box;
-		}
-		else
-		{
-			Bounds = Bounds + Box;
+			auto Box = Actor->GetComponentsBoundingBox();
+			if (IsFirstBounds)
+			{
+				IsFirstBounds = false;
+				Bounds = Box;
+			}
+			else
+			{
+				Bounds = Bounds + Box;
+			}
 		}
 	}
 	return Bounds;

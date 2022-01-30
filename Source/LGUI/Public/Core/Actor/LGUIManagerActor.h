@@ -111,6 +111,8 @@ private:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		TArray<TWeakObjectPtr<AActor>> AllActors_PrefabSystemProcessing;
+	/** Functions that wait for prefab serialization complete then execute */
+	TArray<TFunction<void()>> LateFunctionsAfterPrefabSerialization;
 	FDelegateHandle OnBlueprintCompiledDelegateHandle;
 #endif
 	void RefreshOnBlueprintCompiled();
@@ -120,6 +122,12 @@ public:
 	static void AddActorForPrefabSystem(AActor* InActor);
 	static void RemoveActorForPrefabSystem(AActor* InActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
+	/**
+	 * Add a function that execute after prefab system serialization and before Awake called
+	 * @param	InPrefabActor	Current prefab system processing actor
+	 * @param	InFunction		Function to call after prefab system serialization complete and before Awake called
+	 */
+	static void AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* InPrefabActor, const TFunction<void()>& InFunction);
 
 	static void RefreshAllUI();
 private:

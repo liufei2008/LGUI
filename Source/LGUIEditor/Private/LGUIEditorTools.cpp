@@ -777,20 +777,85 @@ void LGUIEditorTools::CreatePrefabAsset()
 				auto OutPrefab = NewObject<ULGUIPrefab>(package, ULGUIPrefab::StaticClass(), *fileName, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
 				FAssetRegistryModule::AssetCreated(OutPrefab);
 
-				auto PrefabHelperObjectWhichHaveThisActor = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(selectedActor);
-				if (PrefabHelperObjectWhichHaveThisActor != nullptr)//create sub prefab
+				auto PrefabHelperObjectWhichManageThisActor = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(selectedActor);
+				ALGUIPrefabHelperActor* PrefabHelperActor = nullptr;
+				if (PrefabHelperObjectWhichManageThisActor == nullptr)//not exist, means in world level, so create prefab helper object
 				{
-					auto PrefabHelperObject = NewObject<ULGUIPrefabHelperObject>();
-					PrefabHelperObject->PrefabAsset = OutPrefab;
-					PrefabHelperObject->LoadedRootActor = selectedActor;
-					PrefabHelperObject->SavePrefab();
+					auto ManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(selectedActor->GetLevel());
+					PrefabHelperObjectWhichManageThisActor = ManagerActor->PrefabHelperObject;
+					PrefabHelperActor = selectedActor->GetWorld()->SpawnActor<ALGUIPrefabHelperActor>();
+					PrefabHelperActor->SetActorLabel(OutPrefab->GetName());
+					PrefabHelperActor->PrefabAsset = OutPrefab;
+					PrefabHelperActor->LoadedRootActor = selectedActor;
+					PrefabHelperActor->MoveActorToPrefabFolder();
+				}
+				check(PrefabHelperObjectWhichManageThisActor != nullptr)
+				{
+					struct LOCAL
+					{
+						static auto Make_MapGuidFromParentToSub(const TMap<UObject*, FGuid>& InNewParentMapObjectToGuid, ULGUIPrefabHelperObject* InPrefabHelperObject, const FLGUISubPrefabData& InOriginSubPrefabData)
+						{
+							TMap<FGuid, FGuid> Result;
+							for (auto& KeyValue : InOriginSubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
+							{
+								auto Object = InPrefabHelperObject->MapGuidToObject[KeyValue.Key];
+								auto Guid = InNewParentMapObjectToGuid[Object];
+								if (!Result.Contains(Guid))
+								{
+									Result.Add(Guid, KeyValue.Value);
+								}
+							}
+							return Result;
+						}
+						static void CollectSubPrefab(AActor* InActor, TMap<AActor*, FLGUISubPrefabData>& InOutSubPrefabMap, ULGUIPrefabHelperObject* InPrefabHelperObject, const TMap<UObject*, FGuid>& InMapObjectToGuid)
+						{
+							if (InPrefabHelperObject->IsActorBelongsToSubPrefab(InActor))
+							{
+								auto OriginSubPrefabData = InPrefabHelperObject->GetSubPrefabData(InActor);
+								FLGUISubPrefabData SubPrefabData;
+								SubPrefabData.PrefabAsset = OriginSubPrefabData.PrefabAsset;
+								SubPrefabData.ObjectOverrideParameterArray = OriginSubPrefabData.ObjectOverrideParameterArray;
+								SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab = Make_MapGuidFromParentToSub(InMapObjectToGuid, InPrefabHelperObject, OriginSubPrefabData);
+								InOutSubPrefabMap.Add(InActor, SubPrefabData);
+								return;
+							}
+							TArray<AActor*> ChildrenActors;
+							InActor->GetAttachedActors(ChildrenActors);
+							for (auto ChildActor : ChildrenActors)
+							{
+								CollectSubPrefab(ChildActor, InOutSubPrefabMap, InPrefabHelperObject, InMapObjectToGuid);//collect all actor, include subprefab's actor
+							}
+						}
+					};
+					TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
+					TMap<UObject*, FGuid> MapObjectToGuid;
+					OutPrefab->SavePrefab(selectedActor, MapObjectToGuid, SubPrefabMap);//save prefab first step, just collect guid and sub prefab
+					LOCAL::CollectSubPrefab(selectedActor, SubPrefabMap, PrefabHelperObjectWhichManageThisActor, MapObjectToGuid);
+					for (auto& KeyValue : SubPrefabMap)
+					{
+						PrefabHelperObjectWhichManageThisActor->RemoveSubPrefab(KeyValue.Key);//remove prefab from origin PrefabHelperObject
+						//if in level editor, we should also remove PrefabHelperActor
+						auto SubPrefabHelperActor = LGUIEditorTools::GetPrefabHelperActor_WhichManageThisActor(KeyValue.Key);
+						if (SubPrefabHelperActor != nullptr)
+						{
+							SubPrefabHelperActor->bAutoDestroyLoadedActors = false;
+							LGUIUtils::DestroyActorWithHierarchy(SubPrefabHelperActor);
+						}
+					}
+					OutPrefab->SavePrefab(selectedActor, MapObjectToGuid, SubPrefabMap);//save prefab second step, store sub prefab data
 					OutPrefab->RefreshAgentObjectsInPreviewWorld();
-					//make it as subprefab
-					PrefabHelperObjectWhichHaveThisActor->MakePrefabAsSubPrefab(OutPrefab, selectedActor, PrefabHelperObject->MapGuidToObject);
 
-					PrefabHelperObject->PrefabAsset = nullptr;
-					PrefabHelperObject->LoadedRootActor = nullptr;
-					PrefabHelperObject->ConditionalBeginDestroy();
+					//make it as subprefab
+					TMap<FGuid, UObject*> MapGuidToObject;
+					for (auto KeyValue : MapObjectToGuid)
+					{
+						MapGuidToObject.Add(KeyValue.Value, KeyValue.Key);
+					}
+					PrefabHelperObjectWhichManageThisActor->MakePrefabAsSubPrefab(OutPrefab, selectedActor, MapGuidToObject);
+				}
+				if (PrefabHelperActor != nullptr)
+				{
+					PrefabHelperActor->TimePointWhenSavePrefab = OutPrefab->CreateTime;
 				}
 				CleanupPrefabsInWorld(selectedActor->GetWorld());
 			}
@@ -964,6 +1029,16 @@ void LGUIEditorTools::OpenPrefabAsset()
 			UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
 			AssetEditorSubsystem->OpenEditorForAsset(PrefabAsset);
 		}
+	}
+}
+
+void LGUIEditorTools::RevertPrefab()
+{
+	auto SelectedActor = GetFirstSelectedActor();
+	auto PrefabHelperActor = LGUIEditorTools::GetPrefabHelperActor_WhichManageThisActor(SelectedActor);
+	if (PrefabHelperActor != nullptr)
+	{
+		PrefabHelperActor->RevertPrefab();
 	}
 }
 
