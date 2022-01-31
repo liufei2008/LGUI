@@ -6,7 +6,6 @@
 #include "Engine/EngineTypes.h"
 
 #pragma once
-class ALGUIPrefabHelperActor;
 class ULGUIPrefabHelperObject;
 class ULGUIPrefab;
 
@@ -65,7 +64,6 @@ public:
 	static void RevertPrefab();
 	static void CleanupPrefabsInWorld(UWorld* World);
 	static ULGUIPrefabHelperObject* GetPrefabHelperObject_WhichManageThisActor(AActor* InActor);
-	static ALGUIPrefabHelperActor* GetPrefabHelperActor_WhichManageThisActor(AActor* InActor);
 	static bool IsSelectUIActor();
 	static bool IsCanvasActor(AActor* InActor);
 	static int GetDrawcallCount(AActor* InActor);

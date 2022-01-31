@@ -35,6 +35,8 @@ public:
 	virtual void BeginDestroy()override;
 	/** Make this prefab as manager object, will register some editor callbacks */
 	void MarkAsManagerObject();
+	UPROPERTY(Transient)TWeakObjectPtr<AActor> RootAgentActorForPrefabEditor = nullptr;
+	bool IsInsidePrefabEditor() { return RootAgentActorForPrefabEditor.IsValid(); }
 
 	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);
 
@@ -60,9 +62,6 @@ public:
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, const TSet<FName>& InPropertyNameSet);
 	void MarkOverrideParameterFromParentPrefab(UObject* InObject, FName InPropertyName);
 
-
-	UPROPERTY(Transient)TWeakObjectPtr<AActor> RootAgentActorForPrefabEditor = nullptr;
-	bool IsInsidePrefabEditor() { return RootAgentActorForPrefabEditor.IsValid(); }
 	bool RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, AActor* InSubPrefabRootActor = nullptr);
 
 	void CopyRootObjectParentAnchorData(UObject* InObject, UObject* OriginObject);
@@ -74,7 +73,7 @@ public:
 	void ApplyPrefabOverride(UObject* InObject, FName InPropertyName);
 	void ApplyAllOverrideToPrefab(UObject* InObject);
 
-	void CheckPrefabHelperActor(AActor* InSubPrefabRootActor, ULGUIPrefab* InPrefabAsset);
+	void CheckPrefabHelperActor(AActor* InSubPrefabRootActor);
 
 	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject);
 	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);
@@ -82,6 +81,10 @@ public:
 	ULGUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);
 	bool GetAnythingDirty()const { return bAnythingDirty; }
 	void SetNothingDirty() { bAnythingDirty = false; }
+	void CheckPrefabVersion();
+	void DismissAllVersionNotifications() { OnNewVersionDismissAllClicked(); }
+	FSimpleMulticastDelegate OnSubPrefabNewVersionUpdated;
+	void CleanupInvalidSubPrefab();
 private:
 	bool bIsMarkedAsManagerObject = false;
 	bool bAnythingDirty = false;
@@ -105,5 +108,16 @@ private:
 	FAttachmentActorStruct AttachmentActor;
 	void CheckAttachment();
 	UWorld* GetPrefabWorld()const;
+
+	struct FNotificationContainer
+	{
+		TWeakObjectPtr<AActor> SubPrefabRootActor;
+		TWeakPtr<SNotificationItem> Notification;
+	};
+	TArray<FNotificationContainer> NewVersionPrefabNotificationArray;
+	void OnNewVersionUpdateClicked(AActor* InPrefabRootActor);
+	void OnNewVersionDismissClicked(AActor* InPrefabRootActor);
+	void OnNewVersionUpdateAllClicked();
+	void OnNewVersionDismissAllClicked();
 #endif
 };

@@ -77,6 +77,7 @@ void ULGUIPrefabActorFactory::PostSpawnActor(UObject* Asset, AActor* InNewActor)
 		PrefabActor->LoadPrefab(nullptr);
 	}
 	PrefabActor->MoveActorToPrefabFolder();
+	PrefabActor->SetFlags(EObjectFlags::RF_Transient);
 }
 
 void ULGUIPrefabActorFactory::PostCreateBlueprint(UObject* Asset, AActor* CDO)

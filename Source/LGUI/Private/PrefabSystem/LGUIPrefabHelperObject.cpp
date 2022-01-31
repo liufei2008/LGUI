@@ -24,6 +24,10 @@ void ULGUIPrefabHelperObject::BeginDestroy()
 	Super::BeginDestroy();
 #if WITH_EDITORONLY_DATA
 	bCanNotifyDetachment = false;
+	if (NewVersionPrefabNotificationArray.Num() > 0)
+	{
+		OnNewVersionDismissAllClicked();
+	}
 #endif
 }
 
@@ -342,6 +346,7 @@ void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InO
 
 bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, AActor* InSubPrefabRootActor)
 {
+	CleanupInvalidSubPrefab();
 	bCanNotifyDetachment = false;
 	bool AnythingChange = false;
 
@@ -446,7 +451,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 		}
 	}
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(InSubPrefabRootActor, InSubPrefab);
+	CheckPrefabHelperActor(InSubPrefabRootActor);
 	bCanNotifyDetachment = true;
 	return AnythingChange;
 }
@@ -763,7 +768,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, const TSet
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
 }
 void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPropertyName)
 {
@@ -812,7 +817,7 @@ void ULGUIPrefabHelperObject::RevertPrefabOverride(UObject* InObject, FName InPr
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
 }
 
 void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
@@ -889,7 +894,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 
 		bAnythingDirty = true;
 		GEditor->EndTransaction();
-		CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
+		CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
@@ -953,7 +958,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, const TSet<
 	bCanCollectProperty = true;
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
 }
 void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPropertyName)
 {
@@ -1010,7 +1015,7 @@ void ULGUIPrefabHelperObject::ApplyPrefabOverride(UObject* InObject, FName InPro
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
 }
 void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 {
@@ -1095,30 +1100,22 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 	}
 	bCanCollectProperty = true;
 	ULGUIEditorManagerObject::RefreshAllUI();
-	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor), SubPrefabAsset);
+	CheckPrefabHelperActor(GetSubPrefabRootActor(Actor));
 }
 #pragma endregion RevertAndApply
 
-#include "PrefabSystem/LGUIPrefabHelperActor.h"
-#include "EngineUtils.h"
-void ULGUIPrefabHelperObject::CheckPrefabHelperActor(AActor* InSubPrefabRootActor, ULGUIPrefab* InPrefabAsset)
+void ULGUIPrefabHelperObject::CheckPrefabHelperActor(AActor* InSubPrefabRootActor)
 {
 	if (IsInsidePrefabEditor())return;
-	auto World = InSubPrefabRootActor->GetWorld();
-	if (!IsValid(World))return;
-	for (TActorIterator<ALGUIPrefabHelperActor> Itr(World); Itr; ++Itr)
-	{
-		if (Itr->LoadedRootActor == InSubPrefabRootActor && Itr->PrefabAsset == InPrefabAsset)
-		{
-			Itr->MarkPrefabVersionAsLatest();
-		}
-	}
+	auto& SubPrefabData = SubPrefabMap[InSubPrefabRootActor];
+	SubPrefabData.TimePointWhenSavePrefab = SubPrefabData.PrefabAsset->CreateTime;
 }
 
 void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject)
 {
 	FLGUISubPrefabData SubPrefabData;
 	SubPrefabData.PrefabAsset = InPrefab;
+	SubPrefabData.TimePointWhenSavePrefab = InPrefab->CreateTime;
 
 	TArray<AActor*> ChildrenActors;
 	LGUIUtils::CollectChildrenActors(InActor, ChildrenActors, false);
@@ -1189,6 +1186,177 @@ ULGUIPrefab* ULGUIPrefabHelperObject::GetPrefabAssetBySubPrefabObject(UObject* I
 		Actor = Component->GetOwner();
 	}
 	return GetSubPrefabData(Actor).PrefabAsset;
+}
+
+void ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
+{
+	TSet<AActor*> KeysToRemove;
+	for (auto& KeyValue : SubPrefabMap)
+	{
+		if (!IsValid(KeyValue.Key) || !IsValid(KeyValue.Value.PrefabAsset))
+		{
+			KeysToRemove.Add(KeyValue.Key);
+		}
+	}
+	for (auto& Item : KeysToRemove)
+	{
+		SubPrefabMap.Remove(Item);
+	}
+	if (KeysToRemove.Num() > 0)
+	{
+		bAnythingDirty = true;
+		if (OnSubPrefabNewVersionUpdated.IsBound())
+		{
+			OnSubPrefabNewVersionUpdated.Broadcast();
+		}
+	}
+}
+
+#if WITH_EDITOR
+#include "Editor.h"
+#include "EditorActorFolders.h"
+#include "Core/Actor/LGUIManagerActor.h"
+#include "Framework/Notifications/NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#endif
+void ULGUIPrefabHelperObject::CheckPrefabVersion()
+{
+	CleanupInvalidSubPrefab();
+	for (auto& KeyValue : SubPrefabMap)
+	{
+		auto& SubPrefabData = KeyValue.Value;
+		if (SubPrefabData.TimePointWhenSavePrefab != SubPrefabData.PrefabAsset->CreateTime)
+		{
+			auto FoundIndex = NewVersionPrefabNotificationArray.IndexOfByPredicate([SubPrefabRootActor = KeyValue.Key](const FNotificationContainer& Item) {
+				return Item.SubPrefabRootActor == SubPrefabRootActor;
+			});
+			if (FoundIndex != INDEX_NONE)
+			{
+				return;
+			}
+			auto InfoText = FText::Format(LOCTEXT("OldPrefabVersion", "Detect old prefab: Actor:'{0}' Prefab:'{1}', Would you want to update it?"), FText::FromString(KeyValue.Key->GetActorLabel()), FText::FromString(SubPrefabData.PrefabAsset->GetName()));
+			FNotificationInfo Info(InfoText);
+			Info.bFireAndForget = false;
+			Info.bUseLargeFont = true;
+			Info.bUseThrobber = false;
+			Info.FadeOutDuration = 0.0f;
+			Info.ExpireDuration = 0.0f;
+			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("UpdateToNewPrefabButton", "Update"), LOCTEXT("UpdateToNewPrefabButton_Tooltip", "Update the prefab to new.")
+				, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateClicked, KeyValue.Key)));
+			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("UpdateAllToNewPrefabButton", "Update All"), LOCTEXT("UpdateToAllNewPrefabButton_Tooltip", "Update all prefabs to new.")
+				, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked)));
+			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissButton", "Dismiss"), LOCTEXT("DismissButton_Tooltip", "Dismiss this notification")
+				, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissClicked, KeyValue.Key)));
+			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissAllButton", "Dismiss All"), LOCTEXT("DismissAllButton_Tooltip", "Dismiss all notifications")
+				, FSimpleDelegate::CreateUObject(this, &ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked)));
+
+			auto Notification = FSlateNotificationManager::Get().AddNotification(Info);
+			Notification->SetCompletionState(SNotificationItem::CS_Pending);
+			FNotificationContainer Item;
+			Item.SubPrefabRootActor = KeyValue.Key;
+			Item.Notification = Notification;
+			NewVersionPrefabNotificationArray.Add(Item);
+		}
+	}
+}
+
+void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActor)
+{
+	auto FoundIndex = NewVersionPrefabNotificationArray.IndexOfByPredicate([SubPrefabRootActor = InPrefabRootActor](const FNotificationContainer& Item) {
+		return Item.SubPrefabRootActor == SubPrefabRootActor;
+	});
+	if (FoundIndex != INDEX_NONE)
+	{
+		auto Item = NewVersionPrefabNotificationArray[FoundIndex];
+		if (Item.Notification.IsValid())
+		{
+			auto SubPrefabDataPtr = SubPrefabMap.Find(InPrefabRootActor);
+			if (SubPrefabDataPtr != nullptr)
+			{
+				if (SubPrefabDataPtr->TimePointWhenSavePrefab == SubPrefabDataPtr->PrefabAsset->CreateTime)
+				{
+					Item.Notification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
+				}
+				else
+				{
+					this->RefreshOnSubPrefabDirty(SubPrefabDataPtr->PrefabAsset, InPrefabRootActor);
+					if (OnSubPrefabNewVersionUpdated.IsBound())
+					{
+						OnSubPrefabNewVersionUpdated.Broadcast();
+					}
+				}
+			}
+			Item.Notification.Pin()->SetCompletionState(SNotificationItem::CS_None);
+			Item.Notification.Pin()->ExpireAndFadeout();
+		}
+		NewVersionPrefabNotificationArray.RemoveAt(FoundIndex);
+	}
+}
+void ULGUIPrefabHelperObject::OnNewVersionDismissClicked(AActor* InPrefabRootActor)
+{
+	auto FoundIndex = NewVersionPrefabNotificationArray.IndexOfByPredicate([SubPrefabRootActor = InPrefabRootActor](const FNotificationContainer& Item) {
+		return Item.SubPrefabRootActor == SubPrefabRootActor;
+		});
+	if (FoundIndex != INDEX_NONE)
+	{
+		auto Item = NewVersionPrefabNotificationArray[FoundIndex];
+		if (Item.Notification.IsValid())
+		{
+			Item.Notification.Pin()->SetCompletionState(SNotificationItem::CS_None);
+			Item.Notification.Pin()->ExpireAndFadeout();
+		}
+		NewVersionPrefabNotificationArray.RemoveAt(FoundIndex);
+	}
+}
+
+void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
+{
+	bool bUpdated = false;
+	for (auto& Item : NewVersionPrefabNotificationArray)
+	{
+		if (Item.Notification.IsValid())
+		{
+			if (Item.SubPrefabRootActor.IsValid())
+			{
+				auto SubPrefabDataPtr = SubPrefabMap.Find(Item.SubPrefabRootActor.Get());
+				if (SubPrefabDataPtr != nullptr)
+				{
+					if (SubPrefabDataPtr->TimePointWhenSavePrefab == SubPrefabDataPtr->PrefabAsset->CreateTime)
+					{
+						Item.Notification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
+					}
+					else
+					{
+						this->RefreshOnSubPrefabDirty(SubPrefabDataPtr->PrefabAsset, Item.SubPrefabRootActor.Get());
+						bUpdated = true;
+					}
+				}
+			}
+			Item.Notification.Pin()->SetCompletionState(SNotificationItem::CS_None);
+			Item.Notification.Pin()->ExpireAndFadeout();
+		}
+	}
+	NewVersionPrefabNotificationArray.Empty();
+
+	if (bUpdated)
+	{
+		if (OnSubPrefabNewVersionUpdated.IsBound())
+		{
+			OnSubPrefabNewVersionUpdated.Broadcast();
+		}
+	}
+}
+void ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked()
+{
+	for (auto& Item : NewVersionPrefabNotificationArray)
+	{
+		if (Item.Notification.IsValid())
+		{
+			Item.Notification.Pin()->SetCompletionState(SNotificationItem::CS_None);
+			Item.Notification.Pin()->ExpireAndFadeout();
+		}
+	}
+	NewVersionPrefabNotificationArray.Empty();
 }
 
 #endif

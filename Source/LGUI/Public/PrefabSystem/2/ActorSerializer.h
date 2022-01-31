@@ -6,8 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "PrefabSystem/LGUIPrefab.h"
 
-class ALGUIPrefabHelperActor;
-
 namespace LGUIPrefabSystem
 {
 	enum class ELGUIPropertyType : uint8

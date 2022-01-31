@@ -29,33 +29,6 @@ void ALGUIPrefabHelperActor::BeginPlay()
 {
 	Super::BeginPlay();
 }
-void ALGUIPrefabHelperActor::PostInitProperties()
-{
-	Super::PostInitProperties();
-#if WITH_EDITOR
-	if (this != GetDefault<ALGUIPrefabHelperActor>())
-	{
-		ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = MakeWeakObjectPtr(this)]{
-			if (Actor.IsValid())
-			{
-				if (auto World = Actor->GetWorld())
-				{
-					if (!World->IsGameWorld())
-					{
-						ALGUIPrefabManagerActor::GetPrefabManagerActor(Actor->GetLevel());
-						Actor->CheckPrefabVersion();
-					}
-				}
-			}
-			}, 1);
-	}
-#endif
-}
-
-void ALGUIPrefabHelperActor::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-}
 
 void ALGUIPrefabHelperActor::Destroyed()
 {
@@ -72,22 +45,11 @@ void ALGUIPrefabHelperActor::Destroyed()
 			}
 		}
 	}
-
-	if (NewVersionPrefabNotification.IsValid())
-	{
-		OnNewVersionDismissClicked();
-	}
 #endif
 }
 void ALGUIPrefabHelperActor::BeginDestroy()
 {
 	Super::BeginDestroy();
-#if WITH_EDITORONLY_DATA
-	if (NewVersionPrefabNotification.IsValid())
-	{
-		OnNewVersionDismissClicked();
-	}
-#endif
 }
 
 #if WITH_EDITORONLY_DATA
@@ -101,15 +63,6 @@ void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 	this->SetFolderPath(PrefabFolderName);
 }
 
-void ALGUIPrefabHelperActor::MarkPrefabVersionAsLatest()
-{
-	if (TimePointWhenSavePrefab != PrefabAsset->CreateTime)
-	{
-		TimePointWhenSavePrefab = PrefabAsset->CreateTime;
-		this->MarkPackageDirty();
-	}
-}
-
 void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 {
 	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return;
@@ -120,84 +73,7 @@ void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 		, SubPrefabMapGuidToObject, SubSubPrefabMap
 	);
 	ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedRootActor, SubPrefabMapGuidToObject);
-
-	TimePointWhenSavePrefab = PrefabAsset->CreateTime;
 }
-
-bool ALGUIPrefabHelperActor::IsValidPrefabHelperActor()
-{
-	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return false;
-	if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
-	{
-		return PrefabManagerActor->PrefabHelperObject->LoadedRootActor != nullptr;
-	}
-	return false;
-}
-
-void ALGUIPrefabHelperActor::CheckPrefabVersion()
-{
-	if (PrefabAsset != nullptr)
-	{
-		if (TimePointWhenSavePrefab != PrefabAsset->CreateTime)
-		{
-			if (NewVersionPrefabNotification.IsValid())
-			{
-				return;
-			}
-			auto InfoText = FText::Format(LOCTEXT("OldPrefabVersion", "Detect old prefab: '{0}', Would you want to update it?"), FText::FromString(this->GetActorLabel()));
-			FNotificationInfo Info(InfoText);
-			Info.bFireAndForget = false;
-			Info.bUseLargeFont = true;
-			Info.bUseThrobber = false;
-			Info.FadeOutDuration = 0.0f;
-			Info.ExpireDuration = 0.0f;
-			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("RevertToNewPrefabButton", "Update"), LOCTEXT("RevertToNewPrefabButton_Tooltip", "Revert the prefab to new.")
-				, FSimpleDelegate::CreateUObject(this, &ALGUIPrefabHelperActor::OnNewVersionRevertPrefabClicked)));
-			Info.ButtonDetails.Add(FNotificationButtonInfo(LOCTEXT("DismissButton", "Dismiss"), LOCTEXT("DismissButton_Tooltip", "Dismiss this notification")
-				, FSimpleDelegate::CreateUObject(this, &ALGUIPrefabHelperActor::OnNewVersionDismissClicked)));
-
-			NewVersionPrefabNotification = FSlateNotificationManager::Get().AddNotification(Info);
-			NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_Pending);
-		}
-	}
-}
-
-void ALGUIPrefabHelperActor::OnNewVersionRevertPrefabClicked()
-{
-	if (!this->GetWorld()->IsGameWorld())
-	{
-		if (TimePointWhenSavePrefab == PrefabAsset->CreateTime)
-		{
-			NewVersionPrefabNotification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
-		}
-		else
-		{
-			if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
-			{
-				auto PrefabHelperObject = PrefabManagerActor->PrefabHelperObject;
-				PrefabHelperObject->RefreshOnSubPrefabDirty(PrefabAsset, LoadedRootActor);
-			}
-		}
-	}
-	NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_None);
-	NewVersionPrefabNotification.Pin()->ExpireAndFadeout();
-	NewVersionPrefabNotification = nullptr;
-}
-void ALGUIPrefabHelperActor::OnNewVersionDismissClicked()
-{
-	NewVersionPrefabNotification.Pin()->SetCompletionState(SNotificationItem::CS_None);
-	NewVersionPrefabNotification.Pin()->ExpireAndFadeout();
-	NewVersionPrefabNotification = nullptr;
-}
-void ALGUIPrefabHelperActor::RevertPrefab()
-{
-	if (auto PrefabManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel()))
-	{
-		auto PrefabHelperObject = PrefabManagerActor->PrefabHelperObject;
-		PrefabHelperObject->RefreshOnSubPrefabDirty(PrefabAsset, LoadedRootActor);
-	}
-}
-
 #endif
 
 
@@ -238,19 +114,54 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* 
 	}
 }
 
+void ALGUIPrefabManagerActor::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void ALGUIPrefabManagerActor::PostInitProperties()
 {
 	Super::PostInitProperties();
 	if (this != GetDefault<ALGUIPrefabManagerActor>())
 	{
-		if (this->GetLevel() != nullptr)
+		if (auto Level = this->GetLevel())
 		{
-			if (!MapLevelToManagerActor.Contains(this->GetLevel()))
+			if (!MapLevelToManagerActor.Contains(Level))
 			{
-				MapLevelToManagerActor.Add(this->GetLevel(), this);
+				MapLevelToManagerActor.Add(Level, this);
 			}
+			PrefabHelperObject->OnSubPrefabNewVersionUpdated.AddLambda([Actor = MakeWeakObjectPtr(this)]() {
+				if (Actor.IsValid())
+				{
+					Actor->MarkPackageDirty();
+				}
+			});
 		}
+		ULGUIEditorManagerObject::AddOneShotTickFunction([Actor = MakeWeakObjectPtr(this)]{
+			if (Actor.IsValid())
+			{
+				if (auto World = Actor->GetWorld())
+				{
+					if (!World->IsGameWorld())
+					{
+						Actor->PrefabHelperObject->CheckPrefabVersion();
+					}
+				}
+			}
+			}, 1);
+
+		FEditorDelegates::BeginPIE.AddLambda([Actor = MakeWeakObjectPtr(this)](const bool isSimulating) {
+			if (Actor.IsValid())
+			{
+				Actor->PrefabHelperObject->DismissAllVersionNotifications();
+			}
+		});
 	}
+}
+
+void ALGUIPrefabManagerActor::PostActorCreated()
+{
+	Super::PostActorCreated();
 }
 
 void ALGUIPrefabManagerActor::BeginDestroy()

@@ -44,6 +44,10 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")ULGUIPrefab* PrefabAsset;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TArray<FLGUIPrefabOverrideParameterData> ObjectOverrideParameterArray;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;
+#if WITH_EDITORONLY_DATA
+	/** For level editor, to tell if this prefab is latest version. */
+	UPROPERTY(VisibleAnywhere, Category = "LGUI")FDateTime TimePointWhenSavePrefab;
+#endif
 public:
 	void AddMemberProperty(UObject* InObject, FName InPropertyName);
 	void AddMemberProperty(UObject* InObject, const TSet<FName>& InPropertyNameSet);

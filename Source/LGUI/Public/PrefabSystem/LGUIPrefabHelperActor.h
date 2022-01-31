@@ -20,37 +20,25 @@ public:
 	ALGUIPrefabHelperActor();
 
 	virtual void BeginPlay()override;
-	virtual void PostInitProperties()override;
-	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Destroyed()override;
 	virtual void BeginDestroy() override;
 
 public:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		FDateTime TimePointWhenSavePrefab;
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		ULGUIPrefab* PrefabAsset = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")
 		AActor* LoadedRootActor = nullptr;
 #endif
 #if WITH_EDITOR
-	void MarkPrefabVersionAsLatest();
 	void LoadPrefab(USceneComponent* InParent);
-	bool IsValidPrefabHelperActor();
 	void MoveActorToPrefabFolder();
-	void CheckPrefabVersion();
-	void RevertPrefab();
 #endif
 
 #if WITH_EDITORONLY_DATA
 public:
 	bool bAutoDestroyLoadedActors = true;
 	static FName PrefabFolderName;
-private:
-	TWeakPtr<SNotificationItem> NewVersionPrefabNotification;
-	void OnNewVersionRevertPrefabClicked();
-	void OnNewVersionDismissClicked();
 #endif
 };
 
@@ -69,7 +57,9 @@ public:
 	ALGUIPrefabManagerActor();
 
 #if WITH_EDITOR
+	virtual void BeginPlay()override;
 	virtual void PostInitProperties()override;
+	virtual void PostActorCreated()override;
 	virtual void BeginDestroy() override;
 private:
 	static TMap<ULevel*, ALGUIPrefabManagerActor*> MapLevelToManagerActor;
