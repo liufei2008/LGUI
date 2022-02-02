@@ -35,6 +35,7 @@ public:
 	virtual void BeginDestroy()override;
 	/** Make this prefab as manager object, will register some editor callbacks */
 	void MarkAsManagerObject();
+	bool GetIsManagerObject()const { return bIsMarkedAsManagerObject; }
 	UPROPERTY(Transient)TWeakObjectPtr<AActor> RootAgentActorForPrefabEditor = nullptr;
 	bool IsInsidePrefabEditor() { return RootAgentActorForPrefabEditor.IsValid(); }
 
@@ -50,7 +51,7 @@ public:
 	void ClearLoadedPrefab();
 	bool IsActorBelongsToSubPrefab(const AActor* InActor);
 	bool ActorIsSubPrefabRootActor(const AActor* InActor);
-	bool IsActorBelongsToThis(const AActor* InActor, bool InCludeSubPrefab);
+	bool IsActorBelongsToThis(const AActor* InActor);
 	void ClearInvalidObjectAndGuid();
 	void AddMemberPropertyToSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
@@ -75,7 +76,7 @@ public:
 
 	void CheckPrefabHelperActor(AActor* InSubPrefabRootActor);
 
-	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject);
+	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray);
 	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);
 	void RemoveSubPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);

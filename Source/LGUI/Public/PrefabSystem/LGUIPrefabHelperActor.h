@@ -64,7 +64,8 @@ public:
 private:
 	static TMap<ULevel*, ALGUIPrefabManagerActor*> MapLevelToManagerActor;
 public:
-	static ALGUIPrefabManagerActor* GetPrefabManagerActor(ULevel* InLevel);
+	static ALGUIPrefabManagerActor* GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist = true);
+	static ALGUIPrefabManagerActor* GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject);
 #endif
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category = "LGUI")

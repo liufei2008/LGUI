@@ -485,6 +485,7 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTa
 bool FLGUIEditorModule::CanUnpackActorForPrefab()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
 		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
@@ -501,6 +502,7 @@ bool FLGUIEditorModule::CanUnpackActorForPrefab()
 bool FLGUIEditorModule::CanBrowsePrefab()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
 		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))
@@ -521,6 +523,32 @@ bool FLGUIEditorModule::CanRevertPrefab()
 }
 
 bool FLGUIEditorModule::CanDuplicateActor()
+{
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
+
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor))//sub prefab's root actor can duplicate
+		{
+			return true;
+		}
+		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//sub prefab's other actor cannot duplicate
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	else
+	{
+		return true;
+	}
+}
+
+bool FLGUIEditorModule::CanPasteActor()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
 	if (SelectedActor)
@@ -547,14 +575,10 @@ bool FLGUIEditorModule::CanDuplicateActor()
 	}
 }
 
-bool FLGUIEditorModule::CanPasteActor()
-{
-	return CanDuplicateActor();
-}
-
 bool FLGUIEditorModule::CanCreateActor()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
 		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//not allowd to create actor on sub prefab's actor
@@ -568,6 +592,7 @@ bool FLGUIEditorModule::CanCreateActor()
 bool FLGUIEditorModule::CanDeleteActor()
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
 		if (PrefabHelperObject->ActorIsSubPrefabRootActor(SelectedActor))//allowed to delete sub prefab's root actor, it will handled in prefab editor
@@ -586,6 +611,7 @@ bool FLGUIEditorModule::CanDeleteActor()
 bool FLGUIEditorModule::CanCheckPrefabOverrideParameter()const
 {
 	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
 	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 	{
 		return PrefabHelperObject->SubPrefabMap.Contains(SelectedActor);
@@ -601,6 +627,7 @@ bool FLGUIEditorModule::CanReplaceUIElement()
 	if (LGUIEditorTools::IsSelectUIActor())//only allow replace UI element
 	{
 		auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+		if (SelectedActor == nullptr)return false;
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
 		{
 			if (PrefabHelperObject->LoadedRootActor == SelectedActor)//not allow prefab's root object
@@ -625,6 +652,7 @@ bool FLGUIEditorModule::CanAttachLayout()
 	if (CanReplaceUIElement())
 	{
 		auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+		if (SelectedActor == nullptr)return false;
 		auto LayoutComponents = SelectedActor->GetComponentsByInterface(ULGUILayoutInterface::StaticClass());
 		return LayoutComponents.Num() == 0;
 	}

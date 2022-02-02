@@ -27,7 +27,7 @@ bool FTextGeometryCache::SetInputParameters(
 	TWeakObjectPtr<ULGUIFontData_BaseObject> InFont
 )
 {
-	if (this->content != InContent)
+	if (!this->content.Equals(InContent))
 	{
 		this->content = InContent;
 		bIsDirty = true;

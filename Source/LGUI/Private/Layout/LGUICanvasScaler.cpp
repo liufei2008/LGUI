@@ -277,6 +277,7 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 				|| Canvas->GetRenderMode() == ELGUIRenderMode::RenderTarget
 				)
 			{
+				DrawViewportArea();
 				DrawVirtualCamera();
 				
 #if WITH_EDITORONLY_DATA
@@ -375,6 +376,26 @@ void DeprojectViewPointToWorld(const FMatrix& InViewProjectionMatrix, const FVec
 	OutWorldStart = RayStartWorldSpace;
 	OutWorldEnd = RayEndWorldSpace;
 }
+
+void ULGUICanvasScaler::DrawViewportArea()
+{
+	if (CheckCanvas())
+	{
+		auto RectExtends = FVector(0.1f, Canvas->GetUIItem()->GetWidth(), Canvas->GetUIItem()->GetHeight()) * 0.5f;
+		auto GeometryBoundsExtends = FVector(0, 0, 0);
+		bool bCanDrawRect = false;
+		auto RectDrawColor = FColor(128, 128, 128, 128);//gray means normal object
+
+		auto WorldTransform = Canvas->GetUIItem()->GetComponentTransform();
+		FVector RelativeOffset(0, 0, 0);
+		RelativeOffset.Y = (0.5f - Canvas->GetUIItem()->GetPivot().X) * Canvas->GetUIItem()->GetWidth();
+		RelativeOffset.Z = (0.5f - Canvas->GetUIItem()->GetPivot().Y) * Canvas->GetUIItem()->GetHeight();
+		auto WorldLocation = WorldTransform.TransformPosition(RelativeOffset);
+
+		DrawDebugBox(Canvas->GetUIItem()->GetWorld(), WorldLocation, RectExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), RectDrawColor);//@todo: screen-space UI should draw on screen-space, but no clue to achieve that
+	}
+}
+
 void ULGUICanvasScaler::DrawVirtualCamera()
 {
 	if (CheckCanvas())

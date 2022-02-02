@@ -95,8 +95,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	if (CanConnectStartEndPoint(pointCount))
 	{
 		GenerateLinePoint(InPointArray[0], InPointArray[pointCount - 1], InPointArray[1], lineLeftWidth, lineRightWidth, pos0, pos1, prevLineDir);
-		originPositions[0] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
-		originPositions[1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
+		originPositions[0] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+		originPositions[1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 	}
 	else
 	{
@@ -124,8 +124,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		pos0 = v0 + lineLeftWidth * widthDir;
 		pos1 = v0 - lineRightWidth * widthDir;
 
-		originPositions[0] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
-		originPositions[1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
+		originPositions[0] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+		originPositions[1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 
 		if (EndType == EUI2DLineRenderer_EndType::Cap)
 		{	
@@ -137,8 +137,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 			pos1 = capPoint - lineRightWidth * widthDir;
 
 			auto vertIndex = (pointCount + 1) * 2;
-			originPositions[vertIndex] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
-			originPositions[vertIndex + 1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
+			originPositions[vertIndex] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+			originPositions[vertIndex + 1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 		}
 	}
 
@@ -149,8 +149,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		{
 			FVector2D posA, posB;
 			GenerateLinePoint(InPointArray[i], InPointArray[i - 1], InPointArray[i + 1], lineLeftWidth, lineRightWidth, posA, posB, prevLineDir);
-			originPositions[i + i] = FVector(posA.X + pivotOffsetX, posA.Y + pivotOffsetY, 0);
-			originPositions[i + i + 1] = FVector(posB.X + pivotOffsetX, posB.Y + pivotOffsetY, 0);
+			originPositions[i + i] = FVector(0, posA.X + pivotOffsetX, posA.Y + pivotOffsetY);
+			originPositions[i + i + 1] = FVector(0, posB.X + pivotOffsetX, posB.Y + pivotOffsetY);
 		}
 	}
 
@@ -159,8 +159,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	{
 		FVector2D posA, posB;
 		GenerateLinePoint(InPointArray[pointCount - 1], InPointArray[pointCount - 2], InPointArray[0], lineLeftWidth, lineRightWidth, posA, posB, prevLineDir);
-		originPositions[i2] = FVector(posA.X + pivotOffsetX, posA.Y + pivotOffsetY, 0);
-		originPositions[i2 + 1] = FVector(posB.X + pivotOffsetX, posB.Y + pivotOffsetY, 0);
+		originPositions[i2] = FVector(0, posA.X + pivotOffsetX, posA.Y + pivotOffsetY);
+		originPositions[i2 + 1] = FVector(0, posB.X + pivotOffsetX, posB.Y + pivotOffsetY);
 	}
 	else
 	{
@@ -196,8 +196,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 			pos0 = vEnd1 + lineLeftWidth * widthDir;
 			pos1 = vEnd1 - lineRightWidth * widthDir;
 
-			originPositions[i2] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
-			originPositions[i2 + 1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
+			originPositions[i2] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+			originPositions[i2 + 1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 
 			if (EndType == EUI2DLineRenderer_EndType::Cap)
 			{
@@ -209,8 +209,8 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 				pos1 = capPoint - lineRightWidth * widthDir;
 
 				auto vertIndex = pointCount * 2;
-				originPositions[vertIndex] = FVector(pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY, 0);
-				originPositions[vertIndex + 1] = FVector(pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY, 0);
+				originPositions[vertIndex] = FVector(0, pos0.X + pivotOffsetX, pos0.Y + pivotOffsetY);
+				originPositions[vertIndex + 1] = FVector(0, pos1.X + pivotOffsetX, pos1.Y + pivotOffsetY);
 			}
 		}
 	}

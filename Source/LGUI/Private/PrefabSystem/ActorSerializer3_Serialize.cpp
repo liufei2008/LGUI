@@ -62,71 +62,69 @@ namespace LGUIPrefabSystem3
 
 	void ActorSerializer3::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData)
 	{
-		auto ActorGuid = MapObjectToGuid[Actor];
-
-		OutActorSaveData.ActorClass = FindOrAddClassFromList(Actor->GetClass());
-		OutActorSaveData.ActorGuid = ActorGuid;
-		OutActorSaveData.ObjectFlags = (uint32)Actor->GetFlags();
-		WriterOrReaderFunction(Actor, OutActorSaveData.ActorPropertyData, false);
-		if (auto RootComp = Actor->GetRootComponent())
+		if (auto SubPrefabDataPtr = SubPrefabMap.Find(Actor))//sub prefab
 		{
-			OutActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
-		}
-		TArray<UObject*> DefaultSubObjects;
-		Actor->CollectDefaultSubobjects(DefaultSubObjects, true);
-		for (auto DefaultSubObject : DefaultSubObjects)
-		{
-			OutActorSaveData.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
-			OutActorSaveData.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
-		}
+			OutActorSaveData.bIsPrefab = true;
+			OutActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
+			OutActorSaveData.ActorGuid = MapObjectToGuid[Actor];
+			OutActorSaveData.MapObjectGuidFromParentPrefabToSubPrefab = SubPrefabDataPtr->MapObjectGuidFromParentPrefabToSubPrefab;
 
-		TArray<AActor*> ChildrenActors;
-		Actor->GetAttachedActors(ChildrenActors);
-		//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
-		Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
-			auto ARoot = A->GetRootComponent();
-			auto BRoot = B->GetRootComponent();
-			if (ARoot != nullptr && BRoot != nullptr)
+			//serialize override parameter data
+			for (auto& DataItem : SubPrefabDataPtr->ObjectOverrideParameterArray)
 			{
-				auto AUIRoot = Cast<UUIItem>(ARoot);
-				auto BUIRoot = Cast<UUIItem>(BRoot);
-				return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
+				TArray<uint8> SubPrefabOverrideData;
+				auto SubPrefabObject = DataItem.Object.Get();
+				WriterOrReaderFunctionForSubPrefab(SubPrefabObject, SubPrefabOverrideData, DataItem.MemberPropertyName);
+				FLGUIPrefabOverrideParameterRecordData RecordDataItem;
+				RecordDataItem.ObjectGuid = MapObjectToGuid[SubPrefabObject];
+				RecordDataItem.OverrideParameterData = SubPrefabOverrideData;
+				RecordDataItem.OverrideParameterNameSet = DataItem.MemberPropertyName;
+				OutActorSaveData.ObjectOverrideParameterArray.Add(RecordDataItem);
 			}
-			return false;
-			});
-		TArray<FLGUIActorSaveData> ChildSaveDataList;
-		for (auto ChildActor : ChildrenActors)
+		}
+		else
 		{
-			if (auto SubPrefabDataPtr = SubPrefabMap.Find(ChildActor))//sub prefab
-			{
-				FLGUIActorSaveData ChildActorSaveData;
-				ChildActorSaveData.bIsPrefab = true;
-				ChildActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
-				ChildActorSaveData.ActorGuid = MapObjectToGuid[ChildActor];
-				ChildActorSaveData.MapObjectGuidFromParentPrefabToSubPrefab = SubPrefabDataPtr->MapObjectGuidFromParentPrefabToSubPrefab;
+			auto ActorGuid = MapObjectToGuid[Actor];
 
-				//serialize override parameter data
-				for (auto& DataItem : SubPrefabDataPtr->ObjectOverrideParameterArray)
+			OutActorSaveData.ActorClass = FindOrAddClassFromList(Actor->GetClass());
+			OutActorSaveData.ActorGuid = ActorGuid;
+			OutActorSaveData.ObjectFlags = (uint32)Actor->GetFlags();
+			WriterOrReaderFunction(Actor, OutActorSaveData.ActorPropertyData, false);
+			if (auto RootComp = Actor->GetRootComponent())
+			{
+				OutActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
+			}
+			TArray<UObject*> DefaultSubObjects;
+			Actor->CollectDefaultSubobjects(DefaultSubObjects, true);
+			for (auto DefaultSubObject : DefaultSubObjects)
+			{
+				OutActorSaveData.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
+				OutActorSaveData.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
+			}
+
+			TArray<AActor*> ChildrenActors;
+			Actor->GetAttachedActors(ChildrenActors);
+			//sort on hierarchy, so hierarchy order will be good when deserialize it. Actually normal UIItem's hierarchyIndex property can do the job, but sub prefab's root actor not, so sort it to make sure.
+			Algo::Sort(ChildrenActors, [](const AActor* A, const AActor* B) {
+				auto ARoot = A->GetRootComponent();
+				auto BRoot = B->GetRootComponent();
+				if (ARoot != nullptr && BRoot != nullptr)
 				{
-					TArray<uint8> SubPrefabOverrideData;
-					auto SubPrefabObject = DataItem.Object.Get();
-					WriterOrReaderFunctionForSubPrefab(SubPrefabObject, SubPrefabOverrideData, DataItem.MemberPropertyName);
-					FLGUIPrefabOverrideParameterRecordData RecordDataItem;
-					RecordDataItem.ObjectGuid = MapObjectToGuid[SubPrefabObject];
-					RecordDataItem.OverrideParameterData = SubPrefabOverrideData;
-					RecordDataItem.OverrideParameterNameSet = DataItem.MemberPropertyName;
-					ChildActorSaveData.ObjectOverrideParameterArray.Add(RecordDataItem);
+					auto AUIRoot = Cast<UUIItem>(ARoot);
+					auto BUIRoot = Cast<UUIItem>(BRoot);
+					return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
 				}
-				ChildSaveDataList.Add(ChildActorSaveData);
-			}
-			else
+				return false;
+				});
+			TArray<FLGUIActorSaveData> ChildSaveDataList;
+			for (auto ChildActor : ChildrenActors)
 			{
 				FLGUIActorSaveData ChildActorSaveData;
 				SerializeActorRecursive(ChildActor, ChildActorSaveData);
 				ChildSaveDataList.Add(ChildActorSaveData);
 			}
+			OutActorSaveData.ChildActorData = ChildSaveDataList;
 		}
-		OutActorSaveData.ChildActorData = ChildSaveDataList;
 	}
 	void ActorSerializer3::SerializeActorToData(AActor* OriginRootActor, FLGUIPrefabSaveData& OutData)
 	{

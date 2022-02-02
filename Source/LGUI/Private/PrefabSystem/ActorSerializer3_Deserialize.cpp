@@ -370,7 +370,7 @@ namespace LGUIPrefabSystem3
 		}
 	}
 
-	void ActorSerializer3::PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, AActor* ParentActor)
+	void ActorSerializer3::PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, USceneComponent* Parent)
 	{
 		if (SavedActors.bIsPrefab)
 		{
@@ -382,7 +382,7 @@ namespace LGUIPrefabSystem3
 					AActor* SubPrefabRootActor = nullptr;
 					FLGUISubPrefabData SubPrefabData;
 					SubPrefabData.PrefabAsset = SubPrefabAsset;
-					TMap<FGuid, UObject*> SubMapGuidToObject;
+					TMap<FGuid, UObject*>& SubMapGuidToObject = SubPrefabData.MapGuidToObject;
 					if (auto ValuePtr = MapGuidToObject.Find(SavedActors.ActorGuid))
 					{
 						auto SubPrefabRootActorGuid = SavedActors.MapObjectGuidFromParentPrefabToSubPrefab[SavedActors.ActorGuid];
@@ -398,7 +398,7 @@ namespace LGUIPrefabSystem3
 							SubMapGuidToObject.Add(KeyValue.Value, *ObjectPtr);
 						}
 					}
-					SubPrefabRootActor = ActorSerializer3::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, ParentActor->GetRootComponent()
+					SubPrefabRootActor = ActorSerializer3::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent
 						, LoadedRootActor
 						, SubMapGuidToObject
 						, [&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject) {
@@ -530,7 +530,7 @@ namespace LGUIPrefabSystem3
 
 				for (auto& ChildSaveData : SavedActors.ChildActorData)
 				{
-					PreGenerateActorRecursive(ChildSaveData, NewActor);
+					PreGenerateActorRecursive(ChildSaveData, NewActor->GetRootComponent());
 				}
 			}
 			else

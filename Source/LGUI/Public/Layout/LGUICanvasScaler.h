@@ -51,6 +51,7 @@ protected:
 	FDelegateHandle LGUIPreview_ViewportIndexChangeDelegateHandle;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void DrawVirtualCamera();
+	void DrawViewportArea();
 	void OnEditorTick(float DeltaTime);
 	void OnEditorViewportIndexAndKeyChange();
 	void OnPreviewSetting_EditorPreviewViewportIndexChange();

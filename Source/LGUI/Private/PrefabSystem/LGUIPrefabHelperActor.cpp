@@ -72,7 +72,7 @@ void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 		, InParent
 		, SubPrefabMapGuidToObject, SubSubPrefabMap
 	);
-	ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedRootActor, SubPrefabMapGuidToObject);
+	ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedRootActor, SubPrefabMapGuidToObject, {});
 }
 #endif
 
@@ -91,27 +91,37 @@ ALGUIPrefabManagerActor::ALGUIPrefabManagerActor()
 
 TMap<ULevel*, ALGUIPrefabManagerActor*> ALGUIPrefabManagerActor::MapLevelToManagerActor;
 
-ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* InLevel)
+ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist)
 {
-	if (!InLevel->GetWorld()->IsGameWorld())
+	if (!MapLevelToManagerActor.Contains(InLevel) && CreateIfNotExist)
 	{
-		if (!MapLevelToManagerActor.Contains(InLevel))
-		{
-			auto PrefabManagerActor = InLevel->GetWorld()->SpawnActor<ALGUIPrefabManagerActor>();
-			MapLevelToManagerActor.Add(InLevel, PrefabManagerActor);
-			InLevel->MarkPackageDirty();
-			FActorFolders::Get().CreateFolder(*PrefabManagerActor->GetWorld(), ALGUIPrefabHelperActor::PrefabFolderName);
-			PrefabManagerActor->SetFolderPath(ALGUIPrefabHelperActor::PrefabFolderName);
-		}
-		auto Result = MapLevelToManagerActor[InLevel];
-		Result->PrefabHelperObject->MarkAsManagerObject();
-		return Result;
+		auto PrefabManagerActor = InLevel->GetWorld()->SpawnActor<ALGUIPrefabManagerActor>();
+		MapLevelToManagerActor.Add(InLevel, PrefabManagerActor);
+		InLevel->MarkPackageDirty();
+		FActorFolders::Get().CreateFolder(*PrefabManagerActor->GetWorld(), ALGUIPrefabHelperActor::PrefabFolderName);
+		PrefabManagerActor->SetFolderPath(ALGUIPrefabHelperActor::PrefabFolderName);
+	}
+	if (auto ResultPtr = MapLevelToManagerActor.Find(InLevel))
+	{
+		(*ResultPtr)->PrefabHelperObject->MarkAsManagerObject();
+		return *ResultPtr;
 	}
 	else
 	{
-		checkf(0, TEXT("This should only be called in editor world!"));
 		return nullptr;
 	}
+}
+
+ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject)
+{
+	for (auto& KeyValue : MapLevelToManagerActor)
+	{
+		if (KeyValue.Value->PrefabHelperObject == InHelperObject)
+		{
+			return KeyValue.Value;
+		}
+	}
+	return nullptr;
 }
 
 void ALGUIPrefabManagerActor::BeginPlay()

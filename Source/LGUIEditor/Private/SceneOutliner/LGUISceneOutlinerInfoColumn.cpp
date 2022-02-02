@@ -232,20 +232,13 @@ namespace LGUISceneOutliner
 		{
 			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
 			{
-				if (PrefabHelperObject->IsInsidePrefabEditor())
+				if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
 				{
-					if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
-					{
-						return EVisibility::Visible;
-					}
-					else
-					{
-						return EVisibility::Hidden;
-					}
+					return EVisibility::Visible;
 				}
 				else
 				{
-					return EVisibility::Visible;
+					return EVisibility::Hidden;
 				}
 			}
 		}
@@ -565,20 +558,13 @@ namespace LGUISceneOutliner
 		{
 			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(actor))
 			{
-				if (PrefabHelperObject->IsInsidePrefabEditor())
+				if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
 				{
-					if (PrefabHelperObject->IsActorBelongsToSubPrefab(actor))//is sub prefab
-					{
-						return EVisibility::Visible;
-					}
-					else
-					{
-						return EVisibility::Hidden;
-					}
+					return EVisibility::Visible;
 				}
 				else
 				{
-					return EVisibility::Visible;
+					return EVisibility::Hidden;
 				}
 			}
 		}

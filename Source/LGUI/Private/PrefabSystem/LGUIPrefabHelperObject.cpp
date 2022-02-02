@@ -111,6 +111,7 @@ void ULGUIPrefabHelperObject::ClearLoadedPrefab()
 
 bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(const AActor* InActor)
 {
+	CleanupInvalidSubPrefab();
 	if (!IsValid(InActor))return false;
 	for (auto& KeyValue : SubPrefabMap)
 	{
@@ -128,22 +129,31 @@ bool ULGUIPrefabHelperObject::IsActorBelongsToSubPrefab(const AActor* InActor)
 
 bool ULGUIPrefabHelperObject::ActorIsSubPrefabRootActor(const AActor* InActor)
 {
+	CleanupInvalidSubPrefab();
 	if (!IsValid(InActor))return false;
 	return SubPrefabMap.Contains(InActor);
 }
 
-bool ULGUIPrefabHelperObject::IsActorBelongsToThis(const AActor* InActor, bool InCludeSubPrefab)
+#include "PrefabSystem/LGUIPrefabHelperActor.h"
+bool ULGUIPrefabHelperObject::IsActorBelongsToThis(const AActor* InActor)
 {
-	if (IsValid(this->LoadedRootActor))
+	if (this->IsInsidePrefabEditor())
 	{
+		check(IsValid(this->LoadedRootActor));
 		if (InActor->IsAttachedTo(LoadedRootActor) || InActor == LoadedRootActor)
 		{
 			return true;
 		}
 	}
-	if (InCludeSubPrefab)
+	else
 	{
-		return IsActorBelongsToSubPrefab(InActor);
+		if (auto Level = InActor->GetLevel())
+		{
+			if (auto ManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(Level, false))
+			{
+				return ManagerActor->PrefabHelperObject == this;//if this level have a PrefabManagerActor, then all actor is belongs to this PrefabHelperObject.
+			}
+		}
 	}
 	return false;
 }
@@ -166,6 +176,7 @@ void ULGUIPrefabHelperObject::ClearInvalidObjectAndGuid()
 
 void ULGUIPrefabHelperObject::AddMemberPropertyToSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName)
 {
+	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabActor))return;
 	for (auto& KeyValue : SubPrefabMap)
 	{
@@ -178,6 +189,7 @@ void ULGUIPrefabHelperObject::AddMemberPropertyToSubPrefab(AActor* InSubPrefabAc
 
 void ULGUIPrefabHelperObject::RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName)
 {
+	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabActor))return;
 	for (auto& KeyValue : SubPrefabMap)
 	{
@@ -190,6 +202,7 @@ void ULGUIPrefabHelperObject::RemoveMemberPropertyFromSubPrefab(AActor* InSubPre
 
 void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject)
 {
+	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabActor))return;
 	for (auto& KeyValue : SubPrefabMap)
 	{
@@ -202,6 +215,7 @@ void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSub
 
 void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor)
 {
+	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabActor))return;
 	AActor* SubPrefabRootActor = nullptr;
 	for (auto& KeyValue : SubPrefabMap)
@@ -219,6 +233,7 @@ void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSub
 
 FLGUISubPrefabData ULGUIPrefabHelperObject::GetSubPrefabData(AActor* InSubPrefabActor)
 {
+	CleanupInvalidSubPrefab();
 	check(IsValid(InSubPrefabActor));
 	for (auto& KeyValue : SubPrefabMap)
 	{
@@ -232,6 +247,7 @@ FLGUISubPrefabData ULGUIPrefabHelperObject::GetSubPrefabData(AActor* InSubPrefab
 
 AActor* ULGUIPrefabHelperObject::GetSubPrefabRootActor(AActor* InSubPrefabActor)
 {
+	CleanupInvalidSubPrefab();
 	check(IsValid(InSubPrefabActor));
 	for (auto& KeyValue : SubPrefabMap)
 	{
@@ -245,6 +261,7 @@ AActor* ULGUIPrefabHelperObject::GetSubPrefabRootActor(AActor* InSubPrefabActor)
 
 void ULGUIPrefabHelperObject::SavePrefab()
 {
+	CleanupInvalidSubPrefab();
 	if (IsValid(PrefabAsset))
 	{
 		TMap<UObject*, FGuid> MapObjectToGuid;
@@ -274,6 +291,7 @@ void ULGUIPrefabHelperObject::SavePrefab()
 
 void ULGUIPrefabHelperObject::UnpackSubPrefab(AActor* InSubPrefabActor)
 {
+	CleanupInvalidSubPrefab();
 	check(SubPrefabMap.Contains(InSubPrefabActor));
 	SubPrefabMap.Remove(InSubPrefabActor);
 }
@@ -288,6 +306,7 @@ void ULGUIPrefabHelperObject::UnpackPrefab(AActor* InPrefabActor)
 
 ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor)
 {
+	CleanupInvalidSubPrefab();
 	if (!IsValid(InSubPrefabActor))return false;
 	for (auto& KeyValue : SubPrefabMap)
 	{
@@ -377,12 +396,15 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			TArray<AActor*> ChildrenActors;
 			LGUIUtils::CollectChildrenActors(SubPrefabRootActor, ChildrenActors);
 
-			TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
+			TMap<FGuid, UObject*>& SubPrefabMapGuidToObject = SubPrefabData.MapGuidToObject;
 			for (auto& GuidToObject : this->MapGuidToObject)
 			{
 				if (auto ObjectGuidInSubPrefabPtr = SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab.Find(GuidToObject.Key))
 				{
-					SubPrefabMapGuidToObject.Add(*ObjectGuidInSubPrefabPtr, GuidToObject.Value);
+					if (!SubPrefabMapGuidToObject.Contains(*ObjectGuidInSubPrefabPtr))
+					{
+						SubPrefabMapGuidToObject.Add(*ObjectGuidInSubPrefabPtr, GuidToObject.Value);
+					}
 				}
 			}
 
@@ -491,6 +513,7 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 	{
 		bAnythingDirty = true;
 
+		auto PropertyName = InMemberProperty->GetFName();
 		AActor* PropertyActor = nullptr;
 		if (auto Actor = Cast<AActor>(InObject))
 		{
@@ -516,9 +539,17 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 				}
 			}
 		}
+		else if(PropertyActor != nullptr//if drag in level editor, then property change event will notify actor, so we need to collect property on actor's root component
+			&& (PropertyName == USceneComponent::GetRelativeLocationPropertyName()
+				|| PropertyName == USceneComponent::GetRelativeRotationPropertyName()
+				|| PropertyName == USceneComponent::GetRelativeScale3DPropertyName()
+				)
+			)
+		{
+			InObject = PropertyActor->GetRootComponent();
+		}
 		if (PropertyActor)//only allow actor or component's member property
 		{
-			auto PropertyName = InMemberProperty->GetFName();
 			auto Property = FindFProperty<FProperty>(InObject->GetClass(), PropertyName);
 			if (Property != nullptr)
 			{
@@ -705,14 +736,17 @@ void ULGUIPrefabHelperObject::CopyRootObjectParentAnchorData(UObject* InObject, 
 			{
 				auto InObjectParent = InObjectUIItem->GetParentUIItem();
 				auto OriginObjectParent = OriginObjectUIItem->GetParentUIItem();
-				//copy relative location
-				auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
-				RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
-				LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
-				//copy anchor data
-				auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
-				AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
-				LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
+				if (InObjectParent != nullptr && OriginObjectParent != nullptr)
+				{
+					//copy relative location
+					auto RelativeLocationProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), USceneComponent::GetRelativeLocationPropertyName());
+					RelativeLocationProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+					LGUIUtils::NotifyPropertyChanged(OriginObjectParent, RelativeLocationProperty);
+					//copy anchor data
+					auto AnchorDataProperty = FindFProperty<FProperty>(InObjectParent->GetClass(), UUIItem::GetAnchorDataPropertyName());
+					AnchorDataProperty->CopyCompleteValue_InContainer(OriginObjectParent, InObjectParent);
+					LGUIUtils::NotifyPropertyChanged(OriginObjectParent, AnchorDataProperty);
+				}
 			}
 		}
 	}
@@ -1111,11 +1145,13 @@ void ULGUIPrefabHelperObject::CheckPrefabHelperActor(AActor* InSubPrefabRootActo
 	SubPrefabData.TimePointWhenSavePrefab = SubPrefabData.PrefabAsset->CreateTime;
 }
 
-void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject)
+void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray)
 {
 	FLGUISubPrefabData SubPrefabData;
 	SubPrefabData.PrefabAsset = InPrefab;
 	SubPrefabData.TimePointWhenSavePrefab = InPrefab->CreateTime;
+	SubPrefabData.MapGuidToObject = InSubMapGuidToObject;
+	SubPrefabData.ObjectOverrideParameterArray = InObjectOverrideParameterArray;
 
 	TArray<AActor*> ChildrenActors;
 	LGUIUtils::CollectChildrenActors(InActor, ChildrenActors, false);
@@ -1273,6 +1309,9 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 			auto SubPrefabDataPtr = SubPrefabMap.Find(InPrefabRootActor);
 			if (SubPrefabDataPtr != nullptr)
 			{
+				GEditor->BeginTransaction(LOCTEXT("LGUIUpdatePrefab", "LGUI Update Prefabs"));
+				InPrefabRootActor->GetLevel()->Modify();
+				this->Modify();
 				if (SubPrefabDataPtr->TimePointWhenSavePrefab == SubPrefabDataPtr->PrefabAsset->CreateTime)
 				{
 					Item.Notification.Pin()->SetText(LOCTEXT("AlreadyUpdated", "Already updated."));
@@ -1285,6 +1324,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateClicked(AActor* InPrefabRootActo
 						OnSubPrefabNewVersionUpdated.Broadcast();
 					}
 				}
+				GEditor->EndTransaction();
 			}
 			Item.Notification.Pin()->SetCompletionState(SNotificationItem::CS_None);
 			Item.Notification.Pin()->ExpireAndFadeout();
@@ -1311,6 +1351,9 @@ void ULGUIPrefabHelperObject::OnNewVersionDismissClicked(AActor* InPrefabRootAct
 
 void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 {
+	GEditor->BeginTransaction(LOCTEXT("LGUIUpdatePrefab", "LGUI Update Prefabs"));
+	this->Modify();
+
 	bool bUpdated = false;
 	for (auto& Item : NewVersionPrefabNotificationArray)
 	{
@@ -1327,6 +1370,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 					}
 					else
 					{
+						Item.SubPrefabRootActor->GetLevel()->Modify();
 						this->RefreshOnSubPrefabDirty(SubPrefabDataPtr->PrefabAsset, Item.SubPrefabRootActor.Get());
 						bUpdated = true;
 					}
@@ -1345,6 +1389,7 @@ void ULGUIPrefabHelperObject::OnNewVersionUpdateAllClicked()
 			OnSubPrefabNewVersionUpdated.Broadcast();
 		}
 	}
+	GEditor->EndTransaction();
 }
 void ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked()
 {

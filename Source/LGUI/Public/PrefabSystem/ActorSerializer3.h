@@ -181,7 +181,16 @@ namespace LGUIPrefabSystem3
 		/**
 		 * Duplicate actor with hierarchy
 		 */
-		static AActor* DuplicateActor(AActor* RootActor, USceneComponent* Parent);
+		static AActor* DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent);
+		/**
+		 * Editor version, duplicate actor with hierarchy, will also concern sub prefab.
+		 */
+		static AActor* DuplicateActorForEditor(AActor* OriginRootActor, USceneComponent* Parent
+			, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+			, const TMap<UObject*, FGuid>& InMapObjectToGuid
+			, TMap<AActor*, FLGUISubPrefabData>& OutDuplicatedSubPrefabMap
+			, TMap<FGuid, UObject*>& OutMapGuidToObject
+		);
 
 		TMap<UObject*, TArray<uint8>> SaveOverrideParameterToData(TArray<FLGUIPrefabOverrideParameterData> InData);
 		void RestoreOverrideParameterFromData(TMap<UObject*, TArray<uint8>>& InData, TArray<FLGUIPrefabOverrideParameterData> InNameSetData);
@@ -231,7 +240,7 @@ namespace LGUIPrefabSystem3
 		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 		AActor* DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale);
 		AActor* DeserializeActorRecursive(FLGUIActorSaveData& SavedActors);
-		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, AActor* ParentActor);
+		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, USceneComponent* Parent);
 		void PreGenerateObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 		void DeserializeObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 
@@ -270,7 +279,7 @@ namespace LGUIPrefabSystem3
 		 * @param	TSet<FName>&	Member properties to filter
 		 */
 		TFunction<void(UObject*, TArray<uint8>&, const TSet<FName>&)> WriterOrReaderFunctionForSubPrefab = nullptr;
-		//duplicate actor
+		/** Duplicate actor */
 		AActor* SerializeActor_ForDuplicate(AActor* RootActor, USceneComponent* Parent);
 	};
 }
