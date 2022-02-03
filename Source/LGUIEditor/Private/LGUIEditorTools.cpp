@@ -374,8 +374,10 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 		TMap<UObject*, FGuid> InMapObjectToGuid;
 		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
-			PrefabHelperObject->CleanupInvalidSubPrefab();//do cleanup before everything else
-			PrefabHelperObject->Modify();
+			if (PrefabHelperObject->CleanupInvalidSubPrefab())//do cleanup before everything else
+			{
+				PrefabHelperObject->Modify();
+			}
 			struct LOCAL {
 				static void CollectSubPrefabActors(AActor* InActor, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap, TArray<AActor*>& OutSubPrefabRootActors)
 				{
@@ -442,7 +444,7 @@ void LGUIEditorTools::DuplicateSelectedActors_Impl()
 	GEditor->EndTransaction();
 	ULGUIEditorManagerObject::RefreshAllUI();
 }
-void LGUIEditorTools::CopySelectedActors_Impl()//@todo: copy with prefab
+void LGUIEditorTools::CopySelectedActors_Impl()
 {
 	auto selectedActors = LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
 	auto count = selectedActors.Num();
@@ -456,15 +458,68 @@ void LGUIEditorTools::CopySelectedActors_Impl()//@todo: copy with prefab
 		prevCopiedActorPrefab->RemoveFromRoot();
 		prevCopiedActorPrefab->ConditionalBeginDestroy();
 	}
-	auto copiedActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
+	auto CopyActorList = LGUIEditorTools::GetRootActorListFromSelection(selectedActors);
 	copiedActorPrefabList.Reset();
-	for (auto copiedActor : copiedActorList)
+	for (auto Actor : CopyActorList)
 	{
 		auto prefab = NewObject<ULGUIPrefab>();
 		prefab->AddToRoot();
 		TMap<UObject*, FGuid> InOutMapObjectToGuid;
 		TMap<AActor*, FLGUISubPrefabData> InSubPrefabMap;
-		prefab->SavePrefab(copiedActor, InOutMapObjectToGuid, InSubPrefabMap);
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
+		{
+			InSubPrefabMap = PrefabHelperObject->SubPrefabMap;
+
+			if (PrefabHelperObject->CleanupInvalidSubPrefab())//do cleanup before everything else
+			{
+				PrefabHelperObject->Modify();
+			}
+			struct LOCAL {
+				static void CollectSubPrefabActors(AActor* InActor, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap, TArray<AActor*>& OutSubPrefabRootActors)
+				{
+					if (InSubPrefabMap.Contains(InActor))
+					{
+						OutSubPrefabRootActors.Add(InActor);
+					}
+					else
+					{
+						TArray<AActor*> ChildrenActors;
+						InActor->GetAttachedActors(ChildrenActors);
+						for (auto& ChildActor : ChildrenActors)
+						{
+							CollectSubPrefabActors(ChildActor, InSubPrefabMap, OutSubPrefabRootActors);
+						}
+					}
+				}
+			};
+			TArray<AActor*> SubPrefabRootActors;
+			LOCAL::CollectSubPrefabActors(Actor, PrefabHelperObject->SubPrefabMap, SubPrefabRootActors);//collect sub prefabs that is attached to this Actor
+			for (auto& SubPrefabKeyValue : PrefabHelperObject->SubPrefabMap)//generate MapObjectToGuid
+			{
+				auto SubPrefabRootActor = SubPrefabKeyValue.Key;
+				if (SubPrefabRootActors.Contains(SubPrefabRootActor))
+				{
+					auto& SubPrefabData = SubPrefabKeyValue.Value;
+					PrefabHelperObject->RefreshOnSubPrefabDirty(SubPrefabData.PrefabAsset, SubPrefabRootActor);//need to update subprefab to latest before duplicate
+					auto FindObjectGuidInParentPrefab = [&](FGuid InGuidInSubPrefab) {
+						for (auto& KeyValue : SubPrefabData.MapObjectGuidFromParentPrefabToSubPrefab)
+						{
+							if (KeyValue.Value == InGuidInSubPrefab)
+							{
+								return KeyValue.Key;
+							}
+						}
+						check(0);
+						return FGuid::NewGuid();
+					};
+					for (auto& MapGuidToObjectKeyValue : SubPrefabData.MapGuidToObject)
+					{
+						InOutMapObjectToGuid.Add(MapGuidToObjectKeyValue.Value, FindObjectGuidInParentPrefab(MapGuidToObjectKeyValue.Key));
+					}
+				}
+			}
+		}
+		prefab->SavePrefab(Actor, InOutMapObjectToGuid, InSubPrefabMap);
 		copiedActorPrefabList.Add(prefab);
 	}
 }
@@ -476,6 +531,35 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	{
 		parentComp = selectedActors[0]->GetRootComponent();
 	}
+	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
+	if (parentComp)
+	{
+		PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(parentComp->GetOwner());
+	}
+	if (!PrefabHelperObject)
+	{
+		UWorld* World = nullptr;
+		if (parentComp != nullptr)
+		{
+			World = parentComp->GetWorld();
+		}
+		else
+		{
+			World = GWorld;
+		}
+		if (World)
+		{
+			if (auto Level = World->GetCurrentLevel())
+			{
+				if (auto ManagerActor = ALGUIPrefabManagerActor::GetPrefabManagerActor(Level))
+				{
+					PrefabHelperObject = ManagerActor->PrefabHelperObject;
+				}
+			}
+		}
+	}
+	if (PrefabHelperObject == nullptr)return;
+
 	GEditor->BeginTransaction(LOCTEXT("PasteActor", "LGUI Paste Actors"));
 	for (auto item : selectedActors)
 	{
@@ -489,7 +573,18 @@ void LGUIEditorTools::PasteSelectedActors_Impl()
 	{
 		if (prefab.IsValid())
 		{
-			auto copiedActor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), parentComp, false);
+			TMap<FGuid, UObject*> OutMapGuidToObject;
+			TMap<AActor*, FLGUISubPrefabData> LoadedSubPrefabMap;
+			auto copiedActor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), parentComp, LoadedSubPrefabMap, OutMapGuidToObject, false);
+			for (auto& KeyValue : LoadedSubPrefabMap)
+			{
+				TMap<FGuid, UObject*> SubMapGuidToObject;
+				for (auto& MapGuidItem : KeyValue.Value.MapObjectGuidFromParentPrefabToSubPrefab)
+				{
+					SubMapGuidToObject.Add(MapGuidItem.Value, OutMapGuidToObject[MapGuidItem.Key]);
+				}
+				PrefabHelperObject->MakePrefabAsSubPrefab(KeyValue.Value.PrefabAsset, KeyValue.Key, SubMapGuidToObject, KeyValue.Value.ObjectOverrideParameterArray);
+			}
 			auto copiedActorLabel = LGUIEditorToolsHelperFunctionHolder::GetCopiedActorLabel(copiedActor);
 			copiedActor->SetActorLabel(copiedActorLabel);
 			GEditor->SelectActor(copiedActor, true, true);
@@ -623,8 +718,6 @@ void LGUIEditorTools::ChangeTraceChannel_Impl(ETraceTypeQuery InTraceTypeQuery)
 }
 void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 {
-	auto selectedActor = GetFirstSelectedActor();
-	if (selectedActor == nullptr)return;
 	FString prefabPath(TEXT("/LGUI/Prefabs/ScreenSpaceUI"));
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
@@ -633,7 +726,10 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeScale3D(FVector::OneVector);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
-		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
+		if (auto selectedActor = GetFirstSelectedActor())
+		{
+			GEditor->SelectActor(selectedActor, false, true);
+		}
 		GEditor->SelectActor(actor, true, true);
 
 		bool haveEventSystem = false;
@@ -663,8 +759,6 @@ void LGUIEditorTools::CreateScreenSpaceUI_BasicSetup()
 }
 void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 {
-	auto selectedActor = GetFirstSelectedActor();
-	if (selectedActor == nullptr)return;
 	FString prefabPath(TEXT("/LGUI/Prefabs/WorldSpaceUI_UERenderer"));
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
@@ -673,7 +767,10 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
-		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
+		if (auto selectedActor = GetFirstSelectedActor())
+		{
+			GEditor->SelectActor(selectedActor, false, true);
+		}
 		GEditor->SelectActor(actor, true, true);
 		
 		bool haveEventSystem = false;
@@ -703,8 +800,6 @@ void LGUIEditorTools::CreateWorldSpaceUIUERenderer_BasicSetup()
 }
 void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 {
-	auto selectedActor = GetFirstSelectedActor();
-	if (selectedActor == nullptr)return;
 	FString prefabPath(TEXT("/LGUI/Prefabs/WorldSpaceUI_LGUIRenderer"));
 	auto prefab = LoadObject<ULGUIPrefab>(NULL, *prefabPath);
 	if (prefab)
@@ -713,7 +808,10 @@ void LGUIEditorTools::CreateWorldSpaceUILGUIRenderer_BasicSetup()
 		auto actor = prefab->LoadPrefabInEditor(GetWorldFromSelection(), nullptr, true);
 		actor->GetRootComponent()->SetRelativeLocation(FVector(0, 0, 250));
 		actor->GetRootComponent()->SetWorldScale3D(FVector::OneVector);
-		if (selectedActor)GEditor->SelectActor(selectedActor, false, true);
+		if (auto selectedActor = GetFirstSelectedActor())
+		{
+			GEditor->SelectActor(selectedActor, false, true);
+		}
 		GEditor->SelectActor(actor, true, true);
 
 		bool haveEventSystem = false;

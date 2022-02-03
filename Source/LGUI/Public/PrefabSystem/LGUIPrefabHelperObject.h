@@ -87,7 +87,10 @@ public:
 	void CheckPrefabVersion();
 	void DismissAllVersionNotifications() { OnNewVersionDismissAllClicked(); }
 	FSimpleMulticastDelegate OnSubPrefabNewVersionUpdated;
-	void CleanupInvalidSubPrefab();
+	/**
+	 * @return	true if anything changed
+	 */
+	bool CleanupInvalidSubPrefab();
 private:
 	bool bIsMarkedAsManagerObject = false;
 	bool bAnythingDirty = false;

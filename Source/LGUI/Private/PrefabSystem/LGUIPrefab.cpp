@@ -480,6 +480,23 @@ AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InPare
 	return LoadedRootActor;
 }
 
+AActor* ULGUIPrefab::LoadPrefabInEditor(UWorld* InWorld, USceneComponent* InParent, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, UObject*>& OutMapGuidToObject, bool SetRelativeTransformToIdentity)
+{
+	AActor* LoadedRootActor = nullptr;
+	if (PrefabVersion >= LGUI_PREFAB_VERSION_BuildinFArchive)
+	{
+		LoadedRootActor = LGUIPrefabSystem3::ActorSerializer3::LoadPrefabWithExistingObjects(InWorld, this
+			, InParent, OutMapGuidToObject, OutSubPrefabMap
+		);
+	}
+	else
+	{
+		LoadedRootActor = LGUIPrefabSystem::ActorSerializer::LoadPrefabInEditor(InWorld, this
+			, InParent);
+	}
+	return LoadedRootActor;
+}
+
 ULGUIPrefab* ULGUIPrefab::MakeAgentFullSerializedPrefab()
 {
 	auto CreatedPrefab = NewObject<ULGUIPrefab>();

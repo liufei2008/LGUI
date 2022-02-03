@@ -1224,7 +1224,7 @@ ULGUIPrefab* ULGUIPrefabHelperObject::GetPrefabAssetBySubPrefabObject(UObject* I
 	return GetSubPrefabData(Actor).PrefabAsset;
 }
 
-void ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
+bool ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 {
 	TSet<AActor*> KeysToRemove;
 	for (auto& KeyValue : SubPrefabMap)
@@ -1246,6 +1246,7 @@ void ULGUIPrefabHelperObject::CleanupInvalidSubPrefab()
 			OnSubPrefabNewVersionUpdated.Broadcast();
 		}
 	}
+	return KeysToRemove.Num() > 0;
 }
 
 #if WITH_EDITOR
