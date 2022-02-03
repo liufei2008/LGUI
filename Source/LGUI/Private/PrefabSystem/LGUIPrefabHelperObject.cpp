@@ -307,7 +307,7 @@ void ULGUIPrefabHelperObject::UnpackPrefab(AActor* InPrefabActor)
 ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor)
 {
 	CleanupInvalidSubPrefab();
-	if (!IsValid(InSubPrefabActor))return false;
+	if (!IsValid(InSubPrefabActor))return nullptr;
 	for (auto& KeyValue : SubPrefabMap)
 	{
 		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))

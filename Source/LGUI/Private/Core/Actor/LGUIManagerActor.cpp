@@ -243,7 +243,7 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 				auto msg = LOCTEXT("CreateLGUIEditorManagerObjectInGameMode", "[ULGUIEditorManagerObject::InitCheck]Trying to create a LGUIEditorManagerObject in game mode, this is not allowed!");
 				UE_LOG(LGUI, Error, TEXT("%s"), *msg.ToString());
 				LGUIUtils::EditorNotification(msg);
-				return nullptr;
+				return false;
 			}
 			
 			Instance = NewObject<ULGUIEditorManagerObject>();

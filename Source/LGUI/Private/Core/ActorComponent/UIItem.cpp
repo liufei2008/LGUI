@@ -462,10 +462,6 @@ void UUIItem::PostLoad()
 }
 
 #if WITH_EDITOR
-void UUIItem::PreEditChange(FEditPropertyChain& PropertyAboutToChange)
-{
-	UObject::PreEditChange(PropertyAboutToChange);
-}
 void UUIItem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);

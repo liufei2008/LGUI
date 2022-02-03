@@ -36,7 +36,9 @@ public:
 	/** Make this prefab as manager object, will register some editor callbacks */
 	void MarkAsManagerObject();
 	bool GetIsManagerObject()const { return bIsMarkedAsManagerObject; }
+#if WITH_EDITORONLY_DATA
 	UPROPERTY(Transient)TWeakObjectPtr<AActor> RootAgentActorForPrefabEditor = nullptr;
+#endif
 	bool IsInsidePrefabEditor() { return RootAgentActorForPrefabEditor.IsValid(); }
 
 	void LoadPrefab(UWorld* InWorld, USceneComponent* InParent);

@@ -29,7 +29,6 @@ public:
 
 	virtual void PostLoad()override;
 #if WITH_EDITOR
-	virtual void PreEditChange(class FEditPropertyChain& PropertyAboutToChange)override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditComponentMove(bool bFinished) override;
 	virtual void PostEditUndo()override;
