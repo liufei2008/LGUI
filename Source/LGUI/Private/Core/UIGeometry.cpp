@@ -12,7 +12,7 @@
 
 FORCEINLINE float RoundToFloat(float value)
 {
-	return value > 0.0 ? FMath::FloorToFloat(value + 0.5f) : FMath::CeilToFloat(value - 0.5f);
+	return FMath::FloorToFloat(value + 0.5f);
 }
 
 DECLARE_CYCLE_STAT(TEXT("UIGeometry TransformPixelPerfectVertices"), STAT_TransformPixelPerfectVertices, STATGROUP_LGUI);
@@ -35,14 +35,14 @@ void AdjustPixelPerfectPos(TArray<FVector>& originPositions, int startIndex, int
 		auto item = originPositions[i];
 
 		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(item);
-		canvasSpaceLocation.Y += halfCanvasWidth;
-		canvasSpaceLocation.Z += halfCanvasHeight;
+		canvasSpaceLocation.Y -= halfCanvasWidth;
+		canvasSpaceLocation.Z -= halfCanvasHeight;
 		float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
 		float screenSpaceLocationZ = canvasSpaceLocation.Z * rootCanvasScale;
 		item.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
 		item.Z = RoundToFloat(screenSpaceLocationZ) * inv_RootCanvasScale;
-		item.Y -= halfCanvasWidth;
-		item.Z -= halfCanvasHeight;
+		item.Y += halfCanvasWidth;
+		item.Z += halfCanvasHeight;
 
 		originPositions[i] = canvasToComponentTransform.TransformPosition(item);
 	}
@@ -67,14 +67,14 @@ void AdjustPixelPerfectPos_For_UIRectFillRadial360(TArray<FVector>& originPositi
 		auto originPos = originPositions[vertIndex];
 
 		auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(originPos);
-		canvasSpaceLocation.Y += halfCanvasWidth;
-		canvasSpaceLocation.Z += halfCanvasHeight;
+		canvasSpaceLocation.Y -= halfCanvasWidth;
+		canvasSpaceLocation.Z -= halfCanvasHeight;
 		float screenSpaceLocationY = canvasSpaceLocation.Y * rootCanvasScale;
 		float screenSpaceLocationZ = canvasSpaceLocation.Z * rootCanvasScale;
 		canvasSpaceLocation.Y = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
 		canvasSpaceLocation.Z = RoundToFloat(screenSpaceLocationZ) * inv_RootCanvasScale;
-		canvasSpaceLocation.Y -= halfCanvasWidth;
-		canvasSpaceLocation.Z -= halfCanvasHeight;
+		canvasSpaceLocation.Y += halfCanvasWidth;
+		canvasSpaceLocation.Z += halfCanvasHeight;
 
 		originPositions[vertIndex] = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
 	}
@@ -105,14 +105,14 @@ void AdjustPixelPerfectPos_For_UIText(TArray<FVector>& originPositions, const TA
 			auto originPos = originPositions[vertStartIndex];
 
 			auto canvasSpaceLocation = componentToCanvasTransform.TransformPosition(originPos);
-			canvasSpaceLocation.Y += halfCanvasWidth;
-			canvasSpaceLocation.Z += halfCanvasHeight;
+			canvasSpaceLocation.Y -= halfCanvasWidth;
+			canvasSpaceLocation.Z -= halfCanvasHeight;
 			float screenSpaceLocationX = canvasSpaceLocation.Y * rootCanvasScale;
 			float screenSpaceLocationY = canvasSpaceLocation.Z * rootCanvasScale;
 			canvasSpaceLocation.Y = RoundToFloat(screenSpaceLocationX) * inv_RootCanvasScale;
 			canvasSpaceLocation.Z = RoundToFloat(screenSpaceLocationY) * inv_RootCanvasScale;
-			canvasSpaceLocation.Y -= halfCanvasWidth;
-			canvasSpaceLocation.Z -= halfCanvasHeight;
+			canvasSpaceLocation.Y += halfCanvasWidth;
+			canvasSpaceLocation.Z += halfCanvasHeight;
 
 			auto newPos = canvasToComponentTransform.TransformPosition(canvasSpaceLocation);
 			originPositions[vertStartIndex] = newPos;
@@ -2550,7 +2550,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 					charGeo.geoWidth = overrideCharData.width * oneDivideRootCanvasScale;
 					charGeo.geoHeight = overrideCharData.height * oneDivideRootCanvasScale;
-					charGeo.xadvance = charData.xadvance;
+					charGeo.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
 					charGeo.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
 					charGeo.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
 				}
@@ -2574,7 +2574,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 					charGeo.geoWidth = overrideCharData.width * oneDivideRootCanvasScale;
 					charGeo.geoHeight = overrideCharData.height * oneDivideRootCanvasScale;
-					charGeo.xadvance = charData.xadvance;
+					charGeo.xadvance = overrideCharData.xadvance * oneDivideRootCanvasScale;
 					charGeo.xoffset = overrideCharData.xoffset * oneDivideRootCanvasScale;
 					charGeo.yoffset = overrideCharData.yoffset * oneDivideRootCanvasScale + calculatedCharFixedOffset;
 				}
