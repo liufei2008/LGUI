@@ -108,11 +108,6 @@ public:
 		prop.DisplayName(FText::FromString(name));
 		return prop;
 	}
-	static void SetControlledByLayout(IDetailPropertyRow& prop, bool controlledByLayout)
-	{
-		prop.IsEnabled(!controlledByLayout);
-		if (controlledByLayout) prop.ToolTip(LOCTEXT("ControlledByLayoutTip", "This property is controlled by layout"));
-	}
 	static TSharedRef<SWidget> GenerateArrowButtonContent(FText textContent)
 	{
 		return SNew(SHorizontalBox)

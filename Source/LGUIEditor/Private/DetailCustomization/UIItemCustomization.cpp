@@ -169,8 +169,8 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 				[
 					SNew(SNumericEntryBox<float>)
 					.AllowSpin(true)
-					.MinSliderValue(-1000)
-					.MaxSliderValue(1000)
+					.MinSliderValue(this, &FUIItemCustomization::GetMinMaxSliderValue, AnchorHandle, AnchorValueIndex, true)
+					.MaxSliderValue(this, &FUIItemCustomization::GetMinMaxSliderValue, AnchorHandle, AnchorValueIndex, false)
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 					.UndeterminedString( NSLOCTEXT( "PropertyEditor", "MultipleValues", "Multiple Values") )
 					.Value(this, &FUIItemCustomization::GetAnchorValue, AnchorHandle, AnchorValueIndex)
@@ -211,66 +211,70 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		.ValueContent()
 		.MinDesiredWidth(500)
 		[
-			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.AutoHeight()
+			SNew(SBox)
+			.IsEnabled(this, &FUIItemCustomization::IsAnchorEditable)
 			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				.AutoHeight()
 				[
-					MakeAnchorLabelWidget(0)
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					[
+						MakeAnchorLabelWidget(0)
+					]
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					[
+						MakeAnchorLabelWidget(1)
+					]
 				]
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
+				+SVerticalBox::Slot()
+				.AutoHeight()
 				[
-					MakeAnchorLabelWidget(1)
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					[
+						MakeAnchorValueWidget(0)
+					]
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					[
+						MakeAnchorValueWidget(1)
+					]
 				]
-			]
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
-				[
-					MakeAnchorValueWidget(0)
-				]
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
-				[
-					MakeAnchorValueWidget(1)
-				]
-			]
 
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
+				+SVerticalBox::Slot()
+				.AutoHeight()
 				[
-					MakeAnchorLabelWidget(2)
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					[
+						MakeAnchorLabelWidget(2)
+					]
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					[
+						MakeAnchorLabelWidget(3)
+					]
 				]
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
+				+SVerticalBox::Slot()
+				.AutoHeight()
 				[
-					MakeAnchorLabelWidget(3)
-				]
-			]
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
-				[
-					MakeAnchorValueWidget(2)
-				]
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
-				[
-					MakeAnchorValueWidget(3)
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					[
+						MakeAnchorValueWidget(2)
+					]
+					+SHorizontalBox::Slot()
+					.FillWidth(0.5f)
+					[
+						MakeAnchorValueWidget(3)
+					]
 				]
 			]
 		]
@@ -583,16 +587,18 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 		IDetailGroup& AnchorGroup = TransformCategory.AddGroup(FName("Anchors"), LOCTEXT("AnchorsGroup", "Anchors"));
 
 		auto AnchorControlledByLayout = GetLayoutControlHorizontalAnchor() || GetLayoutControlVerticalAnchor();
-		IDetailPropertyRow& anchorHAlignDetailProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin)));
-		if (AnchorControlledByLayout)
+		IDetailPropertyRow& AnchorMinProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMin)));
+		if (AnchorControlledByLayout || this->IsAnchorEditable())
 		{
-			LGUIEditorUtils::SetControlledByLayout(anchorHAlignDetailProperty, AnchorControlledByLayout);
+			AnchorMinProperty.IsEnabled(!AnchorControlledByLayout && this->IsAnchorEditable());
+			AnchorMinProperty.ToolTip(LOCTEXT("ControlledByLayoutTip", "This property is controlled by layout"));
 		}
 
-		IDetailPropertyRow& anchorVAlignDetailProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax)));
-		if (AnchorControlledByLayout)
+		IDetailPropertyRow& AnchorMaxProperty = AnchorGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchorMax)));
+		if (AnchorControlledByLayout || this->IsAnchorEditable())
 		{
-			LGUIEditorUtils::SetControlledByLayout(anchorVAlignDetailProperty, AnchorControlledByLayout);
+			AnchorMaxProperty.IsEnabled(!AnchorControlledByLayout && this->IsAnchorEditable());
+			AnchorMaxProperty.ToolTip(LOCTEXT("ControlledByLayoutTip", "This property is controlled by layout"));
 		}
 
 		auto& AnchorRawDataGroup = TransformCategory.AddGroup(FName("AnchorsRawData"), LOCTEXT("AnchorsRawData", "AnchorsRawData"), true);
@@ -606,12 +612,15 @@ void FUIItemCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 			.Font(IDetailLayoutBuilder::GetDetailFont())
 		]
 		;
-		AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchoredPosition)));
-		AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.SizeDelta)));
+		auto& AnchoredPositionProperty = AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.AnchoredPosition)));
+		auto& SizeDeltaProperty = AnchorRawDataGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.SizeDelta)));
+		AnchoredPositionProperty.IsEnabled(this->IsAnchorEditable());
+		SizeDeltaProperty.IsEnabled(this->IsAnchorEditable());
 	}
 	//pivot
 	auto PivotHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UUIItem, AnchorData.Pivot));
-	TransformCategory.AddProperty(PivotHandle);
+	auto& PivotProperty = TransformCategory.AddProperty(PivotHandle);
+	PivotProperty.IsEnabled(this->IsAnchorEditable());
 	PivotHandle->SetOnPropertyValuePreChange(FSimpleDelegate::CreateLambda([=] {
 		this->OnPrePivotChange();
 		}));
@@ -746,6 +755,20 @@ EVisibility FUIItemCustomization::GetAnchorPresetButtonVisibility()const
 		return TargetScriptArray[0]->GetParentUIItem() != nullptr ? EVisibility::Visible : EVisibility::Hidden;
 	}
 	return EVisibility::Hidden;
+}
+
+bool FUIItemCustomization::IsAnchorEditable()const
+{
+	if (TargetScriptArray.Num() > 0 && TargetScriptArray[0].IsValid())
+	{
+		auto UIItem = TargetScriptArray[0];
+		if (UIItem->GetParentUIItem() != nullptr)return true;//not root
+		if (UIItem->IsCanvasUIItem() && UIItem->GetRenderCanvas()->IsRenderToScreenSpace())//is root canvas, and is render to screen space
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void FUIItemCustomization::OnPrePivotChange()
@@ -1075,6 +1098,32 @@ FText FUIItemCustomization::GetAnchorLabelTooltipText(TSharedRef<IPropertyHandle
 	break;
 	}
 	return LOCTEXT("AnchorError", "Error");
+}
+
+TArray<float> FUIItemCustomization::ValueRangeArray = {
+		1.0f, 10.0f, 100.0f, 1000.0f
+};
+TOptional<float> FUIItemCustomization::GetMinMaxSliderValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex, bool MinOrMax)const
+{
+	auto Value = GetAnchorValue(AnchorHandle, AnchorValueIndex).GetValue();
+	Value = FMath::Abs(Value);
+	float MaxRangeValue = ValueRangeArray[ValueRangeArray.Num() - 1];
+	float RangeValue = MaxRangeValue;
+	for (int i = ValueRangeArray.Num() - 1; i >= 0; i--)
+	{
+		auto RangeValueItem = ValueRangeArray[i];
+		if (Value > RangeValueItem)
+		{
+			break;
+		}
+		else
+		{
+			RangeValue = RangeValueItem;
+		}
+	}
+	return RangeValue * 
+		(RangeValue >= MaxRangeValue ? 1.0f : (FMath::Abs(Value - RangeValue) < KINDA_SMALL_NUMBER ? 2.0f : 1.0f))
+		* (MinOrMax ? -1.0f : 1.0f);
 }
 
 TOptional<float> FUIItemCustomization::GetAnchorValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex)const
