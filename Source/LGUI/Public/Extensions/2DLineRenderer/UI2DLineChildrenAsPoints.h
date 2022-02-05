@@ -38,7 +38,7 @@ public:
 };
 
 
-UCLASS()
+UCLASS(ClassGroup = LGUI)
 class LGUI_API AUI2DLineChildrenAsPointsActor : public AUIBaseActor
 {
 	GENERATED_BODY()

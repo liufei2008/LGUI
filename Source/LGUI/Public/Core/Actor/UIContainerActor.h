@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIItem.h"
 #include "UIContainerActor.generated.h"
 
-UCLASS()
+UCLASS(ClassGroup = LGUI)
 class LGUI_API AUIContainerActor : public AUIBaseActor
 {
 	GENERATED_BODY()

@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UISprite.h"
 #include "UISpriteActor.generated.h"
 
-UCLASS()
+UCLASS(ClassGroup = LGUI)
 class LGUI_API AUISpriteActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()

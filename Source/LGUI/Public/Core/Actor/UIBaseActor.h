@@ -6,7 +6,7 @@
 #include "UIBaseActor.generated.h"
 
 class UUIItem;
-UCLASS(Abstract)
+UCLASS(Abstract, ClassGroup = LGUI)
 class LGUI_API AUIBaseActor : public AActor
 {
 	GENERATED_BODY()
@@ -22,7 +22,7 @@ private:
 };
 
 class UUIBaseRenderable;
-UCLASS(Abstract)
+UCLASS(Abstract, ClassGroup = LGUI)
 class LGUI_API AUIBaseRenderableActor : public AUIBaseActor
 {
 	GENERATED_BODY()
@@ -37,7 +37,7 @@ private:
 };
 
 class UUIPostProcessRenderable;
-UCLASS(Abstract)
+UCLASS(Abstract, ClassGroup = LGUI)
 class LGUI_API AUIBasePostProcessActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()

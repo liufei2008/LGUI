@@ -22,7 +22,7 @@ class ILGUILayoutInterface;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLGUIEditorTickMulticastDelegate, float);
 
-UCLASS(NotBlueprintable, NotBlueprintType, Transient)
+UCLASS(NotBlueprintable, NotBlueprintType, Transient, NotPlaceable)
 class LGUI_API ULGUIEditorManagerObject :public UObject, public FTickableGameObject
 {
 	GENERATED_BODY()
@@ -156,7 +156,7 @@ public:
 
 class ILGUICultureChangedInterface;
 
-UCLASS(NotBlueprintable, NotBlueprintType, notplaceable)
+UCLASS(NotBlueprintable, NotBlueprintType, NotPlaceable)
 class LGUI_API ALGUIManagerActor : public AActor
 {
 	GENERATED_BODY()

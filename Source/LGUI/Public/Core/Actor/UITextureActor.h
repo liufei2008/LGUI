@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UITexture.h"
 #include "UITextureActor.generated.h"
 
-UCLASS()
+UCLASS(ClassGroup = LGUI)
 class LGUI_API AUITextureActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()

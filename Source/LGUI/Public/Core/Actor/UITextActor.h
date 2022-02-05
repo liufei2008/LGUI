@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UIText.h"
 #include "UITextActor.generated.h"
 
-UCLASS()
+UCLASS(ClassGroup = LGUI)
 class LGUI_API AUITextActor : public AUIBaseRenderableActor
 {
 	GENERATED_BODY()

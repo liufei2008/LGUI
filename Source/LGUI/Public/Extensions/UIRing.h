@@ -56,7 +56,7 @@ public:
 };
 
 
-UCLASS()
+UCLASS(ClassGroup = LGUI)
 class LGUI_API AUIRingActor : public AUIBaseActor
 {
 	GENERATED_BODY()

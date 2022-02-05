@@ -7,7 +7,7 @@
 #include "LTweener.h"
 #include "LTweenActor.generated.h"
 
-UCLASS(NotBlueprintable, notplaceable)
+UCLASS(NotBlueprintable, NotPlaceable)
 class LTWEEN_API ALTweenActor : public AActor
 {
 	GENERATED_BODY()

@@ -287,7 +287,7 @@ void SLGUIPrefabEditorDetails::OnSCSEditorTreeViewSelectionChanged(const TArray<
 	{
 		TArray<UObject*> SelectedObjects;
 
-		for (const TSharedPtr<FSCSEditorTreeNode> Node : SelectedNodes)
+		for (const TSharedPtr<FSCSEditorTreeNode>& Node : SelectedNodes)
 		{
 			if (Node.IsValid())
 			{

@@ -9,7 +9,7 @@
 class ULGUIPrefabHelperObject;
 struct FLGUIPrefabOverrideParameterData;
 
-UCLASS(NotBlueprintable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, NotBlueprintType, NotPlaceable, HideCategories = (Rendering, Actor, Input))
 class LGUI_API ALGUIPrefabHelperActor : public AActor
 {
 	GENERATED_BODY()
@@ -46,7 +46,7 @@ public:
  * Wraper or container for ULGUIPrefabHelperObject. One level should only have one LGUIPrefabManagerActor.
  * @todo: check if there are multiple LGUIPrefabManagerActor in one level
  */
-UCLASS(NotBlueprintable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
+UCLASS(ClassGroup = (LGUI), NotBlueprintable, NotPlaceable, NotBlueprintType, HideCategories = (Rendering, Actor, Input))
 class LGUI_API ALGUIPrefabManagerActor : public AActor
 {
 	GENERATED_BODY()

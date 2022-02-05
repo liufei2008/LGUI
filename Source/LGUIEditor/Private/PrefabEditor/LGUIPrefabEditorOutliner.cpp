@@ -15,7 +15,7 @@
 #include "LGUIPrefabEditor.h"
 #include "LGUIEditorModule.h"
 #include "SceneOutlinerStandaloneTypes.h"
-#include "SceneoutlinerDragDrop.h"
+#include "SceneOutlinerDragDrop.h"
 
 PRAGMA_DISABLE_OPTIMIZATION
 

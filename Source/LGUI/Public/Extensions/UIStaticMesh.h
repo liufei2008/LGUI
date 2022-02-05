@@ -164,7 +164,7 @@ public:
 		void SetVertexColorType(UIStaticMeshVertexColorType value);
 };
 
-UCLASS()
+UCLASS(ClassGroup = LGUI)
 class LGUI_API AUIStaticMeshActor : public AUIBaseActor
 {
 	GENERATED_BODY()

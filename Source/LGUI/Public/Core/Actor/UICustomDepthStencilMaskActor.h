@@ -6,7 +6,7 @@
 #include "Core/ActorComponent/UICustomDepthStencilMask.h"
 #include "UICustomDepthStencilMaskActor.generated.h"
 
-UCLASS(Experimental)
+UCLASS(Experimental, ClassGroup = LGUI)
 class LGUI_API AUICustomDepthStencilMaskActor : public AUIBasePostProcessActor
 {
 	GENERATED_BODY()

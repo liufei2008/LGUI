@@ -37,6 +37,7 @@ private:
 	void CreateUIElementSubMenu(FMenuBuilder& MenuBuilder);
 	void CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder);
 	void CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder);
+	void CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder);
 	void BasicSetupSubMenu(FMenuBuilder& MenuBuilder);
 	void ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder);
 	void ChangeTraceChannelSubMenu(FMenuBuilder& MenuBuilder);
@@ -68,4 +69,6 @@ private:
 	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
 	TSharedPtr<class SLGUIPrefabOverrideDataViewer> PrefabOverrideDataViewer = nullptr;
 	void CheckPrefabOverrideDataViewerEntry();
+
+	
 };

@@ -35,7 +35,7 @@ public:
 };
 
 
-UCLASS()
+UCLASS(ClassGroup = LGUI)
 class LGUI_API AUI2DLineActor : public AUIBaseActor
 {
 	GENERATED_BODY()

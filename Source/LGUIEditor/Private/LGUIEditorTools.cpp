@@ -243,14 +243,20 @@ void LGUIEditorTools::CreateUIItemActor(UClass* ActorClass)
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;
-	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
+	GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create Actor")));
 	MakeCurrentLevel(selectedActor);
 	AActor* newActor = GetWorldFromSelection()->SpawnActor<AActor>(ActorClass, FTransform::Identity, FActorSpawnParameters());
 	if (IsValid(newActor))
 	{
 		if (selectedActor != nullptr)
 		{
-			newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
+			auto SelectedRootComp = selectedActor->GetRootComponent();
+			auto NewRootComp = newActor->GetRootComponent();
+			if (SelectedRootComp && NewRootComp)
+			{
+				NewRootComp->SetMobility(SelectedRootComp->Mobility);
+				newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
+			}
 			GEditor->SelectActor(selectedActor, false, true);
 		}
 		GEditor->SelectActor(newActor, true, true);

@@ -159,7 +159,7 @@ public:
 /*
  * This is a preset actor that contans a LGUIEventSystem component
  */
-UCLASS()
+UCLASS(ClassGroup = LGUI, NotPlaceable)
 class LGUI_API ALGUIEventSystemActor : public AActor
 {
 	GENERATED_BODY()
