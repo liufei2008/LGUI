@@ -61,7 +61,7 @@ public:
 	static void UnpackPrefab();
 	static void SelectPrefabAsset();
 	static void OpenPrefabAsset();
-	static void RevertPrefab();
+	static void UpdateLevelPrefab();
 	static void CleanupPrefabsInWorld(UWorld* World);
 	static ULGUIPrefabHelperObject* GetPrefabHelperObject_WhichManageThisActor(AActor* InActor);
 	static bool IsSelectUIActor();

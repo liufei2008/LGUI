@@ -175,7 +175,7 @@ namespace LGUIPrefabSystem3
 		/** Save prefab data for editor use. */
 		static void SavePrefab(AActor* RootActor, ULGUIPrefab* InPrefab
 			, TMap<UObject*, FGuid>& OutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
-			, bool InForEditorOrRuntimeUse, bool InUseDeltaSerialization = true
+			, bool InForEditorOrRuntimeUse
 		);
 		
 		/**
@@ -206,7 +206,7 @@ namespace LGUIPrefabSystem3
 		UWorld* TargetWorld = nullptr;//world that need to spawn actor
 		bool bIsEditorOrRuntime = true;
 		bool bSetHierarchyIndexForRootComponent = false;//need to set hierarchyindex to last for root component?
-		bool bUseDeltaSerialization = true;//only serialize property that not default value
+		//bool bUseDeltaSerialization = false;//true means only serialize property that not default value. Why comment this?: If parent-prefab override sub-prefab's value to default then DeltaSerialization will not store override parameter
 
 		TMap<FGuid, UObject*> MapGuidToObject;
 		struct ComponentDataStruct

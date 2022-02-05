@@ -200,34 +200,46 @@ void ULGUIPrefabHelperObject::RemoveMemberPropertyFromSubPrefab(AActor* InSubPre
 	}
 }
 
-void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject)
+void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabRootActor)
 {
 	CleanupInvalidSubPrefab();
-	if (!IsValid(InSubPrefabActor))return;
+	if (!IsValid(InSubPrefabRootActor))return;
 	for (auto& KeyValue : SubPrefabMap)
 	{
-		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
+		auto SubPrefabRootActor = KeyValue.Key;
+		FLGUISubPrefabData& SubPrefabData = KeyValue.Value;
+		if (InSubPrefabRootActor == SubPrefabRootActor || InSubPrefabRootActor->IsAttachedTo(SubPrefabRootActor))
 		{
-			KeyValue.Value.RemoveMemberProperty(InObject);
-		}
-	}
-}
+			for (int i = 0; i < SubPrefabData.ObjectOverrideParameterArray.Num(); i++)
+			{
+				auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
+				TSet<FName> FilterNameSet;
+				if (i == 0)//first object is always the root component of prefab's root actor
+				{
+					if (auto UIItem = Cast<UUIItem>(DataItem.Object))
+					{
+						FilterNameSet = UUIItem::PersistentOverridePropertyNameSet;
+					}
+				}
 
-void ULGUIPrefabHelperObject::RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor)
-{
-	CleanupInvalidSubPrefab();
-	if (!IsValid(InSubPrefabActor))return;
-	AActor* SubPrefabRootActor = nullptr;
-	for (auto& KeyValue : SubPrefabMap)
-	{
-		if (InSubPrefabActor == KeyValue.Key || InSubPrefabActor->IsAttachedTo(KeyValue.Key))
-		{
-			SubPrefabRootActor = KeyValue.Key;
+				TSet<FName> NamesToClear;
+				for (auto& PropertyName : DataItem.MemberPropertyName)
+				{
+					if (FilterNameSet.Contains(PropertyName))continue;
+					NamesToClear.Add(PropertyName);
+				}
+				for (auto& PropertyName : NamesToClear)
+				{
+					DataItem.MemberPropertyName.Remove(PropertyName);
+				}
+				if (DataItem.MemberPropertyName.Num() == 0)
+				{
+					SubPrefabData.ObjectOverrideParameterArray.RemoveAt(i);
+					i--;
+				}
+			}
+			return;
 		}
-	}
-	if (SubPrefabRootActor != nullptr)
-	{
-		SubPrefabMap.Remove(SubPrefabRootActor);
 	}
 }
 
@@ -408,15 +420,12 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 				}
 			}
 
-			//Because prefab serailize with delta, so if use prefab's default serialized data then default value will not be set in parent prefab. So we need to make a agent prefab with fully serialized properties include default value.
-			auto AgentSubPrefab = InSubPrefab->MakeAgentFullSerializedPrefab();
 			TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
-			AgentSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
+			InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
 				, SubPrefabRootActor->GetAttachParentActor()->GetRootComponent()
 				, SubPrefabMapGuidToObject, SubSubPrefabMap
 				, false
 			);
-			AgentSubPrefab->ConditionalBeginDestroy();
 
 			//delete extra actors
 			for (auto& OldChild : ChildrenActors)
@@ -896,7 +905,7 @@ void ULGUIPrefabHelperObject::RevertAllPrefabOverride(UObject* InObject)
 			auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
 			auto SourceObject = DataItem.Object.Get();
 			TSet<FName> FilterNameSet;
-			if (i == 0)
+			if (i == 0)//first object is always the root component of prefab's root actor
 			{
 				if (auto UIItem = Cast<UUIItem>(SourceObject))
 				{
@@ -1093,7 +1102,7 @@ void ULGUIPrefabHelperObject::ApplyAllOverrideToPrefab(UObject* InObject)
 			auto& DataItem = SubPrefabData.ObjectOverrideParameterArray[i];
 			auto SourceObject = DataItem.Object.Get();
 			TSet<FName> FilterNameSet;
-			if (i == 0)
+			if (i == 0)//first object is always the root component of prefab's root actor
 			{
 				if (auto UIItem = Cast<UUIItem>(SourceObject))
 				{
@@ -1145,7 +1154,7 @@ void ULGUIPrefabHelperObject::CheckPrefabHelperActor(AActor* InSubPrefabRootActo
 	SubPrefabData.TimePointWhenSavePrefab = SubPrefabData.PrefabAsset->CreateTime;
 }
 
-void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray)
+void ULGUIPrefabHelperObject::MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray)
 {
 	FLGUISubPrefabData SubPrefabData;
 	SubPrefabData.PrefabAsset = InPrefab;

@@ -1201,7 +1201,7 @@ void LGUIEditorTools::OpenPrefabAsset()
 	}
 }
 
-void LGUIEditorTools::RevertPrefab()
+void LGUIEditorTools::UpdateLevelPrefab()
 {
 	auto SelectedActor = GetFirstSelectedActor();
 	if (SelectedActor == nullptr)return;

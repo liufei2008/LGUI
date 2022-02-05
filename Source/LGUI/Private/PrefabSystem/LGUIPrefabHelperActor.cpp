@@ -89,7 +89,7 @@ ALGUIPrefabManagerActor::ALGUIPrefabManagerActor()
 
 #if WITH_EDITOR
 
-TMap<ULevel*, ALGUIPrefabManagerActor*> ALGUIPrefabManagerActor::MapLevelToManagerActor;
+TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabManagerActor>> ALGUIPrefabManagerActor::MapLevelToManagerActor;
 
 ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist)
 {
@@ -104,7 +104,7 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* 
 	if (auto ResultPtr = MapLevelToManagerActor.Find(InLevel))
 	{
 		(*ResultPtr)->PrefabHelperObject->MarkAsManagerObject();
-		return *ResultPtr;
+		return ResultPtr->Get();
 	}
 	else
 	{
@@ -118,7 +118,7 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActorByPrefabH
 	{
 		if (KeyValue.Value->PrefabHelperObject == InHelperObject)
 		{
-			return KeyValue.Value;
+			return KeyValue.Value.Get();
 		}
 	}
 	return nullptr;
@@ -190,6 +190,22 @@ void ALGUIPrefabManagerActor::BeginDestroy()
 			{
 				check(0);
 			}
+		}
+	}
+	//cleanup
+	{
+		MapLevelToManagerActor.Remove(nullptr);
+		TSet<TWeakObjectPtr<ULevel>> ToClear;
+		for (auto& KeyValue : MapLevelToManagerActor)
+		{
+			if (!KeyValue.Key.IsValid() && !KeyValue.Value.IsValid())
+			{
+				ToClear.Add(KeyValue.Key.Get());
+			}
+		}
+		for (auto& Item : ToClear)
+		{
+			MapLevelToManagerActor.Remove(Item);
 		}
 	}
 }

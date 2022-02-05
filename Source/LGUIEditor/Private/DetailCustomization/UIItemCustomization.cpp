@@ -1105,7 +1105,7 @@ TArray<float> FUIItemCustomization::ValueRangeArray = {
 };
 TOptional<float> FUIItemCustomization::GetMinMaxSliderValue(TSharedRef<IPropertyHandle> AnchorHandle, int AnchorValueIndex, bool MinOrMax)const
 {
-	auto Value = GetAnchorValue(AnchorHandle, AnchorValueIndex).GetValue();
+	auto Value = GetAnchorValue(AnchorHandle, AnchorValueIndex).Get(0.0f);
 	Value = FMath::Abs(Value);
 	float MaxRangeValue = ValueRangeArray[ValueRangeArray.Num() - 1];
 	float RangeValue = MaxRangeValue;

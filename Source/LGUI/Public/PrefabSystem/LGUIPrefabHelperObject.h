@@ -9,6 +9,7 @@
 class ULGUIPrefab;
 class ULGUIPrefabOverrideParameterObject;
 struct FLGUISubPrefabData;
+struct FLGUIPrefabOverrideParameterData;
 class AActor;
 
 /**
@@ -57,7 +58,6 @@ public:
 	void ClearInvalidObjectAndGuid();
 	void AddMemberPropertyToSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
 	void RemoveMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject, FName InPropertyName);
-	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor, UObject* InObject);
 	void RemoveAllMemberPropertyFromSubPrefab(AActor* InSubPrefabActor);
 	FLGUISubPrefabData GetSubPrefabData(AActor* InSubPrefabActor);
 	AActor* GetSubPrefabRootActor(AActor* InSubPrefabActor);
@@ -78,7 +78,7 @@ public:
 
 	void CheckPrefabHelperActor(AActor* InSubPrefabRootActor);
 
-	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, TMap<FGuid, UObject*> InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray);
+	void MakePrefabAsSubPrefab(ULGUIPrefab* InPrefab, AActor* InActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject, const TArray<FLGUIPrefabOverrideParameterData>& InObjectOverrideParameterArray);
 	void RemoveSubPrefabByRootActor(AActor* InPrefabRootActor);
 	void RemoveSubPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);

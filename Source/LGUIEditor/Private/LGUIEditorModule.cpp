@@ -517,9 +517,22 @@ bool FLGUIEditorModule::CanBrowsePrefab()
 	}
 }
 
-bool FLGUIEditorModule::CanRevertPrefab()
+bool FLGUIEditorModule::CanUpdateLevelPrefab()
 {
-	return CanBrowsePrefab();
+	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
+	if (SelectedActor == nullptr)return false;
+	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	{
+		if (PrefabHelperObject->SubPrefabMap.Contains(SelectedActor) && !PrefabHelperObject->IsInsidePrefabEditor())//Can only update prefab in level editor
+		{
+			return true;
+		}
+		return false;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool FLGUIEditorModule::CanDuplicateActor()
@@ -757,13 +770,13 @@ TSharedRef<SWidget> FLGUIEditorModule::MakeEditorToolsMenu(bool InitialSetup, bo
 					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanBrowsePrefab))
 			);
 			MenuBuilder.AddMenuEntry(
-				LOCTEXT("RevertPrefab", "Revert Prefab"),
-				LOCTEXT("RevertPrefab_Tooltip", "Revert this prefab to latest version"),
+				LOCTEXT("UpdateLevelPrefab", "Update Prefab"),
+				LOCTEXT("UpdateLevelPrefab_Tooltip", "Update this prefab to latest version"),
 				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::RevertPrefab)
-					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanRevertPrefab)
+				FUIAction(FExecuteAction::CreateStatic(&LGUIEditorTools::UpdateLevelPrefab)
+					, FCanExecuteAction::CreateRaw(this, &FLGUIEditorModule::CanUpdateLevelPrefab)
 					, FGetActionCheckState()
-					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanRevertPrefab))
+					, FIsActionButtonVisible::CreateRaw(this, &FLGUIEditorModule::CanUpdateLevelPrefab))
 			);
 			CheckPrefabOverrideDataViewerEntry();
 			MenuBuilder.AddMenuEntry(

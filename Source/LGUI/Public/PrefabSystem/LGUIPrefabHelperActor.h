@@ -62,7 +62,7 @@ public:
 	virtual void PostActorCreated()override;
 	virtual void BeginDestroy() override;
 private:
-	static TMap<ULevel*, ALGUIPrefabManagerActor*> MapLevelToManagerActor;
+	static TMap<TWeakObjectPtr<ULevel>, TWeakObjectPtr<ALGUIPrefabManagerActor>> MapLevelToManagerActor;
 public:
 	static ALGUIPrefabManagerActor* GetPrefabManagerActor(ULevel* InLevel, bool CreateIfNotExist = true);
 	static ALGUIPrefabManagerActor* GetPrefabManagerActorByPrefabHelperObject(ULGUIPrefabHelperObject* InHelperObject);

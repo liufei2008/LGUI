@@ -190,8 +190,5 @@ public:
 	 */
 	AActor* LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, bool SetRelativeTransformToIdentity = true);
 	AActor* LoadPrefabInEditor(UWorld* InWorld, USceneComponent* Parent, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap, TMap<FGuid, UObject*>& OutMapGuidToObject, bool SetRelativeTransformToIdentity = true);
-
-	/** By default prefab only serialize delta property (value not equal to default), but sometimes we need all property to be serialized. */
-	ULGUIPrefab* MakeAgentFullSerializedPrefab();
 #endif
 };
