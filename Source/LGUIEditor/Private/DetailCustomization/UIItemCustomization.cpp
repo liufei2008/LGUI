@@ -1508,6 +1508,7 @@ void FUIItemCustomization::OnSelectAnchor(LGUIAnchorPreviewWidget::UIAnchorHoriz
 		auto PrevHeight = UIItem->GetHeight();
 		UIItem->SetAnchorMin(AnchorMin);
 		UIItem->SetAnchorMax(AnchorMax);
+		UIItem->MarkAllDirtyRecursive();
 		UIItem->SetWidth(PrevWidth);
 		UIItem->SetHeight(PrevHeight);
 		UIItem->SetRelativeLocation(PrevRelativeLocation);

@@ -80,14 +80,18 @@ void FUISpriteBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			.VAlign(EVerticalAlignment::VAlign_Center)
 			.OnClicked_Lambda([=]()
 			{
+				GEditor->BeginTransaction(LOCTEXT("SpriteSnapSize", "UISprite snap size"));
 				for (auto item : TargetScriptArray)
 				{
 					if (item.IsValid())
 					{
+						item->Modify();
 						item->SetSizeFromSpriteData();
+						LGUIUtils::NotifyPropertyChanged(item.Get(), UUIItem::GetAnchorDataPropertyName());
 						item->EditorForceUpdate();
 					}
 				}
+				GEditor->EndTransaction();
 				return FReply::Handled();
 			})
 			[
