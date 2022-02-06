@@ -895,7 +895,7 @@ bool LGUIEditorTools::HaveValidCopiedComponent()
 }
 
 FString LGUIEditorTools::PrevSavePrafabFolder = TEXT("");
-void LGUIEditorTools::CreatePrefabAsset()
+void LGUIEditorTools::CreatePrefabAsset()//@todo: make some referenced parameter as override parameter(eg: Actor parameter reference other actor that is not belongs to prefab hierarchy)
 {
 	auto selectedActor = GetFirstSelectedActor();
 	if (selectedActor == nullptr)return;

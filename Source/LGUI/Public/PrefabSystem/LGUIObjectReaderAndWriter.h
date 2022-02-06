@@ -40,10 +40,11 @@ namespace LGUIPrefabSystem3
 		return false;
 	}
 
-	class FLGUIObjectWriter : public FObjectWriter
+	class LGUI_API FLGUIObjectWriter : public FObjectWriter
 	{
 	public:
-		FLGUIObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
+		FLGUIObjectWriter(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
+		virtual void DoSerialize(UObject* Object);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
@@ -51,20 +52,21 @@ namespace LGUIPrefabSystem3
 #if ENGINE_MAJOR_VERSION >= 5
 		virtual FArchive& operator<<(FObjectPtr& Value) override;
 #endif
+		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject* Object);
-	private:
+		virtual bool SerializeObject(UObject* Object);
+	protected:
 		ActorSerializer3& Serializer;
 		TSet<FName> SkipPropertyNames;
 	};
-	class FLGUIObjectReader : public FObjectReader
+	class LGUI_API FLGUIObjectReader : public FObjectReader
 	{
 	public:
-		FLGUIObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
+		FLGUIObjectReader(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
+		virtual void DoSerialize(UObject* Object);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
@@ -72,58 +74,41 @@ namespace LGUIPrefabSystem3
 #if ENGINE_MAJOR_VERSION >= 5
 		virtual FArchive& operator<<(FObjectPtr& Value) override;
 #endif
+		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject*& Object, bool CanSerializeClass);
-	private:
+		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass);
+	protected:
 		ActorSerializer3& Serializer;
 		TSet<FName> SkipPropertyNames;
 	};
 
-	class FLGUIDuplicateObjectWriter : public FObjectWriter
+	class LGUI_API FLGUIDuplicateObjectWriter : public FLGUIObjectWriter
 	{
 	public:
-		FLGUIDuplicateObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
+		FLGUIDuplicateObjectWriter(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
 
-		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
-		virtual FArchive& operator<<(UObject*& Res) override;
-#if ENGINE_MAJOR_VERSION >= 5
-		virtual FArchive& operator<<(FObjectPtr& Value) override;
-#endif
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject* Object);
-	private:
-		ActorSerializer3& Serializer;
-		TSet<FName> SkipPropertyNames;
+		virtual bool SerializeObject(UObject* Object)override;
 	};
-	class FLGUIDuplicateObjectReader : public FObjectReader
+	class LGUI_API FLGUIDuplicateObjectReader : public FLGUIObjectReader
 	{
 	public:
-		FLGUIDuplicateObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
+		FLGUIDuplicateObjectReader(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
 
-		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
-		virtual FArchive& operator<<(UObject*& Res) override;
-#if ENGINE_MAJOR_VERSION >= 5
-		virtual FArchive& operator<<(FObjectPtr& Value) override;
-#endif
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject*& Object, bool CanSerializeClass);
-	private:
-		ActorSerializer3& Serializer;
-		TSet<FName> SkipPropertyNames;
+		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass)override;
 	};
 
 
 
-	class FLGUIOverrideParameterObjectWriter : public FObjectWriter
+	class LGUI_API FLGUIOverrideParameterObjectWriter : public FObjectWriter
 	{
 	public:
-		FLGUIOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames);
+		FLGUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames);
+		virtual void DoSerialize(UObject* Object);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
@@ -131,20 +116,21 @@ namespace LGUIPrefabSystem3
 #if ENGINE_MAJOR_VERSION >= 5
 		virtual FArchive& operator<<(FObjectPtr& Value) override;
 #endif
+		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject* Object);
-	private:
+		virtual bool SerializeObject(UObject* Object);
+	protected:
 		ActorSerializer3& Serializer;
 		mutable TSet<FName> OverridePropertyNames;
 	};
-	class FLGUIOverrideParameterObjectReader : public FObjectReader
+	class LGUI_API FLGUIOverrideParameterObjectReader : public FObjectReader
 	{
 	public:
-		FLGUIOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames);
+		FLGUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames);
+		virtual void DoSerialize(UObject* Object);
 
 		virtual bool ShouldSkipProperty(const FProperty* InProperty) const override;
 		virtual FArchive& operator<<(class FName& N) override;
@@ -152,18 +138,37 @@ namespace LGUIPrefabSystem3
 #if ENGINE_MAJOR_VERSION >= 5
 		virtual FArchive& operator<<(FObjectPtr& Value) override;
 #endif
+		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FArchive& operator<<(FLazyObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPtr& Value) override;
 		virtual FArchive& operator<<(FSoftObjectPath& Value) override;
-		virtual FArchive& operator<<(FWeakObjectPtr& Value) override;
 		virtual FString GetArchiveName() const override;
-		bool SerializeObject(UObject*& Object, bool CanSerializeClass);
-	private:
+		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass);
+	protected:
 		ActorSerializer3& Serializer;
 		mutable TSet<FName> OverridePropertyNames;
 	};
 
-	class FLGUIImmediateOverrideParameterObjectWriter : public FObjectWriter
+
+	class LGUI_API FLGUIDuplicateOverrideParameterObjectWriter : public FLGUIOverrideParameterObjectWriter
+	{
+	public:
+		FLGUIDuplicateOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
+
+		virtual FString GetArchiveName() const override;
+		virtual bool SerializeObject(UObject* Object)override;
+	};
+	class LGUI_API FLGUIDuplicateOverrideParameterObjectReader : public FLGUIOverrideParameterObjectReader
+	{
+	public:
+		FLGUIDuplicateOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames);
+
+		virtual FString GetArchiveName() const override;
+		virtual bool SerializeObject(UObject*& Object, bool CanSerializeClass)override;
+	};
+
+
+	class LGUI_API FLGUIImmediateOverrideParameterObjectWriter : public FObjectWriter
 	{
 	public:
 		FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames);
@@ -173,7 +178,7 @@ namespace LGUIPrefabSystem3
 	private:
 		mutable TSet<FName> OverridePropertyNames;
 	};
-	class FLGUIImmediateOverrideParameterObjectReader : public FObjectReader
+	class LGUI_API FLGUIImmediateOverrideParameterObjectReader : public FObjectReader
 	{
 	public:
 		FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames);

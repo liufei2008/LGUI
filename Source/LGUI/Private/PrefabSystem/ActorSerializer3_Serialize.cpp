@@ -48,10 +48,12 @@ namespace LGUIPrefabSystem3
 		serializer.bIsEditorOrRuntime = InForEditorOrRuntimeUse;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			FLGUIObjectWriter Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
+			FLGUIObjectWriter Writer(InOutBuffer, serializer, ExcludeProperties);
+			Writer.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
-			FLGUIOverrideParameterObjectWriter Writer(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+			FLGUIOverrideParameterObjectWriter Writer(InOutBuffer, serializer, InOverridePropertyNameSet);
+			Writer.DoSerialize(InObject);
 		};
 		serializer.SerializeActor(OriginRootActor, InPrefab);
 		InOutMapObjectToGuid = serializer.MapObjectToGuid;

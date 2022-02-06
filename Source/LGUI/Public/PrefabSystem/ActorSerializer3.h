@@ -153,6 +153,8 @@ namespace LGUIPrefabSystem3
 		friend class FLGUIDuplicateObjectWriter;
 		friend class FLGUIOverrideParameterObjectWriter;
 		friend class FLGUIOverrideParameterObjectReader;
+		friend class FLGUIDuplicateOverrideParameterObjectWriter;
+		friend class FLGUIDuplicateOverrideParameterObjectReader;
 
 	public:
 		ActorSerializer3();

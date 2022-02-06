@@ -8,7 +8,7 @@
 
 namespace LGUIPrefabSystem3
 {
-	FLGUIOverrideParameterObjectWriter::FLGUIOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIOverrideParameterObjectWriter::FLGUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames)
 		: FObjectWriter(Bytes)
 		, Serializer(InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
@@ -17,7 +17,9 @@ namespace LGUIPrefabSystem3
 		SetIsSaving(true);
 
 		Serializer.SetupArchive(*this);
-
+	}
+	void FLGUIOverrideParameterObjectWriter::DoSerialize(UObject* Object)
+	{
 		Object->Serialize(*this);
 	}
 	bool FLGUIOverrideParameterObjectWriter::ShouldSkipProperty(const FProperty* InProperty) const
@@ -63,7 +65,6 @@ namespace LGUIPrefabSystem3
 		}
 		else
 		{
-			bool canSerializaObject = false;
 			auto guidPtr = Serializer.MapObjectToGuid.Find(Object);
 			if (guidPtr != nullptr)
 			{
@@ -171,7 +172,7 @@ namespace LGUIPrefabSystem3
 	}
 
 
-	FLGUIOverrideParameterObjectReader::FLGUIOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIOverrideParameterObjectReader::FLGUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames)
 		: FObjectReader(Bytes)
 		, Serializer(InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
@@ -180,7 +181,9 @@ namespace LGUIPrefabSystem3
 		SetIsSaving(false);
 
 		Serializer.SetupArchive(*this);
-
+	}
+	void FLGUIOverrideParameterObjectReader::DoSerialize(UObject* Object)
+	{
 		Object->Serialize(*this);
 	}
 	bool FLGUIOverrideParameterObjectReader::ShouldSkipProperty(const FProperty* InProperty) const
@@ -264,7 +267,7 @@ namespace LGUIPrefabSystem3
 	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FObjectPtr& Value)
 	{
 		UObject* Res = nullptr;
-		SerializeObject(Res, false);
+		SerializeObject(Res, true);
 		Value = Res;
 		return *this;
 	}

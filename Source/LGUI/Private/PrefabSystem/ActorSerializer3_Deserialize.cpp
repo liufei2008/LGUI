@@ -34,10 +34,12 @@ namespace LGUIPrefabSystem3
 #endif
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
+			FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
+			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
-			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+			FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
+			Reader.DoSerialize(InObject);
 		};
 		serializer.bSetHierarchyIndexForRootComponent = InSetHierarchyIndexForRootComponent;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
@@ -56,10 +58,12 @@ namespace LGUIPrefabSystem3
 #endif
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
+			FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
+			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
-			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+			FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
+			Reader.DoSerialize(InObject);
 		};
 		AActor* result = nullptr;
 		if (SetRelativeTransformToIdentity)
@@ -82,10 +86,12 @@ namespace LGUIPrefabSystem3
 #endif
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			FLGUIObjectReader Writer(InObject, InOutBuffer, serializer, ExcludeProperties);
+			FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
+			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
-			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+			FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
+			Reader.DoSerialize(InObject);
 		};
 		return serializer.DeserializeActor(Parent, InPrefab, true, RelativeLocation, RelativeRotation, RelativeScale);
 	}
@@ -107,10 +113,12 @@ namespace LGUIPrefabSystem3
 		serializer.bIsSubPrefab = true;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
-			FLGUIObjectReader Reader(InObject, InOutBuffer, serializer, ExcludeProperties);
+			FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
+			Reader.DoSerialize(InObject);
 		};
 		serializer.WriterOrReaderFunctionForSubPrefab = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, const TSet<FName>& InOverridePropertyNameSet) {
-			FLGUIOverrideParameterObjectReader Reader(InObject, InOutBuffer, serializer, InOverridePropertyNameSet);
+			FLGUIOverrideParameterObjectReader Reader(InOutBuffer, serializer, InOverridePropertyNameSet);
+			Reader.DoSerialize(InObject);
 		};
 		serializer.CallbackBeforeAwakeForSubPrefab = InOnSubPrefabFinishDeserializeFunction;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
