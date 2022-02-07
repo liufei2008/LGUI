@@ -101,6 +101,13 @@ namespace LGUIPrefabSystem3
 		OutDuplicatedSubPrefabMap = serializer.SubPrefabMap;
 		OutMapGuidToObject = serializer.MapGuidToObject;
 		UE_LOG(LGUI, Log, TEXT("Take %fs duplicating actor: %s"), TimeSpan.GetTotalSeconds(), *Name);
+
+#if WITH_EDITOR
+#if ENGINE_MAJOR_VERSION >= 5
+		GEditor->BroadcastLevelActorListChanged();//UE5 will not auto refresh scene outliner and display actor label, so manually refresh it.
+#endif
+#endif
+
 		return CreatedRootActor;
 	}
 

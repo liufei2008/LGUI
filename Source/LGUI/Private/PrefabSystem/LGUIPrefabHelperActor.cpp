@@ -66,6 +66,7 @@ void ALGUIPrefabHelperActor::MoveActorToPrefabFolder()
 void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 {
 	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return;
+	if (IsValid(LoadedRootActor))return;
 	TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
 	TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
 	LoadedRootActor = PrefabAsset->LoadPrefabWithExistingObjects(this->GetWorld()

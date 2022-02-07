@@ -151,15 +151,22 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 			//RootAgentActor->bHiddenEdLevel = true;
 #if ENGINE_MAJOR_VERSION >= 5
 			RootAgentActor->SetLockLocation(true);
+
+			//Why comment this? Because in UE5 this will cause display error
+			//auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
+			//bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootAgentActor, false);
+
+			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
+			bActorLabelEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
 #else
 			RootAgentActor->bLockLocation = true;
-#endif
 
 			auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
 			bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootAgentActor, false);
 
 			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
 			bActorLabelEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
+#endif
 		}
 
 		RootAgentActor->SetActorLabel(*RootAgentActorName);
