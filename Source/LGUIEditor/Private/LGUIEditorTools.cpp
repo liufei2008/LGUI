@@ -1158,7 +1158,7 @@ void LGUIEditorTools::UnpackPrefab()
 	if (PrefabHelperObject != nullptr)
 	{
 		check(PrefabHelperObject->SubPrefabMap.Contains(SelectedActor));//should have being checked in Unpack button
-		PrefabHelperObject->UnpackSubPrefab(SelectedActor);
+		PrefabHelperObject->RemoveSubPrefab(SelectedActor);
 	}
 	GEditor->EndTransaction();
 	CleanupPrefabsInWorld(SelectedActor->GetWorld());

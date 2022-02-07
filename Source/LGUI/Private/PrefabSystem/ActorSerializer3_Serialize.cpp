@@ -113,7 +113,10 @@ namespace LGUIPrefabSystem3
 				{
 					auto AUIRoot = Cast<UUIItem>(ARoot);
 					auto BUIRoot = Cast<UUIItem>(BRoot);
-					return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
+					if (AUIRoot != nullptr && BUIRoot != nullptr)
+					{
+						return AUIRoot->GetHierarchyIndex() < BUIRoot->GetHierarchyIndex();
+					}
 				}
 				return false;
 				});

@@ -119,7 +119,7 @@ bool FLGUIPrefabEditorViewportClient::InputKey(FViewport* InViewport, int32 Cont
 
 void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY)
 {
-	UUIBaseRenderable* LastSelectTarget = nullptr;
+	AActor* ClickHitActor = nullptr;
 	if (ULGUIEditorManagerObject::Instance != nullptr)
 	{
 		FVector RayOrigin, RayDirection;
@@ -129,7 +129,33 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		auto LineStart = RayOrigin;
 		auto LineEnd = RayOrigin + RayDirection * LineTraceLength;
 		auto& allUIItems = ULGUIEditorManagerObject::Instance->GetAllUIItemArray();
-		ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), allUIItems, LineStart, LineEnd, LastSelectTarget);
+		UUIBaseRenderable* ClickHitUI = nullptr;
+		if (ULGUIEditorManagerObject::RaycastHitUI(this->GetWorld(), allUIItems, LineStart, LineEnd, ClickHitUI))
+		{
+			ClickHitActor = ClickHitUI->GetOwner();
+		}
+	}
+	if (ClickHitActor == nullptr)
+	{
+		const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
+		if (!ModeTools->HandleClick(this, HitProxy, Click))
+		{
+			if (HitProxy == NULL)
+			{
+				GEditor->SelectNone(true, true);
+				return;
+			}
+			if (HitProxy->IsA(HActor::StaticGetType()))
+			{
+				HActor* ActorHitProxy = (HActor*)HitProxy;
+				AActor* Actor = ActorHitProxy->Actor;
+				while (Actor->IsChildActor())
+				{
+					Actor = Actor->GetParentActor();
+				}
+				ClickHitActor = Actor;
+			}
+		}
 	}
 
 	{
@@ -142,9 +168,9 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		// We'll batch selection changes instead by using BeginBatchSelectOperation()
 		GEditor->GetSelectedActors()->BeginBatchSelectOperation();
 
-		if (LastSelectTarget != nullptr)
+		if (ClickHitActor != nullptr)
 		{
-			GEditor->SelectActor(LastSelectTarget->GetOwner(), true, false);
+			GEditor->SelectActor(ClickHitActor, true, false);
 		}
 
 		// Commit selection changes
@@ -153,32 +179,6 @@ void FLGUIPrefabEditorViewportClient::ProcessClick(FSceneView& View, HHitProxy* 
 		GEditor->NoteSelectionChange();
 		GEditor->EndTransaction();
 	}
-
-
-	//const FViewportClick Click(&View, this, Key, Event, HitX, HitY);
-	//if (!ModeTools->HandleClick(this, HitProxy, Click))
-	//{
-	//	if (HitProxy == NULL)
-	//	{
-	//		GEditor->SelectNone(true, true);
-	//		//SetWidgetMode(FWidget::WM_None);
-	//		return;
-	//	}
-	//	if (HitProxy->IsA(HActor::StaticGetType()))
-	//	{
-	//		HActor* ActorHitProxy = (HActor*)HitProxy;
-	//		AActor* Actor = ActorHitProxy->Actor;
-	//		while (Actor->IsChildActor())
-	//		{
-	//			Actor = Actor->GetParentActor();
-	//		}
-	//		if (Click.GetKey() == EKeys::LeftMouseButton && Actor)
-	//		{
-	//			SetWidgetMode(FWidget::WM_Translate);
-	//		}
-	//	}
-	//}
-
 }
 
 bool FLGUIPrefabEditorViewportClient::InputWidgetDelta(FViewport* InViewport, EAxisList::Type InCurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale)

@@ -46,9 +46,6 @@ public:
 
 	static void SetActorPropertyInOutliner(AActor* Actor, bool InListed);
 
-	//make sub prefab's actors as normal actor
-	void UnpackSubPrefab(AActor* InSubPrefabActor);
-	void UnpackPrefab(AActor* InPrefabActor);
 	ULGUIPrefab* GetSubPrefabAsset(AActor* InSubPrefabActor);
 	void SavePrefab();
 	void ClearLoadedPrefab();

@@ -303,21 +303,6 @@ void ULGUIPrefabHelperObject::SavePrefab()
 	}
 }
 
-void ULGUIPrefabHelperObject::UnpackSubPrefab(AActor* InSubPrefabActor)
-{
-	CleanupInvalidSubPrefab();
-	check(SubPrefabMap.Contains(InSubPrefabActor));
-	SubPrefabMap.Remove(InSubPrefabActor);
-}
-
-void ULGUIPrefabHelperObject::UnpackPrefab(AActor* InPrefabActor)
-{
-	LoadedRootActor = nullptr;
-	PrefabAsset = nullptr;
-	MapGuidToObject.Empty();
-	SubPrefabMap.Empty();
-}
-
 ULGUIPrefab* ULGUIPrefabHelperObject::GetSubPrefabAsset(AActor* InSubPrefabActor)
 {
 	CleanupInvalidSubPrefab();
@@ -423,8 +408,9 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			}
 
 			TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
+			auto AttachParentActor = SubPrefabRootActor->GetAttachParentActor();
 			InSubPrefab->LoadPrefabWithExistingObjects(GetPrefabWorld()
-				, SubPrefabRootActor->GetAttachParentActor()->GetRootComponent()
+				, AttachParentActor == nullptr ? nullptr : AttachParentActor->GetRootComponent()
 				, SubPrefabMapGuidToObject, SubSubPrefabMap
 				, false
 			);
