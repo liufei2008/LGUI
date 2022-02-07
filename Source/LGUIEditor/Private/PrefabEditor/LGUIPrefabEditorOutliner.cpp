@@ -77,12 +77,18 @@ void FLGUIPrefabEditorOutliner::InitOutliner(UWorld* World, TSharedPtr<FLGUIPref
 
 	SceneOutlinerPtr->GetOnItemSelectionChanged().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerSelectionChanged);
 	SceneOutlinerPtr->GetDoubleClickEvent().AddRaw(this, &FLGUIPrefabEditorOutliner::OnSceneOutlinerDoubleClick);
-	GEditor->OnLevelActorListChanged().AddLambda([SceneOutlinerWeak = TWeakPtr<SSceneOutliner>(SceneOutlinerPtr)]() {
+	GEditor->OnLevelActorListChanged().AddLambda([SceneOutlinerWeak = TWeakPtr<SSceneOutliner>(SceneOutlinerPtr)]() {//UE5 not auto refresh the actor label display, so manually refresh it
 		if (SceneOutlinerWeak.IsValid())
 		{
 			SceneOutlinerWeak.Pin()->Refresh();
 		}
 		});
+	FCoreDelegates::OnActorLabelChanged.AddLambda([SceneOutlinerWeak = TWeakPtr<SSceneOutliner>(SceneOutlinerPtr)](AActor* actor) {//UE5 not auto refresh the actor label display, so manually refresh it
+		if (SceneOutlinerWeak.IsValid())
+		{
+			SceneOutlinerWeak.Pin()->FullRefresh();
+		}
+	});
 
 	OutlinerWidget =
 		SNew(SBox)
