@@ -15,7 +15,9 @@
 #include "Interaction/UIButtonComponent.h"
 #include "Layout/UILayoutBase.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 UUIDropdownComponent::UUIDropdownComponent()
 {
@@ -540,4 +542,6 @@ bool UUIDropdownItemComponent::OnPointerClick_Implementation(ULGUIPointerEventDa
 	
 	return false;
 }
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif

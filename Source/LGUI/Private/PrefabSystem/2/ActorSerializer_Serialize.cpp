@@ -14,6 +14,10 @@
 
 using namespace LGUIPrefabSystem;
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
+
 #if WITH_EDITOR
 void ActorSerializer::SerializeActorRecursive(AActor* Actor, FLGUIActorSaveData& OutActorSaveData)
 {
@@ -504,7 +508,6 @@ void ActorSerializer::GenerateActorIDRecursive(AActor* Actor)
 	}
 }
 
-//PRAGMA_DISABLE_OPTIMIZATION
 void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 {
 	TArray<AActor*> ChildrenActors;
@@ -514,7 +517,6 @@ void ActorSerializer::CollectSkippingActorsRecursive(AActor* Actor)
 		CollectSkippingActorsRecursive(ChildActor);
 	}
 }
-//PRAGMA_ENABLE_OPTIMIZATION
 
 void ActorSerializer::SetActorGUIDNew(AActor* Actor)
 {
@@ -530,3 +532,6 @@ void ActorSerializer::SetActorGUID(AActor* Actor, FGuid Guid)
 
 #endif
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif

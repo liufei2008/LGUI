@@ -10,7 +10,9 @@
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 #if WITH_EDITORONLY_DATA
 TWeakObjectPtr<ULGUIFontData_BaseObject> UUIText::CurrentUsingFontData = nullptr;
@@ -846,4 +848,6 @@ void UUIText::GetSelectionProperty(int32 InSelectionStartCaretIndex, int32 InSel
 	}
 }
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif

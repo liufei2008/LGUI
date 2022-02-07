@@ -15,7 +15,9 @@
 #include "Utils/LGUIUtils.h"
 #endif
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
+#endif
 namespace LGUIPrefabSystem3
 {
 	AActor* ActorSerializer3::DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent)
@@ -143,4 +145,6 @@ namespace LGUIPrefabSystem3
 		return CreatedRootActor;
 	}
 }
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif

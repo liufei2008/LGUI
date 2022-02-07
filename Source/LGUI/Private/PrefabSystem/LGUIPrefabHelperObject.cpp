@@ -10,7 +10,9 @@
 #include "PrefabSystem/ActorSerializer3.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabManager"
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 ULGUIPrefabHelperObject::ULGUIPrefabHelperObject()
 {
@@ -1415,6 +1417,8 @@ void ULGUIPrefabHelperObject::OnNewVersionDismissAllClicked()
 }
 
 #endif
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif
 
 #undef LOCTEXT_NAMESPACE

@@ -17,7 +17,9 @@
 #include "Utils/LGUIUtils.h"
 #endif
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
+#endif
 namespace LGUIPrefabSystem3
 {
 	void ActorSerializer3::SavePrefab(AActor* OriginRootActor, ULGUIPrefab* InPrefab
@@ -362,4 +364,6 @@ namespace LGUIPrefabSystem3
 		}
 	}
 }
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif

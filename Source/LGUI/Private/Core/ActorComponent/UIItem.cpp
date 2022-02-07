@@ -16,7 +16,9 @@
 #include "UObject/UnrealType.h"
 #endif
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 #if WITH_EDITORONLY_DATA
 TSet<FName> UUIItem::PersistentOverridePropertyNameSet =
@@ -2336,4 +2338,6 @@ FBoxSphereBounds UUIItemEditorHelperComp::CalcBounds(const FTransform& LocalToWo
 	return FBoxSphereBounds(Origin, FVector(1, Parent->GetWidth() * 0.5f, Parent->GetHeight() * 0.5f), (Parent->GetWidth() > Parent->GetHeight() ? Parent->GetWidth() : Parent->GetHeight()) * 0.5f).TransformBy(LocalToWorld);
 }
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif

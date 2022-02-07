@@ -12,7 +12,9 @@
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
 
-//PRAGMA_DISABLE_OPTIMIZATION
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
 namespace LGUIPrefabSystem3
 {
 	AActor* ActorSerializer3::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
@@ -565,4 +567,6 @@ namespace LGUIPrefabSystem3
 		return NewActor;
 	}
 }
-//PRAGMA_ENABLE_OPTIMIZATION
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif

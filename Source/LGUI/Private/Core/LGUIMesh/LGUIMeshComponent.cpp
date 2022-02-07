@@ -15,7 +15,9 @@
 
 
 #define LOCTEXT_NAMESPACE "LGUIMeshComponent"
-//PRAGMA_DISABLE_OPTIMIZATION
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
 class FLGUIHudMeshVertexResourceArray : public FResourceArrayInterface
 {
 public:
@@ -982,4 +984,6 @@ FBoxSphereBounds ULGUIMeshComponent::CalcBounds(const FTransform& LocalToWorld) 
 	}
 }
 #undef LOCTEXT_NAMESPACE
-//PRAGMA_ENABLE_OPTIMIZATION
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif

@@ -6,7 +6,9 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PrefabSystem/2/ActorSerializer.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
+#endif
 using namespace LGUIPrefabSystem;
 bool ActorCopier::CopyCommonProperty(FProperty* Property, uint8* Src, uint8* Dest, int cppArrayIndex, bool isInsideCppArray)
 {
@@ -547,4 +549,6 @@ void ActorCopier::GenerateActorIDRecursive(AActor* Actor, int32& id)
 		GenerateActorIDRecursive(ChildActor, id);
 	}
 }
+#if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif

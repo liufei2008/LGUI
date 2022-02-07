@@ -3,7 +3,9 @@
 #include "Event/LGUIEventDelegate.h"
 #include "LGUI.h"
 
-//PRAGMA_DISABLE_OPTIMIZATION
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
 
 bool ULGUIEventDelegateParameterHelper::IsFunctionCompatible(const UFunction* InFunction, LGUIEventDelegateParameterType& OutParameterType)
 {
@@ -763,4 +765,6 @@ void FLGUIEventDelegate::FireEvent(const FText& InParam)const
 	else LogParameterError();
 }
 
-//PRAGMA_ENABLE_OPTIMIZATION
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif
