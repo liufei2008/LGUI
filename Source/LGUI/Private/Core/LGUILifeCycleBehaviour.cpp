@@ -258,6 +258,10 @@ void ULGUILifeCycleBehaviour::Awake()
 	{
 		ReceiveAwake();
 	}
+	if (GetRootSceneComponent())
+	{
+		bPrevIsRootComponentVisible = RootComp->GetVisibleFlag();//get bPrevIsRootComponentVisible in Awake, incase SetVisibility is called inside Awake, which will not trigger OnComponentRenderStateDirty callback, because RenderState is already dirty when Awake/BeginPlay
+	}
 }
 void ULGUILifeCycleBehaviour::Start()
 {

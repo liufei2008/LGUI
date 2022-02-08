@@ -131,7 +131,7 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 			//create SceneComponent
 			{
 				USceneComponent* RootComponent = NewObject<USceneComponent>(CreatedActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
-				RootComponent->Mobility = EComponentMobility::Movable;
+				RootComponent->Mobility = EComponentMobility::Static;
 				RootComponent->bVisualizeComponent = false;
 
 				CreatedActor->SetRootComponent(RootComponent);

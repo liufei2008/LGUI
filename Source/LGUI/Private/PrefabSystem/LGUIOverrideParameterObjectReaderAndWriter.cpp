@@ -151,20 +151,17 @@ namespace LGUIPrefabSystem3
 
 		return *this;
 	}
-	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FLazyObjectPtr& LazyObjectPtr)
+	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FLazyObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIOverrideParameterObjectWriter]Detect LazyObjectPtr property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectWriter::operator<<(Value);
 	}
 	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FSoftObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIOverrideParameterObjectWriter]Detect SoftObjectPtr property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectWriter::operator<<(Value);
 	}
 	FArchive& FLGUIOverrideParameterObjectWriter::operator<<(FSoftObjectPath& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIOverrideParameterObjectWriter]Detect SoftObjectPath property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectWriter::operator<<(Value);
 	}
 	FString FLGUIOverrideParameterObjectWriter::GetArchiveName() const
 	{
@@ -279,20 +276,17 @@ namespace LGUIPrefabSystem3
 		Value = Res;
 		return *this;
 	}
-	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FLazyObjectPtr& LazyObjectPtr)
+	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FLazyObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIOverrideParameterObjectReader]Detect LazyObjectPtr property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectReader::operator<<(Value);
 	}
 	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FSoftObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIOverrideParameterObjectReader]Detect SoftObjectPtr property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectReader::operator<<(Value);
 	}
 	FArchive& FLGUIOverrideParameterObjectReader::operator<<(FSoftObjectPath& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIOverrideParameterObjectReader]Detect SoftObjectPath property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectReader::operator<<(Value);
 	}
 	FString FLGUIOverrideParameterObjectReader::GetArchiveName() const
 	{

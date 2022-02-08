@@ -165,18 +165,15 @@ namespace LGUIPrefabSystem3
 	}
 	FArchive& FLGUIObjectWriter::operator<<(FLazyObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectWriter]Detect Value property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectWriter::operator<<(Value);
 	}
 	FArchive& FLGUIObjectWriter::operator<<(FSoftObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectWriter]Detect SoftObjectPtr property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectWriter::operator<<(Value);
 	}
 	FArchive& FLGUIObjectWriter::operator<<(FSoftObjectPath& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectWriter]Detect SoftObjectPath property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectWriter::operator<<(Value);
 	}
 	FString FLGUIObjectWriter::GetArchiveName() const
 	{
@@ -287,18 +284,15 @@ namespace LGUIPrefabSystem3
 	}
 	FArchive& FLGUIObjectReader::operator<<(FLazyObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectReader]Detect Value property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectReader::operator<<(Value);
 	}
 	FArchive& FLGUIObjectReader::operator<<(FSoftObjectPtr& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectReader]Detect SoftObjectPtr property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectReader::operator<<(Value);
 	}
 	FArchive& FLGUIObjectReader::operator<<(FSoftObjectPath& Value)
 	{
-		UE_LOG(LGUI, Warning, TEXT("[FLGUIObjectReader]Detect SoftObjectPath property, which is not supported by LGUIPrefab!"));
-		return *this;
+		return FObjectReader::operator<<(Value);
 	}
 	FString FLGUIObjectReader::GetArchiveName() const
 	{
