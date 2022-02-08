@@ -171,9 +171,11 @@ bool UUIScrollViewComponent::OnPointerBeginDrag_Implementation(ULGUIPointerEvent
         auto worldPoint = eventData->GetWorldPointInPlane();
         const auto localMoveDelta = eventData->pressWorldToLocalTransform.TransformVector(worldPoint - PrevWorldPoint);
         PrevWorldPoint = worldPoint;
+        AllowHorizontalScroll = false;
+        AllowVerticalScroll = false;
         if (OnlyOneDirection && Horizontal && Vertical)
         {
-            if (FMath::Abs(localMoveDelta.X) > FMath::Abs(localMoveDelta.Y))
+            if (FMath::Abs(localMoveDelta.Y) > FMath::Abs(localMoveDelta.Z))
             {
                 AllowHorizontalScroll = true;
             }
@@ -271,10 +273,34 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
     {
         if (eventData->scrollAxisValue != FVector2D::ZeroVector)
         {
-            if (Horizontal)
+            AllowHorizontalScroll = false;
+            AllowVerticalScroll = false;
+            if (OnlyOneDirection && Horizontal && Vertical)
+            {
+                if (FMath::Abs(eventData->scrollAxisValue.X) > FMath::Abs(eventData->scrollAxisValue.Y))
+                {
+                    AllowHorizontalScroll = true;
+                }
+                else
+                {
+                    AllowVerticalScroll = true;
+                }
+            }
+            else
+            {
+                if (Horizontal)
+                {
+                    AllowHorizontalScroll = true;
+                }
+                if (Vertical)
+                {
+                    AllowVerticalScroll = true;
+                }
+            }
+
+            if (AllowHorizontalScroll)
             {
                 auto delta = eventData->scrollAxisValue.X * -ScrollSensitivity;
-                AllowHorizontalScroll = true;
                 CanUpdateAfterDrag = true;
                 if (Position.Y < HorizontalRange.X || Position.Y > HorizontalRange.Y)
                 {
@@ -288,10 +314,9 @@ bool UUIScrollViewComponent::OnPointerScroll_Implementation(ULGUIPointerEventDat
                 }
                 ContentUIItem->SetRelativeLocation(Position);
             }
-            if (Vertical)
+            if (AllowVerticalScroll)
             {
                 auto delta = eventData->scrollAxisValue.Y * -ScrollSensitivity;
-                AllowVerticalScroll = true;
                 CanUpdateAfterDrag = true;
                 if (Position.Z < VerticalRange.X || Position.Z > VerticalRange.Y)
                 {
