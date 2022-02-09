@@ -26,6 +26,16 @@ void UUITextureBase_BP::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UUITextureBase_BP::OnBeforeCreateOrUpdateGeometry()
 {
+	if (!IsValid(createGeometryHelper))
+	{
+		createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
+		createGeometryHelper->uiGeometry = geometry;
+	}
+	if (!IsValid(updateGeometryHelper))
+	{
+		updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
+		updateGeometryHelper->uiGeometry = geometry;
+	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
 		ReceiveOnBeforeCreateOrUpdateGeometry();
@@ -35,25 +45,19 @@ void UUITextureBase_BP::OnCreateGeometry()
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		if (!IsValid(createGeometryHelper))
-		{
-			createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
-			createGeometryHelper->uiGeometry = geometry;
-		}
 		ReceiveOnCreateGeometry(createGeometryHelper);
 	}
 }
+DECLARE_CYCLE_STAT(TEXT("UUITextureBase_BP.OnUpdateGeometry"), STAT_UITexture_OnUpdateGeometry, STATGROUP_LGUI);
 void UUITextureBase_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
-		if (!IsValid(updateGeometryHelper))
-		{
-			updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
-			updateGeometryHelper->uiGeometry = geometry;
-		}
 		updateGeometryHelper->BeginUpdateVertices();
-		ReceiveOnUpdateGeometry(updateGeometryHelper, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+		{
+			SCOPE_CYCLE_COUNTER(STAT_UITexture_OnUpdateGeometry);
+			ReceiveOnUpdateGeometry(updateGeometryHelper, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged);
+		}
 		updateGeometryHelper->EndUpdateVertices();
 	}
 }

@@ -415,7 +415,8 @@ protected:
 	void CheckRootUIItem();
 public:
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(Transient)class UUIItemEditorHelperComp* HelperComp = nullptr;
+	/** This is a helper component for calculate bounds, so we can double click to focus on this UIItem */
+	UPROPERTY(Transient, NonTransactional)class UUIItemEditorHelperComp* HelperComp = nullptr;//@todo: better way to replace this?
 #endif
 
 	/** old data */

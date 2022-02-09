@@ -119,9 +119,15 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 			auto CanvasComp = NewObject<ULGUICanvas>(RootUICanvasActor);
 			CanvasComp->RegisterComponent();
 			RootUICanvasActor->AddInstanceComponent(CanvasComp);
+			CanvasComp->SetRenderMode(ELGUIRenderMode::ScreenSpaceOverlay);
 
 			RootUICanvasActor->GetUIItem()->SetWidth(1920);
 			RootUICanvasActor->GetUIItem()->SetHeight(1080);
+
+			auto CanvasScaler = NewObject<ULGUICanvasScaler>(RootUICanvasActor);
+			CanvasScaler->RegisterComponent();
+			RootUICanvasActor->AddInstanceComponent(CanvasScaler);
+			CanvasScaler->SetUIScaleMode(LGUIScaleMode::ConstantPixelSize);
 
 			RootAgentActor = RootUICanvasActor;
 		}
@@ -152,17 +158,10 @@ USceneComponent* FLGUIPrefabPreviewScene::GetParentComponentForPrefab(ULGUIPrefa
 #if ENGINE_MAJOR_VERSION >= 5
 			RootAgentActor->SetLockLocation(true);
 
-			//Why comment this? Because in UE5 this will cause display error
-			//auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-			//bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootAgentActor, false);
-
 			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
 			bActorLabelEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);
 #else
 			RootAgentActor->bLockLocation = true;
-
-			auto bListedInSceneOutliner_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bListedInSceneOutliner"));
-			bListedInSceneOutliner_Property->SetPropertyValue_InContainer(RootAgentActor, false);
 
 			auto bActorLabelEditable_Property = FindFProperty<FBoolProperty>(AUIContainerActor::StaticClass(), TEXT("bActorLabelEditable"));
 			bActorLabelEditable_Property->SetPropertyValue_InContainer(RootAgentActor, false);

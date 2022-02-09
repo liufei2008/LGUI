@@ -880,19 +880,19 @@ void UUIItem::OnUnregister()
 			ALGUIManagerActor::RemoveUIItem(this);
 		}
 	}
-
+#if WITH_EDITORONLY_DATA
+	if (HelperComp)
+	{
+		HelperComp->DestroyComponent();
+		HelperComp = nullptr;
+	}
+#endif
 	CheckRootUIItem();
 }
 
 void UUIItem::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
 	Super::OnComponentDestroyed(bDestroyingHierarchy);
-#if WITH_EDITORONLY_DATA
-	if (HelperComp)
-	{
-		HelperComp->DestroyComponent();
-	}
-#endif
 }
 
 void UUIItem::CheckCacheUIChildren()

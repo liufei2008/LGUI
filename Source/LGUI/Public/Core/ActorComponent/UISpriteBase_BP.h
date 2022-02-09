@@ -38,7 +38,7 @@ public:
 	/** if vertex count change or triangle count change, call this */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void MarkRebuildGeometry();
-private:
+protected:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;
 	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper;
 };
