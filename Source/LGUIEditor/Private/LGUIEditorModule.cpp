@@ -1029,6 +1029,14 @@ void FLGUIEditorModule::CreateUIElementSubMenu(FMenuBuilder& MenuBuilder)
 	MenuBuilder.EndSection();
 }
 
+bool FLGUIEditorModule::IsValidClassName(const FString& InName)
+{
+	return 
+		!InName.StartsWith(TEXT("SKEL_"))
+		&& !InName.StartsWith(TEXT("REINST_"))
+		;
+}
+
 void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 {
 	struct FunctionContainer
@@ -1148,7 +1156,7 @@ void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 				&& !(ClassItr->HasAnyClassFlags(CLASS_NotPlaceable))
 				)
 			{
-				if (ClassItr->GetName().StartsWith(TEXT("SKEL_")))
+				if (IsValidClassName(ClassItr->GetName()))
 				{
 					continue;
 				}
@@ -1315,7 +1323,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
 					if (isBlueprint)
 					{
-						if (ClassItr->GetName().StartsWith(TEXT("SKEL_")))
+						if (IsValidClassName(ClassItr->GetName()))
 						{
 							continue;
 						}
@@ -1364,7 +1372,7 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
 					if (isBlueprint)
 					{
-						if (ClassItr->GetName().StartsWith(TEXT("SKEL_")))
+						if (IsValidClassName(ClassItr->GetName()))
 						{
 							continue;
 						}
@@ -1518,7 +1526,7 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
 					if (isBlueprint)
 					{
-						if (ClassItr->GetName().StartsWith(TEXT("SKEL_")))
+						if (IsValidClassName(ClassItr->GetName()))
 						{
 							continue;
 						}

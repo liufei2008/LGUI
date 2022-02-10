@@ -34,6 +34,8 @@ public:
 	void OnOutlinerSelectionChange();
 private:
 
+	bool IsValidClassName(const FString& InName);
+
 	void CreateUIElementSubMenu(FMenuBuilder& MenuBuilder);
 	void CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder);
 	void CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder);
