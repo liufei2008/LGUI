@@ -475,6 +475,7 @@ private:
 	 * eg: when attach to other canvas, this will tell which render mode in old canvas, and if not compatible then recreate render data.
 	 */
 	uint32 bCurrentIsLGUIRendererOrUERenderer : 1;
+	uint32 bPrevUIItemIsActive : 1;//is UIItem active in prev frame?
 
 	uint32 bOverrideViewLocation:1, bOverrideViewRotation:1, bOverrideProjectionMatrix:1, bOverrideFovAngle :1;
 

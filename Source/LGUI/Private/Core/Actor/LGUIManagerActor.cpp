@@ -501,6 +501,11 @@ void ULGUIEditorManagerObject::RemoveUIItem(UUIItem* InItem)
 	}
 }
 
+const TArray<TWeakObjectPtr<UUIItem>>& ULGUIEditorManagerObject::GetAllRootUIItemArray()
+{
+	return Instance->AllRootUIItemArray;
+}
+
 void ULGUIEditorManagerObject::RemoveCanvas(ULGUICanvas* InCanvas)
 {
 	if (Instance != nullptr)

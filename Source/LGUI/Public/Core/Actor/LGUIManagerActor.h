@@ -80,6 +80,8 @@ public:
 	static bool AnySelectedIsChildOf(AActor* InObject);
 	void CheckEditorViewportIndexAndKey();
 	uint32 GetViewportKeyFromIndex(int32 InViewportIndex);
+
+	const TArray<TWeakObjectPtr<UUIItem>>& GetAllRootUIItemArray();
 public:
 	static void AddUIItem(UUIItem* InItem);
 	static void RemoveUIItem(UUIItem* InItem);
