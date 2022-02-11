@@ -604,19 +604,18 @@ bool FLGUIEditorModule::CanCreateActor()
 
 bool FLGUIEditorModule::CanDeleteActor()
 {
-	auto SelectedActor = LGUIEditorTools::GetFirstSelectedActor();
-	if (SelectedActor == nullptr)return false;
-	if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(SelectedActor))
+	auto SelectedActors = LGUIEditorTools::GetSelectedActors();
+	if (SelectedActors.Num() == 0)return false;
+	for (auto Actor : SelectedActors)
 	{
-		if (PrefabHelperObject->ActorIsSubPrefabRootActor(SelectedActor))//allowed to delete sub prefab's root actor, it will handled in prefab editor
+		if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
 		{
-			return true;
+			if (!PrefabHelperObject->ActorIsSubPrefabRootActor(Actor)//allowed to delete sub prefab's root actor
+				&& PrefabHelperObject->IsActorBelongsToSubPrefab(Actor))//not allowed to delete sub prefab's actor
+			{
+				return false;
+			}
 		}
-		if (PrefabHelperObject->IsActorBelongsToSubPrefab(SelectedActor))//not allowed to delete sub prefab's actor
-		{
-			return false;
-		}
-		return true;//allowed to delete common prefab
 	}
 	return true;
 }

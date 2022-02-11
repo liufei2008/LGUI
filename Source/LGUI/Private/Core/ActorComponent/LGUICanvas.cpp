@@ -53,6 +53,7 @@ ULGUICanvas::ULGUICanvas()
 	bOverrideViewRotation = false;
 	bOverrideProjectionMatrix = false;
 	bOverrideFovAngle = false;
+	bPrevUIItemIsActive = true;
 
 	bCanTickUpdate = true;
 	bShouldRebuildDrawcall = true;
@@ -68,7 +69,14 @@ void ULGUICanvas::BeginPlay()
 	Super::BeginPlay();
 	CheckRootCanvas();
 	bCurrentIsLGUIRendererOrUERenderer = IsRenderByLGUIRendererOrUERenderer();
-	CheckUIItem();
+	if (CheckUIItem())
+	{
+		bPrevUIItemIsActive = UIItem->GetIsUIActiveInHierarchy();
+	}
+	else
+	{
+		bPrevUIItemIsActive = false;
+	}
 	MarkCanvasUpdate(true, true, true, true);
 
 	bClipTypeChanged = true;
@@ -91,39 +99,49 @@ void ULGUICanvas::UpdateCanvas()
 {
 	if (!bCanTickUpdate)return;
 
-	if (CheckUIItem() && UIItem->GetIsUIActiveInHierarchy())
+	if (CheckUIItem())
 	{
-		if (this == RootCanvas)
+		/**
+		 * Why use bPrevUIItemIsActive?:
+		 * If Canvas is rendering in frame 1, but when in frame 2 the Canvas is disabled(by disable UIItem), then the Canvas will not do drawcall calculation, and the prev existing drawcall mesh is still there and render,
+		 * so we check bPrevUIItemIsActive, then we can still do drawcall calculation at this frame, and the prev existing drawcall will be removed.
+		 */
+		bool bNowUIItemIsActive = UIItem->GetIsUIActiveInHierarchy();
+		if (bNowUIItemIsActive || bPrevUIItemIsActive)
 		{
-			if (bCurrentIsLGUIRendererOrUERenderer)
+			bPrevUIItemIsActive = bNowUIItemIsActive;
+			if (this == RootCanvas)
 			{
-				if (!bHasAddToLGUIScreenSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+				if (bCurrentIsLGUIRendererOrUERenderer)
 				{
-					TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
+					if (!bHasAddToLGUIScreenSpaceRenderer && GetActualRenderMode() == ELGUIRenderMode::ScreenSpaceOverlay)
+					{
+						TSharedPtr<class FLGUIHudRenderer, ESPMode::ThreadSafe> ViewExtension = nullptr;
 #if WITH_EDITOR
-					if (!GetWorld()->IsGameWorld())//editor world, screen space UI not need to add to ViewExtension
-					{
+						if (!GetWorld()->IsGameWorld())//editor world, screen space UI not need to add to ViewExtension
+						{
 
-					}
-					else
+						}
+						else
 #endif
-					{
-						ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
-					}
+						{
+							ViewExtension = ALGUIManagerActor::GetViewExtension(GetWorld(), true);
+						}
 
-					if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
-					{
-						ViewExtension->SetScreenSpaceRenderCanvas(this);
-						bHasAddToLGUIScreenSpaceRenderer = true;
+						if (ViewExtension.IsValid())//only root canvas can add screen space UI to LGUIRenderer
+						{
+							ViewExtension->SetScreenSpaceRenderCanvas(this);
+							bHasAddToLGUIScreenSpaceRenderer = true;
+						}
 					}
 				}
 			}
-		}
 
-		if (!this->IsRenderByOtherCanvas())//if is render by other canvas then skip update
-		{
-			UpdateCanvasDrawcallRecursive();
-			MarkFinishRenderFrameRecursive();
+			if (!this->IsRenderByOtherCanvas())//if is render by other canvas then skip update
+			{
+				UpdateCanvasDrawcallRecursive();
+				MarkFinishRenderFrameRecursive();
+			}
 		}
 	}
 }

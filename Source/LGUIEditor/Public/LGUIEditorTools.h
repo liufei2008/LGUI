@@ -16,23 +16,8 @@ private:
 public:
 	static FString LGUIPresetPrefabPath;
 
-	static AActor * GetFirstSelectedActor();
-	template<class T>
-	static void CreateUIItemActor()
-	{
-		static_assert(TPointerIsConvertibleFromTo<T, const AActor>::Value, "'T' template parameter to CreateUIItemActor must be derived from AActor");
-		auto selectedActor = GetFirstSelectedActor();
-		AActor* newActor = nullptr;
-		GEditor->BeginTransaction(FText::FromString(TEXT("LGUI Create UI Element")));
-		newActor = GetWorldFromSelection()->SpawnActor<T>(FVector::ZeroVector, FQuat::Identity.Rotator(), FActorSpawnParameters());
-		if (selectedActor != nullptr)
-		{
-			newActor->AttachToActor(selectedActor, FAttachmentTransformRules::KeepRelativeTransform);
-			GEditor->SelectActor(selectedActor, false, true);
-			GEditor->SelectActor(newActor, true, true);
-		}
-		GEditor->EndTransaction();
-	}
+	static AActor* GetFirstSelectedActor();
+	static TArray<AActor*> GetSelectedActors();
 	static FString GetUniqueNumetricName(const FString& InPrefix, const TArray<FString>& InExistNames);
 	static TArray<AActor*> GetRootActorListFromSelection(const TArray<AActor*>& selectedActors);
 	static void CreateUIItemActor(UClass* ActorClass);

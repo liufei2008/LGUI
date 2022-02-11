@@ -113,21 +113,32 @@ bool ULGUIEventDelegateParameterHelper::IsPropertyCompatible(const FProperty* In
 	{
 		auto structProperty = (FStructProperty*)InFunctionProperty;
 		auto structName = structProperty->Struct->GetFName();
-		switch (*structName.ToEName())
+		if (structName == NAME_Vector2D)
 		{
-		case NAME_Vector2D:
 			OutParameterType = LGUIEventDelegateParameterType::Vector2; return true;
-		case NAME_Vector:
+		}
+		else if (structName == NAME_Vector)
+		{
 			OutParameterType = LGUIEventDelegateParameterType::Vector3; return true;
-		case NAME_Vector4:
+		}
+		else if (structName == NAME_Vector4)
+		{
 			OutParameterType = LGUIEventDelegateParameterType::Vector4; return true;
-		case NAME_Color:
+		}
+		else if (structName == NAME_Color)
+		{
 			OutParameterType = LGUIEventDelegateParameterType::Color; return true;
-		case NAME_LinearColor:
+		}
+		else if (structName == NAME_LinearColor)
+		{
 			OutParameterType = LGUIEventDelegateParameterType::LinearColor; return true;
-		case NAME_Quat:
+		}
+		else if (structName == NAME_Quat)
+		{
 			OutParameterType = LGUIEventDelegateParameterType::Quaternion; return true;
-		case NAME_Rotator:
+		}
+		else if (structName == NAME_Rotator)
+		{
 			OutParameterType = LGUIEventDelegateParameterType::Rotator; return true;
 		}
 		return false;

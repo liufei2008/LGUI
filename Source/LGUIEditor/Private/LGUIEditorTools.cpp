@@ -310,6 +310,12 @@ AActor* LGUIEditorTools::GetFirstSelectedActor()
 	}
 	return selectedActors[0];
 }
+
+TArray<AActor*> LGUIEditorTools::GetSelectedActors()
+{
+	return LGUIEditorToolsHelperFunctionHolder::ConvertSelectionToActors(GEditor->GetSelectedActors());
+}
+
 void LGUIEditorTools::CreateUIControls(FString InPrefabPath)
 {
 	auto selectedActor = GetFirstSelectedActor();

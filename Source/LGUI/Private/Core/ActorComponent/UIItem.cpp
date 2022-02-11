@@ -510,7 +510,18 @@ void UUIItem::PostEditUndo()
 	CheckUIActiveState();
 
 	SetOnAnchorChange(true, true);
+
 #if WITH_EDITOR
+	//Renew render canvas, so add UIBaseRenderable will not exist in wrong canvas
+	if (ULGUIEditorManagerObject::Instance != nullptr)
+	{
+		for (auto TempRootUIItem : ULGUIEditorManagerObject::Instance->GetAllRootUIItemArray())
+		{
+			auto OldRenderCanvas = TempRootUIItem->RenderCanvas;
+			TempRootUIItem->RenderCanvas = nullptr;
+			TempRootUIItem->RenewRenderCanvasRecursive(OldRenderCanvas.Get());
+		}
+	}
 	ULGUIEditorManagerObject::RefreshAllUI();
 #endif
 }
@@ -624,8 +635,14 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
 					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
+					/*
+					 * why call CalculateAnchorFromTransform here, since CalculateAnchorFromTransform is already called inside OnAttachmentChanged?
+					 * 		because when processing CalculateAnchorFromTransform in OnAttachmentChanged, the RelativeLocation is not yet calculated (still world space location), so the result anchorData is wrong.
+					 * no need to call CalculateAnchorFromTransform when OnChildDetached, because anchoredPosition is always zero when not parent exist.
+					 */
+					childUIItem->CalculateAnchorFromTransform();
 				}
-				else//when load from level, then not set hierarchy index
+				else//not registered means is loading from level. then no need to set hierarchy index
 				{
 
 				}
@@ -644,8 +661,14 @@ void UUIItem::OnChildAttached(USceneComponent* ChildComponent)
 				{
 					childUIItem->hierarchyIndex = UIChildren.Num();
 					this->CallUILifeCycleBehavioursChildHierarchyIndexChanged(childUIItem);
+					/*
+					 * why call CalculateAnchorFromTransform here, since CalculateAnchorFromTransform is already called inside OnAttachmentChanged?
+					 * 		because when processing CalculateAnchorFromTransform in OnAttachmentChanged, the RelativeLocation is not yet calculated (still world space location), so the result anchorData is wrong.
+					 * no need to call CalculateAnchorFromTransform when OnChildDetached, because anchoredPosition is always zero when not parent exist.
+					 */
+					childUIItem->CalculateAnchorFromTransform();
 				}
-				else//when load from level, then not set hierarchy index
+				else//not registered means is loading from level. then no need to set hierarchy index
 				{
 
 				}
@@ -727,14 +750,6 @@ void UUIItem::OnAttachmentChanged()
 						Parent->CallUILifeCycleBehavioursChildAttachmentChanged(Child.Get(), true);
 					}});
 			}
-
-			if (!ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(this->GetOwner()))
-			{
-				if (this->IsRegistered())//when load from level
-				{
-					this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
-				}
-			}
 		}
 		else
 		{
@@ -748,7 +763,7 @@ void UUIItem::OnAttachmentChanged()
 				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
 			}
 
-			if (this->IsRegistered())//when load from level
+			if (this->IsRegistered())//not registered means is loading from level.
 			{
 				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
 			}
@@ -789,7 +804,7 @@ void UUIItem::OnAttachmentChanged()
 				ParentUIItem->CallUILifeCycleBehavioursChildAttachmentChanged(this, true);
 			}
 
-			if (this->IsRegistered())//load from level
+			if (this->IsRegistered())//not registered means is loading from level.
 			{
 				this->CalculateAnchorFromTransform();//if not from PrefabSystem, then calculate anchors on transform, so when use AttachComponent, the KeepRelative or KeepWorld will work. If from PrefabSystem, then anchor will automatically do the job
 			}
