@@ -758,9 +758,35 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 
 	int FitInDrawcallMinIndex = InUIDrawcallList.Num();//0 means the first canvas that processing drawcall. if not 0 means this is child canvas, then we should skip the previours canvas when batch drawcall, because child canvas's UI element can't batch into other canvas's drawcall
 
-	auto CanFitInDrawcall = [&](UUIBatchGeometryRenderable* InUIItem, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
+	auto CanFitInDrawcall = [&](UUIBatchGeometryRenderable* InUIItem, bool InIs2DUI, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
 	{
-		for (int i = InUIDrawcallList.Num() - 1; i >= FitInDrawcallMinIndex; i--)//from tail to head
+		if (InUIItem->GetGeometry()->material.IsValid())//consider every custom material as a drawcall
+		{
+			return false;
+		}
+		auto LastDrawcallIndex = InUIDrawcallList.Num() - 1;
+		if (LastDrawcallIndex < 0)
+		{
+			return false;
+		}
+		//first step, check last drawcall, because 3d UI can only batch into last drawcall
+		{
+			auto LastDrawcall = InUIDrawcallList[LastDrawcallIndex];
+			if (!LastDrawcall->material.IsValid()
+				&& LastDrawcall->type == EUIDrawcallType::BatchGeometry
+				&& LastDrawcall->texture == InUIItem->GetGeometry()->texture
+				)
+			{
+				OutDrawcallIndexToFitin = LastDrawcallIndex;
+				return true;
+			}
+		}
+		//3d UI is already processed in prev step, so any 3d UI is not able to batch
+		if (!InIs2DUI)
+		{
+			return false;
+		}
+		for (int i = LastDrawcallIndex; i >= FitInDrawcallMinIndex; i--)//from tail to head
 		{
 			auto DrawcallItem = InUIDrawcallList[i];
 			if (!DrawcallItem->bIs2DSpace)//drawcall is 3d, can't batch
@@ -939,66 +965,45 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 				if (ItemGeo.IsValid() == false)continue;
 				if (ItemGeo->vertices.Num() == 0)continue;
 
-				if (!ItemGeo->material.IsValid()//consider every custom material as a drawcall
-					&& !is2DUIItem//3d UI can't batch
-					)
+				int DrawcallIndexToFitin;
+				if (CanFitInDrawcall(UIBatchGeometryRenderableItem, is2DUIItem, UIItemToCanvasTf, DrawcallIndexToFitin))
 				{
-					auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
-					if (OldDrawcall.IsValid())//already exist in other drawcall, could be added previoursly (exist in InUIDrawcallList), could exist in InCacheUIDrawcallList
+					auto DrawcallItem = InUIDrawcallList[DrawcallIndexToFitin];
+					DrawcallItem->bIs2DSpace = DrawcallItem->bIs2DSpace && is2DUIItem;
+					if (UIBatchGeometryRenderableItem->drawcall == DrawcallItem)//already exist in this drawcall (added previoursly)
 					{
-						ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
-					}
-					//make a individual drawacll
-					PushSingleDrawcall(UIBatchGeometryRenderableItem
-						, false//this UI element cannot batch into other, and other cannot batch into this, so make it a individual drawcall
-						, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry);
-					//copy update state from old to new
-					if (OldDrawcall.IsValid())
-					{
-						OldDrawcall->CopyUpdateState(UIBatchGeometryRenderableItem->drawcall.Get());
-					}
-				}
-				else//batch elements into drawcall
-				{
-					int DrawcallIndexToFitin;
-					if (CanFitInDrawcall(UIBatchGeometryRenderableItem, UIItemToCanvasTf, DrawcallIndexToFitin))
-					{
-						auto DrawcallItem = InUIDrawcallList[DrawcallIndexToFitin];
-						if (UIBatchGeometryRenderableItem->drawcall == DrawcallItem)//already exist in this drawcall (added previoursly)
-						{
 							
-						}
-						else//not exist in this drawcall
-						{
-							auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
-							if (OldDrawcall.IsValid())//maybe exist in other drawcall, should remove from that drawcall
-							{
-								ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
-							}
-							//add to this drawcall
-							DrawcallItem->renderObjectList.Add(UIBatchGeometryRenderableItem);
-							DrawcallItem->needToRebuildMesh = true;
-							UIBatchGeometryRenderableItem->drawcall = DrawcallItem;
-							//copy update state from old to new
-							if (OldDrawcall.IsValid())
-							{
-								OldDrawcall->CopyUpdateState(DrawcallItem.Get());
-							}
-						}
 					}
-					else//cannot fit in any other drawcall
+					else//not exist in this drawcall
 					{
 						auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
 						if (OldDrawcall.IsValid())//maybe exist in other drawcall, should remove from that drawcall
 						{
-							if (InUIDrawcallList.Contains(OldDrawcall))//if this drawcall already exist (added previoursly), then remove the object from the drawcall. if not exist, then just add the entire drawcall to list
-							{
-								ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
-							}
+							ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
 						}
-						//make a new drawacll
-						PushSingleDrawcall(UIBatchGeometryRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry);
+						//add to this drawcall
+						DrawcallItem->renderObjectList.Add(UIBatchGeometryRenderableItem);
+						DrawcallItem->needToRebuildMesh = true;
+						UIBatchGeometryRenderableItem->drawcall = DrawcallItem;
+						//copy update state from old to new
+						if (OldDrawcall.IsValid())
+						{
+							OldDrawcall->CopyUpdateState(DrawcallItem.Get());
+						}
 					}
+				}
+				else//cannot fit in any other drawcall
+				{
+					auto OldDrawcall = UIBatchGeometryRenderableItem->drawcall;
+					if (OldDrawcall.IsValid())//maybe exist in other drawcall, should remove from that drawcall
+					{
+						if (InUIDrawcallList.Contains(OldDrawcall))//if this drawcall already exist (added previoursly), then remove the object from the drawcall. if not exist, then just add the entire drawcall to list
+						{
+							ClearDrawcall(OldDrawcall, UIBatchGeometryRenderableItem);
+						}
+					}
+					//make a new drawacll
+					PushSingleDrawcall(UIBatchGeometryRenderableItem, true, ItemGeo, is2DUIItem, EUIDrawcallType::BatchGeometry);
 				}
 			}
 			break;
