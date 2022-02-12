@@ -178,9 +178,12 @@ public:
 		void SetAnchorMax(FVector2D Value);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
-		void SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize = false);
+		void SetHorizontalAndVerticalAnchorMinMax(FVector2D MinValue, FVector2D MaxValue, bool bKeepSize, bool bKeepRelativeLocation);
+
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
-		void SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize = false);
+		void SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize = false, bool bKeepRelativeLocation = false);
+	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
+		void SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize = false, bool bKeepRelativeLocation = false);
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI-AnchorData")
 		void SetAnchoredPosition(FVector2D Value);

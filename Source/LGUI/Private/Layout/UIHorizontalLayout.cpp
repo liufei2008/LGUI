@@ -195,8 +195,7 @@ void UUIHorizontalLayout::OnRebuildLayout()
     for (int i = 0; i < childrenCount; i++)
     {
         auto uiItem = uiChildrenList[i].uiItem;
-        uiItem->SetAnchorMin(FVector2D(0, 1));
-        uiItem->SetAnchorMax(FVector2D(0, 1));
+        uiItem->SetHorizontalAndVerticalAnchorMinMax(FVector2D(0, 1), FVector2D(0, 1), true, true);
         float childWidth;
         if (ExpendChildrenWidth)
         {

@@ -1438,7 +1438,35 @@ void UUIItem::SetAnchorMax(FVector2D Value)
 	}
 }
 
-void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize)
+void UUIItem::SetHorizontalAndVerticalAnchorMinMax(FVector2D MinValue, FVector2D MaxValue, bool bKeepSize, bool bKeepRelativeLocation)
+{
+	if (this->ParentUIItem.IsValid())
+	{
+		if (!AnchorData.AnchorMin.Equals(MinValue, 0.0f) || !AnchorData.AnchorMax.Equals(MaxValue, 0.0f))
+		{
+			auto PrevRelativeLocation = this->GetRelativeLocation();
+			auto PrevWidth = this->GetWidth();
+			auto PrevHeight = this->GetHeight();
+			this->SetAnchorMin(MinValue);
+			this->SetAnchorMax(MaxValue);
+			if (bKeepSize)
+			{
+				this->SetWidth(PrevWidth);
+				this->SetHeight(PrevHeight);
+			}
+			if (bKeepRelativeLocation)
+			{
+				this->SetRelativeLocation(PrevRelativeLocation);
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetAnchorMax]This function only valid if UIItem have parent!"))
+	}
+}
+
+void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize, bool bKeepRelativeLocation)
 {
 	if (this->ParentUIItem.IsValid())
 	{
@@ -1451,6 +1479,7 @@ void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize)
 			{
 				CacheWidth = this->GetWidth();
 			}
+			auto PrevRelativeLocation = this->GetRelativeLocation();
 
 			AnchorData.AnchorMin.X = Value.X;
 			AnchorData.AnchorMax.X = Value.Y;
@@ -1468,8 +1497,12 @@ void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize)
 				}
 				this->AnchorData.AnchoredPosition.X = FMath::Lerp(CurrentLeft, -CurrentRight, this->AnchorData.Pivot.X);
 			}
+			if (bKeepRelativeLocation)
+			{
+				this->SetRelativeLocation(PrevRelativeLocation);
+			}
 
-			SetOnAnchorChange(false, true);
+			SetOnAnchorChange(false, !bKeepSize);
 		}
 	}
 	else
@@ -1477,7 +1510,7 @@ void UUIItem::SetHorizontalAnchorMinMax(FVector2D Value, bool bKeepSize)
 		UE_LOG(LGUI, Warning, TEXT("[UUIItem::SetHorizontalAnchorMinMax]This function only valid if UIItem have parent!"))
 	}
 }
-void UUIItem::SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize)
+void UUIItem::SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize, bool bKeepRelativeLocation)
 {
 	if (this->ParentUIItem.IsValid())
 	{
@@ -1490,6 +1523,7 @@ void UUIItem::SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize)
 			{
 				CacheHeight = this->GetHeight();
 			}
+			auto PrevRelativeLocation = this->GetRelativeLocation();
 
 			AnchorData.AnchorMin.Y = Value.X;
 			AnchorData.AnchorMax.Y = Value.Y;
@@ -1507,8 +1541,12 @@ void UUIItem::SetVerticalAnchorMinMax(FVector2D Value, bool bKeepSize)
 				}
 				this->AnchorData.AnchoredPosition.Y = FMath::Lerp(CurrentBottom, -CurrentTop, this->AnchorData.Pivot.Y);
 			}
+			if (bKeepRelativeLocation)
+			{
+				this->SetRelativeLocation(PrevRelativeLocation);
+			}
 
-			SetOnAnchorChange(false, true);
+			SetOnAnchorChange(false, !bKeepSize);
 		}
 	}
 	else
