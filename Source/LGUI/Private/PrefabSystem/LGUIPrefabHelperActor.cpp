@@ -104,7 +104,13 @@ ALGUIPrefabManagerActor* ALGUIPrefabManagerActor::GetPrefabManagerActor(ULevel* 
 	}
 	if (auto ResultPtr = MapLevelToManagerActor.Find(InLevel))
 	{
-		(*ResultPtr)->PrefabHelperObject->MarkAsManagerObject();
+		if (auto World = ResultPtr->Get()->GetWorld())
+		{
+			if (!World->IsGameWorld())
+			{
+				(*ResultPtr)->PrefabHelperObject->MarkAsManagerObject();//can only manage prefab in edit mode
+			}
+		}
 		return ResultPtr->Get();
 	}
 	else
