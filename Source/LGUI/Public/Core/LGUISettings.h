@@ -82,10 +82,11 @@ public:
 		int32 PriorityInSceneViewExtension = 0;
 
 	/** 
-	 * Only 2D elements can be batched.
-	 * Ruls for telling if a UI element is 2D (convert the UI element in Canvas's relative space):
-	 *		Relative location.Z less than threshold.
-	 *		Relative rotation.X/Y less than threshold.
+	 * 3D UI elements is almost not possible to check overlap, so a 3D UI element only allowed to batch to last drawcall from drawcall list, as long as common check is passed (material/ texture).
+	 * Only 2D elements are easier to check overlap and batch together.
+	 *		Rules for telling if a UI element is 2D (convert the UI element in Canvas's relative space):
+	 *			Relative location.Z less than threshold.
+	 *			Relative rotation.X/Y less than threshold.
 	 * This is the threshold for determine if the UI element is 2D.
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "LGUI", meta = (ClampMin = "0.00001", ClampMax = "100"))
