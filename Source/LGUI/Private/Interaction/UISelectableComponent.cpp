@@ -11,6 +11,10 @@
 #include "Event/LGUIEventSystem.h"
 #include "Core/ActorComponent/UISprite.h"
 
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_DISABLE_OPTIMIZATION
+#endif
+
 void UUISelectableComponent::Awake()
 {
 	Super::Awake();
@@ -696,3 +700,7 @@ void UUISelectableComponent::SetNavigationNextExplicit(UUISelectableComponent* v
 	}
 }
 #pragma endregion
+
+#if LGUI_CAN_DISABLE_OPTIMIZATION
+PRAGMA_ENABLE_OPTIMIZATION
+#endif
