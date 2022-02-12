@@ -66,7 +66,14 @@ bool ULGUILifeCycleUIBehaviour::GetIsActiveAndEnable()const
 }
 bool ULGUILifeCycleUIBehaviour::IsAllowedToCallOnEnable()const
 {
-	return GetIsActiveAndEnable();
+	if (RootUIComp.IsValid())
+	{
+		return RootUIComp->GetIsUIActiveInHierarchy();
+	}
+	else
+	{
+		return Super::IsAllowedToCallOnEnable();
+	}
 }
 
 bool ULGUILifeCycleUIBehaviour::IsAllowedToCallAwake()const

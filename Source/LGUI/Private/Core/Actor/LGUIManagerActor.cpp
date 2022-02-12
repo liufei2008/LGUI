@@ -1565,7 +1565,7 @@ void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InCom
 			{
 				InComp->Awake();
 			}
-			if (InComp->IsAllowedToCallOnEnable())
+			if (InComp->IsAllowedToCallOnEnable() && InComp->GetEnable())
 			{
 				if (!InComp->bIsEnableCalled)
 				{

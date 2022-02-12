@@ -253,6 +253,9 @@ void ULGUILifeCycleBehaviour::Awake()
 		check(0);
 	}
 #endif
+#if !UE_BUILD_SHIPPING
+	check(!bIsAwakeCalled);
+#endif
 	bIsAwakeCalled = true;
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
@@ -265,6 +268,9 @@ void ULGUILifeCycleBehaviour::Awake()
 }
 void ULGUILifeCycleBehaviour::Start()
 {
+#if !UE_BUILD_SHIPPING
+	check(!bIsStartCalled);
+#endif
 	bIsStartCalled = true;
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
@@ -287,6 +293,9 @@ void ULGUILifeCycleBehaviour::OnDestroy()
 }
 void ULGUILifeCycleBehaviour::OnEnable()
 {
+#if !UE_BUILD_SHIPPING
+	check(!bIsEnableCalled);
+#endif
 	bIsEnableCalled = true;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
@@ -316,6 +325,9 @@ void ULGUILifeCycleBehaviour::OnEnable()
 }
 void ULGUILifeCycleBehaviour::OnDisable()
 {
+#if !UE_BUILD_SHIPPING
+	check(bIsEnableCalled);
+#endif
 	bIsEnableCalled = false;
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
