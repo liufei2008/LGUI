@@ -83,7 +83,7 @@ bool ULGUIWorldSpaceRaycaster::Raycast(ULGUIPointerEventData* InPointerEventData
 		auto HitWorld = Super::RaycastWorld(InPointerEventData, WorldRayOrigin, WorldRayDirection, WorldRayEnd, WorldHitResult, WorldHoverArray);
 		if (HitUI && HitWorld)
 		{
-			if (UIHitResult.Distance >= WorldHitResult.Distance)
+			if (UIHitResult.Distance <= WorldHitResult.Distance)
 			{
 				goto HIT_UI;
 			}
