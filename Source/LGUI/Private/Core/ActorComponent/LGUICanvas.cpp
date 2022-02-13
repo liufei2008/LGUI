@@ -760,10 +760,6 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 
 	auto CanFitInDrawcall = [&](UUIBatchGeometryRenderable* InUIItem, bool InIs2DUI, const FLGUICacheTransformContainer& InUIItemToCanvasTf, int32& OutDrawcallIndexToFitin)
 	{
-		if (InUIItem->GetGeometry()->material.IsValid())//consider every custom material as a drawcall
-		{
-			return false;
-		}
 		auto LastDrawcallIndex = InUIDrawcallList.Num() - 1;
 		if (LastDrawcallIndex < 0)
 		{
@@ -772,8 +768,9 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 		//first step, check last drawcall, because 3d UI can only batch into last drawcall
 		{
 			auto LastDrawcall = InUIDrawcallList[LastDrawcallIndex];
-			if (!LastDrawcall->material.IsValid()
-				&& LastDrawcall->type == EUIDrawcallType::BatchGeometry
+			if (
+				LastDrawcall->type == EUIDrawcallType::BatchGeometry
+				&& LastDrawcall->material == InUIItem->GetGeometry()->material
 				&& LastDrawcall->texture == InUIItem->GetGeometry()->texture
 				)
 			{
@@ -794,8 +791,9 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 				return false;
 			}
 
-			if (DrawcallItem->material.IsValid()
-				|| DrawcallItem->type != EUIDrawcallType::BatchGeometry
+			if (
+				DrawcallItem->type != EUIDrawcallType::BatchGeometry
+				|| DrawcallItem->material != InUIItem->GetGeometry()->material
 				|| DrawcallItem->texture != InUIItem->GetGeometry()->texture
 				)//can't fit in this drawcall, should check overlap
 			{
@@ -803,7 +801,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 				{
 					return false;
 				}
-				continue;//keep searching
+				continue;//not overlap with other drawcall, keep searching
 			}
 			OutDrawcallIndexToFitin = i;
 			return true;//can fit in drawcall
