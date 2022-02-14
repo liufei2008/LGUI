@@ -176,8 +176,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LTween", meta = (DeprecatedFunction, DeprecationMessage = "SetLoopType not valid anymore, use SetLoop instead."))
 		virtual ULTweener* SetLoopType(LTweenLoop newLoopType)
 	{
-		this->loopType = newLoopType;
-		return this;
+		return SetLoop(newLoopType, -1);
 	}
 	/**
 	 * Set loop of tween.

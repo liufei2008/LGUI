@@ -583,7 +583,7 @@ void UUIItem::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETel
 void UUIItem::CalculateAnchorFromTransform()
 {
 #if WITH_EDITOR
-	if (!this->GetWorld()->IsGameWorld())
+	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
 		if (!ALGUIManagerActor::GetIsPlaying(this->GetWorld()))
 		{
@@ -845,7 +845,9 @@ void UUIItem::OnRegister()
 		{
 			ULGUIEditorManagerObject::AddUIItem(this);
 			//create helper for root component
-			if (this->GetOwner()->GetRootComponent() == this)
+			if (this->GetOwner()->GetRootComponent() == this 
+				&& this->GetOwner()->GetWorld() != nullptr
+				&& !this->IsPendingKillOrUnreachable())
 			{
 				if (!HelperComp)
 				{
@@ -1241,7 +1243,7 @@ void UUIItem::UnregisterUIHierarchyChanged(const FDelegateHandle& InHandle)
 bool UUIItem::CalculateTransformFromAnchor()
 {
 #if WITH_EDITOR
-	if (!this->GetWorld()->IsGameWorld())
+	if (this->GetWorld() && !this->GetWorld()->IsGameWorld())
 	{
 		if (!ALGUIManagerActor::GetIsPlaying(this->GetWorld()))
 		{
