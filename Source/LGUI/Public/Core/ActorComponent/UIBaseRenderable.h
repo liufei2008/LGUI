@@ -144,6 +144,10 @@ public:
 
 	/** return bounds min max point in self local space, for LGUICanvas to tell if geometry overlap with each other. */
 	virtual void GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const;
+#if WITH_EDITOR
+	/** editor only, return 3d bounds in self local space */
+	virtual void GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const;
+#endif
 
 	virtual void OnCanvasGroupAlphaChange()override;
 protected:

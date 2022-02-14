@@ -124,11 +124,21 @@ void UUIBaseRenderable::MarkAllDirtyRecursive()
 	Super::MarkAllDirtyRecursive();
 }
 
-void UUIBaseRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const//@todo: for UISprite, we should calculate with sprite's padding properties
+void UUIBaseRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const
 {
 	OutMinPoint = GetLocalSpaceLeftBottomPoint();
 	OutMaxPoint = GetLocalSpaceRightTopPoint();
 }
+
+#if WITH_EDITOR
+void UUIBaseRenderable::GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const
+{
+	auto MinPoint2D = GetLocalSpaceLeftBottomPoint();
+	auto MaxPoint2D = GetLocalSpaceRightTopPoint();
+	OutMinPoint = FVector(0.1f, MinPoint2D.X, MinPoint2D.Y);
+	OutMaxPoint = FVector(0.1f, MaxPoint2D.X, MaxPoint2D.Y);
+}
+#endif
 
 bool UUIBaseRenderable::LineTraceUIGeometry(TSharedPtr<UIGeometry> InGeo, FHitResult& OutHit, const FVector& Start, const FVector& End)
 {
