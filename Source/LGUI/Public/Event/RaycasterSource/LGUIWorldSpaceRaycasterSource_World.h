@@ -29,9 +29,10 @@ class LGUI_API ULGUIWorldSpaceRaycasterSource_World : public ULGUIWorldSpaceRayc
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI)
 		ELGUISceneComponentDirection RayDirectionType = ELGUISceneComponentDirection::PositiveX;
-	/** if click/drag threshold relate to line trace distance ? */
+	/** click/drag threshold relate to line trace distance? If true then use ray distance as drag threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
 		bool clickThresholdRelateToRayDistance = true;
+	/** if clickThresholdRelateToRayDistance is true, then multiply the ray distance with this value and use the result as drag threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = LGUI)
 		float rayDistanceMultiply = 0.003f;
 

@@ -88,14 +88,22 @@ void FLGUIPrefabThumbnailScene::SpawnPreviewActor()
 void FLGUIPrefabThumbnailScene::GetBoundsRecursive(USceneComponent* RootComp, FBoxSphereBounds& OutBounds, bool& IsFirstPrimitive)const
 {
 	if (!IsValid(RootComp))return;
-	if (IsFirstPrimitive)
+	bool canCalculate = true;
+	if (auto UIItem = Cast<UUIItem>(RootComp))
 	{
-		OutBounds = RootComp->CalcBounds(RootComp->GetComponentTransform());
-		IsFirstPrimitive = false;
+		canCalculate = UIItem->GetIsUIActiveInHierarchy();
 	}
-	else
+	if (canCalculate)
 	{
-		OutBounds = OutBounds + RootComp->Bounds;
+		if (IsFirstPrimitive)
+		{
+			OutBounds = RootComp->CalcBounds(RootComp->GetComponentTransform());
+			IsFirstPrimitive = false;
+		}
+		else
+		{
+			OutBounds = OutBounds + RootComp->CalcBounds(RootComp->GetComponentTransform());
+		}
 	}
 
 	auto childrenArray = RootComp->GetAttachChildren();
