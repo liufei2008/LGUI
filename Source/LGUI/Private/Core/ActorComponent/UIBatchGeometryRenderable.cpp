@@ -332,6 +332,9 @@ void UUIBatchGeometryRenderable::CalculateLocalBounds()
 	auto& vertices = geometry->originPositions;
 	float horizontalMin = MAX_flt, horizontalMax = -MAX_flt;
 	float verticalMin = MAX_flt, verticalMax = -MAX_flt;
+#if WITH_EDITOR
+	float forwardMin = MAX_flt, forwardMax = -MAX_flt;
+#endif
 	for (auto& Vert : vertices)
 	{
 		if (Vert.Y < horizontalMin)
@@ -350,9 +353,23 @@ void UUIBatchGeometryRenderable::CalculateLocalBounds()
 		{
 			verticalMax = Vert.Z;
 		}
+#if WITH_EDITOR
+		if (Vert.X < forwardMin)
+		{
+			forwardMin = Vert.X;
+		}
+		if (Vert.X > forwardMax)
+		{
+			forwardMax = Vert.X;
+		}
+#endif
 	}
 	this->LocalMinPoint = FVector2D(horizontalMin, verticalMin);
 	this->LocalMaxPoint = FVector2D(horizontalMax, verticalMax);
+#if WITH_EDITOR
+	this->LocalMinPoint3D = FVector(forwardMin, horizontalMin, verticalMin);
+	this->LocalMaxPoint3D = FVector(forwardMax, horizontalMax, verticalMax);
+#endif
 }
 
 void UUIBatchGeometryRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMinPoint, FVector2D& OutMaxPoint)const
@@ -360,3 +377,11 @@ void UUIBatchGeometryRenderable::GetGeometryBoundsInLocalSpace(FVector2D& OutMin
 	OutMinPoint = this->LocalMinPoint;
 	OutMaxPoint = this->LocalMaxPoint;
 }
+
+#if WITH_EDITOR
+void UUIBatchGeometryRenderable::GetGeometryBounds3DInLocalSpace(FVector& OutMinPoint, FVector& OutMaxPoint)const
+{
+	OutMinPoint = this->LocalMinPoint3D;
+	OutMaxPoint = this->LocalMaxPoint3D;
+}
+#endif

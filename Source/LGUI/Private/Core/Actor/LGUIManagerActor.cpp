@@ -572,7 +572,6 @@ void ULGUIEditorManagerObject::UnregisterLGUILayout(TScriptInterface<ILGUILayout
 void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 {
 	auto RectExtends = FVector(0.1f, item->GetWidth(), item->GetHeight()) * 0.5f;
-	auto GeometryBoundsExtends = FVector(0, 0, 0);
 	bool bCanDrawRect = false;
 	auto RectDrawColor = FColor(128, 128, 128, 128);//gray means normal object
 	if (ULGUIEditorManagerObject::IsSelected(item->GetOwner()))//select self
@@ -583,14 +582,14 @@ void ULGUIEditorManagerObject::DrawFrameOnUIItem(UUIItem* item)
 
 		if (auto UIRenderable = Cast<UUIBaseRenderable>(item))
 		{
-			FVector2D Min, Max;
-			UIRenderable->GetGeometryBoundsInLocalSpace(Min, Max);
+			FVector Min, Max;
+			UIRenderable->GetGeometryBounds3DInLocalSpace(Min, Max);
 			auto WorldTransform = item->GetComponentTransform();
-			FVector Center = FVector(0, (Max.X + Min.X) * 0.5f, (Max.Y + Min.Y) * 0.5f);
+			FVector Center = (Max + Min) * 0.5f;
 			auto WorldLocation = WorldTransform.TransformPosition(Center);
 
 			auto GeometryBoundsDrawColor = FColor(255, 255, 0, 255);//yellow for geometry bounds
-			GeometryBoundsExtends = FVector(0.1f, (Max.X - Min.X) * 0.5f, (Max.Y - Min.Y) * 0.5f);
+			auto GeometryBoundsExtends = (Max - Min) * 0.5f;
 			DrawDebugBox(item->GetWorld(), WorldLocation, GeometryBoundsExtends * WorldTransform.GetScale3D(), WorldTransform.GetRotation(), GeometryBoundsDrawColor);
 		}
 	}
