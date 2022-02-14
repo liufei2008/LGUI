@@ -108,50 +108,6 @@ public:
 		prop.DisplayName(FText::FromString(name));
 		return prop;
 	}
-	static TSharedRef<SWidget> GenerateArrowButtonContent(FText textContent)
-	{
-		return SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Left)
-			[
-				SNew(STextBlock)
-				.Text(textContent)
-				.Font(IDetailLayoutBuilder::GetDetailFont())
-			]
-			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Right)
-			.AutoWidth()
-			.Padding(2, 4)
-			[
-				SNew(SImage)
-				.Image(FEditorStyle::GetBrush("ComboButton.Arrow"))
-				.ColorAndOpacity(FSlateColor::UseForeground())
-			];
-	}
-	static TSharedRef<SWidget> GenerateArrowButtonContent(const FLGUIArrowButtonDelegate& getTextFunction)
-	{
-		return SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Left)
-			[
-				SNew(STextBlock)
-				.Font(IDetailLayoutBuilder::GetDetailFont())
-				.Text_Lambda([=] {
-					if(getTextFunction.IsBound())
-						return getTextFunction.Execute();
-					return FText();
-				})
-			]
-			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Right)
-			.AutoWidth()
-			.Padding(2, 4)
-			[
-				SNew(SImage)
-				.Image(FEditorStyle::GetBrush("ComboButton.Arrow"))
-				.ColorAndOpacity(FSlateColor::UseForeground())
-			];
-	}
 	static bool IsEnabledOnProperty(TSharedRef<IPropertyHandle> PropertyHandle)
 	{
 		return PropertyHandle->IsEditable();
