@@ -244,6 +244,8 @@ public:
 
 	/** mark all dirty for UI element to update, include all children */
 	virtual void MarkAllDirtyRecursive();
+	/** force refresh render canvas, remove from old and add to new */
+	void ForceRefreshRenderCanvasRecursive();
 private:
 	void SetOnAnchorChange(bool InPivotChange, bool InSizeChange);
 	void SetOnTransformChange();

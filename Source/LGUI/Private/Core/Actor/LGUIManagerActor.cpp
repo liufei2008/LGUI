@@ -269,7 +269,7 @@ bool ULGUIEditorManagerObject::InitCheck(UWorld* InWorld)
 
 void ULGUIEditorManagerObject::RefreshOnBlueprintCompiled()
 {
-	
+	RefreshAllUI();
 }
 
 void ULGUIEditorManagerObject::SortDrawcallOnRenderMode(ELGUIRenderMode InRenderMode)
@@ -438,6 +438,7 @@ void ULGUIEditorManagerObject::RefreshAllUI()
 			if (RootUIItem.IsValid())
 			{
 				RootUIItem->MarkAllDirtyRecursive();
+				RootUIItem->ForceRefreshRenderCanvasRecursive();
 				Local::UpdateComponentToWorldRecursive(RootUIItem.Get());
 				RootUIItem->EditorForceUpdate();
 			}

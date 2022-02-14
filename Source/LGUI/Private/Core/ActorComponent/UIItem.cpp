@@ -458,6 +458,22 @@ void UUIItem::MarkAllDirtyRecursive()
 	}
 }
 
+void UUIItem::ForceRefreshRenderCanvasRecursive()
+{
+	if (RenderCanvas.IsValid())
+	{
+		OnRenderCanvasChanged(RenderCanvas.Get(), RenderCanvas.Get());
+	}
+
+	for (auto uiChild : UIChildren)
+	{
+		if (IsValid(uiChild))
+		{
+			uiChild->ForceRefreshRenderCanvasRecursive();
+		}
+	}
+}
+
 void UUIItem::PostLoad()
 {
 	Super::PostLoad();
@@ -888,6 +904,14 @@ void UUIItem::OnUnregister()
 		if (!world->IsGameWorld())
 		{
 			ULGUIEditorManagerObject::RemoveUIItem(this);
+			if (this->GetName().StartsWith(TEXT("REINST_")))//when recompile a blueprint object, the old one will become REINST_XXX and not valid
+			{
+				if (RenderCanvas.IsValid())
+				{
+					OnRenderCanvasChanged(RenderCanvas.Get(), nullptr);
+					RenderCanvas = nullptr;
+				}
+			}
 		}
 		else
 #endif
