@@ -47,7 +47,7 @@ protected:
 	uint8 bPrevIsRootComponentVisible : 1;
 protected:
 	friend class ALGUIManagerActor;
-	mutable TWeakObjectPtr<USceneComponent> RootComp;
+	mutable TWeakObjectPtr<USceneComponent> RootComp = nullptr;
 	virtual bool IsAllowedToCallAwake()const { return true; }
 	virtual bool IsAllowedToCallOnEnable()const;
 	virtual void SetActiveStateForEnableAndDisable(bool activeOrInactive);
@@ -71,6 +71,11 @@ protected:
 	 * If Awake is not executed, then OnDestroy won't execute too.
 	 */
 	virtual void OnDestroy();
+
+	virtual void Call_Awake();
+	void Call_Start();
+	void Call_OnEnable();
+	void Call_OnDisable();
 
 	/**
 	 * This function is always called before any Start functions and also after a prefab is instantiated.

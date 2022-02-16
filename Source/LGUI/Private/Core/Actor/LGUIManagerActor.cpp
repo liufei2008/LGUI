@@ -990,7 +990,7 @@ void ALGUIManagerActor::Tick(float DeltaTime)
 				auto item = LGUILifeCycleBehavioursForStart[i];
 				if (item.IsValid())
 				{
-					item->Start();
+					item->Call_Start();
 					if (item->bCanExecuteUpdate && !item->bIsAddedToUpdate)
 					{
 						item->bIsAddedToUpdate = true;
@@ -1190,7 +1190,7 @@ void ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate(ULGUILifeCycleBe
 			{
 				if (Instance->bIsExecutingUpdate)
 				{
-					if (index > Instance->CurrentExecutingUpdateIndex)//not execute it yet, save to remove
+					if (index > Instance->CurrentExecutingUpdateIndex)//not execute it yet, safe to remove
 					{
 						updateArray.RemoveAt(index);
 					}
@@ -1563,13 +1563,13 @@ void ALGUIManagerActor::ProcessLGUILifecycleEvent(ULGUILifeCycleBehaviour* InCom
 		{
 			if (!InComp->bIsAwakeCalled)
 			{
-				InComp->Awake();
+				InComp->Call_Awake();
 			}
 			if (InComp->IsAllowedToCallOnEnable() && InComp->GetEnable())
 			{
 				if (!InComp->bIsEnableCalled)
 				{
-					InComp->OnEnable();
+					InComp->Call_OnEnable();
 				}
 			}
 		}
