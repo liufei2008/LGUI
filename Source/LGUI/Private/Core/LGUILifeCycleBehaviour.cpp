@@ -37,7 +37,7 @@ void ULGUILifeCycleBehaviour::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (bIsEnableCalled)
 	{
-		OnDisable();
+		Call_OnDisable();
 	}
 	if (bIsAwakeCalled)
 	{
@@ -123,11 +123,11 @@ void ULGUILifeCycleBehaviour::PostEditChangeProperty(FPropertyChangedEvent& Prop
 				{
 					if (enable)
 					{
-						OnEnable();
+						Call_OnEnable();
 					}
 					else
 					{
-						OnDisable();
+						Call_OnDisable();
 					}
 				}
 			}
@@ -168,7 +168,7 @@ void ULGUILifeCycleBehaviour::SetActiveStateForEnableAndDisable(bool activeOrIna
 					else
 #endif
 					{
-						OnEnable();
+						Call_OnEnable();
 					}
 				}
 			}
@@ -187,7 +187,7 @@ void ULGUILifeCycleBehaviour::SetActiveStateForEnableAndDisable(bool activeOrIna
 					else
 #endif
 					{
-						OnDisable();
+						Call_OnDisable();
 					}
 				}
 			}
@@ -213,7 +213,7 @@ void ULGUILifeCycleBehaviour::SetEnable(bool value)
 				else
 #endif
 				{
-					OnEnable();
+					Call_OnEnable();
 				}
 			}
 			else
@@ -226,7 +226,7 @@ void ULGUILifeCycleBehaviour::SetEnable(bool value)
 				else
 #endif
 				{
-					OnDisable();
+					Call_OnDisable();
 				}
 			}
 		}
@@ -247,31 +247,13 @@ void ULGUILifeCycleBehaviour::SetCanExecuteUpdate(bool value)
 
 void ULGUILifeCycleBehaviour::Awake()
 {
-#if WITH_EDITOR
-	if (!this->GetWorld()->IsGameWorld())//edit mode
-	{
-		check(0);
-	}
-#endif
-#if !UE_BUILD_SHIPPING
-	check(!bIsAwakeCalled);
-#endif
-	bIsAwakeCalled = true;
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
 		ReceiveAwake();
 	}
-	if (GetRootSceneComponent())
-	{
-		bPrevIsRootComponentVisible = RootComp->GetVisibleFlag();//get bPrevIsRootComponentVisible in Awake, incase SetVisibility is called inside Awake, which will not trigger OnComponentRenderStateDirty callback, because RenderState is already dirty when Awake/BeginPlay
-	}
 }
 void ULGUILifeCycleBehaviour::Start()
 {
-#if !UE_BUILD_SHIPPING
-	check(!bIsStartCalled);
-#endif
-	bIsStartCalled = true;
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
 		ReceiveStart();
@@ -293,31 +275,6 @@ void ULGUILifeCycleBehaviour::OnDestroy()
 }
 void ULGUILifeCycleBehaviour::OnEnable()
 {
-#if !UE_BUILD_SHIPPING
-	check(!bIsEnableCalled);
-#endif
-	bIsEnableCalled = true;
-#if WITH_EDITOR
-	if (!this->GetWorld()->IsGameWorld())//edit mode
-	{
-		check(0);
-	}
-	else//handle update in game mode
-#endif
-	{
-		if (!bIsStartCalled)
-		{
-			ALGUIManagerActor::AddLGUILifeCycleBehavioursForStart(this);
-		}
-		else
-		{
-			if (bCanExecuteUpdate && !bIsAddedToUpdate)
-			{
-				bIsAddedToUpdate = true;
-				ALGUIManagerActor::AddLGUILifeCycleBehavioursForUpdate(this);
-			}
-		}
-	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{
 		ReceiveOnEnable();
@@ -325,34 +282,99 @@ void ULGUILifeCycleBehaviour::OnEnable()
 }
 void ULGUILifeCycleBehaviour::OnDisable()
 {
-#if !UE_BUILD_SHIPPING
-	check(bIsEnableCalled);
-#endif
-	bIsEnableCalled = false;
+	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+	{
+		ReceiveOnDisable();
+	}
+}
+
+void ULGUILifeCycleBehaviour::Call_Awake()
+{
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
 		check(0);
 	}
-	else//handle update in game mode
 #endif
+#if !UE_BUILD_SHIPPING
+	check(!bIsAwakeCalled);
+#endif
+	bIsAwakeCalled = true;
+	Awake();
+	if (GetRootSceneComponent())
 	{
-		if (!bIsStartCalled)
+		bPrevIsRootComponentVisible = RootComp->GetVisibleFlag();//get bPrevIsRootComponentVisible in Awake, incase SetVisibility is called inside Awake, which will not trigger OnComponentRenderStateDirty callback, because RenderState is already dirty when Awake/BeginPlay
+	}
+}
+
+void ULGUILifeCycleBehaviour::Call_Start()
+{
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())//edit mode
+	{
+		check(0);
+	}
+#endif
+#if !UE_BUILD_SHIPPING
+	check(!bIsStartCalled);
+#endif
+	bIsStartCalled = true;
+	Start();
+}
+
+void ULGUILifeCycleBehaviour::Call_OnEnable()
+{
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())//edit mode
+	{
+		check(0);
+	}
+#endif
+#if !UE_BUILD_SHIPPING
+	check(!bIsEnableCalled);
+#endif
+	bIsEnableCalled = true;
+
+	OnEnable();
+	if (!bIsStartCalled)
+	{
+		ALGUIManagerActor::AddLGUILifeCycleBehavioursForStart(this);
+	}
+	else
+	{
+		if (bCanExecuteUpdate && !bIsAddedToUpdate)
 		{
-			ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart(this);
-		}
-		else
-		{
-			if (bIsAddedToUpdate)
-			{
-				bIsAddedToUpdate = false;
-				ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate(this);
-			}
+			bIsAddedToUpdate = true;
+			ALGUIManagerActor::AddLGUILifeCycleBehavioursForUpdate(this);
 		}
 	}
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
+}
+
+void ULGUILifeCycleBehaviour::Call_OnDisable()
+{
+#if WITH_EDITOR
+	if (!this->GetWorld()->IsGameWorld())//edit mode
 	{
-		ReceiveOnDisable();
+		check(0);
+	}
+#endif
+#if !UE_BUILD_SHIPPING
+	check(bIsEnableCalled);
+#endif
+	bIsEnableCalled = false;
+
+	OnDisable();
+	if (!bIsStartCalled)
+	{
+		ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromStart(this);
+	}
+	else
+	{
+		if (bIsAddedToUpdate)
+		{
+			bIsAddedToUpdate = false;
+			ALGUIManagerActor::RemoveLGUILifeCycleBehavioursFromUpdate(this);
+		}
 	}
 }
 
@@ -368,7 +390,7 @@ USceneComponent* ULGUILifeCycleBehaviour::GetRootSceneComponent()const
 			}
 			else
 			{
-				UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::GetRootSceneComponent]RootComponent is not valid!"));
+				UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleBehaviour::GetRootSceneComponent]RootComponent not exist in owner actor!"));
 			}
 		}
 		else

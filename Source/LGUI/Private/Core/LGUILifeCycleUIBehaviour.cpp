@@ -111,7 +111,7 @@ void ULGUILifeCycleUIBehaviour::OnUIActiveInHierachy(bool activeOrInactive)
 			else
 #endif
 			{
-				Awake();
+				Call_Awake();
 			}
 		}
 	}
@@ -122,9 +122,9 @@ void ULGUILifeCycleUIBehaviour::OnUIActiveInHierachy(bool activeOrInactive)
 	}
 }
 
-void ULGUILifeCycleUIBehaviour::Awake()
+void ULGUILifeCycleUIBehaviour::Call_Awake()
 {
-	Super::Awake();
+	Super::Call_Awake();
 	for (auto CallbackFunc : CallbacksBeforeAwake)
 	{
 		CallbackFunc();

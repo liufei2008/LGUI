@@ -53,7 +53,7 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 	bool CheckRootUIComponent() const;
 
-	virtual void Awake()override;
+	virtual void Call_Awake()override;
 	
 	/** Called when RootUIComp IsActiveInHierarchy state is changed */
 	virtual void OnUIActiveInHierachy(bool activeOrInactive);
