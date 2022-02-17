@@ -44,7 +44,7 @@ public:
 
 	virtual void GetMeshElements(const FSceneViewFamily& ViewFamilyclass, class FMeshElementCollector* Collector, TArray<FLGUIMeshBatchContainer>& Result) {};
 
-	virtual bool GetIsPostProcess() { return true; };
+	virtual ELGUIHudPrimitiveType GetPrimitiveType()const { return ELGUIHudPrimitiveType::PostProcess; };
 	//end ILGUIHudPrimitive interface
 private:
 	void SetUITranslucentSortPriority_RenderThread(int value)
@@ -71,6 +71,9 @@ public:
 	FVector2D RectSize;
 	FTexture2DResource* maskTexture = nullptr;
 
+	/**
+	 * Use a mesh to render the MeshRegionTexture to ScreenTargetTexture
+	 */
 	void RenderMeshOnScreen_RenderThread(
 #if ENGINE_MAJOR_VERSION >= 5
 		FRDGBuilder& GraphBuilder
@@ -79,7 +82,7 @@ public:
 #endif
 		, FTextureRHIRef ScreenTargetTexture
 		, FGlobalShaderMap* GlobalShaderMap
-		, FTextureRHIRef ResultTexture
+		, FTextureRHIRef MeshRegionTexture
 		, const FMatrix & ModelViewProjectionMatrix
 		, bool IsWorldSpace
 		, float BlendDepthForWorld

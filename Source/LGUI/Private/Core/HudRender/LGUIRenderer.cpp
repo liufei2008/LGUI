@@ -25,15 +25,6 @@
 #include "Core/LGUISettings.h"
 #include "Engine/TextureRenderTarget2D.h"
 
-class FLGUIMeshElementCollector : FMeshElementCollector//why use a custom collector? because default FMeshElementCollector have no public constructor
-{
-public:
-	FLGUIMeshElementCollector(ERHIFeatureLevel::Type InFeatureLevel) :FMeshElementCollector(InFeatureLevel)
-	{
-
-	}
-};
-
 
 #if WITH_EDITORONLY_DATA
 uint32 FLGUIHudRenderer::EditorPreview_ViewKey = 0;
@@ -102,10 +93,7 @@ void FLGUIHudRenderer::PostRenderView_RenderThread(FRHICommandListImmediate& RHI
 #if ENGINE_MAJOR_VERSION >= 5
 void FLGUIHudRenderer::PostRenderView_RenderThread(FRDGBuilder& GraphBuilder, FSceneView& InView)
 {
-	AddPass(GraphBuilder, [this, &GraphBuilder, &InView](FRHICommandListImmediate& RHICmdList)
-		{
-			RenderLGUI_RenderThread(GraphBuilder, InView);
-		});
+	RenderLGUI_RenderThread(GraphBuilder, InView);
 }
 #endif
 int32 FLGUIHudRenderer::GetPriority() const
@@ -171,6 +159,8 @@ void FLGUIHudRenderer::PostRenderBasePass_RenderThread(FRHICommandListImmediate&
 
 }
 
+#if ENGINE_MAJOR_VERSION < 5
+
 void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FGlobalShaderMap* GlobalShaderMap, FTextureRHIRef Src, FTextureRHIRef Dst)
 {
 	RHICmdList.BeginRenderPass(FRHIRenderPassInfo(Dst, ERenderTargetActions::Clear_DontStore), TEXT("LGUICopyRenderTarget"));
@@ -197,10 +187,12 @@ void FLGUIHudRenderer::CopyRenderTarget(FRHICommandListImmediate& RHICmdList, FG
 
 	RHICmdList.EndRenderPass();
 }
-void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RHICmdList
-	, FGlobalShaderMap* GlobalShaderMap
-	, FTextureRHIRef Src
+
+void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(
+	FRHICommandListImmediate& RHICmdList
 	, FTextureRHIRef Dst
+	, FTextureRHIRef Src
+	, FGlobalShaderMap* GlobalShaderMap
 	, const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData
 	, const FMatrix& MVP
 	, const FIntRect& ViewRect
@@ -228,19 +220,11 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RH
 	PixelShader->SetParameters(RHICmdList, MVP, SrcTextureScaleOffset, Src);
 
 	uint32 VertexBufferSize = 4 * sizeof(FLGUIPostProcessCopyMeshRegionVertex);
-#if ENGINE_MAJOR_VERSION >= 5
-	FRHIResourceCreateInfo CreateInfo(TEXT("CopyRenderTargetOnMeshRegion"));
-	FBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
-	void* VoidPtr = RHILockBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
-	FPlatformMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
-	RHIUnlockBuffer(VertexBufferRHI);
-#else
 	FRHIResourceCreateInfo CreateInfo;
 	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(VertexBufferSize, BUF_Volatile, CreateInfo);
 	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, VertexBufferSize, RLM_WriteOnly);
 	FPlatformMemory::Memcpy(VoidPtr, RegionVertexData.GetData(), VertexBufferSize);
 	RHIUnlockVertexBuffer(VertexBufferRHI);
-#endif
 
 	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
@@ -249,14 +233,15 @@ void FLGUIHudRenderer::CopyRenderTargetOnMeshRegion(FRHICommandListImmediate& RH
 
 	RHICmdList.EndRenderPass();
 }
+#endif
+
 void FLGUIHudRenderer::DrawFullScreenQuad(FRHICommandListImmediate& RHICmdList)
 {
 	RHICmdList.SetStreamSource(0, GLGUIFullScreenQuadVertexBuffer.VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(GLGUIFullScreenQuadIndexBuffer.IndexBufferRHI, 0, 0, 4, 0, 2, 1);
 }
-void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material)
+void FLGUIHudRenderer::SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided)
 {
-	EBlendMode BlendMode = Material->GetBlendMode();
 	switch (BlendMode)
 	{
 	default:
@@ -290,9 +275,9 @@ void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStat
 
 	GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
 	
-	if (!Material->IsWireframe())
+	if (!bIsWireFrame)
 	{
-		if (Material->IsTwoSided())
+		if (bIsTwoSided)
 		{
 			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
 		}
@@ -303,7 +288,7 @@ void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStat
 	}
 	else
 	{
-		if (Material->IsTwoSided())
+		if (bIsTwoSided)
 		{
 			GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Wireframe, CM_None, true>::GetRHI();
 		}
@@ -314,13 +299,10 @@ void FLGUIHudRenderer::SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStat
 	}
 }
 
+#if ENGINE_MAJOR_VERSION < 5
 DECLARE_CYCLE_STAT(TEXT("Hud RHIRender"), STAT_Hud_RHIRender, STATGROUP_LGUI);
 void FLGUIHudRenderer::RenderLGUI_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
-	FRDGBuilder& GraphBuilder
-#else
 	FRHICommandListImmediate& RHICmdList
-#endif
 	, FSceneView& InView)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Hud_RHIRender);
@@ -335,9 +317,6 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	TRefCountPtr<IPooledRenderTarget> ScreenColorRenderTarget;
 
 	auto ViewRect = RenderView.UnscaledViewRect;
-#if ENGINE_MAJOR_VERSION >= 5
-	FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
-#endif
 	if (CustomRenderTarget.IsValid())
 	{
 		ScreenColorRenderTargetTexture = (FTextureRHIRef)CustomRenderTarget->GetRenderTargetResource()->GetRenderTargetTexture();
@@ -369,11 +348,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	}
 
 	auto RPInfo = FRHIRenderPassInfo(ScreenColorRenderTargetTexture, ERenderTargetActions::Load_DontStore);
-#if ENGINE_MAJOR_VERSION >= 5
-	const FSceneTextures& SceneTextures = FSceneTextures::Get(GraphBuilder);
-#else
 	FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
-#endif
 	FVector4 DepthTextureScaleOffset;
 	FVector4 ViewTextureScaleOffset;
 	switch (RenderView.StereoPass)
@@ -381,13 +356,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 	case EStereoscopicPass::eSSP_FULL:
 	{
 		DepthTextureScaleOffset = FVector4(
-#if ENGINE_MAJOR_VERSION >= 5
-			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneTextures.Depth.Target->Desc.GetSize().X,
-			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneTextures.Depth.Target->Desc.GetSize().Y,
-#else
 			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().X / SceneContext.GetSceneDepthSurface()->GetSizeX(),
 			(float)ScreenColorRenderTargetTexture->GetSizeXYZ().Y / SceneContext.GetSceneDepthSurface()->GetSizeY(),
-#endif
 			0, 0
 		);
 		ViewTextureScaleOffset = FVector4(1, 1, 0, 0);
@@ -465,71 +435,66 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 				{
 					if (hudPrimitive->CanRender())
 					{
-						if (hudPrimitive->GetIsPostProcess())//render post process
+						switch (hudPrimitive->GetPrimitiveType())
 						{
-							RHICmdList.EndRenderPass();
-							hudPrimitive->OnRenderPostProcess_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
-								GraphBuilder,
-#else
-								RHICmdList,
-#endif
-								this,
-								(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
-								ScreenColorRenderTargetTexture,
-								ScreenColorRenderTargetResolveTexture,
-								GlobalShaderMap,
-								ViewProjectionMatrix,
-								true,
-								canvasParamItem.BlendDepth,
-								ViewRect,
-								DepthTextureScaleOffset,
-								ViewTextureScaleOffset
-							);
-							RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
-							RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
-							GraphicsPSOInit.NumSamples = MultiSampleCount;
-						}
-						else//render mesh
-						{
-							MeshBatchArray.Reset();
-							hudPrimitive->GetMeshElements(*RenderView.Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
-							for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
+							case ELGUIHudPrimitiveType::PostProcess://render post process
 							{
-								auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
-								const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
-								auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
-#else
-								auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
-#endif
-								const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
-								auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
-
-								auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
-								if (VertexShader.IsValid() && PixelShader.IsValid())
+								RHICmdList.EndRenderPass();
+								hudPrimitive->OnRenderPostProcess_RenderThread(
+									RHICmdList,
+									this,
+									(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
+									ScreenColorRenderTargetTexture,
+									ScreenColorRenderTargetResolveTexture,
+									GlobalShaderMap,
+									ViewProjectionMatrix,
+									true,
+									canvasParamItem.BlendDepth,
+									ViewRect,
+									DepthTextureScaleOffset,
+									ViewTextureScaleOffset
+								);
+								RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
+								RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
+								GraphicsPSOInit.NumSamples = MultiSampleCount;
+							}break;
+							case ELGUIHudPrimitiveType::Mesh://render mesh
+							{
+								MeshBatchArray.Reset();
+								hudPrimitive->GetMeshElements(*RenderView.Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
+								for (int MeshIndex = 0; MeshIndex < MeshBatchArray.Num(); MeshIndex++)
 								{
-									SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
-
-									GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
-									GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-									GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-									GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
-									GraphicsPSOInit.NumSamples = MultiSampleCount;
-									SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-
-									VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-									PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
-#if ENGINE_MAJOR_VERSION >= 5
-									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, (FRHITexture2D*)(SceneTextures.Depth.Target->GetRHI()));
+									auto& MeshBatchContainer = MeshBatchArray[MeshIndex];
+									const FMeshBatch& Mesh = MeshBatchContainer.Mesh;
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
+									auto Material = Mesh.MaterialRenderProxy->GetMaterial(RenderView.GetFeatureLevel());
 #else
-									PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+									auto Material = &Mesh.MaterialRenderProxy->GetIncompleteMaterialWithFallback(RenderView.GetFeatureLevel());
 #endif
+									const FMaterialShaderMap* MaterialShaderMap = Material->GetRenderingThreadShaderMap();
+									auto VertexShader = MaterialShaderMap->GetShader<FLGUIHudRenderVS>();
 
-									RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
-									RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+									auto PixelShader = MaterialShaderMap->GetShader<FLGUIWorldRenderPS>();
+									if (VertexShader.IsValid() && PixelShader.IsValid())
+									{
+										FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided());
+
+										GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
+										GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+										GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+										GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+										GraphicsPSOInit.NumSamples = MultiSampleCount;
+										SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+
+										VertexShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+										PixelShader->SetMaterialShaderParameters(RHICmdList, RenderView, Mesh.MaterialRenderProxy, Material, Mesh);
+										PixelShader->SetDepthBlendParameter(RHICmdList, canvasParamItem.BlendDepth, DepthTextureScaleOffset, SceneContext.GetSceneDepthSurface());
+
+										RHICmdList.SetStreamSource(0, MeshBatchContainer.VertexBufferRHI, 0);
+										RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
+									}
 								}
-							}
+							}break;
 						}
 					}
 				}
@@ -579,15 +544,13 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 			{
 				if (hudPrimitive->CanRender())
 				{
-					if (hudPrimitive->GetIsPostProcess())//render post process
+					switch (hudPrimitive->GetPrimitiveType())
+					{
+					case ELGUIHudPrimitiveType::PostProcess://render post process
 					{
 						RHICmdList.EndRenderPass();
 						hudPrimitive->OnRenderPostProcess_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
-							GraphBuilder,
-#else
 							RHICmdList,
-#endif
 							this,
 							(FTextureRHIRef)RenderView.Family->RenderTarget->GetRenderTargetTexture(),
 							ScreenColorRenderTargetTexture,
@@ -603,8 +566,8 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 						RHICmdList.BeginRenderPass(RPInfo, TEXT("LGUIHudRender"));
 						RHICmdList.SetViewport(ViewRect.Min.X, ViewRect.Min.Y, 0.0f, ViewRect.Max.X, ViewRect.Max.Y, 1.0f);
 						GraphicsPSOInit.NumSamples = MultiSampleCount;
-					}
-					else//render mesh
+					}break;
+					case ELGUIHudPrimitiveType::Mesh://render mesh
 					{
 						MeshBatchArray.Reset();
 						hudPrimitive->GetMeshElements(*RenderView.Family, (FMeshElementCollector*)&meshCollector, MeshBatchArray);
@@ -623,7 +586,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 							auto PixelShader = MaterialShaderMap->GetShader<FLGUIHudRenderPS>();
 							if (VertexShader.IsValid() && PixelShader.IsValid())
 							{
-								SetGraphicPipelineStateFromMaterial(GraphicsPSOInit, Material);
+								FLGUIHudRenderer::SetGraphicPipelineState(GraphicsPSOInit, Material->GetBlendMode(), Material->IsWireframe(), Material->IsTwoSided());
 
 								GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIHudVertexDeclaration();
 								GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
@@ -639,6 +602,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 								RHICmdList.DrawIndexedPrimitive(Mesh.Elements[0].IndexBuffer->IndexBufferRHI, 0, 0, MeshBatchContainer.NumVerts, 0, Mesh.GetNumPrimitives(), 1);
 							}
 						}
+					}break;
 					}
 				}
 			}
@@ -671,6 +635,7 @@ void FLGUIHudRenderer::RenderLGUI_RenderThread(
 		ScreenColorRenderTarget.SafeRelease();
 	}
 }
+#endif
 
 void FLGUIHudRenderer::AddWorldSpacePrimitive_RenderThread(ULGUICanvas* InCanvas, int32 InRenderCanvasSortOrder, ILGUIHudPrimitive* InPrimitive)
 {
@@ -896,7 +861,7 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 	bContainsPostProcess = false;
 	for (auto& item : ScreenSpaceRenderParameter.HudPrimitiveArray)
 	{
-		if (item->GetIsPostProcess())
+		if (item->GetPrimitiveType() == ELGUIHudPrimitiveType::PostProcess)
 		{
 			bContainsPostProcess = true;
 			return;
@@ -906,7 +871,7 @@ void FLGUIHudRenderer::CheckContainsPostProcess_RenderThread()
 	{
 		for (auto& item : renderItem.HudPrimitiveArray)
 		{
-			if (item->GetIsPostProcess())
+			if (item->GetPrimitiveType() == ELGUIHudPrimitiveType::PostProcess)
 			{
 				bContainsPostProcess = true;
 				return;

@@ -104,8 +104,243 @@ public:
 		if (blurStrength <= 0.0f)return;
 
 #if ENGINE_MAJOR_VERSION >= 5
-		FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
-#endif
+		auto& RHICmdList = GraphBuilder.RHICmdList;
+		float width = RectSize.X;
+		float height = RectSize.Y;
+		width = FMath::Max(width, 1.0f);
+		height = FMath::Max(height, 1.0f);
+		FVector2D inv_TextureSize(1.0f / width, 1.0f / height);
+		//get render target
+		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget1;
+		TRefCountPtr<IPooledRenderTarget> BlurEffectRenderTarget2;
+		{
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			desc.NumSamples = 1;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget1, TEXT("LGUIBlurEffectRenderTarget1"));
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, BlurEffectRenderTarget2, TEXT("LGUIBlurEffectRenderTarget2"));
+			if (!BlurEffectRenderTarget1.IsValid())
+				return;
+			if (!BlurEffectRenderTarget2.IsValid())
+				return;
+		}
+		auto BlurEffectRenderTexture1 = BlurEffectRenderTarget1->GetRenderTargetItem().TargetableTexture;
+		auto BlurEffectRenderTexture2 = BlurEffectRenderTarget2->GetRenderTargetItem().TargetableTexture;
+
+		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
+		if (ScreenTargetTexture->IsMultisampled())
+		{
+			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
+			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+				, RegisterExternalTexture(GraphBuilder, ScreenTargetResolveImage, TEXT("LGUI_BlurEffectRenderTexture1"))
+				, BlurEffectRenderTexture1
+				, GlobalShaderMap
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
+				, ViewTextureScaleOffset
+			);
+		}
+		else
+		{
+			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+				, RegisterExternalTexture(GraphBuilder, BlurEffectRenderTexture1, TEXT("LGUI_BlurEffectRenderTexture1"))
+				, OriginScreenTargetTexture
+				, GlobalShaderMap
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
+				, ViewTextureScaleOffset
+			);
+		}
+		//do the blur process on the area
+		{
+			if (strengthTexture != nullptr)//use mask texture to control blur strength
+			{
+				TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+				TShaderMapRef<FLGUIPostProcessGaussianBlurWithStrengthTexturePS> PixelShader(GlobalShaderMap);
+
+				auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
+				float calculatedBlurStrength = FMath::Pow(blurStrength * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more smooth
+				calculatedBlurStrength = calculatedBlurStrength * inv_SampleLevelInterval;
+				float calculatedBlurStrength2 = 1.0f;
+				int sampleCount = (int)calculatedBlurStrength + 1;
+				for (int i = 0; i < sampleCount; i++)
+				{
+					float tempBlurStrength = 0.0f;
+					if (i + 1 == sampleCount)
+					{
+						float fracValue = (calculatedBlurStrength - (int)calculatedBlurStrength);
+						fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more smooth
+						tempBlurStrength = calculatedBlurStrength2 * fracValue;
+					}
+					else
+					{
+						tempBlurStrength = calculatedBlurStrength2;
+					}
+
+					auto* VerticalPassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+					VerticalPassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, BlurEffectRenderTexture2, TEXT("Vertical_BlurEffectRenderTexture2")), ERenderTargetLoadAction::ELoad);
+					GraphBuilder.AddPass(
+						RDG_EVENT_NAME("Vertical"),
+						VerticalPassParameters,
+						ERDGPassFlags::Raster,
+						[this, VertexShader, PixelShader, Renderer, BlurEffectRenderTexture1, BlurEffectRenderTexture2, samplerState, inv_TextureSize, tempBlurStrength](FRHICommandListImmediate& RHICmdList)
+						{
+							FGraphicsPipelineStateInitializer GraphicsPSOInit;
+							RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+							GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+							GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+							GraphicsPSOInit.NumSamples = 1;
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							VertexShader->SetParameters(RHICmdList);
+							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
+							PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->TextureRHI, strengthTexture->SamplerStateRHI);
+							PixelShader->SetBlurStrength(RHICmdList, tempBlurStrength);
+							//render vertical
+							PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
+							PixelShader->SetHorizontalOrVertical(RHICmdList, true);
+							Renderer->DrawFullScreenQuad(RHICmdList);
+						});
+
+					auto* HorizontalPassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+					HorizontalPassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, BlurEffectRenderTexture1, TEXT("Vertical_BlurEffectRenderTexture1")), ERenderTargetLoadAction::ELoad);
+					GraphBuilder.AddPass(
+						RDG_EVENT_NAME("Horizontal"),
+						HorizontalPassParameters,
+						ERDGPassFlags::Raster,
+						[this, VertexShader, PixelShader, Renderer, BlurEffectRenderTexture1, BlurEffectRenderTexture2, samplerState, inv_TextureSize, tempBlurStrength](FRHICommandListImmediate& RHICmdList)
+						{
+							FGraphicsPipelineStateInitializer GraphicsPSOInit;
+							RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+							GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+							GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+							GraphicsPSOInit.NumSamples = 1;
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							VertexShader->SetParameters(RHICmdList);
+							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
+							PixelShader->SetStrengthTexture(RHICmdList, strengthTexture->TextureRHI, strengthTexture->SamplerStateRHI);
+							PixelShader->SetBlurStrength(RHICmdList, tempBlurStrength);
+							//render horizontal
+							RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y, 1.0f);
+							PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
+							PixelShader->SetHorizontalOrVertical(RHICmdList, false);
+							Renderer->DrawFullScreenQuad(RHICmdList);
+						});
+
+					calculatedBlurStrength2 *= 2;
+				}
+			}
+			else
+			{
+				TShaderMapRef<FLGUISimplePostProcessVS> VertexShader(GlobalShaderMap);
+				TShaderMapRef<FLGUIPostProcessGaussianBlurPS> PixelShader(GlobalShaderMap);
+
+				auto samplerState = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
+				float calculatedBlurStrength = FMath::Pow(blurStrength * INV_MAX_BlurStrength, 0.5f) * MAX_BlurStrength;//this can make the blur effect transition feel more smooth
+				calculatedBlurStrength = calculatedBlurStrength * inv_SampleLevelInterval;
+				float calculatedBlurStrength2 = 1.0f;
+				int sampleCount = (int)calculatedBlurStrength + 1;
+				for (int i = 0; i < sampleCount; i++)
+				{
+					float tempBlurStrength = 0.0f;
+					if (i + 1 == sampleCount)
+					{
+						float fracValue = (calculatedBlurStrength - (int)calculatedBlurStrength);
+						fracValue = FMath::FastAsin(fracValue * 2.0f - 1.0f) * INV_PI + 0.5f;//another thing to make the blur transition feel more smooth
+						tempBlurStrength = calculatedBlurStrength2 * fracValue;
+					}
+					else
+					{
+						tempBlurStrength = calculatedBlurStrength2;
+					}
+
+					auto* VerticalPassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+					VerticalPassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, BlurEffectRenderTexture2, TEXT("Vertical_BlurEffectRenderTexture2")), ERenderTargetLoadAction::ELoad);
+					GraphBuilder.AddPass(
+						RDG_EVENT_NAME("Vertical"),
+						VerticalPassParameters,
+						ERDGPassFlags::Raster,
+						[this, VertexShader, PixelShader, Renderer, BlurEffectRenderTexture1, BlurEffectRenderTexture2, samplerState, inv_TextureSize, tempBlurStrength](FRHICommandListImmediate& RHICmdList)
+						{
+							FGraphicsPipelineStateInitializer GraphicsPSOInit;
+							RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+							GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+							GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+							GraphicsPSOInit.NumSamples = 1;
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							VertexShader->SetParameters(RHICmdList);
+							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
+							PixelShader->SetBlurStrength(RHICmdList, tempBlurStrength);
+							//render vertical
+							PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture1, samplerState);
+							PixelShader->SetHorizontalOrVertical(RHICmdList, true);
+							Renderer->DrawFullScreenQuad(RHICmdList);
+						});
+
+					auto* HorizontalPassParameters = GraphBuilder.AllocParameters<FRenderTargetParameters>();
+					HorizontalPassParameters->RenderTargets[0] = FRenderTargetBinding(RegisterExternalTexture(GraphBuilder, BlurEffectRenderTexture1, TEXT("Vertical_BlurEffectRenderTexture1")), ERenderTargetLoadAction::ELoad);
+					GraphBuilder.AddPass(
+						RDG_EVENT_NAME("Horizontal"),
+						HorizontalPassParameters,
+						ERDGPassFlags::Raster,
+						[this, VertexShader, PixelShader, Renderer, BlurEffectRenderTexture1, BlurEffectRenderTexture2, samplerState, inv_TextureSize, tempBlurStrength](FRHICommandListImmediate& RHICmdList)
+						{
+							FGraphicsPipelineStateInitializer GraphicsPSOInit;
+							RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+							GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+							GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+							GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+							GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+							GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+							GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+							GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+							GraphicsPSOInit.NumSamples = 1;
+							SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
+							VertexShader->SetParameters(RHICmdList);
+							PixelShader->SetInverseTextureSize(RHICmdList, inv_TextureSize);
+							PixelShader->SetBlurStrength(RHICmdList, tempBlurStrength);
+							//render horizontal
+							RHICmdList.SetViewport(0, 0, 0.0f, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y, 1.0f);
+							PixelShader->SetMainTexture(RHICmdList, BlurEffectRenderTexture2, samplerState);
+							PixelShader->SetHorizontalOrVertical(RHICmdList, false);
+							Renderer->DrawFullScreenQuad(RHICmdList);
+						});
+
+					calculatedBlurStrength2 *= 2;
+				}
+			}
+		}
+
+		//after blur process, copy the area back to screen image
+		FGraphicsPipelineStateInitializer GraphicsPSOInit;
+		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
+		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, ECompareFunction::CF_Always>::GetRHI();
+		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<FM_Solid, CM_None, false>::GetRHI();
+		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
+		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
+		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
+		RenderMeshOnScreen_RenderThread(GraphBuilder, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
+
+		//release render target
+		BlurEffectRenderTarget1.SafeRelease();
+		BlurEffectRenderTarget2.SafeRelease();
+#else
 		float width = RectSize.X;
 		float height = RectSize.Y;
 		width = FMath::Max(width, 1.0f);
@@ -132,9 +367,9 @@ public:
 		{
 			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-				, GlobalShaderMap
-				, ScreenTargetResolveImage
 				, BlurEffectRenderTexture1
+				, ScreenTargetResolveImage
+				, GlobalShaderMap
 				, renderScreenToMeshRegionVertexArray
 				, modelViewProjectionMatrix
 				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
@@ -144,9 +379,9 @@ public:
 		else
 		{
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-				, GlobalShaderMap
-				, ScreenTargetTexture
 				, BlurEffectRenderTexture1
+				, ScreenTargetTexture
+				, GlobalShaderMap
 				, renderScreenToMeshRegionVertexArray
 				, modelViewProjectionMatrix
 				, FIntRect(0, 0, BlurEffectRenderTexture1->GetSizeXYZ().X, BlurEffectRenderTexture1->GetSizeXYZ().Y)
@@ -273,17 +508,12 @@ public:
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GetLGUIPostProcessVertexDeclaration();
 		GraphicsPSOInit.PrimitiveType = EPrimitiveType::PT_TriangleList;
 		GraphicsPSOInit.NumSamples = Renderer->GetMultiSampleCount();
-		RenderMeshOnScreen_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
-			GraphBuilder
-#else
-			RHICmdList
-#endif
-			, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, BlurEffectRenderTexture1, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 		//release render target
 		BlurEffectRenderTarget1.SafeRelease();
 		BlurEffectRenderTarget2.SafeRelease();
+#endif
 	}
 };
 

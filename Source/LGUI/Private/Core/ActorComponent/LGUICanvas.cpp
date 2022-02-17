@@ -473,9 +473,7 @@ bool ULGUICanvas::IsRenderByLGUIRendererOrUERenderer()
 	{
 		return RootCanvas->renderMode == ELGUIRenderMode::ScreenSpaceOverlay
 			|| (RootCanvas->renderMode == ELGUIRenderMode::RenderTarget && IsValid(RootCanvas->renderTarget))
-#if ENGINE_MAJOR_VERSION < 5
 			|| RootCanvas->renderMode == ELGUIRenderMode::WorldSpace_LGUI
-#endif
 			;
 	}
 	return false;
@@ -2759,26 +2757,12 @@ ELGUIRenderMode ULGUICanvas::GetActualRenderMode()const
 {
 	if (IsRootCanvas())
 	{
-#if ENGINE_MAJOR_VERSION >= 5
-		if (this->renderMode == ELGUIRenderMode::WorldSpace_LGUI)
-		{
-			return ELGUIRenderMode::WorldSpace;
-		}
-		else
-#endif
 		return this->renderMode;
 	}
 	else
 	{
 		if (RootCanvas.IsValid())
 		{
-#if ENGINE_MAJOR_VERSION >= 5
-			if (RootCanvas->renderMode == ELGUIRenderMode::WorldSpace_LGUI)
-			{
-				return ELGUIRenderMode::WorldSpace;
-			}
-			else
-#endif
 			return RootCanvas->renderMode;
 		}
 	}
