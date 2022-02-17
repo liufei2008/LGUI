@@ -1155,7 +1155,7 @@ void FLGUIEditorModule::CreateCommonActorSubMenu(FMenuBuilder& MenuBuilder)
 				&& !(ClassItr->HasAnyClassFlags(CLASS_NotPlaceable))
 				)
 			{
-				if (IsValidClassName(ClassItr->GetName()))
+				if (!IsValidClassName(ClassItr->GetName()))
 				{
 					continue;
 				}
@@ -1322,7 +1322,7 @@ void FLGUIEditorModule::CreateUIPostProcessSubMenu(FMenuBuilder& MenuBuilder)
 					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
 					if (isBlueprint)
 					{
-						if (IsValidClassName(ClassItr->GetName()))
+						if (!IsValidClassName(ClassItr->GetName()))
 						{
 							continue;
 						}
@@ -1371,7 +1371,7 @@ void FLGUIEditorModule::CreateUIExtensionSubMenu(FMenuBuilder& MenuBuilder)
 					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
 					if (isBlueprint)
 					{
-						if (IsValidClassName(ClassItr->GetName()))
+						if (!IsValidClassName(ClassItr->GetName()))
 						{
 							continue;
 						}
@@ -1525,7 +1525,7 @@ void FLGUIEditorModule::ReplaceUIElementSubMenu(FMenuBuilder& MenuBuilder)
 					bool isBlueprint = ClassItr->HasAnyClassFlags(CLASS_CompiledFromBlueprint);
 					if (isBlueprint)
 					{
-						if (IsValidClassName(ClassItr->GetName()))
+						if (!IsValidClassName(ClassItr->GetName()))
 						{
 							continue;
 						}
