@@ -107,7 +107,7 @@ public:
 #endif
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenTargetTexture,
-		FTextureRHIRef ScreenTargetImage,
+		FTextureRHIRef ScreenTargetTexture,
 		FTextureRHIRef ScreenTargetResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
@@ -121,8 +121,7 @@ public:
 		SCOPE_CYCLE_COUNTER(STAT_BackgroundPixelate);
 		if (pixelateStrength <= 0.0f)return;
 #if ENGINE_MAJOR_VERSION >= 5
-		FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
-#endif
+		auto& RHICmdList = GraphBuilder.RHICmdList;
 		float calculatedStrength = FMath::Pow(pixelateStrength * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
 		calculatedStrength = FMath::Clamp(calculatedStrength, 0.0f, 100.0f);
 		calculatedStrength += 1;
@@ -135,7 +134,7 @@ public:
 		//get render target
 		TRefCountPtr<IPooledRenderTarget> PixelateEffectRenderTarget;
 		{
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = 1;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, PixelateEffectRenderTarget, TEXT("LGUIPixelateEffectRenderTarget"));
 			if (!PixelateEffectRenderTarget.IsValid())
@@ -145,13 +144,66 @@ public:
 
 		//copy rect area from screen image to a render target, so we can just process this area
 		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
-		if (ScreenTargetImage->IsMultisampled())
+		if (ScreenTargetTexture->IsMultisampled())
 		{
-			RHICmdList.CopyToResolveTarget(ScreenTargetImage, ScreenTargetResolveImage, FResolveParams());
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-				, GlobalShaderMap
-				, ScreenTargetResolveImage
+			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
+			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+				, RegisterExternalTexture(GraphBuilder, ScreenTargetResolveImage, TEXT("LGUI_PixelateEffectRenderTargetTexture"))
 				, PixelateEffectRenderTargetTexture
+				, GlobalShaderMap
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
+				, ViewTextureScaleOffset
+			);
+		}
+		else
+		{
+			Renderer->CopyRenderTargetOnMeshRegion(GraphBuilder
+				, RegisterExternalTexture(GraphBuilder, PixelateEffectRenderTargetTexture, TEXT("LGUI_PixelateEffectRenderTargetTexture"))
+				, ScreenTargetTexture
+				, GlobalShaderMap
+				, renderScreenToMeshRegionVertexArray
+				, modelViewProjectionMatrix
+				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
+				, ViewTextureScaleOffset
+			);
+		}
+		//after pixelate process, copy the area back to screen image
+		RenderMeshOnScreen_RenderThread(GraphBuilder, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+
+		//release render target
+		PixelateEffectRenderTarget.SafeRelease();
+#else
+		float calculatedStrength = FMath::Pow(pixelateStrength * INV_MAX_PixelateStrength, 2) * MAX_PixelateStrength;//this can make the pixelate effect transition feel more linear
+		calculatedStrength = FMath::Clamp(calculatedStrength, 0.0f, 100.0f);
+		calculatedStrength += 1;
+
+		auto width = (int)(RectSize.X / calculatedStrength);
+		auto height = (int)(RectSize.Y / calculatedStrength);
+		width = FMath::Clamp(width, 1, (int)RectSize.X);
+		height = FMath::Clamp(height, 1, (int)RectSize.Y);
+
+		//get render target
+		TRefCountPtr<IPooledRenderTarget> PixelateEffectRenderTarget;
+		{
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			desc.NumSamples = 1;
+			GRenderTargetPool.FindFreeElement(RHICmdList, desc, PixelateEffectRenderTarget, TEXT("LGUIPixelateEffectRenderTarget"));
+			if (!PixelateEffectRenderTarget.IsValid())
+				return;
+		}
+		auto PixelateEffectRenderTargetTexture = PixelateEffectRenderTarget->GetRenderTargetItem().TargetableTexture;
+
+		//copy rect area from screen image to a render target, so we can just process this area
+		auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
+		if (ScreenTargetTexture->IsMultisampled())
+		{
+			RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+				, PixelateEffectRenderTargetTexture
+				, ScreenTargetResolveImage
+				, GlobalShaderMap
 				, renderScreenToMeshRegionVertexArray
 				, modelViewProjectionMatrix
 				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
@@ -161,9 +213,9 @@ public:
 		else
 		{
 			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-				, GlobalShaderMap
-				, ScreenTargetImage
 				, PixelateEffectRenderTargetTexture
+				, ScreenTargetTexture
+				, GlobalShaderMap
 				, renderScreenToMeshRegionVertexArray
 				, modelViewProjectionMatrix
 				, FIntRect(0, 0, PixelateEffectRenderTargetTexture->GetSizeXYZ().X, PixelateEffectRenderTargetTexture->GetSizeXYZ().Y)
@@ -171,16 +223,11 @@ public:
 			);
 		}
 		//after pixelate process, copy the area back to screen image
-		RenderMeshOnScreen_RenderThread(
-#if ENGINE_MAJOR_VERSION >= 5
-			GraphBuilder
-#else
-			RHICmdList
-#endif
-			, ScreenTargetImage, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
+		RenderMeshOnScreen_RenderThread(RHICmdList, ScreenTargetTexture, GlobalShaderMap, PixelateEffectRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect, TStaticSamplerState<SF_Point, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI());
 
 		//release render target
 		PixelateEffectRenderTarget.SafeRelease();
+#endif
 	}
 };
 

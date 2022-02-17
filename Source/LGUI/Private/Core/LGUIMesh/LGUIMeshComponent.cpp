@@ -630,7 +630,7 @@ public:
 	{
 		return Sections.Num() > 0;
 	}
-	virtual bool GetIsPostProcess()override { return false; }
+	virtual ELGUIHudPrimitiveType GetPrimitiveType()const override { return ELGUIHudPrimitiveType::Mesh; }
 	//end ILGUIHudPrimitive interface
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const

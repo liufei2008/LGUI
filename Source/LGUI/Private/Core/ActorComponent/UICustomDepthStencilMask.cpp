@@ -83,7 +83,7 @@ public:
 #endif
 		FLGUIHudRenderer* Renderer,
 		FTextureRHIRef OriginScreenTargetTexture,
-		FTextureRHIRef ScreenTargetImage,
+		FTextureRHIRef ScreenTargetTexture,
 		FTextureRHIRef ScreenTargetResolveImage,
 		FGlobalShaderMap* GlobalShaderMap,
 		const FMatrix& ViewProjectionMatrix,
@@ -96,10 +96,9 @@ public:
 	{
 		SCOPE_CYCLE_COUNTER(STAT_CustomDepthStencilMask);
 		if (maskStrength <= 0.0f)return;
-#if 0
 #if ENGINE_MAJOR_VERSION >= 5
 		FRHICommandListImmediate& RHICmdList = GraphBuilder.RHICmdList;
-#endif
+#else
 		FSceneRenderTargets& SceneContext = FSceneRenderTargets::Get(RHICmdList);
 		if (sourceType == EUICustomDepthStencilMaskSourceType::CustomDepth)
 		{
@@ -131,7 +130,7 @@ public:
 			TRefCountPtr<IPooledRenderTarget> OriginScreenTarget_ProcessRenderTarget;
 			TRefCountPtr<IPooledRenderTarget> DepthTexture_ProcessRenderTarget;
 
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = 1;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
@@ -147,19 +146,19 @@ public:
 #endif
 
 			//copy render target
-			if (ScreenTargetImage->IsMultisampled())
+			if (ScreenTargetTexture->IsMultisampled())
 			{
-				RHICmdList.CopyToResolveTarget(ScreenTargetImage, ScreenTargetResolveImage, FResolveParams());
+				RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
 				Renderer->CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenTargetResolveImage, ScreenTarget_ProcessRenderTargetTexture);
 			}
 			else
 			{
-				Renderer->CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenTargetImage, ScreenTarget_ProcessRenderTargetTexture);
+				Renderer->CopyRenderTarget(RHICmdList, GlobalShaderMap, ScreenTargetTexture, ScreenTarget_ProcessRenderTargetTexture);
 			}
 			RHICmdList.CopyToResolveTarget(OriginScreenTargetTexture, OriginScreenTarget_ProcessRenderTargetTexture, FResolveParams());
 			//@todo: dont't konw why below two line is needed; if remove them, then OriginScreenTargetTexture seems black
 			{
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetImage, ERenderTargetActions::Load_Store), TEXT("LGUICopyRenderTarget"));
+				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_Store), TEXT("LGUICopyRenderTarget"));
 				RHICmdList.EndRenderPass();
 			}
 			//do depth mask
@@ -221,7 +220,7 @@ public:
 #if !PLATFORM_MOBILE
 						, SceneContext.CustomStencilSRV
 						, stencilValue
-						, ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y
+						, ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y
 #else
 						, SceneContext.MobileCustomStencil->GetRenderTargetItem().TargetableTexture, samplerState
 						, stencilValue
@@ -230,8 +229,8 @@ public:
 					);
 				}
 
-				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetImage, ERenderTargetActions::Load_DontStore), TEXT("LGUIPostProcessCustomDepthMask"));
-				RHICmdList.SetViewport(0, 0, 0.0f, ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y, 1.0f);
+				RHICmdList.BeginRenderPass(FRHIRenderPassInfo(ScreenTargetTexture, ERenderTargetActions::Load_DontStore), TEXT("LGUIPostProcessCustomDepthMask"));
+				RHICmdList.SetViewport(0, 0, 0.0f, ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y, 1.0f);
 				Renderer->DrawFullScreenQuad(RHICmdList);
 				RHICmdList.EndRenderPass();
 			}
@@ -253,7 +252,7 @@ public:
 			TRefCountPtr<IPooledRenderTarget> DepthTexture_ProcessRenderTarget;
 			TRefCountPtr<IPooledRenderTarget> Result_ProcessRenderTarget;
 
-			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetImage->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
+			FPooledRenderTargetDesc desc(FPooledRenderTargetDesc::Create2DDesc(FIntPoint(width, height), ScreenTargetTexture->GetFormat(), FClearValueBinding::Black, TexCreate_None, TexCreate_RenderTargetable, false));
 			desc.NumSamples = 1;
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, ScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget1"));
 			GRenderTargetPool.FindFreeElement(RHICmdList, desc, OriginScreenTarget_ProcessRenderTarget, TEXT("LGUICustomDepthStencilMaskRenderTarget2"));
@@ -271,13 +270,13 @@ public:
 
 			//copy rect area from screen image to render target, so we can just process this area
 			auto modelViewProjectionMatrix = objectToWorldMatrix * ViewProjectionMatrix;
-			if (ScreenTargetImage->IsMultisampled())
+			if (ScreenTargetTexture->IsMultisampled())
 			{
-				RHICmdList.CopyToResolveTarget(ScreenTargetImage, ScreenTargetResolveImage, FResolveParams());
+				RHICmdList.CopyToResolveTarget(ScreenTargetTexture, ScreenTargetResolveImage, FResolveParams());
 				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-					, GlobalShaderMap
-					, ScreenTargetResolveImage
 					, ScreenTarget_ProcessRenderTargetTexture
+					, ScreenTargetResolveImage
+					, GlobalShaderMap
 					, renderScreenToMeshRegionVertexArray
 					, modelViewProjectionMatrix
 					, ViewRect
@@ -287,30 +286,32 @@ public:
 			else
 			{
 				Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
-					, GlobalShaderMap
-					, ScreenTargetImage
 					, ScreenTarget_ProcessRenderTargetTexture
+					, ScreenTargetTexture
+					, GlobalShaderMap
 					, renderScreenToMeshRegionVertexArray
 					, modelViewProjectionMatrix
 					, ViewRect
 					, ViewTextureScaleOffset
 				);
 			}
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap
-				, OriginScreenTargetTexture
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
 				, OriginScreenTarget_ProcessRenderTargetTexture
+				, OriginScreenTargetTexture
+				, GlobalShaderMap
 				, renderScreenToMeshRegionVertexArray
 				, modelViewProjectionMatrix
 				, ViewRect
 				, ViewTextureScaleOffset
 			);
-			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList, GlobalShaderMap
+			Renderer->CopyRenderTargetOnMeshRegion(RHICmdList
+				, DepthTexture_ProcessRenderTargetTexture
 #if !PLATFORM_MOBILE
 				, SceneContext.CustomDepth->GetRenderTargetItem().TargetableTexture
 #else
 				, SceneContext.MobileCustomDepth->GetRenderTargetItem().TargetableTexture
 #endif
-				, DepthTexture_ProcessRenderTargetTexture
+				, GlobalShaderMap
 				, renderScreenToMeshRegionVertexArray
 				, modelViewProjectionMatrix
 				, ViewRect
@@ -372,7 +373,7 @@ public:
 #if !PLATFORM_MOBILE
 						, SceneContext.CustomStencilSRV
 						, stencilValue
-						, ScreenTargetImage->GetSizeXYZ().X, ScreenTargetImage->GetSizeXYZ().Y
+						, ScreenTargetTexture->GetSizeXYZ().X, ScreenTargetTexture->GetSizeXYZ().Y
 #else
 						, SceneContext.MobileCustomStencil->GetRenderTargetItem().TargetableTexture, samplerState
 						, stencilValue
@@ -394,7 +395,7 @@ public:
 #else
 				RHICmdList
 #endif
-				, ScreenTargetImage, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
+				, ScreenTargetTexture, GlobalShaderMap, Result_ProcessRenderTargetTexture, modelViewProjectionMatrix, IsWorldSpace, BlendDepthForWorld, DepthTextureScaleOffset, ViewRect);
 
 			//release render target
 			if (ScreenTarget_ProcessRenderTarget.IsValid())

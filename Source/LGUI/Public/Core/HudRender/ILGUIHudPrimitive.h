@@ -25,6 +25,12 @@ struct FLGUIMeshBatchContainer
 	FLGUIMeshBatchContainer() {}
 };
 
+enum class ELGUIHudPrimitiveType :uint8
+{
+	Mesh,
+	PostProcess,
+};
+
 class ILGUIHudPrimitive
 {
 public:
@@ -38,7 +44,7 @@ public:
 	//end mesh interface
 
 	//begin post process interface
-	virtual bool GetIsPostProcess() = 0;
+	virtual ELGUIHudPrimitiveType GetPrimitiveType()const = 0;
 	/**
 	 * render thread function that will do the post process draw
 	 * @param	ScreenImage				the full screen render image

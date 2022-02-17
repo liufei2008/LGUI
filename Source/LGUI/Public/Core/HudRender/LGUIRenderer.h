@@ -14,6 +14,15 @@ struct FLGUIPostProcessVertex;
 struct FLGUIPostProcessCopyMeshRegionVertex;
 class FGlobalShaderMap;
 
+class FLGUIMeshElementCollector : FMeshElementCollector//why use a custom collector? because default FMeshElementCollector have no public constructor
+{
+public:
+	FLGUIMeshElementCollector(ERHIFeatureLevel::Type InFeatureLevel) :FMeshElementCollector(InFeatureLevel)
+	{
+
+	}
+};
+
 class LGUI_API FLGUIHudRenderer : public FSceneViewExtensionBase
 {
 public:
@@ -64,14 +73,24 @@ public:
 	TWeakObjectPtr<UWorld> GetWorld() { return World; }
 
 	void CopyRenderTarget(
-		FRHICommandListImmediate& RHICmdList, 
+#if ENGINE_MAJOR_VERSION >= 5
+		FRDGBuilder& GraphBuilder,
+#else
+		FRHICommandListImmediate& RHICmdList,
+#endif
 		FGlobalShaderMap* GlobalShaderMap,
 		FTextureRHIRef Src, FTextureRHIRef Dst
 	);
 	void CopyRenderTargetOnMeshRegion(
+#if ENGINE_MAJOR_VERSION >= 5
+		FRDGBuilder& GraphBuilder,
+		FRDGTextureRef Dst,
+#else
 		FRHICommandListImmediate& RHICmdList,
+		FTextureRHIRef Dst,
+#endif
+		FTextureRHIRef Src,
 		FGlobalShaderMap* GlobalShaderMap,
-		FTextureRHIRef Src, FTextureRHIRef Dst,
 		const TArray<FLGUIPostProcessCopyMeshRegionVertex>& RegionVertexData,
 		const FMatrix& MVP,
 		const FIntRect& ViewRect,
@@ -82,18 +101,18 @@ public:
 	);
 	uint16 GetMultiSampleCount()const { return MultiSampleCount; }
 private:
-	void SetGraphicPipelineStateFromMaterial(FGraphicsPipelineStateInitializer& GraphicsPSOInit, const FMaterial* Material);
+	static void SetGraphicPipelineState(FGraphicsPipelineStateInitializer& GraphicsPSOInit, EBlendMode BlendMode, bool bIsWireFrame, bool bIsTwoSided);
 	struct FRenderCanvasParameter
 	{
 		/*
 		 * CAUTION! use this uobject pointer only in game-thread!
 		 * I use it in render-thread just as a pointer or a key, so it is safe here.
 		 */
-		ULGUICanvas* RenderCanvas;
+		ULGUICanvas* RenderCanvas = nullptr;
 
-		int32 RenderCanvasSortOrder;
+		int32 RenderCanvasSortOrder = 0;
 		//blend depth, 0-occlude by depth, 1-all visible
-		float BlendDepth;
+		float BlendDepth = 0.0f;
 
 		TArray<ILGUIHudPrimitive*> HudPrimitiveArray;
 	};
@@ -151,3 +170,10 @@ public:
 };
 static TGlobalResource<FLGUIFullScreenQuadVertexBuffer> GLGUIFullScreenQuadVertexBuffer;
 static TGlobalResource<FLGUIFullScreenQuadIndexBuffer> GLGUIFullScreenQuadIndexBuffer;
+
+#if ENGINE_MAJOR_VERSION >= 5
+BEGIN_SHADER_PARAMETER_STRUCT(FLGUIWorldRenderPSParameter, )
+	SHADER_PARAMETER_RDG_TEXTURE(Texture2D, SceneDepthTex)
+	RENDER_TARGET_BINDING_SLOTS()
+END_SHADER_PARAMETER_STRUCT()
+#endif

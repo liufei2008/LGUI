@@ -22,11 +22,10 @@ enum class ELGUIRenderMode :uint8
 	 */
 	WorldSpace=1			UMETA(DisplayName = "World Space - UE Renderer"),
 	/**
-	 * CAUTION! This render mode not support UE5 yet! Will fallback to "World Space - UE Renderer", still working on it.
 	 * Render in world space by LGUI's custom render pipeline, 
 	 * This mode use LGUI's custom render pipeline, will not be affected by post process.
 	 */
-	WorldSpace_LGUI = 3		UMETA(DisplayName = "World Space - LGUI Renderer (UE5 - fallback to UE Renderer)"),
+	WorldSpace_LGUI = 3		UMETA(DisplayName = "World Space - LGUI Renderer"),
 	/**
 	 * Render to a custom render target.
 	 */
