@@ -1,6 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/ActorSerializer3.h"
+#include "PrefabSystem/ActorSerializer4.h"
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "GameFramework/Actor.h"
@@ -17,7 +17,7 @@
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
-namespace LGUIPrefabSystem3
+namespace LGUIPrefabSystem4
 {
 	void ActorSerializer::SavePrefab(AActor* OriginRootActor, ULGUIPrefab* InPrefab
 		, TMap<UObject*, FGuid>& InOutMapObjectToGuid, TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
@@ -64,7 +64,7 @@ namespace LGUIPrefabSystem3
 		{
 			OutActorSaveData.bIsPrefab = true;
 			OutActorSaveData.PrefabAssetIndex = FindOrAddAssetIdFromList(SubPrefabDataPtr->PrefabAsset);
-			OutActorSaveData.ActorGuid = MapObjectToGuid[Actor];
+			OutActorSaveData.ObjectGuid = MapObjectToGuid[Actor];
 			OutActorSaveData.MapObjectGuidFromParentPrefabToSubPrefab = SubPrefabDataPtr->MapObjectGuidFromParentPrefabToSubPrefab;
 
 			//serialize override parameter data
@@ -84,18 +84,22 @@ namespace LGUIPrefabSystem3
 		{
 			auto ActorGuid = MapObjectToGuid[Actor];
 
-			OutActorSaveData.ActorClass = FindOrAddClassFromList(Actor->GetClass());
-			OutActorSaveData.ActorGuid = ActorGuid;
+			OutActorSaveData.ObjectClass = FindOrAddClassFromList(Actor->GetClass());
+			OutActorSaveData.ObjectGuid = ActorGuid;
 			OutActorSaveData.ObjectFlags = (uint32)Actor->GetFlags();
-			WriterOrReaderFunction(Actor, OutActorSaveData.ActorPropertyData, false);
+			WriterOrReaderFunction(Actor, OutActorSaveData.PropertyData, false);
 			if (auto RootComp = Actor->GetRootComponent())
 			{
 				OutActorSaveData.RootComponentGuid = MapObjectToGuid[RootComp];
 			}
 			TArray<UObject*> DefaultSubObjects;
-			Actor->CollectDefaultSubobjects(DefaultSubObjects, true);
+			Actor->CollectDefaultSubobjects(DefaultSubObjects);
 			for (auto DefaultSubObject : DefaultSubObjects)
 			{
+				if (MapObjectToGuid.Contains(DefaultSubObject))
+				{
+					MapObjectToGuid.Add(DefaultSubObject, FGuid::NewGuid());
+				}
 				OutActorSaveData.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
 				OutActorSaveData.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
 			}
@@ -219,9 +223,9 @@ namespace LGUIPrefabSystem3
 			if (Class->IsChildOf(UActorComponent::StaticClass()))
 			{
 				FLGUIComponentSaveData ComponentSaveDataItem;
-				ComponentSaveDataItem.ComponentClass = FindOrAddClassFromList(Class);
+				ComponentSaveDataItem.ObjectClass = FindOrAddClassFromList(Class);
 				ComponentSaveDataItem.ComponentName = Object->GetFName();
-				ComponentSaveDataItem.ComponentGuid = MapObjectToGuid[Object];
+				ComponentSaveDataItem.ObjectGuid = MapObjectToGuid[Object];
 				ComponentSaveDataItem.ObjectFlags = (uint32)Object->GetFlags();
 				ComponentSaveDataItem.OuterObjectGuid = MapObjectToGuid[Object->GetOuter()];
 				if (auto SceneComp = Cast<USceneComponent>(Object))
@@ -239,6 +243,17 @@ namespace LGUIPrefabSystem3
 				{
 					WriterOrReaderFunction(Object, ComponentSaveDataItem.PropertyData, false);
 				}
+				TArray<UObject*> DefaultSubObjects;
+				Object->CollectDefaultSubobjects(DefaultSubObjects);
+				for (auto DefaultSubObject : DefaultSubObjects)
+				{
+					if (MapObjectToGuid.Contains(DefaultSubObject))
+					{
+						MapObjectToGuid.Add(DefaultSubObject, FGuid::NewGuid());
+					}
+					ComponentSaveDataItem.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
+					ComponentSaveDataItem.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
+				}
 				ComponentSaveDataArray.Add(ComponentSaveDataItem);
 			}
 			else
@@ -249,6 +264,17 @@ namespace LGUIPrefabSystem3
 				ObjectSaveDataItem.ObjectFlags = (uint32)Object->GetFlags();
 				ObjectSaveDataItem.OuterObjectGuid = MapObjectToGuid[Object->GetOuter()];
 				WriterOrReaderFunction(Object, ObjectSaveDataItem.PropertyData, false);
+				TArray<UObject*> DefaultSubObjects;
+				Object->CollectDefaultSubobjects(DefaultSubObjects);
+				for (auto DefaultSubObject : DefaultSubObjects)
+				{
+					if (MapObjectToGuid.Contains(DefaultSubObject))
+					{
+						MapObjectToGuid.Add(DefaultSubObject, FGuid::NewGuid());
+					}
+					ObjectSaveDataItem.DefaultSubObjectGuidArray.Add(MapObjectToGuid[DefaultSubObject]);
+					ObjectSaveDataItem.DefaultSubObjectNameArray.Add(DefaultSubObject->GetFName());
+				}
 				ObjectSaveDataArray.Add(ObjectSaveDataItem);
 			}
 		}

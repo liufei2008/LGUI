@@ -7,7 +7,7 @@
 #include "PrefabSystem/LGUIPrefab.h"
 #include "Utils/LGUIUtils.h"
 #include "GameFramework/Actor.h"
-#include "PrefabSystem/ActorSerializer3.h"
+#include "PrefabSystem/ActorSerializer4.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabManager"
 #if LGUI_CAN_DISABLE_OPTIMIZATION
@@ -389,7 +389,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 			)
 		{
 			//store override parameter to data
-			LGUIPrefabSystem3::ActorSerializer3 serailizer;
+			LGUIPrefabSystem4::ActorSerializer serailizer;
 			auto OverrideData = serailizer.SaveOverrideParameterToData(SubPrefabData.ObjectOverrideParameterArray);
 
 			TArray<AActor*> ChildrenActors;
