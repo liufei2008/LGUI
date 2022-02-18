@@ -1,14 +1,14 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
-#include "PrefabSystem/ActorSerializer3.h"
+#include "PrefabSystem/ActorSerializerBase.h"
 #include "Serialization/MemoryReader.h"
 #include "Serialization/BufferArchive.h"
 #include "LGUI.h"
 
-namespace LGUIPrefabSystem3
+namespace LGUIPrefabSystem
 {
-	FLGUIObjectWriter::FLGUIObjectWriter(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames)
+	FLGUIObjectWriter::FLGUIObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
 		: FObjectWriter(Bytes)
 		, Serializer(InSerializer)
 		, SkipPropertyNames(InSkipPropertyNames)
@@ -181,7 +181,7 @@ namespace LGUIPrefabSystem3
 	}
 
 
-	FLGUIObjectReader::FLGUIObjectReader(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames)
+	FLGUIObjectReader::FLGUIObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
 		: FObjectReader(Bytes)
 		, Serializer(InSerializer)
 		, SkipPropertyNames(InSkipPropertyNames)
@@ -228,7 +228,7 @@ namespace LGUIPrefabSystem3
 		auto type = (EObjectType)typeUint8;
 		switch (type)
 		{
-		case LGUIPrefabSystem3::EObjectType::Class:
+		case LGUIPrefabSystem::EObjectType::Class:
 		{
 			check(CanSerializeClass);
 			int32 id = -1;
@@ -238,7 +238,7 @@ namespace LGUIPrefabSystem3
 			return true;
 		}
 		break;
-		case LGUIPrefabSystem3::EObjectType::Asset:
+		case LGUIPrefabSystem::EObjectType::Asset:
 		{
 			int32 id = -1;
 			*this << id;
@@ -247,7 +247,7 @@ namespace LGUIPrefabSystem3
 			return true;
 		}
 		break;
-		case LGUIPrefabSystem3::EObjectType::ObjectReference:
+		case LGUIPrefabSystem::EObjectType::ObjectReference:
 		{
 			FGuid guid;
 			*this << guid;

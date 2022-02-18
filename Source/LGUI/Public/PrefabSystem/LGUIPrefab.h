@@ -7,17 +7,19 @@
 /**
  * Current prefab system version
  */
-#define LGUI_CURRENT_PREFAB_VERSION 3
+#define LGUI_CURRENT_PREFAB_VERSION 4
 /**
  * Version 2: Support ActorGuid (start from 4.26)
  * Version 3: Use UE's build-in FArchive to serialize/deserialize. 
-		Compare to version2: 1. About 2~3 times faster when deserialize.
-							 2. Smaller disc space take.
-							 3. Support CoreRedirects.
-							 4. Support object flags.
-							 5. Support all object serialization and reference, inlude default sub object and component.
+ *		Compare to version2: 1. About 2~3 times faster when deserialize.
+ *							 2. Smaller disc space take.
+ *							 3. Support CoreRedirects.
+ *							 4. Support object flags.
+ *							 5. Support all object serialization and reference, inlude default sub object and component.
  */
 #define LGUI_PREFAB_VERSION_BuildinFArchive 3
+/** Version 4: Support nested default sub object. */
+#define LGUI_PREFAB_VERSION_NestedDefaultSubObject 4
 
 class ULGUIPrefab;
 class ULGUIPrefabHelperObject;

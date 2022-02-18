@@ -1,14 +1,14 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
-#include "PrefabSystem/ActorSerializer3.h"
+#include "PrefabSystem/ActorSerializerBase.h"
 #include "Serialization/MemoryReader.h"
 #include "Serialization/BufferArchive.h"
 #include "LGUI.h"
 
-namespace LGUIPrefabSystem3
+namespace LGUIPrefabSystem
 {
-	FLGUIDuplicateOverrideParameterObjectWriter::FLGUIDuplicateOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames)
+	FLGUIDuplicateOverrideParameterObjectWriter::FLGUIDuplicateOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
 		: FLGUIOverrideParameterObjectWriter(Bytes, InSerializer, InSkipPropertyNames)
 	{
 		
@@ -49,7 +49,7 @@ namespace LGUIPrefabSystem3
 
 
 
-	FLGUIDuplicateOverrideParameterObjectReader::FLGUIDuplicateOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, TSet<FName> InSkipPropertyNames)
+	FLGUIDuplicateOverrideParameterObjectReader::FLGUIDuplicateOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, TSet<FName> InSkipPropertyNames)
 		: FLGUIOverrideParameterObjectReader(Bytes, InSerializer, InSkipPropertyNames)
 	{
 
@@ -61,7 +61,7 @@ namespace LGUIPrefabSystem3
 		auto type = (EObjectType)typeUint8;
 		switch (type)
 		{
-		case LGUIPrefabSystem3::EObjectType::Class:
+		case LGUIPrefabSystem::EObjectType::Class:
 		{
 			check(CanSerializeClass);
 			int32 id = -1;
@@ -71,7 +71,7 @@ namespace LGUIPrefabSystem3
 			return true;
 		}
 		break;
-		case LGUIPrefabSystem3::EObjectType::Asset:
+		case LGUIPrefabSystem::EObjectType::Asset:
 		{
 			int32 id = -1;
 			*this << id;
@@ -80,7 +80,7 @@ namespace LGUIPrefabSystem3
 			return true;
 		}
 		break;
-		case LGUIPrefabSystem3::EObjectType::ObjectReference:
+		case LGUIPrefabSystem::EObjectType::ObjectReference:
 		{
 			FGuid guid;
 			*this << guid;
@@ -91,7 +91,7 @@ namespace LGUIPrefabSystem3
 			}
 		}
 		break;
-		case LGUIPrefabSystem3::EObjectType::NativeSerailizeForDuplicate:
+		case LGUIPrefabSystem::EObjectType::NativeSerailizeForDuplicate:
 		{
 			ByteOrderSerialize(&Object, sizeof(Object));
 			return true;

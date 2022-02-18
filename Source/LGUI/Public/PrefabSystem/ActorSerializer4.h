@@ -13,49 +13,58 @@
 class ULGUIPrefabOverrideParameterObject;
 class UUIItem;
 
-namespace LGUIPrefabSystem3
+namespace LGUIPrefabSystem4
 {
-	//@todo: could use int as object's id instead of FGuid, because object's id only need to be unique inside single prefab, not even in nested prefab.
-
-	struct FLGUIObjectSaveData
+	struct FLGUICommonObjectSaveData
 	{
 	public:
 		int32 ObjectClass = -1;
 		FGuid ObjectGuid;//use id to find object.
 		uint32 ObjectFlags;
 		TArray<uint8> PropertyData;
+
+		/** The following two array stores default sub objects which belong to this actor. Array must match index for specific component. When deserialize, use FName to find FGuid. */
+		TArray<FGuid> DefaultSubObjectGuidArray;
+		TArray<FName> DefaultSubObjectNameArray;
+	};
+
+	struct FLGUIObjectSaveData : FLGUICommonObjectSaveData
+	{
+	public:
 		FGuid OuterObjectGuid;//outer object
+
 		friend FArchive& operator<<(FArchive& Ar, FLGUIObjectSaveData& ObjectData)
 		{
 			Ar << ObjectData.ObjectClass;
 			Ar << ObjectData.ObjectGuid;
 			Ar << ObjectData.ObjectFlags;
-			Ar << ObjectData.PropertyData;
 			Ar << ObjectData.OuterObjectGuid;
+			Ar << ObjectData.PropertyData;
+			Ar << ObjectData.DefaultSubObjectGuidArray;
+			Ar << ObjectData.DefaultSubObjectNameArray;
 			return Ar;
 		}
 	};
 
 	//ActorComponent serialize and save data
-	struct FLGUIComponentSaveData
+	struct FLGUIComponentSaveData : FLGUICommonObjectSaveData
 	{
 	public:
-		int32 ComponentClass;
 		FName ComponentName;
-		FGuid ComponentGuid;
-		uint32 ObjectFlags;
 		FGuid SceneComponentParentGuid = FGuid();//invalid guid means the the SceneComponent dont have parent. @todo: For Blueprint-Actor's BlueprintCreatedComponent, leave this to invalid, because that component's parent is managed by blueprint
 		FGuid OuterObjectGuid;//outer object
-		TArray<uint8> PropertyData;
+
 		friend FArchive& operator<<(FArchive& Ar, FLGUIComponentSaveData& ComponentData)
 		{
-			Ar << ComponentData.ComponentClass;
-			Ar << ComponentData.ComponentName;
-			Ar << ComponentData.ComponentGuid;
+			Ar << ComponentData.ObjectClass;
+			Ar << ComponentData.ObjectGuid;
 			Ar << ComponentData.ObjectFlags;
-			Ar << ComponentData.SceneComponentParentGuid;
 			Ar << ComponentData.OuterObjectGuid;
+			Ar << ComponentData.ComponentName;
+			Ar << ComponentData.SceneComponentParentGuid;
 			Ar << ComponentData.PropertyData;
+			Ar << ComponentData.DefaultSubObjectGuidArray;
+			Ar << ComponentData.DefaultSubObjectNameArray;
 			return Ar;
 		}
 	};
@@ -76,7 +85,7 @@ namespace LGUIPrefabSystem3
 	};
 
 	//Actor serialize and save data
-	struct FLGUIActorSaveData
+	struct FLGUIActorSaveData : FLGUICommonObjectSaveData
 	{
 	public:
 		bool bIsPrefab = false;
@@ -84,17 +93,7 @@ namespace LGUIPrefabSystem3
 		TArray<FLGUIPrefabOverrideParameterRecordData> ObjectOverrideParameterArray;//override sub prefab's parameter
 		TMap<FGuid, FGuid> MapObjectGuidFromParentPrefabToSubPrefab;//sub prefab's object use a different guid in parent prefab. So multiple same sub prefab can exist in same parent prefab.
 
-		int32 ActorClass;
-		FGuid ActorGuid;//use id to find actor
-		uint32 ObjectFlags;
-		TArray<uint8> ActorPropertyData;
 		FGuid RootComponentGuid;
-		/**
-		 * The following two array stores default sub objects which belong to this actor. Array must match index for specific component. When deserialize, use FName to find FGuid.
-		 * Common UObject/UActorComponent don't need these, because actor use "CollectDefaultSubobjects(xxx, true)" to find default sub objects, with nested objects, that should include all created default sub objects.
-		 */
-		TArray<FGuid> DefaultSubObjectGuidArray;
-		TArray<FName> DefaultSubObjectNameArray;
 
 		TArray<FLGUIActorSaveData> ChildActorData;
 
@@ -104,16 +103,16 @@ namespace LGUIPrefabSystem3
 			if (ActorData.bIsPrefab)
 			{
 				Ar << ActorData.PrefabAssetIndex;
-				Ar << ActorData.ActorGuid;//sub prefab's root actor's guid
+				Ar << ActorData.ObjectGuid;//sub prefab's root actor's guid
 				Ar << ActorData.ObjectOverrideParameterArray;
 				Ar << ActorData.MapObjectGuidFromParentPrefabToSubPrefab;
 			}
 			else
 			{
-				Ar << ActorData.ActorGuid;
-				Ar << ActorData.ActorClass;
+				Ar << ActorData.ObjectGuid;
+				Ar << ActorData.ObjectClass;
 				Ar << ActorData.ObjectFlags;
-				Ar << ActorData.ActorPropertyData;
+				Ar << ActorData.PropertyData;
 				Ar << ActorData.RootComponentGuid;
 				Ar << ActorData.DefaultSubObjectGuidArray;
 				Ar << ActorData.DefaultSubObjectNameArray;
@@ -169,6 +168,19 @@ namespace LGUIPrefabSystem3
 			, bool InForEditorOrRuntimeUse
 		);
 		
+		/**
+		 * Duplicate actor with hierarchy
+		 */
+		static AActor* DuplicateActor(AActor* OriginRootActor, USceneComponent* Parent);
+		/**
+		 * Editor version, duplicate actor with hierarchy, will also concern sub prefab.
+		 */
+		static AActor* DuplicateActorForEditor(AActor* OriginRootActor, USceneComponent* Parent
+			, const TMap<AActor*, FLGUISubPrefabData>& InSubPrefabMap
+			, const TMap<UObject*, FGuid>& InMapObjectToGuid
+			, TMap<AActor*, FLGUISubPrefabData>& OutDuplicatedSubPrefabMap
+			, TMap<FGuid, UObject*>& OutMapGuidToObject
+		);
 	private:
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent

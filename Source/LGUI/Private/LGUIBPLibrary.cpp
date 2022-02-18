@@ -2,7 +2,7 @@
 
 #include "LGUIBPLibrary.h"
 #include "Utils/LGUIUtils.h"
-#include "PrefabSystem/ActorSerializer3.h"
+#include "PrefabSystem/ActorSerializer4.h"
 #include "LTweenActor.h"
 #include "LTweenBPLibrary.h"
 #include "Core/ActorComponent/UIItem.h"
@@ -30,7 +30,7 @@ AActor* ULGUIBPLibrary::LoadPrefabWithTransform(UObject* WorldContextObject, ULG
 }
 AActor* ULGUIBPLibrary::DuplicateActor(AActor* Target, USceneComponent* Parent)
 {
-	return LGUIPrefabSystem3::ActorSerializer3::DuplicateActor(Target, Parent);
+	return LGUIPrefabSystem4::ActorSerializer::DuplicateActor(Target, Parent);
 }
 UActorComponent* ULGUIBPLibrary::GetComponentInParent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, bool IncludeSelf)
 {

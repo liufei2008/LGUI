@@ -1,14 +1,14 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "PrefabSystem/LGUIObjectReaderAndWriter.h"
-#include "PrefabSystem/ActorSerializer3.h"
+#include "PrefabSystem/ActorSerializerBase.h"
 #include "Serialization/MemoryReader.h"
 #include "Serialization/BufferArchive.h"
 #include "LGUI.h"
 
-namespace LGUIPrefabSystem3
+namespace LGUIPrefabSystem
 {
-	FLGUIOverrideParameterObjectWriter::FLGUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIOverrideParameterObjectWriter::FLGUIOverrideParameterObjectWriter(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TSet<FName>& InOverridePropertyNames)
 		: FObjectWriter(Bytes)
 		, Serializer(InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
@@ -169,7 +169,7 @@ namespace LGUIPrefabSystem3
 	}
 
 
-	FLGUIOverrideParameterObjectReader::FLGUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializer3& InSerializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIOverrideParameterObjectReader::FLGUIOverrideParameterObjectReader(TArray< uint8 >& Bytes, ActorSerializerBase& InSerializer, const TSet<FName>& InOverridePropertyNames)
 		: FObjectReader(Bytes)
 		, Serializer(InSerializer)
 		, OverridePropertyNames(InOverridePropertyNames)
@@ -222,7 +222,7 @@ namespace LGUIPrefabSystem3
 		auto type = (EObjectType)typeUint8;
 		switch (type)
 		{
-		case LGUIPrefabSystem3::EObjectType::Class:
+		case LGUIPrefabSystem::EObjectType::Class:
 		{
 			check(CanSerializeClass);
 			int32 id = -1;
@@ -232,7 +232,7 @@ namespace LGUIPrefabSystem3
 			return true;
 		}
 		break;
-		case LGUIPrefabSystem3::EObjectType::Asset:
+		case LGUIPrefabSystem::EObjectType::Asset:
 		{
 			int32 id = -1;
 			*this << id;
@@ -241,7 +241,7 @@ namespace LGUIPrefabSystem3
 			return true;
 		}
 		break;
-		case LGUIPrefabSystem3::EObjectType::ObjectReference:
+		case LGUIPrefabSystem::EObjectType::ObjectReference:
 		{
 			FGuid guid;
 			*this << guid;
@@ -297,7 +297,7 @@ namespace LGUIPrefabSystem3
 
 
 
-	FLGUIImmediateOverrideParameterObjectWriter::FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& Serializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIImmediateOverrideParameterObjectWriter::FLGUIImmediateOverrideParameterObjectWriter(UObject* Object, TArray< uint8 >& Bytes, ActorSerializerBase& Serializer, const TSet<FName>& InOverridePropertyNames)
 		: FObjectWriter(Bytes)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
@@ -338,7 +338,7 @@ namespace LGUIPrefabSystem3
 	}
 
 
-	FLGUIImmediateOverrideParameterObjectReader::FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializer3& Serializer, const TSet<FName>& InOverridePropertyNames)
+	FLGUIImmediateOverrideParameterObjectReader::FLGUIImmediateOverrideParameterObjectReader(UObject* Object, TArray< uint8 >& Bytes, ActorSerializerBase& Serializer, const TSet<FName>& InOverridePropertyNames)
 		: FObjectReader(Bytes)
 		, OverridePropertyNames(InOverridePropertyNames)
 	{
