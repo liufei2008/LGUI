@@ -337,7 +337,7 @@ AActor* ActorCopier::CopySingleActor(AActor* OriginActor, USceneComponent* Paren
 	else
 #endif
 	{
-		ALGUIManagerActor::AddActorForPrefabSystem(CopiedActor, CopiedRootActor);
+		ALGUIManagerActor::AddActorForPrefabSystem(CopiedActor, CopiedRootActor, 0);
 	}
 	CopyPropertyForActor(OriginActor, CopiedActor, ActorExcludeProperties);
 	const auto& OriginComponents = OriginActor->GetComponents();

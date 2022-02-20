@@ -28,7 +28,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInRuntime(USceneComponen
 			LoadedRootActor = NewActor;
 			ALGUIManagerActor::BeginPrefabSystemProcessingActor(TargetWorld.Get(), LoadedRootActor);
 		}
-		ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor);
+		ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor, 0);
 		CreatedActors.Add(NewActor);
 		LoadPropertyForRuntime(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));
 

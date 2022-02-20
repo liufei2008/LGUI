@@ -98,6 +98,7 @@ namespace LGUIPrefabSystem4
 	AActor* ActorSerializer::LoadSubPrefab(
 		UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, AActor* InParentLoadedRootActor
+		, int32& InOutActorIndex
 		, TMap<FGuid, UObject*>& InMapGuidToObject
 		, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
 	)
@@ -111,6 +112,7 @@ namespace LGUIPrefabSystem4
 		serializer.MapGuidToObject = InMapGuidToObject;
 		serializer.LoadedRootActor = InParentLoadedRootActor;
 		serializer.bIsSubPrefab = true;
+		serializer.ActorIndexInPrefab = InOutActorIndex;
 		serializer.WriterOrReaderFunction = [&serializer](UObject* InObject, TArray<uint8>& InOutBuffer, bool InIsSceneComponent) {
 			auto ExcludeProperties = InIsSceneComponent ? serializer.GetSceneComponentExcludeProperties() : TSet<FName>();
 			LGUIPrefabSystem::FLGUIObjectReader Reader(InOutBuffer, serializer, ExcludeProperties);
@@ -122,12 +124,13 @@ namespace LGUIPrefabSystem4
 		};
 		serializer.CallbackBeforeAwakeForSubPrefab = InOnSubPrefabFinishDeserializeFunction;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		InOutActorIndex = serializer.ActorIndexInPrefab;
 		return rootActor;
 	}
 
 	AActor* ActorSerializer::DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale)
 	{
-		PreGenerateActorRecursive(SaveData.SavedActor, nullptr);
+		PreGenerateActorRecursive(SaveData.SavedActor, nullptr, FGuid());
 		PreGenerateObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		DeserializeObjectArray(SaveData.SavedObjects, SaveData.SavedComponents);
 		auto CreatedRootActor = DeserializeActorRecursive(SaveData.SavedActor);
@@ -154,6 +157,13 @@ namespace LGUIPrefabSystem4
 					SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
 				}
 			}
+		}
+		//sub prefab root component
+		for (auto CompData : SubPrefabRootComponents)
+		{
+			auto SceneComp = (USceneComponent*)CompData.Component;
+			auto ParentComp = (USceneComponent*)MapGuidToObject[CompData.SceneComponentParentGuid];
+			SceneComp->AttachToComponent(ParentComp, FAttachmentTransformRules::KeepRelativeTransform);
 		}
 
 		//attach root actor's parent
@@ -416,7 +426,7 @@ namespace LGUIPrefabSystem4
 		}
 	}
 
-	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, USceneComponent* Parent)
+	void ActorSerializer::PreGenerateActorRecursive(FLGUIActorSaveData& InActorData, USceneComponent* Parent, const FGuid& ParentComponentGuid)
 	{
 		if (InActorData.bIsPrefab)
 		{
@@ -446,6 +456,7 @@ namespace LGUIPrefabSystem4
 					}
 					SubPrefabRootActor = ActorSerializer::LoadSubPrefab(this->TargetWorld, SubPrefabAsset, Parent
 						, LoadedRootActor
+						, this->ActorIndexInPrefab
 						, SubMapGuidToObject
 						, [&](AActor* InSubPrefabRootActor, const TMap<FGuid, UObject*>& InSubMapGuidToObject) {
 							//collect sub prefab's object and guid to parent map, so all objects are ready when set override parameters
@@ -490,6 +501,13 @@ namespace LGUIPrefabSystem4
 					);
 
 					SubPrefabMap.Add(SubPrefabRootActor, SubPrefabData);
+					if (Parent == nullptr && ParentComponentGuid.IsValid())
+					{
+						ComponentDataStruct CompData;
+						CompData.Component = SubPrefabRootActor->GetRootComponent();
+						CompData.SceneComponentParentGuid = ParentComponentGuid;
+						SubPrefabRootComponents.Add(CompData);
+					}
 				}
 			}
 		}
@@ -543,7 +561,7 @@ namespace LGUIPrefabSystem4
 				else
 #endif
 				{
-					ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor);
+					ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor, ActorIndexInPrefab);
 				}
 				if (bNeedFinishSpawn)
 				{
@@ -573,10 +591,11 @@ namespace LGUIPrefabSystem4
 
 				CreatedActors.Add(NewActor);
 				CreatedActorsGuid.Add(InActorData.ObjectGuid);
+				ActorIndexInPrefab++;
 
 				for (auto& ChildSaveData : InActorData.ChildActorData)
 				{
-					PreGenerateActorRecursive(ChildSaveData, NewActor->GetRootComponent());
+					PreGenerateActorRecursive(ChildSaveData, NewActor->GetRootComponent(), InActorData.RootComponentGuid);
 				}
 			}
 			else

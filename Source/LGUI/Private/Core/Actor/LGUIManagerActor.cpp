@@ -1141,17 +1141,24 @@ void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycl
 	{
 		if (auto Instance = GetInstance(InComp->GetWorld(), true))
 		{
-			if (auto RootActor = Instance->AllActors_PrefabSystemProcessing.Find(InComp->GetOwner()))//processing by prefab system, collect for further operation
+			if (auto RootActorDataPtr = Instance->AllActors_PrefabSystemProcessing.Find(InComp->GetOwner()))//processing by prefab system, collect for further operation
 			{
-				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(*RootActor))
+				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(RootActorDataPtr->Key))
 				{
 					auto& CompArray = ArrayPtr->LGUILifeCycleBehaviourArray;
-					if (CompArray.Contains(InComp))
+					auto FoundIndex = CompArray.IndexOfByPredicate([InComp](const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& Item) {
+						return InComp == Item.Key;
+						});
+					if (FoundIndex != INDEX_NONE)
 					{
+						check(0);
 						UE_LOG(LGUI, Error, TEXT("[ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent]already contains, comp:%s"), *(InComp->GetPathName()));
 						return;
 					}
-					CompArray.Add(InComp);
+					TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32> Item;
+					Item.Key = InComp;
+					Item.Value = RootActorDataPtr->Value;
+					CompArray.Add(Item);
 				}
 			}
 			else//not processed by prefab system, just do immediately
@@ -1539,13 +1546,17 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor_Implement(AActor* InRootA
 		}
 
 		auto& LGUILifeCycleBehaviourArray = ArrayPtr->LGUILifeCycleBehaviourArray;
+		//sort by hierarchy index
+		LGUILifeCycleBehaviourArray.Sort([](const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& A, const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& B) {
+			return A.Value < B.Value;
+			});
 		auto Count = LGUILifeCycleBehaviourArray.Num();
-		for (int i = Count - 1; i >= 0; i--)//execute from tail to head, when in prefab the deeper in hierarchy will execute earlier
+		for (int i = Count - 1; i >= 0; i--)//execute from tail to head, when in prefab the lower in hierarchy will execute earlier
 		{
-			auto item = LGUILifeCycleBehaviourArray[i];
-			if (item.IsValid())
+			auto Item = LGUILifeCycleBehaviourArray[i];
+			if (Item.Key.IsValid())
 			{
-				ProcessLGUILifecycleEvent(item.Get());
+				ProcessLGUILifecycleEvent(Item.Key.Get());
 			}
 #if !UE_BUILD_SHIPPING
 			check(LGUILifeCycleBehaviourArray.Num() == Count);
@@ -1590,11 +1601,14 @@ void ALGUIManagerActor::EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* 
 		Instance->EndPrefabSystemProcessingActor_Implement(InRootActor);
 	}
 }
-void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor)
+void ALGUIManagerActor::AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor, int32 InActorIndex)
 {
 	if (auto Instance = GetInstance(InActor->GetWorld(), true))
 	{
-		Instance->AllActors_PrefabSystemProcessing.Add(InActor, InRootActor);
+		TTuple<AActor*, int32> Item;
+		Item.Key = InRootActor;
+		Item.Value = InActorIndex;
+		Instance->AllActors_PrefabSystemProcessing.Add(InActor, Item);
 	}
 }
 void ALGUIManagerActor::RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor)
@@ -1616,9 +1630,9 @@ void ALGUIManagerActor::AddFunctionForPrefabSystemExecutionBeforeAwake(AActor* I
 {
 	if (auto Instance = GetInstance(InPrefabActor->GetWorld()))
 	{
-		if (auto RootActorPtr = Instance->AllActors_PrefabSystemProcessing.Find(InPrefabActor))
+		if (auto RootActorDataPtr = Instance->AllActors_PrefabSystemProcessing.Find(InPrefabActor))
 		{
-			auto& Container = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing[*RootActorPtr];
+			auto& Container = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing[RootActorDataPtr->Key];
 			Container.Functions.Add(InFunction);
 		}
 	}
