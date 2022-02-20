@@ -8,7 +8,7 @@
 
 namespace LGUIPrefabSystem
 {
-	class LGUI_API ActorReplaceTool
+	class LGUIEDITOR_API ActorReplaceTool
 	{
 	public:
 		//@todo: not handled condition: other actor(not child of this actor) reference this actor
