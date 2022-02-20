@@ -185,6 +185,7 @@ namespace LGUIPrefabSystem4
 		static AActor* LoadSubPrefab(
 			UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 			, AActor* InParentRootActor
+			, int32& InOutActorIndex
 			, TMap<FGuid, UObject*>& InMapGuidToObject
 			, TFunction<void(AActor*, const TMap<FGuid, UObject*>&)> InOnSubPrefabFinishDeserializeFunction
 		);
@@ -198,6 +199,11 @@ namespace LGUIPrefabSystem4
 			FGuid SceneComponentParentGuid;
 		};
 		TArray<ComponentDataStruct> CreatedComponents;
+		/**
+		 * Array of sub-prefab's root component and it's parent component's guid.
+		 * Because sometimes the parent of sub-prefab is nullptr when loading sub prefab, so we get the parent's guid and attach it after it is created.
+		 */
+		TArray<ComponentDataStruct> SubPrefabRootComponents;
 
 		TMap<AActor*, FLGUISubPrefabData> SubPrefabMap;
 
@@ -215,12 +221,13 @@ namespace LGUIPrefabSystem4
 		AActor* DeserializeActor(USceneComponent* Parent, ULGUIPrefab* InPrefab, bool ReplaceTransform = false, FVector InLocation = FVector::ZeroVector, FQuat InRotation = FQuat::Identity, FVector InScale = FVector::OneVector);
 		AActor* DeserializeActorFromData(FLGUIPrefabSaveData& SaveData, USceneComponent* Parent, bool ReplaceTransform, FVector InLocation, FQuat InRotation, FVector InScale);
 		AActor* DeserializeActorRecursive(FLGUIActorSaveData& SavedActors);
-		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, USceneComponent* Parent);
+		void PreGenerateActorRecursive(FLGUIActorSaveData& SavedActors, USceneComponent* Parent, const FGuid& ParentComponentGuid);
 		void PreGenerateObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 		void DeserializeObjectArray(const TArray<FLGUIObjectSaveData>& SavedObjects, const TArray<FLGUIComponentSaveData>& SavedComponents);
 
 		/** Loaded root actor when deserialize. If nested prefab, this is still the parent prefab's root actor */
 		AActor* LoadedRootActor = nullptr;
+		int32 ActorIndexInPrefab = 0;
 		bool bIsSubPrefab = false;
 
 		TFunction<void(AActor*)> CallbackBeforeAwake = nullptr;

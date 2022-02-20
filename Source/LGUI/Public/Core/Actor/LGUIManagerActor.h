@@ -145,13 +145,9 @@ public:
 #endif
 };
 
-USTRUCT()
 struct FLGUILifeCycleBehaviourArrayContainer
 {
-	GENERATED_BODY()
-public:
-	UPROPERTY(VisibleAnywhere, Category = LGUI)
-		TArray<TWeakObjectPtr<ULGUILifeCycleBehaviour>> LGUILifeCycleBehaviourArray;
+	TArray<TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>> LGUILifeCycleBehaviourArray;
 	/** Functions that wait for prefab serialization complete then execute */
 	TArray<TFunction<void()>> Functions;
 };
@@ -266,16 +262,14 @@ public:
 #endif
 private:
 	/** Map actor to prefab's root actor */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<AActor*, AActor*> AllActors_PrefabSystemProcessing;
+	TMap<AActor*, TTuple<AActor*, int32>> AllActors_PrefabSystemProcessing;
 	/** Map root actor to LGUILifeCycleBehaviour array */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI")
-		TMap<AActor*, FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
+	TMap<AActor*, FLGUILifeCycleBehaviourArrayContainer> LGUILifeCycleBehaviours_PrefabSystemProcessing;
 	void EndPrefabSystemProcessingActor_Implement(AActor* InRootActor);
 public:
 	static void BeginPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
 	static void EndPrefabSystemProcessingActor(UWorld* InWorld, AActor* InRootActor);
-	static void AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor);
+	static void AddActorForPrefabSystem(AActor* InActor, AActor* InRootActor, int32 InActorIndex);
 	static void RemoveActorForPrefabSystem(AActor* InActor, AActor* InRootActor);
 	static bool IsPrefabSystemProcessingActor(AActor* InActor);
 	/**

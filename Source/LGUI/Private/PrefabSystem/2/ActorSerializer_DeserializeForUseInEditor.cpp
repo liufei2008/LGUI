@@ -46,7 +46,7 @@ AActor* ActorSerializer::DeserializeActorRecursiveForUseInEditor(USceneComponent
 		}
 		else
 		{
-			ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor);
+			ALGUIManagerActor::AddActorForPrefabSystem(NewActor, LoadedRootActor, 0);
 		}
 		CreatedActors.Add(NewActor);
 		LoadProperty(NewActor, SaveData.ActorPropertyData, GetActorExcludeProperties(true, true));

@@ -138,7 +138,14 @@ void ULGUILifeCycleBehaviour::PostEditChangeProperty(FPropertyChangedEvent& Prop
 
 bool ULGUILifeCycleBehaviour::GetIsActiveAndEnable()const
 {
-	return enable;
+	if (GetRootSceneComponent())
+	{
+		return RootComp->GetVisibleFlag();
+	}
+	else
+	{
+		return this->GetEnable();
+	}
 }
 
 bool ULGUILifeCycleBehaviour::IsAllowedToCallOnEnable()const
