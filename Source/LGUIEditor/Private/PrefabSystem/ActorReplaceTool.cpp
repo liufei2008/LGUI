@@ -1,8 +1,9 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/2/ActorReplaceTool.h"
+#include "ActorReplaceTool.h"
 #include "Engine/World.h"
 #include "LGUI.h"
+#include "LGUIEditorModule.h"
 #include "Utils/LGUIUtils.h"
 #include "EngineUtils.h"
 #include "PrefabSystem/2/ActorSerializer.h"
@@ -291,7 +292,7 @@ AActor* ActorReplaceTool::ReplaceActorClassInternal(AActor* TargetActor, TSubcla
 {
 	if (!IsValid(TargetActor))
 	{
-		UE_LOG(LGUI, Error, TEXT("CopyActor, RootActor is not valid!"));
+		UE_LOG(LGUIEditor, Error, TEXT("CopyActor, RootActor is not valid!"));
 		return nullptr;
 	}
 
@@ -336,7 +337,7 @@ AActor* ActorReplaceTool::CopySingleActorAndReplaceClass(AActor* TargetActor, TS
 	bool rootCompNeedRegister = false;
 	if (!CopiedRootComp)
 	{
-		CopiedRootComp = NewObject<USceneComponent>(CopiedActor, OriginRootComp->GetClass(), OriginRootComp->GetFName(), RF_NoFlags);
+		CopiedRootComp = NewObject<USceneComponent>(CopiedActor, OriginRootComp->GetClass(), OriginRootComp->GetFName(), OriginRootComp->GetFlags());
 		rootCompNeedRegister = true;
 	}
 	CopyPropertyChecked(OriginRootComp, CopiedRootComp, SceneComponentExcludeProperties);
@@ -354,7 +355,7 @@ AActor* ActorReplaceTool::CopySingleActorAndReplaceClass(AActor* TargetActor, TS
 	{
 		if (OriginComp == OriginRootComp)continue;//skip RootComponent
 		if (OriginComp->HasAnyFlags(EObjectFlags::RF_Transient))continue;//skip transient component
-		auto CopiedComp = NewObject<UActorComponent>(CopiedActor, OriginComp->GetClass(), OriginComp->GetFName(), RF_NoFlags);
+		auto CopiedComp = NewObject<UActorComponent>(CopiedActor, OriginComp->GetClass(), OriginComp->GetFName(), OriginComp->GetFlags());
 		CopyProperty(OriginComp, CopiedComp, SceneComponentExcludeProperties);
 		LGUIPrefabSystem::ActorSerializer::RegisterComponent(CopiedActor, CopiedComp);
 

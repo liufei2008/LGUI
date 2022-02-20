@@ -1,8 +1,9 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
-#include "PrefabSystem/2/ActorCopier.h"
+#include "ActorCopier.h"
 #include "Engine/World.h"
 #include "LGUI.h"
+#include "LGUIEditorModule.h"
 #include "Core/Actor/LGUIManagerActor.h"
 #include "PrefabSystem/2/ActorSerializer.h"
 
@@ -501,19 +502,19 @@ AActor* ActorCopier::CopyActorInternal(AActor* RootActor, USceneComponent* Paren
 #else
 		RootActor->GetPathName();
 #endif
-	UE_LOG(LGUI, Log, TEXT("Take %fs duplicating actor: %s"), TimeSpan.GetTotalSeconds(), *Name);
+	UE_LOG(LGUIEditor, Log, TEXT("Take %fs duplicating actor: %s"), TimeSpan.GetTotalSeconds(), *Name);
 	return Result;
 }
 AActor* ActorCopier::DuplicateActor(AActor* RootActor, USceneComponent* Parent)
 {
 	if (!IsValid(RootActor))
 	{
-		UE_LOG(LGUI, Error, TEXT("[ActorCopier::CopyActorInternal]RootActor is not valid!"));
+		UE_LOG(LGUIEditor, Error, TEXT("[ActorCopier::CopyActorInternal]RootActor is not valid!"));
 		return nullptr;
 	}
 	if (!RootActor->GetWorld())
 	{
-		UE_LOG(LGUI, Error, TEXT("[ActorCopier::CopyActorInternal]RootActor is not valid!"));
+		UE_LOG(LGUIEditor, Error, TEXT("[ActorCopier::CopyActorInternal]RootActor is not valid!"));
 		return nullptr;
 	}
 	ActorCopier copier;
