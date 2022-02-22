@@ -9,6 +9,7 @@
 #include "LGUIEditorModule.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
+#include "LGUIEditorTools.h"
 
 #define LOCTEXT_NAMESPACE "LGUIFontDataCustomization"
 
@@ -143,15 +144,134 @@ void FLGUIFontDataCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBu
 			SNew(STextComboBox)
 			.OptionsSource(&faceSelections)
 			.InitiallySelectedItem(currentSelected)
-			.OnSelectionChanged(this, &FLGUIFontDataCustomization::OnComboSelectionChanged, fontFaceHandle)
-			.OnComboBoxOpening(this, &FLGUIFontDataCustomization::OnComboMenuOpening)
+			.OnSelectionChanged(this, &FLGUIFontDataCustomization::OnFontFaceComboSelectionChanged, fontFaceHandle)
+			.OnComboBoxOpening(this, &FLGUIFontDataCustomization::OnFontFaceComboMenuOpening)
 		]
 		;
+	//packing tag
+	auto PackingTagProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUIFontData, packingTag));
+	DetailBuilder.HideProperty(PackingTagProperty);
+	RefreshNameList(nullptr);
+	if (ULGUIAtlasManager::Instance != nullptr)
+	{
+		ULGUIAtlasManager::Instance->OnAtlasMapChanged.AddSP(this, &FLGUIFontDataCustomization::RefreshNameList, &DetailBuilder);
+	}
+	lguiCategory.AddCustomRow(LOCTEXT("PackingTag", "Packing Tag"))
+	.NameContent()
+	[
+		PackingTagProperty->CreatePropertyNameWidget()
+	]
+	.ValueContent()
+	[
+		SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(SBox)
+			.MinDesiredWidth(120)
+			.Padding(FMargin(0, 2, 0, 2))
+			[
+				//PackingTagProperty->CreatePropertyValueWidget()
+				SNew(SComboButton)
+				.HasDownArrow(true)
+				.ButtonContent()
+				[
+					SNew(SHorizontalBox)
+					+SHorizontalBox::Slot()
+					[
+						SNew(SEditableText)
+						.OnTextCommitted(this, &FLGUIFontDataCustomization::OnPackingTagTextCommited, PackingTagProperty, &DetailBuilder)
+						.Text(this, &FLGUIFontDataCustomization::GetPackingTagText, PackingTagProperty)
+					]
+				]
+				.MenuContent()
+				[
+					SNew(SVerticalBox)
+					+SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SListView<TSharedPtr<FName>>)
+						.ListItemsSource(&NameList)
+						.OnGenerateRow(this, &FLGUIFontDataCustomization::GenerateComboItem)
+						.OnSelectionChanged(this, &FLGUIFontDataCustomization::HandleRequiredParamComboChanged, PackingTagProperty, &DetailBuilder)
+					]
+				]
+			]
+		]
+		+SHorizontalBox::Slot()
+		.Padding(FMargin(2))
+		.AutoWidth()
+		[
+			TargetScriptPtr->packingTag.IsNone() 
+			?
+			SNew(SBox)
+			:
+			SNew(SBox)
+			[
+			SNew(SButton)
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			.Text(LOCTEXT("OpenAtals", "Open Atals Viewer"))
+			.OnClicked_Lambda([]() {
+			LGUIEditorTools::OpenAtlasViewer_Impl();
+			return FReply::Handled();
+				})
+			]
+		]
+	]
+	;
 
-	for (auto propertyName : propertiesNeedToHide)
+	for (auto& propertyName : propertiesNeedToHide)
 	{
 		DetailBuilder.HideProperty(propertyName);
 	}
+}
+
+void FLGUIFontDataCustomization::RefreshNameList(IDetailLayoutBuilder* DetailBuilder)
+{
+	NameList.Reset();
+	NameList.Add(MakeShareable(new FName(NAME_None)));
+	if (ULGUIAtlasManager::Instance != nullptr)
+	{
+		auto& AtlasMap = ULGUIAtlasManager::Instance->GetAtlasMap();
+		for (auto KeyValue : AtlasMap)
+		{
+			NameList.Add(TSharedPtr<FName>(new FName(KeyValue.Key)));
+		}
+	}
+	if (DetailBuilder != nullptr)
+	{
+		DetailBuilder->ForceRefreshDetails();
+	}
+}
+
+void FLGUIFontDataCustomization::OnPackingTagTextCommited(const FText& InText, ETextCommit::Type CommitType, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
+{
+	FName packingTag = FName(InText.ToString());
+	InProperty->SetValue(packingTag);
+	TargetScriptPtr->ReloadFont();
+	DetailBuilder->ForceRefreshDetails();
+}
+
+TSharedRef<ITableRow> FLGUIFontDataCustomization::GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable)
+{
+	return SNew(STableRow<TSharedPtr<FName>>, OwnerTable)
+		[
+			SNew(STextBlock).Text(FText::FromName(*InItem))
+		];
+}
+
+void FLGUIFontDataCustomization::HandleRequiredParamComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
+{
+	InProperty->SetValue(*Item.Get());
+	TargetScriptPtr->ReloadFont();
+	DetailBuilder->ForceRefreshDetails();
+}
+
+FText FLGUIFontDataCustomization::GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const
+{
+	FName packingTag;
+	InProperty->GetValue(packingTag);
+	return FText::FromName(packingTag);
 }
 
 FText FLGUIFontDataCustomization::OnGetFontFilePath()const
@@ -165,7 +285,7 @@ FText FLGUIFontDataCustomization::GetCurrentValue() const
 	auto faceName = TargetScriptPtr->subFaces[TargetScriptPtr->fontFace];
 	return FText::FromString(faceName);
 }
-void FLGUIFontDataCustomization::OnComboSelectionChanged(TSharedPtr<FString> InSelectedItem, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> fontFaceHandle)
+void FLGUIFontDataCustomization::OnFontFaceComboSelectionChanged(TSharedPtr<FString> InSelectedItem, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> fontFaceHandle)
 {
 	int selectedIndex = 0;
 	for (int i = 0; i < TargetScriptPtr->subFaces.Num(); i++)
@@ -177,7 +297,7 @@ void FLGUIFontDataCustomization::OnComboSelectionChanged(TSharedPtr<FString> InS
 	}
 	fontFaceHandle->SetValue(selectedIndex);
 }
-void FLGUIFontDataCustomization::OnComboMenuOpening()
+void FLGUIFontDataCustomization::OnFontFaceComboMenuOpening()
 {
 	//int32 CurrentNameIndex = TargetScriptPtr->fontFace;
 	//TSharedPtr<int32> FoundNameIndexItem;

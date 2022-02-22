@@ -763,7 +763,7 @@ bool FUIItemCustomization::IsAnchorEditable()const
 	{
 		auto UIItem = TargetScriptArray[0];
 		if (UIItem->GetParentUIItem() != nullptr)return true;//not root
-		if (UIItem->IsCanvasUIItem() && UIItem->GetRenderCanvas()->IsRenderToScreenSpace())//is root canvas, and is render to screen space
+		if (UIItem->IsCanvasUIItem() && UIItem->GetRenderCanvas() != nullptr && UIItem->GetRenderCanvas()->IsRenderToScreenSpace())//is root canvas, and is render to screen space
 		{
 			return false;
 		}

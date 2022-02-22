@@ -47,7 +47,6 @@ public:
 				.HAlign(HAlign_Right)
 				[
 					SNew(SButton)
-					.ButtonStyle(FEditorStyle::Get(), "FilePath.FolderButton")
 					.ContentPadding(FMargin(4.0f, 0.0f))
 					.OnClicked(this, &SLGUIFileBrowser::OnBrowseButtonClicked, InArgs._DialogTitle, InArgs._FolderPath, InArgs._DefaultFileName, InArgs._Filter)
 					.ToolTipText(LOCTEXT("BrowseForFile", "Browse for a file"))

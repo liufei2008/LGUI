@@ -24,6 +24,13 @@ private:
 	TArray<TSharedPtr<FString>> faceSelections;
 
 	FText GetCurrentValue() const;
-	void OnComboSelectionChanged(TSharedPtr<FString> InSelectedItem, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> fontFaceHandle);
-	void OnComboMenuOpening();
+	void OnFontFaceComboSelectionChanged(TSharedPtr<FString> InSelectedItem, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> fontFaceHandle);
+	void OnFontFaceComboMenuOpening();
+
+	void OnPackingTagTextCommited(const FText& InText, ETextCommit::Type CommitType, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
+	FText GetPackingTagText(TSharedRef<IPropertyHandle> InProperty)const;
+	TSharedRef<ITableRow> GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable);
+	void HandleRequiredParamComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
+	TArray<TSharedPtr<FName>> NameList;
+	void RefreshNameList(IDetailLayoutBuilder* DetailBuilder);
 };

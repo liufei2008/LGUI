@@ -31,4 +31,5 @@ private:
 	TSharedRef<ITableRow> GenerateComboItem(TSharedPtr<FName> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 	void HandleRequiredParamComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder);
 	TArray<TSharedPtr<FName>> NameList;
+	void RefreshNameList(IDetailLayoutBuilder* DetailBuilder);
 };

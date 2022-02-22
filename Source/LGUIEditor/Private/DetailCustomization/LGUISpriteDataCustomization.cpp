@@ -51,14 +51,11 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	lguiCategory.AddProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, spriteInfo.height));
 	auto PackingTagProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(ULGUISpriteData, packingTag));
 	DetailBuilder.HideProperty(PackingTagProperty);
-	NameList.Empty();
-	NameList.Add(MakeShareable(new FName(NAME_None)));
+	
+	RefreshNameList(nullptr);
 	if (ULGUIAtlasManager::Instance != nullptr)
 	{
-		for (auto KeyValue : ULGUIAtlasManager::Instance->GetAtlasMap())
-		{
-			NameList.Add(TSharedPtr<FName>(new FName(KeyValue.Key)));
-		}
+		ULGUIAtlasManager::Instance->OnAtlasMapChanged.AddSP(this, &FLGUISpriteDataCustomization::RefreshNameList, &DetailBuilder);
 	}
 	lguiCategory.AddCustomRow(LOCTEXT("PackingTag", "Packing Tag"))
 	.NameContent()
@@ -298,10 +295,30 @@ void FLGUISpriteDataCustomization::CustomizeDetails(IDetailLayoutBuilder& Detail
 	}
 }
 
+void FLGUISpriteDataCustomization::RefreshNameList(IDetailLayoutBuilder* DetailBuilder)
+{
+	NameList.Reset();
+	NameList.Add(MakeShareable(new FName(NAME_None)));
+	if (ULGUIAtlasManager::Instance != nullptr)
+	{
+		auto& AtlasMap = ULGUIAtlasManager::Instance->GetAtlasMap();
+		for (auto KeyValue : AtlasMap)
+		{
+			NameList.Add(TSharedPtr<FName>(new FName(KeyValue.Key)));
+		}
+	}
+	if (DetailBuilder != nullptr)
+	{
+		DetailBuilder->ForceRefreshDetails();
+	}
+}
+
 void FLGUISpriteDataCustomization::OnPackingTagTextCommited(const FText& InText, ETextCommit::Type CommitType, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
 {
 	FName packingTag = FName(InText.ToString());
 	InProperty->SetValue(packingTag);
+	TargetScriptPtr->ReloadTexture();
+	TargetScriptPtr->InitSpriteData();
 	DetailBuilder->ForceRefreshDetails();
 }
 
@@ -316,6 +333,8 @@ TSharedRef<ITableRow> FLGUISpriteDataCustomization::GenerateComboItem(TSharedPtr
 void FLGUISpriteDataCustomization::HandleRequiredParamComboChanged(TSharedPtr<FName> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> InProperty, IDetailLayoutBuilder* DetailBuilder)
 {
 	InProperty->SetValue(*Item.Get());
+	TargetScriptPtr->ReloadTexture();
+	TargetScriptPtr->InitSpriteData();
 	DetailBuilder->ForceRefreshDetails();
 }
 
@@ -325,6 +344,7 @@ FText FLGUISpriteDataCustomization::GetPackingTagText(TSharedRef<IPropertyHandle
 	InProperty->GetValue(packingTag);
 	return FText::FromName(packingTag);
 }
+
 FOptionalSize FLGUISpriteDataCustomization::GetImageWidth()const
 {
 	float imageAspect = (float)(TargetScriptPtr->spriteTexture->GetSurfaceWidth()) / TargetScriptPtr->spriteTexture->GetSurfaceHeight();
