@@ -1,5 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
+#if WITH_EDITOR
 #include "PrefabSystem/2/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "BitConverter.h"
@@ -696,4 +697,6 @@ void FLGUIActorSaveData::SetActorGuid(FGuid guid)
 
 #if WITH_EDITOR
 FName ActorSerializer::Name_ActorGuid = FName(TEXT("ActorGuid"));
+#endif
+
 #endif

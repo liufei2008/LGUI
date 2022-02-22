@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "PrefabSystem/LGUIPrefab.h"
 
+#if WITH_EDITOR
+
 namespace LGUIPrefabSystem
 {
 	enum class ELGUIPropertyType : uint8
@@ -485,3 +487,5 @@ namespace LGUIPrefabSystem
 		static TArray<FName> GetComponentExcludeProperties();
 	};
 }
+
+#endif
