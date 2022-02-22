@@ -92,9 +92,9 @@ int32 FLGUIAtlasData::ExpendTextureSize(const FName& packingTag)
 		}
 	}
 	//callback function
-	if (expandTextureSizeCallback.IsBound())
+	if (OnTextureSizeExpanded.IsBound())
 	{
-		expandTextureSizeCallback.Broadcast(this->atlasTexture, newTextureSize);
+		OnTextureSizeExpanded.Broadcast(this->atlasTexture, newTextureSize);
 	}
 
 	return newTextureSize;
@@ -445,7 +445,16 @@ FLGUIAtlasData* ULGUIAtlasManager::FindOrAdd(const FName& packingTag)
 {
 	if (InitCheck())
 	{
-		return &(Instance->atlasMap.FindOrAdd(packingTag));
+		if (!Instance->atlasMap.Contains(packingTag))
+		{
+			auto Result = &(Instance->atlasMap.Add(packingTag));
+			if (Instance->OnAtlasMapChanged.IsBound())
+			{
+				Instance->OnAtlasMapChanged.Broadcast();
+			}
+			return Result;
+		}
+		return Instance->atlasMap.Find(packingTag);
 	}
 	return nullptr;
 }
@@ -471,6 +480,10 @@ void ULGUIAtlasManager::ResetAtlasMap()
 		}
 		Instance->atlasMap.Empty();
 		Instance->isStaticAtlasPacked = false;
+		if (Instance->OnAtlasMapChanged.IsBound())
+		{
+			Instance->OnAtlasMapChanged.Broadcast();
+		}
 	}
 }
 void ULGUIAtlasManager::PackStaticAtlas()

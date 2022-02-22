@@ -35,12 +35,12 @@ struct LGUI_API FLGUIAtlasData
 	int32 ExpendTextureSize(const FName& packingTag);
 	int32 GetWillExpendTextureSize()const;
 
-	class FLGUIAtlasTextureExpendEvent : public TMulticastDelegate<void(UTexture2D*, int32)>
+	class FLGUIAtlasTextureExpendEvent : public TMulticastDelegate<void(UTexture2D*, int32)>//why not use DECLARE_EVENT here? because DECLARE_EVENT use "friend class XXX", but I need "friend struct"
 	{
 		friend struct FLGUIAtlasData;
 	};
 	/** atlas texture size may change when dynamic packing, this event will be called when that happen. */
-	FLGUIAtlasTextureExpendEvent expandTextureSizeCallback;
+	FLGUIAtlasTextureExpendEvent OnTextureSizeExpanded;
 
 	bool StaticPacking(const FName& packingTag);
 private:
@@ -75,4 +75,8 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (WorldContext = "WorldContextObject"))
 		static void DisposeAtlasByPackingTag(FName inPackingTag);
+
+	DECLARE_EVENT(ULGUIAtlasManager, FLGUIAtlasMapChangeEvent);
+
+	FLGUIAtlasMapChangeEvent OnAtlasMapChanged;
 };

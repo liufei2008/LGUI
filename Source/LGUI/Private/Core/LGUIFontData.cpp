@@ -192,7 +192,7 @@ void ULGUIFontData::InitFreeType()
 			if (packingAtlasData == nullptr)
 			{
 				packingAtlasData = ULGUIAtlasManager::FindOrAdd(packingTag);
-				packingAtlasTextureExpandDelegateHandle = packingAtlasData->expandTextureSizeCallback.AddUObject(this, &ULGUIFontData::ApplyPackingAtlasTextureExpand);
+				packingAtlasTextureExpandDelegateHandle = packingAtlasData->OnTextureSizeExpanded.AddUObject(this, &ULGUIFontData::ApplyPackingAtlasTextureExpand);
 			}
 			packingAtlasData->EnsureAtlasTexture(packingTag);
 			texture = packingAtlasData->atlasTexture;
@@ -224,7 +224,7 @@ void ULGUIFontData::DeinitFreeType()
 	packingAtlasData = ULGUIAtlasManager::Find(packingTag);
 	if (packingAtlasData != nullptr)
 	{
-		packingAtlasData->expandTextureSizeCallback.Remove(packingAtlasTextureExpandDelegateHandle);
+		packingAtlasData->OnTextureSizeExpanded.Remove(packingAtlasTextureExpandDelegateHandle);
 		packingAtlasData = nullptr;
 	}
 	if (face != nullptr)
@@ -541,6 +541,7 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, useExternalFileOrEmbedInToUAsset)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, fontFace)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, fontType)
+			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, packingTag)
 			)
 		{
 			ReloadFont();
@@ -550,7 +551,7 @@ void ULGUIFontData::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(ULGUIFontData, boldRatio)
 			)
 		{
-			for (auto textItem : renderTextArray)
+			for (auto& textItem : renderTextArray)
 			{
 				if (textItem.IsValid())
 				{
