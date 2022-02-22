@@ -288,8 +288,8 @@ void ULGUICanvasScaler::OnEditorTick(float DeltaTime)
 						FViewport* viewport = nullptr;
 
 						int32 editorViewIndex = ULGUIEditorSettings::GetLGUIPreview_EditorViewIndex();
-						auto viewportClients = GEditor->GetAllViewportClients();
-						for (auto viewportClient : viewportClients)
+						auto& viewportClients = GEditor->GetAllViewportClients();
+						for (auto& viewportClient : viewportClients)
 						{
 							if (viewportClient->ViewIndex == editorViewIndex)
 							{
@@ -561,7 +561,7 @@ FVector2D ULGUICanvasScaler::ConvertPositionFromLGUICanvasToViewport(const FVect
 	break;
 	case LGUIScaleMode::ScaleWithScreenSize:
 	{
-		return FVector2D(position.X, ViewportSize.Y - position.Y) * Canvas->canvasScale;
+		return FVector2D(position.X * Canvas->canvasScale, ViewportSize.Y - position.Y * Canvas->canvasScale);
 	}
 	break;
 	}
