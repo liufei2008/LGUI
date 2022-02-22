@@ -1,5 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
+#if WITH_EDITOR
 #pragma once
 
 #include "CoreMinimal.h"
@@ -260,3 +261,5 @@ private:
 };
 
 const TCHAR BitConverter::ErrorMsgFormat[] = TEXT("[BitConvert/%s]bytes.Num %d not enough!");
+
+#endif

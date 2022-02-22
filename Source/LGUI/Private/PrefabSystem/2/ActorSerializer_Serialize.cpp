@@ -1,5 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
+#if WITH_EDITOR
 #include "PrefabSystem/2/ActorSerializer.h"
 #include "PrefabSystem/LGUIPrefabHelperActor.h"
 #include "PrefabSystem/LGUIPrefabHelperObject.h"
@@ -534,4 +535,6 @@ void ActorSerializer::SetActorGUID(AActor* Actor, FGuid Guid)
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_ENABLE_OPTIMIZATION
+#endif
+
 #endif

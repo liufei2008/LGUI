@@ -66,7 +66,7 @@ public:
 //@todo: prefab variant
 
 /**
- * Similar to Unity3D's Prefab. store actor and it's hierarchy and serailize to asset, deserialize and restore when need.
+ * Similar to Unity3D's Prefab. Store actor and it's hierarchy and serailize to asset, deserialize and restore when needed.
  */
 UCLASS(ClassGroup = (LGUI), BlueprintType, NotBlueprintable)
 class LGUI_API ULGUIPrefab : public UObject
@@ -77,8 +77,7 @@ public:
 	ULGUIPrefab();
 	friend class FLGUIPrefabCustomization;
 
-	//@todo: the following list should be marked as editor only, but since old prefab system needs them so keep it here for a while
-
+#if WITH_EDITORONLY_DATA
 	/** put actural UObject in this array, and store index in prefab */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<UObject*> ReferenceAssetList;
@@ -96,6 +95,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
 		TArray<FText> ReferenceTextList;
 #pragma endregion Before Prefab-Version 3
+#endif
 
 #if WITH_EDITORONLY_DATA
 	/** serialized data for editor use, this data contains editor-only property include property's name, will compare property name when deserialize form this */

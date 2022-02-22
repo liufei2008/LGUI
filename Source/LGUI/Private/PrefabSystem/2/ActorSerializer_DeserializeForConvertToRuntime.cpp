@@ -1,5 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
+#if WITH_EDITOR
 #include "PrefabSystem/2/ActorSerializer.h"
 #include "BitConverter.h"
 #include "Engine/World.h"
@@ -400,4 +401,6 @@ void ActorSerializer::GenerateActorIDRecursiveForConvertToRuntime(const FLGUIAct
 		UE_LOG(LGUI, Warning, TEXT("[ActorSerializer::GenerateActorIDRecursiveForConvertToRuntime]Actor Class of index:%d not found!"), (SaveData.ActorClass));
 	}
 }
+#endif
+
 #endif

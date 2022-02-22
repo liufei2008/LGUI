@@ -1,5 +1,6 @@
 ﻿// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
+#if WITH_EDITOR
 #pragma once
 
 #include "CoreMinimal.h"
@@ -240,3 +241,5 @@ namespace LGUIPrefabSystem3
 		AActor* SerializeActor_ForDuplicate(AActor* RootActor, USceneComponent* Parent);
 	};
 }
+
+#endif
