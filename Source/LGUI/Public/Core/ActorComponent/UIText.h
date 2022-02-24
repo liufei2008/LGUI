@@ -87,11 +87,15 @@ private:
 	bool bTextLayoutDirty = false;
 
 	virtual void OnUpdateLayout_Implementation()override;//@todo: should we implement ILayoutElement for AdjustWidth/AdjustHeight?
-	FTextGeometryCache CacheTextGeometryData;
-	bool UpdateCacheTextGeometry();
+	mutable FTextGeometryCache CacheTextGeometryData;
+	bool UpdateCacheTextGeometry()const;
 public:
-	const TArray<FUITextCharProperty>& GetCharPropertyArray(bool createIfNotExist = false);
-	const TArray<FUIText_RichTextCustomTag>& GetRichTextCustomTagArray(bool createIfNotExist = false);
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const TArray<FUITextCharProperty>& GetCharPropertyArray()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		int32 GetVisibleCharCount()const;
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		const TArray<FUIText_RichTextCustomTag>& GetRichTextCustomTagArray()const;
 public:
 	virtual void MarkAllDirtyRecursive()override;
 protected:
@@ -107,7 +111,6 @@ public:
 	void ApplyFontTextureScaleUp();
 	void ApplyFontTextureChange();
 	void ApplyRecreateText();
-	FColor GetPixelAtPoint(const FVector2D& InPoint)const;
 
 	virtual void MarkVertexPositionDirty()override;
 	virtual void MarkUVDirty()override;

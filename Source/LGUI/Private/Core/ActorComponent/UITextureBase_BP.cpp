@@ -29,12 +29,12 @@ void UUITextureBase_BP::OnBeforeCreateOrUpdateGeometry()
 	if (!IsValid(createGeometryHelper))
 	{
 		createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
-		createGeometryHelper->uiGeometry = geometry;
+		createGeometryHelper->UIBatchGeometryRenderable = this;
 	}
 	if (!IsValid(updateGeometryHelper))
 	{
 		updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
-		updateGeometryHelper->uiGeometry = geometry;
+		createGeometryHelper->UIBatchGeometryRenderable = this;
 	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{

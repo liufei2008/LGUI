@@ -64,31 +64,35 @@ struct FUITextSelectionProperty
 	int32 Size;
 };
 /** char property */
+USTRUCT(BlueprintType, Category = LGUI)
 struct FUITextCharProperty
 {
+	GENERATED_BODY()
 	/** char index in string */
-	int32 CharIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndex;
 	/** vertex index in UIGeometry::vertices */
-	int32 StartVertIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 StartVertIndex;
 	/** vertex count */
-	int32 VertCount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 VertCount;
 	/** triangle index in UIGeometry::triangles */
-	int32 StartTriangleIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 StartTriangleIndex;
 	/** triangle indices count */
-	int32 IndicesCount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 IndicesCount;
 
 	/** center position of the char, in UIText's local space */
 	//FVector2D CenterPosition;
 };
 
+USTRUCT(BlueprintType, Category = LGUI)
 struct FUIText_RichTextCustomTag
 {
+	GENERATED_BODY()
 	/** Tag name */
-	FName TagName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) FName TagName;
 	/** start char index in cacheCharPropertyArray */
-	int32 CharIndexStart;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexStart;
 	/** end char index in cacheCharPropertyArray */
-	int32 CharIndexEnd;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LGUI) int32 CharIndexEnd;
 };
 
 struct FTextGeometryCache

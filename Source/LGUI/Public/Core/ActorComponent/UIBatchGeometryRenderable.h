@@ -30,12 +30,12 @@ protected:
 	TSharedPtr<UIGeometry> geometry = nullptr;
 
 	/** if have GeometryModifier component */
-	bool HaveGeometryModifier();
+	bool HaveGeometryModifier(bool includeDisabled = true);
 	/** 
 	 * use GeometryModifier to modify geometry 
 	 * @return	true if the modifier change the triangle count, else false
 	 */
-	bool ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged);
+	bool ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool transformChanged);
 	TInlineComponentArray<class UUIGeometryModifierBase*> GeometryModifierComponentArray;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -77,6 +77,7 @@ public:
     
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);
+	void SortGeometryModifier();
 
 	virtual void MarkAllDirtyRecursive()override;
 	TSharedPtr<UIGeometry> GetGeometry()const { return geometry; }

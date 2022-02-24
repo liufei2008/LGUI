@@ -17,6 +17,7 @@ void ULGUICreateGeometryHelper::AddVertexSimple(FVector position, FColor color, 
 		return;
 	}
 #endif
+	auto uiGeometry = UIBatchGeometryRenderable->GetGeometry();
 	uiGeometry->originVerticesCount += 1;
 	auto& originPositions = uiGeometry->originPositions;
 	originPositions.Add(position);
@@ -44,6 +45,7 @@ void ULGUICreateGeometryHelper::AddVertexFull(FVector position, FColor color, FV
 		return;
 	}
 #endif
+	auto uiGeometry = UIBatchGeometryRenderable->GetGeometry();
 	uiGeometry->originVerticesCount += 1;
 	auto& originPositions = uiGeometry->originPositions;
 	originPositions.Add(position);
@@ -74,6 +76,7 @@ void ULGUICreateGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
 		return;
 	}
 #endif
+	auto uiGeometry = UIBatchGeometryRenderable->GetGeometry();
 	uiGeometry->originVerticesCount += 1;
 	auto& originPositions = uiGeometry->originPositions;
 	originPositions.Add(vertex.position);
@@ -90,6 +93,7 @@ void ULGUICreateGeometryHelper::AddVertexStruct(FLGUIGeometryVertex vertex)
 }
 void ULGUICreateGeometryHelper::AddTriangle(int index0, int index1, int index2)
 {
+	auto uiGeometry = UIBatchGeometryRenderable->GetGeometry();
 #if !UE_BUILD_SHIPPING
 	int vertCount = uiGeometry->originVerticesCount;
 	if (index0 >= vertCount || index1 >= vertCount || index2 >= vertCount)
@@ -109,7 +113,7 @@ void ULGUICreateGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& I
 {
 	int vertCount = InVertices.Num();
 #if !UE_BUILD_SHIPPING
-	for(auto i : InIndices)
+	for(auto& i : InIndices)
 	{
 		if (i >= vertCount)
 		{
@@ -122,7 +126,7 @@ void ULGUICreateGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& I
 		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::SetGeometry]Indices count must be multiple of 3."));
 		return;
 	}
-	for (auto vertex : InVertices)
+	for (auto& vertex : InVertices)
 	{
 		if (vertex.position.ContainsNaN()
 			|| vertex.normal.ContainsNaN()
@@ -138,6 +142,7 @@ void ULGUICreateGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& I
 		}
 	}
 #endif
+	auto uiGeometry = UIBatchGeometryRenderable->GetGeometry();
 	auto& triangles = uiGeometry->triangles;
 	if (triangles.Num() < InIndices.Num())
 	{
@@ -188,6 +193,7 @@ void ULGUICreateGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& I
 
 void ULGUIUpdateGeometryHelper::BeginUpdateVertices()
 {
+	auto uiGeometry = UIBatchGeometryRenderable->GetGeometry();
 	const auto& vertices = uiGeometry->vertices;
 	const auto& originPositions = uiGeometry->originPositions;
 	const auto& originNormals = uiGeometry->originNormals;
@@ -211,6 +217,7 @@ void ULGUIUpdateGeometryHelper::BeginUpdateVertices()
 }
 void ULGUIUpdateGeometryHelper::EndUpdateVertices()
 {
+	auto uiGeometry = UIBatchGeometryRenderable->GetGeometry();
 	auto& vertices = uiGeometry->vertices;
 	int count = vertices.Num();
 	if (count != cacheVertices.Num())
@@ -218,6 +225,23 @@ void ULGUIUpdateGeometryHelper::EndUpdateVertices()
 		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndUpdateVertices]Don't change vertices size here! if you really need that, call MarkRebuildGeometry(), then OnCreateGeometry() will be called automatically."));
 		return;
 	}
+#if !UE_BUILD_SHIPPING
+	for (auto& vertex : cacheVertices)
+	{
+		if (vertex.position.ContainsNaN()
+			|| vertex.normal.ContainsNaN()
+			|| vertex.tangent.ContainsNaN()
+			|| vertex.uv0.ContainsNaN()
+			|| vertex.uv1.ContainsNaN()
+			|| vertex.uv2.ContainsNaN()
+			|| vertex.uv3.ContainsNaN()
+			)
+		{
+			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndUpdateVertices]Vertex position contains NaN!."));
+			return;
+		}
+	}
+#endif
 
 	auto& originPositions = uiGeometry->originPositions;
 	auto& originNormals = uiGeometry->originNormals;
@@ -282,12 +306,12 @@ void UUIBatchGeometryRenderable_BP::OnBeforeCreateOrUpdateGeometry()
 	if (!IsValid(createGeometryHelper))
 	{
 		createGeometryHelper = NewObject<ULGUICreateGeometryHelper>(this);
-		createGeometryHelper->uiGeometry = geometry;
+		createGeometryHelper->UIBatchGeometryRenderable = this;
 	}
 	if (!IsValid(updateGeometryHelper))
 	{
 		updateGeometryHelper = NewObject<ULGUIUpdateGeometryHelper>(this);
-		updateGeometryHelper->uiGeometry = geometry;
+		updateGeometryHelper->UIBatchGeometryRenderable = this;
 	}
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
 	{

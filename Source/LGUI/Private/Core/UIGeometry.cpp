@@ -150,7 +150,7 @@ void UIGeometry::FromUIRectSimple(const float& width, const float& height, const
 	if (vertices.Num() == 0)
 	{
 		uiGeo->originVerticesCount = 4;
-		vertices.SetNumUninitialized(4);
+		vertices.SetNumZeroed(4);
 	}
 	//positions
 	auto& originPositions = uiGeo->originPositions;
@@ -241,13 +241,12 @@ void UIGeometry::FromUIRectBorder(const float& width, const float& height, const
 		if (fillCenter)
 		{
 			uiGeo->originTriangleCount = 54;
-			triangles.Reserve(54);
 		}
 		else
 		{
 			uiGeo->originTriangleCount = 48;
-			triangles.Reserve(48);
 		}
+		triangles.Reserve(uiGeo->originTriangleCount);
 		int wSeg = 3, hSeg = 3;
 		int vStartIndex = 0;
 		for (int h = 0; h < hSeg; h++)
@@ -273,7 +272,7 @@ void UIGeometry::FromUIRectBorder(const float& width, const float& height, const
 	if (vertices.Num() == 0)
 	{
 		uiGeo->originVerticesCount = 16;
-		vertices.SetNumUninitialized(uiGeo->originVerticesCount);
+		vertices.SetNumZeroed(uiGeo->originVerticesCount);
 	}
 	//positions
 	auto& originPositions = uiGeo->originPositions;
@@ -445,7 +444,7 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 	if (vertices.Num() == 0)
 	{
 		uiGeo->originVerticesCount = 4 * rectangleCount;
-		vertices.SetNumUninitialized(uiGeo->originVerticesCount);
+		vertices.SetNumZeroed(uiGeo->originVerticesCount);
 	}
 	//positions
 	auto& originPositions = uiGeo->originPositions;
@@ -577,7 +576,7 @@ void UIGeometry::FromUIRectFillHorizontalVertical(const float& width, const floa
 	if (vertices.Num() == 0)
 	{
 		uiGeo->originVerticesCount = 4;
-		vertices.SetNumUninitialized(4);
+		vertices.SetNumZeroed(4);
 	}
 	//positions and uvs
 	auto& originPositions = uiGeo->originPositions;
@@ -757,7 +756,7 @@ void UIGeometry::FromUIRectFillRadial90(const float& width, const float& height,
 	if (vertices.Num() == 0)
 	{
 		uiGeo->originVerticesCount = 4;
-		vertices.SetNumUninitialized(4);
+		vertices.SetNumZeroed(4);
 	}
 	//positions and uvs
 	auto& originPositions = uiGeo->originPositions;
@@ -1200,7 +1199,7 @@ void UIGeometry::FromUIRectFillRadial180(const float& width, const float& height
 	if (vertices.Num() == 0)
 	{
 		uiGeo->originVerticesCount = 5;
-		vertices.SetNumUninitialized(5);
+		vertices.SetNumZeroed(5);
 	}
 	//positions and uvs
 	auto& originPositions = uiGeo->originPositions;
@@ -1784,13 +1783,13 @@ void UIGeometry::FromUIRectFillRadial360(const float& width, const float& height
 	if (vertices.Num() == 0)
 	{
 		uiGeo->originVerticesCount = 10;
-		vertices.SetNumUninitialized(10);
+		vertices.SetNumZeroed(10);
 	}
 	//positions and uvs
 	auto& originPositions = uiGeo->originPositions;
 	if (originPositions.Num() == 0)
 	{
-		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+		originPositions.SetNumZeroed(uiGeo->originVerticesCount);
 	}
 	UpdateUIRectFillRadial360Vertex(width, height, pivot, uiGeo, spriteInfo, flipDirection, fillAmount, originType, true, true, renderCanvas, uiComp);
 	//colors
@@ -2446,11 +2445,11 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		int32 newCount = verticesCount + additionalVerticesCount;
 		if (originPositions.Num() < newCount)
 		{
-			originPositions.AddUninitialized(newCount - originPositions.Num());
+			originPositions.AddZeroed(newCount - originPositions.Num());
 		}
 		if (vertices.Num() < newCount)
 		{
-			vertices.AddUninitialized(newCount - vertices.Num());
+			vertices.AddZeroed(newCount - vertices.Num());
 		}
 	};
 
@@ -2459,7 +2458,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 		int32 newCount = indicesCount + additionalIndicesCount;
 		if (triangles.Num() < newCount)
 		{
-			triangles.AddUninitialized(newCount - triangles.Num());
+			triangles.AddZeroed(newCount - triangles.Num());
 		}
 	};
 	 
@@ -3449,7 +3448,7 @@ void UIGeometry::UpdateUIText(const FString& text, int32 visibleCharCount, float
 
 	uiGeo->originVerticesCount = verticesCount;
 	uiGeo->originTriangleCount = indicesCount;
-	
+
 	switch (overflowType)
 	{
 	case UITextOverflowType::HorizontalOverflow:
@@ -3625,7 +3624,7 @@ void UIGeometry::FromUIPolygon(const float& width, const float& height, const FV
 	{
 		int vertexCount = (fullCycle ? 1 : 2) + sides;
 		uiGeo->originVerticesCount = vertexCount;
-		vertices.SetNumUninitialized(vertexCount);
+		vertices.SetNumZeroed(vertexCount);
 	}
 	//vert offset
 	int vertexOffsetCount = fullCycle ? sides : (sides + 1);
@@ -3633,7 +3632,7 @@ void UIGeometry::FromUIPolygon(const float& width, const float& height, const FV
 	{
 		if (vertexOffsetArray.Num() > vertexOffsetCount)
 		{
-			vertexOffsetArray.SetNumUninitialized(vertexOffsetCount);
+			vertexOffsetArray.SetNumZeroed(vertexOffsetCount);
 		}
 		else
 		{
@@ -3647,7 +3646,7 @@ void UIGeometry::FromUIPolygon(const float& width, const float& height, const FV
 	auto& originPositions = uiGeo->originPositions;
 	if (originPositions.Num() == 0)
 	{
-		originPositions.SetNumUninitialized(uiGeo->originVerticesCount);
+		originPositions.SetNumZeroed(uiGeo->originVerticesCount);
 	}
 	UpdateUIPolygonVertex(width, height, pivot, startAngle, endAngle, sides, vertexOffsetArray, fullCycle, uiGeo);
 	//uvs
