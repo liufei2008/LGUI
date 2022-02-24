@@ -61,13 +61,3 @@ void UUITextureBase_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVe
 		updateGeometryHelper->EndUpdateVertices();
 	}
 }
-void UUITextureBase_BP::MarkVertexChanged()
-{
-	MarkVertexPositionDirty();
-	MarkColorDirty();
-	MarkUVDirty();
-}
-void UUITextureBase_BP::MarkRebuildGeometry()
-{
-	MarkTriangleDirty();
-}

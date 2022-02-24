@@ -193,7 +193,7 @@ void UUIEffectOutline::SetOutlineColor(FColor newColor)
 	if (outlineColor != newColor)
 	{
 		outlineColor = newColor;
-		if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+		if (GetUIRenderable())GetUIRenderable()->MarkColorDirty();
 	}
 }
 void UUIEffectOutline::SetOutlineSize(FVector2D newSize)
@@ -201,7 +201,7 @@ void UUIEffectOutline::SetOutlineSize(FVector2D newSize)
 	if (outlineSize != newSize)
 	{
 		outlineSize = newSize;
-		if (GetRenderableUIItem())GetRenderableUIItem()->MarkVertexPositionDirty();
+		if (GetUIRenderable())GetUIRenderable()->MarkVertexPositionDirty();
 	}
 }
 void UUIEffectOutline::SetUse8Direction(bool newValue)
@@ -209,6 +209,6 @@ void UUIEffectOutline::SetUse8Direction(bool newValue)
 	if (use8Direction != newValue)
 	{
 		use8Direction = newValue;
-		if (GetRenderableUIItem())GetRenderableUIItem()->MarkTriangleDirty();
+		if (GetUIRenderable())GetUIRenderable()->MarkTriangleDirty();
 	}
 }

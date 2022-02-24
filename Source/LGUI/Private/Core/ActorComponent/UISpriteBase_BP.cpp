@@ -61,13 +61,3 @@ void UUISpriteBase_BP::OnUpdateGeometry(bool InVertexPositionChanged, bool InVer
 		updateGeometryHelper->EndUpdateVertices();
 	}
 }
-void UUISpriteBase_BP::MarkVertexChanged()
-{
-	MarkVertexPositionDirty();
-	MarkColorDirty();
-	MarkUVDirty();
-}
-void UUISpriteBase_BP::MarkRebuildGeometry()
-{
-	MarkTriangleDirty();
-}

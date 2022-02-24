@@ -12,7 +12,7 @@ UUIEffectTextAnimation::UUIEffectTextAnimation()
 bool UUIEffectTextAnimation::CheckUIText()
 {
 	if (IsValid(uiText))return true;
-	if (auto uiRenderable = GetRenderableUIItem())
+	if (auto uiRenderable = GetUIRenderable())
 	{
 		uiText = Cast<UUIText>(uiRenderable);
 		if (IsValid(uiText))
