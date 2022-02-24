@@ -112,6 +112,45 @@ void UUISprite::OnCreateGeometry()
 }
 void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
+	//ensure triangle data
+	if (InVertexPositionChanged || InVertexUVChanged || InVertexColorChanged)
+	{
+		switch (type)
+		{
+		case UISpriteType::Normal:
+			UIGeometry::UpdateUIRectSimpleTriangle(geometry);
+			break;
+		case UISpriteType::Sliced:
+		case UISpriteType::SlicedFrame:
+			UIGeometry::UpdateUIRectBorderTriangle(geometry, type == UISpriteType::Sliced);
+		break;
+		case UISpriteType::Tiled:
+			UIGeometry::UpdateUIRectTiledTriangle(geometry, Tiled_WidthRectCount * Tiled_HeightRectCount);
+			break;
+		case UISpriteType::Filled:
+		{
+			switch (fillMethod)
+			{
+			case UISpriteFillMethod::Horizontal:
+			case UISpriteFillMethod::Vertical:
+				UIGeometry::UpdateUIRectFillHorizontalVerticalTriangle(geometry);
+				break;
+			case UISpriteFillMethod::Radial90:
+				UIGeometry::UpdateUIRectFillRadial90Triangle(geometry);
+				break;
+			case UISpriteFillMethod::Radial180:
+				UIGeometry::UpdateUIRectFillRadial180Triangle(geometry, (UISpriteFillOriginType_Radial180)fillOrigin);
+				break;
+			case UISpriteFillMethod::Radial360:
+				UIGeometry::UpdateUIRectFillRadial360Triangle(geometry, (UISpriteFillOriginType_Radial360)fillOrigin);
+				break;
+			}
+		}
+		break;
+		}
+	}
+
+	//update vertex data
 	switch (type)
 	{
 	case UISpriteType::Normal:

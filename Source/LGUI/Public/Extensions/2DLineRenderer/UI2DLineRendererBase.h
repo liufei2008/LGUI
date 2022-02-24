@@ -69,6 +69,7 @@ protected:
 		, FVector2D& InOutPrevLineDir);
 	void Generate2DLineGeometry(const TArray<FVector2D>& InPointArray);
 	FORCEINLINE bool CanConnectStartEndPoint(int InPointCount) { return EndType == EUI2DLineRenderer_EndType::ConnectStartAndEnd && InPointCount >= 3; }
+	void Update2DLineRendererBaseTriangle(const TArray<FVector2D>& InPointArray);
 	void Update2DLineRendererBaseUV(const TArray<FVector2D>& InPointArray);
 	void Update2DLineRendererBaseVertex(const TArray<FVector2D>& InPointArray);
 public:

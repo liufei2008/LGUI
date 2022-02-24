@@ -66,6 +66,78 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseUV(const TArray<FVector2D>& 
 		}
 	}
 }
+
+void UUI2DLineRendererBase::Update2DLineRendererBaseTriangle(const TArray<FVector2D>& InPointArray)
+{
+	int pointCount = InPointArray.Num();
+	auto& triangles = geometry->triangles;
+	if (triangles.Num() == 0)
+	{
+		int triangleIndicesCount = (pointCount - 1) * 2 * 3;
+		if (CanConnectStartEndPoint(pointCount))
+		{
+			triangleIndicesCount += 6;
+		}
+		else if (EndType == EUI2DLineRenderer_EndType::Cap)
+		{
+			triangleIndicesCount += 12;
+		}
+		geometry->originTriangleCount = triangleIndicesCount;
+		triangles.AddDefaulted(triangleIndicesCount);
+	}
+	int pointIndex = 0;
+	int vertIndex = 0, triangleIndex = 0;
+	for (int count = pointCount - 1; pointIndex < count; pointIndex++)
+	{
+		vertIndex = pointIndex * 2;
+		triangleIndex = pointIndex * 6;
+		triangles[triangleIndex] = vertIndex;
+		triangles[triangleIndex + 1] = vertIndex + 2;
+		triangles[triangleIndex + 2] = vertIndex + 3;
+
+		triangles[triangleIndex + 3] = vertIndex;
+		triangles[triangleIndex + 4] = vertIndex + 3;
+		triangles[triangleIndex + 5] = vertIndex + 1;
+	}
+	if (CanConnectStartEndPoint(pointCount))
+	{
+		int j = pointIndex * 2;
+		int k = pointIndex * 6;
+		triangles[k] = j;
+		triangles[k + 1] = 0;
+		triangles[k + 2] = 1;
+
+		triangles[k + 3] = j;
+		triangles[k + 4] = 1;
+		triangles[k + 5] = j + 1;
+	}
+	else if (EndType == EUI2DLineRenderer_EndType::Cap)
+	{
+		vertIndex = pointIndex * 2;
+		triangleIndex = pointIndex * 6;
+		//start point cap
+		{
+			triangles[triangleIndex + 0] = vertIndex;
+			triangles[triangleIndex + 1] = vertIndex + 2;
+			triangles[triangleIndex + 2] = vertIndex + 3;
+
+			triangles[triangleIndex + 3] = vertIndex;
+			triangles[triangleIndex + 4] = vertIndex + 3;
+			triangles[triangleIndex + 5] = vertIndex + 1;
+		}
+		//end point cap
+		{
+			triangles[triangleIndex + 6] = vertIndex + 4;
+			triangles[triangleIndex + 7] = 0;
+			triangles[triangleIndex + 8] = 1;
+
+			triangles[triangleIndex + 9] = vertIndex + 4;
+			triangles[triangleIndex + 10] = 1;
+			triangles[triangleIndex + 11] = vertIndex + 5;
+		}
+	}
+}
+
 void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2D>& InPointArray)
 {
 	int pointCount = InPointArray.Num();
@@ -225,79 +297,11 @@ void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPo
 	}
 	
 	//triangles
-	auto& triangles = geometry->triangles;
-	if (triangles.Num() == 0)
-	{
-		int triangleIndicesCount = (pointCount - 1) * 2 * 3;
-		if (CanConnectStartEndPoint(pointCount))
-		{
-			triangleIndicesCount += 6;
-		}
-		else if (EndType == EUI2DLineRenderer_EndType::Cap)
-		{
-			triangleIndicesCount += 12;
-		}
-		geometry->originTriangleCount = triangleIndicesCount;
-		triangles.AddDefaulted(triangleIndicesCount);
-		int pointIndex = 0;
-		int vertIndex = 0, triangleIndex = 0;
-		for (int count = pointCount - 1; pointIndex < count; pointIndex++)
-		{
-			vertIndex = pointIndex * 2;
-			triangleIndex = pointIndex * 6;
-			triangles[triangleIndex] = vertIndex;
-			triangles[triangleIndex + 1] = vertIndex + 2;
-			triangles[triangleIndex + 2] = vertIndex + 3;
-
-			triangles[triangleIndex + 3] = vertIndex;
-			triangles[triangleIndex + 4] = vertIndex + 3;
-			triangles[triangleIndex + 5] = vertIndex + 1;
-		}
-		if (CanConnectStartEndPoint(pointCount))
-		{
-			int j = pointIndex * 2;
-			int k = pointIndex * 6;
-			triangles[k] = j;
-			triangles[k + 1] = 0;
-			triangles[k + 2] = 1;
-
-			triangles[k + 3] = j;
-			triangles[k + 4] = 1;
-			triangles[k + 5] = j + 1;
-		}
-		else if (EndType == EUI2DLineRenderer_EndType::Cap)
-		{
-			vertIndex = pointIndex * 2;
-			triangleIndex = pointIndex * 6;
-			//start point cap
-			{
-				triangles[triangleIndex + 0] = vertIndex;
-				triangles[triangleIndex + 1] = vertIndex + 2;
-				triangles[triangleIndex + 2] = vertIndex + 3;
-
-				triangles[triangleIndex + 3] = vertIndex;
-				triangles[triangleIndex + 4] = vertIndex + 3;
-				triangles[triangleIndex + 5] = vertIndex + 1;
-			}
-			//end point cap
-			{
-				triangles[triangleIndex + 6] = vertIndex + 4;
-				triangles[triangleIndex + 7] = 0;
-				triangles[triangleIndex + 8] = 1;
-
-				triangles[triangleIndex + 9] = vertIndex + 4;
-				triangles[triangleIndex + 10] = 1;
-				triangles[triangleIndex + 11] = vertIndex + 5;
-			}
-		}
-	}
-
-	{
-		//positions
-		Update2DLineRendererBaseVertex(InPointArray);
-		//uvs
-		Update2DLineRendererBaseUV(InPointArray);
-	}
+	Update2DLineRendererBaseTriangle(InPointArray);
+	//positions
+	Update2DLineRendererBaseVertex(InPointArray);
+	//uvs
+	Update2DLineRendererBaseUV(InPointArray);
 	//colors
 	UIGeometry::UpdateUIColor(geometry, GetFinalColor());
 
@@ -375,7 +379,10 @@ void UUI2DLineRendererBase::OnUpdateGeometry(bool InVertexPositionChanged, bool 
 {
 	SCOPE_CYCLE_COUNTER(STAT_2DLineUpdate);
 	auto& CurrentPointArray = GetCalcaultedPointArray();
-	int pointCount = CurrentPointArray.Num();
+	if (InVertexPositionChanged || InVertexColorChanged || InVertexUVChanged)
+	{
+		Update2DLineRendererBaseTriangle(CurrentPointArray);
+	}
 	{
 		if (InVertexPositionChanged)
 		{

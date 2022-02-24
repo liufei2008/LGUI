@@ -22,6 +22,10 @@ void UUIPolygon::OnCreateGeometry()
 }
 void UUIPolygon::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
+	if (InVertexPositionChanged || InVertexColorChanged || InVertexUVChanged)
+	{
+		UIGeometry::UpdateUIPolygonTriangle(geometry, Sides, FullCycle);
+	}
 	if (InVertexUVChanged)
 	{
 		UIGeometry::UpdateUIPolygonUV(StartAngle, EndAngle, Sides, UVType

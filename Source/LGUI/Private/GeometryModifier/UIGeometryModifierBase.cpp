@@ -8,6 +8,7 @@
 UUIGeometryModifierBase::UUIGeometryModifierBase()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 void UUIGeometryModifierBase::BeginPlay()

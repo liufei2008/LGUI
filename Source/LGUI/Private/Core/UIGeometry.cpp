@@ -138,13 +138,8 @@ void UIGeometry::FromUIRectSimple(const float& width, const float& height, const
 	{
 		uiGeo->originTriangleCount = 6;
 		triangles.SetNumUninitialized(6);
-		triangles[0] = 0;
-		triangles[1] = 3;
-		triangles[2] = 2;
-		triangles[3] = 0;
-		triangles[4] = 1;
-		triangles[5] = 3;
 	}
+	UpdateUIRectSimpleTriangle(uiGeo);
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
@@ -200,6 +195,17 @@ void UIGeometry::FromUIRectSimple(const float& width, const float& height, const
 	}
 }
 
+void UIGeometry::UpdateUIRectSimpleTriangle(TSharedPtr<UIGeometry> uiGeo)
+{
+	auto& triangles = uiGeo->triangles;
+	triangles[0] = 0;
+	triangles[1] = 3;
+	triangles[2] = 2;
+	triangles[3] = 0;
+	triangles[4] = 1;
+	triangles[5] = 3;
+}
+
 void UIGeometry::UpdateUIRectSimpleUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo)
 {
 	auto& vertices = uiGeo->vertices;
@@ -246,27 +252,9 @@ void UIGeometry::FromUIRectBorder(const float& width, const float& height, const
 		{
 			uiGeo->originTriangleCount = 48;
 		}
-		triangles.Reserve(uiGeo->originTriangleCount);
-		int wSeg = 3, hSeg = 3;
-		int vStartIndex = 0;
-		for (int h = 0; h < hSeg; h++)
-		{
-			for (int w = 0; w < wSeg; w++)
-			{
-				if (!fillCenter)
-					if (h == 1 && w == 1)continue;
-				int vIndex = vStartIndex + w;
-				triangles.Add(vIndex);
-				triangles.Add(vIndex + wSeg + 2);
-				triangles.Add(vIndex + wSeg + 1);
-
-				triangles.Add(vIndex);
-				triangles.Add(vIndex + 1);
-				triangles.Add(vIndex + wSeg + 2);
-			}
-			vStartIndex += wSeg + 1;
-		}
+		triangles.SetNumUninitialized(uiGeo->originTriangleCount);
 	}
+	UpdateUIRectBorderTriangle(uiGeo, fillCenter);
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
@@ -344,6 +332,30 @@ void UIGeometry::FromUIRectBorder(const float& width, const float& height, const
 	}
 }
 
+void UIGeometry::UpdateUIRectBorderTriangle(TSharedPtr<UIGeometry> uiGeo, bool fillCenter)
+{
+	auto& triangles = uiGeo->triangles;
+	int wSeg = 3, hSeg = 3;
+	int vStartIndex = 0;
+	int triangleArrayIndex = 0;
+	for (int h = 0; h < hSeg; h++)
+	{
+		for (int w = 0; w < wSeg; w++)
+		{
+			if (!fillCenter)
+				if (h == 1 && w == 1)continue;
+			int vIndex = vStartIndex + w;
+			triangles[triangleArrayIndex++] = vIndex;
+			triangles[triangleArrayIndex++] = vIndex + wSeg + 2;
+			triangles[triangleArrayIndex++] = vIndex + wSeg + 1;
+
+			triangles[triangleArrayIndex++] = vIndex;
+			triangles[triangleArrayIndex++] = vIndex + 1;
+			triangles[triangleArrayIndex++] = vIndex + wSeg + 2;
+		}
+		vStartIndex += wSeg + 1;
+	}
+}
 void UIGeometry::UpdateUIRectBorderUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo)
 {
 	auto& vertices = uiGeo->vertices;
@@ -429,16 +441,8 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 	{
 		uiGeo->originTriangleCount = 6 * rectangleCount;
 		triangles.AddUninitialized(uiGeo->originTriangleCount);
-		for (int i = 0, j = 0, triangleIndicesIndex = 0; i < rectangleCount; i++, j+=4)
-		{
-			triangles[triangleIndicesIndex++] = j;
-			triangles[triangleIndicesIndex++] = j + 3;
-			triangles[triangleIndicesIndex++] = j + 2;
-			triangles[triangleIndicesIndex++] = j;
-			triangles[triangleIndicesIndex++] = j + 1;
-			triangles[triangleIndicesIndex++] = j + 3;
-		}
 	}
+	UpdateUIRectTiledTriangle(uiGeo, rectangleCount);
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
@@ -494,6 +498,20 @@ void UIGeometry::FromUIRectTiled(const float& width, const float& height, const 
 			vertices[i + 2].TextureCoordinate[1] = FVector2D(0, 1);
 			vertices[i + 3].TextureCoordinate[1] = FVector2D(1, 1);
 		}
+	}
+}
+
+void UIGeometry::UpdateUIRectTiledTriangle(TSharedPtr<UIGeometry> uiGeo, int rectangleCount)
+{
+	auto& triangles = uiGeo->triangles;
+	for (int i = 0, j = 0, triangleIndicesIndex = 0; i < rectangleCount; i++, j += 4)
+	{
+		triangles[triangleIndicesIndex++] = j;
+		triangles[triangleIndicesIndex++] = j + 3;
+		triangles[triangleIndicesIndex++] = j + 2;
+		triangles[triangleIndicesIndex++] = j;
+		triangles[triangleIndicesIndex++] = j + 1;
+		triangles[triangleIndicesIndex++] = j + 3;
 	}
 }
 void UIGeometry::UpdateUIRectTiledUV(TSharedPtr<UIGeometry> uiGeo, const FLGUISpriteInfo& spriteInfo, const int& widthRectCount, const int& heightRectCount, const float& widthRemainedRectSize, const float& heightRemainedRectSize)
@@ -564,13 +582,8 @@ void UIGeometry::FromUIRectFillHorizontalVertical(const float& width, const floa
 	{
 		uiGeo->originTriangleCount = 6;
 		triangles.SetNumUninitialized(6);
-		triangles[0] = 0;
-		triangles[1] = 3;
-		triangles[2] = 2;
-		triangles[3] = 0;
-		triangles[4] = 1;
-		triangles[5] = 3;
 	}
+	UpdateUIRectFillHorizontalVerticalTriangle(uiGeo);
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
@@ -623,6 +636,17 @@ void UIGeometry::FromUIRectFillHorizontalVertical(const float& width, const floa
 		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
 		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
 	}
+}
+
+void UIGeometry::UpdateUIRectFillHorizontalVerticalTriangle(TSharedPtr<UIGeometry> uiGeo)
+{
+	auto& triangles = uiGeo->triangles;
+	triangles[0] = 0;
+	triangles[1] = 3;
+	triangles[2] = 2;
+	triangles[3] = 0;
+	triangles[4] = 1;
+	triangles[5] = 3;
 }
 void UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount
@@ -744,13 +768,8 @@ void UIGeometry::FromUIRectFillRadial90(const float& width, const float& height,
 	{
 		uiGeo->originTriangleCount = 6;
 		triangles.SetNumUninitialized(6);
-		triangles[0] = 0;
-		triangles[1] = 3;
-		triangles[2] = 2;
-		triangles[3] = 0;
-		triangles[4] = 1;
-		triangles[5] = 3;
 	}
+	UpdateUIRectFillRadial90Triangle(uiGeo);
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
@@ -803,6 +822,17 @@ void UIGeometry::FromUIRectFillRadial90(const float& width, const float& height,
 		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
 		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
 	}
+}
+
+void UIGeometry::UpdateUIRectFillRadial90Triangle(TSharedPtr<UIGeometry> uiGeo)
+{
+	auto& triangles = uiGeo->triangles;
+	triangles[0] = 0;
+	triangles[1] = 3;
+	triangles[2] = 2;
+	triangles[3] = 0;
+	triangles[4] = 1;
+	triangles[5] = 3;
 }
 void UIGeometry::UpdateUIRectFillRadial90Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
 	, const FLGUISpriteInfo& spriteInfo, bool flipDirection, float fillAmount, UISpriteFillOriginType_Radial90 originType
@@ -1130,70 +1160,8 @@ void UIGeometry::FromUIRectFillRadial180(const float& width, const float& height
 	{
 		uiGeo->originTriangleCount = 9;
 		triangles.SetNumUninitialized(9);
-		switch (originType)
-		{
-		case UISpriteFillOriginType_Radial180::Bottom:
-		{
-			triangles[0] = 4;
-			triangles[1] = 2;
-			triangles[2] = 0;
-
-			triangles[3] = 4;
-			triangles[4] = 3;
-			triangles[5] = 2;
-
-			triangles[6] = 4;
-			triangles[7] = 1;
-			triangles[8] = 3;
-		}
-		break;
-		case UISpriteFillOriginType_Radial180::Left:
-		{
-			triangles[0] = 4;
-			triangles[1] = 3;
-			triangles[2] = 2;
-
-			triangles[3] = 4;
-			triangles[4] = 1;
-			triangles[5] = 3;
-
-			triangles[6] = 4;
-			triangles[7] = 0;
-			triangles[8] = 1;
-		}
-		break;
-		case UISpriteFillOriginType_Radial180::Top:
-		{
-			triangles[0] = 4;
-			triangles[1] = 1;
-			triangles[2] = 3;
-
-			triangles[3] = 4;
-			triangles[4] = 0;
-			triangles[5] = 1;
-
-			triangles[6] = 4;
-			triangles[7] = 2;
-			triangles[8] = 0;
-		}
-		break;
-		case UISpriteFillOriginType_Radial180::Right:
-		{
-			triangles[0] = 4;
-			triangles[1] = 0;
-			triangles[2] = 1;
-
-			triangles[3] = 4;
-			triangles[4] = 2;
-			triangles[5] = 0;
-
-			triangles[6] = 4;
-			triangles[7] = 3;
-			triangles[8] = 2;
-		}
-		break;
-		}
 	}
+	UpdateUIRectFillRadial180Triangle(uiGeo, originType);
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
@@ -1248,6 +1216,74 @@ void UIGeometry::FromUIRectFillRadial180(const float& width, const float& height
 		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
 		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
 		vertices[4].TextureCoordinate[1] = FVector2D(1, 0);
+	}
+}
+
+void UIGeometry::UpdateUIRectFillRadial180Triangle(TSharedPtr<UIGeometry> uiGeo, UISpriteFillOriginType_Radial180 originType)
+{
+	auto& triangles = uiGeo->triangles;
+	switch (originType)
+	{
+	case UISpriteFillOriginType_Radial180::Bottom:
+	{
+		triangles[0] = 4;
+		triangles[1] = 2;
+		triangles[2] = 0;
+
+		triangles[3] = 4;
+		triangles[4] = 3;
+		triangles[5] = 2;
+
+		triangles[6] = 4;
+		triangles[7] = 1;
+		triangles[8] = 3;
+	}
+	break;
+	case UISpriteFillOriginType_Radial180::Left:
+	{
+		triangles[0] = 4;
+		triangles[1] = 3;
+		triangles[2] = 2;
+
+		triangles[3] = 4;
+		triangles[4] = 1;
+		triangles[5] = 3;
+
+		triangles[6] = 4;
+		triangles[7] = 0;
+		triangles[8] = 1;
+	}
+	break;
+	case UISpriteFillOriginType_Radial180::Top:
+	{
+		triangles[0] = 4;
+		triangles[1] = 1;
+		triangles[2] = 3;
+
+		triangles[3] = 4;
+		triangles[4] = 0;
+		triangles[5] = 1;
+
+		triangles[6] = 4;
+		triangles[7] = 2;
+		triangles[8] = 0;
+	}
+	break;
+	case UISpriteFillOriginType_Radial180::Right:
+	{
+		triangles[0] = 4;
+		triangles[1] = 0;
+		triangles[2] = 1;
+
+		triangles[3] = 4;
+		triangles[4] = 2;
+		triangles[5] = 0;
+
+		triangles[6] = 4;
+		triangles[7] = 3;
+		triangles[8] = 2;
+	}
+	break;
 	}
 }
 void UIGeometry::UpdateUIRectFillRadial180Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
@@ -1729,55 +1765,8 @@ void UIGeometry::FromUIRectFillRadial360(const float& width, const float& height
 	{
 		uiGeo->originTriangleCount = 24;
 		triangles.SetNumUninitialized(24);
-
-		triangles[0] = 4;
-		triangles[1] = 1;
-		triangles[2] = 2;
-
-		triangles[3] = 4;
-		triangles[4] = 0;
-		triangles[5] = 1;
-
-		triangles[6] = 4;
-		triangles[7] = 3;
-		triangles[8] = 0;
-
-		triangles[9] = 4;
-		triangles[10] = 6;
-		triangles[11] = 3;
-
-		triangles[12] = 4;
-		triangles[13] = 7;
-		triangles[14] = 6;
-
-		triangles[15] = 4;
-		triangles[16] = 8;
-		triangles[17] = 7;
-
-		triangles[18] = 4;
-		triangles[19] = 5;
-		triangles[20] = 8;
-
-		triangles[21] = 4;
-		triangles[22] = 2;
-		triangles[23] = 5;
-
-		switch (originType)
-		{
-		case UISpriteFillOriginType_Radial360::Bottom:
-			triangles[1] = 9;
-			break;
-		case UISpriteFillOriginType_Radial360::Right:
-			triangles[19] = 9;
-			break;
-		case UISpriteFillOriginType_Radial360::Top:
-			triangles[13] = 9;
-			break;
-		case UISpriteFillOriginType_Radial360::Left:
-			triangles[7] = 9;
-			break;
-		}
 	}
+	UpdateUIRectFillRadial360Triangle(uiGeo, originType);
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
@@ -1829,6 +1818,59 @@ void UIGeometry::FromUIRectFillRadial360(const float& width, const float& height
 		vertices[1].TextureCoordinate[1] = FVector2D(1, 1);
 		vertices[2].TextureCoordinate[1] = FVector2D(0, 0);
 		vertices[3].TextureCoordinate[1] = FVector2D(1, 0);
+	}
+}
+
+void UIGeometry::UpdateUIRectFillRadial360Triangle(TSharedPtr<UIGeometry> uiGeo, UISpriteFillOriginType_Radial360 originType)
+{
+	auto& triangles = uiGeo->triangles;
+
+	triangles[0] = 4;
+	triangles[1] = 1;
+	triangles[2] = 2;
+
+	triangles[3] = 4;
+	triangles[4] = 0;
+	triangles[5] = 1;
+
+	triangles[6] = 4;
+	triangles[7] = 3;
+	triangles[8] = 0;
+
+	triangles[9] = 4;
+	triangles[10] = 6;
+	triangles[11] = 3;
+
+	triangles[12] = 4;
+	triangles[13] = 7;
+	triangles[14] = 6;
+
+	triangles[15] = 4;
+	triangles[16] = 8;
+	triangles[17] = 7;
+
+	triangles[18] = 4;
+	triangles[19] = 5;
+	triangles[20] = 8;
+
+	triangles[21] = 4;
+	triangles[22] = 2;
+	triangles[23] = 5;
+
+	switch (originType)
+	{
+	case UISpriteFillOriginType_Radial360::Bottom:
+		triangles[1] = 9;
+		break;
+	case UISpriteFillOriginType_Radial360::Right:
+		triangles[19] = 9;
+		break;
+	case UISpriteFillOriginType_Radial360::Top:
+		triangles[13] = 9;
+		break;
+	case UISpriteFillOriginType_Radial360::Left:
+		triangles[7] = 9;
+		break;
 	}
 }
 void UIGeometry::UpdateUIRectFillRadial360Vertex(const float& width, const float& height, const FVector2D& pivot, TSharedPtr<UIGeometry> uiGeo
@@ -3595,29 +3637,8 @@ void UIGeometry::FromUIPolygon(const float& width, const float& height, const FV
 	{
 		uiGeo->originTriangleCount = sides * 3;
 		triangles.AddUninitialized(uiGeo->originTriangleCount);
-		int index = 0;
-		if (fullCycle)
-		{
-			for (int i = 0; i < sides - 1; i++)
-			{
-				triangles[index++] = 0;
-				triangles[index++] = i + 1;
-				triangles[index++] = i + 2;
-			}
-			triangles[index++] = 0;
-			triangles[index++] = sides;
-			triangles[index++] = 1;
-		}
-		else
-		{
-			for (int i = 0; i < sides; i++)
-			{
-				triangles[index++] = 0;
-				triangles[index++] = i + 1;
-				triangles[index++] = i + 2;
-			}
-		}
 	}
+	UpdateUIPolygonTriangle(uiGeo, sides, fullCycle);
 	//vertices
 	auto& vertices = uiGeo->vertices;
 	if (vertices.Num() == 0)
@@ -3687,6 +3708,33 @@ void UIGeometry::FromUIPolygon(const float& width, const float& height, const FV
 		for (int i = 0; i < vertexCount; i++)
 		{
 			vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
+		}
+	}
+}
+
+void UIGeometry::UpdateUIPolygonTriangle(TSharedPtr<UIGeometry> uiGeo, int sides, bool fullCycle)
+{
+	auto& triangles = uiGeo->triangles;
+	int index = 0;
+	if (fullCycle)
+	{
+		for (int i = 0; i < sides - 1; i++)
+		{
+			triangles[index++] = 0;
+			triangles[index++] = i + 1;
+			triangles[index++] = i + 2;
+		}
+		triangles[index++] = 0;
+		triangles[index++] = sides;
+		triangles[index++] = 1;
+	}
+	else
+	{
+		for (int i = 0; i < sides; i++)
+		{
+			triangles[index++] = 0;
+			triangles[index++] = i + 1;
+			triangles[index++] = i + 2;
 		}
 	}
 }

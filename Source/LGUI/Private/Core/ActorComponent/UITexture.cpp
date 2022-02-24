@@ -114,6 +114,50 @@ void UUITexture::OnCreateGeometry()
 }
 void UUITexture::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
+	//ensure triangle data
+	if (InVertexPositionChanged || InVertexUVChanged || InVertexColorChanged)
+	{
+		switch (type)
+		{
+		case UITextureType::Normal:
+			UIGeometry::UpdateUIRectSimpleTriangle(geometry);
+			break;
+		case UITextureType::Sliced:
+		case UITextureType::SlicedFrame:
+		{
+			if (spriteData.HasBorder())
+				UIGeometry::UpdateUIRectBorderTriangle(geometry, type == UITextureType::Sliced);
+			else
+				UIGeometry::UpdateUIRectSimpleTriangle(geometry);
+		}
+		break;
+		case UITextureType::Tiled:
+			UIGeometry::UpdateUIRectSimpleTriangle(geometry);
+			break;
+		case UITextureType::Filled:
+		{
+			switch (fillMethod)
+			{
+			case UISpriteFillMethod::Horizontal:
+			case UISpriteFillMethod::Vertical:
+				UIGeometry::UpdateUIRectFillHorizontalVerticalTriangle(geometry);
+				break;
+			case UISpriteFillMethod::Radial90:
+				UIGeometry::UpdateUIRectFillRadial90Triangle(geometry);
+				break;
+			case UISpriteFillMethod::Radial180:
+				UIGeometry::UpdateUIRectFillRadial180Triangle(geometry, (UISpriteFillOriginType_Radial180)fillOrigin);
+				break;
+			case UISpriteFillMethod::Radial360:
+				UIGeometry::UpdateUIRectFillRadial360Triangle(geometry, (UISpriteFillOriginType_Radial360)fillOrigin);
+				break;
+			}
+		}
+		break;
+		}
+	}
+
+	//update vertex data
 	if (InVertexPositionChanged)
 	{
 		switch (type)
