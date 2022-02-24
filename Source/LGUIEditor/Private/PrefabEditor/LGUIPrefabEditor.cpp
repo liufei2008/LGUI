@@ -28,6 +28,9 @@
 #include "EditorStyleSet.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "UIAnimation/LGUIAnimationUI.h"
+#include "UIAnimation/LGUIAnimationListUI.h"
+#include "Core/ActorComponent/UIAnimationComp.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabEditor"
 
@@ -211,6 +214,37 @@ void FLGUIPrefabEditor::CloseWithoutCheckDataDirty()
 	this->CloseWindow();
 }
 
+class AUIBaseActor* FLGUIPrefabEditor::GetUIMainContainer() const
+{
+	if (PrefabHelperObject)
+	{
+		return Cast<AUIBaseActor>(PrefabHelperObject->LoadedRootActor);
+	}
+	return nullptr;
+}
+
+void FLGUIPrefabEditor::SetPrefabModify()
+{
+	if (PrefabHelperObject && PrefabHelperObject->PrefabAsset)
+	{
+		PrefabHelperObject->PrefabAsset->Modify();
+	}
+}
+
+class AActor* FLGUIPrefabEditor::GetSelectedActor() const
+{
+	return CurrentSelectedActor.Get();
+}
+
+UUIAnimationComp* FLGUIPrefabEditor::GetAnimationComp() const
+{
+	if (AUIBaseActor* MainContainer = GetUIMainContainer())
+	{
+		return MainContainer->FindComponentByClass<UUIAnimationComp>();
+	}
+	return nullptr;
+}
+
 bool FLGUIPrefabEditor::OnRequestClose()
 {
 	if (GetAnythingDirty())
@@ -282,6 +316,8 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	ViewportPtr = SNew(SLGUIPrefabEditorViewport, PrefabEditorPtr);
 	
 	DetailsPtr = SNew(SLGUIPrefabEditorDetails, PrefabEditorPtr);
+	AnimationUI = SNew(SLGUIAnimationUI, this);
+	AnimationListUI = SNew(SLGUIAnimationListUI, this);
 
 	PrefabRawDataViewer = SNew(SLGUIPrefabRawDataViewer, PrefabEditorPtr, PrefabBeingEdited);
 
@@ -334,6 +370,9 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 		);
 
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
+
+	// focus to LGUI RootActor
+	OnOutlinerActorDoubleClick(PrefabHelperObject->LoadedRootActor);
 }
 
 void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray)
@@ -432,6 +471,14 @@ void FLGUIPrefabEditor::OnApply()
 	}
 }
 
+void FLGUIPrefabEditor::RefreshMainUI()
+{
+	if (AnimationListUI)
+	{
+		AnimationListUI->RefreshAnimationListUI();
+	}
+}
+
 void FLGUIPrefabEditor::OnOpenRawDataViewerPanel()
 {
 	this->InvokeTab(FLGUIPrefabEditorTabs::PrefabRawDataViewerID);
@@ -525,11 +572,38 @@ TSharedRef<SDockTab> FLGUIPrefabEditor::SpawnTab_Viewport(const FSpawnTabArgs& A
 		.Label(LOCTEXT("ViewportTab_Title", "Viewport"))
 		[
 			SNew(SOverlay)
-
 			// The sprite editor viewport
 			+SOverlay::Slot()
 			[
-				ViewportPtr.ToSharedRef()
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SSplitter)
+					.Orientation(Orient_Vertical)
+					+ SSplitter::Slot()
+					.Value(0.7f)
+					[
+						// 3D UI预览
+						ViewportPtr.ToSharedRef()
+					]
+					+ SSplitter::Slot()
+					.Value(0.3f)
+					[
+						// Animation动画编辑器
+						SNew(SSplitter)
+						+ SSplitter::Slot()
+						.Value(0.2f)
+						[
+							AnimationListUI.ToSharedRef()
+						]
+						+ SSplitter::Slot()
+						.Value(0.8f)
+						[
+							AnimationUI.ToSharedRef()
+						]
+					]
+				]
 			]
 
 			// Bottom-right corner text indicating the preview nature of the sprite editor
@@ -591,6 +665,11 @@ bool FLGUIPrefabEditor::IsFilteredActor(const AActor* Actor)
 void FLGUIPrefabEditor::OnOutlinerPickedChanged(AActor* Actor)
 {
 	CurrentSelectedActor = Actor;
+
+	if (AnimationUI)
+	{
+		AnimationUI->SelectLGUIBaseActor(Cast<AUIBaseActor>(Actor));
+	}
 }
 
 void FLGUIPrefabEditor::OnOutlinerActorDoubleClick(AActor* Actor)

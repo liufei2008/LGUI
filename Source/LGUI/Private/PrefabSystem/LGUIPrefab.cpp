@@ -422,6 +422,31 @@ AActor* ULGUIPrefab::LoadPrefabWithTransform(UObject* WorldContextObject, UScene
 }
 
 #if WITH_EDITOR
+void FixUIActorIDMissing(AUIBaseActor* UIBaseActor, uint32& CurrentID)
+{
+	if (UIBaseActor == nullptr)
+	{
+		return;
+	}
+
+	// ·ÖÅäID
+	UIBaseActor->UIActorID = CurrentID++;
+
+	TArray<AActor*> AttachedActors;
+	UIBaseActor->GetAttachedActors(AttachedActors, false);
+
+	for (AActor* ChildActor : AttachedActors)
+	{
+		AUIBaseActor* UIActor = Cast<AUIBaseActor>(ChildActor);
+		if (UIActor == nullptr)
+		{
+			continue;
+		}
+
+		FixUIActorIDMissing(UIActor, CurrentID);
+	}
+}
+
 AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneComponent* InParent
 	, TMap<FGuid, UObject*>& InOutMapGuidToObject, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
 	, bool InSetHierarchyIndexForRootComponent
@@ -453,6 +478,16 @@ AActor* ULGUIPrefab::LoadPrefabWithExistingObjects(UWorld* InWorld, USceneCompon
 			InOutMapGuidToObject.Add(OutCreatedActorsGuid[i], OutCreatedActors[i]);
 		}
 	}
+
+	if (AUIBaseActor* UIActor = Cast<AUIBaseActor>(LoadedRootActor))
+	{
+		if (UIActor->UIActorID == 0)
+		{
+			uint32 StartId = 1;
+			FixUIActorIDMissing(UIActor, StartId);
+		}
+	}
+
 	return LoadedRootActor;
 }
 

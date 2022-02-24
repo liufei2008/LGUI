@@ -22,6 +22,8 @@
 #include "PrefabSystem/ActorSerializer4.h"
 #include "LGUIEditorModule.h"
 #include "PrefabEditor/LGUIPrefabEditor.h"
+#include "Core/Actor/UIBaseActor.h"
+#include "Utils/LGUIUtils.h"
 
 #define LOCTEXT_NAMESPACE "LGUIEditorTools"
 
@@ -260,6 +262,19 @@ void LGUIEditorTools::CreateUIItemActor(UClass* ActorClass)
 			GEditor->SelectActor(selectedActor, false, true);
 		}
 		GEditor->SelectActor(newActor, true, true);
+
+		if (AUIBaseActor* BaseActor = Cast<AUIBaseActor>(newActor))
+		{
+			AUIBaseActor* UIMainContainer = LGUIUtils::FindUIMainContainer(BaseActor);
+			if (UIMainContainer)
+			{
+				BaseActor->UIActorID = LGUIUtils::GenerateUnqiueActorID(UIMainContainer);
+			}
+			else
+			{
+				UE_LOG(LGUI, Error, TEXT("Assign UIActorID failed, BaseActor=%s, UIMainContainer is nullptr!"), *GetNameSafe(BaseActor));
+			}
+		}
 
 		SetTraceChannelToParent(newActor);
 	}

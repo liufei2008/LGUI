@@ -49,7 +49,11 @@ public class LGUIEditor : ModuleRules
                 
                 "Kismet",
                 "ToolMenus",//PrefabEditor
-            }
+                "Sequencer",
+				"MovieScene",
+				"MovieSceneTracks",
+				"ActorPickerMode",
+			}
 			);
 			
 		

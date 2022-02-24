@@ -9,6 +9,7 @@
 class UUIItem;
 class ULGUICanvas;
 class UTexture2D;
+class AUIBaseActor;
 
 class LGUI_API LGUIUtils
 {
@@ -108,6 +109,11 @@ public:
 	static void FindParentCanvas(AActor* actor, ULGUICanvas*& resultCanvas);
 	static float INV_255;
 	static FColor MultiplyColor(FColor A, FColor B);
+	static AUIBaseActor* FindChildActorByUIActorID(AActor* Actor, uint32 UIActorID, bool bIncludeDescendants);
+	static uint32 GetUIActorID(const UObject* Object);
+	static void GetAttachedActors(AActor* Actor, TArray< AActor* >& OutActors, bool bRecurseChildren);
+	static uint32 GenerateUnqiueActorID(AUIBaseActor* UIMainContainer);
+	static AUIBaseActor* FindUIMainContainer(AUIBaseActor* UIActor);
 #if WITH_EDITOR
 	//nodify some informations in editor
 	static void EditorNotification(FText NotifyText, float ExpireDuration = 5.0f);

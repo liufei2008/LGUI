@@ -17,6 +17,30 @@ PRAGMA_DISABLE_OPTIMIZATION
 #endif
 namespace LGUIPrefabSystem3
 {
+	void FixUIActorIDMissing(AUIBaseActor* UIBaseActor, uint32& CurrentID)
+	{
+		if (UIBaseActor == nullptr)
+		{
+			return;
+		}
+
+		// 分配ID
+		UIBaseActor->UIActorID = CurrentID++;
+
+		TArray<AActor*> AttachedActors;
+		UIBaseActor->GetAttachedActors(AttachedActors, false);
+
+		for (AActor* ChildActor : AttachedActors)
+		{
+			AUIBaseActor* UIActor = Cast<AUIBaseActor>(ChildActor);
+			if (UIActor == nullptr)
+			{
+				continue;
+			}
+
+			FixUIActorIDMissing(UIActor, CurrentID);
+		}
+	}
 	AActor* ActorSerializer::LoadPrefabWithExistingObjects(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent
 		, TMap<FGuid, UObject*>& InOutMapGuidToObjects, TMap<AActor*, FLGUISubPrefabData>& OutSubPrefabMap
 		, bool InSetHierarchyIndexForRootComponent
@@ -45,6 +69,17 @@ namespace LGUIPrefabSystem3
 		};
 		serializer.bSetHierarchyIndexForRootComponent = InSetHierarchyIndexForRootComponent;
 		auto rootActor = serializer.DeserializeActor(Parent, InPrefab, false, FVector::ZeroVector, FQuat::Identity, FVector::OneVector);
+		// 修复UIActorID为0的问题
+		if (AUIBaseActor* MainContainerUI = Cast<AUIBaseActor>(rootActor))
+		{
+			if (MainContainerUI->UIActorID == 0)
+			{
+				UE_LOG(LGUI, Warning, TEXT("LoadPrefab, Prefab=%s missing UIActorID, so fix UIActorID"), *GetNameSafe(InPrefab));
+				uint32 ActorStartID = 1;
+				FixUIActorIDMissing(MainContainerUI, ActorStartID);
+			}
+		}
+		// 临时修复代码
 		InOutMapGuidToObjects = serializer.MapGuidToObject;
 		OutSubPrefabMap = serializer.SubPrefabMap;
 		return rootActor;
@@ -76,6 +111,18 @@ namespace LGUIPrefabSystem3
 		{
 			result = serializer.DeserializeActor(Parent, InPrefab);
 		}
+
+		// 修复UIActorID为0的问题
+		if (AUIBaseActor* MainContainerUI = Cast<AUIBaseActor>(result))
+		{
+			if (MainContainerUI->UIActorID == 0)
+			{
+				UE_LOG(LGUI, Warning, TEXT("LoadPrefab, Prefab=%s missing UIActorID, so fix UIActorID"), *GetNameSafe(InPrefab));
+				uint32 ActorStartID = 1;
+				FixUIActorIDMissing(MainContainerUI, ActorStartID);
+			}
+		}
+		// 临时修复代码
 		return result;
 	}
 	AActor* ActorSerializer::LoadPrefab(UWorld* InWorld, ULGUIPrefab* InPrefab, USceneComponent* Parent, FVector RelativeLocation, FQuat RelativeRotation, FVector RelativeScale, TFunction<void(AActor*)> CallbackBeforeAwake)
