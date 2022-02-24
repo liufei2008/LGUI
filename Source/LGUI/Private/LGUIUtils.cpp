@@ -15,6 +15,7 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #endif
 
+#include "Core/Actor/UIBaseActor.h"
 void LGUIUtils::DestroyActorWithHierarchy(AActor* Target, bool WithHierarchy)
 {
 	if (!Target->IsValidLowLevelFast())
@@ -182,6 +183,112 @@ FColor LGUIUtils::MultiplyColor(FColor A, FColor B)
 	return result;
 }
 
+// Find Actor by UIActorID
+AUIBaseActor* LGUIUtils::FindChildActorByUIActorID(AActor* Actor, uint32 UIActorID, bool bIncludeDescendants)
+{
+	if (Actor == nullptr)
+	{
+		return nullptr;
+	}
+
+	TArray<AActor*> AttachedActors;
+	Actor->GetAttachedActors(AttachedActors, false);
+
+	for (AActor* ChildActor : AttachedActors)
+	{
+		AUIBaseActor* UIActor = Cast<AUIBaseActor>(ChildActor);
+		if (UIActor == nullptr || UIActor->UIActorID == 0)
+		{
+			continue;
+		}
+
+		if (UIActor->UIActorID == UIActorID)
+		{
+			return UIActor;
+		}
+
+		if (bIncludeDescendants)
+		{
+			AUIBaseActor* FoundResult = FindChildActorByUIActorID(ChildActor, UIActorID, true);
+			if (FoundResult)
+			{
+				return FoundResult;
+			}
+		}
+	}
+	return nullptr;
+}
+uint32 LGUIUtils::GetUIActorID(const UObject* Object)
+{
+	if (const AUIBaseActor* UIBaseActor = Cast<const AUIBaseActor>(Object))
+	{
+		return UIBaseActor->UIActorID;
+	}
+	return 0;
+}
+
+void LGUIUtils::GetAttachedActors(AActor* Actor, TArray< AActor* >& OutActors, bool bRecurseChildren)
+{
+	TArray< AActor* > ChildrenActors;
+	Actor->GetAttachedActors(ChildrenActors);
+	for (AActor* ChildActor : ChildrenActors)
+	{
+		OutActors.Add(ChildActor);
+
+		if (bRecurseChildren)
+		{
+			GetAttachedActors(ChildActor, OutActors, bRecurseChildren);
+		}
+	}
+}
+
+uint32 LGUIUtils::GenerateUnqiueActorID(AUIBaseActor* UIMainContainer)
+{
+	if (UIMainContainer == nullptr)
+	{
+		UE_LOG(LGUI, Error, TEXT("GenerateUnqiueActorID failed! RootActor is nullptr!"));
+		return 0;
+	}
+
+	uint32 MaxUIActorID = UIMainContainer->UIActorID;
+
+	TArray<AActor*> ChildActors;
+	GetAttachedActors(UIMainContainer, ChildActors, true);
+
+	for (AActor* ChildActor : ChildActors)
+	{
+		AUIBaseActor* UIActor = Cast<AUIBaseActor>(ChildActor);
+		if (UIActor->UIActorID > MaxUIActorID)
+		{
+			MaxUIActorID = UIActor->UIActorID;
+		}
+	}
+
+	return MaxUIActorID + 1;
+}
+
+AUIBaseActor* LGUIUtils::FindUIMainContainer(AUIBaseActor* UIActor)
+{
+	ULGUICanvas* LGUICanvas = nullptr;
+	FindRootCanvas(UIActor, LGUICanvas);
+
+	if (LGUICanvas == nullptr)
+	{
+		UE_LOG(LGUI, Log , TEXT("FindUIMainContainer failed 1! UIActor=%s"), *GetNameSafe(UIActor));
+		return nullptr;
+	}
+
+	AActor* UIRootActor = LGUICanvas->GetOwner();
+	TArray<AActor*> ChildActors;
+	UIRootActor->GetAttachedActors(ChildActors);
+	if (ChildActors.Num() >= 1)
+	{
+		return Cast<AUIBaseActor>(ChildActors[0]);
+	}
+
+	UE_LOG(LGUI, Log , TEXT("FindUIMainContainer failed 2! UIActor=%s"), *GetNameSafe(UIActor));
+	return nullptr;
+}
 #if WITH_EDITOR
 //nodify some informations in editor
 void LGUIUtils::EditorNotification(FText NofityText, float ExpireDuration)

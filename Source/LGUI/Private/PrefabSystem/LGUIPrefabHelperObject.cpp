@@ -8,6 +8,7 @@
 #include "Utils/LGUIUtils.h"
 #include "GameFramework/Actor.h"
 #include "PrefabSystem/ActorSerializer4.h"
+#include "Core/Actor/UIContainerActor.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabManager"
 #if LGUI_CAN_DISABLE_OPTIMIZATION
@@ -53,7 +54,11 @@ void ULGUIPrefabHelperObject::MarkAsManagerObject()
 
 void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InParent)
 {
-	if (!IsValid(PrefabAsset))return;
+	if (!IsValid(PrefabAsset))
+	{
+		UE_LOG(LGUI, Error, TEXT("LoadPrefab failed! PrefabAsset=%s, InParentComp=%s"), *GetNameSafe(PrefabAsset), *GetNameSafe(InParent));
+		return;
+	}
 	if (!IsValid(LoadedRootActor))
 	{
 		LoadedRootActor = PrefabAsset->LoadPrefabWithExistingObjects(InWorld
@@ -61,7 +66,21 @@ void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InPar
 			, MapGuidToObject, SubPrefabMap
 		);
 
-		if (LoadedRootActor == nullptr)return;
+		if (LoadedRootActor == nullptr)
+		{
+			AUIContainerActor* UIContainerActor = InWorld->SpawnActor<AUIContainerActor>(AUIContainerActor::StaticClass(), FTransform::Identity);
+			if (UIContainerActor)
+			{
+				UIContainerActor->AttachToComponent(InParent, FAttachmentTransformRules::KeepRelativeTransform);
+				UIContainerActor->UIActorID = 1;
+				LoadedRootActor = UIContainerActor;
+			}
+		}
+
+		if (LoadedRootActor == nullptr)
+		{
+			return;
+		}
 		//remove extra objects
 		TSet<FGuid> ObjectsToIgnore;
 		for (auto KeyValue : MapGuidToObject)

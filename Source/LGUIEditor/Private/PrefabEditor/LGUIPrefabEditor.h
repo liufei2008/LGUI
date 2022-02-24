@@ -86,6 +86,18 @@ public:
 	void CloseWithoutCheckDataDirty();
 
 	ULGUIPrefabHelperObject* GetPrefabManagerObject()const { return PrefabHelperObject; }
+
+	class AUIBaseActor* GetUIMainContainer() const;
+	void SetPrefabModify();
+	class AActor* GetSelectedActor() const;
+	class UUIAnimationComp* GetAnimationComp() const;
+
+	class SLGUIAnimationUI* GetAnimationUI() {return AnimationUI.Get();}
+	class SLGUIAnimationListUI* GetAnimationListUI() {return AnimationListUI.Get();}
+	void OnOutlinerPickedChanged(AActor* Actor);
+	void OnOutlinerActorDoubleClick(AActor* Actor);
+	void OnApply();
+	FLGUIPrefabEditorOutliner* GetOutlinerPtr() {return OutlinerPtr.Get();}
 private:
 	ULGUIPrefab* PrefabBeingEdited = nullptr;
 	ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;
@@ -95,6 +107,8 @@ private:
 	TSharedPtr<SLGUIPrefabEditorDetails> DetailsPtr;
 	TSharedPtr<FLGUIPrefabEditorOutliner> OutlinerPtr;
 	TSharedPtr<SLGUIPrefabRawDataViewer> PrefabRawDataViewer;
+	TSharedPtr<class SLGUIAnimationUI> AnimationUI;
+	TSharedPtr<class SLGUIAnimationListUI> AnimationListUI;
 
 	TWeakObjectPtr<AActor> CurrentSelectedActor;
 
@@ -105,7 +119,7 @@ private:
 	//void ExtendMenu();
 	void ExtendToolbar();
 
-	void OnApply();
+	void RefreshMainUI();
 	void OnOpenRawDataViewerPanel();
 
 	TSharedRef<SDockTab> SpawnTab_Viewport(const FSpawnTabArgs& Args);
@@ -114,6 +128,4 @@ private:
 	TSharedRef<SDockTab> SpawnTab_PrefabRawDataViewer(const FSpawnTabArgs& Args);
 
 	bool IsFilteredActor(const AActor* Actor);
-	void OnOutlinerPickedChanged(AActor* Actor);
-	void OnOutlinerActorDoubleClick(AActor* Actor);
 };

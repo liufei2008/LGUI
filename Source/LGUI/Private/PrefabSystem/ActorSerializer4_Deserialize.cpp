@@ -9,6 +9,7 @@
 #include "Core/Actor/LGUIManagerActor.h"
 #include "LGUI.h"
 #include "Core/ActorComponent/UIItem.h"
+#include "Animation/LGUIAnimation.h"
 
 #if LGUI_CAN_DISABLE_OPTIMIZATION
 PRAGMA_DISABLE_OPTIMIZATION
@@ -370,6 +371,10 @@ namespace LGUIPrefabSystem4
 
 					auto Outer = MapGuidToObject[ObjectData.OuterObjectGuid];
 					CreatedNewObject = NewObject<UObject>(Outer, ObjectClass, NAME_None, (EObjectFlags)ObjectData.ObjectFlags);
+					if (ULGUIMovieScene* MovieScene = Cast<ULGUIMovieScene>(CreatedNewObject))
+					{
+						MovieScene->PostLoadMovieProperties();
+					}
 					MapGuidToObject.Add(ObjectData.ObjectGuid, CreatedNewObject);
 				}
 			}
