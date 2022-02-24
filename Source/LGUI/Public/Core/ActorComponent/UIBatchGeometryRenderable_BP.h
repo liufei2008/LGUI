@@ -13,21 +13,21 @@ struct LGUI_API FLGUIGeometryVertex
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		FVector position;
+		FVector position = FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		FColor color;
+		FColor color = FColor::White;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI")
-		FVector2D uv0;
+		FVector2D uv0 = FVector2D::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
-		FVector2D uv1;
+		FVector2D uv1 = FVector2D::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
-		FVector2D uv2;
+		FVector2D uv2 = FVector2D::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
-		FVector2D uv3;
+		FVector2D uv3 = FVector2D::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
-		FVector normal;
+		FVector normal = FVector(1, 0, 0);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LGUI", AdvancedDisplay)
-		FVector tangent;
+		FVector tangent = FVector(0, 1, 0);
 };
 /** a helper class for create LGUI geometry */
 UCLASS(BlueprintType)
@@ -35,7 +35,7 @@ class LGUI_API ULGUICreateGeometryHelper : public UObject
 {
 	GENERATED_BODY()
 public:
-	TSharedPtr<UIGeometry> uiGeometry = nullptr;
+	TWeakObjectPtr<UUIBatchGeometryRenderable> UIBatchGeometryRenderable = nullptr;
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void AddVertexSimple(FVector position, FColor color, FVector2D uv0);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -54,11 +54,11 @@ class LGUI_API ULGUIUpdateGeometryHelper : public UObject
 {
 	GENERATED_BODY()
 public:
-	TSharedPtr<UIGeometry> uiGeometry = nullptr;
-	/** do not midify this vertices array's size!!! */
+	TWeakObjectPtr<UUIBatchGeometryRenderable> UIBatchGeometryRenderable = nullptr;
+	/** DO NOT modify this vertices array's size!!! DO NOT add or remove any element of this array. */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "LGUI")
 		TArray<FLGUIGeometryVertex> cacheVertices;
-	/** do not midify this vertices array's size!!! */
+	/** DO NOT modify this vertices array's size!!! DO NOT add or remove any element of this array. */
 	void BeginUpdateVertices();
 	void EndUpdateVertices();
 

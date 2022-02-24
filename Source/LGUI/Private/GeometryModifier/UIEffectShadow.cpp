@@ -38,7 +38,7 @@ void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32
 	}
 	else
 	{
-		//update triangle is slightly different from craete triangle data
+		//update triangle is slightly different from create triangle data
 		for (int i = singleChannelTriangleIndicesCount, j = 0; j < singleChannelTriangleIndicesCount; i++, j++)
 		{
 			triangles[j] = triangles[i] + singleChannelVerticesCount;

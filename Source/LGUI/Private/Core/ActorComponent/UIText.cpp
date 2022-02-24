@@ -476,7 +476,7 @@ void UUIText::OnUpdateLayout_Implementation()
 	}
 }
 
-bool UUIText::UpdateCacheTextGeometry()
+bool UUIText::UpdateCacheTextGeometry()const
 {
 	if (!IsValid(this->GetFont()))return false;
 
@@ -553,12 +553,18 @@ int UUIText::VisibleCharCountInString(const FString& srcStr)
 	}
 	return result;
 }
-const TArray<FUITextCharProperty>& UUIText::GetCharPropertyArray(bool createIfNotExist)
+
+const TArray<FUITextCharProperty>& UUIText::GetCharPropertyArray()const
 {
 	UpdateCacheTextGeometry();
 	return CacheTextGeometryData.cacheCharPropertyArray;
 }
-const TArray<FUIText_RichTextCustomTag>& UUIText::GetRichTextCustomTagArray(bool createIfNotExist)
+int32 UUIText::GetVisibleCharCount()const
+{
+	UpdateCacheTextGeometry();
+	return CacheTextGeometryData.cacheCharPropertyArray.Num();
+}
+const TArray<FUIText_RichTextCustomTag>& UUIText::GetRichTextCustomTagArray()const
 {
 	UpdateCacheTextGeometry();
 	return CacheTextGeometryData.cacheRichTextCustomTagArray;

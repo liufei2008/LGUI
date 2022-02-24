@@ -10,7 +10,7 @@
 #include "Core/UIDrawcall.h"
 #include "Core/Actor/LGUIManagerActor.h"
 
-DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable ApplyModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable GeometryModifier"), STAT_ApplyModifier, STATGROUP_LGUI);
 
 UUIBatchGeometryRenderable::UUIBatchGeometryRenderable(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -122,26 +122,24 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 
 void UUIBatchGeometryRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)
 {
-	int count = GeometryModifierComponentArray.Num();
-	if (count > 0)
+	auto Index = GeometryModifierComponentArray.AddUnique(InModifier);
+	if (Index > 0)
 	{
-		int32 index;
-		if (!GeometryModifierComponentArray.Find(InModifier, index))
-		{
-			GeometryModifierComponentArray.Add(InModifier);
-			GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
-				return A.GetExecuteOrder() < B.GetExecuteOrder();
-			});
-		}
+		SortGeometryModifier();
 	}
-	else
-	{
-		GeometryModifierComponentArray.Add(InModifier);
-	}
+	MarkTriangleDirty();
 }
 void UUIBatchGeometryRenderable::RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier)
 {
 	GeometryModifierComponentArray.Remove(InModifier);
+	MarkTriangleDirty();
+}
+void UUIBatchGeometryRenderable::SortGeometryModifier()
+{
+	GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
+		return A.GetExecuteOrder() < B.GetExecuteOrder();
+		});
+	MarkTriangleDirty();
 }
 
 void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
@@ -176,50 +174,71 @@ UMaterialInstanceDynamic* UUIBatchGeometryRenderable::GetMaterialInstanceDynamic
 	}
 	return nullptr;
 }
-bool UUIBatchGeometryRenderable::HaveGeometryModifier()
+bool UUIBatchGeometryRenderable::HaveGeometryModifier(bool includeDisabled)
 {
-#if WITH_EDITOR
-	if (GetWorld()->WorldType == EWorldType::Editor || GetWorld()->WorldType == EWorldType::EditorPreview)
-	{
-		if (auto modifierComp = GetOwner()->FindComponentByClass<UUIGeometryModifierBase>())
-		{
-			return true;
-		}
-	}
-	else
-#endif
-	{
-		return GeometryModifierComponentArray.Num() > 0;
-	}
-	return false;
-}
-bool UUIBatchGeometryRenderable::ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged)
-{
-	SCOPE_CYCLE_COUNTER(STAT_ApplyModifier);
 #if WITH_EDITOR
 	if (!this->GetWorld()->IsGameWorld())
 	{
 		GetOwner()->GetComponents(GeometryModifierComponentArray, false);
 		GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
 			return A.GetExecuteOrder() < B.GetExecuteOrder();
-		});
+			});
 	}
 #endif
-	int count = GeometryModifierComponentArray.Num();
-	if (count > 0)
+	if (includeDisabled)
 	{
-		int32 originVerticesCount = geometry->originVerticesCount;
-		int32 originTriangleIndicesCount = geometry->originTriangleCount;
-		bool modifierAffectTriangleCount = false;
-		for (int i = 0; i < count; i++)
+		return GeometryModifierComponentArray.Num() > 0;
+	}
+	else
+	{
+		int32 enabledCount = 0;
+		if (GeometryModifierComponentArray.Num() > 0)
 		{
-			auto modifierComp = GeometryModifierComponentArray[i];
-			bool thisModifierAffectTriangleCount = false;
-			modifierComp->ModifyUIGeometry(geometry, originVerticesCount, originTriangleIndicesCount, thisModifierAffectTriangleCount,
-				uvChanged, colorChanged, vertexPositionChanged, layoutChanged);
-			if (thisModifierAffectTriangleCount)modifierAffectTriangleCount = true;
+			for (auto& Item : GeometryModifierComponentArray)
+			{
+				if (Item->GetEnable())
+				{
+					enabledCount++;
+				}
+			}
 		}
-		return modifierAffectTriangleCount;
+		return enabledCount > 0;
+	}
+	return false;
+}
+bool UUIBatchGeometryRenderable::ApplyGeometryModifier(bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool transformChanged)
+{
+	if (uvChanged || colorChanged || vertexPositionChanged || transformChanged)
+	{
+		SCOPE_CYCLE_COUNTER(STAT_ApplyModifier);
+#if WITH_EDITOR
+		if (!this->GetWorld()->IsGameWorld())
+		{
+			GetOwner()->GetComponents(GeometryModifierComponentArray, false);
+			GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
+				return A.GetExecuteOrder() < B.GetExecuteOrder();
+				});
+		}
+#endif
+		int count = GeometryModifierComponentArray.Num();
+		if (count > 0)
+		{
+			int32 originVerticesCount = geometry->originVerticesCount;
+			int32 originTriangleIndicesCount = geometry->originTriangleCount;
+			bool modifierAffectTriangleCount = false;
+			for (int i = 0; i < count; i++)
+			{
+				auto modifierComp = GeometryModifierComponentArray[i];
+				if (modifierComp->GetEnable())
+				{
+					bool thisModifierAffectTriangleCount = false;
+					modifierComp->ModifyUIGeometry(geometry, originVerticesCount, originTriangleIndicesCount, thisModifierAffectTriangleCount,
+						uvChanged, colorChanged, vertexPositionChanged, transformChanged);
+					if (thisModifierAffectTriangleCount)modifierAffectTriangleCount = true;
+				}
+			}
+			return modifierAffectTriangleCount;
+		}
 	}
 	return false;
 }
