@@ -21,9 +21,9 @@ void UUIGeometryModifierBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 	
 }
-UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetRenderableUIItem()
+UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetUIRenderable()
 {
-	if(!renderableUIItem.IsValid())
+	if(!UIRenderable.IsValid())
 	{
 		if (auto actor = GetOwner())
 		{
@@ -35,23 +35,23 @@ UUIBatchGeometryRenderable* UUIGeometryModifierBase::GetRenderableUIItem()
 				{
 					if (comp->GetFName() == componentName)
 					{
-						renderableUIItem = (UUIBatchGeometryRenderable*)comp;
+						UIRenderable = (UUIBatchGeometryRenderable*)comp;
 						break;
 					}
 				}
-				if (!renderableUIItem.IsValid())
+				if (!UIRenderable.IsValid())
 				{
-					UE_LOG(LGUI, Warning, TEXT("[UUIGeometryModifierBase::GetRenderableUIItem]Cannot find component of name:%s, will use first one."), *(componentName.ToString()));
-					renderableUIItem = (UUIBatchGeometryRenderable*)components[0];
+					UE_LOG(LGUI, Warning, TEXT("[UUIGeometryModifierBase::GetUIRenderable]Cannot find component of name:%s, will use first one."), *(componentName.ToString()));
+					UIRenderable = (UUIBatchGeometryRenderable*)components[0];
 				}
 			}
 			else if(components.Num() == 1)
 			{
-				renderableUIItem = (UUIBatchGeometryRenderable*)components[0];
+				UIRenderable = (UUIBatchGeometryRenderable*)components[0];
 			}
 		}
 	}
-	return renderableUIItem.Get();
+	return UIRenderable.Get();
 }
 #if WITH_EDITOR
 void UUIGeometryModifierBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -94,17 +94,17 @@ void UUIGeometryModifierBase::OnUnregister()
 
 void UUIGeometryModifierBase::RemoveFromUIBatchGeometry()
 {
-	if (renderableUIItem.IsValid())
+	if (UIRenderable.IsValid())
 	{
-		renderableUIItem->RemoveGeometryModifier(this);
-		renderableUIItem = nullptr;
+		UIRenderable->RemoveGeometryModifier(this);
+		UIRenderable = nullptr;
 	}
 }
 void UUIGeometryModifierBase::AddToUIBatchGeometry()
 {
-	if (GetRenderableUIItem() != nullptr)
+	if (GetUIRenderable() != nullptr)
 	{
-		renderableUIItem->AddGeometryModifier(this);
+		UIRenderable->AddGeometryModifier(this);
 	}
 }
 
@@ -113,18 +113,18 @@ void UUIGeometryModifierBase::SetEnable(bool value)
 	if (bEnable != value)
 	{
 		bEnable = value;
-		if (GetRenderableUIItem() != nullptr)
+		if (GetUIRenderable() != nullptr)
 		{
-			renderableUIItem->MarkTriangleDirty();
+			UIRenderable->MarkTriangleDirty();
 		}
 	}
 }
 
 void UUIGeometryModifierBase::SetExecuteOrder()
 {
-	if (renderableUIItem.IsValid())
+	if (UIRenderable.IsValid())
 	{
-		renderableUIItem->SortGeometryModifier();
+		UIRenderable->SortGeometryModifier();
 	}
 }
 

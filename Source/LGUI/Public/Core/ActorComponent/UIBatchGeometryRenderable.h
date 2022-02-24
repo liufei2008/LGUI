@@ -74,6 +74,13 @@ public:
 	virtual void MarkTriangleDirty();
 	virtual void MarkTextureDirty();
 	virtual void MarkMaterialDirty();
+
+	/** For blueprint easily use. If vertex data change and vertex count not change, call this. */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void MarkVertexChanged();
+	/** For blueprint easily use. If vertex count change or triangle count change or texture change or material change, call this */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void MarkRebuildGeometry();
     
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);

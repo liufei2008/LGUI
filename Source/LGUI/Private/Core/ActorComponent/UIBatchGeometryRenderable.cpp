@@ -70,6 +70,17 @@ void UUIBatchGeometryRenderable::OnAnchorChange(bool InPivotChange, bool InSizeC
     }
 }
 
+void UUIBatchGeometryRenderable::MarkVertexChanged()
+{
+	MarkVertexPositionDirty();
+	MarkColorDirty();
+	MarkUVDirty();
+}
+void UUIBatchGeometryRenderable::MarkRebuildGeometry()
+{
+	MarkTriangleDirty();
+}
+
 void UUIBatchGeometryRenderable::MarkVertexPositionDirty()
 {
 	bLocalVertexPositionChanged = true;

@@ -40,17 +40,23 @@ public:
 	 * @param	InPositionType		Set position type, relative to origin position or absolute position
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void UITextHelperFunction_ModifyCharGeometry_Transform(UUIText* InUIText, int InCharIndex, const FVector& InPosition, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType, const FRotator& InRotator, const FVector& InScale);
+		void UITextHelperFunction_ModifyCharGeometry_Transform(UUIText* InUIText, int InCharIndex
+			, const FVector& InPosition, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType
+			, const FRotator& InRotator = FRotator::ZeroRotator
+			, const FVector& InScale = FVector(1,1,1)
+		);
 	/**
 	 * Modify character's position
 	 * @param	InPositionType		Set position type, relative to origin position or absolute position
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void UITextHelperFunction_ModifyCharGeometry_Position(UUIText* InUIText, int InCharIndex, const FVector& InPosition, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType);
+		void UITextHelperFunction_ModifyCharGeometry_Position(UUIText* InUIText, int InCharIndex
+			, const FVector& InPosition, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType
+		);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void UITextHelperFunction_ModifyCharGeometry_Rotate(UUIText* InUIText, int InCharIndex, const FRotator& InRotator);
+		void UITextHelperFunction_ModifyCharGeometry_Rotate(UUIText* InUIText, int InCharIndex, const FRotator& InRotator = FRotator::ZeroRotator);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void UITextHelperFunction_ModifyCharGeometry_Scale(UUIText* InUIText, int InCharIndex, const FVector& InScale);
+		void UITextHelperFunction_ModifyCharGeometry_Scale(UUIText* InUIText, int InCharIndex, const FVector& InScale = FVector(1, 1, 1));
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void UITextHelperFunction_ModifyCharGeometry_Color(UUIText* InUIText, int InCharIndex, const FColor& InColor);
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -92,12 +98,15 @@ protected:
 		FName componentName;
 
 private:
-	TWeakObjectPtr<UUIBatchGeometryRenderable> renderableUIItem;
+	TWeakObjectPtr<UUIBatchGeometryRenderable> UIRenderable;
 	void RemoveFromUIBatchGeometry();
 	void AddToUIBatchGeometry();
 public:
+	UE_DEPRECATED(4.24, "Use GetUIRenderable instead.")
+	UFUNCTION(BlueprintCallable, Category = "LGUI", meta = (DeprecatedFunction, DeprecationMessage = "Use GetUIRenderable instead."))
+		UUIBatchGeometryRenderable* GetRenderableUIItem() { return GetUIRenderable(); }
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		UUIBatchGeometryRenderable* GetRenderableUIItem();
+		UUIBatchGeometryRenderable* GetUIRenderable();
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		bool GetEnable()const { return bEnable; }
 

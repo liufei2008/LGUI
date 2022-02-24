@@ -87,7 +87,7 @@ void UUIEffectShadow::SetShadowColor(FColor newColor)
 	if (shadowColor != newColor)
 	{
 		shadowColor = newColor;
-		if (GetRenderableUIItem())GetRenderableUIItem()->MarkColorDirty();
+		if (GetUIRenderable())GetUIRenderable()->MarkColorDirty();
 	}
 }
 void UUIEffectShadow::SetShadowOffset(FVector2D newOffset)
@@ -95,6 +95,6 @@ void UUIEffectShadow::SetShadowOffset(FVector2D newOffset)
 	if (shadowOffset != newOffset)
 	{
 		shadowOffset = newOffset;
-		if (GetRenderableUIItem())GetRenderableUIItem()->MarkVertexPositionDirty();
+		if (GetUIRenderable())GetUIRenderable()->MarkVertexPositionDirty();
 	}
 }

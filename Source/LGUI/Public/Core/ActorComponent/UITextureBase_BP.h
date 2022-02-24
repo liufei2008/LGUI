@@ -30,13 +30,7 @@ protected:
 	/** update geometry data. Do Not add or remove any vertex or triangles in this function */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
 		void ReceiveOnUpdateGeometry(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
-public:
-	/** if vertex data change and vertex count not change. */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void MarkVertexChanged();
-	/** if vertex count change or triangle count change, call this */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void MarkRebuildGeometry();
+
 protected:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;
 	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper;

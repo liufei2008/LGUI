@@ -14,7 +14,7 @@ void UUIEffectPositionAsUV::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry,
 	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
 	)
 {
-	auto uiRenderable = GetRenderableUIItem();
+	auto uiRenderable = GetUIRenderable();
 	if (!uiRenderable)return;
 	auto renderCanvas = uiRenderable->GetRenderCanvas();
 	auto& originPositions = InGeometry->originPositions;

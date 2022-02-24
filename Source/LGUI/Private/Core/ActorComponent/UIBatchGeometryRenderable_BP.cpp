@@ -338,13 +338,3 @@ void UUIBatchGeometryRenderable_BP::OnUpdateGeometry(bool InVertexPositionChange
 		updateGeometryHelper->EndUpdateVertices();
 	}
 }
-void UUIBatchGeometryRenderable_BP::MarkVertexChanged()
-{
-	MarkVertexPositionDirty();
-	MarkColorDirty();
-	MarkUVDirty();
-}
-void UUIBatchGeometryRenderable_BP::MarkRebuildGeometry()
-{
-	MarkTriangleDirty();
-}
