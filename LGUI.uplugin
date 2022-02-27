@@ -25,7 +25,7 @@
 		{
 			"Name": "LGUIEditor",
 			"Type": "UncookedOnly",
-			"LoadingPhase": "Default",
+			"LoadingPhase": "PostEngineInit",
 			"WhitelistPlatforms": [
 				"Win64"
 			]

@@ -53,7 +53,11 @@ void ULGUIPrefabHelperObject::MarkAsManagerObject()
 
 void ULGUIPrefabHelperObject::LoadPrefab(UWorld* InWorld, USceneComponent* InParent)
 {
-	if (!IsValid(PrefabAsset))return;
+	if (!IsValid(PrefabAsset))
+	{
+		UE_LOG(LGUI, Error, TEXT("LoadPrefab failed! PrefabAsset=%s, InParentComp=%s"), *GetNameSafe(PrefabAsset), *GetNameSafe(InParent));
+		return;
+	}
 	if (!IsValid(LoadedRootActor))
 	{
 		LoadedRootActor = PrefabAsset->LoadPrefabWithExistingObjects(InWorld

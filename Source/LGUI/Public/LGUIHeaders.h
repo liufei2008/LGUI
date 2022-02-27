@@ -105,3 +105,6 @@
 
 #include "LGUIBPLibrary.h"
 #include "LGUIComponentReference.h"
+
+#include "PrefabAnimation/LGUIPrefabSequence.h"
+#include "PrefabAnimation/LGUIPrefabSequenceComponent.h"

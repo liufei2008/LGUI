@@ -14,6 +14,9 @@ class LGUI_API AUIBaseActor : public AActor
 public:	
 	AUIBaseActor();
 
+#if WITH_EDITOR
+	virtual void SetIsTemporarilyHiddenInEditor(bool bIsHidden) override;
+#endif
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "LGUI", meta = (DisplayName="GetUIItem"))
 		UUIItem* GetUIItem_BP()const;
 	virtual UUIItem* GetUIItem()const PURE_VIRTUAL(AUIBaseActor::GetUIItem, return nullptr;);
