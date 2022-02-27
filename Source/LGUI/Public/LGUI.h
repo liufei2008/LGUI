@@ -4,7 +4,7 @@
 #include "Stats/Stats.h"
 #include "Modules/ModuleInterface.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LGUI, Log, All);
+LGUI_API DECLARE_LOG_CATEGORY_EXTERN(LGUI, Log, All);
 DECLARE_STATS_GROUP(TEXT("LGUI"), STATGROUP_LGUI, STATCAT_Advanced);
 
 //prevent compile optimization for easier code debug

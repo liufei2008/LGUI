@@ -73,7 +73,20 @@
 #include "Core/ActorComponent/UISpriteBase_BP.h"
 #include "Core/ActorComponent/UITextureBase_BP.h"
 
+#include "PrefabAnimation/LGUIPrefabSequenceComponentCustomization.h"
+#include "PrefabAnimation/MovieSceneSequenceEditor_LGUIPrefabSequence.h"
+#include "PrefabAnimation/LGUIPrefabSequenceEditorStyle.h"
+#include "PrefabAnimation/LGUIPrefabSequenceEditorTabSummoner.h"
+#include "BlueprintEditorModule.h"
+#include "BlueprintEditorTabs.h"
+#include "Framework/Docking/LayoutExtender.h"
+#include "WorkflowOrientedApp/WorkflowTabManager.h"
+#include "SequencerSettings.h"
+#include "ISequencerModule.h"
+#include "PrefabAnimation/LGUIPrefabSequenceEditor.h"
+
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
+const FName FLGUIEditorModule::LGUIPrefabSequenceTabName(TEXT("LGUIPrefabSequenceTabName"));
 
 #define LOCTEXT_NAMESPACE "FLGUIEditorModule"
 DEFINE_LOG_CATEGORY(LGUIEditor);
@@ -84,6 +97,24 @@ void FLGUIEditorModule::StartupModule()
 	
 	FLGUIEditorStyle::Initialize();
 	FLGUIEditorStyle::ReloadTextures();
+
+	FLGUIPrefabSequenceEditorStyle::Get();
+	OnInitializeSequenceHandle = ULGUIPrefabSequence::OnInitializeSequence().AddStatic(FLGUIEditorModule::OnInitializeSequence);
+
+	ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
+	SequenceEditorHandle = SequencerModule.RegisterSequenceEditor(ULGUIPrefabSequence::StaticClass(), MakeUnique<FMovieSceneSequenceEditor_LGUIPrefabSequence>());
+
+	//ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+
+	//if (SettingsModule != nullptr)
+	//{
+	//	Settings = USequencerSettingsContainer::GetOrCreate<USequencerSettings>(TEXT("EmbeddedLGUIPrefabSequenceEditor"));
+
+	//	SettingsModule->RegisterSettings("Editor", "ContentEditors", "EmbeddedLGUIPrefabSequenceEditor",
+	//		LOCTEXT("EmbeddedLGUIPrefabSequenceEditorSettingsName", "Embedded Actor Sequence Editor"),
+	//		LOCTEXT("EmbeddedLGUIPrefabSequenceEditorSettingsDescription", "Configure the look and feel of the Embedded Actor Sequence Editor."),
+	//		Settings);
+	//}
 
 	FLGUIEditorCommands::Register();
 	
@@ -180,6 +211,9 @@ void FLGUIEditorModule::StartupModule()
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIAtlasViewerName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnAtlasViewerTab))
 			.SetDisplayName(LOCTEXT("LGUIAtlasTextureViewerName", "LGUI Atlas Texture Viewer"))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
+		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(LGUIPrefabSequenceTabName, FOnSpawnTab::CreateRaw(this, &FLGUIEditorModule::HandleSpawnLGUIPrefabSequenceTab))
+			.SetDisplayName(LOCTEXT("LGUIPrefabSequenceTabName", "LGUI Prefab Sequence"))
+			.SetMenuType(ETabSpawnerMenuType::Hidden);
 	}
 	//register custom editor
 	{
@@ -244,6 +278,8 @@ void FLGUIEditorModule::StartupModule()
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIEventDelegate_Name::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&LGUIEventDelegatePresetParamCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FLGUIComponentReferenceCustomization::MakeInstance));
+
+		PropertyModule.RegisterCustomClassLayout(ULGUIPrefabSequenceComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabSequenceComponentCustomization::MakeInstance));
 	}
 	//register asset
 	{
@@ -333,6 +369,17 @@ void FLGUIEditorModule::StartupModule()
 	CheckPrefabOverrideDataViewerEntry();
 }
 
+void FLGUIEditorModule::OnInitializeSequence(ULGUIPrefabSequence* Sequence)
+{
+	//auto* ProjectSettings = GetDefault<UMovieSceneToolsProjectSettings>();
+	//UMovieScene* MovieScene = Sequence->GetMovieScene();
+
+	//FFrameNumber StartFrame = (ProjectSettings->DefaultStartTime * MovieScene->GetTickResolution()).RoundToFrame();
+	//int32        Duration = (ProjectSettings->DefaultDuration * MovieScene->GetTickResolution()).RoundToFrame().Value;
+
+	//MovieScene->SetPlaybackRange(StartFrame, Duration);
+}
+
 void FLGUIEditorModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
@@ -340,6 +387,18 @@ void FLGUIEditorModule::ShutdownModule()
 	FLGUIEditorStyle::Shutdown();
 
 	FLGUIEditorCommands::Unregister();
+
+	ULGUIPrefabSequence::OnInitializeSequence().Remove(OnInitializeSequenceHandle);
+	ISequencerModule* SequencerModule = FModuleManager::Get().GetModulePtr<ISequencerModule>("Sequencer");
+	if (SequencerModule)
+	{
+		SequencerModule->UnregisterSequenceEditor(SequenceEditorHandle);
+	}
+	//ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+	//if (SettingsModule != nullptr)
+	//{
+	//	SettingsModule->UnregisterSettings("Editor", "ContentEditors", "EmbeddedLGUIPrefabSequenceEditor");
+	//}
 
 	//unregister SceneOutliner ColumnInfo
 	{
@@ -351,6 +410,7 @@ void FLGUIEditorModule::ShutdownModule()
 	//unregister window
 	{
 		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIAtlasViewerName);
+		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(LGUIPrefabSequenceTabName);
 	}
 	//unregister custom editor
 	if (UObjectInitialized() && FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
@@ -414,6 +474,8 @@ void FLGUIEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIEventDelegate_Rotator::StaticStruct()->GetFName());
 
 		PropertyModule.UnregisterCustomPropertyTypeLayout(FLGUIComponentReference::StaticStruct()->GetFName());
+
+		PropertyModule.RegisterCustomClassLayout(ULGUIPrefabSequenceComponent::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FLGUIPrefabSequenceComponentCustomization::MakeInstance));
 	}
 	//unregister asset
 	{
@@ -480,6 +542,14 @@ TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnAtlasViewerTab(const FSpawnTa
 {
 	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
 	auto TabContentWidget = SNew(SLGUIAtlasViewer, ResultTab);
+	ResultTab->SetContent(TabContentWidget);
+	return ResultTab;
+}
+
+TSharedRef<SDockTab> FLGUIEditorModule::HandleSpawnLGUIPrefabSequenceTab(const FSpawnTabArgs& SpawnTabArgs)
+{
+	auto ResultTab = SNew(SDockTab).TabRole(ETabRole::NomadTab);
+	auto TabContentWidget = SNew(SLGUIPrefabSequenceEditor);
 	ResultTab->SetContent(TabContentWidget);
 	return ResultTab;
 }

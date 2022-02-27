@@ -261,9 +261,14 @@ namespace LGUIPrefabSystem
 		}
 		return false;
 	}
-	FArchive& FLGUIObjectReader::operator<<(UObject*& Res)
+	FArchive& FLGUIObjectReader::operator<<(UObject*& Value)
 	{
+		UObject* Res = nullptr;
 		SerializeObject(Res, true);
+		if (Res)
+		{
+			Value = Res;
+		}
 		return *this;
 	}
 #if ENGINE_MAJOR_VERSION >= 5
@@ -271,7 +276,10 @@ namespace LGUIPrefabSystem
 	{
 		UObject* Res = nullptr;
 		SerializeObject(Res, true);
-		Value = Res;
+		if (Res)
+		{
+			Value = Res;
+		}
 		return *this;
 	}
 #endif
@@ -279,7 +287,10 @@ namespace LGUIPrefabSystem
 	{
 		UObject* Res = nullptr;
 		SerializeObject(Res, false);
-		Value = Res;
+		if (Res)
+		{
+			Value = Res;
+		}
 		return *this;
 	}
 	FArchive& FLGUIObjectReader::operator<<(FLazyObjectPtr& Value)

@@ -21,6 +21,7 @@ class FLGUIEditorModule : public IModuleInterface
 public:
 
 	static const FName LGUIAtlasViewerName;
+	static const FName LGUIPrefabSequenceTabName;
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
@@ -67,10 +68,15 @@ private:
 	TWeakObjectPtr<class ULGUIPrefabHelperObject> CurrentPrefabHelperObject;
 private:
 	TSharedRef<SDockTab> HandleSpawnAtlasViewerTab(const FSpawnTabArgs& SpawnTabArgs);
+	TSharedRef<SDockTab> HandleSpawnLGUIPrefabSequenceTab(const FSpawnTabArgs& SpawnTabArgs);
 	bool bActiveViewportAsPreview = false;
 	class FLGUINativeSceneOutlinerExtension* NativeSceneOutlinerExtension = nullptr;
 	TSharedPtr<class SLGUIPrefabOverrideDataViewer> PrefabOverrideDataViewer = nullptr;
 	void CheckPrefabOverrideDataViewerEntry();
 
 	
+	FDelegateHandle SequenceEditorHandle;
+	FDelegateHandle OnInitializeSequenceHandle;
+	FName LGUIPrefabSequenceComponentName;
+	static void OnInitializeSequence(ULGUIPrefabSequence* Sequence);
 };
