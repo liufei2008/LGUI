@@ -10,12 +10,6 @@ ULGUILifeCycleUIBehaviour::ULGUILifeCycleUIBehaviour()
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
-void ULGUILifeCycleUIBehaviour::BeginPlay()
-{
-	UActorComponent::BeginPlay();//skip parent's OnComponentRenderStateDirty
-	ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(this);
-}
-
 void ULGUILifeCycleUIBehaviour::OnRegister()
 {
 	Super::OnRegister();
@@ -51,41 +45,6 @@ bool ULGUILifeCycleUIBehaviour::CheckRootUIComponent() const
 	}
 	UE_LOG(LGUI, Error, TEXT("[ULGUILifeCycleUIBehaviour::CheckRootUIComponent]LGUILifeCycleUIBehaviour must attach to a UI actor!"));
 	return false;
-}
-
-bool ULGUILifeCycleUIBehaviour::GetIsActiveAndEnable()const
-{
-	if (RootUIComp.IsValid())
-	{
-		return RootUIComp->GetIsUIActiveInHierarchy() && this->GetEnable();
-	}
-	else
-	{
-		return this->GetEnable();
-	}
-}
-bool ULGUILifeCycleUIBehaviour::IsAllowedToCallOnEnable()const
-{
-	if (RootUIComp.IsValid())
-	{
-		return RootUIComp->GetIsUIActiveInHierarchy();
-	}
-	else
-	{
-		return Super::IsAllowedToCallOnEnable();
-	}
-}
-
-bool ULGUILifeCycleUIBehaviour::IsAllowedToCallAwake()const
-{
-	if (RootUIComp.IsValid())
-	{
-		return RootUIComp->GetIsUIActiveInHierarchy();
-	}
-	else
-	{
-		return true;
-	}
 }
 
 UUIItem* ULGUILifeCycleUIBehaviour::GetRootUIComponent() const
