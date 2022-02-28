@@ -16,7 +16,6 @@
 #include "ScopedTransaction.h"
 #include "ISequencerModule.h"
 #include "Editor.h"
-#include "LGUIPrefabSequenceEditorTabSummoner.h"
 #include "IPropertyUtilities.h"
 #include "Widgets/Input/SButton.h"
 #include "LGUIEditorModule.h"

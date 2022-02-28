@@ -10,7 +10,10 @@
 #include "Framework/Docking/TabManager.h"
 #include "Widgets/SCompoundWidget.h"
 
+class ULGUIPrefabSequenceComponent;
 class ULGUIPrefabSequence;
+class SLGUIPrefabSequenceEditorWidget;
+struct FWidgetAnimationListItem;
 
 class SLGUIPrefabSequenceEditor : public SCompoundWidget
 {
@@ -24,6 +27,7 @@ public:
 	void AssignLGUIPrefabSequenceComponent(TWeakObjectPtr<ULGUIPrefabSequenceComponent> InSequenceComponent);
 	ULGUIPrefabSequence* GetLGUIPrefabSequence() const;
 	ULGUIPrefabSequenceComponent* GetSequenceComponent()const { return WeakSequenceComponent.Get(); }
+	void RefreshAnimationList();
 private:
 
 	TWeakObjectPtr<ULGUIPrefabSequenceComponent> WeakSequenceComponent;
@@ -31,11 +35,12 @@ private:
 
 	TSharedPtr<SLGUIPrefabSequenceEditorWidget> PrefabSequenceEditor;
 
-	TSharedPtr<SListView<ULGUIPrefabSequence*>> AnimationListView;
-	TArray<ULGUIPrefabSequence*> EmptyListItemSource;
+	TSharedPtr<SListView<TSharedPtr<FWidgetAnimationListItem>>> AnimationListView;
+	TArray< TSharedPtr<FWidgetAnimationListItem> > Animations;
 	int32 CurrentSelectedAnimationIndex = 0;
-	TSharedRef<ITableRow> OnGenerateRowForAnimationListView(ULGUIPrefabSequence* InListItem, const TSharedRef<STableViewBase>& InOwnerTableView);
-	void OnAnimationListViewSelectionChanged(ULGUIPrefabSequence* InListItem, ESelectInfo::Type InSelectInfo);
+	TSharedRef<ITableRow> OnGenerateRowForAnimationListView(TSharedPtr<FWidgetAnimationListItem> InListItem, const TSharedRef<STableViewBase>& InOwnerTableView);
+	void OnAnimationListViewSelectionChanged(TSharedPtr<FWidgetAnimationListItem> InListItem, ESelectInfo::Type InSelectInfo);
+	void OnItemScrolledIntoView(TSharedPtr<FWidgetAnimationListItem> InListItem, const TSharedPtr<ITableRow>& InWidget) const;
 	FReply OnNewAnimationClicked();
 	TSharedPtr<class SSearchBox> SearchBoxPtr;
 	void OnAnimationListViewSearchChanged(const FText& InSearchText);
@@ -45,6 +50,5 @@ private:
 	void OnDuplicateAnimation();
 	void OnDeleteAnimation();
 	void OnRenameAnimation();
-
 	void OnObjectsReplaced(const TMap<UObject*, UObject*>& ReplacementMap);
 };

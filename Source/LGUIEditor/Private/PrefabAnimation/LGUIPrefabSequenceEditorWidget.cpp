@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "LGUIPrefabSequenceEditorTabSummoner.h"
+#include "LGUIPrefabSequenceEditorWidget.h"
 
 #include "PrefabAnimation/LGUIPrefabSequence.h"
 #include "ISequencer.h"
@@ -17,9 +17,10 @@
 #include "Widgets/Docking/SDockTab.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Framework/Application/SlateApplication.h"
-#include "LGUIPrefabSequenceEditorStyle.h"
+#include "EngineUtils.h"
+#include "Utils/LGUIUtils.h"
 
-#define LOCTEXT_NAMESPACE "LGUIPrefabSequenceEditorSummoner"
+#define LOCTEXT_NAMESPACE "LGUIPrefabSequenceEditorWidget"
 
 DECLARE_DELEGATE_OneParam(FPrefabAnimationOnComponentSelected, TSharedPtr<FSCSEditorTreeNode>);
 DECLARE_DELEGATE_RetVal_OneParam(bool, FPrefabAnimationIsComponentValid, UActorComponent*);
@@ -29,17 +30,15 @@ class SComponentSelectionTree
 	: public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SComponentSelectionTree) : _IsInEditMode(false) {}
+	SLATE_BEGIN_ARGS(SComponentSelectionTree) {}
 
 		SLATE_EVENT(FPrefabAnimationOnComponentSelected, OnComponentSelected)
 		SLATE_EVENT(FPrefabAnimationIsComponentValid, IsComponentValid)
-		SLATE_ARGUMENT(bool, IsInEditMode)
 
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, AActor* InPreviewActor)
 	{
-		bIsInEditMode = InArgs._IsInEditMode;
 		OnComponentSelected = InArgs._OnComponentSelected;
 		IsComponentValid = InArgs._IsComponentValid;
 
@@ -104,7 +103,7 @@ private:
 			ComponentIcon = FSlateIconFinder::FindIconBrushForClass( InNodePtr->GetComponentTemplate()->GetClass(), TEXT("SCS.Component") );
 		}
 
-		FText Label = InNodePtr->IsInheritedComponent() && !bIsInEditMode
+		FText Label = InNodePtr->IsInheritedComponent()
 			? FText::Format(LOCTEXT("NativeComponentFormatString","{0} (Inherited)"), FText::FromString(InNodePtr->GetDisplayString()))
 			: FText::FromString(InNodePtr->GetDisplayString());
 
@@ -178,7 +177,6 @@ private:
 	}
 
 private:
-	bool bIsInEditMode;
 	FPrefabAnimationOnComponentSelected OnComponentSelected;
 	FPrefabAnimationIsComponentValid IsComponentValid;
 	TSharedPtr<STreeView<TSharedPtr<FSCSEditorTreeNode>>> TreeView;
@@ -202,19 +200,7 @@ public:
 			Sequencer = nullptr;
 		}
 
-		if (WeakBlueprintEditor.IsValid() && WeakBlueprintEditor.Pin()->IsHosted())
-		{
-			const FName CurveEditorTabName = FName(TEXT("SequencerGraphEditor"));
-			TSharedPtr<SDockTab> ExistingTab = WeakBlueprintEditor.Pin()->GetToolkitHost()->GetTabManager()->FindExistingLiveTab(CurveEditorTabName);
-			if (ExistingTab)
-			{
-				ExistingTab->RequestCloseTab();
-			}
-		}
-
 		GEditor->UnregisterForUndo(this);
-		GEditor->OnBlueprintPreCompile().Remove(OnBlueprintPreCompileHandle);
-		FCoreUObjectDelegates::OnObjectSaved.Remove(OnObjectSavedHandle);
 	}
 
 	~SLGUIPrefabSequenceEditorWidgetImpl()
@@ -235,26 +221,25 @@ public:
 
 	void Construct(const FArguments&, TWeakPtr<FBlueprintEditor> InBlueprintEditor)
 	{
-		OnBlueprintPreCompileHandle = GEditor->OnBlueprintPreCompile().AddSP(this, &SLGUIPrefabSequenceEditorWidgetImpl::OnBlueprintPreCompile);
-		OnObjectSavedHandle = FCoreUObjectDelegates::OnObjectSaved.AddSP(this, &SLGUIPrefabSequenceEditorWidgetImpl::OnObjectPreSave);
-
-		WeakBlueprintEditor = InBlueprintEditor;
-
-		{
-			const FName CurveEditorTabName = FName(TEXT("SequencerGraphEditor"));
-			if (WeakBlueprintEditor.IsValid() && !WeakBlueprintEditor.Pin()->GetTabManager()->HasTabSpawner(CurveEditorTabName))
-			{
-				// Register an empty tab to spawn the Curve Editor in so that layouts restore properly.
-				WeakBlueprintEditor.Pin()->GetTabManager()->RegisterTabSpawner(CurveEditorTabName,
-					FOnSpawnTab::CreateSP(this, &SLGUIPrefabSequenceEditorWidgetImpl::SpawnCurveEditorTab))
-					.SetMenuType(ETabSpawnerMenuType::Type::Hidden);
-			}
-		}
+		NoAnimationTextBlock =
+			SNew(STextBlock)
+			.TextStyle(FEditorStyle::Get(), "UMGEditor.NoAnimationFont")
+			.Text(LOCTEXT("NoAnimationSelected", "No Animation Selected"));
 
 		ChildSlot
 		[
-			SAssignNew(Content, SBox)
-			.MinDesiredHeight(200)
+			SNew(SOverlay)
+			+ SOverlay::Slot()
+			[
+				SAssignNew(Content, SBox)
+				.MinDesiredHeight(200)
+			]
+			+SOverlay::Slot()
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			[
+				NoAnimationTextBlock.ToSharedRef()
+			]
 		];
 
 		GEditor->RegisterForUndo(this);
@@ -311,6 +296,18 @@ public:
 		return Contexts;
 	}
 
+	auto GetNullSequence()
+	{
+		static ULGUIPrefabSequence* NullSequence = nullptr;
+		if (!NullSequence)
+		{
+			NullSequence = NewObject<ULGUIPrefabSequence>(GetTransientPackage(), NAME_None);
+			NullSequence->AddToRoot();
+			NullSequence->GetMovieScene()->SetDisplayRate(FFrameRate(30, 1));
+		}
+		return NullSequence;
+	}
+
 	void SetLGUIPrefabSequence(ULGUIPrefabSequence* NewSequence)
 	{
 		if (ULGUIPrefabSequence* OldSequence = WeakSequence.Get())
@@ -328,6 +325,17 @@ public:
 			OnSequenceChangedHandle = NewSequence->OnSignatureChanged().AddSP(this, &SLGUIPrefabSequenceEditorWidgetImpl::OnSequenceChanged);
 		}
 
+		if (NewSequence == nullptr)
+		{
+			Content->SetEnabled(false);
+			NoAnimationTextBlock->SetVisibility(EVisibility::Visible);
+		}
+		else
+		{
+			Content->SetEnabled(true);
+			NoAnimationTextBlock->SetVisibility(EVisibility::Collapsed);
+		}
+
 		// If we already have a sequencer open, just assign the sequence
 		if (Sequencer.IsValid() && NewSequence)
 		{
@@ -339,51 +347,35 @@ public:
 		}
 
 		// If we're setting the sequence to none, destroy sequencer
-		if (!NewSequence)
-		{
-			if (Sequencer.IsValid())
-			{
-				FLevelEditorSequencerIntegration::Get().RemoveSequencer(Sequencer.ToSharedRef());
-				Sequencer->Close();
-				Sequencer = nullptr;
-			}
+		//if (!NewSequence)
+		//{
+		//	if (Sequencer.IsValid())
+		//	{
+		//		FLevelEditorSequencerIntegration::Get().RemoveSequencer(Sequencer.ToSharedRef());
+		//		Sequencer->Close();
+		//		Sequencer = nullptr;
+		//	}
 
-			Content->SetContent(SNew(STextBlock).Text(LOCTEXT("NothingSelected", "Select a sequence")));
-			return;
-		}
+		//	Content->SetContent(SNew(STextBlock).Text(LOCTEXT("NothingSelected", "Select a sequence")));
+		//	return;
+		//}
 
 		// We need to initialize a new sequencer instance
 		FSequencerInitParams SequencerInitParams;
 		{
 			TWeakObjectPtr<ULGUIPrefabSequence> LocalWeakSequence = NewSequence;
 
-			SequencerInitParams.RootSequence = NewSequence;
+			SequencerInitParams.RootSequence = NewSequence ? NewSequence : GetNullSequence();
 			SequencerInitParams.EventContexts = TAttribute<TArray<UObject*>>(this, &SLGUIPrefabSequenceEditorWidgetImpl::GetEventContexts);
 			SequencerInitParams.PlaybackContext = TAttribute<UObject*>(this, &SLGUIPrefabSequenceEditorWidgetImpl::GetPlaybackContext);
-			
-			if (WeakBlueprintEditor.IsValid())
-			{
-				SequencerInitParams.ToolkitHost = WeakBlueprintEditor.Pin()->GetToolkitHost();
-				SequencerInitParams.HostCapabilities.bSupportsCurveEditor = true;
-			}
 
 			TSharedRef<FExtender> AddMenuExtender = MakeShareable(new FExtender);
 
 			AddMenuExtender->AddMenuExtension("AddTracks", EExtensionHook::Before, nullptr,
-				FMenuExtensionDelegate::CreateLambda([=](FMenuBuilder& MenuBuilder){
-
-					MenuBuilder.AddSubMenu(
-						LOCTEXT("AddComponent_Label", "Component"),
-						LOCTEXT("AddComponent_ToolTip", "Add a binding to one of this actor's components and allow it to be animated by Sequencer"),
-						FNewMenuDelegate::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::AddPossessComponentMenuExtensions),
-						false /*bInOpenSubMenuOnClick*/,
-						FSlateIcon()//"LevelSequenceEditorStyle", "LevelSequenceEditor.PossessNewActor")
-						);
-
-				})
+				FMenuExtensionDelegate::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::AddPossessMenuExtensions)
 			);
 
-			SequencerInitParams.ViewParams.bReadOnly = !WeakBlueprintEditor.IsValid() && !NewSequence->IsEditable();
+			SequencerInitParams.ViewParams.bReadOnly = !NewSequence->IsEditable();
 			SequencerInitParams.bEditWithinLevelEditor = false;
 			SequencerInitParams.ViewParams.AddMenuExtender = AddMenuExtender;
 			SequencerInitParams.ViewParams.UniqueName = "EmbeddedLGUIPrefabSequenceEditor";
@@ -410,24 +402,6 @@ public:
 		}
 	}
 
-	void OnObjectPreSave(UObject* InObject)
-	{
-		TSharedPtr<FBlueprintEditor> BlueprintEditor = WeakBlueprintEditor.Pin();
-		if (Sequencer.IsValid() && BlueprintEditor.IsValid() && InObject && InObject == BlueprintEditor->GetBlueprintObj())
-		{
-			Sequencer->RestorePreAnimatedState();
-		}
-	}
-
-	void OnBlueprintPreCompile(UBlueprint* InBlueprint)
-	{
-		TSharedPtr<FBlueprintEditor> BlueprintEditor = WeakBlueprintEditor.Pin();
-		if (Sequencer.IsValid() && BlueprintEditor.IsValid() && InBlueprint && InBlueprint == BlueprintEditor->GetBlueprintObj())
-		{
-			Sequencer->RestorePreAnimatedState();
-		}
-	}
-
 	void OnSelectionUpdated(TSharedPtr<FSCSEditorTreeNode> SelectedNode)
 	{
 		if (SelectedNode->GetNodeType() != FSCSEditorTreeNode::ComponentNode)
@@ -437,16 +411,7 @@ public:
 
 		UActorComponent* EditingComponent = nullptr;
 
-		TSharedPtr<FBlueprintEditor> BlueprintEditor = WeakBlueprintEditor.Pin();
-		if (BlueprintEditor.IsValid())
-		{
-			UBlueprint* Blueprint = BlueprintEditor->GetBlueprintObj();
-			if (Blueprint)
-			{
-				EditingComponent = SelectedNode->GetOrCreateEditableComponentTemplate(Blueprint);
-			}
-		}
-		else if (AActor* Actor = GetPreviewActor())
+		if (AActor* Actor = GetSelectedActor())
 		{
 			EditingComponent = SelectedNode->FindComponentInstanceInActor(Actor);
 		}
@@ -460,67 +425,144 @@ public:
 		FSlateApplication::Get().DismissAllMenus();
 	}
 
+	void AddPossessMenuExtensions(FMenuBuilder& MenuBuilder)
+	{
+		if (!WeakSequence.IsValid())return;
+		//actor menu
+		{
+			Sequencer->State.ClearObjectCaches(*Sequencer);
+			TSet<UObject*> AllBoundObjects;
+			UMovieScene* MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
+			for (int32 Index = 0; Index < MovieScene->GetPossessableCount(); ++Index)
+			{
+				FMovieScenePossessable& Possessable = MovieScene->GetPossessable(Index);
+				for (TWeakObjectPtr<> WeakObject : Sequencer->FindBoundObjects(Possessable.GetGuid(), Sequencer->GetFocusedTemplateID()))
+				{
+					if (UObject* Object = WeakObject.Get())
+					{
+						AllBoundObjects.Add(Object);
+					}
+				}
+			}
+
+			TArray<AActor*> ValidActorArray;
+			if (auto Actor = WeakSequence->GetTypedOuter<AActor>())
+			{
+				TArray<AActor*> AllChildrenActors;
+				LGUIUtils::CollectChildrenActors(Actor, AllChildrenActors);
+				for (auto ActorItem : AllChildrenActors)
+				{
+					if (!AllBoundObjects.Contains(ActorItem))
+					{
+						if (ActorItem->IsAttachedTo(Actor) || ActorItem == Actor)//only allow child actor or self actor
+						{
+							ValidActorArray.Add(ActorItem);
+						}
+					}
+				}
+			}
+
+			MenuBuilder.AddSubMenu(
+				LOCTEXT("AddActor_Label", "Actor"),
+				LOCTEXT("AddActor_Tooltip", "Add a binding to one of actor and allow it to be animated by Sequencer"),
+				FNewMenuDelegate::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::AddPossessActorMenuExtensions, ValidActorArray),
+				false, FSlateIcon()
+						);
+		}
+		//component menu
+		if (auto Actor = GetSelectedActor())
+		{
+			MenuBuilder.AddSubMenu(
+				LOCTEXT("AddComponent_Label", "Component"),
+				LOCTEXT("AddComponent_ToolTip", "Add a binding to one of this actor's components and allow it to be animated by Sequencer"),
+				FNewMenuDelegate::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::AddPossessComponentMenuExtensions),
+				false /*bInOpenSubMenuOnClick*/,
+				FSlateIcon()//"LevelSequenceEditorStyle", "LevelSequenceEditor.PossessNewActor")
+			);
+		}
+	}
+	void AddPossessActorMenuExtensions(FMenuBuilder& MenuBuilder, TArray<AActor*> InActorArray)
+	{
+		for (auto Actor : InActorArray)
+		{
+			if (IsValid(Actor))
+			{
+				MenuBuilder.AddMenuEntry(
+					FText::Format(LOCTEXT("ActorLabelFormat", "{0} ({1})"), FText::FromString(Actor->GetActorLabel()), FText::FromString(Actor->GetClass()->GetName())),
+					FText::FromString(Actor->GetName()), FSlateIcon(),
+					FUIAction(FExecuteAction::CreateLambda([=]() {
+						const FScopedTransaction Transaction(LOCTEXT("AddComponentToSequencer", "Add component to Sequencer"));
+						Sequencer->GetHandleToObject(Actor, true);
+						}))
+				);
+			}
+		}
+	}
 	void AddPossessComponentMenuExtensions(FMenuBuilder& MenuBuilder)
 	{
-		AActor* Actor = GetPreviewActor();
-		if (!Actor)
+		if (auto Actor = GetSelectedActor())
 		{
-			return;
-		}
+			Sequencer->State.ClearObjectCaches(*Sequencer);
+			TSet<UObject*> AllBoundObjects;
 
-		Sequencer->State.ClearObjectCaches(*Sequencer);
-		TSet<UObject*> AllBoundObjects;
-
-		AllBoundObjects.Add(GetOwnerComponent());
-
-		UMovieScene* MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
-		for (int32 Index = 0; Index < MovieScene->GetPossessableCount(); ++Index)
-		{
-			FMovieScenePossessable& Possessable = MovieScene->GetPossessable(Index);
-			for (TWeakObjectPtr<> WeakObject : Sequencer->FindBoundObjects(Possessable.GetGuid(), Sequencer->GetFocusedTemplateID()))
+			UMovieScene* MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
+			for (int32 Index = 0; Index < MovieScene->GetPossessableCount(); ++Index)
 			{
-				if (UObject* Object = WeakObject.Get())
+				FMovieScenePossessable& Possessable = MovieScene->GetPossessable(Index);
+				for (TWeakObjectPtr<> WeakObject : Sequencer->FindBoundObjects(Possessable.GetGuid(), Sequencer->GetFocusedTemplateID()))
 				{
-					AllBoundObjects.Add(Object);
+					if (UObject* Object = WeakObject.Get())
+					{
+						AllBoundObjects.Add(Object);
+					}
+				}
+			}
+
+			bool bIdent = false;
+			MenuBuilder.AddWidget(
+				SNew(SComponentSelectionTree, Actor)
+				.OnComponentSelected(this, &SLGUIPrefabSequenceEditorWidgetImpl::OnSelectionUpdated)
+				.IsComponentValid_Lambda(
+					[AllBoundObjects](UActorComponent* Component)
+					{
+						bool bContainsInBoundObjects = AllBoundObjects.Contains(Component);//already bounded
+						bool bContainsInBlueprintCreatedComponents = false;//blueprint created component not allowed, because LGUIPrefabSequene use UObject to direct reference target object, and this method not support BlueprintCreatedComponents
+						if (auto OwnerActor = Component->GetOwner())
+						{
+							if (OwnerActor->BlueprintCreatedComponents.Contains(Component))
+							{
+								bContainsInBlueprintCreatedComponents = true;
+							}
+						}
+						return !bContainsInBoundObjects && !bContainsInBlueprintCreatedComponents;
+					}
+				)
+				, FText(), !bIdent
+						);
+		}
+	}
+
+	AActor* GetSelectedActor()const
+	{
+		TArray<AActor*, TInlineAllocator<1>> SelectedActorArray;
+		if (WeakSequence.IsValid())
+		{
+			TArray<FGuid> SelectedObjects;
+			Sequencer->GetSelectedObjects(SelectedObjects);
+			for (auto GuidItem : SelectedObjects)
+			{
+				TArray<UObject*, TInlineAllocator<1>> BoundObjects;
+				WeakSequence->LocateBoundObjects(GuidItem, nullptr, BoundObjects);
+				for (auto Obj : BoundObjects)
+				{
+					if (auto Actor = Cast<AActor>(Obj))
+					{
+						SelectedActorArray.Add(Actor);
+					}
 				}
 			}
 		}
-
-		bool bIdent = false;
-		MenuBuilder.AddWidget(
-			SNew(SComponentSelectionTree, Actor)
-			.IsInEditMode(WeakBlueprintEditor.Pin().IsValid())
-			.OnComponentSelected(this, &SLGUIPrefabSequenceEditorWidgetImpl::OnSelectionUpdated)
-			.IsComponentValid_Lambda(
-				[AllBoundObjects](UActorComponent* Component)
-				{
-					return !AllBoundObjects.Contains(Component);
-				}
-			)
-			, FText(), !bIdent
-		);
-	}
-
-	AActor* GetPreviewActor() const
-	{
-		TSharedPtr<FBlueprintEditor> BlueprintEditor = WeakBlueprintEditor.Pin();
-		if (BlueprintEditor.IsValid())
-		{
-			return BlueprintEditor->GetPreviewActor();
-		}
-		if (ULGUIPrefabSequence* Sequence = WeakSequence.Get())
-		{
-			return Sequence->GetTypedOuter<AActor>();
-		}
-		return nullptr;
-	}
-
-	UActorComponent* GetOwnerComponent() const
-	{
-		ULGUIPrefabSequence* LGUIPrefabSequence = WeakSequence.Get();
-		AActor* Actor = LGUIPrefabSequence ? GetPreviewActor() : nullptr;
-
-		return Actor ? FindObject<UActorComponent>(Actor, *LGUIPrefabSequence->GetOuter()->GetName()) : nullptr;
+		return SelectedActorArray.Num() == 1 ? SelectedActorArray[0] : nullptr;
 	}
 
 	void OnSequenceChanged()
@@ -537,15 +579,12 @@ public:
 private:
 	TWeakObjectPtr<ULGUIPrefabSequence> WeakSequence;
 
-	TWeakPtr<FBlueprintEditor> WeakBlueprintEditor;
-
 	TSharedPtr<SBox> Content;
 	TSharedPtr<ISequencer> Sequencer;
 
-	FDelegateHandle OnBlueprintPreCompileHandle;
-	FDelegateHandle OnObjectSavedHandle;
-
 	FDelegateHandle OnSequenceChangedHandle;
+
+	TSharedPtr<STextBlock> NoAnimationTextBlock;
 };
 
 void SLGUIPrefabSequenceEditorWidget::Construct(const FArguments&, TWeakPtr<FBlueprintEditor> InBlueprintEditor)
@@ -569,21 +608,6 @@ void SLGUIPrefabSequenceEditorWidget::AssignSequence(ULGUIPrefabSequence* NewLGU
 ULGUIPrefabSequence* SLGUIPrefabSequenceEditorWidget::GetSequence() const
 {
 	return Impl.Pin()->GetLGUIPrefabSequence();
-}
-
-FLGUIPrefabSequenceEditorSummoner::FLGUIPrefabSequenceEditorSummoner(TSharedPtr<FBlueprintEditor> BlueprintEditor)
-	: FWorkflowTabFactory("LGUIEmbeddedSequenceID", BlueprintEditor)
-	, WeakBlueprintEditor(BlueprintEditor)
-{
-	bIsSingleton = true;
-
-	TabLabel = LOCTEXT("SequencerTabName", "Sequencer");
-	TabIcon = FSlateIcon(FLGUIPrefabSequenceEditorStyle::Get().GetStyleSetName(), "ClassIcon.LGUIPrefabSequence");
-}
-
-TSharedRef<SWidget> FLGUIPrefabSequenceEditorSummoner::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
-{
-	return SNew(SLGUIPrefabSequenceEditorWidget, WeakBlueprintEditor);
 }
 
 #undef LOCTEXT_NAMESPACE

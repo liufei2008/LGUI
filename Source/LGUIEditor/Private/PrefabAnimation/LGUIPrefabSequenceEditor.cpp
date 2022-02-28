@@ -16,7 +16,7 @@
 #include "ScopedTransaction.h"
 #include "ISequencerModule.h"
 #include "Editor.h"
-#include "LGUIPrefabSequenceEditorTabSummoner.h"
+#include "LGUIPrefabSequenceEditorWidget.h"
 #include "IPropertyUtilities.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Views/SListView.h"
@@ -24,8 +24,147 @@
 #include "Widgets/Input/SSearchBox.h"
 #include "LGUIEditorModule.h"
 #include "Framework/Commands/GenericCommands.h"
+#include "Widgets/Text/SInlineEditableTextBlock.h"
+#include "Misc/TextFilter.h"
+#include "PropertyCustomizationHelpers.h"
 
 #define LOCTEXT_NAMESPACE "SLGUIPrefabSequenceEditor"
+
+
+struct FWidgetAnimationListItem
+{
+	FWidgetAnimationListItem(ULGUIPrefabSequence* InAnimation, bool bInRenameRequestPending = false, bool bInNewAnimation = false)
+		: Animation(InAnimation)
+		, bRenameRequestPending(bInRenameRequestPending)
+		, bNewAnimation(bInNewAnimation)
+	{}
+
+	ULGUIPrefabSequence* Animation;
+	bool bRenameRequestPending;
+	bool bNewAnimation;
+};
+
+
+typedef SListView<TSharedPtr<FWidgetAnimationListItem> > SWidgetAnimationListView;
+
+class SWidgetAnimationListItem : public STableRow<TSharedPtr<FWidgetAnimationListItem> >
+{
+public:
+	SLATE_BEGIN_ARGS(SWidgetAnimationListItem) {}
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& InOwnerTableView, SLGUIPrefabSequenceEditor* InEditor, TSharedPtr<FWidgetAnimationListItem> InListItem)
+	{
+		ListItem = InListItem;
+		Editor = InEditor;
+
+		STableRow<TSharedPtr<FWidgetAnimationListItem>>::Construct(
+			STableRow<TSharedPtr<FWidgetAnimationListItem>>::FArguments()
+			.Padding(FMargin(3.0f, 2.0f))
+			.Content()
+			[
+				SAssignNew(InlineTextBlock, SInlineEditableTextBlock)
+				.Font(FCoreStyle::Get().GetFontStyle("NormalFont"))
+				.Text(this, &SWidgetAnimationListItem::GetMovieSceneText)
+				//.HighlightText(InArgs._HighlightText)
+				.OnVerifyTextChanged(this, &SWidgetAnimationListItem::OnVerifyNameTextChanged)
+				.OnTextCommitted(this, &SWidgetAnimationListItem::OnNameTextCommited)
+				.IsSelected(this, &SWidgetAnimationListItem::IsSelectedExclusively)
+			],
+			InOwnerTableView);
+	}
+
+	void BeginRename()
+	{
+		InlineTextBlock->EnterEditingMode();
+	}
+
+private:
+	FText GetMovieSceneText() const
+	{
+		if (ListItem.IsValid())
+		{
+			return FText::FromName(ListItem.Pin()->Animation->GetFName());
+		}
+
+		return FText::GetEmpty();
+	}
+
+	bool OnVerifyNameTextChanged(const FText& InText, FText& OutErrorMessage)
+	{
+		auto Animation = ListItem.Pin()->Animation;
+
+		const FName NewName = *InText.ToString().Left(NAME_SIZE - 1);
+
+		if (Animation->GetFName() != NewName)
+		{
+			auto SequenceComp = Editor->GetSequenceComponent();
+			if (SequenceComp)
+			{
+				auto& SequenceArray = SequenceComp->GetSequenceArray();
+				for (auto& Item : SequenceArray)
+				{
+					if (Item->GetFName() == NewName)
+					{
+						OutErrorMessage = LOCTEXT("NameInUseByAnimation", "An animation with this name already exists");
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	void OnNameTextCommited(const FText& InText, ETextCommit::Type CommitInfo)
+	{
+		auto Animation = ListItem.Pin()->Animation;
+
+		// Name has already been checked in VerifyAnimationRename
+		const FName NewFName = *InText.ToString();
+		const FName OldFName = Animation->GetFName();
+
+		//FObjectPropertyBase* ExistingProperty = CastField<FObjectPropertyBase>(Blueprint->ParentClass->FindPropertyByName(NewFName));
+		//const bool bBindWidgetAnim = ExistingProperty && FWidgetBlueprintEditorUtils::IsBindWidgetAnimProperty(ExistingProperty) && ExistingProperty->PropertyClass->IsChildOf(UWidgetAnimation::StaticClass());
+
+		const bool bValidName = !OldFName.IsEqual(NewFName) && !InText.IsEmpty();
+		const bool bCanRename = (bValidName/* || bBindWidgetAnim*/);
+
+		const bool bNewAnimation = ListItem.Pin()->bNewAnimation;
+		if (bCanRename)
+		{
+			const FString NewNameStr = NewFName.ToString();
+			const FString OldNameStr = OldFName.ToString();
+
+			FText TransactionName = bNewAnimation ? LOCTEXT("NewAnimation", "New Animation") : LOCTEXT("RenameAnimation", "Rename Animation");
+			{
+				const FScopedTransaction Transaction(TransactionName);
+				Animation->Modify();
+				Animation->GetMovieScene()->Modify();
+
+				Animation->Rename(*NewNameStr);
+				Animation->GetMovieScene()->Rename(*NewNameStr);
+
+				if (bNewAnimation)
+				{
+					Editor->RefreshAnimationList();
+					ListItem.Pin()->bNewAnimation = false;
+				}
+			}
+		}
+		else if (bNewAnimation)
+		{
+			const FScopedTransaction Transaction(LOCTEXT("NewAnimation", "New Animation"));
+			Editor->RefreshAnimationList();
+			ListItem.Pin()->bNewAnimation = false;
+		}
+	}
+private:
+	TWeakPtr<FWidgetAnimationListItem> ListItem;
+	SLGUIPrefabSequenceEditor* Editor = nullptr;
+	TSharedPtr<SInlineEditableTextBlock> InlineTextBlock;
+};
+
 
 SLGUIPrefabSequenceEditor::~SLGUIPrefabSequenceEditor()
 {
@@ -34,10 +173,11 @@ SLGUIPrefabSequenceEditor::~SLGUIPrefabSequenceEditor()
 
 void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 {
-	SAssignNew(AnimationListView, SListView<ULGUIPrefabSequence*>)
+	SAssignNew(AnimationListView, SWidgetAnimationListView)
 		.SelectionMode(ESelectionMode::Single)
-		.ListItemsSource(&EmptyListItemSource)
+		.ListItemsSource(&Animations)
 		.OnGenerateRow(this, &SLGUIPrefabSequenceEditor::OnGenerateRowForAnimationListView)
+		.OnItemScrolledIntoView(this, &SLGUIPrefabSequenceEditor::OnItemScrolledIntoView)
 		.OnSelectionChanged(this, &SLGUIPrefabSequenceEditor::OnAnimationListViewSelectionChanged)
 		.OnContextMenuOpening(this, &SLGUIPrefabSequenceEditor::OnContextMenuOpening)
 		;
@@ -48,43 +188,97 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 			+SSplitter::Slot()
 			.Value(0.2f)
 			[
-				SNew(SBorder)
-				.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+				SNew(SBox)
+				.IsEnabled_Lambda([=]() {
+					return WeakSequenceComponent.IsValid();
+				})
 				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
-					.Padding( 2 )
-					.AutoHeight()
+					SNew(SBorder)
+					.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
 					[
-						SNew( SHorizontalBox )
-						+ SHorizontalBox::Slot()
-						.Padding(0)
-						.VAlign( VAlign_Center )
-						.AutoWidth()
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.Padding( 2 )
+						.AutoHeight()
 						[
-		#if ENGINE_MAJOR_VERSION >= 5
-							SNew(SEditorHeaderButton)
-		#else
+							SNew(SHorizontalBox)
+							+SHorizontalBox::Slot()
+							[
 							SNew(SButton)
-		#endif
-							.OnClicked(this, &SLGUIPrefabSequenceEditor::OnNewAnimationClicked)
-							.Text(LOCTEXT("NewAnimationButtonText", "+ Animation"))
+							.Text_Lambda([=](){
+								if (WeakSequenceComponent.IsValid())
+								{
+									auto Actor = WeakSequenceComponent->GetOwner();
+									if (Actor)
+									{
+										auto DisplayText = Actor->GetActorLabel() + TEXT(".") + WeakSequenceComponent->GetName();
+										return FText::FromString(DisplayText);
+									}
+								}
+								return LOCTEXT("NullSequenceComponent", "Null");
+							})
+							.ToolTipText(LOCTEXT("ObjectButtonTooltipText", "Actor.Component, click to select target"))
+							.IsEnabled_Lambda([=](){
+								return WeakSequenceComponent.IsValid();
+							})
+							.ButtonStyle( FEditorStyle::Get(), "PropertyEditor.AssetComboStyle" )
+							.ForegroundColor(FEditorStyle::GetColor("PropertyEditor.AssetName.ColorAndOpacity"))
+							.OnClicked_Lambda([=](){
+								if (WeakSequenceComponent.IsValid())
+								{
+									GEditor->SelectNone(true, true);
+									GEditor->SelectActor(WeakSequenceComponent->GetOwner(), true, true);
+									GEditor->SelectComponent(WeakSequenceComponent.Get(), true, true);
+								}
+								return FReply::Handled();
+							})
+							]
+							+SHorizontalBox::Slot()
+							.HAlign(HAlign_Right)
+							.VAlign(VAlign_Center)
+							[
+								PropertyCustomizationHelpers::MakeResetButton(
+									FSimpleDelegate::CreateLambda([=]() {
+										AssignLGUIPrefabSequenceComponent(nullptr);
+										})
+									, LOCTEXT("ClearSequenceComponent", "Click to clear current selected LGUISequenceComponent, so we will not edit it here.")
+											)
+							]
 						]
-						+ SHorizontalBox::Slot()
-						.Padding(2.0f, 0.0f)
-						.VAlign( VAlign_Center )
+						+ SVerticalBox::Slot()
+						.Padding( 2 )
+						.AutoHeight()
 						[
-							SAssignNew(SearchBoxPtr, SSearchBox)
-							.HintText(LOCTEXT("Search Animations", "Search Animations"))
-							.OnTextChanged(this, &SLGUIPrefabSequenceEditor::OnAnimationListViewSearchChanged)
+							SNew( SHorizontalBox )
+							+ SHorizontalBox::Slot()
+							.Padding(0)
+							.VAlign( VAlign_Center )
+							.AutoWidth()
+							[
+			#if ENGINE_MAJOR_VERSION >= 5
+								SNew(SEditorHeaderButton)
+			#else
+								SNew(SButton)
+			#endif
+								.OnClicked(this, &SLGUIPrefabSequenceEditor::OnNewAnimationClicked)
+								.Text(LOCTEXT("NewAnimationButtonText", "+ Animation"))
+							]
+							+ SHorizontalBox::Slot()
+							.Padding(2.0f, 0.0f)
+							.VAlign( VAlign_Center )
+							[
+								SAssignNew(SearchBoxPtr, SSearchBox)
+								.HintText(LOCTEXT("Search Animations", "Search Animations"))
+								.OnTextChanged(this, &SLGUIPrefabSequenceEditor::OnAnimationListViewSearchChanged)
+							]
 						]
-					]
-					+ SVerticalBox::Slot()
-					.FillHeight(1.0f)
-					[
-						SNew(SScrollBorder, AnimationListView.ToSharedRef())
+						+ SVerticalBox::Slot()
+						.FillHeight(1.0f)
 						[
-							AnimationListView.ToSharedRef()
+							SNew(SScrollBorder, AnimationListView.ToSharedRef())
+							[
+								AnimationListView.ToSharedRef()
+							]
 						]
 					]
 				]
@@ -96,16 +290,17 @@ void SLGUIPrefabSequenceEditor::Construct(const FArguments& InArgs)
 			]
 		];
 
-	PrefabSequenceEditor->AssignSequence(GetLGUIPrefabSequence());
 	CreateCommandList();
 
 	OnObjectsReplacedHandle = GEditor->OnObjectsReplaced().AddSP(this, &SLGUIPrefabSequenceEditor::OnObjectsReplaced);
+
+	PrefabSequenceEditor->AssignSequence(GetLGUIPrefabSequence());
 }
 
 void SLGUIPrefabSequenceEditor::AssignLGUIPrefabSequenceComponent(TWeakObjectPtr<ULGUIPrefabSequenceComponent> InSequenceComponent)
 {
 	WeakSequenceComponent = InSequenceComponent;
-	AnimationListView->SetListItemsSource(WeakSequenceComponent->GetSequenceArray());
+	RefreshAnimationList();
 }
 
 ULGUIPrefabSequence* SLGUIPrefabSequenceEditor::GetLGUIPrefabSequence() const
@@ -126,43 +321,90 @@ void SLGUIPrefabSequenceEditor::OnObjectsReplaced(const TMap<UObject*, UObject*>
 	}
 }
 
-TSharedRef<ITableRow> SLGUIPrefabSequenceEditor::OnGenerateRowForAnimationListView(ULGUIPrefabSequence* InListItem, const TSharedRef<STableViewBase>& InOwnerTableView)
+TSharedRef<ITableRow> SLGUIPrefabSequenceEditor::OnGenerateRowForAnimationListView(TSharedPtr<FWidgetAnimationListItem> InListItem, const TSharedRef<STableViewBase>& InOwnerTableView)
 {
-	return SNew(STableRow<ULGUIPrefabSequence*>, InOwnerTableView)
-		[
-			SNew(STextBlock)
-			.Text(FText::FromName(InListItem->GetFName()))
-		]
-	;
+	return SNew(SWidgetAnimationListItem, InOwnerTableView, this, InListItem);
 }
 
-void SLGUIPrefabSequenceEditor::OnAnimationListViewSelectionChanged(ULGUIPrefabSequence* InListItem, ESelectInfo::Type InSelectInfo)
+void SLGUIPrefabSequenceEditor::OnAnimationListViewSelectionChanged(TSharedPtr<FWidgetAnimationListItem> InListItem, ESelectInfo::Type InSelectInfo)
 {
-	auto& SequenceArray = WeakSequenceComponent->GetSequenceArray();
-	for (int i = 0; i < SequenceArray.Num(); i++)
+	CurrentSelectedAnimationIndex = -1;
+	if (InListItem.IsValid())
 	{
-		if (SequenceArray[i] == InListItem)
+		auto& SequenceArray = WeakSequenceComponent->GetSequenceArray();
+		for (int i = 0; i < SequenceArray.Num(); i++)
 		{
-			CurrentSelectedAnimationIndex = i;
-			break;
+			if (SequenceArray[i] == InListItem->Animation)
+			{
+				CurrentSelectedAnimationIndex = i;
+				break;
+			}
 		}
 	}
 	PrefabSequenceEditor->AssignSequence(GetLGUIPrefabSequence());
 }
 
-FReply SLGUIPrefabSequenceEditor::OnNewAnimationClicked()
+void SLGUIPrefabSequenceEditor::RefreshAnimationList()
 {
 	if (WeakSequenceComponent.IsValid())
 	{
-		WeakSequenceComponent->AddNewAnimation();
-		AnimationListView->RebuildList();
+		Animations.Reset();
+		auto& SequenceArray = WeakSequenceComponent->GetSequenceArray();
+		for (auto& Item : SequenceArray)
+		{
+			Animations.Add(MakeShareable(new FWidgetAnimationListItem(Item)));
+		}
+		AnimationListView->RequestListRefresh();
 	}
-	return FReply::Handled();
 }
 
 void SLGUIPrefabSequenceEditor::OnAnimationListViewSearchChanged(const FText& InSearchText)
 {
+	if (WeakSequenceComponent.IsValid())
+	{
+		auto& SequenceArray = WeakSequenceComponent->GetSequenceArray();
+		if (!InSearchText.IsEmpty())
+		{
+			struct Local
+			{
+				static void UpdateFilterStrings(ULGUIPrefabSequence* InAnimation, OUT TArray< FString >& OutFilterStrings)
+				{
+					OutFilterStrings.Add(InAnimation->GetName());
+				}
+			};
 
+			TTextFilter<ULGUIPrefabSequence*> TextFilter(TTextFilter<ULGUIPrefabSequence*>::FItemToStringArray::CreateStatic(&Local::UpdateFilterStrings));
+
+			TextFilter.SetRawFilterText(InSearchText);
+			SearchBoxPtr->SetError(TextFilter.GetFilterErrorText());
+
+			Animations.Reset();
+
+			for (ULGUIPrefabSequence* Animation : SequenceArray)
+			{
+				if (TextFilter.PassesFilter(Animation))
+				{
+					Animations.Add(MakeShareable(new FWidgetAnimationListItem(Animation)));
+				}
+			}
+
+			AnimationListView->RequestListRefresh();
+		}
+		else
+		{
+			SearchBoxPtr->SetError(FText::GetEmpty());
+			RefreshAnimationList();
+		}
+	}
+}
+
+void SLGUIPrefabSequenceEditor::OnItemScrolledIntoView(TSharedPtr<FWidgetAnimationListItem> InListItem, const TSharedPtr<ITableRow>& InWidget) const
+{
+	if (InListItem->bRenameRequestPending)
+	{
+		StaticCastSharedPtr<SWidgetAnimationListItem>(InWidget)->BeginRename();
+		InListItem->bRenameRequestPending = false;
+	}
 }
 
 TSharedPtr<SWidget> SLGUIPrefabSequenceEditor::OnContextMenuOpening()const
@@ -202,29 +444,66 @@ void SLGUIPrefabSequenceEditor::CreateCommandList()
 	);
 }
 
+FReply SLGUIPrefabSequenceEditor::OnNewAnimationClicked()
+{
+	if (WeakSequenceComponent.IsValid())
+	{
+		auto Sequence = WeakSequenceComponent->AddNewAnimation();
+		bool bRequestRename = true;
+		bool bNewAnimation = true;
+		auto ListItem = MakeShareable(new FWidgetAnimationListItem(Sequence, bRequestRename, bNewAnimation));
+		Animations.Add(ListItem);
+		AnimationListView->RequestScrollIntoView(ListItem);
+	}
+	return FReply::Handled();
+}
+
 void SLGUIPrefabSequenceEditor::OnDuplicateAnimation()
 {
-	GEditor->BeginTransaction(LOCTEXT("LGUISequence_DuplicateAnimation", "LGUISequence Duplicate Animation"));
-	WeakSequenceComponent->Modify();
-	WeakSequenceComponent->DuplicateAnimationByIndex(CurrentSelectedAnimationIndex);
-	GEditor->EndTransaction();
+	if (WeakSequenceComponent.IsValid())
+	{
+		GEditor->BeginTransaction(LOCTEXT("LGUISequence_DuplicateAnimation", "LGUISequence Duplicate Animation"));
+		WeakSequenceComponent->Modify();
+		auto Sequence = WeakSequenceComponent->DuplicateAnimationByIndex(CurrentSelectedAnimationIndex);
+		GEditor->EndTransaction();
 
-	AnimationListView->RebuildList();
+		if (Sequence)
+		{
+			bool bRequestRename = true;
+			bool bNewAnimation = true;
+			auto ListItem = MakeShareable(new FWidgetAnimationListItem(Sequence, bRequestRename, bNewAnimation));
+			Animations.Insert(ListItem, CurrentSelectedAnimationIndex + 1);
+			AnimationListView->RequestScrollIntoView(ListItem);
+		}
+	}
 }
 void SLGUIPrefabSequenceEditor::OnDeleteAnimation()
 {
-	GEditor->BeginTransaction(LOCTEXT("LGUISequence_DeleteAnimation", "LGUISequence Delete Animation"));
-	WeakSequenceComponent->Modify();
-	WeakSequenceComponent->DeleteAnimationByIndex(CurrentSelectedAnimationIndex);
-	GEditor->EndTransaction();
+	if (WeakSequenceComponent.IsValid())
+	{
+		GEditor->BeginTransaction(LOCTEXT("LGUISequence_DeleteAnimation", "LGUISequence Delete Animation"));
+		WeakSequenceComponent->Modify();
+		bool bDeleted = WeakSequenceComponent->DeleteAnimationByIndex(CurrentSelectedAnimationIndex);
+		GEditor->EndTransaction();
 
-	AnimationListView->RebuildList();
-	CurrentSelectedAnimationIndex = -1;
-	PrefabSequenceEditor->AssignSequence(nullptr);
+		if (bDeleted)
+		{
+			Animations.RemoveAt(CurrentSelectedAnimationIndex);
+			AnimationListView->RebuildList();
+			CurrentSelectedAnimationIndex = -1;
+			PrefabSequenceEditor->AssignSequence(nullptr);
+		}
+	}
 }
 void SLGUIPrefabSequenceEditor::OnRenameAnimation()
 {
+	TArray< TSharedPtr<FWidgetAnimationListItem> > SelectedAnimations = AnimationListView->GetSelectedItems();
+	check(SelectedAnimations.Num() == 1);
 
+	TSharedPtr<FWidgetAnimationListItem> SelectedAnimation = SelectedAnimations[0];
+	SelectedAnimation->bRenameRequestPending = true;
+
+	AnimationListView->RequestScrollIntoView(SelectedAnimation);
 }
 
 #undef LOCTEXT_NAMESPACE

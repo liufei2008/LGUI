@@ -17,6 +17,7 @@ ULGUILifeCycleBehaviour::ULGUILifeCycleBehaviour()
 	bCanExecuteUpdate = true;
 	bIsAddedToUpdate = false;
 	bPrevIsRootComponentVisible = false;
+	bIsSerializedFromLGUIPrefab = false;
 }
 
 void ULGUILifeCycleBehaviour::BeginPlay()

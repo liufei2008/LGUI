@@ -8,7 +8,7 @@
 #include "LGUIPrefabSequence.generated.h"
 
 /**
- * Movie scene animation embedded within an actor.
+ * Movie scene animation embedded within LGUI prefab.
  */
 UCLASS(BlueprintType, DefaultToInstanced)
 class LGUI_API ULGUIPrefabSequence
@@ -31,7 +31,6 @@ public:
 	virtual UObject* CreateDirectorInstance(IMovieScenePlayer& Player, FMovieSceneSequenceID SequenceID) override;
 
 #if WITH_EDITOR
-	virtual FText GetDisplayName() const override;
 	virtual ETrackSupport IsTrackSupported(TSubclassOf<class UMovieSceneTrack> InTrackClass) const override;
 #endif
 

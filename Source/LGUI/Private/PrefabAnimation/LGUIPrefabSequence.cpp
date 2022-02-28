@@ -72,6 +72,31 @@ UBlueprint* ULGUIPrefabSequence::GetParentBlueprint() const
 
 void ULGUIPrefabSequence::PostInitProperties()
 {
+#if WITH_EDITOR && WITH_EDITORONLY_DATA
+
+	// We do not run the default initialization for actor sequences that are CDOs, or that are going to be loaded (since they will have already been initialized in that case)
+	EObjectFlags ExcludeFlags = RF_ClassDefaultObject | RF_NeedLoad | RF_NeedPostLoad | RF_NeedPostLoadSubobjects | RF_WasLoaded;
+
+	UActorComponent* OwnerComponent = Cast<UActorComponent>(GetOuter());
+	if (!bHasBeenInitialized && !HasAnyFlags(ExcludeFlags) && OwnerComponent && !OwnerComponent->HasAnyFlags(ExcludeFlags))
+	{
+		const bool bFrameLocked = CVarDefaultEvaluationType.GetValueOnGameThread() != 0;
+
+		MovieScene->SetEvaluationType(bFrameLocked ? EMovieSceneEvaluationType::FrameLocked : EMovieSceneEvaluationType::WithSubFrames);
+
+		FFrameRate TickResolution(60000, 1);
+		TryParseString(TickResolution, *CVarDefaultTickResolution.GetValueOnGameThread());
+		MovieScene->SetTickResolutionDirectly(TickResolution);
+
+		FFrameRate DisplayRate(30, 1);
+		TryParseString(DisplayRate, *CVarDefaultDisplayRate.GetValueOnGameThread());
+		MovieScene->SetDisplayRate(DisplayRate);
+
+		OnInitializeSequenceEvent.Broadcast(this);
+		bHasBeenInitialized = true;
+	}
+#endif
+
 	Super::PostInitProperties();
 }
 
@@ -144,31 +169,6 @@ UObject* ULGUIPrefabSequence::CreateDirectorInstance(IMovieScenePlayer& Player, 
 }
 
 #if WITH_EDITOR
-FText ULGUIPrefabSequence::GetDisplayName() const
-{
-	ULGUIPrefabSequenceComponent* Component = GetTypedOuter<ULGUIPrefabSequenceComponent>();
-
-	if (Component)
-	{
-		FString OwnerName;
-		
-		if (UBlueprint* Blueprint = GetParentBlueprint())
-		{
-			OwnerName = Blueprint->GetName();
-		}
-		else if(AActor* Owner = Component->GetOwner())
-		{
-			OwnerName = Owner->GetActorLabel();
-		}
-
-		return OwnerName.IsEmpty()
-			? FText::FromName(Component->GetFName())
-			: FText::Format(NSLOCTEXT("LGUIPrefabSequence", "DisplayName", "{0} ({1})"), FText::FromName(Component->GetFName()), FText::FromString(OwnerName));
-	}
-
-	return UMovieSceneSequence::GetDisplayName();
-}
-
 
 ETrackSupport ULGUIPrefabSequence::IsTrackSupported(TSubclassOf<class UMovieSceneTrack> InTrackClass) const
 {
