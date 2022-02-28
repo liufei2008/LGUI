@@ -25,7 +25,7 @@ void ULGUIPrefabHelperObject::BeginDestroy()
 	ClearLoadedPrefab();
 	Super::BeginDestroy();
 #if WITH_EDITORONLY_DATA
-	bCanNotifyDetachment = false;
+	bCanNotifyAttachment = false;
 	if (NewVersionPrefabNotificationArray.Num() > 0)
 	{
 		OnNewVersionDismissAllClicked();
@@ -43,7 +43,7 @@ void ULGUIPrefabHelperObject::MarkAsManagerObject()
 			GEditor->OnLevelActorAttached().AddUObject(Actor.Get(), &ULGUIPrefabHelperObject::OnLevelActorAttached);
 			GEditor->OnLevelActorDetached().AddUObject(Actor.Get(), &ULGUIPrefabHelperObject::OnLevelActorDetached);
 			GEditor->OnLevelActorDeleted().AddUObject(Actor.Get(), &ULGUIPrefabHelperObject::OnLevelActorDeleted);
-			Actor->bCanNotifyDetachment = true;
+			Actor->bCanNotifyAttachment = true;
 		}
 		}, 1);
 
@@ -369,7 +369,7 @@ void ULGUIPrefabHelperObject::MarkOverrideParameterFromParentPrefab(UObject* InO
 bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, AActor* InSubPrefabRootActor)
 {
 	CleanupInvalidSubPrefab();
-	bCanNotifyDetachment = false;
+	bCanNotifyAttachment = false;
 	bool AnythingChange = false;
 
 	auto OriginObjectContainsInSourcePrefabByGuid = [=](UObject* InObject, FLGUISubPrefabData& SubPrefabData) {
@@ -475,7 +475,7 @@ bool ULGUIPrefabHelperObject::RefreshOnSubPrefabDirty(ULGUIPrefab* InSubPrefab, 
 	}
 	ULGUIEditorManagerObject::RefreshAllUI();
 	CheckPrefabHelperActor(InSubPrefabRootActor);
-	bCanNotifyDetachment = true;
+	bCanNotifyAttachment = true;
 	return AnythingChange;
 }
 
@@ -574,7 +574,7 @@ void ULGUIPrefabHelperObject::TryCollectPropertyToOverride(UObject* InObject, FP
 
 void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* AttachTo)
 {
-	if (!bCanNotifyDetachment)return;
+	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
 	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
 
@@ -604,7 +604,7 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 }
 void ULGUIPrefabHelperObject::OnLevelActorDetached(AActor* Actor, const AActor* DetachFrom)
 {
-	if (!bCanNotifyDetachment)return;
+	if (!bCanNotifyAttachment)return;
 	if (Actor->GetWorld() != this->GetPrefabWorld())return;
 	if (ULGUIEditorManagerObject::IsPrefabSystemProcessingActor(Actor))return;
 
@@ -650,7 +650,7 @@ void ULGUIPrefabHelperObject::OnLevelActorDeleted(AActor* Actor)
 
 void ULGUIPrefabHelperObject::CheckAttachment()
 {
-	if (!bCanNotifyDetachment)return;
+	if (!bCanNotifyAttachment)return;
 	if (!AttachmentActor.Actor.IsValid())return;
 	enum class EAttachementError
 	{

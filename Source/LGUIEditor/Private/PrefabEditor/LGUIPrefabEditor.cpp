@@ -121,7 +121,7 @@ bool FLGUIPrefabEditor::GetSelectedObjectsBounds(FBoxSphereBounds& OutResult)
 		}
 	}
 
-	FBoxSphereBounds Bounds;
+	FBoxSphereBounds Bounds = FBoxSphereBounds(EForceInit::ForceInitToZero);
 	bool IsFirstBounds = true;
 	for (auto& Actor : SelectedActors)
 	{
@@ -336,6 +336,21 @@ void FLGUIPrefabEditor::InitPrefabEditor(const EToolkitMode::Type Mode, const TS
 	InitAssetEditor(Mode, InitToolkitHost, PrefabEditorAppName, StandaloneDefaultLayout, true, true, PrefabBeingEdited);
 }
 
+void FLGUIPrefabEditor::GetViewInitialLocationAndRotation(FVector& OutLocation, FRotator& OutRotation)
+{
+	if (PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor == FVector::ZeroVector && PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor == FRotator::ZeroRotator)
+	{
+		auto SceneBounds = this->GetAllObjectsBounds();
+		OutLocation = FVector(-SceneBounds.SphereRadius, SceneBounds.Origin.Y, SceneBounds.Origin.Z);
+		OutRotation = FRotator::ZeroRotator;
+	}
+	else
+	{
+		OutLocation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor;
+		OutRotation = PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor;
+	}
+}
+
 void FLGUIPrefabEditor::DeleteActors(const TArray<TWeakObjectPtr<AActor>>& InSelectedActorArray)
 {
 	for (auto Item : InSelectedActorArray)
@@ -402,6 +417,11 @@ void FLGUIPrefabEditor::SaveAsset_Execute()
 {
 	if (CheckBeforeSaveAsset())
 	{
+		//save view location and rotation
+		auto ViewTransform = ViewportPtr->GetViewportClient()->GetViewTransform();
+		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor = ViewTransform.GetLocation();
+		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor = ViewTransform.GetRotation();
+
 		//refresh parameter, remove invalid
 		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
 		{
@@ -419,6 +439,11 @@ void FLGUIPrefabEditor::OnApply()
 {
 	if (CheckBeforeSaveAsset())
 	{
+		//save view location and rotation
+		auto ViewTransform = ViewportPtr->GetViewportClient()->GetViewTransform();
+		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewLocationForPrefabEditor = ViewTransform.GetLocation();
+		PrefabBeingEdited->PrefabDataForPrefabEditor.ViewRotationForPrefabEditor = ViewTransform.GetRotation();
+
 		//refresh parameter, remove invalid
 		for (auto& KeyValue : PrefabHelperObject->SubPrefabMap)
 		{
@@ -737,6 +762,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					return FReply::Unhandled();
 				}
 
+				PrefabHelperObject->SetCanNotifyAttachment(false);
 				for (auto& PrefabAsset : PrefabsToLoad)
 				{
 					TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
@@ -749,6 +775,7 @@ FReply FLGUIPrefabEditor::TryHandleAssetDragDropOperation(const FDragDropEvent& 
 					PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedSubPrefabRootActor, SubPrefabMapGuidToObject, {});
 				}
 				OnApply();
+				PrefabHelperObject->SetCanNotifyAttachment(true);
 
 				if (OutlinerPtr.IsValid())
 				{

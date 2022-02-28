@@ -79,9 +79,11 @@ FLGUIPrefabEditorViewportClient::FLGUIPrefabEditorViewportClient(FLGUIPrefabPrev
 		PreviewWorld->bAllowAudioPlayback = false;
 	}
 
-	auto SceneBounds = InPrefabEditorPtr.Pin()->GetAllObjectsBounds();
-	SetViewLocation(FVector(-SceneBounds.SphereRadius, SceneBounds.Origin.Y, SceneBounds.Origin.Z));//@todo: seems not working?
-	SetViewRotation(FRotator::ZeroRotator);
+	FVector InitialViewLocation;
+	FRotator InitialViewRotation;
+	InPrefabEditorPtr.Pin()->GetViewInitialLocationAndRotation(InitialViewLocation, InitialViewRotation);
+	SetViewLocation(InitialViewLocation);
+	SetViewRotation(InitialViewRotation);
 }
 
 FLGUIPrefabEditorViewportClient::~FLGUIPrefabEditorViewportClient()
@@ -111,7 +113,7 @@ bool FLGUIPrefabEditorViewportClient::InputKey(FViewport* InViewport, int32 Cont
 
 	if (Key == EKeys::F && Event == IE_Pressed)
 	{
-		//FocusViewportToTargets();
+		FocusViewportToTargets();
 	}
 
 	return Res;
@@ -335,15 +337,16 @@ bool FLGUIPrefabEditorViewportClient::FocusViewportToTargets()
 		return false;
 	}
 
-	FBoxSphereBounds Bounds;
-	if (PrefabEditorPtr.Pin()->GetSelectedObjectsBounds(Bounds))
+	FBoxSphereBounds Bounds = FBoxSphereBounds(EForceInit::ForceInitToZero);
+	if (!PrefabEditorPtr.Pin()->GetSelectedObjectsBounds(Bounds))
 	{
-		auto TargetLocation = Bounds.GetSphere().Center;
-		this->CenterViewportAtPoint(TargetLocation);
-		auto ViewDirection = this->GetViewRotation().RotateVector(FVector(1, 0, 0));
-		auto Distance = Bounds.GetSphere().W;
-		this->SetViewLocation(TargetLocation - ViewDirection * Distance * 1.5f);
+		Bounds = PrefabEditorPtr.Pin()->GetAllObjectsBounds();
 	}
+	auto TargetLocation = Bounds.GetSphere().Center;
+	this->CenterViewportAtPoint(TargetLocation);
+	auto ViewDirection = this->GetViewRotation().RotateVector(FVector(1, 0, 0));
+	auto Distance = Bounds.GetSphere().W;
+	this->SetViewLocation(TargetLocation - ViewDirection * Distance * 1.5f);
 
 	return false;
 }
