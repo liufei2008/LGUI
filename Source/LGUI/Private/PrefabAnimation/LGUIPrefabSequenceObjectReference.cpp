@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright 2019-2022 LexLiu. All Rights Reserved.
 
 #include "PrefabAnimation/LGUIPrefabSequenceObjectReference.h"
 #include "Engine/SCS_Node.h"
