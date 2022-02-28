@@ -26,9 +26,16 @@ void ULGUILifeCycleBehaviour::BeginPlay()
 	ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(this);
 	if (GetRootSceneComponent())
 	{
-		bPrevIsRootComponentVisible = RootComp->GetVisibleFlag();
+		if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
+		{
+			//nothing for UI
+		}
+		else
+		{
+			bPrevIsRootComponentVisible = RootComp->GetVisibleFlag();
+			ComponentRenderStateDirtyDelegateHandle = UActorComponent::MarkRenderStateDirtyEvent.AddUObject(this, &ULGUILifeCycleBehaviour::OnComponentRenderStateDirty);
+		}
 	}
-	ComponentRenderStateDirtyDelegateHandle = UActorComponent::MarkRenderStateDirtyEvent.AddUObject(this, &ULGUILifeCycleBehaviour::OnComponentRenderStateDirty);
 }
 void ULGUILifeCycleBehaviour::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -137,11 +144,33 @@ void ULGUILifeCycleBehaviour::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
+bool ULGUILifeCycleBehaviour::IsAllowedToCallAwake()const
+{
+	if (GetRootSceneComponent())
+	{
+		if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
+		{
+			return RootUIComp->GetIsUIActiveInHierarchy();
+		}
+		else
+		{
+			return true;
+		}
+	}
+	return true;
+}
 bool ULGUILifeCycleBehaviour::GetIsActiveAndEnable()const
 {
 	if (GetRootSceneComponent())
 	{
-		return RootComp->GetVisibleFlag();
+		if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
+		{
+			return RootUIComp->GetIsUIActiveInHierarchy() && this->GetEnable();
+		}
+		else
+		{
+			return RootComp->GetVisibleFlag();
+		}
 	}
 	else
 	{
@@ -153,7 +182,14 @@ bool ULGUILifeCycleBehaviour::IsAllowedToCallOnEnable()const
 {
 	if (GetRootSceneComponent())
 	{
-		return RootComp->GetVisibleFlag();
+		if (auto RootUIComp = Cast<UUIItem>(RootComp.Get()))
+		{
+			return RootUIComp->GetIsUIActiveInHierarchy();
+		}
+		else
+		{
+			return RootComp->GetVisibleFlag();
+		}
 	}
 	return true;
 }

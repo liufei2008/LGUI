@@ -49,8 +49,8 @@ protected:
 	uint8 bIsSerializedFromLGUIPrefab : 1;
 protected:
 	friend class ALGUIManagerActor;
-	mutable TWeakObjectPtr<USceneComponent> RootComp = nullptr;
-	virtual bool IsAllowedToCallAwake()const { return true; }
+	UPROPERTY(Transient) mutable TWeakObjectPtr<USceneComponent> RootComp = nullptr;
+	virtual bool IsAllowedToCallAwake()const;
 	virtual bool IsAllowedToCallOnEnable()const;
 	virtual void SetActiveStateForEnableAndDisable(bool activeOrInactive);
 	/**

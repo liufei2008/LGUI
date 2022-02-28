@@ -20,19 +20,10 @@ public:
 	ULGUILifeCycleUIBehaviour();
 protected:
 	friend class UUIItem;
-	virtual void BeginPlay() override;
 
 	virtual void OnRegister()override;
 	virtual void OnUnregister()override;
-
-protected:
-	virtual bool IsAllowedToCallOnEnable()const override;
-	virtual bool IsAllowedToCallAwake()const override;
 public:
-	/**
-	 * return true when this behaviour is active in hierarchy and enable. "active in hierarchy" is related to UIItem's IsUIActive.
-	 */
-	virtual bool GetIsActiveAndEnable() const override;
 
 	UE_DEPRECATED(4.24, "GetRootComponent not valid anymore, use GetRootUIComponent instead")
 	UFUNCTION(BlueprintCallable, Category = "LGUILifeCycleBehaviour", meta = (DeprecatedFunction, DeprecationMessage = "GetRootComponent not valid anymore, use GetRootUIComponent instead"))
