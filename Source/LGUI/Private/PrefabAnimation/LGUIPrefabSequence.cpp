@@ -150,7 +150,7 @@ void ULGUIPrefabSequence::UnbindPossessableObjects(const FGuid& ObjectId)
 	ObjectReferences.RemoveBinding(ObjectId);
 }
 
-UObject* ULGUIPrefabSequence::CreateDirectorInstance(IMovieScenePlayer& Player, FMovieSceneSequenceID SequenceID)
+UObject* ULGUIPrefabSequence::CreateDirectorInstance(IMovieScenePlayer& Player)
 {
 	AActor* Actor = CastChecked<AActor>(Player.GetPlaybackContext(), ECastCheckedType::NullAllowed);
 	if (!Actor)
