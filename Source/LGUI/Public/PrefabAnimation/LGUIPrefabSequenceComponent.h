@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
+#include "Core/LGUILifeCycleBehaviour.h"
 #include "MovieSceneSequencePlayer.h"
 #include "LGUIPrefabSequenceComponent.generated.h"
 
@@ -10,18 +11,17 @@
 class ULGUIPrefabSequence;
 class ULGUIPrefabSequencePlayer;
 
-
 /**
- * Movie scene animation embedded within an actor.
+ * Movie scene animation embedded within LGUIPrefab.
  */
-UCLASS(Blueprintable, ClassGroup=Sequence, hidecategories=(Collision, Cooking, Activation), meta=(BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup=LGUI, hidecategories=(Collision, Cooking, Activation), meta=(BlueprintSpawnableComponent))
 class LGUI_API ULGUIPrefabSequenceComponent
-	: public UActorComponent
+	: public ULGUILifeCycleBehaviour
 {
 public:
 	GENERATED_BODY()
 
-	ULGUIPrefabSequenceComponent(const FObjectInitializer& Init);
+	ULGUIPrefabSequenceComponent();
 
 	ULGUIPrefabSequence* GetCurrentSequence() const
 	{
@@ -39,25 +39,40 @@ public:
 		ULGUIPrefabSequence* GetSequenceByIndex(int32 InIndex) const;
 	UFUNCTION(BlueprintCallable, Category = LGUI)
 		const TArray<ULGUIPrefabSequence*>& GetSequenceArray() const { return SequenceArray; }
-	void AddNewAnimation();
-	void DeleteAnimationByIndex(int32 InIndex);
-	void DuplicateAnimationByIndex(int32 InIndex);
+	/** Init SequencePlayer and play animation with CurrentSequenceIndex */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void Play();
+	/** Find animation in SequenceArray with InIndex, then init SequencePlayer and play animation */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void PlaySequenceByIndex(int32 InIndex);
+	/** Find animation in SequenceArray with InName, then init SequencePlayer and play animation */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void PlaySequenceByName(FName InName);
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		int32 GetCurrentSequenceIndex()const { return CurrentSequenceIndex; }
+	/** Set CurrentSequenceIndex, then call Play to play animation with the index */
+	UFUNCTION(BlueprintCallable, Category = LGUI)
+		void SetCurrentSequenceIndex(int32 InIndex);
+
+	ULGUIPrefabSequence* AddNewAnimation();
+	bool DeleteAnimationByIndex(int32 InIndex);
+	ULGUIPrefabSequence* DuplicateAnimationByIndex(int32 InIndex);
 	
-	virtual void PostInitProperties() override;
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
+	virtual void Awake()override;
+	virtual void Start() override;
+	virtual void OnDestroy() override;
+	virtual void Update(float DeltaTime) override;
 
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Playback", meta=(ShowOnlyInnerProperties))
 	FMovieSceneSequencePlaybackSettings PlaybackSettings;
 
-	UPROPERTY(EditAnywhere, Instanced, Category= LGUI)
+	UPROPERTY(VisibleAnywhere, Instanced, Category= Playback)
 		TArray<ULGUIPrefabSequence*> SequenceArray;
-	UPROPERTY(EditAnywhere, Category = LGUI)
+	UPROPERTY(EditAnywhere, Category = Playback)
 		int32 CurrentSequenceIndex = 0;
 
-	UPROPERTY(transient, BlueprintReadOnly, Category= LGUI)
+	UPROPERTY(transient, BlueprintReadOnly, Category= Playback)
 		ULGUIPrefabSequencePlayer* SequencePlayer;
 };

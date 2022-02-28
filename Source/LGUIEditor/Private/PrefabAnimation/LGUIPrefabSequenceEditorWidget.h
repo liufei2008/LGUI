@@ -29,16 +29,3 @@ private:
 	TWeakPtr<SLGUIPrefabSequenceEditorWidgetImpl> Impl;
 };
 
-
-struct FLGUIPrefabSequenceEditorSummoner
-	: public FWorkflowTabFactory
-{
-	FLGUIPrefabSequenceEditorSummoner(TSharedPtr<FBlueprintEditor> BlueprintEditor);
-
-	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
-
-protected:
-
-	TWeakObjectPtr<ULGUIPrefabSequenceComponent> WeakComponent;
-	TWeakPtr<FBlueprintEditor> WeakBlueprintEditor;
-};

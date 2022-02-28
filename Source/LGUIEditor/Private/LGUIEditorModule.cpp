@@ -75,8 +75,6 @@
 
 #include "PrefabAnimation/LGUIPrefabSequenceComponentCustomization.h"
 #include "PrefabAnimation/MovieSceneSequenceEditor_LGUIPrefabSequence.h"
-#include "PrefabAnimation/LGUIPrefabSequenceEditorStyle.h"
-#include "PrefabAnimation/LGUIPrefabSequenceEditorTabSummoner.h"
 #include "BlueprintEditorModule.h"
 #include "BlueprintEditorTabs.h"
 #include "Framework/Docking/LayoutExtender.h"
@@ -84,6 +82,7 @@
 #include "SequencerSettings.h"
 #include "ISequencerModule.h"
 #include "PrefabAnimation/LGUIPrefabSequenceEditor.h"
+#include "MovieSceneToolsProjectSettings.h"
 
 const FName FLGUIEditorModule::LGUIAtlasViewerName(TEXT("LGUIAtlasViewerName"));
 const FName FLGUIEditorModule::LGUIPrefabSequenceTabName(TEXT("LGUIPrefabSequenceTabName"));
@@ -98,7 +97,6 @@ void FLGUIEditorModule::StartupModule()
 	FLGUIEditorStyle::Initialize();
 	FLGUIEditorStyle::ReloadTextures();
 
-	FLGUIPrefabSequenceEditorStyle::Get();
 	OnInitializeSequenceHandle = ULGUIPrefabSequence::OnInitializeSequence().AddStatic(FLGUIEditorModule::OnInitializeSequence);
 
 	ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
@@ -371,13 +369,13 @@ void FLGUIEditorModule::StartupModule()
 
 void FLGUIEditorModule::OnInitializeSequence(ULGUIPrefabSequence* Sequence)
 {
-	//auto* ProjectSettings = GetDefault<UMovieSceneToolsProjectSettings>();
-	//UMovieScene* MovieScene = Sequence->GetMovieScene();
+	auto* ProjectSettings = GetDefault<UMovieSceneToolsProjectSettings>();
+	UMovieScene* MovieScene = Sequence->GetMovieScene();
 
-	//FFrameNumber StartFrame = (ProjectSettings->DefaultStartTime * MovieScene->GetTickResolution()).RoundToFrame();
-	//int32        Duration = (ProjectSettings->DefaultDuration * MovieScene->GetTickResolution()).RoundToFrame().Value;
+	FFrameNumber StartFrame = (ProjectSettings->DefaultStartTime * MovieScene->GetTickResolution()).RoundToFrame();
+	int32        Duration = (ProjectSettings->DefaultDuration * MovieScene->GetTickResolution()).RoundToFrame().Value;
 
-	//MovieScene->SetPlaybackRange(StartFrame, Duration);
+	MovieScene->SetPlaybackRange(StartFrame, Duration);
 }
 
 void FLGUIEditorModule::ShutdownModule()

@@ -1145,6 +1145,7 @@ void ALGUIManagerActor::AddLGUILifeCycleBehaviourForLifecycleEvent(ULGUILifeCycl
 			{
 				if (auto ArrayPtr = Instance->LGUILifeCycleBehaviours_PrefabSystemProcessing.Find(RootActorDataPtr->Key))
 				{
+					InComp->bIsSerializedFromLGUIPrefab = true;
 					auto& CompArray = ArrayPtr->LGUILifeCycleBehaviourArray;
 					auto FoundIndex = CompArray.IndexOfByPredicate([InComp](const TTuple<TWeakObjectPtr<ULGUILifeCycleBehaviour>, int32>& Item) {
 						return InComp == Item.Key;
