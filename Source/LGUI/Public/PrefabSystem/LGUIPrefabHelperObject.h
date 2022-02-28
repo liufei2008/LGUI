@@ -88,11 +88,12 @@ public:
 	 * @return	true if anything changed
 	 */
 	bool CleanupInvalidSubPrefab();
+	void SetCanNotifyAttachment(bool value) { bCanNotifyAttachment = value; }
 private:
 	bool bIsMarkedAsManagerObject = false;
 	bool bAnythingDirty = false;
 	bool bCanCollectProperty = true;
-	bool bCanNotifyDetachment = false;
+	bool bCanNotifyAttachment = false;
 
 	void OnObjectPropertyChanged(UObject* InObject, struct FPropertyChangedEvent& InPropertyChangedEvent);
 	void OnPreObjectPropertyChanged(UObject* InObject, const class FEditPropertyChain& InEditPropertyChain);

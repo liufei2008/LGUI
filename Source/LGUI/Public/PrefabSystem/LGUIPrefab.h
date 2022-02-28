@@ -5,10 +5,6 @@
 #include "LGUIPrefab.generated.h"
 
 /**
- * Current prefab system version
- */
-#define LGUI_CURRENT_PREFAB_VERSION 4
-/**
  * Version 2: Support ActorGuid (start from 4.26)
  * Version 3: Use UE's build-in FArchive to serialize/deserialize. 
  *		Compare to version2: 1. About 2~3 times faster when deserialize.
@@ -20,6 +16,11 @@
 #define LGUI_PREFAB_VERSION_BuildinFArchive 3
 /** Version 4: Support nested default sub object. */
 #define LGUI_PREFAB_VERSION_NestedDefaultSubObject 4
+
+/**
+ * Current prefab system version
+ */
+#define LGUI_CURRENT_PREFAB_VERSION LGUI_PREFAB_VERSION_NestedDefaultSubObject
 
 class ULGUIPrefab;
 class ULGUIPrefabHelperObject;
@@ -61,6 +62,17 @@ public:
 	 * @return true if anything changed.
 	 */
 	bool CheckParameters();
+};
+
+USTRUCT(NotBlueprintType)
+struct FLGUIPrefabDataForPrefabEditor
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+		FVector ViewLocationForPrefabEditor = FVector::ZeroVector;
+	UPROPERTY()
+		FRotator ViewRotationForPrefabEditor = FRotator::ZeroRotator;
 };
 
 //@todo: prefab variant
@@ -134,6 +146,8 @@ public:
 		class UThumbnailInfo* ThumbnailInfo;
 	UPROPERTY(Transient)
 		bool ThumbnailDirty = false;
+	UPROPERTY()
+		FLGUIPrefabDataForPrefabEditor PrefabDataForPrefabEditor;
 private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "LGUI")
 		ULGUIPrefabHelperObject* PrefabHelperObject = nullptr;

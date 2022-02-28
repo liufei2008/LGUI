@@ -67,13 +67,16 @@ void ALGUIPrefabHelperActor::LoadPrefab(USceneComponent* InParent)
 {
 	if (this->GetWorld() != nullptr && this->GetWorld()->IsGameWorld())return;
 	if (IsValid(LoadedRootActor))return;
+	auto PrefabHelperObject = ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject;
+	PrefabHelperObject->SetCanNotifyAttachment(false);
 	TMap<FGuid, UObject*> SubPrefabMapGuidToObject;
 	TMap<AActor*, FLGUISubPrefabData> SubSubPrefabMap;
 	LoadedRootActor = PrefabAsset->LoadPrefabWithExistingObjects(this->GetWorld()
 		, InParent
 		, SubPrefabMapGuidToObject, SubSubPrefabMap
 	);
-	ALGUIPrefabManagerActor::GetPrefabManagerActor(this->GetLevel())->PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedRootActor, SubPrefabMapGuidToObject, {});
+	PrefabHelperObject->MakePrefabAsSubPrefab(PrefabAsset, LoadedRootActor, SubPrefabMapGuidToObject, {});
+	PrefabHelperObject->SetCanNotifyAttachment(true);
 }
 #endif
 
