@@ -26,164 +26,6 @@ DECLARE_DELEGATE_OneParam(FPrefabAnimationOnComponentSelected, TSharedPtr<FSCSEd
 DECLARE_DELEGATE_RetVal_OneParam(bool, FPrefabAnimationIsComponentValid, UActorComponent*);
 
 
-class SComponentSelectionTree
-	: public SCompoundWidget
-{
-public:
-	SLATE_BEGIN_ARGS(SComponentSelectionTree) {}
-
-		SLATE_EVENT(FPrefabAnimationOnComponentSelected, OnComponentSelected)
-		SLATE_EVENT(FPrefabAnimationIsComponentValid, IsComponentValid)
-
-	SLATE_END_ARGS()
-
-	void Construct(const FArguments& InArgs, AActor* InPreviewActor)
-	{
-		OnComponentSelected = InArgs._OnComponentSelected;
-		IsComponentValid = InArgs._IsComponentValid;
-
-		ChildSlot
-		[
-			SAssignNew(TreeView, STreeView<TSharedPtr<FSCSEditorTreeNode>>)
-			.TreeItemsSource(&RootNodes)
-			.SelectionMode(ESelectionMode::Single)
-			.OnGenerateRow(this, &SComponentSelectionTree::GenerateRow)
-			.OnGetChildren(this, &SComponentSelectionTree::OnGetChildNodes)
-			.OnSelectionChanged(this, &SComponentSelectionTree::OnSelectionChanged)
-			.ItemHeight(24)
-		];
-
-		BuildTree(InPreviewActor);
-
-		if (RootNodes.Num() == 0)
-		{
-			ChildSlot
-			[
-				SNew(SBox)
-				.Padding(FMargin(5.f))
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("NoValidComponentsFound", "No valid components available"))
-				]
-			];
-		}
-	}
-
-	void BuildTree(AActor* Actor)
-	{
-		RootNodes.Reset();
-		ObjectToNode.Reset();
-
-		for (UActorComponent* Component : TInlineComponentArray<UActorComponent*>(Actor))
-		{
-			if (IsComponentVisibleInTree(Component))
-			{
-				FindOrAddNodeForComponent(Component);
-			}
-		}
-	}
-
-private:
-
-	void OnSelectionChanged(TSharedPtr<FSCSEditorTreeNode> InNode, ESelectInfo::Type SelectInfo)
-	{
-		OnComponentSelected.ExecuteIfBound(InNode);
-	}
-
-	void OnGetChildNodes(TSharedPtr<FSCSEditorTreeNode> InNodePtr, TArray<TSharedPtr<FSCSEditorTreeNode>>& OutChildren)
-	{
-		OutChildren = InNodePtr->GetChildren();
-	}
-
-	TSharedRef<ITableRow> GenerateRow(TSharedPtr<FSCSEditorTreeNode> InNodePtr, const TSharedRef<STableViewBase>& OwnerTable)
-	{
-		const FSlateBrush* ComponentIcon = FEditorStyle::GetBrush("SCS.NativeComponent");
-		if (InNodePtr->GetComponentTemplate() != NULL)
-		{
-			ComponentIcon = FSlateIconFinder::FindIconBrushForClass( InNodePtr->GetComponentTemplate()->GetClass(), TEXT("SCS.Component") );
-		}
-
-		FText Label = InNodePtr->IsInheritedComponent()
-			? FText::Format(LOCTEXT("NativeComponentFormatString","{0} (Inherited)"), FText::FromString(InNodePtr->GetDisplayString()))
-			: FText::FromString(InNodePtr->GetDisplayString());
-
-		TSharedRef<STableRow<FSCSEditorTreeNodePtrType>> Row = SNew(STableRow<FSCSEditorTreeNodePtrType>, OwnerTable).Padding(FMargin(0.f, 0.f, 0.f, 4.f));
-		Row->SetContent(
-			SNew(SHorizontalBox)
-
-			+SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			[
-				SNew(SImage)
-				.Image(ComponentIcon)
-				.ColorAndOpacity(SSCS_RowWidget::GetColorTintForIcon(InNodePtr))
-			]
-
-			+SHorizontalBox::Slot()
-			.VAlign(VAlign_Center)
-			.Padding(2, 0, 0, 0)
-			[
-				SNew(STextBlock)
-				.Text(Label)
-			]);
-
-		return Row;
-	}
-
-	bool IsComponentVisibleInTree(UActorComponent* ActorComponent) const
-	{
-		return !IsComponentValid.IsBound() || IsComponentValid.Execute(ActorComponent);
-	}
-
-	TSharedPtr<FSCSEditorTreeNode> FindOrAddNodeForComponent(UActorComponent* ActorComponent)
-	{
-		if (ActorComponent->IsEditorOnly())
-		{
-			return nullptr;
-		}
-
-		if (TSharedPtr<FSCSEditorTreeNode>* Existing = ObjectToNode.Find(ActorComponent))
-		{
-			return *Existing;
-		}
-		else if (USceneComponent* SceneComponent = Cast<USceneComponent>(ActorComponent))
-		{
-			if (UActorComponent* Parent = SceneComponent->GetAttachParent())
-			{
-				TSharedPtr<FSCSEditorTreeNode> ParentNode = FindOrAddNodeForComponent(Parent);
-
-				if (!ParentNode.IsValid())
-				{
-					return nullptr;
-				}
-
-				TreeView->SetItemExpansion(ParentNode, true);
-
-				TSharedPtr<FSCSEditorTreeNode> ChildNode = ParentNode->AddChildFromComponent(ActorComponent);
-				ObjectToNode.Add(ActorComponent, ChildNode);
-
-				return ChildNode;
-			}
-		}
-		
-		TSharedPtr<FSCSEditorTreeNode> RootNode = FSCSEditorTreeNode::FactoryNodeFromComponent(ActorComponent);
-		RootNodes.Add(RootNode);
-		ObjectToNode.Add(ActorComponent, RootNode);
-
-		TreeView->SetItemExpansion(RootNode, true);
-
-		return RootNode;
-	}
-
-private:
-	FPrefabAnimationOnComponentSelected OnComponentSelected;
-	FPrefabAnimationIsComponentValid IsComponentValid;
-	TSharedPtr<STreeView<TSharedPtr<FSCSEditorTreeNode>>> TreeView;
-	TMap<FObjectKey, TSharedPtr<FSCSEditorTreeNode>> ObjectToNode;
-	TArray<TSharedPtr<FSCSEditorTreeNode>> RootNodes;
-};
-
 class SLGUIPrefabSequenceEditorWidgetImpl : public SCompoundWidget, public FEditorUndoClient
 {
 public:
@@ -428,23 +270,24 @@ public:
 	void AddPossessMenuExtensions(FMenuBuilder& MenuBuilder)
 	{
 		if (!WeakSequence.IsValid())return;
-		//actor menu
+
+		Sequencer->State.ClearObjectCaches(*Sequencer);
+		TSet<UObject*> AllBoundObjects;
+		UMovieScene* MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
+		for (int32 Index = 0; Index < MovieScene->GetPossessableCount(); ++Index)
 		{
-			Sequencer->State.ClearObjectCaches(*Sequencer);
-			TSet<UObject*> AllBoundObjects;
-			UMovieScene* MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
-			for (int32 Index = 0; Index < MovieScene->GetPossessableCount(); ++Index)
+			FMovieScenePossessable& Possessable = MovieScene->GetPossessable(Index);
+			for (TWeakObjectPtr<> WeakObject : Sequencer->FindBoundObjects(Possessable.GetGuid(), Sequencer->GetFocusedTemplateID()))
 			{
-				FMovieScenePossessable& Possessable = MovieScene->GetPossessable(Index);
-				for (TWeakObjectPtr<> WeakObject : Sequencer->FindBoundObjects(Possessable.GetGuid(), Sequencer->GetFocusedTemplateID()))
+				if (UObject* Object = WeakObject.Get())
 				{
-					if (UObject* Object = WeakObject.Get())
-					{
-						AllBoundObjects.Add(Object);
-					}
+					AllBoundObjects.Add(Object);
 				}
 			}
+		}
 
+		//actor menu
+		{
 			TArray<AActor*> ValidActorArray;
 			if (auto Actor = WeakSequence->GetTypedOuter<AActor>())
 			{
@@ -454,10 +297,7 @@ public:
 				{
 					if (!AllBoundObjects.Contains(ActorItem))
 					{
-						if (ActorItem->IsAttachedTo(Actor) || ActorItem == Actor)//only allow child actor or self actor
-						{
-							ValidActorArray.Add(ActorItem);
-						}
+						ValidActorArray.Add(ActorItem);
 					}
 				}
 			}
@@ -472,12 +312,27 @@ public:
 		//component menu
 		if (auto Actor = GetSelectedActor())
 		{
+			TArray<UActorComponent*> AllCompArray;
+			Actor->GetComponents(AllCompArray);
+			TArray<UActorComponent*> ValidCompArray;
+			for (auto Comp : AllCompArray)
+			{
+				if (Comp->HasAnyFlags(EObjectFlags::RF_Transient))continue;
+				if (!AllBoundObjects.Contains(Comp))//already bounded
+				{
+					if (!Actor->BlueprintCreatedComponents.Contains(Comp))//blueprint created component not allowed, because LGUIPrefabSequene use UObject to direct reference target object, and this method not support BlueprintCreatedComponents
+					{
+						ValidCompArray.Add(Comp);
+					}
+				}
+			}
+
 			MenuBuilder.AddSubMenu(
 				LOCTEXT("AddComponent_Label", "Component"),
 				LOCTEXT("AddComponent_ToolTip", "Add a binding to one of this actor's components and allow it to be animated by Sequencer"),
-				FNewMenuDelegate::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::AddPossessComponentMenuExtensions),
-				false /*bInOpenSubMenuOnClick*/,
-				FSlateIcon()//"LevelSequenceEditorStyle", "LevelSequenceEditor.PossessNewActor")
+				FNewMenuDelegate::CreateRaw(this, &SLGUIPrefabSequenceEditorWidgetImpl::AddPossessComponentMenuExtensions, ValidCompArray),
+				false,
+				FSlateIcon()
 			);
 		}
 	}
@@ -491,54 +346,28 @@ public:
 					FText::Format(LOCTEXT("ActorLabelFormat", "{0} ({1})"), FText::FromString(Actor->GetActorLabel()), FText::FromString(Actor->GetClass()->GetName())),
 					FText::FromString(Actor->GetName()), FSlateIcon(),
 					FUIAction(FExecuteAction::CreateLambda([=]() {
-						const FScopedTransaction Transaction(LOCTEXT("AddComponentToSequencer", "Add component to Sequencer"));
+						const FScopedTransaction Transaction(LOCTEXT("AddActorToSequencer", "Add actor to Sequencer"));
 						Sequencer->GetHandleToObject(Actor, true);
 						}))
 				);
 			}
 		}
 	}
-	void AddPossessComponentMenuExtensions(FMenuBuilder& MenuBuilder)
+	void AddPossessComponentMenuExtensions(FMenuBuilder& MenuBuilder, TArray<UActorComponent*> InCompArray)
 	{
-		if (auto Actor = GetSelectedActor())
+		for (auto Comp : InCompArray)
 		{
-			Sequencer->State.ClearObjectCaches(*Sequencer);
-			TSet<UObject*> AllBoundObjects;
-
-			UMovieScene* MovieScene = Sequencer->GetFocusedMovieSceneSequence()->GetMovieScene();
-			for (int32 Index = 0; Index < MovieScene->GetPossessableCount(); ++Index)
+			if (IsValid(Comp))
 			{
-				FMovieScenePossessable& Possessable = MovieScene->GetPossessable(Index);
-				for (TWeakObjectPtr<> WeakObject : Sequencer->FindBoundObjects(Possessable.GetGuid(), Sequencer->GetFocusedTemplateID()))
-				{
-					if (UObject* Object = WeakObject.Get())
-					{
-						AllBoundObjects.Add(Object);
-					}
-				}
+				MenuBuilder.AddMenuEntry(
+					FText::Format(LOCTEXT("ComponentLabelFormat", "{0} ({1})"), FText::FromString(Comp->GetName()), FText::FromString(Comp->GetClass()->GetName())),
+					FText::FromString(Comp->GetName()), FSlateIcon(),
+					FUIAction(FExecuteAction::CreateLambda([=]() {
+						const FScopedTransaction Transaction(LOCTEXT("AddComponentToSequencer", "Add component to Sequencer"));
+						Sequencer->GetHandleToObject(Comp, true);
+						}))
+				);
 			}
-
-			bool bIdent = false;
-			MenuBuilder.AddWidget(
-				SNew(SComponentSelectionTree, Actor)
-				.OnComponentSelected(this, &SLGUIPrefabSequenceEditorWidgetImpl::OnSelectionUpdated)
-				.IsComponentValid_Lambda(
-					[AllBoundObjects](UActorComponent* Component)
-					{
-						bool bContainsInBoundObjects = AllBoundObjects.Contains(Component);//already bounded
-						bool bContainsInBlueprintCreatedComponents = false;//blueprint created component not allowed, because LGUIPrefabSequene use UObject to direct reference target object, and this method not support BlueprintCreatedComponents
-						if (auto OwnerActor = Component->GetOwner())
-						{
-							if (OwnerActor->BlueprintCreatedComponents.Contains(Component))
-							{
-								bContainsInBlueprintCreatedComponents = true;
-							}
-						}
-						return !bContainsInBoundObjects && !bContainsInBlueprintCreatedComponents;
-					}
-				)
-				, FText(), !bIdent
-						);
 		}
 	}
 
