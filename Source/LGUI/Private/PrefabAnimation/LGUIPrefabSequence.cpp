@@ -141,24 +141,6 @@ void ULGUIPrefabSequence::UnbindPossessableObjects(const FGuid& ObjectId)
 	ObjectReferences.RemoveBinding(ObjectId);
 }
 
-UObject* ULGUIPrefabSequence::CreateDirectorInstance(IMovieScenePlayer& Player, FMovieSceneSequenceID SequenceID)
-{
-	AActor* Actor = CastChecked<AActor>(Player.GetPlaybackContext(), ECastCheckedType::NullAllowed);
-	if (!Actor)
-	{
-		return nullptr;
-	}
-
-	// If this sequence is inside a blueprint, or its component's archetype is from a blueprint, we use the actor as the instace (which will be an instance of the blueprint itself)
-	if (GetTypedOuter<UBlueprintGeneratedClass>() || GetTypedOuter<ULGUIPrefabSequenceComponent>()->GetArchetype() != GetDefault<ULGUIPrefabSequenceComponent>())
-	{
-		return Actor;
-	}
-
-	// Otherwise we use the level script actor as the instance
-	return Actor->GetLevel()->GetLevelScriptActor();
-}
-
 #if WITH_EDITOR
 
 ETrackSupport ULGUIPrefabSequence::IsTrackSupported(TSubclassOf<class UMovieSceneTrack> InTrackClass) const
