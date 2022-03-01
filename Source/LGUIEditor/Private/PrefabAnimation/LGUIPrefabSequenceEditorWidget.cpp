@@ -19,6 +19,8 @@
 #include "Framework/Application/SlateApplication.h"
 #include "EngineUtils.h"
 #include "Utils/LGUIUtils.h"
+#include "LGUIEditorTools.h"
+#include "PrefabSystem/LGUIPrefabHelperObject.h"
 
 #define LOCTEXT_NAMESPACE "LGUIPrefabSequenceEditorWidget"
 
@@ -397,11 +399,13 @@ public:
 	void OnSequenceChanged()
 	{
 		ULGUIPrefabSequence* LGUIPrefabSequence = WeakSequence.Get();
-		UBlueprint* Blueprint = LGUIPrefabSequence ? LGUIPrefabSequence->GetParentBlueprint() : nullptr;
-
-		if (Blueprint)
+		auto Actor = WeakSequence.IsValid() ? WeakSequence->GetTypedOuter<AActor>() : nullptr;
+		if (Actor)
 		{
-			FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
+			if (auto PrefabHelperObject = LGUIEditorTools::GetPrefabHelperObject_WhichManageThisActor(Actor))
+			{
+				PrefabHelperObject->SetAnythingDirty();
+			}
 		}
 	}
 

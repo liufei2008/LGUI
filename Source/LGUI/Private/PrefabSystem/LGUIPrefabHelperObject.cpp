@@ -598,7 +598,7 @@ void ULGUIPrefabHelperObject::OnLevelActorAttached(AActor* Actor, const AActor* 
 		}
 		else
 		{
-			check(0);//why this happed?
+			check(0);//why this happen?
 		}
 	}
 }
