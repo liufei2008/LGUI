@@ -11,7 +11,7 @@ class UActorComponent;
  * An external reference to an level sequence object, resolvable through an arbitrary context.
  */
 USTRUCT()
-struct FLGUIPrefabSequenceObjectReference
+struct LGUI_API FLGUIPrefabSequenceObjectReference
 {
 	GENERATED_BODY()
 
@@ -22,7 +22,7 @@ struct FLGUIPrefabSequenceObjectReference
 	{}
 
 
-	LGUI_API static FLGUIPrefabSequenceObjectReference CreateForObject(UObject* InObject);
+	static FLGUIPrefabSequenceObjectReference CreateForObject(UObject* InObject);
 
 	/**
 	 * Check whether this object reference is valid or not
@@ -37,7 +37,7 @@ struct FLGUIPrefabSequenceObjectReference
 	 *
 	 * @return The object
 	 */
-	LGUI_API UObject* Resolve() const;
+	UObject* Resolve() const;
 
 	/**
 	 * Equality comparator

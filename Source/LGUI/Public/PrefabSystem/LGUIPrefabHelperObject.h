@@ -81,6 +81,7 @@ public:
 	ULGUIPrefab* GetPrefabAssetBySubPrefabObject(UObject* InObject);
 	bool GetAnythingDirty()const { return bAnythingDirty; }
 	void SetNothingDirty() { bAnythingDirty = false; }
+	void SetAnythingDirty() { bAnythingDirty = true; }
 	void CheckPrefabVersion();
 	void DismissAllVersionNotifications() { OnNewVersionDismissAllClicked(); }
 	FSimpleMulticastDelegate OnSubPrefabNewVersionUpdated;

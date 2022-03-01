@@ -61,15 +61,6 @@ bool ULGUIPrefabSequence::IsEditable() const
 	//return !Template || Template->GetTypedOuter<ULGUIPrefabSequenceComponent>() == GetDefault<ULGUIPrefabSequenceComponent>();
 }
 
-UBlueprint* ULGUIPrefabSequence::GetParentBlueprint() const
-{
-	if (UBlueprintGeneratedClass* GeneratedClass = GetTypedOuter<UBlueprintGeneratedClass>())
-	{
-		return Cast<UBlueprint>(GeneratedClass->ClassGeneratedBy);
-	}
-	return nullptr;
-}
-
 void ULGUIPrefabSequence::PostInitProperties()
 {
 #if WITH_EDITOR && WITH_EDITORONLY_DATA
