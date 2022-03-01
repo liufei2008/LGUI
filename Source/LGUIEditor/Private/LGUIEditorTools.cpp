@@ -1486,7 +1486,7 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray, boo
 			auto UIRenderable = Cast<UUIBaseRenderable>(UIItem);
 			if (UIRenderable)
 			{
-				UIRenderable->SetColor(UIItem->widget.color);
+				UIRenderable->SetColor(UIItem->widget_DEPRECATED.color);
 			}
 			//coordinate
 			if (UIParent != nullptr)//get parent
@@ -1511,7 +1511,7 @@ void LGUIEditorTools::UpgradeActorArray(const TArray<AActor*>& InActorArray, boo
 				}
 			}
 			//anchor
-			auto widget = UIItem->widget;
+			auto widget = UIItem->widget_DEPRECATED;
 			FUIAnchorData AnchorData;
 			switch (widget.anchorHAlign)
 			{

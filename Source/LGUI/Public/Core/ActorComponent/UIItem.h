@@ -425,12 +425,12 @@ public:
 #endif
 
 	/** old data */
-	UPROPERTY(VisibleAnywhere, Category = "LGUI-old")
-		FUIWidget widget;
+	UPROPERTY(meta=(DeprecatedProperty, DeprecationMessage="Use AnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
+		FUIWidget widget_DEPRECATED;
 
 	UE_DEPRECATED(4.24, "Use GetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI-old", meta = (DeprecatedFunction, DeprecationMessage = "Use GetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
-		const FUIWidget& GetWidget()const { return widget; }
+		const FUIWidget& GetWidget()const { return widget_DEPRECATED; }
 	UE_DEPRECATED(4.24, "Use SetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system.")
 	UFUNCTION(BlueprintCallable, Category = "LGUI-old", meta = (DeprecatedFunction, DeprecationMessage = "Use SetAnchorData instead. NOTE LGUI3 use AnchorMin/AnchorMax/AnchoredPosition/SizeDelta anchor system."))
 		void SetWidget(const FUIWidget& inWidget);
