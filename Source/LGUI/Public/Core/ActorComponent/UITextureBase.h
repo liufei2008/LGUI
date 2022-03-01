@@ -30,7 +30,6 @@ protected:
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override {}
 	virtual UTexture* GetTextureToCreateGeometry()override;
-	virtual bool NeedTextureToCreateGeometry()override { return true; }
 public:
 	UFUNCTION(BlueprintCallable, Category = "LGUI") UTexture* GetTexture()const { return texture; }
 

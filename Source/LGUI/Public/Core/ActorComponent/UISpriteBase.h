@@ -41,7 +41,6 @@ protected:
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
-	virtual bool NeedTextureToCreateGeometry()override { return true; }
 
 	bool bHasAddToSprite = false;
 public:

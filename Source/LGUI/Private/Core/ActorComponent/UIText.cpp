@@ -184,10 +184,6 @@ UTexture* UUIText::GetTextureToCreateGeometry()
 	font->InitFont();
 	return font->GetFontTexture();
 }
-bool UUIText::HaveDataToCreateGeometry()
-{
-	return visibleCharCount > 0 && IsValid(font);
-}
 
 void UUIText::OnBeforeCreateOrUpdateGeometry()
 {

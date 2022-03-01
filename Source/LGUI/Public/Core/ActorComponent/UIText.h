@@ -99,9 +99,7 @@ public:
 public:
 	virtual void MarkAllDirtyRecursive()override;
 protected:
-	virtual bool HaveDataToCreateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
-	virtual bool NeedTextureToCreateGeometry()override { return true; }
 
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	virtual void OnCreateGeometry()override;
