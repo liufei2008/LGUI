@@ -102,21 +102,11 @@ void UUIBatchGeometryRenderable::MarkTextureDirty()
 	{
 		if (drawcall.IsValid())
 		{
-			if (NeedTextureToCreateGeometry())
-			{
-				if (!IsValid(GetTextureToCreateGeometry()))//need texture, but texture is not valid
-				{
-					UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
-				}
-				else
-				{
-					geometry->texture = GetTextureToCreateGeometry();
-					drawcall->textureChanged = true;
-				}
-			}
+			geometry->texture = GetTextureToCreateGeometry();
+			drawcall->textureChanged = true;
 		}
+		MarkCanvasUpdate(true, false, false);
 	}
-	MarkCanvasUpdate(true, false, false);
 }
 void UUIBatchGeometryRenderable::MarkMaterialDirty()
 {
@@ -127,8 +117,8 @@ void UUIBatchGeometryRenderable::MarkMaterialDirty()
 			geometry->material = CustomUIMaterial;
 			drawcall->materialChanged = true;
 		}
+		MarkCanvasUpdate(true, false, false);
 	}
-	MarkCanvasUpdate(true, false, false);
 }
 
 void UUIBatchGeometryRenderable::AddGeometryModifier(class UUIGeometryModifierBase* InModifier)
@@ -158,7 +148,18 @@ void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()
 	bLocalVertexPositionChanged = true;
 	bUVChanged = true;
 	bTriangleChanged = true;
-	MarkTextureDirty();
+	if (RenderCanvas.IsValid())
+	{
+		if (drawcall.IsValid())
+		{
+			geometry->texture = GetTextureToCreateGeometry();
+			drawcall->textureChanged = true;
+
+			geometry->material = CustomUIMaterial;
+			drawcall->materialChanged = true;
+		}
+		MarkCanvasUpdate(true, false, false);
+	}
 	Super::MarkAllDirtyRecursive();
 }
 void UUIBatchGeometryRenderable::SetCustomUIMaterial(UMaterialInterface* inMat)
@@ -278,10 +279,8 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	{
 		if (bTriangleChanged)//triangle change, need to recreate geometry
 		{
-			if (CreateGeometry())
-			{
-				drawcall->needToRebuildMesh = true;
-			}
+			CreateGeometry();
+			drawcall->needToRebuildMesh = true;
 			goto COMPLETE;
 		}
 		else//update geometry
@@ -319,26 +318,13 @@ COMPLETE:
 bool UUIBatchGeometryRenderable::CreateGeometry()
 {
 	geometry->Clear();
-	if (HaveDataToCreateGeometry())
-	{
-		if (NeedTextureToCreateGeometry() && !IsValid(GetTextureToCreateGeometry()))
-		{
-			UE_LOG(LGUI, Error, TEXT("[UUIGeometryRenderable::CreateGeometry]Need texture to create geometry, but texture is no valid!"));
-			return false;
-		}
-		geometry->texture = GetTextureToCreateGeometry();
-		geometry->material = CustomUIMaterial;
-		OnCreateGeometry();
-		ApplyGeometryModifier(true, true, true, true);
-		CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
-		UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
-		return true;
-	}
-	else
-	{
-		this->LocalMinPoint = this->LocalMaxPoint = FVector2D(0, 0);
-		return false;
-	}
+	geometry->texture = GetTextureToCreateGeometry();
+	geometry->material = CustomUIMaterial;
+	OnCreateGeometry();
+	ApplyGeometryModifier(true, true, true, true);
+	CalculateLocalBounds();//CalculateLocalBounds must stay before TransformVertices, because TransformVertices will also cache bounds for Canvas to check 2d overlap.
+	UIGeometry::TransformVertices(RenderCanvas.Get(), this, geometry);
+	return true;
 }
 
 bool UUIBatchGeometryRenderable::LineTraceUI(FHitResult& OutHit, const FVector& Start, const FVector& End)
@@ -365,34 +351,44 @@ void UUIBatchGeometryRenderable::CalculateLocalBounds()
 #if WITH_EDITOR
 	float forwardMin = MAX_flt, forwardMax = -MAX_flt;
 #endif
-	for (auto& Vert : vertices)
+	if (vertices.Num() == 0)
 	{
-		if (Vert.Y < horizontalMin)
-		{
-			horizontalMin = Vert.Y;
-		}
-		if (Vert.Y > horizontalMax)
-		{
-			horizontalMax = Vert.Y;
-		}
-		if (Vert.Z < verticalMin)
-		{
-			verticalMin = Vert.Z;
-		}
-		if (Vert.Z > verticalMax)
-		{
-			verticalMax = Vert.Z;
-		}
+		horizontalMin = horizontalMax = verticalMin = verticalMax = 0;
 #if WITH_EDITOR
-		if (Vert.X < forwardMin)
-		{
-			forwardMin = Vert.X;
-		}
-		if (Vert.X > forwardMax)
-		{
-			forwardMax = Vert.X;
-		}
+		forwardMin = forwardMax = 0;
 #endif
+	}
+	else
+	{
+		for (auto& Vert : vertices)
+		{
+			if (Vert.Y < horizontalMin)
+			{
+				horizontalMin = Vert.Y;
+			}
+			if (Vert.Y > horizontalMax)
+			{
+				horizontalMax = Vert.Y;
+			}
+			if (Vert.Z < verticalMin)
+			{
+				verticalMin = Vert.Z;
+			}
+			if (Vert.Z > verticalMax)
+			{
+				verticalMax = Vert.Z;
+			}
+#if WITH_EDITOR
+			if (Vert.X < forwardMin)
+			{
+				forwardMin = Vert.X;
+			}
+			if (Vert.X > forwardMax)
+			{
+				forwardMax = Vert.X;
+			}
+#endif
+		}
 	}
 	this->LocalMinPoint = FVector2D(horizontalMin, verticalMin);
 	this->LocalMaxPoint = FVector2D(horizontalMax, verticalMax);

@@ -284,14 +284,6 @@ void UUIBatchGeometryRenderable_BP::EndPlay(const EEndPlayReason::Type EndPlayRe
 	Super::EndPlay(EndPlayReason);
 }
 
-bool UUIBatchGeometryRenderable_BP::NeedTextureToCreateGeometry()
-{
-	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
-	{
-		return ReceiveNeedTextureToCreateGeometry();
-	}
-	return false;
-}
 UTexture* UUIBatchGeometryRenderable_BP::GetTextureToCreateGeometry()
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))

@@ -54,7 +54,6 @@ protected:
 	//Begin UIBatchGeometryRenderable interface
 	virtual void OnCreateGeometry()override;
 	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
-	virtual bool HaveDataToCreateGeometry()override;
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
 	//End UIBatchGeometryRenderable interface
 

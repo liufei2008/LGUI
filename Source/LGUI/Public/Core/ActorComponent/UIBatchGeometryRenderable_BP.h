@@ -82,12 +82,8 @@ public:
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 protected:
-	virtual bool HaveDataToCreateGeometry()override { return true; }
-	virtual bool NeedTextureToCreateGeometry()override;
 	virtual UTexture* GetTextureToCreateGeometry()override;
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "NeedTextureToCreateGeometry"))
-		bool ReceiveNeedTextureToCreateGeometry();
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "GetTextureToCreateGeometry"))
 		UTexture* ReceiveGetTextureToCreateGeometry();
 
