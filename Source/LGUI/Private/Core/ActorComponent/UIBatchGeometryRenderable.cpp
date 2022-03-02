@@ -70,15 +70,12 @@ void UUIBatchGeometryRenderable::OnAnchorChange(bool InPivotChange, bool InSizeC
     }
 }
 
-void UUIBatchGeometryRenderable::MarkVertexChanged()
+void UUIBatchGeometryRenderable::MarkVertexDirty()
 {
+	MarkTriangleDirty();
 	MarkVertexPositionDirty();
 	MarkColorDirty();
 	MarkUVDirty();
-}
-void UUIBatchGeometryRenderable::MarkRebuildGeometry()
-{
-	MarkTriangleDirty();
 }
 
 void UUIBatchGeometryRenderable::MarkVertexPositionDirty()
@@ -297,8 +294,6 @@ void UUIBatchGeometryRenderable::UpdateGeometry()
 	{
 		if (bTriangleChanged || bLocalVertexPositionChanged || bColorChanged || bUVChanged)
 		{
-			auto PrevVerticesCount = geometry->vertices.Num();
-			auto PrevTriangleCount = geometry->triangles.Num();
 			geometry->Clear();
 			//check if GeometryModifier will affect vertex data, if so we need to update these data in OnUpdateGeometry
 			{
