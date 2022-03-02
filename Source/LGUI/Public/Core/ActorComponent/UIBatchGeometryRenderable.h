@@ -114,20 +114,21 @@ protected:
 	virtual void OnRenderCanvasChanged(ULGUICanvas* OldCanvas, ULGUICanvas* NewCanvas)override;
 	virtual void OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDiscardCache = true)override;
 public:
-	//@todo: these MarkXXXDirty function could be combined to single function
+	//@todo: these MarkXXXDirty function could be combined into a single function
 	virtual void MarkVertexPositionDirty();
 	virtual void MarkUVDirty();
 	virtual void MarkTriangleDirty();
 	virtual void MarkTextureDirty();
 	virtual void MarkMaterialDirty();
 
-	/** For blueprint easily use. If vertex data change and vertex count not change, call this. */
+	/** 
+	 * Mark vertext dirty, so LGUI will trigger UpdateGeometry process, and OnUpdateGeometry will executed in next render update.
+	 * Call this if you want to update vertex data. 
+	 * For blueprint easily use.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void MarkVertexChanged();
-	/** For blueprint easily use. If vertex count change or triangle count change or texture change or material change, call this */
-	UFUNCTION(BlueprintCallable, Category = "LGUI")
-		void MarkRebuildGeometry();
-    
+		void MarkVertexDirty();
+
 	void AddGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier);
 	void SortGeometryModifier();

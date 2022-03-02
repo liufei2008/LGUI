@@ -15,7 +15,7 @@ enum class ELGUIGeometryModifierHelper_UITextModifyPositionType:uint8
 {
 	//Relative to character's origin position
 	Relative,
-	//Direct set character's position
+	//Direct set character's position, relative to UIText's pivot position
 	Absolute,
 };
 /** a helper class for UIGeometryModifierBase to easily modify ui geometry */
@@ -40,10 +40,16 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		void UITextHelperFunction_ModifyCharGeometry_Transform(UUIText* InUIText, int InCharIndex
-			, const FVector& InPosition, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType
+			, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType
+			, const FVector& InPosition
 			, const FRotator& InRotator = FRotator::ZeroRotator
 			, const FVector& InScale = FVector(1,1,1)
 		);
+	/**
+	 * Get character's pivot position relative to UIText's pivot position
+	 */
+	UFUNCTION(BlueprintCallable, Category = "LGUI")
+		void UITextHelperFunction_GetCharGeometry_AbsolutePosition(UUIText* InUIText, int InCharIndex, FVector& OutPosition)const;
 	/**
 	 * Modify character's position
 	 * @param	InPositionType		Set position type, relative to origin position or absolute position

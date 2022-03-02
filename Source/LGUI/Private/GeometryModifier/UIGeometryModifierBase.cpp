@@ -294,7 +294,36 @@ float ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharHorizontalPositio
 	charPivotPos /= charPropertyItem.VertCount;
 	return (charPivotPos - leftPos) / InUIText->GetWidth();
 }
-void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transform(UUIText* InUIText, int InCharIndex, const FVector& InPosition, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType, const FRotator& InRotator, const FVector& InScale)
+
+void ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharGeometry_AbsolutePosition(UUIText* InUIText, int InCharIndex, FVector& OutPosition)const
+{
+	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
+#if !UE_BUILD_SHIPPING
+	if (InCharIndex < 0 || InCharIndex >= CharPropertyArray.Num())
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transform]InCharIndex out of range, InCharIndex: %d, ArrayNum: %d"), InCharIndex, CharPropertyArray.Num());
+		return;
+	}
+#endif
+	auto& charPropertyItem = CharPropertyArray[InCharIndex];
+	int startVertIndex = charPropertyItem.StartVertIndex;
+	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
+
+	float charPivotPosH = 0;
+	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
+	{
+		charPivotPosH += cacheVertices[vertIndex].position.Y;
+	}
+	charPivotPosH /= charPropertyItem.VertCount;
+	OutPosition = FVector(0, charPivotPosH, 0);
+}
+
+void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transform(UUIText* InUIText, int InCharIndex
+	, ELGUIGeometryModifierHelper_UITextModifyPositionType InPositionType
+	, const FVector& InPosition
+	, const FRotator& InRotator
+	, const FVector& InScale
+)
 {
 	auto& CharPropertyArray = InUIText->GetCharPropertyArray();
 #if !UE_BUILD_SHIPPING
