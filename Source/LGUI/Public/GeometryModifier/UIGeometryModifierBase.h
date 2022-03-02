@@ -20,17 +20,10 @@ enum class ELGUIGeometryModifierHelper_UITextModifyPositionType:uint8
 };
 /** a helper class for UIGeometryModifierBase to easily modify ui geometry */
 UCLASS(BlueprintType)
-class LGUI_API ULGUIGeometryModifierHelper : public UObject
+class LGUI_API ULGUIGeometryModifierHelper : public ULGUIGeometryHelper
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "LGUI")
-		TArray<FLGUIGeometryVertex> cacheVertices;
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "LGUI")
-		TArray<int32> cacheTriangleIndices;
-	void BeginModify(UIGeometry& InUIGeometry);
-	void EndModify(UIGeometry& InUIGeometry);
-
 	/** Get character's center position in UIText's rect range, and convert to 0-1 range (left is 0 and right is 1) */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
 		float UITextHelperFunction_GetCharHorizontalPositionRatio01(UUIText* InUIText, int InCharIndex)const;

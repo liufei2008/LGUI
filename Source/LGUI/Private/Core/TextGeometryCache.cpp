@@ -4,16 +4,9 @@
 #include "Core/UIGeometry.h"
 #include "Core/ActorComponent/UIText.h"
 
-FTextGeometryCache::FTextGeometryCache()
-{
-}
 FTextGeometryCache::FTextGeometryCache(UUIText* InUIText)
 {
 	this->UIText = InUIText;
-}
-FTextGeometryCache::~FTextGeometryCache()
-{
-	
 }
 bool FTextGeometryCache::SetInputParameters(
 	const FString& InContent,

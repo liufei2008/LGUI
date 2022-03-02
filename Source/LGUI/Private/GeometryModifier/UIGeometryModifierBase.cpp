@@ -128,6 +128,7 @@ void UUIGeometryModifierBase::SetExecuteOrder()
 	}
 }
 
+DECLARE_CYCLE_STAT(TEXT("UIGeometryModifierBase_Blueprint.ModifyUIGeometry"), STAT_UIGeometryModifierBase_ModifyUIGeometry, STATGROUP_LGUI);
 void UUIGeometryModifierBase::ModifyUIGeometry(
 	UIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
 )
@@ -138,134 +139,9 @@ void UUIGeometryModifierBase::ModifyUIGeometry(
 		{
 			GeometryModifierHelper = NewObject<ULGUIGeometryModifierHelper>(this);
 		}
-
-		GeometryModifierHelper->BeginModify(InGeometry);
+		GeometryModifierHelper->UIGeo = &InGeometry;
+		SCOPE_CYCLE_COUNTER(STAT_UIGeometryModifierBase_ModifyUIGeometry);
 		ReceiveModifyUIGeometry(GeometryModifierHelper, InTriangleChanged, InUVChanged, InColorChanged, InVertexPositionChanged);
-		GeometryModifierHelper->EndModify(InGeometry);
-	}
-}
-
-
-void ULGUIGeometryModifierHelper::BeginModify(UIGeometry& InGeometry)
-{
-	auto& vertices = InGeometry.vertices;
-	auto& originPositions = InGeometry.originPositions;
-	auto& originNormals = InGeometry.originNormals;
-	auto& originTangents = InGeometry.originTangents;
-
-	int vertCount = vertices.Num();
-	cacheVertices.SetNumZeroed(vertCount);
-
-	if (originNormals.Num() < vertCount)
-	{
-		originNormals.SetNumZeroed(vertCount);
-	}
-	if (originTangents.Num() < vertCount)
-	{
-		originTangents.SetNumZeroed(vertCount);
-	}
-	for (int i = 0; i < vertCount; i++)
-	{
-		auto& vert = cacheVertices[i];
-		const auto& originVert = vertices[i];
-		vert.position = originPositions[i];
-		vert.color = originVert.Color;
-		vert.uv0 = originVert.TextureCoordinate[0];
-		vert.uv1 = originVert.TextureCoordinate[1];
-		vert.uv2 = originVert.TextureCoordinate[2];
-		vert.uv3 = originVert.TextureCoordinate[3];
-		vert.normal = originNormals[i];
-		vert.tangent = originTangents[i];
-	}
-	auto& triangles = InGeometry.triangles;
-	int triangleIndicesCount = triangles.Num();
-	cacheTriangleIndices.SetNum(triangleIndicesCount);
-	for (int i = 0; i < triangleIndicesCount; i++)
-	{
-		cacheTriangleIndices[i] = triangles[i];
-	}
-}
-void ULGUIGeometryModifierHelper::EndModify(UIGeometry& InGeometry)
-{
-	auto& vertices = InGeometry.vertices;
-	auto& originPositions = InGeometry.originPositions;
-	auto& originNormals = InGeometry.originNormals;
-	auto& originTangents = InGeometry.originTangents;
-
-#if !UE_BUILD_SHIPPING
-	for (auto& i : cacheTriangleIndices)
-	{
-		if (i >= vertices.Num())
-		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndModify]Triangle index reference out of vertex range."));
-			return;
-		}
-		if (i >= MAX_TRIANGLE_COUNT)
-		{
-			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndModify]Triangle index out of precision range."));
-			return;
-		}
-	}
-	if ((cacheTriangleIndices.Num() % 3) != 0)
-	{
-		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::EndModify]Indices count must be multiple of 3."));
-		return;
-	}
-	bool bVertexDataContainsNan = false;
-	for (auto& vertex : cacheVertices)
-	{
-		if (vertex.position.ContainsNaN()
-			|| vertex.normal.ContainsNaN()
-			|| vertex.tangent.ContainsNaN()
-			|| vertex.uv0.ContainsNaN()
-			|| vertex.uv1.ContainsNaN()
-			|| vertex.uv2.ContainsNaN()
-			|| vertex.uv3.ContainsNaN()
-			)
-		{
-			UE_LOG(LGUI, Warning, TEXT("[ULGUIUpdateGeometryHelper::EndUpdateVertices]Vertex data contains NaN!."));
-			break;
-		}
-	}
-#endif
-	if (cacheVertices.Num() > vertices.Num())
-	{
-		vertices.SetNumUninitialized(cacheVertices.Num());
-	}
-	if (cacheVertices.Num() > originPositions.Num())
-	{
-		originPositions.SetNumUninitialized(cacheVertices.Num());
-	}
-	if (cacheVertices.Num() > originNormals.Num())
-	{
-		originNormals.SetNumUninitialized(cacheVertices.Num());
-	}
-	if (cacheVertices.Num() > originTangents.Num())
-	{
-		originTangents.SetNumUninitialized(cacheVertices.Num());
-	}
-	auto& triangles = InGeometry.triangles;
-	if (cacheTriangleIndices.Num() > triangles.Num())
-	{
-		triangles.SetNumUninitialized(cacheTriangleIndices.Num());
-	}
-	auto vertCount = cacheVertices.Num();
-	for (int i = 0; i < vertCount; i++)
-	{
-		const auto& vert = cacheVertices[i];
-		auto& originVert = vertices[i];
-		originPositions[i] = vert.position;
-		originVert.Color = vert.color;
-		originVert.TextureCoordinate[0] = vert.uv0;
-		originVert.TextureCoordinate[1] = vert.uv1;
-		originVert.TextureCoordinate[2] = vert.uv2;
-		originVert.TextureCoordinate[3] = vert.uv3;
-		originNormals[i] = vert.normal;
-		originTangents[i] = vert.tangent;
-	}
-	for (int i = 0; i < cacheTriangleIndices.Num(); i++)
-	{
-		triangles[i] = cacheTriangleIndices[i];
 	}
 }
 
@@ -281,6 +157,7 @@ float ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharHorizontalPositio
 		return 0;
 	}
 #endif
+	auto& originPositions = UIGeo->originPositions;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -289,7 +166,7 @@ float ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharHorizontalPositio
 	float charPivotPos = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPos += cacheVertices[vertIndex].position.Y;
+		charPivotPos += originPositions[vertIndex].Y;
 	}
 	charPivotPos /= charPropertyItem.VertCount;
 	return (charPivotPos - leftPos) / InUIText->GetWidth();
@@ -305,6 +182,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharGeometry_AbsoluteP
 		return;
 	}
 #endif
+	auto& originPositions = UIGeo->originPositions;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -312,7 +190,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_GetCharGeometry_AbsoluteP
 	float charPivotPosH = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPosH += cacheVertices[vertIndex].position.Y;
+		charPivotPosH += originPositions[vertIndex].Y;
 	}
 	charPivotPosH /= charPropertyItem.VertCount;
 	OutPosition = FVector(0, charPivotPosH, 0);
@@ -333,6 +211,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		return;
 	}
 #endif
+	auto& originPositions = UIGeo->originPositions;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -340,7 +219,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 	float charPivotPosH = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPosH += cacheVertices[vertIndex].position.Y;
+		charPivotPosH += originPositions[vertIndex].Y;
 	}
 	charPivotPosH /= charPropertyItem.VertCount;
 	auto charPivotPos = FVector(0, charPivotPosH, 0);
@@ -351,7 +230,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 	{
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = cacheVertices[vertIndex].position;
+			auto& pos = originPositions[vertIndex];
 			pos += InPosition;
 		}
 	}
@@ -361,7 +240,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		auto charPivotOffset = charPivotPos - InPosition;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = cacheVertices[vertIndex].position;
+			auto& pos = originPositions[vertIndex];
 			pos -= charPivotOffset;
 		}
 	}
@@ -373,7 +252,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 		auto calcRotationMatrix = FRotationMatrix(InRotator);
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = cacheVertices[vertIndex].position;
+			auto& pos = originPositions[vertIndex];
 			auto vector = pos - InPosition;
 			pos = InPosition + calcRotationMatrix.TransformPosition(vector);
 		}
@@ -383,7 +262,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Transf
 	{
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = cacheVertices[vertIndex].position;
+			auto& pos = originPositions[vertIndex];
 			auto vector = pos - charPivotPos;
 			pos = charPivotPos + vector * InScale;
 		}
@@ -399,6 +278,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Positi
 		return;
 	}
 #endif
+	auto& originPositions = UIGeo->originPositions;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -410,7 +290,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Positi
 	{
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = cacheVertices[vertIndex].position;
+			auto& pos = originPositions[vertIndex];
 			pos += InPosition;
 		}
 	}
@@ -420,13 +300,13 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Positi
 		auto charCenterPos = FVector::ZeroVector;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			charCenterPos += cacheVertices[vertIndex].position;
+			charCenterPos += originPositions[vertIndex];
 		}
 		charCenterPos /= charPropertyItem.VertCount;
 		auto centerOffset = charCenterPos - InPosition;
 		for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 		{
-			auto& pos = cacheVertices[vertIndex].position;
+			auto& pos = originPositions[vertIndex];
 			pos -= centerOffset;
 		}
 	}
@@ -443,20 +323,21 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Rotate
 		return;
 	}
 #endif
+	auto& originPositions = UIGeo->originPositions;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
 	float charPivotPos = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPos += cacheVertices[vertIndex].position.Y;
+		charPivotPos += originPositions[vertIndex].Y;
 	}
 	charPivotPos /= charPropertyItem.VertCount;
 
 	auto calcRotationMatrix = FRotationMatrix(InRotator);
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		auto& pos = cacheVertices[vertIndex].position;
+		auto& pos = originPositions[vertIndex];
 		auto vector = pos - FVector(0, charPivotPos, 0);
 		pos = FVector(0, charPivotPos, 0) + calcRotationMatrix.TransformPosition(vector);
 	}
@@ -471,6 +352,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(
 		return;
 	}
 #endif
+	auto& originPositions = UIGeo->originPositions;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
@@ -478,7 +360,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(
 	float charPivotPosH = 0;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		charPivotPosH += cacheVertices[vertIndex].position.Y;
+		charPivotPosH += originPositions[vertIndex].Y;
 	}
 	charPivotPosH /= charPropertyItem.VertCount;
 	auto charPivotPos = FVector(0, charPivotPosH, 0);
@@ -486,7 +368,7 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Scale(
 	auto calcScale = InScale;
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		auto& pos = cacheVertices[vertIndex].position;
+		auto& pos = originPositions[vertIndex];
 		auto vector = pos - charPivotPos;
 		pos = charPivotPos + vector * calcScale;
 	}
@@ -501,13 +383,14 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Color(
 		return;
 	}
 #endif
+	auto& vertices = UIGeo->vertices;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
 
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		auto& color = cacheVertices[vertIndex].color;
+		auto& color = vertices[vertIndex].Color;
 		color = InColor;
 	}
 }
@@ -521,13 +404,14 @@ void ULGUIGeometryModifierHelper::UITextHelperFunction_ModifyCharGeometry_Alpha(
 		return;
 	}
 #endif
+	auto& vertices = UIGeo->vertices;
 	auto& charPropertyItem = CharPropertyArray[InCharIndex];
 	int startVertIndex = charPropertyItem.StartVertIndex;
 	int endVertIndex = charPropertyItem.StartVertIndex + charPropertyItem.VertCount;
 
 	for (int vertIndex = startVertIndex; vertIndex < endVertIndex; vertIndex++)
 	{
-		auto& color = cacheVertices[vertIndex].color;
+		auto& color = vertices[vertIndex].Color;
 		color.A = InAlpha;
 	}
 }

@@ -32,7 +32,7 @@ public:
 	TWeakObjectPtr<UMaterialInterface> material = nullptr;
 
 	/** 
-	 * Clear data and keep memory, so when the data array do SetNumUninitialized (or similar function, which just change num by not memory), the origin data is still there.
+	 * Clear vertices and triangle indices data and keep memory, so when the data array do SetNumUninitialized (or similar function, which just change num by not memory), the origin data is still there.
 	 * eg. The following lines use InTriangleChanged to tell if we need to set actual data in triangles, after SetNumUninitialized, the old triangles value is good to use.
 	 *		
 			auto& triangles = uiGeo->triangles;

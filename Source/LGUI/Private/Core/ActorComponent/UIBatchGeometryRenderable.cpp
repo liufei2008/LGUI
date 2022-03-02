@@ -428,7 +428,7 @@ void UUIBatchGeometryRenderable::OnBeforeCreateOrUpdateGeometry()
 	}
 }
 
-DECLARE_CYCLE_STAT(TEXT("UUIBatchGeometryRenderable.OnUpdateGeometry"), STAT_BatchGeometryRenderable_OnUpdateGeometry, STATGROUP_LGUI);
+DECLARE_CYCLE_STAT(TEXT("UIBatchGeometryRenderable_Blueprint.OnUpdateGeometry"), STAT_BatchGeometryRenderable_OnUpdateGeometry, STATGROUP_LGUI);
 void UUIBatchGeometryRenderable::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
@@ -574,10 +574,7 @@ void ULGUIGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& InVerti
 	}
 #endif
 	auto& triangles = UIGeo->triangles;
-	if (triangles.Num() < InIndices.Num())
-	{
-		triangles.SetNumUninitialized(InIndices.Num());
-	}
+	triangles.SetNumUninitialized(InIndices.Num());
 	for (int i = 0; i < InIndices.Num(); i++)
 	{
 		triangles[i] = InIndices[i];
@@ -587,22 +584,10 @@ void ULGUIGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& InVerti
 	auto& originPositions = UIGeo->originPositions;
 	auto& originNormals = UIGeo->originNormals;
 	auto& originTangents = UIGeo->originTangents;
-	if (vertices.Num() < vertCount)
-	{
-		vertices.SetNumUninitialized(vertCount);
-	}
-	if (originPositions.Num() < vertCount)
-	{
-		originPositions.SetNumUninitialized(vertCount);
-	}
-	if (originNormals.Num() < vertCount)
-	{
-		originNormals.SetNumUninitialized(vertCount);
-	}
-	if (originTangents.Num() < vertCount)
-	{
-		originTangents.SetNumUninitialized(vertCount);
-	}
+	vertices.SetNumUninitialized(vertCount);
+	originPositions.SetNumUninitialized(vertCount);
+	originNormals.SetNumUninitialized(vertCount);
+	originTangents.SetNumUninitialized(vertCount);
 
 	for (int i = 0; i < vertCount; i++)
 	{
@@ -616,5 +601,95 @@ void ULGUIGeometryHelper::SetGeometry(const TArray<FLGUIGeometryVertex>& InVerti
 		vert.TextureCoordinate[1] = originVert.uv1;
 		vert.TextureCoordinate[2] = originVert.uv2;
 		vert.TextureCoordinate[3] = originVert.uv3;
+	}
+}
+
+void ULGUIGeometryHelper::AddVertexTriangleStream(const TArray<FLGUIGeometryVertex>& InVertexTriangleStream)
+{
+#if !UE_BUILD_SHIPPING
+	if ((InVertexTriangleStream.Num() % 3) != 0)
+	{
+		UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexTriangleStream]Indices count must be multiple of 3."));
+		return;
+	}
+	for (auto& vertex : InVertexTriangleStream)
+	{
+		if (vertex.position.ContainsNaN()
+			|| vertex.normal.ContainsNaN()
+			|| vertex.tangent.ContainsNaN()
+			|| vertex.uv0.ContainsNaN()
+			|| vertex.uv1.ContainsNaN()
+			|| vertex.uv2.ContainsNaN()
+			|| vertex.uv3.ContainsNaN()
+			)
+		{
+			UE_LOG(LGUI, Error, TEXT("[ULGUIUpdateGeometryHelper::AddVertexTriangleStream]Vertex data contains NaN!."));
+			return;
+		}
+	}
+#endif
+	auto& triangles = UIGeo->triangles;
+	auto& vertices = UIGeo->vertices;
+	auto& originPositions = UIGeo->originPositions;
+	auto& originNormals = UIGeo->originNormals;
+	auto& originTangents = UIGeo->originTangents;
+	auto vertCount = vertices.Num();
+	triangles.Reserve(InVertexTriangleStream.Num());
+	for (int i = 0; i < InVertexTriangleStream.Num(); i++)
+	{
+		triangles.Add(vertCount + i);
+	}
+
+	vertices.Reserve(InVertexTriangleStream.Num());
+	originPositions.Reserve(InVertexTriangleStream.Num());
+	originNormals.Reserve(InVertexTriangleStream.Num());
+	originTangents.Reserve(InVertexTriangleStream.Num());
+
+	for (int i = 0; i < InVertexTriangleStream.Num(); i++)
+	{
+		auto& originVert = InVertexTriangleStream[i];
+		originPositions.Add(originVert.position);
+		originNormals.Add(originVert.normal);
+		originTangents.Add(originVert.tangent);
+		FDynamicMeshVertex vert(FVector::ZeroVector);
+		vert.Color = originVert.color;
+		vert.TextureCoordinate[0] = originVert.uv0;
+		vert.TextureCoordinate[1] = originVert.uv1;
+		vert.TextureCoordinate[2] = originVert.uv2;
+		vert.TextureCoordinate[3] = originVert.uv3;
+		vertices.Add(vert);
+	}
+}
+
+void ULGUIGeometryHelper::ClearVerticesAndIndices()
+{
+	UIGeo->Clear();
+}
+
+void ULGUIGeometryHelper::GetVertexTriangleStream(TArray<FLGUIGeometryVertex>& OutVertexTriangleStream)
+{
+	auto& triangles = UIGeo->triangles;
+	auto& vertices = UIGeo->vertices;
+	auto& originPositions = UIGeo->originPositions;
+	auto& originNormals = UIGeo->originNormals;
+	auto& originTangents = UIGeo->originTangents;
+	auto vertCount = vertices.Num();
+	bool hasNormal = originNormals.Num() >= vertCount;
+	bool hasTangent = originTangents.Num() >= vertCount;
+	OutVertexTriangleStream.Reserve(triangles.Num());
+	for (int i = 0; i < triangles.Num(); i++)
+	{
+		FLGUIGeometryVertex vertex;
+		auto vertIndex = triangles[i];
+		auto& originVert = vertices[vertIndex];
+		vertex.uv0 = originVert.TextureCoordinate[0];
+		vertex.uv1 = originVert.TextureCoordinate[1];
+		vertex.uv2 = originVert.TextureCoordinate[2];
+		vertex.uv3 = originVert.TextureCoordinate[3];
+		vertex.color = originVert.Color;
+		vertex.position = originPositions[vertIndex];
+		if (hasNormal) vertex.normal = originNormals[vertIndex];
+		if (hasTangent) vertex.tangent = originTangents[vertIndex];
+		OutVertexTriangleStream.Add(vertex);
 	}
 }
