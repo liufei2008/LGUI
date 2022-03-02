@@ -48,7 +48,7 @@ protected:
 public:
 	virtual void Init() {};
 	virtual void Deinit() {};
-	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry) PURE_VIRTUAL(UUIEffectTextAnimation_Property::ApplyEffect, );
+	virtual void ApplyProperty(class UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry) PURE_VIRTUAL(UUIEffectTextAnimation_Property::ApplyEffect, );
 };
 
 //per character animation control for UIText
@@ -73,10 +73,9 @@ protected:
 	virtual void BeginPlay()override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 public:
-	virtual void ModifyUIGeometry(
-		TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-		bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
-		)override;
+	virtual void ModifyUIGeometry(UIGeometry& InGeometry
+		, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
+	)override;
 	class UUIText* GetUIText();
 
 	UFUNCTION(BlueprintCallable, Category = "LGUI")

@@ -39,7 +39,6 @@ public:
 	bool materialNeedToReassign = true;//once a mesh section is recreated, and the material is still valid, then we need to re-assign the material to newly created mesh section
 	bool textureChanged = true;
 
-	bool needToRebuildMesh = true;
 	bool needToUpdateVertex = true;
 	bool vertexPositionChanged = true;//if vertex position changed? use for update bounds
 
@@ -56,6 +55,5 @@ public:
 	TWeakObjectPtr<ULGUICanvas> manageCanvas;//this drawcall's manage canvas. a canvas could render by other canvas, but this manageCanvas stores the direct manage canvas, not the actual render canvas
 public:
 	void GetCombined(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles)const;
-	void UpdateData(TArray<FDynamicMeshVertex>& vertices, TArray<FLGUIIndexType>& triangles);
 	void CopyUpdateState(UUIDrawcall* Target);
 };

@@ -129,8 +129,7 @@ void UUIGeometryModifierBase::SetExecuteOrder()
 }
 
 void UUIGeometryModifierBase::ModifyUIGeometry(
-	TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-	bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged, bool InTransformChanged
+	UIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
 )
 {
 	if (GetClass()->HasAnyClassFlags(CLASS_CompiledFromBlueprint) || !GetClass()->HasAnyClassFlags(CLASS_Native))
@@ -140,21 +139,21 @@ void UUIGeometryModifierBase::ModifyUIGeometry(
 			GeometryModifierHelper = NewObject<ULGUIGeometryModifierHelper>(this);
 		}
 
-		GeometryModifierHelper->BeginModify(InGeometry, InOutOriginVerticesCount, InOutOriginTriangleIndicesCount);
-		ReceiveModifyUIGeometry(GeometryModifierHelper, InUVChanged, InColorChanged, InVertexPositionChanged, InTransformChanged);
-		GeometryModifierHelper->EndModify(InGeometry, InOutOriginVerticesCount, InOutOriginTriangleIndicesCount, OutTriangleChanged);
+		GeometryModifierHelper->BeginModify(InGeometry);
+		ReceiveModifyUIGeometry(GeometryModifierHelper, InTriangleChanged, InUVChanged, InColorChanged, InVertexPositionChanged);
+		GeometryModifierHelper->EndModify(InGeometry);
 	}
 }
 
 
-void ULGUIGeometryModifierHelper::BeginModify(TSharedPtr<UIGeometry> InGeometry, int32 InOriginVerticesCount, int32 InOriginTriangleIndicesCount)
+void ULGUIGeometryModifierHelper::BeginModify(UIGeometry& InGeometry)
 {
-	auto& vertices = InGeometry->vertices;
-	auto& originPositions = InGeometry->originPositions;
-	auto& originNormals = InGeometry->originNormals;
-	auto& originTangents = InGeometry->originTangents;
+	auto& vertices = InGeometry.vertices;
+	auto& originPositions = InGeometry.originPositions;
+	auto& originNormals = InGeometry.originNormals;
+	auto& originTangents = InGeometry.originTangents;
 
-	int vertCount = InOriginVerticesCount;
+	int vertCount = vertices.Num();
 	cacheVertices.SetNum(vertCount);
 	if (originNormals.Num() < vertCount)
 	{
@@ -177,20 +176,20 @@ void ULGUIGeometryModifierHelper::BeginModify(TSharedPtr<UIGeometry> InGeometry,
 		vert.normal = originNormals[i];
 		vert.tangent = originTangents[i];
 	}
-	auto& triangles = InGeometry->triangles;
-	int triangleIndicesCount = InOriginTriangleIndicesCount;
+	auto& triangles = InGeometry.triangles;
+	int triangleIndicesCount = triangles.Num();
 	cacheTriangleIndices.SetNum(triangleIndicesCount);
 	for (int i = 0; i < triangleIndicesCount; i++)
 	{
 		cacheTriangleIndices[i] = triangles[i];
 	}
 }
-void ULGUIGeometryModifierHelper::EndModify(TSharedPtr<UIGeometry> InGeometry, int32& OutOriginVerticesCount, int32& OutOriginTriangleIndicesCount, bool& OutTriangleChanged)
+void ULGUIGeometryModifierHelper::EndModify(UIGeometry& InGeometry)
 {
-	auto& vertices = InGeometry->vertices;
-	auto& originPositions = InGeometry->originPositions;
-	auto& originNormals = InGeometry->originNormals;
-	auto& originTangents = InGeometry->originTangents;
+	auto& vertices = InGeometry.vertices;
+	auto& originPositions = InGeometry.originPositions;
+	auto& originNormals = InGeometry.originNormals;
+	auto& originTangents = InGeometry.originTangents;
 
 #if !UE_BUILD_SHIPPING
 	for (auto& i : cacheTriangleIndices)
@@ -243,11 +242,10 @@ void ULGUIGeometryModifierHelper::EndModify(TSharedPtr<UIGeometry> InGeometry, i
 	{
 		originTangents.SetNumUninitialized(cacheVertices.Num());
 	}
-	auto& triangles = InGeometry->triangles;
+	auto& triangles = InGeometry.triangles;
 	if (cacheTriangleIndices.Num() > triangles.Num())
 	{
 		triangles.SetNumUninitialized(cacheTriangleIndices.Num());
-		OutTriangleChanged = true;
 	}
 	auto vertCount = cacheVertices.Num();
 	for (int i = 0; i < vertCount; i++)
@@ -267,9 +265,6 @@ void ULGUIGeometryModifierHelper::EndModify(TSharedPtr<UIGeometry> InGeometry, i
 	{
 		triangles[i] = cacheTriangleIndices[i];
 	}
-
-	OutOriginVerticesCount = cacheVertices.Num();
-	OutOriginTriangleIndicesCount = cacheTriangleIndices.Num();
 }
 
 

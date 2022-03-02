@@ -65,16 +65,12 @@ private:
 	uint8 bUVChanged : 1;
 protected:
 	TSharedPtr<FUIPostProcessRenderProxy> RenderProxy = nullptr;
-	/** create ui geometry */
-	virtual void OnCreateGeometry();
 	/** update ui geometry */
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+	virtual void OnUpdateGeometry(UIGeometry* InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 	/** update region vertex data */
 	virtual void UpdateRegionVertex();
 	TArray<FLGUIPostProcessCopyMeshRegionVertex> renderScreenToMeshRegionVertexArray;
 	TArray<FLGUIPostProcessVertex> renderMeshRegionToScreenVertexArray;
 
 	virtual void SendRegionVertexDataToRenderProxy();
-private:
-	void CreateGeometry();
 };

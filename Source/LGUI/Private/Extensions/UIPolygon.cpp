@@ -11,37 +11,210 @@ UUIPolygon::UUIPolygon(const FObjectInitializer& ObjectInitializer):Super(Object
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UUIPolygon::OnCreateGeometry()
+void UUIPolygon::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	Sides = FMath::Max(Sides, FullCycle ? 3 : 1);
-	UIGeometry::FromUIPolygon(this->GetWidth(), this->GetHeight(), this->GetPivot()
-		, StartAngle, EndAngle, Sides, UVType
-		, VertexOffsetArray, FullCycle
-		, GetFinalColor(), geometry, sprite->GetSpriteInfo()
-		, RenderCanvas->GetRequireNormal(), RenderCanvas->GetRequireTangent(), RenderCanvas->GetRequireUV1());
-}
-void UUIPolygon::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	if (InVertexPositionChanged || InVertexColorChanged || InVertexUVChanged)
+
+	auto& triangles = InGeo.triangles;
+	auto triangleCount = Sides * 3;
+	triangles.SetNumUninitialized(triangleCount);
+	if (InTriangleChanged)
 	{
-		UIGeometry::UpdateUIPolygonTriangle(geometry, Sides, FullCycle);
+		int index = 0;
+		if (FullCycle)
+		{
+			for (int i = 0; i < Sides - 1; i++)
+			{
+				triangles[index++] = 0;
+				triangles[index++] = i + 1;
+				triangles[index++] = i + 2;
+			}
+			triangles[index++] = 0;
+			triangles[index++] = Sides;
+			triangles[index++] = 1;
+		}
+		else
+		{
+			for (int i = 0; i < Sides; i++)
+			{
+				triangles[index++] = 0;
+				triangles[index++] = i + 1;
+				triangles[index++] = i + 2;
+			}
+		}
 	}
-	if (InVertexUVChanged)
+
+	auto& vertices = InGeo.vertices;
+	auto& originPositions = InGeo.originPositions;
+	int vertexCount = (FullCycle ? 1 : 2) + Sides;
+	vertices.SetNumZeroed(vertexCount);
+	originPositions.SetNumUninitialized(vertexCount);
+	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
-		UIGeometry::UpdateUIPolygonUV(StartAngle, EndAngle, Sides, UVType
-			, FullCycle
-			, geometry, sprite->GetSpriteInfo());
-	}
-	if (InVertexColorChanged)
-	{
-		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-	}
-	if (InVertexPositionChanged)
-	{
-		UIGeometry::UpdateUIPolygonVertex(this->GetWidth(), this->GetHeight(), this->GetPivot()
-			, StartAngle, EndAngle, Sides
-			, VertexOffsetArray, FullCycle
-			, geometry);
+		//vert offset
+		int VertexOffsetCount = FullCycle ? Sides : (Sides + 1);
+		if (VertexOffsetArray.Num() != VertexOffsetCount)
+		{
+			if (VertexOffsetArray.Num() > VertexOffsetCount)
+			{
+				VertexOffsetArray.SetNumZeroed(VertexOffsetCount);
+			}
+			else
+			{
+				for (int i = VertexOffsetArray.Num(); i < VertexOffsetCount; i++)
+				{
+					VertexOffsetArray.Add(1.0f);
+				}
+			}
+		}
+
+		float calcStartAngle = StartAngle, calcEndAngle = EndAngle;
+		if (InVertexPositionChanged)
+		{
+			auto width = this->GetWidth();
+			auto height = this->GetHeight();
+			auto pivot = this->GetPivot();
+			//pivot offset
+			float pivotOffsetX = 0, pivotOffsetY = 0;
+			UIGeometry::CalculatePivotOffset(width, height, pivot, pivotOffsetX, pivotOffsetY);
+			float halfW = width * 0.5f;
+			float halfH = height * 0.5f;
+
+			if (FullCycle)calcEndAngle = calcStartAngle + 360.0f;
+			float singleAngle = FMath::DegreesToRadians((calcEndAngle - calcStartAngle) / Sides);
+			float angle = FMath::DegreesToRadians(calcStartAngle);
+
+			float sin = FMath::Sin(angle);
+			float cos = FMath::Cos(angle);
+
+			float x = pivotOffsetX;
+			float y = pivotOffsetY;
+			originPositions[0] = FVector(0, x, y);
+
+			for (int i = 0, count = Sides; i < count; i++)
+			{
+				sin = FMath::Sin(angle);
+				cos = FMath::Cos(angle);
+				x = cos * halfW * VertexOffsetArray[i] + pivotOffsetX;
+				y = sin * halfH * VertexOffsetArray[i] + pivotOffsetY;
+				originPositions[i + 1] = FVector(0, x, y);
+				angle += singleAngle;
+			}
+			if (!FullCycle)
+			{
+				sin = FMath::Sin(angle);
+				cos = FMath::Cos(angle);
+				x = cos * halfW * VertexOffsetArray[Sides] + pivotOffsetX;
+				y = sin * halfH * VertexOffsetArray[Sides] + pivotOffsetY;
+				originPositions[Sides + 1] = FVector(0, x, y);
+			}
+		}
+
+		if (InVertexUVChanged)
+		{
+			auto spriteInfo = this->GetSprite()->GetSpriteInfo();
+			switch (UVType)
+			{
+			case UIPolygonUVType::SpriteRect:
+			{
+				if (FullCycle)calcEndAngle = calcStartAngle + 360.0f;
+				float singleAngle = FMath::DegreesToRadians((calcEndAngle - calcStartAngle) / Sides);
+				float angle = FMath::DegreesToRadians(calcStartAngle);
+
+				float sin = FMath::Sin(angle);
+				float cos = FMath::Cos(angle);
+
+				float halfUVWidth = (spriteInfo.uv3X - spriteInfo.uv0X) * 0.5f;
+				float halfUVHeight = (spriteInfo.uv3Y - spriteInfo.uv0Y) * 0.5f;
+				float centerUVX = (spriteInfo.uv0X + spriteInfo.uv3X) * 0.5f;
+				float centerUVY = (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f;
+
+				float x = centerUVX;
+				float y = centerUVY;
+				vertices[0].TextureCoordinate[0] = FVector2D(x, y);
+
+				int count = FullCycle ? Sides : (Sides + 1);
+				for (int i = 0; i < count; i++)
+				{
+					sin = FMath::Sin(angle);
+					cos = FMath::Cos(angle);
+					x = cos * halfUVWidth + centerUVX;
+					y = sin * halfUVHeight + centerUVY;
+					vertices[i + 1].TextureCoordinate[0] = FVector2D(x, y);
+					angle += singleAngle;
+				}
+			}
+			break;
+			case UIPolygonUVType::HeightCenter:
+			{
+				vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+				FVector2D otherUV(spriteInfo.uv3X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+				for (int i = 1; i < vertexCount; i++)
+				{
+					vertices[i].TextureCoordinate[0] = otherUV;
+				}
+			}
+			break;
+			case UIPolygonUVType::StretchSpriteHeight:
+			{
+				vertices[0].TextureCoordinate[0] = FVector2D(spriteInfo.uv0X, (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f);
+				float uvX = spriteInfo.uv3X;
+				float uvY = spriteInfo.uv0Y;
+				float uvYInterval = (spriteInfo.uv3Y - spriteInfo.uv0Y) / (vertexCount - 2);
+				for (int i = 1; i < vertexCount; i++)
+				{
+					auto& uv = vertices[i].TextureCoordinate[0];
+					uv.X = uvX;
+					uv.Y = uvY;
+					uvY += uvYInterval;
+				}
+			}
+			break;
+			}
+		}
+
+		if (InVertexColorChanged)
+		{
+			UIGeometry::UpdateUIColor(&InGeo, GetFinalColor());
+		}
+
+		//@todo: optimize these additional data
+		{
+			//normals
+			if (RenderCanvas->GetRequireNormal())
+			{
+				auto& normals = InGeo.originNormals;
+				if (normals.Num() == 0)
+				{
+					normals.Reserve(vertexCount);
+					for (int i = 0; i < vertexCount; i++)
+					{
+						normals.Add(FVector(-1, 0, 0));
+					}
+				}
+			}
+			//tangents
+			if (RenderCanvas->GetRequireTangent())
+			{
+				auto& tangents = InGeo.originNormals;
+				if (tangents.Num() == 0)
+				{
+					tangents.Reserve(vertexCount);
+					for (int i = 0; i < vertexCount; i++)
+					{
+						tangents.Add(FVector(0, 1, 0));
+					}
+				}
+			}
+			//uv1
+			if (RenderCanvas->GetRequireUV1())
+			{
+				for (int i = 0; i < vertexCount; i++)
+				{
+					vertices[i].TextureCoordinate[1] = FVector2D(0, 1);
+				}
+			}
+		}
 	}
 }
 

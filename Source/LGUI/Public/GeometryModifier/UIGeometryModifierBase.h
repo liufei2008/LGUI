@@ -29,8 +29,8 @@ public:
 		TArray<FLGUIGeometryVertex> cacheVertices;
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "LGUI")
 		TArray<int32> cacheTriangleIndices;
-	void BeginModify(TSharedPtr<UIGeometry> InUIGeometry, int32 InOriginVerticesCount, int32 InOriginTriangleIndicesCount);
-	void EndModify(TSharedPtr<UIGeometry> InUIGeometry, int32& OutOriginVerticesCount, int32& OutOriginTriangleIndicesCount, bool& OutTriangleChanged);
+	void BeginModify(UIGeometry& InUIGeometry);
+	void EndModify(UIGeometry& InUIGeometry);
 
 	/** Get character's center position in UIText's rect range, and convert to 0-1 range (left is 0 and right is 1) */
 	UFUNCTION(BlueprintCallable, Category = "LGUI")
@@ -118,22 +118,32 @@ public:
 		void SetExecuteOrder();
 	/**
 	 * Modify UI geometry's vertex and triangle.
-	 * @param	InOutOriginVerticesCount	orign vertex count; after modify, new vertex count must be set to this
-	 * @param	InOutOriginTriangleIndicesCount		orign triangle indices count; after modify, new triangle indices count must be set to this
-	 * @param	OutTriangleChanged		if this modifier affect triangle, then set this to true
+	 * @param	InTriangleChanged		triangle changed
 	 * @param	InUVChanged			vertex uv changed
 	 * @param	InColorChanged			vertex color changed
 	 * @param	InVertexPositionChanged			vertex position changed
 	 * @param	InTransformChanged			object's transform changed
 	 */
 	virtual void ModifyUIGeometry(
-		TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-		bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged, bool InTransformChanged
+		UIGeometry& InGeometry
+		, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
 	);
+	/**
+	 * Will this modifier affect these geometry data? Save some calculation if not affect.
+	 * For blueprint just make all to true, for easier use.
+	 */
+	virtual void ModifierWillChangeVertexData(bool& OutTriangleIndices, bool& OutVertexPosition, bool& OutUV, bool& OutColor)
+	{
+		OutTriangleIndices = true;
+		OutVertexPosition = true;
+		OutUV = true;
+		OutColor = true;
+	}
 protected:
 	UPROPERTY(Transient) ULGUIGeometryModifierHelper* GeometryModifierHelper = nullptr;
 	/**
 	 * Modify UI geometry's vertex and triangle.
+	 * @param	InTriangleChanged			triangle changed
 	 * @param	InUVChanged			vertex uv changed
 	 * @param	InColorChanged			vertex color changed
 	 * @param	InVertexPositionChanged			vertex position changed
@@ -141,6 +151,6 @@ protected:
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "ModifyUIGeometry"))
 		void ReceiveModifyUIGeometry(ULGUIGeometryModifierHelper* InGeometryModifierHelper
-			, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged, bool InTransformChanged
+			, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
 		);
 };

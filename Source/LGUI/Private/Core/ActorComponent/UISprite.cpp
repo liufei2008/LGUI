@@ -57,184 +57,78 @@ void UUISprite::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
 	}
 }
 #endif
-void UUISprite::OnCreateGeometry()
+
+void UUISprite::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	switch (type)
 	{
 	case UISpriteType::Normal:
-		UIGeometry::FromUIRectSimple(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, sprite->GetSpriteInfo(), RenderCanvas.Get(), this);
+		UIGeometry::UpdateUIRectSimpleVertex(&InGeo, 
+			this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), RenderCanvas.Get(), this, GetFinalColor(), 
+			InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+		);
 		break;
 	case UISpriteType::Sliced:
 	case UISpriteType::SlicedFrame:
-	{
-		UIGeometry::FromUIRectBorder(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, sprite->GetSpriteInfo(), RenderCanvas.Get(), this, type == UISpriteType::Sliced);
-	}
+		if (sprite->GetSpriteInfo().HasBorder())
+		{
+			UIGeometry::UpdateUIRectBorderVertex(&InGeo, type == UISpriteType::Sliced, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), RenderCanvas.Get(), this, GetFinalColor(),
+				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+			);
+		}
+		else
+		{
+			UIGeometry::UpdateUIRectSimpleVertex(&InGeo,
+				this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), RenderCanvas.Get(), this, GetFinalColor(),
+				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+			);
+		}
 	break;
 	case UISpriteType::Tiled:
-	{
 		if (!sprite->IsIndividual())
 		{
-			CalculateTiledWidth();
-			CalculateTiledHeight();
-			UIGeometry::FromUIRectTiled(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize, geometry, sprite->GetSpriteInfo(), RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectTiledVertex(&InGeo, sprite->GetSpriteInfo(), RenderCanvas.Get(), this, this->GetWidth(), this->GetHeight(), this->GetPivot(), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize, GetFinalColor(), 
+				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+			);
 		}
 		else
 		{
 			FLGUISpriteInfo tempSpriteInfo;
 			tempSpriteInfo.ApplyUV(0, 0, this->GetWidth(), this->GetHeight(), 1.0f / sprite->GetSpriteInfo().width, 1.0f / sprite->GetSpriteInfo().height);
-			UIGeometry::FromUIRectSimple(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, tempSpriteInfo, RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectSimpleVertex(&InGeo,
+				this->GetWidth(), this->GetHeight(), this->GetPivot(), tempSpriteInfo, RenderCanvas.Get(), this, GetFinalColor(),
+				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+			);
 		}
-	}
-	break;
+		break;
 	case UISpriteType::Filled:
 	{
 		switch (fillMethod)
 		{
 		case UISpriteFillMethod::Horizontal:
-			UIGeometry::FromUIRectFillHorizontalVertical(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, true, RenderCanvas.Get(), this);
-			break;
 		case UISpriteFillMethod::Vertical:
-			UIGeometry::FromUIRectFillHorizontalVertical(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, false, RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(&InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, fillMethod == UISpriteFillMethod::Horizontal, RenderCanvas.Get(), this, GetFinalColor(),
+				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+			);
 			break;
 		case UISpriteFillMethod::Radial90:
-			UIGeometry::FromUIRectFillRadial90(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial90)fillOrigin, RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectFillRadial90Vertex(&InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial90)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
+				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+			);
 			break;
 		case UISpriteFillMethod::Radial180:
-			UIGeometry::FromUIRectFillRadial180(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial180)fillOrigin, RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectFillRadial180Vertex(&InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial180)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
+				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+			);
 			break;
 		case UISpriteFillMethod::Radial360:
-			UIGeometry::FromUIRectFillRadial360(this->GetWidth(), this->GetHeight(), this->GetPivot(), GetFinalColor(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial360)fillOrigin, RenderCanvas.Get(), this);
+			UIGeometry::UpdateUIRectFillRadial360Vertex(&InGeo, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial360)fillOrigin, RenderCanvas.Get(), this, GetFinalColor(),
+				InTriangleChanged, InVertexPositionChanged, InVertexUVChanged, InVertexColorChanged
+			);
 			break;
 		}
 	}
 	break;
-	}
-}
-void UUISprite::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
-{
-	//ensure triangle data
-	if (InVertexPositionChanged || InVertexUVChanged || InVertexColorChanged)
-	{
-		switch (type)
-		{
-		case UISpriteType::Normal:
-			UIGeometry::UpdateUIRectSimpleTriangle(geometry);
-			break;
-		case UISpriteType::Sliced:
-		case UISpriteType::SlicedFrame:
-			UIGeometry::UpdateUIRectBorderTriangle(geometry, type == UISpriteType::Sliced);
-		break;
-		case UISpriteType::Tiled:
-			UIGeometry::UpdateUIRectTiledTriangle(geometry, Tiled_WidthRectCount * Tiled_HeightRectCount);
-			break;
-		case UISpriteType::Filled:
-		{
-			switch (fillMethod)
-			{
-			case UISpriteFillMethod::Horizontal:
-			case UISpriteFillMethod::Vertical:
-				UIGeometry::UpdateUIRectFillHorizontalVerticalTriangle(geometry);
-				break;
-			case UISpriteFillMethod::Radial90:
-				UIGeometry::UpdateUIRectFillRadial90Triangle(geometry);
-				break;
-			case UISpriteFillMethod::Radial180:
-				UIGeometry::UpdateUIRectFillRadial180Triangle(geometry, (UISpriteFillOriginType_Radial180)fillOrigin);
-				break;
-			case UISpriteFillMethod::Radial360:
-				UIGeometry::UpdateUIRectFillRadial360Triangle(geometry, (UISpriteFillOriginType_Radial360)fillOrigin);
-				break;
-			}
-		}
-		break;
-		}
-	}
-
-	//update vertex data
-	switch (type)
-	{
-	case UISpriteType::Normal:
-	{
-		if (InVertexPositionChanged)
-		{
-			UIGeometry::UpdateUIRectSimpleVertex(geometry, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), RenderCanvas.Get(), this);
-		}
-		if (InVertexUVChanged)
-		{
-			UIGeometry::UpdateUIRectSimpleUV(geometry, sprite->GetSpriteInfo());
-		}
-	}
-	break;
-	case UISpriteType::Sliced:
-	case UISpriteType::SlicedFrame:
-	{
-		if (InVertexPositionChanged)
-		{
-			UIGeometry::UpdateUIRectBorderVertex(geometry, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), RenderCanvas.Get(), this);
-		}
-		if (InVertexUVChanged)
-		{
-			UIGeometry::UpdateUIRectBorderUV(geometry, sprite->GetSpriteInfo());
-		}
-	}
-	break;
-	case UISpriteType::Tiled:
-	{
-		if (InVertexPositionChanged)
-		{
-			if (!sprite->IsIndividual())
-			{
-				UIGeometry::UpdateUIRectTiledVertex(geometry, sprite->GetSpriteInfo(), RenderCanvas.Get(), this, this->GetWidth(), this->GetHeight(), this->GetPivot(), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize);
-			}
-			else
-			{
-				UIGeometry::UpdateUIRectSimpleVertex(geometry, this->GetWidth(), this->GetHeight(), this->GetPivot(), sprite->GetSpriteInfo(), RenderCanvas.Get(), this);
-			}
-		}
-		if (InVertexUVChanged)
-		{
-			if (!sprite->IsIndividual())
-			{
-				UIGeometry::UpdateUIRectTiledUV(geometry, sprite->GetSpriteInfo(), Tiled_WidthRectCount, Tiled_HeightRectCount, Tiled_WidthRemainedRectSize, Tiled_HeightRemainedRectSize);
-			}
-			else
-			{
-				FLGUISpriteInfo tempSpriteInfo;
-				tempSpriteInfo.ApplyUV(0, 0, this->GetWidth(), this->GetHeight(), 1.0f / sprite->GetSpriteInfo().width, 1.0f / sprite->GetSpriteInfo().height);
-				UIGeometry::UpdateUIRectSimpleUV(geometry, tempSpriteInfo);
-			}
-		}
-	}
-	break;
-	case UISpriteType::Filled:
-	{
-		if (InVertexPositionChanged || InVertexUVChanged)
-		{
-			switch (fillMethod)
-			{
-			case UISpriteFillMethod::Horizontal:
-				UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(this->GetWidth(), this->GetHeight(), this->GetPivot(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, true, InVertexPositionChanged, InVertexUVChanged, RenderCanvas.Get(), this);
-				break;
-			case UISpriteFillMethod::Vertical:
-				UIGeometry::UpdateUIRectFillHorizontalVerticalVertex(this->GetWidth(), this->GetHeight(), this->GetPivot(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, false, InVertexPositionChanged, InVertexUVChanged, RenderCanvas.Get(), this);
-				break;
-			case UISpriteFillMethod::Radial90:
-				UIGeometry::UpdateUIRectFillRadial90Vertex(this->GetWidth(), this->GetHeight(), this->GetPivot(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial90)fillOrigin, InVertexPositionChanged, InVertexUVChanged, RenderCanvas.Get(), this);
-				break;
-			case UISpriteFillMethod::Radial180:
-				UIGeometry::UpdateUIRectFillRadial180Vertex(this->GetWidth(), this->GetHeight(), this->GetPivot(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial180)fillOrigin, InVertexPositionChanged, InVertexUVChanged, RenderCanvas.Get(), this);
-				break;
-			case UISpriteFillMethod::Radial360:
-				UIGeometry::UpdateUIRectFillRadial360Vertex(this->GetWidth(), this->GetHeight(), this->GetPivot(), geometry, sprite->GetSpriteInfo(), fillDirectionFlip, fillAmount, (UISpriteFillOriginType_Radial360)fillOrigin, InVertexPositionChanged, InVertexUVChanged, RenderCanvas.Get(), this);
-				break;
-			}
-		}
-	}
-	break;
-	}
-	if (InVertexColorChanged)
-	{
-		UIGeometry::UpdateUIColor(geometry, GetFinalColor());
 	}
 }
 

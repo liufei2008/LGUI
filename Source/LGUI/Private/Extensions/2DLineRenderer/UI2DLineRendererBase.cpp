@@ -19,19 +19,11 @@ void UUI2DLineRendererBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UUI2DLineRendererBase::Update2DLineRendererBaseUV(const TArray<FVector2D>& InPointArray)
+void UUI2DLineRendererBase::Update2DLineRendererBaseUV(UIGeometry& InGeo, const TArray<FVector2D>& InPointArray)
 {
-	auto& vertices = geometry->vertices;
+	auto& vertices = InGeo.vertices;
 	int pointCount = InPointArray.Num();
-	if (vertices.Num() == 0)
-	{
-		int vertexCount = pointCount * 2;
-		if (EndType == EUI2DLineRenderer_EndType::Cap)
-		{
-			vertexCount += 4;
-		}
-		vertices.AddDefaulted(vertexCount);
-	}
+
 	const auto& spriteInfo = sprite->GetSpriteInfo();
 	float uvY = (spriteInfo.uv0Y + spriteInfo.uv3Y) * 0.5f;
 	int i = 0; 
@@ -67,24 +59,11 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseUV(const TArray<FVector2D>& 
 	}
 }
 
-void UUI2DLineRendererBase::Update2DLineRendererBaseTriangle(const TArray<FVector2D>& InPointArray)
+void UUI2DLineRendererBase::Update2DLineRendererBaseTriangle(UIGeometry& InGeo, const TArray<FVector2D>& InPointArray)
 {
 	int pointCount = InPointArray.Num();
-	auto& triangles = geometry->triangles;
-	if (triangles.Num() == 0)
-	{
-		int triangleIndicesCount = (pointCount - 1) * 2 * 3;
-		if (CanConnectStartEndPoint(pointCount))
-		{
-			triangleIndicesCount += 6;
-		}
-		else if (EndType == EUI2DLineRenderer_EndType::Cap)
-		{
-			triangleIndicesCount += 12;
-		}
-		geometry->originTriangleCount = triangleIndicesCount;
-		triangles.AddDefaulted(triangleIndicesCount);
-	}
+	auto& triangles = InGeo.triangles;
+
 	int pointIndex = 0;
 	int vertIndex = 0, triangleIndex = 0;
 	for (int count = pointCount - 1; pointIndex < count; pointIndex++)
@@ -138,7 +117,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseTriangle(const TArray<FVecto
 	}
 }
 
-void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2D>& InPointArray)
+void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(UIGeometry& InGeo, const TArray<FVector2D>& InPointArray)
 {
 	int pointCount = InPointArray.Num();
 	//pivot offset
@@ -147,17 +126,7 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 	float halfW = this->GetWidth() * 0.5f;
 	float halfH = this->GetHeight() * 0.5f;
 	//positions
-	auto& originPositions = geometry->originPositions;
-	if (originPositions.Num() == 0)
-	{
-		int vertexCount = pointCount * 2;
-		if (EndType == EUI2DLineRenderer_EndType::Cap)
-		{
-			vertexCount += 4;
-		}
-		geometry->originVerticesCount = vertexCount;
-		originPositions.AddUninitialized(vertexCount);
-	}
+	auto& originPositions = InGeo.originPositions;
 
 	FVector2D pos0, pos1;
 	float lineLeftWidth = LineWidth * LineWidthOffset;
@@ -287,45 +256,6 @@ void UUI2DLineRendererBase::Update2DLineRendererBaseVertex(const TArray<FVector2
 		}
 	}
 }
-void UUI2DLineRendererBase::Generate2DLineGeometry(const TArray<FVector2D>& InPointArray)
-{
-	int pointCount = InPointArray.Num();
-	if (pointCount < 2)
-	{
-		geometry->Clear();
-		return;
-	}
-	
-	//triangles
-	Update2DLineRendererBaseTriangle(InPointArray);
-	//positions
-	Update2DLineRendererBaseVertex(InPointArray);
-	//uvs
-	Update2DLineRendererBaseUV(InPointArray);
-	//colors
-	UIGeometry::UpdateUIColor(geometry, GetFinalColor());
-
-	//not set anything for uv1
-	int vertexCount = geometry->vertices.Num();
-	//normals
-	if (RenderCanvas->GetRequireNormal())
-	{
-		auto& normals = geometry->originNormals;
-		if (normals.Num() == 0)
-		{
-			normals.AddDefaulted(vertexCount);
-		}
-	}
-	//tangents
-	if (RenderCanvas->GetRequireTangent())
-	{
-		auto& tangents = geometry->originTangents;
-		if (tangents.Num() == 0)
-		{
-			tangents.AddDefaulted(vertexCount);
-		}
-	}
-}
 
 void UUI2DLineRendererBase::GenerateLinePoint(const FVector2D& InCurrentPoint, const FVector2D& InPrevPoint, const FVector2D& InNextPoint
 	, float InLineLeftWidth, float InLineRightWidth
@@ -367,34 +297,75 @@ void UUI2DLineRendererBase::GenerateLinePoint(const FVector2D& InCurrentPoint, c
 }
 
 
-
-
-
-void UUI2DLineRendererBase::OnCreateGeometry()
-{
-	SCOPE_CYCLE_COUNTER(STAT_2DLineUpdate);
-	Generate2DLineGeometry(GetCalcaultedPointArray());
-}
-void UUI2DLineRendererBase::OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
+void UUI2DLineRendererBase::OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)
 {
 	SCOPE_CYCLE_COUNTER(STAT_2DLineUpdate);
 	auto& CurrentPointArray = GetCalcaultedPointArray();
-	if (InVertexPositionChanged || InVertexColorChanged || InVertexUVChanged)
+	int pointCount = CurrentPointArray.Num();
+	if (pointCount < 2)
 	{
-		Update2DLineRendererBaseTriangle(CurrentPointArray);
+		geometry->Clear();
+		return;
 	}
+	
+	auto& triangles = InGeo.triangles;
+	int triangleIndicesCount = (pointCount - 1) * 2 * 3;
+	if (CanConnectStartEndPoint(pointCount))
+	{
+		triangleIndicesCount += 6;
+	}
+	else if (EndType == EUI2DLineRenderer_EndType::Cap)
+	{
+		triangleIndicesCount += 12;
+	}
+	triangles.SetNumUninitialized(triangleIndicesCount);
+	if (InTriangleChanged)
+	{
+		Update2DLineRendererBaseTriangle(InGeo, CurrentPointArray);
+	}
+
+	auto& vertices = InGeo.vertices;
+	auto& originPositions = InGeo.originPositions;
+	int vertexCount = pointCount * 2;
+	if (EndType == EUI2DLineRenderer_EndType::Cap)
+	{
+		vertexCount += 4;
+	}
+	vertices.SetNumUninitialized(vertexCount);
+	originPositions.SetNumUninitialized(vertexCount);
+	if (InVertexUVChanged || InVertexPositionChanged || InVertexColorChanged)
 	{
 		if (InVertexPositionChanged)
 		{
-			Update2DLineRendererBaseVertex(CurrentPointArray);
-		}
-		if (InVertexColorChanged)
-		{
-			UIGeometry::UpdateUIColor(geometry, GetFinalColor());
+			Update2DLineRendererBaseVertex(InGeo, CurrentPointArray);
 		}
 		if (InVertexUVChanged)
 		{
-			Update2DLineRendererBaseUV(CurrentPointArray);
+			Update2DLineRendererBaseUV(InGeo, CurrentPointArray);
+		}
+		if (InVertexColorChanged)
+		{
+			UIGeometry::UpdateUIColor(&InGeo, GetFinalColor());
+		}
+
+		//not set anything for uv1
+		//normals
+		if (RenderCanvas->GetRequireNormal())
+		{
+			auto& normals = geometry->originNormals;
+			if (normals.Num() == 0)
+			{
+				normals.AddDefaulted(vertexCount);
+			}
+		}
+		//tangents
+		if (RenderCanvas->GetRequireTangent())
+		{
+			auto& tangents = geometry->originTangents;
+			if (tangents.Num() == 0)
+			{
+				tangents.AddDefaulted(vertexCount);
+			}
 		}
 	}
 }

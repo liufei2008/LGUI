@@ -8,55 +8,38 @@ UUIEffectShadow::UUIEffectShadow()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
-void UUIEffectShadow::ModifyUIGeometry(TSharedPtr<UIGeometry>& InGeometry, int32& InOutOriginVerticesCount, int32& InOutOriginTriangleIndicesCount, bool& OutTriangleChanged,
-	bool uvChanged, bool colorChanged, bool vertexPositionChanged, bool layoutChanged
-	)
+void UUIEffectShadow::ModifyUIGeometry(
+	UIGeometry& InGeometry, bool InTriangleChanged, bool InUVChanged, bool InColorChanged, bool InVertexPositionChanged
+)
 {
-	auto& triangles = InGeometry->triangles;
-	auto& originPositions = InGeometry->originPositions;
-	auto& vertices = InGeometry->vertices;
+	auto& triangles = InGeometry.triangles;
+	auto& originPositions = InGeometry.originPositions;
+	auto& vertices = InGeometry.vertices;
 
 	auto vertexCount = originPositions.Num();
 	int32 triangleCount = triangles.Num();
 	if (triangleCount == 0 || vertexCount == 0)return;
 	
-	const int32 singleChannelTriangleIndicesCount = InOutOriginTriangleIndicesCount;
-	const int32 singleChannelVerticesCount = InOutOriginVerticesCount;
-	InOutOriginTriangleIndicesCount = singleChannelTriangleIndicesCount + singleChannelTriangleIndicesCount;
-	if (singleChannelTriangleIndicesCount == triangleCount)//trangle count should have changed after apply this modifier
+	const int32 singleChannelTriangleIndicesCount = triangleCount;
+	const int32 singleChannelVerticesCount = vertexCount;
+	//create additional triangle pass
+	triangles.AddUninitialized(singleChannelTriangleIndicesCount);
+	//put orgin triangles on last pass, this will make the origin triangle render at top
+	for (int i = singleChannelTriangleIndicesCount, j = 0; j < singleChannelTriangleIndicesCount; i++, j++)
 	{
-		//create additional triangle pass
-		OutTriangleChanged = true;
-		triangles.AddUninitialized(singleChannelTriangleIndicesCount);
-		//put orgin triangles on last pass, this will make the origin triangle render at top
-		for (int i = singleChannelTriangleIndicesCount, j = 0; j < singleChannelTriangleIndicesCount; i++, j++)
-		{
-			auto index = triangles[j];
-			triangles[i] = index;
-			triangles[j] = index + singleChannelVerticesCount;
-		}
-	}
-	else
-	{
-		//update triangle is slightly different from create triangle data
-		for (int i = singleChannelTriangleIndicesCount, j = 0; j < singleChannelTriangleIndicesCount; i++, j++)
-		{
-			triangles[j] = triangles[i] + singleChannelVerticesCount;
-		}
+		auto index = triangles[j];
+		triangles[i] = index;
+		triangles[j] = index + singleChannelVerticesCount;
 	}
 	
-	if (singleChannelVerticesCount == vertexCount)
+	vertexCount = singleChannelVerticesCount + singleChannelVerticesCount;
+	originPositions.Reserve(vertexCount);
+	vertices.Reserve(vertexCount);
+	for (int i = singleChannelVerticesCount; i < vertexCount; i++)
 	{
-		vertexCount = singleChannelVerticesCount + singleChannelVerticesCount;
-		originPositions.Reserve(vertexCount);
-		vertices.Reserve(vertexCount);
-		for (int i = singleChannelVerticesCount; i < vertexCount; i++)
-		{
-			originPositions.Add(FVector());
-			vertices.Add(FVector());
-		}
+		originPositions.Add(FVector());
+		vertices.Add(FVector());
 	}
-	InOutOriginVerticesCount = singleChannelVerticesCount + singleChannelVerticesCount;
 
 	for (int channelIndex1 = singleChannelVerticesCount, channelIndexOrigin = 0; channelIndex1 < vertexCount; channelIndex1++, channelIndexOrigin++)
 	{

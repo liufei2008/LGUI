@@ -155,10 +155,10 @@ void UUIEffectTextAnimation_PropertyWithEase::SetEaseCurve(UCurveFloat* value)
 	}
 }
 
-void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = OutGeometry->originPositions;
+	auto& vertPositions = InGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -175,11 +175,11 @@ void UUIEffectTextAnimation_PositionProperty::ApplyProperty(UUIText* InUIText, c
 	}
 }
 
-void UUIEffectTextAnimation_PositionRandomProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_PositionRandomProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	FMath::RandInit(seed);
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = OutGeometry->originPositions;
+	auto& vertPositions = InGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -197,10 +197,10 @@ void UUIEffectTextAnimation_PositionRandomProperty::ApplyProperty(UUIText* InUIT
 	}
 }
 
-void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = OutGeometry->originPositions;
+	auto& vertPositions = InGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -225,11 +225,11 @@ void UUIEffectTextAnimation_RotationProperty::ApplyProperty(UUIText* InUIText, c
 	}
 }
 
-void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	FMath::RandInit(seed);
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = OutGeometry->originPositions;
+	auto& vertPositions = InGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -255,10 +255,10 @@ void UUIEffectTextAnimation_RotationRandomProperty::ApplyProperty(UUIText* InUIT
 	}
 }
 
-void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = OutGeometry->originPositions;
+	auto& vertPositions = InGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -283,11 +283,11 @@ void UUIEffectTextAnimation_ScaleProperty::ApplyProperty(UUIText* InUIText, cons
 	}
 }
 
-void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	FMath::RandInit(seed);
 	auto easeFunction = GetEaseFunction();
-	auto& vertPositions = OutGeometry->originPositions;
+	auto& vertPositions = InGeometry->originPositions;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -313,10 +313,10 @@ void UUIEffectTextAnimation_ScaleRandomProperty::ApplyProperty(UUIText* InUIText
 	}
 }
 
-void UUIEffectTextAnimation_AlphaProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_AlphaProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	auto easeFunction = GetEaseFunction();
-	auto& vertices = OutGeometry->vertices;
+	auto& vertices = InGeometry->vertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{
@@ -333,10 +333,10 @@ void UUIEffectTextAnimation_AlphaProperty::ApplyProperty(UUIText* InUIText, cons
 	}
 }
 
-void UUIEffectTextAnimation_ColorProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_ColorProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	auto easeFunction = GetEaseFunction();
-	auto& vertices = OutGeometry->vertices;
+	auto& vertices = InGeometry->vertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	FVector colorHsv;
 	if (useHSV)
@@ -384,11 +384,11 @@ void UUIEffectTextAnimation_ColorProperty::SetUseHSV(bool value)
 	}
 }
 
-void UUIEffectTextAnimation_ColorRandomProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, TSharedPtr<UIGeometry> OutGeometry)
+void UUIEffectTextAnimation_ColorRandomProperty::ApplyProperty(UUIText* InUIText, const FUIEffectTextAnimation_SelectResult& InSelection, UIGeometry* InGeometry)
 {
 	FMath::RandInit(seed);
 	auto easeFunction = GetEaseFunction();
-	auto& vertices = OutGeometry->vertices;
+	auto& vertices = InGeometry->vertices;
 	auto& charProperties = InUIText->GetCharPropertyArray();
 	for (int charIndex = InSelection.startCharIndex; charIndex < InSelection.endCharCount; charIndex++)
 	{

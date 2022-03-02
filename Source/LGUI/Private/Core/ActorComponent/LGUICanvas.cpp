@@ -617,7 +617,7 @@ void ULGUICanvas::RemoveUIRenderable(UUIBaseRenderable* UIRenderableItem)
 				if (index != INDEX_NONE)
 				{
 					Drawcall->renderObjectList.RemoveAt(index);
-					Drawcall->needToRebuildMesh = true;
+					Drawcall->needToUpdateVertex = true;
 				}
 			}
 			break;
@@ -882,6 +882,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 			{
 			case EUIDrawcallType::BatchGeometry:
 			{
+				DrawcallItem->needToUpdateVertex = true;
 				DrawcallItem->texture = InItemGeo->texture;
 				DrawcallItem->material = InItemGeo->material.Get();
 				DrawcallItem->renderObjectList.Add((UUIBatchGeometryRenderable*)InUIItem);
@@ -925,7 +926,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 				InDrawcallItem->drawcallMeshSection.Reset();
 			}
 		}
-		InDrawcallItem->needToRebuildMesh = true;
+		InDrawcallItem->needToUpdateVertex = true;
 		InDrawcallItem->materialNeedToReassign = true;
 		InDrawcallItem->renderObjectList.Remove(InUIBatchGeometryRenderable);
 		InUIBatchGeometryRenderable->drawcall = nullptr;
@@ -981,7 +982,7 @@ void ULGUICanvas::UpdateDrawcall_Implement(ULGUICanvas* InRenderCanvas, TArray<T
 						}
 						//add to this drawcall
 						DrawcallItem->renderObjectList.Add(UIBatchGeometryRenderableItem);
-						DrawcallItem->needToRebuildMesh = true;
+						DrawcallItem->needToUpdateVertex = true;
 						UIBatchGeometryRenderableItem->drawcall = DrawcallItem;
 						//copy update state from old to new
 						if (OldDrawcall.IsValid())
@@ -1080,7 +1081,7 @@ void ULGUICanvas::SetDefaultMeshType(TSubclassOf<ULGUIMeshComponent> InValue)
 		for (int i = 0; i < UIDrawcallList.Num(); i++)
 		{
 			auto DrawcallItem = UIDrawcallList[i];
-			DrawcallItem->needToRebuildMesh = true;
+			DrawcallItem->needToUpdateVertex = true;
 			DrawcallItem->drawcallMeshSection = nullptr;
 			DrawcallItem->drawcallMesh = nullptr;
 			DrawcallItem->materialChanged = true;//material is directly used by mesh
@@ -1403,7 +1404,7 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 					});
 				DrawcallItem->needToUpdateVertex = true;
 			}
-			if (DrawcallItem->needToRebuildMesh)
+			if (DrawcallItem->needToUpdateVertex)
 			{
 				if (!MeshSection.IsValid())
 				{
@@ -1414,27 +1415,15 @@ void ULGUICanvas::UpdateDrawcallMesh_Implement()
 				MeshSectionPtr->vertices.Reset();
 				MeshSectionPtr->triangles.Reset();
 				DrawcallItem->GetCombined(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
-				MeshSectionPtr->prevVertexCount = MeshSectionPtr->vertices.Num();
-				MeshSectionPtr->prevIndexCount = MeshSectionPtr->triangles.Num();
-				UIMesh->CreateMeshSectionData(MeshSectionPtr);
-				DrawcallItem->needToRebuildMesh = false;
-				DrawcallItem->needToUpdateVertex = false;
-				DrawcallItem->vertexPositionChanged = false;
-			}
-			else if (DrawcallItem->needToUpdateVertex)
-			{
-				auto MeshSectionPtr = MeshSection.Pin();
-				DrawcallItem->UpdateData(MeshSectionPtr->vertices, MeshSectionPtr->triangles);
-				if (MeshSectionPtr->prevVertexCount == MeshSectionPtr->vertices.Num() && MeshSectionPtr->prevIndexCount == MeshSectionPtr->triangles.Num())
+				if (MeshSectionPtr->prevVertexCount != MeshSectionPtr->vertices.Num() || MeshSectionPtr->prevIndexCount != MeshSectionPtr->triangles.Num())
 				{
-					UIMesh->UpdateMeshSectionData(MeshSectionPtr, true, GetActualAdditionalShaderChannelFlags());
+					MeshSectionPtr->prevVertexCount = MeshSectionPtr->vertices.Num();
+					MeshSectionPtr->prevIndexCount = MeshSectionPtr->triangles.Num();
+					UIMesh->CreateMeshSectionData(MeshSectionPtr);
 				}
 				else
 				{
-					check(0);//this should not happen
-					//meshSection->prevVertexCount = meshSection->vertices.Num();
-					//meshSection->prevIndexCount = meshSection->triangles.Num();
-					//UIMesh->CreateMeshSectionData(meshSection);
+					UIMesh->UpdateMeshSectionData(MeshSectionPtr, true, GetActualAdditionalShaderChannelFlags());
 				}
 				DrawcallItem->needToUpdateVertex = false;
 				DrawcallItem->vertexPositionChanged = false;

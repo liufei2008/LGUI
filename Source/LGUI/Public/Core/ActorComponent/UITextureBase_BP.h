@@ -20,18 +20,14 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 protected:
 	virtual void OnBeforeCreateOrUpdateGeometry()override;
-	virtual void OnCreateGeometry()override;
-	virtual void OnUpdateGeometry(bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
+	virtual void OnUpdateGeometry(UIGeometry& InGeo, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged)override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnBeforeCreateOrUpdateGeometry"))
 		void ReceiveOnBeforeCreateOrUpdateGeometry();
-	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnCreateGeometry"))
-		void ReceiveOnCreateGeometry(ULGUICreateGeometryHelper* InCreateGeometryHelper);
 	/** update geometry data. Do Not add or remove any vertex or triangles in this function */
 	UFUNCTION(BlueprintImplementableEvent, Category = "LGUI", meta = (DisplayName = "OnUpdateGeometry"))
-		void ReceiveOnUpdateGeometry(ULGUIUpdateGeometryHelper* InUpdateGoemetryHelper, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
+		void ReceiveOnUpdateGeometry(ULGUICreateGeometryHelper* InGoemetryHelper, bool InTriangleChanged, bool InVertexPositionChanged, bool InVertexUVChanged, bool InVertexColorChanged);
 
 protected:
 	UPROPERTY(Transient)ULGUICreateGeometryHelper* createGeometryHelper;
-	UPROPERTY(Transient)ULGUIUpdateGeometryHelper* updateGeometryHelper;
 };
