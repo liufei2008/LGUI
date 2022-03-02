@@ -109,9 +109,7 @@ public:
 	void ApplyFontTextureChange();
 	void ApplyRecreateText();
 
-	virtual void MarkVertexPositionDirty()override;
-	virtual void MarkUVDirty()override;
-	virtual void MarkTriangleDirty()override;
+	virtual void MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty)override;
 	virtual void MarkTextureDirty()override;
 
 	FORCEINLINE static bool IsVisibleChar(TCHAR character)

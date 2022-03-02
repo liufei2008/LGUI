@@ -149,7 +149,7 @@ void UUISprite::OnAnchorChange(bool InPivotChange, bool InSizeChange, bool InDis
         if (InPivotChange || InSizeChange)
         {
 			MarkVertexPositionDirty();
-        }
+		}
     }
 }
 
@@ -163,9 +163,7 @@ void UUISprite::CalculateTiledWidth()
 			{
 				Tiled_WidthRectCount = 0;
 				Tiled_WidthRemainedRectSize = 0;
-				MarkTriangleDirty();
-				MarkVertexPositionDirty();
-				MarkUVDirty();
+				MarkVerticesDirty(true, true, true, false);
 			}
 			return;
 		}
@@ -174,20 +172,18 @@ void UUISprite::CalculateTiledWidth()
 		if (widthCount != Tiled_WidthRectCount)
 		{
 			Tiled_WidthRectCount = widthCount;
-			MarkTriangleDirty();
+			MarkVerticesDirty(true, true, true, false);
 		}
 		float remainedWidth = (widthCountFloat - (widthCount - 1)) * sprite->GetSpriteInfo().width;//not-full-size rect's width
 		if (remainedWidth != Tiled_WidthRemainedRectSize)
 		{
 			Tiled_WidthRemainedRectSize = remainedWidth;
-			MarkVertexPositionDirty();
-			MarkUVDirty();
+			MarkVerticesDirty(false, true, true, false);
 		}
 	}
 	else
 	{
-		MarkVertexPositionDirty();
-		MarkUVDirty();
+		MarkVerticesDirty(false, true, true, false);
 	}
 }
 void UUISprite::CalculateTiledHeight()
@@ -200,9 +196,7 @@ void UUISprite::CalculateTiledHeight()
 			{
 				Tiled_HeightRectCount = 0;
 				Tiled_HeightRemainedRectSize = 0;
-				MarkTriangleDirty();
-				MarkVertexPositionDirty();
-				MarkUVDirty();
+				MarkVerticesDirty(true, true, true, false);
 			}
 			return;
 		}
@@ -211,20 +205,18 @@ void UUISprite::CalculateTiledHeight()
 		if (heightCount != Tiled_HeightRectCount)
 		{
 			Tiled_HeightRectCount = heightCount;
-			MarkTriangleDirty();
+			MarkVerticesDirty(true, true, true, false);
 		}
 		float remainedHeight = (heightCountFloat - (heightCount - 1)) * sprite->GetSpriteInfo().height;//not-full-size rect's height
 		if (remainedHeight != Tiled_HeightRemainedRectSize)
 		{
 			Tiled_HeightRemainedRectSize = remainedHeight;
-			MarkVertexPositionDirty();
-			MarkUVDirty();
+			MarkVerticesDirty(false, true, true, false);
 		}
 	}
 	else
 	{
-		MarkVertexPositionDirty();
-		MarkUVDirty();
+		MarkVerticesDirty(false, true, true, false);
 	}
 }
 
@@ -277,8 +269,7 @@ void UUISprite::SetFillDirectionFlip(bool newValue)
 		fillDirectionFlip = newValue;
 		if (type == UISpriteType::Filled)
 		{
-			MarkVertexPositionDirty();
-			MarkUVDirty();
+			MarkVerticesDirty(false, true, true, false);
 		}
 	}
 }
@@ -289,8 +280,7 @@ void UUISprite::SetFillAmount(float newValue)
 		fillAmount = newValue;
 		if (type == UISpriteType::Filled)
 		{
-			MarkVertexPositionDirty();
-			MarkUVDirty();
+			MarkVerticesDirty(false, true, true, false);
 		}
 	}
 }
