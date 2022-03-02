@@ -355,8 +355,7 @@ void UUIText::SetText(const FText& newText) {
 		}
 		else//visible char count not change, just mark update vertex and uv
 		{
-			MarkVertexPositionDirty();
-			MarkUVDirty();
+			MarkVerticesDirty(false, true, true, false);
 		}
 	}
 }
@@ -493,23 +492,11 @@ bool UUIText::UpdateCacheTextGeometry()const
 	return true;
 }
 
-void UUIText::MarkVertexPositionDirty()
+void UUIText::MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty)
 {
 	bTextLayoutDirty = true;
 	CacheTextGeometryData.MarkDirty();
-	Super::MarkVertexPositionDirty();
-}
-void UUIText::MarkUVDirty()
-{
-	bTextLayoutDirty = true;
-	CacheTextGeometryData.MarkDirty();
-	Super::MarkUVDirty();
-}
-void UUIText::MarkTriangleDirty()
-{
-	bTextLayoutDirty = true;
-	CacheTextGeometryData.MarkDirty();
-	Super::MarkTriangleDirty();
+	Super::MarkVerticesDirty(InTriangleDirty, InVertexPositionDirty, InVertexUVDirty, InVertexColorDirty);
 }
 void UUIText::MarkTextureDirty()
 {

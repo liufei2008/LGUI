@@ -70,29 +70,37 @@ void UUIBatchGeometryRenderable::OnAnchorChange(bool InPivotChange, bool InSizeC
     }
 }
 
-void UUIBatchGeometryRenderable::MarkVertexDirty()
+void UUIBatchGeometryRenderable::MarkVerticesDirty()
 {
-	MarkTriangleDirty();
-	MarkVertexPositionDirty();
-	MarkColorDirty();
-	MarkUVDirty();
+	bTriangleChanged = true;
+	bLocalVertexPositionChanged = true;
+	bUVChanged = true;
+	bColorChanged = true;
+	MarkCanvasUpdate(false, false, false, true);
+}
+
+void UUIBatchGeometryRenderable::MarkVerticesDirty(bool InTriangleDirty, bool InVertexPositionDirty, bool InVertexUVDirty, bool InVertexColorDirty)
+{
+	bTriangleChanged = bTriangleChanged || InTriangleDirty;
+	bLocalVertexPositionChanged = bLocalVertexPositionChanged || InVertexPositionDirty;
+	bUVChanged = bUVChanged || InVertexUVDirty;
+	bColorChanged = bColorChanged || InVertexColorDirty;
+	MarkCanvasUpdate(false, bLocalVertexPositionChanged, false);
 }
 
 void UUIBatchGeometryRenderable::MarkVertexPositionDirty()
 {
-	bLocalVertexPositionChanged = true;
-	MarkCanvasUpdate(false, true, false);
+	MarkVerticesDirty(false, true, false, false);
 }
 void UUIBatchGeometryRenderable::MarkUVDirty()
 {
-	bUVChanged = true;
-	MarkCanvasUpdate(false, false, false);
+	MarkVerticesDirty(false, false, true, false);
 }
 void UUIBatchGeometryRenderable::MarkTriangleDirty()
 {
-	bTriangleChanged = true;
-	MarkCanvasUpdate(false, false, false, true);
+	MarkVerticesDirty(true, false, false, false);
 }
+
 void UUIBatchGeometryRenderable::MarkTextureDirty()
 {
 	if (RenderCanvas.IsValid())
@@ -125,19 +133,19 @@ void UUIBatchGeometryRenderable::AddGeometryModifier(class UUIGeometryModifierBa
 	{
 		SortGeometryModifier();
 	}
-	MarkTriangleDirty();
+	MarkVerticesDirty();
 }
 void UUIBatchGeometryRenderable::RemoveGeometryModifier(class UUIGeometryModifierBase* InModifier)
 {
 	GeometryModifierComponentArray.Remove(InModifier);
-	MarkTriangleDirty();
+	MarkVerticesDirty();
 }
 void UUIBatchGeometryRenderable::SortGeometryModifier()
 {
 	GeometryModifierComponentArray.Sort([](const UUIGeometryModifierBase& A, const UUIGeometryModifierBase& B) {
 		return A.GetExecuteOrder() < B.GetExecuteOrder();
 		});
-	MarkTriangleDirty();
+	MarkVerticesDirty();
 }
 
 void UUIBatchGeometryRenderable::MarkAllDirtyRecursive()

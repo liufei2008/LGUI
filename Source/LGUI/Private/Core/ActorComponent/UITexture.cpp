@@ -203,8 +203,7 @@ void UUITexture::SetFillOrigin(uint8 newValue)
 		{
 			if (fillMethod == UISpriteFillMethod::Radial90)
 			{
-				MarkVertexPositionDirty();
-				MarkUVDirty();
+				MarkVerticesDirty(false, true, true, false);
 			}
 			else if (fillMethod == UISpriteFillMethod::Radial180 || fillMethod == UISpriteFillMethod::Radial360)
 			{
@@ -220,8 +219,7 @@ void UUITexture::SetFillDirectionFlip(bool newValue)
 		fillDirectionFlip = newValue;
 		if (type == UITextureType::Filled)
 		{
-			MarkVertexPositionDirty();
-			MarkUVDirty();
+			MarkVerticesDirty(false, true, true, false);
 		}
 	}
 }
@@ -232,8 +230,7 @@ void UUITexture::SetFillAmount(float newValue)
 		fillAmount = newValue;
 		if (type == UITextureType::Filled)
 		{
-			MarkVertexPositionDirty();
-			MarkUVDirty();
+			MarkVerticesDirty(false, true, true, false);
 		}
 	}
 }

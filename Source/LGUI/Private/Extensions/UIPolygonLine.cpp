@@ -81,16 +81,14 @@ void UUIPolygonLine::SetStartAngle(float value) {
 	if (StartAngle != value)
 	{
 		StartAngle = value;
-		MarkVertexPositionDirty();
-		MarkUVDirty();
+		MarkVerticesDirty(false, true, true, false);
 	}
 }
 void UUIPolygonLine::SetEndAngle(float value) {
 	if (EndAngle != value)
 	{
 		EndAngle = value;
-		MarkVertexPositionDirty();
-		MarkUVDirty();
+		MarkVerticesDirty(false, true, true, false);
 	}
 }
 void UUIPolygonLine::SetSides(int value) {

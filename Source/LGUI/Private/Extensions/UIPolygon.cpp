@@ -222,16 +222,14 @@ void UUIPolygon::SetStartAngle(float value) {
 	if (StartAngle != value)
 	{
 		StartAngle = value;
-		MarkVertexPositionDirty();
-		MarkUVDirty();
+		MarkVerticesDirty(false, true, true, false);
 	}
 }
 void UUIPolygon::SetEndAngle(float value) {
 	if (EndAngle != value)
 	{
 		EndAngle = value;
-		MarkVertexPositionDirty();
-		MarkUVDirty();
+		MarkVerticesDirty(false, true, true, false);
 	}
 }
 void UUIPolygon::SetSides(int value) {
